@@ -46,10 +46,12 @@ const jsonLd = {
         <div class="hp-hero__trust">
           <p class="hp-trust__tagline">Backed by {articleCount.toLocaleString()}+ peer-reviewed resources and covered by international news.</p>
           <div class="hp-trust__logos">
-            <span class="hp-trust__logo hp-trust__logo--nejm">New England<br/>Journal of Medicine</span>
+            <span class="hp-trust__logo hp-trust__logo--nejm">New England Journal of Medicine</span>
             <span class="hp-trust__logo hp-trust__logo--jama">JAMA</span>
             <span class="hp-trust__logo hp-trust__logo--lancet">The Lancet</span>
             <span class="hp-trust__logo hp-trust__logo--nyt">The New York Times</span>
+            <span class="hp-trust__logo hp-trust__logo--nbc">NBC News</span>
+            <span class="hp-trust__logo hp-trust__logo--guardian">The Guardian</span>
             <span class="hp-trust__logo hp-trust__logo--wp">The Washington Post</span>
             <span class="hp-trust__logo hp-trust__logo--fs">Fertility &amp; Sterility</span>
           </div>
@@ -317,9 +319,9 @@ const jsonLd = {
      ═══════════════════════════════════════════ */
 
   .hp {
-    font-size: 0.9375rem;
-    line-height: 1.8;
-    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.75;
+    color: var(--text-primary);
   }
 
   .hp h2 {
@@ -329,7 +331,7 @@ const jsonLd = {
   }
 
   .hp h3 {
-    font-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
+    font-size: 1.5rem;
     margin-top: var(--space-8);
     margin-bottom: var(--space-3);
   }
@@ -386,7 +388,7 @@ const jsonLd = {
   }
 
   .hp-hero__subtitle {
-    font-size: 1rem;
+    font-size: 1.125rem;
     line-height: 1.75;
     color: var(--text-secondary);
     margin-bottom: var(--space-5);
@@ -422,9 +424,7 @@ const jsonLd = {
 
   /* Trust bar (inside hero) */
   .hp-hero__trust {
-    margin-top: var(--space-10);
-    padding-top: var(--space-8);
-    border-top: 1px solid rgba(114,94,126,0.15);
+    margin-top: var(--space-12);
   }
 
   .hp-trust__tagline {
@@ -432,13 +432,14 @@ const jsonLd = {
     color: var(--text-tertiary);
     margin-bottom: var(--space-6);
     letter-spacing: 0.01em;
+    text-align: center;
   }
 
   .hp-trust__logos {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: var(--space-8);
+    gap: var(--space-3) var(--space-6);
     flex-wrap: wrap;
   }
 
@@ -454,10 +455,9 @@ const jsonLd = {
 
   .hp-trust__logo--nejm {
     font-family: 'Georgia', serif;
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    text-align: center;
   }
 
   .hp-trust__logo--jama {
@@ -483,6 +483,21 @@ const jsonLd = {
     letter-spacing: 0;
   }
 
+  .hp-trust__logo--nbc {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .hp-trust__logo--guardian {
+    font-family: 'Georgia', serif;
+    font-size: 1.125rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
   .hp-trust__logo--wp {
     font-family: 'Georgia', serif;
     font-size: 0.875rem;
@@ -501,10 +516,10 @@ const jsonLd = {
 
   @media (max-width: 768px) {
     .hp-trust__logos {
-      gap: var(--space-5) var(--space-6);
+      gap: var(--space-3) var(--space-5);
     }
     .hp-trust__logo--nejm {
-      font-size: 0.5625rem;
+      font-size: 0.625rem;
     }
     .hp-trust__logo--jama {
       font-size: 1rem;
