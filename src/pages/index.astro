@@ -59,6 +59,7 @@ const jsonLd = {
       </div>
     </header>
 
+    <div class="page-body">
     <!-- Intro -->
     <section class="hp-section">
       <div class="container container--narrow">
@@ -198,7 +199,7 @@ const jsonLd = {
     <section class="hp-section hp-section--alt">
       <div class="container container--narrow">
         <h2>Guided by Expertise, Driven by Compassion</h2>
-        <blockquote class="hp-quote">
+        <blockquote>
           <p>
             "I'll never forget a patient I saw during my residency. She had a history of miscarriages
             and was pregnant again, terrified. I ordered a progesterone level, which came back low. My
@@ -289,6 +290,7 @@ const jsonLd = {
         </div>
       </div>
     </section>
+    </div>
   </article>
 </BaseLayout>
 
@@ -334,14 +336,9 @@ const jsonLd = {
     font-weight: 600;
   }
 
-  /* Sections — unified background, vertical letter-line on left */
+  /* Sections — letter-line handled by global .page-body */
   .hp-section {
     padding: 0;
-  }
-
-  .hp-section .container--narrow {
-    border-left: 2px solid var(--purple-300);
-    padding: var(--space-12) var(--space-4) var(--space-12) var(--space-8);
   }
 
   /* Hero */
@@ -413,7 +410,8 @@ const jsonLd = {
       margin-bottom: var(--space-4);
     }
     .hp-section .container--narrow {
-      padding: var(--space-10) var(--space-4) var(--space-10) var(--space-5);
+      padding-top: var(--space-10);
+      padding-bottom: var(--space-10);
     }
     .hp h2 {
       font-size: 1.5rem;
@@ -536,31 +534,6 @@ const jsonLd = {
     .hp-trust__logo--nyt {
       font-size: 0.9375rem;
     }
-  }
-
-  /* Quote */
-  .hp-quote {
-    border-left: 3px solid var(--purple-300);
-    padding: var(--space-5) var(--space-6);
-    margin: 0 0 var(--space-6);
-  }
-
-  .hp-quote p {
-    font-family: 'Cormorant Garamond', 'Georgia', serif;
-    font-size: clamp(1.125rem, 1rem + 0.5vw, 1.5rem);
-    line-height: 1.55;
-    color: var(--text-primary);
-    font-style: italic;
-  }
-
-  .hp-quote cite {
-    display: block;
-    margin-top: var(--space-3);
-    font-family: 'Inter', sans-serif;
-    font-size: 0.875rem;
-    font-style: normal;
-    font-weight: 600;
-    color: var(--accent);
   }
 
   /* Comparison */

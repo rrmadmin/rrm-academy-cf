@@ -6,7 +6,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   description="Privacy Policy for the RRM Academy website. Learn how we collect, use, and protect your information."
   canonicalUrl="https://rrmacademy.org/privacy-policy"
 >
-  <div class="legal-page">
+  <div class="page-wrapper prose">
     <div class="container container--narrow">
       <h1>Privacy Policy</h1>
       <p class="effective-date">Effective Date: July 16, 2025</p>
@@ -110,71 +110,3 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   </div>
 </BaseLayout>
 
-<style>
-  .legal-page {
-    padding: var(--space-8) 0 var(--space-16);
-    min-height: 60vh;
-  }
-  .legal-page h1 {
-    font-size: 2rem;
-    margin-bottom: var(--space-2);
-  }
-  .effective-date {
-    font-size: 0.875rem;
-    color: var(--text-tertiary);
-    font-weight: 500;
-    margin-bottom: var(--space-8);
-  }
-  .legal-section {
-    margin-bottom: var(--space-8);
-  }
-  .legal-section h2 {
-    font-size: 1.375rem;
-    margin-bottom: var(--space-3);
-    padding-top: var(--space-2);
-  }
-  .legal-section h3 {
-    font-size: 1.125rem;
-    margin-top: var(--space-5);
-    margin-bottom: var(--space-2);
-  }
-  .legal-section p {
-    font-size: 0.9375rem;
-    line-height: 1.8;
-    color: var(--text-secondary);
-  }
-  .legal-section ul {
-    list-style: disc;
-    padding-left: var(--space-6);
-    margin-bottom: 1em;
-  }
-  .legal-section li {
-    font-size: 0.9375rem;
-    line-height: 1.8;
-    color: var(--text-secondary);
-    margin-bottom: var(--space-2);
-  }
-  .legal-section a {
-    color: var(--accent);
-  }
-  .legal-section a:hover {
-    color: var(--accent-hover);
-    text-decoration: underline;
-  }
-  .contact-block {
-    font-style: normal;
-    font-size: 0.9375rem;
-    line-height: 1.8;
-    color: var(--text-secondary);
-    margin-bottom: 1em;
-  }
-
-  @media (max-width: 768px) {
-    .legal-page h1 {
-      font-size: 1.5rem;
-    }
-    .legal-section h2 {
-      font-size: 1.25rem;
-    }
-  }
-</style>

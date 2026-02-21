@@ -119,7 +119,7 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
   ogType="article"
   jsonLd={jsonLd}
 >
-  <div class="article-page">
+  <div class="page-wrapper">
     <div class="container container--narrow">
       <!-- Breadcrumb + Save -->
       <div class="article-topbar">
@@ -258,10 +258,6 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
 </BaseLayout>
 
 <style>
-  .article-page {
-    padding-top: var(--space-8);
-    padding-bottom: var(--space-16);
-  }
   .article-title {
     font-size: 1.875rem;
     margin-bottom: var(--space-4);

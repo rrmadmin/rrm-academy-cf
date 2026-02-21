@@ -21,7 +21,7 @@ const jsonLd = {
   canonicalUrl="https://rrmacademy.org/donate"
   jsonLd={jsonLd}
 >
-  <div class="donate-page">
+  <div class="page-wrapper">
     <div class="container container--narrow">
 
       <!-- Hero -->
@@ -141,11 +141,6 @@ const jsonLd = {
 </BaseLayout>
 
 <style>
-  .donate-page {
-    padding: var(--space-8) 0 var(--space-16);
-    min-height: 60vh;
-  }
-
   /* Hero */
   .donate-hero {
     text-align: center;
@@ -192,13 +187,6 @@ const jsonLd = {
     color: var(--text-tertiary);
     margin-top: var(--space-3);
     line-height: 1.6;
-  }
-
-  /* Divider */
-  .divider {
-    border: none;
-    border-top: 1px solid var(--border-color);
-    margin: var(--space-6) 0;
   }
 
   /* Sections */
@@ -263,39 +251,6 @@ const jsonLd = {
     line-height: 1.8;
     color: var(--text-secondary);
     margin-bottom: var(--space-3);
-  }
-
-  /* Stats */
-  .stats-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-6);
-    margin-top: var(--space-6);
-    text-align: center;
-  }
-  .stat {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-  .stat-number {
-    font-family: 'Cormorant Garamond', 'Georgia', serif;
-    font-size: 2rem;
-    font-weight: 600;
-    color: var(--accent);
-    line-height: 1;
-  }
-  .stat-label {
-    font-size: 0.8125rem;
-    color: var(--text-tertiary);
-    line-height: 1.4;
-  }
-
-  @media (max-width: 640px) {
-    .stats-row {
-      grid-template-columns: 1fr;
-      gap: var(--space-6);
-    }
   }
 
   /* Bottom CTA */

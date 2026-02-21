@@ -44,7 +44,7 @@ const jsonLd = {
     <div class="container container--narrow">
       <div class="contact-grid">
         <!-- Info column -->
-        <div class="contact-info">
+        <div class="contact-info prose">
           <div class="contact-block">
             <h2>Get in touch</h2>
             <p>
@@ -217,17 +217,6 @@ const jsonLd = {
     font-size: 1rem;
     margin-bottom: var(--space-2);
   }
-  .contact-block p {
-    font-size: 0.9375rem;
-    color: var(--text-secondary);
-    line-height: 1.75;
-  }
-  .contact-address {
-    font-style: normal;
-    font-size: 0.9375rem;
-    color: var(--text-secondary);
-    line-height: 1.75;
-  }
   .contact-social {
     display: inline-flex;
     align-items: center;
@@ -244,50 +233,6 @@ const jsonLd = {
   .contact-form-wrap {
     position: relative;
   }
-  .form-group {
-    margin-bottom: var(--space-5);
-  }
-  .form-label {
-    display: block;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: var(--text-primary);
-    margin-bottom: var(--space-2);
-  }
-  .form-required {
-    color: var(--accent);
-  }
-  .form-input,
-  .form-textarea {
-    width: 100%;
-    padding: 10px 14px;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.9375rem;
-    color: var(--text-primary);
-    background: var(--bg-surface);
-    border: 1.5px solid var(--neutral-300);
-    border-radius: var(--radius-sm);
-    outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
-  }
-  .form-input:focus,
-  .form-textarea:focus {
-    border-color: var(--purple-700);
-    box-shadow: 0 0 0 3px var(--focus-ring);
-  }
-  .form-input::placeholder,
-  .form-textarea::placeholder {
-    color: var(--text-muted);
-  }
-  .form-textarea {
-    resize: vertical;
-    min-height: 120px;
-  }
-  .form-input.invalid,
-  .form-textarea.invalid {
-    border-color: #c0392b;
-  }
-
   .contact-submit {
     width: 100%;
   }

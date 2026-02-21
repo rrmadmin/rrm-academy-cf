@@ -93,6 +93,7 @@ const jsonLd = {
     </div>
   </section>
 
+  <div class="page-body">
   <!-- Mission -->
   <section class="about-section">
     <div class="container container--narrow">
@@ -154,7 +155,7 @@ const jsonLd = {
     <div class="container container--narrow">
       <h2>Meet our founder</h2>
 
-      <div class="founder-card">
+      <div class="card founder-card">
         <div class="founder-card__content">
           <h3>Dr. Naomi Whittaker, MD, OBGYN, MIGS</h3>
           <p class="founder-card__role">Founder &amp; Medical Director</p>
@@ -164,7 +165,7 @@ const jsonLd = {
         </div>
       </div>
 
-      <div class="founder-card">
+      <div class="card founder-card">
         <div class="founder-card__content">
           <h3>Brian Whittaker</h3>
           <p class="founder-card__role">Executive Director</p>
@@ -202,6 +203,7 @@ const jsonLd = {
       </p>
     </div>
   </section>
+  </div>
 </BaseLayout>
 
 <style>
@@ -237,22 +239,12 @@ const jsonLd = {
     }
   }
 
-  /* Sections */
+  /* Sections — use global .page-body letter-line */
   .about-section {
-    padding: var(--space-10) 0;
+    padding: 0;
   }
   .about-section--alt {
-    background: var(--bg-surface);
-    border-top: 1px solid var(--border-light);
-    border-bottom: 1px solid var(--border-light);
-  }
-  @media (min-width: 769px) {
-    .about-section {
-      padding: var(--space-16) 0;
-    }
-  }
-  .about-section h2 {
-    margin-bottom: var(--space-6);
+    background: none;
   }
   .about-section p {
     font-size: 1rem;
@@ -300,12 +292,9 @@ const jsonLd = {
     margin-bottom: 0;
   }
 
-  /* Founder cards */
+  /* Founder cards — extends global .card */
   .founder-card {
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
     background: var(--bg-body);
-    padding: var(--space-6);
     margin-bottom: var(--space-6);
   }
   .founder-card:last-child {
