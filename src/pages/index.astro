@@ -388,29 +388,55 @@ const jsonLd = {
 
   @media (max-width: 768px) {
     .hp-hero {
-      padding: var(--space-10) 0 var(--space-8);
+      padding: var(--space-12) 0 var(--space-12);
+    }
+    .hp-hero h1 {
+      margin-bottom: var(--space-8);
+    }
+    .hp-hero__subtitle {
+      font-size: 1rem;
+      margin-bottom: var(--space-8);
     }
     .hp-hero__links {
       flex-direction: column;
       align-items: stretch;
+      gap: var(--space-3);
     }
     .hp-hero__links .btn {
       width: 100%;
     }
+    .hp-hero__trust {
+      margin-top: 60px;
+    }
+    .hp-trust__tagline {
+      font-size: 0.75rem;
+      margin-bottom: var(--space-4);
+    }
     .hp-section .container--narrow {
-      padding: var(--space-8) 0 var(--space-8) var(--space-6);
+      padding: var(--space-10) 0 var(--space-10) var(--space-5);
+    }
+    .hp h2 {
+      font-size: 1.5rem;
+      margin-bottom: var(--space-4);
+    }
+    .hp h3 {
+      font-size: 1.25rem;
+      margin-top: var(--space-6);
+    }
+    .hp p {
+      margin-bottom: 1em;
     }
   }
 
   /* Trust bar (inside hero) */
   .hp-hero__trust {
-    margin-top: var(--space-12);
+    margin-top: 120px;
   }
 
   .hp-trust__tagline {
     font-size: 0.8125rem;
     color: var(--text-tertiary);
-    margin-bottom: var(--space-6);
+    margin-bottom: var(--space-4);
     letter-spacing: 0.01em;
     text-align: center;
   }
