@@ -53,10 +53,11 @@ const year = new Date().getFullYear();
 
 <style>
   .site-footer {
-    background: var(--neutral-900);
-    color: var(--neutral-400);
+    background: var(--footer-bg);
+    color: var(--footer-text);
     margin-top: 0;
     padding: var(--space-12) 0 var(--space-8);
+    transition: background 0.3s, color 0.3s;
   }
   .footer-columns {
     display: grid;
@@ -68,7 +69,7 @@ const year = new Date().getFullYear();
     font-family: 'Cormorant Garamond', 'Georgia', serif;
     font-size: 1.125rem;
     font-weight: 500;
-    color: var(--white);
+    color: var(--footer-heading);
     margin-bottom: var(--space-5);
     letter-spacing: -0.01em;
   }
@@ -80,36 +81,36 @@ const year = new Date().getFullYear();
   }
   .footer-links a {
     font-size: 0.8125rem;
-    color: var(--neutral-400);
+    color: var(--footer-link);
     text-decoration: none;
     transition: color 0.15s;
   }
   .footer-links a:hover {
-    color: var(--white);
+    color: var(--footer-link-hover);
     text-decoration: none;
   }
   .footer-text {
     font-size: 0.8125rem;
-    color: var(--neutral-400);
+    color: var(--footer-text);
     line-height: 1.7;
   }
   .footer-text a {
-    color: var(--purple-300);
+    color: var(--footer-accent);
     text-decoration: none;
   }
   .footer-text a:hover {
-    color: var(--purple-100);
+    color: var(--footer-accent-hover);
   }
   .footer-bottom {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding-top: var(--space-6);
-    border-top: 1px solid rgba(255,255,255,0.1);
+    border-top: 1px solid var(--footer-border);
   }
   .footer-copyright {
     font-size: 0.75rem;
-    color: var(--neutral-500);
+    color: var(--footer-muted);
   }
   .footer-legal {
     display: flex;
@@ -117,12 +118,12 @@ const year = new Date().getFullYear();
   }
   .footer-legal a {
     font-size: 0.75rem;
-    color: var(--neutral-500);
+    color: var(--footer-muted);
     text-decoration: none;
     transition: color 0.15s;
   }
   .footer-legal a:hover {
-    color: var(--neutral-300);
+    color: var(--footer-link);
   }
 
   @media (max-width: 768px) {

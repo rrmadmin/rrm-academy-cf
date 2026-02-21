@@ -1,0 +1,225 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Saved Articles"
+  description="Your saved articles from the RRM Research Library."
+>
+  <div class="saved-page">
+    <div class="container container--narrow">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/library">Research Library</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <span>Saved</span>
+      </nav>
+
+      <h1 class="saved-title">Saved Articles</h1>
+
+      <div id="saved-empty" class="saved-empty">
+        <p>No saved articles yet.</p>
+        <p class="saved-hint">
+          Tap the <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px;"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Save button on any article to add it here.
+        </p>
+        <a href="/library" class="back-link">&larr; Browse the library</a>
+      </div>
+
+      <div id="saved-list" class="saved-list"></div>
+
+      <button id="clear-all" class="clear-all-btn">Clear all saved articles</button>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .saved-page {
+    padding: var(--space-8) 0 var(--space-16);
+    min-height: 60vh;
+  }
+  .saved-title {
+    font-size: 1.5rem;
+    margin-bottom: var(--space-6);
+  }
+
+  .saved-empty {
+    text-align: center;
+    padding: var(--space-12) 0;
+    color: var(--neutral-500);
+    font-size: 0.875rem;
+    display: none;
+  }
+  .saved-empty.visible {
+    display: block;
+  }
+  .saved-hint {
+    font-size: 0.8125rem;
+    color: var(--neutral-400);
+    margin-top: var(--space-2);
+  }
+  .back-link {
+    display: inline-block;
+    margin-top: var(--space-4);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--purple-700);
+  }
+
+  .saved-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* Individual saved item — rendered by JS */
+  .saved-list :global(.saved-item) {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-4) 0;
+    border-bottom: 1px solid var(--neutral-200);
+  }
+  .saved-list :global(.saved-item:first-child) {
+    padding-top: 0;
+  }
+  .saved-list :global(.saved-item__info) {
+    flex: 1;
+    min-width: 0;
+  }
+  .saved-list :global(.saved-item__title) {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--neutral-900);
+    text-decoration: none;
+    line-height: 1.4;
+    display: block;
+  }
+  .saved-list :global(.saved-item__title:hover) {
+    color: var(--purple-700);
+  }
+  .saved-list :global(.saved-item__meta) {
+    font-size: 0.6875rem;
+    color: var(--neutral-500);
+    margin-top: 2px;
+  }
+  .saved-list :global(.saved-item__remove) {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--neutral-400);
+    padding: 4px;
+    transition: color 0.15s;
+    margin-top: 2px;
+  }
+  .saved-list :global(.saved-item__remove:hover) {
+    color: var(--neutral-900);
+  }
+
+  .clear-all-btn {
+    display: none;
+    margin-top: var(--space-6);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--neutral-400);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+  }
+  .clear-all-btn:hover {
+    color: var(--neutral-900);
+  }
+  .clear-all-btn.visible {
+    display: inline-block;
+  }
+</style>
+
+<script is:inline>
+  (function() {
+    var KEY = 'rrm_saved';
+    var list = document.getElementById('saved-list');
+    var empty = document.getElementById('saved-empty');
+    var clearBtn = document.getElementById('clear-all');
+
+    function getSaved() {
+      try { return JSON.parse(localStorage.getItem(KEY) || '[]'); }
+      catch(e) { return []; }
+    }
+
+    function setSaved(items) {
+      localStorage.setItem(KEY, JSON.stringify(items));
+    }
+
+    function render() {
+      var saved = getSaved();
+      list.innerHTML = '';
+
+      if (saved.length === 0) {
+        empty.classList.add('visible');
+        clearBtn.classList.remove('visible');
+        return;
+      }
+
+      empty.classList.remove('visible');
+      clearBtn.classList.add('visible');
+
+      saved.forEach(function(item) {
+        var div = document.createElement('div');
+        div.className = 'saved-item';
+
+        var meta = [item.authors, item.journal, item.year].filter(Boolean).join(' \u00b7 ');
+
+        div.innerHTML =
+          '<div class="saved-item__info">' +
+            '<a href="/library/' + item.slug + '" class="saved-item__title">' + escapeHtml(item.title) + '</a>' +
+            (meta ? '<div class="saved-item__meta">' + escapeHtml(meta) + '</div>' : '') +
+          '</div>' +
+          '<button class="saved-item__remove" data-slug="' + item.slug + '" aria-label="Remove" title="Remove">' +
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
+          '</button>';
+
+        list.appendChild(div);
+      });
+
+      // Remove buttons
+      list.querySelectorAll('.saved-item__remove').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var slug = btn.dataset.slug;
+          var items = getSaved().filter(function(s) { return s.slug !== slug; });
+          setSaved(items);
+          render();
+          updateHeaderBadge(items.length);
+        });
+      });
+    }
+
+    function updateHeaderBadge(count) {
+      var badge = document.getElementById('saved-count');
+      var link = document.getElementById('saved-link');
+      if (badge) badge.textContent = count;
+      if (link) {
+        if (count > 0) link.classList.add('has-items');
+        else link.classList.remove('has-items');
+      }
+    }
+
+    // Clear all
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function() {
+        if (confirm('Remove all saved articles?')) {
+          setSaved([]);
+          render();
+          updateHeaderBadge(0);
+        }
+      });
+    }
+
+    function escapeHtml(str) {
+      var div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    render();
+  })();
+</script>

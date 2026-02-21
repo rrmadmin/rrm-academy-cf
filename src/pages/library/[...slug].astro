@@ -121,12 +121,28 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
 >
   <div class="article-page">
     <div class="container container--narrow">
-      <!-- Breadcrumb -->
-      <nav class="breadcrumb" aria-label="Breadcrumb">
-        <a href="/library">Research Library</a>
-        <span aria-hidden="true"> &rsaquo; </span>
-        <span>Synopsis</span>
-      </nav>
+      <!-- Breadcrumb + Save -->
+      <div class="article-topbar">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href="/library">Research Library</a>
+          <span aria-hidden="true"> &rsaquo; </span>
+          <span>Synopsis</span>
+        </nav>
+        <button
+          class="save-btn"
+          id="save-btn"
+          aria-label="Save article"
+          data-slug={article.slug}
+          data-title={article.title}
+          data-authors={article.shortCitation || ''}
+          data-journal={article.journal || article.journalAbbv || ''}
+          data-year={article.year || ''}
+        >
+          <svg class="save-icon save-icon--outline" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          <svg class="save-icon save-icon--filled" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          <span class="save-label">Save</span>
+        </button>
+      </div>
 
       <!-- Title -->
       <h1 class="article-title">{article.title}</h1>
@@ -282,8 +298,8 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
 
   .abstract-band {
     background: var(--neutral-100);
-    border-top: 1px solid var(--neutral-200);
-    border-bottom: 1px solid var(--neutral-200);
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
     padding: var(--space-8) 0;
     margin-bottom: var(--space-8);
   }
@@ -329,7 +345,49 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
   .article-related {
     margin-top: var(--space-12);
     padding-top: var(--space-8);
-    border-top: 1px solid var(--neutral-200);
+    border-top: 1px solid var(--border-color);
+  }
+
+  /* Topbar: breadcrumb + save button */
+  .article-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+
+  .save-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .save-btn:hover {
+    color: var(--accent);
+    border-color: var(--purple-300);
+  }
+  .save-btn.saved {
+    color: var(--accent);
+    border-color: var(--purple-300);
+  }
+  .save-icon--filled {
+    display: none;
+  }
+  .save-btn.saved .save-icon--outline {
+    display: none;
+  }
+  .save-btn.saved .save-icon--filled {
+    display: block;
   }
 
   @media (max-width: 768px) {
@@ -341,3 +399,58 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
     }
   }
 </style>
+
+<script is:inline>
+  (function() {
+    var KEY = 'rrm_saved';
+    var btn = document.getElementById('save-btn');
+    if (!btn) return;
+
+    function getSaved() {
+      try { return JSON.parse(localStorage.getItem(KEY) || '[]'); }
+      catch(e) { return []; }
+    }
+
+    function setSaved(items) {
+      localStorage.setItem(KEY, JSON.stringify(items));
+    }
+
+    var slug = btn.dataset.slug;
+    var saved = getSaved();
+    var isSaved = saved.some(function(s) { return s.slug === slug; });
+
+    function render() {
+      if (isSaved) {
+        btn.classList.add('saved');
+        btn.querySelector('.save-label').textContent = 'Saved';
+      } else {
+        btn.classList.remove('saved');
+        btn.querySelector('.save-label').textContent = 'Save';
+      }
+    }
+    render();
+
+    btn.addEventListener('click', function() {
+      saved = getSaved();
+      if (isSaved) {
+        saved = saved.filter(function(s) { return s.slug !== slug; });
+        isSaved = false;
+      } else {
+        saved.unshift({
+          slug: slug,
+          title: btn.dataset.title,
+          authors: btn.dataset.authors,
+          journal: btn.dataset.journal,
+          year: btn.dataset.year,
+          savedAt: new Date().toISOString()
+        });
+        isSaved = true;
+      }
+      setSaved(saved);
+      render();
+      // Update badge count if visible
+      var badge = document.querySelector('.saved-count');
+      if (badge) badge.textContent = saved.length;
+    });
+  })();
+</script>

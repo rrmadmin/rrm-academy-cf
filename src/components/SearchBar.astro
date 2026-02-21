@@ -1,7 +1,18 @@
 ---
 // Pagefind search widget wrapper
+// Shows a native input immediately; Pagefind replaces it once JS loads
 ---
 <div class="search-wrapper" id="search">
+  <div class="search-fallback" id="search-fallback">
+    <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input
+      type="search"
+      class="search-fallback__input"
+      placeholder="Search articles..."
+      id="search-fallback-input"
+      autocomplete="off"
+    />
+  </div>
   <div id="pagefind-search"></div>
 </div>
 
@@ -9,53 +20,90 @@
   .search-wrapper {
     position: relative;
   }
-  /* Override Pagefind default styles */
+
+  /* Native fallback — visible immediately in HTML */
+  .search-fallback {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .search-fallback.hidden {
+    display: none;
+  }
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+  .search-fallback__input {
+    width: 100%;
+    padding: 12px 16px 12px 42px;
+    font-size: 16px; /* Prevents iOS zoom */
+    font-family: 'Inter', sans-serif;
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-md);
+    outline: none;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    transition: border-color 0.15s;
+  }
+  .search-fallback__input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+  .search-fallback__input::placeholder {
+    color: var(--text-muted);
+  }
+
+  /* Pagefind overrides */
   .search-wrapper :global(.pagefind-ui) {
     --pagefind-ui-scale: 0.9;
-    --pagefind-ui-primary: var(--purple-700);
-    --pagefind-ui-text: var(--neutral-900);
-    --pagefind-ui-background: var(--white);
-    --pagefind-ui-border: var(--neutral-300);
+    --pagefind-ui-primary: var(--accent);
+    --pagefind-ui-text: var(--text-primary);
+    --pagefind-ui-background: var(--bg-surface);
+    --pagefind-ui-border: var(--border-color);
     --pagefind-ui-border-width: 1.5px;
-    --pagefind-ui-border-radius: var(--radius-lg);
+    --pagefind-ui-border-radius: var(--radius-md);
     --pagefind-ui-font: 'Inter', sans-serif;
   }
   .search-wrapper :global(.pagefind-ui__search-input) {
     width: 100%;
-    padding: 14px 16px 14px 44px;
-    font-size: 1rem;
+    padding: 12px 16px 12px 44px;
+    font-size: 16px;
     font-family: 'Inter', sans-serif;
-    border: 1.5px solid var(--neutral-300);
-    border-radius: var(--radius-lg);
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-md);
     outline: none;
     transition: all 0.2s;
-    background: var(--white);
+    background: var(--bg-surface);
+    color: var(--text-primary);
   }
   .search-wrapper :global(.pagefind-ui__search-input:focus) {
-    border-color: var(--purple-700);
-    box-shadow: 0 0 0 3px rgba(114, 94, 126, 0.1);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--focus-ring);
   }
   .search-wrapper :global(.pagefind-ui__search-input::placeholder) {
-    color: var(--neutral-500);
+    color: var(--text-muted);
   }
   .search-wrapper :global(.pagefind-ui__search-clear) {
     right: 12px;
-    color: var(--neutral-500);
+    color: var(--text-tertiary);
   }
   .search-wrapper :global(.pagefind-ui__result-link) {
-    color: var(--purple-700);
+    color: var(--accent);
     font-weight: 500;
   }
   .search-wrapper :global(.pagefind-ui__result-link:hover) {
-    color: var(--purple-900);
+    color: var(--accent-hover);
   }
   .search-wrapper :global(.pagefind-ui__result-excerpt) {
-    color: var(--neutral-600);
+    color: var(--text-secondary);
     font-size: 0.875rem;
   }
   .search-wrapper :global(.pagefind-ui__message) {
     font-size: 0.875rem;
-    color: var(--neutral-600);
+    color: var(--text-secondary);
     padding: var(--space-4) 0;
   }
 </style>
@@ -63,8 +111,12 @@
 <link href="/pagefind/pagefind-ui.css" rel="stylesheet" />
 <script is:inline>
   async function initSearch() {
-    const { PagefindUI } = await import('/pagefind/pagefind-ui.js');
-    new PagefindUI({
+    var fallback = document.getElementById('search-fallback');
+    var fallbackInput = document.getElementById('search-fallback-input');
+    var savedQuery = fallbackInput ? fallbackInput.value : '';
+
+    var mod = await import('/pagefind/pagefind-ui.js');
+    new mod.PagefindUI({
       element: '#pagefind-search',
       showSubResults: false,
       showImages: false,
@@ -72,14 +124,14 @@
       resetStyles: false,
     });
 
-    // Apply placeholder after Pagefind creates the input
+    // Hide fallback once Pagefind is ready
     requestAnimationFrame(function() {
+      if (fallback) fallback.classList.add('hidden');
       var input = document.querySelector('.pagefind-ui__search-input');
       if (input) {
-        input.placeholder = 'Search by topic, title, author, or keyword...';
-        // Check URL for search param
-        var params = new URLSearchParams(window.location.search);
-        var q = params.get('q') || params.get('search');
+        input.placeholder = 'Search articles...';
+        // Transfer any query typed into fallback
+        var q = savedQuery || new URLSearchParams(window.location.search).get('q') || '';
         if (q) {
           input.value = q;
           input.dispatchEvent(new Event('input', { bubbles: true }));

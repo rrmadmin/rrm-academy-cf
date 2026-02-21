@@ -58,8 +58,20 @@ const wixBase = 'https://www.rrmacademy.org';
     </nav>
 
     <div class="header-actions">
+      <a href="/library/saved" class="saved-link" id="saved-link" title="Saved articles">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        <span class="saved-count" id="saved-count">0</span>
+      </a>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+        <svg class="icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
       <a href={`${wixBase}/donate`} class="btn btn--primary btn--sm">Donate</a>
     </div>
+
+    <a href="/library/saved" class="mobile-saved" id="mobile-saved-link" title="Saved articles">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+    </a>
 
     <button class="mobile-toggle" aria-label="Menu" aria-expanded="false">
       <span class="hamburger"></span>
@@ -72,8 +84,9 @@ const wixBase = 'https://www.rrmacademy.org';
     position: sticky;
     top: 0;
     z-index: 100;
-    background: var(--white);
-    border-bottom: 1px solid var(--neutral-300);
+    background: var(--bg-header);
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.3s;
   }
   .header-inner {
     display: flex;
@@ -97,8 +110,8 @@ const wixBase = 'https://www.rrmacademy.org';
     justify-content: center;
     width: 28px;
     height: 28px;
-    background: var(--purple-700);
-    color: var(--white);
+    background: var(--accent);
+    color: var(--bg-body);
     font-family: 'Cormorant Garamond', 'Georgia', serif;
     font-weight: 600;
     font-size: 0.875rem;
@@ -109,7 +122,7 @@ const wixBase = 'https://www.rrmacademy.org';
     font-family: 'Cormorant Garamond', 'Georgia', serif;
     font-weight: 600;
     font-size: 1.1875rem;
-    color: var(--neutral-900);
+    color: var(--text-primary);
     letter-spacing: -0.01em;
   }
   .main-nav {
@@ -128,18 +141,18 @@ const wixBase = 'https://www.rrmacademy.org';
     padding: 6px 14px;
     font-size: 0.8125rem;
     font-weight: 500;
-    color: var(--neutral-700);
+    color: var(--text-secondary);
     text-decoration: none;
     border-radius: var(--radius-md);
     transition: color 0.15s, background 0.15s;
   }
   .nav-link:hover {
-    color: var(--purple-700);
+    color: var(--accent);
     background: var(--purple-50);
     text-decoration: none;
   }
   .nav-link--active {
-    color: var(--purple-700);
+    color: var(--accent);
     font-weight: 600;
   }
 
@@ -150,8 +163,8 @@ const wixBase = 'https://www.rrmacademy.org';
     top: calc(100% + 4px);
     left: 0;
     min-width: 260px;
-    background: var(--white);
-    border: 1px solid var(--neutral-300);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
     list-style: none;
@@ -165,13 +178,13 @@ const wixBase = 'https://www.rrmacademy.org';
     display: block;
     padding: var(--space-2) var(--space-3);
     font-size: 0.8125rem;
-    color: var(--neutral-700);
+    color: var(--text-secondary);
     text-decoration: none;
     border-radius: var(--radius-md);
     transition: all 0.1s;
   }
   .dropdown-link:hover {
-    color: var(--purple-700);
+    color: var(--accent);
     background: var(--purple-50);
     text-decoration: none;
   }
@@ -181,9 +194,68 @@ const wixBase = 'https://www.rrmacademy.org';
     align-items: center;
     gap: var(--space-3);
   }
+  .saved-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: var(--radius-sm);
+    transition: color 0.15s;
+  }
+  .saved-link:hover {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .saved-link.has-items {
+    color: var(--accent);
+  }
+  .saved-count {
+    font-variant-numeric: tabular-nums;
+  }
+  .saved-link:not(.has-items) {
+    display: none;
+  }
   .btn--sm {
     padding: 7px 18px;
     font-size: 0.75rem;
+  }
+
+  /* Theme toggle */
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 5px 8px;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .theme-toggle:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .theme-toggle .icon-sun,
+  .theme-toggle .icon-moon { display: none; }
+  :global([data-theme="light"]) .theme-toggle .icon-moon { display: inline; }
+  :global([data-theme="dark"]) .theme-toggle .icon-sun { display: inline; }
+
+  /* Mobile saved icon — always visible on small screens if items saved */
+  .mobile-saved {
+    display: none;
+    color: var(--text-muted);
+    padding: var(--space-1);
+    margin-left: auto;
+    margin-right: var(--space-2);
+  }
+  .mobile-saved.has-items {
+    color: var(--accent);
   }
 
   /* Mobile */
@@ -198,7 +270,7 @@ const wixBase = 'https://www.rrmacademy.org';
     display: block;
     width: 18px;
     height: 2px;
-    background: var(--neutral-900);
+    background: var(--text-primary);
     position: relative;
     border-radius: 1px;
   }
@@ -209,7 +281,7 @@ const wixBase = 'https://www.rrmacademy.org';
     left: 0;
     width: 100%;
     height: 2px;
-    background: var(--neutral-900);
+    background: var(--text-primary);
     border-radius: 1px;
   }
   .hamburger::before { top: -6px; }
@@ -219,9 +291,14 @@ const wixBase = 'https://www.rrmacademy.org';
     .main-nav, .header-actions {
       display: none;
     }
+    .mobile-saved {
+      display: block;
+    }
+    .mobile-saved:not(.has-items) {
+      display: none;
+    }
     .mobile-toggle {
       display: block;
-      margin-left: auto;
     }
     .site-header.nav-open .main-nav {
       display: block;
@@ -229,8 +306,8 @@ const wixBase = 'https://www.rrmacademy.org';
       top: 60px;
       left: 0;
       right: 0;
-      background: var(--white);
-      border-bottom: 1px solid var(--neutral-300);
+      background: var(--bg-header);
+      border-bottom: 1px solid var(--border-color);
       box-shadow: var(--shadow-lg);
       padding: var(--space-4);
     }
@@ -253,14 +330,42 @@ const wixBase = 'https://www.rrmacademy.org';
   }
 </style>
 
-<script>
-  const toggle = document.querySelector('.mobile-toggle');
-  const header = document.querySelector('.site-header');
+<script is:inline>
+  // Mobile menu toggle
+  var toggle = document.querySelector('.mobile-toggle');
+  var header = document.querySelector('.site-header');
   if (toggle && header) {
-    toggle.addEventListener('click', () => {
-      const expanded = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.addEventListener('click', function() {
+      var expanded = toggle.getAttribute('aria-expanded') === 'true';
       toggle.setAttribute('aria-expanded', String(!expanded));
       header.classList.toggle('nav-open');
     });
   }
+
+  // Theme toggle
+  var themeToggle = document.getElementById('theme-toggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', function() {
+      var html = document.documentElement;
+      var current = html.getAttribute('data-theme');
+      var next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('rrm_theme', next);
+    });
+  }
+
+  // Saved articles badge (desktop + mobile)
+  (function() {
+    try {
+      var saved = JSON.parse(localStorage.getItem('rrm_saved') || '[]');
+      if (saved.length > 0) {
+        var link = document.getElementById('saved-link');
+        var count = document.getElementById('saved-count');
+        var mobileLink = document.getElementById('mobile-saved-link');
+        if (link) { link.classList.add('has-items'); }
+        if (count) { count.textContent = saved.length; }
+        if (mobileLink) { mobileLink.classList.add('has-items'); }
+      }
+    } catch(e) {}
+  })();
 </script>
