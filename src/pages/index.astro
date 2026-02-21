@@ -231,47 +231,26 @@ const jsonLd = {
       <div class="container container--narrow">
         <h2>Your Questions, Answered</h2>
 
-        <details class="hp-faq">
-          <summary>Is RRM evidence-based?</summary>
-          <p>
-            That's a great question, and an important one. We know that many patients have been
-            disappointed by unproven treatments. RRM is grounded in established medical science
-            and supported by peer-reviewed research.
-          </p>
-          <p>
-            For example, studies have shown that for certain tubal issues, restorative surgery
-            has higher success rates than IVF. However, we are also honest about where the
-            research is still developing. Dr. Whittaker often notes that there are more studies
-            on endometritis in cows than in humans, which shows where the research funding goes.
-            We are committed to transparency, which is why we provide full access to our
+        <ul>
+          <li>
+            <strong>Is RRM evidence-based?</strong> RRM is grounded in established medical science
+            and supported by peer-reviewed research. For certain tubal issues, restorative surgery
+            has higher success rates than IVF. We provide full access to our
             <a href="/library">Research Library</a> so you can review the evidence for yourself.
-          </p>
-        </details>
-
-        <details class="hp-faq">
-          <summary>Can RRM help me if I have PCOS?</summary>
-          <p>
-            Absolutely. It's one of the most rewarding conditions to treat because, as
-            Dr. Whittaker says, "it's like a treasure chest. Once you open it up and figure out
-            what's going on, you can truly restore health." We usually see two main "flavors":
-            insulin-resistant PCOS and adrenal PCOS. The conventional approach often just uses
-            birth control to manage symptoms. RRM professionals often investigate which type you
-            have and then use a measured approach&mdash;starting with lifestyle, then supplements,
-            then medical support if needed to restore your body's natural ovulatory function.
-          </p>
-        </details>
-
-        <details class="hp-faq">
-          <summary>Do I need to stop working with my current doctor?</summary>
-          <p>
-            Not necessarily. More often than not, our first goal is to empower you with knowledge.
-            For many, this means having more informed and productive conversations with their
-            current healthcare provider. You can go back to your doctor with your chart and say,
-            "I've been tracking my cycle, and I'm concerned about this pattern." Others may choose
-            to seek out an RRM-trained practitioner for healing-focused care. The choice is always
-            yours, and our resources are here to support you.
-          </p>
-        </details>
+          </li>
+          <li>
+            <strong>Can RRM help me if I have PCOS?</strong> Absolutely. RRM professionals
+            investigate whether you have insulin-resistant or adrenal PCOS, then use a measured
+            approach&mdash;starting with lifestyle, then supplements, then medical support if
+            needed&mdash;to restore your body's natural ovulatory function.
+          </li>
+          <li>
+            <strong>Do I need to stop working with my current doctor?</strong> Not necessarily.
+            Our first goal is to empower you with knowledge so you can have more informed
+            conversations with your current provider. Others may choose to seek out an
+            RRM-trained practitioner. The choice is always yours.
+          </li>
+        </ul>
       </div>
     </section>
 
@@ -355,13 +334,14 @@ const jsonLd = {
     font-weight: 600;
   }
 
-  /* Sections */
+  /* Sections — unified background, vertical letter-line on left */
   .hp-section {
-    padding: var(--space-12) 0;
+    padding: 0;
   }
 
-  .hp-section--alt {
-    background: var(--neutral-100);
+  .hp-section .container--narrow {
+    border-left: 2px solid var(--purple-300);
+    padding: var(--space-12) 0 var(--space-12) var(--space-8);
   }
 
   /* Hero */
@@ -417,8 +397,8 @@ const jsonLd = {
     .hp-hero__links .btn {
       width: 100%;
     }
-    .hp-section {
-      padding: var(--space-8) 0;
+    .hp-section .container--narrow {
+      padding: var(--space-8) 0 var(--space-8) var(--space-6);
     }
   }
 
@@ -567,7 +547,7 @@ const jsonLd = {
 
   @media (min-width: 769px) {
     .hp-comparison {
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       gap: var(--space-8);
     }
   }
@@ -628,9 +608,11 @@ const jsonLd = {
     margin-top: var(--space-4);
   }
 
-  /* CTA */
+  /* CTA — no left border, centered sign-off */
   .hp-cta {
     text-align: center;
+    border-left: none;
+    padding-left: 0;
   }
 
   .hp-cta__tagline {
