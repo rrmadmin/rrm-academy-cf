@@ -89,6 +89,11 @@
   .search-wrapper :global(.pagefind-ui__search-clear) {
     right: 12px;
     color: var(--text-tertiary);
+    font-size: 0;
+  }
+  .search-wrapper :global(.pagefind-ui__search-clear::after) {
+    content: '✕';
+    font-size: 14px;
   }
   .search-wrapper :global(.pagefind-ui__result-link) {
     color: var(--accent);
@@ -106,6 +111,7 @@
     color: var(--text-secondary);
     padding: var(--space-4) 0;
   }
+
 </style>
 
 <link href="/pagefind/pagefind-ui.css" rel="stylesheet" />
@@ -115,8 +121,8 @@
     var fallbackInput = document.getElementById('search-fallback-input');
     var savedQuery = fallbackInput ? fallbackInput.value : '';
 
-    var mod = await import('/pagefind/pagefind-ui.js');
-    new mod.PagefindUI({
+    await import('/pagefind/pagefind-ui.js');
+    new window.PagefindUI({
       element: '#pagefind-search',
       showSubResults: false,
       showImages: false,
@@ -135,6 +141,17 @@
         if (q) {
           input.value = q;
           input.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+
+        // Smooth fade-out when clearing results
+        var clearBtn = document.querySelector('.pagefind-ui__search-clear');
+        var drawer = document.querySelector('.pagefind-ui__drawer');
+        if (clearBtn && drawer) {
+          clearBtn.addEventListener('click', function() {
+            drawer.style.transition = 'opacity 0.3s ease';
+            drawer.style.opacity = '0';
+            setTimeout(function() { drawer.style.opacity = ''; }, 350);
+          });
         }
       }
     });
