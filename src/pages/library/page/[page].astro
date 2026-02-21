@@ -1,0 +1,112 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import ArticleCard from '../../../components/ArticleCard.astro';
+import { fetchAllArticles } from '../../../lib/airtable';
+
+export async function getStaticPaths() {
+  const perPage = 50;
+  const articles = await fetchAllArticles();
+  const totalPages = Math.ceil(articles.length / perPage);
+
+  return Array.from({ length: totalPages }, (_, i) => ({
+    params: { page: String(i + 1) },
+    props: { articles, currentPage: i + 1, totalPages, perPage },
+  }));
+}
+
+interface Props {
+  articles: any[];
+  currentPage: number;
+  totalPages: number;
+  perPage: number;
+}
+
+const { articles, currentPage, totalPages, perPage } = Astro.props;
+const start = (currentPage - 1) * perPage;
+const pageArticles = articles.slice(start, start + perPage);
+
+// Pagination range
+const range: (number | '...')[] = [];
+const delta = 2;
+for (let i = 1; i <= totalPages; i++) {
+  if (i === 1 || i === totalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+    range.push(i);
+  } else if (range[range.length - 1] !== '...') {
+    range.push('...');
+  }
+}
+---
+<BaseLayout
+  title={`Browse Articles - Page ${currentPage}`}
+  description={`Page ${currentPage} of ${totalPages} - Browse all articles in the RRM Research Library.`}
+  canonicalUrl={`https://rrmacademy.org/library/page/${currentPage}`}
+>
+  <section class="browse-page">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/library">Research Library</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <span>Page {currentPage}</span>
+      </nav>
+
+      <div class="browse-header">
+        <div>
+          <h1>Browse all articles</h1>
+          <p class="browse-meta">
+            Showing {start + 1}&ndash;{Math.min(start + perPage, articles.length)} of {articles.length.toLocaleString()}
+          </p>
+        </div>
+        <a href="/library#search" class="btn btn--secondary btn--sm">Search</a>
+      </div>
+
+      <div class="article-grid">
+        {pageArticles.map(article => (
+          <ArticleCard article={article} compact />
+        ))}
+      </div>
+
+      <nav class="pagination" aria-label="Pagination">
+        {currentPage > 1 && (
+          <a href={currentPage === 2 ? '/library' : `/library/page/${currentPage - 1}`}>&laquo; Prev</a>
+        )}
+        {range.map(item => (
+          item === '...' ? (
+            <span class="ellipsis">&hellip;</span>
+          ) : item === currentPage ? (
+            <span class="current">{item}</span>
+          ) : (
+            <a href={item === 1 ? '/library' : `/library/page/${item}`}>{item}</a>
+          )
+        ))}
+        {currentPage < totalPages && (
+          <a href={`/library/page/${currentPage + 1}`}>Next &raquo;</a>
+        )}
+      </nav>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .browse-page {
+    padding: var(--space-8) 0 var(--space-16);
+  }
+  .browse-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: var(--space-8);
+    gap: var(--space-4);
+  }
+  h1 {
+    margin-bottom: var(--space-1);
+  }
+  .browse-meta {
+    font-size: 0.8125rem;
+    color: var(--neutral-500);
+    font-weight: 500;
+  }
+  .btn--sm {
+    padding: 7px 18px;
+    font-size: 0.75rem;
+  }
+</style>

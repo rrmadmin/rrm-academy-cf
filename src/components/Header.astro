@@ -1,0 +1,266 @@
+---
+// Navigation matching current Wix site
+const navItems = [
+  { label: 'Research Library', href: '/library', current: true },
+  {
+    label: 'Commentary',
+    href: '/commentary',
+    children: [
+      { label: 'Restorative Reproductive Medicine', href: '/commentary/categories/restorative-reproductive-medicine' },
+      { label: 'RRM Physician Spotlight', href: '/commentary/categories/rrm-physician-spotlight' },
+      { label: 'RRM Research Library', href: '/commentary/categories/rrm-research-library' },
+      { label: 'Case Studies', href: '/commentary/categories/case-studies' },
+    ],
+  },
+  {
+    label: 'Courses',
+    href: '/courses',
+    children: [
+      { label: 'RRM vs IVF', href: '/courses/rrm-vs-ivf' },
+      { label: 'Postpartum Depression & Anxiety', href: '/courses/postpartum-depression-anxiety' },
+      { label: 'Long-term Endometriosis Management', href: '/courses/long-term-endometriosis-management' },
+      { label: 'Masterclass in Endometriosis & Surgery', href: '/courses/masterclass-in-endometriosis-surgery' },
+    ],
+  },
+  { label: 'About', href: '/about' },
+];
+
+const wixBase = 'https://www.rrmacademy.org';
+---
+<header class="site-header">
+  <div class="header-inner container">
+    <a href={wixBase} class="logo">
+      <span class="logo__mark">R</span>
+      <span class="logo__text">RRM Academy</span>
+    </a>
+
+    <nav class="main-nav" aria-label="Site">
+      <ul class="nav-list">
+        {navItems.map((item) => (
+          <li class:list={['nav-item', { 'has-dropdown': item.children }]}>
+            {item.current ? (
+              <a href="/library" class="nav-link nav-link--active">{item.label}</a>
+            ) : (
+              <a href={`${wixBase}${item.href}`} class="nav-link">{item.label}</a>
+            )}
+            {item.children && (
+              <ul class="dropdown">
+                {item.children.map((child) => (
+                  <li>
+                    <a href={`${wixBase}${child.href}`} class="dropdown-link">{child.label}</a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <a href={`${wixBase}/donate`} class="btn btn--primary btn--sm">Donate</a>
+    </div>
+
+    <button class="mobile-toggle" aria-label="Menu" aria-expanded="false">
+      <span class="hamburger"></span>
+    </button>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--white);
+    border-bottom: 1px solid var(--neutral-300);
+  }
+  .header-inner {
+    display: flex;
+    align-items: center;
+    height: 60px;
+    gap: var(--space-8);
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .logo:hover {
+    text-decoration: none;
+  }
+  .logo__mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: var(--purple-700);
+    color: var(--white);
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: 6px;
+    letter-spacing: 0;
+  }
+  .logo__text {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-weight: 600;
+    font-size: 1.1875rem;
+    color: var(--neutral-900);
+    letter-spacing: -0.01em;
+  }
+  .main-nav {
+    flex: 1;
+  }
+  .nav-list {
+    display: flex;
+    list-style: none;
+    gap: 2px;
+  }
+  .nav-item {
+    position: relative;
+  }
+  .nav-link {
+    display: block;
+    padding: 6px 14px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--neutral-700);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    transition: color 0.15s, background 0.15s;
+  }
+  .nav-link:hover {
+    color: var(--purple-700);
+    background: var(--purple-50);
+    text-decoration: none;
+  }
+  .nav-link--active {
+    color: var(--purple-700);
+    font-weight: 600;
+  }
+
+  /* Dropdown */
+  .dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 260px;
+    background: var(--white);
+    border: 1px solid var(--neutral-300);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    list-style: none;
+    padding: var(--space-2);
+    z-index: 10;
+  }
+  .has-dropdown:hover .dropdown {
+    display: block;
+  }
+  .dropdown-link {
+    display: block;
+    padding: var(--space-2) var(--space-3);
+    font-size: 0.8125rem;
+    color: var(--neutral-700);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    transition: all 0.1s;
+  }
+  .dropdown-link:hover {
+    color: var(--purple-700);
+    background: var(--purple-50);
+    text-decoration: none;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .btn--sm {
+    padding: 7px 18px;
+    font-size: 0.75rem;
+  }
+
+  /* Mobile */
+  .mobile-toggle {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: var(--space-2);
+  }
+  .hamburger {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: var(--neutral-900);
+    position: relative;
+    border-radius: 1px;
+  }
+  .hamburger::before,
+  .hamburger::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--neutral-900);
+    border-radius: 1px;
+  }
+  .hamburger::before { top: -6px; }
+  .hamburger::after { top: 6px; }
+
+  @media (max-width: 768px) {
+    .main-nav, .header-actions {
+      display: none;
+    }
+    .mobile-toggle {
+      display: block;
+      margin-left: auto;
+    }
+    .site-header.nav-open .main-nav {
+      display: block;
+      position: absolute;
+      top: 60px;
+      left: 0;
+      right: 0;
+      background: var(--white);
+      border-bottom: 1px solid var(--neutral-300);
+      box-shadow: var(--shadow-lg);
+      padding: var(--space-4);
+    }
+    .site-header.nav-open .nav-list {
+      flex-direction: column;
+    }
+    .site-header.nav-open .dropdown {
+      position: static;
+      border: none;
+      box-shadow: none;
+      padding-left: var(--space-4);
+    }
+    .site-header.nav-open .has-dropdown .dropdown {
+      display: block;
+    }
+    .site-header.nav-open .header-actions {
+      display: flex;
+      padding: var(--space-4) 0 0;
+    }
+  }
+</style>
+
+<script>
+  const toggle = document.querySelector('.mobile-toggle');
+  const header = document.querySelector('.site-header');
+  if (toggle && header) {
+    toggle.addEventListener('click', () => {
+      const expanded = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', String(!expanded));
+      header.classList.toggle('nav-open');
+    });
+  }
+</script>

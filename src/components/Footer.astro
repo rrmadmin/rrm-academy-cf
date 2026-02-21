@@ -1,0 +1,143 @@
+---
+const wixBase = 'https://www.rrmacademy.org';
+const year = new Date().getFullYear();
+---
+<footer class="site-footer">
+  <div class="footer-inner container">
+    <div class="footer-columns">
+      <div class="footer-col">
+        <h3 class="footer-heading">Education</h3>
+        <ul class="footer-links">
+          <li><a href={`${wixBase}/courses`}>Courses</a></li>
+          <li><a href={`${wixBase}/commentary`}>Commentary</a></li>
+          <li><a href="/library">Research Library</a></li>
+          <li><a href={`${wixBase}/3-tier-endometriosis-symptom-self-survey`}>Endometriosis Self-Survey</a></li>
+          <li><a href={`${wixBase}/faqs`}>Frequently Asked Questions</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h3 class="footer-heading">Help</h3>
+        <ul class="footer-links">
+          <li><a href={`${wixBase}/members-area`}>Login</a></li>
+          <li><a href={`${wixBase}/about`}>About</a></li>
+          <li><a href={`${wixBase}/donate`}>Donate</a></li>
+          <li><a href={`${wixBase}/save-the-uterus-club`}>Join Us</a></li>
+          <li><a href={`${wixBase}/contact`}>Contact</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col--wide">
+        <h3 class="footer-heading">RRM Academy</h3>
+        <p class="footer-text">
+          The information on this site is for educational purposes only and is not medical advice.
+          Always consult a licensed healthcare professional for diagnosis and treatment. By using
+          this site, you agree to our <a href={`${wixBase}/terms-of-use`}>Terms of Use</a> and
+          <a href={`${wixBase}/privacy-policy`}>Privacy Policy</a>.
+        </p>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p class="footer-copyright">
+        &copy; {year} RRM Academy &middot; All Rights Reserved
+      </p>
+      <div class="footer-legal">
+        <a href={`${wixBase}/terms-of-use`}>Terms of Use</a>
+        <a href={`${wixBase}/terms-of-use`}>Medical Disclaimer</a>
+        <a href={`${wixBase}/privacy-policy`}>Privacy Policy</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--neutral-900);
+    color: var(--neutral-400);
+    margin-top: 0;
+    padding: var(--space-12) 0 var(--space-8);
+  }
+  .footer-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr 2fr;
+    gap: var(--space-10);
+    margin-bottom: var(--space-10);
+  }
+  .footer-heading {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.125rem;
+    font-weight: 500;
+    color: var(--white);
+    margin-bottom: var(--space-5);
+    letter-spacing: -0.01em;
+  }
+  .footer-links {
+    list-style: none;
+  }
+  .footer-links li {
+    margin-bottom: var(--space-2);
+  }
+  .footer-links a {
+    font-size: 0.8125rem;
+    color: var(--neutral-400);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .footer-links a:hover {
+    color: var(--white);
+    text-decoration: none;
+  }
+  .footer-text {
+    font-size: 0.8125rem;
+    color: var(--neutral-400);
+    line-height: 1.7;
+  }
+  .footer-text a {
+    color: var(--purple-300);
+    text-decoration: none;
+  }
+  .footer-text a:hover {
+    color: var(--purple-100);
+  }
+  .footer-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: var(--space-6);
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .footer-copyright {
+    font-size: 0.75rem;
+    color: var(--neutral-500);
+  }
+  .footer-legal {
+    display: flex;
+    gap: var(--space-6);
+  }
+  .footer-legal a {
+    font-size: 0.75rem;
+    color: var(--neutral-500);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .footer-legal a:hover {
+    color: var(--neutral-300);
+  }
+
+  @media (max-width: 768px) {
+    .footer-columns {
+      grid-template-columns: 1fr;
+      gap: var(--space-8);
+    }
+    .footer-bottom {
+      flex-direction: column;
+      gap: var(--space-4);
+      text-align: center;
+    }
+    .footer-legal {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+  }
+</style>

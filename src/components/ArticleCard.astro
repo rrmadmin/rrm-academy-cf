@@ -1,0 +1,167 @@
+---
+import type { Article } from '../lib/airtable';
+
+interface Props {
+  article: Article;
+  compact?: boolean;
+}
+
+const { article, compact = false } = Astro.props;
+const href = `/library/${article.slug}`;
+const truncLen = compact ? 120 : 200;
+const truncatedAbstract = article.abstract
+  ? article.abstract.slice(0, truncLen) + (article.abstract.length > truncLen ? '...' : '')
+  : '';
+
+// Parse short citation parts
+const firstAuthor = article.authors?.split(';')[0]?.split(',')[0]?.trim() || '';
+const authorDisplay = article.shortCitation || `${firstAuthor}${article.authors?.includes(';') ? ' et al.' : ''}, ${article.year || ''}`;
+
+// Show journal if available
+const journalDisplay = article.journal || article.journalAbbv || '';
+---
+<article class:list={['article-card', { 'article-card--compact': compact }]}>
+  <div class="article-card__accent"></div>
+  <div class="article-card__content">
+    <div class="article-card__header">
+      <a href={href} class="article-card__link">
+        <h3 class="article-card__title">{article.title}</h3>
+      </a>
+      {article.isOpenAccess && <span class="badge badge--oa">OA</span>}
+    </div>
+
+    <div class="article-card__meta">
+      <span class="article-card__authors">{authorDisplay}</span>
+      {journalDisplay && (
+        <span class="article-card__journal">{journalDisplay}</span>
+      )}
+    </div>
+
+    {!compact && truncatedAbstract && (
+      <p class="article-card__abstract">{truncatedAbstract}</p>
+    )}
+
+    {!compact && article.topics.length > 0 && (
+      <div class="article-card__topics">
+        {article.topics.slice(0, 3).map(t => (
+          <span class="article-card__topic">{t}</span>
+        ))}
+      </div>
+    )}
+  </div>
+</article>
+
+<style>
+  .article-card {
+    display: flex;
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: all 0.2s ease;
+    border: 1px solid var(--neutral-200);
+  }
+  .article-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--purple-200);
+  }
+
+  .article-card__accent {
+    width: 4px;
+    min-height: 100%;
+    background: var(--purple-300);
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .article-card:hover .article-card__accent {
+    background: var(--purple-700);
+  }
+
+  .article-card__content {
+    padding: var(--space-5) var(--space-6);
+    flex: 1;
+    min-width: 0;
+  }
+
+  .article-card__header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    margin-bottom: var(--space-2);
+  }
+
+  .article-card__link {
+    text-decoration: none;
+    color: inherit;
+    flex: 1;
+    min-width: 0;
+  }
+  .article-card__link:hover {
+    text-decoration: none;
+  }
+
+  .article-card__title {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-weight: 500;
+    font-size: 1.0625rem;
+    line-height: 1.35;
+    color: var(--neutral-900);
+    transition: color 0.15s;
+  }
+  .article-card__link:hover .article-card__title {
+    color: var(--purple-700);
+  }
+
+  .article-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1);
+    margin-bottom: var(--space-3);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+  }
+  .article-card__authors {
+    color: var(--neutral-700);
+    font-weight: 500;
+  }
+  .article-card__journal {
+    color: var(--neutral-500);
+    font-style: italic;
+  }
+  .article-card__journal::before {
+    content: '·';
+    margin-right: var(--space-1);
+    font-style: normal;
+    color: var(--neutral-400);
+  }
+
+  .article-card__abstract {
+    font-size: 0.8125rem;
+    color: var(--neutral-600);
+    line-height: 1.6;
+    margin-bottom: var(--space-3);
+  }
+
+  .article-card__topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: var(--space-2);
+  }
+  .article-card__topic {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: var(--purple-700);
+    background: var(--purple-50);
+    padding: 2px 10px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Compact variant */
+  .article-card--compact .article-card__content {
+    padding: var(--space-4) var(--space-5);
+  }
+  .article-card--compact .article-card__title {
+    font-size: 0.9375rem;
+  }
+</style>

@@ -1,0 +1,343 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Citation from '../../components/Citation.astro';
+import TopicTag from '../../components/TopicTag.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { fetchAllArticles, getRelatedArticles, type Article } from '../../lib/airtable';
+import { parseStructuredAbstract } from '../../lib/abstract-parser';
+
+export async function getStaticPaths() {
+  const articles = await fetchAllArticles();
+
+  return articles.map(article => ({
+    params: { slug: article.slug },
+    props: { article, allArticles: articles },
+  }));
+}
+
+interface Props {
+  article: Article;
+  allArticles: Article[];
+}
+
+const { article, allArticles } = Astro.props;
+const related = getRelatedArticles(article, allArticles, 5);
+const abstractSections = parseStructuredAbstract(article.abstract);
+
+// Build journal citation line
+const journalParts: string[] = [];
+if (article.journal) journalParts.push(article.journal);
+if (article.volume) {
+  let vol = article.volume;
+  if (article.issue) vol += `(${article.issue})`;
+  journalParts.push(vol);
+}
+if (article.pages) journalParts.push(article.pages);
+if (article.year) journalParts.push(String(article.year));
+const journalLine = journalParts.join(', ');
+
+// Build description for meta
+const metaDescription = article.abstract
+  ? article.abstract.slice(0, 155) + (article.abstract.length > 155 ? '...' : '')
+  : `${article.title} - RRM Research Library`;
+
+// Build DOI URL
+const doiUrl = article.doi ? `https://doi.org/${article.doi}` : '';
+const pubmedUrl = article.pmid ? `https://pubmed.ncbi.nlm.nih.gov/${article.pmid}/` : '';
+
+// Parse pages for schema
+const pageMatch = article.pages?.match(/^(\d+)\s*[-–]\s*(\d+)$/);
+const pageStart = pageMatch ? pageMatch[1] : article.pages || undefined;
+const pageEnd = pageMatch ? pageMatch[2] : undefined;
+
+// Schema.org JSON-LD
+const jsonLd: any = {
+  '@context': 'https://schema.org',
+  '@type': 'MedicalScholarlyArticle',
+  name: article.title,
+  url: `https://rrmacademy.org/library/${article.slug}`,
+  publisher: {
+    '@type': 'Organization',
+    name: 'RRM Academy',
+    url: 'https://rrmacademy.org',
+  },
+};
+
+if (article.authors) {
+  jsonLd.author = article.authors.split(',').map(name => ({
+    '@type': 'Person',
+    name: name.trim(),
+  }));
+}
+
+if (article.datePublished) {
+  jsonLd.datePublished = article.datePublished;
+}
+
+if (article.abstract) {
+  jsonLd.abstract = article.abstract;
+}
+
+if (article.journal) {
+  const isPartOf: any = {
+    '@type': 'Periodical',
+    name: article.journal,
+  };
+
+  if (article.volume) {
+    jsonLd.isPartOf = {
+      '@type': 'PublicationVolume',
+      volumeNumber: article.volume,
+      isPartOf: article.issue
+        ? { '@type': 'PublicationIssue', issueNumber: article.issue, isPartOf: isPartOf }
+        : isPartOf,
+    };
+  } else {
+    jsonLd.isPartOf = isPartOf;
+  }
+}
+
+if (pageStart) jsonLd.pageStart = pageStart;
+if (pageEnd) jsonLd.pageEnd = pageEnd;
+
+const identifiers: any[] = [];
+if (article.doi) {
+  identifiers.push({ '@type': 'PropertyValue', propertyID: 'doi', value: article.doi });
+  jsonLd.sameAs = doiUrl;
+}
+if (article.pmid) {
+  identifiers.push({ '@type': 'PropertyValue', propertyID: 'PMID', value: article.pmid });
+}
+if (identifiers.length) jsonLd.identifier = identifiers;
+
+const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
+---
+<BaseLayout
+  title={article.title}
+  description={metaDescription}
+  canonicalUrl={canonicalUrl}
+  ogType="article"
+  jsonLd={jsonLd}
+>
+  <div class="article-page">
+    <div class="container container--narrow">
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/library">Research Library</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <span>Synopsis</span>
+      </nav>
+
+      <!-- Title -->
+      <h1 class="article-title">{article.title}</h1>
+
+      <!-- Short citation + OA badge -->
+      <div class="article-meta-row">
+        {article.shortCitation && (
+          <p class="short-citation">{article.shortCitation}</p>
+        )}
+        {article.isOpenAccess && <span class="badge badge--oa">Open Access</span>}
+      </div>
+
+      <!-- Full author list -->
+      {article.authors && (
+        <p class="article-authors">{article.authors}</p>
+      )}
+
+      <!-- Journal citation line -->
+      {journalLine && (
+        <p class="journal-line">{journalLine}</p>
+      )}
+
+      <!-- External links -->
+      <div class="external-links">
+        {article.sourceUrl && (
+          <a href={article.sourceUrl} class="external-link" target="_blank" rel="noopener">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Source
+          </a>
+        )}
+        {doiUrl && (
+          <a href={doiUrl} class="external-link" target="_blank" rel="noopener">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            DOI
+          </a>
+        )}
+        {pubmedUrl && (
+          <a href={pubmedUrl} class="external-link" target="_blank" rel="noopener">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            PubMed
+          </a>
+        )}
+      </div>
+    </div>
+
+    <!-- Abstract — full width background -->
+    <div class="abstract-band">
+      <div class="container container--narrow">
+        <section class="abstract" aria-label="Abstract">
+          <h2 class="abstract-label">Abstract</h2>
+          {abstractSections.length === 0 ? (
+            <p class="abstract-empty">No abstract available for this article.</p>
+          ) : (
+            abstractSections.map(section => (
+              <div class="abstract-section">
+                {section.heading && (
+                  <span class="abstract-heading">{section.heading}</span>
+                )}
+                <p>{section.text}</p>
+              </div>
+            ))
+          )}
+        </section>
+      </div>
+    </div>
+
+    <div class="container container--narrow">
+      <!-- Topics -->
+      {article.topics.length > 0 && (
+        <section class="article-topics" aria-label="Topics">
+          <h2 class="section-label">Topics</h2>
+          <div class="topic-grid">
+            {article.topics.map(topic => (
+              <TopicTag topic={topic} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <!-- Citations -->
+      {(article.apaCitation || article.vancouverCitation || article.mlaCitation) && (
+        <section class="article-citations" aria-label="Citations">
+          <h2 class="section-label">Cite this article</h2>
+          <Citation
+            apa={article.apaCitation}
+            vancouver={article.vancouverCitation}
+            mla={article.mlaCitation}
+          />
+        </section>
+      )}
+
+      <!-- Keywords -->
+      {article.keywords && (
+        <section class="article-keywords" aria-label="Keywords">
+          <h2 class="section-label">Keywords</h2>
+          <p class="keywords-text">{article.keywords}</p>
+        </section>
+      )}
+
+      <!-- Related articles -->
+      {related.length > 0 && (
+        <section class="article-related" aria-label="Related articles">
+          <h2 class="section-label">Related articles</h2>
+          <div class="related-grid">
+            {related.map(rel => (
+              <ArticleCard article={rel} compact />
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .article-page {
+    padding-top: var(--space-8);
+    padding-bottom: var(--space-16);
+  }
+  .article-title {
+    font-size: 1.875rem;
+    margin-bottom: var(--space-4);
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+  }
+  .article-meta-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+  }
+  .short-citation {
+    font-size: 0.875rem;
+    color: var(--neutral-600);
+    font-weight: 500;
+  }
+  .article-authors {
+    font-size: 0.875rem;
+    color: var(--neutral-700);
+    line-height: 1.6;
+    margin-bottom: var(--space-2);
+  }
+  .journal-line {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 0.9375rem;
+    color: var(--neutral-600);
+    font-style: italic;
+    margin-bottom: var(--space-5);
+  }
+  .external-links {
+    margin-bottom: var(--space-8);
+  }
+
+  .abstract-band {
+    background: var(--neutral-100);
+    border-top: 1px solid var(--neutral-200);
+    border-bottom: 1px solid var(--neutral-200);
+    padding: var(--space-8) 0;
+    margin-bottom: var(--space-8);
+  }
+  .abstract {
+    background: transparent;
+    border: none;
+    padding: 0;
+    border-radius: 0;
+  }
+  .abstract-label {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--neutral-900);
+    margin-bottom: var(--space-5);
+  }
+  .abstract-empty {
+    color: var(--neutral-500);
+    font-style: italic;
+    font-size: 0.875rem;
+  }
+  .section-label {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: var(--space-4);
+    color: var(--neutral-900);
+  }
+  .article-topics {
+    margin-bottom: var(--space-8);
+  }
+  .article-citations {
+    margin-bottom: var(--space-8);
+  }
+  .article-keywords {
+    margin-bottom: var(--space-8);
+  }
+  .keywords-text {
+    font-size: 0.875rem;
+    color: var(--neutral-600);
+    line-height: 1.7;
+  }
+  .article-related {
+    margin-top: var(--space-12);
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--neutral-200);
+  }
+
+  @media (max-width: 768px) {
+    .article-title {
+      font-size: 1.5rem;
+    }
+    .abstract-band {
+      padding: var(--space-6) 0;
+    }
+  }
+</style>

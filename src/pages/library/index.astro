@@ -1,0 +1,214 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SearchBar from '../../components/SearchBar.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { fetchAllArticles, getTopicCounts } from '../../lib/airtable';
+
+const articles = await fetchAllArticles();
+const topicCounts = getTopicCounts(articles);
+
+// Sort topics by count (descending), take top 30
+const topTopics = [...topicCounts.entries()]
+  .sort((a, b) => b[1] - a[1])
+  .slice(0, 30);
+
+// Show first 12, rest expandable
+const visibleTopics = topTopics.slice(0, 12);
+const hiddenTopics = topTopics.slice(12);
+
+// Recent additions (first 6, already sorted by date)
+const recent = articles.slice(0, 6);
+
+// Pagination for full browse
+const PER_PAGE = 50;
+const totalPages = Math.ceil(articles.length / PER_PAGE);
+
+// Schema.org for landing page
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'RRM Research Library',
+  description: 'The largest free collection of academic references related to restorative reproductive medicine.',
+  url: 'https://rrmacademy.org/library',
+  numberOfItems: articles.length,
+  isPartOf: {
+    '@type': 'WebSite',
+    name: 'RRM Academy',
+    url: 'https://rrmacademy.org',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: 'https://rrmacademy.org/library?q={search_term_string}',
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: 'RRM Academy',
+    url: 'https://rrmacademy.org',
+  },
+};
+---
+<BaseLayout
+  title="RRM Research Library"
+  description={`Browse ${articles.length.toLocaleString()} peer-reviewed articles on restorative reproductive medicine. Free access to abstracts, citations, and full-text links.`}
+  canonicalUrl="https://rrmacademy.org/library"
+  jsonLd={jsonLd}
+>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <h1>Research Library</h1>
+      <p class="subtitle">
+        The largest free collection of academic references related to
+        restorative reproductive medicine, made possible by
+        <a href="https://www.rrmacademy.org/donate">donations</a>.
+      </p>
+      <p class="record-count">{articles.length.toLocaleString()} peer-reviewed records</p>
+    </div>
+  </section>
+
+  <!-- Search -->
+  <section class="search-section">
+    <div class="container">
+      <div class="search-container">
+        <SearchBar />
+      </div>
+    </div>
+  </section>
+
+  <!-- Browse by Topic -->
+  <section class="section section--neutral">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Browse by topic</h2>
+      </div>
+      <div class="topic-grid" id="topic-grid">
+        {visibleTopics.map(([topic, count]) => (
+          <a
+            href={`/library?topic=${encodeURIComponent(topic)}`}
+            class="topic-pill"
+          >
+            {topic} <span class="topic-count">({count})</span>
+          </a>
+        ))}
+        {hiddenTopics.map(([topic, count]) => (
+          <a
+            href={`/library?topic=${encodeURIComponent(topic)}`}
+            class="topic-pill topic-pill--hidden"
+          >
+            {topic} <span class="topic-count">({count})</span>
+          </a>
+        ))}
+      </div>
+      {hiddenTopics.length > 0 && (
+        <button class="btn btn--text show-more-btn" id="show-more-topics">
+          Show {hiddenTopics.length} more topics
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+      )}
+    </div>
+  </section>
+
+  <!-- Recent Additions -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Recent additions</h2>
+        <a href="/library/page/1" class="btn btn--secondary btn--sm">View all</a>
+      </div>
+      <div class="recent-grid">
+        {recent.map(article => (
+          <ArticleCard article={article} />
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Browse All (page 1, static) -->
+  <section class="section section--cream" id="browse">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">All articles</h2>
+        <p class="article-count">{articles.length.toLocaleString()} articles</p>
+      </div>
+      <div class="article-grid" id="article-list">
+        {articles.slice(0, PER_PAGE).map(article => (
+          <ArticleCard article={article} compact />
+        ))}
+      </div>
+
+      {totalPages > 1 && (
+        <nav class="pagination" aria-label="Pagination">
+          <span class="current">1</span>
+          {totalPages >= 2 && <a href="/library/page/2">2</a>}
+          {totalPages >= 3 && <a href="/library/page/3">3</a>}
+          {totalPages > 3 && <span class="ellipsis">&hellip;</span>}
+          {totalPages > 3 && <a href={`/library/page/${totalPages}`}>{totalPages}</a>}
+          <a href="/library/page/2">Next &raquo;</a>
+        </nav>
+      )}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .search-section {
+    padding: var(--space-8) 0;
+    background: var(--white);
+  }
+  .search-container {
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  .topic-count {
+    font-size: 0.6875rem;
+    color: var(--purple-500);
+    font-weight: 400;
+  }
+  .topic-pill--hidden {
+    display: none;
+  }
+  .topic-grid.expanded .topic-pill--hidden {
+    display: inline-block;
+  }
+  .show-more-btn {
+    margin-top: var(--space-5);
+    font-size: 0.8125rem;
+  }
+  .show-more-btn.expanded {
+    display: none;
+  }
+
+  .recent-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-5);
+  }
+
+  .article-count {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--neutral-500);
+  }
+
+  @media (max-width: 768px) {
+    .recent-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script is:inline>
+  var btn = document.getElementById('show-more-topics');
+  var grid = document.getElementById('topic-grid');
+  if (btn && grid) {
+    btn.addEventListener('click', function() {
+      grid.classList.add('expanded');
+      btn.classList.add('expanded');
+    });
+  }
+</script>

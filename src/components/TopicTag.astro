@@ -1,0 +1,8 @@
+---
+interface Props {
+  topic: string;
+}
+const { topic } = Astro.props;
+const href = `/library?topic=${encodeURIComponent(topic)}`;
+---
+<a href={href} class="topic-pill">{topic}</a>

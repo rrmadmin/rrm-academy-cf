@@ -1,0 +1,15 @@
+# RRM Research Library — Cloudflare Pages
+# Deploy: npx wrangler pages deploy dist --project-name rrm-library
+#
+# After DNS migration to Cloudflare, add Worker routes:
+# [[routes]]
+# pattern = "rrmacademy.org/library/*"
+# zone_name = "rrmacademy.org"
+#
+# [[routes]]
+# pattern = "library.rrmacademy.org/*"
+# zone_name = "rrmacademy.org"
+
+name = "rrm-library"
+pages_build_output_dir = "dist"
+compatibility_date = "2025-01-01"

@@ -1,0 +1,99 @@
+---
+interface Props {
+  apa: string;
+  vancouver: string;
+  mla: string;
+}
+const { apa, vancouver, mla } = Astro.props;
+const hasCitations = apa || vancouver || mla;
+---
+{hasCitations && (
+  <div class="citation-tabs" data-citation-tabs>
+    <div class="citation-tab-bar" role="tablist">
+      {apa && (
+        <button
+          role="tab"
+          class="citation-tab active"
+          aria-selected="true"
+          data-tab="apa"
+        >APA 7th</button>
+      )}
+      {vancouver && (
+        <button
+          role="tab"
+          class="citation-tab"
+          aria-selected={!apa ? "true" : "false"}
+          data-tab="vancouver"
+        >Vancouver</button>
+      )}
+      {mla && (
+        <button
+          role="tab"
+          class="citation-tab"
+          aria-selected={!apa && !vancouver ? "true" : "false"}
+          data-tab="mla"
+        >MLA 9th</button>
+      )}
+    </div>
+    {apa && (
+      <div role="tabpanel" class="citation-panel" data-panel="apa">
+        <p>{apa}</p>
+        <button class="citation-copy-btn" data-copy={apa}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy
+        </button>
+      </div>
+    )}
+    {vancouver && (
+      <div role="tabpanel" class="citation-panel" data-panel="vancouver" hidden={!!apa}>
+        <p>{vancouver}</p>
+        <button class="citation-copy-btn" data-copy={vancouver}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy
+        </button>
+      </div>
+    )}
+    {mla && (
+      <div role="tabpanel" class="citation-panel" data-panel="mla" hidden={!!(apa || vancouver)}>
+        <p>{mla}</p>
+        <button class="citation-copy-btn" data-copy={mla}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy
+        </button>
+      </div>
+    )}
+  </div>
+)}
+
+<script>
+  document.querySelectorAll('[data-citation-tabs]').forEach(container => {
+    const tabs = container.querySelectorAll('[role="tab"]');
+    const panels = container.querySelectorAll('[role="tabpanel"]');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const target = (tab as HTMLElement).dataset.tab;
+        tabs.forEach(t => {
+          t.classList.remove('active');
+          t.setAttribute('aria-selected', 'false');
+        });
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
+        panels.forEach(p => {
+          const panel = p as HTMLElement;
+          panel.hidden = panel.dataset.panel !== target;
+        });
+      });
+    });
+  });
+
+  document.querySelectorAll('.citation-copy-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const text = (btn as HTMLElement).dataset.copy || '';
+      await navigator.clipboard.writeText(text);
+      const original = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.innerHTML = original || 'Copy'; }, 1500);
+    });
+  });
+</script>
