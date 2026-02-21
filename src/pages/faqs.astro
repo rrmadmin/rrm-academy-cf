@@ -1,0 +1,335 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// FAQ data structured for rendering and JSON-LD
+const faqGroups = [
+  {
+    category: 'Understanding RRM',
+    faqs: [
+      {
+        question: 'What is Restorative Reproductive Medicine (RRM)?',
+        answer: 'Restorative Reproductive Medicine (RRM) treats the root causes of infertility to restore natural fertility and enable in-body conception, rather than suppressing symptoms or bypassing the reproductive system through assisted reproductive technologies.',
+      },
+      {
+        question: 'What conditions does RRM address?',
+        answer: 'RRM addresses endometriosis, PCOS, thyroid disorders, luteal dysfunction, recurrent miscarriage, male factor infertility, fibroids, polyps, and chronic endometritis through individualized cause-based treatment protocols that restore natural reproductive function.',
+      },
+      {
+        question: 'How is RRM different from IVF/IUI-centered care?',
+        answer: 'RRM diagnoses and treats underlying reproductive conditions while IVF/IUI bypass these conditions. RRM uses comprehensive evaluation, surgical correction when needed, metabolic optimization, and cycle education to restore natural fertility rather than technological intervention.',
+      },
+      {
+        question: 'Is RRM evidence-based? (key trials, registries, and guidelines)',
+        answer: 'RRM is evidence-based through peer-reviewed studies including Stanford 2008, Stanford BMC 2021, and International NPT Evaluation 2022, plus ongoing STORRM registry data collection. RRM clinicians follow established clinical guidelines while focusing on root cause treatment.',
+      },
+      {
+        question: 'What does "in-body conception" mean in RRM?',
+        answer: 'In-body conception means natural conception through intercourse within a woman\'s reproductive system, rather than in a laboratory. RRM focuses on restoring couples\' natural reproductive function to achieve this type of conception by treating underlying causes that prevent the natural process.',
+      },
+      {
+        question: 'Do I need to be Catholic to use Creighton/NaPro or see an RRM clinician?',
+        answer: 'No, you don\'t need to be Catholic to use Creighton Model, NaPro, or see an RRM clinician. These are evidence-based medical systems available to people of all faiths and backgrounds. Many secular health systems teach these methods. RRM focuses on medical education and treatment while respecting your personal values in reproductive decisions.',
+      },
+      {
+        question: 'Why haven\'t I heard of RRM or NaProTechnology before?',
+        answer: 'RRM and NaProTechnology remain relatively unknown because they challenge conventional medical approaches that prioritize suppressive treatments over root cause diagnosis and restoration. Medical education focuses on managing symptoms rather than treating underlying reproductive disorders.',
+      },
+    ],
+  },
+  {
+    category: 'Methods & Charting',
+    faqs: [
+      {
+        question: 'What is NaProTECHNOLOGY and the Creighton Model (CrMS)?',
+        answer: 'NaProTECHNOLOGY is a medical approach using natural fertility cycles to diagnose and treat reproductive disorders. It relies on the Creighton Model charting system to track biomarkers like cervical mucus patterns, which reveal hormonal function and cycle health for targeted treatment timing.',
+      },
+      {
+        question: 'Which labs, imaging, and cycle tracking does RRM use?',
+        answer: 'RRM uses CrMS cycle charting with Peak-referenced hormone testing (Peak+3/5/7/9/11), follicle ultrasound series, HSG/SIS imaging, and WHO 6th edition semen analysis. All testing timing is individualized based on each couple\'s observed cycle patterns rather than standardized schedules.',
+      },
+      {
+        question: 'What is the difference between Creighton Model, Marquette Method, FEMM, and symptothermal charting?',
+        answer: 'The Creighton Model uses cervical mucus observations, Marquette Method combines mucus with electronic monitors, FEMM integrates temperature and mucus with medical care, and symptothermal uses multiple biomarkers including temperature and mucus together.',
+      },
+    ],
+  },
+  {
+    category: 'Treatment & Outcomes',
+    faqs: [
+      {
+        question: 'What are the success rates for NaProTechnology and RRM?',
+        answer: 'RRM success rates vary by condition, showing 20-76% conception rates in published studies depending on diagnosis and treatment protocol. Success includes symptom resolution, cycle normalization, and natural conception rather than just pregnancy rates per procedure like ART.',
+      },
+      {
+        question: 'How long does RRM treatment typically take before pregnancy?',
+        answer: 'RRM treatment typically takes 6-18 months for fertility restoration, varying based on individual conditions, age, and treatment complexity. Timeline depends on addressing root causes rather than working around dysfunction.',
+      },
+      {
+        question: 'How does RRM approach recurrent miscarriage (RPL)?',
+        answer: 'RRM approaches recurrent pregnancy loss through comprehensive evaluation of genetic, anatomic, endocrine, immune, and male factors, followed by targeted treatment based on evidence including progesterone support when indicated by PRISM trial data.',
+      },
+      {
+        question: 'How does RRM handle male-factor evaluation (Restorative Andrology)?',
+        answer: 'RRM provides comprehensive male evaluation including semen analysis, hormonal assessment, and treatment of underlying causes like varicoceles, infections, and endocrine imbalances as integral part of couple-centered fertility care.',
+      },
+      {
+        question: 'Where does progesterone fit in early pregnancy support?',
+        answer: 'Progesterone reduces miscarriage risk in women with prior losses or early bleeding, based on PRISM trial evidence. RRM uses individualized monitoring rather than routine supplementation.',
+      },
+      {
+        question: 'What\'s RRM\'s stance on thyroid and fertility?',
+        answer: 'RRM screens for thyroid disease in fertility patients using individualized treatment thresholds. We don\'t automatically prescribe levothyroxine for TPO-positive patients with normal thyroid function, following evidence from TABLET and T4LIFE trials showing no fertility benefit from routine treatment.',
+      },
+      {
+        question: 'Is letrozole first-line for anovulatory PCOS in RRM?',
+        answer: 'Yes, letrozole is first-line for anovulatory PCOS per international guidelines. RRM combines letrozole with metabolic optimization for root cause treatment. Letrozole has better ovulation rates and lower twin risk than clomiphene citrate.',
+      },
+      {
+        question: 'How does RRM diagnose and treat luteal phase deficiency?',
+        answer: 'RRM evaluates luteal phase deficiency through cycle tracking and hormone analysis to find root causes like thyroid or prolactin issues, then treats the underlying problem rather than just supplementing progesterone.',
+      },
+      {
+        question: 'What fertility supplements have evidence behind them (CoQ10, vitamin D, DHEA, inositol)?',
+        answer: 'RRM tests for specific nutritional deficiencies before recommending supplements. Evidence supports CoQ10 for egg/sperm quality, vitamin D for hormone function, methylated folate for MTHFR variants, and omega-3s for inflammation. Supplements support natural fertility when deficiencies exist but don\'t replace proper diagnosis.',
+      },
+    ],
+  },
+  {
+    category: 'Getting Started',
+    faqs: [
+      {
+        question: 'What should I expect at a first RRM consult?',
+        answer: 'Your first RRM consult includes comprehensive history for both partners, symptom mapping, fertility charting introduction, targeted diagnostic planning, and collaborative goal-setting with potential referrals to specialists.',
+      },
+      {
+        question: 'How do I get started or find an RRM clinician/educator near me?',
+        answer: 'Find an RRM clinician through the IIRRM referral request system or FertilityCare physician directory. Creighton Model teachers provide cycle charting training that supports medical treatment. Many practitioners offer telehealth options.',
+      },
+      {
+        question: 'When should I see a fertility specialist vs. staying with my OB/GYN?',
+        answer: 'See a fertility specialist after 6-12 months of trying (depending on age) or if you have known reproductive conditions. OB/GYNs handle basic care well, but complex issues like endometriosis or PCOS often need specialized treatment.',
+      },
+      {
+        question: 'Does fertility really \'fall off a cliff\' at 35?',
+        answer: 'Fertility does decline with age, but the \'cliff at 35\' oversimplifies a gradual process. Many fertility challenges attributed to age are actually undiagnosed reproductive health conditions that can be treated effectively.',
+      },
+      {
+        question: 'How does infertility affect mental health, and where can I find support?',
+        answer: 'Infertility causes depression and anxiety rates comparable to cancer and heart disease patients. The monthly cycle of hope and loss, treatment uncertainty, and social isolation compound psychological distress.',
+      },
+    ],
+  },
+  {
+    category: 'Cost & Insurance',
+    faqs: [
+      {
+        question: 'Does insurance cover NaProTechnology or RRM treatment?',
+        answer: 'Most insurance plans provide partial coverage for RRM diagnostic testing and surgical procedures, but coverage varies by plan. Diagnostic work and surgical treatments typically qualify for standard reproductive health benefits.',
+      },
+      {
+        question: 'How much does RRM or NaProTechnology treatment cost compared to IVF?',
+        answer: 'RRM treatment typically costs $3,000-15,000 total for diagnosis and treatment, while IVF averages $15,000-20,000 per cycle with most couples requiring multiple cycles. RRM addresses root causes once, while IVF must be repeated for each pregnancy without treating underlying conditions.',
+      },
+    ],
+  },
+];
+
+// Flatten all FAQs for JSON-LD
+const allFaqs = faqGroups.flatMap(g => g.faqs);
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  name: 'Frequently Asked Questions about Restorative Reproductive Medicine',
+  description: 'Answers to common questions about RRM, NaProTechnology, fertility charting, treatment approaches, success rates, and costs.',
+  mainEntity: allFaqs.map(faq => ({
+    '@type': 'Question',
+    name: faq.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: faq.answer,
+    },
+  })),
+};
+---
+<BaseLayout
+  title="Frequently Asked Questions"
+  description="Answers to common questions about Restorative Reproductive Medicine (RRM), NaProTechnology, fertility charting, treatment approaches, success rates, and costs."
+  canonicalUrl="https://rrmacademy.org/faqs"
+  jsonLd={jsonLd}
+>
+  <div class="faqs-page">
+    <div class="container container--narrow">
+
+      <section class="faqs-hero">
+        <h1>Frequently Asked Questions</h1>
+        <p class="faqs-intro">Common questions about Restorative Reproductive Medicine, NaProTechnology, treatment approaches, and getting started with an RRM clinician.</p>
+      </section>
+
+      {faqGroups.map((group) => (
+        <section class="faq-group">
+          <h2 class="faq-group-title">{group.category}</h2>
+          <div class="faq-list">
+            {group.faqs.map((faq) => (
+              <details class="faq-item">
+                <summary class="faq-question">
+                  <span class="faq-question-text">{faq.question}</span>
+                  <span class="faq-chevron" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </span>
+                </summary>
+                <div class="faq-answer">
+                  <p>{faq.answer}</p>
+                </div>
+              </details>
+            ))}
+          </div>
+        </section>
+      ))}
+
+      <section class="faqs-contact">
+        <h2>Still have questions?</h2>
+        <p>We are here to help. Reach out and we will get back to you as soon as we can.</p>
+        <a href="https://www.rrmacademy.org/contact" class="btn btn--primary">Contact Us</a>
+      </section>
+
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .faqs-page {
+    padding: var(--space-8) 0 var(--space-16);
+    min-height: 60vh;
+  }
+
+  /* Hero */
+  .faqs-hero {
+    margin-bottom: var(--space-10);
+  }
+  .faqs-hero h1 {
+    font-size: 2rem;
+    margin-bottom: var(--space-3);
+  }
+  .faqs-intro {
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    max-width: 600px;
+  }
+
+  /* Group */
+  .faq-group {
+    margin-bottom: var(--space-10);
+  }
+  .faq-group-title {
+    font-size: 0.6875rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-4);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  /* FAQ items */
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .faq-item {
+    border-bottom: 1px solid var(--border-light);
+  }
+  .faq-item:last-child {
+    border-bottom: none;
+  }
+
+  /* Summary / question */
+  .faq-question {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-4) 0;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+  }
+  .faq-question::-webkit-details-marker {
+    display: none;
+  }
+  .faq-question::marker {
+    display: none;
+    content: '';
+  }
+  .faq-question-text {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--text-primary);
+    transition: color 0.15s;
+  }
+  .faq-question:hover .faq-question-text {
+    color: var(--accent);
+  }
+
+  /* Chevron */
+  .faq-chevron {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    color: var(--text-muted);
+    transition: transform 0.2s ease, color 0.15s;
+    margin-top: 2px;
+  }
+  .faq-item[open] .faq-chevron {
+    transform: rotate(180deg);
+    color: var(--accent);
+  }
+
+  /* Answer */
+  .faq-answer {
+    padding: 0 0 var(--space-5);
+    padding-right: calc(24px + var(--space-4));
+  }
+  .faq-answer p {
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+  }
+
+  /* Contact CTA */
+  .faqs-contact {
+    text-align: center;
+    padding: var(--space-10) 0 0;
+    border-top: 1px solid var(--border-color);
+    margin-top: var(--space-4);
+  }
+  .faqs-contact h2 {
+    font-size: 1.5rem;
+    margin-bottom: var(--space-3);
+  }
+  .faqs-contact p {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-5);
+  }
+
+  @media (max-width: 768px) {
+    .faqs-hero h1 {
+      font-size: 1.5rem;
+    }
+    .faq-question-text {
+      font-size: 1rem;
+    }
+  }
+</style>

@@ -1,0 +1,646 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { fetchAllArticles } from '../lib/airtable';
+
+const articles = await fetchAllArticles();
+const articleCount = articles.length;
+
+const wixBase = 'https://www.rrmacademy.org';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'EducationalOrganization',
+  name: 'RRM Academy',
+  alternateName: 'Restorative Reproductive Medicine Academy',
+  url: 'https://rrmacademy.org',
+  description: 'The leading educational platform for patients and professionals seeking to understand and apply Restorative Reproductive Medicine.',
+  founder: {
+    '@type': 'Person',
+    name: 'Dr. Naomi Whittaker',
+    jobTitle: 'Board-Certified OB/GYN',
+    honorificPrefix: 'Dr.',
+  },
+  nonprofitStatus: '501(c)(3)',
+  areaServed: 'Global',
+};
+---
+<BaseLayout
+  title="RRM Academy — Stop Managing Symptoms. Start Restoring Health."
+  description="RRM Academy is the leading educational platform for Restorative Reproductive Medicine. Access 3,000+ research articles, expert courses, and resources for patients and professionals."
+  canonicalUrl="https://rrmacademy.org/"
+  jsonLd={jsonLd}
+>
+  <article class="hp">
+    <!-- Hero -->
+    <header class="hp-hero">
+      <div class="container container--narrow">
+        <h1>Stop Managing Symptoms.<br/><span class="hp-hero__light">Start Restoring Health.</span></h1>
+        <p class="hp-hero__subtitle">
+          Evidence-based reproductive medicine education for patients and professionals who want real answers.
+        </p>
+        <div class="hp-hero__links">
+          <a href={`${wixBase}/courses`} class="btn btn--primary">Explore Courses</a>
+          <a href="/library" class="btn btn--secondary">Find RRM Research</a>
+        </div>
+
+        <div class="hp-hero__trust">
+          <p class="hp-trust__tagline">Backed by {articleCount.toLocaleString()}+ peer-reviewed resources and covered by international news.</p>
+          <div class="hp-trust__logos">
+            <span class="hp-trust__logo hp-trust__logo--nejm">New England<br/>Journal of Medicine</span>
+            <span class="hp-trust__logo hp-trust__logo--jama">JAMA</span>
+            <span class="hp-trust__logo hp-trust__logo--lancet">The Lancet</span>
+            <span class="hp-trust__logo hp-trust__logo--nyt">The New York Times</span>
+            <span class="hp-trust__logo hp-trust__logo--wp">The Washington Post</span>
+            <span class="hp-trust__logo hp-trust__logo--fs">Fertility &amp; Sterility</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Intro -->
+    <section class="hp-section">
+      <div class="container container--narrow">
+        <p>
+          Have you ever been told your painful periods are "normal"? That birth control is your only
+          option? Or that IVF is your only path to pregnancy? You are not alone. And you deserve better.
+        </p>
+        <p>
+          RRM Academy is the leading educational platform for patients and professionals seeking to
+          understand and apply Restorative Reproductive Medicine (RRM). Guided by the expertise of
+          our founder, Dr. Naomi Whittaker, and a community of RRM-trained professionals, we provide
+          the evidence-based tools to find the root cause of your health issues and restore your body
+          to its natural, healthy function.
+        </p>
+      </div>
+    </section>
+
+    <!-- Analogy -->
+    <section class="hp-section hp-section--alt">
+      <div class="container container--narrow">
+        <h2>Let's start with an analogy.</h2>
+        <p>
+          When the check engine light comes on in your car, you don't just put a piece of tape over
+          it. You look under the hood to find out why the light is on. For over 50 years, women's
+          healthcare has been putting tape over the check engine light.
+        </p>
+        <p>
+          So, what's the alternative? It's an approach called Restorative Reproductive Medicine (RRM).
+        </p>
+        <p>
+          RRM isn't a single treatment; it's a medical and surgical model of care that works
+          cooperatively with your body. It's the "under the hood" approach. It investigates the
+          fundamental "why" behind your symptoms. By identifying and treating the underlying
+          cause&mdash;be it hormonal, anatomical, or inflammatory&mdash;we can restore your body's
+          natural, healthy function. RRM is not about symptom suppression. It's about authentic healing.
+        </p>
+      </div>
+    </section>
+
+    <!-- How RRM Works -->
+    <section class="hp-section">
+      <div class="container container--narrow">
+        <h2>How RRM Works in Practice</h2>
+        <p>
+          It's a progressive process, and it starts with listening. Our educational philosophy is
+          built on a simple idea: you deserve to understand your body. Let's walk through the core
+          principles that guide our curriculum for both patients and professionals.
+        </p>
+        <p>
+          <strong>First, we identify the cause.</strong> Your body's signals&mdash;the painful
+          periods, the irregular cycles&mdash;are the clues that have likely been ignored. We teach
+          you how to chart your cycle, turning your experiences into valuable data. For a
+          NaPro-trained OB/GYN, that chart is like an EKG for a cardiologist; it helps uncover
+          the root cause of your health issues.
+        </p>
+        <p>
+          <strong>Then, we treat the condition.</strong> Once we know the why, we can discover
+          targeted medical and surgical treatments that address the underlying disease. If you have
+          endometriosis, the goal isn't just to manage the pain; it's to skillfully resect the
+          disease itself&mdash;like carefully removing weeds from a garden so the flowers can grow.
+        </p>
+        <p>
+          <strong>Next, we work to restore normal function.</strong> The ultimate goal is to restore
+          your body's natural hormonal balance and reproductive function. A healthy system is a
+          fertile system. This approach can lead to improved fertility and healthier pregnancies
+          because we've fixed the broken pipe instead of just using buckets to catch the leak.
+        </p>
+        <p>
+          <strong>Finally, we cooperate with the body.</strong> RRM works in harmony with your
+          natural cycle. You will learn to understand and appreciate your body's intricate design,
+          becoming an active, empowered partner in your own healthcare journey. We're not fighting
+          your body; we're working with it.
+        </p>
+      </div>
+    </section>
+
+    <!-- A Different Path -->
+    <section class="hp-section hp-section--alt">
+      <div class="container container--narrow">
+        <h2>A Different Path: Fixing the Problem, Not Just Catching the Leak</h2>
+        <p>
+          Understanding your options is the first step toward empowerment. RRM offers a different
+          philosophy and pathway compared to many conventional treatments. The distinction is not
+          just in the tools we use, but in the fundamental goal of our approach.
+        </p>
+
+        <div class="hp-comparison">
+          <div class="hp-comparison__col">
+            <h3>The RRM Approach: Fixing the Broken Pipe</h3>
+            <ul>
+              <li><strong>Primary Goal:</strong> Identify and treat the root cause of the problem.</li>
+              <li><strong>Focus:</strong> Restoring the body to its normal, healthy function.</li>
+              <li><strong>Your Role:</strong> You are an active, educated partner in your healthcare journey.</li>
+            </ul>
+          </div>
+          <div class="hp-comparison__col">
+            <h3>The Conventional Approach: Using Buckets to Catch the Leak</h3>
+            <ul>
+              <li><strong>Primary Goal:</strong> Suppress symptoms or bypass the problem (e.g., IVF).</li>
+              <li><strong>Focus:</strong> Managing the condition or achieving a specific outcome (e.g., pregnancy).</li>
+              <li><strong>Your Role:</strong> You are often a passive recipient of a standardized protocol.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- You Are in the Right Place -->
+    <section class="hp-section">
+      <div class="container container--narrow">
+        <h2>You Are in the Right Place</h2>
+        <p>
+          Our educational resources are designed to meet you exactly where you are on your health journey.
+        </p>
+
+        <h3>For Patients and Individuals</h3>
+        <p>You are in the right place if you are experiencing:</p>
+        <ul>
+          <li><strong>Infertility or Subfertility</strong> and want to understand why you are not conceiving.</li>
+          <li><strong>Recurrent Miscarriage</strong> and are seeking answers and a proactive approach.</li>
+          <li><strong>Painful or Irregular Cycles</strong> and have been told your suffering is "normal."</li>
+          <li><strong>Conditions like PCOS &amp; Endometriosis</strong> and want a treatment plan that goes beyond symptom management.</li>
+          <li><strong>A Desire to Avoid ART</strong> for personal, ethical, or medical reasons.</li>
+        </ul>
+
+        <h3>For Medical Professionals</h3>
+        <p>You are in the right place if you are a:</p>
+        <ul>
+          <li><strong>Physician</strong> (OB/GYN, Family Med) wanting to offer patients effective, restorative alternatives to hormonal contraception and ART.</li>
+          <li><strong>Midwife or Nurse Practitioner</strong> looking to deepen your expertise in fertility awareness and root-cause treatments.</li>
+          <li><strong>Fertility Support Professional</strong> who wishes to understand how restorative diagnostics, medicine, and surgery can support your practice.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Guided by Expertise -->
+    <section class="hp-section hp-section--alt">
+      <div class="container container--narrow">
+        <h2>Guided by Expertise, Driven by Compassion</h2>
+        <blockquote class="hp-quote">
+          <p>
+            "I'll never forget a patient I saw during my residency. She had a history of miscarriages
+            and was pregnant again, terrified. I ordered a progesterone level, which came back low. My
+            attending physician told me to do nothing. He said, 'If she's going to miscarry, she's
+            going to miscarry.' That moment broke my heart. It was a feeling of professional repulsion.
+            I knew there had to be a better way than just watching and waiting for the worst to happen."
+          </p>
+          <cite>Dr. Naomi Whittaker, Founder of RRM Academy</cite>
+        </blockquote>
+        <p>
+          That experience is the driving force behind RRM Academy. Dr. Whittaker, a board-certified
+          OB/GYN specializing in restorative surgery, founded this platform to fill a critical gap:
+          patients were not being heard, and clinicians lacked training in the cooperative approaches
+          that could truly heal.
+        </p>
+        <p>
+          Today, RRM Academy is a global community of patients and professionals committed to a better
+          standard of care. Our curriculum, guided by Dr. Whittaker and taught by a faculty of
+          RRM-trained experts, is designed to empower you with knowledge and equip you with the tools
+          for authentic, restorative healing.
+        </p>
+        <p>
+          <a href={`${wixBase}/commentary/categories/rrm-physicians`}>Meet Our Founder, Dr. Naomi Whittaker MD &rarr;</a>
+        </p>
+      </div>
+    </section>
+
+    <!-- Your Questions, Answered -->
+    <section class="hp-section">
+      <div class="container container--narrow">
+        <h2>Your Questions, Answered</h2>
+
+        <details class="hp-faq">
+          <summary>Is RRM evidence-based?</summary>
+          <p>
+            That's a great question, and an important one. We know that many patients have been
+            disappointed by unproven treatments. RRM is grounded in established medical science
+            and supported by peer-reviewed research.
+          </p>
+          <p>
+            For example, studies have shown that for certain tubal issues, restorative surgery
+            has higher success rates than IVF. However, we are also honest about where the
+            research is still developing. Dr. Whittaker often notes that there are more studies
+            on endometritis in cows than in humans, which shows where the research funding goes.
+            We are committed to transparency, which is why we provide full access to our
+            <a href="/library">Research Library</a> so you can review the evidence for yourself.
+          </p>
+        </details>
+
+        <details class="hp-faq">
+          <summary>Can RRM help me if I have PCOS?</summary>
+          <p>
+            Absolutely. It's one of the most rewarding conditions to treat because, as
+            Dr. Whittaker says, "it's like a treasure chest. Once you open it up and figure out
+            what's going on, you can truly restore health." We usually see two main "flavors":
+            insulin-resistant PCOS and adrenal PCOS. The conventional approach often just uses
+            birth control to manage symptoms. RRM professionals often investigate which type you
+            have and then use a measured approach&mdash;starting with lifestyle, then supplements,
+            then medical support if needed to restore your body's natural ovulatory function.
+          </p>
+        </details>
+
+        <details class="hp-faq">
+          <summary>Do I need to stop working with my current doctor?</summary>
+          <p>
+            Not necessarily. More often than not, our first goal is to empower you with knowledge.
+            For many, this means having more informed and productive conversations with their
+            current healthcare provider. You can go back to your doctor with your chart and say,
+            "I've been tracking my cycle, and I'm concerned about this pattern." Others may choose
+            to seek out an RRM-trained practitioner for healing-focused care. The choice is always
+            yours, and our resources are here to support you.
+          </p>
+        </details>
+      </div>
+    </section>
+
+    <!-- Latest Insights -->
+    <section class="hp-section hp-section--alt">
+      <div class="container container--narrow">
+        <h2>Latest Insights</h2>
+        <p>
+          <a href="/library"><strong>Research Library</strong></a> &ndash; The largest collection
+          of RRM-related research available with the newest studies in women's health and fertility.
+        </p>
+        <p>
+          <a href={`${wixBase}/commentary/categories/rrm-physicians`}><strong>Physician Spotlights</strong></a> &ndash;
+          First-person interviews with leading RRM professionals.
+        </p>
+        <p>
+          <a href={`${wixBase}/commentary`}><strong>Expert Commentary</strong></a> &ndash;
+          In-depth articles on policy, patient advocacy, and integrative care trends.
+        </p>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="hp-section">
+      <div class="container container--narrow hp-cta">
+        <h2>Begin Your Journey to Answers</h2>
+        <p class="hp-cta__tagline">Your Health. Your Knowledge. Your Future.</p>
+        <p>
+          Whether you are a patient seeking answers or a professional seeking excellence, RRM Academy
+          is here to support you. Join thousands of individuals who have stopped settling for temporary
+          fixes and have discovered a path to true, lasting wellness.
+        </p>
+        <div class="hp-cta__links">
+          <a href={`${wixBase}/courses`} class="btn btn--primary">Explore Courses</a>
+          <a href="/library" class="btn btn--secondary">Access the Research Library</a>
+        </div>
+      </div>
+    </section>
+  </article>
+</BaseLayout>
+
+<style>
+  /* ═══════════════════════════════════════════
+     HOMEPAGE — text-focused editorial layout
+     ═══════════════════════════════════════════ */
+
+  .hp {
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+  }
+
+  .hp h2 {
+    font-size: clamp(1.75rem, 1.25rem + 1.5vw, 2.75rem);
+    letter-spacing: -0.02em;
+    margin-bottom: var(--space-6);
+  }
+
+  .hp h3 {
+    font-size: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
+    margin-top: var(--space-8);
+    margin-bottom: var(--space-3);
+  }
+
+  .hp p {
+    margin-bottom: 1.25em;
+  }
+
+  .hp ul {
+    padding-left: var(--space-6);
+    margin-bottom: 1.25em;
+  }
+
+  .hp li {
+    margin-bottom: var(--space-3);
+    line-height: 1.7;
+  }
+
+  .hp strong {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  /* Sections */
+  .hp-section {
+    padding: var(--space-12) 0;
+  }
+
+  .hp-section--alt {
+    background: var(--neutral-100);
+  }
+
+  /* Hero */
+  .hp-hero {
+    padding: var(--space-16) 0 var(--space-12);
+    background: radial-gradient(circle at 15% 84%, rgba(114,94,126,0) 0%, rgba(152,125,168,0) 39.84375%, rgba(201,184,211,0.43) 66.40%, #DAD3E7 90.19%);
+  }
+
+  [data-theme="dark"] .hp-hero {
+    background: radial-gradient(circle at 15% 84%, rgba(114,94,126,0) 0%, rgba(100,82,110,0) 39.84375%, rgba(61,51,69,0.43) 66.40%, #2e2636 90.19%);
+  }
+
+  .hp-hero h1 {
+    font-size: clamp(2rem, 1.2rem + 3.5vw, 4.25rem);
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    margin-bottom: var(--space-6);
+    color: var(--text-primary);
+  }
+
+  .hp-hero__light {
+    font-weight: 400;
+    color: var(--text-secondary);
+  }
+
+  .hp-hero__subtitle {
+    font-size: 1rem;
+    line-height: 1.75;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-5);
+  }
+
+  .hp-hero__links {
+    display: flex;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+  }
+
+  @media (min-width: 769px) {
+    .hp-hero {
+      padding: var(--space-24) 0 var(--space-16);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .hp-hero {
+      padding: var(--space-10) 0 var(--space-8);
+    }
+    .hp-hero__links {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .hp-hero__links .btn {
+      width: 100%;
+    }
+    .hp-section {
+      padding: var(--space-8) 0;
+    }
+  }
+
+  /* Trust bar (inside hero) */
+  .hp-hero__trust {
+    margin-top: var(--space-10);
+    padding-top: var(--space-8);
+    border-top: 1px solid rgba(114,94,126,0.15);
+  }
+
+  .hp-trust__tagline {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-6);
+    letter-spacing: 0.01em;
+  }
+
+  .hp-trust__logos {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-8);
+    flex-wrap: wrap;
+  }
+
+  .hp-trust__logo {
+    color: var(--neutral-400);
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    user-select: none;
+    line-height: 1.2;
+  }
+
+  .hp-trust__logo--nejm {
+    font-family: 'Georgia', serif;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-align: center;
+  }
+
+  .hp-trust__logo--jama {
+    font-family: 'Georgia', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .hp-trust__logo--lancet {
+    font-family: 'Georgia', serif;
+    font-size: 1.0625rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  .hp-trust__logo--nyt {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.125rem;
+    font-weight: 400;
+    font-style: italic;
+    letter-spacing: 0;
+  }
+
+  .hp-trust__logo--wp {
+    font-family: 'Georgia', serif;
+    font-size: 0.875rem;
+    font-weight: 700;
+    font-style: italic;
+    letter-spacing: -0.01em;
+  }
+
+  .hp-trust__logo--fs {
+    font-family: 'Georgia', serif;
+    font-size: 0.8125rem;
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+  }
+
+  @media (max-width: 768px) {
+    .hp-trust__logos {
+      gap: var(--space-5) var(--space-6);
+    }
+    .hp-trust__logo--nejm {
+      font-size: 0.5625rem;
+    }
+    .hp-trust__logo--jama {
+      font-size: 1rem;
+    }
+    .hp-trust__logo--lancet {
+      font-size: 0.875rem;
+    }
+    .hp-trust__logo--nyt {
+      font-size: 0.9375rem;
+    }
+  }
+
+  /* Quote */
+  .hp-quote {
+    border-left: 3px solid var(--purple-300);
+    padding: var(--space-5) var(--space-6);
+    margin: 0 0 var(--space-6);
+  }
+
+  .hp-quote p {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: clamp(1.125rem, 1rem + 0.5vw, 1.5rem);
+    line-height: 1.55;
+    color: var(--text-primary);
+    font-style: italic;
+  }
+
+  .hp-quote cite {
+    display: block;
+    margin-top: var(--space-3);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    font-style: normal;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  /* Comparison */
+  .hp-comparison {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+    margin-top: var(--space-6);
+  }
+
+  @media (min-width: 769px) {
+    .hp-comparison {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-8);
+    }
+  }
+
+  .hp-comparison h3 {
+    margin-top: 0;
+    font-size: 1.125rem;
+  }
+
+  .hp-comparison ul {
+    list-style: disc;
+  }
+
+  /* FAQ */
+  .hp-faq {
+    border-bottom: 1px solid var(--border-color);
+    padding: var(--space-4) 0;
+  }
+
+  .hp-faq:first-of-type {
+    border-top: 1px solid var(--border-color);
+  }
+
+  .hp-faq summary {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .hp-faq summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .hp-faq summary::after {
+    content: '+';
+    font-size: 1.25rem;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+    margin-left: var(--space-4);
+    transition: transform 0.2s;
+  }
+
+  .hp-faq[open] summary::after {
+    content: '\2212';
+  }
+
+  .hp-faq p {
+    margin-top: var(--space-4);
+  }
+
+  .hp-faq p:first-of-type {
+    margin-top: var(--space-4);
+  }
+
+  /* CTA */
+  .hp-cta {
+    text-align: center;
+  }
+
+  .hp-cta__tagline {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.25rem;
+    font-style: italic;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-5);
+  }
+
+  .hp-cta__links {
+    display: flex;
+    gap: var(--space-4);
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: var(--space-6);
+  }
+
+  @media (max-width: 768px) {
+    .hp-cta__links {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .hp-cta__links .btn {
+      width: 100%;
+    }
+  }
+</style>

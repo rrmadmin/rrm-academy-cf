@@ -1,15 +1,9 @@
-# RRM Research Library — Cloudflare Pages
-# Deploy: npx wrangler pages deploy dist --project-name rrm-library
+# RRM Academy — Cloudflare Pages (full site)
+# Deploy: CLOUDFLARE_ACCOUNT_ID="ecf2c5bc8b5ebd634bcb587b3890910a" npx wrangler pages deploy dist --project-name rrm-academy
 #
-# After DNS migration to Cloudflare, add Worker routes:
-# [[routes]]
-# pattern = "rrmacademy.org/library/*"
-# zone_name = "rrmacademy.org"
-#
-# [[routes]]
-# pattern = "library.rrmacademy.org/*"
-# zone_name = "rrmacademy.org"
+# Renamed from rrm-library (2026-02-21) — project now serves the full site,
+# not just /library. Traffic routed via rrm-router Worker.
 
-name = "rrm-library"
+name = "rrm-academy"
 pages_build_output_dir = "dist"
 compatibility_date = "2025-01-01"

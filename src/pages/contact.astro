@@ -1,0 +1,387 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ContactPage',
+  name: 'Contact RRM Academy',
+  description: 'Get in touch with RRM Academy for questions about restorative reproductive medicine education, courses, or our research library.',
+  url: 'https://rrmacademy.org/contact',
+  mainEntity: {
+    '@type': 'EducationalOrganization',
+    name: 'RRM Academy',
+    url: 'https://rrmacademy.org',
+    email: 'contact@rrmacademy.org',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: '3401 Hartzdale Dr, Ste 103B PMB 3518',
+      addressLocality: 'Camp Hill',
+      addressRegion: 'PA',
+      postalCode: '17011',
+      addressCountry: 'US',
+    },
+    sameAs: [
+      'https://www.instagram.com/rrmacademy',
+    ],
+  },
+};
+---
+<BaseLayout
+  title="Contact Us"
+  description="Get in touch with RRM Academy. Questions about restorative reproductive medicine education, courses, or the research library? We would love to hear from you."
+  canonicalUrl="https://rrmacademy.org/contact"
+  jsonLd={jsonLd}
+>
+  <!-- Hero -->
+  <section class="contact-hero">
+    <div class="container container--narrow">
+      <h1>Contact Us</h1>
+    </div>
+  </section>
+
+  <!-- Contact content -->
+  <section class="contact-section">
+    <div class="container container--narrow">
+      <div class="contact-grid">
+        <!-- Info column -->
+        <div class="contact-info">
+          <div class="contact-block">
+            <h2>Get in touch</h2>
+            <p>
+              Have questions about restorative reproductive medicine, our courses, or the research library? We would love to hear from you.
+            </p>
+          </div>
+
+          <div class="contact-block">
+            <h3>Email</h3>
+            <p>
+              <a href="mailto:contact@rrmacademy.org">contact@rrmacademy.org</a>
+            </p>
+          </div>
+
+          <div class="contact-block">
+            <h3>Mailing address</h3>
+            <address class="contact-address">
+              RRM Academy<br />
+              3401 Hartzdale Dr<br />
+              Ste 103B PMB 3518<br />
+              Camp Hill, PA 17011
+            </address>
+          </div>
+
+          <div class="contact-block">
+            <h3>Follow us</h3>
+            <a href="https://www.instagram.com/rrmacademy" class="contact-social" target="_blank" rel="noopener noreferrer">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+              @rrmacademy
+            </a>
+          </div>
+        </div>
+
+        <!-- Form column -->
+        <div class="contact-form-wrap">
+          <form class="contact-form" id="contact-form" novalidate>
+            <div class="form-group">
+              <label for="contact-name" class="form-label">Name <span class="form-required">*</span></label>
+              <input
+                type="text"
+                id="contact-name"
+                name="name"
+                required
+                autocomplete="name"
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="contact-email" class="form-label">Email <span class="form-required">*</span></label>
+              <input
+                type="email"
+                id="contact-email"
+                name="email"
+                required
+                autocomplete="email"
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="contact-subject" class="form-label">Subject</label>
+              <input
+                type="text"
+                id="contact-subject"
+                name="subject"
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="contact-message" class="form-label">Message <span class="form-required">*</span></label>
+              <textarea
+                id="contact-message"
+                name="message"
+                required
+                rows="6"
+                class="form-textarea"
+              ></textarea>
+            </div>
+
+            <button type="submit" class="btn btn--primary contact-submit">Send message</button>
+          </form>
+
+          <div class="contact-success" id="contact-success">
+            <div class="contact-success__icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <h3>Thank you for your interest</h3>
+            <p>
+              Our contact form is coming soon. In the meantime, please email us directly at
+              <a href="mailto:contact@rrmacademy.org">contact@rrmacademy.org</a>
+              and we will get back to you as soon as possible.
+            </p>
+            <button type="button" class="btn btn--secondary btn--sm" id="contact-reset">Back to form</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Nonprofit note -->
+  <section class="contact-section contact-section--alt">
+    <div class="container container--narrow">
+      <p class="contact-nonprofit">
+        RRM Academy is a project of the Restorative Reproductive Medicine Foundation, a 501(c)(3) nonprofit organization (EIN: 93-4594315).
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* Hero */
+  .contact-hero {
+    padding: var(--space-10) 0 var(--space-8);
+    border-bottom: 1px solid var(--border-color);
+    text-align: center;
+  }
+  .contact-hero h1 {
+    font-size: 2rem;
+    margin-bottom: 0;
+  }
+  @media (min-width: 769px) {
+    .contact-hero {
+      padding: var(--space-16) 0 var(--space-12);
+    }
+    .contact-hero h1 {
+      font-size: 2.75rem;
+    }
+  }
+
+  /* Sections */
+  .contact-section {
+    padding: var(--space-10) 0;
+  }
+  .contact-section--alt {
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border-light);
+  }
+  @media (min-width: 769px) {
+    .contact-section {
+      padding: var(--space-16) 0;
+    }
+  }
+
+  /* Grid layout */
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-10);
+  }
+  @media (min-width: 769px) {
+    .contact-grid {
+      grid-template-columns: 1fr 1.2fr;
+      gap: var(--space-12);
+    }
+  }
+
+  /* Info */
+  .contact-block {
+    margin-bottom: var(--space-6);
+  }
+  .contact-block:last-child {
+    margin-bottom: 0;
+  }
+  .contact-block h2 {
+    margin-bottom: var(--space-3);
+  }
+  .contact-block h3 {
+    font-size: 1rem;
+    margin-bottom: var(--space-2);
+  }
+  .contact-block p {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.75;
+  }
+  .contact-address {
+    font-style: normal;
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.75;
+  }
+  .contact-social {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .contact-social:hover {
+    color: var(--accent-hover);
+  }
+
+  /* Form */
+  .contact-form-wrap {
+    position: relative;
+  }
+  .form-group {
+    margin-bottom: var(--space-5);
+  }
+  .form-label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: var(--space-2);
+  }
+  .form-required {
+    color: var(--accent);
+  }
+  .form-input,
+  .form-textarea {
+    width: 100%;
+    padding: 10px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    background: var(--bg-surface);
+    border: 1.5px solid var(--neutral-300);
+    border-radius: var(--radius-sm);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .form-input:focus,
+  .form-textarea:focus {
+    border-color: var(--purple-700);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+  .form-input::placeholder,
+  .form-textarea::placeholder {
+    color: var(--text-muted);
+  }
+  .form-textarea {
+    resize: vertical;
+    min-height: 120px;
+  }
+  .form-input.invalid,
+  .form-textarea.invalid {
+    border-color: #c0392b;
+  }
+
+  .contact-submit {
+    width: 100%;
+  }
+  @media (min-width: 769px) {
+    .contact-submit {
+      width: auto;
+    }
+  }
+
+  /* Success message */
+  .contact-success {
+    display: none;
+    text-align: center;
+    padding: var(--space-10) var(--space-4);
+  }
+  .contact-success.visible {
+    display: block;
+  }
+  .contact-success__icon {
+    color: var(--green-700);
+    margin-bottom: var(--space-4);
+  }
+  .contact-success h3 {
+    font-size: 1.25rem;
+    margin-bottom: var(--space-3);
+  }
+  .contact-success p {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.75;
+    margin-bottom: var(--space-6);
+  }
+
+  /* Nonprofit */
+  .contact-nonprofit {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    text-align: center;
+    margin-bottom: 0;
+  }
+</style>
+
+<script is:inline>
+  (function() {
+    var form = document.getElementById('contact-form');
+    var success = document.getElementById('contact-success');
+    var resetBtn = document.getElementById('contact-reset');
+
+    if (!form || !success) return;
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      // Basic validation
+      var valid = true;
+      var fields = form.querySelectorAll('[required]');
+      for (var i = 0; i < fields.length; i++) {
+        var field = fields[i];
+        field.classList.remove('invalid');
+        if (!field.value.trim()) {
+          field.classList.add('invalid');
+          valid = false;
+        }
+        if (field.type === 'email' && field.value.trim()) {
+          // Simple email check
+          if (field.value.indexOf('@') === -1 || field.value.indexOf('.') === -1) {
+            field.classList.add('invalid');
+            valid = false;
+          }
+        }
+      }
+
+      if (!valid) {
+        // Focus first invalid field
+        var firstInvalid = form.querySelector('.invalid');
+        if (firstInvalid) firstInvalid.focus();
+        return;
+      }
+
+      // Show success message
+      form.style.display = 'none';
+      success.classList.add('visible');
+    });
+
+    if (resetBtn) {
+      resetBtn.addEventListener('click', function() {
+        success.classList.remove('visible');
+        form.style.display = '';
+        form.reset();
+        var invalids = form.querySelectorAll('.invalid');
+        for (var i = 0; i < invalids.length; i++) {
+          invalids[i].classList.remove('invalid');
+        }
+      });
+    }
+  })();
+</script>

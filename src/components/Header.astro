@@ -23,14 +23,14 @@ const navItems = [
     ],
   },
   { label: 'About', href: '/about' },
+  { label: 'Contact', href: '/contact' },
 ];
 
 const wixBase = 'https://www.rrmacademy.org';
 ---
 <header class="site-header">
   <div class="header-inner container">
-    <a href={wixBase} class="logo">
-      <span class="logo__mark">R</span>
+    <a href="/" class="logo">
       <span class="logo__text">RRM Academy</span>
     </a>
 
@@ -40,17 +40,22 @@ const wixBase = 'https://www.rrmacademy.org';
           <li class:list={['nav-item', { 'has-dropdown': item.children }]}>
             {item.current ? (
               <a href="/library" class="nav-link nav-link--active">{item.label}</a>
+            ) : item.children ? (
+              <button class="nav-link nav-link--dropdown" type="button">
+                {item.label}
+                <svg class="chevron" width="10" height="10" viewBox="0 0 10 10"><path d="M2.5 4L5 6.5L7.5 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
             ) : (
               <a href={`${wixBase}${item.href}`} class="nav-link">{item.label}</a>
             )}
             {item.children && (
-              <ul class="dropdown">
-                {item.children.map((child) => (
-                  <li>
+              <div class="dropdown">
+                <div class="dropdown__grid">
+                  {item.children.map((child) => (
                     <a href={`${wixBase}${child.href}`} class="dropdown-link">{child.label}</a>
-                  </li>
-                ))}
-              </ul>
+                  ))}
+                </div>
+              </div>
             )}
           </li>
         ))}
@@ -66,7 +71,7 @@ const wixBase = 'https://www.rrmacademy.org';
         <svg class="icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         <svg class="icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       </button>
-      <a href={`${wixBase}/donate`} class="btn btn--primary btn--sm">Donate</a>
+      <a href="/donate" class="donate-btn">Donate</a>
     </div>
 
     <a href="/library/saved" class="mobile-saved" id="mobile-saved-link" title="Saved articles">
@@ -91,104 +96,130 @@ const wixBase = 'https://www.rrmacademy.org';
   .header-inner {
     display: flex;
     align-items: center;
-    height: 60px;
-    gap: var(--space-8);
+    height: 56px;
+    gap: var(--space-6);
   }
+
+  /* Logo */
   .logo {
     display: flex;
     align-items: center;
-    gap: var(--space-2);
     text-decoration: none;
     white-space: nowrap;
   }
-  .logo:hover {
-    text-decoration: none;
-  }
-  .logo__mark {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    background: var(--accent);
-    color: var(--bg-body);
-    font-family: 'Cormorant Garamond', 'Georgia', serif;
-    font-weight: 600;
-    font-size: 0.875rem;
-    border-radius: 6px;
-    letter-spacing: 0;
-  }
+  .logo:hover { text-decoration: none; }
   .logo__text {
     font-family: 'Cormorant Garamond', 'Georgia', serif;
     font-weight: 600;
-    font-size: 1.1875rem;
+    font-size: 1.25rem;
     color: var(--text-primary);
     letter-spacing: -0.01em;
   }
-  .main-nav {
-    flex: 1;
-  }
+
+  /* Nav */
+  .main-nav { flex: 1; }
   .nav-list {
     display: flex;
     list-style: none;
-    gap: 2px;
+    gap: 0;
+    align-items: center;
   }
   .nav-item {
     position: relative;
   }
   .nav-link {
-    display: block;
-    padding: 6px 14px;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 4px 16px;
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: var(--text-primary);
     text-decoration: none;
-    border-radius: var(--radius-md);
-    transition: color 0.15s, background 0.15s;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: color 0.15s, border-color 0.15s;
   }
   .nav-link:hover {
     color: var(--accent);
-    background: var(--purple-50);
     text-decoration: none;
   }
   .nav-link--active {
-    color: var(--accent);
-    font-weight: 600;
+    font-weight: 500;
+  }
+
+  /* Chevron */
+  .chevron {
+    transition: transform 0.2s;
+    margin-top: 1px;
+  }
+  .has-dropdown:hover .chevron {
+    transform: rotate(180deg);
   }
 
   /* Dropdown */
   .dropdown {
     display: none;
     position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    min-width: 260px;
+    top: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 380px;
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
-    list-style: none;
-    padding: var(--space-2);
+    padding: var(--space-5) var(--space-6);
     z-index: 10;
   }
   .has-dropdown:hover .dropdown {
     display: block;
   }
+  .dropdown__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2) var(--space-6);
+  }
   .dropdown-link {
-    display: block;
-    padding: var(--space-2) var(--space-3);
     font-size: 0.8125rem;
+    font-weight: 400;
     color: var(--text-secondary);
     text-decoration: none;
-    border-radius: var(--radius-md);
-    transition: all 0.1s;
+    padding: var(--space-1) 0;
+    transition: color 0.15s;
+    white-space: nowrap;
   }
   .dropdown-link:hover {
     color: var(--accent);
-    background: var(--purple-50);
     text-decoration: none;
   }
 
+  /* Donate button — pill shape */
+  .donate-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    padding: 8px 24px;
+    color: var(--white);
+    background: var(--purple-700);
+    border: 1px solid var(--purple-700);
+    border-radius: var(--radius-pill);
+    text-decoration: none;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .donate-btn:hover {
+    background: var(--purple-900);
+    border-color: var(--purple-900);
+    color: var(--white);
+    text-decoration: none;
+  }
+
+  /* Actions */
   .header-actions {
     display: flex;
     align-items: center;
@@ -202,27 +233,16 @@ const wixBase = 'https://www.rrmacademy.org';
     font-weight: 500;
     color: var(--text-tertiary);
     text-decoration: none;
-    padding: 5px 10px;
-    border-radius: var(--radius-sm);
+    padding: 5px 8px;
     transition: color 0.15s;
   }
   .saved-link:hover {
     color: var(--accent);
     text-decoration: none;
   }
-  .saved-link.has-items {
-    color: var(--accent);
-  }
-  .saved-count {
-    font-variant-numeric: tabular-nums;
-  }
-  .saved-link:not(.has-items) {
-    display: none;
-  }
-  .btn--sm {
-    padding: 7px 18px;
-    font-size: 0.75rem;
-  }
+  .saved-link.has-items { color: var(--accent); }
+  .saved-count { font-variant-numeric: tabular-nums; }
+  .saved-link:not(.has-items) { display: none; }
 
   /* Theme toggle */
   .theme-toggle {
@@ -231,7 +251,7 @@ const wixBase = 'https://www.rrmacademy.org';
     justify-content: center;
     background: none;
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-pill);
     padding: 5px 8px;
     color: var(--text-tertiary);
     cursor: pointer;
@@ -246,7 +266,7 @@ const wixBase = 'https://www.rrmacademy.org';
   :global([data-theme="light"]) .theme-toggle .icon-moon { display: inline; }
   :global([data-theme="dark"]) .theme-toggle .icon-sun { display: inline; }
 
-  /* Mobile saved icon — always visible on small screens if items saved */
+  /* Mobile saved icon */
   .mobile-saved {
     display: none;
     color: var(--text-muted);
@@ -254,9 +274,7 @@ const wixBase = 'https://www.rrmacademy.org';
     margin-left: auto;
     margin-right: var(--space-2);
   }
-  .mobile-saved.has-items {
-    color: var(--accent);
-  }
+  .mobile-saved.has-items { color: var(--accent); }
 
   /* Mobile */
   .mobile-toggle {
@@ -288,22 +306,14 @@ const wixBase = 'https://www.rrmacademy.org';
   .hamburger::after { top: 6px; }
 
   @media (max-width: 768px) {
-    .main-nav, .header-actions {
-      display: none;
-    }
-    .mobile-saved {
-      display: block;
-    }
-    .mobile-saved:not(.has-items) {
-      display: none;
-    }
-    .mobile-toggle {
-      display: block;
-    }
+    .main-nav, .header-actions { display: none; }
+    .mobile-saved { display: block; }
+    .mobile-saved:not(.has-items) { display: none; }
+    .mobile-toggle { display: block; }
     .site-header.nav-open .main-nav {
       display: block;
       position: absolute;
-      top: 60px;
+      top: 56px;
       left: 0;
       right: 0;
       background: var(--bg-header);
@@ -313,12 +323,18 @@ const wixBase = 'https://www.rrmacademy.org';
     }
     .site-header.nav-open .nav-list {
       flex-direction: column;
+      align-items: flex-start;
     }
     .site-header.nav-open .dropdown {
       position: static;
+      transform: none;
       border: none;
       box-shadow: none;
-      padding-left: var(--space-4);
+      min-width: 0;
+      padding: var(--space-2) 0 var(--space-2) var(--space-4);
+    }
+    .site-header.nav-open .dropdown__grid {
+      grid-template-columns: 1fr;
     }
     .site-header.nav-open .has-dropdown .dropdown {
       display: block;

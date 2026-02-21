@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://rrmacademy.org/sitemap-index.xml
