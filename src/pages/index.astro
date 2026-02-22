@@ -42,19 +42,18 @@ const jsonLd = {
           <a href={`${wixBase}/courses`} class="btn btn--primary">Explore Courses</a>
           <a href="/library" class="btn btn--secondary">Find RRM Research</a>
         </div>
-
-        <div class="hp-hero__trust">
-          <p class="hp-trust__tagline">Backed by {articleCount.toLocaleString()}+ peer-reviewed resources and covered by international news.</p>
-          <div class="hp-trust__logos">
-            <span class="hp-trust__logo hp-trust__logo--nejm">New England Journal of Medicine</span>
-            <span class="hp-trust__logo hp-trust__logo--jama">JAMA</span>
-            <span class="hp-trust__logo hp-trust__logo--lancet">The Lancet</span>
-            <span class="hp-trust__logo hp-trust__logo--nyt">The New York Times</span>
-            <span class="hp-trust__logo hp-trust__logo--nbc">NBC News</span>
-            <span class="hp-trust__logo hp-trust__logo--guardian">The Guardian</span>
-            <span class="hp-trust__logo hp-trust__logo--wp">The Washington Post</span>
-            <span class="hp-trust__logo hp-trust__logo--fs">Fertility &amp; Sterility</span>
-          </div>
+      </div>
+      <div class="hp-hero__trust">
+        <p class="hp-trust__tagline">Backed by {articleCount.toLocaleString()}+ peer-reviewed resources and covered by international news.</p>
+        <div class="hp-trust__logos">
+          <span class="hp-trust__logo hp-trust__logo--nejm">New England Journal of Medicine</span>
+          <span class="hp-trust__logo hp-trust__logo--jama">JAMA</span>
+          <span class="hp-trust__logo hp-trust__logo--lancet">The Lancet</span>
+          <span class="hp-trust__logo hp-trust__logo--nyt">The New York Times</span>
+          <span class="hp-trust__logo hp-trust__logo--nbc">NBC News</span>
+          <span class="hp-trust__logo hp-trust__logo--guardian">The Guardian</span>
+          <span class="hp-trust__logo hp-trust__logo--wp">The Washington Post</span>
+          <span class="hp-trust__logo hp-trust__logo--fs">Fertility &amp; Sterility</span>
         </div>
       </div>
     </header>
@@ -345,9 +344,13 @@ const jsonLd = {
   .hp-hero {
     min-height: calc(100vh - 56px);
     display: flex;
+    flex-direction: column;
     align-items: center;
+    justify-content: center;
+    position: relative;
     background: radial-gradient(circle at 15% 84%, rgba(114,94,126,0) 0%, rgba(152,125,168,0) 39.84375%, rgba(201,184,211,0.43) 66.40%, #DAD3E7 90.19%);
     padding: var(--space-12) 0;
+    padding-bottom: 180px;
   }
 
   [data-theme="dark"] .hp-hero {
@@ -399,9 +402,6 @@ const jsonLd = {
     .hp-hero__links .btn {
       width: 100%;
     }
-    .hp-hero__trust {
-      margin-top: 60px;
-    }
     .hp-trust__tagline {
       font-size: 0.75rem;
       margin-bottom: var(--space-4);
@@ -423,9 +423,13 @@ const jsonLd = {
     }
   }
 
-  /* Trust bar (inside hero) */
+  /* Trust bar — pinned to bottom of hero */
   .hp-hero__trust {
-    margin-top: 120px;
+    position: absolute;
+    bottom: var(--space-8);
+    left: 0;
+    right: 0;
+    padding: 0 var(--space-4);
   }
 
   .hp-trust__tagline {
