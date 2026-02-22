@@ -1,9 +1,11 @@
 name: Build & Deploy
 
 on:
-  # Auto-deploy on push to main (enables mobile editing workflow)
+  # Auto-deploy on push to main or claude/ branches (mobile editing)
   push:
-    branches: [main]
+    branches:
+      - main
+      - 'claude/**'
   # Daily rebuild at 6 AM ET (11:00 UTC)
   schedule:
     - cron: '0 11 * * *'
@@ -15,6 +17,9 @@ on:
         required: false
         default: 'false'
         type: boolean
+
+permissions:
+  contents: write
 
 jobs:
   deploy:
@@ -60,3 +65,13 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name rrm-academy
+
+      - name: Merge to main
+        if: startsWith(github.ref, 'refs/heads/claude/')
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout main
+          git merge --ff-only ${{ github.sha }} || git merge --no-edit ${{ github.sha }}
+          git push origin main

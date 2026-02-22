@@ -59,15 +59,13 @@ When editing this site from the Claude mobile app, follow these conventions:
 
 Editing from the Claude mobile app uses a cloud VM. It has no local credentials.
 
-**Default: push directly to `main`.** This triggers GitHub Actions which auto-builds and deploys to the live site (~2 min). Only use a separate branch if the user specifically asks.
+**Push to your `claude/` branch as normal.** GitHub Actions auto-builds, deploys to the live site (~2 min), and merges your changes into `main` automatically.
 
 #### Steps:
 1. Make the code edit
 2. Show a brief before/after summary
-3. `git add` the changed files
-4. `git commit -m "description of change"`
-5. `git push origin main`
-6. Tell the user: "Pushed. Your site will be live in ~2 minutes."
+3. Commit and push to your `claude/` branch
+4. Tell the user: "Pushed. Your site will be live in ~2 minutes."
 
 #### Do NOT:
 - Run `npm run build`, `npm run fetch-data`, or `wrangler` — the cloud VM has no credentials, the automated pipeline handles all of that
@@ -77,5 +75,4 @@ The data files (`articles.json`, `posts.json`) are gitignored and won't be in th
 ### Rules
 - Keep edits focused — one change at a time for easy review
 - Show brief before/after summaries
-- Push to main by default so changes go live
 - For large refactors, suggest deferring to desktop
