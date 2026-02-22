@@ -9,3 +9,7 @@
 # Cache search index chunks for 1 day
 /pagefind/*
   Cache-Control: public, max-age=86400
+
+# Survey API — no caching
+/api/survey/*
+  Cache-Control: no-store

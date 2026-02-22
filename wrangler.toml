@@ -7,3 +7,7 @@
 name = "rrm-academy"
 pages_build_output_dir = "dist"
 compatibility_date = "2025-01-01"
+
+[[kv_namespaces]]
+binding = "SURVEY_TOKENS"
+id = "ef52bc09f1b44b5f8e3367372be8d63d"

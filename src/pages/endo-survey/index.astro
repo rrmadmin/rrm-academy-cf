@@ -1,0 +1,394 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Quiz',
+  name: '3-Tier Endometriosis Symptom Self-Survey',
+  description: 'An evidence-based self-assessment tool developed by Dr. Naomi Whittaker, board-certified OB/GYN, to help identify symptoms associated with endometriosis.',
+  author: {
+    '@type': 'Person',
+    name: 'Dr. Naomi Whittaker',
+    jobTitle: 'Board-Certified OB/GYN',
+    affiliation: {
+      '@type': 'EducationalOrganization',
+      name: 'RRM Academy',
+    },
+  },
+  provider: {
+    '@type': 'EducationalOrganization',
+    '@id': 'https://rrmacademy.org/#organization',
+  },
+  educationalLevel: 'Patient Education',
+  about: {
+    '@type': 'MedicalCondition',
+    name: 'Endometriosis',
+  },
+};
+---
+<BaseLayout
+  title="Endometriosis Symptom Self-Survey"
+  description="Do your symptoms point to endometriosis? This evidence-based self-survey from Dr. Naomi Whittaker helps you assess your level of suspicion based on real clinical patterns."
+  canonicalUrl="https://rrmacademy.org/endo-survey"
+  jsonLd={jsonLd}
+>
+  <section class="survey-hero">
+    <div class="container container--narrow">
+      <p class="survey-hero__eyebrow">Free Assessment</p>
+      <h1>3-Tier Endometriosis<br>Symptom Self-Survey</h1>
+      <p class="survey-hero__tagline">Developed by Dr. Naomi Whittaker, MD, OBGYN, MIGS</p>
+    </div>
+  </section>
+
+  <div class="page-body">
+    <section class="survey-intro">
+      <div class="container container--narrow">
+        <p class="survey-intro__lead">
+          Too many women spend years being told their pain is normal. It is not.
+        </p>
+        <p>
+          I developed this self-survey based on the symptom patterns I see constantly in my endometriosis practice. It uses a 3-tier scoring system to help you assess your level of suspicion, from symptoms most strongly associated with endometriosis down to those that raise general concern.
+        </p>
+        <p>
+          This is not a diagnosis. Endometriosis can only be confirmed through surgery. But this survey can give you language for what you are experiencing, and it can help you walk into your next appointment with a clearer picture.
+        </p>
+
+        <div class="survey-how">
+          <h2>How it works</h2>
+          <ol class="survey-steps">
+            <li>
+              <span class="survey-steps__num">1</span>
+              <div>
+                <strong>Enter your email below</strong>
+                <p>We will send you a private link to take the survey.</p>
+              </div>
+            </li>
+            <li>
+              <span class="survey-steps__num">2</span>
+              <div>
+                <strong>Check the symptoms that apply to you</strong>
+                <p>36 symptoms across three tiers of clinical suspicion.</p>
+              </div>
+            </li>
+            <li>
+              <span class="survey-steps__num">3</span>
+              <div>
+                <strong>Get your personalized results</strong>
+                <p>Your score, a breakdown by tier, and a PDF you can take to your doctor.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+
+        <div class="survey-gate" id="survey-gate">
+          <h2>Get your survey link</h2>
+          <form id="email-form" class="survey-form">
+            <div class="survey-form__row">
+              <input
+                type="email"
+                id="email-input"
+                name="email"
+                placeholder="Your email address"
+                required
+                autocomplete="email"
+                class="survey-form__input"
+              />
+              <button type="submit" class="btn btn--primary survey-form__btn" id="submit-btn">
+                Get My Survey Link
+              </button>
+            </div>
+            <p class="survey-form__note">
+              Your email is only used to deliver your survey link. We do not share it or add you to a mailing list.
+            </p>
+          </form>
+
+          <div id="success-msg" class="survey-success" hidden>
+            <div class="survey-success__icon">&#10003;</div>
+            <h3>Check your inbox</h3>
+            <p>We sent a survey link to <strong id="sent-email"></strong>. It may take a minute to arrive. Check your spam folder if you do not see it.</p>
+          </div>
+
+          <div id="error-msg" class="survey-error" hidden>
+            <p id="error-text"></p>
+          </div>
+        </div>
+
+        <div class="survey-disclaimer">
+          <p>
+            <strong>Medical disclaimer:</strong> This self-survey is for educational purposes only and does not constitute medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider for evaluation and treatment of medical conditions.
+          </p>
+        </div>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  /* Hero */
+  .survey-hero {
+    padding: var(--space-10) 0 var(--space-8);
+    text-align: center;
+    background: radial-gradient(circle at 15% 84%, rgba(114,94,126,0) 0%, rgba(152,125,168,0) 39.84%, rgba(201,184,211,0.3) 66.40%, rgba(218,211,231,0.6) 90.19%);
+  }
+  [data-theme="dark"] .survey-hero {
+    background: radial-gradient(circle at 15% 84%, rgba(114,94,126,0) 0%, rgba(100,82,110,0) 39.84%, rgba(61,51,69,0.3) 66.40%, rgba(46,38,54,0.6) 90.19%);
+  }
+  .survey-hero__eyebrow {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: var(--space-3);
+  }
+  .survey-hero h1 {
+    font-size: 2rem;
+    margin-bottom: var(--space-3);
+    line-height: 1.2;
+  }
+  .survey-hero__tagline {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-bottom: 0;
+  }
+  @media (min-width: 769px) {
+    .survey-hero {
+      padding: var(--space-16) 0 var(--space-12);
+    }
+    .survey-hero h1 {
+      font-size: 2.5rem;
+    }
+    .survey-hero__tagline {
+      font-size: 1.5rem;
+    }
+  }
+
+  /* Intro */
+  .survey-intro {
+    padding: 0;
+  }
+  .survey-intro__lead {
+    font-size: 1.125rem;
+    line-height: 1.75;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+  .survey-intro p {
+    font-size: 1rem;
+    line-height: 1.75;
+    color: var(--text-primary);
+  }
+
+  /* How it works */
+  .survey-how {
+    margin-top: var(--space-8);
+  }
+  .survey-how h2 {
+    font-size: 1.5rem;
+    margin-bottom: var(--space-4);
+  }
+  .survey-steps {
+    list-style: none;
+    counter-reset: none;
+  }
+  .survey-steps li {
+    display: flex;
+    gap: var(--space-4);
+    align-items: flex-start;
+    padding: var(--space-4) 0;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .survey-steps li:last-child {
+    border-bottom: none;
+  }
+  .survey-steps__num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+  .survey-steps strong {
+    display: block;
+    margin-bottom: var(--space-1);
+    color: var(--text-primary);
+  }
+  .survey-steps p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+
+  /* Email gate */
+  .survey-gate {
+    margin-top: var(--space-10);
+    padding: var(--space-8);
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+  }
+  .survey-gate h2 {
+    font-size: 1.5rem;
+    margin-bottom: var(--space-4);
+  }
+  .survey-form__row {
+    display: flex;
+    gap: var(--space-3);
+  }
+  .survey-form__input {
+    flex: 1;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-pill);
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    background: var(--bg-body);
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .survey-form__input:focus {
+    border-color: var(--accent);
+  }
+  .survey-form__input::placeholder {
+    color: var(--text-tertiary);
+  }
+  .survey-form__btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .survey-form__note {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    margin-top: var(--space-3);
+    margin-bottom: 0;
+  }
+  @media (max-width: 520px) {
+    .survey-form__row {
+      flex-direction: column;
+    }
+    .survey-form__btn {
+      width: 100%;
+    }
+  }
+
+  /* Success / Error states */
+  .survey-success {
+    text-align: center;
+    padding: var(--space-6) 0;
+  }
+  .survey-success__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #2d8a4e;
+    color: #fff;
+    font-size: 1.5rem;
+    margin-bottom: var(--space-4);
+  }
+  .survey-success h3 {
+    font-size: 1.25rem;
+    margin-bottom: var(--space-2);
+  }
+  .survey-success p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+  .survey-error {
+    margin-top: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    background: #fdf2f2;
+    border: 1px solid #e5a5a5;
+    border-radius: var(--radius-sm);
+  }
+  [data-theme="dark"] .survey-error {
+    background: #3d2020;
+    border-color: #6b3a3a;
+  }
+  .survey-error p {
+    font-size: 0.875rem;
+    color: #c53030;
+    margin: 0;
+  }
+  [data-theme="dark"] .survey-error p {
+    color: #f5a5a5;
+  }
+
+  /* Disclaimer */
+  .survey-disclaimer {
+    margin-top: var(--space-8);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border-light);
+  }
+  .survey-disclaimer p {
+    font-size: 0.75rem;
+    line-height: 1.6;
+    color: var(--text-tertiary);
+    margin: 0;
+  }
+</style>
+
+<script>
+  const form = document.getElementById('email-form');
+  const input = document.getElementById('email-input');
+  const submitBtn = document.getElementById('submit-btn');
+  const successMsg = document.getElementById('success-msg');
+  const errorMsg = document.getElementById('error-msg');
+  const errorText = document.getElementById('error-text');
+  const sentEmail = document.getElementById('sent-email');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorMsg.hidden = true;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+
+    const email = input.value.trim();
+    if (!email) return;
+
+    // Carry through tracking params
+    const params = new URLSearchParams(window.location.search);
+    const payload = { email };
+    if (params.get('userorigin')) payload.userorigin = params.get('userorigin');
+    if (params.get('utm_source')) payload.utm_source = params.get('utm_source');
+
+    try {
+      const resp = await fetch('/api/survey/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await resp.json();
+
+      if (data.ok) {
+        form.hidden = true;
+        sentEmail.textContent = email;
+        successMsg.hidden = false;
+      } else {
+        errorText.textContent = data.error || 'Something went wrong. Please try again.';
+        errorMsg.hidden = false;
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Get My Survey Link';
+      }
+    } catch {
+      errorText.textContent = 'Connection error. Please try again.';
+      errorMsg.hidden = false;
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Get My Survey Link';
+    }
+  });
+</script>

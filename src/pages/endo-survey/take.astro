@@ -1,0 +1,751 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Take the Endometriosis Symptom Self-Survey"
+  description="Complete the 3-Tier Endometriosis Symptom Self-Survey developed by Dr. Naomi Whittaker, board-certified OB/GYN."
+  canonicalUrl="https://rrmacademy.org/endo-survey/take"
+>
+  <!-- Token validation gate — shown before survey loads -->
+  <div id="gate-loading" class="survey-gate-screen">
+    <div class="container container--narrow" style="text-align:center;padding:var(--space-16) 0;">
+      <p class="survey-gate-msg">Validating your survey link...</p>
+    </div>
+  </div>
+
+  <div id="gate-invalid" class="survey-gate-screen" hidden>
+    <div class="container container--narrow" style="text-align:center;padding:var(--space-16) 0;">
+      <h1>Survey link expired</h1>
+      <p id="gate-reason" class="survey-gate-msg"></p>
+      <a href="/endo-survey" class="btn btn--primary" style="margin-top:var(--space-6);">Request a new link</a>
+    </div>
+  </div>
+
+  <!-- Survey content — hidden until token is validated -->
+  <div id="survey-content" hidden>
+    <section class="survey-hero-sm">
+      <div class="container container--narrow">
+        <h1>Endometriosis Symptom Self-Survey</h1>
+        <p class="survey-hero-sm__sub">Check every symptom that applies to you, then scroll down to see your results.</p>
+      </div>
+    </section>
+
+    <div class="page-body">
+      <section class="survey-section">
+        <div class="container container--narrow">
+
+          <div class="survey-intro-note">
+            <p>
+              I developed this 3-tier self-survey based on the symptom patterns I see constantly in my endometriosis practice. It is designed to help you assess your level of suspicion, not to give you a diagnosis.
+            </p>
+            <p>
+              Endometriosis can only be diagnosed by surgery. But understanding your symptoms is the first step toward getting answers. Check every symptom below that applies to you. Be honest. There are no wrong answers.
+            </p>
+            <p class="survey-intro-note__sig">Dr. Naomi Whittaker, MD, OBGYN, MIGS</p>
+          </div>
+
+          <!-- Tier 1 -->
+          <div class="tier-block" data-tier="1">
+            <div class="tier-header tier-header--1">
+              <h2>Tier 1: Very High Suspicion</h2>
+              <p class="tier-header__meta">15 symptoms &middot; 3 points each &middot; <span class="tier-count" data-tier-count="1">0</span> selected</p>
+            </div>
+            <div class="tier-items">
+              <label class="symptom-item"><input type="checkbox" name="t1" value="Vomiting with menstruation"><span class="symptom-check"></span><span class="symptom-label">Vomiting with menstruation</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t1" value="Recurrent tail-end brown bleeding lasting 3 days or more"><span class="symptom-check"></span><span class="symptom-label">Recurrent tail-end brown bleeding lasting 3 days or more</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t1" value="ER visits for pain related to menstruation"><span class="symptom-check"></span><span class="symptom-label">ER visits for pain related to menstruation</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t1" value="Pain during sex (deep penetration) or debilitating pain afterward"><span class="symptom-check"></span><span class="symptom-label">Pain during sex (deep penetration) or debilitating pain afterward</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t1" value="Severe pain (8+/10) during or leading up to menstruation"><span class="symptom-check"></span><span class="symptom-label">Severe pain (8+/10) during or leading up to menstruation</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t1" value="Menses pain interferes with daily activities"><span class="symptom-check"></span><span class="symptom-label">Menses pain interferes with daily activities</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t1" value="Stabbing rectal pain"><span class="symptom-check"></span><span class="symptom-label">Stabbing rectal pain</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t1" value="Pain radiating to back or legs during menstruation"><span class="symptom-check"></span><span class="symptom-label">Pain radiating to back or legs during menstruation</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t1" value="Raw, stabbing, or achy lower abdominal pain with menstruation"><span class="symptom-check"></span><span class="symptom-label">Raw, stabbing, or achy lower abdominal pain with menstruation</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t1" value="Heating pad provides pain relief"><span class="symptom-check"></span><span class="symptom-label">Heating pad provides pain relief</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t1" value="Need to curl into fetal position during painful episodes"><span class="symptom-check"></span><span class="symptom-label">Need to curl into fetal position during painful episodes</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t1" value="Severe cramping"><span class="symptom-check"></span><span class="symptom-label">Severe cramping</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t1" value="Birth control fails to help with pain"><span class="symptom-check"></span><span class="symptom-label">Birth control fails to help with pain (or repeated prescriptions of various methods)</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t1" value="OTC medications fail to provide relief"><span class="symptom-check"></span><span class="symptom-label">OTC medications fail to provide relief (or reliance on very high doses)</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t1" value="Infertility (especially unexplained) with above symptoms"><span class="symptom-check"></span><span class="symptom-label">Infertility (especially &ldquo;unexplained&rdquo;) accompanied by any of the above symptoms</span></label>
+            </div>
+          </div>
+
+          <!-- Tier 2 -->
+          <div class="tier-block" data-tier="2">
+            <div class="tier-header tier-header--2">
+              <h2>Tier 2: High Suspicion</h2>
+              <p class="tier-header__meta">15 symptoms &middot; 2 points each &middot; <span class="tier-count" data-tier-count="2">0</span> selected</p>
+            </div>
+            <div class="tier-items">
+              <label class="symptom-item"><input type="checkbox" name="t2" value="Chronic bladder discomfort with urination"><span class="symptom-check"></span><span class="symptom-label">Chronic bladder discomfort with urination</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t2" value="Chronic frequent urination"><span class="symptom-check"></span><span class="symptom-label">Chronic frequent urination</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t2" value="Heavy menstrual bleeding and even iron deficiency"><span class="symptom-check"></span><span class="symptom-label">Heavy menstrual bleeding and even iron deficiency</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t2" value="Infertility without any other symptoms"><span class="symptom-check"></span><span class="symptom-label">Infertility without any other symptoms</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t2" value="Infertility with history of painful periods at menarche"><span class="symptom-check"></span><span class="symptom-label">Infertility with history of painful periods at menarche</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t2" value="Low quality or quantity of cervical mucus"><span class="symptom-check"></span><span class="symptom-label">Low quality or quantity of cervical mucus</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t2" value="Symptoms or diagnosis of IBS"><span class="symptom-check"></span><span class="symptom-label">Symptoms or diagnosis of IBS (Irritable Bowel Syndrome)</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t2" value="Symptoms or diagnosis of IC"><span class="symptom-check"></span><span class="symptom-label">Symptoms or diagnosis of IC (Interstitial Cystitis)</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t2" value="Severe abdominal bloating during or before menstruation"><span class="symptom-check"></span><span class="symptom-label">Severe abdominal bloating, especially during or 1-2 days before menstruation</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t2" value="Migraines"><span class="symptom-check"></span><span class="symptom-label">Migraines</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t2" value="Short menstrual cycles (short luteal phases)"><span class="symptom-check"></span><span class="symptom-label">Short menstrual cycles (due to short luteal phases)</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t2" value="Severe PMS"><span class="symptom-check"></span><span class="symptom-label">Severe PMS</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t2" value="Chronic constipation"><span class="symptom-check"></span><span class="symptom-label">Chronic constipation</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t2" value="Consistent 1-2 days of tail-end brown bleeding"><span class="symptom-check"></span><span class="symptom-label">Consistent 1-2 days of tail-end brown bleeding</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t2" value="Diagnosis of LUF syndrome"><span class="symptom-check"></span><span class="symptom-label">Diagnosis of LUF syndrome</span></label>
+            </div>
+          </div>
+
+          <!-- Tier 3 -->
+          <div class="tier-block" data-tier="3">
+            <div class="tier-header tier-header--3">
+              <h2>Tier 3: Suspicion</h2>
+              <p class="tier-header__meta">6 symptoms &middot; 1 point each &middot; <span class="tier-count" data-tier-count="3">0</span> selected</p>
+            </div>
+            <div class="tier-items">
+              <label class="symptom-item"><input type="checkbox" name="t3" value="Fatigue"><span class="symptom-check"></span><span class="symptom-label">Fatigue</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t3" value="Nickel sensitivity"><span class="symptom-check"></span><span class="symptom-label">Nickel sensitivity</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t3" value="Skin reactions or sensitivities"><span class="symptom-check"></span><span class="symptom-label">Skin reactions or sensitivities</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t3" value="Easy bruising"><span class="symptom-check"></span><span class="symptom-label">Easy bruising</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t3" value="Family history of endometriosis"><span class="symptom-check"></span><span class="symptom-label">Family history of endometriosis</span></label>
+              <label class="symptom-item"><input type="checkbox" name="t3" value="Personal history of autoimmune conditions"><span class="symptom-check"></span><span class="symptom-label">Personal history of autoimmune conditions</span></label>
+            </div>
+          </div>
+
+          <!-- Calculate button -->
+          <div class="survey-calculate">
+            <button type="button" id="calculate-btn" class="btn btn--primary btn--lg">
+              Calculate My Score
+            </button>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Results — hidden until calculated -->
+      <section id="results-section" class="survey-results" hidden>
+        <div class="container container--narrow">
+          <h2>Your Results</h2>
+
+          <!-- Score display -->
+          <div class="score-card">
+            <div class="score-card__total">
+              <span class="score-card__number" id="score-total">0</span>
+              <span class="score-card__max">/ 81</span>
+            </div>
+            <p class="score-card__label">Total Suspicion Score</p>
+          </div>
+
+          <div class="score-breakdown">
+            <div class="score-tier">
+              <div class="score-tier__bar score-tier__bar--1">
+                <div class="score-tier__fill" id="bar-t1" style="width:0%"></div>
+              </div>
+              <p class="score-tier__label">Tier 1: <strong id="score-t1">0</strong> / 45 <span class="score-tier__sub">Very High Suspicion</span></p>
+            </div>
+            <div class="score-tier">
+              <div class="score-tier__bar score-tier__bar--2">
+                <div class="score-tier__fill" id="bar-t2" style="width:0%"></div>
+              </div>
+              <p class="score-tier__label">Tier 2: <strong id="score-t2">0</strong> / 30 <span class="score-tier__sub">High Suspicion</span></p>
+            </div>
+            <div class="score-tier">
+              <div class="score-tier__bar score-tier__bar--3">
+                <div class="score-tier__fill" id="bar-t3" style="width:0%"></div>
+              </div>
+              <p class="score-tier__label">Tier 3: <strong id="score-t3">0</strong> / 6 <span class="score-tier__sub">Suspicion</span></p>
+            </div>
+          </div>
+
+          <!-- Interpretation -->
+          <div class="results-interpretation" id="interpretation">
+          </div>
+
+          <!-- Actions -->
+          <div class="results-actions">
+            <button type="button" id="download-pdf" class="btn btn--primary">
+              Download Your Results (PDF)
+            </button>
+          </div>
+
+          <!-- CTA placeholder -->
+          <div class="results-cta">
+            <h3>What to do next</h3>
+            <p>
+              Print or save your results PDF and bring it to your next appointment. If you are looking for a provider experienced in diagnosing and treating endometriosis through excision surgery, visit <a href="https://rrmacademy.org/about">rrmacademy.org</a> to learn more about restorative reproductive medicine.
+            </p>
+          </div>
+
+          <div class="results-disclaimer">
+            <p>
+              <strong>Remember:</strong> Endometriosis can only be diagnosed through surgery. This survey identifies symptom patterns associated with endometriosis but is not a diagnosis. Consult a qualified healthcare provider for evaluation.
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  /* Ensure hidden attribute always wins over display rules */
+  [hidden] {
+    display: none !important;
+  }
+
+  /* Gate screens */
+  .survey-gate-screen {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .survey-gate-msg {
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+  }
+
+  /* Compact hero */
+  .survey-hero-sm {
+    padding: var(--space-8) 0 var(--space-6);
+    text-align: center;
+    background: radial-gradient(circle at 15% 84%, rgba(114,94,126,0) 0%, rgba(152,125,168,0) 39.84%, rgba(201,184,211,0.15) 66.40%, rgba(218,211,231,0.35) 90.19%);
+  }
+  [data-theme="dark"] .survey-hero-sm {
+    background: radial-gradient(circle at 15% 84%, rgba(114,94,126,0) 0%, rgba(100,82,110,0) 39.84%, rgba(61,51,69,0.15) 66.40%, rgba(46,38,54,0.35) 90.19%);
+  }
+  .survey-hero-sm h1 {
+    font-size: 1.75rem;
+    margin-bottom: var(--space-2);
+  }
+  .survey-hero-sm__sub {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+
+  /* Survey section */
+  .survey-section { padding: 0; }
+
+  /* Naomi intro note */
+  .survey-intro-note {
+    padding: var(--space-6);
+    background: var(--bg-card);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    margin-bottom: var(--space-8);
+  }
+  .survey-intro-note p {
+    font-size: 1rem;
+    line-height: 1.75;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-3);
+  }
+  .survey-intro-note p:last-child { margin-bottom: 0; }
+  .survey-intro-note__sig {
+    font-style: italic;
+    color: var(--text-secondary) !important;
+    font-size: 0.875rem !important;
+    margin-top: var(--space-4) !important;
+  }
+
+  /* Tier blocks */
+  .tier-block {
+    margin-bottom: var(--space-10);
+  }
+  .tier-header {
+    position: sticky;
+    top: 56px;
+    z-index: 5;
+    background: var(--bg-body);
+    padding: var(--space-4) 0;
+    border-bottom: 2px solid var(--accent);
+    margin-bottom: var(--space-2);
+  }
+  .tier-header h2 {
+    font-size: 1.25rem;
+    margin-bottom: var(--space-1);
+  }
+  .tier-header__meta {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+
+  /* Symptom items */
+  .tier-items {
+    display: flex;
+    flex-direction: column;
+  }
+  .symptom-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--border-light);
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .symptom-item:hover {
+    background: var(--bg-card);
+    margin: 0 calc(-1 * var(--space-3));
+    padding-left: var(--space-3);
+    padding-right: var(--space-3);
+  }
+  .symptom-item input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .symptom-check {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--border-medium, var(--text-tertiary));
+    border-radius: var(--radius-sm);
+    margin-top: 1px;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .symptom-item input:checked + .symptom-check {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .symptom-item input:checked + .symptom-check::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 6px;
+    width: 5px;
+    height: 10px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  .symptom-item input:focus-visible + .symptom-check {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .symptom-label {
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--text-primary);
+  }
+
+  /* Calculate button */
+  .survey-calculate {
+    text-align: center;
+    padding: var(--space-8) 0 var(--space-4);
+  }
+  .btn--lg {
+    padding: var(--space-4) var(--space-10);
+    font-size: 1rem;
+  }
+
+  /* Results */
+  .survey-results {
+    padding-bottom: var(--space-8);
+  }
+  .survey-results h2 {
+    text-align: center;
+    font-size: 1.75rem;
+    margin-bottom: var(--space-6);
+  }
+
+  /* Score card */
+  .score-card {
+    text-align: center;
+    padding: var(--space-8) var(--space-4);
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-6);
+  }
+  .score-card__total {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: var(--space-2);
+  }
+  .score-card__number {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 4rem;
+    font-weight: 600;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .score-card__max {
+    font-size: 1.5rem;
+    color: var(--text-tertiary);
+  }
+  .score-card__label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: var(--space-2);
+    margin-bottom: 0;
+  }
+
+  /* Tier breakdown bars */
+  .score-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    margin-bottom: var(--space-8);
+  }
+  .score-tier__bar {
+    height: 8px;
+    background: var(--border-light);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: var(--space-2);
+  }
+  .score-tier__fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s ease;
+  }
+  .score-tier__bar--1 .score-tier__fill { background: #9b4d6e; }
+  .score-tier__bar--2 .score-tier__fill { background: #c77d3c; }
+  .score-tier__bar--3 .score-tier__fill { background: #5a8a6a; }
+  .score-tier__label {
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    margin: 0;
+  }
+  .score-tier__sub {
+    color: var(--text-tertiary);
+    font-size: 0.8125rem;
+  }
+
+  /* Interpretation */
+  .results-interpretation {
+    padding: var(--space-6);
+    background: var(--bg-card);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    margin-bottom: var(--space-8);
+  }
+  .results-interpretation p {
+    font-size: 1rem;
+    line-height: 1.75;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-3);
+  }
+  .results-interpretation p:last-child { margin-bottom: 0; }
+  .results-interpretation strong {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.25rem;
+    display: block;
+    margin-bottom: var(--space-2);
+  }
+
+  /* Actions */
+  .results-actions {
+    text-align: center;
+    margin-bottom: var(--space-8);
+  }
+
+  /* CTA */
+  .results-cta {
+    padding: var(--space-6);
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-6);
+  }
+  .results-cta h3 {
+    font-size: 1.25rem;
+    margin-bottom: var(--space-3);
+  }
+  .results-cta p {
+    font-size: 0.9375rem;
+    line-height: 1.75;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+  .results-cta a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  /* Disclaimer */
+  .results-disclaimer {
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border-light);
+  }
+  .results-disclaimer p {
+    font-size: 0.75rem;
+    line-height: 1.6;
+    color: var(--text-tertiary);
+    margin: 0;
+  }
+</style>
+
+<script>
+  // ── Token validation ──
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
+
+  const gateLoading = document.getElementById('gate-loading');
+  const gateInvalid = document.getElementById('gate-invalid');
+  const gateReason = document.getElementById('gate-reason');
+  const surveyContent = document.getElementById('survey-content');
+
+  let userEmail = '';
+
+  (async function validateToken() {
+    if (!token) {
+      showInvalid('No survey token provided.');
+      return;
+    }
+
+    try {
+      const resp = await fetch(`/api/survey/validate?token=${encodeURIComponent(token)}`);
+      const data = await resp.json();
+
+      if (data.valid) {
+        userEmail = data.email || '';
+        gateLoading.hidden = true;
+        surveyContent.hidden = false;
+      } else if (data.reason === 'used') {
+        showInvalid('This survey link has already been used. Each link can only be used once.');
+      } else {
+        showInvalid('This survey link is invalid or has expired.');
+      }
+    } catch {
+      showInvalid('Unable to validate your link. Please try again later.');
+    }
+  })();
+
+  function showInvalid(msg) {
+    gateLoading.hidden = true;
+    gateReason.textContent = msg;
+    gateInvalid.hidden = false;
+  }
+
+  // ── Tier count updates ──
+  document.querySelectorAll('.tier-items input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const tier = cb.closest('[data-tier]').dataset.tier;
+      const count = document.querySelectorAll(`[data-tier="${tier}"] input:checked`).length;
+      document.querySelector(`[data-tier-count="${tier}"]`).textContent = count;
+    });
+  });
+
+  // ── Calculate ──
+  const calculateBtn = document.getElementById('calculate-btn');
+  const resultsSection = document.getElementById('results-section');
+
+  calculateBtn.addEventListener('click', async () => {
+    const t1Checked = Array.from(document.querySelectorAll('input[name="t1"]:checked'));
+    const t2Checked = Array.from(document.querySelectorAll('input[name="t2"]:checked'));
+    const t3Checked = Array.from(document.querySelectorAll('input[name="t3"]:checked'));
+
+    const score = {
+      tier1: t1Checked.length * 3,
+      tier2: t2Checked.length * 2,
+      tier3: t3Checked.length * 1,
+      total: (t1Checked.length * 3) + (t2Checked.length * 2) + (t3Checked.length * 1),
+    };
+
+    const symptoms = {
+      tier1: t1Checked.map(cb => cb.value),
+      tier2: t2Checked.map(cb => cb.value),
+      tier3: t3Checked.map(cb => cb.value),
+    };
+
+    // Display scores
+    document.getElementById('score-total').textContent = score.total;
+    document.getElementById('score-t1').textContent = score.tier1;
+    document.getElementById('score-t2').textContent = score.tier2;
+    document.getElementById('score-t3').textContent = score.tier3;
+
+    // Animate bars
+    document.getElementById('bar-t1').style.width = `${(score.tier1 / 45) * 100}%`;
+    document.getElementById('bar-t2').style.width = `${(score.tier2 / 30) * 100}%`;
+    document.getElementById('bar-t3').style.width = `${(score.tier3 / 6) * 100}%`;
+
+    // Interpretation text (Gianna voice)
+    const interp = document.getElementById('interpretation');
+    interp.innerHTML = getInterpretation(score, t1Checked.length, t2Checked.length, t3Checked.length);
+
+    // Show results
+    resultsSection.hidden = false;
+    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Disable checkboxes and button after submission
+    document.querySelectorAll('.tier-items input[type="checkbox"]').forEach(cb => cb.disabled = true);
+    calculateBtn.disabled = true;
+    calculateBtn.textContent = 'Score Calculated';
+
+    // Submit to backend
+    try {
+      await fetch('/api/survey/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, symptoms, score }),
+      });
+    } catch {
+      // Don't block the user experience if submit fails
+    }
+
+    // Set up PDF download
+    setupPdfDownload(score, symptoms);
+  });
+
+  function getInterpretation(score, t1Count, t2Count, t3Count) {
+    let html = '';
+
+    if (score.total === 0) {
+      html = `
+        <p><strong>Your score: 0 / 81</strong></p>
+        <p>Based on this survey, you did not report symptoms commonly associated with endometriosis. If you are still experiencing unexplained pain or other reproductive health concerns, consider discussing them with a healthcare provider who can evaluate your individual situation.</p>
+      `;
+    } else if (t1Count >= 5) {
+      html = `
+        <p><strong>You are not crazy.</strong></p>
+        <p>I see this constantly in my practice. Women who checked off symptom after symptom. Women who were told their pain was normal. Women who spent years on birth control that masked their symptoms while the disease progressed underneath.</p>
+        <p>Your score of ${score.total} out of 81, with ${t1Count} symptoms in the Very High Suspicion tier, suggests a strong pattern of symptoms associated with endometriosis. This is not a diagnosis, but it is the kind of picture that warrants thorough investigation.</p>
+        <p>You deserve answers. You deserve someone who will investigate what is actually causing your symptoms. You deserve treatment that addresses the root cause.</p>
+      `;
+    } else if (t1Count >= 1 || score.total >= 15) {
+      html = `
+        <p><strong>Your symptoms tell a story worth investigating.</strong></p>
+        <p>Your score of ${score.total} out of 81 includes symptoms across ${[t1Count > 0, t2Count > 0, t3Count > 0].filter(Boolean).length} tier${[t1Count > 0, t2Count > 0, t3Count > 0].filter(Boolean).length > 1 ? 's' : ''} of suspicion. ${t1Count > 0 ? `You reported ${t1Count} symptom${t1Count > 1 ? 's' : ''} in the Very High Suspicion category.` : ''}</p>
+        <p>These are patterns I see frequently in patients who are later diagnosed with endometriosis. A provider experienced in diagnosing endometriosis can help determine whether further evaluation is appropriate for you.</p>
+      `;
+    } else {
+      html = `
+        <p><strong>Worth keeping on your radar.</strong></p>
+        <p>Your score of ${score.total} out of 81 is on the lower end, but that does not mean your symptoms should be dismissed. Even a few of these symptoms, particularly if they are disrupting your quality of life, are worth discussing with a knowledgeable provider.</p>
+        <p>Endometriosis can present differently in different people. If you feel something is not right, trust that instinct.</p>
+      `;
+    }
+
+    return html;
+  }
+
+  // ── PDF Generation (jsPDF) ──
+  function setupPdfDownload(score, symptoms) {
+    const btn = document.getElementById('download-pdf');
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      btn.textContent = 'Generating PDF...';
+
+      try {
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF({ unit: 'mm', format: 'letter' });
+      const w = doc.internal.pageSize.getWidth();
+      const margin = 20;
+      const maxW = w - margin * 2;
+      let y = 20;
+
+      // Header bar
+      doc.setFillColor(114, 94, 126); // #725e7e
+      doc.rect(0, 0, w, 12, 'F');
+      doc.setFontSize(9);
+      doc.setTextColor(255, 255, 255);
+      doc.text('RRM Academy', margin, 8);
+      doc.text('rrmacademy.org', w - margin, 8, { align: 'right' });
+      y = 22;
+
+      // Title
+      doc.setTextColor(49, 49, 49); // #313131
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Endometriosis Symptom Self-Survey', margin, y);
+      y += 8;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(99, 98, 97);
+      doc.text('3-Tier Assessment by Dr. Naomi Whittaker, MD, OBGYN, MIGS', margin, y);
+      y += 5;
+      doc.text(`Completed: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, margin, y);
+      y += 10;
+
+      // Score box
+      doc.setFillColor(247, 245, 243);
+      doc.roundedRect(margin, y, maxW, 24, 3, 3, 'F');
+      doc.setFontSize(28);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(114, 94, 126);
+      doc.text(String(score.total), margin + maxW / 2, y + 12, { align: 'center' });
+      doc.setFontSize(14);
+      doc.setTextColor(148, 145, 142);
+      doc.text('/ 81', margin + maxW / 2 + 14, y + 12);
+      doc.setFontSize(9);
+      doc.setTextColor(99, 98, 97);
+      doc.text('Total Suspicion Score', margin + maxW / 2, y + 20, { align: 'center' });
+      y += 32;
+
+      // Tier breakdown
+      const tiers = [
+        { label: 'Tier 1: Very High Suspicion', pts: score.tier1, max: 45, items: symptoms.tier1, color: [155, 77, 110] },
+        { label: 'Tier 2: High Suspicion', pts: score.tier2, max: 30, items: symptoms.tier2, color: [199, 125, 60] },
+        { label: 'Tier 3: Suspicion', pts: score.tier3, max: 6, items: symptoms.tier3, color: [90, 138, 106] },
+      ];
+
+      for (const tier of tiers) {
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(49, 49, 49);
+        doc.text(`${tier.label}  (${tier.pts} / ${tier.max})`, margin, y);
+        y += 5;
+
+        // Bar
+        doc.setFillColor(230, 230, 230);
+        doc.roundedRect(margin, y, maxW, 3, 1.5, 1.5, 'F');
+        if (tier.pts > 0) {
+          doc.setFillColor(...tier.color);
+          doc.roundedRect(margin, y, maxW * (tier.pts / tier.max), 3, 1.5, 1.5, 'F');
+        }
+        y += 7;
+
+        // Listed symptoms
+        if (tier.items.length > 0) {
+          doc.setFontSize(8.5);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(99, 98, 97);
+          for (const item of tier.items) {
+            if (y > 260) {
+              doc.addPage();
+              y = 20;
+            }
+            const lines = doc.splitTextToSize(`• ${item}`, maxW - 4);
+            doc.text(lines, margin + 2, y);
+            y += lines.length * 3.5;
+          }
+        } else {
+          doc.setFontSize(8.5);
+          doc.setFont('helvetica', 'italic');
+          doc.setTextColor(148, 145, 142);
+          doc.text('No symptoms selected', margin + 2, y);
+          y += 4;
+        }
+        y += 5;
+      }
+
+      // Footer disclaimer
+      if (y > 240) { doc.addPage(); y = 20; }
+      y += 4;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, y, w - margin, y);
+      y += 6;
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(148, 145, 142);
+      const disclaimer = 'This self-survey is for educational purposes only and does not constitute medical advice, diagnosis, or treatment. Endometriosis can only be diagnosed through surgery. Always consult a qualified healthcare provider for evaluation. RRM Academy is a project of the RRM Foundation, a 501(c)(3) nonprofit.';
+      const discLines = doc.splitTextToSize(disclaimer, maxW);
+      doc.text(discLines, margin, y);
+
+      doc.save('endo-survey-results.pdf');
+
+      } catch (err) {
+        console.error('PDF generation failed:', err);
+        alert('PDF generation failed. Please try again or take a screenshot of your results.');
+      }
+      btn.disabled = false;
+      btn.textContent = 'Download Your Results (PDF)';
+    });
+  }
+</script>
