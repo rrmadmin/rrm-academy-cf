@@ -379,10 +379,12 @@
   // Wire up input
   input.addEventListener('input', onInput);
 
-  // Handle ?q= URL parameter
-  var urlQ = new URLSearchParams(window.location.search).get('q');
+  // Handle ?q= or ?topic= URL parameter
+  var params = new URLSearchParams(window.location.search);
+  var urlQ = params.get('q') || params.get('topic');
   if (urlQ) {
     input.value = urlQ;
+    currentQuery = urlQ;
     clearBtn.classList.remove('hidden');
     // Small delay to let page settle
     setTimeout(function() { doSearch(urlQ); }, 100);
