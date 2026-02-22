@@ -55,13 +55,11 @@ When editing this site from the Claude mobile app, follow these conventions:
 - **Dark mode**: `data-theme="dark"`, warm charcoal `#1e1a16`
 - **Layout**: `.page-body` has 2px purple left border
 
-### Mobile Workflow — CRITICAL INSTRUCTIONS
+### Mobile Workflow
 
-Editing from the Claude mobile app uses Claude Code on the web (cloud VM). The cloud VM clones this repo but has no local credentials.
+Editing from the Claude mobile app uses a cloud VM. It has no local credentials.
 
-**ALWAYS commit and push directly to the `main` branch. NEVER create feature branches or PRs.**
-
-Pushing to `main` triggers GitHub Actions which auto-builds and deploys to Cloudflare Pages (~2 min). Feature branches do NOT trigger deploys, so the user's changes would never go live.
+**Default: push directly to `main`.** This triggers GitHub Actions which auto-builds and deploys to the live site (~2 min). Only use a separate branch if the user specifically asks.
 
 #### Steps:
 1. Make the code edit
@@ -69,17 +67,15 @@ Pushing to `main` triggers GitHub Actions which auto-builds and deploys to Cloud
 3. `git add` the changed files
 4. `git commit -m "description of change"`
 5. `git push origin main`
-6. Tell the user: "Pushed to main. Your site will be live in ~2 minutes."
+6. Tell the user: "Pushed. Your site will be live in ~2 minutes."
 
 #### Do NOT:
-- Create feature branches (changes won't deploy)
-- Create pull requests (changes won't deploy)
-- Run `npm run build`, `npm run fetch-data`, or `wrangler` (no credentials in cloud VM — CI handles it)
+- Run `npm run build`, `npm run fetch-data`, or `wrangler` — the cloud VM has no credentials, the automated pipeline handles all of that
 
-The data files (`articles.json`, `posts.json`) are gitignored and won't be present in the cloud VM. That's expected — GitHub Actions fetches them from Airtable during the build.
+The data files (`articles.json`, `posts.json`) are gitignored and won't be in the cloud VM. That's expected — the pipeline fetches them automatically.
 
 ### Rules
 - Keep edits focused — one change at a time for easy review
 - Show brief before/after summaries
-- ALWAYS push directly to main — CI handles build + deploy
+- Push to main by default so changes go live
 - For large refactors, suggest deferring to desktop
