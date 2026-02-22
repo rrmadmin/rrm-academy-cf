@@ -444,9 +444,18 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
       }
       setSaved(saved);
       render();
-      // Update badge count if visible
-      var badge = document.querySelector('.saved-count');
+      // Update header saved badge
+      var badge = document.getElementById('saved-count');
+      var link = document.getElementById('saved-link');
+      var mobileLink = document.getElementById('mobile-saved-link');
       if (badge) badge.textContent = saved.length;
+      if (saved.length > 0) {
+        if (link) link.classList.add('has-items');
+        if (mobileLink) mobileLink.classList.add('has-items');
+      } else {
+        if (link) link.classList.remove('has-items');
+        if (mobileLink) mobileLink.classList.remove('has-items');
+      }
     });
   })();
 </script>
