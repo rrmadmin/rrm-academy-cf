@@ -55,8 +55,19 @@ When editing this site from the Claude mobile app, follow these conventions:
 - **Dark mode**: `data-theme="dark"`, warm charcoal `#1e1a16`
 - **Layout**: `.page-body` has 2px purple left border
 
+### Mobile Workflow (IMPORTANT)
+
+**Cloud sessions do NOT have Airtable or Cloudflare credentials. Do NOT try to build, fetch data, or deploy.**
+
+1. **Make the code edit** — read the file, apply the change
+2. **Show a before/after summary** so the change is clear on a small screen
+3. **Commit to a branch and create a PR** — Brian will review, merge, and deploy from his Mac
+4. If the user asks to deploy, tell them: "I'll create a PR. Pull and deploy from your Mac."
+
+The data files (`articles.json`, `posts.json`) are gitignored and won't be present. That's fine — you don't need them to edit pages, components, or styles.
+
 ### Rules
 - Keep edits focused — one change at a time for easy review
 - Show brief before/after summaries
-- NEVER auto-deploy — always ask first
+- NEVER try to build or deploy — create a PR instead
 - For large refactors, suggest deferring to desktop

@@ -16,6 +16,51 @@ const navItems = [
 ];
 
 const wixBase = 'https://www.rrmacademy.org';
+
+// Mobile menu — full site navigation (desktop nav stays unchanged)
+// SVG icons for mobile nav (16x16, stroke-based)
+const icons: Record<string, string> = {
+  'help-circle': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  'graduation': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.1 2.7 3 6 3s6-1.9 6-3v-5"/></svg>',
+  'pen': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>',
+  'book-open': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
+  'clipboard': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>',
+  'info': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+  'heart': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+  'users': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  'mail': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
+};
+
+const mobileNavSections = [
+  {
+    heading: 'Education',
+    items: [
+      { label: 'FAQ', href: '/faqs', icon: 'help-circle' },
+      {
+        label: 'Courses',
+        href: '/courses',
+        icon: 'graduation',
+        children: [
+          { label: 'RRM vs IVF', href: '/courses/rrm-vs-ivf' },
+          { label: 'Postpartum Depression & Anxiety', href: '/courses/postpartum-depression-anxiety' },
+          { label: 'Long-term Endometriosis Management', href: '/courses/long-term-endometriosis-management' },
+          { label: 'Masterclass in Endometriosis & Surgery', href: '/courses/masterclass-in-endometriosis-surgery' },
+        ],
+      },
+      { label: 'Commentary', href: '/commentary', icon: 'pen' },
+      { label: 'Research Library', href: '/library', icon: 'book-open' },
+      { label: 'Endo Self-Survey', href: '/endo-survey', icon: 'clipboard' },
+    ],
+  },
+  {
+    heading: 'Help',
+    items: [
+      { label: 'About', href: '/about', icon: 'info' },
+      { label: 'Join Us', href: '/save-the-uterus-club', icon: 'users' },
+      { label: 'Contact', href: '/contact', icon: 'mail' },
+    ],
+  },
+];
 ---
 <header class="site-header">
   <div class="header-inner container">
@@ -49,6 +94,40 @@ const wixBase = 'https://www.rrmacademy.org';
           </li>
         ))}
       </ul>
+
+      <!-- Mobile nav — full site navigation (hidden on desktop, replaces nav-list on mobile) -->
+      <div class="mobile-nav-sections">
+        {mobileNavSections.map((section) => (
+          <div class="mobile-nav-group">
+            <div class="mobile-nav-group__heading">{section.heading}</div>
+            <ul class="mobile-nav-group__list">
+              {section.items.map((item) => (
+                <li class:list={[{ 'mobile-has-dropdown': item.children }]}>
+                  {item.children ? (
+                    <button class="mobile-nav-link mobile-nav-link--dropdown" type="button">
+                      <span class="mobile-nav-icon" set:html={icons[item.icon!]} />
+                      {item.label}
+                      <svg class="chevron" width="10" height="10" viewBox="0 0 10 10"><path d="M2.5 4L5 6.5L7.5 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                  ) : (
+                    <a href={item.href} class="mobile-nav-link">
+                      <span class="mobile-nav-icon" set:html={icons[item.icon!]} />
+                      {item.label}
+                    </a>
+                  )}
+                  {item.children && (
+                    <div class="mobile-dropdown">
+                      {item.children.map((child) => (
+                        <a href={`${wixBase}${child.href}`} class="mobile-dropdown-link">{child.label}</a>
+                      ))}
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
 
       <!-- Mobile-only footer inside nav panel -->
       <div class="mobile-nav-footer">
@@ -322,7 +401,8 @@ const wixBase = 'https://www.rrmacademy.org';
   :global([data-theme="light"]) .theme-toggle .icon-moon { display: inline; }
   :global([data-theme="dark"]) .theme-toggle .icon-sun { display: inline; }
 
-  /* Mobile nav footer — hidden on desktop */
+  /* Mobile nav sections + footer — hidden on desktop */
+  .mobile-nav-sections,
   .mobile-nav-footer {
     display: none;
   }
@@ -343,6 +423,7 @@ const wixBase = 'https://www.rrmacademy.org';
     background: var(--text-primary);
     position: relative;
     border-radius: 1px;
+    transition: background 0.2s;
   }
   .hamburger::before,
   .hamburger::after {
@@ -353,9 +434,23 @@ const wixBase = 'https://www.rrmacademy.org';
     height: 2px;
     background: var(--text-primary);
     border-radius: 1px;
+    transition: transform 0.2s, top 0.2s;
   }
   .hamburger::before { top: -6px; }
   .hamburger::after { top: 6px; }
+
+  /* Hamburger → X when open */
+  .site-header.nav-open .hamburger {
+    background: transparent;
+  }
+  .site-header.nav-open .hamburger::before {
+    top: 0;
+    transform: rotate(45deg);
+  }
+  .site-header.nav-open .hamburger::after {
+    top: 0;
+    transform: rotate(-45deg);
+  }
 
   /* ═══════════════════════════════════════════
      MOBILE — clean full-width panel
@@ -384,65 +479,102 @@ const wixBase = 'https://www.rrmacademy.org';
       box-shadow: 0 8px 24px rgba(0,0,0,0.08);
       padding: var(--space-4) 0;
       z-index: 50;
+      max-height: calc(100dvh - 56px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
-    /* Nav list — full-width stacked links */
+    /* Hide desktop nav-list on mobile, show mobile nav sections */
     .site-header.nav-open .nav-list {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 0;
-    }
-
-    .site-header.nav-open .nav-item {
-      flex-direction: column;
-      align-items: stretch;
-    }
-
-    .site-header.nav-open .nav-link {
-      padding: var(--space-3) var(--space-6);
-      font-size: 0.9375rem;
-      border-bottom: none;
-      width: 100%;
-      justify-content: flex-start;
-    }
-
-    /* Dropdown — collapsed by default, toggled by JS */
-    .site-header.nav-open .dropdown {
-      position: static;
-      transform: none;
-      min-width: 0;
-      padding: 0;
       display: none;
     }
-
-    .site-header.nav-open .has-dropdown.dropdown-open .dropdown {
+    .site-header.nav-open .mobile-nav-sections {
       display: block;
     }
 
-    .site-header.nav-open .has-dropdown.dropdown-open .chevron {
+    /* ── Mobile nav sections ── */
+    .mobile-nav-group {
+      padding: 0 0 var(--space-2);
+    }
+    .mobile-nav-group + .mobile-nav-group {
+      border-top: 1px solid var(--border-light);
+      padding-top: var(--space-2);
+    }
+    .mobile-nav-group__heading {
+      padding: var(--space-1) var(--space-6) var(--space-1);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+    }
+    .mobile-nav-group__list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .mobile-nav-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      color: var(--text-muted);
+      vertical-align: middle;
+    }
+    .mobile-nav-link {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      width: 100%;
+      padding: 8px var(--space-6);
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9375rem;
+      font-weight: 400;
+      color: var(--text-primary);
+      text-decoration: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: color 0.15s;
+      line-height: 1.4;
+    }
+    .mobile-nav-link:hover {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .mobile-nav-link:active {
+      background: var(--bg-surface);
+    }
+
+    /* Mobile dropdown — collapsed by default, toggled by JS */
+    .mobile-dropdown {
+      display: none;
+    }
+    .mobile-has-dropdown.dropdown-open .mobile-dropdown {
+      display: block;
+    }
+    .mobile-has-dropdown.dropdown-open .chevron {
       transform: rotate(180deg);
     }
-
-    .site-header.nav-open .dropdown__grid {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      background: transparent;
-      border: none;
-      box-shadow: none;
-      padding: 0;
-      border-top: 1px solid var(--border-light);
-    }
-
-    .site-header.nav-open .dropdown-link {
+    .mobile-dropdown-link {
       display: block;
-      padding: var(--space-3) var(--space-6) var(--space-3) var(--space-10);
+      padding: 8px var(--space-6) 8px var(--space-10);
+      font-family: 'Inter', sans-serif;
       font-size: 0.8125rem;
+      font-weight: 400;
       color: var(--text-secondary);
-      white-space: normal;
+      text-decoration: none;
+      transition: color 0.15s;
     }
-
-    .site-header.nav-open .dropdown-link:active {
+    .mobile-dropdown-link:hover {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .mobile-dropdown-link:active {
       background: var(--bg-surface);
     }
 
@@ -477,6 +609,8 @@ const wixBase = 'https://www.rrmacademy.org';
       var expanded = toggle.getAttribute('aria-expanded') === 'true';
       toggle.setAttribute('aria-expanded', String(!expanded));
       header.classList.toggle('nav-open');
+      // Lock/unlock body scroll
+      document.body.style.overflow = expanded ? '' : 'hidden';
       // Close any open dropdowns when menu closes
       if (expanded) {
         var openDropdowns = header.querySelectorAll('.dropdown-open');
@@ -487,14 +621,21 @@ const wixBase = 'https://www.rrmacademy.org';
     });
   }
 
-  // Mobile dropdown toggle (tap to expand/collapse)
+  // Desktop dropdown toggle (tap to expand/collapse on mobile)
   var dropdownButtons = document.querySelectorAll('.nav-link--dropdown');
   for (var i = 0; i < dropdownButtons.length; i++) {
     dropdownButtons[i].addEventListener('click', function() {
-      // Only toggle on mobile
       if (window.innerWidth <= 768) {
         this.closest('.has-dropdown').classList.toggle('dropdown-open');
       }
+    });
+  }
+
+  // Mobile nav dropdown toggle (Courses submenu)
+  var mobileDropdownButtons = document.querySelectorAll('.mobile-nav-link--dropdown');
+  for (var i = 0; i < mobileDropdownButtons.length; i++) {
+    mobileDropdownButtons[i].addEventListener('click', function() {
+      this.closest('.mobile-has-dropdown').classList.toggle('dropdown-open');
     });
   }
 
