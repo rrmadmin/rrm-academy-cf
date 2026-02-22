@@ -55,6 +55,8 @@ const journalDisplay = article.journal || article.journalAbbv || '';
     transition: box-shadow 0.2s;
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
   }
   .article-card:hover {
     box-shadow: var(--shadow-md);
