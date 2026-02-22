@@ -22,6 +22,21 @@ interface Props {
   ogType?: string;
   jsonLd?: object;
   bodyClass?: string;
+  citationMeta?: {
+    title: string;
+    authors: string[];      // One meta tag per author
+    date?: string;          // Format: YYYY/MM/DD or YYYY
+    journal?: string;
+    journalAbbrev?: string;
+    volume?: string;
+    issue?: string;
+    firstPage?: string;
+    lastPage?: string;
+    doi?: string;
+    pmid?: string;
+    abstract?: string;
+    keywords?: string;      // Semicolon-separated
+  };
 }
 
 const {
@@ -31,6 +46,7 @@ const {
   ogType = 'website',
   jsonLd,
   bodyClass,
+  citationMeta,
 } = Astro.props;
 
 const fullTitle = title.includes('RRM') ? title : `${title} | RRM Research Library`;
@@ -67,6 +83,27 @@ const canonical = canonicalUrl || Astro.url.href;
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content={fullTitle} />
   <meta name="twitter:description" content={description} />
+
+  <!-- Highwire Press / Zotero citation meta -->
+  {citationMeta && (
+    <>
+      <meta name="citation_title" content={citationMeta.title} />
+      {citationMeta.authors.map(author => (
+        <meta name="citation_author" content={author} />
+      ))}
+      {citationMeta.date && <meta name="citation_publication_date" content={citationMeta.date} />}
+      {citationMeta.journal && <meta name="citation_journal_title" content={citationMeta.journal} />}
+      {citationMeta.journalAbbrev && <meta name="citation_journal_abbrev" content={citationMeta.journalAbbrev} />}
+      {citationMeta.volume && <meta name="citation_volume" content={citationMeta.volume} />}
+      {citationMeta.issue && <meta name="citation_issue" content={citationMeta.issue} />}
+      {citationMeta.firstPage && <meta name="citation_firstpage" content={citationMeta.firstPage} />}
+      {citationMeta.lastPage && <meta name="citation_lastpage" content={citationMeta.lastPage} />}
+      {citationMeta.doi && <meta name="citation_doi" content={citationMeta.doi} />}
+      {citationMeta.pmid && <meta name="citation_pmid" content={citationMeta.pmid} />}
+      {citationMeta.abstract && <meta name="citation_abstract" content={citationMeta.abstract} />}
+      {citationMeta.keywords && <meta name="citation_keywords" content={citationMeta.keywords} />}
+    </>
+  )}
 
   <!-- Preload critical fonts (eliminates CSS→font waterfall) -->
   <link rel="preload" href={cormorant400} as="font" type="font/woff2" crossorigin />

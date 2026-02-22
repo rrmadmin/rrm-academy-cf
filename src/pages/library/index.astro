@@ -155,7 +155,7 @@ const jsonLd = {
   }
   .hero__count {
     position: absolute;
-    bottom: var(--space-8);
+    bottom: var(--space-4);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -172,9 +172,9 @@ const jsonLd = {
   }
   .hero__count-number {
     font-family: 'Cormorant Garamond', 'Georgia', serif;
-    font-size: 1.75rem;
-    font-weight: 600;
-    color: var(--text-secondary);
+    font-size: 1.375rem;
+    font-weight: 500;
+    color: var(--text-tertiary);
     letter-spacing: 0.04em;
     line-height: 1.1;
   }
@@ -288,12 +288,22 @@ const jsonLd = {
       max-width: 640px;
     }
     .hero__count-number {
-      font-size: 2.25rem;
+      font-size: 1.5rem;
     }
   }
   @media (max-width: 768px) {
     .hero {
-      min-height: calc(85vh - 56px);
+      min-height: calc(100dvh - 56px);
+    }
+    .hero__count-number {
+      font-size: 1.25rem;
+      font-weight: 500;
+    }
+    .hero__count-label {
+      font-size: 0.625rem;
+    }
+    .hero__count {
+      bottom: var(--space-2);
     }
   }
 
@@ -327,7 +337,7 @@ const jsonLd = {
     justify-content: center;
     align-items: center;
     gap: 6px 4px;
-    padding: var(--space-6) var(--space-4);
+    padding: var(--space-8) var(--space-4) var(--space-6);
     max-width: var(--max-width-page);
     margin: 0 auto;
   }

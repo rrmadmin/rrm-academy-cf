@@ -27,7 +27,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
       <div id="saved-list" class="saved-list"></div>
 
-      <button id="clear-all" class="clear-all-btn">Clear all saved articles</button>
+      <div class="saved-actions">
+        <button id="export-all" class="export-btn">Export all (.RIS)</button>
+        <button id="clear-all" class="clear-all-btn">Clear all</button>
+      </div>
     </div>
   </div>
 </BaseLayout>
@@ -113,9 +116,30 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     color: var(--neutral-900);
   }
 
-  .clear-all-btn {
+  .saved-actions {
     display: none;
+    align-items: center;
+    gap: var(--space-4);
     margin-top: var(--space-6);
+  }
+  .saved-actions.visible {
+    display: flex;
+  }
+  .export-btn {
+    font-size: 0.75rem;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    color: var(--purple-700);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.15s;
+  }
+  .export-btn:hover {
+    color: var(--purple-900);
+  }
+  .clear-all-btn {
     font-size: 0.75rem;
     font-weight: 500;
     color: var(--neutral-400);
@@ -127,9 +151,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .clear-all-btn:hover {
     color: var(--neutral-900);
   }
-  .clear-all-btn.visible {
-    display: inline-block;
-  }
 </style>
 
 <script is:inline>
@@ -138,6 +159,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     var list = document.getElementById('saved-list');
     var empty = document.getElementById('saved-empty');
     var clearBtn = document.getElementById('clear-all');
+    var exportBtn = document.getElementById('export-all');
+    var actionsRow = document.querySelector('.saved-actions');
 
     function getSaved() {
       try { return JSON.parse(localStorage.getItem(KEY) || '[]'); }
@@ -154,12 +177,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
       if (saved.length === 0) {
         empty.classList.add('visible');
-        clearBtn.classList.remove('visible');
+        if (actionsRow) actionsRow.classList.remove('visible');
         return;
       }
 
       empty.classList.remove('visible');
-      clearBtn.classList.add('visible');
+      if (actionsRow) actionsRow.classList.add('visible');
 
       saved.forEach(function(item) {
         var div = document.createElement('div');
@@ -209,6 +232,58 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           render();
           updateHeaderBadge(0);
         }
+      });
+    }
+
+    // Export all saved articles as RIS
+    if (exportBtn) {
+      exportBtn.addEventListener('click', function() {
+        var saved = getSaved();
+        if (saved.length === 0) return;
+        var ris = '';
+        saved.forEach(function(d) {
+          var lines = ['TY  - JOUR'];
+          var authors = (d.authors || '').split(';');
+          for (var i = 0; i < authors.length; i++) {
+            var a = authors[i].trim();
+            if (a) lines.push('AU  - ' + a);
+          }
+          if (d.title) lines.push('TI  - ' + d.title);
+          if (d.journal) lines.push('T2  - ' + d.journal);
+          if (d.journalAbbv) lines.push('JO  - ' + d.journalAbbv);
+          if (d.abstract) lines.push('AB  - ' + d.abstract);
+          if (d.datePublished) lines.push('DA  - ' + d.datePublished.replace(/-/g, '/'));
+          if (d.year) lines.push('PY  - ' + d.year);
+          if (d.volume) lines.push('VL  - ' + d.volume);
+          if (d.issue) lines.push('IS  - ' + d.issue);
+          if (d.pages) {
+            var parts = d.pages.split(/[-\u2013]/);
+            if (parts[0]) lines.push('SP  - ' + parts[0].trim());
+            if (parts[1]) lines.push('EP  - ' + parts[1].trim());
+          }
+          if (d.doi) {
+            lines.push('DO  - ' + d.doi);
+            lines.push('UR  - https://doi.org/' + d.doi);
+          }
+          if (d.pmid) lines.push('N1  - PMID: ' + d.pmid);
+          if (d.topics) {
+            var topics = d.topics.split(';');
+            for (var j = 0; j < topics.length; j++) {
+              var t = topics[j].trim();
+              if (t) lines.push('KW  - ' + t);
+            }
+          }
+          if (d.slug) lines.push('UR  - https://rrmacademy.org/library/' + d.slug);
+          lines.push('ER  - ');
+          ris += lines.join('\n') + '\n';
+        });
+        var blob = new Blob([ris], { type: 'application/x-research-info-systems' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'rrm-library-' + saved.length + '-articles.ris';
+        a.click();
+        URL.revokeObjectURL(url);
       });
     }
 

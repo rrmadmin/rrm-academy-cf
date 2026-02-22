@@ -19,8 +19,38 @@ const authorDisplay = article.shortCitation || `${firstAuthor}${article.authors?
 
 // Show journal if available
 const journalDisplay = article.journal || article.journalAbbv || '';
+
+// Build COinS (ContextObjects in Spans) for Zotero multi-select
+function buildCOinS(a: Article): string {
+  const params: string[] = [
+    'ctx_ver=Z39.88-2004',
+    'rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal',
+    'rft.genre=article',
+  ];
+  if (a.title) params.push('rft.atitle=' + encodeURIComponent(a.title));
+  if (a.journal) params.push('rft.jtitle=' + encodeURIComponent(a.journal));
+  if (a.volume) params.push('rft.volume=' + encodeURIComponent(a.volume));
+  if (a.issue) params.push('rft.issue=' + encodeURIComponent(a.issue));
+  if (a.pages) {
+    const [sp, ep] = a.pages.split(/[-–]/);
+    if (sp) params.push('rft.spage=' + encodeURIComponent(sp.trim()));
+    if (ep) params.push('rft.epage=' + encodeURIComponent(ep.trim()));
+  }
+  if (a.datePublished) params.push('rft.date=' + encodeURIComponent(a.datePublished));
+  else if (a.year) params.push('rft.date=' + encodeURIComponent(String(a.year)));
+  // Authors
+  const authors = a.authors?.split(';').map(s => s.trim()).filter(Boolean) || [];
+  authors.forEach(au => params.push('rft.au=' + encodeURIComponent(au)));
+  // Identifiers
+  if (a.doi) params.push('rft_id=' + encodeURIComponent('info:doi/' + a.doi));
+  if (a.pmid) params.push('rft_id=' + encodeURIComponent('info:pmid/' + a.pmid));
+  return params.join('&');
+}
+
+const coinsTitle = buildCOinS(article);
 ---
 <article class:list={['article-card', { 'article-card--compact': compact }]}>
+  <span class="Z3988" title={coinsTitle}></span>
   <a href={href} class="article-card__link">
     <h3 class="article-card__title">{article.title}</h3>
   </a>

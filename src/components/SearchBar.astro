@@ -21,6 +21,7 @@
   .search-wrapper {
     position: relative;
     width: 100%;
+    z-index: 10;
   }
 
   /* Search input */
@@ -82,9 +83,21 @@
     display: none;
   }
 
-  /* Results area */
+  /* Results area — overlay so it doesn't shift the hero layout */
   .search-results {
+    position: absolute;
+    top: 100%;
+    left: -20px;
+    right: -20px;
     text-align: left;
+    padding: 0 62px var(--space-6);
+    background: var(--bg-body);
+    max-height: 60vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  }
+  .search-results:empty {
+    display: none;
   }
 
   /* Result count */
