@@ -110,6 +110,27 @@ if (article.pmid) {
 if (identifiers.length) jsonLd.identifier = identifiers;
 
 const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
+
+// Highwire Press citation meta for Zotero Connector
+const citationAuthors = article.authors?.split(';').map(a => a.trim()).filter(Boolean) || [];
+const citationDate = article.datePublished?.split('T')[0]?.replace(/-/g, '/') || (article.year ? String(article.year) : undefined);
+// Parse pages broadly for Highwire (handles S42-S48, e123-e130, etc.)
+const hwPages = article.pages?.split(/[-–]/).map(p => p.trim()) || [];
+const citationMeta = {
+  title: article.title,
+  authors: citationAuthors,
+  date: citationDate,
+  journal: article.journal || undefined,
+  journalAbbrev: article.journalAbbv || undefined,
+  volume: article.volume || undefined,
+  issue: article.issue || undefined,
+  firstPage: hwPages[0] || undefined,
+  lastPage: hwPages[1] || undefined,
+  doi: article.doi || undefined,
+  pmid: article.pmid || undefined,
+  abstract: article.abstract || undefined,
+  keywords: article.topics.length > 0 ? article.topics.join('; ') : undefined,
+};
 ---
 <BaseLayout
   bodyClass="page-library page-synopsis"
@@ -118,6 +139,7 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
   canonicalUrl={canonicalUrl}
   ogType="article"
   jsonLd={jsonLd}
+  citationMeta={citationMeta}
 >
   <div class="page-wrapper" data-pagefind-body>
     <div class="container container--narrow">
@@ -140,13 +162,31 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
           </button>
           <button
             class="action-btn"
+            id="cite-btn"
+            aria-label="Download citation"
+            title="Download citation (.RIS)"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span class="action-label" id="cite-label"></span>
+          </button>
+          <button
+            class="action-btn"
             id="save-btn"
             aria-label="Save article"
             data-slug={article.slug}
             data-title={article.title}
             data-authors={article.shortCitation || ''}
             data-journal={article.journal || article.journalAbbv || ''}
+            data-journal-abbv={article.journalAbbv || ''}
             data-year={article.year || ''}
+            data-doi={article.doi || ''}
+            data-pmid={article.pmid || ''}
+            data-volume={article.volume || ''}
+            data-issue={article.issue || ''}
+            data-pages={article.pages || ''}
+            data-date-published={article.datePublished || ''}
+            data-abstract={article.abstract || ''}
+            data-topics={article.topics.join(';')}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
             <span class="action-label" id="save-label"></span>
@@ -455,6 +495,74 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
     });
   })();
 
+  // RIS citation generation (shared by download button + batch export)
+  function generateRIS(d) {
+    var lines = ['TY  - JOUR'];
+    var authors = (d.authors || '').split(';');
+    for (var i = 0; i < authors.length; i++) {
+      var a = authors[i].trim();
+      if (a) lines.push('AU  - ' + a);
+    }
+    if (d.title) lines.push('TI  - ' + d.title);
+    if (d.journal) lines.push('T2  - ' + d.journal);
+    if (d.journalAbbv) lines.push('JO  - ' + d.journalAbbv);
+    if (d.abstract) lines.push('AB  - ' + d.abstract);
+    if (d.datePublished) lines.push('DA  - ' + d.datePublished.replace(/-/g, '/'));
+    if (d.year) lines.push('PY  - ' + d.year);
+    if (d.volume) lines.push('VL  - ' + d.volume);
+    if (d.issue) lines.push('IS  - ' + d.issue);
+    if (d.pages) {
+      var parts = d.pages.split(/[-\u2013]/);
+      if (parts[0]) lines.push('SP  - ' + parts[0].trim());
+      if (parts[1]) lines.push('EP  - ' + parts[1].trim());
+    }
+    if (d.doi) {
+      lines.push('DO  - ' + d.doi);
+      lines.push('UR  - https://doi.org/' + d.doi);
+    }
+    if (d.pmid) lines.push('N1  - PMID: ' + d.pmid);
+    if (d.topics) {
+      var topics = d.topics.split(';');
+      for (var j = 0; j < topics.length; j++) {
+        var t = topics[j].trim();
+        if (t) lines.push('KW  - ' + t);
+      }
+    }
+    if (d.slug) lines.push('UR  - https://rrmacademy.org/library/' + d.slug);
+    lines.push('ER  - ');
+    return lines.join('\n') + '\n';
+  }
+
+  function downloadRIS(content, filename) {
+    var blob = new Blob([content], { type: 'application/x-research-info-systems' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Download citation button
+  (function() {
+    var citeBtn = document.getElementById('cite-btn');
+    var citeLabel = document.getElementById('cite-label');
+    var saveBtn = document.getElementById('save-btn');
+    if (!citeBtn || !saveBtn) return;
+    citeBtn.addEventListener('click', function() {
+      var d = saveBtn.dataset;
+      var ris = generateRIS(d);
+      var fname = (d.doi || d.pmid || d.slug || 'citation').replace(/[\/\\]/g, '_') + '.ris';
+      downloadRIS(ris, fname);
+      citeBtn.classList.add('copied');
+      citeLabel.textContent = 'Downloaded!';
+      setTimeout(function() {
+        citeBtn.classList.remove('copied');
+        citeLabel.textContent = '';
+      }, 2000);
+    });
+  })();
+
   // Save article button
   (function() {
     var KEY = 'rrm_saved';
@@ -481,9 +589,11 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
     // Update header badge
     function updateBadge() {
       var badge = document.getElementById('saved-count');
+      var mobileBadge = document.getElementById('mobile-saved-count');
       var link = document.getElementById('saved-link');
       var mobileLink = document.getElementById('mobile-saved-link');
       if (badge) badge.textContent = saved.length;
+      if (mobileBadge) mobileBadge.textContent = saved.length;
       if (saved.length > 0) {
         if (link) link.classList.add('has-items');
         if (mobileLink) mobileLink.classList.add('has-items');
@@ -495,6 +605,7 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
 
     btn.addEventListener('click', function() {
       saved = getSaved();
+      var d = btn.dataset;
       if (isSaved) {
         saved = saved.filter(function(s) { return s.slug !== slug; });
         isSaved = false;
@@ -502,11 +613,20 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
         saveLabel.textContent = '';
       } else {
         saved.unshift({
-          slug: slug,
-          title: btn.dataset.title,
-          authors: btn.dataset.authors,
-          journal: btn.dataset.journal,
-          year: btn.dataset.year,
+          slug: d.slug,
+          title: d.title,
+          authors: d.authors,
+          journal: d.journal,
+          journalAbbv: d.journalAbbv,
+          year: d.year,
+          doi: d.doi,
+          pmid: d.pmid,
+          volume: d.volume,
+          issue: d.issue,
+          pages: d.pages,
+          datePublished: d.datePublished,
+          abstract: d.abstract,
+          topics: d.topics,
           savedAt: new Date().toISOString()
         });
         isSaved = true;
