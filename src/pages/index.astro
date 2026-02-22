@@ -308,6 +308,18 @@ const jsonLd = {
     font-size: clamp(1.75rem, 1.25rem + 1.5vw, 2.75rem);
     letter-spacing: -0.02em;
     margin-bottom: var(--space-6);
+    position: relative;
+  }
+
+  .hp h2::before {
+    content: '';
+    position: absolute;
+    left: calc(-1 * var(--space-8) - 4px);
+    top: 0.45em;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--sand-500);
   }
 
   .hp h3 {
@@ -424,6 +436,11 @@ const jsonLd = {
     .hp h2 {
       font-size: 1.5rem;
       margin-bottom: var(--space-4);
+    }
+    .hp h2::before {
+      left: calc(-1 * var(--space-5) - 4px);
+      width: 6px;
+      height: 6px;
     }
     .hp h3 {
       font-size: 1.25rem;
