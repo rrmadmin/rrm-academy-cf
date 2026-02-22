@@ -791,7 +791,7 @@ Stroke-based Lucide-style SVG icons are used in both the mobile nav menu and the
 | FAQ | `help-circle` | Circle with question mark |
 | Courses | `graduation` | Mortarboard cap |
 | Commentary | `pen` | Edit pen |
-| Research Library | `book-open` | Open book (two pages) |
+| Research Library | `library-big` | Upright book + leaning book |
 | Endo Self-Survey | `clipboard` | Clipboard with clip |
 | About | `info` | Circle with "i" |
 | Join Us | `users` | Two people |
