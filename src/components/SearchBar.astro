@@ -233,7 +233,7 @@
   var resultsEl = document.getElementById('search-results');
   if (!input || !resultsEl) return;
 
-  var pagefind = null;
+  var pagefindReady = null;
   var debounceTimer = null;
   var currentResults = [];
   var shown = 0;
@@ -241,12 +241,14 @@
   var totalCount = 0;
   var currentQuery = '';
 
-  // Load Pagefind on first interaction
-  async function ensurePagefind() {
-    if (pagefind) return pagefind;
-    pagefind = await import('/pagefind/pagefind.js');
-    await pagefind.init();
-    return pagefind;
+  // Load Pagefind on first interaction — single shared promise prevents race conditions
+  function ensurePagefind() {
+    if (!pagefindReady) {
+      pagefindReady = import('/pagefind/pagefind.js').then(function(pf) {
+        return pf.init().then(function() { return pf; });
+      });
+    }
+    return pagefindReady;
   }
 
   // Debounced search
