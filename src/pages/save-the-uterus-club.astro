@@ -1,0 +1,507 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// ─── Stripe Payment Links ───────────────────────────────────────────
+// Replace these with your real Stripe Payment Link URLs.
+// Create them at: https://dashboard.stripe.com/payment-links
+// Each should be a recurring monthly donation product.
+const STRIPE_MEMBER     = 'https://donate.stripe.com/9B6fZg2LlbvWaoXdqCcs801';
+const STRIPE_HERO       = 'https://donate.stripe.com/fZuaEW4Tt1Vm54D0DQcs802';
+const STRIPE_SUPER_HERO = 'https://donate.stripe.com/14AeVc99J43u9kTcmycs803';
+---
+<BaseLayout
+  title="Save the Uterus Club — Join Us"
+  description="Join the Save the Uterus Club and help build a future where uteruses are valued, women get real answers, and restorative reproductive medicine becomes the standard of care."
+  canonicalUrl="https://rrmacademy.org/save-the-uterus-club"
+>
+  <div class="page-wrapper">
+    <div class="container container--narrow">
+
+      <!-- Hero -->
+      <section class="stuc-hero">
+        <h1>Save the Uterus Club</h1>
+        <p class="stuc-tagline">Creating a different kind of healthcare model.</p>
+        <p class="stuc-subtext">One where the uterus isn't blamed for every problem. Where surgery isn't the first answer. Where women and couples get real answers about what's actually wrong. And real treatment to fix it.</p>
+      </section>
+
+      <section class="stuc-intro">
+        <p>Women are told their pain is normal. They're handed suppressive medications without investigation. Offered hysterectomy before anyone looks for the root cause. These reproductive health issues have been secretly getting worse with age. And no one told them.</p>
+        <p>That's not medicine. That's abandonment.</p>
+        <p>Most women don't even know there's another option. That's why the Save the Uterus Club exists.</p>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- Membership Tiers -->
+      <section class="stuc-section" id="tiers">
+        <h2>Membership Tiers</h2>
+        <div class="tier-grid">
+
+          <div class="tier-card card">
+            <div class="tier-header">
+              <h3>Member</h3>
+              <p class="tier-price">$9<span>/month</span></p>
+            </div>
+            <p class="tier-desc">What you get:</p>
+            <ul>
+              <li>Access to private "Uterus Allies" community chat</li>
+              <li>Exclusive educational resources and podcast library</li>
+              <li>Regular updates on research, impact, and new tools</li>
+              <li>Invitations to member strategy calls and events</li>
+            </ul>
+            <a href={STRIPE_MEMBER} class="btn btn--secondary tier-btn" target="_blank" rel="noopener noreferrer">Donate $9 Monthly</a>
+          </div>
+
+          <div class="tier-card tier-featured card">
+            <span class="tier-badge">Most Popular</span>
+            <div class="tier-header">
+              <h3>Uterus Hero</h3>
+              <p class="tier-price">$19<span>/month</span></p>
+            </div>
+            <p class="tier-desc">Everything in Member tier, plus:</p>
+            <ul>
+              <li>Priority access to new resources</li>
+              <li>Deeper involvement in advocacy strategy</li>
+              <li>Exclusive welcome gift</li>
+            </ul>
+            <a href={STRIPE_HERO} class="btn btn--primary tier-btn" target="_blank" rel="noopener noreferrer">Donate $19 Monthly</a>
+          </div>
+
+          <div class="tier-card card">
+            <div class="tier-header">
+              <h3>Uterus Super Hero</h3>
+              <p class="tier-price">$99<span>/month</span></p>
+            </div>
+            <p class="tier-desc">Make a significant difference. Everything in Hero tier, plus:</p>
+            <ul>
+              <li>Live quarterly Q&A calls with Dr. Naomi Whittaker</li>
+              <li>Handmade uterus plushie and stickers</li>
+              <li>Direct input into educational content priorities</li>
+            </ul>
+            <a href={STRIPE_SUPER_HERO} class="btn btn--secondary tier-btn" target="_blank" rel="noopener noreferrer">Donate $99 Monthly</a>
+          </div>
+
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- What Your Membership Does -->
+      <section class="stuc-section">
+        <h2>What Your Membership Does</h2>
+        <p>Every monthly donation funds the work that changes how women and couples access real care:</p>
+        <ul class="membership-benefits">
+          <li><strong>Education</strong> that reaches over 1,000,000 people monthly. Women discovering for the first time that their pain isn't normal. That endometriosis can be treated, not just managed. That fertility problems have causes. And those causes can often be addressed.</li>
+          <li><strong>Research made accessible.</strong> Over 3,000 academic resources in the RRM Research Library. Peer-reviewed evidence translated into information women and couples can actually use to advocate for themselves.</li>
+          <li><strong>Training for medical professionals</strong> who want to practice cause-based medicine. Who want to find the root cause instead of masking symptoms with suppressive medications.</li>
+          <li><strong>A space for healing.</strong> Platforms where women can share their experiences of medical dismissal and reproductive trauma. You are not alone in what you've been through.</li>
+          <li><strong>Better care for every woman and couple who comes after you.</strong> Every resource we create, every professional we train, every woman who learns she deserves answers. That's because of members like you.</li>
+        </ul>
+        <p class="footnote">100% of your donation goes directly to the RRM Foundation's operating fund. All donations are tax-deductible (we're a registered 501(c)(3), EIN: 93-4594315).</p>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- Who This Is For -->
+      <section class="stuc-section">
+        <h2>Who This Is For</h2>
+        <div class="audience-grid">
+
+          <div class="card">
+            <h3>Women navigating reproductive health challenges</h3>
+            <p>Endometriosis. PCOS. Infertility. Recurrent miscarriage. Painful periods that everyone said were "normal." You deserve real answers. Real treatment. A community that understands what you've been through.</p>
+          </div>
+
+          <div class="card">
+            <h3>Couples building families</h3>
+            <p>Fertility is a couple's issue. Male factor accounts for about half of all fertility challenges. If you want an approach that finds and treats the root cause for both partners, you're in the right place.</p>
+          </div>
+
+          <div class="card">
+            <h3>Healthcare professionals</h3>
+            <p>Clinicians, nurses, FertilityCare Practitioners, physical therapists, researchers. If you believe in cause-based, restorative medicine. If you want to find and treat the cause instead of managing symptoms. Join us.</p>
+          </div>
+
+          <div class="card">
+            <h3>Allies and advocates</h3>
+            <p>Partners, family members, friends. People who've watched someone they love get dismissed by the healthcare model. Who want to see that change.</p>
+          </div>
+
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- What We're Building Together -->
+      <section class="stuc-section">
+        <h2>What We're Building Together</h2>
+        <p>A future where:</p>
+        <ol class="goals-list">
+          <li><strong>Uteruses are valued</strong> instead of treated as disposable</li>
+          <li><strong>Women know their rights</strong> and what good care looks like</li>
+          <li><strong>Surgery is never offered</strong> without thorough investigation first</li>
+          <li><strong>Painful periods trigger diagnosis.</strong> Not dismissal.</li>
+          <li><strong>Couples get real answers</strong> about what's wrong and how to address it together</li>
+          <li><strong>Restorative reproductive medicine</strong> is the standard of care. Not the exception.</li>
+        </ol>
+        <p>This doesn't happen without funding. Without education. Without a community of people who refuse to accept inadequate care as normal. That's what your membership builds.</p>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- FAQs -->
+      <section class="stuc-section">
+        <h2>Questions?</h2>
+        <div class="faq-list">
+          <details class="faq-item">
+            <summary class="faq-question">
+              <span class="faq-question-text">What exactly does my donation fund?</span>
+              <span class="faq-chevron" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </span>
+            </summary>
+            <div class="faq-answer">
+              <p>Everything. Content creation for RRM Academy. Social media that reaches hundreds of thousands of women and couples monthly. The Research Library. Professional training. Community platforms. Advocacy work. All of it runs on member donations.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">
+              <span class="faq-question-text">Is this tax-deductible?</span>
+              <span class="faq-chevron" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </span>
+            </summary>
+            <div class="faq-answer">
+              <p>Yes. All donations to the Restorative Reproductive Medicine Foundation (501(c)(3), EIN: 93-4594315) are tax-deductible.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">
+              <span class="faq-question-text">Can I cancel anytime?</span>
+              <span class="faq-chevron" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </span>
+            </summary>
+            <div class="faq-answer">
+              <p>Yes. Monthly donations. Cancel whenever you need to.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">
+              <span class="faq-question-text">I'm a healthcare professional. How can I get more involved?</span>
+              <span class="faq-chevron" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </span>
+            </summary>
+            <div class="faq-answer">
+              <p>Join as a member first. You'll get access to the Uterus Allies chat where we coordinate volunteer projects, educational content, and advocacy strategy. We need your expertise.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">
+              <span class="faq-question-text">What if I can't afford a monthly donation right now?</span>
+              <span class="faq-chevron" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </span>
+            </summary>
+            <div class="faq-answer">
+              <p>Follow us on social media. Share our content. Tell women in your life that they deserve answers. That's advocacy too.</p>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- Bottom CTA -->
+      <section class="stuc-bottom-cta">
+        <p>The healthcare model that dismisses women. That offers surgery before investigation. That bypasses root causes instead of treating them.</p>
+        <p>That model only changes when enough people demand better.</p>
+        <a href="#tiers" class="btn btn--primary btn--lg">Join Us</a>
+        <p class="footnote stuc-tax-note">All donations to the Restorative Reproductive Medicine Foundation, a 501(c)(3) non-profit, are tax-deductible. EIN: 93-4594315</p>
+      </section>
+
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  /* Hero */
+  .stuc-hero {
+    text-align: center;
+    margin-bottom: var(--space-6);
+  }
+  .stuc-hero h1 {
+    font-size: 2.25rem;
+    margin-bottom: var(--space-3);
+  }
+  .stuc-tagline {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.375rem;
+    font-style: italic;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-4);
+  }
+  .stuc-subtext {
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* Intro prose */
+  .stuc-intro {
+    margin-bottom: var(--space-6);
+  }
+  .stuc-intro p {
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+  }
+
+  /* Sections */
+  .stuc-section {
+    margin: var(--space-10) 0;
+  }
+  .stuc-section h2 {
+    font-size: 1.5rem;
+    margin-bottom: var(--space-4);
+  }
+  .stuc-section > p {
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+  }
+
+  /* Tier grid */
+  .tier-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+    margin-top: var(--space-5);
+  }
+  @media (min-width: 769px) {
+    .tier-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  /* Tier cards */
+  .tier-card {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .tier-card h3 {
+    font-size: 1.25rem;
+    margin-bottom: var(--space-1);
+  }
+  .tier-price {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 2.25rem;
+    font-weight: 600;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: var(--space-4);
+  }
+  .tier-price span {
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--text-tertiary);
+  }
+  .tier-desc {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-3);
+  }
+  .tier-card ul {
+    list-style: disc;
+    padding-left: var(--space-5);
+    margin-bottom: var(--space-5);
+    flex: 1;
+  }
+  .tier-card li {
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-2);
+  }
+  .tier-btn {
+    align-self: stretch;
+    text-align: center;
+  }
+
+  /* Featured tier */
+  .tier-featured {
+    border-color: var(--accent);
+    border-width: 2px;
+  }
+  .tier-badge {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--accent);
+    color: var(--white);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    padding: 2px 12px;
+    border-radius: var(--radius-pill);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  /* Membership benefits */
+  .membership-benefits {
+    list-style: disc;
+    padding-left: var(--space-6);
+    margin: var(--space-4) 0;
+  }
+  .membership-benefits li {
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-3);
+  }
+
+  /* Audience grid */
+  .audience-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+    margin-top: var(--space-5);
+  }
+  @media (min-width: 640px) {
+    .audience-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  .audience-grid h3 {
+    font-size: 1.125rem;
+    margin-bottom: var(--space-2);
+  }
+  .audience-grid p {
+    font-size: 0.875rem;
+    line-height: 1.75;
+    color: var(--text-secondary);
+  }
+
+  /* Goals list */
+  .goals-list {
+    list-style: decimal;
+    padding-left: var(--space-6);
+    margin: var(--space-4) 0;
+  }
+  .goals-list li {
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-3);
+  }
+
+  /* FAQ accordion */
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+  }
+  .faq-item {
+    border-bottom: 1px solid var(--border-light);
+  }
+  .faq-item:last-child {
+    border-bottom: none;
+  }
+  .faq-question {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-4) 0;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+  }
+  .faq-question::-webkit-details-marker {
+    display: none;
+  }
+  .faq-question::marker {
+    display: none;
+    content: '';
+  }
+  .faq-question-text {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--text-primary);
+    transition: color 0.15s;
+  }
+  .faq-question:hover .faq-question-text {
+    color: var(--accent);
+  }
+  .faq-chevron {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    color: var(--text-muted);
+    transition: transform 0.2s ease, color 0.15s;
+    margin-top: 2px;
+  }
+  .faq-item[open] .faq-chevron {
+    transform: rotate(180deg);
+    color: var(--accent);
+  }
+  .faq-answer {
+    padding: 0 0 var(--space-5);
+    padding-right: calc(24px + var(--space-4));
+  }
+  .faq-answer p {
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+  }
+
+  /* Bottom CTA */
+  .stuc-bottom-cta {
+    text-align: center;
+    padding: var(--space-8) 0 0;
+  }
+  .stuc-bottom-cta > p {
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-3);
+  }
+  .stuc-bottom-cta .btn {
+    margin-top: var(--space-3);
+  }
+  .btn--lg {
+    padding: 14px 36px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+  }
+  .stuc-tax-note {
+    margin-top: var(--space-5);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .stuc-hero h1 {
+      font-size: 1.75rem;
+    }
+    .stuc-tagline {
+      font-size: 1.125rem;
+    }
+    .faq-question-text {
+      font-size: 1rem;
+    }
+  }
+</style>
