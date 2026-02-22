@@ -55,19 +55,19 @@ When editing this site from the Claude mobile app, follow these conventions:
 - **Dark mode**: `data-theme="dark"`, warm charcoal `#1e1a16`
 - **Layout**: `.page-body` has 2px purple left border
 
-### Mobile Workflow (IMPORTANT)
+### Mobile Workflow
 
-**Cloud sessions do NOT have Airtable or Cloudflare credentials. Do NOT try to build, fetch data, or deploy.**
+Editing from the Claude mobile app uses Claude Code on the web (cloud VM). The cloud VM clones this repo but has no local credentials. **Builds and deploys happen automatically via GitHub Actions on push to main.**
 
 1. **Make the code edit** — read the file, apply the change
 2. **Show a before/after summary** so the change is clear on a small screen
-3. **Commit to a branch and create a PR** — Brian will review, merge, and deploy from his Mac
-4. If the user asks to deploy, tell them: "I'll create a PR. Pull and deploy from your Mac."
+3. **Commit and push to `main`** — GitHub Actions will auto-build and deploy (~2 min)
+4. Do NOT try to run `npm run build`, `npm run fetch-data`, or `wrangler` manually — the CI pipeline handles it
 
-The data files (`articles.json`, `posts.json`) are gitignored and won't be present. That's fine — you don't need them to edit pages, components, or styles.
+The data files (`articles.json`, `posts.json`) are gitignored and won't be present in the cloud VM. That's fine — GitHub Actions fetches them from Airtable during the build.
 
 ### Rules
 - Keep edits focused — one change at a time for easy review
 - Show brief before/after summaries
-- NEVER try to build or deploy — create a PR instead
+- Just push to main — CI handles build + deploy
 - For large refactors, suggest deferring to desktop
