@@ -72,12 +72,7 @@ const jsonLd = {
       <div class="hero__search">
         <SearchBar />
       </div>
-      <p class="hero__count">
-        <span class="hero__count-label">Articles Available</span>
-        <span class="hero__count-number">{articles.length.toLocaleString()}</span>
-      </p>
       <div class="hero__ticker" aria-label="Recent additions">
-        <span class="hero__ticker-label">Recently added</span>
         <div class="hero__ticker-stack" id="ticker-stack">
           {ticker.map((item, i) => (
             <a
@@ -91,6 +86,10 @@ const jsonLd = {
           ))}
         </div>
       </div>
+      <p class="hero__count">
+        <span class="hero__count-label">Articles Available</span>
+        <span class="hero__count-number">{articles.length.toLocaleString()}</span>
+      </p>
     </div>
     <div class="hero__scroll" aria-hidden="true">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -241,14 +240,6 @@ const jsonLd = {
     margin-top: var(--space-6);
     width: 100%;
   }
-  .hero__ticker-label {
-    font-size: 0.625rem;
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-muted);
-  }
   .hero__ticker-stack {
     position: relative;
     width: 320px;
@@ -283,6 +274,13 @@ const jsonLd = {
     pointer-events: auto;
     transform: scale(1) translateY(0);
     z-index: 3;
+  }
+  /* Exiting card — slides up and fades out */
+  .ticker-card.exiting {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(1) translateY(-20px);
+    z-index: 4;
   }
   /* Cards behind — scaled down, only bottom edge peeks out */
   .ticker-card.behind-1 {
@@ -552,7 +550,7 @@ const jsonLd = {
 
     function update() {
       for (var i = 0; i < n; i++) {
-        cards[i].classList.remove('active', 'behind-1', 'behind-2');
+        cards[i].classList.remove('active', 'behind-1', 'behind-2', 'exiting');
       }
       cards[current].classList.add('active');
       cards[(current + 1) % n].classList.add('behind-1');
@@ -561,8 +559,17 @@ const jsonLd = {
 
     update();
     setInterval(function() {
+      var prev = current;
       current = (current + 1) % n;
-      update();
+      // Add exiting class to outgoing card
+      cards[prev].classList.remove('active');
+      cards[prev].classList.add('exiting');
+      // Update the rest
+      cards[current].classList.add('active');
+      cards[current].classList.remove('behind-1', 'behind-2');
+      cards[(current + 1) % n].classList.remove('behind-2');
+      cards[(current + 1) % n].classList.add('behind-1');
+      cards[(current + 2) % n].classList.add('behind-2');
     }, 4000);
   })();
 </script>
