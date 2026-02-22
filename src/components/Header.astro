@@ -105,13 +105,13 @@ const mobileNavSections = [
                 <li class:list={[{ 'mobile-has-dropdown': item.children }]}>
                   {item.children ? (
                     <button class="mobile-nav-link mobile-nav-link--dropdown" type="button">
-                      <span class="mobile-nav-icon" set:html={icons[item.icon!]} />
+                      <span class="mobile-nav-icon" aria-hidden="true" set:html={icons[item.icon!]} />
                       {item.label}
                       <svg class="chevron" width="10" height="10" viewBox="0 0 10 10"><path d="M2.5 4L5 6.5L7.5 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </button>
                   ) : (
                     <a href={item.href} class="mobile-nav-link">
-                      <span class="mobile-nav-icon" set:html={icons[item.icon!]} />
+                      <span class="mobile-nav-icon" aria-hidden="true" set:html={icons[item.icon!]} />
                       {item.label}
                     </a>
                   )}
@@ -322,8 +322,10 @@ const mobileNavSections = [
     display: none;
     align-items: center;
   }
-  :global(.page-synopsis) .header-search {
-    display: flex;
+  @media (min-width: 769px) {
+    :global(.page-synopsis) .header-search {
+      display: flex;
+    }
   }
   .header-search__icon {
     position: absolute;
@@ -462,7 +464,7 @@ const mobileNavSections = [
 
     /* Header bar: logo + hamburger only */
     .main-nav { display: none; }
-    .header-search { display: none !important; }
+    .header-search { display: none; }
     .header-actions { display: none; }
     .mobile-toggle { display: block; }
 
@@ -527,7 +529,7 @@ const mobileNavSections = [
     .mobile-nav-link {
       display: flex;
       align-items: center;
-      gap: 18px;
+      gap: 18px; /* optical spacing for touch targets */
       width: 100%;
       padding: 8px var(--space-6);
       margin: 0;

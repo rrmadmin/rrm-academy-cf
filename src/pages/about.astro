@@ -88,7 +88,7 @@ const jsonLd = {
   <!-- Hero -->
   <section class="about-hero">
     <div class="container container--narrow">
-      <h1>About RRM Academy</h1>
+      <h1 class="hero-title">About RRM Academy</h1>
       <p class="about-hero__tagline">Education for true healing and reproductive health</p>
     </div>
   </section>
@@ -209,13 +209,9 @@ const jsonLd = {
   .about-hero {
     padding: var(--space-10) 0 var(--space-8);
     text-align: center;
-    background: radial-gradient(circle at 15% 84%, rgba(114,94,126,0) 0%, rgba(152,125,168,0) 39.84%, rgba(201,184,211,0.3) 66.40%, rgba(218,211,231,0.6) 90.19%);
-  }
-  [data-theme="dark"] .about-hero {
-    background: radial-gradient(circle at 15% 84%, rgba(114,94,126,0) 0%, rgba(100,82,110,0) 39.84%, rgba(61,51,69,0.3) 66.40%, rgba(46,38,54,0.6) 90.19%);
+    background: var(--gradient-hero-subtle);
   }
   .about-hero h1 {
-    font-size: 2rem;
     margin-bottom: var(--space-3);
   }
   .about-hero__tagline {
@@ -228,9 +224,6 @@ const jsonLd = {
   @media (min-width: 769px) {
     .about-hero {
       padding: var(--space-16) 0 var(--space-12);
-    }
-    .about-hero h1 {
-      font-size: 2.5rem;
     }
     .about-hero__tagline {
       font-size: 1.75rem;

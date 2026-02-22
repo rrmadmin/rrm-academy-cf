@@ -67,6 +67,13 @@
   --footer-muted: #b5b3b1;
   --footer-border: rgba(255,255,255,0.1);
 
+  /* Error */
+  --color-error: #c0392b;
+
+  /* Hero gradients */
+  --gradient-hero: radial-gradient(circle at 15% 84%, rgba(114,94,126,0) 0%, rgba(152,125,168,0) 39.84375%, rgba(201,184,211,0.43) 66.40%, #DAD3E7 90.19%);
+  --gradient-hero-subtle: radial-gradient(circle at 15% 84%, rgba(114,94,126,0) 0%, rgba(152,125,168,0) 39.84%, rgba(201,184,211,0.3) 66.40%, rgba(218,211,231,0.6) 90.19%);
+
   /* Focus ring */
   --focus-ring: rgba(114, 94, 126, 0.08);
 }
@@ -133,6 +140,11 @@
   --footer-accent-hover: #d5c6de;
   --footer-muted: #8a8480;
   --footer-border: rgba(255,255,255,0.06);
+
+  --color-error: #e74c3c;
+
+  --gradient-hero: radial-gradient(circle at 15% 84%, rgba(114,94,126,0) 0%, rgba(100,82,110,0) 39.84375%, rgba(61,51,69,0.43) 66.40%, #2e2636 90.19%);
+  --gradient-hero-subtle: radial-gradient(circle at 15% 84%, rgba(114,94,126,0) 0%, rgba(100,82,110,0) 39.84%, rgba(61,51,69,0.3) 66.40%, rgba(46,38,54,0.6) 90.19%);
 
   --focus-ring: rgba(184, 163, 196, 0.12);
 }
@@ -572,6 +584,11 @@ p a, li a, .prose a, blockquote a {
 }
 
 
+/* Hero title — shared fluid sizing for interior page heroes */
+.hero-title {
+  font-size: clamp(2rem, 1.5rem + 2vw, 2.5rem);
+}
+
 /* Sections */
 .section {
   padding: var(--space-6) 0;
@@ -826,7 +843,7 @@ p a, li a, .prose a, blockquote a {
 }
 .form-input.invalid,
 .form-textarea.invalid {
-  border-color: #c0392b;
+  border-color: var(--color-error);
 }
 
 /* Card base — shared by founder, impact, article cards */
