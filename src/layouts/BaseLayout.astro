@@ -9,6 +9,7 @@ interface Props {
   canonicalUrl?: string;
   ogType?: string;
   jsonLd?: object;
+  bodyClass?: string;
 }
 
 const {
@@ -17,6 +18,7 @@ const {
   canonicalUrl,
   ogType = 'website',
   jsonLd,
+  bodyClass,
 } = Astro.props;
 
 const fullTitle = title.includes('RRM') ? title : `${title} | RRM Research Library`;
@@ -66,7 +68,7 @@ const canonical = canonicalUrl || Astro.url.href;
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   )}
 </head>
-<body>
+<body class:list={[bodyClass]}>
   <Header />
   <main>
     <slot />

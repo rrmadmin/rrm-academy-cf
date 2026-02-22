@@ -60,6 +60,7 @@ const jsonLd = {
 };
 ---
 <BaseLayout
+  bodyClass="page-library"
   title="RRM Research Library"
   description={`Browse ${articles.length.toLocaleString()} peer-reviewed articles on restorative reproductive medicine. Free access to abstracts, citations, and full-text links.`}
   canonicalUrl="https://rrmacademy.org/library"
@@ -68,7 +69,7 @@ const jsonLd = {
   <!-- Hero — full-viewport, search-first, Grokipedia-inspired -->
   <section class="hero" data-pagefind-ignore="all">
     <div class="hero__center">
-      <h1>Research Library</h1>
+      <h1>Research Library <span class="hero__version">v2.0</span></h1>
       <div class="hero__search">
         <SearchBar />
       </div>
@@ -86,14 +87,11 @@ const jsonLd = {
           ))}
         </div>
       </div>
-      <p class="hero__count">
-        <span class="hero__count-label">Articles Available</span>
-        <span class="hero__count-number">{articles.length.toLocaleString()}</span>
-      </p>
     </div>
-    <div class="hero__scroll" aria-hidden="true">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-    </div>
+    <p class="hero__count">
+      <span class="hero__count-label">Articles Available</span>
+      <span class="hero__count-number">{articles.length.toLocaleString()}</span>
+    </p>
   </section>
 
   <!-- Browse by Topic -->
@@ -183,7 +181,7 @@ const jsonLd = {
 <style>
   /* Hero — full-viewport, centered, Grokipedia-inspired */
   .hero {
-    min-height: 100vh;
+    min-height: calc(100vh - 56px);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -206,15 +204,25 @@ const jsonLd = {
     letter-spacing: -0.02em;
     margin: 0;
   }
+  .hero__version {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: var(--text-muted);
+    letter-spacing: 0;
+    vertical-align: super;
+    margin-left: 2px;
+  }
   .hero__search {
     width: 100%;
   }
   .hero__count {
+    position: absolute;
+    bottom: var(--space-8);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--space-1);
-    margin-top: var(--space-4);
+    gap: 2px;
   }
   .hero__count-label {
     font-size: 0.6875rem;
@@ -333,17 +341,6 @@ const jsonLd = {
     }
   }
 
-  .hero__scroll {
-    position: absolute;
-    bottom: var(--space-8);
-    color: var(--text-muted);
-    animation: gentle-bounce 2.5s ease-in-out infinite;
-  }
-  @keyframes gentle-bounce {
-    0%, 100% { transform: translateY(0); opacity: 0.4; }
-    50% { transform: translateY(6px); opacity: 0.8; }
-  }
-
   @media (min-width: 769px) {
     .hero h1 {
       font-size: 3.5rem;
@@ -357,7 +354,7 @@ const jsonLd = {
   }
   @media (max-width: 768px) {
     .hero {
-      min-height: 85vh;
+      min-height: calc(85vh - 56px);
     }
   }
 

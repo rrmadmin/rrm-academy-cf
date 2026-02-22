@@ -343,8 +343,11 @@ const jsonLd = {
 
   /* Hero */
   .hp-hero {
-    padding: var(--space-16) 0 var(--space-12);
+    min-height: calc(100vh - 56px);
+    display: flex;
+    align-items: center;
     background: radial-gradient(circle at 15% 84%, rgba(114,94,126,0) 0%, rgba(152,125,168,0) 39.84375%, rgba(201,184,211,0.43) 66.40%, #DAD3E7 90.19%);
+    padding: var(--space-12) 0;
   }
 
   [data-theme="dark"] .hp-hero {
@@ -377,15 +380,9 @@ const jsonLd = {
     flex-wrap: wrap;
   }
 
-  @media (min-width: 769px) {
-    .hp-hero {
-      padding: var(--space-24) 0 var(--space-16);
-    }
-  }
-
   @media (max-width: 768px) {
     .hp-hero {
-      padding: var(--space-12) 0 var(--space-12);
+      min-height: calc(85vh - 56px);
     }
     .hp-hero h1 {
       margin-bottom: var(--space-8);
