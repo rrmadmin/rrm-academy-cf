@@ -42,7 +42,7 @@ for (let i = 1; i <= totalPages; i++) {
   description={`Page ${currentPage} of ${totalPages} - Browse all commentary from RRM Academy.`}
   canonicalUrl={`https://rrmacademy.org/commentary/page/${currentPage}`}
 >
-  <section class="browse-page">
+  <section class="browse-page" data-pagefind-ignore="all">
     <div class="container">
       <nav class="breadcrumb" aria-label="Breadcrumb">
         <a href="/commentary">Commentary</a>
@@ -87,38 +87,7 @@ for (let i = 1; i <= totalPages; i++) {
 </BaseLayout>
 
 <style>
-  .browse-page {
-    padding: var(--space-8) 0 var(--space-16);
-  }
-  .browse-header {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    margin-bottom: var(--space-8);
-    gap: var(--space-4);
-  }
   h1 {
     margin-bottom: var(--space-1);
-  }
-  .browse-meta {
-    font-size: 0.8125rem;
-    color: var(--neutral-500);
-    font-weight: 500;
-  }
-
-  .blog-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--space-6);
-  }
-  @media (min-width: 640px) {
-    .blog-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  @media (min-width: 1024px) {
-    .blog-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
   }
 </style>

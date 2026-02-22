@@ -2,20 +2,9 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import SearchBar from '../../components/SearchBar.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
-import { fetchAllArticles, getTopicCounts } from '../../lib/airtable';
+import { fetchAllArticles } from '../../lib/airtable';
 
 const articles = await fetchAllArticles();
-const topicCounts = getTopicCounts(articles);
-
-// Sort topics by count (descending), take top 30
-const topTopics = [...topicCounts.entries()]
-  .sort((a, b) => b[1] - a[1])
-  .slice(0, 30);
-
-// Split: top 6 featured, next 12 visible, rest hidden
-const featuredTopics = topTopics.slice(0, 6);
-const visiblePills = topTopics.slice(6, 18);
-const hiddenPills = topTopics.slice(18);
 
 // Recent additions (first 6, already sorted by date)
 const recent = articles.slice(0, 6);
@@ -26,10 +15,6 @@ const ticker = articles.slice(0, 8).map(a => ({
   slug: a.slug,
   shortCitation: a.shortCitation,
 }));
-
-// Pagination for full browse
-const PER_PAGE = 50;
-const totalPages = Math.ceil(articles.length / PER_PAGE);
 
 // Schema.org for landing page
 const jsonLd = {
@@ -94,45 +79,24 @@ const jsonLd = {
     </p>
   </section>
 
-  <!-- Browse by Topic -->
-  <section class="section" data-pagefind-ignore="all">
-    <div class="container">
-      <h2 class="section-label">Browse by topic</h2>
-      <div class="featured-topics">
-        {featuredTopics.map(([topic, count]) => (
-          <a href={`/library?topic=${encodeURIComponent(topic)}`} class="featured-topic">
-            <span class="featured-topic__name">{topic}</span>
-            <span class="featured-topic__count">{count}</span>
-          </a>
-        ))}
-      </div>
-      <div class="topic-grid" id="topic-grid">
-        {visiblePills.map(([topic, count]) => (
-          <a
-            href={`/library?topic=${encodeURIComponent(topic)}`}
-            class="topic-pill"
-          >
-            {topic} <span class="topic-count">({count})</span>
-          </a>
-        ))}
-        {hiddenPills.map(([topic, count]) => (
-          <a
-            href={`/library?topic=${encodeURIComponent(topic)}`}
-            class="topic-pill topic-pill--hidden"
-          >
-            {topic} <span class="topic-count">({count})</span>
-          </a>
-        ))}
-      </div>
-      {hiddenPills.length > 0 && (
-        <button class="show-more-btn" id="show-more-topics">
-          + {hiddenPills.length} more
-        </button>
-      )}
-    </div>
-  </section>
-
-  <hr class="divider" />
+  <!-- Topic Links -->
+  <nav class="topic-links" data-pagefind-ignore="all" aria-label="Browse by topic">
+    <a href="/library?topic=Endometriosis">Endometriosis</a>
+    <span class="topic-links__dot" aria-hidden="true">&middot;</span>
+    <a href="/library?topic=Infertility">Infertility</a>
+    <span class="topic-links__dot" aria-hidden="true">&middot;</span>
+    <a href="/library?topic=PCOS">PCOS</a>
+    <span class="topic-links__dot" aria-hidden="true">&middot;</span>
+    <a href="/library?topic=Pregnancy">Pregnancy</a>
+    <span class="topic-links__dot" aria-hidden="true">&middot;</span>
+    <a href="/library?topic=Surgery">Surgery</a>
+    <span class="topic-links__dot" aria-hidden="true">&middot;</span>
+    <a href="/library?topic=Hormones%20%26%20Cycle">Hormones &amp; Cycle</a>
+    <span class="topic-links__dot" aria-hidden="true">&middot;</span>
+    <a href="/library?topic=Contraception">Contraception</a>
+    <span class="topic-links__dot" aria-hidden="true">&middot;</span>
+    <a href="/library?topic=NaProTECHNOLOGY">NaProTECHNOLOGY</a>
+  </nav>
 
   <!-- Recent Additions -->
   <section class="section" data-pagefind-ignore="all">
@@ -149,33 +113,6 @@ const jsonLd = {
     </div>
   </section>
 
-  <hr class="divider" />
-
-  <!-- Browse All -->
-  <section class="section" id="browse" data-pagefind-ignore="all">
-    <div class="container">
-      <div class="section-header">
-        <h2 class="section-label">All articles</h2>
-        <span class="meta-count">{articles.length.toLocaleString()} articles</span>
-      </div>
-      <div class="article-grid" id="article-list">
-        {articles.slice(0, PER_PAGE).map(article => (
-          <ArticleCard article={article} compact />
-        ))}
-      </div>
-
-      {totalPages > 1 && (
-        <nav class="pagination" aria-label="Pagination">
-          <span class="current">1</span>
-          {totalPages >= 2 && <a href="/library/page/2">2</a>}
-          {totalPages >= 3 && <a href="/library/page/3">3</a>}
-          {totalPages > 3 && <span class="ellipsis">&hellip;</span>}
-          {totalPages > 3 && <a href={`/library/page/${totalPages}`}>{totalPages}</a>}
-          <a href="/library/page/2">Next &raquo;</a>
-        </nav>
-      )}
-    </div>
-  </section>
 </BaseLayout>
 
 <style>
@@ -377,136 +314,51 @@ const jsonLd = {
     }
   }
 
-  /* Section header row */
-  .section-header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--space-3);
-  }
-  .section-header .section-label {
-    margin-bottom: var(--space-4);
-  }
   .link-arrow {
     font-size: 0.75rem;
     font-weight: 500;
     color: var(--accent);
     white-space: nowrap;
   }
-  .meta-count {
-    font-size: 0.75rem;
-    color: var(--text-tertiary);
-    white-space: nowrap;
-  }
-
-  /* Divider between sections */
-  .divider {
-    border: none;
-    border-top: 1px solid var(--border-color);
-    margin: 0 auto;
-    max-width: var(--max-width-page);
-    padding: 0 var(--space-6);
-  }
-
-  /* Featured topics — clean list, not cards */
-  .featured-topics {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0;
-    margin-bottom: var(--space-4);
-  }
-  .featured-topic {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    padding: var(--space-3) 0;
-    border-bottom: 1px solid var(--border-light);
-    text-decoration: none;
-    transition: color 0.15s;
-  }
-  .featured-topic:first-child {
-    padding-top: 0;
-  }
-  .featured-topic:last-child {
-    border-bottom: none;
-  }
-  .featured-topic:hover {
-    text-decoration: none;
-  }
-  .featured-topic:hover .featured-topic__name {
-    color: var(--accent);
-  }
-  .featured-topic__name {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--text-primary);
-    line-height: 1.4;
-    transition: color 0.15s;
-  }
-  .featured-topic__count {
-    font-size: 0.6875rem;
-    color: var(--text-muted);
-    font-variant-numeric: tabular-nums;
-    flex-shrink: 0;
-    margin-left: var(--space-3);
-  }
-
-  @media (min-width: 769px) {
-    .featured-topics {
-      grid-template-columns: repeat(2, 1fr);
-      column-gap: var(--space-12);
-    }
-    .featured-topic {
-      padding: var(--space-3) 0;
-    }
-    .featured-topic:first-child,
-    .featured-topic:nth-child(2) {
-      padding-top: 0;
-    }
-    /* Remove border from last items in each column */
-    .featured-topic:nth-child(3):last-child,
-    .featured-topic:last-child {
-      border-bottom: none;
-    }
-    .featured-topic__name {
-      font-size: 0.9375rem;
-    }
-  }
-
-  /* Topic pills — smaller, tighter */
-  .topic-grid {
+  /* Topic links row */
+  .topic-links {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    justify-content: center;
+    align-items: center;
+    gap: 6px 4px;
+    padding: var(--space-6) var(--space-4);
+    max-width: var(--max-width-page);
+    margin: 0 auto;
   }
-
-  .topic-pill--hidden {
-    display: none;
-  }
-  .topic-grid.expanded .topic-pill--hidden {
-    display: inline-block;
-  }
-  .topic-count {
-    font-size: 0.625rem;
-    color: var(--text-muted);
-  }
-
-  .show-more-btn {
-    display: inline-block;
-    margin-top: var(--space-3);
-    font-size: 0.6875rem;
+  .topic-links a {
+    font-size: 0.875rem;
     font-weight: 500;
-    color: var(--text-tertiary);
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.15s;
   }
-  .show-more-btn:hover {
+  .topic-links a:hover {
     color: var(--accent);
+    text-decoration: none;
   }
-  .show-more-btn.expanded {
-    display: none;
+  .topic-links__dot {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    line-height: 1;
+    user-select: none;
+  }
+  @media (min-width: 769px) {
+    .topic-links {
+      gap: 6px 6px;
+      padding: var(--space-8) var(--space-4);
+    }
+    .topic-links a {
+      font-size: 0.9375rem;
+    }
+    .topic-links__dot {
+      font-size: 0.9375rem;
+    }
   }
 
   /* Recent grid */
@@ -529,15 +381,6 @@ const jsonLd = {
 </style>
 
 <script is:inline>
-  var btn = document.getElementById('show-more-topics');
-  var grid = document.getElementById('topic-grid');
-  if (btn && grid) {
-    btn.addEventListener('click', function() {
-      grid.classList.add('expanded');
-      btn.classList.add('expanded');
-    });
-  }
-
   // Stacked card ticker
   (function() {
     var stack = document.getElementById('ticker-stack');

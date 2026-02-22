@@ -231,77 +231,6 @@ const jsonLd = {
     border-bottom: 1px solid var(--border-color);
   }
 
-  /* FAQ items */
-  .faq-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-  }
-  .faq-item {
-    border-bottom: 1px solid var(--border-light);
-  }
-  .faq-item:last-child {
-    border-bottom: none;
-  }
-
-  /* Summary / question */
-  .faq-question {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: var(--space-4);
-    padding: var(--space-4) 0;
-    cursor: pointer;
-    list-style: none;
-    user-select: none;
-  }
-  .faq-question::-webkit-details-marker {
-    display: none;
-  }
-  .faq-question::marker {
-    display: none;
-    content: '';
-  }
-  .faq-question-text {
-    font-family: 'Cormorant Garamond', 'Georgia', serif;
-    font-size: 1.125rem;
-    font-weight: 600;
-    line-height: 1.35;
-    color: var(--text-primary);
-    transition: color 0.15s;
-  }
-  .faq-question:hover .faq-question-text {
-    color: var(--accent);
-  }
-
-  /* Chevron */
-  .faq-chevron {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    color: var(--text-muted);
-    transition: transform 0.2s ease, color 0.15s;
-    margin-top: 2px;
-  }
-  .faq-item[open] .faq-chevron {
-    transform: rotate(180deg);
-    color: var(--accent);
-  }
-
-  /* Answer */
-  .faq-answer {
-    padding: 0 0 var(--space-5);
-    padding-right: calc(24px + var(--space-4));
-  }
-  .faq-answer p {
-    font-size: 0.9375rem;
-    line-height: 1.8;
-    color: var(--text-secondary);
-  }
-
   /* Contact CTA */
   .faqs-contact {
     text-align: center;
@@ -322,9 +251,6 @@ const jsonLd = {
   @media (max-width: 768px) {
     .faqs-hero h1 {
       font-size: 1.5rem;
-    }
-    .faq-question-text {
-      font-size: 1rem;
     }
   }
 </style>

@@ -105,7 +105,7 @@ const canonicalUrl = `https://rrmacademy.org/commentary/${post.slug}`;
     {related.length > 0 && (
       <div class="container container--narrow">
         <section class="related-section" aria-label="Related posts">
-          <h2 class="section-label">More from this series</h2>
+          <h2 class="detail-heading">More from this series</h2>
           <div class="related-grid">
             {related.map(rel => (
               <BlogCard post={rel} />
@@ -210,8 +210,7 @@ const canonicalUrl = `https://rrmacademy.org/commentary/${post.slug}`;
     margin: var(--space-6) 0;
   }
 
-  /* Section label (reused from library pages) */
-  .section-label {
+  .detail-heading {
     font-family: 'Cormorant Garamond', 'Georgia', serif;
     font-size: 1.125rem;
     font-weight: 600;

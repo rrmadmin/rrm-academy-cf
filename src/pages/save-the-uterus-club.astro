@@ -8,11 +8,30 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 const STRIPE_MEMBER     = 'https://donate.stripe.com/9B6fZg2LlbvWaoXdqCcs801';
 const STRIPE_HERO       = 'https://donate.stripe.com/fZuaEW4Tt1Vm54D0DQcs802';
 const STRIPE_SUPER_HERO = 'https://donate.stripe.com/14AeVc99J43u9kTcmycs803';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: 'Save the Uterus Club',
+  description: 'Join the Save the Uterus Club and help build a future where uteruses are valued, women get real answers, and restorative reproductive medicine becomes the standard of care.',
+  url: 'https://rrmacademy.org/save-the-uterus-club',
+  isPartOf: {
+    '@type': 'WebSite',
+    name: 'RRM Academy',
+    url: 'https://rrmacademy.org',
+  },
+  potentialAction: {
+    '@type': 'JoinAction',
+    name: 'Join the Save the Uterus Club',
+    target: 'https://rrmacademy.org/save-the-uterus-club#tiers',
+  },
+};
 ---
 <BaseLayout
   title="Save the Uterus Club — Join Us"
   description="Join the Save the Uterus Club and help build a future where uteruses are valued, women get real answers, and restorative reproductive medicine becomes the standard of care."
   canonicalUrl="https://rrmacademy.org/save-the-uterus-club"
+  jsonLd={jsonLd}
 >
   <div class="page-wrapper">
     <div class="container container--narrow">
@@ -391,83 +410,6 @@ const STRIPE_SUPER_HERO = 'https://donate.stripe.com/14AeVc99J43u9kTcmycs803';
     color: var(--text-secondary);
   }
 
-  /* Goals list */
-  .goals-list {
-    list-style: decimal;
-    padding-left: var(--space-6);
-    margin: var(--space-4) 0;
-  }
-  .goals-list li {
-    font-size: 0.9375rem;
-    line-height: 1.8;
-    color: var(--text-secondary);
-    margin-bottom: var(--space-3);
-  }
-
-  /* FAQ accordion */
-  .faq-list {
-    display: flex;
-    flex-direction: column;
-  }
-  .faq-item {
-    border-bottom: 1px solid var(--border-light);
-  }
-  .faq-item:last-child {
-    border-bottom: none;
-  }
-  .faq-question {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: var(--space-4);
-    padding: var(--space-4) 0;
-    cursor: pointer;
-    list-style: none;
-    user-select: none;
-  }
-  .faq-question::-webkit-details-marker {
-    display: none;
-  }
-  .faq-question::marker {
-    display: none;
-    content: '';
-  }
-  .faq-question-text {
-    font-family: 'Cormorant Garamond', 'Georgia', serif;
-    font-size: 1.125rem;
-    font-weight: 600;
-    line-height: 1.35;
-    color: var(--text-primary);
-    transition: color 0.15s;
-  }
-  .faq-question:hover .faq-question-text {
-    color: var(--accent);
-  }
-  .faq-chevron {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    color: var(--text-muted);
-    transition: transform 0.2s ease, color 0.15s;
-    margin-top: 2px;
-  }
-  .faq-item[open] .faq-chevron {
-    transform: rotate(180deg);
-    color: var(--accent);
-  }
-  .faq-answer {
-    padding: 0 0 var(--space-5);
-    padding-right: calc(24px + var(--space-4));
-  }
-  .faq-answer p {
-    font-size: 0.9375rem;
-    line-height: 1.8;
-    color: var(--text-secondary);
-  }
-
   /* Bottom CTA */
   .stuc-bottom-cta {
     text-align: center;
@@ -482,12 +424,6 @@ const STRIPE_SUPER_HERO = 'https://donate.stripe.com/14AeVc99J43u9kTcmycs803';
   .stuc-bottom-cta .btn {
     margin-top: var(--space-3);
   }
-  .btn--lg {
-    padding: 14px 36px;
-    font-size: 1rem;
-    font-weight: 600;
-    border-radius: var(--radius-pill);
-  }
   .stuc-tax-note {
     margin-top: var(--space-5);
   }
@@ -499,9 +435,6 @@ const STRIPE_SUPER_HERO = 'https://donate.stripe.com/14AeVc99J43u9kTcmycs803';
     }
     .stuc-tagline {
       font-size: 1.125rem;
-    }
-    .faq-question-text {
-      font-size: 1rem;
     }
   }
 </style>

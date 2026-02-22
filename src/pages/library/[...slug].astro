@@ -199,7 +199,7 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
 
       <!-- Abstract -->
       <section class="abstract" aria-label="Abstract">
-        <h2 class="section-label">Abstract</h2>
+        <h2 class="detail-heading">Abstract</h2>
         {abstractSections.length === 0 ? (
           <p class="abstract-empty">No abstract available for this article.</p>
         ) : (
@@ -216,7 +216,7 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
       <!-- Topics -->
       {article.topics.length > 0 && (
         <section class="article-topics" aria-label="Topics">
-          <h2 class="section-label">Topics</h2>
+          <h2 class="detail-heading">Topics</h2>
           <div class="topic-grid" data-pagefind-weight="3">
             {article.topics.map(topic => (
               <TopicTag topic={topic} />
@@ -234,7 +234,7 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
       <!-- Citations -->
       {(article.apaCitation || article.vancouverCitation || article.mlaCitation) && (
         <section class="article-citations" aria-label="Citations" data-pagefind-ignore="all">
-          <h2 class="section-label">Cite this article</h2>
+          <h2 class="detail-heading">Cite this article</h2>
           <Citation
             apa={article.apaCitation}
             vancouver={article.vancouverCitation}
@@ -246,7 +246,7 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
       <!-- Keywords -->
       {article.keywords && (
         <section class="article-keywords" aria-label="Keywords">
-          <h2 class="section-label">Keywords</h2>
+          <h2 class="detail-heading">Keywords</h2>
           <p class="keywords-text">{article.keywords}</p>
         </section>
       )}
@@ -254,7 +254,7 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
       <!-- Related articles -->
       {related.length > 0 && (
         <section class="article-related" aria-label="Related articles" data-pagefind-ignore="all">
-          <h2 class="section-label">Related articles</h2>
+          <h2 class="detail-heading">Related articles</h2>
           <div class="related-grid">
             {related.map(rel => (
               <ArticleCard article={rel} compact />
@@ -343,7 +343,7 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
     font-style: italic;
     font-size: 0.875rem;
   }
-  .section-label {
+  .detail-heading {
     font-family: 'Cormorant Garamond', 'Georgia', serif;
     font-size: 1.125rem;
     font-weight: 600;
@@ -409,6 +409,9 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
   .action-btn.copied {
     color: var(--accent);
   }
+  .action-btn.saved {
+    color: var(--accent);
+  }
 
   @media (max-width: 768px) {
     .article-title {
@@ -472,6 +475,9 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
     var saved = getSaved();
     var isSaved = saved.some(function(s) { return s.slug === slug; });
 
+    // Color the icon if already saved
+    if (isSaved) btn.classList.add('saved');
+
     // Update header badge
     function updateBadge() {
       var badge = document.getElementById('saved-count');
@@ -492,6 +498,7 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
       if (isSaved) {
         saved = saved.filter(function(s) { return s.slug !== slug; });
         isSaved = false;
+        btn.classList.remove('saved');
         saveLabel.textContent = '';
       } else {
         saved.unshift({
@@ -503,6 +510,7 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
           savedAt: new Date().toISOString()
         });
         isSaved = true;
+        btn.classList.add('saved');
         saveLabel.textContent = 'Saved!';
         btn.classList.add('copied');
         setTimeout(function() {

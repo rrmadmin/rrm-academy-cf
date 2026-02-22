@@ -29,7 +29,7 @@ const jsonLd = {
   jsonLd={jsonLd}
 >
   <!-- Hero -->
-  <section class="commentary-hero">
+  <section class="commentary-hero" data-pagefind-ignore="all">
     <div class="container">
       <h1>Commentary</h1>
       <p class="commentary-hero__subtitle">
@@ -41,7 +41,7 @@ const jsonLd = {
   <hr class="divider" />
 
   <!-- Recent Posts -->
-  <section class="section">
+  <section class="section" data-pagefind-ignore="all">
     <div class="container">
       <div class="section-header">
         <h2 class="section-label">Recent posts</h2>
@@ -90,7 +90,7 @@ const jsonLd = {
     }
   }
 
-  /* Section labels */
+  /* Section labels — understated */
   .section-label {
     font-size: 0.6875rem;
     font-family: 'Inter', sans-serif;
@@ -107,44 +107,12 @@ const jsonLd = {
     }
   }
 
-  .section-header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--space-3);
-  }
-  .section-header .section-label {
-    margin-bottom: var(--space-4);
-  }
-  .meta-count {
-    font-size: 0.75rem;
-    color: var(--text-tertiary);
-    white-space: nowrap;
-  }
-
   .divider {
     border: none;
     border-top: 1px solid var(--border-color);
     margin: 0 auto;
     max-width: var(--max-width-page);
     padding: 0 var(--space-6);
-  }
-
-  /* Blog grid */
-  .blog-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--space-6);
-  }
-  @media (min-width: 640px) {
-    .blog-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  @media (min-width: 1024px) {
-    .blog-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
   }
 
   .view-all {

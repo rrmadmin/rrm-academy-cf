@@ -49,6 +49,17 @@ const wixBase = 'https://www.rrmacademy.org';
           </li>
         ))}
       </ul>
+
+      <!-- Mobile-only footer inside nav panel -->
+      <div class="mobile-nav-footer">
+        <div class="mobile-nav-footer__actions">
+          <button class="theme-toggle" id="mobile-theme-toggle" aria-label="Toggle theme">
+            <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          </button>
+          <a href="/donate" class="donate-btn">Donate</a>
+        </div>
+      </div>
     </nav>
 
     <form class="header-search" action="/library" method="get" role="search">
@@ -67,10 +78,6 @@ const wixBase = 'https://www.rrmacademy.org';
       </button>
       <a href="/donate" class="donate-btn">Donate</a>
     </div>
-
-    <a href="/library/saved" class="mobile-saved" id="mobile-saved-link" title="Saved articles">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-    </a>
 
     <button class="mobile-toggle" aria-label="Menu" aria-expanded="false">
       <span class="hamburger"></span>
@@ -149,7 +156,7 @@ const wixBase = 'https://www.rrmacademy.org';
     text-decoration: none;
   }
   .nav-link--active {
-    font-weight: 500;
+    font-weight: 400;
   }
 
   /* Chevron */
@@ -230,7 +237,7 @@ const wixBase = 'https://www.rrmacademy.org';
     display: none;
     align-items: center;
   }
-  :global(.page-library) .header-search {
+  :global(.page-synopsis) .header-search {
     display: flex;
   }
   .header-search__icon {
@@ -263,7 +270,7 @@ const wixBase = 'https://www.rrmacademy.org';
     display: none;
   }
 
-  /* Actions */
+  /* Actions — desktop */
   .header-actions {
     display: flex;
     align-items: center;
@@ -309,24 +316,19 @@ const wixBase = 'https://www.rrmacademy.org';
   :global([data-theme="light"]) .theme-toggle .icon-moon { display: inline; }
   :global([data-theme="dark"]) .theme-toggle .icon-sun { display: inline; }
 
-  /* Mobile saved icon */
-  .mobile-saved {
+  /* Mobile nav footer — hidden on desktop */
+  .mobile-nav-footer {
     display: none;
-    color: var(--text-muted);
-    padding: var(--space-1);
-    margin-left: auto;
-    margin-right: var(--space-2);
   }
-  .mobile-saved.has-items { color: var(--accent); }
 
-  /* Mobile */
+  /* Mobile hamburger */
   .mobile-toggle {
     display: none;
-    margin-left: auto;
     background: none;
     border: none;
     cursor: pointer;
     padding: var(--space-2);
+    margin-left: auto;
   }
   .hamburger {
     display: block;
@@ -349,45 +351,107 @@ const wixBase = 'https://www.rrmacademy.org';
   .hamburger::before { top: -6px; }
   .hamburger::after { top: 6px; }
 
+  /* ═══════════════════════════════════════════
+     MOBILE — clean full-width panel
+     ═══════════════════════════════════════════ */
   @media (max-width: 768px) {
+    .header-inner {
+      gap: var(--space-3);
+    }
+
+    /* Header bar: logo + hamburger only */
     .main-nav { display: none; }
-    .header-search { display: none; }
+    .header-search { display: none !important; }
     .header-actions { display: none; }
-    .mobile-saved { display: block; }
-    .mobile-saved:not(.has-items) { display: none; }
     .mobile-toggle { display: block; }
+
+    /* ── Nav panel (open state) ── */
     .site-header.nav-open .main-nav {
-      display: block;
+      display: flex;
+      flex-direction: column;
       position: absolute;
       top: 56px;
       left: 0;
       right: 0;
       background: var(--bg-header);
       border-bottom: 1px solid var(--border-color);
-      box-shadow: var(--shadow-lg);
-      padding: var(--space-4);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      padding: var(--space-4) 0;
+      z-index: 50;
     }
+
+    /* Nav list — full-width stacked links */
     .site-header.nav-open .nav-list {
       flex-direction: column;
-      align-items: flex-start;
+      align-items: stretch;
+      gap: 0;
     }
+
+    .site-header.nav-open .nav-item {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .site-header.nav-open .nav-link {
+      padding: var(--space-3) var(--space-6);
+      font-size: 0.9375rem;
+      border-bottom: none;
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    /* Dropdown — collapsed by default, toggled by JS */
     .site-header.nav-open .dropdown {
       position: static;
       transform: none;
-      border: none;
-      box-shadow: none;
       min-width: 0;
-      padding: var(--space-2) 0 var(--space-2) var(--space-4);
+      padding: 0;
+      display: none;
     }
-    .site-header.nav-open .dropdown__grid {
-      grid-template-columns: 1fr;
-    }
-    .site-header.nav-open .has-dropdown .dropdown {
+
+    .site-header.nav-open .has-dropdown.dropdown-open .dropdown {
       display: block;
     }
-    .site-header.nav-open .header-actions {
+
+    .site-header.nav-open .has-dropdown.dropdown-open .chevron {
+      transform: rotate(180deg);
+    }
+
+    .site-header.nav-open .dropdown__grid {
       display: flex;
-      padding: var(--space-4) 0 0;
+      flex-direction: column;
+      gap: 0;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      padding: 0;
+      border-top: 1px solid var(--border-light);
+    }
+
+    .site-header.nav-open .dropdown-link {
+      display: block;
+      padding: var(--space-3) var(--space-6) var(--space-3) var(--space-10);
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      white-space: normal;
+    }
+
+    .site-header.nav-open .dropdown-link:active {
+      background: var(--bg-surface);
+    }
+
+    /* ── Mobile nav footer ── */
+    .site-header.nav-open .mobile-nav-footer {
+      display: block;
+      padding: var(--space-4) var(--space-6) var(--space-2);
+      margin-top: var(--space-2);
+      border-top: 1px solid var(--border-light);
+    }
+
+    .mobile-nav-footer__actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
     }
   }
 </style>
@@ -401,32 +465,50 @@ const wixBase = 'https://www.rrmacademy.org';
       var expanded = toggle.getAttribute('aria-expanded') === 'true';
       toggle.setAttribute('aria-expanded', String(!expanded));
       header.classList.toggle('nav-open');
+      // Close any open dropdowns when menu closes
+      if (expanded) {
+        var openDropdowns = header.querySelectorAll('.dropdown-open');
+        for (var i = 0; i < openDropdowns.length; i++) {
+          openDropdowns[i].classList.remove('dropdown-open');
+        }
+      }
     });
   }
 
-  // Theme toggle
+  // Mobile dropdown toggle (tap to expand/collapse)
+  var dropdownButtons = document.querySelectorAll('.nav-link--dropdown');
+  for (var i = 0; i < dropdownButtons.length; i++) {
+    dropdownButtons[i].addEventListener('click', function() {
+      // Only toggle on mobile
+      if (window.innerWidth <= 768) {
+        this.closest('.has-dropdown').classList.toggle('dropdown-open');
+      }
+    });
+  }
+
+  // Theme toggle (both desktop and mobile)
+  function handleThemeToggle() {
+    var html = document.documentElement;
+    var current = html.getAttribute('data-theme');
+    var next = current === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('rrm_theme', next);
+  }
+
   var themeToggle = document.getElementById('theme-toggle');
-  if (themeToggle) {
-    themeToggle.addEventListener('click', function() {
-      var html = document.documentElement;
-      var current = html.getAttribute('data-theme');
-      var next = current === 'dark' ? 'light' : 'dark';
-      html.setAttribute('data-theme', next);
-      localStorage.setItem('rrm_theme', next);
-    });
-  }
+  var mobileThemeToggle = document.getElementById('mobile-theme-toggle');
+  if (themeToggle) themeToggle.addEventListener('click', handleThemeToggle);
+  if (mobileThemeToggle) mobileThemeToggle.addEventListener('click', handleThemeToggle);
 
-  // Saved articles badge (desktop + mobile)
+  // Saved articles badge
   (function() {
     try {
       var saved = JSON.parse(localStorage.getItem('rrm_saved') || '[]');
       if (saved.length > 0) {
         var link = document.getElementById('saved-link');
         var count = document.getElementById('saved-count');
-        var mobileLink = document.getElementById('mobile-saved-link');
         if (link) { link.classList.add('has-items'); }
         if (count) { count.textContent = saved.length; }
-        if (mobileLink) { mobileLink.classList.add('has-items'); }
       }
     } catch(e) {}
   })();
