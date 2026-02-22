@@ -163,14 +163,13 @@
 }
 
 /* ═══════════════════════════════════════════════
-   E-INK FILTER + GRAIN (disabled for debugging)
+   E-INK FILTER + GRAIN (dark mode only)
    ═══════════════════════════════════════════════ */
-/*
-body {
+[data-theme="dark"] body {
   filter: saturate(0.7) sepia(0.04) brightness(0.98) contrast(1.05);
 }
 
-body::before {
+[data-theme="dark"] body::before {
   content: '';
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -180,7 +179,6 @@ body::before {
   opacity: var(--grain-opacity);
   mix-blend-mode: var(--grain-blend);
 }
-*/
 
 /* ═══════════════════════════════════════════════
    RESET & BASE
