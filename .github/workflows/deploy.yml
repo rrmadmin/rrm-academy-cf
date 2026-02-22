@@ -1,0 +1,59 @@
+name: Build & Deploy
+
+on:
+  # Daily rebuild at 6 AM ET (11:00 UTC)
+  schedule:
+    - cron: '0 11 * * *'
+  # Manual trigger with optional data refresh skip
+  workflow_dispatch:
+    inputs:
+      skip_fetch:
+        description: 'Skip Airtable data fetch (use cached data from last run)'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Restore data cache
+        uses: actions/cache@v4
+        id: data-cache
+        with:
+          path: src/data
+          key: airtable-data-${{ github.run_id }}
+          restore-keys: |
+            airtable-data-
+
+      - name: Fetch data from Airtable
+        if: ${{ github.event.inputs.skip_fetch != 'true' }}
+        env:
+          AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
+        run: |
+          npm run fetch-all
+          echo "Articles: $(node -e "console.log(require('./src/data/articles.json').length)")"
+          echo "Posts: $(node -e "console.log(require('./src/data/posts.json').length)")"
+
+      - name: Build site
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name rrm-academy
