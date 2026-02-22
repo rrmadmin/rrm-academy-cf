@@ -95,21 +95,124 @@
     content: '✕';
     font-size: 14px;
   }
-  .search-wrapper :global(.pagefind-ui__result-link) {
-    color: var(--accent);
-    font-weight: 500;
-  }
-  .search-wrapper :global(.pagefind-ui__result-link:hover) {
-    color: var(--accent-hover);
-  }
-  .search-wrapper :global(.pagefind-ui__result-excerpt) {
-    color: var(--text-secondary);
-    font-size: 0.875rem;
+  /* Results container — left-aligned, constrained width */
+  .search-wrapper :global(.pagefind-ui__drawer) {
+    text-align: left;
+    max-width: 720px;
+    margin: 0 auto;
+    padding-top: var(--space-4);
   }
   .search-wrapper :global(.pagefind-ui__message) {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: var(--space-3) 0 var(--space-2);
+    text-align: left;
+    border: none;
+  }
+  .search-wrapper :global(.pagefind-ui__results) {
+    text-align: left;
+  }
+
+  /* Individual result — card-like row */
+  .search-wrapper :global(.pagefind-ui__result) {
+    padding: var(--space-5) 0;
+    border-bottom: 1px solid var(--border-light, var(--border-color));
+    list-style: none;
+  }
+  .search-wrapper :global(.pagefind-ui__result:first-child) {
+    border-top: 1px solid var(--border-light, var(--border-color));
+  }
+  .search-wrapper :global(.pagefind-ui__result-inner) {
+    text-align: left;
+  }
+
+  /* Result title */
+  .search-wrapper :global(.pagefind-ui__result-title) {
+    margin: 0 0 var(--space-2);
+    text-align: left;
+  }
+  .search-wrapper :global(.pagefind-ui__result-link) {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .search-wrapper :global(.pagefind-ui__result-link:hover) {
+    color: var(--accent);
+  }
+
+  /* Result excerpt */
+  .search-wrapper :global(.pagefind-ui__result-excerpt) {
+    font-size: 0.8125rem;
+    line-height: 1.6;
     color: var(--text-secondary);
+    text-align: left;
+    margin: 0 0 var(--space-2);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .search-wrapper :global(.pagefind-ui__result-excerpt mark) {
+    background: var(--yellow-100, #fef9c3);
+    color: inherit;
+    padding: 0 1px;
+    border-radius: 2px;
+  }
+
+  /* Metadata tags (Authors, Year) */
+  .search-wrapper :global(.pagefind-ui__result-tags) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .search-wrapper :global(.pagefind-ui__result-tag) {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: var(--text-tertiary);
+  }
+
+  /* Hide the thumbnail/image placeholder area */
+  .search-wrapper :global(.pagefind-ui__result-thumb) {
+    display: none;
+  }
+
+  /* Loading indicator */
+  .search-wrapper :global(.pagefind-ui__loading) {
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+    text-align: left;
     padding: var(--space-4) 0;
+  }
+
+  /* "Load more" button */
+  .search-wrapper :global(.pagefind-ui__button) {
+    display: block;
+    width: 100%;
+    margin-top: var(--space-5);
+    padding: var(--space-3) var(--space-5);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .search-wrapper :global(.pagefind-ui__button:hover) {
+    border-color: var(--accent);
+    color: var(--accent);
   }
 
 </style>

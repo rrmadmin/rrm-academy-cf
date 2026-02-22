@@ -20,6 +20,15 @@ const hiddenPills = topTopics.slice(18);
 // Recent additions (first 6, already sorted by date)
 const recent = articles.slice(0, 6);
 
+// Rotating ticker (8 most recent, for hero)
+const ticker = articles.slice(0, 8).map(a => ({
+  title: a.title,
+  slug: a.slug,
+  journal: a.journalAbbv || a.journal || '',
+  year: a.year,
+  topic: a.topics[0] || '',
+}));
+
 // Pagination for full browse
 const PER_PAGE = 50;
 const totalPages = Math.ceil(articles.length / PER_PAGE);
@@ -69,6 +78,24 @@ const jsonLd = {
         <span class="hero__count-label">Articles Available</span>
         <span class="hero__count-number">{articles.length.toLocaleString()}</span>
       </p>
+      <div class="hero__ticker" aria-label="Recent additions">
+        <span class="hero__ticker-label">Recently added</span>
+        <div class="hero__ticker-stack" id="ticker-stack">
+          {ticker.map((item, i) => (
+            <a
+              href={`/library/${item.slug}`}
+              class:list={['ticker-card', { active: i === 0 }]}
+              data-index={i}
+            >
+              {item.topic && <span class="ticker-card__topic">{item.topic}</span>}
+              <span class="ticker-card__title">{item.title}</span>
+              <span class="ticker-card__meta">
+                {item.journal}{item.year ? ` · ${item.year}` : ''}
+              </span>
+            </a>
+          ))}
+        </div>
+      </div>
     </div>
     <div class="hero__scroll" aria-hidden="true">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -210,6 +237,112 @@ const jsonLd = {
     color: var(--text-secondary);
     letter-spacing: 0.04em;
   }
+  /* Stacked card ticker */
+  .hero__ticker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-top: var(--space-6);
+    width: 100%;
+  }
+  .hero__ticker-label {
+    font-size: 0.625rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+  }
+  .hero__ticker-stack {
+    position: relative;
+    width: 320px;
+    height: 130px;
+  }
+  .ticker-card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: var(--space-4) var(--space-5);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    text-decoration: none;
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.92) translateY(16px);
+    transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.15s;
+  }
+  .ticker-card:hover {
+    text-decoration: none;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  }
+  /* Active card — front of stack */
+  .ticker-card.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1) translateY(0);
+    z-index: 3;
+  }
+  /* Card behind active — peeking out */
+  .ticker-card.behind-1 {
+    opacity: 0.6;
+    pointer-events: none;
+    transform: scale(0.96) translateY(8px);
+    z-index: 2;
+  }
+  .ticker-card.behind-2 {
+    opacity: 0.3;
+    pointer-events: none;
+    transform: scale(0.92) translateY(16px);
+    z-index: 1;
+  }
+  .ticker-card__topic {
+    font-size: 0.625rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+  }
+  .ticker-card__title {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .ticker-card__meta {
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  @media (min-width: 769px) {
+    .hero__ticker-stack {
+      width: 380px;
+      height: 140px;
+    }
+    .ticker-card__title {
+      font-size: 0.875rem;
+    }
+  }
+  @media (max-width: 400px) {
+    .hero__ticker-stack {
+      width: 280px;
+    }
+  }
+
   .hero__scroll {
     position: absolute;
     bottom: var(--space-8);
@@ -415,4 +548,29 @@ const jsonLd = {
       btn.classList.add('expanded');
     });
   }
+
+  // Stacked card ticker
+  (function() {
+    var stack = document.getElementById('ticker-stack');
+    if (!stack) return;
+    var cards = stack.querySelectorAll('.ticker-card');
+    var n = cards.length;
+    if (n < 2) return;
+    var current = 0;
+
+    function update() {
+      for (var i = 0; i < n; i++) {
+        cards[i].classList.remove('active', 'behind-1', 'behind-2');
+      }
+      cards[current].classList.add('active');
+      cards[(current + 1) % n].classList.add('behind-1');
+      cards[(current + 2) % n].classList.add('behind-2');
+    }
+
+    update();
+    setInterval(function() {
+      current = (current + 1) % n;
+      update();
+    }, 4000);
+  })();
 </script>
