@@ -25,7 +25,7 @@ const helpLinks = [
         <h3 class="footer-heading">Education</h3>
         <ul class="footer-links">
           {educationLinks.map((link) => (
-            <li><a href={link.href}><span class="footer-icon" set:html={link.icon} />{link.label}</a></li>
+            <li><a href={link.href}><span class="footer-icon" aria-hidden="true" set:html={link.icon} />{link.label}</a></li>
           ))}
         </ul>
       </div>
@@ -34,7 +34,7 @@ const helpLinks = [
         <h3 class="footer-heading">Help</h3>
         <ul class="footer-links">
           {helpLinks.map((link) => (
-            <li><a href={link.href}><span class="footer-icon" set:html={link.icon} />{link.label}</a></li>
+            <li><a href={link.href}><span class="footer-icon" aria-hidden="true" set:html={link.icon} />{link.label}</a></li>
           ))}
         </ul>
       </div>
@@ -93,7 +93,7 @@ const helpLinks = [
   .footer-links a {
     display: inline-flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--space-3);
     font-size: 0.8125rem;
     color: var(--footer-link);
     text-decoration: none;

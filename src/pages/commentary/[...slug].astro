@@ -22,6 +22,9 @@ interface Props {
 const { post, allPosts } = Astro.props;
 const related = getRelatedPosts(post, allPosts, 3);
 
+// Strip raw HTML blocks from markdown to prevent injection
+marked.use({ renderer: { html() { return ''; } } });
+
 // Render markdown content to HTML
 const htmlContent = post.content ? marked.parse(post.content) : '';
 

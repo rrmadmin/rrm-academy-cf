@@ -88,6 +88,7 @@ All colors are defined as CSS custom properties on `:root` and redefined under `
 |-------|-----|-------|
 | `--green-700` | `#2e7d32` | Open Access badge text |
 | `--green-100` | `#e8f5e9` | Open Access badge background |
+| `--color-error` | `#c0392b` (light) / `#e74c3c` (dark) | Form validation errors |
 
 #### Semantic Aliases
 
@@ -105,6 +106,15 @@ All colors are defined as CSS custom properties on `:root` and redefined under `
 | `--border-color` | `#dddbd8` | Default borders |
 | `--border-light` | `#dddbd8` | Subtle dividers |
 | `--focus-ring` | `rgba(114,94,126,0.08)` | Focus halo |
+
+#### Hero Gradients
+
+| Token | Usage |
+|-------|-------|
+| `--gradient-hero` | Full-opacity radial gradient for homepage hero |
+| `--gradient-hero-subtle` | Reduced-opacity variant for interior page heroes (about, etc.) |
+
+Both have dark mode variants defined in `[data-theme="dark"]`.
 
 #### Footer Tokens
 
@@ -171,10 +181,17 @@ Both are self-hosted via `@fontsource` packages and preloaded as WOFF2 in `<head
 
 ### Hero Typography
 
-Heroes use fluid `clamp()` sizing:
+Heroes use fluid `clamp()` sizing. Interior page heroes share the `.hero-title` class:
+
+```css
+.hero-title { font-size: clamp(2rem, 1.5rem + 2vw, 2.5rem); }
+```
+
+Used by: About, Donate, FAQs. The homepage hero uses its own larger clamp intentionally.
 
 | Element | Size |
 |---------|------|
+| Interior page h1 (`.hero-title`) | `clamp(2rem, 1.5rem + 2vw, 2.5rem)` |
 | Homepage h1 | `clamp(2rem, 1.2rem + 3.5vw, 4.25rem)` |
 | Homepage h2 | `clamp(1.75rem, 1.25rem + 1.5vw, 2.75rem)` |
 | Library hero h1 | `2.5rem` → `3.5rem` at 769px |
@@ -404,7 +421,7 @@ Hover: `color: var(--purple-900)`, no underline. Typically paired with an extern
 |-------|-------|
 | Default | `border: 1.5px solid var(--neutral-300)` |
 | Focus | `border-color: var(--purple-700)`, `box-shadow: 0 0 0 3px var(--focus-ring)` |
-| Invalid | `border-color: #c0392b` |
+| Invalid | `border-color: var(--color-error)` |
 | Placeholder | `color: var(--text-muted)` |
 
 ---
@@ -914,6 +931,12 @@ box-shadow: 0 0 0 3px var(--focus-ring);
 
 Links inside prose content (`p a`, `li a`, `blockquote a`, `.prose a`) always display underlines, per WCAG 1.4.1.
 
+### Decorative SVG Icons
+
+All decorative SVG icon spans (mobile nav icons, footer icons) must include `aria-hidden="true"` to prevent screen readers from announcing them. This applies to:
+- `<span class="mobile-nav-icon" aria-hidden="true" set:html={...} />` in Header.astro
+- `<span class="footer-icon" aria-hidden="true" set:html={...} />` in Footer.astro
+
 ### Semantic HTML
 
 - Headings: proper h1→h4 hierarchy per page
@@ -922,7 +945,7 @@ Links inside prose content (`p a`, `li a`, `blockquote a`, `.prose a`) always di
 - Pagination: `aria-label="Pagination"`
 - FAQ: native `<details>`/`<summary>` (no JS needed)
 - Forms: `<label>` elements linked to inputs
-- Icons: decorative SVGs marked `aria-hidden="true"`
+- Icons: decorative SVGs marked `aria-hidden="true"` (see above)
 - Screen reader text: `.sr-only` utility class
 
 ### Keyboard Navigation
@@ -959,6 +982,29 @@ Links inside prose content (`p a`, `li a`, `blockquote a`, `.prose a`) always di
 - E-ink grain: always-on, no transition
 - Body filter: constant, no animation
 - Theme toggle icons: instant swap (display:none toggle)
+
+---
+
+## CSS Naming Convention
+
+### Page-Prefixed Classes
+
+Each page scopes its styles with a short prefix to avoid collisions:
+
+| Page | Prefix | Examples |
+|------|--------|----------|
+| Homepage | `hp-` | `.hp-hero`, `.hp-section`, `.hp-cta` |
+| Donate | `donate-` | `.donate-hero`, `.donate-section` |
+| About | `about-` | `.about-hero`, `.about-section` |
+| FAQs | `faqs-` | `.faqs-hero`, `.faqs-contact` |
+
+### Global Reusables
+
+Unprefixed classes in `global.css` are shared across pages: `.card`, `.btn`, `.badge`, `.topic-pill`, `.prose`, `.hero-title`, `.stats-row`, `.goals-list`, `.footnote`, etc.
+
+### BEM for Complex Components
+
+Components with multiple sub-elements use BEM naming: `.article-card__title`, `.article-card__meta`, `.blog-card__excerpt`, `.founder-card__content`.
 
 ---
 
