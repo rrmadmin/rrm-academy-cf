@@ -1,15 +1,12 @@
 name: Build & Deploy
 
 on:
-  # Auto-deploy on push to main or claude/ branches (mobile editing)
   push:
     branches:
       - main
       - 'claude/**'
-  # Daily rebuild at 6 AM ET (11:00 UTC)
   schedule:
     - cron: '0 11 * * *'
-  # Manual trigger with optional data refresh skip
   workflow_dispatch:
     inputs:
       skip_fetch:
@@ -22,7 +19,28 @@ permissions:
   contents: write
 
 jobs:
+  # When a claude/ branch is pushed, merge it into main.
+  # This triggers a second run on main that does the actual build + deploy.
+  merge-to-main:
+    if: startsWith(github.ref, 'refs/heads/claude/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Merge into main and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout main
+          git merge ${{ github.sha }} --no-edit
+          git push origin main
+
+  # Build and deploy from main (production) or on schedule/manual trigger
   deploy:
+    if: ${{ !startsWith(github.ref, 'refs/heads/claude/') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -65,13 +83,3 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name rrm-academy
-
-      - name: Merge to main
-        if: startsWith(github.ref, 'refs/heads/claude/')
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          git checkout main
-          git merge --ff-only ${{ github.sha }} || git merge --no-edit ${{ github.sha }}
-          git push origin main
