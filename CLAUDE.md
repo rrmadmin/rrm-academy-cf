@@ -13,3 +13,50 @@ The Wix Velo project is in a **separate** directory: `iCode/projects/rrm-academy
 - **Data fetch**: `AIRTABLE_PAT=xxx node src/lib/fetch-data.mjs` (library) / `node src/lib/fetch-blog-data.mjs` (commentary)
 - **Build**: `npm run build` (runs `astro build && npx pagefind --site dist`)
 - **Style guide**: `STYLE-GUIDE.md` in project root
+
+## Mobile Editing Guide
+
+When editing this site from the Claude mobile app, follow these conventions:
+
+### Site Map
+
+**Pages** (`src/pages/`):
+| Route | File |
+|-------|------|
+| `/` | `index.astro` — Homepage (hero + 8 sections + CTA) |
+| `/about` | `about.astro` |
+| `/contact` | `contact.astro` |
+| `/donate` | `donate.astro` |
+| `/faqs` | `faqs.astro` |
+| `/library` | `library/index.astro` — Search, topics, recent articles |
+| `/library/[slug]` | `library/[...slug].astro` — Article detail |
+| `/library/saved` | `library/saved.astro` — Bookmarked articles |
+| `/commentary` | `commentary/index.astro` — Blog landing |
+| `/commentary/[slug]` | `commentary/[...slug].astro` — Blog post |
+| `/commentary/rss` | `commentary/rss.xml.ts` — RSS feed |
+| `/endo-survey` | `endo-survey/index.astro` — Survey intro |
+| `/endo-survey/take` | `endo-survey/take.astro` — 3-tier checklist |
+| `/save-the-uterus-club` | `save-the-uterus-club.astro` |
+| `/medical-disclaimer` | `medical-disclaimer.astro` |
+| `/privacy-policy` | `privacy-policy.astro` |
+| `/terms-of-use` | `terms-of-use.astro` |
+
+**Components** (`src/components/`): Header, Footer, SearchBar, ArticleCard, BlogCard, Citation, AuthorByline, TopicTag
+
+**Layout**: `src/layouts/BaseLayout.astro` — master layout (head, header, main, footer)
+
+**Styles**: `src/styles/global.css` — design tokens, purple palette, dark mode, e-ink filter
+
+**Data**: `src/data/articles.json` (3100+ articles), `src/data/posts.json` (14 posts) — both gitignored, fetched from Airtable
+
+### Design System
+- **Primary**: Purple 700 `#725e7e`. Hover: `#4c3e54`. Body text: `#313131`
+- **Fonts**: Cormorant Garamond (headings), Inter (body)
+- **Dark mode**: `data-theme="dark"`, warm charcoal `#1e1a16`
+- **Layout**: `.page-body` has 2px purple left border
+
+### Rules
+- Keep edits focused — one change at a time for easy review
+- Show brief before/after summaries
+- NEVER auto-deploy — always ask first
+- For large refactors, suggest deferring to desktop
