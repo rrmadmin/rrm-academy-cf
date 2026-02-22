@@ -770,9 +770,49 @@ Sticky header, 56px tall, full-width.
 ### Mobile (≤768px)
 
 - Hamburger toggle shows; nav, search, actions hide
-- Menu opens as full-width dropdown below header (flex column)
-- Dropdown menus become static, single-column
-- Mobile nav footer shows theme toggle + donate button
+- Hamburger animates to X when menu is open (middle bar fades, top/bottom rotate ±45°, 0.2s transition)
+- Menu opens as full-width dropdown below header, max-height `calc(100dvh - 56px)` with `overflow-y: auto`
+- Body scroll is locked (`overflow: hidden`) when menu is open
+- Mobile nav uses separate `mobileNavSections` data with two groups: **Education** and **Help**
+- Each nav item has a left-aligned stroke icon (see Navigation Icons below)
+- Courses has a tap-to-expand dropdown with 4 child links
+- Mobile nav footer shows Donate pill button + saved articles + theme toggle
+
+---
+
+## Navigation Icons
+
+Stroke-based Lucide-style SVG icons are used in both the mobile nav menu and the footer link columns. Icons must match across both locations for the same page.
+
+### Icon Catalogue
+
+| Page | Icon Name | Description |
+|------|-----------|-------------|
+| FAQ | `help-circle` | Circle with question mark |
+| Courses | `graduation` | Mortarboard cap |
+| Commentary | `pen` | Edit pen |
+| Research Library | `book-open` | Open book (two pages) |
+| Endo Self-Survey | `clipboard` | Clipboard with clip |
+| About | `info` | Circle with "i" |
+| Join Us | `users` | Two people |
+| Contact | `mail` | Envelope |
+| Login | `log-in` | Arrow entering door (footer only) |
+| Donate | `heart` | Heart outline (footer only) |
+
+### Sizing
+
+| Context | Icon Size | Gap to Label | Color |
+|---------|-----------|-------------|-------|
+| Mobile nav | 16×16px (in 18×18 container) | 18px | `--text-muted` |
+| Footer | 14×14px | 12px | `--footer-link` at 50% opacity |
+
+### Rules
+
+- **Same page = same icon.** If an item appears in both the mobile nav and the footer, it must use the same icon shape.
+- **Stroke only.** All icons use `fill="none" stroke="currentColor" stroke-width="2"` with round caps/joins.
+- **No filled icons.** Keep the Lucide outline aesthetic. Never use solid/filled icon variants.
+- Icons are defined as inline SVG strings in component frontmatter (`Header.astro` icons map, `Footer.astro` link arrays).
+- When adding a new nav item, add its icon to both the Header icon map and the Footer link array.
 
 ---
 
@@ -794,7 +834,8 @@ Always dark background. Uses `--footer-*` tokens.
 | Element | Style |
 |---------|-------|
 | `.footer-heading` | Cormorant, `1.125rem`, weight 500, `--footer-heading` |
-| `.footer-links a` | Inter, `0.8125rem`, `--footer-link` → `--footer-link-hover` |
+| `.footer-links a` | Inter, `0.8125rem`, inline-flex with icon, gap `12px`, `--footer-link` → `--footer-link-hover` |
+| `.footer-icon` | `14×14px`, inline-flex, 50% opacity. Inherits link color |
 | `.footer-text` | `0.8125rem`, `--footer-text`, line-height 1.7 |
 | `.footer-text a` | `--footer-accent`, underline |
 | `.footer-copyright` | `0.75rem`, `--footer-muted` |
