@@ -163,13 +163,13 @@
 }
 
 /* ═══════════════════════════════════════════════
-   E-INK FILTER + GRAIN (dark mode only)
+   E-INK FILTER + GRAIN
    ═══════════════════════════════════════════════ */
-[data-theme="dark"] body {
+body {
   filter: saturate(0.7) sepia(0.04) brightness(0.98) contrast(1.05);
 }
 
-[data-theme="dark"] body::before {
+body::before {
   content: '';
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -571,10 +571,6 @@ p a, li a, .prose a, blockquote a {
   border: none;
 }
 
-/* Library page — background matches header nav */
-.page-library {
-  background: var(--bg-header);
-}
 
 /* Sections */
 .section {
