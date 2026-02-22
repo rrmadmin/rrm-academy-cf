@@ -1,6 +1,9 @@
 name: Build & Deploy
 
 on:
+  # Auto-deploy on push to main (enables mobile editing workflow)
+  push:
+    branches: [main]
   # Daily rebuild at 6 AM ET (11:00 UTC)
   schedule:
     - cron: '0 11 * * *'
