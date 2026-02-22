@@ -94,6 +94,7 @@ const wixBase = 'https://www.rrmacademy.org';
     align-items: center;
     height: 56px;
     gap: var(--space-6);
+    position: relative;
   }
 
   /* Logo */
@@ -222,16 +223,16 @@ const wixBase = 'https://www.rrmacademy.org';
     text-decoration: none;
   }
 
-  /* Header search — only on synopsis pages */
+  /* Header search — only on library pages, absolutely centered */
   .header-search {
-    flex: 1;
-    max-width: 320px;
-    position: relative;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 320px;
     display: none;
     align-items: center;
-    margin: 0 auto;
   }
-  :global(.page-synopsis) .header-search {
+  :global(.page-library) .header-search {
     display: flex;
   }
   .header-search__icon {
@@ -351,6 +352,7 @@ const wixBase = 'https://www.rrmacademy.org';
   .hamburger::after { top: 6px; }
 
   @media (max-width: 768px) {
+    .main-nav { display: none; }
     .header-search { display: none; }
     .header-actions { display: none; }
     .mobile-saved { display: block; }
