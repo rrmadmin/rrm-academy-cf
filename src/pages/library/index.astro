@@ -24,9 +24,7 @@ const recent = articles.slice(0, 6);
 const ticker = articles.slice(0, 8).map(a => ({
   title: a.title,
   slug: a.slug,
-  journal: a.journalAbbv || a.journal || '',
-  year: a.year,
-  topic: a.topics[0] || '',
+  shortCitation: a.shortCitation,
 }));
 
 // Pagination for full browse
@@ -87,11 +85,8 @@ const jsonLd = {
               class:list={['ticker-card', { active: i === 0 }]}
               data-index={i}
             >
-              {item.topic && <span class="ticker-card__topic">{item.topic}</span>}
               <span class="ticker-card__title">{item.title}</span>
-              <span class="ticker-card__meta">
-                {item.journal}{item.year ? ` · ${item.year}` : ''}
-              </span>
+              <span class="ticker-card__meta">{item.shortCitation}</span>
             </a>
           ))}
         </div>
@@ -271,10 +266,10 @@ const jsonLd = {
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
     text-decoration: none;
-    opacity: 0;
     pointer-events: none;
+    opacity: 0;
     transform: scale(0.92) translateY(16px);
     transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.15s;
   }
@@ -282,33 +277,30 @@ const jsonLd = {
     text-decoration: none;
     box-shadow: 0 4px 16px rgba(0,0,0,0.1);
   }
-  /* Active card — front of stack */
+  /* Active card — front of stack, fully visible */
   .ticker-card.active {
     opacity: 1;
     pointer-events: auto;
     transform: scale(1) translateY(0);
     z-index: 3;
   }
-  /* Card behind active — peeking out */
+  /* Cards behind — scaled down, only bottom edge peeks out */
   .ticker-card.behind-1 {
-    opacity: 0.6;
-    pointer-events: none;
-    transform: scale(0.96) translateY(8px);
+    opacity: 1;
+    transform: scale(0.97) translateY(6px);
     z-index: 2;
   }
   .ticker-card.behind-2 {
-    opacity: 0.3;
-    pointer-events: none;
-    transform: scale(0.92) translateY(16px);
+    opacity: 1;
+    transform: scale(0.94) translateY(12px);
     z-index: 1;
   }
-  .ticker-card__topic {
-    font-size: 0.625rem;
-    font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--accent);
+  /* Hide text on behind cards so only the blank card edge shows */
+  .ticker-card.behind-1 .ticker-card__title,
+  .ticker-card.behind-1 .ticker-card__meta,
+  .ticker-card.behind-2 .ticker-card__title,
+  .ticker-card.behind-2 .ticker-card__meta {
+    visibility: hidden;
   }
   .ticker-card__title {
     font-size: 0.8125rem;
@@ -331,7 +323,7 @@ const jsonLd = {
   @media (min-width: 769px) {
     .hero__ticker-stack {
       width: 380px;
-      height: 140px;
+      height: 130px;
     }
     .ticker-card__title {
       font-size: 0.875rem;
