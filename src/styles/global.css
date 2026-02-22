@@ -562,6 +562,11 @@ p a, li a, .prose a, blockquote a {
   border: none;
 }
 
+/* Library page — background matches header nav */
+.page-library {
+  background: var(--bg-header);
+}
+
 /* Sections */
 .section {
   padding: var(--space-6) 0;
