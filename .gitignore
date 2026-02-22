@@ -7,3 +7,4 @@ scraped/
 .env
 .env.local
 !.env.example
+.wrangler

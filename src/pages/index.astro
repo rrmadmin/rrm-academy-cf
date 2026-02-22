@@ -385,22 +385,20 @@ const jsonLd = {
 
   @media (max-width: 768px) {
     .hp-hero {
-      min-height: calc(85vh - 56px);
+      min-height: calc(100vh - 56px);
+      padding: var(--space-16) 0;
     }
     .hp-hero h1 {
-      margin-bottom: var(--space-8);
+      margin-bottom: var(--space-6);
     }
     .hp-hero__subtitle {
-      font-size: 1rem;
-      margin-bottom: var(--space-8);
+      font-size: 0.9375rem;
+      margin-bottom: var(--space-6);
     }
     .hp-hero__links {
-      flex-direction: column;
-      align-items: stretch;
+      flex-direction: row;
+      flex-wrap: wrap;
       gap: var(--space-3);
-    }
-    .hp-hero__links .btn {
-      width: 100%;
     }
     .hp-trust__tagline {
       font-size: 0.75rem;

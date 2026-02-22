@@ -1,6 +1,11 @@
 ---
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import '@fontsource/cormorant-garamond/400.css';
+import '@fontsource/cormorant-garamond/600.css';
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/500.css';
+import '@fontsource/inter/600.css';
 import '../styles/global.css';
 
 interface Props {
@@ -56,10 +61,7 @@ const canonical = canonicalUrl || Astro.url.href;
   <meta name="twitter:title" content={fullTitle} />
   <meta name="twitter:description" content={description} />
 
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <!-- Fonts (self-hosted via fontsource) -->
 
   <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />

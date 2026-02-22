@@ -53,6 +53,11 @@ const wixBase = 'https://www.rrmacademy.org';
       </ul>
     </nav>
 
+    <form class="header-search" action="/library" method="get" role="search">
+      <svg class="header-search__icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" name="q" class="header-search__input" placeholder="Search articles..." autocomplete="off" />
+    </form>
+
     <div class="header-actions">
       <a href="/library/saved" class="saved-link" id="saved-link" title="Saved articles">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
@@ -217,13 +222,53 @@ const wixBase = 'https://www.rrmacademy.org';
     text-decoration: none;
   }
 
+  /* Header search — only on synopsis pages */
+  .header-search {
+    flex: 1;
+    max-width: 320px;
+    position: relative;
+    display: none;
+    align-items: center;
+    margin: 0 auto;
+  }
+  :global(.page-synopsis) .header-search {
+    display: flex;
+  }
+  .header-search__icon {
+    position: absolute;
+    left: 10px;
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+  .header-search__input {
+    width: 100%;
+    padding: 7px 12px 7px 32px;
+    font-size: 0.8125rem;
+    font-family: 'Inter', sans-serif;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    outline: none;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .header-search__input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--focus-ring);
+  }
+  .header-search__input::placeholder {
+    color: var(--text-muted);
+  }
+  .header-search__input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    display: none;
+  }
+
   /* Actions */
   .header-actions {
     display: flex;
     align-items: center;
     gap: var(--space-3);
-  }
-  :global(.page-library) .header-actions {
     margin-left: auto;
   }
   .saved-link {
@@ -306,6 +351,7 @@ const wixBase = 'https://www.rrmacademy.org';
   .hamburger::after { top: 6px; }
 
   @media (max-width: 768px) {
+    .header-search { display: none; }
     .header-actions { display: none; }
     .mobile-saved { display: block; }
     .mobile-saved:not(.has-items) { display: none; }

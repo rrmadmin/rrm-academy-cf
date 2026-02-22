@@ -560,13 +560,12 @@ const jsonLd = {
     setInterval(function() {
       var prev = current;
       current = (current + 1) % n;
-      // Add exiting class to outgoing card
-      cards[prev].classList.remove('active');
+      // Clear all state classes first to prevent stale class accumulation
+      for (var i = 0; i < n; i++) {
+        cards[i].classList.remove('active', 'behind-1', 'behind-2', 'exiting');
+      }
       cards[prev].classList.add('exiting');
-      // Update the rest
       cards[current].classList.add('active');
-      cards[current].classList.remove('behind-1', 'behind-2');
-      cards[(current + 1) % n].classList.remove('behind-2');
       cards[(current + 1) % n].classList.add('behind-1');
       cards[(current + 2) % n].classList.add('behind-2');
     }, 4000);
