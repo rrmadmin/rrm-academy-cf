@@ -55,19 +55,31 @@ When editing this site from the Claude mobile app, follow these conventions:
 - **Dark mode**: `data-theme="dark"`, warm charcoal `#1e1a16`
 - **Layout**: `.page-body` has 2px purple left border
 
-### Mobile Workflow
+### Mobile Workflow — CRITICAL INSTRUCTIONS
 
-Editing from the Claude mobile app uses Claude Code on the web (cloud VM). The cloud VM clones this repo but has no local credentials. **Builds and deploys happen automatically via GitHub Actions on push to main.**
+Editing from the Claude mobile app uses Claude Code on the web (cloud VM). The cloud VM clones this repo but has no local credentials.
 
-1. **Make the code edit** — read the file, apply the change
-2. **Show a before/after summary** so the change is clear on a small screen
-3. **Commit and push to `main`** — GitHub Actions will auto-build and deploy (~2 min)
-4. Do NOT try to run `npm run build`, `npm run fetch-data`, or `wrangler` manually — the CI pipeline handles it
+**ALWAYS commit and push directly to the `main` branch. NEVER create feature branches or PRs.**
 
-The data files (`articles.json`, `posts.json`) are gitignored and won't be present in the cloud VM. That's fine — GitHub Actions fetches them from Airtable during the build.
+Pushing to `main` triggers GitHub Actions which auto-builds and deploys to Cloudflare Pages (~2 min). Feature branches do NOT trigger deploys, so the user's changes would never go live.
+
+#### Steps:
+1. Make the code edit
+2. Show a brief before/after summary
+3. `git add` the changed files
+4. `git commit -m "description of change"`
+5. `git push origin main`
+6. Tell the user: "Pushed to main. Your site will be live in ~2 minutes."
+
+#### Do NOT:
+- Create feature branches (changes won't deploy)
+- Create pull requests (changes won't deploy)
+- Run `npm run build`, `npm run fetch-data`, or `wrangler` (no credentials in cloud VM — CI handles it)
+
+The data files (`articles.json`, `posts.json`) are gitignored and won't be present in the cloud VM. That's expected — GitHub Actions fetches them from Airtable during the build.
 
 ### Rules
 - Keep edits focused — one change at a time for easy review
 - Show brief before/after summaries
-- Just push to main — CI handles build + deploy
+- ALWAYS push directly to main — CI handles build + deploy
 - For large refactors, suggest deferring to desktop
