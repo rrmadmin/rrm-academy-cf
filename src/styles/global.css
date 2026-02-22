@@ -25,6 +25,11 @@
   --cream:       #eee5dd;
   --white:       #ffffff;
 
+  /* Warm accent (sand) palette */
+  --sand-700: #947353;
+  --sand-500: #b8a38f;
+  --sand-300: #dbcbbb;
+
   /* Accent */
   --green-700: #2e7d32;
   --green-100: #e8f5e9;
@@ -91,6 +96,10 @@
   --neutral-100: #2c2824;
   --cream:       #3a3430;
   --white:       #28241e;
+
+  --sand-700: #b8a38f;
+  --sand-500: #8a7a6a;
+  --sand-300: #5a4e44;
 
   --green-700: #66bb6a;
   --green-100: #2a3a2a;
@@ -214,7 +223,7 @@ p:last-child { margin-bottom: 0; }
 
 /* Letter-line content sections */
 .page-body .container--narrow {
-  border-left: 2px solid var(--purple-300);
+  border-left: 2px solid var(--sand-300);
   padding: var(--space-12) var(--space-4) var(--space-12) var(--space-8);
 }
 
@@ -843,7 +852,7 @@ p a, li a, .prose a, blockquote a {
 
 /* Blockquote */
 blockquote, .blockquote {
-  border-left: 3px solid var(--purple-300);
+  border-left: 3px solid var(--sand-300);
   padding: var(--space-5) var(--space-6);
   margin: 0 0 var(--space-6);
 }
