@@ -1,0 +1,242 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AuthorByline from '../../components/AuthorByline.astro';
+import BlogCard from '../../components/BlogCard.astro';
+import { fetchAllPosts, getRelatedPosts, type BlogPost } from '../../lib/blog';
+import { marked } from 'marked';
+
+export async function getStaticPaths() {
+  const posts = await fetchAllPosts();
+
+  return posts.map(post => ({
+    params: { slug: post.slug },
+    props: { post, allPosts: posts },
+  }));
+}
+
+interface Props {
+  post: BlogPost;
+  allPosts: BlogPost[];
+}
+
+const { post, allPosts } = Astro.props;
+const related = getRelatedPosts(post, allPosts, 3);
+
+// Render markdown content to HTML
+const htmlContent = post.content ? marked.parse(post.content) : '';
+
+// Meta description from excerpt
+const metaDescription = post.excerpt
+  ? post.excerpt.slice(0, 155) + (post.excerpt.length > 155 ? '...' : '')
+  : `${post.title} - RRM Academy Commentary`;
+
+// Schema.org JSON-LD
+const jsonLd: any = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: post.title,
+  url: `https://rrmacademy.org/commentary/${post.slug}`,
+  publisher: {
+    '@type': 'Organization',
+    name: 'RRM Academy',
+    url: 'https://rrmacademy.org',
+  },
+};
+
+if (post.author) {
+  jsonLd.author = {
+    '@type': 'Person',
+    name: post.author,
+  };
+}
+if (post.publishDate) {
+  jsonLd.datePublished = post.publishDate;
+}
+if (post.coverImageUrl) {
+  jsonLd.image = post.coverImageUrl;
+}
+if (post.excerpt) {
+  jsonLd.description = post.excerpt;
+}
+
+const canonicalUrl = `https://rrmacademy.org/commentary/${post.slug}`;
+---
+<BaseLayout
+  title={post.title}
+  description={metaDescription}
+  canonicalUrl={canonicalUrl}
+  ogType="article"
+  jsonLd={jsonLd}
+>
+  <div class="page-wrapper">
+    <div class="container container--narrow">
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/commentary">Commentary</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <span>{post.title.length > 50 ? post.title.slice(0, 50) + '...' : post.title}</span>
+      </nav>
+
+      <!-- Cover Image -->
+      {post.coverImageUrl && (
+        <div class="cover-image">
+          <img
+            src={post.coverImageUrl}
+            alt=""
+            loading="eager"
+            decoding="async"
+          />
+        </div>
+      )}
+
+      <!-- Title -->
+      <h1 class="post-title">{post.title}</h1>
+
+      <!-- Byline -->
+      <AuthorByline author={post.author} date={post.publishDate} />
+    </div>
+
+    <!-- Content -->
+    <div class="container container--narrow">
+      <div class="prose" set:html={htmlContent} />
+    </div>
+
+    <!-- Related Posts -->
+    {related.length > 0 && (
+      <div class="container container--narrow">
+        <section class="related-section" aria-label="Related posts">
+          <h2 class="section-label">More from this series</h2>
+          <div class="related-grid">
+            {related.map(rel => (
+              <BlogCard post={rel} />
+            ))}
+          </div>
+        </section>
+      </div>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .post-title {
+    font-size: 2rem;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    margin-bottom: var(--space-4);
+  }
+
+  @media (min-width: 769px) {
+    .post-title {
+      font-size: 2.5rem;
+    }
+  }
+
+  .cover-image {
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-8);
+    background: var(--neutral-100);
+  }
+  .cover-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Prose — article body typography */
+  .prose {
+    margin-top: var(--space-8);
+    margin-bottom: var(--space-12);
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--text-primary);
+  }
+  .prose :global(h2) {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-top: var(--space-10);
+    margin-bottom: var(--space-4);
+    line-height: 1.3;
+  }
+  .prose :global(h3) {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: var(--space-8);
+    margin-bottom: var(--space-3);
+    line-height: 1.3;
+  }
+  .prose :global(p) {
+    margin-bottom: var(--space-5);
+  }
+  .prose :global(a) {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .prose :global(a:hover) {
+    color: var(--purple-900);
+  }
+  .prose :global(strong) {
+    font-weight: 600;
+  }
+  .prose :global(blockquote) {
+    border-left: 3px solid var(--purple-300);
+    padding-left: var(--space-5);
+    margin: var(--space-6) 0;
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+  .prose :global(ul),
+  .prose :global(ol) {
+    margin-bottom: var(--space-5);
+    padding-left: var(--space-6);
+  }
+  .prose :global(li) {
+    margin-bottom: var(--space-2);
+  }
+  .prose :global(hr) {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: var(--space-8) 0;
+  }
+  .prose :global(img) {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+    margin: var(--space-6) 0;
+  }
+
+  /* Section label (reused from library pages) */
+  .section-label {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: var(--space-4);
+    color: var(--text-primary);
+  }
+
+  .related-section {
+    margin-top: var(--space-12);
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--border-color);
+  }
+
+  .related-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+  }
+  @media (min-width: 640px) {
+    .related-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (min-width: 1024px) {
+    .related-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>

@@ -1,0 +1,133 @@
+---
+import type { BlogPost } from '../lib/blog';
+
+interface Props {
+  post: BlogPost;
+}
+
+const { post } = Astro.props;
+const href = `/commentary/${post.slug}`;
+
+// Format date
+let formattedDate = '';
+if (post.publishDate) {
+  try {
+    const d = new Date(post.publishDate + 'T00:00:00');
+    formattedDate = d.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  } catch {
+    formattedDate = post.publishDate;
+  }
+}
+
+// Truncate excerpt
+const maxLen = 160;
+const excerpt = post.excerpt
+  ? post.excerpt.slice(0, maxLen) + (post.excerpt.length > maxLen ? '...' : '')
+  : '';
+---
+<article class="blog-card">
+  <a href={href} class="blog-card__link">
+    {post.coverImageUrl && (
+      <div class="blog-card__image">
+        <img
+          src={post.coverImageUrl}
+          alt=""
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+    )}
+    <div class="blog-card__body">
+      <h3 class="blog-card__title">{post.title}</h3>
+      {excerpt && <p class="blog-card__excerpt">{excerpt}</p>}
+      <div class="blog-card__meta">
+        {post.author && <span class="blog-card__author">{post.author}</span>}
+        {formattedDate && <span class="blog-card__date">{formattedDate}</span>}
+      </div>
+    </div>
+  </a>
+</article>
+
+<style>
+  .blog-card {
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .blog-card:hover {
+    box-shadow: var(--shadow-md);
+  }
+
+  .blog-card__link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+  .blog-card__link:hover {
+    text-decoration: none;
+  }
+
+  .blog-card__image {
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--neutral-100);
+  }
+  .blog-card__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+  }
+  .blog-card:hover .blog-card__image img {
+    transform: scale(1.03);
+  }
+
+  .blog-card__body {
+    padding: var(--space-5);
+  }
+
+  .blog-card__title {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-weight: 600;
+    font-size: 1.125rem;
+    line-height: 1.3;
+    color: var(--text-primary);
+    margin-bottom: var(--space-2);
+    transition: color 0.15s;
+  }
+  .blog-card__link:hover .blog-card__title {
+    color: var(--accent);
+  }
+
+  .blog-card__excerpt {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: var(--space-3);
+  }
+
+  .blog-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2);
+    font-size: 0.75rem;
+  }
+  .blog-card__author {
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  .blog-card__date {
+    color: var(--text-tertiary);
+  }
+  .blog-card__author + .blog-card__date::before {
+    content: '\b7';
+    margin-right: var(--space-2);
+    color: var(--text-muted);
+  }
+</style>

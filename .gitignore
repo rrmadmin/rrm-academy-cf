@@ -2,6 +2,7 @@ node_modules/
 dist/
 .astro/
 src/data/articles.json
+src/data/posts.json
 scraped/
 .env
 .env.local

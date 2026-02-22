@@ -1,0 +1,48 @@
+---
+interface Props {
+  author: string;
+  date: string;
+}
+
+const { author, date } = Astro.props;
+
+// Format date nicely
+let formattedDate = '';
+if (date) {
+  try {
+    const d = new Date(date + 'T00:00:00');
+    formattedDate = d.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  } catch {
+    formattedDate = date;
+  }
+}
+---
+<div class="byline">
+  {author && <span class="byline__author">{author}</span>}
+  {author && formattedDate && <span class="byline__sep" aria-hidden="true">&middot;</span>}
+  {formattedDate && <time class="byline__date" datetime={date}>{formattedDate}</time>}
+</div>
+
+<style>
+  .byline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2);
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+  }
+  .byline__author {
+    font-weight: 500;
+  }
+  .byline__sep {
+    color: var(--text-muted);
+  }
+  .byline__date {
+    color: var(--text-tertiary);
+  }
+</style>

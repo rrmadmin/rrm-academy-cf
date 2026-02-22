@@ -1,29 +1,30 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
-import ArticleCard from '../../../components/ArticleCard.astro';
-import { fetchAllArticles } from '../../../lib/airtable';
+import BlogCard from '../../../components/BlogCard.astro';
+import { fetchAllPosts } from '../../../lib/blog';
 
 export async function getStaticPaths() {
-  const perPage = 50;
-  const articles = await fetchAllArticles();
-  const totalPages = Math.ceil(articles.length / perPage);
+  const perPage = 10;
+  const posts = await fetchAllPosts();
+  const totalPages = Math.max(1, Math.ceil(posts.length / perPage));
 
   return Array.from({ length: totalPages }, (_, i) => ({
     params: { page: String(i + 1) },
-    props: { articles, currentPage: i + 1, totalPages, perPage },
+    props: { posts, currentPage: i + 1, totalPages, perPage },
   }));
 }
 
+const PER_PAGE = 10;
+
 interface Props {
-  articles: any[];
+  posts: any[];
   currentPage: number;
   totalPages: number;
-  perPage: number;
 }
 
-const { articles, currentPage, totalPages, perPage } = Astro.props;
-const start = (currentPage - 1) * perPage;
-const pageArticles = articles.slice(start, start + perPage);
+const { posts, currentPage, totalPages } = Astro.props;
+const start = (currentPage - 1) * PER_PAGE;
+const pagePosts = posts.slice(start, start + PER_PAGE);
 
 // Pagination range
 const range: (number | '...')[] = [];
@@ -37,37 +38,36 @@ for (let i = 1; i <= totalPages; i++) {
 }
 ---
 <BaseLayout
-  title={`Browse Articles - Page ${currentPage}`}
-  description={`Page ${currentPage} of ${totalPages} - Browse all articles in the RRM Research Library.`}
-  canonicalUrl={`https://rrmacademy.org/library/page/${currentPage}`}
+  title={`Commentary - Page ${currentPage}`}
+  description={`Page ${currentPage} of ${totalPages} - Browse all commentary from RRM Academy.`}
+  canonicalUrl={`https://rrmacademy.org/commentary/page/${currentPage}`}
 >
-  <section class="browse-page" data-pagefind-ignore="all">
+  <section class="browse-page">
     <div class="container">
       <nav class="breadcrumb" aria-label="Breadcrumb">
-        <a href="/library">Research Library</a>
+        <a href="/commentary">Commentary</a>
         <span aria-hidden="true"> &rsaquo; </span>
         <span>Page {currentPage}</span>
       </nav>
 
       <div class="browse-header">
         <div>
-          <h1>Browse all articles</h1>
+          <h1>All commentary</h1>
           <p class="browse-meta">
-            Showing {start + 1}&ndash;{Math.min(start + perPage, articles.length)} of {articles.length.toLocaleString()}
+            Showing {start + 1}&ndash;{Math.min(start + PER_PAGE, posts.length)} of {posts.length}
           </p>
         </div>
-        <a href="/library#search" class="btn btn--secondary btn--sm">Search</a>
       </div>
 
-      <div class="article-grid">
-        {pageArticles.map(article => (
-          <ArticleCard article={article} compact />
+      <div class="blog-grid">
+        {pagePosts.map(post => (
+          <BlogCard post={post} />
         ))}
       </div>
 
       <nav class="pagination" aria-label="Pagination">
         {currentPage > 1 && (
-          <a href={currentPage === 2 ? '/library' : `/library/page/${currentPage - 1}`}>&laquo; Prev</a>
+          <a href={currentPage === 2 ? '/commentary/page/1' : `/commentary/page/${currentPage - 1}`}>&laquo; Prev</a>
         )}
         {range.map(item => (
           item === '...' ? (
@@ -75,11 +75,11 @@ for (let i = 1; i <= totalPages; i++) {
           ) : item === currentPage ? (
             <span class="current">{item}</span>
           ) : (
-            <a href={item === 1 ? '/library' : `/library/page/${item}`}>{item}</a>
+            <a href={`/commentary/page/${item}`}>{item}</a>
           )
         ))}
         {currentPage < totalPages && (
-          <a href={`/library/page/${currentPage + 1}`}>Next &raquo;</a>
+          <a href={`/commentary/page/${currentPage + 1}`}>Next &raquo;</a>
         )}
       </nav>
     </div>
@@ -105,8 +105,20 @@ for (let i = 1; i <= totalPages; i++) {
     color: var(--neutral-500);
     font-weight: 500;
   }
-  .btn--sm {
-    padding: 7px 18px;
-    font-size: 0.75rem;
+
+  .blog-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+  @media (min-width: 640px) {
+    .blog-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (min-width: 1024px) {
+    .blog-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
   }
 </style>

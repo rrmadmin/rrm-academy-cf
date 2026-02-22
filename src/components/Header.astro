@@ -2,16 +2,7 @@
 // Navigation matching current Wix site
 const navItems = [
   { label: 'Research Library', href: '/library', current: true },
-  {
-    label: 'Commentary',
-    href: '/commentary',
-    children: [
-      { label: 'Restorative Reproductive Medicine', href: '/commentary/categories/restorative-reproductive-medicine' },
-      { label: 'RRM Physician Spotlight', href: '/commentary/categories/rrm-physician-spotlight' },
-      { label: 'RRM Research Library', href: '/commentary/categories/rrm-research-library' },
-      { label: 'Case Studies', href: '/commentary/categories/case-studies' },
-    ],
-  },
+  { label: 'Commentary', href: '/commentary' },
   {
     label: 'Courses',
     href: '/courses',
@@ -117,8 +108,8 @@ const wixBase = 'https://www.rrmacademy.org';
     line-height: 1.4;
   }
 
-  /* Nav */
-  .main-nav { flex: 1; }
+  /* Nav — hidden on desktop; visible in mobile menu */
+  .main-nav { flex: 1; display: none; }
   .nav-list {
     display: flex;
     list-style: none;
@@ -229,6 +220,7 @@ const wixBase = 'https://www.rrmacademy.org';
     display: flex;
     align-items: center;
     gap: var(--space-3);
+    margin-left: auto;
   }
   .saved-link {
     display: inline-flex;
@@ -312,7 +304,7 @@ const wixBase = 'https://www.rrmacademy.org';
   .hamburger::after { top: 6px; }
 
   @media (max-width: 768px) {
-    .main-nav, .header-actions { display: none; }
+    .header-actions { display: none; }
     .mobile-saved { display: block; }
     .mobile-saved:not(.has-items) { display: none; }
     .mobile-toggle { display: block; }

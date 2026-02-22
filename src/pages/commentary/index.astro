@@ -1,0 +1,154 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BlogCard from '../../components/BlogCard.astro';
+import { fetchAllPosts } from '../../lib/blog';
+
+const posts = await fetchAllPosts();
+
+const PER_PAGE = 6;
+const displayPosts = posts.slice(0, PER_PAGE);
+const totalPages = Math.ceil(posts.length / 10); // pagination pages use 10 per page
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Blog',
+  name: 'RRM Academy Commentary',
+  description: 'Expert clinical perspectives on restorative reproductive medicine from RRM Academy.',
+  url: 'https://rrmacademy.org/commentary',
+  publisher: {
+    '@type': 'Organization',
+    name: 'RRM Academy',
+    url: 'https://rrmacademy.org',
+  },
+};
+---
+<BaseLayout
+  title="Commentary"
+  description="Expert clinical perspectives on restorative reproductive medicine. Evidence-based commentary from RRM Academy physicians and researchers."
+  canonicalUrl="https://rrmacademy.org/commentary"
+  jsonLd={jsonLd}
+>
+  <!-- Hero -->
+  <section class="commentary-hero">
+    <div class="container">
+      <h1>Commentary</h1>
+      <p class="commentary-hero__subtitle">
+        Expert clinical perspectives on restorative reproductive medicine
+      </p>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- Recent Posts -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-label">Recent posts</h2>
+        <span class="meta-count">{posts.length} articles</span>
+      </div>
+      <div class="blog-grid">
+        {displayPosts.map(post => (
+          <BlogCard post={post} />
+        ))}
+      </div>
+
+      {posts.length > PER_PAGE && (
+        <div class="view-all">
+          <a href="/commentary/page/1" class="btn btn--secondary">View all posts &rarr;</a>
+        </div>
+      )}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .commentary-hero {
+    padding: var(--space-16) 0 var(--space-12);
+    text-align: center;
+  }
+  .commentary-hero h1 {
+    font-size: 2.5rem;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: var(--space-4);
+  }
+  .commentary-hero__subtitle {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    max-width: 520px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  @media (min-width: 769px) {
+    .commentary-hero h1 {
+      font-size: 3.5rem;
+    }
+    .commentary-hero__subtitle {
+      font-size: 1.125rem;
+    }
+  }
+
+  /* Section labels */
+  .section-label {
+    font-size: 0.6875rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-4);
+  }
+  @media (min-width: 769px) {
+    .section-label {
+      font-size: 0.75rem;
+      margin-bottom: var(--space-5);
+    }
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+  .section-header .section-label {
+    margin-bottom: var(--space-4);
+  }
+  .meta-count {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 0 auto;
+    max-width: var(--max-width-page);
+    padding: 0 var(--space-6);
+  }
+
+  /* Blog grid */
+  .blog-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+  @media (min-width: 640px) {
+    .blog-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (min-width: 1024px) {
+    .blog-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .view-all {
+    text-align: center;
+    margin-top: var(--space-10);
+  }
+</style>

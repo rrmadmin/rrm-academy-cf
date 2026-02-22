@@ -119,10 +119,10 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
   ogType="article"
   jsonLd={jsonLd}
 >
-  <div class="page-wrapper">
+  <div class="page-wrapper" data-pagefind-body>
     <div class="container container--narrow">
       <!-- Breadcrumb + Save -->
-      <div class="article-topbar">
+      <div class="article-topbar" data-pagefind-ignore>
         <nav class="breadcrumb" aria-label="Breadcrumb">
           <a href="/library">Research Library</a>
           <span aria-hidden="true"> &rsaquo; </span>
@@ -145,7 +145,7 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
       </div>
 
       <!-- Title -->
-      <h1 class="article-title">{article.title}</h1>
+      <h1 class="article-title" data-pagefind-weight="10" data-pagefind-meta="title">{article.title}</h1>
 
       <!-- Short citation + OA badge -->
       <div class="article-meta-row">
@@ -154,19 +154,22 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
         )}
         {article.isOpenAccess && <span class="badge badge--oa">Open Access</span>}
       </div>
+      {article.year && (
+        <span data-pagefind-meta={`year:${article.year}`} style="display:none"></span>
+      )}
 
       <!-- Full author list -->
       {article.authors && (
-        <p class="article-authors">{article.authors}</p>
+        <p class="article-authors" data-pagefind-weight="5" data-pagefind-meta="authors">{article.authors}</p>
       )}
 
       <!-- Journal citation line -->
       {journalLine && (
-        <p class="journal-line">{journalLine}</p>
+        <p class="journal-line" data-pagefind-weight="2">{journalLine}</p>
       )}
 
       <!-- External links -->
-      <div class="external-links">
+      <div class="external-links" data-pagefind-ignore>
         {article.sourceUrl && (
           <a href={article.sourceUrl} class="external-link" target="_blank" rel="noopener">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
@@ -214,7 +217,7 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
       {article.topics.length > 0 && (
         <section class="article-topics" aria-label="Topics">
           <h2 class="section-label">Topics</h2>
-          <div class="topic-grid">
+          <div class="topic-grid" data-pagefind-weight="3">
             {article.topics.map(topic => (
               <TopicTag topic={topic} />
             ))}
@@ -222,9 +225,15 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
         </section>
       )}
 
+      {article.searchTerms.length > 0 && (
+        <div data-pagefind-weight="4" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">
+          {article.searchTerms.join(', ')}
+        </div>
+      )}
+
       <!-- Citations -->
       {(article.apaCitation || article.vancouverCitation || article.mlaCitation) && (
-        <section class="article-citations" aria-label="Citations">
+        <section class="article-citations" aria-label="Citations" data-pagefind-ignore="all">
           <h2 class="section-label">Cite this article</h2>
           <Citation
             apa={article.apaCitation}
@@ -244,7 +253,7 @@ const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
 
       <!-- Related articles -->
       {related.length > 0 && (
-        <section class="article-related" aria-label="Related articles">
+        <section class="article-related" aria-label="Related articles" data-pagefind-ignore="all">
           <h2 class="section-label">Related articles</h2>
           <div class="related-grid">
             {related.map(rel => (
