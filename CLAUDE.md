@@ -1,6 +1,6 @@
 # RRM Academy (Astro + CF Pages)
 
-> Wix → Cloudflare migration via strangler fig pattern. Phases 0-3 done, Phase 5 in progress.
+> Wix → Cloudflare migration via strangler fig pattern. Phases 0-5 done, Phase 6 (Auth) deployed.
 
 ## Quick Reference
 
@@ -31,6 +31,9 @@
 | Button patterns | `STYLE-GUIDE.md` | 326-360 | 2026-02-22 |
 | Page layout patterns | `STYLE-GUIDE.md` | 653-758 | 2026-02-22 |
 | Dark mode | `STYLE-GUIDE.md` | 868-895 | 2026-02-22 |
+| Auth architecture & API | `docs/AUTH-SPEC.md` | 1-40 | 2026-02-22 |
+| Auth endpoints | `docs/AUTH-SPEC.md` | 42-55 | 2026-02-22 |
+| Auth security | `docs/AUTH-SPEC.md` | 63-80 | 2026-02-22 |
 
 ## Site Map
 
@@ -48,6 +51,11 @@
 | `/commentary/[slug]` | `src/pages/commentary/[...slug].astro` |
 | `/endo-survey` | `src/pages/endo-survey/index.astro` |
 | `/endo-survey/take` | `src/pages/endo-survey/take.astro` |
+| `/login` | `src/pages/login.astro` |
+| `/signup` | `src/pages/signup.astro` |
+| `/account` | `src/pages/account/index.astro` (auth required) |
+| `/forgot-password` | `src/pages/forgot-password.astro` |
+| `/reset-password` | `src/pages/reset-password.astro` |
 | `/save-the-uterus-club` | `src/pages/save-the-uterus-club.astro` |
 
 ## Components

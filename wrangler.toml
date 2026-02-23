@@ -11,3 +11,8 @@ compatibility_date = "2025-01-01"
 [[kv_namespaces]]
 binding = "SURVEY_TOKENS"
 id = "ef52bc09f1b44b5f8e3367372be8d63d"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "rrm-auth"
+database_id = "22742c9c-77fa-4344-abda-7e7e8b0da9de"
