@@ -228,8 +228,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   /* Naomi intro note */
   .survey-intro-note {
     padding: var(--space-6);
-    background: var(--bg-card);
-    border-left: 3px solid var(--sand-300);
+    background: var(--rose-50);
+    border-left: 3px solid var(--rose-700);
     border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
     margin-bottom: var(--space-8);
   }
@@ -251,15 +251,18 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .tier-block {
     margin-bottom: var(--space-10);
   }
+
   .tier-header {
     position: sticky;
     top: 56px;
     z-index: 5;
     background: var(--bg-body);
     padding: var(--space-4) 0;
-    border-bottom: 2px solid var(--accent);
     margin-bottom: var(--space-2);
   }
+  .tier-block[data-tier="1"] .tier-header { border-bottom: 2px solid var(--tier1-accent); }
+  .tier-block[data-tier="2"] .tier-header { border-bottom: 2px solid var(--tier2-accent); }
+  .tier-block[data-tier="3"] .tier-header { border-bottom: 2px solid var(--tier3-accent); }
   .tier-header h2 {
     font-size: 1.25rem;
     margin-bottom: var(--space-1);
@@ -306,9 +309,17 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     transition: all 0.15s;
     position: relative;
   }
-  .symptom-item input:checked + .symptom-check {
-    background: var(--accent);
-    border-color: var(--accent);
+  .tier-block[data-tier="1"] .symptom-item input:checked + .symptom-check {
+    background: var(--tier1-accent);
+    border-color: var(--tier1-accent);
+  }
+  .tier-block[data-tier="2"] .symptom-item input:checked + .symptom-check {
+    background: var(--tier2-accent);
+    border-color: var(--tier2-accent);
+  }
+  .tier-block[data-tier="3"] .symptom-item input:checked + .symptom-check {
+    background: var(--tier3-accent);
+    border-color: var(--tier3-accent);
   }
   .symptom-item input:checked + .symptom-check::after {
     content: '';
@@ -355,8 +366,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .score-card {
     text-align: center;
     padding: var(--space-8) var(--space-4);
-    background: var(--bg-card);
+    background: var(--bg-surface);
     border: 1px solid var(--border-light);
+    border-top: 3px solid var(--tier1-accent);
     border-radius: var(--radius-md);
     margin-bottom: var(--space-6);
   }
@@ -403,9 +415,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     border-radius: 4px;
     transition: width 0.6s ease;
   }
-  .score-tier__bar--1 .score-tier__fill { background: #9b4d6e; }
-  .score-tier__bar--2 .score-tier__fill { background: #c77d3c; }
-  .score-tier__bar--3 .score-tier__fill { background: #5a8a6a; }
+  .score-tier__bar--1 .score-tier__fill { background: var(--tier1-accent); }
+  .score-tier__bar--2 .score-tier__fill { background: var(--tier2-accent); }
+  .score-tier__bar--3 .score-tier__fill { background: var(--tier3-accent); }
   .score-tier__label {
     font-size: 0.875rem;
     color: var(--text-primary);
@@ -419,8 +431,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   /* Interpretation */
   .results-interpretation {
     padding: var(--space-6);
-    background: var(--bg-card);
-    border-left: 3px solid var(--sand-300);
+    background: var(--rose-50);
+    border-left: 3px solid var(--rose-700);
     border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
     margin-bottom: var(--space-8);
   }
@@ -447,8 +459,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   /* CTA */
   .results-cta {
     padding: var(--space-6);
-    background: var(--bg-card);
-    border: 1px solid var(--border-light);
+    background: var(--sage-50);
+    border: 1px solid var(--sage-300);
+    border-left: 3px solid var(--sage-700);
     border-radius: var(--radius-md);
     margin-bottom: var(--space-6);
   }
@@ -625,6 +638,49 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     return html;
   }
 
+  // ── ICD-10-CM code lookup (PDF only) ──
+  const ICD10 = {
+    // Tier 1
+    'Vomiting with menstruation': 'R11.2, N94.6 — Nausea/vomiting; Dysmenorrhea',
+    'Recurrent tail-end brown bleeding lasting 3 days or more': 'N92.1 — Irregular menstruation',
+    'ER visits for pain related to menstruation': 'N94.6 — Dysmenorrhea',
+    'Pain during sex (deep penetration) or debilitating pain afterward': 'N94.12 — Deep dyspareunia',
+    'Severe pain (8+/10) during or leading up to menstruation': 'N94.4 — Primary dysmenorrhea',
+    'Menses pain interferes with daily activities': 'N94.4 — Primary dysmenorrhea',
+    'Stabbing rectal pain': 'K62.89, R10.2 — Rectal disorder; Pelvic pain',
+    'Pain radiating to back or legs during menstruation': 'N94.4, M54.5 — Dysmenorrhea; Low back pain',
+    'Raw, stabbing, or achy lower abdominal pain with menstruation': 'R10.2, N94.6 — Pelvic pain; Dysmenorrhea',
+    'Heating pad provides pain relief': 'N94.4 — Primary dysmenorrhea',
+    'Need to curl into fetal position during painful episodes': 'N94.4 — Primary dysmenorrhea',
+    'Severe cramping': 'N94.4 — Primary dysmenorrhea',
+    'Birth control fails to help with pain': 'N94.5 — Secondary dysmenorrhea',
+    'OTC medications fail to provide relief': 'N94.4 — Primary dysmenorrhea',
+    'Infertility (especially unexplained) with above symptoms': 'N97.9, N80.9 — Female infertility; Endometriosis NOS',
+    // Tier 2
+    'Chronic bladder discomfort with urination': 'N30.10, R30.0 — Interstitial cystitis; Dysuria',
+    'Chronic frequent urination': 'R35.0 — Frequency of micturition',
+    'Heavy menstrual bleeding and even iron deficiency': 'N92.0, D50.9 — Menorrhagia; Iron deficiency anemia',
+    'Infertility without any other symptoms': 'N97.9 — Female infertility, unspecified',
+    'Infertility with history of painful periods at menarche': 'N97.9, N94.4 — Female infertility; Primary dysmenorrhea',
+    'Low quality or quantity of cervical mucus': 'N88.8 — Other specified noninflammatory cervix disorders',
+    'Symptoms or diagnosis of IBS': 'K58.9 — Irritable bowel syndrome',
+    'Symptoms or diagnosis of IC': 'N30.10 — Interstitial cystitis',
+    'Severe abdominal bloating during or before menstruation': 'R14.0, N94.6 — Abdominal distension; Dysmenorrhea',
+    'Migraines': 'G43.909 — Migraine, unspecified',
+    'Short menstrual cycles (short luteal phases)': 'N92.1 — Irregular menstruation',
+    'Severe PMS': 'N94.3 — Premenstrual tension syndrome',
+    'Chronic constipation': 'K59.00 — Constipation, unspecified',
+    'Consistent 1-2 days of tail-end brown bleeding': 'N92.1 — Irregular menstruation',
+    'Diagnosis of LUF syndrome': 'N94.89 — Other specified menstrual cycle conditions',
+    // Tier 3
+    'Fatigue': 'R53.83 — Other fatigue',
+    'Nickel sensitivity': 'L23.0 — Allergic contact dermatitis, metals',
+    'Skin reactions or sensitivities': 'L23.9 — Allergic contact dermatitis, unspecified',
+    'Easy bruising': 'R23.3 — Spontaneous ecchymoses',
+    'Family history of endometriosis': 'Z82.8 — Family history of other disabilities/chronic diseases',
+    'Personal history of autoimmune conditions': 'M35.9 — Systemic autoimmune disease, unspecified',
+  };
+
   // ── PDF Generation (jsPDF) ──
   function setupPdfDownload(score, symptoms) {
     const btn = document.getElementById('download-pdf');
@@ -679,6 +735,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       y += 32;
 
       // Tier breakdown
+      // RGB values match CSS --tier{N}-accent vars (jsPDF can't use CSS vars; PDF always renders light-mode colors)
       const tiers = [
         { label: 'Tier 1: Very High Suspicion', pts: score.tier1, max: 45, items: symptoms.tier1, color: [155, 77, 110] },
         { label: 'Tier 2: High Suspicion', pts: score.tier2, max: 30, items: symptoms.tier2, color: [199, 125, 60] },
@@ -703,17 +760,27 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
         // Listed symptoms
         if (tier.items.length > 0) {
-          doc.setFontSize(8.5);
-          doc.setFont('helvetica', 'normal');
-          doc.setTextColor(99, 98, 97);
           for (const item of tier.items) {
-            if (y > 260) {
+            // Check space for symptom + possible ICD line
+            if (y > 255) {
               doc.addPage();
               y = 20;
             }
+            // Symptom bullet
+            doc.setFontSize(8.5);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(99, 98, 97);
             const lines = doc.splitTextToSize(`• ${item}`, maxW - 4);
             doc.text(lines, margin + 2, y);
             y += lines.length * 3.5;
+            // ICD-10-CM code (muted, smaller, indented)
+            const code = ICD10[item];
+            if (code) {
+              doc.setFontSize(7);
+              doc.setTextColor(148, 147, 146); // #949392
+              doc.text(`ICD-10-CM: ${code}`, margin + 6, y);
+              y += 3;
+            }
           }
         } else {
           doc.setFontSize(8.5);
@@ -737,6 +804,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       const disclaimer = 'This self-survey is for educational purposes only and does not constitute medical advice, diagnosis, or treatment. Endometriosis can only be diagnosed through surgery. Always consult a qualified healthcare provider for evaluation. RRM Academy is a project of the RRM Foundation, a 501(c)(3) nonprofit.';
       const discLines = doc.splitTextToSize(disclaimer, maxW);
       doc.text(discLines, margin, y);
+      y += discLines.length * 3 + 3;
+      const icdNote = 'ICD-10-CM codes are provided for clinical reference only and do not constitute a diagnosis. Codes are current as of 2026.';
+      const icdLines = doc.splitTextToSize(icdNote, maxW);
+      doc.text(icdLines, margin, y);
 
       doc.save('endo-survey-results.pdf');
 
