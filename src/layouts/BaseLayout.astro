@@ -22,6 +22,7 @@ interface Props {
   ogType?: string;
   jsonLd?: object;
   bodyClass?: string;
+  noindex?: boolean;
   citationMeta?: {
     title: string;
     authors: string[];      // One meta tag per author
@@ -47,6 +48,7 @@ const {
   jsonLd,
   bodyClass,
   citationMeta,
+  noindex,
 } = Astro.props;
 
 const fullTitle = title.includes('RRM') ? title : `${title} | RRM Research Library`;
@@ -58,6 +60,7 @@ const canonical = canonicalUrl || Astro.url.href;
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="format-detection" content="telephone=no" />
+  {noindex && <meta name="robots" content="noindex, nofollow" />}
   <title>{fullTitle}</title>
   <script is:inline>
     // Apply saved theme before first paint to prevent flash

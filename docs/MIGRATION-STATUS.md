@@ -15,8 +15,8 @@ Paths in `ASTRO_ROUTES` → Astro/CF Pages. Everything else → Wix origin.
 |-------|--------|-------|
 | 0-3 Core pages | DONE | Homepage, library, commentary, legal, endo-survey |
 | 4 Email marketing | DEFERRED | Broadcast tool TBD. Resend handles transactional. |
-| 5 Forms & contact | IN PROGRESS | Contact form + Turnstile + Resend |
-| 6 Auth | NOT STARTED | Lucia Auth + D1. Prereq for courses. |
+| 5 Forms & contact | DONE | Contact form + Turnstile + Resend |
+| 6 Auth | DONE | D1 database, DIY sessions, PBKDF2, Resend emails |
 | 7 Payments | NOT STARTED | Stripe. Prereq for courses. |
 | 8 Courses | NOT STARTED | CF Stream + D1 + Discord. Final phase. |
 
@@ -28,7 +28,7 @@ Paths in `ASTRO_ROUTES` → Astro/CF Pages. Everything else → Wix origin.
 /about                     # About page
 /contact                   # Contact page + form
 /donate                    # Donation page
-/faqs                      # FAQ landing
+/faqs                      # FAQ landing + /faqs/{slug} detail pages (26)
 /privacy-policy            # Legal
 /terms-of-use              # Legal
 /medical-disclaimer        # Legal

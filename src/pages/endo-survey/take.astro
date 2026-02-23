@@ -5,6 +5,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   title="Take the Endometriosis Symptom Self-Survey"
   description="Complete the 3-Tier Endometriosis Symptom Self-Survey developed by Dr. Naomi Whittaker, board-certified OB/GYN."
   canonicalUrl="https://rrmacademy.org/endo-survey/take"
+  noindex
 >
   <!-- Token validation gate — shown before survey loads -->
   <div id="gate-loading" class="survey-gate-screen">
@@ -638,49 +639,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     return html;
   }
 
-  // ── ICD-10-CM code lookup (PDF only) ──
-  const ICD10 = {
-    // Tier 1
-    'Vomiting with menstruation': 'R11.2, N94.6 — Nausea/vomiting; Dysmenorrhea',
-    'Recurrent tail-end brown bleeding lasting 3 days or more': 'N92.1 — Irregular menstruation',
-    'ER visits for pain related to menstruation': 'N94.6 — Dysmenorrhea',
-    'Pain during sex (deep penetration) or debilitating pain afterward': 'N94.12 — Deep dyspareunia',
-    'Severe pain (8+/10) during or leading up to menstruation': 'N94.4 — Primary dysmenorrhea',
-    'Menses pain interferes with daily activities': 'N94.4 — Primary dysmenorrhea',
-    'Stabbing rectal pain': 'K62.89, R10.2 — Rectal disorder; Pelvic pain',
-    'Pain radiating to back or legs during menstruation': 'N94.4, M54.5 — Dysmenorrhea; Low back pain',
-    'Raw, stabbing, or achy lower abdominal pain with menstruation': 'R10.2, N94.6 — Pelvic pain; Dysmenorrhea',
-    'Heating pad provides pain relief': 'N94.4 — Primary dysmenorrhea',
-    'Need to curl into fetal position during painful episodes': 'N94.4 — Primary dysmenorrhea',
-    'Severe cramping': 'N94.4 — Primary dysmenorrhea',
-    'Birth control fails to help with pain': 'N94.5 — Secondary dysmenorrhea',
-    'OTC medications fail to provide relief': 'N94.4 — Primary dysmenorrhea',
-    'Infertility (especially unexplained) with above symptoms': 'N97.9, N80.9 — Female infertility; Endometriosis NOS',
-    // Tier 2
-    'Chronic bladder discomfort with urination': 'N30.10, R30.0 — Interstitial cystitis; Dysuria',
-    'Chronic frequent urination': 'R35.0 — Frequency of micturition',
-    'Heavy menstrual bleeding and even iron deficiency': 'N92.0, D50.9 — Menorrhagia; Iron deficiency anemia',
-    'Infertility without any other symptoms': 'N97.9 — Female infertility, unspecified',
-    'Infertility with history of painful periods at menarche': 'N97.9, N94.4 — Female infertility; Primary dysmenorrhea',
-    'Low quality or quantity of cervical mucus': 'N88.8 — Other specified noninflammatory cervix disorders',
-    'Symptoms or diagnosis of IBS': 'K58.9 — Irritable bowel syndrome',
-    'Symptoms or diagnosis of IC': 'N30.10 — Interstitial cystitis',
-    'Severe abdominal bloating during or before menstruation': 'R14.0, N94.6 — Abdominal distension; Dysmenorrhea',
-    'Migraines': 'G43.909 — Migraine, unspecified',
-    'Short menstrual cycles (short luteal phases)': 'N92.1 — Irregular menstruation',
-    'Severe PMS': 'N94.3 — Premenstrual tension syndrome',
-    'Chronic constipation': 'K59.00 — Constipation, unspecified',
-    'Consistent 1-2 days of tail-end brown bleeding': 'N92.1 — Irregular menstruation',
-    'Diagnosis of LUF syndrome': 'N94.89 — Other specified menstrual cycle conditions',
-    // Tier 3
-    'Fatigue': 'R53.83 — Other fatigue',
-    'Nickel sensitivity': 'L23.0 — Allergic contact dermatitis, metals',
-    'Skin reactions or sensitivities': 'L23.9 — Allergic contact dermatitis, unspecified',
-    'Easy bruising': 'R23.3 — Spontaneous ecchymoses',
-    'Family history of endometriosis': 'Z82.8 — Family history of other disabilities/chronic diseases',
-    'Personal history of autoimmune conditions': 'M35.9 — Systemic autoimmune disease, unspecified',
-  };
-
   // ── PDF Generation (jsPDF) ──
   function setupPdfDownload(score, symptoms) {
     const btn = document.getElementById('download-pdf');
@@ -761,26 +719,16 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         // Listed symptoms
         if (tier.items.length > 0) {
           for (const item of tier.items) {
-            // Check space for symptom + possible ICD line
-            if (y > 255) {
+            if (y > 260) {
               doc.addPage();
               y = 20;
             }
-            // Symptom bullet
             doc.setFontSize(8.5);
             doc.setFont('helvetica', 'normal');
             doc.setTextColor(99, 98, 97);
             const lines = doc.splitTextToSize(`• ${item}`, maxW - 4);
             doc.text(lines, margin + 2, y);
             y += lines.length * 3.5;
-            // ICD-10-CM code (muted, smaller, indented)
-            const code = ICD10[item];
-            if (code) {
-              doc.setFontSize(7);
-              doc.setTextColor(148, 147, 146); // #949392
-              doc.text(`ICD-10-CM: ${code}`, margin + 6, y);
-              y += 3;
-            }
           }
         } else {
           doc.setFontSize(8.5);
@@ -804,10 +752,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       const disclaimer = 'This self-survey is for educational purposes only and does not constitute medical advice, diagnosis, or treatment. Endometriosis can only be diagnosed through surgery. Always consult a qualified healthcare provider for evaluation. RRM Academy is a project of the RRM Foundation, a 501(c)(3) nonprofit.';
       const discLines = doc.splitTextToSize(disclaimer, maxW);
       doc.text(discLines, margin, y);
-      y += discLines.length * 3 + 3;
-      const icdNote = 'ICD-10-CM codes are provided for clinical reference only and do not constitute a diagnosis. Codes are current as of 2026.';
-      const icdLines = doc.splitTextToSize(icdNote, maxW);
-      doc.text(icdLines, margin, y);
 
       doc.save('endo-survey-results.pdf');
 

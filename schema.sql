@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS user (
     email_verified INTEGER DEFAULT 0,
     hashed_password TEXT NOT NULL,
     name TEXT,
+    first_name TEXT,
+    last_name TEXT,
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now')),
     stripe_customer_id TEXT,

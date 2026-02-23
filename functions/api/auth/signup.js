@@ -20,12 +20,14 @@ export async function onRequestPost({ request, env }) {
     let body;
     try { body = await request.json(); } catch { return json({ ok: false, error: 'Invalid JSON' }, 400); }
 
-    const name = (body.name || '').trim();
+    const firstName = (body.firstName || '').trim();
+    const lastName = (body.lastName || '').trim();
     const email = (body.email || '').trim().toLowerCase();
     const password = body.password || '';
 
     // Validate
-    if (!name || name.length > 200) return json({ ok: false, error: 'Name is required.' }, 400);
+    if (!firstName || firstName.length > 100) return json({ ok: false, error: 'First name is required.' }, 400);
+    if (!lastName || lastName.length > 100) return json({ ok: false, error: 'Last name is required.' }, 400);
     if (!isValidEmail(email)) return json({ ok: false, error: 'Valid email is required.' }, 400);
     if (!isValidPassword(password)) return json({ ok: false, error: 'Password must be at least 8 characters.' }, 400);
 
@@ -49,10 +51,11 @@ export async function onRequestPost({ request, env }) {
 
     // Create user
     const userId = generateId();
+    const name = firstName + ' ' + lastName;
     const hashedPassword = await hashPassword(password);
     await db.prepare(
-      'INSERT INTO user (id, email, name, hashed_password) VALUES (?, ?, ?, ?)'
-    ).bind(userId, email, name, hashedPassword).run();
+      'INSERT INTO user (id, email, name, first_name, last_name, hashed_password) VALUES (?, ?, ?, ?, ?, ?)'
+    ).bind(userId, email, name, firstName, lastName, hashedPassword).run();
 
     // Create email verification token
     const code = generateToken().slice(0, 8); // 8-char verification code
@@ -75,7 +78,7 @@ export async function onRequestPost({ request, env }) {
             to: [email],
             subject: 'Verify your email — RRM Academy',
             text: [
-              `Hi ${name},`,
+              `Hi ${firstName},`,
               '',
               'Welcome to RRM Academy! Please verify your email by entering this code:',
               '',

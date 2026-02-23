@@ -1,0 +1,128 @@
+/**
+ * POST /api/create-checkout
+ * Creates a Stripe Checkout Session for one-time donations or recurring memberships.
+ *
+ * Body:
+ *   { mode: 'payment' | 'subscription', amount?: number, tier?: 'member' | 'hero' | 'superhero' }
+ *
+ * - mode: 'payment'      → one-time donation, requires `amount` (cents, min $5)
+ * - mode: 'subscription'  → recurring membership, requires `tier`
+ *
+ * If user is logged in (session cookie), pre-fills email and sets client_reference_id.
+ * No login required — anonymous checkout is supported.
+ */
+import Stripe from 'stripe';
+import {
+  json, optionsResponse, getSessionIdFromCookie, validateSession,
+} from './auth/_shared.js';
+
+export async function onRequestOptions() {
+  return optionsResponse();
+}
+
+export async function onRequestPost({ request, env }) {
+  try {
+    return await handleCheckout(request, env);
+  } catch (err) {
+    console.error('create-checkout error:', err.message, err.stack);
+    return json({ ok: false, error: err.message || 'Internal error' }, 500);
+  }
+}
+
+async function handleCheckout(request, env) {
+  const stripeKey = env.STRIPE_SECRET_KEY;
+  if (!stripeKey) return json({ ok: false, error: 'Payments not configured' }, 500);
+
+  const stripe = new Stripe(stripeKey, {
+    httpClient: Stripe.createFetchHttpClient(),
+    apiVersion: '2024-12-18.acacia',
+  });
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return json({ ok: false, error: 'Invalid JSON' }, 400);
+  }
+
+  const { mode, amount, tier } = body;
+
+  // --- Resolve logged-in user (optional) ---
+  const db = env.DB;
+  let userEmail = null;
+  let userId = null;
+  if (db) {
+    const sessionId = getSessionIdFromCookie(request);
+    const session = await validateSession(db, sessionId);
+    if (session) {
+      const user = await db.prepare('SELECT id, email FROM user WHERE id = ?')
+        .bind(session.userId).first();
+      if (user) {
+        userEmail = user.email;
+        userId = user.id;
+      }
+    }
+  }
+
+  const origin = new URL(request.url).origin;
+
+  // --- One-time donation ---
+  if (mode === 'payment') {
+    const cents = parseInt(amount, 10);
+    if (!cents || cents < 500) {
+      return json({ ok: false, error: 'Minimum donation is $5' }, 400);
+    }
+    if (cents > 99999900) {
+      return json({ ok: false, error: 'Amount too large' }, 400);
+    }
+
+    const sessionParams = {
+      mode: 'payment',
+      submit_type: 'donate',
+      line_items: [{
+        price_data: {
+          currency: 'usd',
+          product_data: { name: 'Donation to RRM Foundation' },
+          unit_amount: cents,
+        },
+        quantity: 1,
+      }],
+      success_url: `${origin}/donate/thank-you?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/donate`,
+    };
+
+    if (userEmail) sessionParams.customer_email = userEmail;
+    if (userId) sessionParams.client_reference_id = userId;
+
+    const checkoutSession = await stripe.checkout.sessions.create(sessionParams);
+    return json({ ok: true, url: checkoutSession.url });
+  }
+
+  // --- Recurring membership ---
+  if (mode === 'subscription') {
+    const priceMap = {
+      member: env.STRIPE_PRICE_MEMBER,
+      hero: env.STRIPE_PRICE_HERO,
+      superhero: env.STRIPE_PRICE_SUPERHERO,
+    };
+    const priceId = priceMap[tier];
+    if (!priceId) {
+      return json({ ok: false, error: 'Invalid tier' }, 400);
+    }
+
+    const sessionParams = {
+      mode: 'subscription',
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${origin}/save-the-uterus-club/thank-you?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/save-the-uterus-club`,
+    };
+
+    if (userEmail) sessionParams.customer_email = userEmail;
+    if (userId) sessionParams.client_reference_id = userId;
+
+    const checkoutSession = await stripe.checkout.sessions.create(sessionParams);
+    return json({ ok: true, url: checkoutSession.url });
+  }
+
+  return json({ ok: false, error: 'Invalid mode — use "payment" or "subscription"' }, 400);
+}

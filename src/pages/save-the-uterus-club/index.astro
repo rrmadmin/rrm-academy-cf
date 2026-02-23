@@ -1,13 +1,5 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-
-// ─── Stripe Payment Links ───────────────────────────────────────────
-// Replace these with your real Stripe Payment Link URLs.
-// Create them at: https://dashboard.stripe.com/payment-links
-// Each should be a recurring monthly donation product.
-const STRIPE_MEMBER     = 'https://donate.stripe.com/9B6fZg2LlbvWaoXdqCcs801';
-const STRIPE_HERO       = 'https://donate.stripe.com/fZuaEW4Tt1Vm54D0DQcs802';
-const STRIPE_SUPER_HERO = 'https://donate.stripe.com/14AeVc99J43u9kTcmycs803';
+import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -63,12 +55,12 @@ const jsonLd = {
             </div>
             <p class="tier-desc">What you get:</p>
             <ul>
-              <li>Access to private "Uterus Allies" community chat</li>
+              <li>Access to Save the Uterus Club member group and live calls</li>
               <li>Exclusive educational resources and podcast library</li>
               <li>Regular updates on research, impact, and new tools</li>
               <li>Invitations to member strategy calls and events</li>
             </ul>
-            <a href={STRIPE_MEMBER} class="btn btn--secondary tier-btn" target="_blank" rel="noopener noreferrer">Donate $9 Monthly</a>
+            <button class="btn btn--secondary tier-btn" data-tier="member">Donate $9 Monthly</button>
           </div>
 
           <div class="tier-card tier-featured card">
@@ -83,7 +75,7 @@ const jsonLd = {
               <li>Deeper involvement in advocacy strategy</li>
               <li>Exclusive welcome gift</li>
             </ul>
-            <a href={STRIPE_HERO} class="btn btn--primary tier-btn" target="_blank" rel="noopener noreferrer">Donate $19 Monthly</a>
+            <button class="btn btn--primary tier-btn" data-tier="hero">Donate $19 Monthly</button>
           </div>
 
           <div class="tier-card card">
@@ -97,7 +89,7 @@ const jsonLd = {
               <li>Handmade uterus plushie and stickers</li>
               <li>Direct input into educational content priorities</li>
             </ul>
-            <a href={STRIPE_SUPER_HERO} class="btn btn--secondary tier-btn" target="_blank" rel="noopener noreferrer">Donate $99 Monthly</a>
+            <button class="btn btn--secondary tier-btn" data-tier="superhero">Donate $99 Monthly</button>
           </div>
 
         </div>
@@ -246,6 +238,42 @@ const jsonLd = {
 
     </div>
   </div>
+
+  <script is:inline>
+    (function () {
+      // Tier buttons → Stripe Checkout
+      document.querySelectorAll('.tier-btn[data-tier]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var tier = btn.dataset.tier;
+          btn.disabled = true;
+          var original = btn.textContent;
+          btn.textContent = 'Redirecting...';
+
+          fetch('/api/create-checkout', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mode: 'subscription', tier: tier }),
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              if (data.ok && data.url) {
+                window.location.href = data.url;
+              } else {
+                btn.disabled = false;
+                btn.textContent = original;
+                alert(data.error || 'Something went wrong. Please try again.');
+              }
+            })
+            .catch(function () {
+              btn.disabled = false;
+              btn.textContent = original;
+              alert('Connection error. Please try again.');
+            });
+        });
+      });
+    })();
+  </script>
 </BaseLayout>
 
 <style>

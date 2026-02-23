@@ -1,0 +1,250 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Welcome to the Save the Uterus Club"
+  description="You're officially a member of the Save the Uterus Club. Here's how to get started."
+  canonicalUrl="https://rrmacademy.org/save-the-uterus-club/thank-you"
+  noindex
+>
+  <div class="page-wrapper">
+    <div class="container container--narrow">
+
+      <section class="welcome-card">
+        <div class="welcome-icon" aria-hidden="true">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <h1>Welcome to the Club</h1>
+        <p class="welcome-lead">You're officially part of the Save the Uterus Club. A confirmation and receipt will be sent to your email by Stripe.</p>
+      </section>
+
+      <!-- Live Call CTA — most prominent -->
+      <section class="livecall-cta">
+        <h2>Join a Live Call</h2>
+        <p>Save the Uterus Club members get access to live calls with Dr. Naomi Whittaker and the RRM community. This is where we talk about what's really happening in reproductive health, answer your questions, and build strategy together.</p>
+        <a href="https://rrmfoundation.wixstudio.com/rrm-academy/group/save-the-uterus-club/discussion" class="btn btn--primary btn--lg">Go to Live Call Schedule</a>
+        <p class="livecall-note">Live calls are hosted through the Save the Uterus Club member group. You'll find upcoming dates, recordings of past calls, and the discussion board there.</p>
+      </section>
+
+      <!-- Member Groups -->
+      <section class="member-groups">
+        <h2>Your Member Groups</h2>
+        <p>As a member, you now have access to these private communities:</p>
+        <div class="group-grid">
+
+          <a href="https://rrmfoundation.wixstudio.com/rrm-academy/group/save-the-uterus-club" class="group-card card">
+            <h3>Save the Uterus Club</h3>
+            <p>Your main hub. Live call schedule, discussion board, exclusive resources, and community updates.</p>
+            <span class="group-link">Visit Group &rarr;</span>
+          </a>
+
+          <a href="https://www.instagram.com/direct/t/7768750249851959/" class="group-card card" target="_blank" rel="noopener">
+            <h3>Uterus Allies Chat</h3>
+            <p>Free community group chat on Instagram. Connect with other women, couples, and advocates who understand what you're going through. Open to everyone — request to join.</p>
+            <span class="group-link">Join on Instagram &rarr;</span>
+          </a>
+
+        </div>
+        <p class="groups-note">The Save the Uterus Club group is hosted on our legacy platform while we complete the migration. Your membership email gives you access. The Uterus Allies chat is free and open to everyone on Instagram.</p>
+      </section>
+
+      <!-- What's Next -->
+      <section class="next-steps">
+        <h2>What Happens Next</h2>
+        <ul>
+          <li><strong>Check your email</strong> for your Stripe receipt and membership confirmation.</li>
+          <li><strong>Join the communities</strong> above — the STUC group uses your membership email, and the Uterus Allies chat is open on Instagram.</li>
+          <li><strong>Mark your calendar</strong> for the next Live Call — dates are posted in the Save the Uterus Club group.</li>
+          <li><strong>Explore the Research Library</strong> — over 3,000 peer-reviewed resources on reproductive health, translated into information you can actually use.</li>
+        </ul>
+      </section>
+
+      <!-- Tax info -->
+      <div class="tax-note">
+        <p>All donations to the Restorative Reproductive Medicine Foundation are tax-deductible.</p>
+        <p><strong>501(c)(3) &middot; EIN: 93-4594315</strong></p>
+      </div>
+
+      <div class="action-links">
+        <a href="/library" class="btn btn--secondary">Browse the Research Library</a>
+        <a href="/" class="btn btn--outline">Return to Homepage</a>
+      </div>
+
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .welcome-card {
+    text-align: center;
+    padding: var(--space-10) 0 var(--space-8);
+  }
+  .welcome-icon {
+    color: #27ae60;
+    margin-bottom: var(--space-5);
+  }
+  .welcome-card h1 {
+    font-size: 2rem;
+    margin-bottom: var(--space-4);
+  }
+  .welcome-lead {
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  /* Live Call CTA — highest visual priority */
+  .livecall-cta {
+    background: var(--bg-surface);
+    border: 2px solid var(--accent);
+    border-radius: var(--radius-lg);
+    padding: var(--space-8);
+    text-align: center;
+    margin-bottom: var(--space-8);
+  }
+  .livecall-cta h2 {
+    font-size: 1.5rem;
+    margin-bottom: var(--space-3);
+  }
+  .livecall-cta > p {
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    max-width: 540px;
+    margin: 0 auto var(--space-5);
+  }
+  .livecall-cta .btn {
+    margin-bottom: var(--space-4);
+  }
+  .livecall-note {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    line-height: 1.6;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  /* Member Groups */
+  .member-groups {
+    margin-bottom: var(--space-8);
+  }
+  .member-groups > h2 {
+    font-size: 1.25rem;
+    margin-bottom: var(--space-2);
+  }
+  .member-groups > p {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-5);
+  }
+  .group-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+  @media (min-width: 640px) {
+    .group-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  .group-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s ease;
+  }
+  .group-card:hover {
+    border-color: var(--accent);
+  }
+  .group-card h3 {
+    font-size: 1.0625rem;
+    margin-bottom: var(--space-2);
+  }
+  .group-card p {
+    font-size: 0.8125rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-3);
+  }
+  .group-link {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .groups-note {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    line-height: 1.6;
+    font-style: italic;
+  }
+
+  /* Next Steps */
+  .next-steps {
+    margin-bottom: var(--space-8);
+  }
+  .next-steps h2 {
+    font-size: 1.25rem;
+    margin-bottom: var(--space-4);
+  }
+  .next-steps ul {
+    list-style: none;
+    padding: 0;
+  }
+  .next-steps li {
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    padding-left: var(--space-6);
+    position: relative;
+    margin-bottom: var(--space-3);
+  }
+  .next-steps li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  /* Tax note */
+  .tax-note {
+    padding: var(--space-5);
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
+    text-align: center;
+    margin-bottom: var(--space-6);
+  }
+  .tax-note p {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    line-height: 1.6;
+  }
+
+  /* Action links */
+  .action-links {
+    display: flex;
+    gap: var(--space-4);
+    justify-content: center;
+    flex-wrap: wrap;
+    padding-bottom: var(--space-10);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .welcome-card h1 {
+      font-size: 1.75rem;
+    }
+    .livecall-cta {
+      padding: var(--space-6);
+    }
+  }
+</style>

@@ -17,7 +17,12 @@ AIRTABLE_PAT=xxx node src/lib/fetch-data.mjs
 node src/lib/fetch-blog-data.mjs
 # → src/data/posts.json (gitignored)
 
-# Both at once
+# FAQ pages (26 published from FAQ Knowledge Base)
+node src/lib/fetch-faq-data.mjs
+# → src/data/faqs.json (gitignored)
+# Cross-references citations in Published Answers against articles.json
+
+# All at once
 npm run fetch-all
 ```
 
@@ -41,6 +46,7 @@ CLOUDFLARE_ACCOUNT_ID="ecf2c5bc8b5ebd634bcb587b3890910a" \
 |------|------|-------|--------|
 | Library articles | greenbase | BIFID | `src/lib/fetch-data.mjs` |
 | Blog posts | `app1CKV1heL0qH2Oz` | `tblS8q3XHj6mhwxvl` | `src/lib/fetch-blog-data.mjs` |
+| FAQs | `appIiligSFffFWwGA` | `tblLSbusrE9jCfKEn` + `tblPa4CzwFBaCQTwP` | `src/lib/fetch-faq-data.mjs` |
 | Site pages | `appYiF1S4zFafiE3k` | `tblhktcClrM3MBZrc` | (manual, 7 records) |
 
 ## GitHub Actions
@@ -52,6 +58,9 @@ Mobile edits push to `claude/` branch → auto-build + merge to `main`.
 
 - `src/data/articles.json` — 3,162 library articles (gitignored)
 - `src/data/posts.json` — 14 blog posts (gitignored)
+- `src/data/faqs.json` — 26 published FAQs (gitignored)
 - `src/lib/fetch-data.mjs` — Airtable fetch for library
 - `src/lib/fetch-blog-data.mjs` — Airtable fetch for blog
+- `src/lib/fetch-faq-data.mjs` — Airtable fetch for FAQs (+ library cross-ref)
+- `src/lib/faq.ts` — FAQ types and helpers
 - `wrangler.toml` — CF Pages config + KV bindings

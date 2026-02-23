@@ -1,0 +1,70 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Thank You for Your Donation"
+  description="Thank you for supporting the RRM Foundation. Your tax-deductible donation helps advance evidence-based reproductive health education."
+  canonicalUrl="https://rrmacademy.org/donate/thank-you"
+  noindex
+>
+  <div class="page-wrapper">
+    <div class="container container--narrow">
+
+      <section class="thankyou-card">
+        <div class="thankyou-icon" aria-hidden="true">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <h1>Thank You</h1>
+        <p class="thankyou-lead">Your generous donation has been received. A receipt will be sent to your email by Stripe.</p>
+
+        <div class="thankyou-tax">
+          <p>All donations to the Restorative Reproductive Medicine Foundation are tax-deductible.</p>
+          <p><strong>501(c)(3) &middot; EIN: 93-4594315</strong></p>
+        </div>
+
+        <a href="/" class="btn btn--primary">Return to Homepage</a>
+      </section>
+
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .thankyou-card {
+    text-align: center;
+    max-width: 520px;
+    margin: 0 auto;
+    padding: var(--space-12) var(--space-8);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+  }
+  .thankyou-icon {
+    color: #27ae60;
+    margin-bottom: var(--space-5);
+  }
+  .thankyou-card h1 {
+    font-size: 1.75rem;
+    margin-bottom: var(--space-4);
+  }
+  .thankyou-lead {
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-6);
+  }
+  .thankyou-tax {
+    padding: var(--space-5);
+    background: var(--bg-body);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-6);
+  }
+  .thankyou-tax p {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    line-height: 1.6;
+  }
+</style>

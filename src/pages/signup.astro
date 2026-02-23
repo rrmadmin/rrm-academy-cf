@@ -6,6 +6,7 @@ const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
   title="Create Account"
   description="Create your free RRM Academy account to access courses in restorative reproductive medicine."
   canonicalUrl="https://rrmacademy.org/signup"
+  noindex
 >
   <section class="auth-page">
     <div class="container container--narrow">
@@ -13,9 +14,15 @@ const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
         <h1>Create account</h1>
 
         <form id="signup-form" class="auth-form" novalidate>
-          <div class="form-group">
-            <label class="form-label" for="signup-name">Full name</label>
-            <input class="form-input" type="text" id="signup-name" name="name" required autocomplete="name" maxlength="200" />
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="signup-first-name">First name</label>
+              <input class="form-input" type="text" id="signup-first-name" name="firstName" required autocomplete="given-name" maxlength="100" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="signup-last-name">Last name</label>
+              <input class="form-input" type="text" id="signup-last-name" name="lastName" required autocomplete="family-name" maxlength="100" />
+            </div>
           </div>
 
           <div class="form-group">
@@ -89,7 +96,7 @@ const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
         turnstileWidgetId = turnstile.render(el, {
           sitekey: el.dataset.sitekey, size: 'invisible',
           callback: function (token) {
-            if (pendingSubmit) { doSignup(pendingSubmit.name, pendingSubmit.email, pendingSubmit.password, token); pendingSubmit = null; }
+            if (pendingSubmit) { doSignup(pendingSubmit.firstName, pendingSubmit.lastName, pendingSubmit.email, pendingSubmit.password, token); pendingSubmit = null; }
           },
           'error-callback': function () {
             showError('Spam check failed. Please refresh and try again.');
@@ -104,25 +111,27 @@ const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
 
       signupForm.addEventListener('submit', function (e) {
         e.preventDefault(); errorEl.hidden = true;
-        var name = signupForm.name.value.trim();
+        var firstName = signupForm.firstName.value.trim();
+        var lastName = signupForm.lastName.value.trim();
         var email = signupForm.email.value.trim();
         var password = signupForm.password.value;
-        if (!name) return showError('Please enter your name.');
+        if (!firstName) return showError('Please enter your first name.');
+        if (!lastName) return showError('Please enter your last name.');
         if (!email) return showError('Please enter your email.');
         if (!password || password.length < 8) return showError('Password must be at least 8 characters.');
         submitBtn.disabled = true; submitBtn.textContent = 'Creating account...';
         if (typeof turnstile !== 'undefined' && turnstileWidgetId !== null) {
-          pendingSubmit = { name: name, email: email, password: password };
+          pendingSubmit = { firstName: firstName, lastName: lastName, email: email, password: password };
           turnstile.reset(turnstileWidgetId); turnstile.execute(turnstileWidgetId); return;
         }
-        doSignup(name, email, password, '');
+        doSignup(firstName, lastName, email, password, '');
       });
 
-      function doSignup(name, email, password, token) {
+      function doSignup(firstName, lastName, email, password, token) {
         fetch('/api/auth/signup', {
           method: 'POST', credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: name, email: email, password: password, turnstileToken: token }),
+          body: JSON.stringify({ firstName: firstName, lastName: lastName, email: email, password: password, turnstileToken: token }),
         })
           .then(function (r) {
             return r.text().then(function (text) {
@@ -182,6 +191,7 @@ const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
     background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg);
   }
   .auth-card h1 { text-align: center; margin-bottom: var(--space-8); font-size: 1.75rem; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
   .auth-form .form-group { margin-bottom: var(--space-5); }
   .auth-form .form-label { display: block; font-family: 'Inter', sans-serif; font-size: 0.8125rem; font-weight: 500; margin-bottom: var(--space-2); }
   .auth-form .form-input {
