@@ -2,16 +2,28 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 <BaseLayout
-  title="Page Not Found"
-  description="The page you're looking for doesn't exist or has been moved."
+  title="Page Not Found — It seems there was a little mix-up"
+  description="The page you're looking for doesn't exist or has been moved. Search our research library or explore our site."
 >
   <section class="not-found">
+    <div class="not-found__images" aria-hidden="true">
+      <img src="/images/404/peony.webp" alt="" class="not-found__img not-found__img--1" width="400" height="600" loading="eager" />
+      <img src="/images/404/eucalyptus.webp" alt="" class="not-found__img not-found__img--2" width="400" height="267" loading="eager" />
+      <img src="/images/404/purple-tree.webp" alt="" class="not-found__img not-found__img--3" width="400" height="245" loading="eager" />
+    </div>
     <div class="not-found__inner">
       <span class="not-found__code">404</span>
-      <h1>Page not found</h1>
-      <p class="not-found__subtitle">The page you're looking for doesn't exist or has been moved.</p>
+      <h1>It seems there was a little mix-up</h1>
+      <p class="not-found__subtitle">We can't find that page. Can we help you find what you're looking for?</p>
+      <div class="not-found__search" id="nf-search">
+        <div class="nf-search-box">
+          <svg class="nf-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="search" class="nf-search-input" placeholder="Search articles, topics, conditions..." id="nf-search-input" autocomplete="off" />
+          <button class="nf-search-clear hidden" id="nf-search-clear" aria-label="Clear search">&#x2715;</button>
+        </div>
+        <div class="nf-search-results" id="nf-search-results"></div>
+      </div>
       <nav class="not-found__links">
-        <a href="/" class="btn btn--primary btn--lg">Go to homepage</a>
         <ul>
           <li><a href="/library">Research Library</a></li>
           <li><a href="/commentary">Commentary</a></li>
@@ -24,51 +36,429 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
 <style>
   .not-found {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 60vh;
     text-align: center;
-    padding: var(--space-12) var(--space-4);
+    padding: var(--space-16) var(--space-4) var(--space-12);
+    overflow: hidden;
   }
+
+  /* Decorative image collage — faded behind content */
+  .not-found__images {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-4);
+    opacity: 0.12;
+    pointer-events: none;
+  }
+  .not-found__img {
+    border-radius: var(--radius-lg);
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  .not-found__img--1 {
+    width: 280px;
+    height: 420px;
+    align-self: flex-start;
+    margin-top: var(--space-8);
+  }
+  .not-found__img--2 {
+    width: 220px;
+    height: 160px;
+    align-self: center;
+  }
+  .not-found__img--3 {
+    width: 200px;
+    height: 140px;
+    align-self: flex-end;
+    margin-bottom: var(--space-8);
+  }
+  @media (max-width: 768px) {
+    .not-found__images {
+      display: none;
+    }
+  }
+
+  /* Content */
   .not-found__inner {
-    max-width: 480px;
+    position: relative;
+    max-width: 520px;
+    z-index: 1;
   }
   .not-found__code {
     display: block;
     font-family: 'Cormorant Garamond', 'Georgia', serif;
-    font-size: 8rem;
+    font-size: 6rem;
     font-weight: 600;
     line-height: 1;
     color: var(--sand-300);
-    margin-bottom: var(--space-4);
+    margin-bottom: var(--space-3);
   }
   .not-found h1 {
+    font-size: 1.75rem;
     margin-bottom: var(--space-3);
   }
   .not-found__subtitle {
     color: var(--text-secondary);
     margin-bottom: var(--space-8);
   }
-  .not-found__links {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-6);
+
+  /* Search bar */
+  .not-found__search {
+    position: relative;
+    width: 100%;
+    margin-bottom: var(--space-8);
+    z-index: 10;
   }
+  .nf-search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .nf-search-icon {
+    position: absolute;
+    left: 14px;
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+  .nf-search-input {
+    width: 100%;
+    padding: 12px 40px 12px 42px;
+    font-size: 16px;
+    font-family: 'Inter', sans-serif;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-pill);
+    outline: none;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .nf-search-input:focus {
+    border-color: var(--sand-500);
+    box-shadow: 0 4px 20px rgba(184,163,143,0.25), 0 0 0 3px rgba(184,163,143,0.12);
+  }
+  :global([data-theme="dark"]) .nf-search-input {
+    border-color: rgba(255,255,255,0.15);
+    box-shadow: 0 4px 16px rgba(255,255,255,0.04), 0 1px 4px rgba(255,255,255,0.02);
+  }
+  :global([data-theme="dark"]) .nf-search-input:focus {
+    box-shadow: 0 4px 20px rgba(255,255,255,0.06), 0 0 0 3px var(--focus-ring);
+  }
+  .nf-search-input::placeholder {
+    color: var(--text-muted);
+  }
+  .nf-search-input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    display: none;
+  }
+  .nf-search-clear {
+    position: absolute;
+    right: 12px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;
+    color: var(--text-tertiary);
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 50%;
+    padding: 0;
+    transition: color 0.15s;
+  }
+  .nf-search-clear:hover {
+    color: var(--text-primary);
+  }
+  .nf-search-clear.hidden {
+    display: none;
+  }
+
+  /* Results */
+  .nf-search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    text-align: left;
+    padding: 0 var(--space-4) var(--space-4);
+    background: var(--bg-surface);
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    max-height: 50vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  }
+  .nf-search-results:empty {
+    display: none;
+  }
+  .nf-search-results :global(.sr-count) {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: var(--space-3) 0 var(--space-2);
+  }
+  .nf-search-results :global(.sr-item) {
+    display: block;
+    padding: var(--space-4) 0;
+    border-bottom: 1px solid var(--border-light, var(--border-color));
+    text-decoration: none;
+  }
+  .nf-search-results :global(.sr-item:first-of-type) {
+    border-top: 1px solid var(--border-light, var(--border-color));
+  }
+  .nf-search-results :global(.sr-item:hover .sr-title) {
+    color: var(--accent);
+  }
+  .nf-search-results :global(.sr-title) {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--text-primary);
+    margin: 0 0 4px;
+    transition: color 0.15s;
+  }
+  .nf-search-results :global(.sr-meta) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 0;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    margin-bottom: 6px;
+  }
+  .nf-search-results :global(.sr-authors) {
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  .nf-search-results :global(.sr-sep) {
+    color: var(--text-muted);
+    margin: 0 6px;
+  }
+  .nf-search-results :global(.sr-year) {
+    color: var(--text-tertiary);
+  }
+  .nf-search-results :global(.sr-excerpt) {
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .nf-search-results :global(.sr-excerpt mark) {
+    background: #fef9c3;
+    color: inherit;
+    padding: 0 1px;
+    border-radius: 2px;
+  }
+  .nf-search-results :global(.sr-more) {
+    display: block;
+    width: 100%;
+    margin-top: var(--space-4);
+    padding: var(--space-2) var(--space-4);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    color: var(--text-secondary);
+    background: var(--bg-body);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .nf-search-results :global(.sr-more:hover) {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .nf-search-results :global(.sr-loading) {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    padding: var(--space-4) 0;
+  }
+  .nf-search-results :global(.sr-empty) {
+    font-size: 0.875rem;
+    color: var(--text-tertiary);
+    padding: var(--space-4) 0;
+  }
+
+  /* Navigation links */
   .not-found__links ul {
     list-style: none;
     display: flex;
+    justify-content: center;
     gap: var(--space-6);
     padding: 0;
     margin: 0;
   }
-  .not-found__links a:not(.btn) {
+  .not-found__links a {
     color: var(--accent);
     font-size: 0.875rem;
     font-weight: 500;
   }
-  .not-found__links a:not(.btn):hover {
+  .not-found__links a:hover {
     color: var(--accent-hover);
   }
 </style>
+
+<script is:inline>
+(function() {
+  var input = document.getElementById('nf-search-input');
+  var clearBtn = document.getElementById('nf-search-clear');
+  var resultsEl = document.getElementById('nf-search-results');
+  if (!input || !resultsEl) return;
+
+  var pagefindReady = null;
+  var debounceTimer = null;
+  var currentResults = [];
+  var shown = 0;
+  var PER_PAGE = 3;
+  var totalCount = 0;
+  var currentQuery = '';
+
+  function ensurePagefind() {
+    if (!pagefindReady) {
+      pagefindReady = import('/pagefind/pagefind.js').then(function(pf) {
+        return pf.init().then(function() { return pf; });
+      });
+    }
+    return pagefindReady;
+  }
+
+  function onInput() {
+    var q = input.value.trim();
+    clearBtn.classList.toggle('hidden', !q);
+    clearTimeout(debounceTimer);
+    if (!q) {
+      resultsEl.innerHTML = '';
+      currentResults = [];
+      currentQuery = '';
+      return;
+    }
+    currentQuery = q;
+    debounceTimer = setTimeout(function() { doSearch(q); }, 150);
+  }
+
+  async function doSearch(query) {
+    resultsEl.innerHTML = '<p class="sr-loading">Searching\u2026</p>';
+    try {
+      var pf = await ensurePagefind();
+      var search = await pf.search(query);
+      if (query !== currentQuery) return;
+      totalCount = search.results.length;
+      currentResults = search.results;
+      shown = 0;
+      resultsEl.innerHTML = '';
+      if (totalCount === 0) {
+        resultsEl.innerHTML = '<p class="sr-empty">No results found for \u201c' + escHtml(query) + '\u201d</p>';
+        return;
+      }
+      var countEl = document.createElement('p');
+      countEl.className = 'sr-count';
+      countEl.textContent = totalCount + ' result' + (totalCount === 1 ? '' : 's');
+      resultsEl.appendChild(countEl);
+      await loadMore();
+    } catch(e) {
+      resultsEl.innerHTML = '<p class="sr-empty">Search unavailable</p>';
+    }
+  }
+
+  async function loadMore() {
+    var batch = currentResults.slice(shown, shown + PER_PAGE);
+    var fragment = document.createDocumentFragment();
+    for (var i = 0; i < batch.length; i++) {
+      var data = await batch[i].data();
+      fragment.appendChild(renderResult(data));
+    }
+    var oldBtn = resultsEl.querySelector('.sr-more');
+    if (oldBtn) oldBtn.remove();
+    resultsEl.appendChild(fragment);
+    shown += batch.length;
+    if (shown < totalCount) {
+      var btn = document.createElement('button');
+      btn.className = 'sr-more';
+      btn.textContent = 'Show more (' + (totalCount - shown) + ' remaining)';
+      btn.addEventListener('click', function() { loadMore(); });
+      resultsEl.appendChild(btn);
+    }
+  }
+
+  function renderResult(data) {
+    var a = document.createElement('a');
+    a.className = 'sr-item';
+    a.href = data.url;
+    var title = data.meta && data.meta.title ? data.meta.title : '';
+    var authors = data.meta && data.meta.authors ? data.meta.authors : '';
+    var year = data.meta && data.meta.year ? data.meta.year : '';
+    var excerpt = data.excerpt || '';
+    var h = document.createElement('h3');
+    h.className = 'sr-title';
+    h.textContent = title || 'Untitled';
+    a.appendChild(h);
+    if (authors || year) {
+      var meta = document.createElement('div');
+      meta.className = 'sr-meta';
+      if (authors) {
+        var shortAuthors = authors;
+        var semiIdx = authors.indexOf(';');
+        if (semiIdx > 0 && authors.indexOf(';', semiIdx + 1) > 0) {
+          shortAuthors = authors.substring(0, semiIdx) + ' et al.';
+        }
+        var authSpan = document.createElement('span');
+        authSpan.className = 'sr-authors';
+        authSpan.textContent = shortAuthors;
+        meta.appendChild(authSpan);
+      }
+      if (year) {
+        if (authors) {
+          var sep = document.createElement('span');
+          sep.className = 'sr-sep';
+          sep.textContent = '\u00b7';
+          meta.appendChild(sep);
+        }
+        var yearSpan = document.createElement('span');
+        yearSpan.className = 'sr-year';
+        yearSpan.textContent = year;
+        meta.appendChild(yearSpan);
+      }
+      a.appendChild(meta);
+    }
+    if (excerpt) {
+      var p = document.createElement('p');
+      p.className = 'sr-excerpt';
+      p.innerHTML = excerpt;
+      a.appendChild(p);
+    }
+    return a;
+  }
+
+  function escHtml(s) {
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  clearBtn.addEventListener('click', function() {
+    input.value = '';
+    clearBtn.classList.add('hidden');
+    resultsEl.innerHTML = '';
+    currentResults = [];
+    currentQuery = '';
+    input.focus();
+  });
+
+  input.addEventListener('input', onInput);
+  input.addEventListener('focus', function() { ensurePagefind(); }, { once: true });
+})();
+</script>
