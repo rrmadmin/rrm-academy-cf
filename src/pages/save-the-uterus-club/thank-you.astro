@@ -19,6 +19,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         </div>
         <h1>Welcome to the Club</h1>
         <p class="welcome-lead">You're officially part of the Save the Uterus Club. A confirmation and receipt will be sent to your email by Stripe.</p>
+
+        <p id="create-account-prompt" class="account-nudge" hidden><a href="/signup">Create a free account</a> to manage your membership and billing. Already have one? <a href="/login">Log in</a></p>
       </section>
 
       <!-- Live Call CTA — most prominent -->
@@ -66,15 +68,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       <div class="tax-note">
         <p>All donations to the Restorative Reproductive Medicine Foundation are tax-deductible.</p>
         <p><strong>501(c)(3) &middot; EIN: 93-4594315</strong></p>
-      </div>
-
-      <!-- Account prompt — shown only if not logged in -->
-      <div id="create-account-prompt" class="create-account-prompt" hidden>
-        <p>Create a free account to manage your membership, track your donations, and access the Stripe Billing Portal.</p>
-        <div class="create-account-actions">
-          <a href="/signup" class="btn btn--primary btn--sm">Create Account</a>
-          <a href="/login" class="btn btn--text btn--sm">Already have an account? Log in</a>
-        </div>
       </div>
 
       <div class="action-links">
@@ -248,26 +241,15 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     padding-bottom: var(--space-10);
   }
 
-  /* Account prompt */
-  .create-account-prompt {
-    padding: var(--space-6);
-    background: rgba(114, 94, 126, 0.06);
-    border: 1px solid rgba(114, 94, 126, 0.2);
-    border-radius: var(--radius-lg);
-    text-align: center;
-    margin-bottom: var(--space-6);
-  }
-  .create-account-prompt p {
-    font-size: 0.9375rem;
+  /* Account nudge */
+  .account-nudge {
+    font-size: 0.875rem;
     color: var(--text-secondary);
-    line-height: 1.6;
-    margin-bottom: var(--space-4);
+    margin-top: var(--space-4);
   }
-  .create-account-actions {
-    display: flex;
-    gap: var(--space-3);
-    justify-content: center;
-    flex-wrap: wrap;
+  .account-nudge a {
+    color: var(--accent);
+    font-weight: 500;
   }
 
   /* Responsive */

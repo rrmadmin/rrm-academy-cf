@@ -20,16 +20,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         <h1>Thank You</h1>
         <p class="thankyou-lead">Your generous donation has been received. A receipt will be sent to your email by Stripe.</p>
 
+        <p id="create-account-prompt" class="account-nudge" hidden><a href="/signup">Create a free account</a> to manage your donations. Already have one? <a href="/login">Log in</a></p>
+
         <div class="thankyou-tax">
           <p>All donations to the Restorative Reproductive Medicine Foundation are tax-deductible.</p>
           <p><strong>501(c)(3) &middot; EIN: 93-4594315</strong></p>
-        </div>
-
-        <!-- Account prompt — shown only if not logged in -->
-        <div id="create-account-prompt" class="create-account-prompt" hidden>
-          <p>Create a free account to manage your donations and access member features.</p>
-          <a href="/signup" class="btn btn--primary btn--sm">Create Account</a>
-          <a href="/login" class="btn btn--text btn--sm">Already have an account? Log in</a>
         </div>
 
         <a href="/" class="btn btn--secondary">Return to Homepage</a>
@@ -74,22 +69,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     color: var(--text-tertiary);
     line-height: 1.6;
   }
-  .create-account-prompt {
-    padding: var(--space-5);
-    background: rgba(114, 94, 126, 0.06);
-    border: 1px solid rgba(114, 94, 126, 0.2);
-    border-radius: var(--radius-md);
-    margin-bottom: var(--space-6);
-  }
-  .create-account-prompt p {
+  .account-nudge {
     font-size: 0.875rem;
     color: var(--text-secondary);
-    line-height: 1.6;
-    margin-bottom: var(--space-4);
+    margin-bottom: var(--space-6);
   }
-  .create-account-prompt .btn {
-    display: inline-flex;
-    margin: 0 var(--space-2);
+  .account-nudge a {
+    color: var(--accent);
+    font-weight: 500;
   }
 </style>
 
