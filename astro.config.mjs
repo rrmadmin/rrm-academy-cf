@@ -9,7 +9,22 @@ export default defineConfig({
   },
   integrations: [
     sitemap({
-      filter: (page) => !page.includes('/topics/'),
+      filter: (page) => {
+        const exclude = [
+          '/login',
+          '/signup',
+          '/forgot-password',
+          '/reset-password',
+          '/account',
+          '/library/saved',
+          '/endo-survey/take',
+          '/donate/thank-you',
+          '/save-the-uterus-club/thank-you',
+          '/404',
+          '/topics/',
+        ];
+        return !exclude.some((path) => page.includes(path));
+      },
     }),
   ],
 });

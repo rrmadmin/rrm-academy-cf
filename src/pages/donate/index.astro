@@ -1,0 +1,635 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'DonateAction',
+  name: 'Donate to RRM Academy',
+  description: 'Support the Restorative Reproductive Medicine Foundation, a 501(c)(3) nonprofit dedicated to transforming reproductive health through education and research.',
+  recipient: {
+    '@type': 'NGO',
+    name: 'Restorative Reproductive Medicine Foundation Inc.',
+    url: 'https://rrmacademy.org',
+    taxID: '93-4594315',
+    nonprofitStatus: '501(c)(3)',
+  },
+};
+---
+<BaseLayout
+  title="Donate"
+  description="Support the RRM Academy and the Restorative Reproductive Medicine Foundation. Your tax-deductible donation helps advance evidence-based reproductive health education."
+  canonicalUrl="https://rrmacademy.org/donate"
+  jsonLd={jsonLd}
+>
+  <div class="page-wrapper">
+    <div class="container container--narrow">
+
+      <!-- Hero -->
+      <section class="donate-hero">
+        <h1 class="hero-title">Support This Work</h1>
+        <p class="donate-lead">RRM Academy is funded primarily by the generous contributions of individuals like you. Our goal is to educate for true healing and women's health. Your support makes this possible.</p>
+      </section>
+
+      <!-- Membership tiers -->
+      <section class="donate-cta-section">
+        <h2>Become a Monthly Supporter</h2>
+        <p class="donate-recurring-lead">Monthly members are the backbone of everything we do. Your recurring support funds the research library, patient education, and advocacy that changes how women access care.</p>
+
+        <div class="tier-grid">
+          <div class="tier-card card">
+            <div class="tier-header">
+              <h3>Member</h3>
+              <p class="tier-price">$9<span>/month</span></p>
+            </div>
+            <p class="tier-desc">Community access, exclusive resources, and regular updates.</p>
+            <button class="btn btn--secondary tier-btn" data-tier="member">Donate $9 Monthly</button>
+          </div>
+
+          <div class="tier-card tier-featured card">
+            <span class="tier-badge">Most Popular</span>
+            <div class="tier-header">
+              <h3>Uterus Hero</h3>
+              <p class="tier-price">$19<span>/month</span></p>
+            </div>
+            <p class="tier-desc">Everything in Member, plus priority access and deeper involvement.</p>
+            <button class="btn btn--primary tier-btn" data-tier="hero">Donate $19 Monthly</button>
+          </div>
+
+          <div class="tier-card card">
+            <div class="tier-header">
+              <h3>Uterus Super Hero</h3>
+              <p class="tier-price">$99<span>/month</span></p>
+            </div>
+            <p class="tier-desc">Everything in Hero, plus quarterly Q&A with Dr. Whittaker.</p>
+            <button class="btn btn--secondary tier-btn" data-tier="superhero">Donate $99 Monthly</button>
+          </div>
+        </div>
+
+        <p class="donate-tier-link"><a href="/save-the-uterus-club">Learn more about membership benefits</a></p>
+        <p class="donate-onetime-link">Prefer a <button type="button" id="onetime-toggle" class="link-btn">one-time donation</button>?</p>
+        <p class="donate-tax">
+          All donations are tax-deductible. 501(c)(3) &middot; EIN: 93-4594315<br />
+          <a href="/contact">Contact us</a> for other ways to give.
+        </p>
+      </section>
+
+      <!-- One-time donation modal -->
+      <div id="onetime-modal" class="donate-modal-overlay" hidden>
+        <div class="donate-modal">
+          <button type="button" class="donate-modal-close" id="onetime-close" aria-label="Close">&times;</button>
+          <h2>One-Time Donation</h2>
+          <div class="donate-amounts">
+            <button class="donate-amount-btn active" data-amount="2500">$25</button>
+            <button class="donate-amount-btn" data-amount="5000">$50</button>
+            <button class="donate-amount-btn" data-amount="10000">$100</button>
+            <button class="donate-amount-btn" data-amount="25000">$250</button>
+          </div>
+          <div class="donate-custom">
+            <label for="custom-amount" class="form-label">Custom amount</label>
+            <div class="donate-custom-input-wrap">
+              <span class="donate-currency">$</span>
+              <input type="number" id="custom-amount" class="form-input" min="5" max="999999" placeholder="Enter amount" />
+            </div>
+          </div>
+          <button id="donate-btn" class="btn btn--primary btn--lg donate-submit-btn">Donate $25</button>
+          <p id="donate-error" class="donate-error" hidden></p>
+          <p class="donate-modal-alt">
+            Or <a href="https://www.paypal.com/donate/?hosted_button_id=WHTRDKEMDN496" target="_blank" rel="noopener noreferrer">donate via PayPal</a>
+          </p>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- The Foundation -->
+      <section class="donate-section">
+        <h2>About the RRM Foundation</h2>
+        <p>RRM Academy is an educational project of the Restorative Reproductive Medicine Foundation (RRM Foundation), a 501(c)(3) nonprofit dedicated to transforming reproductive health through education, research, and a restorative approach to care.</p>
+        <p>When you donate to RRM Academy, you're supporting the Foundation's mission. We exist for every person who has been told their pain is normal or has been left to navigate years of uncertainty.</p>
+      </section>
+
+      <!-- Impact Areas -->
+      <section class="donate-section">
+        <h2>Where Your Donation Goes</h2>
+
+        <div class="impact-grid">
+          <div class="impact-card">
+            <h3>Research Library & Knowledge Sharing</h3>
+            <p>We maintain a comprehensive, free library of cutting-edge studies and are actively developing AI capabilities to make this research even more interactive and accessible for patients, practitioners, and researchers.</p>
+            <p class="impact-result"><strong>Your impact:</strong> You combat misinformation and build trust by providing free access to the evidence that proves restorative care works, powered by innovative technology.</p>
+          </div>
+
+          <div class="impact-card">
+            <h3>Online Courses & Patient Tools</h3>
+            <p>We create self-paced, clinician-led courses and practical tools like the Endometriosis Symptom Survey and the 'Screen a Surgeon' workbook to help patients take an active role in their health.</p>
+            <p class="impact-result"><strong>Your impact:</strong> You help shorten the diagnostic journey by giving patients the knowledge to advocate for themselves effectively from the very first appointment.</p>
+          </div>
+
+          <div class="impact-card">
+            <h3>Expert Commentary & Physician Spotlights</h3>
+            <p>On our Commentary blog, we publish in-depth articles, real-world case reports, and interviews with leading RRM experts to share insights on policy, patient advocacy, and clinical innovations.</p>
+            <p class="impact-result"><strong>Your impact:</strong> You fuel the high-level conversation that challenges systemic failures and advocates for a better model of care by sharing evidence and expert perspectives.</p>
+          </div>
+
+          <div class="impact-card">
+            <h3>Community & Mentorship</h3>
+            <p>We foster a network of 'Uterus Allies' -- a community of patients, loved ones, advocates, and healthcare professionals. This group, centered around our Save the Uterus Club, provides connection, mentorship, and is the primary funding engine for our growth.</p>
+            <p class="impact-result"><strong>Your impact:</strong> You help build a strong, collaborative community committed to changing the model of care together.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Goals -->
+      <section class="donate-section">
+        <h2>Our Goals</h2>
+        <p>To achieve our mission, we focus on four key objectives:</p>
+        <ol class="goals-list">
+          <li><strong>Expand Education</strong> -- Provide high-quality training and resources for healthcare professionals, equipping them with restorative solutions for managing fertility and women's health challenges.</li>
+          <li><strong>Empower Individuals</strong> -- Offer accessible information and tools that help women and couples take an active role in their reproductive health, fostering confidence in managing fertility and related concerns.</li>
+          <li><strong>Promote Evidence-Based Care</strong> -- Advocate for medical practices that address root causes of reproductive issues, leading to sustainable solutions and healthier outcomes.</li>
+          <li><strong>Increase Awareness</strong> -- Raise understanding and acceptance of RRM principles within both the medical community and the general public, bridging the gap between patients and practitioners.</li>
+        </ol>
+        <p>By addressing the underlying causes of reproductive challenges, we aim to empower individuals and healthcare providers with the tools and knowledge needed to achieve lasting wellness.</p>
+      </section>
+
+      <!-- By the Numbers -->
+      <section class="donate-section">
+        <h2>Fighting for True Healing</h2>
+        <div class="stats-row">
+          <div class="stat">
+            <span class="stat-number">625,000+</span>
+            <span class="stat-label">People reached monthly on Instagram</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number">3,000+</span>
+            <span class="stat-label">Research articles in our free library</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number">4</span>
+            <span class="stat-label">Self-paced online courses</span>
+          </div>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- Bottom CTA -->
+      <section class="donate-bottom-cta">
+        <p>Thank you for your help as we continue the work of educating and empowering women and women's health professionals.</p>
+        <a href="#" class="btn btn--primary btn--lg" onclick="document.querySelector('.donate-cta-section').scrollIntoView({behavior:'smooth'});return false;">Join Us</a>
+      </section>
+
+    </div>
+  </div>
+
+  <script is:inline>
+    (function () {
+      // --- Tier buttons (recurring memberships) ---
+      document.querySelectorAll('.tier-btn[data-tier]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var tier = btn.dataset.tier;
+          btn.disabled = true;
+          var original = btn.textContent;
+          btn.textContent = 'Redirecting...';
+
+          fetch('/api/create-checkout', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mode: 'subscription', tier: tier }),
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              if (data.ok && data.url) {
+                window.location.href = data.url;
+              } else {
+                btn.disabled = false;
+                btn.textContent = original;
+                alert(data.error || 'Something went wrong. Please try again.');
+              }
+            })
+            .catch(function () {
+              btn.disabled = false;
+              btn.textContent = original;
+              alert('Connection error. Please try again.');
+            });
+        });
+      });
+
+      // --- One-time donation modal ---
+      var modal = document.getElementById('onetime-modal');
+      document.getElementById('onetime-toggle').addEventListener('click', function () {
+        modal.hidden = false;
+      });
+      document.getElementById('onetime-close').addEventListener('click', function () {
+        modal.hidden = true;
+      });
+      modal.addEventListener('click', function (e) {
+        if (e.target === modal) modal.hidden = true;
+      });
+
+      var amountBtns = document.querySelectorAll('.donate-amount-btn');
+      var customInput = document.getElementById('custom-amount');
+      var donateBtn = document.getElementById('donate-btn');
+      var errorEl = document.getElementById('donate-error');
+      var selectedCents = 2500;
+
+      function setAmount(cents) {
+        selectedCents = cents;
+        var dollars = Math.floor(cents / 100);
+        donateBtn.textContent = 'Donate $' + dollars.toLocaleString();
+        amountBtns.forEach(function (b) {
+          b.classList.toggle('active', parseInt(b.dataset.amount, 10) === cents);
+        });
+      }
+
+      amountBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          customInput.value = '';
+          setAmount(parseInt(btn.dataset.amount, 10));
+        });
+      });
+
+      customInput.addEventListener('input', function () {
+        var val = parseFloat(customInput.value);
+        if (val && val >= 5) {
+          var cents = Math.round(val * 100);
+          selectedCents = cents;
+          donateBtn.textContent = 'Donate $' + val.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+          amountBtns.forEach(function (b) { b.classList.remove('active'); });
+        }
+      });
+
+      donateBtn.addEventListener('click', function () {
+        if (selectedCents < 500) {
+          errorEl.textContent = 'Minimum donation is $5.';
+          errorEl.hidden = false;
+          return;
+        }
+        errorEl.hidden = true;
+        donateBtn.disabled = true;
+        donateBtn.textContent = 'Redirecting...';
+
+        fetch('/api/create-checkout', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode: 'payment', amount: selectedCents }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data.ok && data.url) {
+              window.location.href = data.url;
+            } else {
+              errorEl.textContent = data.error || 'Something went wrong. Please try again.';
+              errorEl.hidden = false;
+              donateBtn.disabled = false;
+              var dollars = Math.floor(selectedCents / 100);
+              donateBtn.textContent = 'Donate $' + dollars.toLocaleString();
+            }
+          })
+          .catch(function () {
+            errorEl.textContent = 'Connection error. Please try again.';
+            errorEl.hidden = false;
+            donateBtn.disabled = false;
+            var dollars = Math.floor(selectedCents / 100);
+            donateBtn.textContent = 'Donate $' + dollars.toLocaleString();
+          });
+      });
+    })();
+  </script>
+</BaseLayout>
+
+<style>
+  /* Hero */
+  .donate-hero {
+    text-align: center;
+    margin-bottom: var(--space-8);
+  }
+  .donate-hero h1 {
+    margin-bottom: var(--space-4);
+  }
+  .donate-lead {
+    font-size: 1.0625rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* CTA section — recurring tiers */
+  .donate-cta-section {
+    text-align: center;
+    padding: var(--space-8) 0;
+    margin-bottom: var(--space-6);
+  }
+  .donate-cta-section h2 {
+    font-size: 1.5rem;
+    margin-bottom: var(--space-3);
+  }
+  .donate-recurring-lead {
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    max-width: 520px;
+    margin: 0 auto var(--space-6);
+  }
+
+  /* Tier grid */
+  .tier-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+    margin-bottom: var(--space-5);
+  }
+  @media (min-width: 769px) {
+    .tier-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .tier-card {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    text-align: left;
+  }
+  .tier-card h3 {
+    font-size: 1.25rem;
+    margin-bottom: var(--space-1);
+  }
+  .tier-price {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 2.25rem;
+    font-weight: 600;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: var(--space-4);
+  }
+  .tier-price span {
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--text-tertiary);
+  }
+  .tier-desc {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-5);
+    flex: 1;
+  }
+  .tier-btn {
+    align-self: center;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .tier-featured {
+    border-color: var(--accent);
+    border-width: 2px;
+  }
+  .tier-badge {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--accent);
+    color: var(--white);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    padding: 2px 12px;
+    border-radius: var(--radius-pill);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .donate-tier-link {
+    font-size: 0.8125rem;
+    margin-top: var(--space-2);
+  }
+  .donate-tier-link a {
+    color: var(--accent);
+  }
+  .donate-tier-link a:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+  }
+  .donate-onetime-link {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    margin-top: var(--space-3);
+  }
+  .link-btn {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-size: inherit;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    font-family: inherit;
+  }
+  .link-btn:hover {
+    color: var(--accent-hover);
+  }
+
+  /* One-time donation modal */
+  .donate-modal-overlay[hidden] {
+    display: none !important;
+  }
+  .donate-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: var(--space-4);
+  }
+  .donate-modal {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--space-8);
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+    position: relative;
+  }
+  .donate-modal h2 {
+    font-size: 1.25rem;
+    margin-bottom: var(--space-5);
+  }
+  .donate-modal-close {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-4);
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px;
+  }
+  .donate-modal-close:hover {
+    color: var(--text-primary);
+  }
+  .donate-modal-alt {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    margin-top: var(--space-4);
+  }
+  .donate-modal-alt a {
+    color: var(--accent);
+  }
+  .donate-modal-alt a:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+  }
+
+  /* Amount selector */
+  .donate-amounts {
+    display: flex;
+    gap: var(--space-3);
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: var(--space-5);
+  }
+  .donate-amount-btn {
+    padding: 10px 24px;
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+  }
+  .donate-amount-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .donate-amount-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--white);
+  }
+
+  /* Custom amount */
+  .donate-custom {
+    max-width: 240px;
+    margin: 0 auto var(--space-5);
+  }
+  .donate-custom .form-label {
+    display: block;
+    text-align: left;
+    margin-bottom: var(--space-2);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+  .donate-custom-input-wrap {
+    position: relative;
+  }
+  .donate-currency {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-tertiary);
+    font-weight: 500;
+  }
+  .donate-custom .form-input {
+    width: 100%;
+    padding-left: 32px;
+    box-sizing: border-box;
+  }
+
+  .donate-submit-btn {
+    min-width: 200px;
+  }
+
+  .donate-error {
+    color: #c0392b;
+    font-size: 0.8125rem;
+    margin-top: var(--space-3);
+  }
+
+  .donate-tax {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    margin-top: var(--space-5);
+    line-height: 1.6;
+  }
+  .donate-tax a {
+    color: var(--accent);
+  }
+  .donate-tax a:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+  }
+
+  /* Sections */
+  .donate-section {
+    margin: var(--space-10) 0;
+  }
+  .donate-section h2 {
+    font-size: 1.5rem;
+    margin-bottom: var(--space-4);
+  }
+  .donate-section p {
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+  }
+
+  /* Impact grid */
+  .impact-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+    margin-top: var(--space-5);
+  }
+  .impact-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-6);
+  }
+  .impact-card h3 {
+    font-size: 1.25rem;
+    margin-bottom: var(--space-3);
+    color: var(--text-primary);
+  }
+  .impact-card p {
+    font-size: 0.875rem;
+    line-height: 1.75;
+    color: var(--text-secondary);
+  }
+  .impact-result {
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border-light);
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+  }
+
+  @media (min-width: 640px) {
+    .impact-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  /* Bottom CTA */
+  .donate-bottom-cta {
+    text-align: center;
+    padding: var(--space-8) 0 0;
+  }
+  .donate-bottom-cta p {
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-5);
+  }
+
+</style>

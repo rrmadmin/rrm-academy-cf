@@ -1,4 +1,15 @@
 User-agent: *
 Allow: /
 
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /account
+Disallow: /library/saved
+Disallow: /endo-survey/take
+Disallow: /donate/thank-you
+Disallow: /save-the-uterus-club/thank-you
+Disallow: /api/
+
 Sitemap: https://rrmacademy.org/sitemap-index.xml

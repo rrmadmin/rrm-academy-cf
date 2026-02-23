@@ -5,6 +5,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   title="My Account"
   description="Manage your RRM Academy account, courses, and membership."
   canonicalUrl="https://rrmacademy.org/account"
+  noindex
 >
   <section class="auth-page">
     <div class="container container--narrow">
@@ -39,15 +40,47 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
         <div class="account-sections">
           <div class="account-section">
-            <h2>Profile</h2>
-            <dl class="account-details">
-              <dt>Name</dt>
-              <dd id="profile-name"></dd>
+            <div class="section-header">
+              <h2>Profile</h2>
+              <button id="edit-profile-btn" class="btn btn--text btn--sm" hidden>Edit</button>
+            </div>
+
+            <!-- Read-only display -->
+            <dl id="profile-display" class="account-details">
+              <dt>First name</dt>
+              <dd id="profile-first-name"></dd>
+              <dt>Last name</dt>
+              <dd id="profile-last-name"></dd>
               <dt>Email</dt>
               <dd id="profile-email"></dd>
               <dt>Member since</dt>
               <dd id="profile-since">—</dd>
             </dl>
+
+            <!-- Edit form -->
+            <form id="profile-form" class="profile-edit-form" hidden>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label" for="edit-first-name">First name</label>
+                  <input class="form-input" type="text" id="edit-first-name" name="firstName" required maxlength="100" autocomplete="given-name" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="edit-last-name">Last name</label>
+                  <input class="form-input" type="text" id="edit-last-name" name="lastName" required maxlength="100" autocomplete="family-name" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email</label>
+                <input class="form-input" type="email" id="edit-email" disabled />
+              </div>
+              <div id="profile-error" class="profile-feedback profile-feedback--error" hidden>
+                <p id="profile-error-text"></p>
+              </div>
+              <div class="profile-actions">
+                <button type="submit" class="btn btn--primary btn--sm" id="save-profile-btn">Save</button>
+                <button type="button" class="btn btn--secondary btn--sm" id="cancel-profile-btn">Cancel</button>
+              </div>
+            </form>
           </div>
 
           <div class="account-section">
@@ -55,9 +88,25 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             <p class="account-placeholder">Course enrollment coming soon.</p>
           </div>
 
-          <div class="account-section">
+          <div class="account-section" id="billing-section">
             <h2>Billing</h2>
-            <p class="account-placeholder">Subscription management coming soon.</p>
+            <div id="billing-loading" class="account-placeholder">Loading billing info...</div>
+            <div id="billing-none" hidden>
+              <p class="account-placeholder">You don't have an active membership.</p>
+              <a href="/save-the-uterus-club" class="btn btn--secondary btn--sm" style="margin-top: var(--space-4); display: inline-flex;">Join the Save the Uterus Club</a>
+            </div>
+            <div id="billing-active" hidden>
+              <dl class="account-details">
+                <dt>Membership</dt>
+                <dd id="billing-tier"></dd>
+                <dt>Status</dt>
+                <dd id="billing-status"></dd>
+                <dt>Next billing</dt>
+                <dd id="billing-date"></dd>
+              </dl>
+              <p id="billing-cancel-notice" class="billing-cancel-notice" hidden>Your membership will end at the next billing date.</p>
+              <button id="manage-billing-btn" class="btn btn--secondary btn--sm" style="margin-top: var(--space-4);">Manage Billing</button>
+            </div>
           </div>
         </div>
       </div>
@@ -71,11 +120,23 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       var guestEl = document.getElementById('account-guest');
       var dashEl = document.getElementById('account-dashboard');
       var nameEl = document.getElementById('account-name');
-      var profileName = document.getElementById('profile-name');
+      var profileFirstName = document.getElementById('profile-first-name');
+      var profileLastName = document.getElementById('profile-last-name');
       var profileEmail = document.getElementById('profile-email');
       var verifyBanner = document.getElementById('verify-banner');
       var sendVerifyBtn = document.getElementById('send-verify-btn');
       var logoutBtn = document.getElementById('logout-btn');
+      var editBtn = document.getElementById('edit-profile-btn');
+      var profileDisplay = document.getElementById('profile-display');
+      var profileForm = document.getElementById('profile-form');
+      var editFirstName = document.getElementById('edit-first-name');
+      var editLastName = document.getElementById('edit-last-name');
+      var editEmail = document.getElementById('edit-email');
+      var saveBtn = document.getElementById('save-profile-btn');
+      var cancelBtn = document.getElementById('cancel-profile-btn');
+      var profileError = document.getElementById('profile-error');
+      var profileErrorText = document.getElementById('profile-error-text');
+      var currentUser = null;
 
       fetch('/api/auth/session', { credentials: 'same-origin' })
         .then(function (r) { return r.json(); })
@@ -85,17 +146,78 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             guestEl.hidden = false;
             return;
           }
-          var user = data.user;
-          nameEl.textContent = user.name || 'Member';
-          profileName.textContent = user.name || '—';
-          profileEmail.textContent = user.email;
-          if (!user.emailVerified) verifyBanner.hidden = false;
+          currentUser = data.user;
+          renderProfile(currentUser);
+          if (!currentUser.emailVerified) verifyBanner.hidden = false;
           dashEl.hidden = false;
+          loadBilling();
         })
         .catch(function () {
           loadingEl.hidden = true;
           guestEl.hidden = false;
         });
+
+      function renderProfile(user) {
+        nameEl.textContent = user.firstName || user.name || 'Member';
+        profileFirstName.textContent = user.firstName || '—';
+        profileLastName.textContent = user.lastName || '—';
+        profileEmail.textContent = user.email;
+        editBtn.hidden = false;
+      }
+
+      editBtn.addEventListener('click', function () {
+        editFirstName.value = currentUser.firstName || '';
+        editLastName.value = currentUser.lastName || '';
+        editEmail.value = currentUser.email;
+        profileDisplay.hidden = true;
+        editBtn.hidden = true;
+        profileError.hidden = true;
+        profileForm.hidden = false;
+        editFirstName.focus();
+      });
+
+      cancelBtn.addEventListener('click', function () {
+        profileForm.hidden = true;
+        profileDisplay.hidden = false;
+        editBtn.hidden = false;
+        profileError.hidden = true;
+      });
+
+      profileForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        profileError.hidden = true;
+        var fn = editFirstName.value.trim();
+        var ln = editLastName.value.trim();
+        if (!fn) { profileErrorText.textContent = 'First name is required.'; profileError.hidden = false; return; }
+        if (!ln) { profileErrorText.textContent = 'Last name is required.'; profileError.hidden = false; return; }
+        saveBtn.disabled = true; saveBtn.textContent = 'Saving...';
+        fetch('/api/auth/profile', {
+          method: 'PATCH', credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ firstName: fn, lastName: ln }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            saveBtn.disabled = false; saveBtn.textContent = 'Save';
+            if (data.ok) {
+              currentUser.firstName = data.user.firstName;
+              currentUser.lastName = data.user.lastName;
+              currentUser.name = data.user.name;
+              renderProfile(currentUser);
+              profileForm.hidden = true;
+              profileDisplay.hidden = false;
+              editBtn.hidden = false;
+            } else {
+              profileErrorText.textContent = data.error || 'Update failed.';
+              profileError.hidden = false;
+            }
+          })
+          .catch(function () {
+            saveBtn.disabled = false; saveBtn.textContent = 'Save';
+            profileErrorText.textContent = 'Network error. Please try again.';
+            profileError.hidden = false;
+          });
+      });
 
       logoutBtn.addEventListener('click', function () {
         fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' })
@@ -106,6 +228,62 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         sendVerifyBtn.disabled = true; sendVerifyBtn.textContent = 'Sending...';
         fetch('/api/auth/resend-verification', { method: 'POST', credentials: 'same-origin' })
           .then(function () { sendVerifyBtn.textContent = 'Sent! Check your email.'; });
+      });
+
+      // --- Billing ---
+      function loadBilling() {
+        var billingLoading = document.getElementById('billing-loading');
+        var billingNone = document.getElementById('billing-none');
+        var billingActive = document.getElementById('billing-active');
+        var billingTier = document.getElementById('billing-tier');
+        var billingStatus = document.getElementById('billing-status');
+        var billingDate = document.getElementById('billing-date');
+        var cancelNotice = document.getElementById('billing-cancel-notice');
+
+        fetch('/api/billing/status', { credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            billingLoading.hidden = true;
+            if (!data.ok || !data.subscription) {
+              billingNone.hidden = false;
+              return;
+            }
+            var sub = data.subscription;
+            billingTier.textContent = sub.tier;
+            billingStatus.textContent = sub.status.charAt(0).toUpperCase() + sub.status.slice(1);
+            if (sub.currentPeriodEnd) {
+              billingDate.textContent = new Date(sub.currentPeriodEnd * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            } else {
+              billingDate.textContent = '—';
+            }
+            if (sub.cancelAtPeriodEnd) cancelNotice.hidden = false;
+            billingActive.hidden = false;
+          })
+          .catch(function () {
+            billingLoading.hidden = true;
+            billingNone.hidden = false;
+          });
+      }
+
+      document.getElementById('manage-billing-btn').addEventListener('click', function () {
+        var btn = this;
+        btn.disabled = true;
+        btn.textContent = 'Opening...';
+        fetch('/api/billing/portal', { method: 'POST', credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data.ok && data.url) {
+              window.location.href = data.url;
+            } else {
+              btn.disabled = false;
+              btn.textContent = 'Manage Billing';
+              alert(data.error || 'Unable to open billing portal.');
+            }
+          })
+          .catch(function () {
+            btn.disabled = false;
+            btn.textContent = 'Manage Billing';
+          });
       });
     })();
   </script>
@@ -135,9 +313,32 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     padding: var(--space-6) var(--space-8);
     background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg);
   }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-4); }
+  .section-header h2 { font-size: 1.125rem; margin-bottom: 0; }
   .account-section h2 { font-size: 1.125rem; margin-bottom: var(--space-4); }
   .account-details { display: grid; grid-template-columns: auto 1fr; gap: var(--space-2) var(--space-6); font-size: 0.9375rem; }
   .account-details dt { font-weight: 500; color: var(--text-secondary); }
   .account-details dd { color: var(--text-primary); }
   .account-placeholder { color: var(--text-muted); font-size: 0.875rem; }
+
+  .profile-edit-form .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+  .profile-edit-form .form-group { margin-bottom: var(--space-4); }
+  .profile-edit-form .form-label { display: block; font-family: 'Inter', sans-serif; font-size: 0.8125rem; font-weight: 500; margin-bottom: var(--space-2); }
+  .profile-edit-form .form-input {
+    width: 100%; padding: var(--space-2) var(--space-4);
+    border: 1.5px solid var(--neutral-300); border-radius: var(--radius-pill);
+    font-family: 'Inter', sans-serif; font-size: 0.9375rem; color: var(--text-primary); background: var(--bg);
+  }
+  .profile-edit-form .form-input:focus { outline: none; border-color: var(--purple-700); box-shadow: 0 0 0 3px var(--focus-ring); }
+  .profile-edit-form .form-input:disabled { background: var(--neutral-100); color: var(--text-muted); cursor: not-allowed; }
+  .profile-actions { display: flex; gap: var(--space-3); margin-top: var(--space-2); }
+  .profile-feedback--error { margin-bottom: var(--space-4); padding: var(--space-3) var(--space-4); background: rgba(192,57,43,0.05); border: 1px solid var(--color-error); border-radius: var(--radius-md); color: var(--color-error); font-size: 0.875rem; }
+  .billing-cancel-notice {
+    font-size: 0.8125rem;
+    color: #e67e22;
+    margin-top: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    background: rgba(230, 126, 34, 0.08);
+    border-radius: var(--radius-md);
+  }
 </style>

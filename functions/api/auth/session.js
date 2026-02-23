@@ -24,7 +24,7 @@ export async function onRequestGet({ request, env }) {
 
   // Fetch user data
   const user = await db.prepare(
-    'SELECT id, email, name, email_verified, role, stripe_customer_id FROM user WHERE id = ?'
+    'SELECT id, email, name, first_name, last_name, email_verified, role, stripe_customer_id FROM user WHERE id = ?'
   ).bind(session.userId).first();
 
   if (!user) {
@@ -44,6 +44,8 @@ export async function onRequestGet({ request, env }) {
         id: user.id,
         email: user.email,
         name: user.name,
+        firstName: user.first_name || '',
+        lastName: user.last_name || '',
         emailVerified: !!user.email_verified,
         role: user.role,
       },
