@@ -1,6 +1,6 @@
 # RRM Academy (Astro + CF Pages)
 
-> Wix → Cloudflare migration via strangler fig pattern. Phases 0-5 done, Phase 6 (Auth) deployed.
+> Wix → Cloudflare migration via strangler fig pattern. Phases 0-6 complete. Next: Phase 7 (Payments/Stripe).
 
 ## Quick Reference
 
