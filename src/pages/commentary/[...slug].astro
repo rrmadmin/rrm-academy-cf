@@ -25,8 +25,22 @@ const related = getRelatedPosts(post, allPosts, 3);
 // Strip raw HTML blocks from markdown to prevent injection
 marked.use({ renderer: { html() { return ''; } } });
 
+// Pre-process markdown to fix common authoring issues
+function sanitizeMarkdown(md: string): string {
+  return md
+    // Remove ghost links: [ ](url) — invisible copy-paste artifacts
+    .replace(/\[\s*\]\([^)]+\)/g, '')
+    // Fix trailing space before closing bold: **text ** → **text**
+    .replace(/\*\*([^*]+?)\s+\*\*/g, '**$1**')
+    // Fix quadruple bold markers around links: ****[text](url)**** → **[text](url)**
+    .replace(/\*{4}\[/g, '**[')
+    .replace(/\]\([^)]+\)\*{4}/g, (m) => m.replace(/\*{4}$/, '**'))
+    // Remove redundant bold inside headings: ## **Text** → ## Text
+    .replace(/^(#{1,6})\s+\*\*(.+?)\*\*\s*$/gm, '$1 $2');
+}
+
 // Render markdown content to HTML
-const htmlContent = post.content ? marked.parse(post.content) : '';
+const htmlContent = post.content ? marked.parse(sanitizeMarkdown(post.content)) : '';
 
 // Meta description from excerpt
 const metaDescription = post.excerpt
