@@ -1,0 +1,74 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Page Not Found"
+  description="The page you're looking for doesn't exist or has been moved."
+>
+  <section class="not-found">
+    <div class="not-found__inner">
+      <span class="not-found__code">404</span>
+      <h1>Page not found</h1>
+      <p class="not-found__subtitle">The page you're looking for doesn't exist or has been moved.</p>
+      <nav class="not-found__links">
+        <a href="/" class="btn btn--primary btn--lg">Go to homepage</a>
+        <ul>
+          <li><a href="/library">Research Library</a></li>
+          <li><a href="/commentary">Commentary</a></li>
+          <li><a href="/contact">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .not-found {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    text-align: center;
+    padding: var(--space-12) var(--space-4);
+  }
+  .not-found__inner {
+    max-width: 480px;
+  }
+  .not-found__code {
+    display: block;
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 8rem;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--sand-300);
+    margin-bottom: var(--space-4);
+  }
+  .not-found h1 {
+    margin-bottom: var(--space-3);
+  }
+  .not-found__subtitle {
+    color: var(--text-secondary);
+    margin-bottom: var(--space-8);
+  }
+  .not-found__links {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-6);
+  }
+  .not-found__links ul {
+    list-style: none;
+    display: flex;
+    gap: var(--space-6);
+    padding: 0;
+    margin: 0;
+  }
+  .not-found__links a:not(.btn) {
+    color: var(--accent);
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  .not-found__links a:not(.btn):hover {
+    color: var(--accent-hover);
+  }
+</style>

@@ -1,12 +1,12 @@
 /**
  * CF Pages Function middleware for RRM Academy.
  * Handles:
- * 1. Old slug redirects (slug without record ID → slug with record ID)
- * 2. Subdomain redirects (library.rrmacademy.org → rrmacademy.org/library)
- * 3. Auth protection for /account/* routes (redirect to /login if no session)
+ * 1. Subdomain redirects (library.rrmacademy.org → rrmacademy.org/library)
+ * 2. Auth protection for /account/* routes (redirect to /login if no session)
+ *
+ * NOTE: Old library slug redirects are handled by the rrm-router Worker,
+ * not here (avoids loading the 500KB redirect map on every request).
  */
-
-import slugRedirects from './_slug-redirects.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -18,23 +18,6 @@ export async function onRequest(context) {
       `https://rrmacademy.org/library${url.pathname}`,
       301
     );
-  }
-
-  // 301 redirect: old library slugs without record ID → new slugs with record ID
-  // New slugs end with -rec[14 chars], old ones don't
-  const libraryMatch = url.pathname.match(/^\/library\/([^/]+)\/?$/);
-  if (libraryMatch) {
-    const slug = libraryMatch[1];
-    // Only redirect if slug does NOT already have a record ID suffix
-    if (!/rec[a-z0-9]{14}$/.test(slug)) {
-      const newSlug = slugRedirects[slug];
-      if (newSlug) {
-        return Response.redirect(
-          `https://rrmacademy.org/library/${newSlug}`,
-          301
-        );
-      }
-    }
   }
 
   // Auth protection: /account/* requires a valid session

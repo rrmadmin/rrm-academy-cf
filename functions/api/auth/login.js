@@ -44,8 +44,8 @@ export async function onRequestPost({ request, env }) {
 
     // Constant-time-ish: always verify even if user doesn't exist (prevent timing attacks)
     if (!user) {
-      // Hash a dummy password to spend similar time
-      await verifyPassword(password, '600000$AAAAAAAAAAAAAAAAAAA=$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=');
+      // Hash a dummy password to spend similar time (iteration count must match PBKDF2_ITERATIONS)
+      await verifyPassword(password, '100000$AAAAAAAAAAAAAAAAAAA=$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=');
       return json({ ok: false, error: 'Invalid email or password.' }, 401);
     }
 

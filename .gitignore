@@ -8,3 +8,5 @@ scraped/
 .env.local
 !.env.example
 .wrangler
+.firecrawl/
+.obsidian/
