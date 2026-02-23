@@ -197,21 +197,20 @@ const citationMeta = {
       <!-- Title -->
       <h1 class="article-title" data-pagefind-weight="10" data-pagefind-meta="title">{article.title}</h1>
 
-      <!-- Authors + OA badge -->
+      <!-- Authors + access icon -->
       <div class="article-meta-row">
         {article.shortCitation ? (
           <p class="short-citation" data-pagefind-weight="5" data-pagefind-meta="authors">{article.shortCitation}</p>
         ) : article.authors ? (
           <p class="short-citation" data-pagefind-weight="5" data-pagefind-meta="authors">{article.authors}</p>
         ) : null}
-        {article.isOpenAccess && (
-          <span class="access-icon access-icon--open" title="Open Access">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
-          </span>
-        )}
-        {article.isCopyrighted && (
-          <span class="access-icon access-icon--locked" title="Copyrighted">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        {(article.isOpenAccess || article.isCopyrighted) && (
+          <span class={`access-icon ${article.isOpenAccess ? 'access-icon--open' : 'access-icon--locked'}`} title={article.isOpenAccess ? 'Open Access' : 'Copyrighted'}>
+            {article.isOpenAccess ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            )}
           </span>
         )}
       </div>
@@ -324,14 +323,20 @@ const citationMeta = {
   }
   .article-meta-row {
     display: flex;
-    align-items: center;
-    gap: var(--space-3);
+    align-items: baseline;
+    gap: var(--space-2);
     margin-bottom: var(--space-3);
+  }
+  .article-meta-row .access-icon {
+    align-self: center;
+    position: relative;
+    top: -1px;
   }
   .short-citation {
     font-size: 0.875rem;
     color: var(--neutral-600);
     font-weight: 500;
+    margin: 0;
   }
   .article-authors {
     font-size: 0.875rem;
