@@ -130,6 +130,9 @@ function buildEmailHtml(surveyUrl) {
       <p style="font-size:14px;line-height:1.6;color:#94918e;margin:24px 0 0;">
         This link is for your use only and can only be used once. If you did not request this survey, you can safely ignore this email.
       </p>
+      <p style="font-size:12px;line-height:1.6;color:#b0adaa;margin:16px 0 0;">
+        <strong style="color:#94918e;">Research notice:</strong> Your survey responses will be collected in anonymized, de-identified form and may be used for research purposes, including analysis of symptom patterns and endometriosis prevalence. No personally identifiable information will be linked to your responses. By clicking the link above and completing the survey, you consent to this use of your anonymized data. If you do not wish to participate in research, please do not take the survey.
+      </p>
     </div>
     <div style="text-align:center;padding:24px 0 0;">
       <p style="font-size:12px;color:#94918e;margin:0;">
