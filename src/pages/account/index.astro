@@ -84,6 +84,38 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           </div>
 
           <div class="account-section">
+            <div class="section-header">
+              <h2>Password</h2>
+              <button id="change-pw-btn" class="btn btn--text btn--sm" hidden>Change</button>
+            </div>
+            <p id="pw-display" class="account-placeholder">••••••••</p>
+            <form id="pw-form" class="profile-edit-form" hidden>
+              <div class="form-group">
+                <label class="form-label" for="pw-current">Current password</label>
+                <input class="form-input" type="password" id="pw-current" required autocomplete="current-password" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="pw-new">New password</label>
+                <input class="form-input" type="password" id="pw-new" required minlength="8" autocomplete="new-password" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="pw-confirm">Confirm new password</label>
+                <input class="form-input" type="password" id="pw-confirm" required minlength="8" autocomplete="new-password" />
+              </div>
+              <div id="pw-error" class="profile-feedback profile-feedback--error" hidden>
+                <p id="pw-error-text"></p>
+              </div>
+              <div id="pw-success" class="profile-feedback profile-feedback--success" hidden>
+                <p>Password updated successfully.</p>
+              </div>
+              <div class="profile-actions">
+                <button type="submit" class="btn btn--primary btn--sm" id="save-pw-btn">Update Password</button>
+                <button type="button" class="btn btn--secondary btn--sm" id="cancel-pw-btn">Cancel</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="account-section">
             <h2>Courses</h2>
             <p class="account-placeholder">Course enrollment coming soon.</p>
           </div>
@@ -150,6 +182,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           renderProfile(currentUser);
           if (!currentUser.emailVerified) verifyBanner.hidden = false;
           dashEl.hidden = false;
+          showPwButton();
           loadBilling();
         })
         .catch(function () {
@@ -228,6 +261,85 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         sendVerifyBtn.disabled = true; sendVerifyBtn.textContent = 'Sending...';
         fetch('/api/auth/resend-verification', { method: 'POST', credentials: 'same-origin' })
           .then(function () { sendVerifyBtn.textContent = 'Sent! Check your email.'; });
+      });
+
+      // --- Password ---
+      var changePwBtn = document.getElementById('change-pw-btn');
+      var pwDisplay = document.getElementById('pw-display');
+      var pwForm = document.getElementById('pw-form');
+      var pwCurrent = document.getElementById('pw-current');
+      var pwNew = document.getElementById('pw-new');
+      var pwConfirm = document.getElementById('pw-confirm');
+      var savePwBtn = document.getElementById('save-pw-btn');
+      var cancelPwBtn = document.getElementById('cancel-pw-btn');
+      var pwError = document.getElementById('pw-error');
+      var pwErrorText = document.getElementById('pw-error-text');
+      var pwSuccess = document.getElementById('pw-success');
+
+      function showPwButton() { changePwBtn.hidden = false; }
+
+      changePwBtn.addEventListener('click', function () {
+        pwDisplay.hidden = true;
+        changePwBtn.hidden = true;
+        pwError.hidden = true;
+        pwSuccess.hidden = true;
+        pwForm.hidden = false;
+        pwCurrent.value = '';
+        pwNew.value = '';
+        pwConfirm.value = '';
+        pwCurrent.focus();
+      });
+
+      cancelPwBtn.addEventListener('click', function () {
+        pwForm.hidden = true;
+        pwDisplay.hidden = false;
+        changePwBtn.hidden = false;
+        pwError.hidden = true;
+        pwSuccess.hidden = true;
+      });
+
+      pwForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        pwError.hidden = true;
+        pwSuccess.hidden = true;
+        if (pwNew.value !== pwConfirm.value) {
+          pwErrorText.textContent = 'New passwords do not match.';
+          pwError.hidden = false;
+          return;
+        }
+        if (pwNew.value.length < 8) {
+          pwErrorText.textContent = 'New password must be at least 8 characters.';
+          pwError.hidden = false;
+          return;
+        }
+        savePwBtn.disabled = true;
+        savePwBtn.textContent = 'Updating...';
+        fetch('/api/auth/change-password', {
+          method: 'POST', credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ currentPassword: pwCurrent.value, newPassword: pwNew.value }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            savePwBtn.disabled = false;
+            savePwBtn.textContent = 'Update Password';
+            if (data.ok) {
+              pwForm.hidden = true;
+              pwDisplay.hidden = false;
+              changePwBtn.hidden = false;
+              pwSuccess.hidden = false;
+              setTimeout(function () { pwSuccess.hidden = true; }, 5000);
+            } else {
+              pwErrorText.textContent = data.error || 'Failed to update password.';
+              pwError.hidden = false;
+            }
+          })
+          .catch(function () {
+            savePwBtn.disabled = false;
+            savePwBtn.textContent = 'Update Password';
+            pwErrorText.textContent = 'Network error. Please try again.';
+            pwError.hidden = false;
+          });
       });
 
       // --- Billing ---
@@ -333,6 +445,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .profile-edit-form .form-input:disabled { background: var(--neutral-100); color: var(--text-muted); cursor: not-allowed; }
   .profile-actions { display: flex; gap: var(--space-3); margin-top: var(--space-2); }
   .profile-feedback--error { margin-bottom: var(--space-4); padding: var(--space-3) var(--space-4); background: rgba(192,57,43,0.05); border: 1px solid var(--color-error); border-radius: var(--radius-md); color: var(--color-error); font-size: 0.875rem; }
+  .profile-feedback--success { margin-bottom: var(--space-4); padding: var(--space-3) var(--space-4); background: rgba(39,174,96,0.08); border: 1px solid rgba(39,174,96,0.3); border-radius: var(--radius-md); color: #27ae60; font-size: 0.875rem; }
   .billing-cancel-notice {
     font-size: 0.8125rem;
     color: #e67e22;
