@@ -30,6 +30,36 @@
   --sand-500: #b8a38f;
   --sand-300: #dbcbbb;
 
+  /* Rose palette */
+  --rose-700: #b0778a;
+  --rose-500: #eb9fb8;
+  --rose-300: #f5cdda;
+  --rose-100: #fdf0f4;
+  --rose-50:  #fef8fa;
+
+  /* Sage palette */
+  --sage-700: #7e8772;
+  --sage-500: #a3ab98;
+  --sage-300: #bec3b8;
+  --sage-100: #eef0ec;
+  --sage-50:  #f6f7f5;
+
+  /* Tier colors (endo survey) */
+  --tier1-accent: #9b4d6e;
+  --tier1-bg: var(--rose-100);
+  --tier1-border: var(--rose-300);
+
+  --tier2-accent: #c77d3c;
+  --tier2-bg: #fdf5ee;
+  --tier2-border: var(--sand-300);
+
+  --tier3-accent: #5a8a6a;
+  --tier3-bg: var(--sage-100);
+  --tier3-border: var(--sage-300);
+
+  /* Card background */
+  --bg-card: #ffffff;
+
   /* Accent */
   --green-700: #2e7d32;
   --green-100: #e8f5e9;
@@ -107,6 +137,32 @@
   --sand-700: #b8a38f;
   --sand-500: #8a7a6a;
   --sand-300: #5a4e44;
+
+  --rose-700: #c99aac;
+  --rose-500: #a07080;
+  --rose-300: #6b4d58;
+  --rose-100: #3d2e34;
+  --rose-50:  #2e2428;
+
+  --sage-700: #a3ab98;
+  --sage-500: #7a8270;
+  --sage-300: #525848;
+  --sage-100: #333830;
+  --sage-50:  #2a2e26;
+
+  --tier1-accent: #c97a96;
+  --tier1-bg: #3d2e34;
+  --tier1-border: #6b4d58;
+
+  --tier2-accent: #d9a06a;
+  --tier2-bg: #3a3028;
+  --tier2-border: #5a4e44;
+
+  --tier3-accent: #7aab8a;
+  --tier3-bg: #333830;
+  --tier3-border: #525848;
+
+  --bg-card: #2e2a24;
 
   --green-700: #66bb6a;
   --green-100: #2a3a2a;
@@ -366,6 +422,7 @@ p a, li a, .prose a, blockquote a {
   font-family: 'Inter', sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
+  line-height: 1;
   padding: 10px 24px;
   border-radius: var(--radius-pill);
   border: none;
