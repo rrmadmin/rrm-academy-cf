@@ -32,6 +32,7 @@ const FIELDS = [
   '1️⃣ Approved or Not',
   'Enrichment Status',
   '1️⃣ Short Citation',
+  '1️⃣ Identifier (static)',
 ];
 
 export interface Article {
@@ -58,7 +59,9 @@ export interface Article {
   topics: string[];
   searchTerms: string[];
   enrichmentStatus: string;
+  identifiers: string[];
   isOpenAccess: boolean;
+  isCopyrighted: boolean;
 }
 
 interface AirtableRecord {
@@ -77,7 +80,11 @@ function transformRecord(record: AirtableRecord): Article | null {
   if (!slug || !title) return null;
 
   const keywords = f['1️⃣ Keywords (static)'] || '';
-  const isOpenAccess = keywords.toLowerCase().includes('open access');
+  const identifiers: string[] = Array.isArray(f['1️⃣ Identifier (static)'])
+    ? f['1️⃣ Identifier (static)']
+    : [];
+  const isOpenAccess = identifiers.includes('Open Access');
+  const isCopyrighted = identifiers.includes('©');
 
   // Parse topics — stored as comma-separated string
   const topicsRaw = f['1️⃣ Topics (AI)'] || '';
@@ -115,7 +122,9 @@ function transformRecord(record: AirtableRecord): Article | null {
     topics,
     searchTerms,
     enrichmentStatus,
+    identifiers,
     isOpenAccess,
+    isCopyrighted,
   };
 }
 
@@ -195,25 +204,40 @@ export function getTopicCounts(articles: Article[]): Map<string, number> {
 }
 
 /**
- * Find related articles (share the most topics).
+ * Find related articles using weighted multi-signal scoring:
+ *   topics (×3) + search terms (×1) + same journal (×2)
+ * Tiebreaker: more recent articles rank higher.
  */
 export function getRelatedArticles(
   article: Article,
   allArticles: Article[],
-  limit = 5
+  limit = 4
 ): Article[] {
-  if (article.topics.length === 0) return [];
+  if (article.topics.length === 0 && article.searchTerms.length === 0) return [];
 
   const topicSet = new Set(article.topics);
+  const termSet = new Set(article.searchTerms.map(t => t.toLowerCase()));
+  const journal = article.journal.toLowerCase();
 
   const scored = allArticles
     .filter(a => a.id !== article.id)
-    .map(a => ({
-      article: a,
-      score: a.topics.filter(t => topicSet.has(t)).length,
-    }))
+    .map(a => {
+      const topicOverlap = a.topics.filter(t => topicSet.has(t)).length;
+      const termOverlap = a.searchTerms.filter(t => termSet.has(t.toLowerCase())).length;
+      const journalMatch = journal && a.journal.toLowerCase() === journal ? 1 : 0;
+      return {
+        article: a,
+        score: (topicOverlap * 3) + (termOverlap * 1) + (journalMatch * 2),
+      };
+    })
     .filter(s => s.score > 0)
-    .sort((a, b) => b.score - a.score);
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      // Tiebreaker: prefer more recent
+      const da = a.article.datePublished || '';
+      const db = b.article.datePublished || '';
+      return db.localeCompare(da);
+    });
 
   return scored.slice(0, limit).map(s => s.article);
 }

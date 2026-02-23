@@ -316,6 +316,27 @@ p a, li a, .prose a, blockquote a {
   color: var(--green-700);
   background: var(--green-100);
 }
+.badge--copyright {
+  color: var(--neutral-600);
+  background: var(--neutral-100);
+}
+
+/* Lock icons for access status */
+.access-icon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.access-icon svg {
+  display: block;
+}
+.access-icon--open svg {
+  color: var(--orange-600, #ea580c);
+}
+.access-icon--locked svg {
+  color: var(--neutral-400);
+}
 
 /* Topic pills */
 .topic-pill {

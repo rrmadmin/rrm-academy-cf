@@ -25,6 +25,9 @@ const jsonLd = {
     ],
   },
 };
+
+// Replace with your Turnstile site key from CF dashboard
+const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
 ---
 <BaseLayout
   title="Contact Us"
@@ -39,17 +42,109 @@ const jsonLd = {
     </div>
   </section>
 
-  <!-- Contact content -->
+  <!-- Contact form + info -->
   <section class="contact-section">
     <div class="container container--narrow">
-      <div class="contact-info prose">
-          <div class="contact-block">
-            <h2>Get in touch</h2>
-            <p>
-              Have questions about restorative reproductive medicine, our courses, or the research library? We would love to hear from you.
-            </p>
+      <div class="contact-grid">
+
+        <!-- Form -->
+        <div class="contact-form-wrap">
+          <h2>Send us a message</h2>
+          <p class="contact-intro">
+            Have questions about restorative reproductive medicine, our courses, or the research library? We would love to hear from you.
+          </p>
+
+          <form id="contact-form" class="contact-form" novalidate>
+            <div class="form-group">
+              <label class="form-label" for="contact-name">
+                Name <span class="form-required">*</span>
+              </label>
+              <input
+                class="form-input"
+                type="text"
+                id="contact-name"
+                name="name"
+                required
+                autocomplete="name"
+                maxlength="200"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="contact-email">
+                Email <span class="form-required">*</span>
+              </label>
+              <input
+                class="form-input"
+                type="email"
+                id="contact-email"
+                name="email"
+                required
+                autocomplete="email"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="contact-subject">
+                Subject <span class="form-required">*</span>
+              </label>
+              <input
+                class="form-input"
+                type="text"
+                id="contact-subject"
+                name="subject"
+                required
+                maxlength="300"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="contact-message">
+                Message <span class="form-required">*</span>
+              </label>
+              <textarea
+                class="form-input form-textarea"
+                id="contact-message"
+                name="message"
+                required
+                minlength="10"
+                maxlength="5000"
+                rows="6"
+              ></textarea>
+              <span class="form-hint" id="char-count"></span>
+            </div>
+
+            <!-- Honeypot — hidden from humans, bots fill it -->
+            <div class="form-group" style="position:absolute;left:-9999px;" aria-hidden="true">
+              <label for="contact-website">Website</label>
+              <input type="text" id="contact-website" name="website" tabindex="-1" autocomplete="off" />
+            </div>
+
+            <!-- Turnstile widget container (rendered explicitly via JS) -->
+            {TURNSTILE_SITE_KEY && (
+              <div id="turnstile-container" data-sitekey={TURNSTILE_SITE_KEY}></div>
+            )}
+
+            <button type="submit" class="btn btn--primary contact-submit" id="contact-submit">
+              Send Message
+            </button>
+          </form>
+
+          <!-- Success message -->
+          <div id="contact-success" class="contact-feedback contact-feedback--success" hidden>
+            <div class="contact-feedback__icon">&#10003;</div>
+            <h3>Message sent</h3>
+            <p>Thank you for reaching out. We will get back to you as soon as possible.</p>
           </div>
 
+          <!-- Error message -->
+          <div id="contact-error" class="contact-feedback contact-feedback--error" hidden>
+            <p id="contact-error-text"></p>
+          </div>
+        </div>
+
+        <!-- Sidebar info -->
+        <div class="contact-info">
           <div class="contact-block">
             <h3>Email</h3>
             <p>
@@ -74,8 +169,9 @@ const jsonLd = {
               @rrmacademy
             </a>
           </div>
-      </div>
+        </div>
 
+      </div>
     </div>
   </section>
 
@@ -87,6 +183,141 @@ const jsonLd = {
       </p>
     </div>
   </section>
+
+  <!-- Turnstile script (explicit render mode — ?render=explicit) -->
+  {TURNSTILE_SITE_KEY && (
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer is:inline></script>
+  )}
+
+  <script is:inline>
+    (function () {
+      var form = document.getElementById('contact-form');
+      var submitBtn = document.getElementById('contact-submit');
+      var successEl = document.getElementById('contact-success');
+      var errorEl = document.getElementById('contact-error');
+      var errorText = document.getElementById('contact-error-text');
+      var charCount = document.getElementById('char-count');
+      var messageField = document.getElementById('contact-message');
+      var turnstileWidgetId = null;
+      var pendingSubmit = null; // stores form data while waiting for Turnstile
+
+      // Character counter
+      if (messageField && charCount) {
+        messageField.addEventListener('input', function () {
+          var len = messageField.value.length;
+          charCount.textContent = len > 0 ? len + ' / 5,000' : '';
+        });
+      }
+
+      // Render Turnstile widget once the API loads
+      // Invisible mode: widget auto-executes on turnstile.execute() call
+      function initTurnstile() {
+        var container = document.getElementById('turnstile-container');
+        if (!container || typeof turnstile === 'undefined') return;
+        turnstileWidgetId = turnstile.render(container, {
+          sitekey: container.dataset.sitekey,
+          size: 'invisible',
+          callback: function (token) {
+            // Turnstile verified — now submit the form with the token
+            if (pendingSubmit) {
+              doSubmit(pendingSubmit.name, pendingSubmit.email, pendingSubmit.subject, pendingSubmit.message, pendingSubmit.website, token);
+              pendingSubmit = null;
+            }
+          },
+          'error-callback': function () {
+            showError('Spam check failed. Please refresh the page and try again.');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Send Message';
+            pendingSubmit = null;
+          },
+        });
+      }
+
+      // Poll for turnstile API readiness (loaded async)
+      var tsCheck = setInterval(function () {
+        if (typeof turnstile !== 'undefined') {
+          clearInterval(tsCheck);
+          initTurnstile();
+        }
+      }, 200);
+      // Stop polling after 10s
+      setTimeout(function () { clearInterval(tsCheck); }, 10000);
+
+      function showError(msg) {
+        errorText.textContent = msg;
+        errorEl.hidden = false;
+        successEl.hidden = true;
+      }
+
+      function showSuccess() {
+        successEl.hidden = false;
+        errorEl.hidden = true;
+        form.hidden = true;
+      }
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        errorEl.hidden = true;
+
+        var name = form.elements['name'].value.trim();
+        var email = form.elements['email'].value.trim();
+        var subject = form.elements['subject'].value.trim();
+        var message = form.elements['message'].value.trim();
+        var website = form.elements['website'] ? form.elements['website'].value : '';
+
+        // Client-side validation
+        if (!name) return showError('Please enter your name.');
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showError('Please enter a valid email address.');
+        if (!subject) return showError('Please enter a subject.');
+        if (message.length < 10) return showError('Please enter a message (at least 10 characters).');
+
+        // Disable button
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Sending...';
+
+        // If Turnstile is available, execute it and wait for the callback
+        if (typeof turnstile !== 'undefined' && turnstileWidgetId !== null) {
+          pendingSubmit = { name: name, email: email, subject: subject, message: message, website: website };
+          turnstile.reset(turnstileWidgetId);
+          turnstile.execute(turnstileWidgetId);
+          return;
+        }
+
+        // No Turnstile (not configured or failed to load) — submit without token
+        doSubmit(name, email, subject, message, website, '');
+      });
+
+      function doSubmit(name, email, subject, message, website, token) {
+        fetch('/api/contact/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: name,
+            email: email,
+            subject: subject,
+            message: message,
+            website: website,
+            turnstileToken: token,
+          }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data.ok) {
+              showSuccess();
+            } else {
+              showError(data.error || 'Something went wrong. Please try again.');
+              submitBtn.disabled = false;
+              submitBtn.textContent = 'Send Message';
+            }
+          })
+          .catch(function () {
+            showError('Network error. Please check your connection and try again.');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Send Message';
+          });
+      }
+    })();
+  </script>
 </BaseLayout>
 
 <style>
@@ -123,15 +354,116 @@ const jsonLd = {
     }
   }
 
-  /* Info */
+  /* Grid: form + sidebar */
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-10);
+  }
+  @media (min-width: 769px) {
+    .contact-grid {
+      grid-template-columns: 2fr 1fr;
+      gap: var(--space-16);
+    }
+  }
+
+  /* Form */
+  .contact-form-wrap h2 {
+    margin-bottom: var(--space-3);
+  }
+  .contact-intro {
+    color: var(--text-secondary);
+    margin-bottom: var(--space-8);
+    line-height: 1.7;
+  }
+  .contact-form .form-group {
+    margin-bottom: var(--space-5);
+  }
+  .contact-form .form-label {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    margin-bottom: var(--space-2);
+  }
+  .contact-form .form-required {
+    color: var(--accent);
+  }
+  .contact-form .form-input {
+    width: 100%;
+    padding: var(--space-3) var(--space-5);
+    border: 1.5px solid var(--neutral-300);
+    border-radius: var(--radius-pill);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    background: var(--bg);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .contact-form .form-input:focus {
+    outline: none;
+    border-color: var(--purple-700);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+  .contact-form .form-textarea {
+    border-radius: var(--radius-md);
+    min-height: 120px;
+    resize: vertical;
+  }
+  .form-hint {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: var(--space-1);
+    text-align: right;
+  }
+
+  /* Submit button */
+  .contact-submit {
+    margin-top: var(--space-4);
+  }
+  .contact-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  /* Feedback messages */
+  .contact-feedback {
+    padding: var(--space-8);
+    border-radius: var(--radius-md);
+    text-align: center;
+  }
+  .contact-feedback--success {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+  }
+  .contact-feedback__icon {
+    font-size: 2rem;
+    color: var(--accent);
+    margin-bottom: var(--space-3);
+  }
+  .contact-feedback--success h3 {
+    margin-bottom: var(--space-2);
+  }
+  .contact-feedback--success p {
+    color: var(--text-secondary);
+    margin-bottom: 0;
+  }
+  .contact-feedback--error {
+    background: rgba(192, 57, 43, 0.05);
+    border: 1px solid var(--color-error);
+    color: var(--color-error);
+  }
+
+  /* Sidebar info */
+  .contact-info {
+    padding-top: var(--space-2);
+  }
   .contact-block {
     margin-bottom: var(--space-6);
   }
   .contact-block:last-child {
     margin-bottom: 0;
-  }
-  .contact-block h2 {
-    margin-bottom: var(--space-3);
   }
   .contact-block h3 {
     font-size: 1rem;
