@@ -38,6 +38,7 @@ const FIELDS = [
   '1️⃣ Approved or Not',
   'Enrichment Status',
   '1️⃣ Short Citation',
+  '1️⃣ Identifier (static)',
 ];
 
 async function fetchAll() {
@@ -83,6 +84,9 @@ async function fetchAll() {
       const keywords = f['1️⃣ Keywords (static)'] || '';
       const topicsRaw = f['1️⃣ Topics (AI)'] || '';
       const searchTermsRaw = f['1️⃣ Search Terms (AI)'] || '';
+      const identifiers = Array.isArray(f['1️⃣ Identifier (static)'])
+        ? f['1️⃣ Identifier (static)']
+        : [];
 
       articles.push({
         id: record.id,
@@ -108,7 +112,9 @@ async function fetchAll() {
         topics: topicsRaw ? topicsRaw.split('\n').map(t => t.trim()).filter(Boolean) : [],
         searchTerms: searchTermsRaw ? searchTermsRaw.split('\n').map(t => t.trim()).filter(Boolean) : [],
         enrichmentStatus: f['Enrichment Status'] || '',
-        isOpenAccess: keywords.toLowerCase().includes('open access'),
+        identifiers,
+        isOpenAccess: identifiers.includes('Open Access'),
+        isCopyrighted: identifiers.includes('©'),
       });
     }
 
