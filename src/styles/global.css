@@ -63,6 +63,8 @@
   /* Accent */
   --green-700: #2e7d32;
   --green-100: #e8f5e9;
+  --amber-700: #b45309;
+  --amber-100: #fef3c7;
 
   /* Semantic aliases */
   --bg-body: #f7f5f3;
@@ -166,6 +168,8 @@
 
   --green-700: #66bb6a;
   --green-100: #2a3a2a;
+  --amber-700: #fbbf24;
+  --amber-100: #3a3420;
 
   --bg-body: #1e1a16;
   --bg-surface: #28241e;
@@ -368,30 +372,35 @@ p a, li a, .prose a, blockquote a {
   border-radius: 12px;
   letter-spacing: 0.02em;
 }
-.badge--oa {
+/* Access badges (3-state: open/free/restricted) */
+.access-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 10px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.5;
+}
+.access-badge svg {
+  display: block;
+}
+.access-badge--open {
   color: var(--green-700);
   background: var(--green-100);
 }
-.badge--copyright {
-  color: var(--neutral-600);
-  background: var(--neutral-100);
+.access-badge--free {
+  color: var(--amber-700);
+  background: var(--amber-100);
 }
-
-/* Lock icons for access status */
-.access-icon {
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
-  line-height: 1;
-}
-.access-icon svg {
-  display: block;
-}
-.access-icon--open svg {
-  color: var(--orange-600, #ea580c);
-}
-.access-icon--locked svg {
+.access-badge--restricted {
   color: var(--neutral-400);
+  background: transparent;
+  padding: 1px 0;
 }
 
 /* Topic pills */

@@ -57,13 +57,21 @@ const coinsTitle = buildCOinS(article);
 
   <div class="article-card__meta">
     <span class="article-card__authors">{authorDisplay}</span>
-    {(article.isOpenAccess || article.isCopyrighted) && (
-      <span class={`access-icon ${article.isOpenAccess ? 'access-icon--open' : 'access-icon--locked'}`} title={article.isOpenAccess ? 'Open Access' : 'Copyrighted'}>
-        {article.isOpenAccess ? (
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
-        ) : (
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        )}
+    {article.accessLevel === 'open' && (
+      <span class="access-badge access-badge--open" title={article.oaType ? `${article.oaType} Open Access` : 'Open Access'}>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+        Open Access
+      </span>
+    )}
+    {article.accessLevel === 'free' && (
+      <span class="access-badge access-badge--free" title="Free to Read (Bronze OA)">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+        Free to Read
+      </span>
+    )}
+    {article.accessLevel === 'restricted' && article.isCopyrighted && (
+      <span class="access-badge access-badge--restricted" title="Restricted">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       </span>
     )}
     {journalDisplay && (
