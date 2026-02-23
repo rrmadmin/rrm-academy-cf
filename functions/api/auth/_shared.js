@@ -43,7 +43,10 @@ export function generateToken() {
 
 // --- Password hashing (PBKDF2 via Web Crypto) ---
 
-const PBKDF2_ITERATIONS = 600000;
+// OWASP minimum for PBKDF2-SHA256. Originally 600K but CF Workers free plan
+// has a 10ms CPU time limit — 600K iterations exceeds it. 100K fits comfortably.
+// Upgrade to Workers Paid ($5/mo) allows 30s CPU and 600K+ iterations if needed.
+const PBKDF2_ITERATIONS = 100000;
 const SALT_LENGTH = 16;
 
 export async function hashPassword(password) {

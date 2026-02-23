@@ -1,6 +1,6 @@
-# Cache HTML pages for 1 hour, revalidate
+# HTML pages — always revalidate with origin on refresh
 /library/*
-  Cache-Control: public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400
+  Cache-Control: public, max-age=0, must-revalidate
 
 # Cache static assets for 1 year (hashed filenames)
 /_astro/*
