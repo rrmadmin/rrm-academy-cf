@@ -35,8 +35,10 @@ function sanitizeMarkdown(md: string): string {
     // Fix quadruple bold markers around links: ****[text](url)**** → **[text](url)**
     .replace(/\*{4}\[/g, '**[')
     .replace(/\]\([^)]+\)\*{4}/g, (m) => m.replace(/\*{4}$/, '**'))
-    // Remove redundant bold inside headings: ## **Text** → ## Text
-    .replace(/^(#{1,6})\s+\*\*(.+?)\*\*\s*$/gm, '$1 $2');
+    // Remove redundant bold inside headings: ## **Text** or ##**Text** → ## Text
+    .replace(/^(#{1,6})\s*\*\*(.+?)\*\*\s*$/gm, '$1 $2')
+    // Fix headings missing space after #: ##Text → ## Text
+    .replace(/^(#{1,6})([^\s#])/gm, '$1 $2');
 }
 
 // Render markdown content to HTML
