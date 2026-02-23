@@ -266,37 +266,25 @@ const citationMeta = {
             <a href={pubmedUrl} class="article-id__value" target="_blank" rel="noopener">{article.pmid}</a>
           </span>
         )}
+        {article.license && (
+          <span class="article-id">
+            <span class="article-id__label">License</span>
+            <span class="article-id__value article-id__value--text">{article.license}</span>
+          </span>
+        )}
         {article.sourceUrl && (
           <a href={article.sourceUrl} class="external-link" target="_blank" rel="noopener">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             Source
           </a>
         )}
+        {article.oaUrl && article.oaUrl !== article.sourceUrl && (
+          <a href={article.oaUrl} class="external-link" target="_blank" rel="noopener">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Free full text
+          </a>
+        )}
       </div>
-
-      <!-- Access details -->
-      {(article.oaType || article.license || (article.oaUrl && article.oaUrl !== article.sourceUrl)) && (
-        <div class="access-details" data-pagefind-ignore>
-          {article.oaType && article.oaType !== 'Closed' && (
-            <span class="access-detail">
-              <span class="access-detail__label">Access</span>
-              <span class="access-detail__value">{article.oaType} Open Access</span>
-            </span>
-          )}
-          {article.license && (
-            <span class="access-detail">
-              <span class="access-detail__label">License</span>
-              <span class="access-detail__value">{article.license}</span>
-            </span>
-          )}
-          {article.oaUrl && article.oaUrl !== article.sourceUrl && (
-            <a href={article.oaUrl} class="external-link" target="_blank" rel="noopener">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-              Free full text
-            </a>
-          )}
-        </div>
-      )}
 
       <!-- Abstract -->
       <section class="abstract" aria-label="Abstract">
@@ -433,31 +421,11 @@ const citationMeta = {
     color: var(--accent);
     text-decoration: underline;
   }
+  .article-id__value--text {
+    color: var(--text-secondary);
+  }
   .external-link {
     font-size: 0.8125rem;
-  }
-  .access-details {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: var(--space-2) var(--space-5);
-    margin-bottom: var(--space-6);
-    font-size: 0.8125rem;
-  }
-  .access-detail {
-    display: inline-flex;
-    align-items: baseline;
-    gap: var(--space-1);
-  }
-  .access-detail__label {
-    font-size: 0.6875rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-  }
-  .access-detail__value {
-    color: var(--text-secondary);
   }
 
   .abstract {
