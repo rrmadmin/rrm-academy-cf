@@ -1,10 +1,12 @@
 /**
  * CF Pages Function middleware for RRM Academy.
  * Handles:
- * 1. Old Wix URL redirects (slug-recordid → slug)
+ * 1. Old slug redirects (slug without record ID → slug with record ID)
  * 2. Subdomain redirects (library.rrmacademy.org → rrmacademy.org/library)
  * 3. Auth protection for /account/* routes (redirect to /login if no session)
  */
+
+import slugRedirects from './_slug-redirects.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -18,14 +20,21 @@ export async function onRequest(context) {
     );
   }
 
-  // Check for old Wix URL pattern: /library/{slug}-{recordId}
-  // Record IDs are always rec + 14 alphanumeric chars
-  const oldPattern = url.pathname.match(/^\/library\/(.+)-(rec[a-zA-Z0-9]{14})$/);
-  if (oldPattern) {
-    return Response.redirect(
-      `https://rrmacademy.org/library/${oldPattern[1]}`,
-      301
-    );
+  // 301 redirect: old library slugs without record ID → new slugs with record ID
+  // New slugs end with -rec[14 chars], old ones don't
+  const libraryMatch = url.pathname.match(/^\/library\/([^/]+)\/?$/);
+  if (libraryMatch) {
+    const slug = libraryMatch[1];
+    // Only redirect if slug does NOT already have a record ID suffix
+    if (!/rec[a-z0-9]{14}$/.test(slug)) {
+      const newSlug = slugRedirects[slug];
+      if (newSlug) {
+        return Response.redirect(
+          `https://rrmacademy.org/library/${newSlug}`,
+          301
+        );
+      }
+    }
   }
 
   // Auth protection: /account/* requires a valid session
