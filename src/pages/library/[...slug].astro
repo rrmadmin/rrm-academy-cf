@@ -130,6 +130,13 @@ if (article.license && LICENSE_URLS[article.license]) {
   jsonLd.license = LICENSE_URLS[article.license];
 }
 
+// Source link only when there's no DOI (non-journal sources need it; DOI covers journal articles)
+const showSourceLink = article.sourceUrl && !article.doi;
+// Free full text only when oaUrl differs from both sourceUrl and DOI
+const showFreeFullText = article.oaUrl
+  && article.oaUrl !== article.sourceUrl
+  && article.oaUrl !== (article.doi ? `https://doi.org/${article.doi}` : '');
+
 const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
 
 // Highwire Press citation meta for Zotero Connector
@@ -269,16 +276,16 @@ const citationMeta = {
         {article.license && (
           <span class="article-id">
             <span class="article-id__label">License</span>
-            <span class="article-id__value article-id__value--text">{article.license}</span>
+            <span class="article-id__license">{article.license}</span>
           </span>
         )}
-        {article.sourceUrl && (
+        {showSourceLink && (
           <a href={article.sourceUrl} class="external-link" target="_blank" rel="noopener">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             Source
           </a>
         )}
-        {article.oaUrl && article.oaUrl !== article.sourceUrl && (
+        {showFreeFullText && (
           <a href={article.oaUrl} class="external-link" target="_blank" rel="noopener">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             Free full text
@@ -297,7 +304,9 @@ const citationMeta = {
               {section.heading && (
                 <span class="abstract-heading">{section.heading}</span>
               )}
-              <p>{section.text}</p>
+              {section.text.split(/\n\s*\n/).map(para => (
+                <p>{para.trim()}</p>
+              ))}
             </div>
           ))
         )}
@@ -421,8 +430,9 @@ const citationMeta = {
     color: var(--accent);
     text-decoration: underline;
   }
-  .article-id__value--text {
-    color: var(--text-secondary);
+  .article-id__license {
+    color: var(--neutral-600);
+    font-size: 0.8125rem;
   }
   .external-link {
     font-size: 0.8125rem;
