@@ -1,0 +1,205 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
+---
+<BaseLayout
+  title="Create Account"
+  description="Create your free RRM Academy account to access courses in restorative reproductive medicine."
+  canonicalUrl="https://rrmacademy.org/signup"
+>
+  <section class="auth-page">
+    <div class="container container--narrow">
+      <div class="auth-card">
+        <h1>Create account</h1>
+
+        <form id="signup-form" class="auth-form" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="signup-name">Full name</label>
+            <input class="form-input" type="text" id="signup-name" name="name" required autocomplete="name" maxlength="200" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="signup-email">Email</label>
+            <input class="form-input" type="email" id="signup-email" name="email" required autocomplete="email" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="signup-password">Password</label>
+            <input class="form-input" type="password" id="signup-password" name="password" required autocomplete="new-password" minlength="8" />
+            <span class="form-hint">At least 8 characters</span>
+          </div>
+
+          {TURNSTILE_SITE_KEY && (
+            <div id="turnstile-container" data-sitekey={TURNSTILE_SITE_KEY}></div>
+          )}
+
+          <button type="submit" class="btn btn--primary auth-submit" id="signup-submit">Create account</button>
+        </form>
+
+        <!-- Verification prompt (shown after signup) -->
+        <div id="verify-prompt" class="auth-verify" hidden>
+          <h2>Check your email</h2>
+          <p>We sent a verification code to <strong id="verify-email"></strong>.</p>
+          <form id="verify-form" class="auth-form" novalidate>
+            <div class="form-group">
+              <label class="form-label" for="verify-code">Verification code</label>
+              <input class="form-input" type="text" id="verify-code" name="code" required autocomplete="one-time-code" maxlength="8" />
+            </div>
+            <button type="submit" class="btn btn--primary auth-submit" id="verify-submit">Verify</button>
+          </form>
+          <p class="auth-resend">
+            Didn't get the code? <button type="button" id="resend-btn" class="btn btn--text btn--sm">Resend</button>
+          </p>
+        </div>
+
+        <div id="auth-error" class="auth-feedback auth-feedback--error" hidden>
+          <p id="auth-error-text"></p>
+        </div>
+
+        <div id="signup-links" class="auth-links">
+          <span>Already have an account?</span>
+          <a href="/login">Log in</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {TURNSTILE_SITE_KEY && (
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer is:inline></script>
+  )}
+
+  <script is:inline>
+    (function () {
+      var signupForm = document.getElementById('signup-form');
+      var verifyForm = document.getElementById('verify-form');
+      var verifyPrompt = document.getElementById('verify-prompt');
+      var signupLinks = document.getElementById('signup-links');
+      var submitBtn = document.getElementById('signup-submit');
+      var verifyBtn = document.getElementById('verify-submit');
+      var resendBtn = document.getElementById('resend-btn');
+      var errorEl = document.getElementById('auth-error');
+      var errorText = document.getElementById('auth-error-text');
+      var verifyEmailEl = document.getElementById('verify-email');
+      var turnstileWidgetId = null;
+      var pendingSubmit = null;
+
+      function initTurnstile() {
+        var el = document.getElementById('turnstile-container');
+        if (!el || typeof turnstile === 'undefined') return;
+        turnstileWidgetId = turnstile.render(el, {
+          sitekey: el.dataset.sitekey, size: 'invisible',
+          callback: function (token) {
+            if (pendingSubmit) { doSignup(pendingSubmit.name, pendingSubmit.email, pendingSubmit.password, token); pendingSubmit = null; }
+          },
+          'error-callback': function () {
+            showError('Spam check failed. Please refresh and try again.');
+            submitBtn.disabled = false; submitBtn.textContent = 'Create account'; pendingSubmit = null;
+          },
+        });
+      }
+      var tsCheck = setInterval(function () { if (typeof turnstile !== 'undefined') { clearInterval(tsCheck); initTurnstile(); } }, 200);
+      setTimeout(function () { clearInterval(tsCheck); }, 10000);
+
+      function showError(msg) { errorText.textContent = msg; errorEl.hidden = false; }
+
+      signupForm.addEventListener('submit', function (e) {
+        e.preventDefault(); errorEl.hidden = true;
+        var name = signupForm.name.value.trim();
+        var email = signupForm.email.value.trim();
+        var password = signupForm.password.value;
+        if (!name) return showError('Please enter your name.');
+        if (!email) return showError('Please enter your email.');
+        if (!password || password.length < 8) return showError('Password must be at least 8 characters.');
+        submitBtn.disabled = true; submitBtn.textContent = 'Creating account...';
+        if (typeof turnstile !== 'undefined' && turnstileWidgetId !== null) {
+          pendingSubmit = { name: name, email: email, password: password };
+          turnstile.reset(turnstileWidgetId); turnstile.execute(turnstileWidgetId); return;
+        }
+        doSignup(name, email, password, '');
+      });
+
+      function doSignup(name, email, password, token) {
+        fetch('/api/auth/signup', {
+          method: 'POST', credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: name, email: email, password: password, turnstileToken: token }),
+        })
+          .then(function (r) {
+            return r.text().then(function (text) {
+              try { return JSON.parse(text); }
+              catch { throw new Error('HTTP ' + r.status + ': ' + text.slice(0, 200)); }
+            });
+          })
+          .then(function (data) {
+            if (data.ok) {
+              signupForm.hidden = true; signupLinks.hidden = true;
+              verifyEmailEl.textContent = email;
+              verifyPrompt.hidden = false;
+            } else {
+              showError(data.error || 'Signup failed.');
+              submitBtn.disabled = false; submitBtn.textContent = 'Create account';
+            }
+          })
+          .catch(function (err) {
+            showError(err.message || 'Network error. Please try again.');
+            submitBtn.disabled = false; submitBtn.textContent = 'Create account';
+          });
+      }
+
+      verifyForm.addEventListener('submit', function (e) {
+        e.preventDefault(); errorEl.hidden = true;
+        var code = verifyForm.code.value.trim();
+        if (!code) return showError('Please enter the verification code.');
+        verifyBtn.disabled = true; verifyBtn.textContent = 'Verifying...';
+        fetch('/api/auth/verify-email', {
+          method: 'POST', credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: code }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data.ok) { window.location.href = '/account'; }
+            else { showError(data.error || 'Verification failed.'); verifyBtn.disabled = false; verifyBtn.textContent = 'Verify'; }
+          })
+          .catch(function () { showError('Network error.'); verifyBtn.disabled = false; verifyBtn.textContent = 'Verify'; });
+      });
+
+      resendBtn.addEventListener('click', function () {
+        resendBtn.disabled = true; resendBtn.textContent = 'Sending...';
+        fetch('/api/auth/resend-verification', { method: 'POST', credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function () { resendBtn.textContent = 'Sent!'; setTimeout(function () { resendBtn.disabled = false; resendBtn.textContent = 'Resend'; }, 30000); })
+          .catch(function () { resendBtn.disabled = false; resendBtn.textContent = 'Resend'; });
+      });
+    })();
+  </script>
+</BaseLayout>
+
+<style>
+  .auth-page { padding: var(--space-16) 0; min-height: 60vh; display: flex; align-items: center; }
+  .auth-card {
+    max-width: 420px; margin: 0 auto; padding: var(--space-10) var(--space-8);
+    background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg);
+  }
+  .auth-card h1 { text-align: center; margin-bottom: var(--space-8); font-size: 1.75rem; }
+  .auth-form .form-group { margin-bottom: var(--space-5); }
+  .auth-form .form-label { display: block; font-family: 'Inter', sans-serif; font-size: 0.8125rem; font-weight: 500; margin-bottom: var(--space-2); }
+  .auth-form .form-input {
+    width: 100%; padding: var(--space-3) var(--space-5);
+    border: 1.5px solid var(--neutral-300); border-radius: var(--radius-pill);
+    font-family: 'Inter', sans-serif; font-size: 0.9375rem; color: var(--text-primary); background: var(--bg);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .auth-form .form-input:focus { outline: none; border-color: var(--purple-700); box-shadow: 0 0 0 3px var(--focus-ring); }
+  .auth-submit { width: 100%; margin-top: var(--space-4); }
+  .auth-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+  .form-hint { display: block; font-size: 0.75rem; color: var(--text-muted); margin-top: var(--space-1); }
+  .auth-feedback--error { margin-top: var(--space-4); padding: var(--space-3) var(--space-4); background: rgba(192,57,43,0.05); border: 1px solid var(--color-error); border-radius: var(--radius-md); color: var(--color-error); font-size: 0.875rem; }
+  .auth-links { margin-top: var(--space-6); text-align: center; font-size: 0.8125rem; }
+  .auth-links a { color: var(--accent); margin-left: var(--space-2); }
+  .auth-links a:hover { color: var(--accent-hover); }
+  .auth-verify { text-align: center; }
+  .auth-verify h2 { font-size: 1.25rem; margin-bottom: var(--space-3); }
+  .auth-verify p { color: var(--text-secondary); margin-bottom: var(--space-6); }
+  .auth-resend { margin-top: var(--space-4); font-size: 0.8125rem; color: var(--text-muted); }
+</style>

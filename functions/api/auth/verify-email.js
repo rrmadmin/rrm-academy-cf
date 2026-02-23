@@ -1,0 +1,52 @@
+/**
+ * POST /api/auth/verify-email
+ * Accepts { code } and verifies the user's email address.
+ */
+import {
+  json, optionsResponse, getSessionIdFromCookie, validateSession,
+} from './_shared.js';
+
+export async function onRequestOptions() {
+  return optionsResponse();
+}
+
+export async function onRequestPost({ request, env }) {
+  try {
+    const db = env.DB;
+    if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
+
+    // Must be logged in
+    const sessionId = getSessionIdFromCookie(request);
+    const session = await validateSession(db, sessionId);
+    if (!session) return json({ ok: false, error: 'Not authenticated.' }, 401);
+
+    let body;
+    try { body = await request.json(); } catch { return json({ ok: false, error: 'Invalid JSON' }, 400); }
+
+    const code = (body.code || '').trim();
+    if (!code) return json({ ok: false, error: 'Verification code is required.' }, 400);
+
+    const now = Math.floor(Date.now() / 1000);
+
+    // Find valid verification record
+    const record = await db.prepare(
+      'SELECT id, code, expires_at FROM email_verification WHERE user_id = ? AND code = ? AND expires_at > ?'
+    ).bind(session.userId, code, now).first();
+
+    if (!record) {
+      return json({ ok: false, error: 'Invalid or expired verification code.' }, 400);
+    }
+
+    // Mark email as verified
+    await db.prepare('UPDATE user SET email_verified = 1, updated_at = datetime(\'now\') WHERE id = ?')
+      .bind(session.userId).run();
+
+    // Clean up verification records for this user
+    await db.prepare('DELETE FROM email_verification WHERE user_id = ?')
+      .bind(session.userId).run();
+
+    return json({ ok: true });
+  } catch (err) {
+    return json({ ok: false, error: 'Server error: ' + (err.message || 'Unknown') }, 500);
+  }
+}

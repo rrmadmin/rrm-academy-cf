@@ -1,0 +1,143 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="My Account"
+  description="Manage your RRM Academy account, courses, and membership."
+  canonicalUrl="https://rrmacademy.org/account"
+>
+  <section class="auth-page">
+    <div class="container container--narrow">
+
+      <!-- Loading state -->
+      <div id="account-loading" class="account-loading">
+        <p>Loading your account...</p>
+      </div>
+
+      <!-- Not logged in -->
+      <div id="account-guest" class="auth-card" hidden>
+        <h1>My Account</h1>
+        <p class="auth-intro">Please log in to access your account.</p>
+        <a href="/login" class="btn btn--primary auth-submit">Log in</a>
+        <div class="auth-links">
+          <span>Don't have an account?</span>
+          <a href="/signup">Create one</a>
+        </div>
+      </div>
+
+      <!-- Logged in -->
+      <div id="account-dashboard" hidden>
+        <div class="account-header">
+          <h1>Welcome, <span id="account-name"></span></h1>
+          <button id="logout-btn" class="btn btn--secondary btn--sm">Log out</button>
+        </div>
+
+        <!-- Email verification banner -->
+        <div id="verify-banner" class="account-banner account-banner--warning" hidden>
+          <p>Your email is not verified. <button id="send-verify-btn" class="btn btn--text btn--sm">Send verification code</button></p>
+        </div>
+
+        <div class="account-sections">
+          <div class="account-section">
+            <h2>Profile</h2>
+            <dl class="account-details">
+              <dt>Name</dt>
+              <dd id="profile-name"></dd>
+              <dt>Email</dt>
+              <dd id="profile-email"></dd>
+              <dt>Member since</dt>
+              <dd id="profile-since">—</dd>
+            </dl>
+          </div>
+
+          <div class="account-section">
+            <h2>Courses</h2>
+            <p class="account-placeholder">Course enrollment coming soon.</p>
+          </div>
+
+          <div class="account-section">
+            <h2>Billing</h2>
+            <p class="account-placeholder">Subscription management coming soon.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <script is:inline>
+    (function () {
+      var loadingEl = document.getElementById('account-loading');
+      var guestEl = document.getElementById('account-guest');
+      var dashEl = document.getElementById('account-dashboard');
+      var nameEl = document.getElementById('account-name');
+      var profileName = document.getElementById('profile-name');
+      var profileEmail = document.getElementById('profile-email');
+      var verifyBanner = document.getElementById('verify-banner');
+      var sendVerifyBtn = document.getElementById('send-verify-btn');
+      var logoutBtn = document.getElementById('logout-btn');
+
+      fetch('/api/auth/session', { credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          loadingEl.hidden = true;
+          if (!data.ok || !data.user) {
+            guestEl.hidden = false;
+            return;
+          }
+          var user = data.user;
+          nameEl.textContent = user.name || 'Member';
+          profileName.textContent = user.name || '—';
+          profileEmail.textContent = user.email;
+          if (!user.emailVerified) verifyBanner.hidden = false;
+          dashEl.hidden = false;
+        })
+        .catch(function () {
+          loadingEl.hidden = true;
+          guestEl.hidden = false;
+        });
+
+      logoutBtn.addEventListener('click', function () {
+        fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' })
+          .then(function () { window.location.href = '/login'; });
+      });
+
+      sendVerifyBtn.addEventListener('click', function () {
+        sendVerifyBtn.disabled = true; sendVerifyBtn.textContent = 'Sending...';
+        fetch('/api/auth/resend-verification', { method: 'POST', credentials: 'same-origin' })
+          .then(function () { sendVerifyBtn.textContent = 'Sent! Check your email.'; });
+      });
+    })();
+  </script>
+</BaseLayout>
+
+<style>
+  .auth-page { padding: var(--space-16) 0; min-height: 60vh; }
+  .account-loading { text-align: center; color: var(--text-muted); padding: var(--space-16) 0; }
+  .auth-card {
+    max-width: 420px; margin: 0 auto; padding: var(--space-10) var(--space-8);
+    background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); text-align: center;
+  }
+  .auth-card h1 { margin-bottom: var(--space-3); font-size: 1.75rem; }
+  .auth-intro { color: var(--text-secondary); margin-bottom: var(--space-6); }
+  .auth-submit { display: block; width: 100%; text-align: center; text-decoration: none; }
+  .auth-links { margin-top: var(--space-6); font-size: 0.8125rem; }
+  .auth-links a { color: var(--accent); margin-left: var(--space-2); }
+
+  .account-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-8); flex-wrap: wrap; gap: var(--space-4); }
+  .account-header h1 { font-size: 1.75rem; margin: 0; }
+
+  .account-banner { padding: var(--space-3) var(--space-5); border-radius: var(--radius-md); margin-bottom: var(--space-6); font-size: 0.875rem; }
+  .account-banner--warning { background: rgba(243, 156, 18, 0.08); border: 1px solid rgba(243, 156, 18, 0.3); color: var(--text-primary); }
+
+  .account-sections { display: grid; gap: var(--space-6); }
+  .account-section {
+    padding: var(--space-6) var(--space-8);
+    background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg);
+  }
+  .account-section h2 { font-size: 1.125rem; margin-bottom: var(--space-4); }
+  .account-details { display: grid; grid-template-columns: auto 1fr; gap: var(--space-2) var(--space-6); font-size: 0.9375rem; }
+  .account-details dt { font-weight: 500; color: var(--text-secondary); }
+  .account-details dd { color: var(--text-primary); }
+  .account-placeholder { color: var(--text-muted); font-size: 0.875rem; }
+</style>
