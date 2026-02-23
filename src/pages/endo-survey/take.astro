@@ -672,7 +672,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(99, 98, 97);
-      doc.text('3-Tier Assessment by Dr. Naomi Whittaker, MD, OBGYN, MIGS', margin, y);
+      doc.text('3-Tier Self-Assessment developed by Dr. Naomi Whittaker, MD, OBGYN, MIGS', margin, y);
       y += 5;
       doc.text(`Completed: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, margin, y);
       y += 10;
@@ -749,7 +749,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       doc.setFontSize(7.5);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(148, 145, 142);
-      const disclaimer = 'This self-survey is for educational purposes only and does not constitute medical advice, diagnosis, or treatment. Endometriosis can only be diagnosed through surgery. Always consult a qualified healthcare provider for evaluation. RRM Academy is a project of the RRM Foundation, a 501(c)(3) nonprofit.';
+      const disclaimer = 'This self-assessment is for educational purposes only and does not constitute medical advice, diagnosis, or treatment. Endometriosis can only be diagnosed through surgery. Always consult a qualified healthcare provider for evaluation. Your anonymized responses may be used for research purposes. RRM Academy is a project of the RRM Foundation, a 501(c)(3) nonprofit.';
       const discLines = doc.splitTextToSize(disclaimer, maxW);
       doc.text(discLines, margin, y);
 
