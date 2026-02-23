@@ -55,18 +55,52 @@ const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
 
           <form id="contact-form" class="contact-form" novalidate>
             <div class="form-group">
-              <label class="form-label" for="contact-name">
-                Name <span class="form-required">*</span>
+              <label class="form-label" for="contact-message">
+                Your message <span class="form-required">*</span>
               </label>
-              <input
-                class="form-input"
-                type="text"
-                id="contact-name"
-                name="name"
+              <textarea
+                class="form-input form-textarea"
+                id="contact-message"
+                name="message"
                 required
-                autocomplete="name"
-                maxlength="200"
-              />
+                minlength="10"
+                maxlength="5000"
+                rows="6"
+                placeholder="Your message"
+              ></textarea>
+              <span class="form-hint" id="char-count"></span>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="contact-first-name">
+                  First name <span class="form-required">*</span>
+                </label>
+                <input
+                  class="form-input"
+                  type="text"
+                  id="contact-first-name"
+                  name="firstName"
+                  required
+                  autocomplete="given-name"
+                  maxlength="100"
+                  placeholder="First name"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="contact-last-name">
+                  Last name
+                </label>
+                <input
+                  class="form-input"
+                  type="text"
+                  id="contact-last-name"
+                  name="lastName"
+                  autocomplete="family-name"
+                  maxlength="100"
+                  placeholder="Last name"
+                />
+              </div>
             </div>
 
             <div class="form-group">
@@ -80,37 +114,8 @@ const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
                 name="email"
                 required
                 autocomplete="email"
+                placeholder="Email"
               />
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" for="contact-subject">
-                Subject <span class="form-required">*</span>
-              </label>
-              <input
-                class="form-input"
-                type="text"
-                id="contact-subject"
-                name="subject"
-                required
-                maxlength="300"
-              />
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" for="contact-message">
-                Message <span class="form-required">*</span>
-              </label>
-              <textarea
-                class="form-input form-textarea"
-                id="contact-message"
-                name="message"
-                required
-                minlength="10"
-                maxlength="5000"
-                rows="6"
-              ></textarea>
-              <span class="form-hint" id="char-count"></span>
             </div>
 
             <!-- Honeypot — hidden from humans, bots fill it -->
@@ -125,7 +130,7 @@ const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
             )}
 
             <button type="submit" class="btn btn--primary contact-submit" id="contact-submit">
-              Send Message
+              Send
             </button>
           </form>
 
@@ -212,14 +217,14 @@ const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
           callback: function (token) {
             // Turnstile verified — now submit the form with the token
             if (pendingSubmit) {
-              doSubmit(pendingSubmit.name, pendingSubmit.email, pendingSubmit.subject, pendingSubmit.message, pendingSubmit.website, token);
+              doSubmit(pendingSubmit.name, pendingSubmit.email, pendingSubmit.message, pendingSubmit.website, token);
               pendingSubmit = null;
             }
           },
           'error-callback': function () {
             showError('Spam check failed. Please refresh the page and try again.');
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Send Message';
+            submitBtn.textContent = 'Send';
             pendingSubmit = null;
           },
         });
@@ -251,16 +256,16 @@ const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
         e.preventDefault();
         errorEl.hidden = true;
 
-        var name = form.elements['name'].value.trim();
+        var firstName = form.elements['firstName'].value.trim();
+        var lastName = form.elements['lastName'] ? form.elements['lastName'].value.trim() : '';
+        var name = lastName ? firstName + ' ' + lastName : firstName;
         var email = form.elements['email'].value.trim();
-        var subject = form.elements['subject'].value.trim();
         var message = form.elements['message'].value.trim();
         var website = form.elements['website'] ? form.elements['website'].value : '';
 
         // Client-side validation
-        if (!name) return showError('Please enter your name.');
+        if (!firstName) return showError('Please enter your first name.');
         if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showError('Please enter a valid email address.');
-        if (!subject) return showError('Please enter a subject.');
         if (message.length < 10) return showError('Please enter a message (at least 10 characters).');
 
         // Disable button
@@ -269,24 +274,23 @@ const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
 
         // If Turnstile is available, execute it and wait for the callback
         if (typeof turnstile !== 'undefined' && turnstileWidgetId !== null) {
-          pendingSubmit = { name: name, email: email, subject: subject, message: message, website: website };
+          pendingSubmit = { name: name, email: email, message: message, website: website };
           turnstile.reset(turnstileWidgetId);
           turnstile.execute(turnstileWidgetId);
           return;
         }
 
         // No Turnstile (not configured or failed to load) — submit without token
-        doSubmit(name, email, subject, message, website, '');
+        doSubmit(name, email, message, website, '');
       });
 
-      function doSubmit(name, email, subject, message, website, token) {
+      function doSubmit(name, email, message, website, token) {
         fetch('/api/contact/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name: name,
             email: email,
-            subject: subject,
             message: message,
             website: website,
             turnstileToken: token,
@@ -299,13 +303,13 @@ const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
             } else {
               showError(data.error || 'Something went wrong. Please try again.');
               submitBtn.disabled = false;
-              submitBtn.textContent = 'Send Message';
+              submitBtn.textContent = 'Send';
             }
           })
           .catch(function () {
             showError('Network error. Please check your connection and try again.');
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Send Message';
+            submitBtn.textContent = 'Send';
           });
       }
     })();
@@ -367,6 +371,14 @@ const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
     color: var(--text-secondary);
     margin-bottom: var(--space-8);
     line-height: 1.7;
+  }
+  .contact-form .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+  }
+  .contact-form .form-row .form-group {
+    margin-bottom: var(--space-5);
   }
   .contact-form .form-group {
     margin-bottom: var(--space-5);

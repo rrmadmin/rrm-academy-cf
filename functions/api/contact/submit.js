@@ -43,7 +43,6 @@ export async function onRequestPost(context) {
   // Validate fields
   const name = (body.name || '').trim();
   const email = (body.email || '').trim().toLowerCase();
-  const subject = (body.subject || '').trim();
   const message = (body.message || '').trim();
 
   if (!name || name.length > 200) {
@@ -52,12 +51,12 @@ export async function onRequestPost(context) {
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return json({ ok: false, error: 'Valid email is required.' }, 400);
   }
-  if (!subject || subject.length > 300) {
-    return json({ ok: false, error: 'Subject is required.' }, 400);
-  }
   if (!message || message.length < 10 || message.length > 5000) {
     return json({ ok: false, error: 'Message must be between 10 and 5,000 characters.' }, 400);
   }
+
+  // Auto-generate subject identifying the sender and source
+  const subject = `Contact form: ${name}`;
 
   // Verify Turnstile token
   const turnstileToken = body.turnstileToken || '';
@@ -96,7 +95,6 @@ export async function onRequestPost(context) {
       text: [
         `Name: ${name}`,
         `Email: ${email}`,
-        `Subject: ${subject}`,
         '',
         message,
         '',
