@@ -304,7 +304,7 @@ const citationMeta = {
               {section.heading && (
                 <span class="abstract-heading">{section.heading}</span>
               )}
-              {section.text.split(/\n\s*\n/).map(para => (
+              {section.text.split(/\n/).filter(p => p.trim()).map(para => (
                 <p>{para.trim()}</p>
               ))}
             </div>
