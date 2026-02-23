@@ -39,6 +39,9 @@ const FIELDS = [
   'Enrichment Status',
   '1️⃣ Short Citation',
   '1️⃣ Identifier (static)',
+  '1️⃣ OA Type (static)',
+  '1️⃣ License (static)',
+  '1️⃣ OA URL (static)',
 ];
 
 async function fetchAll() {
@@ -88,6 +91,20 @@ async function fetchAll() {
         ? f['1️⃣ Identifier (static)']
         : [];
 
+      const oaType = f['1️⃣ OA Type (static)'] || '';
+      const license = f['1️⃣ License (static)'] || '';
+      const oaUrl = f['1️⃣ OA URL (static)'] || '';
+
+      // Compute 3-state access level
+      let accessLevel = 'restricted';
+      if (oaType) {
+        if (['Gold', 'Diamond', 'Hybrid', 'Green'].includes(oaType)) accessLevel = 'open';
+        else if (oaType === 'Bronze') accessLevel = 'free';
+      } else {
+        if (identifiers.includes('Open Access')) accessLevel = 'open';
+        else if (identifiers.includes('Full Text')) accessLevel = 'free';
+      }
+
       articles.push({
         id: record.id,
         slug: slug.trim(),
@@ -113,8 +130,12 @@ async function fetchAll() {
         searchTerms: searchTermsRaw ? searchTermsRaw.split('\n').map(t => t.trim()).filter(Boolean) : [],
         enrichmentStatus: f['Enrichment Status'] || '',
         identifiers,
-        isOpenAccess: identifiers.includes('Open Access'),
+        isOpenAccess: accessLevel === 'open',
         isCopyrighted: identifiers.includes('©'),
+        oaType,
+        license,
+        oaUrl,
+        accessLevel,
       });
     }
 

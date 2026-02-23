@@ -33,6 +33,9 @@ const FIELDS = [
   'Enrichment Status',
   '1️⃣ Short Citation',
   '1️⃣ Identifier (static)',
+  '1️⃣ OA Type (static)',
+  '1️⃣ License (static)',
+  '1️⃣ OA URL (static)',
 ];
 
 export interface Article {
@@ -62,6 +65,10 @@ export interface Article {
   identifiers: string[];
   isOpenAccess: boolean;
   isCopyrighted: boolean;
+  oaType: string;
+  license: string;
+  oaUrl: string;
+  accessLevel: 'open' | 'free' | 'restricted';
 }
 
 interface AirtableRecord {
@@ -83,7 +90,22 @@ function transformRecord(record: AirtableRecord): Article | null {
   const identifiers: string[] = Array.isArray(f['1️⃣ Identifier (static)'])
     ? f['1️⃣ Identifier (static)']
     : [];
-  const isOpenAccess = identifiers.includes('Open Access');
+  const oaType = f['1️⃣ OA Type (static)'] || '';
+  const license = f['1️⃣ License (static)'] || '';
+  const oaUrl = f['1️⃣ OA URL (static)'] || '';
+
+  // Compute 3-state access level from OA type, with fallback to legacy tags
+  let accessLevel: 'open' | 'free' | 'restricted' = 'restricted';
+  if (oaType) {
+    if (['Gold', 'Diamond', 'Hybrid', 'Green'].includes(oaType)) accessLevel = 'open';
+    else if (oaType === 'Bronze') accessLevel = 'free';
+  } else {
+    // Fallback for records not yet re-enriched
+    if (identifiers.includes('Open Access')) accessLevel = 'open';
+    else if (identifiers.includes('Full Text')) accessLevel = 'free';
+  }
+
+  const isOpenAccess = accessLevel === 'open';
   const isCopyrighted = identifiers.includes('©');
 
   // Parse topics — stored as comma-separated string
@@ -125,6 +147,10 @@ function transformRecord(record: AirtableRecord): Article | null {
     identifiers,
     isOpenAccess,
     isCopyrighted,
+    oaType,
+    license,
+    oaUrl,
+    accessLevel,
   };
 }
 

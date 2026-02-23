@@ -109,6 +109,27 @@ if (article.pmid) {
 }
 if (identifiers.length) jsonLd.identifier = identifiers;
 
+// OA metadata
+if (article.accessLevel === 'open' || article.accessLevel === 'free') {
+  jsonLd.isAccessibleForFree = true;
+} else {
+  jsonLd.isAccessibleForFree = false;
+}
+
+// License URL
+const LICENSE_URLS: Record<string, string> = {
+  'CC-BY': 'https://creativecommons.org/licenses/by/4.0/',
+  'CC-BY-SA': 'https://creativecommons.org/licenses/by-sa/4.0/',
+  'CC-BY-NC': 'https://creativecommons.org/licenses/by-nc/4.0/',
+  'CC-BY-NC-SA': 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
+  'CC-BY-ND': 'https://creativecommons.org/licenses/by-nd/4.0/',
+  'CC-BY-NC-ND': 'https://creativecommons.org/licenses/by-nc-nd/4.0/',
+  'CC0': 'https://creativecommons.org/publicdomain/zero/1.0/',
+};
+if (article.license && LICENSE_URLS[article.license]) {
+  jsonLd.license = LICENSE_URLS[article.license];
+}
+
 const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
 
 // Highwire Press citation meta for Zotero Connector
@@ -204,13 +225,21 @@ const citationMeta = {
         ) : article.authors ? (
           <p class="short-citation" data-pagefind-weight="5" data-pagefind-meta="authors">{article.authors}</p>
         ) : null}
-        {(article.isOpenAccess || article.isCopyrighted) && (
-          <span class={`access-icon ${article.isOpenAccess ? 'access-icon--open' : 'access-icon--locked'}`} title={article.isOpenAccess ? 'Open Access' : 'Copyrighted'}>
-            {article.isOpenAccess ? (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
-            ) : (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            )}
+        {article.accessLevel === 'open' && (
+          <span class="access-badge access-badge--open" title={article.oaType ? `${article.oaType} Open Access` : 'Open Access'}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+            Open Access
+          </span>
+        )}
+        {article.accessLevel === 'free' && (
+          <span class="access-badge access-badge--free" title="Free to Read (Bronze OA)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+            Free to Read
+          </span>
+        )}
+        {article.accessLevel === 'restricted' && article.isCopyrighted && (
+          <span class="access-badge access-badge--restricted" title="Restricted">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           </span>
         )}
       </div>
@@ -244,6 +273,30 @@ const citationMeta = {
           </a>
         )}
       </div>
+
+      <!-- Access details -->
+      {(article.oaType || article.license || (article.oaUrl && article.oaUrl !== article.sourceUrl)) && (
+        <div class="access-details" data-pagefind-ignore>
+          {article.oaType && article.oaType !== 'Closed' && (
+            <span class="access-detail">
+              <span class="access-detail__label">Access</span>
+              <span class="access-detail__value">{article.oaType} Open Access</span>
+            </span>
+          )}
+          {article.license && (
+            <span class="access-detail">
+              <span class="access-detail__label">License</span>
+              <span class="access-detail__value">{article.license}</span>
+            </span>
+          )}
+          {article.oaUrl && article.oaUrl !== article.sourceUrl && (
+            <a href={article.oaUrl} class="external-link" target="_blank" rel="noopener">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              Free full text
+            </a>
+          )}
+        </div>
+      )}
 
       <!-- Abstract -->
       <section class="abstract" aria-label="Abstract">
@@ -327,7 +380,7 @@ const citationMeta = {
     gap: var(--space-2);
     margin-bottom: var(--space-3);
   }
-  .article-meta-row .access-icon {
+  .article-meta-row .access-badge {
     align-self: center;
     position: relative;
     top: -1px;
@@ -382,6 +435,29 @@ const citationMeta = {
   }
   .external-link {
     font-size: 0.8125rem;
+  }
+  .access-details {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2) var(--space-5);
+    margin-bottom: var(--space-6);
+    font-size: 0.8125rem;
+  }
+  .access-detail {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--space-1);
+  }
+  .access-detail__label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .access-detail__value {
+    color: var(--text-secondary);
   }
 
   .abstract {
