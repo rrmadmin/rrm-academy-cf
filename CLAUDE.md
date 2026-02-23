@@ -76,3 +76,26 @@ The data files (`articles.json`, `posts.json`) are gitignored and won't be in th
 - Keep edits focused — one change at a time for easy review
 - Show brief before/after summaries
 - For large refactors, suggest deferring to desktop
+- **Before editing styles or layout**, consult `STYLE-GUIDE.md`. Do NOT read the whole file — read only the section(s) relevant to your task using the line ranges below:
+
+#### STYLE-GUIDE.md Section Index
+
+| Section | Lines | Read when... |
+|---------|-------|-------------|
+| Color System | 52–157 | Adding/changing colors, tokens, dark mode values |
+| Typography | 158–203 | Changing fonts, sizes, hero text, headings |
+| Spacing & Layout | 204–260 | Changing padding, gaps, margins, containers |
+| Borders & Radii | 261–281 | Changing border-radius, border styles |
+| Buttons | 326–360 | Adding/modifying buttons |
+| Links | 361–394 | Changing link styles |
+| Forms | 395–428 | Editing form inputs, validation states |
+| Cards | 429–468 | Modifying article cards, blog cards |
+| Page Layout Patterns | 653–758 | Changing page structure, wrappers, sections |
+| Header | 759–799 | Editing navigation, header elements |
+| Navigation Icons | 800–835 | Adding/changing nav or footer icons |
+| Footer | 836–867 | Editing footer layout or links |
+| Dark Mode | 868–895 | Any dark mode changes |
+| Accessibility | 911–957 | Adding interactive elements, icons, forms |
+| CSS Naming Convention | 988–1010 | Creating new CSS classes |
+
+Never introduce hardcoded colors, spacing, or font sizes that bypass existing design tokens.
