@@ -51,15 +51,17 @@ async function handleCheckout(request, env) {
   const db = env.DB;
   let userEmail = null;
   let userId = null;
+  let stripeCustomerId = null;
   if (db) {
     const sessionId = getSessionIdFromCookie(request);
     const session = await validateSession(db, sessionId);
     if (session) {
-      const user = await db.prepare('SELECT id, email FROM user WHERE id = ?')
+      const user = await db.prepare('SELECT id, email, stripe_customer_id FROM user WHERE id = ?')
         .bind(session.userId).first();
       if (user) {
         userEmail = user.email;
         userId = user.id;
+        stripeCustomerId = user.stripe_customer_id;
       }
     }
   }
@@ -108,6 +110,22 @@ async function handleCheckout(request, env) {
     const priceId = priceMap[tier];
     if (!priceId) {
       return json({ ok: false, error: 'Invalid tier' }, 400);
+    }
+
+    // Guard: if logged-in user already has an active subscription, don't create a new one
+    if (stripeCustomerId) {
+      const existing = await stripe.subscriptions.list({
+        customer: stripeCustomerId,
+        status: 'active',
+        limit: 1,
+      });
+      if (existing.data.length > 0) {
+        return json({
+          ok: false,
+          error: 'You already have an active membership. You can change or cancel it from your account page.',
+          redirect: '/account',
+        }, 409);
+      }
     }
 
     const sessionParams = {
