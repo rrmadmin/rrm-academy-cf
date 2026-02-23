@@ -3,6 +3,7 @@ dist/
 .astro/
 src/data/articles.json
 src/data/posts.json
+src/data/faqs.json
 scraped/
 .env
 .env.local
