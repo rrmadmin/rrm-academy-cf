@@ -25,7 +25,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           <p><strong>501(c)(3) &middot; EIN: 93-4594315</strong></p>
         </div>
 
-        <a href="/" class="btn btn--primary">Return to Homepage</a>
+        <!-- Account prompt — shown only if not logged in -->
+        <div id="create-account-prompt" class="create-account-prompt" hidden>
+          <p>Create a free account to manage your donations and access member features.</p>
+          <a href="/signup" class="btn btn--primary btn--sm">Create Account</a>
+          <a href="/login" class="btn btn--text btn--sm">Already have an account? Log in</a>
+        </div>
+
+        <a href="/" class="btn btn--secondary">Return to Homepage</a>
       </section>
 
     </div>
@@ -67,4 +74,32 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     color: var(--text-tertiary);
     line-height: 1.6;
   }
+  .create-account-prompt {
+    padding: var(--space-5);
+    background: rgba(114, 94, 126, 0.06);
+    border: 1px solid rgba(114, 94, 126, 0.2);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-6);
+  }
+  .create-account-prompt p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: var(--space-4);
+  }
+  .create-account-prompt .btn {
+    display: inline-flex;
+    margin: 0 var(--space-2);
+  }
 </style>
+
+<script is:inline>
+  fetch('/api/auth/session', { credentials: 'same-origin' })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (!data.ok || !data.user) {
+        document.getElementById('create-account-prompt').hidden = false;
+      }
+    })
+    .catch(function () {});
+</script>
