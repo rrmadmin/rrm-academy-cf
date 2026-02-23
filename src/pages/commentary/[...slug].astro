@@ -135,8 +135,6 @@ const canonicalUrl = `https://rrmacademy.org/commentary/${post.slug}`;
   }
 
   .cover-image {
-    aspect-ratio: 1 / 1;
-    max-width: 400px;
     overflow: hidden;
     border-radius: var(--radius-md);
     margin-bottom: var(--space-8);
@@ -144,8 +142,7 @@ const canonicalUrl = `https://rrmacademy.org/commentary/${post.slug}`;
   }
   .cover-image img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: auto;
   }
 
   /* Prose — article body typography */
