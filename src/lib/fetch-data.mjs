@@ -121,11 +121,14 @@ async function fetchAll() {
     console.log(`Page ${page}: ${data.records.length} records (${articles.length} total)`);
   } while (offset);
 
-  // Sort newest first
+  // Sort newest first; treat 1900 placeholder dates as missing
+  const hasDate = (d) => d && !d.startsWith('1900');
   articles.sort((a, b) => {
-    if (!a.datePublished && !b.datePublished) return 0;
-    if (!a.datePublished) return 1;
-    if (!b.datePublished) return -1;
+    const aOk = hasDate(a.datePublished);
+    const bOk = hasDate(b.datePublished);
+    if (!aOk && !bOk) return 0;
+    if (!aOk) return 1;
+    if (!bOk) return -1;
     return b.datePublished.localeCompare(a.datePublished);
   });
 
