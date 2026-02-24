@@ -92,7 +92,7 @@ const LESSON_FIELDS = [
   'Vimeo ID',      // ADDED
   'Duration',      // ADDED (number — seconds)
   'Status',        // ADDED (single select: Published, Draft)
-  'Attachments',   // ADDED (attachment field — PDFs, worksheets, etc.)
+  // 'Attachments' — not yet created in Airtable; uncomment when field exists
 ];
 
 // --- Fetch with pagination + retry ---
