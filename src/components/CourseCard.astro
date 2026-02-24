@@ -39,7 +39,7 @@ const progressPct = progress ? Math.round((progress.completedSteps / progress.to
 <a href={`/courses/${course.slug}`} class="course-card">
   <div class="course-card__image">
     <img
-      src={`https://static.wixstatic.com/media/${course.image}`}
+      src={course.image}
       alt={course.imageAlt || course.title}
       loading="lazy"
       width="400"
