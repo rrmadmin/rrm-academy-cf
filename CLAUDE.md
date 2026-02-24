@@ -51,7 +51,9 @@ Do NOT create duplicate docs here. Read the PRD before working.
 | `/account` | `src/pages/account/index.astro` (auth required) |
 | `/forgot-password` | `src/pages/forgot-password.astro` |
 | `/reset-password` | `src/pages/reset-password.astro` |
-| `/save-the-uterus-club` | `src/pages/save-the-uterus-club.astro` |
+| `/save-the-uterus-club` | `src/pages/save-the-uterus-club/index.astro` |
+| `/linkinbio` | `src/pages/linkinbio.astro` |
+| `/linkinbio/jointhecall` | `src/pages/linkinbio/jointhecall.astro` |
 
 ## Components
 
