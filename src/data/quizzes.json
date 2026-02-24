@@ -1,0 +1,28 @@
+{
+  "mc-intro-3": {
+    "type": "quiz",
+    "title": "Pre-Class Quiz",
+    "description": "Test your baseline knowledge before starting the course.",
+    "passingScore": null,
+    "questions": []
+  },
+  "mc-intro-4": {
+    "type": "questionnaire",
+    "title": "Pre-Class Questionnaire",
+    "description": "Help us understand your background and expectations.",
+    "questions": []
+  },
+  "mc-feedback-2": {
+    "type": "questionnaire",
+    "title": "Post-Class Questionnaire",
+    "description": "Share your feedback about the course.",
+    "questions": []
+  },
+  "mc-feedback-3": {
+    "type": "quiz",
+    "title": "Post-Class Quiz",
+    "description": "Test your knowledge to earn your certificate of completion.",
+    "passingScore": 80,
+    "questions": []
+  }
+}

@@ -8,7 +8,7 @@
 import {
   json, optionsResponse, getSessionIdFromCookie, validateSession,
 } from '../auth/_shared.js';
-import { getCourse, getTotalSteps, isValidStep, getCertificateQuizId, CERTIFICATE_MIN_SCORE } from './_shared.js';
+import { getCourse, getTotalSteps, isValidStep, getCertificateQuizId, CERTIFICATE_MIN_SCORE, getPreviousStepId } from './_shared.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -143,7 +143,8 @@ async function handleProgressUpdate(request, env) {
   }
 
   // Validate course and step exist
-  if (!getCourse(courseId)) return json({ ok: false, error: 'Course not found' }, 404);
+  const course = getCourse(courseId);
+  if (!course) return json({ ok: false, error: 'Course not found' }, 404);
   if (!isValidStep(courseId, stepId)) return json({ ok: false, error: 'Invalid step' }, 400);
 
   // Verify enrolled
@@ -151,6 +152,19 @@ async function handleProgressUpdate(request, env) {
     'SELECT id FROM enrollment WHERE user_id = ? AND course_id = ?'
   ).bind(session.userId, courseId).first();
   if (!enrollment) return json({ ok: false, error: 'Not enrolled' }, 403);
+
+  // Step locking: enforce sequential order for fixed-order courses
+  if (course.settings?.stepOrder === 'fixed') {
+    const prevStepId = getPreviousStepId(courseId, stepId);
+    if (prevStepId) {
+      const prev = await db.prepare(
+        'SELECT completed FROM step_progress WHERE user_id = ? AND course_id = ? AND step_id = ?'
+      ).bind(session.userId, courseId, prevStepId).first();
+      if (!prev?.completed) {
+        return json({ ok: false, error: 'Previous step not completed' }, 403);
+      }
+    }
+  }
 
   // Upsert step progress.
   // completed: monotonic (once true, stays true via MAX).
@@ -185,8 +199,7 @@ async function handleProgressUpdate(request, env) {
       courseCompleted = true;
 
       // Auto-issue certificate if eligible
-      const course = getCourse(courseId);
-      if (course?.hasCertificate) {
+      if (course.hasCertificate) {
         const quizStepId = getCertificateQuizId(courseId);
         if (quizStepId) {
           const quiz = await db.prepare(

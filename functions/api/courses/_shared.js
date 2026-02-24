@@ -51,4 +51,15 @@ export function getCertificateQuizId(courseId) {
   return course?.certificateQuizId || null;
 }
 
+/**
+ * Get the step ID that comes before the given step in course order.
+ * Returns null if stepId is the first step or not found.
+ */
+export function getPreviousStepId(courseId, stepId) {
+  const allSteps = getAllStepIds(courseId);
+  const idx = allSteps.indexOf(stepId);
+  if (idx <= 0) return null;
+  return allSteps[idx - 1];
+}
+
 export { coursesData };
