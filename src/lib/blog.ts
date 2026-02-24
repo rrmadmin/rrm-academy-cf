@@ -80,8 +80,10 @@ export async function fetchAllPosts(): Promise<BlogPost[]> {
     const posts = (cached.default || cached) as BlogPost[];
     console.log(`[blog] Loaded ${posts.length} posts from cache`);
     return sortByDate(posts);
-  } catch {
-    // No cache — fetch from API
+  } catch (err: any) {
+    if (err?.code !== 'ERR_MODULE_NOT_FOUND' && err?.message?.includes?.('JSON')) {
+      throw new Error(`posts.json exists but is corrupt: ${err.message}`);
+    }
   }
 
   const pat = import.meta.env.AIRTABLE_PAT || process.env.AIRTABLE_PAT;

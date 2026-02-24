@@ -10,21 +10,20 @@ export async function getStaticPaths() {
 
   return Array.from({ length: totalPages }, (_, i) => ({
     params: { page: String(i + 1) },
-    props: { posts, currentPage: i + 1, totalPages },
+    props: { posts, currentPage: i + 1, totalPages, perPage },
   }));
 }
-
-const PER_PAGE = 10;
 
 interface Props {
   posts: any[];
   currentPage: number;
   totalPages: number;
+  perPage: number;
 }
 
-const { posts, currentPage, totalPages } = Astro.props;
-const start = (currentPage - 1) * PER_PAGE;
-const pagePosts = posts.slice(start, start + PER_PAGE);
+const { posts, currentPage, totalPages, perPage } = Astro.props;
+const start = (currentPage - 1) * perPage;
+const pagePosts = posts.slice(start, start + perPage);
 
 // Pagination range
 const range: (number | '...')[] = [];
@@ -55,7 +54,7 @@ for (let i = 1; i <= totalPages; i++) {
           <h1>All commentary</h1>
           {posts.length > 0 && (
             <p class="browse-meta">
-              Showing {start + 1}&ndash;{Math.min(start + PER_PAGE, posts.length)} of {posts.length}
+              Showing {start + 1}&ndash;{Math.min(start + perPage, posts.length)} of {posts.length}
             </p>
           )}
         </div>
