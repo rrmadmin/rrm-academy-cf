@@ -49,19 +49,26 @@ async function fetchAll() {
     }`;
 
     let res;
+    let lastError;
     for (let attempt = 0; attempt < 5; attempt++) {
-      res = await fetch(url, {
-        headers: { Authorization: `Bearer ${pat}` },
-      });
-      if (res.status !== 429) break;
+      try {
+        res = await fetch(url, {
+          headers: { Authorization: `Bearer ${pat}` },
+        });
+        lastError = undefined;
+        if (res.status !== 429) break;
+      } catch (e) {
+        lastError = e;
+      }
       const delay = Math.pow(2, attempt) * 1000;
-      console.warn(`Rate limited (429), retrying in ${delay / 1000}s...`);
+      console.warn(`Retry ${attempt + 1}/5 in ${delay / 1000}s...`);
       await new Promise(r => setTimeout(r, delay));
     }
 
-    if (!res.ok) {
-      const err = await res.text();
-      throw new Error(`Airtable ${res.status}: ${err}`);
+    if (lastError) throw lastError;
+    if (!res || !res.ok) {
+      const err = res ? await res.text() : 'No response';
+      throw new Error(`Airtable ${res?.status}: ${err}`);
     }
 
     const data = await res.json();
@@ -70,6 +77,7 @@ async function fetchAll() {
     for (const record of data.records) {
       const f = record.fields;
 
+      if (f['Status'] !== 'Published') continue;
       const slug = f['Slug'];
       const title = f['Title'];
       if (!slug || !title) continue;

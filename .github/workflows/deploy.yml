@@ -42,12 +42,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Get cache date
+        id: date
+        run: echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
       - name: Restore data cache
         uses: actions/cache@v4
         id: data-cache
         with:
           path: src/data
-          key: airtable-data-${{ github.run_id }}
+          key: airtable-data-${{ steps.date.outputs.date }}
           restore-keys: |
             airtable-data-
 
@@ -60,15 +64,20 @@ jobs:
           echo "Articles: $(node -e "console.log(require('./src/data/articles.json').length)")"
           echo "Posts: $(node -e "console.log(require('./src/data/posts.json').length)")"
 
-      - name: Verify data files exist
+      - name: Verify data files
         run: |
+          fail=0
           for f in src/data/articles.json src/data/posts.json src/data/faqs.json src/data/courses.json; do
             if [ ! -f "$f" ]; then
               echo "ERROR: $f not found. Cannot build without data files."
               echo "If using skip_fetch, ensure a previous run has cached the data."
-              exit 1
+              fail=1
+            elif [ "$(node -e "console.log(JSON.parse(require('fs').readFileSync('$f','utf8')).length)")" = "0" ]; then
+              echo "ERROR: $f contains zero records. Aborting to prevent empty deploy."
+              fail=1
             fi
           done
+          [ "$fail" = "0" ] || exit 1
 
       - name: Build site
         run: npm run build

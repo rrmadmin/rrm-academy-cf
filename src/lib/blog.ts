@@ -81,8 +81,10 @@ export async function fetchAllPosts(): Promise<BlogPost[]> {
     console.log(`[blog] Loaded ${posts.length} posts from cache`);
     return sortByDate(posts);
   } catch (err: any) {
-    if (err?.code !== 'ERR_MODULE_NOT_FOUND' && err?.message?.includes?.('JSON')) {
-      throw new Error(`posts.json exists but is corrupt: ${err.message}`);
+    if (err?.code === 'ERR_MODULE_NOT_FOUND') {
+      // No cache file — fall through to API fetch
+    } else {
+      throw new Error(`posts.json exists but failed to load: ${err.message}`);
     }
   }
 
@@ -102,13 +104,26 @@ export async function fetchAllPosts(): Promise<BlogPost[]> {
       offset ? `&offset=${offset}` : ''
     }`;
 
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${pat}` },
-    });
+    let res: Response | undefined;
+    let lastError: Error | undefined;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      try {
+        res = await fetch(url, {
+          headers: { Authorization: `Bearer ${pat}` },
+        });
+        lastError = undefined;
+        if (res.status !== 429) break;
+      } catch (e: any) {
+        lastError = e;
+      }
+      const delay = Math.pow(2, attempt) * 1000;
+      await new Promise(r => setTimeout(r, delay));
+    }
 
-    if (!res.ok) {
-      const err = await res.text();
-      throw new Error(`Airtable API error ${res.status}: ${err}`);
+    if (lastError) throw lastError;
+    if (!res || !res.ok) {
+      const err = res ? await res.text() : 'No response';
+      throw new Error(`Airtable API error ${res?.status}: ${err}`);
     }
 
     const data = await res.json();
@@ -120,7 +135,14 @@ export async function fetchAllPosts(): Promise<BlogPost[]> {
     }
   } while (offset);
 
-  return sortByDate(posts);
+  const seen = new Set<string>();
+  const deduplicated = posts.filter(p => {
+    if (seen.has(p.slug)) return false;
+    seen.add(p.slug);
+    return true;
+  });
+
+  return sortByDate(deduplicated);
 }
 
 /**
