@@ -15,6 +15,15 @@ export async function onRequestOptions() {
 }
 
 export async function onRequestPost({ request, env }) {
+  try {
+    return await handlePortal(request, env);
+  } catch (err) {
+    console.error('billing portal error:', err.message, err.stack);
+    return json({ ok: false, error: 'Internal error' }, 500);
+  }
+}
+
+async function handlePortal(request, env) {
   const db = env.DB;
   const stripeKey = env.STRIPE_SECRET_KEY;
   if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
