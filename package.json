@@ -11,7 +11,8 @@
     "fetch-data": "node src/lib/fetch-data.mjs",
     "fetch-blog": "node src/lib/fetch-blog-data.mjs",
     "fetch-faqs": "node src/lib/fetch-faq-data.mjs",
-    "fetch-all": "node src/lib/fetch-data.mjs && node src/lib/fetch-blog-data.mjs && node src/lib/fetch-faq-data.mjs"
+    "fetch-courses": "node src/lib/fetch-courses-data.mjs",
+    "fetch-all": "node src/lib/fetch-data.mjs && node src/lib/fetch-blog-data.mjs && node src/lib/fetch-faq-data.mjs && node src/lib/fetch-courses-data.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.3.0",

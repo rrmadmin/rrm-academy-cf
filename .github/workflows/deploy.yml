@@ -62,7 +62,7 @@ jobs:
 
       - name: Verify data files exist
         run: |
-          for f in src/data/articles.json src/data/posts.json src/data/faqs.json; do
+          for f in src/data/articles.json src/data/posts.json src/data/faqs.json src/data/courses.json; do
             if [ ! -f "$f" ]; then
               echo "ERROR: $f not found. Cannot build without data files."
               echo "If using skip_fetch, ensure a previous run has cached the data."
