@@ -272,6 +272,7 @@ function stepTypeLabel(type: string) {
     videoWatchReq: course.settings?.videoWatchRequirement || 0.9,
     fixedOrder: course.settings?.stepOrder === 'fixed',
     autoplayNext: course.settings?.autoplayNextVideo || false,
+    hasCertificate: !!course.hasCertificate,
   }}>
     (function () {
       var markBtn = document.getElementById('mark-complete-btn');
@@ -323,6 +324,11 @@ function stepTypeLabel(type: string) {
             }
           } else if (canComplete) {
             markBtn.disabled = false;
+          }
+
+          // Show certificate banner if course already completed
+          if (data.enrollment && data.enrollment.completedAt) {
+            showCertificateBanner();
           }
 
           // Hide Mark Complete for quiz steps — submission handles it
@@ -396,6 +402,7 @@ function stepTypeLabel(type: string) {
 
                     if (res.courseCompleted) {
                       markBtn.textContent = 'Course Complete!';
+                      showCertificateBanner();
                     } else if (autoplayNext && nextStepUrl) {
                       showAutoplayCountdown();
                     }
@@ -442,6 +449,7 @@ function stepTypeLabel(type: string) {
 
               if (data.courseCompleted) {
                 markBtn.textContent = 'Course Complete!';
+                showCertificateBanner();
               }
             } else {
               markBtn.disabled = false;
@@ -502,6 +510,22 @@ function stepTypeLabel(type: string) {
         if (fill) fill.style.width = pct + '%';
         if (text) text.textContent = pct + '% complete';
         if (bar) bar.setAttribute('aria-valuenow', String(pct));
+      }
+
+      // --- Certificate banner ---
+      function showCertificateBanner() {
+        if (!hasCertificate) return;
+        var existing = document.getElementById('cert-banner');
+        if (existing) return;
+        var actions = document.getElementById('lesson-actions');
+        if (!actions) return;
+        var banner = document.createElement('div');
+        banner.id = 'cert-banner';
+        banner.className = 'cert-banner';
+        banner.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>' +
+          '<div class="cert-banner__text"><strong>Course Complete!</strong> Your certificate is ready.</div>' +
+          '<a href="/api/courses/certificate?courseId=' + encodeURIComponent(courseId) + '" target="_blank" class="btn btn--primary btn--sm cert-banner__btn">View Certificate</a>';
+        actions.insertAdjacentElement('afterend', banner);
       }
 
       // --- Mobile sidebar toggle ---
@@ -702,7 +726,7 @@ function stepTypeLabel(type: string) {
             h += '<p>' + (passed ? 'You passed!' : 'You need ' + quizData.passingScore + '% to pass. You can try again.') + '</p>';
           }
           if (passed && qStepId === qCertQuizId) {
-            h += '<p class="qr-cert">Your certificate of completion has been issued.</p>';
+            h += '<p class="qr-cert">Your certificate of completion has been issued. <a href="/api/courses/certificate?courseId=' + encodeURIComponent(qCourseId) + '" target="_blank" class="qr-cert__link">View Certificate</a></p>';
           }
           h += '</div>';
 
@@ -1759,6 +1783,40 @@ function stepTypeLabel(type: string) {
   :global(.autoplay-toast__cancel:hover) {
     border-color: var(--accent);
     color: var(--accent);
+  }
+
+  /* ═══════ Certificate Banner ═══════ */
+  :global(.cert-banner) {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    margin-top: var(--space-4);
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(139, 92, 246, 0.04));
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: var(--radius-md);
+  }
+  :global(.cert-banner svg) {
+    color: var(--purple-500, #8b5cf6);
+    flex-shrink: 0;
+  }
+  :global(.cert-banner__text) {
+    flex: 1;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    line-height: 1.4;
+  }
+  :global(.cert-banner__btn) {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  :global(.qr-cert__link) {
+    color: var(--accent);
+    text-decoration: underline;
+    font-weight: 600;
+  }
+  :global(.qr-cert__link:hover) {
+    color: var(--purple-700, #7c3aed);
   }
 
   /* ═══════ Comments ═══════ */
