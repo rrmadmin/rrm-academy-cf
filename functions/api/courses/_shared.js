@@ -44,4 +44,11 @@ export function getIncludedCourseIds(courseId) {
     .map(c => c.id);
 }
 
+export const CERTIFICATE_MIN_SCORE = 80;
+
+export function getCertificateQuizId(courseId) {
+  const course = getCourse(courseId);
+  return course?.certificateQuizId || null;
+}
+
 export { coursesData };
