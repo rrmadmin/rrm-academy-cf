@@ -11,17 +11,27 @@
  * The fetch resolves these links and outputs nested JSON matching
  * the existing courses.json format consumed by Astro pages.
  *
+ * Attachments: Lessons may have PDF/file attachments in Airtable.
+ * Airtable attachment URLs expire in ~2 hours, so during build we
+ * download each file and upload to R2 (rrm-assets bucket) for
+ * permanent CDN-served URLs.
+ *
  * Tables to IGNORE (from template, not used):
  *   - Students (enrollment lives in D1, not Airtable)
  *   - Assignments (quiz content lives in quizzes.json)
  */
 
-import { writeFileSync, mkdirSync } from 'fs';
+import { writeFileSync, mkdirSync, unlinkSync, mkdtempSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import { execFileSync } from 'child_process';
+import { tmpdir } from 'os';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_PATH = join(__dirname, '..', 'data', 'courses.json');
+
+const R2_BUCKET = 'rrm-assets';
+const R2_PUBLIC_URL = 'https://pub-4af88159ce884265baba8fb4f3470625.r2.dev';
 
 const AIRTABLE_BASE_ID = 'app0nohI0WrgFWOE3';
 const COURSES_TABLE_ID = 'tblsLSGVuza8NPlDK';
@@ -82,6 +92,7 @@ const LESSON_FIELDS = [
   'Vimeo ID',      // ADDED
   'Duration',      // ADDED (number — seconds)
   'Status',        // ADDED (single select: Published, Draft)
+  'Attachments',   // ADDED (attachment field — PDFs, worksheets, etc.)
 ];
 
 // --- Fetch with pagination + retry ---
@@ -216,6 +227,18 @@ function transformLesson(record) {
   if (f['Vimeo ID']) step.vimeoId = f['Vimeo ID'].trim();
   if (f['Duration']) step.duration = Number(f['Duration']);
 
+  // Airtable attachment objects: { id, url, filename, size, type }
+  // URLs are temporary (~2h expiry) — will be replaced with R2 URLs
+  if (Array.isArray(f['Attachments']) && f['Attachments'].length > 0) {
+    step._rawAttachments = f['Attachments'].map(att => ({
+      id: att.id,
+      filename: att.filename,
+      size: att.size,
+      type: att.type,
+      tempUrl: att.url,
+    }));
+  }
+
   return step;
 }
 
@@ -292,6 +315,7 @@ function assembleNestedCourses(courses, modules, lessons) {
           const clean = { id: s.id, title: s.title, type: s.type };
           if (s.vimeoId) clean.vimeoId = s.vimeoId;
           if (s.duration) clean.duration = s.duration;
+          if (s._rawAttachments) clean._rawAttachments = s._rawAttachments;
           return clean;
         }),
       };
@@ -309,6 +333,69 @@ function assembleNestedCourses(courses, modules, lessons) {
   }
 
   return courses;
+}
+
+// --- R2 Upload ---
+
+async function uploadToR2(tempUrl, r2Key, contentType) {
+  // Download from Airtable's expiring URL
+  const res = await fetch(tempUrl);
+  if (!res.ok) throw new Error(`Download failed (${res.status}): ${tempUrl}`);
+  const buffer = Buffer.from(await res.arrayBuffer());
+
+  // Write to temp file for wrangler
+  const tmpDir = mkdtempSync(join(tmpdir(), 'r2-'));
+  const tmpFile = join(tmpDir, 'upload');
+  writeFileSync(tmpFile, buffer);
+
+  try {
+    execFileSync('npx', [
+      'wrangler', 'r2', 'object', 'put',
+      `${R2_BUCKET}/${r2Key}`,
+      `--file=${tmpFile}`,
+      `--content-type=${contentType}`,
+    ], { stdio: 'pipe', timeout: 60000 });
+  } finally {
+    try { unlinkSync(tmpFile); } catch {}
+  }
+
+  const sizeKB = (buffer.length / 1024).toFixed(1);
+  console.log(`  ✓ ${r2Key} (${sizeKB} KB)`);
+  return `${R2_PUBLIC_URL}/${r2Key}`;
+}
+
+async function syncAttachmentsToR2(courses) {
+  let uploadCount = 0;
+
+  for (const course of courses) {
+    for (const section of course.sections) {
+      for (const step of section.steps) {
+        if (!step._rawAttachments) continue;
+
+        const attachments = [];
+        for (const att of step._rawAttachments) {
+          const ext = att.filename.split('.').pop() || 'bin';
+          // R2 key: courses/{stepId}/{airtableAttId}.{ext}
+          // Using attachment ID ensures uniqueness and enables cache-busting on replace
+          const r2Key = `courses/${step.id}/${att.id}.${ext}`;
+          const url = await uploadToR2(att.tempUrl, r2Key, att.type);
+          attachments.push({
+            name: att.filename,
+            url,
+            size: att.size,
+            type: att.type,
+          });
+          uploadCount++;
+        }
+        step.attachments = attachments;
+        delete step._rawAttachments;
+      }
+    }
+  }
+
+  if (uploadCount > 0) {
+    console.log(`\nUploaded ${uploadCount} attachment(s) to R2`);
+  }
 }
 
 // --- Main ---
@@ -351,6 +438,10 @@ async function fetchAll() {
   console.log(`\nTransformed: ${courses.length} courses, ${modules.length} modules, ${lessons.length} lessons`);
 
   assembleNestedCourses(courses, modules, lessons);
+
+  // Sync attachments: Airtable temp URLs → R2 permanent URLs
+  console.log('\nSyncing attachments to R2...');
+  await syncAttachmentsToR2(courses);
 
   // Validate: each course should have at least one section with steps
   for (const course of courses) {

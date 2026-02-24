@@ -182,6 +182,29 @@ function stepTypeLabel(type: string) {
           <h1 class="lesson-info__title">{step.title}</h1>
         </div>
 
+        <!-- Attachments (PDFs, worksheets, etc.) -->
+        {step.attachments && step.attachments.length > 0 && (
+          <div class="lesson-attachments">
+            <h3 class="lesson-attachments__heading">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+              Downloads
+            </h3>
+            <ul class="lesson-attachments__list">
+              {step.attachments.map((att: any) => (
+                <li>
+                  <a href={att.url} class="lesson-attachment" target="_blank" rel="noopener" download={att.name}>
+                    <svg class="lesson-attachment__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+                    <span class="lesson-attachment__info">
+                      <span class="lesson-attachment__name">{att.name}</span>
+                      <span class="lesson-attachment__size">{att.size > 1048576 ? `${(att.size / 1048576).toFixed(1)} MB` : `${Math.round(att.size / 1024)} KB`}</span>
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <!-- Mark Complete + Navigation -->
         <div class="lesson-actions" id="lesson-actions">
           <button class="btn btn--primary mark-complete-btn" id="mark-complete-btn" disabled>
@@ -1318,6 +1341,76 @@ function stepTypeLabel(type: string) {
   .lesson-info__title {
     font-size: 1.5rem;
     margin-bottom: 0;
+  }
+
+  /* Attachments */
+  .lesson-attachments {
+    padding: var(--space-4) var(--space-6);
+    max-width: var(--max-width-article);
+    margin: 0 auto;
+  }
+  .lesson-attachments__heading {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: var(--space-3);
+  }
+  .lesson-attachments__heading svg {
+    color: var(--text-muted);
+  }
+  .lesson-attachments__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .lesson-attachment {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .lesson-attachment:hover {
+    border-color: var(--purple-300);
+    box-shadow: var(--shadow-sm);
+    text-decoration: none;
+    color: inherit;
+  }
+  .lesson-attachment__icon {
+    flex-shrink: 0;
+    color: var(--accent);
+  }
+  .lesson-attachment__info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .lesson-attachment__name {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .lesson-attachment__size {
+    font-size: 0.6875rem;
+    color: var(--text-muted);
   }
 
   /* Actions */

@@ -67,3 +67,20 @@ CREATE TABLE IF NOT EXISTS step_progress (
 
 CREATE INDEX IF NOT EXISTS idx_enrollment_user ON enrollment(user_id);
 CREATE INDEX IF NOT EXISTS idx_enrollment_course ON enrollment(course_id);
+
+-- Phase 8: Lesson Comments
+
+CREATE TABLE IF NOT EXISTS lesson_comment (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+    course_id TEXT NOT NULL,
+    step_id TEXT NOT NULL,
+    content TEXT NOT NULL,
+    parent_id TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_comment_step ON lesson_comment(course_id, step_id);
+CREATE INDEX IF NOT EXISTS idx_comment_user ON lesson_comment(user_id);
+CREATE INDEX IF NOT EXISTS idx_comment_parent ON lesson_comment(parent_id);
