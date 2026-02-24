@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
+import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
 ---
 <BaseLayout
   title="Create Account"

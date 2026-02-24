@@ -55,7 +55,7 @@ export async function onRequestPost({ request, env }) {
       const resetUrl = `https://rrmacademy.org/reset-password?token=${token}`;
 
       try {
-        await fetch('https://api.resend.com/emails', {
+        const res = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${env.RESEND_API_KEY}`,
@@ -80,8 +80,12 @@ export async function onRequestPost({ request, env }) {
             ].join('\n'),
           }),
         });
-      } catch {
-        // Email send failed — user can request again
+        if (!res.ok) {
+          const body = await res.text().catch(() => '');
+          console.error(`Resend API error ${res.status}: ${body}`);
+        }
+      } catch (emailErr) {
+        console.error('Password reset email send failed:', emailErr);
       }
     }
 

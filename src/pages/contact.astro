@@ -25,8 +25,7 @@ const jsonLd = {
   },
 };
 
-// Replace with your Turnstile site key from CF dashboard
-const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
+import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
 ---
 <BaseLayout
   title="Contact Us"
