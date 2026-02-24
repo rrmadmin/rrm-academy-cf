@@ -115,9 +115,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             </form>
           </div>
 
-          <div class="account-section">
+          <div class="account-section" id="courses-section">
             <h2>Courses</h2>
-            <p class="account-placeholder">Course enrollment coming soon.</p>
+            <div id="courses-loading" class="account-placeholder">Loading courses...</div>
+            <div id="courses-none" hidden>
+              <p class="account-placeholder">You haven't enrolled in any courses yet.</p>
+              <a href="/courses" class="btn btn--secondary btn--sm" style="margin-top: var(--space-4); display: inline-flex;">Browse Courses</a>
+            </div>
+            <div id="courses-list" class="courses-list" hidden></div>
           </div>
 
           <div class="account-section" id="billing-section">
@@ -184,6 +189,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           dashEl.hidden = false;
           showPwButton();
           loadBilling();
+          loadCourses();
         })
         .catch(function () {
           loadingEl.hidden = true;
@@ -342,6 +348,49 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           });
       });
 
+      // --- Courses ---
+      var courseMeta = {
+        'masterclass-endo-surgery': { title: 'Masterclass in Endometriosis & Surgery', slug: 'masterclass-in-endometriosis-and-surgery' },
+        'long-term-endo': { title: 'Long Term Endometriosis Management', slug: 'long-term-endometriosis-management' },
+        'postpartum': { title: 'Postpartum Depression & Anxiety', slug: 'postpartum-depression-anxiety' },
+        'rrm-vs-ivf': { title: 'RRM vs Standard ART', slug: 'rrm-vs-ivf' },
+      };
+
+      function loadCourses() {
+        var coursesLoading = document.getElementById('courses-loading');
+        var coursesNone = document.getElementById('courses-none');
+        var coursesList = document.getElementById('courses-list');
+
+        fetch('/api/courses/progress', { credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            coursesLoading.hidden = true;
+            if (!data.ok || !data.courses || data.courses.length === 0) {
+              coursesNone.hidden = false;
+              return;
+            }
+            var html = '';
+            data.courses.forEach(function (c) {
+              var meta = courseMeta[c.courseId] || { title: c.courseId, slug: c.courseId };
+              var pct = c.totalSteps > 0 ? Math.round((c.completedSteps / c.totalSteps) * 100) : 0;
+              var status = c.completedAt ? 'Completed' : (pct > 0 ? pct + '% complete' : 'Not started');
+              html += '<a href="/courses/' + meta.slug + '" class="course-item">' +
+                '<div class="course-item__info">' +
+                  '<strong>' + meta.title + '</strong>' +
+                  '<span>' + status + '</span>' +
+                '</div>' +
+                '<div class="course-item__bar"><div class="course-item__fill" style="width:' + pct + '%"></div></div>' +
+              '</a>';
+            });
+            coursesList.innerHTML = html;
+            coursesList.hidden = false;
+          })
+          .catch(function () {
+            coursesLoading.hidden = true;
+            coursesNone.hidden = false;
+          });
+      }
+
       // --- Billing ---
       function loadBilling() {
         var billingLoading = document.getElementById('billing-loading');
@@ -446,6 +495,24 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .profile-actions { display: flex; gap: var(--space-3); margin-top: var(--space-2); }
   .profile-feedback--error { margin-bottom: var(--space-4); padding: var(--space-3) var(--space-4); background: rgba(192,57,43,0.05); border: 1px solid var(--color-error); border-radius: var(--radius-md); color: var(--color-error); font-size: 0.875rem; }
   .profile-feedback--success { margin-bottom: var(--space-4); padding: var(--space-3) var(--space-4); background: rgba(39,174,96,0.08); border: 1px solid rgba(39,174,96,0.3); border-radius: var(--radius-md); color: #27ae60; font-size: 0.875rem; }
+  .courses-list { display: grid; gap: var(--space-3); }
+  .course-item {
+    display: block;
+    padding: var(--space-4);
+    background: var(--bg-body);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .course-item:hover { border-color: var(--purple-300); box-shadow: var(--shadow-sm); text-decoration: none; color: inherit; }
+  .course-item__info { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-2); }
+  .course-item__info strong { font-size: 0.875rem; color: var(--text-primary); }
+  .course-item__info span { font-size: 0.75rem; color: var(--text-tertiary); }
+  .course-item__bar { width: 100%; height: 4px; background: var(--neutral-200); border-radius: 2px; overflow: hidden; }
+  .course-item__fill { height: 100%; background: var(--green-700); border-radius: 2px; }
+
   .billing-cancel-notice {
     font-size: 0.8125rem;
     color: #e67e22;

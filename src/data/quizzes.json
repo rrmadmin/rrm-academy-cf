@@ -2,27 +2,201 @@
   "mc-intro-3": {
     "type": "quiz",
     "title": "Pre-Class Quiz",
-    "description": "Test your baseline knowledge before starting the course.",
+    "description": "Test your baseline knowledge before starting the course. Your score will not affect your certificate.",
     "passingScore": null,
-    "questions": []
+    "questions": [
+      {
+        "id": "pre-q1",
+        "text": "Endometriosis is a condition in which:",
+        "options": [
+          "The uterine lining becomes abnormally thick",
+          "Tissue similar to the uterine lining grows outside the uterus",
+          "The ovaries develop multiple cysts",
+          "The uterus is positioned abnormally"
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": "pre-q2",
+        "text": "Which of the following is the most common symptom of endometriosis?",
+        "options": [
+          "Frequent urination",
+          "Chronic fatigue only",
+          "Pelvic pain",
+          "Weight gain"
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": "pre-q3",
+        "text": "Approximately what percentage of women of reproductive age are affected by endometriosis?",
+        "options": [
+          "1–2%",
+          "About 10%",
+          "25%",
+          "50%"
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": "pre-q4",
+        "text": "The definitive method for diagnosing endometriosis is:",
+        "options": [
+          "Ultrasound imaging",
+          "Blood test (CA-125)",
+          "Surgical visualization (laparoscopy)",
+          "MRI scan"
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": "pre-q5",
+        "text": "Endometriosis can affect fertility by:",
+        "options": [
+          "Only by blocking the fallopian tubes",
+          "Only through hormonal imbalances",
+          "Through multiple mechanisms including inflammation, adhesions, and altered egg quality",
+          "It does not affect fertility"
+        ],
+        "correctIndex": 2
+      }
+    ]
   },
   "mc-intro-4": {
     "type": "questionnaire",
     "title": "Pre-Class Questionnaire",
-    "description": "Help us understand your background and expectations.",
-    "questions": []
+    "description": "Help us understand your background and expectations. There are no right or wrong answers.",
+    "questions": [
+      {
+        "id": "preq-q1",
+        "text": "How familiar are you with endometriosis as a condition?",
+        "type": "likert",
+        "scale": { "min": 1, "max": 5, "labels": ["Not at all", "Slightly", "Somewhat", "Very", "Extremely"] }
+      },
+      {
+        "id": "preq-q2",
+        "text": "How confident do you feel discussing treatment options with your doctor?",
+        "type": "likert",
+        "scale": { "min": 1, "max": 5, "labels": ["Not at all", "Slightly", "Somewhat", "Very", "Extremely"] }
+      },
+      {
+        "id": "preq-q3",
+        "text": "How well do you understand what to expect from endometriosis surgery?",
+        "type": "likert",
+        "scale": { "min": 1, "max": 5, "labels": ["Not at all", "Slightly", "Somewhat", "Very", "Extremely"] }
+      },
+      {
+        "id": "preq-q4",
+        "text": "How important is it for you to understand the surgical process before your procedure?",
+        "type": "likert",
+        "scale": { "min": 1, "max": 5, "labels": ["Not important", "Slightly", "Moderately", "Very", "Extremely"] }
+      },
+      {
+        "id": "preq-q5",
+        "text": "How would you rate your current knowledge of post-operative recovery?",
+        "type": "likert",
+        "scale": { "min": 1, "max": 5, "labels": ["Very poor", "Poor", "Fair", "Good", "Excellent"] }
+      }
+    ]
   },
   "mc-feedback-2": {
     "type": "questionnaire",
     "title": "Post-Class Questionnaire",
-    "description": "Share your feedback about the course.",
-    "questions": []
+    "description": "Share your feedback about the course. Your responses help us improve the learning experience.",
+    "questions": [
+      {
+        "id": "postq-q1",
+        "text": "The course content was clear and easy to understand.",
+        "type": "likert",
+        "scale": { "min": 1, "max": 5, "labels": ["Strongly disagree", "Disagree", "Neutral", "Agree", "Strongly agree"] }
+      },
+      {
+        "id": "postq-q2",
+        "text": "The instructor explained concepts effectively.",
+        "type": "likert",
+        "scale": { "min": 1, "max": 5, "labels": ["Strongly disagree", "Disagree", "Neutral", "Agree", "Strongly agree"] }
+      },
+      {
+        "id": "postq-q3",
+        "text": "I feel more prepared for my surgical consultation after completing this course.",
+        "type": "likert",
+        "scale": { "min": 1, "max": 5, "labels": ["Strongly disagree", "Disagree", "Neutral", "Agree", "Strongly agree"] }
+      },
+      {
+        "id": "postq-q4",
+        "text": "The course length and pacing were appropriate.",
+        "type": "likert",
+        "scale": { "min": 1, "max": 5, "labels": ["Strongly disagree", "Disagree", "Neutral", "Agree", "Strongly agree"] }
+      },
+      {
+        "id": "postq-q5",
+        "text": "I would recommend this course to others considering endometriosis surgery.",
+        "type": "likert",
+        "scale": { "min": 1, "max": 5, "labels": ["Very unlikely", "Unlikely", "Neutral", "Likely", "Very likely"] }
+      }
+    ]
   },
   "mc-feedback-3": {
     "type": "quiz",
     "title": "Post-Class Quiz",
-    "description": "Test your knowledge to earn your certificate of completion.",
+    "description": "Test your knowledge to earn your certificate of completion. You need 80% to pass.",
     "passingScore": 80,
-    "questions": []
+    "questions": [
+      {
+        "id": "post-q1",
+        "text": "Which surgical approach is considered the gold standard for treating endometriosis?",
+        "options": [
+          "Ablation (burning) of endometriosis lesions",
+          "Wide excision of endometriosis lesions",
+          "Hysterectomy",
+          "Hormonal suppression therapy"
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": "post-q2",
+        "text": "What is the primary goal of Restorative Reproductive Medicine in treating endometriosis?",
+        "options": [
+          "To suppress symptoms with long-term medication",
+          "To restore normal reproductive function while treating the disease",
+          "To recommend IVF as the first-line treatment",
+          "To delay surgery as long as possible"
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": "post-q3",
+        "text": "When choosing a surgeon for endometriosis excision, which factor is most important?",
+        "options": [
+          "The surgeon's proximity to your home",
+          "The surgeon's experience and specialization in excision surgery",
+          "Whether the surgeon accepts your insurance",
+          "The size of the surgical facility"
+        ],
+        "correctIndex": 1
+      },
+      {
+        "id": "post-q4",
+        "text": "Which statement best describes the relationship between endometriosis staging and symptoms?",
+        "options": [
+          "Higher stages always cause more severe symptoms",
+          "Stage I endometriosis never causes significant pain",
+          "The stage of endometriosis does not always correlate with symptom severity",
+          "Only Stage IV endometriosis affects fertility"
+        ],
+        "correctIndex": 2
+      },
+      {
+        "id": "post-q5",
+        "text": "After excision surgery, what is an important part of long-term management?",
+        "options": [
+          "No follow-up is needed if surgery was successful",
+          "Ongoing monitoring and a comprehensive treatment plan including hormonal support if needed",
+          "Immediate repeat surgery if any symptoms return",
+          "Avoiding all physical activity permanently"
+        ],
+        "correctIndex": 1
+      }
+    ]
   }
 }

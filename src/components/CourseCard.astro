@@ -1,0 +1,246 @@
+---
+/**
+ * CourseCard — reusable card for course catalog and account dashboard.
+ * Displays course thumbnail, title, metadata, price, and CTA.
+ */
+interface Props {
+  course: {
+    id: string;
+    slug: string;
+    title: string;
+    shortDescription: string;
+    image: string;
+    imageAlt?: string;
+    priceCents: number;
+    isFree: boolean;
+    hasCertificate: boolean;
+    selfPaced: boolean;
+    participants: number;
+    instructors: { name: string; role: string }[];
+    sections: { steps: any[] }[];
+  };
+  enrolled?: boolean;
+  progress?: { completedSteps: number; totalSteps: number };
+}
+
+const { course, enrolled = false, progress } = Astro.props;
+
+const totalSteps = course.sections.reduce((sum, s) => sum + s.steps.length, 0);
+const totalVideos = course.sections.reduce((sum, s) => sum + s.steps.filter((st: any) => st.type === 'video').length, 0);
+const totalDuration = course.sections.reduce((sum, s) => sum + s.steps.reduce((d: number, st: any) => d + (st.duration || 0), 0), 0);
+const hours = Math.floor(totalDuration / 3600);
+const minutes = Math.round((totalDuration % 3600) / 60);
+const durationLabel = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+const price = course.isFree ? 'Free' : `$${(course.priceCents / 100).toFixed(0)}`;
+const instructor = course.instructors.find(i => i.role === 'Lead Instructor')?.name || course.instructors[0]?.name;
+const progressPct = progress ? Math.round((progress.completedSteps / progress.totalSteps) * 100) : 0;
+---
+
+<a href={`/courses/${course.slug}`} class="course-card">
+  <div class="course-card__image">
+    <img
+      src={`https://static.wixstatic.com/media/${course.image}`}
+      alt={course.imageAlt || course.title}
+      loading="lazy"
+      width="400"
+      height="225"
+    />
+    {course.isFree && <span class="course-card__badge course-card__badge--free">Free</span>}
+    {course.hasCertificate && <span class="course-card__badge course-card__badge--cert">Certificate</span>}
+  </div>
+  <div class="course-card__body">
+    <h3 class="course-card__title">{course.title}</h3>
+    <p class="course-card__instructor">{instructor}</p>
+    <p class="course-card__desc">{course.shortDescription}</p>
+    <div class="course-card__meta">
+      <span class="course-card__meta-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        {totalVideos} videos
+      </span>
+      <span class="course-card__meta-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        {durationLabel}
+      </span>
+      <span class="course-card__meta-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        {course.participants} enrolled
+      </span>
+    </div>
+    {enrolled && progress ? (
+      <div class="course-card__progress">
+        <div class="course-card__progress-bar" role="progressbar" aria-valuenow={progressPct} aria-valuemin={0} aria-valuemax={100} aria-label={`Course progress: ${progressPct}% complete`}>
+          <div class="course-card__progress-fill" style={`width: ${progressPct}%`}></div>
+        </div>
+        <span class="course-card__progress-text">{progressPct}% complete</span>
+      </div>
+    ) : (
+      <div class="course-card__footer">
+        <span class="course-card__price">{price}</span>
+        <span class="course-card__cta">View Course</span>
+      </div>
+    )}
+  </div>
+</a>
+
+<style>
+  .course-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    transition: box-shadow 0.2s, border-color 0.2s;
+  }
+  .course-card:hover {
+    border-color: var(--purple-300);
+    box-shadow: var(--shadow-md);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .course-card__image {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--neutral-100);
+  }
+  .course-card__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+  }
+  .course-card:hover .course-card__image img {
+    transform: scale(1.03);
+  }
+
+  .course-card__badge {
+    position: absolute;
+    top: var(--space-3);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    letter-spacing: 0.02em;
+  }
+  .course-card__badge--free {
+    left: var(--space-3);
+    background: var(--green-100);
+    color: var(--green-700);
+  }
+  .course-card__badge--cert {
+    right: var(--space-3);
+    background: var(--purple-50);
+    color: var(--purple-700);
+  }
+
+  .course-card__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: var(--space-5);
+    gap: var(--space-2);
+  }
+
+  .course-card__title {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-weight: 600;
+    font-size: 1.125rem;
+    line-height: 1.25;
+    color: var(--text-primary);
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .course-card__instructor {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+
+  .course-card__desc {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--text-tertiary);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 0;
+  }
+
+  .course-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-1);
+  }
+  .course-card__meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+  .course-card__meta-item svg {
+    flex-shrink: 0;
+  }
+
+  .course-card__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border-light);
+  }
+  .course-card__price {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.375rem;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .course-card__cta {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--accent);
+    transition: color 0.15s;
+  }
+  .course-card:hover .course-card__cta {
+    color: var(--accent-hover);
+  }
+
+  /* Progress bar (enrolled state) */
+  .course-card__progress {
+    margin-top: auto;
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border-light);
+  }
+  .course-card__progress-bar {
+    width: 100%;
+    height: 6px;
+    background: var(--neutral-200);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .course-card__progress-fill {
+    height: 100%;
+    background: var(--green-700);
+    border-radius: 3px;
+    transition: width 0.3s;
+  }
+  .course-card__progress-text {
+    display: block;
+    margin-top: var(--space-1);
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+  }
+</style>
