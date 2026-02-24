@@ -1,0 +1,381 @@
+/**
+ * Standalone script to fetch course data from Airtable and cache as JSON.
+ * Run: AIRTABLE_PAT=xxx node src/lib/fetch-courses-data.mjs
+ *
+ * Airtable structure: 3 linked tables in the RRM Courses base.
+ *   - Courses: course-level metadata (4 records)
+ *   - Modules: sections within a course, linked to Course (33 records)
+ *   - Lessons: individual steps, linked to Module (69 records)
+ *
+ * Hierarchy: Course → Module (section) → Lesson (step)
+ * The fetch resolves these links and outputs nested JSON matching
+ * the existing courses.json format consumed by Astro pages.
+ *
+ * Tables to IGNORE (from template, not used):
+ *   - Students (enrollment lives in D1, not Airtable)
+ *   - Assignments (quiz content lives in quizzes.json)
+ */
+
+import { writeFileSync, mkdirSync } from 'fs';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const OUTPUT_PATH = join(__dirname, '..', 'data', 'courses.json');
+
+// TODO: Replace with actual Airtable base and table IDs
+const AIRTABLE_BASE_ID = 'appXXXXXXXXXXXXXX';
+const COURSES_TABLE_ID = 'tblXXXXXXXXXXXXXX';
+const MODULES_TABLE_ID = 'tblYYYYYYYYYYYYYY';
+const LESSONS_TABLE_ID = 'tblZZZZZZZZZZZZZZ';
+
+// Skip fetch if placeholder IDs haven't been replaced yet
+if (AIRTABLE_BASE_ID.includes('XXXX')) {
+  console.log('Courses: skipping fetch — Airtable base/table IDs are placeholders.');
+  console.log('Replace IDs in fetch-courses-data.mjs after setting up the Airtable base.');
+  process.exit(0);
+}
+
+const BASE_URL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}`;
+
+// --- Field names (must match Airtable exactly) ---
+
+// Courses table: template fields + custom fields we add
+const COURSE_FIELDS = [
+  'Title',                    // template
+  'Description',              // template
+  'Status',                   // template (Draft, Published, Archived)
+  'Modules',                  // template (linked records — auto)
+  'Course ID',                // ADDED — internal ID, e.g. "masterclass-endo-surgery"
+  'Slug',                     // ADDED
+  'Short Description',        // ADDED
+  'Image',                    // ADDED
+  'Image Alt',                // ADDED
+  'Price Cents',              // ADDED
+  'Stripe Price ID',          // ADDED
+  'Is Free',                  // ADDED (checkbox)
+  'Has Certificate',          // ADDED (checkbox)
+  'Certificate Quiz Step ID', // ADDED
+  'Self Paced',               // ADDED (checkbox)
+  'Access Type',              // ADDED (single select: Public, Private)
+  'Participants',             // ADDED
+  'Instructors',              // ADDED (long text — JSON)
+  'Includes',                 // ADDED (comma-separated course slugs)
+  'Included In',              // ADDED (comma-separated course slugs)
+  'Step Order',               // ADDED (single select: Fixed, Flexible)
+  'Video Watch Requirement',  // ADDED (number, 0-1)
+  'Autoplay Next Video',      // ADDED (checkbox)
+  'SEO Title',                // ADDED
+  'SEO Description',          // ADDED
+  'SEO Keywords',             // ADDED (comma-separated)
+  'Sort Order',               // ADDED
+];
+
+// Modules table: template fields + Module ID
+const MODULE_FIELDS = [
+  'Title',         // template
+  'Order',         // template
+  'Course',        // template (linked record)
+  'Lessons',       // template (linked records — auto)
+  'Module ID',     // ADDED — internal ID, e.g. "mc-intro"
+];
+
+// Lessons table: template fields + custom fields
+const LESSON_FIELDS = [
+  'Title',         // template
+  'Order',         // template
+  'Module',        // template (linked record)
+  'Step ID',       // ADDED — internal ID, e.g. "mc-intro-1"
+  'Type',          // ADDED (single select: Video, Article, Quiz)
+  'Vimeo ID',      // ADDED
+  'Duration',      // ADDED (number — seconds)
+  'Status',        // ADDED (single select: Published, Draft)
+];
+
+// --- Fetch with pagination + retry ---
+
+async function fetchTable(tableId, fields, formula, pat) {
+  const records = [];
+  let offset;
+  let page = 0;
+
+  const apiUrl = `${BASE_URL}/${tableId}`;
+  const fieldsParams = fields.map(f => `fields[]=${encodeURIComponent(f)}`).join('&');
+  const formulaParam = formula ? `&filterByFormula=${encodeURIComponent(formula)}` : '';
+
+  do {
+    page++;
+    const url = `${apiUrl}?${fieldsParams}${formulaParam}&pageSize=100${
+      offset ? `&offset=${offset}` : ''
+    }`;
+
+    let res;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      res = await fetch(url, {
+        headers: { Authorization: `Bearer ${pat}` },
+      });
+      if (res.status !== 429) break;
+      const delay = Math.pow(2, attempt) * 1000;
+      console.warn(`Rate limited (429), retrying in ${delay / 1000}s...`);
+      await new Promise(r => setTimeout(r, delay));
+    }
+
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`Airtable ${res.status}: ${err}`);
+    }
+
+    const data = await res.json();
+    offset = data.offset;
+    records.push(...data.records);
+
+    console.log(`  Page ${page}: ${data.records.length} records (${records.length} total)`);
+  } while (offset);
+
+  return records;
+}
+
+// --- Transform functions ---
+
+function transformCourse(record) {
+  const f = record.fields;
+
+  const courseId = f['Course ID'];
+  const slug = f['Slug'];
+  const title = f['Title'];
+  if (!courseId || !slug || !title) return null;
+
+  const course = {
+    id: courseId.trim(),
+    title: title.trim(),
+    slug: slug.trim(),
+    description: f['Description'] || '',
+    shortDescription: f['Short Description'] || '',
+    image: f['Image'] || '',
+    imageAlt: f['Image Alt'] || '',
+    priceCents: Number(f['Price Cents']) || 0,
+    stripePriceId: f['Stripe Price ID'] || null,
+    isFree: !!f['Is Free'],
+    hasCertificate: !!f['Has Certificate'],
+    selfPaced: f['Self Paced'] !== false,
+    accessType: (f['Access Type'] || 'public').toLowerCase(),
+    participants: Number(f['Participants']) || 0,
+    instructors: parseJsonField(f['Instructors'], []),
+    settings: {
+      stepOrder: (f['Step Order'] || 'fixed').toLowerCase(),
+      futureStepContent: 'hidden',
+      videoWatchRequirement: f['Video Watch Requirement'] != null ? Number(f['Video Watch Requirement']) : 0.9,
+      autoplayNextVideo: !!f['Autoplay Next Video'],
+    },
+    seo: {
+      title: f['SEO Title'] || '',
+      description: f['SEO Description'] || '',
+      keywords: f['SEO Keywords'] ? f['SEO Keywords'].split(',').map(s => s.trim()) : [],
+    },
+    _recordId: record.id,
+    _sortOrder: Number(f['Sort Order']) || 0,
+    sections: [],
+  };
+
+  if (f['Certificate Quiz Step ID']) {
+    course.certificateQuizId = f['Certificate Quiz Step ID'].trim();
+  }
+  if (f['Includes']) {
+    course.includes = f['Includes'].split(',').map(s => s.trim());
+  }
+  if (f['Included In']) {
+    course.includedIn = f['Included In'].split(',').map(s => s.trim());
+  }
+
+  return course;
+}
+
+function transformModule(record) {
+  const f = record.fields;
+
+  const title = f['Title'];
+  if (!title) return null;
+
+  return {
+    _recordId: record.id,
+    id: (f['Module ID'] || '').trim(),
+    title: title.trim(),
+    order: Number(f['Order']) || 0,
+    _courseRecordIds: Array.isArray(f['Course']) ? f['Course'] : [],
+    steps: [],
+  };
+}
+
+function transformLesson(record) {
+  const f = record.fields;
+
+  const stepId = f['Step ID'];
+  const title = f['Title'];
+  if (!stepId || !title) return null;
+
+  const step = {
+    id: stepId.trim(),
+    title: title.trim(),
+    type: (f['Type'] || 'article').toLowerCase(),
+    order: Number(f['Order']) || 0,
+    _moduleRecordIds: Array.isArray(f['Module']) ? f['Module'] : [],
+  };
+
+  if (f['Vimeo ID']) step.vimeoId = f['Vimeo ID'].trim();
+  if (f['Duration']) step.duration = Number(f['Duration']);
+
+  return step;
+}
+
+function parseJsonField(value, fallback) {
+  if (!value) return fallback;
+  if (typeof value !== 'string') return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return fallback;
+  }
+}
+
+// --- Assembly: 3 tables → nested JSON ---
+
+function assembleNestedCourses(courses, modules, lessons) {
+  // Build maps: Airtable record ID → object
+  const courseByRecordId = new Map();
+  for (const course of courses) {
+    courseByRecordId.set(course._recordId, course);
+  }
+
+  const moduleByRecordId = new Map();
+  for (const mod of modules) {
+    moduleByRecordId.set(mod._recordId, mod);
+  }
+
+  // Assign modules to courses
+  for (const mod of modules) {
+    if (mod._courseRecordIds.length === 0) {
+      console.warn(`Warning: module "${mod.id || mod.title}" has no Course link — skipped`);
+      continue;
+    }
+    for (const courseRecId of mod._courseRecordIds) {
+      const course = courseByRecordId.get(courseRecId);
+      if (!course) {
+        console.warn(`Warning: module "${mod.id}" linked to unknown course record ${courseRecId}`);
+        continue;
+      }
+      if (!course._modules) course._modules = [];
+      course._modules.push(mod);
+    }
+  }
+
+  // Assign lessons to modules
+  for (const lesson of lessons) {
+    if (lesson._moduleRecordIds.length === 0) {
+      console.warn(`Warning: lesson "${lesson.id}" has no Module link — skipped`);
+      continue;
+    }
+    for (const modRecId of lesson._moduleRecordIds) {
+      const mod = moduleByRecordId.get(modRecId);
+      if (!mod) {
+        console.warn(`Warning: lesson "${lesson.id}" linked to unknown module record ${modRecId}`);
+        continue;
+      }
+      mod.steps.push(lesson);
+    }
+  }
+
+  // Build sections from modules, sort everything
+  for (const course of courses) {
+    const courseMods = course._modules || [];
+    courseMods.sort((a, b) => a.order - b.order);
+
+    course.sections = courseMods.map(mod => {
+      // Sort lessons within module by order
+      mod.steps.sort((a, b) => a.order - b.order);
+
+      return {
+        id: mod.id,
+        title: mod.title,
+        steps: mod.steps.map(s => {
+          const clean = { id: s.id, title: s.title, type: s.type };
+          if (s.vimeoId) clean.vimeoId = s.vimeoId;
+          if (s.duration) clean.duration = s.duration;
+          return clean;
+        }),
+      };
+    });
+
+    // Remove internal fields (keep _sortOrder for course sort below)
+    delete course._recordId;
+    delete course._modules;
+  }
+
+  // Sort courses by sort order, then clean up
+  courses.sort((a, b) => (a._sortOrder || 0) - (b._sortOrder || 0));
+  for (const course of courses) {
+    delete course._sortOrder;
+  }
+
+  return courses;
+}
+
+// --- Main ---
+
+async function fetchAll() {
+  const pat = process.env.AIRTABLE_PAT;
+  if (!pat) {
+    console.error('Error: AIRTABLE_PAT environment variable required');
+    process.exit(1);
+  }
+
+  console.log('Fetching courses...');
+  const courseRecords = await fetchTable(
+    COURSES_TABLE_ID,
+    COURSE_FIELDS,
+    "{Status}='Published'",
+    pat
+  );
+
+  console.log('Fetching modules...');
+  const moduleRecords = await fetchTable(
+    MODULES_TABLE_ID,
+    MODULE_FIELDS,
+    null, // no status filter — all modules for published courses
+    pat
+  );
+
+  console.log('Fetching lessons...');
+  const lessonRecords = await fetchTable(
+    LESSONS_TABLE_ID,
+    LESSON_FIELDS,
+    "{Status}='Published'",
+    pat
+  );
+
+  const courses = courseRecords.map(transformCourse).filter(Boolean);
+  const modules = moduleRecords.map(transformModule).filter(Boolean);
+  const lessons = lessonRecords.map(transformLesson).filter(Boolean);
+
+  console.log(`\nTransformed: ${courses.length} courses, ${modules.length} modules, ${lessons.length} lessons`);
+
+  assembleNestedCourses(courses, modules, lessons);
+
+  // Validate: each course should have at least one section with steps
+  for (const course of courses) {
+    const stepCount = course.sections.reduce((sum, s) => sum + s.steps.length, 0);
+    if (stepCount === 0) {
+      console.warn(`Warning: course "${course.id}" has 0 steps — check Airtable links`);
+    } else {
+      console.log(`  ${course.id}: ${course.sections.length} sections, ${stepCount} steps`);
+    }
+  }
+
+  mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
+  writeFileSync(OUTPUT_PATH, JSON.stringify(courses, null, 2));
+  console.log(`\nWrote ${courses.length} courses to ${OUTPUT_PATH}`);
+}
+
+fetchAll().catch(err => {
+  console.error(err);
+  process.exit(1);
+});
