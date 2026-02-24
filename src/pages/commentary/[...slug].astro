@@ -22,8 +22,20 @@ interface Props {
 const { post, allPosts } = Astro.props;
 const related = getRelatedPosts(post, allPosts, 3);
 
-// Strip raw HTML blocks from markdown to prevent injection
-marked.use({ renderer: { html() { return ''; } } });
+// Strip raw HTML blocks and block dangerous URI schemes in links
+marked.use({
+  renderer: {
+    html() { return ''; },
+    link({ href, title, tokens }) {
+      const text = this.parser.parseInline(tokens);
+      if (href && /^\s*(javascript|data|vbscript):/i.test(href)) {
+        return text;
+      }
+      const titleAttr = title ? ` title="${title}"` : '';
+      return `<a href="${href}"${titleAttr}>${text}</a>`;
+    },
+  },
+});
 
 // Pre-process markdown to fix common authoring issues
 function sanitizeMarkdown(md: string): string {
@@ -85,6 +97,8 @@ const canonicalUrl = `https://rrmacademy.org/commentary/${post.slug}`;
   description={metaDescription}
   canonicalUrl={canonicalUrl}
   ogType="article"
+  ogImage={post.coverImageUrl}
+  publishDate={post.publishDate}
   jsonLd={jsonLd}
 >
   <div class="page-wrapper" data-pagefind-body>
