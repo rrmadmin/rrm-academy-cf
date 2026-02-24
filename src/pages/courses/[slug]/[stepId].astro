@@ -215,8 +215,11 @@ function stepTypeLabel(type: string) {
     stepType: step.type,
     vimeoId: step.vimeoId || null,
     nextStepId: nextStep?.id || null,
+    nextStepUrl: nextStep ? `/courses/${course.slug}/${nextStep.id}` : '',
     videoDuration: step.duration || 0,
     videoWatchReq: course.settings?.videoWatchRequirement || 0.9,
+    fixedOrder: course.settings?.stepOrder === 'fixed',
+    autoplayNext: course.settings?.autoplayNextVideo || false,
   }}>
     (function () {
       var markBtn = document.getElementById('mark-complete-btn');
@@ -237,13 +240,21 @@ function stepTypeLabel(type: string) {
           var completedCount = 0;
           var totalCount = 0;
 
-          // Update sidebar completion states
+          // Update sidebar completion states + step locking
+          var hitIncomplete = false;
           document.querySelectorAll('.sidebar-step').forEach(function (el) {
             var sid = el.getAttribute('data-step-id');
             totalCount++;
             if (steps[sid] && steps[sid].completed) {
               completedCount++;
               el.classList.add('sidebar-step--done');
+            } else {
+              if (fixedOrder && hitIncomplete && sid !== stepId) {
+                el.classList.add('sidebar-step--locked');
+                el.setAttribute('aria-disabled', 'true');
+                el.addEventListener('click', function (e) { e.preventDefault(); });
+              }
+              hitIncomplete = true;
             }
           });
 
@@ -316,6 +327,31 @@ function stepTypeLabel(type: string) {
             if (data.event === 'finish' || data.event === 'ended') {
               canComplete = true;
               markBtn.disabled = false;
+
+              // Auto-complete + autoplay next
+              if (!isCompleted) {
+                isCompleted = true;
+                saveProgress(null, true).then(function (res) {
+                  if (res && res.ok) {
+                    markBtn.textContent = 'Completed';
+                    markBtn.classList.add('mark-complete-btn--done');
+                    markBtn.disabled = true;
+                    var el = document.querySelector('.sidebar-step[data-step-id="' + stepId + '"]');
+                    if (el) el.classList.add('sidebar-step--done');
+                    var done = document.querySelectorAll('.sidebar-step--done').length;
+                    var total = document.querySelectorAll('.sidebar-step').length;
+                    updateProgressBar(done, total);
+
+                    if (res.courseCompleted) {
+                      markBtn.textContent = 'Course Complete!';
+                    } else if (autoplayNext && nextStepUrl) {
+                      showAutoplayCountdown();
+                    }
+                  }
+                });
+              } else if (autoplayNext && nextStepUrl) {
+                showAutoplayCountdown();
+              }
             }
           });
 
@@ -365,6 +401,31 @@ function stepTypeLabel(type: string) {
             markBtn.textContent = 'Mark Complete';
           });
       });
+
+      // --- Autoplay countdown ---
+      function showAutoplayCountdown() {
+        var seconds = 5;
+        var toast = document.createElement('div');
+        toast.className = 'autoplay-toast';
+        toast.innerHTML = '<span class="autoplay-toast__text">Next lesson in <strong id="autoplay-sec">' + seconds + '</strong>s</span>' +
+          '<button class="autoplay-toast__cancel" id="autoplay-cancel">Cancel</button>';
+        document.body.appendChild(toast);
+
+        var secEl = document.getElementById('autoplay-sec');
+        var timer = setInterval(function () {
+          seconds--;
+          if (secEl) secEl.textContent = seconds;
+          if (seconds <= 0) {
+            clearInterval(timer);
+            window.location.href = nextStepUrl;
+          }
+        }, 1000);
+
+        document.getElementById('autoplay-cancel').addEventListener('click', function () {
+          clearInterval(timer);
+          toast.remove();
+        });
+      }
 
       function saveProgress(posSeconds, completed) {
         var body = { courseId: courseId, stepId: stepId };
@@ -854,6 +915,16 @@ function stepTypeLabel(type: string) {
     color: var(--text-muted);
     white-space: nowrap;
     flex-shrink: 0;
+  }
+
+  /* Locked steps (fixed order enforcement) */
+  :global(.sidebar-step--locked) {
+    opacity: 0.4;
+    pointer-events: none;
+    cursor: not-allowed;
+  }
+  :global(.sidebar-step--locked) .sidebar-step__check {
+    color: var(--neutral-200);
   }
 
   /* ═══════ Main content ═══════ */
@@ -1352,5 +1423,46 @@ function stepTypeLabel(type: string) {
     .lesson-info__title {
       font-size: 1.25rem;
     }
+  }
+
+  /* Autoplay toast */
+  :global(.autoplay-toast) {
+    position: fixed;
+    bottom: var(--space-6);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    padding: var(--space-3) var(--space-5);
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    z-index: 100;
+    animation: toast-in 0.3s ease-out;
+  }
+  @keyframes toast-in {
+    from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+  :global(.autoplay-toast__text) {
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+  :global(.autoplay-toast__cancel) {
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: var(--space-1) var(--space-3);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  :global(.autoplay-toast__cancel:hover) {
+    border-color: var(--accent);
+    color: var(--accent);
   }
 </style>
