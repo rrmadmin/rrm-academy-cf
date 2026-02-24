@@ -175,7 +175,8 @@ export function getSessionIdFromCookie(request) {
 // --- Turnstile verification ---
 
 export async function verifyTurnstile(secret, token, ip) {
-  if (!secret || !token) return !secret; // Skip if not configured
+  if (!secret) return true;
+  if (!token) return false;
   const resp = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -207,7 +208,7 @@ export function checkRateLimit(key) {
 // --- Email validation ---
 
 export function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  return typeof email === 'string' && email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 // --- Password validation ---

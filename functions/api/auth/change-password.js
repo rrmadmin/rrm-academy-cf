@@ -6,7 +6,7 @@
 import {
   json, optionsResponse, hashPassword, verifyPassword,
   getSessionIdFromCookie, validateSession, isValidPassword,
-  invalidateAllUserSessions, createSession, sessionCookie,
+  generateSessionId, sessionCookie, checkRateLimit,
 } from './_shared.js';
 
 export async function onRequestOptions() {
@@ -22,6 +22,10 @@ export async function onRequestPost({ request, env }) {
     const sessionId = getSessionIdFromCookie(request);
     const session = await validateSession(db, sessionId);
     if (!session) return json({ ok: false, error: 'Not logged in.' }, 401);
+
+    if (!checkRateLimit(`change-pw:${session.userId}`)) {
+      return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
+    }
 
     let body;
     try { body = await request.json(); } catch { return json({ ok: false, error: 'Invalid JSON' }, 400); }
@@ -41,22 +45,27 @@ export async function onRequestPost({ request, env }) {
     const valid = await verifyPassword(currentPassword, user.hashed_password);
     if (!valid) return json({ ok: false, error: 'Current password is incorrect.' }, 403);
 
-    // Hash and save new password
+    // Hash and save new password, invalidate sessions, create fresh session — atomically
     const hashedPassword = await hashPassword(newPassword);
-    await db.prepare(
-      'UPDATE user SET hashed_password = ?, updated_at = datetime(\'now\') WHERE id = ?'
-    ).bind(hashedPassword, user.id).run();
+    const newSessionId = generateSessionId();
+    const newExpiresAt = Math.floor((Date.now() + 30 * 24 * 60 * 60 * 1000) / 1000);
 
-    // Invalidate all sessions and create a fresh one
-    await invalidateAllUserSessions(db, user.id);
-    const newSession = await createSession(db, user.id);
+    await db.batch([
+      db.prepare('UPDATE user SET hashed_password = ?, updated_at = datetime(\'now\') WHERE id = ?')
+        .bind(hashedPassword, user.id),
+      db.prepare('DELETE FROM session WHERE user_id = ?')
+        .bind(user.id),
+      db.prepare('INSERT INTO session (id, user_id, expires_at) VALUES (?, ?, ?)')
+        .bind(newSessionId, user.id, newExpiresAt),
+    ]);
 
     return json(
       { ok: true },
       200,
-      { 'Set-Cookie': sessionCookie(newSession.id, newSession.expiresAt) }
+      { 'Set-Cookie': sessionCookie(newSessionId, newExpiresAt) }
     );
   } catch (err) {
-    return json({ ok: false, error: 'Server error: ' + (err.message || 'Unknown') }, 500);
+    console.error(err);
+    return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500);
   }
 }

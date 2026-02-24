@@ -54,6 +54,7 @@ export async function onRequestPatch({ request, env }) {
       user: { firstName, lastName, name },
     });
   } catch (err) {
-    return json({ ok: false, error: 'Server error: ' + (err.message || 'Unknown') }, 500);
+    console.error(err);
+    return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500);
   }
 }

@@ -41,7 +41,13 @@ export async function onRequest(context) {
       .bind(sessionId).first();
     const now = Math.floor(Date.now() / 1000);
     if (!session || now >= session.expires_at) {
-      return Response.redirect(`https://rrmacademy.org/login?redirect=${encodeURIComponent(url.pathname)}`, 302);
+      return new Response(null, {
+        status: 302,
+        headers: {
+          'Location': `https://rrmacademy.org/login?redirect=${encodeURIComponent(url.pathname)}`,
+          'Set-Cookie': 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
+        },
+      });
     }
   }
 

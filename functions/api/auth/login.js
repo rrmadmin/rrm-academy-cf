@@ -26,20 +26,20 @@ export async function onRequestPost({ request, env }) {
       return json({ ok: false, error: 'Email and password are required.' }, 400);
     }
 
-    // Rate limit by email (prevent brute force)
-    if (!checkRateLimit(`login:${email}`)) {
+    // Rate limit by IP (prevent brute force)
+    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+    if (!checkRateLimit(`login:${ip}`)) {
       return json({ ok: false, error: 'Too many login attempts. Please try again in 15 minutes.' }, 429);
     }
 
     // Turnstile
-    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
     const turnstileOk = await verifyTurnstile(
       env.CF_TURNSTILE_SECRET, body.turnstileToken, ip
     );
     if (!turnstileOk) return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
 
     // Look up user
-    const user = await db.prepare('SELECT id, email, hashed_password, name, email_verified, role FROM user WHERE email = ?')
+    const user = await db.prepare('SELECT id, email, hashed_password, name, first_name, last_name, email_verified, role FROM user WHERE email = ?')
       .bind(email).first();
 
     // Constant-time-ish: always verify even if user doesn't exist (prevent timing attacks)
@@ -64,6 +64,8 @@ export async function onRequestPost({ request, env }) {
           id: user.id,
           email: user.email,
           name: user.name,
+          firstName: user.first_name || '',
+          lastName: user.last_name || '',
           emailVerified: !!user.email_verified,
           role: user.role,
         },
@@ -72,6 +74,7 @@ export async function onRequestPost({ request, env }) {
       { 'Set-Cookie': sessionCookie(session.id, session.expiresAt) }
     );
   } catch (err) {
-    return json({ ok: false, error: 'Server error: ' + (err.message || 'Unknown') }, 500);
+    console.error(err);
+    return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500);
   }
 }
