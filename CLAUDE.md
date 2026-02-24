@@ -1,39 +1,34 @@
 # RRM Academy (Astro + CF Pages)
 
-> Wix → Cloudflare migration via strangler fig pattern. Phases 0-6 complete. Next: Phase 7 (Payments/Stripe).
+> Wix → Cloudflare migration via strangler fig pattern. Phases 0-7 complete. Phase 8 (Courses) in progress. PRD: `~/iCode/projects/rrm-router/prd/PRD-Index.md`
 
 ## Quick Reference
 
 - **Stack**: Astro 5.3 (static) + Pagefind + CF Pages Functions
 - **Live**: https://rrmacademy.org/
 - **CF Pages project**: `rrm-academy`
-- **Deploy**: `CLOUDFLARE_ACCOUNT_ID="ecf2c5bc8b5ebd634bcb587b3890910a" npx wrangler pages deploy dist --project-name rrm-academy`
+- **Deploy**: Push to `main` — CF Pages auto-builds from git
 - **Build**: `npm run build` (runs `astro build && npx pagefind --site dist`)
 - **Data**: `AIRTABLE_PAT=xxx npm run fetch-all` then `npm run build`
 - **Router Worker**: `~/iCode/projects/rrm-router/src/index.js`
 - **Wix site code**: `~/iCode/projects/rrm-academy-wix/`
 
-## Section Index
+## PRD (Single Source of Truth)
 
-| Topic | File | Key Lines | Updated |
-|-------|------|-----------|---------|
-| Migration status & phases | `docs/MIGRATION-STATUS.md` | 1-20 | 2026-02-22 |
-| Current ASTRO_ROUTES | `docs/MIGRATION-STATUS.md` | 22-50 | 2026-02-22 |
-| What's still on Wix | `docs/MIGRATION-STATUS.md` | 58-68 | 2026-02-22 |
-| CF Pages Functions | `docs/MIGRATION-STATUS.md` | 70-82 | 2026-02-22 |
-| Env secrets & KV | `docs/MIGRATION-STATUS.md` | 84-100 | 2026-02-22 |
-| Build & deploy pipeline | `docs/DATA-PIPELINE.md` | 1-30 | 2026-02-22 |
-| Airtable data sources | `docs/DATA-PIPELINE.md` | 32-45 | 2026-02-22 |
-| Design system overview | `STYLE-GUIDE.md` | 1-50 | 2026-02-22 |
-| Color tokens | `STYLE-GUIDE.md` | 52-157 | 2026-02-22 |
-| Typography | `STYLE-GUIDE.md` | 158-203 | 2026-02-22 |
-| Form patterns | `STYLE-GUIDE.md` | 395-428 | 2026-02-22 |
-| Button patterns | `STYLE-GUIDE.md` | 326-360 | 2026-02-22 |
-| Page layout patterns | `STYLE-GUIDE.md` | 653-758 | 2026-02-22 |
-| Dark mode | `STYLE-GUIDE.md` | 868-895 | 2026-02-22 |
-| Auth architecture & API | `docs/AUTH-SPEC.md` | 1-40 | 2026-02-22 |
-| Auth endpoints | `docs/AUTH-SPEC.md` | 42-55 | 2026-02-22 |
-| Auth security | `docs/AUTH-SPEC.md` | 63-80 | 2026-02-22 |
+All migration status, phase specs, architecture, auth, data flow, and acceptance criteria live in the PRD:
+
+```
+~/iCode/projects/rrm-router/prd/PRD-Index.md
+```
+
+Do NOT create duplicate docs here. Read the PRD before working.
+
+## Local Reference
+
+| Topic | File |
+|-------|------|
+| Design system | `STYLE-GUIDE.md` |
+| ICD-10 codes (endo survey internal) | `docs/endo-survey-icd10-internal.md` |
 
 ## Site Map
 
