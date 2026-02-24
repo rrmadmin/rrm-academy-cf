@@ -81,7 +81,7 @@ const parentCourse = course.includedIn
   title={course.seo?.title || course.title}
   description={course.seo?.description || course.shortDescription}
   canonicalUrl={`https://rrmacademy.org/courses/${course.slug}`}
-  ogImage={`https://static.wixstatic.com/media/${course.image}`}
+  ogImage={course.image}
   jsonLd={jsonLd}
 >
   <div class="course-page">
@@ -145,7 +145,7 @@ const parentCourse = course.includedIn
           </div>
           <div class="course-hero__image">
             <img
-              src={`https://static.wixstatic.com/media/${course.image}`}
+              src={course.image}
               alt={course.imageAlt || course.title}
               width="560"
               height="315"
