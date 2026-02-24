@@ -104,7 +104,7 @@ AIRTABLE_PAT=xxx node src/lib/fetch-{domain}-data.mjs
 
 **Bucket:** `rrm-assets` (ENAM region)
 **Public URL:** `https://pub-4af88159ce884265baba8fb4f3470625.r2.dev`
-**Binding:** `ASSETS` in `wrangler.toml`
+**Binding:** `R2_ASSETS` in `wrangler.toml`
 
 **Why R2, not `public/` directory:**
 - Binary files don't bloat the Pages deployment artifact

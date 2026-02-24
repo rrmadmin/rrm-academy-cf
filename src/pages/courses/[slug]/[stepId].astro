@@ -226,6 +226,35 @@ function stepTypeLabel(type: string) {
             )}
           </div>
         </div>
+
+        <!-- Lesson Comments -->
+        <div class="lesson-comments" id="lesson-comments">
+          <div class="lesson-comments__header">
+            <h3 class="lesson-comments__heading">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Discussion
+              <span class="lesson-comments__count" id="comments-count"></span>
+            </h3>
+          </div>
+
+          <div class="lesson-comments__compose" id="comments-compose" hidden>
+            <textarea
+              class="lesson-comments__input"
+              id="comment-input"
+              placeholder="Share a thought or question..."
+              rows="3"
+              maxlength="2000"
+            ></textarea>
+            <div class="lesson-comments__compose-footer">
+              <span class="lesson-comments__char-count" id="comment-chars">0 / 2000</span>
+              <button class="btn btn--primary btn--sm" id="comment-submit" disabled>Post</button>
+            </div>
+          </div>
+
+          <div class="lesson-comments__list" id="comments-list">
+            <p class="lesson-comments__empty" id="comments-empty" hidden>No comments yet. Be the first to start a discussion.</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -756,6 +785,179 @@ function stepTypeLabel(type: string) {
       function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
       function hide(el) { if (el) el.hidden = true; }
       function show(el) { if (el) el.hidden = false; }
+    })();
+  </script>
+
+  <!-- Comments logic -->
+  <script is:inline define:vars={{
+    cmCourseId: course.id,
+    cmStepId: step.id,
+  }}>
+    (function () {
+      var compose = document.getElementById('comments-compose');
+      var input = document.getElementById('comment-input');
+      var submitBtn = document.getElementById('comment-submit');
+      var charCount = document.getElementById('comment-chars');
+      var listEl = document.getElementById('comments-list');
+      var emptyEl = document.getElementById('comments-empty');
+      var countEl = document.getElementById('comments-count');
+      var isEnrolled = false;
+
+      // Load comments
+      fetch('/api/courses/comments?courseId=' + encodeURIComponent(cmCourseId) + '&stepId=' + encodeURIComponent(cmStepId), { credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data.ok) return;
+          isEnrolled = true;
+          compose.hidden = false;
+          if (data.count > 0) {
+            countEl.textContent = data.count;
+            renderComments(data.comments);
+          } else {
+            emptyEl.hidden = false;
+          }
+        })
+        .catch(function () {});
+
+      // Character counter
+      input.addEventListener('input', function () {
+        var len = input.value.length;
+        charCount.textContent = len + ' / 2000';
+        submitBtn.disabled = len === 0 || len > 2000;
+      });
+
+      // Submit comment
+      submitBtn.addEventListener('click', function () {
+        var content = input.value.trim();
+        if (!content || !isEnrolled) return;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Posting...';
+
+        var parentId = input.dataset.replyTo || null;
+
+        fetch('/api/courses/comments', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ courseId: cmCourseId, stepId: cmStepId, content: content, parentId: parentId }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Post';
+            if (!data.ok) return;
+
+            input.value = '';
+            charCount.textContent = '0 / 2000';
+            cancelReply();
+            emptyEl.hidden = true;
+
+            if (parentId) {
+              // Append reply to parent's replies container
+              var repliesEl = document.getElementById('replies-' + parentId);
+              if (repliesEl) {
+                repliesEl.insertAdjacentHTML('beforeend', buildCommentHtml(data.comment, true));
+              }
+            } else {
+              // Append to top-level list
+              listEl.insertAdjacentHTML('beforeend', buildCommentHtml(data.comment, false));
+            }
+
+            // Update count
+            var cur = parseInt(countEl.textContent || '0', 10);
+            countEl.textContent = cur + 1;
+          })
+          .catch(function () {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Post';
+          });
+      });
+
+      // Event delegation for reply buttons (works for dynamically added comments)
+      listEl.addEventListener('click', function (e) {
+        var btn = e.target.closest('.comment__reply-btn');
+        if (btn) startReply(btn.dataset.commentId, btn.dataset.userName);
+      });
+
+      function renderComments(comments) {
+        var html = '';
+        comments.forEach(function (c) {
+          html += buildCommentHtml(c, false);
+        });
+        listEl.innerHTML = html;
+      }
+
+      function buildCommentHtml(c, isReply) {
+        var cls = isReply ? 'comment comment--reply' : 'comment';
+        var h = '<div class="' + cls + '" data-comment-id="' + esc(c.id) + '">';
+        h += '<div class="comment__avatar">' + esc(c.userName.charAt(0).toUpperCase()) + '</div>';
+        h += '<div class="comment__body">';
+        h += '<div class="comment__meta">';
+        h += '<span class="comment__name">' + esc(c.userName) + '</span>';
+        h += '<span class="comment__time">' + timeAgo(c.createdAt) + '</span>';
+        h += '</div>';
+        h += '<p class="comment__text">' + escContent(c.content) + '</p>';
+        if (!isReply) {
+          h += '<button class="comment__reply-btn" data-comment-id="' + esc(c.id) + '" data-user-name="' + esc(c.userName) + '">Reply</button>';
+        }
+        h += '</div></div>';
+
+        // Render replies if top-level
+        if (!isReply && c.replies && c.replies.length > 0) {
+          h += '<div class="comment__replies" id="replies-' + esc(c.id) + '">';
+          c.replies.forEach(function (r) {
+            h += buildCommentHtml(r, true);
+          });
+          h += '</div>';
+        } else if (!isReply) {
+          h += '<div class="comment__replies" id="replies-' + esc(c.id) + '"></div>';
+        }
+
+        return h;
+      }
+
+      function startReply(commentId, userName) {
+        input.dataset.replyTo = commentId;
+        input.placeholder = 'Replying to ' + userName + '...';
+        input.focus();
+
+        // Show cancel reply indicator
+        var existing = document.getElementById('reply-indicator');
+        if (existing) existing.remove();
+        var indicator = document.createElement('div');
+        indicator.id = 'reply-indicator';
+        indicator.className = 'lesson-comments__reply-indicator';
+        indicator.innerHTML = 'Replying to <strong>' + esc(userName) + '</strong> <button class="reply-cancel-btn" id="reply-cancel">Cancel</button>';
+        compose.insertBefore(indicator, input);
+        document.getElementById('reply-cancel').addEventListener('click', cancelReply);
+      }
+
+      function cancelReply() {
+        delete input.dataset.replyTo;
+        input.placeholder = 'Share a thought or question...';
+        var indicator = document.getElementById('reply-indicator');
+        if (indicator) indicator.remove();
+      }
+
+      function timeAgo(dateStr) {
+        if (!dateStr) return '';
+        var date = new Date(dateStr.replace(' ', 'T') + 'Z');
+        var now = new Date();
+        var diff = Math.floor((now - date) / 1000);
+        if (diff < 60) return 'just now';
+        if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+        if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+        if (diff < 604800) return Math.floor(diff / 86400) + 'd ago';
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      }
+
+      function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+      function escContent(s) {
+        // Escape HTML but preserve line breaks
+        var d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML.replace(/\n/g, '<br>');
+      }
     })();
   </script>
 </BaseLayout>
@@ -1557,5 +1759,174 @@ function stepTypeLabel(type: string) {
   :global(.autoplay-toast__cancel:hover) {
     border-color: var(--accent);
     color: var(--accent);
+  }
+
+  /* ═══════ Comments ═══════ */
+  .lesson-comments {
+    margin-top: var(--space-6);
+    border-top: 1px solid var(--border-color);
+    padding-top: var(--space-5);
+  }
+  .lesson-comments__header {
+    margin-bottom: var(--space-4);
+  }
+  .lesson-comments__heading {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+  }
+  .lesson-comments__heading svg {
+    color: var(--text-secondary);
+    flex-shrink: 0;
+  }
+  .lesson-comments__count {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    padding: 0.125rem 0.5rem;
+    border-radius: var(--radius-full, 9999px);
+  }
+  .lesson-comments__count:empty {
+    display: none;
+  }
+
+  /* Compose */
+  .lesson-comments__compose {
+    margin-bottom: var(--space-5);
+  }
+  .lesson-comments__input {
+    width: 100%;
+    padding: var(--space-3);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-family: inherit;
+    line-height: 1.5;
+    resize: vertical;
+    min-height: 80px;
+    transition: border-color 0.15s;
+  }
+  .lesson-comments__input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+  }
+  .lesson-comments__input::placeholder {
+    color: var(--text-muted, var(--text-secondary));
+  }
+  .lesson-comments__compose-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: var(--space-2);
+  }
+  .lesson-comments__char-count {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+  .lesson-comments__reply-indicator {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    padding: var(--space-2) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  :global(.reply-cancel-btn) {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-size: 0.8125rem;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+  }
+
+  /* Comment list */
+  .lesson-comments__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .lesson-comments__empty {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    padding: var(--space-6) 0;
+  }
+
+  /* Individual comment */
+  :global(.comment) {
+    display: flex;
+    gap: var(--space-3);
+  }
+  :global(.comment--reply) {
+    margin-left: 2.5rem;
+    padding-left: var(--space-3);
+    border-left: 2px solid var(--border-light, var(--border-color));
+  }
+  :global(.comment__avatar) {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: var(--purple-100, #f3e8ff);
+    color: var(--purple-700, #7c3aed);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  :global(.comment__body) {
+    flex: 1;
+    min-width: 0;
+  }
+  :global(.comment__meta) {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    margin-bottom: var(--space-1);
+  }
+  :global(.comment__name) {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  :global(.comment__time) {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+  :global(.comment__text) {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text-primary);
+    margin: 0;
+    word-break: break-word;
+  }
+  :global(.comment__reply-btn) {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    cursor: pointer;
+    padding: var(--space-1) 0;
+    transition: color 0.15s;
+  }
+  :global(.comment__reply-btn:hover) {
+    color: var(--accent);
+  }
+  :global(.comment__replies) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
   }
 </style>
