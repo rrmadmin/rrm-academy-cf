@@ -3,7 +3,7 @@
  * Receives Stripe webhook events and processes them.
  *
  * Events handled:
- *   - checkout.session.completed  → link stripe_customer_id to D1 user
+ *   - checkout.session.completed  → link stripe_customer_id to D1 user + course enrollment
  *   - customer.subscription.updated → (logged, no action needed — Stripe is source of truth)
  *   - customer.subscription.deleted → (logged)
  *   - invoice.payment_failed       → (logged)
@@ -12,6 +12,7 @@
  * Uses constructEventAsync for CF Workers (async Web Crypto API).
  */
 import Stripe from 'stripe';
+import { enrollUser } from './courses/enroll.js';
 
 export async function onRequestPost({ request, env }) {
   const stripeKey = env.STRIPE_SECRET_KEY;
@@ -41,30 +42,78 @@ export async function onRequestPost({ request, env }) {
   }
 
   const db = env.DB;
+  if (!db) {
+    console.error('DB binding missing — cannot process webhook event');
+    return new Response('DB not configured', { status: 500 });
+  }
 
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object;
       const customerId = session.customer;
-      if (!customerId || !db) break;
 
-      // Try to link Stripe customer to D1 user
-      // Priority 1: client_reference_id (D1 user ID set during checkout)
-      if (session.client_reference_id) {
-        await db.prepare(
-          'UPDATE user SET stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE id = ?'
-        ).bind(customerId, session.client_reference_id).run();
-        console.log(`Linked Stripe ${customerId} to user ${session.client_reference_id} (by ID)`);
-      } else {
-        // Priority 2: email match
-        const emailForLink = session.customer_details?.email || session.customer_email;
-        if (emailForLink) {
-          const result = await db.prepare(
-            'UPDATE user SET stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE email = ? AND stripe_customer_id IS NULL'
-          ).bind(customerId, emailForLink.toLowerCase()).run();
-          if (result.meta?.changes > 0) {
-            console.log(`Linked Stripe ${customerId} to user by email ${emailForLink}`);
+      // Link Stripe customer to D1 user (requires customerId)
+      if (customerId) {
+        // Priority 1: client_reference_id (D1 user ID set during checkout)
+        if (session.client_reference_id) {
+          await db.prepare(
+            'UPDATE user SET stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE id = ?'
+          ).bind(customerId, session.client_reference_id).run();
+          console.log(`Linked Stripe ${customerId} to user ${session.client_reference_id} (by ID)`);
+        } else {
+          // Priority 2: email match
+          const emailForLink = session.customer_details?.email || session.customer_email;
+          if (emailForLink) {
+            const result = await db.prepare(
+              'UPDATE user SET stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE email = ? AND stripe_customer_id IS NULL'
+            ).bind(customerId, emailForLink.toLowerCase()).run();
+            if (result.meta?.changes > 0) {
+              console.log(`Linked Stripe ${customerId} to user by email ${emailForLink}`);
+            }
           }
+        }
+      }
+
+      // Course purchase: create enrollment
+      if (session.metadata?.type === 'course' && session.client_reference_id) {
+        const courseId = session.metadata.courseId;
+        const paymentIntent = session.payment_intent;
+        try {
+          await enrollUser(db, session.client_reference_id, courseId, paymentIntent);
+          console.log(`Enrolled user ${session.client_reference_id} in course ${courseId}`);
+
+          // Send course enrollment confirmation email
+          const email = session.customer_details?.email || session.customer_email;
+          const name = session.customer_details?.name || '';
+          if (email && env.RESEND_API_KEY) {
+            await fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                from: 'RRM Academy <accounts@rrmacademy.org>',
+                to: [email],
+                subject: 'Your course is ready',
+                text: [
+                  `Hi ${name || 'there'},`,
+                  '',
+                  'Your course purchase is confirmed and your course is ready to start.',
+                  '',
+                  'Go to your courses: https://rrmacademy.org/account',
+                  '',
+                  'Thank you for investing in your health education.',
+                  '',
+                  'RRM Academy',
+                  'A project of the RRM Foundation — 501(c)(3), EIN: 93-4594315',
+                ].join('\n'),
+              }),
+            });
+            console.log(`Course enrollment email sent to ${email} for ${courseId}`);
+          }
+        } catch (enrollErr) {
+          console.error(`Failed to enroll user in course ${courseId}:`, enrollErr.message);
         }
       }
 
