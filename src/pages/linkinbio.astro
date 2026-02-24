@@ -1,0 +1,284 @@
+---
+import { fetchAllPosts } from '../lib/blog';
+import '@fontsource/cormorant-garamond/600.css';
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/500.css';
+import '../styles/global.css';
+
+const allPosts = await fetchAllPosts();
+const posts = allPosts.slice(0, 15);
+---
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>RRM Academy | Link in Bio</title>
+  <meta name="description" content="RRM Academy — for true healing and women's health. Research library, courses, and commentary on restorative reproductive medicine." />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <script is:inline>
+    (function() {
+      var saved = localStorage.getItem('rrm_theme');
+      if (saved) document.documentElement.setAttribute('data-theme', saved);
+      else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <div class="linkinbio">
+    <!-- Profile header -->
+    <div class="profile">
+      <div class="profile__avatar">
+        <span class="profile__initials">RRM</span>
+      </div>
+      <h1 class="profile__name">RRM Academy</h1>
+      <p class="profile__tagline">for true healing and women's health</p>
+    </div>
+
+    <!-- Featured card: Endo Self-Survey -->
+    <a href="/endo-survey" class="featured-card">
+      <div class="featured-card__text">
+        <h2 class="featured-card__title">Endometriosis Self-Survey</h2>
+        <p class="featured-card__desc">A 3-tier symptom assessment to help you understand your endometriosis experience and take the next step.</p>
+      </div>
+      <div class="featured-card__image">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+          <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+          <path d="M9 14l2 2 4-4"/>
+        </svg>
+      </div>
+    </a>
+
+    <!-- Visit website CTA -->
+    <a href="/" class="cta-button">Visit The Website</a>
+
+    <!-- Research Library CTA -->
+    <a href="/library" class="cta-button cta-button--secondary">Research Library — 3,000+ Articles</a>
+
+    <!-- Blog post image grid -->
+    <div class="post-grid">
+      {posts.map((post) => (
+        <a href={`/commentary/${post.slug}`} class="post-grid__item" title={post.title}>
+          {post.coverImageUrl ? (
+            <img
+              src={post.coverImageUrl}
+              alt={post.title}
+              loading="lazy"
+              width="200"
+              height="200"
+            />
+          ) : (
+            <div class="post-grid__placeholder">
+              <span>{post.title.charAt(0)}</span>
+            </div>
+          )}
+        </a>
+      ))}
+    </div>
+
+    <!-- Footer -->
+    <footer class="bio-footer">
+      <a href="/terms-of-use">Terms of Use</a>
+      <span aria-hidden="true">&middot;</span>
+      <a href="/privacy-policy">Privacy Policy</a>
+    </footer>
+  </div>
+</body>
+</html>
+
+<style>
+  body {
+    min-height: 100dvh;
+    display: flex;
+    justify-content: center;
+    background: var(--cream);
+  }
+
+  .linkinbio {
+    width: 100%;
+    max-width: 480px;
+    padding: 32px 20px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  /* ── Profile ── */
+  .profile {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .profile__avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--purple-700);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+  }
+  .profile__initials {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-weight: 600;
+    font-size: 1.5rem;
+    color: var(--white);
+    letter-spacing: 0.05em;
+  }
+  .profile__name {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-weight: 600;
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    line-height: 1.2;
+    margin: 0;
+  }
+  .profile__tagline {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+
+  /* ── Featured card ── */
+  .featured-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    text-decoration: none;
+    transition: box-shadow 0.15s, border-color 0.15s;
+  }
+  .featured-card:hover {
+    border-color: var(--purple-300);
+    box-shadow: var(--shadow-md);
+    text-decoration: none;
+  }
+  .featured-card__text {
+    flex: 1;
+    min-width: 0;
+  }
+  .featured-card__title {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-weight: 600;
+    font-size: 1.125rem;
+    color: var(--text-primary);
+    margin: 0 0 6px;
+    line-height: 1.25;
+  }
+  .featured-card__desc {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0;
+  }
+  .featured-card__image {
+    flex-shrink: 0;
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--purple-50);
+    border-radius: var(--radius-md);
+  }
+
+  /* ── CTA buttons ── */
+  .cta-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 14px 24px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--white);
+    background: var(--purple-700);
+    border-radius: var(--radius-pill);
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .cta-button:hover {
+    background: var(--purple-900);
+    text-decoration: none;
+    color: var(--white);
+  }
+  .cta-button--secondary {
+    color: var(--purple-700);
+    background: var(--bg-surface);
+    border: 1px solid var(--purple-700);
+  }
+  .cta-button--secondary:hover {
+    color: var(--purple-900);
+    border-color: var(--purple-900);
+    background: var(--bg-surface);
+  }
+
+  /* ── Post grid ── */
+  .post-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    width: 100%;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  .post-grid__item {
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    display: block;
+  }
+  .post-grid__item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.2s;
+  }
+  .post-grid__item:hover img {
+    transform: scale(1.05);
+  }
+  .post-grid__placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--purple-50);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--purple-300);
+  }
+
+  /* ── Footer ── */
+  .bio-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+  }
+  .bio-footer a {
+    color: var(--text-tertiary);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .bio-footer a:hover {
+    color: var(--accent);
+  }
+</style>
