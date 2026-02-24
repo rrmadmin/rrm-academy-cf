@@ -23,18 +23,10 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_PATH = join(__dirname, '..', 'data', 'courses.json');
 
-// TODO: Replace with actual Airtable base and table IDs
-const AIRTABLE_BASE_ID = 'appXXXXXXXXXXXXXX';
-const COURSES_TABLE_ID = 'tblXXXXXXXXXXXXXX';
-const MODULES_TABLE_ID = 'tblYYYYYYYYYYYYYY';
-const LESSONS_TABLE_ID = 'tblZZZZZZZZZZZZZZ';
-
-// Skip fetch if placeholder IDs haven't been replaced yet
-if (AIRTABLE_BASE_ID.includes('XXXX')) {
-  console.log('Courses: skipping fetch — Airtable base/table IDs are placeholders.');
-  console.log('Replace IDs in fetch-courses-data.mjs after setting up the Airtable base.');
-  process.exit(0);
-}
+const AIRTABLE_BASE_ID = 'app0nohI0WrgFWOE3';
+const COURSES_TABLE_ID = 'tblsLSGVuza8NPlDK';
+const MODULES_TABLE_ID = 'tbloA6RVfnT8WMHFq';
+const LESSONS_TABLE_ID = 'tbl5RdpAUj8ub4nz4';
 
 const BASE_URL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}`;
 
