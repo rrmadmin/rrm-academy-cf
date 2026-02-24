@@ -10,7 +10,7 @@ export async function getStaticPaths() {
 
   return Array.from({ length: totalPages }, (_, i) => ({
     params: { page: String(i + 1) },
-    props: { posts, currentPage: i + 1, totalPages, perPage },
+    props: { posts, currentPage: i + 1, totalPages },
   }));
 }
 
@@ -53,9 +53,11 @@ for (let i = 1; i <= totalPages; i++) {
       <div class="browse-header">
         <div>
           <h1>All commentary</h1>
-          <p class="browse-meta">
-            Showing {start + 1}&ndash;{Math.min(start + PER_PAGE, posts.length)} of {posts.length}
-          </p>
+          {posts.length > 0 && (
+            <p class="browse-meta">
+              Showing {start + 1}&ndash;{Math.min(start + PER_PAGE, posts.length)} of {posts.length}
+            </p>
+          )}
         </div>
       </div>
 

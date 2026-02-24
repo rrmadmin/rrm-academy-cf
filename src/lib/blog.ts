@@ -64,13 +64,22 @@ function transformRecord(record: AirtableRecord): BlogPost | null {
   };
 }
 
+function sortByDate(posts: BlogPost[]): BlogPost[] {
+  return [...posts].sort((a, b) => {
+    if (!a.publishDate && !b.publishDate) return 0;
+    if (!a.publishDate) return 1;
+    if (!b.publishDate) return -1;
+    return b.publishDate.localeCompare(a.publishDate);
+  });
+}
+
 export async function fetchAllPosts(): Promise<BlogPost[]> {
   // Try cached JSON first
   try {
     const cached = await import('../data/posts.json');
     const posts = (cached.default || cached) as BlogPost[];
     console.log(`[blog] Loaded ${posts.length} posts from cache`);
-    return posts;
+    return sortByDate(posts);
   } catch {
     // No cache — fetch from API
   }
@@ -109,15 +118,7 @@ export async function fetchAllPosts(): Promise<BlogPost[]> {
     }
   } while (offset);
 
-  // Sort newest first
-  posts.sort((a, b) => {
-    if (!a.publishDate && !b.publishDate) return 0;
-    if (!a.publishDate) return 1;
-    if (!b.publishDate) return -1;
-    return b.publishDate.localeCompare(a.publishDate);
-  });
-
-  return posts;
+  return sortByDate(posts);
 }
 
 /**

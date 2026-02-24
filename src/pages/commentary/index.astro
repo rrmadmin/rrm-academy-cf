@@ -7,7 +7,6 @@ const posts = await fetchAllPosts();
 
 const PER_PAGE = 6;
 const displayPosts = posts.slice(0, PER_PAGE);
-const totalPages = Math.ceil(posts.length / 10); // pagination pages use 10 per page
 
 const jsonLd = {
   '@context': 'https://schema.org',
