@@ -52,13 +52,23 @@ jobs:
             airtable-data-
 
       - name: Fetch data from Airtable
-        if: ${{ github.event.inputs.skip_fetch != 'true' }}
+        if: ${{ !inputs.skip_fetch }}
         env:
           AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
         run: |
           npm run fetch-all
           echo "Articles: $(node -e "console.log(require('./src/data/articles.json').length)")"
           echo "Posts: $(node -e "console.log(require('./src/data/posts.json').length)")"
+
+      - name: Verify data files exist
+        run: |
+          for f in src/data/articles.json src/data/posts.json src/data/faqs.json; do
+            if [ ! -f "$f" ]; then
+              echo "ERROR: $f not found. Cannot build without data files."
+              echo "If using skip_fetch, ensure a previous run has cached the data."
+              exit 1
+            fi
+          done
 
       - name: Build site
         run: npm run build

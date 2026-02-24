@@ -48,9 +48,16 @@ async function fetchAll() {
       offset ? `&offset=${offset}` : ''
     }`;
 
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${pat}` },
-    });
+    let res;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      res = await fetch(url, {
+        headers: { Authorization: `Bearer ${pat}` },
+      });
+      if (res.status !== 429) break;
+      const delay = Math.pow(2, attempt) * 1000;
+      console.warn(`Rate limited (429), retrying in ${delay / 1000}s...`);
+      await new Promise(r => setTimeout(r, delay));
+    }
 
     if (!res.ok) {
       const err = await res.text();
@@ -93,9 +100,19 @@ async function fetchAll() {
     return b.publishDate.localeCompare(a.publishDate);
   });
 
+  const seen = new Set();
+  const deduplicated = posts.filter(p => {
+    if (seen.has(p.slug)) {
+      console.warn(`Warning: duplicate slug "${p.slug}" — keeping first occurrence`);
+      return false;
+    }
+    seen.add(p.slug);
+    return true;
+  });
+
   mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
-  writeFileSync(OUTPUT_PATH, JSON.stringify(posts, null, 2));
-  console.log(`\nWrote ${posts.length} posts to ${OUTPUT_PATH}`);
+  writeFileSync(OUTPUT_PATH, JSON.stringify(deduplicated, null, 2));
+  console.log(`\nWrote ${deduplicated.length} posts to ${OUTPUT_PATH}`);
 }
 
 fetchAll().catch(err => {

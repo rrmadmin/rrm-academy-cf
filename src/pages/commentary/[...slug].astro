@@ -22,6 +22,10 @@ interface Props {
 const { post, allPosts } = Astro.props;
 const related = getRelatedPosts(post, allPosts, 3);
 
+function escapeAttr(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 // Strip raw HTML blocks and block dangerous URI schemes in links
 marked.use({
   renderer: {
@@ -31,8 +35,8 @@ marked.use({
       if (href && /^\s*(javascript|data|vbscript):/i.test(href)) {
         return text;
       }
-      const titleAttr = title ? ` title="${title}"` : '';
-      return `<a href="${href}"${titleAttr}>${text}</a>`;
+      const titleAttr = title ? ` title="${escapeAttr(title)}"` : '';
+      return `<a href="${escapeAttr(href ?? '')}"${titleAttr}>${text}</a>`;
     },
   },
 });
@@ -54,7 +58,7 @@ function sanitizeMarkdown(md: string): string {
 }
 
 // Render markdown content to HTML
-const htmlContent = post.content ? marked.parse(sanitizeMarkdown(post.content)) : '';
+const htmlContent = post.content ? await marked.parse(sanitizeMarkdown(post.content)) : '';
 
 // Meta description from excerpt
 const metaDescription = post.excerpt
