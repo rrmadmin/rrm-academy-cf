@@ -41,7 +41,7 @@ export async function onRequestPost(context) {
   }
 
   const email = (body.email || '').trim().toLowerCase();
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return json({ ok: false, error: 'Valid email required' }, 400);
   }
 
@@ -83,23 +83,31 @@ export async function onRequestPost(context) {
   if (utmSource) surveyUrl += `&utm_source=${encodeURIComponent(utmSource)}`;
 
   // Send email via Resend
-  const emailResp = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${env.RESEND_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from: 'RRM Academy <survey@rrmacademy.org>',
-      to: [email],
-      subject: 'Your Endometriosis Symptom Self-Survey',
-      html: buildEmailHtml(surveyUrl),
-    }),
-  });
+  let emailResp;
+  try {
+    emailResp = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'RRM Academy <survey@rrmacademy.org>',
+        to: [email],
+        subject: 'Your Endometriosis Symptom Self-Survey',
+        html: buildEmailHtml(surveyUrl),
+      }),
+    });
+  } catch (err) {
+    console.error('Resend fetch failed:', err.message);
+    await env.SURVEY_TOKENS.delete(`email:${email}`);
+    return json({ ok: false, error: 'Failed to send email. Please try again.' }, 502);
+  }
 
   if (!emailResp.ok) {
     const errText = await emailResp.text();
     console.error('Resend error:', errText);
+    await env.SURVEY_TOKENS.delete(`email:${email}`);
     return json({ ok: false, error: 'Failed to send email. Please try again.' }, 502);
   }
 

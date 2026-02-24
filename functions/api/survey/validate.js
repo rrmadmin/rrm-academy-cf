@@ -38,12 +38,15 @@ export async function onRequestGet(context) {
   const data = await env.SURVEY_TOKENS.get(`token:${token}`, 'json');
 
   if (!data) {
-    return json({ valid: false, reason: 'not_found' });
+    return json({ valid: false, reason: 'not_found' }, 404);
   }
 
   if (data.used) {
-    return json({ valid: false, reason: 'used' });
+    return json({ valid: false, reason: 'used' }, 409);
   }
 
-  return json({ valid: true, email: data.email });
+  const [local, domain] = data.email.split('@');
+  const masked = local[0] + '***@' + domain;
+
+  return json({ valid: true, email: masked });
 }

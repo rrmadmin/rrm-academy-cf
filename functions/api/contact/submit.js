@@ -41,7 +41,7 @@ export async function onRequestPost(context) {
   }
 
   // Validate fields
-  const name = (body.name || '').trim();
+  const name = (body.name || '').trim().replace(/[\x00-\x1f\x7f]/g, '');
   const email = (body.email || '').trim().toLowerCase();
   const message = (body.message || '').trim();
 
@@ -78,31 +78,39 @@ export async function onRequestPost(context) {
   } else if (env.CF_TURNSTILE_SECRET) {
     // Turnstile is configured but no token provided — likely a bot
     return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
+  } else {
+    console.warn('CF_TURNSTILE_SECRET not set — Turnstile verification disabled');
   }
 
   // Send notification email via Resend
-  const emailResp = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${env.RESEND_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from: 'RRM Academy <contact@rrmacademy.org>',
-      to: ['contact@rrmacademy.org'],
-      reply_to: email,
-      subject: `[Contact] ${subject}`,
-      text: [
-        `Name: ${name}`,
-        `Email: ${email}`,
-        '',
-        message,
-        '',
-        '---',
-        `Sent from rrmacademy.org/contact at ${new Date().toISOString()}`,
-      ].join('\n'),
-    }),
-  });
+  let emailResp;
+  try {
+    emailResp = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'RRM Academy <contact@rrmacademy.org>',
+        to: ['contact@rrmacademy.org'],
+        reply_to: email,
+        subject: `[Contact] ${subject}`,
+        text: [
+          `Name: ${name}`,
+          `Email: ${email}`,
+          '',
+          message,
+          '',
+          '---',
+          `Sent from rrmacademy.org/contact at ${new Date().toISOString()}`,
+        ].join('\n'),
+      }),
+    });
+  } catch (err) {
+    console.error('Resend fetch failed:', err.message);
+    return json({ ok: false, error: 'Failed to send message. Please try again.' }, 502);
+  }
 
   if (!emailResp.ok) {
     const errText = await emailResp.text();
@@ -111,31 +119,34 @@ export async function onRequestPost(context) {
   }
 
   // Send confirmation to the sender
-  const confirmResp = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${env.RESEND_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from: 'RRM Academy <contact@rrmacademy.org>',
-      to: [email],
-      subject: 'We received your message — RRM Academy',
-      text: [
-        `Hi ${name},`,
-        '',
-        'Thank you for reaching out to RRM Academy. We received your message and will get back to you as soon as possible.',
-        '',
-        'Best regards,',
-        'RRM Academy',
-        'https://rrmacademy.org',
-      ].join('\n'),
-    }),
-  });
+  try {
+    const confirmResp = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'RRM Academy <contact@rrmacademy.org>',
+        to: [email],
+        subject: 'We received your message — RRM Academy',
+        text: [
+          `Hi ${name},`,
+          '',
+          'Thank you for reaching out to RRM Academy. We received your message and will get back to you as soon as possible.',
+          '',
+          'Best regards,',
+          'RRM Academy',
+          'https://rrmacademy.org',
+        ].join('\n'),
+      }),
+    });
 
-  if (!confirmResp.ok) {
-    // Non-critical — log but don't fail the request
-    console.error('Confirmation email failed:', await confirmResp.text());
+    if (!confirmResp.ok) {
+      console.error('Confirmation email failed:', await confirmResp.text());
+    }
+  } catch (err) {
+    console.error('Confirmation email fetch failed:', err.message);
   }
 
   return json({ ok: true });

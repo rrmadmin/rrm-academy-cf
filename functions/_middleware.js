@@ -14,8 +14,9 @@ export async function onRequest(context) {
 
   // 301 redirect: library.rrmacademy.org → rrmacademy.org/library
   if (url.hostname === 'library.rrmacademy.org') {
+    const path = url.pathname.startsWith('/library') ? url.pathname : `/library${url.pathname}`;
     return Response.redirect(
-      `https://rrmacademy.org/library${url.pathname}`,
+      `https://rrmacademy.org${path}${url.search}`,
       301
     );
   }
@@ -23,7 +24,10 @@ export async function onRequest(context) {
   // Auth protection: /account/* requires a valid session
   // The page itself does a client-side check, but this middleware provides
   // a server-side redirect for direct navigation (no JS needed)
-  if (url.pathname.startsWith('/account') && env.DB) {
+  if (url.pathname === '/account' || url.pathname.startsWith('/account/')) {
+    if (!env.DB) {
+      return new Response('Service Unavailable', { status: 503 });
+    }
     const cookie = request.headers.get('Cookie') || '';
     const match = cookie.match(/(?:^|;\s*)session=([^;]+)/);
     const sessionId = match ? match[1] : null;
