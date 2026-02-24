@@ -39,6 +39,7 @@ CREATE INDEX IF NOT EXISTS idx_session_user_id ON session(user_id);
 CREATE INDEX IF NOT EXISTS idx_session_expires ON session(expires_at);
 CREATE INDEX IF NOT EXISTS idx_email_verification_user ON email_verification(user_id);
 CREATE INDEX IF NOT EXISTS idx_password_reset_user ON password_reset(user_id);
+CREATE INDEX IF NOT EXISTS idx_password_reset_token ON password_reset(token_hash);
 CREATE INDEX IF NOT EXISTS idx_user_email ON user(email);
 
 -- Phase 8: Courses & Enrollment
