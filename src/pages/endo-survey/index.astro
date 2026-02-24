@@ -149,11 +149,26 @@ const jsonLd = {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 72px;
-    height: 72px;
-    margin: 0 auto var(--space-4);
+    width: 56px;
+    height: 56px;
+    margin: 0 auto var(--space-3);
     background: #FDF6E3;
     border-radius: 50%;
+  }
+  .survey-hero__ribbon svg {
+    width: 36px;
+    height: 36px;
+  }
+  @media (min-width: 769px) {
+    .survey-hero__ribbon {
+      width: 72px;
+      height: 72px;
+      margin-bottom: var(--space-4);
+    }
+    .survey-hero__ribbon svg {
+      width: 48px;
+      height: 48px;
+    }
   }
   .survey-hero__eyebrow {
     font-family: 'Inter', sans-serif;
