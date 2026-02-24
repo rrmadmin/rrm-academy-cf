@@ -134,10 +134,14 @@ async function handleCheckout(request, env) {
 
     const sessionParams = {
       mode: 'subscription',
+      submit_type: 'donate',
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${origin}/save-the-uterus-club/thank-you?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/save-the-uterus-club`,
       metadata: { tier },
+      custom_text: {
+        submit: { message: 'Your monthly donation supports evidence-based reproductive health education through the RRM Foundation, a 501(c)(3) nonprofit.' },
+      },
     };
 
     if (stripeCustomerId) {
