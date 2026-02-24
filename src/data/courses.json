@@ -12,6 +12,7 @@
     "stripePriceId": null,
     "isFree": false,
     "hasCertificate": true,
+    "certificateQuizId": "mc-feedback-3",
     "selfPaced": true,
     "accessType": "public",
     "participants": 38,

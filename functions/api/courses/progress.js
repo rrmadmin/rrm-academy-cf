@@ -8,7 +8,7 @@
 import {
   json, optionsResponse, getSessionIdFromCookie, validateSession,
 } from '../auth/_shared.js';
-import { getCourse, getTotalSteps, isValidStep } from './_shared.js';
+import { getCourse, getTotalSteps, isValidStep, getCertificateQuizId, CERTIFICATE_MIN_SCORE } from './_shared.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -171,6 +171,7 @@ async function handleProgressUpdate(request, env) {
 
   // If marking complete, check if entire course is now done
   let courseCompleted = false;
+  let certificateIssued = false;
   if (completed) {
     const totalSteps = getTotalSteps(courseId);
     const { count } = await db.prepare(
@@ -182,8 +183,25 @@ async function handleProgressUpdate(request, env) {
         'UPDATE enrollment SET completed_at = datetime(\'now\') WHERE user_id = ? AND course_id = ? AND completed_at IS NULL'
       ).bind(session.userId, courseId).run();
       courseCompleted = true;
+
+      // Auto-issue certificate if eligible
+      const course = getCourse(courseId);
+      if (course?.hasCertificate) {
+        const quizStepId = getCertificateQuizId(courseId);
+        if (quizStepId) {
+          const quiz = await db.prepare(
+            'SELECT score FROM step_progress WHERE user_id = ? AND course_id = ? AND step_id = ? AND completed = 1'
+          ).bind(session.userId, courseId, quizStepId).first();
+          if (quiz?.score >= CERTIFICATE_MIN_SCORE) {
+            await db.prepare(
+              "UPDATE enrollment SET certificate_issued_at = datetime('now') WHERE user_id = ? AND course_id = ? AND certificate_issued_at IS NULL"
+            ).bind(session.userId, courseId).run();
+            certificateIssued = true;
+          }
+        }
+      }
     }
   }
 
-  return json({ ok: true, courseCompleted });
+  return json({ ok: true, courseCompleted, certificateIssued });
 }
