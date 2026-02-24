@@ -133,6 +133,7 @@ async function handleCheckout(request, env) {
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${origin}/save-the-uterus-club/thank-you?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/save-the-uterus-club`,
+      metadata: { tier },
     };
 
     if (userEmail) sessionParams.customer_email = userEmail;
