@@ -25,7 +25,7 @@ export async function onRequestPost({ request, env }) {
     return await handleCheckout(request, env);
   } catch (err) {
     console.error('create-checkout error:', err.message, err.stack);
-    return json({ ok: false, error: err.message || 'Internal error' }, 500);
+    return json({ ok: false, error: 'Internal error' }, 500);
   }
 }
 
@@ -93,7 +93,11 @@ async function handleCheckout(request, env) {
       cancel_url: `${origin}/donate`,
     };
 
-    if (userEmail) sessionParams.customer_email = userEmail;
+    if (stripeCustomerId) {
+      sessionParams.customer = stripeCustomerId;
+    } else if (userEmail) {
+      sessionParams.customer_email = userEmail;
+    }
     if (userId) sessionParams.client_reference_id = userId;
 
     const checkoutSession = await stripe.checkout.sessions.create(sessionParams);
@@ -136,7 +140,11 @@ async function handleCheckout(request, env) {
       metadata: { tier },
     };
 
-    if (userEmail) sessionParams.customer_email = userEmail;
+    if (stripeCustomerId) {
+      sessionParams.customer = stripeCustomerId;
+    } else if (userEmail) {
+      sessionParams.customer_email = userEmail;
+    }
     if (userId) sessionParams.client_reference_id = userId;
 
     const checkoutSession = await stripe.checkout.sessions.create(sessionParams);

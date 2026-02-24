@@ -17,6 +17,15 @@ export async function onRequestOptions() {
 }
 
 export async function onRequestGet({ request, env }) {
+  try {
+    return await handleStatus(request, env);
+  } catch (err) {
+    console.error('billing status error:', err.message, err.stack);
+    return json({ ok: false, error: 'Internal error' }, 500);
+  }
+}
+
+async function handleStatus(request, env) {
   const db = env.DB;
   const stripeKey = env.STRIPE_SECRET_KEY;
   if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
@@ -56,10 +65,15 @@ export async function onRequestGet({ request, env }) {
   const sub = subscriptions.data[0];
   const price = sub.items.data[0]?.price;
 
+  const priceToTier = {};
+  if (env.STRIPE_PRICE_MEMBER) priceToTier[env.STRIPE_PRICE_MEMBER] = 'member';
+  if (env.STRIPE_PRICE_HERO) priceToTier[env.STRIPE_PRICE_HERO] = 'hero';
+  if (env.STRIPE_PRICE_SUPERHERO) priceToTier[env.STRIPE_PRICE_SUPERHERO] = 'superhero';
+
   return json({
     ok: true,
     subscription: {
-      tier: price?.nickname || 'Member',
+      tier: priceToTier[price?.id] || price?.nickname || 'Member',
       status: sub.status,
       currentPeriodEnd: sub.current_period_end,
       cancelAtPeriodEnd: sub.cancel_at_period_end,
