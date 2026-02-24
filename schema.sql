@@ -1,4 +1,4 @@
--- RRM Academy Auth Schema (Phase 6)
+-- RRM Academy Schema (Phases 6 + 8)
 -- Applied to D1 database: rrm-auth
 
 CREATE TABLE IF NOT EXISTS user (
@@ -40,3 +40,30 @@ CREATE INDEX IF NOT EXISTS idx_session_expires ON session(expires_at);
 CREATE INDEX IF NOT EXISTS idx_email_verification_user ON email_verification(user_id);
 CREATE INDEX IF NOT EXISTS idx_password_reset_user ON password_reset(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_email ON user(email);
+
+-- Phase 8: Courses & Enrollment
+
+CREATE TABLE IF NOT EXISTS enrollment (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+    course_id TEXT NOT NULL,
+    enrolled_at TEXT DEFAULT (datetime('now')),
+    completed_at TEXT,
+    stripe_payment_intent TEXT,
+    certificate_issued_at TEXT,
+    UNIQUE(user_id, course_id)
+);
+
+CREATE TABLE IF NOT EXISTS step_progress (
+    user_id TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+    course_id TEXT NOT NULL,
+    step_id TEXT NOT NULL,
+    completed INTEGER DEFAULT 0,
+    score INTEGER,
+    last_position_seconds INTEGER DEFAULT 0,
+    updated_at TEXT DEFAULT (datetime('now')),
+    PRIMARY KEY(user_id, course_id, step_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_enrollment_user ON enrollment(user_id);
+CREATE INDEX IF NOT EXISTS idx_enrollment_course ON enrollment(course_id);
