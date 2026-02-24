@@ -55,17 +55,68 @@ export async function onRequestPost({ request, env }) {
           'UPDATE user SET stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE id = ?'
         ).bind(customerId, session.client_reference_id).run();
         console.log(`Linked Stripe ${customerId} to user ${session.client_reference_id} (by ID)`);
-        break;
+      } else {
+        // Priority 2: email match
+        const emailForLink = session.customer_details?.email || session.customer_email;
+        if (emailForLink) {
+          const result = await db.prepare(
+            'UPDATE user SET stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE email = ? AND stripe_customer_id IS NULL'
+          ).bind(customerId, emailForLink.toLowerCase()).run();
+          if (result.meta?.changes > 0) {
+            console.log(`Linked Stripe ${customerId} to user by email ${emailForLink}`);
+          }
+        }
       }
 
-      // Priority 2: email match
-      const email = session.customer_details?.email || session.customer_email;
-      if (email) {
-        const result = await db.prepare(
-          'UPDATE user SET stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE email = ? AND stripe_customer_id IS NULL'
-        ).bind(customerId, email.toLowerCase()).run();
-        if (result.meta?.changes > 0) {
-          console.log(`Linked Stripe ${customerId} to user by email ${email}`);
+      // Send membership confirmation email for subscriptions
+      if (session.mode === 'subscription' && env.RESEND_API_KEY) {
+        const email = session.customer_details?.email || session.customer_email;
+        const name = session.customer_details?.name || '';
+        const tier = session.metadata?.tier || '';
+        const tierNames = { member: 'Member', hero: 'Uterus Hero', superhero: 'Super Hero' };
+        const tierLabel = tierNames[tier] || 'Member';
+
+        if (email) {
+          try {
+            await fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                from: 'RRM Academy <accounts@rrmacademy.org>',
+                to: [email],
+                subject: 'Welcome to the Save the Uterus Club',
+                text: [
+                  `Hi ${name || 'there'},`,
+                  '',
+                  `Welcome to the Save the Uterus Club! You're now a ${tierLabel} member.`,
+                  '',
+                  'Here\'s what to do next:',
+                  '',
+                  '1. Join the member group — this is where live call dates, resources, and discussion happen:',
+                  '   https://rrmfoundation.wixstudio.com/rrm-academy/group/save-the-uterus-club',
+                  '',
+                  '2. Join the free Uterus Allies group chat on Instagram:',
+                  '   https://www.instagram.com/direct/t/7768750249851959/',
+                  '',
+                  '3. Explore the Research Library — over 3,000 peer-reviewed resources:',
+                  '   https://rrmacademy.org/library',
+                  '',
+                  'You can manage your membership anytime at https://rrmacademy.org/account',
+                  '',
+                  'Thank you for supporting evidence-based reproductive health.',
+                  '',
+                  'RRM Academy',
+                  'A project of the RRM Foundation — 501(c)(3), EIN: 93-4594315',
+                ].join('\n'),
+              }),
+            });
+            console.log(`Membership confirmation email sent to ${email} (${tierLabel})`);
+          } catch (emailErr) {
+            console.error('Failed to send membership confirmation email:', emailErr.message);
+          }
         }
       }
       break;
