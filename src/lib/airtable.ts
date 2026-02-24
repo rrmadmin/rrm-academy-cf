@@ -163,8 +163,12 @@ export async function fetchAllArticles(): Promise<Article[]> {
       console.log(`[airtable] Loaded ${articles.length} articles from cache`);
       return articles;
     }
-  } catch {
-    // No cache file — fetch from API
+  } catch (err: any) {
+    if (err?.code === 'ERR_MODULE_NOT_FOUND') {
+      // No cache file — fall through to API fetch
+    } else {
+      throw new Error(`articles.json exists but failed to load: ${err?.message}`);
+    }
   }
 
   const pat = import.meta.env.AIRTABLE_PAT || process.env.AIRTABLE_PAT;
@@ -187,13 +191,26 @@ export async function fetchAllArticles(): Promise<Article[]> {
       offset ? `&offset=${offset}` : ''
     }`;
 
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${pat}` },
-    });
+    let res: Response | undefined;
+    let lastError: Error | undefined;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      try {
+        res = await fetch(url, {
+          headers: { Authorization: `Bearer ${pat}` },
+        });
+        lastError = undefined;
+        if (res.status !== 429) break;
+      } catch (e: any) {
+        lastError = e;
+      }
+      const delay = Math.pow(2, attempt) * 1000;
+      await new Promise(r => setTimeout(r, delay));
+    }
 
-    if (!res.ok) {
-      const err = await res.text();
-      throw new Error(`Airtable API error ${res.status}: ${err}`);
+    if (lastError) throw lastError;
+    if (!res || !res.ok) {
+      const err = res ? await res.text() : 'No response';
+      throw new Error(`Airtable API error ${res?.status}: ${err}`);
     }
 
     const data = await res.json();

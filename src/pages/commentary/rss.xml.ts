@@ -8,17 +8,20 @@ function escapeXml(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+function toUtcString(dateStr: string): string {
+  const d = new Date(dateStr + 'T00:00:00Z');
+  return isNaN(d.getTime()) ? '' : d.toUTCString();
+}
+
 export async function GET() {
   const posts = await fetchAllPosts();
 
-  const lastBuildDate = posts.length > 0 && posts[0].publishDate
-    ? new Date(posts[0].publishDate + 'T00:00:00Z').toUTCString()
-    : new Date().toUTCString();
+  const lastBuildDate = (posts.length > 0 && posts[0].publishDate
+    ? toUtcString(posts[0].publishDate)
+    : '') || new Date().toUTCString();
 
   const items = posts.map(post => {
-    const pubDate = post.publishDate
-      ? new Date(post.publishDate + 'T00:00:00Z').toUTCString()
-      : '';
+    const pubDate = post.publishDate ? toUtcString(post.publishDate) : '';
 
     return `    <item>
       <title><![CDATA[${escapeCdata(post.title)}]]></title>

@@ -3,40 +3,50 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import AuthorByline from '../../components/AuthorByline.astro';
 import BlogCard from '../../components/BlogCard.astro';
 import { fetchAllPosts, getRelatedPosts, type BlogPost } from '../../lib/blog';
-import { marked } from 'marked';
+import { Marked } from 'marked';
 
 export async function getStaticPaths() {
   const posts = await fetchAllPosts();
 
   return posts.map(post => ({
     params: { slug: post.slug },
-    props: { post, allPosts: posts },
+    props: { post },
   }));
 }
 
 interface Props {
   post: BlogPost;
-  allPosts: BlogPost[];
 }
 
-const { post, allPosts } = Astro.props;
+const { post } = Astro.props;
+const allPosts = await fetchAllPosts();
 const related = getRelatedPosts(post, allPosts, 3);
 
 function escapeAttr(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-// Strip raw HTML blocks and block dangerous URI schemes in links
-marked.use({
+const dangerousUri = /^\s*(javascript|data|vbscript):/i;
+
+// Strip raw HTML blocks and block dangerous URI schemes in links and images
+const marked = new Marked({
   renderer: {
     html() { return ''; },
     link({ href, title, tokens }) {
       const text = this.parser.parseInline(tokens);
-      if (href && /^\s*(javascript|data|vbscript):/i.test(href)) {
+      if (href && dangerousUri.test(href)) {
         return text;
       }
       const titleAttr = title ? ` title="${escapeAttr(title)}"` : '';
       return `<a href="${escapeAttr(href ?? '')}"${titleAttr}>${text}</a>`;
+    },
+    image({ href, title, text }) {
+      if (href && dangerousUri.test(href)) {
+        return text || '';
+      }
+      const titleAttr = title ? ` title="${escapeAttr(title)}"` : '';
+      const altAttr = text ? ` alt="${escapeAttr(text)}"` : ' alt=""';
+      return `<img src="${escapeAttr(href ?? '')}"${altAttr}${titleAttr} />`;
     },
   },
 });

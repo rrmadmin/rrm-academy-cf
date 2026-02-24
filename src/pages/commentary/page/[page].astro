@@ -4,26 +4,26 @@ import BlogCard from '../../../components/BlogCard.astro';
 import { fetchAllPosts } from '../../../lib/blog';
 
 export async function getStaticPaths() {
-  const perPage = 10;
+  const PER_PAGE = 6;
   const posts = await fetchAllPosts();
-  const totalPages = Math.max(1, Math.ceil(posts.length / perPage));
+  const totalPages = Math.max(1, Math.ceil(posts.length / PER_PAGE));
 
   return Array.from({ length: totalPages }, (_, i) => ({
     params: { page: String(i + 1) },
-    props: { posts, currentPage: i + 1, totalPages, perPage },
+    props: { currentPage: i + 1, totalPages },
   }));
 }
 
 interface Props {
-  posts: any[];
   currentPage: number;
   totalPages: number;
-  perPage: number;
 }
 
-const { posts, currentPage, totalPages, perPage } = Astro.props;
-const start = (currentPage - 1) * perPage;
-const pagePosts = posts.slice(start, start + perPage);
+const PER_PAGE = 6;
+const { currentPage, totalPages } = Astro.props;
+const posts = await fetchAllPosts();
+const start = (currentPage - 1) * PER_PAGE;
+const pagePosts = posts.slice(start, start + PER_PAGE);
 
 // Pagination range
 const range: (number | '...')[] = [];
@@ -52,19 +52,23 @@ for (let i = 1; i <= totalPages; i++) {
       <div class="browse-header">
         <div>
           <h1>All commentary</h1>
-          {posts.length > 0 && (
+          {pagePosts.length > 0 && (
             <p class="browse-meta">
-              Showing {start + 1}&ndash;{Math.min(start + perPage, posts.length)} of {posts.length}
+              Showing {start + 1}&ndash;{Math.min(start + PER_PAGE, posts.length)} of {posts.length}
             </p>
           )}
         </div>
       </div>
 
-      <div class="blog-grid">
-        {pagePosts.map(post => (
-          <BlogCard post={post} />
-        ))}
-      </div>
+      {pagePosts.length > 0 ? (
+        <div class="blog-grid">
+          {pagePosts.map(post => (
+            <BlogCard post={post} />
+          ))}
+        </div>
+      ) : (
+        <p class="empty-state">No commentary posts yet.</p>
+      )}
 
       <nav class="pagination" aria-label="Pagination">
         {currentPage > 1 && (
