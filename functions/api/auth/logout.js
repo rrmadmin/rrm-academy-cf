@@ -11,17 +11,26 @@ export async function onRequestOptions() {
 }
 
 export async function onRequestPost({ request, env }) {
-  const db = env.DB;
-  if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
+  try {
+    const db = env.DB;
+    if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
 
-  const sessionId = getSessionIdFromCookie(request);
-  if (sessionId) {
-    await invalidateSession(db, sessionId);
+    const sessionId = getSessionIdFromCookie(request);
+    if (sessionId) {
+      await invalidateSession(db, sessionId);
+    }
+
+    return json(
+      { ok: true },
+      200,
+      { 'Set-Cookie': clearSessionCookie() }
+    );
+  } catch (err) {
+    console.error(err);
+    return json(
+      { ok: true },
+      200,
+      { 'Set-Cookie': clearSessionCookie() }
+    );
   }
-
-  return json(
-    { ok: true },
-    200,
-    { 'Set-Cookie': clearSessionCookie() }
-  );
 }

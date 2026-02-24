@@ -24,7 +24,7 @@ export async function onRequestGet({ request, env }) {
 
   // Fetch user data
   const user = await db.prepare(
-    'SELECT id, email, name, first_name, last_name, email_verified, role, stripe_customer_id FROM user WHERE id = ?'
+    'SELECT id, email, name, first_name, last_name, email_verified, role FROM user WHERE id = ?'
   ).bind(session.userId).first();
 
   if (!user) {

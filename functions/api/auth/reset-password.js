@@ -4,7 +4,7 @@
  */
 import {
   json, optionsResponse, hashPassword, hashToken,
-  invalidateAllUserSessions, createSession, sessionCookie,
+  generateSessionId, sessionCookie,
   isValidPassword,
 } from './_shared.js';
 
@@ -38,25 +38,29 @@ export async function onRequestPost({ request, env }) {
       return json({ ok: false, error: 'Invalid or expired reset link. Please request a new one.' }, 400);
     }
 
-    // Update password
+    // Update password, clean up tokens/sessions, create fresh session — atomically
     const hashedPassword = await hashPassword(password);
-    await db.prepare(
-      'UPDATE user SET hashed_password = ?, email_verified = 1, updated_at = datetime(\'now\') WHERE id = ?'
-    ).bind(hashedPassword, record.user_id).run();
+    const newSessionId = generateSessionId();
+    const newExpiresAt = Math.floor((Date.now() + 30 * 24 * 60 * 60 * 1000) / 1000);
 
-    // Clean up all reset tokens and sessions for this user
-    await db.prepare('DELETE FROM password_reset WHERE user_id = ?').bind(record.user_id).run();
-    await invalidateAllUserSessions(db, record.user_id);
-
-    // Create fresh session
-    const session = await createSession(db, record.user_id);
+    await db.batch([
+      db.prepare('UPDATE user SET hashed_password = ?, email_verified = 1, updated_at = datetime(\'now\') WHERE id = ?')
+        .bind(hashedPassword, record.user_id),
+      db.prepare('DELETE FROM password_reset WHERE user_id = ?')
+        .bind(record.user_id),
+      db.prepare('DELETE FROM session WHERE user_id = ?')
+        .bind(record.user_id),
+      db.prepare('INSERT INTO session (id, user_id, expires_at) VALUES (?, ?, ?)')
+        .bind(newSessionId, record.user_id, newExpiresAt),
+    ]);
 
     return json(
       { ok: true },
       200,
-      { 'Set-Cookie': sessionCookie(session.id, session.expiresAt) }
+      { 'Set-Cookie': sessionCookie(newSessionId, newExpiresAt) }
     );
   } catch (err) {
-    return json({ ok: false, error: 'Server error: ' + (err.message || 'Unknown') }, 500);
+    console.error(err);
+    return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500);
   }
 }

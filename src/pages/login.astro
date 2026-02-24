@@ -105,7 +105,10 @@ const TURNSTILE_SITE_KEY = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
           })
           .then(function (data) {
             if (data.ok) {
-              window.location.href = '/account';
+              var params = new URLSearchParams(window.location.search);
+              var dest = params.get('redirect') || '/account';
+              if (!/^\/[a-zA-Z0-9\-_\/]*$/.test(dest)) dest = '/account';
+              window.location.href = dest;
             } else {
               showError(data.error || 'Login failed.');
               submitBtn.disabled = false; submitBtn.textContent = 'Log in';

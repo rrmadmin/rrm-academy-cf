@@ -3,7 +3,7 @@
  * Accepts { code } and verifies the user's email address.
  */
 import {
-  json, optionsResponse, getSessionIdFromCookie, validateSession,
+  json, optionsResponse, getSessionIdFromCookie, validateSession, checkRateLimit,
 } from './_shared.js';
 
 export async function onRequestOptions() {
@@ -19,6 +19,10 @@ export async function onRequestPost({ request, env }) {
     const sessionId = getSessionIdFromCookie(request);
     const session = await validateSession(db, sessionId);
     if (!session) return json({ ok: false, error: 'Not authenticated.' }, 401);
+
+    if (!checkRateLimit(`verify:${session.userId}`)) {
+      return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
+    }
 
     let body;
     try { body = await request.json(); } catch { return json({ ok: false, error: 'Invalid JSON' }, 400); }
@@ -47,6 +51,7 @@ export async function onRequestPost({ request, env }) {
 
     return json({ ok: true });
   } catch (err) {
-    return json({ ok: false, error: 'Server error: ' + (err.message || 'Unknown') }, 500);
+    console.error(err);
+    return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500);
   }
 }

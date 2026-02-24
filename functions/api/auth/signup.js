@@ -3,8 +3,8 @@
  * Creates a new user account and sends email verification.
  */
 import {
-  json, optionsResponse, generateId, generateToken, hashPassword, hashToken,
-  createSession, sessionCookie, verifyTurnstile, checkRateLimit,
+  json, optionsResponse, generateId, generateSessionId, generateToken,
+  hashPassword, hashToken, sessionCookie, verifyTurnstile, checkRateLimit,
   isValidEmail, isValidPassword, CORS_HEADERS,
 } from './_shared.js';
 
@@ -49,20 +49,36 @@ export async function onRequestPost({ request, env }) {
       return json({ ok: false, error: 'An account with this email already exists.' }, 409);
     }
 
-    // Create user
+    // Prepare all three INSERTs
     const userId = generateId();
     const name = firstName + ' ' + lastName;
     const hashedPassword = await hashPassword(password);
-    await db.prepare(
-      'INSERT INTO user (id, email, name, first_name, last_name, hashed_password) VALUES (?, ?, ?, ?, ?, ?)'
-    ).bind(userId, email, name, firstName, lastName, hashedPassword).run();
 
-    // Create email verification token
     const code = generateToken().slice(0, 8); // 8-char verification code
     const verifyExpiresAt = Math.floor(Date.now() / 1000) + 3600; // 1 hour
-    await db.prepare(
-      'INSERT INTO email_verification (id, user_id, code, expires_at) VALUES (?, ?, ?, ?)'
-    ).bind(generateId(), userId, code, verifyExpiresAt).run();
+
+    const sessionId = generateSessionId();
+    const sessionExpiresAt = Math.floor((Date.now() + 30 * 24 * 60 * 60 * 1000) / 1000);
+
+    // Atomic batch: user + email_verification + session
+    try {
+      await db.batch([
+        db.prepare(
+          'INSERT INTO user (id, email, name, first_name, last_name, hashed_password) VALUES (?, ?, ?, ?, ?, ?)'
+        ).bind(userId, email, name, firstName, lastName, hashedPassword),
+        db.prepare(
+          'INSERT INTO email_verification (id, user_id, code, expires_at) VALUES (?, ?, ?, ?)'
+        ).bind(generateId(), userId, code, verifyExpiresAt),
+        db.prepare(
+          'INSERT INTO session (id, user_id, expires_at) VALUES (?, ?, ?)'
+        ).bind(sessionId, userId, sessionExpiresAt),
+      ]);
+    } catch (batchErr) {
+      if (batchErr.message && batchErr.message.includes('UNIQUE constraint failed')) {
+        return json({ ok: false, error: 'An account with this email already exists.' }, 409);
+      }
+      throw batchErr;
+    }
 
     // Send verification email (fire-and-forget — don't block on Resend response)
     if (env.RESEND_API_KEY) {
@@ -99,15 +115,13 @@ export async function onRequestPost({ request, env }) {
       }
     }
 
-    // Create session (user can use the site, but with email_verified=0)
-    const session = await createSession(db, userId);
-
     return json(
       { ok: true, emailVerificationRequired: true },
-      200,
-      { 'Set-Cookie': sessionCookie(session.id, session.expiresAt) }
+      201,
+      { 'Set-Cookie': sessionCookie(sessionId, sessionExpiresAt) }
     );
   } catch (err) {
-    return json({ ok: false, error: 'Server error: ' + (err.message || 'Unknown') }, 500);
+    console.error(err);
+    return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500);
   }
 }

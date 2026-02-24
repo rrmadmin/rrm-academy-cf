@@ -88,6 +88,7 @@ export async function onRequestPost({ request, env }) {
     // Always return success (no email enumeration)
     return json({ ok: true, message: 'If an account exists with that email, a reset link has been sent.' });
   } catch (err) {
-    return json({ ok: false, error: 'Server error: ' + (err.message || 'Unknown') }, 500);
+    console.error(err);
+    return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500);
   }
 }
