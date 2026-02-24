@@ -1,0 +1,1356 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import coursesData from '../../../data/courses.json';
+
+export function getStaticPaths() {
+  const paths: any[] = [];
+  for (const course of coursesData) {
+    for (const section of course.sections) {
+      for (const step of section.steps) {
+        paths.push({
+          params: { slug: course.slug, stepId: step.id },
+          props: { course, section, step },
+        });
+      }
+    }
+  }
+  return paths;
+}
+
+const { course, section, step } = Astro.props;
+
+// Build flat step list for prev/next navigation
+const allSteps: any[] = [];
+for (const s of course.sections) {
+  for (const st of s.steps) {
+    allSteps.push({ ...st, sectionTitle: s.title, sectionId: s.id });
+  }
+}
+const currentIdx = allSteps.findIndex((s: any) => s.id === step.id);
+const prevStep = currentIdx > 0 ? allSteps[currentIdx - 1] : null;
+const nextStep = currentIdx < allSteps.length - 1 ? allSteps[currentIdx + 1] : null;
+const totalSteps = allSteps.length;
+const stepNumber = currentIdx + 1;
+
+function formatDuration(seconds: number) {
+  if (!seconds) return '';
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return s > 0 ? `${m}:${String(s).padStart(2, '0')}` : `${m} min`;
+}
+
+function stepTypeLabel(type: string) {
+  if (type === 'video') return 'Video';
+  if (type === 'quiz') return 'Quiz';
+  return 'Article';
+}
+---
+<BaseLayout
+  title={`${step.title} — ${course.title}`}
+  description={`${stepTypeLabel(step.type)}: ${step.title}. Part of ${course.title} on RRM Academy.`}
+  canonicalUrl={`https://rrmacademy.org/courses/${course.slug}/${step.id}`}
+  noindex
+  bodyClass="page-player"
+>
+  <div class="player-layout">
+
+    <!-- Sidebar -->
+    <aside class="player-sidebar" id="player-sidebar">
+      <div class="sidebar-header">
+        <a href={`/courses/${course.slug}`} class="sidebar-back" title="Back to course">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+        <span class="sidebar-course-title">{course.title}</span>
+      </div>
+
+      <div class="sidebar-progress" id="sidebar-progress">
+        <div class="sidebar-progress__bar" role="progressbar" aria-valuenow={0} aria-valuemin={0} aria-valuemax={100} aria-label="Course progress">
+          <div class="sidebar-progress__fill" id="sidebar-progress-fill"></div>
+        </div>
+        <span class="sidebar-progress__text" id="sidebar-progress-text">0% complete</span>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="Course curriculum">
+        {course.sections.map((s: any) => {
+          const isCurrentSection = s.id === section.id;
+          return (
+            <details class="sidebar-module" open={isCurrentSection}>
+              <summary class="sidebar-module__header">
+                <span class="sidebar-module__title">{s.title}</span>
+                <svg class="sidebar-module__chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </summary>
+              <ul class="sidebar-steps">
+                {s.steps.map((st: any) => {
+                  const isCurrent = st.id === step.id;
+                  return (
+                    <li>
+                      <a
+                        href={`/courses/${course.slug}/${st.id}`}
+                        class:list={['sidebar-step', { 'sidebar-step--current': isCurrent }]}
+                        aria-current={isCurrent ? 'step' : undefined}
+                        data-step-id={st.id}
+                      >
+                        <span class="sidebar-step__check" aria-hidden="true">
+                          <svg class="check-empty" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+                          <svg class="check-done" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        </span>
+                        <span class="sidebar-step__title">{st.title}</span>
+                        {st.duration && <span class="sidebar-step__dur">{formatDuration(st.duration)}</span>}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </details>
+          );
+        })}
+      </nav>
+    </aside>
+
+    <!-- Main content area -->
+    <div class="player-main">
+
+      <!-- Mobile top bar -->
+      <div class="player-topbar">
+        <a href={`/courses/${course.slug}`} class="player-topbar__back" title="Back to course">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+        <span class="player-topbar__title">{course.title}</span>
+        <button class="player-topbar__menu" id="sidebar-toggle" aria-label="Toggle curriculum" aria-expanded="false">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+
+      <!-- Video / Article / Quiz content -->
+      <div class="player-content">
+        {step.type === 'video' && step.vimeoId && (
+          <div class="video-wrapper">
+            <div class="video-container" id="video-container">
+              <iframe
+                id="vimeo-player"
+                src={`https://player.vimeo.com/video/${step.vimeoId}?title=0&byline=0&portrait=0`}
+                width="100%"
+                height="100%"
+                frameborder="0"
+                allow="autoplay; fullscreen; picture-in-picture"
+                allowfullscreen
+                title={step.title}
+              ></iframe>
+            </div>
+          </div>
+        )}
+
+        {step.type === 'article' && (
+          <div class="article-content">
+            <p class="article-placeholder">Article content for "{step.title}" will be available here.</p>
+          </div>
+        )}
+
+        {step.type === 'quiz' && (
+          <div class="quiz-content" id="quiz-container">
+            <div class="quiz-loading" id="quiz-loading">
+              <div class="quiz-spinner"></div>
+              <p>Loading...</p>
+            </div>
+            <div class="quiz-form" id="quiz-form" hidden>
+              <div class="quiz-header">
+                <h2 class="quiz-header__title" id="quiz-title"></h2>
+                <p class="quiz-header__desc" id="quiz-desc"></p>
+                <div class="quiz-header__meta" id="quiz-meta"></div>
+              </div>
+              <div class="quiz-questions" id="quiz-questions"></div>
+              <div class="quiz-footer">
+                <button class="btn btn--primary btn--lg" id="quiz-submit" disabled>Submit Answers</button>
+                <p class="quiz-footer__hint" id="quiz-hint"></p>
+              </div>
+            </div>
+            <div class="quiz-results" id="quiz-results" hidden></div>
+            <div class="quiz-unavailable" id="quiz-unavailable" hidden>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <p class="quiz-unavailable__title">Coming Soon</p>
+              <p class="quiz-unavailable__text">Quiz content is being prepared and will be available shortly.</p>
+            </div>
+          </div>
+        )}
+
+        <!-- Lesson header -->
+        <div class="lesson-info">
+          <div class="lesson-info__header">
+            <span class="lesson-info__section">{section.title}</span>
+            <span class="lesson-info__counter">Lesson {stepNumber} of {totalSteps}</span>
+          </div>
+          <h1 class="lesson-info__title">{step.title}</h1>
+        </div>
+
+        <!-- Mark Complete + Navigation -->
+        <div class="lesson-actions" id="lesson-actions">
+          <button class="btn btn--primary mark-complete-btn" id="mark-complete-btn" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Mark Complete
+          </button>
+          <div class="lesson-nav">
+            {prevStep && (
+              <a href={`/courses/${course.slug}/${prevStep.id}`} class="btn btn--secondary btn--sm lesson-nav__prev">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                Previous
+              </a>
+            )}
+            {nextStep && (
+              <a href={`/courses/${course.slug}/${nextStep.id}`} class="btn btn--secondary btn--sm lesson-nav__next" id="next-lesson-btn">
+                Next
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Player logic -->
+  <script is:inline define:vars={{
+    courseId: course.id,
+    courseSlug: course.slug,
+    stepId: step.id,
+    stepType: step.type,
+    vimeoId: step.vimeoId || null,
+    nextStepId: nextStep?.id || null,
+    videoDuration: step.duration || 0,
+    videoWatchReq: course.settings?.videoWatchRequirement || 0.9,
+  }}>
+    (function () {
+      var markBtn = document.getElementById('mark-complete-btn');
+      var isCompleted = false;
+      var canComplete = stepType === 'article'; // videos need watch %, quizzes use their own submit flow
+
+      // --- Auth check + load progress ---
+      fetch('/api/courses/progress?courseId=' + encodeURIComponent(courseId), { credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data.ok) {
+            // Not enrolled — redirect to course detail
+            window.location.href = '/courses/' + courseSlug;
+            return;
+          }
+
+          var steps = data.steps || {};
+          var completedCount = 0;
+          var totalCount = 0;
+
+          // Update sidebar completion states
+          document.querySelectorAll('.sidebar-step').forEach(function (el) {
+            var sid = el.getAttribute('data-step-id');
+            totalCount++;
+            if (steps[sid] && steps[sid].completed) {
+              completedCount++;
+              el.classList.add('sidebar-step--done');
+            }
+          });
+
+          // Update progress bar
+          updateProgressBar(completedCount, totalCount);
+
+          // Current step already complete
+          if (steps[stepId] && steps[stepId].completed) {
+            isCompleted = true;
+            if (stepType !== 'quiz') {
+              markBtn.textContent = 'Completed';
+              markBtn.disabled = true;
+              markBtn.classList.add('mark-complete-btn--done');
+            }
+          } else if (canComplete) {
+            markBtn.disabled = false;
+          }
+
+          // Hide Mark Complete for quiz steps — submission handles it
+          if (stepType === 'quiz') {
+            markBtn.style.display = 'none';
+          }
+
+          // Resume video position
+          if (stepType === 'video' && steps[stepId] && steps[stepId].lastPositionSeconds > 0) {
+            var iframe = document.getElementById('vimeo-player');
+            if (iframe) {
+              // Append start time to Vimeo URL
+              var src = iframe.getAttribute('src');
+              var startTime = '#t=' + steps[stepId].lastPositionSeconds + 's';
+              iframe.setAttribute('src', src + startTime);
+            }
+          }
+        })
+        .catch(function () {
+          // Silently fail — user may not be logged in
+        });
+
+      // --- Video progress tracking ---
+      if (stepType === 'video' && vimeoId) {
+        var lastSaved = 0;
+        var maxPercent = 0;
+
+        // Vimeo postMessage API (no SDK needed)
+        var iframe = document.getElementById('vimeo-player');
+        if (iframe) {
+          window.addEventListener('message', function (event) {
+            if (!event.origin.includes('vimeo.com')) return;
+            var data;
+            try { data = JSON.parse(event.data); } catch { return; }
+
+            if (data.event === 'playProgress' || data.event === 'timeupdate') {
+              var seconds = Math.floor(data.data?.seconds || 0);
+              var percent = data.data?.percent || 0;
+              if (percent > maxPercent) maxPercent = percent;
+
+              // Save position every 15 seconds
+              if (seconds - lastSaved >= 15) {
+                lastSaved = seconds;
+                saveProgress(seconds, false);
+              }
+
+              // Enable "Mark Complete" once watch requirement met
+              if (maxPercent >= videoWatchReq && !isCompleted) {
+                canComplete = true;
+                markBtn.disabled = false;
+              }
+            }
+
+            if (data.event === 'finish' || data.event === 'ended') {
+              canComplete = true;
+              markBtn.disabled = false;
+            }
+          });
+
+          // Tell Vimeo to send events
+          function postToVimeo(action, value) {
+            iframe.contentWindow.postMessage(JSON.stringify({ method: action, value: value }), '*');
+          }
+          iframe.addEventListener('load', function () {
+            postToVimeo('addEventListener', 'playProgress');
+            postToVimeo('addEventListener', 'finish');
+          });
+        }
+      }
+
+      // --- Mark complete ---
+      markBtn.addEventListener('click', function () {
+        if (isCompleted || !canComplete) return;
+        markBtn.disabled = true;
+        markBtn.textContent = 'Saving...';
+
+        saveProgress(null, true)
+          .then(function (data) {
+            if (data && data.ok) {
+              isCompleted = true;
+              markBtn.textContent = 'Completed';
+              markBtn.classList.add('mark-complete-btn--done');
+
+              // Update sidebar
+              var el = document.querySelector('.sidebar-step[data-step-id="' + stepId + '"]');
+              if (el) el.classList.add('sidebar-step--done');
+
+              // Recalculate progress
+              var done = document.querySelectorAll('.sidebar-step--done').length;
+              var total = document.querySelectorAll('.sidebar-step').length;
+              updateProgressBar(done, total);
+
+              if (data.courseCompleted) {
+                markBtn.textContent = 'Course Complete!';
+              }
+            } else {
+              markBtn.disabled = false;
+              markBtn.textContent = 'Mark Complete';
+            }
+          })
+          .catch(function () {
+            markBtn.disabled = false;
+            markBtn.textContent = 'Mark Complete';
+          });
+      });
+
+      function saveProgress(posSeconds, completed) {
+        var body = { courseId: courseId, stepId: stepId };
+        if (completed) body.completed = true;
+        if (posSeconds !== null && posSeconds !== undefined) body.lastPositionSeconds = posSeconds;
+
+        return fetch('/api/courses/progress', {
+          method: 'PATCH',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        })
+          .then(function (r) { return r.json(); })
+          .catch(function () { return null; });
+      }
+
+      function updateProgressBar(done, total) {
+        var pct = total > 0 ? Math.round((done / total) * 100) : 0;
+        var fill = document.getElementById('sidebar-progress-fill');
+        var text = document.getElementById('sidebar-progress-text');
+        var bar = document.querySelector('.sidebar-progress__bar');
+        if (fill) fill.style.width = pct + '%';
+        if (text) text.textContent = pct + '% complete';
+        if (bar) bar.setAttribute('aria-valuenow', String(pct));
+      }
+
+      // --- Mobile sidebar toggle ---
+      var sidebarToggle = document.getElementById('sidebar-toggle');
+      var sidebar = document.getElementById('player-sidebar');
+      if (sidebarToggle && sidebar) {
+        sidebarToggle.addEventListener('click', function () {
+          var expanded = sidebar.classList.toggle('sidebar--open');
+          sidebarToggle.setAttribute('aria-expanded', String(expanded));
+        });
+      }
+    })();
+  </script>
+
+  <!-- Quiz / Questionnaire logic -->
+  <script is:inline define:vars={{
+    qCourseId: course.id,
+    qStepId: step.id,
+    qStepType: step.type,
+    qCourseSlug: course.slug,
+    qCertQuizId: course.certificateQuizId || '',
+  }}>
+    (function () {
+      if (qStepType !== 'quiz') return;
+
+      var loading = document.getElementById('quiz-loading');
+      var form = document.getElementById('quiz-form');
+      var resultsEl = document.getElementById('quiz-results');
+      var unavailable = document.getElementById('quiz-unavailable');
+      var titleEl = document.getElementById('quiz-title');
+      var descEl = document.getElementById('quiz-desc');
+      var metaEl = document.getElementById('quiz-meta');
+      var questionsEl = document.getElementById('quiz-questions');
+      var submitBtn = document.getElementById('quiz-submit');
+      var hintEl = document.getElementById('quiz-hint');
+
+      var quizData = null;
+      var answers = {};
+
+      // Fetch quiz content
+      fetch('/api/courses/quiz?courseId=' + encodeURIComponent(qCourseId) + '&stepId=' + encodeURIComponent(qStepId), { credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          hide(loading);
+          if (!data.ok || !data.questions || data.questions.length === 0) {
+            show(unavailable);
+            return;
+          }
+          quizData = data;
+          renderQuiz(data);
+        })
+        .catch(function () {
+          hide(loading);
+          show(unavailable);
+        });
+
+      function renderQuiz(data) {
+        titleEl.textContent = data.title;
+        descEl.textContent = data.description;
+
+        var metaHtml = '<span class="quiz-pill">' + data.questions.length + ' questions</span>';
+        if (data.type === 'quiz' && data.passingScore) {
+          metaHtml += '<span class="quiz-pill">Passing: ' + data.passingScore + '%</span>';
+        }
+        metaEl.innerHTML = metaHtml;
+
+        var html = '';
+        data.questions.forEach(function (q, i) {
+          if (data.type === 'questionnaire' && q.type === 'likert') {
+            html += buildLikert(q, i);
+          } else {
+            html += buildMC(q, i);
+          }
+        });
+        questionsEl.innerHTML = html;
+
+        // Bind radio inputs
+        questionsEl.querySelectorAll('input[type="radio"]').forEach(function (input) {
+          input.addEventListener('change', function () {
+            var name = this.name;
+            answers[name] = parseInt(this.value);
+            // Highlight selected option
+            var group = questionsEl.querySelectorAll('input[name="' + name + '"]');
+            group.forEach(function (r) {
+              var label = r.closest('.qo') || r.closest('.lk-opt');
+              if (label) label.classList.toggle('qo--sel', r.checked);
+            });
+            checkReady();
+          });
+        });
+
+        if (data.type === 'quiz' && data.passingScore) {
+          hintEl.textContent = 'You need ' + data.passingScore + '% to pass.';
+        } else if (data.type === 'questionnaire') {
+          hintEl.textContent = 'All responses help improve the course.';
+        }
+
+        show(form);
+        submitBtn.addEventListener('click', doSubmit);
+      }
+
+      function buildMC(q, idx) {
+        var h = '<div class="qq">';
+        h += '<div class="qq__num">' + (idx + 1) + '</div>';
+        h += '<div class="qq__body">';
+        h += '<p class="qq__text">' + esc(q.text) + '</p>';
+        h += '<div class="qq__opts">';
+        q.options.forEach(function (opt, oi) {
+          h += '<label class="qo">';
+          h += '<input type="radio" name="q-' + q.id + '" value="' + oi + '">';
+          h += '<span class="qo__radio"></span>';
+          h += '<span class="qo__text">' + esc(opt) + '</span>';
+          h += '</label>';
+        });
+        h += '</div></div></div>';
+        return h;
+      }
+
+      function buildLikert(q, idx) {
+        var sc = q.scale || { min: 1, max: 5, labels: ['1', '2', '3', '4', '5'] };
+        var h = '<div class="qq qq--likert">';
+        h += '<div class="qq__num">' + (idx + 1) + '</div>';
+        h += '<div class="qq__body">';
+        h += '<p class="qq__text">' + esc(q.text) + '</p>';
+        h += '<div class="lk-row">';
+        for (var v = sc.min; v <= sc.max; v++) {
+          var lbl = sc.labels ? sc.labels[v - sc.min] : String(v);
+          h += '<label class="lk-opt">';
+          h += '<input type="radio" name="q-' + q.id + '" value="' + (v - 1) + '">';
+          h += '<span class="lk-opt__dot"></span>';
+          h += '<span class="lk-opt__lbl">' + esc(lbl) + '</span>';
+          h += '</label>';
+        }
+        h += '</div></div></div>';
+        return h;
+      }
+
+      function checkReady() {
+        if (!quizData) return;
+        submitBtn.disabled = Object.keys(answers).length < quizData.questions.length;
+      }
+
+      function doSubmit() {
+        if (submitBtn.disabled) return;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
+
+        var ansArr = quizData.questions.map(function (q) {
+          var key = 'q-' + q.id;
+          return answers[key] !== undefined ? answers[key] : -1;
+        });
+
+        fetch('/api/courses/quiz', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ courseId: qCourseId, stepId: qStepId, answers: ansArr }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (!data.ok) {
+              submitBtn.disabled = false;
+              submitBtn.textContent = 'Submit Answers';
+              alert(data.error || 'Submission failed.');
+              return;
+            }
+            showResults(data);
+            markSidebarDone();
+          })
+          .catch(function () {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Answers';
+            alert('Network error. Please try again.');
+          });
+      }
+
+      function showResults(data) {
+        hide(form);
+        var h = '';
+
+        if (quizData.type === 'questionnaire') {
+          h += '<div class="qr-card qr-card--pass">';
+          h += '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--green-700)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+          h += '<h3>Thank You</h3>';
+          h += '<p>Your responses have been recorded.</p>';
+          h += '</div>';
+        } else {
+          var passed = data.passed;
+          var cls = passed ? 'qr-card--pass' : 'qr-card--fail';
+          var icon = passed
+            ? '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--green-700)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
+            : '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--rose-600, #e11d48)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+
+          h += '<div class="qr-card ' + cls + '">';
+          h += icon;
+          h += '<h3>Score: ' + data.score + '%</h3>';
+          if (quizData.passingScore) {
+            h += '<p>' + (passed ? 'You passed!' : 'You need ' + quizData.passingScore + '% to pass. You can try again.') + '</p>';
+          }
+          if (passed && qStepId === qCertQuizId) {
+            h += '<p class="qr-cert">Your certificate of completion has been issued.</p>';
+          }
+          h += '</div>';
+
+          // Per-question breakdown
+          if (data.results) {
+            h += '<div class="qr-breakdown">';
+            h += '<h4>Question Breakdown</h4>';
+            data.results.forEach(function (r, i) {
+              var q = quizData.questions[i];
+              var ok = r.correct;
+              h += '<div class="qr-item ' + (ok ? 'qr-item--ok' : 'qr-item--wrong') + '">';
+              h += '<div class="qr-item__icon">' + (ok ? '&#10003;' : '&#10007;') + '</div>';
+              h += '<div class="qr-item__body">';
+              h += '<p class="qr-item__q">' + esc(q.text) + '</p>';
+              if (!ok && q.options) {
+                h += '<p class="qr-item__yours">Your answer: ' + esc(q.options[r.selected] || '—') + '</p>';
+                h += '<p class="qr-item__correct">Correct: ' + esc(q.options[r.correctIndex] || '—') + '</p>';
+              }
+              h += '</div></div>';
+            });
+            h += '</div>';
+          }
+
+          // Retake if failed
+          if (!passed) {
+            h += '<div class="qr-actions">';
+            h += '<button class="btn btn--primary" id="quiz-retake">Try Again</button>';
+            h += '</div>';
+          }
+        }
+
+        // Next lesson link
+        var nextBtn = document.getElementById('next-lesson-btn');
+        if (nextBtn) {
+          h += '<div class="qr-nav">';
+          h += '<a href="' + nextBtn.href + '" class="btn btn--secondary">Next Lesson &rarr;</a>';
+          h += '</div>';
+        }
+
+        resultsEl.innerHTML = h;
+        show(resultsEl);
+        resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        // Retake handler
+        var retakeBtn = document.getElementById('quiz-retake');
+        if (retakeBtn) {
+          retakeBtn.addEventListener('click', function () {
+            hide(resultsEl);
+            answers = {};
+            questionsEl.querySelectorAll('input[type="radio"]').forEach(function (input) {
+              input.checked = false;
+            });
+            questionsEl.querySelectorAll('.qo--sel').forEach(function (el) {
+              el.classList.remove('qo--sel');
+            });
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submit Answers';
+            show(form);
+            form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+        }
+      }
+
+      function markSidebarDone() {
+        var el = document.querySelector('.sidebar-step[data-step-id="' + qStepId + '"]');
+        if (el) el.classList.add('sidebar-step--done');
+        var done = document.querySelectorAll('.sidebar-step--done').length;
+        var total = document.querySelectorAll('.sidebar-step').length;
+        if (total > 0) {
+          var pct = Math.round((done / total) * 100);
+          var fill = document.getElementById('sidebar-progress-fill');
+          var text = document.getElementById('sidebar-progress-text');
+          var bar = document.querySelector('.sidebar-progress__bar');
+          if (fill) fill.style.width = pct + '%';
+          if (text) text.textContent = pct + '% complete';
+          if (bar) bar.setAttribute('aria-valuenow', String(pct));
+        }
+      }
+
+      function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+      function hide(el) { if (el) el.hidden = true; }
+      function show(el) { if (el) el.hidden = false; }
+    })();
+  </script>
+</BaseLayout>
+
+<style>
+  /* Player uses a custom layout — full viewport, no page-wrapper padding */
+  .player-layout {
+    display: flex;
+    min-height: calc(100vh - 48px); /* minus header height */
+  }
+
+  /* ═══════ Sidebar ═══════ */
+  .player-sidebar {
+    width: 320px;
+    flex-shrink: 0;
+    background: var(--bg-surface);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    max-height: calc(100vh - 48px);
+    position: sticky;
+    top: 48px;
+  }
+
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-4);
+    border-bottom: 1px solid var(--border-light);
+    flex-shrink: 0;
+  }
+  .sidebar-back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+  }
+  .sidebar-back:hover {
+    background: var(--neutral-100);
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .sidebar-course-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .sidebar-progress {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border-light);
+    flex-shrink: 0;
+  }
+  .sidebar-progress__bar {
+    width: 100%;
+    height: 6px;
+    background: var(--neutral-200);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .sidebar-progress__fill {
+    height: 100%;
+    background: var(--green-700);
+    border-radius: 3px;
+    transition: width 0.3s;
+    width: 0%;
+  }
+  .sidebar-progress__text {
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+    margin-top: 3px;
+    display: block;
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-2) 0;
+  }
+
+  .sidebar-module {
+    border-bottom: 1px solid var(--border-light);
+  }
+  .sidebar-module:last-child {
+    border-bottom: none;
+  }
+  .sidebar-module__header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+  }
+  .sidebar-module__header::-webkit-details-marker {
+    display: none;
+  }
+  .sidebar-module__title {
+    flex: 1;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .sidebar-module__chevron {
+    flex-shrink: 0;
+    color: var(--text-muted);
+    transition: transform 0.2s;
+  }
+  .sidebar-module[open] .sidebar-module__chevron {
+    transform: rotate(180deg);
+  }
+
+  .sidebar-steps {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .sidebar-step {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4) var(--space-2) var(--space-6);
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: background 0.1s, color 0.1s;
+    min-height: 36px;
+  }
+  .sidebar-step:hover {
+    background: var(--neutral-100);
+    text-decoration: none;
+    color: var(--text-primary);
+  }
+  .sidebar-step--current {
+    background: var(--purple-50);
+    color: var(--accent);
+    font-weight: 500;
+    border-left: 3px solid var(--accent);
+    padding-left: calc(var(--space-6) - 3px);
+  }
+  .sidebar-step--current:hover {
+    background: var(--purple-50);
+    color: var(--accent);
+  }
+
+  .sidebar-step__check {
+    display: inline-flex;
+    flex-shrink: 0;
+    color: var(--neutral-300);
+  }
+  .sidebar-step__check .check-done { display: none; }
+  :global(.sidebar-step--done) .sidebar-step__check { color: var(--green-700); }
+  :global(.sidebar-step--done) .sidebar-step__check .check-empty { display: none; }
+  :global(.sidebar-step--done) .sidebar-step__check .check-done { display: inline; }
+
+  .sidebar-step__title {
+    flex: 1;
+    line-height: 1.3;
+  }
+  .sidebar-step__dur {
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* ═══════ Main content ═══════ */
+  .player-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .player-topbar {
+    display: none;
+  }
+
+  .player-content {
+    flex: 1;
+    padding: 0 0 var(--space-10);
+  }
+
+  /* Video */
+  .video-wrapper {
+    background: #000;
+    margin-bottom: var(--space-6);
+  }
+  .video-container {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 */
+    height: 0;
+    overflow: hidden;
+  }
+  .video-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
+  /* Article */
+  .article-content {
+    padding: var(--space-8) var(--space-6);
+    max-width: var(--max-width-article);
+    margin: 0 auto;
+  }
+  .article-placeholder {
+    color: var(--text-tertiary);
+    font-size: 0.9375rem;
+    text-align: center;
+    padding: var(--space-16) 0;
+  }
+
+  /* Quiz container */
+  .quiz-content {
+    padding: var(--space-8) var(--space-6);
+    max-width: 680px;
+    margin: 0 auto;
+  }
+  .quiz-content[hidden], .quiz-form[hidden], .quiz-results[hidden], .quiz-unavailable[hidden], .quiz-loading[hidden] {
+    display: none !important;
+  }
+
+  /* Loading */
+  .quiz-loading {
+    text-align: center;
+    padding: var(--space-12) 0;
+    color: var(--text-tertiary);
+    font-size: 0.875rem;
+  }
+  .quiz-spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid var(--neutral-200);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    margin: 0 auto var(--space-3);
+    animation: qspin 0.7s linear infinite;
+  }
+  @keyframes qspin { to { transform: rotate(360deg); } }
+
+  /* Unavailable */
+  .quiz-unavailable {
+    text-align: center;
+    padding: var(--space-12) 0;
+    color: var(--text-muted);
+  }
+  .quiz-unavailable svg { margin-bottom: var(--space-3); opacity: 0.4; }
+  .quiz-unavailable__title {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-1);
+  }
+  .quiz-unavailable__text { font-size: 0.875rem; }
+
+  /* Quiz header */
+  .quiz-header {
+    text-align: center;
+    margin-bottom: var(--space-8);
+  }
+  .quiz-header__title {
+    font-size: 1.5rem;
+    margin-bottom: var(--space-2);
+  }
+  .quiz-header__desc {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-4);
+  }
+  .quiz-header__meta {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-2);
+  }
+  .quiz-pill {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+  }
+
+  /* Question card */
+  .qq {
+    display: flex;
+    gap: var(--space-4);
+    padding: var(--space-5) 0;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .qq:last-child { border-bottom: none; }
+  .qq__num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--purple-50);
+    color: var(--accent);
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .qq__body { flex: 1; min-width: 0; }
+  .qq__text {
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-bottom: var(--space-3);
+    line-height: 1.5;
+  }
+
+  /* MC options */
+  .qq__opts {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .qo {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .qo:hover {
+    border-color: var(--purple-300);
+    background: var(--purple-50);
+  }
+  .qo input { display: none; }
+  .qo__radio {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--neutral-300);
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 1px;
+    position: relative;
+    transition: border-color 0.15s;
+  }
+  .qo--sel .qo__radio {
+    border-color: var(--accent);
+  }
+  .qo--sel .qo__radio::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .qo--sel {
+    border-color: var(--accent);
+    background: var(--purple-50);
+  }
+  .qo__text {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+  }
+
+  /* Likert scale */
+  .lk-row {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-1);
+  }
+  .lk-opt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    cursor: pointer;
+    flex: 1;
+    padding: var(--space-3) var(--space-1);
+    border-radius: var(--radius-md);
+    transition: background 0.15s;
+  }
+  .lk-opt:hover { background: var(--purple-50); }
+  .lk-opt input { display: none; }
+  .lk-opt__dot {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--neutral-300);
+    border-radius: 50%;
+    transition: border-color 0.15s, background 0.15s;
+    position: relative;
+  }
+  .qo--sel .lk-opt__dot,
+  .lk-opt.qo--sel .lk-opt__dot {
+    border-color: var(--accent);
+    background: var(--accent);
+  }
+  .qo--sel .lk-opt__dot::after,
+  .lk-opt.qo--sel .lk-opt__dot::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: white;
+  }
+  .lk-opt__lbl {
+    font-size: 0.6875rem;
+    color: var(--text-muted);
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  /* Quiz footer */
+  .quiz-footer {
+    text-align: center;
+    padding-top: var(--space-6);
+    margin-top: var(--space-4);
+    border-top: 1px solid var(--border-light);
+  }
+  .quiz-footer__hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: var(--space-2);
+  }
+
+  /* Results */
+  .qr-card {
+    text-align: center;
+    padding: var(--space-8) var(--space-6);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-6);
+  }
+  .qr-card svg { margin-bottom: var(--space-3); }
+  .qr-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: var(--space-2);
+  }
+  .qr-card p { font-size: 0.9375rem; color: var(--text-secondary); }
+  .qr-card--pass {
+    background: color-mix(in srgb, var(--green-700) 6%, transparent);
+    border: 1px solid color-mix(in srgb, var(--green-700) 20%, transparent);
+  }
+  .qr-card--pass h3 { color: var(--green-700); }
+  .qr-card--fail {
+    background: color-mix(in srgb, var(--rose-600, #e11d48) 6%, transparent);
+    border: 1px solid color-mix(in srgb, var(--rose-600, #e11d48) 20%, transparent);
+  }
+  .qr-card--fail h3 { color: var(--rose-600, #e11d48); }
+  .qr-cert {
+    margin-top: var(--space-3);
+    font-weight: 500;
+    color: var(--accent) !important;
+  }
+
+  /* Breakdown */
+  .qr-breakdown {
+    margin-bottom: var(--space-6);
+  }
+  .qr-breakdown h4 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    margin-bottom: var(--space-4);
+    color: var(--text-primary);
+  }
+  .qr-item {
+    display: flex;
+    gap: var(--space-3);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .qr-item:last-child { border-bottom: none; }
+  .qr-item__icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .qr-item--ok .qr-item__icon {
+    background: color-mix(in srgb, var(--green-700) 12%, transparent);
+    color: var(--green-700);
+  }
+  .qr-item--wrong .qr-item__icon {
+    background: color-mix(in srgb, var(--rose-600, #e11d48) 12%, transparent);
+    color: var(--rose-600, #e11d48);
+  }
+  .qr-item__body { flex: 1; min-width: 0; }
+  .qr-item__q {
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    margin-bottom: var(--space-1);
+  }
+  .qr-item__yours {
+    font-size: 0.8125rem;
+    color: var(--rose-600, #e11d48);
+  }
+  .qr-item__correct {
+    font-size: 0.8125rem;
+    color: var(--green-700);
+    font-weight: 500;
+  }
+
+  .qr-actions {
+    text-align: center;
+    margin-bottom: var(--space-6);
+  }
+  .qr-nav {
+    text-align: center;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border-light);
+  }
+
+  /* Lesson info */
+  .lesson-info {
+    padding: 0 var(--space-6);
+    max-width: var(--max-width-article);
+    margin: 0 auto var(--space-6);
+  }
+  .lesson-info__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-2);
+  }
+  .lesson-info__section {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .lesson-info__counter {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+  .lesson-info__title {
+    font-size: 1.5rem;
+    margin-bottom: 0;
+  }
+
+  /* Actions */
+  .lesson-actions {
+    padding: 0 var(--space-6);
+    max-width: var(--max-width-article);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border-light);
+  }
+  .mark-complete-btn {
+    gap: var(--space-2);
+  }
+  .mark-complete-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  :global(.mark-complete-btn--done) {
+    background: var(--green-700) !important;
+    border-color: var(--green-700) !important;
+    opacity: 1 !important;
+  }
+
+  .lesson-nav {
+    display: flex;
+    gap: var(--space-2);
+  }
+  .lesson-nav__prev,
+  .lesson-nav__next {
+    text-decoration: none;
+  }
+
+  /* ═══════ MOBILE ═══════ */
+  @media (max-width: 768px) {
+    .player-sidebar {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      max-height: 100vh;
+      z-index: 200;
+      border-right: none;
+    }
+    :global(.sidebar--open) {
+      display: flex !important;
+    }
+
+    .player-topbar {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-light);
+      position: sticky;
+      top: 48px;
+      z-index: 10;
+    }
+    .player-topbar__back {
+      display: inline-flex;
+      align-items: center;
+      color: var(--text-secondary);
+      text-decoration: none;
+    }
+    .player-topbar__title {
+      flex: 1;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .player-topbar__menu {
+      background: none;
+      border: none;
+      padding: var(--space-2);
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+
+    .lesson-info {
+      padding: 0 var(--space-4);
+    }
+    .lesson-actions {
+      padding: var(--space-4);
+      position: sticky;
+      bottom: 0;
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border-light);
+      z-index: 5;
+      margin: 0;
+      max-width: none;
+    }
+    .lesson-info__title {
+      font-size: 1.25rem;
+    }
+  }
+</style>

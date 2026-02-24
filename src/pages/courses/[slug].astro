@@ -1,0 +1,688 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import coursesData from '../../data/courses.json';
+
+export function getStaticPaths() {
+  return coursesData.map((course) => ({
+    params: { slug: course.slug },
+    props: { course },
+  }));
+}
+
+const { course } = Astro.props;
+
+const totalSteps = course.sections.reduce((sum: number, s: any) => sum + s.steps.length, 0);
+const totalVideos = course.sections.reduce((sum: number, s: any) => sum + s.steps.filter((st: any) => st.type === 'video').length, 0);
+const totalDuration = course.sections.reduce((sum: number, s: any) => sum + s.steps.reduce((d: number, st: any) => d + (st.duration || 0), 0), 0);
+const hours = Math.floor(totalDuration / 3600);
+const minutes = Math.round((totalDuration % 3600) / 60);
+const durationLabel = hours > 0 ? `${hours}h ${minutes}m` : `${minutes} min`;
+const price = course.isFree ? 'Free' : `$${(course.priceCents / 100).toFixed(0)}`;
+const instructor = course.instructors.find((i: any) => i.role === 'Lead Instructor') || course.instructors[0];
+
+// Step type icons mapping
+function stepIcon(type: string) {
+  if (type === 'video') return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+  if (type === 'quiz') return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+  return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>';
+}
+
+function formatDuration(seconds: number) {
+  if (!seconds) return '';
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return s > 0 ? `${m}:${String(s).padStart(2, '0')}` : `${m} min`;
+}
+
+// Find the first step for the "Start Course" CTA
+const firstStep = course.sections[0]?.steps[0];
+
+// Schema.org Course
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Course',
+  name: course.title,
+  description: course.seo?.description || course.shortDescription,
+  url: `https://rrmacademy.org/courses/${course.slug}`,
+  provider: {
+    '@type': 'Organization',
+    name: 'RRM Academy',
+    url: 'https://rrmacademy.org',
+  },
+  instructor: {
+    '@type': 'Person',
+    name: instructor?.name,
+    jobTitle: 'OBGYN & Fertility Surgeon',
+  },
+  ...(course.isFree ? { isAccessibleForFree: true } : {
+    offers: {
+      '@type': 'Offer',
+      price: (course.priceCents / 100).toFixed(2),
+      priceCurrency: 'USD',
+      availability: 'https://schema.org/InStock',
+    },
+  }),
+  hasCourseInstance: {
+    '@type': 'CourseInstance',
+    courseMode: 'online',
+    courseWorkload: durationLabel,
+  },
+};
+
+// Related courses for "included" or "includedIn" relationships
+const includedCourse = course.includes
+  ? coursesData.find((c: any) => c.slug === course.includes[0])
+  : null;
+const parentCourse = course.includedIn
+  ? coursesData.find((c: any) => c.slug === course.includedIn[0])
+  : null;
+---
+<BaseLayout
+  title={course.seo?.title || course.title}
+  description={course.seo?.description || course.shortDescription}
+  canonicalUrl={`https://rrmacademy.org/courses/${course.slug}`}
+  ogImage={`https://static.wixstatic.com/media/${course.image}`}
+  jsonLd={jsonLd}
+>
+  <div class="course-page">
+
+    <!-- Hero -->
+    <section class="course-hero">
+      <div class="container">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href="/courses">Courses</a> <span aria-hidden="true">/</span> {course.title}
+        </nav>
+        <div class="course-hero__grid">
+          <div class="course-hero__content">
+            <h1>{course.title}</h1>
+            <p class="course-hero__sub">{course.shortDescription}</p>
+            <div class="course-hero__meta">
+              <span class="meta-pill">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                {totalVideos} videos
+              </span>
+              <span class="meta-pill">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                {durationLabel}
+              </span>
+              <span class="meta-pill">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.1 2.7 3 6 3s6-1.9 6-3v-5"/></svg>
+                Self-paced
+              </span>
+              {course.hasCertificate && (
+                <span class="meta-pill">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+                  Certificate
+                </span>
+              )}
+            </div>
+            <p class="course-hero__instructor">Taught by {instructor?.name}</p>
+            <div class="course-hero__actions" id="hero-actions">
+              <!-- Static: shown before JS hydrates -->
+              <div class="hero-cta-static">
+                {course.isFree ? (
+                  <span class="course-hero__price">Free</span>
+                ) : (
+                  <span class="course-hero__price">{price}</span>
+                )}
+                <button class="btn btn--primary btn--lg enroll-btn" data-course-id={course.id} data-free={String(course.isFree)}>
+                  {course.isFree ? 'Start Learning' : 'Enroll Now'}
+                </button>
+              </div>
+              <!-- Dynamic: replaced by JS when enrollment status is known -->
+              <div class="hero-cta-enrolled" hidden>
+                <a href={firstStep ? `/courses/${course.slug}/${firstStep.id}` : '#'} class="btn btn--primary btn--lg" id="continue-btn">
+                  Continue Learning
+                </a>
+                <div class="hero-progress" id="hero-progress" hidden>
+                  <div class="hero-progress__bar" role="progressbar" aria-valuenow={0} aria-valuemin={0} aria-valuemax={100} aria-label="Course progress">
+                    <div class="hero-progress__fill" id="hero-progress-fill"></div>
+                  </div>
+                  <span class="hero-progress__text" id="hero-progress-text"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="course-hero__image">
+            <img
+              src={`https://static.wixstatic.com/media/${course.image}`}
+              alt={course.imageAlt || course.title}
+              width="560"
+              height="315"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Curriculum -->
+    <section class="course-section">
+      <div class="container container--narrow">
+        <h2>Curriculum</h2>
+        <p class="section-sub">{course.sections.length} sections &middot; {totalSteps} lessons &middot; {durationLabel} total</p>
+
+        <div class="curriculum" id="curriculum">
+          {course.sections.map((section: any, sIdx: number) => (
+            <details class="curriculum__module" open={sIdx === 0}>
+              <summary class="curriculum__module-header">
+                <span class="curriculum__module-title">{section.title}</span>
+                <span class="curriculum__module-meta">{section.steps.length} lessons</span>
+                <svg class="curriculum__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </summary>
+              <ul class="curriculum__steps">
+                {section.steps.map((step: any) => (
+                  <li class="curriculum__step" data-step-id={step.id}>
+                    <span class="curriculum__step-icon" set:html={stepIcon(step.type)} />
+                    <span class="curriculum__step-title">{step.title}</span>
+                    {step.duration && (
+                      <span class="curriculum__step-duration">{formatDuration(step.duration)}</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Description -->
+    <section class="course-section course-section--alt">
+      <div class="container container--narrow">
+        <h2>About This Course</h2>
+        <div class="course-description prose">
+          {course.description.split('\n\n').map((para: string) => {
+            if (para.startsWith('•')) {
+              const items = para.split('\n').filter((l: string) => l.trim());
+              return (
+                <ul>
+                  {items.map((item: string) => (
+                    <li>{item.replace(/^[•]\s*/, '')}</li>
+                  ))}
+                </ul>
+              );
+            }
+            return <p>{para}</p>;
+          })}
+        </div>
+      </div>
+    </section>
+
+    <!-- Instructor -->
+    <section class="course-section">
+      <div class="container container--narrow">
+        <h2>Your Instructor</h2>
+        <div class="instructor-card">
+          <div>
+            <h3>{instructor?.name}</h3>
+            <p>Dr. Whittaker is an OBGYN and fertility surgeon who specializes in Restorative Reproductive Medicine (RRM) and NaProTechnology. She is the founder of the RRM Academy and the RRM Foundation, dedicated to making evidence-based reproductive healthcare education accessible to patients and professionals.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Related / Included -->
+    {(includedCourse || parentCourse) && (
+      <section class="course-section course-section--alt">
+        <div class="container container--narrow">
+          {includedCourse && (
+            <div class="related-course">
+              <h2>Included With This Course</h2>
+              <p>Your enrollment includes full access to:</p>
+              <a href={`/courses/${includedCourse.slug}`} class="related-course__link">
+                <strong>{includedCourse.title}</strong>
+                <span>{includedCourse.shortDescription}</span>
+              </a>
+            </div>
+          )}
+          {parentCourse && (
+            <div class="related-course">
+              <h2>Also Available As Part Of</h2>
+              <a href={`/courses/${parentCourse.slug}`} class="related-course__link">
+                <strong>{parentCourse.title}</strong>
+                <span>Includes this course as a bonus. {parentCourse.isFree ? 'Free' : `$${(parentCourse.priceCents / 100).toFixed(0)}`}</span>
+              </a>
+            </div>
+          )}
+        </div>
+      </section>
+    )}
+
+    <!-- Bottom CTA -->
+    <section class="course-section course-bottom-cta">
+      <div class="container container--narrow" style="text-align: center;">
+        <h2>Ready to Start?</h2>
+        <p class="section-sub">{course.isFree ? 'This course is completely free.' : `One-time payment of ${price}. Lifetime access.`}</p>
+        <button class="btn btn--primary btn--lg enroll-btn" data-course-id={course.id} data-free={String(course.isFree)}>
+          {course.isFree ? 'Start Learning' : 'Enroll Now'}
+        </button>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Enrollment + Progress (client-side) -->
+  <script is:inline define:vars={{ courseId: course.id, courseSlug: course.slug, firstStepId: firstStep?.id }}>
+    (function () {
+      var staticCta = document.querySelector('.hero-cta-static');
+      var enrolledCta = document.querySelector('.hero-cta-enrolled');
+      var heroProgress = document.getElementById('hero-progress');
+      var progressFill = document.getElementById('hero-progress-fill');
+      var progressText = document.getElementById('hero-progress-text');
+      var continueBtn = document.getElementById('continue-btn');
+      var enrollBtns = document.querySelectorAll('.enroll-btn');
+
+      // Check enrollment status
+      fetch('/api/courses/progress?courseId=' + encodeURIComponent(courseId), { credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data.ok) return; // Not enrolled or not logged in — keep static CTA
+
+          // User is enrolled — switch to enrolled CTA
+          staticCta.hidden = true;
+          enrolledCta.hidden = false;
+
+          // Find the last incomplete step for "Continue" button
+          var steps = data.steps || {};
+          var resumeStep = firstStepId;
+          var sections = document.querySelectorAll('.curriculum__module');
+          var completedCount = 0;
+          var totalCount = 0;
+
+          document.querySelectorAll('.curriculum__step').forEach(function (el) {
+            var stepId = el.getAttribute('data-step-id');
+            totalCount++;
+            if (steps[stepId] && steps[stepId].completed) {
+              completedCount++;
+              el.classList.add('curriculum__step--completed');
+            } else if (!resumeStep || resumeStep === firstStepId) {
+              resumeStep = stepId;
+            }
+          });
+
+          if (resumeStep) {
+            continueBtn.href = '/courses/' + courseSlug + '/' + resumeStep;
+          }
+
+          // Show progress
+          if (totalCount > 0) {
+            var pct = Math.round((completedCount / totalCount) * 100);
+            heroProgress.hidden = false;
+            progressFill.style.width = pct + '%';
+            progressText.textContent = pct + '% complete (' + completedCount + '/' + totalCount + ' lessons)';
+            var bar = heroProgress.querySelector('[role="progressbar"]');
+            if (bar) bar.setAttribute('aria-valuenow', String(pct));
+          }
+
+          // Hide bottom CTA enroll buttons
+          for (var i = 0; i < enrollBtns.length; i++) {
+            var btn = enrollBtns[i];
+            var wrapper = btn.closest('.course-bottom-cta');
+            if (wrapper) wrapper.hidden = true;
+          }
+        })
+        .catch(function () {
+          // Network error — leave static CTA visible
+        });
+
+      // Enroll button handler
+      for (var i = 0; i < enrollBtns.length; i++) {
+        enrollBtns[i].addEventListener('click', handleEnroll);
+      }
+
+      function handleEnroll(e) {
+        var btn = e.currentTarget;
+        var cid = btn.getAttribute('data-course-id');
+        var isFree = btn.getAttribute('data-free') === 'true';
+
+        btn.disabled = true;
+        btn.textContent = 'Processing...';
+
+        fetch('/api/courses/enroll', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ courseId: cid }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (!data.ok) {
+              if (data.error === 'Not authenticated') {
+                window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+                return;
+              }
+              btn.disabled = false;
+              btn.textContent = isFree ? 'Start Learning' : 'Enroll Now';
+              alert(data.error || 'Enrollment failed. Please try again.');
+              return;
+            }
+            if (data.checkoutUrl) {
+              // Paid course — redirect to Stripe Checkout
+              window.location.href = data.checkoutUrl;
+            } else {
+              // Free course — enrolled! Redirect to first lesson
+              window.location.href = '/courses/' + courseSlug + '/' + (firstStepId || '');
+            }
+          })
+          .catch(function () {
+            btn.disabled = false;
+            btn.textContent = isFree ? 'Start Learning' : 'Enroll Now';
+            alert('Network error. Please try again.');
+          });
+      }
+    })();
+  </script>
+</BaseLayout>
+
+<style>
+  .course-page {
+    min-height: 60vh;
+  }
+
+  /* Hero */
+  .course-hero {
+    padding: var(--space-10) 0 var(--space-12);
+    background: var(--gradient-hero-subtle);
+  }
+  .course-hero__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-10);
+    align-items: center;
+  }
+  .course-hero__content h1 {
+    font-size: clamp(1.75rem, 1.25rem + 2vw, 2.25rem);
+    margin-bottom: var(--space-4);
+    line-height: 1.15;
+  }
+  .course-hero__sub {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: var(--space-5);
+  }
+  .course-hero__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+  }
+  .meta-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+  }
+  .meta-pill svg { flex-shrink: 0; }
+  .course-hero__instructor {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-6);
+  }
+
+  .course-hero__price {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin-right: var(--space-4);
+    vertical-align: middle;
+  }
+
+  .course-hero__actions[hidden],
+  .hero-cta-static[hidden],
+  .hero-cta-enrolled[hidden] {
+    display: none !important;
+  }
+  .hero-cta-static {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+  .hero-cta-enrolled {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  /* Hero progress */
+  .hero-progress {
+    max-width: 300px;
+  }
+  .hero-progress__bar {
+    width: 100%;
+    height: 8px;
+    background: var(--neutral-200);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .hero-progress__fill {
+    height: 100%;
+    background: var(--green-700);
+    border-radius: 4px;
+    transition: width 0.3s;
+    width: 0%;
+  }
+  .hero-progress__text {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    margin-top: var(--space-1);
+    display: block;
+  }
+
+  .course-hero__image {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+  }
+  .course-hero__image img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  @media (max-width: 768px) {
+    .course-hero {
+      padding: var(--space-6) 0 var(--space-8);
+    }
+    .course-hero__grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+    .course-hero__image {
+      order: -1;
+    }
+  }
+
+  /* Sections */
+  .course-section {
+    padding: var(--space-10) 0;
+  }
+  .course-section--alt {
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border-light);
+    border-bottom: 1px solid var(--border-light);
+  }
+  .course-section h2 {
+    margin-bottom: var(--space-3);
+  }
+  .section-sub {
+    font-size: 0.875rem;
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-6);
+  }
+
+  /* Curriculum accordion */
+  .curriculum {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  .curriculum__module {
+    border-bottom: 1px solid var(--border-light);
+  }
+  .curriculum__module:last-child {
+    border-bottom: none;
+  }
+  .curriculum__module-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
+    background: var(--bg-surface);
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .curriculum__module-header:hover {
+    background: var(--neutral-100);
+  }
+  .curriculum__module-header::-webkit-details-marker {
+    display: none;
+  }
+  .curriculum__module-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    flex: 1;
+  }
+  .curriculum__module-meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .curriculum__chevron {
+    flex-shrink: 0;
+    color: var(--text-muted);
+    transition: transform 0.2s;
+  }
+  .curriculum__module[open] .curriculum__chevron {
+    transform: rotate(180deg);
+  }
+
+  .curriculum__steps {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .curriculum__step {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-5) var(--space-3) var(--space-8);
+    border-top: 1px solid var(--border-light);
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    transition: background 0.1s;
+  }
+  .curriculum__step:hover {
+    background: rgba(114, 94, 126, 0.03);
+  }
+  .curriculum__step-icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    color: var(--text-muted);
+  }
+  .curriculum__step-title {
+    flex: 1;
+  }
+  .curriculum__step-duration {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  /* Completed step state (set by JS) */
+  :global(.curriculum__step--completed) .curriculum__step-icon {
+    color: var(--green-700);
+  }
+  :global(.curriculum__step--completed) .curriculum__step-title {
+    color: var(--text-muted);
+  }
+
+  /* Description prose */
+  .course-description {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.75;
+  }
+  .course-description ul {
+    padding-left: var(--space-6);
+    margin-bottom: 1em;
+  }
+  .course-description li {
+    margin-bottom: var(--space-2);
+  }
+
+  /* Instructor */
+  .instructor-card {
+    display: flex;
+    gap: var(--space-6);
+    align-items: flex-start;
+  }
+  .instructor-card h3 {
+    margin-bottom: var(--space-3);
+  }
+  .instructor-card p {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  /* Related course */
+  .related-course {
+    margin-bottom: var(--space-6);
+  }
+  .related-course:last-child {
+    margin-bottom: 0;
+  }
+  .related-course__link {
+    display: block;
+    padding: var(--space-5);
+    background: var(--bg-body);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .related-course__link:hover {
+    border-color: var(--purple-300);
+    box-shadow: var(--shadow-sm);
+    text-decoration: none;
+    color: inherit;
+  }
+  .related-course__link strong {
+    display: block;
+    font-size: 0.9375rem;
+    margin-bottom: var(--space-1);
+    color: var(--text-primary);
+  }
+  .related-course__link span {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+  }
+
+  /* Bottom CTA */
+  .course-bottom-cta {
+    padding: var(--space-12) 0;
+  }
+  .course-bottom-cta h2 {
+    margin-bottom: var(--space-2);
+  }
+  .course-bottom-cta .section-sub {
+    margin-bottom: var(--space-6);
+  }
+</style>
