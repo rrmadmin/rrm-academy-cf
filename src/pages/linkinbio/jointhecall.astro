@@ -1,0 +1,169 @@
+---
+import '@fontsource/cormorant-garamond/600.css';
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/500.css';
+import '../../styles/global.css';
+---
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Join the Live Call | Save the Uterus Club</title>
+  <meta name="description" content="Attend the Save the Uterus Club live call. Members only." />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <script is:inline>
+    (function() {
+      var saved = localStorage.getItem('rrm_theme');
+      if (saved) document.documentElement.setAttribute('data-theme', saved);
+      else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <div class="jtc">
+
+    <!-- Live call card -->
+    <div class="jtc-card">
+      <div class="jtc-card__inner">
+        <img
+          src="/images/stuc-live-call-banner.png"
+          alt="Attend the Live Call — Save the Uterus Club"
+          class="jtc-banner"
+          width="600"
+          height="400"
+        />
+        <h1 class="jtc-label">Members Only</h1>
+        <a href="https://rrmacademy.org/account" class="jtc-btn jtc-btn--primary">Join the Call</a>
+      </div>
+    </div>
+
+    <!-- Become a member -->
+    <a href="/save-the-uterus-club" class="jtc-btn jtc-btn--outline">Become a Member</a>
+
+    <!-- Footer -->
+    <footer class="jtc-footer">
+      <p>You acknowledge that you have read and agreed to the following policies:</p>
+      <div class="jtc-footer__links">
+        <a href="/terms-of-use">Terms of Use</a>
+        <a href="/privacy-policy">Privacy Policy</a>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>
+
+<style>
+  body {
+    min-height: 100dvh;
+    display: flex;
+    justify-content: center;
+    background: var(--neutral-100);
+  }
+
+  .jtc {
+    width: 100%;
+    max-width: 480px;
+    padding: 32px 20px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  /* Card */
+  .jtc-card {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .jtc-card__inner {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Banner image */
+  .jtc-banner {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+    display: block;
+  }
+
+  /* Members Only label */
+  .jtc-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+  }
+
+  /* Buttons */
+  .jtc-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 16px 24px;
+    font-family: 'Inter', sans-serif;
+    font-size: 1.0625rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    transition: opacity 0.15s;
+    cursor: pointer;
+    border: none;
+  }
+  .jtc-btn:hover {
+    opacity: 0.9;
+    text-decoration: none;
+  }
+
+  .jtc-btn--primary {
+    background: #5b7a5b;
+    color: #fff;
+  }
+
+  .jtc-btn--outline {
+    background: var(--bg);
+    color: var(--text-primary);
+    border: 2px solid var(--text-primary);
+  }
+
+  /* Footer */
+  .jtc-footer {
+    margin-top: auto;
+    padding-top: 40px;
+    text-align: center;
+  }
+  .jtc-footer p {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    line-height: 1.6;
+    margin: 0 0 4px;
+  }
+  .jtc-footer__links {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .jtc-footer__links a {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    text-decoration: underline;
+  }
+  .jtc-footer__links a:hover {
+    color: var(--accent);
+  }
+</style>
