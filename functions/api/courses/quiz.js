@@ -13,7 +13,7 @@
  *   { id, text, type: "likert", scale: { min, max, labels: string[] } }
  */
 import {
-  json, optionsResponse, getSessionIdFromCookie, validateSession,
+  json, optionsResponse, getSessionIdFromCookie, validateSession, generateId,
 } from '../auth/_shared.js';
 import { getCourse, isValidStep, getPreviousStepId } from './_shared.js';
 import quizData from '../../../src/data/quizzes.json';
@@ -41,6 +41,9 @@ export async function onRequestGet({ request, env }) {
     const course = getCourse(courseId);
     if (!course) return json({ ok: false, error: 'Course not found' }, 404);
     if (!isValidStep(courseId, stepId)) return json({ ok: false, error: 'Invalid step' }, 400);
+
+    // Superadmin: auto-enroll on first access (mirrors progress.js)
+    await autoEnrollAdmin(db, session.userId, courseId);
 
     // Verify enrolled
     const enrollment = await db.prepare(
@@ -122,6 +125,9 @@ async function handleQuizSubmit(request, env) {
   if (!course) return json({ ok: false, error: 'Course not found' }, 404);
   if (!isValidStep(courseId, stepId)) return json({ ok: false, error: 'Invalid step' }, 400);
 
+  // Superadmin: auto-enroll on first access (mirrors progress.js)
+  await autoEnrollAdmin(db, session.userId, courseId);
+
   // Verify enrolled
   const enrollment = await db.prepare(
     'SELECT id FROM enrollment WHERE user_id = ? AND course_id = ?'
@@ -193,4 +199,18 @@ async function handleQuizSubmit(request, env) {
   const response = { ok: true, score, passed };
   if (results) response.results = results;
   return json(response);
+}
+
+/**
+ * If user is superadmin, silently auto-enroll in any course they access.
+ * Mirrors the same function in progress.js.
+ */
+async function autoEnrollAdmin(db, userId, courseId) {
+  const user = await db.prepare('SELECT role FROM user WHERE id = ?').bind(userId).first();
+  if (user?.role !== 'superadmin') return;
+
+  const id = generateId();
+  await db.prepare(
+    'INSERT OR IGNORE INTO enrollment (id, user_id, course_id) VALUES (?, ?, ?)'
+  ).bind(id, userId, courseId).run();
 }

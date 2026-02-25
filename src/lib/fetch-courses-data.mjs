@@ -316,6 +316,7 @@ function assembleNestedCourses(courses, modules, lessons) {
         steps: mod.steps.map(s => {
           const clean = { id: s.id, title: s.title, type: s.type };
           if (s.vimeoId) clean.vimeoId = s.vimeoId;
+          if (s.streamUid) clean.streamUid = s.streamUid;
           if (s.duration) clean.duration = s.duration;
           if (s._rawAttachments) clean._rawAttachments = s._rawAttachments;
           return clean;
