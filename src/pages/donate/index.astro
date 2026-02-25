@@ -1,5 +1,12 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import fundingProjects from '../../data/funding-projects.json';
+
+const statusLabel: Record<string, string> = {
+  active:    'Ongoing',
+  seeking:   'Seeking Funding',
+  launching: 'In Planning',
+};
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -29,6 +36,28 @@ const jsonLd = {
         <h1 class="hero-title">Support This Work</h1>
         <p class="donate-lead">RRM Academy is funded primarily by the generous contributions of individuals like you. Our goal is to educate for true healing and women's health. Your support makes this possible.</p>
       </section>
+
+      <!-- Projects seeking funding -->
+      <section class="projects-section">
+        <h2 class="projects-heading">What Your Donation Funds</h2>
+        <p class="projects-lead">These are the specific projects your support makes possible. Some are ongoing — they exist because of past donors. Others are actively seeking funding to launch.</p>
+        <div class="projects-grid">
+          {fundingProjects.map(project => (
+            <div class={`project-card card project-card--${project.status}`}>
+              <div class="project-card__header">
+                <span class={`project-badge project-badge--${project.status}`}>
+                  {statusLabel[project.status]}
+                </span>
+              </div>
+              <h3 class="project-card__title">{project.title}</h3>
+              <p class="project-card__tagline">{project.tagline}</p>
+              <p class="project-card__desc">{project.description}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <hr class="divider" />
 
       <!-- Active member banner (shown via JS if already subscribed) -->
       <section id="member-banner" class="member-banner" hidden>
@@ -416,6 +445,84 @@ const jsonLd = {
 </BaseLayout>
 
 <style>
+  /* Projects seeking funding */
+  .projects-section {
+    margin-bottom: var(--space-10);
+  }
+  .projects-heading {
+    font-size: 1.5rem;
+    margin-bottom: var(--space-3);
+  }
+  .projects-lead {
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-6);
+    max-width: 560px;
+  }
+  .projects-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+  @media (min-width: 640px) {
+    .projects-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  .project-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .project-card--launching {
+    border-color: var(--accent);
+    border-width: 2px;
+  }
+  .project-card__header {
+    margin-bottom: var(--space-1);
+  }
+  .project-badge {
+    display: inline-block;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+  }
+  .project-badge--active {
+    background: #e8f5ee;
+    color: #2d7a4f;
+  }
+  .project-badge--seeking {
+    background: #fef3e2;
+    color: #925f0a;
+  }
+  .project-badge--launching {
+    background: var(--purple-100, #ede9f8);
+    color: var(--accent);
+  }
+  .project-card__title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-primary);
+  }
+  .project-card__tagline {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--accent);
+    margin: 0;
+  }
+  .project-card__desc {
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin: 0;
+    flex: 1;
+  }
+
   /* Hero */
   .donate-hero {
     text-align: center;

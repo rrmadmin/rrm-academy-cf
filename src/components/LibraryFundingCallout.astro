@@ -1,0 +1,88 @@
+---
+// Shown at the bottom of every library article page.
+// Reminds visitors the library is donor-funded while they're actively getting value from it.
+---
+<aside class="library-funding-callout" aria-label="Support the Research Library">
+  <div class="lfc-inner">
+    <div class="lfc-icon" aria-hidden="true">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+      </svg>
+    </div>
+    <div class="lfc-text">
+      <strong>This library is free because donors make it possible.</strong>
+      <span>RRM Academy is a nonprofit. No ads, no paywalls — just research, for every patient.</span>
+    </div>
+    <a href="/donate/" class="lfc-btn">Support this work</a>
+  </div>
+</aside>
+
+<style>
+  .library-funding-callout {
+    margin-top: var(--space-12);
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--border-color);
+  }
+
+  .lfc-inner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    background: var(--sand-50, #faf8f4);
+    border: 1px solid var(--sand-200, #e8e0d0);
+    border-radius: var(--radius-md);
+    padding: var(--space-5) var(--space-6);
+  }
+
+  .lfc-icon {
+    color: var(--accent);
+    flex-shrink: 0;
+    opacity: 0.8;
+  }
+
+  .lfc-text {
+    flex: 1;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    min-width: 0;
+  }
+
+  .lfc-text strong {
+    display: block;
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .lfc-btn {
+    flex-shrink: 0;
+    display: inline-block;
+    padding: 8px 18px;
+    background: var(--accent);
+    color: var(--white);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    border-radius: var(--radius-pill);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s;
+  }
+
+  .lfc-btn:hover {
+    background: var(--accent-hover, var(--purple-900));
+  }
+
+  @media (max-width: 600px) {
+    .lfc-inner {
+      flex-wrap: wrap;
+      gap: var(--space-3);
+    }
+    .lfc-icon {
+      display: none;
+    }
+    .lfc-btn {
+      align-self: flex-start;
+    }
+  }
+</style>
