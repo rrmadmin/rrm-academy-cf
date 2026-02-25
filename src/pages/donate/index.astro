@@ -225,12 +225,21 @@ const jsonLd = {
 
           banner.hidden = false;
 
-          // Disable tier buttons
+          // Update tier buttons: current tier disabled, others show upgrade/downgrade
+          var tierOrder = ['member', 'hero', 'superhero'];
+          var currentIdx = tierOrder.indexOf(sub.tier);
           var buttons = document.querySelectorAll('.tier-btn');
           for (var i = 0; i < buttons.length; i++) {
-            buttons[i].disabled = true;
-            buttons[i].textContent = 'Current Member';
-            buttons[i].classList.add('tier-btn--disabled');
+            var btnTier = buttons[i].dataset.tier;
+            var btnIdx = tierOrder.indexOf(btnTier);
+            if (btnTier === sub.tier) {
+              buttons[i].disabled = true;
+              buttons[i].textContent = 'Your Plan';
+              buttons[i].classList.add('tier-btn--disabled');
+            } else {
+              buttons[i].textContent = btnIdx > currentIdx ? 'Upgrade' : 'Downgrade';
+              buttons[i].classList.add('tier-btn--change');
+            }
           }
         })
         .catch(function () { /* not logged in or network error — ignore */ });
@@ -264,9 +273,35 @@ const jsonLd = {
         });
       }
 
-      // --- Tier buttons (recurring memberships) ---
+      // --- Tier buttons → Stripe Checkout (new) or billing portal (existing, changing tier) ---
       document.querySelectorAll('.tier-btn[data-tier]').forEach(function (btn) {
         btn.addEventListener('click', function () {
+          if (btn.classList.contains('tier-btn--disabled')) return;
+
+          // Existing subscriber changing tier → billing portal
+          if (btn.classList.contains('tier-btn--change')) {
+            btn.disabled = true;
+            var label = btn.textContent;
+            btn.textContent = 'Opening...';
+            fetch('/api/billing/portal', { method: 'POST', credentials: 'same-origin' })
+              .then(function (r) { return r.json(); })
+              .then(function (data) {
+                if (data.ok && data.url) {
+                  window.location.href = data.url;
+                } else {
+                  btn.disabled = false;
+                  btn.textContent = label;
+                  alert(data.error || 'Unable to open billing portal.');
+                }
+              })
+              .catch(function () {
+                btn.disabled = false;
+                btn.textContent = label;
+              });
+            return;
+          }
+
+          // New subscriber → Stripe Checkout
           var tier = btn.dataset.tier;
           btn.disabled = true;
           var original = btn.textContent;
