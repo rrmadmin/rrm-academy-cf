@@ -43,6 +43,23 @@ const jsonLd = {
 
       <hr class="divider" />
 
+      <!-- Active member banner (shown via JS if already subscribed) -->
+      <section id="member-banner" class="member-banner" hidden>
+        <div class="member-banner__inner card">
+          <div class="member-banner__check" aria-hidden="true">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <div class="member-banner__info">
+            <h2>You're a <span id="member-tier-name"></span> member</h2>
+            <p id="member-next-date"></p>
+          </div>
+          <div class="member-banner__actions">
+            <button id="manage-billing-btn" class="btn btn--primary btn--sm">Manage Billing</button>
+            <a href="/account" class="btn btn--secondary btn--sm">My Account</a>
+          </div>
+        </div>
+      </section>
+
       <!-- Membership Tiers -->
       <section class="stuc-section" id="tiers">
         <h2>Membership Tiers</h2>
@@ -241,9 +258,70 @@ const jsonLd = {
 
   <script is:inline>
     (function () {
-      // Tier buttons → Stripe Checkout
+      var tierNames = { member: 'Member', hero: 'Uterus Hero', superhero: 'Uterus Super Hero' };
+
+      // Check billing status for logged-in users
+      fetch('/api/billing/status', { credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data.ok || !data.subscription) return;
+          var sub = data.subscription;
+          if (sub.status !== 'active' && sub.status !== 'trialing') return;
+
+          // Show member banner
+          var banner = document.getElementById('member-banner');
+          var tierEl = document.getElementById('member-tier-name');
+          var dateEl = document.getElementById('member-next-date');
+          tierEl.textContent = tierNames[sub.tier] || sub.tier;
+
+          if (sub.cancelAtPeriodEnd) {
+            dateEl.textContent = 'Your membership ends ' + new Date(sub.currentPeriodEnd * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+          } else if (sub.currentPeriodEnd) {
+            dateEl.textContent = 'Next donation: ' + new Date(sub.currentPeriodEnd * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+          }
+
+          banner.hidden = false;
+
+          // Hide tier buttons (keep cards visible for reference but disable action)
+          var buttons = document.querySelectorAll('.tier-btn');
+          for (var i = 0; i < buttons.length; i++) {
+            buttons[i].disabled = true;
+            buttons[i].textContent = 'Current Member';
+            buttons[i].classList.add('tier-btn--disabled');
+          }
+
+          // Hide bottom CTA
+          var bottomCta = document.querySelector('.stuc-bottom-cta .btn');
+          if (bottomCta) bottomCta.style.display = 'none';
+        })
+        .catch(function () {});
+
+      // Manage billing → Stripe portal
+      document.getElementById('manage-billing-btn').addEventListener('click', function () {
+        var btn = this;
+        btn.disabled = true;
+        btn.textContent = 'Opening...';
+        fetch('/api/billing/portal', { method: 'POST', credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data.ok && data.url) {
+              window.location.href = data.url;
+            } else {
+              btn.disabled = false;
+              btn.textContent = 'Manage Billing';
+              alert(data.error || 'Unable to open billing portal.');
+            }
+          })
+          .catch(function () {
+            btn.disabled = false;
+            btn.textContent = 'Manage Billing';
+          });
+      });
+
+      // Tier buttons → Stripe Checkout (only fires for non-members)
       document.querySelectorAll('.tier-btn[data-tier]').forEach(function (btn) {
         btn.addEventListener('click', function () {
+          if (btn.classList.contains('tier-btn--disabled')) return;
           var tier = btn.dataset.tier;
           btn.disabled = true;
           var original = btn.textContent;
@@ -259,8 +337,6 @@ const jsonLd = {
             .then(function (data) {
               if (data.ok && data.url) {
                 window.location.href = data.url;
-              } else if (data.redirect) {
-                window.location.href = data.redirect;
               } else {
                 btn.disabled = false;
                 btn.textContent = original;
@@ -459,6 +535,45 @@ const jsonLd = {
     margin-top: var(--space-5);
   }
 
+  /* Active member banner */
+  .member-banner {
+    margin: var(--space-6) 0;
+  }
+  .member-banner__inner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    border-color: #27ae60;
+    border-width: 2px;
+  }
+  .member-banner__check {
+    color: #27ae60;
+    flex-shrink: 0;
+  }
+  .member-banner__info {
+    flex: 1;
+  }
+  .member-banner__info h2 {
+    font-size: 1.25rem;
+    margin-bottom: var(--space-1);
+  }
+  .member-banner__info p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+  .member-banner__actions {
+    display: flex;
+    gap: var(--space-3);
+    flex-shrink: 0;
+  }
+
+  /* Disabled tier buttons for current members */
+  .tier-btn--disabled {
+    opacity: 0.5;
+    cursor: default;
+    pointer-events: none;
+  }
+
   /* Responsive */
   @media (max-width: 768px) {
     .stuc-hero h1 {
@@ -466,6 +581,18 @@ const jsonLd = {
     }
     .stuc-tagline {
       font-size: 1.125rem;
+    }
+    .member-banner__inner {
+      flex-direction: column;
+      text-align: center;
+    }
+    .member-banner__actions {
+      flex-direction: column;
+      width: 100%;
+    }
+    .member-banner__actions .btn {
+      width: 100%;
+      justify-content: center;
     }
   }
 </style>
