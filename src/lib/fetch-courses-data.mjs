@@ -90,6 +90,7 @@ const LESSON_FIELDS = [
   'Step ID',       // ADDED — internal ID, e.g. "mc-intro-1"
   'Type',          // ADDED (single select: Video, Article, Quiz)
   'Vimeo ID',      // ADDED
+  'Stream ID',     // ADDED — Cloudflare Stream video UID
   'Duration',      // ADDED (number — seconds)
   'Status',        // ADDED (single select: Published, Draft)
   // 'Attachments' — not yet created in Airtable; uncomment when field exists
@@ -225,6 +226,7 @@ function transformLesson(record) {
   };
 
   if (f['Vimeo ID']) step.vimeoId = f['Vimeo ID'].trim();
+  if (f['Stream ID']) step.streamUid = f['Stream ID'].trim();
   if (f['Duration']) step.duration = Number(f['Duration']);
 
   // Airtable attachment objects: { id, url, filename, size, type }
