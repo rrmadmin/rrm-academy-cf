@@ -18,6 +18,10 @@
 /linkinbio
   Cache-Control: public, max-age=0, must-revalidate
 
+# Course pages — always revalidate
+/courses/*
+  Cache-Control: public, max-age=0, must-revalidate
+
 # Cache static assets for 1 year (hashed filenames)
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
@@ -26,6 +30,6 @@
 /pagefind/*
   Cache-Control: public, max-age=86400
 
-# Survey API — no caching
-/api/survey/*
+# API endpoints — no caching
+/api/*
   Cache-Control: no-store
