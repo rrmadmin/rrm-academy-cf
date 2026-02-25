@@ -204,13 +204,13 @@ function stepTypeLabel(type: string) {
           </button>
           <div class="lesson-nav">
             {prevStep && (
-              <a href={`/courses/${course.slug}/${prevStep.id}/`} class="btn btn--secondary btn--sm lesson-nav__prev">
+              <a href={`/courses/${course.slug}/${prevStep.id}/`} class="btn btn--secondary lesson-nav__prev">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
                 Previous
               </a>
             )}
             {nextStep && (
-              <a href={`/courses/${course.slug}/${nextStep.id}/`} class="btn btn--secondary btn--sm lesson-nav__next" id="next-lesson-btn">
+              <a href={`/courses/${course.slug}/${nextStep.id}/`} class="btn btn--secondary lesson-nav__next" id="next-lesson-btn">
                 Next
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </a>
@@ -238,7 +238,7 @@ function stepTypeLabel(type: string) {
             ></textarea>
             <div class="lesson-comments__compose-footer">
               <span class="lesson-comments__char-count" id="comment-chars">0 / 2000</span>
-              <button class="btn btn--primary btn--sm" id="comment-submit" disabled>Post</button>
+              <button class="btn btn--primary" id="comment-submit" disabled>Post</button>
             </div>
           </div>
 
