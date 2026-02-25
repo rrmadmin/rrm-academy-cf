@@ -37,28 +37,6 @@ const jsonLd = {
         <p class="donate-lead">RRM Academy is funded primarily by the generous contributions of individuals like you. Our goal is to educate for true healing and women's health. Your support makes this possible.</p>
       </section>
 
-      <!-- Projects seeking funding -->
-      <section class="projects-section">
-        <h2 class="projects-heading">What Your Donation Funds</h2>
-        <p class="projects-lead">These are the specific projects your support makes possible. Some are ongoing — they exist because of past donors. Others are actively seeking funding to launch.</p>
-        <div class="projects-grid">
-          {fundingProjects.map(project => (
-            <div class={`project-card card project-card--${project.status}`}>
-              <div class="project-card__header">
-                <span class={`project-badge project-badge--${project.status}`}>
-                  {statusLabel[project.status]}
-                </span>
-              </div>
-              <h3 class="project-card__title">{project.title}</h3>
-              <p class="project-card__tagline">{project.tagline}</p>
-              <p class="project-card__desc">{project.description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <hr class="divider" />
-
       <!-- Active member banner (shown via JS if already subscribed) -->
       <section id="member-banner" class="member-banner" hidden>
         <div class="member-banner__inner card">
@@ -154,34 +132,23 @@ const jsonLd = {
         <p>When you donate to RRM Academy, you're supporting the Foundation's mission. We exist for every person who has been told their pain is normal or has been left to navigate years of uncertainty.</p>
       </section>
 
-      <!-- Impact Areas -->
-      <section class="donate-section">
+      <!-- Projects seeking funding -->
+      <section class="donate-section projects-section">
         <h2>Where Your Donation Goes</h2>
-
-        <div class="impact-grid">
-          <div class="impact-card">
-            <h3>Research Library & Knowledge Sharing</h3>
-            <p>We maintain a comprehensive, free library of cutting-edge studies and are actively developing AI capabilities to make this research even more interactive and accessible for patients, practitioners, and researchers.</p>
-            <p class="impact-result"><strong>Your impact:</strong> You combat misinformation and build trust by providing free access to the evidence that proves restorative care works, powered by innovative technology.</p>
-          </div>
-
-          <div class="impact-card">
-            <h3>Online Courses & Patient Tools</h3>
-            <p>We create self-paced, clinician-led courses and practical tools like the Endometriosis Symptom Survey and the 'Screen a Surgeon' workbook to help patients take an active role in their health.</p>
-            <p class="impact-result"><strong>Your impact:</strong> You help shorten the diagnostic journey by giving patients the knowledge to advocate for themselves effectively from the very first appointment.</p>
-          </div>
-
-          <div class="impact-card">
-            <h3>Expert Commentary & Physician Spotlights</h3>
-            <p>On our Commentary blog, we publish in-depth articles, real-world case reports, and interviews with leading RRM experts to share insights on policy, patient advocacy, and clinical innovations.</p>
-            <p class="impact-result"><strong>Your impact:</strong> You fuel the high-level conversation that challenges systemic failures and advocates for a better model of care by sharing evidence and expert perspectives.</p>
-          </div>
-
-          <div class="impact-card">
-            <h3>Community & Mentorship</h3>
-            <p>We foster a network of 'Uterus Allies' -- a community of patients, loved ones, advocates, and healthcare professionals. This group, centered around our Save the Uterus Club, provides connection, mentorship, and is the primary funding engine for our growth.</p>
-            <p class="impact-result"><strong>Your impact:</strong> You help build a strong, collaborative community committed to changing the model of care together.</p>
-          </div>
+        <p class="projects-lead">These are the specific projects your support makes possible. Some are ongoing — they exist because of past donors. Others are actively seeking funding to launch.</p>
+        <div class="projects-grid">
+          {fundingProjects.map(project => (
+            <div class={`project-card card project-card--${project.status}`}>
+              <div class="project-card__header">
+                <span class={`project-badge project-badge--${project.status}`}>
+                  {statusLabel[project.status]}
+                </span>
+              </div>
+              <h3 class="project-card__title">{project.title}</h3>
+              <p class="project-card__tagline">{project.tagline}</p>
+              <p class="project-card__desc">{project.description}</p>
+            </div>
+          ))}
         </div>
       </section>
 
