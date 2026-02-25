@@ -158,8 +158,8 @@ function stepTypeLabel(type: string) {
             <div class="quiz-results" id="quiz-results" hidden></div>
             <div class="quiz-unavailable" id="quiz-unavailable" hidden>
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              <p class="quiz-unavailable__title">Coming Soon</p>
-              <p class="quiz-unavailable__text">Quiz content is being prepared and will be available shortly.</p>
+              <p class="quiz-unavailable__title" id="quiz-unavailable-title">Coming Soon</p>
+              <p class="quiz-unavailable__text" id="quiz-unavailable-text">Quiz content is being prepared and will be available shortly.</p>
             </div>
           </div>
         )}
@@ -583,7 +583,7 @@ function stepTypeLabel(type: string) {
           hide(loading);
           if (!data.ok || !data.questions || data.questions.length === 0) {
             console.warn('[quiz] API response:', data);
-            show(unavailable);
+            showQuizError(data);
             return;
           }
           quizData = data;
@@ -594,6 +594,30 @@ function stepTypeLabel(type: string) {
           hide(loading);
           show(unavailable);
         });
+
+      function showQuizError(data) {
+        var titleEl2 = document.getElementById('quiz-unavailable-title');
+        var textEl2 = document.getElementById('quiz-unavailable-text');
+        if (data && data.error) {
+          if (data.error === 'Not authenticated') {
+            titleEl2.textContent = 'Sign In Required';
+            textEl2.innerHTML = 'Please <a href="/login/?redirect=' + encodeURIComponent(window.location.pathname) + '">sign in</a> to access this quiz.';
+          } else if (data.error === 'Not enrolled') {
+            titleEl2.textContent = 'Enrollment Required';
+            textEl2.textContent = 'You need to be enrolled in this course to take the quiz.';
+          } else if (data.error === 'Previous step not completed') {
+            titleEl2.textContent = 'Step Locked';
+            textEl2.textContent = 'Please complete the previous step before taking this quiz.';
+          } else if (data.error === 'Quiz content not yet available' || data.error === 'No quiz data for this step') {
+            titleEl2.textContent = 'Coming Soon';
+            textEl2.textContent = 'Quiz content is being prepared and will be available shortly.';
+          } else {
+            titleEl2.textContent = 'Unable to Load Quiz';
+            textEl2.textContent = 'Something went wrong. Please try refreshing the page.';
+          }
+        }
+        show(unavailable);
+      }
 
       function renderQuiz(data) {
         titleEl.textContent = data.title;
