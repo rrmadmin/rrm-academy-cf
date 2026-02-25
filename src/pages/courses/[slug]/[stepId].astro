@@ -1311,15 +1311,15 @@ function stepTypeLabel(type: string) {
     border-radius: var(--radius-pill);
   }
 
-  /* Question card */
-  .qq {
+  /* Question card — :global because quiz HTML is built by JS */
+  :global(.qq) {
     display: flex;
     gap: var(--space-4);
     padding: var(--space-5) 0;
     border-bottom: 1px solid var(--border-light);
   }
-  .qq:last-child { border-bottom: none; }
-  .qq__num {
+  :global(.qq:last-child) { border-bottom: none; }
+  :global(.qq__num) {
     width: 28px;
     height: 28px;
     border-radius: 50%;
@@ -1333,8 +1333,8 @@ function stepTypeLabel(type: string) {
     flex-shrink: 0;
     margin-top: 2px;
   }
-  .qq__body { flex: 1; min-width: 0; }
-  .qq__text {
+  :global(.qq__body) { flex: 1; min-width: 0; }
+  :global(.qq__text) {
     font-size: 0.9375rem;
     color: var(--text-primary);
     font-weight: 500;
@@ -1343,12 +1343,12 @@ function stepTypeLabel(type: string) {
   }
 
   /* MC options */
-  .qq__opts {
+  :global(.qq__opts) {
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
   }
-  .qo {
+  :global(.qo) {
     display: flex;
     align-items: flex-start;
     gap: var(--space-3);
@@ -1358,12 +1358,12 @@ function stepTypeLabel(type: string) {
     cursor: pointer;
     transition: border-color 0.15s, background 0.15s;
   }
-  .qo:hover {
+  :global(.qo:hover) {
     border-color: var(--purple-300);
     background: var(--purple-50);
   }
-  .qo input { display: none; }
-  .qo__radio {
+  :global(.qo input) { display: none; }
+  :global(.qo__radio) {
     width: 18px;
     height: 18px;
     border: 2px solid var(--neutral-300);
@@ -1373,10 +1373,10 @@ function stepTypeLabel(type: string) {
     position: relative;
     transition: border-color 0.15s;
   }
-  .qo--sel .qo__radio {
+  :global(.qo--sel .qo__radio) {
     border-color: var(--accent);
   }
-  .qo--sel .qo__radio::after {
+  :global(.qo--sel .qo__radio::after) {
     content: '';
     position: absolute;
     top: 3px;
@@ -1386,23 +1386,23 @@ function stepTypeLabel(type: string) {
     border-radius: 50%;
     background: var(--accent);
   }
-  .qo--sel {
+  :global(.qo--sel) {
     border-color: var(--accent);
     background: var(--purple-50);
   }
-  .qo__text {
+  :global(.qo__text) {
     font-size: 0.875rem;
     color: var(--text-secondary);
     line-height: 1.45;
   }
 
   /* Likert scale */
-  .lk-row {
+  :global(.lk-row) {
     display: flex;
     justify-content: space-between;
     gap: var(--space-1);
   }
-  .lk-opt {
+  :global(.lk-opt) {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1413,9 +1413,9 @@ function stepTypeLabel(type: string) {
     border-radius: var(--radius-md);
     transition: background 0.15s;
   }
-  .lk-opt:hover { background: var(--purple-50); }
-  .lk-opt input { display: none; }
-  .lk-opt__dot {
+  :global(.lk-opt:hover) { background: var(--purple-50); }
+  :global(.lk-opt input) { display: none; }
+  :global(.lk-opt__dot) {
     width: 24px;
     height: 24px;
     border: 2px solid var(--neutral-300);
@@ -1423,13 +1423,13 @@ function stepTypeLabel(type: string) {
     transition: border-color 0.15s, background 0.15s;
     position: relative;
   }
-  .qo--sel .lk-opt__dot,
-  .lk-opt.qo--sel .lk-opt__dot {
+  :global(.qo--sel .lk-opt__dot),
+  :global(.lk-opt.qo--sel .lk-opt__dot) {
     border-color: var(--accent);
     background: var(--accent);
   }
-  .qo--sel .lk-opt__dot::after,
-  .lk-opt.qo--sel .lk-opt__dot::after {
+  :global(.qo--sel .lk-opt__dot::after),
+  :global(.lk-opt.qo--sel .lk-opt__dot::after) {
     content: '';
     position: absolute;
     top: 50%;
@@ -1440,7 +1440,7 @@ function stepTypeLabel(type: string) {
     border-radius: 50%;
     background: white;
   }
-  .lk-opt__lbl {
+  :global(.lk-opt__lbl) {
     font-size: 0.6875rem;
     color: var(--text-muted);
     text-align: center;
@@ -1448,65 +1448,65 @@ function stepTypeLabel(type: string) {
   }
 
   /* Quiz footer */
-  .quiz-footer {
+  :global(.quiz-footer) {
     text-align: center;
     padding-top: var(--space-6);
     margin-top: var(--space-4);
     border-top: 1px solid var(--border-light);
   }
-  .quiz-footer__hint {
+  :global(.quiz-footer__hint) {
     font-size: 0.75rem;
     color: var(--text-muted);
     margin-top: var(--space-2);
   }
 
   /* Results */
-  .qr-card {
+  :global(.qr-card) {
     text-align: center;
     padding: var(--space-8) var(--space-6);
     border-radius: var(--radius-lg);
     margin-bottom: var(--space-6);
   }
-  .qr-card svg { margin-bottom: var(--space-3); }
-  .qr-card h3 {
+  :global(.qr-card svg) { margin-bottom: var(--space-3); }
+  :global(.qr-card h3) {
     font-size: 1.5rem;
     margin-bottom: var(--space-2);
   }
-  .qr-card p { font-size: 0.9375rem; color: var(--text-secondary); }
-  .qr-card--pass {
+  :global(.qr-card p) { font-size: 0.9375rem; color: var(--text-secondary); }
+  :global(.qr-card--pass) {
     background: color-mix(in srgb, var(--green-700) 6%, transparent);
     border: 1px solid color-mix(in srgb, var(--green-700) 20%, transparent);
   }
-  .qr-card--pass h3 { color: var(--green-700); }
-  .qr-card--fail {
+  :global(.qr-card--pass h3) { color: var(--green-700); }
+  :global(.qr-card--fail) {
     background: color-mix(in srgb, var(--rose-600, #e11d48) 6%, transparent);
     border: 1px solid color-mix(in srgb, var(--rose-600, #e11d48) 20%, transparent);
   }
-  .qr-card--fail h3 { color: var(--rose-600, #e11d48); }
-  .qr-cert {
+  :global(.qr-card--fail h3) { color: var(--rose-600, #e11d48); }
+  :global(.qr-cert) {
     margin-top: var(--space-3);
     font-weight: 500;
     color: var(--accent) !important;
   }
 
   /* Breakdown */
-  .qr-breakdown {
+  :global(.qr-breakdown) {
     margin-bottom: var(--space-6);
   }
-  .qr-breakdown h4 {
+  :global(.qr-breakdown h4) {
     font-size: 0.9375rem;
     font-weight: 600;
     margin-bottom: var(--space-4);
     color: var(--text-primary);
   }
-  .qr-item {
+  :global(.qr-item) {
     display: flex;
     gap: var(--space-3);
     padding: var(--space-3) 0;
     border-bottom: 1px solid var(--border-light);
   }
-  .qr-item:last-child { border-bottom: none; }
-  .qr-item__icon {
+  :global(.qr-item:last-child) { border-bottom: none; }
+  :global(.qr-item__icon) {
     width: 24px;
     height: 24px;
     border-radius: 50%;
@@ -1518,31 +1518,31 @@ function stepTypeLabel(type: string) {
     flex-shrink: 0;
     margin-top: 1px;
   }
-  .qr-item--ok .qr-item__icon {
+  :global(.qr-item--ok .qr-item__icon) {
     background: color-mix(in srgb, var(--green-700) 12%, transparent);
     color: var(--green-700);
   }
-  .qr-item--wrong .qr-item__icon {
+  :global(.qr-item--wrong .qr-item__icon) {
     background: color-mix(in srgb, var(--rose-600, #e11d48) 12%, transparent);
     color: var(--rose-600, #e11d48);
   }
-  .qr-item__body { flex: 1; min-width: 0; }
-  .qr-item__q {
+  :global(.qr-item__body) { flex: 1; min-width: 0; }
+  :global(.qr-item__q) {
     font-size: 0.875rem;
     color: var(--text-primary);
     margin-bottom: var(--space-1);
   }
-  .qr-item__yours {
+  :global(.qr-item__yours) {
     font-size: 0.8125rem;
     color: var(--rose-600, #e11d48);
   }
-  .qr-item__correct {
+  :global(.qr-item__correct) {
     font-size: 0.8125rem;
     color: var(--green-700);
     font-weight: 500;
   }
 
-  .qr-actions {
+  :global(.qr-actions) {
     text-align: center;
     margin-bottom: var(--space-6);
   }

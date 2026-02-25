@@ -6,7 +6,7 @@
  * All endpoints require authentication.
  */
 import {
-  json, optionsResponse, getSessionIdFromCookie, validateSession,
+  json, optionsResponse, getSessionIdFromCookie, validateSession, generateId,
 } from '../auth/_shared.js';
 import { getCourse, getTotalSteps, isValidStep, getCertificateQuizId, CERTIFICATE_MIN_SCORE, getPreviousStepId } from './_shared.js';
 
@@ -72,6 +72,9 @@ async function getProgressSummary(db, userId) {
 async function getDetailedProgress(db, userId, courseId) {
   const course = getCourse(courseId);
   if (!course) return json({ ok: false, error: 'Course not found' }, 404);
+
+  // Superadmin: auto-enroll on first access so progress tracking works
+  await autoEnrollAdmin(db, userId, courseId);
 
   // Verify enrolled
   const enrollment = await db.prepare(
@@ -147,6 +150,9 @@ async function handleProgressUpdate(request, env) {
   if (!course) return json({ ok: false, error: 'Course not found' }, 404);
   if (!isValidStep(courseId, stepId)) return json({ ok: false, error: 'Invalid step' }, 400);
 
+  // Superadmin: auto-enroll on first access
+  await autoEnrollAdmin(db, session.userId, courseId);
+
   // Verify enrolled
   const enrollment = await db.prepare(
     'SELECT id FROM enrollment WHERE user_id = ? AND course_id = ?'
@@ -217,4 +223,18 @@ async function handleProgressUpdate(request, env) {
   }
 
   return json({ ok: true, courseCompleted, certificateIssued });
+}
+
+/**
+ * If user is superadmin, silently auto-enroll in any course they access.
+ * Creates an enrollment row so progress tracking works normally.
+ */
+async function autoEnrollAdmin(db, userId, courseId) {
+  const user = await db.prepare('SELECT role FROM user WHERE id = ?').bind(userId).first();
+  if (user?.role !== 'superadmin') return;
+
+  const id = generateId();
+  await db.prepare(
+    'INSERT OR IGNORE INTO enrollment (id, user_id, course_id) VALUES (?, ?, ?)'
+  ).bind(id, userId, courseId).run();
 }
