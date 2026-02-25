@@ -7,7 +7,7 @@ interface Props {
 }
 
 const { article, compact = false } = Astro.props;
-const href = `/library/${article.slug}`;
+const href = `/library/${article.slug}/`;
 const truncLen = compact ? 120 : 200;
 const truncatedAbstract = article.abstract
   ? article.abstract.slice(0, truncLen) + (article.abstract.length > truncLen ? '...' : '')
@@ -152,7 +152,7 @@ const coinsTitle = buildCOinS(article);
     min-width: 0;
   }
   .article-card__journal {
-    color: var(--text-tertiary);
+    color: var(--text-secondary);
     font-style: italic;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -186,7 +186,7 @@ const coinsTitle = buildCOinS(article);
   .article-card__topic {
     font-size: 0.625rem;
     font-weight: 500;
-    color: var(--text-tertiary);
+    color: var(--text-secondary);
     background: var(--neutral-100);
     padding: 2px 8px;
     border-radius: var(--radius-sm);

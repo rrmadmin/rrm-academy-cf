@@ -65,6 +65,8 @@ const jsonLd = {
               href={`/library/${item.slug}`}
               class:list={['ticker-card', { active: i === 0 }]}
               data-index={i}
+              aria-hidden={i !== 0 ? "true" : undefined}
+              tabindex={i !== 0 ? "-1" : undefined}
             >
               <span class="ticker-card__title">{item.title}</span>
               <span class="ticker-card__meta">{item.shortCitation}</span>
@@ -81,21 +83,21 @@ const jsonLd = {
 
   <!-- Topic Links -->
   <nav class="topic-links" data-pagefind-ignore="all" aria-label="Browse by topic">
-    <a href="/library?topic=Endometriosis">Endometriosis</a>
+    <a href="/library/?topic=Endometriosis">Endometriosis</a>
     <span class="topic-links__dot" aria-hidden="true">&middot;</span>
-    <a href="/library?topic=Infertility">Infertility</a>
+    <a href="/library/?topic=Infertility">Infertility</a>
     <span class="topic-links__dot" aria-hidden="true">&middot;</span>
-    <a href="/library?topic=PCOS">PCOS</a>
+    <a href="/library/?topic=PCOS">PCOS</a>
     <span class="topic-links__dot" aria-hidden="true">&middot;</span>
-    <a href="/library?topic=Pregnancy">Pregnancy</a>
+    <a href="/library/?topic=Pregnancy">Pregnancy</a>
     <span class="topic-links__dot" aria-hidden="true">&middot;</span>
-    <a href="/library?topic=Surgery">Surgery</a>
+    <a href="/library/?topic=Surgery">Surgery</a>
     <span class="topic-links__dot" aria-hidden="true">&middot;</span>
-    <a href="/library?topic=Hormones%20%26%20Cycle">Hormones &amp; Cycle</a>
+    <a href="/library/?topic=Hormones%20%26%20Cycle">Hormones &amp; Cycle</a>
     <span class="topic-links__dot" aria-hidden="true">&middot;</span>
-    <a href="/library?topic=Contraception">Contraception</a>
+    <a href="/library/?topic=Contraception">Contraception</a>
     <span class="topic-links__dot" aria-hidden="true">&middot;</span>
-    <a href="/library?topic=NaProTECHNOLOGY">NaProTECHNOLOGY</a>
+    <a href="/library/?topic=NaProTECHNOLOGY">NaProTECHNOLOGY</a>
   </nav>
 
   <!-- Recent Additions -->
@@ -103,7 +105,7 @@ const jsonLd = {
     <div class="container">
       <div class="section-header">
         <h2 class="section-label">Recent additions</h2>
-        <a href="/library/page/1" class="link-arrow">View all &rarr;</a>
+        <a href="/library/page/1/" class="link-arrow">View all &rarr;</a>
       </div>
       <div class="recent-grid">
         {recent.map(article => (
@@ -149,7 +151,7 @@ const jsonLd = {
     font-size: 0.875rem;
     font-weight: 400;
     font-style: italic;
-    color: var(--text-muted);
+    color: var(--text-secondary);
     letter-spacing: 0;
     top: -0.1em;
     margin-left: 4px;
@@ -273,7 +275,7 @@ const jsonLd = {
   }
   .ticker-card__meta {
     font-size: 0.6875rem;
-    color: var(--text-muted);
+    color: var(--text-secondary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -405,6 +407,18 @@ const jsonLd = {
     if (n < 2) return;
     var current = 0;
 
+    function setAccessibility() {
+      for (var i = 0; i < n; i++) {
+        if (i === current) {
+          cards[i].removeAttribute('aria-hidden');
+          cards[i].removeAttribute('tabindex');
+        } else {
+          cards[i].setAttribute('aria-hidden', 'true');
+          cards[i].setAttribute('tabindex', '-1');
+        }
+      }
+    }
+
     function update() {
       for (var i = 0; i < n; i++) {
         cards[i].classList.remove('active', 'behind-1', 'behind-2', 'exiting');
@@ -412,6 +426,7 @@ const jsonLd = {
       cards[current].classList.add('active');
       cards[(current + 1) % n].classList.add('behind-1');
       cards[(current + 2) % n].classList.add('behind-2');
+      setAccessibility();
     }
 
     update();
@@ -426,6 +441,7 @@ const jsonLd = {
       cards[current].classList.add('active');
       cards[(current + 1) % n].classList.add('behind-1');
       cards[(current + 2) % n].classList.add('behind-2');
+      setAccessibility();
     }, 3000);
   })();
 </script>

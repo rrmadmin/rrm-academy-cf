@@ -33,7 +33,7 @@ export async function onRequest(context) {
     const sessionId = match ? match[1] : null;
 
     if (!sessionId) {
-      return Response.redirect(`https://rrmacademy.org/login?redirect=${encodeURIComponent(url.pathname)}`, 302);
+      return Response.redirect(`https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname)}`, 302);
     }
 
     // Validate session exists and hasn't expired
@@ -44,7 +44,7 @@ export async function onRequest(context) {
       return new Response(null, {
         status: 302,
         headers: {
-          'Location': `https://rrmacademy.org/login?redirect=${encodeURIComponent(url.pathname)}`,
+          'Location': `https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname)}`,
           'Set-Cookie': 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
         },
       });
@@ -62,7 +62,7 @@ export async function onRequest(context) {
     const sessionId = match ? match[1] : null;
 
     if (!sessionId) {
-      return Response.redirect(`https://rrmacademy.org/login?redirect=${encodeURIComponent(url.pathname)}`, 302);
+      return Response.redirect(`https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname)}`, 302);
     }
 
     const session = await env.DB.prepare('SELECT expires_at FROM session WHERE id = ?')
@@ -72,7 +72,7 @@ export async function onRequest(context) {
       return new Response(null, {
         status: 302,
         headers: {
-          'Location': `https://rrmacademy.org/login?redirect=${encodeURIComponent(url.pathname)}`,
+          'Location': `https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname)}`,
           'Set-Cookie': 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
         },
       });

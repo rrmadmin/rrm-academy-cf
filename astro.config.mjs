@@ -4,6 +4,7 @@ import sitemap from '@astrojs/sitemap';
 export default defineConfig({
   output: 'static',
   site: 'https://rrmacademy.org',
+  trailingSlash: 'always',
   build: {
     format: 'directory',
   },

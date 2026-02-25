@@ -11,7 +11,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   <div class="page-wrapper" data-pagefind-ignore="all">
     <div class="container container--narrow">
       <nav class="breadcrumb" aria-label="Breadcrumb">
-        <a href="/library">Research Library</a>
+        <a href="/library/">Research Library</a>
         <span aria-hidden="true"> &rsaquo; </span>
         <span>Saved</span>
       </nav>
@@ -23,7 +23,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         <p class="saved-hint">
           Tap the <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px;"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Save button on any article to add it here.
         </p>
-        <a href="/library" class="back-link">&larr; Browse the library</a>
+        <a href="/library/" class="back-link">&larr; Browse the library</a>
       </div>
 
       <div id="saved-list" class="saved-list"></div>
@@ -162,6 +162,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     var clearBtn = document.getElementById('clear-all');
     var exportBtn = document.getElementById('export-all');
     var actionsRow = document.querySelector('.saved-actions');
+    var isLoggedIn = false;
 
     function getSaved() {
       try { return JSON.parse(localStorage.getItem(KEY) || '[]'); }
@@ -172,8 +173,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       localStorage.setItem(KEY, JSON.stringify(items));
     }
 
-    function render() {
-      var saved = getSaved();
+    function renderItems(saved) {
       list.innerHTML = '';
 
       if (saved.length === 0) {
@@ -193,7 +193,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
         div.innerHTML =
           '<div class="saved-item__info">' +
-            '<a href="/library/' + item.slug + '" class="saved-item__title">' + escapeHtml(item.title) + '</a>' +
+            '<a href="/library/' + item.slug + '/" class="saved-item__title">' + escapeHtml(item.title) + '</a>' +
             (meta ? '<div class="saved-item__meta">' + escapeHtml(meta) + '</div>' : '') +
           '</div>' +
           '<button class="saved-item__remove" data-slug="' + item.slug + '" aria-label="Remove" title="Remove">' +
@@ -209,19 +209,39 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           var slug = btn.dataset.slug;
           var items = getSaved().filter(function(s) { return s.slug !== slug; });
           setSaved(items);
-          render();
+          renderItems(items);
           updateHeaderBadge(items.length);
+          // Also remove server-side if logged in
+          if (isLoggedIn) {
+            fetch('/api/saved', {
+              method: 'DELETE',
+              credentials: 'same-origin',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ slug: slug })
+            }).catch(function() {});
+          }
         });
       });
     }
 
+    function render() {
+      renderItems(getSaved());
+    }
+
     function updateHeaderBadge(count) {
       var badge = document.getElementById('saved-count');
+      var mobileBadge = document.getElementById('mobile-saved-count');
       var link = document.getElementById('saved-link');
+      var mobileLink = document.getElementById('mobile-saved-link');
       if (badge) badge.textContent = count;
+      if (mobileBadge) mobileBadge.textContent = count;
       if (link) {
         if (count > 0) link.classList.add('has-items');
         else link.classList.remove('has-items');
+      }
+      if (mobileLink) {
+        if (count > 0) mobileLink.classList.add('has-items');
+        else mobileLink.classList.remove('has-items');
       }
     }
 
@@ -229,9 +249,27 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     if (clearBtn) {
       clearBtn.addEventListener('click', function() {
         if (confirm('Remove all saved articles?')) {
+          // Clear localStorage
           setSaved([]);
           render();
           updateHeaderBadge(0);
+          // Clear server-side too if logged in
+          if (isLoggedIn) {
+            fetch('/api/saved', { credentials: 'same-origin' })
+              .then(function(r) { return r.json(); })
+              .then(function(data) {
+                if (data.ok && data.articles) {
+                  data.articles.forEach(function(a) {
+                    fetch('/api/saved', {
+                      method: 'DELETE',
+                      credentials: 'same-origin',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ slug: a.slug })
+                    }).catch(function() {});
+                  });
+                }
+              }).catch(function() {});
+          }
         }
       });
     }
@@ -274,7 +312,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
               if (t) lines.push('KW  - ' + t);
             }
           }
-          if (d.slug) lines.push('UR  - https://rrmacademy.org/library/' + d.slug);
+          if (d.slug) lines.push('UR  - https://rrmacademy.org/library/' + d.slug + '/');
           lines.push('ER  - ');
           ris += lines.join('\n') + '\n';
         });
@@ -294,6 +332,47 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       return div.innerHTML;
     }
 
+    // Merge server articles into localStorage (union by slug, server wins on duplicates)
+    function mergeArticles(local, server) {
+      var slugMap = {};
+      local.forEach(function(a) { slugMap[a.slug] = a; });
+      server.forEach(function(a) { slugMap[a.slug] = a; });
+      var merged = Object.values(slugMap);
+      merged.sort(function(a, b) {
+        return (b.savedAt || '').localeCompare(a.savedAt || '');
+      });
+      return merged;
+    }
+
+    // Render localStorage immediately, then sync with server if logged in
     render();
+
+    fetch('/api/auth/session', { credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (!data.ok || !data.user) return;
+        isLoggedIn = true;
+
+        var local = getSaved();
+
+        // Sync localStorage → server (merge), then render the merged result
+        fetch('/api/saved', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ articles: local })
+        })
+          .then(function(r) { return r.json(); })
+          .then(function(result) {
+            if (result.ok && result.articles) {
+              var merged = mergeArticles(local, result.articles);
+              setSaved(merged);
+              renderItems(merged);
+              updateHeaderBadge(merged.length);
+            }
+          })
+          .catch(function() {});
+      })
+      .catch(function() {});
   })();
 </script>

@@ -36,9 +36,9 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
         </div>
 
         <div class="auth-links">
-          <a href="/forgot-password">Forgot your password?</a>
+          <a href="/forgot-password/">Forgot your password?</a>
           <span class="auth-links__sep">&middot;</span>
-          <a href="/signup">Create an account</a>
+          <a href="/signup/">Create an account</a>
         </div>
       </div>
     </div>
@@ -106,8 +106,9 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
           .then(function (data) {
             if (data.ok) {
               var params = new URLSearchParams(window.location.search);
-              var dest = params.get('redirect') || '/account';
-              if (!/^\/[a-zA-Z0-9\-_\/]*$/.test(dest)) dest = '/account';
+              var dest = params.get('redirect') || '/account/';
+              if (!/^\/[a-zA-Z0-9\-_\/]*$/.test(dest)) dest = '/account/';
+              if (dest.length > 1 && dest.charAt(dest.length - 1) !== '/') dest += '/';
               window.location.href = dest;
             } else {
               showError(data.error || 'Login failed.');

@@ -90,7 +90,7 @@ const parentCourse = course.includedIn
     <section class="course-hero">
       <div class="container">
         <nav class="breadcrumb" aria-label="Breadcrumb">
-          <a href="/courses">Courses</a> <span aria-hidden="true">/</span> {course.title}
+          <a href="/courses/">Courses</a> <span aria-hidden="true">/</span> {course.title}
         </nav>
         <div class="course-hero__grid">
           <div class="course-hero__content">
@@ -131,7 +131,7 @@ const parentCourse = course.includedIn
               </div>
               <!-- Dynamic: replaced by JS when enrollment status is known -->
               <div class="hero-cta-enrolled" hidden>
-                <a href={firstStep ? `/courses/${course.slug}/${firstStep.id}` : '#'} class="btn btn--primary btn--lg" id="continue-btn">
+                <a href={firstStep ? `/courses/${course.slug}/${firstStep.id}/` : '#'} class="btn btn--primary btn--lg" id="continue-btn">
                   Continue Learning
                 </a>
                 <div class="hero-progress" id="hero-progress" hidden>
@@ -229,7 +229,7 @@ const parentCourse = course.includedIn
             <div class="related-course">
               <h2>Included With This Course</h2>
               <p>Your enrollment includes full access to:</p>
-              <a href={`/courses/${includedCourse.slug}`} class="related-course__link">
+              <a href={`/courses/${includedCourse.slug}/`} class="related-course__link">
                 <strong>{includedCourse.title}</strong>
                 <span>{includedCourse.shortDescription}</span>
               </a>
@@ -238,7 +238,7 @@ const parentCourse = course.includedIn
           {parentCourse && (
             <div class="related-course">
               <h2>Also Available As Part Of</h2>
-              <a href={`/courses/${parentCourse.slug}`} class="related-course__link">
+              <a href={`/courses/${parentCourse.slug}/`} class="related-course__link">
                 <strong>{parentCourse.title}</strong>
                 <span>Includes this course as a bonus. {parentCourse.isFree ? 'Free' : `$${(parentCourse.priceCents / 100).toFixed(0)}`}</span>
               </a>
@@ -301,7 +301,7 @@ const parentCourse = course.includedIn
           });
 
           if (resumeStep) {
-            continueBtn.href = '/courses/' + courseSlug + '/' + resumeStep;
+            continueBtn.href = '/courses/' + courseSlug + '/' + resumeStep + '/';
           }
 
           // Show progress
@@ -348,7 +348,7 @@ const parentCourse = course.includedIn
           .then(function (data) {
             if (!data.ok) {
               if (data.error === 'Not authenticated') {
-                window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+                window.location.href = '/login/?redirect=' + encodeURIComponent(window.location.pathname);
                 return;
               }
               btn.disabled = false;
@@ -361,7 +361,7 @@ const parentCourse = course.includedIn
               window.location.href = data.checkoutUrl;
             } else {
               // Free course — enrolled! Redirect to first lesson
-              window.location.href = '/courses/' + courseSlug + '/' + (firstStepId || '');
+              window.location.href = '/courses/' + courseSlug + '/' + (firstStepId ? firstStepId + '/' : '');
             }
           })
           .catch(function () {
