@@ -37,27 +37,25 @@ const jsonLd = {
         <p class="donate-lead">RRM Academy is funded primarily by the generous contributions of individuals like you. Our goal is to educate for true healing and women's health. Your support makes this possible.</p>
       </section>
 
-      <!-- Active member banner (shown via JS if already subscribed) -->
-      <section id="member-banner" class="member-banner" hidden>
-        <div class="member-banner__inner card">
-          <div class="member-banner__check" aria-hidden="true">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          </div>
-          <div class="member-banner__info">
-            <h2>You're a <span id="member-tier-name"></span></h2>
-            <p id="member-next-date"></p>
-          </div>
-          <div class="member-banner__actions">
-            <button id="manage-billing-btn" class="btn btn--primary btn--sm">Manage Billing</button>
-            <a href="/account/" class="btn btn--secondary btn--sm">My Account</a>
-          </div>
-        </div>
-      </section>
-
       <!-- Membership tiers -->
       <section class="donate-cta-section">
-        <h2>Become a Monthly Supporter</h2>
-        <p class="donate-recurring-lead">Monthly members are the backbone of everything we do. Your recurring support funds the research library, patient education, and advocacy that changes how women access care.</p>
+        <!-- Default heading (non-member) -->
+        <div id="membership-default">
+          <h2>Become a Monthly Supporter</h2>
+          <p class="donate-recurring-lead">Monthly members are the backbone of everything we do. Your recurring support funds the research library, patient education, and advocacy that changes how women access care.</p>
+        </div>
+        <!-- Active member heading (shown via JS if subscribed) -->
+        <div id="membership-active" hidden>
+          <h2>Your Membership</h2>
+          <p class="donate-recurring-lead">
+            You're a <strong id="member-tier-name"></strong>.
+            <span id="member-next-date"></span>
+          </p>
+          <div class="member-actions">
+            <button id="manage-billing-btn" class="btn btn--primary">Manage Billing</button>
+            <a href="/account/" class="btn btn--secondary">My Account</a>
+          </div>
+        </div>
 
         <div class="tier-grid">
           <div class="tier-card card">
@@ -207,8 +205,7 @@ const jsonLd = {
           var sub = data.subscription;
           if (sub.status !== 'active' && sub.status !== 'trialing') return;
 
-          // Show member banner
-          var banner = document.getElementById('member-banner');
+          // Swap section heading to active member view
           var tierEl = document.getElementById('member-tier-name');
           var dateEl = document.getElementById('member-next-date');
           tierEl.textContent = tierNames[sub.tier] || sub.tier;
@@ -219,7 +216,8 @@ const jsonLd = {
             dateEl.textContent = 'Next donation: ' + new Date(sub.currentPeriodEnd * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
           }
 
-          banner.hidden = false;
+          document.getElementById('membership-default').hidden = true;
+          document.getElementById('membership-active').hidden = false;
 
           // Update tier buttons: current tier disabled, others show upgrade/downgrade
           var tierOrder = ['member', 'hero', 'superhero'];
@@ -506,51 +504,16 @@ const jsonLd = {
     margin: 0 auto;
   }
 
-  /* Member banner */
-  .member-banner {
-    margin-bottom: var(--space-6);
-  }
-  .member-banner__inner {
-    display: flex;
-    align-items: center;
-    gap: var(--space-5);
-    border-color: var(--success, #2d8a4e);
-    border-width: 2px;
-  }
-  .member-banner__check {
-    color: var(--success, #2d8a4e);
-    flex-shrink: 0;
-  }
-  .member-banner__info {
-    flex: 1;
-  }
-  .member-banner__info h2 {
-    font-size: 1.125rem;
-    margin-bottom: 2px;
-  }
-  .member-banner__info p {
-    font-size: 0.8125rem;
-    color: var(--text-tertiary);
-    margin: 0;
-  }
-  .member-banner__actions {
+  /* Member actions (inline in section header) */
+  .member-actions {
     display: flex;
     gap: var(--space-3);
-    flex-shrink: 0;
+    justify-content: center;
+    margin-top: var(--space-4);
   }
   .tier-btn--disabled {
     opacity: 0.5;
     cursor: not-allowed;
-  }
-  @media (max-width: 640px) {
-    .member-banner__inner {
-      flex-direction: column;
-      text-align: center;
-    }
-    .member-banner__actions {
-      width: 100%;
-      justify-content: center;
-    }
   }
 
   /* CTA section — recurring tiers */
