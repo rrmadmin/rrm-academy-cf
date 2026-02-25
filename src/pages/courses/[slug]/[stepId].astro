@@ -123,19 +123,10 @@ function stepTypeLabel(type: string) {
 
       <!-- Video / Article / Quiz content -->
       <div class="player-content">
-        {step.type === 'video' && step.vimeoId && (
+        {step.type === 'video' && step.streamUid && (
           <div class="video-wrapper">
             <div class="video-container" id="video-container">
-              <iframe
-                id="vimeo-player"
-                src={`https://player.vimeo.com/video/${step.vimeoId}?title=0&byline=0&portrait=0`}
-                width="100%"
-                height="100%"
-                frameborder="0"
-                allow="autoplay; fullscreen; picture-in-picture"
-                allowfullscreen
-                title={step.title}
-              ></iframe>
+              <div id="stream-loading" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#000;color:#999;font-size:0.875rem;">Loading video...</div>
             </div>
           </div>
         )}
@@ -265,7 +256,8 @@ function stepTypeLabel(type: string) {
     courseSlug: course.slug,
     stepId: step.id,
     stepType: step.type,
-    vimeoId: step.vimeoId || null,
+    streamUid: step.streamUid || null,
+    streamCustomerCode: '99owhs14yh33gohc',
     nextStepId: nextStep?.id || null,
     nextStepUrl: nextStep ? `/courses/${course.slug}/${nextStep.id}` : '',
     videoDuration: step.duration || 0,
@@ -336,67 +328,90 @@ function stepTypeLabel(type: string) {
             markBtn.style.display = 'none';
           }
 
-          // Resume video position
-          if (stepType === 'video' && steps[stepId] && steps[stepId].lastPositionSeconds > 0) {
-            var iframe = document.getElementById('vimeo-player');
-            if (iframe) {
-              // Append start time to Vimeo URL
-              var src = iframe.getAttribute('src');
-              var startTime = '#t=' + steps[stepId].lastPositionSeconds + 's';
-              iframe.setAttribute('src', src + startTime);
-            }
+          // Load Stream video (signed token)
+          if (stepType === 'video' && streamUid) {
+            var resumeTime = (steps[stepId] && steps[stepId].lastPositionSeconds > 0) ? steps[stepId].lastPositionSeconds : 0;
+            loadStreamVideo(resumeTime);
           }
         })
         .catch(function () {
           // Silently fail — user may not be logged in
         });
 
-      // --- Video progress tracking ---
-      if (stepType === 'video' && vimeoId) {
-        var lastSaved = 0;
-        var maxPercent = 0;
+      // --- Video progress tracking (Cloudflare Stream) ---
+      var lastSaved = 0;
+      var maxPercent = 0;
 
-        // Vimeo postMessage API (no SDK needed)
-        var iframe = document.getElementById('vimeo-player');
-        if (iframe) {
-          window.addEventListener('message', function (event) {
-            if (!event.origin.includes('vimeo.com')) return;
-            var data;
-            try { data = JSON.parse(event.data); } catch { return; }
-
-            if (data.event === 'playProgress' || data.event === 'timeupdate') {
-              var seconds = Math.floor(data.data?.seconds || 0);
-              var percent = data.data?.percent || 0;
-              if (percent > maxPercent) maxPercent = percent;
-
-              // Save position every 15 seconds
-              if (seconds - lastSaved >= 15) {
-                lastSaved = seconds;
-                saveProgress(seconds, false);
-              }
-
-              // Enable "Mark Complete" once watch requirement met
-              if (maxPercent >= videoWatchReq && !isCompleted) {
-                canComplete = true;
-                markBtn.disabled = false;
-              }
+      function loadStreamVideo(resumeTime) {
+        fetch('/api/stream/token?videoId=' + encodeURIComponent(streamUid), { credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (!data.ok || !data.token) {
+              var container = document.getElementById('stream-loading');
+              if (container) container.textContent = 'Unable to load video. Please try refreshing.';
+              return;
             }
 
-            if (data.event === 'finish' || data.event === 'ended') {
-              canComplete = true;
-              markBtn.disabled = false;
+            var container = document.getElementById('video-container');
+            var loading = document.getElementById('stream-loading');
+            if (loading) loading.remove();
 
-              // Auto-complete + autoplay next
-              if (!isCompleted) {
-                isCompleted = true;
-                saveProgress(null, true).then(function (res) {
-                  if (res && res.ok) {
-                    markBtn.textContent = 'Completed';
-                    markBtn.classList.add('mark-complete-btn--done');
-                    markBtn.disabled = true;
-                    var el = document.querySelector('.sidebar-step[data-step-id="' + stepId + '"]');
-                    if (el) el.classList.add('sidebar-step--done');
-                    var done = document.querySelectorAll('.sidebar-step--done').length;
+            var iframe = document.createElement('iframe');
+            iframe.id = 'stream-player';
+            iframe.src = 'https://customer-' + streamCustomerCode + '.cloudflarestream.com/' + data.token + '/iframe';
+            iframe.setAttribute('width', '100%');
+            iframe.setAttribute('height', '100%');
+            iframe.setAttribute('frameborder', '0');
+            iframe.setAttribute('allow', 'autoplay; fullscreen; picture-in-picture');
+            iframe.setAttribute('allowfullscreen', '');
+            container.appendChild(iframe);
+
+            // Load Stream SDK and attach events
+            var script = document.createElement('script');
+            script.src = 'https://embed.cloudflarestream.com/embed/sdk.latest.js';
+            script.onload = function () {
+              if (typeof Stream === 'undefined') return;
+              var player = Stream(iframe);
+
+              // Resume position
+              if (resumeTime > 0) {
+                player.addEventListener('canplay', function onCanPlay() {
+                  player.currentTime = resumeTime;
+                  player.removeEventListener('canplay', onCanPlay);
+                });
+              }
+
+              player.addEventListener('timeupdate', function () {
+                var seconds = Math.floor(player.currentTime || 0);
+                var duration = player.duration || videoDuration || 1;
+                var percent = seconds / duration;
+                if (percent > maxPercent) maxPercent = percent;
+
+                if (seconds - lastSaved >= 15) {
+                  lastSaved = seconds;
+                  saveProgress(seconds, false);
+                }
+
+                if (maxPercent >= videoWatchReq && !isCompleted) {
+                  canComplete = true;
+                  markBtn.disabled = false;
+                }
+              });
+
+              player.addEventListener('ended', function () {
+                canComplete = true;
+                markBtn.disabled = false;
+
+                if (!isCompleted) {
+                  isCompleted = true;
+                  saveProgress(null, true).then(function (res) {
+                    if (res && res.ok) {
+                      markBtn.textContent = 'Completed';
+                      markBtn.classList.add('mark-complete-btn--done');
+                      markBtn.disabled = true;
+                      var el = document.querySelector('.sidebar-step[data-step-id="' + stepId + '"]');
+                      if (el) el.classList.add('sidebar-step--done');
+                      var done = document.querySelectorAll('.sidebar-step--done').length;
                     var total = document.querySelectorAll('.sidebar-step').length;
                     updateProgressBar(done, total);
 
@@ -411,18 +426,14 @@ function stepTypeLabel(type: string) {
               } else if (autoplayNext && nextStepUrl) {
                 showAutoplayCountdown();
               }
-            }
+            });
+            };
+            document.head.appendChild(script);
+          })
+          .catch(function () {
+            var container = document.getElementById('stream-loading');
+            if (container) container.textContent = 'Unable to load video. Please try refreshing.';
           });
-
-          // Tell Vimeo to send events
-          function postToVimeo(action, value) {
-            iframe.contentWindow.postMessage(JSON.stringify({ method: action, value: value }), '*');
-          }
-          iframe.addEventListener('load', function () {
-            postToVimeo('addEventListener', 'playProgress');
-            postToVimeo('addEventListener', 'finish');
-          });
-        }
       }
 
       // --- Mark complete ---

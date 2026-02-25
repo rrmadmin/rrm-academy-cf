@@ -3,7 +3,7 @@
     "id": "masterclass-endo-surgery",
     "title": "Masterclass in Endometriosis & Surgery",
     "slug": "masterclass-in-endometriosis-and-surgery",
-    "description": "Take control of your endometriosis journey with this comprehensive masterclass led by Dr. Naomi Whittaker, a NaProTechnology trained OBGYN and endometriosis specialist.\n\nDesigned for both women living with endometriosis and healthcare professionals, this course offers:\n\n• Clarity and understanding — Debunk common myths and gain in-depth knowledge about endometriosis and its impact on fertility.\n\n• Surgical insights — Explore various surgical approaches, including NaProTechnology's meticulous techniques and focus on adhesion prevention.\n\n• Informed decision-making — Learn how to choose the right endometriosis surgeon for you and navigate the surgical process with confidence.\n\n• Long-term management — Discover effective strategies for managing endometriosis symptoms through lifestyle changes, supplements, and medications.\n\nWhether you're considering surgery, waiting for an appointment, or seeking to better guide your patients, this masterclass empowers you with the knowledge and tools you need to find lasting relief and achieve your fertility goals.",
+    "description": "Take control of your endometriosis journey with this comprehensive masterclass led by Dr. Naomi Whittaker, a NaProTechnology trained OBGYN and endometriosis specialist.\n\nDesigned for both women living with endometriosis and healthcare professionals, this course offers:\n\n\u2022 Clarity and understanding \u2014 Debunk common myths and gain in-depth knowledge about endometriosis and its impact on fertility.\n\n\u2022 Surgical insights \u2014 Explore various surgical approaches, including NaProTechnology's meticulous techniques and focus on adhesion prevention.\n\n\u2022 Informed decision-making \u2014 Learn how to choose the right endometriosis surgeon for you and navigate the surgical process with confidence.\n\n\u2022 Long-term management \u2014 Discover effective strategies for managing endometriosis symptoms through lifestyle changes, supplements, and medications.\n\nWhether you're considering surgery, waiting for an appointment, or seeking to better guide your patients, this masterclass empowers you with the knowledge and tools you need to find lasting relief and achieve your fertility goals.",
     "shortDescription": "Comprehensive guide for patients preparing for endometriosis surgery. Covers the entire surgical journey, including how to choose a surgeon, and automatically includes the Long-Term Management course as a bonus.",
     "image": "https://pub-4af88159ce884265baba8fb4f3470625.r2.dev/courses/masterclass-endo-surgery/cover.jpeg",
     "imageAlt": "a woman sits in front of a microphone and a laptop",
@@ -52,7 +52,8 @@
             "title": "Let's get started",
             "type": "video",
             "vimeoId": "884471604",
-            "duration": 134
+            "duration": 134,
+            "streamUid": "ee5a46eec25475fc8ea7f10d60f1d8b2"
           },
           {
             "id": "mc-intro-3",
@@ -69,14 +70,16 @@
             "title": "What You'll Learn",
             "type": "video",
             "vimeoId": "884503926",
-            "duration": 122
+            "duration": 122,
+            "streamUid": "2bbbe18931557193623b95420406113c"
           },
           {
             "id": "mc-intro-6",
             "title": "Dr Whittaker's Background",
             "type": "video",
             "vimeoId": "884485078",
-            "duration": 375
+            "duration": 375,
+            "streamUid": "2f8123bb56e8f442fa7f5aeecc7ec791"
           }
         ]
       },
@@ -89,28 +92,32 @@
             "title": "Origin of Endometriosis",
             "type": "video",
             "vimeoId": "884485030",
-            "duration": 561
+            "duration": 561,
+            "streamUid": "9e92e01b4a8aaad887738a32b11d30aa"
           },
           {
             "id": "mc-understanding-2",
             "title": "Endometriosis and the Immune System",
             "type": "video",
             "vimeoId": "884485006",
-            "duration": 264
+            "duration": 264,
+            "streamUid": "22fec3a1101b61c4a18f90beb6d7a2b9"
           },
           {
             "id": "mc-understanding-3",
             "title": "Endometriosis and Infertility",
             "type": "video",
             "vimeoId": "884484948",
-            "duration": 760
+            "duration": 760,
+            "streamUid": "525cc121fd33e2943adb0ec6ba7bf289"
           },
           {
             "id": "mc-understanding-4",
             "title": "OBGYN Subspecialties, Their Focus & How It Affects Endo Care",
             "type": "video",
             "vimeoId": "884484894",
-            "duration": 560
+            "duration": 560,
+            "streamUid": "66ba51fa5b9cc525dc6c69dab30277dc"
           }
         ]
       },
@@ -123,35 +130,40 @@
             "title": "Candidates for Surgery",
             "type": "video",
             "vimeoId": "884484846",
-            "duration": 505
+            "duration": 505,
+            "streamUid": "15939ddd981122dbb99cf8be6dfbb397"
           },
           {
             "id": "mc-deciding-2",
             "title": "Considerations Prior to Surgery",
             "type": "video",
             "vimeoId": "884483953",
-            "duration": 889
+            "duration": 889,
+            "streamUid": "502b980a38ea26c4cbd04264ecf47eb4"
           },
           {
             "id": "mc-deciding-3",
             "title": "How Creighton Biomarkers Help with Surgical Planning",
             "type": "video",
             "vimeoId": "884483910",
-            "duration": 178
+            "duration": 178,
+            "streamUid": "78207c66fd1db4894f94c64ff32d2d69"
           },
           {
             "id": "mc-deciding-4",
             "title": "Additional Considerations",
             "type": "video",
             "vimeoId": "884483836",
-            "duration": 544
+            "duration": 544,
+            "streamUid": "8940d68b039ce6793a637ed9808ab1e2"
           },
           {
             "id": "mc-deciding-5",
             "title": "Endometriosis Myths",
             "type": "video",
             "vimeoId": "884483812",
-            "duration": 83
+            "duration": 83,
+            "streamUid": "7f7a50ac5049c524a1de043f8614565f"
           }
         ]
       },
@@ -164,77 +176,88 @@
             "title": "Surgery Part 1: Diagnostic Laparoscopy",
             "type": "video",
             "vimeoId": "884483683",
-            "duration": 582
+            "duration": 582,
+            "streamUid": "5cae964492d0526f9ed476a81908496a"
           },
           {
             "id": "mc-surgical-2",
             "title": "Various Appearances of Endometriosis",
             "type": "video",
             "vimeoId": "884483771",
-            "duration": 243
+            "duration": 243,
+            "streamUid": "a36955c6e531c0a89b54e2ab62118b84"
           },
           {
             "id": "mc-surgical-3",
             "title": "Surgery Part 2: Tools & Techniques",
             "type": "video",
             "vimeoId": "884483584",
-            "duration": 511
+            "duration": 511,
+            "streamUid": "1315591a7287a717181bd19f5f008006"
           },
           {
             "id": "mc-surgical-4",
             "title": "Surgery Part 3: Complex Disease",
             "type": "video",
             "vimeoId": "884483496",
-            "duration": 292
+            "duration": 292,
+            "streamUid": "be2af105285b396867c237ab28810b5c"
           },
           {
             "id": "mc-surgical-5",
             "title": "Peritoneum",
             "type": "video",
             "vimeoId": "884484114",
-            "duration": 46
+            "duration": 46,
+            "streamUid": "5a148cfcd1e9a08c6e70021674bbe668"
           },
           {
             "id": "mc-surgical-6",
             "title": "Peritoneum Controversy",
             "type": "video",
             "vimeoId": "884484821",
-            "duration": 150
+            "duration": 150,
+            "streamUid": "eb3ee8c6a50a9b39144aa7455f9484f2"
           },
           {
             "id": "mc-surgical-7",
             "title": "Surgery Part 4: Adhesion Prevention",
             "type": "video",
             "vimeoId": "884484757",
-            "duration": 537
+            "duration": 537,
+            "streamUid": "40a1bd748c2b81f77fac037e2d7ea66e"
           },
           {
             "id": "mc-surgical-8",
             "title": "Selective HSG",
             "type": "video",
             "vimeoId": "884484691",
-            "duration": 61
+            "duration": 61,
+            "streamUid": "7ed13c5c083daef11f5d62429139ee29"
           },
           {
             "id": "mc-surgical-9",
             "title": "Example Cases",
             "type": "video",
             "vimeoId": "884484662",
-            "duration": 101
+            "duration": 101,
+            "streamUid": "fbdccf5a6a214e298bd9dcb0abb2ae46"
           },
           {
             "id": "mc-surgical-10",
             "title": "Recurrence Risk",
             "type": "video",
             "vimeoId": "884484061",
-            "duration": 106
+            "duration": 106,
+            "streamUid": "24423661ae3b8f05374ebbf58da6227a"
           },
           {
             "id": "mc-surgical-11",
             "title": "Endometriosis Summary",
             "type": "video",
             "vimeoId": "884484050",
-            "duration": 118
+            "duration": 118,
+            "streamUid": "b6f641219f2cc44b31ae4f6a869dd10d"
           }
         ]
       },
@@ -247,14 +270,16 @@
             "title": "Endometriosis Summary",
             "type": "video",
             "vimeoId": "884484611",
-            "duration": 175
+            "duration": 175,
+            "streamUid": "bc1d9e7538040c29a6b3ec395e2b12a5"
           },
           {
             "id": "mc-time-2",
             "title": "Surgery Recovery",
             "type": "video",
             "vimeoId": "884484594",
-            "duration": 70
+            "duration": 70,
+            "streamUid": "5413627059551923e420f30b2cbe2f33"
           }
         ]
       },
@@ -267,35 +292,40 @@
             "title": "Summary",
             "type": "video",
             "vimeoId": "884484396",
-            "duration": 28
+            "duration": 28,
+            "streamUid": "f0418f2a24dfb0ea22844bb0eb487245"
           },
           {
             "id": "mc-conclusion-2",
             "title": "Thoughts",
             "type": "video",
             "vimeoId": "884484364",
-            "duration": 248
+            "duration": 248,
+            "streamUid": "77c98b3b092ec8d20ce11c1f313ca1ea"
           },
           {
             "id": "mc-conclusion-3",
             "title": "Additional Q & A",
             "type": "video",
             "vimeoId": "884484298",
-            "duration": 462
+            "duration": 462,
+            "streamUid": "3e69f75338621a8f4739e07be2b66deb"
           },
           {
             "id": "mc-conclusion-4",
             "title": "Other Resources",
             "type": "video",
             "vimeoId": "884484259",
-            "duration": 125
+            "duration": 125,
+            "streamUid": "81402728e8e00d3db78346562936920d"
           },
           {
             "id": "mc-conclusion-5",
             "title": "References",
             "type": "video",
             "vimeoId": "884550296",
-            "duration": 8
+            "duration": 8,
+            "streamUid": "5b04a69402498b66fdd9628ff8f062b4"
           }
         ]
       },
@@ -308,49 +338,56 @@
             "title": "Endometriosis and Pain",
             "type": "video",
             "vimeoId": "884484084",
-            "duration": 75
+            "duration": 75,
+            "streamUid": "a7d0d5bf9e689aa645ba86ba40ac845b"
           },
           {
             "id": "mc-bonus-ltm-2",
             "title": "Lifestyle",
             "type": "video",
             "vimeoId": "884484577",
-            "duration": 37
+            "duration": 37,
+            "streamUid": "490480861f6d4601e52c2f24a69a728b"
           },
           {
             "id": "mc-bonus-ltm-3",
             "title": "Diet",
             "type": "video",
             "vimeoId": "884484477",
-            "duration": 285
+            "duration": 285,
+            "streamUid": "77988636e938bbce09fa643921084f35"
           },
           {
             "id": "mc-bonus-ltm-4",
             "title": "Over-The-Counter NSAIDs & Non-NSAIDs",
             "type": "video",
             "vimeoId": "884484561",
-            "duration": 25
+            "duration": 25,
+            "streamUid": "58e31ca76b1d00abdf1de31abb280a82"
           },
           {
             "id": "mc-bonus-ltm-5",
             "title": "Supplements",
             "type": "video",
             "vimeoId": "884484540",
-            "duration": 178
+            "duration": 178,
+            "streamUid": "dad056457fcf915ad248fdedd8fba0cd"
           },
           {
             "id": "mc-bonus-ltm-6",
             "title": "Prescriptions & Devices",
             "type": "video",
             "vimeoId": "884484517",
-            "duration": 136
+            "duration": 136,
+            "streamUid": "3ead3a8b8870673337eedbe674771395"
           },
           {
             "id": "mc-bonus-ltm-7",
             "title": "Other Considerations",
             "type": "video",
             "vimeoId": "884484417",
-            "duration": 179
+            "duration": 179,
+            "streamUid": "5a8dacdf58c7964404eab92eeb010118"
           }
         ]
       },
@@ -363,7 +400,8 @@
             "title": "How to Choose a Surgeon",
             "type": "video",
             "vimeoId": "884484149",
-            "duration": 620
+            "duration": 620,
+            "streamUid": "7e4b1967ce5f87569df021faa95719ab"
           },
           {
             "id": "mc-bonus-wb-2",
@@ -381,7 +419,8 @@
             "title": "Reminder and Thank You!",
             "type": "video",
             "vimeoId": "884484133",
-            "duration": 15
+            "duration": 15,
+            "streamUid": "e7e7b287ebc70dfe4656b61a6e7ec2ba"
           },
           {
             "id": "mc-feedback-2",
@@ -410,7 +449,7 @@
     "id": "long-term-endo",
     "title": "Long Term Endometriosis Management",
     "slug": "long-term-endometriosis-management",
-    "description": "This essential course equips both women with endometriosis and healthcare professionals with the knowledge and tools for effective long-term symptom management.\n\nFor Patients:\n• Empowerment through Knowledge — Gain a deep understanding of how lifestyle, diet, supplements, and medications can influence your endometriosis symptoms.\n• Practical Strategies — Discover actionable steps to implement in your daily life for improved well-being and reduced pain.\n• Holistic Approach — Explore a range of evidence-based and complementary therapies to manage endometriosis holistically.\n\nFor Healthcare Professionals:\n• Expand Your Expertise — Enhance your understanding of long-term endometriosis management strategies beyond surgical interventions.\n• Guide Your Patients — Gain valuable insights to confidently advise and support your patients in managing their endometriosis symptoms.\n• Improve Patient Outcomes — Discover effective tools and resources to help your patients achieve lasting relief and improve their quality of life.",
+    "description": "This essential course equips both women with endometriosis and healthcare professionals with the knowledge and tools for effective long-term symptom management.\n\nFor Patients:\n\u2022 Empowerment through Knowledge \u2014 Gain a deep understanding of how lifestyle, diet, supplements, and medications can influence your endometriosis symptoms.\n\u2022 Practical Strategies \u2014 Discover actionable steps to implement in your daily life for improved well-being and reduced pain.\n\u2022 Holistic Approach \u2014 Explore a range of evidence-based and complementary therapies to manage endometriosis holistically.\n\nFor Healthcare Professionals:\n\u2022 Expand Your Expertise \u2014 Enhance your understanding of long-term endometriosis management strategies beyond surgical interventions.\n\u2022 Guide Your Patients \u2014 Gain valuable insights to confidently advise and support your patients in managing their endometriosis symptoms.\n\u2022 Improve Patient Outcomes \u2014 Discover effective tools and resources to help your patients achieve lasting relief and improve their quality of life.",
     "shortDescription": "Non-surgical wellness strategies for endometriosis: diet, lifestyle, supplements, and medications. Can be purchased separately or included with the Masterclass.",
     "image": "https://pub-4af88159ce884265baba8fb4f3470625.r2.dev/courses/long-term-endo/cover.jpg",
     "imageAlt": "",
@@ -455,7 +494,8 @@
             "title": "Endometriosis and Pain",
             "type": "video",
             "vimeoId": "884484084",
-            "duration": 75
+            "duration": 75,
+            "streamUid": "a7d0d5bf9e689aa645ba86ba40ac845b"
           }
         ]
       },
@@ -468,7 +508,8 @@
             "title": "Lifestyle",
             "type": "video",
             "vimeoId": "884484577",
-            "duration": 37
+            "duration": 37,
+            "streamUid": "490480861f6d4601e52c2f24a69a728b"
           }
         ]
       },
@@ -481,7 +522,8 @@
             "title": "Diet",
             "type": "video",
             "vimeoId": "884484477",
-            "duration": 285
+            "duration": 285,
+            "streamUid": "77988636e938bbce09fa643921084f35"
           }
         ]
       },
@@ -494,7 +536,8 @@
             "title": "Over-The-Counter NSAIDs & Non-NSAIDs",
             "type": "video",
             "vimeoId": "884484561",
-            "duration": 25
+            "duration": 25,
+            "streamUid": "58e31ca76b1d00abdf1de31abb280a82"
           }
         ]
       },
@@ -507,7 +550,8 @@
             "title": "Supplements",
             "type": "video",
             "vimeoId": "884484540",
-            "duration": 178
+            "duration": 178,
+            "streamUid": "dad056457fcf915ad248fdedd8fba0cd"
           }
         ]
       },
@@ -520,7 +564,8 @@
             "title": "Prescriptions & Devices",
             "type": "video",
             "vimeoId": "884484517",
-            "duration": 136
+            "duration": 136,
+            "streamUid": "3ead3a8b8870673337eedbe674771395"
           }
         ]
       },
@@ -533,7 +578,8 @@
             "title": "Other Considerations",
             "type": "video",
             "vimeoId": "884484417",
-            "duration": 179
+            "duration": 179,
+            "streamUid": "5a8dacdf58c7964404eab92eeb010118"
           }
         ]
       },
@@ -568,7 +614,7 @@
     "id": "postpartum",
     "title": "Postpartum Depression & Anxiety: A Restorative Approach to Recovery",
     "slug": "postpartum-depression-anxiety",
-    "description": "This course discusses postpartum depression and anxiety, exploring its causes, symptoms, and a restorative approach to healing.\n\nDr. Naomi Whittaker, a fertility surgeon specializing in women's health, delves into the limitations of conventional treatments and offers insights into the effectiveness of bioidentical progesterone.\n\nKey topics covered:\n• Understanding the different types of postpartum mood disorders\n• Exploring the physiological and hormonal factors contributing to postpartum depression\n• Discussing the limitations of traditional treatment approaches like SSRIs\n• Highlighting the benefits of bioidentical progesterone as a natural and effective solution\n• Providing actionable steps for prevention and seeking support",
+    "description": "This course discusses postpartum depression and anxiety, exploring its causes, symptoms, and a restorative approach to healing.\n\nDr. Naomi Whittaker, a fertility surgeon specializing in women's health, delves into the limitations of conventional treatments and offers insights into the effectiveness of bioidentical progesterone.\n\nKey topics covered:\n\u2022 Understanding the different types of postpartum mood disorders\n\u2022 Exploring the physiological and hormonal factors contributing to postpartum depression\n\u2022 Discussing the limitations of traditional treatment approaches like SSRIs\n\u2022 Highlighting the benefits of bioidentical progesterone as a natural and effective solution\n\u2022 Providing actionable steps for prevention and seeking support",
     "shortDescription": "Explore postpartum depression and anxiety, its causes and symptoms, and a restorative approach to healing with bioidentical progesterone.",
     "image": "https://pub-4af88159ce884265baba8fb4f3470625.r2.dev/courses/postpartum/cover.png",
     "imageAlt": "Postpartum",
@@ -614,7 +660,8 @@
             "title": "Understanding Postpartum Depression & Anxiety",
             "type": "video",
             "vimeoId": "968433870",
-            "duration": 555
+            "duration": 555,
+            "streamUid": "dd3053e442e0512329851ceca4f217b8"
           }
         ]
       },
@@ -627,7 +674,8 @@
             "title": "Causes and Risk Factors",
             "type": "video",
             "vimeoId": "968434468",
-            "duration": 285
+            "duration": 285,
+            "streamUid": "d27236742ad4a22b76ecf044624275a9"
           }
         ]
       },
@@ -640,7 +688,8 @@
             "title": "Traditional Treatment Approaches",
             "type": "video",
             "vimeoId": "968434485",
-            "duration": 176
+            "duration": 176,
+            "streamUid": "7b20f94dbc8e0ef9221b6c73aac74cbb"
           }
         ]
       },
@@ -653,7 +702,8 @@
             "title": "Treating with Bioidentical Progesterone",
             "type": "video",
             "vimeoId": "968434503",
-            "duration": 342
+            "duration": 342,
+            "streamUid": "46908addd3f8c69e0139cf3e9c9bd4d5"
           }
         ]
       },
@@ -666,7 +716,8 @@
             "title": "Prevention and Preconception Care",
             "type": "video",
             "vimeoId": "968434522",
-            "duration": 275
+            "duration": 275,
+            "streamUid": "f443f19be81ff3ba2d89955d29344fdc"
           }
         ]
       },
@@ -679,7 +730,8 @@
             "title": "Seeking Help and Support",
             "type": "video",
             "vimeoId": "968434538",
-            "duration": 114
+            "duration": 114,
+            "streamUid": "868e790d585e89d97f97f576a46f0401"
           }
         ]
       }
@@ -689,7 +741,7 @@
     "id": "rrm-vs-ivf",
     "title": "Restorative Reproductive Medicine (RRM) vs Standard ART: A New Approach to Infertility",
     "slug": "rrm-vs-ivf",
-    "description": "This course dives deep into the world of infertility treatment, comparing the standard Assisted Reproductive Technology (ART) like IVF and IUI with a lesser-known approach called Restorative Reproductive Medicine (RRM).\n\nDr. Naomi Whittaker, an OBGYN fertility surgeon specializing in RRM, discusses the limitations of conventional infertility treatment and explores the potential of RRM as a more holistic and effective solution.\n\nKey topics covered:\n• The shortcomings of standard OBGYN training in addressing infertility\n• The facts behind IVF and IUI success rates and their associated risks\n• The ethical, financial, and medical concerns surrounding ART\n• The principles of RRM and its focus on identifying and treating the root causes of infertility\n• Real patient stories showcasing the effectiveness of RRM",
+    "description": "This course dives deep into the world of infertility treatment, comparing the standard Assisted Reproductive Technology (ART) like IVF and IUI with a lesser-known approach called Restorative Reproductive Medicine (RRM).\n\nDr. Naomi Whittaker, an OBGYN fertility surgeon specializing in RRM, discusses the limitations of conventional infertility treatment and explores the potential of RRM as a more holistic and effective solution.\n\nKey topics covered:\n\u2022 The shortcomings of standard OBGYN training in addressing infertility\n\u2022 The facts behind IVF and IUI success rates and their associated risks\n\u2022 The ethical, financial, and medical concerns surrounding ART\n\u2022 The principles of RRM and its focus on identifying and treating the root causes of infertility\n\u2022 Real patient stories showcasing the effectiveness of RRM",
     "shortDescription": "Compare standard ART (IVF/IUI) with Restorative Reproductive Medicine, exploring root-cause approaches to infertility with real patient stories.",
     "image": "https://pub-4af88159ce884265baba8fb4f3470625.r2.dev/courses/rrm-vs-ivf/cover.png",
     "imageAlt": "Naomi Whittaker, MD",
@@ -736,7 +788,8 @@
             "title": "Introduction & Speaker Background",
             "type": "video",
             "vimeoId": "934932067",
-            "duration": 73
+            "duration": 73,
+            "streamUid": "47aa2355d1bbc20f591fa33ea757e1ad"
           }
         ]
       },
@@ -749,7 +802,8 @@
             "title": "Standard Infertility Treatment Approach",
             "type": "video",
             "vimeoId": "934976000",
-            "duration": 537
+            "duration": 537,
+            "streamUid": "4e82c0ab80f57f3db5a5aca6dc2696c3"
           }
         ]
       },
@@ -762,7 +816,8 @@
             "title": "Questioning the Evidence for IUI & IVF",
             "type": "video",
             "vimeoId": "934942604",
-            "duration": 910
+            "duration": 910,
+            "streamUid": "d6f5613c9709f28d3f230ff0aaa9c809"
           }
         ]
       },
@@ -775,7 +830,8 @@
             "title": "Risks & Complications of ART",
             "type": "video",
             "vimeoId": "934976032",
-            "duration": 574
+            "duration": 574,
+            "streamUid": "8cb375aeaa1d562b9bbbab7d8ac12dbb"
           }
         ]
       },
@@ -788,7 +844,8 @@
             "title": "Restorative Reproductive Medicine: A Viable Alternative",
             "type": "video",
             "vimeoId": "934976078",
-            "duration": 191
+            "duration": 191,
+            "streamUid": "93a5e71a922900e56578c1d33d2d04ac"
           }
         ]
       },
@@ -801,7 +858,8 @@
             "title": "RRM Success Stories & Patient Examples",
             "type": "video",
             "vimeoId": "934976117",
-            "duration": 378
+            "duration": 378,
+            "streamUid": "52304b237f6df02886b5483328082255"
           }
         ]
       },
@@ -814,7 +872,8 @@
             "title": "Comparing RRM & REI: A Paradigm Shift",
             "type": "video",
             "vimeoId": "934976144",
-            "duration": 118
+            "duration": 118,
+            "streamUid": "296e54c6778af3e470dbb6519b7269bd"
           }
         ]
       },
@@ -827,7 +886,8 @@
             "title": "Q&A and Conclusion",
             "type": "video",
             "vimeoId": "934976172",
-            "duration": 274
+            "duration": 274,
+            "streamUid": "44ee53ba8289a196ba0359ddc3f0d8fd"
           }
         ]
       },
