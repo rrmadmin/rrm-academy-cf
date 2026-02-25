@@ -11,7 +11,6 @@ export interface CourseStep {
   id: string;
   title: string;
   type: 'video' | 'article' | 'quiz';
-  vimeoId?: string;
   streamUid?: string;
   duration?: number;
 }

@@ -234,19 +234,6 @@ export async function fetchAllArticles(): Promise<Article[]> {
 }
 
 /**
- * Get all unique topics with article counts.
- */
-export function getTopicCounts(articles: Article[]): Map<string, number> {
-  const counts = new Map<string, number>();
-  for (const article of articles) {
-    for (const topic of article.topics) {
-      counts.set(topic, (counts.get(topic) || 0) + 1);
-    }
-  }
-  return counts;
-}
-
-/**
  * Find related articles using weighted multi-signal scoring:
  *   topics (×3) + search terms (×1) + same journal (×2)
  * Tiebreaker: more recent articles rank higher.
