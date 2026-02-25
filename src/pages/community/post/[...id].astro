@@ -1,0 +1,1233 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+export function getStaticPaths() {
+  return [{ params: { id: 'placeholder' } }];
+}
+---
+<BaseLayout
+  title="Community Post"
+  description="RRM Academy community post."
+  noindex
+>
+  <section class="post-page">
+    <div class="container container--narrow">
+
+      <!-- Back nav -->
+      <nav class="back-nav">
+        <a href="/community">&larr; Back to Community</a>
+      </nav>
+
+      <!-- Loading -->
+      <div id="post-loading" class="post-loading">
+        <p>Loading post...</p>
+      </div>
+
+      <!-- Not authorized -->
+      <div id="post-unauthorized" hidden>
+        <div class="post-empty-card">
+          <h1>Membership Required</h1>
+          <p>You need an active membership to access the community.</p>
+          <a href="/login" class="btn btn--primary">Log in</a>
+        </div>
+      </div>
+
+      <!-- Not found -->
+      <div id="post-not-found" hidden>
+        <div class="post-empty-card">
+          <h1>Post Not Found</h1>
+          <p>This post may have been removed or the link is incorrect.</p>
+          <a href="/community" class="btn btn--secondary">Back to Community</a>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <div id="post-error" hidden>
+        <div class="post-empty-card">
+          <h1>Something Went Wrong</h1>
+          <p id="post-error-text">Unable to load this post. Please try again.</p>
+          <a href="/community" class="btn btn--secondary">Back to Community</a>
+        </div>
+      </div>
+
+      <!-- Post content -->
+      <article id="post-content" hidden>
+
+        <!-- Post header -->
+        <div class="post-header">
+          <div class="post-meta-row">
+            <span id="post-type-badge" class="type-badge"></span>
+            <span id="post-pin-indicator" class="pin-indicator" hidden>Pinned</span>
+          </div>
+          <h1 id="post-title" class="post-title"></h1>
+          <div class="post-byline">
+            <span id="post-author" class="post-author"></span>
+            <span id="post-author-badge" class="role-badge" hidden></span>
+            <span class="byline-sep">&middot;</span>
+            <time id="post-time" class="post-time"></time>
+          </div>
+        </div>
+
+        <!-- Post body -->
+        <div id="post-body" class="post-body"></div>
+
+        <!-- Event info -->
+        <div id="post-event-info" class="event-info-card" hidden>
+          <div class="event-info-row">
+            <span class="event-info-label">Date &amp; Time</span>
+            <span id="post-event-date" class="event-info-value"></span>
+          </div>
+          <a id="post-event-link" class="btn btn--primary btn--sm event-join-btn" href="#" target="_blank" rel="noopener noreferrer">Join Call</a>
+        </div>
+
+        <!-- Resource link -->
+        <a id="post-resource-link" class="btn btn--secondary btn--sm resource-btn" href="#" target="_blank" rel="noopener noreferrer" hidden>View Resource</a>
+
+        <!-- Reaction bar (post) -->
+        <div id="post-reactions" class="reaction-bar"></div>
+
+        <!-- Staff controls -->
+        <div id="post-controls" class="post-controls" hidden>
+          <button id="ctrl-edit" class="btn btn--text btn--sm">Edit</button>
+          <button id="ctrl-pin" class="btn btn--text btn--sm" hidden></button>
+          <button id="ctrl-delete" class="btn btn--text btn--sm ctrl-delete">Delete</button>
+        </div>
+
+        <!-- Edit form -->
+        <div id="edit-form-wrap" class="edit-form-wrap" hidden>
+          <h2 class="edit-heading">Edit Post</h2>
+          <form id="edit-form" class="edit-form">
+            <div class="form-group">
+              <label class="form-label" for="edit-title">Title</label>
+              <input class="form-input" type="text" id="edit-title" name="title" required maxlength="200" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-body">Body</label>
+              <textarea class="form-input form-textarea" id="edit-body" name="body" rows="6" maxlength="10000"></textarea>
+            </div>
+            <div id="edit-event-fields" class="edit-extra-fields" hidden>
+              <div class="form-group">
+                <label class="form-label" for="edit-event-date">Event date &amp; time</label>
+                <input class="form-input" type="datetime-local" id="edit-event-date" name="eventDate" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="edit-event-link">Event link</label>
+                <input class="form-input" type="url" id="edit-event-link" name="eventLink" placeholder="https://" />
+              </div>
+            </div>
+            <div id="edit-resource-fields" class="edit-extra-fields" hidden>
+              <div class="form-group">
+                <label class="form-label" for="edit-resource-url">Resource URL</label>
+                <input class="form-input" type="url" id="edit-resource-url" name="resourceUrl" placeholder="https://" />
+              </div>
+            </div>
+            <div id="edit-error" class="edit-feedback edit-feedback--error" hidden>
+              <p id="edit-error-text"></p>
+            </div>
+            <div class="edit-actions">
+              <button type="submit" class="btn btn--primary btn--sm" id="edit-save-btn">Save Changes</button>
+              <button type="button" class="btn btn--secondary btn--sm" id="edit-cancel-btn">Cancel</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Comments section -->
+        <section id="comments-section" class="comments-section">
+          <h2 id="comments-heading" class="comments-heading">Comments</h2>
+
+          <!-- Comment compose -->
+          <div class="comment-compose">
+            <textarea id="comment-input" class="form-input form-textarea" rows="3" maxlength="2000" placeholder="Write a comment..."></textarea>
+            <div class="comment-compose-actions">
+              <button id="comment-submit" class="btn btn--primary btn--sm">Post Comment</button>
+            </div>
+          </div>
+
+          <!-- Comment list -->
+          <div id="comments-list" class="comments-list"></div>
+        </section>
+
+      </article>
+
+    </div>
+  </section>
+
+  <script is:inline>
+    (function () {
+      // --- DOM refs ---
+      var loadingEl = document.getElementById('post-loading');
+      var unauthorizedEl = document.getElementById('post-unauthorized');
+      var notFoundEl = document.getElementById('post-not-found');
+      var errorEl = document.getElementById('post-error');
+      var errorTextEl = document.getElementById('post-error-text');
+      var contentEl = document.getElementById('post-content');
+
+      var typeBadgeEl = document.getElementById('post-type-badge');
+      var pinIndicatorEl = document.getElementById('post-pin-indicator');
+      var titleEl = document.getElementById('post-title');
+      var authorEl = document.getElementById('post-author');
+      var authorBadgeEl = document.getElementById('post-author-badge');
+      var timeEl = document.getElementById('post-time');
+      var bodyEl = document.getElementById('post-body');
+      var eventInfoEl = document.getElementById('post-event-info');
+      var eventDateEl = document.getElementById('post-event-date');
+      var eventLinkEl = document.getElementById('post-event-link');
+      var resourceLinkEl = document.getElementById('post-resource-link');
+      var reactionsEl = document.getElementById('post-reactions');
+
+      var controlsEl = document.getElementById('post-controls');
+      var ctrlEdit = document.getElementById('ctrl-edit');
+      var ctrlPin = document.getElementById('ctrl-pin');
+      var ctrlDelete = document.getElementById('ctrl-delete');
+
+      var editFormWrap = document.getElementById('edit-form-wrap');
+      var editForm = document.getElementById('edit-form');
+      var editTitle = document.getElementById('edit-title');
+      var editBody = document.getElementById('edit-body');
+      var editEventFields = document.getElementById('edit-event-fields');
+      var editEventDate = document.getElementById('edit-event-date');
+      var editEventLink = document.getElementById('edit-event-link');
+      var editResourceFields = document.getElementById('edit-resource-fields');
+      var editResourceUrl = document.getElementById('edit-resource-url');
+      var editError = document.getElementById('edit-error');
+      var editErrorText = document.getElementById('edit-error-text');
+      var editSaveBtn = document.getElementById('edit-save-btn');
+      var editCancelBtn = document.getElementById('edit-cancel-btn');
+
+      var commentsHeading = document.getElementById('comments-heading');
+      var commentInput = document.getElementById('comment-input');
+      var commentSubmit = document.getElementById('comment-submit');
+      var commentsList = document.getElementById('comments-list');
+
+      // --- State ---
+      var postId = window.location.pathname.split('/community/post/')[1];
+      if (postId) postId = decodeURIComponent(postId).replace(/\/$/, '');
+      var currentUser = null;
+      var currentPost = null;
+      var comments = [];
+      var EMOJIS = ['\u2764\uFE0F', '\uD83D\uDC4F', '\uD83D\uDD25', '\uD83D\uDCA1', '\uD83D\uDE4F', '\uD83D\uDE22'];
+      var ROLE_HIERARCHY = ['member', 'mod', 'admin', 'superadmin'];
+
+      // --- Helpers ---
+
+      function roleAtLeast(role, min) {
+        return ROLE_HIERARCHY.indexOf(role) >= ROLE_HIERARCHY.indexOf(min);
+      }
+
+      function timeAgo(dateStr) {
+        if (!dateStr) return '';
+        var d = dateStr.replace(' ', 'T');
+        if (d.indexOf('Z') === -1 && d.indexOf('+') === -1) d += 'Z';
+        var diff = (Date.now() - new Date(d).getTime()) / 1000;
+        if (diff < 60) return 'just now';
+        if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+        if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+        if (diff < 2592000) return Math.floor(diff / 86400) + 'd ago';
+        return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+
+      function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str || ''));
+        return div.innerHTML;
+      }
+
+      function showState(el) {
+        loadingEl.hidden = true;
+        unauthorizedEl.hidden = true;
+        notFoundEl.hidden = true;
+        errorEl.hidden = true;
+        contentEl.hidden = true;
+        el.hidden = false;
+      }
+
+      // --- Type badge ---
+
+      var TYPE_BADGE_COLORS = {
+        announcement: { bg: 'rgba(59,130,246,0.1)', color: '#2563eb', border: 'rgba(59,130,246,0.25)' },
+        event:        { bg: 'rgba(34,197,94,0.1)',  color: '#16a34a', border: 'rgba(34,197,94,0.25)' },
+        discussion:   { bg: 'rgba(107,114,128,0.1)', color: '#6b7280', border: 'rgba(107,114,128,0.2)' },
+        resource:     { bg: 'rgba(139,92,246,0.1)', color: '#7c3aed', border: 'rgba(139,92,246,0.25)' },
+      };
+
+      function renderTypeBadge(type) {
+        var c = TYPE_BADGE_COLORS[type] || TYPE_BADGE_COLORS.discussion;
+        typeBadgeEl.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+        typeBadgeEl.style.background = c.bg;
+        typeBadgeEl.style.color = c.color;
+        typeBadgeEl.style.border = '1px solid ' + c.border;
+      }
+
+      // --- Role badge ---
+
+      function roleBadgeHtml(role) {
+        if (role === 'admin' || role === 'superadmin') {
+          return '<span class="role-badge role-badge--admin">Admin</span>';
+        }
+        if (role === 'mod') {
+          return '<span class="role-badge role-badge--mod">Mod</span>';
+        }
+        return '';
+      }
+
+      // --- Reaction bar ---
+
+      function renderReactionBar(targetType, targetId, reactions, myReactions, container) {
+        var html = '';
+        EMOJIS.forEach(function (emoji) {
+          var count = reactions[emoji] || 0;
+          var mine = myReactions.indexOf(emoji) !== -1;
+          html += '<button class="reaction-btn' + (mine ? ' reaction-btn--active' : '') + '"'
+            + ' data-target-type="' + targetType + '"'
+            + ' data-target-id="' + targetId + '"'
+            + ' data-emoji="' + emoji + '"'
+            + '>' + emoji + (count > 0 ? ' <span class="reaction-count">' + count + '</span>' : '') + '</button>';
+        });
+        container.innerHTML = html;
+      }
+
+      // --- Reaction click handler (delegated) ---
+
+      document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.reaction-btn');
+        if (!btn || !currentUser) return;
+
+        var targetType = btn.getAttribute('data-target-type');
+        var targetId = btn.getAttribute('data-target-id');
+        var emoji = btn.getAttribute('data-emoji');
+
+        btn.disabled = true;
+        fetch('/api/community/reactions', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ targetType: targetType, targetId: targetId, emoji: emoji }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            btn.disabled = false;
+            if (!data.ok) return;
+
+            // Update local state
+            if (targetType === 'post' && currentPost) {
+              if (data.action === 'added') {
+                currentPost.reactions[emoji] = (currentPost.reactions[emoji] || 0) + 1;
+                if (currentPost.myReactions.indexOf(emoji) === -1) currentPost.myReactions.push(emoji);
+              } else {
+                currentPost.reactions[emoji] = Math.max(0, (currentPost.reactions[emoji] || 0) - 1);
+                var idx = currentPost.myReactions.indexOf(emoji);
+                if (idx !== -1) currentPost.myReactions.splice(idx, 1);
+              }
+              renderReactionBar('post', currentPost.id, currentPost.reactions, currentPost.myReactions, reactionsEl);
+            } else if (targetType === 'comment') {
+              var comment = findComment(targetId);
+              if (comment) {
+                if (data.action === 'added') {
+                  comment.reactions[emoji] = (comment.reactions[emoji] || 0) + 1;
+                  if (comment.myReactions.indexOf(emoji) === -1) comment.myReactions.push(emoji);
+                } else {
+                  comment.reactions[emoji] = Math.max(0, (comment.reactions[emoji] || 0) - 1);
+                  var ci = comment.myReactions.indexOf(emoji);
+                  if (ci !== -1) comment.myReactions.splice(ci, 1);
+                }
+                renderComments();
+              }
+            }
+          })
+          .catch(function () { btn.disabled = false; });
+      });
+
+      function findComment(id) {
+        for (var i = 0; i < comments.length; i++) {
+          if (comments[i].id === id) return comments[i];
+          if (comments[i].replies) {
+            for (var j = 0; j < comments[i].replies.length; j++) {
+              if (comments[i].replies[j].id === id) return comments[i].replies[j];
+            }
+          }
+        }
+        return null;
+      }
+
+      // --- Render post ---
+
+      function renderPost(post) {
+        currentPost = post;
+
+        renderTypeBadge(post.type);
+        if (post.pinned) pinIndicatorEl.hidden = false;
+        titleEl.textContent = post.title;
+        authorEl.textContent = post.authorName;
+
+        // Author role badge
+        if (post.authorRole && post.authorRole !== 'member') {
+          authorBadgeEl.hidden = false;
+          if (post.authorRole === 'admin' || post.authorRole === 'superadmin') {
+            authorBadgeEl.textContent = 'Admin';
+            authorBadgeEl.className = 'role-badge role-badge--admin';
+          } else if (post.authorRole === 'mod') {
+            authorBadgeEl.textContent = 'Mod';
+            authorBadgeEl.className = 'role-badge role-badge--mod';
+          }
+        }
+
+        timeEl.textContent = timeAgo(post.createdAt);
+
+        // Body
+        if (post.body) {
+          bodyEl.textContent = post.body;
+          bodyEl.hidden = false;
+        }
+
+        // Event info
+        if (post.type === 'event' && post.eventDate) {
+          var ed = new Date(post.eventDate);
+          eventDateEl.textContent = ed.toLocaleDateString('en-US', {
+            weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+            hour: 'numeric', minute: '2-digit',
+          });
+          if (post.eventLink) {
+            eventLinkEl.href = post.eventLink;
+            eventLinkEl.hidden = false;
+          }
+          eventInfoEl.hidden = false;
+        }
+
+        // Resource link
+        if (post.type === 'resource' && post.resourceUrl) {
+          resourceLinkEl.href = post.resourceUrl;
+          resourceLinkEl.hidden = false;
+        }
+
+        // Reactions
+        renderReactionBar('post', post.id, post.reactions, post.myReactions, reactionsEl);
+
+        // Controls
+        var userRole = currentUser.role || 'member';
+        var isOwn = post.isOwn;
+        var isAdmin = roleAtLeast(userRole, 'admin');
+        var isMod = roleAtLeast(userRole, 'mod');
+
+        if (isOwn || isAdmin) {
+          controlsEl.hidden = false;
+        }
+        if (isMod) {
+          ctrlPin.hidden = false;
+          ctrlPin.textContent = post.pinned ? 'Unpin' : 'Pin';
+        }
+        if (!isOwn && !isAdmin) {
+          ctrlEdit.hidden = true;
+          ctrlDelete.hidden = true;
+        }
+
+        showState(contentEl);
+      }
+
+      // --- Staff controls ---
+
+      ctrlEdit.addEventListener('click', function () {
+        editTitle.value = currentPost.title || '';
+        editBody.value = currentPost.body || '';
+        editError.hidden = true;
+
+        if (currentPost.type === 'event') {
+          editEventFields.hidden = false;
+          if (currentPost.eventDate) {
+            // Format for datetime-local input
+            var ed = new Date(currentPost.eventDate);
+            var iso = ed.getFullYear() + '-' +
+              String(ed.getMonth() + 1).padStart(2, '0') + '-' +
+              String(ed.getDate()).padStart(2, '0') + 'T' +
+              String(ed.getHours()).padStart(2, '0') + ':' +
+              String(ed.getMinutes()).padStart(2, '0');
+            editEventDate.value = iso;
+          }
+          editEventLink.value = currentPost.eventLink || '';
+        }
+        if (currentPost.type === 'resource') {
+          editResourceFields.hidden = false;
+          editResourceUrl.value = currentPost.resourceUrl || '';
+        }
+
+        contentEl.querySelector('.post-header').hidden = true;
+        bodyEl.hidden = true;
+        eventInfoEl.hidden = true;
+        resourceLinkEl.hidden = true;
+        reactionsEl.hidden = true;
+        controlsEl.hidden = true;
+        editFormWrap.hidden = false;
+        editTitle.focus();
+      });
+
+      editCancelBtn.addEventListener('click', function () {
+        editFormWrap.hidden = true;
+        editEventFields.hidden = true;
+        editResourceFields.hidden = true;
+        contentEl.querySelector('.post-header').hidden = false;
+        if (currentPost.body) bodyEl.hidden = false;
+        if (currentPost.type === 'event' && currentPost.eventDate) eventInfoEl.hidden = false;
+        if (currentPost.type === 'resource' && currentPost.resourceUrl) resourceLinkEl.hidden = false;
+        reactionsEl.hidden = false;
+        controlsEl.hidden = false;
+      });
+
+      editForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        editError.hidden = true;
+        var payload = {
+          postId: currentPost.id,
+          title: editTitle.value.trim(),
+          body: editBody.value.trim(),
+        };
+        if (currentPost.type === 'event') {
+          payload.eventDate = editEventDate.value || null;
+          payload.eventLink = editEventLink.value.trim() || null;
+        }
+        if (currentPost.type === 'resource') {
+          payload.resourceUrl = editResourceUrl.value.trim() || null;
+        }
+        if (!payload.title) {
+          editErrorText.textContent = 'Title is required.';
+          editError.hidden = false;
+          return;
+        }
+        editSaveBtn.disabled = true;
+        editSaveBtn.textContent = 'Saving...';
+        fetch('/api/community/posts', {
+          method: 'PATCH',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            editSaveBtn.disabled = false;
+            editSaveBtn.textContent = 'Save Changes';
+            if (!data.ok) {
+              editErrorText.textContent = data.error || 'Update failed.';
+              editError.hidden = false;
+              return;
+            }
+            // Update local state and re-render
+            currentPost.title = payload.title;
+            currentPost.body = payload.body;
+            if (payload.eventDate !== undefined) currentPost.eventDate = payload.eventDate;
+            if (payload.eventLink !== undefined) currentPost.eventLink = payload.eventLink;
+            if (payload.resourceUrl !== undefined) currentPost.resourceUrl = payload.resourceUrl;
+
+            titleEl.textContent = currentPost.title;
+            if (currentPost.body) {
+              bodyEl.textContent = currentPost.body;
+            }
+            if (currentPost.type === 'event' && currentPost.eventDate) {
+              var ed = new Date(currentPost.eventDate);
+              eventDateEl.textContent = ed.toLocaleDateString('en-US', {
+                weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+                hour: 'numeric', minute: '2-digit',
+              });
+              if (currentPost.eventLink) eventLinkEl.href = currentPost.eventLink;
+            }
+            if (currentPost.type === 'resource' && currentPost.resourceUrl) {
+              resourceLinkEl.href = currentPost.resourceUrl;
+            }
+            editCancelBtn.click();
+          })
+          .catch(function () {
+            editSaveBtn.disabled = false;
+            editSaveBtn.textContent = 'Save Changes';
+            editErrorText.textContent = 'Network error. Please try again.';
+            editError.hidden = false;
+          });
+      });
+
+      ctrlPin.addEventListener('click', function () {
+        var newPinned = !currentPost.pinned;
+        ctrlPin.disabled = true;
+        fetch('/api/community/posts', {
+          method: 'PATCH',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ postId: currentPost.id, pinned: newPinned }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            ctrlPin.disabled = false;
+            if (data.ok) {
+              currentPost.pinned = newPinned;
+              pinIndicatorEl.hidden = !newPinned;
+              ctrlPin.textContent = newPinned ? 'Unpin' : 'Pin';
+            }
+          })
+          .catch(function () { ctrlPin.disabled = false; });
+      });
+
+      ctrlDelete.addEventListener('click', function () {
+        if (!confirm('Delete this post? This cannot be undone.')) return;
+        ctrlDelete.disabled = true;
+        ctrlDelete.textContent = 'Deleting...';
+        fetch('/api/community/posts', {
+          method: 'DELETE',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ postId: currentPost.id }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data.ok) {
+              window.location.href = '/community';
+            } else {
+              ctrlDelete.disabled = false;
+              ctrlDelete.textContent = 'Delete';
+              alert(data.error || 'Failed to delete post.');
+            }
+          })
+          .catch(function () {
+            ctrlDelete.disabled = false;
+            ctrlDelete.textContent = 'Delete';
+          });
+      });
+
+      // --- Comments ---
+
+      function renderComments() {
+        commentsHeading.textContent = 'Comments (' + countAllComments() + ')';
+
+        if (!comments.length) {
+          commentsList.innerHTML = '<p class="comments-empty">No comments yet. Be the first to share your thoughts.</p>';
+          return;
+        }
+
+        var html = '';
+        comments.forEach(function (c) {
+          html += renderCommentHtml(c, false);
+          if (c.replies && c.replies.length) {
+            c.replies.forEach(function (r) {
+              html += renderCommentHtml(r, true);
+            });
+          }
+        });
+        commentsList.innerHTML = html;
+      }
+
+      function countAllComments() {
+        var n = 0;
+        comments.forEach(function (c) {
+          n++;
+          if (c.replies) n += c.replies.length;
+        });
+        return n;
+      }
+
+      function renderCommentHtml(c, isReply) {
+        var userRole = currentUser.role || 'member';
+        var canDelete = c.isOwn || roleAtLeast(userRole, 'mod');
+
+        var html = '<div class="comment' + (isReply ? ' comment--reply' : '') + '" data-comment-id="' + c.id + '">';
+        html += '<div class="comment-header">';
+        html += '<span class="comment-author">' + escapeHtml(c.authorName) + '</span>';
+        html += roleBadgeHtml(c.authorRole);
+        html += '<span class="comment-time">' + timeAgo(c.createdAt) + '</span>';
+        html += '</div>';
+        html += '<div class="comment-body">' + escapeHtml(c.content) + '</div>';
+
+        // Comment reactions
+        html += '<div class="comment-reactions" data-reactions-for="' + c.id + '">';
+        EMOJIS.forEach(function (emoji) {
+          var count = c.reactions[emoji] || 0;
+          var mine = c.myReactions.indexOf(emoji) !== -1;
+          html += '<button class="reaction-btn reaction-btn--sm' + (mine ? ' reaction-btn--active' : '') + '"'
+            + ' data-target-type="comment" data-target-id="' + c.id + '" data-emoji="' + emoji + '">'
+            + emoji + (count > 0 ? ' <span class="reaction-count">' + count + '</span>' : '') + '</button>';
+        });
+        html += '</div>';
+
+        // Actions
+        html += '<div class="comment-actions">';
+        if (!isReply && !c.parentId) {
+          html += '<button class="btn btn--text btn--sm comment-reply-btn" data-parent-id="' + c.id + '">Reply</button>';
+        }
+        if (canDelete) {
+          html += '<button class="btn btn--text btn--sm comment-delete-btn" data-comment-id="' + c.id + '">Delete</button>';
+        }
+        html += '</div>';
+
+        // Reply compose (hidden)
+        if (!isReply && !c.parentId) {
+          html += '<div class="reply-compose" data-reply-for="' + c.id + '" hidden>';
+          html += '<textarea class="form-input form-textarea form-textarea--sm" rows="2" maxlength="2000" placeholder="Write a reply..."></textarea>';
+          html += '<div class="reply-compose-actions">';
+          html += '<button class="btn btn--primary btn--sm reply-submit-btn" data-parent-id="' + c.id + '">Reply</button>';
+          html += '<button class="btn btn--secondary btn--sm reply-cancel-btn" data-parent-id="' + c.id + '">Cancel</button>';
+          html += '</div></div>';
+        }
+
+        html += '</div>';
+        return html;
+      }
+
+      // Comment compose — submit
+      commentSubmit.addEventListener('click', function () {
+        var content = commentInput.value.trim();
+        if (!content) return;
+        commentSubmit.disabled = true;
+        commentSubmit.textContent = 'Posting...';
+        fetch('/api/community/comments', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ postId: postId, content: content }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            commentSubmit.disabled = false;
+            commentSubmit.textContent = 'Post Comment';
+            if (data.ok) {
+              comments.push(data.comment);
+              commentInput.value = '';
+              renderComments();
+            }
+          })
+          .catch(function () {
+            commentSubmit.disabled = false;
+            commentSubmit.textContent = 'Post Comment';
+          });
+      });
+
+      // Comment actions — delegated
+      document.addEventListener('click', function (e) {
+        // Reply button
+        var replyBtn = e.target.closest('.comment-reply-btn');
+        if (replyBtn) {
+          var parentId = replyBtn.getAttribute('data-parent-id');
+          // Hide all other reply forms
+          var allReplyForms = document.querySelectorAll('.reply-compose');
+          for (var i = 0; i < allReplyForms.length; i++) { allReplyForms[i].hidden = true; }
+          var replyForm = document.querySelector('[data-reply-for="' + parentId + '"]');
+          if (replyForm) {
+            replyForm.hidden = false;
+            replyForm.querySelector('textarea').focus();
+          }
+          return;
+        }
+
+        // Reply cancel
+        var cancelBtn = e.target.closest('.reply-cancel-btn');
+        if (cancelBtn) {
+          var pid = cancelBtn.getAttribute('data-parent-id');
+          var form = document.querySelector('[data-reply-for="' + pid + '"]');
+          if (form) { form.hidden = true; form.querySelector('textarea').value = ''; }
+          return;
+        }
+
+        // Reply submit
+        var submitBtn = e.target.closest('.reply-submit-btn');
+        if (submitBtn) {
+          var parentId2 = submitBtn.getAttribute('data-parent-id');
+          var replyForm2 = document.querySelector('[data-reply-for="' + parentId2 + '"]');
+          var textarea = replyForm2 ? replyForm2.querySelector('textarea') : null;
+          var content = textarea ? textarea.value.trim() : '';
+          if (!content) return;
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Posting...';
+          fetch('/api/community/comments', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ postId: postId, content: content, parentId: parentId2 }),
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              submitBtn.disabled = false;
+              submitBtn.textContent = 'Reply';
+              if (data.ok) {
+                // Add reply to parent
+                for (var i = 0; i < comments.length; i++) {
+                  if (comments[i].id === parentId2) {
+                    if (!comments[i].replies) comments[i].replies = [];
+                    comments[i].replies.push(data.comment);
+                    break;
+                  }
+                }
+                renderComments();
+              }
+            })
+            .catch(function () {
+              submitBtn.disabled = false;
+              submitBtn.textContent = 'Reply';
+            });
+          return;
+        }
+
+        // Comment delete
+        var deleteBtn = e.target.closest('.comment-delete-btn');
+        if (deleteBtn) {
+          if (!confirm('Delete this comment?')) return;
+          var commentId = deleteBtn.getAttribute('data-comment-id');
+          deleteBtn.disabled = true;
+          deleteBtn.textContent = 'Deleting...';
+          fetch('/api/community/comments', {
+            method: 'DELETE',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ commentId: commentId }),
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              if (data.ok) {
+                removeComment(commentId);
+                renderComments();
+              } else {
+                deleteBtn.disabled = false;
+                deleteBtn.textContent = 'Delete';
+              }
+            })
+            .catch(function () {
+              deleteBtn.disabled = false;
+              deleteBtn.textContent = 'Delete';
+            });
+          return;
+        }
+      });
+
+      function removeComment(id) {
+        for (var i = 0; i < comments.length; i++) {
+          if (comments[i].id === id) {
+            comments.splice(i, 1);
+            return;
+          }
+          if (comments[i].replies) {
+            for (var j = 0; j < comments[i].replies.length; j++) {
+              if (comments[i].replies[j].id === id) {
+                comments[i].replies.splice(j, 1);
+                return;
+              }
+            }
+          }
+        }
+      }
+
+      // --- Init ---
+
+      if (!postId) {
+        showState(notFoundEl);
+        return;
+      }
+
+      // 1. Check community status
+      fetch('/api/community/status', { credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data.ok || data.access === 'anonymous') {
+            showState(unauthorizedEl);
+            return;
+          }
+          if (data.access === 'registered') {
+            showState(unauthorizedEl);
+            return;
+          }
+          currentUser = data.user;
+
+          // 2. Fetch posts and find ours
+          return fetch('/api/community/posts?limit=50', { credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(function (postsData) {
+              if (!postsData.ok) {
+                errorTextEl.textContent = postsData.error || 'Failed to load post.';
+                showState(errorEl);
+                return;
+              }
+
+              var post = null;
+              for (var i = 0; i < postsData.posts.length; i++) {
+                if (postsData.posts[i].id === postId) {
+                  post = postsData.posts[i];
+                  break;
+                }
+              }
+
+              if (!post) {
+                showState(notFoundEl);
+                return;
+              }
+
+              renderPost(post);
+
+              // 3. Fetch comments
+              return fetch('/api/community/comments?postId=' + encodeURIComponent(postId), { credentials: 'same-origin' })
+                .then(function (r) { return r.json(); })
+                .then(function (commentsData) {
+                  if (commentsData.ok) {
+                    comments = commentsData.comments || [];
+                  }
+                  renderComments();
+                });
+            });
+        })
+        .catch(function () {
+          showState(errorEl);
+        });
+    })();
+  </script>
+</BaseLayout>
+
+<style>
+  /* Page layout */
+  .post-page { padding: var(--space-12) 0 var(--space-16); min-height: 60vh; }
+  .post-loading { text-align: center; color: var(--text-muted); padding: var(--space-16) 0; }
+
+  /* Back nav */
+  .back-nav { margin-bottom: var(--space-6); }
+  .back-nav a {
+    font-size: 0.9375rem;
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .back-nav a:hover { text-decoration: underline; }
+
+  /* Empty / error cards */
+  .post-empty-card {
+    max-width: 420px;
+    margin: var(--space-8) auto;
+    padding: var(--space-10) var(--space-8);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    text-align: center;
+  }
+  .post-empty-card h1 { margin-bottom: var(--space-3); font-size: 1.5rem; }
+  .post-empty-card p { color: var(--text-secondary); margin-bottom: var(--space-6); }
+
+  /* Post header */
+  .post-header { margin-bottom: var(--space-6); }
+  .post-meta-row { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); flex-wrap: wrap; }
+
+  .type-badge {
+    display: inline-block;
+    font-size: 0.6875rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 2px 10px;
+    border-radius: var(--radius-pill);
+  }
+
+  .pin-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--amber-700);
+    letter-spacing: 0.03em;
+  }
+  .pin-indicator::before { content: '\uD83D\uDCCC'; font-size: 0.75rem; }
+
+  .post-title {
+    font-size: 1.75rem;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    margin-bottom: var(--space-3);
+  }
+  @media (min-width: 769px) {
+    .post-title { font-size: 2.25rem; }
+  }
+
+  .post-byline {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    flex-wrap: wrap;
+  }
+  .post-author { font-weight: 500; color: var(--text-secondary); }
+  .byline-sep { color: var(--text-muted); }
+
+  /* Role badges */
+  .role-badge {
+    display: inline-block;
+    font-size: 0.625rem;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: var(--radius-sm);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .role-badge--admin {
+    background: rgba(139,92,246,0.1);
+    color: #7c3aed;
+    border: 1px solid rgba(139,92,246,0.2);
+  }
+  .role-badge--mod {
+    background: rgba(34,197,94,0.1);
+    color: #16a34a;
+    border: 1px solid rgba(34,197,94,0.2);
+  }
+
+  /* Post body */
+  .post-body {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin-bottom: var(--space-6);
+  }
+
+  /* Event info card */
+  .event-info-card {
+    padding: var(--space-5) var(--space-6);
+    background: rgba(34,197,94,0.06);
+    border: 1px solid rgba(34,197,94,0.2);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-6);
+  }
+  .event-info-row { margin-bottom: var(--space-3); }
+  .event-info-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-1);
+  }
+  .event-info-value {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+  .event-join-btn { margin-top: var(--space-2); }
+
+  /* Resource button */
+  .resource-btn { margin-bottom: var(--space-6); }
+
+  /* Reaction bar */
+  .reaction-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: var(--space-4) 0;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: var(--space-4);
+  }
+  .reaction-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    font-size: 0.875rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    line-height: 1;
+  }
+  .reaction-btn:hover { border-color: var(--purple-300); }
+  .reaction-btn--active {
+    border-color: var(--purple-500);
+    background: var(--purple-50);
+  }
+  .reaction-btn--sm {
+    padding: 2px 7px;
+    font-size: 0.75rem;
+  }
+  .reaction-count {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  /* Post controls */
+  .post-controls {
+    display: flex;
+    gap: var(--space-2);
+    margin-bottom: var(--space-8);
+  }
+  .ctrl-delete { color: var(--color-error); }
+  .ctrl-delete:hover { color: #a93226; }
+
+  /* Edit form */
+  .edit-form-wrap {
+    padding: var(--space-6) var(--space-8);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-8);
+  }
+  .edit-heading {
+    font-size: 1.125rem;
+    margin-bottom: var(--space-4);
+  }
+  .edit-form .form-group { margin-bottom: var(--space-4); }
+  .edit-form .form-label {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    margin-bottom: var(--space-2);
+  }
+  .edit-form .form-input {
+    width: 100%;
+    padding: var(--space-2) var(--space-4);
+    border: 1.5px solid var(--neutral-300);
+    border-radius: var(--radius-pill);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    background: var(--bg-body);
+  }
+  .edit-form .form-input:focus {
+    outline: none;
+    border-color: var(--purple-700);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+  .edit-form .form-textarea {
+    border-radius: var(--radius-md);
+    resize: vertical;
+    line-height: 1.6;
+  }
+  .edit-extra-fields { margin-top: var(--space-2); }
+  .edit-feedback--error {
+    margin-bottom: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    background: rgba(192,57,43,0.05);
+    border: 1px solid var(--color-error);
+    border-radius: var(--radius-md);
+    color: var(--color-error);
+    font-size: 0.875rem;
+  }
+  .edit-actions { display: flex; gap: var(--space-3); margin-top: var(--space-2); }
+
+  /* Comments section */
+  .comments-section {
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--border-color);
+  }
+  .comments-heading {
+    font-size: 1.25rem;
+    margin-bottom: var(--space-5);
+  }
+
+  /* Comment compose */
+  .comment-compose { margin-bottom: var(--space-6); }
+  .comment-compose .form-textarea {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border: 1.5px solid var(--neutral-300);
+    border-radius: var(--radius-md);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    background: var(--bg-body);
+    resize: vertical;
+    line-height: 1.6;
+  }
+  .comment-compose .form-textarea:focus {
+    outline: none;
+    border-color: var(--purple-700);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+  .comment-compose-actions { display: flex; justify-content: flex-end; margin-top: var(--space-3); }
+
+  /* Comment list */
+  .comments-list { display: grid; gap: 0; }
+  .comments-empty { color: var(--text-muted); font-size: 0.9375rem; }
+
+  /* Comment */
+  .comment {
+    padding: var(--space-4) 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .comment:last-child { border-bottom: none; }
+  .comment--reply {
+    padding-left: var(--space-8);
+    border-left: 2px solid var(--border-color);
+    border-bottom: none;
+    margin-left: var(--space-4);
+    padding-top: var(--space-3);
+    padding-bottom: var(--space-3);
+  }
+
+  .comment-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+    flex-wrap: wrap;
+  }
+  .comment-author {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+  .comment-time {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .comment-body {
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin-bottom: var(--space-2);
+  }
+
+  .comment-reactions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    margin-bottom: var(--space-2);
+  }
+
+  .comment-actions {
+    display: flex;
+    gap: var(--space-2);
+  }
+  .comment-actions .comment-delete-btn { color: var(--color-error); }
+  .comment-actions .comment-delete-btn:hover { color: #a93226; }
+
+  /* Reply compose */
+  .reply-compose {
+    margin-top: var(--space-3);
+    margin-left: var(--space-4);
+    padding-left: var(--space-4);
+    border-left: 2px solid var(--border-color);
+  }
+  .reply-compose .form-textarea--sm {
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    border: 1.5px solid var(--neutral-300);
+    border-radius: var(--radius-md);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    background: var(--bg-body);
+    resize: vertical;
+    line-height: 1.5;
+  }
+  .reply-compose .form-textarea--sm:focus {
+    outline: none;
+    border-color: var(--purple-700);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+  .reply-compose-actions {
+    display: flex;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+    justify-content: flex-end;
+  }
+
+  /* Responsive */
+  @media (max-width: 480px) {
+    .post-page { padding: var(--space-8) 0 var(--space-12); }
+    .edit-form-wrap { padding: var(--space-4) var(--space-5); }
+    .comment--reply { padding-left: var(--space-5); margin-left: var(--space-2); }
+    .reply-compose { margin-left: var(--space-2); padding-left: var(--space-3); }
+  }
+</style>

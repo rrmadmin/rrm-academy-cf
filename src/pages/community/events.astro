@@ -1,0 +1,672 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Events"
+  description="Upcoming and past events for Save the Uterus Club members."
+  noindex
+>
+  <div class="events-page">
+    <div class="container container--narrow">
+
+      <!-- Loading -->
+      <div id="events-loading" class="events-loading">
+        <p>Loading events...</p>
+      </div>
+
+      <!-- Gate: non-members get redirected to /community -->
+      <div id="events-gate" hidden>
+        <p class="events-gate-text">You need to be a Save the Uterus Club member to view events.</p>
+        <a href="/community" class="btn btn--primary">Go to Community</a>
+      </div>
+
+      <!-- Main content (members only) -->
+      <div id="events-content" hidden>
+
+        <!-- Header -->
+        <div class="events-header">
+          <a href="/community" class="events-back">&larr; Back to Community</a>
+          <div class="events-title-row">
+            <h1>Events</h1>
+            <button id="new-event-btn" class="btn btn--primary btn--sm" hidden>New Event</button>
+          </div>
+        </div>
+
+        <!-- Compose form (staff only, hidden by default) -->
+        <div id="compose-form" class="compose-card card" hidden>
+          <h2 class="compose-heading">Create Event</h2>
+          <form id="event-form">
+            <div class="form-group">
+              <label class="form-label" for="event-title">Title <span class="form-required">*</span></label>
+              <input class="form-input" type="text" id="event-title" required maxlength="200" placeholder="e.g. March Community Call" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="event-body">Description</label>
+              <textarea class="form-textarea" id="event-body" rows="3" maxlength="10000" placeholder="Optional details about the event..."></textarea>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="event-date">Date &amp; Time <span class="form-required">*</span></label>
+                <input class="form-input" type="datetime-local" id="event-date" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="event-link">Google Meet Link <span class="form-required">*</span></label>
+                <input class="form-input" type="url" id="event-link" required placeholder="https://meet.google.com/..." />
+              </div>
+            </div>
+            <div id="compose-error" class="compose-feedback compose-feedback--error" hidden>
+              <p id="compose-error-text"></p>
+            </div>
+            <div class="compose-actions">
+              <button type="submit" class="btn btn--primary btn--sm" id="submit-event-btn">Create Event</button>
+              <button type="button" class="btn btn--secondary btn--sm" id="cancel-event-btn">Cancel</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Upcoming events -->
+        <section id="upcoming-section">
+          <h2 class="section-label">Upcoming</h2>
+          <div id="upcoming-list" class="events-list"></div>
+          <p id="upcoming-empty" class="events-empty" hidden>No upcoming events. Check back soon!</p>
+        </section>
+
+        <!-- Past events -->
+        <section id="past-section" hidden>
+          <h2 class="section-label section-label--past">Past Events</h2>
+          <div id="past-list" class="events-list events-list--past"></div>
+        </section>
+
+        <!-- Global empty -->
+        <p id="events-empty" class="events-empty" hidden>No events scheduled yet.</p>
+
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    (function () {
+      var loadingEl = document.getElementById('events-loading');
+      var gateEl = document.getElementById('events-gate');
+      var contentEl = document.getElementById('events-content');
+      var newEventBtn = document.getElementById('new-event-btn');
+      var composeForm = document.getElementById('compose-form');
+      var eventForm = document.getElementById('event-form');
+      var cancelBtn = document.getElementById('cancel-event-btn');
+      var submitBtn = document.getElementById('submit-event-btn');
+      var composeError = document.getElementById('compose-error');
+      var composeErrorText = document.getElementById('compose-error-text');
+      var upcomingSection = document.getElementById('upcoming-section');
+      var upcomingList = document.getElementById('upcoming-list');
+      var upcomingEmpty = document.getElementById('upcoming-empty');
+      var pastSection = document.getElementById('past-section');
+      var pastList = document.getElementById('past-list');
+      var eventsEmpty = document.getElementById('events-empty');
+
+      var currentUser = null;
+      var isStaff = false;
+
+      // --- Status check ---
+      fetch('/api/community/status', { credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data.ok || data.access !== 'member') {
+            loadingEl.hidden = true;
+            gateEl.hidden = false;
+            return;
+          }
+          currentUser = data.user;
+          isStaff = currentUser.role === 'admin' || currentUser.role === 'superadmin';
+          if (isStaff) {
+            newEventBtn.hidden = false;
+          }
+          loadEvents();
+        })
+        .catch(function () {
+          loadingEl.hidden = true;
+          gateEl.hidden = false;
+        });
+
+      // --- Load events ---
+      function loadEvents() {
+        fetch('/api/community/posts?type=event&limit=50', { credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            loadingEl.hidden = true;
+            contentEl.hidden = false;
+
+            if (!data.ok || !data.posts || data.posts.length === 0) {
+              upcomingSection.hidden = true;
+              eventsEmpty.hidden = false;
+              return;
+            }
+
+            var now = new Date();
+            var upcoming = [];
+            var past = [];
+
+            data.posts.forEach(function (event) {
+              if (new Date(event.eventDate) > now) {
+                upcoming.push(event);
+              } else {
+                past.push(event);
+              }
+            });
+
+            // Render upcoming
+            if (upcoming.length === 0) {
+              upcomingEmpty.hidden = false;
+            } else {
+              upcomingList.innerHTML = upcoming.map(function (ev) {
+                return renderUpcomingCard(ev);
+              }).join('');
+            }
+
+            // Render past
+            if (past.length > 0) {
+              pastSection.hidden = false;
+              pastList.innerHTML = past.map(function (ev) {
+                return renderPastCard(ev);
+              }).join('');
+            }
+          })
+          .catch(function () {
+            loadingEl.hidden = true;
+            contentEl.hidden = false;
+            upcomingSection.hidden = true;
+            eventsEmpty.hidden = false;
+          });
+      }
+
+      // --- Render upcoming event card ---
+      function renderUpcomingCard(ev) {
+        var d = new Date(ev.eventDate);
+        var formattedDate = formatEventDate(d);
+        var formattedTime = formatEventTime(d);
+        var calUrl = buildCalendarUrl(ev.title, d, ev.body);
+        var postedAgo = timeAgo(ev.createdAt);
+
+        var html = '<div class="event-card card">';
+        html += '<div class="event-date-badge">';
+        html += '<span class="event-date-month">' + d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase() + '</span>';
+        html += '<span class="event-date-day">' + d.getDate() + '</span>';
+        html += '</div>';
+        html += '<div class="event-card-body">';
+        html += '<p class="event-datetime">' + formattedDate + ' at ' + formattedTime + '</p>';
+        html += '<h3 class="event-title">' + escapeHtml(ev.title) + '</h3>';
+        if (ev.body) {
+          html += '<p class="event-body">' + escapeHtml(truncate(ev.body, 200)) + '</p>';
+        }
+        html += '<div class="event-actions">';
+        if (ev.eventLink) {
+          html += '<a href="' + escapeHtml(ev.eventLink) + '" target="_blank" rel="noopener noreferrer" class="btn btn--join">Join Call</a>';
+        }
+        html += '<a href="' + calUrl + '" target="_blank" rel="noopener noreferrer" class="event-cal-link">Add to Google Calendar</a>';
+        html += '</div>';
+        html += '<p class="event-meta">' + escapeHtml(ev.authorName) + ' &middot; ' + postedAgo + '</p>';
+        html += '</div>';
+        html += '</div>';
+        return html;
+      }
+
+      // --- Render past event card ---
+      function renderPastCard(ev) {
+        var d = new Date(ev.eventDate);
+        var formattedDate = formatEventDate(d);
+
+        var html = '<div class="event-card event-card--past card">';
+        html += '<div class="event-date-badge event-date-badge--past">';
+        html += '<span class="event-date-month">' + d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase() + '</span>';
+        html += '<span class="event-date-day">' + d.getDate() + '</span>';
+        html += '</div>';
+        html += '<div class="event-card-body">';
+        html += '<p class="event-datetime">' + formattedDate + '</p>';
+        html += '<h3 class="event-title">' + escapeHtml(ev.title) + '</h3>';
+        if (ev.resourceUrl) {
+          html += '<a href="' + escapeHtml(ev.resourceUrl) + '" target="_blank" rel="noopener noreferrer" class="event-recording-link">View Recording</a>';
+        }
+        html += '</div>';
+        html += '</div>';
+        return html;
+      }
+
+      // --- Date formatting ---
+      function formatEventDate(d) {
+        return d.toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+      }
+
+      function formatEventTime(d) {
+        return d.toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        });
+      }
+
+      // --- Google Calendar URL ---
+      function toGCalDate(d) {
+        // Google Calendar expects: yyyyMMddTHHmmssZ
+        var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
+        return d.getUTCFullYear() +
+          pad(d.getUTCMonth() + 1) +
+          pad(d.getUTCDate()) + 'T' +
+          pad(d.getUTCHours()) +
+          pad(d.getUTCMinutes()) +
+          pad(d.getUTCSeconds()) + 'Z';
+      }
+
+      function buildCalendarUrl(title, startDate, description) {
+        var endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // 1 hour
+        var params = 'action=TEMPLATE' +
+          '&text=' + encodeURIComponent(title) +
+          '&dates=' + toGCalDate(startDate) + '/' + toGCalDate(endDate) +
+          '&details=' + encodeURIComponent(description || '');
+        return 'https://calendar.google.com/calendar/render?' + params;
+      }
+
+      // --- Time ago ---
+      function timeAgo(dateStr) {
+        var now = Date.now();
+        var then = new Date(dateStr).getTime();
+        var seconds = Math.floor((now - then) / 1000);
+        if (seconds < 60) return 'just now';
+        var minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return minutes + 'm ago';
+        var hours = Math.floor(minutes / 60);
+        if (hours < 24) return hours + 'h ago';
+        var days = Math.floor(hours / 24);
+        if (days < 30) return days + 'd ago';
+        var months = Math.floor(days / 30);
+        if (months < 12) return months + 'mo ago';
+        return Math.floor(months / 12) + 'y ago';
+      }
+
+      // --- Helpers ---
+      function escapeHtml(str) {
+        if (!str) return '';
+        var el = document.createElement('span');
+        el.textContent = str;
+        return el.innerHTML;
+      }
+
+      function truncate(str, len) {
+        if (!str || str.length <= len) return str;
+        return str.substring(0, len) + '...';
+      }
+
+      // --- Compose form ---
+      newEventBtn.addEventListener('click', function () {
+        composeForm.hidden = false;
+        newEventBtn.hidden = true;
+        composeError.hidden = true;
+        document.getElementById('event-title').focus();
+      });
+
+      cancelBtn.addEventListener('click', function () {
+        composeForm.hidden = true;
+        newEventBtn.hidden = false;
+        eventForm.reset();
+        composeError.hidden = true;
+      });
+
+      eventForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        composeError.hidden = true;
+
+        var title = document.getElementById('event-title').value.trim();
+        var body = document.getElementById('event-body').value.trim();
+        var eventDate = document.getElementById('event-date').value;
+        var eventLink = document.getElementById('event-link').value.trim();
+
+        if (!title) {
+          composeErrorText.textContent = 'Title is required.';
+          composeError.hidden = false;
+          return;
+        }
+        if (!eventDate) {
+          composeErrorText.textContent = 'Event date and time are required.';
+          composeError.hidden = false;
+          return;
+        }
+        if (!eventLink) {
+          composeErrorText.textContent = 'Event link is required.';
+          composeError.hidden = false;
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating...';
+
+        // Convert datetime-local to ISO string
+        var isoDate = new Date(eventDate).toISOString();
+
+        fetch('/api/community/posts', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'event',
+            title: title,
+            body: body || null,
+            eventDate: isoDate,
+            eventLink: eventLink
+          })
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Create Event';
+            if (data.ok) {
+              composeForm.hidden = true;
+              newEventBtn.hidden = false;
+              eventForm.reset();
+              // Reload events to show the new one
+              upcomingList.innerHTML = '';
+              pastList.innerHTML = '';
+              upcomingEmpty.hidden = true;
+              eventsEmpty.hidden = true;
+              pastSection.hidden = true;
+              upcomingSection.hidden = false;
+              loadEvents();
+            } else {
+              composeErrorText.textContent = data.error || 'Failed to create event.';
+              composeError.hidden = false;
+            }
+          })
+          .catch(function () {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Create Event';
+            composeErrorText.textContent = 'Network error. Please try again.';
+            composeError.hidden = false;
+          });
+      });
+    })();
+  </script>
+</BaseLayout>
+
+<style>
+  /* Page wrapper */
+  .events-page {
+    padding: var(--space-8) 0 var(--space-16);
+    min-height: 60vh;
+  }
+
+  /* Loading */
+  .events-loading {
+    text-align: center;
+    color: var(--text-muted);
+    padding: var(--space-16) 0;
+  }
+
+  /* Gate */
+  #events-gate {
+    text-align: center;
+    padding: var(--space-16) 0;
+  }
+  .events-gate-text {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-6);
+  }
+
+  /* Header */
+  .events-header {
+    margin-bottom: var(--space-8);
+  }
+  .events-back {
+    font-size: 0.8125rem;
+    color: var(--accent);
+    display: inline-block;
+    margin-bottom: var(--space-4);
+  }
+  .events-back:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+  }
+  .events-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+  .events-title-row h1 {
+    font-size: clamp(1.75rem, 1.5rem + 1vw, 2.25rem);
+    margin: 0;
+  }
+
+  /* Section labels */
+  .section-label {
+    font-size: 1.125rem;
+    color: var(--text-primary);
+    margin-bottom: var(--space-5);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--border-light);
+  }
+  .section-label--past {
+    margin-top: var(--space-10);
+    color: var(--text-tertiary);
+  }
+
+  /* Events list */
+  .events-list {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  /* Event card */
+  .event-card {
+    display: flex;
+    gap: var(--space-5);
+    align-items: flex-start;
+  }
+
+  /* Date badge */
+  .event-date-badge {
+    flex-shrink: 0;
+    width: 56px;
+    text-align: center;
+    background: var(--purple-50);
+    border: 1px solid var(--purple-200);
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-2);
+  }
+  .event-date-badge--past {
+    background: var(--neutral-100);
+    border-color: var(--neutral-200);
+  }
+  .event-date-month {
+    display: block;
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--purple-700);
+    line-height: 1.2;
+  }
+  .event-date-badge--past .event-date-month {
+    color: var(--text-muted);
+  }
+  .event-date-day {
+    display: block;
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.1;
+  }
+  .event-date-badge--past .event-date-day {
+    color: var(--text-tertiary);
+  }
+
+  /* Card body */
+  .event-card-body {
+    flex: 1;
+    min-width: 0;
+  }
+  .event-datetime {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--purple-700);
+    margin-bottom: var(--space-1);
+  }
+  .event-card--past .event-datetime {
+    color: var(--text-muted);
+  }
+  .event-title {
+    font-size: 1.125rem;
+    margin-bottom: var(--space-2);
+    line-height: 1.35;
+  }
+  .event-card--past .event-title {
+    color: var(--text-secondary);
+  }
+  .event-body {
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-3);
+  }
+
+  /* Actions */
+  .event-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-2);
+  }
+
+  /* Join Call button */
+  .btn--join {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1;
+    padding: 8px 20px;
+    border-radius: var(--radius-pill);
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    color: #fff;
+    background: #5b7a5b;
+    transition: background 0.15s;
+  }
+  .btn--join:hover {
+    background: #4a6649;
+    color: #fff;
+    text-decoration: none;
+  }
+
+  /* Calendar link */
+  .event-cal-link {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .event-cal-link:hover {
+    color: var(--accent);
+  }
+
+  /* Recording link */
+  .event-recording-link {
+    display: inline-block;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--accent);
+    margin-top: var(--space-1);
+  }
+  .event-recording-link:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+  }
+
+  /* Meta (author + time) */
+  .event-meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  /* Empty states */
+  .events-empty {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9375rem;
+    padding: var(--space-8) 0;
+  }
+
+  /* Past events list muted */
+  .events-list--past .event-card {
+    opacity: 0.75;
+  }
+  .events-list--past .event-card:hover {
+    opacity: 1;
+  }
+
+  /* Compose card */
+  .compose-card {
+    margin-bottom: var(--space-8);
+    background: var(--bg-surface);
+  }
+  .compose-heading {
+    font-size: 1.125rem;
+    margin-bottom: var(--space-5);
+  }
+  .compose-card .form-group {
+    margin-bottom: var(--space-4);
+  }
+  .compose-card .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+  }
+  .compose-actions {
+    display: flex;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+  }
+  .compose-feedback--error {
+    margin-bottom: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    background: rgba(192, 57, 43, 0.05);
+    border: 1px solid var(--color-error);
+    border-radius: var(--radius-md);
+    color: var(--color-error);
+    font-size: 0.875rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .event-card {
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+    .event-date-badge {
+      width: auto;
+      display: inline-flex;
+      gap: var(--space-2);
+      align-items: center;
+      padding: var(--space-1) var(--space-3);
+    }
+    .event-date-month {
+      font-size: 0.6875rem;
+    }
+    .event-date-day {
+      font-size: 1rem;
+    }
+    .compose-card .form-row {
+      grid-template-columns: 1fr;
+    }
+    .events-title-row {
+      flex-wrap: wrap;
+    }
+  }
+</style>

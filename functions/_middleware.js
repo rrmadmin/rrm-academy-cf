@@ -51,6 +51,34 @@ export async function onRequest(context) {
     }
   }
 
+  // Auth protection: /community/* requires a valid session
+  // Subscription check happens client-side via /api/community/status
+  if (url.pathname === '/community' || url.pathname.startsWith('/community/')) {
+    if (!env.DB) {
+      return new Response('Service Unavailable', { status: 503 });
+    }
+    const cookie = request.headers.get('Cookie') || '';
+    const match = cookie.match(/(?:^|;\s*)session=([^;]+)/);
+    const sessionId = match ? match[1] : null;
+
+    if (!sessionId) {
+      return Response.redirect(`https://rrmacademy.org/login?redirect=${encodeURIComponent(url.pathname)}`, 302);
+    }
+
+    const session = await env.DB.prepare('SELECT expires_at FROM session WHERE id = ?')
+      .bind(sessionId).first();
+    const now = Math.floor(Date.now() / 1000);
+    if (!session || now >= session.expires_at) {
+      return new Response(null, {
+        status: 302,
+        headers: {
+          'Location': `https://rrmacademy.org/login?redirect=${encodeURIComponent(url.pathname)}`,
+          'Set-Cookie': 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
+        },
+      });
+    }
+  }
+
   // Continue to static assets / functions
   return context.next();
 }

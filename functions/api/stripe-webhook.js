@@ -164,6 +164,7 @@ export async function onRequestPost({ request, env }) {
                   'Here\'s what to do next:',
                   '',
                   '1. Join the member group — this is where live call dates, resources, and discussion happen:',
+                  // STUC-CUTOVER: replace with https://rrmacademy.org/community
                   '   https://rrmfoundation.wixstudio.com/rrm-academy/group/save-the-uterus-club',
                   '',
                   '2. Join the free Uterus Allies group chat on Instagram:',
