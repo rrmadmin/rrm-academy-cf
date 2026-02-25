@@ -282,9 +282,10 @@ const parentCourse = course.includedIn
           staticCta.hidden = true;
           enrolledCta.hidden = false;
 
-          // Find the last incomplete step for "Continue" button
+          // Find the first incomplete step for "Continue" button
           var steps = data.steps || {};
           var resumeStep = firstStepId;
+          var foundIncomplete = false;
           var sections = document.querySelectorAll('.curriculum__module');
           var completedCount = 0;
           var totalCount = 0;
@@ -295,8 +296,9 @@ const parentCourse = course.includedIn
             if (steps[stepId] && steps[stepId].completed) {
               completedCount++;
               el.classList.add('curriculum__step--completed');
-            } else if (!resumeStep || resumeStep === firstStepId) {
+            } else if (!foundIncomplete) {
               resumeStep = stepId;
+              foundIncomplete = true;
             }
           });
 
