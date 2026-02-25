@@ -3,13 +3,16 @@
  * Receives Stripe webhook events and processes them.
  *
  * Events handled:
- *   - checkout.session.completed  → link stripe_customer_id to D1 user + course enrollment
- *   - customer.subscription.updated → (logged, no action needed — Stripe is source of truth)
- *   - customer.subscription.deleted → (logged)
- *   - invoice.payment_failed       → (logged)
+ *   - checkout.session.completed      → link stripe_customer_id to D1 user + course enrollment
+ *   - customer.subscription.updated   → notify user on past_due / tier change
+ *   - customer.subscription.deleted   → email cancellation confirmation
+ *   - invoice.payment_failed          → email user to update payment method
  *
  * No CORS headers — this is a server-to-server endpoint called by Stripe.
  * Uses constructEventAsync for CF Workers (async Web Crypto API).
+ *
+ * NOTE: Billing status (/api/billing/status) queries Stripe directly, so
+ * subscription state is always fresh in the UI without needing D1 sync.
  */
 import Stripe from 'stripe';
 import { enrollUser } from './courses/enroll.js';
@@ -89,6 +92,11 @@ export async function onRequestPost({ request, env }) {
             enrolled = true;
           } catch (enrollErr) {
             console.error(`Failed to enroll user in course ${courseId}:`, enrollErr.message);
+            // Return 500 so Stripe retries the webhook — don't silently eat enrollment failures
+            return new Response(JSON.stringify({ error: 'Enrollment failed' }), {
+              status: 500,
+              headers: { 'Content-Type': 'application/json' },
+            });
           }
 
           // Send course enrollment confirmation email
@@ -191,17 +199,102 @@ export async function onRequestPost({ request, env }) {
       break;
     }
 
-    case 'customer.subscription.updated':
-      console.log(`Subscription updated: ${event.data.object.id}, status: ${event.data.object.status}`);
-      break;
+    case 'customer.subscription.updated': {
+      const sub = event.data.object;
+      console.log(`Subscription updated: ${sub.id}, status: ${sub.status}`);
 
-    case 'customer.subscription.deleted':
-      console.log(`Subscription deleted: ${event.data.object.id}`);
+      // Notify user when subscription goes past_due (payment retry failing)
+      if (sub.status === 'past_due' && env.RESEND_API_KEY) {
+        const email = await getEmailByStripeCustomer(db, sub.customer);
+        if (email) {
+          await sendEmail(env.RESEND_API_KEY, {
+            to: email,
+            subject: 'Action needed: update your payment method',
+            text: [
+              'Hi there,',
+              '',
+              'We were unable to process your most recent payment for your Save the Uterus Club membership.',
+              '',
+              'Please update your payment method to keep your membership active:',
+              'https://rrmacademy.org/account',
+              '',
+              'If you have questions, reply to this email or contact us at https://rrmacademy.org/contact',
+              '',
+              'RRM Academy',
+              'A project of the RRM Foundation — 501(c)(3), EIN: 93-4594315',
+            ].join('\n'),
+          });
+          console.log(`Past-due notification sent to ${email}`);
+        }
+      }
       break;
+    }
 
-    case 'invoice.payment_failed':
-      console.log(`Payment failed for invoice: ${event.data.object.id}, customer: ${event.data.object.customer}`);
+    case 'customer.subscription.deleted': {
+      const sub = event.data.object;
+      console.log(`Subscription deleted: ${sub.id}, customer: ${sub.customer}`);
+
+      // Send cancellation confirmation email
+      if (env.RESEND_API_KEY) {
+        const email = await getEmailByStripeCustomer(db, sub.customer);
+        if (email) {
+          await sendEmail(env.RESEND_API_KEY, {
+            to: email,
+            subject: 'Your Save the Uterus Club membership has ended',
+            text: [
+              'Hi there,',
+              '',
+              'Your Save the Uterus Club membership has been cancelled.',
+              '',
+              'You still have access to any courses you purchased separately.',
+              '',
+              'If you\'d like to rejoin, you can do so anytime at:',
+              'https://rrmacademy.org/save-the-uterus-club',
+              '',
+              'Thank you for supporting evidence-based reproductive health.',
+              '',
+              'RRM Academy',
+              'A project of the RRM Foundation — 501(c)(3), EIN: 93-4594315',
+            ].join('\n'),
+          });
+          console.log(`Cancellation confirmation sent to ${email}`);
+        }
+      }
       break;
+    }
+
+    case 'invoice.payment_failed': {
+      const invoice = event.data.object;
+      console.log(`Payment failed for invoice: ${invoice.id}, customer: ${invoice.customer}`);
+
+      // Email user about the failed payment
+      if (env.RESEND_API_KEY) {
+        const email = await getEmailByStripeCustomer(db, invoice.customer);
+        if (email) {
+          await sendEmail(env.RESEND_API_KEY, {
+            to: email,
+            subject: 'Payment failed for your RRM Academy membership',
+            text: [
+              'Hi there,',
+              '',
+              'Your most recent membership payment could not be processed.',
+              '',
+              'Stripe will automatically retry, but you can update your payment method now:',
+              'https://rrmacademy.org/account',
+              '',
+              'If your payment method is not updated, your membership may be cancelled.',
+              '',
+              'If you have questions, contact us at https://rrmacademy.org/contact',
+              '',
+              'RRM Academy',
+              'A project of the RRM Foundation — 501(c)(3), EIN: 93-4594315',
+            ].join('\n'),
+          });
+          console.log(`Payment failed notification sent to ${email}`);
+        }
+      }
+      break;
+    }
 
     default:
       console.log(`Unhandled event type: ${event.type}`);
@@ -212,4 +305,42 @@ export async function onRequestPost({ request, env }) {
     status: 200,
     headers: { 'Content-Type': 'application/json' },
   });
+}
+
+/**
+ * Look up a user's email by their Stripe customer ID.
+ * Returns null if not found.
+ */
+async function getEmailByStripeCustomer(db, stripeCustomerId) {
+  if (!stripeCustomerId) return null;
+  const row = await db.prepare('SELECT email FROM user WHERE stripe_customer_id = ?')
+    .bind(stripeCustomerId).first();
+  return row?.email || null;
+}
+
+/**
+ * Send a transactional email via Resend.
+ * Logs errors but does not throw — email failure should not block webhook processing.
+ */
+async function sendEmail(apiKey, { to, subject, text }) {
+  try {
+    const resp = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'RRM Academy <accounts@rrmacademy.org>',
+        to: [to],
+        subject,
+        text,
+      }),
+    });
+    if (!resp.ok) {
+      console.error(`Email send failed (${resp.status}) to ${to}: ${subject}`);
+    }
+  } catch (err) {
+    console.error(`Email send error to ${to}:`, err.message);
+  }
 }
