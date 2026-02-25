@@ -267,8 +267,17 @@
     debounceTimer = setTimeout(function() { doSearch(q); }, 150);
   }
 
+  function positionResultsPanel() {
+    if (!resultsEl.offsetParent) return;
+    var inputRect = input.getBoundingClientRect();
+    var boxRect = resultsEl.offsetParent.getBoundingClientRect();
+    resultsEl.style.left = (inputRect.left - boxRect.left) + 'px';
+    resultsEl.style.right = (boxRect.right - inputRect.right) + 'px';
+  }
+
   async function doSearch(query) {
     resultsEl.innerHTML = '<p class="sr-loading">Searching\u2026</p>';
+    positionResultsPanel();
     try {
       var pf = await ensurePagefind();
       var search = await pf.search(query);
@@ -279,6 +288,7 @@
       resultsEl.innerHTML = '';
       if (totalCount === 0) {
         resultsEl.innerHTML = '<p class="sr-empty">No results found for \u201c' + escHtml(query) + '\u201d</p>';
+        positionResultsPanel();
         return;
       }
       var countEl = document.createElement('p');
@@ -286,8 +296,10 @@
       countEl.textContent = totalCount + ' result' + (totalCount === 1 ? '' : 's');
       resultsEl.appendChild(countEl);
       await loadMore();
+      positionResultsPanel();
     } catch(e) {
       resultsEl.innerHTML = '<p class="sr-empty">Search unavailable</p>';
+      positionResultsPanel();
     }
   }
 
@@ -397,9 +409,12 @@
     input.value = urlQ;
     currentQuery = urlQ;
     clearBtn.classList.remove('hidden');
-    // Small delay to let page settle
+    // Small delay to let page settle, then search + position
     setTimeout(function() { doSearch(urlQ); }, 100);
   }
+
+  // Reposition results panel on window resize
+  window.addEventListener('resize', positionResultsPanel);
 
   // Preload pagefind on focus for faster first search
   input.addEventListener('focus', function() { ensurePagefind(); }, { once: true });
