@@ -60,9 +60,9 @@ for (let i = 1; i <= totalPages; i++) {
         <a href="/library/#search" class="btn btn--secondary btn--sm">Search</a>
       </div>
 
-      <div class="article-grid">
+      <div class="article-list">
         {pageArticles.map(article => (
-          <ArticleCard article={article} compact />
+          <ArticleCard article={article} />
         ))}
       </div>
 
@@ -90,5 +90,19 @@ for (let i = 1; i <= totalPages; i++) {
 <style>
   h1 {
     margin-bottom: var(--space-1);
+  }
+
+  /* Browse list — two-column card grid replacing the old compact flat list */
+  .article-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+  }
+
+  @media (min-width: 768px) {
+    .article-list {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-6);
+    }
   }
 </style>
