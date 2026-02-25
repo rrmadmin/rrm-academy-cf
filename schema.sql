@@ -85,3 +85,42 @@ CREATE TABLE IF NOT EXISTS lesson_comment (
 CREATE INDEX IF NOT EXISTS idx_comment_step ON lesson_comment(course_id, step_id);
 CREATE INDEX IF NOT EXISTS idx_comment_user ON lesson_comment(user_id);
 CREATE INDEX IF NOT EXISTS idx_comment_parent ON lesson_comment(parent_id);
+
+-- Phase 8: Community (Save the Uterus Club)
+
+CREATE TABLE IF NOT EXISTS community_post (
+    id TEXT PRIMARY KEY,
+    author_id TEXT NOT NULL REFERENCES user(id),
+    type TEXT NOT NULL,
+    title TEXT NOT NULL,
+    body TEXT,
+    pinned INTEGER DEFAULT 0,
+    event_date TEXT,
+    event_link TEXT,
+    resource_url TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS community_comment (
+    id TEXT PRIMARY KEY,
+    post_id TEXT NOT NULL REFERENCES community_post(id) ON DELETE CASCADE,
+    author_id TEXT NOT NULL REFERENCES user(id),
+    parent_id TEXT REFERENCES community_comment(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS community_reaction (
+    user_id TEXT NOT NULL REFERENCES user(id),
+    target_type TEXT NOT NULL,
+    target_id TEXT NOT NULL,
+    emoji TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now')),
+    PRIMARY KEY(user_id, target_type, target_id, emoji)
+);
+
+CREATE INDEX IF NOT EXISTS idx_community_post_type ON community_post(type);
+CREATE INDEX IF NOT EXISTS idx_community_post_pinned ON community_post(pinned, created_at);
+CREATE INDEX IF NOT EXISTS idx_community_comment_post ON community_comment(post_id);
+CREATE INDEX IF NOT EXISTS idx_community_reaction_target ON community_reaction(target_type, target_id);
