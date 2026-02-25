@@ -71,6 +71,7 @@ const COURSE_FIELDS = [
   'SEO Description',          // ADDED
   'SEO Keywords',             // ADDED (comma-separated)
   'Sort Order',               // ADDED
+  'Coming Soon',              // ADDED (checkbox — true for placeholder courses not yet published)
 ];
 
 // Modules table: template fields + Module ID
@@ -163,6 +164,7 @@ function transformCourse(record) {
     hasCertificate: !!f['Has Certificate'],
     selfPaced: f['Self Paced'] !== false,
     accessType: (f['Access Type'] || 'public').toLowerCase(),
+    comingSoon: !!f['Coming Soon'],
     participants: Number(f['Participants']) || 0,
     instructors: parseJsonField(f['Instructors'], []),
     settings: {
@@ -414,7 +416,7 @@ async function fetchAll() {
   const courseRecords = await fetchTable(
     COURSES_TABLE_ID,
     COURSE_FIELDS,
-    "{Status}='Published'",
+    "OR({Status}='Published',{Coming Soon}=1)",
     pat
   );
 
@@ -447,10 +449,15 @@ async function fetchAll() {
   await syncAttachmentsToR2(courses);
 
   // Validate: each course should have at least one section with steps
+  // (Coming Soon placeholder courses are exempt — they have no content yet)
   for (const course of courses) {
     const stepCount = course.sections.reduce((sum, s) => sum + s.steps.length, 0);
     if (stepCount === 0) {
-      console.warn(`Warning: course "${course.id}" has 0 steps — check Airtable links`);
+      if (course.comingSoon) {
+        console.log(`  ${course.id}: coming soon (no steps yet)`);
+      } else {
+        console.warn(`Warning: course "${course.id}" has 0 steps — check Airtable links`);
+      }
     } else {
       console.log(`  ${course.id}: ${course.sections.length} sections, ${stepCount} steps`);
     }

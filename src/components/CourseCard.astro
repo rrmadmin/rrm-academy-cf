@@ -18,12 +18,14 @@ interface Props {
     participants: number;
     instructors: { name: string; role: string }[];
     sections: { steps: any[] }[];
+    comingSoon?: boolean;
   };
   enrolled?: boolean;
   progress?: { completedSteps: number; totalSteps: number };
 }
 
 const { course, enrolled = false, progress } = Astro.props;
+const isComingSoon = !!course.comingSoon;
 
 const totalSteps = course.sections.reduce((sum, s) => sum + s.steps.length, 0);
 const totalVideos = course.sections.reduce((sum, s) => sum + s.steps.filter((st: any) => st.type === 'video').length, 0);
@@ -36,51 +38,75 @@ const instructor = course.instructors.find(i => i.role === 'Lead Instructor')?.n
 const progressPct = progress ? Math.round((progress.completedSteps / progress.totalSteps) * 100) : 0;
 ---
 
-<a href={`/courses/${course.slug}/`} class="course-card">
-  <div class="course-card__image">
-    <img
-      src={course.image}
-      alt={course.imageAlt || course.title}
-      loading="lazy"
-      width="400"
-      height="225"
-    />
-    {course.isFree && <span class="course-card__badge course-card__badge--free">Free</span>}
-    {course.hasCertificate && <span class="course-card__badge course-card__badge--cert">Certificate</span>}
-  </div>
-  <div class="course-card__body">
-    <h3 class="course-card__title">{course.title}</h3>
-    <p class="course-card__instructor">{instructor}</p>
-    <p class="course-card__desc">{course.shortDescription}</p>
-    <div class="course-card__meta">
-      <span class="course-card__meta-item">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        {totalVideos} videos
-      </span>
-      <span class="course-card__meta-item">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        {durationLabel}
-      </span>
-      <span class="course-card__meta-item">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        {course.participants} enrolled
-      </span>
+{isComingSoon ? (
+  <div class="course-card course-card--coming-soon">
+    <div class="course-card__image">
+      {course.image ? (
+        <img
+          src={course.image}
+          alt={course.imageAlt || course.title}
+          loading="lazy"
+          width="400"
+          height="225"
+        />
+      ) : (
+        <div class="course-card__image-placeholder" aria-hidden="true"></div>
+      )}
+      <span class="course-card__badge course-card__badge--coming-soon">Coming Soon</span>
     </div>
-    {enrolled && progress ? (
-      <div class="course-card__progress">
-        <div class="course-card__progress-bar" role="progressbar" aria-valuenow={progressPct} aria-valuemin={0} aria-valuemax={100} aria-label={`Course progress: ${progressPct}% complete`}>
-          <div class="course-card__progress-fill" style={`width: ${progressPct}%`}></div>
-        </div>
-        <span class="course-card__progress-text">{progressPct}% complete</span>
-      </div>
-    ) : (
-      <div class="course-card__footer">
-        <span class="course-card__price">{price}</span>
-        <span class="course-card__cta">View Course</span>
-      </div>
-    )}
+    <div class="course-card__body">
+      <h3 class="course-card__title">{course.title}</h3>
+      <p class="course-card__instructor">{instructor}</p>
+      <p class="course-card__desc">{course.shortDescription}</p>
+    </div>
   </div>
-</a>
+) : (
+  <a href={`/courses/${course.slug}/`} class="course-card">
+    <div class="course-card__image">
+      <img
+        src={course.image}
+        alt={course.imageAlt || course.title}
+        loading="lazy"
+        width="400"
+        height="225"
+      />
+      {course.isFree && <span class="course-card__badge course-card__badge--free">Free</span>}
+      {course.hasCertificate && <span class="course-card__badge course-card__badge--cert">Certificate</span>}
+    </div>
+    <div class="course-card__body">
+      <h3 class="course-card__title">{course.title}</h3>
+      <p class="course-card__instructor">{instructor}</p>
+      <p class="course-card__desc">{course.shortDescription}</p>
+      <div class="course-card__meta">
+        <span class="course-card__meta-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          {totalVideos} videos
+        </span>
+        <span class="course-card__meta-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          {durationLabel}
+        </span>
+        <span class="course-card__meta-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          {course.participants} enrolled
+        </span>
+      </div>
+      {enrolled && progress ? (
+        <div class="course-card__progress">
+          <div class="course-card__progress-bar" role="progressbar" aria-valuenow={progressPct} aria-valuemin={0} aria-valuemax={100} aria-label={`Course progress: ${progressPct}% complete`}>
+            <div class="course-card__progress-fill" style={`width: ${progressPct}%`}></div>
+          </div>
+          <span class="course-card__progress-text">{progressPct}% complete</span>
+        </div>
+      ) : (
+        <div class="course-card__footer">
+          <span class="course-card__price">{price}</span>
+          <span class="course-card__cta">View Course</span>
+        </div>
+      )}
+    </div>
+  </a>
+)}
 
 <style>
   .course-card {
@@ -117,6 +143,25 @@ const progressPct = progress ? Math.round((progress.completedSteps / progress.to
     transform: scale(1.03);
   }
 
+  /* Coming Soon variant — non-interactive, muted */
+  .course-card--coming-soon {
+    opacity: 0.72;
+    cursor: default;
+    pointer-events: none;
+  }
+  .course-card--coming-soon:hover {
+    border-color: var(--border-color);
+    box-shadow: none;
+  }
+  .course-card--coming-soon .course-card__image img {
+    filter: grayscale(30%);
+  }
+  .course-card__image-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--neutral-100);
+  }
+
   .course-card__badge {
     position: absolute;
     top: var(--space-3);
@@ -136,6 +181,13 @@ const progressPct = progress ? Math.round((progress.completedSteps / progress.to
     right: var(--space-3);
     background: var(--purple-50);
     color: var(--purple-700);
+  }
+  .course-card__badge--coming-soon {
+    left: var(--space-3);
+    background: var(--neutral-100);
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+    font-weight: 500;
   }
 
   .course-card__body {
