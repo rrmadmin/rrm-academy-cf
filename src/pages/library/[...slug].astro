@@ -3,6 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Citation from '../../components/Citation.astro';
 import TopicTag from '../../components/TopicTag.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
+import LibraryFundingCallout from '../../components/LibraryFundingCallout.astro';
 import { fetchAllArticles, getRelatedArticles, type Article } from '../../lib/airtable';
 import { parseStructuredAbstract } from '../../lib/abstract-parser';
 
@@ -348,6 +349,9 @@ const citationMeta = {
           <p class="keywords-text">{article.keywords}</p>
         </section>
       )}
+
+      <!-- Funding callout -->
+      <LibraryFundingCallout />
 
       <!-- Related articles -->
       {related.length > 0 && (

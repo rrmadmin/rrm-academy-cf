@@ -1,0 +1,37 @@
+[
+  {
+    "id": "research-library",
+    "title": "Research Library",
+    "tagline": "3,100 articles indexed — help us reach 5,000",
+    "description": "Our free research library is the largest curated collection of reproductive medicine studies available to patients. Expanding it requires ongoing researcher time, database access, and enrichment tools.",
+    "status": "active"
+  },
+  {
+    "id": "rrm-academy",
+    "title": "RRM Academy",
+    "tagline": "No ads, no paywalls — keep it that way",
+    "description": "Running a nonprofit educational platform has real costs: hosting, software, content development, and clinical expertise. General funding keeps everything free and accessible to every patient.",
+    "status": "active"
+  },
+  {
+    "id": "video-library",
+    "title": "Video Library",
+    "tagline": "Educational videos for every learning style",
+    "description": "We want to build a comprehensive video library of patient education content — condition explainers, procedure guides, and clinical insights presented in an accessible format.",
+    "status": "seeking"
+  },
+  {
+    "id": "production",
+    "title": "Production & Awareness",
+    "tagline": "Better equipment, original content, wider reach",
+    "description": "Reaching more patients means investing in production quality — cameras, lighting, editing, original graphics, and the infrastructure to distribute content at scale.",
+    "status": "seeking"
+  },
+  {
+    "id": "live-show",
+    "title": "The Live Show",
+    "tagline": "We want to launch a live show — help make it happen",
+    "description": "Dr. Whittaker has a vision for a live show covering reproductive health, patient stories, and the latest in RRM research. Your support makes the first season possible.",
+    "status": "launching"
+  }
+]
