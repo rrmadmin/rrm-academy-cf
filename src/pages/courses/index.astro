@@ -54,15 +54,56 @@ const jsonLd = {
         ))}
       </div>
 
-      <section class="courses-about">
-        <h2>About Your Instructor</h2>
-        <div class="instructor-row">
-          <div class="instructor-info">
-            <h3>Naomi Whittaker, MD</h3>
-            <p>Dr. Whittaker is an OBGYN and fertility surgeon who specializes in Restorative Reproductive Medicine (RRM) and NaProTechnology. She is the founder of the RRM Academy and the RRM Foundation, dedicated to making evidence-based reproductive healthcare education accessible to patients and professionals.</p>
-            <p>Her courses draw on years of clinical experience treating endometriosis, infertility, and hormonal disorders using a root-cause approach rather than suppressive medications.</p>
-          </div>
-        </div>
+      <section class="courses-faq">
+        <h2>Course FAQ</h2>
+        <dl class="faq-list">
+
+          <details class="faq-item">
+            <summary class="faq-q">What is the format of the courses?</summary>
+            <dd class="faq-a">Our courses are self-paced and fully online. Each course includes video lectures by expert clinicians, downloadable resources, and quizzes to reinforce your learning. You can start, pause, and return at any time — there are no deadlines or scheduled sessions.</dd>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-q">Who are these courses for?</summary>
+            <dd class="faq-a">Our courses are designed for two audiences: patients navigating reproductive health conditions (endometriosis, infertility, PCOS, hormonal disorders) who want to understand their options beyond standard care; and healthcare professionals seeking education in Restorative Reproductive Medicine and NaProTechnology.</dd>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-q">How long will I have access after I enroll?</summary>
+            <dd class="faq-a">Access is lifetime. Once enrolled, your course remains available in your account with no expiration date — including any updates or new content added over time.</dd>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-q">What is the difference between the Masterclass in Endometriosis & Surgery and the Long-Term Endometriosis Management course?</summary>
+            <dd class="faq-a">The Masterclass covers the full journey — understanding endometriosis, evaluating surgical options, choosing a surgeon, and navigating the surgical process. The Long-Term Endometriosis Management course focuses on ongoing and post-surgical care: diet, supplements, lifestyle, and medications. The Long-Term course is included free when you enroll in the Masterclass.</dd>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-q">Do the courses offer a certificate of completion?</summary>
+            <dd class="faq-a">Yes. The Masterclass in Endometriosis & Surgery includes a certificate of completion, issued automatically after you finish all lessons and pass the final assessment with a score of 80% or higher.</dd>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-q">Do these courses replace medical advice from my doctor?</summary>
+            <dd class="faq-a">No. Our courses are educational resources designed to help you understand conditions and treatment options. They do not constitute medical advice and are not a substitute for care from a qualified healthcare provider. Always consult your physician before making medical decisions.</dd>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-q">Why do you charge for some courses?</summary>
+            <dd class="faq-a">Creating high-quality clinical content requires significant time and expertise from our instructors. Paid courses help sustain RRM Academy as a nonprofit — they allow us to keep our free courses free, maintain the Research Library, and continue producing education without ads or outside funding. We charge the minimum needed to support the mission.</dd>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-q">Is financial assistance available for paid courses?</summary>
+            <dd class="faq-a">Yes. If cost is a barrier, please <a href="/contact/">contact us</a>. We offer need-based access on a case-by-case basis and never want cost to prevent someone from getting the education they need.</dd>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-q">What is your refund policy?</summary>
+            <dd class="faq-a">We offer a full refund within 7 days of purchase if you have completed less than 20% of the course. Please <a href="/contact/">contact us</a> with your order details.</dd>
+          </details>
+
+        </dl>
       </section>
 
     </div>
@@ -104,33 +145,61 @@ const jsonLd = {
     }
   }
 
-  /* Instructor section */
-  .courses-about {
+  /* FAQ section */
+  .courses-faq {
     max-width: var(--max-width-article);
     margin: 0 auto;
     border-top: 1px solid var(--border-color);
     padding-top: var(--space-10);
   }
-  .courses-about h2 {
+  .courses-faq h2 {
     text-align: center;
+    margin-bottom: var(--space-8);
   }
-  .instructor-row {
+  .faq-list {
+    margin: 0;
+    padding: 0;
+  }
+  .faq-item {
+    border-bottom: 1px solid var(--border-light, var(--border-color));
+  }
+  .faq-item:first-of-type {
+    border-top: 1px solid var(--border-light, var(--border-color));
+  }
+  .faq-q {
     display: flex;
-    gap: var(--space-8);
-    align-items: flex-start;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-5) 0;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    list-style: none;
+    line-height: 1.4;
   }
-  .instructor-info h3 {
-    margin-bottom: var(--space-3);
+  .faq-q::-webkit-details-marker { display: none; }
+  .faq-q::after {
+    content: '+';
+    font-size: 1.25rem;
+    font-weight: 300;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+    transition: transform 0.2s;
   }
-  .instructor-info p {
+  .faq-item[open] .faq-q::after {
+    transform: rotate(45deg);
+  }
+  .faq-a {
+    margin: 0;
+    padding: 0 0 var(--space-5);
     font-size: 0.9375rem;
     color: var(--text-secondary);
     line-height: 1.7;
   }
-  @media (max-width: 768px) {
-    .instructor-row {
-      flex-direction: column;
-      text-align: center;
-    }
+  .faq-a a {
+    color: var(--accent);
+    text-decoration: underline;
   }
 </style>
