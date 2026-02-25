@@ -90,7 +90,6 @@ const LESSON_FIELDS = [
   'Module',        // template (linked record)
   'Step ID',       // ADDED — internal ID, e.g. "mc-intro-1"
   'Type',          // ADDED (single select: Video, Article, Quiz)
-  'Vimeo ID',      // ADDED
   'Stream ID',     // ADDED — Cloudflare Stream video UID
   'Duration',      // ADDED (number — seconds)
   'Status',        // ADDED (single select: Published, Draft)
@@ -227,7 +226,6 @@ function transformLesson(record) {
     _moduleRecordIds: Array.isArray(f['Module']) ? f['Module'] : [],
   };
 
-  if (f['Vimeo ID']) step.vimeoId = f['Vimeo ID'].trim();
   if (f['Stream ID']) step.streamUid = f['Stream ID'].trim();
   if (f['Duration']) step.duration = Number(f['Duration']);
 
@@ -317,7 +315,6 @@ function assembleNestedCourses(courses, modules, lessons) {
         title: mod.title,
         steps: mod.steps.map(s => {
           const clean = { id: s.id, title: s.title, type: s.type };
-          if (s.vimeoId) clean.vimeoId = s.vimeoId;
           if (s.streamUid) clean.streamUid = s.streamUid;
           if (s.duration) clean.duration = s.duration;
           if (s._rawAttachments) clean._rawAttachments = s._rawAttachments;
