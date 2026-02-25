@@ -1,5 +1,8 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import articlesData from '../data/articles.json';
+
+const libraryCount = articlesData.length.toLocaleString();
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -98,7 +101,7 @@ const jsonLd = {
   <section class="about-section">
     <div class="container container--narrow">
       <p class="about-lead">
-        RRM Academy provides expert-led, evidence-based education in Restorative Reproductive Medicine (RRM) for patients and healthcare professionals. Through 12 online courses and a research library of 3,100+ publications, we equip individuals and clinicians with the knowledge to find and treat the root causes of conditions like endometriosis, PCOS, infertility, and recurrent miscarriage, rather than masking symptoms or bypassing the body's natural function.
+        RRM Academy provides expert-led, evidence-based education in Restorative Reproductive Medicine (RRM) for patients and healthcare professionals. Through 12 online courses and a research library of {libraryCount}+ publications, we equip individuals and clinicians with the knowledge to find and treat the root causes of conditions like endometriosis, PCOS, infertility, and recurrent miscarriage, rather than masking symptoms or bypassing the body's natural function.
       </p>
       <h3 class="about-mission">Empower patients. Equip professionals. Restore women's health.</h3>
       <p>
@@ -189,7 +192,7 @@ const jsonLd = {
         </li>
         <li>
           <a href="/library/" class="about-cta-link">Browse the RRM Research Library</a>
-          <span>3,100+ curated research publications, freely accessible</span>
+          <span>{libraryCount}+ curated research publications, freely accessible</span>
         </li>
         <li>
           <a href="https://www.rrmacademy.org/save-the-uterus-club" class="about-cta-link">Join the Save the Uterus Club</a>
