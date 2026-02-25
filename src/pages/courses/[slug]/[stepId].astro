@@ -257,7 +257,7 @@ function stepTypeLabel(type: string) {
     stepId: step.id,
     stepType: step.type,
     streamUid: step.streamUid || null,
-    streamCustomerCode: '99owhs14yh33gohc',
+    streamCustomerCode: '99owhsi4yh33gohc',
     nextStepId: nextStep?.id || null,
     nextStepUrl: nextStep ? `/courses/${course.slug}/${nextStep.id}` : '',
     videoDuration: step.duration || 0,
@@ -1215,7 +1215,7 @@ function stepTypeLabel(type: string) {
     height: 0;
     overflow: hidden;
   }
-  .video-container iframe {
+  :global(.video-container iframe) {
     position: absolute;
     top: 0;
     left: 0;

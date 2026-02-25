@@ -7,11 +7,13 @@
  * The client embeds: https://customer-{code}.cloudflarestream.com/{token}/iframe
  */
 
-import { validateSession } from '../auth/_shared.js';
+import { validateSession, getSessionIdFromCookie } from '../auth/_shared.js';
 
 export async function onRequestGet({ request, env }) {
   // Auth check
-  const session = await validateSession(request, env);
+  const db = env.DB;
+  const sessionId = getSessionIdFromCookie(request);
+  const session = await validateSession(db, sessionId);
   if (!session) {
     return new Response(JSON.stringify({ ok: false, error: 'Not authenticated' }), {
       status: 401,
