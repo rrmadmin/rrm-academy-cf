@@ -21,7 +21,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           <h1 class="hero-title">Save the Uterus Club</h1>
           <p class="gate-description">The Save the Uterus Club is a private community for patients, advocates, and medical professionals committed to restorative reproductive medicine. Members get access to exclusive announcements, events, resources, and direct discussions with the RRM Academy team.</p>
           <div class="gate-actions">
-            <a href="/save-the-uterus-club" class="btn btn--primary btn--lg">Join the Save the Uterus Club</a>
+            <a href="/save-the-uterus-club/" class="btn btn--primary btn--lg">Join the Save the Uterus Club</a>
           </div>
           <div class="gate-instagram">
             <p>Not ready to join? <a href="https://www.instagram.com/direct/t/7768750249851959/" target="_blank" rel="noopener noreferrer">Join our free Uterus Allies group on Instagram</a></p>
@@ -467,7 +467,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         // Make card clickable (navigate to post)
         card.addEventListener('click', function (ev) {
           if (ev.target.tagName === 'A' || ev.target.tagName === 'BUTTON' || ev.target.closest('a') || ev.target.closest('button')) return;
-          window.location.href = '/community/post/' + post.id;
+          window.location.href = '/community/post/' + post.id + '/';
         });
         card.style.cursor = 'pointer';
 

@@ -56,7 +56,7 @@ const jsonLd = {
       <nav class="breadcrumb" aria-label="Breadcrumb">
         <a href="/">Home</a>
         <span aria-hidden="true"> &rsaquo; </span>
-        <a href="/faqs">FAQ</a>
+        <a href="/faqs/">FAQ</a>
         <span aria-hidden="true"> &rsaquo; </span>
         <span>{faq.question.length > 50 ? faq.question.slice(0, 50) + '...' : faq.question}</span>
       </nav>
@@ -76,7 +76,7 @@ const jsonLd = {
           <ul class="library-list">
             {faq.libraryRefs.map(ref => (
               <li>
-                <a href={`/library/${ref.slug}`}>{ref.title}</a>
+                <a href={`/library/${ref.slug}/`}>{ref.title}</a>
                 <span class="ref-cite">{ref.shortCitation}</span>
               </li>
             ))}
@@ -109,7 +109,7 @@ const jsonLd = {
           <ul class="related-list">
             {related.map(r => (
               <li>
-                <a href={`/faqs/${r.slug}`}>{r.question}</a>
+                <a href={`/faqs/${r.slug}/`}>{r.question}</a>
               </li>
             ))}
           </ul>
@@ -118,7 +118,7 @@ const jsonLd = {
 
       <!-- Back link -->
       <div class="back-link">
-        <a href="/faqs">&larr; Back to all FAQs</a>
+        <a href="/faqs/">&larr; Back to all FAQs</a>
       </div>
     </div>
   </div>

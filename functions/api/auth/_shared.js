@@ -5,7 +5,7 @@
 
 export const CORS_HEADERS = {
   'Access-Control-Allow-Origin': 'https://rrmacademy.org',
-  'Access-Control-Allow-Methods': 'POST, GET, PATCH, OPTIONS',
+  'Access-Control-Allow-Methods': 'POST, GET, PATCH, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
   'Access-Control-Allow-Credentials': 'true',
 };

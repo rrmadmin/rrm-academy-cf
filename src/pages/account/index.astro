@@ -19,10 +19,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       <div id="account-guest" class="auth-card" hidden>
         <h1>My Account</h1>
         <p class="auth-intro">Please log in to access your account.</p>
-        <a href="/login" class="btn btn--primary auth-submit">Log in</a>
+        <a href="/login/" class="btn btn--primary auth-submit">Log in</a>
         <div class="auth-links">
           <span>Don't have an account?</span>
-          <a href="/signup">Create one</a>
+          <a href="/signup/">Create one</a>
         </div>
       </div>
 
@@ -120,7 +120,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             <div id="courses-loading" class="account-placeholder">Loading courses...</div>
             <div id="courses-none" hidden>
               <p class="account-placeholder">You haven't enrolled in any courses yet.</p>
-              <a href="/courses" class="btn btn--secondary btn--sm" style="margin-top: var(--space-4); display: inline-flex;">Browse Courses</a>
+              <a href="/courses/" class="btn btn--secondary btn--sm" style="margin-top: var(--space-4); display: inline-flex;">Browse Courses</a>
             </div>
             <div id="courses-list" class="courses-list" hidden></div>
           </div>
@@ -130,7 +130,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             <div id="billing-loading" class="account-placeholder">Loading billing info...</div>
             <div id="billing-none" hidden>
               <p class="account-placeholder">You don't have an active membership.</p>
-              <a href="/save-the-uterus-club" class="btn btn--secondary btn--sm" style="margin-top: var(--space-4); display: inline-flex;">Join the Save the Uterus Club</a>
+              <a href="/save-the-uterus-club/" class="btn btn--secondary btn--sm" style="margin-top: var(--space-4); display: inline-flex;">Join the Save the Uterus Club</a>
             </div>
             <div id="billing-active" hidden>
               <dl class="account-details">
@@ -260,7 +260,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
       logoutBtn.addEventListener('click', function () {
         fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' })
-          .then(function () { window.location.href = '/login'; });
+          .then(function () { window.location.href = '/login/'; });
       });
 
       sendVerifyBtn.addEventListener('click', function () {
@@ -374,7 +374,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
               var meta = courseMeta[c.courseId] || { title: c.courseId, slug: c.courseId };
               var pct = c.totalSteps > 0 ? Math.round((c.completedSteps / c.totalSteps) * 100) : 0;
               var status = c.completedAt ? 'Completed' : (pct > 0 ? pct + '% complete' : 'Not started');
-              html += '<a href="/courses/' + meta.slug + '" class="course-item">' +
+              html += '<a href="/courses/' + meta.slug + '/" class="course-item">' +
                 '<div class="course-item__info">' +
                   '<strong>' + meta.title + '</strong>' +
                   '<span>' + status + '</span>' +

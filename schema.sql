@@ -124,3 +124,15 @@ CREATE INDEX IF NOT EXISTS idx_community_post_type ON community_post(type);
 CREATE INDEX IF NOT EXISTS idx_community_post_pinned ON community_post(pinned, created_at);
 CREATE INDEX IF NOT EXISTS idx_community_comment_post ON community_comment(post_id);
 CREATE INDEX IF NOT EXISTS idx_community_reaction_target ON community_reaction(target_type, target_id);
+
+-- Saved Articles (syncs localStorage for logged-in users)
+
+CREATE TABLE IF NOT EXISTS saved_article (
+    user_id TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+    article_slug TEXT NOT NULL,
+    article_data TEXT NOT NULL,
+    saved_at TEXT DEFAULT (datetime('now')),
+    PRIMARY KEY(user_id, article_slug)
+);
+
+CREATE INDEX IF NOT EXISTS idx_saved_article_user ON saved_article(user_id);

@@ -174,7 +174,7 @@ const citationMeta = {
       <!-- Breadcrumb + Save -->
       <div class="article-topbar" data-pagefind-ignore>
         <nav class="breadcrumb" aria-label="Breadcrumb">
-          <a href="/library">Research Library</a>
+          <a href="/library/">Research Library</a>
           <span aria-hidden="true"> &rsaquo; </span>
           <span>Synopsis</span>
         </nav>
@@ -606,7 +606,7 @@ const citationMeta = {
         if (t) lines.push('KW  - ' + t);
       }
     }
-    if (d.slug) lines.push('UR  - https://rrmacademy.org/library/' + d.slug);
+    if (d.slug) lines.push('UR  - https://rrmacademy.org/library/' + d.slug + '/');
     lines.push('ER  - ');
     return lines.join('\n') + '\n';
   }
@@ -681,6 +681,24 @@ const citationMeta = {
       }
     }
 
+    // Server-side save/unsave (fire-and-forget for logged-in users)
+    function serverSave(article) {
+      fetch('/api/saved', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ article: article })
+      }).catch(function() {});
+    }
+    function serverUnsave(articleSlug) {
+      fetch('/api/saved', {
+        method: 'DELETE',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: articleSlug })
+      }).catch(function() {});
+    }
+
     btn.addEventListener('click', function() {
       saved = getSaved();
       var d = btn.dataset;
@@ -689,8 +707,9 @@ const citationMeta = {
         isSaved = false;
         btn.classList.remove('saved');
         saveLabel.textContent = '';
+        serverUnsave(slug);
       } else {
-        saved.unshift({
+        var article = {
           slug: d.slug,
           title: d.title,
           authors: d.authors,
@@ -706,7 +725,8 @@ const citationMeta = {
           abstract: d.abstract,
           topics: d.topics,
           savedAt: new Date().toISOString()
-        });
+        };
+        saved.unshift(article);
         isSaved = true;
         btn.classList.add('saved');
         saveLabel.textContent = 'Saved!';
@@ -715,6 +735,7 @@ const citationMeta = {
           saveLabel.textContent = '';
           btn.classList.remove('copied');
         }, 2000);
+        serverSave(article);
       }
       setSaved(saved);
       updateBadge();

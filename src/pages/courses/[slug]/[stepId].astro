@@ -57,7 +57,7 @@ function stepTypeLabel(type: string) {
     <!-- Sidebar -->
     <aside class="player-sidebar" id="player-sidebar">
       <div class="sidebar-header">
-        <a href={`/courses/${course.slug}`} class="sidebar-back" title="Back to course">
+        <a href={`/courses/${course.slug}/`} class="sidebar-back" title="Back to course">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </a>
         <span class="sidebar-course-title">{course.title}</span>
@@ -85,7 +85,7 @@ function stepTypeLabel(type: string) {
                   return (
                     <li>
                       <a
-                        href={`/courses/${course.slug}/${st.id}`}
+                        href={`/courses/${course.slug}/${st.id}/`}
                         class:list={['sidebar-step', { 'sidebar-step--current': isCurrent }]}
                         aria-current={isCurrent ? 'step' : undefined}
                         data-step-id={st.id}
@@ -112,7 +112,7 @@ function stepTypeLabel(type: string) {
 
       <!-- Mobile top bar -->
       <div class="player-topbar">
-        <a href={`/courses/${course.slug}`} class="player-topbar__back" title="Back to course">
+        <a href={`/courses/${course.slug}/`} class="player-topbar__back" title="Back to course">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </a>
         <span class="player-topbar__title">{course.title}</span>
@@ -213,13 +213,13 @@ function stepTypeLabel(type: string) {
           </button>
           <div class="lesson-nav">
             {prevStep && (
-              <a href={`/courses/${course.slug}/${prevStep.id}`} class="btn btn--secondary btn--sm lesson-nav__prev">
+              <a href={`/courses/${course.slug}/${prevStep.id}/`} class="btn btn--secondary btn--sm lesson-nav__prev">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
                 Previous
               </a>
             )}
             {nextStep && (
-              <a href={`/courses/${course.slug}/${nextStep.id}`} class="btn btn--secondary btn--sm lesson-nav__next" id="next-lesson-btn">
+              <a href={`/courses/${course.slug}/${nextStep.id}/`} class="btn btn--secondary btn--sm lesson-nav__next" id="next-lesson-btn">
                 Next
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </a>
@@ -285,7 +285,7 @@ function stepTypeLabel(type: string) {
         .then(function (data) {
           if (!data.ok) {
             // Not enrolled — redirect to course detail
-            window.location.href = '/courses/' + courseSlug;
+            window.location.href = '/courses/' + courseSlug + '/';
             return;
           }
 

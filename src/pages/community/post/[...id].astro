@@ -15,7 +15,7 @@ export function getStaticPaths() {
 
       <!-- Back nav -->
       <nav class="back-nav">
-        <a href="/community">&larr; Back to Community</a>
+        <a href="/community/">&larr; Back to Community</a>
       </nav>
 
       <!-- Loading -->
@@ -28,7 +28,7 @@ export function getStaticPaths() {
         <div class="post-empty-card">
           <h1>Membership Required</h1>
           <p>You need an active membership to access the community.</p>
-          <a href="/login" class="btn btn--primary">Log in</a>
+          <a href="/login/" class="btn btn--primary">Log in</a>
         </div>
       </div>
 
@@ -37,7 +37,7 @@ export function getStaticPaths() {
         <div class="post-empty-card">
           <h1>Post Not Found</h1>
           <p>This post may have been removed or the link is incorrect.</p>
-          <a href="/community" class="btn btn--secondary">Back to Community</a>
+          <a href="/community/" class="btn btn--secondary">Back to Community</a>
         </div>
       </div>
 
@@ -46,7 +46,7 @@ export function getStaticPaths() {
         <div class="post-empty-card">
           <h1>Something Went Wrong</h1>
           <p id="post-error-text">Unable to load this post. Please try again.</p>
-          <a href="/community" class="btn btn--secondary">Back to Community</a>
+          <a href="/community/" class="btn btn--secondary">Back to Community</a>
         </div>
       </div>
 
@@ -574,7 +574,7 @@ export function getStaticPaths() {
           .then(function (r) { return r.json(); })
           .then(function (data) {
             if (data.ok) {
-              window.location.href = '/community';
+              window.location.href = '/community/';
             } else {
               ctrlDelete.disabled = false;
               ctrlDelete.textContent = 'Delete';

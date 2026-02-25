@@ -44,7 +44,7 @@ for (let i = 1; i <= totalPages; i++) {
   <section class="browse-page" data-pagefind-ignore="all">
     <div class="container">
       <nav class="breadcrumb" aria-label="Breadcrumb">
-        <a href="/commentary">Commentary</a>
+        <a href="/commentary/">Commentary</a>
         <span aria-hidden="true"> &rsaquo; </span>
         <span>Page {currentPage}</span>
       </nav>
@@ -72,7 +72,7 @@ for (let i = 1; i <= totalPages; i++) {
 
       <nav class="pagination" aria-label="Pagination">
         {currentPage > 1 && (
-          <a href={currentPage === 2 ? '/commentary/page/1' : `/commentary/page/${currentPage - 1}`}>&laquo; Prev</a>
+          <a href={currentPage === 2 ? '/commentary/page/1/' : `/commentary/page/${currentPage - 1}/`}>&laquo; Prev</a>
         )}
         {range.map(item => (
           item === '...' ? (
@@ -80,11 +80,11 @@ for (let i = 1; i <= totalPages; i++) {
           ) : item === currentPage ? (
             <span class="current">{item}</span>
           ) : (
-            <a href={`/commentary/page/${item}`}>{item}</a>
+            <a href={`/commentary/page/${item}/`}>{item}</a>
           )
         ))}
         {currentPage < totalPages && (
-          <a href={`/commentary/page/${currentPage + 1}`}>Next &raquo;</a>
+          <a href={`/commentary/page/${currentPage + 1}/`}>Next &raquo;</a>
         )}
       </nav>
     </div>

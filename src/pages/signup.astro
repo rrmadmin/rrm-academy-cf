@@ -65,7 +65,7 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
 
         <div id="signup-links" class="auth-links">
           <span>Already have an account?</span>
-          <a href="/login">Log in</a>
+          <a href="/login/">Log in</a>
         </div>
       </div>
     </div>
@@ -167,7 +167,7 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
         })
           .then(function (r) { return r.json(); })
           .then(function (data) {
-            if (data.ok) { window.location.href = '/account'; }
+            if (data.ok) { window.location.href = '/account/'; }
             else { showError(data.error || 'Verification failed.'); verifyBtn.disabled = false; verifyBtn.textContent = 'Verify'; }
           })
           .catch(function () { showError('Network error.'); verifyBtn.disabled = false; verifyBtn.textContent = 'Verify'; });

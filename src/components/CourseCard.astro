@@ -36,7 +36,7 @@ const instructor = course.instructors.find(i => i.role === 'Lead Instructor')?.n
 const progressPct = progress ? Math.round((progress.completedSteps / progress.totalSteps) * 100) : 0;
 ---
 
-<a href={`/courses/${course.slug}`} class="course-card">
+<a href={`/courses/${course.slug}/`} class="course-card">
   <div class="course-card__image">
     <img
       src={course.image}

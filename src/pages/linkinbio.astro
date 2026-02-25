@@ -13,7 +13,7 @@ const posts = allPosts.slice(0, 15);
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="robots" content="noindex, nofollow" />
+  <link rel="canonical" href="https://rrmacademy.org/linkinbio/" />
   <title>RRM Academy | Link in Bio</title>
   <meta name="description" content="RRM Academy — for true healing and women's health. Research library, courses, and commentary on restorative reproductive medicine." />
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -37,7 +37,7 @@ const posts = allPosts.slice(0, 15);
   </script>
 </head>
 <body>
-  <div class="linkinbio">
+  <main class="linkinbio">
     <!-- Profile header -->
     <div class="profile">
       <div class="profile__avatar">
@@ -48,7 +48,7 @@ const posts = allPosts.slice(0, 15);
     </div>
 
     <!-- Featured card: Endo Self-Survey -->
-    <a href="/endo-survey" class="featured-card">
+    <a href="/endo-survey/" class="featured-card">
       <div class="featured-card__text">
         <h2 class="featured-card__title">Endometriosis Self-Survey</h2>
         <p class="featured-card__desc">A 3-tier symptom assessment to help you understand your endometriosis experience and take the next step.</p>
@@ -68,12 +68,12 @@ const posts = allPosts.slice(0, 15);
     <a href="/" class="cta-button">Visit The Website</a>
 
     <!-- Research Library CTA -->
-    <a href="/library" class="cta-button cta-button--secondary">Research Library — 3,000+ Articles</a>
+    <a href="/library/" class="cta-button cta-button--secondary">Research Library — 3,000+ Articles</a>
 
     <!-- Blog post image grid -->
     <div class="post-grid">
       {posts.map((post) => (
-        <a href={`/commentary/${post.slug}`} class="post-grid__item" title={post.title}>
+        <a href={`/commentary/${post.slug}/`} class="post-grid__item" title={post.title}>
           {post.coverImageUrl ? (
             <img
               src={post.coverImageUrl}
@@ -93,11 +93,11 @@ const posts = allPosts.slice(0, 15);
 
     <!-- Footer -->
     <footer class="bio-footer">
-      <a href="/terms-of-use">Terms of Use</a>
+      <a href="/terms-of-use/">Terms of Use</a>
       <span aria-hidden="true">&middot;</span>
-      <a href="/privacy-policy">Privacy Policy</a>
+      <a href="/privacy-policy/">Privacy Policy</a>
     </footer>
-  </div>
+  </main>
 </body>
 </html>
 
@@ -282,10 +282,10 @@ const posts = allPosts.slice(0, 15);
     gap: 8px;
     margin-top: 8px;
     font-size: 0.75rem;
-    color: var(--text-tertiary);
+    color: var(--text-secondary);
   }
   .bio-footer a {
-    color: var(--text-tertiary);
+    color: var(--text-secondary);
     text-decoration: none;
     transition: color 0.15s;
   }

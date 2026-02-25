@@ -45,7 +45,7 @@ for (let i = 1; i <= totalPages; i++) {
   <section class="browse-page" data-pagefind-ignore="all">
     <div class="container">
       <nav class="breadcrumb" aria-label="Breadcrumb">
-        <a href="/library">Research Library</a>
+        <a href="/library/">Research Library</a>
         <span aria-hidden="true"> &rsaquo; </span>
         <span>Page {currentPage}</span>
       </nav>
@@ -57,7 +57,7 @@ for (let i = 1; i <= totalPages; i++) {
             Showing {start + 1}&ndash;{Math.min(start + perPage, articles.length)} of {articles.length.toLocaleString()}
           </p>
         </div>
-        <a href="/library#search" class="btn btn--secondary btn--sm">Search</a>
+        <a href="/library/#search" class="btn btn--secondary btn--sm">Search</a>
       </div>
 
       <div class="article-grid">
@@ -68,7 +68,7 @@ for (let i = 1; i <= totalPages; i++) {
 
       <nav class="pagination" aria-label="Pagination">
         {currentPage > 1 && (
-          <a href={currentPage === 2 ? '/library' : `/library/page/${currentPage - 1}`}>&laquo; Prev</a>
+          <a href={currentPage === 2 ? '/library/' : `/library/page/${currentPage - 1}/`}>&laquo; Prev</a>
         )}
         {range.map(item => (
           item === '...' ? (
@@ -76,11 +76,11 @@ for (let i = 1; i <= totalPages; i++) {
           ) : item === currentPage ? (
             <span class="current">{item}</span>
           ) : (
-            <a href={item === 1 ? '/library' : `/library/page/${item}`}>{item}</a>
+            <a href={item === 1 ? '/library/' : `/library/page/${item}/`}>{item}</a>
           )
         ))}
         {currentPage < totalPages && (
-          <a href={`/library/page/${currentPage + 1}`}>Next &raquo;</a>
+          <a href={`/library/page/${currentPage + 1}/`}>Next &raquo;</a>
         )}
       </nav>
     </div>
