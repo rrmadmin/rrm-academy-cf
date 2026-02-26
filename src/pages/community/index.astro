@@ -119,6 +119,47 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
       </div>
 
+      <!-- Edit modal -->
+      <div id="edit-modal" class="edit-modal" hidden>
+        <div class="edit-modal__backdrop"></div>
+        <div class="edit-modal__card">
+          <h2 class="edit-modal__heading">Edit Post</h2>
+          <form id="edit-modal-form">
+            <div class="form-group">
+              <label class="form-label" for="edit-modal-title">Title</label>
+              <input class="form-input" type="text" id="edit-modal-title" name="title" required maxlength="200" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-modal-body">Body</label>
+              <textarea class="form-textarea" id="edit-modal-body" name="body" rows="6" maxlength="10000"></textarea>
+            </div>
+            <div id="edit-modal-event-fields" hidden>
+              <div class="form-group">
+                <label class="form-label" for="edit-modal-event-date">Event date</label>
+                <input class="form-input" type="datetime-local" id="edit-modal-event-date" name="eventDate" />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="edit-modal-event-link">Event link</label>
+                <input class="form-input" type="url" id="edit-modal-event-link" name="eventLink" placeholder="https://..." />
+              </div>
+            </div>
+            <div id="edit-modal-resource-fields" hidden>
+              <div class="form-group">
+                <label class="form-label" for="edit-modal-resource-url">Resource URL</label>
+                <input class="form-input" type="url" id="edit-modal-resource-url" name="resourceUrl" placeholder="https://..." />
+              </div>
+            </div>
+            <div id="edit-modal-error" class="compose-feedback compose-feedback--error" hidden>
+              <p id="edit-modal-error-text"></p>
+            </div>
+            <div class="edit-modal__actions">
+              <button type="button" class="btn btn--secondary btn--sm" id="edit-modal-cancel">Cancel</button>
+              <button type="submit" class="btn btn--primary btn--sm" id="edit-modal-save">Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
     </div>
   </section>
 
@@ -153,10 +194,28 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       var composeSubmitBtn = document.getElementById('compose-submit-btn');
       var tabs = document.querySelectorAll('.feed-tab');
 
+      // Edit modal refs
+      var editModalEl = document.getElementById('edit-modal');
+      var editModalForm = document.getElementById('edit-modal-form');
+      var editModalTitle = document.getElementById('edit-modal-title');
+      var editModalBody = document.getElementById('edit-modal-body');
+      var editModalEventFields = document.getElementById('edit-modal-event-fields');
+      var editModalEventDate = document.getElementById('edit-modal-event-date');
+      var editModalEventLink = document.getElementById('edit-modal-event-link');
+      var editModalResourceFields = document.getElementById('edit-modal-resource-fields');
+      var editModalResourceUrl = document.getElementById('edit-modal-resource-url');
+      var editModalError = document.getElementById('edit-modal-error');
+      var editModalErrorText = document.getElementById('edit-modal-error-text');
+      var editModalSave = document.getElementById('edit-modal-save');
+      var editModalCancel = document.getElementById('edit-modal-cancel');
+
       var currentUser = null;
       var activeType = '';
       var lastCreatedAt = null;
       var allPostsLoaded = false;
+      var commentsCache = {};
+      var editingPost = null;
+      var editingCard = null;
 
       // --- Status check ---
       fetch('/api/community/status', { credentials: 'same-origin' })
@@ -433,11 +492,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             controls.appendChild(pinBtn);
           }
           if (isAdmin) {
-            var editBtn = document.createElement('a');
+            var editBtn = document.createElement('button');
             editBtn.className = 'ctrl-btn';
             editBtn.textContent = 'Edit';
-            editBtn.href = '/community/post/' + post.id;
-            editBtn.addEventListener('click', function (ev) { ev.stopPropagation(); });
+            editBtn.addEventListener('click', function (ev) {
+              ev.stopPropagation();
+              openEditModal(post, card);
+            });
             controls.appendChild(editBtn);
 
             var delBtn = document.createElement('button');
@@ -454,12 +515,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
         main.appendChild(header);
 
-        // Title
-        var titleLink = document.createElement('a');
-        titleLink.className = 'post-card__title';
-        titleLink.href = '/community/post/' + post.id;
-        titleLink.textContent = post.title;
-        main.appendChild(titleLink);
+        // Title (span, not link — no navigation)
+        var titleSpan = document.createElement('span');
+        titleSpan.className = 'post-card__title';
+        titleSpan.textContent = post.title;
+        main.appendChild(titleSpan);
 
         // Body (full text, collapsible if long)
         if (post.body) {
@@ -509,27 +569,38 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         }
         actions.appendChild(reactionBar);
 
-        var commentCount = document.createElement('a');
+        // Comment count (button, toggles expand)
+        var commentCount = document.createElement('button');
         commentCount.className = 'post-comment-count';
-        commentCount.href = '/community/post/' + post.id;
         var cc = post.commentCount || 0;
         commentCount.textContent = cc === 1 ? '1 comment' : cc + ' comments';
+        commentCount.addEventListener('click', function (ev) {
+          ev.stopPropagation();
+          toggleExpand(post, card);
+        });
         actions.appendChild(commentCount);
 
         main.appendChild(actions);
+
+        // Comments container (hidden by default)
+        var commentsContainer = document.createElement('div');
+        commentsContainer.className = 'post-comments';
+        commentsContainer.hidden = true;
+        main.appendChild(commentsContainer);
+
         layout.appendChild(main);
         card.appendChild(layout);
 
-        // Make card clickable
+        // Card click → expand/collapse (not navigate)
         card.addEventListener('click', function (ev) {
-          if (ev.target.tagName === 'A' || ev.target.tagName === 'BUTTON' || ev.target.closest('a') || ev.target.closest('button')) return;
-          window.location.href = '/community/post/' + post.id + '/';
+          if (ev.target.tagName === 'A' || ev.target.tagName === 'BUTTON' || ev.target.tagName === 'TEXTAREA' || ev.target.tagName === 'INPUT' || ev.target.closest('a') || ev.target.closest('button') || ev.target.closest('textarea') || ev.target.closest('input') || ev.target.closest('.post-comments')) return;
+          toggleExpand(post, card);
         });
 
         return card;
       }
 
-      // --- Toggle reaction ---
+      // --- Toggle reaction (post) ---
       function toggleReaction(postId, emoji, btn, reactions, userReactions) {
         btn.disabled = true;
         fetch('/api/community/reactions', {
@@ -543,15 +614,15 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             btn.disabled = false;
             if (!data.ok) return;
 
-            var idx = userReactions.indexOf(emoji);
-            if (idx !== -1) {
-              userReactions.splice(idx, 1);
-              reactions[emoji] = Math.max(0, (reactions[emoji] || 1) - 1);
-              btn.classList.remove('reaction-btn--active');
-            } else {
+            if (data.action === 'added') {
               userReactions.push(emoji);
               reactions[emoji] = (reactions[emoji] || 0) + 1;
               btn.classList.add('reaction-btn--active');
+            } else {
+              var idx = userReactions.indexOf(emoji);
+              if (idx !== -1) userReactions.splice(idx, 1);
+              reactions[emoji] = Math.max(0, (reactions[emoji] || 1) - 1);
+              btn.classList.remove('reaction-btn--active');
             }
 
             var count = reactions[emoji] || 0;
@@ -631,6 +702,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         return s.charAt(0).toUpperCase() + s.slice(1);
       }
 
+      function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+
+      function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str || ''));
+        return div.innerHTML;
+      }
+
       function linkify(text) {
         if (!text) return '';
         var s = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -659,6 +738,568 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         }
         return months[then.getMonth()] + ' ' + then.getDate() + ', ' + then.getFullYear();
       }
+
+      // --- Expand/collapse ---
+      function toggleExpand(post, card) {
+        var expanded = card.classList.toggle('post-card--expanded');
+        var bodyEl = card.querySelector('.post-card__body');
+        var showMoreBtn = card.querySelector('.show-more-btn');
+        var commentsContainer = card.querySelector('.post-comments');
+
+        if (expanded) {
+          // Expand: show full body, show comments
+          if (bodyEl) bodyEl.classList.remove('post-card__body--collapsed');
+          if (showMoreBtn) showMoreBtn.textContent = 'Show less';
+          if (commentsContainer) {
+            commentsContainer.hidden = false;
+            if (!commentsCache[post.id]) {
+              loadComments(post.id, commentsContainer);
+            }
+          }
+        } else {
+          // Collapse: re-collapse long body, hide comments
+          if (bodyEl && post.body && post.body.length > 280) {
+            bodyEl.classList.add('post-card__body--collapsed');
+          }
+          if (showMoreBtn && post.body && post.body.length > 280) {
+            showMoreBtn.textContent = 'Show more';
+          }
+          if (commentsContainer) commentsContainer.hidden = true;
+        }
+      }
+
+      // --- Load comments ---
+      function loadComments(postId, container) {
+        container.innerHTML = '<p class="comments-loading">Loading comments...</p>';
+        fetch('/api/community/comments?postId=' + encodeURIComponent(postId), { credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data.ok) {
+              commentsCache[postId] = data.comments || [];
+            } else {
+              commentsCache[postId] = [];
+            }
+            renderCommentsSection(postId, container);
+          })
+          .catch(function () {
+            commentsCache[postId] = [];
+            renderCommentsSection(postId, container);
+          });
+      }
+
+      // --- Render comments section ---
+      function renderCommentsSection(postId, container) {
+        var comments = commentsCache[postId] || [];
+        var html = '';
+
+        // Compose area
+        html += '<div class="comment-compose-inline">';
+        html += '<textarea class="form-input form-textarea form-textarea--sm comment-compose-textarea" rows="2" maxlength="2000" placeholder="Write a comment..." data-post-id="' + escapeHtml(postId) + '"></textarea>';
+        html += '<div class="comment-compose-inline__actions">';
+        html += '<button class="btn btn--primary btn--sm comment-submit-btn" data-post-id="' + escapeHtml(postId) + '">Post</button>';
+        html += '</div>';
+        html += '</div>';
+
+        if (comments.length === 0) {
+          html += '<p class="comments-empty">No comments yet. Be the first to share your thoughts.</p>';
+        } else {
+          html += '<div class="comments-list-inline">';
+          for (var i = 0; i < comments.length; i++) {
+            html += renderCommentHtml(comments[i], postId, false);
+            if (comments[i].replies && comments[i].replies.length) {
+              for (var j = 0; j < comments[i].replies.length; j++) {
+                html += renderCommentHtml(comments[i].replies[j], postId, true);
+              }
+            }
+          }
+          html += '</div>';
+        }
+
+        container.innerHTML = html;
+      }
+
+      // --- Render single comment HTML ---
+      function renderCommentHtml(c, postId, isReply) {
+        var userRole = currentUser.role || 'member';
+        var isStaff = STAFF_ROLES.indexOf(userRole) !== -1;
+        var canDelete = c.isOwn || isStaff;
+        var authorIsStaff = STAFF_ROLES.indexOf(c.authorRole) !== -1;
+        var initial = ((c.authorName || 'M').charAt(0)).toUpperCase();
+
+        var html = '<div class="comment' + (isReply ? ' comment--reply' : '') + '" data-comment-id="' + escapeHtml(c.id) + '">';
+        html += '<div class="comment__layout">';
+
+        // Avatar
+        html += '<span class="comment-avatar' + (authorIsStaff ? ' comment-avatar--staff' : '') + '">' + escapeHtml(initial) + '</span>';
+
+        html += '<div class="comment__main">';
+
+        // Header
+        html += '<div class="comment__header">';
+        html += '<span class="comment-author-name">' + escapeHtml(c.authorName || 'Member') + '</span>';
+        if (authorIsStaff) {
+          html += '<span class="post-role-badge">' + escapeHtml(capitalize(c.authorRole)) + '</span>';
+        }
+        html += '<span class="post-sep">&middot;</span>';
+        html += '<span class="comment-time">' + timeAgo(c.createdAt) + '</span>';
+        html += '</div>';
+
+        // Body
+        html += '<div class="comment__body">' + linkify(c.content || '') + '</div>';
+
+        // Reactions
+        html += '<div class="comment__reactions">';
+        for (var e = 0; e < EMOJIS.length; e++) {
+          var emoji = EMOJIS[e];
+          var count = (c.reactions && c.reactions[emoji]) ? c.reactions[emoji] : 0;
+          var mine = (c.myReactions && c.myReactions.indexOf(emoji) !== -1);
+          html += '<button class="reaction-btn reaction-btn--sm' + (mine ? ' reaction-btn--active' : '') + (count === 0 && !mine ? ' reaction-btn--empty' : '') + '"';
+          html += ' data-target-type="comment" data-target-id="' + escapeHtml(c.id) + '" data-emoji="' + emoji + '" data-post-id="' + escapeHtml(postId) + '">';
+          html += '<span class="reaction-emoji">' + emoji + '</span>';
+          if (count > 0) html += '<span class="reaction-count">' + count + '</span>';
+          html += '</button>';
+        }
+        html += '</div>';
+
+        // Actions
+        html += '<div class="comment__actions">';
+        if (!isReply && !c.parentId) {
+          html += '<button class="ctrl-btn comment-reply-btn" data-parent-id="' + escapeHtml(c.id) + '" data-post-id="' + escapeHtml(postId) + '">Reply</button>';
+        }
+        if (canDelete) {
+          html += '<button class="ctrl-btn ctrl-btn--danger comment-delete-btn" data-comment-id="' + escapeHtml(c.id) + '" data-post-id="' + escapeHtml(postId) + '">Delete</button>';
+        }
+        html += '</div>';
+
+        // Reply form (hidden, top-level only)
+        if (!isReply && !c.parentId) {
+          html += '<div class="comment__reply-form" data-reply-for="' + escapeHtml(c.id) + '" hidden>';
+          html += '<textarea class="form-input form-textarea form-textarea--sm" rows="2" maxlength="2000" placeholder="Write a reply..."></textarea>';
+          html += '<div class="comment__reply-actions">';
+          html += '<button class="btn btn--primary btn--sm reply-submit-btn" data-parent-id="' + escapeHtml(c.id) + '" data-post-id="' + escapeHtml(postId) + '">Reply</button>';
+          html += '<button class="btn btn--secondary btn--sm reply-cancel-btn" data-parent-id="' + escapeHtml(c.id) + '">Cancel</button>';
+          html += '</div>';
+          html += '</div>';
+        }
+
+        html += '</div>'; // .comment__main
+        html += '</div>'; // .comment__layout
+        html += '</div>'; // .comment
+
+        return html;
+      }
+
+      // --- Submit comment ---
+      function submitComment(postId, textarea, parentId) {
+        var content = textarea.value.trim();
+        if (!content) return;
+
+        var actionsEl = parentId
+          ? textarea.closest('.comment__reply-form').querySelector('.comment__reply-actions')
+          : textarea.closest('.comment-compose-inline').querySelector('.comment-compose-inline__actions');
+        var submitBtn = actionsEl ? actionsEl.querySelector(parentId ? '.reply-submit-btn' : '.comment-submit-btn') : null;
+
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Posting...';
+        }
+
+        var payload = { postId: postId, content: content };
+        if (parentId) payload.parentId = parentId;
+
+        fetch('/api/community/comments', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.textContent = parentId ? 'Reply' : 'Post';
+            }
+            if (data.ok && data.comment) {
+              textarea.value = '';
+              if (!commentsCache[postId]) commentsCache[postId] = [];
+              if (parentId) {
+                var cached = commentsCache[postId];
+                for (var i = 0; i < cached.length; i++) {
+                  if (cached[i].id === parentId) {
+                    if (!cached[i].replies) cached[i].replies = [];
+                    cached[i].replies.push(data.comment);
+                    break;
+                  }
+                }
+              } else {
+                commentsCache[postId].push(data.comment);
+              }
+              var card = document.querySelector('[data-post-id="' + postId + '"]');
+              var container = card ? card.querySelector('.post-comments') : null;
+              if (container) renderCommentsSection(postId, container);
+              if (card) updateCommentCount(postId, card);
+            }
+          })
+          .catch(function () {
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.textContent = parentId ? 'Reply' : 'Post';
+            }
+          });
+      }
+
+      // --- Delete comment ---
+      function deleteComment(commentId, postId, btn) {
+        btn.disabled = true;
+        btn.textContent = 'Deleting...';
+        fetch('/api/community/comments', {
+          method: 'DELETE',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ commentId: commentId })
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data.ok) {
+              if (commentsCache[postId]) removeFromComments(commentsCache[postId], commentId);
+              var card = document.querySelector('[data-post-id="' + postId + '"]');
+              var container = card ? card.querySelector('.post-comments') : null;
+              if (container) renderCommentsSection(postId, container);
+              if (card) updateCommentCount(postId, card);
+            } else {
+              btn.disabled = false;
+              btn.textContent = 'Delete';
+            }
+          })
+          .catch(function () {
+            btn.disabled = false;
+            btn.textContent = 'Delete';
+          });
+      }
+
+      function removeFromComments(comments, id) {
+        for (var i = 0; i < comments.length; i++) {
+          if (comments[i].id === id) { comments.splice(i, 1); return; }
+          if (comments[i].replies) {
+            for (var j = 0; j < comments[i].replies.length; j++) {
+              if (comments[i].replies[j].id === id) { comments[i].replies.splice(j, 1); return; }
+            }
+          }
+        }
+      }
+
+      // --- Comment reaction toggle ---
+      function toggleCommentReaction(commentId, emoji, postId, btn) {
+        btn.disabled = true;
+        fetch('/api/community/reactions', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ targetType: 'comment', targetId: commentId, emoji: emoji })
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            btn.disabled = false;
+            if (!data.ok) return;
+            var comment = findInComments(commentsCache[postId] || [], commentId);
+            if (comment) {
+              if (!comment.reactions) comment.reactions = {};
+              if (!comment.myReactions) comment.myReactions = [];
+              if (data.action === 'added') {
+                comment.reactions[emoji] = (comment.reactions[emoji] || 0) + 1;
+                if (comment.myReactions.indexOf(emoji) === -1) comment.myReactions.push(emoji);
+              } else {
+                comment.reactions[emoji] = Math.max(0, (comment.reactions[emoji] || 0) - 1);
+                var idx = comment.myReactions.indexOf(emoji);
+                if (idx !== -1) comment.myReactions.splice(idx, 1);
+              }
+            }
+            var card = document.querySelector('[data-post-id="' + postId + '"]');
+            var container = card ? card.querySelector('.post-comments') : null;
+            if (container) renderCommentsSection(postId, container);
+          })
+          .catch(function () { btn.disabled = false; });
+      }
+
+      function findInComments(comments, id) {
+        for (var i = 0; i < comments.length; i++) {
+          if (comments[i].id === id) return comments[i];
+          if (comments[i].replies) {
+            for (var j = 0; j < comments[i].replies.length; j++) {
+              if (comments[i].replies[j].id === id) return comments[i].replies[j];
+            }
+          }
+        }
+        return null;
+      }
+
+      function countComments(postId) {
+        var cached = commentsCache[postId] || [];
+        var n = 0;
+        for (var i = 0; i < cached.length; i++) {
+          n++;
+          if (cached[i].replies) n += cached[i].replies.length;
+        }
+        return n;
+      }
+
+      function updateCommentCount(postId, card) {
+        var btn = card.querySelector('.post-comment-count');
+        if (!btn) return;
+        var n = countComments(postId);
+        btn.textContent = n === 1 ? '1 comment' : n + ' comments';
+      }
+
+      // --- Delegated comment interactions ---
+      document.addEventListener('click', function (e) {
+        // Comment submit
+        var submitBtn = e.target.closest('.comment-submit-btn');
+        if (submitBtn) {
+          var postId = submitBtn.getAttribute('data-post-id');
+          var composeWrap = submitBtn.closest('.comment-compose-inline');
+          var textarea = composeWrap ? composeWrap.querySelector('.comment-compose-textarea') : null;
+          if (textarea) submitComment(postId, textarea, null);
+          return;
+        }
+
+        // Reply button — show reply form
+        var replyBtn = e.target.closest('.comment-reply-btn');
+        if (replyBtn) {
+          var parentId = replyBtn.getAttribute('data-parent-id');
+          var rpPostId = replyBtn.getAttribute('data-post-id');
+          var card = document.querySelector('[data-post-id="' + rpPostId + '"]');
+          if (card) {
+            var allForms = card.querySelectorAll('.comment__reply-form');
+            for (var i = 0; i < allForms.length; i++) { allForms[i].hidden = true; }
+          }
+          var replyForm = document.querySelector('[data-reply-for="' + parentId + '"]');
+          if (replyForm) {
+            replyForm.hidden = false;
+            var ta = replyForm.querySelector('textarea');
+            if (ta) ta.focus();
+          }
+          return;
+        }
+
+        // Reply cancel
+        var cancelBtn = e.target.closest('.reply-cancel-btn');
+        if (cancelBtn) {
+          var form = cancelBtn.closest('.comment__reply-form');
+          if (form) {
+            form.hidden = true;
+            var ta2 = form.querySelector('textarea');
+            if (ta2) ta2.value = '';
+          }
+          return;
+        }
+
+        // Reply submit
+        var replySubmitBtn = e.target.closest('.reply-submit-btn');
+        if (replySubmitBtn) {
+          var rpId = replySubmitBtn.getAttribute('data-parent-id');
+          var rsPostId = replySubmitBtn.getAttribute('data-post-id');
+          var replyForm2 = document.querySelector('[data-reply-for="' + rpId + '"]');
+          var ta3 = replyForm2 ? replyForm2.querySelector('textarea') : null;
+          if (ta3) submitComment(rsPostId, ta3, rpId);
+          return;
+        }
+
+        // Comment delete
+        var deleteBtn = e.target.closest('.comment-delete-btn');
+        if (deleteBtn) {
+          if (!confirm('Delete this comment?')) return;
+          var cId = deleteBtn.getAttribute('data-comment-id');
+          var dPostId = deleteBtn.getAttribute('data-post-id');
+          deleteComment(cId, dPostId, deleteBtn);
+          return;
+        }
+
+        // Comment reaction
+        var reactionBtn = e.target.closest('.comment__reactions .reaction-btn');
+        if (reactionBtn) {
+          var targetId = reactionBtn.getAttribute('data-target-id');
+          var emoji = reactionBtn.getAttribute('data-emoji');
+          var rPostId = reactionBtn.getAttribute('data-post-id');
+          toggleCommentReaction(targetId, emoji, rPostId, reactionBtn);
+          return;
+        }
+      });
+
+      // --- Edit modal ---
+      function openEditModal(post, card) {
+        editingPost = post;
+        editingCard = card;
+        editModalTitle.value = post.title || '';
+        editModalBody.value = post.body || '';
+        editModalError.hidden = true;
+
+        if (post.type === 'event') {
+          editModalEventFields.hidden = false;
+          if (post.eventDate) {
+            var ed = new Date(post.eventDate);
+            var iso = ed.getFullYear() + '-' +
+              pad2(ed.getMonth() + 1) + '-' +
+              pad2(ed.getDate()) + 'T' +
+              pad2(ed.getHours()) + ':' +
+              pad2(ed.getMinutes());
+            editModalEventDate.value = iso;
+          } else {
+            editModalEventDate.value = '';
+          }
+          editModalEventLink.value = post.eventLink || '';
+        } else {
+          editModalEventFields.hidden = true;
+        }
+
+        if (post.type === 'resource') {
+          editModalResourceFields.hidden = false;
+          editModalResourceUrl.value = post.resourceUrl || '';
+        } else {
+          editModalResourceFields.hidden = true;
+        }
+
+        editModalEl.hidden = false;
+        document.body.style.overflow = 'hidden';
+        editModalTitle.focus();
+      }
+
+      function closeEditModal() {
+        editModalEl.hidden = true;
+        document.body.style.overflow = '';
+        editingPost = null;
+        editingCard = null;
+      }
+
+      editModalCancel.addEventListener('click', closeEditModal);
+
+      editModalEl.addEventListener('click', function (e) {
+        if (e.target === editModalEl || e.target.classList.contains('edit-modal__backdrop')) closeEditModal();
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !editModalEl.hidden) closeEditModal();
+      });
+
+      editModalForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        editModalError.hidden = true;
+
+        var payload = {
+          postId: editingPost.id,
+          title: editModalTitle.value.trim(),
+          body: editModalBody.value.trim()
+        };
+
+        if (editingPost.type === 'event') {
+          payload.eventDate = editModalEventDate.value || null;
+          payload.eventLink = editModalEventLink.value.trim() || null;
+        }
+        if (editingPost.type === 'resource') {
+          payload.resourceUrl = editModalResourceUrl.value.trim() || null;
+        }
+
+        if (!payload.title) {
+          editModalErrorText.textContent = 'Title is required.';
+          editModalError.hidden = false;
+          return;
+        }
+
+        editModalSave.disabled = true;
+        editModalSave.textContent = 'Saving...';
+
+        fetch('/api/community/posts', {
+          method: 'PATCH',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            editModalSave.disabled = false;
+            editModalSave.textContent = 'Save Changes';
+            if (!data.ok) {
+              editModalErrorText.textContent = data.error || 'Update failed.';
+              editModalError.hidden = false;
+              return;
+            }
+
+            // Update local post object
+            editingPost.title = payload.title;
+            editingPost.body = payload.body;
+            if (payload.eventDate !== undefined) editingPost.eventDate = payload.eventDate;
+            if (payload.eventLink !== undefined) editingPost.eventLink = payload.eventLink;
+            if (payload.resourceUrl !== undefined) editingPost.resourceUrl = payload.resourceUrl;
+
+            // Update card DOM in-place
+            if (editingCard) {
+              var titleEl = editingCard.querySelector('.post-card__title');
+              if (titleEl) titleEl.textContent = payload.title;
+
+              var bodyEl = editingCard.querySelector('.post-card__body');
+              var showMoreBtn = editingCard.querySelector('.show-more-btn');
+              var isExpanded = editingCard.classList.contains('post-card--expanded');
+              var newIsLong = payload.body && payload.body.length > 280;
+
+              if (!payload.body) {
+                // Body cleared — remove body element and show-more button
+                if (bodyEl) bodyEl.parentNode.removeChild(bodyEl);
+                if (showMoreBtn) showMoreBtn.parentNode.removeChild(showMoreBtn);
+              } else if (bodyEl) {
+                // Body exists — update content
+                bodyEl.innerHTML = linkify(payload.body);
+                bodyEl.classList.remove('post-card__body--collapsed');
+                if (!isExpanded && newIsLong) bodyEl.classList.add('post-card__body--collapsed');
+                // Reconcile show-more button
+                if (newIsLong && !showMoreBtn) {
+                  var toggle = document.createElement('button');
+                  toggle.className = 'show-more-btn';
+                  toggle.textContent = isExpanded ? 'Show less' : 'Show more';
+                  toggle.addEventListener('click', function (ev) {
+                    ev.stopPropagation();
+                    var collapsed = bodyEl.classList.toggle('post-card__body--collapsed');
+                    toggle.textContent = collapsed ? 'Show more' : 'Show less';
+                  });
+                  bodyEl.parentNode.insertBefore(toggle, bodyEl.nextSibling);
+                } else if (!newIsLong && showMoreBtn) {
+                  showMoreBtn.parentNode.removeChild(showMoreBtn);
+                } else if (showMoreBtn) {
+                  showMoreBtn.textContent = isExpanded ? 'Show less' : 'Show more';
+                }
+              } else {
+                // Body didn't exist before — create it
+                var mainEl = editingCard.querySelector('.post-card__main');
+                var actionsEl = editingCard.querySelector('.post-card__actions');
+                if (mainEl && actionsEl) {
+                  var newBody = document.createElement('div');
+                  newBody.className = 'post-card__body';
+                  newBody.innerHTML = linkify(payload.body);
+                  if (!isExpanded && newIsLong) newBody.classList.add('post-card__body--collapsed');
+                  mainEl.insertBefore(newBody, actionsEl);
+                  if (newIsLong) {
+                    var toggle2 = document.createElement('button');
+                    toggle2.className = 'show-more-btn';
+                    toggle2.textContent = isExpanded ? 'Show less' : 'Show more';
+                    toggle2.addEventListener('click', function (ev) {
+                      ev.stopPropagation();
+                      var collapsed = newBody.classList.toggle('post-card__body--collapsed');
+                      toggle2.textContent = collapsed ? 'Show more' : 'Show less';
+                    });
+                    mainEl.insertBefore(toggle2, actionsEl);
+                  }
+                }
+              }
+            }
+
+            closeEditModal();
+          })
+          .catch(function () {
+            editModalSave.disabled = false;
+            editModalSave.textContent = 'Save Changes';
+            editModalErrorText.textContent = 'Network error. Please try again.';
+            editModalError.hidden = false;
+          });
+      });
+
     })();
   </script>
 </BaseLayout>
@@ -853,6 +1494,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     background: var(--neutral-100);
   }
 
+  /* Expanded card state */
+  .post-card--expanded {
+    cursor: default;
+  }
+  .post-card--expanded:hover {
+    background: transparent;
+  }
+
   /* Context line (Pinned / type) — indented to align with content column */
   .post-context {
     display: flex;
@@ -977,9 +1626,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     color: var(--text-primary);
     text-decoration: none;
     margin: 2px 0 4px;
-  }
-  .post-card__title:hover {
-    text-decoration: underline;
+    cursor: pointer;
   }
 
   /* Body */
@@ -1076,7 +1723,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     text-align: center;
   }
 
-  /* Comment count */
+  /* Comment count (now a button) */
   .post-comment-count {
     font-size: 13px;
     color: var(--text-tertiary);
@@ -1084,9 +1731,181 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     white-space: nowrap;
     flex-shrink: 0;
     transition: color 0.1s;
+    font-family: inherit;
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
   }
   .post-comment-count:hover {
     color: var(--accent);
+  }
+
+  /* ── Comments section (inline) ── */
+  .post-comments {
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+    margin-top: 8px;
+  }
+  .comments-loading,
+  .comments-empty {
+    color: var(--text-muted);
+    font-size: 13px;
+    padding: 8px 0;
+  }
+  .comment-compose-inline {
+    margin-bottom: 12px;
+  }
+  .comment-compose-inline__actions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 4px;
+  }
+  .form-textarea--sm {
+    font-size: 14px;
+    padding: 8px;
+    min-height: auto;
+  }
+
+  /* ── Individual comment ── */
+  .comment {
+    padding: 8px 0;
+  }
+  .comment + .comment {
+    border-top: 1px solid var(--border-color);
+  }
+  .comment--reply {
+    padding-left: 36px;
+  }
+  .comment__layout {
+    display: flex;
+    gap: 8px;
+  }
+  .comment-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--neutral-200);
+    color: var(--text-secondary);
+    font-weight: 700;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .comment-avatar--staff {
+    background: var(--purple-100);
+    color: var(--purple-700);
+  }
+  .comment__main {
+    flex: 1;
+    min-width: 0;
+  }
+  .comment__header {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    line-height: 18px;
+    flex-wrap: wrap;
+  }
+  .comment-author-name {
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--text-primary);
+  }
+  .comment-time {
+    font-size: 13px;
+    color: var(--text-tertiary);
+  }
+  .comment__body {
+    font-size: 14px;
+    line-height: 18px;
+    color: var(--text-secondary);
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    margin: 2px 0 4px;
+  }
+  .comment__body a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .comment__reactions {
+    display: flex;
+    gap: 2px;
+    flex-wrap: wrap;
+  }
+  .comment__actions {
+    display: flex;
+    gap: 4px;
+    padding-top: 2px;
+  }
+  .comment__reply-form {
+    padding: 8px 0 4px;
+  }
+  .comment__reply-actions {
+    display: flex;
+    gap: 4px;
+    justify-content: flex-end;
+    padding-top: 4px;
+  }
+
+  /* Small reaction buttons (comments) */
+  .reaction-btn--sm {
+    padding: 2px 4px;
+    font-size: 12px;
+  }
+  .reaction-btn--sm .reaction-emoji {
+    font-size: 13px;
+  }
+  .reaction-btn--sm .reaction-count {
+    font-size: 11px;
+  }
+
+  /* ── Edit modal ── */
+  .edit-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .edit-modal[hidden] {
+    display: none;
+  }
+  .edit-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+  }
+  .edit-modal__card {
+    position: relative;
+    background: var(--bg-surface);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  }
+  .edit-modal__heading {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+  .edit-modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 8px;
+  }
+  .edit-modal .form-group {
+    margin-bottom: 12px;
   }
 
   /* Load more */
@@ -1144,6 +1963,19 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     }
     .post-card__header {
       flex-wrap: wrap;
+    }
+    .comment-avatar {
+      width: 24px;
+      height: 24px;
+    }
+    .comment--reply {
+      padding-left: 28px;
+    }
+    .edit-modal {
+      padding: 8px;
+    }
+    .edit-modal__card {
+      padding: 16px;
     }
   }
 </style>
