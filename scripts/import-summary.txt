@@ -1,0 +1,19 @@
+Reading contacts (1).csv: 5873 data rows
+Reading contacts (2).csv: 45 data rows
+Reading contacts (3).csv: 61 data rows
+Reading contacts (4).csv: 2 data rows
+Reading contacts (5).csv: 1 data rows
+Reading contacts (6).csv: 1 data rows
+
+=== Wix Member Import Summary ===
+CSV rows read:        5983
+Filtered out (source):1988
+Skipped (no email):   1
+Duplicates merged:    39
+Unique contacts:      3955
+Existing D1 users:    1
+New user INSERTs:     3954
+Label INSERTs:        886
+Enrollment INSERTs:   138
+Blocked (spam):       59
+==================================
