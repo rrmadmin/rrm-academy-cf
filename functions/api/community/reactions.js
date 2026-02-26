@@ -35,20 +35,17 @@ export async function onRequestPost({ request, env }) {
 
     const db = env.DB;
 
-    // Toggle: check if exists, then add or remove
-    const existing = await db.prepare(
-      'SELECT rowid FROM community_reaction WHERE user_id = ? AND target_type = ? AND target_id = ? AND emoji = ?'
-    ).bind(user.id, targetType, targetId, emoji).first();
+    // Toggle: try to delete first; if nothing was deleted, insert
+    const del = await db.prepare(
+      'DELETE FROM community_reaction WHERE user_id = ? AND target_type = ? AND target_id = ? AND emoji = ?'
+    ).bind(user.id, targetType, targetId, emoji).run();
 
-    if (existing) {
-      await db.prepare(
-        'DELETE FROM community_reaction WHERE user_id = ? AND target_type = ? AND target_id = ? AND emoji = ?'
-      ).bind(user.id, targetType, targetId, emoji).run();
+    if (del.meta.changes > 0) {
       return json({ ok: true, action: 'removed' });
     }
 
     await db.prepare(
-      'INSERT INTO community_reaction (user_id, target_type, target_id, emoji) VALUES (?, ?, ?, ?)'
+      'INSERT OR IGNORE INTO community_reaction (user_id, target_type, target_id, emoji) VALUES (?, ?, ?, ?)'
     ).bind(user.id, targetType, targetId, emoji).run();
 
     return json({ ok: true, action: 'added' }, 201);

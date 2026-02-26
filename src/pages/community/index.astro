@@ -434,7 +434,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         var reactionBar = document.createElement('div');
         reactionBar.className = 'reaction-bar';
         var reactions = post.reactions || {};
-        var userReactions = post.userReactions || [];
+        var userReactions = post.myReactions || [];
 
         for (var e = 0; e < EMOJIS.length; e++) {
           (function (emoji) {

@@ -9,6 +9,15 @@ import {
   requireMember, displayName, canCreateType, canEditPost, canDeletePost, canPin,
 } from './_shared.js';
 
+function isSafeUrl(url) {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+  } catch {
+    return false;
+  }
+}
+
 export async function onRequestOptions() {
   return optionsResponse();
 }
@@ -32,19 +41,25 @@ export async function onRequestGet({ request, env }) {
     if (type === 'event') {
       // Events: upcoming first (ASC), then past (DESC)
       const now = new Date().toISOString();
+      let eventWhere = "WHERE p.type = 'event'";
+      params = [];
+      if (before) {
+        eventWhere += ' AND p.created_at < ?';
+        params.push(before);
+      }
       sql = `
         SELECT p.*, u.name as author_name, u.first_name, u.last_name, u.role as author_role,
           (SELECT COUNT(*) FROM community_comment WHERE post_id = p.id) as comment_count
         FROM community_post p
         JOIN user u ON u.id = p.author_id
-        WHERE p.type = 'event'
+        ${eventWhere}
         ORDER BY
           CASE WHEN p.event_date >= ? THEN 0 ELSE 1 END,
           CASE WHEN p.event_date >= ? THEN p.event_date END ASC,
           CASE WHEN p.event_date < ? THEN p.event_date END DESC
         LIMIT ?
       `;
-      params = [now, now, now, limit];
+      params.push(now, now, now, limit);
     } else {
       // All other types: pinned first, then by created_at DESC
       let whereClause = '';
@@ -173,6 +188,13 @@ export async function onRequestPost({ request, env }) {
       if (!eventLink) return json({ ok: false, error: 'Event link required' }, 400);
     }
 
+    if (eventLink && !isSafeUrl(eventLink)) {
+      return json({ ok: false, error: 'Event link must be an http or https URL' }, 400);
+    }
+    if (resourceUrl && !isSafeUrl(resourceUrl)) {
+      return json({ ok: false, error: 'Resource URL must be an http or https URL' }, 400);
+    }
+
     const id = generateId();
     const db = env.DB;
 
@@ -250,8 +272,14 @@ export async function onRequestPatch({ request, env }) {
       updates.push('body = ?'); values.push(postBody.trim());
     }
     if (eventDate !== undefined) { updates.push('event_date = ?'); values.push(eventDate); }
-    if (eventLink !== undefined) { updates.push('event_link = ?'); values.push(eventLink); }
-    if (resourceUrl !== undefined) { updates.push('resource_url = ?'); values.push(resourceUrl); }
+    if (eventLink !== undefined) {
+      if (eventLink && !isSafeUrl(eventLink)) return json({ ok: false, error: 'Event link must be an http or https URL' }, 400);
+      updates.push('event_link = ?'); values.push(eventLink);
+    }
+    if (resourceUrl !== undefined) {
+      if (resourceUrl && !isSafeUrl(resourceUrl)) return json({ ok: false, error: 'Resource URL must be an http or https URL' }, 400);
+      updates.push('resource_url = ?'); values.push(resourceUrl);
+    }
 
     if (!updates.length) return json({ ok: false, error: 'Nothing to update' }, 400);
 
