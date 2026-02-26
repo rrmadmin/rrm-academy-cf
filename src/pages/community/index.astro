@@ -62,6 +62,15 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
               <textarea class="form-textarea" id="compose-body" name="body" rows="4" placeholder="Share details, a question, or a thought..."></textarea>
             </div>
 
+            <div class="compose-image-bar">
+              <label class="btn btn--secondary btn--sm compose-image-btn" for="compose-image-input">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                Add Image
+              </label>
+              <input type="file" id="compose-image-input" accept="image/jpeg,image/png,image/webp,image/gif" hidden />
+              <div id="compose-image-preview" class="compose-image-preview" hidden></div>
+            </div>
+
             <!-- Staff-only type selector -->
             <div id="compose-type-group" class="form-group" hidden>
               <label class="form-label" for="compose-type">Post type</label>
@@ -133,6 +142,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
               <label class="form-label" for="edit-modal-body">Body</label>
               <textarea class="form-textarea" id="edit-modal-body" name="body" rows="6" maxlength="10000"></textarea>
             </div>
+            <div class="compose-image-bar">
+              <label class="btn btn--secondary btn--sm compose-image-btn" for="edit-modal-image-input">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                Add Image
+              </label>
+              <input type="file" id="edit-modal-image-input" accept="image/jpeg,image/png,image/webp,image/gif" hidden />
+              <div id="edit-modal-image-preview" class="compose-image-preview" hidden></div>
+            </div>
             <div id="edit-modal-event-fields" hidden>
               <div class="form-group">
                 <label class="form-label" for="edit-modal-event-date">Event date</label>
@@ -192,6 +209,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       var composeError = document.getElementById('compose-error');
       var composeErrorText = document.getElementById('compose-error-text');
       var composeSubmitBtn = document.getElementById('compose-submit-btn');
+      var composeImageInput = document.getElementById('compose-image-input');
+      var composeImagePreview = document.getElementById('compose-image-preview');
       var tabs = document.querySelectorAll('.feed-tab');
 
       // Edit modal refs
@@ -208,6 +227,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       var editModalErrorText = document.getElementById('edit-modal-error-text');
       var editModalSave = document.getElementById('edit-modal-save');
       var editModalCancel = document.getElementById('edit-modal-cancel');
+      var editModalImageInput = document.getElementById('edit-modal-image-input');
+      var editModalImagePreview = document.getElementById('edit-modal-image-preview');
 
       var currentUser = null;
       var activeType = '';
@@ -265,7 +286,58 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           composeTitle.value = '';
           composeBody.value = '';
           composeError.hidden = true;
+          composeImageInput.value = '';
+          composeImagePreview.hidden = true;
+          composeImagePreview.innerHTML = '';
         });
+
+        // --- Image upload handler (shared by compose + edit) ---
+        function wireImageUpload(fileInput, previewEl, bodyTextarea, errorEl, errorTextEl) {
+          fileInput.addEventListener('change', function () {
+            var file = fileInput.files[0];
+            if (!file) return;
+            if (file.size > 5 * 1024 * 1024) {
+              errorTextEl.textContent = 'Image too large (max 5 MB).';
+              errorEl.hidden = false;
+              fileInput.value = '';
+              return;
+            }
+            previewEl.hidden = false;
+            previewEl.innerHTML = '<span class="compose-image-preview__uploading">Uploading...</span>';
+
+            var fd = new FormData();
+            fd.append('file', file);
+            fetch('/api/community/upload', { method: 'POST', credentials: 'same-origin', body: fd })
+              .then(function (r) { return r.json(); })
+              .then(function (data) {
+                if (data.error) {
+                  previewEl.hidden = true;
+                  errorTextEl.textContent = data.error;
+                  errorEl.hidden = false;
+                } else {
+                  var imgTag = '![image](' + data.url + ')';
+                  var body = bodyTextarea.value;
+                  bodyTextarea.value = body + (body ? '\n' : '') + imgTag;
+                  previewEl.innerHTML = '<img src="' + data.url + '" class="compose-image-preview__thumb" />'
+                    + '<button type="button" class="compose-image-preview__remove" title="Remove">&times;</button>';
+                  previewEl.querySelector('.compose-image-preview__remove').addEventListener('click', function () {
+                    bodyTextarea.value = bodyTextarea.value.replace(imgTag, '').trim();
+                    previewEl.hidden = true;
+                    previewEl.innerHTML = '';
+                    fileInput.value = '';
+                  });
+                }
+              })
+              .catch(function () {
+                previewEl.hidden = true;
+                errorTextEl.textContent = 'Image upload failed.';
+                errorEl.hidden = false;
+              });
+          });
+        }
+
+        wireImageUpload(composeImageInput, composeImagePreview, composeBody, composeError, composeErrorText);
+        wireImageUpload(editModalImageInput, editModalImagePreview, editModalBody, editModalError, editModalErrorText);
 
         loadPosts(false);
       }
@@ -388,6 +460,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             if (data.ok && data.post) {
               composeTitle.value = '';
               composeBody.value = '';
+              composeImageInput.value = '';
+              composeImagePreview.hidden = true;
+              composeImagePreview.innerHTML = '';
               composeCard.hidden = true;
               composeTrigger.hidden = false;
               if (isStaff) {
@@ -1183,6 +1258,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         document.body.style.overflow = '';
         editingPost = null;
         editingCard = null;
+        editModalImageInput.value = '';
+        editModalImagePreview.hidden = true;
+        editModalImagePreview.innerHTML = '';
       }
 
       editModalCancel.addEventListener('click', closeEditModal);
