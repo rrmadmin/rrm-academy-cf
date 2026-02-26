@@ -39,7 +39,7 @@ export async function onRequestPost({ request, env }) {
     if (!turnstileOk) return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
 
     // Look up user
-    const user = await db.prepare('SELECT id, email, hashed_password, name, first_name, last_name, email_verified, role FROM user WHERE email = ?')
+    const user = await db.prepare('SELECT id, email, hashed_password, name, first_name, last_name, email_verified, role, blocked FROM user WHERE email = ?')
       .bind(email).first();
 
     // Constant-time-ish: always verify even if user doesn't exist (prevent timing attacks)
@@ -49,9 +49,19 @@ export async function onRequestPost({ request, env }) {
       return json({ ok: false, error: 'Invalid email or password.' }, 401);
     }
 
+    // Google-only accounts have no password — reject before verifyPassword throws
+    if (!user.hashed_password) {
+      return json({ ok: false, error: 'This account uses Google sign-in. Please use the Sign in with Google button.' }, 401);
+    }
+
     const valid = await verifyPassword(password, user.hashed_password);
     if (!valid) {
       return json({ ok: false, error: 'Invalid email or password.' }, 401);
+    }
+
+    // Check if account is blocked
+    if (user.blocked) {
+      return json({ ok: false, error: 'Account blocked.' }, 401);
     }
 
     // Create session
