@@ -1,4 +1,4 @@
--- RRM Academy Schema (Phases 6 + 8)
+-- RRM Academy Schema (Phases 6 + 8 + member migration)
 -- Applied to D1 database: rrm-auth
 
 CREATE TABLE IF NOT EXISTS user (
@@ -12,7 +12,10 @@ CREATE TABLE IF NOT EXISTS user (
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now')),
     stripe_customer_id TEXT,
-    role TEXT DEFAULT 'member'
+    role TEXT DEFAULT 'member',
+    google_id TEXT,
+    wix_member_id TEXT,
+    blocked INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS session (
@@ -41,6 +44,17 @@ CREATE INDEX IF NOT EXISTS idx_email_verification_user ON email_verification(use
 CREATE INDEX IF NOT EXISTS idx_password_reset_user ON password_reset(user_id);
 CREATE INDEX IF NOT EXISTS idx_password_reset_token ON password_reset(token_hash);
 CREATE INDEX IF NOT EXISTS idx_user_email ON user(email);
+
+-- Labels system (informational metadata, not access control)
+
+CREATE TABLE IF NOT EXISTS user_label (
+    user_id TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+    label TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now')),
+    PRIMARY KEY(user_id, label)
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_label_label ON user_label(label);
 
 -- Phase 8: Courses & Enrollment
 
@@ -115,7 +129,8 @@ CREATE TABLE IF NOT EXISTS community_post (
     event_link TEXT,
     resource_url TEXT,
     created_at TEXT DEFAULT (datetime('now')),
-    updated_at TEXT DEFAULT (datetime('now'))
+    updated_at TEXT DEFAULT (datetime('now')),
+    channel TEXT NOT NULL DEFAULT 'stuc'
 );
 
 CREATE TABLE IF NOT EXISTS community_comment (
@@ -138,6 +153,7 @@ CREATE TABLE IF NOT EXISTS community_reaction (
 
 CREATE INDEX IF NOT EXISTS idx_community_post_type ON community_post(type);
 CREATE INDEX IF NOT EXISTS idx_community_post_pinned ON community_post(pinned, created_at);
+CREATE INDEX IF NOT EXISTS idx_community_post_channel ON community_post(channel, created_at);
 CREATE INDEX IF NOT EXISTS idx_community_comment_post ON community_comment(post_id);
 CREATE INDEX IF NOT EXISTS idx_community_reaction_target ON community_reaction(target_type, target_id);
 
