@@ -9,8 +9,10 @@
  * Quiz question format (in quizzes.json):
  *   { id, text, options: string[], correctIndex: number }
  *
- * Questionnaire question format:
- *   { id, text, type: "likert", scale: { min, max, labels: string[] } }
+ * Questionnaire question formats:
+ *   { id, text, type: "likert", scale: { min, max, labels: string[] }, prefix?: string }
+ *   { id, text, type: "freetext" }
+ *   { id, text, type: "multiselect", options: string[] }
  */
 import {
   json, optionsResponse, getSessionIdFromCookie, validateSession,

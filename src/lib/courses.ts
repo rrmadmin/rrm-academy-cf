@@ -13,6 +13,7 @@ export interface CourseStep {
   type: 'video' | 'article' | 'quiz';
   streamUid?: string;
   duration?: number;
+  content?: string;
 }
 
 export interface CourseSection {
