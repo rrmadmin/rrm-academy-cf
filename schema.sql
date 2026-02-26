@@ -69,6 +69,22 @@ CREATE TABLE IF NOT EXISTS step_progress (
 CREATE INDEX IF NOT EXISTS idx_enrollment_user ON enrollment(user_id);
 CREATE INDEX IF NOT EXISTS idx_enrollment_course ON enrollment(course_id);
 
+-- Quiz & questionnaire response history (one row per question per attempt)
+CREATE TABLE IF NOT EXISTS quiz_response (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+    course_id TEXT NOT NULL,
+    step_id TEXT NOT NULL,
+    attempt INTEGER NOT NULL DEFAULT 1,
+    question_id TEXT NOT NULL,
+    answer_value TEXT NOT NULL,
+    is_correct INTEGER,
+    submitted_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_quiz_response_user_step ON quiz_response(user_id, course_id, step_id);
+CREATE INDEX IF NOT EXISTS idx_quiz_response_step ON quiz_response(step_id);
+
 -- Phase 8: Lesson Comments
 
 CREATE TABLE IF NOT EXISTS lesson_comment (
