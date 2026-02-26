@@ -6,6 +6,8 @@
 import { json, optionsResponse, generateId } from '../auth/_shared.js';
 import { requireMember, displayName, canDeleteComment, roleAtLeast } from './_shared.js';
 
+const ARCHIVE_CHANNELS = ['members', 'masterclass'];
+
 export async function onRequestOptions() {
   return optionsResponse();
 }
@@ -188,6 +190,12 @@ export async function onRequestDelete({ request, env }) {
     const db = env.DB;
     const comment = await db.prepare('SELECT * FROM community_comment WHERE id = ?').bind(commentId).first();
     if (!comment) return json({ ok: false, error: 'Comment not found' }, 404);
+
+    // Archive channels are read-only for non-admin users
+    const parentPost = await db.prepare('SELECT channel FROM community_post WHERE id = ?').bind(comment.post_id).first();
+    if (parentPost && ARCHIVE_CHANNELS.includes(parentPost.channel) && !roleAtLeast(user.role, 'admin')) {
+      return json({ ok: false, error: 'Not authorized for this channel' }, 403);
+    }
 
     if (!canDeleteComment(user.role, user.id, comment)) {
       return json({ ok: false, error: 'Not authorized' }, 403);

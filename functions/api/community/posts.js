@@ -275,6 +275,11 @@ export async function onRequestPatch({ request, env }) {
       return json({ ok: true, pinned: !!pinned });
     }
 
+    // Archive channels are read-only for non-admin users
+    if (ARCHIVE_CHANNELS.includes(post.channel) && !roleAtLeast(user.role, 'admin')) {
+      return json({ ok: false, error: 'Not authorized for this channel' }, 403);
+    }
+
     // Edit — author or admin+
     if (!canEditPost(user.role, user.id, post)) {
       return json({ ok: false, error: 'Not authorized' }, 403);
@@ -335,6 +340,11 @@ export async function onRequestDelete({ request, env }) {
     const db = env.DB;
     const post = await db.prepare('SELECT * FROM community_post WHERE id = ?').bind(postId).first();
     if (!post) return json({ ok: false, error: 'Post not found' }, 404);
+
+    // Archive channels are read-only for non-admin users
+    if (ARCHIVE_CHANNELS.includes(post.channel) && !roleAtLeast(user.role, 'admin')) {
+      return json({ ok: false, error: 'Not authorized for this channel' }, 403);
+    }
 
     if (!canDeletePost(user.role, user.id, post)) {
       return json({ ok: false, error: 'Not authorized' }, 403);
