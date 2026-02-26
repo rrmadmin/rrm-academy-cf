@@ -31,6 +31,9 @@ export async function onRequestGet({ request, env }) {
     if (!courseId || !stepId) {
       return json({ ok: false, error: 'courseId and stepId required' }, 400);
     }
+    if (!isValidStep(courseId, stepId)) {
+      return json({ ok: false, error: 'Invalid step' }, 400);
+    }
 
     // Verify enrolled
     const enrollment = await db.prepare(

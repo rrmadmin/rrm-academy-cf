@@ -6,9 +6,9 @@
  * All endpoints require authentication.
  */
 import {
-  json, optionsResponse, getSessionIdFromCookie, validateSession, generateId,
+  json, optionsResponse, getSessionIdFromCookie, validateSession,
 } from '../auth/_shared.js';
-import { getCourse, getTotalSteps, isValidStep, getCertificateQuizId, CERTIFICATE_MIN_SCORE, getPreviousStepId } from './_shared.js';
+import { getCourse, getTotalSteps, isValidStep, getCertificateQuizId, CERTIFICATE_MIN_SCORE, getPreviousStepId, autoEnrollAdmin } from './_shared.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -223,18 +223,4 @@ async function handleProgressUpdate(request, env) {
   }
 
   return json({ ok: true, courseCompleted, certificateIssued });
-}
-
-/**
- * If user is superadmin, silently auto-enroll in any course they access.
- * Creates an enrollment row so progress tracking works normally.
- */
-async function autoEnrollAdmin(db, userId, courseId) {
-  const user = await db.prepare('SELECT role FROM user WHERE id = ?').bind(userId).first();
-  if (user?.role !== 'superadmin') return;
-
-  const id = generateId();
-  await db.prepare(
-    'INSERT OR IGNORE INTO enrollment (id, user_id, course_id) VALUES (?, ?, ?)'
-  ).bind(id, userId, courseId).run();
 }

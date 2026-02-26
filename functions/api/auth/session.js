@@ -12,45 +12,50 @@ export async function onRequestOptions() {
 }
 
 export async function onRequestGet({ request, env }) {
-  const db = env.DB;
-  if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
+  try {
+    const db = env.DB;
+    if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
 
-  const sessionId = getSessionIdFromCookie(request);
-  const session = await validateSession(db, sessionId);
+    const sessionId = getSessionIdFromCookie(request);
+    const session = await validateSession(db, sessionId);
 
-  if (!session) {
-    return json({ ok: true, user: null });
-  }
+    if (!session) {
+      return json({ ok: true, user: null });
+    }
 
-  // Fetch user data
-  const user = await db.prepare(
-    'SELECT id, email, name, first_name, last_name, email_verified, role FROM user WHERE id = ?'
-  ).bind(session.userId).first();
+    // Fetch user data
+    const user = await db.prepare(
+      'SELECT id, email, name, first_name, last_name, email_verified, role FROM user WHERE id = ?'
+    ).bind(session.userId).first();
 
-  if (!user) {
-    return json({ ok: true, user: null });
-  }
+    if (!user) {
+      return json({ ok: true, user: null });
+    }
 
-  const headers = {};
-  // If session was renewed, send updated cookie
-  if (session.renewed) {
-    headers['Set-Cookie'] = sessionCookie(session.id, session.expiresAt);
-  }
+    const headers = {};
+    // If session was renewed, send updated cookie
+    if (session.renewed) {
+      headers['Set-Cookie'] = sessionCookie(session.id, session.expiresAt);
+    }
 
-  return json(
-    {
-      ok: true,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        firstName: user.first_name || '',
-        lastName: user.last_name || '',
-        emailVerified: !!user.email_verified,
-        role: user.role,
+    return json(
+      {
+        ok: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          firstName: user.first_name || '',
+          lastName: user.last_name || '',
+          emailVerified: !!user.email_verified,
+          role: user.role,
+        },
       },
-    },
-    200,
-    headers
-  );
+      200,
+      headers
+    );
+  } catch (err) {
+    console.error('session GET error:', err.message, err.stack);
+    return json({ ok: false, error: 'Internal error' }, 500);
+  }
 }

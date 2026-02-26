@@ -3,6 +3,7 @@
  * Prefixed with _ so CF Pages doesn't treat it as a route handler.
  */
 import coursesData from '../../../src/data/courses.json';
+import { generateId } from '../auth/_shared.js';
 
 // Index courses by id and slug for O(1) lookup
 const coursesById = new Map(coursesData.map(c => [c.id, c]));
@@ -10,10 +11,6 @@ const coursesBySlug = new Map(coursesData.map(c => [c.slug, c]));
 
 export function getCourse(courseId) {
   return coursesById.get(courseId) || null;
-}
-
-export function getCourseBySlug(slug) {
-  return coursesBySlug.get(slug) || null;
 }
 
 export function getAllStepIds(courseId) {
@@ -60,6 +57,20 @@ export function getPreviousStepId(courseId, stepId) {
   const idx = allSteps.indexOf(stepId);
   if (idx <= 0) return null;
   return allSteps[idx - 1];
+}
+
+/**
+ * If user is superadmin, silently auto-enroll in any course they access.
+ * Creates an enrollment row so progress tracking works normally.
+ */
+export async function autoEnrollAdmin(db, userId, courseId) {
+  const user = await db.prepare('SELECT role FROM user WHERE id = ?').bind(userId).first();
+  if (user?.role !== 'superadmin') return;
+
+  const id = generateId();
+  await db.prepare(
+    'INSERT OR IGNORE INTO enrollment (id, user_id, course_id) VALUES (?, ?, ?)'
+  ).bind(id, userId, courseId).run();
 }
 
 export { coursesData };

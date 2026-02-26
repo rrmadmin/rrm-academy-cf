@@ -13,9 +13,9 @@
  *   { id, text, type: "likert", scale: { min, max, labels: string[] } }
  */
 import {
-  json, optionsResponse, getSessionIdFromCookie, validateSession, generateId,
+  json, optionsResponse, getSessionIdFromCookie, validateSession,
 } from '../auth/_shared.js';
-import { getCourse, isValidStep, getPreviousStepId } from './_shared.js';
+import { getCourse, isValidStep, getPreviousStepId, autoEnrollAdmin } from './_shared.js';
 import quizData from '../../../src/data/quizzes.json';
 
 export async function onRequestOptions() {
@@ -199,18 +199,4 @@ async function handleQuizSubmit(request, env) {
   const response = { ok: true, score, passed };
   if (results) response.results = results;
   return json(response);
-}
-
-/**
- * If user is superadmin, silently auto-enroll in any course they access.
- * Mirrors the same function in progress.js.
- */
-async function autoEnrollAdmin(db, userId, courseId) {
-  const user = await db.prepare('SELECT role FROM user WHERE id = ?').bind(userId).first();
-  if (user?.role !== 'superadmin') return;
-
-  const id = generateId();
-  await db.prepare(
-    'INSERT OR IGNORE INTO enrollment (id, user_id, course_id) VALUES (?, ?, ?)'
-  ).bind(id, userId, courseId).run();
 }

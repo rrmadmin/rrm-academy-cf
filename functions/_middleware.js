@@ -7,6 +7,7 @@
  * NOTE: Old library slug redirects are handled by the rrm-router Worker,
  * not here (avoids loading the 500KB redirect map on every request).
  */
+import { getSessionIdFromCookie, validateSession, sessionCookie } from './api/auth/_shared.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -21,26 +22,22 @@ export async function onRequest(context) {
     );
   }
 
-  // Auth protection: /account/* requires a valid session
-  // The page itself does a client-side check, but this middleware provides
-  // a server-side redirect for direct navigation (no JS needed)
-  if (url.pathname === '/account' || url.pathname.startsWith('/account/')) {
+  const needsAuth =
+    url.pathname === '/account' || url.pathname.startsWith('/account/') ||
+    url.pathname === '/community' || url.pathname.startsWith('/community/');
+
+  if (needsAuth) {
     if (!env.DB) {
       return new Response('Service Unavailable', { status: 503 });
     }
-    const cookie = request.headers.get('Cookie') || '';
-    const match = cookie.match(/(?:^|;\s*)session=([^;]+)/);
-    const sessionId = match ? match[1] : null;
+    const sessionId = getSessionIdFromCookie(request);
 
     if (!sessionId) {
       return Response.redirect(`https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname)}`, 302);
     }
 
-    // Validate session exists and hasn't expired
-    const session = await env.DB.prepare('SELECT expires_at FROM session WHERE id = ?')
-      .bind(sessionId).first();
-    const now = Math.floor(Date.now() / 1000);
-    if (!session || now >= session.expires_at) {
+    const session = await validateSession(env.DB, sessionId);
+    if (!session) {
       return new Response(null, {
         status: 302,
         headers: {
@@ -49,34 +46,14 @@ export async function onRequest(context) {
         },
       });
     }
-  }
 
-  // Auth protection: /community/* requires a valid session
-  // Subscription check happens client-side via /api/community/status
-  if (url.pathname === '/community' || url.pathname.startsWith('/community/')) {
-    if (!env.DB) {
-      return new Response('Service Unavailable', { status: 503 });
+    const response = await context.next();
+    if (session.renewed) {
+      const newResponse = new Response(response.body, response);
+      newResponse.headers.append('Set-Cookie', sessionCookie(session.id, session.expiresAt));
+      return newResponse;
     }
-    const cookie = request.headers.get('Cookie') || '';
-    const match = cookie.match(/(?:^|;\s*)session=([^;]+)/);
-    const sessionId = match ? match[1] : null;
-
-    if (!sessionId) {
-      return Response.redirect(`https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname)}`, 302);
-    }
-
-    const session = await env.DB.prepare('SELECT expires_at FROM session WHERE id = ?')
-      .bind(sessionId).first();
-    const now = Math.floor(Date.now() / 1000);
-    if (!session || now >= session.expires_at) {
-      return new Response(null, {
-        status: 302,
-        headers: {
-          'Location': `https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname)}`,
-          'Set-Cookie': 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
-        },
-      });
-    }
+    return response;
   }
 
   // Continue to static assets / functions
