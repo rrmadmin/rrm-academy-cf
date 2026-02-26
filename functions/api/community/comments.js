@@ -4,7 +4,7 @@
  * DELETE /api/community/comments          — delete comment
  */
 import { json, optionsResponse, generateId } from '../auth/_shared.js';
-import { requireMember, displayName, canDeleteComment } from './_shared.js';
+import { requireMember, displayName, canDeleteComment, roleAtLeast } from './_shared.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -127,8 +127,13 @@ export async function onRequestPost({ request, env }) {
     const db = env.DB;
 
     // Verify post exists
-    const post = await db.prepare('SELECT id FROM community_post WHERE id = ?').bind(postId).first();
+    const post = await db.prepare('SELECT id, channel FROM community_post WHERE id = ?').bind(postId).first();
     if (!post) return json({ ok: false, error: 'Post not found' }, 404);
+
+    // Archive channels are read-only for non-admin users
+    if (post.channel !== 'stuc' && !roleAtLeast(user.role, 'admin')) {
+      return json({ ok: false, error: 'Not authorized for this channel' }, 403);
+    }
 
     // If replying, verify parent exists and is top-level
     if (parentId) {
