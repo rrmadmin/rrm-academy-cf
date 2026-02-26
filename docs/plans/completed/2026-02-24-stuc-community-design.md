@@ -232,6 +232,35 @@ Post-signup, post-enrollment, and post-comment flows that previously nudged towa
 
 ---
 
+## Post-Merge Enhancements
+
+### Profile Avatars
+
+**Status:** Not yet implemented. Currently all avatars are colored circles with first initial (purple for staff, gray for members).
+
+**Problem:** The `user` table has no `picture` column. Google OAuth fetches the profile picture URL but never stores it. No API endpoint returns avatar URLs. ~26 of 36 STUC members have custom avatars on Wix (`static.wixstatic.com`) that will die at decommission.
+
+**Implementation:**
+
+1. **Schema migration** — add `picture TEXT` column to `user` table
+2. **Google OAuth capture** — store `profile.picture` on sign-in and update on subsequent logins (`functions/api/auth/google-callback.js`)
+3. **Wix avatar migration** — download the 26 custom images from Wix static media, upload to R2 (`avatars/` prefix), update `user.picture` for matched accounts. Source data: `~/Downloads/Here are all 36 members...scraped with their avatars and badges.md`
+4. **API changes** — include `authorPicture` in responses from:
+   - `GET /api/community/status` (user object)
+   - `GET /api/community/posts` (each post)
+   - `GET /api/community/comments` (each comment)
+5. **Frontend rendering** — replace initial-circle `<span>` with `<img>` when picture URL exists, fall back to initial circle when null. Affects:
+   - `/community` feed (post avatars, comment avatars, compose trigger avatar)
+   - `/community/post/[id]` detail page (comment avatars — currently renders no avatars at all)
+   - Account/profile page (if applicable)
+
+**Avatar URL sources by priority:**
+1. R2-hosted upload (migrated from Wix or future self-upload)
+2. Google profile picture (`lh3.googleusercontent.com`)
+3. Fall back to colored initial circle
+
+---
+
 ## Non-Goals (Explicitly Out of Scope)
 
 - Real-time updates (WebSocket/SSE) — polling or manual refresh is fine for this community size
