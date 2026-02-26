@@ -1,64 +1,100 @@
 {
   "mc-intro-3": {
     "type": "quiz",
-    "title": "Pre-Class Quiz",
+    "title": "Pre-Class Quiz on Endometriosis & Surgery",
     "description": "Test your baseline knowledge before starting the course. Your score will not affect your certificate.",
     "passingScore": null,
     "questions": [
       {
         "id": "pre-q1",
-        "text": "Endometriosis is a condition in which:",
-        "options": [
-          "The uterine lining becomes abnormally thick",
-          "Tissue similar to the uterine lining grows outside the uterus",
-          "The ovaries develop multiple cysts",
-          "The uterus is positioned abnormally"
-        ],
+        "text": "What is the total number of stages of endometriosis?",
+        "options": ["3", "4", "6", "7"],
         "correctIndex": 1
       },
       {
         "id": "pre-q2",
-        "text": "Which of the following is the most common symptom of endometriosis?",
+        "text": "What are the main subspecialties of OBGYN?",
         "options": [
-          "Frequent urination",
-          "Chronic fatigue only",
-          "Pelvic pain",
-          "Weight gain"
+          "Obstetrics, Gynecology, Reproductive Endocrinology and Infertility",
+          "Reproductive Immunology, Obstetrics, Gynecology",
+          "Reproductive Endocrinology and Infertility, Gynecology Oncology, Minimally Invasive Gyn Surgery",
+          "Napro, Gynecology Oncology, Reproductive Endocrinology and Infertility"
         ],
         "correctIndex": 2
       },
       {
         "id": "pre-q3",
-        "text": "Approximately what percentage of women of reproductive age are affected by endometriosis?",
+        "text": "Which tool(s) can be used in endometriosis surgery?",
         "options": [
-          "1–2%",
-          "About 10%",
-          "25%",
-          "50%"
+          "Robot",
+          "Non-robotic laparoscopy",
+          "Laser",
+          "Electrocautery",
+          "All of the above",
+          "A & D"
+        ],
+        "correctIndex": 4
+      },
+      {
+        "id": "pre-q4",
+        "text": "Which theory of endometriosis origin is the most commonly taught in medical school?",
+        "options": [
+          "Retrograde menstruation",
+          "Embryologic",
+          "Multifactorial",
+          "None of the above"
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": "pre-q5",
+        "text": "Which method(s) can be used to prevent adhesions?",
+        "options": [
+          "Hemostasis",
+          "Minimize thermal damage",
+          "Seprafilm",
+          "Gortex",
+          "All of the above",
+          "B & C"
+        ],
+        "correctIndex": 4
+      },
+      {
+        "id": "pre-q6",
+        "text": "What does endometriosis look like?",
+        "options": [
+          "Black",
+          "Brown",
+          "Clear blebs",
+          "White",
+          "Halo",
+          "All of the above",
+          "A & B"
+        ],
+        "correctIndex": 5
+      },
+      {
+        "id": "pre-q7",
+        "text": "Which technique(s) are an important part of a diagnostic laparoscopy?",
+        "options": [
+          "Quick technique",
+          "Mapping the abdomen",
+          "Minimal incisions"
         ],
         "correctIndex": 1
       },
       {
-        "id": "pre-q4",
-        "text": "The definitive method for diagnosing endometriosis is:",
+        "id": "pre-q8",
+        "text": "Which organ(s) does endometriosis grow on?",
         "options": [
-          "Ultrasound imaging",
-          "Blood test (CA-125)",
-          "Surgical visualization (laparoscopy)",
-          "MRI scan"
+          "Bowel",
+          "Appendix",
+          "Diaphragm",
+          "Bladder",
+          "None of the above",
+          "All of the above"
         ],
-        "correctIndex": 2
-      },
-      {
-        "id": "pre-q5",
-        "text": "Endometriosis can affect fertility by:",
-        "options": [
-          "Only by blocking the fallopian tubes",
-          "Only through hormonal imbalances",
-          "Through multiple mechanisms including inflammation, adhesions, and altered egg quality",
-          "It does not affect fertility"
-        ],
-        "correctIndex": 2
+        "correctIndex": 5
       }
     ]
   },
@@ -69,33 +105,107 @@
     "questions": [
       {
         "id": "preq-q1",
-        "text": "How familiar are you with endometriosis as a condition?",
-        "type": "likert",
-        "scale": { "min": 1, "max": 5, "labels": ["Not at all", "Slightly", "Somewhat", "Very", "Extremely"] }
+        "text": "What are your current expectations for the masterclass?",
+        "type": "freetext"
       },
       {
         "id": "preq-q2",
-        "text": "How confident do you feel discussing treatment options with your doctor?",
-        "type": "likert",
-        "scale": { "min": 1, "max": 5, "labels": ["Not at all", "Slightly", "Somewhat", "Very", "Extremely"] }
+        "text": "What do you hope to gain from the class?",
+        "type": "freetext"
       },
       {
         "id": "preq-q3",
-        "text": "How well do you understand what to expect from endometriosis surgery?",
-        "type": "likert",
-        "scale": { "min": 1, "max": 5, "labels": ["Not at all", "Slightly", "Somewhat", "Very", "Extremely"] }
+        "text": "What problem are you hoping to solve?",
+        "type": "freetext"
       },
       {
         "id": "preq-q4",
-        "text": "How important is it for you to understand the surgical process before your procedure?",
-        "type": "likert",
-        "scale": { "min": 1, "max": 5, "labels": ["Not important", "Slightly", "Moderately", "Very", "Extremely"] }
+        "text": "How would you describe yourself?",
+        "type": "multiselect",
+        "options": ["I am an Endo Warrior", "I care for women with endometriosis"]
       },
       {
         "id": "preq-q5",
-        "text": "How would you rate your current knowledge of post-operative recovery?",
+        "text": "Speaking to a surgeon about endometriosis?",
         "type": "likert",
-        "scale": { "min": 1, "max": 5, "labels": ["Very poor", "Poor", "Fair", "Good", "Excellent"] }
+        "prefix": "How confident do you feel...",
+        "scale": { "min": 0, "max": 5, "labels": ["Not confident", "1", "2", "3", "4", "Very confident"] }
+      },
+      {
+        "id": "preq-q6",
+        "text": "Knowing what questions to ask to screen a surgeon?",
+        "type": "likert",
+        "prefix": "How confident do you feel...",
+        "scale": { "min": 0, "max": 5, "labels": ["Not confident", "1", "2", "3", "4", "Very confident"] }
+      },
+      {
+        "id": "preq-q7",
+        "text": "Making a decision whether surgery is right for you (or your patient)?",
+        "type": "likert",
+        "prefix": "How confident do you feel...",
+        "scale": { "min": 0, "max": 5, "labels": ["Not confident", "1", "2", "3", "4", "Very confident"] }
+      },
+      {
+        "id": "preq-q8",
+        "text": "Describing what endometriosis is?",
+        "type": "likert",
+        "prefix": "How confident do you feel...",
+        "scale": { "min": 0, "max": 5, "labels": ["Not confident", "1", "2", "3", "4", "Very confident"] }
+      },
+      {
+        "id": "preq-q9",
+        "text": "Describing the different appearances of endometriosis?",
+        "type": "likert",
+        "prefix": "How confident do you feel...",
+        "scale": { "min": 0, "max": 5, "labels": ["Not confident", "1", "2", "3", "4", "Very confident"] }
+      },
+      {
+        "id": "preq-q10",
+        "text": "I understand the purpose of diagnostic surgery.",
+        "type": "likert",
+        "scale": { "min": 0, "max": 5, "labels": ["Not confident", "1", "2", "3", "4", "Very confident"] }
+      },
+      {
+        "id": "preq-q11",
+        "text": "I understand the theories of endometriosis origin.",
+        "type": "likert",
+        "scale": { "min": 0, "max": 5, "labels": ["Not confident", "1", "2", "3", "4", "Very confident"] }
+      },
+      {
+        "id": "preq-q12",
+        "text": "I understand the basics of adhesion prevention.",
+        "type": "likert",
+        "scale": { "min": 0, "max": 5, "labels": ["Not confident", "1", "2", "3", "4", "Very confident"] }
+      },
+      {
+        "id": "preq-q13",
+        "text": "Your comfort level having a Gortex membrane placed?",
+        "type": "likert",
+        "scale": { "min": 0, "max": 5, "labels": ["Not comfortable", "1", "2", "3", "4", "Very comfortable"] }
+      },
+      {
+        "id": "preq-q14",
+        "text": "How likely are you to choose a NaPro trained surgeon (if one is available)?",
+        "type": "likert",
+        "scale": { "min": 0, "max": 5, "labels": ["Not likely", "1", "2", "3", "4", "Very likely"] }
+      },
+      {
+        "id": "preq-q15",
+        "text": "What is your comfort level going to any Ob/Gyn without researching beforehand for endometriosis symptoms?",
+        "type": "likert",
+        "scale": { "min": 0, "max": 5, "labels": ["Not comfortable", "1", "2", "3", "4", "Very comfortable"] }
+      },
+      {
+        "id": "preq-q16",
+        "text": "Comfort level with your surgeon using electrocautery for fertility surgery",
+        "type": "likert",
+        "scale": { "min": 0, "max": 5, "labels": ["Not comfortable", "1", "2", "3", "4", "Very comfortable"] }
+      },
+      {
+        "id": "preq-q17",
+        "text": "Comfort level advising patients or friends about endometriosis surgery",
+        "type": "likert",
+        "scale": { "min": 0, "max": 5, "labels": ["Not comfortable", "1", "2", "3", "4", "Very comfortable"] }
       }
     ]
   },
@@ -106,96 +216,200 @@
     "questions": [
       {
         "id": "postq-q1",
-        "text": "The course content was clear and easy to understand.",
-        "type": "likert",
-        "scale": { "min": 1, "max": 5, "labels": ["Strongly disagree", "Disagree", "Neutral", "Agree", "Strongly agree"] }
+        "text": "Has the masterclass met your expectations?",
+        "type": "freetext"
       },
       {
         "id": "postq-q2",
-        "text": "The instructor explained concepts effectively.",
-        "type": "likert",
-        "scale": { "min": 1, "max": 5, "labels": ["Strongly disagree", "Disagree", "Neutral", "Agree", "Strongly agree"] }
+        "text": "Did you gain what you hoped you would from the class?",
+        "type": "freetext"
       },
       {
         "id": "postq-q3",
-        "text": "I feel more prepared for my surgical consultation after completing this course.",
-        "type": "likert",
-        "scale": { "min": 1, "max": 5, "labels": ["Strongly disagree", "Disagree", "Neutral", "Agree", "Strongly agree"] }
+        "text": "Has the masterclass helped solve your problem?",
+        "type": "freetext"
       },
       {
         "id": "postq-q4",
-        "text": "The course length and pacing were appropriate.",
+        "text": "Speaking to a surgeon about endometriosis?",
         "type": "likert",
-        "scale": { "min": 1, "max": 5, "labels": ["Strongly disagree", "Disagree", "Neutral", "Agree", "Strongly agree"] }
+        "prefix": "How confident do you feel...",
+        "scale": { "min": 0, "max": 5, "labels": ["Not confident", "1", "2", "3", "4", "Very confident"] }
       },
       {
         "id": "postq-q5",
-        "text": "I would recommend this course to others considering endometriosis surgery.",
+        "text": "Knowing what questions to ask to screen a surgeon?",
         "type": "likert",
-        "scale": { "min": 1, "max": 5, "labels": ["Very unlikely", "Unlikely", "Neutral", "Likely", "Very likely"] }
+        "prefix": "How confident do you feel...",
+        "scale": { "min": 0, "max": 5, "labels": ["Not confident", "1", "2", "3", "4", "Very confident"] }
+      },
+      {
+        "id": "postq-q6",
+        "text": "Making a decision whether surgery is right for you (or your patient)?",
+        "type": "likert",
+        "prefix": "How confident do you feel...",
+        "scale": { "min": 0, "max": 5, "labels": ["Not confident", "1", "2", "3", "4", "Very confident"] }
+      },
+      {
+        "id": "postq-q7",
+        "text": "Describing what endometriosis is?",
+        "type": "likert",
+        "prefix": "How confident do you feel...",
+        "scale": { "min": 0, "max": 5, "labels": ["Not confident", "1", "2", "3", "4", "Very confident"] }
+      },
+      {
+        "id": "postq-q8",
+        "text": "Describing the different appearances of endometriosis?",
+        "type": "likert",
+        "prefix": "How confident do you feel...",
+        "scale": { "min": 0, "max": 5, "labels": ["Not confident", "1", "2", "3", "4", "Very confident"] }
+      },
+      {
+        "id": "postq-q9",
+        "text": "I understand the purpose of diagnostic surgery.",
+        "type": "likert",
+        "scale": { "min": 0, "max": 5, "labels": ["Not confident", "1", "2", "3", "4", "Very confident"] }
+      },
+      {
+        "id": "postq-q10",
+        "text": "I understand the theories of endometriosis origin.",
+        "type": "likert",
+        "scale": { "min": 0, "max": 5, "labels": ["Not confident", "1", "2", "3", "4", "Very confident"] }
+      },
+      {
+        "id": "postq-q11",
+        "text": "I understand the basics of adhesion prevention.",
+        "type": "likert",
+        "scale": { "min": 0, "max": 5, "labels": ["Not confident", "1", "2", "3", "4", "Very confident"] }
+      },
+      {
+        "id": "postq-q12",
+        "text": "Your comfort level having a Gortex membrane placed?",
+        "type": "likert",
+        "scale": { "min": 0, "max": 5, "labels": ["Not comfortable", "1", "2", "3", "4", "Very comfortable"] }
+      },
+      {
+        "id": "postq-q13",
+        "text": "How likely are you to choose a NaPro trained surgeon (if one is available)?",
+        "type": "likert",
+        "scale": { "min": 0, "max": 5, "labels": ["Not likely", "1", "2", "3", "4", "Very likely"] }
+      },
+      {
+        "id": "postq-q14",
+        "text": "What is your comfort level going to any Ob/Gyn without researching beforehand for endometriosis symptoms?",
+        "type": "likert",
+        "scale": { "min": 0, "max": 5, "labels": ["Not comfortable", "1", "2", "3", "4", "Very comfortable"] }
+      },
+      {
+        "id": "postq-q15",
+        "text": "Comfort level with your surgeon using electrocautery for fertility surgery",
+        "type": "likert",
+        "scale": { "min": 0, "max": 5, "labels": ["Not comfortable", "1", "2", "3", "4", "Very comfortable"] }
+      },
+      {
+        "id": "postq-q16",
+        "text": "Comfort level advising patients or friends about endometriosis surgery",
+        "type": "likert",
+        "scale": { "min": 0, "max": 5, "labels": ["Not comfortable", "1", "2", "3", "4", "Very comfortable"] }
       }
     ]
   },
   "mc-feedback-3": {
     "type": "quiz",
-    "title": "Post-Class Quiz",
-    "description": "Test your knowledge to earn your certificate of completion. You need 80% to pass.",
+    "title": "Post-Class Quiz on Endometriosis & Surgery",
+    "description": "Complete with an 80% or better to receive your certificate of completion.",
     "passingScore": 80,
     "questions": [
       {
         "id": "post-q1",
-        "text": "Which surgical approach is considered the gold standard for treating endometriosis?",
-        "options": [
-          "Ablation (burning) of endometriosis lesions",
-          "Wide excision of endometriosis lesions",
-          "Hysterectomy",
-          "Hormonal suppression therapy"
-        ],
+        "text": "What is the total number of stages of endometriosis?",
+        "options": ["3", "4", "6", "7"],
         "correctIndex": 1
       },
       {
         "id": "post-q2",
-        "text": "What is the primary goal of Restorative Reproductive Medicine in treating endometriosis?",
+        "text": "What are the main subspecialties of OBGYN?",
         "options": [
-          "To suppress symptoms with long-term medication",
-          "To restore normal reproductive function while treating the disease",
-          "To recommend IVF as the first-line treatment",
-          "To delay surgery as long as possible"
-        ],
-        "correctIndex": 1
-      },
-      {
-        "id": "post-q3",
-        "text": "When choosing a surgeon for endometriosis excision, which factor is most important?",
-        "options": [
-          "The surgeon's proximity to your home",
-          "The surgeon's experience and specialization in excision surgery",
-          "Whether the surgeon accepts your insurance",
-          "The size of the surgical facility"
-        ],
-        "correctIndex": 1
-      },
-      {
-        "id": "post-q4",
-        "text": "Which statement best describes the relationship between endometriosis staging and symptoms?",
-        "options": [
-          "Higher stages always cause more severe symptoms",
-          "Stage I endometriosis never causes significant pain",
-          "The stage of endometriosis does not always correlate with symptom severity",
-          "Only Stage IV endometriosis affects fertility"
+          "Obstetrics, Gynecology, Reproductive Endocrinology and Infertility",
+          "Reproductive Immunology, Obstetrics, Gynecology",
+          "Reproductive Endocrinology and Infertility, Gynecology Oncology, Minimally Invasive Gyn Surgery",
+          "Napro, Gynecology Oncology, Reproductive Endocrinology and Infertility"
         ],
         "correctIndex": 2
       },
       {
-        "id": "post-q5",
-        "text": "After excision surgery, what is an important part of long-term management?",
+        "id": "post-q3",
+        "text": "Which tool(s) can be used in endometriosis surgery?",
         "options": [
-          "No follow-up is needed if surgery was successful",
-          "Ongoing monitoring and a comprehensive treatment plan including hormonal support if needed",
-          "Immediate repeat surgery if any symptoms return",
-          "Avoiding all physical activity permanently"
+          "Robot",
+          "Non-robotic laparoscopy",
+          "Laser",
+          "Electrocautery",
+          "All of the above",
+          "A & D"
+        ],
+        "correctIndex": 4
+      },
+      {
+        "id": "post-q4",
+        "text": "Which theory of endometriosis origin is the most commonly taught in medical school?",
+        "options": [
+          "Retrograde menstruation",
+          "Embryologic",
+          "Multifactorial",
+          "None of the above"
+        ],
+        "correctIndex": 0
+      },
+      {
+        "id": "post-q5",
+        "text": "Which method(s) can be used to prevent adhesions?",
+        "options": [
+          "Hemostasis",
+          "Minimize thermal damage",
+          "Seprafilm",
+          "Gortex",
+          "All of the above",
+          "B & C"
+        ],
+        "correctIndex": 4
+      },
+      {
+        "id": "post-q6",
+        "text": "What does endometriosis look like?",
+        "options": [
+          "Black",
+          "Brown",
+          "Clear blebs",
+          "White",
+          "Halo",
+          "All of the above",
+          "A & B"
+        ],
+        "correctIndex": 5
+      },
+      {
+        "id": "post-q7",
+        "text": "Which technique(s) are an important part of a diagnostic laparoscopy?",
+        "options": [
+          "Quick technique",
+          "Mapping the abdomen",
+          "Minimal incisions"
         ],
         "correctIndex": 1
+      },
+      {
+        "id": "post-q8",
+        "text": "Which organ(s) does endometriosis grow on?",
+        "options": [
+          "Bowel",
+          "Appendix",
+          "Diaphragm",
+          "Bladder",
+          "None of the above",
+          "All of the above"
+        ],
+        "correctIndex": 5
       }
     ]
   }
