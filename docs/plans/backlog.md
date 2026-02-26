@@ -21,6 +21,7 @@
 
 ## Done (Recent)
 
+- Library synopsis share button icon changed from Lucide 'link' to 'forward' (2026-02-26)
 - Community inline images + bare domain URL detection — R2 upload endpoint, `linkify()` renders `![alt](url)` as `<img>`, auto-links `rrmacademy.org/...` style URLs (2026-02-26)
 - Community feed fully inline — comments, replies, edit modal, comment reactions all in-feed, no detail page navigation (2026-02-26)
 - Saved articles cross-device sync nudge for guests (2026-02-25)
