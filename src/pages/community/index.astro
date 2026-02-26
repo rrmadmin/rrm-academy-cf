@@ -208,7 +208,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
       // --- Load posts ---
       function loadPosts(append) {
-        var url = '/api/community/posts?limit=' + PAGE_SIZE;
+        var url = '/api/community/posts?channel=stuc&limit=' + PAGE_SIZE;
         if (activeType) url += '&type=' + encodeURIComponent(activeType);
         if (append && lastCreatedAt) url += '&before=' + encodeURIComponent(lastCreatedAt);
 

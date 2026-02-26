@@ -1,0 +1,421 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+// Server-side session + role check — admin/superadmin only
+const sessionResp = await fetch(`${Astro.url.origin}/api/auth/session`, {
+  headers: { cookie: Astro.request.headers.get('cookie') || '' }
+});
+const sessionData = await sessionResp.json();
+const ADMIN_ROLES = ['superadmin', 'admin'];
+if (!sessionData.ok || !sessionData.user || !ADMIN_ROLES.includes(sessionData.user.role)) {
+  return Astro.redirect('/community');
+}
+---
+<BaseLayout
+  title="Members Archive"
+  description="Archive of RRM Academy Members group discussions."
+  noindex
+>
+  <meta slot="head" name="robots" content="noindex, nofollow" />
+
+  <section class="community-page">
+    <div class="container">
+
+      <div class="archive-header">
+        <a href="/community/" class="archive-back">&larr; Back to Community</a>
+        <h1>Members Archive</h1>
+        <div class="archive-banner">
+          <p>Archive of RRM Academy Members group discussions from Wix</p>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div id="archive-loading" class="archive-loading">
+        <p>Loading posts...</p>
+      </div>
+
+      <!-- Post list -->
+      <div id="post-list" class="post-list" hidden></div>
+
+      <!-- Load more -->
+      <div id="load-more-wrap" class="load-more-wrap" hidden>
+        <button id="load-more-btn" class="btn btn--secondary">Load more</button>
+      </div>
+
+      <!-- Empty state -->
+      <div id="posts-empty" class="posts-empty" hidden>
+        <p>No archived posts in this channel.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <script is:inline>
+    (function () {
+      var STAFF_ROLES = ['superadmin', 'admin', 'mod'];
+      var PAGE_SIZE = 20;
+
+      var loadingEl = document.getElementById('archive-loading');
+      var postListEl = document.getElementById('post-list');
+      var loadMoreWrap = document.getElementById('load-more-wrap');
+      var loadMoreBtn = document.getElementById('load-more-btn');
+      var postsEmpty = document.getElementById('posts-empty');
+
+      var lastCreatedAt = null;
+      var allPostsLoaded = false;
+
+      loadPosts(false);
+
+      function loadPosts(append) {
+        var url = '/api/community/posts?channel=members&limit=' + PAGE_SIZE;
+        if (append && lastCreatedAt) url += '&before=' + encodeURIComponent(lastCreatedAt);
+
+        loadMoreBtn.disabled = true;
+        loadMoreBtn.textContent = 'Loading...';
+
+        fetch(url, { credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            loadingEl.hidden = true;
+            loadMoreBtn.disabled = false;
+            loadMoreBtn.textContent = 'Load more';
+            if (!data.ok || !data.posts) return;
+
+            var posts = data.posts;
+            if (posts.length < PAGE_SIZE) {
+              allPostsLoaded = true;
+              loadMoreWrap.hidden = true;
+            } else {
+              loadMoreWrap.hidden = false;
+            }
+
+            if (posts.length === 0 && !append) {
+              postsEmpty.hidden = false;
+              return;
+            }
+
+            postListEl.hidden = false;
+            postsEmpty.hidden = true;
+
+            for (var k = 0; k < posts.length; k++) {
+              postListEl.appendChild(renderPostCard(posts[k]));
+              lastCreatedAt = posts[k].createdAt;
+            }
+          })
+          .catch(function () {
+            loadingEl.hidden = true;
+            loadMoreBtn.disabled = false;
+            loadMoreBtn.textContent = 'Load more';
+          });
+      }
+
+      loadMoreBtn.addEventListener('click', function () {
+        if (!allPostsLoaded) loadPosts(true);
+      });
+
+      function renderPostCard(post) {
+        var card = document.createElement('article');
+        card.className = 'post-card';
+
+        var authorIsStaff = STAFF_ROLES.indexOf(post.authorRole) !== -1;
+
+        // Header row
+        var header = document.createElement('div');
+        header.className = 'post-card__header';
+
+        var meta = document.createElement('div');
+        meta.className = 'post-card__meta';
+
+        var badge = document.createElement('span');
+        badge.className = 'post-type-badge post-type-badge--' + post.type;
+        badge.textContent = capitalize(post.type);
+        meta.appendChild(badge);
+
+        if (post.pinned) {
+          var pin = document.createElement('span');
+          pin.className = 'post-pin-indicator';
+          pin.textContent = 'Pinned';
+          meta.appendChild(pin);
+        }
+
+        header.appendChild(meta);
+        card.appendChild(header);
+
+        // Author line
+        var authorLine = document.createElement('div');
+        authorLine.className = 'post-card__author';
+        var authorName = document.createElement('span');
+        authorName.className = 'post-author-name';
+        authorName.textContent = post.authorName || 'Member';
+        authorLine.appendChild(authorName);
+
+        if (authorIsStaff) {
+          var roleBadge = document.createElement('span');
+          roleBadge.className = 'post-role-badge';
+          roleBadge.textContent = capitalize(post.authorRole);
+          authorLine.appendChild(roleBadge);
+        }
+
+        var timeEl = document.createElement('span');
+        timeEl.className = 'post-time';
+        timeEl.textContent = timeAgo(post.createdAt);
+        authorLine.appendChild(timeEl);
+
+        card.appendChild(authorLine);
+
+        // Title
+        var titleEl = document.createElement('div');
+        titleEl.className = 'post-card__title';
+        titleEl.textContent = post.title;
+        card.appendChild(titleEl);
+
+        // Body preview
+        if (post.body) {
+          var bodyPreview = document.createElement('p');
+          bodyPreview.className = 'post-card__body';
+          bodyPreview.textContent = post.body.length > 200 ? post.body.substring(0, 200) + '...' : post.body;
+          card.appendChild(bodyPreview);
+        }
+
+        // Footer: comment count only (no reactions in archive)
+        var footer = document.createElement('div');
+        footer.className = 'post-card__footer';
+
+        var commentCount = document.createElement('span');
+        commentCount.className = 'post-comment-count';
+        var cc = post.commentCount || 0;
+        commentCount.textContent = cc === 1 ? '1 comment' : cc + ' comments';
+        footer.appendChild(commentCount);
+
+        card.appendChild(footer);
+
+        return card;
+      }
+
+      function capitalize(s) {
+        if (!s) return '';
+        return s.charAt(0).toUpperCase() + s.slice(1);
+      }
+
+      function timeAgo(dateStr) {
+        if (!dateStr) return '';
+        var now = Date.now();
+        var then = new Date(dateStr).getTime();
+        var diff = Math.floor((now - then) / 1000);
+        if (diff < 60) return 'just now';
+        var mins = Math.floor(diff / 60);
+        if (mins < 60) return mins === 1 ? '1 minute ago' : mins + ' minutes ago';
+        var hours = Math.floor(mins / 60);
+        if (hours < 24) return hours === 1 ? '1 hour ago' : hours + ' hours ago';
+        var days = Math.floor(hours / 24);
+        if (days < 7) return days === 1 ? '1 day ago' : days + ' days ago';
+        var weeks = Math.floor(days / 7);
+        if (weeks < 5) return weeks === 1 ? '1 week ago' : weeks + ' weeks ago';
+        var months = Math.floor(days / 30);
+        if (months < 12) return months === 1 ? '1 month ago' : months + ' months ago';
+        var years = Math.floor(days / 365);
+        return years === 1 ? '1 year ago' : years + ' years ago';
+      }
+    })();
+  </script>
+</BaseLayout>
+
+<style>
+  /* Page */
+  .community-page {
+    padding: var(--space-8) 0 var(--space-16);
+    min-height: 60vh;
+  }
+  .archive-loading {
+    text-align: center;
+    color: var(--text-muted);
+    padding: var(--space-16) 0;
+  }
+
+  /* Archive header */
+  .archive-header {
+    margin-bottom: var(--space-6);
+  }
+  .archive-back {
+    display: inline-block;
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    text-decoration: none;
+    margin-bottom: var(--space-4);
+  }
+  .archive-back:hover {
+    color: var(--accent);
+  }
+  .archive-header h1 {
+    font-size: 1.75rem;
+    margin-bottom: var(--space-3);
+  }
+  .archive-banner {
+    background: var(--neutral-100);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+    margin-bottom: var(--space-2);
+  }
+  .archive-banner p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+
+  /* Post list */
+  .post-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  /* Post card */
+  .post-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5) var(--space-6);
+  }
+
+  .post-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-2);
+    gap: var(--space-3);
+  }
+  .post-card__meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  /* Type badges */
+  .post-type-badge {
+    display: inline-block;
+    font-size: 0.625rem;
+    font-weight: 600;
+    padding: 1px 8px;
+    border-radius: 10px;
+    letter-spacing: 0.02em;
+    text-transform: capitalize;
+  }
+  .post-type-badge--announcement {
+    color: #1e5c99;
+    background: rgba(30, 92, 153, 0.1);
+  }
+  .post-type-badge--event {
+    color: var(--green-700);
+    background: var(--green-100);
+  }
+  .post-type-badge--discussion {
+    color: var(--text-tertiary);
+    background: var(--neutral-100);
+  }
+  .post-type-badge--resource {
+    color: var(--purple-700);
+    background: var(--purple-50);
+  }
+
+  .post-pin-indicator {
+    font-size: 0.625rem;
+    font-weight: 600;
+    color: var(--amber-700);
+    background: var(--amber-100);
+    padding: 1px 8px;
+    border-radius: 10px;
+    letter-spacing: 0.02em;
+  }
+
+  /* Author line */
+  .post-card__author {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+    font-size: 0.8125rem;
+  }
+  .post-author-name {
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+  .post-role-badge {
+    font-size: 0.625rem;
+    font-weight: 600;
+    color: var(--purple-700);
+    background: var(--purple-50);
+    padding: 1px 6px;
+    border-radius: 8px;
+  }
+  .post-time {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+  }
+
+  /* Title */
+  .post-card__title {
+    display: block;
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--text-primary);
+    margin-bottom: var(--space-2);
+  }
+
+  /* Body preview */
+  .post-card__body {
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    white-space: pre-wrap;
+    margin-bottom: var(--space-3);
+  }
+
+  /* Footer */
+  .post-card__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-4);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border-light);
+  }
+
+  /* Comment count */
+  .post-comment-count {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Load more */
+  .load-more-wrap {
+    display: flex;
+    justify-content: center;
+    padding: var(--space-8) 0;
+  }
+
+  /* Empty state */
+  .posts-empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: var(--space-10) 0;
+    font-size: 0.9375rem;
+  }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    .community-page {
+      padding: var(--space-6) 0 var(--space-12);
+    }
+    .archive-header h1 {
+      font-size: 1.5rem;
+    }
+    .post-card {
+      padding: var(--space-4) var(--space-4);
+    }
+  }
+</style>

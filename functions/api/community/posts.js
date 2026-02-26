@@ -1,12 +1,12 @@
 /**
- * GET    /api/community/posts?type=&before=&limit=  — list posts
- * POST   /api/community/posts                        — create post
- * PATCH  /api/community/posts                        — edit / pin
- * DELETE /api/community/posts                        — delete post
+ * GET    /api/community/posts?type=&before=&limit=&channel=  — list posts
+ * POST   /api/community/posts                                 — create post
+ * PATCH  /api/community/posts                                 — edit / pin
+ * DELETE /api/community/posts                                 — delete post
  */
 import { json, optionsResponse, generateId } from '../auth/_shared.js';
 import {
-  requireMember, displayName, canCreateType, canEditPost, canDeletePost, canPin,
+  requireMember, displayName, canCreateType, canEditPost, canDeletePost, canPin, roleAtLeast,
 } from './_shared.js';
 
 function isSafeUrl(url) {
@@ -34,6 +34,9 @@ export async function onRequestGet({ request, env }) {
     const type = url.searchParams.get('type');
     const before = url.searchParams.get('before');
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '20', 10), 50);
+    const VALID_CHANNELS = ['stuc', 'members', 'masterclass'];
+    const channelParam = url.searchParams.get('channel') || 'stuc';
+    const channel = VALID_CHANNELS.includes(channelParam) ? channelParam : 'stuc';
 
     const db = env.DB;
     let sql, params;
@@ -41,8 +44,8 @@ export async function onRequestGet({ request, env }) {
     if (type === 'event') {
       // Events: upcoming first (ASC), then past (DESC)
       const now = new Date().toISOString();
-      let eventWhere = "WHERE p.type = 'event'";
-      params = [];
+      let eventWhere = "WHERE p.type = 'event' AND p.channel = ?";
+      params = [channel];
       if (before) {
         eventWhere += ' AND p.created_at < ?';
         params.push(before);
@@ -62,8 +65,8 @@ export async function onRequestGet({ request, env }) {
       params.push(now, now, now, limit);
     } else {
       // All other types: pinned first, then by created_at DESC
-      let whereClause = '';
-      params = [];
+      let whereClause = ' AND p.channel = ?';
+      params = [channel];
 
       if (type) {
         whereClause += ' AND p.type = ?';
@@ -160,7 +163,18 @@ export async function onRequestPost({ request, env }) {
       return json({ ok: false, error: 'Invalid JSON' }, 400);
     }
 
-    const { type, title, body: postBody, eventDate, eventLink, resourceUrl } = body;
+    const { type, title, body: postBody, eventDate, eventLink, resourceUrl, channel: reqChannel } = body;
+
+    // Validate channel
+    const VALID_CHANNELS = ['stuc', 'members', 'masterclass'];
+    const channel = reqChannel || 'stuc';
+    if (!VALID_CHANNELS.includes(channel)) {
+      return json({ ok: false, error: 'Invalid channel' }, 400);
+    }
+    // Non-admin users can only post to stuc
+    if (channel !== 'stuc' && !roleAtLeast(user.role, 'admin')) {
+      return json({ ok: false, error: 'Not authorized for this channel' }, 403);
+    }
 
     // Validate type
     const validTypes = ['discussion', 'announcement', 'event', 'resource'];
@@ -199,11 +213,11 @@ export async function onRequestPost({ request, env }) {
     const db = env.DB;
 
     await db.prepare(`
-      INSERT INTO community_post (id, author_id, type, title, body, event_date, event_link, resource_url)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO community_post (id, author_id, type, title, body, event_date, event_link, resource_url, channel)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       id, user.id, type, title.trim(), postBody?.trim() || null,
-      eventDate || null, eventLink || null, resourceUrl || null
+      eventDate || null, eventLink || null, resourceUrl || null, channel
     ).run();
 
     return json({
