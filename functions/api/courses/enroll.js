@@ -12,6 +12,7 @@
 import Stripe from 'stripe';
 import {
   json, optionsResponse, getSessionIdFromCookie, validateSession, generateId,
+  STRIPE_API_VERSION,
 } from '../auth/_shared.js';
 import { getCourse, getIncludedCourseIds } from './_shared.js';
 
@@ -74,7 +75,7 @@ async function handleEnroll(request, env) {
 
   const stripe = new Stripe(stripeKey, {
     httpClient: Stripe.createFetchHttpClient(),
-    apiVersion: '2024-12-18.acacia',
+    apiVersion: STRIPE_API_VERSION,
   });
 
   const user = await db.prepare('SELECT email, stripe_customer_id FROM user WHERE id = ?')

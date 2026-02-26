@@ -5,6 +5,7 @@
 import Stripe from 'stripe';
 import {
   json, getSessionIdFromCookie, validateSession,
+  STRIPE_API_VERSION,
 } from '../auth/_shared.js';
 
 // --- Role hierarchy ---
@@ -87,7 +88,7 @@ export async function requireMember(request, env) {
 
   const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     httpClient: Stripe.createFetchHttpClient(),
-    apiVersion: '2024-12-18.acacia',
+    apiVersion: STRIPE_API_VERSION,
   });
 
   let subs;

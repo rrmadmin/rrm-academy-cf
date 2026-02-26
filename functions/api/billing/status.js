@@ -10,6 +10,7 @@
 import Stripe from 'stripe';
 import {
   json, optionsResponse, getSessionIdFromCookie, validateSession,
+  STRIPE_API_VERSION,
 } from '../auth/_shared.js';
 
 export async function onRequestOptions() {
@@ -48,7 +49,7 @@ async function handleStatus(request, env) {
   // --- Query Stripe for active subscriptions ---
   const stripe = new Stripe(stripeKey, {
     httpClient: Stripe.createFetchHttpClient(),
-    apiVersion: '2024-12-18.acacia',
+    apiVersion: STRIPE_API_VERSION,
   });
 
   const subscriptions = await stripe.subscriptions.list({

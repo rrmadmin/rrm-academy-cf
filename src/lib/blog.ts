@@ -2,24 +2,7 @@
  * Blog data layer for RRM Academy Commentary.
  * Fetches editorial commentary posts from cached JSON or Airtable API.
  */
-
-const AIRTABLE_BASE_ID = 'app1CKV1heL0qH2Oz';
-const AIRTABLE_TABLE_ID = 'tblS8q3XHj6mhwxvl';
-const API_URL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}`;
-
-const FIELDS = [
-  'Title',
-  'Slug',
-  'Content',
-  'Excerpt',
-  'Author',
-  'Content Pillar',
-  'Processed Cover URL',
-  'Actual Publish Date',
-  'Status',
-  'Word Count',
-  'SEO Keywords',
-];
+import { API_URL, FIELDS } from './blog-config.mjs';
 
 export interface BlogPost {
   id: string;

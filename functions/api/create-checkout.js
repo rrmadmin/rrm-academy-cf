@@ -14,6 +14,7 @@
 import Stripe from 'stripe';
 import {
   json, optionsResponse, getSessionIdFromCookie, validateSession, checkRateLimit,
+  STRIPE_API_VERSION,
 } from './auth/_shared.js';
 
 export async function onRequestOptions() {
@@ -35,7 +36,7 @@ async function handleCheckout(request, env) {
 
   const stripe = new Stripe(stripeKey, {
     httpClient: Stripe.createFetchHttpClient(),
-    apiVersion: '2024-12-18.acacia',
+    apiVersion: STRIPE_API_VERSION,
   });
 
   let body;

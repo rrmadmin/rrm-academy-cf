@@ -15,6 +15,7 @@
  * subscription state is always fresh in the UI without needing D1 sync.
  */
 import Stripe from 'stripe';
+import { STRIPE_API_VERSION, SITE_URL } from './auth/_shared.js';
 import { enrollUser } from './courses/enroll.js';
 import { getCourse } from './courses/_shared.js';
 
@@ -42,7 +43,7 @@ async function handleWebhook(request, env) {
 
   const stripe = new Stripe(stripeKey, {
     httpClient: Stripe.createFetchHttpClient(),
-    apiVersion: '2024-12-18.acacia',
+    apiVersion: STRIPE_API_VERSION,
   });
 
   const signature = request.headers.get('stripe-signature');
@@ -148,7 +149,7 @@ async function handleWebhook(request, env) {
                       '',
                       'Your course purchase is confirmed and your course is ready to start.',
                       '',
-                      'Go to your courses: https://rrmacademy.org/account',
+                      `Go to your courses: ${SITE_URL}/account`,
                       '',
                       'Thank you for investing in your health education.',
                       '',
@@ -200,16 +201,16 @@ async function handleWebhook(request, env) {
                   'Here\'s what to do next:',
                   '',
                   '1. Join the member group — this is where live call dates, resources, and discussion happen:',
-                  // STUC-CUTOVER: replace with https://rrmacademy.org/community
+                  // STUC-CUTOVER: replace with `   ${SITE_URL}/community`
                   '   https://rrmfoundation.wixstudio.com/rrm-academy/group/save-the-uterus-club',
                   '',
                   '2. Join the free Uterus Allies group chat on Instagram:',
                   '   https://www.instagram.com/direct/t/7768750249851959/',
                   '',
                   '3. Explore the Research Library — over 3,000 peer-reviewed resources:',
-                  '   https://rrmacademy.org/library',
+                  `   ${SITE_URL}/library`,
                   '',
-                  'You can manage your membership anytime at https://rrmacademy.org/account',
+                  `You can manage your membership anytime at ${SITE_URL}/account`,
                   '',
                   'Thank you for supporting evidence-based reproductive health.',
                   '',
@@ -248,9 +249,9 @@ async function handleWebhook(request, env) {
               'We were unable to process your most recent payment for your Save the Uterus Club membership.',
               '',
               'Please update your payment method to keep your membership active:',
-              'https://rrmacademy.org/account',
+              `${SITE_URL}/account`,
               '',
-              'If you have questions, reply to this email or contact us at https://rrmacademy.org/contact',
+              `If you have questions, reply to this email or contact us at ${SITE_URL}/contact`,
               '',
               'RRM Academy',
               'A project of the RRM Foundation — 501(c)(3), EIN: 93-4594315',
@@ -281,7 +282,7 @@ async function handleWebhook(request, env) {
               'You still have access to any courses you purchased separately.',
               '',
               'If you\'d like to rejoin, you can do so anytime at:',
-              'https://rrmacademy.org/save-the-uterus-club',
+              `${SITE_URL}/save-the-uterus-club`,
               '',
               'Thank you for supporting evidence-based reproductive health.',
               '',
@@ -312,11 +313,11 @@ async function handleWebhook(request, env) {
               'Your most recent membership payment could not be processed.',
               '',
               'Stripe will automatically retry, but you can update your payment method now:',
-              'https://rrmacademy.org/account',
+              `${SITE_URL}/account`,
               '',
               'If your payment method is not updated, your membership may be cancelled.',
               '',
-              'If you have questions, contact us at https://rrmacademy.org/contact',
+              `If you have questions, contact us at ${SITE_URL}/contact`,
               '',
               'RRM Academy',
               'A project of the RRM Foundation — 501(c)(3), EIN: 93-4594315',

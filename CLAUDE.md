@@ -123,6 +123,13 @@ Middleware: `functions/_middleware.js` (session injection, CORS, auth gating)
 
 Push to `claude/` branch -- GitHub Actions auto-builds + merges. No local credentials needed.
 
+## Shared Config
+
+- **Airtable IDs**: Library and Blog base/table IDs live in `src/lib/airtable-config.mjs` and `src/lib/blog-config.mjs` — imported by both `.ts` (Astro build) and `.mjs` (CLI scripts)
+- **Stripe API version**: `STRIPE_API_VERSION` in `functions/api/auth/_shared.js` — imported by all 6 Stripe consumers
+- **Site URL for emails**: `SITE_URL` in `functions/api/auth/_shared.js` — used in transactional email body links only (CORS origin stays hardcoded for security; Astro pages use `Astro.site`)
+- **Navigation**: Desktop, mobile, and footer navs are intentionally different item sets — see comments in `Header.astro` and `Footer.astro`
+
 ## Rules
 
 - Read relevant `STYLE-GUIDE.md` sections before editing styles

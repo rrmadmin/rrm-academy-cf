@@ -8,6 +8,7 @@
 import Stripe from 'stripe';
 import {
   json, optionsResponse, getSessionIdFromCookie, validateSession,
+  STRIPE_API_VERSION,
 } from '../auth/_shared.js';
 
 export async function onRequestOptions() {
@@ -46,7 +47,7 @@ async function handlePortal(request, env) {
   // --- Create portal session ---
   const stripe = new Stripe(stripeKey, {
     httpClient: Stripe.createFetchHttpClient(),
-    apiVersion: '2024-12-18.acacia',
+    apiVersion: STRIPE_API_VERSION,
   });
 
   const origin = new URL(request.url).origin;
