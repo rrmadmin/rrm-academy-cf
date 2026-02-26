@@ -265,7 +265,7 @@ Post-signup, post-enrollment, and post-comment flows that previously nudged towa
 
 - Real-time updates (WebSocket/SSE) — polling or manual refresh is fine for this community size
 - Direct messaging between members
-- File/image uploads in posts (markdown text only for now)
+- ~~File/image uploads in posts~~ — **Implemented 2026-02-26**: inline images via R2 upload + `![alt](url)` markdown, bare domain URL auto-detection in `linkify()`
 - Email notifications for new posts (can add later)
 - Multiple groups/spaces
 - Rich text editor (markdown + a simple formatting toolbar is enough)
