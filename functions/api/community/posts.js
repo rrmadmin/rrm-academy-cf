@@ -9,6 +9,9 @@ import {
   requireMember, displayName, canCreateType, canEditPost, canDeletePost, canPin, roleAtLeast,
 } from './_shared.js';
 
+const VALID_CHANNELS = ['stuc', 'members', 'masterclass'];
+const ARCHIVE_CHANNELS = ['members', 'masterclass'];
+
 function isSafeUrl(url) {
   try {
     const parsed = new URL(url);
@@ -34,9 +37,13 @@ export async function onRequestGet({ request, env }) {
     const type = url.searchParams.get('type');
     const before = url.searchParams.get('before');
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '20', 10), 50);
-    const VALID_CHANNELS = ['stuc', 'members', 'masterclass'];
     const channelParam = url.searchParams.get('channel') || 'stuc';
     const channel = VALID_CHANNELS.includes(channelParam) ? channelParam : 'stuc';
+
+    // Archive channels are admin-only
+    if (channel !== 'stuc' && !roleAtLeast(user.role, 'admin')) {
+      return json({ ok: false, error: 'Not authorized for this channel' }, 403);
+    }
 
     const db = env.DB;
     let sql, params;
@@ -166,7 +173,6 @@ export async function onRequestPost({ request, env }) {
     const { type, title, body: postBody, eventDate, eventLink, resourceUrl, channel: reqChannel } = body;
 
     // Validate channel
-    const VALID_CHANNELS = ['stuc', 'members', 'masterclass'];
     const channel = reqChannel || 'stuc';
     if (!VALID_CHANNELS.includes(channel)) {
       return json({ ok: false, error: 'Invalid channel' }, 400);
