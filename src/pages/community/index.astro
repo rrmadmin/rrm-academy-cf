@@ -361,36 +361,70 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         var isMod = STAFF_ROLES.indexOf(currentUser.role) !== -1;
         var authorIsStaff = STAFF_ROLES.indexOf(post.authorRole) !== -1;
 
-        // Header row
+        // Context line (pinned / type label) — above main layout, indented
+        if (post.pinned || post.type !== 'discussion') {
+          var context = document.createElement('div');
+          context.className = 'post-context';
+          if (post.pinned) {
+            var pinLabel = document.createElement('span');
+            pinLabel.className = 'post-context__label post-context__label--pinned';
+            pinLabel.textContent = 'Pinned';
+            context.appendChild(pinLabel);
+          }
+          if (post.type !== 'discussion') {
+            var typeLabel = document.createElement('span');
+            typeLabel.className = 'post-context__label post-context__label--' + post.type;
+            typeLabel.textContent = capitalize(post.type);
+            context.appendChild(typeLabel);
+          }
+          card.appendChild(context);
+        }
+
+        // Main layout: avatar + content
+        var layout = document.createElement('div');
+        layout.className = 'post-card__layout';
+
+        var avatar = document.createElement('span');
+        avatar.className = 'post-avatar';
+        avatar.textContent = ((post.authorName || 'M').charAt(0)).toUpperCase();
+        if (authorIsStaff) avatar.classList.add('post-avatar--staff');
+        layout.appendChild(avatar);
+
+        var main = document.createElement('div');
+        main.className = 'post-card__main';
+
+        // Header: name + role + · + time + controls
         var header = document.createElement('div');
         header.className = 'post-card__header';
 
-        // Left: badge + pin
-        var meta = document.createElement('div');
-        meta.className = 'post-card__meta';
+        var authorName = document.createElement('span');
+        authorName.className = 'post-author-name';
+        authorName.textContent = post.authorName || 'Member';
+        header.appendChild(authorName);
 
-        var badge = document.createElement('span');
-        badge.className = 'post-type-badge post-type-badge--' + post.type;
-        badge.textContent = capitalize(post.type);
-        meta.appendChild(badge);
-
-        if (post.pinned) {
-          var pin = document.createElement('span');
-          pin.className = 'post-pin-indicator';
-          pin.textContent = 'Pinned';
-          meta.appendChild(pin);
+        if (authorIsStaff) {
+          var roleBadge = document.createElement('span');
+          roleBadge.className = 'post-role-badge';
+          roleBadge.textContent = capitalize(post.authorRole);
+          header.appendChild(roleBadge);
         }
 
-        header.appendChild(meta);
+        var sep = document.createElement('span');
+        sep.className = 'post-sep';
+        sep.textContent = '\u00B7';
+        header.appendChild(sep);
 
-        // Right: staff controls
+        var timeEl = document.createElement('span');
+        timeEl.className = 'post-time';
+        timeEl.textContent = timeAgo(post.createdAt);
+        header.appendChild(timeEl);
+
         if (isAdmin || isMod) {
           var controls = document.createElement('div');
           controls.className = 'post-card__controls';
-
           if (isMod) {
             var pinBtn = document.createElement('button');
-            pinBtn.className = 'btn btn--text btn--sm';
+            pinBtn.className = 'ctrl-btn';
             pinBtn.textContent = post.pinned ? 'Unpin' : 'Pin';
             pinBtn.addEventListener('click', function (ev) {
               ev.stopPropagation();
@@ -398,17 +432,16 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             });
             controls.appendChild(pinBtn);
           }
-
           if (isAdmin) {
             var editBtn = document.createElement('a');
-            editBtn.className = 'btn btn--text btn--sm';
+            editBtn.className = 'ctrl-btn';
             editBtn.textContent = 'Edit';
             editBtn.href = '/community/post/' + post.id;
             editBtn.addEventListener('click', function (ev) { ev.stopPropagation(); });
             controls.appendChild(editBtn);
 
             var delBtn = document.createElement('button');
-            delBtn.className = 'btn btn--text btn--sm post-delete-btn';
+            delBtn.className = 'ctrl-btn ctrl-btn--danger';
             delBtn.textContent = 'Delete';
             delBtn.addEventListener('click', function (ev) {
               ev.stopPropagation();
@@ -416,75 +449,29 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             });
             controls.appendChild(delBtn);
           }
-
           header.appendChild(controls);
         }
 
-        card.appendChild(header);
+        main.appendChild(header);
 
-        // Content wrapper (avatar + content side by side)
-        var content = document.createElement('div');
-        content.className = 'post-card__content';
-
-        // Avatar
-        var avatar = document.createElement('span');
-        avatar.className = 'post-avatar';
-        var initial = ((post.authorName || 'M').charAt(0)).toUpperCase();
-        avatar.textContent = initial;
-        if (authorIsStaff) avatar.classList.add('post-avatar--staff');
-        content.appendChild(avatar);
-
-        var contentBody = document.createElement('div');
-        contentBody.className = 'post-card__inner';
-
-        // Author line
-        var authorLine = document.createElement('div');
-        authorLine.className = 'post-card__author';
-        var authorName = document.createElement('span');
-        authorName.className = 'post-author-name';
-        authorName.textContent = post.authorName || 'Member';
-        authorLine.appendChild(authorName);
-
-        if (authorIsStaff) {
-          var roleBadge = document.createElement('span');
-          roleBadge.className = 'post-role-badge';
-          roleBadge.textContent = capitalize(post.authorRole);
-          authorLine.appendChild(roleBadge);
-        }
-
-        var sep = document.createElement('span');
-        sep.className = 'post-sep';
-        sep.textContent = '\u00B7';
-        authorLine.appendChild(sep);
-
-        var timeEl = document.createElement('span');
-        timeEl.className = 'post-time';
-        timeEl.textContent = timeAgo(post.createdAt);
-        authorLine.appendChild(timeEl);
-
-        contentBody.appendChild(authorLine);
-
-        // Title (clickable link)
+        // Title
         var titleLink = document.createElement('a');
         titleLink.className = 'post-card__title';
         titleLink.href = '/community/post/' + post.id;
         titleLink.textContent = post.title;
-        contentBody.appendChild(titleLink);
+        main.appendChild(titleLink);
 
         // Body preview
         if (post.body) {
           var bodyPreview = document.createElement('p');
           bodyPreview.className = 'post-card__body';
           bodyPreview.textContent = post.body.length > 280 ? post.body.substring(0, 280) + '...' : post.body;
-          contentBody.appendChild(bodyPreview);
+          main.appendChild(bodyPreview);
         }
 
-        content.appendChild(contentBody);
-        card.appendChild(content);
-
-        // Footer: reactions + comment count
-        var footer = document.createElement('div');
-        footer.className = 'post-card__footer';
+        // Actions bar
+        var actions = document.createElement('div');
+        actions.className = 'post-card__actions';
 
         var reactionBar = document.createElement('div');
         reactionBar.className = 'reaction-bar';
@@ -507,24 +494,24 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             reactionBar.appendChild(rBtn);
           })(EMOJIS[e]);
         }
-
-        footer.appendChild(reactionBar);
+        actions.appendChild(reactionBar);
 
         var commentCount = document.createElement('a');
         commentCount.className = 'post-comment-count';
         commentCount.href = '/community/post/' + post.id;
         var cc = post.commentCount || 0;
         commentCount.textContent = cc === 1 ? '1 comment' : cc + ' comments';
-        footer.appendChild(commentCount);
+        actions.appendChild(commentCount);
 
-        card.appendChild(footer);
+        main.appendChild(actions);
+        layout.appendChild(main);
+        card.appendChild(layout);
 
-        // Make card clickable (navigate to post)
+        // Make card clickable
         card.addEventListener('click', function (ev) {
           if (ev.target.tagName === 'A' || ev.target.tagName === 'BUTTON' || ev.target.closest('a') || ev.target.closest('button')) return;
           window.location.href = '/community/post/' + post.id + '/';
         });
-        card.style.cursor = 'pointer';
 
         return card;
       }
@@ -580,15 +567,22 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             btn.disabled = false;
             if (data.ok) {
               btn.textContent = pinned ? 'Unpin' : 'Pin';
-              // Update pin indicator
-              var existing = card.querySelector('.post-pin-indicator');
+              var existing = card.querySelector('.post-context__label--pinned');
               if (pinned && !existing) {
-                var pin = document.createElement('span');
-                pin.className = 'post-pin-indicator';
-                pin.textContent = 'Pinned';
-                card.querySelector('.post-card__meta').appendChild(pin);
+                var context = card.querySelector('.post-context');
+                if (!context) {
+                  context = document.createElement('div');
+                  context.className = 'post-context';
+                  card.insertBefore(context, card.firstChild);
+                }
+                var label = document.createElement('span');
+                label.className = 'post-context__label post-context__label--pinned';
+                label.textContent = 'Pinned';
+                context.insertBefore(label, context.firstChild);
               } else if (!pinned && existing) {
-                existing.parentNode.removeChild(existing);
+                var parentCtx = existing.parentNode;
+                parentCtx.removeChild(existing);
+                if (parentCtx.children.length === 0) parentCtx.parentNode.removeChild(parentCtx);
               }
             } else {
               btn.textContent = pinned ? 'Pin' : 'Unpin';
@@ -626,52 +620,58 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
       function timeAgo(dateStr) {
         if (!dateStr) return '';
-        var now = Date.now();
-        var then = new Date(dateStr).getTime();
-        var diff = Math.floor((now - then) / 1000);
-        if (diff < 60) return 'just now';
+        var now = new Date();
+        var then = new Date(dateStr);
+        var diff = Math.floor((now.getTime() - then.getTime()) / 1000);
+        if (diff < 60) return 'now';
         var mins = Math.floor(diff / 60);
-        if (mins < 60) return mins === 1 ? '1 minute ago' : mins + ' minutes ago';
+        if (mins < 60) return mins + 'm';
         var hours = Math.floor(mins / 60);
-        if (hours < 24) return hours === 1 ? '1 hour ago' : hours + ' hours ago';
+        if (hours < 24) return hours + 'h';
         var days = Math.floor(hours / 24);
-        if (days < 7) return days === 1 ? '1 day ago' : days + ' days ago';
-        var weeks = Math.floor(days / 7);
-        if (weeks < 5) return weeks === 1 ? '1 week ago' : weeks + ' weeks ago';
-        var months = Math.floor(days / 30);
-        if (months < 12) return months === 1 ? '1 month ago' : months + ' months ago';
-        var years = Math.floor(days / 365);
-        return years === 1 ? '1 year ago' : years + ' years ago';
+        if (days < 7) return days + 'd';
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        if (then.getFullYear() === now.getFullYear()) {
+          return months[then.getMonth()] + ' ' + then.getDate();
+        }
+        return months[then.getMonth()] + ' ' + then.getDate() + ', ' + then.getFullYear();
       }
     })();
   </script>
 </BaseLayout>
 
 <style is:global>
-  /* Page */
+  /* ── Page ── */
   .community-page {
-    padding: var(--space-8) 0 var(--space-16);
-    min-height: 60vh;
+    padding: 0;
+    min-height: 100vh;
+  }
+  .community-page > .container {
+    max-width: 600px;
+    padding: 0;
+    border-left: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    min-height: 100vh;
   }
   .community-loading {
     text-align: center;
     color: var(--text-muted);
-    padding: var(--space-16) 0;
+    padding: var(--space-16) var(--space-4);
   }
 
-  /* Gate */
+  /* ── Gate (non-members) ── */
   .gate-hero {
-    max-width: 640px;
+    max-width: 600px;
     margin: 0 auto;
     text-align: center;
-    padding: var(--space-16) 0;
+    padding: var(--space-16) var(--space-4);
   }
   .gate-hero .hero-title {
     margin-bottom: var(--space-4);
   }
   .gate-description {
-    font-size: 0.9375rem;
-    line-height: 1.8;
+    font-size: 15px;
+    line-height: 1.6;
     color: var(--text-secondary);
     margin-bottom: var(--space-8);
   }
@@ -679,7 +679,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     margin-bottom: var(--space-6);
   }
   .gate-instagram {
-    font-size: 0.875rem;
+    font-size: 13px;
     color: var(--text-tertiary);
   }
   .gate-instagram a {
@@ -691,100 +691,112 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     color: var(--accent-hover);
   }
 
-  /* Feed header */
+  /* ── Feed header (sticky) ── */
   .feed-header {
-    margin-bottom: var(--space-6);
+    padding: 12px 16px 4px;
+    position: sticky;
+    top: 0;
+    background: rgba(var(--bg-body-rgb, 247, 245, 243), 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 10;
+    border-bottom: 1px solid var(--border-color);
   }
   .feed-header h1 {
-    font-size: 1.75rem;
-    margin-bottom: var(--space-2);
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 0;
+    line-height: 1.4;
   }
   .feed-welcome {
-    font-size: 0.9375rem;
-    color: var(--text-secondary);
+    font-size: 13px;
+    color: var(--text-tertiary);
     margin-bottom: 0;
   }
 
-  /* Tabs */
+  /* ── Tabs (X-style: full-width, centered pill indicator) ── */
   .feed-tabs {
     display: flex;
-    gap: var(--space-1);
     border-bottom: 1px solid var(--border-color);
-    margin-bottom: var(--space-6);
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
   .feed-tab {
-    flex-shrink: 0;
-    padding: var(--space-3) var(--space-4);
+    flex: 1;
+    padding: 16px 12px;
     font-family: 'Inter', sans-serif;
-    font-size: 0.8125rem;
+    font-size: 15px;
     font-weight: 500;
     color: var(--text-tertiary);
     background: transparent;
     border: none;
-    border-bottom: 2px solid transparent;
     cursor: pointer;
-    transition: color 0.15s, border-color 0.15s;
+    transition: color 0.15s, background 0.1s;
     white-space: nowrap;
+    text-align: center;
+    position: relative;
   }
   .feed-tab:hover {
+    background: var(--neutral-100);
     color: var(--text-primary);
   }
   .feed-tab.active {
-    color: var(--purple-700);
-    border-bottom-color: var(--purple-700);
-    font-weight: 600;
+    color: var(--text-primary);
+    font-weight: 700;
+  }
+  .feed-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 56px;
+    height: 4px;
+    background: var(--accent);
+    border-radius: 2px;
   }
 
-  /* Compose trigger (collapsed state) */
+  /* ── Compose trigger (collapsed) ── */
   .compose-trigger {
     display: flex;
     align-items: center;
-    gap: var(--space-3);
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: var(--space-3) var(--space-5);
-    margin-bottom: var(--space-6);
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
     cursor: pointer;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition: background 0.1s;
   }
   .compose-trigger:hover {
-    border-color: var(--purple-300);
-    box-shadow: var(--shadow-sm);
+    background: var(--neutral-100);
   }
   .compose-trigger__avatar {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: var(--purple-100);
     color: var(--purple-700);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 600;
-    font-size: 0.875rem;
+    font-weight: 700;
+    font-size: 1rem;
     flex-shrink: 0;
   }
   .compose-trigger__text {
     color: var(--text-muted);
-    font-size: 0.9375rem;
+    font-size: 15px;
   }
 
-  /* Compose card (expanded state) */
+  /* ── Compose card (expanded) ── */
   .compose-card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: var(--space-5) var(--space-6);
-    margin-bottom: var(--space-6);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
   }
   .compose-card .form-group {
     margin-bottom: var(--space-3);
   }
   .compose-title-input {
-    font-size: 1rem;
+    font-size: 15px;
     font-weight: 500;
   }
   .form-select {
@@ -798,257 +810,235 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     padding-top: var(--space-2);
   }
   .compose-feedback--error {
-    margin-bottom: var(--space-4);
+    margin-bottom: var(--space-3);
     padding: var(--space-3) var(--space-4);
     background: rgba(192, 57, 43, 0.05);
     border: 1px solid var(--color-error);
     border-radius: var(--radius-md);
     color: var(--color-error);
-    font-size: 0.875rem;
+    font-size: 13px;
   }
 
-  /* Post list */
+  /* ── Post list ── */
   .post-list {
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
   }
 
-  /* Post card */
+  /* ── Post card (flat, border-bottom divider) ── */
   .post-card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: var(--space-5) var(--space-6);
-    transition: border-color 0.15s, box-shadow 0.15s;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.1s;
+    cursor: pointer;
   }
   .post-card:hover {
-    border-color: var(--purple-300);
-    box-shadow: var(--shadow-sm);
-  }
-
-  .post-card__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: var(--space-2);
-    gap: var(--space-3);
-  }
-  .post-card__meta {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-  }
-  .post-card__controls {
-    display: flex;
-    align-items: center;
-    gap: var(--space-1);
-  }
-
-  /* Type badges */
-  .post-type-badge {
-    display: inline-block;
-    font-size: 0.625rem;
-    font-weight: 600;
-    padding: 1px 8px;
-    border-radius: 10px;
-    letter-spacing: 0.02em;
-    text-transform: capitalize;
-  }
-  .post-type-badge--announcement {
-    color: #1e5c99;
-    background: rgba(30, 92, 153, 0.1);
-  }
-  .post-type-badge--event {
-    color: var(--green-700);
-    background: var(--green-100);
-  }
-  .post-type-badge--discussion {
-    color: var(--text-tertiary);
     background: var(--neutral-100);
   }
-  .post-type-badge--resource {
-    color: var(--purple-700);
-    background: var(--purple-50);
-  }
 
-  .post-pin-indicator {
-    font-size: 0.625rem;
-    font-weight: 600;
-    color: var(--amber-700);
-    background: var(--amber-100);
-    padding: 1px 8px;
-    border-radius: 10px;
-    letter-spacing: 0.02em;
-  }
-
-  /* Content layout: avatar + inner */
-  .post-card__content {
+  /* Context line (Pinned / type) — indented to align with content column */
+  .post-context {
     display: flex;
-    gap: var(--space-3);
-    margin-bottom: var(--space-1);
+    align-items: center;
+    gap: 8px;
+    padding-left: 52px;
+    margin-bottom: 2px;
+    font-size: 13px;
+    font-weight: 700;
   }
-  .post-card__inner {
-    flex: 1;
-    min-width: 0;
+  .post-context__label--pinned {
+    color: var(--text-tertiary);
+  }
+  .post-context__label--announcement {
+    color: #1e5c99;
+  }
+  .post-context__label--event {
+    color: var(--green-700);
+  }
+  .post-context__label--resource {
+    color: var(--purple-700);
+  }
+
+  /* Main layout: avatar + content */
+  .post-card__layout {
+    display: flex;
+    gap: 12px;
   }
 
   /* Avatar */
   .post-avatar {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    background: var(--neutral-100);
+    background: var(--neutral-200);
     color: var(--text-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 600;
-    font-size: 0.875rem;
+    font-weight: 700;
+    font-size: 1rem;
     flex-shrink: 0;
-    margin-top: 2px;
   }
   .post-avatar--staff {
     background: var(--purple-100);
     color: var(--purple-700);
   }
 
-  /* Author line */
-  .post-card__author {
+  /* Main content column */
+  .post-card__main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Header: name · time · controls */
+  .post-card__header {
     display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    margin-bottom: var(--space-1);
-    font-size: 0.8125rem;
+    align-items: baseline;
+    gap: 4px;
+    line-height: 20px;
     flex-wrap: wrap;
   }
   .post-author-name {
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 15px;
     color: var(--text-primary);
   }
   .post-role-badge {
-    font-size: 0.625rem;
+    font-size: 11px;
     font-weight: 600;
     color: var(--purple-700);
     background: var(--purple-50);
-    padding: 1px 6px;
+    padding: 0 6px;
     border-radius: 8px;
+    line-height: 18px;
   }
   .post-sep {
     color: var(--text-muted);
-    font-size: 0.75rem;
+    font-size: 15px;
   }
   .post-time {
+    color: var(--text-tertiary);
+    font-size: 15px;
+  }
+
+  /* Staff controls (inline in header) */
+  .post-card__controls {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .ctrl-btn {
+    font-size: 13px;
     color: var(--text-muted);
-    font-size: 0.75rem;
+    background: none;
+    border: none;
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.1s, color 0.1s;
+    font-family: inherit;
+  }
+  .ctrl-btn:hover {
+    background: var(--neutral-200);
+    color: var(--text-primary);
+  }
+  .ctrl-btn--danger:hover {
+    color: var(--color-error);
+    background: rgba(192, 57, 43, 0.08);
   }
 
   /* Title */
   .post-card__title {
     display: block;
-    font-family: 'Cormorant Garamond', 'Georgia', serif;
-    font-size: 1.125rem;
-    font-weight: 600;
-    line-height: 1.3;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 20px;
     color: var(--text-primary);
     text-decoration: none;
-    margin-bottom: var(--space-2);
+    margin: 2px 0 4px;
   }
   .post-card__title:hover {
-    color: var(--accent);
-    text-decoration: none;
+    text-decoration: underline;
   }
 
   /* Body preview */
   .post-card__body {
-    font-size: 0.875rem;
-    line-height: 1.7;
+    font-size: 15px;
+    line-height: 20px;
     color: var(--text-secondary);
     white-space: pre-wrap;
-    margin-bottom: var(--space-3);
+    margin: 0 0 4px;
   }
 
-  /* Footer */
-  .post-card__footer {
+  /* Actions bar */
+  .post-card__actions {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: var(--space-4);
-    padding-top: var(--space-3);
-    border-top: 1px solid var(--border-light);
+    max-width: 425px;
+    padding-top: 8px;
   }
 
   /* Reactions */
   .reaction-bar {
     display: flex;
     align-items: center;
-    gap: var(--space-1);
+    gap: 2px;
     flex-wrap: wrap;
   }
   .reaction-btn {
     display: inline-flex;
     align-items: center;
     gap: 2px;
-    padding: 2px 6px;
-    font-size: 0.8125rem;
+    padding: 4px 8px;
+    font-size: 13px;
     background: transparent;
-    border: 1px solid var(--border-color);
+    border: none;
     border-radius: var(--radius-pill);
     cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
+    transition: background 0.1s;
     line-height: 1;
   }
   .reaction-btn:hover {
     background: var(--neutral-100);
-    border-color: var(--neutral-300);
   }
   .reaction-btn--active {
     background: var(--purple-50);
-    border-color: var(--purple-300);
   }
   .reaction-btn--active:hover {
     background: var(--purple-100);
   }
   .reaction-btn--empty {
-    opacity: 0.4;
-    border-color: transparent;
+    opacity: 0.3;
   }
   .reaction-btn--empty:hover {
     opacity: 1;
-    border-color: var(--border-color);
   }
   .reaction-emoji {
-    font-size: 0.875rem;
+    font-size: 16px;
     line-height: 1;
   }
   .reaction-count {
-    font-size: 0.6875rem;
+    font-size: 13px;
     font-weight: 500;
-    color: var(--text-secondary);
+    color: var(--text-tertiary);
     min-width: 8px;
     text-align: center;
   }
 
   /* Comment count */
   .post-comment-count {
-    font-size: 0.75rem;
-    color: var(--text-muted);
+    font-size: 13px;
+    color: var(--text-tertiary);
     text-decoration: none;
     white-space: nowrap;
     flex-shrink: 0;
+    transition: color 0.1s;
   }
   .post-comment-count:hover {
     color: var(--accent);
-    text-decoration: none;
-  }
-
-  /* Delete button */
-  .post-delete-btn {
-    color: var(--color-error);
-  }
-  .post-delete-btn:hover {
-    color: var(--color-error);
-    opacity: 0.8;
   }
 
   /* Load more */
@@ -1062,45 +1052,50 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .posts-empty {
     text-align: center;
     color: var(--text-muted);
-    padding: var(--space-10) 0;
-    font-size: 0.9375rem;
+    padding: var(--space-10) var(--space-4);
+    font-size: 15px;
   }
 
-  /* Mobile */
-  @media (max-width: 768px) {
-    .community-page {
-      padding: var(--space-6) 0 var(--space-12);
+  /* ── Mobile ── */
+  @media (max-width: 600px) {
+    .community-page > .container {
+      border-left: none;
+      border-right: none;
     }
-    .gate-hero {
-      padding: var(--space-8) 0;
-    }
-    .feed-header h1 {
-      font-size: 1.5rem;
+    .feed-header {
+      padding: 12px 16px 4px;
     }
     .post-card {
-      padding: var(--space-4) var(--space-4);
-    }
-    .compose-card {
-      padding: var(--space-4);
+      padding: 12px;
     }
     .compose-trigger {
-      padding: var(--space-3) var(--space-4);
+      padding: 12px;
     }
-    .post-card__header {
-      flex-wrap: wrap;
+    .compose-card {
+      padding: 12px;
     }
-    .post-card__footer {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: var(--space-2);
-    }
-    .reaction-bar {
-      gap: 2px;
+    .post-context {
+      padding-left: 44px;
     }
     .post-avatar {
       width: 32px;
       height: 32px;
-      font-size: 0.8125rem;
+      font-size: 14px;
+    }
+    .compose-trigger__avatar {
+      width: 32px;
+      height: 32px;
+      font-size: 14px;
+    }
+    .feed-tab {
+      font-size: 14px;
+      padding: 12px 8px;
+    }
+    .feed-tab.active::after {
+      width: 40px;
+    }
+    .post-card__header {
+      flex-wrap: wrap;
     }
   }
 </style>
