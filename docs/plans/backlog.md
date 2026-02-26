@@ -21,6 +21,7 @@
 
 ## Done (Recent)
 
+- Community feed fully inline — comments, replies, edit modal, comment reactions all in-feed, no detail page navigation (2026-02-26)
 - Saved articles cross-device sync nudge for guests (2026-02-25)
 - Quiz response recording -- new `quiz_response` D1 table captures individual answers (2026-02-25)
 - Dead code cleanup -- removed unused API endpoints, CSS, functions (2026-02-25)
