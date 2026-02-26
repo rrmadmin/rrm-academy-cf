@@ -39,23 +39,8 @@ const jsonLd = {
 
       <!-- Membership tiers -->
       <section class="donate-cta-section">
-        <!-- Default heading (non-member) -->
-        <div id="membership-default">
-          <h2>Become a Monthly Supporter</h2>
-          <p class="donate-recurring-lead">Monthly members are the backbone of everything we do. Your recurring support funds the research library, patient education, and advocacy that changes how women access care.</p>
-        </div>
-        <!-- Active member heading (shown via JS if subscribed) -->
-        <div id="membership-active" hidden>
-          <h2>Your Membership</h2>
-          <p class="donate-recurring-lead">
-            You're a <strong id="member-tier-name"></strong>.
-            <span id="member-next-date"></span>
-          </p>
-          <div class="member-actions">
-            <button id="manage-billing-btn" class="btn btn--primary">Manage Billing</button>
-            <a href="/account/" class="btn btn--secondary">My Account</a>
-          </div>
-        </div>
+        <h2>Become a Monthly Supporter</h2>
+        <p class="donate-recurring-lead">Monthly members are the backbone of everything we do. Your recurring support funds the research library, patient education, and advocacy that changes how women access care.</p>
 
         <div class="tier-grid">
           <div class="tier-card card">
@@ -196,8 +181,6 @@ const jsonLd = {
   <script is:inline>
     (function () {
       // --- Check billing status on load ---
-      var tierNames = { member: 'STUC Member', hero: 'Uterus Hero', superhero: 'Uterus Super Hero' };
-
       fetch('/api/billing/status', { credentials: 'same-origin' })
         .then(function (r) { return r.json(); })
         .then(function (data) {
@@ -205,97 +188,25 @@ const jsonLd = {
           var sub = data.subscription;
           if (sub.status !== 'active' && sub.status !== 'trialing') return;
 
-          // Swap section heading to active member view
-          var tierEl = document.getElementById('member-tier-name');
-          var dateEl = document.getElementById('member-next-date');
-          tierEl.textContent = tierNames[sub.tier] || sub.tier;
-
-          if (sub.cancelAtPeriodEnd) {
-            dateEl.textContent = 'Your membership ends ' + new Date(sub.currentPeriodEnd * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-          } else if (sub.currentPeriodEnd) {
-            dateEl.textContent = 'Next donation: ' + new Date(sub.currentPeriodEnd * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-          }
-
-          document.getElementById('membership-default').hidden = true;
-          document.getElementById('membership-active').hidden = false;
-
-          // Update tier buttons: current tier disabled, others show upgrade/downgrade
-          var tierOrder = ['member', 'hero', 'superhero'];
-          var currentIdx = tierOrder.indexOf(sub.tier);
+          // Grey out the current tier card and button
           var buttons = document.querySelectorAll('.tier-btn');
           for (var i = 0; i < buttons.length; i++) {
-            var btnTier = buttons[i].dataset.tier;
-            var btnIdx = tierOrder.indexOf(btnTier);
-            if (btnTier === sub.tier) {
+            if (buttons[i].dataset.tier === sub.tier) {
+              var card = buttons[i].closest('.tier-card');
+              card.classList.add('tier-card--current');
               buttons[i].disabled = true;
               buttons[i].textContent = 'Your Plan';
               buttons[i].classList.add('tier-btn--disabled');
-            } else {
-              buttons[i].textContent = btnIdx > currentIdx ? 'Upgrade' : 'Downgrade';
-              buttons[i].classList.add('tier-btn--change');
             }
           }
         })
         .catch(function () { /* not logged in or network error — ignore */ });
 
-      // Manage Billing button
-      var billingBtn = document.getElementById('manage-billing-btn');
-      if (billingBtn) {
-        billingBtn.addEventListener('click', function () {
-          billingBtn.disabled = true;
-          billingBtn.textContent = 'Loading...';
-          fetch('/api/billing/portal', {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: { 'Content-Type': 'application/json' },
-          })
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-              if (data.ok && data.url) {
-                window.location.href = data.url;
-              } else {
-                billingBtn.disabled = false;
-                billingBtn.textContent = 'Manage Billing';
-                alert(data.error || 'Unable to open billing portal.');
-              }
-            })
-            .catch(function () {
-              billingBtn.disabled = false;
-              billingBtn.textContent = 'Manage Billing';
-              alert('Connection error. Please try again.');
-            });
-        });
-      }
-
-      // --- Tier buttons → Stripe Checkout (new) or billing portal (existing, changing tier) ---
+      // --- Tier buttons → Stripe Checkout ---
       document.querySelectorAll('.tier-btn[data-tier]').forEach(function (btn) {
         btn.addEventListener('click', function () {
           if (btn.classList.contains('tier-btn--disabled')) return;
 
-          // Existing subscriber changing tier → billing portal
-          if (btn.classList.contains('tier-btn--change')) {
-            btn.disabled = true;
-            var label = btn.textContent;
-            btn.textContent = 'Opening...';
-            fetch('/api/billing/portal', { method: 'POST', credentials: 'same-origin' })
-              .then(function (r) { return r.json(); })
-              .then(function (data) {
-                if (data.ok && data.url) {
-                  window.location.href = data.url;
-                } else {
-                  btn.disabled = false;
-                  btn.textContent = label;
-                  alert(data.error || 'Unable to open billing portal.');
-                }
-              })
-              .catch(function () {
-                btn.disabled = false;
-                btn.textContent = label;
-              });
-            return;
-          }
-
-          // New subscriber → Stripe Checkout
           var tier = btn.dataset.tier;
           btn.disabled = true;
           var original = btn.textContent;
@@ -504,12 +415,9 @@ const jsonLd = {
     margin: 0 auto;
   }
 
-  /* Member actions (inline in section header) */
-  .member-actions {
-    display: flex;
-    gap: var(--space-3);
-    justify-content: center;
-    margin-top: var(--space-4);
+  /* Current tier greyed out */
+  .tier-card--current {
+    opacity: 0.5;
   }
   .tier-btn--disabled {
     opacity: 0.5;

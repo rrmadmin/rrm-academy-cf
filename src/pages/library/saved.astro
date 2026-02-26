@@ -24,6 +24,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           Tap the <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px;"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Save button on any article to add it here.
         </p>
         <a href="/library/" class="back-link">&larr; Browse the library</a>
+        <p id="guest-signin-hint" class="guest-signin-hint" hidden>Have an account? <a href="/login/">Log in</a> to see your saved articles.</p>
       </div>
 
       <div id="saved-list" class="saved-list"></div>
@@ -32,6 +33,21 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         <button id="export-all" class="export-btn">Export all (.RIS)</button>
         <button id="clear-all" class="clear-all-btn">Clear all</button>
       </div>
+
+      <!-- Guest sync nudge — shown only for guests with saved articles -->
+      <aside id="guest-sync-nudge" class="sync-nudge" hidden>
+        <div class="sync-nudge__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div class="sync-nudge__text">
+          <strong>These articles are saved in this browser only.</strong>
+          <span>Create a free account to keep them across all your devices.</span>
+        </div>
+        <div class="sync-nudge__actions">
+          <a href="/signup/" class="sync-nudge__signup">Create free account</a>
+          <span class="sync-nudge__or">or <a href="/login/" class="sync-nudge__login">Log in</a></span>
+        </div>
+      </aside>
     </div>
   </div>
 </BaseLayout>
@@ -151,6 +167,93 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   }
   .clear-all-btn:hover {
     color: var(--neutral-900);
+  }
+
+  /* Guest sign-in hint (empty state) */
+  .guest-signin-hint {
+    font-size: 0.8125rem;
+    color: var(--neutral-400);
+    margin-top: var(--space-4);
+  }
+  .guest-signin-hint a {
+    color: var(--purple-700);
+    font-weight: 500;
+  }
+
+  /* Guest sync nudge (has articles, not logged in) */
+  .sync-nudge {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-4) var(--space-5);
+    margin-top: var(--space-6);
+  }
+  .sync-nudge__icon {
+    color: var(--accent);
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+  .sync-nudge__text {
+    flex: 1;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    min-width: 0;
+  }
+  .sync-nudge__text strong {
+    display: block;
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .sync-nudge__actions {
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-3);
+    flex-shrink: 0;
+    align-items: center;
+  }
+  .sync-nudge__or {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+  .sync-nudge__signup {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--white);
+    background: var(--accent);
+    padding: 6px 16px;
+    border-radius: var(--radius-pill);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s;
+  }
+  .sync-nudge__signup:hover {
+    background: var(--accent-hover, var(--purple-900));
+  }
+  .sync-nudge__login {
+    font-size: 0.75rem;
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .sync-nudge__login:hover {
+    text-decoration: underline;
+  }
+  @media (max-width: 600px) {
+    .sync-nudge {
+      flex-wrap: wrap;
+      gap: var(--space-3);
+    }
+    .sync-nudge__icon {
+      display: none;
+    }
+    .sync-nudge__actions {
+      width: 100%;
+    }
   }
 </style>
 
@@ -347,10 +450,23 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     // Render localStorage immediately, then sync with server if logged in
     render();
 
+    var syncNudge = document.getElementById('guest-sync-nudge');
+    var signinHint = document.getElementById('guest-signin-hint');
+
     fetch('/api/auth/session', { credentials: 'same-origin' })
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        if (!data.ok || !data.user) return;
+        if (!data.ok || !data.user) {
+          // Guest — show appropriate nudge based on article count
+          var saved = getSaved();
+          if (saved.length > 0 && syncNudge) {
+            syncNudge.hidden = false;
+          } else if (saved.length === 0 && signinHint) {
+            signinHint.hidden = false;
+          }
+          return;
+        }
+
         isLoggedIn = true;
 
         var local = getSaved();
@@ -373,6 +489,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           })
           .catch(function() {});
       })
-      .catch(function() {});
+      .catch(function() {
+        // Network error — treat as guest with articles
+        var saved = getSaved();
+        if (saved.length > 0 && syncNudge) syncNudge.hidden = false;
+      });
   })();
 </script>

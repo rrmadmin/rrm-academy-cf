@@ -11,3 +11,5 @@ scraped/
 .wrangler
 .firecrawl/
 .obsidian/
+.DS_Store
+.tmp-fn-build/
