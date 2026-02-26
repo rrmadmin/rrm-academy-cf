@@ -1,0 +1,111 @@
+/**
+ * GET /api/auth/google-callback
+ * Handles Google OAuth redirect. Exchanges code for tokens, finds or creates
+ * the user, creates a session, and redirects to the original page.
+ *
+ * Account matching logic:
+ *   1. google_id exists in DB        -> log in (returning Google user)
+ *   2. email matches existing user   -> link google_id, log in (first Google login)
+ *   3. no match                      -> create new account, log in (brand new user)
+ */
+import {
+  generateId, createSession, sessionCookie,
+  exchangeGoogleCode, getGoogleProfile,
+} from './_shared.js';
+
+const LOGIN_ERROR_URL = '/login?error=oauth_failed';
+
+export async function onRequestGet({ request, env }) {
+  try {
+    const db = env.DB;
+    if (!db) return redirect(LOGIN_ERROR_URL);
+
+    const url = new URL(request.url);
+    const code = url.searchParams.get('code');
+    const state = url.searchParams.get('state');
+
+    if (!code) return redirect(LOGIN_ERROR_URL);
+
+    // Determine where to send the user after login
+    const returnTo = state || '/account/';
+
+    // Exchange authorization code for tokens
+    const redirectUri = `${url.origin}/api/auth/google-callback`;
+    const tokens = await exchangeGoogleCode(
+      code, env.GOOGLE_CLIENT_ID, env.GOOGLE_CLIENT_SECRET, redirectUri
+    );
+
+    if (!tokens.access_token) {
+      console.error('Google token exchange failed:', JSON.stringify(tokens));
+      return redirect(LOGIN_ERROR_URL);
+    }
+
+    // Get user profile from Google
+    const profile = await getGoogleProfile(tokens.access_token);
+    if (!profile.id || !profile.email) {
+      console.error('Google profile missing id or email:', JSON.stringify(profile));
+      return redirect(LOGIN_ERROR_URL);
+    }
+
+    const googleId = String(profile.id);
+    const email = profile.email.toLowerCase().trim();
+    const name = profile.name || '';
+    const firstName = profile.given_name || '';
+    const lastName = profile.family_name || '';
+
+    let user;
+
+    // 1. Check if google_id already linked to an account
+    user = await db.prepare('SELECT id, email, blocked FROM user WHERE google_id = ?')
+      .bind(googleId).first();
+
+    if (!user) {
+      // 2. Check if email matches an existing account (first Google login for this user)
+      user = await db.prepare('SELECT id, email, blocked FROM user WHERE email = ?')
+        .bind(email).first();
+
+      if (user) {
+        // Link Google ID to existing account
+        await db.prepare('UPDATE user SET google_id = ?, updated_at = datetime(\'now\') WHERE id = ?')
+          .bind(googleId, user.id).run();
+      }
+    }
+
+    if (!user) {
+      // 3. Brand new user — create account
+      const id = generateId();
+      await db.prepare(
+        `INSERT INTO user (id, email, email_verified, hashed_password, name, first_name, last_name, google_id, role)
+         VALUES (?, ?, 1, '', ?, ?, ?, ?, 'member')`
+      ).bind(id, email, name, firstName, lastName, googleId).run();
+
+      user = { id, email, blocked: 0 };
+    }
+
+    // Check if user is blocked
+    if (user.blocked) {
+      return redirect('/login?error=account_blocked');
+    }
+
+    // Create session (same pattern as login.js)
+    const session = await createSession(db, user.id);
+
+    return new Response(null, {
+      status: 302,
+      headers: {
+        Location: returnTo,
+        'Set-Cookie': sessionCookie(session.id, session.expiresAt),
+      },
+    });
+  } catch (err) {
+    console.error('Google OAuth callback error:', err);
+    return redirect(LOGIN_ERROR_URL);
+  }
+}
+
+function redirect(location) {
+  return new Response(null, {
+    status: 302,
+    headers: { Location: location },
+  });
+}
