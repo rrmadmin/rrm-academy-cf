@@ -77,7 +77,11 @@ export async function requireMember(request, env) {
   }
 
   // Members need an active subscription
-  if (!user.stripe_customer_id || !env.STRIPE_SECRET_KEY) {
+  if (!env.STRIPE_SECRET_KEY) {
+    console.error('STRIPE_SECRET_KEY not configured');
+    return json({ ok: false, error: 'Server configuration error' }, 500);
+  }
+  if (!user.stripe_customer_id) {
     return json({ ok: false, error: 'Membership required' }, 403);
   }
 
@@ -86,11 +90,17 @@ export async function requireMember(request, env) {
     apiVersion: '2024-12-18.acacia',
   });
 
-  const subs = await stripe.subscriptions.list({
-    customer: user.stripe_customer_id,
-    status: 'active',
-    limit: 1,
-  });
+  let subs;
+  try {
+    subs = await stripe.subscriptions.list({
+      customer: user.stripe_customer_id,
+      status: 'active',
+      limit: 1,
+    });
+  } catch (err) {
+    console.error('Stripe API error in requireMember:', err.message);
+    return json({ ok: false, error: 'Unable to verify membership. Please try again.' }, 503);
+  }
 
   if (!subs.data.length) {
     return json({ ok: false, error: 'Membership required' }, 403);

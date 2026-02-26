@@ -1,55 +1,64 @@
 /**
  * GET /api/stream/token?videoId=<streamUid>
  * Returns a signed token for Cloudflare Stream video playback.
- * Requires authenticated session (same auth as course progress API).
+ * Requires authenticated session and enrollment in the course containing the video.
  *
  * Response: { ok: true, token: "eyJ..." }
  * The client embeds: https://customer-{code}.cloudflarestream.com/{token}/iframe
  */
 
-import { validateSession, getSessionIdFromCookie } from '../auth/_shared.js';
+import {
+  json, optionsResponse, getSessionIdFromCookie, validateSession,
+} from '../auth/_shared.js';
+import coursesData from '../../../src/data/courses.json';
+
+const streamUidToCourse = new Map();
+for (const course of coursesData) {
+  for (const section of course.sections) {
+    for (const step of section.steps) {
+      if (step.streamUid) {
+        streamUidToCourse.set(step.streamUid, course);
+      }
+    }
+  }
+}
+
+export async function onRequestOptions() {
+  return optionsResponse();
+}
 
 export async function onRequestGet({ request, env }) {
-  // Auth check
-  const db = env.DB;
-  const sessionId = getSessionIdFromCookie(request);
-  const session = await validateSession(db, sessionId);
-  if (!session) {
-    return new Response(JSON.stringify({ ok: false, error: 'Not authenticated' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
-  const url = new URL(request.url);
-  const videoId = url.searchParams.get('videoId');
-  if (!videoId) {
-    return new Response(JSON.stringify({ ok: false, error: 'Missing videoId' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
-  const signingKeyJwk = env.STREAM_SIGNING_KEY;
-  const keyId = env.STREAM_SIGNING_KEY_ID;
-  if (!signingKeyJwk || !keyId) {
-    return new Response(JSON.stringify({ ok: false, error: 'Stream not configured' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
   try {
+    const db = env.DB;
+    if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
+
+    const sessionId = getSessionIdFromCookie(request);
+    const session = await validateSession(db, sessionId);
+    if (!session) return json({ ok: false, error: 'Not authenticated' }, 401);
+
+    const url = new URL(request.url);
+    const videoId = url.searchParams.get('videoId');
+    if (!videoId) return json({ ok: false, error: 'Missing videoId' }, 400);
+
+    const course = streamUidToCourse.get(videoId);
+    if (!course) return json({ ok: false, error: 'Unknown video' }, 404);
+
+    if (!course.isFree) {
+      const enrollment = await db.prepare(
+        'SELECT id FROM enrollment WHERE user_id = ? AND course_id = ?'
+      ).bind(session.userId, course.id).first();
+      if (!enrollment) return json({ ok: false, error: 'Not enrolled' }, 403);
+    }
+
+    const signingKeyJwk = env.STREAM_SIGNING_KEY;
+    const keyId = env.STREAM_SIGNING_KEY_ID;
+    if (!signingKeyJwk || !keyId) return json({ ok: false, error: 'Stream not configured' }, 500);
+
     const token = await generateSignedToken(signingKeyJwk, keyId, videoId);
-    return new Response(JSON.stringify({ ok: true, token }), {
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return json({ ok: true, token });
   } catch (err) {
-    console.error('Stream token generation failed:', err.message);
-    return new Response(JSON.stringify({ ok: false, error: 'Token generation failed' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    console.error('stream token error:', err.message, err.stack);
+    return json({ ok: false, error: 'Internal error' }, 500);
   }
 }
 

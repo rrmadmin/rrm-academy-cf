@@ -49,6 +49,7 @@ async function handleEnroll(request, env) {
 
   const course = getCourse(courseId);
   if (!course) return json({ ok: false, error: 'Course not found' }, 404);
+  if (course.comingSoon) return json({ ok: false, error: 'Course not yet available' }, 400);
 
   // Idempotent: already enrolled → return success
   // Re-run enrollUser to ensure included courses exist (handles partial-failure retry)
@@ -96,7 +97,13 @@ async function handleEnroll(request, env) {
     sessionParams.customer_email = user.email;
   }
 
-  const checkoutSession = await stripe.checkout.sessions.create(sessionParams);
+  let checkoutSession;
+  try {
+    checkoutSession = await stripe.checkout.sessions.create(sessionParams);
+  } catch (err) {
+    console.error('Stripe checkout.sessions.create failed:', err.message);
+    return json({ ok: false, error: 'Payment service unavailable. Please try again shortly.' }, 503);
+  }
   return json({ ok: true, enrolled: false, checkoutUrl: checkoutSession.url });
 }
 
