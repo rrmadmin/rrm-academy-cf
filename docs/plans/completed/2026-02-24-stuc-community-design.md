@@ -149,9 +149,9 @@ Cursor-based using `created_at`. Default 20 posts per page. Client sends `?befor
 
 | Route | What | Access |
 |-------|------|--------|
-| `/community` | Main feed — all post types, filterable tabs | Members (subscription required) |
+| `/community` | Main feed — all post types, filterable tabs, inline comments/edit | Members (subscription required) |
 | `/community/events` | Upcoming + past events view | Members |
-| `/community/post/[id]` | Single post with comments thread | Members |
+| `/community/post/[id]` | Permalink fallback (kept for shared links, not linked from feed) | Members |
 
 All are static Astro shells with client-side fetch (same pattern as courses/account).
 
@@ -161,16 +161,25 @@ All are static Astro shells with client-side fetch (same pattern as courses/acco
 - **Logged in, no subscription** → gate page with STUC tier pitch
 - **Logged in, active subscription** → full community access
 
-### Main Feed (`/community`)
+### Main Feed (`/community`) — Fully Inline
+
+Everything happens within the feed. No page navigation for any interaction.
 
 - Filter tabs: All | Announcements | Events | Resources | Discussions
 - Pinned posts at top
-- Post cards show: type icon, author name, time-ago, title, body preview, reaction counts, comment count
+- Post cards show: type label, author name + avatar, time-ago, title, body preview (collapsed if >280 chars), reaction bar, comment count
+- **Card click → expand/collapse**: shows full body + loads threaded comments inline
+- **Inline comments**: compose textarea at top, threaded replies (one level deep), emoji reactions, delete
+- **Reply**: "Reply" button slides open textarea below top-level comment, submits with `parentId`
+- **Edit modal**: full-screen overlay with pre-populated title/body/type fields, PATCH updates card in-place
+- **Comment count button**: toggles expand/collapse (not a link)
 - "New Post" compose form (inline, not separate page)
   - Members: title + body (type defaults to "discussion")
   - Staff: title + body + type selector + event/resource fields
 
-### Single Post (`/community/post/[id]`)
+### Single Post (`/community/post/[id]`) — Permalink Fallback
+
+Retained for shared links and direct URL access. Not linked from the feed.
 
 - Full body (markdown rendered to HTML)
 - Reaction bar (emoji toggles)
