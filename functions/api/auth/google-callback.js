@@ -24,10 +24,14 @@ export async function onRequestGet({ request, env }) {
     const code = url.searchParams.get('code');
     const state = url.searchParams.get('state');
 
-    if (!code) return redirect(LOGIN_ERROR_URL);
+    // Handle user denying consent or other Google errors
+    const error = url.searchParams.get('error');
+    if (error || !code) {
+      return new Response(null, { status: 302, headers: { Location: `${url.origin}/login?error=oauth_denied` } });
+    }
 
-    // Determine where to send the user after login
-    const returnTo = state || '/account/';
+    // Determine where to send the user after login (prevent open redirects)
+    const returnTo = (state && state.startsWith('/') && !state.startsWith('//')) ? state : '/account/';
 
     // Exchange authorization code for tokens
     const redirectUri = `${url.origin}/api/auth/google-callback`;

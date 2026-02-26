@@ -15,7 +15,6 @@ export async function onRequestGet({ env, request }) {
     status: 302,
     headers: {
       Location: `${authUrl}&state=${encodeURIComponent(redirect)}`,
-      'Set-Cookie': `oauth_redirect=${encodeURIComponent(redirect)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=600`,
     },
   });
 }
