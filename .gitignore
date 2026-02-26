@@ -13,3 +13,4 @@ scraped/
 .obsidian/
 .DS_Store
 .tmp-fn-build/
+.worktrees/
