@@ -13,7 +13,7 @@
  */
 import Stripe from 'stripe';
 import {
-  json, optionsResponse, getSessionIdFromCookie, validateSession,
+  json, optionsResponse, getSessionIdFromCookie, validateSession, checkRateLimit,
 } from './auth/_shared.js';
 
 export async function onRequestOptions() {
@@ -46,6 +46,15 @@ async function handleCheckout(request, env) {
   }
 
   const { mode, amount, tier } = body;
+
+  if (mode !== 'payment' && mode !== 'subscription') {
+    return json({ ok: false, error: 'Invalid mode — use "payment" or "subscription"' }, 400);
+  }
+
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  if (!checkRateLimit(`checkout:${ip}`)) {
+    return json({ ok: false, error: 'Too many requests — try again later' }, 429);
+  }
 
   // --- Resolve logged-in user (optional) ---
   const db = env.DB;
@@ -134,7 +143,6 @@ async function handleCheckout(request, env) {
 
     const sessionParams = {
       mode: 'subscription',
-      submit_type: 'donate',
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${origin}/save-the-uterus-club/thank-you?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/save-the-uterus-club`,

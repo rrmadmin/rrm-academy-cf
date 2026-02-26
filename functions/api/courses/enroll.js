@@ -105,17 +105,21 @@ async function handleEnroll(request, env) {
  * Exported for use by stripe-webhook.js.
  */
 export async function enrollUser(db, userId, courseId, stripePaymentIntent) {
-  const enrollmentId = generateId();
-  await db.prepare(
-    'INSERT OR IGNORE INTO enrollment (id, user_id, course_id, stripe_payment_intent) VALUES (?, ?, ?, ?)'
-  ).bind(enrollmentId, userId, courseId, stripePaymentIntent).run();
+  const statements = [
+    db.prepare(
+      'INSERT OR IGNORE INTO enrollment (id, user_id, course_id, stripe_payment_intent) VALUES (?, ?, ?, ?)'
+    ).bind(generateId(), userId, courseId, stripePaymentIntent),
+  ];
 
   // Enroll in included courses (e.g. Masterclass includes Long-Term Endo)
   const included = getIncludedCourseIds(courseId);
   for (const includedId of included) {
-    const id = generateId();
-    await db.prepare(
-      'INSERT OR IGNORE INTO enrollment (id, user_id, course_id, stripe_payment_intent) VALUES (?, ?, ?, ?)'
-    ).bind(id, userId, includedId, stripePaymentIntent).run();
+    statements.push(
+      db.prepare(
+        'INSERT OR IGNORE INTO enrollment (id, user_id, course_id, stripe_payment_intent) VALUES (?, ?, ?, ?)'
+      ).bind(generateId(), userId, includedId, stripePaymentIntent),
+    );
   }
+
+  await db.batch(statements);
 }

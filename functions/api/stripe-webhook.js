@@ -19,10 +19,25 @@ import { enrollUser } from './courses/enroll.js';
 import { getCourse } from './courses/_shared.js';
 
 export async function onRequestPost({ request, env }) {
+  try {
+    return await handleWebhook(request, env);
+  } catch (err) {
+    console.error('Unhandled webhook error:', err.message, err.stack);
+    return new Response(JSON.stringify({ ok: false, error: 'Internal error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+}
+
+async function handleWebhook(request, env) {
   const stripeKey = env.STRIPE_SECRET_KEY;
   const webhookSecret = env.STRIPE_WEBHOOK_SECRET;
   if (!stripeKey || !webhookSecret) {
-    return new Response('Webhook not configured', { status: 500 });
+    return new Response(JSON.stringify({ ok: false, error: 'Webhook not configured' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   const stripe = new Stripe(stripeKey, {
@@ -32,7 +47,10 @@ export async function onRequestPost({ request, env }) {
 
   const signature = request.headers.get('stripe-signature');
   if (!signature) {
-    return new Response('Missing signature', { status: 400 });
+    return new Response(JSON.stringify({ ok: false, error: 'Missing signature' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   const body = await request.text();
@@ -42,13 +60,19 @@ export async function onRequestPost({ request, env }) {
     event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
   } catch (err) {
     console.error('Webhook signature verification failed:', err.message);
-    return new Response('Invalid signature', { status: 400 });
+    return new Response(JSON.stringify({ ok: false, error: 'Invalid signature' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   const db = env.DB;
   if (!db) {
     console.error('DB binding missing — cannot process webhook event');
-    return new Response('DB not configured', { status: 500 });
+    return new Response(JSON.stringify({ ok: false, error: 'DB not configured' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   switch (event.type) {
@@ -58,23 +82,27 @@ export async function onRequestPost({ request, env }) {
 
       // Link Stripe customer to D1 user (requires customerId)
       if (customerId) {
-        // Priority 1: client_reference_id (D1 user ID set during checkout)
-        if (session.client_reference_id) {
-          await db.prepare(
-            'UPDATE user SET stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE id = ? AND (stripe_customer_id IS NULL OR stripe_customer_id = ?)'
-          ).bind(customerId, session.client_reference_id, customerId).run();
-          console.log(`Linked Stripe ${customerId} to user ${session.client_reference_id} (by ID)`);
-        } else {
-          // Priority 2: email match
-          const emailForLink = session.customer_details?.email || session.customer_email;
-          if (emailForLink) {
-            const result = await db.prepare(
-              'UPDATE user SET stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE email = ? COLLATE NOCASE AND stripe_customer_id IS NULL'
-            ).bind(customerId, emailForLink.toLowerCase()).run();
-            if (result.meta?.changes > 0) {
-              console.log(`Linked Stripe ${customerId} to user by email ${emailForLink}`);
+        try {
+          // Priority 1: client_reference_id (D1 user ID set during checkout)
+          if (session.client_reference_id) {
+            await db.prepare(
+              'UPDATE user SET stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE id = ? AND (stripe_customer_id IS NULL OR stripe_customer_id = ?)'
+            ).bind(customerId, session.client_reference_id, customerId).run();
+            console.log(`Linked Stripe ${customerId} to user ${session.client_reference_id} (by ID)`);
+          } else {
+            // Priority 2: email match
+            const emailForLink = session.customer_details?.email || session.customer_email;
+            if (emailForLink) {
+              const result = await db.prepare(
+                'UPDATE user SET stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE email = ? COLLATE NOCASE AND stripe_customer_id IS NULL'
+              ).bind(customerId, emailForLink.toLowerCase()).run();
+              if (result.meta?.changes > 0) {
+                console.log(`Linked Stripe ${customerId} to user by email ${emailForLink}`);
+              }
             }
           }
+        } catch (linkErr) {
+          console.error(`Failed to link Stripe customer ${customerId}:`, linkErr.message);
         }
       }
 
@@ -144,17 +172,17 @@ export async function onRequestPost({ request, env }) {
         console.warn(`Course purchase missing client_reference_id — courseId: ${session.metadata.courseId}, customer: ${session.customer}`);
       }
 
-      // Send membership confirmation email for subscriptions
-      if (session.mode === 'subscription' && env.RESEND_API_KEY) {
+      // Send membership confirmation email for STUC subscriptions
+      const stucTiers = { member: 'Member', hero: 'Uterus Hero', superhero: 'Super Hero' };
+      const tier = session.metadata?.tier || '';
+      if (session.mode === 'subscription' && stucTiers[tier] && env.RESEND_API_KEY) {
         const email = session.customer_details?.email || session.customer_email;
         const name = session.customer_details?.name || '';
-        const tier = session.metadata?.tier || '';
-        const tierNames = { member: 'Member', hero: 'Uterus Hero', superhero: 'Super Hero' };
-        const tierLabel = tierNames[tier] || 'Member';
+        const tierLabel = stucTiers[tier];
 
         if (email) {
           try {
-            await fetch('https://api.resend.com/emails', {
+            const resp = await fetch('https://api.resend.com/emails', {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${env.RESEND_API_KEY}`,
@@ -190,7 +218,11 @@ export async function onRequestPost({ request, env }) {
                 ].join('\n'),
               }),
             });
-            console.log(`Membership confirmation email sent to ${email} (${tierLabel})`);
+            if (!resp.ok) {
+              console.error(`Membership confirmation email failed (${resp.status}) for ${email}`);
+            } else {
+              console.log(`Membership confirmation email sent to ${email} (${tierLabel})`);
+            }
           } catch (emailErr) {
             console.error('Failed to send membership confirmation email:', emailErr.message);
           }
@@ -313,9 +345,14 @@ export async function onRequestPost({ request, env }) {
  */
 async function getEmailByStripeCustomer(db, stripeCustomerId) {
   if (!stripeCustomerId) return null;
-  const row = await db.prepare('SELECT email FROM user WHERE stripe_customer_id = ?')
-    .bind(stripeCustomerId).first();
-  return row?.email || null;
+  try {
+    const row = await db.prepare('SELECT email FROM user WHERE stripe_customer_id = ?')
+      .bind(stripeCustomerId).first();
+    return row?.email || null;
+  } catch (err) {
+    console.error(`Failed to look up email for Stripe customer ${stripeCustomerId}:`, err.message);
+    return null;
+  }
 }
 
 /**

@@ -175,7 +175,7 @@ export function getSessionIdFromCookie(request) {
 // --- Turnstile verification ---
 
 export async function verifyTurnstile(secret, token, ip) {
-  if (!secret) return true;
+  if (!secret) return false;
   if (!token) return false;
   const resp = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
     method: 'POST',
