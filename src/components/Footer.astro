@@ -1,6 +1,9 @@
 ---
 const year = new Date().getFullYear();
 
+// Footer nav — intentionally different from Header desktop/mobile navs.
+// Includes My Account and Donate (not in mobile nav's Help section since they're
+// in the mobile footer action bar instead). See Header.astro for the other lists.
 const educationLinks = [
   { label: 'FAQ', href: '/faqs/', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' },
   { label: 'Courses', href: '/courses/', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.1 2.7 3 6 3s6-1.9 6-3v-5"/></svg>' },

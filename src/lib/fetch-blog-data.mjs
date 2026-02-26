@@ -6,27 +6,10 @@
 import { writeFileSync, mkdirSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import { API_URL, FIELDS } from './blog-config.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_PATH = join(__dirname, '..', 'data', 'posts.json');
-
-const AIRTABLE_BASE_ID = 'app1CKV1heL0qH2Oz';
-const AIRTABLE_TABLE_ID = 'tblS8q3XHj6mhwxvl';
-const API_URL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}`;
-
-const FIELDS = [
-  'Title',
-  'Slug',
-  'Content',
-  'Excerpt',
-  'Author',
-  'Content Pillar',
-  'Processed Cover URL',
-  'Actual Publish Date',
-  'Status',
-  'Word Count',
-  'SEO Keywords',
-];
 
 async function fetchAll() {
   const pat = process.env.AIRTABLE_PAT;
