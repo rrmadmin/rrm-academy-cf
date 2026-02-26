@@ -2,41 +2,7 @@
  * Airtable data fetcher for RRM Research Library.
  * Fetches all BIFID records at build time and transforms them for Astro pages.
  */
-
-const AIRTABLE_BASE_ID = 'appyZWo2G7iByXCgZ';
-const BIFID_TABLE_ID = 'tbloxbruSGmhZ23BC';
-const API_URL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${BIFID_TABLE_ID}`;
-
-// Fields to fetch from Airtable
-const FIELDS = [
-  '1️⃣ Title (static)',
-  '1️⃣ Author(s)',
-  '1️⃣ Year (static)',
-  '1️⃣ Abstract (static)',
-  '1️⃣ Journal (static)',
-  '1️⃣ Journal Abbv (static)',
-  '1️⃣ DOI (static)',
-  '1️⃣ PMID (static)',
-  '1️⃣ Source URL (static)',
-  '1️⃣ SEO:Base-Slug (static)',
-  '1️⃣ Date Published (static)',
-  '1️⃣ Volume (static)',
-  '1️⃣ Issue (static)',
-  '1️⃣ Pages (static)',
-  '1️⃣ Keywords (static)',
-  '1️⃣ APA Citation (static)',
-  '1️⃣ Vancouver Citation (static)',
-  '1️⃣ MLA Citation (static)',
-  '1️⃣ Topics (AI)',
-  '1️⃣ Search Terms (AI)',
-  '1️⃣ Approved or Not',
-  'Enrichment Status',
-  '1️⃣ Short Citation',
-  '1️⃣ Identifier (static)',
-  '1️⃣ OA Type (static)',
-  '1️⃣ License (static)',
-  '1️⃣ OA URL (static)',
-];
+import { API_URL, FIELDS } from './airtable-config.mjs';
 
 export interface Article {
   id: string;

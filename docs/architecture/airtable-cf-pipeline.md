@@ -73,6 +73,27 @@ articles.json → Astro → rrmacademy.org/library
 
 The Editorial Commentary Blog base uses Airtable automations with a single select field to control which posts are published, matching the same publish-gate approach as the Library pipeline.
 
+### Shared Config Files
+
+Airtable base IDs, table IDs, and field lists are defined once in shared `.mjs` config files, imported by both the Astro build-time module and the standalone CLI fetch script:
+
+| Config File | Consumers | Contents |
+|-------------|-----------|----------|
+| `src/lib/airtable-config.mjs` | `airtable.ts`, `fetch-data.mjs` | Library base/table IDs, API URL, field list |
+| `src/lib/blog-config.mjs` | `blog.ts`, `fetch-blog-data.mjs` | Blog base/table IDs, API URL, field list |
+
+FAQ and Courses pipelines define their IDs inline (single consumer each).
+
+### Shared Functions Config
+
+`functions/api/auth/_shared.js` exports shared constants used across all Pages Functions:
+
+| Constant | Purpose |
+|----------|---------|
+| `STRIPE_API_VERSION` | Stripe API version — single source for all 6 Stripe client instantiations |
+| `SITE_URL` | Canonical domain for email body links (NOT for CORS or Astro pages) |
+| `CORS_HEADERS` | CORS config (hardcoded origin for security) |
+
 ### 2. Fetch Script (the sync engine)
 
 Each content domain has a standalone Node.js script: `src/lib/fetch-{domain}-data.mjs`

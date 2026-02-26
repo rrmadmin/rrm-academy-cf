@@ -1,5 +1,7 @@
 ---
-// Navigation matching current Wix site
+// Desktop nav — intentionally sparse (3 main sections only).
+// Mobile nav (below) and Footer.astro have their own sets with different items.
+// These three lists are deliberately NOT shared — they serve different UX contexts.
 const navItems = [
   { label: 'Research Library', href: '/library/', current: true },
   { label: 'Commentary', href: '/commentary/' },
@@ -8,7 +10,7 @@ const navItems = [
   // { label: 'Community', href: '/community/' },
 ];
 
-// Mobile menu — full site navigation (desktop nav stays unchanged)
+// Mobile menu — comprehensive nav (more items than desktop, grouped with icons)
 // SVG icons for mobile nav (16x16, stroke-based)
 const icons: Record<string, string> = {
   'help-circle': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',

@@ -3,6 +3,14 @@
  * Prefixed with _ so CF Pages doesn't treat it as a route handler.
  */
 
+// Stripe API version — keep in sync across all Stripe client instantiations.
+// Update here when upgrading; all files import from this single source.
+export const STRIPE_API_VERSION = '2024-12-18.acacia';
+
+// Canonical site URL for email body links and redirects.
+// NOT for CORS (which must stay hardcoded for security) or Astro pages (which use Astro.site).
+export const SITE_URL = 'https://rrmacademy.org';
+
 export const CORS_HEADERS = {
   'Access-Control-Allow-Origin': 'https://rrmacademy.org',
   'Access-Control-Allow-Methods': 'POST, GET, PATCH, DELETE, OPTIONS',
