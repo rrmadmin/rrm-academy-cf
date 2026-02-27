@@ -43,41 +43,55 @@ async function handleStatus(request, env) {
   const user = await db.prepare('SELECT stripe_customer_id FROM user WHERE id = ?')
     .bind(session.userId).first();
   if (!user || !user.stripe_customer_id) {
-    return json({ ok: true, subscription: null });
+    return json({ ok: true, subscription: null, donations: [] });
   }
 
-  // --- Query Stripe for active subscriptions ---
+  // --- Query Stripe for subscriptions + charges in parallel ---
   const stripe = new Stripe(stripeKey, {
     httpClient: Stripe.createFetchHttpClient(),
     apiVersion: STRIPE_API_VERSION,
   });
 
-  const subscriptions = await stripe.subscriptions.list({
-    customer: user.stripe_customer_id,
-    status: 'all',
-    limit: 1,
-    expand: ['data.items.data.price'],
-  });
+  const [subscriptions, charges] = await Promise.all([
+    stripe.subscriptions.list({
+      customer: user.stripe_customer_id,
+      status: 'all',
+      limit: 1,
+      expand: ['data.items.data.price'],
+    }),
+    stripe.charges.list({
+      customer: user.stripe_customer_id,
+      limit: 10,
+    }),
+  ]);
 
-  if (!subscriptions.data.length) {
-    return json({ ok: true, subscription: null });
-  }
+  // --- Build donations (succeeded one-time charges, not from subscriptions) ---
+  const donations = charges.data
+    .filter(c => c.status === 'succeeded' && !c.invoice)
+    .map(c => ({
+      amount: c.amount,
+      date: c.created,
+      receiptUrl: c.receipt_url || null,
+    }));
 
-  const sub = subscriptions.data[0];
-  const price = sub.items.data[0]?.price;
+  // --- Build subscription ---
+  let subscription = null;
+  if (subscriptions.data.length) {
+    const sub = subscriptions.data[0];
+    const price = sub.items.data[0]?.price;
 
-  const priceToTier = {};
-  if (env.STRIPE_PRICE_MEMBER) priceToTier[env.STRIPE_PRICE_MEMBER] = 'member';
-  if (env.STRIPE_PRICE_HERO) priceToTier[env.STRIPE_PRICE_HERO] = 'hero';
-  if (env.STRIPE_PRICE_SUPERHERO) priceToTier[env.STRIPE_PRICE_SUPERHERO] = 'superhero';
+    const priceToTier = {};
+    if (env.STRIPE_PRICE_MEMBER) priceToTier[env.STRIPE_PRICE_MEMBER] = 'member';
+    if (env.STRIPE_PRICE_HERO) priceToTier[env.STRIPE_PRICE_HERO] = 'hero';
+    if (env.STRIPE_PRICE_SUPERHERO) priceToTier[env.STRIPE_PRICE_SUPERHERO] = 'superhero';
 
-  return json({
-    ok: true,
-    subscription: {
+    subscription = {
       tier: priceToTier[price?.id] || price?.nickname || 'Member',
       status: sub.status,
       currentPeriodEnd: sub.current_period_end,
       cancelAtPeriodEnd: sub.cancel_at_period_end,
-    },
-  });
+    };
+  }
+
+  return json({ ok: true, subscription, donations });
 }

@@ -91,6 +91,7 @@ async function handleCheckout(request, env) {
     const sessionParams = {
       mode: 'payment',
       submit_type: 'donate',
+      customer_creation: 'always',
       line_items: [{
         price_data: {
           currency: 'usd',
