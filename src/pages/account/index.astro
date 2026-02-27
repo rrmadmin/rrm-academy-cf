@@ -634,6 +634,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     padding: var(--space-2) 0;
     font-size: 0.875rem;
   }
+  :global(.donation-row[hidden]) { display: none; }
   :global(.donation-date) { color: var(--text-secondary); }
   :global(.donation-amount) { font-weight: 600; color: var(--text-primary); }
   :global(.donation-receipt a), :global(a.donation-receipt) { color: var(--accent); font-size: 0.8125rem; }
