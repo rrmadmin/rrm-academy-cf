@@ -96,7 +96,7 @@ Google Cloud setup (Brian): create OAuth 2.0 credentials, set redirect URI to `h
 
 UI: add "Sign in with Google" button to login + signup pages.
 
-No changes to session system, enrollment checks, or requireMember().
+No changes to session system or enrollment checks. `requireMember()` updated separately (2026-02-27) with a label-based bypass for grandfathered Wix STUC members — see Labels System section.
 
 ### Layer 2 — Content + Testing (parallel, after Layer 1)
 
@@ -166,18 +166,19 @@ Inform members about the new site. Include Google OAuth as primary login path. P
 
 ## Labels System
 
-Labels are informational metadata only — not used for access control. Access is governed by the enrollment table (courses) and requireMember() helper (STUC subscription check via Stripe).
+Labels are primarily informational metadata. One exception: the `Save the Uterus Club 🏷️` label doubles as an access-control bypass in `requireMember()` for grandfathered Wix STUC members who have no `stripe_customer_id` (44 of 45 members). This bypass grants `member`-tier community access without a Stripe subscription check.
 
 Wix label taxonomy preserved as-is:
 - Course labels: "Masterclass in Endometriosis & Surgery", "Long Term Endometriosis Management", etc.
 - Group labels: "RRM Academy Members Group member", "Save the Uterus Club Group member", etc.
+- Access control: "Save the Uterus Club 🏷️" — grants STUC community access for grandfathered Wix members
 - STUC tiers: "Uterus Member 🐻", "Uterus Hero 💖", "Uterus Super Hero 🦸‍♀️"
 - Historical: "SQSP ◼️", "Pre-SQSP 🪨"
 - Operational: "Spam 🛑", "Contacted Me", "Research Sub 🧪"
 
 ## Decisions Made
 
-- **Labels are metadata, not access control.** Enrollment table governs course access, Stripe subscription governs STUC access.
+- **Labels are metadata, with one access-control exception.** Enrollment table governs course access. Stripe subscription governs STUC access for new members. Grandfathered Wix STUC members use the `Save the Uterus Club 🏷️` label as a bypass in `requireMember()` (added 2026-02-27).
 - **All 3,885 site members imported, including spam** (blocked=1 for spam-labeled).
 - **Google OAuth as primary login for imported members** (no passwords migrated, password reset as fallback).
 - **Three community channels:** stuc (active), members (admin archive), masterclass (admin archive).
