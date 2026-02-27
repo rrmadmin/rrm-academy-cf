@@ -11,6 +11,8 @@
 - **Cancel Vimeo subscription** ($25/mo saved) -- Stream player confirmed working in production
 - **Delete temporary CF API token** (`3h-YUCih...`) created for Stream signing key -- no longer needed
 - **Meet recording pipeline** -- design doc at `docs/plans/2026-02-25-meet-recording-pipeline-design.md`, depends on STUC community tables
+- **RRM Academy Members + Masterclass archive import** (Task 8) -- STUC posts imported (73 posts, 34 comments), but Members (~197 posts) and Masterclass (~18 posts) archives not yet scraped or imported into D1. Archive pages exist at `/community/archive/`. Blocked on Brian scraping via Claude in Chrome.
+- **Member transition email** (Task 12) -- draft and send welcome email to imported members. Deferred to next week.
 
 ## Design Decisions
 
@@ -20,6 +22,7 @@
 
 ## Done (Recent)
 
+- STUC-CUTOVER cleanup — replaced all 5 Wix URLs with CF routes in stripe-webhook.js, thank-you page, linkinbio/jointhecall; removed legacy migration note (2026-02-27)
 - Grandfather Wix STUC members — label-based bypass in `requireMember()` grants `member` tier to users with `Save the Uterus Club 🏷️` label, no Stripe check needed (2026-02-27)
 - Community nav cutover — uncommented Community link in desktop nav, mobile nav, and footer (2026-02-26)
 - Next Lesson button step locking — Next button now disabled in `fixedOrder` courses when current step is incomplete, unlocks on mark-complete / video end / quiz pass (2026-02-26)
