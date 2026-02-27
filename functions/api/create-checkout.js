@@ -91,7 +91,6 @@ async function handleCheckout(request, env) {
     const sessionParams = {
       mode: 'payment',
       submit_type: 'donate',
-      customer_creation: 'always',
       line_items: [{
         price_data: {
           currency: 'usd',
@@ -106,8 +105,9 @@ async function handleCheckout(request, env) {
 
     if (stripeCustomerId) {
       sessionParams.customer = stripeCustomerId;
-    } else if (userEmail) {
-      sessionParams.customer_email = userEmail;
+    } else {
+      sessionParams.customer_creation = 'always';
+      if (userEmail) sessionParams.customer_email = userEmail;
     }
     if (userId) sessionParams.client_reference_id = userId;
 
