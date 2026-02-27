@@ -4,7 +4,6 @@
 
 ## Bugs
 
-- **Stripe live key mismatch**: `STRIPE_SECRET_KEY` in Pages secrets is a test mode key (`sk_test_...`) but course price IDs in courses.json are live mode. Enrollment checkout fails with "No such price" error. Fix: `npx wrangler pages secret put STRIPE_SECRET_KEY --project-name rrm-academy` with the live key.
 - **Next Lesson button bypasses step locking**: The prev/next navigation buttons at the bottom of lesson pages are static HTML links -- they always work regardless of completion state. The sidebar correctly locks future steps, but the Next button lets users skip ahead. Fix: either hide/disable the Next button via JS when `fixedOrder` is true and the next step is locked, or rely on the progress API redirect on page load.
 
 ## To Do
@@ -21,6 +20,16 @@
 
 ## Done (Recent)
 
+- Endo survey validate endpoint — created missing `/api/survey/validate` that was blocking all survey takers ("expired" error on every magic link) (2026-02-26)
+- Auto-create accounts on anonymous Stripe checkout — webhook `ensureAccountForCheckout()` creates D1 account with empty password, sends welcome email with 7-day password-setup link (2026-02-26)
+- Checkout account endpoint — `/api/billing/checkout-account` lets thank-you pages detect auto-created accounts for 3-state messaging (2026-02-26)
+- Thank-you page 3-state logic — donate + STUC thank-you pages show contextual message: linked (logged in), account created (check email), or create account (fallback) (2026-02-26)
+- Login differentiates passwordless accounts — Google-only vs auto-created accounts get distinct error messages pointing users to the right login method (2026-02-26)
+- Donation history on account page — billing API returns one-time donations + subscription payments, collapsible list shows most recent with "Show all" toggle (2026-02-26)
+- `customer_creation: 'always'` on one-time donation checkout — forces Stripe to create Customer for anonymous donations so webhook can link them (2026-02-26)
+- Two-column profile/password card + Member Since date on account page (2026-02-26)
+- Google OAuth fix — set `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` secrets, fixed redirect URI to use `SITE_URL` instead of `url.origin` (2026-02-26)
+- CSS fix: donation row `hidden` attribute overridden by `display: grid` (2026-02-26)
 - Library synopsis share button icon changed from Lucide 'link' to 'forward' (2026-02-26)
 - Community inline images + bare domain URL detection — R2 upload endpoint, `linkify()` renders `![alt](url)` as `<img>`, auto-links `rrmacademy.org/...` style URLs (2026-02-26)
 - Community feed fully inline — comments, replies, edit modal, comment reactions all in-feed, no detail page navigation (2026-02-26)

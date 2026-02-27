@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "description": "Critical file integrity manifest. Run `npm run guard:update` after intentional changes.",
+  "files": {
+    "functions/api/auth/_shared.js": {
+      "hash": "4620a4cde9b498c3924a7b43ac55acefa31ee6e53f6fec9626ac3dbb30a11768",
+      "note": "CORS, sessions, crypto, rate limiting"
+    },
+    "functions/api/auth/login.js": {
+      "hash": "fb5fdb80a953789d30e7978a149d9f9ad20509d9b7447df4faa836ba1715e8f4",
+      "note": "Authentication"
+    },
+    "functions/api/auth/signup.js": {
+      "hash": "e150df88c2ce03fc2ea7f15be0963ee50dc593c32d86e5593e4bec99314cd5b9",
+      "note": "Account creation"
+    },
+    "functions/api/auth/google-callback.js": {
+      "hash": "d7755d17978d19557bb1b9015c4b0c6ee9cd88cf230d6e130714e351ef571707",
+      "note": "Google OAuth"
+    },
+    "functions/api/stripe-webhook.js": {
+      "hash": "24158bf572efa7007069fff284698dba9cb04585f965d1beed5af5627d2768a1",
+      "note": "Webhook + signature verification"
+    },
+    "functions/api/create-checkout.js": {
+      "hash": "15a79b58c95b85f43b5e5bb27ede1c0c4cd83bdcc39a36b6481b0585997d239c",
+      "note": "Stripe checkout"
+    },
+    "functions/api/billing/status.js": {
+      "hash": "34ece83f6732f2d498b7945655403f4f1569a23899ed3f1a84e9418e9c70c3d3",
+      "note": "Billing status"
+    },
+    "functions/api/billing/portal.js": {
+      "hash": "ce70dce5da828749a5f7a4b1b27c4f0042edabb461b8b3689e45537c9b7f154b",
+      "note": "Stripe portal"
+    },
+    "functions/_middleware.js": {
+      "hash": "6adbdfc1ef98c702b9a7d8d2d6462ae9d5be04d879769a4730d15d3af68aca23",
+      "note": "Auth gating"
+    },
+    "wrangler.toml": {
+      "hash": "f5b826e067a8a3bf0f8933ac642ca4cb1cb315b4d8de3e12087d0877c21e254e",
+      "note": "D1, KV, R2 bindings"
+    },
+    "scripts/guard.mjs": {
+      "hash": "f6eab2d361ec7b63ddc085bccc6e902b75e0f83f205817611690f06459a7f923",
+      "note": "Guard script (self-guarding)"
+    }
+  }
+}
