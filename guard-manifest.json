@@ -23,7 +23,7 @@
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
-      "hash": "15a79b58c95b85f43b5e5bb27ede1c0c4cd83bdcc39a36b6481b0585997d239c",
+      "hash": "8edfe30ccbe0f1cf552bf43838705195fd3cc739f939f25b819b6a1f8a6711cf",
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
@@ -43,7 +43,7 @@
       "note": "D1, KV, R2 bindings"
     },
     "scripts/guard.mjs": {
-      "hash": "f6eab2d361ec7b63ddc085bccc6e902b75e0f83f205817611690f06459a7f923",
+      "hash": "4d3a71a382baaa6e7c4b8ad470454a7a2d6ea11492801f77d51c63b74dd6b06a",
       "note": "Guard script (self-guarding)"
     }
   }
