@@ -8,7 +8,7 @@
 import Stripe from 'stripe';
 import {
   json, optionsResponse, getSessionIdFromCookie, validateSession,
-  STRIPE_API_VERSION,
+  STRIPE_API_VERSION, SITE_URL,
 } from '../auth/_shared.js';
 
 export async function onRequestOptions() {
@@ -50,7 +50,7 @@ async function handlePortal(request, env) {
     apiVersion: STRIPE_API_VERSION,
   });
 
-  const origin = new URL(request.url).origin;
+  const origin = SITE_URL;
   const portalSession = await stripe.billingPortal.sessions.create({
     customer: user.stripe_customer_id,
     return_url: `${origin}/account`,

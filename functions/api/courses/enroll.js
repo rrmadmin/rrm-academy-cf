@@ -12,7 +12,7 @@
 import Stripe from 'stripe';
 import {
   json, optionsResponse, getSessionIdFromCookie, validateSession, generateId,
-  STRIPE_API_VERSION,
+  STRIPE_API_VERSION, SITE_URL,
 } from '../auth/_shared.js';
 import { getCourse, getIncludedCourseIds } from './_shared.js';
 
@@ -81,7 +81,7 @@ async function handleEnroll(request, env) {
   const user = await db.prepare('SELECT email, stripe_customer_id FROM user WHERE id = ?')
     .bind(session.userId).first();
 
-  const origin = new URL(request.url).origin;
+  const origin = SITE_URL;
   const sessionParams = {
     mode: 'payment',
     line_items: [{ price: course.stripePriceId, quantity: 1 }],

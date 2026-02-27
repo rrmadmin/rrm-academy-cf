@@ -14,7 +14,7 @@
 import Stripe from 'stripe';
 import {
   json, optionsResponse, getSessionIdFromCookie, validateSession, checkRateLimit,
-  STRIPE_API_VERSION,
+  STRIPE_API_VERSION, SITE_URL,
 } from './auth/_shared.js';
 
 export async function onRequestOptions() {
@@ -76,7 +76,7 @@ async function handleCheckout(request, env) {
     }
   }
 
-  const origin = new URL(request.url).origin;
+  const origin = SITE_URL;
 
   // --- One-time donation ---
   if (mode === 'payment') {
