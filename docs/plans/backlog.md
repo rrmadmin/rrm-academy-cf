@@ -22,6 +22,7 @@
 
 ## Done (Recent)
 
+- Stripe checkout fix — CF Pages STRIPE_PRICE_MEMBER/HERO/SUPERHERO secrets had test-mode price IDs; updated to live values, redeployed via direct deploy (2026-02-27)
 - Contact form delivery fix — self-send (contact@ → contact@) silently dropped; changed to contact@ → administrator@rrmacademy.org; from display name shows submitter (2026-02-27)
 - Quiz data restored via direct deploy — CF Pages build cache was bundling empty quiz arrays; `wrangler pages deploy dist` bypassed stale cache (2026-02-27)
 - Resend API key resynced in CF Pages from 1Password (2026-02-27)
