@@ -4,7 +4,7 @@
 
 ## Bugs
 
-- **CF Pages build cache corrupts function bundles** -- quiz data disappeared despite correct source files. GitHub-triggered builds bundled empty quiz arrays. Workaround: direct deploy via `wrangler pages deploy dist`. Root cause is CF Pages server-side build caching. Monitor on next git push.
+- ~~**CF Pages build cache corrupts function bundles**~~ -- RESOLVED. Root cause: GitHub Actions `actions/cache` for `src/data/` was overwriting committed `quizzes.json` with stale cached copy. Fix: deploy.yml now runs `git checkout HEAD` on committed data files after cache restore. CF Pages GitHub integration was already disconnected (source: none); all deploys go through GitHub Action.
 
 ## To Do
 
@@ -22,6 +22,9 @@
 
 ## Done (Recent)
 
+- Production canary cron — `scripts/canary.mjs` tests 6 critical endpoints every 30 min (homepage, quiz API, survey validate, donation checkout, subscription checkout, contact form); emails administrator@ on failure, silent on success; Telegram ready pending chat ID (2026-02-27)
+- Security guard Phase 3 — verifies 7 critical files exist + quizzes.json has content; runtime guard in create-checkout.js blocks test-mode price IDs with live key (2026-02-27)
+- Deploy.yml cache fix — `git checkout HEAD` restores committed data files after `actions/cache` restore, preventing stale quizzes.json overwrites (2026-02-27)
 - Stripe checkout fix — CF Pages STRIPE_PRICE_MEMBER/HERO/SUPERHERO secrets had test-mode price IDs; updated to live values, redeployed via direct deploy (2026-02-27)
 - Contact form delivery fix — self-send (contact@ → contact@) silently dropped; changed to contact@ → administrator@rrmacademy.org; from display name shows submitter (2026-02-27)
 - Quiz data restored via direct deploy — CF Pages build cache was bundling empty quiz arrays; `wrangler pages deploy dist` bypassed stale cache (2026-02-27)
