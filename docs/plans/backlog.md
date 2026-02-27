@@ -4,7 +4,7 @@
 
 ## Bugs
 
-(none)
+- **CF Pages build cache corrupts function bundles** -- quiz data disappeared despite correct source files. GitHub-triggered builds bundled empty quiz arrays. Workaround: direct deploy via `wrangler pages deploy dist`. Root cause is CF Pages server-side build caching. Monitor on next git push.
 
 ## To Do
 
@@ -22,6 +22,9 @@
 
 ## Done (Recent)
 
+- Contact form delivery fix — self-send (contact@ → contact@) silently dropped; changed to contact@ → administrator@rrmacademy.org; from display name shows submitter (2026-02-27)
+- Quiz data restored via direct deploy — CF Pages build cache was bundling empty quiz arrays; `wrangler pages deploy dist` bypassed stale cache (2026-02-27)
+- Resend API key resynced in CF Pages from 1Password (2026-02-27)
 - STUC-CUTOVER cleanup — replaced all 5 Wix URLs with CF routes in stripe-webhook.js, thank-you page, linkinbio/jointhecall; removed legacy migration note (2026-02-27)
 - Grandfather Wix STUC members — label-based bypass in `requireMember()` grants `member` tier to users with `Save the Uterus Club 🏷️` label, no Stripe check needed (2026-02-27)
 - Community nav cutover — uncommented Community link in desktop nav, mobile nav, and footer (2026-02-26)
