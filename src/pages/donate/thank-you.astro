@@ -21,6 +21,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         <p class="thankyou-lead">Your generous donation has been received. A receipt will be sent to your email by Stripe.</p>
 
         <p id="account-link-prompt" class="account-nudge" hidden>Your donation has been linked to your account. <a href="/account/">View your donations in My Account</a></p>
+        <p id="account-created-prompt" class="account-nudge" hidden>We created an account for you! Check your email to set a password, or <a href="/login/">sign in with Google</a>.</p>
+        <p id="account-exists-prompt" class="account-nudge" hidden>Your donation is linked to your account. <a href="/login/">Log in</a> to see your donation history.</p>
         <p id="create-account-prompt" class="account-nudge" hidden><a href="/signup/">Create a free account</a> to manage your donations. Already have one? <a href="/login/">Log in</a></p>
 
         <div class="thankyou-tax">
@@ -87,9 +89,29 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     .then(function (data) {
       if (data.ok && data.user) {
         document.getElementById('account-link-prompt').hidden = false;
-      } else {
-        document.getElementById('create-account-prompt').hidden = false;
+        return;
       }
+      // Not logged in — check if webhook auto-created an account
+      var params = new URLSearchParams(window.location.search);
+      var sessionId = params.get('session_id');
+      if (!sessionId) {
+        document.getElementById('create-account-prompt').hidden = false;
+        return;
+      }
+      fetch('/api/billing/checkout-account?session_id=' + encodeURIComponent(sessionId))
+        .then(function (r) { return r.json(); })
+        .then(function (acct) {
+          if (acct.ok && acct.accountExists && acct.needsPassword) {
+            document.getElementById('account-created-prompt').hidden = false;
+          } else if (acct.ok && acct.accountExists) {
+            document.getElementById('account-exists-prompt').hidden = false;
+          } else {
+            document.getElementById('create-account-prompt').hidden = false;
+          }
+        })
+        .catch(function () {
+          document.getElementById('create-account-prompt').hidden = false;
+        });
     })
     .catch(function () {});
 </script>
