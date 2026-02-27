@@ -61,18 +61,19 @@ async function handleStatus(request, env) {
     }),
     stripe.charges.list({
       customer: user.stripe_customer_id,
-      limit: 10,
+      limit: 50,
     }),
   ]);
 
-  // --- Build donations (succeeded one-time charges, not from subscriptions) ---
-  const donations = charges.data
-    .filter(c => c.status === 'succeeded' && !c.invoice)
-    .map(c => ({
-      amount: c.amount,
-      date: c.created,
-      receiptUrl: c.receipt_url || null,
-    }));
+  // --- Build charge lists ---
+  const succeeded = charges.data.filter(c => c.status === 'succeeded');
+  const mapCharge = c => ({
+    amount: c.amount,
+    date: c.created,
+    receiptUrl: c.receipt_url || null,
+  });
+  const donations = succeeded.filter(c => !c.invoice).map(mapCharge);
+  const payments = succeeded.filter(c => !!c.invoice).map(mapCharge);
 
   // --- Build subscription ---
   let subscription = null;
@@ -93,5 +94,5 @@ async function handleStatus(request, env) {
     };
   }
 
-  return json({ ok: true, subscription, donations });
+  return json({ ok: true, subscription, donations, payments });
 }
