@@ -208,10 +208,56 @@ function checkInvariants() {
   }
 }
 
-// ─── Phase 3: Secret Scanning ───────────────────────────────────────
+// ─── Phase 3: Critical Files Must Exist ─────────────────────────────
+
+function checkRequiredFiles() {
+  console.log(`\n${BOLD}Phase 3: Required files${RESET}`);
+
+  const REQUIRED = [
+    { path: 'functions/api/survey/validate.js', note: 'Endo survey magic-link validation' },
+    { path: 'functions/api/create-checkout.js', note: 'Stripe checkout (donations + memberships)' },
+    { path: 'functions/api/stripe-webhook.js', note: 'Stripe webhook handler' },
+    { path: 'functions/api/community/_shared.js', note: 'Community access control (requireMember)' },
+    { path: 'functions/api/contact/submit.js', note: 'Contact form' },
+    { path: 'src/data/quizzes.json', note: 'Course quiz content' },
+    { path: 'src/data/courses.json', note: 'Course structure' },
+  ];
+
+  for (const { path, note } of REQUIRED) {
+    const fullPath = join(ROOT, path);
+    try {
+      statSync(fullPath);
+      log(PASS, `${path} exists (${note})`);
+    } catch {
+      log(FAIL, `${path} MISSING — ${note}`);
+      failures++;
+    }
+  }
+
+  // Verify quizzes.json has actual content
+  try {
+    const quizzes = JSON.parse(readFileSync(join(ROOT, 'src/data/quizzes.json'), 'utf8'));
+    const entries = Object.entries(quizzes);
+    const emptyQuizzes = entries.filter(([, q]) => !q.questions || q.questions.length === 0);
+    if (entries.length === 0) {
+      log(FAIL, `quizzes.json has zero entries`);
+      failures++;
+    } else if (emptyQuizzes.length > 0) {
+      log(FAIL, `quizzes.json has empty question arrays: ${emptyQuizzes.map(([k]) => k).join(', ')}`);
+      failures++;
+    } else {
+      log(PASS, `quizzes.json: ${entries.length} quizzes, all have questions`);
+    }
+  } catch (err) {
+    log(FAIL, `Cannot parse quizzes.json: ${err.message}`);
+    failures++;
+  }
+}
+
+// ─── Phase 4: Secret Scanning ───────────────────────────────────────
 
 function scanSecrets() {
-  console.log(`\n${BOLD}Phase 3: Secret scanning${RESET}`);
+  console.log(`\n${BOLD}Phase 4: Secret scanning${RESET}`);
 
   const SECRET_PATTERNS = [
     { pattern: /sk_live_[a-zA-Z0-9]{20,}/g, label: 'Stripe live secret key' },
@@ -292,6 +338,7 @@ if (UPDATE_MODE) {
 
 checkHashes();
 checkInvariants();
+checkRequiredFiles();
 scanSecrets();
 
 console.log('');
