@@ -185,8 +185,7 @@ async function handleWebhook(request, env) {
                   'Here\'s what to do next:',
                   '',
                   '1. Join the member group — this is where live call dates, resources, and discussion happen:',
-                  // STUC-CUTOVER: replace with `   ${SITE_URL}/community`
-                  '   https://rrmfoundation.wixstudio.com/rrm-academy/group/save-the-uterus-club',
+                  `   ${SITE_URL}/community`,
                   '',
                   '2. Join the free Uterus Allies group chat on Instagram:',
                   '   https://www.instagram.com/direct/t/7768750249851959/',

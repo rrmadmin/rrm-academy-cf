@@ -19,7 +19,7 @@
       "note": "Google OAuth"
     },
     "functions/api/stripe-webhook.js": {
-      "hash": "24158bf572efa7007069fff284698dba9cb04585f965d1beed5af5627d2768a1",
+      "hash": "d4ac1fa36f76ff657eec00b132e8c7029c73607fb68c49071bee4cce49fc7ae1",
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
