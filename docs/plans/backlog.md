@@ -20,6 +20,7 @@
 
 ## Done (Recent)
 
+- Community nav cutover — uncommented Community link in desktop nav, mobile nav, and footer (2026-02-26)
 - Next Lesson button step locking — Next button now disabled in `fixedOrder` courses when current step is incomplete, unlocks on mark-complete / video end / quiz pass (2026-02-26)
 - Build-time security guard — `scripts/guard.mjs` checks SHA256 hashes of critical files, enforces CORS/webhook/auth invariants, scans for secrets; runs as pre-commit hook + CI (2026-02-26)
 - Endo survey validate endpoint — created missing `/api/survey/validate` that was blocking all survey takers ("expired" error on every magic link) (2026-02-26)
