@@ -15,7 +15,10 @@
  * subscription state is always fresh in the UI without needing D1 sync.
  */
 import Stripe from 'stripe';
-import { STRIPE_API_VERSION, SITE_URL } from './auth/_shared.js';
+import {
+  STRIPE_API_VERSION, SITE_URL,
+  generateId, generateToken, hashToken,
+} from './auth/_shared.js';
 import { enrollUser } from './courses/enroll.js';
 import { getCourse } from './courses/_shared.js';
 
@@ -81,30 +84,11 @@ async function handleWebhook(request, env) {
       const session = event.data.object;
       const customerId = session.customer;
 
-      // Link Stripe customer to D1 user (requires customerId)
-      if (customerId) {
-        try {
-          // Priority 1: client_reference_id (D1 user ID set during checkout)
-          if (session.client_reference_id) {
-            await db.prepare(
-              'UPDATE user SET stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE id = ? AND (stripe_customer_id IS NULL OR stripe_customer_id = ?)'
-            ).bind(customerId, session.client_reference_id, customerId).run();
-            console.log(`Linked Stripe ${customerId} to user ${session.client_reference_id} (by ID)`);
-          } else {
-            // Priority 2: email match
-            const emailForLink = session.customer_details?.email || session.customer_email;
-            if (emailForLink) {
-              const result = await db.prepare(
-                'UPDATE user SET stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE email = ? COLLATE NOCASE AND stripe_customer_id IS NULL'
-              ).bind(customerId, emailForLink.toLowerCase()).run();
-              if (result.meta?.changes > 0) {
-                console.log(`Linked Stripe ${customerId} to user by email ${emailForLink}`);
-              }
-            }
-          }
-        } catch (linkErr) {
-          console.error(`Failed to link Stripe customer ${customerId}:`, linkErr.message);
-        }
+      // Link Stripe customer to D1 user, or auto-create account for anonymous checkout
+      try {
+        await ensureAccountForCheckout(db, session, env);
+      } catch (linkErr) {
+        console.error('ensureAccountForCheckout failed:', linkErr.message, linkErr.stack);
       }
 
       // Course purchase: create enrollment
@@ -338,6 +322,89 @@ async function handleWebhook(request, env) {
     status: 200,
     headers: { 'Content-Type': 'application/json' },
   });
+}
+
+/**
+ * Ensure a D1 account exists for the checkout session's customer.
+ *
+ * 1. Logged-in user (client_reference_id set) → link stripe_customer_id
+ * 2. Anonymous, email matches existing account → link stripe_customer_id
+ * 3. Anonymous, no account → create account, send welcome email with password-setup link
+ */
+async function ensureAccountForCheckout(db, session, env) {
+  const customerId = session.customer;
+  const email = (session.customer_details?.email || session.customer_email || '').toLowerCase().trim();
+
+  if (!email) {
+    console.log('No email on checkout session — skipping account linkage');
+    return;
+  }
+
+  // Case 1: User was logged in (client_reference_id = D1 user ID)
+  if (session.client_reference_id) {
+    if (customerId) {
+      await db.prepare(
+        'UPDATE user SET stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE id = ? AND (stripe_customer_id IS NULL OR stripe_customer_id = ?)'
+      ).bind(customerId, session.client_reference_id, customerId).run();
+      console.log(`Linked Stripe ${customerId} to user ${session.client_reference_id} (by ID)`);
+    }
+    return;
+  }
+
+  // Case 2: Anonymous checkout — check if email matches existing account
+  const existing = await db.prepare('SELECT id, stripe_customer_id FROM user WHERE email = ? COLLATE NOCASE')
+    .bind(email).first();
+
+  if (existing) {
+    if (customerId && !existing.stripe_customer_id) {
+      await db.prepare('UPDATE user SET stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE id = ?')
+        .bind(customerId, existing.id).run();
+      console.log(`Linked Stripe ${customerId} to existing user ${existing.id} (by email)`);
+    }
+    return;
+  }
+
+  // Case 3: No account exists — auto-create one
+  const id = generateId();
+  const name = session.customer_details?.name || '';
+
+  await db.prepare(
+    `INSERT INTO user (id, email, email_verified, hashed_password, name, stripe_customer_id, role)
+     VALUES (?, ?, 1, '', ?, ?, 'member')`
+  ).bind(id, email, name, customerId || null).run();
+  console.log(`Auto-created account ${id} for ${email} (Stripe ${customerId})`);
+
+  // Generate 7-day password reset token so user can set a password
+  if (env.RESEND_API_KEY) {
+    const token = generateToken();
+    const tokenHash = await hashToken(token);
+    const expiresAt = Math.floor(Date.now() / 1000) + 7 * 24 * 3600;
+
+    await db.prepare(
+      'INSERT INTO password_reset (id, user_id, token_hash, expires_at) VALUES (?, ?, ?, ?)'
+    ).bind(generateId(), id, tokenHash, expiresAt).run();
+
+    const setPasswordUrl = `${SITE_URL}/reset-password?token=${token}`;
+
+    await sendEmail(env.RESEND_API_KEY, {
+      to: email,
+      subject: 'Your RRM Academy account is ready',
+      text: [
+        `Hi ${name || 'there'},`,
+        '',
+        'Thank you for your support! We\'ve created an RRM Academy account for you so you can view your donation history, receipts, and membership details.',
+        '',
+        'Set your password to get started:',
+        setPasswordUrl,
+        '',
+        'This link expires in 7 days. You can also sign in with Google if you prefer.',
+        '',
+        'RRM Academy',
+        'A project of the RRM Foundation — 501(c)(3), EIN: 93-4594315',
+      ].join('\n'),
+    });
+    console.log(`Welcome email sent to ${email} for auto-created account ${id}`);
+  }
 }
 
 /**
