@@ -10,7 +10,7 @@
  */
 import {
   generateId, createSession, sessionCookie,
-  exchangeGoogleCode, getGoogleProfile,
+  exchangeGoogleCode, getGoogleProfile, SITE_URL,
 } from './_shared.js';
 
 const LOGIN_ERROR_URL = '/login?error=oauth_failed';
@@ -27,14 +27,14 @@ export async function onRequestGet({ request, env }) {
     // Handle user denying consent or other Google errors
     const error = url.searchParams.get('error');
     if (error || !code) {
-      return new Response(null, { status: 302, headers: { Location: `${url.origin}/login?error=oauth_denied` } });
+      return new Response(null, { status: 302, headers: { Location: `${SITE_URL}/login?error=oauth_denied` } });
     }
 
     // Determine where to send the user after login (prevent open redirects)
     const returnTo = (state && state.startsWith('/') && !state.startsWith('//')) ? state : '/account/';
 
     // Exchange authorization code for tokens
-    const redirectUri = `${url.origin}/api/auth/google-callback`;
+    const redirectUri = `${SITE_URL}/api/auth/google-callback`;
     const tokens = await exchangeGoogleCode(
       code, env.GOOGLE_CLIENT_ID, env.GOOGLE_CLIENT_SECRET, redirectUri
     );
