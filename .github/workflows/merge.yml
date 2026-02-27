@@ -17,6 +17,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Security guard
+        run: node scripts/guard.mjs
+
       - name: Merge into main and push
         run: |
           git config user.name "github-actions[bot]"

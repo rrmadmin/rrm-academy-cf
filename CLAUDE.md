@@ -94,6 +94,8 @@ docs/
 | `POST /api/auth/change-password` | `auth/change-password.js` | Authenticated password change |
 | `GET /api/auth/verify-email` | `auth/verify-email.js` | Email verification link handler |
 | `POST /api/auth/resend-verification` | `auth/resend-verification.js` | Resend verification email |
+| `GET /api/auth/google` | `auth/google.js` | Redirect to Google OAuth consent |
+| `GET /api/auth/google-callback` | `auth/google-callback.js` | Google OAuth callback, account link/create |
 | **Courses** | | |
 | `POST /api/courses/enroll` | `courses/enroll.js` | Enroll in a course |
 | `GET/POST /api/courses/progress` | `courses/progress.js` | Track step completion |
@@ -106,8 +108,9 @@ docs/
 | `POST /api/community/reactions` | `community/reactions.js` | Post/comment reactions |
 | `GET /api/community/status` | `community/status.js` | Community membership status |
 | **Billing** | | |
-| `GET /api/billing/status` | `billing/status.js` | Subscription status |
+| `GET /api/billing/status` | `billing/status.js` | Subscription + donation history |
 | `POST /api/billing/portal` | `billing/portal.js` | Stripe customer portal link |
+| `GET /api/billing/checkout-account` | `billing/checkout-account.js` | Check if account exists for checkout session |
 | `POST /api/create-checkout` | `create-checkout.js` | Stripe checkout session |
 | `POST /api/stripe-webhook` | `stripe-webhook.js` | Stripe webhook handler |
 | **Other** | | |
@@ -115,6 +118,7 @@ docs/
 | `GET/POST /api/saved` | `saved.js` | Save/unsave library articles |
 | `GET /api/stream/token` | `stream/token.js` | CF Stream video token |
 | `POST /api/survey/request` | `survey/request.js` | Request survey link |
+| `GET /api/survey/validate` | `survey/validate.js` | Validate survey magic-link token |
 | `POST /api/survey/submit` | `survey/submit.js` | Submit survey responses |
 
 Middleware: `functions/_middleware.js` (session injection, CORS, auth gating)
@@ -130,8 +134,37 @@ Push to `claude/` branch -- GitHub Actions auto-builds + merges. No local creden
 - **Site URL for emails**: `SITE_URL` in `functions/api/auth/_shared.js` — used in transactional email body links only (CORS origin stays hardcoded for security; Astro pages use `Astro.site`)
 - **Navigation**: Desktop, mobile, and footer navs are intentionally different item sets — see comments in `Header.astro` and `Footer.astro`
 
+## Security Guard
+
+A zero-dependency Node.js script (`scripts/guard.mjs`) that blocks deployments if critical security files are tampered with.
+
+**Guarded files** (hash-checked via `guard-manifest.json`):
+- `functions/api/auth/_shared.js` — CORS, sessions, crypto, rate limiting
+- `functions/api/auth/login.js`, `signup.js`, `google-callback.js` — authentication
+- `functions/api/stripe-webhook.js` — webhook signature verification
+- `functions/api/create-checkout.js`, `billing/status.js`, `billing/portal.js` — billing
+- `functions/_middleware.js` — auth gating for /account and /community
+- `wrangler.toml` — D1, KV, R2 bindings
+- `scripts/guard.mjs` — self-guarding
+
+**Security invariants** (always enforced, even after `guard:update`):
+- All `Access-Control-Allow-Origin` values in `functions/` must be `https://rrmacademy.org`
+- `stripe-webhook.js` must use `stripe-signature` + `constructEventAsync`
+- `_middleware.js` must protect `/account` and `/community`
+- `login.js` and `signup.js` must use `checkRateLimit`
+
+**Secret scanning**: Blocks `sk_live_`, `sk_test_`, `whsec_`, private keys, Bearer tokens, Airtable PATs in `functions/` and `src/`.
+
+**Commands**:
+- `npm run guard` — verify (exit 1 on failure)
+- `npm run guard:update` — regenerate manifest hashes after intentional changes
+- `npm run guard:install` — install pre-commit hook
+
+**Runs automatically**: pre-commit hook (local, critical files only), CI deploy workflow, CI claude/** auto-merge workflow.
+
 ## Rules
 
 - Read relevant `STYLE-GUIDE.md` sections before editing styles
 - Never hardcode colors, spacing, or fonts -- use design tokens
 - Keep edits focused, show before/after summaries
+- After modifying a guarded file, run `npm run guard:update` before committing

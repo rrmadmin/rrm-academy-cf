@@ -1,0 +1,43 @@
+#!/bin/sh
+# Pre-commit hook: runs security guard on critical file changes
+# Install: npm run guard:install
+# Bypass: git commit --no-verify
+
+CRITICAL_FILES="
+functions/api/auth/_shared.js
+functions/api/auth/login.js
+functions/api/auth/signup.js
+functions/api/auth/google-callback.js
+functions/api/stripe-webhook.js
+functions/api/create-checkout.js
+functions/api/billing/status.js
+functions/api/billing/portal.js
+functions/_middleware.js
+wrangler.toml
+scripts/guard.mjs
+guard-manifest.json
+"
+
+# Check if any staged file is critical
+STAGED=$(git diff --cached --name-only)
+TRIGGER=0
+
+for file in $CRITICAL_FILES; do
+  case "$STAGED" in
+    *"$file"*) TRIGGER=1; break ;;
+  esac
+done
+
+if [ "$TRIGGER" = "0" ]; then
+  exit 0
+fi
+
+echo "Security guard: critical file change detected, running checks..."
+node scripts/guard.mjs
+
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "Commit blocked. Fix issues or run 'npm run guard:update' after intentional changes."
+  echo "Emergency bypass: git commit --no-verify"
+  exit 1
+fi
