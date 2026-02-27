@@ -126,6 +126,11 @@ async function handleCheckout(request, env) {
     if (!priceId) {
       return json({ ok: false, error: 'Invalid tier' }, 400);
     }
+    // Guard: reject test-mode price IDs when using a live key
+    if (stripeKey.startsWith('sk_live_') && priceId.includes('test')) {
+      console.error(`BLOCKED: test-mode price ID for tier "${tier}": ${priceId}`);
+      return json({ ok: false, error: 'Payments not configured' }, 500);
+    }
 
     // Guard: if logged-in user already has an active subscription, don't create a new one
     if (stripeCustomerId) {
