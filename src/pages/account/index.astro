@@ -144,6 +144,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
               <p id="billing-cancel-notice" class="billing-cancel-notice" hidden>Your membership will end at the next donation date.</p>
               <button id="manage-billing-btn" class="btn btn--secondary btn--sm" style="margin-top: var(--space-4);">Manage Billing</button>
             </div>
+            <div id="billing-donations" hidden>
+              <h3 class="billing-donations-heading">Donation History</h3>
+              <div id="donations-list" class="donations-list"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -404,25 +408,51 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         var billingStatus = document.getElementById('billing-status');
         var billingDate = document.getElementById('billing-date');
         var cancelNotice = document.getElementById('billing-cancel-notice');
+        var billingDonations = document.getElementById('billing-donations');
+        var donationsList = document.getElementById('donations-list');
 
         fetch('/api/billing/status', { credentials: 'same-origin' })
           .then(function (r) { return r.json(); })
           .then(function (data) {
             billingLoading.hidden = true;
-            if (!data.ok || !data.subscription) {
+            if (!data.ok) { billingNone.hidden = false; return; }
+
+            var hasSub = !!data.subscription;
+            var donations = data.donations || [];
+            var hasDonations = donations.length > 0;
+
+            if (!hasSub && !hasDonations) {
               billingNone.hidden = false;
               return;
             }
-            var sub = data.subscription;
-            billingTier.textContent = sub.tier;
-            billingStatus.textContent = sub.status.charAt(0).toUpperCase() + sub.status.slice(1);
-            if (sub.currentPeriodEnd) {
-              billingDate.textContent = new Date(sub.currentPeriodEnd * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-            } else {
-              billingDate.textContent = '—';
+
+            if (hasSub) {
+              var sub = data.subscription;
+              billingTier.textContent = sub.tier;
+              billingStatus.textContent = sub.status.charAt(0).toUpperCase() + sub.status.slice(1);
+              if (sub.currentPeriodEnd) {
+                billingDate.textContent = new Date(sub.currentPeriodEnd * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+              } else {
+                billingDate.textContent = '—';
+              }
+              if (sub.cancelAtPeriodEnd) cancelNotice.hidden = false;
+              billingActive.hidden = false;
             }
-            if (sub.cancelAtPeriodEnd) cancelNotice.hidden = false;
-            billingActive.hidden = false;
+
+            if (hasDonations) {
+              var html = '';
+              donations.forEach(function (d) {
+                var dateStr = new Date(d.date * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+                var amountStr = '$' + (d.amount / 100).toFixed(2);
+                html += '<div class="donation-row">' +
+                  '<span class="donation-date">' + dateStr + '</span>' +
+                  '<span class="donation-amount">' + amountStr + '</span>' +
+                  (d.receiptUrl ? '<a href="' + d.receiptUrl + '" target="_blank" rel="noopener noreferrer" class="donation-receipt">Receipt</a>' : '<span class="donation-receipt"></span>') +
+                '</div>';
+              });
+              donationsList.innerHTML = html;
+              billingDonations.hidden = false;
+            }
           })
           .catch(function () {
             billingLoading.hidden = true;
@@ -529,4 +559,24 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     background: rgba(230, 126, 34, 0.08);
     border-radius: var(--radius-md);
   }
+  .billing-donations-heading {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    margin-top: var(--space-6);
+    margin-bottom: var(--space-3);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--border-color);
+  }
+  .donations-list { display: grid; gap: var(--space-2); }
+  :global(.donation-row) {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-2) 0;
+    font-size: 0.875rem;
+  }
+  :global(.donation-date) { color: var(--text-secondary); }
+  :global(.donation-amount) { font-weight: 600; color: var(--text-primary); }
+  :global(.donation-receipt a), :global(a.donation-receipt) { color: var(--accent); font-size: 0.8125rem; }
 </style>
