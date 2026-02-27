@@ -92,10 +92,10 @@ export async function onRequestPost(context) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'RRM Academy <contact@rrmacademy.org>',
-        to: ['contact@rrmacademy.org'],
+        from: `${name} via RRM Academy <contact@rrmacademy.org>`,
+        to: ['administrator@rrmacademy.org'],
         reply_to: email,
-        subject: `[Contact] ${subject}`,
+        subject: `[Contact] ${name} (${email})`,
         text: [
           `Name: ${name}`,
           `Email: ${email}`,
