@@ -23,7 +23,7 @@
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
-      "hash": "8edfe30ccbe0f1cf552bf43838705195fd3cc739f939f25b819b6a1f8a6711cf",
+      "hash": "7708b5e7f6534fa8ba4594a863f5644461f36141adb1a23e197d0ae904636d78",
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
