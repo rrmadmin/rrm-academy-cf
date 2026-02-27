@@ -143,10 +143,16 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
               </dl>
               <p id="billing-cancel-notice" class="billing-cancel-notice" hidden>Your membership will end at the next donation date.</p>
               <button id="manage-billing-btn" class="btn btn--secondary btn--sm" style="margin-top: var(--space-4);">Manage Billing</button>
+              <div id="billing-payments" hidden>
+                <h3 class="billing-history-heading">Payment History</h3>
+                <div id="payments-list" class="donations-list"></div>
+                <button id="payments-show-all" class="btn btn--text btn--sm history-toggle" hidden>Show all</button>
+              </div>
             </div>
             <div id="billing-donations" hidden>
-              <h3 class="billing-donations-heading">Donation History</h3>
+              <h3 class="billing-history-heading">Donation History</h3>
               <div id="donations-list" class="donations-list"></div>
+              <button id="donations-show-all" class="btn btn--text btn--sm history-toggle" hidden>Show all</button>
             </div>
           </div>
         </div>
@@ -400,6 +406,37 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       }
 
       // --- Billing ---
+      var HISTORY_INITIAL = 3;
+
+      function renderHistoryList(items, listEl, toggleBtn, containerEl) {
+        if (!items.length) return;
+        var html = '';
+        items.forEach(function (d, i) {
+          var dateStr = new Date(d.date * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+          var amountStr = '$' + (d.amount / 100).toFixed(2);
+          var hiddenAttr = i >= HISTORY_INITIAL ? ' hidden' : '';
+          html += '<div class="donation-row"' + hiddenAttr + ' data-history-row>' +
+            '<span class="donation-date">' + dateStr + '</span>' +
+            '<span class="donation-amount">' + amountStr + '</span>' +
+            (d.receiptUrl ? '<a href="' + d.receiptUrl + '" target="_blank" rel="noopener noreferrer" class="donation-receipt">Receipt</a>' : '<span class="donation-receipt"></span>') +
+          '</div>';
+        });
+        listEl.innerHTML = html;
+        containerEl.hidden = false;
+        if (items.length > HISTORY_INITIAL) {
+          toggleBtn.textContent = 'Show all ' + items.length;
+          toggleBtn.hidden = false;
+          toggleBtn.addEventListener('click', function () {
+            var rows = listEl.querySelectorAll('[data-history-row]');
+            var expanding = rows[HISTORY_INITIAL] && rows[HISTORY_INITIAL].hidden;
+            for (var i = HISTORY_INITIAL; i < rows.length; i++) {
+              rows[i].hidden = !expanding;
+            }
+            toggleBtn.textContent = expanding ? 'Show less' : 'Show all ' + items.length;
+          });
+        }
+      }
+
       function loadBilling() {
         var billingLoading = document.getElementById('billing-loading');
         var billingNone = document.getElementById('billing-none');
@@ -408,8 +445,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         var billingStatus = document.getElementById('billing-status');
         var billingDate = document.getElementById('billing-date');
         var cancelNotice = document.getElementById('billing-cancel-notice');
-        var billingDonations = document.getElementById('billing-donations');
-        var donationsList = document.getElementById('donations-list');
 
         fetch('/api/billing/status', { credentials: 'same-origin' })
           .then(function (r) { return r.json(); })
@@ -419,7 +454,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
             var hasSub = !!data.subscription;
             var donations = data.donations || [];
+            var payments = data.payments || [];
             var hasDonations = donations.length > 0;
+            var hasPayments = payments.length > 0;
 
             if (!hasSub && !hasDonations) {
               billingNone.hidden = false;
@@ -439,19 +476,18 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
               billingActive.hidden = false;
             }
 
+            if (hasPayments) {
+              renderHistoryList(payments,
+                document.getElementById('payments-list'),
+                document.getElementById('payments-show-all'),
+                document.getElementById('billing-payments'));
+            }
+
             if (hasDonations) {
-              var html = '';
-              donations.forEach(function (d) {
-                var dateStr = new Date(d.date * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-                var amountStr = '$' + (d.amount / 100).toFixed(2);
-                html += '<div class="donation-row">' +
-                  '<span class="donation-date">' + dateStr + '</span>' +
-                  '<span class="donation-amount">' + amountStr + '</span>' +
-                  (d.receiptUrl ? '<a href="' + d.receiptUrl + '" target="_blank" rel="noopener noreferrer" class="donation-receipt">Receipt</a>' : '<span class="donation-receipt"></span>') +
-                '</div>';
-              });
-              donationsList.innerHTML = html;
-              billingDonations.hidden = false;
+              renderHistoryList(donations,
+                document.getElementById('donations-list'),
+                document.getElementById('donations-show-all'),
+                document.getElementById('billing-donations'));
             }
           })
           .catch(function () {
@@ -559,7 +595,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     background: rgba(230, 126, 34, 0.08);
     border-radius: var(--radius-md);
   }
-  .billing-donations-heading {
+  .billing-history-heading {
     font-size: 0.9375rem;
     font-weight: 600;
     margin-top: var(--space-6);
@@ -567,6 +603,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     padding-top: var(--space-5);
     border-top: 1px solid var(--border-color);
   }
+  :global(.history-toggle) { margin-top: var(--space-3); }
   .donations-list { display: grid; gap: var(--space-2); }
   :global(.donation-row) {
     display: grid;
