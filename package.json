@@ -12,7 +12,10 @@
     "fetch-blog": "node src/lib/fetch-blog-data.mjs",
     "fetch-faqs": "node src/lib/fetch-faq-data.mjs",
     "fetch-courses": "node src/lib/fetch-courses-data.mjs",
-    "fetch-all": "node src/lib/fetch-data.mjs && node src/lib/fetch-blog-data.mjs && node src/lib/fetch-faq-data.mjs && node src/lib/fetch-courses-data.mjs"
+    "fetch-all": "node src/lib/fetch-data.mjs && node src/lib/fetch-blog-data.mjs && node src/lib/fetch-faq-data.mjs && node src/lib/fetch-courses-data.mjs",
+    "guard": "node scripts/guard.mjs",
+    "guard:update": "node scripts/guard.mjs --update",
+    "guard:install": "cp hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.3.0",
