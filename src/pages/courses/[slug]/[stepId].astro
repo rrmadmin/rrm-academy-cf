@@ -270,6 +270,16 @@ function stepTypeLabel(type: string) {
     autoplayNext: course.settings?.autoplayNextVideo || false,
     hasCertificate: !!course.hasCertificate,
   }}>
+    // Unlock the Next Lesson button (called after step completion)
+    window.unlockNextButton = function () {
+      var btn = document.getElementById('next-lesson-btn');
+      if (btn && btn.classList.contains('btn--disabled')) {
+        btn.classList.remove('btn--disabled');
+        btn.removeAttribute('aria-disabled');
+        btn.replaceWith(btn.cloneNode(true)); // remove click preventDefault
+      }
+    };
+
     (function () {
       var markBtn = document.getElementById('mark-complete-btn');
       var isCompleted = false;
@@ -306,6 +316,16 @@ function stepTypeLabel(type: string) {
               hitIncomplete = true;
             }
           });
+
+          // Lock Next button if next step is locked (fixedOrder + current step incomplete)
+          if (fixedOrder && nextStepId && !(steps[stepId] && steps[stepId].completed)) {
+            var nextBtn = document.getElementById('next-lesson-btn');
+            if (nextBtn) {
+              nextBtn.classList.add('btn--disabled');
+              nextBtn.setAttribute('aria-disabled', 'true');
+              nextBtn.addEventListener('click', function (e) { e.preventDefault(); });
+            }
+          }
 
           // Update progress bar
           updateProgressBar(completedCount, totalCount);
@@ -418,6 +438,7 @@ function stepTypeLabel(type: string) {
                       var done = document.querySelectorAll('.sidebar-step--done').length;
                     var total = document.querySelectorAll('.sidebar-step').length;
                     updateProgressBar(done, total);
+                    unlockNextButton();
 
                     if (res.courseCompleted) {
                       markBtn.textContent = 'Course Complete!';
@@ -461,6 +482,9 @@ function stepTypeLabel(type: string) {
               var done = document.querySelectorAll('.sidebar-step--done').length;
               var total = document.querySelectorAll('.sidebar-step').length;
               updateProgressBar(done, total);
+
+              // Unlock Next button now that current step is complete
+              unlockNextButton();
 
               if (data.courseCompleted) {
                 markBtn.textContent = 'Course Complete!';
@@ -915,6 +939,7 @@ function stepTypeLabel(type: string) {
           if (text) text.textContent = pct + '% complete';
           if (bar) bar.setAttribute('aria-valuenow', String(pct));
         }
+        if (window.unlockNextButton) window.unlockNextButton();
       }
 
       function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
@@ -1852,6 +1877,11 @@ function stepTypeLabel(type: string) {
   .lesson-nav__prev,
   .lesson-nav__next {
     text-decoration: none;
+  }
+  :global(.btn--disabled) {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
   }
 
   /* ═══════ MOBILE ═══════ */
