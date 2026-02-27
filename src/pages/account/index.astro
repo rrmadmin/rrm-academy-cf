@@ -40,79 +40,85 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
         <div class="account-sections">
           <div class="account-section">
-            <div class="section-header">
-              <h2>Profile</h2>
-              <button id="edit-profile-btn" class="btn btn--text btn--sm" hidden>Edit</button>
-            </div>
-
-            <!-- Read-only display -->
-            <dl id="profile-display" class="account-details">
-              <dt>First name</dt>
-              <dd id="profile-first-name"></dd>
-              <dt>Last name</dt>
-              <dd id="profile-last-name"></dd>
-              <dt>Email</dt>
-              <dd id="profile-email"></dd>
-              <dt>Member since</dt>
-              <dd id="profile-since">—</dd>
-            </dl>
-
-            <!-- Edit form -->
-            <form id="profile-form" class="profile-edit-form" hidden>
-              <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label" for="edit-first-name">First name</label>
-                  <input class="form-input" type="text" id="edit-first-name" name="firstName" required maxlength="100" autocomplete="given-name" />
+            <div class="profile-password-grid">
+              <!-- Profile column -->
+              <div class="profile-col">
+                <div class="section-header">
+                  <h2>Profile</h2>
+                  <button id="edit-profile-btn" class="btn btn--text btn--sm" hidden>Edit</button>
                 </div>
-                <div class="form-group">
-                  <label class="form-label" for="edit-last-name">Last name</label>
-                  <input class="form-input" type="text" id="edit-last-name" name="lastName" required maxlength="100" autocomplete="family-name" />
-                </div>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Email</label>
-                <input class="form-input" type="email" id="edit-email" disabled />
-              </div>
-              <div id="profile-error" class="profile-feedback profile-feedback--error" hidden>
-                <p id="profile-error-text"></p>
-              </div>
-              <div class="profile-actions">
-                <button type="submit" class="btn btn--primary btn--sm" id="save-profile-btn">Save</button>
-                <button type="button" class="btn btn--secondary btn--sm" id="cancel-profile-btn">Cancel</button>
-              </div>
-            </form>
-          </div>
 
-          <div class="account-section">
-            <div class="section-header">
-              <h2>Password</h2>
-              <button id="change-pw-btn" class="btn btn--text btn--sm" hidden>Change</button>
+                <!-- Read-only display -->
+                <dl id="profile-display" class="account-details">
+                  <dt>First name</dt>
+                  <dd id="profile-first-name"></dd>
+                  <dt>Last name</dt>
+                  <dd id="profile-last-name"></dd>
+                  <dt>Email</dt>
+                  <dd id="profile-email"></dd>
+                  <dt>Member since</dt>
+                  <dd id="profile-since">—</dd>
+                </dl>
+
+                <!-- Edit form -->
+                <form id="profile-form" class="profile-edit-form" hidden>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label class="form-label" for="edit-first-name">First name</label>
+                      <input class="form-input" type="text" id="edit-first-name" name="firstName" required maxlength="100" autocomplete="given-name" />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label" for="edit-last-name">Last name</label>
+                      <input class="form-input" type="text" id="edit-last-name" name="lastName" required maxlength="100" autocomplete="family-name" />
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input class="form-input" type="email" id="edit-email" disabled />
+                  </div>
+                  <div id="profile-error" class="profile-feedback profile-feedback--error" hidden>
+                    <p id="profile-error-text"></p>
+                  </div>
+                  <div class="profile-actions">
+                    <button type="submit" class="btn btn--primary btn--sm" id="save-profile-btn">Save</button>
+                    <button type="button" class="btn btn--secondary btn--sm" id="cancel-profile-btn">Cancel</button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Password column -->
+              <div class="password-col">
+                <div class="section-header">
+                  <h2>Password</h2>
+                  <button id="change-pw-btn" class="btn btn--text btn--sm" hidden>Change</button>
+                </div>
+                <p id="pw-display" class="account-placeholder">••••••••</p>
+                <form id="pw-form" class="profile-edit-form" hidden>
+                  <div class="form-group">
+                    <label class="form-label" for="pw-current">Current password</label>
+                    <input class="form-input" type="password" id="pw-current" required autocomplete="current-password" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="pw-new">New password</label>
+                    <input class="form-input" type="password" id="pw-new" required minlength="8" autocomplete="new-password" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="pw-confirm">Confirm new password</label>
+                    <input class="form-input" type="password" id="pw-confirm" required minlength="8" autocomplete="new-password" />
+                  </div>
+                  <div id="pw-error" class="profile-feedback profile-feedback--error" hidden>
+                    <p id="pw-error-text"></p>
+                  </div>
+                  <div id="pw-success" class="profile-feedback profile-feedback--success" hidden>
+                    <p>Password updated successfully.</p>
+                  </div>
+                  <div class="profile-actions">
+                    <button type="submit" class="btn btn--primary btn--sm" id="save-pw-btn">Update Password</button>
+                    <button type="button" class="btn btn--secondary btn--sm" id="cancel-pw-btn">Cancel</button>
+                  </div>
+                </form>
+              </div>
             </div>
-            <p id="pw-display" class="account-placeholder">••••••••</p>
-            <form id="pw-form" class="profile-edit-form" hidden>
-              <div class="form-group">
-                <label class="form-label" for="pw-current">Current password</label>
-                <input class="form-input" type="password" id="pw-current" required autocomplete="current-password" />
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="pw-new">New password</label>
-                <input class="form-input" type="password" id="pw-new" required minlength="8" autocomplete="new-password" />
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="pw-confirm">Confirm new password</label>
-                <input class="form-input" type="password" id="pw-confirm" required minlength="8" autocomplete="new-password" />
-              </div>
-              <div id="pw-error" class="profile-feedback profile-feedback--error" hidden>
-                <p id="pw-error-text"></p>
-              </div>
-              <div id="pw-success" class="profile-feedback profile-feedback--success" hidden>
-                <p>Password updated successfully.</p>
-              </div>
-              <div class="profile-actions">
-                <button type="submit" class="btn btn--primary btn--sm" id="save-pw-btn">Update Password</button>
-                <button type="button" class="btn btn--secondary btn--sm" id="cancel-pw-btn">Cancel</button>
-              </div>
-            </form>
           </div>
 
           <div class="account-section" id="courses-section">
@@ -211,6 +217,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         profileFirstName.textContent = user.firstName || '—';
         profileLastName.textContent = user.lastName || '—';
         profileEmail.textContent = user.email;
+        if (user.createdAt) {
+          var d = new Date(user.createdAt.replace(' ', 'T') + 'Z');
+          document.getElementById('profile-since').textContent = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
         editBtn.hidden = false;
       }
 
@@ -542,7 +552,20 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     padding: var(--space-6) var(--space-8);
     background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg);
   }
-  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-4); }
+  .profile-password-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-8);
+  }
+  .password-col {
+    border-left: 1px solid var(--border-color);
+    padding-left: var(--space-8);
+  }
+  @media (max-width: 640px) {
+    .profile-password-grid { grid-template-columns: 1fr; }
+    .password-col { border-left: none; padding-left: 0; border-top: 1px solid var(--border-color); padding-top: var(--space-6); }
+  }
+  .section-header { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-4); }
   .section-header h2 { font-size: 1.125rem; margin-bottom: 0; }
   .account-section h2 { font-size: 1.125rem; margin-bottom: var(--space-4); }
   .account-details { display: grid; grid-template-columns: auto 1fr; gap: var(--space-2) var(--space-6); font-size: 0.9375rem; }
