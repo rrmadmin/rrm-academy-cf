@@ -77,6 +77,14 @@ export async function requireMember(request, env) {
     return { user, tier: 'staff', session };
   }
 
+  // Grandfathered Wix STUC members — label-based bypass
+  const stucLabel = await db.prepare(
+    "SELECT 1 FROM user_label WHERE user_id = ? AND label = 'Save the Uterus Club 🏷️' LIMIT 1"
+  ).bind(user.id).first();
+  if (stucLabel) {
+    return { user, tier: 'member', session };
+  }
+
   // Members need an active subscription
   if (!env.STRIPE_SECRET_KEY) {
     console.error('STRIPE_SECRET_KEY not configured');
