@@ -20,6 +20,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         <h1>Thank You</h1>
         <p class="thankyou-lead">Your generous donation has been received. A receipt will be sent to your email by Stripe.</p>
 
+        <p id="account-link-prompt" class="account-nudge" hidden>Your donation has been linked to your account. <a href="/account/">View your donations in My Account</a></p>
         <p id="create-account-prompt" class="account-nudge" hidden><a href="/signup/">Create a free account</a> to manage your donations. Already have one? <a href="/login/">Log in</a></p>
 
         <div class="thankyou-tax">
@@ -84,7 +85,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   fetch('/api/auth/session', { credentials: 'same-origin' })
     .then(function (r) { return r.json(); })
     .then(function (data) {
-      if (!data.ok || !data.user) {
+      if (data.ok && data.user) {
+        document.getElementById('account-link-prompt').hidden = false;
+      } else {
         document.getElementById('create-account-prompt').hidden = false;
       }
     })
