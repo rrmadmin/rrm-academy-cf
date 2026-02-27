@@ -43,9 +43,9 @@ const EXISTING_EMAILS = new Set([
 const LABEL_TO_COURSE = {
   'Masterclass in Endometriosis & Surgery': 'masterclass-endo-surgery',
   'Masterclass in Endometriosis and Surgery': 'masterclass-endo-surgery',
-  'Long Term Endometriosis Management': 'long-term-endo-management',
+  'Long Term Endometriosis Management': 'long-term-endo',
   'Restorative Reproductive Medicine (RRM) vs Standard ART: A New Approach to Infertility': 'rrm-vs-ivf',
-  'Postpartum Depression & Anxiety: a restorative approach to recovery': 'postpartum-depression-anxiety',
+  'Postpartum Depression & Anxiety: a restorative approach to recovery': 'postpartum',
 };
 
 // ---------------------------------------------------------------------------
