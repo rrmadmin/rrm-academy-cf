@@ -406,15 +406,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       }
 
       // --- Billing ---
-      var HISTORY_INITIAL = 3;
-
       function renderHistoryList(items, listEl, toggleBtn, containerEl) {
         if (!items.length) return;
         var html = '';
         items.forEach(function (d, i) {
           var dateStr = new Date(d.date * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
           var amountStr = '$' + (d.amount / 100).toFixed(2);
-          var hiddenAttr = i >= HISTORY_INITIAL ? ' hidden' : '';
+          var hiddenAttr = i >= 1 ? ' hidden' : '';
           html += '<div class="donation-row"' + hiddenAttr + ' data-history-row>' +
             '<span class="donation-date">' + dateStr + '</span>' +
             '<span class="donation-amount">' + amountStr + '</span>' +
@@ -423,16 +421,16 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         });
         listEl.innerHTML = html;
         containerEl.hidden = false;
-        if (items.length > HISTORY_INITIAL) {
-          toggleBtn.textContent = 'Show all ' + items.length;
+        if (items.length > 1) {
+          toggleBtn.textContent = 'Show all';
           toggleBtn.hidden = false;
           toggleBtn.addEventListener('click', function () {
             var rows = listEl.querySelectorAll('[data-history-row]');
-            var expanding = rows[HISTORY_INITIAL] && rows[HISTORY_INITIAL].hidden;
-            for (var i = HISTORY_INITIAL; i < rows.length; i++) {
+            var expanding = rows[1] && rows[1].hidden;
+            for (var i = 1; i < rows.length; i++) {
               rows[i].hidden = !expanding;
             }
-            toggleBtn.textContent = expanding ? 'Show less' : 'Show all ' + items.length;
+            toggleBtn.textContent = expanding ? 'Show less' : 'Show all';
           });
         }
       }
