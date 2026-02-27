@@ -4,7 +4,7 @@
 
 ## Bugs
 
-- **Next Lesson button bypasses step locking**: The prev/next navigation buttons at the bottom of lesson pages are static HTML links -- they always work regardless of completion state. The sidebar correctly locks future steps, but the Next button lets users skip ahead. Fix: either hide/disable the Next button via JS when `fixedOrder` is true and the next step is locked, or rely on the progress API redirect on page load.
+(none)
 
 ## To Do
 
@@ -20,6 +20,8 @@
 
 ## Done (Recent)
 
+- Next Lesson button step locking — Next button now disabled in `fixedOrder` courses when current step is incomplete, unlocks on mark-complete / video end / quiz pass (2026-02-26)
+- Build-time security guard — `scripts/guard.mjs` checks SHA256 hashes of critical files, enforces CORS/webhook/auth invariants, scans for secrets; runs as pre-commit hook + CI (2026-02-26)
 - Endo survey validate endpoint — created missing `/api/survey/validate` that was blocking all survey takers ("expired" error on every magic link) (2026-02-26)
 - Auto-create accounts on anonymous Stripe checkout — webhook `ensureAccountForCheckout()` creates D1 account with empty password, sends welcome email with 7-day password-setup link (2026-02-26)
 - Checkout account endpoint — `/api/billing/checkout-account` lets thank-you pages detect auto-created accounts for 3-state messaging (2026-02-26)
