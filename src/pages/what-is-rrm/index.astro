@@ -1,0 +1,369 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': ['Article', 'MedicalWebPage'],
+      headline: 'What is Restorative Reproductive Medicine (RRM)?',
+      description:
+        'Restorative Reproductive Medicine (RRM) is an approach within conventional medicine that diagnoses and treats the root causes of reproductive health conditions rather than masking symptoms or bypassing natural function.',
+      author: {
+        '@type': 'Person',
+        '@id': 'https://rrmacademy.org/#naomi-whittaker',
+        name: 'Naomi Whittaker, MD',
+      },
+      publisher: {
+        '@type': 'EducationalOrganization',
+        '@id': 'https://rrmacademy.org/#organization',
+        name: 'RRM Academy',
+      },
+      datePublished: '2026-03-01',
+      dateModified: '2026-03-01',
+      mainEntityOfPage: 'https://rrmacademy.org/what-is-rrm',
+      about: {
+        '@type': 'MedicalTherapy',
+        name: 'Restorative Reproductive Medicine',
+      },
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: [
+        {
+          '@type': 'Question',
+          name: 'What is Restorative Reproductive Medicine?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Restorative Reproductive Medicine (RRM) is an approach within conventional medicine that works cooperatively with the body to diagnose and treat the underlying causes of reproductive health conditions. Unlike approaches that mask symptoms with hormonal medications or bypass natural function with assisted reproductive technologies, RRM uses standard and advanced diagnostic tools to investigate the root cause, whether hormonal, anatomical, or inflammatory, and restore natural function.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'What conditions does RRM treat?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'RRM commonly addresses endometriosis, polycystic ovary syndrome (PCOS), unexplained infertility, recurrent miscarriage, irregular or painful periods, premenstrual syndrome, hormonal imbalances, ovulatory dysfunction, and pelvic pain. Treatment may include medical management, hormonal support, surgical intervention, or a combination tailored to the underlying diagnosis.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'How does RRM differ from IVF?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'IVF bypasses the reproductive system entirely by fertilizing eggs outside the body, while RRM identifies and treats the underlying condition preventing natural conception. RRM uses diagnostic tools like cycle charting, targeted bloodwork, and imaging to find the root cause, then applies medical or surgical treatment to restore function. Some patients pursue RRM before considering IVF; others use RRM alongside other treatments.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'How effective is RRM for infertility?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Published research shows RRM treatment followed by timed intercourse has achieved live birth rates of 29-41% depending on age and diagnosis. For women under 35, rates reach 34%, and for women with BMI under 25, rates reach 40%. RRM combined with surgical treatment of moderate-to-severe endometriosis has shown pregnancy rates of 55% per woman. Results vary by condition and individual factors.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Is RRM covered by insurance?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Many RRM treatments are covered by standard health insurance because they involve conventional medical diagnostics (bloodwork, imaging, ultrasound) and treatments (medications, surgery) for diagnosed conditions. Unlike IVF, which requires specific fertility coverage, RRM treatments are often coded as treatment for endometriosis, PCOS, hormonal disorders, or other diagnosed conditions. Coverage varies by plan and provider.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'What is NaProTechnology?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'NaProTechnology (Natural Procreative Technology) is a specific type of Restorative Reproductive Medicine developed at the Saint Paul VI Institute. It uses the Creighton Model FertilityCare System to monitor biomarkers, identify reproductive health problems, and guide targeted medical and surgical treatment. NaProTechnology is practiced by physicians with specialized fellowship training.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'How do I find an RRM doctor?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'RRM-trained physicians can be found through the International Institute for Restorative Reproductive Medicine (IIRRM) provider directory, FertilityCare Centers of America, or by searching for NaProTechnology-trained physicians in your area. RRM Academy also provides educational resources to help you understand what to look for in a provider and what questions to ask.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Can RRM help with endometriosis?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Yes. RRM addresses endometriosis through a combination of thorough diagnosis (often using advanced imaging and surgical evaluation), excision surgery to remove endometriotic tissue, and long-term medical management to prevent recurrence. A meta-analysis found that surgical treatment of moderate-to-severe endometriosis yielded a 55.3% per-woman pregnancy rate, compared to 9.9% with IVF alone in similar cases.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Is RRM only for people who oppose IVF?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'No. While some patients choose RRM for ethical or religious reasons, many pursue RRM because they want to understand and treat the underlying cause of their condition, not just achieve pregnancy. RRM appeals to patients who want a thorough diagnostic workup, who prefer to treat root causes before considering assisted reproduction, or who want to optimize their health regardless of family-building plans.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'What training do RRM doctors have?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'RRM physicians are typically board-certified OBGYNs or reproductive endocrinologists who pursue additional fellowship training in NaProTechnology or restorative reproductive medicine. Fellowship programs include training in the Creighton Model FertilityCare System, advanced hormonal evaluation, and specialized surgical techniques for conditions like endometriosis. RRM Academy offers courses for both patients and healthcare professionals seeking to deepen their understanding.',
+          },
+        },
+      ],
+    },
+  ],
+};
+---
+
+<BaseLayout
+  title="What is Restorative Reproductive Medicine (RRM)?"
+  description="Restorative Reproductive Medicine (RRM) diagnoses and treats the root causes of reproductive health conditions rather than masking symptoms or bypassing natural function."
+  canonicalUrl="https://rrmacademy.org/what-is-rrm"
+  ogType="article"
+  publishDate="2026-03-01"
+  jsonLd={jsonLd}
+>
+  <div class="page-wrapper" data-pagefind-body>
+    <div class="container container--narrow">
+
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <a href="/about/">About</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <span>What is RRM?</span>
+      </nav>
+
+      <article class="prose">
+
+        <h1>What is Restorative Reproductive Medicine (RRM)?</h1>
+
+        <p class="author-byline">
+          By <strong>Naomi Whittaker, MD</strong>, Board-Certified OBGYN and NaProTechnology Fellow &mdash; <time datetime="2026-03-01">March 2026</time>
+        </p>
+
+        <p><strong>Restorative Reproductive Medicine (RRM) is an approach within conventional medicine that works cooperatively with the body to diagnose and treat the underlying causes of reproductive health conditions.</strong> Unlike approaches that mask symptoms with hormonal medications or bypass natural function with assisted reproductive technologies, RRM uses standard and advanced diagnostic tools to investigate the root cause, whether hormonal, anatomical, or inflammatory, and restore natural function. Conditions commonly addressed include endometriosis, PCOS, infertility, recurrent miscarriage, and pelvic pain.</p>
+
+        <h2>How RRM Works</h2>
+
+        <p>RRM follows a diagnostic-first approach built on three principles:</p>
+
+        <ol>
+          <li><strong>Identify the root cause.</strong> Using cycle charting (such as the Creighton Model FertilityCare System), targeted bloodwork timed to the menstrual cycle, advanced imaging, and sometimes diagnostic surgery, RRM practitioners build a complete picture of what is going wrong and why.</li>
+          <li><strong>Treat the underlying condition.</strong> Based on the diagnosis, treatment may include hormonal support (such as targeted progesterone supplementation), medication to address immune or inflammatory factors, or surgical intervention (such as excision surgery for endometriosis).</li>
+          <li><strong>Restore natural function.</strong> The goal is not to bypass the reproductive system but to optimize it, addressing the condition so the body can function as intended, whether the patient's goal is fertility, symptom relief, or long-term health.</li>
+        </ol>
+
+        <h2>Conditions Commonly Treated with RRM</h2>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Condition</th>
+                <th>How RRM Approaches It</th>
+                <th>Conventional Approach (for comparison)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Endometriosis</td>
+                <td>Thorough diagnosis, excision surgery, long-term management plan</td>
+                <td>Hormonal suppression (birth control), ablation surgery, IVF to bypass</td>
+              </tr>
+              <tr>
+                <td>PCOS</td>
+                <td>Root-cause evaluation (insulin resistance, adrenal, inflammatory), targeted treatment</td>
+                <td>Birth control to regulate cycles, metformin, Clomid/letrozole for fertility</td>
+              </tr>
+              <tr>
+                <td>Unexplained infertility</td>
+                <td>Advanced cycle-based diagnostics to identify previously missed causes</td>
+                <td>Empiric treatment with IUI or IVF without identifying the cause</td>
+              </tr>
+              <tr>
+                <td>Recurrent miscarriage</td>
+                <td>Hormonal evaluation (progesterone, thyroid), immune factors, anatomical assessment</td>
+                <td>Progesterone supplementation, IVF with PGT-A</td>
+              </tr>
+              <tr>
+                <td>Irregular or painful periods</td>
+                <td>Diagnostic workup to identify hormonal or structural cause, targeted treatment</td>
+                <td>Hormonal birth control to suppress symptoms</td>
+              </tr>
+              <tr>
+                <td>Pelvic pain</td>
+                <td>Investigation for endometriosis, adhesions, or other structural causes</td>
+                <td>Pain management, hormonal suppression</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p><em>This content is for educational purposes only and does not constitute medical advice. Consult a qualified healthcare provider for diagnosis and treatment.</em></p>
+
+        <h2>RRM vs. IVF: Key Differences</h2>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Factor</th>
+                <th>RRM</th>
+                <th>IVF</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Approach</td>
+                <td>Diagnose and treat root cause</td>
+                <td>Bypass reproductive system</td>
+              </tr>
+              <tr>
+                <td>Goal</td>
+                <td>Restore natural function</td>
+                <td>Achieve pregnancy</td>
+              </tr>
+              <tr>
+                <td>Treats underlying condition?</td>
+                <td>Yes</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td>Typical cost per cycle</td>
+                <td>Varies; often insurance-covered <mark class="cite-needed">[CITE]</mark></td>
+                <td>$15,000&ndash;$30,000 per cycle <mark class="cite-needed">[CITE]</mark></td>
+              </tr>
+              <tr>
+                <td>Multiple pregnancy risk</td>
+                <td>Low (natural conception)</td>
+                <td>Higher (especially with multiple embryo transfer)</td>
+              </tr>
+              <tr>
+                <td>Best suited for</td>
+                <td>Treatable conditions (endometriosis, PCOS, hormonal issues)</td>
+                <td>Tubal blockage, severe male factor, when time is critical</td>
+              </tr>
+              <tr>
+                <td>Published live birth rates</td>
+                <td>29&ndash;41% depending on age and diagnosis <mark class="cite-needed">[CITE]</mark></td>
+                <td>~30&ndash;50% per cycle depending on age <mark class="cite-needed">[CITE]</mark></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>These approaches are not always mutually exclusive. Some patients benefit from RRM treatment before pursuing assisted reproduction, and some RRM practitioners work alongside fertility specialists. <a href="/courses/rrm-vs-ivf/">Learn more in our free course: RRM vs. Standard ART</a>.</p>
+
+        <h2>The Evidence Behind RRM</h2>
+
+        <p>RRM is supported by peer-reviewed research published in journals including <em>Fertility and Sterility</em>, the <em>Journal of Restorative Reproductive Medicine</em>, and <em>BMC Pregnancy and Childbirth</em>. The <a href="https://library.rrmacademy.org">RRM Academy Research Library</a> contains 3,036+ peer-reviewed publications covering RRM outcomes, surgical techniques, hormonal protocols, and fertility awareness-based methods.</p>
+
+        <p>Key findings from published research:</p>
+        <ul>
+          <li>RRM treatment followed by timed intercourse: 41% live birth rate <mark class="cite-needed">[CITE: JRRM 2021]</mark></li>
+          <li>Surgical treatment of moderate-to-severe endometriosis: 55.3% pregnancy rate per woman <mark class="cite-needed">[CITE: meta-analysis]</mark></li>
+          <li>RRM singletons had 3x fewer preterm deliveries compared to IVF <mark class="cite-needed">[CITE]</mark></li>
+          <li>Average cost of RRM medication cycles was 20x less than IVF <mark class="cite-needed">[CITE]</mark></li>
+        </ul>
+
+        <p><em>Note: Outcomes vary by individual. All statistics represent published research averages, not guarantees. <mark class="cite-needed">[CITE specific studies before publishing]</mark></em></p>
+
+        <h2>What is NaProTechnology?</h2>
+
+        <p>NaProTechnology (Natural Procreative Technology) is a specific type of RRM developed at the Saint Paul VI Institute. It uses the Creighton Model FertilityCare System to track biomarkers across the menstrual cycle, enabling physicians to time diagnostic tests and treatments precisely. NaProTechnology is practiced by physicians with specialized fellowship training in medical and surgical techniques that cooperate with the reproductive system.</p>
+
+        <p><a href="/courses/masterclass-in-endometriosis-and-surgery/">Learn from a NaProTechnology-trained surgeon: Masterclass in Endometriosis &amp; Surgery</a></p>
+
+        <h2>How to Get Started with RRM</h2>
+
+        <ol>
+          <li><strong>Learn the basics.</strong> <a href="/courses/">Browse free courses</a> on RRM Academy to understand the approach and what to expect.</li>
+          <li><strong>Find a provider.</strong> Search the <a href="https://iirrm.org" rel="noopener">IIRRM provider directory</a> or <a href="https://www.fertilitycare.org" rel="noopener">FertilityCare Centers</a> for trained practitioners near you.</li>
+          <li><strong>Explore the research.</strong> Browse the <a href="https://library.rrmacademy.org">RRM Research Library</a> with 3,036+ publications.</li>
+        </ol>
+
+        <div class="cta-box">
+          <h3>Ready to learn more?</h3>
+          <p><a href="/courses/" class="btn btn--primary">Explore Free Courses</a></p>
+          <p><a href="https://library.rrmacademy.org" class="btn btn--secondary">Browse the Research Library</a></p>
+        </div>
+
+      </article>
+    </div>
+  </div>
+  <p class="page-updated">Last updated: March 2026</p>
+</BaseLayout>
+
+<style>
+  .author-byline {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: calc(-1 * var(--space-2));
+    margin-bottom: var(--space-6);
+    line-height: 1.6;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: var(--space-6);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  th {
+    background: var(--bg-surface);
+    font-weight: 600;
+    padding: var(--space-3) var(--space-4);
+    text-align: left;
+    border-bottom: 2px solid var(--border-color);
+  }
+
+  td {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  .cta-box {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-8);
+    text-align: center;
+    margin-top: var(--space-10);
+  }
+
+  .cta-box h3 {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    margin-bottom: var(--space-3);
+  }
+
+  .cta-box p {
+    margin-bottom: var(--space-4);
+  }
+
+  .cta-box p:last-child {
+    margin-bottom: 0;
+  }
+
+  .cite-needed {
+    background: rgba(180, 83, 9, 0.12);
+    color: var(--amber-700, #b45309);
+    border-radius: 2px;
+    padding: 0 3px;
+    font-style: normal;
+    font-size: 0.8em;
+  }
+</style>
