@@ -34,6 +34,7 @@ const jsonLd = {
         addressCountry: 'US',
       },
       sameAs: [
+        'https://www.linkedin.com/company/rrm-academy',
         'https://www.instagram.com/rrmacademy',
       ],
     },
@@ -42,6 +43,7 @@ const jsonLd = {
       '@id': 'https://rrmacademy.org/#naomi-whittaker',
       name: 'Dr. Naomi Whittaker',
       honorificPrefix: 'Dr.',
+      honorificSuffix: 'MD',
       givenName: 'Naomi',
       familyName: 'Whittaker',
       jobTitle: 'Founder & Medical Director',
@@ -59,12 +61,34 @@ const jsonLd = {
         {
           '@type': 'EducationalOrganization',
           '@id': 'https://rrmacademy.org/#organization',
+          name: 'RRM Academy',
+          url: 'https://www.rrmacademy.org',
         },
       ],
       hasCredential: [
-        { '@type': 'EducationalOccupationalCredential', credentialCategory: 'MD' },
-        { '@type': 'EducationalOccupationalCredential', credentialCategory: 'OBGYN Board Certification' },
-        { '@type': 'EducationalOccupationalCredential', credentialCategory: 'MIGS Focused Practice Designation' },
+        {
+          '@type': 'EducationalOccupationalCredential',
+          credentialCategory: 'Board Certification',
+          name: 'Board-Certified Obstetrician-Gynecologist',
+        },
+        {
+          '@type': 'EducationalOccupationalCredential',
+          credentialCategory: 'Fellowship',
+          name: 'Medical and Surgical NaProTechnology Fellowship',
+        },
+        {
+          '@type': 'EducationalOccupationalCredential',
+          credentialCategory: 'Focused Practice Designation',
+          name: 'MIGS Focused Practice Designation',
+        },
+      ],
+      knowsAbout: [
+        'Restorative Reproductive Medicine',
+        'NaProTechnology',
+        'Endometriosis Surgery',
+        'PCOS Treatment',
+        'Infertility Diagnosis and Treatment',
+        'Fertility Awareness-Based Methods',
       ],
     },
     {
@@ -83,8 +107,8 @@ const jsonLd = {
 };
 ---
 <BaseLayout
-  title="About RRM Academy"
-  description="RRM Academy provides expert-led, evidence-based education in Restorative Reproductive Medicine for patients and healthcare professionals. A project of the RRM Foundation, a 501(c)(3) nonprofit."
+  title="About RRM Academy | Restorative Reproductive Medicine"
+  description="A 501(c)(3) nonprofit providing expert-led education in restorative reproductive medicine. 12 courses, 3,036+ research resources, taught by Dr. Naomi Whittaker, MD."
   canonicalUrl="https://rrmacademy.org/about"
   jsonLd={jsonLd}
 >
