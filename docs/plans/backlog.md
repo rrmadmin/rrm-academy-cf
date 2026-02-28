@@ -8,6 +8,8 @@
 
 ## To Do
 
+- **Search result type badges** -- visually differentiate result types in Pagefind search results using CSS badges. Add `data-pagefind-meta="type:research"` to library article pages, `type:faq` to FAQ pages, `type:commentary` to commentary pages. Add `data-pagefind-meta={`access:${article.accessLevel}`}` to library pages (value already exists: `open` / `free` / `restricted`). In `renderResult()`, read `data.meta.type` and `data.meta.access` and inject badge elements styled per type. ~45 min of work.
+
 - **Cancel Vimeo subscription** ($25/mo saved) -- Stream player confirmed working in production
 - **Delete temporary CF API token** (`3h-YUCih...`) created for Stream signing key -- no longer needed
 - **Meet recording pipeline** -- design doc at `docs/plans/2026-02-25-meet-recording-pipeline-design.md`, depends on STUC community tables
@@ -19,9 +21,11 @@
 - **CTA buttons stay Purple 700 everywhere**: "Support this work" on library synopsis pages, "Donate", course enrollment, etc. -- all CTAs use `btn--primary` (Purple 700 `#725e7e`). Rose/pink palette is for accents and backgrounds only, never action buttons. Keeps brand consistency across the site.
 - **Button sizing on lesson pages uses default `.btn`**: Mark Complete, Previous/Next, and Post all use the base `.btn` size (10px/24px). No `btn--sm` or `btn--lg` variations within the lesson player.
 - **Course pages use `must-revalidate` cache**: `/courses/*` gets `Cache-Control: public, max-age=0, must-revalidate`. All `/api/*` routes get `no-store`.
+- **STUC Stripe Checkout button says "Subscribe" not "Donate"**: Stripe only allows `submit_type: 'donate'` on `mode: 'payment'` sessions. Subscription sessions hardcode the button to "Subscribe". Changing this would require migrating from Stripe Checkout to Stripe Elements — not worth it.
 
 ## Done (Recent)
 
+- One-time donation fix for logged-in users — `customer_creation: 'always'` conflicted with `customer` param when user had existing Stripe customer ID; moved `customer_creation` to anonymous-only branch. Subscription checkout unaffected because it never set `customer_creation`. (2026-02-27)
 - Production canary cron — `scripts/canary.mjs` tests 6 critical endpoints every 30 min (homepage, quiz API, survey validate, donation checkout, subscription checkout, contact form); emails administrator@ on failure, silent on success; Telegram ready pending chat ID (2026-02-27)
 - Security guard Phase 3 — verifies 7 critical files exist + quizzes.json has content; runtime guard in create-checkout.js blocks test-mode price IDs with live key (2026-02-27)
 - Deploy.yml cache fix — `git checkout HEAD` restores committed data files after `actions/cache` restore, preventing stale quizzes.json overwrites (2026-02-27)
