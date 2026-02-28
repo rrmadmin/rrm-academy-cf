@@ -25,6 +25,7 @@
 
 ## Done (Recent)
 
+- Mobile tier card formatting — centered content, reduced price size, full-width buttons, larger tier name (1.5rem) for clear visual hierarchy on `/donate/` and `/save-the-uterus-club/` pages (2026-02-28)
 - Mobile nav tap-outside-to-close — tapping page content visible below/behind the open mobile nav panel now closes the nav, preventing inconsistent scroll-behind behavior across pages (2026-02-28)
 - Mobile nav footer button positioning — removed bottom padding from `.main-nav` panel (`padding: var(--space-4) 0` → `var(--space-4) 0 0`) so footer buttons (My Account, Donate) sit closer to bottom edge instead of appearing too high (2026-02-28)
 - Funding callout responsive — "Support this work" callout on synopsis pages stacks vertically and centers on mobile instead of awkward side-by-side wrap (2026-02-28)
