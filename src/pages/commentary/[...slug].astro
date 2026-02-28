@@ -96,6 +96,7 @@ if (post.author) {
 }
 if (post.publishDate) {
   jsonLd.datePublished = post.publishDate;
+  jsonLd.dateModified = post.publishDate;
 }
 if (post.coverImageUrl) {
   jsonLd.image = post.coverImageUrl;
