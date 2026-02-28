@@ -1,12 +1,12 @@
 ---
-import BaseLayout from '../../../layouts/BaseLayout.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
 
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
     {
       '@type': 'Article',
-      '@id': 'https://rrmacademy.org/articles/common-questions-about-rrm',
+      '@id': 'https://rrmacademy.org/common-questions-about-rrm',
       headline: 'Common Questions About Restorative Reproductive Medicine',
       description:
         'Restorative Reproductive Medicine has received both support and criticism from medical organizations. We address common questions with published evidence, acknowledge limitations, and clarify what RRM is and is not.',
@@ -22,7 +22,7 @@ const jsonLd = {
       },
       datePublished: '2026-03-01',
       dateModified: '2026-03-01',
-      mainEntityOfPage: 'https://rrmacademy.org/articles/common-questions-about-rrm',
+      mainEntityOfPage: 'https://rrmacademy.org/common-questions-about-rrm',
     },
     {
       '@type': 'FAQPage',
@@ -75,7 +75,7 @@ const jsonLd = {
 <BaseLayout
   title="Common Questions About Restorative Reproductive Medicine"
   description="Restorative Reproductive Medicine has received both support and criticism from medical organizations. We address common questions with published evidence, acknowledge limitations, and clarify what RRM is and is not."
-  canonicalUrl="https://rrmacademy.org/articles/common-questions-about-rrm"
+  canonicalUrl="https://rrmacademy.org/common-questions-about-rrm"
   ogType="article"
   publishDate="2026-03-01"
   jsonLd={jsonLd}
