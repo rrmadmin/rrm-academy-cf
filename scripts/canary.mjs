@@ -14,6 +14,7 @@
 const SITE = 'https://rrmacademy.org';
 const ALERT_TO = 'administrator@rrmacademy.org';
 const ALERT_FROM = 'RRM Canary <contact@rrmacademy.org>';
+const CANARY_SECRET = process.env.CANARY_SECRET || '';
 
 const checks = [
   {
@@ -38,7 +39,7 @@ const checks = [
     url: `${SITE}/api/create-checkout`,
     method: 'POST',
     body: JSON.stringify({ mode: 'payment', amount: 500 }),
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(CANARY_SECRET && { 'X-Canary-Token': CANARY_SECRET }) },
     expect: (r, body) => r.status === 200 && body.ok && body.url,
   },
   {
@@ -46,7 +47,7 @@ const checks = [
     url: `${SITE}/api/create-checkout`,
     method: 'POST',
     body: JSON.stringify({ mode: 'subscription', tier: 'member' }),
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(CANARY_SECRET && { 'X-Canary-Token': CANARY_SECRET }) },
     expect: (r, body) => r.status === 200 && body.ok && body.url,
   },
   {

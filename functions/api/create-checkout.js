@@ -52,9 +52,14 @@ async function handleCheckout(request, env) {
     return json({ ok: false, error: 'Invalid mode — use "payment" or "subscription"' }, 400);
   }
 
-  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-  if (!checkRateLimit(`checkout:${ip}`)) {
-    return json({ ok: false, error: 'Too many requests — try again later' }, 429);
+  const canaryToken = request.headers.get('X-Canary-Token');
+  const isCanary = env.CANARY_SECRET && canaryToken === env.CANARY_SECRET;
+
+  if (!isCanary) {
+    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+    if (!checkRateLimit(`checkout:${ip}`)) {
+      return json({ ok: false, error: 'Too many requests — try again later' }, 429);
+    }
   }
 
   // --- Resolve logged-in user (optional) ---
