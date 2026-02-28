@@ -2,16 +2,76 @@
  * CF Pages Function middleware for RRM Academy.
  * Handles:
  * 1. Subdomain redirects (library.rrmacademy.org → rrmacademy.org/library)
- * 2. Auth protection for /account/* routes (redirect to /login if no session)
+ * 2. Auth protection for /account/* and /community/* routes
+ * 3. GA4 server-side page_view tracking (fire-and-forget via waitUntil)
  *
  * NOTE: Old library slug redirects are handled by the rrm-router Worker,
  * not here (avoids loading the 500KB redirect map on every request).
  */
 import { getSessionIdFromCookie, validateSession, sessionCookie } from './api/auth/_shared.js';
 
+const GA4_ENDPOINT = 'https://www.google-analytics.com/mp/collect';
+
+/**
+ * Derives a stable, anonymous client_id from IP + User-Agent.
+ * No cookie, no PII stored — just a deterministic identifier per device.
+ * Returns a 16-char hex string.
+ */
+async function getClientId(request) {
+  const ip = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown';
+  const ua = request.headers.get('User-Agent') || 'unknown';
+  const raw = new TextEncoder().encode(`${ip}:${ua}`);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', raw);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
+}
+
+/**
+ * Fires a GA4 page_view hit via Measurement Protocol.
+ * Called with ctx.waitUntil() so it never blocks the response.
+ */
+async function sendPageView(request, env) {
+  if (!env.GA4_MEASUREMENT_ID || !env.GA4_API_SECRET) return;
+
+  const url = new URL(request.url);
+
+  // Only fire for HTML page requests — skip API routes and assets
+  if (url.pathname.startsWith('/api/')) return;
+  const accept = request.headers.get('Accept') || '';
+  if (!accept.includes('text/html')) return;
+
+  try {
+    const clientId = await getClientId(request);
+    const payload = {
+      client_id: clientId,
+      events: [{
+        name: 'page_view',
+        params: {
+          page_location: request.url,
+          page_referrer: request.headers.get('Referer') || '',
+        },
+      }],
+    };
+
+    await fetch(
+      `${GA4_ENDPOINT}?measurement_id=${env.GA4_MEASUREMENT_ID}&api_secret=${env.GA4_API_SECRET}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }
+    );
+  } catch {
+    // Silent — never let analytics failures affect the user
+  }
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
+
+  // Fire GA4 page_view asynchronously — does not block the response
+  context.waitUntil(sendPageView(request, env));
 
   // 301 redirect: library.rrmacademy.org → rrmacademy.org/library
   if (url.hostname === 'library.rrmacademy.org') {
