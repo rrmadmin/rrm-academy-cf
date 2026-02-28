@@ -8,6 +8,7 @@ source ~/.zshrc 2>/dev/null
 export RESEND_API_KEY=$(op read 'op://Automation/Resend API/credential' 2>/dev/null)
 export TELEGRAM_BOT_TOKEN=$(op read 'op://Automation/rrmClaudeCode Telegram Bot Token/credential' 2>/dev/null)
 export TELEGRAM_CHAT_ID="PLACEHOLDER"  # TODO: set Brian's chat ID
+export CANARY_SECRET=$(op read 'op://Automation/RRM Canary Bypass Token/credential' 2>/dev/null)
 
 cd /Users/brian/iCode/projects/rrm-academy-cf
 node scripts/canary.mjs
