@@ -95,6 +95,7 @@ const coinsTitle = buildCOinS(article);
 <style>
   /* Full card — paper sheet, uniform height */
   .article-card {
+    position: relative;
     background: var(--bg-surface);
     border-radius: var(--radius-md);
     padding: var(--space-5);
@@ -106,11 +107,17 @@ const coinsTitle = buildCOinS(article);
   }
   .article-card:hover {
     box-shadow: var(--shadow-md);
+    cursor: pointer;
   }
 
   .article-card__link {
     text-decoration: none;
     color: inherit;
+  }
+  .article-card__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
   }
   .article-card__link:hover {
     text-decoration: none;
@@ -129,7 +136,7 @@ const coinsTitle = buildCOinS(article);
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  .article-card__link:hover .article-card__title {
+  .article-card:hover .article-card__title {
     color: var(--accent);
   }
 
