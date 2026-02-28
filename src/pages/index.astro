@@ -10,10 +10,12 @@ const wixBase = 'https://www.rrmacademy.org';
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'EducationalOrganization',
+  '@id': 'https://rrmacademy.org/#organization',
   name: 'RRM Academy',
   alternateName: 'Restorative Reproductive Medicine Academy',
   url: 'https://rrmacademy.org',
   description: 'The leading educational platform for patients and professionals seeking to understand and apply Restorative Reproductive Medicine.',
+  foundingDate: '2023',
   founder: {
     '@type': 'Person',
     name: 'Dr. Naomi Whittaker',
@@ -22,11 +24,32 @@ const jsonLd = {
   },
   nonprofitStatus: '501(c)(3)',
   areaServed: 'Global',
+  parentOrganization: {
+    '@type': 'NonprofitOrganization',
+    name: 'Restorative Reproductive Medicine Foundation',
+    taxID: '93-4594315',
+    nonprofitStatus: '501(c)(3)',
+  },
+  sameAs: [
+    'https://www.linkedin.com/company/rrm-academy',
+    'https://www.instagram.com/rrmacademy',
+  ],
+  contactPoint: {
+    '@type': 'ContactPoint',
+    contactType: 'customer support',
+    url: 'https://rrmacademy.org/contact',
+  },
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    name: 'RRM Academy Courses',
+    url: 'https://rrmacademy.org/courses',
+    numberOfItems: 12,
+  },
 };
 ---
 <BaseLayout
-  title="RRM Academy — Stop Managing Symptoms. Start Restoring Health."
-  description="RRM Academy is the leading educational platform for Restorative Reproductive Medicine. Access 3,000+ research articles, expert courses, and resources for patients and professionals."
+  title="RRM Academy | Evidence-Based Reproductive Medicine Education"
+  description="Learn restorative reproductive medicine from a board-certified OBGYN. Free and paid courses for patients and professionals. Backed by 3,036+ research articles."
   canonicalUrl="https://rrmacademy.org/"
   jsonLd={jsonLd}
 >

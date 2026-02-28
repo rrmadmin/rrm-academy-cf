@@ -32,8 +32,8 @@
       "autoplayNextVideo": true
     },
     "seo": {
-      "title": "Masterclass in Endometriosis and Surgery | RRM Academy",
-      "description": "This essential course equips both women with endometriosis and healthcare professionals with the knowledge and tools for effective long-term symptom management.",
+      "title": "Endometriosis Surgery Masterclass | RRM Academy",
+      "description": "Prepare for endometriosis surgery with this comprehensive course from Dr. Naomi Whittaker, MD. 39 videos, 2h 53m, self-paced. Includes long-term management. $199.",
       "keywords": [
         "Endometriosis"
       ]
@@ -447,6 +447,40 @@
     "certificateQuizId": "mc-feedback-3",
     "includes": [
       "long-term-endometriosis-management"
+    ],
+    "faqs": [
+      {
+        "question": "Who is this course for?",
+        "answer": "This course is designed for patients preparing for endometriosis surgery or considering it. It's also valuable for women recently diagnosed with endometriosis who want to understand all treatment options, and for partners or family members who want to support someone through the surgical journey."
+      },
+      {
+        "question": "Do I need medical training to take this course?",
+        "answer": "No. This course is written for patients, not clinicians. Dr. Whittaker explains medical concepts in plain language with visual aids. Healthcare professionals will also find it valuable for understanding the patient perspective."
+      },
+      {
+        "question": "What will I be able to do after this course?",
+        "answer": "You'll know how to evaluate and choose an endometriosis surgeon, understand what to expect before, during, and after surgery, know the right questions to ask your doctor, and have a long-term management plan for living well with endometriosis."
+      },
+      {
+        "question": "Is this course accredited for CME credits?",
+        "answer": "This course is not currently CME-accredited. It is designed as patient education. Healthcare professionals seeking CME should check the IIRRM and FACTS About Fertility course catalogs for accredited options."
+      },
+      {
+        "question": "How long do I have access to the course?",
+        "answer": "You have one year of access from the date of purchase. This gives you time to revisit materials as you prepare for and recover from surgery."
+      },
+      {
+        "question": "Does the course include the Long-Term Management course?",
+        "answer": "Yes. When you purchase the Masterclass in Endometriosis & Surgery, the Long-Term Endometriosis Management course ($19 value) is automatically included as a bonus."
+      },
+      {
+        "question": "Can I get a scholarship?",
+        "answer": "As a 501(c)(3) nonprofit, RRM Academy offers a limited number of scholarships for paid courses. Contact us to request a scholarship application."
+      },
+      {
+        "question": "What topics does the curriculum cover?",
+        "answer": "The course has 9 sections and 46 lessons covering: introduction to endometriosis, choosing a surgeon, surgical preparation, what happens during surgery, recovery, long-term management (diet, lifestyle, supplements, medications), and when to seek additional care."
+      }
     ]
   },
   {
@@ -482,8 +516,8 @@
       "autoplayNextVideo": false
     },
     "seo": {
-      "title": "Long Term Endometriosis Management | RRM Academy",
-      "description": "Evidence-based strategies for long-term endometriosis symptom management through diet, lifestyle, supplements, and medications.",
+      "title": "Long-Term Endometriosis Management Course | RRM Academy",
+      "description": "Non-surgical strategies for endometriosis: diet, lifestyle, supplements, and medications. Taught by Dr. Naomi Whittaker, MD. 7 videos, 15 minutes. $19.",
       "keywords": [
         "Endometriosis",
         "Long-term management"
@@ -615,6 +649,28 @@
     ],
     "includedIn": [
       "masterclass-in-endometriosis-and-surgery"
+    ],
+    "faqs": [
+      {
+        "question": "Who is this course for?",
+        "answer": "Women living with endometriosis who want non-surgical strategies for managing symptoms. Ideal for post-surgical patients or those not yet ready for surgery."
+      },
+      {
+        "question": "What topics are covered?",
+        "answer": "Diet and nutrition for endometriosis, lifestyle modifications, evidence-based supplements, medications that support long-term management, and when to consider further intervention."
+      },
+      {
+        "question": "How is this different from the Masterclass?",
+        "answer": "The Masterclass covers the full surgical journey (46 lessons, 2h 53m) and includes this course as a bonus. This standalone course (7 videos, 15 minutes) focuses specifically on non-surgical management."
+      },
+      {
+        "question": "Is this course free?",
+        "answer": "No, it's $19. RRM Academy offers several free courses if you'd like to start there. Scholarships are available for paid courses."
+      },
+      {
+        "question": "How long do I have access?",
+        "answer": "One year from purchase date, or lifetime if you purchased the Masterclass (which includes this course)."
+      }
     ]
   },
   {
@@ -743,6 +799,24 @@
           }
         ]
       }
+    ],
+    "faqs": [
+      {
+        "question": "Is this course really free?",
+        "answer": "Yes, 100% free. RRM Academy is a 501(c)(3) nonprofit. Free courses are part of our mission to make restorative reproductive medicine education accessible to everyone."
+      },
+      {
+        "question": "Do I need to create an account?",
+        "answer": "Yes, a free account is required to track your progress and provide access to course materials including downloadable resources and transcripts."
+      },
+      {
+        "question": "How long do I have access?",
+        "answer": "Lifetime access. You can revisit the materials anytime."
+      },
+      {
+        "question": "What format are the lessons?",
+        "answer": "Self-paced video lectures with downloadable resources and transcripts. You can learn on your own schedule."
+      }
     ]
   },
   {
@@ -778,8 +852,8 @@
       "autoplayNextVideo": false
     },
     "seo": {
-      "title": "RRM vs IVF: A New Approach to Infertility | RRM Academy",
-      "description": "Compare standard ART like IVF and IUI with Restorative Reproductive Medicine (RRM), a root-cause approach to treating infertility.",
+      "title": "RRM vs IVF: Comparing Fertility Treatments | RRM Academy",
+      "description": "Understand how Restorative Reproductive Medicine compares to IVF and other assisted reproductive technologies. Evidence-based, taught by a board-certified OBGYN.",
       "keywords": [
         "RRM",
         "IVF",
@@ -908,9 +982,43 @@
             "id": "ivf-refs-1",
             "title": "References",
             "type": "article",
-            "content": "<h3>References</h3><ol><li>\"IVF by the Numbers.\" Penn Medicine. <a href=\"https://www.pennmedicine.org/updates/blogs/fertility-blog/2018/march/ivf-by-the-numbers\" target=\"_blank\" rel=\"noopener\">pennmedicine.org</a></li><li>\"The History of Extraordinary Breakthroughs in Fertility Treatments.\" UNC Fertility, 26 Apr. 2017. <a href=\"https://uncfertility.com/fertility-blog/the-history-of-extraordinary-breakthroughs-in-fertility-treatments/\" target=\"_blank\" rel=\"noopener\">uncfertility.com</a></li><li>\"Firsts in Fertility: A Historical Timeline.\" Pacific Fertility Center, 19 Feb. 2018. <a href=\"https://www.pacificfertilitycenter.com/blog/ferts-in-fertility-historical-timeline\" target=\"_blank\" rel=\"noopener\">pacificfertilitycenter.com</a></li><li>ACOG&amp;E Case Log PDF. <a href=\"https://www.acgme.org/Portals/0/PFAssets/ProgramResources/480_ObGynCaseLogIns.pdf\" target=\"_blank\" rel=\"noopener\">acgme.org</a></li><li>\"New Fellowship Can Provide Reproductive Surgery Proficiency.\" Consult QD, 20 Aug. 2019. <a href=\"https://consultqd.clevelandclinic.org/reproductive-surgery-fellowship-aims-to-improve-surgical-training-in-fertility/\" target=\"_blank\" rel=\"noopener\">Cleveland Clinic</a></li><li>ACGME REI Case Log PDF. <a href=\"https://www.acgme.org/Portals/0/PFAssets/ProgramResources/REICaseLogInstructions.pdf\" target=\"_blank\" rel=\"noopener\">acgme.org</a></li><li>Hughes TW, Huang. \"Minimized Prepass before and after Transvesical Catheterization of the Palpable Tissue.\" <em>Fertility and Sterility</em>. <a href=\"https://pubmed.ncbi.nlm.nih.gov/19428171/\" target=\"_blank\" rel=\"noopener\">PubMed</a></li><li>Mancuso et al. \"A WHO Reanalysis: Obstetric.\" <em>PubMed</em>, 2020. <a href=\"https://www.ncbi.nlm.nih.gov/pubmed/32396424\" target=\"_blank\" rel=\"noopener\">PubMed</a></li><li>\"Reproductive Health.\" Centers for Disease Control and Prevention. <a href=\"https://www.cdc.gov/reproductivehealth/index.html\" target=\"_blank\" rel=\"noopener\">cdc.gov</a></li><li>Speroff L. <em>Clinical Gynecologic Endocrinology and Infertility</em>, by Hugh S. Taylor et al., Lippincott Williams &amp; Wilkins, 2020, pp. 989\u20131000.</li><li>Anshan Li, Caixia C. \"Ovarian Volume Variation after Laparoscopic Salpingectomy for Unruptured Ectopic Pregnancy: A Systematic Review.\" <em>Cochrane Database of Systematic Reviews</em> 2020, Issue 3.</li><li>Derwig, C. Granne, I. &amp; Hillensjoee, S. \"In vitro fertilization for unexplained subfertility.\" <em>Cochrane Database of Systematic Reviews</em> 2015, Issue 11.</li><li>Cissen, M. et al. \"Assisted reproductive technologies for male subfertility.\" <em>Cochrane Database of Systematic Reviews</em> 2016, Issue 2.</li><li>Coughtrie, A. et al. \"Preimplantation genetic testing for aneuploidies in in vitro fertilization.\" <em>Cochrane Database of Systematic Reviews</em> 2020, Issue 9.</li><li>SART Clinic Summary Report. <a href=\"https://www.sartcorsonline.com/rptCSR/ClinicSummaryReport/ClinicSummaryReport.aspx\" target=\"_blank\" rel=\"noopener\">sartcorsonline.com</a></li><li>2015 Assisted Reproductive Technology National Summary Report. <a href=\"https://www.cdc.gov/art/pdf/2015-report/ART-2015-National-Summary-Report.pdf\" target=\"_blank\" rel=\"noopener\">CDC</a></li><li>2018 Fertility Clinic Success Rates Report. <a href=\"https://www.cdc.gov/art/reports/2018/fertility-clinic.html\" target=\"_blank\" rel=\"noopener\">CDC</a></li><li>HFEA 2011 Fertility Trends and Figures. <a href=\"https://www.hfea.gov.uk/media/2670/hfea-fertility-trends-and-figures-2011.pdf\" target=\"_blank\" rel=\"noopener\">hfea.gov.uk</a></li><li>\"Fertility Treatment 2018: Trends and Figures.\" Human Fertilisation and Embryology Authority. <a href=\"https://www.hfea.gov.uk/media/2894/fertility-treatment-2018-trends-and-figures.pdf\" target=\"_blank\" rel=\"noopener\">hfea.gov.uk</a></li></ol>"
+            "content": "<h3>References</h3><ol><li>\"IVF by the Numbers.\" Penn Medicine. <a href=\"https://www.pennmedicine.org/updates/blogs/fertility-blog/2018/march/ivf-by-the-numbers\" target=\"_blank\" rel=\"noopener\">pennmedicine.org</a></li><li>\"The History of Extraordinary Breakthroughs in Fertility Treatments.\" UNC Fertility, 26 Apr. 2017. <a href=\"https://uncfertility.com/fertility-blog/the-history-of-extraordinary-breakthroughs-in-fertility-treatments/\" target=\"_blank\" rel=\"noopener\">uncfertility.com</a></li><li>\"Firsts in Fertility: A Historical Timeline.\" Pacific Fertility Center, 19 Feb. 2018. <a href=\"https://www.pacificfertilitycenter.com/blog/ferts-in-fertility-historical-timeline\" target=\"_blank\" rel=\"noopener\">pacificfertilitycenter.com</a></li><li>ACOG&amp;E Case Log PDF. <a href=\"https://www.acgme.org/Portals/0/PFAssets/ProgramResources/480_ObGynCaseLogIns.pdf\" target=\"_blank\" rel=\"noopener\">acgme.org</a></li><li>\"New Fellowship Can Provide Reproductive Surgery Proficiency.\" Consult QD, 20 Aug. 2019. <a href=\"https://consultqd.clevelandclinic.org/reproductive-surgery-fellowship-aims-to-improve-surgical-training-in-fertility/\" target=\"_blank\" rel=\"noopener\">Cleveland Clinic</a></li><li>ACGME REI Case Log PDF. <a href=\"https://www.acgme.org/Portals/0/PFAssets/ProgramResources/REICaseLogInstructions.pdf\" target=\"_blank\" rel=\"noopener\">acgme.org</a></li><li>Hughes TW, Huang. \"Minimized Prepass before and after Transvesical Catheterization of the Palpable Tissue.\" <em>Fertility and Sterility</em>. <a href=\"https://pubmed.ncbi.nlm.nih.gov/19428171/\" target=\"_blank\" rel=\"noopener\">PubMed</a></li><li>Mancuso et al. \"A WHO Reanalysis: Obstetric.\" <em>PubMed</em>, 2020. <a href=\"https://www.ncbi.nlm.nih.gov/pubmed/32396424\" target=\"_blank\" rel=\"noopener\">PubMed</a></li><li>\"Reproductive Health.\" Centers for Disease Control and Prevention. <a href=\"https://www.cdc.gov/reproductivehealth/index.html\" target=\"_blank\" rel=\"noopener\">cdc.gov</a></li><li>Speroff L. <em>Clinical Gynecologic Endocrinology and Infertility</em>, by Hugh S. Taylor et al., Lippincott Williams &amp; Wilkins, 2020, pp. 989–1000.</li><li>Anshan Li, Caixia C. \"Ovarian Volume Variation after Laparoscopic Salpingectomy for Unruptured Ectopic Pregnancy: A Systematic Review.\" <em>Cochrane Database of Systematic Reviews</em> 2020, Issue 3.</li><li>Derwig, C. Granne, I. &amp; Hillensjoee, S. \"In vitro fertilization for unexplained subfertility.\" <em>Cochrane Database of Systematic Reviews</em> 2015, Issue 11.</li><li>Cissen, M. et al. \"Assisted reproductive technologies for male subfertility.\" <em>Cochrane Database of Systematic Reviews</em> 2016, Issue 2.</li><li>Coughtrie, A. et al. \"Preimplantation genetic testing for aneuploidies in in vitro fertilization.\" <em>Cochrane Database of Systematic Reviews</em> 2020, Issue 9.</li><li>SART Clinic Summary Report. <a href=\"https://www.sartcorsonline.com/rptCSR/ClinicSummaryReport/ClinicSummaryReport.aspx\" target=\"_blank\" rel=\"noopener\">sartcorsonline.com</a></li><li>2015 Assisted Reproductive Technology National Summary Report. <a href=\"https://www.cdc.gov/art/pdf/2015-report/ART-2015-National-Summary-Report.pdf\" target=\"_blank\" rel=\"noopener\">CDC</a></li><li>2018 Fertility Clinic Success Rates Report. <a href=\"https://www.cdc.gov/art/reports/2018/fertility-clinic.html\" target=\"_blank\" rel=\"noopener\">CDC</a></li><li>HFEA 2011 Fertility Trends and Figures. <a href=\"https://www.hfea.gov.uk/media/2670/hfea-fertility-trends-and-figures-2011.pdf\" target=\"_blank\" rel=\"noopener\">hfea.gov.uk</a></li><li>\"Fertility Treatment 2018: Trends and Figures.\" Human Fertilisation and Embryology Authority. <a href=\"https://www.hfea.gov.uk/media/2894/fertility-treatment-2018-trends-and-figures.pdf\" target=\"_blank\" rel=\"noopener\">hfea.gov.uk</a></li></ol>"
           }
         ]
+      }
+    ],
+    "faqs": [
+      {
+        "question": "Who is this course for?",
+        "answer": "Anyone considering fertility treatment who wants to understand all options. This includes patients weighing IVF against restorative approaches, healthcare providers who want to counsel patients about alternatives, and couples at the beginning of their fertility journey."
+      },
+      {
+        "question": "Does this course tell me IVF is wrong?",
+        "answer": "No. This course presents both approaches with their evidence, outcomes, costs, and best-use scenarios. The goal is informed decision-making, not prescribing one path. Some patients benefit most from RRM, some from IVF, and some from a combination."
+      },
+      {
+        "question": "What data sources does this course use?",
+        "answer": "The course draws on peer-reviewed research published in journals including Fertility and Sterility, BMC Pregnancy and Childbirth, and the Journal of Restorative Reproductive Medicine. All claims are cited."
+      },
+      {
+        "question": "Will this help me decide between RRM and IVF?",
+        "answer": "This course gives you the information to make that decision with your doctor. It covers: how each approach works, published outcomes by condition, cost comparison, what to expect from each treatment path, and questions to ask your provider."
+      },
+      {
+        "question": "Is this course really free?",
+        "answer": "Yes, 100% free. RRM Academy is a 501(c)(3) nonprofit. Free courses are part of our mission to make restorative reproductive medicine education accessible to everyone."
+      },
+      {
+        "question": "Do I need to create an account?",
+        "answer": "Yes, a free account is required to track your progress and provide access to course materials including downloadable resources and transcripts."
+      },
+      {
+        "question": "How long do I have access?",
+        "answer": "Lifetime access. You can revisit the materials anytime."
+      },
+      {
+        "question": "What format are the lessons?",
+        "answer": "Self-paced video lectures with downloadable resources and transcripts. You can learn on your own schedule."
       }
     ]
   },
