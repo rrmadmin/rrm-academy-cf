@@ -72,6 +72,7 @@ const COURSE_FIELDS = [
   'SEO Keywords',             // ADDED (comma-separated)
   'Sort Order',               // ADDED
   'Coming Soon',              // ADDED (checkbox — true for placeholder courses not yet published)
+  'FAQs',                     // ADDED (long text — JSON array of {question, answer})
 ];
 
 // Modules table: template fields + Module ID
@@ -190,6 +191,11 @@ function transformCourse(record) {
   }
   if (f['Included In']) {
     course.includedIn = f['Included In'].split(',').map(s => s.trim());
+  }
+
+  const faqs = parseJsonField(f['FAQs'], []);
+  if (faqs.length > 0) {
+    course.faqs = faqs;
   }
 
   return course;
