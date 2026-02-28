@@ -1019,7 +1019,7 @@ blockquote cite {
   text-align: center;
   font-size: 0.8rem;
   color: var(--text-muted);
-  padding: var(--space-8) 0 var(--space-2);
+  padding: var(--space-2) 0;
   margin: 0;
 }
 
