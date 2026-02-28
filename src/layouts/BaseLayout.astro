@@ -57,6 +57,10 @@ const siteOrigin = 'https://rrmacademy.org';
 const resolvedOgImage = ogImage
   ? (ogImage.startsWith('http') ? ogImage : `${siteOrigin}${ogImage}`)
   : `${siteOrigin}/images/og-default.png`;
+// Twitter requires JPG/PNG — swap .webp for .jpg for twitter:image only
+const resolvedTwitterImage = resolvedOgImage.endsWith('.webp')
+  ? resolvedOgImage.replace(/\.webp$/, '.jpg')
+  : resolvedOgImage;
 ---
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
@@ -98,7 +102,7 @@ const resolvedOgImage = ogImage
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content={fullTitle} />
   <meta name="twitter:description" content={description} />
-  <meta name="twitter:image" content={resolvedOgImage} />
+  <meta name="twitter:image" content={resolvedTwitterImage} />
 
   <!-- Highwire Press / Zotero citation meta -->
   {citationMeta && (
