@@ -38,8 +38,7 @@ function formatDuration(seconds: number) {
 const firstStep = course.sections[0]?.steps[0];
 
 // Schema.org Course
-const jsonLd = {
-  '@context': 'https://schema.org',
+const courseSchema = {
   '@type': 'Course',
   name: course.title,
   description: course.seo?.description || course.shortDescription,
@@ -52,8 +51,14 @@ const jsonLd = {
   instructor: {
     '@type': 'Person',
     name: instructor?.name,
-    jobTitle: 'OBGYN & Fertility Surgeon',
+    jobTitle: 'Board-Certified OBGYN, NaProTechnology Fellowship Trained',
+    sameAs: 'https://www.linkedin.com/in/naomi-whittaker-md-906b13101/',
   },
+  educationalLevel: 'Beginner to Advanced',
+  ...(course.topics?.length ? { about: course.topics } : {}),
+  ...(course.teaches?.length ? { teaches: course.teaches } : {}),
+  numberOfLessons: totalSteps,
+  timeRequired: hours > 0 ? `PT${hours}H${minutes}M` : `PT${minutes}M`,
   ...(course.isFree ? { isAccessibleForFree: true } : {
     offers: {
       '@type': 'Offer',
@@ -65,8 +70,29 @@ const jsonLd = {
   hasCourseInstance: {
     '@type': 'CourseInstance',
     courseMode: 'online',
-    courseWorkload: durationLabel,
+    courseWorkload: hours > 0 ? `PT${hours}H${minutes}M` : `PT${minutes}M`,
   },
+};
+
+const jsonLd = course.faqs?.length ? {
+  '@context': 'https://schema.org',
+  '@graph': [
+    courseSchema,
+    {
+      '@type': 'FAQPage',
+      mainEntity: course.faqs.map((faq: any) => ({
+        '@type': 'Question',
+        name: faq.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: faq.answer,
+        },
+      })),
+    },
+  ],
+} : {
+  '@context': 'https://schema.org',
+  ...courseSchema,
 };
 
 // Related courses for "included" or "includedIn" relationships
@@ -244,6 +270,30 @@ const parentCourse = course.includedIn
               </a>
             </div>
           )}
+        </div>
+      </section>
+    )}
+
+    <!-- FAQ -->
+    {course.faqs?.length > 0 && (
+      <section class="course-section course-faqs">
+        <div class="container container--narrow">
+          <h2>Frequently Asked Questions</h2>
+          <div class="faq-list">
+            {course.faqs.map((faq: any) => (
+              <details class="faq-item">
+                <summary class="faq-question">
+                  <span class="faq-question-text">{faq.question}</span>
+                  <span class="faq-chevron" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                  </span>
+                </summary>
+                <div class="faq-answer">
+                  <p>{faq.answer}</p>
+                </div>
+              </details>
+            ))}
+          </div>
         </div>
       </section>
     )}
@@ -675,6 +725,19 @@ const parentCourse = course.includedIn
   .related-course__link span {
     font-size: 0.8125rem;
     color: var(--text-secondary);
+  }
+
+  /* FAQ section */
+  .course-faqs {
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border-light);
+    border-bottom: 1px solid var(--border-light);
+  }
+  .course-faqs h2 {
+    margin-bottom: var(--space-6);
+  }
+  .course-faqs .faq-item:first-child {
+    border-top: 1px solid var(--border-light);
   }
 
   /* Bottom CTA */
