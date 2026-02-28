@@ -1014,3 +1014,12 @@ blockquote cite {
 
 }
 
+/* Page last-updated */
+.page-updated {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  padding: 1.5rem 0 0;
+  margin: 0;
+}
+
