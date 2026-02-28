@@ -150,6 +150,9 @@ const mobileNavSections = [
       <a href="/donate/" class="donate-btn">Donate</a>
     </div>
 
+    <a href="/library/#search" class="mobile-search-btn" aria-label="Search">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </a>
     <button class="mobile-toggle" aria-label="Menu" aria-expanded="false">
       <span class="hamburger"></span>
     </button>
@@ -396,6 +399,21 @@ const mobileNavSections = [
     display: none;
   }
 
+  /* Mobile search icon — hidden on desktop */
+  .mobile-search-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-2);
+    color: var(--text-tertiary);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .mobile-search-btn:hover {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
   /* Mobile hamburger */
   .mobile-toggle {
     display: none;
@@ -403,7 +421,6 @@ const mobileNavSections = [
     border: none;
     cursor: pointer;
     padding: var(--space-2);
-    margin-left: auto;
   }
   .hamburger {
     display: block;
@@ -449,10 +466,11 @@ const mobileNavSections = [
       gap: var(--space-3);
     }
 
-    /* Header bar: logo + hamburger only */
+    /* Header bar: logo + search icon + hamburger */
     .main-nav { display: none; }
     .header-search { display: none; }
     .header-actions { display: none; }
+    .mobile-search-btn { display: flex; margin-left: auto; }
     .mobile-toggle { display: block; }
 
     /* ── Nav panel (open state) ── */
@@ -579,7 +597,7 @@ const mobileNavSections = [
     /* ── Mobile nav footer ── */
     .site-header.nav-open .mobile-nav-footer {
       display: block;
-      padding: var(--space-4) var(--space-6) var(--space-2);
+      padding: var(--space-4) var(--space-6);
       margin-top: var(--space-2);
       border-top: 1px solid var(--border-light);
     }
@@ -588,6 +606,10 @@ const mobileNavSections = [
       display: flex;
       align-items: center;
       gap: var(--space-3);
+    }
+    .mobile-nav-footer__actions .btn {
+      padding: 8px 24px;
+      font-size: 0.8125rem;
     }
     .mobile-nav-footer__utils {
       display: flex;
