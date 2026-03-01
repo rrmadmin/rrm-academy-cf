@@ -193,8 +193,11 @@ const helpLinks = [
 
   @media (max-width: 768px) {
     .footer-columns {
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr 1fr;
       gap: var(--space-8);
+    }
+    .footer-col--wide {
+      grid-column: 1 / -1;
     }
     .footer-bottom {
       flex-direction: column;
