@@ -76,23 +76,29 @@ const metaDescription = post.excerpt
   : `${post.title} - RRM Academy Commentary`;
 
 // Schema.org JSON-LD
+const isWhittakerPost = post.author === 'Naomi Whittaker' || post.author === 'Dr. Naomi Whittaker';
+
 const jsonLd: any = {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
   headline: post.title,
-  url: `https://rrmacademy.org/commentary/${post.slug}`,
+  url: `https://rrmacademy.org/commentary/${post.slug}/`,
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': `https://rrmacademy.org/commentary/${post.slug}/`,
+  },
   publisher: {
     '@type': 'Organization',
+    '@id': 'https://rrmacademy.org/#organization',
     name: 'RRM Academy',
-    url: 'https://rrmacademy.org',
+    url: 'https://rrmacademy.org/',
   },
 };
 
 if (post.author) {
-  jsonLd.author = {
-    '@type': 'Person',
-    name: post.author,
-  };
+  jsonLd.author = isWhittakerPost
+    ? { '@type': 'Person', '@id': 'https://rrmacademy.org/#naomi-whittaker', name: post.author }
+    : { '@type': 'Person', name: post.author };
 }
 if (post.publishDate) {
   jsonLd.datePublished = post.publishDate;
@@ -151,13 +157,24 @@ const whittakerPersonNode = {
   sameAs: ['https://www.linkedin.com/in/naomi-whittaker-md-906b13101/'],
 };
 
-const { '@context': _ctx, ...blogPostingNode } = jsonLd;
-const finalJsonLd = post.slug === 'rrm-spotlight-naomi-whittaker-md' ? {
-  '@context': 'https://schema.org',
-  '@graph': [blogPostingNode, whittakerPersonNode],
-} : jsonLd;
+const breadcrumbNode = {
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+    { '@type': 'ListItem', position: 2, name: 'Commentary', item: 'https://rrmacademy.org/commentary/' },
+    { '@type': 'ListItem', position: 3, name: post.title, item: `https://rrmacademy.org/commentary/${post.slug}/` },
+  ],
+};
 
-const canonicalUrl = `https://rrmacademy.org/commentary/${post.slug}`;
+const { '@context': _ctx, ...blogPostingNode } = jsonLd;
+const graphNodes = [blogPostingNode, breadcrumbNode];
+if (post.slug === 'rrm-spotlight-naomi-whittaker-md') graphNodes.push(whittakerPersonNode);
+const finalJsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': graphNodes,
+};
+
+const canonicalUrl = `https://rrmacademy.org/commentary/${post.slug}/`;
 ---
 <BaseLayout
   title={post.title}

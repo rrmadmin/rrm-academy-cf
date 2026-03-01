@@ -6,44 +6,66 @@ import coursesData from '../data/courses.json';
 const articles = await fetchAllArticles();
 const articleCount = articles.length;
 
+const liveCourseCount = coursesData.filter((c: any) => !c.comingSoon).length;
+
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'EducationalOrganization',
-  '@id': 'https://rrmacademy.org/#organization',
-  name: 'RRM Academy',
-  alternateName: 'Restorative Reproductive Medicine Academy',
-  url: 'https://rrmacademy.org',
-  description: 'The leading educational platform for patients and professionals seeking to understand and apply Restorative Reproductive Medicine.',
-  foundingDate: '2023',
-  founder: {
-    '@type': 'Person',
-    name: 'Dr. Naomi Whittaker',
-    jobTitle: 'Board-Certified OB/GYN',
-    honorificPrefix: 'Dr.',
-  },
-  nonprofitStatus: '501(c)(3)',
-  areaServed: 'Global',
-  parentOrganization: {
-    '@type': 'NonprofitOrganization',
-    name: 'Restorative Reproductive Medicine Foundation',
-    taxID: '93-4594315',
-    nonprofitStatus: '501(c)(3)',
-  },
-  sameAs: [
-    'https://www.linkedin.com/company/rrm-academy',
-    'https://www.instagram.com/rrmacademy',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      '@id': 'https://rrmacademy.org/#website',
+      name: 'RRM Academy',
+      url: 'https://rrmacademy.org/',
+      publisher: { '@id': 'https://rrmacademy.org/#organization' },
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: 'https://rrmacademy.org/library/?q={search_term_string}',
+        },
+        'query-input': 'required name=search_term_string',
+      },
+    },
+    {
+      '@type': 'EducationalOrganization',
+      '@id': 'https://rrmacademy.org/#organization',
+      name: 'RRM Academy',
+      alternateName: 'Restorative Reproductive Medicine Academy',
+      url: 'https://rrmacademy.org/',
+      description: 'The leading educational platform for patients and professionals seeking to understand and apply Restorative Reproductive Medicine.',
+      foundingDate: '2023',
+      founder: {
+        '@type': 'Person',
+        '@id': 'https://rrmacademy.org/#naomi-whittaker',
+        name: 'Dr. Naomi Whittaker',
+        jobTitle: 'Board-Certified OB/GYN',
+        honorificPrefix: 'Dr.',
+      },
+      nonprofitStatus: '501(c)(3)',
+      areaServed: 'Global',
+      parentOrganization: {
+        '@type': 'NonprofitOrganization',
+        name: 'Restorative Reproductive Medicine Foundation',
+        taxID: '93-4594315',
+        nonprofitStatus: '501(c)(3)',
+      },
+      sameAs: [
+        'https://www.linkedin.com/company/rrm-academy',
+        'https://www.instagram.com/rrmacademy',
+      ],
+      contactPoint: {
+        '@type': 'ContactPoint',
+        contactType: 'customer support',
+        url: 'https://rrmacademy.org/contact/',
+      },
+      hasOfferCatalog: {
+        '@type': 'OfferCatalog',
+        name: 'RRM Academy Courses',
+        url: 'https://rrmacademy.org/courses/',
+        numberOfItems: liveCourseCount,
+      },
+    },
   ],
-  contactPoint: {
-    '@type': 'ContactPoint',
-    contactType: 'customer support',
-    url: 'https://rrmacademy.org/contact',
-  },
-  hasOfferCatalog: {
-    '@type': 'OfferCatalog',
-    name: 'RRM Academy Courses',
-    url: 'https://rrmacademy.org/courses',
-    numberOfItems: coursesData.length,
-  },
 };
 ---
 <BaseLayout
