@@ -1,5 +1,7 @@
 # RRM Academy (Astro + CF Pages)
 
+> **This is `rrm-academy-cf` — the rrmacademy.org website.** Not `rrm-foundation` (separate project, separate site). All work here affects the live education platform.
+
 > Wix-to-Cloudflare migration via strangler fig pattern. Phases 0-8 complete (courses, quizzes, enrollment, progress tracking, comments, certificates all live). Active work tracked in `docs/plans/backlog.md`.
 
 ## Quick Reference
@@ -7,11 +9,42 @@
 - **Stack**: Astro 5.3 (static) + Pagefind + CF Pages Functions + D1
 - **Live**: https://rrmacademy.org/
 - **CF Pages project**: `rrm-academy`
-- **Deploy**: Push to `main` -- CF Pages auto-builds from git
+- **Deploy**: `git push origin main` — GitHub Actions builds and deploys to CF Pages automatically. No wrangler, no manual step.
 - **Build**: `npm run build` (runs `astro build && npx pagefind --site dist`)
 - **Data**: `AIRTABLE_PAT=xxx npm run fetch-all` then `npm run build`
 - **Router Worker**: `~/iCode/projects/rrm-router/src/index.js`
 - **Wix site code**: `~/iCode/projects/rrm-academy-wix/`
+
+## Airtable Architecture
+
+Two Airtable bases feed the library. Never confuse them.
+
+| Base | Nickname | Base ID | Purpose |
+|------|----------|---------|---------|
+| RRM Library | **Greenbase** | `appyZWo2G7iByXCgZ` | Master enrichment base — all 3,200+ articles, 106 fields, BIFID/PMID/Authors/Wiki tables. Never exposed to the public web. |
+| ⚡️ Library | **Yellowbase** | `app78UTVdeFph9qhL` | Curated public subset — only safe fields, only synced records. This is what the site fetches. |
+
+### Literature Pipeline (how new articles reach the site)
+
+```
+Greenbase: Wiki (Add) table          ← content editors add new articles here
+    │  BIFID enrichment pipeline
+    ▼
+Greenbase: BIFID table               ← master record, all enrichment metadata
+    │  Airtable base-to-base sync
+    │  (triggered by "Sync to RRM Library" = "Synced" on BIFID record)
+    ▼
+Yellowbase: ⚡️ Synced Literature table  ← curated public fields only
+    │  fetch-data.mjs (build script)
+    ▼
+src/data/articles.json → Astro build → rrmacademy.org/library
+```
+
+**To add a new article to the site:** Add to Wiki Add table in greenbase → run BIFID enrichment → set `Sync to RRM Library = Synced` on the BIFID record → trigger a site rebuild (push anything to main).
+
+**Config:** Base/table IDs in `src/lib/airtable-config.mjs`. Filter: only records where `{Sync to RRM Library}='Synced'` are fetched.
+
+**Daily cache:** GitHub Actions caches Airtable data per day (`airtable-data-YYYY-MM-DD`). If you need a fresh fetch mid-day, delete the cache via `gh api --method DELETE repos/rrmadmin/rrm-academy-cf/actions/caches/{id}` and re-trigger the workflow.
 
 ## Docs
 
