@@ -23,13 +23,9 @@ const jsonLd = {
         name: 'RRM Academy',
         url: 'https://rrmacademy.org',
       },
-      ...(course.isFree ? {} : {
-        offers: {
-          '@type': 'Offer',
-          price: (course.priceCents / 100).toFixed(2),
-          priceCurrency: 'USD',
-        },
-      }),
+      offers: course.isFree
+        ? { '@type': 'Offer', price: '0', priceCurrency: 'USD' }
+        : { '@type': 'Offer', price: (course.priceCents / 100).toFixed(2), priceCurrency: 'USD' },
     },
   })),
 };
