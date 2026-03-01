@@ -15,7 +15,9 @@ CREATE TABLE IF NOT EXISTS user (
     role TEXT DEFAULT 'member',
     google_id TEXT,
     wix_member_id TEXT,
-    blocked INTEGER DEFAULT 0
+    blocked INTEGER DEFAULT 0,
+    newsletter_opt_in INTEGER DEFAULT 0,
+    newsletter_opted_in_at TEXT
 );
 
 CREATE TABLE IF NOT EXISTS session (

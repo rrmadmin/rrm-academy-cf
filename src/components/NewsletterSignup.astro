@@ -1,0 +1,250 @@
+---
+/**
+ * Inline newsletter signup form. Turnstile-protected, submits to Buttondown via API.
+ * Use in footer, homepage CTA, or end-of-article sections.
+ */
+import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
+
+interface Props {
+  /** Heading text. Defaults to "Stay informed" */
+  heading?: string;
+  /** Subtext below heading */
+  subtext?: string;
+  /** Compact mode for footer placement */
+  compact?: boolean;
+}
+
+const {
+  heading = 'Stay informed',
+  subtext = 'Get new research commentary and course updates delivered to your inbox.',
+  compact = false,
+} = Astro.props;
+---
+
+<div class:list={['newsletter-signup', { 'newsletter-signup--compact': compact }]}>
+  {!compact && <h3 class="newsletter-heading">{heading}</h3>}
+  {!compact && subtext && <p class="newsletter-subtext">{subtext}</p>}
+  {compact && <p class="newsletter-label">{heading}</p>}
+
+  <form class="newsletter-form" data-newsletter-form>
+    <div class="newsletter-row">
+      <input
+        type="email"
+        name="email"
+        placeholder="Your email address"
+        required
+        autocomplete="email"
+        class="newsletter-input"
+      />
+      <!-- Honeypot -->
+      <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;opacity:0;" />
+      <button type="submit" class="newsletter-btn" data-newsletter-btn>Subscribe</button>
+    </div>
+    <div class="newsletter-turnstile" data-newsletter-turnstile></div>
+    <p class="newsletter-feedback" data-newsletter-feedback aria-live="polite"></p>
+  </form>
+</div>
+
+<script define:vars={{ TURNSTILE_SITE_KEY }}>
+(function () {
+  const forms = document.querySelectorAll('[data-newsletter-form]');
+  if (!forms.length) return;
+
+  // Load Turnstile script once
+  let turnstileReady = false;
+  const script = document.createElement('script');
+  script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+  script.async = true;
+  script.onload = () => { turnstileReady = true; renderWidgets(); };
+  document.head.appendChild(script);
+
+  const widgets = new Map();
+
+  function renderWidgets() {
+    if (!turnstileReady || !window.turnstile) return;
+    forms.forEach((form) => {
+      const container = form.querySelector('[data-newsletter-turnstile]');
+      if (!container || widgets.has(form)) return;
+      const widgetId = window.turnstile.render(container, {
+        sitekey: TURNSTILE_SITE_KEY,
+        size: 'invisible',
+        callback: (token) => { widgets.set(form, token); },
+      });
+      form._turnstileWidgetId = widgetId;
+    });
+  }
+
+  forms.forEach((form) => {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const btn = form.querySelector('[data-newsletter-btn]');
+      const feedback = form.querySelector('[data-newsletter-feedback]');
+      const emailInput = form.querySelector('input[name="email"]');
+      const email = emailInput.value.trim();
+
+      if (!email) return;
+
+      btn.disabled = true;
+      btn.textContent = '...';
+      feedback.textContent = '';
+      feedback.className = 'newsletter-feedback';
+
+      // Get Turnstile token
+      let turnstileToken = widgets.get(form) || '';
+      if (!turnstileToken && window.turnstile && form._turnstileWidgetId != null) {
+        try {
+          await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('timeout')), 5000);
+            window.turnstile.execute(form._turnstileWidgetId, {
+              callback: (token) => { clearTimeout(timeout); turnstileToken = token; resolve(); },
+              'error-callback': () => { clearTimeout(timeout); reject(new Error('turnstile')); },
+            });
+          });
+        } catch {
+          // Proceed without token if Turnstile fails
+        }
+      }
+
+      try {
+        const resp = await fetch('/api/newsletter/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email,
+            website: form.querySelector('input[name="website"]').value,
+            turnstileToken,
+          }),
+        });
+        const data = await resp.json();
+
+        if (data.ok) {
+          feedback.textContent = data.message || 'You are subscribed!';
+          feedback.classList.add('newsletter-feedback--success');
+          emailInput.value = '';
+        } else {
+          feedback.textContent = data.error || 'Something went wrong.';
+          feedback.classList.add('newsletter-feedback--error');
+        }
+      } catch {
+        feedback.textContent = 'Network error. Please try again.';
+        feedback.classList.add('newsletter-feedback--error');
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Subscribe';
+
+      // Reset Turnstile for next submission
+      if (window.turnstile && form._turnstileWidgetId != null) {
+        window.turnstile.reset(form._turnstileWidgetId);
+        widgets.delete(form);
+      }
+    });
+  });
+})();
+</script>
+
+<style>
+  .newsletter-signup {
+    max-width: 480px;
+  }
+  .newsletter-heading {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: var(--space-2);
+  }
+  .newsletter-subtext {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: var(--space-4);
+  }
+  .newsletter-label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--footer-heading, var(--text-primary));
+    margin-bottom: var(--space-3);
+  }
+  .newsletter-row {
+    display: flex;
+    gap: var(--space-2);
+  }
+  .newsletter-input {
+    flex: 1;
+    padding: 8px 14px;
+    font-size: 0.875rem;
+    font-family: 'Inter', system-ui, sans-serif;
+    border: 1.5px solid var(--neutral-300);
+    border-radius: var(--radius-pill, 9999px);
+    background: var(--bg-surface, #fff);
+    color: var(--text-primary);
+    transition: border-color 0.15s;
+    min-width: 0;
+  }
+  .newsletter-input:focus {
+    outline: none;
+    border-color: var(--purple-700);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+  .newsletter-input::placeholder {
+    color: var(--text-tertiary, var(--neutral-400));
+  }
+  .newsletter-btn {
+    padding: 8px 20px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    font-family: 'Inter', system-ui, sans-serif;
+    color: #fff;
+    background: var(--purple-700);
+    border: none;
+    border-radius: var(--radius-pill, 9999px);
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+  .newsletter-btn:hover {
+    background: var(--purple-900);
+  }
+  .newsletter-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .newsletter-turnstile {
+    /* Invisible widget -- takes no space unless it renders a challenge */
+  }
+  .newsletter-feedback {
+    font-size: 0.8125rem;
+    margin-top: var(--space-2);
+    min-height: 1.2em;
+  }
+  .newsletter-feedback--success {
+    color: var(--color-success, #16a34a);
+  }
+  .newsletter-feedback--error {
+    color: var(--color-error, #dc2626);
+  }
+
+  /* Compact mode for footer */
+  .newsletter-signup--compact {
+    max-width: 100%;
+  }
+  .newsletter-signup--compact .newsletter-input {
+    padding: 6px 12px;
+    font-size: 0.8125rem;
+  }
+  .newsletter-signup--compact .newsletter-btn {
+    padding: 6px 16px;
+    font-size: 0.75rem;
+  }
+
+  @media (max-width: 480px) {
+    .newsletter-row {
+      flex-direction: column;
+    }
+    .newsletter-btn {
+      width: 100%;
+    }
+  }
+</style>
