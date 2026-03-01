@@ -36,6 +36,8 @@ export interface Article {
   oaUrl: string;
   accessLevel: 'open' | 'free' | 'restricted';
   sentiment: string;
+  rrmRelevance: string;
+  domain: string;
 }
 
 interface AirtableRecord {
@@ -80,8 +82,12 @@ function transformRecord(record: AirtableRecord): Article | null {
     apaCitation: f['⚡️ Citation'] || '',
     vancouverCitation: f['⚡️ Vancouver Citation'] || '',
     mlaCitation: f['⚡️ MLA Citation'] || '',
-    topics: [],       // not in yellowbase — related articles disabled until synced
-    searchTerms: [],  // not in yellowbase
+    topics: f['⚡️ Topics (AI)']
+      ? f['⚡️ Topics (AI)'].split('\n').map((t: string) => t.trim()).filter(Boolean)
+      : [],
+    searchTerms: f['⚡️ Search Terms (AI)']
+      ? f['⚡️ Search Terms (AI)'].split('\n').map((t: string) => t.trim()).filter(Boolean)
+      : [],
     enrichmentStatus,
     identifiers: oaFlag ? [oaFlag] : [],
     isOpenAccess,
@@ -91,6 +97,8 @@ function transformRecord(record: AirtableRecord): Article | null {
     oaUrl: '',
     accessLevel,
     sentiment: f['⚡️ Sentiment (AI)'] || '',
+    rrmRelevance: f['⚡️ RRM Relevance (AI)'] || '',
+    domain: f['⚡️ Domain (AI)'] || '',
   };
 }
 

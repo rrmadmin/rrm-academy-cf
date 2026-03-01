@@ -37,6 +37,10 @@ export const FIELDS = [
   '⚡️ Short Citation',
   '⚡️ Is Open Access',      // '©' or 'Open Access'
   '⚡️ Sentiment (AI)',
+  '⚡️ RRM Relevance (AI)',
+  '⚡️ Domain (AI)',
+  '⚡️ Topics (AI)',
+  '⚡️ Search Terms (AI)',
   '⚡️ Source Type',
   'Sync to RRM Library',    // filter: only 'Synced' records
 ];
