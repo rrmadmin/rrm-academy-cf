@@ -402,6 +402,10 @@ p a, li a, .prose a, blockquote a {
   background: transparent;
   padding: 1px 0;
 }
+.access-badge--hostile {
+  color: #991b1b;
+  background: #fef2f2;
+}
 
 /* Topic pills */
 .topic-pill {
