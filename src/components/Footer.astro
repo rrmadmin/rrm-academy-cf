@@ -1,4 +1,6 @@
 ---
+import NewsletterSignup from './NewsletterSignup.astro';
+
 const year = new Date().getFullYear();
 
 // Footer nav — intentionally different from Header desktop/mobile navs.
@@ -55,6 +57,9 @@ const helpLinks = [
           Inclusion of a study does not imply endorsement of its findings.
           Always consult a qualified healthcare provider for diagnosis and treatment.
         </p>
+        <div class="footer-newsletter">
+          <NewsletterSignup compact heading="Newsletter" />
+        </div>
       </div>
     </div>
 
@@ -143,6 +148,9 @@ const helpLinks = [
   }
   .footer-text a:hover {
     color: var(--footer-accent-hover);
+  }
+  .footer-newsletter {
+    margin-top: var(--space-5);
   }
   .footer-bottom {
     display: flex;
