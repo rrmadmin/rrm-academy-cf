@@ -311,7 +311,7 @@ const mobileNavSections = [
     display: none;
     align-items: center;
   }
-  @media (min-width: 769px) {
+  @media (min-width: 1025px) {
     :global(.page-synopsis) .header-search {
       display: flex;
     }
@@ -460,7 +460,7 @@ const mobileNavSections = [
   /* ═══════════════════════════════════════════
      MOBILE — clean full-width panel
      ═══════════════════════════════════════════ */
-  @media (max-width: 768px) {
+  @media (max-width: 1024px) {
     .header-inner {
       gap: var(--space-3);
     }
@@ -663,7 +663,7 @@ const mobileNavSections = [
   var dropdownButtons = document.querySelectorAll('.nav-link--dropdown');
   for (var i = 0; i < dropdownButtons.length; i++) {
     dropdownButtons[i].addEventListener('click', function() {
-      if (window.innerWidth <= 768) {
+      if (window.innerWidth <= 1024) {
         this.closest('.has-dropdown').classList.toggle('dropdown-open');
       }
     });
