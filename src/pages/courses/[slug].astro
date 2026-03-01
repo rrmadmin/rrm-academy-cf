@@ -48,12 +48,7 @@ const courseSchema = {
     name: 'RRM Academy',
     url: 'https://rrmacademy.org',
   },
-  instructor: {
-    '@type': 'Person',
-    name: instructor?.name,
-    jobTitle: 'Board-Certified OBGYN, NaProTechnology Fellowship Trained',
-    sameAs: 'https://www.linkedin.com/in/naomi-whittaker-md-906b13101/',
-  },
+  instructor: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
   educationalLevel: 'Beginner to Advanced',
   ...(course.topics?.length ? { about: course.topics } : {}),
   ...(course.teaches?.length ? { teaches: course.teaches } : {}),
@@ -74,25 +69,66 @@ const courseSchema = {
   },
 };
 
-const jsonLd = course.faqs?.length ? {
-  '@context': 'https://schema.org',
-  '@graph': [
-    courseSchema,
+const whittakerPersonNode = {
+  '@type': 'Person',
+  '@id': 'https://rrmacademy.org/#naomi-whittaker',
+  name: 'Dr. Naomi Whittaker',
+  honorificPrefix: 'Dr.',
+  honorificSuffix: 'MD',
+  givenName: 'Naomi',
+  familyName: 'Whittaker',
+  jobTitle: 'Founder & Medical Director',
+  description: "Board-certified obstetrician-gynecologist, Physician Lead at UPMC Divine Mercy Women's Health, and founder of RRM Academy.",
+  affiliation: [
     {
-      '@type': 'FAQPage',
-      mainEntity: course.faqs.map((faq: any) => ({
-        '@type': 'Question',
-        name: faq.question,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: faq.answer,
-        },
-      })),
+      '@type': 'MedicalOrganization',
+      name: "UPMC Divine Mercy Women's Health",
+    },
+    {
+      '@type': 'EducationalOrganization',
+      '@id': 'https://rrmacademy.org/#organization',
+      name: 'RRM Academy',
+      url: 'https://rrmacademy.org',
     },
   ],
-} : {
+  hasCredential: [
+    {
+      '@type': 'EducationalOccupationalCredential',
+      credentialCategory: 'Board Certification',
+      name: 'Board-Certified Obstetrician-Gynecologist',
+    },
+    {
+      '@type': 'EducationalOccupationalCredential',
+      credentialCategory: 'Fellowship',
+      name: 'Medical and Surgical NaProTechnology Fellowship',
+    },
+  ],
+  knowsAbout: [
+    'Restorative Reproductive Medicine',
+    'NaProTechnology',
+    'Endometriosis Surgery',
+    'PCOS Treatment',
+    'Infertility Diagnosis and Treatment',
+    'Fertility Awareness-Based Methods',
+  ],
+  sameAs: ['https://www.linkedin.com/in/naomi-whittaker-md-906b13101/'],
+};
+
+const graphNodes: any[] = [courseSchema, whittakerPersonNode];
+if (course.faqs?.length) {
+  graphNodes.push({
+    '@type': 'FAQPage',
+    mainEntity: course.faqs.map((faq: any) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+    })),
+  });
+}
+
+const jsonLd = {
   '@context': 'https://schema.org',
-  ...courseSchema,
+  '@graph': graphNodes,
 };
 
 // Related courses for "included" or "includedIn" relationships
