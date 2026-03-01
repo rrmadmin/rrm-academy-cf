@@ -1,3 +1,13 @@
 /sitemap.xml /sitemap-index.xml 301
 /common-questions-about-rrm /faqs/ 301
 /common-questions-about-rrm/ /faqs/ 301
+
+# Old Wix course/page slugs — linked from naomiwhittaker.com biosite and possibly other sources
+/endometriosis-and-surgery-101 /courses/masterclass-in-endometriosis-and-surgery/ 301
+/endometriosis-and-surgery-101/ /courses/masterclass-in-endometriosis-and-surgery/ 301
+/rrm-vs-ivf /courses/rrm-vs-ivf/ 301
+/rrm-vs-ivf/ /courses/rrm-vs-ivf/ 301
+
+# Old Wix survey slug
+/3-tier-endometriosis-symptom-self-survey /endo-survey/ 301
+/3-tier-endometriosis-symptom-self-survey/ /endo-survey/ 301
