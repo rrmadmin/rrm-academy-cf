@@ -250,9 +250,12 @@ const citationMeta = {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           </span>
         )}
-        {(article.sentiment === 'antagonistic' || article.sentiment === 'anti-rrm') && (
-          <span class="access-badge access-badge--hostile" title="This article is hostile or antagonistic toward restorative reproductive medicine">
-            Antagonistic
+        {(article.sentiment === 'hostile' || article.sentiment === 'critical') && (
+          <span class={`access-badge access-badge--${article.sentiment === 'hostile' ? 'hostile' : 'critical'}`}
+            title={article.sentiment === 'hostile'
+              ? 'This article is hostile or in bad faith toward restorative reproductive medicine'
+              : 'This article is critical or opposed to restorative reproductive medicine'}>
+            {article.sentiment === 'hostile' ? 'Hostile' : 'Critical'}
           </span>
         )}
       </div>

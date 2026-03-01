@@ -402,6 +402,10 @@ p a, li a, .prose a, blockquote a {
   background: transparent;
   padding: 1px 0;
 }
+.access-badge--critical {
+  color: var(--amber-700);
+  background: var(--amber-100);
+}
 .access-badge--hostile {
   color: #991b1b;
   background: #fef2f2;
