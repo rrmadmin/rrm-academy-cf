@@ -66,7 +66,7 @@ DA 10-29: █████░░░░░ rrm.foundation (~20)
 | Spammy domains | 0 |
 | PBN suspected | 0 |
 | Link farms | 0 |
-| Redirect chain links | 1 (rrm.foundation → www variant, unfixed) |
+| Redirect chain links | 1 (rrm.foundation → www variant, pending fix on rrm.foundation site) |
 
 No disavow needed.
 
