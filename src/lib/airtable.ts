@@ -45,7 +45,7 @@ interface AirtableRecord {
 function transformRecord(record: AirtableRecord): Article | null {
   const f = record.fields;
 
-  const slug = f['1️⃣ SEO:Base-Slug (static)'];
+  const slug = f['1️⃣ SEO:Slug'];
   const title = f['1️⃣ Title (static)'];
   const enrichmentStatus = f['Enrichment Status'] || '';
 
