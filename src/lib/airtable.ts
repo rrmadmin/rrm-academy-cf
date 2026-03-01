@@ -35,6 +35,7 @@ export interface Article {
   license: string;
   oaUrl: string;
   accessLevel: 'open' | 'free' | 'restricted';
+  sentiment: string;
 }
 
 interface AirtableRecord {
@@ -117,6 +118,7 @@ function transformRecord(record: AirtableRecord): Article | null {
     license,
     oaUrl,
     accessLevel,
+    sentiment: f['1️⃣ Sentiment (AI)'] || '',
   };
 }
 

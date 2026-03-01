@@ -41,4 +41,5 @@ export const FIELDS = [
   '1️⃣ OA Type (static)',
   '1️⃣ License (static)',
   '1️⃣ OA URL (static)',
+  '1️⃣ Sentiment (AI)',
 ];
