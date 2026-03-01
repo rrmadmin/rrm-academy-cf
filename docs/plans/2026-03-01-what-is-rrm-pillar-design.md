@@ -14,6 +14,50 @@
 
 ---
 
+## Voice: Gianna (Dr. Naomi Whittaker)
+
+Source: `vault/self/voice-gianna.md`
+
+This is patient-facing RRM clinical content. Written in Gianna's voice throughout.
+
+### Rules
+- **Short sentences. Active voice. No em dashes.**
+- **Couple-centered language** -- "couples" not just "patients" or "women"
+- **No academic passive** -- "We treat the root cause" not "The root cause is treated"
+- **Plain, precise language** -- no marketing jargon, no superlatives without evidence
+- **Authoritative educational register, NOT conversational clinical.** No first-person anecdotes ("I see this in my practice"). Authority comes from citations and precise language, not personal testimony. This is a reference article, not a commentary or social post.
+
+### RRM Framing (non-negotiable)
+- **RRM is its own paradigm, NOT a step before IVF.** Do not position RRM as something couples try "before" IVF.
+- **Don't give IVF/IUI/ART airtime.** The comparison section exists for SEO (people search "RRM vs IVF") but lead with what RRM does, not what it opposes.
+- **No ablation promotion** -- excision only.
+- **Include male factor** -- never female-only framing.
+
+### Preferred Terms
+| Use | Instead of |
+|-----|-----------|
+| Suppressive medications | Hormonal contraception / birth control |
+| Excision | Ablation |
+| Couples | Patients (when discussing fertility) |
+| Cause-based / root cause | Holistic |
+| Cycle-timed / protocol block | (standard terms) |
+| Disease progression | Symptoms |
+| Fertility restoration | Fertility treatment |
+| In vivo conception | Natural conception |
+
+### Terms to Avoid
+- "Cure" or "guarantee" -- use evidence-based probabilities
+- "Holistic" alone -- specify what you mean
+- "Complementary to ART" -- RRM is its own paradigm
+- Marketing jargon of any kind
+
+### Example (from voice profile)
+Bad: "This groundbreaking study demonstrates that surgical excision of endometriosis may potentially improve fertility outcomes compared to medical management approaches."
+
+Good: "Excision works. This study followed 200 couples. After surgery with adhesion prevention, 62% conceived within 18 months. No IVF needed. The disease was treated. Not masked."
+
+---
+
 ## Page Layout
 
 ```
@@ -86,7 +130,7 @@ Expand existing opening definition. Three principles (identify, treat, restore).
 - Premenstrual syndrome
 
 ### 7. RRM vs. IVF: A Detailed Comparison (~800 words)
-**Expand existing table.** When IVF is appropriate (tubal blockage, severe male factor). When RRM and IVF work together. Cost analysis with citations. Outcomes by condition and age bracket. Address the false binary.
+**Expand existing table. Reframe per Gianna voice rules:** RRM is its own paradigm, not a stepping stone to IVF. Lead with what RRM does. Section exists because people search "RRM vs IVF" -- meet the search intent, but don't give IVF the stage. Use HFEA data for IVF outcomes (not SART). Acknowledge when IVF may be appropriate (tubal blockage, severe male factor) without positioning it as the default. Cost analysis with citations. Outcomes by condition and age bracket.
 
 ### 8. The Evidence Behind RRM (~1,000 words)
 **Expand existing.** By evidence type:
