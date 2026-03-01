@@ -117,6 +117,7 @@ async function fetchAll() {
         license,
         oaUrl,
         accessLevel,
+        sentiment: f['1️⃣ Sentiment (AI)'] || '',
       });
     }
 
