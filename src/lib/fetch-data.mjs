@@ -88,8 +88,12 @@ async function fetchAll() {
         apaCitation: f['⚡️ Citation'] || '',
         vancouverCitation: f['⚡️ Vancouver Citation'] || '',
         mlaCitation: f['⚡️ MLA Citation'] || '',
-        topics: [],
-        searchTerms: [],
+        topics: f['⚡️ Topics (AI)']
+          ? f['⚡️ Topics (AI)'].split('\n').map(t => t.trim()).filter(Boolean)
+          : [],
+        searchTerms: f['⚡️ Search Terms (AI)']
+          ? f['⚡️ Search Terms (AI)'].split('\n').map(t => t.trim()).filter(Boolean)
+          : [],
         enrichmentStatus: f['Sync to RRM Library'] || '',
         identifiers: oaFlag ? [oaFlag] : [],
         isOpenAccess,
@@ -99,6 +103,8 @@ async function fetchAll() {
         oaUrl: '',
         accessLevel,
         sentiment: f['⚡️ Sentiment (AI)'] || '',
+        rrmRelevance: f['⚡️ RRM Relevance (AI)'] || '',
+        domain: f['⚡️ Domain (AI)'] || '',
       });
     }
 
