@@ -1,5 +1,9 @@
 /**
- * Shared Airtable configuration for the BIFID (Research Library) data pipeline.
+ * Shared Airtable configuration for the ⚡️ Library (yellowbase) data pipeline.
+ *
+ * Source: ⚡️ Library base (app78UTVdeFph9qhL), ⚡️ Synced Literature table
+ * Greenbase (appyZWo2G7iByXCgZ) is the master enrichment base; this is the
+ * curated sync used for the public website.
  *
  * Used by:
  *   - airtable.ts      (Astro build-time — reads cache or fetches live)
@@ -8,38 +12,31 @@
  * Using .mjs so both TypeScript (via Vite) and plain Node scripts can import it.
  */
 
-export const AIRTABLE_BASE_ID = 'appyZWo2G7iByXCgZ';
-export const BIFID_TABLE_ID = 'tbloxbruSGmhZ23BC';
-export const API_URL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${BIFID_TABLE_ID}`;
+export const AIRTABLE_BASE_ID = 'app78UTVdeFph9qhL';
+export const TABLE_ID = 'tblbfEaSKygpzSoSq';
+export const API_URL = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${TABLE_ID}`;
 
 export const FIELDS = [
-  '1️⃣ Title (static)',
-  '1️⃣ Author(s)',
-  '1️⃣ Year (static)',
-  '1️⃣ Abstract (static)',
-  '1️⃣ Journal (static)',
-  '1️⃣ Journal Abbv (static)',
-  '1️⃣ DOI (static)',
-  '1️⃣ PMID (static)',
-  '1️⃣ Source URL (static)',
-  '1️⃣ SEO:Base-Slug (static)',
-  '1️⃣ SEO:Slug',
-  '1️⃣ Date Published (static)',
-  '1️⃣ Volume (static)',
-  '1️⃣ Issue (static)',
-  '1️⃣ Pages (static)',
-  '1️⃣ Keywords (static)',
-  '1️⃣ APA Citation (static)',
-  '1️⃣ Vancouver Citation (static)',
-  '1️⃣ MLA Citation (static)',
-  '1️⃣ Topics (AI)',
-  '1️⃣ Search Terms (AI)',
-  '1️⃣ Approved or Not',
-  'Enrichment Status',
-  '1️⃣ Short Citation',
-  '1️⃣ Identifier (static)',
-  '1️⃣ OA Type (static)',
-  '1️⃣ License (static)',
-  '1️⃣ OA URL (static)',
-  '1️⃣ Sentiment (AI)',
+  '⚡️ Title',
+  '⚡️ Author(s)',
+  '⚡️ Year',
+  '⚡️ Abstract',
+  '⚡️ Journal',
+  '⚡️ Journal Abbv',
+  '⚡️ DOI',
+  '⚡️ Source URL',
+  '⚡️ SEO:Slug',
+  '⚡️ Date Published',
+  '⚡️ Volume',
+  '⚡️ Issue',
+  '⚡️ Pages',
+  '⚡️ Keywords',
+  '⚡️ Citation',            // APA citation
+  '⚡️ Vancouver Citation',
+  '⚡️ MLA Citation',
+  '⚡️ Short Citation',
+  '⚡️ Is Open Access',      // '©' or 'Open Access'
+  '⚡️ Sentiment (AI)',
+  '⚡️ Source Type',
+  'Sync to RRM Library',    // filter: only 'Synced' records
 ];
