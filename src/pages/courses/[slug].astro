@@ -138,6 +138,9 @@ const includedCourse = course.includes
 const parentCourse = course.includedIn
   ? coursesData.find((c: any) => c.slug === course.includedIn[0])
   : null;
+const relatedCourses = course.relatedCourses
+  ? (course.relatedCourses as string[]).map((slug: string) => coursesData.find((c: any) => c.slug === slug)).filter(Boolean)
+  : [];
 ---
 <BaseLayout
   title={course.seo?.title || course.title}
@@ -307,6 +310,23 @@ const parentCourse = course.includedIn
               </a>
             </div>
           )}
+        </div>
+      </section>
+    )}
+
+    <!-- You Might Also Like -->
+    {relatedCourses.length > 0 && (
+      <section class="course-section">
+        <div class="container container--narrow">
+          <div class="related-course">
+            <h2>You Might Also Like</h2>
+            {relatedCourses.map((rc: any) => (
+              <a href={`/courses/${rc.slug}/`} class="related-course__link">
+                <strong>{rc.title}</strong>
+                <span>{rc.shortDescription}</span>
+              </a>
+            ))}
+          </div>
         </div>
       </section>
     )}
