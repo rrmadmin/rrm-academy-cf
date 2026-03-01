@@ -979,7 +979,8 @@
     "instructors": [
       {
         "name": "Dr. Ana Garcia",
-        "role": "OB/GYN, NaProTechnology"
+        "role": "OB/GYN, NaProTechnology",
+        "bio": "Dr. Ana Garcia is an OB/GYN and NaProTechnology-trained physician specializing in hormonal health across the female lifespan. She brings a restorative approach to conditions like PCOS, endometriosis, and the menopause transition."
       }
     ],
     "settings": {
@@ -1154,7 +1155,8 @@
     "instructors": [
       {
         "name": "Dr. Ana Garcia",
-        "role": "OB/GYN, NaProTechnology"
+        "role": "OB/GYN, NaProTechnology",
+        "bio": "Dr. Ana Garcia is an OB/GYN and NaProTechnology-trained physician specializing in hormonal health across the female lifespan. She brings a restorative approach to conditions like PCOS, endometriosis, and the menopause transition."
       },
       {
         "name": "Hannah Ducote",
