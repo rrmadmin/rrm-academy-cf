@@ -22,9 +22,7 @@ async function fetchAll() {
   let offset;
   let page = 0;
 
-  const formula = encodeURIComponent(
-    "AND({1️⃣ Approved or Not}!='DIS Approved',{Enrichment Status}!='')"
-  );
+  const formula = encodeURIComponent("{Sync to RRM Library}='Synced'");
   const fieldsParams = FIELDS.map(f => `fields[]=${encodeURIComponent(f)}`).join('&');
 
   do {
@@ -61,63 +59,46 @@ async function fetchAll() {
 
     for (const record of data.records) {
       const f = record.fields;
-      const slug = f['1️⃣ SEO:Slug'];
-      const title = f['1️⃣ Title (static)'];
+      const slug = f['⚡️ SEO:Slug'];
+      const title = f['⚡️ Title'];
       if (!slug || !title) continue;
 
-      const keywords = f['1️⃣ Keywords (static)'] || '';
-      const topicsRaw = f['1️⃣ Topics (AI)'] || '';
-      const searchTermsRaw = f['1️⃣ Search Terms (AI)'] || '';
-      const identifiers = Array.isArray(f['1️⃣ Identifier (static)'])
-        ? f['1️⃣ Identifier (static)']
-        : [];
-
-      const oaType = f['1️⃣ OA Type (static)'] || '';
-      const license = f['1️⃣ License (static)'] || '';
-      const oaUrl = f['1️⃣ OA URL (static)'] || '';
-
-      // Compute 3-state access level
-      let accessLevel = 'restricted';
-      if (oaType) {
-        if (['Gold', 'Diamond', 'Hybrid', 'Green'].includes(oaType)) accessLevel = 'open';
-        else if (oaType === 'Bronze') accessLevel = 'free';
-      } else {
-        if (identifiers.includes('Open Access')) accessLevel = 'open';
-        else if (identifiers.includes('Full Text')) accessLevel = 'free';
-      }
+      const oaFlag = f['⚡️ Is Open Access'] || '';
+      const isOpenAccess = oaFlag === 'Open Access';
+      const accessLevel = isOpenAccess ? 'open' : 'restricted';
 
       articles.push({
         id: record.id,
         slug: slug.trim(),
         title: title.replace(/\.\s*$/, ''),
-        authors: Array.isArray(f['1️⃣ Author(s)']) ? f['1️⃣ Author(s)'].join('; ') : (f['1️⃣ Author(s)'] || ''),
-        shortCitation: f['1️⃣ Short Citation'] || '',
-        year: f['1️⃣ Year (static)'] ? Number(f['1️⃣ Year (static)']) : null,
-        abstract: f['1️⃣ Abstract (static)'] || '',
-        journal: f['1️⃣ Journal (static)'] || '',
-        journalAbbv: f['1️⃣ Journal Abbv (static)'] || '',
-        doi: f['1️⃣ DOI (static)'] || '',
-        pmid: f['1️⃣ PMID (static)'] || '',
-        sourceUrl: f['1️⃣ Source URL (static)'] || '',
-        datePublished: f['1️⃣ Date Published (static)'] || '',
-        volume: f['1️⃣ Volume (static)'] || '',
-        issue: f['1️⃣ Issue (static)'] || '',
-        pages: f['1️⃣ Pages (static)'] || '',
-        keywords,
-        apaCitation: f['1️⃣ APA Citation (static)'] || '',
-        vancouverCitation: f['1️⃣ Vancouver Citation (static)'] || '',
-        mlaCitation: f['1️⃣ MLA Citation (static)'] || '',
-        topics: topicsRaw ? topicsRaw.split('\n').map(t => t.trim()).filter(Boolean) : [],
-        searchTerms: searchTermsRaw ? searchTermsRaw.split('\n').map(t => t.trim()).filter(Boolean) : [],
-        enrichmentStatus: f['Enrichment Status'] || '',
-        identifiers,
-        isOpenAccess: accessLevel === 'open',
-        isCopyrighted: identifiers.includes('©'),
-        oaType,
-        license,
-        oaUrl,
+        authors: f['⚡️ Author(s)'] || '',
+        shortCitation: f['⚡️ Short Citation'] || '',
+        year: f['⚡️ Year'] ? Number(f['⚡️ Year']) : null,
+        abstract: f['⚡️ Abstract'] || '',
+        journal: f['⚡️ Journal'] || '',
+        journalAbbv: f['⚡️ Journal Abbv'] || '',
+        doi: f['⚡️ DOI'] || '',
+        pmid: '',
+        sourceUrl: f['⚡️ Source URL'] || '',
+        datePublished: f['⚡️ Date Published'] || '',
+        volume: f['⚡️ Volume'] || '',
+        issue: f['⚡️ Issue'] || '',
+        pages: f['⚡️ Pages'] || '',
+        keywords: f['⚡️ Keywords'] || '',
+        apaCitation: f['⚡️ Citation'] || '',
+        vancouverCitation: f['⚡️ Vancouver Citation'] || '',
+        mlaCitation: f['⚡️ MLA Citation'] || '',
+        topics: [],
+        searchTerms: [],
+        enrichmentStatus: f['Sync to RRM Library'] || '',
+        identifiers: oaFlag ? [oaFlag] : [],
+        isOpenAccess,
+        isCopyrighted: oaFlag === '©',
+        oaType: '',
+        license: '',
+        oaUrl: '',
         accessLevel,
-        sentiment: f['1️⃣ Sentiment (AI)'] || '',
+        sentiment: f['⚡️ Sentiment (AI)'] || '',
       });
     }
 
