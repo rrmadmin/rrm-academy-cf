@@ -22,25 +22,19 @@ const jsonLd = {
   '@type': 'CollectionPage',
   name: 'RRM Research Library',
   description: 'The largest free collection of academic references related to restorative reproductive medicine.',
-  url: 'https://rrmacademy.org/library',
+  url: 'https://rrmacademy.org/library/',
   numberOfItems: articles.length,
   isPartOf: {
     '@type': 'WebSite',
+    '@id': 'https://rrmacademy.org/#website',
     name: 'RRM Academy',
-    url: 'https://rrmacademy.org',
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: {
-        '@type': 'EntryPoint',
-        urlTemplate: 'https://rrmacademy.org/library?q={search_term_string}',
-      },
-      'query-input': 'required name=search_term_string',
-    },
+    url: 'https://rrmacademy.org/',
   },
   publisher: {
     '@type': 'Organization',
+    '@id': 'https://rrmacademy.org/#organization',
     name: 'RRM Academy',
-    url: 'https://rrmacademy.org',
+    url: 'https://rrmacademy.org/',
   },
 };
 ---
