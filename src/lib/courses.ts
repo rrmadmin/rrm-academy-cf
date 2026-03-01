@@ -62,6 +62,7 @@ export interface Course {
   settings: CourseSettings;
   seo: CourseSeo;
   sections: CourseSection[];
+  faqs?: { question: string; answer: string }[];
 }
 
 export async function fetchAllCourses(): Promise<Course[]> {
