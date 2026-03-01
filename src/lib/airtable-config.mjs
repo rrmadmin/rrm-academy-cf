@@ -23,6 +23,7 @@ export const FIELDS = [
   '1️⃣ PMID (static)',
   '1️⃣ Source URL (static)',
   '1️⃣ SEO:Base-Slug (static)',
+  '1️⃣ SEO:Slug',
   '1️⃣ Date Published (static)',
   '1️⃣ Volume (static)',
   '1️⃣ Issue (static)',

@@ -61,7 +61,7 @@ async function fetchAll() {
 
     for (const record of data.records) {
       const f = record.fields;
-      const slug = f['1️⃣ SEO:Base-Slug (static)'];
+      const slug = f['1️⃣ SEO:Slug'];
       const title = f['1️⃣ Title (static)'];
       if (!slug || !title) continue;
 
