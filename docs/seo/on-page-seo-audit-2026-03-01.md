@@ -1,6 +1,6 @@
 # On-Page SEO Audit — rrmacademy.org
 
-**Date:** 2026-03-01 | **Pages analyzed:** 14 (homepage, 7 top-level sections, 5 course landing pages) | **Commits:** 288f2c3, 2241251, 9d0775d
+**Date:** 2026-03-01 | **Pages analyzed:** 14 (homepage, 7 top-level sections, 5 course landing pages) | **Commits:** 288f2c3, 2241251, 9d0775d, 6d5ad0a
 
 ## Overall Score: 82/100 (up from 71/100)
 
@@ -49,7 +49,7 @@ Score calculation: (9×0.15 + 9×0.05 + 9×0.10 + 7×0.25 + 8×0.15 + 7×0.10 + 
 |---|-------|--------|
 | 13 | About H1 drops keyword-rich suffix vs title | Open — low priority |
 | 14 | Contact H1 "Contact Us" generic | Open — low priority |
-| 15 | Home schema `hasOfferCatalog` says 10 courses | Open — update when live count changes |
+| 15 | Home schema `hasOfferCatalog` says 10 courses | **FIXED** — `6d5ad0a` — now filters to live non-comingSoon courses only |
 | 16 | Commentary thin content (408 words) | Open — content expansion needed |
 
 ---
@@ -79,19 +79,19 @@ Score calculation: (9×0.15 + 9×0.05 + 9×0.10 + 7×0.25 + 8×0.15 + 7×0.10 + 
 
 | Page | Title | Desc | H1 | Schema | Notes |
 |------|-------|------|----|--------|-------|
-| / | 60c ✅ | 159c ✅ | Strong ✅ | Org + Catalog ✅ | Body links added |
+| / | 60c ✅ | 159c ✅ | Strong ✅ | WebSite + Org + Catalog ✅ | Body links added; SearchAction moved here |
 | /about/ | 53c ✅ | 140c ✅ | Weak ⚠️ | MedOrg + Person ✅ | www links + dead Wix fixed; library inline link added |
 | /courses/ | 51c ✅ | 159c ✅ | "Online RRM Courses" ✅ | Course + ItemList ✅ | comingSoon courses intentionally not linked |
 | /commentary/ | 50c ✅ | 140c ✅ | "RRM Articles & Commentary" ✅ | None visible | Thin content remains open |
-| /library/ | 53c ✅ | 143c ✅ | "RRM Research Library" ✅ | SearchAction ✅ | |
+| /library/ | 53c ✅ | 143c ✅ | "RRM Research Library" ✅ | CollectionPage ✅ | SearchAction moved to homepage |
 | /donate/ | 63c ⚠️ | 154c ✅ | "Donate to RRM Academy" ✅ | DonateAction ✅ | Title still 1 char over ideal (minor) |
 | /save-the-uterus-club/ | 45c ✅ | 159c ✅ | Matches ✅ | JoinAction ✅ | |
 | /contact/ | 51c ✅ | 145c ✅ | Generic ⚠️ | ContactPage ✅ | |
-| /courses/masterclass-in-endometriosis-and-surgery/ | 54c ✅ | 160c ✅ | Descriptive ✅ | Course + FAQ ✅ | Cross-link added |
-| /courses/long-term-endometriosis-management/ | 48c ✅ | 128c ✅ | Matches ✅ | Course + FAQ ✅ | Cross-link added |
-| /courses/rrm-vs-ivf/ | 55c ✅ | 131c ✅ | Rich ✅ | Course + FAQ ✅ | Cross-link added |
-| /courses/postpartum-depression-anxiety/ | 62c ✅ | 131c ✅ | Good ✅ | Course + FAQ ✅ | Title fixed; cross-link added |
-| /courses/hormones-through-the-lifespan/ | 43c ✅ | 114c ⚠️ | Descriptive ✅ | Course (no FAQ) ⚠️ | Instructor bio fixed; still thin content |
+| /courses/masterclass-in-endometriosis-and-surgery/ | 54c ✅ | 160c ✅ | Descriptive ✅ | Course + FAQ + Breadcrumbs ✅ | Cross-link added |
+| /courses/long-term-endometriosis-management/ | 48c ✅ | 128c ✅ | Matches ✅ | Course + FAQ + Breadcrumbs ✅ | Cross-link added |
+| /courses/rrm-vs-ivf/ | 55c ✅ | 131c ✅ | Rich ✅ | Course + FAQ + Breadcrumbs ✅ | Cross-link added |
+| /courses/postpartum-depression-anxiety/ | 62c ✅ | 131c ✅ | Good ✅ | Course + FAQ + Breadcrumbs ✅ | Title fixed; cross-link added |
+| /courses/hormones-through-the-lifespan/ | 43c ✅ | 114c ⚠️ | Descriptive ✅ | Course + Breadcrumbs (no FAQ) ⚠️ | Instructor bio fixed; still thin content |
 
 ---
 
