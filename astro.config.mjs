@@ -26,6 +26,10 @@ export default defineConfig({
         ];
         return !exclude.some((path) => page.includes(path));
       },
+      serialize: (item) => {
+        item.lastmod = new Date().toISOString().split('T')[0];
+        return item;
+      },
     }),
   ],
 });
