@@ -9,6 +9,7 @@ const jsonLd = {
       headline: 'What is Restorative Reproductive Medicine (RRM)?',
       description:
         'Restorative Reproductive Medicine (RRM) is an approach within conventional medicine that diagnoses and treats the root causes of reproductive health conditions rather than masking symptoms or bypassing natural function.',
+      image: 'https://rrmacademy.org/images/og-default.png',
       author: {
         '@type': 'Person',
         '@id': 'https://rrmacademy.org/#naomi-whittaker',
@@ -21,11 +22,21 @@ const jsonLd = {
       },
       datePublished: '2026-03-01',
       dateModified: '2026-03-01',
-      mainEntityOfPage: 'https://rrmacademy.org/what-is-rrm',
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://rrmacademy.org/what-is-rrm/',
+      },
       about: {
         '@type': 'MedicalTherapy',
         name: 'Restorative Reproductive Medicine',
       },
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+        { '@type': 'ListItem', position: 2, name: 'What is RRM?', item: 'https://rrmacademy.org/what-is-rrm/' },
+      ],
     },
     {
       '@type': 'FAQPage',

@@ -8,24 +8,30 @@ const jsonLd = {
   '@type': 'ItemList',
   name: 'RRM Academy Courses',
   description: 'Evidence-based courses on endometriosis, fertility, and reproductive medicine from Dr. Naomi Whittaker.',
-  url: 'https://rrmacademy.org/courses',
-  numberOfItems: coursesData.length,
-  itemListElement: coursesData.map((course, i) => ({
+  url: 'https://rrmacademy.org/courses/',
+  numberOfItems: coursesData.filter((c: any) => !c.comingSoon).length,
+  itemListElement: coursesData.filter((c: any) => !c.comingSoon).map((course: any, i: number) => ({
     '@type': 'ListItem',
     position: i + 1,
     item: {
       '@type': 'Course',
       name: course.title,
       description: course.shortDescription,
-      url: `https://rrmacademy.org/courses/${course.slug}`,
+      url: `https://rrmacademy.org/courses/${course.slug}/`,
+      ...(course.image ? { image: course.image } : {}),
       provider: {
         '@type': 'Organization',
+        '@id': 'https://rrmacademy.org/#organization',
         name: 'RRM Academy',
-        url: 'https://rrmacademy.org',
+        url: 'https://rrmacademy.org/',
       },
-      offers: course.isFree
-        ? { '@type': 'Offer', price: '0', priceCurrency: 'USD' }
-        : { '@type': 'Offer', price: (course.priceCents / 100).toFixed(2), priceCurrency: 'USD' },
+      isAccessibleForFree: course.isFree,
+      offers: {
+        '@type': 'Offer',
+        price: course.isFree ? '0' : (course.priceCents / 100).toFixed(2),
+        priceCurrency: 'USD',
+        availability: 'https://schema.org/InStock',
+      },
     },
   })),
 };
