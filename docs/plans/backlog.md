@@ -25,6 +25,11 @@
 
 ## Done (Recent)
 
+- Library pipeline switched to yellowbase (`app78UTVdeFph9qhL`, `⚡️ Synced Literature` table) — updated `airtable-config.mjs`, `airtable.ts`, `fetch-data.mjs`. Filter: `{Sync to RRM Library}='Synced'`. All field names now `⚡️`-prefix. Re-enabled related articles algorithm (Topics + Search Terms now populated). (2026-03-01)
+- Added AI enrichment fields to library pipeline: `⚡️ Sentiment (AI)`, `⚡️ RRM Relevance (AI)`, `⚡️ Domain (AI)`, `⚡️ Topics (AI)`, `⚡️ Search Terms (AI)` — all surfaced in Article interface and transform. (2026-03-01)
+- Airtable publish automation wired — flipping `Sync to RRM Library` → `Synced` POST to `/api/library/deploy-record`, CF Worker authenticates via `X-Deploy-Secret`, fires GitHub `repository_dispatch` → full site rebuild. `DEPLOY_SECRET` + `GITHUB_DEPLOY_TOKEN` set in CF Pages production secrets. (2026-03-01)
+- Deploy concurrency guard — `concurrency: group: deploy, cancel-in-progress: true` in `deploy.yml` prevents parallel rebuilds when multiple records are synced in quick succession. (2026-03-01)
+
 - Mobile tier card formatting — centered content, reduced price size, full-width buttons, larger tier name (1.5rem) for clear visual hierarchy on `/donate/` and `/save-the-uterus-club/` pages (2026-02-28)
 - Mobile nav tap-outside-to-close — tapping page content visible below/behind the open mobile nav panel now closes the nav, preventing inconsistent scroll-behind behavior across pages (2026-02-28)
 - Mobile nav footer button positioning — removed bottom padding from `.main-nav` panel (`padding: var(--space-4) 0` → `var(--space-4) 0 0`) so footer buttons (My Account, Donate) sit closer to bottom edge instead of appearing too high (2026-02-28)
