@@ -27,7 +27,7 @@ export interface FAQ {
   seoTitle: string;
   seoDescription: string;
   sortOrder: number;
-  category: 'Foundational' | 'Condition-Specific' | 'General';
+  category: 'Foundational' | 'Condition-Specific' | 'Common Concerns';
   evidence: EvidenceLink[];
   libraryRefs: LibraryRef[];
 }
@@ -54,8 +54,8 @@ export function groupByCategory(faqs: FAQ[]): { category: string; faqs: FAQ[] }[
     groups[faq.category].push(faq);
   }
 
-  // Fixed order: Foundational first, then Condition-Specific
-  const order = ['Foundational', 'Condition-Specific', 'General'];
+  // Fixed order: Foundational first, then Condition-Specific, then Common Concerns
+  const order = ['Foundational', 'Condition-Specific', 'Common Concerns'];
   return order
     .filter(cat => groups[cat]?.length)
     .map(cat => ({ category: cat, faqs: groups[cat] }));
