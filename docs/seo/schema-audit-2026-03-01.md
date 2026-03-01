@@ -72,7 +72,7 @@ All pages have schema. All rich result eligibility blockers resolved.
 }
 ```
 
-**Why:** `WebSite` schema on the homepage is required for Google's Sitelinks Search Box eligibility. The `SearchAction` was previously buried inside the library `CollectionPage.isPartOf` — wrong location. `hasOfferCatalog.numberOfItems` now counts only live (non-`comingSoon`) courses.
+**Why:** `WebSite` schema on the homepage is required for Google's Sitelinks Search Box eligibility. The `SearchAction` was previously buried inside the library `CollectionPage.isPartOf` — wrong location. `hasOfferCatalog.numberOfItems` now counts only live (non-`comingSoon`) courses. This also resolved on-page audit issue #15.
 
 ---
 
