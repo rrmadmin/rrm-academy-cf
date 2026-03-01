@@ -85,26 +85,26 @@ const mobileNavSections = [
             <div class="mobile-nav-group__heading">{section.heading}</div>
             <ul class="mobile-nav-group__list">
               {section.items.map((item) => (
-                <li class:list={[{ 'mobile-has-dropdown': item.children, 'has-hover-icon': item.hoverIcon }]}>
+                <li class:list={[{ 'has-hover-icon': item.hoverIcon }]}>
                   {item.children ? (
-                    <button class="mobile-nav-link mobile-nav-link--dropdown" type="button">
-                      <span class="mobile-nav-icon" aria-hidden="true" set:html={icons[item.icon!]} />
-                      {item.label}
-                      <svg class="chevron" width="10" height="10" viewBox="0 0 10 10"><path d="M2.5 4L5 6.5L7.5 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </button>
+                    <details class="mobile-has-dropdown">
+                      <summary class="mobile-nav-link">
+                        <span class="mobile-nav-icon" aria-hidden="true" set:html={icons[item.icon!]} />
+                        {item.label}
+                        <svg class="chevron" width="10" height="10" viewBox="0 0 10 10"><path d="M2.5 4L5 6.5L7.5 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      </summary>
+                      <div class="mobile-dropdown">
+                        {item.children.map((child) => (
+                          <a href={child.href} class="mobile-dropdown-link">{child.label}</a>
+                        ))}
+                      </div>
+                    </details>
                   ) : (
                     <a href={item.href} class="mobile-nav-link" id={item.id}>
                       <span class="mobile-nav-icon" aria-hidden="true" set:html={icons[item.icon!]} />
                       {item.hoverIcon && <span class="mobile-nav-icon mobile-nav-icon--hover" aria-hidden="true" set:html={item.hoverIcon} />}
                       <span class="nav-label">{item.label}</span>
                     </a>
-                  )}
-                  {item.children && (
-                    <div class="mobile-dropdown">
-                      {item.children.map((child) => (
-                        <a href={child.href} class="mobile-dropdown-link">{child.label}</a>
-                      ))}
-                    </div>
                   )}
                 </li>
               ))}
@@ -152,9 +152,11 @@ const mobileNavSections = [
     <a href="/library/" class="mobile-search-btn" aria-label="Search">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     </a>
-    <button class="mobile-toggle" aria-label="Menu" aria-expanded="false">
+    <input type="checkbox" id="nav-toggle" class="sr-only" aria-label="Toggle menu" />
+    <label for="nav-toggle" class="mobile-toggle" aria-hidden="true">
       <span class="hamburger"></span>
-    </button>
+    </label>
+    <label for="nav-toggle" class="nav-overlay" aria-hidden="true"></label>
   </div>
 </header>
 
@@ -167,6 +169,42 @@ const mobileNavSections = [
     box-shadow: 0 1px 0 var(--border-light);
     transition: background 0.3s;
   }
+
+  /* Visually hidden but accessible */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* Click-outside overlay to close mobile nav */
+  .nav-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 49;
+  }
+  .site-header:has(#nav-toggle:checked) .nav-overlay {
+    display: block;
+  }
+
+  /* Lock body scroll when mobile nav is open */
+  :global(html:has(#nav-toggle:checked)) {
+    overflow: hidden;
+  }
+
+  /* Keyboard focus indicator on hamburger */
+  #nav-toggle:focus-visible + .mobile-toggle {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
   .header-inner {
     display: flex;
     align-items: center;
@@ -237,7 +275,8 @@ const mobileNavSections = [
     transition: transform 0.2s;
     margin-top: 1px;
   }
-  .has-dropdown:hover .chevron {
+  .has-dropdown:hover .chevron,
+  .has-dropdown:focus-within .chevron {
     transform: rotate(180deg);
   }
 
@@ -252,7 +291,8 @@ const mobileNavSections = [
     padding-top: 12px;
     z-index: 10;
   }
-  .has-dropdown:hover .dropdown {
+  .has-dropdown:hover .dropdown,
+  .has-dropdown:focus-within .dropdown {
     display: block;
   }
   .dropdown__grid {
@@ -450,14 +490,14 @@ const mobileNavSections = [
   .hamburger::after { top: 6px; }
 
   /* Hamburger → X when open */
-  .site-header.nav-open .hamburger {
+  .site-header:has(#nav-toggle:checked) .hamburger {
     background: transparent;
   }
-  .site-header.nav-open .hamburger::before {
+  .site-header:has(#nav-toggle:checked) .hamburger::before {
     top: 0;
     transform: rotate(45deg);
   }
-  .site-header.nav-open .hamburger::after {
+  .site-header:has(#nav-toggle:checked) .hamburger::after {
     top: 0;
     transform: rotate(-45deg);
   }
@@ -478,7 +518,7 @@ const mobileNavSections = [
     .mobile-toggle { display: block; }
 
     /* ── Nav panel (open state) ── */
-    .site-header.nav-open .main-nav {
+    .site-header:has(#nav-toggle:checked) .main-nav {
       display: flex;
       flex-direction: column;
       position: absolute;
@@ -496,10 +536,10 @@ const mobileNavSections = [
     }
 
     /* Hide desktop nav-list on mobile, show mobile nav sections */
-    .site-header.nav-open .nav-list {
+    .site-header:has(#nav-toggle:checked) .nav-list {
       display: none;
     }
-    .site-header.nav-open .mobile-nav-sections {
+    .site-header:has(#nav-toggle:checked) .mobile-nav-sections {
       display: block;
     }
 
@@ -570,15 +610,21 @@ const mobileNavSections = [
       background: var(--bg-surface);
     }
 
-    /* Mobile dropdown — collapsed by default, toggled by JS */
+    /* Mobile dropdown — collapsed by default, opened via <details> */
     .mobile-dropdown {
       display: none;
     }
-    .mobile-has-dropdown.dropdown-open .mobile-dropdown {
+    .mobile-has-dropdown[open] .mobile-dropdown {
       display: block;
     }
-    .mobile-has-dropdown.dropdown-open .chevron {
+    .mobile-has-dropdown[open] .chevron {
       transform: rotate(180deg);
+    }
+    .mobile-has-dropdown summary {
+      list-style: none;
+    }
+    .mobile-has-dropdown summary::-webkit-details-marker {
+      display: none;
     }
     .mobile-dropdown-link {
       display: block;
@@ -599,7 +645,7 @@ const mobileNavSections = [
     }
 
     /* ── Mobile nav footer ── */
-    .site-header.nav-open .mobile-nav-footer {
+    .site-header:has(#nav-toggle:checked) .mobile-nav-footer {
       display: block;
       padding: var(--space-4) var(--space-6);
       margin-top: var(--space-2);
@@ -625,63 +671,6 @@ const mobileNavSections = [
 </style>
 
 <script is:inline>
-  // Mobile menu toggle
-  var toggle = document.querySelector('.mobile-toggle');
-  var header = document.querySelector('.site-header');
-  var mainNav = header && header.querySelector('.main-nav');
-
-  function closeNav() {
-    if (!header.classList.contains('nav-open')) return;
-    toggle.setAttribute('aria-expanded', 'false');
-    header.classList.remove('nav-open');
-    document.body.style.overflow = '';
-    var openDropdowns = header.querySelectorAll('.dropdown-open');
-    for (var i = 0; i < openDropdowns.length; i++) {
-      openDropdowns[i].classList.remove('dropdown-open');
-    }
-  }
-
-  if (toggle && header) {
-    toggle.addEventListener('click', function() {
-      var expanded = toggle.getAttribute('aria-expanded') === 'true';
-      toggle.setAttribute('aria-expanded', String(!expanded));
-      header.classList.toggle('nav-open');
-      document.body.style.overflow = expanded ? '' : 'hidden';
-      if (expanded) {
-        var openDropdowns = header.querySelectorAll('.dropdown-open');
-        for (var i = 0; i < openDropdowns.length; i++) {
-          openDropdowns[i].classList.remove('dropdown-open');
-        }
-      }
-    });
-
-    // Tap outside nav to close
-    document.addEventListener('click', function(e) {
-      if (!header.classList.contains('nav-open')) return;
-      if (mainNav && !mainNav.contains(e.target) && !toggle.contains(e.target)) {
-        closeNav();
-      }
-    });
-  }
-
-  // Desktop dropdown toggle (tap to expand/collapse on mobile)
-  var dropdownButtons = document.querySelectorAll('.nav-link--dropdown');
-  for (var i = 0; i < dropdownButtons.length; i++) {
-    dropdownButtons[i].addEventListener('click', function() {
-      if (window.innerWidth <= 768) {
-        this.closest('.has-dropdown').classList.toggle('dropdown-open');
-      }
-    });
-  }
-
-  // Mobile nav dropdown toggle (Courses submenu)
-  var mobileDropdownButtons = document.querySelectorAll('.mobile-nav-link--dropdown');
-  for (var i = 0; i < mobileDropdownButtons.length; i++) {
-    mobileDropdownButtons[i].addEventListener('click', function() {
-      this.closest('.mobile-has-dropdown').classList.toggle('dropdown-open');
-    });
-  }
-
   // Theme toggle (both desktop and mobile)
   function handleThemeToggle() {
     var html = document.documentElement;
