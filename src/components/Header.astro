@@ -311,7 +311,7 @@ const mobileNavSections = [
     display: none;
     align-items: center;
   }
-  @media (min-width: 1025px) {
+  @media (min-width: 769px) {
     :global(.page-synopsis) .header-search {
       display: flex;
     }
@@ -392,6 +392,11 @@ const mobileNavSections = [
   :global([data-theme="light"]) .theme-toggle .icon-moon { display: inline; }
   :global([data-theme="dark"]) .theme-toggle .icon-sun { display: inline; }
 
+  /* Hide STUC "Join Us" link on narrower desktops */
+  @media (max-width: 1024px) {
+    .nav-item:has(#stuc-nav-link) { display: none; }
+  }
+
   /* Mobile nav sections + footer — hidden on desktop */
   .mobile-nav-sections,
   .mobile-nav-footer {
@@ -460,7 +465,7 @@ const mobileNavSections = [
   /* ═══════════════════════════════════════════
      MOBILE — clean full-width panel
      ═══════════════════════════════════════════ */
-  @media (max-width: 1024px) {
+  @media (max-width: 768px) {
     .header-inner {
       gap: var(--space-3);
     }
@@ -663,7 +668,7 @@ const mobileNavSections = [
   var dropdownButtons = document.querySelectorAll('.nav-link--dropdown');
   for (var i = 0; i < dropdownButtons.length; i++) {
     dropdownButtons[i].addEventListener('click', function() {
-      if (window.innerWidth <= 1024) {
+      if (window.innerWidth <= 768) {
         this.closest('.has-dropdown').classList.toggle('dropdown-open');
       }
     });
