@@ -8,7 +8,7 @@ const jsonLd = {
       '@type': ['Article', 'MedicalWebPage'],
       headline: 'What is Restorative Reproductive Medicine (RRM)?',
       description:
-        'Restorative Reproductive Medicine (RRM) is an approach within conventional medicine that diagnoses and treats the root causes of reproductive health conditions rather than masking symptoms or bypassing natural function.',
+        'Restorative Reproductive Medicine (RRM) diagnoses and treats root causes of infertility, endometriosis, PCOS, and other reproductive conditions.',
       image: 'https://rrmacademy.org/images/og-default.png',
       author: {
         '@type': 'Person',
@@ -22,6 +22,24 @@ const jsonLd = {
       },
       datePublished: '2026-03-01',
       dateModified: '2026-03-01',
+      wordCount: 9500,
+      articleSection: [
+        'Key Takeaways',
+        'What Is Restorative Reproductive Medicine?',
+        'A Brief History of Restorative Reproductive Medicine',
+        'How RRM Diagnosis Works',
+        'Fertility Awareness-Based Methods (FABMs) Explained',
+        'Conditions Treated with Restorative Reproductive Medicine',
+        'RRM vs. IVF: A Detailed Comparison',
+        'The Evidence Behind RRM',
+        'What to Expect: The RRM Patient Journey',
+        'How Much Does RRM Cost?',
+        'NaProTechnology: What It Is and How It Works',
+        'RRM Training and Credentials for Healthcare Professionals',
+        'Common Myths About Restorative Reproductive Medicine',
+        'How to Get Started with Restorative Reproductive Medicine',
+        'Frequently Asked Questions',
+      ],
       mainEntityOfPage: {
         '@type': 'WebPage',
         '@id': 'https://rrmacademy.org/what-is-rrm/',
@@ -30,6 +48,60 @@ const jsonLd = {
         '@type': 'MedicalTherapy',
         name: 'Restorative Reproductive Medicine',
       },
+      hasPart: [
+        { '@type': 'WebPageElement', name: 'Key Takeaways', url: 'https://rrmacademy.org/what-is-rrm/#key-takeaways' },
+        { '@type': 'WebPageElement', name: 'What Is Restorative Reproductive Medicine?', url: 'https://rrmacademy.org/what-is-rrm/#what-is-rrm' },
+        { '@type': 'WebPageElement', name: 'A Brief History of Restorative Reproductive Medicine', url: 'https://rrmacademy.org/what-is-rrm/#history' },
+        { '@type': 'WebPageElement', name: 'How RRM Diagnosis Works', url: 'https://rrmacademy.org/what-is-rrm/#diagnosis' },
+        { '@type': 'WebPageElement', name: 'Fertility Awareness-Based Methods (FABMs) Explained', url: 'https://rrmacademy.org/what-is-rrm/#fabms' },
+        { '@type': 'WebPageElement', name: 'Conditions Treated with Restorative Reproductive Medicine', url: 'https://rrmacademy.org/what-is-rrm/#conditions' },
+        { '@type': 'WebPageElement', name: 'RRM vs. IVF: A Detailed Comparison', url: 'https://rrmacademy.org/what-is-rrm/#rrm-vs-ivf' },
+        { '@type': 'WebPageElement', name: 'The Evidence Behind RRM', url: 'https://rrmacademy.org/what-is-rrm/#evidence' },
+        { '@type': 'WebPageElement', name: 'What to Expect: The RRM Patient Journey', url: 'https://rrmacademy.org/what-is-rrm/#patient-journey' },
+        { '@type': 'WebPageElement', name: 'How Much Does RRM Cost?', url: 'https://rrmacademy.org/what-is-rrm/#cost-insurance' },
+        { '@type': 'WebPageElement', name: 'NaProTechnology: What It Is and How It Works', url: 'https://rrmacademy.org/what-is-rrm/#naprotechnology' },
+        { '@type': 'WebPageElement', name: 'RRM Training and Credentials for Healthcare Professionals', url: 'https://rrmacademy.org/what-is-rrm/#training' },
+        { '@type': 'WebPageElement', name: 'Common Myths About Restorative Reproductive Medicine', url: 'https://rrmacademy.org/what-is-rrm/#myths' },
+        { '@type': 'WebPageElement', name: 'How to Get Started with Restorative Reproductive Medicine', url: 'https://rrmacademy.org/what-is-rrm/#get-started' },
+        { '@type': 'WebPageElement', name: 'Frequently Asked Questions', url: 'https://rrmacademy.org/what-is-rrm/#faq' },
+      ],
+      citation: [
+        {
+          '@type': 'ScholarlyArticle',
+          name: 'Outcomes from Treatment of Infertility with Natural Procreative Technology in an Irish General Practice',
+          author: 'Stanford JB, Parnell TA, Boyle PC',
+          datePublished: '2008',
+          isPartOf: { '@type': 'Periodical', name: 'The Journal of the American Board of Family Medicine' },
+        },
+        {
+          '@type': 'ScholarlyArticle',
+          name: 'Natural Procreative Technology for Infertility and Recurrent Miscarriage',
+          author: 'Tham E, Schliep K, Stanford J',
+          datePublished: '2012',
+          isPartOf: { '@type': 'Periodical', name: 'Canadian Family Physician' },
+        },
+        {
+          '@type': 'ScholarlyArticle',
+          name: 'Fertility Awareness-Based Methods for Women\'s Health and Family Planning',
+          author: 'Duane M, Stanford JB, Porucznik CA, Vigil P',
+          datePublished: '2022',
+          isPartOf: { '@type': 'Periodical', name: 'Frontiers in Medicine' },
+        },
+        {
+          '@type': 'ScholarlyArticle',
+          name: 'Successful Pregnancy with Restorative Reproductive Medicine after 16 Years of Infertility',
+          author: 'Boyle PC, Stanford JB, Zecevic I',
+          datePublished: '2022',
+          isPartOf: { '@type': 'Periodical', name: 'Journal of Medical Case Reports' },
+        },
+        {
+          '@type': 'ScholarlyArticle',
+          name: 'Healthy Singleton Pregnancies from Restorative Reproductive Medicine (RRM) After Failed IVF',
+          author: 'Boyle PC, de Groot T, Andralojc KM, Stanford JB',
+          datePublished: '2018',
+          isPartOf: { '@type': 'Periodical', name: 'Frontiers in Medicine' },
+        },
+      ],
     },
     {
       '@type': 'BreadcrumbList',
@@ -43,58 +115,98 @@ const jsonLd = {
       mainEntity: [
         {
           '@type': 'Question',
-          name: 'What is Restorative Reproductive Medicine?',
+          name: 'What is restorative reproductive medicine?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Restorative Reproductive Medicine (RRM) is an approach within conventional medicine that works cooperatively with the body to diagnose and treat the underlying causes of reproductive health conditions. Unlike approaches that mask symptoms with hormonal medications or bypass natural function with assisted reproductive technologies, RRM uses standard and advanced diagnostic tools to investigate the root cause, whether hormonal, anatomical, or inflammatory, and restore natural function.',
+            text: 'Restorative reproductive medicine (RRM) is a medical approach that diagnoses and treats the root causes of reproductive health conditions. Rather than masking symptoms with suppressive medications or bypassing natural function, RRM uses standard diagnostic tools and targeted treatments to restore the body\'s own reproductive physiology. RRM physicians are board-certified OBGYNs, reproductive endocrinologists, and family physicians with additional training in cycle-based evaluation.',
           },
         },
         {
           '@type': 'Question',
-          name: 'What conditions does RRM treat?',
+          name: 'Is RRM the same as NaProTechnology?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'RRM commonly addresses endometriosis, polycystic ovary syndrome (PCOS), unexplained infertility, recurrent miscarriage, irregular or painful periods, premenstrual syndrome, hormonal imbalances, ovulatory dysfunction, and pelvic pain. Treatment may include medical management, hormonal support, surgical intervention, or a combination tailored to the underlying diagnosis.',
+            text: 'Not exactly. NaProTechnology is one specific approach within the broader field of restorative reproductive medicine. NaPro uses the Creighton Model FertilityCare System for charting and was developed at the Pope Paul VI Institute by Dr. Thomas Hilgers. RRM is the umbrella term that includes NaPro as well as other cycle-based, cause-directed medical approaches such as FEMM Medical Management and NeoFertility protocols.',
           },
         },
         {
           '@type': 'Question',
-          name: 'How does RRM differ from IVF?',
+          name: 'How long does RRM treatment typically take?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'IVF bypasses the reproductive system entirely by fertilizing eggs outside the body, while RRM identifies and treats the underlying condition preventing natural conception. RRM uses diagnostic tools like cycle charting, targeted bloodwork, and imaging to find the root cause, then applies medical or surgical treatment to restore function. Some patients pursue RRM before considering IVF; others use RRM alongside other treatments.',
+            text: 'Treatment timelines vary by diagnosis. Most couples begin with 1 to 3 cycles of charting to establish a baseline, followed by diagnostic testing and treatment planning. Some hormonal conditions respond within a few cycles of targeted support. Surgical cases (such as endometriosis excision) require recovery time before attempting conception. Overall, couples should expect an active treatment window of 3 to 18 months depending on complexity.',
           },
         },
         {
           '@type': 'Question',
-          name: 'How effective is RRM for infertility?',
+          name: 'Does RRM work for male infertility?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Published research shows RRM treatment followed by timed intercourse has achieved live birth rates of 29-41% depending on age and diagnosis. For women under 35, rates reach 34%, and for women with BMI under 25, rates reach 40%. RRM combined with surgical treatment of moderate-to-severe endometriosis has shown pregnancy rates of 55% per woman. Results vary by condition and individual factors.',
+            text: 'Yes. RRM evaluates both partners. Male factor contributes to infertility in up to 40% of couples. Evaluation includes semen analysis, hormonal assessment, and investigation of anatomical issues such as varicocele. Treatment may include hormonal support, surgical correction, lifestyle modification, or referral to a urologist with reproductive expertise. Addressing both sides of the equation improves outcomes.',
           },
         },
         {
           '@type': 'Question',
-          name: 'Is RRM covered by insurance?',
+          name: 'Can I try RRM if IVF has already failed?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Many RRM treatments are covered by standard health insurance because they involve conventional medical diagnostics (bloodwork, imaging, ultrasound) and treatments (medications, surgery) for diagnosed conditions. Unlike IVF, which requires specific fertility coverage, RRM treatments are often coded as treatment for endometriosis, PCOS, hormonal disorders, or other diagnosed conditions. Coverage varies by plan and provider.',
+            text: 'Yes. Published research by Boyle et al. documented healthy singleton pregnancies from RRM treatment in couples who had previously undergone multiple failed IVF cycles. One case report describes a successful pregnancy after 16 years of infertility and eight unsuccessful IVF embryo transfers. RRM often uncovers treatable conditions that were never diagnosed during the IVF process.',
           },
         },
         {
           '@type': 'Question',
-          name: 'What is NaProTechnology?',
+          name: 'Does insurance cover restorative reproductive medicine?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'NaProTechnology (Natural Procreative Technology) is a specific type of Restorative Reproductive Medicine developed at the Saint Paul VI Institute. It uses the Creighton Model FertilityCare System to monitor biomarkers, identify reproductive health problems, and guide targeted medical and surgical treatment. NaProTechnology is practiced by physicians with specialized fellowship training.',
+            text: 'Many RRM treatments are covered by standard health insurance because they involve conventional diagnostics and treatments for diagnosed conditions. Bloodwork, imaging, medications, and surgery for endometriosis, PCOS, or hormonal disorders use standard medical billing codes. Arkansas became the first state to mandate coverage for restorative reproductive medicine in 2025. The federal RESTORE Act (H.R. 3589) has been introduced to expand access further. Coverage varies by plan and state.',
           },
         },
         {
           '@type': 'Question',
-          name: 'How do I find an RRM doctor?',
+          name: 'Do I have to be Catholic or religious to use RRM?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'RRM-trained physicians can be found through the International Institute for Restorative Reproductive Medicine (IIRRM) provider directory, FertilityCare Centers of America, or by searching for NaProTechnology-trained physicians in your area. RRM Academy also provides educational resources to help you understand what to look for in a provider and what questions to ask.',
+            text: 'No. RRM is a medical discipline based on reproductive physiology, not religious doctrine. NaProTechnology was developed at a Catholic institution, but its protocols rely on the same science as any medical specialty. Patients of all faiths and no faith seek RRM because they want thorough diagnosis and cause-based treatment. No religious commitment is required.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'What is the success rate of RRM?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Published studies report live birth rates of 24 to 26% for NaProTechnology treatment with timed intercourse, and higher rates in specific subgroups. Stanford\'s preprint data shows rates of 29 to 41% depending on age and BMI. Surgical treatment of moderate-to-severe endometriosis has yielded per-woman pregnancy rates of 55%. Results depend on diagnosis, age, and individual factors. RRM also delivers outcomes beyond pregnancy: pain relief, hormonal balance, and answers about why a condition exists.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'How is RRM different from seeing a regular OB-GYN?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Most OB-GYNs manage symptoms. Irregular periods get suppressive medications. Pelvic pain gets empiric treatment. Infertility gets a referral to IVF. An RRM physician starts with the cycle chart as a diagnostic tool, orders timed hormone panels based on cycle phase, investigates the root cause, and builds a targeted treatment plan. The tools are the same. The approach is different. RRM asks "why" before deciding "what."',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Where can I find an RRM-trained doctor?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'The IIRRM provider directory is the primary referral network for RRM-trained physicians. Natural Womanhood maintains a searchable directory. You can also contact FertilityCare Centers of America for practitioners in your area. Some RRM physicians offer telehealth consultations for patients without local access.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'How much does RRM cost compared to IVF?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'RRM is typically far less expensive than IVF. One study found that IVF costs are on average 20 times greater than medication-based fertility treatments. A full RRM evaluation and treatment course typically ranges from $2,000 to $8,000 depending on diagnosis and interventions needed. A single IVF cycle averages $15,000 to $30,000, and most couples require multiple cycles. Many RRM treatments are billable under standard insurance codes for diagnosed conditions.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'What fertility charting methods are used in RRM?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'RRM physicians work with several validated fertility awareness-based methods (FABMs). The most commonly used include the Creighton Model FertilityCare System, the Marquette Method, FEMM (Fertility Education and Medical Management), the Billings Ovulation Method, and SymptoThermal methods. Each method tracks different biomarkers. The choice depends on the patient\'s needs and the physician\'s training. All provide cycle-based data that supports diagnosis.',
           },
         },
         {
@@ -102,23 +214,63 @@ const jsonLd = {
           name: 'Can RRM help with endometriosis?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Yes. RRM addresses endometriosis through a combination of thorough diagnosis (often using advanced imaging and surgical evaluation), excision surgery to remove endometriotic tissue, and long-term medical management to prevent recurrence. A meta-analysis found that surgical treatment of moderate-to-severe endometriosis yielded a 55.3% per-woman pregnancy rate, compared to 9.9% with IVF alone in similar cases.',
+            text: 'Yes. RRM approaches endometriosis through thorough diagnostic evaluation (often including surgical assessment), excision surgery to remove endometriotic tissue, and targeted medical management to support healing and prevent recurrence. Excision is the gold standard for surgical treatment. A meta-analysis found that surgical treatment of moderate-to-severe endometriosis yielded a 55.3% per-woman pregnancy rate. RRM also addresses the pain, inflammation, and hormonal disruption that endometriosis causes.',
           },
         },
         {
           '@type': 'Question',
-          name: 'Is RRM only for people who oppose IVF?',
+          name: 'Is RRM safe?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'No. While some patients choose RRM for ethical or religious reasons, many pursue RRM because they want to understand and treat the underlying cause of their condition, not just achieve pregnancy. RRM appeals to patients who want a thorough diagnostic workup, who prefer to treat root causes before considering assisted reproduction, or who want to optimize their health regardless of family-building plans.',
+            text: 'RRM uses standard medical and surgical interventions that carry the same safety profile as any conventional treatment. Bloodwork, imaging, and hormonal support carry minimal risk. Surgical interventions like laparoscopic excision carry the standard risks of any minimally invasive surgery. RRM does not involve the high-dose ovarian stimulation or egg retrieval procedures associated with IVF, which carry their own set of complications. RRM treats the underlying condition, which often improves the patient\'s overall health.',
           },
         },
         {
           '@type': 'Question',
-          name: 'What training do RRM doctors have?',
+          name: 'Can teenagers benefit from RRM?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'RRM physicians are typically board-certified OBGYNs or reproductive endocrinologists who pursue additional fellowship training in NaProTechnology or restorative reproductive medicine. Fellowship programs include training in the Creighton Model FertilityCare System, advanced hormonal evaluation, and specialized surgical techniques for conditions like endometriosis. RRM Academy offers courses for both patients and healthcare professionals seeking to deepen their understanding.',
+            text: 'Yes. Painful periods, irregular cycles, and heavy bleeding in teenagers deserve investigation, not suppression. The American College of Obstetricians and Gynecologists recognizes the menstrual cycle as a vital sign in adolescents. RRM evaluation can identify conditions like endometriosis, PCOS, or hormonal imbalances early, when intervention is most effective. Learning a charting method also gives young women a tool for lifelong health monitoring.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Does my partner need to be involved?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'If you are seeking help with infertility, yes. Male factor contributes to infertility in a significant percentage of couples, and evaluation of only one partner misses half the picture. Your partner will typically need a semen analysis and may need hormonal testing. For non-fertility conditions (endometriosis, PCOS, pelvic pain), partner involvement is not required but can be supportive.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'What should I bring to my first RRM appointment?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Bring your charted cycles (at minimum 1 to 3 months of data), complete medical history, any prior lab or imaging results, a list of medications, and a list of questions. If you have prior surgical records or pathology reports, bring those as well. If you have a partner and are addressing fertility concerns, have them attend. The more data you provide, the more your physician can assess during the first visit.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'What is the difference between RRM and fertility treatment?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Conventional fertility treatment often focuses on achieving pregnancy by any means, frequently through assisted reproductive technologies like IVF and IUI. RRM focuses on diagnosing and treating the condition that prevents pregnancy. When the underlying disease is resolved, conception can occur through normal intercourse. RRM also treats conditions unrelated to fertility. The two approaches address different questions: "How do we achieve pregnancy?" versus "Why isn\'t it happening, and what can we fix?"',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Can RRM help with conditions other than infertility?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Yes. RRM treats endometriosis, PCOS, pelvic pain, irregular or painful periods, PMS, PMDD, hormonal imbalances, thyroid disorders, ovulatory dysfunction, and other reproductive health conditions. Many patients seek RRM without any fertility goals. They want their symptoms investigated and their conditions treated rather than managed indefinitely with suppressive medications.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'How do I become an RRM-trained provider?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Start with online education through RRM Academy. For formal credentialing, the IIRRM offers international certification and hosts conferences with CME credit. The Pope Paul VI Institute provides fellowship training in NaProTechnology. FACTS offers a medical elective for students and residents. Cycle-based evaluation can be integrated into any OBGYN, family medicine, or endocrinology practice.',
           },
         },
       ],
@@ -129,8 +281,8 @@ const jsonLd = {
 
 <BaseLayout
   title="What is Restorative Reproductive Medicine (RRM)?"
-  description="Restorative Reproductive Medicine (RRM) diagnoses and treats the root causes of reproductive health conditions rather than masking symptoms or bypassing natural function."
-  canonicalUrl="https://rrmacademy.org/what-is-rrm"
+  description="Restorative Reproductive Medicine (RRM) diagnoses and treats root causes of infertility, endometriosis, PCOS, and other reproductive conditions."
+  canonicalUrl="https://rrmacademy.org/what-is-rrm/"
   ogType="article"
   publishDate="2026-03-01"
   jsonLd={jsonLd}
