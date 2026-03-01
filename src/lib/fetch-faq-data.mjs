@@ -250,16 +250,7 @@ async function fetchAll() {
     "{Answer Status}='Published'"
   );
 
-  // 3. Build a map of source FAQ record IDs (Foundational/Condition) → FAQ Index record
-  //    Evidence URLs link through the source tables, not the index directly.
-  const sourceFaqIds = new Set();
-  for (const rec of faqRecords) {
-    const f = rec.fields;
-    const linked = f['Foundational FAQ'] || f['Condition FAQ'] || [];
-    if (Array.isArray(linked)) linked.forEach(id => sourceFaqIds.add(id));
-  }
-
-  // 4. Fetch evidence URL records and index by source FAQ ID
+  // 3. Fetch evidence URL records and index by source FAQ ID
   console.log('\nFetching evidence URLs...');
   const evidenceRecords = await fetchTable(pat, EVIDENCE_TABLE_ID, EVIDENCE_FIELDS, '');
 
@@ -302,7 +293,7 @@ async function fetchAll() {
 
     // Category from Type field
     const type = f['Type'] || '';
-    let category = 'General';
+    let category = 'Common Concerns';
     if (type === 'Foundational') category = 'Foundational';
     else if (type === 'Condition' || type === 'Condition-Specific') category = 'Condition-Specific';
 
@@ -354,10 +345,11 @@ async function fetchAll() {
 
   const foundational = faqs.filter(f => f.category === 'Foundational').length;
   const condition = faqs.filter(f => f.category === 'Condition-Specific').length;
+  const commonConcerns = faqs.filter(f => f.category === 'Common Concerns').length;
   const withEvidence = faqs.filter(f => f.evidence.length > 0).length;
   const withLibraryRefs = faqs.filter(f => f.libraryRefs.length > 0).length;
   console.log(`\nWrote ${faqs.length} FAQs to ${OUTPUT_PATH}`);
-  console.log(`  Foundational: ${foundational}, Condition-Specific: ${condition}`);
+  console.log(`  Foundational: ${foundational}, Condition-Specific: ${condition}, Common Concerns: ${commonConcerns}`);
   console.log(`  With evidence URLs: ${withEvidence}`);
   console.log(`  With library refs: ${withLibraryRefs} (${totalLibraryRefs} total links)`);
 }
