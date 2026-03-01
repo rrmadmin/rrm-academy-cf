@@ -105,6 +105,58 @@ if (post.excerpt) {
   jsonLd.description = post.excerpt;
 }
 
+// For Dr. Whittaker's physician spotlight, add Person schema via @graph
+const whittakerPersonNode = {
+  '@type': 'Person',
+  '@id': 'https://rrmacademy.org/#naomi-whittaker',
+  name: 'Dr. Naomi Whittaker',
+  honorificPrefix: 'Dr.',
+  honorificSuffix: 'MD',
+  givenName: 'Naomi',
+  familyName: 'Whittaker',
+  jobTitle: 'Founder & Medical Director',
+  description: "Board-certified obstetrician-gynecologist, Physician Lead at UPMC Divine Mercy Women's Health, and founder of RRM Academy.",
+  affiliation: [
+    {
+      '@type': 'MedicalOrganization',
+      name: "UPMC Divine Mercy Women's Health",
+    },
+    {
+      '@type': 'EducationalOrganization',
+      '@id': 'https://rrmacademy.org/#organization',
+      name: 'RRM Academy',
+      url: 'https://rrmacademy.org',
+    },
+  ],
+  hasCredential: [
+    {
+      '@type': 'EducationalOccupationalCredential',
+      credentialCategory: 'Board Certification',
+      name: 'Board-Certified Obstetrician-Gynecologist',
+    },
+    {
+      '@type': 'EducationalOccupationalCredential',
+      credentialCategory: 'Fellowship',
+      name: 'Medical and Surgical NaProTechnology Fellowship',
+    },
+  ],
+  knowsAbout: [
+    'Restorative Reproductive Medicine',
+    'NaProTechnology',
+    'Endometriosis Surgery',
+    'PCOS Treatment',
+    'Infertility Diagnosis and Treatment',
+    'Fertility Awareness-Based Methods',
+  ],
+  sameAs: ['https://www.linkedin.com/in/naomi-whittaker-md-906b13101/'],
+};
+
+const { '@context': _ctx, ...blogPostingNode } = jsonLd;
+const finalJsonLd = post.slug === 'rrm-spotlight-naomi-whittaker-md' ? {
+  '@context': 'https://schema.org',
+  '@graph': [blogPostingNode, whittakerPersonNode],
+} : jsonLd;
+
 const canonicalUrl = `https://rrmacademy.org/commentary/${post.slug}`;
 ---
 <BaseLayout
@@ -114,7 +166,7 @@ const canonicalUrl = `https://rrmacademy.org/commentary/${post.slug}`;
   ogType="article"
   ogImage={post.coverImageUrl}
   publishDate={post.publishDate}
-  jsonLd={jsonLd}
+  jsonLd={finalJsonLd}
 >
   <div class="page-wrapper" data-pagefind-body>
     <div class="container container--narrow">
