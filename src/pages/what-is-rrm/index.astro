@@ -101,6 +101,27 @@ const jsonLd = {
           datePublished: '2018',
           isPartOf: { '@type': 'Periodical', name: 'Frontiers in Medicine' },
         },
+        {
+          '@type': 'ScholarlyArticle',
+          name: 'RRM Outcomes Compared to IVF for the Treatment of Infertility',
+          author: 'Boyle P, Toth A, Minjeur M, Turczynski C',
+          datePublished: '2025',
+          isPartOf: { '@type': 'Periodical', name: 'Journal of Restorative Reproductive Medicine' },
+        },
+        {
+          '@type': 'ScholarlyArticle',
+          name: 'NaProTechnology Outcomes in 1,310 Couples: A Retrospective Cohort Study',
+          author: 'Sanchez-Mendez S, et al.',
+          datePublished: '2025',
+          isPartOf: { '@type': 'Periodical', name: 'Frontiers in Reproductive Health' },
+        },
+        {
+          '@type': 'ScholarlyArticle',
+          name: 'Endometriosis Fertility Index for Predicting Non-ART Pregnancy After Endometriosis Surgery',
+          author: 'Vesali S, Razavi M, Rezaeinejad M, et al.',
+          datePublished: '2020',
+          isPartOf: { '@type': 'Periodical', name: 'BJOG' },
+        },
       ],
     },
     {
@@ -174,7 +195,7 @@ const jsonLd = {
           name: 'What is the success rate of RRM?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Published studies report live birth rates of 24 to 26% for NaProTechnology treatment with timed intercourse, and higher rates in specific subgroups. Stanford\'s preprint data shows rates of 29 to 41% depending on age and BMI. Surgical treatment of moderate-to-severe endometriosis has yielded per-woman pregnancy rates of 55%. Results depend on diagnosis, age, and individual factors. RRM also delivers outcomes beyond pregnancy: pain relief, hormonal balance, and answers about why a condition exists.',
+            text: 'Published studies report live birth rates of 26 to 38% (crude) for NaProTechnology treatment with timed intercourse, and higher adjusted rates in specific subgroups. Boyle et al. (2025) reported a 41% live birth rate in a 187-couple cohort. Surgical treatment of moderate-to-severe endometriosis yields post-excision pregnancy rates of 44 to 69%. Results depend on diagnosis, age, and individual factors. RRM also delivers outcomes beyond pregnancy: pain relief, hormonal balance, and answers about why a condition exists.',
           },
         },
         {
@@ -206,7 +227,7 @@ const jsonLd = {
           name: 'What fertility charting methods are used in RRM?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'RRM physicians work with several validated fertility awareness-based methods (FABMs). The most commonly used include the Creighton Model FertilityCare System, the Marquette Method, FEMM (Fertility Education and Medical Management), the Billings Ovulation Method, and SymptoThermal methods. Each method tracks different biomarkers. The choice depends on the patient\'s needs and the physician\'s training. All provide cycle-based data that supports diagnosis.',
+            text: 'RRM physicians work with several validated cycle-charting methods. These include the Creighton Model FertilityCare System, the Marquette Method, FEMM (Fertility Education and Medical Management), the Billings Ovulation Method, and SymptoThermal methods. Each method tracks different biomarkers. The choice depends on the patient\'s needs and the physician\'s training. All provide cycle-based data that supports diagnosis.',
           },
         },
         {
@@ -214,7 +235,7 @@ const jsonLd = {
           name: 'Can RRM help with endometriosis?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Yes. RRM approaches endometriosis through thorough diagnostic evaluation (often including surgical assessment), excision surgery to remove endometriotic tissue, and targeted medical management to support healing and prevent recurrence. Excision is the gold standard for surgical treatment. A meta-analysis found that surgical treatment of moderate-to-severe endometriosis yielded a 55.3% per-woman pregnancy rate. RRM also addresses the pain, inflammation, and hormonal disruption that endometriosis causes.',
+            text: 'Yes. RRM approaches endometriosis through thorough diagnostic evaluation (often including surgical assessment), excision surgery to remove endometriotic tissue, and targeted medical management to support healing and prevent recurrence. Excision is the gold standard for surgical treatment. Meta-analyses report post-excision pregnancy rates of 44% to 69% depending on disease severity. RRM also addresses the pain, inflammation, and hormonal disruption that endometriosis causes.',
           },
         },
         {
@@ -359,7 +380,7 @@ const jsonLd = {
               <li><strong>RRM diagnoses and treats root causes</strong> of reproductive health conditions. It does not mask symptoms with suppressive medications or bypass natural function.<sup><a href="#ref-1" id="cite-1">1</a></sup></li>
               <li><strong>Conditions treated</strong> include endometriosis, PCOS, unexplained infertility, recurrent miscarriage, ovulatory dysfunction, pelvic pain, and hormonal disorders.</li>
               <li><strong>Cycle charting provides real-time diagnostic data.</strong> A woman's fertility chart is to an RRM physician what an EKG is to a cardiologist.<sup><a href="#ref-2" id="cite-2">2</a></sup></li>
-              <li><strong>Published research</strong> shows live birth rates of 29 to 41% with RRM treatment and timed intercourse, comparable to IVF for many conditions, at a fraction of the cost.<sup><a href="#ref-3" id="cite-3">3</a></sup><sup><a href="#ref-4" id="cite-4">4</a></sup></li>
+              <li><strong>Published research</strong> shows crude live birth rates of 26 to 41% with RRM treatment and timed intercourse. The largest published cohort (1,310 couples) reported an adjusted live birth rate of 62%.<sup><a href="#ref-3" id="cite-3">3</a></sup><sup><a href="#ref-24" id="cite-24c">24</a></sup><sup><a href="#ref-25" id="cite-25">25</a></sup></li>
               <li><strong>Both partners are evaluated.</strong> Infertility involves a male factor 30% of the time and combined male-female factors 40% of the time. RRM addresses both.<sup><a href="#ref-5" id="cite-5">5</a></sup></li>
               <li><strong>Getting started:</strong> Learn a fertility awareness-based method, find an RRM-trained physician through the <a href="https://iirrm.org" rel="noopener">IIRRM directory</a>, and explore free courses at <a href="/courses/">RRM Academy</a>.</li>
             </ul>
@@ -370,7 +391,7 @@ const jsonLd = {
 
           <p><strong>Restorative Reproductive Medicine (RRM) is a medical discipline that identifies and treats the root causes of reproductive health conditions.</strong> It works cooperatively with the body rather than against it. Where conventional approaches often default to suppressive medications that mask symptoms or assisted reproductive technologies that bypass natural function, RRM uses standard and advanced diagnostic tools to find the actual cause, whether hormonal, anatomical, inflammatory, or metabolic, and restore the body to healthy function.<sup><a href="#ref-1" id="cite-1b">1</a></sup></p>
 
-          <p>RRM is not alternative medicine. It is not faith-based medicine. RRM physicians are board-certified OBGYNs, reproductive endocrinologists, and family physicians who use the same tools as any other specialist: bloodwork, imaging, surgery, and pharmacology. The difference is in how and when those tools are applied. Every intervention is timed to a woman's individual cycle and targeted to a specific diagnosis.<sup><a href="#ref-6" id="cite-6">6</a></sup></p>
+          <p>RRM is not alternative medicine. It is not faith-based medicine. RRM physicians are board-certified OBGYNs, reproductive endocrinologists, and family physicians who use the same tools as any other specialist: bloodwork, imaging, surgery, and pharmacology. The difference is in how and when those tools are applied. Every intervention is timed to a woman's individual cycle and targeted to a specific diagnosis.<sup><a href="#ref-6" id="cite-6">6</a></sup><sup><a href="#ref-26" id="cite-26">26</a></sup></p>
 
           <p>Conditions commonly addressed include endometriosis, polycystic ovary syndrome (PCOS), unexplained infertility, recurrent miscarriage, ovulatory dysfunction, pelvic pain, and hormonal imbalances. Treatment benefits extend beyond fertility. Women who are not trying to conceive still benefit from diagnosis and treatment of conditions that affect long-term health.</p>
 
@@ -420,7 +441,7 @@ const jsonLd = {
 
           <h3>Expanding the Field (2000s-2010s)</h3>
 
-          <p>In 2008, the International Institute for Restorative Reproductive Medicine (IIRRM) was founded by Dr. Joseph Tracey and colleagues to formalize training, credentialing, and research collaboration across the growing field. Tracey coined the term "restorative reproductive medicine" to describe the broader discipline. The IIRRM brought together physicians from multiple countries who practiced cycle-based, cause-oriented reproductive medicine, whether through NaProTechnology or other emerging protocols.<sup><a href="#ref-1" id="cite-1c">1</a></sup></p>
+          <p>In 2000, physicians from Canada, Ireland, and the United Kingdom founded the International Institute for Restorative Reproductive Medicine (IIRRM) to formalize training, credentialing, and research collaboration across the growing field. Dr. Tracey Parnell coined the term "restorative reproductive medicine" to describe the broader discipline. Dr. Kevin McCarthy served as the Institute's first president. The IIRRM brought together physicians from multiple countries who practiced cycle-based, cause-oriented reproductive medicine, whether through NaProTechnology or other emerging protocols.<sup><a href="#ref-1" id="cite-1c">1</a></sup></p>
 
           <p>Several additional approaches developed during this period:</p>
 
@@ -449,7 +470,7 @@ const jsonLd = {
 
           <h3>1. Cycle Charting: The Diagnostic Foundation</h3>
 
-          <p>Every RRM evaluation starts with the cycle chart. A woman learns a validated fertility awareness-based method (such as the Creighton Model, Marquette Method, or FEMM) and records daily biomarker observations: cervical mucus patterns, bleeding characteristics, and in some methods, basal body temperature or urinary hormone levels.</p>
+          <p>Every RRM evaluation starts with the cycle chart. A woman learns a validated cycle-charting method (such as the Creighton Model FertilityCare System, Marquette Method, or FEMM) and records daily biomarker observations: cervical mucus patterns, bleeding characteristics, and in some methods, basal body temperature or urinary hormone levels.</p>
 
           <p>This chart provides something no single blood test or ultrasound can: a continuous, real-time record of hormonal activity across the entire cycle. The cycle chart to an RRM physician is like an EKG to a cardiologist. It reveals patterns. A shortened luteal phase. Absent or disrupted mucus. Premenstrual spotting. Abnormal bleeding. Each pattern points toward specific conditions.<sup><a href="#ref-2" id="cite-2e">2</a></sup></p>
 
@@ -515,7 +536,7 @@ const jsonLd = {
               </thead>
               <tbody>
                 <tr>
-                  <td>Creighton Model (CrMS)</td>
+                  <td>Creighton Model (CrMS)*</td>
                   <td>Cervical mucus observations (standardized scoring system)</td>
                   <td>Foundation for NaProTechnology diagnosis; most extensively studied for medical applications</td>
                   <td>FertilityCare Practitioner certification</td>
@@ -548,9 +569,11 @@ const jsonLd = {
             </table>
           </div>
 
+          <p><small>*The Creighton Model FertilityCare System is classified by its developers as natural family planning (NFP), not as a fertility awareness-based method. It is included in this table because it serves the same diagnostic function in RRM clinical practice.</small></p>
+
           <h3>Choosing a Method</h3>
 
-          <p>No single FABM is best for every woman. The choice depends on a woman's health goals, cycle characteristics, comfort with different observation techniques, and whether she plans to work with an RRM physician. Women with PCOS or irregular cycles may benefit from the objectivity of the Marquette Method's hormonal monitoring. Women seeking the most direct connection to NaProTechnology diagnosis typically choose the Creighton Model. The SymptoThermal methods offer the redundancy of multiple biomarkers for confirmation.</p>
+          <p>No single charting method is best for every woman. The choice depends on a woman's health goals, cycle characteristics, comfort with different observation techniques, and whether she plans to work with an RRM physician. Women with PCOS or irregular cycles may benefit from the objectivity of the Marquette Method's hormonal monitoring. Women seeking the most direct connection to NaProTechnology diagnosis typically choose the Creighton Model. The SymptoThermal methods offer the redundancy of multiple biomarkers for confirmation.</p>
 
           <p>What matters most is that the method is learned from a trained instructor and charted consistently. The diagnostic value comes from the data. A well-kept chart gives the physician a window into hormonal function that no other tool can match.</p>
 
@@ -625,9 +648,9 @@ const jsonLd = {
 
           <p>The conventional approach relies on suppressive medications to manage pain. This masks symptoms without treating disease progression. When fertility is the goal, the conventional pathway bypasses the disease entirely with IVF. Neither approach addresses the endometriosis itself.</p>
 
-          <p>RRM takes a fundamentally different path. Excision surgery removes endometriosis at the root, cutting out disease tissue rather than burning it (ablation). This distinction matters. Dr. Patrick Yeung's ten-year surgical database shows a 2.5% repeat surgery rate after excision, compared to 40-60% recurrence rates reported for ablation.<sup><a href="#ref-11" id="cite-11c">11</a></sup> Half of the surgery is excision. The other half is reconstructive work and adhesion prevention protocols that preserve pelvic anatomy and fertility.</p>
+          <p>RRM takes a fundamentally different path. Excision surgery removes endometriosis at the root, cutting out disease tissue rather than burning it (ablation). This distinction matters. Dr. Patrick Yeung's ten-year surgical database shows a 2.5% repeat surgery rate after excision, compared to repeat surgery rates of up to 40% at one to two years reported for ablation.<sup><a href="#ref-11" id="cite-11c">11</a></sup> Half of the surgery is excision. The other half is reconstructive work and adhesion prevention protocols that preserve pelvic anatomy and fertility.</p>
 
-          <p>After surgical treatment of moderate-to-severe endometriosis, meta-analyses report a 55.3% pregnancy rate per woman.<sup><a href="#ref-3" id="cite-3b">3</a></sup> These pregnancies occur through in vivo conception. No embryo laboratory. No high-dose ovarian stimulation. The disease is treated, and the body's own reproductive function is restored.</p>
+          <p>After surgical treatment of moderate-to-severe endometriosis, meta-analyses report pregnancy rates ranging from 44% to 69% per woman depending on disease severity and endometriosis fertility index.<sup><a href="#ref-23" id="cite-23">23</a></sup> These pregnancies occur through in vivo conception. No embryo laboratory. No high-dose ovarian stimulation. The disease is treated, and the body's own reproductive function is restored.</p>
 
           <p>Post-operative care includes hormonal support, cycle monitoring, and ongoing evaluation. This long-term management distinguishes RRM from a "surgery and done" approach. Endometriosis is a chronic condition. Treatment must account for that reality.</p>
 
@@ -742,7 +765,7 @@ const jsonLd = {
                 </tr>
                 <tr>
                   <td>Published live birth rates</td>
-                  <td>25.5 to 52.8% per couple depending on age, diagnosis, and duration of treatment<sup><a href="#ref-3" id="cite-3c">3</a></sup><sup>, </sup><sup><a href="#ref-4" id="cite-4c">4</a></sup></td>
+                  <td>26 to 41% crude; 53 to 62% adjusted, per couple depending on age, diagnosis, and duration of treatment<sup><a href="#ref-3" id="cite-3c">3</a></sup><sup><a href="#ref-24" id="cite-24d">24</a></sup><sup><a href="#ref-25" id="cite-25b">25</a></sup></td>
                   <td>~30% per cycle for women under 35, declining with age<sup><a href="#ref-16" id="cite-16c">16</a></sup></td>
                 </tr>
                 <tr>
@@ -797,17 +820,21 @@ const jsonLd = {
 
           <p><strong>Tham et al. (2012)</strong> studied NaProTechnology outcomes at a Canadian family practice and published results in <em>Canadian Family Physician</em>. Among couples with infertility, 38% achieved at least one live birth. Among women with recurrent miscarriage, those treated with RRM protocols had significantly improved outcomes compared to their prior pregnancy histories. The study demonstrated that RRM could be effectively delivered in a primary care setting, not only in specialized fertility clinics.<sup><a href="#ref-4" id="cite-4d">4</a></sup></p>
 
-          <p><strong>Stanford (2021)</strong> published a preprint on medRxiv reporting pregnancy outcomes from a restorative infertility treatment model. The study found that among couples who completed evaluation and treatment, 41% achieved live births through timed intercourse following RRM protocols. These outcomes are comparable to IVF success rates reported by HFEA for women under 35.<sup><a href="#ref-18" id="cite-18">18</a></sup></p>
+          <p><strong>Stanford (2021)</strong> published a preprint on medRxiv reporting pregnancy outcomes from a restorative infertility treatment model at a single Australian centre. The study reported a crude live birth rate of 35.4% and an adjusted cumulative rate of 57.4% at 24 months. A separate peer-reviewed study by Stanford et al. in <em>BMC Pregnancy and Childbirth</em> (2021) covering two New England family medicine clinics reported a 29% cumulative live birth rate at two years.<sup><a href="#ref-18" id="cite-18">18</a></sup></p>
 
           <p><strong>Boyle et al. (2022)</strong> reported a detailed case study in the <em>Journal of Medical Case Reports</em> documenting successful pregnancy after 16 years of infertility, three recurrent miscarriages, and eight failed IVF/ICSI embryo transfers. The couple conceived naturally and delivered a healthy singleton after RRM evaluation identified and treated the underlying conditions.<sup><a href="#ref-10" id="cite-10c">10</a></sup></p>
 
-          <p><strong>Boyle et al. (2018)</strong> published a cohort study in <em>Frontiers in Medicine</em> reporting healthy singleton pregnancies achieved through RRM after previous failed IVF. This study directly addressed the question of whether RRM can succeed where IVF has failed, and the answer was yes.<sup><a href="#ref-17" id="cite-17b">17</a></sup></p>
+          <p><strong>Boyle et al. (2018)</strong> published a cohort study in <em>Frontiers in Medicine</em> reporting healthy singleton pregnancies achieved through RRM after previous failed IVF. Among 403 couples with an average of 2.1 prior IVF attempts, the life-table live birth rate was 32.1%. Only 1 of 74 live births was a twin (1.4%), and 92% were born at 37+ weeks.<sup><a href="#ref-17" id="cite-17b">17</a></sup></p>
+
+          <p><strong>Boyle et al. (2025)</strong> published the first head-to-head RRM-versus-IVF comparison in the inaugural volume of the <em>Journal of Restorative Reproductive Medicine</em>. In a retrospective evaluation of 187 couples treated at NeoFertility Dublin in 2019, the crude live birth rate was 41% (77/187). The conception rate was 52%. Prematurity in singletons was 4.0%, compared to 11.8% in CDC data and 14.4% in SART-reported IVF singletons. Average time to conception was 12 months.<sup><a href="#ref-24" id="cite-24e">24</a></sup></p>
+
+          <p><strong>Sanchez-Mendez et al. (2025)</strong> published the largest NaProTechnology cohort study to date in <em>Frontiers in Reproductive Health</em>. The study followed 1,310 couples and reported a crude live birth rate of 35.3% and an adjusted cumulative live birth rate of 62.1% at 24 months using survival analysis. This is the most methodologically rigorous RRM outcomes study published to date.<sup><a href="#ref-25" id="cite-25c">25</a></sup></p>
 
           <h3>Surgical Outcomes</h3>
 
-          <p>Endometriosis excision surgery is one of the most studied interventions in RRM. Meta-analyses of surgical treatment of moderate-to-severe endometriosis report a 55.3% pregnancy rate per woman following excision with adhesion prevention protocols.<sup><a href="#ref-3" id="cite-3e">3</a></sup> These pregnancies are achieved through in vivo conception after the disease is treated.</p>
+          <p>Endometriosis excision surgery is one of the most studied interventions in RRM. Vesali et al. (2020) conducted a meta-analysis of 17 studies including 4,598 women and reported post-excision pregnancy rates ranging from 44% to 69% depending on disease severity and endometriosis fertility index score.<sup><a href="#ref-23" id="cite-23c">23</a></sup> These pregnancies are achieved through in vivo conception after the disease is treated.</p>
 
-          <p>Long-term surgical outcomes distinguish excision from ablation. Yeung et al. (2024) reported a 2.5% rate of repeat surgery over ten years following optimal excision of endometriosis at a single tertiary referral center. Published literature on ablation reports recurrence rates of 40-60%.<sup><a href="#ref-11" id="cite-11e">11</a></sup> This difference is clinically significant. Excision removes the disease. Ablation burns the surface. The distinction determines whether women face repeated surgeries or sustained relief.</p>
+          <p>Long-term surgical outcomes distinguish excision from ablation. Yeung et al. (2024), published in <em>Acta Scientific Women's Health</em>, reported a 2.5% rate of repeat surgery over ten years following optimal excision of endometriosis at a single tertiary referral center (620 patients). Sutton et al. (1994) reported repeat surgery rates of up to 40% at one to two years after laser ablation.<sup><a href="#ref-11" id="cite-11e">11</a></sup> This difference is clinically significant. Excision removes the disease. Ablation burns the surface. The distinction determines whether women face repeated surgeries or sustained relief.</p>
 
           <h3>Cost-Effectiveness</h3>
 
@@ -835,6 +862,14 @@ const jsonLd = {
             <li><strong>Publication bias.</strong> Publication bias exists in all fertility research, including IVF. Clinics and researchers are more likely to publish favorable outcomes. This affects the interpretation of all fertility statistics, not just RRM data. The HFEA's mandatory reporting in the United Kingdom provides the most complete IVF outcome data available precisely because it eliminates selective reporting.</li>
           </ul>
 
+          <h3>A Note on the Criticism</h3>
+
+          <p>In 2025 and 2026, professional organizations including ACOG and ASRM published position statements, editorials, and open letters criticizing RRM. A review of these documents reveals a pattern: the critiques are structural (no RCTs, no ABMS sub-board, ideological framing) rather than data-driven. The ACOG Issue Brief on RRM, the ASRM "Just the Facts" sheet, the ASRM letter to IIRRM, and the joint open letter to the National Governors Association collectively cite zero peer-reviewed RRM outcome studies to support the claim that RRM lacks evidence. A January 2026 JAMA Viewpoint commissioned through ASRM's PRIMED scholar program similarly engages with policy arguments without citing or refuting any specific RRM clinical data.</p>
+
+          <p>None of these opposition documents cite or engage with Boyle et al. (2018), Boyle et al. (2025), Sanchez-Mendez et al. (2025), or the Stanford BMC (2021) study. The newest and largest data in the field is unaddressed.</p>
+
+          <p>This does not mean the criticism is baseless. The call for RCTs is legitimate. The concern about patient access to IVF is real. But patients and providers deserve to evaluate the actual published data, not a characterization of the field that ignores it.</p>
+
           <p>The existing evidence supports RRM as an effective, safe, and cost-effective approach for the majority of couples facing infertility and reproductive health conditions. It also demonstrates that RRM improves the health of women and men even when pregnancy is not achieved. The field needs more large-scale prospective studies, and organizations like FACTS About Fertility and the IIRRM are working to make that happen.</p>
 
           <p><em>Outcomes vary by individual. All statistics cited represent published research averages, not guarantees of individual results.</em></p>
@@ -847,7 +882,7 @@ const jsonLd = {
           <ol>
             <li>
               <strong>Learn to chart (1-3 cycles).</strong>
-              <p>A woman learns a validated fertility awareness-based method (FABM) from a trained instructor. Creighton Model, Marquette, FEMM, and Billings are the most common systems used in RRM. This charting provides the baseline diagnostic data that drives every decision downstream. Some RRM physicians accept a woman who has just begun learning to chart. Others prefer two to three completed cycles before the first appointment. Either way, the chart is the foundation.<sup><a href="#ref-7" id="cite-7c">7</a></sup></p>
+              <p>A woman learns a validated cycle-charting method from a trained instructor. Creighton Model, Marquette, FEMM, and Billings are the most common systems used in RRM. This charting provides the baseline diagnostic data that drives every decision downstream. Some RRM physicians accept a woman who has just begun learning to chart. Others prefer two to three completed cycles before the first appointment. Either way, the chart is the foundation.<sup><a href="#ref-7" id="cite-7c">7</a></sup></p>
             </li>
             <li>
               <strong>Initial consultation.</strong>
@@ -1039,7 +1074,7 @@ const jsonLd = {
             <span class="myth-label">Myth</span>
             <p class="myth-text">"RRM has no evidence base."</p>
             <span class="fact-label">Fact</span>
-            <p class="fact-text">Published studies document RRM outcomes in <em>JABFM</em>, <em>Canadian Family Physician</em>, <em>Frontiers in Medicine</em>, the <em>Journal of Medical Case Reports</em>, and the <em>Journal of Restorative Reproductive Medicine</em>. Stanford, Parnell, and Boyle reported live birth rates of 26% after NaProTechnology treatment in an Irish general practice.<sup><a href="#ref-3" id="cite-3d">3</a></sup> Tham, Schliep, and Stanford reported a 24% live birth rate in a Canadian cohort.<sup><a href="#ref-4" id="cite-4d">4</a></sup> Boyle et al. demonstrated healthy singleton pregnancies from RRM after multiple failed IVF cycles.<sup><a href="#ref-17" id="cite-17c">17</a></sup> The <a href="https://library.rrmacademy.org">RRM Research Library</a> indexes over 3,000 publications relevant to restorative reproductive medicine. More research is needed, and more is underway. But claiming there is "no evidence" ignores what already exists.</p>
+            <p class="fact-text">Published studies document RRM outcomes in <em>JABFM</em>, <em>Canadian Family Physician</em>, <em>Frontiers in Medicine</em>, the <em>Journal of Medical Case Reports</em>, and the <em>Journal of Restorative Reproductive Medicine</em>. Stanford, Parnell, and Boyle reported crude live birth rates of 26% (adjusted: 53%) after NaProTechnology treatment in an Irish general practice.<sup><a href="#ref-3" id="cite-3d">3</a></sup> Tham, Schliep, and Stanford reported a 38% crude live birth rate in a Canadian cohort.<sup><a href="#ref-4" id="cite-4d">4</a></sup> Boyle et al. (2025) reported a 41% live birth rate in 187 couples at NeoFertility Dublin.<sup><a href="#ref-24" id="cite-24b">24</a></sup> Boyle et al. (2018) demonstrated healthy singleton pregnancies from RRM after multiple failed IVF cycles.<sup><a href="#ref-17" id="cite-17c">17</a></sup> The <a href="https://library.rrmacademy.org">RRM Research Library</a> indexes over 3,000 publications relevant to restorative reproductive medicine. More research is needed, and more is underway. But claiming there is "no evidence" ignores what already exists.</p>
           </div>
 
           <div class="myth-fact">
@@ -1064,7 +1099,7 @@ const jsonLd = {
           <h3>For Couples and Individuals</h3>
 
           <ol>
-            <li><strong>Learn a validated fertility awareness-based method (FABM).</strong> Charting provides the diagnostic data that RRM physicians rely on. Validated methods include the Creighton Model, Marquette Method, FEMM, Billings Ovulation Method, and SymptoThermal Method. Find a local instructor through <a href="https://www.fertilitycare.org" rel="noopener">FertilityCare Centers of America</a> or the training organization for your chosen method. Most couples need 1 to 3 charted cycles before their first physician visit.</li>
+            <li><strong>Learn a validated cycle-charting method.</strong> Charting provides the diagnostic data that RRM physicians rely on. Options include the Creighton Model FertilityCare System, Marquette Method, FEMM, Billings Ovulation Method, and SymptoThermal methods. Find a local instructor through <a href="https://www.fertilitycare.org" rel="noopener">FertilityCare Centers of America</a> or the training organization for your chosen method. Most couples need 1 to 3 charted cycles before their first physician visit.</li>
             <li><strong>Find an RRM-trained physician.</strong> The <a href="https://iirrm.org" rel="noopener">IIRRM referral network</a> connects you with credentialed providers. <a href="https://naturalwomanhood.org/find-a-doctor/" rel="noopener">Natural Womanhood's physician directory</a> is another resource. If you use a specific charting method, ask your instructor for provider recommendations within that method's network.<sup><a href="#ref-22" id="cite-22">22</a></sup></li>
             <li><strong>Prepare for your first appointment.</strong> Bring your charted cycles, complete medical history, prior lab and imaging results, and a list of questions. If you have a partner, have them attend. RRM evaluates both partners because male factor contributes to infertility in up to 40% of couples.<sup><a href="#ref-5" id="cite-5d">5</a></sup></li>
             <li><strong>Educate yourself.</strong> Browse free courses at <a href="/courses/">RRM Academy</a> to understand the approach, the conditions it treats, and what to expect from treatment. Knowledge helps you advocate for your own care.</li>
@@ -1142,7 +1177,7 @@ const jsonLd = {
             <details>
               <summary>What is the success rate of RRM?</summary>
               <div class="faq-answer">
-                <p>Published studies report live birth rates of 24 to 26% for NaProTechnology treatment with timed intercourse, and higher rates in specific subgroups. Stanford's preprint data shows rates of 29 to 41% depending on age and BMI. Surgical treatment of moderate-to-severe endometriosis has yielded per-woman pregnancy rates of 55%. Results depend on diagnosis, age, and individual factors. RRM also delivers outcomes beyond pregnancy: pain relief, hormonal balance, and answers about why a condition exists.<sup><a href="#ref-3" id="cite-3f">3</a></sup><sup><a href="#ref-4" id="cite-4e">4</a></sup><sup><a href="#ref-18" id="cite-18b">18</a></sup></p>
+                <p>Published studies report live birth rates of 26 to 38% (crude) for NaProTechnology treatment with timed intercourse, and higher adjusted rates in specific subgroups. Boyle et al. (2025) reported a 41% live birth rate in a 187-couple cohort.<sup><a href="#ref-24" id="cite-24">24</a></sup> Surgical treatment of moderate-to-severe endometriosis yields post-excision pregnancy rates of 44 to 69%.<sup><a href="#ref-23" id="cite-23d">23</a></sup> Results depend on diagnosis, age, and individual factors. RRM also delivers outcomes beyond pregnancy: pain relief, hormonal balance, and answers about why a condition exists.<sup><a href="#ref-3" id="cite-3f">3</a></sup><sup><a href="#ref-4" id="cite-4e">4</a></sup></p>
               </div>
             </details>
 
@@ -1177,7 +1212,7 @@ const jsonLd = {
             <details>
               <summary>Can RRM help with endometriosis?</summary>
               <div class="faq-answer">
-                <p>Yes. RRM approaches endometriosis through thorough diagnostic evaluation (often including surgical assessment), excision surgery to remove endometriotic tissue, and targeted medical management to support healing and prevent recurrence. Excision is the gold standard for surgical treatment. A meta-analysis found that surgical treatment of moderate-to-severe endometriosis yielded a 55.3% per-woman pregnancy rate. RRM also addresses the pain, inflammation, and hormonal disruption that endometriosis causes.<sup><a href="#ref-11" id="cite-11b">11</a></sup></p>
+                <p>Yes. RRM approaches endometriosis through thorough diagnostic evaluation (often including surgical assessment), excision surgery to remove endometriotic tissue, and targeted medical management to support healing and prevent recurrence. Excision is the gold standard for surgical treatment. Meta-analyses report post-excision pregnancy rates of 44% to 69% depending on disease severity.<sup><a href="#ref-23" id="cite-23b">23</a></sup> RRM also addresses the pain, inflammation, and hormonal disruption that endometriosis causes.</p>
               </div>
             </details>
 
@@ -1245,7 +1280,7 @@ const jsonLd = {
               <li id="ref-8">Billings EL, Billings JJ, Catarinich M. <em>Billings Atlas of the Ovulation Method</em>. Melbourne: Ovulation Method Research and Reference Centre, 1989.</li>
               <li id="ref-9">Hilgers TW. <em>The Medical and Surgical Practice of NaProTechnology</em>. Omaha: Pope Paul VI Institute Press, 2004.</li>
               <li id="ref-10">Boyle PC, Stanford JB, Zecevic I. "Successful Pregnancy with Restorative Reproductive Medicine after 16 Years of Infertility, Three Recurrent Miscarriages, and Eight Unsuccessful Embryo Transfers with In Vitro Fertilization/Intracytoplasmic Sperm Injection: A Case Report." <em>Journal of Medical Case Reports</em> 16, no. 1 (2022): 246.</li>
-              <li id="ref-11">Yeung P, Mohan A, Gavard J. "The Long-Term Rate of Repeat Surgery After Optimal Excision Surgery of Endometriosis at a Single Tertiary Referral Center." Preprint, September 19, 2024.</li>
+              <li id="ref-11">Yeung P Jr, Mohan A, Gavard JA. "The Long-Term Rate of Repeat Surgery After Optimal Excision Surgery of Endometriosis at a Single Tertiary Referral Center." <em>Acta Scientific Women's Health</em> 6, no. 12 (2024). <a href="https://actascientific.com/ASWH/pdf/ASWH-06-0643.pdf" rel="noopener">actascientific.com</a></li>
               <li id="ref-12">Waters E, Dodson N. "Treating Infertility: The New Frontier of Reproductive Medicine." Heritage Foundation Special Report SR315, March 24, 2025. <a href="https://www.heritage.org/marriage-and-family/report/treating-infertility-the-new-frontier-reproductive-medicine" rel="noopener">heritage.org</a></li>
               <li id="ref-13">Pugsley Z, Ballard K. "Management of Endometriosis in General Practice: The Pathway to Diagnosis." <em>British Journal of General Practice</em> 57, no. 539 (2007): 470-76.</li>
               <li id="ref-14">American College of Obstetricians and Gynecologists. "Menstruation in Girls and Adolescents: Using the Menstrual Cycle as a Vital Sign." Committee Opinion No. 651, December 2015 (reaffirmed 2025).</li>
@@ -1257,6 +1292,10 @@ const jsonLd = {
               <li id="ref-20">RESTORE Act, H.R. 3589, 119th Congress (2025). Legislation to expand access to restorative reproductive medicine as an alternative fertility treatment approach.</li>
               <li id="ref-21">Fertility Appreciation Collaborative to Teach the Science (FACTS). "About FACTS." <a href="https://www.factsaboutfertility.org/about/who-we-are/" rel="noopener">factsaboutfertility.org</a></li>
               <li id="ref-22">Natural Womanhood. "Find a Doctor." <a href="https://naturalwomanhood.org/find-a-doctor/" rel="noopener">naturalwomanhood.org/find-a-doctor/</a></li>
+              <li id="ref-23">Vesali S, Razavi M, Rezaeinejad M, et al. "Endometriosis Fertility Index for Predicting Non-Assisted Reproductive Technology Pregnancy After Endometriosis Surgery: A Systematic Review and Meta-Analysis." <em>BJOG</em> 127, no. 7 (2020): 800-811.</li>
+              <li id="ref-24">Boyle P, Toth A, Minjeur M, Turczynski C. "Restorative Reproductive Medicine (RRM) Outcomes Compared to In-Vitro Fertilization (IVF) for the Treatment of Infertility: A Retrospective Evaluation of a 2019 Clinic Cohort Compared to One Cycle of IVF." <em>Journal of Restorative Reproductive Medicine</em> 1 (2025). DOI: 10.63264/gejytw70.</li>
+              <li id="ref-25">Sanchez-Mendez S, et al. "NaProTechnology Outcomes in 1,310 Couples: A Retrospective Cohort Study." <em>Frontiers in Reproductive Health</em> (2025). DOI: 10.3389/frph.2025.1696679.</li>
+              <li id="ref-26">Whittaker N. "RRM Explained: A Path to Understanding and True Healing." RRM Academy Commentary, June 1, 2025. <a href="/commentary/rrm-explained-a-path-to-understanding-and-true-healing/">rrmacademy.org</a></li>
             </ol>
           </section>
 
