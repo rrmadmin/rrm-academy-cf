@@ -56,7 +56,8 @@ const {
 } = Astro.props;
 
 const fullTitle = title.includes('RRM') ? title : `${title} | RRM Academy`;
-const canonical = canonicalUrl || Astro.url.href;
+const rawCanonical = canonicalUrl || Astro.url.href;
+const canonical = rawCanonical.endsWith('/') ? rawCanonical : `${rawCanonical}/`;
 const siteOrigin = 'https://rrmacademy.org';
 const resolvedOgImage = ogImage
   ? (ogImage.startsWith('http') ? ogImage : `${siteOrigin}${ogImage}`)
