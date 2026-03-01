@@ -107,6 +107,7 @@ const parentCourse = course.includedIn
   title={course.seo?.title || course.title}
   description={course.seo?.description || course.shortDescription}
   canonicalUrl={`https://rrmacademy.org/courses/${course.slug}`}
+  ogType="article"
   ogImage={course.image}
   jsonLd={jsonLd}
 >

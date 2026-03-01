@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { fetchAllArticles } from '../lib/airtable';
+import coursesData from '../data/courses.json';
 
 const articles = await fetchAllArticles();
 const articleCount = articles.length;
@@ -43,7 +44,7 @@ const jsonLd = {
     '@type': 'OfferCatalog',
     name: 'RRM Academy Courses',
     url: 'https://rrmacademy.org/courses',
-    numberOfItems: 12,
+    numberOfItems: coursesData.length,
   },
 };
 ---
@@ -62,7 +63,7 @@ const jsonLd = {
           Evidence-based reproductive medicine education for patients and professionals who want real answers.
         </p>
         <div class="hp-hero__links">
-          <a href={`${wixBase}/courses`} class="btn btn--primary">Explore Courses</a>
+          <a href="/courses" class="btn btn--primary">Explore Courses</a>
           <a href="/library/" class="btn btn--secondary">Find RRM Research</a>
         </div>
       </div>
@@ -307,7 +308,7 @@ const jsonLd = {
           fixes and have discovered a path to true, lasting wellness.
         </p>
         <div class="hp-cta__links">
-          <a href={`${wixBase}/courses`} class="btn btn--primary">Explore Courses</a>
+          <a href="/courses" class="btn btn--primary">Explore Courses</a>
           <a href="/library/" class="btn btn--secondary">Access the Research Library</a>
         </div>
       </div>
