@@ -406,6 +406,7 @@
     "includes": [
       "long-term-endometriosis-management"
     ],
+    "relatedCourses": ["rrm-vs-ivf"],
     "faqs": [
       {
         "question": "Who is this course for?",
@@ -599,6 +600,7 @@
     "includedIn": [
       "masterclass-in-endometriosis-and-surgery"
     ],
+    "relatedCourses": ["postpartum-depression-anxiety"],
     "faqs": [
       {
         "question": "Who is this course for?",
@@ -637,6 +639,7 @@
     "selfPaced": true,
     "accessType": "public",
     "comingSoon": false,
+    "relatedCourses": ["rrm-vs-ivf"],
     "participants": 42,
     "instructors": [
       {
@@ -785,6 +788,7 @@
     "selfPaced": true,
     "accessType": "public",
     "comingSoon": false,
+    "relatedCourses": ["postpartum-depression-anxiety"],
     "participants": 99,
     "instructors": [
       {
