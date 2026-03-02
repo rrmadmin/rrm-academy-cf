@@ -79,6 +79,8 @@ Each shortcut made the previous generation's diagnostic skills less necessary to
 | Concern trolling | "I worry that RRM gives patients false hope" | Frames the critic as the compassionate one while dismissing evidence |
 | Scare-tactic selling | "You need to freeze your eggs NOW or you'll regret it forever" | Dr. Naomi witnessed an IVF physician shadow appointment where the doctor used fear to close a $15K egg freeze on a young woman. The pressure is financial, not medical. |
 | IUI as stalling | "Let's try a few rounds of IUI before IVF" | IUI was invented in the 1770s. Dr. Naomi calls it "not scientific." It's a revenue placeholder before the more lucrative IVF recommendation. |
+| Informed consent inversion | "RRM violates informed consent by not offering IVF" | Peipert et al. (2025) argue RRM gives patients an "illusion of reproductive choice." Inverts the consent argument: not offering IVF = unethical, even though not diagnosing root cause before bypassing is the actual consent failure. |
+| "False promise" labeling | "The false promise of restorative reproductive medicine" | Liao et al. (2025) title. Pre-loads the conclusion ("false") before presenting evidence. Frames RRM as deception, not disagreement. |
 
 ### What They Fear
 
@@ -147,6 +149,24 @@ Each shortcut made the previous generation's diagnostic skills less necessary to
 3. **Letter campaigns** -- ASRM organized letter-writing against IIRRM. Grassroots opposition that appears organic but is institutionally coordinated.
 4. **Terminology warfare** -- refusing to use the term "RRM" (calling it "so-called RRM" or putting it in scare quotes) denies linguistic legitimacy.
 5. **Political framing** -- linking RRM to anti-abortion and personhood politics makes the medical conversation impossible. Once RRM is coded as political, journalists treat it as a controversy rather than a clinical approach.
+6. **Journal-based opposition** -- a coordinated wave of anti-RRM commentaries and rebuttals in fertility journals (2025-2026), going beyond institutional position papers into the peer-reviewed literature itself. This is a significant escalation.
+
+### Published Opposition Literature (2014-2026)
+
+These papers represent the academic arm of the institutional opposition. Understanding their arguments, their rhetorical moves, and their blind spots is essential for content strategy.
+
+| Article | Authors | Year | Core argument | Persona map | Rhetorical move |
+|---------|---------|------|---------------|-------------|-----------------|
+| "Between Advanced Medical Technology and Prayer" | Radkowska-Walkowicz | 2014 | NaPro in Poland is a religiously driven substitute for secular IVF, pressured on vulnerable women by Catholic-nationalist politics | Media Framer | Reduces RRM to one country's culture war. Conflates Polish biopolitics with the global RRM evidence base. |
+| "The illusion of reproductive choice" (reply) | Peipert et al. | 2025 | RRM providers violate informed consent by not presenting IVF as a standard option | REI + Institutional | Inverts informed consent: omitting IVF = unethical. Never asks whether omitting root-cause diagnosis before bypassing is also a consent violation. |
+| "The False Promise of Restorative Reproductive Medicine" | Liao et al. | 2025 | RRM uses deceptive "natural" marketing to conceal religious origins and delays proven IVF treatment | Institutional | "False promise" in the title pre-loads the conclusion. Treats "natural" as inherently deceptive rather than descriptive of in vivo conception. Cites zero RRM outcome studies. |
+| "Endometriosis Surgery: Debates About RRM" | Humphries | 2025 | Surgical excision has merit for pain, but relying solely on surgery while refusing IVF harms fertility outcomes | Skeptical Academic | Most nuanced of the group. Acknowledges RRM surgical value but frames IVF refusal as dogmatic. Does not address the 93.5% missed-disease rate or the question of why IVF fails when underlying disease is untreated. |
+| "Contraceptive failure of the ovulation method" | Trussell et al. | 1990 | Ovulation method has high typical-use failure rate for contraception | (Ammunition) | A contraception study used to discredit a diagnostic and treatment paradigm. Conflates FABMs-as-contraception with FABMs-as-diagnostic-tools. RRM uses charting for diagnosis, not birth control. |
+| "Anticonceptive Drug Use and Increased Carotid/Femoral Plaque" | Rietzschel et al. | 2007 | Long-term OC use associated with increased arterial plaque | (Neutral/pro-RRM data) | Cardiovascular data that RRM proponents cite to support non-suppressive approaches. Adversaries frame citing this as "cherry-picking" or "anti-contraception agenda." |
+
+**Pattern:** Articles 1-3 share a common structure: assert religious motivation, assert harm via delay, cite zero RRM outcome studies. The argument is entirely about framing and intent. None engage with Boyle 2025, Sanchez-Mendez 2025, or any published RRM outcomes data.
+
+**The informed consent inversion (Peipert et al.) deserves special attention.** Their argument is: if you don't offer IVF, you violate informed consent. The counter-argument they never address: if you don't diagnose the root cause before bypassing it with IVF, you also violate informed consent. Informed consent requires telling patients what is wrong with them, not just what procedures are available.
 
 ### Vulnerabilities
 
@@ -174,6 +194,8 @@ Each shortcut made the previous generation's diagnostic skills less necessary to
 ### Their Argument
 
 "I have no problem with the idea of treating root causes. But the evidence base is retrospective cohort studies with no control groups. Sanchez-Mendez 2025 is the largest, and it's impressive, but it's still not randomized. Selection bias, referral bias, and healthy user effects could explain the results. Show me a well-designed RCT and I'll change my position."
+
+**Published exemplar:** Humphries (2025), "Endometriosis Surgery: Debates About RRM." Acknowledges that excision surgery has legitimate clinical value for pain management, but argues that relying solely on surgery while ideologically refusing IVF harms a patient's chances of conception. The most nuanced opposition voice. Advocates for a "balanced approach" where surgery and IVF are not mutually exclusive.
 
 ### Where They're Right
 
@@ -265,6 +287,10 @@ The dominant media frame (from actual coverage):
 | Evidence threshold manipulation | REI, Academic | Moving the goalposts -- demand RCTs that are ethically impossible |
 | Clock pressure | REI | Loss aversion + hyperbolic discounting -- "act now or lose your chance" |
 | Rebranding accusation | REI, Institutional | Anchoring -- if it's "just basic OBGYN," it can't be worth separate attention |
+| NFP/FABM conflation | All four | Category error -- citing NFP contraceptive failure rates (Trussell 1990) to discredit RRM, which uses charting for diagnosis, not birth control |
+| Informed consent inversion | REI, Institutional | Framing -- "not offering IVF = unethical" (Peipert 2025). Never applies the same standard to not diagnosing root cause before bypassing. |
+| "False promise" pre-loading | Institutional | Anchoring -- declaring RRM a "false promise" (Liao 2025) in the title before presenting evidence. The conclusion is the premise. |
+| Biopolitics reduction | Media Framer, Institutional | Substitution -- replacing medical evaluation with political evaluation. Polish NaPro politics (Radkowska-Walkowicz 2014) used to discredit global RRM evidence. |
 
 ### What All Adversaries Share
 
@@ -298,3 +324,5 @@ The dominant media frame (from actual coverage):
 - **Don't overstate evidence.** "RRM works for many patients" is defensible. "RRM is better than IVF" is a claim the evidence doesn't universally support.
 - **Don't target Dr. Institutional REI personally.** Some REIs are genuinely curious about RRM and may become allies. The adversary is the system, not the individual.
 - **Don't use "three shortcuts" on patient-facing content.** This framework is for internal strategy and provider education. Patients don't need to know about medical training history. They need to know RRM works.
+- **Don't respond to the published opposition papers directly.** Peipert, Liao, Humphries, and Radkowska-Walkowicz do not deserve named rebuttals on rrmacademy.org. Responding elevates them. Instead, let the outcome data (Boyle, Sanchez-Mendez) make their arguments irrelevant. The "informed consent" and "false promise" claims collapse when patients can read 41% vs. 30.6% on the same page.
+- **Don't conflate defending RRM with defending NFP as contraception.** Trussell 1990 is about contraceptive failure rates. RRM uses charting for diagnosis. These are different applications of the same technology. If adversaries conflate them, the correct response is: "RRM uses fertility charting as a diagnostic tool, like an EKG. Nobody evaluates the EKG by asking how well it prevents heart attacks."
