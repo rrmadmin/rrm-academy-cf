@@ -1,0 +1,857 @@
+[
+  {
+    "id": 1,
+    "section": "Key Takeaways",
+    "claim": "Published research shows crude live birth rates of 26 to 41% with RRM treatment and timed intercourse.",
+    "citation": "ref-3, ref-24, ref-25",
+    "type": "statistic",
+    "confidence": "likely_correct",
+    "notes": "Range spans multiple studies with different populations and years. The 26% (Stanford 2008) and 41% (Boyle 2025) are from different cohorts; presenting as a single range without context could be misleading."
+  },
+  {
+    "id": 2,
+    "section": "Key Takeaways",
+    "claim": "The largest published cohort (1,310 couples) reported an adjusted live birth rate of 62%.",
+    "citation": "ref-25",
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "The article body (Evidence section) says 62.1%. The key takeaway rounds to 62%. The citation is Sanchez-Mendez et al. 2025 in Frontiers in Reproductive Health. Verify the paper exists with that DOI and those exact figures."
+  },
+  {
+    "id": 3,
+    "section": "Key Takeaways",
+    "claim": "Infertility involves a male factor 30% of the time and combined male-female factors 40% of the time.",
+    "citation": "ref-5",
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "ref-5 is Duane et al. 2022 Frontiers in Medicine on FABMs for women's health. That paper may not be the primary source for male factor infertility prevalence statistics. Standard epidemiological sources often cite ~30-50% male factor contribution but the specific 30%/40% split needs verification against ref-5."
+  },
+  {
+    "id": 4,
+    "section": "What Is RRM",
+    "claim": "RRM is supported by peer-reviewed research published in journals including Fertility and Sterility, The Journal of the American Board of Family Medicine, Frontiers in Medicine, and the Journal of Restorative Reproductive Medicine.",
+    "citation": "ref-3, ref-4",
+    "type": "organizational",
+    "confidence": "likely_correct",
+    "notes": "The named journals are real and Fertility and Sterility is cited for the Katz 2011 cost study (ref-15), not for RRM outcomes directly. Journal of Restorative Reproductive Medicine exists (Boyle 2025 ref-24). Verify F&S published RRM outcome research specifically."
+  },
+  {
+    "id": 5,
+    "section": "What Is RRM",
+    "claim": "The RRM Academy Research Library indexes over 3,000 peer-reviewed publications.",
+    "citation": "ref-3, ref-4",
+    "type": "organizational",
+    "confidence": "needs_verification",
+    "notes": "This is a claim about RRM Academy's own library. Should be internally verifiable. The citations given (ref-3, ref-4) are RRM outcome studies, not sources for the library size claim. The same claim appears in the Evidence section. Verify the actual record count in the library."
+  },
+  {
+    "id": 6,
+    "section": "History",
+    "claim": "In the 1950s and 1960s, Drs. John and Evelyn Billings in Melbourne, Australia, developed the Billings Ovulation Method.",
+    "citation": "ref-8",
+    "type": "historical",
+    "confidence": "likely_correct",
+    "notes": "ref-8 is the Billings Atlas (1989). The decade framing (1950s-1960s) and Melbourne location are widely cited. The section heading says '1950s-1970s' but the text says 1950s and 1960s. Minor inconsistency."
+  },
+  {
+    "id": 7,
+    "section": "History",
+    "claim": "Billings research established that cervical mucus patterns reflect underlying hormonal activity and can reliably identify the fertile window.",
+    "citation": "ref-8",
+    "type": "medical",
+    "confidence": "likely_correct",
+    "notes": "Core scientific claim of the Billings method, supported by decades of subsequent research. Reasonable attribution to ref-8."
+  },
+  {
+    "id": 8,
+    "section": "History",
+    "claim": "Dr. Thomas Hilgers at Creighton University developed the Creighton Model FertilityCare System (CrMS) beginning in 1976.",
+    "citation": "ref-9",
+    "type": "historical",
+    "confidence": "needs_verification",
+    "notes": "ref-9 is Hilgers' 2004 textbook. The '1976' start date is specific and widely cited, but should be verified. Also, Hilgers was at Creighton University initially but later founded his own institute. The institutional affiliation may be imprecise for the 1976 date."
+  },
+  {
+    "id": 9,
+    "section": "History",
+    "claim": "In 1985, Dr. Hilgers founded the Pope Paul VI Institute for the Study of Human Reproduction in Omaha, Nebraska.",
+    "citation": "ref-2",
+    "type": "historical",
+    "confidence": "needs_verification",
+    "notes": "The 1985 founding date is widely cited. ref-2 is an OSV News article, not the most authoritative source for this historical fact. Should be verified against the Pope Paul VI Institute's own records."
+  },
+  {
+    "id": 10,
+    "section": "History",
+    "claim": "The institute conducted prospective, real-time studies tracking women's hormones throughout their cycles, published primarily in Hilgers' NaProTechnology textbook rather than in peer-reviewed journals.",
+    "citation": "ref-2",
+    "type": "historical",
+    "confidence": "needs_verification",
+    "notes": "The parenthetical 'rather than in peer-reviewed journals' is a potentially contentious characterization. Hilgers did publish in peer-reviewed journals as well. This framing could be misleading or oversimplified."
+  },
+  {
+    "id": 11,
+    "section": "History",
+    "claim": "In 2000, physicians from Canada, Ireland, and the United Kingdom founded the International Institute for Restorative Reproductive Medicine (IIRRM).",
+    "citation": "ref-1",
+    "type": "historical",
+    "confidence": "needs_verification",
+    "notes": "ref-1 is the IIRRM's own website ('What Is RRM?' page, Dec 2024). The founding year 2000 and the countries listed (Canada, Ireland, UK) need verification. The IIRRM website is the primary source but the specific year and founding countries should be confirmed."
+  },
+  {
+    "id": 12,
+    "section": "History",
+    "claim": "Dr. Tracey Parnell coined the term 'restorative reproductive medicine'.",
+    "citation": "ref-1",
+    "type": "attribution",
+    "confidence": "needs_verification",
+    "notes": "This is a specific attribution claim. ref-1 is the IIRRM website. Should be verified. Parnell is a co-author on the Stanford 2008 study (ref-3). The specific attribution of coining the term needs confirmation."
+  },
+  {
+    "id": 13,
+    "section": "History",
+    "claim": "Dr. Kevin McCarthy served as the IIRRM's first president.",
+    "citation": "ref-1",
+    "type": "historical",
+    "confidence": "needs_verification",
+    "notes": "Specific historical claim about IIRRM leadership. ref-1 (IIRRM website) is the appropriate source but should be verified directly."
+  },
+  {
+    "id": 14,
+    "section": "History",
+    "claim": "FEMM introduced a hormonal health protocol that combined fertility charting with medical management of hormonal conditions, working closely with the Reproductive Health Research Institute.",
+    "citation": "ref-6",
+    "type": "organizational",
+    "confidence": "needs_verification",
+    "notes": "The specific mention of 'Reproductive Health Research Institute' as a close collaborator needs verification. ref-6 is a FACTS article about RRM. The institutional relationship described should be checked."
+  },
+  {
+    "id": 15,
+    "section": "History",
+    "claim": "NeoFertility was developed by Dr. Phil Boyle in Dublin.",
+    "citation": "ref-10",
+    "type": "historical",
+    "confidence": "likely_correct",
+    "notes": "Dr. Phil Boyle is the author of multiple cited NeoFertility papers. Dublin location is consistent with ref-24 which mentions 'NeoFertility Dublin'. ref-10 is a case report, not the best source for organizational founding."
+  },
+  {
+    "id": 16,
+    "section": "History",
+    "claim": "Boyle's published data showed healthy singleton pregnancies in couples who had previously undergone multiple failed IVF cycles.",
+    "citation": "ref-10",
+    "type": "medical",
+    "confidence": "verified",
+    "notes": "ref-10 is Boyle et al. 2022 JMCR case report. ref-17 (Boyle et al. 2018 Frontiers in Medicine) is the more relevant cohort study for this claim. The claim is supported by both references."
+  },
+  {
+    "id": 17,
+    "section": "History",
+    "claim": "FACTS About Fertility was co-founded by Dr. Marguerite Duane.",
+    "citation": "ref-5",
+    "type": "historical",
+    "confidence": "likely_correct",
+    "notes": "Marguerite Duane is listed as an author on ref-5 and ref-6. Her role as co-founder of FACTS is widely documented. The citation (ref-5, a 2022 Frontiers in Medicine article she authored) is not the ideal source for this organizational founding claim."
+  },
+  {
+    "id": 18,
+    "section": "History",
+    "claim": "The Journal of Restorative Reproductive Medicine launched to provide a dedicated peer-reviewed venue for RRM research.",
+    "citation": null,
+    "type": "organizational",
+    "confidence": "likely_correct",
+    "notes": "The journal is real (ref-24 cites it with a DOI). No citation given for the journal's founding/launch. No notes on when it launched."
+  },
+  {
+    "id": 19,
+    "section": "History",
+    "claim": "Dr. Patrick Yeung's RESTORE Center for Endometriosis achieved repeat-surgery rates of just 2.5% over ten years, compared to 40 to 60% within one to two years after ablation.",
+    "citation": "ref-11",
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "ref-11 is Yeung et al. 2024 in Acta Scientific Women's Health. The 2.5% rate over ten years matches the Evidence section. The 'compared to 40 to 60%' range differs from the Evidence section which says 'up to 40% at one to two years' (citing Sutton et al. 1994). The history section says '40 to 60%' while the Evidence section says 'up to 40%' -- internal inconsistency. Also, the repeat-surgery comparison should reference ablation specifically, not ablation in general."
+  },
+  {
+    "id": 20,
+    "section": "History",
+    "claim": "In 2025, Arkansas became the first U.S. state to mandate insurance coverage for restorative reproductive medicine.",
+    "citation": "ref-12",
+    "type": "legal",
+    "confidence": "needs_verification",
+    "notes": "ref-12 is a Heritage Foundation report from March 2025. This is a specific, verifiable legislative claim. Should be checked against Arkansas state legislature records and news coverage. The claim also appears in the Cost/Insurance section and FAQ."
+  },
+  {
+    "id": 21,
+    "section": "History",
+    "claim": "The RESTORE Act (H.R. 3589) was introduced in the U.S. Congress to expand access to RRM treatments.",
+    "citation": "ref-12",
+    "type": "legal",
+    "confidence": "needs_verification",
+    "notes": "ref-12 is a Heritage Foundation report. The bill number H.R. 3589 should be verified against Congress.gov. The article also attributes it to the '119th Congress' in the cost section (ref-20). H.R. 3589 in the 119th Congress (2025-2026) needs to be confirmed."
+  },
+  {
+    "id": 22,
+    "section": "History",
+    "claim": "The Heritage Foundation published a comprehensive report on RRM as an alternative to assisted reproductive technology.",
+    "citation": "ref-12",
+    "type": "organizational",
+    "confidence": "verified",
+    "notes": "ref-12 is: Waters E, Dodson N. 'Treating Infertility: The New Frontier of Reproductive Medicine.' Heritage Foundation Special Report SR315, March 24, 2025. This is a verifiable publication."
+  },
+  {
+    "id": 23,
+    "section": "History",
+    "claim": "Major media outlets covered RRM for the first time, including The New York Times, STAT News, The Cut, The 19th, MedPage Today, and OSV News.",
+    "citation": null,
+    "type": "historical",
+    "confidence": "needs_verification",
+    "notes": "No citation for this claim. 'For the first time' is a strong qualifier. The claim that these specific outlets covered RRM in 2025 should be verified. OSV News coverage is documented (ref-2). The others need confirmation."
+  },
+  {
+    "id": 24,
+    "section": "History",
+    "claim": "Professional societies including ACOG and ASRM published their own analyses of the field in 2025.",
+    "citation": null,
+    "type": "organizational",
+    "confidence": "needs_verification",
+    "notes": "No citation. This is referenced more fully in the 'Note on the Criticism' subsection of Evidence. Specific documents (ACOG Issue Brief, ASRM 'Just the Facts' sheet, ASRM letter to IIRRM, joint open letter to National Governors Association, JAMA Viewpoint) are named there but not cited with ref numbers. These documents should be verified."
+  },
+  {
+    "id": 25,
+    "section": "History",
+    "claim": "Today, RRM-trained physicians practice on every continent except Antarctica.",
+    "citation": "ref-2",
+    "type": "organizational",
+    "confidence": "needs_verification",
+    "notes": "ref-2 is an OSV News article. This is an expansive geographic claim. It may originate from IIRRM promotional materials. Needs verification."
+  },
+  {
+    "id": 26,
+    "section": "Diagnosis",
+    "claim": "Standard practice often involves a basic hormone panel, a semen analysis, and imaging, followed by referral to IUI or IVF within three to six months, frequently without a complete diagnosis.",
+    "citation": "ref-12",
+    "type": "medical",
+    "confidence": "needs_verification",
+    "notes": "ref-12 is the Heritage Foundation report. This is a characterization of conventional fertility medicine practice. The 'three to six months' timeline and 'frequently without a complete diagnosis' are strong claims that should be grounded in medical literature rather than a policy advocacy report."
+  },
+  {
+    "id": 27,
+    "section": "Diagnosis",
+    "claim": "The label 'unexplained infertility' is assigned to roughly 15 to 30% of couples.",
+    "citation": "ref-5",
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "ref-5 is the Duane et al. 2022 Frontiers in Medicine FABMs article. The 15-30% range is commonly cited in fertility literature but should be verified against ref-5 specifically, as it may not be the primary epidemiological source."
+  },
+  {
+    "id": 28,
+    "section": "Diagnosis",
+    "claim": "Standard fertility workups often check progesterone on a single calendar day, typically cycle day 21, assuming a 28-day cycle with ovulation on day 14.",
+    "citation": "ref-6",
+    "type": "medical",
+    "confidence": "likely_correct",
+    "notes": "The 'day 21 progesterone draw' practice is widely documented in fertility medicine. ref-6 is the FACTS article. This is a reasonable characterization of standard practice."
+  },
+  {
+    "id": 29,
+    "section": "Diagnosis",
+    "claim": "The average time from symptom onset to endometriosis diagnosis is seven to twelve years.",
+    "citation": "ref-13",
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "ref-13 is Pugsley & Ballard 2007 BJGP. That paper covers UK general practice. The 7-12 year figure is commonly cited but varies by study and country. The 2007 date makes this a somewhat dated source; more recent estimates suggest improvements in some regions. Should verify the specific figure is in ref-13."
+  },
+  {
+    "id": 30,
+    "section": "Diagnosis",
+    "claim": "According to Dr. Patrick Yeung's ten-year database, over 90% of women presenting with pain and infertility have endometriosis, and many had previously been told their infertility was 'unexplained.'",
+    "citation": "ref-11",
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "ref-11 is Yeung et al. 2024 in Acta Scientific Women's Health about repeat surgery rates, not about endometriosis prevalence. The 'over 90%' prevalence claim may not be in ref-11. This figure is attributed to Yeung's database but the citation is for a different topic. Needs verification that ref-11 contains this statistic."
+  },
+  {
+    "id": 31,
+    "section": "Diagnosis",
+    "claim": "Infertility involves a male factor in approximately 30% of cases and combined male-female factors in another 40%.",
+    "citation": "ref-5",
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "Same claim as id-3. ref-5 is the Duane et al. 2022 FABMs article. The specific 30%/40% breakdown needs verification in ref-5. WHO data and other sources use different figures."
+  },
+  {
+    "id": 32,
+    "section": "FABMs",
+    "claim": "The American College of Obstetricians and Gynecologists has recognized the menstrual cycle as a 'vital sign' since 2015, alongside body temperature, pulse rate, respiratory rate, and blood pressure.",
+    "citation": "ref-14",
+    "type": "organizational",
+    "confidence": "verified",
+    "notes": "ref-14 is ACOG Committee Opinion No. 651, December 2015 (reaffirmed 2025). This is a verifiable, well-documented policy statement. The 'vital sign' terminology and the specific vitals listed match ACOG's language."
+  },
+  {
+    "id": 33,
+    "section": "FABMs",
+    "claim": "A short luteal phase is defined as fewer than 11 days from ovulation to menstruation and suggests inadequate progesterone.",
+    "citation": "ref-9",
+    "type": "medical",
+    "confidence": "needs_verification",
+    "notes": "ref-9 is Hilgers' 2004 NaProTechnology textbook. The 'fewer than 11 days' threshold is a specific clinical value. This parameter is used in NaProTechnology but may differ from other definitions (some sources use fewer than 10 or 12 days). The specific number should be verified."
+  },
+  {
+    "id": 34,
+    "section": "FABMs",
+    "claim": "The Marquette Method uses the ClearBlue or Mira monitor for urinary hormone tracking.",
+    "citation": null,
+    "type": "medical",
+    "confidence": "likely_correct",
+    "notes": "No citation. The Marquette Method's use of the ClearBlue fertility monitor is well documented. Mira is a newer addition and its specific integration into Marquette protocols should be verified."
+  },
+  {
+    "id": 35,
+    "section": "FABMs",
+    "claim": "FertilityCare Practitioner certification requires a 13-month education program including didactic coursework, supervised practicum, and competency evaluation.",
+    "citation": null,
+    "type": "organizational",
+    "confidence": "needs_verification",
+    "notes": "No citation. The '13-month' duration is a specific claim about AAFCP certification. Should be verified against AAFCP current program requirements, as program structures can change."
+  },
+  {
+    "id": 36,
+    "section": "FABMs",
+    "claim": "FertilityCare Practitioner certification is through the American Academy of FertilityCare Professionals (AAFCP).",
+    "citation": null,
+    "type": "organizational",
+    "confidence": "likely_correct",
+    "notes": "No citation. AAFCP as the certifying body for FertilityCare Practitioners is widely documented. Should be verified for current accuracy."
+  },
+  {
+    "id": 37,
+    "section": "Conditions Treated",
+    "claim": "Endometriosis affects an estimated 10% of reproductive-age women.",
+    "citation": "ref-13",
+    "type": "statistic",
+    "confidence": "likely_correct",
+    "notes": "The 10% figure is widely cited in endometriosis literature. ref-13 is Pugsley & Ballard 2007. This is a commonly accepted estimate, though some sources cite ranges of 6-15%. The figure is reasonable."
+  },
+  {
+    "id": 38,
+    "section": "Conditions Treated",
+    "claim": "Dr. Patrick Yeung's ten-year surgical database shows a 2.5% repeat surgery rate after excision, compared to repeat surgery rates of up to 40% at one to two years reported for ablation.",
+    "citation": "ref-11",
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "ref-11 is Yeung et al. 2024 Acta Scientific Women's Health. The 2.5% over ten years should be in this paper. The ablation comparison 'up to 40%' is attributed to Sutton et al. 1994 in the Evidence section but no separate citation is given here. The history section says '40-60%' while this section and the Evidence section say 'up to 40%' -- internal inconsistency that needs resolution."
+  },
+  {
+    "id": 39,
+    "section": "Conditions Treated",
+    "claim": "After surgical treatment of moderate-to-severe endometriosis, meta-analyses report pregnancy rates ranging from 44% to 69% per woman depending on disease severity and endometriosis fertility index.",
+    "citation": "ref-23",
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "ref-23 is Vesali et al. 2020 BJOG meta-analysis of 17 studies including 4,598 women. The 44-69% range should be verified against this paper. The description 'per woman' needs verification -- meta-analyses typically report cumulative pregnancy rates."
+  },
+  {
+    "id": 40,
+    "section": "Conditions Treated",
+    "claim": "PCOS affects 6-12% of reproductive-age women and is the most common endocrine disorder in this population.",
+    "citation": null,
+    "type": "statistic",
+    "confidence": "likely_correct",
+    "notes": "No citation. The 6-12% range and 'most common endocrine disorder' descriptor are standard epidemiological claims widely cited in PCOS literature (CDC, NICHD, etc.). Reasonable and likely accurate."
+  },
+  {
+    "id": 41,
+    "section": "Conditions Treated",
+    "claim": "Recurrent pregnancy loss is defined as two or more consecutive miscarriages and affects 1-2% of couples trying to conceive.",
+    "citation": null,
+    "type": "medical",
+    "confidence": "needs_verification",
+    "notes": "No citation. ACOG defines recurrent pregnancy loss as 2 or more pregnancy losses (not necessarily consecutive). ASRM has used different definitions. The '1-2%' prevalence figure and 'consecutive' definition need verification against current clinical guidelines."
+  },
+  {
+    "id": 42,
+    "section": "Conditions Treated",
+    "claim": "Male factor contributes to infertility in approximately 30% of couples, and combined male-female factors account for another 40%.",
+    "citation": "ref-5",
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "Same claim repeated again (ids 3, 31). ref-5 is the Duane et al. 2022 FABMs article. The 30%/40% split needs verification. Note these two figures sum to 70% male involvement, with 30% being female-only factor -- this specific breakdown should be confirmed."
+  },
+  {
+    "id": 43,
+    "section": "RRM vs IVF",
+    "claim": "Medication-only cycles average 20 times less than IVF cost.",
+    "citation": "ref-15",
+    "type": "statistic",
+    "confidence": "likely_correct",
+    "notes": "ref-15 is Katz et al. 2011 Fertility and Sterility prospective cohort study. The '20 times' figure is specifically attributed to this paper across multiple sections of the article. Should be verified that the 2011 paper uses this specific ratio. 2011 costs may not reflect current pricing."
+  },
+  {
+    "id": 44,
+    "section": "RRM vs IVF",
+    "claim": "IVF cycles typically range from $15,000 to $30,000.",
+    "citation": "ref-16",
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "ref-16 is HFEA 2023 data from the UK. UK IVF costs would be in GBP and within the NHS/private system, which may not match US dollar costs. The $15,000-$30,000 range appears to be a US estimate but is attributed to HFEA. Needs verification."
+  },
+  {
+    "id": 45,
+    "section": "RRM vs IVF",
+    "claim": "IVF live birth rate is approximately 30% per cycle for women under 35, declining with age.",
+    "citation": "ref-16",
+    "type": "statistic",
+    "confidence": "likely_correct",
+    "notes": "ref-16 is HFEA 2021 trends data. HFEA data is mandatory reporting and reliable. The ~30% figure for under-35 is consistent with published HFEA statistics."
+  },
+  {
+    "id": 46,
+    "section": "RRM vs IVF",
+    "claim": "HFEA data shows live birth rates approximately 25% for ages 35-37, 17% for ages 38-39, and under 10% for women over 42.",
+    "citation": "ref-16",
+    "type": "statistic",
+    "confidence": "likely_correct",
+    "notes": "ref-16 is HFEA 2021. These specific age-bracket figures should be verified against the actual HFEA publication. Figures are plausible and consistent with known trends."
+  },
+  {
+    "id": 47,
+    "section": "RRM vs IVF",
+    "claim": "In the United States, IVF outcome reporting through SART is voluntary, and clinics may selectively report favorable results.",
+    "citation": null,
+    "type": "organizational",
+    "confidence": "likely_correct",
+    "notes": "No citation. SART reporting is indeed voluntary for SART member clinics, though CDC also collects ART data via NASS. The characterization of selective reporting is well documented in fertility literature."
+  },
+  {
+    "id": 48,
+    "section": "RRM vs IVF",
+    "claim": "Boyle et al. (2022) reported a case of successful pregnancy achieved through RRM after 16 years of infertility, three recurrent miscarriages, and eight unsuccessful embryo transfers with IVF/ICSI.",
+    "citation": "ref-10",
+    "type": "medical",
+    "confidence": "likely_correct",
+    "notes": "ref-10 is Boyle PC, Stanford JB, Zecevic I. JMCR 2022. The specific details (16 years, three miscarriages, eight transfers) should be verified against the actual case report."
+  },
+  {
+    "id": 49,
+    "section": "RRM vs IVF",
+    "claim": "Boyle et al. (2018) reported on a cohort of couples who achieved healthy singleton pregnancies through RRM after previous failed IVF cycles.",
+    "citation": "ref-17",
+    "type": "medical",
+    "confidence": "likely_correct",
+    "notes": "ref-17 is Boyle PC, de Groot T, Andralojc KM, Stanford JB. Frontiers in Medicine 5 (2018): 210. The general claim matches the paper description."
+  },
+  {
+    "id": 50,
+    "section": "RRM vs IVF",
+    "claim": "Among 403 couples with an average of 2.1 prior IVF attempts, the life-table live birth rate was 32.1%. Only 1 of 74 live births was a twin (1.4%), and 92% were born at 37+ weeks.",
+    "citation": "ref-17",
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "These specific figures (403 couples, 2.1 prior IVF attempts, 32.1% life-table rate, 1/74 twins, 92% term) need verification against ref-17 (Boyle et al. 2018 Frontiers in Medicine). Very specific statistics cited without being in the paper's citation list description."
+  },
+  {
+    "id": 51,
+    "section": "Evidence",
+    "claim": "Stanford et al. (2008) published in JABFM. Among couples with infertility treated over 24 months, the study reported live birth rates ranging from 25.5% to 52.8% depending on the woman's age and body mass index.",
+    "citation": "ref-3",
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "ref-3 is Stanford JB, Parnell TA, Boyle PC. JABFM 21, no. 5 (2008): 375-384. The specific range (25.5% to 52.8%) by age and BMI needs verification against the actual paper. The Key Takeaways section says '26 to 41%' which is a different range -- possible conflation of crude rates vs subgroup ranges."
+  },
+  {
+    "id": 52,
+    "section": "Evidence",
+    "claim": "Tham et al. (2012) studied NaProTechnology outcomes at a Canadian family practice. Among couples with infertility, 38% achieved at least one live birth.",
+    "citation": "ref-4",
+    "type": "statistic",
+    "confidence": "likely_correct",
+    "notes": "ref-4 is Tham E, Schliep K, Stanford J. Canadian Family Physician 58, no. 5 (2012): e267-e274. The 38% live birth figure is cited consistently across the article. Should verify against the actual paper."
+  },
+  {
+    "id": 53,
+    "section": "Evidence",
+    "claim": "Stanford (2021) published a preprint on medRxiv reporting a crude live birth rate of 35.4% and an adjusted cumulative rate of 57.4% at 24 months from a single Australian centre.",
+    "citation": "ref-18",
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "ref-18 is 'Stanford JB. Pregnancy Outcomes from a Restorative Infertility Treatment Model. Preprint, medRxiv, 2021.' A preprint (not peer-reviewed) is being cited for specific statistics. The figures 35.4% crude and 57.4% adjusted need verification. The preprint status should be noted as a limitation."
+  },
+  {
+    "id": 54,
+    "section": "Evidence",
+    "claim": "A separate peer-reviewed study by Stanford et al. in BMC Pregnancy and Childbirth (2021) covering two New England family medicine clinics reported a 29% cumulative live birth rate at two years.",
+    "citation": "ref-18",
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "ref-18 is listed as only the preprint. The BMC Pregnancy and Childbirth 2021 study is described as a separate study but shares the same citation (ref-18). Two different studies are being cited under one reference. The BMC paper needs its own citation and the 29% figure needs verification."
+  },
+  {
+    "id": 55,
+    "section": "Evidence",
+    "claim": "Boyle et al. (2025): In a retrospective evaluation of 187 couples treated at NeoFertility Dublin in 2019, the crude live birth rate was 41% (77/187). Conception rate was 52%. Prematurity in singletons was 4.0%, compared to 11.8% in CDC data and 14.4% in SART-reported IVF singletons. Average time to conception was 12 months.",
+    "citation": "ref-24",
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "ref-24 is Boyle P, Toth A, Minjeur M, Turczynski C. JRRM 1 (2025). This is a new journal (inaugural volume). The specific figures (77/187, 52% conception, 4.0% prematurity vs 11.8% CDC and 14.4% SART, 12 months to conception) all need verification. The 11.8% CDC and 14.4% SART prematurity comparators are cited without their own references."
+  },
+  {
+    "id": 56,
+    "section": "Evidence",
+    "claim": "Sanchez-Mendez et al. (2025): 1,310 couples, crude live birth rate 35.3%, adjusted cumulative live birth rate 62.1% at 24 months.",
+    "citation": "ref-25",
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "ref-25 is Sanchez-Mendez S, et al. Frontiers in Reproductive Health (2025). DOI: 10.3389/frph.2025.1696679. The specific figures (1,310 couples, 35.3% crude, 62.1% adjusted) need verification against the actual publication. The DOI provided should be checked to confirm the paper exists and contains these figures."
+  },
+  {
+    "id": 57,
+    "section": "Evidence",
+    "claim": "Vesali et al. (2020) conducted a meta-analysis of 17 studies including 4,598 women and reported post-excision pregnancy rates ranging from 44% to 69%.",
+    "citation": "ref-23",
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "ref-23 is Vesali S, et al. BJOG 127, no. 7 (2020): 800-811. The specific details (17 studies, 4,598 women, 44-69% range) need verification against the actual paper. The BJOG citation is verifiable."
+  },
+  {
+    "id": 58,
+    "section": "Evidence",
+    "claim": "Yeung et al. (2024) reported a 2.5% rate of repeat surgery over ten years following optimal excision at a single tertiary referral center (620 patients).",
+    "citation": "ref-11",
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "ref-11 is Yeung P Jr, Mohan A, Gavard JA. Acta Scientific Women's Health 6, no. 12 (2024). The 620 patients and 2.5% figure are specific. The journal (Acta Scientific Women's Health) is a lower-tier publication; verify its peer-review legitimacy."
+  },
+  {
+    "id": 59,
+    "section": "Evidence",
+    "claim": "Sutton et al. (1994) reported repeat surgery rates of up to 40% at one to two years after laser ablation.",
+    "citation": "ref-11",
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "Sutton et al. 1994 is attributed to ref-11 (Yeung 2024), suggesting the Yeung paper cites Sutton. Should verify that Yeung 2024 actually cites Sutton 1994 with this figure. The Sutton 1994 paper itself is not in the reference list."
+  },
+  {
+    "id": 60,
+    "section": "Evidence",
+    "claim": "Katz et al. (2011) conducted a prospective 18-month cohort study published in Fertility and Sterility and found that the average cost of IVF was 20 times greater than medication-only fertility treatments.",
+    "citation": "ref-15",
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "ref-15 is Katz P, Showstack J, Smith JF, et al. Fertility and Sterility 95, no. 3 (2011): 915-921. The '20 times greater' figure and '18-month prospective cohort' study design need verification against the actual paper. 2011 costs are now 15 years old and may not represent current IVF pricing."
+  },
+  {
+    "id": 61,
+    "section": "Evidence",
+    "claim": "Bewley et al. (2011) reviewed adverse outcomes from IVF and documented increased risks of ectopic pregnancy, preeclampsia, placenta previa, and cesarean delivery.",
+    "citation": "ref-19",
+    "type": "medical",
+    "confidence": "likely_correct",
+    "notes": "ref-19 is Bewley S, Foo L, Braude P. BMJ 342 (2011): d436. The BMJ citation is verifiable. The specific adverse outcomes listed should be confirmed in the paper."
+  },
+  {
+    "id": 62,
+    "section": "Evidence",
+    "claim": "A JAMA Viewpoint commissioned through ASRM's PRIMED scholar program was published in January 2026.",
+    "citation": null,
+    "type": "organizational",
+    "confidence": "needs_verification",
+    "notes": "No citation. 'PRIMED scholar program' and the JAMA Viewpoint are specific claims. The PRIMED program and whether ASRM commissioned or arranged a JAMA Viewpoint in January 2026 needs verification. This is a significant attribution."
+  },
+  {
+    "id": 63,
+    "section": "Evidence",
+    "claim": "ACOG and ASRM published position statements, editorials, and open letters criticizing RRM in 2025 and 2026, including: ACOG Issue Brief on RRM, ASRM 'Just the Facts' sheet, ASRM letter to IIRRM, and a joint open letter to the National Governors Association.",
+    "citation": null,
+    "type": "organizational",
+    "confidence": "needs_verification",
+    "notes": "No citations for any of these specific documents. Each named document (ACOG Issue Brief, ASRM Just the Facts, ASRM letter to IIRRM, joint open letter to NGA) needs to be verified as a real, published document with accessible source."
+  },
+  {
+    "id": 64,
+    "section": "Evidence",
+    "claim": "None of the opposition documents from ACOG/ASRM cite Boyle et al. (2018), Boyle et al. (2025), Sanchez-Mendez et al. (2025), or the Stanford BMC (2021) study.",
+    "citation": null,
+    "type": "organizational",
+    "confidence": "needs_verification",
+    "notes": "No citation. This is a specific claim about the content of multiple documents. Each document must be read to verify this assertion. A false or imprecise claim here would be a significant editorial problem."
+  },
+  {
+    "id": 65,
+    "section": "Cost and Insurance",
+    "claim": "RRM evaluation and treatment typically costs $2,000 to $8,000 total, varying by diagnosis and whether surgery is needed.",
+    "citation": null,
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "No citation. This is a broad cost range described as 'typical.' The range appears to be based on clinical experience rather than published data. Should be verified or caveated more explicitly."
+  },
+  {
+    "id": 66,
+    "section": "Cost and Insurance",
+    "claim": "Charting instruction runs $200 to $500 depending on method and instructor.",
+    "citation": null,
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "No citation. Cost ranges for charting instruction vary significantly by method and provider. This range should be verified against current instructor fees."
+  },
+  {
+    "id": 67,
+    "section": "Cost and Insurance",
+    "claim": "Cycle-timed hormonal panels cost $200 to $600 per cycle.",
+    "citation": null,
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "No citation. Lab costs vary widely by region, insurer, and laboratory. Without insurance, the full hormone panel described in the provider callout (progesterone x5, estradiol, LH, FSH, TSH, free T3, free T4, TPO antibodies, fasting insulin, DHEA-S, testosterone) could easily exceed $600."
+  },
+  {
+    "id": 68,
+    "section": "Cost and Insurance",
+    "claim": "Medications range from $50 to $300 per cycle.",
+    "citation": null,
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "No citation. Medication costs for bio-identical progesterone, letrozole, hCG, etc., vary by pharmacy, formulation, and insurance. The range is plausible for generic medications but should be verified."
+  },
+  {
+    "id": 69,
+    "section": "Cost and Insurance",
+    "claim": "If surgery is required (endometriosis excision), costs rise to $5,000 to $15,000.",
+    "citation": null,
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "No citation. Surgical costs vary enormously by region, facility, surgeon, and insurance. Laparoscopic endometriosis excision at a tertiary center by a specialist can exceed $50,000 without insurance. The low end ($5,000) assumes significant insurance coverage. This range may be misleading."
+  },
+  {
+    "id": 70,
+    "section": "Cost and Insurance",
+    "claim": "The typical RRM total cost for 6-12 months is $2,000 to $8,000 vs $30,000 to $60,000+ for IVF.",
+    "citation": null,
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "No direct citation for the comparison table figures. These are synthesized estimates. The IVF range ($30,000-$60,000+ for multiple cycles) and the RRM range both need substantiation."
+  },
+  {
+    "id": 71,
+    "section": "Cost and Insurance",
+    "claim": "Out-of-network benefits may still cover 60-80% of costs.",
+    "citation": null,
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "No citation. Out-of-network coverage varies enormously by plan. The '60-80%' figure is presented as a general range without evidence. Many plans offer far less or have significant deductibles."
+  },
+  {
+    "id": 72,
+    "section": "Cost and Insurance",
+    "claim": "The RESTORE Act (H.R. 3589), introduced in the 119th Congress, seeks to expand federal access to RRM treatments.",
+    "citation": "ref-20",
+    "type": "legal",
+    "confidence": "needs_verification",
+    "notes": "ref-20 is listed as 'RESTORE Act, H.R. 3589, 119th Congress (2025).' This bill number and Congress session need verification against Congress.gov. Should also verify the bill's actual language and current status."
+  },
+  {
+    "id": 73,
+    "section": "Cost and Insurance",
+    "claim": "The Trump administration's executive order on IVF coverage opened new conversations about what 'fertility treatment' should include.",
+    "citation": null,
+    "type": "legal",
+    "confidence": "needs_verification",
+    "notes": "No citation. An executive order on IVF coverage from the Trump administration is referenced. This should be verified with the specific EO number and its actual provisions regarding RRM."
+  },
+  {
+    "id": 74,
+    "section": "NaProTechnology",
+    "claim": "The Pope Paul VI Institute is named for the pope who wrote Humanae Vitae.",
+    "citation": null,
+    "type": "historical",
+    "confidence": "verified",
+    "notes": "Pope Paul VI authored Humanae Vitae (1968). This is a well-documented historical fact."
+  },
+  {
+    "id": 75,
+    "section": "NaProTechnology",
+    "claim": "Dr. Thomas Hilgers developed NaProTechnology at the Pope Paul VI Institute in Omaha, Nebraska, beginning in the 1980s.",
+    "citation": "ref-9",
+    "type": "historical",
+    "confidence": "likely_correct",
+    "notes": "ref-9 is Hilgers' 2004 textbook. The 'beginning in the 1980s' framing is somewhat inconsistent with the History section which puts the CrMS development at 1976 and the Institute founding at 1985. The NaProTechnology clinical system emerged from the Institute after 1985."
+  },
+  {
+    "id": 76,
+    "section": "NaProTechnology",
+    "claim": "Hilgers' prospective studies tracking women's hormones throughout their cycles remain among the most detailed longitudinal datasets on female reproductive physiology ever collected.",
+    "citation": "ref-9",
+    "type": "medical",
+    "confidence": "needs_verification",
+    "notes": "This is a superlative comparative claim ('among the most detailed...ever collected') that is not verifiable from a single textbook citation. This is promotional language that should either be substantiated with a comparative claim from an independent source or softened."
+  },
+  {
+    "id": 77,
+    "section": "Training",
+    "claim": "The FCP education program spans 13 months and includes didactic coursework, supervised practicum, and competency evaluation.",
+    "citation": null,
+    "type": "organizational",
+    "confidence": "needs_verification",
+    "notes": "Same as id-35. No citation. The 13-month duration needs verification against current AAFCP program requirements."
+  },
+  {
+    "id": 78,
+    "section": "Training",
+    "claim": "FACTS offers a medical elective for students and residents that provides CME credit and is designed to integrate into existing medical education curricula. FACTS also hosts an annual conference, community case discussions, and a professional CME course for practicing physicians.",
+    "citation": "ref-21",
+    "type": "organizational",
+    "confidence": "needs_verification",
+    "notes": "ref-21 is the FACTS 'About' page. The CME credit offering and specific program elements (annual conference, case discussions, professional CME course) should be verified against the current FACTS website."
+  },
+  {
+    "id": 79,
+    "section": "Training",
+    "claim": "The IIRRM provides international credentialing, hosts conferences, facilitates case study discussions, and maintains a provider referral network.",
+    "citation": "ref-1",
+    "type": "organizational",
+    "confidence": "likely_correct",
+    "notes": "ref-1 is the IIRRM website. These organizational functions are described on their site. Should be verified for current accuracy."
+  },
+  {
+    "id": 80,
+    "section": "Myths",
+    "claim": "NaProTechnology was developed at a Catholic institution.",
+    "citation": "ref-1",
+    "type": "historical",
+    "confidence": "verified",
+    "notes": "The Pope Paul VI Institute is a Catholic institution. This is documented fact."
+  },
+  {
+    "id": 81,
+    "section": "Myths",
+    "claim": "Stanford, Parnell, and Boyle reported crude live birth rates of 26% (adjusted: 53%) after NaProTechnology treatment in an Irish general practice.",
+    "citation": "ref-3",
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "The crude rate of 26% and adjusted rate of 53% should both be verified against Stanford et al. 2008 (ref-3). The Evidence section says 25.5-52.8% as a range by age/BMI, while this presents 26% and 53% as single figures. Internal inconsistency -- different sections present the same study's results differently."
+  },
+  {
+    "id": 82,
+    "section": "Myths",
+    "claim": "Tham, Schliep, and Stanford reported a 38% crude live birth rate in a Canadian cohort.",
+    "citation": "ref-4",
+    "type": "statistic",
+    "confidence": "likely_correct",
+    "notes": "Consistent with how ref-4 is cited elsewhere in the article."
+  },
+  {
+    "id": 83,
+    "section": "Myths",
+    "claim": "Boyle et al. (2025) reported a 41% live birth rate in 187 couples at NeoFertility Dublin.",
+    "citation": "ref-24",
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "ref-24 is Boyle et al. JRRM 2025. This is a new journal (inaugural volume). The 41% rate and 187 couples need verification against the actual publication."
+  },
+  {
+    "id": 84,
+    "section": "FAQ",
+    "claim": "Surgical treatment of moderate-to-severe endometriosis yields post-excision pregnancy rates of 44 to 69%.",
+    "citation": "ref-23",
+    "type": "statistic",
+    "confidence": "needs_verification",
+    "notes": "Repeated claim. ref-23 is Vesali et al. 2020 BJOG. Same verification notes as id-39 and id-57."
+  },
+  {
+    "id": 85,
+    "section": "FAQ",
+    "claim": "ACOG recognizes the menstrual cycle as a vital sign in adolescents.",
+    "citation": "ref-14",
+    "type": "organizational",
+    "confidence": "verified",
+    "notes": "ACOG Committee Opinion No. 651 (2015, reaffirmed 2025) explicitly uses the 'vital sign' framing for the menstrual cycle in adolescents. Well documented."
+  },
+  {
+    "id": 86,
+    "section": "FAQ",
+    "claim": "Some RRM physicians offer telehealth consultations for patients without local access.",
+    "citation": "ref-22",
+    "type": "organizational",
+    "confidence": "likely_correct",
+    "notes": "ref-22 is the Natural Womanhood find-a-doctor page. The claim about telehealth availability is general and plausible, but should be verified against the directory listings."
+  },
+  {
+    "id": 87,
+    "section": "FAQ",
+    "claim": "One case report describes a successful pregnancy after 16 years of infertility and eight unsuccessful IVF embryo transfers.",
+    "citation": "ref-17, ref-10",
+    "type": "medical",
+    "confidence": "likely_correct",
+    "notes": "ref-10 (Boyle et al. 2022 JMCR) is the correct citation for this case report. ref-17 (Boyle et al. 2018) is a separate cohort study. The case details (16 years, eight transfers) need verification against ref-10."
+  },
+  {
+    "id": 88,
+    "section": "References",
+    "claim": "ref-7: Katelyn Shelton, 'Technically Human: Dr. Naomi Whittaker on Restorative Reproductive Medicine, Femtech, and the Purpose of Medicine.' Technically Human (Substack), February 24, 2026.",
+    "citation": "ref-7",
+    "type": "attribution",
+    "confidence": "needs_verification",
+    "notes": "ref-7 is a Substack article. It is cited for clinical methodology claims (how RRM works, the diagnostic approach). A newsletter/blog post is a weak citation for medical methodology claims. Verify the article exists at the given URL and that the cited claims are accurately represented."
+  },
+  {
+    "id": 89,
+    "section": "References",
+    "claim": "ref-18: Stanford JB. 'Pregnancy Outcomes from a Restorative Infertility Treatment Model.' Preprint, medRxiv, 2021.",
+    "citation": "ref-18",
+    "type": "attribution",
+    "confidence": "needs_verification",
+    "notes": "A preprint is cited for specific outcome statistics. The medRxiv preprint should be verified to exist and contain the figures cited (35.4% crude, 57.4% adjusted). The same citation is used for what appears to be two separate studies (preprint and BMC Pregnancy and Childbirth 2021)."
+  },
+  {
+    "id": 90,
+    "section": "References",
+    "claim": "ref-25 DOI: 10.3389/frph.2025.1696679 -- Sanchez-Mendez et al. Frontiers in Reproductive Health 2025.",
+    "citation": "ref-25",
+    "type": "attribution",
+    "confidence": "needs_verification",
+    "notes": "The DOI format '10.3389/frph.2025.1696679' appears valid for Frontiers journals. However, the DOI needs to be resolved to confirm the paper exists, is published (not just accepted), and contains the cited figures."
+  },
+  {
+    "id": 91,
+    "section": "References",
+    "claim": "ref-24 DOI: 10.63264/gejytw70 -- Boyle et al. Journal of Restorative Reproductive Medicine 1 (2025).",
+    "citation": "ref-24",
+    "type": "attribution",
+    "confidence": "needs_verification",
+    "notes": "The DOI '10.63264/gejytw70' uses a non-standard prefix (10.63264). Most major publishers use prefixes like 10.3389 (Frontiers) or 10.1136 (BMJ). This unusual DOI should be resolved to confirm it points to a real, accessible publication. An unresolvable DOI would be a serious problem."
+  },
+  {
+    "id": 92,
+    "section": "History",
+    "claim": "The History section heading says 'Fertility Awareness Research (1950s-1970s)' but the body text describes work only in the 1950s and 1960s for Billings, and 1976 for Hilgers.",
+    "citation": null,
+    "type": "historical",
+    "confidence": "needs_verification",
+    "notes": "Internal inconsistency: the section heading implies coverage through the 1970s but no 1970s developments are mentioned for this period. The 1970s work (CrMS development beginning 1976) is placed in the 'NaProTechnology (1980s-1990s)' section instead."
+  },
+  {
+    "id": 93,
+    "section": "Evidence",
+    "claim": "RRM is supported by peer-reviewed research in the Journal of the American Board of Family Medicine, Canadian Family Physician, Journal of Medical Case Reports, Frontiers in Medicine, and Fertility and Sterility.",
+    "citation": null,
+    "type": "organizational",
+    "confidence": "likely_correct",
+    "notes": "The named journals match the citations in the reference list. Fertility and Sterility is cited for Katz et al. 2011 (cost study), not an RRM outcomes paper. Whether F&S has published RRM outcomes research should be specified."
+  },
+  {
+    "id": 94,
+    "section": "Evidence",
+    "claim": "Singleton IVF pregnancies are associated with higher rates of preterm birth, low birth weight, and perinatal complications compared to spontaneously conceived singletons, per HFEA data.",
+    "citation": "ref-16",
+    "type": "medical",
+    "confidence": "needs_verification",
+    "notes": "ref-16 is HFEA 2021 Trends and Figures. The specific claim that singleton IVF pregnancies have higher adverse outcomes vs spontaneous conception is a well-documented finding in fertility literature, but needs verification that ref-16 specifically reports this comparison."
+  },
+  {
+    "id": 95,
+    "section": "Byline",
+    "claim": "Article is authored by Naomi Whittaker, MD, described as 'Board-Certified OBGYN and NaProTechnology Fellow.'",
+    "citation": null,
+    "type": "attribution",
+    "confidence": "needs_verification",
+    "notes": "The byline establishes author credibility. Dr. Whittaker's board certification in OBGYN and NaProTechnology fellowship status should be verified for accuracy. This is the CLAUDE.md context: Dr. Whittaker is described as 'board-certified OBGYN, NaProTechnology fellowship trained' so this is consistent with known information."
+  }
+]
