@@ -303,6 +303,129 @@ The dominant media frame (from actual coverage):
 
 ---
 
+## Medico-Legal Exposure: How Opposition Rhetoric Threatens RRM Practitioners
+
+The adversary personas above are not just marketing opponents. Their rhetoric creates concrete professional, legal, and financial risk for every physician who practices RRM. This section maps how institutional claims translate into mechanisms that can end careers.
+
+### The Standard-of-Care Trap
+
+Medical malpractice law hinges on "standard of care": what a reasonably competent physician in the same specialty would do. In practice, ACOG practice bulletins and ASRM committee opinions define this standard. Courts and licensing boards treat these documents as authoritative.
+
+**The circular problem:**
+1. ACOG/ASRM issue position papers saying RRM is "unproven" and "not a medical term."
+2. These position papers become the de facto standard of care cited in legal proceedings.
+3. An RRM physician who diagnoses and treats root causes instead of referring directly to IVF is now, by institutional definition, practicing "below standard of care."
+4. The physician's actual outcomes (equal or superior to IVF) are irrelevant to the legal question, because the standard is set by the institutions opposing them.
+
+This is not hypothetical. ACOG practice bulletins are routinely entered as evidence in malpractice suits. The 2025 ACOG issue brief opposing RRM could be introduced in court against any RRM practitioner.
+
+### Threat Vector 1: State Medical Board Complaints
+
+**How it works:** A patient (or a patient's family member, or a referring physician) files a complaint with the state medical board alleging that an RRM doctor practiced "non-evidence-based medicine" or "delayed standard treatment."
+
+**What the board sees:**
+- ACOG says RRM is unproven. ASRM says "don't be fooled."
+- Peipert et al. (2025) published a peer-reviewed paper arguing RRM violates informed consent.
+- Liao et al. (2025) published a paper calling RRM a "false promise."
+- The doctor used diagnostic laparoscopy and timed hormonal treatment instead of referring to IVF.
+
+**What the board does NOT see (unless the doctor provides it):**
+- Boyle 2025: 41% live birth rate vs. 30.6% single-embryo IVF.
+- Sanchez-Mendez 2025: 1,310-couple cohort with Kaplan-Meier survival analysis.
+- The fact that every individual intervention (bloodwork, laparoscopy, progesterone supplementation, surgical excision) is independently within ACOG's own guidelines.
+
+**The exposure:** A board that accepts ACOG/ASRM framing without reviewing actual RRM outcomes data could sanction, restrict, or revoke a license for practicing medicine that is, by the published evidence, equal or superior to the "standard" approach.
+
+### Threat Vector 2: The Informed Consent Inversion
+
+Peipert et al. (2025) argue that RRM providers violate informed consent by not presenting IVF as a standard option. If this framing gains legal traction:
+
+- Every RRM physician who does not explicitly discuss IVF as an alternative during initial consultation could face a consent-based malpractice claim.
+- The standard defense ("I was treating the diagnosed condition, not bypassing it") requires the legal system to understand the difference between treating disease and bypassing disease. Most malpractice attorneys and juries do not.
+
+**The counter-argument that is never made in the opposition literature:** Informed consent requires telling patients what is wrong with them. A physician who recommends IVF for "unexplained infertility" without performing a diagnostic workup (timed bloodwork, advanced imaging, diagnostic laparoscopy) has failed to inform the patient that their condition may be diagnosable and treatable. Sending a patient to IVF without diagnosing the underlying cause is itself a consent violation. The opposition's entire informed consent argument assumes IVF is treatment. It is not. It is a bypass. Consent to a bypass without disclosure that a direct repair may be possible is the actual consent failure.
+
+### Threat Vector 3: Hospital Credentialing and Privileging
+
+Hospital privileges are controlled by department chairs and credentialing committees. If the department chair is Persona 1 (Dr. Institutional REI), an RRM-practicing physician faces:
+
+- **Denial of surgical privileges.** If the department considers RRM-associated laparoscopy "unnecessary" (per ACOG's claim that "RRM exposes patients to needless, painful surgical interventions"), the surgeon cannot operate.
+- **Privilege revocation.** Existing privileges can be revoked through peer review if the physician's approach is classified as deviating from "accepted practice."
+- **Non-renewal.** Hospital contracts are typically 1-3 year terms. A department that views RRM unfavorably simply does not renew.
+- **Constructive exclusion.** No formal action taken, but the physician is excluded from call schedules, referral networks, and case conferences. The practice dies without a single documented adverse action.
+
+**For physicians in academic settings (e.g., Dr. Naomi at UPMC):** Add tenure review, promotion committee bias, research funding gatekeeping, and departmental politics. An RRM-practicing academic physician is fighting on every institutional front simultaneously.
+
+### Threat Vector 4: Insurance and Billing Exposure
+
+Every individual component of RRM diagnosis and treatment is standard, billable medicine:
+
+| RRM Component | CPT/ICD-10 Status | Standalone legitimacy |
+|---------------|-------------------|----------------------|
+| Timed bloodwork (peak +3/+5/+7/+9/+11) | Standard lab orders | No insurer questions this |
+| Diagnostic laparoscopy | Standard surgical procedure | Routine for pelvic pain, infertility |
+| Progesterone supplementation | Standard Rx | Widely prescribed in REI |
+| Surgical excision of endometriosis | Standard surgical procedure | ACOG-endorsed for pain and fertility |
+| Thyroid evaluation | Standard labs | Basic workup |
+| Insulin resistance testing | Standard labs | PCOS guideline |
+
+**The paradox:** Each component is individually standard of care. But when assembled into the RRM diagnostic paradigm, the opposition labels the whole approach "unproven." This creates billing risk: an insurer who accepts the ACOG/ASRM framing could retroactively deny claims, triggering audits, repayment demands, or fraud investigations for services that are, individually, entirely legitimate.
+
+**The fraud exposure is the most dangerous.** If an insurer or federal payer (Medicare/Medicaid) classifies the RRM paradigm as "experimental" while the individual components are standard, a motivated prosecutor could argue that billing standard codes for an "experimental" protocol constitutes false claims. This is legally absurd but administratively possible.
+
+### Threat Vector 5: Peer Review Weaponization
+
+Hospital peer review is privileged and confidential. It is designed to protect patients from dangerous physicians. In practice, it can be used to target physicians whose practice patterns deviate from departmental norms.
+
+- An RRM physician who performs diagnostic laparoscopy on a patient previously told "you don't have endometriosis" (and finds disease, as in 93.5% of cases per the near-contact study) has implicitly demonstrated that the prior physician missed the diagnosis.
+- The prior physician has motive to file a peer review complaint: "unnecessary surgery."
+- Peer review committees are composed of the physician's colleagues. If those colleagues share the Institutional REI worldview, the review is structurally biased.
+- Peer review findings are reportable to the National Practitioner Data Bank. A single adverse finding can end a career, and the process offers no meaningful right of appeal.
+
+### Threat Vector 6: Malpractice Insurance
+
+If malpractice insurers classify RRM as "non-standard" practice:
+
+- Premiums increase (if coverage is offered at all).
+- Claims related to RRM practice may be excluded from coverage.
+- The physician practices without a safety net, one lawsuit away from financial ruin.
+
+Specialty insurers may not understand RRM and may rely on ACOG/ASRM position papers to assess risk. The result: the opposition's rhetoric directly increases the cost and decreases the availability of insurance for RRM practitioners.
+
+### The Asymmetry
+
+The medico-legal system is structurally biased in favor of the opposition:
+
+| Factor | Advantage |
+|--------|-----------|
+| Who defines "standard of care" | ACOG/ASRM (the adversary) |
+| Who sits on peer review committees | Department colleagues (trained in ART) |
+| Who controls hospital privileges | Department chairs (Persona 1) |
+| Who publishes practice guidelines | The same organizations opposing RRM |
+| Who do malpractice insurers consult | ACOG/ASRM publications |
+| Who do licensing boards cite | ACOG/ASRM position papers |
+| Who do courts accept as expert witnesses | Board-certified REIs (Persona 1) |
+
+An RRM physician is practicing within published evidence (Boyle, Sanchez-Mendez, multiple independent cohorts), using individually standard procedures, achieving equal or superior outcomes, at a fraction of the cost, with better obstetric safety. And yet the medico-legal infrastructure can be used against them at every level because the institutions defining "standard" are the same institutions opposing them.
+
+### What This Means for RRM Academy
+
+1. **The Research Library (3,000+ articles) is not just an educational resource. It is a legal defense tool.** Every RRM physician needs access to the evidence base that demonstrates their practice is supported by published peer-reviewed data. If a board complaint, malpractice suit, or peer review action is filed, the physician's defense depends on being able to produce this evidence.
+
+2. **Provider education must include medico-legal self-protection.** RRM physicians need to know:
+   - Document the diagnostic rationale for every intervention.
+   - Present and document all treatment options (including IVF) in the medical record, even if the physician's recommendation is root-cause treatment. This neutralizes the Peipert informed consent argument.
+   - Keep current on ACOG/ASRM position papers so they can anticipate and pre-empt the framing that would be used against them.
+   - Maintain meticulous outcomes data. If a board or insurer questions their practice, outcome data is the defense.
+
+3. **The "not evidence-based" claim is the single most dangerous rhetorical weapon.** It is not a scientific argument. It is a legal weapon. When ACOG says RRM is "unproven," that phrase is designed to be quoted in board complaints, malpractice briefs, and credentialing denials. Every piece of content on rrmacademy.org that cites published evidence makes this weapon harder to deploy.
+
+4. **Institutional opposition papers (Peipert, Liao, Humphries) are now citable in legal proceedings.** These are not just opinion pieces. They are peer-reviewed publications in fertility journals. An opposing expert witness can cite them. RRM physicians need to be able to cite the response literature and the outcomes data in rebuttal.
+
+5. **The Arkansas RRM insurance mandate (2025) is medico-legally significant.** A state legislature mandating insurance coverage for RRM is a legislative determination that RRM is legitimate medicine. This creates a statutory defense against "not standard of care" claims in that jurisdiction and potentially in others.
+
+---
+
 ## Strategic Implications for RRM Academy Content
 
 ### Do
