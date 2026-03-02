@@ -186,6 +186,10 @@ const canonicalUrl = `https://rrmacademy.org/commentary/${post.slug}/`;
   jsonLd={finalJsonLd}
 >
   <div class="page-wrapper" data-pagefind-body>
+    <span data-pagefind-meta="type:Article" style="display:none"></span>
+    <span data-pagefind-meta={`title:${post.title}`} style="display:none"></span>
+    {post.author && <span data-pagefind-meta={`authors:${post.author}`} style="display:none"></span>}
+    {post.publishDate && <span data-pagefind-meta={`year:${post.publishDate.split('-')[0]}`} style="display:none"></span>}
     <div class="container container--narrow">
       <!-- Breadcrumb -->
       <nav class="breadcrumb" aria-label="Breadcrumb">

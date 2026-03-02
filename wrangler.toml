@@ -20,3 +20,10 @@ database_id = "22742c9c-77fa-4344-abda-7e7e8b0da9de"
 [[r2_buckets]]
 binding = "R2_ASSETS"
 bucket_name = "rrm-assets"
+
+[[vectorize]]
+binding = "VECTORIZE"
+index_name = "rrm-library-vectors"
+
+[ai]
+binding = "AI"

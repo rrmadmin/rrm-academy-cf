@@ -8,7 +8,7 @@
     <input
       type="search"
       class="search-input"
-      placeholder="Search articles..."
+      placeholder="Search..."
       id="search-input"
       autocomplete="off"
     />
@@ -226,6 +226,44 @@
     color: var(--text-tertiary);
     padding: var(--space-6) 0;
   }
+
+  /* Type badge in title row */
+  .search-results :global(.sr-title-row) {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+  }
+  .search-results :global(.sr-type) {
+    flex-shrink: 0;
+    font-size: 0.5625rem;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .search-results :global(.sr-type--research) {
+    color: var(--green-700);
+    background: var(--green-100);
+  }
+  .search-results :global(.sr-type--course) {
+    color: var(--purple-700);
+    background: var(--purple-100);
+  }
+  .search-results :global(.sr-type--faq) {
+    color: var(--amber-700);
+    background: var(--amber-100);
+  }
+  .search-results :global(.sr-type--article) {
+    color: var(--sage-700);
+    background: var(--sage-100);
+  }
+  .search-results :global(.sr-type--guide) {
+    color: var(--rose-700);
+    background: var(--rose-100);
+  }
 </style>
 
 <script is:inline>
@@ -239,7 +277,7 @@
   var debounceTimer = null;
   var currentResults = [];
   var shown = 0;
-  var PER_PAGE = 3;
+  var PER_PAGE = 6;
   var totalCount = 0;
   var currentQuery = '';
   var PRELOAD_CAP = 50;
@@ -275,22 +313,29 @@
     // CSS handles positioning via left: 50% + transform: translateX(-50%)
   }
 
+  function extractSlug(url) {
+    var parts = url.replace(/\/$/, '').split('/');
+    return parts[parts.length - 1];
+  }
+
   async function doSearch(query) {
     resultsEl.innerHTML = '<p class="sr-loading">Searching\u2026</p>';
     positionResultsPanel();
     try {
-      var pf = await ensurePagefind();
-      var search = await pf.search(query);
+      // Fire Pagefind and semantic search in parallel
+      var results = await Promise.all([
+        ensurePagefind().then(function(pf) { return pf.search(query); }),
+        fetch('/api/search/semantic?q=' + encodeURIComponent(query))
+          .then(function(r) { return r.json(); })
+          .catch(function() { return { results: [] }; })
+      ]);
+      var search = results[0];
+      var semanticData = results[1];
       if (query !== currentQuery) return; // stale
       totalCount = search.results.length;
       currentResults = search.results;
       shown = 0;
       resultsEl.innerHTML = '';
-      if (totalCount === 0) {
-        resultsEl.innerHTML = '<p class="sr-empty">No results found for \u201c' + escHtml(query) + '\u201d</p>';
-        positionResultsPanel();
-        return;
-      }
       // Pre-load top results so we can sort by recency within relevance tiers
       var toPreload = search.results.slice(0, PRELOAD_CAP);
       var loaded = await Promise.all(
@@ -311,7 +356,35 @@
         var yearB = parseInt(b.meta && b.meta.year) || 0;
         return yearB - yearA;
       });
+      // Merge semantic results not already in Pagefind results
+      var pfSlugs = {};
+      for (var si = 0; si < loaded.length; si++) {
+        pfSlugs[extractSlug(loaded[si].url)] = true;
+      }
+      var semanticResults = (semanticData.results || []);
+      for (var sj = 0; sj < semanticResults.length; sj++) {
+        var sr = semanticResults[sj];
+        if (sr.score < 0.6) continue;
+        if (pfSlugs[sr.slug]) continue;
+        loaded.push({
+          url: sr.url,
+          excerpt: '',
+          meta: {
+            title: sr.title,
+            authors: sr.authors || '',
+            year: sr.year ? String(sr.year) : '',
+            type: sr.type || 'Research'
+          },
+          _relevanceRank: 999
+        });
+      }
       preloadedData = loaded;
+      totalCount = loaded.length;
+      if (totalCount === 0) {
+        resultsEl.innerHTML = '<p class="sr-empty">No results found for \u201c' + escHtml(query) + '\u201d</p>';
+        positionResultsPanel();
+        return;
+      }
       var countEl = document.createElement('p');
       countEl.className = 'sr-count';
       countEl.textContent = totalCount + ' result' + (totalCount === 1 ? '' : 's');
@@ -363,21 +436,31 @@
     var title = data.meta && data.meta.title ? data.meta.title : '';
     var authors = data.meta && data.meta.authors ? data.meta.authors : '';
     var year = data.meta && data.meta.year ? data.meta.year : '';
-    // Extract journal from excerpt context or leave blank
+    var type = data.meta && data.meta.type ? data.meta.type : '';
     var excerpt = data.excerpt || '';
 
-    // Title
+    // Title row with type badge
+    var titleRow = document.createElement('div');
+    titleRow.className = 'sr-title-row';
+
     var h = document.createElement('h3');
     h.className = 'sr-title';
     h.textContent = title || 'Untitled';
-    a.appendChild(h);
+    titleRow.appendChild(h);
 
-    // Meta line
-    if (authors || year) {
+    if (type) {
+      var badge = document.createElement('span');
+      badge.className = 'sr-type sr-type--' + type.toLowerCase();
+      badge.textContent = type;
+      titleRow.appendChild(badge);
+    }
+    a.appendChild(titleRow);
+
+    // Meta line (authors/year) -- only for Research and Article types
+    if ((authors || year) && (type === 'Research' || type === 'Article' || !type)) {
       var meta = document.createElement('div');
       meta.className = 'sr-meta';
       if (authors) {
-        // Truncate long author lists
         var shortAuthors = authors;
         var semiIdx = authors.indexOf(';');
         if (semiIdx > 0 && authors.indexOf(';', semiIdx + 1) > 0) {
@@ -403,11 +486,19 @@
       a.appendChild(meta);
     }
 
-    // Excerpt
-    if (excerpt) {
+    // Excerpt -- type-aware
+    var displayExcerpt = excerpt;
+    if (type === 'Course' && data.meta && data.meta.description) {
+      displayExcerpt = data.meta.description;
+    }
+    if (displayExcerpt) {
       var p = document.createElement('p');
       p.className = 'sr-excerpt';
-      p.innerHTML = excerpt;
+      if (type === 'Course') {
+        p.textContent = displayExcerpt;
+      } else {
+        p.innerHTML = displayExcerpt;
+      }
       a.appendChild(p);
     }
 
