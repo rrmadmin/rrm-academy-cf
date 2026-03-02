@@ -161,7 +161,7 @@ const relatedCourses = course.relatedCourses
   ogImage={course.image}
   jsonLd={jsonLd}
 >
-  <div class="course-page" data-pagefind-body>
+  <div class={`course-page`} {...(course.comingSoon ? {} : { 'data-pagefind-body': '' })}>
     <span data-pagefind-meta="type:Course" style="display:none"></span>
     <span data-pagefind-meta={`title:${course.title}`} style="display:none"></span>
     <span data-pagefind-meta={`description:${course.shortDescription}`} style="display:none"></span>

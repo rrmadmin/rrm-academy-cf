@@ -371,16 +371,22 @@
       );
       if (query !== currentQuery) return; // stale after async
 
-      // Sort: relevance tier (non-English articles pushed to end), then newer first
+      // Sort: relevance tier, then penalties, then recency
+      // Penalties: non-English pushed to end; year 1900/missing pushed to bottom of tier
       loaded.sort(function(a, b) {
         var tierA = Math.floor(a._relevanceRank / 5);
         var tierB = Math.floor(b._relevanceRank / 5);
-        // Non-English: add large penalty so they sort after all English results
         if (isNonEnglish(a.meta && a.meta.title)) tierA += 100;
         if (isNonEnglish(b.meta && b.meta.title)) tierB += 100;
         if (tierA !== tierB) return tierA - tierB;
         var yearA = parseInt(a.meta && a.meta.year) || 0;
         var yearB = parseInt(b.meta && b.meta.year) || 0;
+        // Treat 1900 as missing year -- push to bottom
+        if (yearA <= 1900) yearA = 0;
+        if (yearB <= 1900) yearB = 0;
+        var hasYearA = yearA > 0 ? 0 : 1;
+        var hasYearB = yearB > 0 ? 0 : 1;
+        if (hasYearA !== hasYearB) return hasYearA - hasYearB;
         return yearB - yearA;
       });
 
