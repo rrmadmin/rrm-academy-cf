@@ -277,11 +277,13 @@
   var debounceTimer = null;
   var currentResults = [];
   var shown = 0;
-  var PER_PAGE = 6;
+  var INITIAL_PAGE = 3;
+  var PER_PAGE = 8;
   var totalCount = 0;
   var currentQuery = '';
   var PRELOAD_CAP = 50;
   var preloadedData = [];
+  var isFirstPage = true;
 
   // Load Pagefind on first interaction — single shared promise prevents race conditions
   function ensurePagefind() {
@@ -313,6 +315,26 @@
     // CSS handles positioning via left: 50% + transform: translateX(-50%)
   }
 
+  // Detect non-English titles to de-prioritize in results.
+  // Two signals: (1) 3+ non-ASCII chars after stripping English loanwords,
+  // or (2) title has 5+ words but almost none are common English function words.
+  var _engWordRe = /^(the|of|in|and|for|with|a|an|to|from|by|on|at|or|is|are|was|were|after|before|between|during|through|about|into|over|its|their|this|that|these|those|which|who|has|have|had|not|but|can|may|should|will|be|been|do|each|all|both|more|most|some|such|no|only|other|same|so|also|new|based|using|associated|among|without|within|upon|including|following|versus|compared|effect|role|impact|review|study|analysis|treatment|outcomes|risk|women|patients|clinical|use|health)$/i;
+  function isNonEnglish(title) {
+    if (!title) return false;
+    // Signal 1: non-ASCII density (catches French, German with accents/umlauts)
+    var t = title.replace(/m\u00fcller\w*/gi, '').replace(/caf\u00e9/gi, '').replace(/na\u00efve/gi, '');
+    var nonAscii = (t.match(/[^\x00-\x7F]/g) || []).length;
+    if (nonAscii >= 3) return true;
+    // Signal 2: lacks English function words (catches Polish, some Spanish with ASCII chars)
+    var words = title.split(/[\s\-\u2013\u2014:,;.()]+/).filter(function(w) { return w.length > 0; });
+    if (words.length < 5) return false;
+    var engCount = 0;
+    for (var i = 0; i < words.length; i++) {
+      if (_engWordRe.test(words[i])) engCount++;
+    }
+    return (engCount / words.length) < 0.15;
+  }
+
   function extractSlug(url) {
     var parts = url.replace(/\/$/, '').split('/');
     return parts[parts.length - 1];
@@ -322,20 +344,21 @@
     resultsEl.innerHTML = '<p class="sr-loading">Searching\u2026</p>';
     positionResultsPanel();
     try {
-      // Fire Pagefind and semantic search in parallel
-      var results = await Promise.all([
-        ensurePagefind().then(function(pf) { return pf.search(query); }),
-        fetch('/api/search/semantic?q=' + encodeURIComponent(query))
-          .then(function(r) { return r.json(); })
-          .catch(function() { return { results: [] }; })
-      ]);
-      var search = results[0];
-      var semanticData = results[1];
+      // Fire semantic search in background -- don't block Pagefind rendering
+      var semanticPromise = fetch('/api/search/semantic?q=' + encodeURIComponent(query))
+        .then(function(r) { return r.json(); })
+        .catch(function() { return { results: [] }; });
+
+      // Get Pagefind results first
+      var pf = await ensurePagefind();
+      var search = await pf.search(query);
       if (query !== currentQuery) return; // stale
       totalCount = search.results.length;
       currentResults = search.results;
       shown = 0;
+      isFirstPage = true;
       resultsEl.innerHTML = '';
+
       // Pre-load top results so we can sort by recency within relevance tiers
       var toPreload = search.results.slice(0, PRELOAD_CAP);
       var loaded = await Promise.all(
@@ -347,50 +370,90 @@
         })
       );
       if (query !== currentQuery) return; // stale after async
-      // Sort: group into relevance tiers of 5, then newer articles first within tier
+
+      // Sort: relevance tier (non-English articles pushed to end), then newer first
       loaded.sort(function(a, b) {
         var tierA = Math.floor(a._relevanceRank / 5);
         var tierB = Math.floor(b._relevanceRank / 5);
+        // Non-English: add large penalty so they sort after all English results
+        if (isNonEnglish(a.meta && a.meta.title)) tierA += 100;
+        if (isNonEnglish(b.meta && b.meta.title)) tierB += 100;
         if (tierA !== tierB) return tierA - tierB;
         var yearA = parseInt(a.meta && a.meta.year) || 0;
         var yearB = parseInt(b.meta && b.meta.year) || 0;
         return yearB - yearA;
       });
-      // Merge semantic results not already in Pagefind results
-      var pfSlugs = {};
-      for (var si = 0; si < loaded.length; si++) {
-        pfSlugs[extractSlug(loaded[si].url)] = true;
-      }
-      var semanticResults = (semanticData.results || []);
-      for (var sj = 0; sj < semanticResults.length; sj++) {
-        var sr = semanticResults[sj];
-        if (sr.score < 0.6) continue;
-        if (pfSlugs[sr.slug]) continue;
-        loaded.push({
-          url: sr.url,
-          excerpt: '',
-          meta: {
-            title: sr.title,
-            authors: sr.authors || '',
-            year: sr.year ? String(sr.year) : '',
-            type: sr.type || 'Research'
-          },
-          _relevanceRank: 999
-        });
-      }
+
       preloadedData = loaded;
       totalCount = loaded.length;
+
       if (totalCount === 0) {
-        resultsEl.innerHTML = '<p class="sr-empty">No results found for \u201c' + escHtml(query) + '\u201d</p>';
-        positionResultsPanel();
-        return;
+        // No Pagefind results -- wait for semantic before showing "no results"
+        var semanticData = await semanticPromise;
+        if (query !== currentQuery) return;
+        var semanticResults = (semanticData.results || []).filter(function(sr) { return sr.score >= 0.6; });
+        if (semanticResults.length === 0) {
+          resultsEl.innerHTML = '<p class="sr-empty">No results found for \u201c' + escHtml(query) + '\u201d</p>';
+          positionResultsPanel();
+          return;
+        }
+        // Only semantic results
+        for (var sk = 0; sk < semanticResults.length; sk++) {
+          var sr2 = semanticResults[sk];
+          preloadedData.push({
+            url: sr2.url, excerpt: '',
+            meta: { title: sr2.title, authors: sr2.authors || '', year: sr2.year ? String(sr2.year) : '', type: sr2.type || 'Research' },
+            _relevanceRank: 999
+          });
+        }
+        totalCount = preloadedData.length;
       }
+
       var countEl = document.createElement('p');
       countEl.className = 'sr-count';
       countEl.textContent = totalCount + ' result' + (totalCount === 1 ? '' : 's');
       resultsEl.appendChild(countEl);
       await loadMore();
       positionResultsPanel();
+
+      // Merge semantic results in background after initial render
+      semanticPromise.then(function(semanticData) {
+        if (query !== currentQuery) return;
+        var pfSlugs = {};
+        for (var si = 0; si < preloadedData.length; si++) {
+          pfSlugs[extractSlug(preloadedData[si].url)] = true;
+        }
+        var added = 0;
+        var semanticResults = (semanticData.results || []);
+        for (var sj = 0; sj < semanticResults.length; sj++) {
+          var sr = semanticResults[sj];
+          if (sr.score < 0.6) continue;
+          if (pfSlugs[sr.slug]) continue;
+          preloadedData.push({
+            url: sr.url, excerpt: '',
+            meta: { title: sr.title, authors: sr.authors || '', year: sr.year ? String(sr.year) : '', type: sr.type || 'Research' },
+            _relevanceRank: 999
+          });
+          added++;
+        }
+        if (added > 0) {
+          totalCount = preloadedData.length;
+          // Update count display
+          var countDisplay = resultsEl.querySelector('.sr-count');
+          if (countDisplay) countDisplay.textContent = totalCount + ' result' + (totalCount === 1 ? '' : 's');
+          // Update "Show more" button if visible
+          var moreBtn = resultsEl.querySelector('.sr-more');
+          if (moreBtn && shown < totalCount) {
+            moreBtn.textContent = 'Show more (' + (totalCount - shown) + ' remaining)';
+          } else if (!moreBtn && shown < totalCount) {
+            var btn = document.createElement('button');
+            btn.className = 'sr-more';
+            btn.textContent = 'Show more (' + (totalCount - shown) + ' remaining)';
+            btn.addEventListener('click', function() { loadMore(); });
+            resultsEl.appendChild(btn);
+          }
+        }
+      });
     } catch(e) {
       resultsEl.innerHTML = '<p class="sr-empty">Search unavailable</p>';
       positionResultsPanel();
@@ -398,13 +461,15 @@
   }
 
   async function loadMore() {
+    var pageSize = isFirstPage ? INITIAL_PAGE : PER_PAGE;
+    isFirstPage = false;
     var batch;
     if (shown < preloadedData.length) {
       // Use pre-sorted data
-      batch = preloadedData.slice(shown, shown + PER_PAGE);
+      batch = preloadedData.slice(shown, shown + pageSize);
     } else {
       // Beyond preloaded range — fall back to lazy loading (original relevance order)
-      var rawBatch = currentResults.slice(shown, shown + PER_PAGE);
+      var rawBatch = currentResults.slice(shown, shown + pageSize);
       batch = [];
       for (var i = 0; i < rawBatch.length; i++) {
         batch.push(await rawBatch[i].data());
