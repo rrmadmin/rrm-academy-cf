@@ -3,6 +3,7 @@
 // Mobile nav (below) and Footer.astro have their own sets with different items.
 // These three lists are deliberately NOT shared — they serve different UX contexts.
 const navItems = [
+  { label: 'What is RRM?', href: '/what-is-rrm/' },
   { label: 'Research Library', href: '/library/', current: true },
   { label: 'Commentary', href: '/commentary/' },
   { label: 'Courses', href: '/courses/' },
@@ -28,6 +29,7 @@ const mobileNavSections = [
   {
     heading: 'Education',
     items: [
+      { label: 'What is RRM?', href: '/what-is-rrm/', icon: 'info' },
       { label: 'FAQ', href: '/faqs/', icon: 'help-circle' },
       { label: 'Courses', href: '/courses/', icon: 'graduation' },
       { label: 'Commentary', href: '/commentary/', icon: 'pen' },
