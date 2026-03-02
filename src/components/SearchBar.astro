@@ -96,8 +96,9 @@
   .search-results {
     position: absolute;
     top: 100%;
-    left: 0;
-    right: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(560px, 100%);
     text-align: left;
     padding: 0 var(--space-5) var(--space-6);
     background: var(--bg-body);
@@ -271,11 +272,7 @@
   }
 
   function positionResultsPanel() {
-    if (!resultsEl.offsetParent) return;
-    var inputRect = input.getBoundingClientRect();
-    var boxRect = resultsEl.offsetParent.getBoundingClientRect();
-    resultsEl.style.left = (inputRect.left - boxRect.left) + 'px';
-    resultsEl.style.right = (boxRect.right - inputRect.right) + 'px';
+    // CSS handles positioning via left: 50% + transform: translateX(-50%)
   }
 
   async function doSearch(query) {
@@ -448,8 +445,7 @@
     setTimeout(function() { doSearch(urlQ); }, 100);
   }
 
-  // Reposition results panel on window resize
-  window.addEventListener('resize', positionResultsPanel);
+  // Results panel positioning handled by CSS
 
   // Preload pagefind on focus for faster first search
   input.addEventListener('focus', function() { ensurePagefind(); }, { once: true });
