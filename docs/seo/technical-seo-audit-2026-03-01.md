@@ -130,12 +130,12 @@ Every top-level page has:
 | /faqs/ | — | OK | OK | — |
 | /endo-survey/ | — | OK | OK | — |
 | /donate/ | Button | Button | OK | — |
-| /what-is-rrm/ | MISSING | MISSING | MISSING | About page only |
+| /what-is-rrm/ | MISSING | MISSING | **FIXED** | About page + footer |
 | /common-questions-about-rrm/ | — | — | — | 301 → /faqs/ |
 
 ### Remaining Gaps
 
-- `/what-is-rrm/` — pillar page for the primary keyword. Not in header, footer, or mobile nav. Only linked from the about page as inline text.
+- `/what-is-rrm/` — pillar page for the primary keyword. Added to footer nav. Still missing from header nav and mobile nav.
 
 ---
 
@@ -161,10 +161,10 @@ All rich result blockers resolved in `6d5ad0a`. Full details in `docs/seo/schema
 | 1 | Canonical/sitemap trailing slash mismatch | **FIXED** — `BaseLayout.astro` |
 | 2 | `/common-questions-about-rrm/` orphan | **FIXED** — 301 redirect to `/faqs/` in `_redirects` |
 | 3 | `http://www` redirect chain (2 hops) | Partially fixed — `https://www` now 1 hop; `http://www` remains 2 hops (Cloudflare TLS ordering) |
-| 4 | `/what-is-rrm/` missing from navigation | Open |
+| 4 | `/what-is-rrm/` missing from navigation | **PARTIAL** — added to footer nav; still missing from header nav and mobile nav |
 | 5 | No lastmod in sitemap | **FIXED** — build-date lastmod added via `astro.config.mjs` serialize callback |
 | 6 | `/sitemap.xml` returns 404 | **FIXED** — `_redirects` 301 to `/sitemap-index.xml` |
-| 7 | `[CITE]` and `[YEAR]` placeholders | Open — visible in `/what-is-rrm/` content only (`/common-questions-about-rrm/` now redirects to `/faqs/`) |
+| 7 | `[CITE]` and `[YEAR]` placeholders | **FIXED** — all placeholders replaced with real citations during pillar article expansion |
 | 8 | No page-specific OG images | Open |
 | 9 | Community page double H1 | Open — low priority (page is noindex) |
 
@@ -172,6 +172,6 @@ All rich result blockers resolved in `6d5ad0a`. Full details in `docs/seo/schema
 
 ## Open Items
 
-- Add `/what-is-rrm/` to footer nav (high value pillar page)
-- Replace `[CITE]` / `[YEAR]` placeholders in content
+- ~~Add `/what-is-rrm/` to footer nav~~ — done; still needs header nav and mobile nav
+- ~~Replace `[CITE]` / `[YEAR]` placeholders in content~~ — done
 - Create page-specific OG images for homepage, courses hub, and top course pages
