@@ -49,6 +49,7 @@ const jsonLd = {
   <section class="hero" data-pagefind-ignore="all">
     <div class="hero__center">
       <h1>RRM Research Library</h1>
+      <span class="hero__version" aria-hidden="true">v2.0</span>
       <div class="hero__search">
         <SearchBar />
       </div>
@@ -141,15 +142,13 @@ const jsonLd = {
     position: relative;
   }
   .hero__version {
-    position: absolute;
     font-family: 'Inter', sans-serif;
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     font-weight: 400;
     font-style: italic;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     letter-spacing: 0;
-    top: -0.1em;
-    margin-left: 4px;
+    margin-top: calc(-1 * var(--space-4));
   }
   .hero__search {
     width: 100%;
