@@ -241,6 +241,8 @@
   var PER_PAGE = 3;
   var totalCount = 0;
   var currentQuery = '';
+  var PRELOAD_CAP = 50;
+  var preloadedData = [];
 
   // Load Pagefind on first interaction — single shared promise prevents race conditions
   function ensurePagefind() {
@@ -260,6 +262,7 @@
     if (!q) {
       resultsEl.innerHTML = '';
       currentResults = [];
+      preloadedData = [];
       currentQuery = '';
       return;
     }
@@ -291,6 +294,27 @@
         positionResultsPanel();
         return;
       }
+      // Pre-load top results so we can sort by recency within relevance tiers
+      var toPreload = search.results.slice(0, PRELOAD_CAP);
+      var loaded = await Promise.all(
+        toPreload.map(function(r, i) {
+          return r.data().then(function(d) {
+            d._relevanceRank = i;
+            return d;
+          });
+        })
+      );
+      if (query !== currentQuery) return; // stale after async
+      // Sort: group into relevance tiers of 5, then newer articles first within tier
+      loaded.sort(function(a, b) {
+        var tierA = Math.floor(a._relevanceRank / 5);
+        var tierB = Math.floor(b._relevanceRank / 5);
+        if (tierA !== tierB) return tierA - tierB;
+        var yearA = parseInt(a.meta && a.meta.year) || 0;
+        var yearB = parseInt(b.meta && b.meta.year) || 0;
+        return yearB - yearA;
+      });
+      preloadedData = loaded;
       var countEl = document.createElement('p');
       countEl.className = 'sr-count';
       countEl.textContent = totalCount + ' result' + (totalCount === 1 ? '' : 's');
@@ -304,11 +328,21 @@
   }
 
   async function loadMore() {
-    var batch = currentResults.slice(shown, shown + PER_PAGE);
+    var batch;
+    if (shown < preloadedData.length) {
+      // Use pre-sorted data
+      batch = preloadedData.slice(shown, shown + PER_PAGE);
+    } else {
+      // Beyond preloaded range — fall back to lazy loading (original relevance order)
+      var rawBatch = currentResults.slice(shown, shown + PER_PAGE);
+      batch = [];
+      for (var i = 0; i < rawBatch.length; i++) {
+        batch.push(await rawBatch[i].data());
+      }
+    }
     var fragment = document.createDocumentFragment();
-    for (var i = 0; i < batch.length; i++) {
-      var data = await batch[i].data();
-      fragment.appendChild(renderResult(data));
+    for (var j = 0; j < batch.length; j++) {
+      fragment.appendChild(renderResult(batch[j]));
     }
     // Remove old "load more" button
     var oldBtn = resultsEl.querySelector('.sr-more');
@@ -395,6 +429,7 @@
     clearBtn.classList.add('hidden');
     resultsEl.innerHTML = '';
     currentResults = [];
+    preloadedData = [];
     currentQuery = '';
     input.focus();
   });
