@@ -672,13 +672,41 @@ const mobileNavSections = [
 </style>
 
 <script is:inline>
-  // Theme toggle (both desktop and mobile)
-  function handleThemeToggle() {
+  // Theme toggle with expanding circle animation (View Transitions API)
+  function applyTheme() {
     var html = document.documentElement;
     var current = html.getAttribute('data-theme');
     var next = current === 'dark' ? 'light' : 'dark';
     html.setAttribute('data-theme', next);
     localStorage.setItem('rrm_theme', next);
+  }
+
+  function handleThemeToggle(e) {
+    var btn = e.currentTarget;
+
+    // Fallback: no View Transitions API or prefers-reduced-motion
+    if (!document.startViewTransition ||
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      applyTheme();
+      return;
+    }
+
+    var transition = document.startViewTransition(applyTheme);
+
+    transition.ready.then(function() {
+      var rect = btn.getBoundingClientRect();
+      var x = rect.left + rect.width / 2;
+      var y = rect.top + rect.height / 2;
+      var maxRadius = Math.hypot(
+        Math.max(x, window.innerWidth - x),
+        Math.max(y, window.innerHeight - y)
+      );
+
+      document.documentElement.animate(
+        { clipPath: ['circle(0px at ' + x + 'px ' + y + 'px)', 'circle(' + maxRadius + 'px at ' + x + 'px ' + y + 'px)'] },
+        { duration: 500, easing: 'ease-in-out', pseudoElement: '::view-transition-new(root)' }
+      );
+    });
   }
 
   var themeToggle = document.getElementById('theme-toggle');
