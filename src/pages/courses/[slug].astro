@@ -161,7 +161,10 @@ const relatedCourses = course.relatedCourses
   ogImage={course.image}
   jsonLd={jsonLd}
 >
-  <div class="course-page">
+  <div class="course-page" data-pagefind-body>
+    <span data-pagefind-meta="type:Course" style="display:none"></span>
+    <span data-pagefind-meta={`title:${course.title}`} style="display:none"></span>
+    <span data-pagefind-meta={`description:${course.shortDescription}`} style="display:none"></span>
 
     <!-- Hero -->
     <section class="course-hero">
@@ -194,7 +197,7 @@ const relatedCourses = course.relatedCourses
               )}
             </div>
             <p class="course-hero__instructor">Taught by {instructor?.name}</p>
-            <div class="course-hero__actions" id="hero-actions">
+            <div class="course-hero__actions" id="hero-actions" data-pagefind-ignore>
               <!-- Static: shown before JS hydrates -->
               <div class="hero-cta-static">
                 {course.isFree ? (
@@ -367,7 +370,7 @@ const relatedCourses = course.relatedCourses
     )}
 
     <!-- Bottom CTA -->
-    <section class="course-section course-bottom-cta">
+    <section class="course-section course-bottom-cta" data-pagefind-ignore>
       <div class="container container--narrow" style="text-align: center;">
         <h2>Ready to Start?</h2>
         <p class="section-sub">{course.isFree ? 'This course is completely free.' : `One-time payment of ${price}. Lifetime access.`}</p>
