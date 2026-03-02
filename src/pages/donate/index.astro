@@ -238,14 +238,18 @@ const jsonLd = {
 
       // --- One-time donation modal ---
       var modal = document.getElementById('onetime-modal');
-      document.getElementById('onetime-toggle').addEventListener('click', function () {
+      function openModal() {
         modal.hidden = false;
-      });
-      document.getElementById('onetime-close').addEventListener('click', function () {
+        document.body.style.filter = 'none';
+      }
+      function closeModal() {
         modal.hidden = true;
-      });
+        document.body.style.filter = '';
+      }
+      document.getElementById('onetime-toggle').addEventListener('click', openModal);
+      document.getElementById('onetime-close').addEventListener('click', closeModal);
       modal.addEventListener('click', function (e) {
-        if (e.target === modal) modal.hidden = true;
+        if (e.target === modal) closeModal();
       });
 
       var amountBtns = document.querySelectorAll('.donate-amount-btn');
@@ -549,7 +553,7 @@ const jsonLd = {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 10000;
     padding: var(--space-4);
   }
   .donate-modal {
