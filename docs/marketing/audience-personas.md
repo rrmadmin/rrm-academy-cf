@@ -3,6 +3,7 @@
 > Who we serve, how they think, where they are in their journey, and what moves them to act.
 
 **Last updated:** 2026-03-01
+**Sources:** Site analytics (implicit), content audit, Dr. Naomi Whittaker public transcripts (5 podcasts/masterclasses, 2020-2025), adversary persona analysis
 
 ---
 
@@ -40,6 +41,12 @@ Healthcare Professionals (20% of traffic)
 | Emotional state | Confused, overwhelmed, mildly anxious. Doesn't know what she doesn't know. |
 | Current care | Primary care or OBGYN who prescribed hormonal contraception for symptom management |
 
+**What she's experienced (from Dr. Naomi's patient descriptions):**
+- Told her painful periods are "normal" or "just part of being a woman"
+- Put on suppressive medications (the Pill) at age 14-16 for acne, cramps, or irregular cycles, with no diagnostic workup
+- Disease has been progressing silently under suppression for years
+- She may not even know she has a condition because the symptoms were masked, not investigated
+
 **Mental models at play:**
 - **Mere exposure effect:** She's never heard of RRM. The first encounter needs to build familiarity, not close a sale.
 - **Status quo bias:** She's been told birth control is the answer. Switching paradigms requires trust.
@@ -62,6 +69,8 @@ Healthcare Professionals (20% of traffic)
 - "Have you ever been told your painful periods are 'normal'?"
 - "You deserve a diagnosis, not a prescription."
 - "Evidence-based. Root-cause. Couple-centered."
+- "The menstrual cycle is the EKG of women. Yours is trying to tell you something." (Dr. Naomi)
+- "We treat. We don't mask."
 
 ---
 
@@ -78,6 +87,13 @@ Healthcare Professionals (20% of traffic)
 | Emotional state | Frustrated, exhausted, possibly grieving. Trust in the medical system is damaged. Skeptical but desperately hopeful. |
 | Current care | REI who has recommended IVF or more IVF cycles |
 | Spending | Has already spent $10K-$50K+ on fertility treatments |
+
+**What she's experienced (from Dr. Naomi's patient descriptions):**
+- Put on the "PCOS conveyor belt": metformin, then Clomid/letrozole, then IUI, then told "you need IVF"
+- Given a diagnosis of "unexplained infertility" after a workup that never tested progesterone in the luteal phase, never evaluated cervical mucus, never did timed bloodwork
+- May have had organs removed during surgery without full understanding or consent
+- Been told by an IVF clinic that her only option is IVF, possibly using scare tactics ("your eggs are aging, you need to act now")
+- Spent $15K-$30K per IVF cycle on a procedure with a ~28% per-cycle live birth rate, a number she was never clearly told
 
 **Mental models at play:**
 - **Sunk cost fallacy:** She's invested so much in the conventional path that switching feels like admitting failure. Content must reframe switching as progress, not retreat.
@@ -101,6 +117,8 @@ Healthcare Professionals (20% of traffic)
 - "41% live birth rate. No embryos created. No multiple pregnancies."
 - "If three rounds of Clomid haven't worked, there's a reason. We find it."
 - "The average couple spends $40,000-$60,000 on IVF. RRM costs a fraction of that."
+- "'Unexplained' often means 'uninvestigated.' We investigate."
+- "93.5% of women told they didn't have endometriosis actually did."
 
 ---
 
@@ -225,6 +243,12 @@ Healthcare Professionals (20% of traffic)
 | Interest in RRM | Active -- has already read about it, may have attended a conference |
 | Barrier | Doesn't know where to start with formal training, concerned about peer perception |
 
+**The training gap they feel but can't articulate (from Dr. Naomi):**
+- "The training on hormones is abysmal and antiquated in medical school and even OBGYN residency." They know this. They feel the inadequacy in clinic every day.
+- Three generations of shortcuts (Clomid, Pill, IVF) each eliminated diagnostic and surgical skills from training. This OBGYN wasn't taught badly on purpose. The skills simply weren't passed down.
+- Dr. Naomi herself was laughed at by her IVF training professor for asking about cervical mucus and progesterone. This physician may have had the same experience.
+- They see the "organ removal culture" in their department: colleagues removing ovaries, tubes, uteri as first-line treatment. "We still have that hysteria mindset."
+
 **Mental models at play:**
 - **Cognitive dissonance:** Knows current practice is suppressive, not curative. Actively seeking resolution.
 - **Mimetic desire:** Seeing Dr. Naomi's practice model (UPMC appointment, academic credentials, published research) makes the RRM path feel professionally viable.
@@ -240,9 +264,11 @@ Healthcare Professionals (20% of traffic)
 Direct to training page → CME courses → STUC professional membership → IIRRM fellowship referral → ongoing CME
 
 **Messaging that moves them:**
-- "The training on hormones is abysmal and antiquated in medical school and even OBGYN residency."
+- "The training on hormones is abysmal and antiquated in medical school and even OBGYN residency." (Dr. Naomi)
 - "You became a doctor to heal, not to suppress."
 - "CME-eligible. Evidence-based. Integrates into your existing practice."
+- "The menstrual cycle is the EKG of women. Your patients' cycles are telling you something. This training teaches you to read it."
+- "Three shortcuts in 70 years eliminated the diagnostic skills your training should have given you. We teach them."
 
 ---
 
@@ -346,10 +372,36 @@ The site's current tone correctly matches the middle stages (confidence, commitm
 | Adversary tactic | Which audience it targets | How to neutralize |
 |-----------------|--------------------------|-------------------|
 | "RRM is anti-abortion ideology" | The Searcher, Cost-Conscious | International evidence (Madrid, Dublin). Clinical tone. Never mention politics. |
-| "RRM delays treatment" | The Exhausted Patient | Timeline comparison data. Boyle 2025: 12 months avg. |
-| "RRM has no evidence" | Curious Generalist, Exhausted Patient | Peer-reviewed citations, outcome charts, research library |
-| "RRM is just basic OBGYN" | Frustrated OBGYN | If true, why isn't it being practiced? The training gap is the point. |
+| "RRM delays treatment" | The Exhausted Patient | Timeline comparison data. Boyle 2025: 12 months avg. IVF per-cycle rate ~28% means multi-cycle timelines are comparable. |
+| "RRM has no evidence" | Curious Generalist, Exhausted Patient | Peer-reviewed citations, outcome charts, research library (3,000+ articles) |
+| "RRM is just basic OBGYN" | Frustrated OBGYN | If true, why isn't it being practiced? Three shortcuts in 70 years eliminated the training. The gap is the point. |
 | Clock anxiety pressure | Exhausted Patient, Cost-Conscious | Age-stratified data (Sanchez-Mendez: 83.7% for age 18-30, 53.3% for 36-40). Honest about over-40 limitations. |
+| "Your body is broken, you need IVF" | The Searcher, Exhausted Patient | 93.5% missed-disease stat. "Unexplained" = uninvestigated. The menstrual cycle is the EKG of women. |
+| Egg freezing marketing | The Searcher (younger) | Undisclosed influencer paid partnerships. "Empowerment" framing hides financial relationships with IVF clinics. |
+| PCOS conveyor belt | Exhausted Patient | Metformin + Clomid + IUI + IVF is a revenue escalation ladder, not a diagnostic pathway. RRM asks why. |
+
+---
+
+## Key Phrases and Language (from Dr. Naomi's Public Content)
+
+These are field-tested phrases from Dr. Naomi's podcasts and masterclasses. Audiences respond to these because they articulate what patients feel but can't say.
+
+**For patients:**
+- "The menstrual cycle is the EKG of women."
+- "We treat. We don't mask."
+- "You deserve a diagnosis, not a prescription."
+- "'Unexplained' often means 'uninvestigated.'"
+- "The cows are worth more than us." (on bovine reproductive medicine being better researched than women's)
+
+**For providers:**
+- "The training on hormones is abysmal and antiquated in medical school and even OBGYN residency."
+- "We still have that hysteria mindset."
+- "Three shortcuts in 70 years: Clomid, the Pill, IVF. Each one eliminated a generation of diagnostic skill."
+
+**For both:**
+- "Your body is not broken."
+- "93.5% of women told they didn't have endometriosis actually did."
+- "IVF doesn't treat anything. It bypasses everything."
 
 ---
 
@@ -360,3 +412,6 @@ The site's current tone correctly matches the middle stages (confidence, commitm
 3. **Patient stories** -- testimonials that break the media frame (secular couple, progressive values, chose RRM for medical reasons).
 4. **Professional onboarding sequence** -- email nurture for provider personas who take a free course.
 5. **International evidence emphasis** -- Madrid, Dublin, Australia data should be more prominent to counter the "American culture war" frame.
+6. **Egg freezing content** -- an article or course module addressing the egg freezing marketing machine, for The Searcher (younger demographic).
+7. **"PCOS conveyor belt" content** -- explicit walkthrough of the metformin-Clomid-IUI-IVF escalation ladder vs. RRM diagnostic approach. High-value for the Exhausted Patient.
+8. **Chronic endometritis awareness** -- massively underdiagnosed condition with effective treatment. Content opportunity: "the cows are worth more than us" angle for both patient and media audiences.

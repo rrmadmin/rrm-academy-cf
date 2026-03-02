@@ -3,6 +3,7 @@
 > These personas model the people and institutions actively working against RRM's credibility. Understanding their mental models, incentive structures, and rhetorical strategies is essential for positioning RRM Academy content that doesn't fight them head-on but makes their arguments irrelevant.
 
 **Last updated:** 2026-03-01
+**Sources:** ACOG/ASRM published position documents, media coverage (.firecrawl/), Dr. Naomi Whittaker public transcripts (5 podcasts/masterclasses, 2020-2025)
 
 ---
 
@@ -32,6 +33,18 @@
 | "Unexplained infertility" is a legitimate diagnosis | Unquestioned assumption | RRM's position that "unexplained" = "undiagnosed" directly threatens this |
 | Large-scale RCTs are the only valid evidence | Epistemological commitment | Used to dismiss retrospective cohort studies that show RRM works |
 | IVF success rates validate the approach | Key metric | Selective use of per-transfer rates, not per-patient cumulative rates |
+| Cervical mucus and progesterone are irrelevant to fertility workup | Trained blind spot | Dr. Naomi's IVF training professor literally laughed at her for asking about cervical mucus and progesterone. This is the culture. |
+| Surgical skill for endo/adhesions is unnecessary when IVF exists | Institutional assumption | Near-contact laparoscopy study found 93.5% of women told they didn't have endometriosis actually did. The disease is missed because the bypassing approach makes diagnosis feel unnecessary. |
+
+### The Training Gap
+
+The REI's belief system is not malicious. It is structural. Dr. Naomi identifies "three shortcuts" in reproductive medicine history, each of which caused 10-20 years of surgical and diagnostic skill atrophy:
+
+1. **Clomid (1950s-60s)** -- empiric ovulation induction. Doctors stopped investigating why ovulation wasn't occurring.
+2. **The Pill (1960s)** -- suppressive management. Doctors stopped diagnosing the conditions the Pill masked.
+3. **IVF (1970s-present)** -- bypassing conception entirely. Doctors stopped treating the reproductive system.
+
+Each shortcut made the previous generation's diagnostic skills less necessary to learn, less practiced, and eventually lost. Today's REI fellowship is built on the third shortcut. The REI is not choosing to ignore diagnosis. The diagnostic tradition was never passed down to them.
 
 ### Incentive Structure
 
@@ -51,6 +64,7 @@
 - Sunk cost: 4 years medical school + 4 years residency + 3 years REI fellowship, all centered on ART.
 - Cognitive dissonance: if RRM works for many patients, what does that say about the bypassing approach they've practiced for decades?
 - Status quo bias: the current model is working (for the doctor, financially). Why change?
+- Identity threat: The core narrative they've internalized and transmitted to patients is "Your body is broken. Nature is broken. IVF is better." RRM's existence says the body often isn't broken, it's mistreated or undiagnosed. That reframes the REI's career as the problem, not the solution.
 
 ### Rhetorical Playbook
 
@@ -63,6 +77,8 @@
 | Moving the goalposts | "Show me the RCTs" | Retrospective cohort studies with 1,310 patients get dismissed because they aren't randomized, which is ethically impossible for most fertility interventions |
 | False binary | "You're either pro-science or pro-RRM" | Forces patients to choose tribe over treatment |
 | Concern trolling | "I worry that RRM gives patients false hope" | Frames the critic as the compassionate one while dismissing evidence |
+| Scare-tactic selling | "You need to freeze your eggs NOW or you'll regret it forever" | Dr. Naomi witnessed an IVF physician shadow appointment where the doctor used fear to close a $15K egg freeze on a young woman. The pressure is financial, not medical. |
+| IUI as stalling | "Let's try a few rounds of IUI before IVF" | IUI was invented in the 1770s. Dr. Naomi calls it "not scientific." It's a revenue placeholder before the more lucrative IVF recommendation. |
 
 ### What They Fear
 
@@ -71,6 +87,8 @@
 3. **The obstetric safety data** -- lower prematurity, lower multiple pregnancy rates, lower low birth weight. These are outcomes ACOG itself cares about.
 4. **Patient self-education** -- informed patients who ask "Why was I told my infertility was unexplained when you never tested my progesterone in the luteal phase?" undermine the authority relationship.
 5. **Legislative momentum** -- Arkansas RRM insurance mandate (2025). If more states follow, government funding and insurance reimbursement flows toward RRM and away from ART. This is the existential threat: not losing patients one at a time, but losing the policy infrastructure that sustains $1M+ REI salaries.
+6. **The missed-disease data** -- near-contact laparoscopy study showing 93.5% of women told "you don't have endo" actually did. This isn't an evidence gap. It's a malpractice exposure.
+7. **IVF success rate stagnation** -- per-cycle live birth rate has hovered around 28% since the technology was introduced, despite marketing that implies continuous improvement. When patients learn this, the "gold standard" framing collapses.
 
 ### How to Make This Persona Irrelevant (Not How to Fight Them)
 
@@ -117,6 +135,7 @@
 
 **Unstated but structural:**
 - **Revenue protection:** ASRM's membership is REI specialists whose income depends on ART volume. If RRM captures even 10% of the IVF market, that's billions in lost revenue industry-wide.
+- **ICD-10 coding capture:** WHO reclassified infertility as a disease (not a symptom). This enables IVF to be coded and billed as treatment for a disease, positioning ART as the default insured treatment pathway. Dr. Naomi identifies this as a deliberate strategy to funnel government funding and insurance dollars exclusively to IVF/ART. If infertility is a disease, and IVF is the treatment, then diagnostic workup (RRM) is just the preamble before the "real" treatment.
 - **Jurisdictional defense:** "RRM is not a medical term" is a turf claim. If RRM becomes a recognized specialty, it competes for patients, training slots, and insurance reimbursement.
 - **Political positioning:** Both organizations have invested heavily in framing reproductive technologies as reproductive rights. RRM complicates this narrative because it offers reproductive options that don't involve embryo creation.
 - **Search dominance:** ASRM's "Just the Facts" fact sheet ranks #1 for "RRM vs IVF." They benefit from controlling the narrative in search.
@@ -217,12 +236,21 @@ The dominant media frame (from actual coverage):
 - **Audience expectations:** Readers of The 19th and STAT expect coverage through a reproductive rights lens. RRM doesn't fit neatly into either side.
 - **Risk aversion:** Writing sympathetically about RRM risks backlash from the reproductive rights community and ACOG/ASRM relationships.
 
+### Unreported Stories They're Missing
+
+1. **Egg freezing influencer campaigns.** Dr. Naomi identifies that egg freezing marketing to young women is often undisclosed paid advertising. Influencers promote egg freezing as empowerment without disclosing financial relationships with IVF clinics. This is a consumer protection story that progressive outlets would cover aggressively if they knew about it.
+2. **Organ removal culture.** Women having organs removed during surgery without prior consent or knowledge. Dr. Naomi: "We still have that hysteria mindset." Patients waking up from surgery to discover a fallopian tube or ovary was removed. This is a bodily autonomy story.
+3. **The veterinary comparison.** Bovine reproductive medicine has better literature on chronic endometritis than human medicine. Dr. Naomi: "The cows are worth more than us." Agricultural economics drove research investment that women's health never received.
+4. **Suppressive medicine as gaslighting.** The standard of care for endometriosis, PCOS, and painful periods is hormonal suppression that masks symptoms while disease progresses. Women are told they're "treated" while getting worse.
+
 ### What Would Change the Coverage
 
 - **A communication-ready organization.** Journalists use whoever responds fastest with clear quotes. RRM Academy having a media kit, press page, and responsive contact changes the source balance.
 - **Patient stories that break the frame.** A secular, politically progressive couple who chose RRM over IVF for medical reasons (not religious ones) undermines the "anti-abortion tool" narrative.
 - **The cost angle.** Economic inequality and IVF access is a story progressive outlets want to tell. RRM as affordable alternative to $40K+ IVF cycles is the frame that works with their audience, not against it.
 - **International evidence.** Madrid. Dublin. Australia. The global dimension makes the "American culture war" frame harder to sustain.
+- **The egg freezing investigation angle.** Undisclosed paid influencer partnerships with IVF clinics pushing egg freezing on young women is a media-ready scandal. This reframes RRM not as anti-IVF but as pro-informed-consent.
+- **The missed-disease angle.** 93.5% of women told they didn't have endometriosis actually did. This is a medical scandal, not a religious debate.
 
 ---
 
@@ -244,6 +272,8 @@ The dominant media frame (from actual coverage):
 2. **The political frame is the primary weapon.** Without the abortion/personhood connection, the opposition would be a normal scientific disagreement. The political frame makes it existential.
 3. **None of them acknowledge the cost difference.** $2K-$5K vs. $40K-$60K is never addressed in any adversary document.
 4. **None of them address obstetric safety.** Lower prematurity, fewer multiples, lower LBW -- these are outcomes ACOG explicitly cares about but ignores in the RRM context.
+5. **The core narrative is shared across all four.** Dr. Naomi articulates what they all implicitly transmit to patients: "Your body is broken. Nature is broken. IVF is better." This is not a medical conclusion. It is a business model dressed as clinical judgment.
+6. **None of them account for the training gap.** The "three shortcuts" (Clomid, Pill, IVF) each eliminated a generation of diagnostic skill. Today's adversaries aren't defending bad medicine knowingly. They're defending the only medicine they were taught.
 
 ---
 
@@ -256,6 +286,10 @@ The dominant media frame (from actual coverage):
 - **Use the adversary's own standards against them.** "ACOG recommends evaluation and treatment of the underlying cause of abnormal uterine bleeding" (ACOG Practice Bulletin 128). RRM does exactly this.
 - **Feature international evidence prominently.** Madrid, Dublin, Ireland, Australia. Undercuts the American culture war frame.
 - **Never name ACOG/ASRM on patient-facing pages.** Don't amplify. Don't debate. Let the evidence stand.
+- **Use the "three shortcuts" framework.** Clomid, the Pill, and IVF each eliminated a generation of diagnostic skill. This explains why the opposition exists without demonizing individual doctors. It's a systemic problem, not a moral one.
+- **Name the core narrative to disarm it.** "Your body is broken. Nature is broken. IVF is better." Once a patient can articulate the narrative they've been sold, they can evaluate it critically.
+- **Lead with the missed-disease data.** 93.5% of women told "you don't have endometriosis" actually did. This single statistic does more work than any argument about paradigms.
+- **Use the menstrual cycle as EKG framing.** Dr. Naomi: "The menstrual cycle is the EKG of women." Nobody would suppress an abnormal EKG with medication and call it treatment.
 
 ### Don't
 
@@ -263,3 +297,4 @@ The dominant media frame (from actual coverage):
 - **Don't fight the political frame.** You will not win a political argument. Win the medical one.
 - **Don't overstate evidence.** "RRM works for many patients" is defensible. "RRM is better than IVF" is a claim the evidence doesn't universally support.
 - **Don't target Dr. Institutional REI personally.** Some REIs are genuinely curious about RRM and may become allies. The adversary is the system, not the individual.
+- **Don't use "three shortcuts" on patient-facing content.** This framework is for internal strategy and provider education. Patients don't need to know about medical training history. They need to know RRM works.
