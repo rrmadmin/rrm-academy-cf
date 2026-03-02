@@ -8,7 +8,7 @@ const jsonLd = {
       '@type': ['Article', 'MedicalWebPage'],
       headline: 'What is Restorative Reproductive Medicine (RRM)?',
       description:
-        'Restorative Reproductive Medicine (RRM) is an approach within conventional medicine that diagnoses and treats the root causes of reproductive health conditions rather than masking symptoms or bypassing natural function.',
+        'Restorative Reproductive Medicine (RRM) diagnoses and treats root causes of infertility, endometriosis, PCOS, and other reproductive conditions.',
       image: 'https://rrmacademy.org/images/og-default.png',
       author: {
         '@type': 'Person',
@@ -22,6 +22,24 @@ const jsonLd = {
       },
       datePublished: '2026-03-01',
       dateModified: '2026-03-01',
+      wordCount: 9500,
+      articleSection: [
+        'Key Takeaways',
+        'What Is Restorative Reproductive Medicine?',
+        'A Brief History of Restorative Reproductive Medicine',
+        'How RRM Diagnosis Works',
+        'Fertility Awareness-Based Methods (FABMs) Explained',
+        'Conditions Treated with Restorative Reproductive Medicine',
+        'RRM vs. IVF: A Detailed Comparison',
+        'The Evidence Behind RRM',
+        'What to Expect: The RRM Patient Journey',
+        'How Much Does RRM Cost?',
+        'NaProTechnology: What It Is and How It Works',
+        'RRM Training and Credentials for Healthcare Professionals',
+        'Common Myths About Restorative Reproductive Medicine',
+        'How to Get Started with Restorative Reproductive Medicine',
+        'Frequently Asked Questions',
+      ],
       mainEntityOfPage: {
         '@type': 'WebPage',
         '@id': 'https://rrmacademy.org/what-is-rrm/',
@@ -30,6 +48,74 @@ const jsonLd = {
         '@type': 'MedicalTherapy',
         name: 'Restorative Reproductive Medicine',
       },
+      hasPart: [
+        { '@type': 'WebPageElement', name: 'Key Takeaways', url: 'https://rrmacademy.org/what-is-rrm/#key-takeaways' },
+        { '@type': 'WebPageElement', name: 'What Is Restorative Reproductive Medicine?', url: 'https://rrmacademy.org/what-is-rrm/#what-is-rrm' },
+        { '@type': 'WebPageElement', name: 'A Brief History of Restorative Reproductive Medicine', url: 'https://rrmacademy.org/what-is-rrm/#history' },
+        { '@type': 'WebPageElement', name: 'How RRM Diagnosis Works', url: 'https://rrmacademy.org/what-is-rrm/#diagnosis' },
+        { '@type': 'WebPageElement', name: 'Fertility Awareness-Based Methods (FABMs) Explained', url: 'https://rrmacademy.org/what-is-rrm/#fabms' },
+        { '@type': 'WebPageElement', name: 'Conditions Treated with Restorative Reproductive Medicine', url: 'https://rrmacademy.org/what-is-rrm/#conditions' },
+        { '@type': 'WebPageElement', name: 'RRM vs. IVF: A Detailed Comparison', url: 'https://rrmacademy.org/what-is-rrm/#rrm-vs-ivf' },
+        { '@type': 'WebPageElement', name: 'The Evidence Behind RRM', url: 'https://rrmacademy.org/what-is-rrm/#evidence' },
+        { '@type': 'WebPageElement', name: 'What to Expect: The RRM Patient Journey', url: 'https://rrmacademy.org/what-is-rrm/#patient-journey' },
+        { '@type': 'WebPageElement', name: 'How Much Does RRM Cost?', url: 'https://rrmacademy.org/what-is-rrm/#cost-insurance' },
+        { '@type': 'WebPageElement', name: 'NaProTechnology: What It Is and How It Works', url: 'https://rrmacademy.org/what-is-rrm/#naprotechnology' },
+        { '@type': 'WebPageElement', name: 'RRM Training and Credentials for Healthcare Professionals', url: 'https://rrmacademy.org/what-is-rrm/#training' },
+        { '@type': 'WebPageElement', name: 'Common Myths About Restorative Reproductive Medicine', url: 'https://rrmacademy.org/what-is-rrm/#myths' },
+        { '@type': 'WebPageElement', name: 'How to Get Started with Restorative Reproductive Medicine', url: 'https://rrmacademy.org/what-is-rrm/#get-started' },
+        { '@type': 'WebPageElement', name: 'Frequently Asked Questions', url: 'https://rrmacademy.org/what-is-rrm/#faq' },
+      ],
+      citation: [
+        {
+          '@type': 'ScholarlyArticle',
+          name: 'Outcomes from Treatment of Infertility with Natural Procreative Technology in an Irish General Practice',
+          author: 'Stanford JB, Parnell TA, Boyle PC',
+          datePublished: '2008',
+          isPartOf: { '@type': 'Periodical', name: 'The Journal of the American Board of Family Medicine' },
+        },
+        {
+          '@type': 'ScholarlyArticle',
+          name: 'Natural Procreative Technology for Infertility and Recurrent Miscarriage',
+          author: 'Tham E, Schliep K, Stanford J',
+          datePublished: '2012',
+          isPartOf: { '@type': 'Periodical', name: 'Canadian Family Physician' },
+        },
+        {
+          '@type': 'ScholarlyArticle',
+          name: 'Fertility Awareness-Based Methods for Women\'s Health and Family Planning',
+          author: 'Duane M, Stanford JB, Porucznik CA, Vigil P',
+          datePublished: '2022',
+          isPartOf: { '@type': 'Periodical', name: 'Frontiers in Medicine' },
+        },
+        {
+          '@type': 'ScholarlyArticle',
+          name: 'Successful Pregnancy with Restorative Reproductive Medicine after 16 Years of Infertility',
+          author: 'Boyle PC, Stanford JB, Zecevic I',
+          datePublished: '2022',
+          isPartOf: { '@type': 'Periodical', name: 'Journal of Medical Case Reports' },
+        },
+        {
+          '@type': 'ScholarlyArticle',
+          name: 'Healthy Singleton Pregnancies from Restorative Reproductive Medicine (RRM) After Failed IVF',
+          author: 'Boyle PC, de Groot T, Andralojc KM, Stanford JB',
+          datePublished: '2018',
+          isPartOf: { '@type': 'Periodical', name: 'Frontiers in Medicine' },
+        },
+        {
+          '@type': 'ScholarlyArticle',
+          name: 'RRM Outcomes Compared to IVF for the Treatment of Infertility',
+          author: 'Boyle P, Toth A, Minjeur M, Turczynski C',
+          datePublished: '2025',
+          isPartOf: { '@type': 'Periodical', name: 'Journal of Restorative Reproductive Medicine' },
+        },
+        {
+          '@type': 'ScholarlyArticle',
+          name: 'NaProTechnology Outcomes in 1,310 Couples: A Retrospective Cohort Study',
+          author: 'Sanchez-Mendez S, et al.',
+          datePublished: '2025',
+          isPartOf: { '@type': 'Periodical', name: 'Frontiers in Reproductive Health' },
+        },
+      ],
     },
     {
       '@type': 'BreadcrumbList',
@@ -43,58 +129,98 @@ const jsonLd = {
       mainEntity: [
         {
           '@type': 'Question',
-          name: 'What is Restorative Reproductive Medicine?',
+          name: 'What is restorative reproductive medicine?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Restorative Reproductive Medicine (RRM) is an approach within conventional medicine that works cooperatively with the body to diagnose and treat the underlying causes of reproductive health conditions. Unlike approaches that mask symptoms with hormonal medications or bypass natural function with assisted reproductive technologies, RRM uses standard and advanced diagnostic tools to investigate the root cause, whether hormonal, anatomical, or inflammatory, and restore natural function.',
+            text: 'Restorative reproductive medicine (RRM) is a medical approach that diagnoses and treats the root causes of reproductive health conditions. Rather than masking symptoms with suppressive medications or bypassing natural function, RRM uses standard diagnostic tools and targeted treatments to restore the body\'s own reproductive physiology. RRM physicians are board-certified OBGYNs, reproductive endocrinologists, and family physicians with additional training in cycle-based evaluation.',
           },
         },
         {
           '@type': 'Question',
-          name: 'What conditions does RRM treat?',
+          name: 'Is RRM the same as NaProTechnology?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'RRM commonly addresses endometriosis, polycystic ovary syndrome (PCOS), unexplained infertility, recurrent miscarriage, irregular or painful periods, premenstrual syndrome, hormonal imbalances, ovulatory dysfunction, and pelvic pain. Treatment may include medical management, hormonal support, surgical intervention, or a combination tailored to the underlying diagnosis.',
+            text: 'Not exactly. NaProTechnology is one specific approach within the broader field of restorative reproductive medicine. NaPro uses the Creighton Model FertilityCare System for charting and was developed at the Pope Paul VI Institute by Dr. Thomas Hilgers. RRM is the umbrella term that includes NaPro as well as other cycle-based, cause-directed medical approaches such as FEMM Medical Management and NeoFertility protocols.',
           },
         },
         {
           '@type': 'Question',
-          name: 'How does RRM differ from IVF?',
+          name: 'How long does RRM treatment typically take?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'IVF bypasses the reproductive system entirely by fertilizing eggs outside the body, while RRM identifies and treats the underlying condition preventing natural conception. RRM uses diagnostic tools like cycle charting, targeted bloodwork, and imaging to find the root cause, then applies medical or surgical treatment to restore function. Some patients pursue RRM before considering IVF; others use RRM alongside other treatments.',
+            text: 'Treatment timelines vary by diagnosis. Most couples begin with 1 to 3 cycles of charting to establish a baseline, followed by diagnostic testing and treatment planning. Some hormonal conditions respond within a few cycles of targeted support. Surgical cases (such as endometriosis excision) require recovery time before attempting conception. Overall, couples should expect an active treatment window of 3 to 18 months depending on complexity.',
           },
         },
         {
           '@type': 'Question',
-          name: 'How effective is RRM for infertility?',
+          name: 'Does RRM work for male infertility?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Published research shows RRM treatment followed by timed intercourse has achieved live birth rates of 29-41% depending on age and diagnosis. For women under 35, rates reach 34%, and for women with BMI under 25, rates reach 40%. RRM combined with surgical treatment of moderate-to-severe endometriosis has shown pregnancy rates of 55% per woman. Results vary by condition and individual factors.',
+            text: 'Yes. RRM evaluates both partners. A male factor is solely responsible in about 20% of infertile couples and contributory in another 30 to 40%. Evaluation includes semen analysis, hormonal assessment, and investigation of anatomical issues such as varicocele. Treatment may include hormonal support, surgical correction, lifestyle modification, or referral to a urologist with reproductive expertise. Addressing both sides of the equation improves outcomes.',
           },
         },
         {
           '@type': 'Question',
-          name: 'Is RRM covered by insurance?',
+          name: 'Can I try RRM if IVF has already failed?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Many RRM treatments are covered by standard health insurance because they involve conventional medical diagnostics (bloodwork, imaging, ultrasound) and treatments (medications, surgery) for diagnosed conditions. Unlike IVF, which requires specific fertility coverage, RRM treatments are often coded as treatment for endometriosis, PCOS, hormonal disorders, or other diagnosed conditions. Coverage varies by plan and provider.',
+            text: 'Yes. Published research by Boyle et al. documented healthy singleton pregnancies from RRM treatment in couples who had previously undergone multiple failed IVF cycles. One case report describes a successful pregnancy after 16 years of infertility and eight unsuccessful IVF embryo transfers. RRM often uncovers treatable conditions that were never diagnosed during the IVF process.',
           },
         },
         {
           '@type': 'Question',
-          name: 'What is NaProTechnology?',
+          name: 'Does insurance cover restorative reproductive medicine?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'NaProTechnology (Natural Procreative Technology) is a specific type of Restorative Reproductive Medicine developed at the Saint Paul VI Institute. It uses the Creighton Model FertilityCare System to monitor biomarkers, identify reproductive health problems, and guide targeted medical and surgical treatment. NaProTechnology is practiced by physicians with specialized fellowship training.',
+            text: 'Many RRM treatments are covered by standard health insurance because they involve conventional diagnostics and treatments for diagnosed conditions. Bloodwork, imaging, medications, and surgery for endometriosis, PCOS, or hormonal disorders use standard medical billing codes. Arkansas became the first state to mandate coverage for restorative reproductive medicine in 2025. The federal RESTORE Act (H.R. 3589) has been introduced to expand access further. Coverage varies by plan and state.',
           },
         },
         {
           '@type': 'Question',
-          name: 'How do I find an RRM doctor?',
+          name: 'Do I have to be Catholic or religious to use RRM?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'RRM-trained physicians can be found through the International Institute for Restorative Reproductive Medicine (IIRRM) provider directory, FertilityCare Centers of America, or by searching for NaProTechnology-trained physicians in your area. RRM Academy also provides educational resources to help you understand what to look for in a provider and what questions to ask.',
+            text: 'No. RRM is a medical discipline based on reproductive physiology, not religious doctrine. NaProTechnology was developed at a Catholic institution, but its protocols rely on the same science as any medical specialty. Patients of all faiths and no faith seek RRM because they want thorough diagnosis and cause-based treatment. No religious commitment is required.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'What is the success rate of RRM?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Published studies report live birth rates of 26 to 41% (crude) for RRM treatment with timed intercourse, and adjusted cumulative rates of 50 to 62% depending on follow-up duration. Boyle et al. (2025) reported a 41% live birth rate in a 187-couple cohort. Results depend on diagnosis, age, and individual factors. RRM also delivers outcomes beyond pregnancy: pain relief, hormonal balance, and answers about why a condition exists.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'How is RRM different from seeing a regular OB-GYN?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Most OB-GYNs manage symptoms. Irregular periods get suppressive medications. Pelvic pain gets empiric treatment. Infertility gets a referral to IVF. An RRM physician starts with the cycle chart as a diagnostic tool, orders timed hormone panels based on cycle phase, investigates the root cause, and builds a targeted treatment plan. The tools are the same. The approach is different. RRM asks "why" before deciding "what."',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Where can I find an RRM-trained doctor?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'The IIRRM provider directory is the primary referral network for RRM-trained physicians. Natural Womanhood maintains a searchable directory. Each charting method has its own instructor network: FertilityCare Centers of America for Creighton Model, the Marquette Method Professionals Association, and FEMM Health for FEMM providers. Some RRM physicians offer telehealth consultations for patients without local access.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'How much does RRM cost compared to IVF?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'RRM is typically far less expensive than IVF. One study found that IVF costs are on average 20 times greater than medication-based fertility treatments. A single IVF cycle costs $15,000 to $30,000, and most couples need two to three cycles, bringing average total costs to $40,000 to $60,000 or more. Many RRM treatments are billable under standard insurance codes for diagnosed conditions, because RRM treats specific medical conditions rather than bypassing them.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'What fertility charting methods are used in RRM?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'RRM physicians work with several validated cycle-charting methods. These include the Creighton Model FertilityCare System, the Marquette Method, FEMM (Fertility Education and Medical Management), the Billings Ovulation Method, and SymptoThermal methods. Each method tracks different biomarkers. The choice depends on the patient\'s needs and the physician\'s training. All provide cycle-based data that supports diagnosis.',
           },
         },
         {
@@ -102,23 +228,63 @@ const jsonLd = {
           name: 'Can RRM help with endometriosis?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Yes. RRM addresses endometriosis through a combination of thorough diagnosis (often using advanced imaging and surgical evaluation), excision surgery to remove endometriotic tissue, and long-term medical management to prevent recurrence. A meta-analysis found that surgical treatment of moderate-to-severe endometriosis yielded a 55.3% per-woman pregnancy rate, compared to 9.9% with IVF alone in similar cases.',
+            text: 'Yes. RRM approaches endometriosis through thorough diagnostic evaluation (often including surgical assessment), excision surgery to remove endometriotic tissue, and targeted medical management to support healing and prevent recurrence. Excision is the gold standard for surgical treatment. RRM surgeons report low repeat-surgery rates (2.5% over ten years) compared to ablation. RRM also addresses the pain, inflammation, and hormonal disruption that endometriosis causes.',
           },
         },
         {
           '@type': 'Question',
-          name: 'Is RRM only for people who oppose IVF?',
+          name: 'Is RRM safe?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'No. While some patients choose RRM for ethical or religious reasons, many pursue RRM because they want to understand and treat the underlying cause of their condition, not just achieve pregnancy. RRM appeals to patients who want a thorough diagnostic workup, who prefer to treat root causes before considering assisted reproduction, or who want to optimize their health regardless of family-building plans.',
+            text: 'RRM uses standard medical and surgical interventions that carry the same safety profile as any conventional treatment. Bloodwork, imaging, and hormonal support carry minimal risk. Surgical interventions like laparoscopic excision carry the standard risks of any minimally invasive surgery. RRM does not involve the high-dose ovarian stimulation or egg retrieval procedures associated with IVF, which carry their own set of complications. RRM treats the underlying condition, which often improves the patient\'s overall health.',
           },
         },
         {
           '@type': 'Question',
-          name: 'What training do RRM doctors have?',
+          name: 'Can teenagers benefit from RRM?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'RRM physicians are typically board-certified OBGYNs or reproductive endocrinologists who pursue additional fellowship training in NaProTechnology or restorative reproductive medicine. Fellowship programs include training in the Creighton Model FertilityCare System, advanced hormonal evaluation, and specialized surgical techniques for conditions like endometriosis. RRM Academy offers courses for both patients and healthcare professionals seeking to deepen their understanding.',
+            text: 'Yes. Painful periods, irregular cycles, and heavy bleeding in teenagers deserve investigation, not suppression. The American College of Obstetricians and Gynecologists recognizes the menstrual cycle as a vital sign in adolescents. RRM evaluation can identify conditions like endometriosis, PCOS, or hormonal imbalances early, when intervention is most effective. Learning a charting method also gives young women a tool for lifelong health monitoring.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Does my partner need to be involved?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'If you are seeking help with infertility, yes. Male factor contributes to infertility in a significant percentage of couples, and evaluation of only one partner misses half the picture. Your partner will typically need a semen analysis and may need hormonal testing. For non-fertility conditions (endometriosis, PCOS, pelvic pain), partner involvement is not required but can be supportive.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'What should I bring to my first RRM appointment?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Bring your charted cycles (at minimum 1 to 3 months of data), complete medical history, any prior lab or imaging results, a list of medications, and a list of questions. If you have prior surgical records or pathology reports, bring those as well. If you have a partner and are addressing fertility concerns, have them attend. The more data you provide, the more your physician can assess during the first visit.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'What is the difference between RRM and fertility treatment?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Conventional fertility treatment often focuses on achieving pregnancy by any means, frequently through assisted reproductive technologies like IVF and IUI. RRM focuses on diagnosing and treating the condition that prevents pregnancy. When the underlying disease is resolved, conception can occur through normal intercourse. RRM also treats conditions unrelated to fertility. The two approaches address different questions: "How do we achieve pregnancy?" versus "Why isn\'t it happening, and what can we fix?"',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Can RRM help with conditions other than infertility?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Yes. RRM treats endometriosis, PCOS, pelvic pain, irregular or painful periods, PMS, PMDD, hormonal imbalances, thyroid disorders, ovulatory dysfunction, perimenopause, and other reproductive health conditions. RRM is a whole-body, couple-centered approach that includes functional nutrition, comprehensive metabolic bloodwork, mental health support, and lifestyle optimization alongside hormonal and surgical interventions. Many patients seek RRM without any fertility goals. They want their symptoms investigated and their conditions treated rather than managed indefinitely with suppressive medications.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'How do I become an RRM-trained provider?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Start with online education through RRM Academy. For formal credentialing, the IIRRM offers international certification and hosts conferences. The Pope Paul VI Institute provides fellowship training in NaProTechnology. FACTS offers a medical elective with CME credit for students and residents. Cycle-based evaluation can be integrated into any OBGYN, family medicine, or endocrinology practice.',
           },
         },
       ],
@@ -129,179 +295,1291 @@ const jsonLd = {
 
 <BaseLayout
   title="What is Restorative Reproductive Medicine (RRM)?"
-  description="Restorative Reproductive Medicine (RRM) diagnoses and treats the root causes of reproductive health conditions rather than masking symptoms or bypassing natural function."
-  canonicalUrl="https://rrmacademy.org/what-is-rrm"
+  description="Restorative Reproductive Medicine (RRM) diagnoses and treats root causes of infertility, endometriosis, PCOS, and other reproductive conditions."
+  canonicalUrl="https://rrmacademy.org/what-is-rrm/"
   ogType="article"
   publishDate="2026-03-01"
   jsonLd={jsonLd}
 >
   <div class="page-wrapper" data-pagefind-body>
-    <div class="container container--narrow">
+    <div class="container">
 
       <nav class="breadcrumb" aria-label="Breadcrumb">
         <a href="/">Home</a>
         <span aria-hidden="true"> &rsaquo; </span>
-        <a href="/about/">About</a>
-        <span aria-hidden="true"> &rsaquo; </span>
         <span>What is RRM?</span>
       </nav>
 
-      <article class="prose">
+      <h1>What is Restorative Reproductive Medicine (RRM)?</h1>
 
-        <h1>What is Restorative Reproductive Medicine (RRM)?</h1>
+      <p class="author-byline">
+        By <strong>Naomi Whittaker, MD</strong>, Board-Certified OBGYN and NaProTechnology Fellow
+        <br><time datetime="2026-03-01">Last updated March 2026</time>
+      </p>
 
-        <p class="author-byline">
-          By <strong>Naomi Whittaker, MD</strong>, Board-Certified OBGYN and NaProTechnology Fellow &mdash; <time datetime="2026-03-01">March 2026</time>
-        </p>
-
-        <p><strong>Restorative Reproductive Medicine (RRM) is an approach within conventional medicine that works cooperatively with the body to diagnose and treat the underlying causes of reproductive health conditions.</strong> Unlike approaches that mask symptoms with hormonal medications or bypass natural function with assisted reproductive technologies, RRM uses standard and advanced diagnostic tools to investigate the root cause, whether hormonal, anatomical, or inflammatory, and restore natural function. Conditions commonly addressed include endometriosis, PCOS, infertility, recurrent miscarriage, and pelvic pain.</p>
-
-        <h2>How RRM Works</h2>
-
-        <p>RRM follows a diagnostic-first approach built on three principles:</p>
-
+      <!-- Mobile TOC -->
+      <details class="toc-mobile">
+        <summary>On this page</summary>
         <ol>
-          <li><strong>Identify the root cause.</strong> Using cycle charting (such as the Creighton Model FertilityCare System), targeted bloodwork timed to the menstrual cycle, advanced imaging, and sometimes diagnostic surgery, RRM practitioners build a complete picture of what is going wrong and why.</li>
-          <li><strong>Treat the underlying condition.</strong> Based on the diagnosis, treatment may include hormonal support (such as targeted progesterone supplementation), medication to address immune or inflammatory factors, or surgical intervention (such as excision surgery for endometriosis).</li>
-          <li><strong>Restore natural function.</strong> The goal is not to bypass the reproductive system but to optimize it, addressing the condition so the body can function as intended, whether the patient's goal is fertility, symptom relief, or long-term health.</li>
+          <li><a href="#key-takeaways">Key Takeaways</a></li>
+          <li><a href="#what-is-rrm">What is RRM?</a></li>
+          <li><a href="#history">History of RRM</a></li>
+          <li><a href="#diagnosis">How Diagnosis Works</a></li>
+          <li><a href="#fabms">FABMs Explained</a></li>
+          <li><a href="#conditions">Conditions Treated</a></li>
+          <li><a href="#rrm-vs-ivf">RRM vs. IVF</a></li>
+          <li><a href="#evidence">The Evidence</a></li>
+          <li><a href="#patient-journey">Patient Journey</a></li>
+          <li><a href="#cost-insurance">Cost and Insurance</a></li>
+          <li><a href="#naprotechnology">NaProTechnology</a></li>
+          <li><a href="#training">Training and Credentials</a></li>
+          <li><a href="#myths">Common Myths</a></li>
+          <li><a href="#get-started">How to Get Started</a></li>
+          <li><a href="#faq">FAQ</a></li>
         </ol>
+      </details>
 
-        <h2>Conditions Commonly Treated with RRM</h2>
+      <div class="article-layout">
 
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Condition</th>
-                <th>How RRM Approaches It</th>
-                <th>Conventional Approach (for comparison)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Endometriosis</td>
-                <td>Thorough diagnosis, excision surgery, long-term management plan</td>
-                <td>Hormonal suppression (birth control), ablation surgery, IVF to bypass</td>
-              </tr>
-              <tr>
-                <td>PCOS</td>
-                <td>Root-cause evaluation (insulin resistance, adrenal, inflammatory), targeted treatment</td>
-                <td>Birth control to regulate cycles, metformin, Clomid/letrozole for fertility</td>
-              </tr>
-              <tr>
-                <td>Unexplained infertility</td>
-                <td>Advanced cycle-based diagnostics to identify previously missed causes</td>
-                <td>Empiric treatment with IUI or IVF without identifying the cause</td>
-              </tr>
-              <tr>
-                <td>Recurrent miscarriage</td>
-                <td>Hormonal evaluation (progesterone, thyroid), immune factors, anatomical assessment</td>
-                <td>Progesterone supplementation, IVF with PGT-A</td>
-              </tr>
-              <tr>
-                <td>Irregular or painful periods</td>
-                <td>Diagnostic workup to identify hormonal or structural cause, targeted treatment</td>
-                <td>Hormonal birth control to suppress symptoms</td>
-              </tr>
-              <tr>
-                <td>Pelvic pain</td>
-                <td>Investigation for endometriosis, adhesions, or other structural causes</td>
-                <td>Pain management, hormonal suppression</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <!-- Desktop Sticky TOC -->
+        <nav class="toc" aria-label="Table of contents">
+          <p class="toc-heading">On this page</p>
+          <ol>
+            <li><a href="#key-takeaways">Key Takeaways</a></li>
+            <li><a href="#what-is-rrm">What is RRM?</a></li>
+            <li><a href="#history">History of RRM</a></li>
+            <li><a href="#diagnosis">How Diagnosis Works</a></li>
+            <li><a href="#fabms">FABMs Explained</a></li>
+            <li><a href="#conditions">Conditions Treated</a></li>
+            <li><a href="#rrm-vs-ivf">RRM vs. IVF</a></li>
+            <li><a href="#evidence">The Evidence</a></li>
+            <li><a href="#patient-journey">Patient Journey</a></li>
+            <li><a href="#cost-insurance">Cost and Insurance</a></li>
+            <li><a href="#naprotechnology">NaProTechnology</a></li>
+            <li><a href="#training">Training and Credentials</a></li>
+            <li><a href="#myths">Common Myths</a></li>
+            <li><a href="#get-started">How to Get Started</a></li>
+            <li><a href="#faq">FAQ</a></li>
+          </ol>
+        </nav>
 
-        <p><em>This content is for educational purposes only and does not constitute medical advice. Consult a qualified healthcare provider for diagnosis and treatment.</em></p>
+        <!-- Article Body -->
+        <article class="prose">
 
-        <h2>RRM vs. IVF: Key Differences</h2>
+          <!-- Section 1: TL;DR -->
+          <aside class="tldr">
+            <h2 id="key-takeaways">Key Takeaways</h2>
+            <ul>
+              <li><strong>RRM diagnoses and treats root causes</strong> of reproductive health conditions. It does not mask symptoms with suppressive medications or bypass natural function.<sup><a href="#ref-1" id="cite-1">1</a></sup></li>
+              <li><strong>Conditions treated</strong> include endometriosis, PCOS, unexplained infertility, recurrent miscarriage, ovulatory dysfunction, male factor infertility, pelvic pain, hormonal disorders, and perimenopause.</li>
+              <li><strong>Cycle charting provides real-time diagnostic data.</strong> A woman's fertility chart is to an RRM physician what an EKG is to a cardiologist.<sup><a href="#ref-2" id="cite-2">2</a></sup></li>
+              <li><strong>Published research</strong> shows crude live birth rates of 26 to 41% with RRM treatment and timed intercourse. The largest published cohort (1,310 couples) reported an adjusted cumulative live birth rate of 50% at 24 months and 62% at full follow-up.<sup><a href="#ref-3" id="cite-3">3</a></sup><sup><a href="#ref-24" id="cite-24c">24</a></sup><sup><a href="#ref-25" id="cite-25">25</a></sup></li>
+              <li><strong>Both partners are evaluated.</strong> A male factor is solely responsible in about 20% of infertile couples and contributory in another 30 to 40%. RRM addresses both.<sup><a href="#ref-27" id="cite-27">27</a></sup></li>
+              <li><strong>Whole-body, couple-centered care.</strong> RRM goes beyond hormones and surgery. Functional nutrition, comprehensive bloodwork, mental health support, environmental factors, and lifestyle optimization are integrated into every treatment plan. The couple is treated as a unit.</li>
+              <li><strong>Getting started:</strong> Learn a fertility awareness-based method, find an RRM-trained physician through the <a href="https://iirrm.org" rel="noopener">IIRRM directory</a>, and explore free courses at <a href="/courses/">RRM Academy</a>.</li>
+            </ul>
+          </aside>
 
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Factor</th>
-                <th>RRM</th>
-                <th>IVF</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Approach</td>
-                <td>Diagnose and treat root cause</td>
-                <td>Bypass reproductive system</td>
-              </tr>
-              <tr>
-                <td>Goal</td>
-                <td>Restore natural function</td>
-                <td>Achieve pregnancy</td>
-              </tr>
-              <tr>
-                <td>Treats underlying condition?</td>
-                <td>Yes</td>
-                <td>No</td>
-              </tr>
-              <tr>
-                <td>Typical cost per cycle</td>
-                <td>Varies; often insurance-covered <mark class="cite-needed">[CITE]</mark></td>
-                <td>$15,000&ndash;$30,000 per cycle <mark class="cite-needed">[CITE]</mark></td>
-              </tr>
-              <tr>
-                <td>Multiple pregnancy risk</td>
-                <td>Low (natural conception)</td>
-                <td>Higher (especially with multiple embryo transfer)</td>
-              </tr>
-              <tr>
-                <td>Best suited for</td>
-                <td>Treatable conditions (endometriosis, PCOS, hormonal issues)</td>
-                <td>Tubal blockage, severe male factor, when time is critical</td>
-              </tr>
-              <tr>
-                <td>Published live birth rates</td>
-                <td>29&ndash;41% depending on age and diagnosis <mark class="cite-needed">[CITE]</mark></td>
-                <td>~30&ndash;50% per cycle depending on age <mark class="cite-needed">[CITE]</mark></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+          <!-- Section 2: What is RRM? -->
+          <h2 id="what-is-rrm">What Is Restorative Reproductive Medicine?</h2>
 
-        <p>These approaches are not always mutually exclusive. Some patients benefit from RRM treatment before pursuing assisted reproduction, and some RRM practitioners work alongside fertility specialists. <a href="/courses/rrm-vs-ivf/">Learn more in our free course: RRM vs. Standard ART</a>.</p>
+          <p><strong>Restorative Reproductive Medicine (RRM) is a medical discipline that identifies and treats the root causes of reproductive health conditions.</strong> It works cooperatively with the body rather than against it. Where conventional approaches often default to suppressive medications that mask symptoms or assisted reproductive technologies that bypass natural function, RRM uses standard and advanced diagnostic tools to find the actual cause, whether hormonal, anatomical, inflammatory, or metabolic, and restore the body to healthy function.<sup><a href="#ref-1" id="cite-1b">1</a></sup></p>
 
-        <h2>The Evidence Behind RRM</h2>
+          <p>RRM is not alternative medicine. It is not faith-based medicine. RRM physicians are board-certified OBGYNs, reproductive endocrinologists, and family physicians who use the same tools as any other specialist: bloodwork, imaging, surgery, and pharmacology. The difference is in how and when those tools are applied. Every intervention is timed to a woman's individual cycle and targeted to a specific diagnosis.<sup><a href="#ref-6" id="cite-6">6</a></sup><sup><a href="#ref-26" id="cite-26">26</a></sup></p>
 
-        <p>RRM is supported by peer-reviewed research published in journals including <em>Fertility and Sterility</em>, the <em>Journal of Restorative Reproductive Medicine</em>, and <em>BMC Pregnancy and Childbirth</em>. The <a href="https://library.rrmacademy.org">RRM Academy Research Library</a> contains 3,036+ peer-reviewed publications covering RRM outcomes, surgical techniques, hormonal protocols, and fertility awareness-based methods.</p>
+          <p>Conditions commonly addressed include endometriosis, polycystic ovary syndrome (PCOS), unexplained infertility, recurrent miscarriage, ovulatory dysfunction, male factor infertility, pelvic pain, hormonal imbalances, and perimenopause. Treatment benefits extend beyond fertility. RRM is a whole-body, couple-centered approach that incorporates functional nutrition, comprehensive metabolic and inflammatory bloodwork, mental health support, and lifestyle optimization alongside hormonal and surgical interventions. Women who are not trying to conceive still benefit from diagnosis and treatment of conditions that affect long-term health.</p>
 
-        <p>Key findings from published research:</p>
-        <ul>
-          <li>RRM treatment followed by timed intercourse: 41% live birth rate <mark class="cite-needed">[CITE: JRRM 2021]</mark></li>
-          <li>Surgical treatment of moderate-to-severe endometriosis: 55.3% pregnancy rate per woman <mark class="cite-needed">[CITE: meta-analysis]</mark></li>
-          <li>RRM singletons had 3x fewer preterm deliveries compared to IVF <mark class="cite-needed">[CITE]</mark></li>
-          <li>Average cost of RRM medication cycles was 20x less than IVF <mark class="cite-needed">[CITE]</mark></li>
-        </ul>
+          <h3>How RRM Works: Three Core Principles</h3>
 
-        <p><em>Note: Outcomes vary by individual. All statistics represent published research averages, not guarantees. <mark class="cite-needed">[CITE specific studies before publishing]</mark></em></p>
+          <p>RRM follows a diagnostic-first approach built on three principles:</p>
 
-        <h2>What is NaProTechnology?</h2>
+          <ol>
+            <li><strong>Identify the root cause.</strong> The evaluation begins with cycle charting using a validated fertility awareness-based method such as the Creighton Model FertilityCare System. The chart provides daily biomarker data that reveals hormonal patterns invisible to a single blood draw or office visit. From there, RRM physicians order targeted bloodwork timed to specific cycle days, advanced imaging (pelvic ultrasound, sonohysterography, hysterosalpingography), and, when indicated, diagnostic laparoscopy. Semen analysis is standard for every couple. The goal is a complete, specific diagnosis, not an empiric guess.</li>
+            <li><strong>Treat the underlying condition.</strong> Treatment is matched to the diagnosis. Hormonal support (such as bio-identical progesterone timed to the luteal phase), medication to address thyroid, metabolic, or inflammatory factors, nutritional optimization, and surgical intervention (such as excision surgery for endometriosis) are all part of the toolkit. Protocols are individualized and adjusted cycle by cycle based on the patient's chart and lab response.<sup><a href="#ref-7" id="cite-7">7</a></sup></li>
+            <li><strong>Restore natural function.</strong> The goal is not to bypass the reproductive system but to optimize it. RRM addresses the disease itself so the body can function optimally. This means couples can achieve in vivo conception (conception within the body) when possible. Even when pregnancy is not the goal, treating the root cause improves quality of life, prevents disease progression, and supports long-term health.</li>
+          </ol>
 
-        <p>NaProTechnology (Natural Procreative Technology) is a specific type of RRM developed at the Saint Paul VI Institute. It uses the Creighton Model FertilityCare System to track biomarkers across the menstrual cycle, enabling physicians to time diagnostic tests and treatments precisely. NaProTechnology is practiced by physicians with specialized fellowship training in medical and surgical techniques that cooperate with the reproductive system.</p>
+          <h3>What RRM Is Not</h3>
 
-        <p><a href="/courses/masterclass-in-endometriosis-and-surgery/">Learn from a NaProTechnology-trained surgeon: Masterclass in Endometriosis &amp; Surgery</a></p>
+          <p>Common misconceptions deserve direct answers:</p>
 
-        <h2>How to Get Started with RRM</h2>
+          <ul>
+            <li><strong>"RRM is only for Catholics."</strong> No. RRM is practiced by physicians of varied backgrounds and serves patients of all faiths and no faith. The science does not depend on any religious framework. Both Catholic and non-Catholic patients seek RRM because they want a thorough diagnostic workup and cause-based treatment.<sup><a href="#ref-2" id="cite-2b">2</a></sup></li>
+            <li><strong>"RRM is anti-IVF."</strong> RRM is its own medical paradigm. It does not define itself in opposition to any other approach. RRM physicians focus on what they can diagnose and treat. The question RRM asks is: "Why can't this couple conceive?" Not: "How can we bypass the problem?"</li>
+            <li><strong>"RRM is unscientific."</strong> RRM is supported by peer-reviewed research published in journals including <em>Fertility and Sterility</em>, <em>The Journal of the American Board of Family Medicine</em>, <em>Frontiers in Medicine</em>, and the <em>Journal of Restorative Reproductive Medicine</em>. The <a href="https://library.rrmacademy.org">RRM Academy Research Library</a> indexes over 3,000 peer-reviewed publications.<sup><a href="#ref-3" id="cite-3b">3</a></sup><sup><a href="#ref-4" id="cite-4b">4</a></sup></li>
+          </ul>
 
-        <ol>
-          <li><strong>Learn the basics.</strong> <a href="/courses/">Browse free courses</a> on RRM Academy to understand the approach and what to expect.</li>
-          <li><strong>Find a provider.</strong> Search the <a href="https://iirrm.org" rel="noopener">IIRRM provider directory</a> or <a href="https://www.fertilitycare.org" rel="noopener">FertilityCare Centers</a> for trained practitioners near you.</li>
-          <li><strong>Explore the research.</strong> Browse the <a href="https://library.rrmacademy.org">RRM Research Library</a> with 3,036+ publications.</li>
-        </ol>
+          <aside class="callout-provider">
+            <h3>For Healthcare Professionals</h3>
+            <p>RRM integrates into existing OBGYN practice. Board-certified physicians can pursue additional training through IIRRM credentialing, NaProTechnology fellowship programs, or online courses at <a href="/courses/">RRM Academy</a>. The approach builds on standard diagnostic and surgical skills with specialized cycle-based evaluation methods.</p>
+          </aside>
 
-        <div class="cta-box">
-          <h3>Ready to learn more?</h3>
-          <p><a href="/courses/" class="btn btn--primary">Explore Free Courses</a></p>
-          <p><a href="https://library.rrmacademy.org" class="btn btn--secondary">Browse the Research Library</a></p>
-        </div>
+          <!-- Section 3: History -->
+          <h2 id="history">A Brief History of Restorative Reproductive Medicine</h2>
 
-      </article>
+          <p>Restorative reproductive medicine did not emerge overnight. It grew from decades of clinical observation, scientific research, and a persistent question: what is the menstrual cycle actually telling us?</p>
+
+          <h3>The Foundations: Fertility Awareness Research (1950s-1970s)</h3>
+
+          <p>In the 1950s and 1960s, Drs. John and Evelyn Billings in Melbourne, Australia, developed the Billings Ovulation Method. Their research established that cervical mucus patterns reflect underlying hormonal activity and can reliably identify the fertile window. This was a foundational insight: the female body produces observable, measurable biomarkers that track its reproductive status in real time.<sup><a href="#ref-8" id="cite-8">8</a></sup></p>
+
+          <p>Building on this work, Dr. Thomas Hilgers at Creighton University developed the Creighton Model FertilityCare System (CrMS) beginning in 1976. CrMS standardized the observation and recording of cervical mucus biomarkers into a rigorous, teachable system. But Hilgers saw something more than a family planning tool. He recognized that the daily charting data revealed patterns that correlated with specific reproductive disorders. Abnormal bleeding patterns, shortened luteal phases, and absent or disrupted mucus cycles were not random. They were diagnostic signals.<sup><a href="#ref-9" id="cite-9">9</a></sup></p>
+
+          <h3>NaProTechnology and the Pope Paul VI Institute (1980s-1990s)</h3>
+
+          <p>In 1985, Dr. Hilgers founded the Pope Paul VI Institute for the Study of Human Reproduction in Omaha, Nebraska. Over the following decades, the institute conducted prospective, real-time studies tracking women's hormones throughout their cycles. This body of research, documented comprehensively in Hilgers' <em>The Medical and Surgical Practice of NaProTechnology</em>,<sup><a href="#ref-9" id="cite-9a">9</a></sup> transformed understanding of the luteal phase, progesterone dynamics, and ovulatory function. Hilgers has described the institute's longitudinal datasets on female reproductive hormones as among the most detailed ever collected.</p>
+
+          <p>The result was NaProTechnology (Natural Procreative Technology): a medical and surgical system that uses CrMS charting data to guide diagnosis and treatment. Physicians trained at the Pope Paul VI Institute learned to read the cycle chart the way a cardiologist reads an EKG, detecting patterns that pointed to specific conditions: endometriosis, PCOS, luteal phase deficiency, ovulatory dysfunction, and hormonal imbalance. They then applied targeted medical and surgical interventions timed to the cycle.</p>
+
+          <p>NaProTechnology represented a paradigm shift. Instead of suppressing the cycle with hormonal medications or bypassing it with laboratory conception, physicians worked with the cycle to restore healthy function.</p>
+
+          <h3>Expanding the Field (2000s-2010s)</h3>
+
+          <p>In 2000, physicians from Canada, Ireland, and the United Kingdom founded the International Institute for Restorative Reproductive Medicine (IIRRM) to formalize training, credentialing, and research collaboration across the growing field. Dr. Tracey Parnell coined the term "restorative reproductive medicine" to describe the broader discipline. Dr. Kevin McCarthy served as the Institute's first president. The IIRRM brought together physicians from multiple countries who practiced cycle-based, cause-oriented reproductive medicine, whether through NaProTechnology or other emerging protocols.<sup><a href="#ref-1" id="cite-1c">1</a></sup></p>
+
+          <p>Several additional approaches developed during this period:</p>
+
+          <ul>
+            <li><strong>FEMM (Fertility Education and Medical Management)</strong> and its research arm, the <strong>Reproductive Health Research Institute (RHRI)</strong>, introduced a hormonal health protocol that combined fertility charting with medical management of hormonal conditions. Under Dr. Pilar Vigil's research direction, RHRI developed standardized clinical protocols and provider training programs now used by over 1,500 trained medical providers.<sup><a href="#ref-6" id="cite-6b">6</a></sup></li>
+            <li><strong>NeoFertility,</strong> developed by Dr. Phil Boyle in Dublin, expanded RRM treatment options to address autoimmune and inflammatory conditions alongside hormonal imbalances. Boyle's published data showed healthy singleton pregnancies in couples who had previously undergone multiple failed IVF cycles.<sup><a href="#ref-10" id="cite-10">10</a></sup></li>
+            <li><strong>FACTS About Fertility,</strong> co-founded by Dr. Marguerite Duane, began educating medical students and physicians about the evidence supporting FABMs and RRM, filling a gap in standard medical training.<sup><a href="#ref-5" id="cite-5b">5</a></sup></li>
+          </ul>
+
+          <p>The <em>Journal of Restorative Reproductive Medicine</em> launched to provide a dedicated peer-reviewed venue for RRM research, and programs like Dr. Patrick Yeung's RESTORE Center for Endometriosis advanced surgical excision techniques that achieved repeat-surgery rates of just 2.5% over ten years, compared to up to 40% within one to two years after ablation.<sup><a href="#ref-11" id="cite-11">11</a></sup></p>
+
+          <h3>Mainstream Recognition (2025-Present)</h3>
+
+          <p>In 2025, RRM entered the national policy conversation. Arkansas became the first U.S. state to mandate insurance coverage for restorative reproductive medicine. The RESTORE Act (H.R. 3589) was introduced in the U.S. Congress to expand access to RRM treatments. The Heritage Foundation published a comprehensive report on RRM as an alternative to assisted reproductive technology.<sup><a href="#ref-12" id="cite-12">12</a></sup></p>
+
+          <p>Major media outlets covered RRM for the first time, including <em>The New York Times</em>, STAT News, <em>The Cut</em>, <em>The 19th</em>, MedPage Today, and OSV News. Professional societies including ACOG and ASRM published their own analyses of the field, signaling that RRM had become too significant to ignore.</p>
+
+          <p>Today, RRM-trained physicians practice internationally.<sup><a href="#ref-2" id="cite-2d">2</a></sup> The field continues to grow as research advances, training programs expand, and more couples and physicians discover a medical approach that asks the fundamental question: what is causing this, and how do we fix it?</p>
+
+          <!-- Section 4: Diagnosis -->
+          <h2 id="diagnosis">How RRM Diagnosis Works</h2>
+
+          <p>Most couples who struggle with infertility receive a limited diagnostic workup. Standard practice often involves a basic hormone panel, a semen analysis, and imaging, followed by referral to IUI or IVF within three to six months, frequently without a complete diagnosis.<sup><a href="#ref-12" id="cite-12b">12</a></sup> The label "unexplained infertility" is assigned to roughly 15 to 30% of couples, but RRM physicians view this label as "not yet diagnosed." In their experience, a cause almost always exists. It simply has not been found yet.<sup><a href="#ref-29" id="cite-29">29</a></sup></p>
+
+          <p>RRM takes a different approach. The diagnostic workup is systematic, thorough, and timed to the individual woman's cycle. It evaluates both partners. And it aims for a specific diagnosis before any treatment begins.</p>
+
+          <h3>1. Cycle Charting: The Diagnostic Foundation</h3>
+
+          <p>Every RRM evaluation starts with the cycle chart. A woman learns a validated cycle-charting method (such as the Creighton Model FertilityCare System, Marquette Method, or FEMM) and records daily biomarker observations: cervical mucus patterns, bleeding characteristics, and in some methods, basal body temperature or urinary hormone levels.</p>
+
+          <p>This chart provides something no single blood test or ultrasound can: a continuous, real-time record of hormonal activity across the entire cycle. The cycle chart to an RRM physician is like an EKG to a cardiologist. It reveals patterns. A shortened luteal phase. Absent or disrupted mucus. Premenstrual spotting. Abnormal bleeding. Each pattern points toward specific conditions.<sup><a href="#ref-2" id="cite-2e">2</a></sup></p>
+
+          <p>Dr. Thomas Hilgers, who pioneered this approach, described the realization that launched NaProTechnology: women's charts "had similar patterns to them when they had abnormalities in their health care. He understood that the charts were actually telling him something, and he was able to coordinate medical care with the charting system."<sup><a href="#ref-9" id="cite-9b">9</a></sup></p>
+
+          <h3>2. Targeted Hormonal Panels</h3>
+
+          <p>Standard fertility workups often check progesterone on a single calendar day, typically cycle day 21. This assumes a 28-day cycle with ovulation on day 14. Many women do not fit this template. If ovulation occurs earlier or later, the day-21 draw misses the target entirely, producing misleading results.<sup><a href="#ref-6" id="cite-6c">6</a></sup></p>
+
+          <p>RRM solves this by anchoring bloodwork to the ovulatory event identified on the chart, not a calendar estimate. The targeted hormonal panel is drawn on specific post-peak days (typically peak +3, +5, +7, +9, and +11) to map progesterone and estradiol across the full luteal phase. This serial measurement reveals deficiencies that a single draw would miss.</p>
+
+          <aside class="callout-provider">
+            <h3>For Healthcare Professionals</h3>
+            <p>The targeted hormonal panel in RRM includes: peak +3/+5/+7/+9/+11 progesterone, estradiol, LH, FSH, thyroid panel (TSH, free T3, free T4, TPO antibodies), fasting insulin, DHEA-S, and testosterone. Timing is anchored to the ovulatory event identified through the patient's cycle chart, not a calendar estimate.</p>
+          </aside>
+
+          <h3>3. Advanced Imaging</h3>
+
+          <p>Structural evaluation is a standard part of the RRM workup. Pelvic ultrasound assesses ovarian morphology (including signs of PCOS), uterine anatomy, and follicular development. Sonohysterography (SIS) evaluates the uterine cavity for polyps, fibroids, or adhesions. Hysterosalpingography (HSG) confirms tubal patency. These imaging studies help identify anatomical factors that contribute to infertility or pain.</p>
+
+          <h3>4. Diagnostic Laparoscopy</h3>
+
+          <p>Endometriosis remains the most underdiagnosed reproductive condition. The median time from symptom onset to diagnosis is nine years.<sup><a href="#ref-13" id="cite-13">13</a></sup> One reason: diagnostic surgery is underused. Many physicians rely on imaging alone, but endometriosis is frequently invisible on ultrasound, especially in early stages.</p>
+
+          <p>Diagnostic laparoscopy is the gold standard for confirming endometriosis. In the hands of a trained excision surgeon, it is both diagnostic and therapeutic. The disease is visualized, biopsied for pathologic confirmation, and excised in the same procedure. According to Dr. Patrick Yeung's ten-year database, over 90% of women presenting with pain and infertility have endometriosis, and many of them had previously been told their infertility was "unexplained."<sup><a href="#ref-11" id="cite-11b">11</a></sup></p>
+
+          <h3>5. Male Factor Evaluation</h3>
+
+          <p>RRM evaluates both partners from the start. A male factor is solely responsible in about 20% of infertile couples and is a contributing factor in another 30 to 40%.<sup><a href="#ref-27" id="cite-27b">27</a></sup> A comprehensive semen analysis is standard. When abnormalities are found, restorative andrology addresses the underlying cause: hormonal imbalances, varicocele, infections, or metabolic factors. The goal is to restore sperm quality, not bypass the problem.</p>
+
+          <p>This differs significantly from the conventional approach, where male factor infertility is often addressed by shifting the entire treatment burden onto the woman through intracytoplasmic sperm injection (ICSI), an advanced laboratory procedure that fertilizes an egg with a single sperm. ICSI bypasses the male condition entirely without treating it.<sup><a href="#ref-12" id="cite-12c">12</a></sup></p>
+
+          <h3>The Diagnostic Difference</h3>
+
+          <p>The result of this systematic workup is a specific, actionable diagnosis for the couple, not a label of "unexplained infertility" and a referral to bypass the problem. Treatment follows from diagnosis. Every medication, every surgical decision, every protocol adjustment is tied to what the data shows. This is the core of cause-based medicine: find the disease, treat the disease, restore the function.</p>
+
+          <!-- Section 5: FABMs -->
+          <h2 id="fabms">Fertility Awareness-Based Methods (FABMs) Explained</h2>
+
+          <p>Fertility awareness-based methods are most widely known as tools for family planning. They help couples identify the fertile window to achieve or avoid pregnancy. But within RRM, FABMs serve a fundamentally different purpose: they are clinical diagnostic instruments.<sup><a href="#ref-6" id="cite-6d">6</a></sup></p>
+
+          <p>This is the content gap that most health resources miss. Organizations like ACOG and Planned Parenthood frame FABMs purely as contraception. But for RRM physicians, the daily biomarker data from a well-charted cycle is the single most important diagnostic tool available. It reveals what is happening hormonally across the entire cycle, not just on the day a patient happens to visit the office.</p>
+
+          <h3>FABMs as Diagnostic Tools</h3>
+
+          <p>The American College of Obstetricians and Gynecologists has recognized the menstrual cycle as a "vital sign" since 2015, alongside body temperature, pulse rate, respiratory rate, and blood pressure.<sup><a href="#ref-14" id="cite-14">14</a></sup> A cycle chart captures this vital sign in detail. It records daily observations, cervical mucus characteristics, bleeding patterns, and (depending on the method) basal body temperature and urinary hormone levels, creating a continuous hormonal profile.</p>
+
+          <p>When trained physicians read this data, patterns emerge. Limited cervical mucus may indicate low estrogen. A short post-Peak phase suggests inadequate progesterone. Premenstrual spotting or tail-end brown bleeding can signal hormonal imbalance. Long or irregular cycles may point to PCOS or ovulatory dysfunction. These are not vague clues. They are specific biomarker signals that direct further testing.<sup><a href="#ref-9" id="cite-9c">9</a></sup></p>
+
+          <p>Without chart data, the physician cannot time bloodwork correctly. A progesterone draw on the wrong cycle day produces a meaningless number. With chart data, every lab order is precise. That precision is what makes RRM diagnosis fundamentally different from standard fertility evaluation.</p>
+
+          <h3>Major FABMs Used in RRM</h3>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Method</th>
+                  <th>Biomarkers Tracked</th>
+                  <th>Diagnostic Utility</th>
+                  <th>Training Required</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Creighton Model (CrMS)*</td>
+                  <td>Cervical mucus observations (standardized scoring system)</td>
+                  <td>Foundation for NaProTechnology diagnosis; most extensively studied for medical applications</td>
+                  <td>FertilityCare Practitioner certification</td>
+                </tr>
+                <tr>
+                  <td>Marquette Method</td>
+                  <td>Urinary hormones (via ClearBlue monitor), optional cervical mucus and temperature</td>
+                  <td>Objective hormonal pattern identification; strong for women with ambiguous mucus signs</td>
+                  <td>Marquette-trained instructor</td>
+                </tr>
+                <tr>
+                  <td>FEMM</td>
+                  <td>Hormonal biomarkers and cervical mucus</td>
+                  <td>Hormonal health protocol with integrated medical management referral pathway</td>
+                  <td>FEMM-trained provider</td>
+                </tr>
+                <tr>
+                  <td>Billings Ovulation Method</td>
+                  <td>Cervical mucus observations</td>
+                  <td>Ovulation confirmation, cycle pattern recognition; strong for continuous mucus and irregular cycles</td>
+                  <td>Billings-trained instructor</td>
+                </tr>
+                <tr>
+                  <td>SymptoThermal Methods</td>
+                  <td>Basal body temperature, cervical mucus, optional cervical position</td>
+                  <td>Multi-biomarker cross-checking; temperature provides objective ovulation confirmation</td>
+                  <td>Varies by organization (SymptoPro, Couple to Couple League, others)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p><small>*The Creighton Model FertilityCare System is classified by its developers as natural family planning (NFP), not as a fertility awareness-based method. It is included in this table because it serves the same diagnostic function in RRM clinical practice.</small></p>
+
+          <h3>Choosing a Method</h3>
+
+          <p>No single charting method is best for every woman. The choice depends on a woman's health goals, cycle characteristics, comfort with different observation techniques, and whether she plans to work with an RRM physician. Women with PCOS or irregular cycles may benefit from the objectivity of the Marquette Method's hormonal monitoring. Women seeking the most direct connection to NaProTechnology diagnosis typically choose the Creighton Model. The SymptoThermal methods offer the redundancy of multiple biomarkers for confirmation.</p>
+
+          <p>What matters most is that the method is learned from a trained instructor and charted consistently. The diagnostic value comes from the data. A well-kept chart gives the physician a window into hormonal function that no other tool can match.</p>
+
+          <h3>Beyond Family Planning</h3>
+
+          <p>FABMs are not just for couples trying to conceive or avoid pregnancy. Women who chart their cycles gain body literacy: an understanding of their own hormonal health that enables them to recognize when something changes. A cycle that was regular and suddenly becomes irregular is a signal. Premenstrual symptoms that worsen over time are a signal. These signals, captured on a chart, give physicians actionable data and give women an active role in their own healthcare.<sup><a href="#ref-6" id="cite-6e">6</a></sup></p>
+
+          <p>This is why RRM physicians consider charting the foundation of their practice. It is the starting point for diagnosis, the tool for monitoring treatment response, and the long-term record of a woman's reproductive health. Without it, the physician is, as one RRM doctor described it, "flying blind."<sup><a href="#ref-2" id="cite-2f">2</a></sup></p>
+
+          <!-- Section 6: Conditions Treated -->
+          <h2 id="conditions">Conditions Treated with Restorative Reproductive Medicine</h2>
+
+          <p>RRM treats the full spectrum of reproductive health conditions. The table below summarizes how the RRM approach differs from conventional management for each condition. Detailed explanations follow.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Condition</th>
+                  <th>How RRM Approaches It</th>
+                  <th>Conventional Approach (for comparison)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Endometriosis</td>
+                  <td>Minimally invasive excision surgery with adhesion prevention (SMAP), post-operative hormonal support, long-term monitoring</td>
+                  <td>Suppressive medications, ablation surgery (causes scarring, not fertility-friendly), IVF to bypass</td>
+                </tr>
+                <tr>
+                  <td>PCOS</td>
+                  <td>Phenotype-based evaluation (insulin-resistant, inflammatory, adrenal, post-pill), targeted treatment by subtype</td>
+                  <td>Suppressive medications to regulate cycles, metformin, Clomid/letrozole for fertility</td>
+                </tr>
+                <tr>
+                  <td>Unexplained infertility</td>
+                  <td>Reframed as "not yet diagnosed." Systematic evaluation to identify the cause, which is found in most cases</td>
+                  <td>Empiric treatment with IUI or IVF without identifying the cause</td>
+                </tr>
+                <tr>
+                  <td>Recurrent miscarriage</td>
+                  <td>Progesterone support timed to ovulation, thyroid evaluation, immune workup, anatomical assessment</td>
+                  <td>Progesterone supplementation by calendar date, IVF with PGT-A</td>
+                </tr>
+                <tr>
+                  <td>Ovulatory dysfunction</td>
+                  <td>Cycle charting to identify anovulation or irregular ovulation, targeted support (not suppression)</td>
+                  <td>Suppressive medications, empiric ovulation induction</td>
+                </tr>
+                <tr>
+                  <td>Male factor infertility</td>
+                  <td>Restorative andrology: hormonal evaluation, varicocele assessment, targeted treatment to restore sperm quality</td>
+                  <td>ICSI (shifts treatment burden to the woman), donor sperm</td>
+                </tr>
+                <tr>
+                  <td>Irregular/painful periods and pelvic pain</td>
+                  <td>Diagnostic workup to find the cause (often endometriosis or hormonal imbalance), treatment of the disease</td>
+                  <td>Suppressive medications, pain management without diagnosis</td>
+                </tr>
+                <tr>
+                  <td>PMS / PMDD</td>
+                  <td>Hormonal evaluation with cycle-timed testing, targeted bio-identical hormone support</td>
+                  <td>SSRIs, suppressive medications</td>
+                </tr>
+                <tr>
+                  <td>Perimenopause / menopause</td>
+                  <td>Cycle-charted hormonal transition monitoring, bio-identical hormone support timed to individual data</td>
+                  <td>One-size-fits-all HRT, symptom management without hormonal baseline</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Endometriosis</h3>
+
+          <p>Endometriosis affects an estimated 10% of reproductive-age women. It is one of the most common causes of pelvic pain and infertility, and one of the most underdiagnosed. The median time from symptom onset to diagnosis is nine years.<sup><a href="#ref-13" id="cite-13b">13</a></sup> During those years, the disease progresses. Adhesions form. Fertility declines. Pain worsens. Many women are told their symptoms are normal or psychosomatic.</p>
+
+          <p>The conventional approach relies on suppressive medications to manage pain. This masks symptoms without treating disease progression. When fertility is the goal, the conventional pathway bypasses the disease entirely with IVF. Neither approach addresses the endometriosis itself.</p>
+
+          <p>RRM recommends minimally invasive excision surgery, which removes endometriosis tissue at the root rather than burning the surface (ablation). This distinction matters clinically. Ablation causes thermal damage and scarring to surrounding tissue, which compromises fertility. It also leaves disease behind, because ablation destroys only the visible surface while deeper implants persist. Dr. Patrick Yeung's ten-year surgical database shows a 2.5% repeat surgery rate after excision, compared to rates of up to 40% within one to two years after ablation.<sup><a href="#ref-11" id="cite-11c">11</a></sup></p>
+
+          <p>Effective excision is more than cutting. Adhesion prevention using surgical membrane adhesion barriers (SMAP) is a critical component. Without adhesion prevention, scar tissue can reform after surgery, compromising both fertility and pain outcomes. Half of the surgical procedure is excision of the disease. The other half is reconstructive work and adhesion prevention protocols that preserve pelvic anatomy and reproductive function. Excision performed without these adjunctive techniques is less effective.</p>
+
+          <p>After surgical excision of endometriosis, many women conceive through in vivo conception. No embryo laboratory. No high-dose ovarian stimulation. The disease is treated, and the body's own reproductive function is restored.</p>
+
+          <p>Post-operative care includes hormonal support, cycle monitoring, and ongoing evaluation. This long-term management distinguishes RRM from a "surgery and done" approach. Endometriosis is a chronic condition. Treatment must account for that reality.</p>
+
+          <h3>Polycystic Ovary Syndrome (PCOS)</h3>
+
+          <p>PCOS affects 6-12% of reproductive-age women. It is the most common endocrine disorder in this population. But not all PCOS is the same. The conventional approach often treats every case identically: suppressive medications to "regulate" cycles, followed by empiric ovulation induction when the couple wants to conceive.</p>
+
+          <p>RRM evaluates PCOS by phenotype. Is insulin resistance the primary driver? Is there an inflammatory component? Is adrenal androgen overproduction involved? Did PCOS-like symptoms emerge after discontinuing suppressive medications (post-pill PCOS)? Each phenotype requires a different treatment strategy.</p>
+
+          <p>Cycle charting reveals the specific ovulatory dysfunction present. Some women with PCOS ovulate irregularly. Others do not ovulate at all. Some have long cycles with delayed ovulation. The chart data guides the physician to the correct intervention: insulin-sensitizing agents for insulin-resistant PCOS, anti-inflammatory protocols for inflammatory subtypes, targeted ovulation support timed to the individual woman's cycle. Treatment follows from diagnosis, not from a one-size-fits-all protocol.<sup><a href="#ref-5" id="cite-5e">5</a></sup></p>
+
+          <h3>Unexplained Infertility</h3>
+
+          <p>"Unexplained infertility" is a label, not a diagnosis. It means the standard workup failed to find the cause. RRM reframes this as "not yet diagnosed" and begins a more thorough investigation.</p>
+
+          <p>In practice, a cause is almost always found. Many couples labeled with unexplained infertility have undiagnosed endometriosis. Experienced excision surgeons report finding endometriosis in the majority of patients taken to diagnostic laparoscopy for pain and infertility.<sup><a href="#ref-13" id="cite-13c">13</a></sup> Others have luteal phase deficiency detectable only through serial post-peak progesterone testing, a deficiency invisible on a single day-21 blood draw. Some have subtle ovulatory dysfunction visible only on a well-charted cycle.</p>
+
+          <p>The conventional pathway for unexplained infertility often bypasses investigation altogether. Couples are offered empiric IUI or IVF without anyone explaining why they could not conceive. RRM insists on answering that question first. The treatment works better when the target is known.<sup><a href="#ref-6" id="cite-6f">6</a></sup></p>
+
+          <h3>Recurrent Miscarriage</h3>
+
+          <p>Recurrent pregnancy loss, defined as two or more pregnancy losses, affects approximately 2 to 5% of couples trying to conceive. The conventional workup often includes karyotyping, antiphospholipid antibody testing, and uterine imaging. When these return normal, couples are told to "keep trying" or referred for IVF with preimplantation genetic testing (PGT-A).</p>
+
+          <p>RRM expands the investigation. Progesterone support is a cornerstone, but in RRM it is timed to the ovulatory event identified on the cycle chart, not an arbitrary calendar date. Post-peak progesterone is measured serially (at peak +3, +5, +7, +9, +11) to identify luteal phase deficiency. Bio-identical progesterone supplementation is started at the correct time in the cycle and adjusted based on measured levels.<sup><a href="#ref-4" id="cite-4b">4</a></sup></p>
+
+          <p>Full thyroid evaluation (including TPO antibodies, not just TSH) is standard. Immune factors, including natural killer cell activity and cytokine profiles, are evaluated when standard workups are negative. Anatomical assessment looks for uterine abnormalities, cervical insufficiency, and adhesions. RRM addresses the cause of pregnancy loss rather than moving directly to embryo selection in a laboratory.</p>
+
+          <h3>Ovulatory Dysfunction</h3>
+
+          <p>Ovulatory dysfunction encompasses anovulation (failure to ovulate), oligoovulation (infrequent ovulation), and luteal phase deficiency (ovulation occurs but the hormonal support afterward is inadequate). These conditions are common causes of both infertility and irregular cycles.</p>
+
+          <p>Cycle charting is the key diagnostic tool. It reveals whether ovulation is occurring, when it occurs, and whether the post-ovulatory phase is adequate in length and quality. Without chart data, ovulatory dysfunction is often invisible to standard testing.</p>
+
+          <p>Treatment is targeted. Women with anovulation receive ovulation support tailored to the underlying cause. Women with luteal phase deficiency receive bio-identical progesterone support, precisely timed to the post-peak phase. The response is monitored on the next cycle's chart. This cycle-by-cycle feedback loop allows continuous refinement of treatment, something that calendar-based protocols cannot achieve.<sup><a href="#ref-9" id="cite-9d">9</a></sup></p>
+
+          <h3>Male Factor Infertility</h3>
+
+          <p>A male factor is solely responsible in about 20% of infertile couples and is a contributing factor in another 30 to 40%.<sup><a href="#ref-27" id="cite-27e">27</a></sup> Despite this, the conventional fertility pathway often ignores the male partner entirely. When a semen analysis is abnormal, the standard recommendation is ICSI, an advanced laboratory procedure that injects a single sperm directly into an egg. ICSI bypasses the male condition without treating it, and shifts the entire treatment burden onto the woman.<sup><a href="#ref-12" id="cite-12d">12</a></sup></p>
+
+          <p>RRM evaluates the male partner with the same cause-based approach applied to the female partner. Semen analysis is standard for every couple. When abnormalities are found, restorative andrology investigates the cause: hormonal imbalances (low testosterone, elevated FSH, prolactin disorders), varicocele, infections, oxidative stress, and metabolic factors. Treatment targets the specific cause. The goal is to restore sperm quality, not bypass the problem.</p>
+
+          <h3>Irregular and Painful Periods, Pelvic Pain</h3>
+
+          <p>Irregular periods, painful periods, and chronic pelvic pain are symptoms. They are not diagnoses. Each one signals an underlying condition that deserves investigation.</p>
+
+          <p>The conventional approach too often skips the investigation. Suppressive medications are prescribed to eliminate the cycle, which eliminates the symptoms but hides the disease. Disease progression continues silently. When the woman discontinues the medication, the symptoms return, often worse than before, because the underlying condition was never treated.</p>
+
+          <p>RRM performs a diagnostic workup. Cycle charting identifies hormonal patterns. Imaging evaluates structural causes. When endometriosis is suspected, diagnostic laparoscopy confirms and treats it. When hormonal imbalance is the cause, targeted support corrects it. The goal is treatment of the disease, not just management of pain.<sup><a href="#ref-7" id="cite-7b">7</a></sup></p>
+
+          <h3>Premenstrual Syndrome (PMS) and PMDD</h3>
+
+          <p>Premenstrual dysphoric disorder (PMDD) and severe PMS cause significant suffering. The conventional approach relies on SSRIs or suppressive medications. Both mask the underlying hormonal dysfunction.</p>
+
+          <p>RRM evaluates hormonal levels across the cycle using the targeted panel timed to the cycle chart. Progesterone deficiency, estrogen-progesterone imbalance, and thyroid dysfunction are commonly identified contributors. Treatment uses bio-identical hormones targeted to the specific deficiency, timed to the correct phase of the cycle. Many women experience significant improvement when the hormonal cause is identified and treated rather than suppressed.<sup><a href="#ref-9" id="cite-9e">9</a></sup></p>
+
+          <h3>Perimenopause and Menopausal Care</h3>
+
+          <p>RRM does not end at fertility. The same diagnostic framework that identifies hormonal imbalances during the reproductive years applies to perimenopause and menopause. Cycle charting tracks the hormonal shifts that characterize the menopausal transition: lengthening cycles, erratic ovulation, declining progesterone, and changing mucus patterns. These observations guide treatment rather than waiting for symptoms to become severe.</p>
+
+          <p>RRM physicians use bio-identical hormone support timed to the individual woman's cycle data during perimenopause and tailored to measured hormone levels during menopause. This differs from the conventional one-size-fits-all approach to hormone replacement therapy. Because RRM has already established each woman's hormonal baseline through years of cycle-charted data, the transition to perimenopausal and menopausal care is informed by a longitudinal record that most conventional practices do not have.</p>
+
+          <h3>Whole-Body and Couple-Centered Care</h3>
+
+          <p>RRM is more than a set of surgical and hormonal interventions. It is a whole-body, couple-centered approach to reproductive health. This distinguishes it from conventional fertility medicine, which focuses narrowly on achieving a pregnancy through a procedure.</p>
+
+          <p><strong>Functional nutrition and metabolic health.</strong> Diet, gut health, and metabolic status directly affect hormonal balance, ovulatory function, and sperm quality. RRM physicians incorporate nutritional assessment into the diagnostic workup. Insulin resistance (a driver of PCOS), inflammatory markers, vitamin D status, thyroid cofactors, and oxidative stress are evaluated and addressed. Targeted nutritional interventions are part of the treatment plan, not an afterthought.</p>
+
+          <p><strong>Functional bloodwork.</strong> The standard fertility workup checks a narrow set of hormones. RRM expands this to include a comprehensive metabolic and inflammatory panel: full thyroid (including free T3, free T4, reverse T3, and TPO antibodies), fasting insulin, hemoglobin A1c, inflammatory markers (CRP, ESR, homocysteine), vitamin D, ferritin, DHEA-S, and a complete metabolic profile. These tests identify systemic conditions that impair fertility and overall health but are invisible to a basic hormone panel.</p>
+
+          <p><strong>Mental health and emotional support.</strong> Infertility and reproductive health conditions take a significant emotional toll. RRM acknowledges this as a clinical reality, not a secondary concern. Anxiety, depression, grief from pregnancy loss, and the relational strain of prolonged infertility are addressed as part of the care plan. Many RRM practices integrate counseling, support groups, or referrals to mental health professionals who understand the unique challenges of reproductive medicine. The couple is treated as a unit, not just the woman's reproductive system.</p>
+
+          <p><strong>Environmental and lifestyle factors.</strong> Endocrine disruptors, environmental toxins, chronic stress, sleep disruption, and lifestyle factors affect both male and female fertility. RRM evaluates these exposures and addresses them as modifiable contributors to reproductive dysfunction. Reducing toxic load and optimizing the body's overall environment is part of creating the conditions for conception and healthy pregnancy.</p>
+
+          <p><strong>Couple-centered healing.</strong> RRM treats the couple, not just the patient. Both partners are evaluated. Both partners are involved in treatment decisions. The charting process itself fosters shared understanding of the woman's cycle and creates a framework for communication about reproductive health. This collaborative model contrasts with IVF, where treatment is performed on the woman's body and the male partner's role is often limited to providing a semen sample. In RRM, healing is a shared journey.<sup><a href="#ref-7" id="cite-7d">7</a></sup></p>
+
+          <aside class="callout-provider">
+            <h3>For Healthcare Professionals</h3>
+            <p>RRM treatment protocols are individualized by condition and cycle phase. For endometriosis, minimally invasive excision surgery combined with surgical membrane adhesion prevention (SMAP) and post-operative hormonal support is the standard. For PCOS, treatment depends on phenotype: insulin-resistant, inflammatory, adrenal, or post-pill. Luteal phase support uses bio-identical progesterone timed to post-peak days, not arbitrary calendar dates. For detailed protocols, see <a href="/courses/">RRM Academy clinical courses</a>.</p>
+          </aside>
+
+          <p><em>This content is for educational purposes only and does not constitute medical advice. Consult a qualified healthcare provider for diagnosis and treatment.</em></p>
+
+          <!-- Section 7: RRM vs IVF -->
+          <h2 id="rrm-vs-ivf">RRM vs. IVF: A Detailed Comparison</h2>
+
+          <p>People search "RRM vs. IVF" because they want to understand how these approaches differ. This section exists to meet that question directly. But the framing matters. RRM is its own paradigm. It is not a stepping stone to IVF, a consolation prize for those who cannot afford IVF, or a religious alternative to IVF. It is a medical discipline that asks a different question.</p>
+
+          <p>IVF asks: <em>How can we achieve a pregnancy?</em></p>
+          <p>RRM asks: <em>Why can't this couple conceive, and can we fix it?</em></p>
+
+          <p>These are fundamentally different starting points. They lead to different evaluations, different treatments, and different outcomes for the couple's overall health.</p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Factor</th>
+                  <th>RRM</th>
+                  <th>IVF</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Approach</td>
+                  <td>Diagnose and treat root cause</td>
+                  <td>Bypass reproductive system</td>
+                </tr>
+                <tr>
+                  <td>Goal</td>
+                  <td>Restore natural function and fertility</td>
+                  <td>Achieve pregnancy</td>
+                </tr>
+                <tr>
+                  <td>Treats underlying condition?</td>
+                  <td>Yes</td>
+                  <td>No</td>
+                </tr>
+                <tr>
+                  <td>Typical cost</td>
+                  <td>Medication-based treatment costs on average 20x less than IVF<sup><a href="#ref-15" id="cite-15">15</a></sup>; often coded under standard insurance</td>
+                  <td>$15,000 to $30,000 per cycle; $40,000 to $60,000+ total for multiple cycles<sup><a href="#ref-16" id="cite-16">16</a></sup></td>
+                </tr>
+                <tr>
+                  <td>Multiple pregnancy risk</td>
+                  <td>Minimal (in vivo conception produces almost exclusively singletons)</td>
+                  <td>Higher, especially with multiple embryo transfer<sup><a href="#ref-16" id="cite-16b">16</a></sup></td>
+                </tr>
+                <tr>
+                  <td>Best suited for</td>
+                  <td>Endometriosis, PCOS, ovulatory dysfunction, hormonal imbalance, recurrent miscarriage, male factor</td>
+                  <td>Bilateral tubal occlusion, severe male factor (azoospermia), when time is critical</td>
+                </tr>
+                <tr>
+                  <td>Published live birth rates</td>
+                  <td>26 to 41% crude; 53 to 62% adjusted, per couple depending on age, diagnosis, and duration of treatment<sup><a href="#ref-3" id="cite-3c">3</a></sup><sup><a href="#ref-24" id="cite-24d">24</a></sup><sup><a href="#ref-25" id="cite-25b">25</a></sup></td>
+                  <td>~33% per embryo transferred for women under 35, declining with age<sup><a href="#ref-16" id="cite-16c">16</a></sup></td>
+                </tr>
+                <tr>
+                  <td>Health benefit beyond pregnancy</td>
+                  <td>Yes. Underlying conditions are treated, improving long-term health regardless of pregnancy outcome</td>
+                  <td>No. Underlying conditions remain untreated</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>The Cost Difference</h3>
+
+          <p>Cost is one of the starkest differences. Katz et al. (2011) found that the average cost of IVF is 20 times greater than medication-only fertility treatments.<sup><a href="#ref-15" id="cite-15b">15</a></sup> IVF cycles typically range from $15,000 to $30,000, and many couples require multiple cycles. RRM treatments, particularly medication-based protocols, use standard pharmaceutical agents (progesterone, letrozole, hCG) that are a fraction of IVF drug costs. Many RRM evaluations and treatments are coded as treatment for diagnosed medical conditions, making them eligible for insurance coverage that IVF often does not receive.<sup><a href="#ref-6" id="cite-6g">6</a></sup></p>
+
+          <h3>Obstetric Outcomes</h3>
+
+          <p>RRM pregnancies are conceived in vivo. They are almost exclusively singletons. This matters for obstetric outcomes. Multiple pregnancies carry significantly higher risks of preterm delivery, low birth weight, NICU admission, and maternal complications including preeclampsia and hemorrhage.</p>
+
+          <p>IVF pregnancies, particularly those involving multiple embryo transfer, carry elevated risks of multiple gestation. Even singleton IVF pregnancies are associated with higher rates of preterm delivery, low birth weight, and perinatal complications compared to spontaneously conceived singletons.<sup><a href="#ref-19" id="cite-19b">19</a></sup> RRM pregnancies do not carry these IVF-associated risks because conception occurs naturally after the underlying condition has been treated.</p>
+
+          <h3>RRM After Failed IVF</h3>
+
+          <p>RRM can help couples who have already undergone failed IVF cycles. Because IVF bypasses the underlying condition, that condition remains after IVF fails. RRM identifies and treats it.</p>
+
+          <p>Boyle et al. (2022) reported a case of successful pregnancy achieved through RRM after 16 years of infertility, three recurrent miscarriages, and eight unsuccessful embryo transfers with IVF/ICSI. The RRM evaluation identified treatable conditions that the IVF pathway had never investigated. After targeted treatment, the couple conceived naturally and delivered a healthy singleton.<sup><a href="#ref-10" id="cite-10b">10</a></sup></p>
+
+          <p>Boyle et al. (2018) published the most detailed study on this question in <em>Frontiers in Medicine</em>. Among 403 couples who had already failed an average of 2.1 IVF cycles, RRM achieved a life-table live birth rate of 32.1%. Of the 74 live births, only one was a twin (1.4%), and 92% were born at term (37+ weeks).<sup><a href="#ref-17" id="cite-17">17</a></sup> These results demonstrate that RRM is not simply an alternative to IVF. It finds and treats conditions that IVF never investigates. For couples who have been told "IVF is your only option" and it has not worked, RRM offers a fundamentally different path.</p>
+
+          <h3>When IVF May Be Appropriate</h3>
+
+          <p>RRM cannot help every couple. Bilateral tubal occlusion (both fallopian tubes are blocked or absent) prevents egg transport regardless of hormonal health. Severe male factor infertility, such as azoospermia (no sperm in the ejaculate), may require assisted reproduction when no treatable cause can be identified. When time is a critical factor and the couple makes a fully informed choice, IVF may be the right path.</p>
+
+          <p>Honest medicine requires acknowledging these limits. RRM physicians do so. What distinguishes RRM is the insistence that treatable conditions should be treated first, not bypassed, and that couples deserve a thorough evaluation before being directed to procedures that do not address their underlying health.</p>
+
+          <h3>A Note on IVF Outcome Reporting</h3>
+
+          <p>In the United States, IVF outcome reporting through the Society for Assisted Reproductive Technology (SART) is voluntary. A 2013 analysis in <em>Fertility and Sterility</em> found that 13 clinics (3.8% of U.S. fertility centers) accounted for half of all cycles excluded from SART reporting; those clinics published above-average success rates and grew their market share by 19.9%.<sup><a href="#ref-30" id="cite-30">30</a></sup> HFEA data from the United Kingdom provides a more comprehensive picture because reporting is mandatory for all licensed clinics. HFEA data shows an average live birth rate of approximately 33% per embryo transferred for women under 35, with rates declining significantly with age: approximately 25% for ages 35-37, 17% for ages 38-39, and under 10% for women over 42.<sup><a href="#ref-16" id="cite-16e">16</a></sup></p>
+
+          <p><a href="/courses/rrm-vs-ivf/">Learn more in our free course: RRM vs. Standard ART</a>.</p>
+
+          <!-- Section 8: Evidence -->
+          <h2 id="evidence">The Evidence Behind RRM</h2>
+
+          <p>RRM is supported by peer-reviewed research published in journals including the <em>Journal of the American Board of Family Medicine</em>, <em>Canadian Family Physician</em>, the <em>Journal of Medical Case Reports</em>, <em>Frontiers in Medicine</em>, and <em>Fertility and Sterility</em>. The <a href="https://library.rrmacademy.org">RRM Academy Research Library</a> contains 3,000+ peer-reviewed publications covering RRM outcomes, surgical techniques, hormonal protocols, and fertility awareness-based methods.</p>
+
+          <p>This section organizes the existing evidence by category, presents it transparently, and acknowledges the current limitations of the research base. Intellectual honesty is essential. The evidence supports RRM. It also has gaps. Both facts matter.</p>
+
+          <h3>RRM Outcomes Studies</h3>
+
+          <p><strong>Stanford et al. (2008)</strong> published the landmark RRM outcomes study in the <em>Journal of the American Board of Family Medicine</em>. This prospective cohort study followed couples treated with NaProTechnology in an Irish general practice. Among couples with infertility treated over 24 months, the study reported a crude live birth rate of 25.5% and a Kaplan-Meier adjusted cumulative rate of 52.8%. Younger women and those with lower BMI had the highest success rates. The study also documented improvements in gynecological health independent of pregnancy outcomes.<sup><a href="#ref-3" id="cite-3d">3</a></sup></p>
+
+          <p><strong>Tham et al. (2012)</strong> studied NaProTechnology outcomes at a Canadian family practice and published results in <em>Canadian Family Physician</em>. Among couples with infertility, 38% achieved at least one live birth. Among women with recurrent miscarriage, those treated with RRM protocols had significantly improved outcomes compared to their prior pregnancy histories. The study demonstrated that RRM could be effectively delivered in a primary care setting, not only in specialized fertility clinics.<sup><a href="#ref-4" id="cite-4d">4</a></sup></p>
+
+          <p><strong>James et al. (2021, preprint)</strong> reported pregnancy outcomes from a restorative infertility treatment model at a single Australian centre on medRxiv. The study followed 164 couples and reported a crude live birth rate of 35.4% and an adjusted cumulative rate of 57.4% at 24 months.<sup><a href="#ref-18" id="cite-18">18</a></sup></p>
+
+          <p><strong>Stanford et al. (2021)</strong> published a peer-reviewed study in <em>BMC Pregnancy and Childbirth</em> covering two New England family medicine clinics. The study reported a 29% cumulative live birth rate at two years among couples treated with NaProTechnology-based restorative reproductive medicine.<sup><a href="#ref-28" id="cite-28">28</a></sup></p>
+
+          <p><strong>Boyle et al. (2022)</strong> reported a detailed case study in the <em>Journal of Medical Case Reports</em> documenting successful pregnancy after 16 years of infertility, three recurrent miscarriages, and eight failed IVF/ICSI embryo transfers. The couple conceived naturally and delivered a healthy singleton after RRM evaluation identified and treated the underlying conditions.<sup><a href="#ref-10" id="cite-10c">10</a></sup></p>
+
+          <p><strong>Boyle et al. (2018)</strong> published a cohort study in <em>Frontiers in Medicine</em> reporting healthy singleton pregnancies achieved through RRM after previous failed IVF. Among 403 couples with an average of 2.1 prior IVF attempts, the life-table live birth rate was 32.1%. Only 1 of 74 live births was a twin (1.4%), and 92% were born at 37+ weeks.<sup><a href="#ref-17" id="cite-17b">17</a></sup></p>
+
+          <p><strong>Boyle et al. (2025)</strong> published the first head-to-head RRM-versus-IVF comparison in the inaugural volume of the <em>Journal of Restorative Reproductive Medicine</em>. In a retrospective evaluation of 187 couples treated at NeoFertility Dublin in 2019, the crude live birth rate was 41% (77/187). The conception rate was 52%. Prematurity in singletons was 4.0%, compared to 11.8% in CDC data and 14.4% in SART-reported IVF singletons. Average time to conception was 12 months.<sup><a href="#ref-24" id="cite-24e">24</a></sup></p>
+
+          <!-- Data Visualization: Boyle et al. 2025 -->
+          <div class="study-charts">
+            <h4>Boyle et al. 2025: Key Findings</h4>
+            <p class="chart-source">187 couples treated at NeoFertility Dublin, 2019. First head-to-head RRM vs. IVF comparison.<sup><a href="#ref-24" id="cite-24f">24</a></sup></p>
+
+            <figure class="chart-figure">
+              <figcaption class="chart-heading">Live Birth Rates</figcaption>
+              <table class="chart-bar" aria-label="Live birth rates comparison between RRM and IVF">
+                <tbody>
+                  <tr class="chart-bar--rrm">
+                    <th scope="row">RRM (Boyle 2025)</th>
+                    <td style="--size:0.41"></td>
+                    <td>41%</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">IVF, multi-embryo (SART)</th>
+                    <td style="--size:0.40"></td>
+                    <td>40%</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">IVF, multi-embryo (CDC)</th>
+                    <td style="--size:0.41"></td>
+                    <td>41%</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">IVF, single embryo (SART)</th>
+                    <td style="--size:0.306"></td>
+                    <td>30.6%</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">IVF, single embryo (HFEA)</th>
+                    <td style="--size:0.244"></td>
+                    <td>24.4%</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p class="chart-note">RRM achieves comparable live birth rates while treating the underlying condition.</p>
+            </figure>
+
+            <figure class="chart-figure">
+              <figcaption class="chart-heading">Obstetric Safety</figcaption>
+              <div class="safety-grid">
+                <div class="safety-metric">
+                  <span class="safety-metric-label">Multiple pregnancies</span>
+                  <div class="safety-compare">
+                    <span class="safety-val safety-val--rrm">2.5%</span>
+                    <span class="safety-tag">RRM</span>
+                    <span class="safety-vs">vs.</span>
+                    <span class="safety-val safety-val--ref">6-7%</span>
+                    <span class="safety-tag">IVF</span>
+                  </div>
+                </div>
+                <div class="safety-metric">
+                  <span class="safety-metric-label">Preterm singletons</span>
+                  <div class="safety-compare">
+                    <span class="safety-val safety-val--rrm">4.0%</span>
+                    <span class="safety-tag">RRM</span>
+                    <span class="safety-vs">vs.</span>
+                    <span class="safety-val safety-val--ref">11.8%</span>
+                    <span class="safety-tag">IVF</span>
+                  </div>
+                </div>
+                <div class="safety-metric">
+                  <span class="safety-metric-label">Low birth weight</span>
+                  <div class="safety-compare">
+                    <span class="safety-val safety-val--rrm">5.3%</span>
+                    <span class="safety-tag">RRM</span>
+                    <span class="safety-vs">vs.</span>
+                    <span class="safety-val safety-val--ref">11.8%</span>
+                    <span class="safety-tag">IVF</span>
+                  </div>
+                </div>
+              </div>
+              <p class="chart-note">Lower rates indicate better outcomes. RRM pregnancies are in vivo singletons.</p>
+            </figure>
+
+            <figure class="chart-figure">
+              <figcaption class="chart-heading">Diagnostic Precision</figcaption>
+              <p class="chart-subtitle">"Unexplained infertility" dropped from 24% to 1% after RRM workup</p>
+              <table class="chart-dx" aria-label="Diagnostic categories before and after RRM workup">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Before</th>
+                    <th>After RRM</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">Unexplained infertility</th>
+                    <td class="chart-dx__before">24%</td>
+                    <td class="chart-dx__after">1%</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Corpus luteum deficiency</th>
+                    <td class="chart-dx__before">0%</td>
+                    <td class="chart-dx__after">71%</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Hypoandrogenism</th>
+                    <td class="chart-dx__before">0%</td>
+                    <td class="chart-dx__after">31%</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Endometritis</th>
+                    <td class="chart-dx__before">0%</td>
+                    <td class="chart-dx__after">17%</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p class="chart-note">Most "unexplained" cases had identifiable, treatable causes after RRM workup.</p>
+            </figure>
+
+            <figure class="chart-figure chart-figure--last">
+              <figcaption class="chart-heading">Patient Outcomes</figcaption>
+              <div class="funnel">
+                <div class="funnel-step" style="--fw:100%">
+                  <span class="funnel-num">249</span>
+                  <span class="funnel-desc">couples enrolled</span>
+                </div>
+                <div class="funnel-step" style="--fw:75%">
+                  <span class="funnel-num">187</span>
+                  <span class="funnel-desc">completed treatment</span>
+                </div>
+                <div class="funnel-step" style="--fw:52%">
+                  <span class="funnel-num">98</span>
+                  <span class="funnel-desc">conceived (52%)</span>
+                </div>
+                <div class="funnel-step funnel-step--final" style="--fw:41%">
+                  <span class="funnel-num">77</span>
+                  <span class="funnel-desc">live births (41%)</span>
+                </div>
+              </div>
+              <p class="chart-note">Of couples who conceived once, 74% conceived again in subsequent cycles.</p>
+            </figure>
+          </div>
+
+          <p><strong>Sanchez-Mendez et al. (2025)</strong> published the largest NaProTechnology cohort study to date in <em>Frontiers in Reproductive Health</em>. The study followed 1,310 couples and reported a crude live birth rate of 35.3%. Using Kaplan-Meier survival analysis, the adjusted cumulative live birth rate reached 50.0% at 24 months and 62.1% at full follow-up (36+ months). This is the most methodologically rigorous RRM outcomes study published to date.<sup><a href="#ref-25" id="cite-25c">25</a></sup></p>
+
+          <!-- Data Visualization: Sanchez-Mendez et al. 2025 -->
+          <div class="study-charts">
+            <h4>Sanchez-Mendez et al. 2025: Key Findings</h4>
+            <p class="chart-source">1,310 couples treated at a specialized fertility clinic in Madrid, 2019-2023. Largest NaProTechnology cohort study to date.<sup><a href="#ref-25" id="cite-25d">25</a></sup></p>
+
+            <figure class="chart-figure">
+              <figcaption class="chart-heading">Study Overview</figcaption>
+              <div class="stat-cards">
+                <div class="stat-card">
+                  <span class="stat-card__num">1,310</span>
+                  <span class="stat-card__label">couples treated</span>
+                </div>
+                <div class="stat-card">
+                  <span class="stat-card__num">463</span>
+                  <span class="stat-card__label">take-home babies</span>
+                </div>
+                <div class="stat-card">
+                  <span class="stat-card__num">35.3%</span>
+                  <span class="stat-card__label">crude birth rate</span>
+                </div>
+                <div class="stat-card stat-card--accent">
+                  <span class="stat-card__num">62.1%</span>
+                  <span class="stat-card__label">adjusted rate (36 mo)</span>
+                </div>
+              </div>
+            </figure>
+
+            <figure class="chart-figure">
+              <figcaption class="chart-heading">Cumulative Live Birth Rate Over Time</figcaption>
+              <p class="chart-subtitle">Adjusted for censoring and withdrawals (Kaplan-Meier analysis)</p>
+              <table class="chart-column" aria-label="Cumulative live birth rate at 6-month intervals">
+                <tbody>
+                  <tr>
+                    <th scope="row">6 mo</th>
+                    <td style="--size:0.143"><span class="chart-column__val">8.9%</span></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">12 mo</th>
+                    <td style="--size:0.465"><span class="chart-column__val">28.9%</span></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">18 mo</th>
+                    <td style="--size:0.628"><span class="chart-column__val">39.0%</span></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">24 mo</th>
+                    <td style="--size:0.805"><span class="chart-column__val">50.0%</span></td>
+                  </tr>
+                  <tr class="chart-column--final">
+                    <th scope="row">33 mo</th>
+                    <td style="--size:1"><span class="chart-column__val">62.1%</span></td>
+                  </tr>
+                </tbody>
+              </table>
+              <p class="chart-note">Rate plateaus after ~33 months. Median treatment duration was 10.9 months.</p>
+            </figure>
+
+            <figure class="chart-figure">
+              <figcaption class="chart-heading">Adjusted Success Rate by Age</figcaption>
+              <table class="chart-bar" aria-label="Adjusted cumulative take-home baby rates by age group">
+                <tbody>
+                  <tr class="chart-bar--rrm">
+                    <th scope="row">Age 18-30</th>
+                    <td style="--size:0.837"></td>
+                    <td>83.7%</td>
+                  </tr>
+                  <tr class="chart-bar--rrm">
+                    <th scope="row">Age 36-40</th>
+                    <td style="--size:0.533"></td>
+                    <td>53.3%</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Age over 40</th>
+                    <td style="--size:0.244"></td>
+                    <td>24.4%</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p class="chart-note">Adjusted cumulative take-home baby rates. Younger women had significantly higher success.</p>
+            </figure>
+
+            <figure class="chart-figure">
+              <figcaption class="chart-heading">Crude Live Birth Rate by Diagnosis</figcaption>
+              <table class="chart-bar" aria-label="Live birth rate by diagnostic category">
+                <tbody>
+                  <tr class="chart-bar--rrm">
+                    <th scope="row">General conditions (18%)</th>
+                    <td style="--size:0.369"></td>
+                    <td>36.9%</td>
+                  </tr>
+                  <tr class="chart-bar--rrm">
+                    <th scope="row">Functional disorders (86%)</th>
+                    <td style="--size:0.335"></td>
+                    <td>33.5%</td>
+                  </tr>
+                  <tr class="chart-bar--rrm">
+                    <th scope="row">Cervical mucus (26%)</th>
+                    <td style="--size:0.322"></td>
+                    <td>32.2%</td>
+                  </tr>
+                  <tr class="chart-bar--rrm">
+                    <th scope="row">Endometrial (37%)</th>
+                    <td style="--size:0.315"></td>
+                    <td>31.5%</td>
+                  </tr>
+                  <tr class="chart-bar--rrm">
+                    <th scope="row">Male factor (35%)</th>
+                    <td style="--size:0.303"></td>
+                    <td>30.3%</td>
+                  </tr>
+                  <tr class="chart-bar--rrm">
+                    <th scope="row">Endometriosis (24%)</th>
+                    <td style="--size:0.279"></td>
+                    <td>27.9%</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Tubal factor (13%)</th>
+                    <td style="--size:0.254"></td>
+                    <td>25.4%</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p class="chart-note">Parentheses show prevalence in cohort. Couples averaged 2.5 diagnoses each.</p>
+            </figure>
+
+            <figure class="chart-figure chart-figure--last">
+              <figcaption class="chart-heading">Adjusted Rates Across NaPro Studies</figcaption>
+              <table class="chart-bar" aria-label="Adjusted cumulative take-home baby rates across NaPro studies">
+                <tbody>
+                  <tr>
+                    <th scope="row">Tham 2012 (n=108)</th>
+                    <td style="--size:0.657"></td>
+                    <td>65.7%</td>
+                  </tr>
+                  <tr class="chart-bar--rrm">
+                    <th scope="row">Sanchez-Mendez 2025, 36 mo (n=1,310)</th>
+                    <td style="--size:0.621"></td>
+                    <td>62.1%</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Stanford 2008 (n=1,072)</th>
+                    <td style="--size:0.528"></td>
+                    <td>52.8%</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Stanford 2021 (n=370)</th>
+                    <td style="--size:0.290"></td>
+                    <td>29.0%</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p class="chart-note">Adjusted cumulative take-home baby rates from general infertility populations. Boyle 2018 (32.1%, post-IVF-failure cohort) excluded for comparability.</p>
+            </figure>
+          </div>
+
+          <h3>Surgical Outcomes</h3>
+
+          <p>Endometriosis excision surgery is one of the most studied interventions in RRM. Post-excision pregnancy rates depend on disease severity, surgical completeness, and individual patient factors. These pregnancies are achieved through in vivo conception after the disease is treated.</p>
+
+          <p>Long-term surgical outcomes distinguish excision from ablation. Yeung et al. (2024), published in <em>Acta Scientific Women's Health</em>, reported a 2.5% rate of repeat surgery over ten years following optimal excision of endometriosis at a single tertiary referral center (620 patients). Sutton et al. (1994) reported repeat surgery rates of up to 40% at one to two years after laser ablation.<sup><a href="#ref-11" id="cite-11e">11</a></sup> This difference is clinically significant. Excision removes the disease. Ablation burns the surface. The distinction determines whether women face repeated surgeries or sustained relief.</p>
+
+          <h3>Cost-Effectiveness</h3>
+
+          <p>Katz et al. (2011) conducted a prospective 18-month cohort study published in <em>Fertility and Sterility</em> and found that the average cost of IVF was 20 times greater than medication-only fertility treatments.<sup><a href="#ref-15" id="cite-15c">15</a></sup> A single IVF cycle costs $15,000 to $30,000 in the United States. Most couples need two to three cycles, bringing average total costs to $40,000 to $60,000 or more. In the United States, only a minority of states mandate insurance coverage for IVF, leaving most couples to pay out of pocket.</p>
+
+          <p>RRM treatments, because they diagnose and treat specific medical conditions, are often coded under standard diagnostic and treatment categories that insurance already covers: laparoscopy for endometriosis, hormonal testing for endocrine evaluation, progesterone for luteal phase support. This structural insurance advantage means that RRM is accessible to many couples who cannot afford IVF's cash-pay model.<sup><a href="#ref-6" id="cite-6h">6</a></sup></p>
+
+          <h3>Obstetric Outcomes</h3>
+
+          <p>RRM pregnancies are achieved through in vivo conception and are almost exclusively singletons. This confers significant obstetric advantages. Multiple gestation pregnancies, which are more common with IVF (particularly with multiple embryo transfer), carry elevated risks of preterm delivery, low birth weight, cerebral palsy, and neonatal death.</p>
+
+          <p>Even singleton IVF pregnancies are associated with higher rates of adverse obstetric outcomes compared to spontaneously conceived singletons. HFEA data documents higher rates of preterm birth, low birth weight, and perinatal complications among IVF-conceived pregnancies.<sup><a href="#ref-16" id="cite-16f">16</a></sup> Bewley et al. (2011) reviewed adverse outcomes from IVF and documented increased risks of ectopic pregnancy, preeclampsia, placenta previa, and cesarean delivery.<sup><a href="#ref-19" id="cite-19">19</a></sup></p>
+
+          <p>RRM pregnancies, because they result from in vivo conception after the underlying condition has been treated, do not carry these procedure-associated risks. The mother's health is also improved because the underlying disease has been addressed, reducing the risk of complications from untreated conditions like endometriosis or hormonal deficiency during pregnancy.</p>
+
+          <h3>Honest Assessment of Limitations</h3>
+
+          <p>The current RRM evidence base has real limitations, and acknowledging them is part of practicing honest medicine.</p>
+
+          <ul>
+            <li><strong>Study design.</strong> Most RRM studies are observational cohort studies or case series, not randomized controlled trials (RCTs). This is a legitimate methodological limitation. It is also a limitation shared by much of IVF research. RCTs are difficult to conduct in fertility medicine for ethical and practical reasons.</li>
+            <li><strong>Sample sizes.</strong> RRM studies involve smaller cohorts than IVF mega-databases. The RRM research base is growing, but it does not yet match the volume of IVF-related publications.</li>
+            <li><strong>A young field.</strong> RRM as a formalized discipline is relatively young. NaProTechnology has been practiced since the 1980s, but the broader RRM framework with standardized protocols and international collaboration emerged more recently. More research is needed and is actively underway.</li>
+            <li><strong>Not a solution for every couple.</strong> RRM cannot help couples with bilateral tubal occlusion (both tubes blocked or absent) or severe male factor infertility such as azoospermia when no treatable cause is found. These are cases where assisted reproductive technology may be the only option for biological parenthood.</li>
+            <li><strong>Publication bias.</strong> Publication bias exists in all fertility research, including IVF. Clinics and researchers are more likely to publish favorable outcomes. This affects the interpretation of all fertility statistics, not just RRM data. The HFEA's mandatory reporting in the United Kingdom provides the most complete IVF outcome data available precisely because it eliminates selective reporting.</li>
+          </ul>
+
+          <h3>A Note on the Criticism</h3>
+
+          <p>In 2025 and 2026, professional organizations including ACOG and ASRM published position statements, editorials, and open letters criticizing RRM. A review of these documents reveals a pattern: the critiques are structural (no RCTs, no ABMS sub-board, ideological framing) rather than data-driven. The ACOG Issue Brief on RRM, the ASRM "Just the Facts" sheet, the ASRM letter to IIRRM, and the joint open letter to the National Governors Association collectively cite zero peer-reviewed RRM outcome studies to support the claim that RRM lacks evidence. A January 2026 JAMA Viewpoint authored by a graduate of ASRM's PRIMED advocacy training program similarly engages with policy arguments without citing or refuting any specific RRM clinical data.</p>
+
+          <p>None of these opposition documents cite or engage with Boyle et al. (2018), Boyle et al. (2025), Sanchez-Mendez et al. (2025), or James et al. (2021).<sup><a href="#ref-28" id="cite-28b">28</a></sup> The newest and largest data in the field is unaddressed.</p>
+
+          <p>This does not mean the criticism is baseless. The call for RCTs is legitimate. The concern about patient access to IVF is real. But patients and providers deserve to evaluate the actual published data, not a characterization of the field that ignores it.</p>
+
+          <p>The existing evidence supports RRM as an effective, safe, and cost-effective approach for the majority of couples facing infertility and reproductive health conditions. It also demonstrates that RRM improves the health of women and men even when pregnancy is not achieved. The field needs more large-scale prospective studies, and organizations like FACTS About Fertility and the IIRRM are working to make that happen.</p>
+
+          <p><em>Outcomes vary by individual. All statistics cited represent published research averages, not guarantees of individual results.</em></p>
+
+          <!-- Section 9: Patient Journey -->
+          <h2 id="patient-journey">What to Expect: The RRM Patient Journey</h2>
+
+          <p>No competitor in reproductive medicine has published a clear walkthrough of the RRM process. That gap ends here. Below is what couples can expect from start to finish.</p>
+
+          <ol>
+            <li>
+              <strong>Learn to chart (1-3 cycles).</strong>
+              <p>A woman learns a validated cycle-charting method from a trained instructor. Creighton Model, Marquette, FEMM, and Billings are the most common systems used in RRM. This charting provides the baseline diagnostic data that drives every decision downstream. Some RRM physicians accept a woman who has just begun learning to chart. Others prefer two to three completed cycles before the first appointment. Either way, the chart is the foundation.<sup><a href="#ref-7" id="cite-7c">7</a></sup></p>
+            </li>
+            <li>
+              <strong>Initial consultation.</strong>
+              <p>The physician reviews the chart data alongside a full medical history. Both partners attend. The conversation covers symptoms, reproductive goals, prior treatments, and what the chart reveals about cycle length, ovulation timing, mucus patterns, and hormonal signals. For many women, this is the first time a physician has interpreted their cycle data as a diagnostic tool rather than asking only about period dates.<sup><a href="#ref-2" id="cite-2c">2</a></sup></p>
+            </li>
+            <li>
+              <strong>Diagnostic workup (1-3 months).</strong>
+              <p>Testing is targeted, not scattershot. Hormonal panels are timed to specific cycle days based on each woman's chart. Imaging studies assess uterine and ovarian anatomy. A semen analysis evaluates the male partner. If endometriosis is suspected, the physician may recommend diagnostic laparoscopy with excision. The evaluation is thorough and systematic. Every test is ordered because the chart pointed to a specific question that needs answering.</p>
+            </li>
+            <li>
+              <strong>Diagnosis and treatment plan.</strong>
+              <p>A specific diagnosis (or multiple diagnoses) is identified. "Unexplained infertility" is not an acceptable endpoint. It simply means the evaluation is not finished. Treatment is matched to findings: cycle-timed hormonal support, targeted medication, surgical excision, nutritional optimization, or a combination. The plan is individualized. Two women with the same symptom may receive entirely different protocols because their underlying causes differ.</p>
+            </li>
+            <li>
+              <strong>Ongoing monitoring (3-12+ months).</strong>
+              <p>Treatment response is tracked cycle by cycle through the chart and follow-up labs. Biomarker changes show whether the protocol is working in real time. If mucus patterns improve, if the luteal phase lengthens, if hormone levels normalize, the data confirms progress. If not, the physician adjusts. This is not "try and see." It is iterative, data-driven care where every cycle generates actionable information.</p>
+            </li>
+            <li>
+              <strong>Outcomes.</strong>
+              <p>For couples seeking fertility, the physician provides conception support and early pregnancy monitoring, including progesterone supplementation when indicated. For women not pursuing pregnancy, the goal is sustained symptom relief and prevention of disease progression. Either way, the woman leaves with a diagnosis, a treatment record, and knowledge about her own body that no one can take away.</p>
+            </li>
+          </ol>
+
+          <p><strong>Set realistic expectations.</strong> RRM is not a quick fix. Most couples should expect a timeline of 6 to 18 months from first appointment to resolution, depending on diagnosis complexity. Some conditions require surgery followed by months of post-operative hormonal management before conception is attempted. The process is thorough because it has to be. Shortcuts lead to the same dead ends that brought most couples to RRM in the first place.</p>
+
+          <!-- Section 10: Cost and Insurance -->
+          <h2 id="cost-insurance">How Much Does RRM Cost?</h2>
+
+          <p>Cost is one of the most common questions couples ask. The answer matters because it shapes who can access care.</p>
+
+          <p>IVF costs $15,000 to $30,000 per cycle in the United States, including medications and monitoring. Most couples need two to three cycles to achieve a live birth, bringing average total out-of-pocket spending to $40,000 to $60,000. Costs rise substantially for older patients and with add-ons like genetic testing (PGT-A), ICSI, and frozen embryo transfers. The Katz et al. prospective cohort study found that IVF costs on average 20 times more than medication-based fertility treatments.<sup><a href="#ref-15" id="cite-15b">15</a></sup></p>
+
+          <p>RRM costs vary by diagnosis and treatment plan. The key structural advantage is that RRM treats diagnosed medical conditions using standard diagnostic and treatment codes. Charting instruction, hormonal panels, medications, and surgery for conditions like endometriosis or PCOS use the same CPT codes any specialist would bill. This means many components of RRM care are covered by standard health insurance, without requiring a separate "fertility treatment" benefit. By contrast, IVF is typically classified as elective fertility treatment and covered by insurance in only a minority of U.S. states, leaving most couples to pay out of pocket.<sup><a href="#ref-6" id="cite-6i">6</a></sup></p>
+
+          <h3>Insurance Coverage</h3>
+
+          <p>Many RRM treatments are covered by insurance because they are coded as treatment for diagnosed medical conditions, not as "fertility treatment." Endometriosis surgery uses standard surgical codes. Thyroid treatment uses endocrine codes. PCOS management uses metabolic and gynecologic codes. The diagnostic workup uses the same CPT codes any specialist would bill. This is a significant advantage. When a condition has a diagnostic code, insurance pays for its treatment regardless of whether the patient is also trying to conceive.</p>
+
+          <h3>Legislative Progress</h3>
+
+          <p>The policy landscape is shifting. In 2025, Arkansas became the first state to mandate insurance coverage for restorative reproductive medicine.<sup><a href="#ref-12" id="cite-12b">12</a></sup> The RESTORE Act (H.R. 3589), introduced in the 119th Congress, seeks to expand federal access to RRM as an alternative to IVF coverage mandates.<sup><a href="#ref-20" id="cite-20">20</a></sup> The Trump administration's executive order on IVF coverage has also opened new conversations about what "fertility treatment" should include and whether cause-based approaches deserve equal standing in coverage mandates.</p>
+
+          <h3>What to Ask Your Insurer</h3>
+
+          <ul>
+            <li><strong>Ask about diagnostic coverage.</strong> "Is cycle-timed hormonal testing covered under my plan when ordered for a diagnosed condition such as PCOS, endometriosis, or luteal phase defect?"</li>
+            <li><strong>Ask about surgical coverage.</strong> "Is laparoscopic excision surgery for endometriosis covered as a gynecologic procedure, separate from any fertility benefit?"</li>
+            <li><strong>Ask about out-of-network benefits.</strong> Many RRM physicians are not in-network for every plan. Out-of-network benefits may still cover a significant portion of costs.</li>
+            <li><strong>Ask about your state's mandates.</strong> Some states require coverage for fertility diagnosis or treatment. RRM treatments often qualify under these mandates because they treat medical conditions, not just infertility as a standalone diagnosis.</li>
+          </ul>
+
+          <!-- Section 11: NaProTechnology -->
+          <h2 id="naprotechnology">NaProTechnology: What It Is and How It Works</h2>
+
+          <p>NaProTechnology (Natural Procreative Technology) is the most established clinical system within restorative reproductive medicine. Understanding three distinct terms clarifies how the pieces fit together:</p>
+
+          <ul>
+            <li><strong>Creighton Model FertilityCare System (CrMS)</strong> is the fertility charting system. A trained FertilityCare Practitioner teaches a woman to observe and record specific biomarkers, primarily cervical mucus patterns, across each cycle. The result is a standardized chart that maps hormonal activity in real time.</li>
+            <li><strong>NaProTechnology</strong> is the medical and surgical application built on Creighton Model data. Physicians use the chart to time diagnostic tests, identify abnormalities, and guide treatment. NaPro includes hormonal evaluation protocols, cycle-timed medication, and advanced surgical techniques focused on reproductive organ preservation.</li>
+            <li><strong>RRM</strong> is the broader medical discipline that emerged in the 2000s. NaProTechnology predates the RRM umbrella by two decades and maintains its own institutional identity through the Pope Paul VI Institute. Other systems, including FEMM (Fertility Education and Medical Management), NeoFertility, and Marquette-based protocols, also practice cause-directed reproductive medicine. They share the same root-cause philosophy but differ in charting methods and clinical frameworks.</li>
+          </ul>
+
+          <p>Dr. Thomas Hilgers developed NaProTechnology at the Pope Paul VI Institute in Omaha, Nebraska, beginning in the 1980s. His prospective studies tracking women's hormones throughout their cycles established precise reference ranges for progesterone, estradiol, and other hormones at each phase of the cycle, giving NaPro physicians a diagnostic framework that most conventional training does not provide.<sup><a href="#ref-9" id="cite-9b">9</a></sup></p>
+
+          <h3>Is NaProTechnology Only for Catholics?</h3>
+
+          <p>No. NaProTechnology was developed in a Catholic institutional context. The Pope Paul VI Institute is named for the pope who wrote <em>Humanae Vitae</em>. That history is real. But the clinical protocols are based on human physiology, not theology. Cervical mucus behaves the same way regardless of a woman's religious beliefs. Progesterone levels follow the same patterns. Endometriosis does not discriminate by faith.</p>
+
+          <p>Both Catholic and non-Catholic patients seek NaProTechnology because they want a thorough diagnostic workup, cause-based treatment, and a physician who will not default to suppressive medications as a first-line response. The medicine works because it is grounded in biology. Any patient can benefit regardless of religious background.<sup><a href="#ref-2" id="cite-2d">2</a></sup></p>
+
+          <h3>Physician Training</h3>
+
+          <p>NaProTechnology physicians complete fellowship training at the Pope Paul VI Institute or equivalent programs recognized by the IIRRM. Fellowship includes advanced surgical training (including excision of endometriosis and reconstructive procedures), hormonal evaluation and cycle-timed prescribing, and integration of Creighton Model data into clinical decision-making. These physicians hold board certification in OBGYN, family medicine, or reproductive endocrinology in addition to their NaPro credentials.</p>
+
+          <p><a href="/courses/masterclass-in-endometriosis-and-surgery/">Learn from a NaProTechnology-trained surgeon: Masterclass in Endometriosis &amp; Surgery</a></p>
+
+          <!-- Section 12: Training and Credentials -->
+          <h2 id="training">RRM Training and Credentials for Healthcare Professionals</h2>
+
+          <p>RRM is a growing field. The training landscape includes pathways for charting instructors, physicians, medical students, and allied health professionals. Here is how the ecosystem is structured.</p>
+
+          <h3>1. FertilityCare Practitioner (FCP)</h3>
+
+          <p>A FertilityCare Practitioner teaches patients to chart using the Creighton Model FertilityCare System. Certification is through the American Academy of FertilityCare Professionals (AAFCP). The education program spans 13 months and includes didactic coursework, supervised practicum, and competency evaluation. FCPs are the front line of RRM. They provide the charting instruction that generates the diagnostic data physicians depend on.</p>
+
+          <h3>2. Medical Consultant</h3>
+
+          <p>A Medical Consultant is a physician who interprets Creighton Model charts and manages medical and surgical treatment. Certification requires completion of fellowship training and demonstrated competency in cycle-based evaluation, hormonal assessment, and NaProTechnology protocols. Medical Consultants diagnose conditions, prescribe cycle-timed medications, and perform or refer for surgical intervention.</p>
+
+          <h3>3. NaProTechnology Fellowship</h3>
+
+          <p>Advanced training is available through the Pope Paul VI Institute and allied programs. Fellowship covers surgical techniques (including endometriosis excision, adhesion prevention, and tubal reconstruction), hormonal evaluation protocols, and the full scope of cycle-based care. This is the most intensive credential in the field and produces physicians capable of managing complex, multi-system reproductive conditions.</p>
+
+          <h3>4. RRM Academy</h3>
+
+          <p>RRM Academy (<a href="/courses/">rrmacademy.org</a>) is an online education platform offering courses for both patients and healthcare professionals. Course topics include endometriosis, surgical technique, postpartum health, and the fundamentals of restorative reproductive medicine. RRM Academy bridges the gap between fellowship-level expertise and the broader medical community by making specialized knowledge accessible through structured online coursework.</p>
+
+          <h3>5. FEMM and RHRI (Reproductive Health Research Institute)</h3>
+
+          <p>FEMM's research arm, the Reproductive Health Research Institute (RHRI), provides Medical Management training for physicians. The program covers differential diagnosis and treatment of hormonal disorders including ovulatory dysfunction, PCOS, thyroid imbalances, and infertility using standardized clinical protocols developed under Dr. Pilar Vigil at the Pontifical Catholic University of Chile. Training is available through in-person courses and on-demand online formats at <a href="https://femmhealth.org/professional-education/" rel="noopener">femmhealth.org</a>.</p>
+
+          <h3>6. FACTS (Fertility Appreciation Collaborative to Teach the Science)</h3>
+
+          <p>FACTS offers a medical elective for students and residents that introduces fertility awareness-based methods and restorative reproductive medicine into clinical training. The elective provides CME credit and is designed to integrate into existing medical education curricula. FACTS also hosts an annual conference, community case discussions, and a professional CME course for practicing physicians.<sup><a href="#ref-21" id="cite-21">21</a></sup></p>
+
+          <h3>7. IIRRM (International Institute for Restorative Reproductive Medicine)</h3>
+
+          <p>The IIRRM provides international credentialing, hosts conferences, facilitates case study discussions, and maintains a provider referral network. It serves as the professional home for the global RRM community, connecting physicians, researchers, and educators across countries and practice settings.<sup><a href="#ref-1" id="cite-1b">1</a></sup></p>
+
+          <aside class="callout-provider">
+            <h3>For Healthcare Professionals</h3>
+            <p>If you are a physician interested in adding RRM to your practice, start with <a href="/courses/">RRM Academy's clinical courses</a>. For formal credentialing, contact the <a href="https://iirrm.org" rel="noopener">IIRRM</a> or explore fellowship opportunities through the Pope Paul VI Institute. <a href="https://femmhealth.org/professional-education/" rel="noopener">RHRI/FEMM</a> offers Medical Management training in hormonal protocols. FACTS offers a <a href="https://www.factsaboutfertility.org" rel="noopener">medical elective</a> for students and residents. No matter your starting point, cycle-based evaluation can be integrated into any OBGYN, family medicine, or endocrinology practice.</p>
+          </aside>
+
+          <!-- Section 13: Common Myths About RRM -->
+          <h2 id="myths">Common Myths About Restorative Reproductive Medicine</h2>
+
+          <p>RRM challenges assumptions that many patients and physicians take for granted. That generates pushback. Some of it comes from genuine misunderstanding. Some comes from professional organizations with competing interests. The myths below represent the most common objections. Each one collapses under scrutiny.</p>
+
+          <div class="myth-fact">
+            <span class="myth-label">Myth</span>
+            <p class="myth-text">"RRM is only for religious people."</p>
+            <span class="fact-label">Fact</span>
+            <p class="fact-text">RRM is a medical discipline practiced by board-certified physicians. The science does not depend on any religious framework. NaProTechnology was developed at a Catholic institution, but its protocols are based on reproductive physiology, not theology. Patients of all backgrounds and beliefs seek RRM for the same reason: thorough diagnosis and cause-based treatment. No faith commitment is required to benefit from having your hormones tested, your endometriosis excised, or your luteal phase supported.<sup><a href="#ref-1" id="cite-1c">1</a></sup></p>
+          </div>
+
+          <div class="myth-fact">
+            <span class="myth-label">Myth</span>
+            <p class="myth-text">"RRM is alternative medicine."</p>
+            <span class="fact-label">Fact</span>
+            <p class="fact-text">RRM uses standard medical tools: bloodwork, imaging, laparoscopy, pharmacology. Its physicians are board-certified OBGYNs and reproductive endocrinologists trained at accredited medical institutions. The difference is in how and when those tools are applied. RRM times interventions to each cycle phase and targets the diagnosed cause. Published research appears in peer-reviewed journals including the <em>Journal of the American Board of Family Medicine</em>, <em>Canadian Family Physician</em>, <em>Frontiers in Medicine</em>, and the <em>Journal of Medical Case Reports</em>.<sup><a href="#ref-3" id="cite-3c">3</a></sup><sup><a href="#ref-4" id="cite-4c">4</a></sup><sup><a href="#ref-17" id="cite-17b">17</a></sup><sup><a href="#ref-10" id="cite-10b">10</a></sup> That is the definition of evidence-based medicine.</p>
+          </div>
+
+          <div class="myth-fact">
+            <span class="myth-label">Myth</span>
+            <p class="myth-text">"RRM only works for infertility."</p>
+            <span class="fact-label">Fact</span>
+            <p class="fact-text">RRM treats endometriosis, PCOS, pelvic pain, hormonal imbalances, irregular periods, PMS, and PMDD regardless of fertility goals. Many women seek RRM with no desire to conceive. They want answers. They want their symptoms diagnosed and treated rather than masked with suppressive medications. Cycle-based evaluation is useful for any woman who wants to understand her hormonal health. Fertility is one application. It is not the only one.<sup><a href="#ref-5" id="cite-5c">5</a></sup></p>
+          </div>
+
+          <div class="myth-fact">
+            <span class="myth-label">Myth</span>
+            <p class="myth-text">"RRM has no evidence base."</p>
+            <span class="fact-label">Fact</span>
+            <p class="fact-text">Published studies document RRM outcomes in <em>JABFM</em>, <em>Canadian Family Physician</em>, <em>Frontiers in Medicine</em>, the <em>Journal of Medical Case Reports</em>, and the <em>Journal of Restorative Reproductive Medicine</em>. Stanford, Parnell, and Boyle reported crude live birth rates of 26% (adjusted: 53%) after NaProTechnology treatment in an Irish general practice.<sup><a href="#ref-3" id="cite-3d">3</a></sup> Tham, Schliep, and Stanford reported a 38% crude live birth rate in a Canadian cohort.<sup><a href="#ref-4" id="cite-4d">4</a></sup> Boyle et al. (2025) reported a 41% live birth rate in 187 couples at NeoFertility Dublin.<sup><a href="#ref-24" id="cite-24b">24</a></sup> Boyle et al. (2018) demonstrated healthy singleton pregnancies from RRM after multiple failed IVF cycles.<sup><a href="#ref-17" id="cite-17c">17</a></sup> The <a href="https://library.rrmacademy.org">RRM Research Library</a> indexes over 3,000 publications relevant to restorative reproductive medicine. More research is needed, and more is underway. But claiming there is "no evidence" ignores what already exists.</p>
+          </div>
+
+          <div class="myth-fact">
+            <span class="myth-label">Myth</span>
+            <p class="myth-text">"RRM is anti-IVF."</p>
+            <span class="fact-label">Fact</span>
+            <p class="fact-text">RRM is its own medical paradigm. It does not define itself in opposition to any other approach. RRM focuses on identifying and treating the condition that causes reproductive dysfunction. Some couples choose IVF after completing an RRM evaluation. Others find that once the underlying disease is treated, they conceive without assisted reproduction. The goal is diagnosis and treatment. What the couple decides to do with that information is their decision.<sup><a href="#ref-6" id="cite-6c">6</a></sup></p>
+          </div>
+
+          <div class="myth-fact">
+            <span class="myth-label">Myth</span>
+            <p class="myth-text">"You need to choose between RRM and conventional medicine."</p>
+            <span class="fact-label">Fact</span>
+            <p class="fact-text">RRM IS conventional medicine. Same diagnostic tools. Same surgical techniques. Same pharmacology. Same board-certified physicians. The distinction is the clinical approach: identify the cause first, then treat it. RRM physicians work within the standard medical system, order labs through standard reference laboratories, perform surgery in accredited hospitals, and prescribe FDA-approved medications. There is nothing to choose between. RRM is what thorough, cause-based conventional medicine looks like when applied to reproductive health.<sup><a href="#ref-7" id="cite-7c">7</a></sup></p>
+          </div>
+
+          <!-- Section 14: How to Get Started -->
+          <h2 id="get-started">How to Get Started with Restorative Reproductive Medicine</h2>
+
+          <p>Getting started depends on who you are and what you need. Below are three pathways: one for couples and individuals seeking care, one for healthcare professionals, and one for researchers.</p>
+
+          <h3>For Couples and Individuals</h3>
+
+          <ol>
+            <li><strong>Learn a validated cycle-charting method.</strong> Charting provides the diagnostic data that RRM physicians rely on. Options include the Creighton Model FertilityCare System, Marquette Method, FEMM, Billings Ovulation Method, and SymptoThermal methods. Find a local instructor through <a href="https://www.fertilitycare.org" rel="noopener">FertilityCare Centers of America</a> or the training organization for your chosen method. Most couples need 1 to 3 charted cycles before their first physician visit.</li>
+            <li><strong>Find an RRM-trained physician.</strong> The <a href="https://iirrm.org" rel="noopener">IIRRM referral network</a> connects you with credentialed providers. <a href="https://naturalwomanhood.org/find-a-doctor/" rel="noopener">Natural Womanhood's physician directory</a> is another resource. If you use a specific charting method, ask your instructor for provider recommendations within that method's network.<sup><a href="#ref-22" id="cite-22">22</a></sup></li>
+            <li><strong>Prepare for your first appointment.</strong> Bring your charted cycles, complete medical history, prior lab and imaging results, and a list of questions. If you have a partner, have them attend. RRM evaluates both partners because male factor contributes to infertility in up to 40% of couples.<sup><a href="#ref-27" id="cite-27c">27</a></sup></li>
+            <li><strong>Educate yourself.</strong> Browse free courses at <a href="/courses/">RRM Academy</a> to understand the approach, the conditions it treats, and what to expect from treatment. Knowledge helps you advocate for your own care.</li>
+          </ol>
+
+          <h3>For Healthcare Professionals</h3>
+
+          <ul>
+            <li><strong>Start with online education.</strong> <a href="/courses/">RRM Academy courses</a> cover endometriosis, hormonal evaluation, surgical technique, and the fundamentals of cycle-based care.</li>
+            <li><strong>Explore IIRRM credentialing.</strong> The <a href="https://iirrm.org" rel="noopener">International Institute for Restorative Reproductive Medicine</a> offers professional credentialing and hosts international conferences with CME credit.</li>
+            <li><strong>Consider the FACTS medical elective.</strong> <a href="https://www.factsaboutfertility.org" rel="noopener">FACTS</a> provides a structured rotation for medical students and residents that introduces FABMs and RRM into clinical training.<sup><a href="#ref-21" id="cite-21b">21</a></sup></li>
+            <li><strong>Pursue fellowship training.</strong> The Pope Paul VI Institute offers the most intensive training in NaProTechnology, covering advanced surgical techniques, hormonal protocols, and the full scope of restorative care.<sup><a href="#ref-9" id="cite-9b">9</a></sup></li>
+          </ul>
+
+          <h3>For Researchers</h3>
+
+          <ul>
+            <li><strong>Browse the RRM Research Library.</strong> The <a href="https://library.rrmacademy.org">RRM Research Library</a> indexes over 3,000 publications relevant to restorative reproductive medicine, fertility awareness-based methods, and related clinical science.</li>
+            <li><strong>Submit research.</strong> The <em>Journal of Restorative Reproductive Medicine</em> publishes peer-reviewed research in the field.</li>
+            <li><strong>Attend conferences.</strong> IIRRM and IRRMA host annual conferences that bring together clinicians and researchers. These are the primary venues for presenting new findings and building collaborative networks.</li>
+          </ul>
+
+          <!-- Section 15: FAQ -->
+          <h2 id="faq">Frequently Asked Questions</h2>
+          <div class="faq-accordion">
+            <details>
+              <summary>What is restorative reproductive medicine?</summary>
+              <div class="faq-answer">
+                <p>Restorative reproductive medicine (RRM) is a medical approach that diagnoses and treats the root causes of reproductive health conditions. Rather than masking symptoms with suppressive medications or bypassing natural function, RRM uses standard diagnostic tools and targeted treatments to restore the body's own reproductive physiology. RRM physicians are board-certified OBGYNs, reproductive endocrinologists, and family physicians with additional training in cycle-based evaluation.<sup><a href="#ref-1" id="cite-1d">1</a></sup></p>
+              </div>
+            </details>
+
+            <details>
+              <summary>Is RRM the same as NaProTechnology?</summary>
+              <div class="faq-answer">
+                <p>Not exactly. NaProTechnology is one specific approach within the broader field of restorative reproductive medicine. NaPro uses the Creighton Model FertilityCare System for charting and was developed at the Pope Paul VI Institute by Dr. Thomas Hilgers. RRM is the umbrella term that includes NaPro as well as other cycle-based, cause-directed medical approaches such as FEMM Medical Management and NeoFertility protocols.<sup><a href="#ref-9" id="cite-9c">9</a></sup></p>
+              </div>
+            </details>
+
+            <details>
+              <summary>How long does RRM treatment typically take?</summary>
+              <div class="faq-answer">
+                <p>Treatment timelines vary by diagnosis. Most couples begin with 1 to 3 cycles of charting to establish a baseline, followed by diagnostic testing and treatment planning. Some hormonal conditions respond within a few cycles of targeted support. Surgical cases (such as endometriosis excision) require recovery time before attempting conception. Overall, couples should expect an active treatment window of 3 to 18 months depending on complexity.<sup><a href="#ref-3" id="cite-3e">3</a></sup></p>
+              </div>
+            </details>
+
+            <details>
+              <summary>Does RRM work for male infertility?</summary>
+              <div class="faq-answer">
+                <p>Yes. RRM evaluates both partners. A male factor is solely responsible in about 20% of infertile couples and contributory in another 30 to 40%. Evaluation includes semen analysis, hormonal assessment, and investigation of anatomical issues such as varicocele. Treatment may include hormonal support, surgical correction, lifestyle modification, or referral to a urologist with reproductive expertise. Addressing both sides of the equation improves outcomes.<sup><a href="#ref-27" id="cite-27d">27</a></sup></p>
+              </div>
+            </details>
+
+            <details>
+              <summary>Can I try RRM if IVF has already failed?</summary>
+              <div class="faq-answer">
+                <p>Yes. Published research by Boyle et al. documented healthy singleton pregnancies from RRM treatment in couples who had previously undergone multiple failed IVF cycles. One case report describes a successful pregnancy after 16 years of infertility and eight unsuccessful IVF embryo transfers. RRM often uncovers treatable conditions that were never diagnosed during the IVF process.<sup><a href="#ref-17" id="cite-17d">17</a></sup><sup><a href="#ref-10" id="cite-10c">10</a></sup></p>
+              </div>
+            </details>
+
+            <details>
+              <summary>Does insurance cover restorative reproductive medicine?</summary>
+              <div class="faq-answer">
+                <p>Many RRM treatments are covered by standard health insurance because they involve conventional diagnostics and treatments for diagnosed conditions. Bloodwork, imaging, medications, and surgery for endometriosis, PCOS, or hormonal disorders use standard medical billing codes. Arkansas became the first state to mandate coverage for restorative reproductive medicine in 2025. The federal RESTORE Act (H.R. 3589) has been introduced to expand access further. Coverage varies by plan and state.<sup><a href="#ref-15" id="cite-15b">15</a></sup><sup><a href="#ref-20" id="cite-20b">20</a></sup></p>
+              </div>
+            </details>
+
+            <details>
+              <summary>Do I have to be Catholic or religious to use RRM?</summary>
+              <div class="faq-answer">
+                <p>No. RRM is a medical discipline based on reproductive physiology, not religious doctrine. NaProTechnology was developed at a Catholic institution, but its protocols rely on the same science as any medical specialty. Patients of all faiths and no faith seek RRM because they want thorough diagnosis and cause-based treatment. No religious commitment is required.<sup><a href="#ref-1" id="cite-1e">1</a></sup></p>
+              </div>
+            </details>
+
+            <details>
+              <summary>What is the success rate of RRM?</summary>
+              <div class="faq-answer">
+                <p>Published studies report live birth rates of 26 to 41% (crude) for RRM treatment with timed intercourse, and adjusted cumulative rates of 50 to 62% depending on follow-up duration. Boyle et al. (2025) reported a 41% live birth rate in a 187-couple cohort.<sup><a href="#ref-24" id="cite-24">24</a></sup> Results depend on diagnosis, age, and individual factors. RRM also delivers outcomes beyond pregnancy: pain relief, hormonal balance, and answers about why a condition exists.<sup><a href="#ref-3" id="cite-3f">3</a></sup><sup><a href="#ref-4" id="cite-4e">4</a></sup></p>
+              </div>
+            </details>
+
+            <details>
+              <summary>How is RRM different from seeing a regular OB-GYN?</summary>
+              <div class="faq-answer">
+                <p>Most OB-GYNs manage symptoms. Irregular periods get suppressive medications. Pelvic pain gets empiric treatment. Infertility gets a referral to IVF. An RRM physician starts with the cycle chart as a diagnostic tool, orders timed hormone panels based on cycle phase, investigates the root cause, and builds a targeted treatment plan. The tools are the same. The approach is different. RRM asks "why" before deciding "what."<sup><a href="#ref-7" id="cite-7d">7</a></sup></p>
+              </div>
+            </details>
+
+            <details>
+              <summary>Where can I find an RRM-trained doctor?</summary>
+              <div class="faq-answer">
+                <p>The <a href="https://iirrm.org" rel="noopener">IIRRM provider directory</a> is the primary referral network for RRM-trained physicians. <a href="https://naturalwomanhood.org/find-a-doctor/" rel="noopener">Natural Womanhood</a> maintains a searchable directory. Each charting method has its own instructor network: <a href="https://www.fertilitycare.org" rel="noopener">FertilityCare Centers of America</a> for Creighton Model, the <a href="https://www.marquettemethod.com/instructors/" rel="noopener">Marquette Method Professionals Association</a> for Marquette, and <a href="https://femmhealth.org/teacher-directory/" rel="noopener">FEMM Health</a> for FEMM. Some RRM physicians offer telehealth consultations for patients without local access.<sup><a href="#ref-22" id="cite-22b">22</a></sup></p>
+              </div>
+            </details>
+
+            <details>
+              <summary>How much does RRM cost compared to IVF?</summary>
+              <div class="faq-answer">
+                <p>RRM is typically far less expensive than IVF. One study found that IVF costs are on average 20 times greater than medication-based fertility treatments. A single IVF cycle costs $15,000 to $30,000, and most couples need two to three cycles, bringing average total costs to $40,000 to $60,000 or more. Many RRM treatments are billable under standard insurance codes for diagnosed conditions because RRM treats specific medical conditions rather than bypassing them.<sup><a href="#ref-15" id="cite-15c">15</a></sup></p>
+              </div>
+            </details>
+
+            <details>
+              <summary>What fertility charting methods are used in RRM?</summary>
+              <div class="faq-answer">
+                <p>RRM physicians work with several validated fertility awareness-based methods (FABMs). The most commonly used include the Creighton Model FertilityCare System, the Marquette Method, FEMM (Fertility Education and Medical Management), the Billings Ovulation Method, and SymptoThermal methods. Each method tracks different biomarkers. The choice depends on the patient's needs and the physician's training. All provide cycle-based data that supports diagnosis.<sup><a href="#ref-5" id="cite-5f">5</a></sup></p>
+              </div>
+            </details>
+
+            <details>
+              <summary>Can RRM help with endometriosis?</summary>
+              <div class="faq-answer">
+                <p>Yes. RRM approaches endometriosis through thorough diagnostic evaluation (often including surgical assessment), excision surgery to remove endometriotic tissue, and targeted medical management to support healing and prevent recurrence. Excision is the gold standard for surgical treatment. RRM excision surgeons report repeat-surgery rates of just 2.5% over ten years, compared to up to 40% after ablation.<sup><a href="#ref-11" id="cite-11f">11</a></sup> RRM also addresses the pain, inflammation, and hormonal disruption that endometriosis causes.</p>
+              </div>
+            </details>
+
+            <details>
+              <summary>Is RRM safe?</summary>
+              <div class="faq-answer">
+                <p>RRM uses standard medical and surgical interventions that carry the same safety profile as any conventional treatment. Bloodwork, imaging, and hormonal support carry minimal risk. Surgical interventions like laparoscopic excision carry the standard risks of any minimally invasive surgery. RRM does not involve the high-dose ovarian stimulation or egg retrieval procedures associated with IVF, which carry their own set of complications. RRM treats the underlying condition, which often improves the patient's overall health.<sup><a href="#ref-19" id="cite-19b">19</a></sup></p>
+              </div>
+            </details>
+
+            <details>
+              <summary>Can teenagers benefit from RRM?</summary>
+              <div class="faq-answer">
+                <p>Yes. Painful periods, irregular cycles, and heavy bleeding in teenagers deserve investigation, not suppression. The American College of Obstetricians and Gynecologists recognizes the menstrual cycle as a vital sign in adolescents. RRM evaluation can identify conditions like endometriosis, PCOS, or hormonal imbalances early, when intervention is most effective. Learning a charting method also gives young women a tool for lifelong health monitoring.<sup><a href="#ref-14" id="cite-14b">14</a></sup></p>
+              </div>
+            </details>
+
+            <details>
+              <summary>Does my partner need to be involved?</summary>
+              <div class="faq-answer">
+                <p>If you are seeking help with infertility, yes. Male factor contributes to infertility in a significant percentage of couples, and evaluation of only one partner misses half the picture. Your partner will typically need a semen analysis and may need hormonal testing. For non-fertility conditions (endometriosis, PCOS, pelvic pain), partner involvement is not required but can be supportive.</p>
+              </div>
+            </details>
+
+            <details>
+              <summary>What should I bring to my first RRM appointment?</summary>
+              <div class="faq-answer">
+                <p>Bring your charted cycles (at minimum 1 to 3 months of data), complete medical history, any prior lab or imaging results, a list of medications, and a list of questions. If you have prior surgical records or pathology reports, bring those as well. If you have a partner and are addressing fertility concerns, have them attend. The more data you provide, the more your physician can assess during the first visit.</p>
+              </div>
+            </details>
+
+            <details>
+              <summary>What is the difference between RRM and fertility treatment?</summary>
+              <div class="faq-answer">
+                <p>Conventional fertility treatment often focuses on achieving pregnancy by any means, frequently through assisted reproductive technologies like IVF and IUI. RRM focuses on diagnosing and treating the condition that prevents pregnancy. When the underlying disease is resolved, conception can occur through normal intercourse. RRM also treats conditions unrelated to fertility. The two approaches address different questions: "How do we achieve pregnancy?" versus "Why isn't it happening, and what can we fix?"<sup><a href="#ref-6" id="cite-6d">6</a></sup></p>
+              </div>
+            </details>
+
+            <details>
+              <summary>Can RRM help with conditions other than infertility?</summary>
+              <div class="faq-answer">
+                <p>Yes. RRM treats endometriosis, PCOS, pelvic pain, irregular or painful periods, PMS, PMDD, hormonal imbalances, thyroid disorders, ovulatory dysfunction, perimenopause, and other reproductive health conditions. RRM is a whole-body, couple-centered approach that includes functional nutrition, comprehensive metabolic bloodwork, mental health support, and lifestyle optimization alongside hormonal and surgical interventions. Many patients seek RRM without any fertility goals. They want their symptoms investigated and their conditions treated rather than managed indefinitely with suppressive medications.<sup><a href="#ref-1" id="cite-1f">1</a></sup></p>
+              </div>
+            </details>
+
+            <details>
+              <summary>How do I become an RRM-trained provider?</summary>
+              <div class="faq-answer">
+                <p>Start with online education through <a href="/courses/">RRM Academy</a>. For formal credentialing, the <a href="https://iirrm.org" rel="noopener">IIRRM</a> offers international certification and hosts conferences with CME credit. The Pope Paul VI Institute provides fellowship training in NaProTechnology. <a href="https://www.factsaboutfertility.org" rel="noopener">FACTS</a> offers a medical elective for students and residents. Cycle-based evaluation can be integrated into any OBGYN, family medicine, or endocrinology practice.<sup><a href="#ref-21" id="cite-21c">21</a></sup></p>
+              </div>
+            </details>
+          </div>
+
+          <!-- References -->
+          <section class="references" id="references">
+            <h2>References</h2>
+            <ol>
+              <li id="ref-1">International Institute for Restorative Reproductive Medicine. "What Is Restorative Reproductive Medicine (RRM)?" IIRRM, December 20, 2024. <a href="https://iirrm.org/what-is-rrm/" rel="noopener">iirrm.org/what-is-rrm/</a></li>
+              <li id="ref-2">"NaProTechnology Provides Alternative to IVF for Couples Struggling with Infertility." OSV News, July 2025. Via Diocese of Scranton. <a href="https://www.dioceseofscranton.org/naprotechnology-provides-alternative-to-ivf-for-couples-struggling-with-infertility/" rel="noopener">dioceseofscranton.org</a></li>
+              <li id="ref-3">Stanford JB, Parnell TA, Boyle PC. "Outcomes from Treatment of Infertility with Natural Procreative Technology in an Irish General Practice." <em>The Journal of the American Board of Family Medicine</em> 21, no. 5 (2008): 375-384.</li>
+              <li id="ref-4">Tham E, Schliep K, Stanford J. "Natural Procreative Technology for Infertility and Recurrent Miscarriage: Outcomes in a Canadian Family Practice." <em>Canadian Family Physician</em> 58, no. 5 (2012): e267-e274.</li>
+              <li id="ref-5">Duane M, Stanford JB, Porucznik CA, Vigil P. "Fertility Awareness-Based Methods for Women's Health and Family Planning." <em>Frontiers in Medicine</em> 9 (2022): 858977.</li>
+              <li id="ref-6">Duane M, Brown T. "Restorative Reproductive Medicine for Infertility: A Safe, Effective, Affordable Alternative." FACTS About Fertility, February 27, 2025. <a href="https://www.factsaboutfertility.org/restorative-reproductive-medicine-for-infertility-a-safe-effective-affordable-alternative/" rel="noopener">factsaboutfertility.org</a></li>
+              <li id="ref-7">Shelton KW. "Technically Human: Dr. Naomi Whittaker on Restorative Reproductive Medicine, Femtech, and the Purpose of Medicine." <em>Technically Human</em> (Substack), February 24, 2026. <a href="https://katelynshelton.substack.com/p/technically-human-dr-naomi-whittaker" rel="noopener">katelynshelton.substack.com</a></li>
+              <li id="ref-8">Billings EL, Billings JJ, Catarinich M. <em>Billings Atlas of the Ovulation Method</em>. Melbourne: Ovulation Method Research and Reference Centre, 1989.</li>
+              <li id="ref-9">Hilgers TW. <em>The Medical and Surgical Practice of NaProTechnology</em>. Omaha: Pope Paul VI Institute Press, 2004.</li>
+              <li id="ref-10">Boyle PC, Stanford JB, Zecevic I. "Successful Pregnancy with Restorative Reproductive Medicine after 16 Years of Infertility, Three Recurrent Miscarriages, and Eight Unsuccessful Embryo Transfers with In Vitro Fertilization/Intracytoplasmic Sperm Injection: A Case Report." <em>Journal of Medical Case Reports</em> 16, no. 1 (2022): 246.</li>
+              <li id="ref-11">Yeung P Jr, Mohan A, Gavard JA. "The Long-Term Rate of Repeat Surgery After Optimal Excision Surgery of Endometriosis at a Single Tertiary Referral Center." <em>Acta Scientific Women's Health</em> 6, no. 12 (2024). <a href="https://actascientific.com/ASWH/pdf/ASWH-06-0643.pdf" rel="noopener">actascientific.com</a></li>
+              <li id="ref-12">Waters E, Dodson N. "Treating Infertility: The New Frontier of Reproductive Medicine." Heritage Foundation Special Report SR315, March 24, 2025. <a href="https://www.heritage.org/marriage-and-family/report/treating-infertility-the-new-frontier-reproductive-medicine" rel="noopener">heritage.org</a></li>
+              <li id="ref-13">Pugsley Z, Ballard K. "Management of Endometriosis in General Practice: The Pathway to Diagnosis." <em>British Journal of General Practice</em> 57, no. 539 (2007): 470-76.</li>
+              <li id="ref-14">American College of Obstetricians and Gynecologists. "Menstruation in Girls and Adolescents: Using the Menstrual Cycle as a Vital Sign." Committee Opinion No. 651, December 2015 (reaffirmed 2025).</li>
+              <li id="ref-15">Katz P, Showstack J, Smith JF, et al. "Costs of Infertility Treatment: Results from an 18-Month Prospective Cohort Study." <em>Fertility and Sterility</em> 95, no. 3 (2011): 915-921.</li>
+              <li id="ref-16">Human Fertilisation and Embryology Authority. "Fertility Treatment 2021: Trends and Figures." HFEA, 2023. <a href="https://www.hfea.gov.uk/about-us/publications/research-and-data/fertility-treatment-2021-preliminary-trends-and-figures/" rel="noopener">hfea.gov.uk</a></li>
+              <li id="ref-17">Boyle PC, de Groot T, Andralojc KM, Stanford JB. "Healthy Singleton Pregnancies from Restorative Reproductive Medicine (RRM) After Failed IVF." <em>Frontiers in Medicine</em> 5 (2018): 210.</li>
+              <li id="ref-18">James G, McLinden LA, Hatch J, Mol BW. "Pregnancy Outcomes from a Restorative Infertility Treatment Model." Preprint, medRxiv, 2021. DOI: 10.1101/2021.04.14.21251044.</li>
+              <li id="ref-19">Bewley S, Foo L, Braude P. "Adverse Outcomes from IVF." <em>BMJ</em> 342 (2011): d436.</li>
+              <li id="ref-20">RESTORE Act, H.R. 3589, 119th Congress (2025). Legislation to expand access to restorative reproductive medicine as an alternative fertility treatment approach.</li>
+              <li id="ref-21">Fertility Appreciation Collaborative to Teach the Science (FACTS). "About FACTS." <a href="https://www.factsaboutfertility.org/about/who-we-are/" rel="noopener">factsaboutfertility.org</a></li>
+              <li id="ref-22">Natural Womanhood. "Find a Doctor." <a href="https://naturalwomanhood.org/find-a-doctor/" rel="noopener">naturalwomanhood.org/find-a-doctor/</a></li>
+              <!-- ref-23 removed: Vesali et al. 2020 BJOG meta-analysis (non-RRM author, IVF-institutional context) -->
+              <li id="ref-24">Boyle P, Toth A, Minjeur M, Turczynski C. "Restorative Reproductive Medicine (RRM) Outcomes Compared to In-Vitro Fertilization (IVF) for the Treatment of Infertility: A Retrospective Evaluation of a 2019 Clinic Cohort Compared to One Cycle of IVF." <em>Journal of Restorative Reproductive Medicine</em> 1 (2025). DOI: 10.63264/gejytw70.</li>
+              <li id="ref-25">Sanchez-Mendez S, et al. "NaProTechnology Outcomes in 1,310 Couples: A Retrospective Cohort Study." <em>Frontiers in Reproductive Health</em> (2025). DOI: 10.3389/frph.2025.1696679.</li>
+              <li id="ref-26">Whittaker N. "RRM Explained: A Path to Understanding and True Healing." RRM Academy Commentary, June 1, 2025. <a href="/commentary/rrm-explained-a-path-to-understanding-and-true-healing/">rrmacademy.org</a></li>
+              <li id="ref-27">Schlegel PN, Sigman M, Collura B, et al. "Diagnosis and Treatment of Infertility in Men: AUA/ASRM Guideline Part I." <em>The Journal of Urology</em> 205, no. 1 (2021): 36-43. DOI: 10.1097/JU.0000000000001521.</li>
+              <li id="ref-28">Stanford JB, Carpentier PA, Meier BK, Anderson GK, O'Brien JE. "Pregnancy Outcomes in a Restorative Procreative Medicine Clinic." <em>BMC Pregnancy and Childbirth</em> 21, no. 1 (2021): 646. DOI: 10.1186/s12884-021-04071-8.</li>
+              <li id="ref-29">Gelbaya TA, Potdar N, Jeve YB, Nardo LG. "Definition and Epidemiology of Unexplained Infertility." <em>Obstetrics and Gynecology Survey</em> 69, no. 2 (2014): 109-115. PMID: 25112489.</li>
+              <li id="ref-30">Kushnir VA, Vidali A, Barad DH, Gleicher N. "The Status of Public Reporting of Clinical Outcomes in Assisted Reproductive Technology." <em>Fertility and Sterility</em> 100, no. 3 (2013): 736-741. PMID: 23755956.</li>
+            </ol>
+          </section>
+
+          <!-- CTA Box -->
+          <div class="cta-box">
+            <h3>Ready to learn more?</h3>
+            <p><a href="/courses/" class="btn btn--primary">Explore Free Courses</a></p>
+            <p><a href="https://library.rrmacademy.org" class="btn btn--secondary">Browse the Research Library</a></p>
+          </div>
+
+        </article>
+      </div>
     </div>
   </div>
   <p class="page-updated">Last updated: March 2026</p>
@@ -369,12 +1647,430 @@ const jsonLd = {
     margin-bottom: 0;
   }
 
-  .cite-needed {
-    background: rgba(180, 83, 9, 0.12);
-    color: var(--amber-700, #b45309);
-    border-radius: 2px;
-    padding: 0 3px;
-    font-style: normal;
-    font-size: 0.8em;
+  /* Study Charts (Boyle 2025) */
+  .study-charts {
+    margin: var(--space-8) 0;
+    padding: var(--space-6);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+  }
+
+  .study-charts h4 {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-2);
+  }
+
+  .chart-source {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-6);
+  }
+
+  .chart-figure {
+    margin: 0 0 var(--space-8) 0;
+  }
+
+  .chart-figure--last {
+    margin-bottom: 0;
+  }
+
+  .chart-heading {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--space-4);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .chart-note {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    margin-top: var(--space-3);
+    font-style: italic;
+  }
+
+  .chart-subtitle {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-4);
+  }
+
+  /* Table resets inside study-charts (override page table styles) */
+  .study-charts table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    margin: 0;
+  }
+
+  .study-charts th,
+  .study-charts td {
+    padding: 0;
+    border: none;
+    background: none;
+    font-weight: 400;
+    vertical-align: middle;
+    line-height: normal;
+  }
+
+  /* Horizontal Bar Chart (semantic table) */
+  .chart-bar tbody {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .chart-bar tr {
+    display: grid;
+    grid-template-columns: 180px 1fr 3.5em;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .chart-bar th {
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: var(--text-secondary);
+    text-align: right;
+  }
+
+  .chart-bar td:first-of-type {
+    height: 20px;
+    background: var(--bg-body);
+    border-radius: var(--radius-sm);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .chart-bar td:first-of-type::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: calc(var(--size) * 100%);
+    background: var(--neutral-300);
+    border-radius: var(--radius-sm);
+  }
+
+  .chart-bar--rrm td:first-of-type::before {
+    background: var(--accent);
+  }
+
+  .chart-bar td:last-of-type {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .chart-bar--rrm td:last-of-type {
+    color: var(--accent);
+  }
+
+  /* Diagnostic Precision Table */
+  .chart-dx {
+    border-collapse: collapse !important;
+  }
+
+  .chart-dx thead th {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-align: center;
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--border-color) !important;
+  }
+
+  .chart-dx thead th:first-child {
+    text-align: left;
+  }
+
+  .chart-dx tbody th {
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: var(--text-secondary);
+    text-align: left;
+    padding: var(--space-2) 0;
+  }
+
+  .chart-dx tbody td {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-align: center;
+    padding: var(--space-2) var(--space-2);
+  }
+
+  .chart-dx tbody tr {
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .chart-dx tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .chart-dx__before {
+    color: var(--text-tertiary);
+  }
+
+  .chart-dx__after {
+    color: var(--accent);
+    background: var(--purple-50);
+    border-radius: var(--radius-sm);
+  }
+
+  /* Column Chart (semantic table) */
+  .chart-column {
+    height: 200px;
+    padding-top: var(--space-6);
+    padding-bottom: var(--space-6);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: var(--space-2);
+  }
+
+  .chart-column tbody {
+    display: flex;
+    gap: var(--space-3);
+    height: 100%;
+    align-items: flex-end;
+  }
+
+  .chart-column tr {
+    flex: 1;
+    position: relative;
+    height: 100%;
+  }
+
+  .chart-column td {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: calc(var(--size) * 100%);
+    min-height: 20px;
+    background: var(--purple-100);
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  }
+
+  .chart-column--final td {
+    background: var(--purple-300);
+    border-top: 2px solid var(--accent);
+  }
+
+  .chart-column__val {
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+
+  .chart-column th {
+    position: absolute;
+    bottom: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.6875rem;
+    font-weight: 400;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+
+  /* Safety Comparison */
+  .safety-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+
+  .safety-metric-label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: var(--space-2);
+  }
+
+  .safety-compare {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+  }
+
+  .safety-val {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  .safety-val--rrm {
+    color: var(--accent);
+  }
+
+  .safety-val--ref {
+    color: var(--text-tertiary);
+  }
+
+  .safety-tag {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .safety-vs {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin: 0 var(--space-2);
+  }
+
+  /* Patient Funnel */
+  .funnel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .funnel-step {
+    width: var(--fw);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    background: var(--purple-50);
+    border-radius: var(--radius-sm);
+    min-width: 200px;
+  }
+
+  .funnel-step--final {
+    background: var(--purple-100);
+    border: 1px solid var(--accent);
+  }
+
+  .funnel-num {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .funnel-desc {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+  }
+
+  /* Stat Cards */
+  .stat-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-3);
+  }
+
+  .stat-card {
+    text-align: center;
+    padding: var(--space-4) var(--space-3);
+    background: var(--bg-body);
+    border-radius: var(--radius-sm);
+  }
+
+  .stat-card--accent {
+    background: var(--purple-50);
+    border: 1px solid var(--accent);
+  }
+
+  .stat-card__num {
+    display: block;
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .stat-card--accent .stat-card__num {
+    color: var(--accent);
+  }
+
+  .stat-card__label {
+    display: block;
+    font-size: 0.6875rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-top: var(--space-1);
+  }
+
+  /* Chart responsive */
+  @media (max-width: 640px) {
+    .study-charts {
+      padding: var(--space-4);
+    }
+
+    .chart-bar tr {
+      grid-template-columns: 1fr 3.5em;
+    }
+
+    .chart-bar th {
+      grid-column: 1 / -1;
+      text-align: left;
+      font-size: 0.75rem;
+    }
+
+    .chart-bar td:first-of-type {
+      grid-column: 1 / 2;
+    }
+
+    .chart-dx tbody th {
+      font-size: 0.75rem;
+    }
+
+    .safety-val {
+      font-size: 1.25rem;
+    }
+
+    .funnel-step {
+      min-width: 160px;
+    }
+
+    .stat-cards {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .stat-card__num {
+      font-size: 1.25rem;
+    }
+
+    .chart-column {
+      height: 160px;
+    }
+
+    .chart-column tbody {
+      gap: var(--space-2);
+    }
+
+    .chart-column__val {
+      font-size: 0.6875rem;
+    }
+  }
+
+  /* Override container width for article layout */
+  @media (min-width: 1024px) {
+    .container {
+      max-width: calc(var(--max-width-article) + 220px + var(--space-10) + var(--space-8) * 2);
+    }
   }
 </style>
