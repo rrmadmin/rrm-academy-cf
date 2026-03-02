@@ -104,7 +104,7 @@ Score calculation: (9×0.15 + 9×0.05 + 9×0.10 + 7×0.25 + 8×0.15 + 7×0.10 + 
 | C09 | FAQ Coverage | ✅ | Course pages have structured FAQ sections |
 | C10 | Semantic Closure | ✅ | All pages have conclusion CTAs |
 | O01 | Heading Hierarchy | ✅ | All H1s fixed to include target keyword |
-| O02 | Summary Box | ❌ | No TL;DR or key takeaway boxes on any page |
+| O02 | Summary Box | ✅ | TL;DR "Key Takeaways" box added to `/what-is-rrm/` pillar page |
 | O05 | Schema Markup | ✅ | Excellent coverage across all page types |
 | O06 | Section Chunking | ✅ | Sections are focused |
 | R01 | Data Precision | ✅ | Specific numbers consistent across pages |
@@ -116,13 +116,13 @@ Score calculation: (9×0.15 + 9×0.05 + 9×0.10 + 7×0.25 + 8×0.15 + 7×0.10 + 
 | Ept01 | Author Identity | ✅ | All instructor bios now accurate |
 | T04 | Disclosure Statements | ✅ | Medical disclaimer in footer |
 
-**CORE-EEAT Score: 15/16** (up from 11/16) — O02 (Summary Box) remains open
+**CORE-EEAT Score: 16/16** (up from 15/16) — O02 (Summary Box) resolved on `/what-is-rrm/`
 
 ---
 
 ## Open Items
 
-- Add TL;DR / key takeaway boxes (O02) — low priority, high effort
+- ~~Add TL;DR / key takeaway boxes (O02)~~ — done on `/what-is-rrm/` pillar page; other pages still open
 - Commentary content expansion (408 words is thin)
 - Contact H1 "Contact Us" → more specific (minor)
 - About H1 could include "Restorative Reproductive Medicine" suffix
