@@ -107,7 +107,7 @@ const jsonLd = {
               </button>
             </div>
             <p class="survey-form__note">
-              Your email is only used to deliver your survey link. We do not share it or add you to a mailing list.
+              We’ll send your survey link and occasional educational updates to support you. You can unsubscribe anytime. We never sell your information.
             </p>
           </form>
 
@@ -417,12 +417,11 @@ const jsonLd = {
       } else {
         errorText.textContent = data.error || 'Something went wrong. Please try again.';
         errorMsg.hidden = false;
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Get My Survey Link';
       }
-    } catch {
-      errorText.textContent = 'Connection error. Please try again.';
+    } catch (error) {
+      errorText.textContent = 'Network error. Please try again.';
       errorMsg.hidden = false;
+    } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Get My Survey Link';
     }
