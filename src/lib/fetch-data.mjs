@@ -3,15 +3,28 @@
  * Run: AIRTABLE_PAT=xxx node src/lib/fetch-data.mjs
  */
 
-import { writeFileSync, mkdirSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { API_URL, FIELDS } from './airtable-config.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_PATH = join(__dirname, '..', 'data', 'articles.json');
+const DRY_RUN = process.argv.includes('--dry-run');
 
 async function fetchAll() {
+  if (DRY_RUN) {
+    const fixturePath = join(__dirname, '..', '..', '.pipeline', 'snapshots', 'latest', 'articles.json');
+    const fallbackPath = join(__dirname, '..', 'data', 'articles.json');
+    const source = existsSync(fixturePath) ? fixturePath : fallbackPath;
+    const data = JSON.parse(readFileSync(source, 'utf-8'));
+    console.log(`DRY-RUN: Loaded ${data.length} records from ${source}`);
+    mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
+    writeFileSync(OUTPUT_PATH, JSON.stringify(data, null, 2));
+    console.log(`DRY-RUN: Wrote ${data.length} records to ${OUTPUT_PATH}`);
+    return;
+  }
+
   const pat = process.env.AIRTABLE_PAT;
   if (!pat) {
     console.error('Error: AIRTABLE_PAT environment variable required');
