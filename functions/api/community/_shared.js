@@ -68,7 +68,7 @@ export async function requireMember(request, env) {
   if (!session) return json({ ok: false, error: 'Not authenticated' }, 401);
 
   const user = await db.prepare(
-    'SELECT id, email, name, first_name, last_name, role, stripe_customer_id FROM user WHERE id = ?'
+    'SELECT id, email, name, first_name, last_name, role, stripe_customer_id, avatar_url FROM user WHERE id = ?'
   ).bind(session.userId).first();
   if (!user) return json({ ok: false, error: 'User not found' }, 401);
 

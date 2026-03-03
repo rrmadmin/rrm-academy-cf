@@ -30,7 +30,7 @@ export async function onRequestGet({ request, env }) {
 
     const rows = await db.prepare(`
       SELECT c.id, c.author_id, c.content, c.parent_id, c.created_at,
-             u.name as author_name, u.first_name, u.last_name, u.role as author_role
+             u.name as author_name, u.first_name, u.last_name, u.role as author_role, u.avatar_url as author_avatar
       FROM community_comment c
       JOIN user u ON u.id = c.author_id
       WHERE c.post_id = ?
@@ -78,6 +78,7 @@ export async function onRequestGet({ request, env }) {
         authorId: row.author_id,
         authorName: row.author_name || displayName(row),
         authorRole: row.author_role,
+        authorAvatar: row.author_avatar || null,
         content: row.content,
         parentId: row.parent_id,
         createdAt: row.created_at,

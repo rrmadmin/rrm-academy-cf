@@ -15,7 +15,7 @@
       "note": "Account creation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "d7755d17978d19557bb1b9015c4b0c6ee9cd88cf230d6e130714e351ef571707",
+      "hash": "5f331a835926032844f751cd73870e2087496a38e7e0673a73d590eebfc857da",
       "note": "Google OAuth"
     },
     "functions/api/stripe-webhook.js": {

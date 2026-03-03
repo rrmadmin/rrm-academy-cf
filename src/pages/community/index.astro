@@ -268,9 +268,17 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           composeTypeGroup.hidden = false;
         }
 
-        // Set avatar initial
-        var initial = (currentUser.name || 'M').charAt(0).toUpperCase();
-        composeAvatar.textContent = initial;
+        // Set compose avatar
+        if (currentUser.avatarUrl) {
+          var img = document.createElement('img');
+          img.src = currentUser.avatarUrl;
+          img.alt = currentUser.name || 'Member';
+          img.className = 'compose-trigger__avatar-img';
+          composeAvatar.textContent = '';
+          composeAvatar.appendChild(img);
+        } else {
+          composeAvatar.textContent = (currentUser.name || 'M').charAt(0).toUpperCase();
+        }
 
         // Compose trigger → expand form
         composeTrigger.addEventListener('click', function () {
@@ -518,9 +526,18 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         var layout = document.createElement('div');
         layout.className = 'post-card__layout';
 
-        var avatar = document.createElement('span');
-        avatar.className = 'post-avatar';
-        avatar.textContent = ((post.authorName || 'M').charAt(0)).toUpperCase();
+        var avatar;
+        if (post.authorAvatar) {
+          avatar = document.createElement('img');
+          avatar.className = 'post-avatar post-avatar--img';
+          avatar.src = post.authorAvatar;
+          avatar.alt = post.authorName || 'Member';
+          avatar.loading = 'lazy';
+        } else {
+          avatar = document.createElement('span');
+          avatar.className = 'post-avatar';
+          avatar.textContent = ((post.authorName || 'M').charAt(0)).toUpperCase();
+        }
         if (authorIsStaff) avatar.classList.add('post-avatar--staff');
         layout.appendChild(avatar);
 
@@ -920,7 +937,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         html += '<div class="comment__layout">';
 
         // Avatar
-        html += '<span class="comment-avatar' + (authorIsStaff ? ' comment-avatar--staff' : '') + '">' + escapeHtml(initial) + '</span>';
+        if (c.authorAvatar) {
+          html += '<img class="comment-avatar comment-avatar--img' + (authorIsStaff ? ' comment-avatar--staff' : '') + '" src="' + escapeHtml(c.authorAvatar) + '" alt="' + escapeHtml(c.authorName || 'Member') + '" loading="lazy" />';
+        } else {
+          html += '<span class="comment-avatar' + (authorIsStaff ? ' comment-avatar--staff' : '') + '">' + escapeHtml(initial) + '</span>';
+        }
 
         html += '<div class="comment__main">';
 
@@ -1532,6 +1553,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     font-weight: 700;
     font-size: 1rem;
     flex-shrink: 0;
+    overflow: hidden;
+  }
+  .compose-trigger__avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
   }
   .compose-trigger__text {
     color: var(--text-muted);
@@ -1690,6 +1718,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .post-avatar--staff {
     background: var(--purple-100);
     color: var(--purple-700);
+  }
+  img.post-avatar--img {
+    object-fit: cover;
+  }
+  img.post-avatar--img.post-avatar--staff {
+    border: 2px solid var(--purple-400);
+    background: none;
   }
 
   /* Main content column */
@@ -1939,6 +1974,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .comment-avatar--staff {
     background: var(--purple-100);
     color: var(--purple-700);
+  }
+  img.comment-avatar--img {
+    object-fit: cover;
+  }
+  img.comment-avatar--img.comment-avatar--staff {
+    border: 2px solid var(--purple-400);
+    background: none;
   }
   .comment__main {
     flex: 1;

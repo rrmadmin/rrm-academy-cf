@@ -56,6 +56,7 @@ export async function onRequestGet({ request, env }) {
     const name = profile.name || '';
     const firstName = profile.given_name || '';
     const lastName = profile.family_name || '';
+    const avatarUrl = profile.picture || null;
 
     let user;
 
@@ -69,9 +70,10 @@ export async function onRequestGet({ request, env }) {
         .bind(email).first();
 
       if (user) {
-        // Link Google ID to existing account
-        await db.prepare('UPDATE user SET google_id = ?, updated_at = datetime(\'now\') WHERE id = ?')
-          .bind(googleId, user.id).run();
+        // Link Google ID to existing account; set avatar if not already set
+        await db.prepare(
+          `UPDATE user SET google_id = ?, avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ?`
+        ).bind(googleId, avatarUrl, user.id).run();
       }
     }
 
@@ -79,9 +81,9 @@ export async function onRequestGet({ request, env }) {
       // 3. Brand new user — create account
       const id = generateId();
       await db.prepare(
-        `INSERT INTO user (id, email, email_verified, hashed_password, name, first_name, last_name, google_id, role)
-         VALUES (?, ?, 1, '', ?, ?, ?, ?, 'member')`
-      ).bind(id, email, name, firstName, lastName, googleId).run();
+        `INSERT INTO user (id, email, email_verified, hashed_password, name, first_name, last_name, google_id, role, avatar_url)
+         VALUES (?, ?, 1, '', ?, ?, ?, ?, 'member', ?)`
+      ).bind(id, email, name, firstName, lastName, googleId, avatarUrl).run();
 
       user = { id, email, blocked: 0 };
     }
