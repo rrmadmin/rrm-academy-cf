@@ -1,0 +1,251 @@
+---
+interface Props {
+  audioUrl: string;
+}
+
+const { audioUrl } = Astro.props;
+---
+<audio-player data-src={audioUrl}>
+  <button class="audio-btn" type="button" aria-label="Listen to this article">
+    <svg class="audio-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <polygon points="6,4 20,12 6,20" />
+    </svg>
+    <span class="audio-label">Listen to this article</span>
+  </button>
+</audio-player>
+
+<script>
+class AudioPlayerElement extends HTMLElement {
+  connectedCallback() {
+    this._btn = this.querySelector('.audio-btn');
+    this._expanded = false;
+    this._audio = null;
+    this._playing = false;
+    this._rate = 1;
+    this._btn.addEventListener('click', () => {
+      if (!this._expanded) {
+        this._expand();
+      } else {
+        this._toggle();
+      }
+    });
+  }
+
+  _expand() {
+    this._expanded = true;
+    this._audio = new Audio(this.dataset.src);
+    this._audio.preload = 'metadata';
+
+    // Build player UI
+    this.innerHTML = '';
+    const wrap = document.createElement('div');
+    wrap.className = 'audio-player';
+
+    // Top row: play/pause + progress + time
+    const row = document.createElement('div');
+    row.className = 'audio-row';
+
+    const playBtn = document.createElement('button');
+    playBtn.type = 'button';
+    playBtn.className = 'audio-play';
+    playBtn.setAttribute('aria-label', 'Play');
+    playBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>';
+    row.appendChild(playBtn);
+
+    const progress = document.createElement('input');
+    progress.type = 'range';
+    progress.className = 'audio-progress';
+    progress.min = '0';
+    progress.max = '100';
+    progress.value = '0';
+    progress.step = '0.1';
+    progress.setAttribute('aria-label', 'Seek');
+    row.appendChild(progress);
+
+    const time = document.createElement('span');
+    time.className = 'audio-time';
+    time.textContent = '0:00 / 0:00';
+    row.appendChild(time);
+
+    wrap.appendChild(row);
+
+    // Bottom row: speed
+    const speedBtn = document.createElement('button');
+    speedBtn.type = 'button';
+    speedBtn.className = 'audio-speed';
+    speedBtn.textContent = '1x';
+    speedBtn.setAttribute('aria-label', 'Playback speed');
+    wrap.appendChild(speedBtn);
+
+    this.appendChild(wrap);
+
+    // Wire events
+    const fmt = (s) => {
+      if (isNaN(s)) return '0:00';
+      const m = Math.floor(s / 60);
+      const sec = Math.floor(s % 60);
+      return m + ':' + (sec < 10 ? '0' : '') + sec;
+    };
+
+    this._audio.addEventListener('loadedmetadata', () => {
+      time.textContent = '0:00 / ' + fmt(this._audio.duration);
+    });
+
+    this._audio.addEventListener('timeupdate', () => {
+      const pct = (this._audio.currentTime / this._audio.duration) * 100;
+      progress.value = String(pct);
+      time.textContent = fmt(this._audio.currentTime) + ' / ' + fmt(this._audio.duration);
+    });
+
+    this._audio.addEventListener('ended', () => {
+      this._playing = false;
+      playBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>';
+      playBtn.setAttribute('aria-label', 'Play');
+    });
+
+    playBtn.addEventListener('click', () => this._toggle());
+
+    progress.addEventListener('input', () => {
+      if (this._audio.duration) {
+        this._audio.currentTime = (progress.value / 100) * this._audio.duration;
+      }
+    });
+
+    const speeds = [1, 1.5, 2];
+    speedBtn.addEventListener('click', () => {
+      const idx = (speeds.indexOf(this._rate) + 1) % speeds.length;
+      this._rate = speeds[idx];
+      this._audio.playbackRate = this._rate;
+      speedBtn.textContent = this._rate + 'x';
+    });
+
+    this._playBtn = playBtn;
+    this._audio.play();
+    this._playing = true;
+    playBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+    playBtn.setAttribute('aria-label', 'Pause');
+  }
+
+  _toggle() {
+    if (!this._audio) return;
+    if (this._playing) {
+      this._audio.pause();
+      this._playing = false;
+      this._playBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>';
+      this._playBtn.setAttribute('aria-label', 'Play');
+    } else {
+      this._audio.play();
+      this._playing = true;
+      this._playBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+      this._playBtn.setAttribute('aria-label', 'Pause');
+    }
+  }
+}
+
+customElements.define('audio-player', AudioPlayerElement);
+</script>
+
+<style>
+  audio-player {
+    display: block;
+    margin-top: var(--space-3);
+    margin-bottom: var(--space-2);
+  }
+
+  .audio-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--accent);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .audio-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent-hover);
+  }
+
+  .audio-icon {
+    flex-shrink: 0;
+  }
+
+  .audio-player {
+    padding: var(--space-3);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--purple-50);
+  }
+
+  .audio-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .audio-play {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .audio-play:hover {
+    background: var(--accent-hover);
+  }
+
+  .audio-progress {
+    flex: 1;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--purple-200);
+    border-radius: 2px;
+    cursor: pointer;
+  }
+  .audio-progress::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+  }
+
+  .audio-time {
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-secondary);
+    min-width: 5.5em;
+    text-align: right;
+  }
+
+  .audio-speed {
+    margin-top: var(--space-2);
+    padding: 2px var(--space-2);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: transparent;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .audio-speed:hover {
+    border-color: var(--accent);
+  }
+</style>
