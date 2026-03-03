@@ -25,12 +25,12 @@ export async function onRequestGet({ request, env }) {
     const auth = await requireMember(request, env);
     if (auth instanceof Response) {
       // Has session but no subscription
-      const user = await db.prepare('SELECT name, first_name, last_name, role FROM user WHERE id = ?')
+      const user = await db.prepare('SELECT name, first_name, last_name, role, avatar_url FROM user WHERE id = ?')
         .bind(session.userId).first();
       return json({
         ok: true,
         access: 'registered',
-        user: { name: displayName(user || {}), role: user?.role || 'member' },
+        user: { name: displayName(user || {}), role: user?.role || 'member', avatarUrl: user?.avatar_url || null },
       });
     }
 
@@ -42,6 +42,7 @@ export async function onRequestGet({ request, env }) {
         name: displayName(auth.user),
         role: auth.user.role,
         tier: auth.tier,
+        avatarUrl: auth.user.avatar_url || null,
       },
     });
   } catch (err) {

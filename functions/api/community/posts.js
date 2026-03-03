@@ -58,7 +58,7 @@ export async function onRequestGet({ request, env }) {
         params.push(before);
       }
       sql = `
-        SELECT p.*, u.name as author_name, u.first_name, u.last_name, u.role as author_role,
+        SELECT p.*, u.name as author_name, u.first_name, u.last_name, u.role as author_role, u.avatar_url as author_avatar,
           (SELECT COUNT(*) FROM community_comment WHERE post_id = p.id) as comment_count
         FROM community_post p
         JOIN user u ON u.id = p.author_id
@@ -85,7 +85,7 @@ export async function onRequestGet({ request, env }) {
       }
 
       sql = `
-        SELECT p.*, u.name as author_name, u.first_name, u.last_name, u.role as author_role,
+        SELECT p.*, u.name as author_name, u.first_name, u.last_name, u.role as author_role, u.avatar_url as author_avatar,
           (SELECT COUNT(*) FROM community_comment WHERE post_id = p.id) as comment_count
         FROM community_post p
         JOIN user u ON u.id = p.author_id
@@ -144,6 +144,7 @@ export async function onRequestGet({ request, env }) {
       authorId: r.author_id,
       authorName: r.author_name || displayName(r),
       authorRole: r.author_role,
+      authorAvatar: r.author_avatar || null,
       commentCount: r.comment_count,
       reactions: reactionMap[r.id] || {},
       myReactions: userReactions[r.id] || [],
