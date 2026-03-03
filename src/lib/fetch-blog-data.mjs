@@ -77,6 +77,7 @@ async function fetchAll() {
         publishDate: f['Actual Publish Date'] || '',
         wordCount: f['Word Count'] ? Number(f['Word Count']) : 0,
         seoKeywords: f['SEO Keywords'] || '',
+        audioUrl: f['Audio URL'] || '',
       });
     }
 
