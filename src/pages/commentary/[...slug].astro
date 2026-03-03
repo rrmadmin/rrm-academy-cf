@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import AuthorByline from '../../components/AuthorByline.astro';
+import AudioPlayer from '../../components/AudioPlayer.astro';
 import BlogCard from '../../components/BlogCard.astro';
 import { fetchAllPosts, getRelatedPosts, type BlogPost } from '../../lib/blog';
 import { Marked } from 'marked';
@@ -218,6 +219,7 @@ const canonicalUrl = `https://rrmacademy.org/commentary/${post.slug}/`;
 
       <!-- Byline -->
       <AuthorByline author={post.author} date={post.publishDate} />
+      {post.audioUrl && <AudioPlayer audioUrl={post.audioUrl} />}
     </div>
 
     <!-- Content -->
