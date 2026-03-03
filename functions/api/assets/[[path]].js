@@ -11,6 +11,7 @@ const CONTENT_TYPES = {
   webp: 'image/webp',
   gif: 'image/gif',
   svg: 'image/svg+xml',
+  mp3: 'audio/mpeg',
 };
 
 export async function onRequestGet({ params, env }) {
