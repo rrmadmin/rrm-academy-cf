@@ -21,7 +21,7 @@
  *   - Assignments (quiz content lives in quizzes.json)
  */
 
-import { writeFileSync, mkdirSync, unlinkSync, mkdtempSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, unlinkSync, mkdtempSync, existsSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { execFileSync } from 'child_process';
@@ -29,6 +29,7 @@ import { tmpdir } from 'os';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_PATH = join(__dirname, '..', 'data', 'courses.json');
+const DRY_RUN = process.argv.includes('--dry-run');
 
 const R2_BUCKET = 'rrm-assets';
 const R2_PUBLIC_URL = 'https://pub-4af88159ce884265baba8fb4f3470625.r2.dev';
@@ -409,6 +410,18 @@ async function syncAttachmentsToR2(courses) {
 // --- Main ---
 
 async function fetchAll() {
+  if (DRY_RUN) {
+    const fixturePath = join(__dirname, '..', '..', '.pipeline', 'snapshots', 'latest', 'courses.json');
+    const fallbackPath = join(__dirname, '..', 'data', 'courses.json');
+    const source = existsSync(fixturePath) ? fixturePath : fallbackPath;
+    const data = JSON.parse(readFileSync(source, 'utf-8'));
+    console.log(`DRY-RUN: Loaded ${data.length} records from ${source}`);
+    mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
+    writeFileSync(OUTPUT_PATH, JSON.stringify(data, null, 2));
+    console.log(`DRY-RUN: Wrote ${data.length} records to ${OUTPUT_PATH}`);
+    return;
+  }
+
   const pat = process.env.AIRTABLE_PAT;
   if (!pat) {
     console.error('Error: AIRTABLE_PAT environment variable required');

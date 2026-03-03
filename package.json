@@ -16,7 +16,12 @@
     "guard": "node scripts/guard.mjs",
     "guard:update": "node scripts/guard.mjs --update",
     "guard:install": "cp hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit",
-    "embed": "npx wrangler dev scripts/embed-library.mjs --port 8688 --compatibility-date 2025-01-01"
+    "embed": "npx wrangler dev scripts/embed-library.mjs --port 8688 --compatibility-date 2025-01-01",
+    "pipeline:snapshot": "node scripts/pipeline.mjs snapshot",
+    "pipeline:dry-run": "node scripts/pipeline.mjs dry-run",
+    "pipeline:report": "node scripts/pipeline.mjs report",
+    "pipeline:validate": "node scripts/pipeline.mjs validate",
+    "fetch-all:dry": "node src/lib/fetch-data.mjs --dry-run && node src/lib/fetch-blog-data.mjs --dry-run && node src/lib/fetch-faq-data.mjs --dry-run && node src/lib/fetch-courses-data.mjs --dry-run"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.3.0",
