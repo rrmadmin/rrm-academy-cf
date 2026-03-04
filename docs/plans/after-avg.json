@@ -1,0 +1,39 @@
+{
+  "runs": [
+    {
+      "run": 1,
+      "performance_score": 87,
+      "lcp": "4.0\u00a0s",
+      "fcp": "1.6\u00a0s",
+      "tbt": "0\u00a0ms",
+      "cls": "0",
+      "cls_numeric": 0,
+      "si": "2.7\u00a0s"
+    },
+    {
+      "run": 2,
+      "performance_score": 85,
+      "lcp": "4.0\u00a0s",
+      "fcp": "2.1\u00a0s",
+      "tbt": "0\u00a0ms",
+      "cls": "0",
+      "cls_numeric": 0,
+      "si": "2.9\u00a0s"
+    },
+    {
+      "run": 3,
+      "performance_score": 85,
+      "lcp": "4.0\u00a0s",
+      "fcp": "2.1\u00a0s",
+      "tbt": "0\u00a0ms",
+      "cls": "0",
+      "cls_numeric": 0,
+      "si": "3.0\u00a0s"
+    }
+  ],
+  "averages": {
+    "performance_score": 86,
+    "cls_numeric_avg": 0.0,
+    "note": "Averages for score and CLS numeric only; other metrics are display strings from individual runs"
+  }
+}
