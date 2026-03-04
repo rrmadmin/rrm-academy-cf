@@ -1080,7 +1080,7 @@ tr:nth-child(even) td {
   width: 100%;
   padding: 10px 18px;
   font-family: 'Inter', sans-serif;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   color: var(--text-primary);
   background: var(--bg-surface);
   border: 1.5px solid var(--neutral-300);
