@@ -376,9 +376,27 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 </BaseLayout>
 
 <style>
+  /* Admin palette — sage/cream/sand (distinct from purple public site) */
+  :root {
+    --admin-sage-700: #7e8772;
+    --admin-sage-500: #9aa18f;
+    --admin-sage-300: #bec3b8;
+    --admin-sage-100: #e8ebe5;
+    --admin-cream: #eee5dd;
+    --admin-sand: #dbcbbb;
+    --admin-bg: #faf8f5;
+    --admin-surface: #ffffff;
+    --admin-border: #d9d3cc;
+    --admin-text: #313131;
+    --admin-text-muted: #636261;
+    --admin-text-faint: #949392;
+  }
+
   /* Layout */
   .bl-section {
     padding: var(--space-8) 0;
+    background: var(--admin-bg);
+    min-height: 80vh;
   }
 
   /* Login */
@@ -386,16 +404,35 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     max-width: 400px;
     margin: var(--space-16) auto;
     text-align: center;
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-8) var(--space-6);
   }
   .bl-login-wrap h1 {
     margin-bottom: var(--space-6);
+    color: var(--admin-sage-700);
   }
   .bl-login-wrap .form-group {
     margin-bottom: var(--space-4);
     text-align: left;
   }
+  .bl-login-wrap .form-input {
+    border-color: var(--admin-border);
+  }
+  .bl-login-wrap .form-input:focus {
+    border-color: var(--admin-sage-700);
+    box-shadow: 0 0 0 2px rgba(126, 135, 114, 0.15);
+    outline: none;
+  }
   .bl-login-wrap .btn {
     width: 100%;
+    background: var(--admin-sage-700);
+    border-color: var(--admin-sage-700);
+    color: #fff;
+  }
+  .bl-login-wrap .btn:hover {
+    background: #6b755f;
   }
   .bl-error {
     color: var(--color-error);
@@ -412,18 +449,20 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   }
   .bl-header h1 {
     margin-bottom: 0;
+    color: var(--admin-text);
   }
   .bl-btn-logout {
     background: none;
-    border: 1px solid var(--border-color);
-    color: var(--text-secondary);
+    border: 1px solid var(--admin-border);
+    color: var(--admin-text-muted);
     padding: var(--space-2) var(--space-4);
     border-radius: var(--radius-md);
     cursor: pointer;
     font-size: 0.875rem;
   }
   .bl-btn-logout:hover {
-    border-color: var(--text-secondary);
+    border-color: var(--admin-sage-700);
+    color: var(--admin-sage-700);
   }
 
   /* Metrics grid */
@@ -439,8 +478,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     }
   }
   .bl-card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
     border-radius: var(--radius-md);
     padding: var(--space-4) var(--space-5);
     text-align: center;
@@ -451,14 +490,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--text-tertiary);
+    color: var(--admin-text-faint);
     margin-bottom: var(--space-1);
   }
   .bl-card__value {
     display: block;
     font-size: 1.75rem;
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--admin-text);
     font-family: 'Inter', sans-serif;
   }
   .bl-card__value--live {
@@ -477,14 +516,28 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   }
   .bl-select {
     max-width: 220px;
+    border-color: var(--admin-border);
+  }
+  .bl-select:focus {
+    border-color: var(--admin-sage-700);
+    box-shadow: 0 0 0 2px rgba(126, 135, 114, 0.15);
+    outline: none;
+  }
+  .bl-filters .btn--primary {
+    background: var(--admin-sage-700);
+    border-color: var(--admin-sage-700);
+    color: #fff;
+  }
+  .bl-filters .btn--primary:hover {
+    background: #6b755f;
   }
 
   /* Table wrapper */
   .bl-table-wrap {
     overflow-x: auto;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--admin-border);
     border-radius: var(--radius-md);
-    background: var(--bg-surface);
+    background: var(--admin-surface);
   }
   .bl-table {
     width: 100%;
@@ -496,21 +549,21 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .bl-table td {
     padding: var(--space-3) var(--space-4);
     text-align: left;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--admin-border);
   }
   .bl-table th {
-    background: var(--bg-body);
+    background: var(--admin-cream);
     font-weight: 600;
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: var(--text-tertiary);
+    color: var(--admin-text-muted);
   }
   .bl-table tbody tr:last-child td {
     border-bottom: none;
   }
   .bl-table tbody tr:hover {
-    background: var(--bg-body);
+    background: var(--admin-sage-100);
   }
   .bl-col-url {
     max-width: 300px;
@@ -518,15 +571,17 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     text-overflow: ellipsis;
   }
   .bl-col-url a {
-    color: var(--accent);
+    color: var(--admin-sage-700);
     text-decoration: none;
+    font-weight: 500;
   }
   .bl-col-url a:hover {
     text-decoration: underline;
+    color: #6b755f;
   }
   .bl-empty {
     text-align: center;
-    color: var(--text-tertiary);
+    color: var(--admin-text-faint);
     padding: var(--space-8) var(--space-4);
   }
 
@@ -549,20 +604,20 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     color: var(--color-error);
   }
   .bl-badge--nofollow_changed {
-    background: var(--amber-100);
-    color: var(--amber-700);
+    background: #fff3e0;
+    color: #e65100;
   }
   .bl-badge--unchecked,
   .bl-badge--timeout {
-    background: var(--neutral-100);
-    color: var(--neutral-600);
+    background: var(--admin-sage-100);
+    color: var(--admin-text-muted);
   }
 
   /* Check button */
   .bl-btn-check {
     background: none;
-    border: 1px solid var(--border-color);
-    color: var(--accent);
+    border: 1px solid var(--admin-border);
+    color: var(--admin-sage-700);
     padding: var(--space-1) var(--space-3);
     border-radius: var(--radius-sm);
     cursor: pointer;
@@ -570,7 +625,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     font-weight: 500;
   }
   .bl-btn-check:hover {
-    border-color: var(--accent);
+    border-color: var(--admin-sage-700);
+    background: var(--admin-sage-100);
   }
   .bl-btn-check:disabled {
     opacity: 0.5;
