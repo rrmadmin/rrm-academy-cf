@@ -65,11 +65,11 @@ const jsonLd = {
 
 <style>
   .commentary-hero {
-    padding: var(--space-16) 0 var(--space-12);
+    padding: var(--space-8) 0 var(--space-6);
     text-align: center;
   }
   .commentary-hero h1 {
-    font-size: 2.5rem;
+    font-size: clamp(2rem, 1.25rem + 2.5vw, 3.25rem);
     line-height: 1.1;
     letter-spacing: -0.02em;
     margin-bottom: var(--space-4);
@@ -84,7 +84,7 @@ const jsonLd = {
 
   @media (min-width: 769px) {
     .commentary-hero h1 {
-      font-size: 3.5rem;
+      /* fluid via clamp — no override needed */
     }
     .commentary-hero__subtitle {
       font-size: 1.125rem;

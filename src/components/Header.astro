@@ -232,14 +232,26 @@ const mobileNavSections = [
   }
 
   /* Nav */
-  .main-nav { flex: 1; }
-  /* Hide nav on library pages */
-  :global(.page-library) .main-nav { display: none; }
+  .main-nav {
+    flex: 1;
+    overflow: hidden;
+    transition: flex 1.1s cubic-bezier(0.4, 0, 0.2, 1);
+  }
   .nav-list {
     display: flex;
     list-style: none;
     gap: 0;
     align-items: center;
+    white-space: nowrap;
+    transform: translateX(0);
+    transition: transform 1.1s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  /* Collapsed state — toggled by JS */
+  :global(.nav-collapsed) .main-nav {
+    flex: 0 0 0px;
+  }
+  :global(.nav-collapsed) .nav-list {
+    transform: translateX(-100%);
   }
   .nav-item {
     position: relative;
@@ -793,5 +805,47 @@ const mobileNavSections = [
             }).catch(function() {});
         }
       }).catch(function() {});
+  })();
+
+  // Library nav: slide links left on load, reveal on logo hover with delay
+  (function() {
+    if (!document.body.classList.contains('page-library')) return;
+    var header = document.querySelector('.site-header');
+    var logo = document.querySelector('.logo');
+    var nav = document.querySelector('.main-nav');
+    var collapseTimer = null;
+    var COLLAPSE_DELAY = 600; // ms before collapsing after cursor leaves
+
+    // Let user see the nav briefly before sliding it away
+    setTimeout(function() {
+      header.classList.add('nav-collapsed');
+    }, 800);
+
+    function cancelCollapse() {
+      if (collapseTimer) { clearTimeout(collapseTimer); collapseTimer = null; }
+    }
+    function scheduleCollapse() {
+      cancelCollapse();
+      collapseTimer = setTimeout(function() {
+        header.classList.add('nav-collapsed');
+      }, COLLAPSE_DELAY);
+    }
+
+    // Hover logo to reveal
+    logo.addEventListener('mouseenter', function() {
+      cancelCollapse();
+      header.classList.remove('nav-collapsed');
+    });
+    logo.addEventListener('mouseleave', function() {
+      scheduleCollapse();
+    });
+
+    // Keep open while hovering nav links
+    nav.addEventListener('mouseenter', function() {
+      cancelCollapse();
+    });
+    nav.addEventListener('mouseleave', function() {
+      scheduleCollapse();
+    });
   })();
 </script>
