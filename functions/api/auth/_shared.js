@@ -225,6 +225,17 @@ export function isValidPassword(password) {
   return typeof password === 'string' && password.length >= 8 && password.length <= 128;
 }
 
+// --- Redirect validation ---
+
+export function isSafeRedirect(path) {
+  try {
+    const url = new URL(path, SITE_URL);
+    return url.origin === SITE_URL;
+  } catch {
+    return false;
+  }
+}
+
 // --- Google OAuth helpers ---
 
 export function googleAuthUrl(clientId, redirectUri) {

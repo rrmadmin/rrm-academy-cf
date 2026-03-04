@@ -204,6 +204,7 @@ export async function onRequestDelete({ request, env }) {
 
     await db.batch([
       db.prepare("DELETE FROM community_reaction WHERE target_type = 'comment' AND target_id = ?").bind(commentId),
+      db.prepare("DELETE FROM community_reaction WHERE target_type = 'comment' AND target_id IN (SELECT id FROM community_comment WHERE parent_id = ?)").bind(commentId),
       db.prepare('DELETE FROM community_comment WHERE parent_id = ?').bind(commentId),
       db.prepare('DELETE FROM community_comment WHERE id = ?').bind(commentId),
     ]);
