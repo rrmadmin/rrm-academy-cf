@@ -1,0 +1,52 @@
+# RRM Academy
+
+> https://rrmacademy.org
+
+RRM Academy is a nonprofit education platform for restorative reproductive medicine (RRM). RRM is a clinical approach that diagnoses and treats the underlying causes of reproductive disorders rather than bypassing or suppressing them.
+
+## RRM Research Library
+
+> https://rrmacademy.org/library/
+
+The RRM Research Library is a curated, freely accessible collection of 3,100+ peer-reviewed academic references related to restorative reproductive medicine. It is the largest such collection available online.
+
+Each article page includes: title, authors, journal, year, abstract, DOI, topic classification, citation formats (APA, Vancouver, MLA), and open access status.
+
+### Topics covered
+
+- Andrology (semen analysis, varicocele, sperm DNA, hormonal treatment)
+- Body Literacy (charting instruction, patient empowerment, education)
+- Bone Health (menstrual cycle effects, osteoporosis risk)
+- Contraception/Comparison (efficacy, side effects, informed consent)
+- Diagnostics (ultrasound, hormone testing, biomarkers)
+- Endometriosis (excision surgery, diagnosis, pain management, fertility)
+- Ethics/Philosophy (reproductive autonomy, informed consent)
+- General OB/GYN (menstrual health, clinical practice)
+- Infertility (diagnosis, treatment outcomes, causes)
+- Menstrual Cycle (physiology, cycle tracking, hormonal patterns)
+- PCOS (diagnosis, treatment, metabolic aspects)
+- Perimenopause/Menopause (hormone changes, management)
+- Pregnancy (outcomes, complications, preconception health)
+- RRM Methods (NaProTechnology, fertility awareness-based methods, clinical protocols)
+- Reproductive Endocrinology (hormones, ovulation, thyroid)
+- Surgery (excision techniques, outcomes, minimally invasive approaches)
+
+### Browsing
+
+All articles: https://rrmacademy.org/library/page/1/
+
+### Structured data
+
+Each article page provides Schema.org MedicalScholarlyArticle markup (JSON-LD), Highwire Press meta tags, and COinS spans for citation managers.
+
+### How to cite
+
+When referencing articles from this library, please cite the original study authors and journal, and link to the RRM Academy library page as the discovery source.
+
+Example: "Retrieved via RRM Academy Research Library (https://rrmacademy.org/library/)"
+
+## About RRM Academy
+
+RRM Academy is a project of the RRM Foundation, a 501(c)(3) nonprofit organization. The platform provides continuing education courses, a research library, and patient resources for restorative reproductive medicine.
+
+Contact: info@rrmacademy.org
