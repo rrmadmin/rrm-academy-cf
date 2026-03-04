@@ -1,7 +1,8 @@
 /**
  * POST /api/contact/submit
- * Validates Turnstile token, rate-limits by IP, sends email via Resend.
+ * Validates Turnstile token, rate-limits by IP, sends email via SES.
  */
+import { sendEmail } from '../_ses.js';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': 'https://rrmacademy.org',
@@ -23,7 +24,7 @@ export async function onRequestOptions() {
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  if (!env.RESEND_API_KEY) {
+  if (!env.AWS_ACCESS_KEY_ID) {
     return json({ ok: false, error: 'Server misconfigured' }, 500);
   }
 
@@ -82,71 +83,46 @@ export async function onRequestPost(context) {
     console.warn('CF_TURNSTILE_SECRET not set — Turnstile verification disabled');
   }
 
-  // Send notification email via Resend
-  let emailResp;
+  // Send notification email via SES
   try {
-    emailResp = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${env.RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: `${name} via RRM Academy <contact@rrmacademy.org>`,
-        to: ['administrator@rrmacademy.org'],
-        reply_to: email,
-        subject: `[Contact] ${name} (${email})`,
-        text: [
-          `Name: ${name}`,
-          `Email: ${email}`,
-          '',
-          message,
-          '',
-          '---',
-          `Sent from rrmacademy.org/contact at ${new Date().toISOString()}`,
-        ].join('\n'),
-      }),
+    await sendEmail(env, {
+      from: 'RRM Academy <contact@rrmacademy.org>',
+      to: 'administrator@rrmacademy.org',
+      replyTo: email,
+      subject: `[Contact] ${name} (${email})`,
+      text: [
+        `Name: ${name}`,
+        `Email: ${email}`,
+        '',
+        message,
+        '',
+        '---',
+        `Sent from rrmacademy.org/contact at ${new Date().toISOString()}`,
+      ].join('\n'),
     });
   } catch (err) {
-    console.error('Resend fetch failed:', err.message);
-    return json({ ok: false, error: 'Failed to send message. Please try again.' }, 502);
-  }
-
-  if (!emailResp.ok) {
-    const errText = await emailResp.text();
-    console.error('Resend error:', errText);
+    console.error('SES send failed:', err.message);
     return json({ ok: false, error: 'Failed to send message. Please try again.' }, 502);
   }
 
   // Send confirmation to the sender
   try {
-    const confirmResp = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${env.RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'RRM Academy <contact@rrmacademy.org>',
-        to: [email],
-        subject: 'We received your message — RRM Academy',
-        text: [
-          `Hi ${name},`,
-          '',
-          'Thank you for reaching out to RRM Academy. We received your message and will get back to you as soon as possible.',
-          '',
-          'Best regards,',
-          'RRM Academy',
-          'https://rrmacademy.org',
-        ].join('\n'),
-      }),
+    await sendEmail(env, {
+      from: 'RRM Academy <contact@rrmacademy.org>',
+      to: email,
+      subject: 'We received your message — RRM Academy',
+      text: [
+        `Hi ${name},`,
+        '',
+        'Thank you for reaching out to RRM Academy. We received your message and will get back to you as soon as possible.',
+        '',
+        'Best regards,',
+        'RRM Academy',
+        'https://rrmacademy.org',
+      ].join('\n'),
     });
-
-    if (!confirmResp.ok) {
-      console.error('Confirmation email failed:', await confirmResp.text());
-    }
   } catch (err) {
-    console.error('Confirmation email fetch failed:', err.message);
+    console.error('Confirmation email send failed:', err.message);
   }
 
   return json({ ok: true });

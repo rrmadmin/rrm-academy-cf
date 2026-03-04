@@ -7,6 +7,7 @@ import {
   json, optionsResponse, generateId, generateToken, hashToken,
   verifyTurnstile, checkRateLimit, isValidEmail,
 } from './_shared.js';
+import { sendEmail } from '../_ses.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -38,7 +39,7 @@ export async function onRequestPost({ request, env }) {
     // Look up user (but always return success to prevent enumeration)
     const user = await db.prepare('SELECT id, name FROM user WHERE email = ?').bind(email).first();
 
-    if (user && env.RESEND_API_KEY) {
+    if (user && env.AWS_ACCESS_KEY_ID) {
       // Delete any existing reset tokens for this user
       await db.prepare('DELETE FROM password_reset WHERE user_id = ?').bind(user.id).run();
 
@@ -55,35 +56,24 @@ export async function onRequestPost({ request, env }) {
       const resetUrl = `https://rrmacademy.org/reset-password?token=${token}`;
 
       try {
-        const res = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${env.RESEND_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            from: 'RRM Academy <accounts@rrmacademy.org>',
-            to: [email],
-            subject: 'Reset your password — RRM Academy',
-            text: [
-              `Hi ${user.name || 'there'},`,
-              '',
-              'We received a request to reset your RRM Academy password. Click the link below to set a new password:',
-              '',
-              resetUrl,
-              '',
-              'This link expires in 1 hour. If you did not request a password reset, you can safely ignore this email.',
-              '',
-              'Best regards,',
-              'RRM Academy',
-              'https://rrmacademy.org',
-            ].join('\n'),
-          }),
+        await sendEmail(env, {
+          from: 'RRM Academy <accounts@rrmacademy.org>',
+          to: email,
+          subject: 'Reset your password — RRM Academy',
+          text: [
+            `Hi ${user.name || 'there'},`,
+            '',
+            'We received a request to reset your RRM Academy password. Click the link below to set a new password:',
+            '',
+            resetUrl,
+            '',
+            'This link expires in 1 hour. If you did not request a password reset, you can safely ignore this email.',
+            '',
+            'Best regards,',
+            'RRM Academy',
+            'https://rrmacademy.org',
+          ].join('\n'),
         });
-        if (!res.ok) {
-          const body = await res.text().catch(() => '');
-          console.error(`Resend API error ${res.status}: ${body}`);
-        }
       } catch (emailErr) {
         console.error('Password reset email send failed:', emailErr);
       }

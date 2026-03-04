@@ -7,6 +7,7 @@ import {
   hashPassword, hashToken, sessionCookie, verifyTurnstile, checkRateLimit,
   isValidEmail, isValidPassword, CORS_HEADERS,
 } from './_shared.js';
+import { sendEmail } from '../_ses.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -80,35 +81,28 @@ export async function onRequestPost({ request, env }) {
       throw batchErr;
     }
 
-    // Send verification email (fire-and-forget — don't block on Resend response)
-    if (env.RESEND_API_KEY) {
+    // Send verification email (fire-and-forget — don't block on SES response)
+    if (env.AWS_ACCESS_KEY_ID) {
       try {
-        await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${env.RESEND_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            from: 'RRM Academy <accounts@rrmacademy.org>',
-            to: [email],
-            subject: 'Verify your email — RRM Academy',
-            text: [
-              `Hi ${firstName},`,
-              '',
-              'Welcome to RRM Academy! Please verify your email by entering this code:',
-              '',
-              `    ${code}`,
-              '',
-              'This code expires in 1 hour.',
-              '',
-              'If you did not create an account, you can safely ignore this email.',
-              '',
-              'Best regards,',
-              'RRM Academy',
-              'https://rrmacademy.org',
-            ].join('\n'),
-          }),
+        await sendEmail(env, {
+          from: 'RRM Academy <accounts@rrmacademy.org>',
+          to: email,
+          subject: 'Verify your email — RRM Academy',
+          text: [
+            `Hi ${firstName},`,
+            '',
+            'Welcome to RRM Academy! Please verify your email by entering this code:',
+            '',
+            `    ${code}`,
+            '',
+            'This code expires in 1 hour.',
+            '',
+            'If you did not create an account, you can safely ignore this email.',
+            '',
+            'Best regards,',
+            'RRM Academy',
+            'https://rrmacademy.org',
+          ].join('\n'),
         });
       } catch {
         // Email send failed — user can request resend later

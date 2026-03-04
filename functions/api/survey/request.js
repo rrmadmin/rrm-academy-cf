@@ -1,7 +1,8 @@
 /**
  * POST /api/survey/request
- * Accepts { email }, generates a magic-link token, stores in KV, sends email via Resend.
+ * Accepts { email }, generates a magic-link token, stores in KV, sends email via SES.
  */
+import { sendEmail } from '../_ses.js';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': 'https://rrmacademy.org',
@@ -29,7 +30,7 @@ export async function onRequestPost(context) {
   if (!env.SURVEY_TOKENS) {
     return json({ ok: false, error: 'Server misconfigured' }, 500);
   }
-  if (!env.RESEND_API_KEY) {
+  if (!env.AWS_ACCESS_KEY_ID) {
     return json({ ok: false, error: 'Server misconfigured' }, 500);
   }
 
@@ -82,31 +83,16 @@ export async function onRequestPost(context) {
   if (userorigin) surveyUrl += `&userorigin=${encodeURIComponent(userorigin)}`;
   if (utmSource) surveyUrl += `&utm_source=${encodeURIComponent(utmSource)}`;
 
-  // Send email via Resend
-  let emailResp;
+  // Send email via SES
   try {
-    emailResp = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${env.RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'RRM Academy <survey@rrmacademy.org>',
-        to: [email],
-        subject: 'Your Endometriosis Symptom Self-Survey',
-        html: buildEmailHtml(surveyUrl),
-      }),
+    await sendEmail(env, {
+      from: 'RRM Academy <survey@rrmacademy.org>',
+      to: email,
+      subject: 'Your Endometriosis Symptom Self-Survey',
+      html: buildEmailHtml(surveyUrl),
     });
   } catch (err) {
-    console.error('Resend fetch failed:', err.message);
-    await env.SURVEY_TOKENS.delete(`email:${email}`);
-    return json({ ok: false, error: 'Failed to send email. Please try again.' }, 502);
-  }
-
-  if (!emailResp.ok) {
-    const errText = await emailResp.text();
-    console.error('Resend error:', errText);
+    console.error('SES send failed:', err.message);
     await env.SURVEY_TOKENS.delete(`email:${email}`);
     return json({ ok: false, error: 'Failed to send email. Please try again.' }, 502);
   }
