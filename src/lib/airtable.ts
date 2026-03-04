@@ -63,7 +63,7 @@ function transformRecord(record: AirtableRecord): Article | null {
 
   return {
     id: record.id,
-    slug: slug.trim(),
+    slug: slug.trim().toLowerCase(),
     title: title.replace(/\.\s*$/, ''), // Strip trailing period (PubMed artifact)
     authors: f['⚡️ Author(s)'] || '',
     shortCitation: f['⚡️ Short Citation'] || '',
