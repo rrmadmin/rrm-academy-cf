@@ -511,8 +511,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   const gateReason = document.getElementById('gate-reason');
   const surveyContent = document.getElementById('survey-content');
 
-  let userEmail = '';
-
   (async function validateToken() {
     if (!token) {
       showInvalid('No survey token provided.');
@@ -524,7 +522,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       const data = await resp.json();
 
       if (data.valid) {
-        userEmail = data.email || '';
         gateLoading.hidden = true;
         surveyContent.hidden = false;
       } else if (data.reason === 'used') {

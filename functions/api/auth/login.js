@@ -39,7 +39,7 @@ export async function onRequestPost({ request, env }) {
     if (!turnstileOk) return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
 
     // Look up user
-    const user = await db.prepare('SELECT id, email, hashed_password, google_id, name, first_name, last_name, email_verified, role, blocked FROM user WHERE email = ?')
+    const user = await db.prepare('SELECT id, email, hashed_password, google_id, name, first_name, last_name, email_verified, role, blocked FROM user WHERE email = ? COLLATE NOCASE')
       .bind(email).first();
 
     // Constant-time-ish: always verify even if user doesn't exist (prevent timing attacks)

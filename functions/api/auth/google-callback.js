@@ -66,7 +66,7 @@ export async function onRequestGet({ request, env }) {
 
     if (!user) {
       // 2. Check if email matches an existing account (first Google login for this user)
-      user = await db.prepare('SELECT id, email, blocked FROM user WHERE email = ?')
+      user = await db.prepare('SELECT id, email, blocked FROM user WHERE email = ? COLLATE NOCASE')
         .bind(email).first();
 
       if (user) {
