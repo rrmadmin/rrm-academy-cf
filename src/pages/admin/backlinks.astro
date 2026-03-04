@@ -1,7 +1,21 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 ---
-<BaseLayout title="Backlinks Dashboard" description="Admin backlinks dashboard" noindex={true}>
+<BaseLayout title="Backlinks Dashboard" description="Admin backlinks dashboard" noindex={true} bodyClass="admin-page">
+
+  <!-- Admin Header Bar (replaces site header visually) -->
+  <div class="admin-bar">
+    <div class="container admin-bar__inner">
+      <span class="admin-bar__title">RRM Admin</span>
+      <nav class="admin-bar__nav">
+        <a href="/admin/backlinks/" class="admin-bar__link admin-bar__link--active">Backlinks</a>
+      </nav>
+      <div class="admin-bar__actions">
+        <a href="/" class="admin-bar__site-link">Return to site</a>
+        <button class="admin-bar__logout" id="logout-btn" hidden>Logout</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Login Gate -->
   <section id="login-gate" class="bl-section">
@@ -26,10 +40,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   <section id="dashboard" class="bl-section" hidden>
     <div class="container">
 
-      <!-- Header -->
+      <!-- Page heading -->
       <div class="bl-header">
         <h1>Backlinks</h1>
-        <button class="btn bl-btn-logout" id="logout-btn">Logout</button>
       </div>
 
       <!-- Metrics -->
@@ -182,10 +195,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     function showLogin() {
       loginGate.hidden = false;
       dashboard.hidden = true;
+      logoutBtn.hidden = true;
     }
     function showDashboard() {
       loginGate.hidden = true;
       dashboard.hidden = false;
+      logoutBtn.hidden = false;
       loadSummary();
       loadBacklinks();
     }
@@ -392,6 +407,88 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     --admin-text-faint: #949392;
   }
 
+  /* Hide site header and footer on admin pages */
+  :global(.admin-page) :global(.site-header) { display: none; }
+  :global(.admin-page) :global(footer) { display: none; }
+
+  /* Admin header bar */
+  .admin-bar {
+    background: #2d3328;
+    color: #e8ebe5;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .admin-bar__inner {
+    display: flex;
+    align-items: center;
+    height: 48px;
+    gap: var(--space-6);
+  }
+  .admin-bar__title {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-weight: 600;
+    font-size: 1.25rem;
+    color: var(--admin-sage-300);
+    white-space: nowrap;
+  }
+  .admin-bar__nav {
+    display: flex;
+    gap: var(--space-1);
+  }
+  .admin-bar__link {
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: rgba(255,255,255,0.6);
+    text-decoration: none;
+    padding: 4px 12px;
+    border-radius: var(--radius-sm);
+    transition: color 0.15s, background 0.15s;
+  }
+  .admin-bar__link:hover {
+    color: #fff;
+    text-decoration: none;
+  }
+  .admin-bar__link--active {
+    color: #fff;
+    background: rgba(255,255,255,0.1);
+    font-weight: 500;
+  }
+  .admin-bar__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-left: auto;
+  }
+  .admin-bar__site-link {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--admin-sage-300);
+    text-decoration: none;
+    padding: 5px 16px;
+    border: 1px solid var(--admin-sage-300);
+    border-radius: var(--radius-pill);
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  }
+  .admin-bar__site-link:hover {
+    color: #fff;
+    border-color: #fff;
+    text-decoration: none;
+  }
+  .admin-bar__logout {
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: rgba(255,255,255,0.5);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: color 0.15s;
+  }
+  .admin-bar__logout:hover {
+    color: #fff;
+  }
+
   /* Layout */
   .bl-section {
     padding: var(--space-8) 0;
@@ -450,19 +547,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .bl-header h1 {
     margin-bottom: 0;
     color: var(--admin-text);
-  }
-  .bl-btn-logout {
-    background: none;
-    border: 1px solid var(--admin-border);
-    color: var(--admin-text-muted);
-    padding: var(--space-2) var(--space-4);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    font-size: 0.875rem;
-  }
-  .bl-btn-logout:hover {
-    border-color: var(--admin-sage-700);
-    color: var(--admin-sage-700);
   }
 
   /* Metrics grid */
