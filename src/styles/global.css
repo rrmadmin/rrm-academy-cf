@@ -748,7 +748,7 @@ blockquote a {
 
 /* Hero title — shared fluid sizing for interior page heroes */
 .hero-title {
-  font-size: clamp(2rem, 1.5rem + 2vw, 2.5rem);
+  font-size: clamp(2rem, 1.25rem + 2.5vw, 3.25rem);
 }
 
 /* Sections */
