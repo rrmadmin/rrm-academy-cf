@@ -1,5 +1,47 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// Library articles: site launched 2026-03-01, all pages published that date.
+// Commentary posts: use Airtable Last Modified (individually edited).
+// Static pages: omit lastmod entirely.
+const LIBRARY_LAUNCH_DATE = '2026-03-01';
+
+function buildDateMap() {
+  const map = new Map();
+
+  try {
+    const articles = JSON.parse(
+      readFileSync(join(__dirname, 'src/data/articles.json'), 'utf-8')
+    );
+    for (const a of articles) {
+      if (a.slug) {
+        map.set(`/library/${a.slug}/`, LIBRARY_LAUNCH_DATE);
+      }
+    }
+  } catch {}
+
+  try {
+    const posts = JSON.parse(
+      readFileSync(join(__dirname, 'src/data/posts.json'), 'utf-8')
+    );
+    for (const p of posts) {
+      if (!p.slug) continue;
+      const date = p.publishDate || p.lastModified;
+      if (date) {
+        map.set(`/commentary/${p.slug}/`, date.split('T')[0]);
+      }
+    }
+  } catch {}
+
+  return map;
+}
+
+const dateMap = buildDateMap();
 
 export default defineConfig({
   output: 'static',
@@ -29,11 +71,18 @@ export default defineConfig({
           '/page/',
           '/what-is-rrm',
           '/common-questions-about-rrm',
+          '/admin/',
         ];
         return !exclude.some((path) => page.includes(path));
       },
       serialize: (item) => {
-        item.lastmod = new Date().toISOString().split('T')[0];
+        const path = new URL(item.url).pathname;
+        const date = dateMap.get(path);
+        if (date) {
+          item.lastmod = date;
+        } else {
+          delete item.lastmod;
+        }
         return item;
       },
     }),
