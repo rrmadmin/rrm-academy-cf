@@ -6,6 +6,7 @@ import {
   json, optionsResponse, generateId, generateToken, getSessionIdFromCookie,
   validateSession, checkRateLimit,
 } from './_shared.js';
+import { sendEmail } from '../_ses.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -43,32 +44,25 @@ export async function onRequestPost({ request, env }) {
     ).bind(generateId(), session.userId, code, expiresAt).run();
 
     // Send email
-    if (env.RESEND_API_KEY) {
+    if (env.AWS_ACCESS_KEY_ID) {
       try {
-        await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${env.RESEND_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            from: 'RRM Academy <accounts@rrmacademy.org>',
-            to: [user.email],
-            subject: 'Your verification code — RRM Academy',
-            text: [
-              `Hi ${user.name || 'there'},`,
-              '',
-              'Here is your new verification code:',
-              '',
-              `    ${code}`,
-              '',
-              'This code expires in 1 hour.',
-              '',
-              'Best regards,',
-              'RRM Academy',
-              'https://rrmacademy.org',
-            ].join('\n'),
-          }),
+        await sendEmail(env, {
+          from: 'RRM Academy <accounts@rrmacademy.org>',
+          to: user.email,
+          subject: 'Your verification code — RRM Academy',
+          text: [
+            `Hi ${user.name || 'there'},`,
+            '',
+            'Here is your new verification code:',
+            '',
+            `    ${code}`,
+            '',
+            'This code expires in 1 hour.',
+            '',
+            'Best regards,',
+            'RRM Academy',
+            'https://rrmacademy.org',
+          ].join('\n'),
         });
       } catch {
         // Email send failed — user can request resend later

@@ -21,6 +21,7 @@ import {
 } from './auth/_shared.js';
 import { enrollUser } from './courses/enroll.js';
 import { getCourse } from './courses/_shared.js';
+import { sendEmail as sesSendEmail } from './_ses.js';
 
 export async function onRequestPost({ request, env }) {
   try {
@@ -116,37 +117,26 @@ async function handleWebhook(request, env) {
           if (enrolled) {
             const email = session.customer_details?.email || session.customer_email;
             const name = session.customer_details?.name || '';
-            if (email && env.RESEND_API_KEY) {
+            if (email && env.AWS_ACCESS_KEY_ID) {
               try {
-                const resp = await fetch('https://api.resend.com/emails', {
-                  method: 'POST',
-                  headers: {
-                    'Authorization': `Bearer ${env.RESEND_API_KEY}`,
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({
-                    from: 'RRM Academy <accounts@rrmacademy.org>',
-                    to: [email],
-                    subject: 'Your course is ready',
-                    text: [
-                      `Hi ${name || 'there'},`,
-                      '',
-                      'Your course purchase is confirmed and your course is ready to start.',
-                      '',
-                      `Go to your courses: ${SITE_URL}/account`,
-                      '',
-                      'Thank you for investing in your health education.',
-                      '',
-                      'RRM Academy',
-                      'A project of the RRM Foundation — 501(c)(3), EIN: 93-4594315',
-                    ].join('\n'),
-                  }),
+                await sesSendEmail(env, {
+                  from: 'RRM Academy <accounts@rrmacademy.org>',
+                  to: email,
+                  subject: 'Your course is ready',
+                  text: [
+                    `Hi ${name || 'there'},`,
+                    '',
+                    'Your course purchase is confirmed and your course is ready to start.',
+                    '',
+                    `Go to your courses: ${SITE_URL}/account`,
+                    '',
+                    'Thank you for investing in your health education.',
+                    '',
+                    'RRM Academy',
+                    'A project of the RRM Foundation — 501(c)(3), EIN: 93-4594315',
+                  ].join('\n'),
                 });
-                if (!resp.ok) {
-                  console.error(`Course enrollment email failed (${resp.status}) for ${email}`);
-                } else {
-                  console.log(`Course enrollment email sent to ${email} for ${courseId}`);
-                }
+                console.log(`Course enrollment email sent to ${email} for ${courseId}`);
               } catch (emailErr) {
                 console.error('Failed to send course enrollment email:', emailErr.message);
               }
@@ -160,53 +150,42 @@ async function handleWebhook(request, env) {
       // Send membership confirmation email for STUC subscriptions
       const stucTiers = { member: 'Member', hero: 'Uterus Hero', superhero: 'Super Hero' };
       const tier = session.metadata?.tier || '';
-      if (session.mode === 'subscription' && stucTiers[tier] && env.RESEND_API_KEY) {
+      if (session.mode === 'subscription' && stucTiers[tier] && env.AWS_ACCESS_KEY_ID) {
         const email = session.customer_details?.email || session.customer_email;
         const name = session.customer_details?.name || '';
         const tierLabel = stucTiers[tier];
 
         if (email) {
           try {
-            const resp = await fetch('https://api.resend.com/emails', {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${env.RESEND_API_KEY}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                from: 'RRM Academy <accounts@rrmacademy.org>',
-                to: [email],
-                subject: 'Welcome to the Save the Uterus Club',
-                text: [
-                  `Hi ${name || 'there'},`,
-                  '',
-                  `Welcome to the Save the Uterus Club! You're now a ${tierLabel} member.`,
-                  '',
-                  'Here\'s what to do next:',
-                  '',
-                  '1. Join the member group — this is where live call dates, resources, and discussion happen:',
-                  `   ${SITE_URL}/community`,
-                  '',
-                  '2. Join the free Uterus Allies group chat on Instagram:',
-                  '   https://www.instagram.com/direct/t/7768750249851959/',
-                  '',
-                  '3. Explore the Research Library — over 3,000 peer-reviewed resources:',
-                  `   ${SITE_URL}/library`,
-                  '',
-                  `You can manage your membership anytime at ${SITE_URL}/account`,
-                  '',
-                  'Thank you for supporting evidence-based reproductive health.',
-                  '',
-                  'RRM Academy',
-                  'A project of the RRM Foundation — 501(c)(3), EIN: 93-4594315',
-                ].join('\n'),
-              }),
+            await sesSendEmail(env, {
+              from: 'RRM Academy <accounts@rrmacademy.org>',
+              to: email,
+              subject: 'Welcome to the Save the Uterus Club',
+              text: [
+                `Hi ${name || 'there'},`,
+                '',
+                `Welcome to the Save the Uterus Club! You're now a ${tierLabel} member.`,
+                '',
+                'Here\'s what to do next:',
+                '',
+                '1. Join the member group — this is where live call dates, resources, and discussion happen:',
+                `   ${SITE_URL}/community`,
+                '',
+                '2. Join the free Uterus Allies group chat on Instagram:',
+                '   https://www.instagram.com/direct/t/7768750249851959/',
+                '',
+                '3. Explore the Research Library — over 3,000 peer-reviewed resources:',
+                `   ${SITE_URL}/library`,
+                '',
+                `You can manage your membership anytime at ${SITE_URL}/account`,
+                '',
+                'Thank you for supporting evidence-based reproductive health.',
+                '',
+                'RRM Academy',
+                'A project of the RRM Foundation — 501(c)(3), EIN: 93-4594315',
+              ].join('\n'),
             });
-            if (!resp.ok) {
-              console.error(`Membership confirmation email failed (${resp.status}) for ${email}`);
-            } else {
-              console.log(`Membership confirmation email sent to ${email} (${tierLabel})`);
-            }
+            console.log(`Membership confirmation email sent to ${email} (${tierLabel})`);
           } catch (emailErr) {
             console.error('Failed to send membership confirmation email:', emailErr.message);
           }
@@ -220,10 +199,10 @@ async function handleWebhook(request, env) {
       console.log(`Subscription updated: ${sub.id}, status: ${sub.status}`);
 
       // Notify user when subscription goes past_due (payment retry failing)
-      if (sub.status === 'past_due' && env.RESEND_API_KEY) {
+      if (sub.status === 'past_due' && env.AWS_ACCESS_KEY_ID) {
         const email = await getEmailByStripeCustomer(db, sub.customer);
         if (email) {
-          await sendEmail(env.RESEND_API_KEY, {
+          await sendEmailSafe(env, {
             to: email,
             subject: 'Action needed: update your payment method',
             text: [
@@ -251,10 +230,10 @@ async function handleWebhook(request, env) {
       console.log(`Subscription deleted: ${sub.id}, customer: ${sub.customer}`);
 
       // Send cancellation confirmation email
-      if (env.RESEND_API_KEY) {
+      if (env.AWS_ACCESS_KEY_ID) {
         const email = await getEmailByStripeCustomer(db, sub.customer);
         if (email) {
-          await sendEmail(env.RESEND_API_KEY, {
+          await sendEmailSafe(env, {
             to: email,
             subject: 'Your Save the Uterus Club membership has ended',
             text: [
@@ -284,10 +263,10 @@ async function handleWebhook(request, env) {
       console.log(`Payment failed for invoice: ${invoice.id}, customer: ${invoice.customer}`);
 
       // Email user about the failed payment
-      if (env.RESEND_API_KEY) {
+      if (env.AWS_ACCESS_KEY_ID) {
         const email = await getEmailByStripeCustomer(db, invoice.customer);
         if (email) {
-          await sendEmail(env.RESEND_API_KEY, {
+          await sendEmailSafe(env, {
             to: email,
             subject: 'Payment failed for your RRM Academy membership',
             text: [
@@ -374,7 +353,7 @@ async function ensureAccountForCheckout(db, session, env) {
   console.log(`Auto-created account ${id} for ${email} (Stripe ${customerId})`);
 
   // Generate 7-day password reset token so user can set a password
-  if (env.RESEND_API_KEY) {
+  if (env.AWS_ACCESS_KEY_ID) {
     const token = generateToken();
     const tokenHash = await hashToken(token);
     const expiresAt = Math.floor(Date.now() / 1000) + 7 * 24 * 3600;
@@ -385,7 +364,7 @@ async function ensureAccountForCheckout(db, session, env) {
 
     const setPasswordUrl = `${SITE_URL}/reset-password?token=${token}`;
 
-    await sendEmail(env.RESEND_API_KEY, {
+    await sendEmailSafe(env, {
       to: email,
       subject: 'Your RRM Academy account is ready',
       text: [
@@ -423,27 +402,17 @@ async function getEmailByStripeCustomer(db, stripeCustomerId) {
 }
 
 /**
- * Send a transactional email via Resend.
+ * Send a transactional email via SES.
  * Logs errors but does not throw — email failure should not block webhook processing.
  */
-async function sendEmail(apiKey, { to, subject, text }) {
+async function sendEmailSafe(env, { to, subject, text }) {
   try {
-    const resp = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'RRM Academy <accounts@rrmacademy.org>',
-        to: [to],
-        subject,
-        text,
-      }),
+    await sesSendEmail(env, {
+      from: 'RRM Academy <accounts@rrmacademy.org>',
+      to,
+      subject,
+      text,
     });
-    if (!resp.ok) {
-      console.error(`Email send failed (${resp.status}) to ${to}: ${subject}`);
-    }
   } catch (err) {
     console.error(`Email send error to ${to}:`, err.message);
   }
