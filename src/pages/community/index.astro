@@ -1421,7 +1421,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 <style is:global>
   /* ── Page ── */
   .community-page {
-    padding: 0;
+    padding: var(--space-8) 0 0;
     min-height: 100vh;
   }
   .community-page > .container {
@@ -2109,6 +2109,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
   /* ── Mobile ── */
   @media (max-width: 600px) {
+    .community-page {
+      padding-top: var(--space-4);
+    }
     .community-page > .container {
       border-left: none;
       border-right: none;
