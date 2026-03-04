@@ -114,6 +114,14 @@ No disavow needed.
 - Resource page could also link to `/library/` and `/courses/` specifically
 - Effort: Very Low | Impact: Medium
 
+**Podcast Guest Appearances — backlink outreach**
+- Compile full list of every podcast Naomi has appeared on (especially high-audience shows)
+- Check each episode's show notes for existing links to rrmacademy.org
+- Where missing: email host/producer requesting a backlink (to /, /what-is-rrm/, or /library/)
+- Warm outreach -- relationship already exists from the interview
+- Podcast sites tend to have high DA; contextually relevant links
+- Effort: Low-Medium | Impact: High
+
 ### Tier 2: Relationship Outreach
 
 **IIRRM (iirrm.org)**
@@ -158,6 +166,7 @@ The nonprofit/free-access model and Dr. Naomi's UPMC affiliation are strong cred
 - [ ] Fix rrm.foundation link: `www.rrmacademy.org/save-the-uterus-club` → `rrmacademy.org/save-the-uterus-club/`
 
 ### This Month
+- [ ] Compile full list of podcasts Naomi has guested on; request backlinks from all show notes pages
 - [ ] Reach out to IIRRM and IRRMA about RRM Academy listing in their education resources
 - [ ] Contact FACTS about cross-referencing the research library
 - [ ] Identify 5-10 FABM blogs linking to competitors; pitch RRM Academy

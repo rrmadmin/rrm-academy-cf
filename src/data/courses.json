@@ -3,7 +3,7 @@
     "id": "masterclass-endo-surgery",
     "title": "Masterclass in Endometriosis & Surgery",
     "slug": "masterclass-in-endometriosis-and-surgery",
-    "description": "Take control of your endometriosis journey with this comprehensive masterclass led by Dr. Naomi Whittaker, a NaProTechnology trained OBGYN and endometriosis specialist.\n\nDesigned for both women living with endometriosis and healthcare professionals, this course offers:\n\n\u2022 Clarity and understanding \u2014 Debunk common myths and gain in-depth knowledge about endometriosis and its impact on fertility.\n\n\u2022 Surgical insights \u2014 Explore various surgical approaches, including NaProTechnology's meticulous techniques and focus on adhesion prevention.\n\n\u2022 Informed decision-making \u2014 Learn how to choose the right endometriosis surgeon for you and navigate the surgical process with confidence.\n\n\u2022 Long-term management \u2014 Discover effective strategies for managing endometriosis symptoms through lifestyle changes, supplements, and medications.\n\nWhether you're considering surgery, waiting for an appointment, or seeking to better guide your patients, this masterclass empowers you with the knowledge and tools you need to find lasting relief and achieve your fertility goals.",
+    "description": "Take control of your endometriosis journey with this comprehensive masterclass led by Dr. Naomi Whittaker, a NaProTechnology trained OBGYN and endometriosis specialist.\n\nDesigned for both women living with endometriosis and healthcare professionals, this course offers:\n\n• Clarity and understanding — Debunk common myths and gain in-depth knowledge about endometriosis and its impact on fertility.\n\n• Surgical insights — Explore various surgical approaches, including NaProTechnology's meticulous techniques and focus on adhesion prevention.\n\n• Informed decision-making — Learn how to choose the right endometriosis surgeon for you and navigate the surgical process with confidence.\n\n• Long-term management — Discover effective strategies for managing endometriosis symptoms through lifestyle changes, supplements, and medications.\n\nWhether you're considering surgery, waiting for an appointment, or seeking to better guide your patients, this masterclass empowers you with the knowledge and tools you need to find lasting relief and achieve your fertility goals.",
     "shortDescription": "Comprehensive guide for patients preparing for endometriosis surgery. Covers the entire surgical journey, including how to choose a surgeon, and automatically includes the Long-Term Management course as a bonus.",
     "image": "https://pub-4af88159ce884265baba8fb4f3470625.r2.dev/courses/masterclass-endo-surgery/cover.jpeg",
     "imageAlt": "a woman sits in front of a microphone and a laptop",
@@ -32,8 +32,8 @@
       "autoplayNextVideo": true
     },
     "seo": {
-      "title": "Endometriosis Surgery Masterclass | RRM Academy",
-      "description": "Prepare for endometriosis surgery with this comprehensive course from Dr. Naomi Whittaker, MD. 39 videos, 2h 53m, self-paced. Includes long-term management. $199.",
+      "title": "Masterclass in Endometriosis and Surgery | RRM Academy",
+      "description": "This essential course equips both women with endometriosis and healthcare professionals with the knowledge and tools for effective long-term symptom management.",
       "keywords": [
         "Endometriosis"
       ]
@@ -406,7 +406,6 @@
     "includes": [
       "long-term-endometriosis-management"
     ],
-    "relatedCourses": ["rrm-vs-ivf"],
     "faqs": [
       {
         "question": "Who is this course for?",
@@ -446,7 +445,7 @@
     "id": "long-term-endo",
     "title": "Long Term Endometriosis Management",
     "slug": "long-term-endometriosis-management",
-    "description": "This essential course equips both women with endometriosis and healthcare professionals with the knowledge and tools for effective long-term symptom management.\n\nFor Patients:\n\u2022 Empowerment through Knowledge \u2014 Gain a deep understanding of how lifestyle, diet, supplements, and medications can influence your endometriosis symptoms.\n\u2022 Practical Strategies \u2014 Discover actionable steps to implement in your daily life for improved well-being and reduced pain.\n\u2022 Holistic Approach \u2014 Explore a range of evidence-based and complementary therapies to manage endometriosis holistically.\n\nFor Healthcare Professionals:\n\u2022 Expand Your Expertise \u2014 Enhance your understanding of long-term endometriosis management strategies beyond surgical interventions.\n\u2022 Guide Your Patients \u2014 Gain valuable insights to confidently advise and support your patients in managing their endometriosis symptoms.\n\u2022 Improve Patient Outcomes \u2014 Discover effective tools and resources to help your patients achieve lasting relief and improve their quality of life.",
+    "description": "This essential course equips both women with endometriosis and healthcare professionals with the knowledge and tools for effective long-term symptom management.\n\nFor Patients:\n• Empowerment through Knowledge — Gain a deep understanding of how lifestyle, diet, supplements, and medications can influence your endometriosis symptoms.\n• Practical Strategies — Discover actionable steps to implement in your daily life for improved well-being and reduced pain.\n• Holistic Approach — Explore a range of evidence-based and complementary therapies to manage endometriosis holistically.\n\nFor Healthcare Professionals:\n• Expand Your Expertise — Enhance your understanding of long-term endometriosis management strategies beyond surgical interventions.\n• Guide Your Patients — Gain valuable insights to confidently advise and support your patients in managing their endometriosis symptoms.\n• Improve Patient Outcomes — Discover effective tools and resources to help your patients achieve lasting relief and improve their quality of life.",
     "shortDescription": "Non-surgical wellness strategies for endometriosis: diet, lifestyle, supplements, and medications. Can be purchased separately or included with the Masterclass.",
     "image": "https://pub-4af88159ce884265baba8fb4f3470625.r2.dev/courses/long-term-endo/cover.jpg",
     "imageAlt": "",
@@ -475,8 +474,8 @@
       "autoplayNextVideo": false
     },
     "seo": {
-      "title": "Long-Term Endometriosis Management Course | RRM Academy",
-      "description": "Non-surgical strategies for endometriosis: diet, lifestyle, supplements, and medications. Taught by Dr. Naomi Whittaker, MD. 7 videos, 15 minutes. $19.",
+      "title": "Long Term Endometriosis Management | RRM Academy",
+      "description": "Evidence-based strategies for long-term endometriosis symptom management through diet, lifestyle, supplements, and medications.",
       "keywords": [
         "Endometriosis",
         "Long-term management"
@@ -600,7 +599,6 @@
     "includedIn": [
       "masterclass-in-endometriosis-and-surgery"
     ],
-    "relatedCourses": ["postpartum-depression-anxiety"],
     "faqs": [
       {
         "question": "Who is this course for?",
@@ -628,7 +626,7 @@
     "id": "postpartum",
     "title": "Postpartum Depression & Anxiety: A Restorative Approach to Recovery",
     "slug": "postpartum-depression-anxiety",
-    "description": "This course discusses postpartum depression and anxiety, exploring its causes, symptoms, and a restorative approach to healing.\n\nDr. Naomi Whittaker, a fertility surgeon specializing in women's health, delves into the limitations of conventional treatments and offers insights into the effectiveness of bioidentical progesterone.\n\nKey topics covered:\n\u2022 Understanding the different types of postpartum mood disorders\n\u2022 Exploring the physiological and hormonal factors contributing to postpartum depression\n\u2022 Discussing the limitations of traditional treatment approaches like SSRIs\n\u2022 Highlighting the benefits of bioidentical progesterone as a natural and effective solution\n\u2022 Providing actionable steps for prevention and seeking support",
+    "description": "This course discusses postpartum depression and anxiety, exploring its causes, symptoms, and a restorative approach to healing.\n\nDr. Naomi Whittaker, a fertility surgeon specializing in women's health, delves into the limitations of conventional treatments and offers insights into the effectiveness of bioidentical progesterone.\n\nKey topics covered:\n• Understanding the different types of postpartum mood disorders\n• Exploring the physiological and hormonal factors contributing to postpartum depression\n• Discussing the limitations of traditional treatment approaches like SSRIs\n• Highlighting the benefits of bioidentical progesterone as a natural and effective solution\n• Providing actionable steps for prevention and seeking support",
     "shortDescription": "Explore postpartum depression and anxiety, its causes and symptoms, and a restorative approach to healing with bioidentical progesterone.",
     "image": "https://pub-4af88159ce884265baba8fb4f3470625.r2.dev/courses/postpartum/cover.png",
     "imageAlt": "Postpartum",
@@ -639,7 +637,6 @@
     "selfPaced": true,
     "accessType": "public",
     "comingSoon": false,
-    "relatedCourses": ["rrm-vs-ivf"],
     "participants": 42,
     "instructors": [
       {
@@ -658,7 +655,7 @@
       "autoplayNextVideo": false
     },
     "seo": {
-      "title": "Postpartum Depression & Anxiety: Natural Recovery | RRM Academy",
+      "title": "Postpartum Depression & Anxiety: A Restorative Approach | RRM Academy",
       "description": "Learn about postpartum depression and anxiety, its causes, and a restorative approach to recovery using bioidentical progesterone.",
       "keywords": [
         "Postpartum depression",
@@ -777,7 +774,7 @@
     "id": "rrm-vs-ivf",
     "title": "Restorative Reproductive Medicine (RRM) vs Standard ART: A New Approach to Infertility",
     "slug": "rrm-vs-ivf",
-    "description": "This course dives deep into the world of infertility treatment, comparing the standard Assisted Reproductive Technology (ART) like IVF and IUI with a lesser-known approach called Restorative Reproductive Medicine (RRM).\n\nDr. Naomi Whittaker, an OBGYN fertility surgeon specializing in RRM, discusses the limitations of conventional infertility treatment and explores the potential of RRM as a more holistic and effective solution.\n\nKey topics covered:\n\u2022 The shortcomings of standard OBGYN training in addressing infertility\n\u2022 The facts behind IVF and IUI success rates and their associated risks\n\u2022 The ethical, financial, and medical concerns surrounding ART\n\u2022 The principles of RRM and its focus on identifying and treating the root causes of infertility\n\u2022 Real patient stories showcasing the effectiveness of RRM",
+    "description": "This course dives deep into the world of infertility treatment, comparing the standard Assisted Reproductive Technology (ART) like IVF and IUI with a lesser-known approach called Restorative Reproductive Medicine (RRM).\n\nDr. Naomi Whittaker, an OBGYN fertility surgeon specializing in RRM, discusses the limitations of conventional infertility treatment and explores the potential of RRM as a more holistic and effective solution.\n\nKey topics covered:\n• The shortcomings of standard OBGYN training in addressing infertility\n• The facts behind IVF and IUI success rates and their associated risks\n• The ethical, financial, and medical concerns surrounding ART\n• The principles of RRM and its focus on identifying and treating the root causes of infertility\n• Real patient stories showcasing the effectiveness of RRM",
     "shortDescription": "Compare standard ART (IVF/IUI) with Restorative Reproductive Medicine, exploring root-cause approaches to infertility with real patient stories.",
     "image": "https://pub-4af88159ce884265baba8fb4f3470625.r2.dev/courses/rrm-vs-ivf/cover.png",
     "imageAlt": "Naomi Whittaker, MD",
@@ -788,7 +785,6 @@
     "selfPaced": true,
     "accessType": "public",
     "comingSoon": false,
-    "relatedCourses": ["postpartum-depression-anxiety"],
     "participants": 99,
     "instructors": [
       {
@@ -807,8 +803,8 @@
       "autoplayNextVideo": false
     },
     "seo": {
-      "title": "RRM vs IVF: Comparing Fertility Treatments | RRM Academy",
-      "description": "Understand how Restorative Reproductive Medicine compares to IVF and other assisted reproductive technologies. Evidence-based, taught by a board-certified OBGYN.",
+      "title": "RRM vs IVF: A New Approach to Infertility | RRM Academy",
+      "description": "Compare standard ART like IVF and IUI with Restorative Reproductive Medicine (RRM), a root-cause approach to treating infertility.",
       "keywords": [
         "RRM",
         "IVF",
@@ -969,7 +965,7 @@
     "title": "Hormones Through the Lifespan: Cycles, Conditions, and Menopause",
     "slug": "hormones-through-the-lifespan",
     "description": "Dr. Ana Garcia, OB/GYN and NaProTechnology-trained physician, walks through the full arc of female hormonal health: how cycles work, what disrupts them, conditions like PCOS and endometriosis, and how to support the body through perimenopause and menopause with a restorative approach.",
-    "shortDescription": "A comprehensive overview of hormonal health across a woman's life \u2014 menstrual cycles, common conditions, and the transition to menopause \u2014 presented by Dr. Ana Garcia, OB/GYN.",
+    "shortDescription": "A comprehensive overview of hormonal health across a woman's life — menstrual cycles, common conditions, and the transition to menopause — presented by Dr. Ana Garcia, OB/GYN.",
     "image": "",
     "imageAlt": "",
     "priceCents": 0,
@@ -983,8 +979,7 @@
     "instructors": [
       {
         "name": "Dr. Ana Garcia",
-        "role": "OB/GYN, NaProTechnology",
-        "bio": "Dr. Ana Garcia is an OB/GYN and NaProTechnology-trained physician specializing in hormonal health across the female lifespan. She brings a restorative approach to conditions like PCOS, endometriosis, and the menopause transition."
+        "role": "OB/GYN, NaProTechnology"
       }
     ],
     "settings": {
@@ -995,7 +990,7 @@
     },
     "seo": {
       "title": "Hormones Through the Lifespan | RRM Academy",
-      "description": "Learn how hormones change across a woman's life \u2014 cycles, conditions, and menopause \u2014 with Dr. Ana Garcia, OB/GYN.",
+      "description": "Learn how hormones change across a woman's life — cycles, conditions, and menopause — with Dr. Ana Garcia, OB/GYN.",
       "keywords": []
     },
     "sections": []
@@ -1005,7 +1000,7 @@
     "title": "Pelvic Floor Rehabilitation",
     "slug": "pelvic-floor-rehabilitation",
     "description": "Dr. Amanda Simmons, Doctor of Physical Therapy and pelvic floor specialist at Ascend Pelvic Health, covers the anatomy and function of the pelvic floor, common dysfunctions (pain, prolapse, incontinence), and evidence-based rehabilitation approaches for patients navigating reproductive and pelvic health conditions.",
-    "shortDescription": "Understanding and rehabilitating the pelvic floor \u2014 pain, dysfunction, and recovery \u2014 with Dr. Amanda Simmons, Physical Therapist at Ascend Pelvic Health.",
+    "shortDescription": "Understanding and rehabilitating the pelvic floor — pain, dysfunction, and recovery — with Dr. Amanda Simmons, Physical Therapist at Ascend Pelvic Health.",
     "image": "",
     "imageAlt": "",
     "priceCents": 0,
@@ -1019,7 +1014,7 @@
     "instructors": [
       {
         "name": "Dr. Amanda Simmons",
-        "role": "PT, DPT \u2014 Ascend Pelvic Health"
+        "role": "PT, DPT — Ascend Pelvic Health"
       }
     ],
     "settings": {
@@ -1039,8 +1034,8 @@
     "id": "infertility-existential-trauma",
     "title": "Infertility as Existential Trauma",
     "slug": "infertility-existential-trauma",
-    "description": "Dr. Clay Brigance, Licensed Professional Counselor and researcher, examines infertility as a form of existential trauma and PTSD. This session covers the psychological impact of fertility struggles, grief responses, and therapeutic approaches that help patients process and heal \u2014 essential knowledge for both patients and the providers who support them.",
-    "shortDescription": "The psychological and existential toll of infertility \u2014 trauma, grief, and PTSD \u2014 explored through a clinical lens by Dr. Clay Brigance, LPC.",
+    "description": "Dr. Clay Brigance, Licensed Professional Counselor and researcher, examines infertility as a form of existential trauma and PTSD. This session covers the psychological impact of fertility struggles, grief responses, and therapeutic approaches that help patients process and heal — essential knowledge for both patients and the providers who support them.",
+    "shortDescription": "The psychological and existential toll of infertility — trauma, grief, and PTSD — explored through a clinical lens by Dr. Clay Brigance, LPC.",
     "image": "",
     "imageAlt": "",
     "priceCents": 0,
@@ -1054,7 +1049,7 @@
     "instructors": [
       {
         "name": "Dr. Clay Brigance",
-        "role": "LPC, Infertility Researcher \u2014 Shiloh Counseling"
+        "role": "LPC, Infertility Researcher — Shiloh Counseling"
       }
     ],
     "settings": {
@@ -1109,8 +1104,8 @@
     "id": "aip-diet-inflammation",
     "title": "Why the AIP Diet Is Not Enough to Reduce Inflammation",
     "slug": "aip-diet-inflammation",
-    "description": "Rita Johnson, functional medicine practitioner, breaks down the science and limitations of the Autoimmune Protocol (AIP) diet for patients managing chronic inflammation, endometriosis, PCOS, and other reproductive conditions. Learn what diet alone cannot address, and what a comprehensive anti-inflammatory protocol \u2014 including gut health, lifestyle, and targeted support \u2014 actually requires.",
-    "shortDescription": "Functional medicine practitioner Rita Johnson explains why the Autoimmune Protocol diet alone falls short \u2014 and what a complete anti-inflammatory strategy actually looks like.",
+    "description": "Rita Johnson, functional medicine practitioner, breaks down the science and limitations of the Autoimmune Protocol (AIP) diet for patients managing chronic inflammation, endometriosis, PCOS, and other reproductive conditions. Learn what diet alone cannot address, and what a comprehensive anti-inflammatory protocol — including gut health, lifestyle, and targeted support — actually requires.",
+    "shortDescription": "Functional medicine practitioner Rita Johnson explains why the Autoimmune Protocol diet alone falls short — and what a complete anti-inflammatory strategy actually looks like.",
     "image": "",
     "imageAlt": "",
     "priceCents": 0,
@@ -1135,7 +1130,7 @@
     },
     "seo": {
       "title": "Why the AIP Diet Is Not Enough | RRM Academy",
-      "description": "Learn why the AIP diet alone isn't enough to reduce inflammation \u2014 and what a complete anti-inflammatory strategy looks like.",
+      "description": "Learn why the AIP diet alone isn't enough to reduce inflammation — and what a complete anti-inflammatory strategy looks like.",
       "keywords": []
     },
     "sections": []
@@ -1159,8 +1154,7 @@
     "instructors": [
       {
         "name": "Dr. Ana Garcia",
-        "role": "OB/GYN, NaProTechnology",
-        "bio": "Dr. Ana Garcia is an OB/GYN and NaProTechnology-trained physician specializing in hormonal health across the female lifespan. She brings a restorative approach to conditions like PCOS, endometriosis, and the menopause transition."
+        "role": "OB/GYN, NaProTechnology"
       },
       {
         "name": "Hannah Ducote",
