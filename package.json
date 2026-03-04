@@ -21,6 +21,7 @@
     "pipeline:dry-run": "node scripts/pipeline.mjs dry-run",
     "pipeline:report": "node scripts/pipeline.mjs report",
     "pipeline:validate": "node scripts/pipeline.mjs validate",
+    "pipeline:status": "node scripts/pipeline.mjs status",
     "fetch-all:dry": "node src/lib/fetch-data.mjs --dry-run && node src/lib/fetch-blog-data.mjs --dry-run && node src/lib/fetch-faq-data.mjs --dry-run && node src/lib/fetch-courses-data.mjs --dry-run"
   },
   "dependencies": {
