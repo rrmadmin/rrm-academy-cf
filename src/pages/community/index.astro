@@ -1911,8 +1911,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .post-card__actions {
     display: flex;
     align-items: center;
-    gap: var(--space-4);
-    max-width: 425px;
+    justify-content: space-between;
     padding-top: 8px;
   }
 
@@ -1920,14 +1919,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .reaction-bar {
     display: flex;
     align-items: center;
-    gap: 2px;
-    flex-wrap: wrap;
+    gap: 0;
   }
   .reaction-btn {
     display: inline-flex;
     align-items: center;
     gap: 2px;
-    padding: 4px 8px;
+    padding: 4px 6px;
     font-size: 13px;
     background: transparent;
     border: none;
