@@ -24,10 +24,6 @@ export async function onRequestOptions() {
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  if (!env.AWS_ACCESS_KEY_ID) {
-    return json({ ok: false, error: 'Server misconfigured' }, 500);
-  }
-
   // Parse body
   let body;
   try {
@@ -39,6 +35,10 @@ export async function onRequestPost(context) {
   // Honeypot — if filled, silently accept (bots think they succeeded)
   if (body.website) {
     return json({ ok: true });
+  }
+
+  if (!env.AWS_ACCESS_KEY_ID) {
+    return json({ ok: false, error: 'Server misconfigured' }, 500);
   }
 
   // Validate fields
