@@ -11,7 +11,7 @@
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "e150df88c2ce03fc2ea7f15be0963ee50dc593c32d86e5593e4bec99314cd5b9",
+      "hash": "1c1df18506bb7817e96865f49f00e8da3d9523ca5ad78710a949cfbaec4340eb",
       "note": "Account creation"
     },
     "functions/api/auth/google-callback.js": {
@@ -19,7 +19,7 @@
       "note": "Google OAuth"
     },
     "functions/api/stripe-webhook.js": {
-      "hash": "d4ac1fa36f76ff657eec00b132e8c7029c73607fb68c49071bee4cce49fc7ae1",
+      "hash": "3d66ccf711298cd684a618447087783b1d8c2736da12bc06084dcdc85fce1ddc",
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
