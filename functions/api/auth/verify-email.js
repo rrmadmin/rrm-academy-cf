@@ -41,13 +41,13 @@ export async function onRequestPost({ request, env }) {
       return json({ ok: false, error: 'Invalid or expired verification code.' }, 400);
     }
 
-    // Mark email as verified
-    await db.prepare('UPDATE user SET email_verified = 1, updated_at = datetime(\'now\') WHERE id = ?')
-      .bind(session.userId).run();
-
-    // Clean up verification records for this user
-    await db.prepare('DELETE FROM email_verification WHERE user_id = ?')
-      .bind(session.userId).run();
+    // Mark email as verified + clean up verification records — atomically
+    await db.batch([
+      db.prepare('UPDATE user SET email_verified = 1, updated_at = datetime(\'now\') WHERE id = ?')
+        .bind(session.userId),
+      db.prepare('DELETE FROM email_verification WHERE user_id = ?')
+        .bind(session.userId),
+    ]);
 
     return json({ ok: true });
   } catch (err) {

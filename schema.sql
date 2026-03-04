@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS user (
     google_id TEXT,
     wix_member_id TEXT,
     blocked INTEGER DEFAULT 0,
+    avatar_url TEXT,
     newsletter_opt_in INTEGER DEFAULT 0,
     newsletter_opted_in_at TEXT
 );

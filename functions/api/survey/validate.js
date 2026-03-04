@@ -1,7 +1,7 @@
 /**
  * GET /api/survey/validate?token=<uuid>
  * Checks whether a survey token is valid and unused.
- * Returns: { valid: true, email } or { valid: false, reason: 'used' | 'expired' | 'missing' }
+ * Returns: { valid: true } or { valid: false, reason: 'used' | 'expired' | 'missing' }
  */
 
 const CORS_HEADERS = {
@@ -46,5 +46,5 @@ export async function onRequestGet(context) {
     return json({ valid: false, reason: 'used' });
   }
 
-  return json({ valid: true, email: data.email });
+  return json({ valid: true });
 }

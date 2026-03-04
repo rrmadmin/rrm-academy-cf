@@ -45,7 +45,7 @@ export async function onRequestPost({ request, env }) {
     if (!turnstileOk) return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
 
     // Check if email already exists
-    const existing = await db.prepare('SELECT id FROM user WHERE email = ?').bind(email).first();
+    const existing = await db.prepare('SELECT id FROM user WHERE email = ? COLLATE NOCASE').bind(email).first();
     if (existing) {
       return json({ ok: false, error: 'An account with this email already exists.' }, 409);
     }

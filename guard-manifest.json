@@ -7,15 +7,15 @@
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
-      "hash": "fb5fdb80a953789d30e7978a149d9f9ad20509d9b7447df4faa836ba1715e8f4",
+      "hash": "50de7cf0baccc05a1333f998cc76bf2e765e9531bd9aff7f9ab7ddd2eb2e08b6",
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "1c1df18506bb7817e96865f49f00e8da3d9523ca5ad78710a949cfbaec4340eb",
+      "hash": "13756cc6f06d8573113932ecb9043a1193ab3a5b795992ea95667aa68c6e4b1f",
       "note": "Account creation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "bc0e8f95885e026be2511c578781003233427622595d46b94cfe334a90b99185",
+      "hash": "5e4ef52f73634b91986f5cc04a8cd4c93ae3705e872282de04b562008e28a357",
       "note": "Google OAuth"
     },
     "functions/api/stripe-webhook.js": {
