@@ -228,8 +228,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         var bs = data.by_status || {};
         mLive.textContent = bs.live != null ? bs.live : '0';
         mDead.textContent = bs.dead != null ? bs.dead : '0';
-        // Dofollow not in summary -- show total minus dead as fallback
-        mDofollow.textContent = '--';
+        mDofollow.textContent = data.dofollow_count != null ? data.dofollow_count : '--';
       } catch (e) {
         mTotal.textContent = 'err';
       }
