@@ -117,6 +117,14 @@ async function processImage(attachment, slug) {
   }
   const jpgBuffer = Buffer.from(await jpgRes.arrayBuffer());
 
+  // Save processed images locally so the local fallback is always fresh.
+  // This prevents stale git images from being served if R2 upload fails.
+  const localDir = join(__dirname, '..', '..', 'public', 'images', 'commentary');
+  mkdirSync(localDir, { recursive: true });
+  writeFileSync(join(localDir, `${slug}.webp`), webpBuffer);
+  writeFileSync(join(localDir, `${slug}.jpg`), jpgBuffer);
+  console.log(`  Local: saved ${slug}.webp + .jpg`);
+
   // Upload both to R2
   const webpKey = `commentary/${slug}.webp`;
   const jpgKey = `commentary/${slug}.jpg`;
@@ -227,10 +235,29 @@ async function fetchAll() {
     console.log(`\nProcessing ${withImages.length} cover image(s)...`);
     for (const post of withImages) {
       console.log(`\n${post.slug}:`);
+      const originalCoverUrl = post.coverImageUrl;
       try {
         const r2Url = await processImage(post._imageAttachment, post.slug);
         if (r2Url) {
           post.coverImageUrl = r2Url;
+
+          // Write R2 URL back to Airtable so future deploys use it as fallback
+          // instead of a stale local path. Only update if it changed.
+          if (!originalCoverUrl.startsWith(R2_PUBLIC_URL)) {
+            try {
+              await fetch(`${API_URL}/${post.id}`, {
+                method: 'PATCH',
+                headers: {
+                  'Authorization': `Bearer ${pat}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ fields: { 'Processed Cover URL': r2Url } }),
+              });
+              console.log(`  Airtable: updated Processed Cover URL → R2`);
+            } catch (e) {
+              console.warn(`  Airtable write-back failed: ${e.message}`);
+            }
+          }
         }
       } catch (err) {
         console.error(`  Image processing failed: ${err.message}`);
