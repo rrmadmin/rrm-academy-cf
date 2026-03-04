@@ -27,6 +27,8 @@ export default defineConfig({
           '/community/',
           '/linkinbio/jointhecall',
           '/page/',
+          '/what-is-rrm',
+          '/common-questions-about-rrm',
         ];
         return !exclude.some((path) => page.includes(path));
       },
