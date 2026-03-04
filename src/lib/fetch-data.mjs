@@ -82,7 +82,7 @@ async function fetchAll() {
 
       articles.push({
         id: record.id,
-        slug: slug.trim(),
+        slug: slug.trim().toLowerCase(),
         title: title.replace(/\.\s*$/, ''),
         authors: f['⚡️ Author(s)'] || '',
         shortCitation: f['⚡️ Short Citation'] || '',
