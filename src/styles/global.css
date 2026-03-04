@@ -332,7 +332,7 @@ p:last-child {
 
 /* Letter-line content sections */
 .page-body .container--narrow {
-  border-left: 2px solid var(--sand-300);
+  border-left: 1px solid var(--border-light);
   padding: var(--space-12) var(--space-4) var(--space-12) var(--space-8);
 }
 
