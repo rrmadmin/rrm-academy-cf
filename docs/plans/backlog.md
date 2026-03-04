@@ -55,8 +55,10 @@ Buttondown selected ($4.50/mo nonprofit). Sending domain verified. Newsletter si
 
 ## Operations & Cleanup
 
-- **Cancel Vimeo subscription** ($25/mo saved) -- Stream player confirmed working in production
+- **Cancel Vimeo subscription** ($20/mo saved) -- Stream player confirmed working in production
 - **Delete temporary CF API token** (`3h-YUCih...`) created for Stream signing key -- no longer needed
+- **Verify CF Stream first billing cycle** (due ~Mar 22, 2026) -- confirm variable usage stays within included 10,000 min/mo allocation; update `docs/plans/2026-03-03-migration-cost-savings-analysis.md`
+- **Migration cost/savings analysis** -- full before/after breakdown at `docs/plans/2026-03-03-migration-cost-savings-analysis.md`. Net saving: $361.50/mo / $4,338/yr. Anthropic Max ROI: 2.4x. Update after Apr 2026 when Wix Plus lapses.
 
 ---
 

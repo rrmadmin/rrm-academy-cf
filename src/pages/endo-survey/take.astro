@@ -37,7 +37,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
           <div class="survey-intro-note">
             <p>
-              I developed this 3-tier self-survey based on the symptom patterns I see constantly in my endometriosis practice. It is designed to help you assess your level of suspicion, not to give you a diagnosis.
+              I developed this 3-tier self-survey based on the endometriosis symptom patterns I constantly see in my practice. It is designed to help you assess your level of suspicion, not to give you a diagnosis.
             </p>
             <p>
               Endometriosis can only be diagnosed by surgery. But understanding your symptoms is the first step toward getting answers. Check every symptom below that applies to you. Be honest. There are no wrong answers.
@@ -169,9 +169,15 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
           <!-- CTA placeholder -->
           <div class="results-cta">
-            <h3>What to do next</h3>
+            <h3>You do not have to figure this out alone.</h3>
             <p>
-              Print or save your results PDF and bring it to your next appointment. If you are looking for a provider experienced in diagnosing and treating endometriosis through excision surgery, visit <a href="https://rrmacademy.org/about">rrmacademy.org</a> to learn more about restorative reproductive medicine.
+              Join <strong>Uterus Allies</strong> — Dr. Whittaker's free private community on Instagram. Resources, research, and live expert calls.
+            </p>
+            <p style="margin-top: var(--space-4);">
+              <a href="https://ig.me/j/AbbmORXZV3iHcj-H/" target="_blank" rel="noopener" class="btn btn--secondary" style="display:inline-block; margin-bottom: var(--space-3);">Join Uterus Allies (free)</a>
+            </p>
+            <p>
+              Save your results PDF and bring it to your next appointment. To learn more about restorative reproductive medicine, visit <a href="https://rrmacademy.org/about">rrmacademy.org</a>.
             </p>
           </div>
 
@@ -752,6 +758,107 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       const disclaimer = 'This self-assessment is for educational purposes only and does not constitute medical advice, diagnosis, or treatment. Endometriosis can only be diagnosed through surgery. Always consult a qualified healthcare provider for evaluation. RRM Academy is a project of the RRM Foundation, a 501(c)(3) nonprofit.';
       const discLines = doc.splitTextToSize(disclaimer, maxW);
       doc.text(discLines, margin, y);
+
+      // ── Page 2: Personal message + IG follow ──
+      if (score.total > 0) {
+        doc.addPage();
+
+        // Header bar
+        doc.setFillColor(114, 94, 126);
+        doc.rect(0, 0, w, 12, 'F');
+        doc.setFontSize(9);
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Dr. Naomi Whittaker, MD', margin, 8);
+        doc.text('@napro_fertility_surgeon', w - margin, 8, { align: 'right' });
+        let y2 = 30;
+
+        const p2t1Count = symptoms.tier1.length;
+        let p2headline, p2body;
+
+        if (p2t1Count >= 5) {
+          p2headline = 'You are not crazy.';
+          p2body = [
+            'What you just described is real. The pain that was minimized. The symptoms attributed to stress, to hormones, to being too sensitive. The certainty that something is wrong that no appointment has taken seriously. Women with real, diagnosable, treatable conditions. Dismissed.',
+            'Forty-two percent of women with chronic pelvic pain have endometriosis when it is actually looked for. The median time from first symptoms to diagnosis is 9 years. Not because the pattern is subtle. Because it is not being investigated.',
+            'You deserve someone who will look for answers instead of giving you more reasons to doubt yourself. That is what a real diagnosis process should feel like.',
+          ];
+        } else if (p2t1Count >= 1 || score.total >= 15) {
+          p2headline = 'Your symptoms tell a story worth investigating.';
+          p2body = [
+            'That story may not have a name yet. But the pattern in your results is exactly the kind that a knowledgeable provider can work with.',
+            'Endometriosis is underrecognized — not because it is rare, but because its symptoms overlap with conditions that are easier to dismiss. Painful periods get blamed on hormones. Digestive symptoms get attributed to diet. Fatigue becomes anxiety. Over time, women learn to minimize what they are experiencing.',
+            'You are not imagining it. Investigating this pattern is a reasonable and appropriate next step.',
+          ];
+        } else {
+          p2headline = 'Worth keeping on your radar.';
+          p2body = [
+            'Your score is on the lower end, but a lower score is not a dismissal. Many women with endometriosis do not recognize their symptoms as a pattern until someone helps them connect the dots. The fact that you took this survey means something is prompting you to look.',
+            'If these symptoms worsen or begin affecting your quality of life, this survey is something you can bring to a provider who specializes in reproductive health.',
+            'You know your body better than any score does. Trust that instinct.',
+          ];
+        }
+
+        // Headline
+        doc.setFontSize(24);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(114, 94, 126);
+        const headlineLines = doc.splitTextToSize(p2headline, maxW);
+        doc.text(headlineLines, margin, y2);
+        y2 += headlineLines.length * 10 + 10;
+
+        // Body paragraphs
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(11);
+        doc.setTextColor(49, 49, 49);
+        for (const para of p2body) {
+          const lines = doc.splitTextToSize(para, maxW);
+          doc.text(lines, margin, y2);
+          y2 += lines.length * 5.5 + 6;
+        }
+
+        // Divider
+        y2 += 6;
+        doc.setDrawColor(200, 200, 200);
+        doc.line(margin, y2, w - margin, y2);
+        y2 += 10;
+
+        // CTA intro
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'italic');
+        doc.setTextColor(99, 98, 97);
+        const ctaText = 'You do not have to figure this out alone. Come join me in Uterus Allies, my free private community on Instagram. Resources, research, and live expert calls.';
+        const ctaLines = doc.splitTextToSize(ctaText, maxW);
+        doc.text(ctaLines, margin, y2);
+        y2 += ctaLines.length * 5 + 8;
+
+        // Join link
+        doc.setFontSize(13);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(114, 94, 126);
+        doc.text('Join Uterus Allies (free)', margin + maxW / 2, y2, { align: 'center' });
+        const joinLinkY = y2;
+        y2 += 5;
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(99, 98, 97);
+        doc.text('ig.me/j/AbbmORXZV3iHcj-H', margin + maxW / 2, y2, { align: 'center' });
+        doc.link(margin, joinLinkY - 4, maxW, 10, { url: 'https://ig.me/j/AbbmORXZV3iHcj-H/' });
+        y2 += 10;
+
+        // Follow handle
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(114, 94, 126);
+        doc.text('Follow @napro_fertility_surgeon', margin + maxW / 2, y2, { align: 'center' });
+        y2 += 8;
+
+        // Signature
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(148, 145, 142);
+        doc.text('— Dr. Naomi Whittaker, MD, OBGYN', margin + maxW / 2, y2, { align: 'center' });
+      }
 
       doc.save('endo-survey-results.pdf');
 
