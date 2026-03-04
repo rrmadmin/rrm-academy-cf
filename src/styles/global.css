@@ -274,6 +274,18 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Mobile touch: eliminate 300ms tap delay and add instant feedback */
+a,
+button,
+[role="button"],
+input,
+select,
+textarea,
+summary {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* Theme toggle: expanding circle animation via View Transitions API */
 ::view-transition-old(root),
 ::view-transition-new(root) {
@@ -507,7 +519,8 @@ blockquote a {
   border: 1px solid var(--purple-700);
 }
 
-.btn--primary:hover {
+.btn--primary:hover,
+.btn--primary:active {
   background: var(--purple-900);
   border-color: var(--purple-900);
   color: var(--white);
@@ -520,7 +533,8 @@ blockquote a {
   border: 1px solid var(--purple-700);
 }
 
-.btn--secondary:hover {
+.btn--secondary:hover,
+.btn--secondary:active {
   color: var(--purple-900);
   border-color: var(--purple-900);
   text-decoration: none;
@@ -533,7 +547,8 @@ blockquote a {
   padding: var(--space-2) var(--space-3);
 }
 
-.btn--text:hover {
+.btn--text:hover,
+.btn--text:active {
   color: var(--purple-900);
   text-decoration: none;
 }
@@ -1222,7 +1237,7 @@ blockquote cite {
 .page-updated {
   text-align: center;
   font-size: 0.8rem;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   margin-top: var(--space-6);
   padding-bottom: var(--space-4);
 }

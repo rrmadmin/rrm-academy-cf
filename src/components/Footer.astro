@@ -77,9 +77,9 @@ const helpLinks = [
 </footer>
 
 <script>
-  fetch('/api/community/status', { credentials: 'same-origin' })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
+  // Defer: reuse Header's community status if available, otherwise fetch when idle
+  (function() {
+    function apply(data) {
       if (!data.ok || data.access !== 'member') return;
       var footerLink = document.getElementById('stuc-footer-link');
       if (footerLink) {
@@ -87,7 +87,21 @@ const helpLinks = [
         if (label) label.textContent = 'Save the Uterus Club';
         footerLink.href = '/community/';
       }
-    }).catch(function() {});
+    }
+    // Listen for Header's result to avoid a duplicate fetch
+    window.addEventListener('rrm:community-status', function(e) { apply(e.detail); });
+    // Fallback: if Header hasn't fired within 3s, fetch ourselves (deferred)
+    var timer = setTimeout(function() {
+      if ('requestIdleCallback' in window) requestIdleCallback(doFetch);
+      else setTimeout(doFetch, 100);
+    }, 3000);
+    window.addEventListener('rrm:community-status', function() { clearTimeout(timer); }, { once: true });
+    function doFetch() {
+      fetch('/api/community/status', { credentials: 'same-origin' })
+        .then(function(r) { return r.json(); })
+        .then(apply).catch(function() {});
+    }
+  })();
 </script>
 
 <style>

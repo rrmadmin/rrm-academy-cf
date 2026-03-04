@@ -720,23 +720,33 @@ const mobileNavSections = [
   if (themeToggle) themeToggle.addEventListener('click', handleThemeToggle);
   if (mobileThemeToggle) mobileThemeToggle.addEventListener('click', handleThemeToggle);
 
+  // Defer non-critical fetches so they never block tap/click interactivity
+  function deferWork(fn) {
+    if ('requestIdleCallback' in window) requestIdleCallback(fn);
+    else setTimeout(fn, 50);
+  }
+
   // Community nav: swap "Join Us" → "Save the Uterus Club" for members
-  fetch('/api/community/status', { credentials: 'same-origin' })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      if (!data.ok || data.access !== 'member') return;
-      var desktopLink = document.getElementById('stuc-nav-link');
-      var mobileLink = document.getElementById('stuc-mobile-nav-link');
-      if (desktopLink) {
-        desktopLink.textContent = 'Save the Uterus Club';
-        desktopLink.href = '/community/';
-      }
-      if (mobileLink) {
-        var label = mobileLink.querySelector('.nav-label');
-        if (label) label.textContent = 'Save the Uterus Club';
-        mobileLink.href = '/community/';
-      }
-    }).catch(function() {});
+  deferWork(function() {
+    fetch('/api/community/status', { credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        // Broadcast for Footer (avoids duplicate fetch)
+        window.dispatchEvent(new CustomEvent('rrm:community-status', { detail: data }));
+        if (!data.ok || data.access !== 'member') return;
+        var desktopLink = document.getElementById('stuc-nav-link');
+        var mobileLink = document.getElementById('stuc-mobile-nav-link');
+        if (desktopLink) {
+          desktopLink.textContent = 'Save the Uterus Club';
+          desktopLink.href = '/community/';
+        }
+        if (mobileLink) {
+          var label = mobileLink.querySelector('.nav-label');
+          if (label) label.textContent = 'Save the Uterus Club';
+          mobileLink.href = '/community/';
+        }
+      }).catch(function() {});
+  });
 
   // Saved articles badge (desktop + mobile)
   (function() {
@@ -754,51 +764,51 @@ const mobileNavSections = [
       }
     }
 
+    // Instant: show badge from localStorage (no network, no delay)
     try {
       var saved = JSON.parse(localStorage.getItem('rrm_saved') || '[]');
       if (saved.length > 0) setBadge(saved.length);
     } catch(e) {}
 
-    // If logged in, sync with server and update badge with merged count
-    fetch('/api/auth/session', { credentials: 'same-origin' })
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        if (!data.ok || !data.user) return;
-        var local = [];
-        try { local = JSON.parse(localStorage.getItem('rrm_saved') || '[]'); } catch(e) {}
-        if (local.length > 0) {
-          // Sync local → server, get merged set back
-          fetch('/api/saved', {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ articles: local })
-          })
-            .then(function(r) { return r.json(); })
-            .then(function(result) {
-              if (result.ok && result.articles) {
-                // Merge into localStorage
-                var slugMap = {};
-                local.forEach(function(a) { slugMap[a.slug] = a; });
-                result.articles.forEach(function(a) { slugMap[a.slug] = a; });
-                var merged = Object.values(slugMap);
-                merged.sort(function(a, b) { return (b.savedAt || '').localeCompare(a.savedAt || ''); });
-                localStorage.setItem('rrm_saved', JSON.stringify(merged));
-                setBadge(merged.length);
-              }
-            }).catch(function() {});
-        } else {
-          // No local saves — fetch server saves
-          fetch('/api/saved', { credentials: 'same-origin' })
-            .then(function(r) { return r.json(); })
-            .then(function(result) {
-              if (result.ok && result.articles && result.articles.length > 0) {
-                localStorage.setItem('rrm_saved', JSON.stringify(result.articles));
-                setBadge(result.articles.length);
-              }
-            }).catch(function() {});
-        }
-      }).catch(function() {});
+    // Deferred: sync with server when idle
+    deferWork(function() {
+      fetch('/api/auth/session', { credentials: 'same-origin' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (!data.ok || !data.user) return;
+          var local = [];
+          try { local = JSON.parse(localStorage.getItem('rrm_saved') || '[]'); } catch(e) {}
+          if (local.length > 0) {
+            fetch('/api/saved', {
+              method: 'POST',
+              credentials: 'same-origin',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ articles: local })
+            })
+              .then(function(r) { return r.json(); })
+              .then(function(result) {
+                if (result.ok && result.articles) {
+                  var slugMap = {};
+                  local.forEach(function(a) { slugMap[a.slug] = a; });
+                  result.articles.forEach(function(a) { slugMap[a.slug] = a; });
+                  var merged = Object.values(slugMap);
+                  merged.sort(function(a, b) { return (b.savedAt || '').localeCompare(a.savedAt || ''); });
+                  localStorage.setItem('rrm_saved', JSON.stringify(merged));
+                  setBadge(merged.length);
+                }
+              }).catch(function() {});
+          } else {
+            fetch('/api/saved', { credentials: 'same-origin' })
+              .then(function(r) { return r.json(); })
+              .then(function(result) {
+                if (result.ok && result.articles && result.articles.length > 0) {
+                  localStorage.setItem('rrm_saved', JSON.stringify(result.articles));
+                  setBadge(result.articles.length);
+                }
+              }).catch(function() {});
+          }
+        }).catch(function() {});
+    });
   })();
 
   // Library nav: slide links left on load, reveal on logo hover (desktop only)

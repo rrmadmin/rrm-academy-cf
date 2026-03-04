@@ -6,10 +6,7 @@ import '../styles/global.css';
 
 // Vite ?url imports resolve hashed font paths at build time for preloading
 import cormorant400 from '@fontsource/cormorant-garamond/files/cormorant-garamond-latin-400-normal.woff2?url';
-import cormorant600 from '@fontsource/cormorant-garamond/files/cormorant-garamond-latin-600-normal.woff2?url';
 import inter400 from '@fontsource/inter/files/inter-latin-400-normal.woff2?url';
-import inter500 from '@fontsource/inter/files/inter-latin-500-normal.woff2?url';
-import inter600 from '@fontsource/inter/files/inter-latin-600-normal.woff2?url';
 
 interface Props {
   title: string;
@@ -132,12 +129,12 @@ const resolvedTwitterImage = resolvedOgImage.endsWith('.webp')
     </>
   )}
 
-  <!-- Preload critical fonts (eliminates CSS→font waterfall) -->
-  <link rel="preload" href={cormorant400} as="font" type="font/woff2" crossorigin />
-  <link rel="preload" href={cormorant600} as="font" type="font/woff2" crossorigin />
+  <!-- Preconnect to third-party origins used on every page -->
+  <link rel="preconnect" href="https://static.cloudflareinsights.com" crossorigin />
+
+  <!-- Preload only the two most critical fonts; others load via CSS naturally -->
   <link rel="preload" href={inter400} as="font" type="font/woff2" crossorigin />
-  <link rel="preload" href={inter500} as="font" type="font/woff2" crossorigin />
-  <link rel="preload" href={inter600} as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href={cormorant400} as="font" type="font/woff2" crossorigin />
 
   <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />

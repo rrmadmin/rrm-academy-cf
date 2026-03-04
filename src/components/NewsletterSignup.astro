@@ -37,7 +37,7 @@ const {
         class="newsletter-input"
       />
       <!-- Honeypot -->
-      <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;opacity:0;" />
+      <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;" />
       <button type="submit" class="newsletter-btn" data-newsletter-btn>Subscribe</button>
     </div>
     <div class="newsletter-turnstile" data-newsletter-turnstile></div>
@@ -50,13 +50,24 @@ const {
   const forms = document.querySelectorAll('[data-newsletter-form]');
   if (!forms.length) return;
 
-  // Load Turnstile script once
+  // Lazy-load Turnstile script on first user interaction (not on page load)
   let turnstileReady = false;
-  const script = document.createElement('script');
-  script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
-  script.async = true;
-  script.onload = () => { turnstileReady = true; renderWidgets(); };
-  document.head.appendChild(script);
+  let turnstileLoading = false;
+  function loadTurnstile() {
+    if (turnstileLoading) return;
+    turnstileLoading = true;
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+    script.async = true;
+    script.onload = () => { turnstileReady = true; renderWidgets(); };
+    document.head.appendChild(script);
+  }
+  // Load when user focuses the email input or hovers the form
+  forms.forEach((form) => {
+    const input = form.querySelector('input');
+    if (input) input.addEventListener('focus', loadTurnstile, { once: true });
+    form.addEventListener('pointerenter', loadTurnstile, { once: true });
+  });
 
   const widgets = new Map();
 
