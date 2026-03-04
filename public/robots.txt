@@ -13,4 +13,34 @@ Disallow: /save-the-uterus-club/thank-you
 Disallow: /api/
 Disallow: /community/
 
+# AI crawlers: library content and llms.txt are explicitly welcomed
+User-agent: GPTBot
+Allow: /library/
+Allow: /llms.txt
+Disallow: /api/
+Disallow: /account
+Disallow: /community/
+
+User-agent: Google-Extended
+Allow: /library/
+Allow: /llms.txt
+
+User-agent: PerplexityBot
+Allow: /library/
+Allow: /llms.txt
+Disallow: /api/
+Disallow: /account
+Disallow: /community/
+
+User-agent: ClaudeBot
+Allow: /library/
+Allow: /llms.txt
+Disallow: /api/
+Disallow: /account
+Disallow: /community/
+
+User-agent: Applebot-Extended
+Allow: /library/
+Allow: /llms.txt
+
 Sitemap: https://rrmacademy.org/sitemap-index.xml
