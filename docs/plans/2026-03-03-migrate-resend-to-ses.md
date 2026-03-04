@@ -6,74 +6,134 @@
 
 **Architecture:** A shared `functions/api/_ses.js` helper wraps the SES v2 HTTP API using `aws4fetch` (a tiny SigV4 signing library compatible with the CF Workers runtime). All 6 function files import from this helper instead of calling Resend directly.
 
-**Tech Stack:** CF Pages Functions (Workers runtime), `aws4fetch` npm package, AWS SES v2 HTTP API, IAM access keys in CF Pages environment variables.
+**Tech Stack:** CF Pages Functions (Workers runtime), `aws4fetch` npm package, AWS SES v2 HTTP API, IAM access keys in CF Pages environment variables, Playwright for AWS/CF console automation.
+
+---
+
+**Autonomy Contract:**
+- Runs without human input: YES — after Brian creates AWS account and is logged into Comet
+- Abort conditions:
+  - Playwright cannot locate expected AWS Console element → stop, report exact URL + selector that failed
+  - IAM access key generation fails → stop, report error
+  - Captured DKIM records look malformed (not matching `*.dkim.amazonses.com`) → stop, report
+  - `npm run build` exits non-zero → stop, do not push
+  - CF Pages env var save fails → stop, report
+- Revert authority: agent may `git revert` code commits automatically if build fails
+- Human required: **AWS account creation only** (credit card, phone verification, CAPTCHAs)
+
+**Credentials inventory:**
+- AWS Console: Brian logged into Comet before handoff
+- Cloudflare MCP: available (full-access token, account ID `ecf2c5bc8b5ebd634bcb587b3890910a`)
+- 1Password: `source ~/.zshrc && op item create` (service account, no fingerprint)
+- CF Pages dashboard: Playwright via Comet (Brian logged in)
+
+**Error paths:**
+| Failure | Signal | Response |
+|---------|--------|----------|
+| AWS Console layout changed | Playwright element not found | Stop, report URL + selector |
+| SES domain verification stuck | Status not "Pending" after submit | Stop, report |
+| DKIM records malformed | Record doesn't end in `.dkim.amazonses.com` | Stop, report |
+| Sandbox removal form not found | Playwright timeout | Stop, report |
+| `npm run build` fails | Non-zero exit | Stop, do not push |
+| CF Pages save fails | Playwright error or no success toast | Stop, report |
+| Smoke test returns non-200 | HTTP status or `ok: false` | Stop, report response body |
+
+**Go/no-go metric:** Playwright submits survey form at `https://rrmacademy.org/endo-survey` with a test email → response body contains `{"ok":true}`. A 502 means SES rejected; anything else is a different failure. Pass = `ok: true`. Fail = anything else.
 
 ---
 
 ## Scope
 
-**6 files using Resend today:**
-- `functions/api/survey/request.js` — survey magic links (high volume, ~300-500/day)
+**6 files using Resend:**
+- `functions/api/survey/request.js` — survey magic links (~300-500/day)
 - `functions/api/auth/signup.js` — email verification on signup
 - `functions/api/auth/forgot-password.js` — password reset links
 - `functions/api/auth/resend-verification.js` — resend verification code
 - `functions/api/contact/submit.js` — contact form (2 emails per submission)
-- `functions/api/stripe-webhook.js` — course enrollment, membership, payment failure emails
+- `functions/api/stripe-webhook.js` — enrollment, membership, payment failure emails
 
-**Sending addresses in use:**
+**Sending addresses:**
 - `survey@rrmacademy.org`
 - `accounts@rrmacademy.org`
 - `contact@rrmacademy.org`
 
 ---
 
-## Phase 1: AWS Account + SES Setup (Brian — manual, ~20 mins)
+## Phase 1: Brian creates AWS account (manual, ~5 mins)
 
-> Do this before Phase 3. Sandbox removal can take up to 24h — request it first.
+Go to https://aws.amazon.com → Create an AWS Account. Use `aws@rrmacademy.org` or admin email. Complete credit card + phone verification. Sign in to AWS Console when done.
 
-### Step 1.1: Create AWS account
+**Handoff:** Brian is logged into AWS Console in Comet. Playwright takes over from here.
 
-Go to https://aws.amazon.com → Create an AWS Account. Use a dedicated email like `aws@rrmacademy.org` or your admin email. Free tier is sufficient.
+---
 
-### Step 1.2: Enable SES in us-east-1
+## Phase 2: Playwright — SES domain verification
 
-In AWS Console → Services → Simple Email Service → select region **us-east-1**.
+**Step 1: Navigate to SES**
 
-### Step 1.3: Verify domain rrmacademy.org
-
-In SES → Verified Identities → Create Identity → Domain → `rrmacademy.org`.
-
-Enable **DKIM signing** (Easy DKIM, RSA-2048). AWS will generate 3 CNAME records.
-
-Copy all records — you'll need them for Phase 2.
-
-Format will be:
 ```
-_domainkey.rrmacademy.org CNAME <hash1>.dkim.amazonses.com
-_domainkey.rrmacademy.org CNAME <hash2>.dkim.amazonses.com
-_domainkey.rrmacademy.org CNAME <hash3>.dkim.amazonses.com
-```
-Plus a verification TXT:
-```
-_amazonses.rrmacademy.org TXT <verification-token>
+open -a "Comet" "https://us-east-1.console.aws.amazon.com/ses/home?region=us-east-1#/verified-identities"
 ```
 
-### Step 1.4: Request production access (out of sandbox)
+**Step 2: Create domain identity**
 
-In SES → Account Dashboard → Request production access.
+Playwright clicks "Create identity" → selects "Domain" → enters `rrmacademy.org` → enables "Easy DKIM" → RSA-2048 → clicks "Create identity".
 
-Fill out:
+**Step 3: Capture DKIM records**
+
+After creation, the console shows 3 CNAME records. Playwright reads and stores:
+- 3x CNAME: `<hash>._domainkey.rrmacademy.org` → `<hash>.dkim.amazonses.com`
+- 1x TXT: `_amazonses.rrmacademy.org` → `<verification-token>`
+
+Validate: all CNAME values must end in `.dkim.amazonses.com`. Abort if not.
+
+---
+
+## Phase 3: CF MCP — Add DNS records
+
+Using the Cloudflare MCP (zone: `rrmacademy.org`), add:
+
+- 3x CNAME records (proxy: OFF / DNS-only):
+  - Name: `<hash1>._domainkey` → Content: `<hash1>.dkim.amazonses.com`
+  - Name: `<hash2>._domainkey` → Content: `<hash2>.dkim.amazonses.com`
+  - Name: `<hash3>._domainkey` → Content: `<hash3>.dkim.amazonses.com`
+- 1x TXT record:
+  - Name: `_amazonses` → Content: `<verification-token>`
+
+---
+
+## Phase 4: Playwright — Submit sandbox removal request
+
+Navigate to:
+```
+https://us-east-1.console.aws.amazon.com/ses/home?region=us-east-1#/account
+```
+
+Click "Request production access". Fill form:
 - Mail type: **Transactional**
 - Website URL: `https://rrmacademy.org`
-- Use case: "Send magic links for an endometriosis symptom self-survey and account verification emails for our educational platform. All recipients explicitly request emails. Volume ~300-500 survey emails/day."
+- Use case description:
+  ```
+  We send magic links for an endometriosis symptom self-survey and transactional account emails (verification codes, password resets) for an educational nonprofit platform. All recipients explicitly request emails by submitting their address. Volume is approximately 300-500 survey emails per day plus low-volume auth emails. We maintain low complaint rates through rate limiting (1 email per 10 minutes per address) and clear unsubscribe paths.
+  ```
+- Check "I agree to the AWS Service Terms"
+- Submit
 
-Approval is usually within a few hours.
+Note: Approval takes up to 24h. Code and DNS work can proceed in parallel. Production sends to external addresses will succeed only after approval.
 
-### Step 1.5: Create IAM user with minimal SES permissions
+---
 
-In IAM → Users → Create User → name: `rrm-ses-sender`.
+## Phase 5: Playwright — Create IAM user + access keys
 
-Attach this inline policy (replace `YOUR_ACCOUNT_ID` and `us-east-1` if different):
+Navigate to:
+```
+https://us-east-1.console.aws.amazon.com/iam/home#/users/create
+```
+
+**Step 1: Create user**
+- User name: `rrm-ses-sender`
+- Select "Attach policies directly"
+- Click "Create policy" (opens new tab) → JSON tab → paste:
 
 ```json
 {
@@ -82,62 +142,54 @@ Attach this inline policy (replace `YOUR_ACCOUNT_ID` and `us-east-1` if differen
     {
       "Effect": "Allow",
       "Action": "ses:SendEmail",
-      "Resource": "arn:aws:ses:us-east-1:YOUR_ACCOUNT_ID:identity/rrmacademy.org"
+      "Resource": "arn:aws:ses:us-east-1:*:identity/rrmacademy.org"
     }
   ]
 }
 ```
+- Policy name: `rrm-ses-send-only`
+- Create policy, return to user creation tab, attach the policy, create user.
 
-Then: Security credentials → Create access key → Application running outside AWS → copy both values.
+**Step 2: Generate access key**
 
-### Step 1.6: Store credentials in 1Password
+Open the user → Security credentials → Create access key → "Application running outside AWS" → Create.
 
-In 1Password Automation vault, create item `AWS SES — RRM Academy`:
-- `access_key_id`: the key ID
-- `secret_access_key`: the secret key
-- `region`: `us-east-1`
-
----
-
-## Phase 2: DNS Records in Cloudflare (I do — after Brian provides DKIM records)
-
-Add to `rrmacademy.org` zone via Cloudflare MCP:
-- 3x CNAME records for DKIM (proxied: OFF — must be DNS-only)
-- 1x TXT record for domain verification
+Playwright reads and stores:
+- Access Key ID
+- Secret Access Key (only shown once — capture immediately)
 
 ---
 
-## Phase 3: Code Changes (I do — can be done now)
+## Phase 6: Store credentials in 1Password
 
-### Task 1: Install aws4fetch
+```bash
+source ~/.zshrc && op item create \
+  --vault Automation \
+  --title "AWS SES — RRM Academy" \
+  --category Login \
+  username="<ACCESS_KEY_ID>" \
+  password="<SECRET_ACCESS_KEY>" \
+  "region[text]=us-east-1"
+```
 
-**Files:**
-- Modify: `package.json`
+---
 
-**Step 1: Install the package**
+## Phase 7: Code changes
+
+### Task 7.1: Install aws4fetch
 
 ```bash
 cd /Users/brian/iCode/projects/rrm-academy-cf
 npm install aws4fetch
-```
-
-Expected: `aws4fetch` added to `dependencies` in `package.json`.
-
-**Step 2: Commit**
-
-```bash
 git add package.json package-lock.json
 git commit -m "deps: add aws4fetch for SES signing"
 ```
 
 ---
 
-### Task 2: Create shared SES helper
+### Task 7.2: Create shared SES helper
 
-**Files:**
-- Create: `functions/api/_ses.js`
-
-**Step 1: Write the helper**
+**Create:** `functions/api/_ses.js`
 
 ```js
 /**
@@ -147,15 +199,14 @@ git commit -m "deps: add aws4fetch for SES signing"
 import { AwsClient } from 'aws4fetch';
 
 /**
- * @param {object} env - CF Pages environment (must have AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+ * @param {object} env - CF Pages environment
  * @param {object} opts
- * @param {string} opts.from - Sender address, e.g. "Name <addr@domain.com>"
- * @param {string|string[]} opts.to - Recipient(s)
+ * @param {string} opts.from
+ * @param {string|string[]} opts.to
  * @param {string} opts.subject
- * @param {string} [opts.html] - HTML body
- * @param {string} [opts.text] - Plain text body
- * @param {string} [opts.replyTo] - Reply-to address
- * @returns {Promise<Response>}
+ * @param {string} [opts.html]
+ * @param {string} [opts.text]
+ * @param {string} [opts.replyTo]
  */
 export async function sendEmail(env, { from, to, subject, html, text, replyTo }) {
   const region = env.AWS_SES_REGION || 'us-east-1';
@@ -199,8 +250,6 @@ export async function sendEmail(env, { from, to, subject, html, text, replyTo })
 }
 ```
 
-**Step 2: Commit**
-
 ```bash
 git add functions/api/_ses.js
 git commit -m "feat: add shared SES email helper"
@@ -208,34 +257,23 @@ git commit -m "feat: add shared SES email helper"
 
 ---
 
-### Task 3: Update functions/api/survey/request.js
+### Task 7.3: Update functions/api/survey/request.js
 
-**Files:**
-- Modify: `functions/api/survey/request.js`
-
-**Step 1: Replace the Resend block**
-
-At top of file, add import:
+Add at top:
 ```js
 import { sendEmail } from '../_ses.js';
 ```
 
-Replace the guard check:
+Replace guard:
 ```js
 // OLD
 if (!env.RESEND_API_KEY) {
-  return json({ ok: false, error: 'Server misconfigured' }, 500);
-}
-
 // NEW
 if (!env.AWS_ACCESS_KEY_ID || !env.AWS_SECRET_ACCESS_KEY) {
-  return json({ ok: false, error: 'Server misconfigured' }, 500);
-}
 ```
 
-Replace the send block (lines 86-112):
+Replace send block (lines 86-112):
 ```js
-// Send email via SES
 try {
   await sendEmail(env, {
     from: 'RRM Academy <survey@rrmacademy.org>',
@@ -250,8 +288,6 @@ try {
 }
 ```
 
-**Step 2: Commit**
-
 ```bash
 git add functions/api/survey/request.js
 git commit -m "feat: migrate survey/request to SES"
@@ -259,21 +295,15 @@ git commit -m "feat: migrate survey/request to SES"
 
 ---
 
-### Task 4: Update functions/api/auth/signup.js
+### Task 7.4: Update functions/api/auth/signup.js
 
-**Files:**
-- Modify: `functions/api/auth/signup.js`
-
-**Step 1: Replace the Resend block**
-
-Add import at top:
+Add at top:
 ```js
 import { sendEmail } from '../_ses.js';
 ```
 
-Replace the email block (lines 83-116):
+Replace email block (lines 83-116):
 ```js
-// Send verification email (fire-and-forget)
 if (env.AWS_ACCESS_KEY_ID) {
   sendEmail(env, {
     from: 'RRM Academy <accounts@rrmacademy.org>',
@@ -298,8 +328,6 @@ if (env.AWS_ACCESS_KEY_ID) {
 }
 ```
 
-**Step 2: Commit**
-
 ```bash
 git add functions/api/auth/signup.js
 git commit -m "feat: migrate auth/signup to SES"
@@ -307,28 +335,19 @@ git commit -m "feat: migrate auth/signup to SES"
 
 ---
 
-### Task 5: Update functions/api/auth/forgot-password.js
+### Task 7.5: Update functions/api/auth/forgot-password.js
 
-**Files:**
-- Modify: `functions/api/auth/forgot-password.js`
-
-**Step 1: Replace the Resend block**
-
-Add import at top:
+Add at top:
 ```js
 import { sendEmail } from '../_ses.js';
 ```
 
-Change guard condition (line 41):
+Change guard (line 41):
 ```js
-// OLD
-if (user && env.RESEND_API_KEY) {
-
-// NEW
 if (user && env.AWS_ACCESS_KEY_ID) {
 ```
 
-Replace the fetch block (lines 58-89):
+Replace fetch block (lines 58-89):
 ```js
 try {
   await sendEmail(env, {
@@ -354,8 +373,6 @@ try {
 }
 ```
 
-**Step 2: Commit**
-
 ```bash
 git add functions/api/auth/forgot-password.js
 git commit -m "feat: migrate auth/forgot-password to SES"
@@ -363,28 +380,19 @@ git commit -m "feat: migrate auth/forgot-password to SES"
 
 ---
 
-### Task 6: Update functions/api/auth/resend-verification.js
+### Task 7.6: Update functions/api/auth/resend-verification.js
 
-**Files:**
-- Modify: `functions/api/auth/resend-verification.js`
-
-**Step 1: Replace the Resend block**
-
-Add import at top:
+Add at top:
 ```js
 import { sendEmail } from '../_ses.js';
 ```
 
 Change guard (line 46):
 ```js
-// OLD
-if (env.RESEND_API_KEY) {
-
-// NEW
 if (env.AWS_ACCESS_KEY_ID) {
 ```
 
-Replace the fetch block (lines 48-74):
+Replace fetch block (lines 48-74):
 ```js
 try {
   await sendEmail(env, {
@@ -410,8 +418,6 @@ try {
 }
 ```
 
-**Step 2: Commit**
-
 ```bash
 git add functions/api/auth/resend-verification.js
 git commit -m "feat: migrate auth/resend-verification to SES"
@@ -419,28 +425,19 @@ git commit -m "feat: migrate auth/resend-verification to SES"
 
 ---
 
-### Task 7: Update functions/api/contact/submit.js
+### Task 7.7: Update functions/api/contact/submit.js
 
-**Files:**
-- Modify: `functions/api/contact/submit.js`
-
-**Step 1: Replace the Resend blocks**
-
-Add import at top:
+Add at top:
 ```js
 import { sendEmail } from '../_ses.js';
 ```
 
 Change guard (line 26):
 ```js
-// OLD
-if (!env.RESEND_API_KEY) {
-
-// NEW
 if (!env.AWS_ACCESS_KEY_ID || !env.AWS_SECRET_ACCESS_KEY) {
 ```
 
-Replace first email fetch block (lines 87-113):
+Replace first send block:
 ```js
 try {
   await sendEmail(env, {
@@ -464,7 +461,7 @@ try {
 }
 ```
 
-Replace second email fetch block (lines 122-150):
+Replace second send block:
 ```js
 try {
   await sendEmail(env, {
@@ -486,8 +483,6 @@ try {
 }
 ```
 
-**Step 2: Commit**
-
 ```bash
 git add functions/api/contact/submit.js
 git commit -m "feat: migrate contact/submit to SES"
@@ -495,29 +490,22 @@ git commit -m "feat: migrate contact/submit to SES"
 
 ---
 
-### Task 8: Update functions/api/stripe-webhook.js
+### Task 7.8: Update functions/api/stripe-webhook.js
 
-**Files:**
-- Modify: `functions/api/stripe-webhook.js`
-
-**Step 1: Read the file first, then replace**
-
-The file has a local `sendEmail(apiKey, opts)` helper function. Replace it with an import and update all call sites.
+Read the file first. It has a local `sendEmail(apiKey, opts)` helper and inline fetch calls.
 
 Add import at top:
 ```js
-import { sendEmail as sesSendEmail } from './_ses.js';
+import { sendEmail } from './_ses.js';
 ```
 
-Find the local `sendEmail` function and delete it. Then find all calls to `sendEmail(env.RESEND_API_KEY, { to, subject, text })` and replace with `sesSendEmail(env, { from: 'RRM Academy <accounts@rrmacademy.org>', to, subject, text })`.
+Delete the local `sendEmail` function entirely.
 
-For the inline `fetch('https://api.resend.com/emails', ...)` blocks, replace similarly using `sesSendEmail`.
+Update all call sites: replace `sendEmail(env.RESEND_API_KEY, { to, subject, text })` with `sendEmail(env, { from: 'RRM Academy <accounts@rrmacademy.org>', to, subject, text })`.
 
-The enrollment confirmation `from` should be `accounts@rrmacademy.org`. The payment failed email `from` should be `accounts@rrmacademy.org`.
+Replace all inline `fetch('https://api.resend.com/emails', ...)` blocks with equivalent `sendEmail(env, {...})` calls using `accounts@rrmacademy.org` as from address.
 
-Also update the guard conditions from `env.RESEND_API_KEY` to `env.AWS_ACCESS_KEY_ID`.
-
-**Step 2: Commit**
+Replace all `env.RESEND_API_KEY` guard conditions with `env.AWS_ACCESS_KEY_ID`.
 
 ```bash
 git add functions/api/stripe-webhook.js
@@ -526,59 +514,78 @@ git commit -m "feat: migrate stripe-webhook to SES"
 
 ---
 
-## Phase 4: CF Pages Environment Variables (Brian — manual)
+## Phase 8: Playwright — Add CF Pages env vars
 
-In Cloudflare Dashboard → Pages → rrm-academy → Settings → Environment Variables:
+Navigate to:
+```
+https://dash.cloudflare.com/ecf2c5bc8b5ebd634bcb587b3890910a/pages/view/rrm-academy/settings/environment-variables
+```
 
-**Add (Production + Preview):**
+Add to Production environment:
 | Variable | Value |
 |---|---|
-| `AWS_ACCESS_KEY_ID` | from 1Password |
-| `AWS_SECRET_ACCESS_KEY` | from 1Password |
+| `AWS_ACCESS_KEY_ID` | from 1Password item "AWS SES — RRM Academy" |
+| `AWS_SECRET_ACCESS_KEY` | from 1Password item "AWS SES — RRM Academy" |
 | `AWS_SES_REGION` | `us-east-1` |
 
-**Remove:**
-| Variable |
-|---|
-| `RESEND_API_KEY` |
+Delete: `RESEND_API_KEY`
+
+Save.
 
 ---
 
-## Phase 5: Deploy + Test
+## Phase 9: Build + Deploy
 
-### Step 5.1: Build and deploy
+Deploys are automated via GitHub Actions on push to main.
 
 ```bash
 cd /Users/brian/iCode/projects/rrm-academy-cf
 npm run build
-CLOUDFLARE_ACCOUNT_ID="ecf2c5bc8b5ebd634bcb587b3890910a" npx wrangler pages deploy dist --project-name rrm-academy
 ```
 
-### Step 5.2: Test survey email
+If build passes (exit 0):
+```bash
+git push origin main
+```
 
-Go to `https://rrmacademy.org/endo-survey` and submit a test email address. Verify the magic link email arrives via SES.
+Monitor GitHub Actions for successful deployment before smoke test.
 
-### Step 5.3: Test contact form
+---
 
-Submit the contact form at `https://rrmacademy.org/contact`. Verify both the admin notification and the user confirmation arrive.
+## Phase 10: Playwright smoke test
 
-### Step 5.4: Monitor SES console
+**Test 1: Survey endpoint**
 
-In AWS SES → Account Dashboard, verify send metrics show successful deliveries, no bounces or complaints.
+POST to `https://rrmacademy.org/api/survey/request` with body `{"email":"test+ses@rrmacademy.org"}`.
+
+Pass: response body is `{"ok":true}` with HTTP 200.
+Fail: 502 (SES rejected) or 500 (misconfigured) → stop, report response body.
+
+**Test 2: Contact form**
+
+Playwright fills and submits the contact form at `https://rrmacademy.org/contact`.
+
+Pass: success message appears in DOM.
+Fail: error message → report.
 
 ---
 
 ## Rollback
 
-If SES has issues before sandbox removal is approved (sends fail to external addresses):
-1. Re-add `RESEND_API_KEY` to CF Pages env vars
-2. Revert code: `git revert HEAD~8..HEAD` and redeploy
+If smoke test fails after deploy:
 
-After sandbox removal is approved, SES sends to all external addresses without restriction.
+```bash
+cd /Users/brian/iCode/projects/rrm-academy-cf
+git revert HEAD~9..HEAD
+git push origin main
+```
+
+Then re-add `RESEND_API_KEY` in CF Pages dashboard.
 
 ---
 
-## Cost Estimate
+## Cost
 
-At 10,000 emails/month: **$1.00/month** (SES: $0.10 per 1,000).
-vs Resend Pro: **$20/month**.
+At 10,000 emails/month: **~$1.00/month** vs Resend Pro **$20/month**.
+
+Sandbox removal note: until AWS approves production access, SES only sends to verified addresses. The survey will be functional for verified test addresses immediately; full public sends resume after approval (typically a few hours to 24h).
