@@ -44,6 +44,11 @@ export async function onRequestPost(context) {
   }
 
   const { action, params = {} } = body;
+
+  if (!action) {
+    return json({ error: 'Missing action field' }, 400);
+  }
+
   const baseUrl = env.BACKLINKS_WORKER_URL.replace(/\/+$/, '');
   const workerHeaders = {
     'Authorization': `Bearer ${env.BACKLINKS_API_TOKEN}`,
@@ -82,10 +87,10 @@ export async function onRequestPost(context) {
       break;
 
     case 'check':
-      if (!params.id) {
-        return json({ error: 'Missing params.id for check action' }, 400);
+      if (!params.id || !/^\d+$/.test(String(params.id))) {
+        return json({ error: 'Invalid or missing params.id' }, 400);
       }
-      workerUrl = `${baseUrl}/api/check/${params.id}`;
+      workerUrl = `${baseUrl}/api/check/${encodeURIComponent(params.id)}`;
       method = 'POST';
       break;
 
