@@ -573,35 +573,59 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         if (isAdmin || isMod) {
           var controls = document.createElement('div');
           controls.className = 'post-card__controls';
+
+          var menuBtn = document.createElement('button');
+          menuBtn.className = 'ctrl-menu-btn';
+          menuBtn.setAttribute('aria-label', 'Post actions');
+          menuBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>';
+
+          var dropdown = document.createElement('div');
+          dropdown.className = 'ctrl-dropdown';
+          dropdown.hidden = true;
+
           if (isMod) {
             var pinBtn = document.createElement('button');
-            pinBtn.className = 'ctrl-btn';
+            pinBtn.className = 'ctrl-dropdown-item';
             pinBtn.textContent = post.pinned ? 'Unpin' : 'Pin';
             pinBtn.addEventListener('click', function (ev) {
               ev.stopPropagation();
+              dropdown.hidden = true;
               togglePin(post.id, !post.pinned, pinBtn, card);
             });
-            controls.appendChild(pinBtn);
+            dropdown.appendChild(pinBtn);
           }
           if (isAdmin) {
             var editBtn = document.createElement('button');
-            editBtn.className = 'ctrl-btn';
+            editBtn.className = 'ctrl-dropdown-item';
             editBtn.textContent = 'Edit';
             editBtn.addEventListener('click', function (ev) {
               ev.stopPropagation();
+              dropdown.hidden = true;
               openEditModal(post, card);
             });
-            controls.appendChild(editBtn);
+            dropdown.appendChild(editBtn);
 
             var delBtn = document.createElement('button');
-            delBtn.className = 'ctrl-btn ctrl-btn--danger';
+            delBtn.className = 'ctrl-dropdown-item ctrl-dropdown-item--danger';
             delBtn.textContent = 'Delete';
             delBtn.addEventListener('click', function (ev) {
               ev.stopPropagation();
+              dropdown.hidden = true;
               deletePost(post.id, card);
             });
-            controls.appendChild(delBtn);
+            dropdown.appendChild(delBtn);
           }
+
+          menuBtn.addEventListener('click', function (ev) {
+            ev.stopPropagation();
+            var wasHidden = dropdown.hidden;
+            // Close any other open menus
+            document.querySelectorAll('.ctrl-dropdown').forEach(function (d) { d.hidden = true; });
+            dropdown.hidden = !wasHidden;
+          });
+
+          controls.appendChild(menuBtn);
+          controls.appendChild(dropdown);
           header.appendChild(controls);
         }
 
@@ -1292,6 +1316,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
       document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && !editModalEl.hidden) closeEditModal();
+        if (e.key === 'Escape') document.querySelectorAll('.ctrl-dropdown').forEach(function (d) { d.hidden = true; });
+      });
+
+      // Close kebab menus on outside click
+      document.addEventListener('click', function (e) {
+        if (!e.target.closest('.post-card__controls')) {
+          document.querySelectorAll('.ctrl-dropdown').forEach(function (d) { d.hidden = true; });
+        }
       });
 
       editModalForm.addEventListener('submit', function (e) {
@@ -1766,30 +1798,61 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     font-size: 15px;
   }
 
-  /* Staff controls (inline in header) */
+  /* Staff controls (kebab menu) */
   .post-card__controls {
     margin-left: auto;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .ctrl-menu-btn {
     display: flex;
     align-items: center;
-    gap: 2px;
-  }
-  .ctrl-btn {
-    font-size: 13px;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
     color: var(--text-muted);
     background: none;
     border: none;
-    padding: 2px 8px;
     border-radius: var(--radius-pill);
     cursor: pointer;
-    text-decoration: none;
     transition: background 0.1s, color 0.1s;
-    font-family: inherit;
   }
-  .ctrl-btn:hover {
+  .ctrl-menu-btn:hover {
     background: var(--neutral-200);
     color: var(--text-primary);
   }
-  .ctrl-btn--danger:hover {
+  .ctrl-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 20;
+    background: var(--bg-surface, #fff);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md, 8px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    min-width: 120px;
+    padding: 4px 0;
+  }
+  .ctrl-dropdown[hidden] {
+    display: none;
+  }
+  .ctrl-dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text-primary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.1s;
+  }
+  .ctrl-dropdown-item:hover {
+    background: var(--neutral-100, #f5f5f5);
+  }
+  .ctrl-dropdown-item--danger:hover {
     color: var(--color-error);
     background: rgba(192, 57, 43, 0.08);
   }
