@@ -10,7 +10,7 @@
  */
 import {
   generateId, createSession, sessionCookie,
-  exchangeGoogleCode, getGoogleProfile, SITE_URL,
+  exchangeGoogleCode, getGoogleProfile, isSafeRedirect, SITE_URL,
 } from './_shared.js';
 
 const LOGIN_ERROR_URL = '/login?error=oauth_failed';
@@ -31,7 +31,7 @@ export async function onRequestGet({ request, env }) {
     }
 
     // Determine where to send the user after login (prevent open redirects)
-    const returnTo = (state && state.startsWith('/') && !state.startsWith('//')) ? state : '/account/';
+    const returnTo = (state && isSafeRedirect(state)) ? state : '/account/';
 
     // Exchange authorization code for tokens
     const redirectUri = `${SITE_URL}/api/auth/google-callback`;

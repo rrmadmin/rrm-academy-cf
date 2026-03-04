@@ -37,9 +37,16 @@ export async function onRequestPost({ request, env }) {
     if (!isValidPassword(newPassword)) return json({ ok: false, error: 'New password must be at least 8 characters.' }, 400);
 
     // Get user's current hashed password
-    const user = await db.prepare('SELECT id, hashed_password FROM user WHERE id = ?')
+    const user = await db.prepare('SELECT id, hashed_password, google_id FROM user WHERE id = ?')
       .bind(session.userId).first();
     if (!user) return json({ ok: false, error: 'User not found.' }, 404);
+
+    if (!user.hashed_password) {
+      if (user.google_id) {
+        return json({ ok: false, error: 'This account uses Google sign-in. Use "Forgot password" to set a password first.' }, 400);
+      }
+      return json({ ok: false, error: 'Your account doesn\'t have a password yet. Use "Forgot password" to set one.' }, 400);
+    }
 
     // Verify current password
     const valid = await verifyPassword(currentPassword, user.hashed_password);
