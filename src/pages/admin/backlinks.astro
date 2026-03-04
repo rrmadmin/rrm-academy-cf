@@ -1,0 +1,580 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Backlinks Dashboard" description="Admin backlinks dashboard" noindex={true}>
+
+  <!-- Login Gate -->
+  <section id="login-gate" class="bl-section">
+    <div class="container container--narrow bl-login-wrap">
+      <h1>Admin Login</h1>
+      <div class="form-group">
+        <label class="form-label" for="token-input">Admin Token</label>
+        <input
+          class="form-input"
+          type="password"
+          id="token-input"
+          placeholder="Enter admin token"
+          autocomplete="off"
+        />
+      </div>
+      <button class="btn btn--primary" id="login-btn">Login</button>
+      <p id="login-error" class="bl-error" hidden></p>
+    </div>
+  </section>
+
+  <!-- Dashboard -->
+  <section id="dashboard" class="bl-section" hidden>
+    <div class="container">
+
+      <!-- Header -->
+      <div class="bl-header">
+        <h1>Backlinks</h1>
+        <button class="btn bl-btn-logout" id="logout-btn">Logout</button>
+      </div>
+
+      <!-- Metrics -->
+      <div class="bl-metrics">
+        <div class="bl-card">
+          <span class="bl-card__label">Total</span>
+          <span class="bl-card__value" id="m-total">--</span>
+        </div>
+        <div class="bl-card">
+          <span class="bl-card__label">Live</span>
+          <span class="bl-card__value bl-card__value--live" id="m-live">--</span>
+        </div>
+        <div class="bl-card">
+          <span class="bl-card__label">Dead</span>
+          <span class="bl-card__value bl-card__value--dead" id="m-dead">--</span>
+        </div>
+        <div class="bl-card">
+          <span class="bl-card__label">Dofollow</span>
+          <span class="bl-card__value" id="m-dofollow">--</span>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="bl-filters">
+        <div class="form-group" style="margin-bottom:0;">
+          <select class="form-input bl-select" id="status-filter">
+            <option value="">All</option>
+            <option value="live">Live</option>
+            <option value="dead">Dead</option>
+            <option value="nofollow_changed">Nofollow Changed</option>
+            <option value="unchecked">Unchecked</option>
+            <option value="timeout">Timeout</option>
+          </select>
+        </div>
+        <button class="btn btn--primary" id="refresh-btn">Refresh</button>
+      </div>
+
+      <!-- Table -->
+      <div class="bl-table-wrap">
+        <table class="bl-table">
+          <thead>
+            <tr>
+              <th>Referring URL</th>
+              <th>Domain</th>
+              <th>Target</th>
+              <th>Status</th>
+              <th>DR</th>
+              <th>Dofollow</th>
+              <th>Last Checked</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="bl-tbody">
+            <tr><td colspan="8" class="bl-empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </section>
+
+  <script is:inline>
+  (function () {
+    var TOKEN_KEY = 'bl_admin_token';
+    var EXPIRY_KEY = 'bl_admin_expiry';
+    var TTL_MS = 24 * 60 * 60 * 1000;
+
+    // Auth helpers
+    function getToken() {
+      var token = localStorage.getItem(TOKEN_KEY);
+      var expiry = localStorage.getItem(EXPIRY_KEY);
+      if (!token || !expiry) return null;
+      if (Date.now() > Number(expiry)) { clearToken(); return null; }
+      return token;
+    }
+    function setToken(token) {
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(EXPIRY_KEY, String(Date.now() + TTL_MS));
+    }
+    function clearToken() {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(EXPIRY_KEY);
+    }
+
+    // API
+    async function apiCall(action, params) {
+      params = params || {};
+      var token = getToken();
+      if (!token) throw new Error('Not authenticated');
+      var resp = await fetch('/api/admin/backlinks', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: action, params: params }),
+      });
+      if (resp.status === 401) { clearToken(); location.reload(); throw new Error('Session expired'); }
+      var data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Request failed');
+      return data;
+    }
+
+    // Formatting helpers
+    function formatDate(iso) {
+      if (!iso) return '--';
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return '--';
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      var h = d.getHours();
+      var ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      var min = String(d.getMinutes()).padStart(2, '0');
+      return months[d.getMonth()] + ' ' + d.getDate() + ', ' + h + ':' + min + ' ' + ampm;
+    }
+
+    function truncateUrl(url, max) {
+      max = max || 50;
+      try {
+        var u = new URL(url);
+        var display = u.hostname + u.pathname;
+        if (display.length > max) return display.substring(0, max) + '...';
+        return display;
+      } catch (e) {
+        if (url && url.length > max) return url.substring(0, max) + '...';
+        return url || '--';
+      }
+    }
+
+    function statusBadge(status) {
+      var el = document.createElement('span');
+      el.className = 'bl-badge bl-badge--' + (status || 'unchecked');
+      el.textContent = status || 'unchecked';
+      return el;
+    }
+
+    // DOM refs
+    var loginGate = document.getElementById('login-gate');
+    var dashboard = document.getElementById('dashboard');
+    var tokenInput = document.getElementById('token-input');
+    var loginBtn = document.getElementById('login-btn');
+    var loginError = document.getElementById('login-error');
+    var logoutBtn = document.getElementById('logout-btn');
+    var mTotal = document.getElementById('m-total');
+    var mLive = document.getElementById('m-live');
+    var mDead = document.getElementById('m-dead');
+    var mDofollow = document.getElementById('m-dofollow');
+    var statusFilter = document.getElementById('status-filter');
+    var refreshBtn = document.getElementById('refresh-btn');
+    var tbody = document.getElementById('bl-tbody');
+
+    // Show/hide
+    function showLogin() {
+      loginGate.hidden = false;
+      dashboard.hidden = true;
+    }
+    function showDashboard() {
+      loginGate.hidden = true;
+      dashboard.hidden = false;
+      loadSummary();
+      loadBacklinks();
+    }
+
+    // Login
+    async function doLogin() {
+      var val = tokenInput.value.trim();
+      if (!val) return;
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Logging in...';
+      loginError.hidden = true;
+      setToken(val);
+      try {
+        await apiCall('verify');
+        showDashboard();
+      } catch (e) {
+        clearToken();
+        loginError.textContent = 'Invalid token or server error.';
+        loginError.hidden = false;
+      }
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Login';
+    }
+    loginBtn.addEventListener('click', doLogin);
+    tokenInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') doLogin();
+    });
+
+    // Logout
+    logoutBtn.addEventListener('click', function () {
+      clearToken();
+      showLogin();
+    });
+
+    // Load summary
+    async function loadSummary() {
+      try {
+        var data = await apiCall('summary');
+        mTotal.textContent = data.total != null ? data.total : '--';
+        var bs = data.by_status || {};
+        mLive.textContent = bs.live != null ? bs.live : '0';
+        mDead.textContent = bs.dead != null ? bs.dead : '0';
+        // Dofollow not in summary -- show total minus dead as fallback
+        mDofollow.textContent = '--';
+      } catch (e) {
+        mTotal.textContent = 'err';
+      }
+    }
+
+    // Load backlinks table
+    async function loadBacklinks() {
+      tbody.innerHTML = '';
+      var loadingRow = document.createElement('tr');
+      var loadingCell = document.createElement('td');
+      loadingCell.colSpan = 8;
+      loadingCell.className = 'bl-empty';
+      loadingCell.textContent = 'Loading...';
+      loadingRow.appendChild(loadingCell);
+      tbody.appendChild(loadingRow);
+
+      try {
+        var filterVal = statusFilter.value;
+        var params = {};
+        if (filterVal) params.status = filterVal;
+        var data = await apiCall('list', params);
+        var links = data.backlinks || [];
+
+        tbody.innerHTML = '';
+        if (links.length === 0) {
+          var emptyRow = document.createElement('tr');
+          var emptyCell = document.createElement('td');
+          emptyCell.colSpan = 8;
+          emptyCell.className = 'bl-empty';
+          emptyCell.textContent = 'No backlinks found';
+          emptyRow.appendChild(emptyCell);
+          tbody.appendChild(emptyRow);
+          return;
+        }
+
+        for (var i = 0; i < links.length; i++) {
+          var bl = links[i];
+          var tr = document.createElement('tr');
+
+          // Referring URL (linked, truncated)
+          var tdUrl = document.createElement('td');
+          tdUrl.className = 'bl-col-url';
+          var a = document.createElement('a');
+          a.href = bl.referring_url || '#';
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          a.textContent = truncateUrl(bl.referring_url);
+          a.title = bl.referring_url || '';
+          tdUrl.appendChild(a);
+          tr.appendChild(tdUrl);
+
+          // Domain
+          var tdDomain = document.createElement('td');
+          tdDomain.textContent = bl.referring_domain || '--';
+          tr.appendChild(tdDomain);
+
+          // Target
+          var tdTarget = document.createElement('td');
+          tdTarget.textContent = bl.target_path || '/';
+          tr.appendChild(tdTarget);
+
+          // Status badge
+          var tdStatus = document.createElement('td');
+          tdStatus.appendChild(statusBadge(bl.status));
+          tr.appendChild(tdStatus);
+
+          // DR
+          var tdDr = document.createElement('td');
+          tdDr.textContent = bl.domain_rating != null ? bl.domain_rating : '--';
+          tr.appendChild(tdDr);
+
+          // Dofollow
+          var tdDofollow = document.createElement('td');
+          if (bl.is_dofollow === 1 || bl.is_dofollow === true) {
+            tdDofollow.textContent = 'Yes';
+          } else if (bl.is_dofollow === 0 || bl.is_dofollow === false) {
+            tdDofollow.textContent = 'No';
+          } else {
+            tdDofollow.textContent = '--';
+          }
+          tr.appendChild(tdDofollow);
+
+          // Last Checked
+          var tdChecked = document.createElement('td');
+          tdChecked.textContent = formatDate(bl.last_checked);
+          tr.appendChild(tdChecked);
+
+          // Actions
+          var tdActions = document.createElement('td');
+          var checkBtn = document.createElement('button');
+          checkBtn.className = 'btn bl-btn-check';
+          checkBtn.textContent = 'Check';
+          checkBtn.dataset.id = bl.id;
+          checkBtn.addEventListener('click', function () { recheck(this); });
+          tdActions.appendChild(checkBtn);
+          tr.appendChild(tdActions);
+
+          tbody.appendChild(tr);
+        }
+      } catch (e) {
+        tbody.innerHTML = '';
+        var errRow = document.createElement('tr');
+        var errCell = document.createElement('td');
+        errCell.colSpan = 8;
+        errCell.className = 'bl-empty';
+        errCell.textContent = 'Error loading backlinks: ' + e.message;
+        errRow.appendChild(errCell);
+        tbody.appendChild(errRow);
+      }
+    }
+
+    // Re-check single link
+    async function recheck(btn) {
+      var id = Number(btn.dataset.id);
+      btn.disabled = true;
+      btn.textContent = 'Checking...';
+      try {
+        await apiCall('check', { id: id });
+        await loadBacklinks();
+      } catch (e) {
+        btn.textContent = 'Error';
+        setTimeout(function () {
+          btn.textContent = 'Check';
+          btn.disabled = false;
+        }, 2000);
+      }
+    }
+
+    // Filter and refresh
+    statusFilter.addEventListener('change', loadBacklinks);
+    refreshBtn.addEventListener('click', function () {
+      loadSummary();
+      loadBacklinks();
+    });
+
+    // Init
+    if (getToken()) {
+      showDashboard();
+    } else {
+      showLogin();
+    }
+  })();
+  </script>
+
+</BaseLayout>
+
+<style>
+  /* Layout */
+  .bl-section {
+    padding: var(--space-8) 0;
+  }
+
+  /* Login */
+  .bl-login-wrap {
+    max-width: 400px;
+    margin: var(--space-16) auto;
+    text-align: center;
+  }
+  .bl-login-wrap h1 {
+    margin-bottom: var(--space-6);
+  }
+  .bl-login-wrap .form-group {
+    margin-bottom: var(--space-4);
+    text-align: left;
+  }
+  .bl-login-wrap .btn {
+    width: 100%;
+  }
+  .bl-error {
+    color: var(--color-error);
+    font-size: 0.875rem;
+    margin-top: var(--space-3);
+  }
+
+  /* Header */
+  .bl-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-6);
+  }
+  .bl-header h1 {
+    margin-bottom: 0;
+  }
+  .bl-btn-logout {
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 0.875rem;
+  }
+  .bl-btn-logout:hover {
+    border-color: var(--text-secondary);
+  }
+
+  /* Metrics grid */
+  .bl-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+  @media (max-width: 600px) {
+    .bl-metrics {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  .bl-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-4) var(--space-5);
+    text-align: center;
+  }
+  .bl-card__label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-1);
+  }
+  .bl-card__value {
+    display: block;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+  }
+  .bl-card__value--live {
+    color: #27ae60;
+  }
+  .bl-card__value--dead {
+    color: var(--color-error);
+  }
+
+  /* Filters */
+  .bl-filters {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+    margin-bottom: var(--space-4);
+  }
+  .bl-select {
+    max-width: 220px;
+  }
+
+  /* Table wrapper */
+  .bl-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+  }
+  .bl-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    white-space: nowrap;
+  }
+  .bl-table th,
+  .bl-table td {
+    padding: var(--space-3) var(--space-4);
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .bl-table th {
+    background: var(--bg-body);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-tertiary);
+  }
+  .bl-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .bl-table tbody tr:hover {
+    background: var(--bg-body);
+  }
+  .bl-col-url {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .bl-col-url a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .bl-col-url a:hover {
+    text-decoration: underline;
+  }
+  .bl-empty {
+    text-align: center;
+    color: var(--text-tertiary);
+    padding: var(--space-8) var(--space-4);
+  }
+
+  /* Status badges */
+  .bl-badge {
+    display: inline-block;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .bl-badge--live {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+  .bl-badge--dead {
+    background: rgba(192, 57, 43, 0.1);
+    color: var(--color-error);
+  }
+  .bl-badge--nofollow_changed {
+    background: var(--amber-100);
+    color: var(--amber-700);
+  }
+  .bl-badge--unchecked,
+  .bl-badge--timeout {
+    background: var(--neutral-100);
+    color: var(--neutral-600);
+  }
+
+  /* Check button */
+  .bl-btn-check {
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--accent);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+  .bl-btn-check:hover {
+    border-color: var(--accent);
+  }
+  .bl-btn-check:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+</style>
