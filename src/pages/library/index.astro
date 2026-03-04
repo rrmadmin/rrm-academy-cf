@@ -134,7 +134,7 @@ const jsonLd = {
     gap: var(--space-5);
   }
   .hero h1 {
-    font-size: 2.5rem;
+    font-size: clamp(2rem, 1.25rem + 2.5vw, 3.25rem);
     line-height: 1.1;
     letter-spacing: -0.02em;
     margin: 0;
@@ -284,7 +284,7 @@ const jsonLd = {
 
   @media (min-width: 769px) {
     .hero h1 {
-      font-size: 3.5rem;
+      /* fluid via clamp — no override needed */
     }
     .hero__center {
       max-width: 640px;

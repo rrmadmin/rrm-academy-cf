@@ -82,6 +82,14 @@ export async function onRequest(context) {
     );
   }
 
+  // Redirect mixed-case library URLs to lowercase (fixes old saved bookmarks)
+  if (url.pathname.startsWith('/library/') && url.pathname !== url.pathname.toLowerCase()) {
+    return Response.redirect(
+      `${url.origin}${url.pathname.toLowerCase()}${url.search}`,
+      301
+    );
+  }
+
   const needsAuth =
     url.pathname === '/account' || url.pathname.startsWith('/account/') ||
     url.pathname === '/community' || url.pathname.startsWith('/community/');
