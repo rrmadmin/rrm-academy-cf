@@ -69,6 +69,9 @@ jobs:
         if: ${{ !inputs.skip_fetch }}
         env:
           AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
+          TINIFY_API_KEY: ${{ secrets.TINIFY_API_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           npm run fetch-all
           echo "Articles: $(node -e "console.log(require('./src/data/articles.json').length)")"

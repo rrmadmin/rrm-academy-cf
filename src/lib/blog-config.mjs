@@ -20,6 +20,7 @@ export const FIELDS = [
   'Author',
   'Content Pillar',
   'Processed Cover URL',
+  'Image',
   'Actual Publish Date',
   'Status',
   'Word Count',
