@@ -37,7 +37,7 @@ export async function onRequestPost({ request, env }) {
     if (!turnstileOk) return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
 
     // Look up user (but always return success to prevent enumeration)
-    const user = await db.prepare('SELECT id, name FROM user WHERE email = ?').bind(email).first();
+    const user = await db.prepare('SELECT id, name FROM user WHERE email = ? COLLATE NOCASE').bind(email).first();
 
     if (user && env.AWS_ACCESS_KEY_ID) {
       // Delete any existing reset tokens for this user
