@@ -92,6 +92,9 @@ jobs:
           done
           [ "$fail" = "0" ] || exit 1
 
+      - name: Copy articles.json to public for API access
+        run: mkdir -p public/data && cp src/data/articles.json public/data/articles.json
+
       - name: Build site
         run: npm run build
 
