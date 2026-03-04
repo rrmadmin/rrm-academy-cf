@@ -24,6 +24,9 @@ export default defineConfig({
           '/save-the-uterus-club/thank-you',
           '/404',
           '/topics/',
+          '/community/',
+          '/linkinbio/jointhecall',
+          '/page/',
         ];
         return !exclude.some((path) => page.includes(path));
       },

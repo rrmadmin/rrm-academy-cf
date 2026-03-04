@@ -11,5 +11,6 @@ Disallow: /endo-survey/take
 Disallow: /donate/thank-you
 Disallow: /save-the-uterus-club/thank-you
 Disallow: /api/
+Disallow: /community/
 
 Sitemap: https://rrmacademy.org/sitemap-index.xml
