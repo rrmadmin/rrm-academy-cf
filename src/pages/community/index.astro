@@ -667,22 +667,69 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         var reactions = post.reactions || {};
         var userReactions = post.myReactions || [];
 
-        for (var e = 0; e < EMOJIS.length; e++) {
-          (function (emoji) {
-            var count = reactions[emoji] || 0;
-            var isActive = userReactions.indexOf(emoji) !== -1;
-            var rBtn = document.createElement('button');
-            rBtn.className = 'reaction-btn' + (isActive ? ' reaction-btn--active' : '');
-            rBtn.setAttribute('data-emoji', emoji);
-            rBtn.innerHTML = '<span class="reaction-emoji">' + emoji + '</span>' + (count > 0 ? '<span class="reaction-count">' + count + '</span>' : '');
-            if (count === 0 && !isActive) rBtn.classList.add('reaction-btn--empty');
-            rBtn.addEventListener('click', function (ev) {
-              ev.stopPropagation();
-              toggleReaction(post.id, emoji, rBtn, reactions, userReactions);
-            });
-            reactionBar.appendChild(rBtn);
-          })(EMOJIS[e]);
-        }
+        // Show only emojis that have counts or user reacted, sorted by count, max 3
+        var visible = EMOJIS
+          .map(function (emoji) { return { emoji: emoji, count: reactions[emoji] || 0, mine: userReactions.indexOf(emoji) !== -1 }; })
+          .filter(function (r) { return r.count > 0 || r.mine; })
+          .sort(function (a, b) { return b.count - a.count; })
+          .slice(0, 3);
+
+        visible.forEach(function (r) {
+          var rBtn = document.createElement('button');
+          rBtn.className = 'reaction-btn' + (r.mine ? ' reaction-btn--active' : '');
+          rBtn.setAttribute('data-emoji', r.emoji);
+          rBtn.innerHTML = '<span class="reaction-emoji">' + r.emoji + '</span>' + (r.count > 0 ? '<span class="reaction-count">' + r.count + '</span>' : '');
+          rBtn.addEventListener('click', function (ev) {
+            ev.stopPropagation();
+            toggleReaction(post.id, r.emoji, rBtn, reactions, userReactions);
+          });
+          reactionBar.appendChild(rBtn);
+        });
+
+        // "+" button to pick from all emojis
+        var addBtn = document.createElement('button');
+        addBtn.className = 'reaction-btn reaction-btn--add';
+        addBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>';
+        addBtn.setAttribute('aria-label', 'Add reaction');
+
+        var picker = document.createElement('div');
+        picker.className = 'reaction-picker';
+        picker.hidden = true;
+        EMOJIS.forEach(function (emoji) {
+          var opt = document.createElement('button');
+          opt.className = 'reaction-picker__item';
+          opt.textContent = emoji;
+          opt.addEventListener('click', function (ev) {
+            ev.stopPropagation();
+            picker.hidden = true;
+            // Find or create the reaction button
+            var existing = reactionBar.querySelector('[data-emoji="' + emoji + '"]');
+            if (existing) {
+              existing.click();
+            } else {
+              var newBtn = document.createElement('button');
+              newBtn.className = 'reaction-btn';
+              newBtn.setAttribute('data-emoji', emoji);
+              newBtn.innerHTML = '<span class="reaction-emoji">' + emoji + '</span>';
+              newBtn.addEventListener('click', function (ev2) {
+                ev2.stopPropagation();
+                toggleReaction(post.id, emoji, newBtn, reactions, userReactions);
+              });
+              reactionBar.insertBefore(newBtn, addBtn);
+              toggleReaction(post.id, emoji, newBtn, reactions, userReactions);
+            }
+          });
+          picker.appendChild(opt);
+        });
+
+        addBtn.addEventListener('click', function (ev) {
+          ev.stopPropagation();
+          document.querySelectorAll('.reaction-picker').forEach(function (p) { p.hidden = true; });
+          picker.hidden = !picker.hidden;
+        });
+
+        reactionBar.appendChild(addBtn);
+        reactionBar.appendChild(picker);
         actions.appendChild(reactionBar);
 
         // Comment count (button, toggles expand)
@@ -1319,10 +1366,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         if (e.key === 'Escape') document.querySelectorAll('.ctrl-dropdown').forEach(function (d) { d.hidden = true; });
       });
 
-      // Close kebab menus on outside click
+      // Close kebab menus and reaction pickers on outside click
       document.addEventListener('click', function (e) {
         if (!e.target.closest('.post-card__controls')) {
           document.querySelectorAll('.ctrl-dropdown').forEach(function (d) { d.hidden = true; });
+        }
+        if (!e.target.closest('.reaction-bar')) {
+          document.querySelectorAll('.reaction-picker').forEach(function (p) { p.hidden = true; });
         }
       });
 
@@ -1920,6 +1970,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     display: flex;
     align-items: center;
     gap: 0;
+    position: relative;
   }
   .reaction-btn {
     display: inline-flex;
@@ -1943,11 +1994,40 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .reaction-btn--active:hover {
     background: var(--purple-100);
   }
-  .reaction-btn--empty {
-    opacity: 0.3;
+  .reaction-btn--add {
+    opacity: 0.4;
+    padding: 4px 6px;
   }
-  .reaction-btn--empty:hover {
+  .reaction-btn--add:hover {
     opacity: 1;
+  }
+  .reaction-picker {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    display: flex;
+    gap: 2px;
+    background: var(--bg-surface, #fff);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md, 8px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    padding: 6px;
+    z-index: 20;
+  }
+  .reaction-picker[hidden] {
+    display: none;
+  }
+  .reaction-picker__item {
+    font-size: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    line-height: 1;
+  }
+  .reaction-picker__item:hover {
+    background: var(--neutral-100, #f5f5f5);
   }
   .reaction-emoji {
     font-size: 16px;
