@@ -85,13 +85,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         <table class="bl-table">
           <thead>
             <tr>
-              <th style="width:25%">Referring URL</th>
-              <th style="width:14%">Domain</th>
-              <th style="width:15%">Target</th>
-              <th style="width:9%">Status</th>
-              <th style="width:5%">DR</th>
-              <th style="width:8%">Dofollow</th>
-              <th style="width:14%">Last Checked</th>
+              <th style="width:25%" data-sort="referring_url">Referring URL<span class="bl-sort-arrow"></span></th>
+              <th style="width:14%" data-sort="referring_domain">Domain<span class="bl-sort-arrow"></span></th>
+              <th style="width:15%" data-sort="target_path">Target<span class="bl-sort-arrow"></span></th>
+              <th style="width:9%" data-sort="status">Status<span class="bl-sort-arrow"></span></th>
+              <th style="width:5%" data-sort="domain_rating">DR<span class="bl-sort-arrow"></span></th>
+              <th style="width:8%" data-sort="is_dofollow">Dofollow<span class="bl-sort-arrow"></span></th>
+              <th style="width:14%" data-sort="last_checked">Last Checked<span class="bl-sort-arrow"></span></th>
               <th style="width:10%">Actions</th>
             </tr>
           </thead>
@@ -176,6 +176,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       return el;
     }
 
+    // Sort state
+    var currentLinks = [];
+    var sortCol = 'domain_rating';
+    var sortDir = -1; // -1 = desc, 1 = asc
+
     // DOM refs
     var loginGate = document.getElementById('login-gate');
     var dashboard = document.getElementById('dashboard');
@@ -249,7 +254,118 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       }
     }
 
-    // Load backlinks table
+    // Sort helpers
+    function sortValue(bl, col) {
+      switch (col) {
+        case 'referring_url': return (bl.referring_url || '').toLowerCase();
+        case 'referring_domain': return (bl.referring_domain || '').toLowerCase();
+        case 'target_path': return (bl.target_path || '/').toLowerCase();
+        case 'status': return bl.status || 'unchecked';
+        case 'domain_rating': return Number(bl.domain_rating) || 0;
+        case 'is_dofollow': return bl.is_dofollow ? 1 : 0;
+        case 'last_checked': return bl.last_checked || '';
+        default: return '';
+      }
+    }
+
+    function sortLinks(links) {
+      return links.slice().sort(function (a, b) {
+        var va = sortValue(a, sortCol);
+        var vb = sortValue(b, sortCol);
+        if (va < vb) return -1 * sortDir;
+        if (va > vb) return 1 * sortDir;
+        return 0;
+      });
+    }
+
+    function updateSortIndicators() {
+      var ths = document.querySelectorAll('.bl-table th[data-sort]');
+      for (var i = 0; i < ths.length; i++) {
+        var th = ths[i];
+        var arrow = th.querySelector('.bl-sort-arrow');
+        if (th.dataset.sort === sortCol) {
+          arrow.textContent = sortDir === 1 ? ' \u25B2' : ' \u25BC';
+        } else {
+          arrow.textContent = '';
+        }
+      }
+    }
+
+    // Render rows from currentLinks
+    function renderTable() {
+      var sorted = sortLinks(currentLinks);
+      tbody.innerHTML = '';
+
+      if (sorted.length === 0) {
+        var emptyRow = document.createElement('tr');
+        var emptyCell = document.createElement('td');
+        emptyCell.colSpan = 8;
+        emptyCell.className = 'bl-empty';
+        emptyCell.textContent = 'No backlinks found';
+        emptyRow.appendChild(emptyCell);
+        tbody.appendChild(emptyRow);
+        return;
+      }
+
+      for (var i = 0; i < sorted.length; i++) {
+        var bl = sorted[i];
+        var tr = document.createElement('tr');
+
+        var tdUrl = document.createElement('td');
+        tdUrl.className = 'bl-col-url';
+        var a = document.createElement('a');
+        a.href = bl.referring_url || '#';
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.textContent = truncateUrl(bl.referring_url);
+        a.title = bl.referring_url || '';
+        tdUrl.appendChild(a);
+        tr.appendChild(tdUrl);
+
+        var tdDomain = document.createElement('td');
+        tdDomain.textContent = bl.referring_domain || '--';
+        tr.appendChild(tdDomain);
+
+        var tdTarget = document.createElement('td');
+        tdTarget.textContent = bl.target_path || '/';
+        tr.appendChild(tdTarget);
+
+        var tdStatus = document.createElement('td');
+        tdStatus.appendChild(statusBadge(bl.status));
+        tr.appendChild(tdStatus);
+
+        var tdDr = document.createElement('td');
+        tdDr.textContent = bl.domain_rating != null ? bl.domain_rating : '--';
+        tr.appendChild(tdDr);
+
+        var tdDofollow = document.createElement('td');
+        if (bl.is_dofollow === 1 || bl.is_dofollow === true) {
+          tdDofollow.textContent = 'Yes';
+        } else if (bl.is_dofollow === 0 || bl.is_dofollow === false) {
+          tdDofollow.textContent = 'No';
+        } else {
+          tdDofollow.textContent = '--';
+        }
+        tr.appendChild(tdDofollow);
+
+        var tdChecked = document.createElement('td');
+        tdChecked.textContent = formatDate(bl.last_checked);
+        tr.appendChild(tdChecked);
+
+        var tdActions = document.createElement('td');
+        var checkBtn = document.createElement('button');
+        checkBtn.className = 'btn bl-btn-check';
+        checkBtn.textContent = 'Check';
+        checkBtn.dataset.id = bl.id;
+        checkBtn.addEventListener('click', function () { recheck(this); });
+        tdActions.appendChild(checkBtn);
+        tr.appendChild(tdActions);
+
+        tbody.appendChild(tr);
+      }
+    }
+
+    // Load backlinks from API then render
     async function loadBacklinks() {
       tbody.innerHTML = '';
       var loadingRow = document.createElement('tr');
@@ -265,84 +381,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         var params = {};
         if (filterVal) params.status = filterVal;
         var data = await apiCall('list', params);
-        var links = data.backlinks || [];
-
-        tbody.innerHTML = '';
-        if (links.length === 0) {
-          var emptyRow = document.createElement('tr');
-          var emptyCell = document.createElement('td');
-          emptyCell.colSpan = 8;
-          emptyCell.className = 'bl-empty';
-          emptyCell.textContent = 'No backlinks found';
-          emptyRow.appendChild(emptyCell);
-          tbody.appendChild(emptyRow);
-          return;
-        }
-
-        for (var i = 0; i < links.length; i++) {
-          var bl = links[i];
-          var tr = document.createElement('tr');
-
-          // Referring URL (linked, truncated)
-          var tdUrl = document.createElement('td');
-          tdUrl.className = 'bl-col-url';
-          var a = document.createElement('a');
-          a.href = bl.referring_url || '#';
-          a.target = '_blank';
-          a.rel = 'noopener noreferrer';
-          a.textContent = truncateUrl(bl.referring_url);
-          a.title = bl.referring_url || '';
-          tdUrl.appendChild(a);
-          tr.appendChild(tdUrl);
-
-          // Domain
-          var tdDomain = document.createElement('td');
-          tdDomain.textContent = bl.referring_domain || '--';
-          tr.appendChild(tdDomain);
-
-          // Target
-          var tdTarget = document.createElement('td');
-          tdTarget.textContent = bl.target_path || '/';
-          tr.appendChild(tdTarget);
-
-          // Status badge
-          var tdStatus = document.createElement('td');
-          tdStatus.appendChild(statusBadge(bl.status));
-          tr.appendChild(tdStatus);
-
-          // DR
-          var tdDr = document.createElement('td');
-          tdDr.textContent = bl.domain_rating != null ? bl.domain_rating : '--';
-          tr.appendChild(tdDr);
-
-          // Dofollow
-          var tdDofollow = document.createElement('td');
-          if (bl.is_dofollow === 1 || bl.is_dofollow === true) {
-            tdDofollow.textContent = 'Yes';
-          } else if (bl.is_dofollow === 0 || bl.is_dofollow === false) {
-            tdDofollow.textContent = 'No';
-          } else {
-            tdDofollow.textContent = '--';
-          }
-          tr.appendChild(tdDofollow);
-
-          // Last Checked
-          var tdChecked = document.createElement('td');
-          tdChecked.textContent = formatDate(bl.last_checked);
-          tr.appendChild(tdChecked);
-
-          // Actions
-          var tdActions = document.createElement('td');
-          var checkBtn = document.createElement('button');
-          checkBtn.className = 'btn bl-btn-check';
-          checkBtn.textContent = 'Check';
-          checkBtn.dataset.id = bl.id;
-          checkBtn.addEventListener('click', function () { recheck(this); });
-          tdActions.appendChild(checkBtn);
-          tr.appendChild(tdActions);
-
-          tbody.appendChild(tr);
-        }
+        currentLinks = data.backlinks || [];
+        renderTable();
+        updateSortIndicators();
       } catch (e) {
         tbody.innerHTML = '';
         var errRow = document.createElement('tr');
@@ -354,6 +395,21 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         tbody.appendChild(errRow);
       }
     }
+
+    // Column header click sorting
+    document.querySelectorAll('.bl-table th[data-sort]').forEach(function (th) {
+      th.addEventListener('click', function () {
+        var col = th.dataset.sort;
+        if (sortCol === col) {
+          sortDir = sortDir * -1;
+        } else {
+          sortCol = col;
+          sortDir = col === 'domain_rating' ? -1 : 1;
+        }
+        renderTable();
+        updateSortIndicators();
+      });
+    });
 
     // Re-check single link
     async function recheck(btn) {
@@ -655,6 +711,17 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     overflow: auto;
     min-width: 60px;
     max-width: none;
+  }
+  .bl-table th[data-sort] {
+    cursor: pointer;
+    user-select: none;
+  }
+  .bl-table th[data-sort]:hover {
+    background: #e4d9ce;
+  }
+  .bl-sort-arrow {
+    font-size: 0.625rem;
+    color: #7e8772;
   }
   .bl-table tbody tr:last-child td {
     border-bottom: none;
