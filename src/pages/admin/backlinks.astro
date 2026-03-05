@@ -637,6 +637,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     border-bottom: 1px solid var(--admin-border);
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 0;
   }
   .bl-table th {
     background: var(--admin-cream);
@@ -648,6 +650,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     resize: horizontal;
     overflow: auto;
     min-width: 60px;
+    max-width: none;
   }
   .bl-table tbody tr:last-child td {
     border-bottom: none;
