@@ -85,14 +85,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         <table class="bl-table">
           <thead>
             <tr>
-              <th>Referring URL</th>
-              <th>Domain</th>
-              <th>Target</th>
-              <th>Status</th>
-              <th>DR</th>
-              <th>Dofollow</th>
-              <th>Last Checked</th>
-              <th>Actions</th>
+              <th style="width:25%">Referring URL</th>
+              <th style="width:14%">Domain</th>
+              <th style="width:15%">Target</th>
+              <th style="width:9%">Status</th>
+              <th style="width:5%">DR</th>
+              <th style="width:8%">Dofollow</th>
+              <th style="width:14%">Last Checked</th>
+              <th style="width:10%">Actions</th>
             </tr>
           </thead>
           <tbody id="bl-tbody">
@@ -628,12 +628,15 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     border-collapse: collapse;
     font-size: 0.875rem;
     white-space: nowrap;
+    table-layout: fixed;
   }
   .bl-table th,
   .bl-table td {
     padding: var(--space-3) var(--space-4);
     text-align: left;
     border-bottom: 1px solid var(--admin-border);
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .bl-table th {
     background: var(--admin-cream);
@@ -642,6 +645,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     text-transform: uppercase;
     letter-spacing: 0.04em;
     color: var(--admin-text-muted);
+    resize: horizontal;
+    overflow: auto;
+    min-width: 60px;
   }
   .bl-table tbody tr:last-child td {
     border-bottom: none;
