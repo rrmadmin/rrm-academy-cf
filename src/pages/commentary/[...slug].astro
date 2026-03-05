@@ -54,18 +54,94 @@ const marked = new Marked({
 
 // Pre-process markdown to fix common authoring issues
 function sanitizeMarkdown(md: string): string {
-  return md
+  let result = md
     // Remove ghost links: [ ](url) — invisible copy-paste artifacts
     .replace(/\[\s*\]\([^)]+\)/g, '')
-    // Fix trailing space before closing bold: **text ** → **text**
-    .replace(/\*\*([^*]+?)\s+\*\*/g, '**$1**')
     // Fix quadruple bold markers around links: ****[text](url)**** → **[text](url)**
     .replace(/\*{4}\[/g, '**[')
     .replace(/\]\([^)]+\)\*{4}/g, (m) => m.replace(/\*{4}$/, '**'))
+    // Remove bold wrapping links: **[text](url)** → [text](url) (links are already styled)
+    .replace(/\*{2,3}(\[[^\]]+\]\([^)]+\))\*{2,3}/g, '$1')
     // Remove redundant bold inside headings: ## **Text** or ##**Text** → ## Text
     .replace(/^(#{1,6})\s*\*\*(.+?)\*\*\s*$/gm, '$1 $2')
     // Fix headings missing space after #: ##Text → ## Text
-    .replace(/^(#{1,6})([^\s#])/gm, '$1 $2');
+    .replace(/^(#{1,6})([^\s#])/gm, '$1 $2')
+    // Fix numbered lists missing space: 1.**text → \n1. **text
+    .replace(/(\d+)\.\*\*/g, '\n\n$1. **')
+    // Fix dash lists missing space: -**text → \n- **text (inline or at line start)
+    .replace(/([^\n])-\*\*/g, '$1\n\n- **')
+    .replace(/^-\*\*/gm, '- **');
+
+  // Fix trailing space inside bold (single-line only): **text ** → **text**
+  result = result.replace(/\*\*([^*\n]+?)\s+\*\*/g, '**$1**');
+
+  // Fix ** stuck between word chars: word**bold text**word
+  // Process line by line, counting ALL ** to track open/close state
+  result = result.split('\n').map(line => {
+    // First pass: find all ** positions (exactly 2 stars, not 3+)
+    const starPositions: number[] = [];
+    for (let i = 0; i < line.length - 1; i++) {
+      if (line[i] === '*' && line[i+1] === '*' &&
+          (i + 2 >= line.length || line[i+2] !== '*') &&
+          (i === 0 || line[i-1] !== '*')) {
+        starPositions.push(i);
+        i++; // skip the second *
+      }
+    }
+
+    // Each ** alternates: 0th=open, 1st=close, 2nd=open, etc.
+    const needsFix = new Map<number, 'open' | 'close'>();
+    starPositions.forEach((pos, idx) => {
+      const before = pos > 0 ? line[pos - 1] : '';
+      const after = pos + 2 < line.length ? line[pos + 2] : '';
+      const beforeIsWord = /[a-zA-Z0-9.,;:!?)\]]/.test(before);
+      const afterIsWord = /[a-zA-Z0-9(\[]/.test(after);
+      if (beforeIsWord && afterIsWord) {
+        needsFix.set(pos, idx % 2 === 0 ? 'open' : 'close');
+      }
+    });
+
+    if (needsFix.size === 0) return line;
+
+    // Second pass: rebuild with spaces
+    let out = '';
+    let i = 0;
+    while (i < line.length) {
+      if (needsFix.has(i)) {
+        if (needsFix.get(i) === 'open') {
+          out += ' **';
+        } else {
+          out += '** ';
+        }
+        i += 2;
+      } else {
+        out += line[i];
+        i++;
+      }
+    }
+    return out;
+  }).join('\n');
+
+  // Remove orphaned ** that have no matching pair on the same line
+  result = result.split('\n').map(line => {
+    // Count ** (exactly 2 stars)
+    let count = 0;
+    for (let i = 0; i < line.length - 1; i++) {
+      if (line[i] === '*' && line[i+1] === '*' &&
+          (i + 2 >= line.length || line[i+2] !== '*') &&
+          (i === 0 || line[i-1] !== '*')) {
+        count++;
+        i++;
+      }
+    }
+    // If odd number of **, remove the first one (likely orphaned closing from stripped bold)
+    if (count % 2 === 1) {
+      line = line.replace(/\*\*/, '');
+    }
+    return line;
+  }).join('\n');
+
+  return result;
 }
 
 // Render markdown content to HTML
