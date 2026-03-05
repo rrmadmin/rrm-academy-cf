@@ -1,12 +1,13 @@
 # Endo Masterclass: Buyer Motivations
 
-Pre-course intake survey responses from 39 paying students (January 2023 onward). These are real answers from real buyers explaining why they purchased the Masterclass in Endometriosis & Surgery. Test entries (Brian Whittaker, RRM Academy) excluded.
+Pre-course intake survey responses from 54 paying students (January 2023 onward). These are real answers from real buyers explaining why they purchased the Masterclass in Endometriosis & Surgery. Test entries excluded. Data from two sources: Teachable pre-class questionnaire (38 students with usernames) and Google Forms (16 students with emails only, no names).
 
-## Audience breakdown
+## Audience breakdown (from self-identification, where provided)
 
-- **26** "Endo Warriors" (patients)
-- **6** "I care for women with endometriosis" (clinicians/educators)
-- **7** Both (patients who are also healthcare providers)
+- **~32** patients ("Endo Warriors")
+- **~8** clinicians/educators ("I care for women with endometriosis")
+- **~10** Both (patients who are also healthcare providers)
+- **~4** unclassified (Google Forms respondents who didn't fill self-description, inferred from responses)
 
 This mixed audience is a defining feature: patients and providers sit in the same classroom.
 
@@ -26,6 +27,9 @@ This mixed audience is a defining feature: patients and providers sit in the sam
 - "Questions to ask a surgeon; better direct knowledge of surgical options"
 - "questions to ask my surgeon -- make sure i should go through with this"
 - "Learn about what I should know before talking to a surgeon"
+- "Knowledge to help me assess which surgeon to trust with my own potential surgery"
+- "Understand the laparoscopy and excision surgical techniques to choose the best surgeon available to me"
+- "More info/ questions to ask my surgeon"
 
 ### Empowerment and advocacy
 - "More knowledge for empowerment"
@@ -36,6 +40,12 @@ This mixed audience is a defining feature: patients and providers sit in the sam
 - "Knowledge that isn't surface"
 - "More in depth and things I can't just google"
 - "Under endo better, find out my options and how to talk about it with my provider"
+- "Management strategies for endo, and more knowledge to be a better advocate"
+- "reinforce things I already knew with scientific evidence through the scope of restorative fertility practices"
+- "I want to be able to ask the right questions that will help me and others discover how best to advocate for ourselves when seeking quality health care for endometriosis"
+- "Learn something about endometriosis that I haven't learned from my own research"
+- "less anxiety about surgery"
+- "I hope to gain enough knowledge to feel confident about what route I should take with my surgery, or if I should even have surgery"
 
 ### Deciding if surgery is right
 - "Making a decision whether surgery is right for you"
@@ -43,6 +53,8 @@ This mixed audience is a defining feature: patients and providers sit in the sam
 - "Seeing if Endo surgery is the right option for me to help solve infertility"
 - "Deciding on fertility preservation prior to surgery; weighing various providers"
 - "Clarity if the path to surgery is correct for my situation"
+- "My hesitations about surgery and the what adhesion prevention techniques to go with if I do have surgery"
+- "wether or not the Gore Tex option is something I should opt to use with my NAPRO surgeon"
 
 ### For their patients / clients
 - "Knowledge and guidance I can share with my patients in my non surgical practice"
@@ -54,6 +66,9 @@ This mixed audience is a defining feature: patients and providers sit in the sam
 - "Patients will not go to a surgical consult out of nameless fears; patients don't believe Creighton Method is worth learning because their app tells them they're fertile"
 - "Patients only being prescribed birth control or hysterectomy"
 - "More knowledge and resources for excisional surgeries"
+- "To learn how to better assist endometriosis patients (including myself) as a fertility doula"
+- "Learn more about NAPRO specifically. I had excision surgery after finding about nap"
+- "Learn more about how I can navigate the health system as a patient with endometriosis (I am also a healthcare provider)"
 
 ### Understanding the disease
 - "learn more about surgery for endometriosis"
@@ -63,6 +78,12 @@ This mixed audience is a defining feature: patients and providers sit in the sam
 - "learn how to protect myself in the future"
 - "what to do after surgery to slow re-growth"
 - "Better understanding of possible origin and information on disease prevention after surgery"
+- "Insight as to why I have endometriosis and what caused it to progress"
+- "Understand more about what causes endometriosis, how it affects fertility, treatment options, different surgery techniques and benefits"
+- "Current research on surgical outcomes, recurrence rates and tips and tricks"
+- "learn unconventional knowledge about endometriosis and women's healthcare not received from other doctors"
+- "I don't have a particular problem to solve but do have endometriosis, and have been recently diagnosed"
+- "I want to get pregnant and think inflammation from my endometriosis is causing an issue. I also don't know what I don't know."
 
 ### Post-surgical management / recurrence prevention
 - "How to prevent endometriosis from coming back after my surgery"
@@ -82,19 +103,24 @@ This mixed audience is a defining feature: patients and providers sit in the sam
 
 ## Problems they were trying to solve (verbatim)
 
-### Infertility (most common, 11+ students)
+### Infertility (most common, 15+ students)
 - "Infertility" (multiple)
 - "Secondary infertility"
 - "Struggling with infertility and believe that endometriosis may be part of the issue"
 - "Infertility (possibly from endometriosis...still waiting to get a diagnostic laparoscopy with a NaPro surgeon)"
 - "Ultimately endo excision and quality of life, possible pregnancy"
 - "Painful periods, knowledge for the best long term health outcome for endo, secondary infertility"
+- "answers to infertility and fix my period pain"
+- "Pain, low prog, infertility"
+- "Understanding endometriosis in fertility challenges"
+- "I want to get pregnant and think inflammation from my endometriosis is causing an issue"
 
 ### Pain and symptoms
 - "Heal painful cycles and extreme pms symptoms"
 - "how to manage my endometriosis"
 - "Ending inflammation, bladder issues, ibs. Pain and migraines, getting pregnant"
 - "infertility and pain"
+- "Better ways of coping with endo symptoms and potentially learning ways to slow growth"
 
 ### Access to qualified care
 - "lack of access to qualified surgeons in Australia"
@@ -117,23 +143,23 @@ This mixed audience is a defining feature: patients and providers sit in the sam
 6. **International reach** -- Students from Canada, Australia seeking access to NaPro-quality care
 7. **Post-surgical questions** -- Some have already had surgery and want to know about re-growth, maintenance, long-term management
 
-## Pre-course confidence (0-5 scale, averaged across 33 respondents)
+## Pre-course confidence (0-5 scale, averaged across 54 respondents)
 
 | Skill | Pre-course avg |
 |-------|---------------|
-| Speaking to a surgeon about endometriosis | 2.7 |
-| Knowing what questions to ask to screen a surgeon | 1.9 |
-| Making a decision whether surgery is right for you | 2.4 |
-| Describing what endometriosis is | 3.0 |
-| Describing different appearances of endometriosis | 1.4 |
-| Understanding the purpose of diagnostic surgery | 3.1 |
-| Understanding theories of endometriosis origin | 1.5 |
+| Speaking to a surgeon about endometriosis | 3.1 |
+| Knowing what questions to ask to screen a surgeon | 2.3 |
+| Making a decision whether surgery is right for you | 2.7 |
+| Describing what endometriosis is | 3.1 |
+| Describing different appearances of endometriosis | 1.5 |
+| Understanding the purpose of diagnostic surgery | 3.2 |
+| Understanding theories of endometriosis origin | 1.7 |
 | Understanding basics of adhesion prevention | 1.2 |
-| Comfort with Gortex membrane placement | 1.3 |
-| Likelihood to choose a NaPro trained surgeon | 4.2 |
+| Comfort with Gortex membrane placement | 1.1 |
+| Likelihood to choose a NaPro trained surgeon | 4.4 |
 | Comfort going to any OB/GYN without researching | 1.1 |
-| Comfort with surgeon using electrocautery | 1.0 |
-| Comfort advising patients/friends about endo surgery | 2.2 |
+| Comfort with surgeon using electrocautery | 1.2 |
+| Comfort advising patients/friends about endo surgery | 2.3 |
 
 ## Takeaways for marketing
 
@@ -149,11 +175,19 @@ This mixed audience is a defining feature: patients and providers sit in the sam
 
 These are the actual words paying students use. Match this register, not clinical jargon:
 - "educated and empowered to make the best decisions for my body"
-- "things I can't just google"
+- "things I can't just google" (verbatim; modernize to "answers you won't find in a search")
 - "knowledge that isn't surface"
 - "the right questions"
 - "I want to be able to ask the right questions that will help me and others discover how best to advocate for ourselves"
 - "tools needed to pick the best doctor for me"
-- "I don't even know what I don't know" (implied by many 0-confidence scores)
+- "I don't even know what I don't know" (appears verbatim in multiple responses)
+- "I also don't know what I don't know" (gillissie.degraw, post-IVF-failure buyer)
 - "patients only being prescribed birth control or hysterectomy"
 - "nameless fears" (clinician describing why patients avoid surgical consults)
+- "learn unconventional knowledge about endometriosis not received from other doctors"
+- "learn something about endometriosis that I haven't learned from my own research"
+- "reinforce things I already knew with scientific evidence through the scope of restorative fertility practices"
+- "less anxiety about surgery" (raw, simple, underrated motivation)
+- "to learn how to better assist endometriosis patients (including myself) as a fertility doula" (patient AND provider in one sentence)
+- "navigate between providers for best endometriosis/fertility care"
+- "had support from REI with IUIs that were not successful" (post-IVF-failure, seeking RRM)
