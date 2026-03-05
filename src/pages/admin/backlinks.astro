@@ -616,13 +616,17 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     background: #6b755f;
   }
 
-  /* Table wrapper */
+  /* Table wrapper (static, scoped is fine) */
   .bl-table-wrap {
     overflow-x: auto;
     border: 1px solid var(--admin-border);
     border-radius: var(--radius-md);
     background: var(--admin-surface);
   }
+</style>
+
+<!-- Global styles for JS-created table elements (scoped styles don't match dynamic DOM) -->
+<style is:global>
   .bl-table {
     width: 100%;
     border-collapse: collapse;
@@ -634,19 +638,19 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .bl-table td {
     padding: var(--space-3) var(--space-4);
     text-align: left;
-    border-bottom: 1px solid var(--admin-border);
+    border-bottom: 1px solid #d9d3cc;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     max-width: 0;
   }
   .bl-table th {
-    background: var(--admin-cream);
+    background: #eee5dd;
     font-weight: 600;
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: var(--admin-text-muted);
+    color: #636261;
     resize: horizontal;
     overflow: auto;
     min-width: 60px;
@@ -656,15 +660,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     border-bottom: none;
   }
   .bl-table tbody tr:hover {
-    background: var(--admin-sage-100);
-  }
-  .bl-col-url {
-    max-width: 300px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    background: #e8ebe5;
   }
   .bl-col-url a {
-    color: var(--admin-sage-700);
+    color: #7e8772;
     text-decoration: none;
     font-weight: 500;
   }
@@ -674,11 +673,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   }
   .bl-empty {
     text-align: center;
-    color: var(--admin-text-faint);
+    color: #949392;
     padding: var(--space-8) var(--space-4);
   }
-
-  /* Status badges */
   .bl-badge {
     display: inline-block;
     padding: var(--space-1) var(--space-2);
@@ -702,15 +699,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   }
   .bl-badge--unchecked,
   .bl-badge--timeout {
-    background: var(--admin-sage-100);
-    color: var(--admin-text-muted);
+    background: #e8ebe5;
+    color: #636261;
   }
-
-  /* Check button */
   .bl-btn-check {
     background: none;
-    border: 1px solid var(--admin-border);
-    color: var(--admin-sage-700);
+    border: 1px solid #d9d3cc;
+    color: #7e8772;
     padding: var(--space-1) var(--space-3);
     border-radius: var(--radius-sm);
     cursor: pointer;
@@ -718,8 +713,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     font-weight: 500;
   }
   .bl-btn-check:hover {
-    border-color: var(--admin-sage-700);
-    background: var(--admin-sage-100);
+    border-color: #7e8772;
+    background: #e8ebe5;
   }
   .bl-btn-check:disabled {
     opacity: 0.5;
