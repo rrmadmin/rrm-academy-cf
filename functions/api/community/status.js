@@ -34,6 +34,10 @@ export async function onRequestGet({ request, env }) {
       });
     }
 
+    // Fetch email opt-out preference
+    const optOutRow = await db.prepare('SELECT community_email_opt_out FROM user WHERE id = ?')
+      .bind(auth.user.id).first();
+
     return json({
       ok: true,
       access: 'member',
@@ -44,6 +48,7 @@ export async function onRequestGet({ request, env }) {
         tier: auth.tier,
         avatarUrl: auth.user.avatar_url || null,
       },
+      emailOptOut: !!(optOutRow && optOutRow.community_email_opt_out),
     });
   } catch (err) {
     console.error('community status error:', err.message, err.stack);
