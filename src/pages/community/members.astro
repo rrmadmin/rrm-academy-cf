@@ -1,0 +1,353 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Members | Save the Uterus Club"
+  description="Members of the Save the Uterus Club community."
+  noindex
+>
+  <section class="members-page">
+    <div class="container">
+
+      <!-- Loading state -->
+      <div id="members-loading" class="members-loading">
+        <p>Loading...</p>
+      </div>
+
+      <!-- Gate: non-members -->
+      <div id="members-gate" hidden>
+        <div class="gate-hero">
+          <h1 class="hero-title">Members</h1>
+          <p class="gate-description">The member directory is only available to Save the Uterus Club members.</p>
+          <div class="gate-actions">
+            <a href="/save-the-uterus-club/" class="btn btn--primary btn--lg">Join the Save the Uterus Club</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feed: member grid -->
+      <div id="members-feed" hidden>
+        <div class="feed-header">
+          <a href="/community/" class="back-link">&larr; Back to Community</a>
+          <h2 class="feed-title">Members</h2>
+        </div>
+        <div id="members-grid" class="members-grid"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <script is:inline>
+    (function () {
+      var TIER_DISPLAY = {
+        member: '\u{1F43B} Member',
+        hero: '\u{1F496} Hero',
+        superhero: '\u{1F9B8}\u200D\u2640\uFE0F Superhero',
+      };
+
+      var ROLE_DISPLAY = {
+        mod: 'Moderator',
+        admin: 'Admin',
+        superadmin: 'Admin',
+      };
+
+      function timeAgo(dateStr) {
+        if (!dateStr) return '';
+        var now = new Date();
+        var then = new Date(dateStr);
+        var diff = Math.floor((now.getTime() - then.getTime()) / 1000);
+        if (diff < 60) return 'now';
+        var mins = Math.floor(diff / 60);
+        if (mins < 60) return mins + 'm ago';
+        var hours = Math.floor(mins / 60);
+        if (hours < 24) return hours + 'h ago';
+        var days = Math.floor(hours / 24);
+        if (days < 7) return days + 'd ago';
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        if (then.getFullYear() === now.getFullYear()) {
+          return months[then.getMonth()] + ' ' + then.getDate();
+        }
+        return months[then.getMonth()] + ' ' + then.getDate() + ', ' + then.getFullYear();
+      }
+
+      function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+
+      function isStaff(role) {
+        return role === 'mod' || role === 'admin' || role === 'superadmin';
+      }
+
+      function renderMembers(members) {
+        var grid = document.getElementById('members-grid');
+        if (!members.length) {
+          grid.innerHTML = '<p class="members-empty">No members found.</p>';
+          return;
+        }
+
+        var html = '';
+        for (var i = 0; i < members.length; i++) {
+          var m = members[i];
+          var initial = (m.name || 'M').charAt(0).toUpperCase();
+          var avatarHtml;
+          if (m.avatarUrl) {
+            avatarHtml = '<img class="member-avatar" src="' + escapeHtml(m.avatarUrl) + '" alt="" />';
+          } else {
+            avatarHtml = '<div class="member-avatar member-avatar--initial">' + escapeHtml(initial) + '</div>';
+          }
+
+          var badgesHtml = '';
+          if (isStaff(m.role)) {
+            badgesHtml += '<span class="post-role-badge">' + escapeHtml(ROLE_DISPLAY[m.role] || m.role) + '</span>';
+          } else if (m.tier && TIER_DISPLAY[m.tier]) {
+            badgesHtml += '<span class="post-tier-badge post-tier-badge--' + escapeHtml(m.tier) + '">' + escapeHtml(TIER_DISPLAY[m.tier]) + '</span>';
+          }
+
+          var achieveHtml = '';
+          if (m.achievements && m.achievements.length) {
+            for (var j = 0; j < m.achievements.length; j++) {
+              achieveHtml += '<span class="achievement-badge">' + escapeHtml(m.achievements[j]) + '</span>';
+            }
+          }
+
+          var activityHtml = '';
+          if (m.lastActive) {
+            activityHtml = '<span class="member-activity">Active ' + timeAgo(m.lastActive) + '</span>';
+          } else {
+            activityHtml = '<span class="member-activity member-activity--none">No posts yet</span>';
+          }
+
+          html += '<div class="member-card">';
+          html += avatarHtml;
+          html += '<div class="member-info">';
+          html += '<div class="member-name-row">';
+          html += '<span class="member-name">' + escapeHtml(m.name) + '</span>';
+          html += badgesHtml;
+          html += '</div>';
+          if (achieveHtml) {
+            html += '<div class="member-achievements">' + achieveHtml + '</div>';
+          }
+          html += activityHtml;
+          html += '</div>';
+          html += '</div>';
+        }
+        grid.innerHTML = html;
+      }
+
+      async function init() {
+        var loadingEl = document.getElementById('members-loading');
+        var gateEl = document.getElementById('members-gate');
+        var feedEl = document.getElementById('members-feed');
+
+        try {
+          var statusRes = await fetch('/api/community/status', { credentials: 'same-origin' });
+          var statusData = await statusRes.json();
+
+          if (!statusData.ok || !statusData.isMember) {
+            loadingEl.hidden = true;
+            gateEl.hidden = false;
+            return;
+          }
+
+          var membersRes = await fetch('/api/community/members', { credentials: 'same-origin' });
+          var membersData = await membersRes.json();
+
+          loadingEl.hidden = true;
+          feedEl.hidden = false;
+
+          if (membersData.ok) {
+            renderMembers(membersData.members);
+          } else {
+            document.getElementById('members-grid').innerHTML =
+              '<p class="members-empty">Unable to load members.</p>';
+          }
+        } catch (err) {
+          console.error('Members page error:', err);
+          loadingEl.hidden = true;
+          gateEl.hidden = false;
+        }
+      }
+
+      init();
+    })();
+  </script>
+
+  <style>
+    .members-page {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 32px 16px 64px;
+    }
+    .members-loading {
+      text-align: center;
+      padding: 64px 0;
+      color: var(--text-tertiary);
+    }
+
+    /* Gate */
+    .gate-hero {
+      text-align: center;
+      padding: 64px 0;
+    }
+    .hero-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 12px;
+    }
+    .gate-description {
+      color: var(--text-secondary);
+      font-size: 16px;
+      margin: 0 0 24px;
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .gate-actions {
+      margin-top: 16px;
+    }
+
+    /* Feed header */
+    .feed-header {
+      margin-bottom: 24px;
+    }
+    .back-link {
+      display: inline-block;
+      font-size: 14px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      margin-bottom: 8px;
+    }
+    .back-link:hover {
+      color: var(--text-primary);
+    }
+    .feed-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    /* Grid */
+    .members-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+    }
+    .members-empty {
+      text-align: center;
+      color: var(--text-tertiary);
+      padding: 48px 0;
+      grid-column: 1 / -1;
+    }
+
+    /* Member card */
+    .member-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 16px;
+      background: var(--neutral-50, #fafafa);
+      border: 1px solid var(--neutral-200, #e5e5e5);
+      border-radius: 10px;
+    }
+    .member-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+    .member-avatar--initial {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--neutral-200, #e5e5e5);
+      color: var(--text-secondary, #666);
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .member-info {
+      min-width: 0;
+      flex: 1;
+    }
+    .member-name-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .member-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* Reuse badge styles from community feed */
+    .post-role-badge {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--purple-700);
+      background: var(--purple-50);
+      padding: 0 6px;
+      border-radius: 8px;
+      line-height: 18px;
+    }
+    .post-tier-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 0 6px;
+      border-radius: 8px;
+      line-height: 18px;
+    }
+    .post-tier-badge--member {
+      background: var(--neutral-100);
+      color: var(--text-secondary);
+    }
+    .post-tier-badge--hero {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .post-tier-badge--superhero {
+      background: #fce7f3;
+      color: #9d174d;
+    }
+
+    /* Achievement badges */
+    .member-achievements {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 4px;
+    }
+    .achievement-badge {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-tertiary);
+      background: var(--neutral-100, #f0f0f0);
+      padding: 1px 6px;
+      border-radius: 6px;
+      line-height: 16px;
+    }
+
+    /* Activity status */
+    .member-activity {
+      display: block;
+      font-size: 12px;
+      color: var(--text-tertiary);
+      margin-top: 4px;
+    }
+    .member-activity--none {
+      font-style: italic;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .members-grid {
+        grid-template-columns: 1fr;
+      }
+      .members-page {
+        padding: 24px 12px 48px;
+      }
+    }
+  </style>
+</BaseLayout>
