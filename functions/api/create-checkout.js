@@ -16,6 +16,7 @@ import {
   json, optionsResponse, getSessionIdFromCookie, validateSession, checkRateLimit,
   STRIPE_API_VERSION, SITE_URL,
 } from './auth/_shared.js';
+import { sendGA4Event } from './_ga4.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -117,6 +118,9 @@ async function handleCheckout(request, env) {
     if (userId) sessionParams.client_reference_id = userId;
 
     const checkoutSession = await stripe.checkout.sessions.create(sessionParams);
+    sendGA4Event(env, request, 'begin_checkout', {
+      currency: 'USD', value: cents / 100, items: [{ item_name: 'Donation' }],
+    }).catch(() => {});
     return json({ ok: true, url: checkoutSession.url });
   }
 
@@ -172,6 +176,9 @@ async function handleCheckout(request, env) {
     if (userId) sessionParams.client_reference_id = userId;
 
     const checkoutSession = await stripe.checkout.sessions.create(sessionParams);
+    sendGA4Event(env, request, 'begin_checkout', {
+      currency: 'USD', items: [{ item_name: `STUC ${tier}` }],
+    }).catch(() => {});
     return json({ ok: true, url: checkoutSession.url });
   }
 
