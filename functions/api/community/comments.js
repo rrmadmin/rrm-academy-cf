@@ -4,7 +4,7 @@
  * DELETE /api/community/comments          — delete comment
  */
 import { json, optionsResponse, generateId } from '../auth/_shared.js';
-import { requireMember, displayName, canDeleteComment, roleAtLeast } from './_shared.js';
+import { requireMember, displayName, canDeleteComment, roleAtLeast, tierFromLabel, TIER_LABELS } from './_shared.js';
 
 const ARCHIVE_CHANNELS = ['members', 'masterclass'];
 
@@ -28,14 +28,16 @@ export async function onRequestGet({ request, env }) {
     const post = await db.prepare('SELECT id FROM community_post WHERE id = ?').bind(postId).first();
     if (!post) return json({ ok: false, error: 'Post not found' }, 404);
 
+    const tierPlaceholders = TIER_LABELS.map(() => '?').join(', ');
     const rows = await db.prepare(`
       SELECT c.id, c.author_id, c.content, c.parent_id, c.created_at,
-             u.name as author_name, u.first_name, u.last_name, u.role as author_role, u.avatar_url as author_avatar
+             u.name as author_name, u.first_name, u.last_name, u.role as author_role, u.avatar_url as author_avatar,
+             (SELECT ul.label FROM user_label ul WHERE ul.user_id = c.author_id AND ul.label IN (${tierPlaceholders}) LIMIT 1) as author_tier_label
       FROM community_comment c
       JOIN user u ON u.id = c.author_id
       WHERE c.post_id = ?
       ORDER BY c.created_at ASC
-    `).bind(postId).all();
+    `).bind(...TIER_LABELS, postId).all();
 
     // Fetch reactions for all comments
     const commentIds = rows.results.map(r => r.id);
@@ -79,6 +81,7 @@ export async function onRequestGet({ request, env }) {
         authorName: row.author_name || displayName(row),
         authorRole: row.author_role,
         authorAvatar: row.author_avatar || null,
+        authorTier: tierFromLabel(row.author_tier_label),
         content: row.content,
         parentId: row.parent_id,
         createdAt: row.created_at,
@@ -159,6 +162,7 @@ export async function onRequestPost({ request, env }) {
         authorId: user.id,
         authorName: displayName(user),
         authorRole: user.role,
+        authorTier: null,
         content: content.trim(),
         parentId: parentId || null,
         createdAt: new Date().toISOString().replace('T', ' ').slice(0, 19),
