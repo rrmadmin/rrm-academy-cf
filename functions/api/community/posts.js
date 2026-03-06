@@ -358,8 +358,10 @@ export async function onRequestDelete({ request, env }) {
       return json({ ok: false, error: 'Not authorized' }, 403);
     }
 
-    // CASCADE deletes comments; manually clean reactions
+    // CASCADE deletes comments; manually clean reactions and flags
     await db.batch([
+      db.prepare("DELETE FROM community_flag WHERE target_type = 'post' AND target_id = ?").bind(postId),
+      db.prepare("DELETE FROM community_flag WHERE target_type = 'comment' AND target_id IN (SELECT id FROM community_comment WHERE post_id = ?)").bind(postId),
       db.prepare("DELETE FROM community_reaction WHERE target_type = 'post' AND target_id = ?").bind(postId),
       db.prepare("DELETE FROM community_reaction WHERE target_type = 'comment' AND target_id IN (SELECT id FROM community_comment WHERE post_id = ?)").bind(postId),
       db.prepare('DELETE FROM community_post WHERE id = ?').bind(postId),
