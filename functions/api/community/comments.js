@@ -1,6 +1,7 @@
 /**
  * GET    /api/community/comments?postId=  — list comments (threaded)
  * POST   /api/community/comments          — create comment / reply
+ * PATCH  /api/community/comments          — edit comment (author only)
  * DELETE /api/community/comments          — delete comment
  */
 import { json, optionsResponse, generateId } from '../auth/_shared.js';
@@ -30,7 +31,7 @@ export async function onRequestGet({ request, env }) {
 
     const tierPlaceholders = TIER_LABELS.map(() => '?').join(', ');
     const rows = await db.prepare(`
-      SELECT c.id, c.author_id, c.content, c.parent_id, c.created_at,
+      SELECT c.id, c.author_id, c.content, c.parent_id, c.created_at, c.updated_at,
              u.name as author_name, u.first_name, u.last_name, u.role as author_role, u.avatar_url as author_avatar,
              (SELECT ul.label FROM user_label ul WHERE ul.user_id = c.author_id AND ul.label IN (${tierPlaceholders}) LIMIT 1) as author_tier_label
       FROM community_comment c
@@ -85,6 +86,7 @@ export async function onRequestGet({ request, env }) {
         content: row.content,
         parentId: row.parent_id,
         createdAt: row.created_at,
+        updatedAt: row.updated_at || null,
         reactions: reactionMap[row.id] || {},
         myReactions: userReactions[row.id] || [],
         isOwn: row.author_id === user.id,
@@ -218,6 +220,48 @@ export async function onRequestDelete({ request, env }) {
     return json({ ok: true });
   } catch (err) {
     console.error('community comments DELETE error:', err.message, err.stack);
+    return json({ ok: false, error: 'Internal error' }, 500);
+  }
+}
+
+// --- PATCH: edit comment ---
+
+export async function onRequestPatch({ request, env }) {
+  try {
+    const auth = await requireMember(request, env);
+    if (auth instanceof Response) return auth;
+    const { user } = auth;
+
+    let body;
+    try { body = await request.json(); } catch {
+      return json({ ok: false, error: 'Invalid JSON' }, 400);
+    }
+
+    const { commentId, content } = body;
+    if (!commentId) return json({ ok: false, error: 'commentId required' }, 400);
+    if (!content || typeof content !== 'string' || content.trim().length === 0) {
+      return json({ ok: false, error: 'Content required' }, 400);
+    }
+    if (content.length > 2000) {
+      return json({ ok: false, error: 'Comment too long (max 2000 chars)' }, 400);
+    }
+
+    const db = env.DB;
+    const comment = await db.prepare('SELECT * FROM community_comment WHERE id = ?').bind(commentId).first();
+    if (!comment) return json({ ok: false, error: 'Comment not found' }, 404);
+
+    // Only the author can edit their own comment
+    if (comment.author_id !== user.id) {
+      return json({ ok: false, error: 'Not authorized' }, 403);
+    }
+
+    await db.prepare(
+      "UPDATE community_comment SET content = ?, updated_at = datetime('now') WHERE id = ?"
+    ).bind(content.trim(), commentId).run();
+
+    return json({ ok: true });
+  } catch (err) {
+    console.error('community comments PATCH error:', err.message, err.stack);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }
