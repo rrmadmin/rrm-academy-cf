@@ -675,7 +675,9 @@ export function getStaticPaths() {
         html += roleBadgeHtml(c.authorRole);
         html += '<span class="comment-time">' + timeAgo(c.createdAt) + '</span>';
         html += '</div>';
-        html += '<div class="comment-body">' + escapeHtml(c.content) + '</div>';
+        html += '<div class="comment-body">' + escapeHtml(c.content);
+        if (c.updatedAt) html += ' <span class="comment-edited">(edited)</span>';
+        html += '</div>';
 
         // Comment reactions
         html += '<div class="comment-reactions" data-reactions-for="' + c.id + '">';
@@ -692,6 +694,9 @@ export function getStaticPaths() {
         html += '<div class="comment-actions">';
         if (!isReply && !c.parentId) {
           html += '<button class="btn btn--text btn--sm comment-reply-btn" data-parent-id="' + c.id + '">Reply</button>';
+        }
+        if (c.isOwn) {
+          html += '<button class="btn btn--text btn--sm comment-edit-btn" data-comment-id="' + c.id + '">Edit</button>';
         }
         if (canDelete) {
           html += '<button class="btn btn--text btn--sm comment-delete-btn" data-comment-id="' + c.id + '">Delete</button>';
@@ -906,6 +911,84 @@ export function getStaticPaths() {
             flagErrorText.textContent = 'Network error. Please try again.';
             flagError.hidden = false;
           });
+      });
+
+      // --- Comment editing ---
+      document.addEventListener('click', function (e) {
+        var editBtn = e.target.closest('.comment-edit-btn');
+        if (!editBtn) return;
+        var cid = editBtn.getAttribute('data-comment-id');
+        var comment = findComment(cid);
+        if (!comment) return;
+
+        var commentEl = document.querySelector('[data-comment-id="' + cid + '"]');
+        var bodyEl = commentEl.querySelector('.comment-body');
+        var actionsEl = commentEl.querySelector('.comment-actions');
+
+        var textarea = document.createElement('textarea');
+        textarea.className = 'form-input form-textarea form-textarea--sm';
+        textarea.rows = 3;
+        textarea.maxLength = 2000;
+        textarea.value = comment.content;
+
+        var saveBtn = document.createElement('button');
+        saveBtn.className = 'btn btn--primary btn--sm';
+        saveBtn.textContent = 'Save';
+
+        var cancelBtn = document.createElement('button');
+        cancelBtn.className = 'btn btn--secondary btn--sm';
+        cancelBtn.textContent = 'Cancel';
+
+        var editActions = document.createElement('div');
+        editActions.className = 'comment-edit-actions';
+        editActions.appendChild(saveBtn);
+        editActions.appendChild(cancelBtn);
+
+        bodyEl.hidden = true;
+        actionsEl.hidden = true;
+        bodyEl.parentNode.insertBefore(textarea, bodyEl.nextSibling);
+        bodyEl.parentNode.insertBefore(editActions, textarea.nextSibling);
+        textarea.focus();
+
+        cancelBtn.addEventListener('click', function () {
+          textarea.remove();
+          editActions.remove();
+          bodyEl.hidden = false;
+          actionsEl.hidden = false;
+        });
+
+        saveBtn.addEventListener('click', function () {
+          var newContent = textarea.value.trim();
+          if (!newContent) return;
+          saveBtn.disabled = true;
+          saveBtn.textContent = 'Saving...';
+          fetch('/api/community/comments', {
+            method: 'PATCH',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ commentId: cid, content: newContent }),
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              if (data.ok) {
+                comment.content = newContent;
+                comment.updatedAt = new Date().toISOString();
+                textarea.remove();
+                editActions.remove();
+                bodyEl.hidden = false;
+                actionsEl.hidden = false;
+                renderComments();
+              } else {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save';
+                alert(data.error || 'Edit failed.');
+              }
+            })
+            .catch(function () {
+              saveBtn.disabled = false;
+              saveBtn.textContent = 'Save';
+            });
+        });
       });
 
       function removeComment(id) {
@@ -1310,6 +1393,17 @@ export function getStaticPaths() {
   }
   .comment-actions .comment-delete-btn { color: var(--color-error); }
   .comment-actions .comment-delete-btn:hover { color: #a93226; }
+
+  .comment-edited {
+    color: var(--text-tertiary);
+    font-size: 11px;
+    font-style: italic;
+  }
+  .comment-edit-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
 
   /* Reply compose */
   .reply-compose {
