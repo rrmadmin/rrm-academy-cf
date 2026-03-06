@@ -180,3 +180,22 @@ CREATE TABLE IF NOT EXISTS saved_article (
 );
 
 CREATE INDEX IF NOT EXISTS idx_saved_article_user ON saved_article(user_id);
+
+-- Community Flags (reporting/flagging)
+
+CREATE TABLE IF NOT EXISTS community_flag (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES user(id),
+    target_type TEXT NOT NULL,
+    target_id TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    note TEXT,
+    status TEXT NOT NULL DEFAULT 'pending',
+    resolved_by TEXT REFERENCES user(id),
+    resolved_at TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(user_id, target_type, target_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_community_flag_status ON community_flag(status);
+CREATE INDEX IF NOT EXISTS idx_community_flag_target ON community_flag(target_type, target_id);
