@@ -2,6 +2,7 @@
  * POST /api/newsletter/subscribe
  * Validates Turnstile token, adds subscriber to Buttondown, optionally updates D1.
  */
+import { sendGA4Event } from '../_ga4.js';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': 'https://rrmacademy.org',
@@ -109,6 +110,8 @@ export async function onRequestPost(context) {
       console.error('D1 newsletter_opt_in update failed:', err.message);
     }
   }
+
+  sendGA4Event(env, request, 'generate_lead', { event_category: 'newsletter' }).catch(() => {});
 
   return json({ ok: true, message: 'You are subscribed!' });
 }

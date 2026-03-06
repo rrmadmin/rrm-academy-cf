@@ -8,6 +8,7 @@ import {
   isValidEmail, isValidPassword,
 } from './_shared.js';
 import { sendEmail } from '../_ses.js';
+import { sendGA4Event } from '../_ga4.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -108,6 +109,8 @@ export async function onRequestPost({ request, env }) {
         // Email send failed — user can request resend later
       }
     }
+
+    sendGA4Event(env, request, 'sign_up', { method: 'email' }).catch(() => {});
 
     return json(
       { ok: true, emailVerificationRequired: true },
