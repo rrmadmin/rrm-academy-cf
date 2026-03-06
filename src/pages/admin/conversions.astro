@@ -1,0 +1,353 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Conversions" description="Admin conversions dashboard" noindex={true} bodyClass="admin-page">
+
+  <div class="admin-bar">
+    <div class="container admin-bar__inner">
+      <span class="admin-bar__title">RRM Admin</span>
+      <nav class="admin-bar__nav">
+        <a href="/admin/backlinks/" class="admin-bar__link">Backlinks</a>
+        <a href="/admin/conversions/" class="admin-bar__link admin-bar__link--active">Conversions</a>
+      </nav>
+      <div class="admin-bar__actions">
+        <a href="/" class="admin-bar__site-link">Return to site</a>
+        <button class="admin-bar__logout" id="logout-btn" hidden>Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <section id="login-gate" class="cv-section">
+    <div class="container container--narrow cv-login-wrap">
+      <h1>Admin Login</h1>
+      <div class="form-group">
+        <label class="form-label" for="token-input">Admin Token</label>
+        <input class="form-input" type="password" id="token-input" placeholder="Enter admin token" autocomplete="off" />
+      </div>
+      <button class="btn btn--primary" id="login-btn">Login</button>
+      <p id="login-error" class="cv-error" hidden></p>
+    </div>
+  </section>
+
+  <section id="dashboard" class="cv-section" hidden>
+    <div class="container">
+
+      <div class="cv-header">
+        <h1>Conversions</h1>
+        <div class="cv-controls">
+          <select class="form-input cv-select" id="period-select">
+            <option value="7d">Last 7 days</option>
+            <option value="28d" selected>Last 28 days</option>
+            <option value="90d">Last 90 days</option>
+          </select>
+          <button class="btn btn--primary cv-btn" id="refresh-btn">Refresh</button>
+        </div>
+      </div>
+
+      <div class="cv-metrics" id="metrics-grid">
+        <div class="cv-card">
+          <span class="cv-card__label">Page Views</span>
+          <span class="cv-card__value" id="m-pageviews">--</span>
+          <span class="cv-card__sub" id="m-pageviews-users">-- users</span>
+        </div>
+        <div class="cv-card">
+          <span class="cv-card__label">Signups</span>
+          <span class="cv-card__value cv-card__value--green" id="m-signups">--</span>
+          <span class="cv-card__sub" id="m-signups-users">-- users</span>
+        </div>
+        <div class="cv-card">
+          <span class="cv-card__label">Leads</span>
+          <span class="cv-card__value cv-card__value--blue" id="m-leads">--</span>
+          <span class="cv-card__sub" id="m-leads-users">-- users</span>
+        </div>
+        <div class="cv-card">
+          <span class="cv-card__label">Checkouts</span>
+          <span class="cv-card__value" id="m-checkouts">--</span>
+          <span class="cv-card__sub" id="m-checkouts-users">-- users</span>
+        </div>
+        <div class="cv-card">
+          <span class="cv-card__label">Purchases</span>
+          <span class="cv-card__value cv-card__value--green" id="m-purchases">--</span>
+          <span class="cv-card__sub" id="m-purchases-users">-- users</span>
+        </div>
+      </div>
+
+      <div class="cv-rates">
+        <div class="cv-rate">
+          <span class="cv-rate__label">Signup Rate</span>
+          <span class="cv-rate__value" id="r-signup">--%</span>
+          <span class="cv-rate__desc">signups / unique visitors</span>
+        </div>
+        <div class="cv-rate">
+          <span class="cv-rate__label">Lead Rate</span>
+          <span class="cv-rate__value" id="r-lead">--%</span>
+          <span class="cv-rate__desc">leads / unique visitors</span>
+        </div>
+        <div class="cv-rate">
+          <span class="cv-rate__label">Checkout Rate</span>
+          <span class="cv-rate__value" id="r-checkout">--%</span>
+          <span class="cv-rate__desc">checkouts / unique visitors</span>
+        </div>
+        <div class="cv-rate">
+          <span class="cv-rate__label">Purchase Rate</span>
+          <span class="cv-rate__value" id="r-purchase">--%</span>
+          <span class="cv-rate__desc">purchases / unique visitors</span>
+        </div>
+      </div>
+
+      <h2 class="cv-table-heading">Daily Breakdown</h2>
+      <div class="cv-table-wrap">
+        <table class="cv-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Views</th>
+              <th>Signups</th>
+              <th>Leads</th>
+              <th>Checkouts</th>
+              <th>Purchases</th>
+            </tr>
+          </thead>
+          <tbody id="cv-tbody">
+            <tr><td colspan="6" class="cv-empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="cv-meta" id="cv-meta"></p>
+
+    </div>
+  </section>
+
+  <script is:inline>
+  (function () {
+    var TOKEN_KEY = 'cv_admin_token';
+    var EXPIRY_KEY = 'cv_admin_expiry';
+    var TTL_MS = 24 * 60 * 60 * 1000;
+
+    function getToken() {
+      var token = localStorage.getItem(TOKEN_KEY);
+      var expiry = localStorage.getItem(EXPIRY_KEY);
+      if (!token || !expiry) return null;
+      if (Date.now() > Number(expiry)) { clearToken(); return null; }
+      return token;
+    }
+    function setToken(token) {
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(EXPIRY_KEY, String(Date.now() + TTL_MS));
+    }
+    function clearToken() {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(EXPIRY_KEY);
+    }
+
+    async function fetchData(period) {
+      var token = getToken();
+      if (!token) throw new Error('Not authenticated');
+      var resp = await fetch('/api/admin/conversions?period=' + encodeURIComponent(period), {
+        headers: { 'X-Admin-Secret': token },
+      });
+      if (resp.status === 401) { clearToken(); location.reload(); throw new Error('Session expired'); }
+      var data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Request failed');
+      return data;
+    }
+
+    function num(n) { return (n || 0).toLocaleString(); }
+    function pct(a, b) { return b > 0 ? ((a / b) * 100).toFixed(2) + '%' : '0%'; }
+
+    function formatDate(yyyymmdd) {
+      if (!yyyymmdd || yyyymmdd.length !== 8) return yyyymmdd;
+      return yyyymmdd.slice(0, 4) + '-' + yyyymmdd.slice(4, 6) + '-' + yyyymmdd.slice(6, 8);
+    }
+
+    function render(report) {
+      var e = report.events || {};
+      var pv = e.page_view || { count: 0, users: 0 };
+      var su = e.sign_up || { count: 0, users: 0 };
+      var gl = e.generate_lead || { count: 0, users: 0 };
+      var bc = e.begin_checkout || { count: 0, users: 0 };
+      var pu = e.purchase || { count: 0, users: 0 };
+
+      document.getElementById('m-pageviews').textContent = num(pv.count);
+      document.getElementById('m-pageviews-users').textContent = num(pv.users) + ' users';
+      document.getElementById('m-signups').textContent = num(su.count);
+      document.getElementById('m-signups-users').textContent = num(su.users) + ' users';
+      document.getElementById('m-leads').textContent = num(gl.count);
+      document.getElementById('m-leads-users').textContent = num(gl.users) + ' users';
+      document.getElementById('m-checkouts').textContent = num(bc.count);
+      document.getElementById('m-checkouts-users').textContent = num(bc.users) + ' users';
+      document.getElementById('m-purchases').textContent = num(pu.count);
+      document.getElementById('m-purchases-users').textContent = num(pu.users) + ' users';
+
+      var visitors = pv.users || 0;
+      document.getElementById('r-signup').textContent = pct(su.count, visitors);
+      document.getElementById('r-lead').textContent = pct(gl.count, visitors);
+      document.getElementById('r-checkout').textContent = pct(bc.count, visitors);
+      document.getElementById('r-purchase').textContent = pct(pu.count, visitors);
+
+      // Daily table (most recent first)
+      var timeline = (report.timeline || []).slice().reverse();
+      var tbody = document.getElementById('cv-tbody');
+      if (!timeline.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="cv-empty">No data for this period</td></tr>';
+      } else {
+        tbody.innerHTML = timeline.map(function (d) {
+          return '<tr>' +
+            '<td>' + formatDate(d.date) + '</td>' +
+            '<td>' + num(d.page_view) + '</td>' +
+            '<td>' + num(d.sign_up) + '</td>' +
+            '<td>' + num(d.generate_lead) + '</td>' +
+            '<td>' + num(d.begin_checkout) + '</td>' +
+            '<td>' + num(d.purchase) + '</td>' +
+            '</tr>';
+        }).join('');
+      }
+
+      var meta = 'Fetched: ' + (report.fetchedAt || 'unknown');
+      document.getElementById('cv-meta').textContent = meta;
+    }
+
+    async function loadData() {
+      var period = document.getElementById('period-select').value;
+      document.getElementById('cv-tbody').innerHTML = '<tr><td colspan="6" class="cv-empty">Loading...</td></tr>';
+      try {
+        var resp = await fetchData(period);
+        render(resp.data);
+        if (resp.cached) {
+          document.getElementById('cv-meta').textContent += ' (cached)';
+        }
+      } catch (err) {
+        document.getElementById('cv-tbody').innerHTML = '<tr><td colspan="6" class="cv-empty cv-error">' + err.message + '</td></tr>';
+      }
+    }
+
+    // Auth flow
+    var token = getToken();
+    if (token) {
+      document.getElementById('login-gate').hidden = true;
+      document.getElementById('dashboard').hidden = false;
+      document.getElementById('logout-btn').hidden = false;
+      loadData();
+    }
+
+    document.getElementById('login-btn').addEventListener('click', async function () {
+      var input = document.getElementById('token-input');
+      var val = input.value.trim();
+      if (!val) return;
+      document.getElementById('login-error').hidden = true;
+      try {
+        var resp = await fetch('/api/admin/conversions?period=7d', {
+          headers: { 'X-Admin-Secret': val },
+        });
+        if (resp.status === 401) throw new Error('Invalid token');
+        setToken(val);
+        document.getElementById('login-gate').hidden = true;
+        document.getElementById('dashboard').hidden = false;
+        document.getElementById('logout-btn').hidden = false;
+        var data = await resp.json();
+        if (data.ok) render(data.data);
+      } catch (err) {
+        var errEl = document.getElementById('login-error');
+        errEl.textContent = err.message;
+        errEl.hidden = false;
+      }
+    });
+
+    document.getElementById('token-input').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') document.getElementById('login-btn').click();
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', function () {
+      clearToken();
+      location.reload();
+    });
+
+    document.getElementById('period-select').addEventListener('change', loadData);
+    document.getElementById('refresh-btn').addEventListener('click', function () {
+      // Force fresh data by appending cache-bust (API checks KV, so we just reload)
+      loadData();
+    });
+  })();
+  </script>
+
+</BaseLayout>
+
+<style>
+  :root {
+    --admin-sage-700: #7e8772;
+    --admin-sage-300: #bec3b8;
+    --admin-bg: #faf8f5;
+    --admin-surface: #ffffff;
+    --admin-border: #d9d3cc;
+    --admin-text: #313131;
+    --admin-text-muted: #636261;
+    --admin-text-faint: #949392;
+  }
+
+  :global(.admin-page) :global(.site-header) { display: none; }
+  :global(.admin-page) :global(footer) { display: none; }
+
+  .admin-bar { background: #2d3328; color: #e8ebe5; position: sticky; top: 0; z-index: 100; }
+  .admin-bar__inner { display: flex; align-items: center; height: 48px; gap: var(--space-6); }
+  .admin-bar__title { font-family: 'Cormorant Garamond', 'Georgia', serif; font-weight: 600; font-size: 1.25rem; color: var(--admin-sage-300); white-space: nowrap; }
+  .admin-bar__nav { display: flex; gap: var(--space-1); }
+  .admin-bar__link { font-size: 0.8125rem; font-weight: 400; color: rgba(255,255,255,0.6); text-decoration: none; padding: 4px 12px; border-radius: var(--radius-sm); transition: color 0.15s, background 0.15s; }
+  .admin-bar__link:hover { color: #fff; text-decoration: none; }
+  .admin-bar__link--active { color: #fff; background: rgba(255,255,255,0.1); font-weight: 500; }
+  .admin-bar__actions { display: flex; align-items: center; gap: var(--space-3); margin-left: auto; }
+  .admin-bar__site-link { font-size: 0.8125rem; font-weight: 500; color: var(--admin-sage-300); text-decoration: none; padding: 5px 16px; border: 1px solid var(--admin-sage-300); border-radius: var(--radius-pill); transition: color 0.15s, border-color 0.15s; }
+  .admin-bar__site-link:hover { color: #fff; border-color: #fff; text-decoration: none; }
+  .admin-bar__logout { font-size: 0.8125rem; color: rgba(255,255,255,0.5); background: none; border: none; cursor: pointer; padding: 4px 8px; }
+  .admin-bar__logout:hover { color: #fff; }
+
+  .cv-section { padding: var(--space-8) 0; background: var(--admin-bg); min-height: 80vh; }
+  .cv-login-wrap { max-width: 400px; margin: var(--space-16) auto; text-align: center; background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--radius-md); padding: var(--space-8) var(--space-6); }
+  .cv-login-wrap h1 { margin-bottom: var(--space-6); color: var(--admin-sage-700); }
+  .cv-login-wrap .form-group { margin-bottom: var(--space-4); text-align: left; }
+  .cv-login-wrap .form-input { border-color: var(--admin-border); }
+  .cv-login-wrap .form-input:focus { border-color: var(--admin-sage-700); box-shadow: 0 0 0 2px rgba(126,135,114,0.15); outline: none; }
+  .cv-login-wrap .btn { width: 100%; background: var(--admin-sage-700); border-color: var(--admin-sage-700); color: #fff; }
+  .cv-login-wrap .btn:hover { background: #6b755f; }
+  .cv-error { color: var(--color-error); font-size: 0.875rem; margin-top: var(--space-3); }
+
+  .cv-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6); flex-wrap: wrap; gap: var(--space-3); }
+  .cv-header h1 { margin-bottom: 0; color: var(--admin-text); }
+  .cv-controls { display: flex; gap: var(--space-3); align-items: center; }
+  .cv-select { max-width: 200px; border-color: var(--admin-border); }
+  .cv-select:focus { border-color: var(--admin-sage-700); box-shadow: 0 0 0 2px rgba(126,135,114,0.15); outline: none; }
+  .cv-btn { background: var(--admin-sage-700); border-color: var(--admin-sage-700); color: #fff; }
+  .cv-btn:hover { background: #6b755f; }
+
+  .cv-metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--space-4); margin-bottom: var(--space-6); }
+  @media (max-width: 768px) { .cv-metrics { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 480px) { .cv-metrics { grid-template-columns: repeat(2, 1fr); } }
+
+  .cv-card { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--radius-md); padding: var(--space-4) var(--space-5); text-align: center; }
+  .cv-card__label { display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--admin-text-faint); margin-bottom: var(--space-1); }
+  .cv-card__value { display: block; font-size: 1.75rem; font-weight: 700; color: var(--admin-text); font-family: 'Inter', sans-serif; }
+  .cv-card__value--green { color: #27ae60; }
+  .cv-card__value--blue { color: #2980b9; }
+  .cv-card__sub { display: block; font-size: 0.75rem; color: var(--admin-text-faint); margin-top: 2px; }
+
+  .cv-rates { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); margin-bottom: var(--space-8); }
+  @media (max-width: 768px) { .cv-rates { grid-template-columns: repeat(2, 1fr); } }
+  .cv-rate { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--radius-md); padding: var(--space-4) var(--space-5); text-align: center; }
+  .cv-rate__label { display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--admin-text-faint); margin-bottom: var(--space-1); }
+  .cv-rate__value { display: block; font-size: 1.5rem; font-weight: 700; color: var(--admin-sage-700); font-family: 'Inter', sans-serif; }
+  .cv-rate__desc { display: block; font-size: 0.6875rem; color: var(--admin-text-faint); margin-top: 2px; }
+
+  .cv-table-heading { color: var(--admin-text); margin-bottom: var(--space-4); }
+  .cv-table-wrap { overflow-x: auto; border: 1px solid var(--admin-border); border-radius: var(--radius-md); background: var(--admin-surface); }
+  .cv-empty { text-align: center; color: var(--admin-text-faint); padding: var(--space-8) var(--space-4); }
+  .cv-meta { font-size: 0.75rem; color: var(--admin-text-faint); margin-top: var(--space-4); }
+</style>
+
+<style is:global>
+  .cv-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+  .cv-table th, .cv-table td { padding: var(--space-3) var(--space-4); text-align: right; border-bottom: 1px solid #d9d3cc; }
+  .cv-table th:first-child, .cv-table td:first-child { text-align: left; }
+  .cv-table th { background: #eee5dd; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: #636261; }
+  .cv-table tbody tr:last-child td { border-bottom: none; }
+  .cv-table tbody tr:hover { background: #e8ebe5; }
+</style>
