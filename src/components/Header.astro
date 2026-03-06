@@ -242,10 +242,6 @@ const mobileNavSections = [
     gap: 0;
     align-items: center;
     white-space: nowrap;
-    transition: transform 1.1s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  :global(.nav-collapsed) .nav-list {
-    transform: translateX(-100%);
   }
   .nav-item {
     position: relative;
@@ -359,8 +355,11 @@ const mobileNavSections = [
     align-items: center;
   }
   @media (min-width: 769px) {
-    :global(.page-synopsis) .header-search {
+    :global(.page-library) .header-search {
       display: flex;
+    }
+    :global(.page-library) .nav-list {
+      display: none;
     }
   }
   .header-search__icon {
@@ -811,42 +810,4 @@ const mobileNavSections = [
     });
   })();
 
-  // Library nav: slide links left on load, reveal on logo hover (desktop only)
-  (function() {
-    if (window.location.pathname !== '/library/') return; // only on library index
-    if (window.innerWidth <= 768) return; // mobile untouched
-    var header = document.querySelector('.site-header');
-    var logo = document.querySelector('.logo');
-    var nav = document.querySelector('.main-nav');
-    var collapseTimer = null;
-    var COLLAPSE_DELAY = 600;
-
-    setTimeout(function() {
-      header.classList.add('nav-collapsed');
-    }, 800);
-
-    function cancelCollapse() {
-      if (collapseTimer) { clearTimeout(collapseTimer); collapseTimer = null; }
-    }
-    function scheduleCollapse() {
-      cancelCollapse();
-      collapseTimer = setTimeout(function() {
-        header.classList.add('nav-collapsed');
-      }, COLLAPSE_DELAY);
-    }
-
-    logo.addEventListener('mouseenter', function() {
-      cancelCollapse();
-      header.classList.remove('nav-collapsed');
-    });
-    logo.addEventListener('mouseleave', function() {
-      scheduleCollapse();
-    });
-    nav.addEventListener('mouseenter', function() {
-      cancelCollapse();
-    });
-    nav.addEventListener('mouseleave', function() {
-      scheduleCollapse();
-    });
-  })();
 </script>
