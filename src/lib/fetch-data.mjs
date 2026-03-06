@@ -1,6 +1,10 @@
 /**
  * Standalone script to fetch Airtable data and cache as JSON.
  * Run: AIRTABLE_PAT=xxx node src/lib/fetch-data.mjs
+ *
+ * Single-record mode: RECORD_ID=recXXX fetches one record, merges into
+ * existing articles.json cache. Used by repository_dispatch to avoid
+ * re-fetching 3000+ articles for a single change.
  */
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
@@ -11,6 +15,136 @@ import { API_URL, FIELDS } from './airtable-config.mjs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_PATH = join(__dirname, '..', 'data', 'articles.json');
 const DRY_RUN = process.argv.includes('--dry-run');
+
+// --- Record mapping (shared between full fetch and single-record) ---
+
+function mapRecord(record) {
+  const f = record.fields;
+  const slug = f['⚡️ SEO:Slug'];
+  const title = f['⚡️ Title'];
+  if (!slug || !title) return null;
+
+  const oaFlag = f['⚡️ Is Open Access'] || '';
+  const isOpenAccess = oaFlag === 'Open Access';
+  const accessLevel = isOpenAccess ? 'open' : 'restricted';
+
+  return {
+    id: record.id,
+    slug: slug.trim().toLowerCase(),
+    title: title.replace(/\.\s*$/, ''),
+    authors: f['⚡️ Author(s)'] || '',
+    shortCitation: f['⚡️ Short Citation'] || '',
+    year: f['⚡️ Year'] ? Number(f['⚡️ Year']) : null,
+    abstract: f['⚡️ Abstract'] || '',
+    journal: f['⚡️ Journal'] || '',
+    journalAbbv: f['⚡️ Journal Abbv'] || '',
+    doi: f['⚡️ DOI'] || '',
+    pmid: '',
+    sourceUrl: f['⚡️ Source URL'] || '',
+    datePublished: f['⚡️ Date Published'] || '',
+    volume: f['⚡️ Volume'] || '',
+    issue: f['⚡️ Issue'] || '',
+    pages: f['⚡️ Pages'] || '',
+    keywords: f['⚡️ Keywords'] || '',
+    apaCitation: f['⚡️ Citation'] || '',
+    vancouverCitation: f['⚡️ Vancouver Citation'] || '',
+    mlaCitation: f['⚡️ MLA Citation'] || '',
+    topics: f['⚡️ Topics (AI)']
+      ? f['⚡️ Topics (AI)'].split('\n').map(t => t.trim()).filter(Boolean)
+      : [],
+    searchTerms: f['⚡️ Search Terms (AI)']
+      ? f['⚡️ Search Terms (AI)'].split('\n').map(t => t.trim()).filter(Boolean)
+      : [],
+    enrichmentStatus: f['Sync to RRM Library'] || '',
+    identifiers: oaFlag ? [oaFlag] : [],
+    isOpenAccess,
+    isCopyrighted: oaFlag === '©',
+    oaType: '',
+    license: '',
+    oaUrl: '',
+    accessLevel,
+    sentiment: f['⚡️ Sentiment (AI)'] || '',
+    rrmRelevance: f['⚡️ RRM Relevance (AI)'] || '',
+    domain: f['⚡️ Domain (AI)'] || '',
+    lastModified: f['Last Modified'] || '',
+  };
+}
+
+function sortArticles(articles) {
+  const hasDate = (d) => d && !d.startsWith('1900');
+  articles.sort((a, b) => {
+    const aOk = hasDate(a.datePublished);
+    const bOk = hasDate(b.datePublished);
+    if (!aOk && !bOk) return 0;
+    if (!aOk) return 1;
+    if (!bOk) return -1;
+    return b.datePublished.localeCompare(a.datePublished);
+  });
+  return articles;
+}
+
+// --- Single-record merge mode ---
+
+async function fetchSingle(recordId) {
+  const pat = process.env.AIRTABLE_PAT;
+  if (!pat) {
+    console.error('Error: AIRTABLE_PAT environment variable required');
+    process.exit(1);
+  }
+
+  const url = `${API_URL}/${recordId}`;
+
+  console.log(`Fetching single record: ${recordId}`);
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${pat}` },
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Airtable ${res.status}: ${err}`);
+  }
+
+  const record = await res.json();
+  const syncStatus = record.fields?.['Sync to RRM Library'];
+  const isSynced = syncStatus === 'Synced';
+
+  // Load existing articles.json
+  let articles = [];
+  if (existsSync(OUTPUT_PATH)) {
+    articles = JSON.parse(readFileSync(OUTPUT_PATH, 'utf-8'));
+    console.log(`Loaded ${articles.length} existing articles from cache`);
+  }
+
+  // Remove old version of this record (if present)
+  const before = articles.length;
+  articles = articles.filter(a => a.id !== recordId);
+  const wasPresent = articles.length < before;
+
+  if (!isSynced) {
+    // Record is no longer synced -- remove it
+    if (wasPresent) {
+      console.log(`Record ${recordId} sync="${syncStatus}" -- removed from articles.json`);
+    } else {
+      console.log(`Record ${recordId} sync="${syncStatus}" -- not in articles.json, nothing to do`);
+    }
+  } else {
+    const article = mapRecord(record);
+    if (!article) {
+      console.log(`Record ${recordId} missing slug or title -- skipped`);
+    } else {
+      articles.push(article);
+      console.log(`${wasPresent ? 'Updated' : 'Added'}: "${article.title}" (${article.slug})`);
+    }
+  }
+
+  sortArticles(articles);
+
+  mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
+  writeFileSync(OUTPUT_PATH, JSON.stringify(articles, null, 2));
+  console.log(`\nWrote ${articles.length} articles to ${OUTPUT_PATH}`);
+}
+
+// --- Main ---
 
 async function fetchAll() {
   if (DRY_RUN) {
@@ -71,76 +205,24 @@ async function fetchAll() {
     offset = data.offset;
 
     for (const record of data.records) {
-      const f = record.fields;
-      const slug = f['⚡️ SEO:Slug'];
-      const title = f['⚡️ Title'];
-      if (!slug || !title) continue;
-
-      const oaFlag = f['⚡️ Is Open Access'] || '';
-      const isOpenAccess = oaFlag === 'Open Access';
-      const accessLevel = isOpenAccess ? 'open' : 'restricted';
-
-      articles.push({
-        id: record.id,
-        slug: slug.trim().toLowerCase(),
-        title: title.replace(/\.\s*$/, ''),
-        authors: f['⚡️ Author(s)'] || '',
-        shortCitation: f['⚡️ Short Citation'] || '',
-        year: f['⚡️ Year'] ? Number(f['⚡️ Year']) : null,
-        abstract: f['⚡️ Abstract'] || '',
-        journal: f['⚡️ Journal'] || '',
-        journalAbbv: f['⚡️ Journal Abbv'] || '',
-        doi: f['⚡️ DOI'] || '',
-        pmid: '',
-        sourceUrl: f['⚡️ Source URL'] || '',
-        datePublished: f['⚡️ Date Published'] || '',
-        volume: f['⚡️ Volume'] || '',
-        issue: f['⚡️ Issue'] || '',
-        pages: f['⚡️ Pages'] || '',
-        keywords: f['⚡️ Keywords'] || '',
-        apaCitation: f['⚡️ Citation'] || '',
-        vancouverCitation: f['⚡️ Vancouver Citation'] || '',
-        mlaCitation: f['⚡️ MLA Citation'] || '',
-        topics: f['⚡️ Topics (AI)']
-          ? f['⚡️ Topics (AI)'].split('\n').map(t => t.trim()).filter(Boolean)
-          : [],
-        searchTerms: f['⚡️ Search Terms (AI)']
-          ? f['⚡️ Search Terms (AI)'].split('\n').map(t => t.trim()).filter(Boolean)
-          : [],
-        enrichmentStatus: f['Sync to RRM Library'] || '',
-        identifiers: oaFlag ? [oaFlag] : [],
-        isOpenAccess,
-        isCopyrighted: oaFlag === '©',
-        oaType: '',
-        license: '',
-        oaUrl: '',
-        accessLevel,
-        sentiment: f['⚡️ Sentiment (AI)'] || '',
-        rrmRelevance: f['⚡️ RRM Relevance (AI)'] || '',
-        domain: f['⚡️ Domain (AI)'] || '',
-      });
+      const article = mapRecord(record);
+      if (article) articles.push(article);
     }
 
     console.log(`Page ${page}: ${data.records.length} records (${articles.length} total)`);
   } while (offset);
 
-  // Sort newest first; treat 1900 placeholder dates as missing
-  const hasDate = (d) => d && !d.startsWith('1900');
-  articles.sort((a, b) => {
-    const aOk = hasDate(a.datePublished);
-    const bOk = hasDate(b.datePublished);
-    if (!aOk && !bOk) return 0;
-    if (!aOk) return 1;
-    if (!bOk) return -1;
-    return b.datePublished.localeCompare(a.datePublished);
-  });
+  sortArticles(articles);
 
   mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
   writeFileSync(OUTPUT_PATH, JSON.stringify(articles, null, 2));
   console.log(`\nWrote ${articles.length} articles to ${OUTPUT_PATH}`);
 }
 
-fetchAll().catch(err => {
+const recordId = process.env.RECORD_ID;
+const main = recordId ? () => fetchSingle(recordId) : fetchAll;
+
+main().catch(err => {
   console.error(err);
   process.exit(1);
 });
