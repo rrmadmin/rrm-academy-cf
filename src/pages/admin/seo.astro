@@ -1,0 +1,503 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="SEO Health" description="Admin SEO health monitor" noindex={true} bodyClass="admin-page">
+
+  <!-- Admin Header Bar -->
+  <div class="admin-bar">
+    <div class="container admin-bar__inner">
+      <span class="admin-bar__title">RRM Admin</span>
+      <nav class="admin-bar__nav">
+        <a href="/admin/backlinks/" class="admin-bar__link">Backlinks</a>
+        <a href="/admin/conversions/" class="admin-bar__link">Conversions</a>
+        <a href="/admin/content/" class="admin-bar__link">Content</a>
+        <a href="/admin/seo/" class="admin-bar__link admin-bar__link--active">SEO</a>
+        <a href="/admin/revenue/" class="admin-bar__link">Revenue</a>
+      </nav>
+      <div class="admin-bar__actions">
+        <a href="/" class="admin-bar__site-link">Return to site</a>
+        <button class="admin-bar__logout" id="logout-btn" hidden>Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login Gate -->
+  <section id="login-gate" class="bl-section">
+    <div class="container container--narrow bl-login-wrap">
+      <h1>Admin Login</h1>
+      <div class="form-group">
+        <label class="form-label" for="token-input">Admin Token</label>
+        <input
+          class="form-input"
+          type="password"
+          id="token-input"
+          placeholder="Enter admin token"
+          autocomplete="off"
+        />
+      </div>
+      <button class="btn btn--primary" id="login-btn">Login</button>
+      <p id="login-error" class="bl-error" hidden></p>
+    </div>
+  </section>
+
+  <!-- Dashboard -->
+  <section id="dashboard" class="bl-section" hidden>
+    <div class="container">
+
+      <!-- Page heading -->
+      <div class="bl-header">
+        <h1>SEO Health</h1>
+        <button class="btn btn--primary seo-run-btn" id="run-check-btn">Run Check</button>
+      </div>
+
+      <!-- Status cards -->
+      <div class="bl-metrics seo-grid">
+        <div class="bl-card seo-card" id="card-pages">
+          <span class="bl-card__label">Pages</span>
+          <span class="seo-card__icon" id="icon-pages">--</span>
+          <span class="seo-card__detail" id="detail-pages">Not checked</span>
+        </div>
+        <div class="bl-card seo-card" id="card-sitemap">
+          <span class="bl-card__label">Sitemap</span>
+          <span class="seo-card__icon" id="icon-sitemap">--</span>
+          <span class="seo-card__detail" id="detail-sitemap">Not checked</span>
+        </div>
+        <div class="bl-card seo-card" id="card-robots">
+          <span class="bl-card__label">Robots</span>
+          <span class="seo-card__icon" id="icon-robots">--</span>
+          <span class="seo-card__detail" id="detail-robots">Not checked</span>
+        </div>
+        <div class="bl-card seo-card" id="card-llms_txt">
+          <span class="bl-card__label">llms.txt</span>
+          <span class="seo-card__icon" id="icon-llms_txt">--</span>
+          <span class="seo-card__detail" id="detail-llms_txt">Not checked</span>
+        </div>
+        <div class="bl-card seo-card" id="card-schema">
+          <span class="bl-card__label">Schema</span>
+          <span class="seo-card__icon" id="icon-schema">--</span>
+          <span class="seo-card__detail" id="detail-schema">Not checked</span>
+        </div>
+        <div class="bl-card seo-card" id="card-backlinks">
+          <span class="bl-card__label">Backlinks</span>
+          <span class="seo-card__icon" id="icon-backlinks">--</span>
+          <span class="seo-card__detail" id="detail-backlinks">Not checked</span>
+        </div>
+        <div class="bl-card seo-card" id="card-headers">
+          <span class="bl-card__label">Headers</span>
+          <span class="seo-card__icon" id="icon-headers">--</span>
+          <span class="seo-card__detail" id="detail-headers">Not checked</span>
+        </div>
+      </div>
+
+      <!-- Last checked -->
+      <p class="seo-timestamp" id="last-checked">Last checked: --</p>
+
+    </div>
+  </section>
+
+  <script is:inline>
+  (function () {
+    var TOKEN_KEY = 'bl_admin_token';
+    var EXPIRY_KEY = 'bl_admin_expiry';
+    var TTL_MS = 24 * 60 * 60 * 1000;
+
+    var CHECK_NAMES = ['pages', 'sitemap', 'robots', 'llms_txt', 'schema', 'backlinks', 'headers'];
+
+    // Auth helpers
+    function getToken() {
+      var token = localStorage.getItem(TOKEN_KEY);
+      var expiry = localStorage.getItem(EXPIRY_KEY);
+      if (!token || !expiry) return null;
+      if (Date.now() > Number(expiry)) { clearToken(); return null; }
+      return token;
+    }
+    function setToken(token) {
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(EXPIRY_KEY, String(Date.now() + TTL_MS));
+    }
+    function clearToken() {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(EXPIRY_KEY);
+    }
+
+    // API
+    async function fetchApi(action) {
+      var token = getToken();
+      if (!token) throw new Error('Not authenticated');
+      var resp = await fetch('/api/admin/seo?action=' + encodeURIComponent(action), {
+        method: 'GET',
+        headers: { 'Authorization': 'Bearer ' + token },
+      });
+      if (resp.status === 401) { clearToken(); location.reload(); throw new Error('Session expired'); }
+      var data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Request failed');
+      return data;
+    }
+
+    // Formatting
+    function formatDate(iso) {
+      if (!iso) return '--';
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return '--';
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      var h = d.getHours();
+      var ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      var min = String(d.getMinutes()).padStart(2, '0');
+      return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear() + ' ' + h + ':' + min + ' ' + ampm;
+    }
+
+    // DOM refs
+    var loginGate = document.getElementById('login-gate');
+    var dashboard = document.getElementById('dashboard');
+    var tokenInput = document.getElementById('token-input');
+    var loginBtn = document.getElementById('login-btn');
+    var loginError = document.getElementById('login-error');
+    var logoutBtn = document.getElementById('logout-btn');
+    var runCheckBtn = document.getElementById('run-check-btn');
+    var lastChecked = document.getElementById('last-checked');
+
+    function showLogin() {
+      loginGate.hidden = false;
+      dashboard.hidden = true;
+      logoutBtn.hidden = true;
+    }
+    function showDashboard() {
+      loginGate.hidden = true;
+      dashboard.hidden = false;
+      logoutBtn.hidden = false;
+      loadCached();
+    }
+
+    // Update cards from check results
+    function updateCards(results) {
+      var checks = results.checks || [];
+      for (var i = 0; i < checks.length; i++) {
+        var c = checks[i];
+        var iconEl = document.getElementById('icon-' + c.name);
+        var detailEl = document.getElementById('detail-' + c.name);
+        if (!iconEl || !detailEl) continue;
+
+        if (c.ok) {
+          iconEl.textContent = '\u2713';
+          iconEl.className = 'seo-card__icon seo-card__icon--pass';
+        } else {
+          iconEl.textContent = '\u2717';
+          iconEl.className = 'seo-card__icon seo-card__icon--fail';
+        }
+        detailEl.textContent = c.detail || (c.ok ? 'OK' : 'Failed');
+      }
+
+      if (results.timestamp) {
+        lastChecked.textContent = 'Last checked: ' + formatDate(results.timestamp);
+      }
+    }
+
+    // Reset cards to loading state
+    function resetCards() {
+      for (var i = 0; i < CHECK_NAMES.length; i++) {
+        var iconEl = document.getElementById('icon-' + CHECK_NAMES[i]);
+        var detailEl = document.getElementById('detail-' + CHECK_NAMES[i]);
+        if (iconEl) { iconEl.textContent = '...'; iconEl.className = 'seo-card__icon'; }
+        if (detailEl) { detailEl.textContent = 'Checking...'; }
+      }
+    }
+
+    // Load cached results first
+    async function loadCached() {
+      try {
+        var data = await fetchApi('cached');
+        updateCards(data);
+      } catch (e) {
+        // No cached results is fine, cards stay at default
+      }
+    }
+
+    // Run live check
+    async function runCheck() {
+      runCheckBtn.disabled = true;
+      runCheckBtn.textContent = 'Checking...';
+      resetCards();
+      try {
+        var data = await fetchApi('check');
+        updateCards(data);
+      } catch (e) {
+        lastChecked.textContent = 'Error: ' + e.message;
+      }
+      runCheckBtn.disabled = false;
+      runCheckBtn.textContent = 'Run Check';
+    }
+
+    // Login
+    async function doLogin() {
+      var val = tokenInput.value.trim();
+      if (!val) return;
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Logging in...';
+      loginError.hidden = true;
+      setToken(val);
+      try {
+        await fetchApi('check');
+        showDashboard();
+      } catch (e) {
+        clearToken();
+        loginError.textContent = 'Invalid token or server error.';
+        loginError.hidden = false;
+      }
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Login';
+    }
+
+    // Event listeners
+    loginBtn.addEventListener('click', doLogin);
+    tokenInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') doLogin();
+    });
+    logoutBtn.addEventListener('click', function () {
+      clearToken();
+      showLogin();
+    });
+    runCheckBtn.addEventListener('click', runCheck);
+
+    // Init
+    if (getToken()) {
+      showDashboard();
+    } else {
+      showLogin();
+    }
+  })();
+  </script>
+
+</BaseLayout>
+
+<style>
+  /* Reuse admin palette from backlinks */
+  :root {
+    --admin-sage-700: #7e8772;
+    --admin-sage-300: #bec3b8;
+    --admin-bg: #faf8f5;
+    --admin-surface: #ffffff;
+    --admin-border: #d9d3cc;
+    --admin-text: #313131;
+    --admin-text-faint: #949392;
+  }
+
+  :global(.admin-page) :global(.site-header) { display: none; }
+  :global(.admin-page) :global(footer) { display: none; }
+
+  .admin-bar {
+    background: #2d3328;
+    color: #e8ebe5;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .admin-bar__inner {
+    display: flex;
+    align-items: center;
+    height: 48px;
+    gap: var(--space-6);
+  }
+  .admin-bar__title {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-weight: 600;
+    font-size: 1.25rem;
+    color: var(--admin-sage-300);
+    white-space: nowrap;
+  }
+  .admin-bar__nav {
+    display: flex;
+    gap: var(--space-1);
+  }
+  .admin-bar__link {
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: rgba(255,255,255,0.6);
+    text-decoration: none;
+    padding: 4px 12px;
+    border-radius: var(--radius-sm);
+    transition: color 0.15s, background 0.15s;
+  }
+  .admin-bar__link:hover {
+    color: #fff;
+    text-decoration: none;
+  }
+  .admin-bar__link--active {
+    color: #fff;
+    background: rgba(255,255,255,0.1);
+    font-weight: 500;
+  }
+  .admin-bar__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-left: auto;
+  }
+  .admin-bar__site-link {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--admin-sage-300);
+    text-decoration: none;
+    padding: 5px 16px;
+    border: 1px solid var(--admin-sage-300);
+    border-radius: var(--radius-pill);
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  }
+  .admin-bar__site-link:hover {
+    color: #fff;
+    border-color: #fff;
+    text-decoration: none;
+  }
+  .admin-bar__logout {
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: rgba(255,255,255,0.5);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: color 0.15s;
+  }
+  .admin-bar__logout:hover {
+    color: #fff;
+  }
+
+  .bl-section {
+    padding: var(--space-8) 0;
+    background: var(--admin-bg);
+    min-height: 80vh;
+  }
+
+  .bl-login-wrap {
+    max-width: 400px;
+    margin: var(--space-16) auto;
+    text-align: center;
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-8) var(--space-6);
+  }
+  .bl-login-wrap h1 {
+    margin-bottom: var(--space-6);
+    color: var(--admin-sage-700);
+  }
+  .bl-login-wrap .form-group {
+    margin-bottom: var(--space-4);
+    text-align: left;
+  }
+  .bl-login-wrap .form-input {
+    border-color: var(--admin-border);
+  }
+  .bl-login-wrap .form-input:focus {
+    border-color: var(--admin-sage-700);
+    box-shadow: 0 0 0 2px rgba(126, 135, 114, 0.15);
+    outline: none;
+  }
+  .bl-login-wrap .btn {
+    width: 100%;
+    background: var(--admin-sage-700);
+    border-color: var(--admin-sage-700);
+    color: #fff;
+  }
+  .bl-login-wrap .btn:hover {
+    background: #6b755f;
+  }
+  .bl-error {
+    color: var(--color-error);
+    font-size: 0.875rem;
+    margin-top: var(--space-3);
+  }
+
+  .bl-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-6);
+  }
+  .bl-header h1 {
+    margin-bottom: 0;
+    color: var(--admin-text);
+  }
+
+  /* SEO card grid */
+  .seo-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  @media (max-width: 800px) {
+    .seo-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  @media (max-width: 500px) {
+    .seo-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .bl-metrics {
+    display: grid;
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+
+  .bl-card {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4) var(--space-5);
+    text-align: center;
+  }
+  .bl-card__label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--admin-text-faint);
+    margin-bottom: var(--space-2);
+  }
+
+  .seo-run-btn {
+    background: var(--admin-sage-700);
+    border-color: var(--admin-sage-700);
+    color: #fff;
+  }
+  .seo-run-btn:hover {
+    background: #6b755f;
+  }
+  .seo-run-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .seo-timestamp {
+    font-size: 0.8125rem;
+    color: var(--admin-text-faint);
+    text-align: right;
+  }
+</style>
+
+<style is:global>
+  .seo-card__icon {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #949392;
+    margin-bottom: var(--space-1);
+    line-height: 1.2;
+  }
+  .seo-card__icon--pass {
+    color: #27ae60;
+  }
+  .seo-card__icon--fail {
+    color: #c0392b;
+  }
+  .seo-card__detail {
+    display: block;
+    font-size: 0.75rem;
+    color: #636261;
+    line-height: 1.4;
+    word-break: break-word;
+    white-space: normal;
+  }
+</style>
