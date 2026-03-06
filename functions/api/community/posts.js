@@ -9,6 +9,7 @@ import {
   requireMember, displayName, canCreateType, canEditPost, canDeletePost, canPin, roleAtLeast,
   tierFromLabel, TIER_LABELS,
 } from './_shared.js';
+import { notifyNewPost } from './_email.js';
 
 const VALID_CHANNELS = ['stuc', 'members', 'masterclass'];
 const ARCHIVE_CHANNELS = ['members', 'masterclass'];
@@ -232,6 +233,15 @@ export async function onRequestPost({ request, env }) {
       id, user.id, type, title.trim(), postBody?.trim() || null,
       eventDate || null, eventLink || null, resourceUrl || null, channel
     ).run();
+
+    // Send email notification (fire-and-forget)
+    try {
+      await notifyNewPost(env, db, {
+        id, title: title.trim(), body: postBody?.trim() || null, authorId: user.id,
+      }, displayName(user));
+    } catch (err) {
+      console.error('Failed to send new post notification:', err.message);
+    }
 
     return json({
       ok: true,
