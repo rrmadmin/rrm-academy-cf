@@ -1,3 +1,19 @@
+// Simple IP rate limiter: max 20 requests per minute per IP
+const rateLimitMap = new Map();
+const RATE_LIMIT = 20;
+const RATE_WINDOW = 60_000;
+
+function isRateLimited(ip) {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now - entry.start > RATE_WINDOW) {
+    rateLimitMap.set(ip, { start: now, count: 1 });
+    return false;
+  }
+  entry.count++;
+  return entry.count > RATE_LIMIT;
+}
+
 export async function onRequestGet(context) {
   const { request, env } = context;
   const url = new URL(request.url);
@@ -5,6 +21,12 @@ export async function onRequestGet(context) {
 
   if (!query || query.length < 2) {
     return Response.json({ results: [] });
+  }
+
+  // Rate limit by IP to protect billed AI/Vectorize calls
+  const ip = request.headers.get('cf-connecting-ip') || 'unknown';
+  if (isRateLimited(ip)) {
+    return Response.json({ results: [], error: 'rate_limited' }, { status: 429 });
   }
 
   try {
