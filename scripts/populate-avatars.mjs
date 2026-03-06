@@ -59,7 +59,7 @@ async function main() {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 5000);
 
-      const res = await fetch(`https://unavatar.io/${encodeURIComponent(m.email)}`, {
+      const res = await fetch(`https://unavatar.io/${encodeURIComponent(m.email)}?fallback=false`, {
         signal: controller.signal,
         redirect: 'follow',
       });
