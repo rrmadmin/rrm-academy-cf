@@ -48,6 +48,7 @@ CREATE INDEX IF NOT EXISTS idx_password_reset_user ON password_reset(user_id);
 CREATE INDEX IF NOT EXISTS idx_password_reset_token ON password_reset(token_hash);
 CREATE INDEX IF NOT EXISTS idx_user_email ON user(email);
 CREATE INDEX IF NOT EXISTS idx_user_google_id ON user(google_id);
+CREATE INDEX IF NOT EXISTS idx_user_stripe_customer ON user(stripe_customer_id);
 
 -- Labels system (informational metadata, not access control)
 

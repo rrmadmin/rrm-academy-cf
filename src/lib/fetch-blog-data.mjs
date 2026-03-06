@@ -150,7 +150,7 @@ function mapRecord(record) {
 
   return {
     id: record.id,
-    slug: slug.trim(),
+    slug: slug.trim().toLowerCase(),
     title: title.trim(),
     excerpt: f['Excerpt'] || '',
     content: f['Content'] || '',

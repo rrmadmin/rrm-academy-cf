@@ -206,13 +206,27 @@ async function fetchTable(pat, tableId, fields, formula) {
       offset ? `&offset=${offset}` : ''
     }`;
 
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${pat}` },
-    });
+    let res;
+    let lastError;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      try {
+        res = await fetch(url, {
+          headers: { Authorization: `Bearer ${pat}` },
+        });
+        lastError = undefined;
+        if (res.status !== 429) break;
+      } catch (e) {
+        lastError = e;
+      }
+      const delay = Math.pow(2, attempt) * 1000;
+      console.warn(`Retry ${attempt + 1}/5 in ${delay / 1000}s...`);
+      await new Promise(r => setTimeout(r, delay));
+    }
 
-    if (!res.ok) {
-      const err = await res.text();
-      throw new Error(`Airtable ${res.status}: ${err}`);
+    if (lastError) throw lastError;
+    if (!res || !res.ok) {
+      const err = res ? await res.text() : 'No response';
+      throw new Error(`Airtable ${res?.status}: ${err}`);
     }
 
     const data = await res.json();
