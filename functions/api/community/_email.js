@@ -46,13 +46,12 @@ export async function notifyNewPost(env, db, post, authorName) {
   `;
   const text = `${authorName} posted: ${post.title}\n${preview}\nView: ${link}\n\nManage notifications: ${SITE_URL}/community/`;
 
-  await sendEmail(env, {
-    from: 'noreply@rrmacademy.org',
-    to: members.results.map(m => m.email),
-    subject,
-    html,
-    text,
-  });
+  // Send individual emails to preserve privacy (don't expose member emails to each other)
+  const emailPromises = members.results.map(m =>
+    sendEmail(env, { from: 'noreply@rrmacademy.org', to: m.email, subject, html, text })
+      .catch(err => console.error(`Failed to email ${m.email}:`, err.message))
+  );
+  await Promise.all(emailPromises);
 
   if (env.KV) {
     await env.KV.put('community:last_post_email', String(Date.now()), { expirationTtl: 900 });
