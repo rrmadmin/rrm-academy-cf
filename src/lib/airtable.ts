@@ -38,6 +38,7 @@ export interface Article {
   sentiment: string;
   rrmRelevance: string;
   domain: string;
+  lastModified: string;
 }
 
 interface AirtableRecord {
@@ -99,6 +100,7 @@ function transformRecord(record: AirtableRecord): Article | null {
     sentiment: f['⚡️ Sentiment (AI)'] || '',
     rrmRelevance: f['⚡️ RRM Relevance (AI)'] || '',
     domain: f['⚡️ Domain (AI)'] || '',
+    lastModified: f['Last Modified'] || '',
   };
 }
 
