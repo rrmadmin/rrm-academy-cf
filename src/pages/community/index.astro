@@ -35,6 +35,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         <div class="feed-header">
           <h2 class="feed-title">Save the Uterus Club</h2>
           <p class="feed-welcome">Welcome, <span id="feed-user-name"></span></p>
+            <div class="notification-toggle" id="notification-toggle" hidden>
+              <label class="toggle-label">
+                <input type="checkbox" id="email-toggle" checked />
+                <span>Email notifications</span>
+              </label>
+            </div>
         </div>
 
         <!-- Filter tabs -->
@@ -235,6 +241,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       var editModalImageInput = document.getElementById('edit-modal-image-input');
       var editModalImagePreview = document.getElementById('edit-modal-image-preview');
 
+      var notifToggle = document.getElementById('notification-toggle');
+      var emailToggle = document.getElementById('email-toggle');
+
       var currentUser = null;
       var activeType = '';
       var lastCreatedAt = null;
@@ -257,6 +266,29 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             userNameEl.textContent = currentUser.name || 'Member';
             setupFeed();
             feedEl.hidden = false;
+
+            // Init notification toggle
+            if (notifToggle && emailToggle) {
+              emailToggle.checked = !data.emailOptOut;
+              notifToggle.hidden = false;
+
+              emailToggle.addEventListener('change', function () {
+                var optOut = !emailToggle.checked;
+                fetch('/api/community/notifications', {
+                  method: 'PATCH',
+                  credentials: 'same-origin',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ emailOptOut: optOut }),
+                })
+                  .then(function (r) { return r.json(); })
+                  .then(function (data) {
+                    if (!data.ok) emailToggle.checked = !emailToggle.checked;
+                  })
+                  .catch(function () {
+                    emailToggle.checked = !emailToggle.checked;
+                  });
+              });
+            }
           } else {
             gateEl.hidden = false;
           }
@@ -1527,6 +1559,19 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     font-size: 13px;
     color: var(--text-tertiary);
     margin-bottom: 0;
+  }
+  .notification-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
   }
 
   /* ── Tabs (X-style: full-width, centered pill indicator) ── */
