@@ -115,6 +115,7 @@ docs/
 | `/community/events` | `src/pages/community/events.astro` |
 | `/community/members` | `src/pages/community/members.astro` |
 | `/community/post/[id]` | `src/pages/community/post/[...id].astro` |
+| `/admin/seo` | `src/pages/admin/seo.astro` |
 | `/endo-survey` | `src/pages/endo-survey/index.astro` |
 | `/endo-survey/take` | `src/pages/endo-survey/take.astro` |
 | `/save-the-uterus-club` | `src/pages/save-the-uterus-club/index.astro` |
@@ -177,6 +178,7 @@ docs/
 | `POST /api/stripe-webhook` | `stripe-webhook.js` | Stripe webhook handler |
 | **Other** | | |
 | `POST /api/admin/cleanup` | `admin/cleanup.js` | Prune expired sessions/resets/verifications/webhook events (ADMIN_API_SECRET) |
+| `GET /api/admin/seo` | `admin/seo.js` | Proxy to rrm-seo-monitor Worker (ADMIN_TOKEN) |
 | `POST /api/contact/submit` | `contact/submit.js` | Contact form submission |
 | `GET/POST /api/saved` | `saved.js` | Save/unsave library articles |
 | `GET /api/stream/token` | `stream/token.js` | CF Stream video token |
