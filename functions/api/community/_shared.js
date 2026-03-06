@@ -16,6 +16,26 @@ export function roleAtLeast(userRole, minRole) {
   return ROLES.indexOf(userRole) >= ROLES.indexOf(minRole);
 }
 
+// --- Tier badge labels (from user_label table, Wix-imported) ---
+
+export const TIER_LABEL_MAP = {
+  'Uterus Member 🐻': 'member',
+  'Uterus Hero 💖': 'hero',
+  'Uterus Super Hero 🦸‍♀️': 'superhero',
+};
+
+export const TIER_LABELS = Object.keys(TIER_LABEL_MAP);
+
+export function tierFromLabel(label) {
+  return label ? (TIER_LABEL_MAP[label] || null) : null;
+}
+
+export const TIER_DISPLAY = {
+  member: '🐻 Member',
+  hero: '💖 Hero',
+  superhero: '🦸‍♀️ Superhero',
+};
+
 // --- Post type permissions ---
 
 const STAFF_ONLY_TYPES = ['announcement', 'event', 'resource'];
