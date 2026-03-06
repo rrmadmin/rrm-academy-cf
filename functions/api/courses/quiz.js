@@ -73,7 +73,7 @@ export async function onRequestGet({ request, env }) {
     // Strip correct answers before sending to client
     const safeQuestions = quiz.questions.map(q => {
       if (quiz.type === 'quiz') {
-        const { correctIndex, ...rest } = q;
+        const { correctIndex: _correctIndex, ...rest } = q;
         return rest;
       }
       return q;
