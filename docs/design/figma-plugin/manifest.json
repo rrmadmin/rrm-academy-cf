@@ -1,0 +1,9 @@
+{
+  "name": "RRM Design System Generator",
+  "id": "rrm-design-system-generator",
+  "api": "1.0.0",
+  "main": "code.js",
+  "capabilities": [],
+  "enableProposedApi": false,
+  "editorType": ["figma"]
+}
