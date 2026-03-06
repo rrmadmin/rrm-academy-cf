@@ -185,8 +185,7 @@ async function fetchSingle(recordId) {
     process.exit(1);
   }
 
-  const fieldsParams = FIELDS.map(f => `fields[]=${encodeURIComponent(f)}`).join('&');
-  const url = `${API_URL}/${recordId}?${fieldsParams}`;
+  const url = `${API_URL}/${recordId}`;
 
   console.log(`Fetching single record: ${recordId}`);
   const res = await fetch(url, {
