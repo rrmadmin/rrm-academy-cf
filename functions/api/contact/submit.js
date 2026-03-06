@@ -42,6 +42,7 @@ export async function onRequestPost(context) {
   }
 
   // Validate fields
+  // eslint-disable-next-line no-control-regex -- intentional: strip control chars from user input
   const name = (body.name || '').trim().replace(/[\x00-\x1f\x7f]/g, '');
   const email = (body.email || '').trim().toLowerCase();
   const message = (body.message || '').trim();
@@ -55,9 +56,6 @@ export async function onRequestPost(context) {
   if (!message || message.length < 10 || message.length > 5000) {
     return json({ ok: false, error: 'Message must be between 10 and 5,000 characters.' }, 400);
   }
-
-  // Auto-generate subject identifying the sender and source
-  const subject = `Contact form: ${name}`;
 
   // Verify Turnstile token
   const turnstileToken = body.turnstileToken || '';

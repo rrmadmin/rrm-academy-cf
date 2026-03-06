@@ -4,7 +4,7 @@
  */
 import {
   json, optionsResponse, verifyPassword, createSession, sessionCookie,
-  verifyTurnstile, checkRateLimit, isValidEmail, CORS_HEADERS,
+  verifyTurnstile, checkRateLimit, isValidEmail,
 } from './_shared.js';
 
 export async function onRequestOptions() {

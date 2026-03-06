@@ -3,7 +3,7 @@
  * Updates the authenticated user's profile fields (first name, last name).
  */
 import {
-  json, optionsResponse, getSessionIdFromCookie, validateSession, CORS_HEADERS,
+  json, optionsResponse, getSessionIdFromCookie, validateSession,
 } from './_shared.js';
 
 export async function onRequestOptions() {

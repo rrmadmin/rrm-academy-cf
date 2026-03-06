@@ -7,11 +7,11 @@
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
-      "hash": "50de7cf0baccc05a1333f998cc76bf2e765e9531bd9aff7f9ab7ddd2eb2e08b6",
+      "hash": "d41d5bae000c8aad77e80dde83237c84b0a87bfffc210cc5701dd4f4f2407653",
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "13756cc6f06d8573113932ecb9043a1193ab3a5b795992ea95667aa68c6e4b1f",
+      "hash": "442a83a8933ed77e96ec4dfc1fe6c962fe0f8f50cbf1b0f82b3a3a5dec81bed2",
       "note": "Account creation"
     },
     "functions/api/auth/google-callback.js": {
@@ -19,7 +19,7 @@
       "note": "Google OAuth"
     },
     "functions/api/stripe-webhook.js": {
-      "hash": "3d66ccf711298cd684a618447087783b1d8c2736da12bc06084dcdc85fce1ddc",
+      "hash": "1d0ffeca5bdb6cc1e68fe799b0bdc30134d91f48f949b063de12255835711b61",
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {

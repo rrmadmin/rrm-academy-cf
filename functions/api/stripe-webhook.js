@@ -83,7 +83,6 @@ async function handleWebhook(request, env) {
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object;
-      const customerId = session.customer;
 
       // Link Stripe customer to D1 user, or auto-create account for anonymous checkout
       try {
@@ -99,6 +98,7 @@ async function handleWebhook(request, env) {
         if (!getCourse(courseId)) {
           console.error(`Course ${courseId} not found in catalog — skipping enrollment for user ${session.client_reference_id}`);
         } else {
+          // eslint-disable-next-line no-useless-assignment -- readability: tracks enrollment state for email below
           let enrolled = false;
           try {
             await enrollUser(db, session.client_reference_id, courseId, paymentIntent);

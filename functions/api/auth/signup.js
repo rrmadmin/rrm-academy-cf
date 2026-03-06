@@ -4,8 +4,8 @@
  */
 import {
   json, optionsResponse, generateId, generateSessionId, generateToken,
-  hashPassword, hashToken, sessionCookie, verifyTurnstile, checkRateLimit,
-  isValidEmail, isValidPassword, CORS_HEADERS,
+  hashPassword, sessionCookie, verifyTurnstile, checkRateLimit,
+  isValidEmail, isValidPassword,
 } from './_shared.js';
 import { sendEmail } from '../_ses.js';
 
