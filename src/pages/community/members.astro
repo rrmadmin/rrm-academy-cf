@@ -144,7 +144,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           var statusRes = await fetch('/api/community/status', { credentials: 'same-origin' });
           var statusData = await statusRes.json();
 
-          if (!statusData.ok || !statusData.isMember) {
+          if (!statusData.ok || statusData.access !== 'member') {
             loadingEl.hidden = true;
             gateEl.hidden = false;
             return;
