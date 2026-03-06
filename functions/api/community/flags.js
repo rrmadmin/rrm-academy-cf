@@ -8,6 +8,12 @@ import { requireMember, roleAtLeast, canResolveFlag, displayName } from './_shar
 import { sendEmail } from '../_ses.js';
 
 const VALID_REASONS = ['inappropriate', 'spam', 'harassment', 'other'];
+const VALID_STATUSES = ['pending', 'resolved', 'dismissed'];
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -87,7 +93,8 @@ export async function onRequestGet({ request, env }) {
     }
 
     const url = new URL(request.url);
-    const status = url.searchParams.get('status') || 'pending';
+    const statusParam = url.searchParams.get('status') || 'pending';
+    const status = VALID_STATUSES.includes(statusParam) ? statusParam : 'pending';
 
     const db = env.DB;
     const rows = await db.prepare(`
@@ -99,27 +106,48 @@ export async function onRequestGet({ request, env }) {
       LIMIT 50
     `).bind(status).all();
 
-    const flags = [];
-    for (const f of rows.results) {
-      let contentPreview = '';
-      let contentAuthor = '';
-      if (f.target_type === 'post') {
-        const post = await db.prepare('SELECT title, body, author_id FROM community_post WHERE id = ?').bind(f.target_id).first();
-        if (post) {
-          contentPreview = post.title + (post.body ? ': ' + post.body.slice(0, 100) : '');
-          const author = await db.prepare('SELECT name, first_name, last_name FROM user WHERE id = ?').bind(post.author_id).first();
-          contentAuthor = author ? (author.name || displayName(author)) : 'Unknown';
-        }
-      } else {
-        const comment = await db.prepare('SELECT content, author_id FROM community_comment WHERE id = ?').bind(f.target_id).first();
-        if (comment) {
-          contentPreview = comment.content.slice(0, 200);
-          const author = await db.prepare('SELECT name, first_name, last_name FROM user WHERE id = ?').bind(comment.author_id).first();
-          contentAuthor = author ? (author.name || displayName(author)) : 'Unknown';
-        }
-      }
+    // Batch-fetch flagged content to avoid N+1 queries
+    const postIds = rows.results.filter(f => f.target_type === 'post').map(f => f.target_id);
+    const commentIds = rows.results.filter(f => f.target_type === 'comment').map(f => f.target_id);
 
-      flags.push({
+    const postMap = {};
+    const commentMap = {};
+
+    if (postIds.length) {
+      const ph = postIds.map(() => '?').join(',');
+      const posts = await db.prepare(`
+        SELECT p.id, p.title, p.body, p.author_id, u.name as author_name, u.first_name, u.last_name
+        FROM community_post p
+        JOIN user u ON u.id = p.author_id
+        WHERE p.id IN (${ph})
+      `).bind(...postIds).all();
+      for (const p of posts.results) {
+        postMap[p.id] = {
+          preview: p.title + (p.body ? ': ' + p.body.slice(0, 100) : ''),
+          author: p.author_name || displayName(p),
+        };
+      }
+    }
+
+    if (commentIds.length) {
+      const ph = commentIds.map(() => '?').join(',');
+      const comments = await db.prepare(`
+        SELECT c.id, c.content, c.author_id, u.name as author_name, u.first_name, u.last_name
+        FROM community_comment c
+        JOIN user u ON u.id = c.author_id
+        WHERE c.id IN (${ph})
+      `).bind(...commentIds).all();
+      for (const c of comments.results) {
+        commentMap[c.id] = {
+          preview: c.content.slice(0, 200),
+          author: c.author_name || displayName(c),
+        };
+      }
+    }
+
+    const flags = rows.results.map(f => {
+      const lookup = f.target_type === 'post' ? postMap[f.target_id] : commentMap[f.target_id];
+      return {
         id: f.id,
         reporterName: f.reporter_name || displayName({ first_name: f.reporter_first_name, last_name: f.reporter_last_name }),
         targetType: f.target_type,
@@ -127,11 +155,11 @@ export async function onRequestGet({ request, env }) {
         reason: f.reason,
         note: f.note,
         status: f.status,
-        contentPreview,
-        contentAuthor,
+        contentPreview: lookup?.preview || '',
+        contentAuthor: lookup?.author || 'Unknown',
         createdAt: f.created_at,
-      });
-    }
+      };
+    });
 
     return json({ ok: true, flags });
   } catch (err) {
@@ -200,10 +228,14 @@ async function notifyMods(env, db, reporter, targetType, targetId, reason, note)
   const link = `${SITE_URL}/community/post/${postId}/`;
 
   const subject = `[STUC] Content flagged: ${reason}`;
+  const safeReporter = escapeHtml(reporterName);
+  const safeReason = escapeHtml(reason);
+  const safeNote = escapeHtml(note);
+  const safePreview = escapeHtml(contentPreview);
   const html = `
-    <p><strong>${reporterName}</strong> flagged a ${targetType} as <strong>${reason}</strong>.</p>
-    ${note ? `<p>Note: ${note}</p>` : ''}
-    <p>Content preview:<br><em>${contentPreview || '(unable to load preview)'}</em></p>
+    <p><strong>${safeReporter}</strong> flagged a ${targetType} as <strong>${safeReason}</strong>.</p>
+    ${safeNote ? `<p>Note: ${safeNote}</p>` : ''}
+    <p>Content preview:<br><em>${safePreview || '(unable to load preview)'}</em></p>
     <p><a href="${link}">View in community</a></p>
   `;
   const text = `${reporterName} flagged a ${targetType} as ${reason}.\n${note ? `Note: ${note}\n` : ''}Content: ${contentPreview || '(unable to load)'}\nView: ${link}`;
