@@ -39,6 +39,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
   <script is:inline>
     (function () {
+      var currentUserRole = null;
+
       var TIER_DISPLAY = {
         member: '\u{1F43B} Member',
         hero: '\u{1F496} Hero',
@@ -118,6 +120,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             activityHtml = '<span class="member-activity member-activity--none">No posts yet</span>';
           }
 
+          var banHtml = '';
+          if (currentUserRole && (currentUserRole === 'admin' || currentUserRole === 'superadmin') && !isStaff(m.role)) {
+            banHtml = '<button class="btn btn--text btn--sm member-ban-btn" data-user-id="' + escapeHtml(m.id) + '" data-user-name="' + escapeHtml(m.name) + '">Ban</button>';
+          }
+
           html += '<div class="member-card">';
           html += avatarHtml;
           html += '<div class="member-info">';
@@ -129,6 +136,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             html += '<div class="member-achievements">' + achieveHtml + '</div>';
           }
           html += activityHtml;
+          html += banHtml;
           html += '</div>';
           html += '</div>';
         }
@@ -150,6 +158,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             return;
           }
 
+          currentUserRole = statusData.role || 'member';
+
           var membersRes = await fetch('/api/community/members', { credentials: 'same-origin' });
           var membersData = await membersRes.json();
 
@@ -170,6 +180,37 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       }
 
       init();
+
+      document.addEventListener('click', function (e) {
+        var banBtn = e.target.closest('.member-ban-btn');
+        if (!banBtn) return;
+        var userId = banBtn.getAttribute('data-user-id');
+        var userName = banBtn.getAttribute('data-user-name');
+        if (!confirm('Ban ' + userName + '? This blocks their login immediately.')) return;
+        var deleteContent = confirm('Also remove all posts and comments by ' + userName + '?');
+        banBtn.disabled = true;
+        banBtn.textContent = 'Banning...';
+        fetch('/api/community/ban', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: userId, deleteContent: deleteContent }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data.ok) {
+              banBtn.closest('.member-card').remove();
+            } else {
+              banBtn.disabled = false;
+              banBtn.textContent = 'Ban';
+              alert(data.error || 'Ban failed.');
+            }
+          })
+          .catch(function () {
+            banBtn.disabled = false;
+            banBtn.textContent = 'Ban';
+          });
+      });
     })();
   </script>
 
@@ -338,6 +379,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     }
     .member-activity--none {
       font-style: italic;
+    }
+    .member-ban-btn {
+      color: var(--text-tertiary);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    .member-ban-btn:hover {
+      color: var(--red-600, #dc2626);
     }
 
     /* Responsive */
