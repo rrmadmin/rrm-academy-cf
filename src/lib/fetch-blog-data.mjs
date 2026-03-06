@@ -136,6 +136,138 @@ async function processImage(attachment, slug) {
   return `${R2_PUBLIC_URL}/${webpKey}`;
 }
 
+// --- Record mapping (shared between full fetch and single-record) ---
+
+function mapRecord(record) {
+  const f = record.fields;
+  const slug = f['Slug'];
+  const title = f['Title'];
+  if (!slug || !title) return null;
+
+  const imageField = f['Image'];
+  const imageAttachment = Array.isArray(imageField) && imageField.length > 0
+    ? imageField[0] : null;
+
+  return {
+    id: record.id,
+    slug: slug.trim(),
+    title: title.trim(),
+    excerpt: f['Excerpt'] || '',
+    content: f['Content'] || '',
+    author: f['Author'] || '',
+    contentPillar: f['Content Pillar'] || '',
+    coverImageUrl: f['Processed Cover URL'] || '',
+    publishDate: f['Actual Publish Date'] || '',
+    wordCount: f['Word Count'] ? Number(f['Word Count']) : 0,
+    seoKeywords: f['SEO Keywords'] || '',
+    audioUrl: f['Audio URL'] || '',
+    lastModified: f['Last Modified'] || '',
+    _imageAttachment: imageAttachment,
+  };
+}
+
+function sortPosts(posts) {
+  posts.sort((a, b) => {
+    if (!a.publishDate && !b.publishDate) return 0;
+    if (!a.publishDate) return 1;
+    if (!b.publishDate) return -1;
+    return b.publishDate.localeCompare(a.publishDate);
+  });
+  return posts;
+}
+
+// --- Single-record merge mode ---
+
+async function fetchSingle(recordId) {
+  const pat = process.env.AIRTABLE_PAT;
+  if (!pat) {
+    console.error('Error: AIRTABLE_PAT environment variable required');
+    process.exit(1);
+  }
+
+  const fieldsParams = FIELDS.map(f => `fields[]=${encodeURIComponent(f)}`).join('&');
+  const url = `${API_URL}/${recordId}?${fieldsParams}`;
+
+  console.log(`Fetching single record: ${recordId}`);
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${pat}` },
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Airtable ${res.status}: ${err}`);
+  }
+
+  const record = await res.json();
+  const status = record.fields?.['Status'];
+  const isPublished = status === 'Published';
+
+  // Load existing posts.json
+  let posts = [];
+  if (existsSync(OUTPUT_PATH)) {
+    posts = JSON.parse(readFileSync(OUTPUT_PATH, 'utf-8'));
+    console.log(`Loaded ${posts.length} existing posts from cache`);
+  }
+
+  // Remove old version of this record (if present)
+  const before = posts.length;
+  posts = posts.filter(p => p.id !== recordId);
+  const wasPresent = posts.length < before;
+
+  if (!isPublished) {
+    // Record is no longer published -- remove it
+    if (wasPresent) {
+      console.log(`Record ${recordId} status="${status}" -- removed from posts.json`);
+    } else {
+      console.log(`Record ${recordId} status="${status}" -- not in posts.json, nothing to do`);
+    }
+  } else {
+    const post = mapRecord(record);
+    if (!post) {
+      console.log(`Record ${recordId} missing slug or title -- skipped`);
+    } else {
+      // Process image if present
+      if (post._imageAttachment) {
+        console.log(`\n${post.slug}:`);
+        const originalCoverUrl = post.coverImageUrl;
+        try {
+          const r2Url = await processImage(post._imageAttachment, post.slug);
+          if (r2Url) {
+            post.coverImageUrl = r2Url;
+            if (!originalCoverUrl.startsWith(R2_PUBLIC_URL)) {
+              try {
+                await fetch(`${API_URL}/${post.id}`, {
+                  method: 'PATCH',
+                  headers: {
+                    'Authorization': `Bearer ${pat}`,
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({ fields: { 'Processed Cover URL': r2Url } }),
+                });
+                console.log(`  Airtable: updated Processed Cover URL -> R2`);
+              } catch (e) {
+                console.warn(`  Airtable write-back failed: ${e.message}`);
+              }
+            }
+          }
+        } catch (err) {
+          console.error(`  Image processing failed: ${err.message}`);
+        }
+      }
+
+      delete post._imageAttachment;
+      posts.push(post);
+      console.log(`${wasPresent ? 'Updated' : 'Added'}: "${post.title}" (${post.slug})`);
+    }
+  }
+
+  sortPosts(posts);
+
+  mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
+  writeFileSync(OUTPUT_PATH, JSON.stringify(posts, null, 2));
+  console.log(`\nWrote ${posts.length} posts to ${OUTPUT_PATH}`);
+}
+
 // --- Main ---
 
 async function fetchAll() {
@@ -197,33 +329,9 @@ async function fetchAll() {
     offset = data.offset;
 
     for (const record of data.records) {
-      const f = record.fields;
-
-      if (f['Status'] !== 'Published') continue;
-      const slug = f['Slug'];
-      const title = f['Title'];
-      if (!slug || !title) continue;
-
-      // Capture first Image attachment (if any) for processing
-      const imageField = f['Image'];
-      const imageAttachment = Array.isArray(imageField) && imageField.length > 0
-        ? imageField[0] : null;
-
-      posts.push({
-        id: record.id,
-        slug: slug.trim(),
-        title: title.trim(),
-        excerpt: f['Excerpt'] || '',
-        content: f['Content'] || '',
-        author: f['Author'] || '',
-        contentPillar: f['Content Pillar'] || '',
-        coverImageUrl: f['Processed Cover URL'] || '',
-        publishDate: f['Actual Publish Date'] || '',
-        wordCount: f['Word Count'] ? Number(f['Word Count']) : 0,
-        seoKeywords: f['SEO Keywords'] || '',
-        audioUrl: f['Audio URL'] || '',
-        _imageAttachment: imageAttachment,
-      });
+      if (record.fields['Status'] !== 'Published') continue;
+      const post = mapRecord(record);
+      if (post) posts.push(post);
     }
 
     console.log(`Page ${page}: ${data.records.length} records (${posts.length} published with slug)`);
@@ -272,12 +380,7 @@ async function fetchAll() {
   }
 
   // Sort newest first
-  posts.sort((a, b) => {
-    if (!a.publishDate && !b.publishDate) return 0;
-    if (!a.publishDate) return 1;
-    if (!b.publishDate) return -1;
-    return b.publishDate.localeCompare(a.publishDate);
-  });
+  sortPosts(posts);
 
   const seen = new Set();
   const deduplicated = posts.filter(p => {
@@ -294,7 +397,10 @@ async function fetchAll() {
   console.log(`\nWrote ${deduplicated.length} posts to ${OUTPUT_PATH}`);
 }
 
-fetchAll().catch(err => {
+const recordId = process.env.RECORD_ID;
+const main = recordId ? () => fetchSingle(recordId) : fetchAll;
+
+main().catch(err => {
   console.error(err);
   process.exit(1);
 });
