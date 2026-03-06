@@ -147,6 +147,7 @@ docs/
 | `POST /api/create-checkout` | `create-checkout.js` | Stripe checkout session |
 | `POST /api/stripe-webhook` | `stripe-webhook.js` | Stripe webhook handler |
 | **Other** | | |
+| `POST /api/admin/cleanup` | `admin/cleanup.js` | Prune expired sessions/resets/verifications/webhook events (ADMIN_API_SECRET) |
 | `POST /api/contact/submit` | `contact/submit.js` | Contact form submission |
 | `GET/POST /api/saved` | `saved.js` | Save/unsave library articles |
 | `GET /api/stream/token` | `stream/token.js` | CF Stream video token |
@@ -155,6 +156,29 @@ docs/
 | `POST /api/survey/submit` | `survey/submit.js` | Submit survey responses |
 
 Middleware: `functions/_middleware.js` (session injection, CORS, auth gating)
+
+## Email
+
+All transactional email uses **AWS SES** via `functions/api/_ses.js` (aws4fetch). No Resend dependency. Required env vars: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SES_REGION`.
+
+## Operational Automation (n8n)
+
+| Workflow | Schedule | What |
+|----------|----------|------|
+| Daily Cleanup (`La9Bauj70L82oua8`) | 5 AM UTC | POST `/api/admin/cleanup` -- prunes expired sessions, resets, verifications, webhook events >7d |
+| Down Detector (`HxxCkFOPbrXa0r08`) | Every 5 min | Checks site, library data, n8n. Telegram alert on failure via @rrm_n8n_notification_bot |
+
+## Webhook Event Dedup
+
+`webhook_event` table in D1 stores Stripe `event.id` on first processing. `INSERT OR IGNORE` skips duplicates on retries. Prevents duplicate welcome emails and account creation.
+
+## Semantic Search Rate Limiting
+
+`/api/search/semantic.js` has IP-based rate limiting (20 req/min per IP via `cf-connecting-ip`). Per-isolate (resets on cold start). Protects billed AI.run() and Vectorize.query() calls.
+
+## CI Deploy Guard
+
+`deploy.yml` enforces minimum record counts: articles >= 3000, posts >= 5, faqs >= 10, courses >= 1. Prevents catastrophic data loss from deploying.
 
 ## Mobile Editing
 
