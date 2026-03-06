@@ -89,6 +89,11 @@ async function handleWebhook(request, env) {
         await ensureAccountForCheckout(db, session, env);
       } catch (linkErr) {
         console.error('ensureAccountForCheckout failed:', linkErr.message, linkErr.stack);
+        // Return 500 so Stripe retries -- user needs an account for course access
+        return new Response(JSON.stringify({ error: 'Account linkage failed' }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        });
       }
 
       // Course purchase: create enrollment
@@ -343,13 +348,24 @@ async function ensureAccountForCheckout(db, session, env) {
   }
 
   // Case 3: No account exists — auto-create one
+  // Use INSERT OR IGNORE to handle race conditions (concurrent webhook retries for same email)
   const id = generateId();
   const name = session.customer_details?.name || '';
 
-  await db.prepare(
-    `INSERT INTO user (id, email, email_verified, hashed_password, name, stripe_customer_id, role)
+  const ins = await db.prepare(
+    `INSERT OR IGNORE INTO user (id, email, email_verified, hashed_password, name, stripe_customer_id, role)
      VALUES (?, ?, 1, '', ?, ?, 'member')`
   ).bind(id, email, name, customerId || null).run();
+
+  if (ins.meta.changes === 0) {
+    // Another request created the account first -- link Stripe ID to existing account
+    if (customerId) {
+      await db.prepare('UPDATE user SET stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE email = ? COLLATE NOCASE AND stripe_customer_id IS NULL')
+        .bind(customerId, email).run();
+    }
+    console.log(`Account already exists for ${email} (concurrent creation) -- linked Stripe ${customerId}`);
+    return;
+  }
   console.log(`Auto-created account ${id} for ${email} (Stripe ${customerId})`);
 
   // Generate 7-day password reset token so user can set a password

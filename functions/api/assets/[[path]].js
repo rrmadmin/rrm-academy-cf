@@ -21,7 +21,7 @@ export async function onRequestGet({ request, params, env }) {
   // [[path]] catch-all: CF Pages returns params.path as an array of segments
   const raw = params.path;
   const key = Array.isArray(raw) ? raw.join('/') : raw;
-  if (!key) return new Response('Not Found', { status: 404 });
+  if (!key || key.includes('..')) return new Response('Not Found', { status: 404 });
 
   if (AUTH_PREFIXES.some(p => key.startsWith(p))) {
     const sessionId = getSessionIdFromCookie(request);
