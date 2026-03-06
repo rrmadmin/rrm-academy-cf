@@ -131,6 +131,37 @@ export function getStaticPaths() {
           </form>
         </div>
 
+        <!-- Flag button (all members, non-own posts) -->
+        <button id="ctrl-flag-post" class="btn btn--text btn--sm flag-btn" hidden>Flag</button>
+
+        <!-- Flag modal -->
+        <div id="flag-modal" class="modal-overlay" hidden>
+          <div class="modal-card">
+            <h3 class="modal-title">Report Content</h3>
+            <div class="form-group">
+              <label class="form-label" for="flag-reason">Reason</label>
+              <select class="form-input" id="flag-reason">
+                <option value="">Select a reason...</option>
+                <option value="inappropriate">Inappropriate</option>
+                <option value="spam">Spam</option>
+                <option value="harassment">Harassment</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="flag-note">Details (optional)</label>
+              <textarea class="form-input form-textarea form-textarea--sm" id="flag-note" rows="2" maxlength="500" placeholder="Any additional context..."></textarea>
+            </div>
+            <div id="flag-error" class="edit-feedback edit-feedback--error" hidden>
+              <p id="flag-error-text"></p>
+            </div>
+            <div class="modal-actions">
+              <button id="flag-submit" class="btn btn--primary btn--sm">Submit Report</button>
+              <button id="flag-cancel" class="btn btn--secondary btn--sm">Cancel</button>
+            </div>
+          </div>
+        </div>
+
         <!-- Comments section -->
         <section id="comments-section" class="comments-section">
           <h2 id="comments-heading" class="comments-heading">Comments</h2>
@@ -198,6 +229,17 @@ export function getStaticPaths() {
       var commentInput = document.getElementById('comment-input');
       var commentSubmit = document.getElementById('comment-submit');
       var commentsList = document.getElementById('comments-list');
+
+      var flagModal = document.getElementById('flag-modal');
+      var flagReason = document.getElementById('flag-reason');
+      var flagNote = document.getElementById('flag-note');
+      var flagSubmit = document.getElementById('flag-submit');
+      var flagCancel = document.getElementById('flag-cancel');
+      var flagError = document.getElementById('flag-error');
+      var flagErrorText = document.getElementById('flag-error-text');
+      var ctrlFlagPost = document.getElementById('ctrl-flag-post');
+      var flagTargetType = null;
+      var flagTargetId = null;
 
       // --- State ---
       var postId = window.location.pathname.split('/community/post/')[1];
@@ -421,6 +463,11 @@ export function getStaticPaths() {
         }
 
         showState(contentEl);
+
+        // Show flag button for non-own posts
+        if (!post.isOwn) {
+          ctrlFlagPost.hidden = false;
+        }
       }
 
       // --- Staff controls ---
@@ -649,6 +696,9 @@ export function getStaticPaths() {
         if (canDelete) {
           html += '<button class="btn btn--text btn--sm comment-delete-btn" data-comment-id="' + c.id + '">Delete</button>';
         }
+        if (!c.isOwn) {
+          html += '<button class="btn btn--text btn--sm comment-flag-btn flag-btn" data-target-type="comment" data-target-id="' + c.id + '">Flag</button>';
+        }
         html += '</div>';
 
         // Reply compose (hidden)
@@ -787,6 +837,75 @@ export function getStaticPaths() {
             });
           return;
         }
+      });
+
+      // --- Flag modal ---
+
+      function openFlagModal(targetType, targetId) {
+        flagTargetType = targetType;
+        flagTargetId = targetId;
+        flagReason.value = '';
+        flagNote.value = '';
+        flagError.hidden = true;
+        flagModal.hidden = false;
+      }
+
+      ctrlFlagPost.addEventListener('click', function () {
+        openFlagModal('post', currentPost.id);
+      });
+
+      document.addEventListener('click', function (e) {
+        var flagBtn = e.target.closest('.comment-flag-btn');
+        if (!flagBtn) return;
+        openFlagModal(
+          flagBtn.getAttribute('data-target-type'),
+          flagBtn.getAttribute('data-target-id')
+        );
+      });
+
+      flagCancel.addEventListener('click', function () {
+        flagModal.hidden = true;
+      });
+
+      flagSubmit.addEventListener('click', function () {
+        var reason = flagReason.value;
+        if (!reason) {
+          flagErrorText.textContent = 'Please select a reason.';
+          flagError.hidden = false;
+          return;
+        }
+        flagError.hidden = true;
+        flagSubmit.disabled = true;
+        flagSubmit.textContent = 'Submitting...';
+        fetch('/api/community/flags', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            targetType: flagTargetType,
+            targetId: flagTargetId,
+            reason: reason,
+            note: flagNote.value.trim() || null,
+          }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            flagSubmit.disabled = false;
+            flagSubmit.textContent = 'Submit Report';
+            if (!data.ok) {
+              flagErrorText.textContent = data.error || 'Failed to submit report.';
+              flagError.hidden = false;
+              return;
+            }
+            flagModal.hidden = true;
+            alert('Report submitted. Thank you.');
+          })
+          .catch(function () {
+            flagSubmit.disabled = false;
+            flagSubmit.textContent = 'Submit Report';
+            flagErrorText.textContent = 'Network error. Please try again.';
+            flagError.hidden = false;
+          });
       });
 
       function removeComment(id) {
@@ -1221,6 +1340,42 @@ export function getStaticPaths() {
     gap: var(--space-2);
     margin-top: var(--space-2);
     justify-content: flex-end;
+  }
+
+  /* Flag */
+  .flag-btn {
+    color: var(--text-tertiary);
+  }
+  .flag-btn:hover {
+    color: var(--red-600, #dc2626);
+  }
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 16px;
+  }
+  .modal-card {
+    background: var(--white, #fff);
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  }
+  .modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 16px;
+  }
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
   }
 
   /* Responsive */
