@@ -106,7 +106,7 @@ async function fetchSingle(recordId) {
 
   const record = await res.json();
   const syncStatus = record.fields?.['Sync to RRM Library'];
-  const isSynced = syncStatus === 'Synced';
+  const isSynced = syncStatus === 'Synced' || syncStatus === 'onDeck';
 
   // Load existing articles.json
   let articles = [];
@@ -142,6 +142,21 @@ async function fetchSingle(recordId) {
   mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
   writeFileSync(OUTPUT_PATH, JSON.stringify(articles, null, 2));
   console.log(`\nWrote ${articles.length} articles to ${OUTPUT_PATH}`);
+
+  // Ping Airtable webhook to confirm record was processed (onDeck -> Synced)
+  const webhookUrl = 'https://hooks.airtable.com/workflows/v1/genericWebhook/app78UTVdeFph9qhL/wflCWOVSQdw1B8DVJ/wtrtpAQok7EXF3coj';
+  if (webhookUrl) {
+    try {
+      const ping = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ record_id: recordId, status: 'processed', articles_count: articles.length }),
+      });
+      console.log(`Airtable webhook: ${ping.ok ? 'confirmed' : ping.status}`);
+    } catch (e) {
+      console.warn(`Airtable webhook ping failed: ${e.message}`);
+    }
+  }
 }
 
 // --- Main ---
