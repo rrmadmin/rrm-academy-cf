@@ -7,6 +7,7 @@
 import { json, optionsResponse, generateId } from '../auth/_shared.js';
 import {
   requireMember, displayName, canCreateType, canEditPost, canDeletePost, canPin, roleAtLeast,
+  tierFromLabel, TIER_LABELS,
 } from './_shared.js';
 
 const VALID_CHANNELS = ['stuc', 'members', 'masterclass'];
@@ -48,17 +49,20 @@ export async function onRequestGet({ request, env }) {
     const db = env.DB;
     let sql, params;
 
+    const tierPlaceholders = TIER_LABELS.map(() => '?').join(', ');
+
     if (type === 'event') {
       // Events: upcoming first (ASC), then past (DESC)
       const now = new Date().toISOString();
       let eventWhere = "WHERE p.type = 'event' AND p.channel = ?";
-      params = [channel];
+      params = [...TIER_LABELS, channel];
       if (before) {
         eventWhere += ' AND p.created_at < ?';
         params.push(before);
       }
       sql = `
         SELECT p.*, u.name as author_name, u.first_name, u.last_name, u.role as author_role, u.avatar_url as author_avatar,
+          (SELECT ul.label FROM user_label ul WHERE ul.user_id = p.author_id AND ul.label IN (${tierPlaceholders}) LIMIT 1) as author_tier_label,
           (SELECT COUNT(*) FROM community_comment WHERE post_id = p.id) as comment_count
         FROM community_post p
         JOIN user u ON u.id = p.author_id
@@ -73,19 +77,20 @@ export async function onRequestGet({ request, env }) {
     } else {
       // All other types: pinned first, then by created_at DESC
       let whereClause = ' AND p.channel = ?';
-      params = [channel];
+      params = [...TIER_LABELS, channel];
 
       if (type) {
         whereClause += ' AND p.type = ?';
         params.push(type);
       }
       if (before) {
-        whereClause += ' AND p.created_at < ?';
+        whereClause += ' AND p.created_at < ? AND p.pinned = 0';
         params.push(before);
       }
 
       sql = `
         SELECT p.*, u.name as author_name, u.first_name, u.last_name, u.role as author_role, u.avatar_url as author_avatar,
+          (SELECT ul.label FROM user_label ul WHERE ul.user_id = p.author_id AND ul.label IN (${tierPlaceholders}) LIMIT 1) as author_tier_label,
           (SELECT COUNT(*) FROM community_comment WHERE post_id = p.id) as comment_count
         FROM community_post p
         JOIN user u ON u.id = p.author_id
@@ -145,6 +150,7 @@ export async function onRequestGet({ request, env }) {
       authorName: r.author_name || displayName(r),
       authorRole: r.author_role,
       authorAvatar: r.author_avatar || null,
+      authorTier: tierFromLabel(r.author_tier_label),
       commentCount: r.comment_count,
       reactions: reactionMap[r.id] || {},
       myReactions: userReactions[r.id] || [],
@@ -236,6 +242,7 @@ export async function onRequestPost({ request, env }) {
         authorId: user.id,
         authorName: displayName(user),
         authorRole: user.role,
+        authorTier: null,
         commentCount: 0,
         reactions: {},
         myReactions: [],
