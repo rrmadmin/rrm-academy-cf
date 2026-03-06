@@ -32,12 +32,12 @@ export async function onRequestPost({ request, env }) {
     if (!target) return json({ ok: false, error: 'User not found' }, 404);
     if (target.blocked) return json({ ok: false, error: 'User is already banned' }, 409);
 
-    if (roleAtLeast(target.role, 'admin')) {
-      return json({ ok: false, error: 'Cannot ban an admin' }, 403);
-    }
-
     if (userId === user.id) {
       return json({ ok: false, error: 'Cannot ban yourself' }, 400);
+    }
+
+    if (roleAtLeast(target.role, 'admin')) {
+      return json({ ok: false, error: 'Cannot ban an admin' }, 403);
     }
 
     const statements = [
