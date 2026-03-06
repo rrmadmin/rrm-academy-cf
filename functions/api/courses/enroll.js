@@ -15,6 +15,7 @@ import {
   STRIPE_API_VERSION, SITE_URL,
 } from '../auth/_shared.js';
 import { getCourse, getIncludedCourseIds } from './_shared.js';
+import { sendGA4Event } from '../_ga4.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -65,6 +66,9 @@ async function handleEnroll(request, env) {
   // --- Free course: enroll immediately ---
   if (course.isFree) {
     await enrollUser(db, session.userId, courseId, null);
+    sendGA4Event(env, request, 'sign_up', {
+      event_category: 'course_enrollment', items: [{ item_name: `Course: ${courseId}` }],
+    }).catch(() => {});
     return json({ ok: true, enrolled: true });
   }
 
@@ -105,6 +109,9 @@ async function handleEnroll(request, env) {
     console.error('Stripe checkout.sessions.create failed:', err.message);
     return json({ ok: false, error: 'Payment service unavailable. Please try again shortly.' }, 503);
   }
+  sendGA4Event(env, request, 'begin_checkout', {
+    currency: 'USD', items: [{ item_name: `Course: ${courseId}` }],
+  }).catch(() => {});
   return json({ ok: true, enrolled: false, checkoutUrl: checkoutSession.url });
 }
 
