@@ -6,6 +6,7 @@
  */
 import { json, optionsResponse, generateId } from '../auth/_shared.js';
 import { requireMember, displayName, canDeleteComment, roleAtLeast, tierFromLabel, TIER_LABELS } from './_shared.js';
+import { notifyReply } from './_email.js';
 
 const ARCHIVE_CHANNELS = ['members', 'masterclass'];
 
@@ -156,6 +157,13 @@ export async function onRequestPost({ request, env }) {
       INSERT INTO community_comment (id, post_id, author_id, parent_id, content)
       VALUES (?, ?, ?, ?, ?)
     `).bind(id, postId, user.id, parentId || null, content.trim()).run();
+
+    // Send reply notification (fire-and-forget)
+    try {
+      await notifyReply(env, db, postId, parentId || null, user.id, displayName(user), content.trim());
+    } catch (err) {
+      console.error('Failed to send reply notification:', err.message);
+    }
 
     return json({
       ok: true,
