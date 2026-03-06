@@ -199,7 +199,7 @@ async function fetchSingle(recordId) {
 
   const record = await res.json();
   const status = record.fields?.['Status'];
-  const isPublished = status === 'Published';
+  const isPublished = status === 'Published' || status === 'Publishing';
 
   // Load existing posts.json
   let posts = [];
