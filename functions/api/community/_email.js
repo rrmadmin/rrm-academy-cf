@@ -12,8 +12,8 @@ function escapeHtml(str) {
 
 export async function notifyNewPost(env, db, post, authorName) {
   // 15-minute cooldown via KV
-  if (env.KV) {
-    const lastSent = await env.KV.get('community:last_post_email');
+  if (env.COMMUNITY_KV) {
+    const lastSent = await env.COMMUNITY_KV.get('community:last_post_email');
     if (lastSent) {
       const elapsed = Date.now() - parseInt(lastSent, 10);
       if (elapsed < 15 * 60 * 1000) return;
@@ -53,8 +53,8 @@ export async function notifyNewPost(env, db, post, authorName) {
   );
   await Promise.all(emailPromises);
 
-  if (env.KV) {
-    await env.KV.put('community:last_post_email', String(Date.now()), { expirationTtl: 900 });
+  if (env.COMMUNITY_KV) {
+    await env.COMMUNITY_KV.put('community:last_post_email', String(Date.now()), { expirationTtl: 900 });
   }
 }
 
