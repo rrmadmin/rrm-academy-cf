@@ -42,7 +42,7 @@ export async function onRequestGet({ request, env }) {
     let checkoutSession;
     try {
       checkoutSession = await stripe.checkout.sessions.retrieve(sessionId);
-    } catch (err) {
+    } catch (_err) {
       return json({ ok: false, error: 'Invalid session' }, 400);
     }
 

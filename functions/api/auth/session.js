@@ -4,7 +4,7 @@
  * Used by client-side JS to check auth state.
  */
 import {
-  json, optionsResponse, getSessionIdFromCookie, validateSession, sessionCookie, CORS_HEADERS,
+  json, optionsResponse, getSessionIdFromCookie, validateSession, sessionCookie,
 } from './_shared.js';
 
 export async function onRequestOptions() {
