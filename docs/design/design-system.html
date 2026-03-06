@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RRM Academy — Design System Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --purple-900: #4c3e54;
+    --purple-700: #725e7e;
+    --purple-500: #987da8;
+    --purple-300: #c9b8d3;
+    --purple-100: #e8ddef;
+    --purple-50:  #f5f0f8;
+
+    --neutral-900: #313131;
+    --neutral-700: #636261;
+    --neutral-500: #949392;
+    --neutral-300: #c6c4c2;
+    --neutral-100: #f7f5f3;
+    --white:       #ffffff;
+
+    --cream:    #eee5dd;
+    --sand-300: #dbcbbb;
+    --sand-500: #b8a38f;
+    --sand-700: #947353;
+
+    --rose-700: #b0778a;
+    --rose-500: #eb9fb8;
+    --rose-300: #f5cdda;
+
+    --sage-700: #7e8772;
+    --sage-300: #bec3b8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    line-height: 1.75;
+    color: var(--neutral-900);
+    background: var(--white);
+    padding: 48px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  h1 { font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: 40px; line-height: 1.15; color: var(--purple-900); margin-bottom: 8px; }
+  h2 { font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: 28px; line-height: 1.15; color: var(--neutral-900); margin: 64px 0 24px; border-bottom: 2px solid var(--purple-300); padding-bottom: 8px; }
+  h3 { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 14px; line-height: 1.5; color: var(--neutral-500); text-transform: uppercase; letter-spacing: 1px; margin: 32px 0 12px; }
+
+  .subtitle { font-size: 18px; color: var(--neutral-700); margin-bottom: 48px; }
+
+  /* --- Color Swatches --- */
+  .swatch-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+  .swatch {
+    width: 120px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--neutral-300);
+  }
+  .swatch-color { height: 72px; }
+  .swatch-info { padding: 8px 10px; font-size: 12px; line-height: 1.4; }
+  .swatch-name { font-weight: 500; display: block; }
+  .swatch-hex { color: var(--neutral-500); font-family: monospace; font-size: 11px; }
+  .swatch-note { color: var(--neutral-500); font-size: 10px; display: block; margin-top: 2px; }
+  .swatch-a11y { font-size: 9px; font-weight: 500; display: inline-block; padding: 1px 5px; border-radius: 3px; margin-top: 3px; }
+  .a11y-pass { background: #d4edda; color: #155724; }
+  .a11y-fail { background: #f8d7da; color: #721c24; }
+  .a11y-lg { background: #fff3cd; color: #856404; }
+
+  /* --- Typography Specimens --- */
+  .type-specimen { margin-bottom: 24px; padding: 20px 24px; border-radius: 8px; border: 1px solid var(--neutral-300); }
+  .type-specimen .sample { margin-bottom: 8px; }
+  .type-specimen .meta { font-size: 12px; color: var(--neutral-500); font-family: monospace; }
+
+  .font-display { font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: 40px; line-height: 1.15; }
+  .font-h1 { font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: 32px; line-height: 1.15; }
+  .font-h2 { font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: 28px; line-height: 1.15; }
+  .font-h3 { font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: 24px; line-height: 1.15; }
+  .font-h4 { font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: 20px; line-height: 1.15; }
+  .font-body-lg { font-family: 'Inter', sans-serif; font-weight: 400; font-size: 18px; line-height: 1.75; }
+  .font-body { font-family: 'Inter', sans-serif; font-weight: 400; font-size: 16px; line-height: 1.75; }
+  .font-body-sm { font-family: 'Inter', sans-serif; font-weight: 400; font-size: 14px; line-height: 1.75; }
+  .font-caption { font-family: 'Inter', sans-serif; font-weight: 400; font-size: 12px; line-height: 1.5; }
+  .font-button { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 14px; line-height: 1.5; }
+
+  /* --- Buttons --- */
+  .button-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 1.5;
+    text-decoration: none;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.15s ease;
+  }
+  .btn-primary { background: var(--purple-700); color: var(--white); border-color: var(--purple-700); }
+  .btn-primary:hover { background: var(--purple-900); border-color: var(--purple-900); }
+  .btn-secondary { background: var(--white); color: var(--purple-700); border-color: var(--purple-700); }
+  .btn-secondary:hover { background: var(--purple-50); }
+  .btn-ghost { background: transparent; color: var(--purple-700); border-color: transparent; }
+  .btn-ghost:hover { background: var(--purple-50); }
+  .btn-disabled { background: var(--neutral-500); color: var(--white); border-color: var(--neutral-500); opacity: 0.6; cursor: not-allowed; }
+  .btn-sm { padding: 8px 16px; font-size: 12px; }
+  .btn-lg { padding: 16px 32px; font-size: 16px; }
+
+  .btn-arrow::after { content: "\2192"; }
+
+  /* --- Spacing --- */
+  .spacing-row { display: flex; align-items: center; gap: 16px; margin-bottom: 8px; }
+  .spacing-bar { background: var(--purple-300); height: 24px; border-radius: 4px; min-width: 4px; }
+  .spacing-label { font-size: 12px; font-family: monospace; color: var(--neutral-700); min-width: 80px; }
+  .spacing-px { font-size: 12px; color: var(--neutral-500); min-width: 40px; }
+
+  /* --- Border Radius --- */
+  .radius-row { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 16px; }
+  .radius-demo { text-align: center; }
+  .radius-box { width: 64px; height: 64px; background: var(--purple-100); border: 2px solid var(--purple-300); margin: 0 auto 8px; }
+  .radius-meta { font-size: 11px; font-family: monospace; color: var(--neutral-500); }
+
+  /* --- Shadows --- */
+  .shadow-row { display: flex; gap: 32px; margin-bottom: 16px; }
+  .shadow-demo { text-align: center; }
+  .shadow-box { width: 120px; height: 80px; background: var(--white); border-radius: 8px; margin: 0 auto 8px; }
+  .shadow-sm { box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .shadow-md { box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+
+  /* --- Backgrounds --- */
+  .bg-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .bg-demo { width: 200px; height: 100px; border-radius: 8px; border: 1px solid var(--neutral-300); display: flex; align-items: center; justify-content: center; font-size: 12px; font-family: monospace; }
+
+  /* --- Notes --- */
+  .note { background: var(--neutral-100); border-left: 3px solid var(--purple-700); padding: 12px 16px; font-size: 14px; color: var(--neutral-700); margin: 16px 0; border-radius: 0 4px 4px 0; }
+  .note strong { color: var(--neutral-900); }
+</style>
+</head>
+<body>
+
+<h1>RRM Academy Design System</h1>
+<p class="subtitle">Visual reference for Figma — colors, typography, buttons, spacing</p>
+
+<!-- ============ COLORS ============ -->
+<h2>Color Palette</h2>
+
+<h3>Purple (Primary Brand)</h3>
+<div class="swatch-row">
+  <div class="swatch"><div class="swatch-color" style="background:#4c3e54"></div><div class="swatch-info"><span class="swatch-name">Purple 900</span><span class="swatch-hex">#4c3e54</span><span class="swatch-note">Hover, emphasis</span><span class="swatch-a11y a11y-pass">9.9:1 AAA</span></div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#725e7e"></div><div class="swatch-info"><span class="swatch-name">Purple 700</span><span class="swatch-hex">#725e7e</span><span class="swatch-note">Primary brand</span><span class="swatch-a11y a11y-pass">5.8:1 AA</span></div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#987da8"></div><div class="swatch-info"><span class="swatch-name">Purple 500</span><span class="swatch-hex">#987da8</span><span class="swatch-note">Secondary</span><span class="swatch-a11y a11y-lg">3.6:1 large only</span></div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#c9b8d3"></div><div class="swatch-info"><span class="swatch-name">Purple 300</span><span class="swatch-hex">#c9b8d3</span><span class="swatch-note">Borders, tags</span></div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#e8ddef"></div><div class="swatch-info"><span class="swatch-name">Purple 100</span><span class="swatch-hex">#e8ddef</span><span class="swatch-note">Tinted bg</span></div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#f5f0f8"></div><div class="swatch-info"><span class="swatch-name">Purple 50</span><span class="swatch-hex">#f5f0f8</span><span class="swatch-note">Hover bg</span></div></div>
+</div>
+
+<h3>Neutrals</h3>
+<div class="swatch-row">
+  <div class="swatch"><div class="swatch-color" style="background:#313131"></div><div class="swatch-info"><span class="swatch-name">Neutral 900</span><span class="swatch-hex">#313131</span><span class="swatch-note">Primary text</span></div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#636261"></div><div class="swatch-info"><span class="swatch-name">Neutral 700</span><span class="swatch-hex">#636261</span><span class="swatch-note">Secondary text</span></div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#949392"></div><div class="swatch-info"><span class="swatch-name">Neutral 500</span><span class="swatch-hex">#949392</span><span class="swatch-note">Muted, disabled</span></div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#c6c4c2"></div><div class="swatch-info"><span class="swatch-name">Neutral 300</span><span class="swatch-hex">#c6c4c2</span><span class="swatch-note">Borders, dividers</span></div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#f7f5f3; border: 1px solid #e0e0e0"></div><div class="swatch-info"><span class="swatch-name">Neutral 100</span><span class="swatch-hex">#f7f5f3</span><span class="swatch-note">Off-white bg</span></div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#ffffff; border: 1px solid #e0e0e0"></div><div class="swatch-info"><span class="swatch-name">White</span><span class="swatch-hex">#ffffff</span><span class="swatch-note">Page bg</span></div></div>
+</div>
+
+<h3>Warm Accents</h3>
+<div class="swatch-row">
+  <div class="swatch"><div class="swatch-color" style="background:#eee5dd"></div><div class="swatch-info"><span class="swatch-name">Cream</span><span class="swatch-hex">#eee5dd</span><span class="swatch-note">Warm section bg</span></div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#dbcbbb"></div><div class="swatch-info"><span class="swatch-name">Sand 300</span><span class="swatch-hex">#dbcbbb</span></div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#b8a38f"></div><div class="swatch-info"><span class="swatch-name">Sand 500</span><span class="swatch-hex">#b8a38f</span></div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#947353"></div><div class="swatch-info"><span class="swatch-name">Sand 700</span><span class="swatch-hex">#947353</span></div></div>
+</div>
+
+<h3>Rose</h3>
+<div class="swatch-row">
+  <div class="swatch"><div class="swatch-color" style="background:#b0778a"></div><div class="swatch-info"><span class="swatch-name">Rose 700</span><span class="swatch-hex">#b0778a</span></div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#eb9fb8"></div><div class="swatch-info"><span class="swatch-name">Rose 500</span><span class="swatch-hex">#eb9fb8</span></div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#f5cdda"></div><div class="swatch-info"><span class="swatch-name">Rose 300</span><span class="swatch-hex">#f5cdda</span></div></div>
+</div>
+
+<h3>Sage</h3>
+<div class="swatch-row">
+  <div class="swatch"><div class="swatch-color" style="background:#7e8772"></div><div class="swatch-info"><span class="swatch-name">Sage 700</span><span class="swatch-hex">#7e8772</span></div></div>
+  <div class="swatch"><div class="swatch-color" style="background:#bec3b8"></div><div class="swatch-info"><span class="swatch-name">Sage 300</span><span class="swatch-hex">#bec3b8</span></div></div>
+</div>
+
+<div class="note">
+  <strong>Accessibility:</strong> Purple 700 (#725e7e) is the minimum for text on white — passes AA at 5.8:1.
+  Purple 500 (#987da8) fails for body text — use only on large headings (24px+).
+  Purple 900 (#4c3e54) passes AAA at 9.9:1 — use for maximum contrast.
+</div>
+
+<!-- ============ TYPOGRAPHY ============ -->
+<h2>Typography</h2>
+
+<div class="note">
+  <strong>Fonts:</strong> Cormorant Garamond SemiBold (headings) + Inter Regular/Medium (body).
+  Both are free Google Fonts. This pairing is kept from the current site — it's excellent.
+</div>
+
+<h3>Headings — Cormorant Garamond SemiBold</h3>
+
+<div class="type-specimen">
+  <div class="sample font-display">Stop Managing Symptoms. Start Restoring Health.</div>
+  <div class="meta">Display — 40px / 1.15 line-height — Hero headlines</div>
+</div>
+
+<div class="type-specimen">
+  <div class="sample font-h1">Restorative Reproductive Medicine</div>
+  <div class="meta">H1 — 32px / 1.15 — Page titles</div>
+</div>
+
+<div class="type-specimen">
+  <div class="sample font-h2">Let's start with an analogy.</div>
+  <div class="meta">H2 — 28px / 1.15 — Section headings</div>
+</div>
+
+<div class="type-specimen">
+  <div class="sample font-h3">How RRM Works in Practice</div>
+  <div class="meta">H3 — 24px / 1.15 — Subsections</div>
+</div>
+
+<div class="type-specimen">
+  <div class="sample font-h4">Masterclass in Endometriosis &amp; Surgery</div>
+  <div class="meta">H4 — 20px / 1.15 — Card titles</div>
+</div>
+
+<h3>Body — Inter Regular</h3>
+
+<div class="type-specimen">
+  <div class="sample font-body-lg">RRM Academy is the leading educational platform for patients and professionals seeking to understand and apply Restorative Reproductive Medicine.</div>
+  <div class="meta">Body Large — 18px / 1.75 — Lead paragraphs</div>
+</div>
+
+<div class="type-specimen">
+  <div class="sample font-body">When the check engine light comes on in your car, you don't just put a piece of tape over it. You look under the hood to find out why the light is on. For over 50 years, women's healthcare has been putting tape over the check engine light.</div>
+  <div class="meta">Body — 16px / 1.75 — Default body text</div>
+</div>
+
+<div class="type-specimen">
+  <div class="sample font-body-sm">All donations to the Restorative Reproductive Medicine Foundation, a 501(c)(3) non-profit, are tax-deductible. EIN: 93-4594315</div>
+  <div class="meta">Body Small — 14px / 1.75 — Secondary text</div>
+</div>
+
+<div class="type-specimen">
+  <div class="sample font-caption">Huang Y et al. Front Endocrinol (Lausanne). 2024.</div>
+  <div class="meta">Caption — 12px / 1.5 — Labels, citations, meta</div>
+</div>
+
+<div class="type-specimen">
+  <div class="sample font-button" style="text-transform: none;">Explore Courses</div>
+  <div class="meta">Button — Inter Medium 14px / 1.5 — Button labels</div>
+</div>
+
+<!-- ============ BUTTONS ============ -->
+<h2>Buttons</h2>
+
+<h3>Variants</h3>
+<div class="button-row">
+  <a class="btn btn-primary" href="#">Donate</a>
+  <a class="btn btn-secondary" href="#">Find RRM Research</a>
+  <a class="btn btn-ghost" href="#">Learn More</a>
+  <a class="btn btn-disabled">Disabled</a>
+</div>
+
+<h3>With Arrow (CTA Pattern)</h3>
+<div class="button-row">
+  <a class="btn btn-primary btn-arrow" href="#">Explore Courses </a>
+  <a class="btn btn-secondary btn-arrow" href="#">Find RRM Research </a>
+</div>
+
+<h3>Sizes</h3>
+<div class="button-row">
+  <a class="btn btn-primary btn-sm" href="#">Small</a>
+  <a class="btn btn-primary" href="#">Default</a>
+  <a class="btn btn-primary btn-lg" href="#">Large</a>
+</div>
+
+<div class="note">
+  <strong>Fix from current site:</strong> The current site has no visible hover state — primary and hover are the same #725e7e.
+  This design system darkens to #4c3e54 on hover. Hover over the buttons above to see the difference.
+</div>
+
+<!-- ============ SPACING ============ -->
+<h2>Spacing Scale</h2>
+
+<div class="note"><strong>Base unit:</strong> 4px. All spacing is a multiple of 4.</div>
+
+<div class="spacing-row"><span class="spacing-label">spacing.1</span><span class="spacing-px">4px</span><div class="spacing-bar" style="width:4px"></div></div>
+<div class="spacing-row"><span class="spacing-label">spacing.2</span><span class="spacing-px">8px</span><div class="spacing-bar" style="width:8px"></div></div>
+<div class="spacing-row"><span class="spacing-label">spacing.3</span><span class="spacing-px">12px</span><div class="spacing-bar" style="width:12px"></div></div>
+<div class="spacing-row"><span class="spacing-label">spacing.4</span><span class="spacing-px">16px</span><div class="spacing-bar" style="width:16px"></div></div>
+<div class="spacing-row"><span class="spacing-label">spacing.6</span><span class="spacing-px">24px</span><div class="spacing-bar" style="width:24px"></div></div>
+<div class="spacing-row"><span class="spacing-label">spacing.8</span><span class="spacing-px">32px</span><div class="spacing-bar" style="width:32px"></div></div>
+<div class="spacing-row"><span class="spacing-label">spacing.12</span><span class="spacing-px">48px</span><div class="spacing-bar" style="width:48px"></div></div>
+<div class="spacing-row"><span class="spacing-label">spacing.16</span><span class="spacing-px">64px</span><div class="spacing-bar" style="width:64px"></div></div>
+<div class="spacing-row"><span class="spacing-label">spacing.24</span><span class="spacing-px">96px</span><div class="spacing-bar" style="width:96px"></div></div>
+<div class="spacing-row"><span class="spacing-label">spacing.32</span><span class="spacing-px">128px</span><div class="spacing-bar" style="width:128px"></div></div>
+
+<!-- ============ BORDER RADIUS ============ -->
+<h2>Border Radius</h2>
+
+<div class="radius-row">
+  <div class="radius-demo"><div class="radius-box" style="border-radius:0"></div><div class="radius-meta">none<br>0px</div></div>
+  <div class="radius-demo"><div class="radius-box" style="border-radius:4px"></div><div class="radius-meta">sm<br>4px</div></div>
+  <div class="radius-demo"><div class="radius-box" style="border-radius:8px"></div><div class="radius-meta">md<br>8px</div></div>
+  <div class="radius-demo"><div class="radius-box" style="border-radius:16px"></div><div class="radius-meta">lg<br>16px</div></div>
+  <div class="radius-demo"><div class="radius-box" style="border-radius:9999px"></div><div class="radius-meta">full<br>pill</div></div>
+</div>
+
+<!-- ============ SHADOWS ============ -->
+<h2>Shadows</h2>
+
+<div class="shadow-row">
+  <div class="shadow-demo"><div class="shadow-box shadow-sm"></div><div class="radius-meta">sm<br>0 1px 3px rgba(0,0,0,0.08)</div></div>
+  <div class="shadow-demo"><div class="shadow-box shadow-md"></div><div class="radius-meta">md<br>0 4px 12px rgba(0,0,0,0.12)</div></div>
+</div>
+
+<!-- ============ BACKGROUNDS ============ -->
+<h2>Section Backgrounds</h2>
+
+<div class="note"><strong>Rule:</strong> Standardize to these options. No ad-hoc tints.</div>
+
+<div class="bg-row">
+  <div class="bg-demo" style="background:#ffffff">White<br>#ffffff</div>
+  <div class="bg-demo" style="background:#f7f5f3">Neutral 100<br>#f7f5f3</div>
+  <div class="bg-demo" style="background:#f5f0f8">Purple 50<br>#f5f0f8</div>
+  <div class="bg-demo" style="background:#eee5dd">Cream<br>#eee5dd</div>
+</div>
+
+<!-- ============ USAGE RULES ============ -->
+<h2>Usage Rules</h2>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 16px;">
+  <div style="padding: 20px; border-radius: 8px; border: 1px solid var(--neutral-300);">
+    <div class="font-h4" style="margin-bottom: 12px; color: var(--purple-900);">Do</div>
+    <ul style="font-size: 14px; padding-left: 20px;">
+      <li>Use Purple 700 (#725e7e) for primary buttons, links, and nav</li>
+      <li>Use Purple 900 (#4c3e54) for hover states</li>
+      <li>Use Neutral 900 (#313131) for body text</li>
+      <li>Alternate section backgrounds: white, neutral-100, purple-50, cream</li>
+      <li>Keep heading hierarchy: Display > H1 > H2 > H3 > H4</li>
+    </ul>
+  </div>
+  <div style="padding: 20px; border-radius: 8px; border: 1px solid var(--neutral-300);">
+    <div class="font-h4" style="margin-bottom: 12px; color: var(--rose-700);">Don't</div>
+    <ul style="font-size: 14px; padding-left: 20px;">
+      <li>Don't use Purple 500 (#987da8) for body-size text — fails accessibility</li>
+      <li>Don't use the same color for button default and hover</li>
+      <li>Don't use more than 2 heading sizes on one section</li>
+      <li>Don't introduce new colors outside this palette</li>
+      <li>Don't mix section background patterns — pick one flow per page</li>
+    </ul>
+  </div>
+</div>
+
+</body>
+</html>
