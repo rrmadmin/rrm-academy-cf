@@ -162,6 +162,13 @@ CREATE INDEX IF NOT EXISTS idx_community_post_channel ON community_post(channel,
 CREATE INDEX IF NOT EXISTS idx_community_comment_post ON community_comment(post_id);
 CREATE INDEX IF NOT EXISTS idx_community_reaction_target ON community_reaction(target_type, target_id);
 
+-- Webhook Event Deduplication (prevents duplicate processing on Stripe retries)
+
+CREATE TABLE IF NOT EXISTS webhook_event (
+    event_id TEXT PRIMARY KEY,
+    processed_at INTEGER NOT NULL DEFAULT (unixepoch())
+);
+
 -- Saved Articles (syncs localStorage for logged-in users)
 
 CREATE TABLE IF NOT EXISTS saved_article (

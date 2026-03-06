@@ -80,6 +80,21 @@ async function handleWebhook(request, env) {
     });
   }
 
+  // Deduplicate: skip events already processed (Stripe retries send same event.id)
+  try {
+    const ins = await db.prepare('INSERT OR IGNORE INTO webhook_event (event_id) VALUES (?)').bind(event.id).run();
+    if (ins.meta.changes === 0) {
+      console.log(`Duplicate webhook event ${event.id} — skipping`);
+      return new Response(JSON.stringify({ ok: true, skipped: true }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+  } catch (_e) {
+    // Table may not exist yet — proceed without dedup
+    console.warn('webhook_event dedup check failed, proceeding:', _e.message);
+  }
+
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object;
