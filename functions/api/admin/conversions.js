@@ -1,7 +1,7 @@
 /**
  * GET /api/admin/conversions
  * Returns GA4 conversion report data for the admin dashboard.
- * Requires ADMIN_API_SECRET header for auth.
+ * Requires ADMIN_TOKEN via Bearer auth header.
  * Caches results in KV for 1 hour to avoid hitting GA4 rate limits.
  *
  * Query params:
@@ -14,9 +14,13 @@ const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const CACHE_TTL = 3600; // 1 hour
 
 export async function onRequestGet({ request, env }) {
-  // Auth check
-  const authHeader = request.headers.get('X-Admin-Secret');
-  if (!authHeader || authHeader !== env.ADMIN_API_SECRET) {
+  // Auth check (same pattern as backlinks)
+  if (!env.ADMIN_TOKEN) {
+    return json({ ok: false, error: 'Not configured' }, 500);
+  }
+  const authHeader = request.headers.get('Authorization') || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+  if (token !== env.ADMIN_TOKEN) {
     return json({ ok: false, error: 'Unauthorized' }, 401);
   }
 
