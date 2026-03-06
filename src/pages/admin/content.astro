@@ -1,0 +1,256 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Content" description="Admin content performance dashboard" noindex={true} bodyClass="admin-page">
+
+  <div class="admin-bar">
+    <div class="container admin-bar__inner">
+      <span class="admin-bar__title">RRM Admin</span>
+      <nav class="admin-bar__nav">
+        <a href="/admin/backlinks/" class="admin-bar__link">Backlinks</a>
+        <a href="/admin/conversions/" class="admin-bar__link">Conversions</a>
+        <a href="/admin/content/" class="admin-bar__link admin-bar__link--active">Content</a>
+        <a href="/admin/revenue/" class="admin-bar__link">Revenue</a>
+      </nav>
+      <div class="admin-bar__actions">
+        <a href="/" class="admin-bar__site-link">Return to site</a>
+        <button class="admin-bar__logout" id="logout-btn" hidden>Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <section id="login-gate" class="ct-section">
+    <div class="container container--narrow ct-login-wrap">
+      <h1>Admin Login</h1>
+      <div class="form-group">
+        <label class="form-label" for="token-input">Admin Token</label>
+        <input class="form-input" type="password" id="token-input" placeholder="Enter admin token" autocomplete="off" />
+      </div>
+      <button class="btn btn--primary" id="login-btn">Login</button>
+      <p id="login-error" class="ct-error" hidden></p>
+    </div>
+  </section>
+
+  <section id="dashboard" class="ct-section" hidden>
+    <div class="container">
+
+      <div class="ct-header">
+        <h1>Content Performance</h1>
+        <div class="ct-controls">
+          <select class="form-input ct-select" id="period-select">
+            <option value="7d">Last 7 days</option>
+            <option value="28d" selected>Last 28 days</option>
+            <option value="90d">Last 90 days</option>
+          </select>
+          <button class="btn btn--primary ct-btn" id="refresh-btn">Refresh</button>
+        </div>
+      </div>
+
+      <!-- Overview metrics -->
+      <div class="ct-metrics ct-metrics--5">
+        <div class="ct-card">
+          <span class="ct-card__label">Page Views</span>
+          <span class="ct-card__value" id="m-pageviews">--</span>
+        </div>
+        <div class="ct-card">
+          <span class="ct-card__label">Users</span>
+          <span class="ct-card__value" id="m-users">--</span>
+        </div>
+        <div class="ct-card">
+          <span class="ct-card__label">Sessions</span>
+          <span class="ct-card__value" id="m-sessions">--</span>
+        </div>
+        <div class="ct-card">
+          <span class="ct-card__label">Avg. Duration</span>
+          <span class="ct-card__value" id="m-duration">--</span>
+        </div>
+        <div class="ct-card">
+          <span class="ct-card__label">Bounce Rate</span>
+          <span class="ct-card__value" id="m-bounce">--</span>
+        </div>
+      </div>
+
+      <!-- Content category breakdown -->
+      <h2 class="ct-heading">Content Categories</h2>
+      <div class="ct-metrics ct-metrics--5">
+        <div class="ct-card">
+          <span class="ct-card__label">Library</span>
+          <span class="ct-card__value ct-card__value--green" id="c-library">--</span>
+        </div>
+        <div class="ct-card">
+          <span class="ct-card__label">Courses</span>
+          <span class="ct-card__value" id="c-courses">--</span>
+        </div>
+        <div class="ct-card">
+          <span class="ct-card__label">Community</span>
+          <span class="ct-card__value" id="c-community">--</span>
+        </div>
+        <div class="ct-card">
+          <span class="ct-card__label">Blog</span>
+          <span class="ct-card__value" id="c-blog">--</span>
+        </div>
+        <div class="ct-card">
+          <span class="ct-card__label">Other</span>
+          <span class="ct-card__value" id="c-other">--</span>
+        </div>
+      </div>
+
+      <!-- Top pages table -->
+      <h2 class="ct-heading">Top Pages</h2>
+      <div class="ct-table-wrap">
+        <table class="ct-table">
+          <thead>
+            <tr>
+              <th>Path</th>
+              <th>Views</th>
+              <th>Users</th>
+              <th>Avg. Duration</th>
+            </tr>
+          </thead>
+          <tbody id="pages-tbody">
+            <tr><td colspan="4" class="ct-empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Top referrers table -->
+      <h2 class="ct-heading">Top Referrers</h2>
+      <div class="ct-table-wrap">
+        <table class="ct-table">
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th>Sessions</th>
+              <th>Users</th>
+            </tr>
+          </thead>
+          <tbody id="referrers-tbody">
+            <tr><td colspan="3" class="ct-empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="ct-meta" id="ct-meta"></p>
+    </div>
+  </section>
+
+  <script is:inline>
+  (function () {
+    var TOKEN_KEY = 'bl_admin_token';
+    var EXPIRY_KEY = 'bl_admin_expiry';
+    var TTL_MS = 24 * 60 * 60 * 1000;
+    function getToken() { var t = localStorage.getItem(TOKEN_KEY), e = localStorage.getItem(EXPIRY_KEY); if (!t||!e) return null; if (Date.now()>Number(e)){clearToken();return null;} return t; }
+    function setToken(t) { localStorage.setItem(TOKEN_KEY, t); localStorage.setItem(EXPIRY_KEY, String(Date.now()+TTL_MS)); }
+    function clearToken() { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(EXPIRY_KEY); }
+
+    function num(n) { return (n||0).toLocaleString(); }
+    function dur(s) { var m = Math.floor(s/60); var sec = Math.round(s%60); return m + ':' + (sec<10?'0':'') + sec; }
+    function pct(n) { return ((n||0)*100).toFixed(1) + '%'; }
+
+    async function fetchData(period) {
+      var token = getToken();
+      if (!token) throw new Error('Not authenticated');
+      var resp = await fetch('/api/admin/content?period=' + encodeURIComponent(period), {
+        headers: { 'Authorization': 'Bearer ' + token },
+      });
+      if (resp.status === 401) { clearToken(); location.reload(); }
+      var data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Request failed');
+      return data;
+    }
+
+    function render(d) {
+      document.getElementById('m-pageviews').textContent = num(d.summary.pageViews);
+      document.getElementById('m-users').textContent = num(d.summary.users);
+      document.getElementById('m-sessions').textContent = num(d.summary.sessions);
+      document.getElementById('m-duration').textContent = dur(d.summary.avgSessionDuration);
+      document.getElementById('m-bounce').textContent = pct(d.summary.bounceRate);
+
+      document.getElementById('c-library').textContent = num(d.categories.library);
+      document.getElementById('c-courses').textContent = num(d.categories.courses);
+      document.getElementById('c-community').textContent = num(d.categories.community);
+      document.getElementById('c-blog').textContent = num(d.categories.blog);
+      document.getElementById('c-other').textContent = num(d.categories.other);
+
+      var pages = d.pages || [];
+      var ptbody = document.getElementById('pages-tbody');
+      if (!pages.length) {
+        ptbody.innerHTML = '<tr><td colspan="4" class="ct-empty">No data</td></tr>';
+      } else {
+        ptbody.innerHTML = pages.map(function(p) {
+          return '<tr><td class="ct-path">' + p.path + '</td><td>' + num(p.views) + '</td><td>' + num(p.users) + '</td><td>' + dur(p.avgDuration) + '</td></tr>';
+        }).join('');
+      }
+
+      var refs = d.referrers || [];
+      var rtbody = document.getElementById('referrers-tbody');
+      if (!refs.length) {
+        rtbody.innerHTML = '<tr><td colspan="3" class="ct-empty">No data</td></tr>';
+      } else {
+        rtbody.innerHTML = refs.map(function(r) {
+          return '<tr><td>' + r.source + '</td><td>' + num(r.sessions) + '</td><td>' + num(r.users) + '</td></tr>';
+        }).join('');
+      }
+
+      document.getElementById('ct-meta').textContent = 'Fetched: ' + (d.fetchedAt || 'unknown');
+    }
+
+    async function loadData() {
+      var period = document.getElementById('period-select').value;
+      document.getElementById('pages-tbody').innerHTML = '<tr><td colspan="4" class="ct-empty">Loading...</td></tr>';
+      document.getElementById('referrers-tbody').innerHTML = '<tr><td colspan="3" class="ct-empty">Loading...</td></tr>';
+      try {
+        var resp = await fetchData(period);
+        render(resp.data);
+        if (resp.cached) document.getElementById('ct-meta').textContent += ' (cached)';
+      } catch(e) {
+        document.getElementById('pages-tbody').innerHTML = '<tr><td colspan="4" class="ct-empty ct-error">' + e.message + '</td></tr>';
+      }
+    }
+
+    var token = getToken();
+    if (token) { document.getElementById('login-gate').hidden=true; document.getElementById('dashboard').hidden=false; document.getElementById('logout-btn').hidden=false; loadData(); }
+
+    document.getElementById('login-btn').addEventListener('click', async function() {
+      var val = document.getElementById('token-input').value.trim(); if(!val) return;
+      document.getElementById('login-error').hidden=true;
+      try {
+        var resp = await fetch('/api/admin/content?period=7d', { headers: {'Authorization':'Bearer '+val} });
+        if (resp.status===401) throw new Error('Invalid token');
+        setToken(val); document.getElementById('login-gate').hidden=true; document.getElementById('dashboard').hidden=false; document.getElementById('logout-btn').hidden=false;
+        var data = await resp.json(); if(data.ok) render(data.data);
+      } catch(e) { var el=document.getElementById('login-error'); el.textContent=e.message; el.hidden=false; }
+    });
+    document.getElementById('token-input').addEventListener('keydown', function(e) { if(e.key==='Enter') document.getElementById('login-btn').click(); });
+    document.getElementById('logout-btn').addEventListener('click', function() { clearToken(); location.reload(); });
+    document.getElementById('period-select').addEventListener('change', loadData);
+    document.getElementById('refresh-btn').addEventListener('click', loadData);
+  })();
+  </script>
+
+</BaseLayout>
+
+<style>
+  :root { --admin-sage-700:#7e8772; --admin-sage-300:#bec3b8; --admin-bg:#faf8f5; --admin-surface:#fff; --admin-border:#d9d3cc; --admin-text:#313131; --admin-text-faint:#949392; }
+  :global(.admin-page) :global(.site-header){display:none;} :global(.admin-page) :global(footer){display:none;}
+  .admin-bar{background:#2d3328;color:#e8ebe5;position:sticky;top:0;z-index:100;} .admin-bar__inner{display:flex;align-items:center;height:48px;gap:var(--space-6);} .admin-bar__title{font-family:'Cormorant Garamond','Georgia',serif;font-weight:600;font-size:1.25rem;color:var(--admin-sage-300);white-space:nowrap;} .admin-bar__nav{display:flex;gap:var(--space-1);} .admin-bar__link{font-size:.8125rem;font-weight:400;color:rgba(255,255,255,.6);text-decoration:none;padding:4px 12px;border-radius:var(--radius-sm);transition:color .15s,background .15s;} .admin-bar__link:hover{color:#fff;text-decoration:none;} .admin-bar__link--active{color:#fff;background:rgba(255,255,255,.1);font-weight:500;} .admin-bar__actions{display:flex;align-items:center;gap:var(--space-3);margin-left:auto;} .admin-bar__site-link{font-size:.8125rem;font-weight:500;color:var(--admin-sage-300);text-decoration:none;padding:5px 16px;border:1px solid var(--admin-sage-300);border-radius:var(--radius-pill);transition:color .15s,border-color .15s;} .admin-bar__site-link:hover{color:#fff;border-color:#fff;text-decoration:none;} .admin-bar__logout{font-size:.8125rem;color:rgba(255,255,255,.5);background:none;border:none;cursor:pointer;padding:4px 8px;} .admin-bar__logout:hover{color:#fff;}
+
+  .ct-section{padding:var(--space-8) 0;background:var(--admin-bg);min-height:80vh;}
+  .ct-login-wrap{max-width:400px;margin:var(--space-16) auto;text-align:center;background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:var(--radius-md);padding:var(--space-8) var(--space-6);} .ct-login-wrap h1{margin-bottom:var(--space-6);color:var(--admin-sage-700);} .ct-login-wrap .form-group{margin-bottom:var(--space-4);text-align:left;} .ct-login-wrap .form-input{border-color:var(--admin-border);} .ct-login-wrap .form-input:focus{border-color:var(--admin-sage-700);box-shadow:0 0 0 2px rgba(126,135,114,.15);outline:none;} .ct-login-wrap .btn{width:100%;background:var(--admin-sage-700);border-color:var(--admin-sage-700);color:#fff;} .ct-login-wrap .btn:hover{background:#6b755f;} .ct-error{color:var(--color-error);font-size:.875rem;margin-top:var(--space-3);}
+
+  .ct-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-6);flex-wrap:wrap;gap:var(--space-3);} .ct-header h1{margin-bottom:0;color:var(--admin-text);} .ct-controls{display:flex;gap:var(--space-3);align-items:center;} .ct-select{max-width:200px;border-color:var(--admin-border);} .ct-select:focus{border-color:var(--admin-sage-700);box-shadow:0 0 0 2px rgba(126,135,114,.15);outline:none;} .ct-btn{background:var(--admin-sage-700);border-color:var(--admin-sage-700);color:#fff;} .ct-btn:hover{background:#6b755f;}
+
+  .ct-metrics{display:grid;gap:var(--space-4);margin-bottom:var(--space-6);} .ct-metrics--5{grid-template-columns:repeat(5,1fr);}
+  @media(max-width:768px){.ct-metrics--5{grid-template-columns:repeat(2,1fr);}}
+  .ct-card{background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:var(--radius-md);padding:var(--space-4) var(--space-5);text-align:center;} .ct-card__label{display:block;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--admin-text-faint);margin-bottom:var(--space-1);} .ct-card__value{display:block;font-size:1.75rem;font-weight:700;color:var(--admin-text);font-family:'Inter',sans-serif;} .ct-card__value--green{color:#27ae60;}
+
+  .ct-heading{color:var(--admin-text);margin-bottom:var(--space-4);}
+  .ct-table-wrap{overflow-x:auto;border:1px solid var(--admin-border);border-radius:var(--radius-md);background:var(--admin-surface);margin-bottom:var(--space-6);}
+  .ct-empty{text-align:center;color:var(--admin-text-faint);padding:var(--space-8) var(--space-4);}
+  .ct-meta{font-size:.75rem;color:var(--admin-text-faint);margin-top:var(--space-4);}
+</style>
+
+<style is:global>
+  .ct-table{width:100%;border-collapse:collapse;font-size:.875rem;} .ct-table th,.ct-table td{padding:var(--space-3) var(--space-4);text-align:right;border-bottom:1px solid #d9d3cc;} .ct-table th:first-child,.ct-table td:first-child{text-align:left;} .ct-table th{background:#eee5dd;font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;color:#636261;} .ct-table tbody tr:last-child td{border-bottom:none;} .ct-table tbody tr:hover{background:#e8ebe5;}
+  .ct-path{font-family:monospace;font-size:.8125rem;word-break:break-all;}
+</style>
