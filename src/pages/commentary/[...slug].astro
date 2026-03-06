@@ -70,10 +70,17 @@ function sanitizeMarkdown(md: string): string {
     .replace(/(\d+)\.\*\*/g, '\n\n$1. **')
     // Fix dash lists missing space: -**text → \n- **text (inline or at line start)
     .replace(/([^\n])-\*\*/g, '$1\n\n- **')
-    .replace(/^-\*\*/gm, '- **');
+    .replace(/^-\*\*/gm, '- **')
+    // Break bold subheadings into new paragraphs: sentence.**Subheading:** → sentence.\n\n**Subheading:**
+    // Match after punctuation or word chars; (?<!\d) prevents splitting numbered list items (e.g. "2. **Term:**")
+    // Matches bold phrases ending with colon or period before closing **
+    .replace(/(?<!\d)([a-zA-Z0-9.!?:)\]])\s*(\*\*[^*\n]{5,}?[.:]\*\*)/g, '$1\n\n$2');
+
+  // Escape tildes before numbers (~70%) to prevent markdown strikethrough
+  result = result.replace(/~(\d)/g, '\\~$1');
 
   // Fix trailing space inside bold (single-line only): **text ** → **text**
-  result = result.replace(/\*\*([^*\n]+?)\s+\*\*/g, '**$1**');
+  result = result.replace(/\*\*([^*\n]+?)[ \t]+\*\*/g, '**$1**');
 
   // Fix ** stuck between word chars: word**bold text**word
   // Process line by line, counting ALL ** to track open/close state
