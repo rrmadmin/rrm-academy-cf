@@ -65,8 +65,20 @@ jobs:
       - name: Restore git-committed data files over cache
         run: git checkout HEAD -- src/data/quizzes.json src/data/courses.json src/data/funding-projects.json
 
-      - name: Fetch data from Airtable
-        if: ${{ !inputs.skip_fetch }}
+      - name: Fetch single blog record (dispatch)
+        if: ${{ github.event.client_payload.record_id }}
+        env:
+          AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
+          RECORD_ID: ${{ github.event.client_payload.record_id }}
+          TINIFY_API_KEY: ${{ secrets.TINIFY_API_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npm run fetch-blog
+          echo "Posts: $(node -e "console.log(require('./src/data/posts.json').length)")"
+
+      - name: Fetch all data from Airtable
+        if: ${{ !inputs.skip_fetch && !github.event.client_payload.record_id }}
         env:
           AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
           TINIFY_API_KEY: ${{ secrets.TINIFY_API_KEY }}
