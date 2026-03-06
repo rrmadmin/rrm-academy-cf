@@ -17,6 +17,7 @@ export interface BlogPost {
   wordCount: number;
   seoKeywords: string;
   audioUrl: string;
+  lastModified: string;
 }
 
 interface AirtableRecord {
@@ -46,6 +47,7 @@ function transformRecord(record: AirtableRecord): BlogPost | null {
     wordCount: f['Word Count'] ? Number(f['Word Count']) : 0,
     seoKeywords: f['SEO Keywords'] || '',
     audioUrl: f['Audio URL'] || '',
+    lastModified: f['Last Modified'] || '',
   };
 }
 

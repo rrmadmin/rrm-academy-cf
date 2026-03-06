@@ -39,11 +39,12 @@ Greenbase: BIFID table               ← master record, all enrichment metadata
     │  (triggered by "Sync to RRM Library" = "Synced" on BIFID record)
     ▼
 Yellowbase: ⚡️ Synced Literature     ← curated public fields only
-    │  Airtable automation: sends repository_dispatch with article_id
+    │  Airtable automation: sets "onDeck", sends repository_dispatch with article_id
     ▼
-GitHub Actions: fetch-data.mjs       ← single-record mode (merges into cached articles.json)
+GitHub Actions: fetch-data.mjs       ← single-record mode (accepts onDeck or Synced)
     ▼
 src/data/articles.json → Astro build → rrmacademy.org/library
+    │  On success: pings Airtable webhook → automation sets "Synced"
 ```
 
 **Config:** Base/table IDs in `src/lib/airtable-config.mjs`. Filter: `{Sync to RRM Library}='Synced'`.
@@ -54,11 +55,11 @@ src/data/articles.json → Astro build → rrmacademy.org/library
 Airtable Editorial base              ← draft → review → publish
     │  Airtable automation: sets Status="Publishing", sends dispatch with record_id
     ▼
-GitHub Actions: fetch-blog-data.mjs  ← single-record mode (merges into cached posts.json)
+GitHub Actions: fetch-blog-data.mjs  ← single-record mode (accepts Publishing or Published)
     │  Image pipeline: download → Tinify compress → WebP+JPG → R2 upload
     ▼
 src/data/posts.json → Astro build → rrmacademy.org/commentary
-    │  On success: pings Airtable webhook → Status set to "Published"
+    │  On success: pings Airtable webhook → automation sets "Published"
 ```
 
 **Config:** Base/table IDs in `src/lib/blog-config.mjs`.
@@ -112,6 +113,7 @@ docs/
 | `/courses/[slug]/[stepId]` | `src/pages/courses/[slug]/[stepId].astro` |
 | `/community` | `src/pages/community/index.astro` |
 | `/community/events` | `src/pages/community/events.astro` |
+| `/community/members` | `src/pages/community/members.astro` |
 | `/community/post/[id]` | `src/pages/community/post/[...id].astro` |
 | `/endo-survey` | `src/pages/endo-survey/index.astro` |
 | `/endo-survey/take` | `src/pages/endo-survey/take.astro` |
@@ -158,9 +160,15 @@ docs/
 | `GET /api/courses/certificate` | `courses/certificate.js` | Generate completion certificate |
 | **Community** | | |
 | `GET/POST /api/community/posts` | `community/posts.js` | Community posts CRUD |
-| `GET/POST /api/community/comments` | `community/comments.js` | Post comments |
+| `GET/POST /api/community/comments` | `community/comments.js` | Post comments (author editing via PUT) |
 | `POST /api/community/reactions` | `community/reactions.js` | Post/comment reactions |
 | `GET /api/community/status` | `community/status.js` | Community membership status |
+| `GET /api/community/members` | `community/members.js` | Members list with tiers/badges |
+| `POST /api/community/flags` | `community/flags.js` | Report/flag posts and comments |
+| `POST /api/community/ban` | `community/ban.js` | Ban user (admin only) |
+| `POST /api/community/unban` | `community/unban.js` | Unban user (admin only) |
+| `GET/PUT /api/community/notifications` | `community/notifications.js` | Email notification preferences |
+| `POST /api/community/upload` | `community/upload.js` | Image upload to R2 |
 | **Billing** | | |
 | `GET /api/billing/status` | `billing/status.js` | Subscription + donation history |
 | `POST /api/billing/portal` | `billing/portal.js` | Stripe customer portal link |

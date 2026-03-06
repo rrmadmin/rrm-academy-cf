@@ -43,4 +43,5 @@ export const FIELDS = [
   '⚡️ Search Terms (AI)',
   '⚡️ Source Type',
   'Sync to RRM Library',    // filter: only 'Synced' records
+  'Last Modified',
 ];
