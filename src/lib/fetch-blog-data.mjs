@@ -265,6 +265,19 @@ async function fetchSingle(recordId) {
   mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
   writeFileSync(OUTPUT_PATH, JSON.stringify(posts, null, 2));
   console.log(`\nWrote ${posts.length} posts to ${OUTPUT_PATH}`);
+
+  // Ping Airtable webhook to confirm record was processed
+  const webhookUrl = 'https://hooks.airtable.com/workflows/v1/genericWebhook/app1CKV1heL0qH2Oz/wfl5SFK3lqal0bDPT/wtr2YAXfGaI2twOxL';
+  try {
+    const ping = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ record_id: recordId, status: 'processed', posts_count: posts.length }),
+    });
+    console.log(`Airtable webhook: ${ping.ok ? 'confirmed' : ping.status}`);
+  } catch (e) {
+    console.warn(`Airtable webhook ping failed: ${e.message}`);
+  }
 }
 
 // --- Main ---
