@@ -3,6 +3,7 @@
  * Stores survey results in Airtable and consumes the token.
  * Input: { token, symptoms: { tier1: [...], tier2: [...], tier3: [...] }, score: { tier1, tier2, tier3, total } }
  */
+import { sendGA4Event } from '../_ga4.js';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': 'https://rrmacademy.org',
@@ -109,6 +110,8 @@ export async function onRequestPost(context) {
     });
     return json({ ok: false, error: 'Failed to save results. Please try again.' }, 502);
   }
+
+  sendGA4Event(env, request, 'generate_lead', { event_category: 'endo_survey' }).catch(() => {});
 
   return json({ ok: true });
 }

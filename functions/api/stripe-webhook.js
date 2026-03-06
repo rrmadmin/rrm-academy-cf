@@ -22,6 +22,7 @@ import {
 import { enrollUser } from './courses/enroll.js';
 import { getCourse } from './courses/_shared.js';
 import { sendEmail as sesSendEmail } from './_ses.js';
+import { sendGA4Event } from './_ga4.js';
 
 export async function onRequestPost({ request, env }) {
   try {
@@ -167,6 +168,16 @@ async function handleWebhook(request, env) {
         console.warn(`Course purchase missing client_reference_id — courseId: ${session.metadata.courseId}, customer: ${session.customer}`);
       }
 
+      // GA4: track completed course purchase
+      if (session.metadata?.type === 'course' && session.payment_intent) {
+        sendGA4Event(env, request, 'purchase', {
+          currency: 'USD',
+          value: (session.amount_total || 0) / 100,
+          transaction_id: session.payment_intent,
+          items: [{ item_name: `Course: ${session.metadata.courseId || 'unknown'}` }],
+        }).catch(() => {});
+      }
+
       // Send membership confirmation email for STUC subscriptions
       const stucTiers = { member: 'Member', hero: 'Uterus Hero', superhero: 'Super Hero' };
       const tier = session.metadata?.tier || '';
@@ -210,6 +221,23 @@ async function handleWebhook(request, env) {
             console.error('Failed to send membership confirmation email:', emailErr.message);
           }
         }
+      }
+
+      // GA4: track completed donation or membership purchase
+      if (session.mode === 'payment') {
+        sendGA4Event(env, request, 'purchase', {
+          currency: 'USD',
+          value: (session.amount_total || 0) / 100,
+          transaction_id: session.payment_intent || session.id,
+          items: [{ item_name: 'Donation' }],
+        }).catch(() => {});
+      } else if (session.mode === 'subscription' && stucTiers[tier]) {
+        sendGA4Event(env, request, 'purchase', {
+          currency: 'USD',
+          value: (session.amount_total || 0) / 100,
+          transaction_id: session.subscription || session.id,
+          items: [{ item_name: `STUC ${stucTiers[tier]}` }],
+        }).catch(() => {});
       }
       break;
     }

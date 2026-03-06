@@ -11,19 +11,19 @@
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "442a83a8933ed77e96ec4dfc1fe6c962fe0f8f50cbf1b0f82b3a3a5dec81bed2",
+      "hash": "074ffe6805ae79c4c3ab894916914edee2d28d0f6a14728037f7d2d865f3197d",
       "note": "Account creation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "5e4ef52f73634b91986f5cc04a8cd4c93ae3705e872282de04b562008e28a357",
+      "hash": "ee3ff8c3c2828ea21ca90bec9ce0af3ebfa2b615c4d4431dbc46600bb51719af",
       "note": "Google OAuth"
     },
     "functions/api/stripe-webhook.js": {
-      "hash": "16400075366161f2311da0fc791c285a71910c3dd915047d2d538aa45900f664",
+      "hash": "84ec733636c3a5c35ba4bc7a79b9e85c8e912664557ef550c1f7c89388444787",
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
-      "hash": "b02fb3c32ab0808d8bec6f2ae9e8bca40ac7f39248285b18db3561bd0814ec9f",
+      "hash": "0607deb06d484a47317ea54a814c1cd21fab0efa6d94a3ec562f6ba3fc32969d",
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {

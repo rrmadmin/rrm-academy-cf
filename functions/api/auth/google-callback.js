@@ -12,6 +12,7 @@ import {
   generateId, createSession, sessionCookie,
   exchangeGoogleCode, getGoogleProfile, isSafeRedirect, SITE_URL,
 } from './_shared.js';
+import { sendGA4Event } from '../_ga4.js';
 
 const LOGIN_ERROR_URL = '/login?error=oauth_failed';
 
@@ -86,6 +87,7 @@ export async function onRequestGet({ request, env }) {
       ).bind(id, email, name, firstName, lastName, googleId, avatarUrl).run();
 
       user = { id, email, blocked: 0 };
+      sendGA4Event(env, request, 'sign_up', { method: 'google' }).catch(() => {});
     }
 
     // Check if user is blocked
