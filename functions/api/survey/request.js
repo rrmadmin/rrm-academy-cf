@@ -3,6 +3,7 @@
  * Accepts { email }, generates a magic-link token, stores in KV, sends email via SES.
  */
 import { sendEmail } from '../_ses.js';
+import { sendGA4Event } from '../_ga4.js';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': 'https://rrmacademy.org',
@@ -96,6 +97,8 @@ export async function onRequestPost(context) {
     await env.SURVEY_TOKENS.delete(`email:${email}`);
     return json({ ok: false, error: 'Failed to send email. Please try again.' }, 502);
   }
+
+  sendGA4Event(env, request, 'generate_lead', { event_category: 'endo_survey_request' }).catch(() => {});
 
   return json({ ok: true });
 }
