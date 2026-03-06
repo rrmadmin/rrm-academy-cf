@@ -64,6 +64,10 @@ export function canDeleteComment(role, userId, comment) {
   return userId === comment.author_id;
 }
 
+export function canResolveFlag(role) {
+  return roleAtLeast(role, 'admin');
+}
+
 export function canManageRoles(role) {
   return roleAtLeast(role, 'admin');
 }
