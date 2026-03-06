@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 
 // Production canary — tests critical endpoints every 30 minutes via cron.
-// Alerts via Resend email + Telegram on failure. Silent on success.
+// Alerts via SES email + Telegram on failure. Silent on success.
 //
 // Required env vars (sourced from 1Password via cron wrapper):
-//   RESEND_API_KEY    — Resend API key for email alerts
-//   TELEGRAM_BOT_TOKEN — Telegram bot token for instant alerts
-//   TELEGRAM_CHAT_ID   — Telegram chat ID to send alerts to
+//   AWS_ACCESS_KEY_ID     — SES credentials
+//   AWS_SECRET_ACCESS_KEY — SES credentials
+//   AWS_SES_REGION        — SES region (default: us-east-1)
+//   TELEGRAM_BOT_TOKEN    — Telegram bot token for instant alerts
+//   TELEGRAM_CHAT_ID      — Telegram chat ID to send alerts to
 //
 // Cron (every 30 min):
 //   */30 * * * * /Users/brian/iCode/projects/rrm-academy-cf/scripts/canary-run.sh >> /tmp/canary.log 2>&1
@@ -90,26 +92,35 @@ async function sendTelegram(message) {
 }
 
 async function sendEmail(subject, text) {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    console.error('No RESEND_API_KEY — skipping email');
+  const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+  if (!accessKeyId || !secretAccessKey) {
+    console.error('No AWS SES credentials — skipping email');
     return;
   }
 
   try {
-    const resp = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: ALERT_FROM,
-        to: [ALERT_TO],
-        subject,
-        text,
-      }),
-    });
+    const { AwsClient } = await import('aws4fetch');
+    const region = process.env.AWS_SES_REGION || 'us-east-1';
+    const aws = new AwsClient({ accessKeyId, secretAccessKey, region, service: 'ses' });
+
+    const resp = await aws.fetch(
+      `https://email.${region}.amazonaws.com/v2/email/outbound-emails`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          FromEmailAddress: ALERT_FROM,
+          Destination: { ToAddresses: [ALERT_TO] },
+          Content: {
+            Simple: {
+              Subject: { Data: subject, Charset: 'UTF-8' },
+              Body: { Text: { Data: text, Charset: 'UTF-8' } },
+            },
+          },
+        }),
+      }
+    );
     if (resp.ok) {
       console.error('Alert email sent to', ALERT_TO);
     } else {

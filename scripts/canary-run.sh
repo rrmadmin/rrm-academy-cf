@@ -5,12 +5,14 @@
 export PATH="/opt/homebrew/bin:$PATH"
 
 # Secrets cached in ~/.canary-env (chmod 600) to avoid op CLI TCC popups from cron
-# Regenerate: source ~/.zshrc && op read 'op://Automation/Resend API/credential' etc.
+# Regenerate with AWS SES + Telegram creds
 source ~/.canary-env 2>/dev/null
 
-export RESEND_API_KEY
+export AWS_ACCESS_KEY_ID
+export AWS_SECRET_ACCESS_KEY
+export AWS_SES_REGION
 export TELEGRAM_BOT_TOKEN
-export TELEGRAM_CHAT_ID="PLACEHOLDER"  # TODO: set Brian's chat ID
+export TELEGRAM_CHAT_ID="8444326757"
 export CANARY_SECRET
 
 cd /Users/brian/iCode/projects/rrm-academy-cf
