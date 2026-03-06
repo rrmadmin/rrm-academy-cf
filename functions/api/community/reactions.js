@@ -5,7 +5,7 @@
 import { json, optionsResponse } from '../auth/_shared.js';
 import { requireMember } from './_shared.js';
 
-const ALLOWED_EMOJI = ['❤️', '👏', '🔥', '💡', '🙏', '😢'];
+const ALLOWED_EMOJI = ['❤️', '👏', '😢'];
 
 export async function onRequestOptions() {
   return optionsResponse();
