@@ -1,44 +1,20 @@
 /**
  * GET /api/admin/seo
  * Proxy endpoint for the SEO health monitor dashboard.
- * Validates admin token, routes actions to the rrm-seo-monitor Worker.
+ * Validates session-based admin auth, routes actions to the rrm-seo-monitor Worker.
  */
-
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': 'https://rrmacademy.org',
-    },
-  });
-}
+import { json, optionsResponse, requireSuperAdmin } from '../auth/_shared.js';
 
 export async function onRequestOptions() {
-  return new Response(null, {
-    status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': 'https://rrmacademy.org',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-    },
-  });
+  return optionsResponse();
 }
 
 export async function onRequestGet(context) {
   const { request, env } = context;
 
-  // Fail-closed: reject if ADMIN_TOKEN is not configured
-  if (!env.ADMIN_TOKEN) {
-    return json({ error: 'Admin not configured' }, 503);
-  }
-
-  // Validate bearer token
-  const authHeader = request.headers.get('Authorization') || '';
-  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
-  if (token !== env.ADMIN_TOKEN) {
-    return json({ error: 'Unauthorized' }, 401);
-  }
+  // Session-based admin auth
+  const auth = await requireSuperAdmin(request, env.DB);
+  if (auth instanceof Response) return auth;
 
   // Validate SEO service configuration
   if (!env.SEO_MONITOR_API_TOKEN) {
