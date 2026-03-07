@@ -189,7 +189,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       }
     }
 
-    document.getElementById('logout-btn').addEventListener('click', function() { window.location.href = '/login/'; });
+    document.getElementById('logout-btn').addEventListener('click', async function() { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }); window.location.href = '/login/'; });
     document.getElementById('period-select').addEventListener('change', loadData);
     document.getElementById('refresh-btn').addEventListener('click', loadData);
 
