@@ -252,6 +252,7 @@ export async function onRequestPost({ request, env }) {
         authorId: user.id,
         authorName: displayName(user),
         authorRole: user.role,
+        authorAvatar: user.avatar_url || null,
         authorTier: null,
         commentCount: 0,
         reactions: {},
