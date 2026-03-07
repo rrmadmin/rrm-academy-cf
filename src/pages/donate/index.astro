@@ -42,6 +42,11 @@ const jsonLd = {
         <h2>Become a Monthly Supporter</h2>
         <p class="donate-recurring-lead">Monthly members are the backbone of everything we do. Your recurring support funds the research library, patient education, and advocacy that changes how women access care.</p>
 
+        <div id="supporter-banner" class="donate-supporter-banner" hidden>
+          <p class="supporter-banner__title" id="supporter-title"></p>
+          <p class="supporter-banner__body" id="supporter-body"></p>
+        </div>
+
         <div class="tier-grid">
           <div class="tier-card card">
             <div class="tier-header">
@@ -181,11 +186,18 @@ const jsonLd = {
   <script is:inline>
     (function () {
       // --- Check billing status on load ---
-      fetch('/api/billing/status', { credentials: 'same-origin' })
-        .then(function (r) { return r.json(); })
-        .then(function (data) {
-          if (!data.ok || !data.subscription) return;
-          var sub = data.subscription;
+      var tierNames = { member: 'Member', hero: 'Hero', superhero: 'Super Hero' };
+      var tierPrices = { member: '$9', hero: '$19', superhero: '$99' };
+
+      Promise.all([
+        fetch('/api/billing/status', { credentials: 'same-origin' }).then(function (r) { return r.json(); }),
+        fetch('/api/auth/session', { credentials: 'same-origin' }).then(function (r) { return r.json(); })
+      ])
+        .then(function (results) {
+          var billing = results[0];
+          var session = results[1];
+          if (!billing.ok || !billing.subscription) return;
+          var sub = billing.subscription;
           if (sub.status !== 'active' && sub.status !== 'trialing') return;
 
           // Grey out the current tier card and button
@@ -199,6 +211,18 @@ const jsonLd = {
               buttons[i].classList.add('tier-btn--disabled');
             }
           }
+
+          // Show supporter thank-you banner
+          var firstName = session.ok && session.user ? session.user.firstName : '';
+          var tierName = tierNames[sub.tier] || 'Member';
+          var price = tierPrices[sub.tier] || '$9';
+
+          var title = 'Thank you for being a Save the Uterus Club ' + tierName + (firstName ? ', ' + firstName : '') + '.';
+          var body = 'Your ' + price + '/month helps patients and providers find real answers and make confident decisions about their care.';
+
+          document.getElementById('supporter-title').textContent = title;
+          document.getElementById('supporter-body').textContent = body;
+          document.getElementById('supporter-banner').hidden = false;
         })
         .catch(function () { /* not logged in or network error — ignore */ });
 
@@ -418,6 +442,33 @@ const jsonLd = {
     color: var(--text-secondary);
     max-width: 600px;
     margin: 0 auto;
+  }
+
+  /* Supporter thank-you banner */
+  .donate-supporter-banner[hidden] {
+    display: none !important;
+  }
+  .donate-supporter-banner {
+    border-left: 3px solid var(--purple-300);
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
+    padding: var(--space-4) var(--space-5);
+    margin: 0 auto var(--space-6);
+    max-width: 520px;
+    text-align: left;
+  }
+  .supporter-banner__title {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-1);
+  }
+  .supporter-banner__body {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    margin: 0;
   }
 
   /* Current tier greyed out */
