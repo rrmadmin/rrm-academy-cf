@@ -125,6 +125,19 @@ jobs:
           done
           [ "$fail" = "0" ] || exit 1
 
+      - name: Verify blog citations
+        if: ${{ github.event.client_payload.record_id }}
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: node scripts/verify-citations.mjs --record "${{ github.event.client_payload.record_id }}"
+
+      - name: Verify all blog citations (full rebuild)
+        if: ${{ !github.event.client_payload.record_id && !github.event.client_payload.article_id }}
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: node scripts/verify-citations.mjs
+        continue-on-error: true
+
       - name: Copy articles.json to public for API access
         run: mkdir -p public/data && cp src/data/articles.json public/data/articles.json
 
