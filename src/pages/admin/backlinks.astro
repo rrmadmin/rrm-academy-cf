@@ -363,12 +363,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 </BaseLayout>
 
 <style>
-  /* Admin palette — sage/cream/sand (distinct from purple public site) */
+  /* Admin palette — dusty rose (on-brand with RRM Academy) */
   :root {
-    --admin-sage-700: #7e8772;
-    --admin-sage-500: #9aa18f;
-    --admin-sage-300: #bec3b8;
-    --admin-sage-100: #e8ebe5;
+    --admin-rose-700: #8a606e;
+    --admin-rose-500: #a8808d;
+    --admin-rose-300: #c9a8b2;
+    --admin-rose-100: #f0e5e9;
     --admin-cream: #eee5dd;
     --admin-sand: #dbcbbb;
     --admin-bg: #faf8f5;
@@ -385,8 +385,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
   /* Admin header bar */
   .admin-bar {
-    background: #2d3328;
-    color: #e8ebe5;
+    background: #3d2a32;
+    color: #f0e5e9;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -401,7 +401,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     font-family: 'Cormorant Garamond', 'Georgia', serif;
     font-weight: 600;
     font-size: 1.25rem;
-    color: var(--admin-sage-300);
+    color: var(--admin-rose-300);
     white-space: nowrap;
   }
   .admin-bar__nav {
@@ -435,10 +435,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .admin-bar__site-link {
     font-size: 0.8125rem;
     font-weight: 500;
-    color: var(--admin-sage-300);
+    color: var(--admin-rose-300);
     text-decoration: none;
     padding: 5px 16px;
-    border: 1px solid var(--admin-sage-300);
+    border: 1px solid var(--admin-rose-300);
     border-radius: var(--radius-pill);
     transition: color 0.15s, border-color 0.15s, background 0.15s;
   }
@@ -534,17 +534,17 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     border-color: var(--admin-border);
   }
   .bl-select:focus {
-    border-color: var(--admin-sage-700);
-    box-shadow: 0 0 0 2px rgba(126, 135, 114, 0.15);
+    border-color: var(--admin-rose-700);
+    box-shadow: 0 0 0 2px rgba(138, 96, 110, 0.15);
     outline: none;
   }
   .bl-filters .btn--primary {
-    background: var(--admin-sage-700);
-    border-color: var(--admin-sage-700);
+    background: var(--admin-rose-700);
+    border-color: var(--admin-rose-700);
     color: #fff;
   }
   .bl-filters .btn--primary:hover {
-    background: #6b755f;
+    background: #764d5e;
   }
 
   /* Table wrapper (static, scoped is fine) */
@@ -596,22 +596,22 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   }
   .bl-sort-arrow {
     font-size: 0.625rem;
-    color: #7e8772;
+    color: #8a606e;
   }
   .bl-table tbody tr:last-child td {
     border-bottom: none;
   }
   .bl-table tbody tr:hover {
-    background: #e8ebe5;
+    background: #f0e5e9;
   }
   .bl-col-url a {
-    color: #7e8772;
+    color: #8a606e;
     text-decoration: none;
     font-weight: 500;
   }
   .bl-col-url a:hover {
     text-decoration: underline;
-    color: #6b755f;
+    color: #764d5e;
   }
   .bl-empty {
     text-align: center;
@@ -641,13 +641,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   }
   .bl-badge--unchecked,
   .bl-badge--timeout {
-    background: #e8ebe5;
+    background: #f0e5e9;
     color: #636261;
   }
   .bl-btn-check {
     background: none;
     border: 1px solid #d9d3cc;
-    color: #7e8772;
+    color: #8a606e;
     padding: var(--space-1) var(--space-3);
     border-radius: var(--radius-sm);
     cursor: pointer;
@@ -655,8 +655,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     font-weight: 500;
   }
   .bl-btn-check:hover {
-    border-color: #7e8772;
-    background: #e8ebe5;
+    border-color: #8a606e;
+    background: #f0e5e9;
   }
   .bl-btn-check:disabled {
     opacity: 0.5;
