@@ -236,6 +236,14 @@ export function isSafeRedirect(path) {
   }
 }
 
+// --- Role hierarchy ---
+
+const ROLES = ['member', 'mod', 'admin', 'superadmin'];
+
+export function roleAtLeast(userRole, minRole) {
+  return ROLES.indexOf(userRole) >= ROLES.indexOf(minRole);
+}
+
 // --- Google OAuth helpers ---
 
 export function googleAuthUrl(clientId, redirectUri) {

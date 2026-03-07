@@ -5,16 +5,10 @@
 import Stripe from 'stripe';
 import {
   json, getSessionIdFromCookie, validateSession,
-  STRIPE_API_VERSION,
+  STRIPE_API_VERSION, roleAtLeast,
 } from '../auth/_shared.js';
 
-// --- Role hierarchy ---
-
-const ROLES = ['member', 'mod', 'admin', 'superadmin'];
-
-export function roleAtLeast(userRole, minRole) {
-  return ROLES.indexOf(userRole) >= ROLES.indexOf(minRole);
-}
+export { roleAtLeast };
 
 // --- Tier badge labels (from user_label table, Wix-imported) ---
 
