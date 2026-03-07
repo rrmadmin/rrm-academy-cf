@@ -52,7 +52,7 @@ const {
   noindex,
 } = Astro.props;
 
-const fullTitle = title.includes('RRM') ? title : `${title} | RRM Academy`;
+const fullTitle = (title.includes('RRM Academy') || title.startsWith('RRM ')) ? title : `${title} | RRM Academy`;
 const rawCanonical = canonicalUrl || Astro.url.href;
 const canonical = rawCanonical.endsWith('/') ? rawCanonical : `${rawCanonical}/`;
 const siteOrigin = 'https://rrmacademy.org';
