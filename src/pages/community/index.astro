@@ -62,10 +62,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         <div class="compose-card" id="compose-card" hidden>
           <form id="compose-form">
             <div class="form-group">
-              <input class="form-input compose-title-input" type="text" id="compose-title" name="title" required maxlength="200" placeholder="Title" />
-            </div>
-            <div class="form-group">
-              <textarea class="form-textarea" id="compose-body" name="body" rows="4" placeholder="Share details, a question, or a thought..."></textarea>
+              <textarea class="form-textarea" id="compose-body" name="body" rows="4" placeholder="What's on your mind?"></textarea>
             </div>
 
             <div class="compose-image-bar">
@@ -141,11 +138,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           <h2 class="edit-modal__heading">Edit Post</h2>
           <form id="edit-modal-form">
             <div class="form-group">
-              <label class="form-label" for="edit-modal-title">Title</label>
-              <input class="form-input" type="text" id="edit-modal-title" name="title" required maxlength="200" />
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="edit-modal-body">Body</label>
               <textarea class="form-textarea" id="edit-modal-body" name="body" rows="6" maxlength="10000"></textarea>
             </div>
             <div class="compose-image-bar">
@@ -216,7 +208,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       var composeAvatar = document.getElementById('compose-avatar');
       var composeCancelBtn = document.getElementById('compose-cancel-btn');
       var composeForm = document.getElementById('compose-form');
-      var composeTitle = document.getElementById('compose-title');
       var composeBody = document.getElementById('compose-body');
       var composeTypeGroup = document.getElementById('compose-type-group');
       var composeType = document.getElementById('compose-type');
@@ -232,7 +223,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       // Edit modal refs
       var editModalEl = document.getElementById('edit-modal');
       var editModalForm = document.getElementById('edit-modal-form');
-      var editModalTitle = document.getElementById('edit-modal-title');
       var editModalBody = document.getElementById('edit-modal-body');
       var editModalEventFields = document.getElementById('edit-modal-event-fields');
       var editModalEventDate = document.getElementById('edit-modal-event-date');
@@ -326,14 +316,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         composeTrigger.addEventListener('click', function () {
           composeTrigger.hidden = true;
           composeCard.hidden = false;
-          composeTitle.focus();
+          composeBody.focus();
         });
 
         // Cancel → collapse form
         composeCancelBtn.addEventListener('click', function () {
           composeCard.hidden = true;
           composeTrigger.hidden = false;
-          composeTitle.value = '';
           composeBody.value = '';
           composeError.hidden = true;
           composeImageInput.value = '';
@@ -468,9 +457,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         e.preventDefault();
         composeError.hidden = true;
 
-        var title = composeTitle.value.trim();
-        if (!title) {
-          composeErrorText.textContent = 'Title is required.';
+        var body = composeBody.value.trim();
+        if (!body) {
+          composeErrorText.textContent = 'Post cannot be empty.';
           composeError.hidden = false;
           return;
         }
@@ -479,8 +468,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         var type = isStaff ? composeType.value : 'discussion';
         var payload = {
           type: type,
-          title: title,
-          body: composeBody.value
+          body: body
         };
 
         if (type === 'event') {
@@ -508,7 +496,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             composeSubmitBtn.disabled = false;
             composeSubmitBtn.textContent = 'Post';
             if (data.ok && data.post) {
-              composeTitle.value = '';
               composeBody.value = '';
               composeImageInput.value = '';
               composeImagePreview.hidden = true;
@@ -678,18 +665,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
         main.appendChild(header);
 
-        // Title (span, not link — no navigation)
-        var titleSpan = document.createElement('span');
-        titleSpan.className = 'post-card__title';
-        titleSpan.textContent = post.title;
-        main.appendChild(titleSpan);
-
         // Body (full text, collapsible if long)
-        if (post.body) {
+        var bodyText = post.body || '';
+        if (bodyText) {
           var bodyEl = document.createElement('div');
           bodyEl.className = 'post-card__body';
-          bodyEl.innerHTML = linkify(post.body);
-          var isLong = post.body.length > 280;
+          bodyEl.innerHTML = linkify(bodyText);
+          var isLong = bodyText.length > 280;
           if (isLong) bodyEl.classList.add('post-card__body--collapsed');
           main.appendChild(bodyEl);
           if (isLong) {
@@ -1312,7 +1294,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       function openEditModal(post, card) {
         editingPost = post;
         editingCard = card;
-        editModalTitle.value = post.title || '';
         editModalBody.value = post.body || '';
         editModalError.hidden = true;
 
@@ -1343,7 +1324,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
         editModalEl.hidden = false;
         document.body.style.overflow = 'hidden';
-        editModalTitle.focus();
+        editModalBody.focus();
       }
 
       function closeEditModal() {
@@ -1380,7 +1361,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
         var payload = {
           postId: editingPost.id,
-          title: editModalTitle.value.trim(),
           body: editModalBody.value.trim()
         };
 
@@ -1392,8 +1372,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           payload.resourceUrl = editModalResourceUrl.value.trim() || null;
         }
 
-        if (!payload.title) {
-          editModalErrorText.textContent = 'Title is required.';
+        if (!payload.body) {
+          editModalErrorText.textContent = 'Post cannot be empty.';
           editModalError.hidden = false;
           return;
         }
@@ -1418,7 +1398,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             }
 
             // Update local post object
-            editingPost.title = payload.title;
             editingPost.body = payload.body;
             if (payload.eventDate !== undefined) editingPost.eventDate = payload.eventDate;
             if (payload.eventLink !== undefined) editingPost.eventLink = payload.eventLink;
@@ -1426,9 +1405,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
             // Update card DOM in-place
             if (editingCard) {
-              var titleEl = editingCard.querySelector('.post-card__title');
-              if (titleEl) titleEl.textContent = payload.title;
-
               var bodyEl = editingCard.querySelector('.post-card__body');
               var showMoreBtn = editingCard.querySelector('.show-more-btn');
               var isExpanded = editingCard.classList.contains('post-card--expanded');
@@ -1938,17 +1914,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     background: rgba(192, 57, 43, 0.08);
   }
 
-  /* Title */
-  .post-card__title {
-    display: block;
-    font-size: 20px;
-    font-weight: 700;
-    line-height: 28px;
-    color: var(--text-primary);
-    text-decoration: none;
-    margin: 2px 0 8px;
-    cursor: pointer;
-  }
+
 
   /* Body */
   .post-card__body {
