@@ -223,6 +223,10 @@ const jsonLd = {
           document.getElementById('supporter-title').textContent = title;
           document.getElementById('supporter-body').textContent = body;
           document.getElementById('supporter-banner').hidden = false;
+
+          // Hide the "Become a Monthly Supporter" heading and lead text
+          document.querySelector('.donate-cta-section h2').hidden = true;
+          document.querySelector('.donate-recurring-lead').hidden = true;
         })
         .catch(function () { /* not logged in or network error — ignore */ });
 
