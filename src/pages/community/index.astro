@@ -33,14 +33,16 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       <div id="community-feed" hidden>
 
         <div class="feed-header">
-          <h2 class="feed-title">Save the Uterus Club</h2>
-          <p class="feed-welcome">Welcome, <span id="feed-user-name"></span></p>
-            <div class="notification-toggle" id="notification-toggle" hidden>
-              <label class="toggle-label">
-                <input type="checkbox" id="email-toggle" checked />
-                <span>Email notifications</span>
-              </label>
+          <div class="feed-header__top">
+            <div>
+              <h2 class="feed-title">Save the Uterus Club</h2>
+              <p class="feed-welcome">Welcome, <span id="feed-user-name"></span></p>
             </div>
+            <button id="notif-bell" class="notif-bell" hidden title="Email notifications">
+              <svg class="notif-bell__on" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+              <svg class="notif-bell__off" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.7 3A6 6 0 0 1 18 8c0 2.7.7 4.7 1.5 6.2"/><path d="M3.1 16.9C4 15.5 5 13.2 5 8a5.98 5.98 0 0 1 .5-2.5"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/><path d="M2 2l20 20"/><path d="M21 17H3s1-.5 1.5-2"/></svg>
+            </button>
+          </div>
         </div>
 
         <!-- Filter tabs -->
@@ -246,8 +248,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       var editModalImageInput = document.getElementById('edit-modal-image-input');
       var editModalImagePreview = document.getElementById('edit-modal-image-preview');
 
-      var notifToggle = document.getElementById('notification-toggle');
-      var emailToggle = document.getElementById('email-toggle');
+      var notifBell = document.getElementById('notif-bell');
 
       var currentUser = null;
       var activeType = '';
@@ -272,25 +273,27 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             setupFeed();
             feedEl.hidden = false;
 
-            // Init notification toggle
-            if (notifToggle && emailToggle) {
-              emailToggle.checked = !data.emailOptOut;
-              notifToggle.hidden = false;
+            // Init notification bell
+            if (notifBell) {
+              if (data.emailOptOut) notifBell.classList.add('notif-bell--off');
+              notifBell.hidden = false;
 
-              emailToggle.addEventListener('change', function () {
-                var optOut = !emailToggle.checked;
+              notifBell.addEventListener('click', function () {
+                var isOff = notifBell.classList.contains('notif-bell--off');
+                var newOptOut = !isOff;
+                notifBell.classList.toggle('notif-bell--off');
                 fetch('/api/community/notifications', {
                   method: 'PATCH',
                   credentials: 'same-origin',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ emailOptOut: optOut }),
+                  body: JSON.stringify({ emailOptOut: newOptOut }),
                 })
                   .then(function (r) { return r.json(); })
-                  .then(function (data) {
-                    if (!data.ok) emailToggle.checked = !emailToggle.checked;
+                  .then(function (d) {
+                    if (!d.ok) notifBell.classList.toggle('notif-bell--off');
                   })
                   .catch(function () {
-                    emailToggle.checked = !emailToggle.checked;
+                    notifBell.classList.toggle('notif-bell--off');
                   });
               });
             }
@@ -931,7 +934,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       function timeAgo(dateStr) {
         if (!dateStr) return '';
         var now = new Date();
-        var then = new Date(dateStr);
+        // D1 stores UTC without Z suffix -- append it for correct parsing
+        var d = dateStr.replace(' ', 'T');
+        if (d.indexOf('Z') === -1 && d.indexOf('+') === -1) d += 'Z';
+        var then = new Date(d);
         var diff = Math.floor((now.getTime() - then.getTime()) / 1000);
         if (diff < 60) return 'now';
         var mins = Math.floor(diff / 60);
@@ -1591,19 +1597,28 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     color: var(--text-tertiary);
     margin-bottom: 0;
   }
-  .notification-toggle {
+  .feed-header__top {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    color: var(--text-secondary);
+    justify-content: space-between;
+    align-items: flex-start;
   }
-  .toggle-label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+  .notif-bell {
+    background: none;
+    border: none;
+    padding: 6px;
     cursor: pointer;
+    color: var(--text-secondary);
+    border-radius: 50%;
+    transition: background 0.1s, color 0.1s;
   }
+  .notif-bell:hover {
+    background: var(--neutral-100);
+    color: var(--text-primary);
+  }
+  .notif-bell .notif-bell__off { display: none; }
+  .notif-bell.notif-bell--off .notif-bell__on { display: none; }
+  .notif-bell.notif-bell--off .notif-bell__off { display: block; }
+  .notif-bell.notif-bell--off { color: var(--text-tertiary); }
 
   /* ── Tabs (X-style: full-width, centered pill indicator) ── */
   .feed-tabs {
