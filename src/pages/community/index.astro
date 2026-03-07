@@ -189,6 +189,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   <script is:inline>
     (function () {
       var STAFF_ROLES = ['superadmin', 'admin', 'mod'];
+      var ROLE_DISPLAY = {
+        superadmin: 'Super Hero',
+        admin: 'Admin',
+        mod: 'Mod',
+      };
       var TIER_DISPLAY = {
         member: '\u{1F43B} Member',
         hero: '\u{1F496} Hero',
@@ -593,7 +598,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         if (authorIsStaff) {
           var roleBadge = document.createElement('span');
           roleBadge.className = 'post-role-badge';
-          roleBadge.textContent = capitalize(post.authorRole);
+          roleBadge.textContent = ROLE_DISPLAY[post.authorRole] || capitalize(post.authorRole);
           header.appendChild(roleBadge);
         } else if (post.authorTier && TIER_DISPLAY[post.authorTier]) {
           var tierBadge = document.createElement('span');
@@ -1014,7 +1019,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         html += '<div class="comment__header">';
         html += '<span class="comment-author-name">' + escapeHtml(c.authorName || 'Member') + '</span>';
         if (authorIsStaff) {
-          html += '<span class="post-role-badge">' + escapeHtml(capitalize(c.authorRole)) + '</span>';
+          html += '<span class="post-role-badge">' + escapeHtml(ROLE_DISPLAY[c.authorRole] || capitalize(c.authorRole)) + '</span>';
         } else if (c.authorTier && TIER_DISPLAY[c.authorTier]) {
           html += '<span class="post-tier-badge post-tier-badge--' + c.authorTier + '">' + escapeHtml(TIER_DISPLAY[c.authorTier]) + '</span>';
         }
