@@ -135,7 +135,7 @@ export function getStaticPaths() {
         <button id="ctrl-flag-post" class="btn btn--text btn--sm flag-btn" hidden>Flag</button>
 
         <!-- Flag modal -->
-        <div id="flag-modal" class="modal-overlay" hidden>
+        <div id="flag-modal" class="modal-overlay">
           <div class="modal-card">
             <h3 class="modal-title">Report Content</h3>
             <div class="form-group">
@@ -852,7 +852,7 @@ export function getStaticPaths() {
         flagReason.value = '';
         flagNote.value = '';
         flagError.hidden = true;
-        flagModal.hidden = false;
+        flagModal.classList.add('is-open');
       }
 
       ctrlFlagPost.addEventListener('click', function () {
@@ -869,7 +869,7 @@ export function getStaticPaths() {
       });
 
       function closeFlagModal() {
-        flagModal.hidden = true;
+        flagModal.classList.remove('is-open');
       }
 
       flagCancel.addEventListener('click', closeFlagModal);
@@ -879,7 +879,7 @@ export function getStaticPaths() {
       });
 
       document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && !flagModal.hidden) closeFlagModal();
+        if (e.key === 'Escape' && flagModal.classList.contains('is-open')) closeFlagModal();
       });
 
       flagSubmit.addEventListener('click', function () {
@@ -912,7 +912,7 @@ export function getStaticPaths() {
               flagError.hidden = false;
               return;
             }
-            flagModal.hidden = true;
+            closeFlagModal();
             alert('Report submitted. Thank you.');
           })
           .catch(function () {
@@ -1443,11 +1443,14 @@ export function getStaticPaths() {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.5);
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     z-index: 100;
     padding: 16px;
+  }
+  .modal-overlay.is-open {
+    display: flex;
   }
   .modal-card {
     background: var(--white, #fff);
