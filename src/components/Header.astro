@@ -147,7 +147,8 @@ const mobileNavSections = [
         <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       </button>
-      <a href="/donate/" class="donate-btn">Donate</a>
+      <a href="/account/" class="btn btn--secondary btn--pill" id="desktop-account-btn">My Account</a>
+      <a href="/donate/" class="donate-btn" id="desktop-donate-btn">Donate</a>
     </div>
 
     <a href="/library/" class="mobile-search-btn" aria-label="Search">
@@ -438,6 +439,30 @@ const mobileNavSections = [
   :global([data-theme="light"]) .theme-toggle .icon-moon { display: inline; }
   :global([data-theme="dark"]) .theme-toggle .icon-sun { display: inline; }
 
+  /* Auth-dependent elements: hidden until JS resolves session (desktop only) */
+  #stuc-nav-link,
+  #desktop-donate-btn,
+  #desktop-account-btn {
+    display: none;
+  }
+  .auth-resolved #stuc-nav-link {
+    display: inline-flex;
+  }
+  .auth-resolved #desktop-donate-btn,
+  .auth-resolved #desktop-account-btn {
+    display: inline-flex;
+  }
+
+  /* Account button pill (secondary style matching donate shape) */
+  .btn--pill {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1;
+    padding: 8px 24px;
+    border-radius: var(--radius-pill);
+  }
+
   /* Hide STUC "Join Us" link on narrower desktops */
   @media (max-width: 1024px) {
     .nav-item:has(#stuc-nav-link) { display: none; }
@@ -725,14 +750,29 @@ const mobileNavSections = [
     else setTimeout(fn, 50);
   }
 
-  // Community nav: swap "Join Us" → "Save the Uterus Club" for members
+  // Shared session promise (used by auth nav + saved articles)
+  var sessionP = fetch('/api/auth/session', { credentials: 'same-origin' })
+    .then(function(r) { return r.json(); })
+    .catch(function() { return { ok: false }; });
+
+  // Auth-dependent nav: resolve session + community status before showing links
   deferWork(function() {
-    fetch('/api/community/status', { credentials: 'same-origin' })
+    var header = document.querySelector('.site-header');
+
+    var communityP = fetch('/api/community/status', { credentials: 'same-origin' })
       .then(function(r) { return r.json(); })
-      .then(function(data) {
-        // Broadcast for Footer (avoids duplicate fetch)
-        window.dispatchEvent(new CustomEvent('rrm:community-status', { detail: data }));
-        if (!data.ok || data.access !== 'member') return;
+      .catch(function() { return { ok: false }; });
+
+    Promise.all([sessionP, communityP]).then(function(results) {
+      var session = results[0];
+      var community = results[1];
+      var isLoggedIn = session.ok && session.user;
+
+      // Broadcast community status for Footer
+      window.dispatchEvent(new CustomEvent('rrm:community-status', { detail: community }));
+
+      // STUC link: swap text for members
+      if (community.ok && community.access === 'member') {
         var desktopLink = document.getElementById('stuc-nav-link');
         var mobileLink = document.getElementById('stuc-mobile-nav-link');
         if (desktopLink) {
@@ -744,7 +784,21 @@ const mobileNavSections = [
           if (label) label.textContent = 'Save the Uterus Club';
           mobileLink.href = '/community/';
         }
-      }).catch(function() {});
+      }
+
+      // Donate vs My Account: show one, hide the other
+      var deskDonate = document.getElementById('desktop-donate-btn');
+      var deskAccount = document.getElementById('desktop-account-btn');
+
+      if (isLoggedIn) {
+        if (deskDonate) deskDonate.style.display = 'none';
+      } else {
+        if (deskAccount) deskAccount.style.display = 'none';
+      }
+
+      // Reveal all auth-dependent elements
+      if (header) header.classList.add('auth-resolved');
+    });
   });
 
   // Saved articles badge (desktop + mobile)
@@ -769,11 +823,9 @@ const mobileNavSections = [
       if (saved.length > 0) setBadge(saved.length);
     } catch(e) {}
 
-    // Deferred: sync with server when idle
+    // Deferred: sync with server when idle (reuses shared sessionP)
     deferWork(function() {
-      fetch('/api/auth/session', { credentials: 'same-origin' })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
+      sessionP.then(function(data) {
           if (!data.ok || !data.user) return;
           var local = [];
           try { local = JSON.parse(localStorage.getItem('rrm_saved') || '[]'); } catch(e) {}
