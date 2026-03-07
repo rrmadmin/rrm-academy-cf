@@ -12,6 +12,13 @@ import {
 import { notifyNewPost } from './_email.js';
 
 const VALID_CHANNELS = ['stuc', 'members', 'masterclass'];
+
+// Merged content field with fallback to legacy title+body
+function postContent(r) {
+  if (r.content) return r.content;
+  if (r.title && r.body) return r.title + '\n\n' + r.body;
+  return r.title || r.body || '';
+}
 const ARCHIVE_CHANNELS = ['members', 'masterclass'];
 
 function isSafeUrl(url) {
@@ -68,7 +75,7 @@ export async function onRequestGet({ request, env }) {
       const myReactions = mine.results.map(r => r.emoji);
 
       return json({ ok: true, post: {
-        id: row.id, type: row.type, title: row.title, body: row.body,
+        id: row.id, type: row.type, body: postContent(row),
         pinned: !!row.pinned, eventDate: row.event_date, eventLink: row.event_link,
         resourceUrl: row.resource_url, createdAt: row.created_at, updatedAt: row.updated_at,
         authorId: row.author_id, authorName: row.author_name || displayName(row),
@@ -178,8 +185,7 @@ export async function onRequestGet({ request, env }) {
     const posts = rows.results.map(r => ({
       id: r.id,
       type: r.type,
-      title: r.title,
-      body: r.body,
+      body: postContent(r),
       pinned: !!r.pinned,
       eventDate: r.event_date,
       eventLink: r.event_link,
@@ -239,14 +245,11 @@ export async function onRequestPost({ request, env }) {
     }
 
     // Validate fields
-    if (!title || typeof title !== 'string' || title.trim().length === 0) {
-      return json({ ok: false, error: 'Title required' }, 400);
+    if (!postBody || typeof postBody !== 'string' || postBody.trim().length === 0) {
+      return json({ ok: false, error: 'Post cannot be empty' }, 400);
     }
-    if (title.length > 200) {
-      return json({ ok: false, error: 'Title too long (max 200 chars)' }, 400);
-    }
-    if (postBody && postBody.length > 10000) {
-      return json({ ok: false, error: 'Body too long (max 10000 chars)' }, 400);
+    if (postBody.length > 10000) {
+      return json({ ok: false, error: 'Post too long (max 10000 chars)' }, 400);
     }
 
     // Event-specific validation
@@ -266,17 +269,17 @@ export async function onRequestPost({ request, env }) {
     const db = env.DB;
 
     await db.prepare(`
-      INSERT INTO community_post (id, author_id, type, title, body, event_date, event_link, resource_url, channel)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO community_post (id, author_id, type, content, event_date, event_link, resource_url, channel)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
-      id, user.id, type, title.trim(), postBody?.trim() || null,
+      id, user.id, type, postBody.trim(),
       eventDate || null, eventLink || null, resourceUrl || null, channel
     ).run();
 
     // Send email notification (fire-and-forget)
     try {
       await notifyNewPost(env, db, {
-        id, title: title.trim(), body: postBody?.trim() || null, authorId: user.id,
+        id, body: postBody.trim(), authorId: user.id,
       }, displayName(user));
     } catch (err) {
       console.error('Failed to send new post notification:', err.message);
@@ -285,7 +288,7 @@ export async function onRequestPost({ request, env }) {
     return json({
       ok: true,
       post: {
-        id, type, title: title.trim(), body: postBody?.trim() || null,
+        id, type, body: postBody.trim(),
         pinned: false, eventDate, eventLink, resourceUrl,
         createdAt: new Date().toISOString().replace('T', ' ').slice(0, 19),
         authorId: user.id,
@@ -346,13 +349,9 @@ export async function onRequestPatch({ request, env }) {
     const updates = [];
     const values = [];
 
-    if (title !== undefined) {
-      if (title.length > 200) return json({ ok: false, error: 'Title too long' }, 400);
-      updates.push('title = ?'); values.push(title.trim());
-    }
     if (postBody !== undefined) {
-      if (postBody.length > 10000) return json({ ok: false, error: 'Body too long' }, 400);
-      updates.push('body = ?'); values.push(postBody.trim());
+      if (postBody.length > 10000) return json({ ok: false, error: 'Post too long' }, 400);
+      updates.push('content = ?'); values.push(postBody.trim());
     }
     if (eventDate !== undefined) { updates.push('event_date = ?'); values.push(eventDate); }
     if (eventLink !== undefined) {
