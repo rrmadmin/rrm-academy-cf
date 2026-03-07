@@ -1,3 +1,6 @@
+# SPA catch-all: community post detail page (client-side routing)
+/community/post/* /community/post/placeholder/ 200
+
 /sitemap.xml /sitemap-index.xml 301
 
 # Draft pages — 302 until ready to publish
