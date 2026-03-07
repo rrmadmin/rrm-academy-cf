@@ -33,7 +33,7 @@ export async function notifyNewPost(env, db, post, authorName) {
 
   if (!members.results.length) return;
 
-  const link = `${SITE_URL}/community/post/${post.id}/`;
+  const link = `${SITE_URL}/community/`;
   const preview = post.body ? post.body.slice(0, 200) : '';
 
   const subject = `[Save the Uterus Club] New post: ${post.title}`;
@@ -86,7 +86,7 @@ export async function notifyReply(env, db, postId, parentId, replierId, replierN
 
   if (!recipient || recipient.community_email_opt_out) return;
 
-  const link = `${SITE_URL}/community/post/${postId}/`;
+  const link = `${SITE_URL}/community/`;
   const preview = replyContent.slice(0, 200);
 
   const subject = `[Save the Uterus Club] ${replierName} replied to your ${targetLabel}`;
