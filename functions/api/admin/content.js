@@ -1,22 +1,21 @@
 /**
  * GET /api/admin/content
  * Returns content performance metrics from GA4 for the admin dashboard.
- * Requires ADMIN_TOKEN via Bearer auth.
+ * Requires superadmin session auth.
  *
  * Query params:
  *   ?period=7d|28d|90d (default: 28d)
  */
-import { json } from '../auth/_shared.js';
+import { json, requireSuperAdmin } from '../auth/_shared.js';
 
 const GA4_DATA_API = 'https://analyticsdata.googleapis.com/v1beta';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const CACHE_TTL = 3600;
 
 export async function onRequestGet({ request, env }) {
-  if (!env.ADMIN_TOKEN) return json({ ok: false, error: 'Not configured' }, 500);
-  const authHeader = request.headers.get('Authorization') || '';
-  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
-  if (token !== env.ADMIN_TOKEN) return json({ ok: false, error: 'Unauthorized' }, 401);
+  // Session-based admin auth
+  const auth = await requireSuperAdmin(request, env.DB);
+  if (auth instanceof Response) return auth;
 
   if (!env.GA4_OAUTH_CREDS || !env.GA4_PROPERTY_ID) {
     return json({ ok: false, error: 'GA4 not configured' }, 500);
