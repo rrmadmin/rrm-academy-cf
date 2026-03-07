@@ -1,19 +1,18 @@
 /**
  * GET /api/admin/revenue
  * Returns Stripe revenue metrics for the admin dashboard.
- * Requires ADMIN_TOKEN via Bearer auth.
+ * Requires superadmin session auth.
  *
  * Query params:
  *   ?period=7d|28d|90d (default: 28d)
  */
 import Stripe from 'stripe';
-import { json, STRIPE_API_VERSION } from '../auth/_shared.js';
+import { json, STRIPE_API_VERSION, requireSuperAdmin } from '../auth/_shared.js';
 
 export async function onRequestGet({ request, env }) {
-  if (!env.ADMIN_TOKEN) return json({ ok: false, error: 'Not configured' }, 500);
-  const authHeader = request.headers.get('Authorization') || '';
-  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
-  if (token !== env.ADMIN_TOKEN) return json({ ok: false, error: 'Unauthorized' }, 401);
+  // Session-based admin auth
+  const auth = await requireSuperAdmin(request, env.DB);
+  if (auth instanceof Response) return auth;
 
   if (!env.STRIPE_SECRET_KEY) return json({ ok: false, error: 'Stripe not configured' }, 500);
 
