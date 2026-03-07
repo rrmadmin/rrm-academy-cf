@@ -35,16 +35,16 @@ export async function notifyNewPost(env, db, post, authorName) {
 
   const link = `${SITE_URL}/community/`;
   const preview = post.body ? post.body.slice(0, 200) : '';
+  const subjectPreview = post.body ? post.body.slice(0, 80).replace(/\n/g, ' ') : 'New post';
 
-  const subject = `[Save the Uterus Club] New post: ${post.title}`;
+  const subject = `[Save the Uterus Club] ${authorName}: ${subjectPreview}${post.body && post.body.length > 80 ? '...' : ''}`;
   const html = `
     <p><strong>${escapeHtml(authorName)}</strong> posted in the Save the Uterus Club:</p>
-    <h3>${escapeHtml(post.title)}</h3>
-    ${preview ? `<p>${escapeHtml(preview)}${post.body && post.body.length > 200 ? '...' : ''}</p>` : ''}
+    <p>${escapeHtml(preview)}${post.body && post.body.length > 200 ? '...' : ''}</p>
     <p><a href="${link}">View post</a></p>
     <p style="font-size:12px;color:#888;">You're receiving this because you're a Save the Uterus Club member. <a href="${SITE_URL}/community/">Manage notifications</a></p>
   `;
-  const text = `${authorName} posted: ${post.title}\n${preview}\nView: ${link}\n\nManage notifications: ${SITE_URL}/community/`;
+  const text = `${authorName} posted:\n${preview}\nView: ${link}\n\nManage notifications: ${SITE_URL}/community/`;
 
   // Send individual emails to preserve privacy (don't expose member emails to each other)
   const emailPromises = members.results.map(m =>
