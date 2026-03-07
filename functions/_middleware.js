@@ -8,7 +8,7 @@
  * NOTE: Old library slug redirects are handled by the rrm-router Worker,
  * not here (avoids loading the 500KB redirect map on every request).
  */
-import { getSessionIdFromCookie, validateSession, sessionCookie } from './api/auth/_shared.js';
+import { getSessionIdFromCookie, validateSession, sessionCookie, roleAtLeast } from './api/auth/_shared.js';
 
 const GA4_ENDPOINT = 'https://www.google-analytics.com/mp/collect';
 
@@ -113,6 +113,44 @@ export async function onRequest(context) {
           'Set-Cookie': 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
         },
       });
+    }
+
+    const response = await context.next();
+    if (session.renewed) {
+      const newResponse = new Response(response.body, response);
+      newResponse.headers.append('Set-Cookie', sessionCookie(session.id, session.expiresAt));
+      return newResponse;
+    }
+    return response;
+  }
+
+  // Admin pages: require session + superadmin role
+  const isAdminPage = url.pathname === '/admin' || url.pathname.startsWith('/admin/');
+  if (isAdminPage) {
+    if (!env.DB) {
+      return new Response('Service Unavailable', { status: 503 });
+    }
+    const sessionId = getSessionIdFromCookie(request);
+    if (!sessionId) {
+      return Response.redirect(`https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname)}`, 302);
+    }
+
+    const session = await validateSession(env.DB, sessionId);
+    if (!session) {
+      return new Response(null, {
+        status: 302,
+        headers: {
+          'Location': `https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname)}`,
+          'Set-Cookie': 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
+        },
+      });
+    }
+
+    // Check role
+    const user = await env.DB.prepare('SELECT role FROM user WHERE id = ?')
+      .bind(session.userId).first();
+    if (!user || !roleAtLeast(user.role, 'superadmin')) {
+      return new Response('Forbidden', { status: 403 });
     }
 
     const response = await context.next();
