@@ -132,6 +132,22 @@ docs/
 | `/linkinbio/jointhecall` | `src/pages/linkinbio/jointhecall.astro` |
 | `/404` | `src/pages/404.astro` |
 
+## Page Templates & SEO Architecture
+
+**BaseLayout** (`src/layouts/BaseLayout.astro`): Every page uses this. Controls `<title>`, meta description, canonical URL, OG/Twitter tags, JSON-LD injection, Highwire Press citation meta, font preloading, favicon, and noindex. Title suffix logic: appends `| RRM Academy` unless title already contains "RRM Academy" or starts with "RRM ".
+
+**Dynamic route templates** generate all content pages from JSON data files:
+
+| Template | Data Source | Schema (JSON-LD) | Notes |
+|----------|------------|-------------------|-------|
+| `src/pages/library/[...slug].astro` | `articles.json` | MedicalScholarlyArticle + citation_* meta | Highwire Press tags for Google Scholar |
+| `src/pages/commentary/[...slug].astro` | `posts.json` | BlogPosting + BreadcrumbList (+ Person for Whittaker) | Cover image alt = post title |
+| `src/pages/faqs/[...slug].astro` | `faqs.json` | QAPage | Related questions linking |
+| `src/pages/courses/[slug].astro` | `courses.json` | Course + Person + BreadcrumbList + FAQPage | Lesson player at `[slug]/[stepId].astro` |
+| `src/pages/courses/index.astro` | `courses.json` | ItemList | Catalog page |
+
+SEO changes to these templates automatically apply to all existing and future content. No per-item overrides exist.
+
 ## Components
 
 `src/components/`: Header, Footer, SearchBar, ArticleCard, BlogCard, CourseCard, Citation, AuthorByline, TopicTag, LibraryFundingCallout
