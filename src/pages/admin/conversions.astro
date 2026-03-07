@@ -210,8 +210,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
 <style>
   :root {
-    --admin-sage-700: #7e8772;
-    --admin-sage-300: #bec3b8;
+    --admin-rose-700: #8a606e;
+    --admin-rose-300: #c9a8b2;
     --admin-bg: #faf8f5;
     --admin-surface: #ffffff;
     --admin-border: #d9d3cc;
@@ -223,15 +223,15 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   :global(.admin-page) :global(.site-header) { display: none; }
   :global(.admin-page) :global(footer) { display: none; }
 
-  .admin-bar { background: #2d3328; color: #e8ebe5; position: sticky; top: 0; z-index: 100; }
+  .admin-bar { background: #3d2a32; color: #f0e5e9; position: sticky; top: 0; z-index: 100; }
   .admin-bar__inner { display: flex; align-items: center; height: 48px; gap: var(--space-6); }
-  .admin-bar__title { font-family: 'Cormorant Garamond', 'Georgia', serif; font-weight: 600; font-size: 1.25rem; color: var(--admin-sage-300); white-space: nowrap; }
+  .admin-bar__title { font-family: 'Cormorant Garamond', 'Georgia', serif; font-weight: 600; font-size: 1.25rem; color: var(--admin-rose-300); white-space: nowrap; }
   .admin-bar__nav { display: flex; gap: var(--space-1); }
   .admin-bar__link { font-size: 0.8125rem; font-weight: 400; color: rgba(255,255,255,0.6); text-decoration: none; padding: 4px 12px; border-radius: var(--radius-sm); transition: color 0.15s, background 0.15s; }
   .admin-bar__link:hover { color: #fff; text-decoration: none; }
   .admin-bar__link--active { color: #fff; background: rgba(255,255,255,0.1); font-weight: 500; }
   .admin-bar__actions { display: flex; align-items: center; gap: var(--space-3); margin-left: auto; }
-  .admin-bar__site-link { font-size: 0.8125rem; font-weight: 500; color: var(--admin-sage-300); text-decoration: none; padding: 5px 16px; border: 1px solid var(--admin-sage-300); border-radius: var(--radius-pill); transition: color 0.15s, border-color 0.15s; }
+  .admin-bar__site-link { font-size: 0.8125rem; font-weight: 500; color: var(--admin-rose-300); text-decoration: none; padding: 5px 16px; border: 1px solid var(--admin-rose-300); border-radius: var(--radius-pill); transition: color 0.15s, border-color 0.15s; }
   .admin-bar__site-link:hover { color: #fff; border-color: #fff; text-decoration: none; }
   .admin-bar__logout { font-size: 0.8125rem; color: rgba(255,255,255,0.5); background: none; border: none; cursor: pointer; padding: 4px 8px; }
   .admin-bar__logout:hover { color: #fff; }
@@ -241,9 +241,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .cv-header h1 { margin-bottom: 0; color: var(--admin-text); }
   .cv-controls { display: flex; gap: var(--space-3); align-items: center; }
   .cv-select { max-width: 200px; border-color: var(--admin-border); }
-  .cv-select:focus { border-color: var(--admin-sage-700); box-shadow: 0 0 0 2px rgba(126,135,114,0.15); outline: none; }
-  .cv-btn { background: var(--admin-sage-700); border-color: var(--admin-sage-700); color: #fff; }
-  .cv-btn:hover { background: #6b755f; }
+  .cv-select:focus { border-color: var(--admin-rose-700); box-shadow: 0 0 0 2px rgba(138,96,110,0.15); outline: none; }
+  .cv-btn { background: var(--admin-rose-700); border-color: var(--admin-rose-700); color: #fff; }
+  .cv-btn:hover { background: #764d5e; }
 
   .cv-metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--space-4); margin-bottom: var(--space-6); }
   @media (max-width: 768px) { .cv-metrics { grid-template-columns: repeat(3, 1fr); } }
@@ -260,7 +260,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   @media (max-width: 768px) { .cv-rates { grid-template-columns: repeat(2, 1fr); } }
   .cv-rate { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--radius-md); padding: var(--space-4) var(--space-5); text-align: center; }
   .cv-rate__label { display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--admin-text-faint); margin-bottom: var(--space-1); }
-  .cv-rate__value { display: block; font-size: 1.5rem; font-weight: 700; color: var(--admin-sage-700); font-family: 'Inter', sans-serif; }
+  .cv-rate__value { display: block; font-size: 1.5rem; font-weight: 700; color: var(--admin-rose-700); font-family: 'Inter', sans-serif; }
   .cv-rate__desc { display: block; font-size: 0.6875rem; color: var(--admin-text-faint); margin-top: 2px; }
 
   .cv-table-heading { color: var(--admin-text); margin-bottom: var(--space-4); }
@@ -275,5 +275,5 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .cv-table th:first-child, .cv-table td:first-child { text-align: left; }
   .cv-table th { background: #eee5dd; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: #636261; }
   .cv-table tbody tr:last-child td { border-bottom: none; }
-  .cv-table tbody tr:hover { background: #e8ebe5; }
+  .cv-table tbody tr:hover { background: #f0e5e9; }
 </style>

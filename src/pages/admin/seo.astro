@@ -184,8 +184,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 <style>
   /* Reuse admin palette from backlinks */
   :root {
-    --admin-sage-700: #7e8772;
-    --admin-sage-300: #bec3b8;
+    --admin-rose-700: #8a606e;
+    --admin-rose-300: #c9a8b2;
     --admin-bg: #faf8f5;
     --admin-surface: #ffffff;
     --admin-border: #d9d3cc;
@@ -197,8 +197,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   :global(.admin-page) :global(footer) { display: none; }
 
   .admin-bar {
-    background: #2d3328;
-    color: #e8ebe5;
+    background: #3d2a32;
+    color: #f0e5e9;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -213,7 +213,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     font-family: 'Cormorant Garamond', 'Georgia', serif;
     font-weight: 600;
     font-size: 1.25rem;
-    color: var(--admin-sage-300);
+    color: var(--admin-rose-300);
     white-space: nowrap;
   }
   .admin-bar__nav {
@@ -247,10 +247,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .admin-bar__site-link {
     font-size: 0.8125rem;
     font-weight: 500;
-    color: var(--admin-sage-300);
+    color: var(--admin-rose-300);
     text-decoration: none;
     padding: 5px 16px;
-    border: 1px solid var(--admin-sage-300);
+    border: 1px solid var(--admin-rose-300);
     border-radius: var(--radius-pill);
     transition: color 0.15s, border-color 0.15s, background 0.15s;
   }
@@ -329,12 +329,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   }
 
   .seo-run-btn {
-    background: var(--admin-sage-700);
-    border-color: var(--admin-sage-700);
+    background: var(--admin-rose-700);
+    border-color: var(--admin-rose-700);
     color: #fff;
   }
   .seo-run-btn:hover {
-    background: #6b755f;
+    background: #764d5e;
   }
   .seo-run-btn:disabled {
     opacity: 0.6;
