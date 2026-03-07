@@ -62,6 +62,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         <div class="compose-card" id="compose-card" hidden>
           <form id="compose-form">
             <div class="form-group">
+              <div class="format-toolbar" data-target="compose-body">
+                <button type="button" class="format-btn" data-format="bold" title="Bold"><strong>B</strong></button>
+                <button type="button" class="format-btn" data-format="italic" title="Italic"><em>I</em></button>
+                <button type="button" class="format-btn" data-format="link" title="Link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
+              </div>
               <textarea class="form-textarea" id="compose-body" name="body" rows="4" placeholder="What's on your mind?"></textarea>
             </div>
 
@@ -138,6 +143,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           <h2 class="edit-modal__heading">Edit Post</h2>
           <form id="edit-modal-form">
             <div class="form-group">
+              <div class="format-toolbar" data-target="edit-modal-body">
+                <button type="button" class="format-btn" data-format="bold" title="Bold"><strong>B</strong></button>
+                <button type="button" class="format-btn" data-format="italic" title="Italic"><em>I</em></button>
+                <button type="button" class="format-btn" data-format="link" title="Link"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></button>
+              </div>
               <textarea class="form-textarea" id="edit-modal-body" name="body" rows="6" maxlength="10000"></textarea>
             </div>
             <div class="compose-image-bar">
@@ -876,8 +886,47 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             return prefix + '<a href="https://' + url + '" target="_blank" rel="noopener">' + url + '</a>';
           });
 
+        // 5. Bold: **text**
+        s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+        // 6. Italic: *text*
+        s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
         return s;
       }
+
+      // --- Format toolbar ---
+      document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.format-btn');
+        if (!btn) return;
+        e.preventDefault();
+        var toolbar = btn.closest('.format-toolbar');
+        var targetId = toolbar.getAttribute('data-target');
+        var textarea = document.getElementById(targetId);
+        if (!textarea) return;
+
+        var start = textarea.selectionStart;
+        var end = textarea.selectionEnd;
+        var text = textarea.value;
+        var selected = text.slice(start, end);
+        var format = btn.getAttribute('data-format');
+        var replacement;
+
+        if (format === 'bold') {
+          replacement = '**' + (selected || 'bold text') + '**';
+        } else if (format === 'italic') {
+          replacement = '*' + (selected || 'italic text') + '*';
+        } else if (format === 'link') {
+          var url = prompt('Enter URL:');
+          if (!url) return;
+          replacement = '[' + (selected || 'link text') + '](' + url + ')';
+        }
+
+        textarea.value = text.slice(0, start) + replacement + text.slice(end);
+        textarea.focus();
+        var cursorPos = start + replacement.length;
+        textarea.setSelectionRange(cursorPos, cursorPos);
+      });
 
       function timeAgo(dateStr) {
         if (!dateStr) return '';
@@ -1915,6 +1964,32 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   }
 
 
+
+  /* Format toolbar */
+  .format-toolbar {
+    display: flex;
+    gap: 4px;
+    padding: 4px 0 6px;
+  }
+  .format-btn {
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    transition: background 0.1s, color 0.1s;
+  }
+  .format-btn:hover {
+    background: var(--neutral-100);
+    color: var(--text-primary);
+  }
 
   /* Body */
   .post-card__body {
