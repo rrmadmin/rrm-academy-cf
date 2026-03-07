@@ -227,6 +227,7 @@ const jsonLd = {
           // Hide the "Become a Monthly Supporter" heading and lead text
           document.querySelector('.donate-cta-section h2').hidden = true;
           document.querySelector('.donate-recurring-lead').hidden = true;
+          document.querySelector('.donate-cta-section').style.paddingTop = '0';
         })
         .catch(function () { /* not logged in or network error — ignore */ });
 
