@@ -244,6 +244,31 @@ export function roleAtLeast(userRole, minRole) {
   return ROLES.indexOf(userRole) >= ROLES.indexOf(minRole);
 }
 
+// --- Admin auth ---
+
+/**
+ * Validates session cookie and checks for superadmin role.
+ * Returns { user, session } on success, or a Response (401/403/500) on failure.
+ */
+export async function requireSuperAdmin(request, db) {
+  if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
+
+  const sessionId = getSessionIdFromCookie(request);
+  const session = await validateSession(db, sessionId);
+  if (!session) return json({ ok: false, error: 'Not authenticated' }, 401);
+
+  const user = await db.prepare(
+    'SELECT id, email, name, role FROM user WHERE id = ?'
+  ).bind(session.userId).first();
+  if (!user) return json({ ok: false, error: 'User not found' }, 401);
+
+  if (!roleAtLeast(user.role, 'superadmin')) {
+    return json({ ok: false, error: 'Forbidden' }, 403);
+  }
+
+  return { user, session };
+}
+
 // --- Google OAuth helpers ---
 
 export function googleAuthUrl(clientId, redirectUri) {
