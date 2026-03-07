@@ -868,8 +868,18 @@ export function getStaticPaths() {
         );
       });
 
-      flagCancel.addEventListener('click', function () {
+      function closeFlagModal() {
         flagModal.hidden = true;
+      }
+
+      flagCancel.addEventListener('click', closeFlagModal);
+
+      flagModal.addEventListener('click', function (e) {
+        if (e.target === flagModal) closeFlagModal();
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !flagModal.hidden) closeFlagModal();
       });
 
       flagSubmit.addEventListener('click', function () {
