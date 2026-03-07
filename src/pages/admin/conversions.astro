@@ -15,24 +15,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       </nav>
       <div class="admin-bar__actions">
         <a href="/" class="admin-bar__site-link">Return to site</a>
-        <button class="admin-bar__logout" id="logout-btn" hidden>Logout</button>
+        <button class="admin-bar__logout" id="logout-btn">Logout</button>
       </div>
     </div>
   </div>
 
-  <section id="login-gate" class="cv-section">
-    <div class="container container--narrow cv-login-wrap">
-      <h1>Admin Login</h1>
-      <div class="form-group">
-        <label class="form-label" for="token-input">Admin Token</label>
-        <input class="form-input" type="password" id="token-input" placeholder="Enter admin token" autocomplete="off" />
-      </div>
-      <button class="btn btn--primary" id="login-btn">Login</button>
-      <p id="login-error" class="cv-error" hidden></p>
-    </div>
-  </section>
-
-  <section id="dashboard" class="cv-section" hidden>
+  <section id="dashboard" class="cv-section">
     <div class="container">
 
       <div class="cv-header">
@@ -124,33 +112,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
   <script is:inline>
   (function () {
-    var TOKEN_KEY = 'bl_admin_token';
-    var EXPIRY_KEY = 'bl_admin_expiry';
-    var TTL_MS = 24 * 60 * 60 * 1000;
-
-    function getToken() {
-      var token = localStorage.getItem(TOKEN_KEY);
-      var expiry = localStorage.getItem(EXPIRY_KEY);
-      if (!token || !expiry) return null;
-      if (Date.now() > Number(expiry)) { clearToken(); return null; }
-      return token;
-    }
-    function setToken(token) {
-      localStorage.setItem(TOKEN_KEY, token);
-      localStorage.setItem(EXPIRY_KEY, String(Date.now() + TTL_MS));
-    }
-    function clearToken() {
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(EXPIRY_KEY);
-    }
-
-    async function fetchData(period) {
-      var token = getToken();
-      if (!token) throw new Error('Not authenticated');
-      var resp = await fetch('/api/admin/conversions?period=' + encodeURIComponent(period), {
-        headers: { 'Authorization': 'Bearer ' + token },
+    async function apiCall(params) {
+      var qs = params ? '?' + new URLSearchParams(params).toString() : '';
+      var resp = await fetch('/api/admin/conversions' + qs, {
+        credentials: 'include',
       });
-      if (resp.status === 401) { clearToken(); location.reload(); throw new Error('Session expired'); }
+      if (resp.status === 401 || resp.status === 403) { window.location.href = '/login/?redirect=/admin/conversions/'; return; }
       var data = await resp.json();
       if (!resp.ok) throw new Error(data.error || 'Request failed');
       return data;
@@ -215,7 +182,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       var period = document.getElementById('period-select').value;
       document.getElementById('cv-tbody').innerHTML = '<tr><td colspan="6" class="cv-empty">Loading...</td></tr>';
       try {
-        var resp = await fetchData(period);
+        var resp = await apiCall({ period: period });
         render(resp.data);
         if (resp.cached) {
           document.getElementById('cv-meta').textContent += ' (cached)';
@@ -225,52 +192,16 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       }
     }
 
-    // Auth flow
-    var token = getToken();
-    if (token) {
-      document.getElementById('login-gate').hidden = true;
-      document.getElementById('dashboard').hidden = false;
-      document.getElementById('logout-btn').hidden = false;
-      loadData();
-    }
-
-    document.getElementById('login-btn').addEventListener('click', async function () {
-      var input = document.getElementById('token-input');
-      var val = input.value.trim();
-      if (!val) return;
-      document.getElementById('login-error').hidden = true;
-      try {
-        var resp = await fetch('/api/admin/conversions?period=7d', {
-          headers: { 'X-Admin-Secret': val },
-        });
-        if (resp.status === 401) throw new Error('Invalid token');
-        setToken(val);
-        document.getElementById('login-gate').hidden = true;
-        document.getElementById('dashboard').hidden = false;
-        document.getElementById('logout-btn').hidden = false;
-        var data = await resp.json();
-        if (data.ok) render(data.data);
-      } catch (err) {
-        var errEl = document.getElementById('login-error');
-        errEl.textContent = err.message;
-        errEl.hidden = false;
-      }
-    });
-
-    document.getElementById('token-input').addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') document.getElementById('login-btn').click();
-    });
-
     document.getElementById('logout-btn').addEventListener('click', function () {
-      clearToken();
-      location.reload();
+      window.location.href = '/login/';
     });
 
     document.getElementById('period-select').addEventListener('change', loadData);
     document.getElementById('refresh-btn').addEventListener('click', function () {
-      // Force fresh data by appending cache-bust (API checks KV, so we just reload)
       loadData();
     });
+
+    loadData();
   })();
   </script>
 
@@ -305,15 +236,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .admin-bar__logout:hover { color: #fff; }
 
   .cv-section { padding: var(--space-8) 0; background: var(--admin-bg); min-height: 80vh; }
-  .cv-login-wrap { max-width: 400px; margin: var(--space-16) auto; text-align: center; background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--radius-md); padding: var(--space-8) var(--space-6); }
-  .cv-login-wrap h1 { margin-bottom: var(--space-6); color: var(--admin-sage-700); }
-  .cv-login-wrap .form-group { margin-bottom: var(--space-4); text-align: left; }
-  .cv-login-wrap .form-input { border-color: var(--admin-border); }
-  .cv-login-wrap .form-input:focus { border-color: var(--admin-sage-700); box-shadow: 0 0 0 2px rgba(126,135,114,0.15); outline: none; }
-  .cv-login-wrap .btn { width: 100%; background: var(--admin-sage-700); border-color: var(--admin-sage-700); color: #fff; }
-  .cv-login-wrap .btn:hover { background: #6b755f; }
-  .cv-error { color: var(--color-error); font-size: 0.875rem; margin-top: var(--space-3); }
-
   .cv-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6); flex-wrap: wrap; gap: var(--space-3); }
   .cv-header h1 { margin-bottom: 0; color: var(--admin-text); }
   .cv-controls { display: flex; gap: var(--space-3); align-items: center; }

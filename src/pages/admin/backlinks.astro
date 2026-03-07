@@ -16,32 +16,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       </nav>
       <div class="admin-bar__actions">
         <a href="/" class="admin-bar__site-link">Return to site</a>
-        <button class="admin-bar__logout" id="logout-btn" hidden>Logout</button>
+        <button class="admin-bar__logout" id="logout-btn">Logout</button>
       </div>
     </div>
   </div>
 
-  <!-- Login Gate -->
-  <section id="login-gate" class="bl-section">
-    <div class="container container--narrow bl-login-wrap">
-      <h1>Admin Login</h1>
-      <div class="form-group">
-        <label class="form-label" for="token-input">Admin Token</label>
-        <input
-          class="form-input"
-          type="password"
-          id="token-input"
-          placeholder="Enter admin token"
-          autocomplete="off"
-        />
-      </div>
-      <button class="btn btn--primary" id="login-btn">Login</button>
-      <p id="login-error" class="bl-error" hidden></p>
-    </div>
-  </section>
-
   <!-- Dashboard -->
-  <section id="dashboard" class="bl-section" hidden>
+  <section id="dashboard" class="bl-section">
     <div class="container">
 
       <!-- Page heading -->
@@ -110,38 +91,16 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
   <script is:inline>
   (function () {
-    var TOKEN_KEY = 'bl_admin_token';
-    var EXPIRY_KEY = 'bl_admin_expiry';
-    var TTL_MS = 24 * 60 * 60 * 1000;
-
-    // Auth helpers
-    function getToken() {
-      var token = localStorage.getItem(TOKEN_KEY);
-      var expiry = localStorage.getItem(EXPIRY_KEY);
-      if (!token || !expiry) return null;
-      if (Date.now() > Number(expiry)) { clearToken(); return null; }
-      return token;
-    }
-    function setToken(token) {
-      localStorage.setItem(TOKEN_KEY, token);
-      localStorage.setItem(EXPIRY_KEY, String(Date.now() + TTL_MS));
-    }
-    function clearToken() {
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(EXPIRY_KEY);
-    }
-
     // API
     async function apiCall(action, params) {
       params = params || {};
-      var token = getToken();
-      if (!token) throw new Error('Not authenticated');
       var resp = await fetch('/api/admin/backlinks', {
         method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ action: action, params: params }),
       });
-      if (resp.status === 401) { clearToken(); location.reload(); throw new Error('Session expired'); }
+      if (resp.status === 401 || resp.status === 403) { window.location.href = '/login/?redirect=/admin/backlinks/'; return; }
       var data = await resp.json();
       if (!resp.ok) throw new Error(data.error || 'Request failed');
       return data;
@@ -186,12 +145,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     var sortDir = -1; // -1 = desc, 1 = asc
 
     // DOM refs
-    var loginGate = document.getElementById('login-gate');
-    var dashboard = document.getElementById('dashboard');
-    var tokenInput = document.getElementById('token-input');
-    var loginBtn = document.getElementById('login-btn');
-    var loginError = document.getElementById('login-error');
-    var logoutBtn = document.getElementById('logout-btn');
     var mTotal = document.getElementById('m-total');
     var mLive = document.getElementById('m-live');
     var mDead = document.getElementById('m-dead');
@@ -200,48 +153,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     var refreshBtn = document.getElementById('refresh-btn');
     var tbody = document.getElementById('bl-tbody');
 
-    // Show/hide
-    function showLogin() {
-      loginGate.hidden = false;
-      dashboard.hidden = true;
-      logoutBtn.hidden = true;
-    }
-    function showDashboard() {
-      loginGate.hidden = true;
-      dashboard.hidden = false;
-      logoutBtn.hidden = false;
-      loadSummary();
-      loadBacklinks();
-    }
-
-    // Login
-    async function doLogin() {
-      var val = tokenInput.value.trim();
-      if (!val) return;
-      loginBtn.disabled = true;
-      loginBtn.textContent = 'Logging in...';
-      loginError.hidden = true;
-      setToken(val);
-      try {
-        await apiCall('verify');
-        showDashboard();
-      } catch (e) {
-        clearToken();
-        loginError.textContent = 'Invalid token or server error.';
-        loginError.hidden = false;
-      }
-      loginBtn.disabled = false;
-      loginBtn.textContent = 'Login';
-    }
-    loginBtn.addEventListener('click', doLogin);
-    tokenInput.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') doLogin();
-    });
-
     // Logout
-    logoutBtn.addEventListener('click', function () {
-      clearToken();
-      showLogin();
+    document.getElementById('logout-btn').addEventListener('click', function () {
+      window.location.href = '/login/';
     });
 
     // Load summary
@@ -440,11 +354,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     });
 
     // Init
-    if (getToken()) {
-      showDashboard();
-    } else {
-      showLogin();
-    }
+    loadSummary();
+    loadBacklinks();
   })();
   </script>
 
@@ -554,47 +465,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     padding: var(--space-8) 0;
     background: var(--admin-bg);
     min-height: 80vh;
-  }
-
-  /* Login */
-  .bl-login-wrap {
-    max-width: 400px;
-    margin: var(--space-16) auto;
-    text-align: center;
-    background: var(--admin-surface);
-    border: 1px solid var(--admin-border);
-    border-radius: var(--radius-md);
-    padding: var(--space-8) var(--space-6);
-  }
-  .bl-login-wrap h1 {
-    margin-bottom: var(--space-6);
-    color: var(--admin-sage-700);
-  }
-  .bl-login-wrap .form-group {
-    margin-bottom: var(--space-4);
-    text-align: left;
-  }
-  .bl-login-wrap .form-input {
-    border-color: var(--admin-border);
-  }
-  .bl-login-wrap .form-input:focus {
-    border-color: var(--admin-sage-700);
-    box-shadow: 0 0 0 2px rgba(126, 135, 114, 0.15);
-    outline: none;
-  }
-  .bl-login-wrap .btn {
-    width: 100%;
-    background: var(--admin-sage-700);
-    border-color: var(--admin-sage-700);
-    color: #fff;
-  }
-  .bl-login-wrap .btn:hover {
-    background: #6b755f;
-  }
-  .bl-error {
-    color: var(--color-error);
-    font-size: 0.875rem;
-    margin-top: var(--space-3);
   }
 
   /* Header */
