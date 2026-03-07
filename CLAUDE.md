@@ -266,6 +266,19 @@ A zero-dependency Node.js script (`scripts/guard.mjs`) that blocks deployments i
 
 **Runs automatically**: pre-commit hook (local, critical files only), CI deploy workflow, CI claude/** auto-merge workflow.
 
+## Citation Integrity
+
+**Never insert academic citations from model knowledge.** Hallucinated PMIDs, DOIs, and references are an existential threat to a medical education site.
+
+Citations must come from one of:
+- Perplexity research (live web search, verified)
+- The RRM Research Library (Airtable BIFID)
+- Brian directly
+
+When a post needs references, research each one live before inserting. If asked to "add citations" to existing content, look them up via Perplexity or the library first. Never generate a PMID, DOI, or journal reference from memory.
+
+CI enforces this: `scripts/verify-citations.mjs` (v2, multi-API cascade) runs on every blog deploy and blocks publication if any citation fails verification.
+
 ## Rules
 
 - Read relevant `STYLE-GUIDE.md` sections before editing styles
