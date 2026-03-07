@@ -36,6 +36,48 @@ export async function onRequestGet({ request, env }) {
     const { user } = auth;
 
     const url = new URL(request.url);
+    const db = env.DB;
+    const tierPlaceholders = TIER_LABELS.map(() => '?').join(', ');
+
+    // Single post by ID
+    const singleId = url.searchParams.get('id');
+    if (singleId) {
+      const row = await db.prepare(`
+        SELECT p.*, u.name as author_name, u.first_name, u.last_name, u.role as author_role, u.avatar_url as author_avatar,
+          (SELECT ul.label FROM user_label ul WHERE ul.user_id = p.author_id AND ul.label IN (${tierPlaceholders}) LIMIT 1) as author_tier_label,
+          (SELECT COUNT(*) FROM community_comment WHERE post_id = p.id) as comment_count
+        FROM community_post p
+        JOIN user u ON u.id = p.author_id
+        WHERE p.id = ?
+      `).bind(...TIER_LABELS, singleId).first();
+
+      if (!row) return json({ ok: false, error: 'Post not found' }, 404);
+
+      // Reactions
+      const reactions = await db.prepare(`
+        SELECT emoji, COUNT(*) as count FROM community_reaction
+        WHERE target_type = 'post' AND target_id = ? GROUP BY emoji
+      `).bind(singleId).all();
+      const reactionMap = {};
+      for (const r of reactions.results) reactionMap[r.emoji] = r.count;
+
+      const mine = await db.prepare(`
+        SELECT emoji FROM community_reaction
+        WHERE target_type = 'post' AND target_id = ? AND user_id = ?
+      `).bind(singleId, user.id).all();
+      const myReactions = mine.results.map(r => r.emoji);
+
+      return json({ ok: true, post: {
+        id: row.id, type: row.type, title: row.title, body: row.body,
+        pinned: !!row.pinned, eventDate: row.event_date, eventLink: row.event_link,
+        resourceUrl: row.resource_url, createdAt: row.created_at, updatedAt: row.updated_at,
+        authorId: row.author_id, authorName: row.author_name || displayName(row),
+        authorRole: row.author_role, authorAvatar: row.author_avatar || null,
+        authorTier: tierFromLabel(row.author_tier_label), commentCount: row.comment_count,
+        reactions: reactionMap, myReactions, isOwn: row.author_id === user.id,
+      }});
+    }
+
     const type = url.searchParams.get('type');
     const before = url.searchParams.get('before');
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '20', 10), 50);
@@ -47,10 +89,7 @@ export async function onRequestGet({ request, env }) {
       return json({ ok: false, error: 'Not authorized for this channel' }, 403);
     }
 
-    const db = env.DB;
     let sql, params;
-
-    const tierPlaceholders = TIER_LABELS.map(() => '?').join(', ');
 
     if (type === 'event') {
       // Events: upcoming first (ASC), then past (DESC)
