@@ -15,24 +15,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       </nav>
       <div class="admin-bar__actions">
         <a href="/" class="admin-bar__site-link">Return to site</a>
-        <button class="admin-bar__logout" id="logout-btn" hidden>Logout</button>
+        <button class="admin-bar__logout" id="logout-btn">Logout</button>
       </div>
     </div>
   </div>
 
-  <section id="login-gate" class="ct-section">
-    <div class="container container--narrow ct-login-wrap">
-      <h1>Admin Login</h1>
-      <div class="form-group">
-        <label class="form-label" for="token-input">Admin Token</label>
-        <input class="form-input" type="password" id="token-input" placeholder="Enter admin token" autocomplete="off" />
-      </div>
-      <button class="btn btn--primary" id="login-btn">Login</button>
-      <p id="login-error" class="ct-error" hidden></p>
-    </div>
-  </section>
-
-  <section id="dashboard" class="ct-section" hidden>
+  <section id="dashboard" class="ct-section">
     <div class="container">
 
       <div class="ct-header">
@@ -137,24 +125,16 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
   <script is:inline>
   (function () {
-    var TOKEN_KEY = 'bl_admin_token';
-    var EXPIRY_KEY = 'bl_admin_expiry';
-    var TTL_MS = 24 * 60 * 60 * 1000;
-    function getToken() { var t = localStorage.getItem(TOKEN_KEY), e = localStorage.getItem(EXPIRY_KEY); if (!t||!e) return null; if (Date.now()>Number(e)){clearToken();return null;} return t; }
-    function setToken(t) { localStorage.setItem(TOKEN_KEY, t); localStorage.setItem(EXPIRY_KEY, String(Date.now()+TTL_MS)); }
-    function clearToken() { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(EXPIRY_KEY); }
-
     function num(n) { return (n||0).toLocaleString(); }
     function dur(s) { var m = Math.floor(s/60); var sec = Math.round(s%60); return m + ':' + (sec<10?'0':'') + sec; }
     function pct(n) { return ((n||0)*100).toFixed(1) + '%'; }
 
-    async function fetchData(period) {
-      var token = getToken();
-      if (!token) throw new Error('Not authenticated');
-      var resp = await fetch('/api/admin/content?period=' + encodeURIComponent(period), {
-        headers: { 'Authorization': 'Bearer ' + token },
+    async function apiCall(params) {
+      var qs = params ? '?' + new URLSearchParams(params).toString() : '';
+      var resp = await fetch('/api/admin/content' + qs, {
+        credentials: 'include',
       });
-      if (resp.status === 401) { clearToken(); location.reload(); }
+      if (resp.status === 401 || resp.status === 403) { window.location.href = '/login/?redirect=/admin/content/'; return; }
       var data = await resp.json();
       if (!resp.ok) throw new Error(data.error || 'Request failed');
       return data;
@@ -201,7 +181,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       document.getElementById('pages-tbody').innerHTML = '<tr><td colspan="4" class="ct-empty">Loading...</td></tr>';
       document.getElementById('referrers-tbody').innerHTML = '<tr><td colspan="3" class="ct-empty">Loading...</td></tr>';
       try {
-        var resp = await fetchData(period);
+        var resp = await apiCall({ period: period });
         render(resp.data);
         if (resp.cached) document.getElementById('ct-meta').textContent += ' (cached)';
       } catch(e) {
@@ -209,23 +189,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       }
     }
 
-    var token = getToken();
-    if (token) { document.getElementById('login-gate').hidden=true; document.getElementById('dashboard').hidden=false; document.getElementById('logout-btn').hidden=false; loadData(); }
-
-    document.getElementById('login-btn').addEventListener('click', async function() {
-      var val = document.getElementById('token-input').value.trim(); if(!val) return;
-      document.getElementById('login-error').hidden=true;
-      try {
-        var resp = await fetch('/api/admin/content?period=7d', { headers: {'Authorization':'Bearer '+val} });
-        if (resp.status===401) throw new Error('Invalid token');
-        setToken(val); document.getElementById('login-gate').hidden=true; document.getElementById('dashboard').hidden=false; document.getElementById('logout-btn').hidden=false;
-        var data = await resp.json(); if(data.ok) render(data.data);
-      } catch(e) { var el=document.getElementById('login-error'); el.textContent=e.message; el.hidden=false; }
-    });
-    document.getElementById('token-input').addEventListener('keydown', function(e) { if(e.key==='Enter') document.getElementById('login-btn').click(); });
-    document.getElementById('logout-btn').addEventListener('click', function() { clearToken(); location.reload(); });
+    document.getElementById('logout-btn').addEventListener('click', function() { window.location.href = '/login/'; });
     document.getElementById('period-select').addEventListener('change', loadData);
     document.getElementById('refresh-btn').addEventListener('click', loadData);
+
+    loadData();
   })();
   </script>
 
@@ -237,8 +205,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .admin-bar{background:#2d3328;color:#e8ebe5;position:sticky;top:0;z-index:100;} .admin-bar__inner{display:flex;align-items:center;height:48px;gap:var(--space-6);} .admin-bar__title{font-family:'Cormorant Garamond','Georgia',serif;font-weight:600;font-size:1.25rem;color:var(--admin-sage-300);white-space:nowrap;} .admin-bar__nav{display:flex;gap:var(--space-1);} .admin-bar__link{font-size:.8125rem;font-weight:400;color:rgba(255,255,255,.6);text-decoration:none;padding:4px 12px;border-radius:var(--radius-sm);transition:color .15s,background .15s;} .admin-bar__link:hover{color:#fff;text-decoration:none;} .admin-bar__link--active{color:#fff;background:rgba(255,255,255,.1);font-weight:500;} .admin-bar__actions{display:flex;align-items:center;gap:var(--space-3);margin-left:auto;} .admin-bar__site-link{font-size:.8125rem;font-weight:500;color:var(--admin-sage-300);text-decoration:none;padding:5px 16px;border:1px solid var(--admin-sage-300);border-radius:var(--radius-pill);transition:color .15s,border-color .15s;} .admin-bar__site-link:hover{color:#fff;border-color:#fff;text-decoration:none;} .admin-bar__logout{font-size:.8125rem;color:rgba(255,255,255,.5);background:none;border:none;cursor:pointer;padding:4px 8px;} .admin-bar__logout:hover{color:#fff;}
 
   .ct-section{padding:var(--space-8) 0;background:var(--admin-bg);min-height:80vh;}
-  .ct-login-wrap{max-width:400px;margin:var(--space-16) auto;text-align:center;background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:var(--radius-md);padding:var(--space-8) var(--space-6);} .ct-login-wrap h1{margin-bottom:var(--space-6);color:var(--admin-sage-700);} .ct-login-wrap .form-group{margin-bottom:var(--space-4);text-align:left;} .ct-login-wrap .form-input{border-color:var(--admin-border);} .ct-login-wrap .form-input:focus{border-color:var(--admin-sage-700);box-shadow:0 0 0 2px rgba(126,135,114,.15);outline:none;} .ct-login-wrap .btn{width:100%;background:var(--admin-sage-700);border-color:var(--admin-sage-700);color:#fff;} .ct-login-wrap .btn:hover{background:#6b755f;} .ct-error{color:var(--color-error);font-size:.875rem;margin-top:var(--space-3);}
-
   .ct-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-6);flex-wrap:wrap;gap:var(--space-3);} .ct-header h1{margin-bottom:0;color:var(--admin-text);} .ct-controls{display:flex;gap:var(--space-3);align-items:center;} .ct-select{max-width:200px;border-color:var(--admin-border);} .ct-select:focus{border-color:var(--admin-sage-700);box-shadow:0 0 0 2px rgba(126,135,114,.15);outline:none;} .ct-btn{background:var(--admin-sage-700);border-color:var(--admin-sage-700);color:#fff;} .ct-btn:hover{background:#6b755f;}
 
   .ct-metrics{display:grid;gap:var(--space-4);margin-bottom:var(--space-6);} .ct-metrics--5{grid-template-columns:repeat(5,1fr);}
