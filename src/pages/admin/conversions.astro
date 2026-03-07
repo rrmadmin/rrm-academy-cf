@@ -192,7 +192,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       }
     }
 
-    document.getElementById('logout-btn').addEventListener('click', function () {
+    document.getElementById('logout-btn').addEventListener('click', async function () {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
       window.location.href = '/login/';
     });
 
