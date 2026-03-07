@@ -1029,30 +1029,16 @@ export function getStaticPaths() {
           }
           currentUser = data.user;
 
-          // 2. Fetch posts and find ours
-          return fetch('/api/community/posts?limit=50', { credentials: 'same-origin' })
+          // 2. Fetch single post by ID
+          return fetch('/api/community/posts?id=' + encodeURIComponent(postId), { credentials: 'same-origin' })
             .then(function (r) { return r.json(); })
-            .then(function (postsData) {
-              if (!postsData.ok) {
-                errorTextEl.textContent = postsData.error || 'Failed to load post.';
-                showState(errorEl);
-                return;
-              }
-
-              var post = null;
-              for (var i = 0; i < postsData.posts.length; i++) {
-                if (postsData.posts[i].id === postId) {
-                  post = postsData.posts[i];
-                  break;
-                }
-              }
-
-              if (!post) {
+            .then(function (postData) {
+              if (!postData.ok || !postData.post) {
                 showState(notFoundEl);
                 return;
               }
 
-              renderPost(post);
+              renderPost(postData.post);
 
               // 3. Fetch comments
               return fetch('/api/community/comments?postId=' + encodeURIComponent(postId), { credentials: 'same-origin' })
