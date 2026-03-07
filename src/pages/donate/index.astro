@@ -43,7 +43,8 @@ const jsonLd = {
         <p class="donate-recurring-lead">Monthly members are the backbone of everything we do. Your recurring support funds the research library, patient education, and advocacy that changes how women access care.</p>
 
         <div id="supporter-banner" class="donate-supporter-banner" hidden>
-          <p class="supporter-banner__title" id="supporter-title"></p>
+          <p class="supporter-banner__name" id="supporter-name"></p>
+          <p class="supporter-banner__tier" id="supporter-tier"></p>
           <p class="supporter-banner__body" id="supporter-body"></p>
         </div>
 
@@ -217,10 +218,12 @@ const jsonLd = {
           var tierName = tierNames[sub.tier] || 'Member';
           var price = tierPrices[sub.tier] || '$9';
 
-          var title = 'Thank you for being a Save the Uterus Club ' + tierName + (firstName ? ', ' + firstName : '') + '.';
+          var nameLine = 'Thank you' + (firstName ? ', ' + firstName : '') + '.';
+          var tierLine = 'Save the Uterus Club ' + tierName;
           var body = 'Your ' + price + '/month helps patients and providers find real answers and make confident decisions about their care.';
 
-          document.getElementById('supporter-title').textContent = title;
+          document.getElementById('supporter-name').textContent = nameLine;
+          document.getElementById('supporter-tier').textContent = tierLine;
           document.getElementById('supporter-body').textContent = body;
           document.getElementById('supporter-banner').hidden = false;
 
@@ -461,12 +464,20 @@ const jsonLd = {
     max-width: 520px;
     text-align: center;
   }
-  .supporter-banner__title {
+  .supporter-banner__name {
     font-family: 'Cormorant Garamond', 'Georgia', serif;
     font-size: 1.375rem;
     font-weight: 600;
     color: var(--text-primary);
-    margin: 0 0 var(--space-2);
+    margin: 0 0 var(--space-1);
+  }
+  .supporter-banner__tier {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 var(--space-3);
   }
   .supporter-banner__body {
     font-size: 0.875rem;
