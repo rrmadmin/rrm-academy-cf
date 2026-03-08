@@ -141,7 +141,7 @@ async function handleWebhook(request, env) {
             if (email && env.AWS_ACCESS_KEY_ID) {
               try {
                 await sesSendEmail(env, {
-                  from: 'RRM Academy <accounts@rrmacademy.org>',
+                  from: 'RRM Academy <accounts@mail.rrmacademy.org>',
                   to: email,
                   subject: 'Your course is ready',
                   text: [
@@ -189,7 +189,7 @@ async function handleWebhook(request, env) {
         if (email) {
           try {
             await sesSendEmail(env, {
-              from: 'RRM Academy <accounts@rrmacademy.org>',
+              from: 'RRM Academy <accounts@mail.rrmacademy.org>',
               to: email,
               subject: 'Welcome to the Save the Uterus Club',
               text: [
@@ -467,7 +467,7 @@ async function getEmailByStripeCustomer(db, stripeCustomerId) {
 async function sendEmailSafe(env, { to, subject, text }) {
   try {
     await sesSendEmail(env, {
-      from: 'RRM Academy <accounts@rrmacademy.org>',
+      from: 'RRM Academy <accounts@mail.rrmacademy.org>',
       to,
       subject,
       text,

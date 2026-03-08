@@ -241,7 +241,7 @@ async function notifyMods(env, db, reporter, targetType, targetId, reason, note)
   const text = `${reporterName} flagged a ${targetType} as ${reason}.\n${note ? `Note: ${note}\n` : ''}Content: ${contentPreview || '(unable to load)'}\nView: ${link}`;
 
   await sendEmail(env, {
-    from: 'noreply@rrmacademy.org',
+    from: 'noreply@mail.rrmacademy.org',
     to: mods.results.map(m => m.email),
     subject,
     html,
