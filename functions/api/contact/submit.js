@@ -84,7 +84,7 @@ export async function onRequestPost(context) {
   // Send notification email via SES
   try {
     await sendEmail(env, {
-      from: 'RRM Academy <contact@rrmacademy.org>',
+      from: 'RRM Academy <contact@mail.rrmacademy.org>',
       to: 'administrator@rrmacademy.org',
       replyTo: email,
       subject: `[Contact] ${name} (${email})`,
@@ -106,7 +106,7 @@ export async function onRequestPost(context) {
   // Send confirmation to the sender
   try {
     await sendEmail(env, {
-      from: 'RRM Academy <contact@rrmacademy.org>',
+      from: 'RRM Academy <contact@mail.rrmacademy.org>',
       to: email,
       subject: 'We received your message — RRM Academy',
       text: [
