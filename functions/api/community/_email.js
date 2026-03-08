@@ -48,7 +48,7 @@ export async function notifyNewPost(env, db, post, authorName) {
 
   // Send individual emails to preserve privacy (don't expose member emails to each other)
   const emailPromises = members.results.map(m =>
-    sendEmail(env, { from: 'noreply@rrmacademy.org', to: m.email, subject, html, text })
+    sendEmail(env, { from: 'noreply@mail.rrmacademy.org', to: m.email, subject, html, text })
       .catch(err => console.error(`Failed to email ${m.email}:`, err.message))
   );
   await Promise.all(emailPromises);
@@ -99,7 +99,7 @@ export async function notifyReply(env, db, postId, parentId, replierId, replierN
   const text = `${replierName} replied to your ${targetLabel}:\n"${preview}"\nView: ${link}\n\nManage notifications: ${SITE_URL}/community/`;
 
   await sendEmail(env, {
-    from: 'noreply@rrmacademy.org',
+    from: 'noreply@mail.rrmacademy.org',
     to: recipient.email,
     subject,
     html,

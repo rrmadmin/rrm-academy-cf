@@ -57,7 +57,7 @@ export async function onRequestPost({ request, env }) {
 
       try {
         await sendEmail(env, {
-          from: 'RRM Academy <accounts@rrmacademy.org>',
+          from: 'RRM Academy <accounts@mail.rrmacademy.org>',
           to: email,
           subject: 'Reset your password — RRM Academy',
           text: [

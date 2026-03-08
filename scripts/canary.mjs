@@ -15,7 +15,7 @@
 
 const SITE = 'https://rrmacademy.org';
 const ALERT_TO = 'administrator@rrmacademy.org';
-const ALERT_FROM = 'RRM Canary <contact@rrmacademy.org>';
+const ALERT_FROM = 'RRM Canary <contact@mail.rrmacademy.org>';
 const CANARY_SECRET = process.env.CANARY_SECRET || '';
 
 const checks = [

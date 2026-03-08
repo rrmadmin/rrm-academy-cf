@@ -47,7 +47,7 @@ export async function onRequestPost({ request, env }) {
     if (env.AWS_ACCESS_KEY_ID) {
       try {
         await sendEmail(env, {
-          from: 'RRM Academy <accounts@rrmacademy.org>',
+          from: 'RRM Academy <accounts@mail.rrmacademy.org>',
           to: user.email,
           subject: 'Your verification code — RRM Academy',
           text: [

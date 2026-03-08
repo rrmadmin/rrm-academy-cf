@@ -87,7 +87,7 @@ export async function onRequestPost(context) {
   // Send email via SES
   try {
     await sendEmail(env, {
-      from: 'RRM Academy <survey@rrmacademy.org>',
+      from: 'RRM Academy <survey@mail.rrmacademy.org>',
       to: email,
       subject: 'Your Endometriosis Symptom Self-Survey',
       html: buildEmailHtml(surveyUrl),
