@@ -12,12 +12,13 @@
  */
 import Stripe from 'stripe';
 import { json, optionsResponse, checkRateLimit, STRIPE_API_VERSION } from '../auth/_shared.js';
+import { log } from '../_log.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
 }
 
-export async function onRequestGet({ request, env }) {
+export async function onRequestGet({ request, env, waitUntil }) {
   try {
     const stripeKey = env.STRIPE_SECRET_KEY;
     const db = env.DB;
@@ -61,7 +62,7 @@ export async function onRequestGet({ request, env }) {
     const needsPassword = !user.hashed_password && !user.google_id;
     return json({ ok: true, accountExists: true, needsPassword });
   } catch (err) {
-    console.error('checkout-account error:', err.message, err.stack);
+    log(env, waitUntil, 'billing', 'checkout_account_error', 'error', err.message, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }

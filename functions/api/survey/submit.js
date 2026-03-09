@@ -4,6 +4,7 @@
  * Input: { token, symptoms: { tier1: [...], tier2: [...], tier3: [...] }, score: { tier1, tier2, tier3, total } }
  */
 import { sendGA4Event } from '../_ga4.js';
+import { log } from '../_log.js';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': 'https://rrmacademy.org',
@@ -23,7 +24,7 @@ export async function onRequestOptions() {
 }
 
 export async function onRequestPost(context) {
-  const { request, env } = context;
+  const { request, env, waitUntil } = context;
 
   if (!env.SURVEY_TOKENS) {
     return json({ ok: false, error: 'Server misconfigured' }, 500);
@@ -97,14 +98,14 @@ export async function onRequestPost(context) {
 
     if (!airtableResp.ok) {
       const errText = await airtableResp.text();
-      console.error('Airtable write failed:', airtableResp.status, errText);
+      log(env, waitUntil, 'survey', 'airtable_write_error', 'error', `${airtableResp.status} ${errText}`, 0, 502);
       await env.SURVEY_TOKENS.put(`token:${token}`, JSON.stringify(data), {
         expirationTtl: 90 * 24 * 60 * 60,
       });
       return json({ ok: false, error: 'Failed to save results. Please try again.' }, 502);
     }
   } catch (err) {
-    console.error('Airtable write failed:', err.message);
+    log(env, waitUntil, 'survey', 'airtable_write_error', 'error', err.message, 0, 502);
     await env.SURVEY_TOKENS.put(`token:${token}`, JSON.stringify(data), {
       expirationTtl: 90 * 24 * 60 * 60,
     });

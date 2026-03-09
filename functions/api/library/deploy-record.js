@@ -14,11 +14,12 @@
  * Request body (from Airtable automation):
  *   { "recordId": "recXXXXXXXXXXXXXX" }
  */
+import { log } from '../_log.js';
 
 var GITHUB_REPO = 'rrmadmin/rrm-academy-cf';
 
 export async function onRequestPost(context) {
-  var { request, env } = context;
+  var { request, env, waitUntil } = context;
 
   // Auth — simple shared secret in header
   var secret = request.headers.get('X-Deploy-Secret') || '';
@@ -41,12 +42,12 @@ export async function onRequestPost(context) {
   }
 
   var recordId = body.recordId || '';
-  console.log('[deploy-record] Triggered by Airtable record:', recordId);
+  log(env, waitUntil, 'library', 'deploy_record_triggered', 'ok', recordId, 0, 0);
 
   // Trigger GitHub Actions rebuild via repository_dispatch
   var ghToken = env.GITHUB_DEPLOY_TOKEN;
   if (!ghToken) {
-    console.error('[deploy-record] GITHUB_DEPLOY_TOKEN not configured');
+    log(env, waitUntil, 'library', 'deploy_record_error', 'error', 'GITHUB_DEPLOY_TOKEN not configured', 0, 500);
     return new Response(JSON.stringify({ error: 'GitHub token not configured' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
@@ -70,7 +71,7 @@ export async function onRequestPost(context) {
 
     if (ghResp.status !== 204) {
       var ghBody = await ghResp.text().catch(function () { return ''; });
-      console.error('[deploy-record] GitHub dispatch failed:', ghResp.status, ghBody);
+      log(env, waitUntil, 'library', 'deploy_record_error', 'error', `GitHub dispatch failed: ${ghResp.status} ${ghBody}`, 0, 502);
       return new Response(JSON.stringify({
         error: 'GitHub dispatch failed',
         status: ghResp.status,
@@ -80,7 +81,7 @@ export async function onRequestPost(context) {
       });
     }
 
-    console.log('[deploy-record] Rebuild triggered for record:', recordId);
+    log(env, waitUntil, 'library', 'deploy_record_dispatched', 'ok', recordId, 0, 200);
     return new Response(JSON.stringify({
       success: true,
       recordId: recordId,
@@ -90,7 +91,7 @@ export async function onRequestPost(context) {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (e) {
-    console.error('[deploy-record] Error triggering deploy:', e.message);
+    log(env, waitUntil, 'library', 'deploy_record_error', 'error', e.message, 0, 500);
     return new Response(JSON.stringify({ error: 'Deploy trigger failed' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },

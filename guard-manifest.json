@@ -27,11 +27,11 @@
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
-      "hash": "34ece83f6732f2d498b7945655403f4f1569a23899ed3f1a84e9418e9c70c3d3",
+      "hash": "95292f6b10e413556e1b20527659326ee77ebaa5a3b2a96f05a8933223ee3dd2",
       "note": "Billing status"
     },
     "functions/api/billing/portal.js": {
-      "hash": "ce70dce5da828749a5f7a4b1b27c4f0042edabb461b8b3689e45537c9b7f154b",
+      "hash": "69f4c0d776f701f29f7139967c7f74d4adc8f17159a621fa5bba77e113b8138f",
       "note": "Stripe portal"
     },
     "functions/_middleware.js": {
