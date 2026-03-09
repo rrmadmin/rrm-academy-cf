@@ -7,12 +7,13 @@ import {
   validateSession, checkRateLimit,
 } from './_shared.js';
 import { sendEmail } from '../_ses.js';
+import { log } from '../_log.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
 }
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, waitUntil }) {
   try {
     const db = env.DB;
     if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
@@ -72,6 +73,7 @@ export async function onRequestPost({ request, env }) {
     return json({ ok: true });
   } catch (err) {
     console.error(err);
+    log(env, waitUntil, 'auth', 'resend_verification_error', 'error', err.message);
     return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500);
   }
 }
