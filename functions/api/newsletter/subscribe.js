@@ -3,6 +3,7 @@
  * Validates Turnstile token, adds subscriber to Buttondown, optionally updates D1.
  */
 import { sendGA4Event } from '../_ga4.js';
+import { log } from '../_log.js';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': 'https://rrmacademy.org',
@@ -22,10 +23,10 @@ export async function onRequestOptions() {
 }
 
 export async function onRequestPost(context) {
-  const { request, env } = context;
+  const { request, env, waitUntil } = context;
 
   if (!env.BUTTONDOWN_API_KEY) {
-    console.error('BUTTONDOWN_API_KEY not configured');
+    log(env, waitUntil, 'newsletter', 'config_missing', 'error', 'BUTTONDOWN_API_KEY not configured', 0, 500);
     return json({ ok: false, error: 'Server misconfigured' }, 500);
   }
 
@@ -85,7 +86,7 @@ export async function onRequestPost(context) {
       }),
     });
   } catch (err) {
-    console.error('Buttondown fetch failed:', err.message);
+    log(env, waitUntil, 'newsletter', 'subscribe_error', 'error', err.message, 0, 502);
     return json({ ok: false, error: 'Something went wrong. Please try again.' }, 502);
   }
 
@@ -95,7 +96,7 @@ export async function onRequestPost(context) {
     if (bdResp.status === 400 && errBody.includes('already')) {
       return json({ ok: true, message: 'You are already subscribed.' });
     }
-    console.error('Buttondown error:', bdResp.status, errBody);
+    log(env, waitUntil, 'newsletter', 'buttondown_error', 'error', `${bdResp.status} ${errBody}`, 0, 502);
     return json({ ok: false, error: 'Something went wrong. Please try again.' }, 502);
   }
 
@@ -107,7 +108,7 @@ export async function onRequestPost(context) {
       ).bind(email).run();
     } catch (err) {
       // Non-fatal: subscriber is added to Buttondown even if D1 update fails
-      console.error('D1 newsletter_opt_in update failed:', err.message);
+      log(env, waitUntil, 'newsletter', 'd1_update_error', 'warn', err.message, 0, 0);
     }
   }
 

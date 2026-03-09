@@ -12,16 +12,17 @@ import {
   json, optionsResponse, getSessionIdFromCookie, validateSession,
   STRIPE_API_VERSION,
 } from '../auth/_shared.js';
+import { log } from '../_log.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
 }
 
-export async function onRequestGet({ request, env }) {
+export async function onRequestGet({ request, env, waitUntil }) {
   try {
     return await handleStatus(request, env);
   } catch (err) {
-    console.error('billing status error:', err.message, err.stack);
+    log(env, waitUntil, 'billing', 'status_error', 'error', err.message, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }

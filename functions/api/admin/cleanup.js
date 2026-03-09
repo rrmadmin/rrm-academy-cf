@@ -4,7 +4,9 @@
  * Protected by ADMIN_API_SECRET env var.
  * Call daily from n8n or any external cron.
  */
-export async function onRequestPost({ request, env }) {
+import { log } from '../_log.js';
+
+export async function onRequestPost({ request, env, waitUntil }) {
   const auth = request.headers.get('Authorization');
   if (!env.ADMIN_API_SECRET || auth !== `Bearer ${env.ADMIN_API_SECRET}`) {
     return new Response('Unauthorized', { status: 401 });
@@ -29,6 +31,7 @@ export async function onRequestPost({ request, env }) {
     },
   };
 
-  console.log('Cleanup:', JSON.stringify(result));
+  const total = result.pruned.sessions + result.pruned.password_resets + result.pruned.email_verifications + result.pruned.webhook_events;
+  log(env, waitUntil, 'admin', 'cleanup_completed', 'ok', `pruned ${total} rows`, 0, 200);
   return Response.json(result);
 }
