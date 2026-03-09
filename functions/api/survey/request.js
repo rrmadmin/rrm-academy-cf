@@ -128,9 +128,6 @@ function buildEmailHtml(surveyUrl) {
       <p style="font-size:14px;line-height:1.6;color:#94918e;margin:24px 0 0;">
         This link is for your use only and can only be used once. If you did not request this survey, you can safely ignore this email.
       </p>
-      <p style="font-size:12px;line-height:1.6;color:#b0adaa;margin:16px 0 0;">
-        Your anonymized responses may be used for research purposes and participation in the survey indicates consent.
-      </p>
     </div>
     <div style="text-align:center;padding:24px 0 0;">
       <p style="font-size:12px;color:#94918e;margin:0;">
