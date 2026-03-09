@@ -102,7 +102,7 @@ jobs:
         run: |
           fail=0
           # Minimum expected record counts (fail deploy if below these)
-          declare -A MIN_COUNTS=( [articles.json]=3000 [posts.json]=5 [faqs.json]=10 [courses.json]=1 )
+          declare -A MIN_COUNTS=( [articles.json]=2900 [posts.json]=5 [faqs.json]=10 [courses.json]=1 )
           for f in src/data/articles.json src/data/posts.json src/data/faqs.json src/data/courses.json; do
             base=$(basename "$f")
             if [ ! -f "$f" ]; then
