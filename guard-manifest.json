@@ -19,7 +19,7 @@
       "note": "Google OAuth"
     },
     "functions/api/stripe-webhook.js": {
-      "hash": "2d6745351e9c15708bfd1a8beca1afdfe7d68a52f03dfda484fb5b6df7887c57",
+      "hash": "2af9df741e38ea50a4f27d72007ae8e7020b89de4b39faebce01e53ff6433eda",
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
@@ -39,7 +39,7 @@
       "note": "Auth gating"
     },
     "wrangler.toml": {
-      "hash": "8386ac0bb74d89d24dc212cc2a7b0c0a2a4190bd226316f569b64cba325b2611",
+      "hash": "66cc596e1f3f76f8ef7ed7f3366ad30ee3ad142e6bf2a452f7bb28cae422b956",
       "note": "D1, KV, R2 bindings"
     },
     "scripts/guard.mjs": {

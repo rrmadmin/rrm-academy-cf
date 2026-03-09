@@ -3,12 +3,12 @@
  * Receives Stripe webhook events and processes them.
  *
  * Events handled:
- *   - checkout.session.completed      → link stripe_customer_id to D1 user + course enrollment
- *   - customer.subscription.updated   → notify user on past_due / tier change
- *   - customer.subscription.deleted   → email cancellation confirmation
- *   - invoice.payment_failed          → email user to update payment method
+ *   - checkout.session.completed      -> link stripe_customer_id to D1 user + course enrollment
+ *   - customer.subscription.updated   -> notify user on past_due / tier change
+ *   - customer.subscription.deleted   -> email cancellation confirmation
+ *   - invoice.payment_failed          -> email user to update payment method
  *
- * No CORS headers — this is a server-to-server endpoint called by Stripe.
+ * No CORS headers -- this is a server-to-server endpoint called by Stripe.
  * Uses constructEventAsync for CF Workers (async Web Crypto API).
  *
  * NOTE: Billing status (/api/billing/status) queries Stripe directly, so
@@ -23,12 +23,14 @@ import { enrollUser } from './courses/enroll.js';
 import { getCourse } from './courses/_shared.js';
 import { sendEmail as sesSendEmail } from './_ses.js';
 import { sendGA4Event } from './_ga4.js';
+import { log } from './_log.js';
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, waitUntil }) {
   try {
-    return await handleWebhook(request, env);
+    return await handleWebhook(request, env, waitUntil);
   } catch (err) {
     console.error('Unhandled webhook error:', err.message, err.stack);
+    log(env, waitUntil, 'billing', 'webhook_error', 'error', err.message, 0, 500);
     return new Response(JSON.stringify({ ok: false, error: 'Internal error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
@@ -36,7 +38,7 @@ export async function onRequestPost({ request, env }) {
   }
 }
 
-async function handleWebhook(request, env) {
+async function handleWebhook(request, env, waitUntil) {
   const stripeKey = env.STRIPE_SECRET_KEY;
   const webhookSecret = env.STRIPE_WEBHOOK_SECRET;
   if (!stripeKey || !webhookSecret) {
@@ -65,7 +67,7 @@ async function handleWebhook(request, env) {
   try {
     event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
   } catch (err) {
-    console.error('Webhook signature verification failed:', err.message);
+    log(env, waitUntil, 'billing', 'webhook_sig_fail', 'error', err.message, 0, 400);
     return new Response(JSON.stringify({ ok: false, error: 'Invalid signature' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' },
@@ -74,7 +76,8 @@ async function handleWebhook(request, env) {
 
   const db = env.DB;
   if (!db) {
-    console.error('DB binding missing — cannot process webhook event');
+    console.error('DB binding missing -- cannot process webhook event');
+    log(env, waitUntil, 'billing', 'webhook_no_db', 'error', event.id, 0, 500);
     return new Response(JSON.stringify({ ok: false, error: 'DB not configured' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
@@ -85,14 +88,14 @@ async function handleWebhook(request, env) {
   try {
     const ins = await db.prepare('INSERT OR IGNORE INTO webhook_event (event_id) VALUES (?)').bind(event.id).run();
     if (ins.meta.changes === 0) {
-      console.log(`Duplicate webhook event ${event.id} — skipping`);
+      log(env, waitUntil, 'billing', 'webhook_duplicate', 'skipped', event.id);
       return new Response(JSON.stringify({ ok: true, skipped: true }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       });
     }
   } catch (_e) {
-    // Table may not exist yet — proceed without dedup
+    // Table may not exist yet -- proceed without dedup
     console.warn('webhook_event dedup check failed, proceeding:', _e.message);
   }
 
@@ -102,9 +105,9 @@ async function handleWebhook(request, env) {
 
       // Link Stripe customer to D1 user, or auto-create account for anonymous checkout
       try {
-        await ensureAccountForCheckout(db, session, env);
+        await ensureAccountForCheckout(db, session, env, waitUntil);
       } catch (linkErr) {
-        console.error('ensureAccountForCheckout failed:', linkErr.message, linkErr.stack);
+        log(env, waitUntil, 'billing', 'account_link_fail', 'error', linkErr.message, 0, 500);
         // Return 500 so Stripe retries -- user needs an account for course access
         return new Response(JSON.stringify({ error: 'Account linkage failed' }), {
           status: 500,
@@ -117,17 +120,17 @@ async function handleWebhook(request, env) {
         const courseId = session.metadata.courseId;
         const paymentIntent = session.payment_intent;
         if (!getCourse(courseId)) {
-          console.error(`Course ${courseId} not found in catalog — skipping enrollment for user ${session.client_reference_id}`);
+          log(env, waitUntil, 'billing', 'course_not_found', 'error', `${courseId} user=${session.client_reference_id}`);
         } else {
           // eslint-disable-next-line no-useless-assignment -- readability: tracks enrollment state for email below
           let enrolled = false;
           try {
             await enrollUser(db, session.client_reference_id, courseId, paymentIntent);
-            console.log(`Enrolled user ${session.client_reference_id} in course ${courseId}`);
+            log(env, waitUntil, 'billing', 'course_enrolled', 'ok', `${courseId} user=${session.client_reference_id}`);
             enrolled = true;
           } catch (enrollErr) {
-            console.error(`Failed to enroll user in course ${courseId}:`, enrollErr.message);
-            // Return 500 so Stripe retries the webhook — don't silently eat enrollment failures
+            log(env, waitUntil, 'billing', 'course_enroll_fail', 'error', `${courseId}: ${enrollErr.message}`, 0, 500);
+            // Return 500 so Stripe retries the webhook -- don't silently eat enrollment failures
             return new Response(JSON.stringify({ error: 'Enrollment failed' }), {
               status: 500,
               headers: { 'Content-Type': 'application/json' },
@@ -157,9 +160,9 @@ async function handleWebhook(request, env) {
                     'A project of the RRM Foundation — 501(c)(3), EIN: 93-4594315',
                   ].join('\n'),
                 });
-                console.log(`Course enrollment email sent to ${email} for ${courseId}`);
+                log(env, waitUntil, 'billing', 'enrollment_email_sent', 'ok', `${email} ${courseId}`);
               } catch (emailErr) {
-                console.error('Failed to send course enrollment email:', emailErr.message);
+                log(env, waitUntil, 'billing', 'enrollment_email_fail', 'error', `${email}: ${emailErr.message}`);
               }
             }
           }
@@ -216,9 +219,9 @@ async function handleWebhook(request, env) {
                 'A project of the RRM Foundation — 501(c)(3), EIN: 93-4594315',
               ].join('\n'),
             });
-            console.log(`Membership confirmation email sent to ${email} (${tierLabel})`);
+            log(env, waitUntil, 'billing', 'membership_email_sent', 'ok', `${email} ${tierLabel}`);
           } catch (emailErr) {
-            console.error('Failed to send membership confirmation email:', emailErr.message);
+            log(env, waitUntil, 'billing', 'membership_email_fail', 'error', `${email}: ${emailErr.message}`);
           }
         }
       }
@@ -244,13 +247,13 @@ async function handleWebhook(request, env) {
 
     case 'customer.subscription.updated': {
       const sub = event.data.object;
-      console.log(`Subscription updated: ${sub.id}, status: ${sub.status}`);
+      log(env, waitUntil, 'billing', 'subscription_updated', 'ok', `${sub.id} status=${sub.status}`);
 
       // Notify user when subscription goes past_due (payment retry failing)
       if (sub.status === 'past_due' && env.AWS_ACCESS_KEY_ID) {
-        const email = await getEmailByStripeCustomer(db, sub.customer);
+        const email = await getEmailByStripeCustomer(db, sub.customer, env, waitUntil);
         if (email) {
-          await sendEmailSafe(env, {
+          await sendEmailSafe(env, waitUntil, {
             to: email,
             subject: 'Action needed: update your payment method',
             text: [
@@ -267,7 +270,7 @@ async function handleWebhook(request, env) {
               'A project of the RRM Foundation — 501(c)(3), EIN: 93-4594315',
             ].join('\n'),
           });
-          console.log(`Past-due notification sent to ${email}`);
+          log(env, waitUntil, 'billing', 'past_due_notified', 'ok', email);
         }
       }
       break;
@@ -275,13 +278,13 @@ async function handleWebhook(request, env) {
 
     case 'customer.subscription.deleted': {
       const sub = event.data.object;
-      console.log(`Subscription deleted: ${sub.id}, customer: ${sub.customer}`);
+      log(env, waitUntil, 'billing', 'subscription_deleted', 'ok', `${sub.id} customer=${sub.customer}`);
 
       // Send cancellation confirmation email
       if (env.AWS_ACCESS_KEY_ID) {
-        const email = await getEmailByStripeCustomer(db, sub.customer);
+        const email = await getEmailByStripeCustomer(db, sub.customer, env, waitUntil);
         if (email) {
-          await sendEmailSafe(env, {
+          await sendEmailSafe(env, waitUntil, {
             to: email,
             subject: 'Your Save the Uterus Club membership has ended',
             text: [
@@ -300,7 +303,7 @@ async function handleWebhook(request, env) {
               'A project of the RRM Foundation — 501(c)(3), EIN: 93-4594315',
             ].join('\n'),
           });
-          console.log(`Cancellation confirmation sent to ${email}`);
+          log(env, waitUntil, 'billing', 'cancellation_email_sent', 'ok', email);
         }
       }
       break;
@@ -308,13 +311,13 @@ async function handleWebhook(request, env) {
 
     case 'invoice.payment_failed': {
       const invoice = event.data.object;
-      console.log(`Payment failed for invoice: ${invoice.id}, customer: ${invoice.customer}`);
+      log(env, waitUntil, 'billing', 'payment_failed', 'error', `${invoice.id} customer=${invoice.customer}`);
 
       // Email user about the failed payment
       if (env.AWS_ACCESS_KEY_ID) {
-        const email = await getEmailByStripeCustomer(db, invoice.customer);
+        const email = await getEmailByStripeCustomer(db, invoice.customer, env, waitUntil);
         if (email) {
-          await sendEmailSafe(env, {
+          await sendEmailSafe(env, waitUntil, {
             to: email,
             subject: 'Payment failed for your RRM Academy membership',
             text: [
@@ -333,14 +336,14 @@ async function handleWebhook(request, env) {
               'A project of the RRM Foundation — 501(c)(3), EIN: 93-4594315',
             ].join('\n'),
           });
-          console.log(`Payment failed notification sent to ${email}`);
+          log(env, waitUntil, 'billing', 'payment_failed_notified', 'ok', email);
         }
       }
       break;
     }
 
     default:
-      console.log(`Unhandled event type: ${event.type}`);
+      log(env, waitUntil, 'billing', 'webhook_unhandled', 'skipped', event.type);
   }
 
   // Always return 200 to acknowledge receipt
@@ -353,16 +356,16 @@ async function handleWebhook(request, env) {
 /**
  * Ensure a D1 account exists for the checkout session's customer.
  *
- * 1. Logged-in user (client_reference_id set) → link stripe_customer_id
- * 2. Anonymous, email matches existing account → link stripe_customer_id
- * 3. Anonymous, no account → create account, send welcome email with password-setup link
+ * 1. Logged-in user (client_reference_id set) -> link stripe_customer_id
+ * 2. Anonymous, email matches existing account -> link stripe_customer_id
+ * 3. Anonymous, no account -> create account, send welcome email with password-setup link
  */
-async function ensureAccountForCheckout(db, session, env) {
+async function ensureAccountForCheckout(db, session, env, waitUntil) {
   const customerId = session.customer;
   const email = (session.customer_details?.email || session.customer_email || '').toLowerCase().trim();
 
   if (!email) {
-    console.log('No email on checkout session — skipping account linkage');
+    log(env, waitUntil, 'billing', 'no_checkout_email', 'skipped', session.id);
     return;
   }
 
@@ -372,12 +375,12 @@ async function ensureAccountForCheckout(db, session, env) {
       await db.prepare(
         'UPDATE user SET stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE id = ? AND (stripe_customer_id IS NULL OR stripe_customer_id = ?)'
       ).bind(customerId, session.client_reference_id, customerId).run();
-      console.log(`Linked Stripe ${customerId} to user ${session.client_reference_id} (by ID)`);
+      log(env, waitUntil, 'billing', 'stripe_linked', 'ok', `${customerId} -> user ${session.client_reference_id} (by ID)`);
     }
     return;
   }
 
-  // Case 2: Anonymous checkout — check if email matches existing account
+  // Case 2: Anonymous checkout -- check if email matches existing account
   const existing = await db.prepare('SELECT id, stripe_customer_id FROM user WHERE email = ? COLLATE NOCASE')
     .bind(email).first();
 
@@ -385,12 +388,12 @@ async function ensureAccountForCheckout(db, session, env) {
     if (customerId && !existing.stripe_customer_id) {
       await db.prepare('UPDATE user SET stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE id = ?')
         .bind(customerId, existing.id).run();
-      console.log(`Linked Stripe ${customerId} to existing user ${existing.id} (by email)`);
+      log(env, waitUntil, 'billing', 'stripe_linked', 'ok', `${customerId} -> user ${existing.id} (by email)`);
     }
     return;
   }
 
-  // Case 3: No account exists — auto-create one
+  // Case 3: No account exists -- auto-create one
   // Use INSERT OR IGNORE to handle race conditions (concurrent webhook retries for same email)
   const id = generateId();
   const name = session.customer_details?.name || '';
@@ -406,10 +409,10 @@ async function ensureAccountForCheckout(db, session, env) {
       await db.prepare('UPDATE user SET stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE email = ? COLLATE NOCASE AND stripe_customer_id IS NULL')
         .bind(customerId, email).run();
     }
-    console.log(`Account already exists for ${email} (concurrent creation) -- linked Stripe ${customerId}`);
+    log(env, waitUntil, 'billing', 'stripe_linked', 'ok', `${email} concurrent, linked ${customerId}`);
     return;
   }
-  console.log(`Auto-created account ${id} for ${email} (Stripe ${customerId})`);
+  log(env, waitUntil, 'billing', 'auto_account_created', 'ok', `${id} ${email} stripe=${customerId}`);
 
   // Generate 7-day password reset token so user can set a password
   if (env.AWS_ACCESS_KEY_ID) {
@@ -423,7 +426,7 @@ async function ensureAccountForCheckout(db, session, env) {
 
     const setPasswordUrl = `${SITE_URL}/reset-password?token=${token}`;
 
-    await sendEmailSafe(env, {
+    await sendEmailSafe(env, waitUntil, {
       to: email,
       subject: 'Your RRM Academy account is ready',
       text: [
@@ -440,7 +443,7 @@ async function ensureAccountForCheckout(db, session, env) {
         'A project of the RRM Foundation — 501(c)(3), EIN: 93-4594315',
       ].join('\n'),
     });
-    console.log(`Welcome email sent to ${email} for auto-created account ${id}`);
+    log(env, waitUntil, 'billing', 'welcome_email_sent', 'ok', `${email} account=${id}`);
   }
 }
 
@@ -448,23 +451,23 @@ async function ensureAccountForCheckout(db, session, env) {
  * Look up a user's email by their Stripe customer ID.
  * Returns null if not found.
  */
-async function getEmailByStripeCustomer(db, stripeCustomerId) {
+async function getEmailByStripeCustomer(db, stripeCustomerId, env, waitUntil) {
   if (!stripeCustomerId) return null;
   try {
     const row = await db.prepare('SELECT email FROM user WHERE stripe_customer_id = ?')
       .bind(stripeCustomerId).first();
     return row?.email || null;
   } catch (err) {
-    console.error(`Failed to look up email for Stripe customer ${stripeCustomerId}:`, err.message);
+    log(env, waitUntil, 'billing', 'email_lookup_fail', 'error', `${stripeCustomerId}: ${err.message}`);
     return null;
   }
 }
 
 /**
  * Send a transactional email via SES.
- * Logs errors but does not throw — email failure should not block webhook processing.
+ * Logs errors but does not throw -- email failure should not block webhook processing.
  */
-async function sendEmailSafe(env, { to, subject, text }) {
+async function sendEmailSafe(env, waitUntil, { to, subject, text }) {
   try {
     await sesSendEmail(env, {
       from: 'RRM Academy <accounts@mail.rrmacademy.org>',
@@ -473,6 +476,6 @@ async function sendEmailSafe(env, { to, subject, text }) {
       text,
     });
   } catch (err) {
-    console.error(`Email send error to ${to}:`, err.message);
+    log(env, waitUntil, 'billing', 'email_send_fail', 'error', `${to}: ${err.message}`);
   }
 }
