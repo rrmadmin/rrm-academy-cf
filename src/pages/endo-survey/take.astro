@@ -171,10 +171,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           <div class="results-cta">
             <h3>You do not have to figure this out alone.</h3>
             <p>
-              Join <strong>Uterus Allies</strong> — Dr. Whittaker's free private community on Instagram. Resources, research, and live expert calls.
+              Follow Dr. Whittaker on Instagram for resources, research, and expert guidance on endometriosis and restorative reproductive medicine.
             </p>
             <p style="margin-top: var(--space-4);">
-              <a href="https://ig.me/j/AbbmORXZV3iHcj-H/" target="_blank" rel="noopener" class="btn btn--secondary" style="display:inline-block; margin-bottom: var(--space-3);">Join Uterus Allies (free)</a>
+              <a href="https://www.instagram.com/napro_fertility_surgeon/" target="_blank" rel="noopener" class="btn btn--secondary" style="display:inline-block; margin-bottom: var(--space-3);">Follow @napro_fertility_surgeon</a>
             </p>
             <p>
               Save your results PDF and bring it to your next appointment. To learn more about restorative reproductive medicine, visit <a href="https://rrmacademy.org/about">rrmacademy.org</a>.
@@ -824,31 +824,24 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         doc.setFontSize(10);
         doc.setFont('helvetica', 'italic');
         doc.setTextColor(99, 98, 97);
-        const ctaText = 'You do not have to figure this out alone. Come join me in Uterus Allies, my free private community on Instagram. Resources, research, and live expert calls.';
+        const ctaText = 'You do not have to figure this out alone. Follow me on Instagram for resources, research, and expert guidance on endometriosis and restorative reproductive medicine.';
         const ctaLines = doc.splitTextToSize(ctaText, maxW);
         doc.text(ctaLines, margin, y2);
         y2 += ctaLines.length * 5 + 8;
 
-        // Join link
+        // Follow handle
         doc.setFontSize(13);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(114, 94, 126);
-        doc.text('Join Uterus Allies (free)', margin + maxW / 2, y2, { align: 'center' });
-        const joinLinkY = y2;
+        doc.text('Follow @napro_fertility_surgeon', margin + maxW / 2, y2, { align: 'center' });
+        const followLinkY = y2;
         y2 += 5;
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(99, 98, 97);
-        doc.text('rrmacademy.org/allies', margin + maxW / 2, y2, { align: 'center' });
-        doc.link(margin, joinLinkY - 4, maxW, 10, { url: 'https://rrmacademy.org/allies' });
+        doc.text('instagram.com/napro_fertility_surgeon', margin + maxW / 2, y2, { align: 'center' });
+        doc.link(margin, followLinkY - 4, maxW, 10, { url: 'https://www.instagram.com/napro_fertility_surgeon/' });
         y2 += 10;
-
-        // Follow handle
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(114, 94, 126);
-        doc.text('Follow @napro_fertility_surgeon', margin + maxW / 2, y2, { align: 'center' });
-        y2 += 8;
 
         // Signature
         doc.setFontSize(9);
