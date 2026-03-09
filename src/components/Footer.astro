@@ -53,6 +53,9 @@ const helpLinks = [
       <div class="footer-col footer-col--wide">
         <h3 class="footer-heading">RRM Academy</h3>
         <p class="footer-text">
+          RRM Academy is a 501(c)(3) nonprofit providing free and low-cost education in restorative reproductive medicine for patients and healthcare professionals.
+        </p>
+        <p class="footer-text">
           This site is an educational resource and does not provide medical advice.
           Inclusion of a study does not imply endorsement of its findings.
           Always consult a qualified healthcare provider for diagnosis and treatment.
@@ -67,6 +70,9 @@ const helpLinks = [
       <p class="footer-copyright">
         &copy; {year} RRM Academy &middot; All Rights Reserved
       </p>
+      <address class="footer-address">
+        Restorative Reproductive Medicine Foundation Inc. &middot; 3401 Hartzdale Dr, Ste 103B PMB 3518, Camp Hill, PA 17011 &middot; EIN: 93-4594315
+      </address>
       <div class="footer-legal">
         <a href="/terms-of-use/">Terms of Use</a>
         <a href="/medical-disclaimer/">Medical Disclaimer</a>
@@ -184,6 +190,7 @@ const helpLinks = [
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
     padding-top: var(--space-6);
     border-top: 1px solid var(--footer-border);
   }
@@ -204,6 +211,15 @@ const helpLinks = [
   }
   .footer-legal a:hover {
     color: var(--footer-link);
+  }
+  .footer-address {
+    font-style: normal;
+    font-size: 0.6875rem;
+    color: var(--footer-muted);
+    text-align: center;
+    width: 100%;
+    order: 3;
+    margin-top: var(--space-3);
   }
 
   @media (max-width: 768px) {
