@@ -96,7 +96,7 @@ async function handleWebhook(request, env, waitUntil) {
     }
   } catch (_e) {
     // Table may not exist yet -- proceed without dedup
-    console.warn('webhook_event dedup check failed, proceeding:', _e.message);
+    log(env, waitUntil, 'billing', 'dedup_check_fail', 'error', _e.message);
   }
 
   switch (event.type) {
@@ -168,7 +168,7 @@ async function handleWebhook(request, env, waitUntil) {
           }
         }
       } else if (session.metadata?.type === 'course' && !session.client_reference_id) {
-        console.warn(`Course purchase missing client_reference_id — courseId: ${session.metadata.courseId}, customer: ${session.customer}`);
+        log(env, waitUntil, 'billing', 'course_no_ref_id', 'skipped', `courseId:${session.metadata.courseId} customer:${session.customer}`);
       }
 
       // GA4: track completed course purchase
