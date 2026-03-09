@@ -3,6 +3,7 @@
  * Stores survey results in Airtable and consumes the token.
  * Input: { token, symptoms: { tier1: [...], tier2: [...], tier3: [...] }, score: { tier1, tier2, tier3, total } }
  */
+import { sendEmail } from '../_ses.js';
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
 
@@ -11,6 +12,8 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
 };
+
+const TOKEN_TTL = 24 * 60 * 60; // 24 hours -- match request.js
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -30,6 +33,9 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'Server misconfigured' }, 500);
   }
   if (!env.AIRTABLE_PAT || !env.AIRTABLE_SURVEY_BASE || !env.AIRTABLE_SURVEY_TABLE) {
+    return json({ ok: false, error: 'Server misconfigured' }, 500);
+  }
+  if (!env.SURVEY_DB) {
     return json({ ok: false, error: 'Server misconfigured' }, 500);
   }
 
@@ -64,14 +70,14 @@ export async function onRequestPost(context) {
   // Mark token as used
   const updated = { ...data, used: true, completedAt: Date.now() };
   await env.SURVEY_TOKENS.put(`token:${token}`, JSON.stringify(updated), {
-    expirationTtl: 90 * 24 * 60 * 60,
+    expirationTtl: TOKEN_TTL,
   });
 
   // Store in Airtable
+  let airtableRecordId;
   try {
     const referrer = request.headers.get('referer') || '';
     const fields = {
-      Email: data.email,
       Score: score.total,
       'Tier 1 Count': score.tier1,
       'Tier 2 Count': score.tier2,
@@ -100,17 +106,55 @@ export async function onRequestPost(context) {
       const errText = await airtableResp.text();
       log(env, waitUntil, 'survey', 'airtable_write_error', 'error', `${airtableResp.status} ${errText}`, 0, 502);
       await env.SURVEY_TOKENS.put(`token:${token}`, JSON.stringify(data), {
-        expirationTtl: 90 * 24 * 60 * 60,
+        expirationTtl: TOKEN_TTL,
       });
+      return json({ ok: false, error: 'Failed to save results. Please try again.' }, 502);
+    }
+
+    const airtableData = await airtableResp.json();
+    airtableRecordId = airtableData.records?.[0]?.id;
+    if (!airtableRecordId) {
+      log(env, waitUntil, 'survey', 'airtable_no_record_id', 'error', 'Airtable returned no record ID', 0, 502);
       return json({ ok: false, error: 'Failed to save results. Please try again.' }, 502);
     }
   } catch (err) {
     log(env, waitUntil, 'survey', 'airtable_write_error', 'error', err.message, 0, 502);
     await env.SURVEY_TOKENS.put(`token:${token}`, JSON.stringify(data), {
-      expirationTtl: 90 * 24 * 60 * 60,
+      expirationTtl: TOKEN_TTL,
     });
     return json({ ok: false, error: 'Failed to save results. Please try again.' }, 502);
   }
+
+  // Link email to Airtable record in D1 (pseudonymized)
+  try {
+    await env.SURVEY_DB.prepare(
+      'INSERT INTO survey_identities (email, airtable_record_id, source) VALUES (?, ?, ?)'
+    ).bind(data.email, airtableRecordId, 'endo-survey-v1').run();
+  } catch (d1Err) {
+    const detail = `D1 write failed: email=${data.email} record=${airtableRecordId} err=${d1Err.message}`;
+    log(env, waitUntil, 'survey', 'd1_identity_write_error', 'error', detail, 0, 500);
+
+    const alertFn = async () => {
+      try {
+        await sendEmail(env, {
+          from: 'RRM Academy <alerts@mail.rrmacademy.org>',
+          to: 'administrator@rrmacademy.org',
+          subject: 'ALERT: Survey identity link failed',
+          text: `D1 write failed during survey submission.\n\nEmail: ${data.email}\nAirtable Record ID: ${airtableRecordId}\nError: ${d1Err.message}\nTimestamp: ${new Date().toISOString()}\n\nManual action required: INSERT into survey_identities or link this record manually.`,
+        });
+      } catch (emailErr) {
+        log(env, waitUntil, 'survey', 'd1_alert_email_failed', 'error', emailErr.message, 0, 500);
+      }
+    };
+    waitUntil(alertFn());
+  }
+
+  // Strip email from KV token
+  const stripped = { ...updated, email: undefined };
+  delete stripped.email;
+  await env.SURVEY_TOKENS.put(`token:${token}`, JSON.stringify(stripped), {
+    expirationTtl: TOKEN_TTL,
+  });
 
   sendGA4Event(env, request, 'generate_lead', { event_category: 'endo_survey' }).catch(() => {});
 
