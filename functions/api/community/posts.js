@@ -5,6 +5,7 @@
  * DELETE /api/community/posts                                 — delete post
  */
 import { json, optionsResponse, generateId } from '../auth/_shared.js';
+import { log } from '../_log.js';
 import {
   requireMember, displayName, canCreateType, canEditPost, canDeletePost, canPin, roleAtLeast,
   tierFromLabel, TIER_LABELS,
@@ -36,7 +37,7 @@ export async function onRequestOptions() {
 
 // --- GET: list posts ---
 
-export async function onRequestGet({ request, env }) {
+export async function onRequestGet({ request, env, waitUntil }) {
   try {
     const auth = await requireMember(request, env);
     if (auth instanceof Response) return auth;
@@ -205,14 +206,14 @@ export async function onRequestGet({ request, env }) {
 
     return json({ ok: true, posts });
   } catch (err) {
-    console.error('community posts GET error:', err.message, err.stack);
+    log(env, waitUntil, 'community', 'post_error', 'error', `GET: ${err.message}`, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }
 
 // --- POST: create post ---
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, waitUntil }) {
   try {
     const auth = await requireMember(request, env);
     if (auth instanceof Response) return auth;
@@ -282,7 +283,7 @@ export async function onRequestPost({ request, env }) {
         id, body: postBody.trim(), authorId: user.id,
       }, displayName(user));
     } catch (err) {
-      console.error('Failed to send new post notification:', err.message);
+      log(env, waitUntil, 'community', 'post_error', 'error', `notification: ${err.message}`, 0, 0);
     }
 
     return json({
@@ -303,14 +304,14 @@ export async function onRequestPost({ request, env }) {
       },
     }, 201);
   } catch (err) {
-    console.error('community posts POST error:', err.message, err.stack);
+    log(env, waitUntil, 'community', 'post_error', 'error', `POST: ${err.message}`, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }
 
 // --- PATCH: edit / pin ---
 
-export async function onRequestPatch({ request, env }) {
+export async function onRequestPatch({ request, env, waitUntil }) {
   try {
     const auth = await requireMember(request, env);
     if (auth instanceof Response) return auth;
@@ -373,14 +374,14 @@ export async function onRequestPatch({ request, env }) {
 
     return json({ ok: true });
   } catch (err) {
-    console.error('community posts PATCH error:', err.message, err.stack);
+    log(env, waitUntil, 'community', 'post_error', 'error', `PATCH: ${err.message}`, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }
 
 // --- DELETE ---
 
-export async function onRequestDelete({ request, env }) {
+export async function onRequestDelete({ request, env, waitUntil }) {
   try {
     const auth = await requireMember(request, env);
     if (auth instanceof Response) return auth;
@@ -418,7 +419,7 @@ export async function onRequestDelete({ request, env }) {
 
     return json({ ok: true });
   } catch (err) {
-    console.error('community posts DELETE error:', err.message, err.stack);
+    log(env, waitUntil, 'community', 'post_error', 'error', `DELETE: ${err.message}`, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }
