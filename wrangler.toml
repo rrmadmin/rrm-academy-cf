@@ -34,4 +34,4 @@ binding = "AI"
 
 [[analytics_engine_datasets]]
 binding = "EVENTS"
-dataset = "worker-events"
+dataset = "worker_events"
