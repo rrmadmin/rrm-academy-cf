@@ -206,7 +206,7 @@ Middleware: `functions/_middleware.js` (session injection, CORS, auth gating)
 
 ## Email
 
-All transactional email uses **AWS SES** via `functions/api/_ses.js` (aws4fetch). No Resend dependency. Required env vars: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SES_REGION`.
+All transactional email uses **AWS SES** via `functions/api/_ses.js` (aws4fetch). Sends from `@mail.rrmacademy.org` subdomain (isolates transactional reputation from root domain). DKIM, SPF, DMARC, and custom MAIL FROM (`bounce.mail.rrmacademy.org`) all configured. Required env vars: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SES_REGION`.
 
 ## Operational Automation (n8n)
 
