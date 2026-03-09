@@ -31,3 +31,7 @@ index_name = "rrm-library-vectors"
 
 [ai]
 binding = "AI"
+
+[[analytics_engine_datasets]]
+binding = "EVENTS"
+dataset = "worker-events"
