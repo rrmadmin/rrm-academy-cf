@@ -1,3 +1,5 @@
+import { log } from '../_log.js';
+
 // Simple IP rate limiter: max 20 requests per minute per IP
 const rateLimitMap = new Map();
 const RATE_LIMIT = 20;
@@ -15,7 +17,7 @@ function isRateLimited(ip) {
 }
 
 export async function onRequestGet(context) {
-  const { request, env } = context;
+  const { request, env, waitUntil } = context;
   const url = new URL(request.url);
   const query = url.searchParams.get('q');
 
@@ -58,7 +60,7 @@ export async function onRequestGet(context) {
       },
     });
   } catch (err) {
-    console.error('Semantic search error:', err);
+    log(env, waitUntil, 'search', 'semantic_error', 'error', err.message, 0, 500);
     return Response.json({ results: [], error: 'search_failed' }, { status: 500 });
   }
 }

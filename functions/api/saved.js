@@ -11,13 +11,14 @@
 import {
   json, optionsResponse, getSessionIdFromCookie, validateSession,
 } from './auth/_shared.js';
+import { log } from './_log.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
 }
 
 // --- GET /api/saved ---
-export async function onRequestGet({ request, env }) {
+export async function onRequestGet({ request, env, waitUntil }) {
   try {
     const db = env.DB;
     if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
@@ -36,7 +37,7 @@ export async function onRequestGet({ request, env }) {
 
     return json({ ok: true, articles });
   } catch (err) {
-    console.error('saved GET error:', err.message, err.stack);
+    log(env, waitUntil, 'library', 'saved_get_error', 'error', err.message, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }
@@ -44,7 +45,7 @@ export async function onRequestGet({ request, env }) {
 // --- POST /api/saved ---
 // Body: { article: {...} }           — save one article
 // Body: { articles: [{...}, ...] }   — sync batch from localStorage
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, waitUntil }) {
   try {
     const db = env.DB;
     if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
@@ -107,14 +108,14 @@ export async function onRequestPost({ request, env }) {
 
     return json({ ok: true });
   } catch (err) {
-    console.error('saved POST error:', err.message, err.stack);
+    log(env, waitUntil, 'library', 'saved_post_error', 'error', err.message, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }
 
 // --- DELETE /api/saved ---
 // Body: { slug: "..." }
-export async function onRequestDelete({ request, env }) {
+export async function onRequestDelete({ request, env, waitUntil }) {
   try {
     const db = env.DB;
     if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
@@ -136,7 +137,7 @@ export async function onRequestDelete({ request, env }) {
 
     return json({ ok: true });
   } catch (err) {
-    console.error('saved DELETE error:', err.message, err.stack);
+    log(env, waitUntil, 'library', 'saved_delete_error', 'error', err.message, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }

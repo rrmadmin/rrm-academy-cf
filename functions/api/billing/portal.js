@@ -10,16 +10,17 @@ import {
   json, optionsResponse, getSessionIdFromCookie, validateSession,
   STRIPE_API_VERSION, SITE_URL,
 } from '../auth/_shared.js';
+import { log } from '../_log.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
 }
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, waitUntil }) {
   try {
     return await handlePortal(request, env);
   } catch (err) {
-    console.error('billing portal error:', err.message, err.stack);
+    log(env, waitUntil, 'billing', 'portal_error', 'error', err.message, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }

@@ -3,6 +3,7 @@
  * Validates Turnstile token, rate-limits by IP, sends email via SES.
  */
 import { sendEmail } from '../_ses.js';
+import { log } from '../_log.js';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': 'https://rrmacademy.org',
@@ -22,7 +23,7 @@ export async function onRequestOptions() {
 }
 
 export async function onRequestPost(context) {
-  const { request, env } = context;
+  const { request, env, waitUntil } = context;
 
   // Parse body
   let body;
@@ -78,7 +79,7 @@ export async function onRequestPost(context) {
     // Turnstile is configured but no token provided — likely a bot
     return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
   } else {
-    console.warn('CF_TURNSTILE_SECRET not set — Turnstile verification disabled');
+    log(env, waitUntil, 'contact', 'turnstile_missing', 'warn', 'CF_TURNSTILE_SECRET not set', 0, 0);
   }
 
   // Send notification email via SES
@@ -99,7 +100,7 @@ export async function onRequestPost(context) {
       ].join('\n'),
     });
   } catch (err) {
-    console.error('SES send failed:', err.message);
+    log(env, waitUntil, 'contact', 'send_error', 'error', err.message, 0, 502);
     return json({ ok: false, error: 'Failed to send message. Please try again.' }, 502);
   }
 
@@ -120,7 +121,7 @@ export async function onRequestPost(context) {
       ].join('\n'),
     });
   } catch (err) {
-    console.error('Confirmation email send failed:', err.message);
+    log(env, waitUntil, 'contact', 'confirmation_error', 'warn', err.message, 0, 0);
   }
 
   return json({ ok: true });

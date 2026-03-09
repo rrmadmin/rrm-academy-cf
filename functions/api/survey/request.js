@@ -4,6 +4,7 @@
  */
 import { sendEmail } from '../_ses.js';
 import { sendGA4Event } from '../_ga4.js';
+import { log } from '../_log.js';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': 'https://rrmacademy.org',
@@ -26,7 +27,7 @@ export async function onRequestOptions() {
 }
 
 export async function onRequestPost(context) {
-  const { request, env } = context;
+  const { request, env, waitUntil } = context;
 
   if (!env.SURVEY_TOKENS) {
     return json({ ok: false, error: 'Server misconfigured' }, 500);
@@ -93,7 +94,7 @@ export async function onRequestPost(context) {
       html: buildEmailHtml(surveyUrl),
     });
   } catch (err) {
-    console.error('SES send failed:', err.message);
+    log(env, waitUntil, 'survey', 'request_send_error', 'error', err.message, 0, 502);
     await env.SURVEY_TOKENS.delete(`email:${email}`);
     return json({ ok: false, error: 'Failed to send email. Please try again.' }, 502);
   }
