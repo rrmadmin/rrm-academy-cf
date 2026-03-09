@@ -13,10 +13,11 @@ import {
   exchangeGoogleCode, getGoogleProfile, isSafeRedirect, SITE_URL,
 } from './_shared.js';
 import { sendGA4Event } from '../_ga4.js';
+import { log } from '../_log.js';
 
 const LOGIN_ERROR_URL = '/login?error=oauth_failed';
 
-export async function onRequestGet({ request, env }) {
+export async function onRequestGet({ request, env, waitUntil }) {
   try {
     const db = env.DB;
     if (!db) return redirect(LOGIN_ERROR_URL);
@@ -41,14 +42,14 @@ export async function onRequestGet({ request, env }) {
     );
 
     if (!tokens.access_token) {
-      console.error('Google token exchange failed:', JSON.stringify(tokens));
+      log(env, waitUntil, 'auth', 'google_auth_error', 'error', 'token exchange failed');
       return redirect(LOGIN_ERROR_URL);
     }
 
     // Get user profile from Google
     const profile = await getGoogleProfile(tokens.access_token);
     if (!profile.id || !profile.email) {
-      console.error('Google profile missing id or email:', JSON.stringify(profile));
+      log(env, waitUntil, 'auth', 'google_auth_error', 'error', 'profile missing id or email');
       return redirect(LOGIN_ERROR_URL);
     }
 
@@ -107,6 +108,7 @@ export async function onRequestGet({ request, env }) {
     });
   } catch (err) {
     console.error('Google OAuth callback error:', err);
+    log(env, waitUntil, 'auth', 'google_auth_error', 'error', err.message);
     return redirect(LOGIN_ERROR_URL);
   }
 }
