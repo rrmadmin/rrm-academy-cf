@@ -34,6 +34,7 @@ const jsonLd = {
         <h1>Save the Uterus Club</h1>
         <p class="stuc-tagline">Creating a different kind of healthcare model.</p>
         <p class="stuc-subtext">One where the uterus isn't blamed for every problem. Where surgery isn't the first answer. Where women and couples get real answers about what's actually wrong. And real treatment to fix it.</p>
+        <p class="stuc-login-hint" id="stuc-login-hint">Already a member? <a href="/login/?redirect=/save-the-uterus-club/">Log in</a></p>
       </section>
 
       <section class="stuc-intro">
@@ -266,6 +267,8 @@ const jsonLd = {
       fetch('/api/billing/status', { credentials: 'same-origin' })
         .then(function (r) { return r.json(); })
         .then(function (data) {
+          var loginHint = document.getElementById('stuc-login-hint');
+          if (loginHint) loginHint.hidden = true;
           if (!data.ok || !data.subscription) return;
           var sub = data.subscription;
           if (sub.status !== 'active' && sub.status !== 'trialing') return;
@@ -413,6 +416,17 @@ const jsonLd = {
     color: var(--text-secondary);
     max-width: 600px;
     margin: 0 auto;
+  }
+  .stuc-login-hint {
+    margin-top: var(--space-4);
+    color: var(--text-secondary);
+  }
+  .stuc-login-hint a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .stuc-login-hint a:hover {
+    text-decoration: underline;
   }
 
   /* Intro prose */
