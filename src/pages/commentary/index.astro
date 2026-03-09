@@ -61,6 +61,18 @@ const jsonLd = {
     </div>
 
   </section>
+
+  <!-- CTA -->
+  <section class="commentary-cta" data-pagefind-ignore="all">
+    <div class="container container--narrow">
+      <h2>Take the next step</h2>
+      <p>Learn more about your body, your options, and what real care looks like.</p>
+      <div class="commentary-cta__links">
+        <a href="/endo-survey/" class="btn btn--primary">Take the Endo Self-Survey</a>
+        <a href="/courses/" class="btn btn--secondary">Explore Courses</a>
+      </div>
+    </div>
+  </section>
 </BaseLayout>
 
 <style>
@@ -119,6 +131,28 @@ const jsonLd = {
   .view-all {
     text-align: center;
     margin-top: var(--space-10);
+  }
+
+  /* CTA */
+  .commentary-cta {
+    text-align: center;
+    padding: var(--space-10) 0;
+    border-top: 1px solid var(--border-color);
+  }
+  .commentary-cta h2 {
+    font-size: 1.5rem;
+    margin-bottom: var(--space-3);
+  }
+  .commentary-cta p {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-5);
+  }
+  .commentary-cta__links {
+    display: flex;
+    gap: var(--space-4);
+    justify-content: center;
+    flex-wrap: wrap;
   }
 
 </style>
