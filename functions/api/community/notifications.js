@@ -2,13 +2,14 @@
  * PATCH /api/community/notifications -- toggle email opt-out
  */
 import { json, optionsResponse } from '../auth/_shared.js';
+import { log } from '../_log.js';
 import { requireMember } from './_shared.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
 }
 
-export async function onRequestPatch({ request, env }) {
+export async function onRequestPatch({ request, env, waitUntil }) {
   try {
     const auth = await requireMember(request, env);
     if (auth instanceof Response) return auth;
@@ -30,7 +31,7 @@ export async function onRequestPatch({ request, env }) {
 
     return json({ ok: true, emailOptOut });
   } catch (err) {
-    console.error('community notifications PATCH error:', err.message, err.stack);
+    log(env, waitUntil, 'community', 'notifications_error', 'error', err.message, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }

@@ -2,6 +2,7 @@
  * GET /api/community/members -- list all active STUC members
  */
 import { json, optionsResponse } from '../auth/_shared.js';
+import { log } from '../_log.js';
 import { requireMember, displayName, TIER_LABEL_MAP } from './_shared.js';
 
 const TIER_LABELS = Object.keys(TIER_LABEL_MAP);
@@ -19,7 +20,7 @@ export async function onRequestOptions() {
   return optionsResponse();
 }
 
-export async function onRequestGet({ request, env }) {
+export async function onRequestGet({ request, env, waitUntil }) {
   try {
     const auth = await requireMember(request, env);
     if (auth instanceof Response) return auth;
@@ -85,7 +86,7 @@ export async function onRequestGet({ request, env }) {
 
     return json({ ok: true, members });
   } catch (err) {
-    console.error('community members GET error:', err.message, err.stack);
+    log(env, waitUntil, 'community', 'members_error', 'error', err.message, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }

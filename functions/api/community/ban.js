@@ -2,13 +2,14 @@
  * POST /api/community/ban -- ban a user (admin+ only)
  */
 import { json, optionsResponse } from '../auth/_shared.js';
+import { log } from '../_log.js';
 import { requireMember, roleAtLeast } from './_shared.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
 }
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, waitUntil }) {
   try {
     const auth = await requireMember(request, env);
     if (auth instanceof Response) return auth;
@@ -60,7 +61,7 @@ export async function onRequestPost({ request, env }) {
 
     return json({ ok: true });
   } catch (err) {
-    console.error('community ban POST error:', err.message, err.stack);
+    log(env, waitUntil, 'community', 'ban_error', 'error', err.message, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }

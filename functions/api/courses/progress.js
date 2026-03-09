@@ -8,6 +8,7 @@
 import {
   json, optionsResponse, getSessionIdFromCookie, validateSession,
 } from '../auth/_shared.js';
+import { log } from '../_log.js';
 import { getCourse, getTotalSteps, isValidStep, getCertificateQuizId, CERTIFICATE_MIN_SCORE, getPreviousStepId, autoEnrollAdmin } from './_shared.js';
 
 export async function onRequestOptions() {
@@ -16,7 +17,7 @@ export async function onRequestOptions() {
 
 // --- GET: read progress ---
 
-export async function onRequestGet({ request, env }) {
+export async function onRequestGet({ request, env, waitUntil }) {
   try {
     const db = env.DB;
     if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
@@ -33,7 +34,7 @@ export async function onRequestGet({ request, env }) {
     }
     return getProgressSummary(db, session.userId);
   } catch (err) {
-    console.error('progress GET error:', err.message, err.stack);
+    log(env, waitUntil, 'courses', 'progress_error', 'error', `GET: ${err.message}`, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }
@@ -110,11 +111,11 @@ async function getDetailedProgress(db, userId, courseId) {
 
 // --- PATCH: save progress ---
 
-export async function onRequestPatch({ request, env }) {
+export async function onRequestPatch({ request, env, waitUntil }) {
   try {
     return await handleProgressUpdate(request, env);
   } catch (err) {
-    console.error('progress PATCH error:', err.message, err.stack);
+    log(env, waitUntil, 'courses', 'progress_error', 'error', `PATCH: ${err.message}`, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }

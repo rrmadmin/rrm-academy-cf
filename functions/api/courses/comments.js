@@ -8,6 +8,7 @@
 import {
   json, optionsResponse, getSessionIdFromCookie, validateSession, generateId,
 } from '../auth/_shared.js';
+import { log } from '../_log.js';
 import { isValidStep } from './_shared.js';
 
 export async function onRequestOptions() {
@@ -16,7 +17,7 @@ export async function onRequestOptions() {
 
 // --- GET: list comments for a step ---
 
-export async function onRequestGet({ request, env }) {
+export async function onRequestGet({ request, env, waitUntil }) {
   try {
     const db = env.DB;
     if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
@@ -83,14 +84,14 @@ export async function onRequestGet({ request, env }) {
 
     return json({ ok: true, comments: topLevel, count: rows.results.length });
   } catch (err) {
-    console.error('comments GET error:', err.message, err.stack);
+    log(env, waitUntil, 'courses', 'course_comment_error', 'error', `GET: ${err.message}`, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }
 
 // --- POST: create a comment ---
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, waitUntil }) {
   try {
     const db = env.DB;
     if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
@@ -160,7 +161,7 @@ export async function onRequestPost({ request, env }) {
       },
     }, 201);
   } catch (err) {
-    console.error('comments POST error:', err.message, err.stack);
+    log(env, waitUntil, 'courses', 'course_comment_error', 'error', `POST: ${err.message}`, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }

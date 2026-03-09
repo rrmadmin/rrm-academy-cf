@@ -3,6 +3,7 @@
  * DELETE /api/community/reactions  — explicit remove
  */
 import { json, optionsResponse } from '../auth/_shared.js';
+import { log } from '../_log.js';
 import { requireMember } from './_shared.js';
 
 const ALLOWED_EMOJI = ['❤️', '👏', '😢'];
@@ -11,7 +12,7 @@ export async function onRequestOptions() {
   return optionsResponse();
 }
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, waitUntil }) {
   try {
     const auth = await requireMember(request, env);
     if (auth instanceof Response) return auth;
@@ -50,12 +51,12 @@ export async function onRequestPost({ request, env }) {
 
     return json({ ok: true, action: 'added' }, 201);
   } catch (err) {
-    console.error('community reactions error:', err.message, err.stack);
+    log(env, waitUntil, 'community', 'reaction_error', 'error', `POST: ${err.message}`, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }
 
-export async function onRequestDelete({ request, env }) {
+export async function onRequestDelete({ request, env, waitUntil }) {
   try {
     const auth = await requireMember(request, env);
     if (auth instanceof Response) return auth;
@@ -78,7 +79,7 @@ export async function onRequestDelete({ request, env }) {
 
     return json({ ok: true });
   } catch (err) {
-    console.error('community reactions DELETE error:', err.message, err.stack);
+    log(env, waitUntil, 'community', 'reaction_error', 'error', `DELETE: ${err.message}`, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }

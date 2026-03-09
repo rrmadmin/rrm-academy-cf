@@ -17,6 +17,7 @@
 import {
   json, optionsResponse, getSessionIdFromCookie, validateSession,
 } from '../auth/_shared.js';
+import { log } from '../_log.js';
 import { getCourse, isValidStep, getPreviousStepId, autoEnrollAdmin } from './_shared.js';
 import quizData from '../../../src/data/quizzes.json';
 
@@ -26,7 +27,7 @@ export async function onRequestOptions() {
 
 // --- GET: fetch quiz questions ---
 
-export async function onRequestGet({ request, env }) {
+export async function onRequestGet({ request, env, waitUntil }) {
   try {
     const db = env.DB;
     if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
@@ -88,18 +89,18 @@ export async function onRequestGet({ request, env }) {
       questions: safeQuestions,
     });
   } catch (err) {
-    console.error('quiz GET error:', err.message, err.stack);
+    log(env, waitUntil, 'courses', 'quiz_error', 'error', `GET: ${err.message}`, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }
 
 // --- POST: submit quiz answers ---
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, waitUntil }) {
   try {
     return await handleQuizSubmit(request, env);
   } catch (err) {
-    console.error('quiz POST error:', err.message, err.stack);
+    log(env, waitUntil, 'courses', 'quiz_error', 'error', `POST: ${err.message}`, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }

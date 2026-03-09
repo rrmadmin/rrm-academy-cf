@@ -14,6 +14,7 @@ import {
   json, optionsResponse, getSessionIdFromCookie, validateSession, generateId,
   STRIPE_API_VERSION, SITE_URL,
 } from '../auth/_shared.js';
+import { log } from '../_log.js';
 import { getCourse, getIncludedCourseIds } from './_shared.js';
 import { sendGA4Event } from '../_ga4.js';
 
@@ -21,16 +22,16 @@ export async function onRequestOptions() {
   return optionsResponse();
 }
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, waitUntil }) {
   try {
-    return await handleEnroll(request, env);
+    return await handleEnroll(request, env, waitUntil);
   } catch (err) {
-    console.error('enroll error:', err.message, err.stack);
+    log(env, waitUntil, 'courses', 'enroll_error', 'error', err.message, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }
 
-async function handleEnroll(request, env) {
+async function handleEnroll(request, env, waitUntil) {
   const db = env.DB;
   if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
 
@@ -106,7 +107,7 @@ async function handleEnroll(request, env) {
   try {
     checkoutSession = await stripe.checkout.sessions.create(sessionParams);
   } catch (err) {
-    console.error('Stripe checkout.sessions.create failed:', err.message);
+    log(env, waitUntil, 'courses', 'enroll_error', 'error', `stripe checkout: ${err.message}`, 0, 503);
     return json({ ok: false, error: 'Payment service unavailable. Please try again shortly.' }, 503);
   }
   sendGA4Event(env, request, 'begin_checkout', {

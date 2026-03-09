@@ -3,13 +3,14 @@
  * Returns: { ok, access, user? { name, role, tier } }
  */
 import { json, optionsResponse, getSessionIdFromCookie, validateSession } from '../auth/_shared.js';
+import { log } from '../_log.js';
 import { requireMember, displayName } from './_shared.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
 }
 
-export async function onRequestGet({ request, env }) {
+export async function onRequestGet({ request, env, waitUntil }) {
   try {
     const db = env.DB;
     if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
@@ -51,7 +52,7 @@ export async function onRequestGet({ request, env }) {
       emailOptOut: !!(optOutRow && optOutRow.community_email_opt_out),
     });
   } catch (err) {
-    console.error('community status error:', err.message, err.stack);
+    log(env, waitUntil, 'community', 'status_error', 'error', err.message, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }

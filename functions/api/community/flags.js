@@ -4,6 +4,7 @@
  * PATCH  /api/community/flags   -- resolve/dismiss a flag (admin+ only)
  */
 import { json, optionsResponse, generateId, SITE_URL } from '../auth/_shared.js';
+import { log } from '../_log.js';
 import { requireMember, roleAtLeast, canResolveFlag, displayName } from './_shared.js';
 import { sendEmail } from '../_ses.js';
 
@@ -19,7 +20,7 @@ export async function onRequestOptions() {
   return optionsResponse();
 }
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, waitUntil }) {
   try {
     const auth = await requireMember(request, env);
     if (auth instanceof Response) return auth;
@@ -72,17 +73,17 @@ export async function onRequestPost({ request, env }) {
     try {
       await notifyMods(env, db, user, targetType, targetId, reason, note);
     } catch (err) {
-      console.error('Failed to send flag notification email:', err.message);
+      log(env, waitUntil, 'community', 'flag_error', 'error', `notification: ${err.message}`, 0, 0);
     }
 
     return json({ ok: true, flagId: id }, 201);
   } catch (err) {
-    console.error('community flags POST error:', err.message, err.stack);
+    log(env, waitUntil, 'community', 'flag_error', 'error', `POST: ${err.message}`, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }
 
-export async function onRequestGet({ request, env }) {
+export async function onRequestGet({ request, env, waitUntil }) {
   try {
     const auth = await requireMember(request, env);
     if (auth instanceof Response) return auth;
@@ -163,12 +164,12 @@ export async function onRequestGet({ request, env }) {
 
     return json({ ok: true, flags });
   } catch (err) {
-    console.error('community flags GET error:', err.message, err.stack);
+    log(env, waitUntil, 'community', 'flag_error', 'error', `GET: ${err.message}`, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }
 
-export async function onRequestPatch({ request, env }) {
+export async function onRequestPatch({ request, env, waitUntil }) {
   try {
     const auth = await requireMember(request, env);
     if (auth instanceof Response) return auth;
@@ -199,7 +200,7 @@ export async function onRequestPatch({ request, env }) {
 
     return json({ ok: true });
   } catch (err) {
-    console.error('community flags PATCH error:', err.message, err.stack);
+    log(env, waitUntil, 'community', 'flag_error', 'error', `PATCH: ${err.message}`, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }
