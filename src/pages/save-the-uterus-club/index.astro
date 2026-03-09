@@ -267,9 +267,10 @@ const jsonLd = {
       fetch('/api/billing/status', { credentials: 'same-origin' })
         .then(function (r) { return r.json(); })
         .then(function (data) {
+          if (!data.ok) return;
           var loginHint = document.getElementById('stuc-login-hint');
           if (loginHint) loginHint.hidden = true;
-          if (!data.ok || !data.subscription) return;
+          if (!data.subscription) return;
           var sub = data.subscription;
           if (sub.status !== 'active' && sub.status !== 'trialing') return;
 
