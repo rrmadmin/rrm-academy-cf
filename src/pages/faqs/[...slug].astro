@@ -29,19 +29,18 @@ const metaDescription = faq.seoDescription
 
 const canonicalUrl = `https://rrmacademy.org/faqs/${faq.slug}`;
 
-// QAPage JSON-LD
+// FAQPage JSON-LD (single Q&A — editorially authored, not community Q&A)
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'QAPage',
-  mainEntity: {
+  '@type': 'FAQPage',
+  mainEntity: [{
     '@type': 'Question',
     name: faq.question,
     acceptedAnswer: {
       '@type': 'Answer',
       text: faq.schemaAnswer || faq.basicAnswer || faq.publishedAnswer,
-      url: canonicalUrl,
     },
-  },
+  }],
 };
 ---
 <BaseLayout
