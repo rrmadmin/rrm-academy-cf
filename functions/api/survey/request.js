@@ -19,7 +19,7 @@ function json(data, status = 200) {
   });
 }
 
-const TOKEN_TTL = 90 * 24 * 60 * 60; // 90 days in seconds
+const TOKEN_TTL = 24 * 60 * 60; // 24 hours in seconds
 const RATE_LIMIT_SECONDS = 600;       // 10 minutes between emails to same address
 
 export async function onRequestOptions() {
