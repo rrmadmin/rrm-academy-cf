@@ -16,6 +16,9 @@
  */
 
 import { execSync } from 'child_process';
+import { writeFileSync, unlinkSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
 
 const { AIRTABLE_PAT, AIRTABLE_SURVEY_BASE, AIRTABLE_SURVEY_TABLE } = process.env;
 
@@ -94,39 +97,46 @@ function escapeSql(str) {
   return str.replace(/'/g, "''");
 }
 
-function d1Execute(sql) {
+function d1Command(sql) {
   const cmd = `npx wrangler d1 execute ${D1_DB} --remote --command "${sql.replace(/"/g, '\\"')}"`;
   return execSync(cmd, { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] });
 }
 
-function insertIntoD1(records) {
-  let inserted = 0;
-  let skipped = 0;
+function d1File(sqlFile) {
+  const cmd = `npx wrangler d1 execute ${D1_DB} --remote --file "${sqlFile}"`;
+  return execSync(cmd, { encoding: 'utf-8', timeout: 120000 });
+}
 
-  for (const rec of records) {
-    const email = escapeSql(rec.fields.Email.trim());
-    const recordId = escapeSql(rec.id);
-    const sql = `INSERT OR IGNORE INTO survey_identities (email, airtable_record_id, source) VALUES ('${email}', '${recordId}', '${SOURCE}')`;
+function insertIntoD1(records) {
+  // Batch SQL into temp files (50 statements per batch to stay safe)
+  const BATCH_SIZE = 50;
+  let totalProcessed = 0;
+
+  for (let i = 0; i < records.length; i += BATCH_SIZE) {
+    const batch = records.slice(i, i + BATCH_SIZE);
+    const statements = batch.map((rec) => {
+      const email = escapeSql(rec.fields.Email.trim());
+      const recordId = escapeSql(rec.id);
+      return `INSERT OR IGNORE INTO survey_identities (email, airtable_record_id, source) VALUES ('${email}', '${recordId}', '${SOURCE}');`;
+    });
+
+    const tmpFile = join(tmpdir(), `survey-migrate-${i}.sql`);
+    writeFileSync(tmpFile, statements.join('\n'));
 
     try {
-      d1Execute(sql);
-      inserted++;
-    } catch (err) {
-      // INSERT OR IGNORE should handle duplicates, but catch wrangler errors
-      if (err.message?.includes('UNIQUE constraint')) {
-        skipped++;
-      } else {
-        throw err;
-      }
+      d1File(tmpFile);
+      totalProcessed += batch.length;
+      console.log(`  Batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(records.length / BATCH_SIZE)}: ${batch.length} records`);
+    } finally {
+      try { unlinkSync(tmpFile); } catch {}
     }
   }
 
-  return { inserted, skipped };
+  return totalProcessed;
 }
 
 function d1Count() {
-  const output = d1Execute('SELECT COUNT(*) as cnt FROM survey_identities');
-  // Parse wrangler output for the count
+  const output = d1Command('SELECT COUNT(*) as cnt FROM survey_identities');
   const match = output.match(/cnt[^\d]*(\d+)/);
   return match ? parseInt(match[1], 10) : '(unable to parse)';
 }
@@ -144,8 +154,8 @@ async function main() {
   }
 
   console.log('Inserting into D1 survey_identities...');
-  const { inserted, skipped } = insertIntoD1(records);
-  console.log(`D1 inserts: ${inserted} new, ${skipped} skipped`);
+  const totalProcessed = insertIntoD1(records);
+  console.log(`D1 inserts: ${totalProcessed} processed (duplicates ignored via INSERT OR IGNORE)`);
 
   console.log('Clearing emails from Airtable...');
   const recordIds = records.map((r) => r.id);
