@@ -111,9 +111,17 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             </div>
           </div>
 
+          <!-- Consent checkbox -->
+          <div class="survey-consent">
+            <label class="consent-label">
+              <input type="checkbox" id="consent-check" />
+              <span>Anonymized responses may be used for research. <a href="/privacy-policy/" target="_blank">Privacy Policy</a></span>
+            </label>
+          </div>
+
           <!-- Calculate button -->
           <div class="survey-calculate">
-            <button type="button" id="calculate-btn" class="btn btn--primary btn--lg">
+            <button type="button" id="calculate-btn" class="btn btn--primary btn--lg" disabled>
               Calculate My Score
             </button>
           </div>
@@ -349,10 +357,35 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     color: var(--text-primary);
   }
 
+  /* Consent checkbox */
+  .survey-consent {
+    padding: var(--space-6) 0 0;
+  }
+  .consent-label {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+  .consent-label input[type="checkbox"] {
+    margin-top: 3px;
+    flex-shrink: 0;
+  }
+  .consent-label a {
+    color: var(--accent);
+  }
+
   /* Calculate button */
   .survey-calculate {
     text-align: center;
     padding: var(--space-8) 0 var(--space-4);
+  }
+  #calculate-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
   }
   .btn--lg {
     padding: var(--space-4) var(--space-10);
@@ -547,6 +580,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       const count = document.querySelectorAll(`[data-tier="${tier}"] input:checked`).length;
       document.querySelector(`[data-tier-count="${tier}"]`).textContent = count;
     });
+  });
+
+  // ── Consent checkbox enables calculate button ──
+  const consentCheck = document.getElementById('consent-check');
+  consentCheck.addEventListener('change', () => {
+    document.getElementById('calculate-btn').disabled = !consentCheck.checked;
   });
 
   // ── Calculate ──
