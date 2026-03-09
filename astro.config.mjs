@@ -1,5 +1,6 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import librarySitemaps from './src/integrations/library-sitemaps.mjs';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -73,7 +74,13 @@ export default defineConfig({
           '/common-questions-about-rrm',
           '/admin/',
         ];
-        return !exclude.some((path) => page.includes(path));
+        if (exclude.some((path) => page.includes(path))) return false;
+        // Library article pages are handled by library-sitemaps integration (tier split)
+        // Keep /library/ index page but exclude individual articles
+        const url = new URL(page);
+        const path = url.pathname;
+        if (path.startsWith('/library/') && path !== '/library/') return false;
+        return true;
       },
       serialize: (item) => {
         const path = new URL(item.url).pathname;
@@ -86,5 +93,6 @@ export default defineConfig({
         return item;
       },
     }),
+    librarySitemaps(),
   ],
 });
