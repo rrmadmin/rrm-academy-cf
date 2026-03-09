@@ -215,6 +215,24 @@ All transactional email uses **AWS SES** via `functions/api/_ses.js` (aws4fetch)
 | Daily Cleanup (`La9Bauj70L82oua8`) | 5 AM UTC | POST `/api/admin/cleanup` -- prunes expired sessions, resets, verifications, webhook events >7d |
 | Down Detector (`HxxCkFOPbrXa0r08`) | Every 5 min | Checks site, library data, n8n. Telegram alert on failure via @rrm_n8n_notification_bot |
 
+## Survey Pseudonymization
+
+Endo survey splits PII from health data across two systems:
+
+| System | Binding | Contains |
+|--------|---------|----------|
+| D1 `rrm-survey` | `SURVEY_DB` | email + Airtable record ID (identity) |
+| Airtable | via `AIRTABLE_PAT` | symptoms, scores, metadata (no email) |
+| KV `SURVEY_TOKENS` | `SURVEY_TOKENS` | token, used flag, UTM (email stripped after submit) |
+
+- **D1 table:** `survey_identities` (email, airtable_record_id, source, created_at). UNIQUE on airtable_record_id, INDEX on email
+- **Sources:** `endo-survey-v1` (live submissions), `endo-survey-v1-backfill` (migration)
+- **Airtable IDs:** base `appb7HeeJQsVe3Jpr`, table `tblMAw2tih2ie3ZCu`
+- **Token TTL:** 24 hours (both request.js and submit.js)
+- **D1 failure handling:** logs to Analytics Engine + SES alert to administrator@rrmacademy.org
+- **Migration script:** `scripts/migrate-survey-identities.mjs` (one-time, already run)
+- **Design doc:** `docs/plans/2026-03-09-survey-pseudonymization-design.md`
+
 ## Webhook Event Dedup
 
 `webhook_event` table in D1 stores Stripe `event.id` on first processing. `INSERT OR IGNORE` skips duplicates on retries. Prevents duplicate welcome emails and account creation.
