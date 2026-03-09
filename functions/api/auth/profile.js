@@ -5,12 +5,13 @@
 import {
   json, optionsResponse, getSessionIdFromCookie, validateSession,
 } from './_shared.js';
+import { log } from '../_log.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
 }
 
-export async function onRequestPatch({ request, env }) {
+export async function onRequestPatch({ request, env, waitUntil }) {
   try {
     const db = env.DB;
     if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
@@ -55,6 +56,7 @@ export async function onRequestPatch({ request, env }) {
     });
   } catch (err) {
     console.error(err);
+    log(env, waitUntil, 'auth', 'profile_error', 'error', err.message);
     return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500);
   }
 }

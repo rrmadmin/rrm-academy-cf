@@ -6,12 +6,13 @@
 import {
   json, optionsResponse, getSessionIdFromCookie, validateSession, sessionCookie,
 } from './_shared.js';
+import { log } from '../_log.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
 }
 
-export async function onRequestGet({ request, env }) {
+export async function onRequestGet({ request, env, waitUntil }) {
   try {
     const db = env.DB;
     if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
@@ -57,6 +58,7 @@ export async function onRequestGet({ request, env }) {
     );
   } catch (err) {
     console.error('session GET error:', err.message, err.stack);
+    log(env, waitUntil, 'auth', 'session_error', 'error', err.message);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }

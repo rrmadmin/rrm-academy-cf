@@ -8,12 +8,13 @@ import {
   verifyTurnstile, checkRateLimit, isValidEmail,
 } from './_shared.js';
 import { sendEmail } from '../_ses.js';
+import { log } from '../_log.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
 }
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, waitUntil }) {
   try {
     const db = env.DB;
     if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
@@ -75,7 +76,7 @@ export async function onRequestPost({ request, env }) {
           ].join('\n'),
         });
       } catch (emailErr) {
-        console.error('Password reset email send failed:', emailErr);
+        log(env, waitUntil, 'auth', 'forgot_password_error', 'error', emailErr.message);
       }
     }
 
@@ -83,6 +84,7 @@ export async function onRequestPost({ request, env }) {
     return json({ ok: true, message: 'If an account exists with that email, a reset link has been sent.' });
   } catch (err) {
     console.error(err);
+    log(env, waitUntil, 'auth', 'forgot_password_error', 'error', err.message);
     return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500);
   }
 }
