@@ -131,3 +131,30 @@ describe('deriveSessionId', () => {
     assert.notEqual(a, b);
   });
 });
+
+describe('source metadata round-trip (checkout -> webhook)', () => {
+  it('extractUtm + classifySource produce values that override in sendGA4Event', () => {
+    // Simulates: user arrives from Instagram with UTM params
+    const referrer = 'https://l.instagram.com/something';
+    const url = 'https://rrmacademy.org/donate?utm_source=ig_bio&utm_medium=social&utm_campaign=spring2026';
+
+    const { source, medium } = classifySource(referrer);
+    const utmParams = extractUtm(url);
+
+    // UTM params take priority over referrer
+    const gaSource = utmParams.utm_source || source;
+    const gaMedium = utmParams.utm_medium || medium;
+
+    assert.equal(gaSource, 'ig_bio');
+    assert.equal(gaMedium, 'social');
+
+    // Without UTMs, falls back to referrer
+    const url2 = 'https://rrmacademy.org/donate';
+    const utmParams2 = extractUtm(url2);
+    const gaSource2 = utmParams2.utm_source || source;
+    const gaMedium2 = utmParams2.utm_medium || medium;
+
+    assert.equal(gaSource2, 'instagram');
+    assert.equal(gaMedium2, 'social');
+  });
+});

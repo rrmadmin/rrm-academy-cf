@@ -19,11 +19,11 @@
       "note": "Google OAuth"
     },
     "functions/api/stripe-webhook.js": {
-      "hash": "b2dce8204ed840ed2284407856d4a937d2616c386faff4689f44d29ddeff689f",
+      "hash": "785bee28b2d08bf9cc4781a3de456bf727b345efb97b4f923c8cc3815ed7e158",
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
-      "hash": "0607deb06d484a47317ea54a814c1cd21fab0efa6d94a3ec562f6ba3fc32969d",
+      "hash": "7ff03413d0261f27be1fb14ecb9626f425441066c7ad9443bf1551fb31a40689",
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
