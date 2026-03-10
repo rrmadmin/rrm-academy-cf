@@ -8,9 +8,10 @@ export async function getStaticPaths() {
   const posts = await fetchAllPosts();
   const totalPages = Math.max(1, Math.ceil(posts.length / PER_PAGE));
 
-  return Array.from({ length: totalPages }, (_, i) => ({
-    params: { page: String(i + 1) },
-    props: { currentPage: i + 1, totalPages },
+  // Page 1 is /commentary/ (index.astro) — skip it here to avoid duplicate content
+  return Array.from({ length: totalPages - 1 }, (_, i) => ({
+    params: { page: String(i + 2) },
+    props: { currentPage: i + 2, totalPages },
   }));
 }
 
@@ -37,8 +38,8 @@ for (let i = 1; i <= totalPages; i++) {
 }
 ---
 <BaseLayout
-  title={`Commentary - Page ${currentPage}`}
-  description={`Page ${currentPage} of ${totalPages} - Browse all commentary from RRM Academy.`}
+  title={`RRM Articles & Commentary - Page ${currentPage}`}
+  description={`Page ${currentPage} of ${totalPages} - Clinical perspectives on endometriosis, fertility, and restorative reproductive medicine from Dr. Naomi Whittaker.`}
   canonicalUrl={`https://rrmacademy.org/commentary/page/${currentPage}`}
 >
   <section class="browse-page" data-pagefind-ignore="all">
@@ -51,7 +52,8 @@ for (let i = 1; i <= totalPages; i++) {
 
       <div class="browse-header">
         <div>
-          <h1>All commentary</h1>
+          <h1>RRM Articles &amp; Commentary</h1>
+          <p class="browse-subtitle">Clinical perspectives on endometriosis, fertility awareness, NaProTechnology, and restorative reproductive medicine from <a href="/about/">Dr. Naomi Whittaker</a>.</p>
           {pagePosts.length > 0 && (
             <p class="browse-meta">
               Showing {start + 1}&ndash;{Math.min(start + PER_PAGE, posts.length)} of {posts.length}
@@ -72,7 +74,7 @@ for (let i = 1; i <= totalPages; i++) {
 
       <nav class="pagination" aria-label="Pagination">
         {currentPage > 1 && (
-          <a href={currentPage === 2 ? '/commentary/page/1/' : `/commentary/page/${currentPage - 1}/`}>&laquo; Prev</a>
+          <a href={currentPage === 2 ? '/commentary/' : `/commentary/page/${currentPage - 1}/`}>&laquo; Prev</a>
         )}
         {range.map(item => (
           item === '...' ? (
@@ -80,7 +82,7 @@ for (let i = 1; i <= totalPages; i++) {
           ) : item === currentPage ? (
             <span class="current">{item}</span>
           ) : (
-            <a href={`/commentary/page/${item}/`}>{item}</a>
+            <a href={item === 1 ? '/commentary/' : `/commentary/page/${item}/`}>{item}</a>
           )
         ))}
         {currentPage < totalPages && (
@@ -93,6 +95,22 @@ for (let i = 1; i <= totalPages; i++) {
 
 <style>
   h1 {
-    margin-bottom: var(--space-1);
+    margin-bottom: var(--space-2);
+  }
+  .browse-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin-bottom: var(--space-4);
+  }
+  .browse-subtitle a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .browse-subtitle a:hover {
+    color: var(--accent-hover);
   }
 </style>

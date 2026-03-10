@@ -18,6 +18,10 @@
 /allies https://ig.me/j/AbbmORXZV3iHcj-H/ 302
 /allies/ https://ig.me/j/AbbmORXZV3iHcj-H/ 302
 
+# Commentary page 1 is the index
+/commentary/page/1 /commentary/ 301
+/commentary/page/1/ /commentary/ 301
+
 # Old Wix survey slug
 /3-tier-endometriosis-symptom-self-survey /endo-survey/ 301
 /3-tier-endometriosis-symptom-self-survey/ /endo-survey/ 301
