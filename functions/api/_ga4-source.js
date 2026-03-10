@@ -89,9 +89,24 @@ export async function getClientId(request) {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
 }
 
+function parseCookie(cookieHeader, name) {
+  if (!cookieHeader) return '';
+  const match = cookieHeader.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]*)'));
+  if (!match) return '';
+  try { return decodeURIComponent(match[1]); } catch { return ''; }
+}
+
 export async function buildSourceParams(request, clientId) {
-  const referrer = request.headers.get('Referer') || '';
-  const url = request.url;
+  // Prefer entry source cookies (set on first page load in BaseLayout).
+  // These carry the original external referrer across internal navigations,
+  // so API calls (signup, newsletter, etc.) get correct attribution instead
+  // of always showing (direct) from the self-referral Referer header.
+  const cookies = request.headers.get('Cookie') || '';
+  const entryRef = parseCookie(cookies, 'entry_ref');
+  const entryUrl = parseCookie(cookies, 'entry_url');
+
+  const referrer = entryRef || request.headers.get('Referer') || '';
+  const url = entryUrl || request.url;
   const utmParams = extractUtm(url);
   const { source, medium } = classifySource(referrer);
 
