@@ -11,7 +11,7 @@
  */
 
 import { execSync } from 'child_process';
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync, unlinkSync } from 'fs';
 import { randomUUID } from 'crypto';
 
 const DRY_RUN = !process.argv.includes('--execute');
@@ -48,19 +48,22 @@ function d1Query(sql) {
     maxBuffer: 50 * 1024 * 1024,
   });
   const start = out.indexOf('[');
-  if (start === -1) return [];
+  if (start === -1) throw new Error(`d1Query: no JSON in wrangler output:\n${out.slice(0, 500)}`);
   const parsed = JSON.parse(out.slice(start));
   return parsed[0]?.results || [];
 }
 
 function d1Exec(sql) {
-  // Write SQL to temp file to avoid shell escaping issues
   const tmpFile = '/tmp/crm-batch.sql';
   writeFileSync(tmpFile, sql);
-  execSync(`npx wrangler d1 execute rrm-auth --remote --file=${tmpFile}`, {
-    encoding: 'utf8',
-    maxBuffer: 50 * 1024 * 1024,
-  });
+  try {
+    execSync(`npx wrangler d1 execute rrm-auth --remote --file=${tmpFile}`, {
+      encoding: 'utf8',
+      maxBuffer: 50 * 1024 * 1024,
+    });
+  } finally {
+    try { unlinkSync(tmpFile); } catch {}
+  }
 }
 
 function norm(email) {
@@ -164,10 +167,20 @@ async function main() {
     const name = r.fields.Name || '';
     if (!e) continue;
     const existing = tierByEmail.get(e);
-    if (!existing || date < existing.date) {
+    const parsedDate = new Date(date);
+    const existingParsed = existing ? new Date(existing.date) : null;
+    if (!existing || (isNaN(existingParsed?.getTime()) || (!isNaN(parsedDate.getTime()) && parsedDate < existingParsed))) {
       tierByEmail.set(e, { date, name, landingPage: r.fields['Landing Page'] || '' });
     }
   }
+
+  // Query existing contacts from D1 to reuse IDs on re-run
+  const existingContacts = d1Query("SELECT id, email FROM contact");
+  const existingContactByEmail = new Map();
+  for (const c of existingContacts) {
+    existingContactByEmail.set(norm(c.email), c.id);
+  }
+  console.log(`  Existing contacts: ${existingContacts.length} records`);
 
   // 3. Collect all unique emails
   const allEmails = new Set([
@@ -184,11 +197,20 @@ async function main() {
 
   const spamLabels = new Set(['Spam 🛑', 'DO NOT SEND LIST 🛑']);
   let skipped = { test: 0, spam: 0, blocked: 0, unverified_only: 0 };
+  const droppedTestEmails = [];
+
+  function isTestEmail(email) {
+    const local = email.split('@')[0];
+    const domain = email.split('@')[1] || '';
+    if (domain === 'example.com' || domain === 'example.org' || domain === 'test.com') return true;
+    if (local === 'test' || local.endsWith('+test') || /^test\d+$/.test(local)) return true;
+    return false;
+  }
 
   for (const email of allEmails) {
-    // Filter: test/example emails
-    if (email.includes('test') || email.includes('example')) {
+    if (isTestEmail(email)) {
       skipped.test++;
+      droppedTestEmails.push(email);
       continue;
     }
 
@@ -222,7 +244,7 @@ async function main() {
       }
     }
 
-    const contactId = d1 ? d1.id : randomUUID();
+    const contactId = d1?.id || existingContactByEmail.get(email) || randomUUID();
     const tags = new Set();
     const tagSources = new Map(); // tag -> source
 
@@ -404,7 +426,7 @@ async function main() {
     }
 
     // Address from Airtable Master
-    if (master?.Address && !sqsp?.['Shipping Address 1']) {
+    if (master?.Address && !sqsp?.['Shipping Address 1'] && !sqsp?.['Billing Address 1']) {
       contactAddresses.push({
         id: randomUUID(),
         contactId,
@@ -429,6 +451,9 @@ async function main() {
   console.log(`  Spam/do-not-send:  ${skipped.spam}`);
   console.log(`  Blocked:           ${skipped.blocked}`);
   console.log(`  Unverified D1-only:${skipped.unverified_only}`);
+  if (DRY_RUN && droppedTestEmails.length) {
+    console.log(`  Dropped test emails: ${droppedTestEmails.join(', ')}`);
+  }
 
   // Source breakdown
   let hasD1 = 0, hasMaster = 0, hasSQSP = 0, hasTier = 0;
