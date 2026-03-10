@@ -50,7 +50,7 @@ Internal Links:  ███████░░░ 7/10   ↑ from 6 — 9d0775d
 |------|----|--------|------|
 | https://www.rrmacademy.org | https://rrmacademy.org | 301 | **FIXED — 1 hop** |
 | http://rrmacademy.org | https://rrmacademy.org | 301 | 1 hop — OK |
-| http://www.rrmacademy.org | https://rrmacademy.org | 301 | 2 hops — residual (TLS layer fires before redirect rule) |
+| http://www.rrmacademy.org | https://rrmacademy.org | 301 | 2 hops — no need to fix (CF TLS upgrade fires before Worker; all browsers use HTTPS) |
 | /about (no slash) | /about/ (with slash) | 308 | 1 hop — OK |
 
 > **Note:** `http://www.rrmacademy.org` remains 2 hops because Cloudflare's "Always Use HTTPS" fires before redirect rules. The `https://www` case (the common case) was fixed to 1 hop via CF Redirect Rule.
@@ -160,7 +160,7 @@ All rich result blockers resolved in `6d5ad0a`. Full details in `docs/seo/schema
 |---|-------|--------|
 | 1 | Canonical/sitemap trailing slash mismatch | **FIXED** — `BaseLayout.astro` |
 | 2 | `/common-questions-about-rrm/` orphan | **FIXED** — 301 redirect to `/faqs/` in `_redirects` |
-| 3 | `http://www` redirect chain (2 hops) | Partially fixed — `https://www` now 1 hop; `http://www` remains 2 hops (Cloudflare TLS ordering) |
+| 3 | `http://www` redirect chain (2 hops) | No need to fix — `https://www` is 1 hop (the common case); `http://www` is 2 hops due to CF TLS ordering, but no real-world impact |
 | 4 | `/what-is-rrm/` missing from navigation | **PARTIAL** — added to footer nav; still missing from header nav and mobile nav |
 | 5 | No lastmod in sitemap | **FIXED** — build-date lastmod added via `astro.config.mjs` serialize callback |
 | 6 | `/sitemap.xml` returns 404 | **FIXED** — `_redirects` 301 to `/sitemap-index.xml` |
