@@ -15,11 +15,12 @@ import { randomUUID } from 'crypto';
 
 const DRY_RUN = !process.argv.includes('--execute');
 const CSV_PATH = process.argv.find(a => a.endsWith('.csv')) || `${process.env.HOME}/Downloads/contacts.csv`;
+const DB_NAME = (process.argv.find(a => a.startsWith('--db=')) || '').split('=')[1] || 'rrm-auth';
 
 // ── Helpers ────────────────────────────────────────────────────────────
 function d1Query(sql) {
   const escaped = sql.replace(/'/g, "'\\''");
-  const out = execSync(`npx wrangler d1 execute rrm-auth --remote --command '${escaped}'`, {
+  const out = execSync(`npx wrangler d1 execute ${DB_NAME} --remote --command '${escaped}'`, {
     encoding: 'utf8', maxBuffer: 50 * 1024 * 1024,
   });
   const start = out.indexOf('[');
@@ -31,7 +32,7 @@ function d1Exec(sql) {
   const tmpFile = '/tmp/wix-contacts-batch.sql';
   writeFileSync(tmpFile, sql);
   try {
-    execSync(`npx wrangler d1 execute rrm-auth --remote --file=${tmpFile}`, {
+    execSync(`npx wrangler d1 execute ${DB_NAME} --remote --file=${tmpFile}`, {
       encoding: 'utf8', maxBuffer: 50 * 1024 * 1024,
     });
   } finally {
@@ -137,7 +138,7 @@ const SOURCE_MAP = {
 
 // ── Main ───────────────────────────────────────────────────────────────
 async function main() {
-  console.log(`\n=== Wix Contacts Import (${DRY_RUN ? 'DRY RUN' : 'EXECUTE'}) ===\n`);
+  console.log(`\n=== Wix Contacts Import (${DRY_RUN ? 'DRY RUN' : 'EXECUTE'}) [DB: ${DB_NAME}] ===\n`);
 
   const csvText = readFileSync(CSV_PATH, 'utf8').replace(/^\uFEFF/, '');
   const rows = parseCSV(csvText);
