@@ -1,32 +1,20 @@
 /**
  * POST /api/newsletter/subscribe
- * Validates Turnstile token, adds subscriber to Buttondown, optionally updates D1.
+ * Validates Turnstile token, adds subscriber to D1, optionally updates D1 user table.
  */
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
-
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': 'https://rrmacademy.org',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
-
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
-  });
-}
+import { json, optionsResponse } from '../auth/_shared.js';
 
 export async function onRequestOptions() {
-  return new Response(null, { status: 204, headers: CORS_HEADERS });
+  return optionsResponse();
 }
 
 export async function onRequestPost(context) {
   const { request, env, waitUntil } = context;
 
-  if (!env.BUTTONDOWN_API_KEY) {
-    log(env, waitUntil, 'newsletter', 'config_missing', 'error', 'BUTTONDOWN_API_KEY not configured', 0, 500);
+  if (!env.DB) {
+    log(env, waitUntil, 'newsletter', 'config_missing', 'error', 'DB binding not configured', 0, 500);
     return json({ ok: false, error: 'Server misconfigured' }, 500);
   }
 
@@ -62,6 +50,10 @@ export async function onRequestPost(context) {
         remoteip: ip,
       }),
     });
+    if (!verifyResp.ok) {
+      log(env, waitUntil, 'newsletter', 'turnstile_http_error', 'error', `Turnstile returned ${verifyResp.status}`, 0, verifyResp.status);
+      return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
+    }
     const result = await verifyResp.json();
     if (!result.success) {
       return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
@@ -70,46 +62,42 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
   }
 
-  // Add to Buttondown
-  let bdResp;
+  // Add to D1 newsletter_subscriber
   try {
-    bdResp = await fetch('https://api.buttondown.com/v1/subscribers', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Token ${env.BUTTONDOWN_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email,
-        metadata: { source: 'website' },
-        tags: ['website-signup'],
-      }),
-    });
+    // Check for existing subscriber
+    const existing = await env.DB.prepare(
+      'SELECT id, status FROM newsletter_subscriber WHERE email = ?'
+    ).bind(email).first();
+
+    if (existing) {
+      if (existing.status === 'active') {
+        return json({ ok: true, message: 'You are already subscribed.' });
+      }
+      // Re-activate unsubscribed/bounced subscriber
+      await env.DB.prepare(
+        "UPDATE newsletter_subscriber SET status = 'active', unsubscribed_at = NULL, bounce_count = 0 WHERE id = ?"
+      ).bind(existing.id).run();
+      return json({ ok: true, message: 'You are subscribed!' });
+    }
+
+    // Create new subscriber
+    const id = crypto.randomUUID();
+    await env.DB.prepare(
+      "INSERT INTO newsletter_subscriber (id, email, source) VALUES (?, ?, 'website')"
+    ).bind(id, email).run();
   } catch (err) {
     log(env, waitUntil, 'newsletter', 'subscribe_error', 'error', err.message, 0, 502);
     return json({ ok: false, error: 'Something went wrong. Please try again.' }, 502);
   }
 
-  if (!bdResp.ok) {
-    const errBody = await bdResp.text();
-    // Buttondown returns 400 if already subscribed
-    if (bdResp.status === 400 && errBody.includes('already')) {
-      return json({ ok: true, message: 'You are already subscribed.' });
-    }
-    log(env, waitUntil, 'newsletter', 'buttondown_error', 'error', `${bdResp.status} ${errBody}`, 0, 502);
-    return json({ ok: false, error: 'Something went wrong. Please try again.' }, 502);
-  }
-
   // Optionally update D1 newsletter_opt_in if user exists
-  if (env.DB) {
-    try {
-      await env.DB.prepare(
-        "UPDATE user SET newsletter_opt_in = 1, newsletter_opted_in_at = datetime('now') WHERE email = ? COLLATE NOCASE"
-      ).bind(email).run();
-    } catch (err) {
-      // Non-fatal: subscriber is added to Buttondown even if D1 update fails
-      log(env, waitUntil, 'newsletter', 'd1_update_error', 'warn', err.message, 0, 0);
-    }
+  try {
+    await env.DB.prepare(
+      "UPDATE user SET newsletter_opt_in = 1, newsletter_opted_in_at = datetime('now') WHERE email = ? COLLATE NOCASE"
+    ).bind(email).run();
+  } catch (err) {
+    // Non-fatal: subscriber is added to newsletter_subscriber even if user update fails
+    log(env, waitUntil, 'newsletter', 'd1_update_error', 'warn', err.message, 0, 0);
   }
 
   sendGA4Event(env, request, 'generate_lead', { event_category: 'newsletter' }).catch(() => {});
