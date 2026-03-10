@@ -3,8 +3,9 @@
  * Build Contact CRM: merges 4 historical sources into D1 contact table.
  *
  * Usage:
- *   node scripts/build-contact-crm.mjs --dry-run     # preview only
- *   node scripts/build-contact-crm.mjs --execute      # write to D1
+ *   node scripts/build-contact-crm.mjs --dry-run                    # preview only
+ *   node scripts/build-contact-crm.mjs --execute                   # write to D1
+ *   node scripts/build-contact-crm.mjs --execute --db=rrm-crm-staging  # write to staging DB
  *
  * Reads transformation rules from scripts/contact-enrichment-spec.json.
  * All inserts are INSERT OR IGNORE (idempotent, safe to re-run).
@@ -16,6 +17,8 @@ import { randomUUID } from 'crypto';
 
 const DRY_RUN = !process.argv.includes('--execute');
 const VERBOSE = process.argv.includes('--verbose');
+const DB_NAME = (process.argv.find(a => a.startsWith('--db=')) || '').split('=')[1] || 'rrm-auth';
+const USER_DB = 'rrm-auth';
 
 // ── Load spec ──────────────────────────────────────────────────────────
 const spec = JSON.parse(readFileSync(new URL('./contact-enrichment-spec.json', import.meta.url), 'utf8'));
@@ -41,9 +44,9 @@ async function fetchAllAirtable(pat, baseId, tableId) {
   return records;
 }
 
-function d1Query(sql) {
+function d1Query(sql, db = DB_NAME) {
   const escaped = sql.replace(/'/g, "'\\''");
-  const out = execSync(`npx wrangler d1 execute rrm-auth --remote --command '${escaped}'`, {
+  const out = execSync(`npx wrangler d1 execute ${db} --remote --command '${escaped}'`, {
     encoding: 'utf8',
     maxBuffer: 50 * 1024 * 1024,
   });
@@ -53,11 +56,11 @@ function d1Query(sql) {
   return parsed[0]?.results || [];
 }
 
-function d1Exec(sql) {
+function d1Exec(sql, db = DB_NAME) {
   const tmpFile = '/tmp/crm-batch.sql';
   writeFileSync(tmpFile, sql);
   try {
-    execSync(`npx wrangler d1 execute rrm-auth --remote --file=${tmpFile}`, {
+    execSync(`npx wrangler d1 execute ${db} --remote --file=${tmpFile}`, {
       encoding: 'utf8',
       maxBuffer: 50 * 1024 * 1024,
     });
@@ -109,7 +112,7 @@ function mapTags(rawValues, mapping) {
 
 // ── Main ───────────────────────────────────────────────────────────────
 async function main() {
-  console.log(`\n=== Contact CRM Builder (${DRY_RUN ? 'DRY RUN' : 'EXECUTE'}) ===\n`);
+  console.log(`\n=== Contact CRM Builder (${DRY_RUN ? 'DRY RUN' : 'EXECUTE'}) [DB: ${DB_NAME}] ===\n`);
 
   // 1. Fetch all sources
   console.log('Fetching sources...');
@@ -125,9 +128,9 @@ async function main() {
   console.log(`  SQSP Profiles:    ${atSQSP.length} records`);
   console.log(`  3 Tier Downloads: ${at3Tier.length} records`);
 
-  console.log('Fetching D1 users...');
-  const d1Users = d1Query("SELECT id, email, name, first_name, last_name, created_at, stripe_customer_id, blocked, email_verified FROM user");
-  const d1Labels = d1Query("SELECT user_id, label FROM user_label");
+  console.log(`Fetching D1 users (from ${USER_DB})...`);
+  const d1Users = d1Query("SELECT id, email, name, first_name, last_name, created_at, stripe_customer_id, blocked, email_verified FROM user", USER_DB);
+  const d1Labels = d1Query("SELECT user_id, label FROM user_label", USER_DB);
   console.log(`  D1 Users:  ${d1Users.length} records`);
   console.log(`  D1 Labels: ${d1Labels.length} records`);
 
