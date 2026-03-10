@@ -71,8 +71,7 @@ async function getAccessToken(env) {
 }
 
 async function fetchReport(accessToken, propertyId, startDate) {
-  // Run two queries: summary metrics and daily time series
-  const [summary, daily] = await Promise.all([
+  const [summary, daily, bySource] = await Promise.all([
     runReport(accessToken, propertyId, {
       dateRanges: [{ startDate, endDate: 'today' }],
       metrics: [
@@ -103,6 +102,21 @@ async function fetchReport(accessToken, propertyId, startDate) {
       },
       orderBys: [{ dimension: { dimensionName: 'date' } }],
     }),
+    runReport(accessToken, propertyId, {
+      dateRanges: [{ startDate, endDate: 'today' }],
+      metrics: [{ name: 'eventCount' }, { name: 'totalUsers' }],
+      dimensions: [{ name: 'sessionSource' }, { name: 'eventName' }],
+      dimensionFilter: {
+        filter: {
+          fieldName: 'eventName',
+          inListFilter: {
+            values: ['purchase', 'begin_checkout', 'sign_up', 'generate_lead', 'page_view'],
+          },
+        },
+      },
+      orderBys: [{ metric: { metricName: 'eventCount' }, desc: true }],
+      limit: 100,
+    }),
   ]);
 
   // Parse summary into clean object
@@ -125,15 +139,37 @@ async function fetchReport(accessToken, propertyId, startDate) {
     dailyData[date][event] = count;
   }
 
-  // Convert to sorted array
   const timeline = Object.entries(dailyData)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([date, counts]) => ({ date, ...counts }));
+
+  // Parse conversions by source
+  const sourceData = {};
+  for (const row of bySource.rows || []) {
+    const source = row.dimensionValues[0].value;
+    const event = row.dimensionValues[1].value;
+    const count = parseInt(row.metricValues[0].value, 10);
+    const users = parseInt(row.metricValues[1].value, 10);
+    if (!sourceData[source]) sourceData[source] = {};
+    sourceData[source][event] = { count, users };
+  }
+
+  const sources = Object.entries(sourceData)
+    .map(([source, evts]) => ({
+      source,
+      views: evts.page_view?.count || 0,
+      signups: evts.sign_up?.count || 0,
+      leads: evts.generate_lead?.count || 0,
+      checkouts: evts.begin_checkout?.count || 0,
+      purchases: evts.purchase?.count || 0,
+    }))
+    .sort((a, b) => b.views - a.views);
 
   return {
     period: startDate,
     events,
     timeline,
+    sources,
     fetchedAt: new Date().toISOString(),
   };
 }

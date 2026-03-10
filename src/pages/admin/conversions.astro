@@ -107,6 +107,25 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
       <p class="cv-meta" id="cv-meta"></p>
 
+      <h2 class="cv-table-heading">Conversions by Source</h2>
+      <div class="cv-table-wrap">
+        <table class="cv-table">
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th>Views</th>
+              <th>Signups</th>
+              <th>Leads</th>
+              <th>Checkouts</th>
+              <th>Purchases</th>
+            </tr>
+          </thead>
+          <tbody id="cv-source-tbody">
+            <tr><td colspan="6" class="cv-empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
     </div>
   </section>
 
@@ -170,6 +189,24 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             '<td>' + num(d.generate_lead) + '</td>' +
             '<td>' + num(d.begin_checkout) + '</td>' +
             '<td>' + num(d.purchase) + '</td>' +
+            '</tr>';
+        }).join('');
+      }
+
+      // Source table
+      var sources = report.sources || [];
+      var srcTbody = document.getElementById('cv-source-tbody');
+      if (!sources.length) {
+        srcTbody.innerHTML = '<tr><td colspan="6" class="cv-empty">No source data yet</td></tr>';
+      } else {
+        srcTbody.innerHTML = sources.map(function (s) {
+          return '<tr>' +
+            '<td>' + s.source + '</td>' +
+            '<td>' + num(s.views) + '</td>' +
+            '<td>' + num(s.signups) + '</td>' +
+            '<td>' + num(s.leads) + '</td>' +
+            '<td>' + num(s.checkouts) + '</td>' +
+            '<td>' + num(s.purchases) + '</td>' +
             '</tr>';
         }).join('');
       }
