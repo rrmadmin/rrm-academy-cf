@@ -89,11 +89,8 @@ export default defineConfig({
       serialize: (item) => {
         const path = new URL(item.url).pathname;
         const date = dateMap.get(path);
-        if (date) {
-          item.lastmod = date;
-        } else {
-          delete item.lastmod;
-        }
+        // Pages with a specific date use it; everything else gets the static review date
+        item.lastmod = date || STATIC_PAGE_DATE;
         return item;
       },
     }),
