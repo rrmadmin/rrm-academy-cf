@@ -9,6 +9,7 @@
  * not here (avoids loading the 500KB redirect map on every request).
  */
 import { getSessionIdFromCookie, validateSession, sessionCookie, roleAtLeast } from './api/auth/_shared.js';
+import { buildSourceParams } from './api/_ga4-source.js';
 
 const GA4_ENDPOINT = 'https://www.google-analytics.com/mp/collect';
 
@@ -42,6 +43,7 @@ async function sendPageView(request, env) {
 
   try {
     const clientId = await getClientId(request);
+    const sourceParams = await buildSourceParams(request, clientId);
     const payload = {
       client_id: clientId,
       events: [{
@@ -49,6 +51,7 @@ async function sendPageView(request, env) {
         params: {
           page_location: request.url,
           page_referrer: request.headers.get('Referer') || '',
+          ...sourceParams,
         },
       }],
     };
