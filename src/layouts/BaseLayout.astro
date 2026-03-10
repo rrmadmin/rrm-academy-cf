@@ -84,6 +84,14 @@ const resolvedTwitterImage = resolvedOgImage.endsWith('.webp')
       }
     })();
   </script>
+  <script is:inline>
+    // Capture original entry source on first page load for checkout attribution.
+    // sessionStorage is tab-scoped, in-memory, and dies on tab close.
+    if (!sessionStorage.getItem('entry_ref')) {
+      sessionStorage.setItem('entry_ref', document.referrer);
+      sessionStorage.setItem('entry_url', location.href);
+    }
+  </script>
   <meta name="description" content={description} />
   <link rel="canonical" href={canonical} />
 

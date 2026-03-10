@@ -186,11 +186,10 @@ const jsonLd = {
 
   <script is:inline>
     (function () {
-      // Capture the original entry referrer and landing URL for source attribution.
-      // document.referrer gives us the page that brought the user to our site (e.g. instagram.com).
-      // These are passed to create-checkout so Stripe metadata carries the real source.
-      var entryReferrer = document.referrer || '';
-      var entryUrl = window.location.href;
+      // Read original entry source from sessionStorage (set in BaseLayout on first page load).
+      // Survives internal navigation so multi-page journeys still attribute correctly.
+      var entryReferrer = sessionStorage.getItem('entry_ref') || '';
+      var entryUrl = sessionStorage.getItem('entry_url') || '';
 
       // --- Check billing status on load ---
       var tierNames = { member: 'Member', hero: 'Hero', superhero: 'Super Hero' };
