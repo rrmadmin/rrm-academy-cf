@@ -10,9 +10,8 @@
  */
 
 import { execSync } from 'child_process';
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync, unlinkSync } from 'fs';
 import { randomUUID } from 'crypto';
-import { createReadStream } from 'fs';
 
 const DRY_RUN = !process.argv.includes('--execute');
 const CSV_PATH = process.argv.find(a => a.endsWith('.csv')) || `${process.env.HOME}/Downloads/Orders.csv`;
@@ -24,16 +23,20 @@ function d1Query(sql) {
     encoding: 'utf8', maxBuffer: 50 * 1024 * 1024,
   });
   const start = out.indexOf('[');
-  if (start === -1) return [];
+  if (start === -1) throw new Error(`d1Query returned no JSON. Output:\n${out.slice(0, 500)}`);
   return JSON.parse(out.slice(start))[0]?.results || [];
 }
 
 function d1Exec(sql) {
   const tmpFile = '/tmp/wix-orders-batch.sql';
   writeFileSync(tmpFile, sql);
-  execSync(`npx wrangler d1 execute rrm-auth --remote --file=${tmpFile}`, {
-    encoding: 'utf8', maxBuffer: 50 * 1024 * 1024,
-  });
+  try {
+    execSync(`npx wrangler d1 execute rrm-auth --remote --file=${tmpFile}`, {
+      encoding: 'utf8', maxBuffer: 50 * 1024 * 1024,
+    });
+  } finally {
+    try { unlinkSync(tmpFile); } catch {}
+  }
 }
 
 function sqlEscape(val) {
@@ -134,10 +137,11 @@ async function main() {
   const newAddresses = []; // INSERT contact_address
 
   for (const [email, orders] of byEmail) {
+    orders.sort((a, b) => new Date(a['Date created']) - new Date(b['Date created']));
     const totalSpent = orders.reduce((sum, r) => sum + parseFloat(r['Total'] || 0), 0);
     const orderCount = orders.length;
-    const firstOrder = orders[orders.length - 1]; // CSV is newest-first
-    const latestOrder = orders[0];
+    const firstOrder = orders[0];
+    const latestOrder = orders[orders.length - 1];
 
     const billingName = cleanQuotes(latestOrder['Billing name']);
     const billingPhone = cleanQuotes(latestOrder['Billing phone']);
@@ -154,9 +158,9 @@ async function main() {
     const existingContact = contactByEmail.get(email);
 
     if (existingContact) {
-      // Update existing contact's total_spent (add Wix orders to what's there)
-      const newTotal = Math.max(existingContact.total_spent || 0, totalSpent);
-      const newDonated = isDonor ? Math.max(existingContact.total_donated || 0, orders.filter(r => r['Item'].includes('true healing')).reduce((s, r) => s + parseFloat(r['Total'] || 0), 0)) : existingContact.total_donated || 0;
+      const newTotal = (existingContact.total_spent || 0) + totalSpent;
+      const donationAmount = orders.filter(r => r['Item'].includes('true healing')).reduce((s, r) => s + parseFloat(r['Total'] || 0), 0);
+      const newDonated = isDonor ? Math.max(existingContact.total_donated || 0, donationAmount) : existingContact.total_donated;
 
       updates.push({
         contactId: existingContact.id,
@@ -229,7 +233,7 @@ async function main() {
 
   console.log(`\n--- Updates (spend enrichment) ---`);
   for (const u of updates.slice(0, 10)) {
-    console.log(`  ${u.email} | total_spent=${u.totalSpent.toFixed(2)} | total_donated=${u.totalDonated.toFixed(2)}`);
+    console.log(`  ${u.email} | total_spent=${u.totalSpent.toFixed(2)} | total_donated=${u.totalDonated != null ? u.totalDonated.toFixed(2) : 'NULL'}`);
   }
   if (updates.length > 10) console.log(`  ... and ${updates.length - 10} more`);
 
@@ -256,7 +260,7 @@ async function main() {
   // Updates
   if (updates.length) {
     const stmts = updates.map(u =>
-      `UPDATE contact SET total_spent = ${u.totalSpent}, total_donated = ${u.totalDonated}${u.phone ? `, phone = ${sqlEscape(u.phone)}` : ''}, updated_at = datetime('now') WHERE id = ${sqlEscape(u.contactId)};`
+      `UPDATE contact SET total_spent = ${u.totalSpent}${u.totalDonated != null ? `, total_donated = ${u.totalDonated}` : ''}${u.phone ? `, phone = ${sqlEscape(u.phone)}` : ''}, updated_at = datetime('now') WHERE id = ${sqlEscape(u.contactId)};`
     );
     d1Exec(stmts.join('\n'));
     console.log(`  Updated ${updates.length} contacts (spend + phone)`);

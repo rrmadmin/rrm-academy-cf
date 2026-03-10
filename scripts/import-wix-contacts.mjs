@@ -10,7 +10,7 @@
  */
 
 import { execSync } from 'child_process';
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync, unlinkSync } from 'fs';
 import { randomUUID } from 'crypto';
 
 const DRY_RUN = !process.argv.includes('--execute');
@@ -23,16 +23,20 @@ function d1Query(sql) {
     encoding: 'utf8', maxBuffer: 50 * 1024 * 1024,
   });
   const start = out.indexOf('[');
-  if (start === -1) return [];
+  if (start === -1) throw new Error(`d1Query returned no JSON. Output:\n${out.slice(0, 500)}`);
   return JSON.parse(out.slice(start))[0]?.results || [];
 }
 
 function d1Exec(sql) {
   const tmpFile = '/tmp/wix-contacts-batch.sql';
   writeFileSync(tmpFile, sql);
-  execSync(`npx wrangler d1 execute rrm-auth --remote --file=${tmpFile}`, {
-    encoding: 'utf8', maxBuffer: 50 * 1024 * 1024,
-  });
+  try {
+    execSync(`npx wrangler d1 execute rrm-auth --remote --file=${tmpFile}`, {
+      encoding: 'utf8', maxBuffer: 50 * 1024 * 1024,
+    });
+  } finally {
+    try { unlinkSync(tmpFile); } catch {}
+  }
 }
 
 function sqlEscape(val) {
@@ -139,11 +143,20 @@ async function main() {
   const rows = parseCSV(csvText);
   console.log(`CSV: ${rows.length} rows from ${CSV_PATH}`);
 
-  // Dedup by email
+  // Dedup by email (merge labels across duplicate rows)
   const byEmail = new Map();
   for (const r of rows) {
     const email = norm(r['Email 1']);
-    if (email && !byEmail.has(email)) byEmail.set(email, r);
+    if (!email) continue;
+    if (!byEmail.has(email)) {
+      byEmail.set(email, r);
+    } else {
+      const existing = byEmail.get(email);
+      const existingLabels = (existing.Labels || '').split(';').map(l => l.trim()).filter(Boolean);
+      const newLabels = (r.Labels || '').split(';').map(l => l.trim()).filter(Boolean);
+      const merged = new Set([...existingLabels, ...newLabels]);
+      existing.Labels = [...merged].join(';');
+    }
   }
   console.log(`Unique emails: ${byEmail.size}`);
 
@@ -159,7 +172,11 @@ async function main() {
   // Filter test emails
   let testCount = 0;
   for (const email of byEmail.keys()) {
-    if (email.includes('test') || email.includes('example') || email.includes('virtualassistant')) {
+    const local = email.split('@')[0];
+    const domain = email.split('@')[1] || '';
+    if (domain === 'example.com' || domain === 'example.org' || domain === 'test.com' ||
+        local === 'test' || local.endsWith('+test') || /^test\d+$/.test(local) ||
+        email.includes('virtualassistant')) {
       byEmail.delete(email);
       testCount++;
     }
@@ -226,7 +243,7 @@ async function main() {
       }
 
       // Update first_seen_at if Wix date is earlier
-      if (createdAt && existingContact.first_seen_at && createdAt < existingContact.first_seen_at) {
+      if (createdAt && existingContact.first_seen_at && new Date(createdAt) < new Date(existingContact.first_seen_at)) {
         changes.push(`first_seen_at = ${sqlEscape(createdAt)}`);
       } else if (createdAt && !existingContact.first_seen_at) {
         changes.push(`first_seen_at = ${sqlEscape(createdAt)}`);
@@ -235,6 +252,14 @@ async function main() {
       // Update source if missing
       if (!existingContact.source && source) {
         changes.push(`source = ${sqlEscape(source)}`);
+      }
+
+      // Enrich spend (use MAX since same Wix source)
+      if (totalSpent > 0) {
+        changes.push(`total_spent = MAX(COALESCE(total_spent, 0), ${totalSpent})`);
+      }
+      if (totalDonated > 0) {
+        changes.push(`total_donated = MAX(COALESCE(total_donated, 0), ${totalDonated})`);
       }
 
       if (changes.length) {
@@ -262,6 +287,13 @@ async function main() {
             newTags.push({ contactId: existingContact.id, tag: mapped, source: 'wix-contacts' });
             tagSet.add(mappedKey);
           }
+          if (mapped.startsWith('donor:')) {
+            const donorKey = `${existingContact.id}::donor`;
+            if (!tagSet.has(donorKey)) {
+              newTags.push({ contactId: existingContact.id, tag: 'donor', source: 'wix-contacts' });
+              tagSet.add(donorKey);
+            }
+          }
         }
       }
 
@@ -278,6 +310,15 @@ async function main() {
           newTags.push({ contactId: existingContact.id, tag: 'wix:unsubscribed', source: 'wix-contacts' });
           tagSet.add(unsubKey);
         }
+      }
+
+      // Address
+      if (addr1Street) {
+        newAddresses.push({
+          id: randomUUID(), contactId: existingContact.id, type: addr1Type,
+          line1: addr1Street, city: addr1City, state: addr1State,
+          zip: addr1Zip, country: addr1Country,
+        });
       }
 
     } else {
@@ -305,6 +346,9 @@ async function main() {
         const mapped = LABEL_TAG_MAP[label];
         if (mapped && mapped !== label) {
           newTags.push({ contactId, tag: mapped, source: 'wix-contacts' });
+          if (mapped.startsWith('donor:')) {
+            newTags.push({ contactId, tag: 'donor', source: 'wix-contacts' });
+          }
         }
       }
 

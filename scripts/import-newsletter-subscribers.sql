@@ -6,7 +6,7 @@ INSERT OR IGNORE INTO newsletter_subscriber (id, email, name, status, segments, 
 SELECT
   u.id,
   u.email,
-  COALESCE(u.name, u.first_name || ' ' || u.last_name),
+  COALESCE(u.name, NULLIF(TRIM(COALESCE(u.first_name,'') || ' ' || COALESCE(u.last_name,'')), '')),
   'active',
   (
     SELECT json_group_array(
