@@ -31,6 +31,23 @@ export async function onRequestGet(context) {
   const url = new URL(request.url);
   const action = url.searchParams.get('action') || 'check';
 
+  // Observatory actions proxy to rrm-observatory Worker
+  if (action === 'observatory') {
+    if (!env.OBSERVATORY_API_TOKEN) {
+      return json({ error: 'Observatory service not configured' }, 503);
+    }
+    const obsUrl = 'https://rrm-observatory.administrator-cloudflare.workers.dev/api/health';
+    try {
+      const obsResp = await fetch(obsUrl, {
+        headers: { 'Authorization': `Bearer ${env.OBSERVATORY_API_TOKEN}` },
+      });
+      const data = await obsResp.json();
+      return json(data, obsResp.status);
+    } catch {
+      return json({ error: 'Observatory service unavailable' }, 502);
+    }
+  }
+
   let workerUrl;
   let method = 'GET';
 
