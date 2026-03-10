@@ -6,6 +6,8 @@
  *   sendGA4Event(env, request, 'purchase', { value: 10.00, currency: 'USD' }).catch(() => {});
  */
 
+import { buildSourceParams } from './_ga4-source.js';
+
 const GA4_ENDPOINT = 'https://www.google-analytics.com/mp/collect';
 
 async function getClientId(request) {
@@ -22,12 +24,14 @@ export async function sendGA4Event(env, request, eventName, params = {}) {
 
   try {
     const clientId = await getClientId(request);
+    const sourceParams = await buildSourceParams(request, clientId);
     const payload = {
       client_id: clientId,
       events: [{
         name: eventName,
         params: {
           page_location: request.url,
+          ...sourceParams,
           ...params,
         },
       }],
