@@ -63,6 +63,14 @@ const jsonLd = {
 
   </section>
 
+  <section class="commentary-intro">
+    <div class="container container--narrow">
+      <p>
+        Written by board-certified OBGYN and NaProTechnology fellow <a href="/about">Dr. Naomi Whittaker</a>, these articles bridge the gap between published research and real clinical practice. Topics range from endometriosis diagnosis and excision surgery to fertility awareness-based methods, NaProTechnology outcomes, and the systemic issues that delay treatment for women with reproductive health conditions. Each post draws on peer-reviewed literature from our <a href="/library">Research Library</a> of over 3,000 articles, translating dense clinical findings into language patients and practitioners can act on.
+      </p>
+    </div>
+  </section>
+
   <!-- CTA -->
   <section class="commentary-cta" data-pagefind-ignore="all">
     <div class="container container--narrow">
@@ -102,6 +110,25 @@ const jsonLd = {
     .commentary-hero__subtitle {
       font-size: 1.125rem;
     }
+  }
+
+  .commentary-intro {
+    padding: 0 0 var(--space-6);
+  }
+  .commentary-intro p {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+  .commentary-intro a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .commentary-intro a:hover {
+    color: var(--accent-hover);
   }
 
   /* Section labels — understated */
