@@ -178,6 +178,9 @@ async function handleWebhook(request, env, waitUntil) {
           value: (session.amount_total || 0) / 100,
           transaction_id: session.payment_intent,
           items: [{ item_name: `Course: ${session.metadata.courseId || 'unknown'}` }],
+          ...(session.metadata?.ga_source && { utm_source: session.metadata.ga_source }),
+          ...(session.metadata?.ga_medium && { utm_medium: session.metadata.ga_medium }),
+          ...(session.metadata?.ga_campaign && { utm_campaign: session.metadata.ga_campaign }),
         }).catch(() => {});
       }
 
@@ -233,6 +236,9 @@ async function handleWebhook(request, env, waitUntil) {
           value: (session.amount_total || 0) / 100,
           transaction_id: session.payment_intent || session.id,
           items: [{ item_name: 'Donation' }],
+          ...(session.metadata?.ga_source && { utm_source: session.metadata.ga_source }),
+          ...(session.metadata?.ga_medium && { utm_medium: session.metadata.ga_medium }),
+          ...(session.metadata?.ga_campaign && { utm_campaign: session.metadata.ga_campaign }),
         }).catch(() => {});
       } else if (session.mode === 'subscription' && stucTiers[tier]) {
         sendGA4Event(env, request, 'purchase', {
@@ -240,6 +246,9 @@ async function handleWebhook(request, env, waitUntil) {
           value: (session.amount_total || 0) / 100,
           transaction_id: session.subscription || session.id,
           items: [{ item_name: `STUC ${stucTiers[tier]}` }],
+          ...(session.metadata?.ga_source && { utm_source: session.metadata.ga_source }),
+          ...(session.metadata?.ga_medium && { utm_medium: session.metadata.ga_medium }),
+          ...(session.metadata?.ga_campaign && { utm_campaign: session.metadata.ga_campaign }),
         }).catch(() => {});
       }
       break;
