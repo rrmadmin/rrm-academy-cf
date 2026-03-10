@@ -9,23 +9,9 @@
  * not here (avoids loading the 500KB redirect map on every request).
  */
 import { getSessionIdFromCookie, validateSession, sessionCookie, roleAtLeast } from './api/auth/_shared.js';
-import { buildSourceParams } from './api/_ga4-source.js';
+import { buildSourceParams, getClientId } from './api/_ga4-source.js';
 
 const GA4_ENDPOINT = 'https://www.google-analytics.com/mp/collect';
-
-/**
- * Derives a stable, anonymous client_id from IP + User-Agent.
- * No cookie, no PII stored — just a deterministic identifier per device.
- * Returns a 16-char hex string.
- */
-async function getClientId(request) {
-  const ip = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown';
-  const ua = request.headers.get('User-Agent') || 'unknown';
-  const raw = new TextEncoder().encode(`${ip}:${ua}`);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', raw);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
-}
 
 /**
  * Fires a GA4 page_view hit via Measurement Protocol.
@@ -41,6 +27,9 @@ async function sendPageView(request, env) {
   const accept = request.headers.get('Accept') || '';
   if (!accept.includes('text/html')) return;
 
+  // Skip known bots -- they inflate page_view counts and pollute source data
+  if (request.headers.get('cf-verified-bot') === 'true') return;
+
   try {
     const clientId = await getClientId(request);
     const sourceParams = await buildSourceParams(request, clientId);
@@ -51,6 +40,7 @@ async function sendPageView(request, env) {
         params: {
           page_location: request.url,
           page_referrer: request.headers.get('Referer') || '',
+          engagement_time_msec: 1,
           ...sourceParams,
         },
       }],
