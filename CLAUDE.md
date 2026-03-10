@@ -1,3 +1,4 @@
+<!-- Last reviewed: 2026-03-10 -->
 # RRM Academy (Astro + CF Pages)
 
 > **This is `rrm-academy-cf` — the rrmacademy.org website.** Not `rrm-foundation` (separate project, separate site). All work here affects the live education platform.
