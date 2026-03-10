@@ -48,7 +48,9 @@ async function handleCheckout(request, env) {
     return json({ ok: false, error: 'Invalid JSON' }, 400);
   }
 
-  const { mode, amount, tier, entry_referrer, entry_url } = body;
+  const { mode, amount, tier } = body;
+  const entry_referrer = typeof body.entry_referrer === 'string' ? body.entry_referrer.slice(0, 2048) : undefined;
+  const entry_url = typeof body.entry_url === 'string' ? body.entry_url.slice(0, 2048) : undefined;
 
   if (mode !== 'payment' && mode !== 'subscription') {
     return json({ ok: false, error: 'Invalid mode — use "payment" or "subscription"' }, 400);
@@ -66,10 +68,14 @@ async function handleCheckout(request, env) {
 
   // --- Resolve logged-in user (optional) ---
   const db = env.DB;
+  if (!db) {
+    console.error('DB binding missing -- cannot resolve user for checkout');
+    return json({ ok: false, error: 'Internal error' }, 500);
+  }
   let userEmail = null;
   let userId = null;
   let stripeCustomerId = null;
-  if (db) {
+  {
     const sessionId = getSessionIdFromCookie(request);
     const session = await validateSession(db, sessionId);
     if (session) {
@@ -87,8 +93,8 @@ async function handleCheckout(request, env) {
 
   // Use the browser's original entry referrer/URL (passed in POST body) for
   // source attribution. The request's own Referer is always rrmacademy.org (self-referral).
-  const referrer = (typeof entry_referrer === 'string' && entry_referrer) || '';
-  const landingUrl = (typeof entry_url === 'string' && entry_url) || '';
+  const referrer = entry_referrer || '';
+  const landingUrl = entry_url || '';
   const utmParams = extractUtm(landingUrl);
   const { source, medium } = classifySource(referrer);
   const gaSource = utmParams.utm_source || source;

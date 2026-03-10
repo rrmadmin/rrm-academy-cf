@@ -50,8 +50,23 @@ export async function onRequestPost(context) {
   if (!token || !symptoms || !score) {
     return json({ ok: false, error: 'Missing required fields' }, 400);
   }
+  if (typeof token !== 'string' || token.length > 40) {
+    return json({ ok: false, error: 'Invalid token' }, 400);
+  }
   if (!Array.isArray(symptoms.tier1) || !Array.isArray(symptoms.tier2) || !Array.isArray(symptoms.tier3)) {
     return json({ ok: false, error: 'symptoms must contain tier1, tier2, tier3 arrays' }, 400);
+  }
+  const MAX_ITEMS = 50;
+  const MAX_LEN = 200;
+  for (const tier of [symptoms.tier1, symptoms.tier2, symptoms.tier3]) {
+    if (tier.length > MAX_ITEMS) {
+      return json({ ok: false, error: `Too many symptoms (max ${MAX_ITEMS} per tier)` }, 400);
+    }
+    for (const s of tier) {
+      if (typeof s !== 'string' || s.length > MAX_LEN) {
+        return json({ ok: false, error: `Each symptom must be a string of at most ${MAX_LEN} characters` }, 400);
+      }
+    }
   }
   if (typeof score.total !== 'number' || typeof score.tier1 !== 'number' ||
       typeof score.tier2 !== 'number' || typeof score.tier3 !== 'number') {
