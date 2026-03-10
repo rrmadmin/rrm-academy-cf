@@ -176,9 +176,12 @@ async function handleWebhook(request, env, waitUntil) {
       if (session.metadata?.ga_client_id) gaOverrides.client_id = session.metadata.ga_client_id;
       if (session.metadata?.ga_session_id) gaOverrides.session_id = Number(session.metadata.ga_session_id);
 
+      const pageLocation = session.success_url?.replace(/\?.*$/, '') || SITE_URL;
+
       // GA4: track completed course purchase
       if (session.metadata?.type === 'course' && session.payment_intent) {
         sendGA4Event(env, request, 'purchase', {
+          page_location: pageLocation,
           currency: 'USD',
           value: (session.amount_total || 0) / 100,
           transaction_id: session.payment_intent,
@@ -237,6 +240,7 @@ async function handleWebhook(request, env, waitUntil) {
       // GA4: track completed donation or membership purchase
       if (session.mode === 'payment') {
         sendGA4Event(env, request, 'purchase', {
+          page_location: pageLocation,
           currency: 'USD',
           value: (session.amount_total || 0) / 100,
           transaction_id: session.payment_intent || session.id,
@@ -247,6 +251,7 @@ async function handleWebhook(request, env, waitUntil) {
         }, gaOverrides).catch(() => {});
       } else if (session.mode === 'subscription' && stucTiers[tier]) {
         sendGA4Event(env, request, 'purchase', {
+          page_location: pageLocation,
           currency: 'USD',
           value: (session.amount_total || 0) / 100,
           transaction_id: session.subscription || session.id,
@@ -386,10 +391,18 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
   // Case 1: User was logged in (client_reference_id = D1 user ID)
   if (session.client_reference_id) {
     if (customerId) {
-      await db.prepare(
+      const result = await db.prepare(
         'UPDATE user SET stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE id = ? AND (stripe_customer_id IS NULL OR stripe_customer_id = ?)'
       ).bind(customerId, session.client_reference_id, customerId).run();
-      log(env, waitUntil, 'billing', 'stripe_linked', 'ok', `${customerId} -> user ${session.client_reference_id} (by ID)`);
+      if (result.meta.changes === 0) {
+        const existing = await db.prepare('SELECT stripe_customer_id FROM user WHERE id = ?').bind(session.client_reference_id).first();
+        if (existing?.stripe_customer_id && existing.stripe_customer_id !== customerId) {
+          log(env, waitUntil, 'billing', 'stripe_id_mismatch', 'error',
+            `user ${session.client_reference_id} has ${existing.stripe_customer_id}, checkout used ${customerId}`);
+        }
+      } else {
+        log(env, waitUntil, 'billing', 'stripe_linked', 'ok', `${customerId} -> user ${session.client_reference_id} (by ID)`);
+      }
     }
     return;
   }
