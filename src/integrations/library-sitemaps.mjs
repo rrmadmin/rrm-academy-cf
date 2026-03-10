@@ -13,7 +13,6 @@ import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
 const SITE = 'https://rrmacademy.org';
-const LIBRARY_LAUNCH_DATE = '2026-03-01';
 
 function classifyTier(article) {
   const hasAbstract = article.abstract && article.abstract.trim().length > 50;
@@ -64,9 +63,12 @@ export default function librarySitemaps() {
         const tier2 = [];
         for (const a of articles) {
           if (!a.slug) continue;
+          const lastmod = a.lastModified
+            ? a.lastModified.split('T')[0]
+            : undefined;
           const url = {
             loc: `${SITE}/library/${a.slug}/`,
-            lastmod: LIBRARY_LAUNCH_DATE,
+            lastmod,
           };
           if (classifyTier(a) === 3) {
             tier3.push(url);
@@ -90,11 +92,14 @@ export default function librarySitemaps() {
           let indexXml = readFileSync(indexPath, 'utf-8');
 
           // Insert library tier sitemaps BEFORE sitemap-0 so Google crawls
-          // richest library content first, then pages/commentary, then tier 2
-          const t2Entry = `  <sitemap>\n    <loc>${SITE}/sitemap-library-t2.xml</loc>\n  </sitemap>\n`;
+          // richest library content first, then pages/commentary, then tier 2.
+          // Include lastmod on each <sitemap> entry using today's build date.
+          const buildDate = new Date().toISOString().split('T')[0];
+          const t3Entry = `  <sitemap>\n    <loc>${SITE}/sitemap-library-t3.xml</loc>\n    <lastmod>${buildDate}</lastmod>\n  </sitemap>`;
+          const t2Entry = `  <sitemap>\n    <loc>${SITE}/sitemap-library-t2.xml</loc>\n    <lastmod>${buildDate}</lastmod>\n  </sitemap>`;
           indexXml = indexXml.replace(
             /<sitemap><loc>[^<]*sitemap-0\.xml<\/loc><\/sitemap>/,
-            `<sitemap>\n    <loc>${SITE}/sitemap-library-t3.xml</loc>\n  </sitemap>\n  <sitemap><loc>${SITE}/sitemap-0.xml</loc></sitemap>\n${t2Entry}`
+            `${t3Entry}\n  <sitemap>\n    <loc>${SITE}/sitemap-0.xml</loc>\n    <lastmod>${buildDate}</lastmod>\n  </sitemap>\n${t2Entry}`
           );
 
           writeFileSync(indexPath, indexXml);

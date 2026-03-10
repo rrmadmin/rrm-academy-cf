@@ -7,24 +7,24 @@ import { dirname, join } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// Library articles: site launched 2026-03-01, all pages published that date.
 // Commentary posts: use Airtable Last Modified (individually edited).
-// Static pages: omit lastmod entirely.
-const LIBRARY_LAUNCH_DATE = '2026-03-01';
+// Static pages: use a fixed "last reviewed" date.
+// Library articles: handled by library-sitemaps integration (not in sitemap-0).
+const STATIC_PAGE_DATE = '2026-03-10';
 
 function buildDateMap() {
   const map = new Map();
 
-  try {
-    const articles = JSON.parse(
-      readFileSync(join(__dirname, 'src/data/articles.json'), 'utf-8')
-    );
-    for (const a of articles) {
-      if (a.slug) {
-        map.set(`/library/${a.slug}/`, LIBRARY_LAUNCH_DATE);
-      }
-    }
-  } catch {}
+  // Static pages -- update this date when content is meaningfully revised
+  const staticPages = [
+    '/', '/about/', '/courses/', '/faqs/', '/donate/',
+    '/library/', '/commentary/', '/contact/', '/endo-survey/',
+    '/save-the-uterus-club/', '/terms-of-use/', '/privacy-policy/',
+    '/medical-disclaimer/',
+  ];
+  for (const p of staticPages) {
+    map.set(p, STATIC_PAGE_DATE);
+  }
 
   try {
     const posts = JSON.parse(
@@ -80,6 +80,10 @@ export default defineConfig({
         const url = new URL(page);
         const path = url.pathname;
         if (path.startsWith('/library/') && path !== '/library/') return false;
+        // Course lesson steps are noindex — exclude from sitemap
+        // Pattern: /courses/[slug]/[stepId]/ (3+ segments under /courses/)
+        const segments = path.split('/').filter(Boolean);
+        if (segments[0] === 'courses' && segments.length >= 3) return false;
         return true;
       },
       serialize: (item) => {
