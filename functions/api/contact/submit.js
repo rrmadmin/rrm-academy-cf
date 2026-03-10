@@ -2,24 +2,12 @@
  * POST /api/contact/submit
  * Validates Turnstile token, rate-limits by IP, sends email via SES.
  */
+import { json, optionsResponse } from '../auth/_shared.js';
 import { sendEmail } from '../_ses.js';
 import { log } from '../_log.js';
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': 'https://rrmacademy.org',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
-
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
-  });
-}
-
 export async function onRequestOptions() {
-  return new Response(null, { status: 204, headers: CORS_HEADERS });
+  return optionsResponse();
 }
 
 export async function onRequestPost(context) {
