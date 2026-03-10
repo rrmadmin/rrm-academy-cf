@@ -3,7 +3,7 @@
 // Prefixed with _ so CF Pages doesn't treat it as a route handler.
 
 const SEARCH_ENGINES = [
-  { pattern: /google\./i, source: 'google' },
+  { pattern: /^(www\.)?google\./i, source: 'google' },
   { pattern: /bing\.com/i, source: 'bing' },
   { pattern: /yahoo\./i, source: 'yahoo' },
   { pattern: /duckduckgo\.com/i, source: 'duckduckgo' },
@@ -73,6 +73,20 @@ export async function deriveSessionId(clientId, dateStr) {
   const hashBuffer = await crypto.subtle.digest('SHA-256', raw);
   const view = new DataView(hashBuffer);
   return view.getUint32(0) || 1;
+}
+
+/**
+ * Derives a stable, anonymous client_id from IP + User-Agent.
+ * No cookie, no PII stored -- just a deterministic identifier per device.
+ * Returns a 16-char hex string.
+ */
+export async function getClientId(request) {
+  const ip = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown';
+  const ua = request.headers.get('User-Agent') || 'unknown';
+  const raw = new TextEncoder().encode(`${ip}:${ua}`);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', raw);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
 }
 
 export async function buildSourceParams(request, clientId) {

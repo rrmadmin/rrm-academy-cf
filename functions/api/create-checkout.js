@@ -17,7 +17,7 @@ import {
   STRIPE_API_VERSION, SITE_URL,
 } from './auth/_shared.js';
 import { sendGA4Event } from './_ga4.js';
-import { classifySource, extractUtm } from './_ga4-source.js';
+import { classifySource, extractUtm, getClientId, deriveSessionId } from './_ga4-source.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -48,7 +48,7 @@ async function handleCheckout(request, env) {
     return json({ ok: false, error: 'Invalid JSON' }, 400);
   }
 
-  const { mode, amount, tier } = body;
+  const { mode, amount, tier, entry_referrer, entry_url } = body;
 
   if (mode !== 'payment' && mode !== 'subscription') {
     return json({ ok: false, error: 'Invalid mode — use "payment" or "subscription"' }, 400);
@@ -85,13 +85,20 @@ async function handleCheckout(request, env) {
 
   const origin = SITE_URL;
 
-  // Capture traffic source from the user's browser request for webhook attribution
-  const referrer = request.headers.get('Referer') || '';
-  const utmParams = extractUtm(request.url);
+  // Use the browser's original entry referrer/URL (passed in POST body) for
+  // source attribution. The request's own Referer is always rrmacademy.org (self-referral).
+  const referrer = (typeof entry_referrer === 'string' && entry_referrer) || '';
+  const landingUrl = (typeof entry_url === 'string' && entry_url) || '';
+  const utmParams = extractUtm(landingUrl);
   const { source, medium } = classifySource(referrer);
   const gaSource = utmParams.utm_source || source;
   const gaMedium = utmParams.utm_medium || medium;
   const gaCampaign = utmParams.utm_campaign || '';
+
+  // Store client_id + session_id so webhook can replay the real user identity
+  const clientId = await getClientId(request);
+  const dateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+  const sessionId = await deriveSessionId(clientId, dateStr);
 
   // --- One-time donation ---
   if (mode === 'payment') {
@@ -129,6 +136,8 @@ async function handleCheckout(request, env) {
       ...(sessionParams.metadata || {}),
       ga_source: gaSource,
       ga_medium: gaMedium,
+      ga_client_id: clientId,
+      ga_session_id: String(sessionId),
       ...(gaCampaign && { ga_campaign: gaCampaign }),
     };
 
@@ -193,6 +202,8 @@ async function handleCheckout(request, env) {
       ...sessionParams.metadata,
       ga_source: gaSource,
       ga_medium: gaMedium,
+      ga_client_id: clientId,
+      ga_session_id: String(sessionId),
       ...(gaCampaign && { ga_campaign: gaCampaign }),
     };
 
