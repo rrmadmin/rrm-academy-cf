@@ -250,9 +250,41 @@ const breadcrumbNode = {
   ],
 };
 
+// DefinedTerm schema for glossary post
+const glossaryTermNodes: any[] = [];
+if (post.slug === 'glossary-of-restorative-reproductive-medicine-rrm' && post.content) {
+  const termPattern = /\*\*([^*]{3,60}?):?\*\*\s*[-–:]?\s*([^*\n]{20,300})/g;
+  let match;
+  while ((match = termPattern.exec(post.content)) !== null) {
+    const name = match[1].replace(/:$/, '').trim();
+    const desc = match[2].trim();
+    if (name && desc) {
+      glossaryTermNodes.push({
+        '@type': 'DefinedTerm',
+        name,
+        description: desc,
+        inDefinedTermSet: {
+          '@type': 'DefinedTermSet',
+          name: 'Restorative Reproductive Medicine Glossary',
+          url: `https://rrmacademy.org/commentary/${post.slug}/`,
+        },
+      });
+    }
+  }
+}
+
 const { '@context': _ctx, ...blogPostingNode } = jsonLd;
 const graphNodes = [blogPostingNode, breadcrumbNode];
 if (post.slug === 'rrm-spotlight-naomi-whittaker-md') graphNodes.push(whittakerPersonNode);
+if (glossaryTermNodes.length > 0) {
+  // Add DefinedTermSet + first 50 terms (schema size limit)
+  graphNodes.push({
+    '@type': 'DefinedTermSet',
+    name: 'Restorative Reproductive Medicine Glossary',
+    url: `https://rrmacademy.org/commentary/${post.slug}/`,
+    hasDefinedTerm: glossaryTermNodes.slice(0, 50),
+  });
+}
 const finalJsonLd = {
   '@context': 'https://schema.org',
   '@graph': graphNodes,
