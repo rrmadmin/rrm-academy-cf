@@ -93,7 +93,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         </div>
 
         <!-- Alert conditions -->
-        <div class="obs-alerts-row">
+        <div class="obs-alerts-row obs-alerts-row--5">
           <div class="bl-card obs-alert-card" id="obs-alert-error-rate">
             <span class="bl-card__label">Error Rate</span>
             <span class="seo-card__icon" id="obs-icon-error-rate">--</span>
@@ -109,6 +109,27 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             <span class="seo-card__icon" id="obs-icon-missing">--</span>
             <span class="seo-card__detail" id="obs-detail-missing">Not checked</span>
           </div>
+          <div class="bl-card obs-alert-card" id="obs-alert-n8n">
+            <span class="bl-card__label">n8n</span>
+            <span class="seo-card__icon" id="obs-icon-n8n">--</span>
+            <span class="seo-card__detail" id="obs-detail-n8n">Not checked</span>
+          </div>
+          <div class="bl-card obs-alert-card" id="obs-alert-ses">
+            <span class="bl-card__label">SES</span>
+            <span class="seo-card__icon" id="obs-icon-ses">--</span>
+            <span class="seo-card__detail" id="obs-detail-ses">Not checked</span>
+          </div>
+        </div>
+
+        <!-- Latency stats -->
+        <div class="bl-card obs-table-card" id="obs-latency-card" style="display:none;">
+          <h3 class="obs-latency-heading">Response Times</h3>
+          <table class="obs-table">
+            <thead>
+              <tr><th>Worker</th><th style="text-align:right;">p50</th><th style="text-align:right;">p95</th><th style="text-align:right;">max</th><th style="text-align:right;">n</th></tr>
+            </thead>
+            <tbody id="obs-latency-body"></tbody>
+          </table>
         </div>
 
         <!-- Recent errors -->
@@ -240,6 +261,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       high_error_rate: 'error-rate',
       intake_silent: 'intake',
       worker_missing: 'missing',
+      n8n_health: 'n8n',
+      ses_reputation: 'ses',
     };
 
     function updateObservatory(data) {
@@ -275,6 +298,22 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           }
           detailEl.textContent = a.message || '';
         }
+      }
+
+      // Latency table
+      var latencyCard = document.getElementById('obs-latency-card');
+      var latencyBody = document.getElementById('obs-latency-body');
+      if (data.latency && data.latency.length > 0) {
+        latencyCard.style.display = '';
+        latencyBody.innerHTML = data.latency.map(function (r) {
+          var p50 = Math.round(parseFloat(r.p50) || 0);
+          var p95 = Math.round(parseFloat(r.p95) || 0);
+          var max = Math.round(parseFloat(r.max_ms) || 0);
+          var p95Style = p95 > 5000 ? ' style="color:#c0392b;text-align:right;"' : p95 > 2000 ? ' style="color:#e67e22;text-align:right;"' : ' style="text-align:right;"';
+          return '<tr><td>' + esc(r.worker) + '</td><td style="text-align:right;">' + p50 + 'ms</td><td' + p95Style + '>' + p95 + 'ms</td><td style="text-align:right;">' + max + 'ms</td><td style="text-align:right;">' + r.cnt + '</td></tr>';
+        }).join('');
+      } else {
+        latencyCard.style.display = 'none';
       }
 
       // Errors table
@@ -495,8 +534,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     gap: var(--space-4);
     margin-bottom: var(--space-6);
   }
+  .obs-alerts-row--5 {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  @media (max-width: 800px) {
+    .obs-alerts-row--5 { grid-template-columns: repeat(3, 1fr); }
+  }
   @media (max-width: 600px) {
-    .obs-alerts-row { grid-template-columns: 1fr; }
+    .obs-alerts-row, .obs-alerts-row--5 { grid-template-columns: repeat(2, 1fr); }
   }
   .obs-table-card {
     margin-bottom: var(--space-6);
@@ -536,6 +581,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .obs-errors-heading {
     font-size: 0.875rem;
     color: #c0392b;
+    margin: 0 0 var(--space-3);
+  }
+  .obs-latency-heading {
+    font-size: 0.875rem;
+    color: var(--admin-text);
     margin: 0 0 var(--space-3);
   }
 </style>
