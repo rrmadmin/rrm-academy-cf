@@ -64,7 +64,7 @@ Content pillar ideas for remaining posts:
 Before resubmitting rrmacademy.org:
 
 - [x] CTA fixes deployed (Phase 1) -- CTAs added to /commentary/, /faqs/, /faqs/[slug], donate disclaimer updated
-- [ ] At least 2-3 fresh blog posts published
+- [x] At least 2-3 fresh blog posts published (4 posts Feb 14 - Mar 6, plus 4th in progress)
 - [x] Run PageSpeed Insights from browser, confirm mobile score 90+ (Astro static site on CF edge)
 - [x] Verify all key pages load under 3 seconds on mobile
 - [x] Spot-check mobile responsiveness on homepage, about, library, endo-survey
@@ -82,6 +82,121 @@ Before resubmitting rrmacademy.org:
 4. Watch the welcome video (step 2 in their flow)
 5. Submit the activation request (step 3)
 6. Wait 3-7 business days (up to 30 if extended review)
+
+---
+
+## Traffic Analytics (Wix, Mar 2025 - Mar 2026)
+
+Baseline traffic data from the Wix site before full migration to Astro/Cloudflare. Use this to inform Ad Grants campaign strategy and keyword selection.
+
+### Top 20 Pages by Sessions
+
+| Page | Sessions | Uniques | Notes |
+|---|---|---|---|
+| `/` (homepage) | 6,096 | 4,372 | Brand + organic entry point |
+| `/3-tier-endometriosis-symptom-self-survey` | 4,912 | 4,099 | Mostly IG direct (Naomi's 625k+ following). Proves massive demand |
+| `/my-files/...` (downloads) | 2,990 | 2,422 | Course materials / PDF downloads |
+| `/post/naprotechnology-surgery-...` | 2,135 | 1,480 | Top organic blog post by far |
+| `/library` | 1,977 | 1,214 | Strong organic interest in research |
+| `/post/rrm-spotlight-naomi-whittaker-md` | 1,298 | 1,075 | People search for Naomi by name |
+| `/course/masterclass-in-endometriosis-and-surgery` | 1,139 | 900 | Top course page |
+| `/course/rrm-vs-ivf` | 1,055 | 809 | High-intent searchers comparing approaches |
+| `/courses` | 1,003 | 739 | Course catalog browse intent |
+| `/save-the-uterus-club` | 753 | 535 | Membership/donation page |
+| `/post/rrm-spotlight-patrick-p-yeung-jr-md` | 450 | 300 | Physician search |
+| `/about` | 386 | 293 | |
+| `/commentary` | 385 | 217 | Blog index |
+| `/course/long-term-endometriosis-management` | 374 | 310 | Second most popular course |
+| `/post/rrm-explained-...` | 239 | 180 | Educational explainer |
+| `/post/understanding-endometriosis-...` | 209 | 141 | Endo awareness content |
+| `/post/glossary-of-rrm` | 191 | 130 | Reference/educational |
+| `/contact` | 190 | 158 | |
+| `/search` | 165 | 118 | People actively searching the site |
+| `/plans-pricing` | 155 | 143 | Pricing intent |
+
+### Traffic by Source (12 months)
+
+| Source | Sessions | Uniques | Notes |
+|---|---|---|---|
+| Direct | 14,692 | 10,614 | Bookmarks, typed URLs, IG bio links |
+| Instagram | 6,936 | 6,240 | Naomi's 625k+ following. Primary social driver |
+| Google | 6,891 | 5,881 | Organic search. This is what Ad Grants amplifies |
+| Facebook | 1,691 | 1,329 | Organic social shares |
+| linkinbio.rrmacademy.org | 1,229 | 1,146 | IG link-in-bio referrals |
+| DuckDuckGo | 705 | 348 | Privacy-focused searchers |
+| byitsfruit.org | 445 | 377 | Referral partner |
+| Bing | 416 | 365 | |
+| Twitter | 122 | 112 | |
+| ChatGPT | 68 | 62 | AI referral traffic already happening |
+
+### Top Pages by Google Organic Only
+
+These are the pages Google already sends traffic to. Ad Grants campaigns should amplify these proven winners.
+
+| Page | Google Sessions | Google Uniques |
+|---|---|---|
+| NaPro surgery blog post | 1,169 | 995 |
+| Homepage | 966 | 798 |
+| Naomi Whittaker spotlight | 880 | 760 |
+| Research Library | 359 | 311 |
+| Endo Self-Survey | 313 | 274 |
+| Yeung spotlight | 269 | 209 |
+| Courses index | 244 | 192 |
+| Endo Masterclass (course) | 163 | 134 |
+| RRM vs IVF (course) | 107 | 88 |
+| Long-term Endo Management (course) | 104 | 93 |
+| RRM Explained post | 102 | 85 |
+| Understanding Endometriosis post | 101 | 69 |
+| About | 100 | 94 |
+| Phil Boyle spotlight | 92 | 81 |
+| Commentary index | 51 | 46 |
+| PCOS personal journey post | 36 | 35 |
+| Edinburgh PPD scale (library) | 34 | 19 |
+| Endo symptom survey (old URL) | 31 | 30 |
+| PPD course | 24 | 19 |
+
+### Notable Long-Tail Library Pages
+
+Individual library articles getting organic search traffic (15-58 sessions each):
+- COVID + conception study (58 sessions)
+- Edinburgh postnatal depression scale (46)
+- Creighton Model picture dictionary (45)
+- Isthmocele surgical treatment (17)
+- NaProTechnology and conscientious OBGYN (17)
+- Luteinized unruptured follicle syndrome (23)
+- Male infertility (15)
+
+### Campaign Strategy Analysis
+
+**What the data tells us:**
+
+1. **Google organic is already the #3 traffic source at 6,891 sessions.** Ad Grants amplifies exactly this channel. Even a modest 2x lift from paid search = 13,000+ additional sessions/year for free.
+
+2. **NaPro surgery blog post gets 1,169 sessions from Google alone** -- by far the top organic page. People are searching for NaPro surgical options. This validates Campaign 3 (Courses) keywords.
+
+3. **Naomi Whittaker spotlight gets 880 Google sessions.** People search for her by name. Brand campaign (Campaign 4) will capture this with 15-30% CTR, anchoring the account average above 5%.
+
+4. **Endo survey gets 313 Google sessions organically** plus 2,281 from IG. Search demand exists independently of IG -- "endometriosis symptom quiz" and "do I have endometriosis" are proven keywords. Ad Grants will add incremental volume.
+
+5. **Course pages collectively get 638 Google sessions** (masterclass 163, RRM vs IVF 107, long-term endo 104, courses index 244). High-intent, low-competition keywords.
+
+6. **Research library gets 359 Google sessions** plus strong referral traffic from byitsfruit.org (445 sessions). Clinicians and researchers are finding the library organically.
+
+7. **Postpartum is an underserved opportunity.** PPD course (24 Google), PPD blog post (63 from linkinbio), Edinburgh scale library article (34 Google). Small but consistent demand with room to grow.
+
+8. **ChatGPT already sends 68 sessions.** AI referral traffic is real and growing. AEO/GEO work compounds on top of Ad Grants.
+
+### Recommended Campaign Updates (based on data)
+
+**Campaign 5: Postpartum (NEW)**
+- Ad groups: PPD recovery seekers, postpartum anxiety
+- Keywords: "postpartum depression natural treatment", "postpartum anxiety recovery without medication", "postpartum depression help"
+- Landing page: /courses/postpartum-depression-anxiety/
+
+**Negative keywords to add across all campaigns:**
+- "near me", "cost", "insurance", "free IVF", "IVF success rates", "IVF clinic"
+- "reddit", "forum", "facebook group" (low conversion intent)
+- "salary", "job", "hiring" (wrong audience)
 
 ---
 
