@@ -55,6 +55,12 @@ Full plan in `rrm-router/RRM Router PRD/PRD-Index.md` Post-Launch Roadmap.
 - **Verify CF Stream first billing cycle** (due ~Mar 22, 2026) -- confirm variable usage stays within included 10,000 min/mo allocation; update `docs/plans/2026-03-03-migration-cost-savings-analysis.md`
 - **Migration cost/savings analysis** -- full before/after breakdown at `docs/plans/2026-03-03-migration-cost-savings-analysis.md`. Net saving: $361.50/mo / $4,338/yr. Update after Apr 2026 when Wix Plus lapses.
 
+### /arise Recommendations (from run 14 intelligence report)
+
+- **Input validation standardization** -- Create a shared `validateBody()` helper or lightweight schema validation for CF Pages Functions. Input validation is the only top-5 bug category (11% of all findings) without a structural fix. Every new endpoint re-invents type/length/range checks.
+- **Turnstile resp.ok checks** -- `newsletter/subscribe.js` and `contact/submit.js` Turnstile fetch calls lack HTTP response status checks (recurrence flagged in runs 12-13)
+- **Remaining alias cleanup in rrm-library scripts** -- classify-napro-chapters.py, classify-methodology.py, verify-classifications.py, fetch-article.py, import-napro-chapters.py, generate-faq-schema.py, reframe-c-series.py still have `AIRTABLE_BASE = GREENBASE` style aliases. enrich-trigger.py and verify-classifications.py still construct headers manually instead of using `airtable_headers()`.
+
 ---
 
 ## Phase 9: Wix Decommission (Start mid-April)
