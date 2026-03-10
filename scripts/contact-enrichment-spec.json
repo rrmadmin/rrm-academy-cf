@@ -1,0 +1,260 @@
+{
+  "_version": 2,
+  "description": "Master CRM build: merge 4 historical sources into a unified contact table in D1. Every transformation is explicit. No inference, no hallucination.",
+
+  "sources": {
+    "d1_users": {
+      "database": "rrm-auth",
+      "table": "user + user_label",
+      "records": 3901,
+      "period": "2024-04-25 to present",
+      "exclusive_contacts": 3828,
+      "fields_used": ["id", "email", "name", "first_name", "last_name", "created_at", "stripe_customer_id", "blocked", "email_verified"],
+      "priority": 1,
+      "notes": "Highest priority for email, name, user_id linkage. Auth source of truth."
+    },
+    "airtable_master": {
+      "base": "appGBJYrGIOvnyEWY",
+      "table": "tblm2xnH2IoJxDooc",
+      "name": "Master Record List",
+      "records": 594,
+      "period": "2023-01-19 to 2023-11-20",
+      "exclusive_contacts": 78,
+      "fields_used": ["Email Address", "First Name", "Last Name", "Stage", "Tags", "TAGS orig", "Web Host", "Total Spent", "OPTIN_TIME", "Source", "Source copy", "Landing Page", "Check", "Address", "Phone Number", "IG Handle", "REGION", "NOTES"],
+      "priority": 2,
+      "notes": "Mailchimp import. Best source for opt-in dates and pre-migration tags."
+    },
+    "airtable_sqsp": {
+      "base": "appGBJYrGIOvnyEWY",
+      "table": "tblPrwxFnVbcVOd9e",
+      "name": "SQSP Profiles",
+      "records": 985,
+      "period": "~2023-2024",
+      "exclusive_contacts": 43,
+      "fields_used": ["Email", "Email Original", "First Name", "Last Name", "Total Spent", "Total Donation Amount", "Subscriber Since", "Customer Since", "Accepts Marketing", "Member Areas", "Tags", "Shipping Address 1", "Shipping City", "Shipping Province/State", "Shipping Zip", "Shipping Country", "Billing Address 1", "Billing City", "Billing Province/State", "Billing Zip", "Billing Country"],
+      "priority": 3,
+      "notes": "Squarespace export. Has marketing consent, member areas, shipping/billing addresses, donation amounts."
+    },
+    "airtable_3tier": {
+      "base": "appGBJYrGIOvnyEWY",
+      "table": "tbl4mSRrAuBBiGWT4",
+      "name": "3 Tier Downloads",
+      "records": 1811,
+      "unique_emails": 1512,
+      "period": "2023-09-02 to 2024-06-13",
+      "exclusive_contacts": 670,
+      "fields_used": ["Email Address", "Name", "Submitted On", "Landing Page"],
+      "priority": 4,
+      "notes": "Endo symptom self-survey form submissions. Leanest data but largest exclusive pool."
+    }
+  },
+
+  "total_unique_contacts": 5614,
+
+  "overlap_matrix": {
+    "sqsp_and_master": 468,
+    "sqsp_and_3tier": 830,
+    "sqsp_and_d1": 24,
+    "master_and_3tier": 367,
+    "master_and_d1": 55,
+    "3tier_and_d1": 26
+  },
+
+  "schema": {
+    "migration_file": "migrations/006-contact-crm.sql",
+    "tables": {
+      "contact": {
+        "columns": {
+          "id": "TEXT PRIMARY KEY",
+          "email": "TEXT UNIQUE NOT NULL COLLATE NOCASE",
+          "first_name": "TEXT",
+          "last_name": "TEXT",
+          "phone": "TEXT",
+          "ig_handle": "TEXT",
+          "region": "TEXT",
+          "source": "TEXT — first known acquisition channel",
+          "landing_page": "TEXT",
+          "first_seen_at": "TEXT — earliest date from any source",
+          "total_spent": "REAL DEFAULT 0",
+          "total_donated": "REAL DEFAULT 0",
+          "accepts_marketing": "INTEGER DEFAULT 0",
+          "notes": "TEXT",
+          "user_id": "TEXT REFERENCES user(id) ON DELETE SET NULL — link to site account",
+          "stripe_customer_id": "TEXT",
+          "created_at": "TEXT DEFAULT (datetime('now'))",
+          "updated_at": "TEXT DEFAULT (datetime('now'))"
+        },
+        "indexes": [
+          "CREATE INDEX idx_contact_user ON contact(user_id)",
+          "CREATE INDEX idx_contact_source ON contact(source)",
+          "CREATE INDEX idx_contact_first_seen ON contact(first_seen_at)"
+        ]
+      },
+      "contact_tag": {
+        "columns": {
+          "contact_id": "TEXT NOT NULL REFERENCES contact(id) ON DELETE CASCADE",
+          "tag": "TEXT NOT NULL",
+          "source": "TEXT — which system assigned this tag (airtable-master, airtable-sqsp, d1-label, manual)",
+          "created_at": "TEXT DEFAULT (datetime('now'))"
+        },
+        "primary_key": "(contact_id, tag)"
+      },
+      "contact_address": {
+        "columns": {
+          "id": "TEXT PRIMARY KEY",
+          "contact_id": "TEXT NOT NULL REFERENCES contact(id) ON DELETE CASCADE",
+          "type": "TEXT NOT NULL — shipping | billing | home",
+          "line1": "TEXT",
+          "line2": "TEXT",
+          "city": "TEXT",
+          "state": "TEXT",
+          "zip": "TEXT",
+          "country": "TEXT",
+          "created_at": "TEXT DEFAULT (datetime('now'))"
+        }
+      }
+    },
+    "newsletter_subscriber_change": {
+      "action": "ALTER TABLE newsletter_subscriber ADD COLUMN contact_id TEXT REFERENCES contact(id) ON DELETE SET NULL",
+      "backfill": "UPDATE newsletter_subscriber SET contact_id = (SELECT id FROM contact WHERE contact.email = newsletter_subscriber.email)"
+    }
+  },
+
+  "merge_strategy": {
+    "key": "email (lowercased, trimmed)",
+    "conflict_resolution": {
+      "first_name": "D1 > Airtable Master > SQSP > 3 Tier (first non-null wins)",
+      "last_name": "D1 > Airtable Master > SQSP (3 Tier has single Name field)",
+      "phone": "Airtable Master (only source with phone)",
+      "ig_handle": "Airtable Master (only source with IG)",
+      "region": "Airtable Master (only source with region)",
+      "source": "Airtable Master Source > SQSP Subscriber Source (earliest known)",
+      "landing_page": "Airtable Master Landing Page > 3 Tier Landing Page",
+      "first_seen_at": "MIN(all dates across all sources) — earliest wins",
+      "total_spent": "MAX(Airtable Master Total Spent, SQSP Total Spent) — highest wins",
+      "total_donated": "SQSP Total Donation Amount (only source)",
+      "accepts_marketing": "1 if SQSP Accepts Marketing = true, else 0",
+      "user_id": "D1 user.id if email matches",
+      "stripe_customer_id": "D1 user.stripe_customer_id if exists"
+    },
+    "first_seen_at_sources": {
+      "d1": "user.created_at",
+      "airtable_master": "OPTIN_TIME",
+      "airtable_sqsp": "Subscriber Since (text, needs parsing) OR Customer Since",
+      "airtable_3tier": "earliest Submitted On for this email"
+    }
+  },
+
+  "tag_mapping": {
+    "_strategy": "All tags are cleaned and normalized. Every mapping is explicit. null = do not import.",
+
+    "from_d1_user_label": {
+      "_note": "These already exist as user_labels. Mirror into contact_tag with source=d1-label.",
+      "pass_through": "ALL existing user_label values are copied as-is into contact_tag"
+    },
+
+    "from_airtable_master_stage": {
+      "Customer - E&S 101": "customer",
+      "Lead: Course": "lead:course",
+      "Lead - 3 Tier D/L": "lead:survey"
+    },
+
+    "from_airtable_master_tags_clean": {
+      "Endo Symptom Self-Survey": "survey:endo-self-survey",
+      "Endo & Surgery Masterclass": "course:endo-surgery-masterclass",
+      "Choosing an Endo Surgeon": "download:endo-surgeon-workbook"
+    },
+
+    "from_airtable_master_tags_orig": {
+      "Customer": "customer",
+      "3 Tier Download": "survey:endo-self-survey",
+      "\"Endo & Surg 101\"": "course:endo-surgery-masterclass",
+      "[\"\"Endo & Surg 101 LIVE\"\"": "course:endo-surgery-masterclass",
+      "\"Student\"": "student",
+      "\"Student]\"": "student",
+      "[\"\"Student\"\"]": "student",
+      "\"Teachable\"": "platform:teachable",
+      "\"Interested\"": null,
+      "\"Endometriosis 101 Leads\"": "lead:course",
+      "\"Google Form\"": "platform:google-forms",
+      "\"from biosite\"": "source:biosite",
+      "\"Campaign Pasted Segment - 28 Feb 2023 12:28:30 pm\"": null,
+      "Endo": null,
+      "\"Endo & Surg 101 Leads\"": "lead:course",
+      "\"Testimonial Endo 101]\"": "testimonial",
+      "\"[]\"": null
+    },
+
+    "from_airtable_master_web_host": {
+      "Squarespace": "platform:squarespace",
+      "Teachable": "platform:teachable",
+      "Thinkific": "platform:thinkific",
+      "Google Forms": "platform:google-forms"
+    },
+
+    "from_airtable_sqsp_member_areas": {
+      "Endometriosis & Surgery 101: A Masterclass": "course:endo-surgery-masterclass",
+      "Endometriosis Symptom Self-Survey": "survey:endo-self-survey",
+      "Everything Membership": "membership:everything",
+      "Postpartum Depression & Anxiety: a restorative reproductive approach to recovery": "course:ppd-restorative"
+    },
+
+    "from_airtable_sqsp_tags": {
+      "3 Tier Download": "survey:endo-self-survey",
+      "from biosite": "source:biosite",
+      "": null
+    },
+
+    "from_3tier": {
+      "_auto": "Every 3 Tier Download record gets tag: survey:endo-self-survey"
+    },
+
+    "derived": {
+      "donor": {
+        "condition": "total_donated > 0 OR D1 user_label contains 'Donor 👏' OR 'Circle of Impact 📥'",
+        "tag": "donor"
+      },
+      "has_spend": {
+        "condition": "total_spent > 0",
+        "tag": "customer"
+      }
+    }
+  },
+
+  "newsletter_segment_derivation": {
+    "_note": "After contact + contact_tag are populated, derive newsletter_subscriber.segments from contact_tag",
+    "customer": "contact_tag contains 'customer'",
+    "student": "contact_tag contains 'student' OR any 'course:*' tag",
+    "donor": "contact_tag contains 'donor'",
+    "stuc": "D1 user_label contains any Save the Uterus label",
+    "survey-lead": "contact_tag contains 'survey:endo-self-survey' AND NOT 'customer' AND NOT 'student'"
+  },
+
+  "execution_order": [
+    "1. Apply migration 006-contact-crm.sql (create tables)",
+    "2. Fetch all 4 sources into local JSON cache",
+    "3. Merge all sources by email into unified contact records",
+    "4. DRY RUN: print summary counts and 10 sample records per category",
+    "5. On confirmation: batch INSERT into contact table",
+    "6. Batch INSERT into contact_tag",
+    "7. Batch INSERT into contact_address (from SQSP shipping/billing + AT Master address)",
+    "8. Backfill newsletter_subscriber.contact_id",
+    "9. Print final stats"
+  ],
+
+  "filters": {
+    "exclude_test_emails": "email contains 'test' or 'example' (case-insensitive)",
+    "exclude_spam": "Airtable Check = '🚩' OR D1 user_label contains 'Spam 🛑' or 'DO NOT SEND LIST 🛑'",
+    "exclude_blocked": "D1 user.blocked = 1",
+    "exclude_unverified_d1": "D1 user.email_verified = 0"
+  },
+
+  "safety": {
+    "all_inserts": "INSERT OR IGNORE (idempotent)",
+    "no_destructive_ops": "Never UPDATE or DELETE existing data",
+    "dry_run_required": "Script prints full summary before any writes",
+    "rollback_contact": "DELETE FROM contact WHERE created_at >= '[run timestamp]'",
+    "rollback_tags": "DELETE FROM contact_tag WHERE source IN ('airtable-master','airtable-sqsp','airtable-3tier','d1-label')",
+    "rollback_newsletter": "UPDATE newsletter_subscriber SET contact_id = NULL WHERE contact_id IS NOT NULL"
+  }
+}
