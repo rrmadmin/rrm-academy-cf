@@ -1,7 +1,7 @@
 // test/ga4-source.test.js
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { classifySource, extractUtm, deriveSessionId } from '../functions/api/_ga4-source.js';
+import { classifySource, extractUtm, deriveSessionId, buildSourceParams } from '../functions/api/_ga4-source.js';
 
 describe('classifySource', () => {
   it('returns direct for empty referrer', () => {
@@ -171,5 +171,59 @@ describe('source metadata round-trip (checkout -> webhook)', () => {
 
     assert.equal(gaSource2, 'instagram');
     assert.equal(gaMedium2, 'social');
+  });
+});
+
+describe('buildSourceParams cookie-based attribution', () => {
+  // Helper: fake a Request with headers
+  function fakeRequest(headers = {}) {
+    return {
+      url: 'https://rrmacademy.org/api/auth/signup',
+      headers: {
+        get(name) { return headers[name] || null; },
+      },
+    };
+  }
+
+  it('uses entry_ref cookie over Referer header for source classification', async () => {
+    const req = fakeRequest({
+      // Referer is self-referral (API call from the site)
+      'Referer': 'https://rrmacademy.org/signup',
+      // Cookie carries the original external referrer
+      'Cookie': 'entry_ref=' + encodeURIComponent('https://l.instagram.com/something') + '; session=abc',
+    });
+    const params = await buildSourceParams(req, 'test-client-id');
+    assert.equal(params.utm_source, 'instagram');
+    assert.equal(params.utm_medium, 'social');
+  });
+
+  it('uses entry_url cookie for UTM extraction', async () => {
+    const req = fakeRequest({
+      'Referer': 'https://rrmacademy.org/donate',
+      'Cookie': 'entry_ref=' + encodeURIComponent('https://www.google.com/') +
+                '; entry_url=' + encodeURIComponent('https://rrmacademy.org/?utm_source=gads&utm_medium=cpc&utm_campaign=spring'),
+    });
+    const params = await buildSourceParams(req, 'test-client-id');
+    assert.equal(params.utm_source, 'gads');
+    assert.equal(params.utm_medium, 'cpc');
+    assert.equal(params.utm_campaign, 'spring');
+  });
+
+  it('falls back to Referer header when no cookies present', async () => {
+    const req = fakeRequest({
+      'Referer': 'https://www.bing.com/search?q=rrm',
+    });
+    const params = await buildSourceParams(req, 'test-client-id');
+    assert.equal(params.utm_source, 'bing');
+    assert.equal(params.utm_medium, 'organic');
+  });
+
+  it('returns direct when no cookies and self-referral', async () => {
+    const req = fakeRequest({
+      'Referer': 'https://rrmacademy.org/library',
+    });
+    const params = await buildSourceParams(req, 'test-client-id');
+    assert.equal(params.utm_source, '(direct)');
+    assert.equal(params.utm_medium, '(none)');
   });
 });

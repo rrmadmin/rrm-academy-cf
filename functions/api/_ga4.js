@@ -19,9 +19,12 @@ export async function sendGA4Event(env, request, eventName, params = {}, overrid
 
   try {
     const clientId = overrides.client_id || await getClientId(request);
-    const sourceParams = await buildSourceParams(request, clientId);
-    // If session_id is overridden, use it instead of the derived one
-    if (overrides.session_id) sourceParams.session_id = overrides.session_id;
+    // When both client_id and session_id are overridden (webhook replay),
+    // skip buildSourceParams entirely -- the request is from Stripe's servers,
+    // not the user's browser, so headers are meaningless for attribution.
+    const sourceParams = (overrides.client_id && overrides.session_id)
+      ? { session_id: overrides.session_id }
+      : await buildSourceParams(request, clientId);
     const payload = {
       client_id: clientId,
       events: [{

@@ -85,11 +85,16 @@ const resolvedTwitterImage = resolvedOgImage.endsWith('.webp')
     })();
   </script>
   <script is:inline>
-    // Capture original entry source on first page load for checkout attribution.
-    // sessionStorage is tab-scoped, in-memory, and dies on tab close.
+    // Capture original entry source on first page load.
+    // sessionStorage: tab-scoped, used by checkout pages for Stripe metadata.
+    // Cookies: sent with every request, read server-side by buildSourceParams
+    // so ALL GA4 conversion events get correct source attribution automatically.
     if (!sessionStorage.getItem('entry_ref')) {
-      sessionStorage.setItem('entry_ref', document.referrer);
-      sessionStorage.setItem('entry_url', location.href);
+      var r = document.referrer, u = location.href;
+      sessionStorage.setItem('entry_ref', r);
+      sessionStorage.setItem('entry_url', u);
+      document.cookie = 'entry_ref=' + encodeURIComponent(r) + ';path=/;SameSite=Lax;Secure';
+      document.cookie = 'entry_url=' + encodeURIComponent(u) + ';path=/;SameSite=Lax;Secure';
     }
   </script>
   <meta name="description" content={description} />
