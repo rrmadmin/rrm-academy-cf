@@ -78,6 +78,7 @@ export async function hashPassword(password) {
 }
 
 export async function verifyPassword(password, stored) {
+  if (!stored || !stored.includes('$')) return false;
   const [iterStr, saltB64, hashB64] = stored.split('$');
   const iterations = parseInt(iterStr, 10);
   const salt = Uint8Array.from(atob(saltB64), c => c.charCodeAt(0));
@@ -294,6 +295,11 @@ export async function exchangeGoogleCode(code, clientId, clientSecret, redirectU
       grant_type: 'authorization_code',
     }),
   });
+  if (!resp.ok) {
+    const body = await resp.text();
+    console.error('Google token exchange failed:', resp.status, body);
+    throw new Error('Google token exchange failed');
+  }
   return resp.json();
 }
 
@@ -301,5 +307,10 @@ export async function getGoogleProfile(accessToken) {
   const resp = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
+  if (!resp.ok) {
+    const body = await resp.text();
+    console.error('Google profile fetch failed:', resp.status, body);
+    throw new Error('Google profile fetch failed');
+  }
   return resp.json();
 }

@@ -13,7 +13,6 @@ import {
 } from '../auth/_shared.js';
 import { enrollUser } from '../courses/enroll.js';
 import { getCourse } from '../courses/_shared.js';
-import { sendEmail as sesSendEmail } from '../_ses.js';
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
 import { sendEmailSafe } from './_webhook-shared.js';
@@ -35,66 +34,76 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
   } catch (linkErr) {
     log(env, waitUntil, 'billing', 'account_link_fail', 'error', linkErr.message, 0, 500);
     // Return 500 so Stripe retries -- user needs an account for course access
-    return new Response(JSON.stringify({ error: 'Account linkage failed' }), {
+    return new Response(JSON.stringify({ ok: false, error: 'Account linkage failed' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
   }
 
   // Course purchase: create enrollment
-  if (session.metadata?.type === 'course' && session.client_reference_id) {
+  if (session.metadata?.type === 'course') {
     const courseId = session.metadata.courseId;
     const paymentIntent = session.payment_intent;
-    if (!getCourse(courseId)) {
-      log(env, waitUntil, 'billing', 'course_not_found', 'error', `${courseId} user=${session.client_reference_id}`);
-    } else {
-      // eslint-disable-next-line no-useless-assignment -- readability: tracks enrollment state for email below
-      let enrolled = false;
-      try {
-        await enrollUser(db, session.client_reference_id, courseId, paymentIntent);
-        log(env, waitUntil, 'billing', 'course_enrolled', 'ok', `${courseId} user=${session.client_reference_id}`);
-        enrolled = true;
-      } catch (enrollErr) {
-        log(env, waitUntil, 'billing', 'course_enroll_fail', 'error', `${courseId}: ${enrollErr.message}`, 0, 500);
-        // Return 500 so Stripe retries the webhook -- don't silently eat enrollment failures
-        return new Response(JSON.stringify({ error: 'Enrollment failed' }), {
+
+    // Resolve the user ID: logged-in user or look up by email for anonymous checkout
+    let userId = session.client_reference_id;
+    if (!userId) {
+      const email = (session.customer_details?.email || session.customer_email || '').toLowerCase().trim();
+      if (email) {
+        const user = await db.prepare('SELECT id FROM user WHERE email = ? COLLATE NOCASE').bind(email).first();
+        if (user) userId = user.id;
+      }
+      if (!userId) {
+        log(env, waitUntil, 'billing', 'course_no_user', 'error', `courseId:${courseId} customer:${session.customer}`);
+        return new Response(JSON.stringify({ ok: false, error: 'No user account for course enrollment' }), {
           status: 500,
           headers: { 'Content-Type': 'application/json' },
         });
       }
-
-      // Send course enrollment confirmation email
-      if (enrolled) {
-        const email = session.customer_details?.email || session.customer_email;
-        const name = session.customer_details?.name || '';
-        if (email && env.AWS_ACCESS_KEY_ID) {
-          try {
-            await sesSendEmail(env, {
-              from: 'RRM Academy <accounts@mail.rrmacademy.org>',
-              to: email,
-              subject: 'Your course is ready',
-              text: [
-                `Hi ${name || 'there'},`,
-                '',
-                'Your course purchase is confirmed and your course is ready to start.',
-                '',
-                `Go to your courses: ${SITE_URL}/account`,
-                '',
-                'Thank you for investing in your health education.',
-                '',
-                'RRM Academy',
-                'A project of the RRM Foundation — 501(c)(3), EIN: 93-4594315',
-              ].join('\n'),
-            });
-            log(env, waitUntil, 'billing', 'enrollment_email_sent', 'ok', `${email} ${courseId}`);
-          } catch (emailErr) {
-            log(env, waitUntil, 'billing', 'enrollment_email_fail', 'error', `${email}: ${emailErr.message}`);
-          }
-        }
-      }
     }
-  } else if (session.metadata?.type === 'course' && !session.client_reference_id) {
-    log(env, waitUntil, 'billing', 'course_no_ref_id', 'skipped', `courseId:${session.metadata.courseId} customer:${session.customer}`);
+
+    if (!getCourse(courseId)) {
+      log(env, waitUntil, 'billing', 'course_not_found', 'error', `${courseId} user=${userId}`);
+      return new Response(JSON.stringify({ ok: false, error: 'Course not found' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    try {
+      await enrollUser(db, userId, courseId, paymentIntent);
+      log(env, waitUntil, 'billing', 'course_enrolled', 'ok', `${courseId} user=${userId}`);
+    } catch (enrollErr) {
+      log(env, waitUntil, 'billing', 'course_enroll_fail', 'error', `${courseId}: ${enrollErr.message}`, 0, 500);
+      return new Response(JSON.stringify({ ok: false, error: 'Enrollment failed' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Send course enrollment confirmation email
+    const email = session.customer_details?.email || session.customer_email;
+    const name = session.customer_details?.name || '';
+    if (email && env.AWS_ACCESS_KEY_ID) {
+      await sendEmailSafe(env, waitUntil, {
+        to: email,
+        subject: 'Your course is ready',
+        text: [
+          `Hi ${name || 'there'},`,
+          '',
+          'Your course purchase is confirmed and your course is ready to start.',
+          '',
+          `Go to your courses: ${SITE_URL}/account`,
+          '',
+          'Thank you for investing in your health education.',
+          '',
+          'RRM Academy',
+          'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315',
+        ].join('\n'),
+      });
+    } else if (email && !env.AWS_ACCESS_KEY_ID) {
+      log(env, waitUntil, 'billing', 'enrollment_email_skipped', 'skipped', `${email} ${courseId} (SES not configured)`);
+    }
   }
 
   // Build GA4 identity overrides from checkout metadata (real user, not Stripe server)
@@ -121,45 +130,41 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
   // Send membership confirmation email for STUC subscriptions
   const stucTiers = { member: 'Member', hero: 'Uterus Hero', superhero: 'Super Hero' };
   const tier = session.metadata?.tier || '';
-  if (session.mode === 'subscription' && stucTiers[tier] && env.AWS_ACCESS_KEY_ID) {
+  if (session.mode === 'subscription' && stucTiers[tier]) {
     const email = session.customer_details?.email || session.customer_email;
     const name = session.customer_details?.name || '';
     const tierLabel = stucTiers[tier];
 
-    if (email) {
-      try {
-        await sesSendEmail(env, {
-          from: 'RRM Academy <accounts@mail.rrmacademy.org>',
-          to: email,
-          subject: 'Welcome to the Save the Uterus Club',
-          text: [
-            `Hi ${name || 'there'},`,
-            '',
-            `Welcome to the Save the Uterus Club! You're now a ${tierLabel} member.`,
-            '',
-            'Here\'s what to do next:',
-            '',
-            '1. Join the member group — this is where live call dates, resources, and discussion happen:',
-            `   ${SITE_URL}/community`,
-            '',
-            '2. Join the free Uterus Allies group chat on Instagram:',
-            '   https://www.instagram.com/direct/t/7768750249851959/',
-            '',
-            '3. Explore the Research Library — over 3,000 peer-reviewed resources:',
-            `   ${SITE_URL}/library`,
-            '',
-            `You can manage your membership anytime at ${SITE_URL}/account`,
-            '',
-            'Thank you for supporting evidence-based reproductive health.',
-            '',
-            'RRM Academy',
-            'A project of the RRM Foundation — 501(c)(3), EIN: 93-4594315',
-          ].join('\n'),
-        });
-        log(env, waitUntil, 'billing', 'membership_email_sent', 'ok', `${email} ${tierLabel}`);
-      } catch (emailErr) {
-        log(env, waitUntil, 'billing', 'membership_email_fail', 'error', `${email}: ${emailErr.message}`);
-      }
+    if (email && env.AWS_ACCESS_KEY_ID) {
+      await sendEmailSafe(env, waitUntil, {
+        to: email,
+        subject: 'Welcome to the Save the Uterus Club',
+        text: [
+          `Hi ${name || 'there'},`,
+          '',
+          `Welcome to the Save the Uterus Club! You're now a ${tierLabel} member.`,
+          '',
+          'Here\'s what to do next:',
+          '',
+          '1. Join the member group -- this is where live call dates, resources, and discussion happen:',
+          `   ${SITE_URL}/community`,
+          '',
+          '2. Join the free Uterus Allies group chat on Instagram:',
+          '   https://www.instagram.com/direct/t/7768750249851959/',
+          '',
+          '3. Explore the Research Library -- over 3,000 peer-reviewed resources:',
+          `   ${SITE_URL}/library`,
+          '',
+          `You can manage your membership anytime at ${SITE_URL}/account`,
+          '',
+          'Thank you for supporting evidence-based reproductive health.',
+          '',
+          'RRM Academy',
+          'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315',
+        ].join('\n'),
+      });
+    } else if (email && !env.AWS_ACCESS_KEY_ID) {
+      log(env, waitUntil, 'billing', 'membership_email_skipped', 'skipped', `${email} ${tierLabel} (SES not configured)`);
     }
   }
 
@@ -262,33 +267,39 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
 
   // Generate 7-day password reset token so user can set a password
   if (env.AWS_ACCESS_KEY_ID) {
-    const token = generateToken();
-    const tokenHash = await hashToken(token);
-    const expiresAt = Math.floor(Date.now() / 1000) + 7 * 24 * 3600;
+    try {
+      const token = generateToken();
+      const tokenHash = await hashToken(token);
+      const expiresAt = Math.floor(Date.now() / 1000) + 7 * 24 * 3600;
 
-    await db.prepare(
-      'INSERT INTO password_reset (id, user_id, token_hash, expires_at) VALUES (?, ?, ?, ?)'
-    ).bind(generateId(), id, tokenHash, expiresAt).run();
+      await db.prepare(
+        'INSERT INTO password_reset (id, user_id, token_hash, expires_at) VALUES (?, ?, ?, ?)'
+      ).bind(generateId(), id, tokenHash, expiresAt).run();
 
-    const setPasswordUrl = `${SITE_URL}/reset-password?token=${token}`;
+      const setPasswordUrl = `${SITE_URL}/reset-password?token=${token}`;
 
-    await sendEmailSafe(env, waitUntil, {
-      to: email,
-      subject: 'Your RRM Academy account is ready',
-      text: [
-        `Hi ${name || 'there'},`,
-        '',
-        'Thank you for your support! We\'ve created an RRM Academy account for you so you can view your donation history, receipts, and membership details.',
-        '',
-        'Set your password to get started:',
-        setPasswordUrl,
-        '',
-        'This link expires in 7 days. You can also sign in with Google if you prefer.',
-        '',
-        'RRM Academy',
-        'A project of the RRM Foundation — 501(c)(3), EIN: 93-4594315',
-      ].join('\n'),
-    });
-    log(env, waitUntil, 'billing', 'welcome_email_sent', 'ok', `${email} account=${id}`);
+      await sendEmailSafe(env, waitUntil, {
+        to: email,
+        subject: 'Your RRM Academy account is ready',
+        text: [
+          `Hi ${name || 'there'},`,
+          '',
+          'Thank you for your support! We\'ve created an RRM Academy account for you so you can view your donation history, receipts, and membership details.',
+          '',
+          'Set your password to get started:',
+          setPasswordUrl,
+          '',
+          'This link expires in 7 days. You can also sign in with Google if you prefer.',
+          '',
+          'RRM Academy',
+          'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315',
+        ].join('\n'),
+      });
+      log(env, waitUntil, 'billing', 'welcome_email_sent', 'ok', `${email} account=${id}`);
+    } catch (tokenErr) {
+      log(env, waitUntil, 'billing', 'welcome_setup_fail', 'error', `${email}: ${tokenErr.message}`);
+    }
+  } else {
+    log(env, waitUntil, 'billing', 'welcome_email_skipped', 'skipped', `${email} account=${id} (SES not configured)`);
   }
 }

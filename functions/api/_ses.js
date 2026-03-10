@@ -1,6 +1,9 @@
 import { AwsClient } from 'aws4fetch';
 
 export async function sendEmail(env, { from, to, subject, html, text, replyTo }) {
+  if (!env.AWS_ACCESS_KEY_ID || !env.AWS_SECRET_ACCESS_KEY) {
+    throw new Error('AWS SES credentials not configured');
+  }
   const region = env.AWS_SES_REGION || 'us-east-1';
   const aws = new AwsClient({
     accessKeyId: env.AWS_ACCESS_KEY_ID,
@@ -34,8 +37,9 @@ export async function sendEmail(env, { from, to, subject, html, text, replyTo })
   );
 
   if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`SES error ${res.status}: ${err}`);
+    const body = await res.text();
+    console.error('SES error:', res.status, body);
+    throw new Error(`SES request failed (${res.status})`);
   }
 
   return res;

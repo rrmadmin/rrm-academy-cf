@@ -38,7 +38,7 @@ export async function handlePaymentFailed(db, event, env, request, waitUntil) {
           `If you have questions, contact us at ${SITE_URL}/contact`,
           '',
           'RRM Academy',
-          'A project of the RRM Foundation \u2014 501(c)(3), EIN: 93-4594315',
+          'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315',
         ].join('\n'),
       });
       log(env, waitUntil, 'billing', 'payment_failed_notified', 'ok', email);
