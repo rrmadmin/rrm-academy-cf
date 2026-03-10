@@ -82,6 +82,7 @@ Not started. See `rrm-router/RRM Router PRD/Phase-9-Decommission.md`.
 - STUC pre-launch features shipped -- flagging, banning, comment editing, email notifications, COMMUNITY_KV binding for 15-min cooldown (2026-03-06)
 - Vimeo subscription cancelled (2026-03-06)
 - Search result type badges (done)
+- Page-specific OG images for homepage, courses, commentary, about (2026-03-10)
 - GA4 server-side analytics (done / CF Zone Analytics sufficient)
 - Edge caching flip (done)
 - FAQ category rename review (done)

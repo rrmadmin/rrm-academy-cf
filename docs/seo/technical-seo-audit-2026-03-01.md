@@ -111,7 +111,7 @@ Every top-level page has:
 | /endo-survey/ | Endometriosis Symptom Self-Survey \| RRM Academy | Custom | 1 | Quiz |
 | /common-questions-about-rrm/ | — | — | — | 301 → /faqs/ |
 
-**OG Images:** All pages fall back to `/images/og-default.png`. No page-specific OG images (open opportunity).
+**OG Images:** Homepage, courses, commentary, and about have page-specific OG images (mobile hero screenshots in `public/images/og/`). Remaining pages fall back to `/images/og-default.png`.
 
 ---
 
@@ -165,7 +165,7 @@ All rich result blockers resolved in `6d5ad0a`. Full details in `docs/seo/schema
 | 5 | No lastmod in sitemap | **FIXED** — build-date lastmod added via `astro.config.mjs` serialize callback |
 | 6 | `/sitemap.xml` returns 404 | **FIXED** — `_redirects` 301 to `/sitemap-index.xml` |
 | 7 | `[CITE]` and `[YEAR]` placeholders | **FIXED** — all placeholders replaced with real citations during pillar article expansion |
-| 8 | No page-specific OG images | Open |
+| 8 | No page-specific OG images | **FIXED** — homepage, courses, commentary, about (2026-03-10). Remaining pages use default |
 | 9 | Community page double H1 | Open — low priority (page is noindex) |
 
 ---
@@ -174,4 +174,4 @@ All rich result blockers resolved in `6d5ad0a`. Full details in `docs/seo/schema
 
 - ~~Add `/what-is-rrm/` to footer nav~~ — done; still needs header nav and mobile nav
 - ~~Replace `[CITE]` / `[YEAR]` placeholders in content~~ — done
-- Create page-specific OG images for homepage, courses hub, and top course pages
+- ~~Create page-specific OG images for homepage, courses hub, and top course pages~~ — done (2026-03-10): homepage, courses, commentary, about
