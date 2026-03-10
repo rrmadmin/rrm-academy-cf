@@ -35,7 +35,7 @@
       "note": "Stripe portal"
     },
     "functions/_middleware.js": {
-      "hash": "ef64249f02702fe7fa54b0b37778d56890fecd7086a46cfd8dc234fb4ab74275",
+      "hash": "d881f7b4177a51bedee384b62405852650945af890079a482a711fa4ee044093",
       "note": "Auth gating"
     },
     "wrangler.toml": {
