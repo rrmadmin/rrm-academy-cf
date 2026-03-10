@@ -1,17 +1,27 @@
-# RRM Academy — Backlog
+# RRM Academy -- Backlog
 
 > Living document. Check before starting any session. This is the SINGLE consolidated task list for all RRM Academy work.
 
 ## Priority
 
+### Internal Linking (Quick Wins)
+
+Full plan at `docs/plans/2026-03-10-internal-linking-plan.md`.
+
+- **Commentary template: cross-section CTA block** -- add related courses, library filter links, and endo survey CTAs below "More from this series". Small effort, medium SEO impact
+- ~~**Desktop nav: add About link**~~ DONE (2026-03-10)
+- **Course template: background reading links** -- link to relevant library articles and commentary posts from course landing pages
+- **Library template: commentary cross-links** -- surface related commentary posts on library article pages
+- **Quick wins** -- add endo survey links from endo commentary posts, cross-link between related clusters
+
 ### Email Marketing (Phase 4)
 
-Buttondown selected ($4.50/mo nonprofit). Sending domain verified. Newsletter signup shell deployed.
+SES newsletter system built (self-hosted, replaces Buttondown). Newsletter signup deployed in footer with Turnstile. RSS feed live at `/commentary/rss.xml`.
 
-- **Subscriber import from D1** -- export non-spam, non-blocked users with segmentation tags (donor, student, STUC member). Import via Buttondown API in batches, suppress welcome emails.
-- **RSS-to-email configuration** -- connect `https://rrmacademy.org/commentary/rss.xml` to Buttondown's RSS-to-email feature, design email template with RRM branding
+- ~~**Subscriber import from D1**~~ DONE (2026-03-10)
+- ~~**RSS-to-email configuration**~~ DONE (2026-03-10)
 - **Domain warmup** -- graduated send schedule: Brian+Naomi only (days 1-3), engaged users (days 4-7), all students (days 8-14), full list (days 15+). Monitor bounce rate <2%, spam rate <0.1%
-- **Privacy policy update** -- reference Buttondown as email marketing processor
+- ~~**Privacy policy update**~~ DONE -- named Stripe, Amazon SES, and Cloudflare as processors (2026-03-10)
 - **Stale Mailchimp DKIM cleanup** -- `k2._domainkey` and `k3._domainkey` pointing to `mcsv.net`, likely orphaned. Ask Brian if these can be deleted.
 - **DMARC tightening** -- upgrade from `p=none` to `p=quarantine` after 2-4 weeks of clean sends
 - **CAN-SPAM physical address** -- get RRM Foundation mailing address from Brian for email footer
@@ -24,7 +34,7 @@ Full plan in `rrm-router/RRM Router PRD/PRD-Index.md` Post-Launch Roadmap.
 - **Layer 2: Answer Hubs** -- create `/guides/endometriosis-resources`, `/guides/pcos-resources`, `/guides/naprotechnology` with TL;DR blocks, ranked resources, comparison tables, FAQ sections
 - **Layer 3: Brand-Facts page** -- `/brand-facts` with Wikipedia-style org facts, EIN, credentials
 - **Layer 4: Machine-readable brand data** -- `public/.well-known/brand-facts.json`
-- **Layer 5: Schema markup audit** -- verify `ScholarlyArticle`, add `Organization`, `ItemList` on hubs
+- ~~**Layer 5: Schema markup audit**~~ DONE -- all major types implemented (MedicalScholarlyArticle, BlogPosting, FAQPage, Course, ItemList, DefinedTermSet, Organization, Person)
 - **Layer 6: Third-party citation building** -- Wikidata page, press page, resource directory outreach, Reddit engagement
 
 ### Community
@@ -37,22 +47,23 @@ Full plan in `rrm-router/RRM Router PRD/PRD-Index.md` Post-Launch Roadmap.
 
 ## Queued
 
+### GA4 Source Attribution
+
+Full plan at `docs/plans/2026-03-09-ga4-source-attribution-plan.md` (6 file changes, test coverage defined).
+
+### Google Ad Grants Resubmission
+
+Plan ready at `docs/plans/2026-03-09-google-ad-grants-plan.md`. Waiting on ~1 month GSC stabilization after CF migration. Target: mid-April.
+
 ### Performance Optimization
 
-- **`_headers` file for static asset caching** -- hashed `/_astro/*` assets get `immutable, max-age=31536000`; `/pagefind/*`, `/data/*`, `/images/*` get 1-7 day cache. Currently everything returns `max-age=0`.
-- **Remove `articles.json` from `public/data/`** -- 12MB file publicly served at `/data/articles.json`. Only needed at build time (already in `src/data/`). If Pagefind needs it at runtime, gate behind long cache headers instead.
-- **Dark mode body filter causing scroll jank** -- `filter: saturate(0.7) sepia(0.04)...` on `body` + full-screen grain `::before` with `mix-blend-mode` forces GPU repaint every scroll frame. Fix: move filter to content containers, disable grain on mobile via `@media`, or add `will-change: transform`.
+- **Remove `articles.json` from `public/data/`** -- 12MB file still publicly served at `/data/articles.json`. Only needed at build time (already in `src/data/`). If Pagefind needs it at runtime, gate behind long cache headers instead.
+- **Dark mode body filter scroll jank** -- partially mitigated (fixed positioning + pointer-events:none on grain overlay), but filter still on body element. Full fix: move filter to content containers, disable grain on mobile via `@media`.
 - **Commentary images: add `<picture>` with WebP** -- cover images are 120-260KB JPGs. WebP variants exist for some but aren't served. Add `<picture>` elements with WebP + JPG fallback and responsive `srcset`.
-- **Compress OG default image** -- `og-default.png` is 84KB, could be ~40KB with lossless compression.
-
-### Payments & Enrollment
-
-- **Course purchase flow: Stripe before account creation** -- paid courses should go directly to Stripe Checkout on "Purchase Course" click, with account creation happening via webhook after payment completes. Free courses still require account first. Needs webhook handler to create user from Stripe customer email, auto-enroll, and send "set your password" email.
 
 ### Content Refinement
 
 - **Refine IVF comparison stats** -- updated with HFEA 2022 data (commit `1dc3579`). Two RRM stats still have `[CITE]` markers needing source citations. Review the comparison table for accuracy and completeness.
-- **Link FAQ questions to library articles** -- FAQ detail pages should cross-reference relevant research articles in the RRM Library via direct links to `/library/[slug]`. Improves UX and internal linking for SEO.
 - **Draft FAQ approval** -- 37 draft Condition-Specific FAQs pending Naomi's review. 6 high-priority for AEO (see PRD Post-Launch Roadmap). 3 missing FAQs need creation: "What is NaProTechnology?", "Best resources for endo patients?", "What is reproductive restoration medicine?" (Blocked on Naomi)
 
 ---
@@ -66,8 +77,8 @@ Full plan in `rrm-router/RRM Router PRD/PRD-Index.md` Post-Launch Roadmap.
 ### /arise Recommendations (from run 14 intelligence report)
 
 - **Input validation standardization** -- Create a shared `validateBody()` helper or lightweight schema validation for CF Pages Functions. Input validation is the only top-5 bug category (11% of all findings) without a structural fix. Every new endpoint re-invents type/length/range checks.
-- **Turnstile resp.ok checks** -- `newsletter/subscribe.js` and `contact/submit.js` Turnstile fetch calls lack HTTP response status checks (recurrence flagged in runs 12-13)
-- **Remaining alias cleanup in rrm-library scripts** -- classify-napro-chapters.py, classify-methodology.py, verify-classifications.py, fetch-article.py, import-napro-chapters.py, generate-faq-schema.py, reframe-c-series.py still have `AIRTABLE_BASE = GREENBASE` style aliases. enrich-trigger.py and verify-classifications.py still construct headers manually instead of using `airtable_headers()`.
+- ~~**Turnstile resp.ok checks**~~ DONE -- HTTP status checks added to both `newsletter/subscribe.js` and `contact/submit.js` (2026-03-10)
+- ~~**Remaining alias cleanup in rrm-library scripts**~~ DONE -- enrich-trigger.py and verify-classifications.py migrated to `airtable_headers()` (2026-03-10)
 
 ---
 
@@ -93,6 +104,12 @@ Not started. See `rrm-router/RRM Router PRD/Phase-9-Decommission.md`.
 
 ## Done (Recent)
 
+- AEO Layer 5: Schema markup -- all major types implemented across all content templates (2026-03-10)
+- `_headers` file for static asset caching -- immutable hashed assets, tiered caching for pagefind/images/OG (2026-03-10)
+- FAQ cross-links to library articles -- `libraryRefs` section in FAQ detail template (2026-03-10)
+- Stripe-before-account flow -- `ensureAccountForCheckout()` in webhook handler auto-creates accounts on paid checkout (2026-03-10)
+- Survey pseudonymization -- D1 `rrm-survey` binding splits PII from health data, migration script run (2026-03-09)
+- Stripe webhook decomposition -- modular handlers: `_webhook-checkout.js`, `_webhook-subscription.js`, `_webhook-invoice.js`, `_webhook-shared.js` (2026-03-08)
 - Observatory Worker (Layer 2 observability) deployed -- queries AE across all Workers, 3 alert conditions, daily 8 AM ET digest + weekly Monday observation to Telegram (2026-03-10)
 - STUC pre-launch features shipped -- flagging, banning, comment editing, email notifications, COMMUNITY_KV binding for 15-min cooldown (2026-03-06)
 - Vimeo subscription cancelled (2026-03-06)
