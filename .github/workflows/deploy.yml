@@ -34,6 +34,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: Record job start time
+        id: timer
+        run: echo "start=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -156,3 +160,20 @@ jobs:
           KV_NAMESPACE_ID: ${{ secrets.LIBRARY_INDEX_KV_ID }}
         run: node scripts/rebuild-dedupe-index.mjs
         continue-on-error: true
+
+      - name: Notify Observatory
+        if: always()
+        run: |
+          STATUS=${{ job.status == 'success' && '"success"' || '"failure"' }}
+          DURATION_MS=$(( $(date +%s%3N) - ${{ steps.timer.outputs.start }} ))
+          curl -sf -X POST \
+            "https://rrm-observatory.administrator-cloudflare.workers.dev/api/deploy" \
+            -H "Authorization: Bearer ${{ secrets.OBSERVATORY_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"repo\": \"rrm-academy-cf\",
+              \"status\": $STATUS,
+              \"commit\": \"${{ github.sha }}\",
+              \"duration_ms\": $DURATION_MS,
+              \"url\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+            }" || echo "Observatory notification failed (non-blocking)"
