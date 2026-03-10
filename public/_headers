@@ -26,6 +26,10 @@
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
 
+# Cache OG images for 1 week (no hashed filenames, but rarely change)
+/images/og/*
+  Cache-Control: public, max-age=604800
+
 # Cache search index chunks for 1 day
 /pagefind/*
   Cache-Control: public, max-age=86400
