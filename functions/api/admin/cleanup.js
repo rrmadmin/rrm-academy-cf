@@ -20,6 +20,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
   const verifications = await db.prepare('DELETE FROM email_verification WHERE expires_at < ?').bind(now).run();
   const sevenDaysAgo = now - 7 * 86400;
   const webhookEvents = await db.prepare('DELETE FROM webhook_event WHERE processed_at < ?').bind(sevenDaysAgo).run();
+  const ninetyDaysAgo = now - 90 * 86400;
+  const nlEvents = await db.prepare(
+    "DELETE FROM newsletter_event WHERE created_at < datetime(?, 'unixepoch')"
+  ).bind(ninetyDaysAgo).run();
 
   const result = {
     ok: true,
@@ -28,10 +32,11 @@ export async function onRequestPost({ request, env, waitUntil }) {
       password_resets: resets.meta.changes,
       email_verifications: verifications.meta.changes,
       webhook_events: webhookEvents.meta.changes,
+      newsletter_events: nlEvents.meta.changes,
     },
   };
 
-  const total = result.pruned.sessions + result.pruned.password_resets + result.pruned.email_verifications + result.pruned.webhook_events;
+  const total = result.pruned.sessions + result.pruned.password_resets + result.pruned.email_verifications + result.pruned.webhook_events + result.pruned.newsletter_events;
   log(env, waitUntil, 'admin', 'cleanup_completed', 'ok', `pruned ${total} rows`, 0, 200);
   return Response.json(result);
 }
