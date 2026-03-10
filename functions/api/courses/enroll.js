@@ -48,7 +48,7 @@ async function handleEnroll(request, env, waitUntil) {
   }
 
   const { courseId } = body;
-  if (!courseId) return json({ ok: false, error: 'courseId required' }, 400);
+  if (!courseId || typeof courseId !== 'string' || courseId.length > 100) return json({ ok: false, error: 'courseId required' }, 400);
 
   const course = getCourse(courseId);
   if (!course) return json({ ok: false, error: 'Course not found' }, 404);

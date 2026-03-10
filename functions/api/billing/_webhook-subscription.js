@@ -39,7 +39,7 @@ export async function handleSubscriptionUpdated(db, event, env, request, waitUnt
           `If you have questions, reply to this email or contact us at ${SITE_URL}/contact`,
           '',
           'RRM Academy',
-          'A project of the RRM Foundation \u2014 501(c)(3), EIN: 93-4594315',
+          'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315',
         ].join('\n'),
       });
       log(env, waitUntil, 'billing', 'past_due_notified', 'ok', email);
@@ -81,7 +81,7 @@ export async function handleSubscriptionDeleted(db, event, env, request, waitUnt
           'Thank you for supporting evidence-based reproductive health.',
           '',
           'RRM Academy',
-          'A project of the RRM Foundation \u2014 501(c)(3), EIN: 93-4594315',
+          'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315',
         ].join('\n'),
       });
       log(env, waitUntil, 'billing', 'cancellation_email_sent', 'ok', email);
