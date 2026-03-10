@@ -143,6 +143,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     }
 
     function num(n) { return (n || 0).toLocaleString(); }
+    function esc(str) { var d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
     function pct(a, b) { return b > 0 ? ((a / b) * 100).toFixed(2) + '%' : '0%'; }
 
     function formatDate(yyyymmdd) {
@@ -201,7 +202,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       } else {
         srcTbody.innerHTML = sources.map(function (s) {
           return '<tr>' +
-            '<td>' + s.source + '</td>' +
+            '<td>' + esc(s.source) + '</td>' +
             '<td>' + num(s.views) + '</td>' +
             '<td>' + num(s.signups) + '</td>' +
             '<td>' + num(s.leads) + '</td>' +
