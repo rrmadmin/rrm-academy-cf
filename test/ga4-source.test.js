@@ -68,6 +68,21 @@ describe('classifySource', () => {
     const result = classifySource('https://search.yahoo.com/search?p=rrm');
     assert.deepStrictEqual(result, { source: 'yahoo', medium: 'organic' });
   });
+
+  it('does NOT classify mail.google.com as organic', () => {
+    const result = classifySource('https://mail.google.com/mail/');
+    assert.deepStrictEqual(result, { source: 'mail.google.com', medium: 'referral' });
+  });
+
+  it('does NOT classify docs.google.com as organic', () => {
+    const result = classifySource('https://docs.google.com/document/d/123');
+    assert.deepStrictEqual(result, { source: 'docs.google.com', medium: 'referral' });
+  });
+
+  it('classifies bare google.com as organic', () => {
+    const result = classifySource('https://google.com/');
+    assert.deepStrictEqual(result, { source: 'google', medium: 'organic' });
+  });
 });
 
 describe('extractUtm', () => {

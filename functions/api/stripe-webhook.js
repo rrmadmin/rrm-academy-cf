@@ -171,6 +171,11 @@ async function handleWebhook(request, env, waitUntil) {
         log(env, waitUntil, 'billing', 'course_no_ref_id', 'skipped', `courseId:${session.metadata.courseId} customer:${session.customer}`);
       }
 
+      // Build GA4 identity overrides from checkout metadata (real user, not Stripe server)
+      const gaOverrides = {};
+      if (session.metadata?.ga_client_id) gaOverrides.client_id = session.metadata.ga_client_id;
+      if (session.metadata?.ga_session_id) gaOverrides.session_id = Number(session.metadata.ga_session_id);
+
       // GA4: track completed course purchase
       if (session.metadata?.type === 'course' && session.payment_intent) {
         sendGA4Event(env, request, 'purchase', {
@@ -181,7 +186,7 @@ async function handleWebhook(request, env, waitUntil) {
           ...(session.metadata?.ga_source && { utm_source: session.metadata.ga_source }),
           ...(session.metadata?.ga_medium && { utm_medium: session.metadata.ga_medium }),
           ...(session.metadata?.ga_campaign && { utm_campaign: session.metadata.ga_campaign }),
-        }).catch(() => {});
+        }, gaOverrides).catch(() => {});
       }
 
       // Send membership confirmation email for STUC subscriptions
@@ -239,7 +244,7 @@ async function handleWebhook(request, env, waitUntil) {
           ...(session.metadata?.ga_source && { utm_source: session.metadata.ga_source }),
           ...(session.metadata?.ga_medium && { utm_medium: session.metadata.ga_medium }),
           ...(session.metadata?.ga_campaign && { utm_campaign: session.metadata.ga_campaign }),
-        }).catch(() => {});
+        }, gaOverrides).catch(() => {});
       } else if (session.mode === 'subscription' && stucTiers[tier]) {
         sendGA4Event(env, request, 'purchase', {
           currency: 'USD',
@@ -249,7 +254,7 @@ async function handleWebhook(request, env, waitUntil) {
           ...(session.metadata?.ga_source && { utm_source: session.metadata.ga_source }),
           ...(session.metadata?.ga_medium && { utm_medium: session.metadata.ga_medium }),
           ...(session.metadata?.ga_campaign && { utm_campaign: session.metadata.ga_campaign }),
-        }).catch(() => {});
+        }, gaOverrides).catch(() => {});
       }
       break;
     }

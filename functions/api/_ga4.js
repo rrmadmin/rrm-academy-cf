@@ -6,31 +6,29 @@
  *   sendGA4Event(env, request, 'purchase', { value: 10.00, currency: 'USD' }).catch(() => {});
  */
 
-import { buildSourceParams } from './_ga4-source.js';
+import { buildSourceParams, getClientId } from './_ga4-source.js';
 
 const GA4_ENDPOINT = 'https://www.google-analytics.com/mp/collect';
 
-async function getClientId(request) {
-  const ip = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown';
-  const ua = request.headers.get('User-Agent') || 'unknown';
-  const raw = new TextEncoder().encode(`${ip}:${ua}`);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', raw);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
-}
-
-export async function sendGA4Event(env, request, eventName, params = {}) {
+/**
+ * @param {object} overrides - Optional. { client_id, session_id } to use instead of
+ *   deriving from request headers. Used by stripe-webhook to replay the real user identity.
+ */
+export async function sendGA4Event(env, request, eventName, params = {}, overrides = {}) {
   if (!env.GA4_MEASUREMENT_ID || !env.GA4_API_SECRET) return;
 
   try {
-    const clientId = await getClientId(request);
+    const clientId = overrides.client_id || await getClientId(request);
     const sourceParams = await buildSourceParams(request, clientId);
+    // If session_id is overridden, use it instead of the derived one
+    if (overrides.session_id) sourceParams.session_id = overrides.session_id;
     const payload = {
       client_id: clientId,
       events: [{
         name: eventName,
         params: {
           page_location: request.url,
+          engagement_time_msec: 1,
           ...sourceParams,
           ...params,
         },

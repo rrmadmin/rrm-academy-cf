@@ -186,6 +186,12 @@ const jsonLd = {
 
   <script is:inline>
     (function () {
+      // Capture the original entry referrer and landing URL for source attribution.
+      // document.referrer gives us the page that brought the user to our site (e.g. instagram.com).
+      // These are passed to create-checkout so Stripe metadata carries the real source.
+      var entryReferrer = document.referrer || '';
+      var entryUrl = window.location.href;
+
       // --- Check billing status on load ---
       var tierNames = { member: 'Member', hero: 'Hero', superhero: 'Super Hero' };
       var tierPrices = { member: '$9', hero: '$19', superhero: '$99' };
@@ -248,7 +254,7 @@ const jsonLd = {
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mode: 'subscription', tier: tier }),
+            body: JSON.stringify({ mode: 'subscription', tier: tier, entry_referrer: entryReferrer, entry_url: entryUrl }),
           })
             .then(function (r) { return r.json(); })
             .then(function (data) {
@@ -330,7 +336,7 @@ const jsonLd = {
           method: 'POST',
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mode: 'payment', amount: selectedCents }),
+          body: JSON.stringify({ mode: 'payment', amount: selectedCents, entry_referrer: entryReferrer, entry_url: entryUrl }),
         })
           .then(function (r) { return r.json(); })
           .then(function (data) {

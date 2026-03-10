@@ -261,6 +261,8 @@ const jsonLd = {
 
   <script is:inline>
     (function () {
+      var entryReferrer = document.referrer || '';
+      var entryUrl = window.location.href;
       var tierNames = { member: 'STUC Member', hero: 'Uterus Hero', superhero: 'Uterus Super Hero' };
 
       // Check billing status for logged-in users
@@ -371,7 +373,7 @@ const jsonLd = {
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mode: 'subscription', tier: tier }),
+            body: JSON.stringify({ mode: 'subscription', tier: tier, entry_referrer: entryReferrer, entry_url: entryUrl }),
           })
             .then(function (r) { return r.json(); })
             .then(function (data) {
