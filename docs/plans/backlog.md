@@ -37,6 +37,14 @@ Full plan in `rrm-router/RRM Router PRD/PRD-Index.md` Post-Launch Roadmap.
 
 ## Queued
 
+### Performance Optimization
+
+- **`_headers` file for static asset caching** -- hashed `/_astro/*` assets get `immutable, max-age=31536000`; `/pagefind/*`, `/data/*`, `/images/*` get 1-7 day cache. Currently everything returns `max-age=0`.
+- **Remove `articles.json` from `public/data/`** -- 12MB file publicly served at `/data/articles.json`. Only needed at build time (already in `src/data/`). If Pagefind needs it at runtime, gate behind long cache headers instead.
+- **Dark mode body filter causing scroll jank** -- `filter: saturate(0.7) sepia(0.04)...` on `body` + full-screen grain `::before` with `mix-blend-mode` forces GPU repaint every scroll frame. Fix: move filter to content containers, disable grain on mobile via `@media`, or add `will-change: transform`.
+- **Commentary images: add `<picture>` with WebP** -- cover images are 120-260KB JPGs. WebP variants exist for some but aren't served. Add `<picture>` elements with WebP + JPG fallback and responsive `srcset`.
+- **Compress OG default image** -- `og-default.png` is 84KB, could be ~40KB with lossless compression.
+
 ### Payments & Enrollment
 
 - **Course purchase flow: Stripe before account creation** -- paid courses should go directly to Stripe Checkout on "Purchase Course" click, with account creation happening via webhook after payment completes. Free courses still require account first. Needs webhook handler to create user from Stripe customer email, auto-enroll, and send "set your password" email.
