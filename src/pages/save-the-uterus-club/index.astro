@@ -261,8 +261,8 @@ const jsonLd = {
 
   <script is:inline>
     (function () {
-      var entryReferrer = document.referrer || '';
-      var entryUrl = window.location.href;
+      var entryReferrer = sessionStorage.getItem('entry_ref') || '';
+      var entryUrl = sessionStorage.getItem('entry_url') || '';
       var tierNames = { member: 'STUC Member', hero: 'Uterus Hero', superhero: 'Uterus Super Hero' };
 
       // Check billing status for logged-in users
