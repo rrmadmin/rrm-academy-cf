@@ -17,6 +17,7 @@ import {
   STRIPE_API_VERSION, SITE_URL,
 } from './auth/_shared.js';
 import { sendGA4Event } from './_ga4.js';
+import { classifySource, extractUtm } from './_ga4-source.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -84,6 +85,14 @@ async function handleCheckout(request, env) {
 
   const origin = SITE_URL;
 
+  // Capture traffic source from the user's browser request for webhook attribution
+  const referrer = request.headers.get('Referer') || '';
+  const utmParams = extractUtm(request.url);
+  const { source, medium } = classifySource(referrer);
+  const gaSource = utmParams.utm_source || source;
+  const gaMedium = utmParams.utm_medium || medium;
+  const gaCampaign = utmParams.utm_campaign || '';
+
   // --- One-time donation ---
   if (mode === 'payment') {
     const cents = parseInt(amount, 10);
@@ -116,6 +125,12 @@ async function handleCheckout(request, env) {
       if (userEmail) sessionParams.customer_email = userEmail;
     }
     if (userId) sessionParams.client_reference_id = userId;
+    sessionParams.metadata = {
+      ...(sessionParams.metadata || {}),
+      ga_source: gaSource,
+      ga_medium: gaMedium,
+      ...(gaCampaign && { ga_campaign: gaCampaign }),
+    };
 
     const checkoutSession = await stripe.checkout.sessions.create(sessionParams);
     sendGA4Event(env, request, 'begin_checkout', {
@@ -174,6 +189,12 @@ async function handleCheckout(request, env) {
       sessionParams.customer_email = userEmail;
     }
     if (userId) sessionParams.client_reference_id = userId;
+    sessionParams.metadata = {
+      ...sessionParams.metadata,
+      ga_source: gaSource,
+      ga_medium: gaMedium,
+      ...(gaCampaign && { ga_campaign: gaCampaign }),
+    };
 
     const checkoutSession = await stripe.checkout.sessions.create(sessionParams);
     sendGA4Event(env, request, 'begin_checkout', {
