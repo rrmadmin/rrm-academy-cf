@@ -79,6 +79,7 @@ Not started. See `rrm-router/RRM Router PRD/Phase-9-Decommission.md`.
 
 ## Done (Recent)
 
+- Observatory Worker (Layer 2 observability) deployed -- queries AE across all Workers, 3 alert conditions, daily 8 AM ET digest + weekly Monday observation to Telegram (2026-03-10)
 - STUC pre-launch features shipped -- flagging, banning, comment editing, email notifications, COMMUNITY_KV binding for 15-min cooldown (2026-03-06)
 - Vimeo subscription cancelled (2026-03-06)
 - Search result type badges (done)

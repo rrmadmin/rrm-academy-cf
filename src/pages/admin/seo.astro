@@ -73,6 +73,58 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       <!-- Last checked -->
       <p class="seo-timestamp" id="last-checked">Last checked: --</p>
 
+      <!-- Observatory: Worker Health -->
+      <div class="obs-section">
+        <div class="bl-header">
+          <h2>Worker Health</h2>
+          <button class="btn btn--primary seo-run-btn" id="obs-refresh-btn">Refresh</button>
+        </div>
+
+        <!-- Worker activity table -->
+        <div class="bl-card obs-table-card">
+          <table class="obs-table" id="obs-activity-table">
+            <thead>
+              <tr><th>Worker</th><th>Status</th><th>Count</th></tr>
+            </thead>
+            <tbody id="obs-activity-body">
+              <tr><td colspan="3" class="obs-empty">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Alert conditions -->
+        <div class="obs-alerts-row">
+          <div class="bl-card obs-alert-card" id="obs-alert-error-rate">
+            <span class="bl-card__label">Error Rate</span>
+            <span class="seo-card__icon" id="obs-icon-error-rate">--</span>
+            <span class="seo-card__detail" id="obs-detail-error-rate">Not checked</span>
+          </div>
+          <div class="bl-card obs-alert-card" id="obs-alert-intake">
+            <span class="bl-card__label">Library Intake</span>
+            <span class="seo-card__icon" id="obs-icon-intake">--</span>
+            <span class="seo-card__detail" id="obs-detail-intake">Not checked</span>
+          </div>
+          <div class="bl-card obs-alert-card" id="obs-alert-missing">
+            <span class="bl-card__label">Worker Presence</span>
+            <span class="seo-card__icon" id="obs-icon-missing">--</span>
+            <span class="seo-card__detail" id="obs-detail-missing">Not checked</span>
+          </div>
+        </div>
+
+        <!-- Recent errors -->
+        <div class="bl-card obs-table-card" id="obs-errors-card" style="display:none;">
+          <h3 class="obs-errors-heading">Recent Errors</h3>
+          <table class="obs-table">
+            <thead>
+              <tr><th>Worker</th><th>Action</th><th>Detail</th></tr>
+            </thead>
+            <tbody id="obs-errors-body"></tbody>
+          </table>
+        </div>
+
+        <p class="seo-timestamp" id="obs-timestamp">Last refreshed: --</p>
+      </div>
+
     </div>
   </section>
 
@@ -176,6 +228,90 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
     // Init
     loadCached();
+
+    // --- Observatory ---
+    var obsRefreshBtn = document.getElementById('obs-refresh-btn');
+    var obsActivityBody = document.getElementById('obs-activity-body');
+    var obsTimestamp = document.getElementById('obs-timestamp');
+    var obsErrorsCard = document.getElementById('obs-errors-card');
+    var obsErrorsBody = document.getElementById('obs-errors-body');
+
+    var ALERT_MAP = {
+      high_error_rate: 'error-rate',
+      intake_silent: 'intake',
+      worker_missing: 'missing',
+    };
+
+    function updateObservatory(data) {
+      // Activity table
+      if (data.summary && data.summary.length > 0) {
+        obsActivityBody.innerHTML = data.summary.map(function (r) {
+          var statusClass = (r.status === 'error' || r.status === 'fail') ? ' class="obs-row--error"' : '';
+          return '<tr' + statusClass + '><td>' + esc(r.worker) + '</td><td>' + esc(r.status) + '</td><td>' + r.cnt + '</td></tr>';
+        }).join('');
+      } else {
+        obsActivityBody.innerHTML = '<tr><td colspan="3" class="obs-empty">No events in last 24h</td></tr>';
+      }
+
+      // Alert cards
+      if (data.alerts && data.alerts.all) {
+        for (var i = 0; i < data.alerts.all.length; i++) {
+          var a = data.alerts.all[i];
+          var cardId = ALERT_MAP[a.name];
+          if (!cardId) continue;
+          var iconEl = document.getElementById('obs-icon-' + cardId);
+          var detailEl = document.getElementById('obs-detail-' + cardId);
+          if (!iconEl || !detailEl) continue;
+
+          if (a.alert) {
+            iconEl.textContent = '\u2717';
+            iconEl.className = 'seo-card__icon seo-card__icon--fail';
+          } else if (a.error) {
+            iconEl.textContent = '?';
+            iconEl.className = 'seo-card__icon';
+          } else {
+            iconEl.textContent = '\u2713';
+            iconEl.className = 'seo-card__icon seo-card__icon--pass';
+          }
+          detailEl.textContent = a.message || '';
+        }
+      }
+
+      // Errors table
+      if (data.errors && data.errors.length > 0) {
+        obsErrorsCard.style.display = '';
+        obsErrorsBody.innerHTML = data.errors.slice(0, 15).map(function (e) {
+          return '<tr class="obs-row--error"><td>' + esc(e.worker) + '</td><td>' + esc(e.action) + '</td><td>' + esc((e.detail || '').slice(0, 100)) + '</td></tr>';
+        }).join('');
+      } else {
+        obsErrorsCard.style.display = 'none';
+      }
+
+      obsTimestamp.textContent = 'Last refreshed: ' + formatDate(new Date().toISOString()) +
+        (data.duration_ms ? ' (' + data.duration_ms + 'ms)' : '');
+    }
+
+    function esc(s) {
+      var el = document.createElement('span');
+      el.textContent = s || '';
+      return el.innerHTML;
+    }
+
+    async function loadObservatory() {
+      obsRefreshBtn.disabled = true;
+      obsRefreshBtn.textContent = 'Loading...';
+      try {
+        var data = await apiCall('observatory');
+        updateObservatory(data);
+      } catch (e) {
+        obsTimestamp.textContent = 'Error: ' + e.message;
+      }
+      obsRefreshBtn.disabled = false;
+      obsRefreshBtn.textContent = 'Refresh';
+    }
+
+    obsRefreshBtn.addEventListener('click', loadObservatory);
+    loadObservatory();
   })();
   </script>
 
@@ -345,6 +481,62 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     font-size: 0.8125rem;
     color: var(--admin-text-faint);
     text-align: right;
+  }
+
+  /* Observatory section */
+  .obs-section {
+    margin-top: var(--space-10);
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--admin-border);
+  }
+  .obs-alerts-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+  @media (max-width: 600px) {
+    .obs-alerts-row { grid-template-columns: 1fr; }
+  }
+  .obs-table-card {
+    margin-bottom: var(--space-6);
+    padding: var(--space-4) var(--space-5);
+  }
+  .obs-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+  }
+  .obs-table th {
+    text-align: left;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--admin-text-faint);
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid var(--admin-border);
+  }
+  .obs-table td {
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid #f0eeeb;
+    color: var(--admin-text);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.75rem;
+  }
+  .obs-row--error td {
+    color: #c0392b;
+  }
+  .obs-empty {
+    text-align: center;
+    color: var(--admin-text-faint);
+    font-style: italic;
+    font-family: inherit;
+  }
+  .obs-errors-heading {
+    font-size: 0.875rem;
+    color: #c0392b;
+    margin: 0 0 var(--space-3);
   }
 </style>
 
