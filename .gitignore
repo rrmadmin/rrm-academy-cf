@@ -15,3 +15,5 @@ scraped/
 .tmp-fn-build/
 .worktrees/
 .pipeline/
+public/data/
+survey-preview.html
