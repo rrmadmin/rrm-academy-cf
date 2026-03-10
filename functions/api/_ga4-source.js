@@ -72,7 +72,7 @@ export async function deriveSessionId(clientId, dateStr) {
   const raw = new TextEncoder().encode(`${clientId}:${dateStr}`);
   const hashBuffer = await crypto.subtle.digest('SHA-256', raw);
   const view = new DataView(hashBuffer);
-  return view.getUint32(0);
+  return view.getUint32(0) || 1;
 }
 
 export async function buildSourceParams(request, clientId) {
