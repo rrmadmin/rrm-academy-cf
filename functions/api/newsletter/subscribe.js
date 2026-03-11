@@ -100,7 +100,7 @@ export async function onRequestPost(context) {
     log(env, waitUntil, 'newsletter', 'd1_update_error', 'warn', err.message, 0, 0);
   }
 
-  sendGA4Event(env, request, 'generate_lead', { event_category: 'newsletter' }).catch(() => {});
+  waitUntil(sendGA4Event(env, request, 'generate_lead', { event_category: 'newsletter' }).catch(() => {}));
 
   return json({ ok: true, message: 'You are subscribed!' });
 }

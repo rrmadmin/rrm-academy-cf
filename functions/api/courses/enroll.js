@@ -67,9 +67,9 @@ async function handleEnroll(request, env, waitUntil) {
   // --- Free course: enroll immediately ---
   if (course.isFree) {
     await enrollUser(db, session.userId, courseId, null);
-    sendGA4Event(env, request, 'sign_up', {
+    waitUntil(sendGA4Event(env, request, 'sign_up', {
       event_category: 'course_enrollment', items: [{ item_name: `Course: ${courseId}` }],
-    }).catch(() => {});
+    }).catch(() => {}));
     return json({ ok: true, enrolled: true });
   }
 
@@ -110,9 +110,9 @@ async function handleEnroll(request, env, waitUntil) {
     log(env, waitUntil, 'courses', 'enroll_error', 'error', `stripe checkout: ${err.message}`, 0, 503);
     return json({ ok: false, error: 'Payment service unavailable. Please try again shortly.' }, 503);
   }
-  sendGA4Event(env, request, 'begin_checkout', {
+  waitUntil(sendGA4Event(env, request, 'begin_checkout', {
     currency: 'USD', items: [{ item_name: `Course: ${courseId}` }],
-  }).catch(() => {});
+  }).catch(() => {}));
   return json({ ok: true, enrolled: false, checkoutUrl: checkoutSession.url });
 }
 
