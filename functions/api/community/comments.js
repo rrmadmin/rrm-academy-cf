@@ -43,18 +43,16 @@ export async function onRequestGet({ request, env, waitUntil }) {
     `).bind(...TIER_LABELS, postId).all();
 
     // Fetch reactions for all comments
-    const commentIds = rows.results.map(r => r.id);
     let reactionMap = {};
     let userReactions = {};
-    if (commentIds.length) {
-      const placeholders = commentIds.map(() => '?').join(',');
-
+    if (rows.results.length) {
       const reactions = await db.prepare(`
-        SELECT target_id, emoji, COUNT(*) as count
-        FROM community_reaction
-        WHERE target_type = 'comment' AND target_id IN (${placeholders})
-        GROUP BY target_id, emoji
-      `).bind(...commentIds).all();
+        SELECT r.target_id, r.emoji, COUNT(*) as count
+        FROM community_reaction r
+        INNER JOIN community_comment c ON c.id = r.target_id
+        WHERE r.target_type = 'comment' AND c.post_id = ?
+        GROUP BY r.target_id, r.emoji
+      `).bind(postId).all();
 
       for (const r of reactions.results) {
         if (!reactionMap[r.target_id]) reactionMap[r.target_id] = {};
@@ -62,10 +60,11 @@ export async function onRequestGet({ request, env, waitUntil }) {
       }
 
       const mine = await db.prepare(`
-        SELECT target_id, emoji
-        FROM community_reaction
-        WHERE target_type = 'comment' AND target_id IN (${placeholders}) AND user_id = ?
-      `).bind(...commentIds, user.id).all();
+        SELECT r.target_id, r.emoji
+        FROM community_reaction r
+        INNER JOIN community_comment c ON c.id = r.target_id
+        WHERE r.target_type = 'comment' AND c.post_id = ? AND r.user_id = ?
+      `).bind(postId, user.id).all();
 
       for (const r of mine.results) {
         if (!userReactions[r.target_id]) userReactions[r.target_id] = [];
@@ -114,7 +113,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
   }
 }
 
-export async function onRequestPost({ request, env, waitUntil }) {
+export async function onRequestPost(context) {
+  const { request, env, waitUntil } = context;
   try {
     const auth = await requireMember(request, env);
     if (auth instanceof Response) return auth;
@@ -159,11 +159,18 @@ export async function onRequestPost({ request, env, waitUntil }) {
       VALUES (?, ?, ?, ?, ?)
     `).bind(id, postId, user.id, parentId || null, content.trim()).run();
 
-    // Send reply notification (fire-and-forget)
-    try {
-      await notifyReply(env, db, postId, parentId || null, user.id, displayName(user), content.trim());
-    } catch (err) {
-      log(env, waitUntil, 'community', 'comment_error', 'error', `notification: ${err.message}`, 0, 0);
+    const wuFn = typeof context.waitUntil === 'function' ? context.waitUntil.bind(context) : null;
+    if (wuFn) {
+      wuFn(
+        notifyReply(env, db, postId, parentId || null, user.id, displayName(user), content.trim())
+          .catch(err => log(env, waitUntil, 'community', 'comment_error', 'error', `notification: ${err.message}`, 0, 0))
+      );
+    } else {
+      try {
+        await notifyReply(env, db, postId, parentId || null, user.id, displayName(user), content.trim());
+      } catch (err) {
+        log(env, waitUntil, 'community', 'comment_error', 'error', `notification: ${err.message}`, 0, 0);
+      }
     }
 
     return json({
@@ -259,7 +266,11 @@ export async function onRequestPatch({ request, env, waitUntil }) {
     const comment = await db.prepare('SELECT * FROM community_comment WHERE id = ?').bind(commentId).first();
     if (!comment) return json({ ok: false, error: 'Comment not found' }, 404);
 
-    // Only the author can edit their own comment
+    const parentPost = await db.prepare('SELECT channel FROM community_post WHERE id = ?').bind(comment.post_id).first();
+    if (parentPost && ARCHIVE_CHANNELS.includes(parentPost.channel) && !roleAtLeast(user.role, 'admin')) {
+      return json({ ok: false, error: 'Not authorized for this channel' }, 403);
+    }
+
     if (comment.author_id !== user.id) {
       return json({ ok: false, error: 'Not authorized' }, 403);
     }

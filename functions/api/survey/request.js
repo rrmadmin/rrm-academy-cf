@@ -98,7 +98,7 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: 'Failed to send email. Please try again.' }, 502);
     }
 
-    sendGA4Event(env, request, 'generate_lead', { event_category: 'endo_survey_request' }).catch(() => {});
+    waitUntil(sendGA4Event(env, request, 'generate_lead', { event_category: 'endo_survey_request' }).catch(() => {}));
 
     return json({ ok: true });
   } catch (err) {

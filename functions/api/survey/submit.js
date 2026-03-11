@@ -83,7 +83,22 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: 'Survey already completed' }, 409);
     }
 
-    // Mark token as used
+    // Atomically claim token via D1 to prevent double-submit races
+    try {
+      const claim = await env.SURVEY_DB.prepare(
+        'INSERT INTO survey_token_claims (token, claimed_at) VALUES (?, ?)'
+      ).bind(token, Date.now()).run();
+      if (!claim.success) {
+        return json({ ok: false, error: 'Survey already completed' }, 409);
+      }
+    } catch (claimErr) {
+      if (claimErr.message?.includes('UNIQUE constraint failed')) {
+        return json({ ok: false, error: 'Survey already completed' }, 409);
+      }
+      throw claimErr;
+    }
+
+    // Mark token as used in KV
     const updated = { ...data, used: true, completedAt: Date.now() };
     await env.SURVEY_TOKENS.put(`token:${token}`, JSON.stringify(updated), {
       expirationTtl: TOKEN_TTL,
@@ -121,6 +136,7 @@ export async function onRequestPost(context) {
       if (!airtableResp.ok) {
         const errText = await airtableResp.text();
         log(env, waitUntil, 'survey', 'airtable_write_error', 'error', `${airtableResp.status} ${errText}`, 0, 502);
+        await env.SURVEY_DB.prepare('DELETE FROM survey_token_claims WHERE token = ?').bind(token).run();
         await env.SURVEY_TOKENS.put(`token:${token}`, JSON.stringify(data), {
           expirationTtl: TOKEN_TTL,
         });
@@ -131,10 +147,15 @@ export async function onRequestPost(context) {
       airtableRecordId = airtableData.records?.[0]?.id;
       if (!airtableRecordId) {
         log(env, waitUntil, 'survey', 'airtable_no_record_id', 'error', 'Airtable returned no record ID', 0, 502);
+        await env.SURVEY_DB.prepare('DELETE FROM survey_token_claims WHERE token = ?').bind(token).run();
+        await env.SURVEY_TOKENS.put(`token:${token}`, JSON.stringify(data), {
+          expirationTtl: TOKEN_TTL,
+        });
         return json({ ok: false, error: 'Failed to save results. Please try again.' }, 502);
       }
     } catch (err) {
       log(env, waitUntil, 'survey', 'airtable_write_error', 'error', err.message, 0, 502);
+      await env.SURVEY_DB.prepare('DELETE FROM survey_token_claims WHERE token = ?').bind(token).run();
       await env.SURVEY_TOKENS.put(`token:${token}`, JSON.stringify(data), {
         expirationTtl: TOKEN_TTL,
       });
@@ -172,7 +193,7 @@ export async function onRequestPost(context) {
       expirationTtl: TOKEN_TTL,
     });
 
-    sendGA4Event(env, request, 'generate_lead', { event_category: 'endo_survey' }).catch(() => {});
+    waitUntil(sendGA4Event(env, request, 'generate_lead', { event_category: 'endo_survey' }).catch(() => {}));
 
     return json({ ok: true });
   } catch (err) {

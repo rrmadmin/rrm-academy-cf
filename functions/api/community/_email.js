@@ -28,6 +28,7 @@ export async function notifyNewPost(env, db, post, authorName) {
       AND (
         u.role IN ('mod', 'admin', 'superadmin')
         OR u.id IN (SELECT user_id FROM user_label WHERE label = 'Save the Uterus Club \u{1F3F7}\u{FE0F}')
+        OR u.stripe_customer_id IS NOT NULL
       )
   `).bind(post.authorId).all();
 
