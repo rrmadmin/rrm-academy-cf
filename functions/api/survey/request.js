@@ -6,6 +6,7 @@ import { sendEmail } from '../_ses.js';
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
 import { validateEmail } from '../auth/_email-validate.js';
+import { verifyAndTagEmail } from '../_elv.js';
 import { json, optionsResponse, checkRateLimit } from '../auth/_shared.js';
 
 const TOKEN_TTL = 24 * 60 * 60; // 24 hours in seconds
@@ -44,6 +45,12 @@ export async function onRequestPost(context) {
     const emailCheck = await validateEmail(email);
     if (!emailCheck.valid) {
       return json({ ok: false, error: emailCheck.error, ...(emailCheck.suggestion ? { suggestion: emailCheck.suggestion } : {}) }, 400);
+    }
+
+    // ELV mailbox verification
+    const elv = await verifyAndTagEmail(email, env, { source: 'survey' });
+    if (elv.blocked) {
+      return json({ ok: false, error: elv.reason }, 400);
     }
 
     // Rate limit: 1 email per 10 minutes per address
