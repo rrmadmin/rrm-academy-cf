@@ -1034,7 +1034,7 @@ tr:last-child td {
 }
 
 tr:nth-child(even) td {
-  background: color-mix(in srgb, var(--bg-surface) 40%, transparent);
+  background: var(--bg-surface);
 }
 
 /* Legal page sections (shared by privacy + terms) */
