@@ -32,6 +32,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
       return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
     }
 
+    if (!env.AWS_ACCESS_KEY_ID) {
+      return json({ ok: false, error: 'Server misconfigured' }, 500);
+    }
+
     // Turnstile
     const turnstileOk = await verifyTurnstile(
       env.CF_TURNSTILE_SECRET, body.turnstileToken, ip
@@ -51,7 +55,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     // Look up user (but always return success to prevent enumeration)
     const user = await db.prepare('SELECT id, name FROM user WHERE email = ? COLLATE NOCASE').bind(email).first();
 
-    if (user && env.AWS_ACCESS_KEY_ID) {
+    if (user) {
       // Delete any existing reset tokens for this user
       await db.prepare('DELETE FROM password_reset WHERE user_id = ?').bind(user.id).run();
 

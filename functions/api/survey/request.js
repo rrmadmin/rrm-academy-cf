@@ -6,7 +6,7 @@ import { sendEmail } from '../_ses.js';
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
 import { validateEmail } from '../auth/_email-validate.js';
-import { json, optionsResponse } from '../auth/_shared.js';
+import { json, optionsResponse, checkRateLimit } from '../auth/_shared.js';
 
 const TOKEN_TTL = 24 * 60 * 60; // 24 hours in seconds
 const RATE_LIMIT_SECONDS = 600;       // 10 minutes between emails to same address
@@ -36,6 +36,11 @@ export async function onRequestPost(context) {
     if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return json({ ok: false, error: 'Valid email required' }, 400);
     }
+    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+    if (!checkRateLimit(`survey:${ip}`)) {
+      return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
+    }
+
     const emailCheck = await validateEmail(email);
     if (!emailCheck.valid) {
       return json({ ok: false, error: emailCheck.error, ...(emailCheck.suggestion ? { suggestion: emailCheck.suggestion } : {}) }, 400);
@@ -89,6 +94,7 @@ export async function onRequestPost(context) {
     } catch (err) {
       log(env, waitUntil, 'survey', 'request_send_error', 'error', err.message, 0, 502);
       await env.SURVEY_TOKENS.delete(`email:${email}`);
+      await env.SURVEY_TOKENS.delete(`token:${token}`);
       return json({ ok: false, error: 'Failed to send email. Please try again.' }, 502);
     }
 
