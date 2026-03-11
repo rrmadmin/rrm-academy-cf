@@ -121,7 +121,16 @@ async function handleWebhook(request, env, waitUntil) {
       log(env, waitUntil, 'billing', 'webhook_unhandled', 'skipped', event.type);
   }
 
-  if (result) return result;
+  if (result) {
+    if (result.status >= 400) {
+      try {
+        await db.prepare('DELETE FROM webhook_event WHERE event_id = ?').bind(event.id).run();
+      } catch (_delErr) {
+        log(env, waitUntil, 'billing', 'dedup_cleanup_fail', 'error', `${event.id}: ${_delErr.message}`);
+      }
+    }
+    return result;
+  }
 
   // Always return 200 to acknowledge receipt
   return new Response(JSON.stringify({ received: true }), {
