@@ -329,6 +329,99 @@ function collectFilesAll(dir, list = []) {
   return list;
 }
 
+// ─── Phase 5: CRM & Newsletter Safety ────────────────────────────────
+
+function checkCrmSafety() {
+  console.log(`\n${BOLD}Phase 5: CRM & newsletter safety${RESET}`);
+
+  const functionsDir = join(ROOT, 'functions');
+  let allFiles;
+  try {
+    allFiles = collectFiles(functionsDir);
+  } catch {
+    log(FAIL, 'Cannot scan functions/ directory');
+    failures++;
+    return;
+  }
+
+  // 5a. No mass delete/drop/truncate on CRM or newsletter tables
+  const DANGEROUS_PATTERNS = [
+    /DELETE\s+FROM\s+(?:contact|newsletter_subscriber|contact_tag)\b/i,
+    /DROP\s+TABLE\s+(?:IF\s+EXISTS\s+)?(?:contact|newsletter_subscriber|contact_tag)\b/i,
+    /TRUNCATE\s+(?:TABLE\s+)?(?:contact|newsletter_subscriber|contact_tag)\b/i,
+  ];
+
+  let foundDangerous = false;
+  for (const filePath of allFiles) {
+    const rel = relative(ROOT, filePath);
+    let content;
+    try { content = readFileSync(filePath, 'utf8'); } catch { continue; }
+    for (const pattern of DANGEROUS_PATTERNS) {
+      if (pattern.test(content)) {
+        log(FAIL, `Destructive CRM/newsletter SQL in ${rel}: ${pattern}`);
+        failures++;
+        foundDangerous = true;
+      }
+    }
+  }
+  if (!foundDangerous) {
+    log(PASS, 'No destructive SQL (DELETE/DROP/TRUNCATE) on CRM or newsletter tables');
+  }
+
+  // 5b. Unsubscribe must use UPDATE (status change), never DELETE
+  const unsubPath = join(ROOT, 'functions/api/newsletter/unsubscribe.js');
+  try {
+    const content = readFileSync(unsubPath, 'utf8');
+    const hasStatusUpdate = /status\s*=\s*'unsubscribed'/i.test(content);
+    const hasDelete = /DELETE\s+FROM\s+newsletter_subscriber/i.test(content);
+    if (hasStatusUpdate && !hasDelete) {
+      log(PASS, 'Unsubscribe uses status change, not DELETE');
+    } else {
+      if (!hasStatusUpdate) {
+        log(FAIL, "unsubscribe.js missing status = 'unsubscribed' update");
+        failures++;
+      }
+      if (hasDelete) {
+        log(FAIL, 'unsubscribe.js contains DELETE FROM newsletter_subscriber');
+        failures++;
+      }
+    }
+  } catch {
+    log(FAIL, 'Cannot read newsletter/unsubscribe.js');
+    failures++;
+  }
+
+  // 5c. Newsletter send must require admin auth
+  const sendPath = join(ROOT, 'functions/api/newsletter/send.js');
+  try {
+    const content = readFileSync(sendPath, 'utf8');
+    if (content.includes('ADMIN_API_SECRET') && content.includes('Bearer')) {
+      log(PASS, 'Newsletter send requires ADMIN_API_SECRET Bearer auth');
+    } else {
+      log(FAIL, 'Newsletter send.js missing ADMIN_API_SECRET or Bearer auth check');
+      failures++;
+    }
+  } catch {
+    log(FAIL, 'Cannot read newsletter/send.js');
+    failures++;
+  }
+
+  // 5d. Newsletter subscribe must have rate limiting
+  const subscribePath = join(ROOT, 'functions/api/newsletter/subscribe.js');
+  try {
+    const content = readFileSync(subscribePath, 'utf8');
+    if (/[Rr]ate[Ll]imit/.test(content) || /429/.test(content)) {
+      log(PASS, 'Newsletter subscribe has rate limiting');
+    } else {
+      log(FAIL, 'Newsletter subscribe.js missing rate limiting');
+      failures++;
+    }
+  } catch {
+    log(FAIL, 'Cannot read newsletter/subscribe.js');
+    failures++;
+  }
+}
+
 // ─── Main ───────────────────────────────────────────────────────────
 
 console.log(`${BOLD}RRM Academy — Security Guard${RESET}`);
@@ -340,6 +433,7 @@ checkHashes();
 checkInvariants();
 checkRequiredFiles();
 scanSecrets();
+checkCrmSafety();
 
 console.log('');
 if (failures > 0) {

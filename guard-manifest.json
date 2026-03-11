@@ -75,7 +75,7 @@
       "note": "D1, KV, R2 bindings"
     },
     "scripts/guard.mjs": {
-      "hash": "4d3a71a382baaa6e7c4b8ad470454a7a2d6ea11492801f77d51c63b74dd6b06a",
+      "hash": "6a0b17330c02cfcdf2c0696681ffdc8acc3e31cb1253f0e428e3a5332851dc7e",
       "note": "Guard script (self-guarding)"
     }
   }
