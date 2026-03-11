@@ -126,7 +126,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
       );
     }
 
-    sendGA4Event(env, request, 'sign_up', { method: 'email' }).catch(() => {});
+    waitUntil(sendGA4Event(env, request, 'sign_up', { method: 'email' }).catch(() => {}));
 
     return json(
       { ok: true, emailVerificationRequired: true },
