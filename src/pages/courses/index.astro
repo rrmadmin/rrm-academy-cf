@@ -51,6 +51,7 @@ const jsonLd = {
         <p class="courses-hero__sub">Self-paced video courses on endometriosis, fertility, and reproductive health — from leading specialists in restorative reproductive medicine.</p>
       </section>
 
+      <h2 class="sr-only">Available Courses</h2>
       <div class="courses-grid">
         {coursesData.map((course, i) => (
           <CourseCard course={course} eager={i < 2} />
@@ -59,54 +60,54 @@ const jsonLd = {
 
       <section class="courses-faq">
         <h2>Course FAQ</h2>
-        <dl class="faq-list">
+        <div class="faq-list">
 
           <details class="faq-item">
             <summary class="faq-q">What is the format of the courses?</summary>
-            <dd class="faq-a">Our courses are self-paced and fully online. Each course includes video lectures by expert clinicians, downloadable resources, and quizzes to reinforce your learning. You can start, pause, and return at any time — there are no deadlines or scheduled sessions.</dd>
+            <p class="faq-a">Our courses are self-paced and fully online. Each course includes video lectures by expert clinicians, downloadable resources, and quizzes to reinforce your learning. You can start, pause, and return at any time — there are no deadlines or scheduled sessions.</p>
           </details>
 
           <details class="faq-item">
             <summary class="faq-q">Who are these courses for?</summary>
-            <dd class="faq-a">Our courses are designed for two audiences: patients navigating reproductive health conditions (endometriosis, infertility, PCOS, hormonal disorders) who want to understand their options beyond standard care; and healthcare professionals seeking education in Restorative Reproductive Medicine and NaProTechnology.</dd>
+            <p class="faq-a">Our courses are designed for two audiences: patients navigating reproductive health conditions (endometriosis, infertility, PCOS, hormonal disorders) who want to understand their options beyond standard care; and healthcare professionals seeking education in Restorative Reproductive Medicine and NaProTechnology.</p>
           </details>
 
           <details class="faq-item">
             <summary class="faq-q">How long will I have access after I enroll?</summary>
-            <dd class="faq-a">Access is lifetime. Once enrolled, your course remains available in your account with no expiration date — including any updates or new content added over time.</dd>
+            <p class="faq-a">Access is lifetime. Once enrolled, your course remains available in your account with no expiration date — including any updates or new content added over time.</p>
           </details>
 
           <details class="faq-item">
             <summary class="faq-q">What is the difference between the Masterclass in Endometriosis & Surgery and the Long-Term Endometriosis Management course?</summary>
-            <dd class="faq-a">The Masterclass covers the full journey — understanding endometriosis, evaluating surgical options, choosing a surgeon, and navigating the surgical process. The Long-Term Endometriosis Management course focuses on ongoing and post-surgical care: diet, supplements, lifestyle, and medications. The Long-Term course is included free when you enroll in the Masterclass.</dd>
+            <p class="faq-a">The Masterclass covers the full journey — understanding endometriosis, evaluating surgical options, choosing a surgeon, and navigating the surgical process. The Long-Term Endometriosis Management course focuses on ongoing and post-surgical care: diet, supplements, lifestyle, and medications. The Long-Term course is included free when you enroll in the Masterclass.</p>
           </details>
 
           <details class="faq-item">
             <summary class="faq-q">Do the courses offer a certificate of completion?</summary>
-            <dd class="faq-a">Yes. The Masterclass in Endometriosis & Surgery includes a certificate of completion, issued automatically after you finish all lessons and pass the final assessment with a score of 80% or higher.</dd>
+            <p class="faq-a">Yes. The Masterclass in Endometriosis & Surgery includes a certificate of completion, issued automatically after you finish all lessons and pass the final assessment with a score of 80% or higher.</p>
           </details>
 
           <details class="faq-item">
             <summary class="faq-q">Do these courses replace medical advice from my doctor?</summary>
-            <dd class="faq-a">No. Our courses are educational resources designed to help you understand conditions and treatment options. They do not constitute medical advice and are not a substitute for care from a qualified healthcare provider. Always consult your physician before making medical decisions.</dd>
+            <p class="faq-a">No. Our courses are educational resources designed to help you understand conditions and treatment options. They do not constitute medical advice and are not a substitute for care from a qualified healthcare provider. Always consult your physician before making medical decisions.</p>
           </details>
 
           <details class="faq-item">
             <summary class="faq-q">Why do you charge for some courses?</summary>
-            <dd class="faq-a">Creating high-quality clinical content requires significant time and expertise from our instructors. Paid courses help sustain RRM Academy as a nonprofit — they allow us to keep our free courses free, maintain the Research Library, and continue producing education without ads or outside funding. We charge the minimum needed to support the mission.</dd>
+            <p class="faq-a">Creating high-quality clinical content requires significant time and expertise from our instructors. Paid courses help sustain RRM Academy as a nonprofit — they allow us to keep our free courses free, maintain the Research Library, and continue producing education without ads or outside funding. We charge the minimum needed to support the mission.</p>
           </details>
 
           <details class="faq-item">
             <summary class="faq-q">Is financial assistance available for paid courses?</summary>
-            <dd class="faq-a">Yes. If cost is a barrier, please <a href="/contact/">contact us</a>. We offer need-based access on a case-by-case basis and never want cost to prevent someone from getting the education they need.</dd>
+            <p class="faq-a">Yes. If cost is a barrier, please <a href="/contact/">contact us</a>. We offer need-based access on a case-by-case basis and never want cost to prevent someone from getting the education they need.</p>
           </details>
 
           <details class="faq-item">
             <summary class="faq-q">What is your refund policy?</summary>
-            <dd class="faq-a">We offer a full refund within 7 days of purchase if you have completed less than 20% of the course. Please <a href="/contact/">contact us</a> with your order details.</dd>
+            <p class="faq-a">We offer a full refund within 7 days of purchase if you have completed less than 20% of the course. Please <a href="/contact/">contact us</a> with your order details.</p>
           </details>
 
-        </dl>
+        </div>
       </section>
 
       <p class="page-updated">Last updated: February 2026</p>
