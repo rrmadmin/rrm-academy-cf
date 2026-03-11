@@ -263,8 +263,11 @@ A zero-dependency Node.js script (`scripts/guard.mjs`) that blocks deployments i
 
 **Guarded files** (hash-checked via `guard-manifest.json`):
 - `functions/api/auth/_shared.js` — CORS, sessions, crypto, rate limiting
-- `functions/api/auth/login.js`, `signup.js`, `google-callback.js` — authentication
-- `functions/api/stripe-webhook.js` — webhook signature verification
+- `functions/api/auth/login.js`, `signup.js`, `google-callback.js`, `google.js` — authentication
+- `functions/api/auth/forgot-password.js`, `reset-password.js`, `change-password.js` — password management
+- `functions/api/auth/_email-validate.js` — email validation, disposable/typo detection
+- `functions/api/stripe-webhook.js` — webhook signature verification + dispatch
+- `functions/api/billing/_webhook-checkout.js`, `_webhook-subscription.js`, `_webhook-shared.js` — webhook handlers
 - `functions/api/create-checkout.js`, `billing/status.js`, `billing/portal.js` — billing
 - `functions/_middleware.js` — auth gating for /account and /community
 - `wrangler.toml` — D1, KV, R2 bindings

@@ -14,9 +14,29 @@
       "hash": "eb17b5d0ca984581d9eddcbf54a4d145380210eb20621694509655a3c74e01a0",
       "note": "Account creation"
     },
+    "functions/api/auth/forgot-password.js": {
+      "hash": "727f1a2285317031e946666fb7dab159dd24e498926b676429e07df52cf3b833",
+      "note": "Password reset tokens + email"
+    },
+    "functions/api/auth/reset-password.js": {
+      "hash": "44cbe4d3e89e8ec4236f1daf8e778f1c3e3ea3c22a7836b99ac0c2916cbd969d",
+      "note": "Reset token consumption + password change"
+    },
+    "functions/api/auth/change-password.js": {
+      "hash": "56489c67c25f6264632f2f58d8e97c915b49d3ab6dfd5ea46e60650f669fad96",
+      "note": "Authenticated password change"
+    },
+    "functions/api/auth/google.js": {
+      "hash": "f0e5fb81d60725062a676e14575277f26a44178ab98e47130a8b339e4610f2e6",
+      "note": "OAuth redirect initiation"
+    },
     "functions/api/auth/google-callback.js": {
       "hash": "cd11313699f615ca039ac18a790f9487260755b34d8f44dd5be80e37090d38c4",
-      "note": "Google OAuth"
+      "note": "Google OAuth callback"
+    },
+    "functions/api/auth/_email-validate.js": {
+      "hash": "6d7d9644f8a4004f7421b37dd8cf5562c1af5a29360cb58d2ea99b49ecaa06c7",
+      "note": "Email validation + disposable/typo detection"
     },
     "functions/api/stripe-webhook.js": {
       "hash": "cd0fa50c63cc63bd13d6897e70c08f248501dc0b927f8bf92b42950c8e9ff935",
@@ -33,6 +53,18 @@
     "functions/api/billing/portal.js": {
       "hash": "69f4c0d776f701f29f7139967c7f74d4adc8f17159a621fa5bba77e113b8138f",
       "note": "Stripe portal"
+    },
+    "functions/api/billing/_webhook-checkout.js": {
+      "hash": "1eae82fd7997989657af31c4085dc655a224446729a4f229fd4d262320570afb",
+      "note": "Stripe checkout completion handler"
+    },
+    "functions/api/billing/_webhook-subscription.js": {
+      "hash": "f7087e634e15eec083211aa9025e74b93d0486e24b76c6b8be28fe29b283d0d9",
+      "note": "Subscription lifecycle handler"
+    },
+    "functions/api/billing/_webhook-shared.js": {
+      "hash": "e9843ca427e57b53cd0d4e54649c9d4e5171afb95dcd077aba925d7e8fbb8207",
+      "note": "Shared webhook helpers"
     },
     "functions/_middleware.js": {
       "hash": "85d66d60328faece3cf96c57fb9ac2ee512eb5baa94998989b73d5c1ff870157",
