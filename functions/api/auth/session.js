@@ -26,10 +26,10 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
     // Fetch user data
     const user = await db.prepare(
-      'SELECT id, email, name, first_name, last_name, email_verified, role, created_at FROM user WHERE id = ?'
+      'SELECT id, email, name, first_name, last_name, email_verified, role, blocked, created_at FROM user WHERE id = ?'
     ).bind(session.userId).first();
 
-    if (!user) {
+    if (!user || user.blocked) {
       return json({ ok: true, user: null });
     }
 
