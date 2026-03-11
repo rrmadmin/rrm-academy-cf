@@ -439,8 +439,8 @@ async function processCoverImage(imageUrl, courseId) {
   const jpgBuffer = Buffer.from(await jpgRes.arrayBuffer());
 
   // Upload both to R2 under course-covers/ (public, no auth gate)
-  const webpKey = `course-covers/${courseId}.webp`;
-  const jpgKey = `course-covers/${courseId}.jpg`;
+  const webpKey = `course-covers/${courseId}-v2.webp`;
+  const jpgKey = `course-covers/${courseId}-v2.jpg`;
   uploadBufferToR2(webpBuffer, webpKey, 'image/webp');
   uploadBufferToR2(jpgBuffer, jpgKey, 'image/jpeg');
 
@@ -456,8 +456,13 @@ async function processCoverImages(courses) {
     if (optimizedUrl) {
       course.image = optimizedUrl;
     } else {
-      // No Tinify: still route through proxy for caching (if image is on R2)
-      course.image = r2UrlToProxy(course.image);
+      // No Tinify: use pre-optimized v2 images if available, else proxy raw R2
+      const proxyUrl = r2UrlToProxy(course.image);
+      if (proxyUrl.includes('/api/assets/course-covers/') && !proxyUrl.includes('-v2.')) {
+        course.image = proxyUrl.replace(/\.(webp|jpg|jpeg|png)$/, '-v2.$1');
+      } else {
+        course.image = proxyUrl;
+      }
     }
   }
 }
