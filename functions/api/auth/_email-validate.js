@@ -10,9 +10,9 @@ import { DISPOSABLE_DOMAINS } from './_disposable-domains.js';
 
 // Common domains and their typo variants
 const DOMAIN_TYPOS = {
-  'gmail.com': ['gmial.com', 'gmal.com', 'gmai.com', 'gmali.com', 'gamil.com', 'gnail.com', 'gmaill.com', 'gmil.com', 'gmail.co', 'gmail.cm', 'gmsil.com', 'gmqil.com', 'gmail.con', 'gmail.cim', 'gmail.vom', 'gmail.xom', 'gmaik.com', 'gmaikl.com', 'gmailcom', 'g]mail.com'],
+  'gmail.com': ['gmial.com', 'gmal.com', 'gmai.com', 'gmali.com', 'gamil.com', 'gnail.com', 'gmaill.com', 'gmil.com', 'gmail.co', 'gmail.cm', 'gmsil.com', 'gmqil.com', 'gmail.con', 'gmail.cim', 'gmail.vom', 'gmail.xom', 'gmaik.com', 'gmaikl.com', 'gmailcom', 'g]mail.com', 'gmail.col', 'gmail.conm', 'gmail.comm', 'gmail.cpm', 'gmail.ocm', 'gmail.coom'],
   'yahoo.com': ['yaho.com', 'yahooo.com', 'yhoo.com', 'yhaoo.com', 'yahoo.co', 'yahoo.cm', 'yahoo.con', 'yaoo.com', 'tahoo.com', 'uahoo.com'],
-  'hotmail.com': ['hotmal.com', 'hotmai.com', 'hotmial.com', 'hotamil.com', 'hotmail.co', 'hotmail.cm', 'hotmail.con', 'hotmaill.com', 'htmail.com', 'htomail.com'],
+  'hotmail.com': ['hotmal.com', 'hotmai.com', 'hotmial.com', 'hotamil.com', 'hotmail.co', 'hotmail.cm', 'hotmail.con', 'hotmaill.com', 'htmail.com', 'htomail.com', 'hotmail.om'],
   'outlook.com': ['outlok.com', 'outloo.com', 'outlool.com', 'outllook.com', 'outlook.co', 'outlook.cm', 'outlook.con', 'putlook.com', 'outtlook.com'],
   'icloud.com': ['iclod.com', 'icloud.co', 'icloud.cm', 'iclould.com', 'icloud.con', 'icoud.com', 'iclous.com', 'icluod.com'],
   'aol.com': ['aol.co', 'aol.cm', 'aol.con', 'ao.com', 'aoll.com'],

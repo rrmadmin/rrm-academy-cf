@@ -31,6 +31,7 @@ const DB_NAME = (process.argv.find(a => a.startsWith('--db=')) || '').split('=')
 
 // ── Typo corrections (from validation report) ──────────────────────────
 const TYPO_FIXES = [
+  // Round 1 (completed)
   { email: 'aedoula@protonmail.co', corrected: 'aedoula@protonmail.com' },
   { email: 'brycurtis7@gmail.con', corrected: 'brycurtis7@gmail.com' },
   { email: 'carly.lovenduski@gmai.com', corrected: 'carly.lovenduski@gmail.com' },
@@ -45,6 +46,14 @@ const TYPO_FIXES = [
   { email: 'nativerosedoula@gmai.com', corrected: 'nativerosedoula@gmail.com' },
   { email: 'sarah.aileen@hotmail.co', corrected: 'sarah.aileen@hotmail.com' },
   { email: 'tayxdavis@gmail.con', corrected: 'tayxdavis@gmail.com' },
+  // Round 2: no-MX typos
+  { email: 'angelita_11034@hotmail.om', corrected: 'angelita_11034@hotmail.com' },
+  { email: 'chantelle@bertino-clarke.con', corrected: 'chantelle@bertino-clarke.com' },
+  { email: 'hurst.adele.m@gmail.col', corrected: 'hurst.adele.m@gmail.com' },
+  { email: 'lydiavanbuskirk@gmail.col', corrected: 'lydiavanbuskirk@gmail.com' },
+  { email: 'kerrilynndiane@gmail.conm', corrected: 'kerrilynndiane@gmail.com' },
+  { email: 'madhu.saidot@gmail.comm', corrected: 'madhu.saidot@gmail.com' },
+  { email: 'sjm2249@columbai.edu', corrected: 'sjm2249@columbia.edu' },
 ];
 
 // ── D1 helpers ─────────────────────────────────────────────────────────
