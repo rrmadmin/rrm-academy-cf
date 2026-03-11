@@ -70,6 +70,20 @@ export async function onRequestPost({ request, env, waitUntil }) {
     await db.prepare("UPDATE newsletter_send SET status = 'sending' WHERE id = ?").bind(sendId).run();
   }
 
+  // Build suppression set from ELV tags (spamtraps, disabled, disposable, invalid)
+  // Safety net: even if a bad email somehow got into newsletter_subscriber, don't send to it
+  const suppressedEmails = new Set();
+  try {
+    const badTags = (await db.prepare(
+      `SELECT c.email FROM contact c
+       JOIN contact_tag ct ON ct.contact_id = c.id
+       WHERE ct.tag IN ('elv:spamtrap', 'elv:email_disabled', 'elv:disposable', 'elv:invalid', 'elv:dead_server', 'elv:invalid_mx')`
+    ).all()).results;
+    for (const r of badTags) suppressedEmails.add(r.email?.toLowerCase());
+  } catch {
+    // Non-fatal: if contact tables don't exist yet, skip suppression
+  }
+
   // Query active subscribers, paginated by ID with LIMIT (parameterized, no string interpolation)
   // Fetch PAGE_SIZE * 2 to allow for segment filtering + already-sent exclusion, then slice
   const fetchLimit = PAGE_SIZE * 2 + 1;
@@ -80,8 +94,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
   params.push(fetchLimit);
   const subscribers = (await db.prepare(query).bind(...params).all()).results;
 
-  // Filter by segment if requested
-  let recipients = subscribers;
+  // Filter by segment if requested, and suppress bad ELV emails
+  let recipients = subscribers.filter(s => !suppressedEmails.has(s.email?.toLowerCase()));
   if (segments && segments.length > 0) {
     recipients = subscribers.filter(sub => {
       const subSegments = JSON.parse(sub.segments || '[]');
