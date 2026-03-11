@@ -27,9 +27,9 @@ console.log(`Loaded ${DISPOSABLE_DOMAINS.size} disposable domains`);
 
 // ── Load typo corrections ──────────────────────────────────────────────
 const DOMAIN_TYPOS = {
-  'gmail.com': ['gmial.com', 'gmal.com', 'gmai.com', 'gmali.com', 'gamil.com', 'gnail.com', 'gmaill.com', 'gmil.com', 'gmail.co', 'gmail.cm', 'gmsil.com', 'gmqil.com', 'gmail.con', 'gmail.cim', 'gmail.vom', 'gmail.xom', 'gmaik.com', 'gmaikl.com', 'gmailcom', 'g]mail.com'],
+  'gmail.com': ['gmial.com', 'gmal.com', 'gmai.com', 'gmali.com', 'gamil.com', 'gnail.com', 'gmaill.com', 'gmil.com', 'gmail.co', 'gmail.cm', 'gmsil.com', 'gmqil.com', 'gmail.con', 'gmail.cim', 'gmail.vom', 'gmail.xom', 'gmaik.com', 'gmaikl.com', 'gmailcom', 'g]mail.com', 'gmail.col', 'gmail.conm', 'gmail.comm', 'gmail.cpm', 'gmail.ocm', 'gmail.coom'],
   'yahoo.com': ['yaho.com', 'yahooo.com', 'yhoo.com', 'yhaoo.com', 'yahoo.co', 'yahoo.cm', 'yahoo.con', 'yaoo.com', 'tahoo.com', 'uahoo.com'],
-  'hotmail.com': ['hotmal.com', 'hotmai.com', 'hotmial.com', 'hotamil.com', 'hotmail.co', 'hotmail.cm', 'hotmail.con', 'hotmaill.com', 'htmail.com', 'htomail.com'],
+  'hotmail.com': ['hotmal.com', 'hotmai.com', 'hotmial.com', 'hotamil.com', 'hotmail.co', 'hotmail.cm', 'hotmail.con', 'hotmaill.com', 'htmail.com', 'htomail.com', 'hotmail.om'],
   'outlook.com': ['outlok.com', 'outloo.com', 'outlool.com', 'outllook.com', 'outlook.co', 'outlook.cm', 'outlook.con', 'putlook.com', 'outtlook.com'],
   'icloud.com': ['iclod.com', 'icloud.co', 'icloud.cm', 'iclould.com', 'icloud.con', 'icoud.com', 'iclous.com', 'icluod.com'],
   'aol.com': ['aol.co', 'aol.cm', 'aol.con', 'ao.com', 'aoll.com'],
@@ -117,9 +117,9 @@ async function checkMxRecord(domain) {
 async function main() {
   console.log(`\n=== CRM Email Validator [DB: ${DB_NAME}] ===\n`);
 
-  // Fetch all contacts
-  const contacts = d1Query("SELECT id, email, first_name, last_name FROM contact ORDER BY email");
-  console.log(`Total contacts: ${contacts.length}\n`);
+  // Fetch active contacts (skip retired merge losers)
+  const contacts = d1Query("SELECT id, email, first_name, last_name FROM contact WHERE email NOT LIKE 'merged:%' ORDER BY email");
+  console.log(`Active contacts: ${contacts.length}\n`);
 
   const results = {
     disposable: [],   // { id, email, domain }
