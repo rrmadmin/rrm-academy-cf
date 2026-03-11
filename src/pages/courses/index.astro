@@ -52,8 +52,8 @@ const jsonLd = {
       </section>
 
       <div class="courses-grid">
-        {coursesData.map((course) => (
-          <CourseCard course={course} />
+        {coursesData.map((course, i) => (
+          <CourseCard course={course} eager={i < 2} />
         ))}
       </div>
 

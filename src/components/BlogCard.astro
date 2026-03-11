@@ -1,11 +1,13 @@
 ---
 import type { BlogPost } from '../lib/blog';
+import OptimizedImage from './OptimizedImage.astro';
 
 interface Props {
   post: BlogPost;
+  eager?: boolean;
 }
 
-const { post } = Astro.props;
+const { post, eager = false } = Astro.props;
 const href = `/commentary/${post.slug}/`;
 
 // Format date
@@ -33,11 +35,12 @@ const excerpt = post.excerpt
   <a href={href} class="blog-card__link">
     {post.coverImageUrl && (
       <div class="blog-card__image">
-        <img
+        <OptimizedImage
           src={post.coverImageUrl}
           alt={post.title}
-          loading="lazy"
-          decoding="async"
+          width={600}
+          height={600}
+          eager={eager}
         />
       </div>
     )}
