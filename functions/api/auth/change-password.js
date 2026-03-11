@@ -34,7 +34,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const currentPassword = body.currentPassword || '';
     const newPassword = body.newPassword || '';
 
-    if (!currentPassword) return json({ ok: false, error: 'Current password is required.' }, 400);
+    if (!currentPassword || currentPassword.length > 128) return json({ ok: false, error: 'Current password is required.' }, 400);
     if (!isValidPassword(newPassword)) return json({ ok: false, error: 'New password must be at least 8 characters.' }, 400);
 
     // Get user's current hashed password

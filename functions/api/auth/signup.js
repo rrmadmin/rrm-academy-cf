@@ -61,6 +61,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
     );
     if (!turnstileOk) return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
 
+    // Hash password before existence check to prevent timing side-channel
+    const hashedPassword = await hashPassword(password);
+
     // Check if email already exists
     const existing = await db.prepare('SELECT id FROM user WHERE email = ? COLLATE NOCASE').bind(email).first();
     if (existing) {
@@ -70,7 +73,6 @@ export async function onRequestPost({ request, env, waitUntil }) {
     // Prepare all three INSERTs
     const userId = generateId();
     const name = firstName + ' ' + lastName;
-    const hashedPassword = await hashPassword(password);
 
     const code = generateToken().slice(0, 8); // 8-char verification code
     const verifyExpiresAt = Math.floor(Date.now() / 1000) + 3600; // 1 hour
@@ -98,10 +100,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
       throw batchErr;
     }
 
-    // Send verification email (fire-and-forget — don't block on SES response)
+    // Send verification email via waitUntil (decouple SES latency from response timing)
     if (env.AWS_ACCESS_KEY_ID) {
-      try {
-        await sendEmail(env, {
+      waitUntil(
+        sendEmail(env, {
           from: 'RRM Academy <accounts@mail.rrmacademy.org>',
           to: email,
           subject: 'Verify your email — RRM Academy',
@@ -120,10 +122,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
             'RRM Academy',
             'https://rrmacademy.org',
           ].join('\n'),
-        });
-      } catch {
-        // Email send failed — user can request resend later
-      }
+        }).catch(() => {})
+      );
     }
 
     sendGA4Event(env, request, 'sign_up', { method: 'email' }).catch(() => {});
