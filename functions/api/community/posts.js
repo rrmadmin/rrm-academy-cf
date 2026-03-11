@@ -61,6 +61,10 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
       if (!row) return json({ ok: false, error: 'Post not found' }, 404);
 
+      if (row.channel !== 'stuc' && !roleAtLeast(user.role, 'admin')) {
+        return json({ ok: false, error: 'Not authorized for this channel' }, 403);
+      }
+
       // Reactions
       const reactions = await db.prepare(`
         SELECT emoji, COUNT(*) as count FROM community_reaction
@@ -105,7 +109,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
       let eventWhere = "WHERE p.type = 'event' AND p.channel = ?";
       params = [...TIER_LABELS, channel];
       if (before) {
-        eventWhere += ' AND p.created_at < ?';
+        eventWhere += ' AND p.event_date < ?';
         params.push(before);
       }
       sql = `
@@ -332,25 +336,28 @@ export async function onRequestPatch({ request, env, waitUntil }) {
     // Pin/unpin — mod+ only
     if (pinned !== undefined) {
       if (!canPin(user.role)) return json({ ok: false, error: 'Not authorized' }, 403);
-      await db.prepare('UPDATE community_post SET pinned = ?, updated_at = datetime(\'now\') WHERE id = ?')
-        .bind(pinned ? 1 : 0, postId).run();
-      return json({ ok: true, pinned: !!pinned });
     }
 
-    // Archive channels are read-only for non-admin users
-    if (ARCHIVE_CHANNELS.includes(post.channel) && !roleAtLeast(user.role, 'admin')) {
-      return json({ ok: false, error: 'Not authorized for this channel' }, 403);
-    }
+    const hasBodyEdits = postBody !== undefined || eventDate !== undefined || eventLink !== undefined || resourceUrl !== undefined;
 
-    // Edit — author or admin+
-    if (!canEditPost(user.role, user.id, post)) {
-      return json({ ok: false, error: 'Not authorized' }, 403);
+    if (hasBodyEdits) {
+      if (ARCHIVE_CHANNELS.includes(post.channel) && !roleAtLeast(user.role, 'admin')) {
+        return json({ ok: false, error: 'Not authorized for this channel' }, 403);
+      }
+      if (!canEditPost(user.role, user.id, post)) {
+        return json({ ok: false, error: 'Not authorized' }, 403);
+      }
     }
 
     const updates = [];
     const values = [];
 
+    if (pinned !== undefined) {
+      updates.push('pinned = ?'); values.push(pinned ? 1 : 0);
+    }
+
     if (postBody !== undefined) {
+      if (postBody.trim().length === 0) return json({ ok: false, error: 'Post cannot be empty' }, 400);
       if (postBody.length > 10000) return json({ ok: false, error: 'Post too long' }, 400);
       updates.push('content = ?'); values.push(postBody.trim());
     }

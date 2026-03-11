@@ -18,7 +18,7 @@ import {
   json, optionsResponse, getSessionIdFromCookie, validateSession,
 } from '../auth/_shared.js';
 import { log } from '../_log.js';
-import { getCourse, isValidStep, getPreviousStepId, autoEnrollAdmin } from './_shared.js';
+import { getCourse, isValidStep, getPreviousStepId, autoEnrollAdmin, checkCourseCompletion } from './_shared.js';
 import quizData from '../../../src/data/quizzes.json';
 
 export async function onRequestOptions() {
@@ -189,15 +189,16 @@ async function handleQuizSubmit(request, env) {
 
   const passed = quiz.passingScore ? score >= quiz.passingScore : true;
 
-  // Save to step_progress (completed=1, score updates on retake)
+  const completedVal = passed ? 1 : 0;
+
   await db.prepare(`
     INSERT INTO step_progress (user_id, course_id, step_id, completed, score, last_position_seconds, updated_at)
-    VALUES (?1, ?2, ?3, 1, ?4, 0, datetime('now'))
+    VALUES (?1, ?2, ?3, ?5, ?4, 0, datetime('now'))
     ON CONFLICT(user_id, course_id, step_id) DO UPDATE SET
-      completed = 1,
+      completed = MAX(step_progress.completed, ?5),
       score = MAX(step_progress.score, ?4),
       updated_at = datetime('now')
-  `).bind(session.userId, courseId, stepId, score).run();
+  `).bind(session.userId, courseId, stepId, score, completedVal).run();
 
   // Determine attempt number
   const attemptRow = await db.prepare(
@@ -217,5 +218,12 @@ async function handleQuizSubmit(request, env) {
 
   const response = { ok: true, score, passed, attempt };
   if (results) response.results = results;
+
+  if (passed) {
+    const { courseCompleted, certificateIssued } = await checkCourseCompletion(db, session.userId, courseId);
+    response.courseCompleted = courseCompleted;
+    response.certificateIssued = certificateIssued;
+  }
+
   return json(response);
 }

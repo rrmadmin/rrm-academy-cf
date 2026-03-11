@@ -27,35 +27,29 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
     const sessionId = getSessionIdFromCookie(request);
     const session = await validateSession(db, sessionId);
-    if (!session) return json({ ok: false, error: 'Not authenticated' }, 401);
+    if (!session) return htmlError('Please log in to view your certificate.', 401, '/login');
 
     const url = new URL(request.url);
     const courseId = url.searchParams.get('courseId');
-    if (!courseId) return json({ ok: false, error: 'courseId required' }, 400);
+    if (!courseId) return htmlError('Missing course ID.', 400);
 
     const course = getCourse(courseId);
-    if (!course) return json({ ok: false, error: 'Course not found' }, 404);
-    if (!course.hasCertificate) return json({ ok: false, error: 'This course does not offer a certificate' }, 400);
+    if (!course) return htmlError('Course not found.', 404);
+    if (!course.hasCertificate) return htmlError('This course does not offer a certificate.', 400);
 
-    // Check enrollment and completion
     const enrollment = await db.prepare(
       'SELECT id, completed_at, certificate_issued_at FROM enrollment WHERE user_id = ? AND course_id = ?'
     ).bind(session.userId, courseId).first();
-    if (!enrollment) return json({ ok: false, error: 'Not enrolled' }, 403);
-    if (!enrollment.completed_at) return json({ ok: false, error: 'Course not yet completed' }, 403);
+    if (!enrollment) return htmlError('You are not enrolled in this course.', 403);
+    if (!enrollment.completed_at) return htmlError('Course not yet completed.', 403);
 
-    // Check quiz score
     const quizStepId = getCertificateQuizId(courseId);
     if (quizStepId) {
       const quiz = await db.prepare(
         'SELECT score FROM step_progress WHERE user_id = ? AND course_id = ? AND step_id = ? AND completed = 1'
       ).bind(session.userId, courseId, quizStepId).first();
       if (!quiz || quiz.score < CERTIFICATE_MIN_SCORE) {
-        return json({
-          ok: false,
-          error: `Quiz score of ${CERTIFICATE_MIN_SCORE}% or higher required`,
-          score: quiz?.score ?? null,
-        }, 403);
+        return htmlError(`A quiz score of ${CERTIFICATE_MIN_SCORE}% or higher is required.`, 403);
       }
     }
 
@@ -68,7 +62,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
       const updated = await db.prepare(
         'SELECT certificate_issued_at FROM enrollment WHERE user_id = ? AND course_id = ?'
       ).bind(session.userId, courseId).first();
-      issuedAt = updated.certificate_issued_at;
+      issuedAt = updated?.certificate_issued_at;
     }
 
     // Get user name
@@ -110,6 +104,15 @@ export async function onRequestGet({ request, env, waitUntil }) {
     log(env, waitUntil, 'courses', 'certificate_error', 'error', err.message, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
+}
+
+function htmlError(message, status, redirectUrl) {
+  const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const redirect = redirectUrl
+    ? `<p style="margin-top:1rem"><a href="${esc(redirectUrl)}" style="color:#725e7e">Go to login</a></p>`
+    : '<p style="margin-top:1rem"><a href="javascript:history.back()" style="color:#725e7e">Go back</a></p>';
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Certificate Error</title></head><body style="font-family:Georgia,serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f5f0f0;color:#2c2c2c"><div style="text-align:center;max-width:480px;padding:2rem"><h1 style="color:#725e7e;font-size:1.5rem">Certificate Unavailable</h1><p>${esc(message)}</p>${redirect}</div></body></html>`;
+  return new Response(html, { status, headers: { 'Content-Type': 'text/html;charset=UTF-8' } });
 }
 
 function formatDate(isoString) {

@@ -73,4 +73,41 @@ export async function autoEnrollAdmin(db, userId, courseId) {
   ).bind(id, userId, courseId).run();
 }
 
+export async function checkCourseCompletion(db, userId, courseId) {
+  const course = getCourse(courseId);
+  if (!course) return { courseCompleted: false, certificateIssued: false };
+
+  const totalSteps = getTotalSteps(courseId);
+  const { count } = await db.prepare(
+    'SELECT COUNT(*) as count FROM step_progress WHERE user_id = ? AND course_id = ? AND completed = 1'
+  ).bind(userId, courseId).first();
+
+  let courseCompleted = false;
+  let certificateIssued = false;
+
+  if (count >= totalSteps) {
+    await db.prepare(
+      'UPDATE enrollment SET completed_at = datetime(\'now\') WHERE user_id = ? AND course_id = ? AND completed_at IS NULL'
+    ).bind(userId, courseId).run();
+    courseCompleted = true;
+
+    if (course.hasCertificate) {
+      const quizStepId = getCertificateQuizId(courseId);
+      if (quizStepId) {
+        const quiz = await db.prepare(
+          'SELECT score FROM step_progress WHERE user_id = ? AND course_id = ? AND step_id = ? AND completed = 1'
+        ).bind(userId, courseId, quizStepId).first();
+        if (quiz?.score >= CERTIFICATE_MIN_SCORE) {
+          await db.prepare(
+            "UPDATE enrollment SET certificate_issued_at = datetime('now') WHERE user_id = ? AND course_id = ? AND certificate_issued_at IS NULL"
+          ).bind(userId, courseId).run();
+          certificateIssued = true;
+        }
+      }
+    }
+  }
+
+  return { courseCompleted, certificateIssued };
+}
+
 export { coursesData };

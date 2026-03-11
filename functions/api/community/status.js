@@ -25,9 +25,11 @@ export async function onRequestGet({ request, env, waitUntil }) {
     // Full membership check
     const auth = await requireMember(request, env);
     if (auth instanceof Response) {
-      // Has session but no subscription
-      const user = await db.prepare('SELECT name, first_name, last_name, role, avatar_url FROM user WHERE id = ?')
+      const user = await db.prepare('SELECT name, first_name, last_name, role, avatar_url, blocked FROM user WHERE id = ?')
         .bind(session.userId).first();
+      if (user?.blocked) {
+        return json({ ok: true, access: 'anonymous' });
+      }
       return json({
         ok: true,
         access: 'registered',

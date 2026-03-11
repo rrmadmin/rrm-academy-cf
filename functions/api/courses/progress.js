@@ -9,7 +9,7 @@ import {
   json, optionsResponse, getSessionIdFromCookie, validateSession,
 } from '../auth/_shared.js';
 import { log } from '../_log.js';
-import { getCourse, getTotalSteps, isValidStep, getCertificateQuizId, CERTIFICATE_MIN_SCORE, getPreviousStepId, autoEnrollAdmin } from './_shared.js';
+import { getCourse, getTotalSteps, isValidStep, getPreviousStepId, autoEnrollAdmin, checkCourseCompletion } from './_shared.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -190,37 +190,10 @@ async function handleProgressUpdate(request, env) {
       updated_at = datetime('now')
   `).bind(session.userId, courseId, stepId, completedVal, scoreVal, positionVal).run();
 
-  // If marking complete, check if entire course is now done
   let courseCompleted = false;
   let certificateIssued = false;
   if (completed) {
-    const totalSteps = getTotalSteps(courseId);
-    const { count } = await db.prepare(
-      'SELECT COUNT(*) as count FROM step_progress WHERE user_id = ? AND course_id = ? AND completed = 1'
-    ).bind(session.userId, courseId).first();
-
-    if (count >= totalSteps) {
-      await db.prepare(
-        'UPDATE enrollment SET completed_at = datetime(\'now\') WHERE user_id = ? AND course_id = ? AND completed_at IS NULL'
-      ).bind(session.userId, courseId).run();
-      courseCompleted = true;
-
-      // Auto-issue certificate if eligible
-      if (course.hasCertificate) {
-        const quizStepId = getCertificateQuizId(courseId);
-        if (quizStepId) {
-          const quiz = await db.prepare(
-            'SELECT score FROM step_progress WHERE user_id = ? AND course_id = ? AND step_id = ? AND completed = 1'
-          ).bind(session.userId, courseId, quizStepId).first();
-          if (quiz?.score >= CERTIFICATE_MIN_SCORE) {
-            await db.prepare(
-              "UPDATE enrollment SET certificate_issued_at = datetime('now') WHERE user_id = ? AND course_id = ? AND certificate_issued_at IS NULL"
-            ).bind(session.userId, courseId).run();
-            certificateIssued = true;
-          }
-        }
-      }
-    }
+    ({ courseCompleted, certificateIssued } = await checkCourseCompletion(db, session.userId, courseId));
   }
 
   return json({ ok: true, courseCompleted, certificateIssued });

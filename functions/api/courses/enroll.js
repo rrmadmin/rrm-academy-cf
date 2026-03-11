@@ -57,10 +57,10 @@ async function handleEnroll(request, env, waitUntil) {
   // Idempotent: already enrolled → return success
   // Re-run enrollUser to ensure included courses exist (handles partial-failure retry)
   const existing = await db.prepare(
-    'SELECT id FROM enrollment WHERE user_id = ? AND course_id = ?'
+    'SELECT id, stripe_payment_intent FROM enrollment WHERE user_id = ? AND course_id = ?'
   ).bind(session.userId, courseId).first();
   if (existing) {
-    await enrollUser(db, session.userId, courseId, null);
+    await enrollUser(db, session.userId, courseId, existing.stripe_payment_intent || null);
     return json({ ok: true, enrolled: true });
   }
 

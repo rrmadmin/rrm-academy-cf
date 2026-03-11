@@ -36,6 +36,14 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     const db = env.DB;
 
+    if (targetType === 'post') {
+      const exists = await db.prepare('SELECT id FROM community_post WHERE id = ?').bind(targetId).first();
+      if (!exists) return json({ ok: false, error: 'Post not found' }, 404);
+    } else {
+      const exists = await db.prepare('SELECT id FROM community_comment WHERE id = ?').bind(targetId).first();
+      if (!exists) return json({ ok: false, error: 'Comment not found' }, 404);
+    }
+
     // Toggle: try to delete first; if nothing was deleted, insert
     const del = await db.prepare(
       'DELETE FROM community_reaction WHERE user_id = ? AND target_type = ? AND target_id = ? AND emoji = ?'

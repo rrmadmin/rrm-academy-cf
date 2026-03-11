@@ -46,12 +46,20 @@ export async function onRequestPost({ request, env, waitUntil }) {
       db.prepare('DELETE FROM session WHERE user_id = ?').bind(userId),
     ];
 
+    statements.push(
+      db.prepare('DELETE FROM community_reaction WHERE user_id = ?').bind(userId),
+      db.prepare('DELETE FROM community_flag WHERE user_id = ?').bind(userId),
+    );
+
     if (deleteContent) {
       statements.push(
         db.prepare("DELETE FROM community_flag WHERE target_type = 'post' AND target_id IN (SELECT id FROM community_post WHERE author_id = ?)").bind(userId),
         db.prepare("DELETE FROM community_flag WHERE target_type = 'comment' AND target_id IN (SELECT id FROM community_comment WHERE author_id = ?)").bind(userId),
         db.prepare("DELETE FROM community_reaction WHERE target_type = 'post' AND target_id IN (SELECT id FROM community_post WHERE author_id = ?)").bind(userId),
         db.prepare("DELETE FROM community_reaction WHERE target_type = 'comment' AND target_id IN (SELECT id FROM community_comment WHERE author_id = ?)").bind(userId),
+        db.prepare("DELETE FROM community_reaction WHERE target_type = 'comment' AND target_id IN (SELECT id FROM community_comment WHERE post_id IN (SELECT id FROM community_post WHERE author_id = ?))").bind(userId),
+        db.prepare("DELETE FROM community_flag WHERE target_type = 'comment' AND target_id IN (SELECT id FROM community_comment WHERE post_id IN (SELECT id FROM community_post WHERE author_id = ?))").bind(userId),
+        db.prepare("DELETE FROM community_comment WHERE post_id IN (SELECT id FROM community_post WHERE author_id = ?)").bind(userId),
         db.prepare('DELETE FROM community_comment WHERE author_id = ?').bind(userId),
         db.prepare('DELETE FROM community_post WHERE author_id = ?').bind(userId),
       );
