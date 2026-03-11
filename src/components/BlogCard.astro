@@ -1,13 +1,11 @@
 ---
 import type { BlogPost } from '../lib/blog';
-import OptimizedImage from './OptimizedImage.astro';
 
 interface Props {
   post: BlogPost;
-  eager?: boolean;
 }
 
-const { post, eager = false } = Astro.props;
+const { post } = Astro.props;
 const href = `/commentary/${post.slug}/`;
 
 // Format date
@@ -35,12 +33,11 @@ const excerpt = post.excerpt
   <a href={href} class="blog-card__link">
     {post.coverImageUrl && (
       <div class="blog-card__image">
-        <OptimizedImage
+        <img
           src={post.coverImageUrl}
           alt={post.title}
-          width={800}
-          height={450}
-          eager={eager}
+          loading="lazy"
+          decoding="async"
         />
       </div>
     )}
@@ -76,7 +73,7 @@ const excerpt = post.excerpt
   }
 
   .blog-card__image {
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 1 / 1;
     overflow: hidden;
     background: var(--neutral-100);
   }
@@ -127,7 +124,7 @@ const excerpt = post.excerpt
     font-weight: 500;
   }
   .blog-card__date {
-    color: var(--text-secondary);
+    color: var(--text-tertiary);
   }
   .blog-card__author + .blog-card__date::before {
     content: '\b7';
