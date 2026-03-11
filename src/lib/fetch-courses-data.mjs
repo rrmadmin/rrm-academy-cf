@@ -412,15 +412,12 @@ async function processCoverImage(imageUrl, courseId) {
   const ratio = ((1 - meta.output.ratio) * 100).toFixed(0);
   console.log(`  ${courseId}: compressed (${ratio}% smaller)`);
 
-  // Convert to WebP + resize to 800px wide (2x retina for ~400px cards)
+  // Convert to WebP (preserve original dimensions)
   console.log(`  ${courseId}: converting to WebP...`);
   const webpRes = await fetch(outputUrl, {
     method: 'POST',
     headers: { ...tinifyAuth, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      convert: { type: 'image/webp' },
-      resize: { method: 'scale', width: 800 },
-    }),
+    body: JSON.stringify({ convert: { type: 'image/webp' } }),
   });
   if (!webpRes.ok) {
     console.error(`  ${courseId}: WebP conversion failed (${webpRes.status})`);
@@ -428,15 +425,12 @@ async function processCoverImage(imageUrl, courseId) {
   }
   const webpBuffer = Buffer.from(await webpRes.arrayBuffer());
 
-  // Convert to JPG fallback + resize
+  // Convert to JPG fallback (preserve original dimensions)
   console.log(`  ${courseId}: converting to JPG...`);
   const jpgRes = await fetch(outputUrl, {
     method: 'POST',
     headers: { ...tinifyAuth, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      convert: { type: 'image/jpeg' },
-      resize: { method: 'scale', width: 800 },
-    }),
+    body: JSON.stringify({ convert: { type: 'image/jpeg' } }),
   });
   if (!jpgRes.ok) {
     console.error(`  ${courseId}: JPG conversion failed (${jpgRes.status})`);

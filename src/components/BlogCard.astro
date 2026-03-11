@@ -38,8 +38,8 @@ const excerpt = post.excerpt
         <OptimizedImage
           src={post.coverImageUrl}
           alt={post.title}
-          width={600}
-          height={600}
+          width={800}
+          height={450}
           eager={eager}
         />
       </div>
@@ -76,7 +76,7 @@ const excerpt = post.excerpt
   }
 
   .blog-card__image {
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 16 / 9;
     overflow: hidden;
     background: var(--neutral-100);
   }
