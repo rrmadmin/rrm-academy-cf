@@ -56,7 +56,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
       if (!userId) {
         log(env, waitUntil, 'billing', 'course_no_user', 'error', `courseId:${courseId} customer:${session.customer}`);
         return new Response(JSON.stringify({ ok: false, error: 'No user account for course enrollment' }), {
-          status: 500,
+          status: 400,
           headers: { 'Content-Type': 'application/json' },
         });
       }
@@ -65,7 +65,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
     if (!getCourse(courseId)) {
       log(env, waitUntil, 'billing', 'course_not_found', 'error', `${courseId} user=${userId}`);
       return new Response(JSON.stringify({ ok: false, error: 'Course not found' }), {
-        status: 500,
+        status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
     }
@@ -115,7 +115,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
 
   // GA4: track completed course purchase
   if (session.metadata?.type === 'course' && session.payment_intent) {
-    sendGA4Event(env, request, 'purchase', {
+    waitUntil(sendGA4Event(env, request, 'purchase', {
       page_location: pageLocation,
       currency: 'USD',
       value: (session.amount_total || 0) / 100,
@@ -124,7 +124,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
       ...(session.metadata?.ga_source && { utm_source: session.metadata.ga_source }),
       ...(session.metadata?.ga_medium && { utm_medium: session.metadata.ga_medium }),
       ...(session.metadata?.ga_campaign && { utm_campaign: session.metadata.ga_campaign }),
-    }, gaOverrides).catch(() => {});
+    }, gaOverrides).catch(() => {}));
   }
 
   // Send membership confirmation email for STUC subscriptions
@@ -170,7 +170,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
 
   // GA4: track completed donation or membership purchase
   if (session.mode === 'payment') {
-    sendGA4Event(env, request, 'purchase', {
+    waitUntil(sendGA4Event(env, request, 'purchase', {
       page_location: pageLocation,
       currency: 'USD',
       value: (session.amount_total || 0) / 100,
@@ -179,9 +179,9 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
       ...(session.metadata?.ga_source && { utm_source: session.metadata.ga_source }),
       ...(session.metadata?.ga_medium && { utm_medium: session.metadata.ga_medium }),
       ...(session.metadata?.ga_campaign && { utm_campaign: session.metadata.ga_campaign }),
-    }, gaOverrides).catch(() => {});
+    }, gaOverrides).catch(() => {}));
   } else if (session.mode === 'subscription' && stucTiers[tier]) {
-    sendGA4Event(env, request, 'purchase', {
+    waitUntil(sendGA4Event(env, request, 'purchase', {
       page_location: pageLocation,
       currency: 'USD',
       value: (session.amount_total || 0) / 100,
@@ -190,7 +190,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
       ...(session.metadata?.ga_source && { utm_source: session.metadata.ga_source }),
       ...(session.metadata?.ga_medium && { utm_medium: session.metadata.ga_medium }),
       ...(session.metadata?.ga_campaign && { utm_campaign: session.metadata.ga_campaign }),
-    }, gaOverrides).catch(() => {});
+    }, gaOverrides).catch(() => {}));
   }
 
   return null;
