@@ -121,7 +121,7 @@ const mobileNavSections = [
           <a href="/donate/" class="donate-btn">Donate</a>
           <div class="mobile-nav-footer__utils">
             <a href="/library/saved/" class="saved-link mobile-saved-link" id="mobile-saved-link" title="Saved articles">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v8l3-3 3 3V2"/><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v8l3-3 3 3V2"/><path class="book-body" d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/></svg>
               <span class="saved-count" id="mobile-saved-count">0</span>
             </a>
             <button class="theme-toggle" id="mobile-theme-toggle" aria-label="Toggle theme">
@@ -140,7 +140,7 @@ const mobileNavSections = [
 
     <div class="header-actions">
       <a href="/library/saved/" class="saved-link" id="saved-link" title="Saved articles">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v8l3-3 3 3V2"/><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v8l3-3 3 3V2"/><path class="book-body" d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/></svg>
         <span class="saved-count" id="saved-count">0</span>
       </a>
       <a href="/library/" class="desktop-search-btn" aria-label="Search">
@@ -415,6 +415,8 @@ const mobileNavSections = [
     text-decoration: none;
   }
   .saved-link.has-items { color: var(--accent); }
+  .saved-link.has-items svg path:first-child { fill: currentColor; }
+  .saved-link.has-items .book-body { fill: color-mix(in srgb, currentColor 12%, transparent); }
   .saved-count { font-variant-numeric: tabular-nums; }
   .saved-link:not(.has-items) { display: none; }
 
