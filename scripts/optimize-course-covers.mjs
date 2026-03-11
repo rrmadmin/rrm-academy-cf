@@ -69,22 +69,22 @@ async function optimizeCover(id, url) {
   const meta = await shrinkRes.json();
   console.log(`  Compressed: ${((1 - meta.output.ratio) * 100).toFixed(0)}% smaller`);
 
-  // WebP + resize
-  console.log(`  Converting to WebP (800px)...`);
+  // WebP (preserve original dimensions)
+  console.log(`  Converting to WebP...`);
   const webpRes = await fetch(outputUrl, {
     method: 'POST',
     headers: { ...tinifyAuth, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ convert: { type: 'image/webp' }, resize: { method: 'scale', width: 800 } }),
+    body: JSON.stringify({ convert: { type: 'image/webp' } }),
   });
   if (!webpRes.ok) throw new Error(`WebP failed: ${webpRes.status}`);
   const webpBuffer = Buffer.from(await webpRes.arrayBuffer());
 
-  // JPG + resize
-  console.log(`  Converting to JPG (800px)...`);
+  // JPG (preserve original dimensions)
+  console.log(`  Converting to JPG...`);
   const jpgRes = await fetch(outputUrl, {
     method: 'POST',
     headers: { ...tinifyAuth, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ convert: { type: 'image/jpeg' }, resize: { method: 'scale', width: 800 } }),
+    body: JSON.stringify({ convert: { type: 'image/jpeg' } }),
   });
   if (!jpgRes.ok) throw new Error(`JPG failed: ${jpgRes.status}`);
   const jpgBuffer = Buffer.from(await jpgRes.arrayBuffer());
