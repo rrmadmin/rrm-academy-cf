@@ -77,10 +77,51 @@ const helpLinks = [
         <a href="/terms-of-use/">Terms of Use</a>
         <a href="/medical-disclaimer/">Medical Disclaimer</a>
         <a href="/privacy-policy/">Privacy Policy</a>
+        <button class="footer-theme-toggle" id="footer-theme-toggle" aria-label="Toggle theme">
+          <svg class="icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
       </div>
     </div>
   </div>
 </footer>
+
+<script is:inline>
+  // Footer theme toggle
+  (function() {
+    var btn = document.getElementById('footer-theme-toggle');
+    if (!btn) return;
+
+    function toggle() {
+      var html = document.documentElement;
+      var next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('rrm_theme', next);
+    }
+
+    btn.addEventListener('click', function(e) {
+      if (!document.startViewTransition ||
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        toggle();
+        return;
+      }
+      var transition = document.startViewTransition(toggle);
+      transition.ready.then(function() {
+        var rect = btn.getBoundingClientRect();
+        var x = rect.left + rect.width / 2;
+        var y = rect.top + rect.height / 2;
+        var maxRadius = Math.hypot(
+          Math.max(x, window.innerWidth - x),
+          Math.max(y, window.innerHeight - y)
+        );
+        document.documentElement.animate(
+          { clipPath: ['circle(0px at ' + x + 'px ' + y + 'px)', 'circle(' + maxRadius + 'px at ' + x + 'px ' + y + 'px)'] },
+          { duration: 500, easing: 'ease-in-out', pseudoElement: '::view-transition-new(root)' }
+        );
+      });
+    });
+  })();
+</script>
 
 <script>
   // Defer: reuse Header's community status if available, otherwise fetch when idle
@@ -212,6 +253,24 @@ const helpLinks = [
   .footer-legal a:hover {
     color: var(--footer-link);
   }
+  .footer-theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    padding: 2px;
+    color: var(--footer-muted);
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+  .footer-theme-toggle:hover {
+    color: var(--footer-link);
+  }
+  .footer-theme-toggle .icon-sun,
+  .footer-theme-toggle .icon-moon { display: none; }
+  :global([data-theme="light"]) .footer-theme-toggle .icon-moon { display: inline; }
+  :global([data-theme="dark"]) .footer-theme-toggle .icon-sun { display: inline; }
   .footer-address {
     font-style: normal;
     font-size: 0.6875rem;
