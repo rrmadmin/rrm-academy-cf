@@ -255,7 +255,6 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
   // Case 3: No account exists -- auto-create one
   // Use INSERT OR IGNORE to handle race conditions (concurrent webhook retries for same email)
   const id = generateId();
-  const name = session.customer_details?.name || '';
 
   const ins = await db.prepare(
     `INSERT OR IGNORE INTO user (id, email, email_verified, hashed_password, name, stripe_customer_id, role)
