@@ -300,6 +300,20 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
           .then(function (data) {
             if (data.ok) {
               showSuccess();
+            } else if (data.suggestion) {
+              showError(data.error);
+              var useLink = document.createElement('a');
+              useLink.href = '#';
+              useLink.textContent = 'Use this email instead';
+              useLink.style.cssText = 'display:block;margin-top:8px;color:var(--accent);text-decoration:underline;cursor:pointer;';
+              useLink.addEventListener('click', function (ev) {
+                ev.preventDefault();
+                contactForm.email.value = data.suggestion;
+                errorEl.hidden = true;
+              });
+              errorEl.appendChild(useLink);
+              submitBtn.disabled = false;
+              submitBtn.textContent = 'Send';
             } else {
               showError(data.error || 'Something went wrong. Please try again.');
               submitBtn.disabled = false;
