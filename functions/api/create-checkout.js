@@ -23,16 +23,16 @@ export async function onRequestOptions() {
   return optionsResponse();
 }
 
-export async function onRequestPost({ request, env }) {
+export async function onRequestPost({ request, env, waitUntil }) {
   try {
-    return await handleCheckout(request, env);
+    return await handleCheckout(request, env, waitUntil);
   } catch (err) {
     console.error('create-checkout error:', err.message, err.stack);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }
 
-async function handleCheckout(request, env) {
+async function handleCheckout(request, env, waitUntil) {
   const stripeKey = env.STRIPE_SECRET_KEY;
   if (!stripeKey) return json({ ok: false, error: 'Payments not configured' }, 500);
 
@@ -85,6 +85,12 @@ async function handleCheckout(request, env) {
         userEmail = user.email;
         userId = user.id;
         stripeCustomerId = user.stripe_customer_id;
+        if (!stripeCustomerId && userEmail) {
+          const customer = await stripe.customers.create({ email: userEmail, metadata: { user_id: userId } });
+          stripeCustomerId = customer.id;
+          await db.prepare('UPDATE user SET stripe_customer_id = ? WHERE id = ?')
+            .bind(stripeCustomerId, userId).run();
+        }
       }
     }
   }
@@ -148,9 +154,9 @@ async function handleCheckout(request, env) {
     };
 
     const checkoutSession = await stripe.checkout.sessions.create(sessionParams);
-    sendGA4Event(env, request, 'begin_checkout', {
+    waitUntil(sendGA4Event(env, request, 'begin_checkout', {
       currency: 'USD', value: cents / 100, items: [{ item_name: 'Donation' }],
-    }).catch(() => {});
+    }).catch(() => {}));
     return json({ ok: true, url: checkoutSession.url });
   }
 
@@ -161,7 +167,7 @@ async function handleCheckout(request, env) {
       hero: env.STRIPE_PRICE_HERO,
       superhero: env.STRIPE_PRICE_SUPERHERO,
     };
-    const priceId = priceMap[tier];
+    const priceId = Object.hasOwn(priceMap, tier) ? priceMap[tier] : undefined;
     if (!priceId) {
       return json({ ok: false, error: 'Invalid tier' }, 400);
     }
@@ -171,17 +177,22 @@ async function handleCheckout(request, env) {
       return json({ ok: false, error: 'Payments not configured' }, 500);
     }
 
-    // Guard: if logged-in user already has an active subscription, don't create a new one
+    // Guard: if logged-in user already has an active/trialing/past_due subscription, don't create a new one
     if (stripeCustomerId) {
       const existing = await stripe.subscriptions.list({
         customer: stripeCustomerId,
-        status: 'active',
-        limit: 1,
+        status: 'all',
+        limit: 10,
       });
-      if (existing.data.length > 0) {
+      const blocking = existing.data.find(s =>
+        s.status === 'active' || s.status === 'trialing' || s.status === 'past_due'
+      );
+      if (blocking) {
         return json({
           ok: false,
-          error: 'You already have an active membership. You can change or cancel it from your account page.',
+          error: blocking.status === 'past_due'
+            ? 'You have a membership with a payment issue. Please update your payment method from your account page.'
+            : 'You already have an active membership. You can change or cancel it from your account page.',
           redirect: '/account',
         }, 409);
       }
@@ -214,9 +225,9 @@ async function handleCheckout(request, env) {
     };
 
     const checkoutSession = await stripe.checkout.sessions.create(sessionParams);
-    sendGA4Event(env, request, 'begin_checkout', {
+    waitUntil(sendGA4Event(env, request, 'begin_checkout', {
       currency: 'USD', items: [{ item_name: `STUC ${tier}` }],
-    }).catch(() => {});
+    }).catch(() => {}));
     return json({ ok: true, url: checkoutSession.url });
   }
 

@@ -63,6 +63,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
         .bind(hashedPassword, user.id),
       db.prepare('DELETE FROM session WHERE user_id = ?')
         .bind(user.id),
+      db.prepare('DELETE FROM password_reset WHERE user_id = ?')
+        .bind(user.id),
       db.prepare('INSERT INTO session (id, user_id, expires_at) VALUES (?, ?, ?)')
         .bind(newSessionId, user.id, newExpiresAt),
     ]);
