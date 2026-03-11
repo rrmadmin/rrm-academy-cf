@@ -246,7 +246,9 @@ export function isSafeRedirect(path) {
 const ROLES = ['member', 'mod', 'admin', 'superadmin'];
 
 export function roleAtLeast(userRole, minRole) {
-  return ROLES.indexOf(userRole) >= ROLES.indexOf(minRole);
+  const minIndex = ROLES.indexOf(minRole);
+  if (minIndex === -1) return false;
+  return ROLES.indexOf(userRole) >= minIndex;
 }
 
 // --- Admin auth ---
