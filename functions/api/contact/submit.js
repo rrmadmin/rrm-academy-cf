@@ -2,7 +2,7 @@
  * POST /api/contact/submit
  * Validates Turnstile token, rate-limits by IP, sends email via SES.
  */
-import { json, optionsResponse, checkRateLimit } from '../auth/_shared.js';
+import { json, optionsResponse, checkRateLimit, isValidEmail, verifyTurnstile } from '../auth/_shared.js';
 import { validateEmail } from '../auth/_email-validate.js';
 import { sendEmail } from '../_ses.js';
 import { log } from '../_log.js';
@@ -41,44 +41,24 @@ export async function onRequestPost(context) {
     if (!name || name.length > 200) {
       return json({ ok: false, error: 'Name is required.' }, 400);
     }
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!isValidEmail(email)) {
       return json({ ok: false, error: 'Valid email is required.' }, 400);
     }
     if (!message || message.length < 10 || message.length > 5000) {
       return json({ ok: false, error: 'Message must be between 10 and 5,000 characters.' }, 400);
     }
 
-    // Verify Turnstile token
-    const turnstileToken = body.turnstileToken || '';
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-    if (env.CF_TURNSTILE_SECRET && turnstileToken) {
-      const verifyResp = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          secret: env.CF_TURNSTILE_SECRET,
-          response: turnstileToken,
-          remoteip: ip,
-        }),
-      });
-      if (!verifyResp.ok) {
-        log(env, waitUntil, 'contact', 'turnstile_http_error', 'error', `Turnstile returned ${verifyResp.status}`, 0, verifyResp.status);
-        return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
-      }
-      const result = await verifyResp.json();
-      if (!result.success) {
-        return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
-      }
-    } else if (env.CF_TURNSTILE_SECRET) {
-      return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
-    } else {
-      log(env, waitUntil, 'contact', 'turnstile_missing', 'error', 'CF_TURNSTILE_SECRET not set', 0, 500);
-      return json({ ok: false, error: 'Server misconfigured' }, 500);
-    }
 
-    // Rate limit by IP (before expensive DNS lookups)
+    // Rate limit by IP
     if (!checkRateLimit(`contact:${ip}`)) {
       return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
+    }
+
+    // Verify Turnstile token
+    const turnstileOk = await verifyTurnstile(env.CF_TURNSTILE_SECRET, body.turnstileToken, ip);
+    if (!turnstileOk) {
+      return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
     }
 
     // Deep email validation (disposable domain, MX check, typo detection)

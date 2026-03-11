@@ -51,6 +51,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
       }, 400);
     }
 
+    if (!env.AWS_ACCESS_KEY_ID) {
+      return json({ ok: false, error: 'Server misconfigured' }, 500);
+    }
+
     // Turnstile
     const turnstileOk = await verifyTurnstile(
       env.CF_TURNSTILE_SECRET, body.turnstileToken, ip
@@ -60,7 +64,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     // Check if email already exists
     const existing = await db.prepare('SELECT id FROM user WHERE email = ? COLLATE NOCASE').bind(email).first();
     if (existing) {
-      return json({ ok: false, error: 'An account with this email already exists.' }, 409);
+      return json({ ok: true, emailVerificationRequired: true }, 201);
     }
 
     // Prepare all three INSERTs
@@ -89,7 +93,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
       ]);
     } catch (batchErr) {
       if (batchErr.message && batchErr.message.includes('UNIQUE constraint failed')) {
-        return json({ ok: false, error: 'An account with this email already exists.' }, 409);
+        return json({ ok: true, emailVerificationRequired: true }, 201);
       }
       throw batchErr;
     }
