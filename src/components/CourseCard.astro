@@ -146,18 +146,21 @@ const progressPct = progress ? Math.round((progress.completedSteps / progress.to
     transform: scale(1.03);
   }
 
-  /* Coming Soon variant — non-interactive, muted */
+  /* Coming Soon variant — non-interactive, muted via color (not opacity) */
   .course-card--coming-soon {
-    opacity: 0.72;
     cursor: default;
     pointer-events: none;
+    border-color: var(--neutral-200);
   }
   .course-card--coming-soon:hover {
-    border-color: var(--border-color);
+    border-color: var(--neutral-200);
     box-shadow: none;
   }
   .course-card--coming-soon .course-card__image img {
-    filter: grayscale(30%);
+    filter: grayscale(40%) brightness(1.1);
+  }
+  .course-card--coming-soon .course-card__title {
+    color: var(--text-secondary);
   }
   .course-card__image-placeholder {
     width: 100%;
@@ -188,7 +191,7 @@ const progressPct = progress ? Math.round((progress.completedSteps / progress.to
   .course-card__badge--coming-soon {
     left: var(--space-3);
     background: var(--neutral-100);
-    color: var(--text-muted);
+    color: var(--text-secondary);
     border: 1px solid var(--border-color);
     font-weight: 500;
   }
@@ -223,7 +226,7 @@ const progressPct = progress ? Math.round((progress.completedSteps / progress.to
   .course-card__desc {
     font-size: 0.8125rem;
     line-height: 1.5;
-    color: var(--text-tertiary);
+    color: var(--text-secondary);
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -242,7 +245,7 @@ const progressPct = progress ? Math.round((progress.completedSteps / progress.to
     align-items: center;
     gap: 4px;
     font-size: 0.75rem;
-    color: var(--text-muted);
+    color: var(--text-secondary);
   }
   .course-card__meta-item svg {
     flex-shrink: 0;
