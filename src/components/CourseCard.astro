@@ -1,6 +1,4 @@
 ---
-import OptimizedImage from './OptimizedImage.astro';
-
 /**
  * CourseCard — reusable card for course catalog and account dashboard.
  * Displays course thumbnail, title, metadata, price, and CTA.
@@ -24,10 +22,9 @@ interface Props {
   };
   enrolled?: boolean;
   progress?: { completedSteps: number; totalSteps: number };
-  eager?: boolean;
 }
 
-const { course, enrolled = false, progress, eager = false } = Astro.props;
+const { course, enrolled = false, progress } = Astro.props;
 const isComingSoon = !!course.comingSoon;
 
 const totalSteps = course.sections.reduce((sum, s) => sum + s.steps.length, 0);
@@ -45,12 +42,12 @@ const progressPct = progress ? Math.round((progress.completedSteps / progress.to
   <div class="course-card course-card--coming-soon">
     <div class="course-card__image">
       {course.image ? (
-        <OptimizedImage
+        <img
           src={course.image}
           alt={course.imageAlt || course.title}
-          width={800}
-          height={450}
-          eager={eager}
+          loading="lazy"
+          width="400"
+          height="225"
         />
       ) : (
         <div class="course-card__image-placeholder" aria-hidden="true"></div>
@@ -66,12 +63,12 @@ const progressPct = progress ? Math.round((progress.completedSteps / progress.to
 ) : (
   <a href={`/courses/${course.slug}/`} class="course-card">
     <div class="course-card__image">
-      <OptimizedImage
+      <img
         src={course.image}
         alt={course.imageAlt || course.title}
-        width={800}
-        height={450}
-        eager={eager}
+        loading="lazy"
+        width="400"
+        height="225"
       />
       {course.isFree && <span class="course-card__badge course-card__badge--free">Free</span>}
       {course.hasCertificate && <span class="course-card__badge course-card__badge--cert">Certificate</span>}
@@ -146,21 +143,18 @@ const progressPct = progress ? Math.round((progress.completedSteps / progress.to
     transform: scale(1.03);
   }
 
-  /* Coming Soon variant — non-interactive, muted via color (not opacity) */
+  /* Coming Soon variant — non-interactive, muted */
   .course-card--coming-soon {
+    opacity: 0.72;
     cursor: default;
     pointer-events: none;
-    border-color: var(--neutral-200);
   }
   .course-card--coming-soon:hover {
-    border-color: var(--neutral-200);
+    border-color: var(--border-color);
     box-shadow: none;
   }
   .course-card--coming-soon .course-card__image img {
-    filter: grayscale(40%) brightness(1.1);
-  }
-  .course-card--coming-soon .course-card__title {
-    color: var(--text-secondary);
+    filter: grayscale(30%);
   }
   .course-card__image-placeholder {
     width: 100%;
@@ -191,7 +185,7 @@ const progressPct = progress ? Math.round((progress.completedSteps / progress.to
   .course-card__badge--coming-soon {
     left: var(--space-3);
     background: var(--neutral-100);
-    color: var(--text-secondary);
+    color: var(--text-muted);
     border: 1px solid var(--border-color);
     font-weight: 500;
   }
@@ -226,7 +220,7 @@ const progressPct = progress ? Math.round((progress.completedSteps / progress.to
   .course-card__desc {
     font-size: 0.8125rem;
     line-height: 1.5;
-    color: var(--text-secondary);
+    color: var(--text-tertiary);
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -245,7 +239,7 @@ const progressPct = progress ? Math.round((progress.completedSteps / progress.to
     align-items: center;
     gap: 4px;
     font-size: 0.75rem;
-    color: var(--text-secondary);
+    color: var(--text-muted);
   }
   .course-card__meta-item svg {
     flex-shrink: 0;
