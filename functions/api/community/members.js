@@ -42,6 +42,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
       WHERE u.blocked = 0 AND (
         u.role IN ('mod', 'admin', 'superadmin')
         OR u.id IN (SELECT user_id FROM user_label WHERE label = 'Save the Uterus Club 🏷️')
+        OR u.stripe_customer_id IS NOT NULL
       )
       ORDER BY last_active DESC NULLS LAST, u.created_at DESC
     `).all();
@@ -49,11 +50,15 @@ export async function onRequestGet({ request, env, waitUntil }) {
     const userIds = rows.results.map(r => r.id);
     if (!userIds.length) return json({ ok: true, members: [] });
 
-    // Fetch all labels for these users in one query
-    const placeholders = userIds.map(() => '?').join(',');
-    const labelsRows = await db.prepare(
-      `SELECT user_id, label FROM user_label WHERE user_id IN (${placeholders})`
-    ).bind(...userIds).all();
+    const labelsRows = await db.prepare(`
+      SELECT ul.user_id, ul.label FROM user_label ul
+      INNER JOIN user u ON u.id = ul.user_id
+      WHERE u.blocked = 0 AND (
+        u.role IN ('mod', 'admin', 'superadmin')
+        OR u.id IN (SELECT user_id FROM user_label WHERE label = 'Save the Uterus Club 🏷️')
+        OR u.stripe_customer_id IS NOT NULL
+      )
+    `).all();
 
     // Build label map: userId -> { tier, achievements }
     const labelMap = {};

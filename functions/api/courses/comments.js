@@ -47,9 +47,10 @@ export async function onRequestGet({ request, env, waitUntil }) {
       SELECT c.id, c.user_id, c.content, c.parent_id, c.created_at, c.updated_at,
              u.name as user_name, u.first_name, u.last_name
       FROM lesson_comment c
-      JOIN user u ON u.id = c.user_id
+      LEFT JOIN user u ON u.id = c.user_id
       WHERE c.course_id = ? AND c.step_id = ?
       ORDER BY c.created_at ASC
+      LIMIT 200
     `).bind(courseId, stepId).all();
 
     // Build threaded structure: top-level comments with nested replies
@@ -169,5 +170,6 @@ export async function onRequestPost({ request, env, waitUntil }) {
 function displayName(first, last) {
   if (first && last) return `${first} ${last.charAt(0)}.`;
   if (first) return first;
+  if (last) return last;
   return null;
 }

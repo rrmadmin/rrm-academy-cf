@@ -57,7 +57,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     // Check for duplicate flag
     const existing = await db.prepare(
-      'SELECT id FROM community_flag WHERE user_id = ? AND target_type = ? AND target_id = ?'
+      "SELECT id FROM community_flag WHERE user_id = ? AND target_type = ? AND target_id = ? AND status = 'pending'"
     ).bind(user.id, targetType, targetId).first();
     if (existing) {
       return json({ ok: false, error: 'You have already flagged this content' }, 409);
@@ -241,11 +241,9 @@ async function notifyMods(env, db, reporter, targetType, targetId, reason, note)
   `;
   const text = `${reporterName} flagged a ${targetType} as ${reason}.\n${note ? `Note: ${note}\n` : ''}Content: ${contentPreview || '(unable to load)'}\nView: ${link}`;
 
-  await sendEmail(env, {
-    from: 'noreply@mail.rrmacademy.org',
-    to: mods.results.map(m => m.email),
-    subject,
-    html,
-    text,
-  });
+  const emailPromises = mods.results.map(m =>
+    sendEmail(env, { from: 'noreply@mail.rrmacademy.org', to: m.email, subject, html, text })
+      .catch(err => console.error(`Failed to email ${m.email}:`, err.message))
+  );
+  await Promise.all(emailPromises);
 }
