@@ -209,6 +209,26 @@ Middleware: `functions/_middleware.js` (session injection, CORS, auth gating)
 
 All transactional email uses **AWS SES** via `functions/api/_ses.js` (aws4fetch). Sends from `@mail.rrmacademy.org` subdomain (isolates transactional reputation from root domain). DKIM, SPF, DMARC, and custom MAIL FROM (`bounce.mail.rrmacademy.org`) all configured. Required env vars: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SES_REGION`.
 
+## Email Validation (ELV)
+
+**EmailListVerify** provides SMTP-level mailbox verification. Shared helper: `functions/api/_elv.js`.
+
+- `verifyEmailELV(email, env)` -- pure check, returns `{ status, blocked, reason }`
+- `verifyAndTagEmail(email, env, opts)` -- check + CRM upsert (`contact` table) + `elv:STATUS` tag
+- **Fail-open**: ELV errors/timeouts allow the email through (local validator already caught structural issues)
+- **Integrated at**: signup, contact form, survey, newsletter subscribe (blocking), checkout (non-blocking via waitUntil)
+- **Not integrated at**: login, forgot-password (would lock people out), Google OAuth (email from Google, always valid)
+- CF Pages secret: `ELV_API_KEY`
+
+## Newsletter
+
+- **Table**: `newsletter_subscriber` in D1 (separate from `contact` CRM table)
+- **Segments**: JSON array in `segments` column. 15 segment types mapped from CRM tags + enrollment + Stripe.
+- **Send**: `POST /api/newsletter/send` (admin-only, paginated). Suppression safety net queries ELV blocked tags before sending.
+- **Subscribe**: Rate limited (10/15min per IP). ELV check before insert. Single opt-in (Brian confirmed).
+- **Unsubscribe**: RFC 8058 one-click + confirmation page. Uses status UPDATE, never DELETE.
+- **Scripts**: `verify-crm-elv.mjs` (bulk verify), `import-newsletter-subscribers.mjs` (ELV-filtered import), `segment-newsletter.mjs` (tag-based segmentation)
+
 ## Operational Automation (n8n)
 
 | Workflow | Schedule | What |
@@ -244,7 +264,7 @@ Endo survey splits PII from health data across two systems:
 
 ## CI Deploy Guard
 
-`deploy.yml` enforces minimum record counts: articles >= 3000, posts >= 5, faqs >= 10, courses >= 1. Prevents catastrophic data loss from deploying.
+`deploy.yml` enforces minimum record counts: articles >= 2500, posts >= 5, faqs >= 10, courses >= 1. Prevents catastrophic data loss from deploying.
 
 ## Mobile Editing
 
@@ -280,6 +300,12 @@ A zero-dependency Node.js script (`scripts/guard.mjs`) that blocks deployments i
 - `login.js` and `signup.js` must use `checkRateLimit`
 
 **Secret scanning**: Blocks `sk_live_`, `sk_test_`, `whsec_`, private keys, Bearer tokens, Airtable PATs in `functions/` and `src/`.
+
+**CRM & newsletter safety** (Phase 5):
+- No `DELETE FROM` / `DROP TABLE` / `TRUNCATE` on `contact`, `newsletter_subscriber`, or `contact_tag` tables
+- `unsubscribe.js` must use `status = 'unsubscribed'` UPDATE, never DELETE (CAN-SPAM)
+- `send.js` must require `ADMIN_API_SECRET` Bearer auth
+- `subscribe.js` must have rate limiting
 
 **Commands**:
 - `npm run guard` — verify (exit 1 on failure)
