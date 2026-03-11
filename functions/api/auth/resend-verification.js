@@ -33,16 +33,15 @@ export async function onRequestPost({ request, env, waitUntil }) {
     if (!user) return json({ ok: false, error: 'User not found.' }, 404);
     if (user.email_verified) return json({ ok: true, message: 'Email already verified.' });
 
-    // Delete old verification records
-    await db.prepare('DELETE FROM email_verification WHERE user_id = ?')
-      .bind(session.userId).run();
-
-    // Create new code
+    // Replace old verification records atomically
     const code = generateToken().slice(0, 8);
     const expiresAt = Math.floor(Date.now() / 1000) + 3600;
-    await db.prepare(
-      'INSERT INTO email_verification (id, user_id, code, expires_at) VALUES (?, ?, ?, ?)'
-    ).bind(generateId(), session.userId, code, expiresAt).run();
+    await db.batch([
+      db.prepare('DELETE FROM email_verification WHERE user_id = ?')
+        .bind(session.userId),
+      db.prepare('INSERT INTO email_verification (id, user_id, code, expires_at) VALUES (?, ?, ?, ?)')
+        .bind(generateId(), session.userId, code, expiresAt),
+    ]);
 
     // Send email
     if (env.AWS_ACCESS_KEY_ID) {

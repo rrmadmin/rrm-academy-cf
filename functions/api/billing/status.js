@@ -44,7 +44,7 @@ async function handleStatus(request, env) {
   const user = await db.prepare('SELECT stripe_customer_id FROM user WHERE id = ?')
     .bind(session.userId).first();
   if (!user || !user.stripe_customer_id) {
-    return json({ ok: true, subscription: null, donations: [] });
+    return json({ ok: true, subscription: null, donations: [], payments: [] });
   }
 
   // --- Query Stripe for subscriptions + charges in parallel ---
@@ -57,7 +57,7 @@ async function handleStatus(request, env) {
     stripe.subscriptions.list({
       customer: user.stripe_customer_id,
       status: 'all',
-      limit: 1,
+      limit: 10,
       expand: ['data.items.data.price'],
     }),
     stripe.charges.list({
@@ -79,7 +79,8 @@ async function handleStatus(request, env) {
   // --- Build subscription ---
   let subscription = null;
   if (subscriptions.data.length) {
-    const sub = subscriptions.data[0];
+    const sub = subscriptions.data.find(s => s.status === 'active' || s.status === 'trialing' || s.status === 'past_due')
+      || subscriptions.data[0];
     const price = sub.items.data[0]?.price;
 
     const priceToTier = {};

@@ -23,7 +23,7 @@
       "note": "Reset token consumption + password change"
     },
     "functions/api/auth/change-password.js": {
-      "hash": "bc1b47ca55aea0584f5d335f8c97325287230f33fa90eb6cbb8a56704566fea2",
+      "hash": "eb3d5d2419261065da58e04053bbc0370e517f0bf3319b0c20f9f6b0f8d2cec0",
       "note": "Authenticated password change"
     },
     "functions/api/auth/google.js": {
@@ -31,7 +31,7 @@
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "cd11313699f615ca039ac18a790f9487260755b34d8f44dd5be80e37090d38c4",
+      "hash": "063f563e8405cd526482d67e4d8b8d7463f01e69eb7e7263735aa0337b045de9",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
@@ -43,11 +43,11 @@
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
-      "hash": "512b94f5a987c4ffe44eee472adb6020b5ab029a1a1666b72cfa7b465ddf228f",
+      "hash": "668f7795e0b20ffbad2c2c06da4e9862add06910ec85467d7a1fcf867d819505",
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
-      "hash": "95292f6b10e413556e1b20527659326ee77ebaa5a3b2a96f05a8933223ee3dd2",
+      "hash": "c9d00b726eb9a6d52fda8d860b483dc2d86e865fd015ebf1e1dfb6daf24b8864",
       "note": "Billing status"
     },
     "functions/api/billing/portal.js": {

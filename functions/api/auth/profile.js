@@ -33,8 +33,8 @@ export async function onRequestPatch({ request, env, waitUntil }) {
     if (!user) return json({ ok: false, error: 'User not found.' }, 404);
 
     // Determine updated values (only update what's provided)
-    const firstName = body.firstName !== undefined ? (body.firstName || '').trim() : (user.first_name || '');
-    const lastName = body.lastName !== undefined ? (body.lastName || '').trim() : (user.last_name || '');
+    const firstName = body.firstName !== undefined ? String(body.firstName || '').trim() : (user.first_name || '');
+    const lastName = body.lastName !== undefined ? String(body.lastName || '').trim() : (user.last_name || '');
 
     // Validate
     if (!firstName || firstName.length > 100) {

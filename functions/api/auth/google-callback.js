@@ -66,6 +66,12 @@ export async function onRequestGet({ request, env, waitUntil }) {
     user = await db.prepare('SELECT id, email, blocked FROM user WHERE google_id = ?')
       .bind(googleId).first();
 
+    if (user && user.email !== email) {
+      await db.prepare("UPDATE user SET email = ?, updated_at = datetime('now') WHERE id = ?")
+        .bind(email, user.id).run();
+      user.email = email;
+    }
+
     if (!user) {
       // 2. Check if email matches an existing account (first Google login for this user)
       user = await db.prepare('SELECT id, email, blocked FROM user WHERE email = ? COLLATE NOCASE')
@@ -88,7 +94,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
       ).bind(id, email, name, firstName, lastName, googleId, avatarUrl).run();
 
       user = { id, email, blocked: 0 };
-      sendGA4Event(env, request, 'sign_up', { method: 'google' }).catch(() => {});
+      waitUntil(sendGA4Event(env, request, 'sign_up', { method: 'google' }).catch(() => {}));
     }
 
     // Check if user is blocked
