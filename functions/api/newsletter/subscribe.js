@@ -7,6 +7,22 @@ import { log } from '../_log.js';
 import { json, optionsResponse } from '../auth/_shared.js';
 import { verifyAndTagEmail } from '../_elv.js';
 
+// Looser than auth rate limit (10/15min vs 5/15min) but still prevents ELV credit burning
+const rateLimits = new Map();
+const WINDOW_MS = 15 * 60 * 1000;
+const MAX_REQUESTS = 10;
+
+function checkSubscribeRateLimit(ip) {
+  const now = Date.now();
+  const entry = rateLimits.get(ip);
+  if (!entry || now - entry.start > WINDOW_MS) {
+    rateLimits.set(ip, { start: now, count: 1 });
+    return true;
+  }
+  entry.count++;
+  return entry.count <= MAX_REQUESTS;
+}
+
 export async function onRequestOptions() {
   return optionsResponse();
 }
@@ -25,6 +41,12 @@ export async function onRequestPost(context) {
     body = await request.json();
   } catch {
     return json({ ok: false, error: 'Invalid JSON' }, 400);
+  }
+
+  // Rate limit by IP (protects ELV API credits)
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  if (!checkSubscribeRateLimit(ip)) {
+    return json({ ok: false, error: 'Too many requests. Please try again later.' }, 429);
   }
 
   // Honeypot
