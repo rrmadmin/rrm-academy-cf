@@ -136,6 +136,18 @@ async function processImage(attachment, slug) {
   return `${R2_PUBLIC_URL}/${webpKey}`;
 }
 
+/**
+ * Transform R2 public URLs to /api/assets/ proxy paths for caching.
+ * R2 public domain serves with no cache headers; the proxy adds
+ * Cache-Control: public, max-age=31536000, immutable.
+ */
+function r2UrlToProxy(url) {
+  if (url && url.startsWith(R2_PUBLIC_URL)) {
+    return url.replace(R2_PUBLIC_URL, '/api/assets');
+  }
+  return url;
+}
+
 // --- Record mapping (shared between full fetch and single-record) ---
 
 function mapRecord(record) {
@@ -255,6 +267,7 @@ async function fetchSingle(recordId) {
       }
 
       delete post._imageAttachment;
+      post.coverImageUrl = r2UrlToProxy(post.coverImageUrl);
       posts.push(post);
       console.log(`${wasPresent ? 'Updated' : 'Added'}: "${post.title}" (${post.slug})`);
     }
@@ -386,9 +399,10 @@ async function fetchAll() {
     }
   }
 
-  // Clean up internal fields
+  // Clean up internal fields + transform R2 URLs to proxy paths
   for (const post of posts) {
     delete post._imageAttachment;
+    post.coverImageUrl = r2UrlToProxy(post.coverImageUrl);
   }
 
   // Sort newest first

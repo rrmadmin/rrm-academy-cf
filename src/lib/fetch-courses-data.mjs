@@ -351,6 +351,135 @@ function assembleNestedCourses(courses, modules, lessons) {
   return courses;
 }
 
+// --- Image Optimization ---
+
+function uploadBufferToR2(buffer, r2Key, contentType) {
+  const tmpDir = mkdtempSync(join(tmpdir(), 'r2-'));
+  const tmpFile = join(tmpDir, 'upload');
+  writeFileSync(tmpFile, buffer);
+
+  try {
+    execFileSync('npx', [
+      'wrangler', 'r2', 'object', 'put',
+      `${R2_BUCKET}/${r2Key}`,
+      `--file=${tmpFile}`,
+      `--content-type=${contentType}`,
+      '--remote',
+    ], { stdio: 'pipe', timeout: 60000 });
+  } finally {
+    try { unlinkSync(tmpFile); } catch {}
+  }
+
+  const sizeKB = (buffer.length / 1024).toFixed(1);
+  console.log(`    R2: ${r2Key} (${sizeKB} KB)`);
+}
+
+async function processCoverImage(imageUrl, courseId) {
+  const tinifyKey = process.env.TINIFY_API_KEY;
+  if (!tinifyKey) {
+    console.log(`  ${courseId}: TINIFY_API_KEY not set, skipping optimization`);
+    return null;
+  }
+
+  console.log(`  ${courseId}: downloading cover image...`);
+  const imgRes = await fetch(imageUrl);
+  if (!imgRes.ok) {
+    console.error(`  ${courseId}: download failed (${imgRes.status})`);
+    return null;
+  }
+  const imgBuffer = Buffer.from(await imgRes.arrayBuffer());
+  console.log(`  ${courseId}: downloaded ${(imgBuffer.length / 1024).toFixed(0)} KB`);
+
+  const auth = Buffer.from(`api:${tinifyKey}`).toString('base64');
+  const tinifyAuth = { Authorization: `Basic ${auth}` };
+
+  // Compress via Tinify
+  console.log(`  ${courseId}: compressing via Tinify...`);
+  const shrinkRes = await fetch('https://api.tinify.com/shrink', {
+    method: 'POST',
+    headers: tinifyAuth,
+    body: imgBuffer,
+  });
+
+  if (!shrinkRes.ok) {
+    const errText = await shrinkRes.text();
+    console.error(`  ${courseId}: Tinify compression failed (${shrinkRes.status}): ${errText}`);
+    return null;
+  }
+
+  const outputUrl = shrinkRes.headers.get('Location');
+  const meta = await shrinkRes.json();
+  const ratio = ((1 - meta.output.ratio) * 100).toFixed(0);
+  console.log(`  ${courseId}: compressed (${ratio}% smaller)`);
+
+  // Convert to WebP + resize to 800px wide (2x retina for ~400px cards)
+  console.log(`  ${courseId}: converting to WebP...`);
+  const webpRes = await fetch(outputUrl, {
+    method: 'POST',
+    headers: { ...tinifyAuth, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      convert: { type: 'image/webp' },
+      resize: { method: 'scale', width: 800 },
+    }),
+  });
+  if (!webpRes.ok) {
+    console.error(`  ${courseId}: WebP conversion failed (${webpRes.status})`);
+    return null;
+  }
+  const webpBuffer = Buffer.from(await webpRes.arrayBuffer());
+
+  // Convert to JPG fallback + resize
+  console.log(`  ${courseId}: converting to JPG...`);
+  const jpgRes = await fetch(outputUrl, {
+    method: 'POST',
+    headers: { ...tinifyAuth, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      convert: { type: 'image/jpeg' },
+      resize: { method: 'scale', width: 800 },
+    }),
+  });
+  if (!jpgRes.ok) {
+    console.error(`  ${courseId}: JPG conversion failed (${jpgRes.status})`);
+    return null;
+  }
+  const jpgBuffer = Buffer.from(await jpgRes.arrayBuffer());
+
+  // Upload both to R2 under course-covers/ (public, no auth gate)
+  const webpKey = `course-covers/${courseId}.webp`;
+  const jpgKey = `course-covers/${courseId}.jpg`;
+  uploadBufferToR2(webpBuffer, webpKey, 'image/webp');
+  uploadBufferToR2(jpgBuffer, jpgKey, 'image/jpeg');
+
+  console.log(`  ${courseId}: done - WebP ${(webpBuffer.length / 1024).toFixed(0)} KB, JPG ${(jpgBuffer.length / 1024).toFixed(0)} KB`);
+  return `/api/assets/${webpKey}`;
+}
+
+async function processCoverImages(courses) {
+  console.log('\nProcessing cover images...');
+  for (const course of courses) {
+    if (!course.image) continue;
+    const optimizedUrl = await processCoverImage(course.image, course.id);
+    if (optimizedUrl) {
+      course.image = optimizedUrl;
+    } else {
+      // No Tinify: still route through proxy for caching (if image is on R2)
+      course.image = r2UrlToProxy(course.image);
+    }
+  }
+}
+
+/**
+ * Transform R2 public URLs to /api/assets/ proxy paths for caching.
+ * R2 public domain serves with no cache headers; the proxy adds
+ * Cache-Control: public, max-age=31536000, immutable.
+ */
+function r2UrlToProxy(url) {
+  if (url && url.startsWith(R2_PUBLIC_URL)) {
+    return url.replace(R2_PUBLIC_URL, '/api/assets');
+  }
+  return url;
+}
+
 // --- R2 Upload ---
 
 async function uploadToR2(tempUrl, r2Key, contentType) {
@@ -370,6 +499,7 @@ async function uploadToR2(tempUrl, r2Key, contentType) {
       `${R2_BUCKET}/${r2Key}`,
       `--file=${tmpFile}`,
       `--content-type=${contentType}`,
+      '--remote',
     ], { stdio: 'pipe', timeout: 60000 });
   } finally {
     try { unlinkSync(tmpFile); } catch {}
@@ -466,6 +596,9 @@ async function fetchAll() {
   console.log(`\nTransformed: ${courses.length} courses, ${modules.length} modules, ${lessons.length} lessons`);
 
   assembleNestedCourses(courses, modules, lessons);
+
+  // Optimize cover images: compress, convert to WebP, upload to R2
+  await processCoverImages(courses);
 
   // Sync attachments: Airtable temp URLs → R2 permanent URLs
   console.log('\nSyncing attachments to R2...');

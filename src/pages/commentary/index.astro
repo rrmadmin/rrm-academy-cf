@@ -49,8 +49,8 @@ const jsonLd = {
         <span class="meta-count">{posts.length} articles</span>
       </div>
       <div class="blog-grid">
-        {displayPosts.map(post => (
-          <BlogCard post={post} />
+        {displayPosts.map((post, i) => (
+          <BlogCard post={post} eager={i < 3} />
         ))}
       </div>
 

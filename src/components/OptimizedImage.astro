@@ -1,0 +1,33 @@
+---
+/**
+ * OptimizedImage — standard image component with correct loading defaults.
+ *
+ * Above-fold images (eager=true): loading="eager", fetchpriority="high"
+ * Below-fold images (default):    loading="lazy", no fetchpriority
+ * All images get decoding="async" for non-blocking decode.
+ *
+ * Usage:
+ *   <OptimizedImage src={url} alt="desc" width={800} height={450} />
+ *   <OptimizedImage src={url} alt="desc" eager />
+ */
+interface Props {
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+  eager?: boolean;
+  class?: string;
+}
+
+const { src, alt, width, height, eager = false, class: className } = Astro.props;
+---
+<img
+  src={src}
+  alt={alt}
+  width={width}
+  height={height}
+  loading={eager ? 'eager' : 'lazy'}
+  decoding="async"
+  fetchpriority={eager ? 'high' : undefined}
+  class={className}
+/>

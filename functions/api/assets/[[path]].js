@@ -16,6 +16,7 @@ const CONTENT_TYPES = {
 };
 
 const AUTH_PREFIXES = ['courses/'];
+const PUBLIC_IMAGE_EXTS = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg']);
 
 export async function onRequestGet({ request, params, env }) {
   // [[path]] catch-all: CF Pages returns params.path as an array of segments
@@ -23,7 +24,14 @@ export async function onRequestGet({ request, params, env }) {
   const key = Array.isArray(raw) ? raw.join('/') : raw;
   if (!key || key.includes('..')) return new Response('Not Found', { status: 404 });
 
-  if (AUTH_PREFIXES.some(p => key.startsWith(p))) {
+  const ext = key.split('.').pop()?.toLowerCase();
+  const isImage = PUBLIC_IMAGE_EXTS.has(ext);
+  const inAuthPrefix = AUTH_PREFIXES.some(p => key.startsWith(p));
+
+  // course-covers/ is outside AUTH_PREFIXES -- public by design.
+  // For files under courses/ (lesson attachments), only non-image
+  // files (PDFs, workbooks) require auth; images are public.
+  if (inAuthPrefix && !isImage) {
     const sessionId = getSessionIdFromCookie(request);
     const session = await validateSession(env.DB, sessionId);
     if (!session) return new Response('Unauthorized', { status: 401 });
@@ -32,13 +40,12 @@ export async function onRequestGet({ request, params, env }) {
   const object = await env.R2_ASSETS.get(key);
   if (!object) return new Response('Not Found', { status: 404 });
 
-  const ext = key.split('.').pop()?.toLowerCase();
   const contentType =
     object.httpMetadata?.contentType ||
     CONTENT_TYPES[ext] ||
     'application/octet-stream';
 
-  const isProtected = AUTH_PREFIXES.some(p => key.startsWith(p));
+  const isProtected = inAuthPrefix && !isImage;
   return new Response(object.body, {
     headers: {
       'Content-Type': contentType,
