@@ -1,4 +1,6 @@
 ---
+import OptimizedImage from './OptimizedImage.astro';
+
 /**
  * CourseCard — reusable card for course catalog and account dashboard.
  * Displays course thumbnail, title, metadata, price, and CTA.
@@ -22,9 +24,10 @@ interface Props {
   };
   enrolled?: boolean;
   progress?: { completedSteps: number; totalSteps: number };
+  eager?: boolean;
 }
 
-const { course, enrolled = false, progress } = Astro.props;
+const { course, enrolled = false, progress, eager = false } = Astro.props;
 const isComingSoon = !!course.comingSoon;
 
 const totalSteps = course.sections.reduce((sum, s) => sum + s.steps.length, 0);
@@ -42,12 +45,12 @@ const progressPct = progress ? Math.round((progress.completedSteps / progress.to
   <div class="course-card course-card--coming-soon">
     <div class="course-card__image">
       {course.image ? (
-        <img
+        <OptimizedImage
           src={course.image}
           alt={course.imageAlt || course.title}
-          loading="lazy"
-          width="400"
-          height="225"
+          width={800}
+          height={450}
+          eager={eager}
         />
       ) : (
         <div class="course-card__image-placeholder" aria-hidden="true"></div>
@@ -63,12 +66,12 @@ const progressPct = progress ? Math.round((progress.completedSteps / progress.to
 ) : (
   <a href={`/courses/${course.slug}/`} class="course-card">
     <div class="course-card__image">
-      <img
+      <OptimizedImage
         src={course.image}
         alt={course.imageAlt || course.title}
-        loading="lazy"
-        width="400"
-        height="225"
+        width={800}
+        height={450}
+        eager={eager}
       />
       {course.isFree && <span class="course-card__badge course-card__badge--free">Free</span>}
       {course.hasCertificate && <span class="course-card__badge course-card__badge--cert">Certificate</span>}

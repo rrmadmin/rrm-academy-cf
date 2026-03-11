@@ -64,8 +64,8 @@ for (let i = 1; i <= totalPages; i++) {
 
       {pagePosts.length > 0 ? (
         <div class="blog-grid">
-          {pagePosts.map(post => (
-            <BlogCard post={post} />
+          {pagePosts.map((post, i) => (
+            <BlogCard post={post} eager={i < 3} />
           ))}
         </div>
       ) : (
