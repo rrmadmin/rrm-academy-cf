@@ -7,6 +7,7 @@ import {
   json, optionsResponse, generateId, generateToken, hashToken,
   verifyTurnstile, checkRateLimit, isValidEmail,
 } from './_shared.js';
+import { validateEmail } from './_email-validate.js';
 import { sendEmail } from '../_ses.js';
 import { log } from '../_log.js';
 
@@ -25,7 +26,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const email = (body.email || '').trim().toLowerCase();
     if (!isValidEmail(email)) return json({ ok: false, error: 'Valid email is required.' }, 400);
 
-    // Rate limit by IP
+    // Rate limit by IP (before expensive DNS lookups)
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
     if (!checkRateLimit(`forgot:${ip}`)) {
       return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
@@ -36,6 +37,16 @@ export async function onRequestPost({ request, env, waitUntil }) {
       env.CF_TURNSTILE_SECRET, body.turnstileToken, ip
     );
     if (!turnstileOk) return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
+
+    // Deep email validation (disposable domain, MX check, typo detection)
+    const emailCheck = await validateEmail(email);
+    if (!emailCheck.valid) {
+      return json({
+        ok: false,
+        error: emailCheck.error,
+        ...(emailCheck.suggestion ? { suggestion: emailCheck.suggestion } : {}),
+      }, 400);
+    }
 
     // Look up user (but always return success to prevent enumeration)
     const user = await db.prepare('SELECT id, name FROM user WHERE email = ? COLLATE NOCASE').bind(email).first();

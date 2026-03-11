@@ -412,6 +412,22 @@ const jsonLd = {
         form.hidden = true;
         sentEmail.textContent = email;
         successMsg.hidden = false;
+      } else if (data.suggestion) {
+        errorText.textContent = data.error;
+        errorMsg.hidden = false;
+        const emailInput = form.querySelector('input[type="email"]');
+        if (emailInput) {
+          const useLink = document.createElement('a');
+          useLink.href = '#';
+          useLink.textContent = 'Use this email instead';
+          useLink.style.cssText = 'display:block;margin-top:8px;color:var(--accent);text-decoration:underline;cursor:pointer;';
+          useLink.addEventListener('click', function (ev) {
+            ev.preventDefault();
+            emailInput.value = data.suggestion;
+            errorMsg.hidden = true;
+          });
+          errorMsg.appendChild(useLink);
+        }
       } else {
         errorText.textContent = data.error || 'Something went wrong. Please try again.';
         errorMsg.hidden = false;

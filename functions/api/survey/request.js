@@ -5,103 +5,101 @@
 import { sendEmail } from '../_ses.js';
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
-
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': 'https://rrmacademy.org',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
-
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
-  });
-}
+import { validateEmail } from '../auth/_email-validate.js';
+import { json, optionsResponse } from '../auth/_shared.js';
 
 const TOKEN_TTL = 24 * 60 * 60; // 24 hours in seconds
 const RATE_LIMIT_SECONDS = 600;       // 10 minutes between emails to same address
 
 export async function onRequestOptions() {
-  return new Response(null, { status: 204, headers: CORS_HEADERS });
+  return optionsResponse();
 }
 
 export async function onRequestPost(context) {
   const { request, env, waitUntil } = context;
-
-  if (!env.SURVEY_TOKENS) {
-    return json({ ok: false, error: 'Server misconfigured' }, 500);
-  }
-  if (!env.AWS_ACCESS_KEY_ID) {
-    return json({ ok: false, error: 'Server misconfigured' }, 500);
-  }
-
-  let body;
   try {
-    body = await request.json();
-  } catch {
-    return json({ ok: false, error: 'Invalid JSON' }, 400);
-  }
-
-  const email = (body.email || '').trim().toLowerCase();
-  if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return json({ ok: false, error: 'Valid email required' }, 400);
-  }
-
-  // Rate limit: 1 email per 10 minutes per address
-  const existing = await env.SURVEY_TOKENS.get(`email:${email}`, 'json');
-  if (existing) {
-    const elapsed = (Date.now() - existing.created) / 1000;
-    if (elapsed < RATE_LIMIT_SECONDS) {
-      return json({ ok: false, error: 'Check your inbox. A survey link was already sent.' }, 429);
+    if (!env.SURVEY_TOKENS) {
+      return json({ ok: false, error: 'Server misconfigured' }, 500);
     }
-  }
+    if (!env.AWS_ACCESS_KEY_ID) {
+      return json({ ok: false, error: 'Server misconfigured' }, 500);
+    }
 
-  // Generate token
-  const token = crypto.randomUUID();
-  const now = Date.now();
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return json({ ok: false, error: 'Invalid JSON' }, 400);
+    }
 
-  // Carry through UTM / userorigin params
-  const url = new URL(request.url);
-  const userorigin = url.searchParams.get('userorigin') || body.userorigin || '';
-  const utmSource = url.searchParams.get('utm_source') || body.utm_source || '';
+    const email = (body.email || '').trim().toLowerCase();
+    if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return json({ ok: false, error: 'Valid email required' }, 400);
+    }
+    const emailCheck = await validateEmail(email);
+    if (!emailCheck.valid) {
+      return json({ ok: false, error: emailCheck.error, ...(emailCheck.suggestion ? { suggestion: emailCheck.suggestion } : {}) }, 400);
+    }
 
-  // Store token → email mapping
-  await env.SURVEY_TOKENS.put(
-    `token:${token}`,
-    JSON.stringify({ email, created: now, used: false, userorigin, utmSource }),
-    { expirationTtl: TOKEN_TTL }
-  );
+    // Rate limit: 1 email per 10 minutes per address
+    const existing = await env.SURVEY_TOKENS.get(`email:${email}`, 'json');
+    if (existing) {
+      const elapsed = (Date.now() - existing.created) / 1000;
+      if (elapsed < RATE_LIMIT_SECONDS) {
+        return json({ ok: false, error: 'Check your inbox. A survey link was already sent.' }, 429);
+      }
+    }
 
-  // Store email → token reverse lookup (for rate limiting)
-  await env.SURVEY_TOKENS.put(
-    `email:${email}`,
-    JSON.stringify({ token, created: now }),
-    { expirationTtl: RATE_LIMIT_SECONDS }
-  );
+    // Generate token
+    const token = crypto.randomUUID();
+    const now = Date.now();
 
-  // Build magic link
-  let surveyUrl = `https://rrmacademy.org/endo-survey/take?token=${token}`;
-  if (userorigin) surveyUrl += `&userorigin=${encodeURIComponent(userorigin)}`;
-  if (utmSource) surveyUrl += `&utm_source=${encodeURIComponent(utmSource)}`;
+    // Carry through UTM / userorigin params
+    const url = new URL(request.url);
+    const userorigin = url.searchParams.get('userorigin') || body.userorigin || '';
+    const utmSource = url.searchParams.get('utm_source') || body.utm_source || '';
 
-  // Send email via SES
-  try {
-    await sendEmail(env, {
-      from: 'RRM Academy <survey@mail.rrmacademy.org>',
-      to: email,
-      subject: 'Your Endometriosis Symptom Self-Survey',
-      html: buildEmailHtml(surveyUrl),
-    });
+    // Store token → email mapping
+    await env.SURVEY_TOKENS.put(
+      `token:${token}`,
+      JSON.stringify({ email, created: now, used: false, userorigin, utmSource }),
+      { expirationTtl: TOKEN_TTL }
+    );
+
+    // Store email → token reverse lookup (for rate limiting)
+    await env.SURVEY_TOKENS.put(
+      `email:${email}`,
+      JSON.stringify({ token, created: now }),
+      { expirationTtl: RATE_LIMIT_SECONDS }
+    );
+
+    // Build magic link
+    let surveyUrl = `https://rrmacademy.org/endo-survey/take?token=${token}`;
+    if (userorigin) surveyUrl += `&userorigin=${encodeURIComponent(userorigin)}`;
+    if (utmSource) surveyUrl += `&utm_source=${encodeURIComponent(utmSource)}`;
+
+    // Send email via SES
+    try {
+      await sendEmail(env, {
+        from: 'RRM Academy <survey@mail.rrmacademy.org>',
+        to: email,
+        subject: 'Your Endometriosis Symptom Self-Survey',
+        html: buildEmailHtml(surveyUrl),
+      });
+    } catch (err) {
+      log(env, waitUntil, 'survey', 'request_send_error', 'error', err.message, 0, 502);
+      await env.SURVEY_TOKENS.delete(`email:${email}`);
+      return json({ ok: false, error: 'Failed to send email. Please try again.' }, 502);
+    }
+
+    sendGA4Event(env, request, 'generate_lead', { event_category: 'endo_survey_request' }).catch(() => {});
+
+    return json({ ok: true });
   } catch (err) {
-    log(env, waitUntil, 'survey', 'request_send_error', 'error', err.message, 0, 502);
-    await env.SURVEY_TOKENS.delete(`email:${email}`);
-    return json({ ok: false, error: 'Failed to send email. Please try again.' }, 502);
+    console.error(err);
+    log(env, waitUntil, 'survey', 'request_fail', 'error', err.message);
+    return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500);
   }
-
-  sendGA4Event(env, request, 'generate_lead', { event_category: 'endo_survey_request' }).catch(() => {});
-
-  return json({ ok: true });
 }
 
 function buildEmailHtml(surveyUrl) {

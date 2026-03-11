@@ -186,13 +186,17 @@ export function getSessionIdFromCookie(request) {
 export async function verifyTurnstile(secret, token, ip) {
   if (!secret) return false;
   if (!token) return false;
-  const resp = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ secret, response: token, remoteip: ip }),
-  });
-  const result = await resp.json();
-  return result.success;
+  try {
+    const resp = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ secret, response: token, remoteip: ip }),
+    });
+    const result = await resp.json();
+    return result.success;
+  } catch {
+    return false;
+  }
 }
 
 // --- Rate limiting (simple, in-memory per-isolate — good enough for low traffic) ---

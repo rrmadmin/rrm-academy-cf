@@ -6,6 +6,7 @@ import {
   json, optionsResponse, verifyPassword, createSession, sessionCookie,
   verifyTurnstile, checkRateLimit, isValidEmail,
 } from './_shared.js';
+import { TYPO_CORRECTIONS } from './_email-validate.js';
 import { log } from '../_log.js';
 
 export async function onRequestOptions() {
@@ -25,6 +26,13 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     if (!isValidEmail(email) || !password) {
       return json({ ok: false, error: 'Email and password are required.' }, 400);
+    }
+
+    const domain = email.split('@')[1];
+    const correction = domain && TYPO_CORRECTIONS.get(domain);
+    if (correction) {
+      const suggested = `${email.split('@')[0]}@${correction}`;
+      return json({ ok: false, error: `Did you mean ${suggested}?`, suggestion: suggested }, 400);
     }
 
     // Rate limit by IP (prevent brute force)
