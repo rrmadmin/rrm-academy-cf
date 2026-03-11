@@ -66,14 +66,14 @@ export async function onRequestPost({ request, env, waitUntil }) {
       return json({ ok: false, error: 'Your account doesn\'t have a password yet. Use "Forgot password" to set one, or sign in with Google.' }, 401);
     }
 
-    const valid = await verifyPassword(password, user.hashed_password);
-    if (!valid) {
+    if (user.blocked) {
+      await verifyPassword(password, user.hashed_password);
       return json({ ok: false, error: 'Invalid email or password.' }, 401);
     }
 
-    // Check if account is blocked
-    if (user.blocked) {
-      return json({ ok: false, error: 'Account blocked.' }, 401);
+    const valid = await verifyPassword(password, user.hashed_password);
+    if (!valid) {
+      return json({ ok: false, error: 'Invalid email or password.' }, 401);
     }
 
     // Create session
