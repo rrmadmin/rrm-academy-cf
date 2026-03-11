@@ -54,6 +54,9 @@ const TYPO_FIXES = [
   { email: 'kerrilynndiane@gmail.conm', corrected: 'kerrilynndiane@gmail.com' },
   { email: 'madhu.saidot@gmail.comm', corrected: 'madhu.saidot@gmail.com' },
   { email: 'sjm2249@columbai.edu', corrected: 'sjm2249@columbia.edu' },
+  // Round 3: from Wix bounce report
+  { email: 'shailaz90@hotmwil.com', corrected: 'shailaz90@hotmail.com' },
+  { email: 'sarahjanehenshall@homail.com', corrected: 'sarahjanehenshall@hotmail.com' },
 ];
 
 // ── D1 helpers ─────────────────────────────────────────────────────────
