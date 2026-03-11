@@ -5,6 +5,7 @@
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
 import { json, optionsResponse } from '../auth/_shared.js';
+import { verifyAndTagEmail } from '../_elv.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -60,6 +61,12 @@ export async function onRequestPost(context) {
     }
   } else if (env.CF_TURNSTILE_SECRET) {
     return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
+  }
+
+  // ELV mailbox verification (blocks spamtraps, disabled mailboxes, disposables)
+  const elv = await verifyAndTagEmail(email, env, { source: 'newsletter' });
+  if (elv.blocked) {
+    return json({ ok: false, error: elv.reason }, 400);
   }
 
   // Add to D1 newsletter_subscriber

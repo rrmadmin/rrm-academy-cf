@@ -16,6 +16,7 @@ import { getCourse } from '../courses/_shared.js';
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
 import { sendEmailSafe } from './_webhook-shared.js';
+import { verifyAndTagEmail } from '../_elv.js';
 
 /**
  * @param {D1Database} db
@@ -211,6 +212,13 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
     log(env, waitUntil, 'billing', 'no_checkout_email', 'skipped', session.id);
     return;
   }
+
+  // ELV tag (non-blocking -- payment already completed, just tag for CRM)
+  const name = session.customer_details?.name || '';
+  const [first, ...rest] = name.split(' ');
+  waitUntil(verifyAndTagEmail(email, env, {
+    firstName: first || '', lastName: rest.join(' ') || '', source: 'checkout',
+  }).catch(() => {}));
 
   // Case 1: User was logged in (client_reference_id = D1 user ID)
   if (session.client_reference_id) {

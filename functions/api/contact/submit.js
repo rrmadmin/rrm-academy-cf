@@ -4,6 +4,7 @@
  */
 import { json, optionsResponse, checkRateLimit, isValidEmail, verifyTurnstile } from '../auth/_shared.js';
 import { validateEmail } from '../auth/_email-validate.js';
+import { verifyAndTagEmail } from '../_elv.js';
 import { sendEmail } from '../_ses.js';
 import { log } from '../_log.js';
 
@@ -65,6 +66,12 @@ export async function onRequestPost(context) {
     const emailCheck = await validateEmail(email);
     if (!emailCheck.valid) {
       return json({ ok: false, error: emailCheck.error, ...(emailCheck.suggestion ? { suggestion: emailCheck.suggestion } : {}) }, 400);
+    }
+
+    // ELV mailbox verification (blocks spamtraps, disabled mailboxes)
+    const elv = await verifyAndTagEmail(email, env, { source: 'contact' });
+    if (elv.blocked) {
+      return json({ ok: false, error: elv.reason }, 400);
     }
 
     // Send notification email via SES

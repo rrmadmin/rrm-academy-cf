@@ -8,6 +8,7 @@ import {
   isValidEmail, isValidPassword,
 } from './_shared.js';
 import { validateEmail } from './_email-validate.js';
+import { verifyAndTagEmail } from '../_elv.js';
 import { sendEmail } from '../_ses.js';
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
@@ -49,6 +50,12 @@ export async function onRequestPost({ request, env, waitUntil }) {
         error: emailCheck.error,
         ...(emailCheck.suggestion ? { suggestion: emailCheck.suggestion } : {}),
       }, 400);
+    }
+
+    // ELV mailbox verification (after local checks pass, before account creation)
+    const elv = await verifyAndTagEmail(email, env, { firstName, lastName, source: 'signup' });
+    if (elv.blocked) {
+      return json({ ok: false, error: elv.reason }, 400);
     }
 
     if (!env.AWS_ACCESS_KEY_ID) {
