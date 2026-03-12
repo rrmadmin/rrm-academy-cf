@@ -51,7 +51,7 @@ export async function onRequestGet(context) {
       authors: m.metadata.authors,
       type: m.metadata.type || 'Research',
       score: m.score,
-      url: `/library/${m.metadata.slug}/`,
+      url: m.metadata.url || `/library/${m.metadata.slug}/`,
     }));
 
     return Response.json({ results }, {
