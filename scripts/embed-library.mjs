@@ -1,5 +1,5 @@
 /**
- * Embed library articles into Cloudflare Vectorize via Workers AI.
+ * Embed all site content into Cloudflare Vectorize via Workers AI.
  *
  * Runs as a Cloudflare Worker (via wrangler dev) to use AI + VECTORIZE bindings
  * directly with wrangler's OAuth auth -- no separate API token needed.
@@ -14,30 +14,71 @@
 
 import articles from '../src/data/articles.json';
 
+// Optional imports -- these files may not exist locally
+let posts = [], faqs = [], courses = [];
+try { posts = (await import('../src/data/posts.json', { with: { type: 'json' } })).default; } catch {}
+try { faqs = (await import('../src/data/faqs.json', { with: { type: 'json' } })).default; } catch {}
+try { courses = (await import('../src/data/courses.json', { with: { type: 'json' } })).default; } catch {}
+
 const BATCH_SIZE = 100;
 const MAX_TEXT_LEN = 2000;
 const MODEL = '@cf/baai/bge-base-en-v1.5';
 const MAX_ID_LEN = 64;
 
-// Vectorize IDs max 64 bytes. Slugs can be 200+.
-// Use a simple hash suffix to keep IDs unique when truncated.
 const enc = new TextEncoder();
 function vectorId(slug) {
   if (enc.encode(slug).length <= MAX_ID_LEN) return slug;
-  // FNV-1a 32-bit hash of full slug, hex-encoded (8 chars)
   let h = 0x811c9dc5;
   for (let i = 0; i < slug.length; i++) {
     h ^= slug.charCodeAt(i);
     h = Math.imul(h, 0x01000193);
   }
   const hash = (h >>> 0).toString(16).padStart(8, '0');
-  // Truncate prefix by bytes: suffix is '-' + 8 hex = 9 bytes
-  const maxPrefix = MAX_ID_LEN - 9; // 55 bytes for prefix
+  const maxPrefix = MAX_ID_LEN - 9;
   let prefix = slug;
   while (enc.encode(prefix).length > maxPrefix) {
     prefix = prefix.slice(0, -1);
   }
   return prefix + '-' + hash;
+}
+
+function buildEntries() {
+  const entries = [];
+
+  for (const a of articles) {
+    if (!a.slug || !a.title) continue;
+    entries.push({
+      slug: a.slug, text: a.title + '. ' + (a.abstract || ''),
+      type: 'Research', url: `/library/${a.slug}/`,
+      title: a.title, year: a.year || null, authors: a.shortCitation || '',
+    });
+  }
+  for (const p of posts) {
+    if (!p.slug || !p.title) continue;
+    entries.push({
+      slug: `post-${p.slug}`, text: p.title + '. ' + (p.excerpt || ''),
+      type: 'Article', url: `/commentary/${p.slug}/`,
+      title: p.title, year: p.publishDate ? new Date(p.publishDate).getFullYear() : null, authors: p.author || '',
+    });
+  }
+  for (const f of faqs) {
+    if (!f.slug || !f.question) continue;
+    entries.push({
+      slug: `faq-${f.slug}`, text: f.question + '. ' + (f.basicAnswer || f.publishedAnswer || ''),
+      type: 'FAQ', url: `/faqs/${f.slug}/`,
+      title: f.question, year: null, authors: '',
+    });
+  }
+  for (const c of courses) {
+    if (!c.slug || !c.title) continue;
+    entries.push({
+      slug: `course-${c.slug}`, text: c.title + '. ' + (c.description || c.shortDescription || ''),
+      type: 'Course', url: `/courses/${c.slug}/`,
+      title: c.title, year: null, authors: '',
+    });
+  }
+
+  return entries;
 }
 
 export default {
@@ -51,44 +92,32 @@ export default {
     function log(msg) { logs.push(msg); }
 
     try {
+      const entries = buildEntries();
       const startFrom = parseInt(url.searchParams.get('start') || '0');
-      log(`Found ${articles.length} articles. Starting from ${startFrom}.`);
+      log(`Found ${entries.length} entries (${articles.length} articles, ${posts.length} posts, ${faqs.length} FAQs, ${courses.length} courses). Starting from ${startFrom}.`);
       let embedded = startFrom;
 
-      for (let i = startFrom; i < articles.length; i += BATCH_SIZE) {
-        const batch = articles.slice(i, i + BATCH_SIZE);
-
-        // Build embedding text for each article
-        const texts = batch.map(a => {
-          const text = a.title + '. ' + (a.abstract || '');
-          return text.slice(0, MAX_TEXT_LEN);
-        });
-
-        // Get embeddings via AI binding
+      for (let i = startFrom; i < entries.length; i += BATCH_SIZE) {
+        const batch = entries.slice(i, i + BATCH_SIZE);
+        const texts = batch.map(e => e.text.slice(0, MAX_TEXT_LEN));
         const result = await env.AI.run(MODEL, { text: texts });
         const embeddings = result.data;
 
-        // Build vector objects
-        const vectors = batch.map((a, idx) => ({
-          id: vectorId(a.slug),
+        const vectors = batch.map((e, idx) => ({
+          id: vectorId(e.slug),
           values: embeddings[idx],
           metadata: {
-            slug: a.slug,
-            title: a.title,
-            year: a.year || null,
-            authors: a.shortCitation || '',
-            type: 'Research',
+            slug: e.slug, title: e.title, year: e.year,
+            authors: e.authors, type: e.type, url: e.url,
           },
         }));
 
-        // Upsert to Vectorize binding
         await env.VECTORIZE.upsert(vectors);
-
         embedded += batch.length;
-        log(`Embedded ${embedded}/${articles.length}...`);
+        log(`Embedded ${embedded}/${entries.length}...`);
       }
 
-      log('Done. All articles embedded.');
+      log('Done. All content embedded.');
       return new Response(logs.join('\n'), {
         headers: { 'Content-Type': 'text/plain' },
       });
