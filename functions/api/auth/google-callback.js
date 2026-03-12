@@ -43,7 +43,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
     if (!tokens.access_token) {
       log(env, waitUntil, 'auth', 'google_auth_error', 'error', 'token exchange failed');
-      return redirect(LOGIN_ERROR_URL);
+      // TEMP DEBUG
+      return redirect(`${LOGIN_ERROR_URL}&debug=${encodeURIComponent('no_access_token:' + JSON.stringify(tokens))}`);
     }
 
     // Get user profile from Google
@@ -115,7 +116,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
   } catch (err) {
     console.error('Google OAuth callback error:', err);
     log(env, waitUntil, 'auth', 'google_auth_error', 'error', err.message);
-    return redirect(LOGIN_ERROR_URL);
+    // TEMP DEBUG: surface error in redirect (remove after debugging)
+    return redirect(`${LOGIN_ERROR_URL}&debug=${encodeURIComponent(err.message)}`);
   }
 }
 
