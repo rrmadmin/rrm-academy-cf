@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 ---
-<BaseLayout title="SEO Health" description="Admin SEO health monitor" noindex={true} bodyClass="admin-page">
+<BaseLayout title="SEO Report" description="Admin SEO dashboard" noindex={true} bodyClass="admin-page">
 
   <!-- Admin Header Bar -->
   <div class="admin-bar">
@@ -22,149 +22,333 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   </div>
 
   <!-- Dashboard -->
-  <section id="dashboard" class="bl-section">
+  <section id="dashboard" class="dash-section">
     <div class="container">
 
-      <!-- Page heading -->
-      <div class="bl-header">
-        <h1>SEO Health</h1>
-        <button class="btn btn--primary seo-run-btn" id="run-check-btn">Run Check</button>
-      </div>
-
-      <!-- Status cards -->
-      <div class="bl-metrics seo-grid">
-        <div class="bl-card seo-card" id="card-pages">
-          <span class="bl-card__label">Pages</span>
-          <span class="seo-card__icon" id="icon-pages">--</span>
-          <span class="seo-card__detail" id="detail-pages">Not checked</span>
+      <!-- Header row -->
+      <div class="dash-header">
+        <div class="dash-header__left">
+          <h1 class="dash-header__title">SEO Report</h1>
+          <span class="dash-header__updated" id="last-updated">--</span>
         </div>
-        <div class="bl-card seo-card" id="card-sitemap">
-          <span class="bl-card__label">Sitemap</span>
-          <span class="seo-card__icon" id="icon-sitemap">--</span>
-          <span class="seo-card__detail" id="detail-sitemap">Not checked</span>
-        </div>
-        <div class="bl-card seo-card" id="card-robots">
-          <span class="bl-card__label">Robots</span>
-          <span class="seo-card__icon" id="icon-robots">--</span>
-          <span class="seo-card__detail" id="detail-robots">Not checked</span>
-        </div>
-        <div class="bl-card seo-card" id="card-llms_txt">
-          <span class="bl-card__label">llms.txt</span>
-          <span class="seo-card__icon" id="icon-llms_txt">--</span>
-          <span class="seo-card__detail" id="detail-llms_txt">Not checked</span>
-        </div>
-        <div class="bl-card seo-card" id="card-schema">
-          <span class="bl-card__label">Schema</span>
-          <span class="seo-card__icon" id="icon-schema">--</span>
-          <span class="seo-card__detail" id="detail-schema">Not checked</span>
-        </div>
-        <div class="bl-card seo-card" id="card-backlinks">
-          <span class="bl-card__label">Backlinks</span>
-          <span class="seo-card__icon" id="icon-backlinks">--</span>
-          <span class="seo-card__detail" id="detail-backlinks">Not checked</span>
-        </div>
-        <div class="bl-card seo-card" id="card-headers">
-          <span class="bl-card__label">Headers</span>
-          <span class="seo-card__icon" id="icon-headers">--</span>
-          <span class="seo-card__detail" id="detail-headers">Not checked</span>
+        <div class="dash-header__right">
+          <div class="dash-bell" id="bell-wrap">
+            <button class="dash-bell__btn" id="bell-btn" title="Alerts">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <span class="dash-bell__dot" id="bell-dot" style="display:none;"></span>
+            </button>
+            <div class="dash-bell__dropdown" id="bell-dropdown" style="display:none;">
+              <div class="dash-bell__header">Alerts</div>
+              <div class="dash-bell__list" id="bell-list">No alerts</div>
+            </div>
+          </div>
+          <button class="btn btn--primary dash-refresh-btn" id="refresh-btn">Refresh</button>
         </div>
       </div>
 
-      <!-- Last checked -->
-      <p class="seo-timestamp" id="last-checked">Last checked: --</p>
-
-      <!-- Observatory: Worker Health -->
-      <div class="obs-section">
-        <div class="bl-header">
-          <h2>Worker Health</h2>
-          <button class="btn btn--primary seo-run-btn" id="obs-refresh-btn">Refresh</button>
+      <!-- KPI strip -->
+      <div class="kpi-strip" id="kpi-strip">
+        <div class="kpi-card" id="kpi-clicks">
+          <span class="kpi-card__label">Clicks</span>
+          <div class="kpi-card__row">
+            <span class="kpi-card__value" id="kpi-val-clicks">--</span>
+            <span class="kpi-card__delta" id="kpi-delta-clicks"></span>
+          </div>
+          <div class="kpi-card__spark" id="kpi-spark-clicks"></div>
         </div>
+        <div class="kpi-card" id="kpi-impressions">
+          <span class="kpi-card__label">Impressions</span>
+          <div class="kpi-card__row">
+            <span class="kpi-card__value" id="kpi-val-impressions">--</span>
+            <span class="kpi-card__delta" id="kpi-delta-impressions"></span>
+          </div>
+          <div class="kpi-card__spark" id="kpi-spark-impressions"></div>
+        </div>
+        <div class="kpi-card" id="kpi-ctr">
+          <span class="kpi-card__label">CTR</span>
+          <div class="kpi-card__row">
+            <span class="kpi-card__value" id="kpi-val-ctr">--</span>
+            <span class="kpi-card__delta" id="kpi-delta-ctr"></span>
+          </div>
+          <div class="kpi-card__spark" id="kpi-spark-ctr"></div>
+        </div>
+        <div class="kpi-card" id="kpi-position">
+          <span class="kpi-card__label">Position</span>
+          <div class="kpi-card__row">
+            <span class="kpi-card__value" id="kpi-val-position">--</span>
+            <span class="kpi-card__delta" id="kpi-delta-position"></span>
+          </div>
+          <div class="kpi-card__spark" id="kpi-spark-position"></div>
+        </div>
+        <div class="kpi-card" id="kpi-visitors">
+          <span class="kpi-card__label">Visitors</span>
+          <div class="kpi-card__row">
+            <span class="kpi-card__value" id="kpi-val-visitors">--</span>
+            <span class="kpi-card__delta" id="kpi-delta-visitors"></span>
+          </div>
+          <div class="kpi-card__spark" id="kpi-spark-visitors"></div>
+        </div>
+      </div>
 
-        <!-- Worker activity table -->
-        <div class="bl-card obs-table-card">
-          <table class="obs-table" id="obs-activity-table">
+      <!-- Keyword Rankings -->
+      <div class="dash-card dash-card--full" id="keywords-section">
+        <div class="dash-card__header">
+          <h2 class="dash-card__title">Keyword Rankings</h2>
+          <button class="btn btn--sm dash-edit-kw-btn" id="edit-kw-btn">Edit keywords</button>
+        </div>
+        <div class="dash-table-wrap">
+          <table class="dash-table" id="keywords-table">
             <thead>
-              <tr><th>Worker</th><th>Status</th><th>Count</th></tr>
+              <tr>
+                <th style="width:48px;">Tier</th>
+                <th>Keyword</th>
+                <th style="text-align:right;">Position</th>
+                <th style="text-align:right;">Change</th>
+                <th>SERP Features</th>
+              </tr>
             </thead>
-            <tbody id="obs-activity-body">
-              <tr><td colspan="3" class="obs-empty">Loading...</td></tr>
+            <tbody id="keywords-body">
+              <tr><td colspan="5" class="dash-empty">Loading...</td></tr>
             </tbody>
           </table>
         </div>
+      </div>
 
-        <!-- Alert conditions -->
-        <div class="obs-alerts-row obs-alerts-row--5">
-          <div class="bl-card obs-alert-card" id="obs-alert-error-rate">
-            <span class="bl-card__label">Error Rate</span>
-            <span class="seo-card__icon" id="obs-icon-error-rate">--</span>
-            <span class="seo-card__detail" id="obs-detail-error-rate">Not checked</span>
+      <!-- Three-column row -->
+      <div class="dash-three-col">
+        <!-- Top Pages -->
+        <div class="dash-card" id="top-pages-section">
+          <div class="dash-card__header">
+            <h2 class="dash-card__title">Top Pages</h2>
           </div>
-          <div class="bl-card obs-alert-card" id="obs-alert-intake">
-            <span class="bl-card__label">Library Intake</span>
-            <span class="seo-card__icon" id="obs-icon-intake">--</span>
-            <span class="seo-card__detail" id="obs-detail-intake">Not checked</span>
-          </div>
-          <div class="bl-card obs-alert-card" id="obs-alert-missing">
-            <span class="bl-card__label">Worker Presence</span>
-            <span class="seo-card__icon" id="obs-icon-missing">--</span>
-            <span class="seo-card__detail" id="obs-detail-missing">Not checked</span>
-          </div>
-          <div class="bl-card obs-alert-card" id="obs-alert-n8n">
-            <span class="bl-card__label">n8n</span>
-            <span class="seo-card__icon" id="obs-icon-n8n">--</span>
-            <span class="seo-card__detail" id="obs-detail-n8n">Not checked</span>
-          </div>
-          <div class="bl-card obs-alert-card" id="obs-alert-ses">
-            <span class="bl-card__label">SES</span>
-            <span class="seo-card__icon" id="obs-icon-ses">--</span>
-            <span class="seo-card__detail" id="obs-detail-ses">Not checked</span>
-          </div>
-        </div>
-
-        <!-- Latency stats -->
-        <div class="bl-card obs-table-card" id="obs-latency-card" style="display:none;">
-          <h3 class="obs-latency-heading">Response Times</h3>
-          <table class="obs-table">
+          <table class="dash-table dash-table--compact">
             <thead>
-              <tr><th>Worker</th><th style="text-align:right;">p50</th><th style="text-align:right;">p95</th><th style="text-align:right;">max</th><th style="text-align:right;">n</th></tr>
+              <tr><th>Path</th><th style="text-align:right;">Clicks</th><th style="text-align:right;">Impr.</th></tr>
             </thead>
-            <tbody id="obs-latency-body"></tbody>
+            <tbody id="top-pages-body">
+              <tr><td colspan="3" class="dash-empty">Loading...</td></tr>
+            </tbody>
           </table>
+          <button class="dash-view-all" id="view-all-pages" style="display:none;">View all</button>
         </div>
 
-        <!-- Recent errors -->
-        <div class="bl-card obs-table-card" id="obs-errors-card" style="display:none;">
-          <h3 class="obs-errors-heading">Recent Errors</h3>
-          <table class="obs-table">
+        <!-- Top Queries -->
+        <div class="dash-card" id="top-queries-section">
+          <div class="dash-card__header">
+            <h2 class="dash-card__title">Top Queries</h2>
+          </div>
+          <table class="dash-table dash-table--compact">
             <thead>
-              <tr><th>Worker</th><th>Action</th><th>Detail</th></tr>
+              <tr><th>Query</th><th style="text-align:right;">Clicks</th><th style="text-align:right;">Pos.</th></tr>
             </thead>
-            <tbody id="obs-errors-body"></tbody>
+            <tbody id="top-queries-body">
+              <tr><td colspan="3" class="dash-empty">Loading...</td></tr>
+            </tbody>
           </table>
+          <button class="dash-view-all" id="view-all-queries" style="display:none;">View all</button>
         </div>
 
-        <p class="seo-timestamp" id="obs-timestamp">Last refreshed: --</p>
+        <!-- Traffic Alerts -->
+        <div class="dash-card" id="traffic-alerts-section">
+          <div class="dash-card__header">
+            <h2 class="dash-card__title">Traffic Alerts</h2>
+          </div>
+          <div id="traffic-alerts-body" class="dash-alerts-list">
+            <p class="dash-empty">Loading...</p>
+          </div>
+          <button class="dash-view-all" id="view-all-alerts" style="display:none;">View all</button>
+        </div>
+      </div>
+
+      <!-- Two-column row -->
+      <div class="dash-two-col">
+        <!-- Site Health -->
+        <div class="dash-card" id="health-section">
+          <div class="dash-card__header">
+            <h2 class="dash-card__title">Site Health</h2>
+          </div>
+          <div id="health-body" class="dash-health-list">
+            <p class="dash-empty">Loading...</p>
+          </div>
+        </div>
+
+        <!-- Worker Health -->
+        <div class="dash-card" id="worker-health-section">
+          <div class="dash-card__header">
+            <h2 class="dash-card__title">Worker Health</h2>
+          </div>
+          <div id="worker-health-body" class="dash-worker-list">
+            <p class="dash-empty">Loading...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Observatory (collapsible) -->
+      <div class="obs-section">
+        <button class="obs-toggle" id="obs-toggle">
+          <span class="obs-toggle__text">Observatory</span>
+          <svg class="obs-toggle__icon" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 6 8 10 12 6"/></svg>
+        </button>
+        <div class="obs-content" id="obs-content" style="display:none;">
+
+          <div class="dash-card__header" style="margin-bottom:var(--space-4);">
+            <h2 class="dash-card__title">Worker Activity</h2>
+            <button class="btn btn--sm dash-refresh-btn" id="obs-refresh-btn">Refresh</button>
+          </div>
+
+          <!-- Worker activity table -->
+          <div class="dash-card obs-table-card">
+            <table class="dash-table">
+              <thead>
+                <tr><th>Worker</th><th>Status</th><th style="text-align:right;">Count</th></tr>
+              </thead>
+              <tbody id="obs-activity-body">
+                <tr><td colspan="3" class="dash-empty">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Alert conditions -->
+          <div class="obs-alerts-row obs-alerts-row--5">
+            <div class="dash-card obs-alert-card" id="obs-alert-error-rate">
+              <span class="obs-alert-card__label">Error Rate</span>
+              <span class="obs-alert-card__icon" id="obs-icon-error-rate">--</span>
+              <span class="obs-alert-card__detail" id="obs-detail-error-rate">Not checked</span>
+            </div>
+            <div class="dash-card obs-alert-card" id="obs-alert-intake">
+              <span class="obs-alert-card__label">Library Intake</span>
+              <span class="obs-alert-card__icon" id="obs-icon-intake">--</span>
+              <span class="obs-alert-card__detail" id="obs-detail-intake">Not checked</span>
+            </div>
+            <div class="dash-card obs-alert-card" id="obs-alert-missing">
+              <span class="obs-alert-card__label">Worker Presence</span>
+              <span class="obs-alert-card__icon" id="obs-icon-missing">--</span>
+              <span class="obs-alert-card__detail" id="obs-detail-missing">Not checked</span>
+            </div>
+            <div class="dash-card obs-alert-card" id="obs-alert-n8n">
+              <span class="obs-alert-card__label">n8n</span>
+              <span class="obs-alert-card__icon" id="obs-icon-n8n">--</span>
+              <span class="obs-alert-card__detail" id="obs-detail-n8n">Not checked</span>
+            </div>
+            <div class="dash-card obs-alert-card" id="obs-alert-ses">
+              <span class="obs-alert-card__label">SES</span>
+              <span class="obs-alert-card__icon" id="obs-icon-ses">--</span>
+              <span class="obs-alert-card__detail" id="obs-detail-ses">Not checked</span>
+            </div>
+          </div>
+
+          <!-- Latency stats -->
+          <div class="dash-card obs-table-card" id="obs-latency-card" style="display:none;">
+            <h3 class="obs-sub-heading">Response Times</h3>
+            <table class="dash-table">
+              <thead>
+                <tr><th>Worker</th><th style="text-align:right;">p50</th><th style="text-align:right;">p95</th><th style="text-align:right;">max</th><th style="text-align:right;">n</th></tr>
+              </thead>
+              <tbody id="obs-latency-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Recent errors -->
+          <div class="dash-card obs-table-card" id="obs-errors-card" style="display:none;">
+            <h3 class="obs-sub-heading obs-sub-heading--error">Recent Errors</h3>
+            <table class="dash-table">
+              <thead>
+                <tr><th>Worker</th><th>Action</th><th>Detail</th></tr>
+              </thead>
+              <tbody id="obs-errors-body"></tbody>
+            </table>
+          </div>
+
+          <p class="dash-timestamp" id="obs-timestamp">Last refreshed: --</p>
+        </div>
       </div>
 
     </div>
   </section>
 
+  <!-- Keyword Editor Modal -->
+  <div class="kw-modal-overlay" id="kw-modal" style="display:none;">
+    <div class="kw-modal">
+      <div class="kw-modal__header">
+        <h2 class="kw-modal__title">Edit Keywords</h2>
+        <button class="kw-modal__close" id="kw-modal-close">&times;</button>
+      </div>
+      <div class="kw-modal__body">
+        <div class="kw-modal__list-section">
+          <h3 class="kw-modal__list-title">Active <span class="kw-modal__count" id="kw-active-count">0/15</span></h3>
+          <div id="kw-active-list" class="kw-modal__list"></div>
+          <button class="btn btn--sm kw-modal__add" id="kw-add-active">+ Add keyword</button>
+        </div>
+        <div class="kw-modal__list-section">
+          <h3 class="kw-modal__list-title">Watchlist <span class="kw-modal__count" id="kw-watch-count">0/30</span></h3>
+          <div id="kw-watch-list" class="kw-modal__list"></div>
+          <button class="btn btn--sm kw-modal__add" id="kw-add-watch">+ Add keyword</button>
+        </div>
+      </div>
+      <div class="kw-modal__footer">
+        <button class="btn btn--sm" id="kw-cancel">Cancel</button>
+        <button class="btn btn--primary btn--sm" id="kw-save">Save</button>
+      </div>
+    </div>
+  </div>
+
   <script is:inline>
   (function () {
-    var CHECK_NAMES = ['pages', 'sitemap', 'robots', 'llms_txt', 'schema', 'backlinks', 'headers'];
-
-    // API
-    async function apiCall(action) {
-      var resp = await fetch('/api/admin/seo?action=' + encodeURIComponent(action), {
-        credentials: 'include',
-      });
-      if (resp.status === 401 || resp.status === 403) { window.location.href = '/login/?redirect=/admin/seo/'; return; }
-      var data = await resp.json();
-      if (!resp.ok) throw new Error(data.error || 'Request failed');
-      return data;
+    // --- Utilities ---
+    function esc(s) {
+      var el = document.createElement('span');
+      el.textContent = s || '';
+      return el.innerHTML;
     }
 
-    // Formatting
+    function fmtNum(n) {
+      if (n == null) return '--';
+      return Number(n).toLocaleString();
+    }
+
+    function fmtPct(n) {
+      if (n == null) return '--';
+      return (n * 100).toFixed(1) + '%';
+    }
+
+    function fmtPos(n) {
+      if (n == null) return '--';
+      return Number(n).toFixed(1);
+    }
+
+    function fmtDelta(n, invert) {
+      if (n == null) return '';
+      var pct = (n * 100).toFixed(0);
+      var sign = n > 0 ? '+' : '';
+      var isGood = invert ? n < 0 : n > 0;
+      var cls = n === 0 ? 'delta--neutral' : isGood ? 'delta--good' : 'delta--bad';
+      return '<span class="kpi-delta ' + cls + '">' + sign + pct + '%</span>';
+    }
+
+    function fmtPosDelta(n) {
+      if (n == null) return '';
+      var val = Number(n).toFixed(1);
+      var sign = n > 0 ? '+' : '';
+      // For position, negative change = improvement
+      var isGood = n < 0;
+      var cls = n === 0 ? 'delta--neutral' : isGood ? 'delta--good' : 'delta--bad';
+      return '<span class="kpi-delta ' + cls + '">' + sign + val + '</span>';
+    }
+
+    function timeAgo(iso) {
+      if (!iso) return '--';
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return '--';
+      var secs = Math.floor((Date.now() - d.getTime()) / 1000);
+      if (secs < 60) return 'just now';
+      var mins = Math.floor(secs / 60);
+      if (mins < 60) return mins + 'm ago';
+      var hrs = Math.floor(mins / 60);
+      if (hrs < 24) return hrs + 'h ago';
+      var days = Math.floor(hrs / 24);
+      return days + 'd ago';
+    }
+
     function formatDate(iso) {
       if (!iso) return '--';
       var d = new Date(iso);
@@ -174,83 +358,486 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       var ampm = h >= 12 ? 'PM' : 'AM';
       h = h % 12 || 12;
       var min = String(d.getMinutes()).padStart(2, '0');
-      return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear() + ' ' + h + ':' + min + ' ' + ampm;
+      return months[d.getMonth()] + ' ' + d.getDate() + ' ' + h + ':' + min + ' ' + ampm;
     }
 
-    // DOM refs
-    var runCheckBtn = document.getElementById('run-check-btn');
-    var lastChecked = document.getElementById('last-checked');
+    // --- API ---
+    async function apiCall(action, opts) {
+      var resp = await fetch('/api/admin/seo?action=' + encodeURIComponent(action), {
+        credentials: 'include',
+        ...opts,
+      });
+      if (resp.status === 401 || resp.status === 403) { window.location.href = '/login/?redirect=/admin/seo/'; return; }
+      var data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Request failed');
+      return data;
+    }
 
-    // Update cards from check results
-    function updateCards(results) {
-      var checks = results.checks || [];
-      for (var i = 0; i < checks.length; i++) {
-        var c = checks[i];
-        var iconEl = document.getElementById('icon-' + c.name);
-        var detailEl = document.getElementById('detail-' + c.name);
-        if (!iconEl || !detailEl) continue;
+    // --- State ---
+    var reportData = null;
+    var allAlerts = [];
 
-        if (c.ok) {
-          iconEl.textContent = '\u2713';
-          iconEl.className = 'seo-card__icon seo-card__icon--pass';
-        } else {
-          iconEl.textContent = '\u2717';
-          iconEl.className = 'seo-card__icon seo-card__icon--fail';
-        }
-        detailEl.textContent = c.detail || (c.ok ? 'OK' : 'Failed');
+    // --- KPI Sparklines ---
+    function renderSparkline(container, data) {
+      container.innerHTML = '';
+      if (!data || data.length < 2) return;
+      var w = 120, h = 32;
+      var min = Math.min.apply(null, data);
+      var max = Math.max.apply(null, data);
+      var range = max - min || 1;
+      var points = data.map(function (v, i) {
+        var x = (i / (data.length - 1)) * w;
+        var y = h - ((v - min) / range) * (h - 4) - 2;
+        return x.toFixed(1) + ',' + y.toFixed(1);
+      }).join(' ');
+      var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+      svg.setAttribute('class', 'sparkline-svg');
+      var polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+      polyline.setAttribute('points', points);
+      polyline.setAttribute('fill', 'none');
+      polyline.setAttribute('stroke', 'var(--admin-rose-700)');
+      polyline.setAttribute('stroke-width', '1.5');
+      polyline.setAttribute('stroke-linecap', 'round');
+      polyline.setAttribute('stroke-linejoin', 'round');
+      svg.appendChild(polyline);
+      container.appendChild(svg);
+    }
+
+    // --- Render functions ---
+    function renderKPIs(snapshot, sparklines) {
+      var gsc = (snapshot && snapshot.gsc) || {};
+      var traffic = (snapshot && snapshot.traffic) || {};
+
+      document.getElementById('kpi-val-clicks').textContent = fmtNum(gsc.clicks);
+      document.getElementById('kpi-delta-clicks').innerHTML = fmtDelta(gsc.clicksDelta);
+      renderSparkline(document.getElementById('kpi-spark-clicks'), sparklines && sparklines.clicks);
+
+      document.getElementById('kpi-val-impressions').textContent = fmtNum(gsc.impressions);
+      document.getElementById('kpi-delta-impressions').innerHTML = fmtDelta(gsc.impressionsDelta);
+      renderSparkline(document.getElementById('kpi-spark-impressions'), sparklines && sparklines.impressions);
+
+      document.getElementById('kpi-val-ctr').textContent = fmtPct(gsc.ctr);
+      document.getElementById('kpi-delta-ctr').innerHTML = fmtDelta(gsc.ctrDelta);
+      renderSparkline(document.getElementById('kpi-spark-ctr'), sparklines && sparklines.ctr);
+
+      document.getElementById('kpi-val-position').textContent = fmtPos(gsc.position);
+      document.getElementById('kpi-delta-position').innerHTML = fmtPosDelta(gsc.positionDelta);
+      renderSparkline(document.getElementById('kpi-spark-position'), sparklines && sparklines.position);
+
+      document.getElementById('kpi-val-visitors').textContent = fmtNum(traffic.visitors);
+      // No visitorsDelta from gsc, check if sparklines has visitors data
+      if (sparklines && sparklines.visitors && sparklines.visitors.length >= 2) {
+        var curr = sparklines.visitors[0];
+        var prev = sparklines.visitors[1];
+        var vDelta = prev ? (curr - prev) / prev : null;
+        document.getElementById('kpi-delta-visitors').innerHTML = fmtDelta(vDelta);
       }
+      renderSparkline(document.getElementById('kpi-spark-visitors'), sparklines && sparklines.visitors);
+    }
 
-      if (results.timestamp) {
-        lastChecked.textContent = 'Last checked: ' + formatDate(results.timestamp);
+    function renderKeywords(keywords) {
+      var body = document.getElementById('keywords-body');
+      if (!keywords || keywords.length === 0) {
+        body.innerHTML = '<tr><td colspan="5" class="dash-empty">No keywords tracked yet</td></tr>';
+        return;
+      }
+      body.innerHTML = keywords.map(function (kw) {
+        var tierClass = kw.tier === 'active' ? 'tier-badge--active' : 'tier-badge--watch';
+        var tierLabel = kw.tier === 'active' ? 'A' : 'W';
+        var changeVal = kw.change || 0;
+        var changeSign = changeVal > 0 ? '+' : '';
+        // For position change: positive = moved up = good
+        var changeClass = changeVal === 0 ? 'delta--neutral' : changeVal > 0 ? 'delta--good' : 'delta--bad';
+        var features = (kw.features || []).map(function (f) {
+          return '<span class="serp-badge">' + esc(f) + '</span>';
+        }).join(' ');
+        return '<tr>' +
+          '<td><span class="tier-badge ' + tierClass + '">' + tierLabel + '</span></td>' +
+          '<td>' + esc(kw.keyword) + '</td>' +
+          '<td style="text-align:right;font-variant-numeric:tabular-nums;">' + fmtPos(kw.position) + '</td>' +
+          '<td style="text-align:right;"><span class="' + changeClass + '">' + changeSign + changeVal + '</span></td>' +
+          '<td>' + (features || '--') + '</td>' +
+          '</tr>';
+      }).join('');
+    }
+
+    function renderTopPages(pages) {
+      var body = document.getElementById('top-pages-body');
+      var viewBtn = document.getElementById('view-all-pages');
+      if (!pages || pages.length === 0) {
+        body.innerHTML = '<tr><td colspan="3" class="dash-empty">No data yet</td></tr>';
+        viewBtn.style.display = 'none';
+        return;
+      }
+      var show = 3;
+      var expanded = false;
+      function render() {
+        var items = expanded ? pages.slice(0, 25) : pages.slice(0, show);
+        body.innerHTML = items.map(function (p) {
+          var path = p.path || '';
+          var short = path.length > 32 ? path.slice(0, 30) + '...' : path;
+          return '<tr><td title="' + esc(path) + '">' + esc(short) + '</td>' +
+            '<td style="text-align:right;">' + fmtNum(p.clicks) + '</td>' +
+            '<td style="text-align:right;">' + fmtNum(p.impressions) + '</td></tr>';
+        }).join('');
+      }
+      render();
+      if (pages.length > show) {
+        viewBtn.style.display = '';
+        viewBtn.onclick = function () {
+          expanded = !expanded;
+          viewBtn.textContent = expanded ? 'Show less' : 'View all';
+          render();
+        };
+      } else {
+        viewBtn.style.display = 'none';
       }
     }
 
-    // Reset cards to loading state
-    function resetCards() {
-      for (var i = 0; i < CHECK_NAMES.length; i++) {
-        var iconEl = document.getElementById('icon-' + CHECK_NAMES[i]);
-        var detailEl = document.getElementById('detail-' + CHECK_NAMES[i]);
-        if (iconEl) { iconEl.textContent = '...'; iconEl.className = 'seo-card__icon'; }
-        if (detailEl) { detailEl.textContent = 'Checking...'; }
+    function renderTopQueries(queries) {
+      var body = document.getElementById('top-queries-body');
+      var viewBtn = document.getElementById('view-all-queries');
+      if (!queries || queries.length === 0) {
+        body.innerHTML = '<tr><td colspan="3" class="dash-empty">No data yet</td></tr>';
+        viewBtn.style.display = 'none';
+        return;
+      }
+      var show = 3;
+      var expanded = false;
+      function render() {
+        var items = expanded ? queries.slice(0, 25) : queries.slice(0, show);
+        body.innerHTML = items.map(function (q) {
+          return '<tr><td>' + esc(q.query) + '</td>' +
+            '<td style="text-align:right;">' + fmtNum(q.clicks) + '</td>' +
+            '<td style="text-align:right;">' + fmtPos(q.position) + '</td></tr>';
+        }).join('');
+      }
+      render();
+      if (queries.length > show) {
+        viewBtn.style.display = '';
+        viewBtn.onclick = function () {
+          expanded = !expanded;
+          viewBtn.textContent = expanded ? 'Show less' : 'View all';
+          render();
+        };
+      } else {
+        viewBtn.style.display = 'none';
       }
     }
 
-    // Load cached results first
-    async function loadCached() {
+    function renderAlerts(alerts) {
+      allAlerts = alerts || [];
+      var body = document.getElementById('traffic-alerts-body');
+      var viewBtn = document.getElementById('view-all-alerts');
+      var bellDot = document.getElementById('bell-dot');
+      var bellList = document.getElementById('bell-list');
+
+      // Bell dot
+      bellDot.style.display = allAlerts.length > 0 ? '' : 'none';
+
+      // Bell dropdown
+      if (allAlerts.length === 0) {
+        bellList.innerHTML = '<div class="dash-bell__empty">No alerts</div>';
+      } else {
+        bellList.innerHTML = allAlerts.map(function (a) {
+          var d = a.data || {};
+          var label = d.path || a.type || 'Alert';
+          var detail = d.currentViews ? d.currentViews + ' views' : '';
+          if (d.ratio) detail += ' (' + d.ratio.toFixed(1) + 'x)';
+          return '<div class="dash-bell__item">' +
+            '<div class="dash-bell__item-text"><strong>' + esc(label) + '</strong>' +
+            (detail ? '<br><span class="dash-bell__item-detail">' + esc(detail) + '</span>' : '') +
+            '</div>' +
+            '<button class="dash-bell__dismiss" data-id="' + esc(a.id) + '" title="Dismiss">&times;</button>' +
+            '</div>';
+        }).join('');
+      }
+
+      // Traffic alerts card
+      if (allAlerts.length === 0) {
+        body.innerHTML = '<p class="dash-empty">No traffic alerts</p>';
+        viewBtn.style.display = 'none';
+        return;
+      }
+      var show = 3;
+      var expanded = false;
+      function render() {
+        var items = expanded ? allAlerts.slice(0, 25) : allAlerts.slice(0, show);
+        body.innerHTML = items.map(function (a) {
+          var d = a.data || {};
+          var path = d.path || 'Unknown page';
+          var short = path.length > 30 ? path.slice(0, 28) + '...' : path;
+          var views = d.currentViews != null ? fmtNum(d.currentViews) : '--';
+          var ratio = d.ratio != null ? (d.ratio * 100 - 100).toFixed(0) + '%' : '--';
+          return '<div class="dash-alert-item">' +
+            '<span class="dash-alert-item__path" title="' + esc(path) + '">' + esc(short) + '</span>' +
+            '<span class="dash-alert-item__views">' + views + ' views</span>' +
+            '<span class="dash-alert-item__delta delta--bad">+' + ratio + '</span>' +
+            '</div>';
+        }).join('');
+      }
+      render();
+      if (allAlerts.length > show) {
+        viewBtn.style.display = '';
+        viewBtn.onclick = function () {
+          expanded = !expanded;
+          viewBtn.textContent = expanded ? 'Show less' : 'View all';
+          render();
+        };
+      } else {
+        viewBtn.style.display = 'none';
+      }
+    }
+
+    function renderHealth(health) {
+      var body = document.getElementById('health-body');
+      if (!health || !health.checks || health.checks.length === 0) {
+        body.innerHTML = '<p class="dash-empty">No health data</p>';
+        return;
+      }
+      body.innerHTML = health.checks.map(function (c) {
+        var dotClass = c.ok ? 'health-dot--ok' : 'health-dot--fail';
+        return '<div class="health-row">' +
+          '<span class="health-dot ' + dotClass + '"></span>' +
+          '<span class="health-row__name">' + esc(c.name) + '</span>' +
+          '<span class="health-row__detail">' + esc(c.detail || (c.ok ? 'OK' : 'Failed')) + '</span>' +
+          '</div>';
+      }).join('');
+    }
+
+    function renderWorkerHealth(worker) {
+      var body = document.getElementById('worker-health-body');
+      if (!worker) {
+        body.innerHTML = '<p class="dash-empty">No worker data</p>';
+        return;
+      }
+      var rows = [];
+      rows.push({ label: 'Daily cron', value: timeAgo(worker.lastDaily) });
+      rows.push({ label: 'Spike detection', value: timeAgo(worker.lastSpike) });
+      rows.push({ label: 'Weekly digest', value: timeAgo(worker.lastWeekly) });
+      rows.push({ label: 'KV data', value: worker.kvDays != null ? worker.kvDays + ' days stored' : '--' });
+
+      var html = rows.map(function (r) {
+        return '<div class="worker-row">' +
+          '<span class="worker-row__label">' + esc(r.label) + '</span>' +
+          '<span class="worker-row__value">' + esc(r.value) + '</span>' +
+          '</div>';
+      }).join('');
+
+      // GSC status
+      var gscOk = worker.gscConnected;
+      html += '<div class="worker-row worker-row--gsc">' +
+        '<span class="worker-row__label">GSC</span>' +
+        (gscOk
+          ? '<span class="worker-row__value worker-row__value--ok">Connected</span>'
+          : '<span class="worker-row__value worker-row__value--warn">Disconnected</span>') +
+        '</div>';
+
+      body.innerHTML = html;
+    }
+
+    // --- Dismiss alert ---
+    async function dismissAlert(id) {
       try {
-        var data = await apiCall('cached');
-        updateCards(data);
+        await apiCall('dismiss', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: id }),
+        });
+        allAlerts = allAlerts.filter(function (a) { return a.id !== id; });
+        renderAlerts(allAlerts);
       } catch (e) {
-        // No cached results is fine, cards stay at default
+        // ignore
       }
     }
 
-    // Run live check
-    async function runCheck() {
-      runCheckBtn.disabled = true;
-      runCheckBtn.textContent = 'Checking...';
-      resetCards();
-      try {
-        var data = await apiCall('check');
-        updateCards(data);
-      } catch (e) {
-        lastChecked.textContent = 'Error: ' + e.message;
-      }
-      runCheckBtn.disabled = false;
-      runCheckBtn.textContent = 'Run Check';
-    }
-
-    // Event listeners
-    document.getElementById('logout-btn').addEventListener('click', async function () {
-      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
-      window.location.href = '/login/';
+    // --- Bell dropdown ---
+    var bellBtn = document.getElementById('bell-btn');
+    var bellDropdown = document.getElementById('bell-dropdown');
+    var bellWrap = document.getElementById('bell-wrap');
+    bellBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      bellDropdown.style.display = bellDropdown.style.display === 'none' ? '' : 'none';
     });
-    runCheckBtn.addEventListener('click', runCheck);
+    document.addEventListener('click', function (e) {
+      if (!bellWrap.contains(e.target)) bellDropdown.style.display = 'none';
+    });
+    bellDropdown.addEventListener('click', function (e) {
+      var btn = e.target.closest('.dash-bell__dismiss');
+      if (btn) dismissAlert(btn.dataset.id);
+    });
 
-    // Init
-    loadCached();
+    // --- Fetch report ---
+    async function fetchReport() {
+      var refreshBtn = document.getElementById('refresh-btn');
+      refreshBtn.disabled = true;
+      refreshBtn.textContent = 'Loading...';
+      try {
+        reportData = await apiCall('report');
+        if (reportData) {
+          var snapshot = reportData.snapshot || {};
+          renderKPIs(snapshot, reportData.sparklines);
+          renderKeywords(snapshot.keywords);
+          renderTopPages(snapshot.traffic && snapshot.traffic.topPages);
+          renderTopQueries(snapshot.traffic && snapshot.traffic.topQueries);
+          renderAlerts(reportData.alerts);
+          renderHealth(snapshot.health);
+          renderWorkerHealth(reportData.worker);
+
+          var ts = snapshot.date || (reportData.worker && reportData.worker.lastDaily);
+          document.getElementById('last-updated').textContent = 'Updated ' + (ts ? formatDate(ts) : '--');
+        }
+      } catch (e) {
+        document.getElementById('last-updated').textContent = 'Error: ' + e.message;
+      }
+      refreshBtn.disabled = false;
+      refreshBtn.textContent = 'Refresh';
+    }
+
+    function refreshReport() {
+      fetchReport();
+    }
+
+    document.getElementById('refresh-btn').addEventListener('click', refreshReport);
+
+    // --- Keyword Modal ---
+    var kwModal = document.getElementById('kw-modal');
+    var editKwBtn = document.getElementById('edit-kw-btn');
+    var kwModalClose = document.getElementById('kw-modal-close');
+    var kwCancel = document.getElementById('kw-cancel');
+    var kwSave = document.getElementById('kw-save');
+    var kwAddActive = document.getElementById('kw-add-active');
+    var kwAddWatch = document.getElementById('kw-add-watch');
+    var kwState = { active: [], watch: [] };
+
+    function toggleKeywordModal() {
+      var isOpen = kwModal.style.display !== 'none';
+      if (isOpen) {
+        kwModal.style.display = 'none';
+        return;
+      }
+      // Populate from current data
+      var keywords = (reportData && reportData.snapshot && reportData.snapshot.keywords) || [];
+      kwState.active = keywords.filter(function (k) { return k.tier === 'active'; }).map(function (k) { return k.keyword; });
+      kwState.watch = keywords.filter(function (k) { return k.tier !== 'active'; }).map(function (k) { return k.keyword; });
+      renderKwList('active');
+      renderKwList('watch');
+      kwModal.style.display = '';
+    }
+
+    function renderKwList(tier) {
+      var listEl = document.getElementById('kw-' + (tier === 'active' ? 'active' : 'watch') + '-list');
+      var countEl = document.getElementById('kw-' + (tier === 'active' ? 'active' : 'watch') + '-count');
+      var max = tier === 'active' ? 15 : 30;
+      var items = kwState[tier === 'active' ? 'active' : 'watch'];
+      countEl.textContent = items.length + '/' + max;
+      listEl.innerHTML = items.map(function (kw, i) {
+        return '<div class="kw-row">' +
+          '<input type="text" class="kw-row__input" value="' + esc(kw) + '" data-tier="' + tier + '" data-index="' + i + '">' +
+          '<button class="kw-row__toggle" data-tier="' + tier + '" data-index="' + i + '" title="Move to ' + (tier === 'active' ? 'watchlist' : 'active') + '">' + (tier === 'active' ? 'A' : 'W') + '</button>' +
+          '<button class="kw-row__delete" data-tier="' + tier + '" data-index="' + i + '" title="Delete">&times;</button>' +
+          '</div>';
+      }).join('');
+    }
+
+    editKwBtn.addEventListener('click', toggleKeywordModal);
+    kwModalClose.addEventListener('click', toggleKeywordModal);
+    kwCancel.addEventListener('click', toggleKeywordModal);
+    kwModal.addEventListener('click', function (e) {
+      if (e.target === kwModal) toggleKeywordModal();
+    });
+
+    kwAddActive.addEventListener('click', function () {
+      if (kwState.active.length >= 15) return;
+      kwState.active.push('');
+      renderKwList('active');
+      var inputs = document.querySelectorAll('#kw-active-list .kw-row__input');
+      if (inputs.length) inputs[inputs.length - 1].focus();
+    });
+    kwAddWatch.addEventListener('click', function () {
+      if (kwState.watch.length >= 30) return;
+      kwState.watch.push('');
+      renderKwList('watch');
+      var inputs = document.querySelectorAll('#kw-watch-list .kw-row__input');
+      if (inputs.length) inputs[inputs.length - 1].focus();
+    });
+
+    // Event delegation for kw list actions
+    document.addEventListener('click', function (e) {
+      var del = e.target.closest('.kw-row__delete');
+      if (del) {
+        var tier = del.dataset.tier;
+        var idx = parseInt(del.dataset.index, 10);
+        var arr = tier === 'active' ? kwState.active : kwState.watch;
+        arr.splice(idx, 1);
+        renderKwList(tier);
+        return;
+      }
+      var toggle = e.target.closest('.kw-row__toggle');
+      if (toggle) {
+        var tier2 = toggle.dataset.tier;
+        var idx2 = parseInt(toggle.dataset.index, 10);
+        var from = tier2 === 'active' ? kwState.active : kwState.watch;
+        var to = tier2 === 'active' ? kwState.watch : kwState.active;
+        var maxTo = tier2 === 'active' ? 30 : 15;
+        if (to.length >= maxTo) return;
+        var kw = from.splice(idx2, 1)[0];
+        to.push(kw);
+        renderKwList('active');
+        renderKwList('watch');
+      }
+    });
+
+    // Sync input values before save
+    function syncKwInputs() {
+      document.querySelectorAll('.kw-row__input').forEach(function (inp) {
+        var tier = inp.dataset.tier;
+        var idx = parseInt(inp.dataset.index, 10);
+        var arr = tier === 'active' ? kwState.active : kwState.watch;
+        arr[idx] = inp.value.trim();
+      });
+    }
+
+    async function saveKeywords() {
+      syncKwInputs();
+      var keywords = [];
+      kwState.active.forEach(function (kw) {
+        if (kw) keywords.push({ keyword: kw, tier: 'active' });
+      });
+      kwState.watch.forEach(function (kw) {
+        if (kw) keywords.push({ keyword: kw, tier: 'watch' });
+      });
+      kwSave.disabled = true;
+      kwSave.textContent = 'Saving...';
+      try {
+        await apiCall('keywords', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ keywords: keywords }),
+        });
+        toggleKeywordModal();
+        fetchReport();
+      } catch (e) {
+        alert('Failed to save: ' + e.message);
+      }
+      kwSave.disabled = false;
+      kwSave.textContent = 'Save';
+    }
+
+    kwSave.addEventListener('click', saveKeywords);
 
     // --- Observatory ---
+    var obsToggle = document.getElementById('obs-toggle');
+    var obsContent = document.getElementById('obs-content');
+    obsToggle.addEventListener('click', function () {
+      var open = obsContent.style.display !== 'none';
+      obsContent.style.display = open ? 'none' : '';
+      obsToggle.classList.toggle('obs-toggle--open', !open);
+      if (!open && !obsLoaded) loadObservatory();
+    });
+
+    var obsLoaded = false;
     var obsRefreshBtn = document.getElementById('obs-refresh-btn');
     var obsActivityBody = document.getElementById('obs-activity-body');
     var obsTimestamp = document.getElementById('obs-timestamp');
@@ -266,14 +853,15 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     };
 
     function updateObservatory(data) {
+      obsLoaded = true;
       // Activity table
       if (data.summary && data.summary.length > 0) {
         obsActivityBody.innerHTML = data.summary.map(function (r) {
           var statusClass = (r.status === 'error' || r.status === 'fail') ? ' class="obs-row--error"' : '';
-          return '<tr' + statusClass + '><td>' + esc(r.worker) + '</td><td>' + esc(r.status) + '</td><td>' + r.cnt + '</td></tr>';
+          return '<tr' + statusClass + '><td>' + esc(r.worker) + '</td><td>' + esc(r.status) + '</td><td style="text-align:right;">' + r.cnt + '</td></tr>';
         }).join('');
       } else {
-        obsActivityBody.innerHTML = '<tr><td colspan="3" class="obs-empty">No events in last 24h</td></tr>';
+        obsActivityBody.innerHTML = '<tr><td colspan="3" class="dash-empty">No events in last 24h</td></tr>';
       }
 
       // Alert cards
@@ -288,13 +876,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
           if (a.alert) {
             iconEl.textContent = '\u2717';
-            iconEl.className = 'seo-card__icon seo-card__icon--fail';
+            iconEl.className = 'obs-alert-card__icon obs-alert-card__icon--fail';
           } else if (a.error) {
             iconEl.textContent = '?';
-            iconEl.className = 'seo-card__icon';
+            iconEl.className = 'obs-alert-card__icon';
           } else {
             iconEl.textContent = '\u2713';
-            iconEl.className = 'seo-card__icon seo-card__icon--pass';
+            iconEl.className = 'obs-alert-card__icon obs-alert-card__icon--pass';
           }
           detailEl.textContent = a.message || '';
         }
@@ -309,7 +897,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           var p50 = Math.round(parseFloat(r.p50) || 0);
           var p95 = Math.round(parseFloat(r.p95) || 0);
           var max = Math.round(parseFloat(r.max_ms) || 0);
-          var p95Style = p95 > 5000 ? ' style="color:#c0392b;text-align:right;"' : p95 > 2000 ? ' style="color:#e67e22;text-align:right;"' : ' style="text-align:right;"';
+          var p95Style = p95 > 5000 ? ' style="color:var(--admin-error);text-align:right;"' : p95 > 2000 ? ' style="color:var(--admin-warning);text-align:right;"' : ' style="text-align:right;"';
           return '<tr><td>' + esc(r.worker) + '</td><td style="text-align:right;">' + p50 + 'ms</td><td' + p95Style + '>' + p95 + 'ms</td><td style="text-align:right;">' + max + 'ms</td><td style="text-align:right;">' + r.cnt + '</td></tr>';
         }).join('');
       } else {
@@ -330,12 +918,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         (data.duration_ms ? ' (' + data.duration_ms + 'ms)' : '');
     }
 
-    function esc(s) {
-      var el = document.createElement('span');
-      el.textContent = s || '';
-      return el.innerHTML;
-    }
-
     async function loadObservatory() {
       obsRefreshBtn.disabled = true;
       obsRefreshBtn.textContent = 'Loading...';
@@ -350,30 +932,44 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     }
 
     obsRefreshBtn.addEventListener('click', loadObservatory);
-    loadObservatory();
+
+    // --- Logout ---
+    document.getElementById('logout-btn').addEventListener('click', async function () {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+      window.location.href = '/login/';
+    });
+
+    // --- Init ---
+    fetchReport();
   })();
   </script>
 
 </BaseLayout>
 
 <style>
-  /* Reuse admin palette from backlinks */
+  /* Admin palette */
   :root {
     --admin-rose-700: #8a606e;
     --admin-rose-300: #c9a8b2;
+    --admin-rose-100: #f0e5e9;
     --admin-bg: #faf8f5;
     --admin-surface: #ffffff;
     --admin-border: #d9d3cc;
     --admin-text: #313131;
     --admin-text-faint: #949392;
+    --admin-bar-bg: #3d2a32;
+    --admin-success: #2D8A4E;
+    --admin-warning: #D4840A;
+    --admin-error: #C53030;
   }
 
   :global(.admin-page) :global(.site-header) { display: none; }
   :global(.admin-page) :global(footer) { display: none; }
 
+  /* Admin bar */
   .admin-bar {
-    background: #3d2a32;
-    color: #f0e5e9;
+    background: var(--admin-bar-bg);
+    color: var(--admin-rose-100);
     position: sticky;
     top: 0;
     z-index: 100;
@@ -448,85 +1044,288 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     color: #fff;
   }
 
-  .bl-section {
+  /* Dashboard section */
+  .dash-section {
     padding: var(--space-8) 0;
     background: var(--admin-bg);
     min-height: 80vh;
   }
 
-  .bl-header {
+  /* Header row */
+  .dash-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: var(--space-6);
+    gap: var(--space-4);
   }
-  .bl-header h1 {
+  .dash-header__left {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-4);
+  }
+  .dash-header__title {
     margin-bottom: 0;
     color: var(--admin-text);
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+  }
+  .dash-header__updated {
+    font-size: 0.8125rem;
+    color: var(--admin-text-faint);
+  }
+  .dash-header__right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
   }
 
-  /* SEO card grid */
-  .seo-grid {
-    grid-template-columns: repeat(4, 1fr);
+  /* Refresh button */
+  .dash-refresh-btn {
+    background: var(--admin-rose-700);
+    border-color: var(--admin-rose-700);
+    color: #fff;
+    font-size: 0.8125rem;
   }
-  @media (max-width: 800px) {
-    .seo-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
+  .dash-refresh-btn:hover {
+    background: #764d5e;
   }
-  @media (max-width: 500px) {
-    .seo-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  .bl-metrics {
-    display: grid;
-    gap: var(--space-4);
-    margin-bottom: var(--space-6);
+  .dash-refresh-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 
-  .bl-card {
+  /* Bell */
+  .dash-bell {
+    position: relative;
+  }
+  .dash-bell__btn {
+    background: none;
+    border: 1px solid var(--admin-border);
+    border-radius: var(--radius-sm);
+    padding: 6px 8px;
+    cursor: pointer;
+    color: var(--admin-text-faint);
+    display: flex;
+    align-items: center;
+    position: relative;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .dash-bell__btn:hover {
+    color: var(--admin-text);
+    border-color: var(--admin-rose-700);
+  }
+  .dash-bell__dot {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 8px;
+    height: 8px;
+    background: var(--admin-error);
+    border-radius: 50%;
+  }
+  .dash-bell__dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: var(--space-2);
     background: var(--admin-surface);
     border: 1px solid var(--admin-border);
     border-radius: var(--radius-md);
-    padding: var(--space-4) var(--space-5);
-    text-align: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    width: 320px;
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 50;
   }
-  .bl-card__label {
-    display: block;
+  .dash-bell__header {
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--admin-text-faint);
-    margin-bottom: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--admin-border);
   }
-
-  .seo-run-btn {
-    background: var(--admin-rose-700);
-    border-color: var(--admin-rose-700);
-    color: #fff;
-  }
-  .seo-run-btn:hover {
-    background: #764d5e;
-  }
-  .seo-run-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  .seo-timestamp {
+  .dash-bell__empty {
+    padding: var(--space-4);
+    text-align: center;
     font-size: 0.8125rem;
     color: var(--admin-text-faint);
-    text-align: right;
   }
 
-  /* Observatory section */
+  /* KPI strip */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+  .kpi-card {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4) var(--space-5);
+  }
+  .kpi-card__label {
+    display: block;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--admin-text-faint);
+    margin-bottom: var(--space-1);
+  }
+  .kpi-card__row {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+  }
+  .kpi-card__value {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--admin-text);
+    font-variant-numeric: tabular-nums;
+  }
+  .kpi-card__spark {
+    margin-top: var(--space-2);
+    height: 32px;
+  }
+
+  /* Cards */
+  .dash-card {
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4) var(--space-5);
+  }
+  .dash-card--full {
+    margin-bottom: var(--space-6);
+  }
+  .dash-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-4);
+  }
+  .dash-card__title {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--admin-text);
+    margin: 0;
+  }
+
+  /* Edit keywords button */
+  .dash-edit-kw-btn {
+    background: transparent;
+    border: 1px solid var(--admin-border);
+    color: var(--admin-text-faint);
+    font-size: 0.75rem;
+  }
+  .dash-edit-kw-btn:hover {
+    border-color: var(--admin-rose-700);
+    color: var(--admin-rose-700);
+  }
+
+  /* Tables */
+  .dash-table-wrap {
+    overflow-x: auto;
+  }
+  .dash-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+  }
+  .dash-table th {
+    text-align: left;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--admin-text-faint);
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid var(--admin-border);
+  }
+  .dash-table td {
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid #f0eeeb;
+    color: var(--admin-text);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+  }
+  .dash-table--compact td {
+    font-size: 0.75rem;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .dash-empty {
+    text-align: center;
+    color: var(--admin-text-faint);
+    font-style: italic;
+    font-family: 'Inter', sans-serif !important;
+    padding: var(--space-4) !important;
+  }
+
+  /* Three-column row */
+  .dash-three-col {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+
+  /* Two-column row */
+  .dash-two-col {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+
+  /* View all button */
+  .dash-view-all {
+    display: block;
+    width: 100%;
+    padding: var(--space-2);
+    margin-top: var(--space-3);
+    background: none;
+    border: 1px solid var(--admin-border);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    color: var(--admin-rose-700);
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.15s;
+  }
+  .dash-view-all:hover {
+    background: var(--admin-rose-100);
+  }
+
+  /* Observatory */
   .obs-section {
-    margin-top: var(--space-10);
-    padding-top: var(--space-8);
+    margin-top: var(--space-6);
+    padding-top: var(--space-6);
     border-top: 1px solid var(--admin-border);
+  }
+  .obs-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--admin-text);
+    padding: var(--space-2) 0;
+    margin-bottom: var(--space-4);
+  }
+  .obs-toggle__icon {
+    transition: transform 0.2s;
+  }
+  .obs-toggle--open .obs-toggle__icon {
+    transform: rotate(180deg);
   }
   .obs-alerts-row {
     display: grid;
@@ -537,61 +1336,363 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .obs-alerts-row--5 {
     grid-template-columns: repeat(5, 1fr);
   }
-  @media (max-width: 800px) {
-    .obs-alerts-row--5 { grid-template-columns: repeat(3, 1fr); }
+  .obs-alert-card {
+    text-align: center;
+    padding: var(--space-3) var(--space-4);
   }
-  @media (max-width: 600px) {
-    .obs-alerts-row, .obs-alerts-row--5 { grid-template-columns: repeat(2, 1fr); }
-  }
-  .obs-table-card {
-    margin-bottom: var(--space-6);
-    padding: var(--space-4) var(--space-5);
-  }
-  .obs-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.8125rem;
-  }
-  .obs-table th {
-    text-align: left;
+  .obs-alert-card__label {
+    display: block;
     font-size: 0.6875rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--admin-text-faint);
-    padding: var(--space-2) var(--space-3);
-    border-bottom: 1px solid var(--admin-border);
+    margin-bottom: var(--space-2);
   }
-  .obs-table td {
-    padding: var(--space-2) var(--space-3);
-    border-bottom: 1px solid #f0eeeb;
+  .obs-table-card {
+    margin-bottom: var(--space-6);
+  }
+  .obs-sub-heading {
+    font-size: 0.875rem;
     color: var(--admin-text);
-    font-family: 'SF Mono', 'Fira Code', monospace;
-    font-size: 0.75rem;
+    margin: 0 0 var(--space-3);
+  }
+  .obs-sub-heading--error {
+    color: var(--admin-error);
   }
   .obs-row--error td {
-    color: #c0392b;
+    color: var(--admin-error);
   }
-  .obs-empty {
-    text-align: center;
+
+  .dash-timestamp {
+    font-size: 0.8125rem;
     color: var(--admin-text-faint);
-    font-style: italic;
-    font-family: inherit;
+    text-align: right;
   }
-  .obs-errors-heading {
-    font-size: 0.875rem;
-    color: #c0392b;
-    margin: 0 0 var(--space-3);
+
+  /* Keyword modal */
+  .kw-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-4);
   }
-  .obs-latency-heading {
+  .kw-modal {
+    background: var(--admin-surface);
+    border-radius: var(--radius-md);
+    width: 100%;
+    max-width: 600px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  }
+  .kw-modal__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--admin-border);
+  }
+  .kw-modal__title {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--admin-text);
+  }
+  .kw-modal__close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--admin-text-faint);
+    cursor: pointer;
+    line-height: 1;
+  }
+  .kw-modal__body {
+    padding: var(--space-4) var(--space-5);
+    overflow-y: auto;
+    flex: 1;
+  }
+  .kw-modal__list-section {
+    margin-bottom: var(--space-5);
+  }
+  .kw-modal__list-title {
     font-size: 0.875rem;
+    font-weight: 600;
     color: var(--admin-text);
     margin: 0 0 var(--space-3);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .kw-modal__count {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--admin-text-faint);
+  }
+  .kw-modal__add {
+    background: transparent;
+    border: 1px dashed var(--admin-border);
+    color: var(--admin-text-faint);
+    font-size: 0.75rem;
+    width: 100%;
+    padding: var(--space-2);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    margin-top: var(--space-2);
+  }
+  .kw-modal__add:hover {
+    border-color: var(--admin-rose-700);
+    color: var(--admin-rose-700);
+  }
+  .kw-modal__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
+    border-top: 1px solid var(--admin-border);
+  }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    .admin-bar__nav { display: none; }
+    .kpi-strip {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .dash-three-col {
+      grid-template-columns: 1fr;
+    }
+    /* Traffic alerts first on mobile */
+    #traffic-alerts-section { order: -1; }
+    .dash-two-col {
+      grid-template-columns: 1fr;
+    }
+    .obs-alerts-row--5 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .dash-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .dash-header__left {
+      flex-direction: column;
+      gap: var(--space-1);
+    }
+    .kpi-card__value {
+      font-size: 1.25rem;
+    }
+  }
+  @media (max-width: 500px) {
+    .kpi-strip {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .obs-alerts-row, .obs-alerts-row--5 {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 </style>
 
 <style is:global>
-  .seo-card__icon {
+  /* Delta badges */
+  .kpi-delta {
+    font-size: 0.75rem;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+  }
+  .delta--good {
+    color: #2D8A4E;
+  }
+  .delta--bad {
+    color: #C53030;
+  }
+  .delta--neutral {
+    color: #949392;
+  }
+
+  /* Sparkline */
+  .sparkline-svg {
+    width: 100%;
+    height: 32px;
+    display: block;
+  }
+
+  /* Tier badge */
+  .tier-badge {
+    display: inline-block;
+    font-size: 0.625rem;
+    font-weight: 700;
+    width: 22px;
+    height: 22px;
+    line-height: 22px;
+    text-align: center;
+    border-radius: 50%;
+    text-transform: uppercase;
+  }
+  .tier-badge--active {
+    background: #2D8A4E;
+    color: #fff;
+  }
+  .tier-badge--watch {
+    background: #D4840A;
+    color: #fff;
+  }
+
+  /* SERP feature badge */
+  .serp-badge {
+    display: inline-block;
+    font-size: 0.625rem;
+    font-weight: 500;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: #f0e5e9;
+    color: #8a606e;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  /* Health dots */
+  .health-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid #f0eeeb;
+  }
+  .health-row:last-child {
+    border-bottom: none;
+  }
+  .health-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .health-dot--ok {
+    background: #2D8A4E;
+  }
+  .health-dot--fail {
+    background: #C53030;
+  }
+  .health-row__name {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #313131;
+    text-transform: capitalize;
+    min-width: 80px;
+  }
+  .health-row__detail {
+    font-size: 0.75rem;
+    color: #949392;
+    flex: 1;
+    text-align: right;
+    word-break: break-word;
+  }
+
+  /* Worker health rows */
+  .worker-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid #f0eeeb;
+  }
+  .worker-row:last-child {
+    border-bottom: none;
+  }
+  .worker-row__label {
+    font-size: 0.8125rem;
+    color: #313131;
+  }
+  .worker-row__value {
+    font-size: 0.8125rem;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    color: #949392;
+  }
+  .worker-row__value--ok {
+    color: #2D8A4E;
+  }
+  .worker-row__value--warn {
+    color: #D4840A;
+  }
+
+  /* Alert items */
+  .dash-alert-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid #f0eeeb;
+  }
+  .dash-alert-item:last-child {
+    border-bottom: none;
+  }
+  .dash-alert-item__path {
+    font-size: 0.75rem;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    color: #313131;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .dash-alert-item__views {
+    font-size: 0.75rem;
+    color: #949392;
+    white-space: nowrap;
+  }
+  .dash-alert-item__delta {
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  /* Bell dropdown items */
+  .dash-bell__item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid #f0eeeb;
+  }
+  .dash-bell__item:last-child {
+    border-bottom: none;
+  }
+  .dash-bell__item-text {
+    font-size: 0.8125rem;
+    color: #313131;
+    flex: 1;
+    line-height: 1.4;
+  }
+  .dash-bell__item-text strong {
+    font-weight: 600;
+    word-break: break-word;
+  }
+  .dash-bell__item-detail {
+    font-size: 0.75rem;
+    color: #949392;
+  }
+  .dash-bell__dismiss {
+    background: none;
+    border: none;
+    font-size: 1.125rem;
+    color: #949392;
+    cursor: pointer;
+    padding: 0 var(--space-1);
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .dash-bell__dismiss:hover {
+    color: #C53030;
+  }
+
+  /* Observatory alert card icons (dynamic) */
+  .obs-alert-card__icon {
     display: block;
     font-size: 2rem;
     font-weight: 700;
@@ -599,18 +1700,72 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     margin-bottom: var(--space-1);
     line-height: 1.2;
   }
-  .seo-card__icon--pass {
-    color: #27ae60;
+  .obs-alert-card__icon--pass {
+    color: #2D8A4E;
   }
-  .seo-card__icon--fail {
-    color: #c0392b;
+  .obs-alert-card__icon--fail {
+    color: #C53030;
   }
-  .seo-card__detail {
+  .obs-alert-card__detail {
     display: block;
     font-size: 0.75rem;
     color: #636261;
     line-height: 1.4;
     word-break: break-word;
     white-space: normal;
+  }
+
+  /* Keyword modal rows (dynamic) */
+  .kw-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+  }
+  .kw-row__input {
+    flex: 1;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid #d9d3cc;
+    border-radius: 4px;
+    font-size: 0.8125rem;
+    font-family: 'Inter', sans-serif;
+    color: #313131;
+  }
+  .kw-row__input:focus {
+    outline: none;
+    border-color: #8a606e;
+  }
+  .kw-row__toggle {
+    background: #f0e5e9;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.625rem;
+    font-weight: 700;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    color: #8a606e;
+    transition: background 0.15s;
+  }
+  .kw-row__toggle:hover {
+    background: #c9a8b2;
+    color: #fff;
+  }
+  .kw-row__delete {
+    background: none;
+    border: none;
+    font-size: 1.125rem;
+    color: #949392;
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+  }
+  .kw-row__delete:hover {
+    color: #C53030;
+  }
+
+  /* Alerts list in card */
+  .dash-alerts-list {
+    min-height: 60px;
   }
 </style>
