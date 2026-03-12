@@ -20,7 +20,7 @@ All free or free-tier. No Ahrefs dependency.
 |--------|-----------------|------|
 | CF Analytics GraphQL | Traffic, pageviews, cache rate, status codes, per-path breakdowns | CF API token (existing) |
 | Google Search Console API | Clicks, impressions, CTR, position, top queries, top pages | OAuth (new, refresh token in KV) |
-| Brave Search API | SERP position tracking for tracked keywords, SERP feature detection | API key |
+| SERP API (Serper.dev) | SERP position tracking for tracked keywords, SERP feature detection. 2,500 free searches/month. Fallback: Brave Search API ($5/1K requests, $5 monthly credit) | API key |
 | Google Autocomplete | Keyword discovery (related queries, trending). Phase 2 stretch goal -- undocumented endpoint, unreliable from Worker IPs | None |
 | Existing health checks | 7 site health checks (pages, sitemap, robots, llms.txt, schema, backlinks, headers) | N/A |
 
@@ -42,9 +42,13 @@ Data Sources ──► seo-monitor Worker ──► KV Storage
 
 | Cron | Schedule | What |
 |------|----------|------|
-| Spike detection | `*/30 * * * *` | CF Analytics `httpRequestsAdaptiveGroups` for per-path pageviews (last 60 minutes to account for ~15-min data lag). Compare vs 7-day rolling average. Alert if any page exceeds 3x baseline. 48 invocations/day |
-| Daily collection | `0 6 * * *` | Full data pull: CF Analytics, GSC, Brave SERP tracking (Active keywords). Store snapshot. Send daily email report via SES |
-| Weekly crawl + digest | `0 14 * * 6` | Broken link crawl + Brave SERP tracking (Watchlist keywords). Weekly email digest |
+| Spike detection | `*/30 * * * *` | CF Analytics `httpRequestsAdaptiveGroups` for per-path pageviews (last 30 minutes -- accepts ~15-min data lag, catches spikes within ~45 min). Compare vs 7-day rolling average. Alert if any page exceeds 3x baseline. 48 invocations/day. Does NOT run health checks or send daily reports -- isolated path |
+| Daily collection | `0 6 * * *` | Full data pull: CF Analytics, GSC, Serper SERP tracking (Active keywords). Store snapshot. Send daily email report via SES |
+| Weekly crawl + digest | `0 14 * * 6` | Broken link crawl + Serper SERP tracking (Watchlist keywords). Weekly email digest |
+
+**Cron isolation:** Each cron path is independent. When `*/30` fires at 06:00 UTC (same minute as daily), CF Workers fires them as separate invocations. The `scheduled()` handler routes by `event.cron` string match -- spike detection never runs health checks or sends the daily report.
+
+**CPU budget note:** Daily cron runs health checks + CF Analytics + GSC + Serper keyword loop + SES email. With 15 Active keywords at 1s delay each, wall time approaches 20s. If this nears the 30s Workers Paid CPU limit, split keyword checks across spike detection invocations (piggyback 2-3 keywords per 30-min cycle throughout the day).
 
 ### KV Storage Schema
 
@@ -60,6 +64,42 @@ All data stored in the existing `BASELINES` KV namespace.
 | `last_results` | Most recent check results (existing) | Overwritten |
 | `last_crawl` | Most recent crawl results (existing) | Overwritten |
 | `alerts:active` | Currently active alerts for bell icon | Overwritten |
+
+### `/api/report` Response Shape
+
+```json
+{
+  "snapshot": {
+    "date": "2026-03-12",
+    "traffic": {
+      "visitors": 1200, "pageviews": 4800, "cacheRate": 0.92,
+      "topPages": [{ "path": "/library/", "clicks": 142, "impressions": 18200 }],
+      "topQueries": [{ "query": "rrm academy", "clicks": 84, "position": 1.2 }]
+    },
+    "gsc": {
+      "clicks": 558, "impressions": 62000, "ctr": 0.009, "position": 6.9,
+      "clicksDelta": 0.12, "impressionsDelta": 0.08, "ctrDelta": 0, "positionDelta": -0.3
+    },
+    "keywords": [
+      { "keyword": "restorative reproductive medicine", "tier": "active", "position": 3, "change": 2, "url": "/library/...", "features": ["paa"] }
+    ],
+    "health": { "ok": true, "checks": [{ "name": "pages", "ok": true, "detail": "..." }] }
+  },
+  "sparklines": {
+    "clicks": [558, 542, 530], "impressions": [62000, 61200, 59800],
+    "ctr": [0.009, 0.0089], "position": [6.9, 7.2], "visitors": [1200, 1150]
+  },
+  "alerts": [
+    { "id": "spike-2026-03-12-08", "type": "spike", "page": "/library/endometriosis-...", "magnitude": 3.4, "timestamp": "..." }
+  ],
+  "worker": {
+    "lastDaily": "2026-03-12T06:02:14Z", "lastSpike": "2026-03-12T07:30:01Z",
+    "lastWeekly": "2026-03-08T14:01:22Z", "kvDays": 42, "gscConnected": true
+  }
+}
+```
+
+**Note:** "Visitors" comes from CF Analytics `uniq` field in `httpRequests1dGroups` -- this is an estimate, not exact.
 
 ### New API Endpoints
 
@@ -93,7 +133,7 @@ The existing `functions/api/admin/seo.js` in rrm-academy-cf proxies to the seo-m
 | `google-auth` | GET | `/api/auth/google` (redirect) |
 | `google-callback` | GET | `/api/auth/google/callback` |
 
-The proxy needs `onRequest` (catch-all) instead of `onRequestGet` to handle PUT/POST methods. Method discrimination happens in the switch: `action=keywords` with PUT method routes to the PUT endpoint.
+Keep `onRequestOptions` for CORS preflight. Add `onRequestPut` and `onRequestPost` handlers alongside existing `onRequestGet` (CF Pages Functions resolves method-specific handlers before catch-all, so CORS preflight is safe). Each handler reads `?action=` and routes accordingly.
 
 The existing `cached` action is replaced by `report`. The old `check` and `baseline` actions remain for backward compatibility during transition.
 
@@ -118,21 +158,21 @@ Two tiers, configurable from the admin page.
 
 | Tier | Check frequency | Purpose |
 |------|----------------|---------|
-| Active | Daily (via Brave Search API) | Core keywords you're actively optimizing for |
+| Active | Daily (via Serper API) | Core keywords you're actively optimizing for |
 | Watchlist | Weekly (Saturday crawl) | Keywords you're monitoring but not actively targeting |
 
 Initial Active keywords (from existing seo-dashboard config): `restorative reproductive medicine`, `naprotechnology courses`, `rrm academy`, `napro technology`, `fertility awareness methods education`, `restorative reproductive medicine training`, `rrm physician training`, `natural fertility treatment`
 
-Brave Search API: 1 request per keyword with 1-second delay between. Extracts position, URL, SERP features (featured snippet, PAA, knowledge panel).
+Serper API: 1 request per keyword. Extracts position, URL, SERP features (featured snippet, PAA, knowledge panel). Returns structured JSON (no HTML parsing needed).
 
-**Free tier limit:** Brave free plan allows 2,000 queries/month. With 8 Active keywords daily (240/month) plus Watchlist weekly, this fits comfortably. **Cap Active keywords at 15** to stay within the free tier as the list grows.
+**Free tier:** Serper.dev offers 2,500 free searches/month. With 15 Active keywords daily (450/month) plus Watchlist weekly, this fits comfortably. **Cap Active keywords at 15, Watchlist at 30** to stay within the free tier. If Serper changes pricing, Brave Search API ($5/1K requests, $5 monthly credit) is the fallback.
 
 ## Spike Detection
 
 Every 30 minutes via cron.
 
-1. Query CF Analytics GraphQL `httpRequestsAdaptiveGroups` for per-path pageviews in the last 60 minutes (wider window accounts for ~15-minute data delivery lag)
-2. Compare each path against its 7-day rolling average for the same time window
+1. Query CF Analytics GraphQL `httpRequestsAdaptiveGroups` for per-path pageviews in the last 30 minutes (accepts ~15-min data lag -- spikes detected within ~45 min total, which is honest for a 30-min cron)
+2. Compare each path against its 7-day rolling average for the same 30-minute time-of-day window
 3. If any page exceeds 3x its baseline, trigger email alert via SES
 4. Alert includes: page path, current views, baseline average, percentage increase
 5. Dedup: don't re-alert for the same page within 6 hours
@@ -148,7 +188,9 @@ Every 30 minutes via cron.
 
 SES sending: reuse the existing SES pattern from rrm-observatory (aws4fetch, `@mail.rrmacademy.org` sender). Recipient: `administrator@rrmacademy.org` (hardcoded, same as observatory alerts).
 
-**Graceful degradation:** If Brave API is down/rate-limited during daily collection, keyword section shows last-known positions with a "stale" indicator. GSC failures show "GSC unavailable" with last-known data. Dashboard never shows empty sections -- always falls back to last successful data.
+**Graceful degradation:** If Serper API is down/rate-limited during daily collection, keyword section shows last-known positions with a "stale" indicator. GSC failures show "GSC unavailable" with last-known data. Dashboard never shows empty sections -- always falls back to last successful data.
+
+**Daily email format:** HTML email with inline styles (no external CSS -- email clients strip it). Mirrors the dashboard layout: KPI summary row, keyword changes table, top pages/queries tables, health status. Rendered server-side in the Worker using template literals. Plain text fallback for email clients that strip HTML.
 
 ## Admin Page Design
 
@@ -185,7 +227,7 @@ Top Pages and Top Queries move behind "View all" drill-down on mobile to reduce 
 
 ### Edit Keywords UI
 
-"Edit keywords" button opens a modal with two lists (Active/Watchlist). Each keyword has a text input and tier toggle. Add/remove buttons. Save triggers PUT to `?action=keywords`. Active keyword count capped at 15 (Brave free tier). No separate page.
+"Edit keywords" button opens a modal overlay with two lists (Active/Watchlist). Each keyword row: text input + delete button. Tier toggle (A/W) to move between lists. "Add keyword" button at bottom of each list. Save triggers PUT to `?action=keywords`. Active capped at 15, Watchlist at 30 (Serper free tier budget). Client-side validation shows count remaining. No separate page.
 
 ### Design Tokens
 
@@ -205,7 +247,7 @@ Uses existing admin palette from rrm-academy-cf:
 
 | Secret | Worker | Purpose |
 |--------|--------|---------|
-| `BRAVE_API_KEY` | seo-monitor | Brave Search API for SERP tracking |
+| `SERPER_API_KEY` | seo-monitor | Serper.dev API for SERP tracking (fallback: Brave Search API) |
 | `CF_API_TOKEN` | seo-monitor | CF Analytics GraphQL (zone:analytics:read) |
 | `CF_ZONE_ID` | seo-monitor | Zone ID for rrmacademy.org |
 | `GOOGLE_CLIENT_ID` | seo-monitor | GSC OAuth |
