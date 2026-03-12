@@ -258,9 +258,15 @@ Endo survey splits PII from health data across two systems:
 
 `webhook_event` table in D1 stores Stripe `event.id` on first processing. `INSERT OR IGNORE` skips duplicates on retries. Prevents duplicate welcome emails and account creation.
 
-## Semantic Search Rate Limiting
+## Semantic Search
 
-`/api/search/semantic.js` has IP-based rate limiting (20 req/min per IP via `cf-connecting-ip`). Per-isolate (resets on cold start). Protects billed AI.run() and Vectorize.query() calls.
+**Architecture:** Pagefind (client-side full-text, instant) + Vectorize (server-side semantic, ~200ms) merged via **Reciprocal Rank Fusion** (RRF) in `SearchBar.astro`. Score = `sum(1/(60+rank))` across both systems. Items in both lists get boosted. 300ms timeout for semantic; late results append as addenda.
+
+**Embedding pipeline:** `scripts/embed-library-ci.mjs` runs post-deploy in CI (REST API). `scripts/embed-library.mjs` for local use (Worker bindings). Both embed all content types: articles (enriched with Topics/SearchTerms/Domain/abstract), posts (full content), FAQs (full answers), courses (section titles). Model: `@cf/baai/bge-base-en-v1.5`.
+
+**Vectorize metadata constraint:** Values must be strings, numbers, booleans, or string arrays. `null` is rejected with 400. Filter nulls before upsert (e.g., omit `year` when null).
+
+**Rate limiting:** `/api/search/semantic.js` has IP-based rate limiting (20 req/min per IP via `cf-connecting-ip`). Per-isolate (resets on cold start). Query length capped at 500 chars. Protects billed AI.run() and Vectorize.query() calls.
 
 ## CI Deploy Guard
 
