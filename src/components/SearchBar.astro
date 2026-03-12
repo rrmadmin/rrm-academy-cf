@@ -344,75 +344,101 @@
     resultsEl.innerHTML = '<p class="sr-loading">Searching\u2026</p>';
     positionResultsPanel();
     try {
-      // Fire semantic search in background -- don't block Pagefind rendering
+      // Fire both searches in parallel
       var semanticPromise = fetch('/api/search/semantic?q=' + encodeURIComponent(query))
         .then(function(r) { return r.json(); })
         .catch(function() { return { results: [] }; });
 
-      // Get Pagefind results first
       var pf = await ensurePagefind();
       var search = await pf.search(query);
-      if (query !== currentQuery) return; // stale
-      totalCount = search.results.length;
+      if (query !== currentQuery) return;
       currentResults = search.results;
-      shown = 0;
-      isFirstPage = true;
-      resultsEl.innerHTML = '';
 
-      // Pre-load top results so we can sort by recency within relevance tiers
+      // Pre-load top Pagefind results for metadata access
       var toPreload = search.results.slice(0, PRELOAD_CAP);
-      var loaded = await Promise.all(
+      var pfLoaded = await Promise.all(
         toPreload.map(function(r, i) {
           return r.data().then(function(d) {
-            d._relevanceRank = i;
+            d._pfRank = i;
+            // Non-English penalty: push far down the Pagefind ranking
+            if (isNonEnglish(d.meta && d.meta.title)) d._pfRank += 1000;
             return d;
           });
         })
       );
-      if (query !== currentQuery) return; // stale after async
+      if (query !== currentQuery) return;
 
-      // Sort: relevance tier, then penalties, then recency
-      // Penalties: non-English pushed to end; year 1900/missing pushed to bottom of tier
-      loaded.sort(function(a, b) {
-        var tierA = Math.floor(a._relevanceRank / 5);
-        var tierB = Math.floor(b._relevanceRank / 5);
-        if (isNonEnglish(a.meta && a.meta.title)) tierA += 100;
-        if (isNonEnglish(b.meta && b.meta.title)) tierB += 100;
-        if (tierA !== tierB) return tierA - tierB;
-        var yearA = parseInt(a.meta && a.meta.year) || 0;
-        var yearB = parseInt(b.meta && b.meta.year) || 0;
-        // Treat 1900 as missing year -- push to bottom
-        if (yearA <= 1900) yearA = 0;
-        if (yearB <= 1900) yearB = 0;
-        var hasYearA = yearA > 0 ? 0 : 1;
-        var hasYearB = yearB > 0 ? 0 : 1;
-        if (hasYearA !== hasYearB) return hasYearA - hasYearB;
-        return yearB - yearA;
-      });
+      // Wait for semantic with 300ms timeout (Pagefind is already done)
+      var semanticData = await Promise.race([
+        semanticPromise,
+        new Promise(function(resolve) { setTimeout(function() { resolve(null); }, 300); })
+      ]);
+      if (query !== currentQuery) return;
 
-      preloadedData = loaded;
-      totalCount = loaded.length;
+      var semanticResults = (semanticData && semanticData.results || []).filter(function(sr) { return sr.score >= 0.5; });
+
+      // --- Reciprocal Rank Fusion ---
+      // RRF score = sum(1 / (K + rank)) across both systems
+      // Items appearing in both lists get boosted; single-source items still included
+      var RRF_K = 60;
+      var fusedMap = {}; // url -> { score, data }
+
+      // Score Pagefind results
+      for (var pi = 0; pi < pfLoaded.length; pi++) {
+        var pItem = pfLoaded[pi];
+        var pUrl = pItem.url;
+        fusedMap[pUrl] = {
+          score: 1 / (RRF_K + pItem._pfRank),
+          data: pItem
+        };
+      }
+
+      // Score and merge semantic results
+      for (var si = 0; si < semanticResults.length; si++) {
+        var sItem = semanticResults[si];
+        var sUrl = sItem.url;
+        var sRank = si;
+        if (isNonEnglish(sItem.title)) sRank += 1000;
+
+        var matchKey = fusedMap[sUrl] ? sUrl : null;
+
+        if (matchKey) {
+          // Boost existing result -- appears in both systems
+          fusedMap[matchKey].score += 1 / (RRF_K + sRank);
+          // Enrich with type from semantic if Pagefind lacks it
+          if (!fusedMap[matchKey].data.meta.type && sItem.type) {
+            fusedMap[matchKey].data.meta.type = sItem.type;
+          }
+        } else {
+          // Semantic-only result -- still valuable for intent matches Pagefind missed
+          fusedMap[sUrl] = {
+            score: 1 / (RRF_K + sRank),
+            data: {
+              url: sUrl, excerpt: '',
+              meta: { title: sItem.title, authors: sItem.authors || '', year: sItem.year ? String(sItem.year) : '', type: sItem.type || 'Research' },
+              _pfRank: -1
+            }
+          };
+        }
+      }
+
+      // Sort by fused RRF score descending
+      var fusedList = [];
+      for (var fKey in fusedMap) {
+        fusedList.push(fusedMap[fKey]);
+      }
+      fusedList.sort(function(a, b) { return b.score - a.score; });
+
+      preloadedData = fusedList.map(function(f) { return f.data; });
+      totalCount = preloadedData.length;
+      shown = 0;
+      isFirstPage = true;
+      resultsEl.innerHTML = '';
 
       if (totalCount === 0) {
-        // No Pagefind results -- wait for semantic before showing "no results"
-        var semanticData = await semanticPromise;
-        if (query !== currentQuery) return;
-        var semanticResults = (semanticData.results || []).filter(function(sr) { return sr.score >= 0.6; });
-        if (semanticResults.length === 0) {
-          resultsEl.innerHTML = '<p class="sr-empty">No results found for \u201c' + escHtml(query) + '\u201d</p>';
-          positionResultsPanel();
-          return;
-        }
-        // Only semantic results
-        for (var sk = 0; sk < semanticResults.length; sk++) {
-          var sr2 = semanticResults[sk];
-          preloadedData.push({
-            url: sr2.url, excerpt: '',
-            meta: { title: sr2.title, authors: sr2.authors || '', year: sr2.year ? String(sr2.year) : '', type: sr2.type || 'Research' },
-            _relevanceRank: 999
-          });
-        }
-        totalCount = preloadedData.length;
+        resultsEl.innerHTML = '<p class="sr-empty">No results found for \u201c' + escHtml(query) + '\u201d</p>';
+        positionResultsPanel();
+        return;
       }
 
       var countEl = document.createElement('p');
@@ -422,44 +448,44 @@
       await loadMore();
       positionResultsPanel();
 
-      // Merge semantic results in background after initial render
-      semanticPromise.then(function(semanticData) {
-        if (query !== currentQuery) return;
-        var pfSlugs = {};
-        for (var si = 0; si < preloadedData.length; si++) {
-          pfSlugs[extractSlug(preloadedData[si].url)] = true;
-        }
-        var added = 0;
-        var semanticResults = (semanticData.results || []);
-        for (var sj = 0; sj < semanticResults.length; sj++) {
-          var sr = semanticResults[sj];
-          if (sr.score < 0.6) continue;
-          if (pfSlugs[sr.slug]) continue;
-          preloadedData.push({
-            url: sr.url, excerpt: '',
-            meta: { title: sr.title, authors: sr.authors || '', year: sr.year ? String(sr.year) : '', type: sr.type || 'Research' },
-            _relevanceRank: 999
-          });
-          added++;
-        }
-        if (added > 0) {
-          totalCount = preloadedData.length;
-          // Update count display
-          var countDisplay = resultsEl.querySelector('.sr-count');
-          if (countDisplay) countDisplay.textContent = totalCount + ' result' + (totalCount === 1 ? '' : 's');
-          // Update "Show more" button if visible
-          var moreBtn = resultsEl.querySelector('.sr-more');
-          if (moreBtn && shown < totalCount) {
-            moreBtn.textContent = 'Show more (' + (totalCount - shown) + ' remaining)';
-          } else if (!moreBtn && shown < totalCount) {
-            var btn = document.createElement('button');
-            btn.className = 'sr-more';
-            btn.textContent = 'Show more (' + (totalCount - shown) + ' remaining)';
-            btn.addEventListener('click', function() { loadMore(); });
-            resultsEl.appendChild(btn);
+      // If semantic timed out, merge late-arriving results as addenda
+      if (!semanticData) {
+        semanticPromise.then(function(lateData) {
+          if (query !== currentQuery) return;
+          var lateResults = (lateData && lateData.results || []).filter(function(sr) { return sr.score >= 0.5; });
+          var existingUrls = {};
+          for (var ei = 0; ei < preloadedData.length; ei++) {
+            existingUrls[preloadedData[ei].url] = true;
+            existingUrls[extractSlug(preloadedData[ei].url)] = true;
           }
-        }
-      });
+          var added = 0;
+          for (var li = 0; li < lateResults.length; li++) {
+            var lr = lateResults[li];
+            if (existingUrls[lr.url] || existingUrls[lr.slug]) continue;
+            preloadedData.push({
+              url: lr.url, excerpt: '',
+              meta: { title: lr.title, authors: lr.authors || '', year: lr.year ? String(lr.year) : '', type: lr.type || 'Research' },
+              _pfRank: -1
+            });
+            added++;
+          }
+          if (added > 0) {
+            totalCount = preloadedData.length;
+            var countDisplay = resultsEl.querySelector('.sr-count');
+            if (countDisplay) countDisplay.textContent = totalCount + ' result' + (totalCount === 1 ? '' : 's');
+            var moreBtn = resultsEl.querySelector('.sr-more');
+            if (moreBtn && shown < totalCount) {
+              moreBtn.textContent = 'Show more (' + (totalCount - shown) + ' remaining)';
+            } else if (!moreBtn && shown < totalCount) {
+              var btn = document.createElement('button');
+              btn.className = 'sr-more';
+              btn.textContent = 'Show more (' + (totalCount - shown) + ' remaining)';
+              btn.addEventListener('click', function() { loadMore(); });
+              resultsEl.appendChild(btn);
+            }
+          }
+        });
+      }
     } catch(e) {
       resultsEl.innerHTML = '<p class="sr-empty">Search unavailable</p>';
       positionResultsPanel();
@@ -469,18 +495,7 @@
   async function loadMore() {
     var pageSize = isFirstPage ? INITIAL_PAGE : PER_PAGE;
     isFirstPage = false;
-    var batch;
-    if (shown < preloadedData.length) {
-      // Use pre-sorted data
-      batch = preloadedData.slice(shown, shown + pageSize);
-    } else {
-      // Beyond preloaded range — fall back to lazy loading (original relevance order)
-      var rawBatch = currentResults.slice(shown, shown + pageSize);
-      batch = [];
-      for (var i = 0; i < rawBatch.length; i++) {
-        batch.push(await rawBatch[i].data());
-      }
-    }
+    var batch = preloadedData.slice(shown, shown + pageSize);
     var fragment = document.createDocumentFragment();
     for (var j = 0; j < batch.length; j++) {
       fragment.appendChild(renderResult(batch[j]));

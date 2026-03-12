@@ -49,12 +49,17 @@ const courses = loadJSON('courses.json');
 function buildEntries() {
   const entries = [];
 
-  // Library articles
+  // Library articles -- enrich with AI-generated metadata for better semantic matching
   for (const a of articles) {
     if (!a.slug || !a.title) continue;
+    const parts = [a.title];
+    if (a.domain) parts.push(`Domain: ${a.domain}`);
+    if (a.topics && a.topics.length) parts.push(`Topics: ${a.topics.join('; ')}`);
+    if (a.searchTerms && a.searchTerms.length) parts.push(a.searchTerms.join(', '));
+    if (a.abstract) parts.push(a.abstract);
     entries.push({
       slug: a.slug,
-      text: a.title + '. ' + (a.abstract || ''),
+      text: parts.join('. '),
       type: 'Research',
       url: `/library/${a.slug}/`,
       title: a.title,
@@ -63,12 +68,16 @@ function buildEntries() {
     });
   }
 
-  // Commentary posts
+  // Commentary posts -- use full content for richer embeddings
   for (const p of posts) {
     if (!p.slug || !p.title) continue;
+    const parts = [p.title];
+    if (p.seoKeywords) parts.push(p.seoKeywords);
+    if (p.excerpt) parts.push(p.excerpt);
+    if (p.content) parts.push(p.content.replace(/[#*_\[\]()]/g, ' ').replace(/\s+/g, ' '));
     entries.push({
       slug: `post-${p.slug}`,
-      text: p.title + '. ' + (p.excerpt || ''),
+      text: parts.join('. '),
       type: 'Article',
       url: `/commentary/${p.slug}/`,
       title: p.title,
@@ -77,12 +86,16 @@ function buildEntries() {
     });
   }
 
-  // FAQs
+  // FAQs -- embed full answer for intent matching
   for (const f of faqs) {
     if (!f.slug || !f.question) continue;
+    const parts = [f.question];
+    if (f.category) parts.push(`Category: ${f.category}`);
+    if (f.publishedAnswer) parts.push(f.publishedAnswer.replace(/[#*_\[\]()]/g, ' ').replace(/\s+/g, ' '));
+    else if (f.basicAnswer) parts.push(f.basicAnswer);
     entries.push({
       slug: `faq-${f.slug}`,
-      text: f.question + '. ' + (f.basicAnswer || f.publishedAnswer || ''),
+      text: parts.join('. '),
       type: 'FAQ',
       url: `/faqs/${f.slug}/`,
       title: f.question,
@@ -91,12 +104,19 @@ function buildEntries() {
     });
   }
 
-  // Courses
+  // Courses -- include section titles for topic coverage
   for (const c of courses) {
     if (!c.slug || !c.title) continue;
+    const parts = [c.title];
+    if (c.description) parts.push(c.description);
+    if (c.sections) {
+      const sectionTitles = c.sections.map(s => s.title || '').filter(Boolean);
+      if (sectionTitles.length) parts.push('Sections: ' + sectionTitles.join(', '));
+    }
+    if (c.seo && c.seo.keywords) parts.push(c.seo.keywords);
     entries.push({
       slug: `course-${c.slug}`,
-      text: c.title + '. ' + (c.description || c.shortDescription || ''),
+      text: parts.join('. '),
       type: 'Course',
       url: `/courses/${c.slug}/`,
       title: c.title,
@@ -111,6 +131,11 @@ function buildEntries() {
 const entries = buildEntries();
 console.log(`Content: ${articles.length} articles, ${posts.length} posts, ${faqs.length} FAQs, ${courses.length} courses`);
 console.log(`Total entries to embed: ${entries.length}`);
+
+if (articles.length < 2500) {
+  console.error(`ABORT: Expected >= 2500 articles but found ${articles.length}. Is articles.json missing or truncated?`);
+  process.exit(1);
+}
 
 // --- Vector ID (same logic as embed-library.mjs) ---
 
@@ -182,18 +207,17 @@ for (let i = 0; i < entries.length; i += BATCH_SIZE) {
   const texts = batch.map(e => e.text.slice(0, MAX_TEXT_LEN));
   const embeddings = await getEmbeddings(texts);
 
-  const vectors = batch.map((e, idx) => ({
-    id: vectorId(e.slug),
-    values: embeddings[idx],
-    metadata: {
+  const vectors = batch.map((e, idx) => {
+    const metadata = {
       slug: e.slug,
       title: e.title,
-      year: e.year,
       authors: e.authors,
       type: e.type,
       url: e.url,
-    },
-  }));
+    };
+    if (e.year != null) metadata.year = e.year;
+    return { id: vectorId(e.slug), values: embeddings[idx], metadata };
+  });
 
   await upsertVectors(vectors);
 
