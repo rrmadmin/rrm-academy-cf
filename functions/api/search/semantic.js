@@ -25,6 +25,10 @@ export async function onRequestGet(context) {
     return Response.json({ results: [] });
   }
 
+  if (query.length > 500) {
+    return Response.json({ results: [], error: 'query_too_long' }, { status: 400 });
+  }
+
   // Rate limit by IP to protect billed AI/Vectorize calls
   const ip = request.headers.get('cf-connecting-ip') || 'unknown';
   if (isRateLimited(ip)) {
@@ -36,7 +40,8 @@ export async function onRequestGet(context) {
     const embedding = await env.AI.run('@cf/baai/bge-base-en-v1.5', {
       text: [query],
     });
-    const queryVector = embedding.data[0];
+    const queryVector = embedding.data?.[0];
+    if (!queryVector) return Response.json({ results: [] });
 
     // Find nearest neighbors
     const matches = await env.VECTORIZE.query(queryVector, {
