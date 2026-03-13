@@ -298,6 +298,15 @@ async function main() {
         }
       }
 
+      // Derived: customer from spend
+      if (totalSpent > 0 || (existingContact.total_spent || 0) > 0) {
+        const custKey = `${existingContact.id}::customer`;
+        if (!tagSet.has(custKey)) {
+          newTags.push({ contactId: existingContact.id, tag: 'customer', source: 'derived' });
+          tagSet.add(custKey);
+        }
+      }
+
       // Subscriber status tag
       if (subscriberStatus === 'Subscribed') {
         const subKey = `${existingContact.id}::wix:subscribed`;

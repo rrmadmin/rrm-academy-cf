@@ -48,11 +48,11 @@ const jsonLd = {
   <!-- Hero — full-viewport, search-first, Grokipedia-inspired -->
   <section class="hero" data-pagefind-ignore="all">
     <div class="hero__center">
-      <h1>RRM Research Library <span class="hero__version" aria-hidden="true">v2.0</span></h1>
-      <div class="hero__search">
+      <h1 class="animate-enter" style="--stagger: 0;">RRM Research Library <span class="hero__version" aria-hidden="true">v2.0</span></h1>
+      <div class="hero__search animate-enter" style="--stagger: 1;">
         <SearchBar />
       </div>
-      <div class="hero__ticker" aria-label="Recent additions">
+      <div class="hero__ticker animate-enter" style="--stagger: 2;" aria-label="Recent additions">
         <div class="hero__ticker-stack" id="ticker-stack">
           {ticker.map((item, i) => (
             <a
@@ -69,14 +69,14 @@ const jsonLd = {
         </div>
       </div>
     </div>
-    <p class="hero__count">
+    <p class="hero__count animate-enter" style="--stagger: 3;">
       <span class="hero__count-label">Articles Available</span>
       <span class="hero__count-number">{articles.length.toLocaleString()}</span>
     </p>
   </section>
 
   <!-- Topic Links -->
-  <nav class="topic-links" data-pagefind-ignore="all" aria-label="Browse by topic">
+  <nav class="topic-links animate-enter" style="--stagger: 4;" data-pagefind-ignore="all" aria-label="Browse by topic">
     <a href="/library/?topic=Endometriosis">Endometriosis</a>
     <span class="topic-links__dot" aria-hidden="true">&middot;</span>
     <a href="/library/?topic=Infertility">Infertility</a>
@@ -113,6 +113,24 @@ const jsonLd = {
 </BaseLayout>
 
 <style>
+  /* Staggered enter animation */
+  @keyframes enter {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+      filter: blur(4px);
+    }
+  }
+  .animate-enter {
+    animation: enter 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    animation-delay: calc(100ms * var(--stagger, 0));
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-enter {
+      animation: none;
+    }
+  }
+
   /* Hero — full-viewport, centered, Grokipedia-inspired */
   .hero {
     min-height: calc(100vh - 56px);

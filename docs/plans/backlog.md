@@ -71,6 +71,10 @@ Full plan in `rrm-router/RRM Router PRD/PRD-Index.md` Post-Launch Roadmap.
 
 The `/admin/content/` page exists but has no API endpoint (`/api/admin/content`). Needs a backend that queries CF Analytics Engine (or CF Web Analytics API) for page views, sessions, referrers, content category breakdown, and avg duration. The frontend is already built and expects a specific response shape.
 
+### Zotero Two-Way Sync
+
+Full bidirectional sync between `/library/saved` and a user's Zotero library. Zotero uses OAuth 1.0a (not 2.0). Users connect once via "Connect Zotero" on saved articles page, then saves/unsaves push to their Zotero collection automatically. Requires: OAuth 1.0a handshake, Zotero API item creation/deletion, metadata mapping (article data to Zotero item schema), connection status UI, conflict handling. RIS export already exists as the non-API fallback.
+
 ### GA4 Source Attribution
 
 Full plan at `docs/plans/2026-03-09-ga4-source-attribution-plan.md` (6 file changes, test coverage defined).
