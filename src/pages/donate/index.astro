@@ -33,12 +33,12 @@ const jsonLd = {
 
       <!-- Hero -->
       <section class="donate-hero">
-        <h1 class="hero-title">Donate to RRM Academy</h1>
-        <p class="donate-lead">RRM Academy is funded primarily by the generous contributions of individuals like you. Our goal is to educate for true healing and women's health. Your support makes this possible.</p>
+        <h1 class="hero-title animate-enter" style="--stagger: 0;">Donate to RRM Academy</h1>
+        <p class="donate-lead animate-enter" style="--stagger: 1;">RRM Academy is funded primarily by the generous contributions of individuals like you. Our goal is to educate for true healing and women's health. Your support makes this possible.</p>
       </section>
 
       <!-- Membership tiers -->
-      <section class="donate-cta-section">
+      <section class="donate-cta-section animate-enter" style="--stagger: 2;">
         <h2>Become a Monthly Supporter</h2>
         <p class="donate-recurring-lead">Monthly members are the backbone of everything we do. Your recurring support funds the research library, patient education, and advocacy that changes how women access care.</p>
 
@@ -363,6 +363,17 @@ const jsonLd = {
 </BaseLayout>
 
 <style>
+  @keyframes enter {
+    from { opacity: 0; transform: translateY(8px); filter: blur(4px); }
+  }
+  .animate-enter {
+    animation: enter 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    animation-delay: calc(100ms * var(--stagger, 0));
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-enter { animation: none; }
+  }
+
   /* Projects seeking funding */
   .projects-section {
     margin-bottom: var(--space-10);

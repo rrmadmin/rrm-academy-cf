@@ -367,6 +367,9 @@ async function main() {
       addTag('survey:endo-self-survey', 'airtable-3tier');
     }
 
+    // Derived: customer from any spend source
+    if (totalSpent > 0) addTag('customer', 'derived');
+
     // Derived: donor from D1 labels
     if (d1) {
       const labels = labelsByUserId.get(d1.id) || [];

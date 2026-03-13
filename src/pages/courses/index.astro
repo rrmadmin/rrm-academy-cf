@@ -47,12 +47,12 @@ const jsonLd = {
     <div class="container">
 
       <section class="courses-hero">
-        <h1>Online RRM Courses</h1>
-        <p class="courses-hero__sub">Self-paced video courses on endometriosis, fertility, and reproductive health from leading specialists in restorative reproductive medicine.</p>
+        <h1 class="animate-enter" style="--stagger: 0;">Online RRM Courses</h1>
+        <p class="courses-hero__sub animate-enter" style="--stagger: 1;">Self-paced video courses on endometriosis, fertility, and reproductive health from leading specialists in restorative reproductive medicine.</p>
       </section>
 
       <h2 class="sr-only">Available Courses</h2>
-      <div class="courses-grid">
+      <div class="courses-grid animate-enter" style="--stagger: 2;">
         {coursesData.map((course, i) => (
           <CourseCard course={course} eager={i < 2} />
         ))}
@@ -116,6 +116,17 @@ const jsonLd = {
 </BaseLayout>
 
 <style>
+  @keyframes enter {
+    from { opacity: 0; transform: translateY(8px); filter: blur(4px); }
+  }
+  .animate-enter {
+    animation: enter 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    animation-delay: calc(100ms * var(--stagger, 0));
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-enter { animation: none; }
+  }
+
   .page-wrapper {
     padding: var(--space-8) 0 var(--space-16);
     min-height: 60vh;
