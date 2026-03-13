@@ -7,12 +7,14 @@ const guides = [
     href: '/naprotechnology/',
     description: 'Published success rates, provider directories, cost and insurance guide, and how NaPro compares to IVF. The most comprehensive NaProTechnology resource online.',
     author: 'Dr. Naomi Whittaker',
+    readTime: '18 min read',
   },
   {
     title: 'What is Restorative Reproductive Medicine?',
+    href: '/what-is-rrm/',
     description: 'The diagnostic and treatment philosophy behind RRM. How cause-based care differs from suppressive medicine, and what to expect from an RRM-trained clinician.',
     author: 'Dr. Naomi Whittaker',
-    comingSoon: true,
+    readTime: '60 min read',
   },
   {
     title: 'Common Questions About RRM',
@@ -51,11 +53,11 @@ const jsonLd = {
     <div class="container container--narrow">
 
       <section class="guides-hero">
-        <h1 class="hero-title">Guides</h1>
-        <p class="guides-intro">In-depth guides to restorative reproductive medicine, written by board-certified physicians. Each guide covers the evidence, practical next steps, and what to expect.</p>
+        <h1 class="hero-title animate-enter" style="--stagger: 0;">Guides</h1>
+        <p class="guides-intro animate-enter" style="--stagger: 1;">In-depth guides to restorative reproductive medicine, written by board-certified physicians. Each guide covers the evidence, practical next steps, and what to expect.</p>
       </section>
 
-      <div class="guides-list">
+      <div class="guides-list animate-enter" style="--stagger: 2;">
         {guides.map((guide) => (
           guide.comingSoon ? (
             <div class="guide-card guide-card--soon">
@@ -67,8 +69,12 @@ const jsonLd = {
           ) : (
             <a href={guide.href} class="guide-card">
               <h2 class="guide-card__title">{guide.title}</h2>
+              <div class="guide-card__divider"></div>
               <p class="guide-card__desc">{guide.description}</p>
-              <span class="guide-card__author">{guide.author}</span>
+              <div class="guide-card__footer">
+                <span class="guide-card__author">{guide.author}</span>
+                {guide.readTime && <span class="guide-card__meta">{guide.readTime}</span>}
+              </div>
             </a>
           )
         ))}
@@ -79,6 +85,17 @@ const jsonLd = {
 </BaseLayout>
 
 <style>
+  @keyframes enter {
+    from { opacity: 0; transform: translateY(8px); filter: blur(4px); }
+  }
+  .animate-enter {
+    animation: enter 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    animation-delay: calc(100ms * var(--stagger, 0));
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-enter { animation: none; }
+  }
+
   .page-wrapper {
     padding: var(--space-8) 0 var(--space-16);
   }
@@ -106,7 +123,7 @@ const jsonLd = {
 
   .guide-card {
     display: block;
-    padding: var(--space-6) var(--space-8);
+    padding: var(--space-4) var(--space-6);
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
@@ -115,7 +132,6 @@ const jsonLd = {
     transition: border-color 0.15s, box-shadow 0.15s;
   }
   .guide-card:hover {
-    border-color: var(--accent);
     box-shadow: var(--shadow-md);
     text-decoration: none;
   }
@@ -127,16 +143,38 @@ const jsonLd = {
     margin-bottom: var(--space-2);
     letter-spacing: -0.01em;
   }
+  .guide-card__divider {
+    width: 80px;
+    height: 1px;
+    background: var(--border-color);
+    margin-bottom: var(--space-3);
+  }
   .guide-card__desc {
     font-size: 0.9375rem;
     color: var(--text-secondary);
     line-height: 1.65;
     margin-bottom: var(--space-3);
   }
+  .guide-card__footer {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
   .guide-card__author {
     font-size: 0.8125rem;
     color: var(--text-muted);
     font-style: italic;
+  }
+  .guide-card__meta {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+  }
+  .guide-card__meta::before {
+    content: '\00b7';
+    margin-right: var(--space-3);
   }
 
   /* Coming soon state */
