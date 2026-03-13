@@ -4,22 +4,25 @@ import NewsletterSignup from './NewsletterSignup.astro';
 const year = new Date().getFullYear();
 
 // Footer nav — intentionally different from Header desktop/mobile navs.
-// Includes My Account and Donate (not in mobile nav's Help section since they're
-// in the mobile footer action bar instead). See Header.astro for the other lists.
-const educationLinks = [
-  { label: 'FAQ', href: '/faqs/', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' },
+// Three columns: Learn, Explore, Connect. See Header.astro for the other lists.
+const learnLinks = [
+  { label: 'Guides', href: '/guides/', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>' },
+  { label: 'FAQs', href: '/faqs/', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' },
   { label: 'Courses', href: '/courses/', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.1 2.7 3 6 3s6-1.9 6-3v-5"/></svg>' },
-  { label: 'Commentary', href: '/commentary/', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>' },
   { label: 'What is RRM?', href: '/faqs/what-is-restorative-reproductive-medicine-rrm/', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>' },
+];
+
+const exploreLinks = [
   { label: 'Research Library', href: '/library/', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="18" x="3" y="3" rx="1"/><path d="M7 3v18"/><path d="M20.4 18.9c.2.5-.1 1.1-.6 1.3l-1.9.7c-.5.2-1.1-.1-1.3-.6L11.1 5.1c-.2-.5.1-1.1.6-1.3l1.9-.7c.5-.2 1.1.1 1.3.6Z"/></svg>' },
+  { label: 'Commentary', href: '/commentary/', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>' },
   { label: 'Endo Self-Survey', href: '/endo-survey/', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>', hoverIcon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 11.22C11 9.997 10 9 10 8a2 2 0 0 1 4 0c0 1-.998 2.002-2.01 3.22"/><path d="m12 18 2.57-3.5"/><path d="M6.243 9.016a7 7 0 0 1 11.507-.009"/><path d="M9.35 14.53 12 11.22"/><path d="M9.35 14.53C7.728 12.246 6 10.221 6 7a6 5 0 0 1 12 0c-.005 3.22-1.778 5.235-3.43 7.5l3.557 4.527a1 1 0 0 1-.203 1.43l-1.894 1.36a1 1 0 0 1-1.384-.215L12 18l-2.679 3.593a1 1 0 0 1-1.39.213l-1.865-1.353a1 1 0 0 1-.203-1.422z"/></svg>' },
 ];
 
-const helpLinks = [
-  { label: 'My Account', href: '/account/', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>' },
+const connectLinks = [
   { label: 'About', href: '/about/', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>' },
-  { label: 'Donate', href: '/donate/', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>' },
   { label: 'Join Us', href: '/save-the-uterus-club/', id: 'stuc-footer-link', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
+  { label: 'Donate', href: '/donate/', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>' },
+  { label: 'My Account', href: '/account/', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>' },
   { label: 'Contact', href: '/contact/', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>' },
 ];
 ---
@@ -27,9 +30,23 @@ const helpLinks = [
   <div class="footer-inner container">
     <div class="footer-columns">
       <div class="footer-col">
-        <h3 class="footer-heading">Education</h3>
+        <h3 class="footer-heading">Learn</h3>
         <ul class="footer-links">
-          {educationLinks.map((link) => (
+          {learnLinks.map((link) => (
+            <li>
+              <a href={link.href}>
+                <span class="footer-icon" aria-hidden="true" set:html={link.icon} />
+                {link.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h3 class="footer-heading">Explore</h3>
+        <ul class="footer-links">
+          {exploreLinks.map((link) => (
             <li class:list={[{ 'has-hover-icon': link.hoverIcon }]}>
               <a href={link.href}>
                 <span class="footer-icon" aria-hidden="true" set:html={link.icon} />
@@ -42,16 +59,17 @@ const helpLinks = [
       </div>
 
       <div class="footer-col">
-        <h3 class="footer-heading">Help</h3>
+        <h3 class="footer-heading">Connect</h3>
         <ul class="footer-links">
-          {helpLinks.map((link) => (
+          {connectLinks.map((link) => (
             <li><a href={link.href} id={link.id}><span class="footer-icon" aria-hidden="true" set:html={link.icon} /><span class="footer-label">{link.label}</span></a></li>
           ))}
         </ul>
       </div>
+    </div>
 
-      <div class="footer-col footer-col--wide">
-        <h3 class="footer-heading">RRM Academy</h3>
+    <div class="footer-about">
+      <div class="footer-about__text">
         <p class="footer-text">
           RRM Academy is a 501(c)(3) nonprofit providing free and low-cost education in restorative reproductive medicine for patients and healthcare professionals.
         </p>
@@ -60,9 +78,9 @@ const helpLinks = [
           Inclusion of a study does not imply endorsement of its findings.
           Always consult a qualified healthcare provider for diagnosis and treatment.
         </p>
-        <div class="footer-newsletter">
-          <NewsletterSignup compact heading="Newsletter" />
-        </div>
+      </div>
+      <div class="footer-newsletter">
+        <NewsletterSignup compact heading="Newsletter" />
       </div>
     </div>
 
@@ -161,7 +179,7 @@ const helpLinks = [
   }
   .footer-columns {
     display: grid;
-    grid-template-columns: 1fr 1fr 2fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: var(--space-10);
     margin-bottom: var(--space-10);
   }
@@ -224,8 +242,20 @@ const helpLinks = [
   .footer-text a:hover {
     color: var(--footer-accent-hover);
   }
+  .footer-about {
+    display: flex;
+    gap: var(--space-10);
+    align-items: flex-start;
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--footer-border);
+    margin-bottom: var(--space-10);
+  }
+  .footer-about__text {
+    flex: 1;
+  }
   .footer-newsletter {
-    margin-top: var(--space-5);
+    flex-shrink: 0;
+    width: 320px;
   }
   .footer-bottom {
     display: flex;
@@ -286,8 +316,15 @@ const helpLinks = [
       grid-template-columns: 1fr 1fr;
       gap: var(--space-8);
     }
-    .footer-col--wide {
+    .footer-columns .footer-col:last-child {
       grid-column: 1 / -1;
+    }
+    .footer-about {
+      flex-direction: column;
+      gap: var(--space-6);
+    }
+    .footer-newsletter {
+      width: 100%;
     }
     .footer-bottom {
       flex-direction: column;
