@@ -22,7 +22,7 @@ const resourceLinks = [
 const helpLinks = [
   { label: 'My Account', href: '/account/', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>' },
   { label: 'Contact', href: '/contact/', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>' },
-  { label: 'Donate', href: '/donate/', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>' },
+  { label: 'Donate', href: '/donate/', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>', hoverIcon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="#eb9fb8" stroke="#eb9fb8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>' },
   { label: 'About', href: '/about/', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>' },
 ];
 ---
@@ -62,7 +62,13 @@ const helpLinks = [
         <h3 class="footer-heading">Help</h3>
         <ul class="footer-links">
           {helpLinks.map((link) => (
-            <li><a href={link.href}><span class="footer-icon" aria-hidden="true" set:html={link.icon} /><span class="footer-label">{link.label}</span></a></li>
+            <li class:list={[{ 'has-hover-icon': link.hoverIcon }]}>
+              <a href={link.href}>
+                <span class="footer-icon" aria-hidden="true" set:html={link.icon} />
+                {link.hoverIcon && <span class="footer-icon footer-icon--hover" aria-hidden="true" set:html={link.hoverIcon} />}
+                <span class="footer-label">{link.label}</span>
+              </a>
+            </li>
           ))}
         </ul>
       </div>
