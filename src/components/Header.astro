@@ -448,11 +448,17 @@ const mobileNavSections = [
     color: var(--text-tertiary);
     text-decoration: none;
     padding: 5px 8px;
-    transition: color 0.15s;
+    border-radius: var(--radius-sm);
+    transition: color 0.15s, background 0.15s, box-shadow 0.15s, transform 0.1s;
   }
   .saved-link:hover {
     color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
     text-decoration: none;
+  }
+  .saved-link:active {
+    transform: scale(0.95);
   }
   .saved-link.has-items { color: var(--accent); }
   .saved-link.has-items svg path:first-child { fill: currentColor; }
@@ -465,14 +471,20 @@ const mobileNavSections = [
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 4px;
+    padding: 6px;
     color: var(--text-tertiary);
     text-decoration: none;
-    transition: color 0.15s;
+    border-radius: var(--radius-sm);
+    transition: color 0.15s, background 0.15s, box-shadow 0.15s, transform 0.1s;
   }
   .desktop-search-btn:hover {
     color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
     text-decoration: none;
+  }
+  .desktop-search-btn:active {
+    transform: scale(0.95);
   }
   :global(.page-library) .desktop-search-btn {
     display: none;
@@ -538,14 +550,19 @@ const mobileNavSections = [
     display: none;
     align-items: center;
     justify-content: center;
-    padding: var(--space-2);
+    padding: 6px;
     color: var(--text-tertiary);
     text-decoration: none;
-    transition: color 0.15s;
+    border-radius: var(--radius-sm);
+    transition: color 0.15s, background 0.15s, transform 0.1s;
   }
   .mobile-search-btn:hover {
     color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
     text-decoration: none;
+  }
+  .mobile-search-btn:active {
+    transform: scale(0.95);
   }
 
   /* Mobile hamburger */
