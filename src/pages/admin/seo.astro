@@ -90,6 +90,46 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         </div>
       </div>
 
+      <!-- Traffic Segments -->
+      <div class="dash-segments" id="segments-section" style="display:none;">
+        <div class="dash-card dash-card--segment">
+          <h3 class="segment__title">Core Pages</h3>
+          <div class="segment__row">
+            <span class="segment__clicks" id="seg-core-clicks">--</span><span class="segment__label"> clicks</span>
+          </div>
+          <div class="segment__row">
+            <span class="segment__impr" id="seg-core-impr">--</span><span class="segment__label"> impr.</span>
+          </div>
+        </div>
+        <div class="dash-card dash-card--segment">
+          <h3 class="segment__title">Library</h3>
+          <div class="segment__row">
+            <span class="segment__clicks" id="seg-lib-clicks">--</span><span class="segment__label"> clicks</span>
+          </div>
+          <div class="segment__row">
+            <span class="segment__impr" id="seg-lib-impr">--</span><span class="segment__label"> impr.</span>
+          </div>
+        </div>
+        <div class="dash-card dash-card--segment">
+          <h3 class="segment__title">Commentary</h3>
+          <div class="segment__row">
+            <span class="segment__clicks" id="seg-blog-clicks">--</span><span class="segment__label"> clicks</span>
+          </div>
+          <div class="segment__row">
+            <span class="segment__impr" id="seg-blog-impr">--</span><span class="segment__label"> impr.</span>
+          </div>
+        </div>
+        <div class="dash-card dash-card--segment">
+          <h3 class="segment__title">Branded</h3>
+          <div class="segment__row">
+            <span class="segment__clicks" id="seg-brand-clicks">--</span><span class="segment__label"> clicks</span>
+          </div>
+          <div class="segment__row segment__row--sub">
+            <span class="segment__impr" id="seg-nonbrand-clicks">--</span><span class="segment__label"> non-brand clicks</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Keyword Rankings -->
       <div class="dash-card dash-card--full" id="keywords-section">
         <div class="dash-card__header">
@@ -405,6 +445,31 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     }
 
     // --- Render functions ---
+    function renderSegments(gsc) {
+      var section = document.getElementById('segments-section');
+      var segments = gsc && gsc.segments;
+      var branded = gsc && gsc.branded;
+      if (!segments && !branded) {
+        section.style.display = 'none';
+        return;
+      }
+      section.style.display = '';
+
+      if (segments) {
+        document.getElementById('seg-core-clicks').textContent = fmtNum(segments.core.clicks);
+        document.getElementById('seg-core-impr').textContent = fmtNum(segments.core.impressions);
+        document.getElementById('seg-lib-clicks').textContent = fmtNum(segments.library.clicks);
+        document.getElementById('seg-lib-impr').textContent = fmtNum(segments.library.impressions);
+        document.getElementById('seg-blog-clicks').textContent = fmtNum(segments.commentary.clicks);
+        document.getElementById('seg-blog-impr').textContent = fmtNum(segments.commentary.impressions);
+      }
+
+      if (branded) {
+        document.getElementById('seg-brand-clicks').textContent = fmtNum(branded.brand.clicks);
+        document.getElementById('seg-nonbrand-clicks').textContent = fmtNum(branded.nonBrand.clicks);
+      }
+    }
+
     function renderKPIs(snapshot, sparklines) {
       var gsc = (snapshot && snapshot.gsc) || {};
       var traffic = (snapshot && snapshot.traffic) || {};
@@ -678,9 +743,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         if (reportData) {
           var snapshot = reportData.snapshot || {};
           renderKPIs(snapshot, reportData.sparklines);
+          renderSegments(snapshot.gsc);
           renderKeywords(snapshot.keywords);
-          renderTopPages(snapshot.traffic && snapshot.traffic.topPages);
-          renderTopQueries(snapshot.traffic && snapshot.traffic.topQueries);
+          renderTopPages(snapshot.gsc && snapshot.gsc.topPages);
+          renderTopQueries(snapshot.gsc && snapshot.gsc.topQueries);
           renderAlerts(reportData.alerts);
           renderHealth(snapshot.health);
           renderWorkerHealth(reportData.worker);
@@ -1202,6 +1268,46 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .dash-card--full {
     margin-bottom: var(--space-6);
   }
+
+  /* Traffic Segments */
+  .dash-segments {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+  .dash-card--segment {
+    padding: var(--space-3) var(--space-4);
+  }
+  .segment__title {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--admin-text-faint);
+    margin: 0 0 var(--space-2) 0;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .segment__row {
+    font-size: 0.875rem;
+    color: var(--admin-text);
+    line-height: 1.6;
+  }
+  .segment__row--sub {
+    color: var(--admin-text-faint);
+    font-size: 0.8125rem;
+  }
+  .segment__clicks {
+    font-weight: 600;
+    font-size: 1.125rem;
+  }
+  .segment__impr {
+    font-weight: 500;
+  }
+  .segment__label {
+    color: var(--admin-text-faint);
+    font-size: 0.8125rem;
+  }
   .dash-card__header {
     display: flex;
     justify-content: space-between;
@@ -1466,6 +1572,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     }
     .dash-three-col {
       grid-template-columns: 1fr;
+    }
+    .dash-segments {
+      grid-template-columns: repeat(2, 1fr);
     }
     /* Traffic alerts first on mobile */
     #traffic-alerts-section { order: -1; }
