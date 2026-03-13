@@ -3,6 +3,10 @@
 
 /sitemap.xml /sitemap-index.xml 301
 
+# Draft pages — 302 until ready to publish
+/common-questions-about-rrm /faqs/ 302
+/common-questions-about-rrm/ /faqs/ 302
+
 # Old Wix course/page slugs — linked from naomiwhittaker.com biosite and possibly other sources
 /endometriosis-and-surgery-101 /courses/masterclass-in-endometriosis-and-surgery/ 301
 /endometriosis-and-surgery-101/ /courses/masterclass-in-endometriosis-and-surgery/ 301
