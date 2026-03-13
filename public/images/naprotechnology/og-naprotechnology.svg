@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <rect width="1200" height="630" fill="#f7f5f3"/>
+
+  <!-- Subtle purple accent bar at top -->
+  <rect x="0" y="0" width="1200" height="6" fill="#725e7e"/>
+
+  <!-- Title -->
+  <text x="80" y="220" font-family="Georgia, 'Cormorant Garamond', serif" font-size="72" font-weight="600" fill="#313131" letter-spacing="-1">NaProTechnology:</text>
+  <text x="80" y="310" font-family="Georgia, 'Cormorant Garamond', serif" font-size="72" font-weight="600" fill="#313131" letter-spacing="-1">A Complete Guide</text>
+
+  <!-- Divider -->
+  <line x1="80" y1="345" x2="500" y2="345" stroke="#c9b8d3" stroke-width="2"/>
+
+  <!-- Subtitle -->
+  <text x="80" y="400" font-family="Inter, Helvetica, Arial, sans-serif" font-size="28" font-weight="400" fill="#636261">Diagnose and treat the underlying condition.</text>
+  <text x="80" y="440" font-family="Inter, Helvetica, Arial, sans-serif" font-size="28" font-weight="400" fill="#636261">Published success rates, provider directory, cost guide.</text>
+
+  <!-- Author -->
+  <text x="80" y="520" font-family="Inter, Helvetica, Arial, sans-serif" font-size="22" font-weight="400" fill="#987da8">By Naomi Whittaker, MD</text>
+
+  <!-- Site branding -->
+  <text x="80" y="570" font-family="Georgia, 'Cormorant Garamond', serif" font-size="24" font-weight="400" fill="#b0aaa2">RRM Academy</text>
+
+  <!-- Key stat callout on right -->
+  <rect x="780" y="160" width="340" height="300" rx="8" fill="#ffffff" stroke="#dddbd8" stroke-width="1"/>
+  <text x="950" y="230" font-family="Inter, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#636261" text-anchor="middle" letter-spacing="0.05em">PUBLISHED LIVE BIRTH RATES</text>
+  <line x1="820" y1="248" x2="1080" y2="248" stroke="#e8ddef" stroke-width="1"/>
+
+  <!-- Stat bars -->
+  <text x="840" y="290" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" fill="#636261">Boyle 2025</text>
+  <rect x="840" y="298" width="200" height="14" rx="2" fill="#f0eeeb"/>
+  <rect x="840" y="298" width="132" height="14" rx="2" fill="#725e7e"/>
+  <text x="980" y="310" font-family="Inter, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#725e7e">41%</text>
+
+  <text x="840" y="342" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" fill="#636261">S. Mendez 24 mo</text>
+  <rect x="840" y="350" width="200" height="14" rx="2" fill="#f0eeeb"/>
+  <rect x="840" y="350" width="161" height="14" rx="2" fill="#725e7e"/>
+  <text x="1010" y="362" font-family="Inter, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#725e7e">50%</text>
+
+  <text x="840" y="394" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" fill="#636261">S. Mendez 36 mo</text>
+  <rect x="840" y="402" width="200" height="14" rx="2" fill="#f0eeeb"/>
+  <rect x="840" y="402" width="200" height="14" rx="2" fill="#725e7e"/>
+  <text x="1048" y="414" font-family="Inter, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#725e7e">62%</text>
+
+  <text x="950" y="450" font-family="Inter, Helvetica, Arial, sans-serif" font-size="12" font-style="italic" fill="#987da8" text-anchor="middle">All pregnancies through natural conception</text>
+</svg>
