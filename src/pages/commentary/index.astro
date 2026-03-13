@@ -32,17 +32,15 @@ const jsonLd = {
   <!-- Hero -->
   <section class="commentary-hero" data-pagefind-ignore="all">
     <div class="container">
-      <h1>RRM Articles &amp; Commentary</h1>
-      <p class="commentary-hero__subtitle">
+      <h1 class="animate-enter" style="--stagger: 0;">RRM Articles &amp; Commentary</h1>
+      <p class="commentary-hero__subtitle animate-enter" style="--stagger: 1;">
         Expert clinical perspectives on restorative reproductive medicine
       </p>
     </div>
   </section>
 
-  <hr class="divider" />
-
   <!-- Recent Posts -->
-  <section class="section" data-pagefind-ignore="all">
+  <section class="section commentary-posts animate-enter" style="--stagger: 2;" data-pagefind-ignore="all">
     <div class="container">
       <div class="section-header">
         <h2 class="section-label">Recent posts</h2>
@@ -88,29 +86,32 @@ const jsonLd = {
 </BaseLayout>
 
 <style>
+  @keyframes enter {
+    from { opacity: 0; transform: translateY(8px); filter: blur(4px); }
+  }
+  .animate-enter {
+    animation: enter 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    animation-delay: calc(100ms * var(--stagger, 0));
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-enter { animation: none; }
+  }
+
   .commentary-hero {
-    padding: var(--space-8) 0 var(--space-6);
+    padding: var(--space-8) 0 0;
   }
   .commentary-hero h1 {
     font-size: clamp(2rem, 1.25rem + 2.5vw, 3.25rem);
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-    margin-bottom: var(--space-4);
+    margin-bottom: var(--space-3);
   }
   .commentary-hero__subtitle {
-    font-size: 1rem;
+    font-size: 0.9375rem;
     color: var(--text-secondary);
     max-width: 520px;
-    line-height: 1.6;
   }
 
-  @media (min-width: 769px) {
-    .commentary-hero h1 {
-      /* fluid via clamp — no override needed */
-    }
-    .commentary-hero__subtitle {
-      font-size: 1.125rem;
-    }
+  .commentary-posts {
+    padding-top: 0;
   }
 
   .commentary-intro {
@@ -150,14 +151,6 @@ const jsonLd = {
       font-size: 0.75rem;
       margin-bottom: var(--space-5);
     }
-  }
-
-  .divider {
-    border: none;
-    border-top: 1px solid var(--border-color);
-    margin: 0 auto;
-    max-width: var(--max-width-page);
-    padding: 0 var(--space-6);
   }
 
   .view-all {

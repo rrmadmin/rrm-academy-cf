@@ -280,6 +280,9 @@ const mobileNavSections = [
     color: var(--accent);
     text-decoration: none;
   }
+  .nav-link:active {
+    opacity: 0.8;
+  }
   .nav-link--active {
     font-weight: 400;
   }
@@ -294,45 +297,66 @@ const mobileNavSections = [
     transform: rotate(180deg);
   }
 
-  /* Dropdown */
+  /* Dropdown — asymmetric enter/exit.
+     JS adds .dropdown--entered after first open so exit uses -4px.
+     First entrance slides from -12px. Subsequent exits: -4px (subtle). */
   .dropdown {
-    display: none;
     position: absolute;
     top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 0;
     min-width: 160px;
-    padding-top: 12px;
+    padding-top: 12px; /* hover bridge */
     z-index: 10;
-  }
-  .has-dropdown:hover .dropdown,
-  .has-dropdown:focus-within .dropdown {
-    display: block;
+    pointer-events: none;
   }
   .dropdown__grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: var(--space-1);
+    gap: 2px;
     background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-lg);
-    padding: var(--space-5) var(--space-6);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.06);
+    padding: 6px 10px;
+    /* Closed: entrance starting point */
+    opacity: 0;
+    transform: translateY(-12px);
+    filter: blur(4px);
+    /* Exit: fast, subtle */
+    transition: opacity 0.12s ease-in, transform 0.12s ease-in, filter 0.1s ease-in;
+  }
+  /* After first open, exit target is only -4px (subtle direction hint) */
+  .dropdown--entered .dropdown__grid {
+    transform: translateY(-4px);
+  }
+  .has-dropdown:hover .dropdown,
+  .has-dropdown:focus-within .dropdown {
+    pointer-events: auto;
+  }
+  .has-dropdown:hover .dropdown__grid,
+  .has-dropdown:focus-within .dropdown__grid {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0px);
+    /* Enter: slower ease-out */
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out, filter 0.15s ease-out;
   }
   .dropdown-link {
     font-size: 0.8125rem;
     font-weight: 400;
     color: var(--text-secondary);
     text-decoration: none;
-    padding: var(--space-1) 0;
-    transition: color 0.15s;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: color 0.12s, background 0.12s;
     white-space: nowrap;
   }
   .dropdown-link:hover {
     color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 6%, transparent);
     text-decoration: none;
   }
 
-  /* Donate button — pill shape */
+  /* Donate button — pill shape with depth */
   .donate-btn {
     display: inline-flex;
     align-items: center;
@@ -344,16 +368,21 @@ const mobileNavSections = [
     padding: 8px 24px;
     color: var(--white);
     background: var(--purple-700);
-    border: 1px solid var(--purple-700);
+    border: none;
     border-radius: var(--radius-pill);
     text-decoration: none;
-    transition: background 0.15s, border-color 0.15s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
   }
   .donate-btn:hover {
     background: var(--purple-900);
-    border-color: var(--purple-900);
     color: var(--white);
     text-decoration: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .donate-btn:active {
+    transform: scale(0.97);
+    box-shadow: 0 0 0 rgba(0,0,0,0.1);
   }
 
   /* Header search — only on library pages, absolutely centered */
@@ -732,6 +761,15 @@ const mobileNavSections = [
 </style>
 
 <script is:inline>
+  // Dropdown: mark as entered after first hover so exit uses subtle -4px
+  (function() {
+    var dd = document.querySelector('.has-dropdown .dropdown');
+    if (!dd) return;
+    dd.closest('.has-dropdown').addEventListener('mouseenter', function() {
+      dd.classList.add('dropdown--entered');
+    }, { once: true });
+  })();
+
   // Theme toggle with expanding circle animation (View Transitions API)
   function applyTheme() {
     var html = document.documentElement;

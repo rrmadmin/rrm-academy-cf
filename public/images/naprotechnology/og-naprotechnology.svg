@@ -5,11 +5,11 @@
   <rect x="0" y="0" width="1200" height="6" fill="#725e7e"/>
 
   <!-- Title -->
-  <text x="80" y="220" font-family="Georgia, 'Cormorant Garamond', serif" font-size="72" font-weight="600" fill="#313131" letter-spacing="-1">NaProTechnology:</text>
-  <text x="80" y="310" font-family="Georgia, 'Cormorant Garamond', serif" font-size="72" font-weight="600" fill="#313131" letter-spacing="-1">A Complete Guide</text>
+  <text x="80" y="220" font-family="'Cormorant Garamond', Georgia, serif" font-size="72" font-weight="600" fill="#313131" letter-spacing="-1">NaProTechnology:</text>
+  <text x="80" y="310" font-family="'Cormorant Garamond', Georgia, serif" font-size="72" font-weight="600" fill="#313131" letter-spacing="-1">A Complete Guide</text>
 
   <!-- Divider -->
-  <line x1="80" y1="345" x2="500" y2="345" stroke="#c9b8d3" stroke-width="2"/>
+  <line x1="80" y1="345" x2="500" y2="345" stroke="#dddbd8" stroke-width="2"/>
 
   <!-- Subtitle -->
   <text x="80" y="400" font-family="Inter, Helvetica, Arial, sans-serif" font-size="28" font-weight="400" fill="#636261">Diagnose and treat the underlying condition.</text>
@@ -19,7 +19,7 @@
   <text x="80" y="520" font-family="Inter, Helvetica, Arial, sans-serif" font-size="22" font-weight="400" fill="#987da8">By Naomi Whittaker, MD</text>
 
   <!-- Site branding -->
-  <text x="80" y="570" font-family="Georgia, 'Cormorant Garamond', serif" font-size="24" font-weight="400" fill="#b0aaa2">RRM Academy</text>
+  <text x="80" y="570" font-family="'Cormorant Garamond', Georgia, serif" font-size="24" font-weight="400" fill="#b0aaa2">RRM Academy</text>
 
   <!-- Key stat callout on right -->
   <rect x="780" y="160" width="340" height="300" rx="8" fill="#ffffff" stroke="#dddbd8" stroke-width="1"/>
