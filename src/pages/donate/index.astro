@@ -34,14 +34,11 @@ const jsonLd = {
       <!-- Hero -->
       <section class="donate-hero">
         <h1 class="hero-title animate-enter" style="--stagger: 0;">Donate to RRM Academy</h1>
-        <p class="donate-lead animate-enter" style="--stagger: 1;">Women are being told their pain is normal. They deserve real answers. Your support funds the education, research, and advocacy that gets them those answers. We don't have major grants or corporate sponsors. RRM Academy runs on people like you giving what they can.</p>
+        <p class="donate-lead animate-enter" style="--stagger: 1;">Women are being told their pain is normal. They deserve real answers. Your support funds the education, research, and advocacy that gets them those answers. Monthly members are the backbone of everything we do.</p>
       </section>
 
       <!-- Membership tiers -->
       <section class="donate-cta-section animate-enter" style="--stagger: 2;">
-        <h2>Become a Monthly Supporter</h2>
-        <p class="donate-recurring-lead">Monthly members are the backbone of everything we do. Your recurring support funds the research library, patient education, and advocacy that changes how women access care.</p>
-
         <div id="supporter-banner" class="donate-supporter-banner" hidden>
           <p class="supporter-banner__name" id="supporter-name"></p>
           <p class="supporter-banner__tier" id="supporter-tier"></p>
@@ -229,9 +226,6 @@ const jsonLd = {
           document.getElementById('supporter-body').textContent = body;
           document.getElementById('supporter-banner').hidden = false;
 
-          // Hide the "Become a Monthly Supporter" heading and lead text
-          document.querySelector('.donate-cta-section h2').hidden = true;
-          document.querySelector('.donate-recurring-lead').hidden = true;
           document.querySelector('.donate-cta-section').style.paddingTop = '0';
         })
         .catch(function () { /* not logged in or network error — ignore */ });
@@ -437,7 +431,7 @@ const jsonLd = {
   /* Hero */
   .donate-hero {
     text-align: center;
-    margin-bottom: var(--space-8);
+    margin-bottom: var(--space-4);
   }
   .donate-hero h1 {
     margin-bottom: var(--space-4);
@@ -496,19 +490,8 @@ const jsonLd = {
   /* CTA section — recurring tiers */
   .donate-cta-section {
     text-align: center;
-    padding: var(--space-8) 0;
+    padding: var(--space-4) 0;
     margin-bottom: var(--space-6);
-  }
-  .donate-cta-section h2 {
-    font-size: 1.5rem;
-    margin-bottom: var(--space-3);
-  }
-  .donate-recurring-lead {
-    font-size: 0.9375rem;
-    line-height: 1.8;
-    color: var(--text-secondary);
-    max-width: 520px;
-    margin: 0 auto var(--space-6);
   }
 
   /* Tier grid */
