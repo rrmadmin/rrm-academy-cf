@@ -40,6 +40,12 @@ const jsonLd = {
         name: 'Dr. Naomi Whittaker',
         jobTitle: 'Board-Certified OB/GYN',
         honorificPrefix: 'Dr.',
+        url: 'https://rrmacademy.org/commentary/rrm-spotlight-naomi-whittaker-md/',
+        image: 'https://rrmacademy.org/images/authors/naomi-whittaker.webp',
+        sameAs: [
+          'https://www.instagram.com/napro_fertility_surgeon/',
+          'https://www.linkedin.com/in/naomi-whittaker-md-906b13101/',
+        ],
       },
       nonprofitStatus: '501(c)(3)',
       areaServed: 'Global',
@@ -79,16 +85,16 @@ const jsonLd = {
     <!-- Hero -->
     <header class="hp-hero">
       <div class="container container--narrow">
-        <h1>The Education Your Doctor Didn't Get</h1>
-        <p class="hp-hero__subtitle">
+        <h1 class="animate-enter" style="--stagger: 0;">The Education Your Doctor Didn't Get</h1>
+        <p class="hp-hero__subtitle animate-enter" style="--stagger: 1;">
           Courses and a {articleCount.toLocaleString()}-article library built for the day you realized suppressive medicine wasn't a plan.
         </p>
-        <div class="hp-hero__links">
+        <div class="hp-hero__links animate-enter" style="--stagger: 2;">
           <a href="/courses" class="btn btn--primary">Explore Courses</a>
           <a href="/library/" class="btn btn--secondary">Search the Research Library</a>
         </div>
       </div>
-      <div class="hp-hero__trust">
+      <div class="hp-hero__trust animate-enter" style="--stagger: 3;">
         <p class="hp-trust__tagline">Backed by {articleCount.toLocaleString()} peer-reviewed resources. Covered by international news.</p>
         <div class="hp-trust__logos">
           <span class="hp-trust__logo hp-trust__logo--nejm">New England Journal of Medicine</span>
@@ -363,6 +369,17 @@ const jsonLd = {
 </BaseLayout>
 
 <style>
+  @keyframes enter {
+    from { opacity: 0; transform: translateY(8px); filter: blur(4px); }
+  }
+  .animate-enter {
+    animation: enter 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    animation-delay: calc(100ms * var(--stagger, 0));
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-enter { animation: none; }
+  }
+
   /* ═══════════════════════════════════════════
      HOMEPAGE — text-focused editorial layout
      ═══════════════════════════════════════════ */
