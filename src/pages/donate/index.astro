@@ -34,7 +34,7 @@ const jsonLd = {
       <!-- Hero -->
       <section class="donate-hero">
         <h1 class="hero-title animate-enter" style="--stagger: 0;">Donate to RRM Academy</h1>
-        <p class="donate-lead animate-enter" style="--stagger: 1;">RRM Academy is funded primarily by the generous contributions of individuals like you. Our goal is to educate for true healing and women's health. Your support makes this possible.</p>
+        <p class="donate-lead animate-enter" style="--stagger: 1;">Women are being told their pain is normal. They deserve real answers. Your support funds the education, research, and advocacy that gets them those answers. We don't have major grants or corporate sponsors. RRM Academy runs on people like you giving what they can.</p>
       </section>
 
       <!-- Membership tiers -->
@@ -54,8 +54,12 @@ const jsonLd = {
               <h3>Member</h3>
               <p class="tier-price">$9<span>/month</span></p>
             </div>
-            <p class="tier-desc">Community access, exclusive resources, and regular updates.</p>
-            <button class="btn btn--secondary tier-btn" data-tier="member">Donate $9 Monthly</button>
+            <ul class="tier-benefits">
+              <li>Save the Uterus Club community and live calls</li>
+              <li>Exclusive resources and podcast library</li>
+              <li>Research and impact updates</li>
+            </ul>
+            <button class="btn btn--secondary tier-btn" data-tier="member">Become a Member</button>
           </div>
 
           <div class="tier-card tier-featured card">
@@ -64,8 +68,12 @@ const jsonLd = {
               <h3>Uterus Hero</h3>
               <p class="tier-price">$19<span>/month</span></p>
             </div>
-            <p class="tier-desc">Everything in Member, plus priority access and deeper involvement.</p>
-            <button class="btn btn--primary tier-btn" data-tier="hero">Donate $19 Monthly</button>
+            <ul class="tier-benefits">
+              <li>Everything in Member</li>
+              <li>Priority access to new resources</li>
+              <li>Deeper involvement in advocacy</li>
+            </ul>
+            <button class="btn btn--primary tier-btn" data-tier="hero">Become a Hero</button>
           </div>
 
           <div class="tier-card card">
@@ -73,24 +81,26 @@ const jsonLd = {
               <h3>Uterus Super Hero</h3>
               <p class="tier-price">$99<span>/month</span></p>
             </div>
-            <p class="tier-desc">Everything in Hero, plus quarterly Q&A with Dr. Whittaker.</p>
-            <button class="btn btn--secondary tier-btn" data-tier="superhero">Donate $99 Monthly</button>
+            <ul class="tier-benefits">
+              <li>Everything in Hero</li>
+              <li>Quarterly Q&A with Dr. Whittaker</li>
+              <li>Direct input on content priorities</li>
+            </ul>
+            <button class="btn btn--secondary tier-btn" data-tier="superhero">Become a Super Hero</button>
           </div>
         </div>
 
         <p class="donate-tier-link"><a href="/save-the-uterus-club/">Learn more about membership benefits</a></p>
-        <p class="donate-onetime-link">Prefer a <button type="button" id="onetime-toggle" class="link-btn">one-time donation</button>?</p>
         <p class="donate-tax">
           All membership proceeds support our 501(c)(3) educational mission. Donations are tax-deductible.<br />
           EIN: 93-4594315 &middot; <a href="/contact/">Contact us</a> for other ways to give.
         </p>
       </section>
 
-      <!-- One-time donation modal -->
-      <div id="onetime-modal" class="donate-modal-overlay" hidden>
-        <div class="donate-modal">
-          <button type="button" class="donate-modal-close" id="onetime-close" aria-label="Close">&times;</button>
-          <h2>One-Time Donation</h2>
+      <!-- Give Once -->
+      <section class="donate-onetime-section">
+        <h2>Give Once</h2>
+        <div class="donate-onetime-card card">
           <div class="donate-amounts">
             <button class="donate-amount-btn active" data-amount="2500">$25</button>
             <button class="donate-amount-btn" data-amount="5000">$50</button>
@@ -104,55 +114,15 @@ const jsonLd = {
               <input type="number" id="custom-amount" class="form-input" min="5" max="999999" placeholder="Enter amount" />
             </div>
           </div>
-          <button id="donate-btn" class="btn btn--primary btn--lg donate-submit-btn">Donate $25</button>
+          <button id="donate-btn" class="btn btn--primary donate-submit-btn">Give $25</button>
           <p id="donate-error" class="donate-error" hidden></p>
-          <p class="donate-modal-alt">
+          <p class="donate-onetime-alt">
             Or <a href="https://www.paypal.com/donate/?hosted_button_id=WHTRDKEMDN496" target="_blank" rel="noopener noreferrer">donate via PayPal</a>
           </p>
         </div>
-      </div>
+      </section>
 
       <hr class="divider" />
-
-      <!-- The Foundation -->
-      <section class="donate-section">
-        <h2>About the RRM Foundation</h2>
-        <p>RRM Academy is an educational project of the Restorative Reproductive Medicine Foundation (RRM Foundation), a 501(c)(3) nonprofit dedicated to transforming reproductive health through education, research, and a restorative approach to care.</p>
-        <p>When you donate to RRM Academy, you're supporting the Foundation's mission. We exist for every person who has been told their pain is normal or has been left to navigate years of uncertainty.</p>
-      </section>
-
-      <!-- Projects seeking funding -->
-      <section class="donate-section projects-section">
-        <h2>Where Your Donation Goes</h2>
-        <p class="projects-lead">These are the specific projects your support makes possible. Some are ongoing — they exist because of past donors. Others are actively seeking funding to launch.</p>
-        <div class="projects-grid">
-          {fundingProjects.map(project => (
-            <div class={`project-card card project-card--${project.status}`}>
-              <div class="project-card__header">
-                <span class={`project-badge project-badge--${project.status}`}>
-                  {statusLabel[project.status]}
-                </span>
-              </div>
-              <h3 class="project-card__title">{project.title}</h3>
-              <p class="project-card__tagline">{project.tagline}</p>
-              <p class="project-card__desc">{project.description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <!-- Goals -->
-      <section class="donate-section">
-        <h2>Our Goals</h2>
-        <p>To achieve our mission, we focus on four key objectives:</p>
-        <ol class="goals-list">
-          <li><strong>Expand Education</strong> -- Provide high-quality training and resources for healthcare professionals, equipping them with restorative solutions for managing fertility and women's health challenges.</li>
-          <li><strong>Empower Individuals</strong> -- Offer accessible information and tools that help women and couples take an active role in their reproductive health, fostering confidence in managing fertility and related concerns.</li>
-          <li><strong>Promote Evidence-Based Care</strong> -- Advocate for medical practices that address root causes of reproductive issues, leading to sustainable solutions and healthier outcomes.</li>
-          <li><strong>Increase Awareness</strong> -- Raise understanding and acceptance of RRM principles within both the medical community and the general public, bridging the gap between patients and practitioners.</li>
-        </ol>
-        <p>By addressing the underlying causes of reproductive challenges, we aim to empower individuals and healthcare providers with the tools and knowledge needed to achieve lasting wellness.</p>
-      </section>
 
       <!-- By the Numbers -->
       <section class="donate-section">
@@ -170,6 +140,33 @@ const jsonLd = {
             <span class="stat-number">4</span>
             <a href="/courses/" class="stat-label">Self-paced online courses</a>
           </div>
+        </div>
+      </section>
+
+      <!-- The Foundation -->
+      <section class="donate-section">
+        <h2>About the RRM Foundation</h2>
+        <p>RRM Academy is an educational project of the Restorative Reproductive Medicine Foundation (RRM Foundation), a 501(c)(3) nonprofit dedicated to transforming reproductive health through education, research, and a restorative approach to care.</p>
+        <p>When you donate to RRM Academy, you're supporting the Foundation's mission. We exist for every person who has been told their pain is normal or has been left to navigate years of uncertainty.</p>
+      </section>
+
+      <!-- Projects seeking funding -->
+      <section class="donate-section projects-section">
+        <h2>Where Your Donation Goes</h2>
+        <p class="projects-lead">These are the specific projects your support makes possible. Some are ongoing -- they exist because of past donors. Others are actively seeking funding to launch.</p>
+        <div class="projects-grid">
+          {fundingProjects.map(project => (
+            <div class={`project-card card project-card--${project.status}`}>
+              <div class="project-card__header">
+                <span class={`project-badge project-badge--${project.status}`}>
+                  {statusLabel[project.status]}
+                </span>
+              </div>
+              <h3 class="project-card__title">{project.title}</h3>
+              <p class="project-card__tagline">{project.tagline}</p>
+              <p class="project-card__desc">{project.description}</p>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -273,22 +270,7 @@ const jsonLd = {
         });
       });
 
-      // --- One-time donation modal ---
-      var modal = document.getElementById('onetime-modal');
-      function openModal() {
-        modal.hidden = false;
-        document.body.style.filter = 'none';
-      }
-      function closeModal() {
-        modal.hidden = true;
-        document.body.style.filter = '';
-      }
-      document.getElementById('onetime-toggle').addEventListener('click', openModal);
-      document.getElementById('onetime-close').addEventListener('click', closeModal);
-      modal.addEventListener('click', function (e) {
-        if (e.target === modal) closeModal();
-      });
-
+      // --- One-time donation ---
       var amountBtns = document.querySelectorAll('.donate-amount-btn');
       var customInput = document.getElementById('custom-amount');
       var donateBtn = document.getElementById('donate-btn');
@@ -298,7 +280,7 @@ const jsonLd = {
       function setAmount(cents) {
         selectedCents = cents;
         var dollars = Math.floor(cents / 100);
-        donateBtn.textContent = 'Donate $' + dollars.toLocaleString();
+        donateBtn.textContent = 'Give $' + dollars.toLocaleString();
         amountBtns.forEach(function (b) {
           b.classList.toggle('active', parseInt(b.dataset.amount, 10) === cents);
         });
@@ -316,7 +298,7 @@ const jsonLd = {
         if (val && val >= 5) {
           var cents = Math.round(val * 100);
           selectedCents = cents;
-          donateBtn.textContent = 'Donate $' + val.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+          donateBtn.textContent = 'Give $' + val.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
           amountBtns.forEach(function (b) { b.classList.remove('active'); });
         }
       });
@@ -346,7 +328,7 @@ const jsonLd = {
               errorEl.hidden = false;
               donateBtn.disabled = false;
               var dollars = Math.floor(selectedCents / 100);
-              donateBtn.textContent = 'Donate $' + dollars.toLocaleString();
+              donateBtn.textContent = 'Give $' + dollars.toLocaleString();
             }
           })
           .catch(function () {
@@ -564,12 +546,17 @@ const jsonLd = {
     font-weight: 400;
     color: var(--text-tertiary);
   }
-  .tier-desc {
-    font-size: 0.875rem;
-    line-height: 1.6;
-    color: var(--text-secondary);
+  .tier-benefits {
+    list-style: disc;
+    padding-left: var(--space-5);
     margin-bottom: var(--space-5);
     flex: 1;
+  }
+  .tier-benefits li {
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-2);
   }
   .tier-btn {
     align-self: center;
@@ -605,77 +592,29 @@ const jsonLd = {
     color: var(--accent-hover);
     text-decoration: underline;
   }
-  .donate-onetime-link {
-    font-size: 0.8125rem;
-    color: var(--text-secondary);
-    margin-top: var(--space-3);
-  }
-  .link-btn {
-    background: none;
-    border: none;
-    color: var(--accent);
-    font-size: inherit;
-    cursor: pointer;
-    padding: 0;
-    text-decoration: underline;
-    font-family: inherit;
-  }
-  .link-btn:hover {
-    color: var(--accent-hover);
-  }
-
-  /* One-time donation modal */
-  .donate-modal-overlay[hidden] {
-    display: none !important;
-  }
-  .donate-modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10000;
-    padding: var(--space-4);
-  }
-  .donate-modal {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: var(--space-8);
-    max-width: 420px;
-    width: 100%;
+  /* One-time donation section */
+  .donate-onetime-section {
     text-align: center;
-    position: relative;
+    margin-bottom: var(--space-6);
   }
-  .donate-modal h2 {
-    font-size: 1.25rem;
-    margin-bottom: var(--space-5);
-  }
-  .donate-modal-close {
-    position: absolute;
-    top: var(--space-3);
-    right: var(--space-4);
-    background: none;
-    border: none;
+  .donate-onetime-section h2 {
     font-size: 1.5rem;
-    color: var(--text-tertiary);
-    cursor: pointer;
-    line-height: 1;
-    padding: 4px;
+    margin-bottom: var(--space-4);
   }
-  .donate-modal-close:hover {
-    color: var(--text-primary);
+  .donate-onetime-card {
+    max-width: 480px;
+    margin: 0 auto;
+    text-align: center;
   }
-  .donate-modal-alt {
+  .donate-onetime-alt {
     font-size: 0.8125rem;
     color: var(--text-tertiary);
     margin-top: var(--space-4);
   }
-  .donate-modal-alt a {
+  .donate-onetime-alt a {
     color: var(--accent);
   }
-  .donate-modal-alt a:hover {
+  .donate-onetime-alt a:hover {
     color: var(--accent-hover);
     text-decoration: underline;
   }
@@ -839,8 +778,13 @@ const jsonLd = {
       font-size: 1.75rem;
       margin-bottom: var(--space-3);
     }
-    .tier-desc {
+    .tier-benefits {
+      text-align: left;
+      padding-left: var(--space-4);
       margin-bottom: var(--space-4);
+    }
+    .tier-benefits li {
+      margin-bottom: var(--space-1);
     }
     .tier-btn {
       width: 100%;
