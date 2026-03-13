@@ -5,7 +5,11 @@
 const navItems = [
   { label: 'Research Library', href: '/library/', current: true },
   { label: 'Commentary', href: '/commentary/' },
-  { label: 'Courses', href: '/courses/' },
+  { label: 'Learn', children: [
+    { label: 'Guides', href: '/guides/' },
+    { label: 'FAQs', href: '/faqs/' },
+    { label: 'Courses', href: '/courses/' },
+  ]},
   { label: 'Join Us', href: '/save-the-uterus-club/', id: 'stuc-nav-link' },
 ];
 
@@ -16,6 +20,7 @@ const icons: Record<string, string> = {
   'graduation': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.1 2.7 3 6 3s6-1.9 6-3v-5"/></svg>',
   'pen': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>',
   'library-big': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="18" x="3" y="3" rx="1"/><path d="M7 3v18"/><path d="M20.4 18.9c.2.5-.1 1.1-.6 1.3l-1.9.7c-.5.2-1.1-.1-1.3-.6L11.1 5.1c-.2-.5.1-1.1.6-1.3l1.9-.7c.5-.2 1.1.1 1.3.6Z"/></svg>',
+  'compass': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>',
   'clipboard': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>',
   'info': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
   'heart': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
@@ -26,13 +31,19 @@ const icons: Record<string, string> = {
 
 const mobileNavSections = [
   {
-    heading: 'Education',
+    heading: 'Learn',
     items: [
+      { label: 'Guides', href: '/guides/', icon: 'compass' },
       { label: 'FAQ', href: '/faqs/', icon: 'help-circle' },
       { label: 'Courses', href: '/courses/', icon: 'graduation' },
-      { label: 'Commentary', href: '/commentary/', icon: 'pen' },
       { label: 'What is RRM?', href: '/faqs/what-is-restorative-reproductive-medicine-rrm/', icon: 'info' },
+    ],
+  },
+  {
+    heading: 'Explore',
+    items: [
       { label: 'Research Library', href: '/library/', icon: 'library-big' },
+      { label: 'Commentary', href: '/commentary/', icon: 'pen' },
       { label: 'Endo Self-Survey', href: '/endo-survey/', icon: 'clipboard', hoverIcon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 11.22C11 9.997 10 9 10 8a2 2 0 0 1 4 0c0 1-.998 2.002-2.01 3.22"/><path d="m12 18 2.57-3.5"/><path d="M6.243 9.016a7 7 0 0 1 11.507-.009"/><path d="M9.35 14.53 12 11.22"/><path d="M9.35 14.53C7.728 12.246 6 10.221 6 7a6 5 0 0 1 12 0c-.005 3.22-1.778 5.235-3.43 7.5l3.557 4.527a1 1 0 0 1-.203 1.43l-1.894 1.36a1 1 0 0 1-1.384-.215L12 18l-2.679 3.593a1 1 0 0 1-1.39.213l-1.865-1.353a1 1 0 0 1-.203-1.422z"/></svg>' },
     ],
   },
@@ -234,7 +245,7 @@ const mobileNavSections = [
   /* Nav */
   .main-nav {
     flex: 1;
-    overflow: hidden;
+    overflow: visible;
   }
   .nav-list {
     display: flex;
@@ -290,7 +301,7 @@ const mobileNavSections = [
     top: 100%;
     left: 50%;
     transform: translateX(-50%);
-    min-width: 380px;
+    min-width: 160px;
     padding-top: 12px;
     z-index: 10;
   }
@@ -300,8 +311,8 @@ const mobileNavSections = [
   }
   .dropdown__grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-2) var(--space-6);
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow-lg);
