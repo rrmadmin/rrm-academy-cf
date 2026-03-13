@@ -16,7 +16,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         <span>Saved</span>
       </nav>
 
-      <h1 class="saved-title">Saved Articles</h1>
+      <div class="saved-header">
+        <h1 class="saved-title">Saved Articles</h1>
+        <div class="saved-actions">
+          <button id="export-all" class="export-btn">Export all (.RIS)</button>
+          <button id="clear-all" class="clear-all-btn">Clear all</button>
+        </div>
+      </div>
 
       <div id="saved-empty" class="saved-empty">
         <p>No saved articles yet.</p>
@@ -28,11 +34,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       </div>
 
       <div id="saved-list" class="saved-list"></div>
-
-      <div class="saved-actions">
-        <button id="export-all" class="export-btn">Export all (.RIS)</button>
-        <button id="clear-all" class="clear-all-btn">Clear all</button>
-      </div>
 
       <!-- Guest sync nudge — shown only for guests with saved articles -->
       <aside id="guest-sync-nudge" class="sync-nudge" hidden>
@@ -53,9 +54,16 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 </BaseLayout>
 
 <style>
+  .saved-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
   .saved-title {
     font-size: 1.5rem;
-    margin-bottom: var(--space-6);
+    margin-bottom: 0;
   }
 
   .saved-empty {
@@ -137,7 +145,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     display: none;
     align-items: center;
     gap: var(--space-4);
-    margin-top: var(--space-6);
   }
   .saved-actions.visible {
     display: flex;
