@@ -631,7 +631,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         '<span class="worker-row__label">GSC</span>' +
         (gscOk
           ? '<span class="worker-row__value worker-row__value--ok">Connected</span>'
-          : '<span class="worker-row__value worker-row__value--warn">Disconnected</span>') +
+          : '<a href="/api/admin/seo?action=google-auth" class="worker-row__value worker-row__value--warn worker-row__link">Disconnected</a>') +
         '</div>';
 
       body.innerHTML = html;
@@ -1618,6 +1618,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   }
   .worker-row__value--warn {
     color: #D4840A;
+  }
+  a.worker-row__link {
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  a.worker-row__link:hover {
+    opacity: 0.8;
   }
 
   /* Alert items */
