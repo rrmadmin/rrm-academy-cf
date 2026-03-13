@@ -35,8 +35,8 @@ const jsonLd = {
         <p class="faqs-intro animate-enter" style="--stagger: 1;">Common questions about Restorative Reproductive Medicine, NaProTechnology, treatment approaches, and getting started with an RRM clinician.</p>
       </section>
 
-      {groups.map((group, gi) => (
-        <section class="faq-group animate-enter" style={`--stagger: ${gi + 2};`}>
+      {groups.map((group) => (
+        <section class="faq-group">
           <h2 class="faq-group-title">{group.category}</h2>
           <div class="faq-list">
             {group.faqs.map((faq) => (
