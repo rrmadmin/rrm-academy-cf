@@ -1,0 +1,703 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BackToTop from '../../components/BackToTop.astro';
+
+// Block 1: MedicalWebPage + Article (injected via BaseLayout jsonLd prop)
+const pageSchema = {
+  '@context': 'https://schema.org',
+  '@type': ['Article', 'MedicalWebPage'],
+  headline: 'What is NaProTechnology? A Complete Guide to Natural Procreative Technology',
+  description: 'NaProTechnology uses the Creighton Model to diagnose and treat infertility, endometriosis, and PCOS. Learn how NaPro works, find a provider, compare costs.',
+  image: 'https://rrmacademy.org/images/og-default.png',
+  author: {
+    '@type': 'Person',
+    '@id': 'https://rrmacademy.org/#naomi-whittaker',
+    name: 'Naomi Whittaker, MD',
+    jobTitle: 'Board-Certified OBGYN, NaProTechnology Fellow',
+  },
+  publisher: {
+    '@type': 'EducationalOrganization',
+    '@id': 'https://rrmacademy.org/#organization',
+    name: 'RRM Academy',
+  },
+  datePublished: '2026-03-12',
+  dateModified: '2026-03-12',
+  wordCount: 3800,
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': 'https://rrmacademy.org/naprotechnology/',
+  },
+  about: {
+    '@type': 'MedicalTherapy',
+    name: 'NaProTechnology',
+    alternateName: 'Natural Procreative Technology',
+  },
+  articleSection: [
+    'What is NaProTechnology?',
+    'How NaProTechnology Works',
+    'Conditions NaPro Treats',
+    'NaPro Surgery',
+    'Who is NaPro For?',
+    'NaPro vs IVF',
+    'How to Find a NaPro Provider',
+    'Cost and Insurance',
+    'Frequently Asked Questions',
+    'References',
+  ],
+  hasPart: [
+    { '@type': 'WebPageElement', name: 'What is NaProTechnology?', url: 'https://rrmacademy.org/naprotechnology/#what-is-naprotechnology' },
+    { '@type': 'WebPageElement', name: 'How NaProTechnology Works', url: 'https://rrmacademy.org/naprotechnology/#how-napro-works' },
+    { '@type': 'WebPageElement', name: 'Conditions NaPro Treats', url: 'https://rrmacademy.org/naprotechnology/#conditions' },
+    { '@type': 'WebPageElement', name: 'NaPro Surgery', url: 'https://rrmacademy.org/naprotechnology/#napro-surgery' },
+    { '@type': 'WebPageElement', name: 'Who is NaPro For?', url: 'https://rrmacademy.org/naprotechnology/#who-is-napro-for' },
+    { '@type': 'WebPageElement', name: 'NaPro vs IVF', url: 'https://rrmacademy.org/naprotechnology/#napro-vs-ivf' },
+    { '@type': 'WebPageElement', name: 'How to Find a NaPro Provider', url: 'https://rrmacademy.org/naprotechnology/#find-provider' },
+    { '@type': 'WebPageElement', name: 'Cost and Insurance', url: 'https://rrmacademy.org/naprotechnology/#cost-insurance' },
+    { '@type': 'WebPageElement', name: 'Frequently Asked Questions', url: 'https://rrmacademy.org/naprotechnology/#faq' },
+    { '@type': 'WebPageElement', name: 'References', url: 'https://rrmacademy.org/naprotechnology/#references' },
+  ],
+  citation: [
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'RRM Outcomes Compared to IVF for the Treatment of Infertility',
+      author: 'Boyle P, Toth A, Minjeur M, Turczynski C',
+      datePublished: '2025',
+      isPartOf: { '@type': 'Periodical', name: 'Journal of Restorative Reproductive Medicine' },
+    },
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'Natural Procreative Technology (NaProTechnology) for Infertility: Take-Home Baby Rate and Clinical Outcomes in a 5-Year Single-Center Cohort of 1,310 Couples',
+      author: 'S\u00e1nchez M\u00e9ndez JI, et al.',
+      datePublished: '2025',
+      isPartOf: { '@type': 'Periodical', name: 'Frontiers in Reproductive Health' },
+    },
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'The Long-Term Rate of Repeat Surgery After Optimal Excision Surgery of Endometriosis at a Single Tertiary Referral Center',
+      author: 'Yeung P Jr, Mohan A, Gavard JA',
+      datePublished: '2024',
+      isPartOf: { '@type': 'Periodical', name: 'Acta Scientific Women\'s Health' },
+    },
+  ],
+};
+
+// Block 2: BreadcrumbList (inline in page body)
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+    { '@type': 'ListItem', position: 2, name: 'NaProTechnology', item: 'https://rrmacademy.org/naprotechnology/' },
+  ],
+};
+
+// Block 3: FAQPage (separate block per spec -- avoids Google validation issues with merged schemas)
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'What is NaProTECHNOLOGY and the Creighton Model?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'NaProTECHNOLOGY is a medical approach that works with natural fertility cycles to diagnose and treat reproductive disorders, using the Creighton Model FertilityCare System (CrMS) as its foundation for precise biomarker tracking. CrMS creates a detailed record of each woman\'s cycle patterns that reveal hormonal function, ovulation quality, and potential reproductive health issues. NaProTechnology uses this data to guide both diagnosis and treatment timing, timed to each woman\'s actual cycle rather than a calendar estimate.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What does "natural conception" mean in NaProTechnology?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Natural conception in NaProTechnology means conception through intercourse within the woman\'s reproductive system, as opposed to laboratory fertilization. NaPro works to restore the couple\'s natural reproductive function so that conception can occur without laboratory intervention. The embryo develops naturally within the woman\'s body from the moment of conception.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Do I need to be Catholic to use Creighton or NaPro?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'No. The Creighton Model FertilityCare System, NaProTechnology, and RRM are evidence-based medical approaches available to people of all faiths and backgrounds. The Creighton Model originated within Catholic healthcare institutions, but the system is based on objective biomarkers that work the same way regardless of religious beliefs.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Is NaProTechnology the same as RRM?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'No. NaProTechnology predates the RRM umbrella by two decades and maintains its own institutional identity through the Pope Paul VI Institute. The NaPro and Creighton founders do not consider themselves part of or under RRM. NaPro uses the Creighton Model FertilityCare System and was developed by Dr. Thomas Hilgers. RRM (Restorative Reproductive Medicine) is a broader medical discipline that emerged in the 2000s, encompassing other cause-directed approaches such as FEMM Medical Management and NeoFertility protocols. These systems share the same philosophy of diagnosing and treating the underlying condition, but differ in charting methods, clinical frameworks, and institutional affiliation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What are the success rates for NaProTechnology?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Published studies report crude live birth rates of 26 to 41% for NaProTechnology treatment with natural conception, and adjusted cumulative rates of 50 to 62% depending on follow-up duration and the couple\'s specific diagnosis. Boyle et al. (2025) reported a 41% crude live birth rate in 187 couples. S\u00e1nchez M\u00e9ndez et al. (2025) reported 50% at 24 months and 62.1% at 36 months in 1,310 couples. Results depend on diagnosis, age, and individual factors.',
+      },
+    },
+  ],
+};
+---
+
+<BaseLayout
+  title="What is NaProTechnology? Complete Guide to Natural Procreative Technology"
+  description="NaProTechnology uses the Creighton Model to diagnose and treat infertility, endometriosis, and PCOS. Learn how NaPro works, find a provider, compare costs."
+  canonicalUrl="https://rrmacademy.org/naprotechnology/"
+  ogType="article"
+  publishDate="2026-03-12"
+  jsonLd={pageSchema}
+>
+  <!-- Separate JSON-LD blocks (not @graph) per spec -->
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+  <div class="page-wrapper" data-pagefind-body>
+    <span data-pagefind-meta="type:Guide" style="display:none"></span>
+    <span data-pagefind-meta="title:What is NaProTechnology? A Complete Guide" style="display:none"></span>
+    <div class="container">
+
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <span>NaProTechnology</span>
+      </nav>
+
+      <h1>NaProTechnology: A Complete Guide</h1>
+
+      <div class="author-byline">
+        <span>By <strong><a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Naomi Whittaker, MD</a></strong>, Board-Certified OBGYN and NaProTechnology Fellow</span>
+        <time datetime="2026-03-12">Last updated March 2026</time>
+      </div>
+
+      <!-- Mobile TOC -->
+      <details class="toc-mobile">
+        <summary>On this page</summary>
+        <ol>
+          <li><a href="#what-is-naprotechnology">What is NaProTechnology?</a></li>
+          <li><a href="#how-napro-works">How NaProTechnology Works</a></li>
+          <li><a href="#conditions">Conditions NaPro Treats</a></li>
+          <li><a href="#napro-surgery">NaPro Surgery</a></li>
+          <li><a href="#who-is-napro-for">Who is NaPro For?</a></li>
+          <li><a href="#napro-vs-ivf">NaPro vs IVF</a></li>
+          <li><a href="#find-provider">How to Find a NaPro Provider</a></li>
+          <li><a href="#cost-insurance">Cost and Insurance</a></li>
+          <li><a href="#faq">Frequently Asked Questions</a></li>
+          <li><a href="#references">References</a></li>
+        </ol>
+      </details>
+
+      <!-- Article layout: sidebar TOC + main content -->
+      <div class="article-layout">
+
+        <!-- Desktop TOC (sticky sidebar, 1024px+) -->
+        <nav class="toc" aria-label="Table of contents">
+          <p class="toc-heading">On this page</p>
+          <ol>
+            <li><a href="#what-is-naprotechnology">What is NaProTechnology?</a></li>
+            <li><a href="#how-napro-works">How NaProTechnology Works</a></li>
+            <li><a href="#conditions">Conditions NaPro Treats</a></li>
+            <li><a href="#napro-surgery">NaPro Surgery</a></li>
+            <li><a href="#who-is-napro-for">Who is NaPro For?</a></li>
+            <li><a href="#napro-vs-ivf">NaPro vs IVF</a></li>
+            <li><a href="#find-provider">How to Find a NaPro Provider</a></li>
+            <li><a href="#cost-insurance">Cost and Insurance</a></li>
+            <li><a href="#faq">Frequently Asked Questions</a></li>
+          </ol>
+        </nav>
+
+        <!-- Main content -->
+        <article class="prose">
+
+          <aside class="tldr">
+            <h2 id="key-takeaways">Key Takeaways</h2>
+            <ul>
+              <li><strong>NaProTECHNOLOGY (Natural Procreative Technology) diagnoses and treats the underlying conditions</strong> behind reproductive health problems using the Creighton Model FertilityCare System as a real-time diagnostic tool.<sup><a href="#ref-5">5</a></sup></li>
+              <li><strong>Conditions treated</strong> include endometriosis, PCOS, unexplained infertility, recurrent miscarriage, ovulatory dysfunction, male factor infertility, postpartum depression, and perimenopause.</li>
+              <li><strong>Published live birth rates:</strong> 41% crude LBR in 187 couples (Boyle 2025), 50% at 24 months and 62% at 36 months in 1,310 couples (S&aacute;nchez M&eacute;ndez 2025). All pregnancies through natural conception.<sup><a href="#ref-1">1</a></sup><sup><a href="#ref-2">2</a></sup></li>
+              <li><strong>Excision surgery for endometriosis</strong> achieves a 2.5% repeat surgery rate over ten years, compared to 40% recurrence after ablation.<sup><a href="#ref-7">7</a></sup></li>
+              <li><strong>Cost:</strong> IVF averages $40,000 to $60,000 total. NaPro treats diagnosed conditions using standard insurance codes at a fraction of that cost.</li>
+              <li><strong>Getting started:</strong> The first step is learning the Creighton Model through a <a href="https://www.fertilitycare.org/find-a-center/" rel="noopener">certified FertilityCare center</a>, then finding a NaPro-trained physician. Explore free courses at <a href="/courses/">RRM Academy</a>.</li>
+            </ul>
+          </aside>
+
+          <!-- Section 1: What is NaProTechnology? -->
+          <section id="what-is-naprotechnology">
+            <h2>What is NaProTechnology?</h2>
+
+            <p><strong>NaProTECHNOLOGY (Natural Procreative Technology) is a medical approach that uses the Creighton Model FertilityCare System to diagnose and treat reproductive disorders by working with a woman's natural cycle rather than suppressing or bypassing it.</strong></p>
+
+            <p>The name comes from two distinct but inseparable parts. The Creighton Model FertilityCare System (CrMS) is the charting method: a standardized way of recording daily observations of cervical mucus and other fertility biomarkers that maps hormonal activity in real time. NaProTechnology is the medical and surgical application built on that data. Physicians trained in NaPro use the chart the way a cardiologist uses an EKG: to detect patterns, identify abnormalities, and direct targeted treatment. One half is the diagnostic data. The other half is what physicians do with it.</p>
+
+            <p>NaProTechnology predates the broader field of Restorative Reproductive Medicine (RRM) by two decades and maintains its own institutional identity through the Pope Paul VI Institute and the Creighton Model FertilityCare System. The NaPro and Creighton communities do not consider themselves part of or under the RRM umbrella. RRM emerged in the 2000s as a broader medical discipline that includes other cause-directed approaches such as FEMM Medical Management and NeoFertility protocols. These systems share the same founding principle: diagnose and treat the underlying condition rather than suppress symptoms or bypass the reproductive system. They differ in charting methods, clinical frameworks, and institutional affiliation.</p>
+            <!-- CROSS-LINK: when /what-is-rrm/ publishes, add link here -->
+
+            <h3>A Brief History</h3>
+
+            <p>Dr. Thomas Hilgers began the research that led to the Creighton Model FertilityCare System in 1976 at St. Louis University School of Medicine. In July 1977, the program moved to Creighton University School of Medicine in Omaha, where Hilgers continued developing the standardized charting system. The CrMS was first fully described in 1980. Over the following years, Hilgers noticed that women's charts showed consistent patterns when specific reproductive health abnormalities were present. Shortened luteal phases. Absent or disrupted mucus. Premenstrual spotting. Each pattern pointed to something. The chart was diagnostic, not just descriptive.</p>
+
+            <p>In September 1985, Hilgers opened the Pope Paul VI Institute for the Study of Human Reproduction in Omaha, Nebraska. The institute conducted prospective, longitudinal studies tracking women's hormones across the full cycle. That research established precise hormonal reference ranges for each phase and gave NaPro physicians a diagnostic framework most conventional training never provides. By 1991, the accumulated research had produced a distinct clinical discipline: NaProTECHNOLOGY (natural procreative technology), formally named as a new women's health science built on the CrMS diagnostic foundation.</p>
+
+            <p>Today, NaProTechnology is the most established and extensively published clinical approach in the cause-directed reproductive medicine space, with over four decades of research behind it.</p>
+
+            <h3>The Three-Step Flow</h3>
+
+            <p>NaProTechnology follows a clear, sequential model:</p>
+
+            <ol>
+              <li><strong>Chart your cycle.</strong> A woman learns the Creighton Model from a certified FertilityCare Practitioner. Daily observations take a few minutes. Over 1 to 3 cycles, the chart builds a continuous record of hormonal activity.</li>
+              <li><strong>Get a diagnosis.</strong> The NaPro physician reads the chart alongside targeted bloodwork timed to the cycle, imaging studies, and a thorough history of both partners. The goal is a specific diagnosis, not a label of "unexplained infertility."</li>
+              <li><strong>Receive treatment.</strong> Treatment is matched to the diagnosis. Hormonal support, medication, nutritional optimization, and surgery when indicated. All timed to the woman's cycle, not to a calendar.</li>
+            </ol>
+          </section>
+
+          <!-- Section 2: How NaProTechnology Works -->
+          <section id="how-napro-works">
+            <h2>How NaProTechnology Works</h2>
+
+            <p><strong>A NaPro physician reads a cycle chart as a continuous record of physiological function that reveals patterns invisible to a single snapshot.</strong></p>
+
+            <h3>Daily Charting</h3>
+
+            <p>Cycle charting takes a few minutes per day. The woman records biomarkers: cervical mucus characteristics, bleeding patterns, and other biomarker data. The Creighton Model uses a standardized scoring system that makes observations consistent and interpretable by trained clinicians worldwide.<sup><a href="#ref-6">6</a></sup> This is not a calendar-based estimate of ovulation. It is a real-time biological record.</p>
+
+            <p>What the chart reveals: the timing and quality of ovulation, the length and hormonal character of the luteal phase, the presence of premenstrual spotting or tail-end brown bleeding, and the pattern of cervical mucus across the full cycle. Each of these biomarkers reflects underlying hormonal activity. Without this data, physicians are working with incomplete information.</p>
+
+            <h3>Targeted Diagnostics Timed to the Cycle</h3>
+
+            <p>Standard fertility workups often draw progesterone on a fixed calendar day, typically day 21. That assumes a 28-day cycle with ovulation on day 14. Many women do not fit that model. If ovulation occurs earlier or later, the day-21 draw misses the target entirely.</p>
+
+            <p>NaPro solves this by anchoring all bloodwork to the ovulatory event identified on the chart. The targeted hormonal panel is drawn on specific post-peak days: Peak+3, Peak+5, Peak+7, Peak+9, and Peak+11. This serial measurement maps progesterone and estradiol across the full luteal phase and reveals deficiencies that a single draw would miss.</p>
+
+            <p>Imaging studies are also cycle-timed. Follicle ultrasound series track development from early cycle through ovulation confirmation. Sonohysterography evaluates the uterine cavity. HSG confirms tubal patency. The NaPro diagnostic workup is systematic and targeted, not a one-size-fits-all checklist.</p>
+
+            <h3>Both Partners Evaluated</h3>
+
+            <p>NaProTechnology is couple-centered from the start. A male factor is solely responsible in about 20% of infertile couples and is a contributing factor in another 30 to 40%. Semen analysis is standard for every couple. When abnormalities are found, restorative andrology investigates the cause: hormonal imbalances, varicocele, infections, oxidative stress. The goal is to restore sperm quality, not bypass the problem.</p>
+
+            <p>This matters because addressing only one partner's health misses half the picture. NaProTechnology does not treat infertility as a woman's problem. It treats it as a couple's diagnosis.</p>
+          </section>
+
+          <!-- Section 3: Conditions NaPro Treats -->
+          <section id="conditions">
+            <h2>Conditions NaPro Treats</h2>
+
+            <p><strong>NaProTechnology addresses a wide range of reproductive and gynecologic conditions by diagnosing and treating the underlying condition rather than masking symptoms.</strong> The table below describes typical approaches used in NaPro care. Every treatment plan is individualized based on a patient's charting data, diagnostic results, and clinical history. This information is educational, not prescriptive.</p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Condition</th>
+                    <th>Typical NaPro Approach</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>Endometriosis</td><td>Minimally invasive excision surgery with adhesion prevention; post-operative hormonal support; long-term monitoring</td></tr>
+                  <tr><td>PCOS</td><td>Phenotype-based evaluation (insulin-resistant, inflammatory, adrenal, post-pill); targeted metabolic optimization; ovulation induction when indicated, with medication selection guided by phenotype and current evidence</td></tr>
+                  <tr><td>Unexplained infertility</td><td>Reframed as undiagnosed: systematic evaluation to identify the cause, found in most cases after thorough NaPro workup</td></tr>
+                  <tr><td>Recurrent pregnancy loss</td><td>Progesterone support timed to ovulation via post-peak testing; full thyroid evaluation; immune workup; anatomical assessment</td></tr>
+                  <tr><td>Ovulatory dysfunction and luteal phase defect</td><td>Cycle charting to identify the pattern; targeted bio-identical progesterone support timed to post-peak phase</td></tr>
+                  <tr><td>Male factor infertility</td><td>Restorative andrology: hormonal evaluation, varicocele assessment, targeted treatment to restore sperm quality</td></tr>
+                  <tr><td>Irregular and painful periods / pelvic pain</td><td>Diagnostic workup to find the cause, typically endometriosis or hormonal imbalance; treatment of the disease, not just the pain</td></tr>
+                  <tr><td>Uterine fibroids and polyps</td><td>Surgical removal when affecting fertility or causing symptoms</td></tr>
+                  <tr><td>Chronic endometritis</td><td>Antibiotic protocols for uterine inflammation</td></tr>
+                  <tr><td>PMS / PMDD</td><td>Cycle-timed hormonal evaluation; targeted bio-identical hormone support</td></tr>
+                  <tr><td>Postpartum depression and anxiety</td><td>Bio-identical progesterone support addressing the post-delivery hormonal crash that drives postpartum mood disorders</td></tr>
+                  <tr><td>Perimenopause</td><td>Cycle-charted hormonal transition monitoring; individualized bio-identical hormone support</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>Endometriosis</h3>
+
+            <p>Endometriosis affects approximately 10% of reproductive-age women. The average time from first symptoms to a confirmed diagnosis is now ten years. During those years, the disease progresses silently. Adhesions form. Fertility declines. Pain worsens. Many women are told their symptoms are normal.</p>
+
+            <p>NaPro-trained surgeons perform minimally invasive excision surgery. Excision removes endometriosis tissue at the root. Ablation burns the visible surface while leaving deeper implants behind and causing thermal scarring to surrounding tissue. The distinction is clinically significant.</p>
+
+            <p>In a prospective cohort of 620 consecutive patients treated with optimal excision at a single tertiary referral center, the repeat surgery rate was 2.5% over ten years.<sup><a href="#ref-7">7</a></sup> Published literature on ablation reports symptom recurrence as high as 40% within five years. Excision removes the disease. Ablation treats the surface.</p>
+
+            <p>Effective excision is more than cutting. Adhesion prevention using surgical membrane barriers is a critical component. Half of the surgical procedure is excision of disease. The other half is reconstructive work and adhesion prevention that preserves pelvic anatomy and reproductive function. After surgical excision, many women conceive naturally. No laboratory. No high-dose stimulation. The disease is treated, and the body's function is restored.</p>
+
+            <h3>PCOS</h3>
+
+            <p>PCOS is the most common endocrine disorder in reproductive-age women. Not all PCOS is the same. The conventional approach often treats every case identically: suppressive medications to regulate cycles, then empiric ovulation induction.</p>
+
+            <p>NaPro evaluates by phenotype. Is insulin resistance the primary driver? Is there an inflammatory component? Is adrenal androgen overproduction involved? Did symptoms emerge after stopping suppressive medications? Each phenotype requires a different strategy.</p>
+
+            <p>Cycle charting reveals the specific ovulatory dysfunction present. Depending on the findings, treatment may include insulin-sensitizing medications such as metformin, anti-inflammatory protocols, and where ovulation induction is indicated, medications such as letrozole or clomiphene selected based on phenotype, patient history, and current evidence. Treatment is timed to the woman's actual cycle, not a standard protocol calendar.</p>
+
+            <h3>Unexplained Infertility</h3>
+
+            <p>"Unexplained infertility" is not a diagnosis. It means the standard workup failed to find the cause. NaProTechnology reframes this as "not yet diagnosed" and begins a more thorough investigation.</p>
+
+            <p>In the Boyle et al. (2025) cohort, "unexplained infertility" dropped from 24% of presenting diagnoses to 1% after the full NaPro workup.<sup><a href="#ref-1">1</a></sup> Most of those cases had identifiable, treatable causes: corpus luteum deficiency, hypoandrogenism, or endometritis. The NaPro workup finds what the standard workup missed.</p>
+          </section>
+
+          <!-- Section 4: NaPro Surgery -->
+          <section id="napro-surgery">
+            <h2>NaPro Surgery</h2>
+
+            <p><strong>NaProTechnology surgery addresses reproductive disorders with a clear priority: restore anatomy and function so that natural conception is possible.</strong> Every surgical decision is made with fertility preservation in mind.</p>
+
+            <h3>What NaPro Surgery Addresses</h3>
+
+            <p>NaPro-trained surgeons perform excision for endometriosis, removal of fibroids and ovarian cysts, repair of blocked or damaged fallopian tubes, treatment of pelvic adhesions, correction of uterine defects including isthmocele (a uterine niche that can cause recurrent miscarriage), and other structural conditions that impair fertility or cause pain.</p>
+
+            <p>The surgical approach is excision-based, not ablation-based. For endometriosis specifically, NaPro surgeons remove the disease entirely rather than burning the surface. The goal is to leave the pelvis in better condition than it was found, not simply to reduce visible disease.</p>
+
+            <h3>The Adhesion Prevention Protocol</h3>
+
+            <p>NaPro surgery is known for its focus on preventing postoperative adhesions. Adhesions are scar tissue that forms after surgery and can impair fertility, cause pain, and complicate future procedures. NaPro surgical protocols include meticulous tissue handling, micro-suturing with non-reactive materials, and use of surgical membrane adhesion barriers.</p>
+
+            <p>The outcome data reflects this approach. Yeung et al. (2024) reported a 2.5% repeat surgery rate over ten years in 620 consecutive patients treated with optimal excision at a tertiary referral center.<sup><a href="#ref-7">7</a></sup> That is the standard NaPro aims for and demonstrates that surgical technique, not just surgical intent, determines outcomes.</p>
+
+            <h3>Deeper Resources</h3>
+
+            <p>For clinical depth on NaPro surgical technique, see the <a href="/commentary/naprotechnology-surgery-a-restorative-approach-to-fertility-and-gynecologic-health/">NaProTechnology Surgery commentary</a> on this site.</p>
+
+            <p>For patients who want to understand excision surgery before choosing a surgeon, the <a href="/courses/masterclass-in-endometriosis-and-surgery/">Masterclass in Endometriosis and Surgery</a> covers everything: what to look for in a surgeon, what the procedure involves, and how to evaluate outcomes data.</p>
+          </section>
+
+          <!-- Section 5: Who is NaPro For? -->
+          <section id="who-is-napro-for">
+            <h2>Who is NaPro For?</h2>
+
+            <p><strong>NaProTechnology is appropriate for any couple or individual who wants reproductive health conditions diagnosed and treated rather than suppressed or bypassed.</strong></p>
+
+            <ul>
+              <li>Couples with infertility who have been told their only option is IVF</li>
+              <li>Couples labeled with "unexplained infertility" who want a complete diagnostic workup</li>
+              <li>Women with endometriosis who want the disease treated, not masked</li>
+              <li>Women with PCOS who want their underlying condition identified, not just cycle suppression</li>
+              <li>Couples who have experienced recurrent pregnancy loss and want systematic investigation</li>
+              <li>Women with painful or irregular periods who want a diagnosis, not a prescription to suppress symptoms</li>
+              <li>Women with PMS or PMDD who want hormonal evaluation rather than indefinite medication</li>
+              <li>Couples who have already had failed IVF and want to know why</li>
+              <li>Teenagers with painful periods or cycle irregularities that deserve investigation, not dismissal</li>
+              <li>Women in perimenopause who want cycle-informed hormone support</li>
+              <li>Anyone who wants to understand how their reproductive system works</li>
+            </ul>
+
+            <h3>Do I Need to Be Catholic?</h3>
+
+            <p>No. NaProTechnology was developed at a Catholic institution. The Pope Paul VI Institute is named for the pope who wrote <em>Humanae Vitae</em>. That history is real. The clinical protocols are grounded in reproductive physiology, not theology. Both Catholic and non-Catholic patients seek NaPro because they want thorough diagnostic evaluation and cause-based treatment.</p>
+
+            <p>RRM Academy supports patients of all faiths and none. The medicine works because it is grounded in biology. Any patient can benefit. <a href="/faqs/do-i-need-to-be-catholic-to-use-creighton-napro-or-see-an-rrm-clinician/">Read the full FAQ</a></p>
+
+            <h3>NaPro After Failed IVF</h3>
+
+            <p>NaProTechnology can help couples who have already undergone failed IVF cycles. Because IVF bypasses the underlying condition without treating it, that condition remains after IVF fails. NaPro identifies and treats it.</p>
+
+            <p>Boyle et al. (2022) documented a successful pregnancy achieved through RRM after 16 years of infertility, three recurrent miscarriages, and eight failed IVF/ICSI embryo transfers.<sup><a href="#ref-3">3</a></sup> The NaPro evaluation identified treatable conditions the IVF pathway had never investigated. After targeted treatment, the couple achieved natural conception.</p>
+
+            <p>Among a cohort of 403 couples who had already failed an average of 2.1 IVF cycles, RRM achieved a life-table live birth rate of 32.1%. Of the 74 live births, 92% were born at term and only one was a twin.<sup><a href="#ref-4">4</a></sup></p>
+
+            <p>For couples who have been told "IVF is your only option" and it has not worked, NaProTechnology offers a fundamentally different path. It looks for what IVF never investigated.</p>
+          </section>
+
+          <!-- Section 6: NaPro vs IVF -->
+          <section id="napro-vs-ivf">
+            <h2>NaPro vs IVF</h2>
+
+            <p><strong>NaProTechnology and IVF represent different medical paradigms, not different points on the same spectrum.</strong></p>
+
+            <p>IVF asks: <em>How can we achieve a pregnancy?</em></p>
+
+            <p>NaProTechnology asks: <em>Why can't this couple conceive, and can we fix it?</em></p>
+
+            <p>The difference in starting point produces entirely different evaluations, different treatments, and different outcomes for the couple's overall health. Much of conventional fertility medicine operates on an unspoken assumption: your body is broken, nature has failed, technology must take over. NaProTechnology challenges that assumption. In most cases, the body is not broken. It is sick, undiagnosed, or undertreated. When the disease is identified and treated, reproductive function often returns on its own.</p>
+
+            <h3>Comparison Table</h3>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Factor</th>
+                    <th>NaProTechnology</th>
+                    <th>IVF</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>Approach</td><td>Diagnose and treat underlying condition</td><td>Bypass reproductive system</td></tr>
+                  <tr><td>Goal</td><td>Restore natural function and fertility</td><td>Achieve pregnancy</td></tr>
+                  <tr><td>Treats underlying condition?</td><td>Yes</td><td>No</td></tr>
+                  <tr><td>Conception method</td><td>Natural, within the couple</td><td>Laboratory fertilization</td></tr>
+                  <tr><td>Multiple pregnancy risk</td><td>Minimal (natural conception, almost exclusively singletons)</td><td>Elevated, especially with multiple embryo transfer</td></tr>
+                  <tr><td>Typical cost</td><td>A fraction of IVF; treats diagnosed conditions using standard insurance codes</td><td>$15,000 to $30,000 per cycle; most couples spend $40,000 to $60,000 total</td></tr>
+                  <tr><td>Health benefit beyond pregnancy</td><td>Yes: underlying conditions are treated, improving long-term health</td><td>No: underlying conditions remain untreated</td></tr>
+                  <tr><td>Best suited for</td><td>Endometriosis, PCOS, ovulatory dysfunction, hormonal imbalance, recurrent miscarriage, male factor</td><td>Bilateral tubal occlusion, severe azoospermia when no treatable cause found</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>Success Rates</h3>
+
+            <p>Published research reports NaProTechnology live birth rates across multiple cohort studies. Results vary by diagnosis, age, and treatment duration.</p>
+
+            <p>Boyle et al. (2025) published the first head-to-head comparison of RRM versus IVF outcomes. In a cohort of 187 couples treated at NeoFertility Dublin, the crude live birth rate was 41%. The conception rate was 52%. Singleton prematurity was 4.0%, compared to 11.8% in CDC data for IVF singletons. Mean time to conception was 12 months.<sup><a href="#ref-1">1</a></sup></p>
+
+            <p>S&aacute;nchez M&eacute;ndez et al. (2025) published the largest NaProTechnology cohort to date: 1,310 couples treated over five years at a specialized fertility clinic in Madrid. The crude take-home baby rate was 35.3%. Using Kaplan-Meier adjusted analysis, the cumulative live birth rate reached 50% at 24 months and 62.1% at 36 months or more. Age-stratified results showed 83.7% adjusted success for women aged 18 to 30 and 53.3% for women aged 36 to 40.<sup><a href="#ref-2">2</a></sup></p>
+
+            <p>For context, the HFEA (UK regulatory authority with mandatory reporting from all licensed fertility clinics) reports an average live birth rate of approximately 33% per embryo transferred for women under 35 in its 2021 treatment cycle data, declining significantly with age. These figures use different denominators than NaPro outcome studies, so direct comparison requires care. What is documented: NaPro achieves comparable live birth rates through natural conception, after treating the underlying condition, and with substantially lower obstetric risk.</p>
+
+            <figure class="chart-figure">
+              <img src="/images/naprotechnology/success-rates.svg" alt="Horizontal bar chart comparing NaProTechnology vs IVF live birth rates: NaPro Boyle 2025 41%, NaPro S. Mendez 24 months 50%, NaPro S. Mendez 36 months 62%, IVF single embryo HFEA 33%" class="chart-light" loading="lazy" width="700" height="340" />
+              <img src="/images/naprotechnology/success-rates-dark.svg" alt="Horizontal bar chart comparing NaProTechnology vs IVF live birth rates: NaPro Boyle 2025 41%, NaPro S. Mendez 24 months 50%, NaPro S. Mendez 36 months 62%, IVF single embryo HFEA 33%" class="chart-dark" loading="lazy" width="700" height="340" />
+            </figure>
+
+            <figure class="chart-figure">
+              <img src="/images/naprotechnology/cumulative-rates.svg" alt="Vertical bar chart showing cumulative NaProTechnology live birth rate over time: 8.9% at 6 months, 28.9% at 12 months, 39.0% at 18 months, 50.0% at 24 months, 62.1% at 36 or more months" class="chart-light" loading="lazy" width="700" height="380" />
+              <img src="/images/naprotechnology/cumulative-rates-dark.svg" alt="Vertical bar chart showing cumulative NaProTechnology live birth rate over time: 8.9% at 6 months, 28.9% at 12 months, 39.0% at 18 months, 50.0% at 24 months, 62.1% at 36 or more months" class="chart-dark" loading="lazy" width="700" height="380" />
+            </figure>
+
+            <h3>Obstetric Safety</h3>
+
+            <p>NaProTechnology pregnancies are naturally conceived and almost exclusively singletons. This matters for outcomes. Multiple gestation pregnancies, more common with IVF, carry significantly elevated risks of preterm delivery, low birth weight, NICU admission, and maternal complications.</p>
+
+            <p>Even singleton IVF pregnancies are associated with higher rates of preterm birth, low birth weight, and perinatal complications compared to spontaneously conceived singletons. NaPro pregnancies do not carry these procedure-associated risks because conception occurs naturally after the underlying condition has been treated.</p>
+
+            <h3>When IVF May Be Appropriate</h3>
+
+            <p>NaProTechnology cannot help every couple. Bilateral tubal occlusion, where both fallopian tubes are blocked or absent, prevents egg transport regardless of hormonal health. Severe male factor infertility such as azoospermia, when no treatable cause can be identified, may require assisted reproduction. When time is a critical factor and the couple makes a fully informed choice, IVF may be the appropriate path.</p>
+
+            <p>Honest medicine requires acknowledging these limits. What distinguishes NaProTechnology is the commitment that treatable conditions should be treated first, not bypassed, and that couples deserve a thorough evaluation before being directed to procedures that do not address their underlying health.</p>
+          </section>
+
+          <!-- Section 7: How to Find a NaPro Provider -->
+          <section id="find-provider">
+            <h2>How to Find a NaPro Provider</h2>
+
+            <p><strong>The first step to NaProTechnology care is learning the Creighton Model FertilityCare System.</strong> NaPro physicians rely on a completed Creighton chart to guide diagnosis and treatment. Without that chart data, a NaPro consultation cannot begin. Start by finding a certified FertilityCare Practitioner (instructor) to learn the charting system.</p>
+
+            <h3>Step 1: Learn the Creighton Model</h3>
+
+            <p><strong>FertilityCare Centers of America (FCCA)</strong> maintains a directory of certified FertilityCare centers and practitioners across the United States and internationally. This is the primary starting point for anyone interested in NaPro care. Visit <a href="https://www.fertilitycare.org/find-a-center/" rel="noopener">fertilitycare.org/find-a-center</a> to locate an instructor near you.</p>
+
+            <p>Your FertilityCare Practitioner teaches you to observe and record daily biomarkers. Once you have at least one to two charted cycles, your chart becomes the diagnostic tool that a NaPro-trained physician will use to identify what is happening in your cycle and where treatment should be directed.</p>
+
+            <h3>Step 2: Find a NaPro-Trained Physician</h3>
+
+            <p>Not every physician who practices restorative reproductive medicine is NaPro-trained. NaProTechnology requires specific fellowship training through the Pope Paul VI Institute or an IIRRM-recognized program. When searching for a provider, confirm NaPro training specifically.</p>
+
+            <p><strong>FCCA Collaborating Medical Consultants.</strong> FertilityCare Centers of America publishes a <a href="https://www.fertilitycare.org/wp-content/uploads/2026/01/CFCMC-Collaborating-MC-list-for-website-Updated-Jan-24-2026-1.pdf" rel="noopener">list of collaborating medical consultants</a>, physicians who work directly with the FertilityCare system. This is the most direct path to finding a NaPro-trained doctor.</p>
+
+            <p><strong>IIRRM provider directory.</strong> The International Institute for Restorative Reproductive Medicine maintains a broader referral network of RRM-trained physicians at <a href="https://iirrm.org" rel="noopener">iirrm.org</a>. The IIRRM directory includes NaPro-trained practitioners along with physicians trained in other RRM approaches. When contacting a provider through IIRRM, ask specifically about NaPro fellowship training.</p>
+
+            <p><strong>Telehealth options.</strong> Many NaPro physicians offer telehealth consultations. For patients without local access, virtual appointments work well for initial consultation, protocol review, and ongoing monitoring when combined with local lab work and imaging.</p>
+
+            <h3>What to Ask When Choosing a Provider</h3>
+
+            <p>Before scheduling, ask:</p>
+
+            <ul>
+              <li>Are you fellowship-trained in NaProTechnology through the Pope Paul VI Institute or an IIRRM-recognized program?</li>
+              <li>Do you perform excision surgery for endometriosis, or do you refer for surgery?</li>
+              <li>Do you evaluate both partners from the start?</li>
+              <li>Do you offer telehealth for patients traveling from outside the area?</li>
+              <li>How do you handle insurance coding for NaPro diagnostic testing?</li>
+            </ul>
+
+            <p>The most important question for patients with endometriosis: ask specifically about excision versus ablation. A surgeon who defaults to ablation is not practicing to NaPro surgical standards.</p>
+          </section>
+
+          <!-- Section 8: Cost and Insurance -->
+          <section id="cost-insurance">
+            <h2>Cost and Insurance</h2>
+
+            <p><strong>IVF costs $15,000 to $30,000 per cycle in the United States. Most couples need two to three cycles to achieve a live birth, bringing average total out-of-pocket spending to $40,000 to $60,000 or more.</strong> That is the anchor for understanding NaPro's cost position.</p>
+
+            <p>NaProTechnology costs a fraction of that total, and the reason is built into how it works.</p>
+
+            <h3>Why NaPro Is Often Covered by Standard Insurance</h3>
+
+            <p>NaProTechnology treats diagnosed medical conditions using standard diagnostic and treatment codes. Bloodwork for an endometriosis or PCOS diagnosis. Laparoscopic excision surgery for a documented condition. Hormonal panel for luteal phase defect. These services use the same CPT codes any specialist would bill. This means many components of NaPro care qualify for coverage under standard health insurance without requiring a separate "fertility treatment" benefit.</p>
+
+            <p>IVF is typically classified as elective fertility treatment. Only a minority of U.S. states mandate insurance coverage for IVF. Most couples pay out of pocket. NaPro patients often do not face the same barrier because their care is documented as treatment for a medical condition, not as fertility treatment.</p>
+
+            <p>Charting instruction costs may not be covered by insurance and are typically a separate out-of-pocket expense. Ask about this specifically when choosing a provider.</p>
+
+            <h3>Legislative Developments</h3>
+
+            <p>The policy landscape is shifting. In 2025, Arkansas became the first state to mandate insurance coverage for restorative reproductive medicine (RRM), the broader field that includes NaProTechnology. The RESTORE Act (H.R. 3589), introduced in the U.S. Congress, seeks to expand federal access to RRM approaches as an alternative to IVF-only coverage mandates. NaPro patients stand to benefit directly from these developments.</p>
+
+            <h3>Questions to Ask Your Insurer</h3>
+
+            <p>Before beginning treatment, ask your insurer directly:</p>
+
+            <ul>
+              <li>Is cycle-timed hormonal testing covered when ordered for a diagnosed condition such as PCOS, endometriosis, or luteal phase defect?</li>
+              <li>Is laparoscopic excision surgery for endometriosis covered as a gynecologic procedure, separate from any fertility treatment benefit?</li>
+              <li>What are my out-of-network benefits if my physician is not in-network?</li>
+              <li>Does my state mandate coverage for fertility diagnosis or treatment?</li>
+            </ul>
+          </section>
+
+          <!-- Section 9: Frequently Asked Questions -->
+          <section id="faq">
+            <h2>Frequently Asked Questions</h2>
+
+            <dl class="faq-list">
+              <dt>What is NaProTECHNOLOGY and the Creighton Model?</dt>
+              <dd>NaProTECHNOLOGY is a medical approach that works with natural fertility cycles to diagnose and treat reproductive disorders, using the Creighton Model FertilityCare System (CrMS) as its foundation for precise biomarker tracking. CrMS creates a detailed record of each woman's cycle patterns. Those patterns reveal hormonal function, ovulation quality, and potential reproductive health issues. NaProTechnology uses this data to guide both diagnosis and treatment timing, timed to each woman's actual cycle rather than a calendar estimate. <a href="/faqs/what-is-naprotechnology-and-the-creighton-model-crms/">Read the full answer</a></dd>
+
+              <dt>What does "natural conception" mean in NaProTechnology?</dt>
+              <dd>Natural conception in NaProTechnology means conception through intercourse within the woman's reproductive system, as opposed to laboratory fertilization. NaPro works to restore the couple's natural reproductive function so that conception can occur without laboratory intervention. The embryo develops naturally within the woman's body from the moment of conception. This shapes the entire NaPro treatment approach: instead of bypassing reproductive problems, NaPro diagnoses and treats the underlying conditions preventing natural conception. <a href="/faqs/what-does-natural-conception-mean-in-rrm/">Read the full answer</a></dd>
+
+              <dt>Do I need to be Catholic to use Creighton or NaPro?</dt>
+              <dd>No. The Creighton Model FertilityCare System, NaProTechnology, and RRM are evidence-based medical approaches available to people of all faiths and backgrounds. The Creighton Model originated within Catholic healthcare institutions, but the system is based on objective biomarkers that work the same way regardless of religious beliefs. Many secular health systems and independent practices now teach CrMS and offer NaProTechnology services. <a href="/faqs/do-i-need-to-be-catholic-to-use-creighton-napro-or-see-an-rrm-clinician/">Read the full answer</a></dd>
+
+              <dt>Is NaProTechnology the same as RRM?</dt>
+              <dd>No. NaProTechnology predates the RRM umbrella by two decades and maintains its own institutional identity through the Pope Paul VI Institute. The NaPro and Creighton founders do not consider themselves part of or under RRM. NaPro uses the Creighton Model FertilityCare System and was developed by Dr. Thomas Hilgers. RRM (Restorative Reproductive Medicine) is a broader medical discipline that emerged in the 2000s, encompassing other cause-directed approaches such as FEMM Medical Management and NeoFertility protocols. These systems share the same philosophy of diagnosing and treating the underlying condition, but differ in charting methods, clinical frameworks, and institutional affiliation. NaPro is the most established and extensively published approach in the field.</dd>
+
+              <dt>What are the success rates for NaProTechnology?</dt>
+              <dd>Published studies report crude live birth rates of 26 to 41% for NaProTechnology treatment with natural conception, and adjusted cumulative rates of 50 to 62% depending on follow-up duration and the couple's specific diagnosis. Boyle et al. (2025) reported a 41% crude live birth rate in 187 couples.<sup><a href="#ref-1">1</a></sup> S&aacute;nchez M&eacute;ndez et al. (2025) reported 50% at 24 months and 62.1% at 36 months in 1,310 couples.<sup><a href="#ref-2">2</a></sup> Results depend on diagnosis, age, and individual factors. <a href="/faqs/what-are-the-success-rates-for-naprotechnology-and-rrm/">Read the full answer</a></dd>
+            </dl>
+          </section>
+
+          <!-- Section 10: References -->
+          <section class="references" id="references">
+            <h2>References</h2>
+            <ol>
+              <li id="ref-1">Boyle P, Toth A, Minjeur M, Turczynski C (2025). RRM Outcomes Compared to In Vitro Fertilization. <em>Journal of Restorative Reproductive Medicine</em>. <a href="/library/restorative-reproductive-medicine-rrm-outcomes-compared-to-in-vitro-fertilization-rec4qqhafqb8stlnd/">Library</a> | <a href="https://doi.org/10.63264/gejytw70" rel="noopener">DOI</a></li>
+              <li id="ref-2">S&aacute;nchez M&eacute;ndez JI et al. (2025). Natural Procreative Technology (NaProTechnology) for Infertility: Take-Home Baby Rate and Clinical Outcomes in a 5-Year Single-Center Cohort of 1,310 Couples. <em>Frontiers in Reproductive Health</em>. <a href="/library/natural-procreative-technology-naprotechnology-for-infertility-take-home-baby-ra-recv02qu0r8ycnzoa/">Library</a> | <a href="https://doi.org/10.3389/frph.2025.1696679" rel="noopener">DOI</a></li>
+              <li id="ref-3">Boyle PC, Stanford JB, Zecevic I (2022). Successful Pregnancy with Restorative Reproductive Medicine after 16 Years of Infertility. <em>Journal of Medical Case Reports</em>. <a href="/library/successful-pregnancy-with-restorative-reproductive-medicine-after-16-years-of-in-recismo1fzymsx9jo/">Library</a> | <a href="https://doi.org/10.1186/s13256-022-03465-w" rel="noopener">DOI</a></li>
+              <li id="ref-4">de Groot T, Andralojc KM, Boyle PC, Parnell TA (2018). Healthy Singleton Pregnancies from Restorative Reproductive Medicine (RRM) after Failed IVF. <em>Frontiers in Medicine</em>. <a href="/library/healthy-singleton-pregnancies-from-restorative-reproductive-medicine-rrm-after-f-recior3akxtg2a6ya/">Library</a> | <a href="https://doi.org/10.3389/fmed.2018.00210" rel="noopener">DOI</a></li>
+              <li id="ref-5">Boyle P (2025). Understanding Restorative Reproductive Medicine. <em>Journal of Restorative Reproductive Medicine</em>. <a href="/library/understanding-restorative-reproductive-medicine-recu1z1xulr6qtn2a/">Library</a> | <a href="https://doi.org/10.63264/f0b0xh81" rel="noopener">DOI</a></li>
+              <li id="ref-6">Stanford JB et al. (2025). Pregnancies, Intentions, and Fertility Behaviors During Use of the Creighton Model FertilityCare System. <em>PLoS ONE</em>. <a href="/library/pregnancies-intentions-and-fertility-behaviors-during-use-of-the-creighton-model-fertilitycare-system-after-initial-intention-to-avoid-pregnancy-results-from-the-creighton-model-effectiveness-intentions-behaviors-rec7di5renfhqd6ch/">Library</a> | <a href="https://doi.org/10.1371/journal.pone.0328806" rel="noopener">DOI</a></li>
+              <li id="ref-7">Yeung P Jr, Mohan A, Gavard JA (2024). The Long-Term Rate of Repeat Surgery After Optimal Excision Surgery of Endometriosis at a Single Tertiary Referral Center. <em>Acta Scientific Women's Health</em> 6(12). <a href="/library/the-long-term-rate-of-repeat-surgery-after-optimal-excision-surgery-of-endometriosis-at-a-single-tertiary-referral-center-recqlibe83zkcp2is/">Library</a> | <a href="https://doi.org/10.20944/preprints202409.1485.v1" rel="noopener">DOI</a></li>
+            </ol>
+          </section>
+
+          <div class="cta-box">
+            <h3>Ready to learn more?</h3>
+            <p><a href="/courses/" class="btn btn--primary">Explore Free Courses</a></p>
+            <p><a href="/library/" class="btn btn--secondary">Browse the Research Library</a></p>
+          </div>
+
+          <p class="disclaimer"><em>This content is for educational purposes only and does not constitute medical advice. Consult an RRM clinician or healthcare provider for guidance specific to your situation. Statistics represent published research averages, not guarantees of individual outcomes.</em></p>
+
+        </article>
+      </div>
+    </div>
+  </div>
+  <p class="page-updated">Last updated: March 2026</p>
+  <BackToTop />
+</BaseLayout>
+
+<style>
+  .author-byline {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: calc(-1 * var(--space-2));
+    margin-bottom: var(--space-6);
+    line-height: 1.6;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: var(--space-6);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  th {
+    background: var(--bg-surface);
+    font-weight: 600;
+    padding: var(--space-3) var(--space-4);
+    text-align: left;
+    border-bottom: 2px solid var(--border-color);
+  }
+
+  td {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  .references {
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+  }
+
+  .references li {
+    margin-bottom: var(--space-3);
+  }
+
+  .faq-list dt {
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: var(--text-primary);
+    margin-top: var(--space-6);
+    margin-bottom: var(--space-2);
+  }
+
+  .faq-list dd {
+    margin-left: 0;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: var(--space-4);
+  }
+
+  .cta-box {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-8);
+    text-align: center;
+    margin-top: var(--space-10);
+  }
+
+  .cta-box h3 {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    margin-bottom: var(--space-3);
+  }
+
+  .cta-box p {
+    margin-bottom: var(--space-4);
+  }
+
+  .cta-box p:last-child {
+    margin-bottom: 0;
+  }
+
+  .disclaimer {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    margin-top: var(--space-8);
+    line-height: 1.6;
+  }
+
+  /* Override container width for article layout */
+  @media (min-width: 1024px) {
+    .container {
+      max-width: calc(var(--max-width-article) + 220px + var(--space-10) + var(--space-8) * 2);
+    }
+  }
+
+  /* Chart light/dark toggle */
+  .chart-figure {
+    margin: var(--space-8) 0;
+  }
+  .chart-figure img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+  }
+  .chart-dark { display: none; }
+  :global([data-theme="dark"]) .chart-light { display: none; }
+  :global([data-theme="dark"]) .chart-dark { display: block; }
+</style>
