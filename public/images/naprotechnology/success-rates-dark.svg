@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 340" role="img" aria-label="NaProTechnology vs IVF live birth rates comparison chart">
+  <title>NaProTechnology vs IVF Live Birth Rates</title>
+  <desc>Horizontal bar chart comparing published live birth rates: NaPro Boyle 2025 41%, NaPro Sanchez Mendez 2025 at 24 months 50%, NaPro Sanchez Mendez 2025 at 36 months 62%, IVF single embryo HFEA 2021 33%.</desc>
+
+  <style>
+    .heading { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600; fill: #b0aaa2; letter-spacing: 0.05em; }
+    .divider { stroke: #6b5877; stroke-width: 1; }
+    .label { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 400; fill: #b0aaa2; text-anchor: end; dominant-baseline: central; }
+    .track { fill: #3a3632; }
+    .bar-napro { fill: #b8a3c4; }
+    .bar-ivf { fill: #6b6560; }
+    .value { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; dominant-baseline: central; }
+    .value-napro { fill: #b8a3c4; }
+    .value-ivf { fill: #b0aaa2; }
+    .caption { font-family: 'Inter', sans-serif; font-size: 11.5px; font-style: italic; fill: #987da8; }
+  </style>
+
+  <rect width="700" height="340" fill="#28241e"/>
+
+  <!-- Section heading -->
+  <text x="30" y="35" class="heading">LIVE BIRTH RATES</text>
+  <line x1="30" y1="48" x2="670" y2="48" class="divider"/>
+
+  <!-- Row 1: NaPro Boyle 2025 — 41% -->
+  <text x="235" y="90" class="label">NaPro (Boyle 2025)</text>
+  <rect x="248" y="78" width="350" height="22" rx="3" class="track"/>
+  <rect x="248" y="78" width="231" height="22" rx="3" class="bar-napro"/>
+  <text x="618" y="90" class="value value-napro">41%</text>
+
+  <!-- Row 2: NaPro S. Mendez 24 mo — 50% -->
+  <text x="235" y="135" class="label">NaPro (S. Mendez, 24 mo)</text>
+  <rect x="248" y="123" width="350" height="22" rx="3" class="track"/>
+  <rect x="248" y="123" width="282" height="22" rx="3" class="bar-napro"/>
+  <text x="618" y="135" class="value value-napro">50%</text>
+
+  <!-- Row 3: NaPro S. Mendez 36 mo — 62% -->
+  <text x="235" y="180" class="label">NaPro (S. Mendez, 36 mo)</text>
+  <rect x="248" y="168" width="350" height="22" rx="3" class="track"/>
+  <rect x="248" y="168" width="350" height="22" rx="3" class="bar-napro"/>
+  <text x="618" y="180" class="value value-napro">62%</text>
+
+  <!-- Row 4: IVF HFEA — 33% -->
+  <text x="235" y="225" class="label">IVF, single embryo (HFEA)</text>
+  <rect x="248" y="213" width="350" height="22" rx="3" class="track"/>
+  <rect x="248" y="213" width="186" height="22" rx="3" class="bar-ivf"/>
+  <text x="618" y="225" class="value value-ivf">33%</text>
+
+  <!-- Caption -->
+  <text x="30" y="280" class="caption">NaPro achieves comparable or higher live birth rates while treating the underlying condition.</text>
+  <text x="30" y="298" class="caption">All NaPro pregnancies through natural conception. IVF rate per embryo transferred, women under 35.</text>
+</svg>

@@ -313,6 +313,11 @@ h4 {
   color: var(--text-primary);
 }
 
+/* Offset anchor scroll for sticky header */
+[id] {
+  scroll-margin-top: 5rem;
+}
+
 h1 {
   font-size: 2rem;
   margin-top: var(--space-4);
@@ -321,6 +326,7 @@ h1 {
 
 h2 {
   font-size: 1.75rem;
+  margin-top: var(--space-10);
   margin-bottom: var(--space-6);
 }
 
@@ -952,10 +958,14 @@ blockquote a {
   font-style: normal;
 }
 
-.prose ul {
-  list-style: disc;
+.prose ul,
+.prose ol {
   padding-left: var(--space-6);
   margin-bottom: 1em;
+}
+
+.prose ul {
+  list-style: disc;
 }
 
 .prose li {
@@ -1252,7 +1262,7 @@ blockquote cite {
 .tldr {
   background: var(--bg-surface);
   border-left: 3px solid var(--border-color);
-  padding: var(--space-6) var(--space-8);
+  padding: var(--space-4) var(--space-8) var(--space-6);
   margin-bottom: var(--space-8);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
@@ -1264,6 +1274,7 @@ blockquote cite {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-secondary);
+  margin-top: 0;
   margin-bottom: var(--space-4);
 }
 
