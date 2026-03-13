@@ -26,12 +26,32 @@ SES newsletter system built (self-hosted, replaces Buttondown). Newsletter signu
 - **DMARC tightening** -- upgrade from `p=none` to `p=quarantine` after 2-4 weeks of clean sends
 - **CAN-SPAM physical address** -- get RRM Foundation mailing address from Brian for email footer
 
+### Site IA: "Learn" Nav + `/guides/` Index
+
+**Decision (2026-03-12):** Flat URL structure for SEO authority. Nav dropdown for UX grouping. No nesting pillar pages under parent paths.
+
+**Nav (3 items, down from 4):** Research Library, Commentary, **Learn** (dropdown: Guides, FAQs, Courses)
+
+**URL architecture (no changes to existing URLs):**
+- Pillar pages stay at root: `/naprotechnology/`, `/what-is-rrm/`, `/common-questions-about-rrm`
+- Future pillar pages also at root: `/endometriosis/`, `/pcos/`, etc.
+- `/guides/` -- new index page listing all pillar guides (browse page, not URL parent)
+- `/faqs/` -- unchanged
+- `/courses/` -- unchanged
+- Short URLs (e.g. `/napro` -> `/naprotechnology/`) via router 301s
+
+**TODO:**
+- [ ] Create `/guides/` index page (list + link to all pillar guides)
+- [ ] Update Header.astro nav: replace Courses + Join Us with Learn dropdown
+- [ ] Add `/guides` to router ASTRO_ROUTES
+- [ ] Planned guides: mental health (STUC members), 9 Facts About NaPro, endo guide, PCOS guide
+
 ### AEO (Answer Engine Optimization)
 
 Full plan in `rrm-router/RRM Router PRD/PRD-Index.md` Post-Launch Roadmap.
 
 - **Layer 1: Answer Intent Map** -- run 50+ queries across ChatGPT/Perplexity/Claude/Gemini, log who gets recommended. Baseline scan done (4/80, 5%). Repeat monthly.
-- **Layer 2: Answer Hubs** -- create `/guides/endometriosis-resources`, `/guides/pcos-resources`, `/guides/naprotechnology` with TL;DR blocks, ranked resources, comparison tables, FAQ sections
+- **Layer 2: Answer Hubs** -- pillar guides at root (`/endometriosis/`, `/pcos/`, etc.) with TL;DR blocks, ranked resources, comparison tables, FAQ sections. Listed on `/guides/` index
 - **Layer 3: Brand-Facts page** -- `/brand-facts` with Wikipedia-style org facts, EIN, credentials
 - **Layer 4: Machine-readable brand data** -- `public/.well-known/brand-facts.json`
 - ~~**Layer 5: Schema markup audit**~~ DONE -- all major types implemented (MedicalScholarlyArticle, BlogPosting, FAQPage, Course, ItemList, DefinedTermSet, Organization, Person)

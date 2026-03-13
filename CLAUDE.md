@@ -117,6 +117,9 @@ docs/
 | `/community/members` | `src/pages/community/members.astro` |
 | `/community/post/[id]` | `src/pages/community/post/[...id].astro` |
 | `/admin/seo` | `src/pages/admin/seo.astro` |
+| `/naprotechnology` | `src/pages/naprotechnology/index.astro` (pillar guide) |
+| `/what-is-rrm` | `src/pages/what-is-rrm/index.astro` (pillar guide) |
+| `/common-questions-about-rrm` | `src/pages/common-questions-about-rrm.astro` (pillar guide) |
 | `/endo-survey` | `src/pages/endo-survey/index.astro` |
 | `/endo-survey/take` | `src/pages/endo-survey/take.astro` |
 | `/save-the-uterus-club` | `src/pages/save-the-uterus-club/index.astro` |
@@ -132,6 +135,18 @@ docs/
 | `/linkinbio` | `src/pages/linkinbio.astro` |
 | `/linkinbio/jointhecall` | `src/pages/linkinbio/jointhecall.astro` |
 | `/404` | `src/pages/404.astro` |
+
+## Information Architecture
+
+**Decision (2026-03-12):** Flat URL structure for pillar pages. Nav dropdown for UX grouping. URL structure and navigation structure are independent.
+
+**Pillar pages live at root** for maximum SEO authority: `/naprotechnology/`, `/what-is-rrm/`, `/common-questions-about-rrm`. Future pillar guides (`/endometriosis/`, `/pcos/`, etc.) also go at root. Short vanity URLs (e.g. `/napro`) 301 via rrm-router.
+
+**`/guides/` is an index page**, not a URL parent. It lists and links to all pillar guides. Guides do NOT live under `/guides/[slug]`.
+
+**Nav structure (3 items):** Research Library, Commentary, Learn (dropdown: Guides, FAQs, Courses). "Learn" groups educational content in the UI without nesting URLs.
+
+**Do not** move FAQs, courses, or pillar pages under a `/learn/` path. The 301 redirect tax and URL depth penalty outweigh the organizational neatness.
 
 ## Page Templates & SEO Architecture
 
