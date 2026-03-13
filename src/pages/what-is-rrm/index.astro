@@ -14,6 +14,13 @@ const jsonLd = {
         '@type': 'Person',
         '@id': 'https://rrmacademy.org/#naomi-whittaker',
         name: 'Naomi Whittaker, MD',
+        jobTitle: 'Board-Certified OBGYN, NaProTechnology Fellow',
+        url: 'https://rrmacademy.org/commentary/rrm-spotlight-naomi-whittaker-md/',
+        image: 'https://rrmacademy.org/images/authors/naomi-whittaker.webp',
+        sameAs: [
+          'https://www.instagram.com/napro_fertility_surgeon/',
+          'https://www.linkedin.com/in/naomi-whittaker-md-906b13101/',
+        ],
       },
       publisher: {
         '@type': 'EducationalOrganization',
@@ -338,10 +345,14 @@ const jsonLd = {
 
       <h1>What is Restorative Reproductive Medicine (RRM)?</h1>
 
-      <p class="author-byline">
-        By <strong><a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Naomi Whittaker, MD</a></strong>, Board-Certified OBGYN and NaProTechnology Fellow
-        <br><time datetime="2026-03-01">Last updated March 2026</time>
-      </p>
+      <div class="author-byline">
+        <span>By <strong><a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Naomi Whittaker, MD</a></strong>, Board-Certified OBGYN and NaProTechnology Fellow</span>
+        <time datetime="2026-03-01">Last updated March 2026</time>
+      </div>
+
+      <aside class="editorial-notice" role="note">
+        <span class="editorial-notice__body"><strong>Editorial notice:</strong> This article is under active review. Some sections may be incomplete or contain errors while our medical team refines the content. If you notice an issue, please <a href="/contact/">let us know</a>.</span>
+      </aside>
 
       <!-- Mobile TOC -->
       <details class="toc-mobile">
@@ -475,9 +486,11 @@ const jsonLd = {
 
           <h3>Mainstream Recognition (2025-Present)</h3>
 
-          <p>In 2025, RRM entered the national policy conversation. Arkansas became the first U.S. state to mandate insurance coverage for restorative reproductive medicine. The RESTORE Act (H.R. 3589) was introduced in the U.S. Congress to expand access to RRM treatments. The Heritage Foundation published a comprehensive report on RRM as an alternative to assisted reproductive technology.<sup><a href="#ref-12" id="cite-12">12</a></sup></p>
+          <p>In 2025, RRM entered the national policy conversation. Arkansas became the first U.S. state to mandate insurance coverage for restorative reproductive medicine. The RESTORE Act (H.R. 3589) was introduced in the U.S. Congress to expand access to RRM treatments.</p>
 
-          <p>Major media outlets covered RRM for the first time, including <em>The New York Times</em>, STAT News, <em>The Cut</em>, <em>The 19th</em>, MedPage Today, and OSV News. Major professional societies published their own analyses of the field, signaling that RRM had become too significant to ignore.</p>
+          <p>Major media outlets covered RRM for the first time. <a href="https://www.nytimes.com/2025/08/21/us/politics/trump-ivf-restorative-reproductive-medicine.html" rel="noopener"><em>The New York Times</em></a> reported on the political landscape surrounding RRM and IVF. <a href="https://www.statnews.com/2025/08/05/infertility-treatment-restorative-reproductive-medicine-explained/" rel="noopener">STAT News</a> examined the clinical evidence. <a href="https://19thnews.org/2025/08/republicans-ivf-restorative-reproductive-medicine/" rel="noopener"><em>The 19th</em></a> covered the policy implications. <a href="https://www.osvnews.com/naprotechnology-provides-alternative-to-ivf-for-couples-struggling-with-infertility/" rel="noopener">OSV News</a> profiled NaProTechnology as an alternative to IVF. The coverage varied in framing, but the signal was consistent: RRM had become too significant to ignore.</p>
+
+          <p>Patient education emerged as a parallel force. Dr. Naomi Whittaker, a board-certified OBGYN and NaProTechnology fellow, built the largest English-language following of any RRM physician through her Instagram account <a href="https://www.instagram.com/napro_fertility_surgeon/" rel="noopener">@napro_fertility_surgeon</a>, translating clinical concepts into accessible patient education. That audience demand led to the creation of <a href="/about/">RRM Academy</a>, a nonprofit education platform offering free courses, a peer-reviewed <a href="/library/">research library</a>, and physician-authored guides for patients and clinicians. The growth of dedicated educational resources reflected a broader shift: patients were no longer waiting for the medical establishment to explain RRM to them.</p>
 
           <p>Today, RRM-trained physicians practice internationally.<sup><a href="#ref-2" id="cite-2d">2</a></sup> The field continues to grow as research advances, training programs expand, and more couples and physicians discover a medical approach that asks the fundamental question: what is causing this, and how do we fix it?</p>
 
@@ -608,7 +621,7 @@ const jsonLd = {
           <!-- Section 6: Conditions Treated -->
           <h2 id="conditions">Conditions Treated with Restorative Reproductive Medicine</h2>
 
-          <p>RRM treats the full spectrum of reproductive health conditions. The table below summarizes how the RRM approach differs from conventional management for each condition. Detailed explanations follow.</p>
+          <p><strong>RRM addresses a wide range of reproductive health conditions by diagnosing and treating the underlying cause rather than suppressing symptoms.</strong> The table below describes typical approaches used in RRM care. Every treatment plan is individualized based on a patient's charting data, diagnostic results, and clinical history. This information is educational, not prescriptive.</p>
 
           <div class="table-wrap">
             <table>
@@ -760,7 +773,7 @@ const jsonLd = {
             <p>RRM treatment protocols are individualized by condition and cycle phase. For endometriosis, minimally invasive excision surgery combined with surgical membrane adhesion prevention (SMAP) and post-operative hormonal support is the standard. For PCOS, treatment depends on phenotype: insulin-resistant, inflammatory, adrenal, or post-pill. Luteal phase support uses bio-identical progesterone timed to post-peak days, not arbitrary calendar dates. For detailed protocols, see <a href="/courses/">RRM Academy clinical courses</a>.</p>
           </aside>
 
-          <p><em>This content is for educational purposes only and does not constitute medical advice. Consult a qualified healthcare provider for diagnosis and treatment.</em></p>
+          <p><em>This content is for educational purposes only and does not constitute medical advice. Every patient's situation is different. Consult an RRM clinician or qualified healthcare provider for guidance specific to your situation.</em></p>
 
           <!-- Section 7: RRM vs IVF -->
           <h2 id="rrm-vs-ivf">RRM vs. IVF: A Detailed Comparison</h2>
@@ -1686,6 +1699,8 @@ const jsonLd = {
             <p><a href="/donate/" class="btn btn--secondary">Support RRM Education</a></p>
           </div>
 
+          <p class="disclaimer"><em>This content is for educational purposes only and does not constitute medical advice. Consult an RRM clinician or healthcare provider for guidance specific to your situation. Statistics represent published research averages, not guarantees of individual outcomes.</em></p>
+
         </article>
       </div>
     </div>
@@ -1700,6 +1715,48 @@ const jsonLd = {
     margin-top: calc(-1 * var(--space-2));
     margin-bottom: var(--space-6);
     line-height: 1.6;
+  }
+
+  .editorial-notice {
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: #6b5a00;
+    background: #fdf6e3;
+    border: 1px solid #e0d5a0;
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-6);
+    display: flex;
+    gap: var(--space-3);
+    align-items: flex-start;
+  }
+  :global([data-theme="dark"]) .editorial-notice {
+    background: #2a2518;
+    border-color: #4a3f24;
+    color: #d4c97a;
+  }
+  .editorial-notice::before {
+    content: '\26A0';
+    font-size: 1.125rem;
+    line-height: 1.4;
+    flex-shrink: 0;
+  }
+  .editorial-notice strong {
+    color: inherit;
+    font-weight: 600;
+  }
+  .editorial-notice a {
+    color: inherit;
+    text-decoration: underline;
+  }
+
+  .disclaimer {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    line-height: 1.6;
+    margin-top: var(--space-8);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border-color);
   }
 
   .table-wrap {
