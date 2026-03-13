@@ -25,7 +25,7 @@
  * Exit code 1 if any citation fails verification. Designed to run in CI.
  */
 
-import { readFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -564,6 +564,19 @@ async function main() {
   console.log('\n' + '='.repeat(60));
   console.log('Citation verification complete (v2 -- multi-API cascade)');
   console.log(`  Checked: ${totalChecked}  Passed: ${totalPassed}  Warned: ${totalWarned}  Failed: ${totalFailed}  Skipped: ${totalSkipped}`);
+
+  // Write summary JSON for CI pipeline (Observatory digest)
+  const summaryPath = join(__dirname, '..', 'citation-summary.json');
+  try {
+    writeFileSync(summaryPath, JSON.stringify({
+      checked: totalChecked,
+      passed: totalPassed,
+      warned: totalWarned,
+      failed: totalFailed,
+      skipped: totalSkipped,
+      failedPosts,
+    }));
+  } catch (_) { /* non-blocking */ }
 
   if (failedPosts.length) {
     console.log(`\nFAILED posts (${failedPosts.length}):`);
