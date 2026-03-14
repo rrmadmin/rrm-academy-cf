@@ -91,7 +91,7 @@ jobs:
           echo "Articles: $(node -e "console.log(require('./src/data/articles.json').length)")"
 
       - name: Fetch all data from Airtable
-        if: ${{ !inputs.skip_fetch && !github.event.client_payload.record_id && !github.event.client_payload.article_id }}
+        if: ${{ !inputs.skip_fetch && !github.event.client_payload.record_id && !github.event.client_payload.article_id && steps.data-cache.outputs.cache-hit != 'true' }}
         env:
           AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
           TINIFY_API_KEY: ${{ secrets.TINIFY_API_KEY }}
