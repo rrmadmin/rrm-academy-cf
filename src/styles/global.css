@@ -533,6 +533,21 @@ blockquote a {
   text-decoration: none;
 }
 
+/* Prevent .prose a color from overriding button text */
+.prose .btn--primary,
+.prose .btn--primary:hover,
+.prose .btn--primary:active {
+  color: var(--white);
+  text-decoration: none;
+}
+
+.prose .btn--secondary,
+.prose .btn--secondary:hover,
+.prose .btn--secondary:active {
+  color: var(--purple-700);
+  text-decoration: none;
+}
+
 .btn--secondary {
   color: var(--purple-700);
   background: var(--white);
