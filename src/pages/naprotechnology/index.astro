@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BackToTop from '../../components/BackToTop.astro';
+import PdfDownload from '../../components/PdfDownload.astro';
 
 // Block 1: MedicalWebPage + Article (injected via BaseLayout jsonLd prop)
 const pageSchema = {
@@ -589,6 +590,7 @@ const faqSchema = {
     </div>
   </div>
   <p class="page-updated">Last updated: March 2026</p>
+  <PdfDownload slug="naprotechnology" />
   <BackToTop />
 </BaseLayout>
 
