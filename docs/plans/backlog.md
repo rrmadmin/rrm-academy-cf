@@ -83,6 +83,10 @@ Full plan at `docs/plans/2026-03-09-ga4-source-attribution-plan.md` (6 file chan
 
 Plan ready at `docs/plans/2026-03-09-google-ad-grants-plan.md`. Waiting on ~1 month GSC stabilization after CF migration. Target: mid-April.
 
+### Programmatic OG Images
+
+- **Auto-generate OG images for all pages** -- currently most pages use default or manually set OG images. Build a pipeline to programmatically generate page-specific OG images (title + branding on brand background via SVG/Satori at build time). Supersedes the old Playwright screenshot approach. Old plan stub (obsolete): `docs/superpowers/plans/2026-03-09-page-specific-og-images.md`
+
 ### Performance Optimization
 
 - **Remove `articles.json` from `public/data/`** -- 12MB file still publicly served at `/data/articles.json`. Only needed at build time (already in `src/data/`). If Pagefind needs it at runtime, gate behind long cache headers instead.
@@ -93,6 +97,49 @@ Plan ready at `docs/plans/2026-03-09-google-ad-grants-plan.md`. Waiting on ~1 mo
 
 - **Refine IVF comparison stats** -- updated with HFEA 2022 data (commit `1dc3579`). Two RRM stats still have `[CITE]` markers needing source citations. Review the comparison table for accuracy and completeness.
 - **Draft FAQ approval** -- 37 draft Condition-Specific FAQs pending Naomi's review. 6 high-priority for AEO (see PRD Post-Launch Roadmap). 3 missing FAQs need creation: "What is NaProTechnology?", "Best resources for endo patients?", "What is reproductive restoration medicine?" (Blocked on Naomi)
+
+### Pillar Page Section Refinement Backlog
+
+Use `/pillar-edit` skill. Create comparison file, Brian reviews, then apply.
+
+**`/what-is-rrm/` -- 5 sections remaining (8 of 13 done 2026-03-13):**
+
+| # | Section | id | Status | Notes |
+|---|---------|-----|--------|-------|
+| 1 | Key Takeaways | `key-takeaways` | Not started | Update after all other sections stabilize |
+| 2 | What Is RRM? | `what-is-rrm` | DONE | AEO-optimized, round 2 (2026-03-13) |
+| 3 | History | `history` | DONE | Added Odeblad, CCL, Stanford, round 2 (2026-03-13) |
+| 4 | Diagnosis | `diagnosis` | DONE | Rewritten in round 1 (2026-03-13, bc447e3) |
+| 5 | FABMs | `fabms` | DONE | AEO-optimized, round 2 (2026-03-13) |
+| 6 | Conditions | `conditions` | DONE | Question-format H3s, framework-level, round 2 (2026-03-13) |
+| 7 | RRM vs IVF | `rrm-vs-ivf` | DONE | Rewritten in round 1 (2026-03-13, bc447e3). Has charts |
+| 8 | Evidence | `evidence` | Not started | Longest section on page. May need restructure |
+| 9 | Patient Journey | `patient-journey` | DONE | Rewritten in round 1 (2026-03-13, bc447e3) |
+| 10 | Cost & Insurance | `cost-insurance` | DONE | Rewritten in round 1, honest insurance framing (2026-03-13, bc447e3) |
+| 11 | Training | `training` | Not started | Provider-facing, may be fine |
+| 12 | Common Myths | `myths` | Not started | Check overlap with revised section 2 |
+| 13 | FAQ | `faq` | Not started | Schema-critical, check schemaAnswer expansion |
+
+**`/naprotechnology/` -- 10 sections, none refined yet. Gianna recon complete 2026-03-13:**
+
+| # | Section | Priority | Issues (from Gianna recon) |
+|---|---------|----------|---------------------------|
+| 1 | Key Takeaways | Low (do last) | 62% -> 62.1% stat fix; "standard insurance codes" overstates coverage; CTA doesn't belong in takeaways; Yeung citation needs verification |
+| 2 | What is NaProTechnology? | Medium | H3s need question format for AEO; "physicians" -> "clinicians"; cut "extensively published" (redundant); trim FEMM/NeoFertility enumeration once /what-is-rrm/ link is live |
+| 3 | How NaProTechnology Works | Medium | 3 noun-phrase H3s need question format; "physicians" -> "clinicians"; dense list-sentence at L272 hurts AEO; Peak+3/+5/+7/+9/+11 enumeration is prescriptive (soften to "multiple post-peak days") |
+| 4 | Conditions NaPro Treats | Medium | "ten years" -> "nine years" (verified stat); H3s need question format NaPro-attributed; "NaPro reframes" -> "In NaPro practice"; endo stats overlap with /what-is-rrm/ (link, don't duplicate); table not AEO-friendly |
+| 5 | NaPro Surgery | Medium | Prescriptive surgical detail (micro-suturing, non-reactive materials) -> framework level; "fertility preservation" framing is fertility-only (broaden); Yeung stat should lead with number for AEO; citation needs verification |
+| 6 | Who is NaPro For? | Medium | "suppressed or bypassed" is RRM framing leaking into NaPro; "that deserve" -> "who want"; H3 "NaPro After Failed IVF" needs question format; "RRM Academy supports..." pivots away from NaPro; "RRM achieved" -> "NaProTechnology achieved" |
+| 7 | NaPro vs IVF | **HIGH** | **HARD RULE VIOLATION: "When IVF May Be Appropriate" section explicitly recommends IVF. Must be removed or reframed.** Cost table anchor framing needs review |
+| 8 | How to Find a NaPro Provider | **HIGH** | Reads like reference doc, not Whittaker voice; no emotional acknowledgment (VOC: surgeon confidence 2.3/5); asking-questions list needs answer calibration; Natural Womanhood directory has weak NaPro signal; FCCA PDF link will break; IIRRM equivalence claim needs verification; no scarcity/telehealth/wait-time handling |
+| 9 | Cost and Insurance | **HIGH** | CPT-code billing logic overstates coverage ease (insurance complexity rule); "often covered" sets wrong expectation; "broader field that includes NaProTechnology" violates NaPro/RRM distinction; H3 needs softening |
+| 10 | FAQ | Medium | 4 of 5 answers below 80w schemaAnswer target; overlap with /what-is-rrm/ FAQ and faqs.json needs audit; "cause-directed" -> "cause-based" |
+
+**Cross-cutting themes (apply to all sections):**
+- "physicians" -> "clinicians" site-wide on NaPro page
+- Noun-phrase H3s -> question format for AEO throughout
+- RRM framing vocabulary ("suppressed or bypassed", "root cause") leaking into NaPro-specific content
+- Several stats need citation verification against the library (Yeung, endo diagnosis delay)
 
 ---
 
