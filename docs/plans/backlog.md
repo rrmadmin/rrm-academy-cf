@@ -83,9 +83,9 @@ Full plan at `docs/plans/2026-03-09-ga4-source-attribution-plan.md` (6 file chan
 
 Plan ready at `docs/plans/2026-03-09-google-ad-grants-plan.md`. Waiting on ~1 month GSC stabilization after CF migration. Target: mid-April.
 
-### Programmatic OG Images
+### ~~Programmatic OG Images~~ DONE (2026-03-13)
 
-- **Auto-generate OG images for all pages** -- currently most pages use default or manually set OG images. Build a pipeline to programmatically generate page-specific OG images (title + branding on brand background via SVG/Satori at build time). Supersedes the old Playwright screenshot approach. Old plan stub (obsolete): `docs/superpowers/plans/2026-03-09-page-specific-og-images.md`
+- **COMPLETE.** 49 build-time OG images (24 static + 25 FAQs) via Satori + resvg. Convention-based resolution in BaseLayout. Spec: `docs/superpowers/specs/2026-03-13-programmatic-og-images-design.md`
 
 ### Performance Optimization
 
