@@ -51,6 +51,10 @@ const jsonLd = {
         <p class="guides-intro animate-enter" style="--stagger: 1;">In-depth guides to restorative reproductive medicine, written by board-certified physicians. Each guide covers the evidence, practical next steps, and what to expect.</p>
       </section>
 
+      <div id="guides-pdf-error" style="display:none" class="guides-pdf-notice">
+        That download link is invalid or has expired. Find your guide below and request a new link.
+      </div>
+
       <div class="guides-list animate-enter" style="--stagger: 2;">
         {guides.map((guide) => (
           guide.comingSoon ? (
@@ -78,7 +82,23 @@ const jsonLd = {
   </div>
 </BaseLayout>
 
+<script>
+  const notice = document.getElementById('guides-pdf-error');
+  if (notice && new URLSearchParams(window.location.search).get('pdf_error') === 'notfound') {
+    notice.style.display = '';
+  }
+</script>
+
 <style>
+  .guides-pdf-notice {
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-6);
+  }
+
   @keyframes enter {
     from { opacity: 0; transform: translateY(8px); filter: blur(4px); }
   }
