@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BackToTop from '../../components/BackToTop.astro';
+import PdfDownload from '../../components/PdfDownload.astro';
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -1569,6 +1570,7 @@ const jsonLd = {
     </div>
   </div>
   <p class="page-updated">Last updated: March 2026</p>
+  <PdfDownload slug="what-is-rrm" />
   <BackToTop />
 </BaseLayout>
 
