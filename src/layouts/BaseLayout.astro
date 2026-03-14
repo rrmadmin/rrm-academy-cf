@@ -59,9 +59,18 @@ const fullTitle = (title.includes('RRM Academy') || title.startsWith('RRM ')) ? 
 const rawCanonical = canonicalUrl || Astro.url.href;
 const canonical = rawCanonical.endsWith('/') ? rawCanonical : `${rawCanonical}/`;
 const siteOrigin = 'https://rrmacademy.org';
+// Convention-based OG image: derive slug from URL path
+function routeToOgSlug(pathname) {
+  if (pathname === '/' || pathname === '') return 'homepage';
+  const paginationMatch = pathname.match(/^\/(library|commentary)\/page\/\d+\/?$/);
+  if (paginationMatch) return paginationMatch[1];
+  return pathname.replace(/^\/|\/$/g, '').replace(/\//g, '-');
+}
+const ogSlug = routeToOgSlug(Astro.url.pathname);
+const conventionOgPath = `/images/og/og-${ogSlug}.png`;
 const resolvedOgImage = ogImage
   ? (ogImage.startsWith('http') ? ogImage : `${siteOrigin}${ogImage}`)
-  : `${siteOrigin}/images/og-default.png`;
+  : `${siteOrigin}${conventionOgPath}`;
 // Twitter requires JPG/PNG — swap .webp for .jpg for twitter:image only
 const resolvedTwitterImage = resolvedOgImage.endsWith('.webp')
   ? resolvedOgImage.replace(/\.webp$/, '.jpg')

@@ -17,3 +17,5 @@ scraped/
 .pipeline/
 public/data/
 survey-preview.html
+# Generated OG images (rebuilt every deploy)
+public/images/og/og-*.png
