@@ -302,14 +302,21 @@ Push to `claude/` branch -- GitHub Actions auto-builds + merges. No local creden
 
 A zero-dependency Node.js script (`scripts/guard.mjs`) that blocks deployments if critical security files are tampered with.
 
-**Guarded files** (hash-checked via `guard-manifest.json`):
+**Guarded files** (hash-checked via `guard-manifest.json`, 29 files):
 - `functions/api/auth/_shared.js` — CORS, sessions, crypto, rate limiting
 - `functions/api/auth/login.js`, `signup.js`, `google-callback.js`, `google.js` — authentication
 - `functions/api/auth/forgot-password.js`, `reset-password.js`, `change-password.js` — password management
 - `functions/api/auth/_email-validate.js` — email validation, disposable/typo detection
+- `functions/api/_ses.js` — SES email sending infrastructure
+- `functions/api/_elv.js` — EmailListVerify SMTP validation
 - `functions/api/stripe-webhook.js` — webhook signature verification + dispatch
 - `functions/api/billing/_webhook-checkout.js`, `_webhook-subscription.js`, `_webhook-shared.js` — webhook handlers
 - `functions/api/create-checkout.js`, `billing/status.js`, `billing/portal.js` — billing
+- `functions/api/survey/submit.js`, `survey/request.js` — pseudonymization + magic-link tokens
+- `functions/api/newsletter/send.js`, `unsubscribe.js`, `subscribe.js` — mass email, CAN-SPAM, intake
+- `functions/api/search/semantic.js` — billed AI.run() + Vectorize (rate-limited)
+- `functions/api/community/_shared.js` — community access control (requireMember)
+- `functions/api/admin/cleanup.js` — expired data deletion from D1
 - `functions/_middleware.js` — auth gating for /account and /community
 - `wrangler.toml` — D1, KV, R2 bindings
 - `scripts/guard.mjs` — self-guarding

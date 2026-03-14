@@ -74,6 +74,46 @@
       "hash": "296251b3334a5e82f33b7f00fd45d87bbda18bb59a8bb188bcbd3ef586b7b5ea",
       "note": "D1, KV, R2 bindings"
     },
+    "functions/api/_ses.js": {
+      "hash": "3245f0fcf43e3f1a4d9783ec3ac2602ebaf6c128f0f8730140f4b79364c5fb01",
+      "note": "SES email sending infrastructure"
+    },
+    "functions/api/_elv.js": {
+      "hash": "217b4b44eaf0bf3d01f201da6ec1e386b9c5626c612cf0e03b0b8805b472ff22",
+      "note": "EmailListVerify SMTP validation"
+    },
+    "functions/api/survey/submit.js": {
+      "hash": "9ddbe8b6227c510ef6db55270346be32dd83af11b24269543e8bdffe4d27a274",
+      "note": "Survey submission + PII pseudonymization"
+    },
+    "functions/api/survey/request.js": {
+      "hash": "00214a4d153764b8f64e4f517bff92f0f60c2036d47e85bab7637858b3d6f163",
+      "note": "Magic-link token generation"
+    },
+    "functions/api/newsletter/send.js": {
+      "hash": "b6b6ef70920b4ac2c3b5c7d899e716342fb57dead9f01ce43c2444c9f1235bdf",
+      "note": "Mass email send (admin-only)"
+    },
+    "functions/api/newsletter/unsubscribe.js": {
+      "hash": "fc13a84ca416038dba80cd76ec61572038941ccd8486d8ce3bf2ad9548331a07",
+      "note": "CAN-SPAM unsubscribe (status update)"
+    },
+    "functions/api/newsletter/subscribe.js": {
+      "hash": "c436d74ef2771763dde3dda0f78d91e781bd29a3b3a3d8fe94046472eb8146c4",
+      "note": "Public newsletter intake (rate-limited)"
+    },
+    "functions/api/search/semantic.js": {
+      "hash": "975c8f414c972b8f78173008a16652d6e9d94171ced89e13e7b7ded0be8c4087",
+      "note": "Billed AI.run() + Vectorize (rate-limited)"
+    },
+    "functions/api/community/_shared.js": {
+      "hash": "d488f8a662bc4a8077d8bb7cf563b3d616474758d2160622e38bc1525e34d82d",
+      "note": "Community access control (requireMember)"
+    },
+    "functions/api/admin/cleanup.js": {
+      "hash": "abcef3981eb6d363c242b0e5c5205ec8dbefa1ec67103eb8a58760fed5ab74f8",
+      "note": "Expired data deletion from D1"
+    },
     "scripts/guard.mjs": {
       "hash": "6a0b17330c02cfcdf2c0696681ffdc8acc3e31cb1253f0e428e3a5332851dc7e",
       "note": "Guard script (self-guarding)"
