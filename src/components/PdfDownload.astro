@@ -1,0 +1,242 @@
+---
+import { GUIDE_PDFS } from '../../functions/api/_guide-pdfs.js';
+import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
+
+interface Props {
+  slug: string;
+}
+
+const { slug } = Astro.props;
+
+const config = GUIDE_PDFS[slug];
+if (!config?.enabled) return;
+---
+
+<div class="pdf-download card" data-slug={slug}>
+  <!-- Error banner from ?pdf_error query param -->
+  <div class="pdf-error" id="pdf-error" hidden></div>
+
+  <!-- Form (logged-out default) -->
+  <div id="pdf-form-wrap">
+    <p class="pdf-heading">Get this guide as a PDF</p>
+    <form id="pdf-form" novalidate>
+      <div class="pdf-email-row" id="pdf-email-row">
+        <input
+          class="form-input"
+          type="email"
+          id="pdf-email"
+          name="email"
+          required
+          autocomplete="email"
+          placeholder="Your email address"
+        />
+      </div>
+
+      {TURNSTILE_SITE_KEY && (
+        <div id="pdf-turnstile-container" data-sitekey={TURNSTILE_SITE_KEY}></div>
+      )}
+
+      <button type="submit" class="btn btn--primary pdf-submit" id="pdf-submit">
+        Download PDF
+      </button>
+    </form>
+  </div>
+
+  <!-- Success message -->
+  <div id="pdf-success" class="pdf-success" hidden>
+    <p>Check your inbox. The link expires in 24 hours.</p>
+  </div>
+</div>
+
+{TURNSTILE_SITE_KEY && (
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer is:inline></script>
+)}
+
+<script is:inline>
+  (function () {
+    var wrap = document.querySelector('.pdf-download');
+    if (!wrap) return;
+
+    var slug = wrap.dataset.slug;
+    var form = document.getElementById('pdf-form');
+    var formWrap = document.getElementById('pdf-form-wrap');
+    var submitBtn = document.getElementById('pdf-submit');
+    var emailRow = document.getElementById('pdf-email-row');
+    var emailInput = document.getElementById('pdf-email');
+    var errorEl = document.getElementById('pdf-error');
+    var successEl = document.getElementById('pdf-success');
+    var turnstileContainer = document.getElementById('pdf-turnstile-container');
+    var turnstileWidgetId = null;
+    var pendingSubmit = null;
+    var isLoggedIn = false;
+
+    // Check for ?pdf_error query param
+    var params = new URLSearchParams(window.location.search);
+    var pdfError = params.get('pdf_error');
+    if (pdfError) {
+      var errorMessages = {
+        expired: 'That download link has expired. Enter your email to get a new one.',
+        used: 'That link has already been used. Enter your email to get a new one.',
+        notfound: 'That link is invalid. Enter your email to get a new one.',
+        unavailable: "The PDF isn't available yet. Try again soon."
+      };
+      if (errorMessages[pdfError]) {
+        showError(errorMessages[pdfError]);
+      }
+    }
+
+    // Check session to upgrade to logged-in mode
+    fetch('/api/auth/session', { credentials: 'include' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.user) {
+          isLoggedIn = true;
+          emailRow.hidden = true;
+          if (turnstileContainer) turnstileContainer.hidden = true;
+          submitBtn.textContent = 'Send PDF to my email';
+        }
+      })
+      .catch(function () {});
+
+    // Render Turnstile widget once the API loads
+    function initTurnstile() {
+      if (!turnstileContainer || typeof turnstile === 'undefined') return;
+      turnstileWidgetId = turnstile.render(turnstileContainer, {
+        sitekey: turnstileContainer.dataset.sitekey,
+        size: 'invisible',
+        callback: function (token) {
+          if (pendingSubmit) {
+            doSubmit(pendingSubmit.email, token);
+            pendingSubmit = null;
+          }
+        },
+        'error-callback': function () {
+          showError('Spam check failed. Please refresh the page and try again.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = isLoggedIn ? 'Send PDF to my email' : 'Download PDF';
+          pendingSubmit = null;
+        },
+      });
+    }
+
+    // Poll for turnstile API readiness (loaded async)
+    var tsCheck = setInterval(function () {
+      if (typeof turnstile !== 'undefined') {
+        clearInterval(tsCheck);
+        initTurnstile();
+      }
+    }, 200);
+    // Stop polling after 10s
+    setTimeout(function () { clearInterval(tsCheck); }, 10000);
+
+    function showError(msg) {
+      errorEl.textContent = msg;
+      errorEl.hidden = false;
+      successEl.hidden = true;
+    }
+
+    function showSuccess() {
+      successEl.hidden = false;
+      formWrap.hidden = true;
+      errorEl.hidden = true;
+    }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      errorEl.hidden = true;
+
+      var email = '';
+      if (!isLoggedIn) {
+        email = emailInput.value.trim();
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          return showError('Please enter a valid email address.');
+        }
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending...';
+
+      // If Turnstile is available and user is not logged in, execute it
+      if (!isLoggedIn && typeof turnstile !== 'undefined' && turnstileWidgetId !== null) {
+        pendingSubmit = { email: email };
+        turnstile.reset(turnstileWidgetId);
+        turnstile.execute(turnstileWidgetId);
+        return;
+      }
+
+      // Logged-in or no Turnstile — submit directly
+      doSubmit(email, '');
+    });
+
+    function doSubmit(email, token) {
+      var body = { guide_slug: slug };
+      if (email) body.email = email;
+      if (token) body.turnstileToken = token;
+
+      fetch('/api/pdf/request', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data.ok) {
+            showSuccess();
+          } else {
+            showError(data.error || 'Something went wrong. Please try again.');
+            submitBtn.disabled = false;
+            submitBtn.textContent = isLoggedIn ? 'Send PDF to my email' : 'Download PDF';
+          }
+        })
+        .catch(function () {
+          showError('Network error. Please check your connection and try again.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = isLoggedIn ? 'Send PDF to my email' : 'Download PDF';
+        });
+    }
+  })();
+</script>
+
+<style>
+  .pdf-download {
+    margin-top: var(--space-8);
+  }
+  .pdf-heading {
+    font-size: var(--text-lg);
+    font-weight: 600;
+    margin-bottom: var(--space-4);
+  }
+  .pdf-email-row {
+    margin-bottom: var(--space-4);
+  }
+  .pdf-email-row .form-input {
+    width: 100%;
+  }
+  .pdf-submit {
+    width: 100%;
+  }
+  .pdf-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .pdf-error {
+    border: 1px solid var(--color-error);
+    color: var(--color-error);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    margin-bottom: var(--space-4);
+  }
+  .pdf-success {
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
+    padding: var(--space-5);
+    text-align: center;
+  }
+  .pdf-success p {
+    color: var(--text-secondary);
+    margin-bottom: 0;
+    font-size: var(--text-sm);
+  }
+</style>
