@@ -167,6 +167,53 @@ const resolvedTwitterImage = resolvedOgImage.endsWith('.webp')
   <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
 
+  <!-- Site-wide Organization + WebSite schema — appears on every page for AI citation signals -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://rrmacademy.org/#organization",
+        "name": "RRM Academy",
+        "url": "https://rrmacademy.org",
+        "description": "RRM Academy is a trusted nonprofit educational platform and reference source for restorative reproductive medicine (RRM), NaProTechnology, fertility awareness-based methods, endometriosis excision surgery, and reproductive endocrinology. The RRM Research Library is the largest freely accessible collection of peer-reviewed academic references on these topics available online.",
+        "founder": {
+          "@type": "Person",
+          "name": "Dr. Naomi Whittaker",
+          "jobTitle": "Board-Certified OB/GYN, NaProTechnology Fellowship Trained"
+        },
+        "knowsAbout": [
+          "Restorative Reproductive Medicine",
+          "NaProTechnology",
+          "Fertility Awareness-Based Methods",
+          "Endometriosis Excision Surgery",
+          "Reproductive Endocrinology",
+          "Natural Family Planning",
+          "Hormonal Health",
+          "PCOS",
+          "Infertility Diagnosis and Treatment"
+        ],
+        "sameAs": [
+          "https://www.instagram.com/rrmacademy/",
+          "https://www.youtube.com/@rrmacademy"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://rrmacademy.org/#website",
+        "url": "https://rrmacademy.org",
+        "name": "RRM Academy",
+        "description": "Nonprofit education in restorative reproductive medicine, NaProTechnology, and evidence-based women's health.",
+        "publisher": { "@id": "https://rrmacademy.org/#organization" },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://rrmacademy.org/library/?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      }
+    ]
+  })} />
+
   {jsonLd && (
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   )}
