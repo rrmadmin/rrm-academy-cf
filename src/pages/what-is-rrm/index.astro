@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import BackToTop from '../../components/BackToTop.astro';
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -723,21 +724,29 @@ const jsonLd = {
           <p>RRM addresses the full spectrum of reproductive health: infertility, endometriosis, hormonal disorders, recurrent miscarriage, pelvic pain, and perimenopause. For the purposes of comparing RRM to IVF, the relevant domain is fertility. That is where the two approaches meet directly, and where the published evidence speaks most clearly.</p>
 
           <h3>Side-by-Side Comparison</h3>
-          <table>
-            <thead><tr><th></th><th>Restorative Reproductive Medicine</th><th>In Vitro Fertilization (IVF)</th></tr></thead>
-            <tbody>
-              <tr><th>Core question</th><td>Why can't this couple conceive? What can be treated?</td><td>How do we achieve embryo implantation?</td></tr>
-              <tr><th>Approach</th><td>Diagnose and treat the underlying condition</td><td>Bypass natural reproductive function</td></tr>
-              <tr><th>Diagnostic workup</th><td>Cycle-timed hormonal panels, imaging, laparoscopy, male evaluation</td><td>Basic hormone screen (AMH, FSH, AFC); male factor often untreated</td></tr>
-              <tr><th>Conception route</th><td>Natural conception after treatment</td><td>Embryo transfer in laboratory setting</td></tr>
-              <tr><th>Live birth rate</th><td>41% crude LBR (Boyle 2025, n=187);<sup><a href="#ref-24" id="cite-24h">24</a></sup> 50% adjusted at 24 mo, 62.1% at 36+ mo (Sanchez-Mendez 2025, n=1,310)<sup><a href="#ref-25" id="cite-25b">25</a></sup></td><td>~30.6% per single-embryo transfer (SART); ~41% per multi-embryo transfer (CDC)<sup><a href="#ref-16" id="cite-16g">16</a></sup></td></tr>
-              <tr><th>Preterm delivery (singletons)</th><td>4.0% (Boyle 2025)<sup><a href="#ref-24" id="cite-24i">24</a></sup></td><td>11.8% (CDC); 14.4% (SART IVF singletons)<sup><a href="#ref-16" id="cite-16h">16</a></sup></td></tr>
-              <tr><th>Multiple pregnancy</th><td>Rare; natural conception produces singletons</td><td>Higher rate, especially with multiple embryo transfer</td></tr>
-              <tr><th>Estimated cost (U.S.)</th><td>Lower; some components billable to insurance as treatment for diagnosed conditions</td><td>$40,000-$60,000 average (2-3 cycles); rarely covered by insurance<sup><a href="#ref-15" id="cite-15d">15</a></sup></td></tr>
-              <tr><th>Male partner</th><td>Full evaluation and treatment standard</td><td>ICSI bypasses male factor without treating it</td></tr>
-              <tr><th>After treatment</th><td>Diagnosis, treated disease, body literacy</td><td>Pregnancy attempt; underlying condition typically unaddressed</td></tr>
-            </tbody>
-          </table>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Factor</th>
+                  <th>Restorative Reproductive Medicine</th>
+                  <th>In Vitro Fertilization (IVF)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Core question</td><td>Why can't this couple conceive? What can be treated?</td><td>How do we achieve embryo implantation?</td></tr>
+                <tr><td>Approach</td><td>Diagnose and treat the underlying condition</td><td>Bypass natural reproductive function</td></tr>
+                <tr><td>Diagnostic workup</td><td>Cycle-timed hormonal panels, imaging, laparoscopy, male evaluation</td><td>Basic hormone screen (AMH, FSH, AFC); male factor often untreated</td></tr>
+                <tr><td>Conception route</td><td>Natural conception after treatment</td><td>Embryo transfer in laboratory setting</td></tr>
+                <tr><td>Live birth rate</td><td>41% crude LBR (Boyle 2025, n=187);<sup><a href="#ref-24" id="cite-24h">24</a></sup> 50% adjusted at 24 mo, 62.1% at 36+ mo (Sanchez-Mendez 2025, n=1,310)<sup><a href="#ref-25" id="cite-25b">25</a></sup></td><td>~30.6% per single-embryo transfer (SART); ~41% per multi-embryo transfer (CDC)<sup><a href="#ref-16" id="cite-16g">16</a></sup></td></tr>
+                <tr><td>Preterm delivery (singletons)</td><td>4.0% (Boyle 2025)<sup><a href="#ref-24" id="cite-24i">24</a></sup></td><td>11.8% (CDC); 14.4% (SART IVF singletons)<sup><a href="#ref-16" id="cite-16h">16</a></sup></td></tr>
+                <tr><td>Multiple pregnancy</td><td>Rare; natural conception produces singletons</td><td>Higher rate, especially with multiple embryo transfer</td></tr>
+                <tr><td>Estimated cost (U.S.)</td><td>Lower; some components billable to insurance as treatment for diagnosed conditions</td><td>$40,000-$60,000 average (2-3 cycles); rarely covered by insurance<sup><a href="#ref-15" id="cite-15d">15</a></sup></td></tr>
+                <tr><td>Male partner</td><td>Full evaluation and treatment standard</td><td>ICSI bypasses male factor without treating it</td></tr>
+                <tr><td>After treatment</td><td>Diagnosis, treated disease, body literacy</td><td>Pregnancy attempt; underlying condition typically unaddressed</td></tr>
+              </tbody>
+            </table>
+          </div>
 
           <h3>The Cost Difference</h3>
           <p>IVF costs $15,000 to $30,000 per cycle in the United States. Most couples need two to three cycles to achieve a live birth, bringing average total spending to $40,000 to $60,000 or more. Add-ons such as genetic testing (PGT-A), ICSI, and frozen embryo transfers push costs higher.<sup><a href="#ref-15" id="cite-15e">15</a></sup></p>
@@ -1560,6 +1569,7 @@ const jsonLd = {
     </div>
   </div>
   <p class="page-updated">Last updated: March 2026</p>
+  <BackToTop />
 </BaseLayout>
 
 <style>
