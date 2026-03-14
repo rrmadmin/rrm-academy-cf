@@ -25,6 +25,11 @@ export async function onRequestPost({ request, env, waitUntil }) {
     "DELETE FROM newsletter_event WHERE created_at < datetime(?, 'unixepoch')"
   ).bind(ninetyDaysAgo).run();
 
+  // Delete pdf_tokens more than 2 days past expiry (expired + 1-day grace)
+  const pdfTokens = await db.prepare(
+    'DELETE FROM pdf_token WHERE expires_at < ?'
+  ).bind(now - 86400).run();
+
   const result = {
     ok: true,
     pruned: {
@@ -33,10 +38,11 @@ export async function onRequestPost({ request, env, waitUntil }) {
       email_verifications: verifications.meta.changes,
       webhook_events: webhookEvents.meta.changes,
       newsletter_events: nlEvents.meta.changes,
+      pdf_tokens: pdfTokens.meta.changes,
     },
   };
 
-  const total = result.pruned.sessions + result.pruned.password_resets + result.pruned.email_verifications + result.pruned.webhook_events + result.pruned.newsletter_events;
+  const total = result.pruned.sessions + result.pruned.password_resets + result.pruned.email_verifications + result.pruned.webhook_events + result.pruned.newsletter_events + result.pruned.pdf_tokens;
   log(env, waitUntil, 'admin', 'cleanup_completed', 'ok', `pruned ${total} rows`, 0, 200);
   return Response.json(result);
 }
