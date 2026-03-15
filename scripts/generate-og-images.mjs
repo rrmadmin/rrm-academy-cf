@@ -35,6 +35,7 @@ const STATIC_PAGES = [
   { slug: 'naprotechnology', title: 'NaProTechnology', description: 'A complete guide to NaProTechnology: how it works, what it treats, and how to find a provider.' },
   { slug: 'common-questions-about-rrm', title: 'Common Questions About RRM', description: 'We address common questions about RRM with published evidence, acknowledge limitations, and clarify what RRM is and is not.' },
   { slug: 'endo-survey', title: 'Endometriosis Survey', description: 'Do your symptoms point to endometriosis? This evidence-based self-survey helps you assess your level of suspicion.' },
+  { slug: 'ivf-success-calculator', title: 'IVF Success Rate Calculator', description: 'Evidence-based IVF success rate estimates from HFEA mandatory reporting data. See realistic odds by age, not clinic marketing.' },
   { slug: 'endo-survey-take', title: 'Take the Endometriosis Survey', description: 'Complete the 3-Tier Endometriosis Symptom Self-Survey developed by Dr. Naomi Whittaker.' },
   { slug: 'save-the-uterus-club', title: 'Save the Uterus Club', description: 'Join a community of patients and providers committed to restorative reproductive medicine.' },
   { slug: 'save-the-uterus-club-thank-you', title: 'Welcome to Save the Uterus Club', description: "You're officially a member. Here's how to get started." },
