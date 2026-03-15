@@ -8,10 +8,9 @@ export async function getStaticPaths() {
   const articles = await fetchAllArticles();
   const totalPages = Math.ceil(articles.length / perPage);
 
-  // Page 1 is /library/ (index.astro) — skip it here to avoid duplicate content
-  return Array.from({ length: totalPages - 1 }, (_, i) => ({
-    params: { page: String(i + 2) },
-    props: { articles, currentPage: i + 2, totalPages, perPage },
+  return Array.from({ length: totalPages }, (_, i) => ({
+    params: { page: String(i + 1) },
+    props: { articles, currentPage: i + 1, totalPages, perPage },
   }));
 }
 
@@ -69,7 +68,7 @@ for (let i = 1; i <= totalPages; i++) {
 
       <nav class="pagination" aria-label="Pagination">
         {currentPage > 1 && (
-          <a href={currentPage === 2 ? '/library/' : `/library/page/${currentPage - 1}/`}>&laquo; Prev</a>
+          <a href={`/library/page/${currentPage - 1}/`}>&laquo; Prev</a>
         )}
         {range.map(item => (
           item === '...' ? (
@@ -77,7 +76,7 @@ for (let i = 1; i <= totalPages; i++) {
           ) : item === currentPage ? (
             <span class="current">{item}</span>
           ) : (
-            <a href={item === 1 ? '/library/' : `/library/page/${item}/`}>{item}</a>
+            <a href={`/library/page/${item}/`}>{item}</a>
           )
         ))}
         {currentPage < totalPages && (
