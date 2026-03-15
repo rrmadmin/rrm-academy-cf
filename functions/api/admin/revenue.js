@@ -37,18 +37,19 @@ export async function onRequestGet({ request, env }) {
     const now = Math.floor(Date.now() / 1000);
     const periodStart = now - (days * 86400);
 
-    // Fetch in parallel: subscriptions, charges, recent cancellations
-    const [activeSubs, charges, cancelledSubs] = await Promise.all([
-      stripe.subscriptions.list({ status: 'active', limit: 100 }),
+    // Fetch in parallel: charges and recent cancellations (period-bounded, 100 is sufficient)
+    const [charges, cancelledSubs] = await Promise.all([
       stripe.charges.list({ created: { gte: periodStart }, limit: 100 }),
       stripe.subscriptions.list({ status: 'canceled', created: { gte: periodStart }, limit: 100 }),
     ]);
 
-    // MRR from active subscriptions
+    // MRR from all active subscriptions (auto-paginate to avoid 100-item cap)
     let mrr = 0;
     const tierCounts = { member: 0, hero: 0, superhero: 0, other: 0 };
     const tierMrr = { member: 0, hero: 0, superhero: 0, other: 0 };
-    for (const sub of activeSubs.data) {
+    let totalActiveSubs = 0;
+    for await (const sub of stripe.subscriptions.list({ status: 'active', limit: 100 })) {
+      totalActiveSubs++;
       const monthlyAmount = sub.items.data.reduce((sum, item) => {
         let amount = item.price.unit_amount || 0;
         if (item.price.recurring?.interval === 'year') amount = Math.round(amount / 12);
@@ -98,7 +99,7 @@ export async function onRequestGet({ request, env }) {
 
     const report = {
       mrr: mrr / 100,
-      totalActiveSubs: activeSubs.data.length,
+      totalActiveSubs,
       tierCounts,
       tierMrr: {
         member: tierMrr.member / 100,

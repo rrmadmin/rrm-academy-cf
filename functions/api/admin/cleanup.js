@@ -9,7 +9,11 @@ import { log } from '../_log.js';
 export async function onRequestPost({ request, env, waitUntil }) {
   const auth = request.headers.get('Authorization');
   if (!env.ADMIN_API_SECRET || auth !== `Bearer ${env.ADMIN_API_SECRET}`) {
-    return new Response('Unauthorized', { status: 401 });
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  if (!env.DB) {
+    return Response.json({ error: 'Server misconfigured' }, { status: 500 });
   }
 
   const db = env.DB;

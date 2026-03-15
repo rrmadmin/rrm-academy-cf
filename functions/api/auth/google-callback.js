@@ -67,14 +67,18 @@ export async function onRequestGet({ request, env, waitUntil }) {
       .bind(googleId).first();
 
     if (user && user.email !== email) {
-      await db.prepare("UPDATE user SET email = ?, updated_at = datetime('now') WHERE id = ?")
-        .bind(email, user.id).run();
-      user.email = email;
+      const conflict = await db.prepare('SELECT id FROM user WHERE email = ? COLLATE NOCASE AND id != ?')
+        .bind(email, user.id).first();
+      if (!conflict) {
+        await db.prepare("UPDATE user SET email = ?, updated_at = datetime('now') WHERE id = ?")
+          .bind(email, user.id).run();
+        user.email = email;
+      }
     }
 
     if (!user) {
       // 2. Check if email matches an existing account (first Google login for this user)
-      user = await db.prepare('SELECT id, email, blocked FROM user WHERE email = ? COLLATE NOCASE')
+      user = await db.prepare('SELECT id, email, blocked FROM user WHERE email = ? COLLATE NOCASE AND email_verified = 1')
         .bind(email).first();
 
       if (user) {

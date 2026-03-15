@@ -97,7 +97,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
   // Filter by segment if requested, and suppress bad ELV emails
   let recipients = subscribers.filter(s => !suppressedEmails.has(s.email?.toLowerCase()));
   if (segments && segments.length > 0) {
-    recipients = subscribers.filter(sub => {
+    recipients = recipients.filter(sub => {
       const subSegments = JSON.parse(sub.segments || '[]');
       return segments.some(seg => subSegments.includes(seg));
     });

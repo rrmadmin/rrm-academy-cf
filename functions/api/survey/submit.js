@@ -6,24 +6,12 @@
 import { sendEmail } from '../_ses.js';
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
-
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': 'https://rrmacademy.org',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
+import { json, optionsResponse } from '../auth/_shared.js';
 
 const TOKEN_TTL = 24 * 60 * 60; // 24 hours -- match request.js
 
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
-  });
-}
-
 export async function onRequestOptions() {
-  return new Response(null, { status: 204, headers: CORS_HEADERS });
+  return optionsResponse();
 }
 
 export async function onRequestPost(context) {

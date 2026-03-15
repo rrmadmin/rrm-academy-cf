@@ -30,7 +30,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     // Get all users who are STUC members:
     // 1. Staff (mod+)
     // 2. Users with grandfathered label 'Save the Uterus Club 🏷️'
-    // 3. Users with active Stripe subscription (approximated by stripe_customer_id)
+    // 3. Users with an active tier label (Uterus Member, Hero, or Super Hero)
     const rows = await db.prepare(`
       SELECT DISTINCT u.id, u.name, u.first_name, u.last_name, u.role, u.avatar_url, u.created_at,
         (SELECT MAX(created_at) FROM (
@@ -42,7 +42,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
       WHERE u.blocked = 0 AND (
         u.role IN ('mod', 'admin', 'superadmin')
         OR u.id IN (SELECT user_id FROM user_label WHERE label = 'Save the Uterus Club 🏷️')
-        OR u.stripe_customer_id IS NOT NULL
+        OR u.id IN (SELECT user_id FROM user_label WHERE label IN ('Uterus Member 🐻', 'Uterus Hero 💖', 'Uterus Super Hero 🦸‍♀️'))
       )
       ORDER BY last_active DESC NULLS LAST, u.created_at DESC
     `).all();
@@ -56,7 +56,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
       WHERE u.blocked = 0 AND (
         u.role IN ('mod', 'admin', 'superadmin')
         OR u.id IN (SELECT user_id FROM user_label WHERE label = 'Save the Uterus Club 🏷️')
-        OR u.stripe_customer_id IS NOT NULL
+        OR u.id IN (SELECT user_id FROM user_label WHERE label IN ('Uterus Member 🐻', 'Uterus Hero 💖', 'Uterus Super Hero 🦸‍♀️'))
       )
     `).all();
 
