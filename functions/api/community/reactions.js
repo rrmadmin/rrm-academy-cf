@@ -27,6 +27,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
     if (!targetType || !targetId || !emoji) {
       return json({ ok: false, error: 'targetType, targetId, and emoji required' }, 400);
     }
+    if (typeof targetId !== 'string' || targetId.length > 100) {
+      return json({ ok: false, error: 'Invalid targetId' }, 400);
+    }
     if (!['post', 'comment'].includes(targetType)) {
       return json({ ok: false, error: 'Invalid target type' }, 400);
     }
@@ -78,6 +81,9 @@ export async function onRequestDelete({ request, env, waitUntil }) {
     const { targetType, targetId, emoji } = body;
     if (!targetType || !targetId || !emoji) {
       return json({ ok: false, error: 'targetType, targetId, and emoji required' }, 400);
+    }
+    if (typeof targetId !== 'string' || targetId.length > 100) {
+      return json({ ok: false, error: 'Invalid targetId' }, 400);
     }
 
     const db = env.DB;

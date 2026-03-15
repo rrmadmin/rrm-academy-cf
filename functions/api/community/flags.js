@@ -36,7 +36,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     if (!targetType || !['post', 'comment'].includes(targetType)) {
       return json({ ok: false, error: 'Invalid targetType' }, 400);
     }
-    if (!targetId) return json({ ok: false, error: 'targetId required' }, 400);
+    if (!targetId || typeof targetId !== 'string' || targetId.length > 100) return json({ ok: false, error: 'targetId required' }, 400);
     if (!reason || !VALID_REASONS.includes(reason)) {
       return json({ ok: false, error: 'Invalid reason' }, 400);
     }
@@ -57,10 +57,16 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     // Check for duplicate flag
     const existing = await db.prepare(
-      "SELECT id FROM community_flag WHERE user_id = ? AND target_type = ? AND target_id = ? AND status = 'pending'"
+      'SELECT id, status FROM community_flag WHERE user_id = ? AND target_type = ? AND target_id = ?'
     ).bind(user.id, targetType, targetId).first();
     if (existing) {
-      return json({ ok: false, error: 'You have already flagged this content' }, 409);
+      if (existing.status === 'pending') {
+        return json({ ok: false, error: 'You have already flagged this content' }, 409);
+      }
+      await db.prepare(
+        "UPDATE community_flag SET status = 'pending', reason = ?, note = ?, resolved_by = NULL, resolved_at = NULL WHERE id = ?"
+      ).bind(reason, note?.trim() || null, existing.id).run();
+      return json({ ok: true, flagId: existing.id }, 200);
     }
 
     const id = generateId();
@@ -117,14 +123,15 @@ export async function onRequestGet({ request, env, waitUntil }) {
     if (postIds.length) {
       const ph = postIds.map(() => '?').join(',');
       const posts = await db.prepare(`
-        SELECT p.id, p.title, p.body, p.author_id, u.name as author_name, u.first_name, u.last_name
+        SELECT p.id, p.title, p.body, p.content, p.author_id, u.name as author_name, u.first_name, u.last_name
         FROM community_post p
         JOIN user u ON u.id = p.author_id
         WHERE p.id IN (${ph})
       `).bind(...postIds).all();
       for (const p of posts.results) {
+        const text = p.content || (p.title && p.body ? p.title + '\n\n' + p.body : p.title || p.body || '');
         postMap[p.id] = {
-          preview: p.title + (p.body ? ': ' + p.body.slice(0, 100) : ''),
+          preview: text.slice(0, 200),
           author: p.author_name || displayName(p),
         };
       }
@@ -185,7 +192,7 @@ export async function onRequestPatch({ request, env, waitUntil }) {
     }
 
     const { flagId, status } = body;
-    if (!flagId) return json({ ok: false, error: 'flagId required' }, 400);
+    if (!flagId || typeof flagId !== 'string' || flagId.length > 100) return json({ ok: false, error: 'flagId required' }, 400);
     if (!status || !['resolved', 'dismissed'].includes(status)) {
       return json({ ok: false, error: 'status must be resolved or dismissed' }, 400);
     }
@@ -215,8 +222,11 @@ async function notifyMods(env, db, reporter, targetType, targetId, reason, note)
   let contentPreview = '';
   let postId = targetId;
   if (targetType === 'post') {
-    const post = await db.prepare('SELECT title, body FROM community_post WHERE id = ?').bind(targetId).first();
-    if (post) contentPreview = post.title + (post.body ? ': ' + post.body.slice(0, 100) : '');
+    const post = await db.prepare('SELECT title, body, content FROM community_post WHERE id = ?').bind(targetId).first();
+    if (post) {
+      const text = post.content || (post.title && post.body ? post.title + '\n\n' + post.body : post.title || post.body || '');
+      contentPreview = text.slice(0, 200);
+    }
   } else {
     const comment = await db.prepare('SELECT content, post_id FROM community_comment WHERE id = ?').bind(targetId).first();
     if (comment) {

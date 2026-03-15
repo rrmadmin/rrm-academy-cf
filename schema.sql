@@ -127,8 +127,7 @@ CREATE TABLE IF NOT EXISTS community_post (
     id TEXT PRIMARY KEY,
     author_id TEXT NOT NULL REFERENCES user(id),
     type TEXT NOT NULL,
-    title TEXT NOT NULL,
-    body TEXT,
+    content TEXT,
     pinned INTEGER DEFAULT 0,
     event_date TEXT,
     event_link TEXT,
@@ -302,3 +301,50 @@ CREATE TABLE IF NOT EXISTS contact_address (
 );
 
 CREATE INDEX IF NOT EXISTS idx_contact_address_contact ON contact_address(contact_id);
+
+-- PDF Token Gate (migration 008)
+
+CREATE TABLE IF NOT EXISTS pdf_token (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    token TEXT NOT NULL UNIQUE,
+    email TEXT NOT NULL,
+    guide_slug TEXT NOT NULL,
+    expires_at INTEGER NOT NULL,
+    used_at INTEGER,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch())
+);
+
+CREATE INDEX IF NOT EXISTS idx_pdf_token_token ON pdf_token(token);
+CREATE INDEX IF NOT EXISTS idx_pdf_token_email_slug ON pdf_token(email, guide_slug);
+
+-- Practitioner Directory (migration 009)
+
+CREATE TABLE IF NOT EXISTS practitioner (
+    id TEXT PRIMARY KEY,
+    full_name TEXT NOT NULL,
+    first_name TEXT,
+    last_name TEXT,
+    credentials TEXT,
+    specialty TEXT,
+    certification_code TEXT,
+    certification_name TEXT,
+    is_fellow INTEGER DEFAULT 0,
+    is_collaborating INTEGER DEFAULT 0,
+    city TEXT,
+    state TEXT,
+    country TEXT DEFAULT 'USA',
+    phone TEXT,
+    email TEXT,
+    website TEXT,
+    practice_name TEXT,
+    source TEXT NOT NULL,
+    source_date TEXT,
+    notes TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_practitioner_state ON practitioner(state);
+CREATE INDEX IF NOT EXISTS idx_practitioner_country ON practitioner(country);
+CREATE INDEX IF NOT EXISTS idx_practitioner_source ON practitioner(source);
+CREATE INDEX IF NOT EXISTS idx_practitioner_certification ON practitioner(certification_code);

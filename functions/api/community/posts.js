@@ -327,7 +327,7 @@ export async function onRequestPatch({ request, env, waitUntil }) {
     }
 
     const { postId, title, body: postBody, eventDate, eventLink, resourceUrl, pinned } = body;
-    if (!postId) return json({ ok: false, error: 'postId required' }, 400);
+    if (!postId || typeof postId !== 'string' || postId.length > 100) return json({ ok: false, error: 'postId required' }, 400);
 
     const db = env.DB;
     const post = await db.prepare('SELECT * FROM community_post WHERE id = ?').bind(postId).first();
@@ -400,7 +400,7 @@ export async function onRequestDelete({ request, env, waitUntil }) {
     }
 
     const { postId } = body;
-    if (!postId) return json({ ok: false, error: 'postId required' }, 400);
+    if (!postId || typeof postId !== 'string' || postId.length > 100) return json({ ok: false, error: 'postId required' }, 400);
 
     const db = env.DB;
     const post = await db.prepare('SELECT * FROM community_post WHERE id = ?').bind(postId).first();

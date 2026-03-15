@@ -69,19 +69,23 @@ export async function onRequestGet({ request, env, waitUntil }) {
     if (user && user.email !== email) {
       const conflict = await db.prepare('SELECT id FROM user WHERE email = ? COLLATE NOCASE AND id != ?')
         .bind(email, user.id).first();
-      if (!conflict) {
-        await db.prepare("UPDATE user SET email = ?, updated_at = datetime('now') WHERE id = ?")
-          .bind(email, user.id).run();
-        user.email = email;
+      if (conflict) {
+        return redirect('/login?error=email_conflict');
       }
+      await db.prepare("UPDATE user SET email = ?, updated_at = datetime('now') WHERE id = ?")
+        .bind(email, user.id).run();
+      user.email = email;
     }
 
     if (!user) {
       // 2. Check if email matches an existing account (first Google login for this user)
-      user = await db.prepare('SELECT id, email, blocked FROM user WHERE email = ? COLLATE NOCASE AND email_verified = 1')
+      user = await db.prepare('SELECT id, email, google_id, blocked FROM user WHERE email = ? COLLATE NOCASE AND email_verified = 1')
         .bind(email).first();
 
       if (user) {
+        if (user.google_id && user.google_id !== googleId) {
+          return redirect('/login?error=account_conflict');
+        }
         // Link Google ID to existing account; set avatar if not already set
         await db.prepare(
           `UPDATE user SET google_id = ?, avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ?`
@@ -95,7 +99,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
         .bind(email).first();
       if (unverified) {
         if (unverified.blocked) return redirect('/login?error=account_blocked');
-        await db.prepare("UPDATE user SET google_id = ?, email_verified = 1, hashed_password = NULL, avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ?")
+        await db.prepare("UPDATE user SET google_id = ?, email_verified = 1, hashed_password = '', avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ?")
           .bind(googleId, avatarUrl, unverified.id).run();
         await invalidateAllUserSessions(db, unverified.id);
         user = unverified;
