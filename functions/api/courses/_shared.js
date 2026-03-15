@@ -13,6 +13,10 @@ export function getCourse(courseId) {
   return coursesById.get(courseId) || null;
 }
 
+export function getCourseBySlug(slug) {
+  return coursesBySlug.get(slug) || null;
+}
+
 export function getAllStepIds(courseId) {
   const course = getCourse(courseId);
   if (!course) return [];

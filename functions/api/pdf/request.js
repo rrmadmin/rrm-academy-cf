@@ -93,8 +93,8 @@ export async function onRequestPost(context) {
     }
 
     await env.DB.prepare(
-      "INSERT INTO contact (email, source, created_at, updated_at) VALUES (?, 'pdf-download', unixepoch(), unixepoch()) ON CONFLICT(email) DO UPDATE SET updated_at = unixepoch()"
-    ).bind(email).run();
+      "INSERT INTO contact (id, email, source, created_at, updated_at) VALUES (?, ?, 'pdf-download', datetime('now'), datetime('now')) ON CONFLICT(email) DO UPDATE SET updated_at = datetime('now')"
+    ).bind(crypto.randomUUID(), email).run();
 
     const guideTitle = GUIDE_PDFS[guide_slug].title;
     const redeemUrl = `${SITE_URL}/api/pdf/redeem?token=${token}`;

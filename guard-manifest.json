@@ -31,7 +31,7 @@
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "d6b34d8f14dba0c42dccf4ca3291833bc7594b5588a3265669513969a8d372ab",
+      "hash": "c9e25363ed426bc95da27cc3d37200e66fd303451d106af3f354d0101b3043b8",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
@@ -95,7 +95,7 @@
       "note": "Mass email send (admin-only)"
     },
     "functions/api/newsletter/unsubscribe.js": {
-      "hash": "f93dcfcb1bc56315090f765a2cceeed6e7c7f1528798615215354dc678f1350a",
+      "hash": "5411255e894b306c9cd7a3696579aada912391d39deaa13d5c4e6ab987bc6369",
       "note": "CAN-SPAM unsubscribe (status update)"
     },
     "functions/api/newsletter/subscribe.js": {

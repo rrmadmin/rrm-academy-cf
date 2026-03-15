@@ -29,7 +29,10 @@ export async function onRequestGet(context) {
     }
 
     const guideConfig = GUIDE_PDFS[row.guide_slug];
-    const pagePath = guideConfig?.pagePath || '/guides/';
+    if (!guideConfig) {
+      return Response.redirect(`${SITE_URL}/guides/?pdf_error=notfound`, 302);
+    }
+    const pagePath = guideConfig.pagePath || '/guides/';
 
     if (row.expires_at < Math.floor(Date.now() / 1000)) {
       return Response.redirect(`${SITE_URL}${pagePath}?pdf_error=expired`, 302);
