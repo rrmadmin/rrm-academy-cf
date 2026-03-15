@@ -963,30 +963,30 @@ const jsonLd = {
             <figure class="chart-figure">
               <figcaption class="chart-heading">Cumulative Live Birth Rate Over Time</figcaption>
               <p class="chart-subtitle">Adjusted for censoring and withdrawals (Kaplan-Meier analysis)</p>
-              <table class="chart-column" aria-label="Cumulative live birth rate at 6-month intervals">
-                <tbody>
-                  <tr>
-                    <th scope="row">6 mo</th>
-                    <td style="--size:0.143"><span class="chart-column__val">8.9%</span></td>
-                  </tr>
-                  <tr>
-                    <th scope="row">12 mo</th>
-                    <td style="--size:0.465"><span class="chart-column__val">28.9%</span></td>
-                  </tr>
-                  <tr>
-                    <th scope="row">18 mo</th>
-                    <td style="--size:0.628"><span class="chart-column__val">39.0%</span></td>
-                  </tr>
-                  <tr>
-                    <th scope="row">24 mo</th>
-                    <td style="--size:0.805"><span class="chart-column__val">50.0%</span></td>
-                  </tr>
-                  <tr class="chart-column--final">
-                    <th scope="row">36+ mo</th>
-                    <td style="--size:1"><span class="chart-column__val">62.1%</span></td>
-                  </tr>
-                </tbody>
-              </table>
+              <div class="chart-column" role="table" aria-label="Cumulative live birth rate at 6-month intervals">
+                <div class="chart-column__body" role="rowgroup">
+                  <div class="chart-column__bar" role="row">
+                    <span class="chart-column__label" role="rowheader">6 mo</span>
+                    <div class="chart-column__fill" role="cell" style="--size:0.143"><span class="chart-column__val">8.9%</span></div>
+                  </div>
+                  <div class="chart-column__bar" role="row">
+                    <span class="chart-column__label" role="rowheader">12 mo</span>
+                    <div class="chart-column__fill" role="cell" style="--size:0.465"><span class="chart-column__val">28.9%</span></div>
+                  </div>
+                  <div class="chart-column__bar" role="row">
+                    <span class="chart-column__label" role="rowheader">18 mo</span>
+                    <div class="chart-column__fill" role="cell" style="--size:0.628"><span class="chart-column__val">39.0%</span></div>
+                  </div>
+                  <div class="chart-column__bar" role="row">
+                    <span class="chart-column__label" role="rowheader">24 mo</span>
+                    <div class="chart-column__fill" role="cell" style="--size:0.805"><span class="chart-column__val">50.0%</span></div>
+                  </div>
+                  <div class="chart-column__bar chart-column--final" role="row">
+                    <span class="chart-column__label" role="rowheader">36+ mo</span>
+                    <div class="chart-column__fill" role="cell" style="--size:1"><span class="chart-column__val">62.1%</span></div>
+                  </div>
+                </div>
+              </div>
               <p class="chart-note">Rate plateaus after approximately 36 months. Median treatment duration was 10.9 months.</p>
             </figure>
 
@@ -1826,10 +1826,8 @@ const jsonLd = {
     border-radius: var(--radius-sm);
   }
 
-  /* Column Chart (semantic table) */
+  /* Column Chart */
   .chart-column {
-    display: flex;
-    flex-direction: column;
     height: 200px;
     padding-top: var(--space-6);
     padding-bottom: var(--space-6);
@@ -1837,20 +1835,20 @@ const jsonLd = {
     margin-bottom: var(--space-2);
   }
 
-  .chart-column tbody {
+  .chart-column__body {
     display: flex;
     gap: var(--space-3);
     height: 100%;
     align-items: flex-end;
   }
 
-  .chart-column tr {
+  .chart-column__bar {
     flex: 1;
     position: relative;
     height: 100%;
   }
 
-  .chart-column td {
+  .chart-column__fill {
     position: absolute;
     bottom: 0;
     left: 0;
@@ -1861,7 +1859,7 @@ const jsonLd = {
     border-radius: var(--radius-sm) var(--radius-sm) 0 0;
   }
 
-  .chart-column--final td {
+  .chart-column--final .chart-column__fill {
     background: var(--purple-300);
     border-top: 2px solid var(--accent);
   }
@@ -1877,7 +1875,7 @@ const jsonLd = {
     white-space: nowrap;
   }
 
-  .chart-column th {
+  .chart-column__label {
     position: absolute;
     bottom: -22px;
     left: 50%;
@@ -2058,7 +2056,7 @@ const jsonLd = {
       height: 160px;
     }
 
-    .chart-column tbody {
+    .chart-column__body {
       gap: var(--space-2);
     }
 
