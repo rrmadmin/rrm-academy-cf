@@ -372,6 +372,15 @@
         try { return new URL(url).pathname; } catch(e) { return url; }
       }
 
+      // Extract Airtable record ID from slug (e.g. "...-recXYZ123/" -> "recxyz123")
+      // Used for dedup when slugs change but record ID stays the same
+      function extractRecId(url) {
+        var m = url.match(/-(rec[a-zA-Z0-9]+)\/?$/);
+        return m ? m[1].toLowerCase() : null;
+      }
+
+      var recIdToKey = {}; // recId -> fusedMap key (for cross-slug dedup)
+
       // Score Pagefind results
       for (var pi = 0; pi < pfLoaded.length; pi++) {
         var pItem = pfLoaded[pi];
@@ -381,6 +390,8 @@
           score: 1 / (RRF_K + pItem._pfRank),
           data: pItem
         };
+        var pRecId = extractRecId(pUrl);
+        if (pRecId) recIdToKey[pRecId] = pUrl;
       }
 
       // Score and merge semantic results
@@ -390,11 +401,15 @@
         var sRank = si;
         if (isNonEnglish(sItem.title)) sRank += 1000;
 
-        var matchKey = fusedMap[sUrl] ? sUrl : null;
+        // Match by URL first, then by record ID (handles slug renames)
+        var sRecId = extractRecId(sUrl);
+        var matchKey = fusedMap[sUrl] ? sUrl : (sRecId && recIdToKey[sRecId]) ? recIdToKey[sRecId] : null;
 
         if (matchKey) {
           // Boost existing result -- appears in both systems
           fusedMap[matchKey].score += 1 / (RRF_K + sRank);
+          // Prefer semantic URL (current slug) over stale Pagefind URL
+          if (matchKey !== sUrl) fusedMap[matchKey].data.url = sUrl;
           // Enrich with type from semantic if Pagefind lacks it
           if (!fusedMap[matchKey].data.meta.type && sItem.type) {
             fusedMap[matchKey].data.meta.type = sItem.type;
@@ -444,16 +459,20 @@
           if (query !== currentQuery) return;
           var lateResults = (lateData && lateData.results || []).filter(function(sr) { return sr.score >= 0.5; });
           var existingUrls = {};
+          var existingRecIds = {};
           for (var ei = 0; ei < preloadedData.length; ei++) {
             var eUrl = toRelative(preloadedData[ei].url);
             existingUrls[eUrl] = true;
             existingUrls[extractSlug(eUrl)] = true;
+            var eRecId = extractRecId(eUrl);
+            if (eRecId) existingRecIds[eRecId] = true;
           }
           var added = 0;
           for (var li = 0; li < lateResults.length; li++) {
             var lr = lateResults[li];
             var lrUrl = toRelative(lr.url);
-            if (existingUrls[lrUrl] || existingUrls[lr.slug]) continue;
+            var lrRecId = extractRecId(lrUrl);
+            if (existingUrls[lrUrl] || existingUrls[lr.slug] || (lrRecId && existingRecIds[lrRecId])) continue;
             preloadedData.push({
               url: lr.url, excerpt: '',
               meta: { title: lr.title, authors: lr.authors || '', year: lr.year ? String(lr.year) : '', type: lr.type || 'Research' },
