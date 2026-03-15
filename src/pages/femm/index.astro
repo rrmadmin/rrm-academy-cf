@@ -1,0 +1,659 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BackToTop from '../../components/BackToTop.astro';
+import PdfDownload from '../../components/PdfDownload.astro';
+
+// Block 1: MedicalWebPage + Article (injected via BaseLayout jsonLd prop)
+const pageSchema = {
+  '@context': 'https://schema.org',
+  '@type': ['Article', 'MedicalWebPage'],
+  headline: 'What is FEMM? How It Works, What It Treats, and How to Find a Provider',
+  description: 'FEMM (Fertility Education and Medical Management) uses biomarker charting and RHRI protocols to diagnose and treat hormonal and reproductive conditions. Learn how FEMM works, find a provider, compare costs.',
+  author: {
+    '@type': 'Person',
+    '@id': 'https://rrmacademy.org/#naomi-whittaker',
+    name: 'Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI',
+    jobTitle: 'Board-Certified OBGYN',
+    url: 'https://rrmacademy.org/commentary/rrm-spotlight-naomi-whittaker-md/',
+    image: 'https://rrmacademy.org/images/authors/naomi-whittaker.webp',
+    sameAs: [
+      'https://www.instagram.com/napro_fertility_surgeon/',
+      'https://www.linkedin.com/in/naomi-whittaker-md-906b13101/',
+    ],
+  },
+  publisher: {
+    '@type': 'EducationalOrganization',
+    '@id': 'https://rrmacademy.org/#organization',
+    name: 'RRM Academy',
+  },
+  datePublished: '2026-03-15',
+  dateModified: '2026-03-15',
+  wordCount: 4200,
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': 'https://rrmacademy.org/femm/',
+  },
+  about: {
+    '@type': 'MedicalTherapy',
+    name: 'FEMM',
+    alternateName: 'Fertility Education and Medical Management',
+  },
+  articleSection: [
+    'The Three Core Principles',
+    'A Brief History',
+    'How FEMM Works',
+    'Conditions FEMM Addresses',
+    'FEMM and Its Place in RRM',
+    'The RHRI Research Base',
+    'How to Find a FEMM Teacher or Provider',
+    'Cost and Insurance',
+    'Frequently Asked Questions',
+    'References',
+  ],
+  hasPart: [
+    { '@type': 'WebPageElement', name: 'The Three Core Principles', url: 'https://rrmacademy.org/femm/#core-principles' },
+    { '@type': 'WebPageElement', name: 'A Brief History', url: 'https://rrmacademy.org/femm/#history' },
+    { '@type': 'WebPageElement', name: 'How FEMM Works', url: 'https://rrmacademy.org/femm/#how-femm-works' },
+    { '@type': 'WebPageElement', name: 'Conditions FEMM Addresses', url: 'https://rrmacademy.org/femm/#conditions' },
+    { '@type': 'WebPageElement', name: 'FEMM and Its Place in RRM', url: 'https://rrmacademy.org/femm/#femm-and-rrm' },
+    { '@type': 'WebPageElement', name: 'The RHRI Research Base', url: 'https://rrmacademy.org/femm/#rhri-research' },
+    { '@type': 'WebPageElement', name: 'How to Find a FEMM Teacher or Provider', url: 'https://rrmacademy.org/femm/#find-provider' },
+    { '@type': 'WebPageElement', name: 'Cost and Insurance', url: 'https://rrmacademy.org/femm/#cost-insurance' },
+    { '@type': 'WebPageElement', name: 'Frequently Asked Questions', url: 'https://rrmacademy.org/femm/#faq' },
+    { '@type': 'WebPageElement', name: 'References', url: 'https://rrmacademy.org/femm/#references' },
+  ],
+  citation: [
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'Fertility Awareness-Based Methods for Women\'s Health and Family Planning',
+      datePublished: '2022',
+      isPartOf: { '@type': 'Periodical', name: 'PMC / Frontiers in Medicine' },
+    },
+    {
+      '@type': 'CreativeWork',
+      name: 'Ovulation: A Sign of Health -- Understanding Reproductive Health in a New Way',
+      author: 'Vigil P et al.',
+      datePublished: '2019',
+    },
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'RRM Outcomes Compared to In Vitro Fertilization',
+      author: 'Boyle P, Toth A, Minjeur M, Turczynski C',
+      datePublished: '2025',
+      isPartOf: { '@type': 'Periodical', name: 'Journal of Restorative Reproductive Medicine' },
+    },
+  ],
+};
+
+// Block 2: BreadcrumbList (inline in page body)
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+    { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://rrmacademy.org/guides/' },
+    { '@type': 'ListItem', position: 3, name: 'FEMM', item: 'https://rrmacademy.org/femm/' },
+  ],
+};
+
+// Block 3: FAQPage (separate block per spec -- avoids Google validation issues with merged schemas)
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'What does FEMM stand for?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'FEMM stands for Fertility Education and Medical Management. It is a women\'s health program that teaches women to understand and monitor their hormonal biomarkers and connects them with trained medical providers who use that charting data to diagnose and treat the underlying conditions driving their symptoms.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Is FEMM the same as a period tracker app?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'No. The FEMM app tracks biomarkers that reflect hormonal activity, not just cycle dates. Its clinical purpose is to give women and their providers a real-time hormonal health record, not simply to predict period timing. Conventional period trackers use calendar averages; FEMM uses biological observations including cervical mucus patterns and urinary LH testing.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Is FEMM a contraceptive method?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'FEMM can be used to achieve or avoid pregnancy, as the charted data identifies the fertile window. Its primary identity within RRM is as a health monitoring and medical management system, not a contraceptive method. Women using FEMM for family planning should receive instruction from a certified FEMM Teacher.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How is FEMM different from the Creighton Model?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'The Creighton Model records cervical mucus observations only, using a highly standardized scoring system. FEMM adds LH urinary testing and is built on a distinct medical management framework through the RHRI. Both are used within RRM for diagnostic purposes, and both connect patient charting data to medical care, but through different institutional programs and clinical protocols.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Can I use FEMM if I have PCOS?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes. FEMM\'s phenotype-based approach to PCOS is one of its clinical strengths. Rather than applying a one-size-fits-all suppressive treatment, FEMM-trained providers identify whether the primary driver is insulin resistance, inflammation, adrenal androgen excess, or post-pill disruption, then target treatment to that specific phenotype.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Is FEMM available internationally?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes. FEMM Medical Management courses are offered in the US and Africa, and RHRI-certified providers practice worldwide. The FEMM app is available in 7 languages, and FEMM\'s network reaches providers in Europe, Latin America, Africa, and beyond.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Can FEMM help after failed IVF?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes. When IVF fails, the underlying condition that prevented natural conception typically remains unaddressed. FEMM-trained providers can perform a diagnostic evaluation, often finding conditions the IVF pathway never investigated, and design targeted treatment. In one cohort of 403 couples with an average of 2.1 prior failed IVF cycles, RRM evaluation and treatment produced a life-table live birth rate of 32.1% through natural conception.',
+      },
+    },
+  ],
+};
+---
+
+<BaseLayout
+  title="FEMM Explained: Fertility Education and Medical Management"
+  description="FEMM (Fertility Education and Medical Management) uses biomarker charting and RHRI protocols to diagnose and treat hormonal and reproductive conditions. Learn how FEMM works, find a provider, compare costs."
+  canonicalUrl="https://rrmacademy.org/femm/"
+  ogType="article"
+  publishDate="2026-03-15"
+  jsonLd={pageSchema}
+>
+  <!-- Separate JSON-LD blocks (not @graph) per spec -->
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+  <div class="page-wrapper" data-pagefind-body>
+    <span data-pagefind-meta="type:Guide" style="display:none"></span>
+    <span data-pagefind-meta="title:FEMM: A Clinician's Guide" style="display:none"></span>
+    <div class="container">
+
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <a href="/guides/">Guides</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <span>FEMM</span>
+      </nav>
+
+      <h1>What is FEMM? How It Works, What It Treats, and How to Find a Provider</h1>
+
+      <div class="author-byline">
+        <span>By <strong><a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</a></strong></span>
+        <time datetime="2026-03-15">Last updated March 2026</time>
+        <PdfDownload slug="femm" />
+      </div>
+
+      <aside class="editorial-notice" role="note">
+        <span class="editorial-notice__body"><strong>Editorial notice:</strong> This article is under active review. Some sections may be incomplete or contain errors while our medical team refines the content. If you notice an issue, please <a href="/contact/">let us know</a>.</span>
+      </aside>
+
+      <!-- Mobile TOC -->
+      <details class="toc-mobile">
+        <summary>On this page</summary>
+        <ol>
+          <li><a href="#core-principles">The Three Core Principles</a></li>
+          <li><a href="#history">A Brief History</a></li>
+          <li><a href="#how-femm-works">How FEMM Works</a></li>
+          <li><a href="#conditions">Conditions FEMM Addresses</a></li>
+          <li><a href="#femm-and-rrm">FEMM and Its Place in RRM</a></li>
+          <li><a href="#rhri-research">The RHRI Research Base</a></li>
+          <li><a href="#find-provider">How to Find a FEMM Teacher or Provider</a></li>
+          <li><a href="#cost-insurance">Cost and Insurance</a></li>
+          <li><a href="#faq">Frequently Asked Questions</a></li>
+          <li><a href="#references">References</a></li>
+        </ol>
+      </details>
+
+      <!-- Article layout: sidebar TOC + main content -->
+      <div class="article-layout">
+
+        <!-- Desktop TOC (sticky sidebar, 1024px+) -->
+        <nav class="toc" aria-label="Table of contents">
+          <p class="toc-heading">On this page</p>
+          <ol>
+            <li><a href="#core-principles">The Three Core Principles</a></li>
+            <li><a href="#history">A Brief History</a></li>
+            <li><a href="#how-femm-works">How FEMM Works</a></li>
+            <li><a href="#conditions">Conditions FEMM Addresses</a></li>
+            <li><a href="#femm-and-rrm">FEMM and Its Place in RRM</a></li>
+            <li><a href="#rhri-research">The RHRI Research Base</a></li>
+            <li><a href="#find-provider">How to Find a FEMM Teacher or Provider</a></li>
+            <li><a href="#cost-insurance">Cost and Insurance</a></li>
+            <li><a href="#faq">Frequently Asked Questions</a></li>
+          </ol>
+        </nav>
+
+        <!-- Main content -->
+        <article class="prose">
+
+          <aside class="tldr">
+            <h2 id="key-takeaways">Key Takeaways</h2>
+            <ul>
+              <li><strong>FEMM (Fertility Education and Medical Management) teaches women to monitor hormonal biomarkers</strong> and connects them with trained providers who use that data to diagnose and treat reproductive and hormonal conditions at their source.<sup><a href="#ref-1">1</a></sup><sup><a href="#ref-2">2</a></sup></li>
+              <li><strong>Two-layer system:</strong> FEMM Teachers help women learn biomarker charting; FEMM Medical Providers use that charted data alongside cycle-timed lab work to diagnose and treat conditions using RHRI protocols.<sup><a href="#ref-7">7</a></sup></li>
+              <li><strong>Conditions treated</strong> include PCOS, endometriosis, ovulatory dysfunction, infertility, recurrent pregnancy loss, thyroid dysfunction, PMS/PMDD, depression, menopausal disorders, and more.<sup><a href="#ref-24">24</a></sup></li>
+              <li><strong>Science-based, no religious affiliation.</strong> FEMM protocols are grounded in reproductive endocrinology research through the RHRI, led by Dr. Pilar Vigil, MD, PhD.<sup><a href="#ref-8">8</a></sup></li>
+              <li><strong>Free app available in 7 languages.</strong> The FEMM app tracks cervical mucus, bleeding, and LH test results with personalized daily feedback.<sup><a href="#ref-18">18</a></sup></li>
+              <li><strong>Getting started:</strong> Download the free FEMM app, connect with a certified FEMM Teacher, then find a FEMM Medical Provider for diagnostic evaluation. Explore free courses at <a href="/courses/">RRM Academy</a>.</li>
+            </ul>
+          </aside>
+
+          <!-- Section: Intro (no separate section, part of opening) -->
+          <section id="core-principles">
+            <h2>The Three Core Principles</h2>
+
+            <p><strong>FEMM (Fertility Education and Medical Management) is a women's health program that teaches women to understand and monitor their hormonal biomarkers and connects them with trained medical providers who use that charting data to diagnose and treat the underlying conditions driving their symptoms.</strong></p>
+
+            <p>FEMM operates on two tracks that work together. The first is education: women learn to observe and record cervical mucus patterns and use urinary LH test strips to map their hormonal activity in real time. The second is medical management: FEMM-trained providers use that charted data, alongside cycle-timed lab work and clinical evaluation, to identify and treat reproductive and hormonal disorders at their root cause rather than suppressing symptoms.<sup><a href="#ref-1">1</a></sup><sup><a href="#ref-2">2</a></sup></p>
+
+            <p>FEMM is a distinct approach within Restorative Reproductive Medicine (RRM) -- the broader medical discipline that diagnoses and treats underlying reproductive health conditions rather than bypassing or suppressing them. Other RRM approaches include <a href="/naprotechnology/">NaProTechnology</a>, NeoFertility, and the Marquette Method. They share the same foundational principle: ovulation is a sign of health, and disruptions to it signal something diagnosable and treatable.<sup><a href="#ref-3">3</a></sup><sup><a href="#ref-4">4</a></sup></p>
+
+            <ol>
+              <li><strong>Ovulation is a vital sign.</strong> A woman's cycle is a continuous health record. When ovulation is disrupted, absent, or irregular, that disruption reflects underlying hormonal dysfunction -- not a normal variation to be managed with suppressive medication.<sup><a href="#ref-5">5</a></sup><sup><a href="#ref-3">3</a></sup></li>
+              <li><strong>Hormones affect the whole body.</strong> Reproductive endocrinology does not stop at the uterus. Hormones influence brain function, bone density, blood sugar regulation, mood, cardiovascular health, and more. FEMM treats hormonal health as systemic health.<sup><a href="#ref-6">6</a></sup><sup><a href="#ref-7">7</a></sup></li>
+              <li><strong>Informed women get better care.</strong> When a woman can observe, record, and share her biomarker data with a trained provider, the resulting clinical picture is more complete. Diagnosis is more accurate. Treatment is more targeted.<sup><a href="#ref-8">8</a></sup><sup><a href="#ref-2">2</a></sup></li>
+            </ol>
+          </section>
+
+          <!-- Section: A Brief History -->
+          <section id="history">
+            <h2>A Brief History</h2>
+
+            <p><strong>FEMM was founded in 2012 and is headquartered in New York City.</strong> Its scientific foundation rests on decades of research in reproductive endocrinology, built in particular on the work of two scientists: James Brown, PhD, often called the "father of estrogen," who was the first to document and publish the pattern of estrogen across a woman's cycle; and Dr. Emil Steinberger, whose foundational endocrinology research helped establish the hormonal framework FEMM protocols use today.<sup><a href="#ref-9">9</a></sup><sup><a href="#ref-10">10</a></sup><sup><a href="#ref-7">7</a></sup></p>
+
+            <p>FEMM's clinical and research arm is the <strong>Reproductive Health Research Institute (RHRI)</strong>, established to develop and expand ongoing research in reproductive health and endocrinology and to bring that research directly to clinicians through educational programs and evidence-based clinical protocols. The RHRI is a multidisciplinary team of medical doctors, reproductive endocrinologists, neurobiologists, ecologists, nurses, and psychologists.<sup><a href="#ref-11">11</a></sup><sup><a href="#ref-9">9</a></sup><sup><a href="#ref-3">3</a></sup></p>
+
+            <p>The RHRI is led by <strong>Dr. Pilar Vigil, MD, PhD, OB/GYN, FACOG</strong>, a specialist in obstetrics and gynecology and PhD in Biological Sciences from the Pontifical Catholic University of Chile. Dr. Vigil completed postdoctoral studies at the Texas Institute for Reproductive Medicine and Endocrinology and the Royal Women's Hospital in Melbourne, Australia, and is a faculty member at the Pontifical Catholic University of Chile. Her published research spans cervical mucus biology, reproductive endocrinology, and hormonal contraception -- providing the scientific backbone for FEMM's clinical protocols.<sup><a href="#ref-12">12</a></sup><sup><a href="#ref-13">13</a></sup></p>
+
+            <p>The RHRI publishes peer-reviewed research, develops CME-accredited courses, and collaborates with researchers across a wide range of countries and disciplines to continue building the evidence base for FEMM's medical model.<sup><a href="#ref-10">10</a></sup><sup><a href="#ref-7">7</a></sup></p>
+          </section>
+
+          <!-- Section: How FEMM Works -->
+          <section id="how-femm-works">
+            <h2>How FEMM Works</h2>
+
+            <h3>The Biomarkers FEMM Tracks</h3>
+
+            <p><strong>FEMM is classified as a Sympto-Hormonal Method (SHM) -- a fertility awareness-based method that combines cervical mucus observation with urinary hormone testing.</strong> The biomarkers a woman charts with FEMM are:<sup><a href="#ref-14">14</a></sup></p>
+
+            <ul>
+              <li><strong>Cervical mucus:</strong> Daily observations of mucus quality and quantity. Mucus changes reflect the underlying activity of estrogen and progesterone throughout the cycle. Specific patterns -- dry, moist, estrogenic (ES), stretchy/lubricative -- correspond to hormonal phases and signal key events like the approach and confirmation of ovulation.<sup><a href="#ref-15">15</a></sup><sup><a href="#ref-16">16</a></sup></li>
+              <li><strong>Bleeding:</strong> Menstruation qualities reflect the hormonal levels of the previous cycle. Tail-end brown bleeding, premenstrual spotting, or heavy flow can each signal specific hormonal imbalances.<sup><a href="#ref-16">16</a></sup></li>
+              <li><strong>Urinary LH testing:</strong> LH test strips are introduced starting on cycle day seven, or at the point when estrogenic cervical mucus first appears. The LH surge -- a sharp peak in luteinizing hormone -- triggers ovulation within 24 to 36 hours and is detected by a positive test strip. This provides objective hormonal confirmation of the fertile window that mucus observation alone cannot give.<sup><a href="#ref-17">17</a></sup><sup><a href="#ref-15">15</a></sup></li>
+            </ul>
+
+            <p>The four key reproductive hormones FEMM tracks across the cycle are estrogen, progesterone, FSH (follicle-stimulating hormone), and LH (luteinizing hormone). Their interplay governs every phase of the cycle, and disruptions in any one of them produce observable changes in the biomarkers a woman charts.<sup><a href="#ref-1">1</a></sup></p>
+
+            <h3>The Charting Process</h3>
+
+            <p>Daily charting takes only a few minutes. After each voiding, a woman observes and records her cervical mucus and any other biomarker data. FEMM uses a color-coded charting system:<sup><a href="#ref-16">16</a></sup></p>
+
+            <ul>
+              <li><strong>Blue/ES</strong> -- stretchy, clear, and/or slippery/lubricative mucus reflecting high estrogen; peak fertility</li>
+              <li><strong>Blue (lighter shades)</strong> -- various estrogenic mucus qualities reflecting rising estrogen</li>
+              <li><strong>Yellow</strong> -- unchanging, neither dry nor estrogenic; may indicate low-level estrogen or inflammation</li>
+              <li><strong>Gray (G)</strong> -- dryness, reflecting progesterone dominance in the post-ovulatory phase</li>
+              <li><strong>Red</strong> -- menstrual bleeding</li>
+            </ul>
+
+            <p>Women enter their observations into the <strong>FEMM app</strong>, a free mobile application available in seven languages: English, Spanish, Portuguese, French, Hungarian, Croatian, and Swahili. The app provides personalized daily feedback based on the recorded data, indicates which phase of the menstrual cycle the woman is in, flags potential irregularities, and allows charts to be easily shared with a FEMM teacher or medical provider.<sup><a href="#ref-18">18</a></sup><sup><a href="#ref-19">19</a></sup><sup><a href="#ref-20">20</a></sup></p>
+
+            <h3>The Two-Layer System: Teachers and Providers</h3>
+
+            <p>FEMM operates a clear two-layer model connecting patient education to medical care.</p>
+
+            <p><strong>FEMM Teachers</strong> are trained to help women learn how to observe and record their biomarkers accurately, identify potential hormonal patterns in the chart, and refer clients to a FEMM-trained medical provider when abnormalities appear. Teachers are not medical prescribers and are not trained to diagnose specific reproductive disorders -- that is the role of the medical provider. Teacher training is available through FEMM's certification courses.<sup><a href="#ref-21">21</a></sup><sup><a href="#ref-22">22</a></sup></p>
+
+            <p><strong>FEMM Medical Providers</strong> are clinicians -- physicians, nurse practitioners, and other prescribers -- trained through the FEMM Medical Management program to read patient charts in the context of a complete clinical workup, diagnose the underlying hormonal conditions present, and implement RHRI-developed treatment protocols. Certified providers must retake the Masterclass every two years to maintain their status, ensuring ongoing training as new research is released.<sup><a href="#ref-23">23</a></sup><sup><a href="#ref-7">7</a></sup></p>
+
+            <p>Provider training includes:<sup><a href="#ref-7">7</a></sup></p>
+            <ul>
+              <li>A self-paced Medical Management Intro course (20 CMEs, awarded by the American Academy of Family Physicians)</li>
+              <li>A Medical Management Masterclass (18 CMEs), available online or in-person in the US and Africa</li>
+              <li>Access to the latest RHRI protocol textbooks for ovarian dysfunction, menopause, infertility, and other disorders</li>
+              <li>Ongoing access to case study discussion groups and a provider email listserv</li>
+              <li>Advanced topic courses covering obesity, mental health and hormones, ovarian aging, infertility, and PCOS</li>
+            </ul>
+
+            <h3>Cycle-Timed Diagnosis</h3>
+
+            <p>FEMM-trained providers do not rely on calendar-based lab work. Like other RRM approaches, FEMM anchors hormonal testing to the ovulatory event identified on the patient's chart. A day 21 progesterone draw assumes ovulation on day 14 of a 28-day cycle -- a model that does not apply to many women. FEMM providers time bloodwork to the actual peak identified on the chart, drawing serial hormone levels across the luteal phase to capture the progesterone and estradiol curves that a single draw would miss entirely.<sup><a href="#ref-24">24</a></sup><sup><a href="#ref-25">25</a></sup></p>
+
+            <p>This precision is what allows FEMM-trained clinicians to identify conditions like luteal phase deficiency, ovulatory dysfunction, thyroid-related cycle disruption, and subtle estrogen imbalances that standard workups consistently miss.<sup><a href="#ref-24">24</a></sup><sup><a href="#ref-7">7</a></sup></p>
+          </section>
+
+          <!-- Section: Conditions FEMM Addresses -->
+          <section id="conditions">
+            <h2>Conditions FEMM Addresses</h2>
+
+            <p><strong>FEMM protocols cover a broad range of reproductive and hormonal conditions.</strong> The RHRI develops diagnostic and treatment protocols for each, grounded in current biomedical research and updated as new evidence emerges.<sup><a href="#ref-11">11</a></sup><sup><a href="#ref-24">24</a></sup></p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Condition</th>
+                    <th>FEMM/RHRI Approach</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>Ovulatory dysfunction</td><td>Chart-guided identification of the specific dysfunction; targeted hormonal support matched to the finding</td></tr>
+                  <tr><td>PCOS</td><td>Phenotype-based evaluation (insulin-resistant, inflammatory, adrenal); metabolic and hormonal protocols matched to phenotype</td></tr>
+                  <tr><td>Endometriosis</td><td>Diagnostic evaluation through charting and imaging; referral for excision surgery when indicated; post-operative hormonal support</td></tr>
+                  <tr><td>Infertility</td><td>Systematic evaluation to identify the underlying cause; cycle-timed diagnostics; treatment matched to diagnosis</td></tr>
+                  <tr><td>Recurrent pregnancy loss</td><td>Post-peak progesterone testing; thyroid and immune evaluation; anatomical assessment</td></tr>
+                  <tr><td>Thyroid dysfunction</td><td>Recognition of thyroid-related cycle disruption through charting; evaluation and treatment of underlying thyroid condition</td></tr>
+                  <tr><td>Depression and mood disorders</td><td>Hormonal evaluation across the cycle; links to estrogen and progesterone imbalance addressed through targeted protocols</td></tr>
+                  <tr><td>PMS / PMDD</td><td>Cycle-timed hormonal evaluation; targeted bio-identical hormone support when deficiencies are found</td></tr>
+                  <tr><td>Menopausal disorders</td><td>Cycle-charted hormonal transition monitoring; individualized support based on the patient's longitudinal hormonal record</td></tr>
+                  <tr><td>Acne, hirsutism, weight gain, fatigue</td><td>Evaluation of underlying hormonal drivers (androgens, insulin resistance, estrogen/progesterone imbalance) rather than symptom suppression</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p>FEMM goes further than fertility alone. RHRI researchers have identified links between abnormal ovulation and conditions not typically considered reproductive in origin, including coronary heart disease and Type 2 diabetes linked to irregular cycles and chronic anovulation. This broader view of reproductive endocrinology as systemic health is central to the FEMM model.<sup><a href="#ref-26">26</a></sup></p>
+
+            <h3>The Whole-Body Framework</h3>
+
+            <p>FEMM's organizing insight is that ovulation is a vital sign for the whole body, not just for fertility. As FEMM-trained provider Dr. Karen Poehailos, MD, has said: "Our work as clinicians in restorative reproductive medicine should be to optimize ovulatory function as much as possible. It isn't just about menstrual cycles, but about our overall health in the brain, heart, bones, and more."<sup><a href="#ref-7">7</a></sup></p>
+
+            <p>Depending on the diagnosis and lifestyle, FEMM treatment protocols range from immunological and pharmacological interventions to significant emphasis on diet, exercise, and lifestyle changes -- reflecting the metabolic and inflammatory dimensions of many hormonal disorders.<sup><a href="#ref-24">24</a></sup><sup><a href="#ref-7">7</a></sup></p>
+
+            <h3>Who is FEMM For?</h3>
+
+            <p>FEMM is appropriate for any woman who wants her reproductive and hormonal health understood and addressed rather than managed with suppressive medication. That includes:<sup><a href="#ref-2">2</a></sup><sup><a href="#ref-8">8</a></sup></p>
+
+            <ul>
+              <li>Teenagers with acne, irregular cycles, anxiety, hirsutism, or weight gain who want the underlying hormonal cause identified</li>
+              <li>Women with painful or irregular periods who want a diagnosis, not a prescription to suppress their cycle</li>
+              <li>Women with PMS or PMDD who want hormonal evaluation rather than indefinite medication</li>
+              <li>Couples with infertility who want a systematic diagnostic workup before proceeding to assisted reproduction</li>
+              <li>Women with PCOS who want their specific phenotype identified and treated</li>
+              <li>Women with endometriosis who want the disease treated and monitored, not masked</li>
+              <li>Couples who have experienced recurrent pregnancy loss and want a thorough hormonal and immune investigation</li>
+              <li>Women in perimenopause who want cycle-informed hormonal support based on their own longitudinal data</li>
+              <li>Any woman at any stage of life who wants to understand how her reproductive system works</li>
+            </ul>
+
+            <p>FEMM is used from puberty through menopause. The app has a specific mode for teen girls focused on mood, sleep, and overall health rather than fertility, allowing younger users to begin building body literacy before fertility is a concern.<sup><a href="#ref-18">18</a></sup><sup><a href="#ref-2">2</a></sup></p>
+
+            <h3>Do I Need to Be Religious?</h3>
+
+            <p>No. FEMM is a science-based program available to women of all faiths and none. Unlike <a href="/naprotechnology/">NaProTechnology</a>, which was developed within a Catholic institution, FEMM has no religious affiliation. Its protocols are grounded in reproductive endocrinology and clinical research. Many secular health systems and independent providers worldwide use FEMM protocols.<sup><a href="#ref-8">8</a></sup><sup><a href="#ref-7">7</a></sup></p>
+          </section>
+
+          <!-- Section: FEMM and Its Place in RRM -->
+          <section id="femm-and-rrm">
+            <h2>FEMM and Its Place in RRM</h2>
+
+            <p><strong>FEMM is one of several approaches within the broader Restorative Reproductive Medicine (RRM) field.</strong> The IIRRM (International Institute for Restorative Reproductive Medicine) recognizes FEMM alongside <a href="/naprotechnology/">NaProTechnology</a>, NeoFertility, the Marquette Method, the Billings Ovulation Method, and symptothermal approaches as RRM methods sharing the common goal of using biomarker data to optimize normal function.<sup><a href="#ref-4">4</a></sup></p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Feature</th>
+                    <th>FEMM</th>
+                    <th>NaProTechnology</th>
+                    <th>Marquette Method</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>Charting foundation</td><td>Cervical mucus + LH test strips</td><td>Creighton Model (cervical mucus only, standardized scoring)</td><td>ClearBlue Monitor (urinary estrogen + LH); optional mucus</td></tr>
+                  <tr><td>Medical management</td><td>RHRI/FEMM protocols via certified FEMM providers</td><td>NaProTechnology via Saint Paul VI Institute fellowship</td><td>Marquette-trained providers</td></tr>
+                  <tr><td>Institutional base</td><td>FEMM Health / RHRI (New York; Santiago, Chile)</td><td>Saint Paul VI Institute, Omaha, NE</td><td>Marquette University</td></tr>
+                  <tr><td>Religious affiliation</td><td>None</td><td>Rooted in Catholic healthcare; open to all</td><td>None</td></tr>
+                  <tr><td>RRM umbrella</td><td>Yes</td><td>Distinct; predates and operates independently of RRM umbrella</td><td>Yes</td></tr>
+                  <tr><td>App available</td><td>Yes (free, 7 languages)</td><td>No dedicated app</td><td>No dedicated app</td></tr>
+                  <tr><td>Provider recertification</td><td>Every 2 years</td><td>Ongoing through Saint Paul VI Institute</td><td>Varies</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p>A key distinction: <a href="/naprotechnology/">NaProTechnology</a> predates the RRM umbrella by two decades and the NaPro/Creighton community does not consider itself part of the RRM umbrella. FEMM, by contrast, explicitly positions itself within RRM and trains providers internationally through the RHRI program.<sup><a href="#ref-4">4</a></sup><sup><a href="#ref-7">7</a></sup></p>
+          </section>
+
+          <!-- Section: The RHRI Research Base -->
+          <section id="rhri-research">
+            <h2>The RHRI Research Base</h2>
+
+            <p><strong>The scientific credibility of FEMM rests on the RHRI's published research and ongoing investigation.</strong> RHRI publications appear in peer-reviewed journals and cover cervical mucus biology, reproductive endocrinology, kisspeptin's role in ovulation, hormonal contraception effects, and ovulatory dysfunction. A foundational text, <em>Ovulation: A Sign of Health -- Understanding Reproductive Health in a New Way</em> (Vigil et al., 2019), synthesizes the research framework underlying FEMM's protocols.<sup><a href="#ref-13">13</a></sup></p>
+
+            <p>The RHRI's core paradigm, stated clearly in its published protocols:<sup><a href="#ref-3">3</a></sup></p>
+            <ul>
+              <li>Ovulation is a key sign of reproductive health</li>
+              <li>The ovulatory cycle depends on complex hormonal interactions</li>
+              <li>Disruptions in the ovulatory cycle are caused by problems in reproductive endocrinology</li>
+              <li>Restoring health involves diagnosing and treating the underlying hormonal problem</li>
+            </ul>
+
+            <p>This framework aligns FEMM with the broader RRM evidence base -- the same body of research that supports NaProTechnology outcomes studies, the Boyle et al. (2025) head-to-head RRM vs. IVF comparison, and the S&aacute;nchez M&eacute;ndez et al. (2025) cohort study of 1,310 couples treated with NaProTechnology.<sup><a href="#ref-25">25</a></sup></p>
+          </section>
+
+          <!-- Section: How to Find a FEMM Teacher or Provider -->
+          <section id="find-provider">
+            <h2>How to Find a FEMM Teacher or Provider</h2>
+
+            <p><strong>Step 1: Learn to chart.</strong> Download the free FEMM app (available on iOS and Android in 7 languages) and connect with a certified FEMM Teacher who can guide you through the three-session charting instruction process. Teachers teach individually or in groups, some in clinical settings and others independently.<sup><a href="#ref-21">21</a></sup><sup><a href="#ref-18">18</a></sup></p>
+
+            <p><strong>Step 2: Find a certified FEMM Medical Provider.</strong> The FEMM provider directory (accessible through the app or <a href="https://femmhealth.org" rel="noopener" target="_blank">femmhealth.org</a>) lists certified providers by location. FEMM providers are trained to read your chart alongside a complete clinical workup and implement RHRI protocols.<sup><a href="#ref-19">19</a></sup><sup><a href="#ref-7">7</a></sup></p>
+
+            <p><strong>Step 3: Ask about telehealth.</strong> Many FEMM providers offer telehealth consultations. For patients without local access, virtual appointments work well for initial consultation, protocol review, and ongoing monitoring when combined with local lab work.<sup><a href="#ref-7">7</a></sup></p>
+
+            <h3>Questions to Ask When Choosing a FEMM Provider</h3>
+
+            <p>Before scheduling:<sup><a href="#ref-7">7</a></sup></p>
+
+            <ul>
+              <li>Are you certified through the FEMM Medical Management Masterclass?</li>
+              <li>Do you use RHRI protocol textbooks for diagnosis and treatment?</li>
+              <li>Do you offer telehealth for patients outside your immediate area?</li>
+              <li>How do you handle insurance coding for cycle-timed hormonal testing under a diagnosed condition?</li>
+            </ul>
+          </section>
+
+          <!-- Section: Cost and Insurance -->
+          <section id="cost-insurance">
+            <h2>Cost and Insurance</h2>
+
+            <p><strong>Because FEMM diagnoses and treats specific medical conditions -- PCOS, endometriosis, luteal phase deficiency, thyroid disorders -- many components of FEMM care can be billed under standard diagnostic and treatment codes</strong> rather than under a "fertility treatment" benefit. Cycle-timed bloodwork, laparoscopic surgery for endometriosis, and hormonal evaluation for a documented condition each use CPT codes any specialist would bill.<sup><a href="#ref-27">27</a></sup></p>
+
+            <p>The FEMM app is free. Teacher instruction costs vary by provider and are typically a separate out-of-pocket expense. The medical management component, including lab work, physician visits, and any indicated procedures, is billed as diagnostic and therapeutic medicine -- creating potential insurance pathways that a bypass procedure like IVF does not.<sup><a href="#ref-27">27</a></sup></p>
+
+            <p>In 2025, Arkansas became the first U.S. state to mandate insurance coverage for restorative reproductive medicine broadly, and the RESTORE Act (H.R. 3589) was introduced in Congress to expand federal access. FEMM patients may benefit directly from these legislative developments as the policy landscape shifts.<sup><a href="#ref-28">28</a></sup></p>
+          </section>
+
+          <!-- Section: Frequently Asked Questions -->
+          <section id="faq">
+            <h2>Frequently Asked Questions</h2>
+
+            <dl class="faq-list">
+              <dt>What does FEMM stand for?</dt>
+              <dd>Fertility Education and Medical Management.<sup><a href="#ref-1">1</a></sup></dd>
+
+              <dt>Is FEMM the same as a period tracker app?</dt>
+              <dd>No. The FEMM app tracks biomarkers that reflect hormonal activity -- not just cycle dates. Its clinical purpose is to give women and their providers a real-time hormonal health record, not simply to predict period timing. Conventional period trackers use calendar averages; FEMM uses biological observations.<sup><a href="#ref-5">5</a></sup><sup><a href="#ref-18">18</a></sup></dd>
+
+              <dt>Is FEMM a contraceptive method?</dt>
+              <dd>FEMM can be used to achieve or avoid pregnancy, as the charted data identifies the fertile window. Its primary identity within RRM is as a health monitoring and medical management system, not a contraceptive method. Women using FEMM for family planning should receive instruction from a certified FEMM Teacher.<sup><a href="#ref-2">2</a></sup><sup><a href="#ref-21">21</a></sup></dd>
+
+              <dt>How is FEMM different from the Creighton Model?</dt>
+              <dd>The Creighton Model records cervical mucus observations only, using a highly standardized scoring system. FEMM adds LH urinary testing and is built on a distinct medical management framework through the RHRI. Both are used within RRM for diagnostic purposes, and both connect patient charting data to medical care -- but through different institutional programs and clinical protocols.<sup><a href="#ref-14">14</a></sup><sup><a href="#ref-27">27</a></sup></dd>
+
+              <dt>Can I use FEMM if I have PCOS?</dt>
+              <dd>Yes. FEMM's phenotype-based approach to PCOS is one of its clinical strengths. Rather than applying a one-size-fits-all suppressive treatment, FEMM-trained providers identify whether the primary driver is insulin resistance, inflammation, adrenal androgen excess, or post-pill disruption, then target treatment to that specific phenotype.<sup><a href="#ref-24">24</a></sup><sup><a href="#ref-7">7</a></sup></dd>
+
+              <dt>Is FEMM available internationally?</dt>
+              <dd>Yes. FEMM Medical Management courses are offered in the US and Africa, and RHRI-certified providers practice worldwide. The FEMM app is available in 7 languages, and FEMM's network reaches providers in Europe, Latin America, Africa, and beyond.<sup><a href="#ref-20">20</a></sup><sup><a href="#ref-29">29</a></sup></dd>
+
+              <dt>Can FEMM help after failed IVF?</dt>
+              <dd>Yes. When IVF fails, the underlying condition that prevented natural conception typically remains unaddressed. FEMM-trained providers can perform a diagnostic evaluation -- often finding conditions the IVF pathway never investigated -- and design targeted treatment. The RRM evidence base documents this pathway: in one cohort of 403 couples with an average of 2.1 prior failed IVF cycles, RRM evaluation and treatment produced a life-table live birth rate of 32.1% through natural conception.<sup><a href="#ref-28">28</a></sup></dd>
+            </dl>
+          </section>
+
+          <!-- Section: References -->
+          <section class="references" id="references">
+            <h2>References</h2>
+            <ol>
+              <li id="ref-1"><a href="https://mycatholicdoctor.com/our-services/femm/" rel="noopener" target="_blank">FEMM - MyCatholicDoctor</a> -- FEMM is another type of Restorative Reproductive Medicine, and stands for Fertility Education and Medical Management.</li>
+              <li id="ref-2"><a href="https://femmhealth.org/blog/femm-whitepaper/" rel="noopener" target="_blank">FEMM White Paper</a> -- FEMM is a knowledge-based health program for women.</li>
+              <li id="ref-3"><a href="https://rhrinstitute.org/what-is-rhri/" rel="noopener" target="_blank">What is RHRI?</a> -- RHRI is the research partner for Fertility Education and Medical Management (FEMM).</li>
+              <li id="ref-4"><a href="https://iirrm.org/what-is-rrm/" rel="noopener" target="_blank">What is Restorative Reproductive Medicine (RRM)?</a> -- IIRRM overview of RRM approaches.</li>
+              <li id="ref-5"><a href="https://femmhealth.org/blog/why-you-should-chart-your-ovulation-cycle/" rel="noopener" target="_blank">Why You Should Chart Your Ovulation Cycle</a> -- FEMM Health.</li>
+              <li id="ref-6"><a href="https://femmhealth.org/the-science/" rel="noopener" target="_blank">The Science - FEMM Health</a> -- FEMM provides a complete solution for women's reproductive health backed by decades of research.</li>
+              <li id="ref-7"><a href="https://learn.femmhealth.org/becomeaprovider" rel="noopener" target="_blank">Become a FEMM Medical Provider</a> -- FEMM Medical Management training program details.</li>
+              <li id="ref-8"><a href="https://femmhealth.org/about-us/" rel="noopener" target="_blank">About Us - FEMM Health</a> -- Understanding the central role of reproductive endocrinology in the management of women's health.</li>
+              <li id="ref-9"><a href="https://femmhealth.org/professional-education/health-research-institute/" rel="noopener" target="_blank">Reproductive Health Research Institute (RHRI) - FEMM Health</a> -- FEMM medical protocols for accurate diagnosis and effective treatment.</li>
+              <li id="ref-10"><a href="https://femmhealth.org/wp-content/uploads/2020/07/FEMM-Organization-Fact-Sheet-2020-F.pdf" rel="noopener" target="_blank">Organization Fact Sheet | FEMM Health (PDF)</a> -- FEMM organizational overview and RHRI leadership.</li>
+              <li id="ref-11"><a href="https://rhrinstitute.org" rel="noopener" target="_blank">RHRI</a> -- Reproductive Health Research Institute. Conducting new research for women's health.</li>
+              <li id="ref-12"><a href="https://rhrinstitute.org/our-team/" rel="noopener" target="_blank">Our Team - RHRI</a> -- Dr. Pilar Vigil, MD, PhD, specialist in obstetrics and gynecology.</li>
+              <li id="ref-13"><a href="https://rhrinstitute.org/publications/" rel="noopener" target="_blank">Publications - RHRI</a> -- Published research including <em>Ovulation: A Sign of Health</em> (Vigil et al., 2019).</li>
+              <li id="ref-14"><a href="https://www.factsaboutfertility.org/what-is-charting/types-of-fabms/" rel="noopener" target="_blank">Types of FABMs - FACTS About Fertility</a> -- Overview of fertility awareness-based methods.</li>
+              <li id="ref-15"><a href="https://femmhealth.org/blog/signs-of-ovulation/" rel="noopener" target="_blank">Signs of Ovulation - FEMM Health</a> -- FEMM charting focuses on menstruation, cervical mucus, and LH surge urinary tests.</li>
+              <li id="ref-16"><a href="https://femmhealth.org/wp-content/uploads/2023/08/FEMM-Charting-Brochure_Aug-2023.pdf" rel="noopener" target="_blank">FEMM Charting Brochure (PDF)</a> -- Changes in cervical mucus reflect changing hormones.</li>
+              <li id="ref-17"><a href="https://www.vitaefertility.com/marquette-method-femm-fertility/" rel="noopener" target="_blank">The Marquette Method or FEMM? | By Bethany Smith, RN, MA</a> -- FEMM comparison with Marquette Method.</li>
+              <li id="ref-18"><a href="https://femmhealth.org/blog/menstrual-cycle-chart-with-the-femm-app/" rel="noopener" target="_blank">Menstrual Cycle Charting with the FEMM App</a> -- FEMM app charting features and functionality.</li>
+              <li id="ref-19"><a href="https://apps.apple.com/us/app/femm-period-ovulation-tracker/id944880989" rel="noopener" target="_blank">FEMM Period Ovulation Tracker - App Store</a> -- FEMM app providing cutting edge science for reproductive health.</li>
+              <li id="ref-20"><a href="https://femmhealth.org/wp-content/uploads/2023/03/FEMM-Annual-Report-2022_final.pdf" rel="noopener" target="_blank">FEMM Annual Report 2020 (PDF)</a> -- FEMM global reach and app availability in multiple languages.</li>
+              <li id="ref-21"><a href="https://femmhealth.org/course/mm-masterclass2025-ondemand/" rel="noopener" target="_blank">Medical Management Masterclass 2025 (On-demand) - FEMM Health</a> -- FEMM Teacher training details.</li>
+              <li id="ref-22"><a href="https://femmhealth.org/course/ttc-2026jan/" rel="noopener" target="_blank">FEMM and teenFEMM Certification (January)</a> -- Reproductive disorders and cycle patterns in FEMM Medical Management Training.</li>
+              <li id="ref-23"><a href="https://femmhealth.org/course/mm-masterclass-2026/" rel="noopener" target="_blank">Medical Management Masterclass 2026 (In-person and Online)</a> -- FEMM provider recertification requirements.</li>
+              <li id="ref-24"><a href="https://rhrinstitute.org/medical-protocols/" rel="noopener" target="_blank">Medical Protocols - Reproductive Health Research Institute</a> -- RHRI diagnostic and treatment protocols.</li>
+              <li id="ref-25"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9171018/" rel="noopener" target="_blank">Fertility Awareness-Based Methods for Women's Health and Family Planning</a> -- PMC overview of FABMs with published evidence base.</li>
+              <li id="ref-26"><a href="https://www.un.org/development/desa/pd/sites/www.un.org.development.desa.pd/files/desa_pd_2023_cpd_femm-foundation.pdf" rel="noopener" target="_blank">Statement submitted by FEMM Foundation - the United Nations (PDF)</a> -- FEMM Foundation knowledge-based health program description.</li>
+              <li id="ref-27"><a href="https://rrmacademy.org/faqs/" rel="noopener" target="_blank">RRM FAQs | Restorative Reproductive Medicine Questions</a> -- RRM Academy FAQ on methods, costs, and comparisons.</li>
+              <li id="ref-28"><a href="https://naturalwomanhood.org/topic/restorative-reproductive-medicine-rrm/" rel="noopener" target="_blank">Restorative Reproductive Medicine (RRM) - Natural Womanhood</a> -- RRM overview and legislative developments.</li>
+              <li id="ref-29"><a href="https://www.instagram.com/p/BGfUokausqC/" rel="noopener" target="_blank">FEMM Medical Provider Training in New York City</a> -- FEMM international provider training.</li>
+            </ol>
+          </section>
+
+          <div class="cta-box">
+            <h3>Ready to learn more?</h3>
+            <p><a href="/courses/" class="btn btn--primary">Explore Free Courses</a></p>
+            <p><a href="/library/" class="btn btn--secondary">Browse the Research Library</a></p>
+          </div>
+
+          <p class="disclaimer"><em>This content is for educational purposes only and does not constitute medical advice. Consult a FEMM-trained provider or qualified healthcare professional for guidance specific to your situation.</em></p>
+
+        </article>
+      </div>
+    </div>
+  </div>
+  <p class="page-updated">Last updated: March 2026</p>
+  <BackToTop />
+</BaseLayout>
+
+<style>
+  .author-byline {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: calc(-1 * var(--space-2));
+    margin-bottom: var(--space-6);
+    line-height: 1.6;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: var(--space-6);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  th {
+    background: var(--bg-surface);
+    font-weight: 600;
+    padding: var(--space-3) var(--space-4);
+    text-align: left;
+    border-bottom: 2px solid var(--border-color);
+  }
+
+  td {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  .references {
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+  }
+
+  .references li {
+    margin-bottom: var(--space-3);
+  }
+
+  .faq-list dt {
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: var(--text-primary);
+    margin-top: var(--space-6);
+    margin-bottom: var(--space-2);
+  }
+
+  .faq-list dd {
+    margin-left: 0;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: var(--space-4);
+  }
+
+  .cta-box {
+    background: var(--bg-surface);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: var(--space-8);
+    text-align: center;
+    margin-top: var(--space-10);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .cta-box h3 {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    margin-bottom: var(--space-3);
+  }
+
+  .cta-box p {
+    margin-bottom: var(--space-4);
+  }
+
+  .cta-box p:last-child {
+    margin-bottom: 0;
+  }
+
+  .disclaimer {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    margin-top: var(--space-8);
+    line-height: 1.6;
+  }
+
+  /* Override container width for article layout */
+  @media (min-width: 1024px) {
+    .container {
+      max-width: calc(var(--max-width-article) + 220px + var(--space-10) + var(--space-8) * 2);
+    }
+  }
+</style>
