@@ -91,7 +91,7 @@
       "note": "Magic-link token generation"
     },
     "functions/api/newsletter/send.js": {
-      "hash": "59ac7aac08a9b3e01a7a1a6cb92a902396600cbb336cb6e9fb49fb6e37e0d4ae",
+      "hash": "582aeda904dd2b31becf721913ff159bf81910892c0795909d73756d75c8480c",
       "note": "Mass email send (admin-only)"
     },
     "functions/api/newsletter/unsubscribe.js": {
