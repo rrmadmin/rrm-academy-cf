@@ -38,6 +38,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
   try { body = await request.json(); } catch {
     return Response.json({ ok: false, error: 'Invalid JSON' }, { status: 400 });
   }
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    return Response.json({ ok: false, error: 'Invalid payload' }, { status: 400 });
+  }
 
   const { subject, body: htmlBody, segments, slug, sendId: existingSendId, cursor } = body;
   if (!subject || !htmlBody) {

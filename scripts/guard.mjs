@@ -206,6 +206,50 @@ function checkInvariants() {
       failures++;
     }
   }
+
+  // 2f. google-callback.js security invariants
+  const googleCallbackPath = join(ROOT, 'functions/api/auth/google-callback.js');
+  try {
+    const googleCallback = readFileSync(googleCallbackPath, 'utf8');
+    const hasBlockedCheck = googleCallback.includes('user.blocked');
+    const hasHashedPassword = googleCallback.includes("hashed_password = ''");
+    const hasSafeRedirect = googleCallback.includes('isSafeRedirect');
+    if (hasBlockedCheck && hasHashedPassword && hasSafeRedirect) {
+      log(PASS, `google-callback.js: blocked check, hashed_password='', isSafeRedirect`);
+    } else {
+      if (!hasBlockedCheck) {
+        log(FAIL, `google-callback.js missing user.blocked check`);
+        failures++;
+      }
+      if (!hasHashedPassword) {
+        log(FAIL, `google-callback.js missing hashed_password = '' (not NULL)`);
+        failures++;
+      }
+      if (!hasSafeRedirect) {
+        log(FAIL, `google-callback.js missing isSafeRedirect (open redirect prevention)`);
+        failures++;
+      }
+    }
+  } catch {
+    log(FAIL, `Cannot read google-callback.js`);
+    failures++;
+  }
+
+  // 2g. community/upload.js file-type validation
+  const uploadPath = join(ROOT, 'functions/api/community/upload.js');
+  try {
+    const upload = readFileSync(uploadPath, 'utf8');
+    const hasTypeCheck = /allowedTypes|image\/|content.type/i.test(upload);
+    if (hasTypeCheck) {
+      log(PASS, `community/upload.js has content-type allowlist check`);
+    } else {
+      log(FAIL, `community/upload.js missing content-type allowlist check`);
+      failures++;
+    }
+  } catch {
+    log(FAIL, `Cannot read community/upload.js`);
+    failures++;
+  }
 }
 
 // ─── Phase 3: Critical Files Must Exist ─────────────────────────────
@@ -230,6 +274,28 @@ function checkRequiredFiles() {
       log(PASS, `${path} exists (${note})`);
     } catch {
       log(FAIL, `${path} MISSING — ${note}`);
+      failures++;
+    }
+  }
+
+  // Directory file-count check — warns when new security-critical files appear without guard coverage
+  const DIR_MINIMUMS = [
+    { dir: 'functions/api/auth', min: 14, note: 'auth endpoints' },
+    { dir: 'functions/api/billing', min: 6, note: 'billing endpoints' },
+  ];
+
+  for (const { dir, min, note } of DIR_MINIMUMS) {
+    const dirPath = join(ROOT, dir);
+    try {
+      const jsFiles = readdirSync(dirPath).filter(f => f.endsWith('.js'));
+      if (jsFiles.length > min) {
+        log(WARN, `New file detected in ${dir} (${jsFiles.length} files, expected ${min}). Review and add to guard manifest if security-critical.`);
+        warnings++;
+      } else {
+        log(PASS, `${dir}: ${jsFiles.length} ${note}`);
+      }
+    } catch {
+      log(FAIL, `Cannot read directory ${dir}`);
       failures++;
     }
   }
@@ -267,6 +333,8 @@ function scanSecrets() {
     { pattern: /Bearer\s+[a-zA-Z0-9._\-]{20,}/g, label: 'Hardcoded Bearer token' },
     { pattern: /pat[a-zA-Z0-9]{14}\.[a-f0-9]{64}/g, label: 'Airtable PAT' },
     { pattern: /AKIA[0-9A-Z]{16}/g, label: 'AWS access key' },
+    { pattern: /GOCSPX-[a-zA-Z0-9_-]{20,}/g, label: 'Google OAuth client secret' },
+    { pattern: /op:\/\/[a-zA-Z]+\/[^\s'"]+/g, label: '1Password reference in committed code' },
   ];
 
   const SCAN_DIRS = [
@@ -344,11 +412,11 @@ function checkCrmSafety() {
     return;
   }
 
-  // 5a. No mass delete/drop/truncate on CRM or newsletter tables
+  // 5a. No mass delete/drop/truncate on CRM, newsletter, user, or enrollment tables
   const DANGEROUS_PATTERNS = [
-    /DELETE\s+FROM\s+(?:contact|newsletter_subscriber|contact_tag)\b/i,
-    /DROP\s+TABLE\s+(?:IF\s+EXISTS\s+)?(?:contact|newsletter_subscriber|contact_tag)\b/i,
-    /TRUNCATE\s+(?:TABLE\s+)?(?:contact|newsletter_subscriber|contact_tag)\b/i,
+    /DELETE\s+FROM\s+(?:contact|newsletter_subscriber|contact_tag|user|enrollment)\b/i,
+    /DROP\s+TABLE\s+(?:IF\s+EXISTS\s+)?(?:contact|newsletter_subscriber|contact_tag|user|enrollment)\b/i,
+    /TRUNCATE\s+(?:TABLE\s+)?(?:contact|newsletter_subscriber|contact_tag|user|enrollment)\b/i,
   ];
 
   let foundDangerous = false;
@@ -365,7 +433,7 @@ function checkCrmSafety() {
     }
   }
   if (!foundDangerous) {
-    log(PASS, 'No destructive SQL (DELETE/DROP/TRUNCATE) on CRM or newsletter tables');
+    log(PASS, 'No destructive SQL (DELETE/DROP/TRUNCATE) on CRM, newsletter, user, or enrollment tables');
   }
 
   // 5b. Unsubscribe must use UPDATE (status change), never DELETE
@@ -437,8 +505,11 @@ checkCrmSafety();
 
 console.log('');
 if (failures > 0) {
-  console.log(`${RED}${BOLD}BLOCKED${RESET} — ${failures} failure(s). Fix issues or run 'npm run guard:update' after intentional changes.`);
+  console.log(`${RED}${BOLD}BLOCKED${RESET} — ${failures} failure(s)${warnings > 0 ? `, ${warnings} warning(s)` : ''}. Fix issues or run 'npm run guard:update' after intentional changes.`);
   exit(1);
+} else if (warnings > 0) {
+  console.log(`${GREEN}${BOLD}ALL CLEAR${RESET} — security guard passed with ${warnings} warning(s).`);
+  exit(0);
 } else {
   console.log(`${GREEN}${BOLD}ALL CLEAR${RESET} — security guard passed.`);
   exit(0);

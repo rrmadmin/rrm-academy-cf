@@ -23,6 +23,7 @@ export async function onRequestPost(context) {
     } catch {
       return json({ ok: false, error: 'Invalid JSON' }, 400);
     }
+    if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
     // Honeypot — if filled, silently accept (bots think they succeeded)
     if (body.website) {

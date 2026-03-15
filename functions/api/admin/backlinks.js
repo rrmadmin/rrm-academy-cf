@@ -28,6 +28,7 @@ export async function onRequestPost(context) {
   } catch {
     return json({ error: 'Invalid JSON' }, 400);
   }
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ error: 'Invalid payload' }, 400);
 
   const { action, params = {} } = body;
 

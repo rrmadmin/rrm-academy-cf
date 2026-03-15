@@ -30,6 +30,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     let body;
     try { body = await request.json(); } catch { return json({ ok: false, error: 'Invalid JSON' }, 400); }
+    if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
     const currentPassword = body.currentPassword || '';
     const newPassword = body.newPassword || '';

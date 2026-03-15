@@ -119,6 +119,7 @@ async function handleQuizSubmit(request, env) {
   } catch {
     return json({ ok: false, error: 'Invalid JSON' }, 400);
   }
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
   const { courseId, stepId, answers } = body;
   if (!courseId || !stepId) return json({ ok: false, error: 'courseId and stepId required' }, 400);

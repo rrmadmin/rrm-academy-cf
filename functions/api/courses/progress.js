@@ -134,6 +134,7 @@ async function handleProgressUpdate(request, env) {
   } catch {
     return json({ ok: false, error: 'Invalid JSON' }, 400);
   }
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
   const { courseId, stepId, completed, score, lastPositionSeconds } = body;
   if (!courseId || !stepId) {
