@@ -4,7 +4,7 @@
  */
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
-import { json, optionsResponse } from '../auth/_shared.js';
+import { json, optionsResponse, verifyTurnstile } from '../auth/_shared.js';
 import { verifyAndTagEmail } from '../_elv.js';
 
 // Looser than auth rate limit (10/15min vs 5/15min) but still prevents ELV credit burning
@@ -61,27 +61,8 @@ export async function onRequestPost(context) {
   }
 
   // Verify Turnstile token
-  const turnstileToken = body.turnstileToken || '';
-  if (env.CF_TURNSTILE_SECRET && turnstileToken) {
-    const ip = request.headers.get('CF-Connecting-IP') || '';
-    const verifyResp = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        secret: env.CF_TURNSTILE_SECRET,
-        response: turnstileToken,
-        remoteip: ip,
-      }),
-    });
-    if (!verifyResp.ok) {
-      log(env, waitUntil, 'newsletter', 'turnstile_http_error', 'error', `Turnstile returned ${verifyResp.status}`, 0, verifyResp.status);
-      return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
-    }
-    const result = await verifyResp.json();
-    if (!result.success) {
-      return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
-    }
-  } else if (env.CF_TURNSTILE_SECRET) {
+  const turnstileOk = await verifyTurnstile(env.CF_TURNSTILE_SECRET, body.turnstileToken, ip);
+  if (!turnstileOk) {
     return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
   }
 
@@ -95,7 +76,7 @@ export async function onRequestPost(context) {
   try {
     // Check for existing subscriber
     const existing = await env.DB.prepare(
-      'SELECT id, status FROM newsletter_subscriber WHERE email = ?'
+      'SELECT id, status FROM newsletter_subscriber WHERE email = ? COLLATE NOCASE'
     ).bind(email).first();
 
     if (existing) {

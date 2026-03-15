@@ -8,7 +8,7 @@ import { hmacToken } from './_tracking.js';
 
 async function unsubscribe(db, email, waitUntil, env) {
   await db.prepare(
-    "UPDATE newsletter_subscriber SET status = 'unsubscribed', unsubscribed_at = datetime('now') WHERE email = ? AND status = 'active'"
+    "UPDATE newsletter_subscriber SET status = 'unsubscribed', unsubscribed_at = datetime('now') WHERE email = ? COLLATE NOCASE AND status = 'active'"
   ).bind(email).run();
   // Sync user table opt-in flag
   await db.prepare(

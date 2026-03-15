@@ -14,27 +14,27 @@ const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const CACHE_TTL = 3600; // 1 hour
 
 export async function onRequestGet({ request, env }) {
-  // Session-based admin auth
-  const auth = await requireSuperAdmin(request, env.DB);
-  if (auth instanceof Response) return auth;
-
-  if (!env.GA4_OAUTH_CREDS || !env.GA4_PROPERTY_ID) {
-    return json({ ok: false, error: 'GA4 not configured' }, 500);
-  }
-
-  const url = new URL(request.url);
-  const period = url.searchParams.get('period') || '28d';
-  const periodMap = { '7d': '7daysAgo', '28d': '28daysAgo', '90d': '90daysAgo' };
-  const startDate = periodMap[period] || '28daysAgo';
-
-  // Check KV cache
-  const cacheKey = `ga4:conversions:${period}`;
-  if (env.COMMUNITY_KV) {
-    const cached = await env.COMMUNITY_KV.get(cacheKey, 'json');
-    if (cached) return json({ ok: true, data: cached, cached: true });
-  }
-
   try {
+    // Session-based admin auth
+    const auth = await requireSuperAdmin(request, env.DB);
+    if (auth instanceof Response) return auth;
+
+    if (!env.GA4_OAUTH_CREDS || !env.GA4_PROPERTY_ID) {
+      return json({ ok: false, error: 'GA4 not configured' }, 500);
+    }
+
+    const url = new URL(request.url);
+    const period = url.searchParams.get('period') || '28d';
+    const periodMap = { '7d': '7daysAgo', '28d': '28daysAgo', '90d': '90daysAgo' };
+    const startDate = periodMap[period] || '28daysAgo';
+
+    // Check KV cache
+    const cacheKey = `ga4:conversions:${period}`;
+    if (env.COMMUNITY_KV) {
+      const cached = await env.COMMUNITY_KV.get(cacheKey, 'json');
+      if (cached) return json({ ok: true, data: cached, cached: true });
+    }
+
     const accessToken = await getAccessToken(env);
     const report = await fetchReport(accessToken, env.GA4_PROPERTY_ID, startDate);
 
