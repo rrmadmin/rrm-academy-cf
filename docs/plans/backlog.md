@@ -13,6 +13,7 @@ Full plan at `docs/plans/2026-03-10-internal-linking-plan.md`.
 - **Course template: background reading links** -- link to relevant library articles and commentary posts from course landing pages
 - **Library template: commentary cross-links** -- surface related commentary posts on library article pages
 - **Quick wins** -- add endo survey links from endo commentary posts, cross-link between related clusters
+- **Commentary images: add `<picture>` with WebP** -- cover images are 120-260KB JPGs. WebP variants exist for some but aren't served. Add `<picture>` elements with WebP + JPG fallback and responsive `srcset`
 
 ### Email Marketing (Phase 4)
 
@@ -26,25 +27,14 @@ SES newsletter system built (self-hosted, replaces Buttondown). Newsletter signu
 - **DMARC tightening** -- upgrade from `p=none` to `p=quarantine` after 2-4 weeks of clean sends
 - **CAN-SPAM physical address** -- get RRM Foundation mailing address from Brian for email footer
 
-### Site IA: "Learn" Nav + `/guides/` Index
+### ~~Site IA: "Learn" Nav + `/guides/` Index~~ DONE (2026-03-15)
 
-**Decision (2026-03-12):** Flat URL structure for SEO authority. Nav dropdown for UX grouping. No nesting pillar pages under parent paths.
+All structural items complete: `/guides/index.astro` exists, Header has "Learn" dropdown, `/guides` in router ASTRO_ROUTES. Keeping future guide ideas below.
 
-**Nav (3 items, down from 4):** Research Library, Commentary, **Learn** (dropdown: Guides, FAQs, Courses)
-
-**URL architecture (no changes to existing URLs):**
-- Pillar pages stay at root: `/naprotechnology/`, `/what-is-rrm/`, `/common-questions-about-rrm`
-- Future pillar pages also at root: `/endometriosis/`, `/pcos/`, etc.
-- `/guides/` -- new index page listing all pillar guides (browse page, not URL parent)
-- `/faqs/` -- unchanged
-- `/courses/` -- unchanged
-- Short URLs (e.g. `/napro` -> `/naprotechnology/`) via router 301s
-
-**TODO:**
-- [ ] Create `/guides/` index page (list + link to all pillar guides)
-- [ ] Update Header.astro nav: replace Courses + Join Us with Learn dropdown
-- [ ] Add `/guides` to router ASTRO_ROUTES
-- [ ] Planned guides: mental health (STUC members), 9 Facts About NaPro, endo guide, PCOS guide
+- ~~Create `/guides/` index page~~ DONE
+- ~~Update Header.astro nav: Learn dropdown~~ DONE
+- ~~Add `/guides` to router ASTRO_ROUTES~~ DONE
+- **Planned guides** (content, not structural): mental health (STUC members), 9 Facts About NaPro, endo guide, PCOS guide
 
 ### AEO (Answer Engine Optimization)
 
@@ -71,9 +61,9 @@ Full plan in `rrm-router/RRM Router PRD/PRD-Index.md` Post-Launch Roadmap.
 
 The `/admin/content/` page exists but has no API endpoint (`/api/admin/content`). Needs a backend that queries CF Analytics Engine (or CF Web Analytics API) for page views, sessions, referrers, content category breakdown, and avg duration. The frontend is already built and expects a specific response shape.
 
-### Zotero Two-Way Sync
+### ~~Zotero Two-Way Sync~~ CUT (2026-03-15)
 
-Full bidirectional sync between `/library/saved` and a user's Zotero library. Zotero uses OAuth 1.0a (not 2.0). Users connect once via "Connect Zotero" on saved articles page, then saves/unsaves push to their Zotero collection automatically. Requires: OAuth 1.0a handshake, Zotero API item creation/deletion, metadata mapping (article data to Zotero item schema), connection status UI, conflict handling. RIS export already exists as the non-API fallback.
+Removed. OAuth 1.0a complexity for a niche feature. RIS export exists as fallback. Revisit only if users request it.
 
 ### GA4 Source Attribution
 
@@ -90,8 +80,7 @@ Plan ready at `docs/plans/2026-03-09-google-ad-grants-plan.md`. Waiting on ~1 mo
 ### Performance Optimization
 
 - **Remove `articles.json` from `public/data/`** -- 12MB file still publicly served at `/data/articles.json`. Only needed at build time (already in `src/data/`). If Pagefind needs it at runtime, gate behind long cache headers instead.
-- **Dark mode body filter scroll jank** -- partially mitigated (fixed positioning + pointer-events:none on grain overlay), but filter still on body element. Full fix: move filter to content containers, disable grain on mobile via `@media`.
-- **Commentary images: add `<picture>` with WebP** -- cover images are 120-260KB JPGs. WebP variants exist for some but aren't served. Add `<picture>` elements with WebP + JPG fallback and responsive `srcset`.
+- ~~**Dark mode body filter scroll jank**~~ CUT (2026-03-15) -- partially mitigated, edge case. Not worth the effort.
 
 ### Content Refinement
 
@@ -102,23 +91,9 @@ Plan ready at `docs/plans/2026-03-09-google-ad-grants-plan.md`. Waiting on ~1 mo
 
 Use `/pillar-edit` skill. Create comparison file, Brian reviews, then apply.
 
-**`/what-is-rrm/` -- 5 sections remaining (8 of 13 done 2026-03-13):**
+**~~`/what-is-rrm/` -- COMPLETE (13/13 done)~~**
 
-| # | Section | id | Status | Notes |
-|---|---------|-----|--------|-------|
-| 1 | Key Takeaways | `key-takeaways` | Not started | Update after all other sections stabilize |
-| 2 | What Is RRM? | `what-is-rrm` | DONE | AEO-optimized, round 2 (2026-03-13) |
-| 3 | History | `history` | DONE | Added Odeblad, CCL, Stanford, round 2 (2026-03-13) |
-| 4 | Diagnosis | `diagnosis` | DONE | Rewritten in round 1 (2026-03-13, bc447e3) |
-| 5 | FABMs | `fabms` | DONE | AEO-optimized, round 2 (2026-03-13) |
-| 6 | Conditions | `conditions` | DONE | Question-format H3s, framework-level, round 2 (2026-03-13) |
-| 7 | RRM vs IVF | `rrm-vs-ivf` | DONE | Rewritten in round 1 (2026-03-13, bc447e3). Has charts |
-| 8 | Evidence | `evidence` | Not started | Longest section on page. May need restructure |
-| 9 | Patient Journey | `patient-journey` | DONE | Rewritten in round 1 (2026-03-13, bc447e3) |
-| 10 | Cost & Insurance | `cost-insurance` | DONE | Rewritten in round 1, honest insurance framing (2026-03-13, bc447e3) |
-| 11 | Training | `training` | Not started | Provider-facing, may be fine |
-| 12 | Common Myths | `myths` | Not started | Check overlap with revised section 2 |
-| 13 | FAQ | `faq` | Not started | Schema-critical, check schemaAnswer expansion |
+All sections refined across 4 rounds. See memory `pillar-page-refinement-status.md` for commit references.
 
 **`/naprotechnology/` -- 10 sections, none refined yet. Gianna recon complete 2026-03-13:**
 
@@ -130,7 +105,7 @@ Use `/pillar-edit` skill. Create comparison file, Brian reviews, then apply.
 | 4 | Conditions NaPro Treats | Medium | "ten years" -> "nine years" (verified stat); H3s need question format NaPro-attributed; "NaPro reframes" -> "In NaPro practice"; endo stats overlap with /what-is-rrm/ (link, don't duplicate); table not AEO-friendly |
 | 5 | NaPro Surgery | Medium | Prescriptive surgical detail (micro-suturing, non-reactive materials) -> framework level; "fertility preservation" framing is fertility-only (broaden); Yeung stat should lead with number for AEO; citation needs verification |
 | 6 | Who is NaPro For? | Medium | "suppressed or bypassed" is RRM framing leaking into NaPro; "that deserve" -> "who want"; H3 "NaPro After Failed IVF" needs question format; "RRM Academy supports..." pivots away from NaPro; "RRM achieved" -> "NaProTechnology achieved" |
-| 7 | NaPro vs IVF | **HIGH** | **HARD RULE VIOLATION: "When IVF May Be Appropriate" section explicitly recommends IVF. Must be removed or reframed.** Cost table anchor framing needs review |
+| 7 | NaPro vs IVF | **HIGH** | ~~"When IVF May Be Appropriate" REMOVED (bb63f3e).~~ Rest of section still needs review: cost table anchor framing, voice alignment |
 | 8 | How to Find a NaPro Provider | **HIGH** | Reads like reference doc, not Whittaker voice; no emotional acknowledgment (VOC: surgeon confidence 2.3/5); asking-questions list needs answer calibration; Natural Womanhood directory has weak NaPro signal; FCCA PDF link will break; IIRRM equivalence claim needs verification; no scarcity/telehealth/wait-time handling |
 | 9 | Cost and Insurance | **HIGH** | CPT-code billing logic overstates coverage ease (insurance complexity rule); "often covered" sets wrong expectation; "broader field that includes NaProTechnology" violates NaPro/RRM distinction; H3 needs softening |
 | 10 | FAQ | Medium | 4 of 5 answers below 80w schemaAnswer target; overlap with /what-is-rrm/ FAQ and faqs.json needs audit; "cause-directed" -> "cause-based" |
@@ -145,15 +120,28 @@ Use `/pillar-edit` skill. Create comparison file, Brian reviews, then apply.
 
 ## Operations
 
-- **Delete temporary CF API token** (`3h-YUCih...`) created for Stream signing key -- no longer needed
+- **Delete temporary CF API token** (`3h-YUCih...`) -- do in CF dashboard (Settings > API Tokens). Created for Stream signing key, no longer needed
 - **Verify CF Stream first billing cycle** (due ~Mar 22, 2026) -- confirm variable usage stays within included 10,000 min/mo allocation; update `docs/plans/2026-03-03-migration-cost-savings-analysis.md`
-- **Migration cost/savings analysis** -- full before/after breakdown at `docs/plans/2026-03-03-migration-cost-savings-analysis.md`. Net saving: $361.50/mo / $4,338/yr. Update after Apr 2026 when Wix Plus lapses.
+- **Migration cost/savings analysis** -- update after Apr 2026 when Wix Plus lapses. Current net saving: $361.50/mo / $4,338/yr. Details: `docs/plans/2026-03-03-migration-cost-savings-analysis.md`
 
 ### /arise Recommendations (from run 14 intelligence report)
 
 - **Input validation standardization** -- Create a shared `validateBody()` helper or lightweight schema validation for CF Pages Functions. Input validation is the only top-5 bug category (11% of all findings) without a structural fix. Every new endpoint re-invents type/length/range checks.
 - ~~**Turnstile resp.ok checks**~~ DONE -- HTTP status checks added to both `newsletter/subscribe.js` and `contact/submit.js` (2026-03-10)
 - ~~**Remaining alias cleanup in rrm-library scripts**~~ DONE -- enrich-trigger.py and verify-classifications.py migrated to `airtable_headers()` (2026-03-10)
+
+---
+
+## Waiting On (Blocked)
+
+| Item | Blocker | Since |
+|------|---------|-------|
+| 37 draft Condition-Specific FAQs | Naomi review | 2026-03 |
+| Pakiz spotlight blog post | Cover image needed | 2026-03 |
+| Members + Masterclass archive import | Brian scraping via Chrome | 2026-02 |
+| CAN-SPAM physical address for email footer | Brian providing RRM Foundation mailing address | 2026-03 |
+| Stale Mailchimp DKIM cleanup (k2/k3._domainkey) | Brian confirming orphaned/deletable | 2026-03 |
+| IVF calculator production data | Needs verified HFEA figures replacing placeholders | 2026-03 |
 
 ---
 
@@ -179,6 +167,9 @@ Not started. See `rrm-router/RRM Router PRD/Phase-9-Decommission.md`.
 
 ## Done (Recent)
 
+- Site IA: `/guides/` index page, Header "Learn" dropdown, router ASTRO_ROUTES -- all structural items complete (2026-03-15)
+- `/what-is-rrm/` pillar refinement -- 13/13 sections across 4 rounds (2026-03-14)
+- NaPro S7 "When IVF May Be Appropriate" -- hard rule violation removed (bb63f3e, 2026-03-13)
 - AEO Layer 5: Schema markup -- all major types implemented across all content templates (2026-03-10)
 - `_headers` file for static asset caching -- immutable hashed assets, tiered caching for pagefind/images/OG (2026-03-10)
 - FAQ cross-links to library articles -- `libraryRefs` section in FAQ detail template (2026-03-10)
