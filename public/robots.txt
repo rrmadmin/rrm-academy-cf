@@ -12,7 +12,7 @@ Disallow: /donate/thank-you
 Disallow: /save-the-uterus-club/thank-you
 Disallow: /api/
 Disallow: /data/
-Disallow: /tools/
+Disallow: /ivf-success-calculator
 Disallow: /community/
 
 # AI crawlers: library content and llms.txt are explicitly welcomed
