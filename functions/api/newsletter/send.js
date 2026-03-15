@@ -184,8 +184,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
     log(env, waitUntil, 'newsletter', 'send_complete', 'ok', `send ${sendId} complete`, 0, 200);
   }
 
-  const lastSubscriber = subscribers.length > 0 ? subscribers[subscribers.length - 1] : null;
-  const nextCursor = lastSubscriber ? lastSubscriber.id : null;
+  const lastId = page.length > 0
+    ? page[page.length - 1].id
+    : (subscribers.length > 0 ? subscribers[subscribers.length - 1].id : null);
+  const nextCursor = lastId;
 
   return Response.json({
     ok: true,
