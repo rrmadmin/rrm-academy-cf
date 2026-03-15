@@ -17,6 +17,65 @@ import { log } from '../_log.js';
 
 const LOGIN_ERROR_URL = '/login?error=oauth_failed';
 
+async function handleReturningGoogleUser(db, googleId, email) {
+  const user = await db.prepare('SELECT id, email, blocked FROM user WHERE google_id = ?')
+    .bind(googleId).first();
+  if (!user) return null;
+
+  if (user.email !== email) {
+    const conflict = await db.prepare('SELECT id FROM user WHERE email = ? COLLATE NOCASE AND id != ?')
+      .bind(email, user.id).first();
+    if (conflict) {
+      return { redirect: '/login?error=email_conflict' };
+    }
+    await db.prepare("UPDATE user SET email = ?, updated_at = datetime('now') WHERE id = ?")
+      .bind(email, user.id).run();
+    user.email = email;
+  }
+
+  return { user };
+}
+
+async function linkGoogleToVerifiedUser(db, googleId, email, avatarUrl) {
+  const user = await db.prepare('SELECT id, email, google_id, blocked FROM user WHERE email = ? COLLATE NOCASE AND email_verified = 1')
+    .bind(email).first();
+  if (!user) return null;
+
+  if (user.google_id && user.google_id !== googleId) {
+    return { redirect: '/login?error=account_conflict' };
+  }
+  await db.prepare(
+    `UPDATE user SET google_id = ?, avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ?`
+  ).bind(googleId, avatarUrl, user.id).run();
+
+  return { user };
+}
+
+async function upgradeUnverifiedUser(db, googleId, email, avatarUrl) {
+  const unverified = await db.prepare('SELECT id, email, blocked FROM user WHERE email = ? COLLATE NOCASE')
+    .bind(email).first();
+  if (!unverified) return null;
+
+  if (unverified.blocked) return { redirect: '/login?error=account_blocked' };
+  await db.prepare("UPDATE user SET google_id = ?, email_verified = 1, hashed_password = '', avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ?")
+    .bind(googleId, avatarUrl, unverified.id).run();
+  await invalidateAllUserSessions(db, unverified.id);
+
+  return { user: unverified };
+}
+
+async function createNewGoogleUser(db, email, name, firstName, lastName, googleId, avatarUrl, env, request, waitUntil) {
+  const id = generateId();
+  await db.prepare(
+    `INSERT INTO user (id, email, email_verified, hashed_password, name, first_name, last_name, google_id, role, avatar_url)
+     VALUES (?, ?, 1, '', ?, ?, ?, ?, 'member', ?)`
+  ).bind(id, email, name, firstName, lastName, googleId, avatarUrl).run();
+
+  waitUntil(sendGA4Event(env, request, 'sign_up', { method: 'google' }).catch(() => {}));
+
+  return { user: { id, email, blocked: 0 } };
+}
+
 export async function onRequestGet({ request, env, waitUntil }) {
   try {
     const db = env.DB;
@@ -63,59 +122,28 @@ export async function onRequestGet({ request, env, waitUntil }) {
     let user;
 
     // 1. Check if google_id already linked to an account
-    user = await db.prepare('SELECT id, email, blocked FROM user WHERE google_id = ?')
-      .bind(googleId).first();
+    const r1 = await handleReturningGoogleUser(db, googleId, email);
+    if (r1?.redirect) return redirect(r1.redirect);
+    if (r1) ({ user } = r1);
 
-    if (user && user.email !== email) {
-      const conflict = await db.prepare('SELECT id FROM user WHERE email = ? COLLATE NOCASE AND id != ?')
-        .bind(email, user.id).first();
-      if (conflict) {
-        return redirect('/login?error=email_conflict');
-      }
-      await db.prepare("UPDATE user SET email = ?, updated_at = datetime('now') WHERE id = ?")
-        .bind(email, user.id).run();
-      user.email = email;
+    // 2. Check if email matches an existing account (first Google login for this user)
+    if (!user) {
+      const r2 = await linkGoogleToVerifiedUser(db, googleId, email, avatarUrl);
+      if (r2?.redirect) return redirect(r2.redirect);
+      if (r2) ({ user } = r2);
     }
 
+    // 2b. Unverified account with this email — Google proves ownership, upgrade it
     if (!user) {
-      // 2. Check if email matches an existing account (first Google login for this user)
-      user = await db.prepare('SELECT id, email, google_id, blocked FROM user WHERE email = ? COLLATE NOCASE AND email_verified = 1')
-        .bind(email).first();
-
-      if (user) {
-        if (user.google_id && user.google_id !== googleId) {
-          return redirect('/login?error=account_conflict');
-        }
-        // Link Google ID to existing account; set avatar if not already set
-        await db.prepare(
-          `UPDATE user SET google_id = ?, avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ?`
-        ).bind(googleId, avatarUrl, user.id).run();
-      }
+      const r3 = await upgradeUnverifiedUser(db, googleId, email, avatarUrl);
+      if (r3?.redirect) return redirect(r3.redirect);
+      if (r3) ({ user } = r3);
     }
 
+    // 3. Brand new user — create account
     if (!user) {
-      // 2b. Unverified account with this email — Google proves ownership, upgrade it
-      const unverified = await db.prepare('SELECT id, email, blocked FROM user WHERE email = ? COLLATE NOCASE')
-        .bind(email).first();
-      if (unverified) {
-        if (unverified.blocked) return redirect('/login?error=account_blocked');
-        await db.prepare("UPDATE user SET google_id = ?, email_verified = 1, hashed_password = '', avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ?")
-          .bind(googleId, avatarUrl, unverified.id).run();
-        await invalidateAllUserSessions(db, unverified.id);
-        user = unverified;
-      }
-    }
-
-    if (!user) {
-      // 3. Brand new user — create account
-      const id = generateId();
-      await db.prepare(
-        `INSERT INTO user (id, email, email_verified, hashed_password, name, first_name, last_name, google_id, role, avatar_url)
-         VALUES (?, ?, 1, '', ?, ?, ?, ?, 'member', ?)`
-      ).bind(id, email, name, firstName, lastName, googleId, avatarUrl).run();
-
-      user = { id, email, blocked: 0 };
-      waitUntil(sendGA4Event(env, request, 'sign_up', { method: 'google' }).catch(() => {}));
+      const r4 = await createNewGoogleUser(db, email, name, firstName, lastName, googleId, avatarUrl, env, request, waitUntil);
+      ({ user } = r4);
     }
 
     // Check if user is blocked
