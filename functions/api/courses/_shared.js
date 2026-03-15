@@ -71,6 +71,9 @@ export async function autoEnrollAdmin(db, userId, courseId) {
   const user = await db.prepare('SELECT role FROM user WHERE id = ?').bind(userId).first();
   if (user?.role !== 'superadmin') return;
 
+  const courseObj = getCourse(courseId);
+  if (courseObj?.isAffiliate) return;
+
   const id = generateId();
   await db.prepare(
     'INSERT OR IGNORE INTO enrollment (id, user_id, course_id) VALUES (?, ?, ?)'
@@ -89,7 +92,7 @@ export async function checkCourseCompletion(db, userId, courseId) {
   let courseCompleted = false;
   let certificateIssued = false;
 
-  if (count >= totalSteps) {
+  if (totalSteps > 0 && count >= totalSteps) {
     await db.prepare(
       'UPDATE enrollment SET completed_at = datetime(\'now\') WHERE user_id = ? AND course_id = ? AND completed_at IS NULL'
     ).bind(userId, courseId).run();
