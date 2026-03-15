@@ -808,7 +808,6 @@ blockquote a {
 .page-wrapper {
   padding: var(--space-8) 0 var(--space-16);
   min-height: 60vh;
-  overflow-x: hidden;
 }
 
 /* FAQ Accordion */
@@ -1282,16 +1281,8 @@ blockquote cite {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
-  padding: var(--space-6) var(--space-4);
+  padding: var(--space-6) var(--space-8);
   margin-bottom: var(--space-8);
-  overflow-x: hidden;
-  word-break: break-word;
-}
-
-@media (min-width: 769px) {
-  .tldr {
-    padding: var(--space-6) var(--space-8);
-  }
 }
 
 .tldr h2 {
