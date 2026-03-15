@@ -19,18 +19,16 @@ const jsonLd = {
       description: course.shortDescription,
       url: `https://rrmacademy.org/courses/${course.slug}/`,
       ...(course.image ? { image: course.image } : {}),
-      provider: {
-        '@type': 'Organization',
-        '@id': 'https://rrmacademy.org/#organization',
-        name: 'RRM Academy',
-        url: 'https://rrmacademy.org/',
-      },
+      provider: course.isAffiliate
+        ? { '@type': 'Organization', name: 'NeoFertility', url: 'https://www.neofertilitytraining.com/' }
+        : { '@type': 'Organization', '@id': 'https://rrmacademy.org/#organization', name: 'RRM Academy', url: 'https://rrmacademy.org/' },
       isAccessibleForFree: course.isFree,
       offers: {
         '@type': 'Offer',
         price: course.isFree ? '0' : (course.priceCents / 100).toFixed(2),
         priceCurrency: 'USD',
         availability: 'https://schema.org/InStock',
+        ...(course.isAffiliate && course.affiliateUrl ? { url: course.affiliateUrl } : {}),
       },
     },
   })),
@@ -63,7 +61,7 @@ const jsonLd = {
 
           <details class="faq-item">
             <summary class="faq-q">What is the format of the courses?</summary>
-            <p class="faq-a">Our courses are self-paced and fully online. Each course includes video lectures by expert clinicians, downloadable resources, and quizzes to reinforce your learning. You can start, pause, and return at any time — there are no deadlines or scheduled sessions.</p>
+            <p class="faq-a">Our RRM Academy courses are self-paced and fully online. Each course includes video lectures by expert clinicians, downloadable resources, and quizzes to reinforce your learning. You can start, pause, and return at any time -- there are no deadlines or scheduled sessions. Partner courses may follow a different format (such as live cohorts).</p>
           </details>
 
           <details class="faq-item">
@@ -73,7 +71,7 @@ const jsonLd = {
 
           <details class="faq-item">
             <summary class="faq-q">How long will I have access after I enroll?</summary>
-            <p class="faq-a">Access is lifetime. Once enrolled, your course remains available in your account with no expiration date — including any updates or new content added over time.</p>
+            <p class="faq-a">For RRM Academy courses, access is lifetime. Once enrolled, your course remains available in your account with no expiration date -- including any updates or new content added over time. Partner courses have their own access policies set by the partner organization.</p>
           </details>
 
           <details class="faq-item">
@@ -104,6 +102,11 @@ const jsonLd = {
           <details class="faq-item">
             <summary class="faq-q">What is your refund policy?</summary>
             <p class="faq-a">We offer a full refund within 7 days of purchase if you have completed less than 20% of the course. Please <a href="/contact/">contact us</a> with your order details.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-q">What are partner courses?</summary>
+            <p class="faq-a">Some courses listed on RRM Academy are offered by trusted training partners in Restorative Reproductive Medicine. These courses are hosted and managed by the partner organization. Enrollment, payment, and course delivery happen on the partner's platform. Partner courses are clearly labeled with a "Partner Course" badge.</p>
           </details>
 
         </div>
