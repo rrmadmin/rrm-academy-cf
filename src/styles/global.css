@@ -300,6 +300,8 @@ body {
   color: var(--text-primary);
   background: var(--bg-body);
   transition: background 0.3s, color 0.3s;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 /* Typography */
