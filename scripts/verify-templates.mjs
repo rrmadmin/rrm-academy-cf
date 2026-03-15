@@ -285,6 +285,17 @@ for (const page of PILLAR_PAGES) {
   }
 }
 
+// ─── Affiliate Course Invariants ───────────────────────────────────
+console.log(`\n${BOLD}Phase 4: Affiliate course invariants${RESET}`);
+const courses = JSON.parse(readFileSync(join(ROOT, 'src/data/courses.json'), 'utf-8'));
+for (const c of courses) {
+  if (c.isAffiliate && c.stripePriceId) {
+    fail('courses.json', `Affiliate course "${c.slug}" must not have stripePriceId`);
+  } else if (c.isAffiliate) {
+    pass('courses.json', `Affiliate course "${c.slug}" has no stripePriceId`);
+  }
+}
+
 // Summary
 console.log('');
 if (failures > 0) {
