@@ -73,7 +73,7 @@ export default defineConfig({
           '/what-is-rrm',
           '/common-questions-about-rrm',
           '/admin/',
-          '/tools/',
+          '/ivf-success-calculator',
         ];
         if (exclude.some((path) => page.includes(path))) return false;
         // Library article pages are handled by library-sitemaps integration (tier split)
