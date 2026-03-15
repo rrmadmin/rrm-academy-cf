@@ -56,8 +56,10 @@ export async function onRequestGet(context) {
     const results = [];
     for (const m of matches.matches) {
       const url = m.metadata.url || `/library/${m.metadata.slug}/`;
-      if (seen.has(url)) continue;
-      seen.add(url);
+      const recMatch = url.match(/-(rec[a-zA-Z0-9]+)\/?$/);
+      const dedupKey = recMatch ? recMatch[1].toLowerCase() : url.toLowerCase();
+      if (seen.has(dedupKey)) continue;
+      seen.add(dedupKey);
       results.push({
         slug: m.metadata.slug,
         title: m.metadata.title,
