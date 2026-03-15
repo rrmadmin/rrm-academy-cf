@@ -139,11 +139,11 @@ const jsonLd = {
     display: block;
     padding: var(--space-4) var(--space-6);
     background: var(--bg-surface);
-    border: 1px solid var(--border-color);
+    border: none;
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-sm);
     text-decoration: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition: box-shadow 0.2s;
   }
   .guide-card:hover {
     box-shadow: var(--shadow-md);
@@ -195,11 +195,11 @@ const jsonLd = {
   .guide-card--soon {
     cursor: default;
     position: relative;
-    border-style: dashed;
+    border: 1px dashed var(--border-color);
+    box-shadow: none;
   }
   .guide-card--soon:hover {
-    border-color: var(--border-color);
-    box-shadow: var(--shadow-sm);
+    box-shadow: none;
   }
   .guide-card--soon .guide-card__title,
   .guide-card--soon .guide-card__desc,
