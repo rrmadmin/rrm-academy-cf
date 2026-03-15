@@ -58,6 +58,7 @@ function buildEntries() {
     if (a.searchTerms && a.searchTerms.length) parts.push(a.searchTerms.join(', '));
     if (a.abstract) parts.push(a.abstract);
     entries.push({
+      id: a.id,
       slug: a.slug,
       text: parts.join('. '),
       type: 'Research',
@@ -198,6 +199,48 @@ async function upsertVectors(vectors) {
   return res.json();
 }
 
+async function deleteVectors(ids) {
+  const res = await fetch(
+    `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/vectorize/v2/indexes/${INDEX_NAME}/delete_by_ids`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${API_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ ids }),
+    }
+  );
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Vectorize delete API ${res.status}: ${err}`);
+  }
+  return res.json();
+}
+
+async function listVectorIds() {
+  const ids = [];
+  let cursor = null;
+  while (true) {
+    const url = new URL(`https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/vectorize/v2/indexes/${INDEX_NAME}/list`);
+    if (cursor) url.searchParams.set('cursor', cursor);
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${API_TOKEN}` },
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`Vectorize list API ${res.status}: ${err}`);
+    }
+    const data = await res.json();
+    if (data.result) {
+      for (const v of data.result) ids.push(v.id || v);
+    }
+    cursor = data.result_info?.cursor;
+    if (!cursor) break;
+  }
+  return ids;
+}
+
 // --- Embed all entries ---
 
 let embedded = 0;
@@ -216,13 +259,36 @@ for (let i = 0; i < entries.length; i += BATCH_SIZE) {
       url: e.url,
     };
     if (e.year != null) metadata.year = e.year;
-    return { id: vectorId(e.slug), values: embeddings[idx], metadata };
+    return { id: e.id || vectorId(e.slug), values: embeddings[idx], metadata };
   });
 
   await upsertVectors(vectors);
 
   embedded += batch.length;
   console.log(`Embedded ${embedded}/${entries.length}...`);
+}
+
+// --- Purge stale vectors ---
+
+const upsertedIds = new Set(entries.map(e => e.id || vectorId(e.slug)));
+
+try {
+  console.log('Listing existing vectors to find stale entries...');
+  const existingIds = await listVectorIds();
+  const staleIds = existingIds.filter(id => !upsertedIds.has(id));
+
+  if (staleIds.length > 0) {
+    console.log(`Found ${staleIds.length} stale vectors to delete...`);
+    for (let i = 0; i < staleIds.length; i += BATCH_SIZE) {
+      const batch = staleIds.slice(i, i + BATCH_SIZE);
+      await deleteVectors(batch);
+    }
+    console.log(`Deleted ${staleIds.length} stale vectors.`);
+  } else {
+    console.log('No stale vectors found.');
+  }
+} catch (err) {
+  console.warn(`Warning: stale vector cleanup failed (${err.message}). Vectors were upserted successfully.`);
 }
 
 console.log('Done. All content embedded.');
