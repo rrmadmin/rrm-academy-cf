@@ -17,9 +17,7 @@
 /allies https://ig.me/j/AbbmORXZV3iHcj-H/ 302
 /allies/ https://ig.me/j/AbbmORXZV3iHcj-H/ 302
 
-# Pagination page 1 is the index
-/library/page/1 /library/ 301
-/library/page/1/ /library/ 301
+# Commentary page 1 is the index (library page 1 is the browse-all list)
 /commentary/page/1 /commentary/ 301
 /commentary/page/1/ /commentary/ 301
 
