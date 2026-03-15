@@ -7,7 +7,7 @@
  * re-fetching 3000+ articles for a single change.
  */
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, renameSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { API_URL, FIELDS } from './airtable-config.mjs';
@@ -95,13 +95,27 @@ async function fetchSingle(recordId) {
   const url = `${API_URL}/${recordId}`;
 
   console.log(`Fetching single record: ${recordId}`);
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${pat}` },
-  });
+  let res;
+  let lastError;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      res = await fetch(url, {
+        headers: { Authorization: `Bearer ${pat}` },
+      });
+      lastError = undefined;
+      if (res.ok || (res.status !== 429 && res.status < 500)) break;
+    } catch (e) {
+      lastError = e;
+    }
+    const delay = Math.pow(2, attempt) * 1000;
+    console.warn(`Retry ${attempt + 1}/5 in ${delay / 1000}s...`);
+    await new Promise(r => setTimeout(r, delay));
+  }
 
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Airtable ${res.status}: ${err}`);
+  if (lastError) throw lastError;
+  if (!res || !res.ok) {
+    const err = res ? await res.text() : 'No response';
+    throw new Error(`Airtable ${res?.status}: ${err}`);
   }
 
   const record = await res.json();
@@ -113,6 +127,9 @@ async function fetchSingle(recordId) {
   if (existsSync(OUTPUT_PATH)) {
     articles = JSON.parse(readFileSync(OUTPUT_PATH, 'utf-8'));
     console.log(`Loaded ${articles.length} existing articles from cache`);
+  } else {
+    console.warn('Cache missing. Falling back to full fetch.');
+    return fetchAll();
   }
 
   // Remove old version of this record (if present)
@@ -140,7 +157,9 @@ async function fetchSingle(recordId) {
   sortArticles(articles);
 
   mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
-  writeFileSync(OUTPUT_PATH, JSON.stringify(articles, null, 2));
+  const tmpPath = OUTPUT_PATH + '.tmp';
+  writeFileSync(tmpPath, JSON.stringify(articles, null, 2));
+  renameSync(tmpPath, OUTPUT_PATH);
   console.log(`\nWrote ${articles.length} articles to ${OUTPUT_PATH}`);
 
   // Ping Airtable webhook to confirm record was processed (onDeck -> Synced)
@@ -201,7 +220,7 @@ async function fetchAll() {
           headers: { Authorization: `Bearer ${pat}` },
         });
         lastError = undefined;
-        if (res.status !== 429) break;
+        if (res.ok || (res.status !== 429 && res.status < 500)) break;
       } catch (e) {
         lastError = e;
       }
@@ -230,7 +249,9 @@ async function fetchAll() {
   sortArticles(articles);
 
   mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
-  writeFileSync(OUTPUT_PATH, JSON.stringify(articles, null, 2));
+  const tmpPath = OUTPUT_PATH + '.tmp';
+  writeFileSync(tmpPath, JSON.stringify(articles, null, 2));
+  renameSync(tmpPath, OUTPUT_PATH);
   console.log(`\nWrote ${articles.length} articles to ${OUTPUT_PATH}`);
 }
 

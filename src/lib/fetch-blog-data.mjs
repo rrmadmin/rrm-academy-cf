@@ -13,7 +13,7 @@
  *   CLOUDFLARE_ACCOUNT_ID  (optional) needed for R2 uploads via wrangler
  */
 
-import { readFileSync, writeFileSync, mkdirSync, unlinkSync, mkdtempSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, unlinkSync, mkdtempSync, existsSync, renameSync, rmdirSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { execFileSync } from 'child_process';
@@ -43,7 +43,7 @@ function uploadBufferToR2(buffer, r2Key, contentType) {
       '--remote',
     ], { stdio: 'pipe', timeout: 60000 });
   } finally {
-    try { unlinkSync(tmpFile); } catch {}
+    try { unlinkSync(tmpFile); rmdirSync(tmpDir); } catch {}
   }
 
   const sizeKB = (buffer.length / 1024).toFixed(1);
@@ -162,7 +162,7 @@ function mapRecord(record) {
 
   return {
     id: record.id,
-    slug: slug.trim().toLowerCase(),
+    slug: slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, ''),
     title: title.trim(),
     excerpt: f['Excerpt'] || '',
     content: f['Content'] || '',
@@ -200,13 +200,27 @@ async function fetchSingle(recordId) {
   const url = `${API_URL}/${recordId}`;
 
   console.log(`Fetching single record: ${recordId}`);
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${pat}` },
-  });
+  let res;
+  let lastError;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      res = await fetch(url, {
+        headers: { Authorization: `Bearer ${pat}` },
+      });
+      lastError = undefined;
+      if (res.ok || (res.status !== 429 && res.status < 500)) break;
+    } catch (e) {
+      lastError = e;
+    }
+    const delay = Math.pow(2, attempt) * 1000;
+    console.warn(`Retry ${attempt + 1}/5 in ${delay / 1000}s...`);
+    await new Promise(r => setTimeout(r, delay));
+  }
 
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Airtable ${res.status}: ${err}`);
+  if (lastError) throw lastError;
+  if (!res || !res.ok) {
+    const err = res ? await res.text() : 'No response';
+    throw new Error(`Airtable ${res?.status}: ${err}`);
   }
 
   const record = await res.json();
@@ -218,6 +232,9 @@ async function fetchSingle(recordId) {
   if (existsSync(OUTPUT_PATH)) {
     posts = JSON.parse(readFileSync(OUTPUT_PATH, 'utf-8'));
     console.log(`Loaded ${posts.length} existing posts from cache`);
+  } else {
+    console.warn('Cache missing. Falling back to full fetch.');
+    return fetchAll();
   }
 
   // Remove old version of this record (if present)
@@ -276,7 +293,9 @@ async function fetchSingle(recordId) {
   sortPosts(posts);
 
   mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
-  writeFileSync(OUTPUT_PATH, JSON.stringify(posts, null, 2));
+  const tmpPath = OUTPUT_PATH + '.tmp';
+  writeFileSync(tmpPath, JSON.stringify(posts, null, 2));
+  renameSync(tmpPath, OUTPUT_PATH);
   console.log(`\nWrote ${posts.length} posts to ${OUTPUT_PATH}`);
 
   // Ping Airtable webhook to confirm record was processed
@@ -335,7 +354,7 @@ async function fetchAll() {
           headers: { Authorization: `Bearer ${pat}` },
         });
         lastError = undefined;
-        if (res.status !== 429) break;
+        if (res.ok || (res.status !== 429 && res.status < 500)) break;
       } catch (e) {
         lastError = e;
       }
@@ -419,7 +438,9 @@ async function fetchAll() {
   });
 
   mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
-  writeFileSync(OUTPUT_PATH, JSON.stringify(deduplicated, null, 2));
+  const tmpPath = OUTPUT_PATH + '.tmp';
+  writeFileSync(tmpPath, JSON.stringify(deduplicated, null, 2));
+  renameSync(tmpPath, OUTPUT_PATH);
   console.log(`\nWrote ${deduplicated.length} posts to ${OUTPUT_PATH}`);
 }
 
