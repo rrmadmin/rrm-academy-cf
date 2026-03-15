@@ -259,7 +259,6 @@
 
   var pagefindReady = null;
   var debounceTimer = null;
-  var currentResults = [];
   var shown = 0;
   var INITIAL_PAGE = 3;
   var PER_PAGE = 8;
@@ -286,17 +285,12 @@
     clearTimeout(debounceTimer);
     if (!q) {
       resultsEl.innerHTML = '';
-      currentResults = [];
       preloadedData = [];
       currentQuery = '';
       return;
     }
     currentQuery = q;
     debounceTimer = setTimeout(function() { doSearch(q); }, 150);
-  }
-
-  function positionResultsPanel() {
-    // CSS handles positioning via left: 50% + transform: translateX(-50%)
   }
 
   // Detect non-English titles to de-prioritize in results.
@@ -326,7 +320,7 @@
 
   async function doSearch(query) {
     resultsEl.innerHTML = '<p class="sr-loading">Searching\u2026</p>';
-    positionResultsPanel();
+
     try {
       // Fire both searches in parallel
       var semanticPromise = fetch('/api/search/semantic?q=' + encodeURIComponent(query))
@@ -336,8 +330,6 @@
       var pf = await ensurePagefind();
       var search = await pf.search(query);
       if (query !== currentQuery) return;
-      currentResults = search.results;
-
       // Pre-load top Pagefind results for metadata access
       var toPreload = search.results.slice(0, PRELOAD_CAP);
       var pfLoaded = await Promise.all(
@@ -419,7 +411,7 @@
           // Prefer semantic URL (current slug) over stale Pagefind URL
           if (matchKey !== sUrl) fusedMap[matchKey].data.url = sUrl;
           // Enrich with type from semantic if Pagefind lacks it
-          if (!fusedMap[matchKey].data.meta.type && sItem.type) {
+          if (fusedMap[matchKey].data.meta && !fusedMap[matchKey].data.meta.type && sItem.type) {
             fusedMap[matchKey].data.meta.type = sItem.type;
           }
         } else {
@@ -467,7 +459,7 @@
 
       if (totalCount === 0) {
         resultsEl.innerHTML = '<p class="sr-empty">No results found for \u201c' + escHtml(query) + '\u201d</p>';
-        positionResultsPanel();
+    
         return;
       }
 
@@ -476,7 +468,7 @@
       countEl.textContent = totalCount + ' result' + (totalCount === 1 ? '' : 's');
       resultsEl.appendChild(countEl);
       await loadMore();
-      positionResultsPanel();
+  
 
       // If semantic timed out, merge late-arriving results as addenda
       if (!semanticData) {
@@ -523,8 +515,8 @@
         });
       }
     } catch(e) {
+      if (query !== currentQuery) return;
       resultsEl.innerHTML = '<p class="sr-empty">Search unavailable</p>';
-      positionResultsPanel();
     }
   }
 
@@ -616,7 +608,6 @@
     input.value = '';
     clearBtn.classList.add('hidden');
     resultsEl.innerHTML = '';
-    currentResults = [];
     preloadedData = [];
     currentQuery = '';
     input.focus();
