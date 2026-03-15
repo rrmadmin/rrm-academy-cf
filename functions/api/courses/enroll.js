@@ -53,6 +53,7 @@ async function handleEnroll(request, env, waitUntil) {
   const course = getCourse(courseId);
   if (!course) return json({ ok: false, error: 'Course not found' }, 404);
   if (course.comingSoon) return json({ ok: false, error: 'Course not yet available' }, 400);
+  if (course.isAffiliate) return json({ ok: false, error: 'External enrollment only' }, 400);
 
   // Idempotent: already enrolled → return success
   // Re-run enrollUser to ensure included courses exist (handles partial-failure retry)
