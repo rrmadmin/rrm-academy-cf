@@ -432,10 +432,14 @@ Hover: `color: var(--purple-900)`, no underline. Typically paired with an extern
 
 ```css
 background: var(--bg-surface);
-border: 1px solid var(--border-color);
+border: none;
 border-radius: var(--radius-md);
 padding: var(--space-6);
+box-shadow: var(--shadow-sm);
+transition: box-shadow 0.2s;
 ```
+
+Shadow-sm simulates a subtle border at rest. Interactive cards add `box-shadow: var(--shadow-md)` on hover. No `border` on cards -- use shadow for elevation. Exception: accent borders on featured/launching variants use explicit `border: 2px solid var(--accent)`.
 
 Used for audience cards, tier cards, impact cards, and any generic container.
 
