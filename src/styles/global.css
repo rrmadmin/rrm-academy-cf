@@ -1266,6 +1266,10 @@ blockquote cite {
     font-size: 1.375rem;
   }
 
+  h3 {
+    font-size: 1.25rem;
+  }
+
   .related-grid {
     grid-template-columns: 1fr;
   }
