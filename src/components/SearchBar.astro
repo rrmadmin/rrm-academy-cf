@@ -430,6 +430,8 @@
               _pfRank: -1
             }
           };
+          // Track record ID so subsequent semantic dupes merge here too
+          if (sRecId && !recIdToKey[sRecId]) recIdToKey[sRecId] = sUrl;
         }
       }
 
