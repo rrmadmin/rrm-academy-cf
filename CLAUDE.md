@@ -302,21 +302,25 @@ Push to `claude/` branch -- GitHub Actions auto-builds + merges. No local creden
 
 A zero-dependency Node.js script (`scripts/guard.mjs`) that blocks deployments if critical security files are tampered with.
 
-**Guarded files** (hash-checked via `guard-manifest.json`, 29 files):
+**Guarded files** (hash-checked via `guard-manifest.json`, 36 files):
 - `functions/api/auth/_shared.js` — CORS, sessions, crypto, rate limiting
 - `functions/api/auth/login.js`, `signup.js`, `google-callback.js`, `google.js` — authentication
 - `functions/api/auth/forgot-password.js`, `reset-password.js`, `change-password.js` — password management
 - `functions/api/auth/_email-validate.js` — email validation, disposable/typo detection
+- `functions/api/auth/verify-email.js` — email verification token consumption
+- `functions/api/auth/logout.js` — session invalidation
 - `functions/api/_ses.js` — SES email sending infrastructure
 - `functions/api/_elv.js` — EmailListVerify SMTP validation
 - `functions/api/stripe-webhook.js` — webhook signature verification + dispatch
-- `functions/api/billing/_webhook-checkout.js`, `_webhook-subscription.js`, `_webhook-shared.js` — webhook handlers
-- `functions/api/create-checkout.js`, `billing/status.js`, `billing/portal.js` — billing
+- `functions/api/billing/_webhook-checkout.js`, `_webhook-subscription.js`, `_webhook-shared.js`, `_webhook-invoice.js` — webhook handlers
+- `functions/api/create-checkout.js`, `billing/status.js`, `billing/portal.js`, `billing/checkout-account.js` — billing
 - `functions/api/survey/submit.js`, `survey/request.js` — pseudonymization + magic-link tokens
 - `functions/api/newsletter/send.js`, `unsubscribe.js`, `subscribe.js` — mass email, CAN-SPAM, intake
 - `functions/api/search/semantic.js` — billed AI.run() + Vectorize (rate-limited)
 - `functions/api/community/_shared.js` — community access control (requireMember)
+- `functions/api/community/upload.js` — R2 image upload (file validation)
 - `functions/api/admin/cleanup.js` — expired data deletion from D1
+- `functions/api/pdf/request.js`, `pdf/redeem.js` — PDF magic-link tokens
 - `functions/_middleware.js` — auth gating for /account and /community
 - `wrangler.toml` — D1, KV, R2 bindings
 - `scripts/guard.mjs` — self-guarding
@@ -326,11 +330,14 @@ A zero-dependency Node.js script (`scripts/guard.mjs`) that blocks deployments i
 - `stripe-webhook.js` must use `stripe-signature` + `constructEventAsync`
 - `_middleware.js` must protect `/account` and `/community`
 - `login.js` and `signup.js` must use `checkRateLimit`
+- `google-callback.js` must have `user.blocked` check, `hashed_password = ''`, and `isSafeRedirect`
+- `community/upload.js` must have content-type allowlist
+- Directory file counts monitored for auth/ (15) and billing/ (7) -- warns on new unguarded files
 
-**Secret scanning**: Blocks `sk_live_`, `sk_test_`, `whsec_`, private keys, Bearer tokens, Airtable PATs in `functions/` and `src/`.
+**Secret scanning**: Blocks `sk_live_`, `sk_test_`, `whsec_`, `GOCSPX-`, `AKIA`, private keys, Bearer tokens, Airtable PATs, 1Password `op://` references in `functions/` and `src/`.
 
 **CRM & newsletter safety** (Phase 5):
-- No `DELETE FROM` / `DROP TABLE` / `TRUNCATE` on `contact`, `newsletter_subscriber`, or `contact_tag` tables
+- No `DELETE FROM` / `DROP TABLE` / `TRUNCATE` on `contact`, `newsletter_subscriber`, `contact_tag`, `user`, or `enrollment` tables
 - `unsubscribe.js` must use `status = 'unsubscribed'` UPDATE, never DELETE (CAN-SPAM)
 - `send.js` must require `ADMIN_API_SECRET` Bearer auth
 - `subscribe.js` must have rate limiting
@@ -355,9 +362,9 @@ When a post needs references, research each one live before inserting. If asked 
 
 CI enforces this: `scripts/verify-citations.mjs` (v2, multi-API cascade) runs on every blog deploy and blocks publication if any citation fails verification.
 
-## Coding Standards (from 29 /arise runs, 332 findings)
+## Coding Standards (from 36 /arise runs, 414 findings)
 
-These are the top 5 recurring bug patterns. Violating any of these will be caught by /arise and cost time to fix. Get them right the first time.
+These are the top recurring bug patterns. Violating any of these will be caught by /arise and cost time to fix. Get them right the first time.
 
 1. **Read siblings before writing.** Before creating or modifying an endpoint in `functions/api/`, read every other file in the same directory. Match their patterns for: try/catch wrapping, response shape, auth checks, input validation, error logging. Sibling divergence is the #1 bug category (23% of all findings).
 
@@ -369,7 +376,15 @@ These are the top 5 recurring bug patterns. Violating any of these will be caugh
 
 5. **Use consistent response shapes.** Success: `{ results }` or `{ data }`. Error: `{ error: 'code' }` with correct HTTP status (400 client error, 401 unauthed, 403 forbidden, 404 not found, 429 rate limited, 500 server error, 503 unavailable). Never return raw strings, HTML error pages, or `{ ok: false }`. Inconsistent contracts are #5 (8%).
 
-6. **Fix one, grep all.** After fixing a bug pattern in one file, grep the entire codebase for the same pattern and fix every instance. Cross-file "fixed here, missed there" is the single most common recurring bug (23%). This applies to `functions/api/`, `src/lib/`, build scripts, and Astro components equally.
+6. **Fix one, grep all.** After fixing a bug pattern in one file, grep the entire codebase for the same pattern and fix every instance. Cross-file "fixed here, missed there" is the single most common recurring bug (22%). This applies to `functions/api/`, `src/lib/`, build scripts, and Astro components equally.
+
+7. **SQL discipline.** sql-issue is the fastest-growing /arise category (+6pp, now 5% of all findings). D1 and SQLite have sharp edges. Follow these rules for every SQL query:
+   - **COLLATE NOCASE** on every text comparison (WHERE, JOIN ON, UNIQUE constraints on email/name/slug). SQLite text comparison is case-sensitive by default.
+   - **Explicit NULL handling.** `NULL != NULL` in SQL. Use `IS NULL` / `IS NOT NULL`, never `= NULL`. Watch for `WHERE x = ?` silently excluding NULL rows. `UNIQUE` constraints allow multiple NULLs.
+   - **UNIQUE constraint awareness.** Know which columns have UNIQUE constraints before writing INSERT. Use `INSERT OR IGNORE` or `ON CONFLICT` for idempotent operations. Bare INSERT will throw on duplicates.
+   - **Write-after-read atomicity.** Never read a value, compute in JS, then write back without a transaction. Use `db.batch()` or `BEGIN/COMMIT` for read-modify-write patterns. Token-consumed-before-write-confirmed is the #1 data-loss pattern.
+   - **INTEGER vs TEXT types.** SQLite is loosely typed but D1 enforces declared types on some operations. Don't store booleans as "true"/"false" strings -- use 0/1.
+   - **datetime format consistency.** Always use ISO 8601 (`datetime('now')` in SQL, `new Date().toISOString()` in JS). Never store Unix timestamps or locale-formatted dates.
 
 ### Prevention Checklist
 
@@ -378,11 +393,14 @@ Before shipping any new endpoint or modifying an existing one, verify:
 - [ ] Every external fetch (Stripe, Airtable, AI.run, Vectorize) wrapped in try/catch
 - [ ] Error responses use generic messages, never err.message to client
 - [ ] SQL WHERE on email uses COLLATE NOCASE
+- [ ] SQL read-then-write patterns use transactions (db.batch or BEGIN/COMMIT)
+- [ ] SQL INSERT uses ON CONFLICT or INSERT OR IGNORE for idempotent operations
+- [ ] SQL NULL handling is explicit (IS NULL, not = NULL; COALESCE where needed)
 - [ ] New endpoint imports and uses CORS_HEADERS from _shared.js
 - [ ] Missing env/binding returns 503, not silent 200
+- [ ] `if (!env.X)` patterns always have an explicit `return new Response(JSON.stringify({error:...}), {status: 503})`
 - [ ] After fixing a pattern in one file, grep for siblings with the same pattern
 - [ ] Rate limits on any endpoint that calls a billed service
-- [ ] INSERT OR IGNORE / ON CONFLICT for idempotent operations
 
 ## Rules
 
