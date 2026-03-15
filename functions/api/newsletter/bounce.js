@@ -49,6 +49,11 @@ export async function onRequestPost({ request, env, waitUntil }) {
   }
 
   const db = env.DB;
+  if (!db) {
+    log(env, waitUntil, 'newsletter', 'config_missing', 'error', 'DB binding not configured', 0, 500);
+    return new Response('Server misconfigured', { status: 500 });
+  }
+
   const notifType = message.notificationType || message.eventType;
 
   if (notifType === 'Bounce') {

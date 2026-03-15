@@ -92,7 +92,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
     const type = url.searchParams.get('type');
     const before = url.searchParams.get('before');
-    const limit = Math.min(parseInt(url.searchParams.get('limit') || '20', 10), 50);
+    const limit = Math.max(1, Math.min(parseInt(url.searchParams.get('limit') || '20', 10) || 20, 50));
     const channelParam = url.searchParams.get('channel') || 'stuc';
     const channel = VALID_CHANNELS.includes(channelParam) ? channelParam : 'stuc';
 

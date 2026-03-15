@@ -64,8 +64,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
             'https://rrmacademy.org',
           ].join('\n'),
         });
-      } catch {
-        // Email send failed — user can request resend later
+      } catch (emailErr) {
+        log(env, waitUntil, 'auth', 'resend_verification_send_error', 'error', emailErr.message, 0, 502);
+        return json({ ok: false, error: 'Failed to send verification email. Please try again.' }, 502);
       }
     }
 

@@ -13,12 +13,17 @@ import {
 import { log } from '../_log.js';
 import coursesData from '../../../src/data/courses.json';
 
-const streamUidToCourse = new Map();
+const streamUidToCourses = new Map();
 for (const course of coursesData) {
   for (const section of course.sections) {
     for (const step of section.steps) {
       if (step.streamUid) {
-        streamUidToCourse.set(step.streamUid, course);
+        const existing = streamUidToCourses.get(step.streamUid);
+        if (existing) {
+          existing.push(course);
+        } else {
+          streamUidToCourses.set(step.streamUid, [course]);
+        }
       }
     }
   }
@@ -41,13 +46,15 @@ export async function onRequestGet({ request, env, waitUntil }) {
     const videoId = url.searchParams.get('videoId');
     if (!videoId) return json({ ok: false, error: 'Missing videoId' }, 400);
 
-    const course = streamUidToCourse.get(videoId);
-    if (!course) return json({ ok: false, error: 'Unknown video' }, 404);
+    const courses = streamUidToCourses.get(videoId);
+    if (!courses) return json({ ok: false, error: 'Unknown video' }, 404);
 
-    if (!course.isFree) {
+    const allFree = courses.every(c => c.isFree);
+    if (!allFree) {
+      const placeholders = courses.map(() => '?').join(', ');
       const enrollment = await db.prepare(
-        'SELECT id FROM enrollment WHERE user_id = ? AND course_id = ?'
-      ).bind(session.userId, course.id).first();
+        `SELECT id FROM enrollment WHERE user_id = ? AND course_id IN (${placeholders})`
+      ).bind(session.userId, ...courses.map(c => c.id)).first();
       if (!enrollment) return json({ ok: false, error: 'Not enrolled' }, 403);
     }
 
