@@ -41,7 +41,10 @@ export async function onRequestGet(context) {
       text: [query],
     });
     const queryVector = embedding.data?.[0];
-    if (!queryVector) return Response.json({ results: [] });
+    if (!queryVector) {
+      log(env, waitUntil, 'search', 'embedding_failed', 'error', 'AI returned no vector', 0, 502);
+      return Response.json({ results: [], error: 'embedding_failed' }, { status: 502 });
+    }
 
     // Find nearest neighbors
     const matches = await env.VECTORIZE.query(queryVector, {
@@ -49,15 +52,22 @@ export async function onRequestGet(context) {
       returnMetadata: 'all',
     });
 
-    const results = matches.matches.map(m => ({
-      slug: m.metadata.slug,
-      title: m.metadata.title,
-      year: m.metadata.year,
-      authors: m.metadata.authors,
-      type: m.metadata.type || 'Research',
-      score: m.score,
-      url: m.metadata.url || `/library/${m.metadata.slug}/`,
-    }));
+    const seen = new Set();
+    const results = [];
+    for (const m of matches.matches) {
+      const url = m.metadata.url || `/library/${m.metadata.slug}/`;
+      if (seen.has(url)) continue;
+      seen.add(url);
+      results.push({
+        slug: m.metadata.slug,
+        title: m.metadata.title,
+        year: m.metadata.year,
+        authors: m.metadata.authors,
+        type: m.metadata.type || 'Research',
+        score: m.score,
+        url,
+      });
+    }
 
     return Response.json({ results }, {
       headers: {
