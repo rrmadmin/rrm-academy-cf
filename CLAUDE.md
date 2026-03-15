@@ -355,11 +355,11 @@ When a post needs references, research each one live before inserting. If asked 
 
 CI enforces this: `scripts/verify-citations.mjs` (v2, multi-API cascade) runs on every blog deploy and blocks publication if any citation fails verification.
 
-## Coding Standards (from 26 /arise runs, 293 findings)
+## Coding Standards (from 29 /arise runs, 332 findings)
 
 These are the top 5 recurring bug patterns. Violating any of these will be caught by /arise and cost time to fix. Get them right the first time.
 
-1. **Read siblings before writing.** Before creating or modifying an endpoint in `functions/api/`, read every other file in the same directory. Match their patterns for: try/catch wrapping, response shape, auth checks, input validation, error logging. Sibling divergence is the #1 bug category (21% of all findings).
+1. **Read siblings before writing.** Before creating or modifying an endpoint in `functions/api/`, read every other file in the same directory. Match their patterns for: try/catch wrapping, response shape, auth checks, input validation, error logging. Sibling divergence is the #1 bug category (23% of all findings).
 
 2. **Never return 200 on failure.** If an env var, binding, or dependency is missing, return 503 with `{ error: 'service_unavailable' }`. Never `if (!env.X) return` with an implicit 200. Silent success on failure is #2 (16%).
 
@@ -368,6 +368,21 @@ These are the top 5 recurring bug patterns. Violating any of these will be caugh
 4. **Wrap every external fetch in try/catch.** Stripe, AI.run(), Resend, Airtable, Vectorize -- all external calls throw on network errors. The catch block must return structured JSON `{ error: 'descriptive_code' }` with the right HTTP status. Never leak `err.message` to the client. Naked fetches are #4 (9%).
 
 5. **Use consistent response shapes.** Success: `{ results }` or `{ data }`. Error: `{ error: 'code' }` with correct HTTP status (400 client error, 401 unauthed, 403 forbidden, 404 not found, 429 rate limited, 500 server error, 503 unavailable). Never return raw strings, HTML error pages, or `{ ok: false }`. Inconsistent contracts are #5 (8%).
+
+6. **Fix one, grep all.** After fixing a bug pattern in one file, grep the entire codebase for the same pattern and fix every instance. Cross-file "fixed here, missed there" is the single most common recurring bug (23%). This applies to `functions/api/`, `src/lib/`, build scripts, and Astro components equally.
+
+### Prevention Checklist
+
+Before shipping any new endpoint or modifying an existing one, verify:
+
+- [ ] Every external fetch (Stripe, Airtable, AI.run, Vectorize) wrapped in try/catch
+- [ ] Error responses use generic messages, never err.message to client
+- [ ] SQL WHERE on email uses COLLATE NOCASE
+- [ ] New endpoint imports and uses CORS_HEADERS from _shared.js
+- [ ] Missing env/binding returns 503, not silent 200
+- [ ] After fixing a pattern in one file, grep for siblings with the same pattern
+- [ ] Rate limits on any endpoint that calls a billed service
+- [ ] INSERT OR IGNORE / ON CONFLICT for idempotent operations
 
 ## Rules
 
