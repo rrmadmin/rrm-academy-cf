@@ -23,7 +23,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
     const url = new URL(request.url);
     const postId = url.searchParams.get('postId');
-    if (!postId) return json({ ok: false, error: 'postId required' }, 400);
+    if (!postId || postId.length > 100) return json({ ok: false, error: 'postId required' }, 400);
 
     const db = env.DB;
 
@@ -126,7 +126,7 @@ export async function onRequestPost(context) {
     }
 
     const { postId, content, parentId } = body;
-    if (!postId) return json({ ok: false, error: 'postId required' }, 400);
+    if (!postId || typeof postId !== 'string' || postId.length > 100) return json({ ok: false, error: 'postId required' }, 400);
     if (!content || typeof content !== 'string' || content.trim().length === 0) {
       return json({ ok: false, error: 'Content required' }, 400);
     }
@@ -146,6 +146,9 @@ export async function onRequestPost(context) {
     }
 
     // If replying, verify parent exists and is top-level
+    if (parentId && (typeof parentId !== 'string' || parentId.length > 100)) {
+      return json({ ok: false, error: 'Invalid parentId' }, 400);
+    }
     if (parentId) {
       const parent = await db.prepare(
         'SELECT id FROM community_comment WHERE id = ? AND post_id = ? AND parent_id IS NULL'
@@ -208,7 +211,7 @@ export async function onRequestDelete({ request, env, waitUntil }) {
     }
 
     const { commentId } = body;
-    if (!commentId) return json({ ok: false, error: 'commentId required' }, 400);
+    if (!commentId || typeof commentId !== 'string' || commentId.length > 100) return json({ ok: false, error: 'commentId required' }, 400);
 
     const db = env.DB;
     const comment = await db.prepare('SELECT * FROM community_comment WHERE id = ?').bind(commentId).first();
@@ -254,7 +257,7 @@ export async function onRequestPatch({ request, env, waitUntil }) {
     }
 
     const { commentId, content } = body;
-    if (!commentId) return json({ ok: false, error: 'commentId required' }, 400);
+    if (!commentId || typeof commentId !== 'string' || commentId.length > 100) return json({ ok: false, error: 'commentId required' }, 400);
     if (!content || typeof content !== 'string' || content.trim().length === 0) {
       return json({ ok: false, error: 'Content required' }, 400);
     }

@@ -91,15 +91,11 @@ async function handleWebhook(request, env, waitUntil) {
       });
     }
   } catch (_e) {
-    if (_e.message && _e.message.includes('no such table')) {
-      log(env, waitUntil, 'billing', 'dedup_check_fail', 'error', _e.message);
-    } else {
-      log(env, waitUntil, 'billing', 'dedup_check_fail', 'error', _e.message, 0, 500);
-      return new Response(JSON.stringify({ ok: false, error: 'Internal error' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+    log(env, waitUntil, 'billing', 'dedup_check_fail', 'error', _e.message, 0, 500);
+    return new Response(JSON.stringify({ ok: false, error: 'Internal error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   // Dispatch to per-event handler. Handlers return Response (to short-circuit) or null (200).

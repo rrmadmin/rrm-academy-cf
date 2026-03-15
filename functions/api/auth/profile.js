@@ -36,11 +36,11 @@ export async function onRequestPatch({ request, env, waitUntil }) {
     const firstName = body.firstName !== undefined ? String(body.firstName || '').trim() : (user.first_name || '');
     const lastName = body.lastName !== undefined ? String(body.lastName || '').trim() : (user.last_name || '');
 
-    // Validate
-    if (!firstName || firstName.length > 100) {
+    // Validate only fields the caller actually sent
+    if (body.firstName !== undefined && (!firstName || firstName.length > 100)) {
       return json({ ok: false, error: 'First name is required (max 100 characters).' }, 400);
     }
-    if (!lastName || lastName.length > 100) {
+    if (body.lastName !== undefined && (!lastName || lastName.length > 100)) {
       return json({ ok: false, error: 'Last name is required (max 100 characters).' }, 400);
     }
 

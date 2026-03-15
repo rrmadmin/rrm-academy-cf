@@ -31,7 +31,7 @@
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "c9e25363ed426bc95da27cc3d37200e66fd303451d106af3f354d0101b3043b8",
+      "hash": "5a863ca0b31125c3393d61a1ba7216661ee36994a209b45c175c2de729ba3c05",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
@@ -39,7 +39,7 @@
       "note": "Email validation + disposable/typo detection"
     },
     "functions/api/stripe-webhook.js": {
-      "hash": "a2636cee830a97be9e62041972d44c8834bbdf81e8dca7b2c570a8a8257500ef",
+      "hash": "a3bd9c13a0d18336ac9619e3140cbd847c99e2f47daf5482be2f68dab75c5cf6",
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
@@ -91,7 +91,7 @@
       "note": "Magic-link token generation"
     },
     "functions/api/newsletter/send.js": {
-      "hash": "582aeda904dd2b31becf721913ff159bf81910892c0795909d73756d75c8480c",
+      "hash": "885c1fb7fbd3419eb0d6b1c9e5430f7f23c3a7c44601063702125aef52d5024f",
       "note": "Mass email send (admin-only)"
     },
     "functions/api/newsletter/unsubscribe.js": {
@@ -111,7 +111,7 @@
       "note": "Community access control (requireMember)"
     },
     "functions/api/admin/cleanup.js": {
-      "hash": "dc79ae6d14feb44dcfe91ea728082c59eeeba07a6589ec2e1c15a4d2dc1dad52",
+      "hash": "e0d020767e2de927d28eb181c7855520015a0ccea25ec563f3ecf44f8caa668b",
       "note": "Expired data deletion from D1"
     },
     "scripts/guard.mjs": {

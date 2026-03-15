@@ -7,8 +7,11 @@
 import { log } from '../_log.js';
 
 export async function onRequestPost({ request, env, waitUntil }) {
+  if (!env.ADMIN_API_SECRET) {
+    return Response.json({ error: 'Not configured' }, { status: 503 });
+  }
   const auth = request.headers.get('Authorization');
-  if (!env.ADMIN_API_SECRET || auth !== `Bearer ${env.ADMIN_API_SECRET}`) {
+  if (auth !== `Bearer ${env.ADMIN_API_SECRET}`) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -30,9 +33,14 @@ export async function onRequestPost({ request, env, waitUntil }) {
   ).bind(ninetyDaysAgo).run();
 
   // Delete pdf_tokens more than 2 days past expiry (expired + 1-day grace)
-  const pdfTokens = await db.prepare(
-    'DELETE FROM pdf_token WHERE expires_at < ?'
-  ).bind(now - 86400).run();
+  let pdfTokens = { meta: { changes: 0 } };
+  try {
+    pdfTokens = await db.prepare(
+      'DELETE FROM pdf_token WHERE expires_at < ?'
+    ).bind(now - 86400).run();
+  } catch (err) {
+    log(env, waitUntil, 'admin', 'cleanup_pdf_token_error', 'error', err.message);
+  }
 
   const result = {
     ok: true,
