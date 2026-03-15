@@ -46,6 +46,7 @@ async function handleEnroll(request, env, waitUntil) {
   } catch {
     return json({ ok: false, error: 'Invalid JSON' }, 400);
   }
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
   const { courseId } = body;
   if (!courseId || typeof courseId !== 'string' || courseId.length > 100) return json({ ok: false, error: 'courseId required' }, 400);

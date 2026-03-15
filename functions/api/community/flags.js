@@ -30,6 +30,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     try { body = await request.json(); } catch {
       return json({ ok: false, error: 'Invalid JSON' }, 400);
     }
+    if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
     const { targetType, targetId, reason, note } = body;
 
@@ -190,6 +191,7 @@ export async function onRequestPatch({ request, env, waitUntil }) {
     try { body = await request.json(); } catch {
       return json({ ok: false, error: 'Invalid JSON' }, 400);
     }
+    if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
     const { flagId, status } = body;
     if (!flagId || typeof flagId !== 'string' || flagId.length > 100) return json({ ok: false, error: 'flagId required' }, 400);

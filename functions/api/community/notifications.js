@@ -19,6 +19,7 @@ export async function onRequestPatch({ request, env, waitUntil }) {
     try { body = await request.json(); } catch {
       return json({ ok: false, error: 'Invalid JSON' }, 400);
     }
+    if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
     const { emailOptOut } = body;
     if (typeof emailOptOut !== 'boolean') {

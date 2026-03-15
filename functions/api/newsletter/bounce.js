@@ -18,6 +18,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
   } catch {
     return new Response('Invalid JSON', { status: 400 });
   }
+  if (typeof payload !== 'object' || payload === null || Array.isArray(payload)) {
+    return new Response('Invalid payload', { status: 400 });
+  }
 
   // SNS subscription confirmation
   if (payload.Type === 'SubscriptionConfirmation' && payload.SubscribeURL) {

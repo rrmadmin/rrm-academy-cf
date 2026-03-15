@@ -40,6 +40,12 @@ export async function onRequestPost(context) {
       headers: { 'Content-Type': 'application/json' },
     });
   }
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    return new Response(JSON.stringify({ error: 'Invalid payload' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
   var recordId = body.recordId || '';
   log(env, waitUntil, 'library', 'deploy_record_triggered', 'ok', recordId, 0, 0);
