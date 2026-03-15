@@ -41,10 +41,11 @@ const pageSchema = {
   articleSection: [
     'Core RRM Principles',
     'Fertility Awareness and Charting Methods',
-    'NaProTECHNOLOGY',
+    'Clinical Approaches',
     'Diagnostic Tools and Techniques',
     'Surgical Techniques',
     'Key Conditions Addressed by RRM',
+    'Overlapping Disciplines',
     'The Broader RRM Framework',
     'Abbreviations and Quick Reference',
     'References',
@@ -53,10 +54,11 @@ const pageSchema = {
     { '@type': 'WebPageElement', name: 'Overview', url: 'https://rrmacademy.org/glossary/#overview' },
     { '@type': 'WebPageElement', name: 'Core RRM Principles', url: 'https://rrmacademy.org/glossary/#core-rrm-principles' },
     { '@type': 'WebPageElement', name: 'Fertility Awareness and Charting Methods', url: 'https://rrmacademy.org/glossary/#fertility-awareness' },
-    { '@type': 'WebPageElement', name: 'NaProTECHNOLOGY', url: 'https://rrmacademy.org/glossary/#naprotechnology' },
+    { '@type': 'WebPageElement', name: 'Clinical Approaches', url: 'https://rrmacademy.org/glossary/#clinical-approaches' },
     { '@type': 'WebPageElement', name: 'Diagnostic Tools and Techniques', url: 'https://rrmacademy.org/glossary/#diagnostic-tools' },
     { '@type': 'WebPageElement', name: 'Surgical Techniques', url: 'https://rrmacademy.org/glossary/#surgical-techniques' },
     { '@type': 'WebPageElement', name: 'Key Conditions Addressed by RRM', url: 'https://rrmacademy.org/glossary/#conditions' },
+    { '@type': 'WebPageElement', name: 'Overlapping Disciplines', url: 'https://rrmacademy.org/glossary/#overlapping-disciplines' },
     { '@type': 'WebPageElement', name: 'The Broader RRM Framework', url: 'https://rrmacademy.org/glossary/#broader-framework' },
     { '@type': 'WebPageElement', name: 'Abbreviations and Quick Reference', url: 'https://rrmacademy.org/glossary/#abbreviations' },
     { '@type': 'WebPageElement', name: 'References', url: 'https://rrmacademy.org/glossary/#references' },
@@ -119,11 +121,12 @@ const breadcrumbSchema = {
           <li><a href="#overview">Overview</a></li>
           <li><a href="#core-rrm-principles">Part I: Core RRM Principles</a></li>
           <li><a href="#fertility-awareness">Part II: Fertility Awareness and Charting Methods</a></li>
-          <li><a href="#naprotechnology">Part III: NaProTECHNOLOGY</a></li>
+          <li><a href="#clinical-approaches">Part III: Clinical Approaches</a></li>
           <li><a href="#diagnostic-tools">Part IV: Diagnostic Tools and Techniques</a></li>
           <li><a href="#surgical-techniques">Part V: Surgical Techniques</a></li>
           <li><a href="#conditions">Part VI: Key Conditions Addressed by RRM</a></li>
-          <li><a href="#broader-framework">Part VII: The Broader RRM Framework</a></li>
+          <li><a href="#overlapping-disciplines">Part VII: Overlapping Disciplines</a></li>
+          <li><a href="#broader-framework">Part VIII: The Broader RRM Framework</a></li>
           <li><a href="#abbreviations">Abbreviations and Quick Reference</a></li>
           <li><a href="#references">References</a></li>
         </ol>
@@ -139,11 +142,12 @@ const breadcrumbSchema = {
             <li><a href="#overview">Overview</a></li>
             <li><a href="#core-rrm-principles">Part I: Core RRM Principles</a></li>
             <li><a href="#fertility-awareness">Part II: Fertility Awareness</a></li>
-            <li><a href="#naprotechnology">Part III: NaProTECHNOLOGY</a></li>
+            <li><a href="#clinical-approaches">Part III: Clinical Approaches</a></li>
             <li><a href="#diagnostic-tools">Part IV: Diagnostic Tools</a></li>
             <li><a href="#surgical-techniques">Part V: Surgical Techniques</a></li>
             <li><a href="#conditions">Part VI: Key Conditions</a></li>
-            <li><a href="#broader-framework">Part VII: Broader Framework</a></li>
+            <li><a href="#overlapping-disciplines">Part VII: Overlapping Disciplines</a></li>
+            <li><a href="#broader-framework">Part VIII: Broader Framework</a></li>
             <li><a href="#abbreviations">Abbreviations</a></li>
             <li><a href="#references">References</a></li>
           </ol>
@@ -156,7 +160,7 @@ const breadcrumbSchema = {
             <h2 id="key-takeaways">Key Takeaways</h2>
             <ul>
               <li><strong>This glossary is a comprehensive reference</strong> for the terminology, methods, conditions, and procedures encountered within Restorative Reproductive Medicine (RRM).</li>
-              <li><strong>Organized into seven parts:</strong> core principles, fertility awareness methods, NaProTECHNOLOGY, diagnostic tools, surgical techniques, key conditions, and the broader RRM framework.</li>
+              <li><strong>Organized into eight parts:</strong> core principles, fertility awareness methods, clinical approaches (NaProTECHNOLOGY, FEMM, NeoFertility, Marquette), diagnostic tools, surgical techniques, key conditions, overlapping disciplines, and the broader RRM framework.</li>
               <li><strong>Intended for patients, students, and clinicians</strong> seeking clear, evidence-based definitions grounded in published research.</li>
               <li><strong>Use the table of contents</strong> to navigate directly to a specific section or term. An abbreviation quick-reference table is included at the end.</li>
             </ul>
@@ -242,9 +246,9 @@ const breadcrumbSchema = {
             <p><strong>The body's resting temperature, measured first thing in the morning before any activity.</strong> A sustained thermal shift (rise) in BBT indicates progesterone release following ovulation (the luteal phase has begun). BBT tracking is a component of several FABMs and is useful for confirming ovulation and identifying luteal phase length.</p>
           </section>
 
-          <!-- Part III: NaProTECHNOLOGY -->
-          <section id="naprotechnology">
-            <h2>Part III: NaProTECHNOLOGY</h2>
+          <!-- Part III: Clinical Approaches -->
+          <section id="clinical-approaches">
+            <h2>Part III: Clinical Approaches</h2>
 
             <h3 id="naprotechnology-definition">NaProTECHNOLOGY (Natural Procreative Technology)</h3>
             <p><strong>A specific women's health science focused on reproductive and gynecologic health, developed by Dr. Thomas Hilgers at the Pope Paul VI Institute.</strong> It utilizes the Creighton Model FertilityCare System for precise cycle monitoring to guide targeted medical (NaPro Medical) and surgical (NaPro Surgery/Advanced Reproductive Surgery) treatments based on identified cycle abnormalities. NaProTECHNOLOGY works cooperatively with the reproductive system and does not employ methods that are inherently suppressive, circumventive, or destructive. A large cohort study (1,045 infertile patients) reported a cumulative live-birth rate exceeding 60% by 24 months of treatment, rising to approximately 70% by 36 months -- comparable to or higher than cumulative live-birth rates achieved after one or more IVF cycles.<sup><a href="#ref-10">10</a></sup><sup><a href="#ref-11">11</a></sup><sup><a href="#ref-12">12</a></sup></p>
@@ -257,6 +261,33 @@ const breadcrumbSchema = {
 
             <h3 id="fertilitas-study">Fertilitas Study</h3>
             <p><strong>One of the largest single-center NaProTECHNOLOGY cohort studies to date,</strong> demonstrating a take-home baby (THB) rate of 35.3% overall, rising to 62.1% among patients who remained with the program for the full duration of treatment. The study confirmed NaPro as associated with a notably high THB rate even in patients with unfavorable prognostic factors such as advanced maternal age, prolonged infertility duration, and prior failed ART attempts. Conditions associated with higher THB rates included recurrent pregnancy loss, hormonal/functional disorders, endometriosis, and male factor infertility.<sup><a href="#ref-13">13</a></sup><sup><a href="#ref-14">14</a></sup></p>
+
+            <h3 id="femm-medical-management">FEMM Medical Management</h3>
+            <p><strong>The clinical treatment arm of the FEMM (Fertility Education and Medical Management) program,</strong> in which trained medical providers use cycle charting data -- cervical mucus observations and urinary LH testing -- alongside cycle-timed lab work to diagnose and treat reproductive and hormonal disorders. FEMM Medical Providers follow protocols developed by the Reproductive Health Research Institute (RHRI) under Dr. Pilar Vigil. Treatment categories include PCOS, thyroid dysfunction, luteal phase deficiency, recurrent pregnancy loss, anovulation, and menopausal disorders. FEMM is distinct from NaProTechnology in its charting method (sympto-hormonal rather than Creighton-only), institutional affiliation (RHRI rather than Saint Paul VI Institute), and protocol framework.<sup><a href="#ref-1">1</a></sup></p>
+
+            <h3 id="rhri">Reproductive Health Research Institute (RHRI)</h3>
+            <p><strong>The research and training organization behind FEMM's medical management protocols,</strong> founded by Dr. Pilar Vigil, a specialist in obstetrics, gynecology, and reproductive endocrinology. RHRI has published peer-reviewed research linking chronic anovulation to long-term health risks including cardiovascular disease and Type 2 diabetes, and has developed clinical protocols for PCOS phenotyping, thyroid-related cycle disruption, and immune evaluation for recurrent pregnancy loss.<sup><a href="#ref-1">1</a></sup></p>
+
+            <h3 id="sympto-hormonal-method">Sympto-Hormonal Method</h3>
+            <p><strong>A fertility awareness-based method that combines cervical mucus observation with urinary hormone testing (typically LH strips) to track ovulation.</strong> FEMM uses a sympto-hormonal approach, distinguishing it from mucus-only methods (Creighton, Billings) and sympto-thermal methods (which add basal body temperature). The addition of objective hormone data provides a second independent confirmation of ovulatory events.<sup><a href="#ref-1">1</a></sup></p>
+
+            <h3 id="neofertility">NeoFertility</h3>
+            <p><strong>A clinical system developed by Dr. Phil Boyle that builds on NaProTechnology training with expanded diagnostic protocols, particularly in reproductive immunology and androgen evaluation.</strong> NeoFertility treats infertility, recurrent miscarriage, and at-risk pregnancy using a structured three-phase process: comprehensive diagnosis (Phase 1), treatment and cycle optimization (Phase 2), and conception timing with confirmed follicle rupture (Phase 3). NeoFertility is method-agnostic -- it accepts charting data from any FABM, not only the Creighton Model.<sup><a href="#ref-1">1</a></sup></p>
+
+            <h3 id="chartneo">ChartNeo</h3>
+            <p><strong>NeoFertility's digital charting platform that integrates patient charting data with the clinical workflow.</strong> ChartNeo connects patients, fertility advisors, and clinicians through shared data, enabling remote monitoring and telehealth delivery. Unlike standalone charting apps, ChartNeo is designed as a clinical tool that feeds directly into diagnostic and treatment decisions.</p>
+
+            <h3 id="ldn">Low-Dose Naltrexone (LDN)</h3>
+            <p><strong>An immune-modifying agent used at 4.5 mg nightly in the NeoFertility protocol for patients with reduced egg reserve, suspected immune-mediated implantation failure, and endorphin deficiency.</strong> Originally developed as an opioid antagonist at higher doses, LDN at low doses modulates immune function by temporarily blocking opioid receptors, triggering a compensatory increase in endorphin production. Published data from NeoFertility shows LDN use associated with significant enhancements in endometrial thickness, ovarian responsiveness, progesterone levels, and clinical pregnancy rates.</p>
+
+            <h3 id="dhea-supplementation">DHEA (Dehydroepiandrosterone) in RRM</h3>
+            <p><strong>An androgen precursor used in NeoFertility protocols to address hypoandrogenemia -- abnormally low androgen levels identified as a contributor to recurrent pregnancy loss and diminished ovarian reserve.</strong> DHEA evaluation is part of NeoFertility's expanded diagnostic panel. When indicated, supplementation aims to restore androgen levels that support follicular development and early pregnancy maintenance.</p>
+
+            <h3 id="immune-modifying-framework">Immune-Modifying Framework</h3>
+            <p><strong>NeoFertility's systematic approach to evaluating and treating immunological factors in infertility and recurrent miscarriage.</strong> The framework includes NK cell panels (natural killer cell activity), food antibody testing, chromosomal abnormality screening, blood clotting markers, and chronic endometritis investigation. Treatment may include LDN, intralipid infusions, corticosteroids, and anticoagulation therapy. This represents one of NeoFertility's most significant expansions beyond standard NaProTechnology protocols.</p>
+
+            <h3 id="marquette-protocol">Marquette Method Clinical Protocol</h3>
+            <p><strong>A fertility awareness-based method that uses the ClearBlue Fertility Monitor to measure urinary estrogen and LH levels, providing objective hormone data alongside optional cervical mucus and temperature observations.</strong> Developed at Marquette University, the method has been integrated into clinical RRM practice through the FACTS training program. The monitor-based approach appeals to clinicians who want quantifiable hormone data as part of the diagnostic workup. Marquette-trained Medical Consultants use the charting data for cycle-timed diagnostics in a framework similar to NaProTechnology and FEMM.<sup><a href="#ref-1">1</a></sup></p>
           </section>
 
           <!-- Part IV: Diagnostic Tools and Techniques -->
@@ -542,9 +573,38 @@ const breadcrumbSchema = {
             <p><strong>Pelvic pain lasting 6 months or more,</strong> often involving multiple overlapping causes -- gynecologic (endometriosis, adenomyosis, pelvic adhesions), musculoskeletal, urologic (interstitial cystitis), gastrointestinal, neuropathic, and psychosocial. RRM addresses gynecologic causes surgically (excision, adhesiolysis) while recognizing the multidimensional nature of CPP and coordinating interdisciplinary care.</p>
           </section>
 
-          <!-- Part VII: The Broader RRM Framework -->
+          <!-- Part VII: Overlapping Disciplines -->
+          <section id="overlapping-disciplines">
+            <h2>Part VII: Overlapping Disciplines</h2>
+
+            <h3 id="reproductive-endocrinology">Reproductive Endocrinology</h3>
+            <p><strong>The study of hormonal regulation of reproduction, encompassing the hypothalamic-pituitary-gonadal axis and its downstream effects on ovulation, implantation, and pregnancy maintenance.</strong> In RRM, reproductive endocrinology is practiced with cycle-timed hormone evaluation -- blood draws ordered at specific cycle phases identified by charting -- rather than single random draws that miss dynamic hormonal patterns. This discipline is core to all RRM approaches, providing the diagnostic foundation for targeted medical treatment.<sup><a href="#ref-3">3</a></sup></p>
+
+            <h3 id="reproductive-immunology">Reproductive Immunology</h3>
+            <p><strong>The investigation of the immune system's role in implantation failure, recurrent miscarriage, and conditions such as endometriosis.</strong> Central to the NeoFertility protocol, reproductive immunology evaluation includes NK cell panels (natural killer cell activity), antiphospholipid antibody testing, food antibody screening, and chronic endometritis workup. Treatment modalities include low-dose naltrexone (LDN), intralipid infusions, corticosteroids, and anticoagulation therapy.<sup><a href="#ref-1">1</a></sup></p>
+
+            <h3 id="restorative-andrology">Restorative Andrology</h3>
+            <p><strong>Male-partner evaluation and treatment within the RRM framework, focused on identifying and correcting the underlying causes of male factor infertility.</strong> Restorative andrology investigates varicocele, hormonal imbalance, oxidative stress, infection, sperm DNA fragmentation, and lifestyle contributors rather than bypassing male factor with intracytoplasmic sperm injection (ICSI). Treatment includes varicocelectomy, antioxidant therapy, hormonal correction, and lifestyle modification.<sup><a href="#ref-35">35</a></sup><sup><a href="#ref-53">53</a></sup></p>
+
+            <h3 id="migs">Minimally Invasive Gynecologic Surgery (MIGS)</h3>
+            <p><strong>Laparoscopic and hysteroscopic surgical techniques used in RRM for excision of endometriosis, adhesiolysis, isthmocele repair, myomectomy, and tubal surgery.</strong> MIGS emphasizes tissue preservation and fertility-sparing approaches -- removing pathology while maintaining or restoring the structural and functional integrity of reproductive organs. Robotic-assisted and mini-laparotomy techniques are included under this umbrella.<sup><a href="#ref-10">10</a></sup><sup><a href="#ref-17">17</a></sup></p>
+
+            <h3 id="cycle-timed-diagnostics">Cycle-Timed Diagnostics</h3>
+            <p><strong>The core RRM concept of ordering hormone panels, ultrasounds, and other tests at specific points in the menstrual cycle rather than on random calendar dates.</strong> By timing bloodwork to charting-identified events (e.g., post-peak day +7 for progesterone, early follicular phase for FSH and estradiol), clinicians detect luteal phase deficiency, anovulation, and hormonal patterns that random-draw testing misses. Cycle-timed diagnostics is what makes fertility charting clinically actionable, not merely observational.<sup><a href="#ref-3">3</a></sup><sup><a href="#ref-1">1</a></sup></p>
+
+            <h3 id="pelvic-floor-physical-therapy">Pelvic Floor Physical Therapy</h3>
+            <p><strong>Specialized rehabilitation addressing musculoskeletal contributors to chronic pelvic pain, dyspareunia, and voiding dysfunction.</strong> Part of the multidisciplinary RRM care team for patients with overlapping gynecologic and musculoskeletal pathology. Pelvic floor therapists assess and treat hypertonic pelvic floor muscles, myofascial trigger points, scar tissue restrictions, and neuromuscular dysfunction that coexist with conditions like endometriosis and adenomyosis.</p>
+
+            <h3 id="fertilitycare-practice">FertilityCare Practice</h3>
+            <p><strong>The professional discipline of teaching fertility awareness charting methods to patients.</strong> FertilityCare Practitioners (FCPs) are credentialed through the American Academy of FertilityCare Professionals (AAFCP) and serve as the charting education arm of the NaPro care model. FCPs teach the Creighton Model FertilityCare System and provide ongoing follow-up to ensure accurate charting. In RRM broadly, certified instructors for each method -- FEMM Teachers, Marquette instructors, sympto-thermal educators -- fill an equivalent role within their respective clinical systems.<sup><a href="#ref-7">7</a></sup></p>
+
+            <h3 id="functional-nutritional-medicine">Functional and Nutritional Medicine</h3>
+            <p><strong>Assessment and optimization of nutritional status, metabolic markers, and lifestyle factors as part of reproductive health restoration.</strong> Includes evaluation of vitamin D, folate, B12, iron, zinc, omega-3 fatty acids, insulin resistance, inflammatory markers, and environmental toxin exposure. In RRM, nutritional and metabolic assessment is not adjunctive -- it is part of the core diagnostic workup, addressing modifiable factors that directly affect ovulation, implantation, and pregnancy maintenance.<sup><a href="#ref-3">3</a></sup></p>
+          </section>
+
+          <!-- Part VIII: The Broader RRM Framework -->
           <section id="broader-framework">
-            <h2>Part VII: The Broader RRM Framework</h2>
+            <h2>Part VIII: The Broader RRM Framework</h2>
 
             <h3 id="napro-vs-rrm">NaProTECHNOLOGY vs. RRM</h3>
             <p><strong>NaProTECHNOLOGY (NaPro) is the most established and studied approach within restorative reproductive medicine</strong> -- developed by Dr. Thomas Hilgers at the Pope Paul VI Institute and based on the Creighton Model. RRM is a broader category describing approaches that share the restorative philosophy. NaPro practitioners may or may not identify their work under the RRM label. Other approaches that share this philosophy include: NeoFertility, Marquette Method-based medical management, FEMM-based care, and various symptothermal or sympto-hormonal approaches. All share the common framework of using biomarker data from cycle charting to optimize normal reproductive function.<sup><a href="#ref-1">1</a></sup></p>
@@ -636,6 +696,14 @@ const breadcrumbSchema = {
                   <tr><td>LH</td><td>Luteinizing Hormone</td></tr>
                   <tr><td>FSH</td><td>Follicle-Stimulating Hormone</td></tr>
                   <tr><td>hCG</td><td>Human Chorionic Gonadotropin</td></tr>
+                  <tr><td>FEMM</td><td>Fertility Education and Medical Management</td></tr>
+                  <tr><td>RHRI</td><td>Reproductive Health Research Institute</td></tr>
+                  <tr><td>LDN</td><td>Low-Dose Naltrexone</td></tr>
+                  <tr><td>DHEA</td><td>Dehydroepiandrosterone</td></tr>
+                  <tr><td>NK cells</td><td>Natural Killer cells</td></tr>
+                  <tr><td>MIGS</td><td>Minimally Invasive Gynecologic Surgery</td></tr>
+                  <tr><td>FCP</td><td>FertilityCare Practitioner</td></tr>
+                  <tr><td>AAFCP</td><td>American Academy of FertilityCare Professionals</td></tr>
                 </tbody>
               </table>
             </div>
@@ -710,6 +778,8 @@ const breadcrumbSchema = {
             <h3>Ready to learn more?</h3>
             <p>Explore our other guides on specific RRM approaches and topics.</p>
             <p><a href="/naprotechnology/" class="btn btn--primary">NaProTechnology Guide</a></p>
+            <p><a href="/femm/" class="btn btn--secondary">FEMM Guide</a></p>
+            <p><a href="/neofertility/" class="btn btn--secondary">NeoFertility Guide</a></p>
             <p><a href="/what-is-rrm/" class="btn btn--secondary">What is RRM?</a></p>
             <p><a href="/library/" class="btn btn--secondary">Browse the Research Library</a></p>
           </div>
