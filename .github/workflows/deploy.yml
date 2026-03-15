@@ -55,7 +55,7 @@ jobs:
 
       - name: Get cache date
         id: date
-        run: echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+        run: echo "date=$(TZ=America/New_York date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
 
       - name: Restore data cache
         uses: actions/cache@v4
@@ -91,7 +91,7 @@ jobs:
           echo "Articles: $(node -e "console.log(require('./src/data/articles.json').length)")"
 
       - name: Fetch all data from Airtable
-        if: ${{ !inputs.skip_fetch && !github.event.client_payload.record_id && !github.event.client_payload.article_id && steps.data-cache.outputs.cache-hit != 'true' }}
+        if: ${{ github.event_name != 'push' && !inputs.skip_fetch && !github.event.client_payload.record_id && !github.event.client_payload.article_id && steps.data-cache.outputs.cache-hit != 'true' }}
         env:
           AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
           TINIFY_API_KEY: ${{ secrets.TINIFY_API_KEY }}
@@ -134,7 +134,7 @@ jobs:
         run: node scripts/verify-citations.mjs --record "${{ github.event.client_payload.record_id }}"
 
       - name: Verify all blog citations (full rebuild)
-        if: ${{ !github.event.client_payload.record_id && !github.event.client_payload.article_id }}
+        if: ${{ github.event_name != 'push' && !github.event.client_payload.record_id && !github.event.client_payload.article_id }}
         run: node scripts/verify-citations.mjs
         continue-on-error: true
 
