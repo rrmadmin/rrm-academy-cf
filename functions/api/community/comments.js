@@ -124,6 +124,7 @@ export async function onRequestPost(context) {
     try { body = await request.json(); } catch {
       return json({ ok: false, error: 'Invalid JSON' }, 400);
     }
+    if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
     const { postId, content, parentId } = body;
     if (!postId || typeof postId !== 'string' || postId.length > 100) return json({ ok: false, error: 'postId required' }, 400);
@@ -209,6 +210,7 @@ export async function onRequestDelete({ request, env, waitUntil }) {
     try { body = await request.json(); } catch {
       return json({ ok: false, error: 'Invalid JSON' }, 400);
     }
+    if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
     const { commentId } = body;
     if (!commentId || typeof commentId !== 'string' || commentId.length > 100) return json({ ok: false, error: 'commentId required' }, 400);
@@ -255,6 +257,7 @@ export async function onRequestPatch({ request, env, waitUntil }) {
     try { body = await request.json(); } catch {
       return json({ ok: false, error: 'Invalid JSON' }, 400);
     }
+    if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
     const { commentId, content } = body;
     if (!commentId || typeof commentId !== 'string' || commentId.length > 100) return json({ ok: false, error: 'commentId required' }, 400);

@@ -164,6 +164,7 @@ export async function onRequestPut(context) {
   } catch {
     return json({ error: 'Invalid JSON' }, 400);
   }
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ error: 'Invalid payload' }, 400);
 
   const baseUrl = 'https://rrm-seo-monitor.administrator-cloudflare.workers.dev';
   const workerHeaders = {
@@ -209,6 +210,7 @@ export async function onRequestPost(context) {
   } catch {
     return json({ error: 'Invalid JSON' }, 400);
   }
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ error: 'Invalid payload' }, 400);
 
   const baseUrl = 'https://rrm-seo-monitor.administrator-cloudflare.workers.dev';
   const workerHeaders = {

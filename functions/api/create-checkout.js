@@ -47,6 +47,7 @@ async function handleCheckout(request, env, waitUntil) {
   } catch {
     return json({ ok: false, error: 'Invalid JSON' }, 400);
   }
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
   const { mode, amount, tier } = body;
   const entry_referrer = typeof body.entry_referrer === 'string' ? body.entry_referrer.slice(0, 2048) : undefined;

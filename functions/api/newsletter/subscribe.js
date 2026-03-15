@@ -42,6 +42,7 @@ export async function onRequestPost(context) {
   } catch {
     return json({ ok: false, error: 'Invalid JSON' }, 400);
   }
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
   // Rate limit by IP (protects ELV API credits)
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';

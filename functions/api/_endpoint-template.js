@@ -56,6 +56,7 @@ async function handlePost(request, env, waitUntil) {
   } catch {
     return json({ ok: false, error: 'Invalid JSON' }, 400);
   }
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
   const { fieldA, fieldB } = body;
   if (typeof fieldA !== 'string' || fieldA.length > 200) {
