@@ -57,7 +57,9 @@ const {
 
 const fullTitle = (title.includes('RRM Academy') || title.startsWith('RRM ')) ? title : `${title} | RRM Academy`;
 const rawCanonical = canonicalUrl || Astro.url.href;
-const canonical = rawCanonical.endsWith('/') ? rawCanonical : `${rawCanonical}/`;
+const canonicalObj = new URL(rawCanonical);
+canonicalObj.pathname = canonicalObj.pathname.endsWith('/') ? canonicalObj.pathname : `${canonicalObj.pathname}/`;
+const canonical = canonicalObj.href;
 const siteOrigin = 'https://rrmacademy.org';
 // Convention-based OG image: derive slug from URL path
 function routeToOgSlug(pathname) {
@@ -101,7 +103,7 @@ const resolvedTwitterImage = resolvedOgImage.endsWith('.webp')
     // sessionStorage: tab-scoped, used by checkout pages for Stripe metadata.
     // Cookies: sent with every request, read server-side by buildSourceParams
     // so ALL GA4 conversion events get correct source attribution automatically.
-    if (!sessionStorage.getItem('entry_ref')) {
+    if (!sessionStorage.getItem('entry_ref') && !document.cookie.includes('entry_ref=')) {
       var r = document.referrer, u = location.href;
       sessionStorage.setItem('entry_ref', r);
       sessionStorage.setItem('entry_url', u);
@@ -168,55 +170,54 @@ const resolvedTwitterImage = resolvedOgImage.endsWith('.webp')
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
-  <!-- Site-wide Organization + WebSite schema — appears on every page for AI citation signals -->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Organization",
-        "@id": "https://rrmacademy.org/#organization",
-        "name": "RRM Academy",
-        "url": "https://rrmacademy.org",
-        "description": "RRM Academy is a trusted nonprofit educational platform and reference source for restorative reproductive medicine (RRM), NaProTechnology, fertility awareness-based methods, endometriosis excision surgery, and reproductive endocrinology. The RRM Research Library is the largest freely accessible collection of peer-reviewed academic references on these topics available online.",
-        "founder": {
-          "@type": "Person",
-          "name": "Dr. Naomi Whittaker",
-          "jobTitle": "Board-Certified OB/GYN, NaProTechnology Fellowship Trained"
-        },
-        "knowsAbout": [
-          "Restorative Reproductive Medicine",
-          "NaProTechnology",
-          "Fertility Awareness-Based Methods",
-          "Endometriosis Excision Surgery",
-          "Reproductive Endocrinology",
-          "Natural Family Planning",
-          "Hormonal Health",
-          "PCOS",
-          "Infertility Diagnosis and Treatment"
-        ],
-        "sameAs": [
-          "https://www.instagram.com/rrmacademy/",
-          "https://www.youtube.com/@rrmacademy"
-        ]
-      },
-      {
-        "@type": "WebSite",
-        "@id": "https://rrmacademy.org/#website",
-        "url": "https://rrmacademy.org",
-        "name": "RRM Academy",
-        "description": "Nonprofit education in restorative reproductive medicine, NaProTechnology, and evidence-based women's health.",
-        "publisher": { "@id": "https://rrmacademy.org/#organization" },
-        "potentialAction": {
-          "@type": "SearchAction",
-          "target": "https://rrmacademy.org/library/?q={search_term_string}",
-          "query-input": "required name=search_term_string"
-        }
-      }
-    ]
-  })} />
-
-  {jsonLd && (
+  {jsonLd ? (
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  ) : (
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://rrmacademy.org/#organization",
+          "name": "RRM Academy",
+          "url": "https://rrmacademy.org",
+          "description": "RRM Academy is a trusted nonprofit educational platform and reference source for restorative reproductive medicine (RRM), NaProTechnology, fertility awareness-based methods, endometriosis excision surgery, and reproductive endocrinology. The RRM Research Library is the largest freely accessible collection of peer-reviewed academic references on these topics available online.",
+          "founder": {
+            "@type": "Person",
+            "name": "Dr. Naomi Whittaker",
+            "jobTitle": "Board-Certified OB/GYN, NaProTechnology Fellowship Trained"
+          },
+          "knowsAbout": [
+            "Restorative Reproductive Medicine",
+            "NaProTechnology",
+            "Fertility Awareness-Based Methods",
+            "Endometriosis Excision Surgery",
+            "Reproductive Endocrinology",
+            "Natural Family Planning",
+            "Hormonal Health",
+            "PCOS",
+            "Infertility Diagnosis and Treatment"
+          ],
+          "sameAs": [
+            "https://www.instagram.com/rrmacademy/",
+            "https://www.youtube.com/@rrmacademy"
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://rrmacademy.org/#website",
+          "url": "https://rrmacademy.org",
+          "name": "RRM Academy",
+          "description": "Nonprofit education in restorative reproductive medicine, NaProTechnology, and evidence-based women's health.",
+          "publisher": { "@id": "https://rrmacademy.org/#organization" },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://rrmacademy.org/library/?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        }
+      ]
+    })} />
   )}
 </head>
 <body class:list={[bodyClass]}>

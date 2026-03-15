@@ -147,7 +147,7 @@ export async function fetchAllArticles(): Promise<Article[]> {
           headers: { Authorization: `Bearer ${pat}` },
         });
         lastError = undefined;
-        if (res.status !== 429) break;
+        if (res.ok || (res.status !== 429 && res.status < 500)) break;
       } catch (e: any) {
         lastError = e;
       }
@@ -201,7 +201,8 @@ export function getRelatedArticles(
     .filter(a => a.id !== article.id)
     .map(a => {
       const topicOverlap = a.topics.filter(t => topicSet.has(t)).length;
-      const termOverlap = a.searchTerms.filter(t => termSet.has(t.toLowerCase())).length;
+      const lowerTerms = a.searchTerms.map(t => t.toLowerCase());
+      const termOverlap = lowerTerms.filter(t => termSet.has(t)).length;
       const journalMatch = journal && a.journal.toLowerCase() === journal ? 1 : 0;
       return {
         article: a,
