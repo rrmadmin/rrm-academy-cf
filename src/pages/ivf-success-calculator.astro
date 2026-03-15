@@ -243,14 +243,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   .factors-result { margin-top: var(--space-6); }
   .factors-result h2 { font-family: var(--font-display); font-size: 1.375rem; font-weight: 600; margin-bottom: var(--space-3); }
-  .factors-result .disclaimer-small { font-size: 0.8125rem; color: var(--text-muted); font-style: italic; margin-bottom: var(--space-4); }
-  .factor-item { display: flex; gap: var(--space-3); padding: var(--space-4); background: var(--neutral-100); border-radius: var(--radius-sm); margin-bottom: var(--space-3); align-items: flex-start; }
-  .factor-direction { font-size: 1.25rem; flex-shrink: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
-  .factor-direction.down { background: #fde8e8; color: var(--color-error); }
-  .factor-direction.up { background: var(--green-100); color: var(--green-700); }
-  .factor-direction.neutral-dir { background: var(--neutral-200); color: var(--neutral-600); }
-  .factor-text { font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6; }
-  .factor-text strong { color: var(--text-primary); }
+  .factors-result .disclaimer-small { font-size: 0.8125rem; color: var(--text-muted); font-style: italic; margin-bottom: var(--space-6); }
+  .factor-card { background: var(--neutral-100); border-radius: var(--radius-sm); padding: var(--space-4) var(--space-5); }
+  .factor-or { font-family: var(--font-display); font-size: 1.75rem; font-weight: 600; margin-bottom: var(--space-1); }
+  .factor-or.down { color: var(--color-error); }
+  .factor-or.up { color: var(--green-700); }
+  .factor-or.neutral-dir { color: var(--accent); }
+  .factor-label { font-size: 0.8125rem; color: var(--text-secondary); }
 
   .before-ivf { background: var(--purple-50); border: 1px solid var(--purple-200); border-radius: var(--radius-lg); padding: var(--space-8); margin-top: var(--space-6); }
   .before-ivf h2 { font-family: var(--font-display); font-size: 1.25rem; font-weight: 600; color: var(--accent); margin-bottom: var(--space-3); }
@@ -430,7 +429,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <div class="card factors-result" id="factors-result" style="display:none">
       <h2>Factors That May Affect Your Outcome</h2>
       <p class="disclaimer-small">These are population-level associations, not personalized predictions. Your individual circumstances may differ.</p>
-      <div id="factors-list"></div>
+      <div class="stats-grid" id="factors-list"></div>
     </div>
 
     <div class="card complications-card">
@@ -628,9 +627,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     if (facts.length) {
       fr.style.display = 'block';
       document.getElementById('factors-list').innerHTML = facts.map(function(f) {
-        var arrow = f.d === 'down' ? '\u2193' : f.d === 'up' ? '\u2191' : '\u2194';
         var cls = f.d === 'neutral' ? 'neutral-dir' : f.d;
-        return '<div class="factor-item"><div class="factor-direction ' + cls + '">' + arrow + '</div><div class="factor-text"><strong>' + f.t + '</strong> (OR ' + f.or + ').</div></div>';
+        return '<div class="factor-card"><div class="factor-or ' + cls + '">OR ' + f.or + '</div><div class="factor-label">' + f.t + '</div></div>';
       }).join('');
     } else { fr.style.display = 'none'; }
 
