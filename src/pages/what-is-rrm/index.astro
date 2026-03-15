@@ -801,35 +801,35 @@ const jsonLd = {
 
             <figure class="chart-figure">
               <figcaption class="chart-heading">Live Birth Rates</figcaption>
-              <table class="chart-bar" aria-label="Live birth rates comparison between RRM and IVF">
-                <tbody>
-                  <tr class="chart-bar--rrm">
-                    <th scope="row">RRM (Boyle 2025)</th>
-                    <td style="--size:0.41"></td>
-                    <td>41%</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">IVF, multi-embryo (SART)</th>
-                    <td style="--size:0.40"></td>
-                    <td>40%</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">IVF, multi-embryo (CDC)</th>
-                    <td style="--size:0.41"></td>
-                    <td>41%</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">IVF, single embryo (SART)</th>
-                    <td style="--size:0.306"></td>
-                    <td>30.6%</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">IVF, single embryo (HFEA)</th>
-                    <td style="--size:0.244"></td>
-                    <td>24.4%</td>
-                  </tr>
-                </tbody>
-              </table>
+              <div class="chart-bar" role="table" aria-label="Live birth rates comparison between RRM and IVF">
+                <div role="rowgroup">
+                  <div class="chart-bar__row chart-bar--rrm" role="row">
+                    <div class="chart-bar__label" role="rowheader">RRM (Boyle 2025)</div>
+                    <div class="chart-bar__value" role="cell" style="--size:0.41"></div>
+                    <div class="chart-bar__pct" role="cell">41%</div>
+                  </div>
+                  <div class="chart-bar__row" role="row">
+                    <div class="chart-bar__label" role="rowheader">IVF, multi-embryo (SART)</div>
+                    <div class="chart-bar__value" role="cell" style="--size:0.40"></div>
+                    <div class="chart-bar__pct" role="cell">40%</div>
+                  </div>
+                  <div class="chart-bar__row" role="row">
+                    <div class="chart-bar__label" role="rowheader">IVF, multi-embryo (CDC)</div>
+                    <div class="chart-bar__value" role="cell" style="--size:0.41"></div>
+                    <div class="chart-bar__pct" role="cell">41%</div>
+                  </div>
+                  <div class="chart-bar__row" role="row">
+                    <div class="chart-bar__label" role="rowheader">IVF, single embryo (SART)</div>
+                    <div class="chart-bar__value" role="cell" style="--size:0.306"></div>
+                    <div class="chart-bar__pct" role="cell">30.6%</div>
+                  </div>
+                  <div class="chart-bar__row" role="row">
+                    <div class="chart-bar__label" role="rowheader">IVF, single embryo (HFEA)</div>
+                    <div class="chart-bar__value" role="cell" style="--size:0.244"></div>
+                    <div class="chart-bar__pct" role="cell">24.4%</div>
+                  </div>
+                </div>
+              </div>
               <p class="chart-note">RRM achieves comparable live birth rates while treating the underlying condition.</p>
             </figure>
 
@@ -992,98 +992,98 @@ const jsonLd = {
 
             <figure class="chart-figure">
               <figcaption class="chart-heading">Adjusted Success Rate by Age</figcaption>
-              <table class="chart-bar" aria-label="Adjusted cumulative take-home baby rates by age group">
-                <tbody>
-                  <tr class="chart-bar--rrm">
-                    <th scope="row">Age 18-30</th>
-                    <td style="--size:0.837"></td>
-                    <td>83.7%</td>
-                  </tr>
-                  <tr class="chart-bar--rrm">
-                    <th scope="row">Age 36-40</th>
-                    <td style="--size:0.533"></td>
-                    <td>53.3%</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Age over 40</th>
-                    <td style="--size:0.244"></td>
-                    <td>24.4%</td>
-                  </tr>
-                </tbody>
-              </table>
+              <div class="chart-bar" role="table" aria-label="Adjusted cumulative take-home baby rates by age group">
+                <div role="rowgroup">
+                  <div class="chart-bar__row chart-bar--rrm" role="row">
+                    <div class="chart-bar__label" role="rowheader">Age 18-30</div>
+                    <div class="chart-bar__value" role="cell" style="--size:0.837"></div>
+                    <div class="chart-bar__pct" role="cell">83.7%</div>
+                  </div>
+                  <div class="chart-bar__row chart-bar--rrm" role="row">
+                    <div class="chart-bar__label" role="rowheader">Age 36-40</div>
+                    <div class="chart-bar__value" role="cell" style="--size:0.533"></div>
+                    <div class="chart-bar__pct" role="cell">53.3%</div>
+                  </div>
+                  <div class="chart-bar__row" role="row">
+                    <div class="chart-bar__label" role="rowheader">Age over 40</div>
+                    <div class="chart-bar__value" role="cell" style="--size:0.244"></div>
+                    <div class="chart-bar__pct" role="cell">24.4%</div>
+                  </div>
+                </div>
+              </div>
               <p class="chart-note">Adjusted cumulative take-home baby rates. Younger women had significantly higher success.</p>
             </figure>
 
             <figure class="chart-figure">
               <figcaption class="chart-heading">Crude Live Birth Rate by Diagnosis</figcaption>
-              <table class="chart-bar" aria-label="Live birth rate by diagnostic category">
-                <tbody>
-                  <tr class="chart-bar--rrm">
-                    <th scope="row">General conditions (18%)</th>
-                    <td style="--size:0.369"></td>
-                    <td>36.9%</td>
-                  </tr>
-                  <tr class="chart-bar--rrm">
-                    <th scope="row">Functional disorders (86%)</th>
-                    <td style="--size:0.335"></td>
-                    <td>33.5%</td>
-                  </tr>
-                  <tr class="chart-bar--rrm">
-                    <th scope="row">Cervical mucus (26%)</th>
-                    <td style="--size:0.322"></td>
-                    <td>32.2%</td>
-                  </tr>
-                  <tr class="chart-bar--rrm">
-                    <th scope="row">Endometrial (37%)</th>
-                    <td style="--size:0.315"></td>
-                    <td>31.5%</td>
-                  </tr>
-                  <tr class="chart-bar--rrm">
-                    <th scope="row">Male factor (35%)</th>
-                    <td style="--size:0.303"></td>
-                    <td>30.3%</td>
-                  </tr>
-                  <tr class="chart-bar--rrm">
-                    <th scope="row">Endometriosis (24%)</th>
-                    <td style="--size:0.279"></td>
-                    <td>27.9%</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Tubal factor (13%)</th>
-                    <td style="--size:0.254"></td>
-                    <td>25.4%</td>
-                  </tr>
-                </tbody>
-              </table>
+              <div class="chart-bar" role="table" aria-label="Live birth rate by diagnostic category">
+                <div role="rowgroup">
+                  <div class="chart-bar__row chart-bar--rrm" role="row">
+                    <div class="chart-bar__label" role="rowheader">General conditions (18%)</div>
+                    <div class="chart-bar__value" role="cell" style="--size:0.369"></div>
+                    <div class="chart-bar__pct" role="cell">36.9%</div>
+                  </div>
+                  <div class="chart-bar__row chart-bar--rrm" role="row">
+                    <div class="chart-bar__label" role="rowheader">Functional disorders (86%)</div>
+                    <div class="chart-bar__value" role="cell" style="--size:0.335"></div>
+                    <div class="chart-bar__pct" role="cell">33.5%</div>
+                  </div>
+                  <div class="chart-bar__row chart-bar--rrm" role="row">
+                    <div class="chart-bar__label" role="rowheader">Cervical mucus (26%)</div>
+                    <div class="chart-bar__value" role="cell" style="--size:0.322"></div>
+                    <div class="chart-bar__pct" role="cell">32.2%</div>
+                  </div>
+                  <div class="chart-bar__row chart-bar--rrm" role="row">
+                    <div class="chart-bar__label" role="rowheader">Endometrial (37%)</div>
+                    <div class="chart-bar__value" role="cell" style="--size:0.315"></div>
+                    <div class="chart-bar__pct" role="cell">31.5%</div>
+                  </div>
+                  <div class="chart-bar__row chart-bar--rrm" role="row">
+                    <div class="chart-bar__label" role="rowheader">Male factor (35%)</div>
+                    <div class="chart-bar__value" role="cell" style="--size:0.303"></div>
+                    <div class="chart-bar__pct" role="cell">30.3%</div>
+                  </div>
+                  <div class="chart-bar__row chart-bar--rrm" role="row">
+                    <div class="chart-bar__label" role="rowheader">Endometriosis (24%)</div>
+                    <div class="chart-bar__value" role="cell" style="--size:0.279"></div>
+                    <div class="chart-bar__pct" role="cell">27.9%</div>
+                  </div>
+                  <div class="chart-bar__row" role="row">
+                    <div class="chart-bar__label" role="rowheader">Tubal factor (13%)</div>
+                    <div class="chart-bar__value" role="cell" style="--size:0.254"></div>
+                    <div class="chart-bar__pct" role="cell">25.4%</div>
+                  </div>
+                </div>
+              </div>
               <p class="chart-note">Parentheses show prevalence in cohort. Couples averaged 2.5 diagnoses each.</p>
             </figure>
 
             <figure class="chart-figure chart-figure--last">
               <figcaption class="chart-heading">Adjusted Rates Across NaPro Studies</figcaption>
-              <table class="chart-bar" aria-label="Adjusted cumulative take-home baby rates across NaPro studies">
-                <tbody>
-                  <tr>
-                    <th scope="row">Tham 2012 (n=108)</th>
-                    <td style="--size:0.660"></td>
-                    <td>66.0%</td>
-                  </tr>
-                  <tr class="chart-bar--rrm">
-                    <th scope="row">Sanchez-Mendez 2025, 36 mo (n=1,310)</th>
-                    <td style="--size:0.621"></td>
-                    <td>62.1%</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Stanford 2008 (n=1,072)</th>
-                    <td style="--size:0.528"></td>
-                    <td>52.8%</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Stanford 2021 (n=370)</th>
-                    <td style="--size:0.290"></td>
-                    <td>29.0%</td>
-                  </tr>
-                </tbody>
-              </table>
+              <div class="chart-bar" role="table" aria-label="Adjusted cumulative take-home baby rates across NaPro studies">
+                <div role="rowgroup">
+                  <div class="chart-bar__row" role="row">
+                    <div class="chart-bar__label" role="rowheader">Tham 2012 (n=108)</div>
+                    <div class="chart-bar__value" role="cell" style="--size:0.660"></div>
+                    <div class="chart-bar__pct" role="cell">66.0%</div>
+                  </div>
+                  <div class="chart-bar__row chart-bar--rrm" role="row">
+                    <div class="chart-bar__label" role="rowheader">Sanchez-Mendez 2025, 36 mo (n=1,310)</div>
+                    <div class="chart-bar__value" role="cell" style="--size:0.621"></div>
+                    <div class="chart-bar__pct" role="cell">62.1%</div>
+                  </div>
+                  <div class="chart-bar__row" role="row">
+                    <div class="chart-bar__label" role="rowheader">Stanford 2008 (n=1,072)</div>
+                    <div class="chart-bar__value" role="cell" style="--size:0.528"></div>
+                    <div class="chart-bar__pct" role="cell">52.8%</div>
+                  </div>
+                  <div class="chart-bar__row" role="row">
+                    <div class="chart-bar__label" role="rowheader">Stanford 2021 (n=370)</div>
+                    <div class="chart-bar__value" role="cell" style="--size:0.290"></div>
+                    <div class="chart-bar__pct" role="cell">29.0%</div>
+                  </div>
+                </div>
+              </div>
               <p class="chart-note">Adjusted cumulative take-home baby rates from general infertility populations. Boyle 2018 (32.1%, post-IVF-failure cohort) excluded for comparability.</p>
             </figure>
           </div>
@@ -1723,27 +1723,27 @@ const jsonLd = {
   }
 
   /* Horizontal Bar Chart (semantic table) */
-  .chart-bar tbody {
+  .chart-bar > div {
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
   }
 
-  .chart-bar tr {
+  .chart-bar__row {
     display: grid;
     grid-template-columns: 180px 1fr 3.5em;
     align-items: center;
     gap: var(--space-3);
   }
 
-  .chart-bar th {
+  .chart-bar__label {
     font-size: 0.8125rem;
     font-weight: 400;
     color: var(--text-secondary);
     text-align: right;
   }
 
-  .chart-bar td:first-of-type {
+  .chart-bar__value {
     height: 20px;
     background: var(--bg-body);
     border-radius: var(--radius-sm);
@@ -1751,7 +1751,7 @@ const jsonLd = {
     overflow: hidden;
   }
 
-  .chart-bar td:first-of-type::before {
+  .chart-bar__value::before {
     content: '';
     position: absolute;
     top: 0;
@@ -1762,17 +1762,17 @@ const jsonLd = {
     border-radius: var(--radius-sm);
   }
 
-  .chart-bar--rrm td:first-of-type::before {
+  .chart-bar--rrm .chart-bar__value::before {
     background: var(--accent);
   }
 
-  .chart-bar td:last-of-type {
+  .chart-bar__pct {
     font-size: 0.8125rem;
     font-weight: 600;
     color: var(--text-primary);
   }
 
-  .chart-bar--rrm td:last-of-type {
+  .chart-bar--rrm .chart-bar__pct {
     color: var(--accent);
   }
 
@@ -2021,17 +2021,17 @@ const jsonLd = {
       padding: var(--space-4);
     }
 
-    .chart-bar tr {
+    .chart-bar__row {
       grid-template-columns: 1fr 3.5em;
     }
 
-    .chart-bar th {
+    .chart-bar__label {
       grid-column: 1 / -1;
       text-align: left;
       font-size: 0.75rem;
     }
 
-    .chart-bar td:first-of-type {
+    .chart-bar__value {
       grid-column: 1 / 2;
     }
 
