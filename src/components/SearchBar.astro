@@ -367,10 +367,16 @@
       var RRF_K = 60;
       var fusedMap = {}; // url -> { score, data }
 
+      // Normalize URLs to relative paths (Pagefind may return absolute pages.dev URLs)
+      function toRelative(url) {
+        try { return new URL(url).pathname; } catch(e) { return url; }
+      }
+
       // Score Pagefind results
       for (var pi = 0; pi < pfLoaded.length; pi++) {
         var pItem = pfLoaded[pi];
-        var pUrl = pItem.url;
+        var pUrl = toRelative(pItem.url);
+        pItem.url = pUrl;
         fusedMap[pUrl] = {
           score: 1 / (RRF_K + pItem._pfRank),
           data: pItem
@@ -380,7 +386,7 @@
       // Score and merge semantic results
       for (var si = 0; si < semanticResults.length; si++) {
         var sItem = semanticResults[si];
-        var sUrl = sItem.url;
+        var sUrl = toRelative(sItem.url);
         var sRank = si;
         if (isNonEnglish(sItem.title)) sRank += 1000;
 
@@ -439,13 +445,15 @@
           var lateResults = (lateData && lateData.results || []).filter(function(sr) { return sr.score >= 0.5; });
           var existingUrls = {};
           for (var ei = 0; ei < preloadedData.length; ei++) {
-            existingUrls[preloadedData[ei].url] = true;
-            existingUrls[extractSlug(preloadedData[ei].url)] = true;
+            var eUrl = toRelative(preloadedData[ei].url);
+            existingUrls[eUrl] = true;
+            existingUrls[extractSlug(eUrl)] = true;
           }
           var added = 0;
           for (var li = 0; li < lateResults.length; li++) {
             var lr = lateResults[li];
-            if (existingUrls[lr.url] || existingUrls[lr.slug]) continue;
+            var lrUrl = toRelative(lr.url);
+            if (existingUrls[lrUrl] || existingUrls[lr.slug]) continue;
             preloadedData.push({
               url: lr.url, excerpt: '',
               meta: { title: lr.title, authors: lr.authors || '', year: lr.year ? String(lr.year) : '', type: lr.type || 'Research' },
