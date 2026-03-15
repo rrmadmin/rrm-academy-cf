@@ -316,7 +316,7 @@
     for (var i = 0; i < words.length; i++) {
       if (_engWordRe.test(words[i])) engCount++;
     }
-    return (engCount / words.length) < 0.15;
+    return (engCount / words.length) < 0.10;
   }
 
   function extractSlug(url) {
@@ -391,6 +391,8 @@
         if (existingKey) {
           // Same article, different URL -- boost and keep higher-ranked
           fusedMap[existingKey].score += 1 / (RRF_K + pItem._pfRank);
+        } else if (fusedMap[pUrl]) {
+          fusedMap[pUrl].score += 1 / (RRF_K + pItem._pfRank);
         } else {
           fusedMap[pUrl] = {
             score: 1 / (RRF_K + pItem._pfRank),
@@ -469,7 +471,7 @@
           var existingUrls = {};
           var existingRecIds = {};
           for (var ei = 0; ei < preloadedData.length; ei++) {
-            var eUrl = toRelative(preloadedData[ei].url);
+            var eUrl = toRelative(preloadedData[ei].url).toLowerCase();
             existingUrls[eUrl] = true;
             existingUrls[extractSlug(eUrl)] = true;
             var eRecId = extractRecId(eUrl);
@@ -478,9 +480,9 @@
           var added = 0;
           for (var li = 0; li < lateResults.length; li++) {
             var lr = lateResults[li];
-            var lrUrl = toRelative(lr.url);
+            var lrUrl = toRelative(lr.url).toLowerCase();
             var lrRecId = extractRecId(lrUrl);
-            if (existingUrls[lrUrl] || existingUrls[lr.slug] || (lrRecId && existingRecIds[lrRecId])) continue;
+            if (existingUrls[lrUrl] || existingUrls[lr.slug && lr.slug.toLowerCase()] || (lrRecId && existingRecIds[lrRecId])) continue;
             preloadedData.push({
               url: lr.url, excerpt: '',
               meta: { title: lr.title, authors: lr.authors || '', year: lr.year ? String(lr.year) : '', type: lr.type || 'Research' },

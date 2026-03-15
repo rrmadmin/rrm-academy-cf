@@ -53,7 +53,7 @@ function buildEntries() {
     if (a.searchTerms && a.searchTerms.length) parts.push(a.searchTerms.join(', '));
     if (a.abstract) parts.push(a.abstract);
     entries.push({
-      slug: a.slug, text: parts.join('. '),
+      id: a.id, slug: a.slug, text: parts.join('. '),
       type: 'Research', url: `/library/${a.slug}/`,
       title: a.title, year: a.year || null, authors: a.shortCitation || '',
     });
@@ -130,7 +130,7 @@ export default {
         const vectors = batch.map((e, idx) => {
           const metadata = { slug: e.slug, title: e.title, authors: e.authors, type: e.type, url: e.url };
           if (e.year !== null) metadata.year = e.year;
-          return { id: vectorId(e.slug), values: embeddings[idx], metadata };
+          return { id: e.id || vectorId(e.slug), values: embeddings[idx], metadata };
         });
 
         await env.VECTORIZE.upsert(vectors);
