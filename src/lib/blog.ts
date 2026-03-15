@@ -36,7 +36,7 @@ function transformRecord(record: AirtableRecord): BlogPost | null {
 
   return {
     id: record.id,
-    slug: slug.trim(),
+    slug: slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, ''),
     title: title.trim(),
     excerpt: f['Excerpt'] || '',
     content: f['Content'] || '',
@@ -99,7 +99,7 @@ export async function fetchAllPosts(): Promise<BlogPost[]> {
           headers: { Authorization: `Bearer ${pat}` },
         });
         lastError = undefined;
-        if (res.status !== 429) break;
+        if (res.ok || (res.status !== 429 && res.status < 500)) break;
       } catch (e: any) {
         lastError = e;
       }
