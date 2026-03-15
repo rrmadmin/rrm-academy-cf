@@ -6,6 +6,7 @@ const RATE_LIMIT = 20;
 const RATE_WINDOW = 60_000;
 
 function isRateLimited(ip) {
+  if (rateLimitMap.size > 10000) rateLimitMap.clear();
   const now = Date.now();
   const entry = rateLimitMap.get(ip);
   if (!entry || now - entry.start > RATE_WINDOW) {
@@ -55,6 +56,7 @@ export async function onRequestGet(context) {
     const seen = new Set();
     const results = [];
     for (const m of matches.matches) {
+      if (!m.metadata) continue;
       const url = m.metadata.url || `/library/${m.metadata.slug}/`;
       const recMatch = url.match(/-(rec[a-zA-Z0-9]+)\/?$/);
       const dedupKey = recMatch ? recMatch[1].toLowerCase() : url.toLowerCase();
