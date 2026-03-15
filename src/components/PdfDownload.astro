@@ -12,39 +12,51 @@ const config = GUIDE_PDFS[slug];
 if (!config?.enabled) return;
 ---
 
-<div class="pdf-download card" data-slug={slug}>
-  <!-- Error banner from ?pdf_error query param -->
-  <div class="pdf-error" id="pdf-error" hidden></div>
+<!-- Trigger button (placed inline wherever the component is used) -->
+<button type="button" class="btn btn--secondary btn--sm pdf-trigger" id="pdf-trigger" data-slug={slug}>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+  Download PDF
+</button>
 
-  <!-- Form (logged-out default) -->
-  <div id="pdf-form-wrap">
-    <p class="pdf-heading">Get this guide as a PDF</p>
-    <form id="pdf-form" novalidate>
-      <div class="pdf-email-row" id="pdf-email-row">
-        <input
-          class="form-input"
-          type="email"
-          id="pdf-email"
-          name="email"
-          required
-          autocomplete="email"
-          placeholder="Your email address"
-        />
-      </div>
+<!-- Modal (hidden by default) -->
+<div class="pdf-modal" id="pdf-modal" hidden>
+  <div class="pdf-modal__backdrop"></div>
+  <div class="pdf-modal__card">
+    <button type="button" class="pdf-modal__close" id="pdf-modal-close" aria-label="Close">&times;</button>
 
-      {TURNSTILE_SITE_KEY && (
-        <div id="pdf-turnstile-container" data-sitekey={TURNSTILE_SITE_KEY}></div>
-      )}
+    <div id="pdf-modal-form-wrap">
+      <h2 class="pdf-modal__heading">Get this guide as a PDF</h2>
+      <p class="pdf-modal__desc">Enter your email and we'll send you a download link - valid for 24 hours.</p>
 
-      <button type="submit" class="btn btn--primary pdf-submit" id="pdf-submit">
-        Download PDF
-      </button>
-    </form>
-  </div>
+      <div class="pdf-modal__error" id="pdf-error" hidden></div>
 
-  <!-- Success message -->
-  <div id="pdf-success" class="pdf-success" hidden>
-    <p>Check your inbox. The link expires in 24 hours.</p>
+      <form id="pdf-form" novalidate>
+        <div class="form-group" id="pdf-email-row">
+          <input
+            class="form-input"
+            type="email"
+            id="pdf-email"
+            name="email"
+            required
+            autocomplete="email"
+            placeholder="Your email address"
+          />
+        </div>
+
+        {TURNSTILE_SITE_KEY && (
+          <div id="pdf-turnstile-container" data-sitekey={TURNSTILE_SITE_KEY}></div>
+        )}
+
+        <button type="submit" class="btn btn--primary pdf-modal__submit" id="pdf-submit">
+          Send download link
+        </button>
+      </form>
+    </div>
+
+    <div id="pdf-success" class="pdf-modal__success" hidden>
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--purple-700)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <p>Check your inbox. The download link expires in 24 hours.</p>
+    </div>
   </div>
 </div>
 
@@ -54,51 +66,91 @@ if (!config?.enabled) return;
 
 <script is:inline>
   (function () {
-    var wrap = document.querySelector('.pdf-download');
-    if (!wrap) return;
+    var trigger = document.getElementById('pdf-trigger');
+    if (!trigger) return;
 
-    var slug = wrap.dataset.slug;
+    var slug = trigger.dataset.slug;
+    var modal = document.getElementById('pdf-modal');
+    var closeBtn = document.getElementById('pdf-modal-close');
     var form = document.getElementById('pdf-form');
-    var formWrap = document.getElementById('pdf-form-wrap');
+    var formWrap = document.getElementById('pdf-modal-form-wrap');
     var submitBtn = document.getElementById('pdf-submit');
     var emailRow = document.getElementById('pdf-email-row');
     var emailInput = document.getElementById('pdf-email');
     var errorEl = document.getElementById('pdf-error');
     var successEl = document.getElementById('pdf-success');
+    var descEl = modal.querySelector('.pdf-modal__desc');
     var turnstileContainer = document.getElementById('pdf-turnstile-container');
     var turnstileWidgetId = null;
     var pendingSubmit = null;
     var isLoggedIn = false;
 
-    // Check for ?pdf_error query param
-    var params = new URLSearchParams(window.location.search);
-    var pdfError = params.get('pdf_error');
-    if (pdfError) {
-      var errorMessages = {
-        expired: 'That download link has expired. Enter your email to get a new one.',
-        used: 'That link has already been used. Enter your email to get a new one.',
-        notfound: 'That link is invalid. Enter your email to get a new one.',
-        unavailable: "The PDF isn't available yet. Try again soon."
-      };
-      if (errorMessages[pdfError]) {
-        showError(errorMessages[pdfError]);
-      }
-    }
-
-    // Check session to upgrade to logged-in mode
+    // Check session on load
     fetch('/api/auth/session', { credentials: 'include' })
       .then(function (r) { return r.json(); })
       .then(function (data) {
         if (data.user) {
           isLoggedIn = true;
-          emailRow.hidden = true;
-          if (turnstileContainer) turnstileContainer.hidden = true;
-          submitBtn.textContent = 'Send PDF to my email';
         }
       })
       .catch(function () {});
 
-    // Render Turnstile widget once the API loads
+    // Check for ?pdf_error query param (from redeem redirects)
+    var params = new URLSearchParams(window.location.search);
+    var pdfError = params.get('pdf_error');
+    if (pdfError) {
+      var errorMessages = {
+        expired: 'That download link has expired. Request a new one below.',
+        used: 'That link has already been used. Request a new one below.',
+        notfound: 'That link is invalid. Request a new one below.',
+        unavailable: "The PDF isn't available yet. Try again soon."
+      };
+      if (errorMessages[pdfError]) {
+        openModal();
+        showError(errorMessages[pdfError]);
+      }
+    }
+
+    // Open modal
+    var turnstileInited = false;
+    function openModal() {
+      if (isLoggedIn) {
+        // Logged-in: skip modal, submit directly
+        trigger.disabled = true;
+        trigger.textContent = 'Sending...';
+        doSubmit('', '');
+        return;
+      }
+      modal.hidden = false;
+      document.body.style.overflow = 'hidden';
+      // Init Turnstile after modal is visible (invisible widget fails in display:none)
+      if (!turnstileInited && typeof turnstile !== 'undefined') {
+        turnstileInited = true;
+        initTurnstile();
+      }
+      emailInput.focus();
+    }
+
+    // Close modal
+    function closeModal() {
+      modal.hidden = true;
+      document.body.style.overflow = '';
+    }
+
+    trigger.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+
+    // Close on backdrop click
+    modal.addEventListener('click', function (e) {
+      if (e.target === modal || e.target.classList.contains('pdf-modal__backdrop')) closeModal();
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !modal.hidden) closeModal();
+    });
+
+    // Render Turnstile widget once API loads
     function initTurnstile() {
       if (!turnstileContainer || typeof turnstile === 'undefined') return;
       turnstileWidgetId = turnstile.render(turnstileContainer, {
@@ -113,20 +165,20 @@ if (!config?.enabled) return;
         'error-callback': function () {
           showError('Spam check failed. Please refresh the page and try again.');
           submitBtn.disabled = false;
-          submitBtn.textContent = isLoggedIn ? 'Send PDF to my email' : 'Download PDF';
+          submitBtn.textContent = 'Send download link';
           pendingSubmit = null;
         },
       });
     }
 
-    // Poll for turnstile API readiness (loaded async)
+    // Poll for turnstile API readiness — init once modal is visible and API loaded
     var tsCheck = setInterval(function () {
-      if (typeof turnstile !== 'undefined') {
+      if (typeof turnstile !== 'undefined' && !modal.hidden && !turnstileInited) {
         clearInterval(tsCheck);
+        turnstileInited = true;
         initTurnstile();
       }
     }, 200);
-    // Stop polling after 10s
     setTimeout(function () { clearInterval(tsCheck); }, 10000);
 
     function showError(msg) {
@@ -139,32 +191,31 @@ if (!config?.enabled) return;
       successEl.hidden = false;
       formWrap.hidden = true;
       errorEl.hidden = true;
+      // Reset trigger button
+      trigger.disabled = false;
+      trigger.textContent = 'Download PDF';
     }
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       errorEl.hidden = true;
 
-      var email = '';
-      if (!isLoggedIn) {
-        email = emailInput.value.trim();
-        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-          return showError('Please enter a valid email address.');
-        }
+      var email = emailInput.value.trim();
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return showError('Please enter a valid email address.');
       }
 
       submitBtn.disabled = true;
       submitBtn.textContent = 'Sending...';
 
-      // If Turnstile is available and user is not logged in, execute it
-      if (!isLoggedIn && typeof turnstile !== 'undefined' && turnstileWidgetId !== null) {
+      // Execute Turnstile if available
+      if (typeof turnstile !== 'undefined' && turnstileWidgetId !== null) {
         pendingSubmit = { email: email };
         turnstile.reset(turnstileWidgetId);
         turnstile.execute(turnstileWidgetId);
         return;
       }
 
-      // Logged-in or no Turnstile — submit directly
       doSubmit(email, '');
     });
 
@@ -186,41 +237,85 @@ if (!config?.enabled) return;
           } else {
             showError(data.error || 'Something went wrong. Please try again.');
             submitBtn.disabled = false;
-            submitBtn.textContent = isLoggedIn ? 'Send PDF to my email' : 'Download PDF';
+            submitBtn.textContent = 'Send download link';
+            // Reset trigger if it was a logged-in direct submit
+            trigger.disabled = false;
+            trigger.textContent = 'Download PDF';
           }
         })
         .catch(function () {
           showError('Network error. Please check your connection and try again.');
           submitBtn.disabled = false;
-          submitBtn.textContent = isLoggedIn ? 'Send PDF to my email' : 'Download PDF';
+          submitBtn.textContent = 'Send download link';
+          trigger.disabled = false;
+          trigger.textContent = 'Download PDF';
         });
     }
   })();
 </script>
 
 <style>
-  .pdf-download {
-    margin-top: var(--space-8);
+  .pdf-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
   }
-  .pdf-heading {
-    font-size: var(--text-lg);
-    font-weight: 600;
-    margin-bottom: var(--space-4);
-  }
-  .pdf-email-row {
-    margin-bottom: var(--space-4);
-  }
-  .pdf-email-row .form-input {
-    width: 100%;
-  }
-  .pdf-submit {
-    width: 100%;
-  }
-  .pdf-submit:disabled {
+  .pdf-trigger:disabled {
     opacity: 0.6;
     cursor: not-allowed;
   }
-  .pdf-error {
+  .pdf-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .pdf-modal[hidden] {
+    display: none;
+  }
+  .pdf-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+  }
+  .pdf-modal__card {
+    position: relative;
+    background: var(--bg-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  }
+  .pdf-modal__close {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    line-height: 1;
+    padding: var(--space-1);
+  }
+  .pdf-modal__close:hover {
+    color: var(--text-primary);
+  }
+  .pdf-modal__heading {
+    font-size: var(--text-lg);
+    font-weight: 600;
+    margin-bottom: var(--space-2);
+  }
+  .pdf-modal__desc {
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+    margin-bottom: var(--space-4);
+  }
+  .pdf-modal__error {
     border: 1px solid var(--color-error);
     color: var(--color-error);
     padding: var(--space-3) var(--space-4);
@@ -228,15 +323,24 @@ if (!config?.enabled) return;
     font-size: var(--text-sm);
     margin-bottom: var(--space-4);
   }
-  .pdf-success {
-    background: var(--bg-surface);
-    border-radius: var(--radius-md);
-    padding: var(--space-5);
-    text-align: center;
+  .pdf-modal__submit {
+    width: 100%;
+    margin-top: var(--space-3);
   }
-  .pdf-success p {
+  .pdf-modal__submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .pdf-modal__success {
+    text-align: center;
+    padding: var(--space-4) 0;
+  }
+  .pdf-modal__success svg {
+    margin-bottom: var(--space-3);
+  }
+  .pdf-modal__success p {
     color: var(--text-secondary);
-    margin-bottom: 0;
     font-size: var(--text-sm);
+    margin-bottom: 0;
   }
 </style>
