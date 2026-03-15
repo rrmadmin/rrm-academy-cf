@@ -381,17 +381,23 @@
 
       var recIdToKey = {}; // recId -> fusedMap key (for cross-slug dedup)
 
-      // Score Pagefind results
+      // Score Pagefind results (dedup by record ID within Pagefind too)
       for (var pi = 0; pi < pfLoaded.length; pi++) {
         var pItem = pfLoaded[pi];
         var pUrl = toRelative(pItem.url);
         pItem.url = pUrl;
-        fusedMap[pUrl] = {
-          score: 1 / (RRF_K + pItem._pfRank),
-          data: pItem
-        };
         var pRecId = extractRecId(pUrl);
-        if (pRecId) recIdToKey[pRecId] = pUrl;
+        var existingKey = pRecId && recIdToKey[pRecId];
+        if (existingKey) {
+          // Same article, different URL -- boost and keep higher-ranked
+          fusedMap[existingKey].score += 1 / (RRF_K + pItem._pfRank);
+        } else {
+          fusedMap[pUrl] = {
+            score: 1 / (RRF_K + pItem._pfRank),
+            data: pItem
+          };
+          if (pRecId) recIdToKey[pRecId] = pUrl;
+        }
       }
 
       // Score and merge semantic results
