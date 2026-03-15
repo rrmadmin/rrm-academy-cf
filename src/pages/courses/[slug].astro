@@ -265,6 +265,7 @@ const relatedCourses = course.relatedCourses
                   <div id="affiliate-coupon" class="affiliate-coupon-code" hidden>
                     Use code <strong>{course.couponCode}</strong> at checkout for {course.couponDiscount} off ({affiliatePrice}).
                   </div>
+                  <p class="affiliate-disclosure">This is an affiliate link. RRM Academy may earn a commission at no cost to you.</p>
                 </div>
               ) : (
                 <>
@@ -993,6 +994,11 @@ const relatedCourses = course.relatedCourses
   }
   .affiliate-coupon-code a:hover {
     text-decoration: underline;
+  }
+  .affiliate-disclosure {
+    font-size: 0.6875rem;
+    color: var(--text-tertiary);
+    margin-top: var(--space-2);
   }
 
   /* Bottom CTA */
