@@ -164,17 +164,6 @@
     color: var(--text-secondary);
     font-weight: 500;
   }
-  .search-results :global(.sr-sep) {
-    color: var(--text-muted);
-    margin: 0 6px;
-  }
-  .search-results :global(.sr-journal) {
-    color: var(--text-tertiary);
-    font-style: italic;
-  }
-  .search-results :global(.sr-year) {
-    color: var(--text-tertiary);
-  }
 
   /* Excerpt */
   .search-results :global(.sr-excerpt) {
@@ -537,33 +526,14 @@
     }
     a.appendChild(titleRow);
 
-    // Meta line (authors/year) -- only for Research and Article types
-    if ((authors || year) && (type === 'Research' || type === 'Article' || !type)) {
+    // Meta line (short citation) -- only for Research and Article types
+    if (authors && (type === 'Research' || type === 'Article' || !type)) {
       var meta = document.createElement('div');
       meta.className = 'sr-meta';
-      if (authors) {
-        var shortAuthors = authors;
-        var semiIdx = authors.indexOf(';');
-        if (semiIdx > 0 && authors.indexOf(';', semiIdx + 1) > 0) {
-          shortAuthors = authors.substring(0, semiIdx) + ' et al.';
-        }
-        var authSpan = document.createElement('span');
-        authSpan.className = 'sr-authors';
-        authSpan.textContent = shortAuthors;
-        meta.appendChild(authSpan);
-      }
-      if (year) {
-        if (authors) {
-          var sep = document.createElement('span');
-          sep.className = 'sr-sep';
-          sep.textContent = '\u00b7';
-          meta.appendChild(sep);
-        }
-        var yearSpan = document.createElement('span');
-        yearSpan.className = 'sr-year';
-        yearSpan.textContent = year;
-        meta.appendChild(yearSpan);
-      }
+      var authSpan = document.createElement('span');
+      authSpan.className = 'sr-authors';
+      authSpan.textContent = authors;
+      meta.appendChild(authSpan);
       a.appendChild(meta);
     }
 
