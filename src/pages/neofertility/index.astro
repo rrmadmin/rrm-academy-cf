@@ -1,0 +1,822 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BackToTop from '../../components/BackToTop.astro';
+import PdfDownload from '../../components/PdfDownload.astro';
+
+// Block 1: MedicalWebPage + Article (injected via BaseLayout jsonLd prop)
+const pageSchema = {
+  '@context': 'https://schema.org',
+  '@type': ['Article', 'MedicalWebPage'],
+  headline: 'What is NeoFertility? How It Works, Outcome Data, and How to Find a Provider',
+  description: 'NeoFertility is an RRM approach developed by Dr. Phil Boyle that diagnoses and treats infertility, recurrent miscarriage, and reproductive disorders through cycle-based evaluation, immune modulation, and natural conception.',
+  author: {
+    '@type': 'Person',
+    '@id': 'https://rrmacademy.org/#naomi-whittaker',
+    name: 'Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI',
+    jobTitle: 'Board-Certified OBGYN',
+    url: 'https://rrmacademy.org/commentary/rrm-spotlight-naomi-whittaker-md/',
+    image: 'https://rrmacademy.org/images/authors/naomi-whittaker.webp',
+    sameAs: [
+      'https://www.instagram.com/napro_fertility_surgeon/',
+      'https://www.linkedin.com/in/naomi-whittaker-md-906b13101/',
+    ],
+  },
+  publisher: {
+    '@type': 'EducationalOrganization',
+    '@id': 'https://rrmacademy.org/#organization',
+    name: 'RRM Academy',
+  },
+  datePublished: '2026-03-15',
+  dateModified: '2026-03-15',
+  wordCount: 5400,
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': 'https://rrmacademy.org/neofertility/',
+  },
+  about: {
+    '@type': 'MedicalTherapy',
+    name: 'NeoFertility',
+    alternateName: 'NeoFertility Restorative Reproductive Medicine',
+  },
+  articleSection: [
+    'How NeoFertility Differs from NaProTechnology',
+    'The Three-Phase Treatment Process',
+    'The ChartNeo App',
+    'The Immune-Modifying Framework',
+    'Conditions NeoFertility Treats',
+    'Outcome Data',
+    'NeoFertility vs. IVF',
+    'Who is NeoFertility For?',
+    'Cost',
+    'How to Find a NeoFertility Provider',
+    'NeoFertility Research and Training',
+    'Frequently Asked Questions',
+    'References',
+  ],
+  hasPart: [
+    { '@type': 'WebPageElement', name: 'How NeoFertility Differs from NaProTechnology', url: 'https://rrmacademy.org/neofertility/#how-neofertility-differs' },
+    { '@type': 'WebPageElement', name: 'The Three-Phase Treatment Process', url: 'https://rrmacademy.org/neofertility/#three-phase-process' },
+    { '@type': 'WebPageElement', name: 'The ChartNeo App', url: 'https://rrmacademy.org/neofertility/#chartneo-app' },
+    { '@type': 'WebPageElement', name: 'The Immune-Modifying Framework', url: 'https://rrmacademy.org/neofertility/#immune-framework' },
+    { '@type': 'WebPageElement', name: 'Conditions NeoFertility Treats', url: 'https://rrmacademy.org/neofertility/#conditions' },
+    { '@type': 'WebPageElement', name: 'Outcome Data', url: 'https://rrmacademy.org/neofertility/#outcome-data' },
+    { '@type': 'WebPageElement', name: 'NeoFertility vs. IVF', url: 'https://rrmacademy.org/neofertility/#neofertility-vs-ivf' },
+    { '@type': 'WebPageElement', name: 'Who is NeoFertility For?', url: 'https://rrmacademy.org/neofertility/#who-is-neofertility-for' },
+    { '@type': 'WebPageElement', name: 'Cost', url: 'https://rrmacademy.org/neofertility/#cost' },
+    { '@type': 'WebPageElement', name: 'How to Find a NeoFertility Provider', url: 'https://rrmacademy.org/neofertility/#find-provider' },
+    { '@type': 'WebPageElement', name: 'NeoFertility Research and Training', url: 'https://rrmacademy.org/neofertility/#research-training' },
+    { '@type': 'WebPageElement', name: 'Frequently Asked Questions', url: 'https://rrmacademy.org/neofertility/#faq' },
+    { '@type': 'WebPageElement', name: 'References', url: 'https://rrmacademy.org/neofertility/#references' },
+  ],
+  citation: [
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'RRM Outcomes Compared to In Vitro Fertilization for the Treatment of Infertility',
+      author: 'Boyle P, Toth A, Minjeur M, Turczynski C',
+      datePublished: '2025',
+      isPartOf: { '@type': 'Periodical', name: 'Journal of Restorative Reproductive Medicine' },
+    },
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'Healthy Singleton Pregnancies from Restorative Reproductive Medicine (RRM) after Failed IVF',
+      author: 'de Groot T, Andralojc KM, Boyle PC, Parnell TA',
+      datePublished: '2018',
+      isPartOf: { '@type': 'Periodical', name: 'Frontiers in Medicine' },
+    },
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'Successful pregnancy using oral DHEA treatment for hypoandrogenemia in a 30-year-old female with 5 recurrent pregnancy losses',
+      author: 'Boyle P, Pandalache R, Turczynski C',
+      datePublished: '2024',
+      isPartOf: { '@type': 'Periodical', name: 'Frontiers in Medicine' },
+    },
+  ],
+};
+
+// Block 2: BreadcrumbList (inline in page body)
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+    { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://rrmacademy.org/guides/' },
+    { '@type': 'ListItem', position: 3, name: 'NeoFertility', item: 'https://rrmacademy.org/neofertility/' },
+  ],
+};
+
+// Block 3: FAQPage (separate block per spec -- avoids Google validation issues with merged schemas)
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'What is NeoFertility?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'NeoFertility is a restorative reproductive medicine approach developed by Dr. Phil Boyle in Dublin, Ireland that diagnoses and treats the underlying causes of infertility and recurrent miscarriage. Rather than bypassing reproductive problems, NeoFertility investigates why the couple is not conceiving and corrects the conditions found, allowing natural conception to occur.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How is NeoFertility different from NaProTechnology?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Both approaches share the goal of diagnosing and treating the underlying cause. NeoFertility was developed by a physician originally trained in NaProTechnology and builds on that foundation. Key differences are NeoFertility\'s method-agnostic charting approach (any FABM is accepted), its systematic use of immune panels and LDN, its DHEA and androgen evaluation protocol, and its integration with the ChartNeo digital platform.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Does NeoFertility work for women with low AMH?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes. Because NeoFertility requires only one follicle per cycle for natural conception, low AMH does not disqualify a patient the way it does for IVF. NeoFertility has reported success in patients with AMH as low as 0.07 pmol/L, values typically considered incompatible with IVF.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Can NeoFertility help after failed IVF?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes. IVF does not diagnose or treat the underlying condition. After IVF fails, the condition that prevented natural conception is still present. NeoFertility identifies it. In a cohort of 403 couples with an average of 2.1 prior failed IVF cycles, NeoFertility achieved a life-table live birth rate of 32.1% through natural conception.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What is the success rate for NeoFertility?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'The 2015 Dublin clinic cohort of 412 couples reported a 32% crude live birth rate and a 53.6% adjusted rate at 24 months using Life Table Analysis. The 2019 cohort published in Boyle et al. (2025) reported a 41% crude live birth rate. Results depend on age, diagnosis, and individual factors.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Is NeoFertility only available in Ireland?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'No. NeoFertility training has expanded internationally through the NeoFertility Clinical Mastery Program and FACTS-NeoFertility Medical Consultant Training, with trained providers practicing in the United States and other countries. Telehealth options extend access further for patients who cannot access a local provider.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Do I have to be a certain religion to use NeoFertility?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'No. NeoFertility is evidence-based medicine available to patients of all faiths and none. The approach works because it is grounded in reproductive physiology, not theology.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What is the ChartNeo app?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'ChartNeo is a fertility charting app co-developed by Dr. Phil Boyle that supports multiple charting methods and integrates with NeoFertility clinical care. It allows patients to record daily biomarkers, track medications, log blood test results, and share cycle data directly with their physician and fertility advisor. It is HIPAA-compliant and available on iOS and Android.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What makes NeoFertility different from standard fertility treatment?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Standard fertility treatment typically involves suppressing or bypassing reproductive function with medications or IVF. NeoFertility investigates what is causing the problem and treats it. Bloodwork is timed to the individual\'s cycle, not a calendar date. Both partners are evaluated. Immune markers, androgen levels, and follicle function are assessed. Treatment is matched to the specific findings.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What does NeoFertility do differently for recurrent miscarriage?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'NeoFertility evaluates a broader set of potential causes than standard miscarriage workups, including NK cells, food antibodies, DHEA and androgen levels, endorphin deficiency, and follicle quality. The etiology is frequently multi-factorial. NeoFertility reports an 80% live birth success rate for women with recurrent miscarriage.',
+      },
+    },
+  ],
+};
+---
+
+<BaseLayout
+  title="NeoFertility Explained: How It Works, Outcome Data, and How to Find a Provider"
+  description="NeoFertility is an RRM approach developed by Dr. Phil Boyle that diagnoses and treats infertility, recurrent miscarriage, and reproductive disorders through cycle-based evaluation, immune modulation, and natural conception."
+  canonicalUrl="https://rrmacademy.org/neofertility/"
+  ogType="article"
+  publishDate="2026-03-15"
+  jsonLd={pageSchema}
+>
+  <!-- Separate JSON-LD blocks (not @graph) per spec -->
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+  <div class="page-wrapper" data-pagefind-body>
+    <span data-pagefind-meta="type:Guide" style="display:none"></span>
+    <span data-pagefind-meta="title:NeoFertility: A Clinician's Guide" style="display:none"></span>
+    <div class="container">
+
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <a href="/guides/">Guides</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <span>NeoFertility</span>
+      </nav>
+
+      <h1>What is NeoFertility? How It Works, Outcome Data, and How to Find a Provider</h1>
+
+      <div class="author-byline">
+        <span>By <strong><a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</a></strong></span>
+        <time datetime="2026-03-15">Last updated March 2026</time>
+        <PdfDownload slug="neofertility" />
+      </div>
+
+      <aside class="editorial-notice" role="note">
+        <span class="editorial-notice__body"><strong>Editorial notice:</strong> This article is under active review. Some sections may be incomplete or contain errors while our medical team refines the content. If you notice an issue, please <a href="/contact/">let us know</a>.</span>
+      </aside>
+
+      <!-- Mobile TOC -->
+      <details class="toc-mobile">
+        <summary>On this page</summary>
+        <ol>
+          <li><a href="#how-neofertility-differs">How NeoFertility Differs from NaProTechnology</a></li>
+          <li><a href="#three-phase-process">The Three-Phase Treatment Process</a></li>
+          <li><a href="#chartneo-app">The ChartNeo App</a></li>
+          <li><a href="#immune-framework">The Immune-Modifying Framework</a></li>
+          <li><a href="#conditions">Conditions NeoFertility Treats</a></li>
+          <li><a href="#outcome-data">Outcome Data</a></li>
+          <li><a href="#neofertility-vs-ivf">NeoFertility vs. IVF</a></li>
+          <li><a href="#who-is-neofertility-for">Who is NeoFertility For?</a></li>
+          <li><a href="#cost">Cost</a></li>
+          <li><a href="#find-provider">How to Find a NeoFertility Provider</a></li>
+          <li><a href="#research-training">NeoFertility Research and Training</a></li>
+          <li><a href="#faq">Frequently Asked Questions</a></li>
+          <li><a href="#references">References</a></li>
+        </ol>
+      </details>
+
+      <!-- Article layout: sidebar TOC + main content -->
+      <div class="article-layout">
+
+        <!-- Desktop TOC (sticky sidebar, 1024px+) -->
+        <nav class="toc" aria-label="Table of contents">
+          <p class="toc-heading">On this page</p>
+          <ol>
+            <li><a href="#how-neofertility-differs">How NeoFertility Differs from NaProTechnology</a></li>
+            <li><a href="#three-phase-process">The Three-Phase Treatment Process</a></li>
+            <li><a href="#chartneo-app">The ChartNeo App</a></li>
+            <li><a href="#immune-framework">The Immune-Modifying Framework</a></li>
+            <li><a href="#conditions">Conditions NeoFertility Treats</a></li>
+            <li><a href="#outcome-data">Outcome Data</a></li>
+            <li><a href="#neofertility-vs-ivf">NeoFertility vs. IVF</a></li>
+            <li><a href="#who-is-neofertility-for">Who is NeoFertility For?</a></li>
+            <li><a href="#cost">Cost</a></li>
+            <li><a href="#find-provider">How to Find a NeoFertility Provider</a></li>
+            <li><a href="#research-training">NeoFertility Research and Training</a></li>
+            <li><a href="#faq">Frequently Asked Questions</a></li>
+          </ol>
+        </nav>
+
+        <!-- Main content -->
+        <article class="prose">
+
+          <aside class="tldr">
+            <h2 id="key-takeaways">Key Takeaways</h2>
+            <ul>
+              <li><strong>NeoFertility is a restorative reproductive medicine (RRM) approach developed by Dr. Phil Boyle</strong> that diagnoses and treats the underlying causes of infertility, recurrent miscarriage, and reproductive health disorders by restoring natural cycle function.<sup><a href="#ref-1">1</a></sup><sup><a href="#ref-2">2</a></sup></li>
+              <li><strong>Built on NaProTechnology, extended with immunology:</strong> NeoFertility expanded the NaPro diagnostic lens to include NK cell panels, LDN (low-dose naltrexone), DHEA/androgen evaluation, and endorphin deficiency assessment -- areas NaPro does not systematically address.<sup><a href="#ref-9">9</a></sup><sup><a href="#ref-10">10</a></sup></li>
+              <li><strong>Structured three-phase process:</strong> Assessment (2 months), Balancing the Cycle (2 months), then Allowing Conception (1 to 12 cycles). All treatment is matched to specific diagnostic findings.<sup><a href="#ref-4">4</a></sup></li>
+              <li><strong>Published outcomes:</strong> 41% crude live birth rate (Boyle 2025, 187 couples); 53.6% adjusted at 24 months (2015, 412 couples); 32.1% after failed IVF (403 couples). Singleton prematurity 2.5% vs. 11.8% CDC IVF data.<sup><a href="#ref-16">16</a></sup><sup><a href="#ref-26">26</a></sup></li>
+              <li><strong>ChartNeo app:</strong> Method-agnostic digital charting platform (Creighton, Billings, SymptoThermal, Marquette) that integrates patient, advisor, and physician data in real time.<sup><a href="#ref-5">5</a></sup><sup><a href="#ref-6">6</a></sup></li>
+              <li><strong>Getting started:</strong> Download the <a href="https://www.chartneo.com" rel="noopener" target="_blank">ChartNeo app</a>, connect with a NeoFertility Advisor, then find a NeoFertility-trained physician. Explore free courses at <a href="/courses/">RRM Academy</a>.</li>
+            </ul>
+          </aside>
+
+          <!-- Intro section -->
+          <section id="how-neofertility-differs">
+            <h2>How NeoFertility Differs from NaProTechnology</h2>
+
+            <p><strong>NeoFertility is a restorative reproductive medicine (RRM) approach developed by Dr. Phil Boyle that diagnoses and treats the underlying causes of infertility, recurrent miscarriage, and reproductive health disorders by restoring the body's natural cycle function rather than suppressing or bypassing it.</strong></p>
+
+            <p>The name reflects the method's dual nature. "Neo" signals a new generation of restorative care, and "Fertility" describes the core goal: not a laboratory pregnancy, but a body returned to optimal reproductive function so that natural conception can occur. NeoFertility is built on the same founding principle as all RRM approaches: every reproductive health problem has a cause, and identifying and treating that cause produces better outcomes than bypassing the problem or masking its symptoms.</p>
+
+            <p>NeoFertility emerged from two decades of NaProTechnology practice. Dr. Boyle trained in NaProTechnology at the Saint Paul VI Institute and practiced it extensively before founding NeoFertility in 2016. What differentiated his new approach was a broadened diagnostic lens, one that incorporated autoimmune and immunological factors, androgen deficiency, endorphin pathways, and emerging evidence from outside the NaPro framework, alongside the cycle-based hormonal evaluation that NaProTechnology had established. NeoFertility operates within the RRM umbrella and is one of the most actively researched approaches in the field today.<sup><a href="#ref-1">1</a></sup><sup><a href="#ref-2">2</a></sup><sup><a href="#ref-3">3</a></sup></p>
+
+            <p><a href="/naprotechnology/">NaProTechnology</a> and NeoFertility share the same foundational principle: diagnose and treat the cause of reproductive dysfunction rather than suppress or bypass it. Both require fertility charting. Both use cycle-timed hormonal evaluation. Both evaluate both partners.<sup><a href="#ref-4">4</a></sup></p>
+
+            <p>The distinctions are practical and clinical:</p>
+
+            <ul>
+              <li><strong>Charting method:</strong> NaProTechnology is built exclusively on the Creighton Model FertilityCare System. NeoFertility is method-agnostic: couples can chart using the Creighton Model, Billings, SymptoThermal, Marquette, or the NeoFertility method via the ChartNeo app.<sup><a href="#ref-5">5</a></sup><sup><a href="#ref-6">6</a></sup></li>
+              <li><strong>Institutional affiliation:</strong> NaProTechnology is developed and trained through the Saint Paul VI Institute in Omaha. NeoFertility training is delivered through the NeoFertility Clinical Mastery Program and through FACTS About Fertility, which offers a joint FACTS-NeoFertility Medical Consultant Training.<sup><a href="#ref-7">7</a></sup><sup><a href="#ref-8">8</a></sup></li>
+              <li><strong>Diagnostic scope:</strong> NeoFertility expanded the diagnostic protocol to include immunological testing (natural killer cell panels, food antibodies, chromosomal abnormalities, blood clotting markers), endorphin deficiency assessment, DHEA and androgen evaluation, and a broader set of immune-modifying interventions including low-dose naltrexone (LDN).<sup><a href="#ref-9">9</a></sup><sup><a href="#ref-10">10</a></sup></li>
+              <li><strong>Pharmacological approach:</strong> NeoFertility incorporates LDN as a standard immune-modifying tool for patients with reduced egg reserve, suspected immune-mediated implantation failure, and endorphin deficiency. NaProTechnology does not use LDN as a standard protocol.<sup><a href="#ref-11">11</a></sup><sup><a href="#ref-12">12</a></sup></li>
+              <li><strong>Technology integration:</strong> The ChartNeo app was developed alongside NeoFertility as an integrated digital charting platform that connects patients, fertility advisors, and physicians through shared data.<sup><a href="#ref-13">13</a></sup><sup><a href="#ref-5">5</a></sup></li>
+            </ul>
+
+            <p>NaProTechnology predates NeoFertility by over two decades and maintains an extensively published research base. The two communities do not operate under a shared institutional structure. NeoFertility built upon that foundation and extended it, particularly in the areas of immunological infertility and androgen-related pregnancy loss.</p>
+          </section>
+
+          <!-- Section: The Three-Phase Treatment Process -->
+          <section id="three-phase-process">
+            <h2>The Three-Phase Treatment Process</h2>
+
+            <p><strong>NeoFertility follows a structured, three-phase model.</strong> The process takes approximately four months to reach the conception phase, with conception typically occurring within twelve additional cycles once the cycle is optimized.<sup><a href="#ref-14">14</a></sup><sup><a href="#ref-4">4</a></sup></p>
+
+            <h3>Phase 1: Assessment (Approximately 2 Months)</h3>
+
+            <p>The goal of Phase 1 is to gather the diagnostic data needed to identify every correctable factor affecting fertility. This does not happen in a single appointment. It unfolds over one to two charted cycles, with bloodwork timed to the cycle events identified on the chart.<sup><a href="#ref-15">15</a></sup><sup><a href="#ref-4">4</a></sup></p>
+
+            <p><strong>What happens in Phase 1:</strong></p>
+
+            <ul>
+              <li>The couple is taught fertility charting by a trained NeoFertility Advisor, ideally using the ChartNeo app. Both partners' histories are taken in detail.</li>
+              <li>The physician identifies the Day of Presumed Ovulation (DPO) from the chart. All blood tests are anchored to this event, not to a calendar date.</li>
+              <li>Day 3 bloodwork covers the standard hormonal baseline: FSH, AMH, LH, TSH, progesterone, estradiol, and other indicators relevant to the patient's presentation.</li>
+              <li>Mid-luteal testing is drawn on Day 7 post-ovulation to assess the quality of ovulation, targeting progesterone levels of 60 to 100 pmol/L and estradiol levels of 400 to 900 pmol/L.<sup><a href="#ref-4">4</a></sup></li>
+              <li>Extended immunological testing may be ordered based on history: natural killer cell panels, food antibodies, chromosomal or blood clotting abnormalities, and markers of chronic endometritis.<sup><a href="#ref-9">9</a></sup></li>
+              <li>DHEA and androgen levels are assessed, particularly in patients with recurrent miscarriage or poor follicle function.<sup><a href="#ref-10">10</a></sup></li>
+              <li>An ultrasound follicle series confirms whether ovulation is occurring and whether follicle rupture is complete, a step many clinics omit.<sup><a href="#ref-11">11</a></sup></li>
+              <li>Male factor evaluation is standard: semen analysis and, when indicated, hormonal and immunological assessment of both partners.</li>
+            </ul>
+
+            <p>A core principle of Phase 1 is that the diagnosis must be specific. "Unexplained infertility" is not an acceptable endpoint. In the Boyle et al. 2025 cohort of 187 NeoFertility patients, "unexplained infertility" dropped from 24% of presenting diagnoses to 1% after the full NeoFertility workup. Most of those cases had identifiable, treatable conditions that the standard evaluation had never investigated.<sup><a href="#ref-16">16</a></sup></p>
+
+            <h3>Phase 2: Balancing the Cycle (Approximately 2 Months)</h3>
+
+            <p>Phase 2 is the treatment phase. Every intervention is matched to a specific diagnostic finding and monitored cycle by cycle. Nothing is empiric. Nothing is generic.<sup><a href="#ref-15">15</a></sup></p>
+
+            <p><strong>What Phase 2 may include:</strong></p>
+
+            <ul>
+              <li>Ovulation induction medications (letrozole, clomiphene, or low-dose FSH) when ovulation is absent or insufficient, selected based on phenotype and patient history</li>
+              <li>Progesterone support timed to the ovulatory event to optimize the luteal phase</li>
+              <li>Estradiol evaluation and support when levels are suboptimal in the post-ovulatory phase</li>
+              <li>Immune-modifying strategies for patients with elevated natural killer cells, autoimmune markers, or endorphin deficiency, often including low-dose naltrexone (LDN 4.5 mg nightly)</li>
+              <li>DHEA supplementation when hypoandrogenemia is identified, both pre-conception and during early pregnancy when indicated</li>
+              <li>Treatment of chronic endometritis with targeted antibiotic protocols</li>
+              <li>Thyroid system optimization when thyroid dysfunction is contributing to cycle irregularity or miscarriage risk</li>
+              <li>Metabolic interventions for insulin resistance and adrenal contributions to ovulatory dysfunction</li>
+              <li>Dietary, nutritional, and psychological interventions where clinically relevant</li>
+            </ul>
+
+            <p>Phase 2 does not end when a treatment is prescribed. Response is verified. If progesterone is supplemented, mid-luteal blood tests confirm the levels are now in the optimal range. If ovulation induction is initiated, follicle ultrasound confirms a single mature follicle develops and ruptures completely. The goal is not to prescribe, but to verify the correction.<sup><a href="#ref-11">11</a></sup></p>
+
+            <h3>Phase 3: Allowing Conception (1 to 12 Cycles)</h3>
+
+            <p>Phase 3 begins when the cycle is healthy, hormonal levels are in the optimal range, and follicle rupture has been confirmed by ultrasound. The couple is advised to conceive during the fertile window as identified on their chart. No laboratory is involved. No eggs are retrieved. No embryo is transferred.<sup><a href="#ref-15">15</a></sup></p>
+
+            <p>It is considered biologically normal for conception to take up to twelve cycles even after all correctable factors have been addressed. The goal of Phase 3 is to sustain twelve optimal cycles, providing the maximum opportunity for natural conception to occur. If conception has not occurred after six good cycles, surgical referral for laparoscopy is considered to identify or rule out endometriosis, which is frequently missed on standard imaging.<sup><a href="#ref-17">17</a></sup><sup><a href="#ref-11">11</a></sup></p>
+
+            <p>Once pregnancy is achieved, monitoring continues. Progesterone and estradiol levels are tracked, and hormonal support is maintained as clinically indicated throughout early pregnancy. For patients with identified DHEA deficiency, DHEA supplementation continues during pregnancy to sustain optimal estradiol levels and reduce miscarriage risk.<sup><a href="#ref-18">18</a></sup><sup><a href="#ref-10">10</a></sup></p>
+          </section>
+
+          <!-- Section: The ChartNeo App -->
+          <section id="chartneo-app">
+            <h2>The ChartNeo App</h2>
+
+            <p><strong>NeoFertility was developed alongside a dedicated digital charting platform: the ChartNeo app, co-founded by Dr. Phil Boyle.</strong> The app is a central tool in the NeoFertility workflow, functioning as the clinical interface between the patient, their fertility advisor, and the physician.<sup><a href="#ref-1">1</a></sup></p>
+
+            <p>ChartNeo is method-agnostic. It supports the Creighton Model, Billings Ovulation Method, SymptoThermal Method, and Marquette Method, allowing women to track their preferred biomarkers within a single platform. Daily observations, medication records, and blood test results are entered in the app and are shareable directly with the NeoFertility clinic and treating physician. Charts can be printed as PDFs for clinicians unfamiliar with the system.<sup><a href="#ref-6">6</a></sup><sup><a href="#ref-19">19</a></sup></p>
+
+            <p>The app uses a "WWIT/WIT assessment routine" to guide consistent daily observations and determine fertile and infertile days with high accuracy. Independent clinical experience reports accurate peak day identification in approximately 90 to 95% of cycles. The ChartNeo app is HIPAA-compliant and GDPR-compliant, and patient data is never sold.<sup><a href="#ref-20">20</a></sup><sup><a href="#ref-6">6</a></sup></p>
+
+            <p>For patients in the NeoFertility program, charting through ChartNeo is strongly recommended. The integration between app data and clinic records allows the physician to see the pattern of cycle response to treatment in real time across multiple cycles, not only at single-point consultations.</p>
+          </section>
+
+          <!-- Section: The Immune-Modifying Framework -->
+          <section id="immune-framework">
+            <h2>The Immune-Modifying Framework</h2>
+
+            <p><strong>One of NeoFertility's most distinctive clinical contributions is its systematic approach to immunological causes of infertility and pregnancy loss.</strong> Where many fertility approaches either ignore immune factors or address them only after IVF failure, NeoFertility investigates them as a routine part of the Phase 1 workup for qualifying patients.</p>
+
+            <h3>Natural Killer Cells</h3>
+
+            <p>Elevated natural killer (NK) cell activity in the uterine lining has been associated with implantation failure and recurrent pregnancy loss. NK cells play an essential role in early pregnancy by supporting trophoblast invasion and placental development, but dysregulated or overactive NK cells can create an immune environment hostile to implantation. NeoFertility tests for NK cell abnormalities and, when elevated, applies immune-modifying strategies to bring activity into a range conducive to pregnancy.<sup><a href="#ref-21">21</a></sup><sup><a href="#ref-22">22</a></sup><sup><a href="#ref-9">9</a></sup></p>
+
+            <h3>Low-Dose Naltrexone (LDN)</h3>
+
+            <p>Low-dose naltrexone (4.5 mg nightly) is an immune-modifying agent that Dr. Boyle applies routinely in patients with reduced egg reserve, suspected immune-mediated implantation failure, and clinical endorphin deficiency. LDN functions by transiently blocking opioid receptors, triggering a compensatory upregulation of endogenous endorphins, which in turn modulates immune function. The downstream effects include reduced NK cell activity, reduced inflammatory cytokine levels, and improved endometrial receptivity.<sup><a href="#ref-12">12</a></sup><sup><a href="#ref-23">23</a></sup><sup><a href="#ref-11">11</a></sup></p>
+
+            <p>Research on LDN in reproductive medicine documents significant improvements in endometrial thickness, ovarian responsiveness, progesterone levels, and clinical pregnancy rates in women with immunological infertility and recurrent implantation failure. LDN also reduced NK cell counts and antinuclear antibody (ANA) levels in treated patients compared to controls, with LDN-treated women showing higher implantation and clinical pregnancy rates. LDN does not appear to harm fertility and may confer measurable benefit in conditions including PCOS and endometriosis through its neuroendocrine and anti-inflammatory mechanisms.<sup><a href="#ref-23">23</a></sup><sup><a href="#ref-12">12</a></sup></p>
+
+            <h3>DHEA and Androgen Deficiency</h3>
+
+            <p>NeoFertility was among the first RRM practices to systematically evaluate DHEA and androgen levels as a routine part of the fertility workup and to publish on hypoandrogenemia as a contributory cause of recurrent miscarriage.<sup><a href="#ref-24">24</a></sup><sup><a href="#ref-10">10</a></sup></p>
+
+            <p>DHEA is a precursor hormone that supports both egg quality pre-conception and estradiol production during early pregnancy. When DHEA levels are inadequate, the corpus luteum may not produce sufficient estradiol to sustain early pregnancy, increasing miscarriage risk. Research from Dr. Boyle's team at NeoFertility Dublin demonstrated that DHEA treatment during pregnancy dramatically improved low estradiol levels (p &lt; 0.0001) and reduced miscarriage incidence from 45.5% to 17.5% (p = 0.038) in women with documented hypoandrogenemia. This research, published in peer-reviewed journals, received the Research Paper of the Year Award from the American Academy of FertilityCare Professionals in 2025.<sup><a href="#ref-3">3</a></sup><sup><a href="#ref-25">25</a></sup><sup><a href="#ref-10">10</a></sup></p>
+
+            <p>A published case report from NeoFertility documented a successful live birth in a 30-year-old woman who had experienced five unexplained pregnancy losses, including a fetal demise at 24 weeks. Standard investigations at a specialized miscarriage clinic had returned normal results and she was advised to conceive again without treatment. NeoFertility identified significant hypoandrogenemia along with clinical endorphin deficiency and poor follicle function. Treatment with DHEA, LDN, and cycle-timed progesterone support resulted in a healthy singleton delivery at 36 weeks.<sup><a href="#ref-24">24</a></sup><sup><a href="#ref-10">10</a></sup></p>
+          </section>
+
+          <!-- Section: Conditions NeoFertility Treats -->
+          <section id="conditions">
+            <h2>Conditions NeoFertility Treats</h2>
+
+            <p><strong>NeoFertility treats a wide range of reproductive and gynecologic conditions by identifying and treating the underlying cause.</strong> The table below describes conditions and the NeoFertility approach. Every treatment plan is individualized based on charting data, diagnostic results, and clinical history. This information is educational, not prescriptive.</p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Condition</th>
+                    <th>NeoFertility Approach</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>Infertility (general)</td><td>Three-phase diagnostic and treatment protocol to identify all correctable causes; natural conception after cycle optimization</td></tr>
+                  <tr><td>"Unexplained" infertility</td><td>Reframed as undiagnosed: extended workup includes immune panels, androgen levels, endorphin assessment, and follicle confirmation; a cause is found in most cases</td></tr>
+                  <tr><td>Recurrent miscarriage</td><td>Multi-factorial investigation including DHEA, NK cells, progesterone, LDN, thyroid, chromosomal/clotting markers; treatment matched to finding; 80% live birth success rate reported<sup><a href="#ref-17">17</a></sup></td></tr>
+                  <tr><td>Endometriosis</td><td>Six months of NeoFertility treatment before surgical referral; when indicated, referral for excision surgery (not ablation); post-operative hormonal support<sup><a href="#ref-17">17</a></sup></td></tr>
+                  <tr><td>PCOS</td><td>Phenotype-based evaluation; ovulation induction matched to findings; metabolic and adrenal assessment</td></tr>
+                  <tr><td>Low AMH / reduced ovarian reserve</td><td>LDN-based immune modulation; normal-stimulation (one follicle per cycle); NeoFertility has achieved conception with AMH as low as 0.07 pmol/L<sup><a href="#ref-17">17</a></sup></td></tr>
+                  <tr><td>Luteal phase defect</td><td>Cycle-timed progesterone support verified by post-peak bloodwork and ultrasound follicle confirmation</td></tr>
+                  <tr><td>Male factor infertility</td><td>Hormonal, immunological, and semen assessment; treatment of the cause rather than bypass</td></tr>
+                  <tr><td>Immune-mediated implantation failure</td><td>NK cell testing; LDN; immune protocol matched to specific immune markers identified<sup><a href="#ref-9">9</a></sup></td></tr>
+                  <tr><td>Recurrent IVF failure</td><td>Full NeoFertility workup to identify causes that IVF never evaluated; natural conception after treatment</td></tr>
+                  <tr><td>Thyroid dysfunction</td><td>Optimization of thyroid function as part of the cycle balancing protocol</td></tr>
+                  <tr><td>High BMI</td><td>NeoFertility has treated patients with high BMI who were declined for IVF<sup><a href="#ref-17">17</a></sup></td></tr>
+                  <tr><td>Perimenopause</td><td>Cycle-informed hormonal monitoring and targeted support during transition</td></tr>
+                  <tr><td>At-risk pregnancy management</td><td>Hormonal monitoring and support throughout early pregnancy; DHEA continuation when indicated</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>Recurrent Miscarriage</h3>
+
+            <p>NeoFertility reports an 80% live birth success rate for women with recurrent miscarriage. This outcome reflects the multi-factorial diagnostic approach: NeoFertility does not stop at the first identified finding but investigates all potential contributors simultaneously, treating the full picture rather than a single variable.<sup><a href="#ref-17">17</a></sup></p>
+
+            <p>Standard miscarriage investigations often return normal results and offer no treatment. The NeoFertility workup extends to markers that standard panels omit: NK cell activity, food antibodies, DHEA and androgen levels, endorphin deficiency, and follicle quality confirmed by ultrasound. In NeoFertility's experience, the etiology of recurrent miscarriage is rarely a single factor. Multi-factorial diagnoses are the rule, not the exception.<sup><a href="#ref-10">10</a></sup></p>
+
+            <h3>Low AMH and Reduced Ovarian Reserve</h3>
+
+            <p>NeoFertility's approach to low AMH illustrates a fundamental difference from IVF. IVF clinics require multiple eggs per cycle to produce viable embryos. Low AMH means fewer follicles, fewer eggs, and worse IVF outcomes. The standard response is often to decline IVF or recommend donor eggs.<sup><a href="#ref-17">17</a></sup></p>
+
+            <p>NeoFertility requires only one follicle and one egg per cycle, because the goal is natural conception, not laboratory fertilization. This means patients with very low AMH remain candidates for treatment. NeoFertility has reported success in a 36-year-old woman with six years of infertility whose AMH was 0.07 pmol/L and FSH was 42 IU/L, values that would effectively exclude her from most IVF programs. She conceived on her first cycle of NeoFertility treatment.<sup><a href="#ref-17">17</a></sup></p>
+          </section>
+
+          <!-- Section: Outcome Data -->
+          <section id="outcome-data">
+            <h2>Outcome Data</h2>
+
+            <p><strong>NeoFertility has published outcome data across multiple cohorts and case series, primarily from Dr. Boyle's clinic in Dublin, Ireland.</strong></p>
+
+            <p><strong>2015 clinic cohort (412 couples):</strong><sup><a href="#ref-26">26</a></sup><sup><a href="#ref-27">27</a></sup></p>
+            <ul>
+              <li>Female average age: 37</li>
+              <li>21% had previously attempted IVF</li>
+              <li>Crude live birth rate: 32%</li>
+              <li>Life-table adjusted live birth rate at 24 months: 53.6%</li>
+              <li>Multiple pregnancy rate: less than 1%</li>
+              <li>Preterm delivery rate: 4.2%</li>
+              <li>Low birth weight: 5% (under 2,500 g); 1.6% (under 1,500 g)</li>
+              <li>Average birth weight: 7 lbs 7 oz</li>
+            </ul>
+
+            <p><strong>2019 clinic cohort, Boyle et al. (2025), <em>Journal of Restorative Reproductive Medicine</em>:</strong><sup><a href="#ref-3">3</a></sup><sup><a href="#ref-16">16</a></sup></p>
+            <ul>
+              <li>187 couples treated at NeoFertility Dublin</li>
+              <li>Crude live birth rate: 41%</li>
+              <li>Conception rate: 52%</li>
+              <li>Singleton prematurity: 2.5% (compared to 11.8% CDC data for IVF singletons; 14.4% in SART-reported IVF singletons)</li>
+              <li>Multiple pregnancy rate: 2.5%</li>
+              <li>Average time to conception: 12 months</li>
+              <li>"Unexplained infertility" diagnosis: dropped from 24% to 1% after full RRM workup</li>
+              <li>Benchmarked against HFEA (UK) IVF data: 24% live birth rate; CDC/SART (USA): comparable metrics</li>
+            </ul>
+
+            <p>This paper was the first published head-to-head comparison of RRM outcomes against IVF data from mandatory national reporting registries.<sup><a href="#ref-16">16</a></sup></p>
+
+            <p><strong>After failed IVF, Boyle et al. (2018), <em>Frontiers in Medicine</em>:</strong><sup><a href="#ref-4">4</a></sup></p>
+            <ul>
+              <li>403 couples with an average of 2.1 prior IVF attempts</li>
+              <li>Life-table live birth rate: 32.1% through natural conception after RRM treatment</li>
+              <li>Of 74 live births: 92% born at 37 weeks or later; only 1 twin (1.4%)</li>
+            </ul>
+
+            <p>These outcomes are achieved through natural conception, meaning without egg retrieval, embryo culture, or transfer. The obstetric safety profile reflects this: singletons conceived naturally do not carry the procedure-associated prematurity and low birth weight risks documented in IVF singleton pregnancies.<sup><a href="#ref-26">26</a></sup></p>
+          </section>
+
+          <!-- Section: NeoFertility vs. IVF -->
+          <section id="neofertility-vs-ivf">
+            <h2>NeoFertility vs. IVF</h2>
+
+            <p><strong>NeoFertility and IVF answer different questions.</strong></p>
+
+            <p>IVF asks: <em>How do we achieve a pregnancy?</em></p>
+
+            <p>NeoFertility asks: <em>Why can't this couple conceive, and what can be treated?</em></p>
+
+            <p>The difference in starting question produces entirely different evaluations, treatments, and long-term outcomes. IVF bypasses the reproductive system. Whether the woman has a luteal phase defect, undiagnosed DHEA deficiency, or elevated NK cell activity does not change the IVF procedure. The body's function is made irrelevant. NeoFertility is built on the opposite premise: the body's function is the target.</p>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Factor</th>
+                    <th>NeoFertility</th>
+                    <th>IVF</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>Approach</td><td>Diagnose and treat the underlying cause</td><td>Bypass the reproductive system</td></tr>
+                  <tr><td>Goal</td><td>Restore natural function; natural conception</td><td>Achieve embryo implantation in laboratory</td></tr>
+                  <tr><td>Treats underlying condition?</td><td>Yes</td><td>No</td></tr>
+                  <tr><td>Conception method</td><td>Natural, within the couple</td><td>Laboratory fertilization and transfer</td></tr>
+                  <tr><td>Multiple pregnancy risk</td><td>Less than 1% (2015 data)<sup><a href="#ref-26">26</a></sup></td><td>Elevated, especially with multiple embryo transfer</td></tr>
+                  <tr><td>Prematurity (singletons)</td><td>2.5% (Boyle 2025)<sup><a href="#ref-3">3</a></sup></td><td>11.8% CDC; 14.4% SART<sup><a href="#ref-3">3</a></sup></td></tr>
+                  <tr><td>Diagnostic workup</td><td>Comprehensive: cycle-timed hormones, immune panel, androgen, NK cells, both partners</td><td>Basic: AMH, FSH, AFC; male factor often untreated</td></tr>
+                  <tr><td>Live birth rate</td><td>41% crude (Boyle 2025); 53.6% adjusted at 24 months (2015 data)<sup><a href="#ref-26">26</a></sup><sup><a href="#ref-16">16</a></sup></td><td>~24-27% per cycle (HFEA/CDC)<sup><a href="#ref-3">3</a></sup></td></tr>
+                  <tr><td>Cost</td><td>Fraction of IVF; standard treatment plans available; some components billable as diagnosed conditions</td><td>$15,000 to $30,000 per cycle; average $40,000 to $60,000 total<sup><a href="#ref-28">28</a></sup></td></tr>
+                  <tr><td>After failed IVF</td><td>32.1% live birth rate after average 2.1 failed IVF cycles<sup><a href="#ref-4">4</a></sup></td><td>No diagnostic resolution; underlying cause remains</td></tr>
+                  <tr><td>Obstetric benefit</td><td>Underlying conditions treated; improved health entering pregnancy</td><td>Underlying conditions untreated; procedure-associated risks persist</td></tr>
+                  <tr><td>Best suited for</td><td>Endometriosis, PCOS, immune-mediated infertility, low AMH, recurrent miscarriage, male factor</td><td>Bilateral tubal occlusion; severe untreatable azoospermia</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3>After Failed IVF</h3>
+
+            <p>NeoFertility is a legitimate path for couples who have already experienced IVF failure. The pattern is consistent: IVF attempted the bypass without identifying the cause, and that cause remains after the failed cycles. NeoFertility finds it.</p>
+
+            <p>Boyle et al. (2022) documented a successful natural conception in a couple with 16 years of infertility, three recurrent miscarriages, and eight failed IVF and ICSI embryo transfers. The NeoFertility evaluation identified and treated conditions the IVF pathway had never investigated. A healthy singleton pregnancy followed. Among the broader cohort of 403 couples who had undergone an average of 2.1 prior IVF cycles, NeoFertility achieved a 32.1% live birth rate through natural conception.<sup><a href="#ref-1">1</a></sup><sup><a href="#ref-16">16</a></sup><sup><a href="#ref-4">4</a></sup></p>
+          </section>
+
+          <!-- Section: Who is NeoFertility For? -->
+          <section id="who-is-neofertility-for">
+            <h2>Who is NeoFertility For?</h2>
+
+            <p><strong>NeoFertility is appropriate for any couple or individual who wants to understand and treat the underlying causes of their reproductive health problems.</strong></p>
+
+            <ul>
+              <li>Couples with unexplained infertility who have received no diagnosis after a standard workup</li>
+              <li>Couples who have experienced one or more IVF failures and want to know why</li>
+              <li>Women or couples with recurrent miscarriage who have been told "all tests are normal"</li>
+              <li>Women with low AMH who have been told donor eggs are their only option</li>
+              <li>Women with PCOS who want their underlying condition identified and treated</li>
+              <li>Women with endometriosis who want the disease addressed, not masked</li>
+              <li>Couples where the male partner has abnormal semen parameters and a treatable cause has not been investigated</li>
+              <li>Women with suspected immune-mediated infertility or implantation failure</li>
+              <li>Women with cycle irregularity, painful periods, or hormonal symptoms that have not been fully investigated</li>
+              <li>Couples who prefer natural conception and want to understand what is preventing it</li>
+            </ul>
+
+            <h3>Do I Need to Be Religious?</h3>
+
+            <p>No. NeoFertility was founded by a physician trained at a Catholic institution, but the clinical protocols are grounded in reproductive physiology. NeoFertility treats patients of all faiths and none. The diagnostic and treatment framework does not depend on any theological position. Patients seek NeoFertility because they want cause-directed care and natural conception, not because of institutional affiliation.<sup><a href="#ref-28">28</a></sup></p>
+
+            <h3>NeoFertility After Recurrent IVF Failure</h3>
+
+            <p>For couples who have been through multiple failed IVF cycles, NeoFertility offers something the IVF process typically does not: an investigation into why. IVF as practiced in most clinics does not diagnose the underlying condition. It attempts to bypass it. When IVF fails, the condition that prevented natural conception is still present and unaddressed.</p>
+
+            <p>NeoFertility begins from the beginning, with a thorough workup including immune markers, androgen panels, and follicle function confirmation that IVF programs typically do not perform. For 32.1% of couples who had already failed an average of 2.1 IVF cycles, that workup led to natural conception after treatment.<sup><a href="#ref-4">4</a></sup></p>
+          </section>
+
+          <!-- Section: Cost -->
+          <section id="cost">
+            <h2>Cost</h2>
+
+            <p><strong>NeoFertility costs substantially less than IVF, and the gap widens significantly when IVF costs are calculated over multiple cycles.</strong></p>
+
+            <p>IVF in the United States costs $15,000 to $30,000 per cycle, and most couples need two to three cycles to achieve a live birth, bringing average total spending to $40,000 to $60,000 or more. NeoFertility at the Dublin clinic offers a Standard Treatment Plan at &euro;2,000, with a 100% Refund Treatment Plan available at a higher fee for qualifying patients.<sup><a href="#ref-28">28</a></sup></p>
+
+            <p>Because NeoFertility treats diagnosed medical conditions, many components of the workup and treatment can be submitted to standard health insurance using diagnostic and treatment codes: hormonal testing ordered for a documented condition such as PCOS, laparoscopic excision for confirmed endometriosis, progesterone support for luteal phase deficiency. This billing structure differs from IVF, which is typically classified as elective fertility treatment and covered only in states with specific mandates.<sup><a href="#ref-28">28</a></sup></p>
+
+            <p>The policy landscape is also shifting. Arkansas became the first U.S. state to mandate insurance coverage for restorative reproductive medicine in 2025, and the RESTORE Act (H.R. 3589) was introduced in Congress to expand access to RRM approaches. NeoFertility patients in the United States stand to benefit directly from these developments.</p>
+          </section>
+
+          <!-- Section: How to Find a NeoFertility Provider -->
+          <section id="find-provider">
+            <h2>How to Find a NeoFertility Provider</h2>
+
+            <p><strong>The first step in NeoFertility care is learning fertility charting.</strong> NeoFertility physicians rely on a detailed, well-charted cycle to time blood tests, evaluate treatment response, and guide each phase of care. Charting before or concurrent with beginning treatment is essential.</p>
+
+            <h3>Start with ChartNeo</h3>
+
+            <p>The ChartNeo app is the primary charting tool for NeoFertility patients. It is available on iOS and Android and supports multiple charting methods. A trained NeoFertility Advisor teaches the observations and guides the first few months of charting. Within the ChartNeo app, there is a map of certified advisors and affiliated clinics.<sup><a href="#ref-20">20</a></sup></p>
+
+            <h3>Find a NeoFertility-Trained Physician</h3>
+
+            <ul>
+              <li><strong>NeoFertility Clinical Mastery Program:</strong> Physicians trained through this program have completed NeoFertility's formal training curriculum, including CME-eligible modules on diagnostic protocols, immune modifying strategies, and ChartNeo integration.<sup><a href="#ref-7">7</a></sup></li>
+              <li><strong>FACTS-NeoFertility Medical Consultant Training:</strong> A joint training program between FACTS About Fertility and NeoFertility, offered to family physicians, NPs, and PAs. Covers infertility, recurrent miscarriage, and at-risk pregnancy management using NeoFertility protocols.<sup><a href="#ref-8">8</a></sup></li>
+              <li><strong>IIRRM Provider Directory:</strong> The International Institute for Restorative Reproductive Medicine maintains a broader referral network of RRM-trained physicians at <a href="https://iirrm.org" rel="noopener" target="_blank">iirrm.org</a>. When contacting a provider, ask specifically about NeoFertility or NeoFertility Clinical Mastery Program training.<sup><a href="#ref-1">1</a></sup></li>
+              <li><strong>Telehealth:</strong> NeoFertility is well-suited to telehealth delivery. Initial consultations, protocol review, and ongoing monitoring can be conducted remotely when combined with local lab work and ultrasound. NeoFertility Dublin has treated international patients through this model.<sup><a href="#ref-28">28</a></sup></li>
+            </ul>
+
+            <h3>Questions to Ask When Choosing a Provider</h3>
+
+            <p>Before scheduling, ask:</p>
+
+            <ul>
+              <li>Have you completed the NeoFertility Clinical Mastery Program or FACTS-NeoFertility Medical Consultant Training?</li>
+              <li>Do you use ChartNeo for patient tracking and integration?</li>
+              <li>Do you routinely test for NK cells, DHEA, and androgen levels as part of your workup for recurrent miscarriage?</li>
+              <li>Do you evaluate both partners from the initial consultation?</li>
+              <li>Do you continue hormonal monitoring and support into early pregnancy?</li>
+              <li>Do you offer telehealth for ongoing monitoring?</li>
+            </ul>
+          </section>
+
+          <!-- Section: NeoFertility Research and Training -->
+          <section id="research-training">
+            <h2>NeoFertility Research and Training</h2>
+
+            <p><strong>NeoFertility has an active and growing research output, primarily from the Dublin clinic.</strong> Key published work includes:</p>
+
+            <ul>
+              <li><strong>Boyle et al. (2025)</strong>, <em>Journal of Restorative Reproductive Medicine</em>: First head-to-head comparison of RRM outcomes versus IVF, 187-couple cohort, 41% crude live birth rate<sup><a href="#ref-16">16</a></sup></li>
+              <li><strong>Boyle, Pandalache, and Turczynski (2024)</strong>, <em>Frontiers in Medicine</em>: DHEA treatment for hypoandrogenemia in recurrent miscarriage; first peer-reviewed paper on DHEA during pregnancy for reducing miscarriage risk in women with low estradiol<sup><a href="#ref-24">24</a></sup><sup><a href="#ref-10">10</a></sup></li>
+              <li><strong>Boyle et al. (2022)</strong>, <em>Journal of Medical Case Reports</em>: Successful natural conception after 16 years of infertility and eight failed IVF/ICSI transfers<sup><a href="#ref-16">16</a></sup></li>
+              <li><strong>Boyle et al. (2018)</strong>, <em>Frontiers in Medicine</em>: Healthy singleton pregnancies through RRM after failed IVF, 403-couple cohort, 32.1% life-table live birth rate<sup><a href="#ref-4">4</a></sup></li>
+            </ul>
+
+            <p>NeoFertility training is available to medical professionals through two primary pathways. The <strong>NeoFertility Clinical Mastery Program</strong> is a comprehensive online program with 15+ CME credits, covering foundational RRM, diagnostic protocols, immune-modifying strategies, the psychology of conception, and ChartNeo integration. It includes ongoing clinical support through monthly case studies with Dr. Boyle and colleagues, a Clinical Resource Library, and access to the NeoFertility Medical Forum. The <strong>FACTS-NeoFertility Medical Consultant Training</strong> is a 10-week live online course offered jointly with FACTS About Fertility for physicians, NPs, and PAs seeking systematic training in NeoFertility protocols, including specific modules on low AMH, male infertility, and at-risk pregnancy management.<sup><a href="#ref-8">8</a></sup><sup><a href="#ref-7">7</a></sup></p>
+          </section>
+
+          <!-- Section: Frequently Asked Questions -->
+          <section id="faq">
+            <h2>Frequently Asked Questions</h2>
+
+            <dl class="faq-list">
+              <dt>What is NeoFertility?</dt>
+              <dd>NeoFertility is a restorative reproductive medicine approach developed by Dr. Phil Boyle in Dublin, Ireland that diagnoses and treats the underlying causes of infertility and recurrent miscarriage. Rather than bypassing reproductive problems, NeoFertility investigates why the couple is not conceiving and corrects the conditions found, allowing natural conception to occur.<sup><a href="#ref-28">28</a></sup></dd>
+
+              <dt>How is NeoFertility different from NaProTechnology?</dt>
+              <dd>Both approaches are RRM and share the goal of diagnosing and treating the underlying cause. NeoFertility was developed by a physician originally trained in NaProTechnology and builds on that foundation. Key differences are NeoFertility's method-agnostic charting approach (any FABM is accepted), its systematic use of immune panels and LDN, its DHEA and androgen evaluation protocol, and its integration with the ChartNeo digital platform.<sup><a href="#ref-2">2</a></sup><sup><a href="#ref-1">1</a></sup></dd>
+
+              <dt>What makes NeoFertility different from standard fertility treatment?</dt>
+              <dd>Standard fertility treatment typically involves suppressing or bypassing reproductive function with medications or IVF. NeoFertility investigates what is causing the problem and treats it. Bloodwork is timed to the individual's cycle, not a calendar date. Both partners are evaluated. Immune markers, androgen levels, and follicle function are assessed. Treatment is matched to the specific findings.<sup><a href="#ref-4">4</a></sup><sup><a href="#ref-28">28</a></sup></dd>
+
+              <dt>Does NeoFertility work for women with low AMH?</dt>
+              <dd>Yes. Because NeoFertility requires only one follicle per cycle for natural conception, low AMH does not disqualify a patient the way it does for IVF. NeoFertility has reported success in patients with AMH as low as 0.07 pmol/L, values typically considered incompatible with IVF.<sup><a href="#ref-17">17</a></sup></dd>
+
+              <dt>Can NeoFertility help after failed IVF?</dt>
+              <dd>Yes. IVF does not diagnose or treat the underlying condition. After IVF fails, the condition that prevented natural conception is still present. NeoFertility identifies it. In a cohort of 403 couples with an average of 2.1 prior failed IVF cycles, NeoFertility achieved a life-table live birth rate of 32.1% through natural conception.<sup><a href="#ref-4">4</a></sup></dd>
+
+              <dt>What is the success rate for NeoFertility?</dt>
+              <dd>The 2015 Dublin clinic cohort of 412 couples reported a 32% crude live birth rate and a 53.6% adjusted rate at 24 months using Life Table Analysis. The 2019 cohort published in Boyle et al. (2025) reported a 41% crude live birth rate. Results depend on age, diagnosis, and individual factors.<sup><a href="#ref-26">26</a></sup><sup><a href="#ref-16">16</a></sup></dd>
+
+              <dt>Is NeoFertility only available in Ireland?</dt>
+              <dd>No. NeoFertility training has expanded internationally through the NeoFertility Clinical Mastery Program and FACTS-NeoFertility Medical Consultant Training, with trained providers practicing in the United States and other countries. Telehealth options extend access further for patients who cannot access a local provider.<sup><a href="#ref-7">7</a></sup><sup><a href="#ref-8">8</a></sup></dd>
+
+              <dt>Do I have to be a certain religion to use NeoFertility?</dt>
+              <dd>No. NeoFertility is evidence-based medicine available to patients of all faiths and none. The approach works because it is grounded in reproductive physiology, not theology.<sup><a href="#ref-28">28</a></sup></dd>
+
+              <dt>What is the ChartNeo app?</dt>
+              <dd>ChartNeo is a fertility charting app co-developed by Dr. Phil Boyle that supports multiple charting methods and integrates with NeoFertility clinical care. It allows patients to record daily biomarkers, track medications, log blood test results, and share cycle data directly with their physician and fertility advisor. It is HIPAA-compliant and available on iOS and Android.<sup><a href="#ref-5">5</a></sup><sup><a href="#ref-6">6</a></sup></dd>
+
+              <dt>What does NeoFertility do differently for recurrent miscarriage?</dt>
+              <dd>NeoFertility evaluates a broader set of potential causes than standard miscarriage workups, including NK cells, food antibodies, DHEA and androgen levels, endorphin deficiency, and follicle quality. The etiology is frequently multi-factorial. NeoFertility reports an 80% live birth success rate for women with recurrent miscarriage.<sup><a href="#ref-9">9</a></sup><sup><a href="#ref-17">17</a></sup></dd>
+            </dl>
+          </section>
+
+          <!-- Section: References -->
+          <section class="references" id="references">
+            <h2>References</h2>
+            <ol>
+              <li id="ref-1"><a href="https://rrmcongress.com" rel="noopener" target="_blank">2025 Restorative Reproductive Medicine Congress</a> -- This one-day workshop provides a structured, systematic, and science-based approach to fertility.</li>
+              <li id="ref-2"><a href="https://www.heritage.org/marriage-and-family/report/treating-infertility-the-new-frontier-reproductive-medicine" rel="noopener" target="_blank">Treating Infertility: The New Frontier of Reproductive Medicine</a> -- NeoFertility is the newest RRM approach and seeks to address many more of the underlying issues.</li>
+              <li id="ref-3"><a href="https://naturalfamilyplanningireland.ie/wp-content/uploads/2025/11/Dr-Phil-Boyle-New-Insights-into-Fertility-Treatment-with-RRM.pdf" rel="noopener" target="_blank">New insights to fertility treatment with RRM (PDF)</a> -- Boyle PC, Stanford JB, Zecevic I. Successful pregnancy with restorative reproductive medicine.</li>
+              <li id="ref-4"><a href="https://www.frontiersin.org/journals/medicine/articles/10.3389/fmed.2018.00210/full" rel="noopener" target="_blank">Healthy Singleton Pregnancies From Restorative Reproductive Medicine (RRM) after Failed IVF</a> -- <em>Frontiers in Medicine</em> (2018).</li>
+              <li id="ref-5"><a href="https://www.chartneo.com" rel="noopener" target="_blank">Chart Neo: Empowering Women. Equipping Professionals.</a> -- Every feature has been shaped by real feedback from physicians, fertility instructors, and the women who use it.</li>
+              <li id="ref-6"><a href="https://www.naturalfertilitymatters.com/blog-what-is-chart-neo" rel="noopener" target="_blank">Blog: What is Chart Neo? -- Natural Fertility Matters</a> -- For anyone who are with the NeoFertility clinic, for any kind of treatments, we strongly recommend you use ChartNeo.</li>
+              <li id="ref-7"><a href="https://www.neofertilitytraining.com/neofertility-clinical-mastery-program" rel="noopener" target="_blank">NeoFertility Clinical Mastery Program</a> -- This training is designed for healthcare professionals who want to bring hope and healing back to women.</li>
+              <li id="ref-8"><a href="https://www.factsaboutfertility.org/courses/facts-neofertility-summer-cohort-2025/" rel="noopener" target="_blank">FACTS-NeoFertility Summer Cohort 2025 -- FACTS About Fertility</a> -- This course is run live for 10 weeks every Wednesday.</li>
+              <li id="ref-9"><a href="https://neofertility.ie/what-can-neo-treat/" rel="noopener" target="_blank">What can Neo Treat?</a> -- We can treat what IVF can't. Our treatment has proven successful for patients with low AMH/low egg reserve.</li>
+              <li id="ref-10"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10902037/" rel="noopener" target="_blank">Successful pregnancy using oral DHEA treatment for hypoandrogenemia</a> -- Recently DHEA has also been shown to increase serum estradiol during pregnancy and reduce the incidence of miscarriage. <em>PMC</em>.</li>
+              <li id="ref-11"><a href="https://www.youtube.com/watch?v=d1ctgimvl04" rel="noopener" target="_blank">Restorative Reproductive Medicine (RRM) with NeoFertility -- YouTube</a> -- RRM helps couples to conceive after failed IVF -- two case reports.</li>
+              <li id="ref-12"><a href="https://repro-health.com.ua/article/download/341017/329553/793167" rel="noopener" target="_blank">The effect of low-dose naltrexone on immunological infertility (PDF)</a> -- Significant enhancements in endometrial thickness, ovarian responsiveness, progesterone levels, and clinical pregnancy rates.</li>
+              <li id="ref-13"><a href="https://neofertilitydoctor.com/chartneo-app" rel="noopener" target="_blank">NeoFertility App, Ltd.</a> -- Use the free ChartNeo app to easily track your daily biomarkers and physical observations.</li>
+              <li id="ref-14"><a href="https://www.youtube.com/watch?v=BbhudZpqz7c" rel="noopener" target="_blank">NeoFertility Introduction -- Advanced Fertility Tracking -- YouTube</a> -- Introductory presentation to cycle tracking with NeoFertility.</li>
+              <li id="ref-15"><a href="https://neofertility.ie/treatment-plan/" rel="noopener" target="_blank">Treatment Plan -- NeoFertility</a> -- Our treatment plan works to first identify the underlying causes of fertility problems.</li>
+              <li id="ref-16"><a href="https://rrmjournal.org/index.php/jrrm/article/view/9" rel="noopener" target="_blank">A retrospective evaluation of a 2019 clinic cohort compared to IVF</a> -- <em>Journal of Restorative Reproductive Medicine</em>.</li>
+              <li id="ref-17"><a href="https://neofertility.us/for-patients" rel="noopener" target="_blank">For Patients -- NeoFertility</a> -- NeoFertility has an 80% success rate for live birth in women with recurrent miscarriage.</li>
+              <li id="ref-18"><a href="https://www.factsaboutfertility.org/dhea-to-prevent-miscarriage-review-of-a-case-report/" rel="noopener" target="_blank">DHEA to Prevent Miscarriage? Review of a Case Report</a> -- The treatment targeted suboptimal ovulation and inadequate corpus luteum development.</li>
+              <li id="ref-19"><a href="https://www.youtube.com/watch?v=YPqdXwuRq4I" rel="noopener" target="_blank">ChartNeo App -- How to start recording your cycle -- YouTube</a> -- A brief introduction to recording your cycle with ChartNeo.</li>
+              <li id="ref-20"><a href="https://www.thefruitfulhollow.com/neofertility" rel="noopener" target="_blank">NeoFertility -- The Fruitful Hollow</a> -- Patients on the NeoFertility treatment plans are recommended to chart using the NeoFertility method.</li>
+              <li id="ref-21"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5715833/" rel="noopener" target="_blank">NK cell abnormality and its treatment in women with reproductive failure</a> -- The regulation of uterine and peripheral blood natural killer (NK) cells. <em>PMC</em>.</li>
+              <li id="ref-22"><a href="https://www.ivf.com.au/planning-for-pregnancy/female-fertility/natural-killer-cells" rel="noopener" target="_blank">Natural Killer Cells -- Check Impact on Pregnancy and Fertility</a> -- Some studies suggest that elevated levels of Natural Killer Cells in the uterus may affect implantation.</li>
+              <li id="ref-23"><a href="https://internationalendo.com/interview-with-dr-andrea-vidali-low-dosenaltrexone-in-endometriosis-pelvic-painand-infertility/" rel="noopener" target="_blank">Low-Dose Naltrexone in Endometriosis, Pelvic Pain, and Infertility</a> -- LDN does not appear to harm fertility; it preserves or even enhances it.</li>
+              <li id="ref-24"><a href="https://pubmed.ncbi.nlm.nih.gov/38426161/" rel="noopener" target="_blank">Successful pregnancy using oral DHEA treatment for hypoandrogenemia -- PubMed</a> -- In a 30-year-old female with 5 recurrent pregnancy losses.</li>
+              <li id="ref-25"><a href="https://iirrm.org/new-research-suggesting-dhea-treatment-during-pregnancy-can-reduce-the-risk-of-miscarriage-for-women-with-low-oestrogen-levels/" rel="noopener" target="_blank">New Research suggesting DHEA treatment during pregnancy can reduce the risk of miscarriage</a> -- New research led by Dr. Phil Boyle. IIRRM.</li>
+              <li id="ref-26"><a href="https://www.youtube.com/watch?v=aDXWSWE4mbw" rel="noopener" target="_blank">Live Birth Rate NeoFertility 2015 compared to IVF -- YouTube</a> -- A report on the Live Birth rate for NeoFertility Clinic in 2015.</li>
+              <li id="ref-27"><a href="https://www.youtube.com/watch?v=bq5ARug9puU" rel="noopener" target="_blank">NeoFertility Live Birth Rate 2015 compared to IVF -- YouTube</a> -- Dr. Phil Boyle analyses Live Birth data from his NeoFertility Clinic.</li>
+              <li id="ref-28"><a href="https://neofertility.ie/what-is-neo-fertility/" rel="noopener" target="_blank">What is NeoFertility</a> -- NeoFertility is a Dublin, Ireland-based fertility clinic helping couples conceive naturally.</li>
+            </ol>
+          </section>
+
+          <div class="cta-box">
+            <h3>Ready to learn more?</h3>
+            <p><a href="/courses/" class="btn btn--primary">Explore Free Courses</a></p>
+            <p><a href="/library/" class="btn btn--secondary">Browse the Research Library</a></p>
+          </div>
+
+          <p class="disclaimer"><em>This content is for educational purposes only and does not constitute medical advice. Consult a NeoFertility-trained clinician or healthcare provider for guidance specific to your situation.</em></p>
+
+        </article>
+      </div>
+    </div>
+  </div>
+  <p class="page-updated">Last updated: March 2026</p>
+  <BackToTop />
+</BaseLayout>
+
+<style>
+  .author-byline {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: calc(-1 * var(--space-2));
+    margin-bottom: var(--space-6);
+    line-height: 1.6;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: var(--space-6);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  th {
+    background: var(--bg-surface);
+    font-weight: 600;
+    padding: var(--space-3) var(--space-4);
+    text-align: left;
+    border-bottom: 2px solid var(--border-color);
+  }
+
+  td {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  .references {
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+  }
+
+  .references li {
+    margin-bottom: var(--space-3);
+  }
+
+  .faq-list dt {
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: var(--text-primary);
+    margin-top: var(--space-6);
+    margin-bottom: var(--space-2);
+  }
+
+  .faq-list dd {
+    margin-left: 0;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: var(--space-4);
+  }
+
+  .cta-box {
+    background: var(--bg-surface);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: var(--space-8);
+    text-align: center;
+    margin-top: var(--space-10);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .cta-box h3 {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    margin-bottom: var(--space-3);
+  }
+
+  .cta-box p {
+    margin-bottom: var(--space-4);
+  }
+
+  .cta-box p:last-child {
+    margin-bottom: 0;
+  }
+
+  .disclaimer {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    margin-top: var(--space-8);
+    line-height: 1.6;
+  }
+
+  /* Override container width for article layout */
+  @media (min-width: 1024px) {
+    .container {
+      max-width: calc(var(--max-width-article) + 220px + var(--space-10) + var(--space-8) * 2);
+    }
+  }
+</style>
