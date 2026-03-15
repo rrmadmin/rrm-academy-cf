@@ -1,0 +1,654 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="IVF Success Rate Calculator" noindex={true} description="Evidence-based IVF success rate estimates from HFEA mandatory reporting data.">
+
+<style>
+  /* Dev gate */
+  .dev-gate {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    padding: var(--space-8);
+  }
+  .dev-gate-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--space-10);
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+  }
+  .dev-gate-card h1 {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: var(--space-2);
+  }
+  .dev-gate-card p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-6);
+  }
+  .dev-gate-card input {
+    width: 100%;
+    height: 44px;
+    padding: 0 var(--space-4);
+    border: 1px solid var(--neutral-300);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    text-align: center;
+    letter-spacing: 0.25em;
+    margin-bottom: var(--space-4);
+  }
+  .dev-gate-card input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+  .dev-gate-card button {
+    width: 100%;
+    height: 44px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .dev-gate-card button:hover { background: var(--accent-hover); }
+  .dev-gate-error {
+    color: var(--color-error);
+    font-size: 0.8125rem;
+    margin-top: var(--space-2);
+    display: none;
+  }
+  .dev-badge {
+    display: inline-block;
+    background: var(--color-error);
+    color: #fff;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: var(--space-4);
+    text-transform: uppercase;
+  }
+
+  /* Calculator */
+  .calc-page { display: none; }
+  .calc-page.visible { display: block; }
+
+  .hero-section {
+    text-align: center;
+    padding: var(--space-12) var(--space-8) var(--space-8);
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  .breadcrumb {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    margin-bottom: var(--space-4);
+  }
+  .breadcrumb a { color: var(--text-muted); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent); }
+  .hero-section h1 {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 1.5rem + 2vw, 2.5rem);
+    font-weight: 600;
+    line-height: 1.15;
+    margin-bottom: var(--space-3);
+  }
+  .hero-subtitle {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-6);
+  }
+  .trust-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    background: var(--purple-50);
+    border: 1px solid var(--purple-200);
+    border-radius: 999px;
+    padding: var(--space-2) var(--space-5);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .trust-badge svg { flex-shrink: 0; }
+
+  .form-container {
+    max-width: 720px;
+    margin: 0 auto var(--space-12);
+    padding: 0 var(--space-4);
+  }
+  .card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--space-10);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+  }
+  @media (max-width: 600px) {
+    .card { padding: var(--space-6); }
+  }
+  .card-header { margin-bottom: var(--space-8); }
+  .card-header h2 {
+    font-family: var(--font-display);
+    font-size: 1.375rem;
+    font-weight: 600;
+    margin-bottom: var(--space-2);
+  }
+  .card-header p { font-size: 0.875rem; color: var(--text-secondary); }
+
+  .fields-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-6);
+    margin-bottom: var(--space-8);
+  }
+  @media (max-width: 600px) { .fields-row { grid-template-columns: 1fr; } }
+  .field { display: flex; flex-direction: column; gap: var(--space-2); }
+  .field label { font-size: 0.8125rem; font-weight: 600; color: var(--text-primary); }
+  .field select {
+    height: 44px;
+    padding: 0 var(--space-4);
+    border: 1px solid var(--neutral-300);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    background: var(--bg-surface);
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23949392' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    cursor: pointer;
+  }
+  .field select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--focus-ring); }
+  .field-note { font-size: 0.75rem; color: var(--text-muted); font-style: italic; margin-top: var(--space-1); }
+
+  .toggle-group { display: flex; height: 44px; }
+  .toggle-group button {
+    flex: 1; border: 1px solid var(--neutral-300); background: var(--bg-surface);
+    font-family: var(--font-body); font-size: 0.875rem; font-weight: 500;
+    color: var(--text-secondary); cursor: pointer; transition: all 0.15s;
+  }
+  .toggle-group button:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+  .toggle-group button:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; border-left: none; }
+  .toggle-group button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .divider { height: 1px; background: var(--border-color); margin: var(--space-8) 0; }
+
+  .factors-toggle {
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer; padding: var(--space-2) 0; user-select: none;
+  }
+  .factors-toggle h3 { font-family: var(--font-display); font-size: 1.125rem; font-weight: 600; }
+  .factors-toggle p { font-size: 0.8125rem; color: var(--text-muted); margin-top: 2px; }
+  .factors-toggle .chevron { transition: transform 0.2s; color: var(--text-muted); flex-shrink: 0; }
+  .factors-toggle.open .chevron { transform: rotate(180deg); }
+  .factors-body { display: none; padding-top: var(--space-6); }
+  .factors-body.open { display: block; }
+
+  .submit-area { text-align: center; margin-top: var(--space-8); }
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: var(--space-2);
+    background: var(--accent); color: #fff; border: none; border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-8); font-family: var(--font-body);
+    font-size: 0.9375rem; font-weight: 600; cursor: pointer; height: 48px; transition: background 0.15s;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:focus { outline: none; box-shadow: 0 0 0 3px var(--focus-ring); }
+  .disclaimer { font-size: 0.75rem; color: var(--text-muted); margin-top: var(--space-4); max-width: 500px; margin-left: auto; margin-right: auto; }
+  .validation-error { color: var(--color-error); font-size: 0.8125rem; margin-top: var(--space-2); }
+
+  /* Results */
+  .results-section { display: none; max-width: 720px; margin: 0 auto var(--space-12); padding: 0 var(--space-4); }
+  .results-section.visible { display: block; }
+  .result-main { text-align: center; margin-bottom: var(--space-6); }
+  .result-label { font-size: 0.6875rem; font-weight: 700; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: var(--space-3); }
+  .result-number { font-family: var(--font-display); font-size: 4.5rem; font-weight: 600; color: var(--accent); line-height: 1; margin-bottom: var(--space-4); }
+  .result-natural { font-size: 1rem; color: var(--text-primary); max-width: 500px; margin: 0 auto var(--space-6); }
+
+  .info-box { display: flex; gap: var(--space-3); padding: var(--space-4); border-radius: var(--radius-sm); margin-bottom: var(--space-4); align-items: flex-start; }
+  .info-box.neutral { background: var(--neutral-100); }
+  .info-box.amber { background: #fef9ee; border: 1px solid #f5e6c8; }
+  .info-box svg { flex-shrink: 0; margin-top: 2px; }
+  .info-box p { font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.6; }
+  .cite-link { font-size: 0.75rem; color: var(--accent); text-align: center; display: block; margin-top: var(--space-2); }
+
+  .dot-grid { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin: var(--space-4) auto var(--space-6); max-width: 340px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--neutral-200); }
+  .dot.filled { background: var(--accent); }
+
+  .complications-card { margin-top: var(--space-6); }
+  .complications-header { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); }
+  .complications-header h2 { font-family: var(--font-display); font-size: 1.375rem; font-weight: 600; }
+  .complications-desc { font-size: 0.875rem; color: var(--text-secondary); margin-bottom: var(--space-6); }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+  @media (max-width: 600px) { .stats-grid { grid-template-columns: 1fr; } }
+  .stat-card { background: var(--neutral-100); border-radius: var(--radius-sm); padding: var(--space-4) var(--space-5); }
+  .stat-number { font-family: var(--font-display); font-size: 1.75rem; font-weight: 600; color: var(--accent); margin-bottom: var(--space-1); }
+  .stat-label { font-size: 0.8125rem; color: var(--text-secondary); }
+  .stat-cite { font-size: 0.6875rem; color: var(--accent); margin-top: var(--space-1); }
+
+  .factors-result { margin-top: var(--space-6); }
+  .factors-result h2 { font-family: var(--font-display); font-size: 1.375rem; font-weight: 600; margin-bottom: var(--space-3); }
+  .factors-result .disclaimer-small { font-size: 0.8125rem; color: var(--text-muted); font-style: italic; margin-bottom: var(--space-4); }
+  .factor-item { display: flex; gap: var(--space-3); padding: var(--space-4); background: var(--neutral-100); border-radius: var(--radius-sm); margin-bottom: var(--space-3); align-items: flex-start; }
+  .factor-direction { font-size: 1.25rem; flex-shrink: 0; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+  .factor-direction.down { background: #fde8e8; color: var(--color-error); }
+  .factor-direction.up { background: var(--green-100); color: var(--green-700); }
+  .factor-direction.neutral-dir { background: var(--neutral-200); color: var(--neutral-600); }
+  .factor-text { font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6; }
+  .factor-text strong { color: var(--text-primary); }
+
+  .before-ivf { background: var(--purple-50); border: 1px solid var(--purple-200); border-radius: var(--radius-lg); padding: var(--space-8); margin-top: var(--space-6); }
+  .before-ivf h2 { font-family: var(--font-display); font-size: 1.25rem; font-weight: 600; color: var(--accent); margin-bottom: var(--space-3); }
+  .before-ivf p { font-size: 0.875rem; color: var(--text-secondary); line-height: 1.7; margin-bottom: var(--space-4); }
+  .before-ivf-links { display: flex; gap: var(--space-6); flex-wrap: wrap; }
+  .before-ivf-links a { display: flex; align-items: center; gap: var(--space-2); font-size: 0.875rem; font-weight: 500; color: var(--accent); text-decoration: none; }
+  .before-ivf-links a:hover { color: var(--accent-hover); }
+
+  .methodology { margin-top: var(--space-6); }
+  .methodology-header { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-6); }
+  .methodology-header h2 { font-family: var(--font-display); font-size: 1.375rem; font-weight: 600; }
+  .meth-item { margin-bottom: var(--space-6); }
+  .meth-item h3 { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-1); }
+  .meth-item p { font-size: 0.875rem; color: var(--text-secondary); line-height: 1.7; }
+  .data-version { display: flex; gap: var(--space-2); align-items: center; background: var(--neutral-100); border-radius: var(--radius-sm); padding: var(--space-3) var(--space-4); font-size: 0.75rem; color: var(--text-muted); }
+
+  .recalculate { text-align: center; margin-top: var(--space-8); }
+  .btn-secondary {
+    display: inline-flex; align-items: center; gap: var(--space-2);
+    background: transparent; color: var(--accent); border: 1px solid var(--accent);
+    border-radius: var(--radius-md); padding: var(--space-3) var(--space-6);
+    font-family: var(--font-body); font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all 0.15s;
+  }
+  .btn-secondary:hover { background: var(--purple-50); }
+
+  .scroll-target { scroll-margin-top: 80px; }
+</style>
+
+<!-- DEV PASSWORD GATE -->
+<div class="dev-gate" id="dev-gate">
+  <div class="dev-gate-card">
+    <span class="dev-badge">Development Preview</span>
+    <h1>IVF Success Calculator</h1>
+    <p>This page is under development. Enter the access code to preview.</p>
+    <input type="password" id="dev-password" placeholder="Access code" autocomplete="off" inputmode="numeric" maxlength="4">
+    <button type="button" id="dev-unlock">Unlock</button>
+    <p class="dev-gate-error" id="dev-error">Incorrect code. Try again.</p>
+  </div>
+</div>
+
+<!-- CALCULATOR (hidden until password entered) -->
+<div class="calc-page" id="calc-page">
+
+  <section class="hero-section">
+    <div class="breadcrumb">
+      <a href="/">Home</a> / Tools / IVF Success Calculator
+    </div>
+    <h1>IVF Success Rate Calculator</h1>
+    <p class="hero-subtitle">Evidence-based estimates from HFEA mandatory reporting data</p>
+    <div class="trust-badge">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+      HFEA Mandatory Reporting &middot; All UK Licensed Clinics &middot; 2M+ Cycles Since 1991
+    </div>
+  </section>
+
+  <div class="form-container" id="calculator-form">
+    <div class="card">
+      <div class="card-header">
+        <h2>Quick Estimate</h2>
+        <p>Select your age group and egg source for an evidence-based estimate.</p>
+      </div>
+
+      <div class="fields-row">
+        <div class="field">
+          <label for="age">Your Age</label>
+          <select id="age">
+            <option value="">Select age group</option>
+            <option value="under35">Under 35</option>
+            <option value="35-37">35 - 37</option>
+            <option value="38-40">38 - 40</option>
+            <option value="41-42">41 - 42</option>
+            <option value="43+">43 and over</option>
+          </select>
+          <div class="validation-error" id="age-error" style="display:none">Please select your age group.</div>
+        </div>
+        <div class="field">
+          <label>Egg Source</label>
+          <div class="toggle-group" id="egg-toggle">
+            <button type="button" class="active" data-value="own">Own Eggs</button>
+            <button type="button" data-value="donor">Donor Eggs</button>
+          </div>
+          <div id="donor-note" style="display:none">
+            <p class="field-note">With donor eggs, success rates are primarily determined by the donor's age, not yours.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="factors-toggle" id="factors-toggle">
+        <div>
+          <h3>Factors That May Affect Your Outcome</h3>
+          <p>Optional. These do not change your estimate -- they provide additional context.</p>
+        </div>
+        <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+
+      <div class="factors-body" id="factors-body">
+        <div class="fields-row">
+          <div class="field">
+            <label for="prev-cycles">Previous IVF Cycles</label>
+            <select id="prev-cycles">
+              <option value="">Not specified</option>
+              <option value="0">0</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3+">3 or more</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="diagnosis">Primary Diagnosis</label>
+            <select id="diagnosis">
+              <option value="">Not specified</option>
+              <option value="unexplained">Unexplained</option>
+              <option value="endometriosis">Endometriosis</option>
+              <option value="tubal">Tubal factor</option>
+              <option value="male">Male factor</option>
+              <option value="dor">Diminished ovarian reserve</option>
+              <option value="pcos">PCOS</option>
+              <option value="other">Other</option>
+            </select>
+            <p class="field-note">Co-occurring conditions are common and affect outcomes in ways aggregate data cannot capture.</p>
+          </div>
+        </div>
+        <div class="fields-row">
+          <div class="field">
+            <label for="prev-births">Previous Live Births</label>
+            <select id="prev-births">
+              <option value="">Not specified</option>
+              <option value="0">0</option>
+              <option value="1">1</option>
+              <option value="2+">2 or more</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="duration">Duration of Infertility</label>
+            <select id="duration">
+              <option value="">Not specified</option>
+              <option value="under2">Under 2 years</option>
+              <option value="2-5">2 - 5 years</option>
+              <option value="5+">5 or more years</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="submit-area">
+        <button class="btn-primary" id="calculate-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/></svg>
+          Calculate My Estimate
+        </button>
+        <p class="disclaimer">This is not a clinical prediction. These are population-level statistics from HFEA mandatory reporting.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results-section scroll-target" id="results-section" aria-live="polite">
+    <div class="card result-main">
+      <p class="result-label">Estimated Live Birth Rate Per Cycle Started</p>
+      <div class="result-number" id="result-number">--</div>
+      <p class="result-natural" id="result-natural"></p>
+      <div class="dot-grid" id="dot-grid" aria-hidden="true"></div>
+      <div class="info-box neutral">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#949392" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        <p id="secondary-rate"></p>
+      </div>
+      <div class="info-box amber">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#92700c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <p>This data comes from the UK's HFEA, the world's most complete IVF registry with mandatory reporting from all licensed clinics. US outcomes may differ due to differences in clinical protocols and patient populations.</p>
+      </div>
+      <a class="cite-link" href="https://www.hfea.gov.uk/about-us/publications/" target="_blank" rel="noopener">Source: HFEA Fertility Treatment 2022: Trends and Figures</a>
+    </div>
+
+    <div class="card factors-result" id="factors-result" style="display:none">
+      <h2>Factors That May Affect Your Outcome</h2>
+      <p class="disclaimer-small">These are population-level associations, not personalized predictions. Your individual circumstances may differ.</p>
+      <div id="factors-list"></div>
+    </div>
+
+    <div class="card complications-card">
+      <div class="complications-header">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--purple-500)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        <h2>What the Data Doesn't Show You</h2>
+      </div>
+      <p class="complications-desc">Complication and outcome rates from HFEA mandatory reporting. These figures apply to all IVF cycles, not just your age group.</p>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number">1-2%</div>
+          <div class="stat-label">OHSS (ovarian hyperstimulation syndrome) incidence per cycle</div>
+          <div class="stat-cite">HFEA Annual Report</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">10-20%</div>
+          <div class="stat-label">Miscarriage rate (varies significantly by age)</div>
+          <div class="stat-cite">HFEA Annual Report</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">~2%</div>
+          <div class="stat-label">Ectopic pregnancy rate</div>
+          <div class="stat-cite">HFEA Annual Report</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">3.3%</div>
+          <div class="stat-label">Multiple pregnancy rate (declining with single embryo transfer)</div>
+          <div class="stat-cite">HFEA Dashboard</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="before-ivf">
+      <h2>Before IVF</h2>
+      <p>Many conditions that lead to IVF referral -- such as endometriosis, PCOS, and unexplained infertility -- may have treatable underlying causes. Restorative reproductive medicine focuses on diagnosis and treatment of these conditions.</p>
+      <div class="before-ivf-links">
+        <a href="/what-is-rrm/">What is RRM? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+        <a href="/naprotechnology/">NaProTechnology <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+      </div>
+    </div>
+
+    <div class="card methodology">
+      <div class="methodology-header">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        <h2>Methodology</h2>
+      </div>
+      <div class="meth-item">
+        <h3>Data Source</h3>
+        <p>All statistics come from the HFEA (Human Fertilisation and Embryology Authority) mandatory reporting register. Every licensed fertility clinic in the UK is required by law to report all treatment cycles and outcomes. This register covers approximately 2 million IVF cycles since 1991.</p>
+      </div>
+      <div class="meth-item">
+        <h3>Why HFEA Over CDC/SART?</h3>
+        <p>The US CDC and SART rely on voluntary reporting. Clinics can choose which outcomes to include, introducing selection bias. HFEA mandatory reporting means no clinic can exclude poor outcomes, making it the most complete IVF dataset available worldwide.</p>
+      </div>
+      <div class="meth-item">
+        <h3>Understanding the Numbers</h3>
+        <p>"Per cycle started" includes all cycles, even those cancelled before embryo transfer. "Per embryo transferred" excludes cancelled cycles and is therefore higher. We show "per cycle started" as the primary figure because it reflects the full reality of starting IVF treatment.</p>
+      </div>
+      <div class="meth-item">
+        <h3>Limitations</h3>
+        <p>These are aggregate, population-level statistics from a UK population. They do not account for individual clinical factors, protocol differences (fresh vs frozen transfers), or co-occurring diagnoses. US outcomes may differ. HFEA mandatory reporting eliminates clinic-level selection bias but does not capture patients who never reach a licensed clinic. This tool is not a substitute for clinical advice.</p>
+      </div>
+      <div class="data-version">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>
+        Data extracted from HFEA Fertility Treatment 2022: Trends and Figures. Last updated March 2026. Annual review scheduled.
+      </div>
+    </div>
+
+    <div class="recalculate">
+      <button class="btn-secondary" id="recalculate-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+        Start Over
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script is:inline>
+  // Password gate
+  (function() {
+    var KEY = 'ivf_calc_dev';
+    var HASH = '2415';
+    var gate = document.getElementById('dev-gate');
+    var page = document.getElementById('calc-page');
+    var input = document.getElementById('dev-password');
+    var btn = document.getElementById('dev-unlock');
+    var err = document.getElementById('dev-error');
+
+    if (sessionStorage.getItem(KEY) === 'true') {
+      gate.style.display = 'none';
+      page.classList.add('visible');
+    }
+
+    function tryUnlock() {
+      if (input.value === HASH) {
+        sessionStorage.setItem(KEY, 'true');
+        gate.style.display = 'none';
+        page.classList.add('visible');
+      } else {
+        err.style.display = 'block';
+        input.value = '';
+        input.focus();
+      }
+    }
+
+    btn.addEventListener('click', tryUnlock);
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') tryUnlock();
+    });
+  })();
+
+  // HFEA data (PLACEHOLDER -- replace with verified figures before production)
+  var HFEA = {
+    perCycle: { own: { under35: 32, '35-37': 25, '38-40': 16, '41-42': 8, '43+': 3 }, donor: 30 },
+    perTransfer: { own: { under35: 36, '35-37': 30, '38-40': 21, '41-42': 12, '43+': 5 }, donor: 35 },
+    labels: { under35: 'under 35', '35-37': '35\u201337', '38-40': '38\u201340', '41-42': '41\u201342', '43+': '43 and over' },
+    factors: {
+      endometriosis: { d: 'down', t: 'Endometriosis is associated with lower IVF success rates', or: '0.71\u20130.85' },
+      tubal: { d: 'neutral', t: 'Tubal factor infertility has a relatively neutral association with IVF outcomes', or: '~1.0' },
+      male: { d: 'neutral', t: 'Male factor infertility shows similar IVF outcomes to other diagnoses', or: '~1.0' },
+      dor: { d: 'down', t: 'Diminished ovarian reserve is associated with lower success rates', or: '0.60\u20130.80' },
+      pcos: { d: 'up', t: 'PCOS may be associated with slightly higher IVF success rates due to higher egg yield, though OHSS risk increases', or: '1.0\u20131.2' },
+      unexplained: { d: 'neutral', t: 'Unexplained infertility shows average IVF outcomes', or: '~1.0' },
+      cyc1: { d: 'down', t: 'One previous failed IVF cycle is associated with moderately lower odds', or: '0.85\u20130.95' },
+      cyc2: { d: 'down', t: 'Two previous failed cycles are associated with lower odds', or: '0.75\u20130.90' },
+      cyc3: { d: 'down', t: 'Three or more previous failed cycles are associated with progressively lower odds', or: '0.65\u20130.85' },
+      birth1: { d: 'up', t: 'Having one previous live birth is associated with higher IVF success', or: '1.05\u20131.22' },
+      birth2: { d: 'up', t: 'Having two or more previous live births is positively associated with IVF success', or: '1.10\u20131.30' },
+      dur25: { d: 'down', t: 'Longer duration of infertility (2\u20135 years) is associated with modestly lower success', or: '0.85\u20130.95' },
+      dur5: { d: 'down', t: 'Infertility lasting 5+ years is associated with lower success rates', or: '0.70\u20130.85' }
+    }
+  };
+
+  var eggSource = 'own';
+
+  // Egg toggle
+  document.getElementById('egg-toggle').addEventListener('click', function(e) {
+    var btn = e.target.closest('button');
+    if (!btn) return;
+    this.querySelectorAll('button').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    eggSource = btn.dataset.value;
+    var ageEl = document.getElementById('age');
+    document.getElementById('donor-note').style.display = eggSource === 'donor' ? 'block' : 'none';
+    ageEl.disabled = eggSource === 'donor';
+    ageEl.style.opacity = eggSource === 'donor' ? '0.5' : '1';
+  });
+
+  // Factors toggle
+  document.getElementById('factors-toggle').addEventListener('click', function() {
+    this.classList.toggle('open');
+    document.getElementById('factors-body').classList.toggle('open');
+  });
+
+  // Calculate
+  document.getElementById('calculate-btn').addEventListener('click', function() {
+    var age = document.getElementById('age').value;
+    var errEl = document.getElementById('age-error');
+    if (!age && eggSource !== 'donor') { errEl.style.display = 'block'; document.getElementById('age').focus(); return; }
+    errEl.style.display = 'none';
+
+    var rc, rt, label;
+    if (eggSource === 'donor') { rc = HFEA.perCycle.donor; rt = HFEA.perTransfer.donor; label = 'using donor eggs'; }
+    else { rc = HFEA.perCycle.own[age]; rt = HFEA.perTransfer.own[age]; label = 'aged ' + HFEA.labels[age]; }
+
+    document.getElementById('result-number').textContent = rc + '%';
+    document.getElementById('result-natural').textContent = rc + ' out of 100 women ' + label + ' who start an IVF cycle have a baby.';
+    document.getElementById('secondary-rate').textContent = 'Per embryo transferred, this figure is ' + rt + '% \u2014 higher because it excludes cycles that did not reach transfer.';
+
+    var grid = document.getElementById('dot-grid');
+    grid.innerHTML = '';
+    for (var i = 0; i < 100; i++) {
+      var dot = document.createElement('span');
+      dot.className = 'dot' + (i < rc ? ' filled' : '');
+      grid.appendChild(dot);
+    }
+
+    // Factors
+    var diag = document.getElementById('diagnosis').value;
+    var cyc = document.getElementById('prev-cycles').value;
+    var births = document.getElementById('prev-births').value;
+    var dur = document.getElementById('duration').value;
+    var facts = [];
+    if (diag && HFEA.factors[diag]) facts.push(HFEA.factors[diag]);
+    if (cyc === '1') facts.push(HFEA.factors.cyc1);
+    else if (cyc === '2') facts.push(HFEA.factors.cyc2);
+    else if (cyc === '3+') facts.push(HFEA.factors.cyc3);
+    if (births === '1') facts.push(HFEA.factors.birth1);
+    else if (births === '2+') facts.push(HFEA.factors.birth2);
+    if (dur === '2-5') facts.push(HFEA.factors.dur25);
+    else if (dur === '5+') facts.push(HFEA.factors.dur5);
+
+    var fr = document.getElementById('factors-result');
+    if (facts.length) {
+      fr.style.display = 'block';
+      document.getElementById('factors-list').innerHTML = facts.map(function(f) {
+        var arrow = f.d === 'down' ? '\u2193' : f.d === 'up' ? '\u2191' : '\u2194';
+        var cls = f.d === 'neutral' ? 'neutral-dir' : f.d;
+        return '<div class="factor-item"><div class="factor-direction ' + cls + '">' + arrow + '</div><div class="factor-text"><strong>' + f.t + '</strong> (OR ' + f.or + ').</div></div>';
+      }).join('');
+    } else { fr.style.display = 'none'; }
+
+    var rs = document.getElementById('results-section');
+    rs.classList.add('visible');
+    setTimeout(function() { rs.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
+  });
+
+  // Recalculate
+  document.getElementById('recalculate-btn').addEventListener('click', function() {
+    document.getElementById('results-section').classList.remove('visible');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // Clear validation
+  document.getElementById('age').addEventListener('change', function() {
+    document.getElementById('age-error').style.display = 'none';
+  });
+</script>
+
+</BaseLayout>
