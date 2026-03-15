@@ -30,6 +30,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
     return Response.json({ ok: false, error: 'NEWSLETTER_SECRET not configured' }, { status: 500 });
   }
 
+  if (!env.DB) {
+    return Response.json({ ok: false, error: 'DB not configured' }, { status: 500 });
+  }
+
   let body;
   try { body = await request.json(); } catch {
     return Response.json({ ok: false, error: 'Invalid JSON' }, { status: 400 });
@@ -48,19 +52,13 @@ export async function onRequestPost({ request, env, waitUntil }) {
     sendId = crypto.randomUUID();
 
     // Count total recipients upfront (only on first call)
-    const countResult = await db.prepare(
-      "SELECT COUNT(*) as c FROM newsletter_subscriber WHERE status = 'active'"
-    ).first();
-    let totalRecipients = countResult.c;
-    // Segment filtering adjusts count in JS (segments stored as JSON, not queryable in SQL)
-    if (segments && segments.length > 0) {
-      const allSubs = (await db.prepare(
-        "SELECT segments FROM newsletter_subscriber WHERE status = 'active'"
-      ).all()).results;
-      totalRecipients = allSubs.filter(sub => {
-        const subSegments = JSON.parse(sub.segments || '[]');
-        return segments.some(seg => subSegments.includes(seg));
-      }).length;
+    // Segmented sends skip upfront count to avoid loading all rows into memory
+    let totalRecipients = 0;
+    if (!segments || segments.length === 0) {
+      const countResult = await db.prepare(
+        "SELECT COUNT(*) as c FROM newsletter_subscriber WHERE status = 'active'"
+      ).first();
+      totalRecipients = countResult.c;
     }
 
     await db.prepare(
