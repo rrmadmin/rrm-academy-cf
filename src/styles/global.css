@@ -1513,6 +1513,11 @@ blockquote cite {
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--space-8);
+  min-width: 0;
+}
+
+.article-layout > * {
+  min-width: 0;
 }
 
 @media (min-width: 1024px) {
