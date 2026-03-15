@@ -228,11 +228,11 @@ const citationMeta = {
       <h1 class="article-title" data-pagefind-weight="10" data-pagefind-meta="title">{article.title}</h1>
 
       <!-- Authors + access icon -->
-      <div class="article-meta-row">
+      <div class="article-meta-row" data-pagefind-ignore>
         {article.shortCitation ? (
-          <p class="short-citation" data-pagefind-weight="5" data-pagefind-meta="authors">{article.shortCitation}</p>
+          <p class="short-citation" data-pagefind-meta="authors">{article.shortCitation}</p>
         ) : article.authors ? (
-          <p class="short-citation" data-pagefind-weight="5" data-pagefind-meta="authors">{article.authors}</p>
+          <p class="short-citation" data-pagefind-meta="authors">{article.authors}</p>
         ) : null}
         {article.accessLevel === 'open' && (
           <span class="access-badge access-badge--open" title={article.oaType ? `${article.oaType} Open Access` : 'Open Access'}>
@@ -266,7 +266,7 @@ const citationMeta = {
 
       <!-- Journal citation line -->
       {journalLine && (
-        <p class="journal-line" data-pagefind-weight="2">{journalLine}</p>
+        <p class="journal-line" data-pagefind-ignore>{journalLine}</p>
       )}
 
       <!-- Identifiers & links -->
