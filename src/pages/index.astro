@@ -71,6 +71,44 @@ const jsonLd = {
         numberOfItems: liveCourseCount,
       },
     },
+    {
+      '@type': 'FAQPage',
+      '@id': 'https://rrmacademy.org/#faq',
+      mainEntity: [
+        {
+          '@type': 'Question',
+          name: 'Is Restorative Reproductive Medicine backed by real evidence?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Yes. The RRM Academy Research Library contains thousands of peer-reviewed articles published in medical journals. These are published studies, not opinion pieces. You can read them yourself and follow the citations.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Will RRM Academy help me advocate for myself with my doctors?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'That is exactly what it is for. Students leave knowing how to screen a surgeon, what to expect from a real diagnostic workup, and how to tell the difference between a provider who is investigating their condition and one who is just suppressing their symptoms.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'I am not a medical professional. Is RRM Academy for me?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Many of our students are patients, not clinicians. The courses are built so that anyone dealing with a reproductive health challenge can understand what is happening in their body, what their options are, and what good care looks like.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'How do I find a surgeon or provider I can trust?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Start with the right questions. Do they perform excision, not ablation? Do they evaluate both partners? Do they chart cycles before diagnosing? RRM Academy gives you the knowledge to evaluate any provider, not just the ones on a list.',
+          },
+        },
+      ],
+    },
   ],
 };
 ---
@@ -80,7 +118,7 @@ const jsonLd = {
   canonicalUrl="https://rrmacademy.org/"
   jsonLd={jsonLd}
 >
-  <article class="hp">
+  <div class="hp">
     <!-- Hero -->
     <header class="hp-hero">
       <div class="container container--narrow">
@@ -89,7 +127,7 @@ const jsonLd = {
           Courses and a {articleCount.toLocaleString()}-article library built for the day you realized suppressive medicine wasn't a plan.
         </p>
         <div class="hp-hero__links animate-enter" style="--stagger: 2;">
-          <a href="/courses" class="btn btn--primary">Explore Courses</a>
+          <a href="/courses/" class="btn btn--primary">Explore Courses</a>
           <a href="/library/" class="btn btn--secondary">Search the Research Library</a>
         </div>
       </div>
@@ -357,14 +395,14 @@ const jsonLd = {
           You are in the right place.
         </p>
         <div class="hp-cta__links">
-          <a href="/courses" class="btn btn--primary">Explore Courses</a>
+          <a href="/courses/" class="btn btn--primary">Explore Courses</a>
           <a href="/library/" class="btn btn--secondary">Access the Research Library</a>
         </div>
       </div>
     </section>
 
     </div>
-  </article>
+  </div>
 </BaseLayout>
 
 <style>
@@ -462,11 +500,6 @@ const jsonLd = {
     color: var(--text-primary);
   }
 
-  .hp-hero__light {
-    font-weight: 400;
-    color: var(--text-secondary);
-  }
-
   .hp-hero__subtitle {
     font-size: 1.125rem;
     line-height: 1.75;
@@ -548,7 +581,7 @@ const jsonLd = {
 
   .hp-trust__tagline {
     font-size: 0.8125rem;
-    color: var(--text-tertiary);
+    color: var(--text-secondary);
     margin-bottom: var(--space-4);
     letter-spacing: 0.01em;
     text-align: center;
@@ -677,53 +710,6 @@ const jsonLd = {
 
   .hp-comparison ul {
     list-style: disc;
-  }
-
-  /* FAQ */
-  .hp-faq {
-    border-bottom: 1px solid var(--border-color);
-    padding: var(--space-4) 0;
-  }
-
-  .hp-faq:first-of-type {
-    border-top: 1px solid var(--border-color);
-  }
-
-  .hp-faq summary {
-    font-family: 'Cormorant Garamond', 'Georgia', serif;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    cursor: pointer;
-    list-style: none;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .hp-faq summary::-webkit-details-marker {
-    display: none;
-  }
-
-  .hp-faq summary::after {
-    content: '+';
-    font-size: 1.25rem;
-    color: var(--text-tertiary);
-    flex-shrink: 0;
-    margin-left: var(--space-4);
-    transition: transform 0.2s;
-  }
-
-  .hp-faq[open] summary::after {
-    content: '\2212';
-  }
-
-  .hp-faq p {
-    margin-top: var(--space-4);
-  }
-
-  .hp-faq p:first-of-type {
-    margin-top: var(--space-4);
   }
 
   /* CTA — no left border, centered sign-off */
