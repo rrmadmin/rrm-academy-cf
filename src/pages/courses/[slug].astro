@@ -494,7 +494,7 @@ const relatedCourses = course.relatedCourses
         fetch('/api/auth/session', { credentials: 'same-origin' })
           .then(function (r) { return r.json(); })
           .then(function (data) {
-            if (data.userId) {
+            if (data.user && data.user.id) {
               if (couponShow) couponShow.hidden = false;
               if (couponHide) couponHide.hidden = true;
             }
