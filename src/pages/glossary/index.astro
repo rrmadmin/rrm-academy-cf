@@ -1,0 +1,823 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BackToTop from '../../components/BackToTop.astro';
+import PdfDownload from '../../components/PdfDownload.astro';
+
+// Block 1: MedicalWebPage + Article (injected via BaseLayout jsonLd prop)
+const pageSchema = {
+  '@context': 'https://schema.org',
+  '@type': ['Article', 'MedicalWebPage'],
+  headline: 'RRM Glossary: A Comprehensive Reference to Restorative Reproductive Medicine',
+  description: 'A comprehensive, evidence-based glossary of Restorative Reproductive Medicine (RRM) terminology covering core principles, fertility awareness methods, NaProTechnology, diagnostic tools, surgical techniques, key conditions, and abbreviations.',
+  author: {
+    '@type': 'Person',
+    '@id': 'https://rrmacademy.org/#naomi-whittaker',
+    name: 'Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI',
+    jobTitle: 'Board-Certified OBGYN',
+    url: 'https://rrmacademy.org/commentary/rrm-spotlight-naomi-whittaker-md/',
+    image: 'https://rrmacademy.org/images/authors/naomi-whittaker.webp',
+    sameAs: [
+      'https://www.instagram.com/napro_fertility_surgeon/',
+      'https://www.linkedin.com/in/naomi-whittaker-md-906b13101/',
+    ],
+  },
+  publisher: {
+    '@type': 'EducationalOrganization',
+    '@id': 'https://rrmacademy.org/#organization',
+    name: 'RRM Academy',
+  },
+  datePublished: '2026-03-15',
+  dateModified: '2026-03-15',
+  wordCount: 8500,
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': 'https://rrmacademy.org/glossary/',
+  },
+  about: {
+    '@type': 'MedicalTherapy',
+    name: 'Restorative Reproductive Medicine',
+    alternateName: 'RRM',
+  },
+  articleSection: [
+    'Core RRM Principles',
+    'Fertility Awareness and Charting Methods',
+    'NaProTECHNOLOGY',
+    'Diagnostic Tools and Techniques',
+    'Surgical Techniques',
+    'Key Conditions Addressed by RRM',
+    'The Broader RRM Framework',
+    'Abbreviations and Quick Reference',
+    'References',
+  ],
+  hasPart: [
+    { '@type': 'WebPageElement', name: 'Overview', url: 'https://rrmacademy.org/glossary/#overview' },
+    { '@type': 'WebPageElement', name: 'Core RRM Principles', url: 'https://rrmacademy.org/glossary/#core-rrm-principles' },
+    { '@type': 'WebPageElement', name: 'Fertility Awareness and Charting Methods', url: 'https://rrmacademy.org/glossary/#fertility-awareness' },
+    { '@type': 'WebPageElement', name: 'NaProTECHNOLOGY', url: 'https://rrmacademy.org/glossary/#naprotechnology' },
+    { '@type': 'WebPageElement', name: 'Diagnostic Tools and Techniques', url: 'https://rrmacademy.org/glossary/#diagnostic-tools' },
+    { '@type': 'WebPageElement', name: 'Surgical Techniques', url: 'https://rrmacademy.org/glossary/#surgical-techniques' },
+    { '@type': 'WebPageElement', name: 'Key Conditions Addressed by RRM', url: 'https://rrmacademy.org/glossary/#conditions' },
+    { '@type': 'WebPageElement', name: 'The Broader RRM Framework', url: 'https://rrmacademy.org/glossary/#broader-framework' },
+    { '@type': 'WebPageElement', name: 'Abbreviations and Quick Reference', url: 'https://rrmacademy.org/glossary/#abbreviations' },
+    { '@type': 'WebPageElement', name: 'References', url: 'https://rrmacademy.org/glossary/#references' },
+  ],
+};
+
+// Block 2: BreadcrumbList (inline in page body)
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+    { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://rrmacademy.org/guides/' },
+    { '@type': 'ListItem', position: 3, name: 'Glossary', item: 'https://rrmacademy.org/glossary/' },
+  ],
+};
+---
+
+<BaseLayout
+  title="RRM Glossary: A Comprehensive Reference to Restorative Reproductive Medicine"
+  description="A comprehensive, evidence-based glossary of Restorative Reproductive Medicine (RRM) terminology covering core principles, fertility awareness methods, NaProTechnology, diagnostic tools, surgical techniques, key conditions, and abbreviations."
+  canonicalUrl="https://rrmacademy.org/glossary/"
+  ogType="article"
+  publishDate="2026-03-15"
+  jsonLd={pageSchema}
+>
+  <!-- Separate JSON-LD block for breadcrumbs -->
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+
+  <div class="page-wrapper" data-pagefind-body>
+    <span data-pagefind-meta="type:Guide" style="display:none"></span>
+    <span data-pagefind-meta="title:RRM Glossary: A Comprehensive Reference" style="display:none"></span>
+    <div class="container">
+
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <a href="/guides/">Guides</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <span>Glossary</span>
+      </nav>
+
+      <h1>RRM Glossary: A Comprehensive Reference to Restorative Reproductive Medicine</h1>
+
+      <div class="author-byline">
+        <span>By <strong><a href="/about-dr-whittaker/">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</a></strong></span>
+        <time datetime="2026-03-15">March 2026</time>
+        <PdfDownload slug="glossary" />
+      </div>
+
+      <aside class="editorial-notice" role="note">
+        <span class="editorial-notice__body"><strong>Editorial notice:</strong> This article is under active review. Some sections may be incomplete or contain errors while our medical team refines the content. If you notice an issue, please <a href="/contact/">let us know</a>.</span>
+      </aside>
+
+      <!-- Mobile TOC -->
+      <details class="toc-mobile">
+        <summary>On this page</summary>
+        <ol>
+          <li><a href="#overview">Overview</a></li>
+          <li><a href="#core-rrm-principles">Part I: Core RRM Principles</a></li>
+          <li><a href="#fertility-awareness">Part II: Fertility Awareness and Charting Methods</a></li>
+          <li><a href="#naprotechnology">Part III: NaProTECHNOLOGY</a></li>
+          <li><a href="#diagnostic-tools">Part IV: Diagnostic Tools and Techniques</a></li>
+          <li><a href="#surgical-techniques">Part V: Surgical Techniques</a></li>
+          <li><a href="#conditions">Part VI: Key Conditions Addressed by RRM</a></li>
+          <li><a href="#broader-framework">Part VII: The Broader RRM Framework</a></li>
+          <li><a href="#abbreviations">Abbreviations and Quick Reference</a></li>
+          <li><a href="#references">References</a></li>
+        </ol>
+      </details>
+
+      <!-- Article layout: sidebar TOC + main content -->
+      <div class="article-layout">
+
+        <!-- Desktop TOC (sticky sidebar, 1024px+) -->
+        <nav class="toc" aria-label="Table of contents">
+          <p class="toc-heading">On this page</p>
+          <ol>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#core-rrm-principles">Part I: Core RRM Principles</a></li>
+            <li><a href="#fertility-awareness">Part II: Fertility Awareness</a></li>
+            <li><a href="#naprotechnology">Part III: NaProTECHNOLOGY</a></li>
+            <li><a href="#diagnostic-tools">Part IV: Diagnostic Tools</a></li>
+            <li><a href="#surgical-techniques">Part V: Surgical Techniques</a></li>
+            <li><a href="#conditions">Part VI: Key Conditions</a></li>
+            <li><a href="#broader-framework">Part VII: Broader Framework</a></li>
+            <li><a href="#abbreviations">Abbreviations</a></li>
+            <li><a href="#references">References</a></li>
+          </ol>
+        </nav>
+
+        <!-- Main content -->
+        <article class="prose">
+
+          <aside class="tldr">
+            <h2 id="key-takeaways">Key Takeaways</h2>
+            <ul>
+              <li><strong>This glossary is a comprehensive reference</strong> for the terminology, methods, conditions, and procedures encountered within Restorative Reproductive Medicine (RRM).</li>
+              <li><strong>Organized into seven parts:</strong> core principles, fertility awareness methods, NaProTECHNOLOGY, diagnostic tools, surgical techniques, key conditions, and the broader RRM framework.</li>
+              <li><strong>Intended for patients, students, and clinicians</strong> seeking clear, evidence-based definitions grounded in published research.</li>
+              <li><strong>Use the table of contents</strong> to navigate directly to a specific section or term. An abbreviation quick-reference table is included at the end.</li>
+            </ul>
+          </aside>
+
+          <!-- Overview -->
+          <section id="overview">
+            <h2>Overview</h2>
+
+            <p><strong>Restorative Reproductive Medicine (RRM) is a specialized field of medicine that focuses on identifying the underlying health conditions contributing to reproductive dysfunction, then treating them to restore the natural functions of the reproductive system.</strong> Unlike conventional approaches that suppress or bypass normal physiology, RRM seeks to cooperate with the body -- diagnosing, understanding, and addressing underlying health concerns to improve overall wellness and restore reproductive abilities. This glossary provides a thorough, well-cited reference for the terminology, methods, conditions, and procedures encountered within the RRM framework.<sup><a href="#ref-1">1</a></sup></p>
+          </section>
+
+          <!-- Part I: Core RRM Principles -->
+          <section id="core-rrm-principles">
+            <h2>Part I: Core RRM Principles</h2>
+
+            <h3 id="restorative-reproductive-medicine">Restorative Reproductive Medicine (RRM)</h3>
+            <p><strong>A specialized medical approach focused on identifying and correcting root causes of infertility, recurrent miscarriage, gynecologic pain, abnormal bleeding, and other reproductive dysfunctions,</strong> aiming to restore natural fertility and physiological function rather than bypass or suppress it. RRM includes lifestyle changes, patient education in fertility cycle awareness, medical treatments supporting ovulation and implantation, and surgery to remove pathologic tissue and restore normal anatomy. The goal is improved health, which leads to the natural ability to conceive.<sup><a href="#ref-2">2</a></sup><sup><a href="#ref-3">3</a></sup><sup><a href="#ref-4">4</a></sup><sup><a href="#ref-1">1</a></sup></p>
+
+            <h3 id="root-cause-diagnosis">Root Cause Diagnosis</h3>
+            <p><strong>The foundational RRM principle that reproductive health problems -- including infertility, abnormal bleeding, and chronic pain -- are symptoms of identifiable underlying causes, not final diagnoses in themselves.</strong> Root causes may include hormonal imbalances, structural abnormalities (e.g., tubal blockage, uterine defects), inflammatory conditions, autoimmune disorders, metabolic dysfunction, or iatrogenic factors such as C-section scar defects or prior surgical complications. RRM does not accept "unexplained infertility" as a final answer, but continues deeper investigation to find treatable hidden causes.<sup><a href="#ref-3">3</a></sup><sup><a href="#ref-4">4</a></sup></p>
+
+            <h3 id="restorative-as-a-principle">Restorative (as a Principle)</h3>
+            <p><strong>Pertaining to the goal of repairing, healing, and optimizing the natural function of the reproductive system.</strong> The restorative approach contrasts with suppressive therapies (e.g., hormonal contraception used to mask cycle symptoms) and bypass therapies (e.g., IVF circumventing tubal disease). It also encompasses removal of problematic devices and reversal of prior procedures such as tubal ligation to restore health or fertility potential.<sup><a href="#ref-1">1</a></sup></p>
+
+            <h3 id="natural-fertility">Natural Fertility</h3>
+            <p><strong>The inherent biological capacity for reproduction through in vivo (in the body) conception, without gamete removal or external fertilization.</strong> RRM aims to restore or optimize natural fertility through corrective medical and surgical interventions, including procedures like tubal reversal.<sup><a href="#ref-1">1</a></sup></p>
+
+            <h3 id="body-literacy">Body Literacy</h3>
+            <p><strong>An individual's informed understanding of their own biological signs and reproductive cycle,</strong> typically developed through systematic fertility charting. Body literacy empowers patients to recognize abnormalities early, time intercourse and diagnostics appropriately, and participate actively in their own care.<sup><a href="#ref-1">1</a></sup></p>
+
+            <h3 id="comprehensive-evaluation">Comprehensive Evaluation</h3>
+            <p><strong>A thorough RRM assessment designed to identify root causes.</strong> Typically includes detailed cycle charting (using the Creighton Model or other FABMs), timed hormonal blood tests, ultrasound series (including saline infusion sonohysterogram for structural assessment), hysterosalpingogram (HSG), semen analysis, and targeted testing for endocrine, immune, clotting, or genetic factors. Diagnostic and/or operative laparoscopy and hysteroscopy are employed when indicated -- essential for definitive diagnosis of endometriosis, pelvic adhesions, chronic endometritis, and isthmoceles.<sup><a href="#ref-3">3</a></sup></p>
+
+            <h3 id="personalized-treatment">Personalized Treatment</h3>
+            <p><strong>The practice of tailoring medical and/or surgical interventions to the specific root causes identified during evaluation,</strong> incorporating patient goals (e.g., desire for future fertility influences the choice of isthmocele repair method). Treatment plans may include targeted hormonal therapy, ovulation induction, luteal phase support, nutritional protocols, lifestyle modifications, and specialized surgery.<sup><a href="#ref-1">1</a></sup></p>
+
+            <h3 id="holistic-approach">Holistic Approach</h3>
+            <p><strong>Consideration of the whole person and the interplay of bodily systems</strong> -- endocrine, immune, metabolic, inflammatory, musculoskeletal -- and their collective impact on reproductive health. RRM addresses genetics, lifestyle, prior interventions, and overall systemic wellness alongside specific pelvic pathology.<sup><a href="#ref-1">1</a></sup></p>
+
+            <h3 id="reproductive-health-optimization">Reproductive Health Optimization</h3>
+            <p><strong>The overarching RRM goal of improving the overall health and function of the reproductive system</strong> -- encompassing fertility, cycle regularity, absence of pain or abnormal bleeding, hormonal balance, and long-term gynecologic wellness. Achieving pregnancy is a result of restored health, not merely the isolated procedural endpoint.<sup><a href="#ref-1">1</a></sup></p>
+
+            <h3 id="corrective-vs-bypass">Corrective vs. Bypass/Bandaid</h3>
+            <p><strong>A key RRM conceptual distinction.</strong> RRM aims to correct underlying anatomical, hormonal, or immunological problems (e.g., surgical repair of fallopian tubes, isthmocele reconstruction, adhesion excision), whereas bypass therapies circumvent infertility problems (IVF bypasses tubal blockage), suppressive therapies mask symptoms (hormonal contraception for endometriosis pain), and hysterectomy removes the affected organ entirely.<sup><a href="#ref-1">1</a></sup></p>
+          </section>
+
+          <!-- Part II: Fertility Awareness and Charting Methods -->
+          <section id="fertility-awareness">
+            <h2>Part II: Fertility Awareness and Charting Methods</h2>
+
+            <h3 id="fabms">Fertility Awareness-Based Methods (FABMs)</h3>
+            <p><strong>An umbrella term for scientific methods used to monitor and interpret biological signs of fertility (biomarkers) throughout the menstrual cycle.</strong> FABMs can be used for health monitoring, timing diagnostics and treatments in RRM, and achieving or avoiding pregnancy. A 2025 systematic review of 20,339 participants from 16 studies found that FABMs, when used correctly, were associated with a success rate of over 90% for both contraception and conception purposes. FABMs encourage partner involvement, improve communication, and enhance body literacy by tracking female biomarkers to determine fertility status, and can also help diagnose ovulation-related disorders such as PCOS and endometriosis. Note: The Creighton Model FertilityCare System is specifically classified as an NFP method by its developers and is distinct from the FABM umbrella.<sup><a href="#ref-5">5</a></sup><sup><a href="#ref-6">6</a></sup></p>
+
+            <h3 id="fertility-charting">Fertility Charting</h3>
+            <p><strong>The systematic daily recording of fertility biomarkers according to a specific standardized method,</strong> such as the Creighton Model or another FABM. Chart data function analogously to an ECG for the reproductive system -- revealing hormonal patterns, potential abnormalities, and optimal windows for diagnostics, treatment timing, and intercourse. Changes in charting patterns serve as a form of biofeedback to assess treatment efficacy.<sup><a href="#ref-1">1</a></sup></p>
+
+            <h3 id="biomarkers">Biomarkers (Fertility)</h3>
+            <p><strong>Observable biological signs indicating different phases of the reproductive cycle.</strong> Primary biomarkers include cervical mucus characteristics (appearance, sensation, stretch), basal body temperature (BBT), and hormonal levels detectable via blood tests or urine strips. Secondary biomarkers may include cycle length patterns, bleeding characteristics, and physical symptoms.</p>
+
+            <h3 id="nfp">Natural Family Planning (NFP)</h3>
+            <p><strong>Methods used to achieve or avoid pregnancy based on identifying the fertile window through observation of biological signs.</strong> The Creighton Model FertilityCare System is a specific, standardized NFP method foundational to NaProTECHNOLOGY. NFP and FABM are sometimes used interchangeably in clinical literature, though they are not identical categories.</p>
+
+            <h3 id="creighton-model">Creighton Model FertilityCare System (CrMS)</h3>
+            <p><strong>A standardized, prospective method of Natural Family Planning (NFP) focused on detailed observation and classification of cervical mucus patterns and other biological markers,</strong> developed at the Pope Paul VI Institute by Dr. Thomas Hilgers. The CrMS is distinct from the broader FABM category -- its developers specifically distinguish it as an NFP method. The CrMS provides precise information for monitoring gynecologic health and fertility and forms the diagnostic foundation for NaProTECHNOLOGY, allowing cycle-phase-specific timing of blood tests and medical treatments. Published effectiveness data show CrMS is up to 98% effective for achieving pregnancy in couples with normal fertility and, in conjunction with NaPro, up to 80% effective for couples experiencing infertility. A prospective cohort study (CEIBA) in 17 CrMS centers across the USA and Canada found the highest 13-cycle pregnancy rate with correct use to conceive was 89.6%, when intercourse was timed to peak-type mucus days.<sup><a href="#ref-7">7</a></sup><sup><a href="#ref-8">8</a></sup><sup><a href="#ref-9">9</a></sup></p>
+
+            <h3 id="peak-day">Peak Day</h3>
+            <p><strong>In mucus-based methods (including the Billings Ovulation Method), the last day of fertile-type cervical mucus</strong> -- characterized as clear, stretchy, or lubricative -- correlating closely with the time of ovulation. In CrMS, Peak Day identification is critical for timing luteal progesterone support in NaPro Medical protocols.<sup><a href="#ref-8">8</a></sup></p>
+
+            <h3 id="billings-ovulation-method">Billings Ovulation Method</h3>
+            <p><strong>An FABM focused primarily on the sensation and appearance of cervical mucus at the vulva to identify the fertile window,</strong> without requiring temperature taking. It is one of the foundational FABMs and shares methodological similarities with the mucus component of CrMS.</p>
+
+            <h3 id="femm">FEMM (Fertility Education and Medical Management)</h3>
+            <p><strong>An FABM program integrating hormonal science with cycle charting and providing a structured framework for medical management based on cycle data.</strong> FEMM incorporates hormone monitoring alongside mucus observations and is used both for family planning and for gynecological health management within RRM.<sup><a href="#ref-1">1</a></sup></p>
+
+            <h3 id="sympto-thermal-method">Sympto-Thermal Method (STM)</h3>
+            <p><strong>A cycle charting method combining multiple biomarkers</strong> -- primarily cervical mucus changes and basal body temperature (BBT) shifts -- to identify the fertile window. BBT rises approximately 0.2 to 0.5 degrees C following ovulation due to progesterone secretion from the corpus luteum. STM identifies the pre-ovulatory and post-ovulatory infertile phases using both markers.</p>
+
+            <h3 id="marquette-method">Marquette Method</h3>
+            <p><strong>A FABM that incorporates urinary hormone monitoring</strong> (using a personal hormone monitor that measures LH and estrogen metabolites) alongside mucus observations. The addition of objective hormonal data can improve identification of the fertile window, particularly in women with irregular cycles.</p>
+
+            <h3 id="bbt">Basal Body Temperature (BBT)</h3>
+            <p><strong>The body's resting temperature, measured first thing in the morning before any activity.</strong> A sustained thermal shift (rise) in BBT indicates progesterone release following ovulation (the luteal phase has begun). BBT tracking is a component of several FABMs and is useful for confirming ovulation and identifying luteal phase length.</p>
+          </section>
+
+          <!-- Part III: NaProTECHNOLOGY -->
+          <section id="naprotechnology">
+            <h2>Part III: NaProTECHNOLOGY</h2>
+
+            <h3 id="naprotechnology-definition">NaProTECHNOLOGY (Natural Procreative Technology)</h3>
+            <p><strong>A specific women's health science focused on reproductive and gynecologic health, developed by Dr. Thomas Hilgers at the Pope Paul VI Institute.</strong> It utilizes the Creighton Model FertilityCare System for precise cycle monitoring to guide targeted medical (NaPro Medical) and surgical (NaPro Surgery/Advanced Reproductive Surgery) treatments based on identified cycle abnormalities. NaProTECHNOLOGY works cooperatively with the reproductive system and does not employ methods that are inherently suppressive, circumventive, or destructive. A large cohort study (1,045 infertile patients) reported a cumulative live-birth rate exceeding 60% by 24 months of treatment, rising to approximately 70% by 36 months -- comparable to or higher than cumulative live-birth rates achieved after one or more IVF cycles.<sup><a href="#ref-10">10</a></sup><sup><a href="#ref-11">11</a></sup><sup><a href="#ref-12">12</a></sup></p>
+
+            <h3 id="napro-medical">NaPro Medical</h3>
+            <p><strong>The medical management component of NaProTECHNOLOGY, using timed medications and supplements based on Creighton Model charting data.</strong> Treatments are cycle-phase-specific (e.g., luteal progesterone support is timed to the post-peak phase; ovulation induction agents are timed to the follicular phase). Common interventions include targeted hormone therapy (progesterone, estrogen, HCG), ovulation induction (clomiphene, letrozole), thyroid management, and treatment of conditions like hyperprolactinemia or insulin resistance.<sup><a href="#ref-11">11</a></sup><sup><a href="#ref-12">12</a></sup></p>
+
+            <h3 id="napro-surgery">NaPro Surgery / Advanced Reproductive Surgery</h3>
+            <p><strong>The specialized surgical component of NaProTECHNOLOGY, employing meticulous, often minimally invasive techniques to restore anatomy and function or remove problematic conditions.</strong> Hallmarks include excision (rather than ablation/fulguration) of endometriosis, meticulous adhesiolysis with anti-adhesion barrier protocols, microsurgical tubal repair and reversal, multi-layer isthmocele reconstruction, and fertility-preserving ovarian surgery. Published results have documented adhesion scores dropping dramatically with the introduction of extensive Gore-Tex barrier use in NaPro surgeries -- from a mean score of 33.3 to 6.0 over a decade.<sup><a href="#ref-10">10</a></sup></p>
+
+            <h3 id="fertilitas-study">Fertilitas Study</h3>
+            <p><strong>One of the largest single-center NaProTECHNOLOGY cohort studies to date,</strong> demonstrating a take-home baby (THB) rate of 35.3% overall, rising to 62.1% among patients who remained with the program for the full duration of treatment. The study confirmed NaPro as associated with a notably high THB rate even in patients with unfavorable prognostic factors such as advanced maternal age, prolonged infertility duration, and prior failed ART attempts. Conditions associated with higher THB rates included recurrent pregnancy loss, hormonal/functional disorders, endometriosis, and male factor infertility.<sup><a href="#ref-13">13</a></sup><sup><a href="#ref-14">14</a></sup></p>
+          </section>
+
+          <!-- Part IV: Diagnostic Tools and Techniques -->
+          <section id="diagnostic-tools">
+            <h2>Part IV: Diagnostic Tools and Techniques</h2>
+
+            <h3 id="follicle-maturation-study">Follicle Maturation Study (Follicle Tracking / Follicular Ultrasound Series)</h3>
+            <p><strong>A series of transvaginal ultrasounds performed across the follicular phase of the menstrual cycle</strong> to monitor follicle growth, dominant follicle selection, and ovulation. Findings inform diagnosis of luteinized unruptured follicle (LUF) syndrome, ovulatory dysfunction, and are used to time hormonal interventions precisely.</p>
+
+            <h3 id="sis">Saline Infusion Sonohysterogram (SIS) / "Bubble Test"</h3>
+            <p><strong>A transvaginal ultrasound performed while infusing sterile saline into the uterine cavity,</strong> providing enhanced visualization of the endometrial cavity and uterine walls. SIS is the primary diagnostic tool for uterine isthmocele, enabling measurement of the defect dimensions and residual myometrial thickness. It also detects endometrial polyps, submucosal fibroids, intrauterine adhesions, and uterine septa, and can assess tubal patency.<sup><a href="#ref-15">15</a></sup><sup><a href="#ref-16">16</a></sup></p>
+
+            <h3 id="hsg">Hysterosalpingogram (HSG)</h3>
+            <p><strong>A radiographic procedure in which contrast dye is introduced through the cervix into the uterine cavity and fallopian tubes under fluoroscopic guidance.</strong> HSG assesses uterine cavity morphology and tubal patency. It is often the first-line imaging tool for evaluating tubal factor infertility.<sup><a href="#ref-17">17</a></sup></p>
+
+            <h3 id="selective-salpingography">Selective Salpingography</h3>
+            <p><strong>A specialized variant of HSG in which contrast dye is injected selectively into each fallopian tube individually via a catheter.</strong> This allows targeted assessment and, in some cases, simultaneous therapeutic recanalization of proximal tubal blockages.</p>
+
+            <h3 id="hysteroscopy-diagnostic">Hysteroscopy (Diagnostic)</h3>
+            <p><strong>Direct visualization of the uterine cavity and cervical canal using a hysteroscope -- a thin, illuminated camera.</strong> Considered the gold standard for evaluation and management of intrauterine pathology. Diagnostic hysteroscopy is indicated for evaluation of abnormal uterine bleeding, recurrent miscarriage, repeated implantation failure, and suspected structural abnormalities. In premenopausal women with regular cycles, optimal timing is during the early follicular phase after menstruation.<sup><a href="#ref-18">18</a></sup><sup><a href="#ref-17">17</a></sup></p>
+
+            <h3 id="hysteroscopy-operative">Hysteroscopy (Operative)</h3>
+            <p><strong>A therapeutic extension of diagnostic hysteroscopy, used to treat intrauterine pathology identified during visualization.</strong> ACOG-recognized indications include removal of endometrial polyps, submucosal leiomyomas (fibroids), uterine septa, intrauterine adhesions (synechiae), retained products, malpositioned IUDs, tubal cannulation, and treatment of isthmoceles. Ambulatory (office-based) hysteroscopy offers comparable outcomes to operating room procedures with reduced cost and avoidance of general anesthesia.<sup><a href="#ref-17">17</a></sup><sup><a href="#ref-18">18</a></sup></p>
+
+            <h3 id="laparoscopy-diagnostic">Laparoscopy (Diagnostic)</h3>
+            <p><strong>Minimally invasive visualization of the pelvic and abdominal organs through small incisions using a laparoscope.</strong> In RRM, diagnostic laparoscopy is often the definitive method for diagnosing endometriosis and pelvic adhesions -- conditions frequently missed on imaging alone. The Systematic Mapping of the Pelvis (S-MAP) protocol is employed during NaPro diagnostic laparoscopy for comprehensive pelvic assessment.</p>
+
+            <h3 id="laparoscopy-operative">Laparoscopy (Operative)</h3>
+            <p><strong>Minimally invasive surgical treatment performed laparoscopically</strong> for conditions including endometriosis (via excision), pelvic adhesions (adhesiolysis), uterine fibroids (myomectomy), ovarian cysts (cystectomy), fallopian tube disease (repair, reversal, neosalpingostomy), isthmocele (laparoscopic excision and multi-layer reconstruction), and PCOS (ovarian wedge resection).<sup><a href="#ref-17">17</a></sup></p>
+
+            <h3 id="near-contact-laparoscopy">Near Contact Laparoscopy</h3>
+            <p><strong>A specialized laparoscopic technique in which the laparoscope is brought into close proximity to tissue to achieve high-magnification visualization.</strong> Used in NaPro Surgery for precise identification of subtle endometriosis implants and peritoneal disease that might be missed at standard laparoscopic distance.</p>
+
+            <h3 id="s-map">S-MAP (Systematic Mapping of the Pelvis)</h3>
+            <p><strong>A methodical, standardized protocol for comprehensive examination of all pelvic structures during laparoscopy,</strong> ensuring that no area of disease is overlooked. S-MAP is a hallmark of Advanced Reproductive Surgery within NaProTECHNOLOGY.</p>
+
+            <h3 id="semen-analysis">Semen Analysis</h3>
+            <p><strong>The primary diagnostic test for male factor infertility,</strong> evaluating sperm concentration (count), motility, morphology (shape), volume, and other parameters. A normal semen analysis does not exclude male factor, as it does not assess sperm DNA integrity; additional testing (see Sperm DNA Fragmentation Index) may be warranted in cases of unexplained infertility or recurrent miscarriage.</p>
+
+            <h3 id="sperm-dna-fragmentation">Sperm DNA Fragmentation Index (DFI)</h3>
+            <p><strong>A measure of the proportion of sperm with damaged or fragmented DNA.</strong> High SDF is associated with poor reproductive outcomes including reduced natural conception rates, failed IUI, increased miscarriage risk, and impaired embryo development. Standard semen analysis does not assess DNA integrity, making SDF testing an important adjunct in evaluating unexplained infertility, recurrent pregnancy loss, and repeated ART failure. Treatment strategies include lifestyle modification, antioxidant therapy, varicocele repair, and in select cases, testicular sperm retrieval.<sup><a href="#ref-19">19</a></sup><sup><a href="#ref-20">20</a></sup><sup><a href="#ref-21">21</a></sup><sup><a href="#ref-22">22</a></sup></p>
+
+            <h3 id="era">Endometrial Receptivity Analysis (ERA)</h3>
+            <p><strong>A molecular diagnostic test that evaluates gene expression in an endometrial biopsy sample</strong> to determine the personalized "window of implantation" (WOI) -- the period during which the endometrium is most receptive to embryo implantation. The ERA analyzes the expression profile of 236 to 238 genes related to endometrial receptivity status. In approximately 20 to 25% of women with recurrent implantation failure, the WOI is displaced from the standard timing. A study of 3,605 patients found that clinical pregnancy rate and live birth rate improved after personalized embryo transfer guided by ERA results, particularly in recurrent implantation failure patients.<sup><a href="#ref-23">23</a></sup><sup><a href="#ref-24">24</a></sup><sup><a href="#ref-25">25</a></sup></p>
+
+            <h3 id="cd138">CD138 (Syndecan-1) Immunohistochemistry</h3>
+            <p><strong>A staining technique used on endometrial biopsy specimens to identify plasma cells,</strong> which are pathognomonic (definitively diagnostic) for chronic endometritis. CD138 IHC is more sensitive than routine histology alone for detecting chronic endometritis and is the current standard for diagnosis when chronic endometritis is suspected.<sup><a href="#ref-26">26</a></sup></p>
+          </section>
+
+          <!-- Part V: Surgical Techniques -->
+          <section id="surgical-techniques">
+            <h2>Part V: Surgical Techniques</h2>
+
+            <h3 id="excision-surgery">Excision Surgery (for Endometriosis)</h3>
+            <p><strong>The surgical removal of endometriotic tissue by cutting it out -- as opposed to ablation (burning/destroying it superficially).</strong> Considered the preferred surgical approach in RRM for endometriosis. A 2022 cohort study of 232 patients showed that excision improved outcomes across all 63 symptom measures evaluated (ranging from 28 to 46% improvement), while ablation only marginally improved period pain (11.3%) and heavy periods (8.5%) and worsened status in 23 of 24 quality-of-life measures. A meta-analysis found significantly greater reduction in dysmenorrhea (MD=0.99), dyschezia, and chronic pelvic pain with excision compared to ablation at 12 months.<sup><a href="#ref-27">27</a></sup><sup><a href="#ref-28">28</a></sup></p>
+
+            <h3 id="fulguration-ablation">Fulguration / Ablation / Cauterization (Endometriosis)</h3>
+            <p><strong>Superficial destruction of tissue using heat, electrical energy, or laser vaporization.</strong> As applied to endometriosis, this approach destroys the visible surface of lesions without removing the tissue or underlying disease. Evidence consistently demonstrates it is less effective than excision for symptom resolution, quality-of-life improvement, and fertility outcomes, and is associated with higher recurrence rates. Not preferred in RRM.<sup><a href="#ref-29">29</a></sup><sup><a href="#ref-27">27</a></sup></p>
+
+            <h3 id="adhesiolysis">Adhesiolysis</h3>
+            <p><strong>Surgical division and removal of adhesions (pelvic scar tissue).</strong> In RRM and NaPro Surgery, adhesiolysis is performed meticulously, with hemostasis and anti-adhesion barrier placement to minimize adhesion reformation.<sup><a href="#ref-10">10</a></sup></p>
+
+            <h3 id="anti-adhesion-barriers">Anti-Adhesion Barriers</h3>
+            <p><strong>Materials placed during surgery to physically separate tissue surfaces during the healing period, reducing adhesion formation.</strong> In NaPro Surgery, Gore-Tex membrane (expanded polytetrafluoroethylene) has been used extensively, with published results showing dramatic reductions in adhesion reformation scores over time.<sup><a href="#ref-10">10</a></sup></p>
+
+            <h3 id="tubal-ligation-reversal">Tubo-tubal Anastomosis (Tubal Ligation Reversal)</h3>
+            <p><strong>Microsurgical reconnection of the fallopian tube segments following prior tubal ligation ("tubes tied"), allowing natural conception to resume.</strong> Can be performed via laparoscopy, robotic assistance, or mini-laparotomy. Pregnancy rates after tubal reversal using microsurgical techniques range from 57% to 84%. A large series found that women under 30 with ring/clip sterilization reversals achieved an 88% pregnancy rate. Success depends most strongly on the woman's age at time of reversal and the remaining tube length after reconstruction.<sup><a href="#ref-30">30</a></sup><sup><a href="#ref-31">31</a></sup><sup><a href="#ref-32">32</a></sup><sup><a href="#ref-33">33</a></sup></p>
+
+            <h3 id="fallopian-tube-recanalization">Fallopian Tube Recanalization (Cannulation)</h3>
+            <p><strong>A procedure to open proximal (near the uterus) fallopian tube blockages through transcervical catheter passage, without open surgery.</strong> Often performed in conjunction with HSG. Can be done in an office or interventional radiology setting.</p>
+
+            <h3 id="neosalpingostomy">Neosalpingostomy / Fimbrioplasty</h3>
+            <p><strong>Laparoscopic surgical repair of distal (fimbrial end) fallopian tube damage,</strong> typically caused by pelvic inflammatory disease or prior infection. Neosalpingostomy creates a new opening in a completely blocked tube (hydrosalpinx), while fimbrioplasty reconstructs and opens a partially obstructed or agglutinated fimbrial end.</p>
+
+            <h3 id="lowr">Laparoscopic Ovarian Wedge Resection (LOWR)</h3>
+            <p><strong>A surgical procedure for select PCOS cases, involving removal of a wedge of androgen-producing ovarian cortex to normalize hormonal balance and restore ovulation.</strong> Using microsurgical laser techniques, NaPro wedge resection has achieved approximately 70% pregnancy rates -- over twice as effective as standard clomiphene citrate treatment (~30%) and higher than reported IVF success rates in PCOS (~23%). This surgical solution restores regular ovulation and does not carry the risk of ovarian hyperstimulation.<sup><a href="#ref-10">10</a></sup></p>
+
+            <h3 id="isthmocele-repair-hysteroscopic">Isthmocele Repair (Hysteroscopic)</h3>
+            <p><strong>Hysteroscopic treatment of a cesarean scar defect (isthmocele) by shaving and cauterizing the defect internally,</strong> reducing the depth of the niche and improving drainage of retained blood. Best suited for symptomatic patients (primarily bleeding complaints) with a residual myometrial wall thickness &gt;5mm who do not desire future pregnancy. Associated with faster recovery but lower rates of complete bleeding resolution and does not restore wall integrity for future pregnancy.<sup><a href="#ref-34">34</a></sup><sup><a href="#ref-15">15</a></sup></p>
+
+            <h3 id="isthmocele-repair-laparoscopic">Isthmocele Repair (Laparoscopic)</h3>
+            <p><strong>Laparoscopic excision of the defect with multi-layer reconstruction of the uterine muscular wall.</strong> Preferred when fertility preservation is desired or when residual myometrial thickness is &lt;5mm. Restores wall integrity for safer future pregnancy and is more likely to resolve bleeding symptoms. Longer recovery than hysteroscopic repair. Combined laparoscopic-hysteroscopic approaches are used for complex cases.<sup><a href="#ref-16">16</a></sup><sup><a href="#ref-15">15</a></sup></p>
+
+            <h3 id="myomectomy">Myomectomy</h3>
+            <p><strong>Surgical removal of uterine fibroids (leiomyomas) while preserving the uterus.</strong> Can be performed hysteroscopically (for submucosal fibroids), laparoscopically, robotically, or via laparotomy depending on fibroid type, size, and number. RRM prefers fertility-sparing myomectomy over hysterectomy when fibroids are contributing to infertility or pregnancy loss.</p>
+
+            <h3 id="microsurgery">Microsurgery</h3>
+            <p><strong>Surgical technique performed under microscopic magnification using fine instruments and sutures</strong> (often 6-0 to 9-0 gauge), essential for tubal anastomosis in ligation reversal and repair. Microsurgical principles include minimal tissue handling, precise hemostasis, tension-free anastomosis, and meticulous layer-by-layer closure.</p>
+
+            <h3 id="mini-laparotomy">Mini-laparotomy</h3>
+            <p><strong>A small (approximately 3 to 5 cm) "bikini line" incision surgery,</strong> sometimes used as an alternative to laparoscopy for procedures such as tubal ligation reversal in appropriately selected patients. Offers a smaller scar and reduced anesthesia risk compared to traditional open surgery.</p>
+          </section>
+
+          <!-- Part VI: Key Conditions Addressed by RRM -->
+          <section id="conditions">
+            <h2>Part VI: Key Conditions Addressed by RRM</h2>
+
+            <h3 id="infertility">Infertility</h3>
+            <p><strong>Clinically defined as failure to achieve pregnancy after 12 months of regular unprotected intercourse (6 months for women 35 years and older).</strong> In the RRM framework, infertility is understood as a symptom of one or more identifiable, underlying, treatable conditions -- not a diagnosis in itself. Approximately 15% of couples worldwide are affected.<sup><a href="#ref-4">4</a></sup><sup><a href="#ref-35">35</a></sup></p>
+
+            <h3 id="rpl">Recurrent Pregnancy Loss (RPL)</h3>
+            <p><strong>Typically defined as two or more consecutive clinical pregnancy losses before 20 weeks of gestation.</strong> Assessment includes peripheral karyotype analysis of both partners, antiphospholipid antibody testing, uterine anatomical evaluation (SHG, HSG, or hysteroscopy), thyroid and prolactin screening, and evaluation for hereditary thrombophilias. RRM pursues root cause identification including hormonal (progesterone deficiency, thyroid dysfunction), anatomical (isthmocele, septum, fibroids), immunologic (APS, NK cell activity), and metabolic factors.<sup><a href="#ref-36">36</a></sup><sup><a href="#ref-37">37</a></sup></p>
+
+            <h3 id="endometriosis">Endometriosis</h3>
+            <p><strong>A chronic inflammatory condition in which endometrial-like tissue is found outside the uterine cavity</strong> -- most commonly on the ovaries, fallopian tubes, pelvic peritoneum, and rectovaginal septum. Affects approximately 1 in 10 women of reproductive age. RRM's preferred treatment is laparoscopic excision surgery, which demonstrates significantly greater improvement across all symptom domains (28 to 46% improvement range) compared to ablation, which failed to improve most symptoms and worsened quality of life in multiple measures. A key RRM principle is that hormonal suppression post-surgery (e.g., oral contraceptive pills) masks ongoing disease activity without treating the condition.<sup><a href="#ref-28">28</a></sup><sup><a href="#ref-27">27</a></sup></p>
+
+            <h3 id="endometrioma">Endometrioma</h3>
+            <p><strong>An ovarian cyst formed by endometriosis, filled with old menstrual blood</strong> (colloquially called a "chocolate cyst"). Endometriomas reduce ovarian reserve and impair oocyte quality. Surgical management with excisional cystectomy is generally preferred over drainage and ablation, though ovarian reserve impact of surgery must be considered.<sup><a href="#ref-38">38</a></sup></p>
+
+            <h3 id="pcos">PCOS (Polycystic Ovary Syndrome)</h3>
+            <p><strong>A complex hormonal and metabolic disorder characterized by ovulatory dysfunction, hyperandrogenism (elevated androgens causing acne, hirsutism), and/or polycystic ovarian morphology on ultrasound.</strong> Insulin resistance and visceral adiposity are key pathophysiologic drivers, irrespective of obesity. RRM's multi-factorial approach includes lifestyle modification (5% weight loss can restore ovulation), insulin sensitization (metformin, myo-inositol), cycle charting and ovulation monitoring, targeted hormonal support, and in select cases, laparoscopic ovarian wedge resection.<sup><a href="#ref-39">39</a></sup></p>
+
+            <h3 id="myo-inositol">Myo-Inositol</h3>
+            <p><strong>A naturally occurring carbocyclic sugar that acts as an insulin sensitizer and secondary messenger in FSH signaling.</strong> Used as a supplement in PCOS management. Evidence shows myo-inositol improves ovarian function, oocyte maturity rates, fertilization rates, and metabolic parameters (LH, FSH, HOMA-IR) in women with PCOS. A 2025 meta-analysis found statistically significant improvement in MII oocyte rate and fertilization rate, though evidence for clinical pregnancy rate improvement remains less conclusive.<sup><a href="#ref-40">40</a></sup><sup><a href="#ref-41">41</a></sup><sup><a href="#ref-42">42</a></sup></p>
+
+            <h3 id="isthmocele">Uterine Isthmocele (Cesarean Scar Defect / Uterine Niche)</h3>
+            <p><strong>A myometrial defect -- a pouch or indentation -- in the anterior wall of the lower uterine segment (isthmus) at the site of a previous cesarean section scar,</strong> representing discontinuity of the myometrium. Caused by incomplete or defective healing of the uterine closure at the time of cesarean delivery. The defect creates a reservoir in which menstrual blood pools, then drains slowly, resulting in characteristic post-menstrual brown spotting. The retained blood creates a hostile microenvironment for sperm and may impair implantation, contributing to secondary infertility and increased miscarriage risk when the wall is thin. Prevalence is approximately 20% or more in women with prior cesarean deliveries.<sup><a href="#ref-15">15</a></sup><sup><a href="#ref-16">16</a></sup><sup><a href="#ref-34">34</a></sup></p>
+
+            <p><strong>Diagnosis:</strong> Transvaginal ultrasound (TVUS) and saline infusion sonohysterography (SIS) are the preferred diagnostic tools -- both sensitive and cost-effective. SIS allows measurement of the defect dimensions and critically, the residual myometrial thickness (RMT). Treatment decisions depend on symptom profile, RMT, and future fertility desires.<sup><a href="#ref-43">43</a></sup><sup><a href="#ref-16">16</a></sup><sup><a href="#ref-15">15</a></sup></p>
+
+            <p><strong>Treatment classification:</strong></p>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Approach</th>
+                    <th>Method</th>
+                    <th>Best For</th>
+                    <th>Key Consideration</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>Hysteroscopic</td><td>Internal shaving/cautery of defect</td><td>Bleeding symptoms; RMT &gt;5mm; no future pregnancy desired</td><td>Faster recovery; may not fully resolve bleeding; does not rebuild wall<sup><a href="#ref-34">34</a></sup></td></tr>
+                  <tr><td>Laparoscopic</td><td>Excision + multi-layer reconstruction</td><td>Fertility desire; RMT &lt;5mm; preferred overall</td><td>Rebuilds wall integrity; better symptom resolution; longer recovery<sup><a href="#ref-15">15</a></sup></td></tr>
+                  <tr><td>Combined</td><td>Laparoscopic + hysteroscopic</td><td>Complex defects</td><td>Allows concurrent visualization of cavity and external repair</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3 id="luteal-phase-deficiency">Luteal Phase Deficiency (LPD)</h3>
+            <p><strong>A reproductive condition characterized by inadequate progesterone production or insufficient duration of the luteal phase,</strong> impairing endometrial preparation for implantation and early pregnancy support. Causes include impaired follicular development leading to insufficient corpus luteum formation, hypothyroidism, hyperprolactinemia, and GnRH pulsatility disruption. NaPro diagnosis is based on cycle-timed progesterone measurements. Treatment involves ovulation induction (to optimize follicular development and subsequent corpus luteum function) and/or progesterone supplementation beginning 3 to 4 days after the LH surge.<sup><a href="#ref-44">44</a></sup><sup><a href="#ref-45">45</a></sup></p>
+
+            <h3 id="luteal-phase">Luteal Phase (LP)</h3>
+            <p><strong>The period of the menstrual cycle following ovulation (post-peak) and preceding menstruation or implantation,</strong> typically lasting 12 to 16 days. During the luteal phase, the corpus luteum secretes progesterone to prepare the endometrium for potential implantation. A short luteal phase (&lt;10 days) is associated with infertility and impaired endometrial maturation.<sup><a href="#ref-44">44</a></sup></p>
+
+            <h3 id="corpus-luteum">Corpus Luteum (CL)</h3>
+            <p><strong>A temporary endocrine structure formed from the ruptured ovarian follicle after ovulation.</strong> The corpus luteum produces progesterone and estradiol during the luteal phase. If pregnancy occurs, hCG from the implanting trophoblast rescues the corpus luteum, sustaining progesterone production until the placenta takes over (approximately 10 weeks). Inadequate CL function is a mechanism of LPD.<sup><a href="#ref-44">44</a></sup></p>
+
+            <h3 id="luf-syndrome">Luteinized Unruptured Follicle (LUF) Syndrome</h3>
+            <p><strong>A condition in which the dominant follicle reaches maturity and undergoes apparent luteinization (progesterone production begins) without actually releasing the egg</strong> (anovulation occurs despite apparent cycle regularity). LUF can cause unexplained infertility despite normal menstrual cycles and is identified by follicle tracking ultrasound showing a persistent follicle that fails to collapse at expected ovulation time.<sup><a href="#ref-3">3</a></sup></p>
+
+            <h3 id="follicle-tracking">Follicle Maturation Study (Follicle Tracking)</h3>
+            <p><strong>A diagnostic ultrasound series monitoring follicle development across the follicular phase.</strong> Used to confirm ovulation, detect LUF syndrome, identify luteal phase deficiency, and guide timing of NaPro medical interventions.</p>
+
+            <h3 id="anovulatory-cycles">Anovulatory Cycles</h3>
+            <p><strong>Menstrual cycles in which ovulation does not occur,</strong> potentially presenting as apparently normal or irregular periods. Associated with PCOS, hypothalamic dysfunction, excessive exercise, low body weight, elevated prolactin, or thyroid disorders. Identified through cycle charting (absence of post-peak phase), follicle tracking, or mid-luteal progesterone testing.</p>
+
+            <h3 id="shortened-luteal-phase">Shortened Luteal Phase</h3>
+            <p><strong>A luteal phase &lt;10 days in duration,</strong> associated with inadequate progesterone production, impaired endometrial maturation, and reduced fertility. Observed in conditions of hormonal imbalance, ovulation induction side effects, and physical stress.<sup><a href="#ref-3">3</a></sup></p>
+
+            <h3 id="tubal-factor-infertility">Tubal Factor Infertility</h3>
+            <p><strong>Infertility attributed to blocked, damaged, or functionally compromised fallopian tubes.</strong> Affects approximately 25 to 30% of women with infertility. Causes include prior pelvic inflammatory disease (PID), chlamydia, endometriosis, pelvic adhesions, or prior tubal surgery. RRM offers corrective surgical alternatives to IVF: fallopian tube recanalization for proximal blockage, tubo-tubal anastomosis for mid-segment disease, and neosalpingostomy/fimbrioplasty for distal disease.<sup><a href="#ref-1">1</a></sup></p>
+
+            <h3 id="hydrosalpinx">Hydrosalpinx</h3>
+            <p><strong>A fluid-filled, distended, obstructed fallopian tube</strong> -- typically the result of prior infection or endometriosis causing complete distal tubal occlusion. Hydrosalpinges are associated with reduced IVF success rates (the fluid may be embryotoxic). RRM options include neosalpingostomy (opening and repairing the tube) when tube quality is adequate, or salpingectomy if repair is not feasible.</p>
+
+            <h3 id="fallopian-tube-anatomy">Fallopian Tube Anatomy Reference</h3>
+            <p><strong>The fallopian tube has four anatomical segments, each relevant to RRM diagnosis and surgery:</strong><sup><a href="#ref-46">46</a></sup><sup><a href="#ref-47">47</a></sup></p>
+            <ul>
+              <li><strong>Interstitial (Intramural):</strong> Segment passing through the uterine wall -- narrowest portion, most difficult to cannulate</li>
+              <li><strong>Isthmus:</strong> Narrow segment adjacent to the uterus; site of distal ligation in many sterilization procedures; most favorable for anastomosis reversal</li>
+              <li><strong>Ampulla:</strong> Widest, longest segment (5 cm, diameter up to 1 cm); most common site of fertilization and ectopic pregnancy<sup><a href="#ref-47">47</a></sup></li>
+              <li><strong>Infundibulum / Fimbriae:</strong> Open, funnel-shaped distal end with finger-like fimbriae that sweep the ovulated egg into the tube; damage here causes hydrosalpinx</li>
+            </ul>
+
+            <h3 id="pelvic-adhesions">Pelvic Adhesions (Scar Tissue)</h3>
+            <p><strong>Bands of fibrous tissue that form between pelvic structures following inflammation, infection, endometriosis, or prior surgery.</strong> Adhesions can distort pelvic anatomy, restrict tube and ovarian mobility, cause chronic pelvic pain, and impair fertility. RRM treatment involves meticulous laparoscopic adhesiolysis with anti-adhesion barrier placement.</p>
+
+            <h3 id="adenomyosis">Adenomyosis</h3>
+            <p><strong>A condition in which endometrial-like glands and stroma are present within the myometrium (uterine muscle wall),</strong> causing the uterus to enlarge and the junctional zone (the inner myometrium) to thicken. Adenomyosis is associated with heavy, painful periods and impaired fertility -- a meta-analysis found women with adenomyosis had a 28% decreased probability of clinical pregnancy via IVF/ICSI compared to women without it, and higher miscarriage rates (OR 2.17). RRM approaches include hormonal management, and in selected cases, surgical resection of focal lesions.<sup><a href="#ref-48">48</a></sup><sup><a href="#ref-49">49</a></sup><sup><a href="#ref-50">50</a></sup></p>
+
+            <h3 id="uterine-fibroids">Uterine Fibroids (Leiomyomas)</h3>
+            <p><strong>Benign smooth muscle tumors of the uterus.</strong> Classification by location significantly affects fertility impact:</p>
+            <ul>
+              <li><strong>Submucosal:</strong> Protrude into the uterine cavity; most strongly associated with infertility and pregnancy loss; treated hysteroscopically</li>
+              <li><strong>Intramural:</strong> Within the uterine wall; may impair fertility when large or distorting</li>
+              <li><strong>Subserosal:</strong> On the outer uterine surface; least impact on fertility</li>
+            </ul>
+            <p>RRM approach: myomectomy (fertility-preserving fibroid removal) when fibroids are contributing to reproductive problems.</p>
+
+            <h3 id="uterine-septum">Uterine Septum</h3>
+            <p><strong>A congenital structural abnormality in which a fibromuscular wall (septum) divides part or all of the uterine cavity.</strong> Associated with increased risk of miscarriage (due to poor septum vascularization impairing implantation) and preterm labor. Treated hysteroscopically by incising and resecting the septum.</p>
+
+            <h3 id="ashermans-syndrome">Intrauterine Adhesions (Asherman's Syndrome)</h3>
+            <p><strong>Scar tissue within the uterine cavity, typically following uterine trauma</strong> (e.g., D&amp;C, myomectomy, infection). Ranges from mild adhesions to obliteration of the cavity. Diagnosed by SIS, HSG, or hysteroscopy. Treated by hysteroscopic adhesiolysis with post-operative estrogen therapy to promote re-epithelialization.</p>
+
+            <h3 id="chronic-endometritis">Chronic Endometritis (CE)</h3>
+            <p><strong>A persistent, low-grade inflammatory condition of the endometrial lining caused by abnormal colonization of the endometrium by bacteria</strong> (e.g., Enterococcus, E. coli, Streptococcus). Often subclinical (no obvious symptoms). CE is significantly associated with recurrent implantation failure and recurrent pregnancy loss. Diagnosed by office hysteroscopy (strawberry-pattern micropolypoid endometrium) confirmed by CD138 immunohistochemistry on endometrial biopsy. Treated with targeted antibiotics (typically doxycycline, amoxicillin, or based on culture). A cohort study showed the biopsy/treatment group had significantly higher chances of pregnancy (HR 2.28) and live birth (HR 2.76) compared to hysteroscopy-only controls.<sup><a href="#ref-51">51</a></sup><sup><a href="#ref-26">26</a></sup></p>
+
+            <h3 id="aps">Antiphospholipid Syndrome (APS)</h3>
+            <p><strong>An autoimmune condition in which antiphospholipid antibodies</strong> -- including lupus anticoagulant, anticardiolipin antibodies (aCL), and anti-beta-2 glycoprotein I antibodies -- cause a hypercoagulable state that can result in thrombosis and pregnancy complications including recurrent miscarriage, fetal loss, and stillbirth. Diagnosis requires both clinical criteria (vascular thrombosis or pregnancy morbidity) and laboratory criteria (confirmed antibodies on two occasions 12 or more weeks apart). RRM treatment: low-dose aspirin initiated preconceptionally, plus prophylactic-dose heparin (LMWH) from a positive pregnancy test through delivery. Multiple guidelines (EULAR, ESHRE, ACCP, ACOG) support this protocol.<sup><a href="#ref-52">52</a></sup><sup><a href="#ref-36">36</a></sup></p>
+
+            <h3 id="autoimmune-thrombophilic">Autoimmune/Thrombophilic Disorders (as RPL Causes)</h3>
+            <p><strong>Beyond APS, RRM evaluates for inherited thrombophilias</strong> (Factor V Leiden, prothrombin mutation, protein C/S deficiency), natural killer (NK) cell dysregulation, and systemic autoimmune conditions (antithyroid antibodies, antinuclear antibodies) in women with RPL. Assessment guides individualized medical therapy.<sup><a href="#ref-37">37</a></sup></p>
+
+            <h3 id="varicocele">Varicocele</h3>
+            <p><strong>An abnormal dilation of the veins within the scrotum (pampiniform plexus),</strong> present in 15% of the male population and in approximately 35% of men evaluated for infertility. Varicoceles raise scrotal temperature and increase oxidative stress, impairing spermatogenesis and increasing sperm DNA fragmentation. Varicocele repair (varicocelectomy) results in significant improvement in semen parameters in 60 to 80% of men, with natural pregnancy rates of 43% at one year and 69% at two years when female factors are excluded. Microsurgical subinguinal varicocelectomy is the preferred technique, associated with the highest spontaneous pregnancy rates and lowest complication rates.<sup><a href="#ref-53">53</a></sup><sup><a href="#ref-54">54</a></sup><sup><a href="#ref-55">55</a></sup><sup><a href="#ref-56">56</a></sup></p>
+
+            <h3 id="male-factor-infertility">Male Factor Infertility</h3>
+            <p><strong>Infertility attributable to male reproductive factors, estimated to contribute to approximately 50% of infertility cases when assessed comprehensively.</strong> RRM evaluates male partners with semen analysis, sperm DNA fragmentation testing, hormonal testing, and where indicated, surgical evaluation (varicocele assessment). Treatments include varicocele repair, lifestyle modification, antioxidant therapy, hormonal correction, and in severe cases (azoospermia), microsurgical sperm retrieval.<sup><a href="#ref-35">35</a></sup></p>
+
+            <h3 id="oat-syndrome">Oligospermia / Asthenospermia / Teratospermia</h3>
+            <p><strong>Reduced sperm parameters defined by WHO reference values:</strong></p>
+            <ul>
+              <li><strong>Oligospermia:</strong> Sperm concentration &lt;16 million/mL</li>
+              <li><strong>Asthenospermia:</strong> Progressive motility &lt;30%</li>
+              <li><strong>Teratospermia:</strong> Normal morphology &lt;4% (Kruger strict criteria)</li>
+            </ul>
+            <p>Often co-exist; combined deficits are termed oligoasthenoteratospermia (OAT syndrome).</p>
+
+            <h3 id="azoospermia">Azoospermia</h3>
+            <p><strong>Complete absence of sperm in the ejaculate.</strong> Classified as:</p>
+            <ul>
+              <li><strong>Obstructive:</strong> Sperm production is normal but outflow is blocked (e.g., prior vasectomy, epididymal blockage); potentially correctable surgically</li>
+              <li><strong>Non-obstructive:</strong> Impaired spermatogenesis (e.g., Sertoli cell-only syndrome, maturation arrest); may still have focal sperm production accessible via testicular sperm extraction (TESE)</li>
+            </ul>
+
+            <h3 id="oxidative-stress">Oxidative Stress / Reactive Oxygen Species (ROS)</h3>
+            <p><strong>An imbalance between pro-oxidant species (ROS, reactive nitrogen species) and antioxidant defenses.</strong> At physiological levels, ROS play important roles in folliculogenesis, oocyte maturation, capacitation, and embryo development. Excess ROS, however, damages sperm DNA, impairs sperm motility, disrupts oocyte quality, damages embryos, and is linked to endometriosis, PCOS, unexplained infertility, recurrent miscarriage, and preeclampsia. RRM addresses oxidative stress through targeted antioxidant supplementation (vitamin C, E, CoQ10, zinc, selenium, L-carnitine, N-acetylcysteine), lifestyle modification (smoking cessation, weight management), and treatment of underlying conditions.<sup><a href="#ref-57">57</a></sup><sup><a href="#ref-58">58</a></sup><sup><a href="#ref-35">35</a></sup></p>
+
+            <h3 id="sperm-dna-fragmentation-extended">Sperm DNA Fragmentation Index (DFI) -- Extended</h3>
+            <p><strong>High DFI (generally defined as &gt;25 to 30%) is independently associated with poor reproductive outcomes,</strong> including failed natural conception and IUI, and is a significant predictor of miscarriage. Treatment strategies in RRM include: antioxidant supplementation (reduces DFI and improves pregnancy rates); varicocele repair (meta-analysis: 3.37% mean DFI reduction post-repair); lifestyle changes (smoking cessation, weight optimization, stress reduction); treating genital tract infections; and shortened ejaculatory abstinence periods. Testicular sperm extraction yields sperm with lower DFI than ejaculated sperm in severe cases.<sup><a href="#ref-20">20</a></sup><sup><a href="#ref-21">21</a></sup><sup><a href="#ref-19">19</a></sup></p>
+
+            <h3 id="hormonal-abnormalities">Hormonal Abnormalities</h3>
+            <p><strong>Imbalances disrupting the menstrual cycle, ovulation, or early pregnancy.</strong> RRM diagnoses these through cycle-timed blood tests guided by fertility charting. Key hormones evaluated include:</p>
+            <ul>
+              <li><strong>FSH (Follicle-Stimulating Hormone):</strong> Stimulates follicular development; elevated early-cycle FSH indicates diminished ovarian reserve</li>
+              <li><strong>LH (Luteinizing Hormone):</strong> Surge triggers ovulation; chronically elevated in PCOS</li>
+              <li><strong>Estradiol (E2):</strong> Primary estrogen; supports follicular development, cervical mucus production, and endometrial proliferation</li>
+              <li><strong>Progesterone (P4):</strong> Luteal phase hormone critical for endometrial receptivity and early pregnancy; measured at post-peak +7 in NaPro protocols</li>
+              <li><strong>hCG (Human Chorionic Gonadotropin):</strong> Produced by the implanting trophoblast; sustains the corpus luteum; measured for early pregnancy confirmation and monitoring</li>
+              <li><strong>Prolactin:</strong> Elevated levels (hyperprolactinemia) suppress LH/FSH pulsatility, impairing ovulation and the luteal phase</li>
+              <li><strong>AMH (Anti-Mullerian Hormone):</strong> Secreted by ovarian granulosa cells; marker of ovarian reserve; low in diminished ovarian reserve (DOR)</li>
+            </ul>
+
+            <h3 id="hypothyroidism">Hypothyroidism / Subclinical Hypothyroidism</h3>
+            <p><strong>Deficiency of thyroid hormone, most commonly due to autoimmune Hashimoto's thyroiditis in iodine-sufficient regions.</strong> Even subclinical hypothyroidism (elevated TSH with normal free T4) is associated with increased miscarriage risk, impaired fertility, and potential adverse pregnancy outcomes. RRM screens thyroid function and optimizes thyroid status before and during attempts at conception.</p>
+
+            <h3 id="hyperprolactinemia">Hyperprolactinemia</h3>
+            <p><strong>Elevated serum prolactin levels, which suppress hypothalamic GnRH pulsatility, thereby reducing LH and FSH secretion.</strong> Results in ovulatory dysfunction, luteal phase insufficiency, and impaired fertility. Common causes include pituitary microadenoma (prolactinoma), hypothyroidism, and medications. Treated with dopamine agonists (cabergoline, bromocriptine) or management of the underlying cause.<sup><a href="#ref-3">3</a></sup></p>
+
+            <h3 id="poi">Premature Ovarian Insufficiency (POI)</h3>
+            <p><strong>Loss of normal ovarian function before age 40,</strong> resulting in irregular or absent menstruation, infertility, and hormonal deficiencies mimicking menopause. Affects approximately 1% of women under 40. Causes include autoimmune, genetic (fragile X premutation), iatrogenic (chemotherapy, radiation), and idiopathic. RRM evaluation and management includes hormone replacement therapy, fertility-preservation strategies, and treatment of underlying autoimmune conditions.<sup><a href="#ref-3">3</a></sup></p>
+
+            <h3 id="dor">Diminished Ovarian Reserve (DOR)</h3>
+            <p><strong>A reduction in the quantity (and sometimes quality) of oocytes in the ovaries, leading to decreased fertility potential.</strong> Diagnosed by elevated FSH, low AMH, and low antral follicle count (AFC) on ultrasound. DOR is age-related but can occur prematurely. RRM takes an aggressive root-cause approach, evaluating for autoimmune, mitochondrial, inflammatory, and lifestyle contributors.<sup><a href="#ref-3">3</a></sup></p>
+
+            <h3 id="insulin-resistance">Insulin Resistance / Metabolic Dysfunction</h3>
+            <p><strong>A state of impaired cellular response to insulin, common in PCOS (present in 50 to 70% of cases)</strong> and an independent contributor to ovulatory dysfunction, infertility, and miscarriage. RRM addresses through dietary modification (low glycemic index diet), exercise, targeted supplementation (myo-inositol, alpha-lipoic acid, CoQ10), and medication (metformin) when indicated.<sup><a href="#ref-39">39</a></sup><sup><a href="#ref-3">3</a></sup></p>
+
+            <h3 id="secondary-infertility">Secondary Infertility</h3>
+            <p><strong>Difficulty conceiving after a prior pregnancy.</strong> RRM re-evaluates comprehensively for new or evolving conditions -- including C-section scar isthmocele, new-onset endometriosis or adhesions, chronic endometritis, postpartum thyroiditis, or hormonal shifts.<sup><a href="#ref-3">3</a></sup></p>
+
+            <h3 id="unexplained-infertility">Unexplained Infertility</h3>
+            <p><strong>A clinical label given when no cause is identified through standard evaluation.</strong> RRM does not accept this as a final diagnosis but pursues deeper investigation including cycle-timed hormone panels, advanced sperm testing (SDF), chronic endometritis screening, immunologic testing, and laparoscopic assessment for subtle pelvic pathology.<sup><a href="#ref-1">1</a></sup></p>
+
+            <h3 id="cervical-factor-infertility">Cervical Factor Infertility</h3>
+            <p><strong>Impaired cervical mucus production or quality, reducing sperm survival and transport.</strong> Contributing factors include low estrogen, prior cervical procedures (LEEP, cone biopsy), cervical inflammation, or mucus antibodies. RRM optimizes cervical mucus through hormonal support of estrogen adequacy and treatment of underlying hormonal deficiencies.</p>
+
+            <h3 id="poor-cervical-mucus">Poor Cervical Mucus Production</h3>
+            <p><strong>Cervical mucus that is insufficient in quantity, too thick, or does not exhibit fertile-quality characteristics</strong> (clear, stretchy, lubricative) near ovulation. Fertile mucus creates a protective environment for sperm, filtering defective sperm and providing a reservoir that sustains sperm for up to 5 days. Poor mucus production reduces the effective fertile window and impairs sperm ascent.</p>
+
+            <h3 id="endometrial-thickness">Endometrial Thickness</h3>
+            <p><strong>The measurement of the uterine lining as assessed by transvaginal ultrasound.</strong> Optimal endometrial thickness for implantation is generally 7 to 8 mm or more with a trilaminar (three-layer) pattern. Thin endometrium is associated with reduced implantation rates and is investigated for causes including prior uterine surgery, estrogen deficiency, poor blood flow, and Asherman's syndrome.</p>
+
+            <h3 id="window-of-implantation">Window of Implantation (WOI)</h3>
+            <p><strong>The hormonally determined period during the secretory phase of the menstrual cycle</strong> (approximately cycle days 19 to 23 in a standard 28-day cycle) during which the endometrium is maximally receptive to embryo implantation. The WOI is precisely regulated by estrogen and progesterone and is displaced in approximately 20 to 25% of women with recurrent implantation failure, identifiable via ERA testing.<sup><a href="#ref-24">24</a></sup><sup><a href="#ref-23">23</a></sup></p>
+
+            <h3 id="postpartum-fertility">Postpartum Fertility Issues</h3>
+            <p><strong>Fertility challenges arising in the postpartum period,</strong> including lactational amenorrhea (anovulation during breastfeeding due to prolactin elevation), retained placenta fragments, postpartum thyroiditis, hormonal dysregulation, and uterine scar defects (isthmocele from cesarean delivery). RRM offers specialized postpartum evaluations to identify and address these causes.<sup><a href="#ref-3">3</a></sup></p>
+
+            <h3 id="chronic-pelvic-pain">Chronic Pelvic Pain (CPP)</h3>
+            <p><strong>Pelvic pain lasting 6 months or more,</strong> often involving multiple overlapping causes -- gynecologic (endometriosis, adenomyosis, pelvic adhesions), musculoskeletal, urologic (interstitial cystitis), gastrointestinal, neuropathic, and psychosocial. RRM addresses gynecologic root causes surgically (excision, adhesiolysis) while recognizing the multidimensional nature of CPP and coordinating interdisciplinary care.</p>
+          </section>
+
+          <!-- Part VII: The Broader RRM Framework -->
+          <section id="broader-framework">
+            <h2>Part VII: The Broader RRM Framework</h2>
+
+            <h3 id="napro-vs-rrm">NaProTECHNOLOGY vs. RRM</h3>
+            <p><strong>While NaProTECHNOLOGY (NaPro) is the most established and studied component of RRM</strong> -- developed by Dr. Thomas Hilgers at the Pope Paul VI Institute and based on the Creighton Model -- RRM is the broader umbrella concept. RRM includes NaPro as well as other approaches that share the restorative philosophy: NeoFertility, Marquette Method-based medical management, FEMM-based care, and various symptothermal or sympto-hormonal approaches. All share the common framework of using biomarker data from cycle charting to optimize normal reproductive function.<sup><a href="#ref-1">1</a></sup></p>
+
+            <h3 id="ivf-vs-rrm">IVF vs. RRM: Key Conceptual Distinctions</h3>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Dimension</th>
+                    <th>IVF / ART</th>
+                    <th>RRM</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>Approach</td><td>Bypasses infertility cause</td><td>Corrects infertility cause</td></tr>
+                  <tr><td>Conception</td><td>External fertilization (outside the body)</td><td>Natural conception (within the body)</td></tr>
+                  <tr><td>Cycle use</td><td>Suppresses/overrides natural cycle</td><td>Works with natural cycle</td></tr>
+                  <tr><td>Time to pregnancy</td><td>Higher monthly success per cycle</td><td>Cumulative success over time</td></tr>
+                  <tr><td>Singleton outcomes</td><td>Higher multiple pregnancy risk</td><td>All natural pregnancies (no multiples)<sup><a href="#ref-10">10</a></sup></td></tr>
+                  <tr><td>Long-term health</td><td>Addresses procedure only</td><td>Improves overall reproductive health</td></tr>
+                  <tr><td>Cost</td><td>Often higher per-treatment cycle</td><td>Generally lower; may cost less overall<sup><a href="#ref-3">3</a></sup></td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3 id="patient-centered-care">Patient-Centered Care</h3>
+            <p><strong>A guiding RRM value emphasizing patient understanding, informed consent, and active participation in health decisions.</strong> Fertility charting education gives patients direct insight into their own hormonal and physiological patterns. When treating for infertility or miscarriage, RRM physicians treat the committed couple -- both male and female -- as a single unit.<sup><a href="#ref-1">1</a></sup></p>
+
+            <h3 id="couple-based-treatment">Couple-Based Treatment</h3>
+            <p><strong>The RRM principle that when infertility or recurrent miscarriage is the concern, both partners receive evaluation and treatment as a unit.</strong> Male factor contributes to approximately 50% of infertility cases and is always assessed in RRM. This approach supports the relationship and reduces the emotional burden that often falls disproportionately on the female partner.<sup><a href="#ref-35">35</a></sup></p>
+
+            <h3 id="minimally-invasive-surgery">Minimally Invasive Surgery (MIS)</h3>
+            <p><strong>Surgical techniques -- laparoscopic, hysteroscopic, robotic-assisted, or via mini-laparotomy -- that minimize tissue trauma</strong> compared to open abdominal surgery, leading to faster recovery, less pain, fewer complications, and often superior fertility preservation. MIS is standard practice in RRM for all applicable procedures.<sup><a href="#ref-1">1</a></sup></p>
+
+            <h3 id="adhesion-prevention">Adhesion Prevention</h3>
+            <p><strong>The active strategy employed in RRM/NaPro Surgery to minimize post-operative adhesion formation</strong> through meticulous hemostasis, careful tissue handling, thorough peritoneal irrigation, and the strategic use of anti-adhesion barriers (Gore-Tex membrane). One published NaPro series documented a mean adhesion score reduction from 33.3 to 6.0 over a decade with systematic barrier use.<sup><a href="#ref-10">10</a></sup></p>
+
+            <h3 id="antioxidant-therapy">Antioxidant Therapy</h3>
+            <p><strong>The therapeutic use of antioxidant compounds to reduce oxidative stress in both male and female reproductive contexts.</strong> In males, antioxidants (vitamin C, E, CoQ10, zinc, selenium, L-carnitine, N-acetylcysteine) reduce sperm DNA fragmentation and improve sperm parameters. In females, antioxidants support oocyte quality, reduce endometriosis-related oxidative damage, and may support embryo development.<sup><a href="#ref-22">22</a></sup><sup><a href="#ref-19">19</a></sup></p>
+
+            <h3 id="nutritional-lifestyle-medicine">Nutritional and Lifestyle Medicine</h3>
+            <p><strong>RRM incorporates assessment and optimization of nutritional status</strong> (vitamin D, folate, B12, iron, zinc, omega-3s) and lifestyle factors (sleep, stress, physical activity, body weight, environmental toxin exposure) as foundational elements of reproductive health restoration. Nutritional deficiencies and poor lifestyle factors are identified as contributing root causes, not peripheral concerns.<sup><a href="#ref-3">3</a></sup></p>
+          </section>
+
+          <!-- Abbreviations and Quick Reference -->
+          <section id="abbreviations">
+            <h2>Abbreviations and Quick Reference</h2>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Abbreviation</th>
+                    <th>Full Term</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>RRM</td><td>Restorative Reproductive Medicine</td></tr>
+                  <tr><td>NaPro</td><td>NaProTECHNOLOGY (Natural Procreative Technology)</td></tr>
+                  <tr><td>CrMS</td><td>Creighton Model FertilityCare System</td></tr>
+                  <tr><td>FABM</td><td>Fertility Awareness-Based Method</td></tr>
+                  <tr><td>NFP</td><td>Natural Family Planning</td></tr>
+                  <tr><td>SIS</td><td>Saline Infusion Sonohysterogram</td></tr>
+                  <tr><td>HSG</td><td>Hysterosalpingogram</td></tr>
+                  <tr><td>SDF / DFI</td><td>Sperm DNA Fragmentation / DNA Fragmentation Index</td></tr>
+                  <tr><td>ERA</td><td>Endometrial Receptivity Analysis</td></tr>
+                  <tr><td>WOI</td><td>Window of Implantation</td></tr>
+                  <tr><td>LPD</td><td>Luteal Phase Deficiency</td></tr>
+                  <tr><td>LP</td><td>Luteal Phase</td></tr>
+                  <tr><td>CL</td><td>Corpus Luteum</td></tr>
+                  <tr><td>LUF</td><td>Luteinized Unruptured Follicle</td></tr>
+                  <tr><td>RPL</td><td>Recurrent Pregnancy Loss</td></tr>
+                  <tr><td>APS</td><td>Antiphospholipid Syndrome</td></tr>
+                  <tr><td>POI</td><td>Premature Ovarian Insufficiency</td></tr>
+                  <tr><td>DOR</td><td>Diminished Ovarian Reserve</td></tr>
+                  <tr><td>AMH</td><td>Anti-Mullerian Hormone</td></tr>
+                  <tr><td>PCOS</td><td>Polycystic Ovary Syndrome</td></tr>
+                  <tr><td>CE</td><td>Chronic Endometritis</td></tr>
+                  <tr><td>MIS</td><td>Minimally Invasive Surgery</td></tr>
+                  <tr><td>S-MAP</td><td>Systematic Mapping of the Pelvis</td></tr>
+                  <tr><td>LOWR</td><td>Laparoscopic Ovarian Wedge Resection</td></tr>
+                  <tr><td>TLA / TT anastomosis</td><td>Tubal Ligation Reversal / Tubo-Tubal Anastomosis</td></tr>
+                  <tr><td>RMT</td><td>Residual Myometrial Thickness</td></tr>
+                  <tr><td>RIF</td><td>Recurrent Implantation Failure</td></tr>
+                  <tr><td>OAT</td><td>Oligoasthenoteratospermia</td></tr>
+                  <tr><td>ROS</td><td>Reactive Oxygen Species</td></tr>
+                  <tr><td>BBT</td><td>Basal Body Temperature</td></tr>
+                  <tr><td>LH</td><td>Luteinizing Hormone</td></tr>
+                  <tr><td>FSH</td><td>Follicle-Stimulating Hormone</td></tr>
+                  <tr><td>hCG</td><td>Human Chorionic Gonadotropin</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- References -->
+          <section class="references" id="references">
+            <h2>References</h2>
+            <ol>
+              <li id="ref-1"><a href="https://iirrm.org/what-is-rrm/" rel="noopener" target="_blank">What is Restorative Reproductive Medicine (RRM)?</a> -- International Institute for Restorative Reproductive Medicine (IIRRM).</li>
+              <li id="ref-2"><a href="https://journals.sagepub.com/doi/10.1177/26334941251345844" rel="noopener" target="_blank">Innovations and future frontiers in restorative medicine.</a> -- <em>Sage Journals</em>.</li>
+              <li id="ref-3"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8265110/" rel="noopener" target="_blank">Restorative reproductive medicine for infertility in two family medicine settings.</a> -- <em>PMC</em>.</li>
+              <li id="ref-4"><a href="https://eppc.org/wp-content/uploads/2025/03/3-An-Overview-of-Restorative-Reproductive-Medicine.pdf" rel="noopener" target="_blank">An Overview of Restorative Reproductive Medicine.</a> -- EPPC.</li>
+              <li id="ref-5"><a href="https://www.sciencedirect.com/science/article/abs/pii/S001078242100086X" rel="noopener" target="_blank">Use of fertility awareness-based methods of contraception.</a> -- <em>ScienceDirect</em>.</li>
+              <li id="ref-6"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12270466/" rel="noopener" target="_blank">Fertility Awareness-Based Methods for Family Planning.</a> -- <em>PMC / NIH</em>.</li>
+              <li id="ref-7"><a href="https://www.fertilitycare.org/creighton-model-system/" rel="noopener" target="_blank">CREIGHTON MODEL System.</a> -- FertilityCare Centers of America.</li>
+              <li id="ref-8"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12306780/" rel="noopener" target="_blank">Pregnancies, intentions, and fertility behaviors during use of the Creighton Model FertilityCare System.</a> -- <em>PMC</em>.</li>
+              <li id="ref-9"><a href="https://www.birthpointe.com/creighton-model-fertilitycare-system/" rel="noopener" target="_blank">Creighton Model FertilityCare System.</a> -- BirthPointe.</li>
+              <li id="ref-10"><a href="https://rrmacademy.org/commentary/naprotechnology-surgery-a-restorative-approach-to-fertility-and-gynecologic-health/">NaProTechnology Surgery: A Restorative Approach to Fertility and Gynecologic Health.</a> -- RRM Academy.</li>
+              <li id="ref-11"><a href="https://hoiobgyn.com/blog/article/2023/05/napro-technology" rel="noopener" target="_blank">An Introduction to Natural Procreative Technology.</a> -- HOI OBGYN.</li>
+              <li id="ref-12"><a href="https://www.osfhealthcare.org/services/specialties/women/programs-services/fertility-care/natural-procreative-technology" rel="noopener" target="_blank">Natural Procreative Technology.</a> -- OSF Healthcare.</li>
+              <li id="ref-13"><a href="https://naturalwomanhood.org/largest-napro-study-infertility-treatment-rrm/" rel="noopener" target="_blank">4 key findings on infertility from the largest NaPro study to date.</a> -- Natural Womanhood.</li>
+              <li id="ref-14"><a href="https://pubmed.ncbi.nlm.nih.gov/41323405/" rel="noopener" target="_blank">NaProTechnology for infertility: take-home baby rate and clinical outcomes in a 5-year single-center cohort.</a> -- <em>PubMed</em>.</li>
+              <li id="ref-15"><a href="https://www.scielo.br/j/ramb/a/sybvcWWJG8F7tL7yB8RH3DQ/?lang=en" rel="noopener" target="_blank">Isthmocele: an overview of diagnosis and treatment.</a> -- <em>SciELO</em>.</li>
+              <li id="ref-16"><a href="https://pubmed.ncbi.nlm.nih.gov/31166450/" rel="noopener" target="_blank">Isthmocele: an overview of diagnosis and treatment.</a> -- <em>PubMed</em>.</li>
+              <li id="ref-17"><a href="https://www.acog.org/clinical/clinical-guidance/committee-opinion/articles/2020/03/the-use-of-hysteroscopy-for-the-diagnosis-and-treatment-of-intrauterine-pathology" rel="noopener" target="_blank">The Use of Hysteroscopy for the Diagnosis and Treatment of Intrauterine Pathology.</a> -- ACOG.</li>
+              <li id="ref-18"><a href="https://www.ncbi.nlm.nih.gov/books/NBK564345/" rel="noopener" target="_blank">Hysteroscopy.</a> -- <em>StatPearls / NCBI Bookshelf</em>.</li>
+              <li id="ref-19"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11152411/" rel="noopener" target="_blank">Sperm DNA Fragmentation: causes, evaluation and management in male infertility.</a> -- <em>PMC</em>.</li>
+              <li id="ref-20"><a href="https://www.evewell.com/support/sperm-dna-fragmentation-and-ivf/" rel="noopener" target="_blank">Sperm DNA fragmentation and male fertility.</a> -- The Evewell.</li>
+              <li id="ref-21"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5922225/" rel="noopener" target="_blank">Role of sperm DNA fragmentation in male factor infertility.</a> -- <em>PMC / NIH</em>.</li>
+              <li id="ref-22"><a href="https://ssmr.org/patients/patient-resources/patient-education-forum/the-role-of-sperm-dna-fragmentation-in-the-evaluat.aspx" rel="noopener" target="_blank">The Role of Sperm DNA Fragmentation in the Evaluation of the Male Factor.</a> -- SSMR.</li>
+              <li id="ref-23"><a href="https://www.fcionline.com/article/era/" rel="noopener" target="_blank">What is the Endometrial Receptivity Analysis (ERA)?</a> -- FCI.</li>
+              <li id="ref-24"><a href="https://www.medparkhospital.com/en-US/disease-and-treatment/endometrial-receptivity-analysis" rel="noopener" target="_blank">Endometrial Receptivity Analysis (ERA).</a> -- MedPark Hospital.</li>
+              <li id="ref-25"><a href="https://www.nature.com/articles/s41598-025-91745-y" rel="noopener" target="_blank">The study on the clinical efficacy of endometrial receptivity analysis.</a> -- <em>Nature / Scientific Reports</em>.</li>
+              <li id="ref-26"><a href="https://pubmed.ncbi.nlm.nih.gov/26456229/" rel="noopener" target="_blank">Chronic endometritis in women with recurrent pregnancy loss and recurrent implantation failure.</a> -- <em>PubMed</em>.</li>
+              <li id="ref-27"><a href="https://www.endonews.com/laparoscopic-excision-vs.-ablation-in-endometriosis-a-comparison-of-symptom-and-quality-of-life-outcomes" rel="noopener" target="_blank">Laparoscopic Excision vs. Ablation in Endometriosis: A Comparison of Symptom and Quality of Life Outcomes.</a> -- EndoNews.</li>
+              <li id="ref-28"><a href="https://pubmed.ncbi.nlm.nih.gov/28456617/" rel="noopener" target="_blank">Laparoscopic Excision Versus Ablation for Endometriosis.</a> -- <em>PubMed</em>.</li>
+              <li id="ref-29"><a href="https://www.pc3connect.org/excision-vs-ablation-understanding-the-key-differences-for-treating-washington-endometriosis/" rel="noopener" target="_blank">Excision vs Ablation: Understanding the Key Differences for Treating Endometriosis.</a> -- PC3 Connect.</li>
+              <li id="ref-30"><a href="https://ro.co/fertility/tubal-ligation-reversal/" rel="noopener" target="_blank">Tubal Ligation Reversal: Success Rates, Complications.</a> -- Ro.</li>
+              <li id="ref-31"><a href="https://www.mcrmfertility.com/2023/06/13/tubal-reversal/" rel="noopener" target="_blank">Tubal Reversal V IVF Success Rates.</a> -- MCRM Fertility.</li>
+              <li id="ref-32"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4840024/" rel="noopener" target="_blank">Effectiveness of bilateral tubotubal anastomosis in a large outpatient population.</a> -- <em>PMC</em>.</li>
+              <li id="ref-33"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5536424/" rel="noopener" target="_blank">Pregnancy outcome of laparoscopic tubal reanastomosis.</a> -- <em>PMC / NIH</em>.</li>
+              <li id="ref-34"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10416161/" rel="noopener" target="_blank">Isthmocele: From Risk Factors to Management.</a> -- <em>PMC</em>.</li>
+              <li id="ref-35"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8766739/" rel="noopener" target="_blank">The Impact of Oxidative Stress in Male Infertility.</a> -- <em>PMC / NIH</em>.</li>
+              <li id="ref-36"><a href="https://www.asrm.org/practice-guidance/practice-committee-documents/evaluation-and-treatment-of-recurrent-pregnancy-loss-a-committee-opinion-2012/" rel="noopener" target="_blank">Evaluation and treatment of recurrent pregnancy loss.</a> -- ASRM.</li>
+              <li id="ref-37"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC6276652/" rel="noopener" target="_blank">ESHRE guideline: recurrent pregnancy loss.</a> -- <em>PMC</em>.</li>
+              <li id="ref-38"><a href="https://pubmed.ncbi.nlm.nih.gov/?term=39588841" rel="noopener" target="_blank">Excisional surgery versus ablative surgery for ovarian endometrioma.</a> -- <em>PubMed</em>.</li>
+              <li id="ref-39"><a href="https://www.ncbi.nlm.nih.gov/books/NBK459251/" rel="noopener" target="_blank">Polycystic Ovarian Syndrome.</a> -- <em>StatPearls / NCBI Bookshelf</em>.</li>
+              <li id="ref-40"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11968372/" rel="noopener" target="_blank">Effect of myo-inositol supplementation in mixed ovarian response.</a> -- <em>PMC</em>.</li>
+              <li id="ref-41"><a href="https://respubjournals.com/obstetrics-gynecological-surgery/Effect-of-Myo-Inositol-in-Treating-Polycystic-Ovary-Syndrome-PCOS-A-Review.php" rel="noopener" target="_blank">Effect of Myo-Inositol in Treating Polycystic Ovary Syndrome (PCOS).</a> -- Research &amp; Publication Journals.</li>
+              <li id="ref-42"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10926319/" rel="noopener" target="_blank">The Effectiveness of Myo-Inositol in Women With Polycystic Ovary Syndrome.</a> -- <em>PMC</em>.</li>
+              <li id="ref-43"><a href="https://www.gynaecology-obstetrics-journal.com/presentation-of-isthmocoele-and-its-management-options-a-review/" rel="noopener" target="_blank">Presentation of isthmocoele and its management options: a review.</a> -- Gynaecology &amp; Obstetrics Journal.</li>
+              <li id="ref-44"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4436586/" rel="noopener" target="_blank">Progesterone and the Luteal Phase: A Requisite to Reproduction.</a> -- <em>PMC</em>.</li>
+              <li id="ref-45"><a href="https://www.asrm.org/practice-guidance/practice-committee-documents/diagnosis-and-treatment-of-luteal-phase-deciency-a-committee-opinion-2021/" rel="noopener" target="_blank">Diagnosis and treatment of luteal phase deficiency: a committee opinion.</a> -- ASRM.</li>
+              <li id="ref-46"><a href="https://en.wikipedia.org/wiki/Fallopian_tube" rel="noopener" target="_blank">Fallopian tube.</a> -- Wikipedia.</li>
+              <li id="ref-47"><a href="https://www.ncbi.nlm.nih.gov/books/NBK547660/" rel="noopener" target="_blank">Anatomy, Abdomen and Pelvis: Fallopian Tube.</a> -- <em>StatPearls / NCBI</em>.</li>
+              <li id="ref-48"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11355825/" rel="noopener" target="_blank">From Diagnosis to Fertility: Optimizing Treatment of Adenomyosis.</a> -- <em>PMC</em>.</li>
+              <li id="ref-49"><a href="https://www.aafp.org/pubs/afp/issues/2022/0100/p33.html" rel="noopener" target="_blank">Adenomyosis: Diagnosis and Management.</a> -- AAFP.</li>
+              <li id="ref-50"><a href="https://www.backtable.com/shows/obgyn/articles/adenomyosis-infertility-symptoms-diagnosis-treatment" rel="noopener" target="_blank">Adenomyosis &amp; Infertility: Symptoms, Diagnosis &amp; Treatment.</a> -- BackTable.</li>
+              <li id="ref-51"><a href="https://onlinelibrary.wiley.com/doi/10.1111/aji.13482" rel="noopener" target="_blank">Treatment following hysteroscopy and endometrial diagnostic biopsy.</a> -- <em>Wiley Online Library</em>.</li>
+              <li id="ref-52"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8252114/" rel="noopener" target="_blank">Antithrombotic therapy to prevent recurrent pregnancy loss in antiphospholipid syndrome.</a> -- <em>PMC</em>.</li>
+              <li id="ref-53"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4999483/" rel="noopener" target="_blank">Clinical Outcomes of Varicocele Repair in Infertile Men: A Review.</a> -- <em>PMC</em>.</li>
+              <li id="ref-54"><a href="https://maleinfertility.org/procedures/microsurgical-varicocelectomy/results" rel="noopener" target="_blank">Varicocelectomy Results.</a> -- Center for Male Reproductive Medicine.</li>
+              <li id="ref-55"><a href="https://www.fertilitycenter.com/fertility_cares_blog/does-varicocele-repair-improve-male-infertility/" rel="noopener" target="_blank">Does Varicocele Repair Improve Male Infertility?</a> -- Fertility Center.</li>
+              <li id="ref-56"><a href="https://www.sciencedirect.com/science/article/pii/S2049080122006975" rel="noopener" target="_blank">Functional outcomes of surgical treatment of varicocele in infertile men.</a> -- <em>ScienceDirect</em>.</li>
+              <li id="ref-57"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9535111/" rel="noopener" target="_blank">The Association of Oxidative Stress and Reactive Oxygen Species in Infertility.</a> -- <em>PMC</em>.</li>
+              <li id="ref-58"><a href="https://www.reprodgroup.us/articles/GJFR-4-112.php" rel="noopener" target="_blank">Impact of Oxidative stress on Infertility.</a> -- Global Journal of Fertility Research.</li>
+            </ol>
+          </section>
+
+          <div class="cta-box">
+            <h3>Ready to learn more?</h3>
+            <p>Explore our other guides on specific RRM approaches and topics.</p>
+            <p><a href="/naprotechnology/" class="btn btn--primary">NaProTechnology Guide</a></p>
+            <p><a href="/what-is-rrm/" class="btn btn--secondary">What is RRM?</a></p>
+            <p><a href="/library/" class="btn btn--secondary">Browse the Research Library</a></p>
+          </div>
+
+          <p class="disclaimer"><em>This content is for educational purposes only and does not constitute medical advice. Consult an RRM clinician or healthcare provider for guidance specific to your situation. Statistics represent published research averages, not guarantees of individual outcomes.</em></p>
+
+        </article>
+      </div>
+    </div>
+  </div>
+  <p class="page-updated">Last updated: March 2026</p>
+  <BackToTop />
+</BaseLayout>
+
+<style>
+  .author-byline {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: calc(-1 * var(--space-2));
+    margin-bottom: var(--space-6);
+    line-height: 1.6;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: var(--space-6);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  th {
+    background: var(--bg-surface);
+    font-weight: 600;
+    padding: var(--space-3) var(--space-4);
+    text-align: left;
+    border-bottom: 2px solid var(--border-color);
+  }
+
+  td {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  .references {
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+  }
+
+  .references li {
+    margin-bottom: var(--space-3);
+  }
+
+  .cta-box {
+    background: var(--bg-surface);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: var(--space-8);
+    text-align: center;
+    margin-top: var(--space-10);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .cta-box h3 {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    margin-bottom: var(--space-3);
+  }
+
+  .cta-box p {
+    margin-bottom: var(--space-4);
+  }
+
+  .cta-box p:last-child {
+    margin-bottom: 0;
+  }
+
+  .disclaimer {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    margin-top: var(--space-8);
+    line-height: 1.6;
+  }
+
+  /* Override container width for article layout */
+  @media (min-width: 1024px) {
+    .container {
+      max-width: calc(var(--max-width-article) + 220px + var(--space-10) + var(--space-8) * 2);
+    }
+  }
+
+  /* Glossary-specific: tighter term spacing for scannable reference format */
+  .prose h3 {
+    margin-top: var(--space-8);
+    margin-bottom: var(--space-2);
+  }
+
+  .prose section h3:first-of-type {
+    margin-top: var(--space-4);
+  }
+</style>
