@@ -19,7 +19,7 @@
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
-      "hash": "44cbe4d3e89e8ec4236f1daf8e778f1c3e3ea3c22a7836b99ac0c2916cbd969d",
+      "hash": "4597dbf6c937ae333fec5cacf8bd0cda2e54e3b68a38e3daf7a489e082f8de4c",
       "note": "Reset token consumption + password change"
     },
     "functions/api/auth/change-password.js": {
@@ -55,7 +55,7 @@
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "51ba69c061bdcc6f1b45751a2877bc7f1f37bec8ebe378f1b545f92131130f19",
+      "hash": "4965391b0b05ca007ccddf2805c8a79cf1fde3cf371477c5637d8694492ec91b",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
@@ -91,7 +91,7 @@
       "note": "Magic-link token generation"
     },
     "functions/api/newsletter/send.js": {
-      "hash": "dea3930c87572fee74227be2abcba100908a45d96cd309d9aaba04de3e458eff",
+      "hash": "59ac7aac08a9b3e01a7a1a6cb92a902396600cbb336cb6e9fb49fb6e37e0d4ae",
       "note": "Mass email send (admin-only)"
     },
     "functions/api/newsletter/unsubscribe.js": {
@@ -99,7 +99,7 @@
       "note": "CAN-SPAM unsubscribe (status update)"
     },
     "functions/api/newsletter/subscribe.js": {
-      "hash": "359818d7cb5c03e8c63038c708738dfe6ff90cd3392364ee33e7023c5f5f5710",
+      "hash": "b4d55cc8d84cf367d7b7b4996bf814b3a0549846750f6844f8178e4a88b249a1",
       "note": "Public newsletter intake (rate-limited)"
     },
     "functions/api/search/semantic.js": {

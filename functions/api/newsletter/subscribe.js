@@ -87,6 +87,13 @@ export async function onRequestPost(context) {
       await env.DB.prepare(
         "UPDATE newsletter_subscriber SET status = 'active', unsubscribed_at = NULL, bounce_count = 0 WHERE id = ?"
       ).bind(existing.id).run();
+      try {
+        await env.DB.prepare(
+          "UPDATE user SET newsletter_opt_in = 1, newsletter_opted_in_at = datetime('now') WHERE email = ? COLLATE NOCASE"
+        ).bind(email).run();
+      } catch (err) {
+        log(env, waitUntil, 'newsletter', 'd1_update_error', 'warn', err.message, 0, 0);
+      }
       return json({ ok: true, message: 'You are subscribed!' });
     }
 

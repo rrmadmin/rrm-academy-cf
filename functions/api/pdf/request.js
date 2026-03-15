@@ -83,7 +83,7 @@ export async function onRequestPost(context) {
       const segs = JSON.parse(sub.segments || '[]') || [];
       if (!segs.includes(newSeg)) segs.push(newSeg);
       await env.DB.prepare(
-        "UPDATE newsletter_subscriber SET segments = ?, status = 'active', unsubscribed_at = NULL WHERE id = ?"
+        'UPDATE newsletter_subscriber SET segments = ? WHERE id = ?'
       ).bind(JSON.stringify(segs), sub.id).run();
     } else {
       const subId = crypto.randomUUID();

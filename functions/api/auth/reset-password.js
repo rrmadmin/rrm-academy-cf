@@ -5,7 +5,7 @@
 import {
   json, optionsResponse, hashPassword, hashToken,
   generateSessionId, sessionCookie,
-  isValidPassword,
+  isValidPassword, checkRateLimit,
 } from './_shared.js';
 import { log } from '../_log.js';
 
@@ -26,6 +26,11 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     if (!token) return json({ ok: false, error: 'Reset token is required.' }, 400);
     if (!isValidPassword(password)) return json({ ok: false, error: 'Password must be at least 8 characters.' }, 400);
+
+    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+    if (!checkRateLimit(`reset-pw:${ip}`)) {
+      return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
+    }
 
     // Hash the token and look it up
     const tokenHash = await hashToken(token);
