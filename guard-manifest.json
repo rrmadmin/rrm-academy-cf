@@ -103,7 +103,7 @@
       "note": "Public newsletter intake (rate-limited)"
     },
     "functions/api/search/semantic.js": {
-      "hash": "89a62e4b06df8f3a040b3f3c085d2da31afc8ea8a4a8491685337e47df21264c",
+      "hash": "54095cf1ad0b75e4caff60e3cf5535e774e5b79d7711365b85d280e2ef4c1e17",
       "note": "Billed AI.run() + Vectorize (rate-limited)"
     },
     "functions/api/community/_shared.js": {
