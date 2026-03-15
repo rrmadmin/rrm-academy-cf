@@ -437,6 +437,19 @@
         }
       }
 
+      // Apply recency boost before sorting
+      var currentYear = new Date().getFullYear();
+      for (var rKey in fusedMap) {
+        var entry = fusedMap[rKey];
+        var yr = parseInt(entry.data.meta && entry.data.meta.year, 10);
+        if (yr > 0) {
+          var age = currentYear - yr;
+          // Boost: 1.3x for current year, tapering to 1.0x at 10+ years old
+          var recencyMultiplier = 1 + 0.3 * Math.max(0, 1 - age / 10);
+          entry.score *= recencyMultiplier;
+        }
+      }
+
       // Sort by fused RRF score descending
       var fusedList = [];
       for (var fKey in fusedMap) {
