@@ -21,7 +21,7 @@
  *   - Assignments (quiz content lives in quizzes.json)
  */
 
-import { readFileSync, writeFileSync, mkdirSync, unlinkSync, mkdtempSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, unlinkSync, mkdtempSync, existsSync, rmdirSync, renameSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { execFileSync } from 'child_process';
@@ -123,7 +123,7 @@ async function fetchTable(tableId, fields, formula, pat) {
           headers: { Authorization: `Bearer ${pat}` },
         });
         lastError = undefined;
-        if (res.status !== 429) break;
+        if (res.ok || (res.status !== 429 && res.status < 500)) break;
       } catch (e) {
         lastError = e;
       }
@@ -164,7 +164,7 @@ function transformCourse(record) {
     slug: slug.trim(),
     description: f['Description'] || '',
     shortDescription: f['Short Description'] || '',
-    image: f['Image'] || '',
+    image: Array.isArray(f['Image']) ? f['Image'][0]?.url || '' : (f['Image'] || ''),
     imageAlt: f['Image Alt'] || '',
     priceCents: Number(f['Price Cents']) || 0,
     stripePriceId: f['Stripe Price ID'] || null,
@@ -368,6 +368,7 @@ function uploadBufferToR2(buffer, r2Key, contentType) {
     ], { stdio: 'pipe', timeout: 60000 });
   } finally {
     try { unlinkSync(tmpFile); } catch {}
+    try { rmdirSync(tmpDir); } catch {}
   }
 
   const sizeKB = (buffer.length / 1024).toFixed(1);
@@ -502,6 +503,7 @@ async function uploadToR2(tempUrl, r2Key, contentType) {
     ], { stdio: 'pipe', timeout: 60000 });
   } finally {
     try { unlinkSync(tmpFile); } catch {}
+    try { rmdirSync(tmpDir); } catch {}
   }
 
   const sizeKB = (buffer.length / 1024).toFixed(1);
@@ -519,7 +521,7 @@ async function syncAttachmentsToR2(courses) {
 
         const attachments = [];
         for (const att of step._rawAttachments) {
-          const ext = att.filename.split('.').pop() || 'bin';
+          const ext = (att.filename.split('.').pop() || 'bin').replace(/[^a-z0-9]/gi, '').slice(0, 10) || 'bin';
           // R2 key: courses/{stepId}/{airtableAttId}.{ext}
           // Using attachment ID ensures uniqueness and enables cache-busting on replace
           const r2Key = `courses/${step.id}/${att.id}.${ext}`;
@@ -619,7 +621,9 @@ async function fetchAll() {
   }
 
   mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
-  writeFileSync(OUTPUT_PATH, JSON.stringify(courses, null, 2));
+  const tmpOutput = OUTPUT_PATH + '.tmp';
+  writeFileSync(tmpOutput, JSON.stringify(courses, null, 2));
+  renameSync(tmpOutput, OUTPUT_PATH);
   console.log(`\nWrote ${courses.length} courses to ${OUTPUT_PATH}`);
 }
 

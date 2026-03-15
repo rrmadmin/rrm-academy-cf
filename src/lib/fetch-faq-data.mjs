@@ -10,7 +10,7 @@
  * articles.json (Research Library) to generate /library/{slug} links.
  */
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, renameSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -92,7 +92,7 @@ function buildArticleIndex(articles) {
       if (!trimmed) continue;
 
       // Extract last name: first word (handles "Adamson GD", "Adamson", "Dunson DB")
-      const lastname = trimmed.split(/\s+/)[0].toLowerCase();
+      const lastname = trimmed.replace(/,/g, '').split(/\s+/)[0].toLowerCase();
       if (lastname.length < 3) continue;
 
       const key = `${lastname}:${year}`;
@@ -214,7 +214,7 @@ async function fetchTable(pat, tableId, fields, formula) {
           headers: { Authorization: `Bearer ${pat}` },
         });
         lastError = undefined;
-        if (res.status !== 429) break;
+        if (res.ok || (res.status !== 429 && res.status < 500)) break;
       } catch (e) {
         lastError = e;
       }
@@ -329,7 +329,7 @@ async function fetchAll() {
       ...(Array.isArray(f['Foundational FAQ']) ? f['Foundational FAQ'] : []),
       ...(Array.isArray(f['Condition FAQ']) ? f['Condition FAQ'] : []),
     ];
-    const evidence = [];
+    const evidence = [...(evidenceBySourceFaq[record.id] || [])];
     for (const srcId of sourceLinks) {
       if (evidenceBySourceFaq[srcId]) {
         evidence.push(...evidenceBySourceFaq[srcId]);
@@ -368,7 +368,9 @@ async function fetchAll() {
 
   // 7. Write output
   mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
-  writeFileSync(OUTPUT_PATH, JSON.stringify(faqs, null, 2));
+  const tmpOutput = OUTPUT_PATH + '.tmp';
+  writeFileSync(tmpOutput, JSON.stringify(faqs, null, 2));
+  renameSync(tmpOutput, OUTPUT_PATH);
 
   const foundational = faqs.filter(f => f.category === 'Foundational').length;
   const condition = faqs.filter(f => f.category === 'Condition-Specific').length;

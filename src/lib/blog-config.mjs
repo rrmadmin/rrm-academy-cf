@@ -25,5 +25,6 @@ export const FIELDS = [
   'Status',
   'Word Count',
   'SEO Keywords',
+  'Audio URL',
   'Last Modified',
 ];
