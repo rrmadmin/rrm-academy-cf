@@ -9,7 +9,7 @@
  *   3. no match                      -> create new account, log in (brand new user)
  */
 import {
-  generateId, createSession, sessionCookie, invalidateAllUserSessions,
+  generateId, createSession, sessionCookie,
   exchangeGoogleCode, getGoogleProfile, isSafeRedirect, SITE_URL,
 } from './_shared.js';
 import { sendGA4Event } from '../_ga4.js';
@@ -21,8 +21,9 @@ async function handleReturningGoogleUser(db, googleId, email) {
   const user = await db.prepare('SELECT id, email, blocked FROM user WHERE google_id = ?')
     .bind(googleId).first();
   if (!user) return null;
+  if (user.blocked) return { redirect: '/login?error=account_blocked' };
 
-  if (user.email !== email) {
+  if (user.email.toLowerCase() !== email) {
     const conflict = await db.prepare('SELECT id FROM user WHERE email = ? COLLATE NOCASE AND id != ?')
       .bind(email, user.id).first();
     if (conflict) {
@@ -40,6 +41,7 @@ async function linkGoogleToVerifiedUser(db, googleId, email, avatarUrl) {
   const user = await db.prepare('SELECT id, email, google_id, blocked FROM user WHERE email = ? COLLATE NOCASE AND email_verified = 1')
     .bind(email).first();
   if (!user) return null;
+  if (user.blocked) return { redirect: '/login?error=account_blocked' };
 
   if (user.google_id && user.google_id !== googleId) {
     return { redirect: '/login?error=account_conflict' };
@@ -57,21 +59,21 @@ async function upgradeUnverifiedUser(db, googleId, email, avatarUrl) {
   if (!unverified) return null;
 
   if (unverified.blocked) return { redirect: '/login?error=account_blocked' };
-  await db.prepare("UPDATE user SET google_id = ?, email_verified = 1, hashed_password = '', avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ?")
-    .bind(googleId, avatarUrl, unverified.id).run();
-  await invalidateAllUserSessions(db, unverified.id);
+  await db.batch([
+    db.prepare("UPDATE user SET google_id = ?, email_verified = 1, hashed_password = '', avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ?")
+      .bind(googleId, avatarUrl, unverified.id),
+    db.prepare('DELETE FROM session WHERE user_id = ?').bind(unverified.id),
+  ]);
 
   return { user: unverified };
 }
 
-async function createNewGoogleUser(db, email, name, firstName, lastName, googleId, avatarUrl, env, request, waitUntil) {
+async function createNewGoogleUser(db, email, name, firstName, lastName, googleId, avatarUrl) {
   const id = generateId();
   await db.prepare(
     `INSERT INTO user (id, email, email_verified, hashed_password, name, first_name, last_name, google_id, role, avatar_url)
      VALUES (?, ?, 1, '', ?, ?, ?, ?, 'member', ?)`
   ).bind(id, email, name, firstName, lastName, googleId, avatarUrl).run();
-
-  waitUntil(sendGA4Event(env, request, 'sign_up', { method: 'google' }).catch(() => {}));
 
   return { user: { id, email, blocked: 0 } };
 }
@@ -142,8 +144,21 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
     // 3. Brand new user — create account
     if (!user) {
-      const r4 = await createNewGoogleUser(db, email, name, firstName, lastName, googleId, avatarUrl, env, request, waitUntil);
-      ({ user } = r4);
+      let r4;
+      try {
+        r4 = await createNewGoogleUser(db, email, name, firstName, lastName, googleId, avatarUrl);
+      } catch (err) {
+        if (err.message && err.message.includes('UNIQUE constraint')) {
+          const r4retry = await handleReturningGoogleUser(db, googleId, email);
+          if (r4retry?.redirect) return redirect(r4retry.redirect);
+          if (r4retry) ({ user } = r4retry);
+        }
+        if (!user) throw err;
+      }
+      if (r4) {
+        ({ user } = r4);
+        waitUntil(sendGA4Event(env, request, 'sign_up', { method: 'google' }).catch(() => {}));
+      }
     }
 
     // Check if user is blocked

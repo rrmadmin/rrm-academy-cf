@@ -31,7 +31,7 @@
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "ceb2d87eed4a9ae4d01bf5b69b433faac637a661dfa0a2de4b25ba25e07ac6b0",
+      "hash": "355d70abd94480088664c1d576a4392e7900dfde143ddbefc851337141cc8c3a",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
