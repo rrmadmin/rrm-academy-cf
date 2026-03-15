@@ -31,7 +31,7 @@
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "063f563e8405cd526482d67e4d8b8d7463f01e69eb7e7263735aa0337b045de9",
+      "hash": "d6b34d8f14dba0c42dccf4ca3291833bc7594b5588a3265669513969a8d372ab",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
@@ -83,7 +83,7 @@
       "note": "EmailListVerify SMTP validation"
     },
     "functions/api/survey/submit.js": {
-      "hash": "9ddbe8b6227c510ef6db55270346be32dd83af11b24269543e8bdffe4d27a274",
+      "hash": "535389b50d4fbe7cc02706dd2a641b9f7bedef824040258cc7d23fd832300d83",
       "note": "Survey submission + PII pseudonymization"
     },
     "functions/api/survey/request.js": {
@@ -91,15 +91,15 @@
       "note": "Magic-link token generation"
     },
     "functions/api/newsletter/send.js": {
-      "hash": "b6b6ef70920b4ac2c3b5c7d899e716342fb57dead9f01ce43c2444c9f1235bdf",
+      "hash": "dea3930c87572fee74227be2abcba100908a45d96cd309d9aaba04de3e458eff",
       "note": "Mass email send (admin-only)"
     },
     "functions/api/newsletter/unsubscribe.js": {
-      "hash": "fc13a84ca416038dba80cd76ec61572038941ccd8486d8ce3bf2ad9548331a07",
+      "hash": "f93dcfcb1bc56315090f765a2cceeed6e7c7f1528798615215354dc678f1350a",
       "note": "CAN-SPAM unsubscribe (status update)"
     },
     "functions/api/newsletter/subscribe.js": {
-      "hash": "c436d74ef2771763dde3dda0f78d91e781bd29a3b3a3d8fe94046472eb8146c4",
+      "hash": "359818d7cb5c03e8c63038c708738dfe6ff90cd3392364ee33e7023c5f5f5710",
       "note": "Public newsletter intake (rate-limited)"
     },
     "functions/api/search/semantic.js": {
@@ -111,7 +111,7 @@
       "note": "Community access control (requireMember)"
     },
     "functions/api/admin/cleanup.js": {
-      "hash": "92e79d25170e77441be85d0d213faf4eb6193c80ef53e91c2f38158d23b64485",
+      "hash": "dc79ae6d14feb44dcfe91ea728082c59eeeba07a6589ec2e1c15a4d2dc1dad52",
       "note": "Expired data deletion from D1"
     },
     "scripts/guard.mjs": {

@@ -42,36 +42,29 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'Too many requests. Please try again later.' }, 429);
   }
 
-  const loggedIn = !!(context.data?.user?.email);
-  let email;
+  const email = (body.email || '').trim().toLowerCase();
+  if (!isValidEmail(email)) {
+    return json({ ok: false, error: 'Valid email is required.' }, 400);
+  }
 
-  if (loggedIn) {
-    email = context.data.user.email;
-  } else {
-    email = (body.email || '').trim().toLowerCase();
-    if (!isValidEmail(email)) {
-      return json({ ok: false, error: 'Valid email is required.' }, 400);
-    }
+  const emailCheck = await validateEmail(email);
+  if (!emailCheck.valid) {
+    return json({ ok: false, error: emailCheck.error }, 400);
+  }
 
-    const emailCheck = await validateEmail(email);
-    if (!emailCheck.valid) {
-      return json({ ok: false, error: emailCheck.error }, 400);
-    }
+  const turnstileOk = await verifyTurnstile(env.CF_TURNSTILE_SECRET, body.turnstileToken, ip);
+  if (!turnstileOk) {
+    return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
+  }
 
-    const turnstileOk = await verifyTurnstile(env.CF_TURNSTILE_SECRET, body.turnstileToken, ip);
-    if (!turnstileOk) {
-      return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
-    }
-
-    const elv = await verifyAndTagEmail(email, env, { source: 'pdf-download' });
-    if (elv.blocked) {
-      return json({ ok: false, error: elv.reason }, 422);
-    }
+  const elv = await verifyAndTagEmail(email, env, { source: 'pdf-download' });
+  if (elv.blocked) {
+    return json({ ok: false, error: elv.reason }, 422);
   }
 
   try {
     const existing = await env.DB.prepare(
-      'SELECT token FROM pdf_token WHERE email = ? AND guide_slug = ? AND expires_at > unixepoch() AND used_at IS NULL LIMIT 1'
+      'SELECT token FROM pdf_token WHERE email = ? COLLATE NOCASE AND guide_slug = ? AND expires_at > unixepoch() AND used_at IS NULL LIMIT 1'
     ).bind(email, guide_slug).first();
     let token = existing?.token;
 
@@ -83,14 +76,14 @@ export async function onRequestPost(context) {
     }
 
     const sub = await env.DB.prepare(
-      'SELECT id, status, segments FROM newsletter_subscriber WHERE email = ?'
+      'SELECT id, status, segments FROM newsletter_subscriber WHERE email = ? COLLATE NOCASE'
     ).bind(email).first();
     const newSeg = `pdf-${guide_slug}`;
     if (sub) {
       const segs = JSON.parse(sub.segments || '[]') || [];
       if (!segs.includes(newSeg)) segs.push(newSeg);
       await env.DB.prepare(
-        'UPDATE newsletter_subscriber SET segments = ? WHERE id = ?'
+        "UPDATE newsletter_subscriber SET segments = ?, status = 'active', unsubscribed_at = NULL WHERE id = ?"
       ).bind(JSON.stringify(segs), sub.id).run();
     } else {
       const subId = crypto.randomUUID();

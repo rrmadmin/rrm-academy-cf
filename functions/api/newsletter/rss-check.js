@@ -23,9 +23,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
   }
 
   // Extract first item (most recent post)
-  const titleMatch = rssText.match(/<item>\s*<title><!\[CDATA\[(.*?)\]\]><\/title>/);
+  const titleMatch = rssText.match(/<item>\s*<title>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/title>/);
   const linkMatch = rssText.match(/<item>\s*<title>.*?<\/title>\s*<link>(.*?)<\/link>/s);
-  const descMatch = rssText.match(/<item>.*?<description><!\[CDATA\[(.*?)\]\]><\/description>/s);
+  const descMatch = rssText.match(/<item>.*?<description>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?<\/description>/s);
 
   if (!titleMatch || !linkMatch) {
     return Response.json({ ok: true, action: 'no_posts' });
@@ -45,11 +45,13 @@ export async function onRequestPost({ request, env, waitUntil }) {
     return Response.json({ ok: true, action: 'already_sent', slug });
   }
 
+  function esc(s) { return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
   // Build Gmail-plain email body
   const emailBody = `
 <p>We just published something you might find useful:</p>
-<p><strong><a href="${postUrl}" style="color:#725e7e;">${postTitle}</a></strong></p>
-${postExcerpt ? `<p style="color:#555;">${postExcerpt}</p>` : ''}
+<p><strong><a href="${postUrl}" style="color:#725e7e;">${esc(postTitle)}</a></strong></p>
+${postExcerpt ? `<p style="color:#555;">${esc(postExcerpt)}</p>` : ''}
 <p>- Naomi</p>
 `.trim();
 

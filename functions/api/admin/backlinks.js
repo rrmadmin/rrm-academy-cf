@@ -3,10 +3,10 @@
  * Proxy endpoint for the backlinks dashboard.
  * Validates session-based admin auth, routes actions to the rrm-backlinks Worker.
  */
-import { json, requireSuperAdmin } from '../auth/_shared.js';
+import { json, optionsResponse, requireSuperAdmin } from '../auth/_shared.js';
 
 export async function onRequestOptions() {
-  return new Response(null, { status: 204 });
+  return optionsResponse();
 }
 
 export async function onRequestPost(context) {
