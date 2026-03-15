@@ -1313,6 +1313,44 @@ blockquote cite {
   line-height: 1.6;
 }
 
+/* Editorial Notice (reusable yellow callout for pillar pages under review) */
+.editorial-notice {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: #6b5a00;
+  background: #fdf6e3;
+  border: 1px solid #e0d5a0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-6);
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+[data-theme="dark"] .editorial-notice {
+  background: #2a2518;
+  border-color: #4a3f24;
+  color: #d4c97a;
+}
+
+.editorial-notice::before {
+  content: '\26A0';
+  font-size: 1.125rem;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+.editorial-notice strong {
+  color: inherit;
+  font-weight: 600;
+}
+
+.editorial-notice a {
+  color: inherit;
+  text-decoration: underline;
+}
+
 /* Provider Callout */
 .callout-provider {
   background: var(--bg-surface);
