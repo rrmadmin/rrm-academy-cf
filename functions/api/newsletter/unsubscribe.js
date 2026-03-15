@@ -18,6 +18,11 @@ async function unsubscribe(db, email, waitUntil, env) {
 }
 
 export async function onRequestGet({ request, env, waitUntil }) {
+  if (!env.DB) {
+    log(env, waitUntil, 'newsletter', 'config_missing', 'error', 'DB binding not configured', 0, 500);
+    return new Response('Server error. Please try again later.', { status: 500, headers: { 'Content-Type': 'text/html' } });
+  }
+
   const url = new URL(request.url);
   const token = url.searchParams.get('t') || '';
   const email = url.searchParams.get('e') || '';
@@ -48,6 +53,11 @@ a{color:#725e7e;}</style></head>
 }
 
 export async function onRequestPost({ request, env, waitUntil }) {
+  if (!env.DB) {
+    log(env, waitUntil, 'newsletter', 'config_missing', 'error', 'DB binding not configured', 0, 500);
+    return new Response('', { status: 500 });
+  }
+
   // RFC 8058 one-click: Gmail/Yahoo POST with form-encoded body
   const url = new URL(request.url);
   const email = url.searchParams.get('e') || '';

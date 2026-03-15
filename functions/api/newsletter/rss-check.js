@@ -11,6 +11,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
     return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
   }
 
+  if (!env.DB) {
+    return Response.json({ ok: false, error: 'DB not configured' }, { status: 500 });
+  }
+
   // Fetch RSS feed
   let rssText;
   try {

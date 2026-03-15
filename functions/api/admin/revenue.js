@@ -10,25 +10,25 @@ import Stripe from 'stripe';
 import { json, STRIPE_API_VERSION, requireSuperAdmin } from '../auth/_shared.js';
 
 export async function onRequestGet({ request, env }) {
-  // Session-based admin auth
-  const auth = await requireSuperAdmin(request, env.DB);
-  if (auth instanceof Response) return auth;
-
-  if (!env.STRIPE_SECRET_KEY) return json({ ok: false, error: 'Stripe not configured' }, 500);
-
-  const url = new URL(request.url);
-  const period = url.searchParams.get('period') || '28d';
-  const daysMap = { '7d': 7, '28d': 28, '90d': 90 };
-  const days = daysMap[period] || 28;
-
-  // Check KV cache (15 min)
-  const cacheKey = `admin:revenue:${period}`;
-  if (env.COMMUNITY_KV) {
-    const cached = await env.COMMUNITY_KV.get(cacheKey, 'json');
-    if (cached) return json({ ok: true, data: cached, cached: true });
-  }
-
   try {
+    // Session-based admin auth
+    const auth = await requireSuperAdmin(request, env.DB);
+    if (auth instanceof Response) return auth;
+
+    if (!env.STRIPE_SECRET_KEY) return json({ ok: false, error: 'Stripe not configured' }, 500);
+
+    const url = new URL(request.url);
+    const period = url.searchParams.get('period') || '28d';
+    const daysMap = { '7d': 7, '28d': 28, '90d': 90 };
+    const days = daysMap[period] || 28;
+
+    // Check KV cache (15 min)
+    const cacheKey = `admin:revenue:${period}`;
+    if (env.COMMUNITY_KV) {
+      const cached = await env.COMMUNITY_KV.get(cacheKey, 'json');
+      if (cached) return json({ ok: true, data: cached, cached: true });
+    }
+
     const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
       httpClient: Stripe.createFetchHttpClient(),
       apiVersion: STRIPE_API_VERSION,

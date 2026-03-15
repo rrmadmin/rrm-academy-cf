@@ -9,7 +9,7 @@
  *   3. no match                      -> create new account, log in (brand new user)
  */
 import {
-  generateId, createSession, sessionCookie,
+  generateId, createSession, sessionCookie, invalidateAllUserSessions,
   exchangeGoogleCode, getGoogleProfile, isSafeRedirect, SITE_URL,
 } from './_shared.js';
 import { sendGA4Event } from '../_ga4.js';
@@ -86,6 +86,19 @@ export async function onRequestGet({ request, env, waitUntil }) {
         await db.prepare(
           `UPDATE user SET google_id = ?, avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ?`
         ).bind(googleId, avatarUrl, user.id).run();
+      }
+    }
+
+    if (!user) {
+      // 2b. Unverified account with this email — Google proves ownership, upgrade it
+      const unverified = await db.prepare('SELECT id, email, blocked FROM user WHERE email = ? COLLATE NOCASE')
+        .bind(email).first();
+      if (unverified) {
+        if (unverified.blocked) return redirect('/login?error=account_blocked');
+        await db.prepare("UPDATE user SET google_id = ?, email_verified = 1, hashed_password = NULL, avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ?")
+          .bind(googleId, avatarUrl, unverified.id).run();
+        await invalidateAllUserSessions(db, unverified.id);
+        user = unverified;
       }
     }
 

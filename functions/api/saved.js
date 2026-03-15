@@ -64,14 +64,16 @@ export async function onRequestPost({ request, env, waitUntil }) {
       }
       const stmts = [];
       for (const article of body.articles) {
-        if (!article.slug) continue;
+        if (typeof article.slug !== 'string' || !article.slug || article.slug.length > 500) continue;
+        const serialized = JSON.stringify(article);
+        if (serialized.length > 10240) continue;
         stmts.push(
           db.prepare(
             'INSERT OR IGNORE INTO saved_article (user_id, article_slug, article_data, saved_at) VALUES (?, ?, ?, ?)'
           ).bind(
             session.userId,
             article.slug,
-            JSON.stringify(article),
+            serialized,
             article.savedAt || new Date().toISOString()
           )
         );
@@ -93,8 +95,15 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     // Single save
     const article = body.article;
-    if (!article || !article.slug) {
+    if (!article || typeof article.slug !== 'string' || !article.slug) {
       return json({ ok: false, error: 'Missing article or slug' }, 400);
+    }
+    if (article.slug.length > 500) {
+      return json({ ok: false, error: 'slug_too_long' }, 400);
+    }
+    const serialized = JSON.stringify(article);
+    if (serialized.length > 10240) {
+      return json({ ok: false, error: 'article_too_large' }, 400);
     }
 
     await db.prepare(
@@ -102,7 +111,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     ).bind(
       session.userId,
       article.slug,
-      JSON.stringify(article),
+      serialized,
       article.savedAt || new Date().toISOString()
     ).run();
 

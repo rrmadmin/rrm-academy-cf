@@ -3,6 +3,7 @@
  * URL: /api/assets/courses/workbook-endo-surgeon-guide.pdf
  */
 import { getSessionIdFromCookie, validateSession } from '../auth/_shared.js';
+import { getCourseBySlug } from '../courses/_shared.js';
 
 const CONTENT_TYPES = {
   pdf: 'application/pdf',
@@ -35,6 +36,18 @@ export async function onRequestGet({ request, params, env }) {
     const sessionId = getSessionIdFromCookie(request);
     const session = await validateSession(env.DB, sessionId);
     if (!session) return new Response('Unauthorized', { status: 401 });
+
+    // Extract course slug from key: courses/{slug}/... and verify enrollment
+    const keyParts = key.split('/');
+    if (keyParts[0] === 'courses' && keyParts[1]) {
+      const course = getCourseBySlug(keyParts[1]);
+      if (course && !course.isFree) {
+        const enrollment = await env.DB.prepare(
+          'SELECT id FROM enrollment WHERE user_id = ? AND course_id = ?'
+        ).bind(session.userId, course.id).first();
+        if (!enrollment) return new Response('Forbidden', { status: 403 });
+      }
+    }
   }
 
   const object = await env.R2_ASSETS.get(key);
