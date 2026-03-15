@@ -42,6 +42,21 @@ const ASTRO_GUIDES = [
     slug: 'common-questions-about-rrm',
     url: '/common-questions-about-rrm/',
   },
+  {
+    file: 'src/pages/femm/index.astro',
+    slug: 'femm',
+    url: '/femm/',
+  },
+  {
+    file: 'src/pages/neofertility/index.astro',
+    slug: 'neofertility',
+    url: '/neofertility/',
+  },
+  {
+    file: 'src/pages/glossary/index.astro',
+    slug: 'glossary',
+    url: '/glossary/',
+  },
 ];
 
 const MARKDOWN_GUIDES_DIR = 'src/content/guides';
