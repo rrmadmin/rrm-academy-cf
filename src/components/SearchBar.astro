@@ -186,12 +186,6 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  .search-results :global(.sr-excerpt mark) {
-    background: #fef9c3;
-    color: inherit;
-    padding: 0 1px;
-    border-radius: 2px;
-  }
 
   /* Load more */
   .search-results :global(.sr-more) {
@@ -581,11 +575,8 @@
     if (displayExcerpt) {
       var p = document.createElement('p');
       p.className = 'sr-excerpt';
-      if (type === 'Course') {
-        p.textContent = displayExcerpt;
-      } else {
-        p.innerHTML = displayExcerpt;
-      }
+      // Strip Pagefind <mark> tags -- plain text excerpts look cleaner
+      p.textContent = displayExcerpt.replace(/<\/?mark>/g, '');
       a.appendChild(p);
     }
 
