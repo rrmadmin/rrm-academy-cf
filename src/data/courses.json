@@ -18,7 +18,8 @@
     "instructors": [
       {
         "name": "Naomi Whittaker, MD",
-        "role": "Lead Instructor"
+        "role": "Lead Instructor",
+        "bio": "Dr. Whittaker is an OBGYN and fertility surgeon who specializes in Restorative Reproductive Medicine (RRM) and NaProTechnology. She is the founder of the RRM Academy and the RRM Foundation, dedicated to making evidence-based reproductive healthcare education accessible to patients and professionals."
       },
       {
         "name": "RRM Academy",
@@ -460,7 +461,8 @@
     "instructors": [
       {
         "name": "Naomi Whittaker, MD",
-        "role": "Lead Instructor"
+        "role": "Lead Instructor",
+        "bio": "Dr. Whittaker is an OBGYN and fertility surgeon who specializes in Restorative Reproductive Medicine (RRM) and NaProTechnology. She is the founder of the RRM Academy and the RRM Foundation, dedicated to making evidence-based reproductive healthcare education accessible to patients and professionals."
       },
       {
         "name": "RRM Academy",
@@ -641,7 +643,8 @@
     "instructors": [
       {
         "name": "Naomi Whittaker, MD",
-        "role": "Lead Instructor"
+        "role": "Lead Instructor",
+        "bio": "Dr. Whittaker is an OBGYN and fertility surgeon who specializes in Restorative Reproductive Medicine (RRM) and NaProTechnology. She is the founder of the RRM Academy and the RRM Foundation, dedicated to making evidence-based reproductive healthcare education accessible to patients and professionals."
       },
       {
         "name": "RRM Academy",
@@ -789,7 +792,8 @@
     "instructors": [
       {
         "name": "Naomi Whittaker, MD",
-        "role": "Lead Instructor"
+        "role": "Lead Instructor",
+        "bio": "Dr. Whittaker is an OBGYN and fertility surgeon who specializes in Restorative Reproductive Medicine (RRM) and NaProTechnology. She is the founder of the RRM Academy and the RRM Foundation, dedicated to making evidence-based reproductive healthcare education accessible to patients and professionals."
       },
       {
         "name": "RRM Academy",
@@ -1177,5 +1181,61 @@
       "keywords": []
     },
     "sections": []
+  },
+  {
+    "id": "neofertility-med-training",
+    "title": "NeoFertility Medical Training Cohort",
+    "slug": "neofertility-medical-training",
+    "description": "The NeoFertility Medical Training Cohort is an 11-week live program providing a structured diagnostic and treatment framework for infertility and recurrent miscarriage using Restorative Reproductive Medicine.\n\nDesigned for Family Medicine, OB/GYN, and women's health clinicians, this cohort combines on-demand coursework with live mentorship from Dr. Phil Boyle, founder of NeoFertility and a pioneer in RRM.\n\nThe program covers:\n\n• The foundations of Restorative Reproductive Medicine\n\n• Diagnostic and treatment protocols for hormonal and cycle-related conditions\n\n• The psychology of conception and patient relationships\n\n• Chart Neo app integration for data-driven patient care\n\n• Case studies and outcome-based implementation",
+    "shortDescription": "11-week live training in Restorative Reproductive Medicine for clinicians treating infertility and recurrent miscarriage. Led by Dr. Phil Boyle. 20+ CME credits.",
+    "image": "/images/course-covers/neofertility-med-training.webp",
+    "imageAlt": "NeoFertility Medical Training Cohort promotional graphic with Neo logo",
+    "priceCents": 120000,
+    "isFree": false,
+    "hasCertificate": false,
+    "selfPaced": false,
+    "accessType": "public",
+    "comingSoon": false,
+    "participants": 0,
+    "isAffiliate": true,
+    "affiliateUrl": "https://chartneo.com/RRMA",
+    "couponCode": "RRMA-S26",
+    "couponDiscount": "5%",
+    "affiliatePriceCents": 114000,
+    "cohortDates": { "start": "2026-04-20", "end": "2026-07-02" },
+    "whatsIncluded": [
+      "10-lesson course with Dr. Phil Boyle (15 CME credits)",
+      "6 live Q&A sessions",
+      "Monthly live case studies with Dr. Phil Boyle & Dr. Monica Minjeur (CME eligible)",
+      "Clinical Resource Library (CME eligible)",
+      "NeoFertility Medical Forum",
+      "Chart Neo Professional Portal Account (HIPAA-compliant)",
+      "One additional staff member access for your clinic",
+      "Monthly Chart Neo support sessions"
+    ],
+    "instructors": [
+      {
+        "name": "Dr. Phil Boyle",
+        "role": "Lead Instructor",
+        "bio": "Dr. Phil Boyle is the founder of NeoFertility and a pioneer in Restorative Reproductive Medicine. His published clinical data demonstrates a 41% live birth rate, and his NeoFertility protocol has helped hundreds of clinicians worldwide achieve measurable patient outcomes for infertility and recurrent miscarriage."
+      },
+      {
+        "name": "NeoFertility",
+        "role": "Organization"
+      }
+    ],
+    "settings": {
+      "stepOrder": "fixed",
+      "futureStepContent": "hidden",
+      "videoWatchRequirement": 0.9,
+      "autoplayNextVideo": true
+    },
+    "seo": {
+      "title": "NeoFertility Medical Training Cohort | RRM Academy",
+      "description": "11-week live clinical training in Restorative Reproductive Medicine with Dr. Phil Boyle. 20+ CME credits. April 20 - July 2, 2026."
+    },
+    "sections": [],
+    "topics": ["Restorative Reproductive Medicine", "Infertility", "Recurrent Miscarriage"],
+    "teaches": ["RRM diagnostic framework", "Hormonal cycle management", "Chart Neo integration"]
   }
 ]
