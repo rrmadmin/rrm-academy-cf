@@ -42,7 +42,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             <p>
               Endometriosis can only be diagnosed by surgery. But understanding your symptoms is the first step toward getting answers. Check every symptom below that applies to you. Be honest. There are no wrong answers.
             </p>
-            <p class="survey-intro-note__sig">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS</p>
+            <p class="survey-intro-note__sig">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</p>
           </div>
 
           <!-- Tier 1 -->
@@ -714,7 +714,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(99, 98, 97);
-      doc.text('3-Tier Self-Assessment developed by Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS', margin, y);
+      doc.text('3-Tier Self-Assessment developed by Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI', margin, y);
       y += 5;
       doc.text(`Completed: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, margin, y);
       y += 10;
@@ -805,7 +805,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         doc.setFontSize(9);
         doc.setTextColor(255, 255, 255);
         doc.setFont('helvetica', 'normal');
-        doc.text('Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS', margin, 8);
+        doc.text('Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI', margin, 8);
         doc.text('@napro_fertility_surgeon', w - margin, 8, { align: 'right' });
         let y2 = 30;
 
@@ -886,7 +886,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(148, 145, 142);
-        doc.text('— Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS', margin + maxW / 2, y2, { align: 'center' });
+        doc.text('— Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI', margin + maxW / 2, y2, { align: 'center' });
       }
 
       doc.save('endo-survey-results.pdf');
