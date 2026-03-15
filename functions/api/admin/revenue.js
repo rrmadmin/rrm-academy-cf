@@ -37,11 +37,8 @@ export async function onRequestGet({ request, env }) {
     const now = Math.floor(Date.now() / 1000);
     const periodStart = now - (days * 86400);
 
-    // Fetch in parallel: charges and recent cancellations (period-bounded, 100 is sufficient)
-    const [charges, cancelledSubs] = await Promise.all([
-      stripe.charges.list({ created: { gte: periodStart }, limit: 100 }),
-      stripe.subscriptions.list({ status: 'canceled', created: { gte: periodStart }, limit: 100 }),
-    ]);
+    // Fetch cancelled subs (period-bounded, 100 is sufficient)
+    const cancelledSubs = await stripe.subscriptions.list({ status: 'canceled', created: { gte: periodStart }, limit: 100 });
 
     // MRR from all active subscriptions (auto-paginate to avoid 100-item cap)
     let mrr = 0;
@@ -62,14 +59,14 @@ export async function onRequestGet({ request, env }) {
       tierMrr[key] += monthlyAmount;
     }
 
-    // Charges in period: separate donations vs subscriptions
+    // Charges in period: auto-paginate to avoid 100-item cap
     let donationTotal = 0;
     let donationCount = 0;
     let subscriptionRevenue = 0;
     let subscriptionCharges = 0;
     const dailyRevenue = {};
 
-    for (const charge of charges.data) {
+    for await (const charge of stripe.charges.list({ created: { gte: periodStart }, limit: 100 })) {
       if (charge.status !== 'succeeded') continue;
       const amount = charge.amount;
       const date = new Date(charge.created * 1000).toISOString().slice(0, 10);

@@ -170,7 +170,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
   }
 
   // GA4: track completed donation or membership purchase
-  if (session.mode === 'payment') {
+  if (session.mode === 'payment' && session.metadata?.type !== 'course') {
     waitUntil(sendGA4Event(env, request, 'purchase', {
       page_location: pageLocation,
       currency: 'USD',
