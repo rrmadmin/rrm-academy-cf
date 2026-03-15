@@ -4,6 +4,7 @@ dist/
 src/data/articles.json
 src/data/posts.json
 src/data/faqs.json
+src/data/guides.json
 scraped/
 .env
 .env.local
