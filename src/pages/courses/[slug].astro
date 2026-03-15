@@ -35,7 +35,15 @@ function formatDuration(seconds: number) {
 }
 
 // Find the first step for the "Start Course" CTA
-const firstStep = course.sections[0]?.steps[0];
+const firstStep = course.isAffiliate ? null : course.sections[0]?.steps[0];
+
+const isAffiliate = !!course.isAffiliate;
+let cohortLabel = '';
+if (isAffiliate && course.cohortDates) {
+  const fmt = (d: string, opts: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('en-US', opts).format(new Date(d + 'T00:00:00'));
+  cohortLabel = `${fmt(course.cohortDates.start, { month: 'short', day: 'numeric' })} – ${fmt(course.cohortDates.end, { month: 'short', day: 'numeric', year: 'numeric' })}`;
+}
+const affiliatePrice = isAffiliate && course.affiliatePriceCents ? `$${(course.affiliatePriceCents / 100).toFixed(0)}` : '';
 
 // Schema.org Course
 const courseSchema = {
@@ -44,31 +52,33 @@ const courseSchema = {
   description: course.seo?.description || course.shortDescription,
   url: `https://rrmacademy.org/courses/${course.slug}/`,
   ...(course.image ? { image: course.image } : {}),
-  provider: {
-    '@type': 'Organization',
-    '@id': 'https://rrmacademy.org/#organization',
-    name: 'RRM Academy',
-    url: 'https://rrmacademy.org/',
-  },
-  instructor: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+  provider: isAffiliate
+    ? { '@type': 'Organization', name: 'NeoFertility', url: 'https://www.neofertilitytraining.com/' }
+    : { '@type': 'Organization', '@id': 'https://rrmacademy.org/#organization', name: 'RRM Academy', url: 'https://rrmacademy.org/' },
+  instructor: isAffiliate
+    ? { '@type': 'Person', name: 'Dr. Phil Boyle', '@id': 'https://rrmacademy.org/courses/neofertility-medical-training/#phil-boyle' }
+    : { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
   educationalLevel: 'Beginner to Advanced',
   ...(course.topics?.length ? { about: course.topics } : {}),
   ...(course.teaches?.length ? { teaches: course.teaches } : {}),
-  numberOfLessons: totalSteps,
-  timeRequired: hours > 0 ? `PT${hours}H${minutes}M` : `PT${minutes}M`,
+  ...(!isAffiliate ? { numberOfLessons: totalSteps } : {}),
+  ...(!isAffiliate ? { timeRequired: hours > 0 ? `PT${hours}H${minutes}M` : `PT${minutes}M` } : {}),
   isAccessibleForFree: course.isFree,
   offers: {
     '@type': 'Offer',
     price: course.isFree ? '0' : (course.priceCents / 100).toFixed(2),
     priceCurrency: 'USD',
     availability: 'https://schema.org/InStock',
+    ...(isAffiliate && course.affiliateUrl ? { url: course.affiliateUrl } : {}),
   },
-  hasCourseInstance: {
-    '@type': 'CourseInstance',
-    courseMode: 'online',
-    courseWorkload: hours > 0 ? `PT${hours}H${minutes}M` : `PT${minutes}M`,
-    instructor: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
-  },
+  ...(!isAffiliate ? {
+    hasCourseInstance: {
+      '@type': 'CourseInstance',
+      courseMode: 'online',
+      courseWorkload: hours > 0 ? `PT${hours}H${minutes}M` : `PT${minutes}M`,
+      instructor: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+    },
+  } : {}),
 };
 
 const whittakerPersonNode = {
@@ -130,7 +140,24 @@ const breadcrumbSchema = {
   ],
 };
 
-const graphNodes: any[] = [courseSchema, whittakerPersonNode, breadcrumbSchema];
+const philBoylePersonNode = {
+  '@type': 'Person',
+  '@id': 'https://rrmacademy.org/courses/neofertility-medical-training/#phil-boyle',
+  name: 'Dr. Phil Boyle',
+  honorificPrefix: 'Dr.',
+  givenName: 'Phil',
+  familyName: 'Boyle',
+  jobTitle: 'Founder, NeoFertility',
+  description: instructor?.bio || 'Pioneer in Restorative Reproductive Medicine and founder of NeoFertility.',
+  url: 'https://www.neofertilitytraining.com/',
+  affiliation: {
+    '@type': 'Organization',
+    name: 'NeoFertility',
+    url: 'https://www.neofertilitytraining.com/',
+  },
+};
+
+const graphNodes: any[] = [courseSchema, isAffiliate ? philBoylePersonNode : whittakerPersonNode, breadcrumbSchema];
 if (course.faqs?.length) {
   graphNodes.push({
     '@type': 'FAQPage',
@@ -182,51 +209,91 @@ const relatedCourses = course.relatedCourses
             <h1>{course.title}</h1>
             <p class="course-hero__sub">{course.shortDescription}</p>
             <div class="course-hero__meta">
-              <span class="meta-pill">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                {totalVideos} videos
-              </span>
-              <span class="meta-pill">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                {durationLabel}
-              </span>
-              <span class="meta-pill">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.1 2.7 3 6 3s6-1.9 6-3v-5"/></svg>
-                Self-paced
-              </span>
-              {course.hasCertificate && (
-                <span class="meta-pill">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
-                  Certificate
-                </span>
+              {isAffiliate ? (
+                <>
+                  <span class="meta-pill">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.1 2.7 3 6 3s6-1.9 6-3v-5"/></svg>
+                    20+ CME Credits
+                  </span>
+                  <span class="meta-pill">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    11-Week Cohort
+                  </span>
+                  <span class="meta-pill">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    {cohortLabel}
+                  </span>
+                  <span class="meta-pill meta-pill--partner">Partner Course</span>
+                </>
+              ) : (
+                <>
+                  <span class="meta-pill">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    {totalVideos} videos
+                  </span>
+                  <span class="meta-pill">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    {durationLabel}
+                  </span>
+                  {course.selfPaced !== false && (
+                    <span class="meta-pill">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.1 2.7 3 6 3s6-1.9 6-3v-5"/></svg>
+                      Self-paced
+                    </span>
+                  )}
+                  {course.hasCertificate && (
+                    <span class="meta-pill">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+                      Certificate
+                    </span>
+                  )}
+                </>
               )}
             </div>
-            <p class="course-hero__instructor">Taught by {instructor?.name}</p>
+            <p class="course-hero__instructor">{isAffiliate ? `Offered by NeoFertility — Led by ${instructor?.name}` : `Taught by ${instructor?.name}`}</p>
             <div class="course-hero__actions" id="hero-actions" data-pagefind-ignore>
-              <!-- Static: shown before JS hydrates -->
-              <div class="hero-cta-static">
-                {course.isFree ? (
-                  <span class="course-hero__price">Free</span>
-                ) : (
+              {isAffiliate ? (
+                <div class="hero-cta-static">
                   <span class="course-hero__price">{price}</span>
-                )}
-                <button class="btn btn--primary btn--lg enroll-btn" data-course-id={course.id} data-free={String(course.isFree)}>
-                  {course.isFree ? 'Start Learning' : 'Enroll Now'}
-                </button>
-                <a href={`/login/?redirect=/courses/${course.slug}/`} class="course-login-link">Log in</a>
-              </div>
-              <!-- Dynamic: replaced by JS when enrollment status is known -->
-              <div class="hero-cta-enrolled" hidden>
-                <a href={firstStep ? `/courses/${course.slug}/${firstStep.id}/` : '#'} class="btn btn--primary btn--lg" id="continue-btn">
-                  Continue Learning
-                </a>
-                <div class="hero-progress" id="hero-progress" hidden>
-                  <div class="hero-progress__bar" role="progressbar" aria-valuenow={0} aria-valuemin={0} aria-valuemax={100} aria-label="Course progress">
-                    <div class="hero-progress__fill" id="hero-progress-fill"></div>
+                  <a href={course.affiliateUrl} class="btn btn--primary btn--lg affiliate-cta-btn" target="_blank" rel="noopener sponsored">
+                    Enroll at NeoFertility
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px; vertical-align: middle;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  </a>
+                  <div id="affiliate-login-prompt" class="affiliate-coupon-code">
+                    <a href={`/login/?redirect=/courses/${course.slug}/`}>Log in</a> or <a href={`/signup/?redirect=/courses/${course.slug}/`}>create a free account</a> for an exclusive discount code.
                   </div>
-                  <span class="hero-progress__text" id="hero-progress-text"></span>
+                  <div id="affiliate-coupon" class="affiliate-coupon-code" hidden>
+                    Use code <strong>{course.couponCode}</strong> at checkout for {course.couponDiscount} off ({affiliatePrice}).
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <>
+                  <!-- Static: shown before JS hydrates -->
+                  <div class="hero-cta-static">
+                    {course.isFree ? (
+                      <span class="course-hero__price">Free</span>
+                    ) : (
+                      <span class="course-hero__price">{price}</span>
+                    )}
+                    <button class="btn btn--primary btn--lg enroll-btn" data-course-id={course.id} data-free={String(course.isFree)}>
+                      {course.isFree ? 'Start Learning' : 'Enroll Now'}
+                    </button>
+                    <a href={`/login/?redirect=/courses/${course.slug}/`} class="course-login-link">Log in</a>
+                  </div>
+                  <!-- Dynamic: replaced by JS when enrollment status is known -->
+                  <div class="hero-cta-enrolled" hidden>
+                    <a href={firstStep ? `/courses/${course.slug}/${firstStep.id}/` : '#'} class="btn btn--primary btn--lg" id="continue-btn">
+                      Continue Learning
+                    </a>
+                    <div class="hero-progress" id="hero-progress" hidden>
+                      <div class="hero-progress__bar" role="progressbar" aria-valuenow={0} aria-valuemin={0} aria-valuemax={100} aria-label="Course progress">
+                        <div class="hero-progress__fill" id="hero-progress-fill"></div>
+                      </div>
+                      <span class="hero-progress__text" id="hero-progress-text"></span>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
           <div class="course-hero__image">
@@ -242,6 +309,7 @@ const relatedCourses = course.relatedCourses
     </section>
 
     <!-- Curriculum -->
+    {!isAffiliate && (
     <section class="course-section">
       <div class="container container--narrow">
         <h2>Curriculum</h2>
@@ -271,6 +339,7 @@ const relatedCourses = course.relatedCourses
         </div>
       </div>
     </section>
+    )}
 
     <!-- Description -->
     <section class="course-section course-section--alt">
@@ -294,6 +363,20 @@ const relatedCourses = course.relatedCourses
       </div>
     </section>
 
+    <!-- What's Included (affiliate) -->
+    {isAffiliate && course.whatsIncluded?.length > 0 && (
+      <section class="course-section">
+        <div class="container container--narrow">
+          <h2>What's Included</h2>
+          <ul class="whats-included">
+            {course.whatsIncluded.map((item: string) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )}
+
     <!-- Instructor -->
     <section class="course-section">
       <div class="container container--narrow">
@@ -301,14 +384,14 @@ const relatedCourses = course.relatedCourses
         <div class="instructor-card">
           <div>
             <h3>{instructor?.name}</h3>
-            <p>{instructor?.bio ?? 'Dr. Whittaker is an OBGYN and fertility surgeon who specializes in Restorative Reproductive Medicine (RRM) and NaProTechnology. She is the founder of the RRM Academy and the RRM Foundation, dedicated to making evidence-based reproductive healthcare education accessible to patients and professionals.'}</p>
+            <p>{instructor?.bio}</p>
           </div>
         </div>
       </div>
     </section>
 
     <!-- Related / Included -->
-    {(includedCourse || parentCourse) && (
+    {!isAffiliate && (includedCourse || parentCourse) && (
       <section class="course-section course-section--alt">
         <div class="container container--narrow">
           {includedCourse && (
@@ -335,7 +418,7 @@ const relatedCourses = course.relatedCourses
     )}
 
     <!-- You Might Also Like -->
-    {relatedCourses.length > 0 && (
+    {!isAffiliate && relatedCourses.length > 0 && (
       <section class="course-section">
         <div class="container container--narrow">
           <div class="related-course">
@@ -352,7 +435,7 @@ const relatedCourses = course.relatedCourses
     )}
 
     <!-- FAQ -->
-    {course.faqs?.length > 0 && (
+    {!isAffiliate && course.faqs?.length > 0 && (
       <section class="course-section course-faqs">
         <div class="container container--narrow">
           <h2>Frequently Asked Questions</h2>
@@ -379,17 +462,65 @@ const relatedCourses = course.relatedCourses
     <section class="course-section course-bottom-cta" data-pagefind-ignore>
       <div class="container container--narrow" style="text-align: center;">
         <h2>Ready to Start?</h2>
-        <p class="section-sub">{course.isFree ? 'This course is completely free.' : `One-time payment of ${price}. Lifetime access.`}</p>
-        <button class="btn btn--primary btn--lg enroll-btn" data-course-id={course.id} data-free={String(course.isFree)}>
-          {course.isFree ? 'Start Learning' : 'Enroll Now'}
-        </button>
+        {isAffiliate ? (
+          <>
+            <p class="section-sub">Enrollment and payment handled by NeoFertility.</p>
+            <a href={course.affiliateUrl} class="btn btn--primary btn--lg affiliate-cta-btn" target="_blank" rel="noopener sponsored">
+              Enroll at NeoFertility
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px; vertical-align: middle;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </a>
+          </>
+        ) : (
+          <>
+            <p class="section-sub">{course.isFree ? 'This course is completely free.' : `One-time payment of ${price}. Lifetime access.`}</p>
+            <button class="btn btn--primary btn--lg enroll-btn" data-course-id={course.id} data-free={String(course.isFree)}>
+              {course.isFree ? 'Start Learning' : 'Enroll Now'}
+            </button>
+          </>
+        )}
       </div>
     </section>
 
     <p class="page-updated">Last updated: February 2026</p>
   </div>
 
+  {isAffiliate && (
+    <script is:inline define:vars={{ affiliateUrl: course.affiliateUrl, courseId: course.id }}>
+      (function () {
+        // Auth-gated coupon display
+        var couponShow = document.getElementById('affiliate-coupon');
+        var couponHide = document.getElementById('affiliate-login-prompt');
+
+        fetch('/api/auth/session', { credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data.userId) {
+              if (couponShow) couponShow.hidden = false;
+              if (couponHide) couponHide.hidden = true;
+            }
+          })
+          .catch(function () {});
+
+        // Click tracking + redirect
+        var btns = document.querySelectorAll('.affiliate-cta-btn');
+        for (var i = 0; i < btns.length; i++) {
+          btns[i].addEventListener('click', function (e) {
+            e.preventDefault();
+            window.open(affiliateUrl, '_blank', 'noopener');
+            fetch('/api/courses/affiliate-click', {
+              method: 'POST',
+              credentials: 'same-origin',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ courseId: courseId }),
+            }).catch(function () {});
+          });
+        }
+      })();
+    </script>
+  )}
+
   <!-- Enrollment + Progress (client-side) -->
+  {!isAffiliate && (
   <script is:inline define:vars={{ courseId: course.id, courseSlug: course.slug, firstStepId: firstStep?.id }}>
     (function () {
       var staticCta = document.querySelector('.hero-cta-static');
@@ -502,6 +633,7 @@ const relatedCourses = course.relatedCourses
       }
     })();
   </script>
+  )}
 </BaseLayout>
 
 <style>
@@ -825,6 +957,42 @@ const relatedCourses = course.relatedCourses
   }
   .course-faqs .faq-item:first-child {
     border-top: 1px solid var(--border-light);
+  }
+
+  /* Partner Course pill (blue) */
+  .meta-pill--partner {
+    color: #1a6bb5;
+    background: #e0f0ff;
+    border-color: #b3d9f7;
+  }
+
+  /* What's Included */
+  .whats-included {
+    padding-left: var(--space-6);
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.8;
+  }
+  .whats-included li {
+    margin-bottom: var(--space-2);
+  }
+
+  /* Affiliate coupon callout */
+  .affiliate-coupon-code {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    margin-top: var(--space-2);
+    line-height: 1.5;
+  }
+  .affiliate-coupon-code strong {
+    color: var(--text-primary);
+  }
+  .affiliate-coupon-code a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .affiliate-coupon-code a:hover {
+    text-decoration: underline;
   }
 
   /* Bottom CTA */

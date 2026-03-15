@@ -15,10 +15,12 @@ interface Props {
     isFree: boolean;
     hasCertificate: boolean;
     selfPaced: boolean;
-    participants: number;
+    participants?: number;
     instructors: { name: string; role: string }[];
     sections: { steps: any[] }[];
     comingSoon?: boolean;
+    isAffiliate?: boolean;
+    cohortDates?: { start: string; end: string };
   };
   enrolled?: boolean;
   progress?: { completedSteps: number; totalSteps: number };
@@ -35,7 +37,14 @@ const minutes = Math.round((totalDuration % 3600) / 60);
 const durationLabel = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
 const price = course.isFree ? 'Free' : `$${(course.priceCents / 100).toFixed(0)}`;
 const instructor = course.instructors.find(i => i.role === 'Lead Instructor')?.name || course.instructors[0]?.name;
-const progressPct = progress ? Math.round((progress.completedSteps / progress.totalSteps) * 100) : 0;
+const progressPct = progress && progress.totalSteps > 0 ? Math.round((progress.completedSteps / progress.totalSteps) * 100) : 0;
+
+const isAffiliate = !!course.isAffiliate;
+let cohortLabel = '';
+if (isAffiliate && course.cohortDates) {
+  const fmt = (d: string, opts: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('en-US', opts).format(new Date(d + 'T00:00:00'));
+  cohortLabel = `${fmt(course.cohortDates.start, { month: 'short', day: 'numeric' })} – ${fmt(course.cohortDates.end, { month: 'short', day: 'numeric', year: 'numeric' })}`;
+}
 ---
 
 {isComingSoon ? (
@@ -70,27 +79,44 @@ const progressPct = progress ? Math.round((progress.completedSteps / progress.to
         width="400"
         height="225"
       />
-      {course.isFree && <span class="course-card__badge course-card__badge--free">Free</span>}
-      {course.hasCertificate && <span class="course-card__badge course-card__badge--cert">Certificate</span>}
+      {isAffiliate && <span class="course-card__badge course-card__badge--partner">Partner Course</span>}
+      {!isAffiliate && course.isFree && <span class="course-card__badge course-card__badge--free">Free</span>}
+      {!isAffiliate && course.hasCertificate && <span class="course-card__badge course-card__badge--cert">Certificate</span>}
     </div>
     <div class="course-card__body">
       <h3 class="course-card__title">{course.title}</h3>
       <p class="course-card__instructor">{instructor}</p>
       <p class="course-card__desc">{course.shortDescription}</p>
-      <div class="course-card__meta">
-        <span class="course-card__meta-item">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          {totalVideos} videos
-        </span>
-        <span class="course-card__meta-item">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          {durationLabel}
-        </span>
-        <span class="course-card__meta-item">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          {course.participants} enrolled
-        </span>
-      </div>
+      {isAffiliate ? (
+        <div class="course-card__meta">
+          <span class="course-card__meta-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.1 2.7 3 6 3s6-1.9 6-3v-5"/></svg>
+            20+ CME
+          </span>
+          <span class="course-card__meta-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            11 weeks
+          </span>
+          <span class="course-card__meta-item">
+            {cohortLabel}
+          </span>
+        </div>
+      ) : (
+        <div class="course-card__meta">
+          <span class="course-card__meta-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            {totalVideos} videos
+          </span>
+          <span class="course-card__meta-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            {durationLabel}
+          </span>
+          <span class="course-card__meta-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            {course.participants} enrolled
+          </span>
+        </div>
+      )}
       {enrolled && progress ? (
         <div class="course-card__progress">
           <div class="course-card__progress-bar" role="progressbar" aria-valuenow={progressPct} aria-valuemin={0} aria-valuemax={100} aria-label={`Course progress: ${progressPct}% complete`}>
@@ -113,15 +139,15 @@ const progressPct = progress ? Math.round((progress.completedSteps / progress.to
     display: flex;
     flex-direction: column;
     background: var(--bg-surface);
-    border: 1px solid var(--border-color);
+    border: none;
     border-radius: var(--radius-lg);
     overflow: hidden;
     text-decoration: none;
     color: inherit;
-    transition: box-shadow 0.2s, border-color 0.2s;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.2s;
   }
   .course-card:hover {
-    border-color: var(--purple-300);
     box-shadow: var(--shadow-md);
     text-decoration: none;
     color: inherit;
@@ -188,6 +214,11 @@ const progressPct = progress ? Math.round((progress.completedSteps / progress.to
     color: var(--text-muted);
     border: 1px solid var(--border-color);
     font-weight: 500;
+  }
+  .course-card__badge--partner {
+    left: var(--space-3);
+    background: #e0f0ff;
+    color: #1a6bb5;
   }
 
   .course-card__body {
