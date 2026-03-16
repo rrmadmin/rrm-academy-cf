@@ -1,0 +1,91 @@
+{
+  "courses": [
+    {
+      "courseId": "aip-diet-inflammation",
+      "slug": "aip-diet-inflammation",
+      "title": "Why the AIP Diet Is Not Enough to Reduce Inflammation",
+      "speaker": "Rita Johnson",
+      "speakerRole": "Functional Medicine Practitioner",
+      "date": "2025-10-28",
+      "accessModel": "stuc",
+      "drive": {
+        "recording": "13-lXiw45KsetUAkwT49zbPYkRP8AAqgh",
+        "chatTranscript": "1ZQAk2S2mcIhWtGBxO0cVdQJxJU_duQQ3",
+        "geminiNotes": "1Cz62CvFzrO6Hjp1u8NZ9sD38zRfTTxP3Ja9H3dYTp0Y"
+      },
+      "status": "pending"
+    },
+    {
+      "courseId": "hormones-lifespan",
+      "slug": "hormones-lifespan",
+      "title": "Hormones Through the Lifespan: Cycles, Conditions, and Menopause",
+      "speaker": "Dr. Ana Garcia",
+      "speakerRole": "OB/GYN",
+      "date": "2026-02-24",
+      "accessModel": "stuc",
+      "drive": {
+        "recording": "1icG_wcRx6effYoQMELhtboFtMj685R6h",
+        "geminiNotes": "1K2IKgDMl6jDDzmK1mcHivfdk7zzSAbBvZysFR1jVIrM"
+      },
+      "status": "pending"
+    },
+    {
+      "courseId": "pelvic-floor-rehab",
+      "slug": "pelvic-floor-rehab",
+      "title": "Pelvic Floor Rehabilitation",
+      "speaker": "Dr. Amanda Simmons",
+      "speakerRole": "PT, Ascend Pelvic Health",
+      "date": "2026-01-27",
+      "accessModel": "stuc",
+      "drive": {
+        "recording": "1N3-54obYRIMV-kPL-31xnR3-Xkt5x_vi",
+        "chatTranscript": "1gouc_7upN-b8IVg6N2NUrIIqLPk674_Q",
+        "geminiNotes": "1VpUba2GrTPA79ARVjxYwBj1-En7UAFFgIw5UFnJkIUk"
+      },
+      "status": "pending"
+    },
+    {
+      "courseId": "infertility-trauma",
+      "slug": "infertility-trauma",
+      "title": "Infertility as Existential Trauma",
+      "speaker": "Dr. Clay Brigance",
+      "speakerRole": "Licensed Professional Counselor, Researcher",
+      "date": "2025-12-16",
+      "accessModel": "stuc",
+      "drive": {
+        "recording": "1MhXc4yewhqSgkuQeAPEEcXagauxSzxPs",
+        "chatTranscript": "1sLOEHbzJDQxht-PtPj-KRjqnftNwlO6k",
+        "geminiNotes": "1LHXr6S7Sfn5Mo_aX1MRKuN35rk86LhUSQs9HAHqe2ao"
+      },
+      "status": "pending"
+    },
+    {
+      "courseId": "fabm-family-planning",
+      "slug": "fabm-family-planning",
+      "title": "Fertility-Based Methods of Family Planning: New Horizons",
+      "speaker": "Dr. William Nolan",
+      "speakerRole": "Physician",
+      "date": "2025-11-10",
+      "accessModel": "stuc",
+      "drive": {
+        "recording": "1kOTmozQBINWeW4ucDIUcojjnEFdf9oeD",
+        "geminiNotes": "1WbjPZ6yE3sling5brMyiQx1fRRA4TotiMWqwoxM3zR8"
+      },
+      "status": "pending"
+    },
+    {
+      "courseId": "functional-lab-preconception",
+      "slug": "functional-lab-preconception",
+      "title": "Functional Lab Testing, NaPro Technology, and Preconception Care",
+      "speaker": "Panel: Dr. Ana Garcia, Hannah Ducote, Elena Climov",
+      "speakerRole": "Panel Discussion",
+      "date": "2025-10-07",
+      "accessModel": "stuc",
+      "drive": {
+        "geminiNotes": "1ln6g4BFS7s4AkrbPYxUMWtsflUIMiFrdcN5j9_lkbMg"
+      },
+      "status": "blocked",
+      "blockedReason": "No MP4 in STUC Drive folder"
+    }
+  ]
+}
