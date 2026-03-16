@@ -120,6 +120,9 @@ docs/
 | `/naprotechnology` | `src/pages/naprotechnology/index.astro` (pillar guide) |
 | `/what-is-rrm` | `src/pages/what-is-rrm/index.astro` (pillar guide) |
 | `/common-questions-about-rrm` | `src/pages/common-questions-about-rrm.astro` (pillar guide) |
+| `/femm` | `src/pages/femm/index.astro` (pillar guide) |
+| `/neofertility` | `src/pages/neofertility/index.astro` (pillar guide) |
+| `/glossary` | `src/pages/glossary/index.astro` (pillar guide) |
 | `/endo-survey` | `src/pages/endo-survey/index.astro` |
 | `/endo-survey/take` | `src/pages/endo-survey/take.astro` |
 | `/save-the-uterus-club` | `src/pages/save-the-uterus-club/index.astro` |
