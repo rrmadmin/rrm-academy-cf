@@ -202,6 +202,15 @@
     font-size: 0.8125rem;
     color: var(--text-muted);
     padding: var(--space-5) 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+  }
+  .search-results :global(.sr-loading-spinner) {
+    display: inline-block;
+    font-family: monospace;
+    font-size: 1rem;
+    line-height: 1;
   }
 
   /* No results */
@@ -268,6 +277,27 @@
   var preloadedData = [];
   var isFirstPage = true;
 
+  // Waverows animation frames (from unicode-animations)
+  var waveFrames = ['⠖⠉⠉⠑','⡠⠖⠉⠉','⣠⡠⠖⠉','⣄⣠⡠⠖','⠢⣄⣠⡠','⠙⠢⣄⣠','⠉⠙⠢⣄','⠊⠉⠙⠢','⠜⠊⠉⠙','⡤⠜⠊⠉','⣀⡤⠜⠊','⢤⣀⡤⠜','⠣⢤⣀⡤','⠑⠣⢤⣀','⠉⠑⠣⢤','⠋⠉⠑⠣'];
+  var waveInterval = 90;
+  var spinnerTimer = null;
+
+  function startLoadingSpinner() {
+    resultsEl.innerHTML = '<p class="sr-loading"><span class="sr-loading-spinner"></span>Searching\u2026</p>';
+    var el = resultsEl.querySelector('.sr-loading-spinner');
+    if (!el) return;
+    var fi = 0;
+    el.textContent = waveFrames[0];
+    spinnerTimer = setInterval(function() {
+      fi = (fi + 1) % waveFrames.length;
+      el.textContent = waveFrames[fi];
+    }, waveInterval);
+  }
+
+  function stopLoadingSpinner() {
+    if (spinnerTimer) { clearInterval(spinnerTimer); spinnerTimer = null; }
+  }
+
   // Load Pagefind on first interaction — single shared promise prevents race conditions
   function ensurePagefind() {
     if (!pagefindReady) {
@@ -319,7 +349,7 @@
   }
 
   async function doSearch(query) {
-    resultsEl.innerHTML = '<p class="sr-loading">Searching\u2026</p>';
+    startLoadingSpinner();
 
     try {
       // Fire both searches in parallel
@@ -455,6 +485,7 @@
       totalCount = preloadedData.length;
       shown = 0;
       isFirstPage = true;
+      stopLoadingSpinner();
       resultsEl.innerHTML = '';
 
       if (totalCount === 0) {
@@ -515,6 +546,7 @@
         });
       }
     } catch(e) {
+      stopLoadingSpinner();
       if (query !== currentQuery) return;
       resultsEl.innerHTML = '<p class="sr-empty">Search unavailable</p>';
     }
