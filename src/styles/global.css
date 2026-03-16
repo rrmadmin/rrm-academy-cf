@@ -337,7 +337,7 @@ h1 {
 }
 
 h2 {
-  font-size: 1.75rem;
+  font-size: 2rem;
   margin-top: var(--space-10);
   margin-bottom: var(--space-6);
 }
@@ -1263,7 +1263,7 @@ blockquote cite {
   }
 
   h2 {
-    font-size: 1.375rem;
+    font-size: 1.5rem;
   }
 
   h3 {
