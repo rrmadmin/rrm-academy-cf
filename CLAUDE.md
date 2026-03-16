@@ -404,6 +404,12 @@ Before shipping any new endpoint or modifying an existing one, verify:
 
 ## Rules
 
+- **When writing RRM content, consult `rrm-cli` first.** The CLI has the correct tone, framing, and citations. Do not default to external sources when the knowledge base has what you need.
+  - Voice/framing reference: `rrm-cli search "topic" --intent=voice --full --limit=5`
+  - Research citations: `rrm-cli search "topic" --intent=cite --full --limit=10`
+  - Specific FAQ answer: `rrm-cli get faq <slug> --full`
+  - Related content: `rrm-cli related <type> <slug> --type=article`
+  - After using content: `rrm-cli annotate <type> <slug> --key=used_for --value="task description"`
 - **When writing or modifying code in `functions/api/`, dispatch the `coder` agent** (`subagent_type: "coder"`). It reads sibling files first and validates against the 5 coding standards above. Do not write endpoint code directly -- always use the coder agent.
 - Read relevant `STYLE-GUIDE.md` sections before editing styles
 - Never hardcode colors, spacing, or fonts -- use design tokens
