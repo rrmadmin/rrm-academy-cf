@@ -20,7 +20,9 @@ const { faq, allFaqs } = Astro.props;
 const related = getRelatedFaqs(faq, allFaqs, 5);
 
 // Published Answer is already HTML from Airtable (trusted source)
-const htmlAnswer = faq.publishedAnswer || '';
+// Airtable content uses h3 for subheadings; promote to h2 so the heading
+// hierarchy flows correctly from the page h1 (the question title).
+const htmlAnswer = (faq.publishedAnswer || '').replace(/<(\/?)h3/g, '<$1h2');
 
 // Meta
 const pageTitle = faq.seoTitle || faq.question;
