@@ -146,7 +146,7 @@ const faqSchema = {
       name: 'What is the success rate for NeoFertility?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'The 2015 Dublin clinic cohort of 412 couples reported a 32% crude live birth rate and a 53.6% adjusted rate at 24 months using Life Table Analysis. The 2019 cohort published in Boyle et al. (2025) reported a 41% crude live birth rate. Results depend on age, diagnosis, and individual factors.',
+        text: 'The 2015 Dublin clinic cohort of 412 couples reported a 32% crude live birth rate and a 53.6% life-table adjusted rate at 24 months, which accounts for couples who discontinued before completing treatment. The 2019 cohort published in Boyle et al. (2025) reported a 41% crude live birth rate. Results depend on age, diagnosis, and individual factors.',
       },
     },
     {
@@ -283,7 +283,7 @@ const faqSchema = {
               <li><strong>NeoFertility is a restorative reproductive medicine (RRM) approach developed by Dr. Phil Boyle</strong> that diagnoses and treats the underlying causes of infertility, recurrent miscarriage, and reproductive health disorders by restoring natural cycle function.<sup><a href="#ref-1">1</a></sup><sup><a href="#ref-2">2</a></sup></li>
               <li><strong>Built on NaProTechnology, extended with immunology:</strong> NeoFertility expanded the NaPro diagnostic lens to include NK cell panels, LDN (low-dose naltrexone), DHEA/androgen evaluation, and endorphin deficiency assessment -- areas NaPro does not systematically address.<sup><a href="#ref-9">9</a></sup><sup><a href="#ref-10">10</a></sup></li>
               <li><strong>Structured three-phase process:</strong> Assessment (2 months), Balancing the Cycle (2 months), then Allowing Conception (1 to 12 cycles). All treatment is matched to specific diagnostic findings.<sup><a href="#ref-4">4</a></sup></li>
-              <li><strong>Published outcomes:</strong> 41% crude live birth rate (Boyle 2025, 187 couples); 53.6% adjusted at 24 months (2015, 412 couples); 32.1% after failed IVF (403 couples). Singleton prematurity 2.5% vs. 11.8% CDC IVF data.<sup><a href="#ref-16">16</a></sup><sup><a href="#ref-26">26</a></sup></li>
+              <li><strong>Published outcomes:</strong> 41% crude live birth rate (Boyle 2025, 187 couples); 53.6% life-table adjusted rate at 24 months (2015, 412 couples), which accounts for couples who discontinued before completing treatment; 32.1% after failed IVF (403 couples). Singleton prematurity 2.5% vs. 11.8% in CDC IVF singleton data (observational comparison).<sup><a href="#ref-16">16</a></sup><sup><a href="#ref-26">26</a></sup></li>
               <li><strong>ChartNeo app:</strong> Method-agnostic digital charting platform (Creighton, Billings, SymptoThermal, Marquette) that integrates patient, advisor, and physician data in real time.<sup><a href="#ref-5">5</a></sup><sup><a href="#ref-6">6</a></sup></li>
               <li><strong>Getting started:</strong> Download the <a href="https://www.chartneo.com" rel="noopener" target="_blank">ChartNeo app</a>, connect with a NeoFertility Advisor, then find a NeoFertility-trained physician. Explore free courses at <a href="/courses/">RRM Academy</a>.</li>
             </ul>
@@ -463,7 +463,7 @@ const faqSchema = {
               <li>Female average age: 37</li>
               <li>21% had previously attempted IVF</li>
               <li>Crude live birth rate: 32%</li>
-              <li>Life-table adjusted live birth rate at 24 months: 53.6%</li>
+              <li>Life-table adjusted live birth rate at 24 months: 53.6% (Life Table Analysis accounts for couples who discontinued treatment before completing all cycles; the crude rate was 32%)</li>
               <li>Multiple pregnancy rate: less than 1%</li>
               <li>Preterm delivery rate: 4.2%</li>
               <li>Low birth weight: 5% (under 2,500 g); 1.6% (under 1,500 g)</li>
@@ -475,11 +475,11 @@ const faqSchema = {
               <li>187 couples treated at NeoFertility Dublin</li>
               <li>Crude live birth rate: 41%</li>
               <li>Conception rate: 52%</li>
-              <li>Singleton prematurity: 2.5% (compared to 11.8% CDC data for IVF singletons; 14.4% in SART-reported IVF singletons)</li>
+              <li>Singleton prematurity: 2.5% (compared to 11.8% CDC data for IVF singletons). These are observational comparisons between different patient populations.</li>
               <li>Multiple pregnancy rate: 2.5%</li>
               <li>Average time to conception: 12 months</li>
               <li>"Unexplained infertility" diagnosis: dropped from 24% to 1% after full RRM workup</li>
-              <li>Benchmarked against HFEA (UK) IVF data: 24% live birth rate; CDC/SART (USA): comparable metrics</li>
+              <li>Benchmarked against HFEA (UK) IVF data: 24% live birth rate; CDC (USA): comparable metrics</li>
             </ul>
 
             <p>This paper was the first published head-to-head comparison of RRM outcomes alongside IVF data from mandatory national reporting registries.<sup><a href="#ref-16">16</a></sup></p>
@@ -504,7 +504,7 @@ const faqSchema = {
 
             <p>NeoFertility asks: <em>Why can't this couple conceive, and what can be treated?</em></p>
 
-            <p>The difference in starting question produces entirely different evaluations, treatments, and long-term outcomes. IVF bypasses the reproductive system. Whether the woman has a luteal phase defect, undiagnosed DHEA deficiency, or elevated NK cell activity does not change the IVF procedure. The body's function is made irrelevant. NeoFertility is built on the opposite premise: the body's function is the target.</p>
+            <p>The difference in starting question produces entirely different evaluations, treatments, and long-term outcomes. IVF bypasses the reproductive system. Whether the woman has a luteal phase defect, undiagnosed DHEA deficiency, or elevated NK cell activity does not change the IVF procedure. NeoFertility is built on a different premise: the body's function is the target.</p>
 
             <div class="table-wrap">
               <table>
@@ -521,7 +521,7 @@ const faqSchema = {
                   <tr><td>Treats underlying condition?</td><td>Yes</td><td>No</td></tr>
                   <tr><td>Conception method</td><td>Natural, within the couple</td><td>Laboratory fertilization and transfer</td></tr>
                   <tr><td>Multiple pregnancy risk</td><td>Less than 1% (2015 data)<sup><a href="#ref-26">26</a></sup></td><td>Elevated, especially with multiple embryo transfer</td></tr>
-                  <tr><td>Prematurity (singletons)</td><td>2.5% (Boyle 2025)<sup><a href="#ref-3">3</a></sup></td><td>11.8% CDC; 14.4% SART<sup><a href="#ref-3">3</a></sup></td></tr>
+                  <tr><td>Prematurity (singletons)</td><td>2.5% (Boyle 2025)<sup><a href="#ref-3">3</a></sup></td><td>11.8% CDC<sup><a href="#ref-3">3</a></sup></td></tr>
                   <tr><td>Diagnostic workup</td><td>Comprehensive: cycle-timed hormones, immune panel, androgen, NK cells, both partners</td><td>Basic: AMH, FSH, AFC; male factor often untreated</td></tr>
                   <tr><td>Live birth rate</td><td>41% crude (Boyle 2025); 53.6% adjusted at 24 months (2015 data)<sup><a href="#ref-26">26</a></sup><sup><a href="#ref-16">16</a></sup></td><td>~24-27% per cycle (HFEA/CDC)<sup><a href="#ref-3">3</a></sup></td></tr>
                   <tr><td>Cost</td><td>Fraction of IVF; standard treatment plans available; some components billable as diagnosed conditions</td><td>$15,000 to $30,000 per cycle; average $40,000 to $60,000 total<sup><a href="#ref-28">28</a></sup></td></tr>
@@ -534,7 +534,7 @@ const faqSchema = {
 
             <h3>After Failed IVF</h3>
 
-            <p>NeoFertility is a legitimate path for couples who have already experienced IVF failure. The pattern is consistent: IVF attempted the bypass without identifying the cause, and that cause remains after the failed cycles. NeoFertility finds it.</p>
+            <p>NeoFertility is a legitimate path for couples who have already experienced IVF failure. IVF does not typically diagnose the underlying condition. After IVF fails, that condition remains. NeoFertility investigates it.</p>
 
             <p>Boyle et al. (2022) documented a successful natural conception in a couple with 16 years of infertility, three recurrent miscarriages, and eight failed IVF and ICSI embryo transfers. The NeoFertility evaluation identified and treated conditions the IVF pathway had never investigated. A healthy singleton pregnancy followed. Among the broader cohort of 403 couples who had undergone an average of 2.1 prior IVF cycles, NeoFertility achieved a 32.1% live birth rate through natural conception.<sup><a href="#ref-1">1</a></sup><sup><a href="#ref-16">16</a></sup><sup><a href="#ref-4">4</a></sup></p>
           </section>
@@ -652,7 +652,7 @@ const faqSchema = {
               <dd>Yes. IVF does not diagnose or treat the underlying condition. After IVF fails, the condition that prevented natural conception is still present. NeoFertility identifies it. In a cohort of 403 couples with an average of 2.1 prior failed IVF cycles, NeoFertility achieved a life-table live birth rate of 32.1% through natural conception.<sup><a href="#ref-4">4</a></sup></dd>
 
               <dt>What is the success rate for NeoFertility?</dt>
-              <dd>The 2015 Dublin clinic cohort of 412 couples reported a 32% crude live birth rate and a 53.6% adjusted rate at 24 months using Life Table Analysis. The 2019 cohort published in Boyle et al. (2025) reported a 41% crude live birth rate. Results depend on age, diagnosis, and individual factors.<sup><a href="#ref-26">26</a></sup><sup><a href="#ref-16">16</a></sup></dd>
+              <dd>The 2015 Dublin clinic cohort of 412 couples reported a 32% crude live birth rate and a 53.6% life-table adjusted rate at 24 months, which accounts for couples who discontinued before completing treatment. The 2019 cohort published in Boyle et al. (2025) reported a 41% crude live birth rate. Results depend on age, diagnosis, and individual factors.<sup><a href="#ref-26">26</a></sup><sup><a href="#ref-16">16</a></sup></dd>
 
               <dt>Is NeoFertility only available in Ireland?</dt>
               <dd>No. NeoFertility training has expanded internationally through the NeoFertility Clinical Mastery Program and FACTS-NeoFertility Medical Consultant Training, with trained providers practicing in the United States and other countries. Telehealth options extend access further for patients who cannot access a local provider.<sup><a href="#ref-7">7</a></sup><sup><a href="#ref-8">8</a></sup></dd>
