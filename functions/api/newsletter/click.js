@@ -27,21 +27,26 @@ export async function onRequestGet({ request, env, waitUntil }) {
   if (sendId && subscriberId && env.DB) {
     const work = (async () => {
       try {
-        await env.DB.prepare(
-          "INSERT INTO newsletter_event (send_id, subscriber_id, event, detail) VALUES (?, ?, 'clicked', ?)"
+        const subRow = await env.DB.prepare(
+          "SELECT email FROM newsletter_subscriber WHERE id = ?"
+        ).bind(subscriberId).first();
+        const recipientEmail = (subRow?.email || '').toLowerCase();
+
+        const result = await env.DB.prepare(
+          "INSERT OR IGNORE INTO newsletter_event (send_id, subscriber_id, event, detail) VALUES (?, ?, 'clicked', ?)"
         ).bind(sendId, subscriberId, dest).run();
-        // Dedupe click count: only increment once per subscriber per send
-        const clickCount = await env.DB.prepare(
-          "SELECT COUNT(*) as c FROM newsletter_event WHERE send_id = ? AND subscriber_id = ? AND event = 'clicked'"
-        ).bind(sendId, subscriberId).first();
-        if (clickCount && clickCount.c === 1) {
-          await env.DB.prepare(
-            "UPDATE newsletter_send SET click_count = click_count + 1 WHERE id = ?"
-          ).bind(sendId).run();
+
+        await env.DB.prepare("UPDATE newsletter_subscriber SET last_clicked_at = datetime('now') WHERE id = ?")
+          .bind(subscriberId).run();
+
+        if (result.changes > 0) {
+          await env.DB.batch([
+            env.DB.prepare("UPDATE newsletter_send SET click_count = click_count + 1 WHERE id = ?").bind(sendId),
+            env.DB.prepare(
+              "INSERT INTO email_log (event, email, category, source, detail, send_id) VALUES ('clicked', ?, 'newsletter', 'newsletter/click', ?, ?)"
+            ).bind(recipientEmail, dest, sendId),
+          ]);
         }
-        await env.DB.prepare(
-          "UPDATE newsletter_subscriber SET last_clicked_at = datetime('now') WHERE id = ?"
-        ).bind(subscriberId).run();
       } catch (err) {
         log(env, waitUntil, 'newsletter', 'click_track_error', 'error', err.message, 0, 0);
       }

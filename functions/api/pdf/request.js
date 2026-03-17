@@ -1,4 +1,4 @@
-import { sendEmail } from '../_ses.js';
+import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
 import { validateEmail } from '../auth/_email-validate.js';
 import { verifyAndTagEmail } from '../_elv.js';
@@ -100,16 +100,19 @@ export async function onRequestPost(context) {
     const guideTitle = GUIDE_PDFS[guide_slug].title;
     const redeemUrl = `${SITE_URL}/api/pdf/redeem?token=${token}`;
 
+    const pdfSubject = `Your ${guideTitle} - Download Link Inside`;
     try {
       await sendEmail(env, {
         from: 'RRM Academy <info@mail.rrmacademy.org>',
         to: email,
-        subject: `Your ${guideTitle} - Download Link Inside`,
+        subject: pdfSubject,
         html: `<p>Here's your link to download <strong>${guideTitle}</strong>.</p><p><a href="${redeemUrl}">Download PDF</a></p><p>This link expires in 24 hours and can only be used once.</p><p style="color:#888;font-size:12px;">You're receiving this because you subscribed to RRM Academy updates.</p>`,
         text: `Download ${guideTitle}: ${redeemUrl}\n\nThis link expires in 24 hours and can only be used once.`,
+        log: { db: env.DB, source: 'pdf/request', category: 'transactional' },
       });
     } catch (err) {
       log(env, waitUntil, 'pdf', 'request_send_error', 'error', err.message, 0, 502);
+      await logEmailFailure(env.DB, { email, category: 'transactional', source: 'pdf/request', subject: pdfSubject, detail: err.message });
       return json({ ok: false, error: 'Failed to send email. Please try again.' }, 502);
     }
 

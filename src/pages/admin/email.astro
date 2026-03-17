@@ -1,0 +1,521 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Email Log | Admin" description="Admin email event log" noindex={true} bodyClass="admin-page">
+
+  <div class="admin-bar">
+    <div class="container admin-bar__inner">
+      <span class="admin-bar__title">RRM Admin</span>
+      <nav class="admin-bar__nav">
+        <a href="/admin/backlinks/" class="admin-bar__link">Backlinks</a>
+        <a href="/admin/conversions/" class="admin-bar__link">Conversions</a>
+        <a href="/admin/content/" class="admin-bar__link">Content</a>
+        <a href="/admin/email/" class="admin-bar__link admin-bar__link--active">Email</a>
+        <a href="/admin/seo/" class="admin-bar__link">SEO</a>
+        <a href="/admin/revenue/" class="admin-bar__link">Revenue</a>
+      </nav>
+      <div class="admin-bar__actions">
+        <a href="/" class="admin-bar__site-link">Return to site</a>
+        <button class="admin-bar__logout" id="logout-btn">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <section id="dashboard" class="em-section">
+    <div class="container">
+
+      <div class="em-header">
+        <h1 id="em-title">Email Log</h1>
+        <div class="em-controls">
+          <button class="btn btn--primary em-btn" id="refresh-btn">Refresh</button>
+        </div>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="em-metrics em-metrics--6" id="stats-grid">
+        <div class="em-card">
+          <span class="em-card__label">Sent</span>
+          <span class="em-card__value" id="s-sent">--</span>
+        </div>
+        <div class="em-card">
+          <span class="em-card__label">Delivered</span>
+          <span class="em-card__value em-card__value--green" id="s-delivered">--</span>
+        </div>
+        <div class="em-card">
+          <span class="em-card__label">Bounced</span>
+          <span class="em-card__value em-card__value--red" id="s-bounced">--</span>
+        </div>
+        <div class="em-card">
+          <span class="em-card__label">Opened</span>
+          <span class="em-card__value" id="s-opened">--</span>
+        </div>
+        <div class="em-card">
+          <span class="em-card__label">Clicked</span>
+          <span class="em-card__value" id="s-clicked">--</span>
+        </div>
+        <div class="em-card">
+          <span class="em-card__label">Unsubscribed</span>
+          <span class="em-card__value em-card__value--amber" id="s-unsubscribed">--</span>
+        </div>
+      </div>
+
+      <!-- Filter row -->
+      <div class="em-filters" id="filter-row">
+        <select class="form-input em-select" id="filter-event">
+          <option value="">All Events</option>
+          <option value="send">Send</option>
+          <option value="delivery">Delivery</option>
+          <option value="bounce">Bounce</option>
+          <option value="complaint">Complaint</option>
+          <option value="open">Open</option>
+          <option value="click">Click</option>
+          <option value="unsubscribe">Unsubscribe</option>
+          <option value="reject">Reject</option>
+        </select>
+        <select class="form-input em-select" id="filter-category">
+          <option value="">All Categories</option>
+          <option value="transactional">Transactional</option>
+          <option value="newsletter">Newsletter</option>
+        </select>
+        <select class="form-input em-select" id="filter-source">
+          <option value="">All Sources</option>
+          <option value="auth">Auth</option>
+          <option value="contact">Contact</option>
+          <option value="survey">Survey</option>
+          <option value="newsletter">Newsletter</option>
+          <option value="billing">Billing</option>
+          <option value="community">Community</option>
+        </select>
+        <input type="date" class="form-input em-date" id="filter-from" title="From date" />
+        <input type="date" class="form-input em-date" id="filter-to" title="To date" />
+        <input type="text" class="form-input em-search" id="filter-email" placeholder="Search email..." />
+        <button class="btn btn--primary em-btn" id="apply-btn">Apply</button>
+      </div>
+
+      <!-- Recipient profile (hidden by default) -->
+      <div class="em-recipient" id="recipient-panel" style="display:none;">
+        <div class="em-recipient__header">
+          <button class="em-recipient__back" id="back-btn">&larr; Back to log</button>
+          <h2 class="em-recipient__email" id="recipient-email"></h2>
+        </div>
+        <div class="em-metrics em-metrics--4" id="recipient-stats"></div>
+        <h3 class="em-heading">Event Timeline</h3>
+      </div>
+
+      <!-- Results table -->
+      <div class="em-table-wrap">
+        <table class="em-table">
+          <thead>
+            <tr>
+              <th data-sort="timestamp">Time<span class="em-sort-arrow"></span></th>
+              <th data-sort="event_type">Event<span class="em-sort-arrow"></span></th>
+              <th data-sort="recipient">Recipient<span class="em-sort-arrow"></span></th>
+              <th data-sort="category">Category<span class="em-sort-arrow"></span></th>
+              <th data-sort="source">Source<span class="em-sort-arrow"></span></th>
+              <th data-sort="subject">Subject<span class="em-sort-arrow"></span></th>
+              <th>Detail</th>
+            </tr>
+          </thead>
+          <tbody id="em-tbody">
+            <tr><td colspan="7" class="em-empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="em-pagination" id="pagination">
+        <button class="btn em-page-btn" id="prev-btn" disabled>&larr; Prev</button>
+        <span class="em-page-info" id="page-info">Page 1</span>
+        <button class="btn em-page-btn" id="next-btn" disabled>Next &rarr;</button>
+      </div>
+
+      <p class="em-meta" id="em-meta"></p>
+    </div>
+  </section>
+
+  <script is:inline>
+  (function () {
+    // Helpers
+    function esc(str) { var d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+    function num(n) { return (n || 0).toLocaleString(); }
+
+    function formatTime(iso) {
+      if (!iso) return '--';
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return '--';
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      var h = d.getHours();
+      var ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      var min = String(d.getMinutes()).padStart(2, '0');
+      return months[d.getMonth()] + ' ' + d.getDate() + ', ' + h + ':' + min + ' ' + ampm;
+    }
+
+    function eventBadge(type) {
+      var cls = 'em-badge em-badge--' + (type || 'unknown');
+      return '<span class="' + esc(cls) + '">' + esc(type || 'unknown') + '</span>';
+    }
+
+    // State
+    var currentView = 'log'; // 'log' or 'recipient'
+    var currentPage = 1;
+    var totalPages = 1;
+    var sortCol = 'timestamp';
+    var sortDir = 'desc';
+    var currentRecipient = '';
+
+    // DOM refs
+    var tbody = document.getElementById('em-tbody');
+    var recipientPanel = document.getElementById('recipient-panel');
+    var filterRow = document.getElementById('filter-row');
+    var statsGrid = document.getElementById('stats-grid');
+    var titleEl = document.getElementById('em-title');
+    var pageInfo = document.getElementById('page-info');
+    var prevBtn = document.getElementById('prev-btn');
+    var nextBtn = document.getElementById('next-btn');
+
+    // API
+    async function apiCall(params) {
+      var qs = params ? '?' + new URLSearchParams(params).toString() : '';
+      var resp = await fetch('/api/admin/email' + qs, { credentials: 'include' });
+      if (resp.status === 401 || resp.status === 403) {
+        window.location.href = '/login/?redirect=/admin/email/';
+        return;
+      }
+      var data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Request failed');
+      return data;
+    }
+
+    // Stats
+    async function loadStats() {
+      try {
+        var resp = await apiCall({ view: 'stats' });
+        var s = resp.data || {};
+        document.getElementById('s-sent').textContent = num(s.sent);
+        document.getElementById('s-delivered').textContent = num(s.delivered);
+        document.getElementById('s-bounced').textContent = num(s.bounced);
+        document.getElementById('s-opened').textContent = num(s.opened);
+        document.getElementById('s-clicked').textContent = num(s.clicked);
+        document.getElementById('s-unsubscribed').textContent = num(s.unsubscribed);
+      } catch (e) {
+        // Stats load failure is non-fatal
+      }
+    }
+
+    // Build filter params
+    function getFilterParams() {
+      var p = { view: 'log', page: currentPage, sort: sortCol, dir: sortDir };
+      var ev = document.getElementById('filter-event').value;
+      var cat = document.getElementById('filter-category').value;
+      var src = document.getElementById('filter-source').value;
+      var from = document.getElementById('filter-from').value;
+      var to = document.getElementById('filter-to').value;
+      var email = document.getElementById('filter-email').value.trim();
+      if (ev) p.event_type = ev;
+      if (cat) p.category = cat;
+      if (src) p.source = src;
+      if (from) p.from = from;
+      if (to) p.to = to;
+      if (email) p.email = email;
+      return p;
+    }
+
+    // Render log table
+    function renderLog(events) {
+      if (!events || !events.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="em-empty">No events found</td></tr>';
+        return;
+      }
+      tbody.innerHTML = events.map(function (e) {
+        var recipientLink = '<a href="#" class="em-email-link" data-email="' + esc(e.recipient || '') + '">' + esc(e.recipient || '--') + '</a>';
+        return '<tr>' +
+          '<td class="em-col-time">' + esc(formatTime(e.timestamp)) + '</td>' +
+          '<td>' + eventBadge(e.event_type) + '</td>' +
+          '<td>' + recipientLink + '</td>' +
+          '<td>' + esc(e.category || '--') + '</td>' +
+          '<td>' + esc(e.source || '--') + '</td>' +
+          '<td class="em-col-subject">' + esc(e.subject || '--') + '</td>' +
+          '<td class="em-col-detail">' + esc(e.detail || '') + '</td>' +
+          '</tr>';
+      }).join('');
+
+      // Attach click handlers to email links
+      tbody.querySelectorAll('.em-email-link').forEach(function (a) {
+        a.addEventListener('click', function (ev) {
+          ev.preventDefault();
+          var email = a.dataset.email;
+          if (email) showRecipient(email);
+        });
+      });
+    }
+
+    // Update pagination
+    function updatePagination() {
+      pageInfo.textContent = 'Page ' + currentPage + ' of ' + totalPages;
+      prevBtn.disabled = currentPage <= 1;
+      nextBtn.disabled = currentPage >= totalPages;
+    }
+
+    // Update sort indicators
+    function updateSortIndicators() {
+      document.querySelectorAll('.em-table th[data-sort]').forEach(function (th) {
+        var arrow = th.querySelector('.em-sort-arrow');
+        if (th.dataset.sort === sortCol) {
+          arrow.textContent = sortDir === 'asc' ? ' \u25B2' : ' \u25BC';
+        } else {
+          arrow.textContent = '';
+        }
+      });
+    }
+
+    // Load log
+    async function loadLog() {
+      tbody.innerHTML = '<tr><td colspan="7" class="em-empty">Loading...</td></tr>';
+      try {
+        var params = getFilterParams();
+        var resp = await apiCall(params);
+        var d = resp.data || {};
+        renderLog(d.events || []);
+        currentPage = d.page || 1;
+        totalPages = d.totalPages || 1;
+        updatePagination();
+        updateSortIndicators();
+        if (resp.fetchedAt) {
+          document.getElementById('em-meta').textContent = 'Fetched: ' + resp.fetchedAt;
+        }
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="7" class="em-empty em-error">' + esc(e.message) + '</td></tr>';
+      }
+    }
+
+    // Show recipient profile
+    async function showRecipient(email) {
+      currentView = 'recipient';
+      currentRecipient = email;
+      currentPage = 1;
+
+      recipientPanel.style.display = 'block';
+      filterRow.style.display = 'none';
+      statsGrid.style.display = 'none';
+      titleEl.textContent = 'Recipient Profile';
+      document.getElementById('recipient-email').textContent = email;
+
+      tbody.innerHTML = '<tr><td colspan="7" class="em-empty">Loading...</td></tr>';
+
+      try {
+        var resp = await apiCall({ view: 'recipient', email: email, page: currentPage, sort: sortCol, dir: sortDir });
+        var d = resp.data || {};
+
+        // Render recipient stats
+        var rs = d.stats || {};
+        var rsGrid = document.getElementById('recipient-stats');
+        rsGrid.innerHTML =
+          '<div class="em-card"><span class="em-card__label">Total Events</span><span class="em-card__value">' + num(rs.total) + '</span></div>' +
+          '<div class="em-card"><span class="em-card__label">Delivered</span><span class="em-card__value em-card__value--green">' + num(rs.delivered) + '</span></div>' +
+          '<div class="em-card"><span class="em-card__label">Opened</span><span class="em-card__value">' + num(rs.opened) + '</span></div>' +
+          '<div class="em-card"><span class="em-card__label">Bounced</span><span class="em-card__value em-card__value--red">' + num(rs.bounced) + '</span></div>';
+
+        renderLog(d.events || []);
+        totalPages = d.totalPages || 1;
+        updatePagination();
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="7" class="em-empty em-error">' + esc(e.message) + '</td></tr>';
+      }
+    }
+
+    // Back to log view
+    function showLog() {
+      currentView = 'log';
+      currentRecipient = '';
+      currentPage = 1;
+
+      recipientPanel.style.display = 'none';
+      filterRow.style.display = 'flex';
+      statsGrid.style.display = 'grid';
+      titleEl.textContent = 'Email Log';
+
+      loadStats();
+      loadLog();
+    }
+
+    // Event listeners
+    document.getElementById('logout-btn').addEventListener('click', async function () {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+      window.location.href = '/login/';
+    });
+
+    document.getElementById('apply-btn').addEventListener('click', function () {
+      currentPage = 1;
+      loadLog();
+    });
+
+    document.getElementById('refresh-btn').addEventListener('click', function () {
+      if (currentView === 'recipient') {
+        showRecipient(currentRecipient);
+      } else {
+        loadStats();
+        loadLog();
+      }
+    });
+
+    document.getElementById('back-btn').addEventListener('click', function () {
+      showLog();
+    });
+
+    prevBtn.addEventListener('click', function () {
+      if (currentPage > 1) {
+        currentPage--;
+        if (currentView === 'recipient') {
+          showRecipient(currentRecipient);
+        } else {
+          loadLog();
+        }
+      }
+    });
+
+    nextBtn.addEventListener('click', function () {
+      if (currentPage < totalPages) {
+        currentPage++;
+        if (currentView === 'recipient') {
+          showRecipient(currentRecipient);
+        } else {
+          loadLog();
+        }
+      }
+    });
+
+    // Column sorting
+    document.querySelectorAll('.em-table th[data-sort]').forEach(function (th) {
+      th.addEventListener('click', function () {
+        var col = th.dataset.sort;
+        if (sortCol === col) {
+          sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+          sortCol = col;
+          sortDir = col === 'timestamp' ? 'desc' : 'asc';
+        }
+        currentPage = 1;
+        if (currentView === 'recipient') {
+          showRecipient(currentRecipient);
+        } else {
+          loadLog();
+        }
+      });
+    });
+
+    // Init
+    loadStats();
+    loadLog();
+  })();
+  </script>
+
+</BaseLayout>
+
+<style>
+  :root {
+    --admin-rose-700: #8a606e;
+    --admin-rose-300: #c9a8b2;
+    --admin-bg: #faf8f5;
+    --admin-surface: #ffffff;
+    --admin-border: #d9d3cc;
+    --admin-text: #313131;
+    --admin-text-muted: #636261;
+    --admin-text-faint: #949392;
+  }
+
+  :global(.admin-page) :global(.site-header) { display: none; }
+  :global(.admin-page) :global(footer) { display: none; }
+
+  .admin-bar { background: #3d2a32; color: #f0e5e9; position: sticky; top: 0; z-index: 100; }
+  .admin-bar__inner { display: flex; align-items: center; height: 48px; gap: var(--space-6); }
+  .admin-bar__title { font-family: 'Cormorant Garamond', 'Georgia', serif; font-weight: 600; font-size: 1.25rem; color: var(--admin-rose-300); white-space: nowrap; }
+  .admin-bar__nav { display: flex; gap: var(--space-1); }
+  .admin-bar__link { font-size: 0.8125rem; font-weight: 400; color: rgba(255,255,255,0.6); text-decoration: none; padding: 4px 12px; border-radius: var(--radius-sm); transition: color 0.15s, background 0.15s; }
+  .admin-bar__link:hover { color: #fff; text-decoration: none; }
+  .admin-bar__link--active { color: #fff; background: rgba(255,255,255,0.1); font-weight: 500; }
+  .admin-bar__actions { display: flex; align-items: center; gap: var(--space-3); margin-left: auto; }
+  .admin-bar__site-link { font-size: 0.8125rem; font-weight: 500; color: var(--admin-rose-300); text-decoration: none; padding: 5px 16px; border: 1px solid var(--admin-rose-300); border-radius: var(--radius-pill); transition: color 0.15s, border-color 0.15s; }
+  .admin-bar__site-link:hover { color: #fff; border-color: #fff; text-decoration: none; }
+  .admin-bar__logout { font-size: 0.8125rem; color: rgba(255,255,255,0.5); background: none; border: none; cursor: pointer; padding: 4px 8px; }
+  .admin-bar__logout:hover { color: #fff; }
+
+  .em-section { padding: var(--space-8) 0; background: var(--admin-bg); min-height: 80vh; }
+  .em-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6); flex-wrap: wrap; gap: var(--space-3); }
+  .em-header h1 { margin-bottom: 0; color: var(--admin-text); }
+  .em-controls { display: flex; gap: var(--space-3); align-items: center; }
+  .em-btn { background: var(--admin-rose-700); border-color: var(--admin-rose-700); color: #fff; }
+  .em-btn:hover { background: #764d5e; }
+
+  /* Stat cards */
+  .em-metrics { display: grid; gap: var(--space-4); margin-bottom: var(--space-6); }
+  .em-metrics--6 { grid-template-columns: repeat(6, 1fr); }
+  .em-metrics--4 { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 768px) { .em-metrics--6 { grid-template-columns: repeat(3, 1fr); } .em-metrics--4 { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .em-metrics--6 { grid-template-columns: repeat(2, 1fr); } }
+
+  .em-card { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--radius-md); padding: var(--space-4) var(--space-5); text-align: center; }
+  .em-card__label { display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--admin-text-faint); margin-bottom: var(--space-1); }
+  .em-card__value { display: block; font-size: 1.75rem; font-weight: 700; color: var(--admin-text); font-family: 'Inter', sans-serif; }
+  .em-card__value--green { color: #27ae60; }
+  .em-card__value--red { color: #c0392b; }
+  .em-card__value--amber { color: #e67e22; }
+
+  /* Filters */
+  .em-filters { display: flex; gap: var(--space-3); align-items: center; margin-bottom: var(--space-6); flex-wrap: wrap; }
+  .em-select { max-width: 180px; border-color: var(--admin-border); }
+  .em-select:focus { border-color: var(--admin-rose-700); box-shadow: 0 0 0 2px rgba(138,96,110,0.15); outline: none; }
+  .em-date { max-width: 150px; border-color: var(--admin-border); }
+  .em-date:focus { border-color: var(--admin-rose-700); box-shadow: 0 0 0 2px rgba(138,96,110,0.15); outline: none; }
+  .em-search { max-width: 200px; border-color: var(--admin-border); }
+  .em-search:focus { border-color: var(--admin-rose-700); box-shadow: 0 0 0 2px rgba(138,96,110,0.15); outline: none; }
+
+  /* Recipient profile */
+  .em-recipient { margin-bottom: var(--space-6); }
+  .em-recipient__header { display: flex; align-items: center; gap: var(--space-4); margin-bottom: var(--space-4); }
+  .em-recipient__back { background: none; border: 1px solid var(--admin-border); color: var(--admin-rose-700); padding: 4px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.8125rem; font-weight: 500; }
+  .em-recipient__back:hover { border-color: var(--admin-rose-700); background: #f0e5e9; }
+  .em-recipient__email { margin-bottom: 0; color: var(--admin-text); font-size: 1.25rem; }
+
+  .em-heading { color: var(--admin-text); margin-bottom: var(--space-4); }
+
+  /* Table */
+  .em-table-wrap { overflow-x: auto; border: 1px solid var(--admin-border); border-radius: var(--radius-md); background: var(--admin-surface); margin-bottom: var(--space-4); }
+  .em-empty { text-align: center; color: var(--admin-text-faint); padding: var(--space-8) var(--space-4); }
+  .em-error { color: #c0392b; }
+
+  /* Pagination */
+  .em-pagination { display: flex; align-items: center; justify-content: center; gap: var(--space-4); margin-bottom: var(--space-4); }
+  .em-page-btn { background: none; border: 1px solid var(--admin-border); color: var(--admin-rose-700); padding: 6px 16px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.8125rem; }
+  .em-page-btn:hover:not(:disabled) { border-color: var(--admin-rose-700); background: #f0e5e9; }
+  .em-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .em-page-info { font-size: 0.8125rem; color: var(--admin-text-muted); }
+
+  .em-meta { font-size: 0.75rem; color: var(--admin-text-faint); margin-top: var(--space-4); }
+</style>
+
+<style is:global>
+  .em-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+  .em-table th, .em-table td { padding: var(--space-3) var(--space-4); text-align: left; border-bottom: 1px solid #d9d3cc; }
+  .em-table th { background: #eee5dd; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: #636261; }
+  .em-table th[data-sort] { cursor: pointer; user-select: none; }
+  .em-table th[data-sort]:hover { background: #e4d9ce; }
+  .em-sort-arrow { font-size: 0.625rem; color: #8a606e; }
+  .em-table tbody tr:last-child td { border-bottom: none; }
+  .em-table tbody tr:hover { background: #f0e5e9; }
+  .em-col-time { white-space: nowrap; font-size: 0.8125rem; }
+  .em-col-subject { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .em-col-detail { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.8125rem; color: #636261; }
+  .em-email-link { color: #8a606e; text-decoration: none; font-weight: 500; }
+  .em-email-link:hover { text-decoration: underline; color: #764d5e; }
+  .em-badge { display: inline-block; padding: 2px 8px; border-radius: var(--radius-sm); font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+  .em-badge--send { background: #e3f2fd; color: #1565c0; }
+  .em-badge--delivery { background: #e8f5e9; color: #2e7d32; }
+  .em-badge--bounce { background: rgba(192,57,43,0.1); color: #c0392b; }
+  .em-badge--complaint { background: #fce4ec; color: #c62828; }
+  .em-badge--open { background: #f3e5f5; color: #7b1fa2; }
+  .em-badge--click { background: #e0f2f1; color: #00695c; }
+  .em-badge--unsubscribe { background: #fff3e0; color: #e65100; }
+  .em-badge--reject { background: #efebe9; color: #4e342e; }
+  .em-badge--unknown { background: #f0e5e9; color: #636261; }
+</style>

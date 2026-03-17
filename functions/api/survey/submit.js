@@ -3,7 +3,7 @@
  * Stores survey results in Airtable and consumes the token.
  * Input: { token, symptoms: { tier1: [...], tier2: [...], tier3: [...] }, score: { tier1, tier2, tier3, total } }
  */
-import { sendEmail } from '../_ses.js';
+import { sendEmail, logEmailFailure } from '../_ses.js';
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
 import { json, optionsResponse } from '../auth/_shared.js';
@@ -164,16 +164,19 @@ export async function onRequestPost(context) {
       const detail = `D1 write failed: email=${data.email} record=${airtableRecordId} err=${d1Err.message}`;
       log(env, waitUntil, 'survey', 'd1_identity_write_error', 'error', detail, 0, 500);
 
+      const alertSubject = 'ALERT: Survey identity link failed';
       const alertFn = async () => {
         try {
           await sendEmail(env, {
             from: 'RRM Academy <alerts@mail.rrmacademy.org>',
             to: 'administrator@rrmacademy.org',
-            subject: 'ALERT: Survey identity link failed',
+            subject: alertSubject,
             text: `D1 write failed during survey submission.\n\nEmail: ${data.email}\nAirtable Record ID: ${airtableRecordId}\nError: ${d1Err.message}\nTimestamp: ${new Date().toISOString()}\n\nManual action required: INSERT into survey_identities or link this record manually.`,
+            log: { db: env.SURVEY_DB, source: 'survey/d1-alert', category: 'transactional' },
           });
         } catch (emailErr) {
           log(env, waitUntil, 'survey', 'd1_alert_email_failed', 'error', emailErr.message, 0, 500);
+          await logEmailFailure(env.SURVEY_DB, { email: 'administrator@rrmacademy.org', category: 'transactional', source: 'survey/d1-alert', subject: alertSubject, detail: emailErr.message });
         }
       };
       waitUntil(alertFn());

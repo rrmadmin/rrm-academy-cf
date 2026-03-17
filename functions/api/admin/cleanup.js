@@ -42,6 +42,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     webhook_events: 0,
     newsletter_events: 0,
     pdf_tokens: 0,
+    email_log: 0,
   };
 
   try {
@@ -92,7 +93,18 @@ export async function onRequestPost({ request, env, waitUntil }) {
     log(env, waitUntil, 'admin', 'cleanup_pdf_token_error', 'error', err.message);
   }
 
-  const total = pruned.sessions + pruned.password_resets + pruned.email_verifications + pruned.webhook_events + pruned.newsletter_events + pruned.pdf_tokens;
+  let emailLogPruned = 0;
+  try {
+    const emailLogResult = await db.prepare(
+      "DELETE FROM email_log WHERE created_at < datetime('now', '-90 days')"
+    ).run();
+    emailLogPruned = emailLogResult.changes;
+  } catch (err) {
+    log(env, waitUntil, 'admin', 'cleanup_email_log_error', 'error', err.message);
+  }
+  pruned.email_log = emailLogPruned;
+
+  const total = pruned.sessions + pruned.password_resets + pruned.email_verifications + pruned.webhook_events + pruned.newsletter_events + pruned.pdf_tokens + pruned.email_log;
   log(env, waitUntil, 'admin', 'cleanup_completed', 'ok', `pruned ${total} rows`, 0, 200);
   return json({ ok: true, pruned });
 }

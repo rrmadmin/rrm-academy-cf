@@ -25,6 +25,7 @@ export async function handlePaymentFailed(db, event, env, request, waitUntil) {
       await sendEmailSafe(env, waitUntil, {
         to: email,
         subject: 'Payment failed for your RRM Academy membership',
+        source: 'billing/invoice-failed',
         text: [
           'Hi there,',
           '',
