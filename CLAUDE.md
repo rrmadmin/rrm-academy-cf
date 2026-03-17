@@ -220,6 +220,7 @@ SEO changes to these templates automatically apply to all existing and future co
 | `POST /api/survey/request` | `survey/request.js` | Request survey link |
 | `GET /api/survey/validate` | `survey/validate.js` | Validate survey magic-link token |
 | `POST /api/survey/submit` | `survey/submit.js` | Submit survey responses |
+| `POST /api/survey/event` | `survey/event.js` | Survey button click tracking (beacon) |
 
 Middleware: `functions/_middleware.js` (session injection, CORS, auth gating)
 
