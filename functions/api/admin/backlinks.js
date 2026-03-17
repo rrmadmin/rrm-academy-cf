@@ -12,13 +12,14 @@ export async function onRequestOptions() {
 export async function onRequestPost(context) {
   const { request, env } = context;
 
+  try {
   // Session-based admin auth
   const auth = await requireSuperAdmin(request, env.DB);
   if (auth instanceof Response) return auth;
 
   // Validate backlinks service configuration
   if (!env.BACKLINKS_WORKER_URL || !env.BACKLINKS_API_TOKEN) {
-    return json({ error: 'Backlinks service not configured' }, 503);
+    return json({ ok: false, error: 'Backlinks service not configured' }, 503);
   }
 
   // Parse request body
@@ -26,14 +27,14 @@ export async function onRequestPost(context) {
   try {
     body = await request.json();
   } catch {
-    return json({ error: 'Invalid JSON' }, 400);
+    return json({ ok: false, error: 'Invalid JSON' }, 400);
   }
-  if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ error: 'Invalid payload' }, 400);
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
   const { action, params = {} } = body;
 
   if (!action) {
-    return json({ error: 'Missing action field' }, 400);
+    return json({ ok: false, error: 'Missing action field' }, 400);
   }
 
   const baseUrl = env.BACKLINKS_WORKER_URL.replace(/\/+$/, '');
@@ -57,9 +58,9 @@ export async function onRequestPost(context) {
 
     case 'list': {
       const qs = new URLSearchParams();
-      if (params.status) qs.set('status', params.status);
-      if (params.domain) qs.set('domain', params.domain);
-      if (params.source) qs.set('source', params.source);
+      if (params.status !== undefined) qs.set('status', params.status);
+      if (params.domain !== undefined) qs.set('domain', params.domain);
+      if (params.source !== undefined) qs.set('source', params.source);
       const query = qs.toString();
       workerUrl = `${baseUrl}/api/backlinks${query ? '?' + query : ''}`;
       break;
@@ -75,14 +76,14 @@ export async function onRequestPost(context) {
 
     case 'check':
       if (!params.id || !/^\d+$/.test(String(params.id))) {
-        return json({ error: 'Invalid or missing params.id' }, 400);
+        return json({ ok: false, error: 'Invalid or missing params.id' }, 400);
       }
       workerUrl = `${baseUrl}/api/check/${encodeURIComponent(params.id)}`;
       method = 'POST';
       break;
 
     default:
-      return json({ error: `Unknown action: ${action}` }, 400);
+      return json({ ok: false, error: `Unknown action: ${action}` }, 400);
   }
 
   // Forward request to Worker
@@ -91,6 +92,10 @@ export async function onRequestPost(context) {
     const data = await workerResp.json();
     return json(data, workerResp.status);
   } catch {
-    return json({ error: 'Backlinks service unavailable' }, 502);
+    return json({ ok: false, error: 'Backlinks service unavailable' }, 502);
+  }
+  } catch (err) {
+    console.error('Backlinks admin error:', err);
+    return json({ ok: false, error: 'Backlinks service error' }, 502);
   }
 }
