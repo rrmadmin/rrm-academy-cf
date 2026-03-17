@@ -11,7 +11,7 @@
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "1b5eb3f98544daaa4f6e48ea89a57122985581818608b616b28123a8ae0eb9ee",
+      "hash": "afaef32fa43cc9bb3249c5312444f47d7fb1307ab5cfe31c73344259dda6cd24",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
@@ -87,7 +87,7 @@
       "note": "Survey submission + PII pseudonymization"
     },
     "functions/api/survey/request.js": {
-      "hash": "501c05d9fd423c4e2d93515c4e35bf137572aed3d7d5fbec1364454475c3bb8c",
+      "hash": "8b402dd2bdcd4b42f9e6c4f6bc960f9d84c8d8a03b7ed33689fae651fed162ab",
       "note": "Magic-link token generation"
     },
     "functions/api/newsletter/send.js": {

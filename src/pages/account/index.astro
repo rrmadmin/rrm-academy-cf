@@ -57,7 +57,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
                   <dt>Email</dt>
                   <dd id="profile-email"></dd>
                   <dt>Member since</dt>
-                  <dd id="profile-since">—</dd>
+                  <dd id="profile-since">--</dd>
                 </dl>
 
                 <!-- Edit form -->
@@ -214,8 +214,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
       function renderProfile(user) {
         nameEl.textContent = user.firstName || user.name || 'Member';
-        profileFirstName.textContent = user.firstName || '—';
-        profileLastName.textContent = user.lastName || '—';
+        profileFirstName.textContent = user.firstName || '--';
+        profileLastName.textContent = user.lastName || '--';
         profileEmail.textContent = user.email;
         if (user.createdAt) {
           var d = new Date(user.createdAt.replace(' ', 'T') + 'Z');
@@ -485,7 +485,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
               if (sub.currentPeriodEnd) {
                 billingDate.textContent = new Date(sub.currentPeriodEnd * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
               } else {
-                billingDate.textContent = '—';
+                billingDate.textContent = '--';
               }
               if (sub.cancelAtPeriodEnd) cancelNotice.hidden = false;
               billingActive.hidden = false;

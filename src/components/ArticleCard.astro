@@ -185,9 +185,8 @@ const coinsTitle = buildCOinS(article);
 
   .article-card__topics {
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     gap: var(--space-2);
-    overflow: hidden;
     margin-top: auto;
   }
   .article-card__topic {
@@ -198,7 +197,10 @@ const coinsTitle = buildCOinS(article);
     padding: 2px 8px;
     border-radius: var(--radius-sm);
     white-space: nowrap;
-    flex-shrink: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    max-width: 100%;
   }
 
   /* Compact variant — clean text row */

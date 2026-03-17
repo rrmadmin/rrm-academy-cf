@@ -41,7 +41,7 @@ const isAffiliate = !!course.isAffiliate;
 let cohortLabel = '';
 if (isAffiliate && course.cohortDates) {
   const fmt = (d: string, opts: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('en-US', opts).format(new Date(d + 'T00:00:00'));
-  cohortLabel = `${fmt(course.cohortDates.start, { month: 'short', day: 'numeric' })} – ${fmt(course.cohortDates.end, { month: 'short', day: 'numeric', year: 'numeric' })}`;
+  cohortLabel = `${fmt(course.cohortDates.start, { month: 'short', day: 'numeric' })} to ${fmt(course.cohortDates.end, { month: 'short', day: 'numeric', year: 'numeric' })}`;
 }
 const affiliatePrice = isAffiliate && course.affiliatePriceCents ? `$${(course.affiliatePriceCents / 100).toFixed(0)}` : '';
 
@@ -250,7 +250,7 @@ const relatedCourses = course.relatedCourses
                 </>
               )}
             </div>
-            <p class="course-hero__instructor">{isAffiliate ? `Offered by NeoFertility — Led by ${instructor?.name}` : `Taught by ${instructor?.name}`}</p>
+            <p class="course-hero__instructor">{isAffiliate ? `Offered by NeoFertility | Led by ${instructor?.name}` : `Taught by ${instructor?.name}`}</p>
             <div class="course-hero__actions" id="hero-actions" data-pagefind-ignore>
               {isAffiliate ? (
                 <div class="hero-cta-static">
