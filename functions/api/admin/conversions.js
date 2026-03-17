@@ -7,11 +7,14 @@
  * Query params:
  *   ?period=7d|28d|90d (default: 28d)
  */
-import { json, requireSuperAdmin } from '../auth/_shared.js';
+import { json, optionsResponse, requireSuperAdmin } from '../auth/_shared.js';
+import { getAccessToken, runReport } from './_ga4.js';
 
-const GA4_DATA_API = 'https://analyticsdata.googleapis.com/v1beta';
-const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const CACHE_TTL = 3600; // 1 hour
+
+export async function onRequestOptions() {
+  return optionsResponse();
+}
 
 export async function onRequestGet({ request, env }) {
   try {
@@ -48,26 +51,6 @@ export async function onRequestGet({ request, env }) {
     console.error('GA4 conversions error:', err.message);
     return json({ ok: false, error: 'Failed to fetch analytics' }, 502);
   }
-}
-
-async function getAccessToken(env) {
-  const creds = JSON.parse(env.GA4_OAUTH_CREDS);
-  const resp = await fetch(GOOGLE_TOKEN_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      client_id: creds.client_id,
-      client_secret: creds.client_secret,
-      refresh_token: creds.refresh_token,
-      grant_type: 'refresh_token',
-    }),
-  });
-  if (!resp.ok) {
-    const err = await resp.text();
-    throw new Error(`Token refresh failed: ${resp.status} ${err}`);
-  }
-  const data = await resp.json();
-  return data.access_token;
 }
 
 async function fetchReport(accessToken, propertyId, startDate) {
@@ -174,19 +157,3 @@ async function fetchReport(accessToken, propertyId, startDate) {
   };
 }
 
-async function runReport(accessToken, propertyId, body) {
-  const resp = await fetch(`${GA4_DATA_API}/properties/${propertyId}:runReport`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-      'x-goog-user-project': 'rrm-academy',
-    },
-    body: JSON.stringify(body),
-  });
-  if (!resp.ok) {
-    const err = await resp.text();
-    throw new Error(`GA4 report failed: ${resp.status} ${err}`);
-  }
-  return resp.json();
-}

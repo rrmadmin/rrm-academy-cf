@@ -4,57 +4,95 @@
  * Protected by ADMIN_API_SECRET env var.
  * Call daily from n8n or any external cron.
  */
+import { json, optionsResponse } from '../auth/_shared.js';
 import { log } from '../_log.js';
+
+export function onRequestOptions() {
+  return optionsResponse();
+}
 
 export async function onRequestPost({ request, env, waitUntil }) {
   if (!env.ADMIN_API_SECRET) {
-    return Response.json({ error: 'Not configured' }, { status: 503 });
+    return json({ ok: false, error: 'Not configured' }, 503);
   }
-  const auth = request.headers.get('Authorization');
-  if (auth !== `Bearer ${env.ADMIN_API_SECRET}`) {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const auth = request.headers.get('Authorization') || '';
+  const expected = `Bearer ${env.ADMIN_API_SECRET}`;
+  const authBytes = new TextEncoder().encode(auth);
+  const expectedBytes = new TextEncoder().encode(expected);
+  let mismatch = authBytes.length !== expectedBytes.length ? 1 : 0;
+  const len = Math.min(authBytes.length, expectedBytes.length);
+  for (let i = 0; i < len; i++) {
+    mismatch |= authBytes[i] ^ expectedBytes[i];
+  }
+  if (mismatch !== 0) {
+    return json({ ok: false, error: 'Unauthorized' }, 401);
   }
 
   if (!env.DB) {
-    return Response.json({ error: 'Server misconfigured' }, { status: 500 });
+    return json({ ok: false, error: 'Server misconfigured' }, 503);
   }
 
   const db = env.DB;
   const now = Math.floor(Date.now() / 1000);
+  const pruned = {
+    sessions: 0,
+    password_resets: 0,
+    email_verifications: 0,
+    webhook_events: 0,
+    newsletter_events: 0,
+    pdf_tokens: 0,
+  };
 
-  const sessions = await db.prepare('DELETE FROM session WHERE expires_at < ?').bind(now).run();
-  const resets = await db.prepare('DELETE FROM password_reset WHERE expires_at < ?').bind(now).run();
-  const verifications = await db.prepare('DELETE FROM email_verification WHERE expires_at < ?').bind(now).run();
-  const sevenDaysAgo = now - 7 * 86400;
-  const webhookEvents = await db.prepare('DELETE FROM webhook_event WHERE processed_at < ?').bind(sevenDaysAgo).run();
-  const ninetyDaysAgo = now - 90 * 86400;
-  const nlEvents = await db.prepare(
-    "DELETE FROM newsletter_event WHERE created_at < datetime(?, 'unixepoch')"
-  ).bind(ninetyDaysAgo).run();
-
-  // Delete pdf_tokens more than 2 days past expiry (expired + 1-day grace)
-  let pdfTokens = { meta: { changes: 0 } };
   try {
-    pdfTokens = await db.prepare(
+    const r = await db.prepare('DELETE FROM session WHERE expires_at < ?').bind(now).run();
+    pruned.sessions = r.meta.changes;
+  } catch (err) {
+    log(env, waitUntil, 'admin', 'cleanup_sessions_error', 'error', err.message);
+  }
+
+  try {
+    const r = await db.prepare('DELETE FROM password_reset WHERE expires_at < ?').bind(now).run();
+    pruned.password_resets = r.meta.changes;
+  } catch (err) {
+    log(env, waitUntil, 'admin', 'cleanup_resets_error', 'error', err.message);
+  }
+
+  try {
+    const r = await db.prepare('DELETE FROM email_verification WHERE expires_at < ?').bind(now).run();
+    pruned.email_verifications = r.meta.changes;
+  } catch (err) {
+    log(env, waitUntil, 'admin', 'cleanup_verifications_error', 'error', err.message);
+  }
+
+  try {
+    const sevenDaysAgo = now - 7 * 86400;
+    const r = await db.prepare('DELETE FROM webhook_event WHERE processed_at < ?').bind(sevenDaysAgo).run();
+    pruned.webhook_events = r.meta.changes;
+  } catch (err) {
+    log(env, waitUntil, 'admin', 'cleanup_webhook_events_error', 'error', err.message);
+  }
+
+  try {
+    const ninetyDaysAgo = now - 90 * 86400;
+    const r = await db.prepare(
+      "DELETE FROM newsletter_event WHERE created_at < datetime(?, 'unixepoch')"
+    ).bind(ninetyDaysAgo).run();
+    pruned.newsletter_events = r.meta.changes;
+  } catch (err) {
+    log(env, waitUntil, 'admin', 'cleanup_newsletter_events_error', 'error', err.message);
+  }
+
+  try {
+    const r = await db.prepare(
       'DELETE FROM pdf_token WHERE expires_at < ?'
     ).bind(now - 86400).run();
+    pruned.pdf_tokens = r.meta.changes;
   } catch (err) {
     log(env, waitUntil, 'admin', 'cleanup_pdf_token_error', 'error', err.message);
   }
 
-  const result = {
-    ok: true,
-    pruned: {
-      sessions: sessions.meta.changes,
-      password_resets: resets.meta.changes,
-      email_verifications: verifications.meta.changes,
-      webhook_events: webhookEvents.meta.changes,
-      newsletter_events: nlEvents.meta.changes,
-      pdf_tokens: pdfTokens.meta.changes,
-    },
-  };
-
-  const total = result.pruned.sessions + result.pruned.password_resets + result.pruned.email_verifications + result.pruned.webhook_events + result.pruned.newsletter_events + result.pruned.pdf_tokens;
+  const total = pruned.sessions + pruned.password_resets + pruned.email_verifications + pruned.webhook_events + pruned.newsletter_events + pruned.pdf_tokens;
   log(env, waitUntil, 'admin', 'cleanup_completed', 'ok', `pruned ${total} rows`, 0, 200);
-  return Response.json(result);
+  return json({ ok: true, pruned });
 }
