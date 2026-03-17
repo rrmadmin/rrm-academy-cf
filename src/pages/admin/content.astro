@@ -61,7 +61,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
       <!-- Content category breakdown -->
       <h2 class="ct-heading">Content Categories</h2>
-      <div class="ct-metrics ct-metrics--5">
+      <div class="ct-metrics ct-metrics--6">
         <div class="ct-card">
           <span class="ct-card__label">Library</span>
           <span class="ct-card__value ct-card__value--green" id="c-library">--</span>
@@ -77,6 +77,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         <div class="ct-card">
           <span class="ct-card__label">Blog</span>
           <span class="ct-card__value" id="c-blog">--</span>
+        </div>
+        <div class="ct-card">
+          <span class="ct-card__label">Guides</span>
+          <span class="ct-card__value" id="c-guides">--</span>
         </div>
         <div class="ct-card">
           <span class="ct-card__label">Other</span>
@@ -128,6 +132,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     function num(n) { return (n||0).toLocaleString(); }
     function dur(s) { var m = Math.floor(s/60); var sec = Math.round(s%60); return m + ':' + (sec<10?'0':'') + sec; }
     function pct(n) { return ((n||0)*100).toFixed(1) + '%'; }
+    function esc(str) { var d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
 
     async function apiCall(params) {
       var qs = params ? '?' + new URLSearchParams(params).toString() : '';
@@ -151,6 +156,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       document.getElementById('c-courses').textContent = num(d.categories.courses);
       document.getElementById('c-community').textContent = num(d.categories.community);
       document.getElementById('c-blog').textContent = num(d.categories.blog);
+      document.getElementById('c-guides').textContent = num(d.categories.guides);
       document.getElementById('c-other').textContent = num(d.categories.other);
 
       var pages = d.pages || [];
@@ -159,7 +165,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         ptbody.innerHTML = '<tr><td colspan="4" class="ct-empty">No data</td></tr>';
       } else {
         ptbody.innerHTML = pages.map(function(p) {
-          return '<tr><td class="ct-path">' + p.path + '</td><td>' + num(p.views) + '</td><td>' + num(p.users) + '</td><td>' + dur(p.avgDuration) + '</td></tr>';
+          return '<tr><td class="ct-path">' + esc(p.path) + '</td><td>' + num(p.views) + '</td><td>' + num(p.users) + '</td><td>' + dur(p.avgDuration) + '</td></tr>';
         }).join('');
       }
 
@@ -169,7 +175,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         rtbody.innerHTML = '<tr><td colspan="3" class="ct-empty">No data</td></tr>';
       } else {
         rtbody.innerHTML = refs.map(function(r) {
-          return '<tr><td>' + r.source + '</td><td>' + num(r.sessions) + '</td><td>' + num(r.users) + '</td></tr>';
+          return '<tr><td>' + esc(r.source) + '</td><td>' + num(r.sessions) + '</td><td>' + num(r.users) + '</td></tr>';
         }).join('');
       }
 
@@ -207,8 +213,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .ct-section{padding:var(--space-8) 0;background:var(--admin-bg);min-height:80vh;}
   .ct-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-6);flex-wrap:wrap;gap:var(--space-3);} .ct-header h1{margin-bottom:0;color:var(--admin-text);} .ct-controls{display:flex;gap:var(--space-3);align-items:center;} .ct-select{max-width:200px;border-color:var(--admin-border);} .ct-select:focus{border-color:var(--admin-rose-700);box-shadow:0 0 0 2px rgba(138,96,110,.15);outline:none;} .ct-btn{background:var(--admin-rose-700);border-color:var(--admin-rose-700);color:#fff;} .ct-btn:hover{background:#764d5e;}
 
-  .ct-metrics{display:grid;gap:var(--space-4);margin-bottom:var(--space-6);} .ct-metrics--5{grid-template-columns:repeat(5,1fr);}
-  @media(max-width:768px){.ct-metrics--5{grid-template-columns:repeat(2,1fr);}}
+  .ct-metrics{display:grid;gap:var(--space-4);margin-bottom:var(--space-6);} .ct-metrics--5{grid-template-columns:repeat(5,1fr);} .ct-metrics--6{grid-template-columns:repeat(6,1fr);}
+  @media(max-width:768px){.ct-metrics--5{grid-template-columns:repeat(2,1fr);} .ct-metrics--6{grid-template-columns:repeat(3,1fr);}}
   .ct-card{background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:var(--radius-md);padding:var(--space-4) var(--space-5);text-align:center;} .ct-card__label{display:block;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--admin-text-faint);margin-bottom:var(--space-1);} .ct-card__value{display:block;font-size:1.75rem;font-weight:700;color:var(--admin-text);font-family:'Inter',sans-serif;} .ct-card__value--green{color:#27ae60;}
 
   .ct-heading{color:var(--admin-text);margin-bottom:var(--space-4);}

@@ -111,7 +111,7 @@
       "note": "Community access control (requireMember)"
     },
     "functions/api/admin/cleanup.js": {
-      "hash": "e0d020767e2de927d28eb181c7855520015a0ccea25ec563f3ecf44f8caa668b",
+      "hash": "9710898a167d60354f2839f0278c2f40c8674e72d9d77abb481813522583b61d",
       "note": "Expired data deletion from D1"
     },
     "scripts/guard.mjs": {
