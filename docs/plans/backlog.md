@@ -79,7 +79,7 @@ Plan ready at `docs/plans/2026-03-09-google-ad-grants-plan.md`. Waiting on ~1 mo
 
 ### Performance Optimization
 
-- **Remove `articles.json` from `public/data/`** -- 12MB file still publicly served at `/data/articles.json`. Only needed at build time (already in `src/data/`). If Pagefind needs it at runtime, gate behind long cache headers instead.
+- **COMPLETE.** Removed `articles.json` from `public/data/` (12MB publicly served). Deleted CI copy step from deploy.yml. Build-time copy at `src/data/` is unaffected.
 - ~~**Dark mode body filter scroll jank**~~ CUT (2026-03-15) -- partially mitigated, edge case. Not worth the effort.
 
 ### Content Refinement

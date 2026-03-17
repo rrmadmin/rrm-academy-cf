@@ -26,6 +26,8 @@
     "verify-citations": "node scripts/verify-citations.mjs",
     "lint": "eslint functions/",
     "test": "node --test test/",
+    "test:e2e": "npx playwright test",
+    "test:e2e:mobile": "npx playwright test --project=iphone-se --project=iphone-xr",
     "check-types": "node scripts/check-types.mjs",
     "check-types:update": "node scripts/check-types.mjs --update",
     "verify-templates": "node scripts/verify-templates.mjs"
@@ -43,6 +45,7 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.7",
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.58.2",
     "@resvg/resvg-js": "^2.6.2",
     "eslint": "^10.0.2",
     "pagefind": "^1.3.0",

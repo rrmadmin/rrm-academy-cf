@@ -8,6 +8,7 @@ import { log } from '../_log.js';
 import { validateEmail } from '../auth/_email-validate.js';
 import { verifyAndTagEmail } from '../_elv.js';
 import { json, optionsResponse, checkRateLimit } from '../auth/_shared.js';
+import { validateBody } from '../_validate.js';
 
 const TOKEN_TTL = 24 * 60 * 60; // 24 hours in seconds
 const RATE_LIMIT_SECONDS = 600;       // 10 minutes between emails to same address
@@ -34,10 +35,11 @@ export async function onRequestPost(context) {
     }
     if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
-    const email = (body.email || '').trim().toLowerCase();
-    if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return json({ ok: false, error: 'Valid email required' }, 400);
-    }
+    const validated = validateBody(body, {
+      email: { type: 'email', required: true },
+    });
+    if (!validated.valid) return json({ ok: false, error: validated.error }, validated.status);
+    const email = validated.data.email;
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
     if (!checkRateLimit(`survey:${ip}`)) {
       return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
