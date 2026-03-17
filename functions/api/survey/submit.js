@@ -36,7 +36,7 @@ export async function onRequestPost(context) {
     }
     if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
-    const { token, symptoms, score } = body;
+    const { token, symptoms, score, device } = body;
     if (!token || !symptoms || !score) {
       return json({ ok: false, error: 'Missing required fields' }, 400);
     }
@@ -108,6 +108,10 @@ export async function onRequestPost(context) {
         Submitted: new Date().toISOString(),
         Source: referrer,
         'User Origin': data.userorigin || '',
+        ...(device?.viewport_width && {
+          'Viewport Width': device.viewport_width,
+          'Device Type': device.viewport_width <= 768 ? 'Mobile' : device.viewport_width <= 1024 ? 'Tablet' : 'Desktop',
+        }),
       };
 
       const airtableResp = await fetch(

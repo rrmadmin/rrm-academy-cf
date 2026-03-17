@@ -170,7 +170,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
           <!-- Actions -->
           <div class="results-actions">
-            <button type="button" id="download-pdf" class="btn btn--primary">
+            <button type="button" id="copy-for-ai" class="btn btn--primary">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M3 10.5H2.5A1.5 1.5 0 0 1 1 9V2.5A1.5 1.5 0 0 1 2.5 1H9A1.5 1.5 0 0 1 10.5 2.5V3"/></svg>
+              <span id="copy-for-ai-label">Copy Results for AI</span>
+            </button>
+            <button type="button" id="download-pdf" class="btn btn--secondary">
               Download Your Results (PDF)
             </button>
           </div>
@@ -182,7 +186,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
               Follow Dr. Whittaker on Instagram for resources, research, and expert guidance on endometriosis and restorative reproductive medicine.
             </p>
             <p style="margin-top: var(--space-4);">
-              <a href="https://www.instagram.com/napro_fertility_surgeon/" target="_blank" rel="noopener" class="btn btn--secondary" style="display:inline-block; margin-bottom: var(--space-3);">Follow @napro_fertility_surgeon</a>
+              <a href="https://www.instagram.com/napro_fertility_surgeon/" target="_blank" rel="noopener" class="btn btn--secondary" style="display:inline-block; margin-bottom: var(--space-3);" onclick="trackSurveyEvent('follow_instagram')">Follow @napro_fertility_surgeon</a>
             </p>
             <p>
               Save your results PDF and bring it to your next appointment. To learn more about restorative reproductive medicine, visit <a href="https://rrmacademy.org/about">rrmacademy.org</a>.
@@ -492,8 +496,15 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
   /* Actions */
   .results-actions {
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    gap: var(--space-4);
+    flex-wrap: wrap;
     margin-bottom: var(--space-8);
+  }
+  #copy-for-ai.copied {
+    pointer-events: none;
+    opacity: 0.7;
   }
 
   /* CTA */
@@ -535,6 +546,16 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 </style>
 
 <script>
+  // ── Survey event tracking ──
+  function trackSurveyEvent(action) {
+    try {
+      navigator.sendBeacon('/api/survey/event', JSON.stringify({
+        action,
+        viewport_width: window.innerWidth,
+      }));
+    } catch { /* non-critical */ }
+  }
+
   // ── Token validation ──
   const params = new URLSearchParams(window.location.search);
   const token = params.get('token');
@@ -597,6 +618,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     const t2Checked = Array.from(document.querySelectorAll('input[name="t2"]:checked'));
     const t3Checked = Array.from(document.querySelectorAll('input[name="t3"]:checked'));
 
+    trackSurveyEvent('calculate');
+
     const score = {
       tier1: t1Checked.length * 3,
       tier2: t2Checked.length * 2,
@@ -639,14 +662,22 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       await fetch('/api/survey/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, symptoms, score }),
+        body: JSON.stringify({
+          token, symptoms, score,
+          device: {
+            viewport_width: window.innerWidth,
+            viewport_height: window.innerHeight,
+            user_agent: navigator.userAgent,
+          },
+        }),
       });
     } catch {
       // Don't block the user experience if submit fails
     }
 
-    // Set up PDF download
+    // Set up PDF download + copy for AI
     setupPdfDownload(score, symptoms);
+    setupCopyForAI(score, symptoms);
   });
 
   function getInterpretation(score, t1Count, t2Count, t3Count) {
@@ -685,6 +716,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   function setupPdfDownload(score, symptoms) {
     const btn = document.getElementById('download-pdf');
     btn.addEventListener('click', async () => {
+      trackSurveyEvent('download_pdf');
       btn.disabled = true;
       btn.textContent = 'Generating PDF...';
 
@@ -897,6 +929,77 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       }
       btn.disabled = false;
       btn.textContent = 'Download Your Results (PDF)';
+    });
+  }
+
+  // ── Copy Results for AI ──
+  function setupCopyForAI(score, symptoms) {
+    const btn = document.getElementById('copy-for-ai');
+    const label = document.getElementById('copy-for-ai-label');
+
+    btn.addEventListener('click', async () => {
+      trackSurveyEvent('copy_for_ai');
+      const date = new Date().toLocaleDateString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric',
+      });
+
+      let text = `My Endometriosis Symptom Self-Survey Results
+
+Survey: 3-Tier Endometriosis Symptom Self-Survey
+Author: Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI
+Source: RRM Academy (rrmacademy.org), a 501(c)(3) nonprofit medical education platform
+Date completed: ${date}
+
+Score: ${score.total} / 81
+  Tier 1 (Very High Suspicion): ${score.tier1} / 45 (${symptoms.tier1.length} symptom${symptoms.tier1.length !== 1 ? 's' : ''})
+  Tier 2 (High Suspicion): ${score.tier2} / 30 (${symptoms.tier2.length} symptom${symptoms.tier2.length !== 1 ? 's' : ''})
+  Tier 3 (Suspicion): ${score.tier3} / 6 (${symptoms.tier3.length} symptom${symptoms.tier3.length !== 1 ? 's' : ''})`;
+
+      if (symptoms.tier1.length > 0) {
+        text += `\n\nTier 1 symptoms reported:\n${symptoms.tier1.map(s => `- ${s}`).join('\n')}`;
+      }
+      if (symptoms.tier2.length > 0) {
+        text += `\n\nTier 2 symptoms reported:\n${symptoms.tier2.map(s => `- ${s}`).join('\n')}`;
+      }
+      if (symptoms.tier3.length > 0) {
+        text += `\n\nTier 3 symptoms reported:\n${symptoms.tier3.map(s => `- ${s}`).join('\n')}`;
+      }
+
+      text += `\n\nScoring context: Tier 1 symptoms carry 3 points each and reflect patterns most strongly associated with endometriosis in clinical evaluation. Tier 2 symptoms (2 points each) are frequently observed alongside endometriosis. Tier 3 symptoms (1 point each) are associated but less specific. This survey is educational and does not constitute a diagnosis. Endometriosis can only be confirmed through surgery.
+
+Related resources:
+  instagram.com/napro_fertility_surgeon -- Dr. Whittaker's endometriosis and reproductive health resources
+  rrmacademy.org/faqs/can-rrm-help-with-endometriosis -- Can restorative reproductive medicine help with endometriosis?
+  rrmacademy.org/naprotechnology/#conditions -- How NaProTechnology evaluates and treats endometriosis
+  rrmacademy.org/glossary/#endometriosis -- Medical definition of endometriosis
+  rrmacademy.org/glossary/#excision-surgery -- Excision surgery for endometriosis
+  rrmacademy.org/what-is-rrm/#conditions -- How RRM treats endometriosis vs. conventional approaches`;
+
+      try {
+        await navigator.clipboard.writeText(text);
+        label.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          label.textContent = 'Copy Results for AI';
+          btn.classList.remove('copied');
+        }, 2000);
+      } catch {
+        // Fallback for older browsers
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        label.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          label.textContent = 'Copy Results for AI';
+          btn.classList.remove('copied');
+        }, 2000);
+      }
     });
   }
 </script>
