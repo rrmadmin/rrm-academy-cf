@@ -49,7 +49,7 @@ export async function notifyNewPost(env, db, post, authorName) {
 
   // Send individual emails to preserve privacy (don't expose member emails to each other)
   const emailPromises = members.results.map(m =>
-    sendEmail(env, { from: 'noreply@mail.rrmacademy.org', to: m.email, subject, html, text })
+    sendEmail(env, { from: 'noreply@mail.rrmacademy.org', to: m.email, subject, html, text, log: { db, source: 'community/new-post', category: 'transactional' } })
       .catch(err => console.error(`Failed to email ${m.email}:`, err.message))
   );
   await Promise.all(emailPromises);
@@ -105,5 +105,6 @@ export async function notifyReply(env, db, postId, parentId, replierId, replierN
     subject,
     html,
     text,
-  });
+    log: { db, source: 'community/reply', category: 'transactional' },
+  }).catch(err => console.error(`Failed to email ${recipient.email}:`, err.message));
 }

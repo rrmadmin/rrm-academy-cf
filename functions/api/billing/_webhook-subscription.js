@@ -43,6 +43,7 @@ export async function handleSubscriptionDeleted(db, event, env, request, waitUnt
       await sendEmailSafe(env, waitUntil, {
         to: email,
         subject: 'Your Save the Uterus Club membership has ended',
+        source: 'billing/subscription-cancel',
         text: [
           'Hi there,',
           '',

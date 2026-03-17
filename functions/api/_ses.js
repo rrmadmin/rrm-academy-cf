@@ -1,6 +1,29 @@
 import { AwsClient } from 'aws4fetch';
 
-export async function sendEmail(env, { from, to, subject, html, text, replyTo }) {
+async function insertEmailLog(db, { event, email, category, source, subject, detail, send_id }) {
+  try {
+    await db.prepare(
+      'INSERT INTO email_log (event, email, category, source, subject, detail, send_id) VALUES (?, ?, ?, ?, ?, ?, ?)'
+    ).bind(
+      event,
+      email.toLowerCase(),
+      category,
+      source,
+      subject || null,
+      detail ? String(detail).slice(0, 500) : null,
+      send_id || null,
+    ).run();
+  } catch {
+    // best-effort -- never crash the caller
+  }
+}
+
+export async function logEmailFailure(db, { email, category, source, subject, detail }) {
+  if (!db) return;
+  await insertEmailLog(db, { event: 'failed', email, category, source, subject, detail });
+}
+
+export async function sendEmail(env, { from, to, subject, html, text, replyTo, log }) {
   if (!env.AWS_ACCESS_KEY_ID || !env.AWS_SECRET_ACCESS_KEY) {
     throw new Error('AWS SES credentials not configured');
   }
@@ -42,14 +65,30 @@ export async function sendEmail(env, { from, to, subject, html, text, replyTo })
     throw new Error(`SES request failed (${res.status})`);
   }
 
-  return res;
+  const data = await res.json();
+  const messageId = data?.MessageId || null;
+
+  if (log?.db) {
+    const recipient = Array.isArray(to) ? to[0] : to;
+    await insertEmailLog(log.db, {
+      event: 'send',
+      email: recipient,
+      category: log.category || 'transactional',
+      source: log.source || '',
+      subject,
+      detail: messageId,
+      send_id: messageId,
+    });
+  }
+
+  return { messageId };
 }
 
 /**
  * Send a raw MIME email via SESv2. Supports custom headers (List-Unsubscribe, etc.).
  * Used for newsletter sends. Transactional emails should use sendEmail() (Simple format).
  */
-export async function sendRawEmail(env, { from, to, subject, html, text, replyTo, headers, configurationSet }) {
+export async function sendRawEmail(env, { from, to, subject, html, text, replyTo, headers, configurationSet, log }) {
   if (!env.AWS_ACCESS_KEY_ID || !env.AWS_SECRET_ACCESS_KEY) {
     throw new Error('AWS SES credentials not configured');
   }
@@ -120,5 +159,21 @@ export async function sendRawEmail(env, { from, to, subject, html, text, replyTo
     throw new Error(`SES raw request failed (${res.status})`);
   }
 
-  return res;
+  const data = await res.json();
+  const sesMessageId = data?.MessageId || null;
+
+  if (log?.db) {
+    const recipient = Array.isArray(to) ? to[0] : to;
+    await insertEmailLog(log.db, {
+      event: 'send',
+      email: recipient,
+      category: log.category || 'newsletter',
+      source: log.source || '',
+      subject,
+      detail: sesMessageId,
+      send_id: sesMessageId,
+    });
+  }
+
+  return { messageId: sesMessageId };
 }

@@ -9,7 +9,7 @@ import {
 } from './_shared.js';
 import { validateEmail } from './_email-validate.js';
 import { verifyAndTagEmail } from '../_elv.js';
-import { sendEmail } from '../_ses.js';
+import { sendEmail, logEmailFailure } from '../_ses.js';
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
 import { validateBody } from '../_validate.js';
@@ -134,7 +134,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
             'RRM Academy',
             'https://rrmacademy.org',
           ].join('\n'),
-        }).catch(() => {})
+          log: { db: env.DB, source: 'auth/signup', category: 'transactional' },
+        }).catch(err => logEmailFailure(env.DB, { email, category: 'transactional', source: 'auth/signup', subject: 'Verify your email — RRM Academy', detail: err.message }))
       );
     }
 

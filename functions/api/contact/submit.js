@@ -5,7 +5,7 @@
 import { json, optionsResponse, checkRateLimit, verifyTurnstile } from '../auth/_shared.js';
 import { validateEmail } from '../auth/_email-validate.js';
 import { verifyAndTagEmail } from '../_elv.js';
-import { sendEmail } from '../_ses.js';
+import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
 import { validateBody } from '../_validate.js';
 
@@ -73,12 +73,13 @@ export async function onRequestPost(context) {
     }
 
     // Send notification email via SES
+    const notifySubject = `[Contact] ${name} (${email})`;
     try {
       await sendEmail(env, {
         from: 'RRM Academy <contact@mail.rrmacademy.org>',
         to: 'administrator@rrmacademy.org',
         replyTo: email,
-        subject: `[Contact] ${name} (${email})`,
+        subject: notifySubject,
         text: [
           `Name: ${name}`,
           `Email: ${email}`,
@@ -88,18 +89,21 @@ export async function onRequestPost(context) {
           '---',
           `Sent from rrmacademy.org/contact at ${new Date().toISOString()}`,
         ].join('\n'),
+        log: { db: env.DB, source: 'contact/notify', category: 'transactional' },
       });
     } catch (err) {
       log(env, waitUntil, 'contact', 'send_error', 'error', err.message, 0, 502);
+      await logEmailFailure(env.DB, { email: 'administrator@rrmacademy.org', category: 'transactional', source: 'contact/notify', subject: notifySubject, detail: err.message });
       return json({ ok: false, error: 'Failed to send message. Please try again.' }, 502);
     }
 
     // Send confirmation to the sender
+    const confirmSubject = 'We received your message — RRM Academy';
     try {
       await sendEmail(env, {
         from: 'RRM Academy <contact@mail.rrmacademy.org>',
         to: email,
-        subject: 'We received your message — RRM Academy',
+        subject: confirmSubject,
         text: [
           `Hi ${name},`,
           '',
@@ -109,9 +113,11 @@ export async function onRequestPost(context) {
           'RRM Academy',
           'https://rrmacademy.org',
         ].join('\n'),
+        log: { db: env.DB, source: 'contact/confirm', category: 'transactional' },
       });
     } catch (err) {
       log(env, waitUntil, 'contact', 'confirmation_error', 'warn', err.message, 0, 0);
+      await logEmailFailure(env.DB, { email, category: 'transactional', source: 'contact/confirm', subject: confirmSubject, detail: err.message });
     }
 
     return json({ ok: true });

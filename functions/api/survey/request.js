@@ -2,7 +2,7 @@
  * POST /api/survey/request
  * Accepts { email }, generates a magic-link token, stores in KV, sends email via SES.
  */
-import { sendEmail } from '../_ses.js';
+import { sendEmail, logEmailFailure } from '../_ses.js';
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
 import { validateEmail } from '../auth/_email-validate.js';
@@ -94,15 +94,18 @@ export async function onRequestPost(context) {
     if (utmSource) surveyUrl += `&utm_source=${encodeURIComponent(utmSource)}`;
 
     // Send email via SES
+    const surveySubject = 'Your Endometriosis Symptom Self-Survey';
     try {
       await sendEmail(env, {
         from: 'RRM Academy <survey@mail.rrmacademy.org>',
         to: email,
-        subject: 'Your Endometriosis Symptom Self-Survey',
+        subject: surveySubject,
         html: buildEmailHtml(surveyUrl),
+        log: { db: env.DB, source: 'survey/request', category: 'transactional' },
       });
     } catch (err) {
       log(env, waitUntil, 'survey', 'request_send_error', 'error', err.message, 0, 502);
+      await logEmailFailure(env.DB, { email, category: 'transactional', source: 'survey/request', subject: surveySubject, detail: err.message });
       await env.SURVEY_TOKENS.delete(`email:${email}`);
       await env.SURVEY_TOKENS.delete(`token:${token}`);
       return json({ ok: false, error: 'Failed to send email. Please try again.' }, 502);

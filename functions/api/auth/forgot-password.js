@@ -7,7 +7,7 @@ import {
   json, optionsResponse, generateId, generateToken, hashToken,
   verifyTurnstile, checkRateLimit, isValidEmail,
 } from './_shared.js';
-import { sendEmail } from '../_ses.js';
+import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
 
 export async function onRequestOptions() {
@@ -79,9 +79,11 @@ export async function onRequestPost({ request, env, waitUntil }) {
             'RRM Academy',
             'https://rrmacademy.org',
           ].join('\n'),
+          log: { db: env.DB, source: 'auth/forgot-password', category: 'transactional' },
         });
       } catch (emailErr) {
         log(env, waitUntil, 'auth', 'forgot_password_error', 'error', emailErr.message);
+        await logEmailFailure(env.DB, { email, category: 'transactional', source: 'auth/forgot-password', subject: 'Reset your password — RRM Academy', detail: emailErr.message });
       }
     }
 

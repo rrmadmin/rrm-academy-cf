@@ -2,7 +2,7 @@
  * Shared utilities for Stripe webhook event handlers.
  * Prefixed with _ so CF Pages doesn't treat it as a route.
  */
-import { sendEmail as sesSendEmail } from '../_ses.js';
+import { sendEmail as sesSendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
 
 /**
@@ -25,15 +25,18 @@ export async function getEmailByStripeCustomer(db, stripeCustomerId, env, waitUn
  * Send a transactional email via SES.
  * Logs errors but does not throw -- email failure should not block webhook processing.
  */
-export async function sendEmailSafe(env, waitUntil, { to, subject, text }) {
+export async function sendEmailSafe(env, waitUntil, { to, subject, text, source }) {
+  const src = source || '';
   try {
     await sesSendEmail(env, {
       from: 'RRM Academy <accounts@mail.rrmacademy.org>',
       to,
       subject,
       text,
+      log: { db: env.DB, source: src, category: 'transactional' },
     });
   } catch (err) {
     log(env, waitUntil, 'billing', 'email_send_fail', 'error', `${to}: ${err.message}`);
+    await logEmailFailure(env.DB, { email: to, category: 'transactional', source: src, subject, detail: err.message });
   }
 }

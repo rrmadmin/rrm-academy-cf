@@ -55,13 +55,20 @@ export async function onRequestPost({ request, env, waitUntil }) {
     sendId = crypto.randomUUID();
 
     // Count total recipients upfront (only on first call)
-    // Segmented sends skip upfront count to avoid loading all rows into memory
     let totalRecipients = 0;
     if (!segments || segments.length === 0) {
       const countResult = await db.prepare(
         "SELECT COUNT(*) as c FROM newsletter_subscriber WHERE status = 'active'"
       ).first();
       totalRecipients = countResult.c;
+    } else {
+      const allSubs = await db.prepare(
+        "SELECT segments FROM newsletter_subscriber WHERE status = 'active'"
+      ).all();
+      totalRecipients = allSubs.results.filter(sub => {
+        const subSegs = JSON.parse(sub.segments || '[]');
+        return segments.some(seg => subSegs.includes(seg));
+      }).length;
     }
 
     await db.prepare(
@@ -144,6 +151,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
           text,
           headers,
           configurationSet: 'rrm-newsletter',
+          log: { db, source: 'newsletter/send', category: 'newsletter' },
         });
 
         // Record sent event
