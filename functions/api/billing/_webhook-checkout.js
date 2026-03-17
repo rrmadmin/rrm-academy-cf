@@ -89,6 +89,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
       await sendEmailSafe(env, waitUntil, {
         to: email,
         subject: 'Your course is ready',
+        source: 'billing/checkout-course',
         text: [
           `Hi ${name || 'there'},`,
           '',
@@ -140,6 +141,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
       await sendEmailSafe(env, waitUntil, {
         to: email,
         subject: 'Welcome to the Save the Uterus Club',
+        source: 'billing/checkout-membership',
         text: [
           `Hi ${name || 'there'},`,
           '',
@@ -288,6 +290,7 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
       await sendEmailSafe(env, waitUntil, {
         to: email,
         subject: 'Your RRM Academy account is ready',
+        source: 'billing/checkout-account',
         text: [
           `Hi ${name || 'there'},`,
           '',

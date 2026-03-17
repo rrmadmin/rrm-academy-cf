@@ -67,9 +67,14 @@ export async function onRequestPost({ request, env, waitUntil }) {
       if (!email) continue;
 
       if (bounceType === 'Permanent') {
-        await db.prepare(
-          "UPDATE newsletter_subscriber SET status = 'bounced', bounce_count = bounce_count + 1 WHERE email = ? COLLATE NOCASE"
-        ).bind(email).run();
+        await db.batch([
+          db.prepare(
+            "UPDATE newsletter_subscriber SET status = 'bounced', bounce_count = bounce_count + 1 WHERE email = ? COLLATE NOCASE"
+          ).bind(email),
+          db.prepare(
+            "INSERT INTO email_log (event, email, category, source, detail) VALUES ('bounced', ?, 'newsletter', 'ses/bounce-webhook', ?)"
+          ).bind(email, bounceType),
+        ]);
       } else {
         // Soft bounce: increment count, suppress after 3
         await db.prepare(
@@ -83,6 +88,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
             "UPDATE newsletter_subscriber SET status = 'bounced' WHERE email = ? COLLATE NOCASE"
           ).bind(email).run();
         }
+        await db.prepare(
+          "INSERT INTO email_log (event, email, category, source, detail) VALUES ('bounced', ?, 'newsletter', 'ses/bounce-webhook', ?)"
+        ).bind(email, bounceType).run();
       }
       log(env, waitUntil, 'newsletter', 'bounce', bounceType === 'Permanent' ? 'error' : 'warn', email, 0, 0);
     }
@@ -93,9 +101,14 @@ export async function onRequestPost({ request, env, waitUntil }) {
     for (const r of recipients) {
       const email = r.emailAddress?.toLowerCase();
       if (!email) continue;
-      await db.prepare(
-        "UPDATE newsletter_subscriber SET status = 'complained' WHERE email = ? COLLATE NOCASE"
-      ).bind(email).run();
+      await db.batch([
+        db.prepare(
+          "UPDATE newsletter_subscriber SET status = 'complained' WHERE email = ? COLLATE NOCASE"
+        ).bind(email),
+        db.prepare(
+          "INSERT INTO email_log (event, email, category, source, detail) VALUES ('complained', ?, 'newsletter', 'ses/bounce-webhook', 'complaint')"
+        ).bind(email),
+      ]);
       log(env, waitUntil, 'newsletter', 'complaint', 'error', email, 0, 0);
     }
   }
@@ -103,8 +116,12 @@ export async function onRequestPost({ request, env, waitUntil }) {
   if (notifType === 'Delivery') {
     // Log delivery for deliverability tracking (sent != delivered)
     const recipients = message.delivery?.recipients || [];
-    for (const email of recipients) {
-      log(env, waitUntil, 'newsletter', 'delivered', 'ok', email.toLowerCase(), 0, 200);
+    for (const rawEmail of recipients) {
+      const email = rawEmail.toLowerCase();
+      await db.prepare(
+        "INSERT INTO email_log (event, email, category, source, detail) VALUES ('delivered', ?, 'newsletter', 'ses/bounce-webhook', 'delivery')"
+      ).bind(email).run();
+      log(env, waitUntil, 'newsletter', 'delivered', 'ok', email, 0, 200);
     }
   }
 

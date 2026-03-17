@@ -11,11 +11,11 @@
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "afaef32fa43cc9bb3249c5312444f47d7fb1307ab5cfe31c73344259dda6cd24",
+      "hash": "85331c83825342a212316e4b5d7fbe23ceb53f0e297068ba1c7425b050411e04",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
-      "hash": "922b65fb9a6b2368f3072cc8e3340e20291cfba3104b35295040679c86dfce5f",
+      "hash": "eb72a02cd652bc924508d42a46cd7fc104050f1bd188f2ebb2836c6048e492f6",
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
@@ -55,15 +55,15 @@
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "4965391b0b05ca007ccddf2805c8a79cf1fde3cf371477c5637d8694492ec91b",
+      "hash": "5d3b9f5a0ccece8eb30da33d9afc9af1b9697d6a7f41207a90abb651cf5b8c40",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
-      "hash": "3c7d3257833afb43f78dbc5e5d0e04d1959673a1939244a0f3a0f4c7556e6f25",
+      "hash": "895a7da286ff25ba8b030820a10fa05f977ea07ef424e804e84d98fab6e1f2b2",
       "note": "Subscription lifecycle handler"
     },
     "functions/api/billing/_webhook-shared.js": {
-      "hash": "e9843ca427e57b53cd0d4e54649c9d4e5171afb95dcd077aba925d7e8fbb8207",
+      "hash": "2be8ce987f6b5c338a4456476fc45dfbd0c705d48753e2d2e2131af831f44e4b",
       "note": "Shared webhook helpers"
     },
     "functions/_middleware.js": {
@@ -75,7 +75,7 @@
       "note": "D1, KV, R2 bindings"
     },
     "functions/api/_ses.js": {
-      "hash": "3245f0fcf43e3f1a4d9783ec3ac2602ebaf6c128f0f8730140f4b79364c5fb01",
+      "hash": "df6c8d99cb0dc4a0df05b80139c06b78c9b48d56190163224770a2a00d2f9eaa",
       "note": "SES email sending infrastructure"
     },
     "functions/api/_elv.js": {
@@ -83,19 +83,19 @@
       "note": "EmailListVerify SMTP validation"
     },
     "functions/api/survey/submit.js": {
-      "hash": "368b5773f393666f4f35e042a18d5e8dfd5c46e3bfc68d38df871917c6ff6cf0",
+      "hash": "7418a2134dd8a276e84a10c76a5dee29483b1f697cb60e3b1ce02fd2c205fc70",
       "note": "Survey submission + PII pseudonymization"
     },
     "functions/api/survey/request.js": {
-      "hash": "8b402dd2bdcd4b42f9e6c4f6bc960f9d84c8d8a03b7ed33689fae651fed162ab",
+      "hash": "278d666b8016e7111da32b11c866aad4f33e60e4b9c1a983cf3e7fdbc9bed6d3",
       "note": "Magic-link token generation"
     },
     "functions/api/newsletter/send.js": {
-      "hash": "dfcc5acc5fd11edf82369ca574eab55b4e13c1af7bd56ac4dca55d023f6f3e4f",
+      "hash": "6c9c834a5ed36e747fb48192d6192dec2bd5b6b8dd23b2cb27d3a87d6c1734af",
       "note": "Mass email send (admin-only)"
     },
     "functions/api/newsletter/unsubscribe.js": {
-      "hash": "5411255e894b306c9cd7a3696579aada912391d39deaa13d5c4e6ab987bc6369",
+      "hash": "567a9f91462a278e0024269a9aa090a8405cd18aa7d58a5737f2d65ace6f68fd",
       "note": "CAN-SPAM unsubscribe (status update)"
     },
     "functions/api/newsletter/subscribe.js": {
@@ -111,7 +111,7 @@
       "note": "Community access control (requireMember)"
     },
     "functions/api/admin/cleanup.js": {
-      "hash": "9710898a167d60354f2839f0278c2f40c8674e72d9d77abb481813522583b61d",
+      "hash": "37fa1393c1dc7a9b8018ecf85c9beb5a95bcc29ee4186b5b3eb628409767c6a2",
       "note": "Expired data deletion from D1"
     },
     "scripts/guard.mjs": {
@@ -131,7 +131,7 @@
       "note": "Pre-checkout account lookup"
     },
     "functions/api/billing/_webhook-invoice.js": {
-      "hash": "c9a00ae883bf12de0db7b30adcae40cf8c8838483b61a92dd7a7e56c792d7496",
+      "hash": "6cd8a08bab630fbad61ab3c06db03947f395029698740e8846049096aaff9bed",
       "note": "Invoice event handler"
     },
     "functions/api/community/upload.js": {
@@ -139,7 +139,7 @@
       "note": "R2 image upload (file validation)"
     },
     "functions/api/pdf/request.js": {
-      "hash": "951f6a8d7a34057189bae2e337bffe6095c4ee64ecba910c4886fc355a54c1e9",
+      "hash": "101123109d55265b7d214671ea2c2fe69a4b6cf46d09ab2f91a20a9d0a681a86",
       "note": "PDF magic-link token generation"
     },
     "functions/api/pdf/redeem.js": {

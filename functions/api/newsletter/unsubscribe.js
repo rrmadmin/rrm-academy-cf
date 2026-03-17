@@ -14,6 +14,9 @@ async function unsubscribe(db, email, waitUntil, env) {
   await db.prepare(
     "UPDATE user SET newsletter_opt_in = 0 WHERE email = ? COLLATE NOCASE"
   ).bind(email).run();
+  await db.prepare(
+    "INSERT INTO email_log (event, email, category, source) VALUES ('unsubscribed', ?, 'newsletter', 'newsletter/unsubscribe')"
+  ).bind(email.toLowerCase()).run();
   log(env, waitUntil, 'newsletter', 'unsubscribe', 'ok', email, 0, 200);
 }
 

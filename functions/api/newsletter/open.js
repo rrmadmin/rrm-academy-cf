@@ -22,20 +22,23 @@ export async function onRequestGet({ request, env, waitUntil }) {
     // Fire-and-forget: don't block the pixel response
     const work = (async () => {
       try {
-        // Dedupe: only count first open per subscriber per send
-        const existing = await env.DB.prepare(
-          "SELECT 1 FROM newsletter_event WHERE send_id = ? AND subscriber_id = ? AND event = 'opened' LIMIT 1"
-        ).bind(sendId, subscriberId).first();
-        if (!existing) {
-          await env.DB.prepare(
-            "INSERT INTO newsletter_event (send_id, subscriber_id, event) VALUES (?, ?, 'opened')"
-          ).bind(sendId, subscriberId).run();
-          await env.DB.prepare(
-            "UPDATE newsletter_send SET open_count = open_count + 1 WHERE id = ?"
-          ).bind(sendId).run();
-          await env.DB.prepare(
-            "UPDATE newsletter_subscriber SET last_opened_at = datetime('now') WHERE id = ?"
-          ).bind(subscriberId).run();
+        const subRow = await env.DB.prepare(
+          "SELECT email FROM newsletter_subscriber WHERE id = ?"
+        ).bind(subscriberId).first();
+        const recipientEmail = (subRow?.email || '').toLowerCase();
+
+        const result = await env.DB.prepare(
+          "INSERT OR IGNORE INTO newsletter_event (send_id, subscriber_id, event) VALUES (?, ?, 'opened')"
+        ).bind(sendId, subscriberId).run();
+
+        if (result.changes > 0) {
+          await env.DB.batch([
+            env.DB.prepare("UPDATE newsletter_send SET open_count = open_count + 1 WHERE id = ?").bind(sendId),
+            env.DB.prepare("UPDATE newsletter_subscriber SET last_opened_at = datetime('now') WHERE id = ?").bind(subscriberId),
+            env.DB.prepare(
+              "INSERT INTO email_log (event, email, category, source, send_id) VALUES ('opened', ?, 'newsletter', 'newsletter/open', ?)"
+            ).bind(recipientEmail, sendId),
+          ]);
         }
       } catch (err) {
         log(env, waitUntil, 'newsletter', 'open_track_error', 'error', err.message, 0, 0);

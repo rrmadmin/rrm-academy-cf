@@ -6,7 +6,7 @@ import {
   json, optionsResponse, generateId, generateToken, getSessionIdFromCookie,
   validateSession, checkRateLimit,
 } from './_shared.js';
-import { sendEmail } from '../_ses.js';
+import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
 
 export async function onRequestOptions() {
@@ -63,9 +63,11 @@ export async function onRequestPost({ request, env, waitUntil }) {
             'RRM Academy',
             'https://rrmacademy.org',
           ].join('\n'),
+          log: { db: env.DB, source: 'auth/resend-verification', category: 'transactional' },
         });
       } catch (emailErr) {
         log(env, waitUntil, 'auth', 'resend_verification_send_error', 'error', emailErr.message, 0, 502);
+        await logEmailFailure(env.DB, { email: user.email, category: 'transactional', source: 'auth/resend-verification', subject: 'Your verification code — RRM Academy', detail: emailErr.message });
         return json({ ok: false, error: 'Failed to send verification email. Please try again.' }, 502);
       }
     }
