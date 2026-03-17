@@ -138,9 +138,6 @@ jobs:
         run: node scripts/verify-citations.mjs
         continue-on-error: true
 
-      - name: Copy articles.json to public for API access
-        run: mkdir -p public/data && cp src/data/articles.json public/data/articles.json
-
       - name: Type check (baseline)
         run: npm run check-types
 

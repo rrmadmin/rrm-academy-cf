@@ -2,11 +2,12 @@
  * POST /api/contact/submit
  * Validates Turnstile token, rate-limits by IP, sends email via SES.
  */
-import { json, optionsResponse, checkRateLimit, isValidEmail, verifyTurnstile } from '../auth/_shared.js';
+import { json, optionsResponse, checkRateLimit, verifyTurnstile } from '../auth/_shared.js';
 import { validateEmail } from '../auth/_email-validate.js';
 import { verifyAndTagEmail } from '../_elv.js';
 import { sendEmail } from '../_ses.js';
 import { log } from '../_log.js';
+import { validateBody } from '../_validate.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -34,21 +35,17 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: 'Server misconfigured' }, 500);
     }
 
-    // Validate fields
-    // eslint-disable-next-line no-control-regex -- intentional: strip control chars from user input
-    const name = (body.name || '').trim().replace(/[\x00-\x1f\x7f]/g, '');
-    const email = (body.email || '').trim().toLowerCase();
-    const message = (body.message || '').trim();
+    const validated = validateBody(body, {
+      name:    { type: 'string', required: true, maxLength: 200 },
+      email:   { type: 'email',  required: true },
+      message: { type: 'string', required: true, minLength: 10, maxLength: 5000 },
+    });
+    if (!validated.valid) return json({ ok: false, error: validated.error }, validated.status);
 
-    if (!name || name.length > 200) {
-      return json({ ok: false, error: 'Name is required.' }, 400);
-    }
-    if (!isValidEmail(email)) {
-      return json({ ok: false, error: 'Valid email is required.' }, 400);
-    }
-    if (!message || message.length < 10 || message.length > 5000) {
-      return json({ ok: false, error: 'Message must be between 10 and 5,000 characters.' }, 400);
-    }
+    // eslint-disable-next-line no-control-regex -- intentional: strip control chars from user input
+    const name = validated.data.name.replace(/[\x00-\x1f\x7f]/g, '');
+    const email = validated.data.email;
+    const message = validated.data.message;
 
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
 

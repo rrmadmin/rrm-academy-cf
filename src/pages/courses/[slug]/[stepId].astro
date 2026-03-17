@@ -46,7 +46,7 @@ function stepTypeLabel(type: string) {
 }
 ---
 <BaseLayout
-  title={`${step.title} — ${course.title}`}
+  title={`${step.title} | ${course.title}`}
   description={`${stepTypeLabel(step.type)}: ${step.title}. Part of ${course.title} on RRM Academy.`}
   canonicalUrl={`https://rrmacademy.org/courses/${course.slug}/${step.id}`}
   noindex
@@ -877,8 +877,8 @@ function stepTypeLabel(type: string) {
               h += '<div class="qr-item__body">';
               h += '<p class="qr-item__q">' + esc(q.text) + '</p>';
               if (!ok && q.options) {
-                h += '<p class="qr-item__yours">Your answer: ' + esc(q.options[r.selected] || '—') + '</p>';
-                h += '<p class="qr-item__correct">Correct: ' + esc(q.options[r.correctIndex] || '—') + '</p>';
+                h += '<p class="qr-item__yours">Your answer: ' + esc(q.options[r.selected] || '--') + '</p>';
+                h += '<p class="qr-item__correct">Correct: ' + esc(q.options[r.correctIndex] || '--') + '</p>';
               }
               h += '</div></div>';
             });

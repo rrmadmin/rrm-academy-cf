@@ -5,13 +5,14 @@
 import {
   json, optionsResponse, generateId, generateSessionId, generateToken,
   hashPassword, sessionCookie, verifyTurnstile, checkRateLimit,
-  isValidEmail, isValidPassword,
+  isValidPassword,
 } from './_shared.js';
 import { validateEmail } from './_email-validate.js';
 import { verifyAndTagEmail } from '../_elv.js';
 import { sendEmail } from '../_ses.js';
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
+import { validateBody } from '../_validate.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -26,15 +27,18 @@ export async function onRequestPost({ request, env, waitUntil }) {
     try { body = await request.json(); } catch { return json({ ok: false, error: 'Invalid JSON' }, 400); }
     if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
-    const firstName = (body.firstName || '').trim();
-    const lastName = (body.lastName || '').trim();
-    const email = (body.email || '').trim().toLowerCase();
-    const password = body.password || '';
+    const validated = validateBody(body, {
+      firstName: { type: 'string', required: true, maxLength: 100 },
+      lastName:  { type: 'string', required: true, maxLength: 100 },
+      email:     { type: 'email',  required: true },
+    });
+    if (!validated.valid) return json({ ok: false, error: validated.error }, validated.status);
 
-    // Validate
-    if (!firstName || firstName.length > 100) return json({ ok: false, error: 'First name is required.' }, 400);
-    if (!lastName || lastName.length > 100) return json({ ok: false, error: 'Last name is required.' }, 400);
-    if (!isValidEmail(email)) return json({ ok: false, error: 'Valid email is required.' }, 400);
+    const firstName = validated.data.firstName;
+    const lastName  = validated.data.lastName;
+    const email     = validated.data.email;
+    const password  = body.password || '';
+
     if (!isValidPassword(password)) return json({ ok: false, error: 'Password must be at least 8 characters.' }, 400);
 
     // Rate limit by IP (before expensive DNS lookups)
