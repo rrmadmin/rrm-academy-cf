@@ -1,0 +1,48 @@
+---
+interface Props {
+  hasContact: boolean;
+}
+
+const { hasContact } = Astro.props;
+
+const message = hasContact
+  ? 'Is this your listing? Claim it to add your bio, photo, office hours, and booking link.'
+  : 'This listing has limited contact information. Claim it to add your phone, website, and address.';
+---
+
+<div class="claim-cta">
+  <span class="claim-icon" aria-hidden="true">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+      <line x1="4" y1="22" x2="4" y2="15"/>
+    </svg>
+  </span>
+  <p class="claim-text">{message}</p>
+</div>
+
+<style>
+  .claim-cta {
+    background: #f0eaf3;
+    border-radius: 12px;
+    padding: 0.75rem 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px dashed #725e7e;
+    margin: 0.5rem 0.75rem;
+  }
+
+  .claim-icon {
+    display: inline-flex;
+    align-items: center;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .claim-text {
+    font-size: 0.75rem;
+    color: var(--accent);
+    margin: 0;
+    line-height: 1.5;
+  }
+</style>

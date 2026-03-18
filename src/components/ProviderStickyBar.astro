@@ -1,0 +1,161 @@
+---
+interface Props {
+  phone?: string;
+  phoneExt?: string;
+  website?: string;
+  city?: string;
+  state?: string;
+  practiceName?: string;
+  zip?: string;
+  country?: string;
+  address?: string;
+}
+
+const { phone, phoneExt, website, city, state, practiceName, zip, country, address } = Astro.props;
+
+// Build directions URL
+const mapsQuery = [practiceName, address, city, state, zip, country]
+  .filter(Boolean)
+  .join(' ');
+const directionsHref = mapsQuery
+  ? `https://maps.google.com/maps?q=${encodeURIComponent(mapsQuery)}`
+  : null;
+
+// Build tel href -- use digits as-is for international numbers
+const phoneDigits = phone ? phone.replace(/\D/g, '') : null;
+const isInternational = phone && (phone.startsWith('+') || (country && country !== 'USA' && country !== 'US'));
+const telHref = phoneDigits
+  ? `tel:${isInternational ? '+' : '+1'}${phoneDigits}${phoneExt ? `,${phoneExt}` : ''}`
+  : null;
+
+// Build website href (ensure protocol)
+const websiteHref = website
+  ? website.startsWith('http') ? website : `https://${website}`
+  : null;
+
+const hasPhone = !!telHref;
+const hasWebsite = !!websiteHref;
+const hasDirections = !!directionsHref;
+const hasAny = hasPhone || hasWebsite || hasDirections;
+
+const channelCount = [hasPhone, hasWebsite, hasDirections].filter(Boolean).length;
+---
+
+{hasAny && (
+  <div class="sticky-bar" role="group" aria-label="Quick contact">
+    {hasPhone && (
+      <a
+        href={telHref}
+        class={`sticky-btn primary${channelCount === 1 ? ' full-width' : ''}`}
+        aria-label={phoneExt ? `Call, extension ${phoneExt}` : 'Call'}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+        </svg>
+        <span>Call</span>
+      </a>
+    )}
+    {hasWebsite && (
+      <a
+        href={websiteHref}
+        class={`sticky-btn secondary${channelCount === 1 ? ' full-width' : ''}`}
+        aria-label={`Visit ${practiceName ?? 'provider'} website`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+          <polyline points="15 3 21 3 21 9"/>
+          <line x1="10" y1="14" x2="21" y2="3"/>
+        </svg>
+        <span>Website</span>
+      </a>
+    )}
+    {hasDirections && (
+      <a
+        href={directionsHref}
+        class={`sticky-btn secondary${channelCount === 1 ? ' full-width' : ''}`}
+        aria-label="Get directions"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+        <span>Directions</span>
+      </a>
+    )}
+  </div>
+)}
+
+<style>
+  .sticky-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border-color);
+    padding: 0.6rem 0.75rem;
+    display: flex;
+    gap: 0.5rem;
+    z-index: 20;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+    /* Keep sticky bar clear of safe area on notched devices */
+    padding-bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .sticky-btn {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.55rem 0.5rem;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    min-height: 44px;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+
+  .sticky-btn.full-width {
+    flex: none;
+    width: 100%;
+  }
+
+  .sticky-btn.primary {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+  }
+
+  .sticky-btn.primary:hover,
+  .sticky-btn.primary:focus-visible {
+    background: var(--accent-hover);
+    color: #fff;
+  }
+
+  .sticky-btn.secondary {
+    background: var(--bg-surface);
+    color: var(--accent);
+    border: 1px solid var(--border-color);
+  }
+
+  .sticky-btn.secondary:hover,
+  .sticky-btn.secondary:focus-visible {
+    background: var(--bg-body);
+    border-color: var(--accent);
+  }
+
+  .sticky-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+</style>

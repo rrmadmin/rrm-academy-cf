@@ -1618,3 +1618,132 @@ blockquote cite {
   color: var(--text-secondary);
   text-decoration: none;
 }
+
+/* =============================================
+   Provider & Practice Pages
+   ============================================= */
+
+/* Page container */
+.provider-page,
+.practice-page {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 0 5rem; /* space for sticky bar */
+}
+
+/* Back navigation */
+.provider-back {
+  padding: .75rem 1rem;
+  font-size: .8rem;
+}
+
+.provider-back a {
+  color: var(--accent);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+}
+
+.provider-back a:hover {
+  color: var(--accent-hover);
+}
+
+/* Breadcrumb */
+.provider-breadcrumb {
+  padding: 0 1rem .5rem;
+  font-size: .65rem;
+  color: var(--text-muted);
+}
+
+.provider-breadcrumb a {
+  color: var(--text-tertiary);
+  text-decoration: none;
+}
+
+.provider-breadcrumb a:hover {
+  color: var(--accent);
+}
+
+.provider-breadcrumb .breadcrumb-sep {
+  margin: 0 .2rem;
+}
+
+/* Generic section card used by page templates for bio, etc. */
+.provider-section {
+  background: var(--bg-surface);
+  margin: .5rem .75rem;
+  border-radius: 12px;
+  padding: .875rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.provider-section h3 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: .5rem;
+}
+
+.provider-section p {
+  font-size: .8rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+/* Practice page hero */
+.practice-hero {
+  background: var(--bg-surface);
+  margin: .5rem .75rem;
+  border-radius: 12px;
+  padding: 1rem .875rem;
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+
+.practice-hero .practice-icon {
+  color: var(--text-tertiary);
+  margin-bottom: .5rem;
+}
+
+.practice-hero .practice-name {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: .25rem;
+}
+
+.practice-hero .practice-loc {
+  font-size: .8rem;
+  color: var(--text-secondary);
+}
+
+/* Practice members grid */
+.practice-section {
+  margin: .5rem .75rem;
+}
+
+.practice-section h3 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: .5rem;
+  padding: 0 .875rem;
+}
+
+.members-grid {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+/* Desktop breakpoint */
+@media (min-width: 640px) {
+  .provider-page,
+  .practice-page {
+    padding-top: 1rem;
+  }
+}
