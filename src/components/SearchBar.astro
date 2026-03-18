@@ -280,11 +280,11 @@
 
   // Waverows animation frames (from unicode-animations)
   var waveFrames = ['⠖⠉⠉⠑','⡠⠖⠉⠉','⣠⡠⠖⠉','⣄⣠⡠⠖','⠢⣄⣠⡠','⠙⠢⣄⣠','⠉⠙⠢⣄','⠊⠉⠙⠢','⠜⠊⠉⠙','⡤⠜⠊⠉','⣀⡤⠜⠊','⢤⣀⡤⠜','⠣⢤⣀⡤','⠑⠣⢤⣀','⠉⠑⠣⢤','⠋⠉⠑⠣'];
-  var waveInterval = 90;
+  var waveInterval = 160;
   var spinnerTimer = null;
 
   function startLoadingSpinner() {
-    resultsEl.innerHTML = '<p class="sr-loading"><span class="sr-loading-spinner"></span>Searching\u2026</p>';
+    resultsEl.innerHTML = '<p class="sr-loading">Searching <span class="sr-loading-spinner"></span></p>';
     var el = resultsEl.querySelector('.sr-loading-spinner');
     if (!el) return;
     var fi = 0;
