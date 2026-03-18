@@ -1,0 +1,169 @@
+---
+interface Props {
+  phone?: string;
+  phoneExt?: string;
+  website?: string;
+  city?: string;
+  state?: string;
+  practiceName?: string;
+  zip?: string;
+  country?: string;
+  address?: string;
+}
+
+const { phone, phoneExt, website, city, state, practiceName, zip, country, address } = Astro.props;
+
+// Build directions URL
+const mapsQuery = [practiceName, address, city, state, zip, country]
+  .filter(Boolean)
+  .join(' ');
+const directionsHref = mapsQuery
+  ? `https://maps.google.com/maps?q=${encodeURIComponent(mapsQuery)}`
+  : null;
+
+// Build tel href -- use digits as-is for international numbers
+const phoneDigits = phone ? phone.replace(/\D/g, '') : null;
+const isInternational = phone && (phone.startsWith('+') || (country && country !== 'USA' && country !== 'US'));
+const telHref = phoneDigits
+  ? `tel:${isInternational ? '+' : '+1'}${phoneDigits}${phoneExt ? `,${phoneExt}` : ''}`
+  : null;
+
+// Build website href (ensure protocol)
+const websiteHref = website
+  ? website.startsWith('http') ? website : `https://${website}`
+  : null;
+
+// Determine which channels are available
+const hasPhone = !!telHref;
+const hasWebsite = !!websiteHref;
+const hasDirections = !!directionsHref;
+
+// No channels at all — parent handles this case
+const hasAny = hasPhone || hasWebsite || hasDirections;
+
+// Determine button layout and roles
+// Primary: Call > Website > Directions (in priority order)
+// Secondary: whatever remains after primary
+type ButtonDef = {
+  href: string;
+  label: string;
+  ariaLabel: string;
+  icon: 'phone' | 'external' | 'map';
+  variant: 'primary' | 'secondary';
+};
+
+const buttons: ButtonDef[] = [];
+
+if (hasPhone) {
+  const label = phoneExt
+    ? `Call ${phone} ext. ${phoneExt}`
+    : `Call ${phone}`;
+  buttons.push({ href: telHref!, label, ariaLabel: label, icon: 'phone', variant: 'primary' });
+  if (hasWebsite) {
+    buttons.push({ href: websiteHref!, label: 'Website', ariaLabel: `Visit ${practiceName ?? 'provider'} website`, icon: 'external', variant: 'secondary' });
+  } else if (hasDirections) {
+    buttons.push({ href: directionsHref!, label: 'Directions', ariaLabel: 'Get directions', icon: 'map', variant: 'secondary' });
+  }
+} else if (hasWebsite) {
+  buttons.push({ href: websiteHref!, label: 'Website', ariaLabel: `Visit ${practiceName ?? 'provider'} website`, icon: 'external', variant: 'primary' });
+  if (hasDirections) {
+    buttons.push({ href: directionsHref!, label: 'Directions', ariaLabel: 'Get directions', icon: 'map', variant: 'secondary' });
+  }
+} else if (hasDirections) {
+  buttons.push({ href: directionsHref!, label: 'Directions', ariaLabel: 'Get directions', icon: 'map', variant: 'primary' });
+}
+---
+
+{hasAny && (
+  <div class="contact-bar" role="group" aria-label="Contact options">
+    {buttons.map((btn) => (
+      <a
+        href={btn.href}
+        class={`contact-btn ${btn.variant}`}
+        aria-label={btn.ariaLabel}
+        target={btn.icon === 'external' || btn.icon === 'map' ? '_blank' : undefined}
+        rel={btn.icon === 'external' || btn.icon === 'map' ? 'noopener noreferrer' : undefined}
+      >
+        {btn.icon === 'phone' && (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+          </svg>
+        )}
+        {btn.icon === 'external' && (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+        )}
+        {btn.icon === 'map' && (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+        )}
+        <span>{btn.label}</span>
+      </a>
+    ))}
+  </div>
+)}
+
+<style>
+  .contact-bar {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.5rem 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .contact-btn {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.7rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: inherit;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    min-height: 44px;
+    transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .contact-btn.primary {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .contact-btn.primary:hover,
+  .contact-btn.primary:focus-visible {
+    background: var(--accent-hover);
+    color: #fff;
+  }
+
+  .contact-btn.secondary {
+    background: var(--bg-surface);
+    color: var(--accent);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+  }
+
+  .contact-btn.secondary:hover,
+  .contact-btn.secondary:focus-visible {
+    background: var(--bg-body);
+    border-color: var(--accent);
+  }
+
+  .contact-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+</style>

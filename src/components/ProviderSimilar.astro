@@ -1,0 +1,132 @@
+---
+import { methodLabel, type Provider } from '../lib/providers';
+
+interface Props {
+  providers: Provider[];
+}
+
+const { providers } = Astro.props;
+
+function getInitials(p: Provider): string {
+  const f = p.first_name?.trim()?.[0]?.toUpperCase() ?? '';
+  const l = p.last_name?.trim()?.[0]?.toUpperCase() ?? '';
+  return (f + l) || p.display_name?.[0]?.toUpperCase() || '?';
+}
+
+function buildMeta(p: Provider): string {
+  const parts: string[] = [];
+  if (p.city && p.state) parts.push(`${p.city}, ${p.state}`);
+  else if (p.city) parts.push(p.city);
+  else if (p.state) parts.push(p.state);
+  const topMethods = (p.methods ?? []).slice(0, 2).map(methodLabel);
+  parts.push(...topMethods);
+  if (p.telehealth === 'yes') parts.push('Telehealth');
+  return parts.join(' \u00b7 ');
+}
+---
+
+{providers && providers.length > 0 && (
+  <div class="section">
+    <div class="section-header">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      <h3>Similar Providers</h3>
+    </div>
+
+    <div class="sim-list">
+      {providers.map((p) => (
+        <a href={`/providers/${p.slug}/`} class="sim-card">
+          <div class="sim-avatar">{getInitials(p)}</div>
+          <div class="sim-info">
+            <div class="sim-name">{p.display_name}</div>
+            <div class="sim-meta">{buildMeta(p)}</div>
+          </div>
+        </a>
+      ))}
+    </div>
+  </div>
+)}
+
+<style>
+  .section {
+    background: var(--bg-surface);
+    border-radius: 12px;
+    padding: .875rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    margin-bottom: .6rem;
+    color: var(--text-secondary);
+  }
+
+  .section-header h3 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+  }
+
+  .sim-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sim-card {
+    display: flex;
+    gap: .6rem;
+    padding: .5rem 0;
+    border-top: 1px solid #f0eeeb;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .sim-card:first-child {
+    border-top: none;
+    padding-top: 0;
+  }
+
+  .sim-card:hover .sim-name {
+    color: var(--accent);
+  }
+
+  .sim-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #f0eaf3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: .75rem;
+    font-weight: 600;
+    color: #725e7e;
+  }
+
+  .sim-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .sim-name {
+    font-size: .8rem;
+    font-weight: 600;
+    color: #313131;
+    transition: color 0.15s;
+  }
+
+  .sim-meta {
+    font-size: .7rem;
+    color: #949392;
+  }
+</style>

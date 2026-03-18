@@ -1,0 +1,138 @@
+---
+import type { Provider } from '../lib/providers';
+
+interface Props {
+  provider: Provider;
+}
+
+const { provider } = Astro.props;
+
+const shouldRender = !!provider.city && !provider.is_online_only;
+
+// Build address parts, skipping empty strings
+const addressParts = [
+  provider.address,
+  provider.city,
+  provider.state && provider.zip ? `${provider.state} ${provider.zip}` : (provider.state || provider.zip),
+].filter(Boolean);
+
+const addressLine = addressParts.join(', ');
+
+// Build Google Maps query from all available parts
+const mapQueryParts = [
+  provider.practice_name,
+  provider.address,
+  provider.city,
+  provider.state,
+  provider.zip,
+  provider.country,
+].filter(Boolean);
+
+const directionsUrl = mapQueryParts.length > 0
+  ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQueryParts.join(' '))}`
+  : null;
+---
+
+{shouldRender && (
+  <div class="h-section">
+    <div class="h-section-header">
+      <span class="h-section-icon" aria-hidden="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+      </span>
+      <h3>Location</h3>
+    </div>
+    <div class="location-body">
+      {provider.practice_name && (
+        <p class="practice-name">{provider.practice_name}</p>
+      )}
+      {addressLine && (
+        <p class="address-line">{addressLine}</p>
+      )}
+      {directionsUrl && (
+        <a
+          href={directionsUrl}
+          class="directions-link"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+          Get directions
+        </a>
+      )}
+    </div>
+  </div>
+)}
+
+<style>
+  .h-section {
+    margin: 0.5rem 0.75rem;
+    background: var(--bg-surface);
+    border-radius: 12px;
+    padding: 0.875rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .h-section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .h-section-icon {
+    display: inline-flex;
+    align-items: center;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+  }
+
+  .h-section-header h3 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+  }
+
+  .location-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .practice-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+  }
+
+  .address-line {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+
+  .directions-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--accent);
+    text-decoration: none;
+    margin-top: 0.35rem;
+  }
+
+  .directions-link:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+</style>

@@ -1,0 +1,160 @@
+---
+import { methodLabel, type Provider } from '../lib/providers';
+
+interface Props {
+  provider: Provider;
+}
+
+const { provider } = Astro.props;
+
+// --- Initials ---
+function getInitials(p: Provider): string {
+  const f = p.first_name?.trim()?.[0]?.toUpperCase() ?? '';
+  const l = p.last_name?.trim()?.[0]?.toUpperCase() ?? '';
+  return (f + l) || p.display_name?.[0]?.toUpperCase() || '?';
+}
+const initials = getInitials(provider);
+
+// --- Type badge ---
+const TYPE_BADGE: Record<string, { label: string; bg: string; color: string }> = {
+  medical:            { label: 'Medical',            bg: '#f0eaf4', color: '#725e7e' },
+  nurse_practitioner: { label: 'Nurse Practitioner', bg: '#f0eaf4', color: '#725e7e' },
+  pharmacist:         { label: 'Pharmacist',         bg: '#f0eaf4', color: '#725e7e' },
+  chiropractor:       { label: 'Chiropractor',       bg: '#f0eaf4', color: '#725e7e' },
+  naturopath:         { label: 'Naturopath',         bg: '#f0eaf4', color: '#725e7e' },
+  educator:           { label: 'Educator',           bg: '#eee5dd', color: '#6b5d4f' },
+  mental_health:      { label: 'Therapist',          bg: '#fce8ef', color: '#8a5670' },
+  physical_therapist: { label: 'Physical Therapist', bg: '#fce8ef', color: '#8a5670' },
+  nutritionist:       { label: 'Nutritionist',       bg: '#fce8ef', color: '#8a5670' },
+  health_coach:       { label: 'Health Coach',       bg: '#fce8ef', color: '#8a5670' },
+  doula:              { label: 'Doula / Lactation',  bg: '#fce8ef', color: '#8a5670' },
+};
+const typeBadge = TYPE_BADGE[provider.practitioner_type] ?? null;
+
+// --- Methods: first 3 + overflow count ---
+const methods = provider.methods ?? [];
+const shownMethods = methods.slice(0, 3);
+const overflowCount = methods.length - shownMethods.length;
+
+// --- Meta line ---
+const metaParts: string[] = [];
+if (provider.city && provider.state) metaParts.push(`${provider.city}, ${provider.state}`);
+else if (provider.city) metaParts.push(provider.city);
+else if (provider.state) metaParts.push(provider.state);
+if (provider.telehealth === 'yes') metaParts.push('Telehealth');
+const metaText = metaParts.join(' \u00b7 ');
+---
+
+<a href={`/providers/${provider.slug}/`} class="member-card">
+  <div class="member-avatar">{initials}</div>
+  <div class="member-info">
+    <div class="member-name">{provider.display_name}</div>
+
+    {(typeBadge || shownMethods.length > 0) && (
+      <div class="member-badges">
+        {typeBadge && (
+          <span class="badge-pill type-pill" style={`background:${typeBadge.bg};color:${typeBadge.color}`}>
+            {typeBadge.label}
+          </span>
+        )}
+        {shownMethods.map((m) => (
+          <span class="badge-pill method-pill">{methodLabel(m)}</span>
+        ))}
+        {overflowCount > 0 && (
+          <span class="badge-pill overflow-pill">+{overflowCount} more</span>
+        )}
+      </div>
+    )}
+
+    {metaText && (
+      <div class="member-meta">{metaText}</div>
+    )}
+  </div>
+</a>
+
+<style>
+  .member-card {
+    display: flex;
+    gap: .75rem;
+    padding: .75rem;
+    background: var(--bg-surface);
+    border-radius: 10px;
+    box-shadow: var(--shadow-sm);
+    text-decoration: none;
+    color: inherit;
+    transition: box-shadow 0.15s;
+  }
+
+  .member-card:hover {
+    box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+  }
+
+  .member-card:hover .member-name {
+    color: var(--accent);
+  }
+
+  .member-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #f0eaf3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: .875rem;
+    font-weight: 600;
+    color: #725e7e;
+  }
+
+  .member-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+  }
+
+  .member-name {
+    font-size: .875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    transition: color 0.15s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .member-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .25rem;
+  }
+
+  .badge-pill {
+    display: inline-flex;
+    align-items: center;
+    font-size: .55rem;
+    font-weight: 600;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .method-pill {
+    background: #eee5dd;
+    color: #636261;
+  }
+
+  .overflow-pill {
+    background: #eee5dd;
+    color: #636261;
+  }
+
+  .member-meta {
+    font-size: .7rem;
+    color: var(--text-tertiary);
+  }
+</style>

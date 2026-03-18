@@ -1,0 +1,442 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProviderHero from '../../components/ProviderHero.astro';
+import ProviderContactBar from '../../components/ProviderContactBar.astro';
+import ProviderMethods from '../../components/ProviderMethods.astro';
+import ProviderCredentials from '../../components/ProviderCredentials.astro';
+import ProviderLocation from '../../components/ProviderLocation.astro';
+import ProviderClaimCTA from '../../components/ProviderClaimCTA.astro';
+import ProviderFAQ from '../../components/ProviderFAQ.astro';
+import ProviderSimilar from '../../components/ProviderSimilar.astro';
+import ProviderStickyBar from '../../components/ProviderStickyBar.astro';
+import BackToTop from '../../components/BackToTop.astro';
+import { fetchAllProviders, getSimilarProviders, methodLabel, type Provider } from '../../lib/providers';
+
+export async function getStaticPaths() {
+  const providers = fetchAllProviders();
+  return providers.map(provider => ({
+    params: { slug: provider.slug },
+    props: { provider },
+  }));
+}
+
+interface Props {
+  provider: Provider;
+}
+
+const { provider } = Astro.props;
+const similarProviders = getSimilarProviders(provider);
+
+// --- Contact channel detection ---
+const hasPhone = !!(provider.phone);
+const hasWebsite = !!(provider.website);
+const hasCity = !!(provider.city);
+const hasContact = hasPhone || hasWebsite || hasCity;
+
+// --- Conditional section flags ---
+const showMethods = (provider.methods ?? []).length > 0;
+const showCredentials = !!(provider.npi_number || (provider.npi_specialties ?? []).length > 0 || (provider.npi_licenses ?? []).length > 0);
+const showLocation = !!provider.city && !provider.is_online_only;
+const showBio = !!(provider.bio && provider.bio.trim());
+const showClaimCTA = !provider.is_claimed;
+
+// --- State name map for breadcrumbs ---
+const STATE_NAMES: Record<string, string> = {
+  AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California',
+  CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', FL: 'Florida', GA: 'Georgia',
+  HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa',
+  KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland',
+  MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi',
+  MO: 'Missouri', MT: 'Montana', NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire',
+  NJ: 'New Jersey', NM: 'New Mexico', NY: 'New York', NC: 'North Carolina',
+  ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania',
+  RI: 'Rhode Island', SC: 'South Carolina', SD: 'South Dakota', TN: 'Tennessee',
+  TX: 'Texas', UT: 'Utah', VT: 'Vermont', VA: 'Virginia', WA: 'Washington',
+  WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming', DC: 'District of Columbia',
+};
+
+// --- Breadcrumb middle segment ---
+type BreadcrumbMiddle =
+  | { type: 'online' }
+  | { type: 'state'; abbr: string; name: string }
+  | { type: 'country'; name: string }
+  | null;
+
+let breadcrumbMiddle: BreadcrumbMiddle = null;
+if (provider.is_online_only) {
+  breadcrumbMiddle = { type: 'online' };
+} else if (provider.state && STATE_NAMES[provider.state]) {
+  breadcrumbMiddle = { type: 'state', abbr: provider.state, name: STATE_NAMES[provider.state] };
+} else if (provider.country && provider.country !== 'USA' && provider.country !== 'US') {
+  breadcrumbMiddle = { type: 'country', name: provider.country };
+}
+
+// --- Practitioner type -> occupation name ---
+const OCCUPATION_MAP: Record<string, string> = {
+  medical:            'Physician',
+  nurse_practitioner: 'Nurse Practitioner',
+  pharmacist:         'Pharmacist',
+  chiropractor:       'Chiropractor',
+  naturopath:         'Naturopath',
+  educator:           'Educator',
+  mental_health:      'Mental Health Professional',
+  physical_therapist: 'Physical Therapist',
+  nutritionist:       'Nutritionist',
+  health_coach:       'Health Coach',
+  doula:              'Doula',
+};
+
+const canonicalUrl = `https://rrmacademy.org/providers/${provider.slug}/`;
+const siteOrigin = 'https://rrmacademy.org';
+
+// --- Person schema ---
+const personSchema: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: provider.display_name,
+  url: canonicalUrl,
+};
+
+if (provider.credentials) {
+  personSchema.honorificSuffix = provider.credentials;
+}
+
+const occupationName = OCCUPATION_MAP[provider.practitioner_type];
+if (occupationName) {
+  personSchema.hasOccupation = {
+    '@type': 'Occupation',
+    name: occupationName,
+    occupationalCategory: provider.practitioner_type === 'medical' ? '29-1218.00' : undefined,
+  };
+}
+
+if ((provider.npi_specialties ?? []).length > 0) {
+  personSchema.medicalSpecialty = provider.npi_specialties[0];
+}
+
+if (provider.credentials) {
+  personSchema.hasCredential = provider.credentials.split(/[,\/]/).map(c => c.trim()).filter(Boolean).map(cred => ({
+    '@type': 'EducationalOccupationalCredential',
+    credentialCategory: 'board certification',
+    name: cred,
+  }));
+}
+
+if (provider.practice_name) {
+  const worksFor: Record<string, unknown> = {
+    '@type': 'MedicalOrganization',
+    name: provider.practice_name,
+  };
+  if (provider.city || provider.state || provider.zip) {
+    worksFor.address = {
+      '@type': 'PostalAddress',
+      ...(provider.address ? { streetAddress: provider.address } : {}),
+      ...(provider.city    ? { addressLocality: provider.city }   : {}),
+      ...(provider.state   ? { addressRegion: provider.state }    : {}),
+      ...(provider.zip     ? { postalCode: provider.zip }         : {}),
+      ...(provider.country ? { addressCountry: provider.country } : {}),
+    };
+  }
+  if (provider.phone) worksFor.telephone = provider.phone;
+  if (provider.practice_slug) {
+    worksFor.url = `${siteOrigin}/practices/${provider.practice_slug}/`;
+  }
+  personSchema.worksFor = worksFor;
+}
+
+if (provider.phone) {
+  personSchema.telephone = provider.phone;
+}
+
+if ((provider.methods ?? []).length > 0) {
+  personSchema.knowsAbout = provider.methods.map(m => methodLabel(m));
+}
+
+if (typeof provider.gbp_review_count === 'number' && provider.gbp_review_count >= 1 && typeof provider.gbp_rating === 'number') {
+  personSchema.aggregateRating = {
+    '@type': 'AggregateRating',
+    ratingValue: String(provider.gbp_rating),
+    reviewCount: String(provider.gbp_review_count),
+    bestRating: '5',
+  };
+}
+
+const sameAs: string[] = [];
+if (provider.healthgrades_url) sameAs.push(provider.healthgrades_url);
+if (provider.webmd_url) sameAs.push(provider.webmd_url);
+if (provider.source_profile_url) sameAs.push(provider.source_profile_url);
+if (sameAs.length > 0) personSchema.sameAs = sameAs;
+
+// --- FAQPage schema ---
+const faqSchema: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: (provider.faqs ?? []).map(faq => ({
+    '@type': 'Question',
+    name: faq.q,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: faq.a,
+    },
+  })),
+};
+
+// --- BreadcrumbList schema ---
+const breadcrumbItems: Record<string, unknown>[] = [
+  {
+    '@type': 'ListItem',
+    position: 1,
+    name: 'Providers',
+    item: `${siteOrigin}/find-a-provider/`,
+  },
+];
+
+if (breadcrumbMiddle) {
+  if (breadcrumbMiddle.type === 'online') {
+    breadcrumbItems.push({
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Online',
+    });
+  } else if (breadcrumbMiddle.type === 'state') {
+    breadcrumbItems.push({
+      '@type': 'ListItem',
+      position: 2,
+      name: breadcrumbMiddle.name,
+      item: `${siteOrigin}/find-a-provider/?state=${breadcrumbMiddle.abbr}`,
+    });
+  } else if (breadcrumbMiddle.type === 'country') {
+    breadcrumbItems.push({
+      '@type': 'ListItem',
+      position: 2,
+      name: breadcrumbMiddle.name,
+      item: `${siteOrigin}/find-a-provider/?country=${encodeURIComponent(breadcrumbMiddle.name)}`,
+    });
+  }
+  breadcrumbItems.push({
+    '@type': 'ListItem',
+    position: 3,
+    name: provider.display_name,
+  });
+} else {
+  breadcrumbItems.push({
+    '@type': 'ListItem',
+    position: 2,
+    name: provider.display_name,
+  });
+}
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: breadcrumbItems,
+};
+
+// Combined JSON-LD (array of three schemas)
+const jsonLd = [personSchema, faqSchema, breadcrumbSchema];
+
+// --- Meta title + description ---
+const pageTitle = provider.meta?.title || provider.display_name;
+const pageDescription = provider.meta?.description || `Find ${provider.display_name}, a restorative reproductive medicine provider${provider.city ? ` in ${provider.city}` : ''}.`;
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  canonicalUrl={canonicalUrl}
+  ogType="profile"
+  jsonLd={jsonLd}
+  bodyClass="page-provider-detail"
+>
+  <div class="provider-page" data-pagefind-ignore>
+
+    <!-- Back nav -->
+    <div class="provider-back">
+      <a href="/find-a-provider/">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m15 18-6-6 6-6"/>
+        </svg>
+        All providers
+      </a>
+    </div>
+
+    <!-- Breadcrumb -->
+    <nav class="provider-breadcrumb" aria-label="Breadcrumb">
+      <a href="/find-a-provider/">Providers</a>
+      {breadcrumbMiddle && breadcrumbMiddle.type === 'online' && (
+        <>
+          <span aria-hidden="true">›</span>
+          <span>Online</span>
+        </>
+      )}
+      {breadcrumbMiddle && breadcrumbMiddle.type === 'state' && (
+        <>
+          <span aria-hidden="true">›</span>
+          <a href={`/find-a-provider/?state=${breadcrumbMiddle.abbr}`}>{breadcrumbMiddle.name}</a>
+        </>
+      )}
+      {breadcrumbMiddle && breadcrumbMiddle.type === 'country' && (
+        <>
+          <span aria-hidden="true">›</span>
+          <a href={`/find-a-provider/?country=${encodeURIComponent(breadcrumbMiddle.name)}`}>{breadcrumbMiddle.name}</a>
+        </>
+      )}
+      <span aria-hidden="true">›</span>
+      <span>{provider.display_name}</span>
+    </nav>
+
+    <!-- 1. Hero -->
+    <ProviderHero provider={provider} />
+
+    <!-- 2. Contact bar (top) -->
+    {hasContact && (
+      <ProviderContactBar
+        phone={provider.phone}
+        phoneExt={provider.phone_ext}
+        website={provider.website}
+        city={provider.city}
+        state={provider.state}
+        practiceName={provider.practice_name}
+        zip={provider.zip}
+        country={provider.country}
+        address={provider.address}
+      />
+    )}
+
+    <!-- 3. Methods -->
+    {showMethods && <ProviderMethods provider={provider} />}
+
+    <!-- 4. Credentials -->
+    {showCredentials && <ProviderCredentials provider={provider} />}
+
+    <!-- 5. Location -->
+    {showLocation && <ProviderLocation provider={provider} />}
+
+    <!-- 6. Bio -->
+    {showBio && (
+      <div class="provider-section">
+        <h3>About</h3>
+        <p>{provider.bio}</p>
+      </div>
+    )}
+
+    <!-- 7. Claim CTA -->
+    {showClaimCTA && <ProviderClaimCTA hasContact={hasContact} />}
+
+    <!-- 8. FAQ -->
+    <div class="provider-section-wrap">
+      <ProviderFAQ faqs={provider.faqs ?? []} />
+    </div>
+
+    <!-- 9. Similar providers -->
+    <div class="provider-section-wrap">
+      <ProviderSimilar providers={similarProviders} />
+    </div>
+
+    <!-- 10. Contact bar (bottom repeat) -->
+    {hasContact && (
+      <ProviderContactBar
+        phone={provider.phone}
+        phoneExt={provider.phone_ext}
+        website={provider.website}
+        city={provider.city}
+        state={provider.state}
+        practiceName={provider.practice_name}
+        zip={provider.zip}
+        country={provider.country}
+        address={provider.address}
+      />
+    )}
+
+  </div>
+
+  <!-- Sticky bar (fixed, outside scroll container) -->
+  {hasContact && (
+    <ProviderStickyBar
+      phone={provider.phone}
+      phoneExt={provider.phone_ext}
+      website={provider.website}
+      city={provider.city}
+      state={provider.state}
+      practiceName={provider.practice_name}
+      zip={provider.zip}
+      country={provider.country}
+      address={provider.address}
+    />
+  )}
+
+  <BackToTop />
+</BaseLayout>
+
+<style>
+  .provider-page {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 0 5rem; /* space for sticky bar */
+  }
+
+  .provider-back {
+    padding: .75rem 1rem;
+    font-size: .8rem;
+  }
+
+  .provider-back a {
+    color: var(--accent);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+  }
+
+  .provider-back a:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+  }
+
+  .provider-breadcrumb {
+    padding: 0 1rem .5rem;
+    font-size: .65rem;
+    color: var(--text-muted);
+  }
+
+  .provider-breadcrumb a {
+    color: var(--text-tertiary);
+    text-decoration: none;
+  }
+
+  .provider-breadcrumb a:hover {
+    color: var(--accent);
+    text-decoration: underline;
+  }
+
+  .provider-breadcrumb span {
+    margin: 0 .2rem;
+  }
+
+  .provider-section {
+    background: var(--bg-surface);
+    margin: .5rem .75rem;
+    border-radius: 12px;
+    padding: .875rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .provider-section h3 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: .5rem;
+  }
+
+  .provider-section p {
+    font-size: .8rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+  }
+
+  /* ProviderFAQ and ProviderSimilar manage their own margin via their scoped styles,
+     but wrap in a consistent margin context matching other sections */
+  .provider-section-wrap {
+    margin: .5rem .75rem;
+  }
+</style>

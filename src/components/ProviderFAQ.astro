@@ -1,0 +1,82 @@
+---
+interface Props {
+  faqs: { q: string; a: string }[];
+}
+
+const { faqs } = Astro.props;
+---
+
+{faqs && faqs.length > 0 && (
+  <div class="section">
+    <div class="section-header">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+      <h3>Frequently Asked Questions</h3>
+    </div>
+
+    <div class="faq-list">
+      {faqs.map((item) => (
+        <div class="faq-item">
+          <div class="faq-q">{item.q}</div>
+          <div class="faq-a">{item.a}</div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
+<style>
+  .section {
+    background: var(--bg-surface);
+    border-radius: 12px;
+    padding: .875rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    margin-bottom: .6rem;
+    color: var(--text-secondary);
+  }
+
+  .section-header h3 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+  }
+
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .faq-item {
+    border-top: 1px solid #f0eeeb;
+    padding: .6rem 0;
+  }
+
+  .faq-item:first-child {
+    border-top: none;
+    padding-top: 0;
+  }
+
+  .faq-q {
+    font-size: .8rem;
+    font-weight: 600;
+    color: #313131;
+    margin-bottom: .25rem;
+  }
+
+  .faq-a {
+    font-size: .8rem;
+    color: #636261;
+    line-height: 1.5;
+  }
+</style>

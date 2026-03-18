@@ -1,0 +1,481 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProviderContactBar from '../../components/ProviderContactBar.astro';
+import ProviderStickyBar from '../../components/ProviderStickyBar.astro';
+import ProviderLocation from '../../components/ProviderLocation.astro';
+import ProviderFAQ from '../../components/ProviderFAQ.astro';
+import PracticeMemberCard from '../../components/PracticeMemberCard.astro';
+import BackToTop from '../../components/BackToTop.astro';
+import { fetchAllPractices, getProvidersByPractice, methodLabel, type Practice, type Provider } from '../../lib/providers';
+
+export async function getStaticPaths() {
+  const practices = fetchAllPractices();
+  return practices.map(practice => ({
+    params: { slug: practice.slug },
+    props: { practice },
+  }));
+}
+
+interface Props {
+  practice: Practice;
+}
+
+const { practice } = Astro.props;
+const members: Provider[] = getProvidersByPractice(practice.slug);
+
+// --- Contact channel detection ---
+const hasPhone = !!(practice.phone);
+const hasWebsite = !!(practice.website);
+const hasContact = hasPhone || hasWebsite || !practice.is_online_only;
+
+// --- Aggregate methods across all member providers ---
+const allMethodsSet = new Set<string>();
+members.forEach(p => (p.methods ?? []).forEach(m => allMethodsSet.add(m)));
+const allMethods = Array.from(allMethodsSet);
+const topMethods = allMethods.slice(0, 3);
+
+// --- State name map ---
+const STATE_NAMES: Record<string, string> = {
+  AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California',
+  CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', FL: 'Florida', GA: 'Georgia',
+  HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa',
+  KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland',
+  MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi',
+  MO: 'Missouri', MT: 'Montana', NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire',
+  NJ: 'New Jersey', NM: 'New Mexico', NY: 'New York', NC: 'North Carolina',
+  ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania',
+  RI: 'Rhode Island', SC: 'South Carolina', SD: 'South Dakota', TN: 'Tennessee',
+  TX: 'Texas', UT: 'Utah', VT: 'Vermont', VA: 'Virginia', WA: 'Washington',
+  WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming', DC: 'District of Columbia',
+};
+
+// --- Breadcrumb middle: state, online, or country ---
+type BreadcrumbMiddle =
+  | { type: 'online' }
+  | { type: 'state'; abbr: string; name: string }
+  | { type: 'country'; name: string }
+  | null;
+
+let breadcrumbMiddle: BreadcrumbMiddle = null;
+if (practice.is_online_only) {
+  breadcrumbMiddle = { type: 'online' };
+} else if (practice.state && STATE_NAMES[practice.state]) {
+  breadcrumbMiddle = { type: 'state', abbr: practice.state, name: STATE_NAMES[practice.state] };
+} else if (practice.country && practice.country !== 'USA' && practice.country !== 'US') {
+  breadcrumbMiddle = { type: 'country', name: practice.country };
+}
+
+const canonicalUrl = `https://rrmacademy.org/practices/${practice.slug}/`;
+const siteOrigin = 'https://rrmacademy.org';
+
+// --- Generate FAQs ---
+const locationQ = practice.is_online_only
+  ? `How do I access ${practice.name}?`
+  : `Where is ${practice.name} located?`;
+const locationA = practice.is_online_only
+  ? `${practice.name} offers telehealth services online${practice.website ? `. Visit ${practice.website} to learn more.` : '.'}`
+  : `${practice.name} is located in ${practice.city}, ${practice.state}.`;
+
+const generatedFaqs: { q: string; a: string }[] = [
+  {
+    q: `How many providers practice at ${practice.name}?`,
+    a: `${members.length} provider${members.length === 1 ? '' : 's'} practice${members.length === 1 ? 's' : ''} at ${practice.name}${practice.city && practice.state ? ` in ${practice.city}, ${practice.state}` : ''}.`,
+  },
+  ...(allMethods.length > 0
+    ? [{
+        q: `What methods are practiced at ${practice.name}?`,
+        a: `Providers at ${practice.name} are trained in ${allMethods.map(m => methodLabel(m)).join(', ')}.`,
+      }]
+    : []),
+  {
+    q: locationQ,
+    a: locationA,
+  },
+  ...(practice.phone
+    ? [{
+        q: `What is ${practice.name}'s phone number?`,
+        a: `You can reach ${practice.name} by phone at ${practice.phone}.`,
+      }]
+    : []),
+];
+
+// --- MedicalOrganization schema ---
+const memberSchema = members.map(p => ({
+  '@type': 'Person',
+  name: p.display_name,
+  url: `${siteOrigin}/providers/${p.slug}/`,
+}));
+
+const medicalOrgSchema: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': 'MedicalOrganization',
+  name: practice.name,
+  url: canonicalUrl,
+  ...(practice.phone ? { telephone: practice.phone } : {}),
+  ...(memberSchema.length > 0 ? { member: memberSchema } : {}),
+};
+
+if (practice.is_online_only) {
+  medicalOrgSchema.availableChannel = {
+    '@type': 'ServiceChannel',
+    serviceType: 'Telehealth',
+    ...(practice.website ? { serviceUrl: practice.website.startsWith('http') ? practice.website : `https://${practice.website}` } : {}),
+  };
+} else if (practice.city || practice.state) {
+  medicalOrgSchema.address = {
+    '@type': 'PostalAddress',
+    ...(practice.city  ? { addressLocality: practice.city }  : {}),
+    ...(practice.state ? { addressRegion: practice.state }   : {}),
+    ...(practice.country ? { addressCountry: practice.country } : {}),
+  };
+}
+
+// --- FAQPage schema ---
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: generatedFaqs.map(faq => ({
+    '@type': 'Question',
+    name: faq.q,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: faq.a,
+    },
+  })),
+};
+
+// --- BreadcrumbList schema ---
+const breadcrumbItems: Record<string, unknown>[] = [
+  {
+    '@type': 'ListItem',
+    position: 1,
+    name: 'Practices',
+    item: `${siteOrigin}/find-a-provider/`,
+  },
+];
+
+if (breadcrumbMiddle) {
+  if (breadcrumbMiddle.type === 'online') {
+    breadcrumbItems.push({
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Online',
+    });
+  } else if (breadcrumbMiddle.type === 'state') {
+    breadcrumbItems.push({
+      '@type': 'ListItem',
+      position: 2,
+      name: breadcrumbMiddle.name,
+      item: `${siteOrigin}/find-a-provider/?state=${breadcrumbMiddle.abbr}`,
+    });
+  } else if (breadcrumbMiddle.type === 'country') {
+    breadcrumbItems.push({
+      '@type': 'ListItem',
+      position: 2,
+      name: breadcrumbMiddle.name,
+      item: `${siteOrigin}/find-a-provider/?country=${encodeURIComponent(breadcrumbMiddle.name)}`,
+    });
+  }
+  breadcrumbItems.push({
+    '@type': 'ListItem',
+    position: 3,
+    name: practice.name,
+  });
+} else {
+  breadcrumbItems.push({
+    '@type': 'ListItem',
+    position: 2,
+    name: practice.name,
+  });
+}
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: breadcrumbItems,
+};
+
+// Combined JSON-LD
+const jsonLd = [medicalOrgSchema, faqSchema, breadcrumbSchema];
+
+// --- Meta ---
+const locationSuffix = practice.city && practice.state ? ` -- ${practice.city}, ${practice.state}` : '';
+const pageTitle = `${practice.name}${locationSuffix} | RRM Academy`;
+const methodsDescription = topMethods.length > 0
+  ? ` ${members.length} provider${members.length === 1 ? '' : 's'} practicing ${topMethods.map(m => methodLabel(m)).join(', ')}.`
+  : '';
+const pageDescription = `${practice.name}${practice.city && practice.state ? ` in ${practice.city}, ${practice.state}` : ''}.${methodsDescription} Contact information and provider listings.`;
+
+// --- Stub Provider for ProviderLocation ---
+// ProviderLocation accepts a full Provider; we adapt practice fields to match
+const practiceAsProvider = {
+  city: practice.city,
+  state: practice.state,
+  zip: '',
+  country: practice.country,
+  address: '',
+  practice_name: practice.name,
+  is_online_only: practice.is_online_only,
+} as Provider;
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  canonicalUrl={canonicalUrl}
+  jsonLd={jsonLd}
+  bodyClass="page-practice-detail"
+>
+  <div class="practice-page" data-pagefind-ignore>
+
+    <!-- Back nav -->
+    <div class="practice-back">
+      <a href="/find-a-provider/">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m15 18-6-6 6-6"/>
+        </svg>
+        All providers
+      </a>
+    </div>
+
+    <!-- Breadcrumb -->
+    <nav class="practice-breadcrumb" aria-label="Breadcrumb">
+      <a href="/find-a-provider/">Practices</a>
+      {breadcrumbMiddle && breadcrumbMiddle.type === 'online' && (
+        <>
+          <span aria-hidden="true">›</span>
+          <span>Online</span>
+        </>
+      )}
+      {breadcrumbMiddle && breadcrumbMiddle.type === 'state' && (
+        <>
+          <span aria-hidden="true">›</span>
+          <a href={`/find-a-provider/?state=${breadcrumbMiddle.abbr}`}>{breadcrumbMiddle.name}</a>
+        </>
+      )}
+      {breadcrumbMiddle && breadcrumbMiddle.type === 'country' && (
+        <>
+          <span aria-hidden="true">›</span>
+          <a href={`/find-a-provider/?country=${encodeURIComponent(breadcrumbMiddle.name)}`}>{breadcrumbMiddle.name}</a>
+        </>
+      )}
+      <span aria-hidden="true">›</span>
+      <span>{practice.name}</span>
+    </nav>
+
+    <!-- 1. Hero -->
+    <div class="practice-hero">
+      <div class="practice-icon" aria-hidden="true">
+        {practice.is_online_only ? (
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="2" y1="12" x2="22" y2="12"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+        ) : (
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="2" width="16" height="20" rx="1"/>
+            <path d="M9 22v-4h6v4"/>
+            <path d="M8 6h2"/>
+            <path d="M14 6h2"/>
+            <path d="M8 10h2"/>
+            <path d="M14 10h2"/>
+            <path d="M8 14h2"/>
+            <path d="M14 14h2"/>
+          </svg>
+        )}
+      </div>
+      <h1 class="practice-name">{practice.name}</h1>
+      {(practice.city || practice.state) && (
+        <div class="practice-loc">
+          {practice.is_online_only
+            ? 'Online Practice'
+            : [practice.city, practice.state].filter(Boolean).join(', ')
+          }
+        </div>
+      )}
+    </div>
+
+    <!-- 2. Contact bar -->
+    <ProviderContactBar
+      phone={practice.phone}
+      website={practice.website}
+      city={practice.city}
+      state={practice.state}
+      practiceName={practice.name}
+      country={practice.country}
+    />
+
+    <!-- 3. Providers section -->
+    {members.length > 0 && (
+      <div class="practice-section">
+        <h3>Providers ({members.length})</h3>
+        <div class="members-grid">
+          {members.map(member => (
+            <PracticeMemberCard provider={member} />
+          ))}
+        </div>
+      </div>
+    )}
+
+    <!-- 4. Location (physical practices only) -->
+    {!practice.is_online_only && (
+      <ProviderLocation provider={practiceAsProvider} />
+    )}
+
+    <!-- 5. Claim CTA -->
+    <div class="practice-claim-cta">
+      <span class="claim-icon" aria-hidden="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+          <line x1="4" y1="22" x2="4" y2="15"/>
+        </svg>
+      </span>
+      <p class="claim-text">Is this your practice? Claim it to manage all provider listings, add hours, and connect booking.</p>
+    </div>
+
+    <!-- 6. FAQ -->
+    <div class="practice-section-wrap">
+      <ProviderFAQ faqs={generatedFaqs} />
+    </div>
+
+  </div>
+
+  <!-- Sticky bar -->
+  <ProviderStickyBar
+    phone={practice.phone}
+    website={practice.website}
+    city={practice.city}
+    state={practice.state}
+    practiceName={practice.name}
+    country={practice.country}
+  />
+
+  <BackToTop />
+</BaseLayout>
+
+<style>
+  .practice-page {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0 0 5rem;
+  }
+
+  .practice-back {
+    padding: .75rem 1rem;
+    font-size: .8rem;
+  }
+
+  .practice-back a {
+    color: var(--accent);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+  }
+
+  .practice-back a:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+  }
+
+  .practice-breadcrumb {
+    padding: 0 1rem .5rem;
+    font-size: .65rem;
+    color: var(--text-muted);
+  }
+
+  .practice-breadcrumb a {
+    color: var(--text-tertiary);
+    text-decoration: none;
+  }
+
+  .practice-breadcrumb a:hover {
+    color: var(--accent);
+    text-decoration: underline;
+  }
+
+  .practice-breadcrumb span {
+    margin: 0 .2rem;
+  }
+
+  .practice-hero {
+    background: var(--bg-surface);
+    margin: .5rem .75rem;
+    border-radius: 12px;
+    padding: 1rem .875rem;
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+  }
+
+  .practice-icon {
+    color: var(--text-tertiary);
+    margin-bottom: .5rem;
+    display: flex;
+    justify-content: center;
+  }
+
+  .practice-name {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0 0 .25rem;
+    color: var(--text-primary);
+  }
+
+  .practice-loc {
+    font-size: .8rem;
+    color: var(--text-secondary);
+  }
+
+  .practice-section {
+    background: var(--bg-surface);
+    margin: .5rem .75rem;
+    border-radius: 12px;
+    padding: .875rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .practice-section h3 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: .5rem;
+    color: var(--text-primary);
+  }
+
+  .members-grid {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+  }
+
+  .practice-section-wrap {
+    margin: .5rem .75rem;
+  }
+
+  .practice-claim-cta {
+    background: #f0eaf3;
+    border-radius: 12px;
+    padding: .75rem .875rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    border: 1px dashed #725e7e;
+    margin: .5rem .75rem;
+  }
+
+  .claim-icon {
+    display: inline-flex;
+    align-items: center;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .claim-text {
+    font-size: .75rem;
+    color: var(--accent);
+    margin: 0;
+    line-height: 1.5;
+  }
+</style>

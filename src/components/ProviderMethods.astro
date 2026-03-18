@@ -1,0 +1,124 @@
+---
+import { methodLabel, type Provider } from '../lib/providers';
+
+interface Props {
+  provider: Provider;
+}
+
+const { provider } = Astro.props;
+
+// Source key -> short label mapping
+function sourceLabel(key: string): string {
+  if (key === 'facts-directory') return 'FACTS';
+  if (key === 'femm-provider') return 'FEMM';
+  if (key.startsWith('cfcmc')) return 'CFCMC';
+  if (key === 'mycatholicdoctor') return 'MCD';
+  // fallback: capitalize first word
+  const first = key.split(/[-_]/)[0];
+  return first.charAt(0).toUpperCase() + first.slice(1);
+}
+
+// Build per-method source list from methods_by_source
+const methodsBySource: Record<string, string[]> = provider.methods_by_source ?? {};
+const hasBySource = Object.keys(methodsBySource).length > 0;
+
+// Map method -> sources[]
+const methodSourceMap: Record<string, string[]> = {};
+if (hasBySource) {
+  for (const [src, methods] of Object.entries(methodsBySource)) {
+    for (const m of methods) {
+      if (!methodSourceMap[m]) methodSourceMap[m] = [];
+      methodSourceMap[m].push(sourceLabel(src));
+    }
+  }
+}
+
+const methods = provider.methods ?? [];
+---
+
+{methods.length > 0 && (
+  <div class="h-section">
+    <div class="h-section-header">
+      <span class="h-section-icon" aria-hidden="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        </svg>
+      </span>
+      <h3>Methods</h3>
+    </div>
+    <div class="method-list">
+      {methods.map((m) => {
+        const srcs = hasBySource ? (methodSourceMap[m] ?? []) : [];
+        return (
+          <div class="method-row">
+            <span class="method-pill-lg">{methodLabel(m)}</span>
+            {srcs.length > 0 && (
+              <span class="method-source">via {srcs.join(', ')}</span>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  </div>
+)}
+
+<style>
+  .h-section {
+    margin: 0.5rem 0.75rem;
+    background: var(--bg-surface);
+    border-radius: 12px;
+    padding: 0.875rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .h-section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .h-section-icon {
+    display: inline-flex;
+    align-items: center;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+  }
+
+  .h-section-header h3 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+  }
+
+  .method-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .method-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .method-pill-lg {
+    background: #eee5dd;
+    color: #636261;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.25rem 0.6rem;
+    border-radius: 100px;
+    white-space: nowrap;
+  }
+
+  .method-source {
+    font-size: 0.6rem;
+    color: #adaba9;
+    margin-left: auto;
+  }
+</style>

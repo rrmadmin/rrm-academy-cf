@@ -1,0 +1,378 @@
+---
+import { methodLabel, type Provider } from '../lib/providers';
+
+interface Props {
+  provider: Provider;
+}
+
+const { provider } = Astro.props;
+
+// --- Type badge ---
+const TYPE_BADGE: Record<string, { label: string; variant: 'clinical' | 'rose' | 'educator' }> = {
+  medical:            { label: 'Medical',           variant: 'clinical' },
+  nurse_practitioner: { label: 'Nurse Practitioner', variant: 'clinical' },
+  pharmacist:         { label: 'Pharmacist',         variant: 'clinical' },
+  chiropractor:       { label: 'Chiropractor',       variant: 'clinical' },
+  naturopath:         { label: 'Naturopath',         variant: 'clinical' },
+  educator:           { label: 'Educator',           variant: 'educator' },
+  mental_health:      { label: 'Therapist',          variant: 'rose' },
+  physical_therapist: { label: 'Physical Therapist', variant: 'rose' },
+  nutritionist:       { label: 'Nutritionist',       variant: 'rose' },
+  health_coach:       { label: 'Health Coach',       variant: 'rose' },
+  doula:              { label: 'Doula / Lactation',  variant: 'rose' },
+};
+const typeBadge = TYPE_BADGE[provider.practitioner_type] ?? null;
+
+// --- Telehealth badge label ---
+function teleBadgeLabel(p: Provider): string {
+  if (!p.telehealth || p.telehealth === 'no') return '';
+  const isMcd = p.source === 'mycatholicdoctor' || (p._all_sources ?? []).some(s => s.includes('mycatholicdoctor'));
+  if (isMcd) return 'Tele (multi)';
+  if (p.telehealth_states && p.telehealth_states.length === 1) {
+    return `Tele (${p.telehealth_states[0]})`;
+  }
+  if (p.telehealth_states && p.telehealth_states.length > 1) {
+    return 'Tele (multi)';
+  }
+  return 'Tele';
+}
+const teleLabel = teleBadgeLabel(provider);
+
+// --- Accepting badge ---
+const showAccepts   = provider.accepting === true;
+const showNotAccepting = provider.accepting === false;
+
+// --- Star rating ---
+const showRating = typeof provider.gbp_rating === 'number' &&
+                   typeof provider.gbp_review_count === 'number' &&
+                   provider.gbp_review_count >= 1;
+const ratingText = showRating
+  ? `${provider.gbp_rating} (${provider.gbp_review_count} review${provider.gbp_review_count === 1 ? '' : 's'} on Google)`
+  : '';
+
+// --- Location ---
+const locationText = provider.is_online_only
+  ? 'Online Provider'
+  : [provider.city, provider.state, provider.zip].filter(Boolean).join(', ');
+
+// --- Languages ---
+const otherLangs = (provider.languages ?? []).filter(l => l.toLowerCase() !== 'english');
+
+// --- Verified badge ---
+const verifiedLabel =
+  provider.verification_badge === 'npi_verified' ? 'NPI Verified' :
+  provider.verification_badge === 'verified'     ? 'Verified'     : null;
+
+// --- Provenance links ---
+const provLinks: { href: string; label: string }[] = [];
+if (provider.healthgrades_url) provLinks.push({ href: provider.healthgrades_url, label: 'Healthgrades' });
+if (provider.webmd_url)        provLinks.push({ href: provider.webmd_url,        label: 'WebMD' });
+if (provider.source_profile_url && provider.source_directory_label) {
+  provLinks.push({ href: provider.source_profile_url, label: provider.source_directory_label });
+}
+
+// All source labels (text-only)
+const srcLabels = provider._all_sources ?? [];
+
+// --- Display name: name + credentials ---
+const displayName = provider.credentials
+  ? `${provider.name}, ${provider.credentials}`
+  : provider.name;
+---
+
+<div class="h-hero">
+
+  <!-- Photo + name row -->
+  <div class="h-identity">
+    {provider.photo_url && (
+      <img
+        class="h-photo"
+        src={provider.photo_url}
+        alt={provider.name}
+        width="64"
+        height="64"
+        loading="eager"
+        decoding="async"
+      />
+    )}
+    <div class="h-identity-text">
+      <!-- Line 1: Name + action badges -->
+      <div class="h-top">
+        <div class="h-name">{displayName}</div>
+        {(teleLabel || showAccepts || showNotAccepting) && (
+          <div class="h-badges">
+            {teleLabel && <span class="pill action tele">{teleLabel}</span>}
+            {showAccepts && <span class="pill action accepts">Accepts</span>}
+            {showNotAccepting && <span class="pill action not-accepting">Not Accepting</span>}
+          </div>
+        )}
+      </div>
+
+      <!-- Line 2: Star rating -->
+      {showRating && (
+        <div class="h-ratings">
+          <span class="h-star">&#9733; {ratingText}</span>
+        </div>
+      )}
+    </div>
+  </div>
+
+  <!-- Line 3: Type + Method pills -->
+  {(typeBadge || (provider.methods && provider.methods.length > 0)) && (
+    <div class="h-pills">
+      {typeBadge && (
+        <span class={`pill type ${typeBadge.variant}`}>{typeBadge.label}</span>
+      )}
+      {(provider.methods ?? []).map(m => (
+        <span class="pill method">{methodLabel(m)}</span>
+      ))}
+    </div>
+  )}
+
+  <div class="h-divider"></div>
+
+  <!-- Practice name -->
+  {provider.practice_name && (
+    provider.practice_slug
+      ? <a class="h-practice-link" href={`/practices/${provider.practice_slug}/`}>{provider.practice_name}</a>
+      : <div class="h-practice-name">{provider.practice_name}</div>
+  )}
+
+  <!-- Location -->
+  {locationText && (
+    <div class="h-loc">{locationText}</div>
+  )}
+
+  <!-- Languages (right-aligned, grey) -->
+  {otherLangs.length > 0 && (
+    <div class="h-langs">
+      {otherLangs.join(' \u00b7 ')}
+    </div>
+  )}
+
+  <!-- Provenance row -->
+  {(verifiedLabel || provLinks.length > 0 || srcLabels.length > 0) && (
+    <div class="h-prov">
+      {verifiedLabel && (
+        <span class="pill verified">{verifiedLabel}</span>
+      )}
+      {provLinks.map(link => (
+        <a href={link.href} class="h-prov-link" target="_blank" rel="noopener noreferrer">{link.label}</a>
+      ))}
+      {srcLabels.map(label => (
+        <span class="src-label">{label}</span>
+      ))}
+    </div>
+  )}
+
+</div>
+
+<style>
+  .h-hero {
+    background: var(--bg-surface);
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-5) var(--space-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  /* Identity row: optional photo + text block */
+  .h-identity {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+
+  .h-photo {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--neutral-100);
+  }
+
+  .h-identity-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  /* Name + action badges */
+  .h-top {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .h-name {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.15;
+    color: var(--text-primary);
+  }
+
+  .h-badges {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  /* Star rating */
+  .h-ratings {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+
+  .h-star {
+    color: #f57f17;
+    font-weight: 500;
+  }
+
+  /* Type + method pills row */
+  .h-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  /* Divider */
+  .h-divider {
+    height: 1px;
+    background: var(--border-light);
+    margin: var(--space-1) 0;
+  }
+
+  /* Practice link / name */
+  .h-practice-link {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .h-practice-link:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+  }
+
+  .h-practice-name {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  /* Location */
+  .h-loc {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+
+  /* Languages */
+  .h-langs {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    text-align: right;
+  }
+
+  /* Provenance row */
+  .h-prov {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-1);
+  }
+
+  .h-prov-link {
+    font-size: 0.75rem;
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .h-prov-link:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+  }
+
+  .src-label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    background: var(--neutral-100);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* ---- Pill base ---- */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1;
+    padding: 3px 8px;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+  }
+
+  /* Action pills */
+  .pill.action.tele {
+    background: #947353;
+    color: #fff;
+  }
+  .pill.action.accepts {
+    background: #7e8772;
+    color: #fff;
+  }
+  .pill.action.not-accepting {
+    background: #8b3a3a;
+    color: #fff;
+  }
+
+  /* Type pills */
+  .pill.type.clinical {
+    background: #f0eaf4;
+    color: #725e7e;
+  }
+  .pill.type.rose {
+    background: #fce8ef;
+    color: #8a5670;
+  }
+  .pill.type.educator {
+    background: #eee5dd;
+    color: #6b5d4f;
+  }
+
+  /* Method pills */
+  .pill.method {
+    background: #eee5dd;
+    color: var(--text-secondary);
+  }
+
+  /* Verified pill */
+  .pill.verified {
+    background: #3a5272;
+    color: #fff;
+  }
+
+  /* Responsive */
+  @media (max-width: 480px) {
+    .h-hero {
+      padding: var(--space-4) var(--space-4);
+    }
+    .h-name {
+      font-size: 1.25rem;
+    }
+    .h-langs {
+      text-align: left;
+    }
+  }
+</style>
