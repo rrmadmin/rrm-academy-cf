@@ -14,6 +14,7 @@ Disallow: /api/
 Disallow: /data/
 Disallow: /ivf-success-calculator
 Disallow: /community/
+Disallow: /dev/
 
 # AI crawlers: library content and llms.txt are explicitly welcomed
 User-agent: GPTBot
@@ -22,10 +23,12 @@ Allow: /llms.txt
 Disallow: /api/
 Disallow: /account
 Disallow: /community/
+Disallow: /dev/
 
 User-agent: Google-Extended
 Allow: /library/
 Allow: /llms.txt
+Disallow: /dev/
 
 User-agent: PerplexityBot
 Allow: /library/
@@ -33,6 +36,7 @@ Allow: /llms.txt
 Disallow: /api/
 Disallow: /account
 Disallow: /community/
+Disallow: /dev/
 
 User-agent: ClaudeBot
 Allow: /library/
@@ -40,9 +44,11 @@ Allow: /llms.txt
 Disallow: /api/
 Disallow: /account
 Disallow: /community/
+Disallow: /dev/
 
 User-agent: Applebot-Extended
 Allow: /library/
 Allow: /llms.txt
+Disallow: /dev/
 
 Sitemap: https://rrmacademy.org/sitemap-index.xml

@@ -1,0 +1,419 @@
+---
+// Dev-only provider directory prototype -- password protected, noindex
+// Password: 2415
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<meta http-equiv="X-Robots-Tag" content="noindex, nofollow, noarchive">
+<title>Dev Preview</title>
+<style>
+  :root {
+    --bg:#faf9f7;--surface:#fff;--text:#313131;--text2:#555;--text3:#888;--text4:#aaa;
+    --accent:#725e7e;--accent-l:#f0eaf3;
+    --green:#2d7d46;--green-l:#e8f5e9;
+    --blue:#1a6fb5;--blue-l:#e3f0fa;
+    --amber:#b58a1a;--amber-l:#fdf4e3;
+    --red:#c62828;--red-l:#fde8e8;
+    --border:#e5e2dd;--shadow:0 1px 3px rgba(0,0,0,.08);--shadow-lg:0 8px 30px rgba(0,0,0,.1);
+    --r:12px;--fh:'Cormorant Garamond',Georgia,serif;--f:'Inter',-apple-system,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:var(--f);background:var(--bg);color:var(--text);-webkit-text-size-adjust:100%}
+
+  /* Password gate */
+  #gate{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:1rem}
+  #gate input{padding:.75rem 1rem;border:2px solid var(--border);border-radius:8px;font-size:1rem;text-align:center;width:200px;font-family:var(--f)}
+  #gate input:focus{border-color:var(--accent);outline:none}
+  #gate button{padding:.6rem 1.5rem;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:.9rem;cursor:pointer;font-family:var(--f)}
+  #gate .err{color:var(--red);font-size:.8rem;min-height:1.2em}
+  #app{display:none}
+
+  /* Hero */
+  .hero{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem 1rem 1.5rem;text-align:center;transition:all .3s}
+  .hero:not(.collapsed){min-height:35vh}
+  .hero.collapsed{padding:1rem 1rem .5rem}
+  .hero h1{font-family:var(--fh);font-size:1.75rem;font-weight:500;margin-bottom:.35rem}
+  .hero.collapsed h1{font-size:1.1rem}
+  .hero .sub{color:var(--text2);font-size:.9rem;max-width:500px;margin-bottom:1.25rem}
+  .hero.collapsed .sub,.hero.collapsed .chips,.hero.collapsed .stats{display:none}
+  .stats{display:flex;gap:1.5rem;margin-bottom:1.25rem;flex-wrap:wrap;justify-content:center}
+  .stat-n{font-family:var(--fh);font-size:1.5rem;font-weight:700;color:var(--accent);display:block}
+  .stat-l{font-size:.65rem;text-transform:uppercase;letter-spacing:.04em;color:var(--text3)}
+
+  /* Search */
+  .sbox{width:100%;max-width:720px;position:relative;padding:0 .5rem}
+  .sinput{width:100%;padding:.875rem 3rem .875rem 1rem;border:2px solid var(--border);border-radius:100px;font-size:.95rem;font-family:var(--f);background:var(--surface);box-shadow:var(--shadow);outline:none}
+  .sinput:focus{border-color:var(--accent);box-shadow:var(--shadow-lg)}
+  .sbtn{position:absolute;right:calc(.5rem + 4px);top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;border:none;background:var(--accent);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .chips{display:flex;flex-wrap:wrap;gap:.35rem;justify-content:center;margin-top:.75rem;padding:0 .5rem}
+  .chip{padding:.3rem .65rem;border-radius:100px;font-size:.75rem;border:1px solid var(--border);color:var(--text2);cursor:pointer;background:var(--surface)}
+  .chip:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-l)}
+
+  /* Results */
+  .results{max-width:600px;margin:0 auto;padding:0 .75rem 3rem}
+  .results.hidden{display:none}
+  .answer{background:var(--surface);border-radius:var(--r);padding:1rem;box-shadow:var(--shadow);margin-bottom:.75rem}
+  .answer p{font-size:.9rem;line-height:1.6}
+  .answer strong{color:var(--accent)}
+  .answer .meta{font-size:.7rem;color:var(--text3);margin-top:.35rem}
+  .filters{display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.75rem}
+  .ftag{font-size:.65rem;padding:.2rem .5rem;border-radius:100px;cursor:pointer;border:1px solid var(--border);color:var(--text3);background:transparent}
+  .ftag:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .list{display:flex;flex-direction:column;gap:.5rem}
+
+  /* Card -- mobile first */
+  .card{background:var(--surface);border-radius:var(--r);padding:.875rem;box-shadow:var(--shadow);transition:box-shadow .15s}
+  .card:hover{box-shadow:var(--shadow-lg)}
+
+  /* Line 1: Name + action badges */
+  .c-top{display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;margin-bottom:.5rem}
+  .c-name{font-family:var(--fh);font-size:1.4rem;font-weight:600;flex:1;min-width:0;line-height:1.2}
+  .c-practice-icon{color:#bbb;flex-shrink:0;margin-right:.15rem;vertical-align:-2px}
+  .c-badges{display:flex;gap:4px;flex-shrink:0;padding-top:5px}
+
+  /* Line 2: Stars */
+  .c-ratings{display:flex;gap:.5rem;margin-bottom:.25rem}
+  .c-star{font-size:.8rem;font-weight:600;white-space:nowrap}
+  .c-star.google{color:#f57f17}
+  .c-star.facebook{color:#1877F2}
+
+  /* Pills */
+  .c-pills{display:flex;flex-wrap:wrap;gap:.25rem;margin-bottom:.4rem}
+  .pill{display:inline-flex;align-items:center;gap:.15rem;font-size:.6rem;font-weight:600;padding:.15rem .4rem;border-radius:100px;white-space:nowrap}
+  .pill.tele{background:#fff3e0;color:#e65100}
+  .pill.accepts{background:var(--green-l);color:var(--green)}
+  .pill.not-accepting{background:var(--red-l);color:var(--red)}
+  .pill.method{background:#f5f3f0;color:var(--text2);border:1px solid var(--border)}
+  .pill.med{background:#e8eaf6;color:#37474f}
+  .pill.edu{background:#e0f7fa;color:#00838f}
+  .pill.mh{background:#fce4ec;color:#c2185b}
+  .pill.surgeon{background:#e8eaf6;color:#303f9f}
+
+  /* Divider */
+  .c-divider{height:1px;background:#f0eeeb;margin:.25rem 0}
+
+  /* Business section */
+  .c-practice{font-size:.8rem;color:var(--accent);font-weight:600;text-decoration:none;display:block;margin-bottom:.1rem}
+  .c-practice:hover{text-decoration:underline}
+  .c-loc{font-size:.8rem;color:var(--text2);margin-bottom:.1rem;line-height:1.3}
+
+  /* Contact */
+  .c-contact{font-size:.8rem;margin-bottom:.15rem}
+  .c-contact a{color:var(--text2);text-decoration:none}
+  .c-contact a:hover{text-decoration:underline}
+
+  /* Provenance */
+  .c-prov{display:flex;flex-wrap:wrap;gap:.25rem .4rem;align-items:center;font-size:.6rem;color:var(--text4);margin-top:.5rem}
+  .c-prov .v-badge{display:inline-flex;align-items:center;gap:2px;background:var(--blue-l);color:var(--blue);font-weight:600;padding:1px 5px;border-radius:100px;font-size:.55rem}
+  .c-prov a{color:var(--accent);text-decoration:none;font-size:.6rem}
+  .c-prov a:hover{text-decoration:underline}
+  .c-prov .src{color:var(--text4)}
+  .c-prov .cta{color:var(--accent);font-style:italic;font-size:.6rem}
+
+  .empty{text-align:center;padding:2rem;color:var(--text3)}
+  .empty h3{font-family:var(--fh);font-size:1.3rem;color:var(--text2);margin-bottom:.3rem}
+  .show-more{text-align:center;padding:1rem;color:var(--text3);font-size:.8rem}
+
+  /* Dev banner */
+  .dev-banner{background:#f0eaf3;text-align:center;padding:.4rem;font-size:.7rem;color:var(--accent);font-weight:600;letter-spacing:.02em}
+
+  /* Desktop */
+  @media(min-width:640px){
+    .hero h1{font-size:2.25rem}
+    .hero .sub{font-size:1rem}
+    .results{max-width:720px}
+    .c-name{font-size:1.3rem}
+    .c-loc{font-size:.8125rem}
+    .c-contact{font-size:.8125rem}
+    .pill{font-size:.65rem}
+  }
+</style>
+</head>
+<body>
+
+<!-- Password gate -->
+<div id="gate">
+  <div style="font-family:var(--fh);font-size:1.5rem;color:var(--text2)">Dev Preview</div>
+  <input type="password" id="pw" placeholder="Password" autofocus>
+  <button onclick="tryUnlock()">Enter</button>
+  <div class="err" id="err"></div>
+</div>
+
+<!-- App (hidden until password correct) -->
+<div id="app">
+<div class="dev-banner">DEV PREVIEW -- NOT PUBLIC</div>
+<div class="hero" id="hero">
+  <h1>Find a Provider</h1>
+  <p class="sub">Search 3,900+ practitioners across every major fertility awareness method.</p>
+  <div class="stats">
+    <div><span class="stat-n" id="s-total">--</span><span class="stat-l">Practitioners</span></div>
+    <div><span class="stat-n" id="s-tele">--</span><span class="stat-l">Telehealth</span></div>
+    <div><span class="stat-n" id="s-verified">--</span><span class="stat-l">Verified</span></div>
+  </div>
+  <div class="sbox">
+    <input class="sinput" id="q" type="text" placeholder="e.g. NaPro doctor in Texas with telehealth">
+    <button class="sbtn" onclick="doSearch()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+  </div>
+  <div class="chips">
+    <button class="chip" onclick="fill('FEMM provider telehealth')">FEMM telehealth</button>
+    <button class="chip" onclick="fill('NaPro doctor in Pennsylvania')">NaPro in PA</button>
+    <button class="chip" onclick="fill('Creighton practitioner')">Creighton</button>
+    <button class="chip" onclick="fill('Billings teacher Spanish')">Billings, Spanish</button>
+    <button class="chip" onclick="fill('Catholic therapist telehealth')">Catholic therapist</button>
+    <button class="chip" onclick="fill('Marquette instructor')">Marquette</button>
+  </div>
+</div>
+<div class="results hidden" id="results">
+  <div id="answer"></div>
+  <div class="filters" id="filters"></div>
+  <div class="list" id="list"></div>
+</div>
+</div>
+
+<script is:inline>
+// Password gate
+function tryUnlock(){
+  var pw=document.getElementById('pw').value;
+  if(pw==='2415'){
+    document.getElementById('gate').style.display='none';
+    document.getElementById('app').style.display='block';
+    sessionStorage.setItem('dev_pw','ok');
+    document.getElementById('q').focus();
+    init();
+  } else {
+    document.getElementById('err').textContent='Wrong password';
+  }
+}
+document.getElementById('pw').addEventListener('keydown',function(e){if(e.key==='Enter')tryUnlock()});
+// Auto-unlock if already authenticated this session
+if(sessionStorage.getItem('dev_pw')==='ok'){
+  document.getElementById('gate').style.display='none';
+  document.getElementById('app').style.display='block';
+  init();
+}
+
+let D=[];
+const ML={'femm':'FEMM','napro':'NaPro','creighton':'Creighton','billings':'Billings','marquette':'Marquette','sympto-thermal':'Sympto-Thermal','boston-crosscheck':'Boston Crosscheck','neofertility':'NeoFertility','sensiplan':'Sensiplan','nfpta':'NFPTA','lam':'LAM','other':'Other'};
+const ml=function(m){return ML[m]||m.replace(/-/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase()})};
+const ST={AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming',DC:'DC'};
+const SA=Object.fromEntries(Object.entries(ST).map(function(e){return[e[1].toLowerCase(),e[0]]}));
+const AMBIG=new Set(['in','or','me','ok','hi','la','al','ma','oh','de','id']);
+
+// SVG icons
+const ICO={
+  video:'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>',
+  userPlus:'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>',
+  userX:'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" y1="8" x2="23" y2="14"/><line x1="23" y1="8" x2="17" y2="14"/></svg>',
+  check:'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+  stethoscope:'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2v2"/><path d="M5 2v2"/><path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"/><path d="M8 15a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/></svg>',
+  bookOpen:'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
+  brain:'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 18V5"/><path d="M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4"/><path d="M17.598 6.5A3 3 0 1 0 12 5a3 3 0 1 0-5.598 1.5"/><path d="M17.997 5.125a4 4 0 0 1 2.526 5.77"/><path d="M18 18a4 4 0 0 0 2-7.464"/><path d="M19.967 17.483A4 4 0 1 1 12 18a4 4 0 1 1-7.967-.517"/><path d="M6 18a4 4 0 0 1-2-7.464"/><path d="M6.003 5.125a4 4 0 0 0-2.526 5.77"/></svg>',
+  syringe:'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 2 4 4"/><path d="m17 7 3-3"/><path d="M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"/><path d="m9 11 4 4"/><path d="m5 19-3 3"/><path d="m14 4 6 6"/></svg>',
+  building:'<svg class="c-practice-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="1"/><path d="M9 22v-4h6v4"/><path d="M8 6h2"/><path d="M14 6h2"/><path d="M8 10h2"/><path d="M14 10h2"/><path d="M8 14h2"/><path d="M14 14h2"/></svg>',
+  flag:'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>'
+};
+
+function parseQ(q){
+  q=q.toLowerCase().trim();
+  var i={methods:[],state:'',tele:false,type:'',lang:'',city:'',text:q};
+  if(/\b(telehealth|telemed|virtual|online|remote|tele)\b/.test(q))i.tele=true;
+  [[/\bfemm\b/,'femm'],[/\bnapro\b|naprotechnology/,'napro'],[/\bcreighton\b|fertilitycare/,'creighton'],[/\bbillings\b/,'billings'],[/\bmarquette\b/,'marquette'],[/\bsympto.?thermal\b/,'sympto-thermal'],[/\bboston.?cross/,'boston-crosscheck'],[/\bneofertility\b/,'neofertility'],[/\bsensiplan\b/,'sensiplan']].forEach(function(pair){if(pair[0].test(q))i.methods.push(pair[1])});
+  if(/\b(therapist|counselor|psycholog|mental.health|lpc|lcsw)\b/.test(q))i.type='mental_health';
+  else if(/\b(doctor|md|do|physician|medical|surgeon|obgyn)\b/.test(q))i.type='medical';
+  else if(/\b(teacher|instructor|educator|fcp|practitioner)\b/.test(q))i.type='educator';
+  for(var a in ST){if(q.includes(ST[a].toLowerCase())){i.state=a;break}}
+  if(!i.state){var m=q.match(/\b(?:in|near|from)\s+([a-z]{2})\b/);if(m&&ST[m[1].toUpperCase()]&&!AMBIG.has(m[1]))i.state=m[1].toUpperCase()}
+  if(!i.state){for(var a2 in ST){if(!AMBIG.has(a2.toLowerCase())&&new RegExp('\\b'+a2.toLowerCase()+'\\b').test(q)){i.state=a2;break}}}
+  var cm=q.match(/(?:near|in)\s+([a-z\s]+?)(?:\s*,|\s+(?:who|with|that|offer|telehealth|$))/);
+  if(cm&&!i.state){var c=cm[1].trim();if(SA[c])i.state=SA[c];else i.city=c}
+  if(/\bspanish\b/.test(q))i.lang='Spanish';if(/\bfrench\b/.test(q))i.lang='French';
+  return i;
+}
+
+function score(r,i){
+  var s=0;
+  if(i.methods.length){var rm=new Set([].concat(r.methods||[],[r.method]));var ov=i.methods.filter(function(m){return rm.has(m)});if(!ov.length)return-1;s+=ov.length*40}
+  if(i.state){if(r.state===i.state)s+=35;else return-1}
+  if(i.city&&r.city&&r.city.toLowerCase().includes(i.city))s+=30;
+  if(i.tele){if(r.telehealth==='yes')s+=25;else if(r.telehealth==='unknown')s-=5;else return-1}
+  if(i.type){if(r.practitioner_type===i.type)s+=15;else return-1}
+  if(i.lang&&(r.languages||[]).some(function(l){return l.toLowerCase().includes(i.lang.toLowerCase())}))s+=20;
+  s+=({A:12,B:8,C:4,D:1,E:0}[r.contact_confidence]||3);
+  if(r._all_sources&&r._all_sources.length>1)s+=r._all_sources.length*3;
+  if(r.telehealth==='yes')s+=8;
+  if(r.gbp_accepting_patients)s+=5;
+  if(r.perplexity_status==='active')s+=5;
+  if(r.data_quality_score)s+=r.data_quality_score/10;
+  return s;
+}
+
+function summary(res,i){
+  if(!res.length)return'';
+  var p=res.length===1?'I found <strong>1 practitioner</strong>':'I found <strong>'+res.length+' practitioners</strong>';
+  var d=[];
+  if(i.methods.length)d.push(i.methods.map(ml).join(' + '));
+  if(i.type==='medical')d.push('medical provider');if(i.type==='educator')d.push('educator');if(i.type==='mental_health')d.push('therapist');
+  if(d.length)p+=' matching <strong>'+d.join(', ')+'</strong>';
+  if(i.state)p+=' in <strong>'+(ST[i.state]||i.state)+'</strong>';
+  if(i.tele)p+=' offering <strong>telehealth</strong>';
+  if(i.lang)p+=' who speak <strong>'+i.lang+'</strong>';
+  var tc=res.filter(function(r){return r.telehealth==='yes'}).length;
+  var vc=res.filter(function(r){return r.perplexity_status==='active'||r.npi_verified||r.gbp_accepting_patients}).length;
+  var meta=[];if(tc&&!i.tele)meta.push(tc+' offer telehealth');if(vc)meta.push(vc+' independently verified');
+  return '<div class="answer"><p>'+p+'.</p>'+(meta.length?'<p class="meta">'+meta.join(' &middot; ')+'</p>':'')+'</div>';
+}
+
+function card(r){
+  var loc=[r.city,r.state||''].filter(Boolean).join(', ');
+  if(r.country&&!['USA','us','us.','United States'].includes(r.country))loc+=(loc?', ':'')+r.country;
+  var methods=[].concat(r.methods||[],[r.method]).filter(function(v,i,a){return v&&a.indexOf(v)===i});
+  var tc=r.practitioner_type==='mental_health'?'mh':r.practitioner_type==='medical'?'med':'edu';
+  var tl=tc==='mh'?'Therapist':tc==='med'?'Medical':'Educator';
+  var typeIcon=tc==='med'?ICO.stethoscope:tc==='mh'?ICO.brain:ICO.bookOpen;
+
+  var isPractice=r.is_practice||r.record_type==='practice'||(!r.credentials&&/\b(clinic|center|centre|institute|practice|associates|medical group|women'?s|fertility center|ob.?gyn|family medicine)\b/i.test(r.name));
+
+  var displayName=r.name;
+  var hasDoctorate=/\b(MD|DO|MBBS|PhD|PsyD|DPT|PharmD|DC|ND|NMD|DNP|DrPH|EdD|DDS|DMD)\b/.test(r.credentials||r.name);
+  if(!hasDoctorate)displayName=displayName.replace(/^Dr\.?\s+/i,'');
+  if(r.credentials&&!r.name.includes(r.credentials))displayName+=', '+r.credentials;
+
+  var isVerified=(r._all_sources&&r._all_sources.length>=2)||r.perplexity_status==='active'||r.npi_verified||r.healthgrades_verified||r.practice_site_verified;
+
+  var isSurgeon=r.practitioner_type==='medical'&&/\bMIGS\b/.test(r.credentials||'');
+  if(!isSurgeon&&r.practitioner_type==='medical'){
+    var src=(r._all_sources||[]).join(' ')+(r.source||'');
+    var hasFellowship=/\b(cfcmc|naprotechnology\.com|pope paul vi)\b/i.test(src);
+    var hasSurgical=/\b(surg|excision|laparoscop|MIGS|minimally.invasive)\b/i.test((r.credentials||'')+' '+(r.specialties||[]).join(' ')+' '+(r.practice_focus||''));
+    if(hasFellowship&&hasSurgical)isSurgeon=true;
+  }
+
+  var actionBadges='';
+  if(r.telehealth==='yes'){
+    var isMCD=(r._all_sources||[]).some(function(s){return/mycatholicdoctor/i.test(s)})||/mycatholicdoctor/i.test(r.source||'');
+    var teleLabel=isMCD?'Tele (multi)':r.state?'Tele ('+r.state+')':'Tele';
+    actionBadges+='<span class="pill tele" title="Telehealth availability may vary by state">'+ICO.video+' '+teleLabel+'</span>';
+  }
+  if(r.accepting_patients===false)actionBadges+='<span class="pill not-accepting">'+ICO.userX+' Not accepting</span>';
+  else if(r.gbp_accepting_patients)actionBadges+='<span class="pill accepts">'+ICO.userPlus+' Accepts</span>';
+  var badgesHtml=actionBadges?'<div class="c-badges">'+actionBadges+'</div>':'';
+  var practiceIconHtml=isPractice?ICO.building:'';
+
+  var ratingsHtml='';
+  if(r.gbp_rating||r.fb_rating){
+    ratingsHtml='<div class="c-ratings">';
+    if(r.gbp_rating)ratingsHtml+='<span class="c-star google" title="Google rating">&#9733; '+r.gbp_rating+'</span>';
+    if(r.fb_rating)ratingsHtml+='<span class="c-star facebook" title="Facebook rating">&#9733; '+r.fb_rating+'</span>';
+    ratingsHtml+='</div>';
+  }
+
+  var providerPills='';
+  if(isSurgeon)providerPills+='<span class="pill surgeon">'+ICO.syringe+' Surgeon</span>';
+  providerPills+='<span class="pill '+tc+'">'+typeIcon+' '+tl+'</span>';
+  var langs=r.languages||[];
+  langs=langs.length>1||(langs.length===1&&langs[0]!=='English')?langs:[];
+  var methodPills='';
+  if(methods.length>4){
+    methodPills=methods.slice(0,4).map(function(m){return'<span class="pill method">'+ml(m)+'</span>'}).join('');
+    methodPills+='<span class="pill method" style="color:var(--text3)">+'+(methods.length-4)+' more</span>';
+  } else {
+    methodPills=methods.map(function(m){return'<span class="pill method">'+ml(m)+'</span>'}).join('');
+  }
+
+  var hasPracticeName=r.practice_name&&r.practice_name!==r.name;
+  var practiceHtml='';
+  if(hasPracticeName){
+    if(r.website&&!(r.quality_flags||[]).includes('website_dead'))
+      practiceHtml='<a class="c-practice" href="'+r.website+'" target="_blank">'+r.practice_name+'</a>';
+    else
+      practiceHtml='<div class="c-practice" style="cursor:default">'+r.practice_name+'</div>';
+  }
+
+  var relocated=r.quality_flags&&r.quality_flags.includes('location_mismatch');
+  var locNote=relocated?' <span style="color:#bbb" title="This location may be outdated">*</span>':'';
+  var langHtml=langs.length?'<span style="font-size:.6rem;color:var(--text4)">'+langs.join(' &middot; ')+'</span>':'';
+  var locHtml=loc?'<div class="c-loc">'+loc+locNote+'</div>':'';
+
+  var contactHtml='';
+  var contactParts=[];
+  if(r.phone){
+    var digits=r.phone.replace(/[^\d+]/g,'');
+    var stale=(r.quality_flags||[]).includes('phone_stale');
+    var warn=stale?'<span style="color:#bbb" title="This number may be outdated">*</span>':'';
+    contactParts.push('<a href="tel:'+digits+'">'+r.phone+'</a>'+warn);
+  }
+  if(r.email&&r.email_public)contactParts.push('<a href="mailto:'+r.email+'">'+r.email+'</a>');
+  if(!hasPracticeName&&r.website&&!(r.quality_flags||[]).includes('website_dead'))
+    contactParts.push('<a href="'+r.website+'" target="_blank">Website</a>');
+  if(contactParts.length)contactHtml='<div class="c-contact">'+contactParts.join(' &middot; ')+'</div>';
+
+  var provParts=[];
+  if(isVerified)provParts.push('<span class="v-badge">'+ICO.check+' Verified</span>');
+  if(r.healthgrades_url)provParts.push('<a href="'+r.healthgrades_url+'" target="_blank">Healthgrades</a>');
+  if(r.webmd_url)provParts.push('<a href="'+r.webmd_url+'" target="_blank">WebMD</a>');
+  var srcDisplay=r.source_display||r.source_directory_label||'';
+  var srcIsPractice=hasPracticeName&&srcDisplay.toLowerCase()===r.practice_name.toLowerCase();
+  if(r.sources_display&&r.sources_display.length>1){
+    provParts.push('<span class="src">Verified in '+r.sources_display.length+' directories</span>');
+  } else if(srcDisplay&&!r.source_private&&!srcIsPractice){
+    provParts.push('<span class="src">'+srcDisplay+'</span>');
+  }
+  if(!isVerified&&!r.gbp_accepting_patients&&r.accepting_patients!==false){
+    provParts.push('<span class="cta">'+ICO.flag+' Is this your listing? Confirm it.</span>');
+  }
+  var provHtml=provParts.length?'<div class="c-prov">'+provParts.join(' <span style="color:#ddd">&middot;</span> ')+'</div>':'';
+
+  var bizFirstLine='';
+  if(hasPracticeName){
+    bizFirstLine='<div style="display:flex;justify-content:space-between;align-items:flex-start">'+practiceHtml+langHtml+'</div>'+locHtml;
+  } else if(loc){
+    bizFirstLine='<div style="display:flex;justify-content:space-between;align-items:flex-start">'+('<span class="c-loc" style="margin-bottom:0">'+loc+locNote+'</span>')+langHtml+'</div>';
+  }
+
+  return '<div class="card">'
+    +'<div class="c-top"><div class="c-name">'+practiceIconHtml+displayName+'</div>'+badgesHtml+'</div>'
+    +ratingsHtml
+    +'<div class="c-pills">'+providerPills+methodPills+'</div>'
+    +'<div class="c-divider"></div>'
+    +bizFirstLine
+    +contactHtml
+    +provHtml
+    +'</div>';
+}
+
+function doSearch(){
+  var q=document.getElementById('q').value.trim();if(!q)return;
+  document.getElementById('hero').classList.add('collapsed');
+  document.getElementById('results').classList.remove('hidden');
+  var i=parseQ(q);
+  var scored=D.map(function(r){return Object.assign({},r,{_s:score(r,i)})}).filter(function(r){return r._s>=0});
+  scored.sort(function(a,b){return b._s-a._s});
+  document.getElementById('answer').innerHTML=summary(scored,i);
+  var fm={};scored.forEach(function(r){(r.methods||[]).forEach(function(m){fm[m]=(fm[m]||0)+1})});
+  var ftags='';
+  if(!i.tele){var tc2=scored.filter(function(r){return r.telehealth==='yes'}).length;if(tc2)ftags+='<button class="ftag" onclick="fill(document.getElementById(\'q\').value+\' telehealth\')">+ Telehealth ('+tc2+')</button>'}
+  Object.entries(fm).sort(function(a,b){return b[1]-a[1]}).slice(0,5).forEach(function(pair){var m=pair[0],c=pair[1];if(!i.methods.includes(m)&&c>=2)ftags+='<button class="ftag" onclick="fill(document.getElementById(\'q\').value+\' '+ml(m)+'\')">'+ml(m)+' ('+c+')</button>'});
+  document.getElementById('filters').innerHTML=ftags;
+  var list=document.getElementById('list');
+  if(!scored.length){list.innerHTML='<div class="empty"><h3>No matches</h3><p>Try broadening your search.</p></div>';return}
+  list.innerHTML=scored.slice(0,75).map(card).join('');
+  if(scored.length>75)list.innerHTML+='<div class="show-more">Showing top 75 of '+scored.length+'</div>';
+}
+function fill(t){document.getElementById('q').value=t;doSearch()}
+document.getElementById('q').addEventListener('keydown',function(e){if(e.key==='Enter')doSearch()});
+
+function init(){
+  fetch('/dev/prototype-full.json').then(function(r){return r.json()}).then(function(data){
+    D=data;
+    document.getElementById('s-total').textContent=D.length.toLocaleString();
+    document.getElementById('s-tele').textContent=D.filter(function(r){return r.telehealth==='yes'}).length.toLocaleString();
+    document.getElementById('s-verified').textContent=D.filter(function(r){return r.perplexity_status==='active'||r.verification_tier==='npi_healthgrades'||r.gbp_accepting_patients||(r._all_sources&&r._all_sources.length>=2)}).length.toLocaleString();
+  });
+}
+</script>
+</body>
+</html>
