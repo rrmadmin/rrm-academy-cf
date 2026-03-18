@@ -1,0 +1,238 @@
+---
+// Dev-only provider search page -- links to real detail pages
+import { fetchAllProviders, fetchAllPractices, methodLabel, type Provider } from '../../lib/providers';
+
+const providers = fetchAllProviders();
+const practices = fetchAllPractices();
+
+// Pre-compute filter options
+const states = [...new Set(providers.map(p => p.state).filter(Boolean))].sort();
+const methods = [...new Set(providers.flatMap(p => p.methods || []))].sort();
+const types = [...new Set(providers.map(p => p.practitioner_type).filter(Boolean))].sort();
+
+// Build JSON for client-side search (slim version)
+const searchData = providers.map(p => ({
+  s: p.slug,
+  n: p.display_name,
+  c: p.city,
+  st: p.state,
+  co: p.country,
+  m: p.methods || [],
+  t: p.practitioner_type,
+  pn: p.practice_name,
+  ps: p.practice_slug,
+  ph: p.phone,
+  w: p.website,
+  tl: p.telehealth,
+  v: p.verification_badge,
+  a: p.accepting,
+  r: p.gbp_rating,
+  rc: p.gbp_review_count,
+}));
+---
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Provider Search (Dev)</title>
+<style is:inline>
+  :root {
+    --bg:#faf9f7;--surface:#fff;--text:#313131;--text2:#636261;--text3:#949392;--text4:#adaba9;
+    --accent:#725e7e;--accent-l:#f0eaf3;
+    --border:#dddbd8;--shadow:0 1px 3px rgba(0,0,0,.08);
+    --r:12px;--fh:'Cormorant Garamond',Georgia,serif;--f:'Inter',-apple-system,sans-serif;
+    --tele-bg:#947353;--accepts-bg:#7e8772;--notacc-bg:#8b3a3a;
+    --clinical-bg:#f0eaf4;--clinical-fg:#725e7e;
+    --rose-bg:#fce8ef;--rose-fg:#8a5670;
+    --edu-bg:#eee5dd;--edu-fg:#6b5d4f;
+    --method-bg:#eee5dd;--method-fg:#636261;
+    --verified-bg:#3a5272;
+    --google-star:#f57f17;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:var(--f);background:var(--bg);color:var(--text);-webkit-text-size-adjust:100%}
+
+  .header{background:var(--surface);border-bottom:1px solid var(--border);padding:.75rem 1rem;position:sticky;top:0;z-index:10}
+  .header h1{font-family:var(--fh);font-size:1.25rem;font-weight:600;color:var(--text)}
+  .header .stats{font-size:.7rem;color:var(--text3);margin-top:.15rem}
+
+  .controls{padding:.75rem 1rem;display:flex;flex-wrap:wrap;gap:.5rem;background:var(--bg);border-bottom:1px solid var(--border);position:sticky;top:52px;z-index:9}
+  .controls input,.controls select{padding:.5rem .75rem;border:1px solid var(--border);border-radius:8px;font-size:.8rem;font-family:var(--f);background:var(--surface)}
+  .controls input{flex:1;min-width:200px}
+  .controls select{min-width:120px}
+  .controls input:focus,.controls select:focus{border-color:var(--accent);outline:none}
+
+  .results{max-width:640px;margin:0 auto;padding:.5rem}
+  .result-count{font-size:.7rem;color:var(--text3);padding:.5rem 1rem}
+
+  /* Card */
+  .card{background:var(--surface);margin:.4rem .5rem;border-radius:var(--r);padding:.75rem;box-shadow:var(--shadow);text-decoration:none;color:inherit;display:block;transition:box-shadow .15s}
+  .card:hover{box-shadow:0 4px 12px rgba(0,0,0,.12)}
+  .card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:.4rem;margin-bottom:.35rem}
+  .card-name{font-family:var(--fh);font-size:1.1rem;font-weight:600;line-height:1.2;flex:1;min-width:0}
+  .card-badges{display:flex;gap:3px;flex-shrink:0;padding-top:4px}
+
+  .pill{display:inline-flex;align-items:center;gap:2px;font-size:.55rem;font-weight:600;padding:.15rem .4rem;border-radius:100px;white-space:nowrap}
+  .pill.tele{background:var(--tele-bg);color:#fff}
+  .pill.accepts{background:var(--accepts-bg);color:#fff}
+  .pill.notacc{background:var(--notacc-bg);color:#fff}
+  .pill.clinical{background:var(--clinical-bg);color:var(--clinical-fg)}
+  .pill.rose{background:var(--rose-bg);color:var(--rose-fg)}
+  .pill.edu{background:var(--edu-bg);color:var(--edu-fg)}
+  .pill.method{background:var(--method-bg);color:var(--method-fg)}
+  .pill.verified{background:var(--verified-bg);color:#fff}
+
+  .card-rating{font-size:.75rem;font-weight:600;color:var(--google-star);margin-bottom:.25rem}
+  .card-rating span{font-weight:400;color:var(--text4);font-size:.65rem}
+  .card-pills{display:flex;flex-wrap:wrap;gap:.2rem;margin-bottom:.35rem}
+  .card-divider{height:1px;background:#f0eeeb;margin:.25rem 0}
+  .card-practice{font-size:.75rem;color:var(--accent);font-weight:600;margin-bottom:.1rem}
+  .card-loc{font-size:.75rem;color:var(--text2);margin-bottom:.1rem}
+  .card-phone{font-size:.75rem;color:var(--text2);margin-bottom:.1rem}
+  .card-prov{display:flex;flex-wrap:wrap;gap:.2rem .35rem;align-items:center;font-size:.55rem;color:var(--text4);margin-top:.4rem}
+
+  .practice-link{display:inline-block;margin:.5rem;padding:.5rem .75rem;background:var(--accent-l);border-radius:8px;font-size:.75rem;color:var(--accent);text-decoration:none;font-weight:600}
+  .practice-link:hover{background:var(--accent);color:#fff}
+
+  .load-more{display:block;margin:1rem auto;padding:.6rem 1.5rem;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:var(--f)}
+  .load-more:hover{background:#4c3e54}
+
+  .empty{text-align:center;padding:3rem 1rem;color:var(--text3);font-size:.9rem}
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>Find a Provider</h1>
+    <div class="stats">{providers.length} providers &middot; {practices.length} practices</div>
+  </div>
+
+  <div class="controls">
+    <input type="text" id="search" placeholder="Search by name, city, or practice..." autocomplete="off">
+    <select id="state-filter">
+      <option value="">All states</option>
+      {states.map(s => <option value={s}>{s}</option>)}
+    </select>
+    <select id="method-filter">
+      <option value="">All methods</option>
+      {methods.map(m => <option value={m}>{methodLabel(m)}</option>)}
+    </select>
+    <select id="type-filter">
+      <option value="">All types</option>
+      {types.map(t => <option value={t}>{t.replace(/_/g, ' ')}</option>)}
+    </select>
+  </div>
+
+  <div class="result-count" id="count"></div>
+  <div class="results" id="results"></div>
+  <button class="load-more" id="load-more" style="display:none">Load more</button>
+
+  <script is:inline define:vars={{ searchData, methodLabels: Object.fromEntries(methods.map(m => [m, methodLabel(m)])) }}>
+    const TYPE_BADGE = {
+      medical: { l: 'Medical', v: 'clinical' },
+      nurse_practitioner: { l: 'NP', v: 'clinical' },
+      pharmacist: { l: 'Pharmacist', v: 'clinical' },
+      chiropractor: { l: 'Chiropractor', v: 'clinical' },
+      naturopath: { l: 'Naturopath', v: 'clinical' },
+      educator: { l: 'Educator', v: 'edu' },
+      mental_health: { l: 'Therapist', v: 'rose' },
+      physical_therapist: { l: 'PT', v: 'rose' },
+      nutritionist: { l: 'Nutritionist', v: 'rose' },
+      health_coach: { l: 'Health Coach', v: 'rose' },
+      doula: { l: 'Doula', v: 'rose' },
+    };
+
+    let filtered = searchData;
+    let shown = 0;
+    const PAGE = 50;
+
+    function filter() {
+      const q = document.getElementById('search').value.toLowerCase().trim();
+      const st = document.getElementById('state-filter').value;
+      const mt = document.getElementById('method-filter').value;
+      const tp = document.getElementById('type-filter').value;
+
+      filtered = searchData.filter(p => {
+        if (st && p.st !== st) return false;
+        if (mt && !(p.m || []).includes(mt)) return false;
+        if (tp && p.t !== tp) return false;
+        if (q) {
+          const hay = [p.n, p.c, p.st, p.pn, p.co].filter(Boolean).join(' ').toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+
+      shown = 0;
+      document.getElementById('results').innerHTML = '';
+      document.getElementById('count').textContent = filtered.length + ' results';
+      loadMore();
+    }
+
+    function loadMore() {
+      const frag = document.createDocumentFragment();
+      const batch = filtered.slice(shown, shown + PAGE);
+
+      for (const p of batch) {
+        const a = document.createElement('a');
+        a.className = 'card';
+        a.href = '/providers/' + p.s + '/';
+
+        let html = '<div class="card-top"><div class="card-name">' + esc(p.n) + '</div><div class="card-badges">';
+        if (p.tl === 'yes') html += '<span class="pill tele">Tele</span>';
+        if (p.a === true) html += '<span class="pill accepts">Accepts</span>';
+        if (p.a === false) html += '<span class="pill notacc">Not Accepting</span>';
+        html += '</div></div>';
+
+        if (p.rc >= 1) {
+          html += '<div class="card-rating">&#9733; ' + p.r + ' <span>(' + p.rc + ')</span></div>';
+        }
+
+        html += '<div class="card-pills">';
+        const tb = TYPE_BADGE[p.t];
+        if (tb) html += '<span class="pill ' + tb.v + '">' + tb.l + '</span>';
+        const ms = (p.m || []).slice(0, 4);
+        for (const m of ms) html += '<span class="pill method">' + (methodLabels[m] || m) + '</span>';
+        if ((p.m || []).length > 4) html += '<span class="pill method">+' + ((p.m || []).length - 4) + '</span>';
+        html += '</div>';
+
+        html += '<div class="card-divider"></div>';
+        if (p.pn) html += '<div class="card-practice">' + esc(p.pn) + '</div>';
+        const loc = [p.c, p.st].filter(Boolean).join(', ');
+        if (loc) html += '<div class="card-loc">' + esc(loc) + '</div>';
+        if (p.ph) html += '<div class="card-phone">' + esc(p.ph) + '</div>';
+
+        html += '<div class="card-prov">';
+        if (p.v === 'npi_verified') html += '<span class="pill verified">NPI Verified</span>';
+        else if (p.v === 'verified') html += '<span class="pill verified">Verified</span>';
+        html += '</div>';
+
+        a.innerHTML = html;
+        frag.appendChild(a);
+      }
+
+      document.getElementById('results').appendChild(frag);
+      shown += batch.length;
+      document.getElementById('load-more').style.display = shown < filtered.length ? 'block' : 'none';
+    }
+
+    function esc(s) {
+      if (!s) return '';
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    document.getElementById('search').addEventListener('input', debounce(filter, 200));
+    document.getElementById('state-filter').addEventListener('change', filter);
+    document.getElementById('method-filter').addEventListener('change', filter);
+    document.getElementById('type-filter').addEventListener('change', filter);
+    document.getElementById('load-more').addEventListener('click', loadMore);
+
+    function debounce(fn, ms) {
+      let t;
+      return function() { clearTimeout(t); t = setTimeout(fn, ms); };
+    }
+
+    filter();
+  </script>
+</body>
+</html>
