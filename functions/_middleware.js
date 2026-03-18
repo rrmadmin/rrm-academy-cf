@@ -63,6 +63,14 @@ export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
 
+  // Block search engine indexing of CF Pages preview domains
+  if (url.hostname.endsWith('.pages.dev')) {
+    const response = await context.next();
+    const headers = new Headers(response.headers);
+    headers.set('X-Robots-Tag', 'noindex');
+    return new Response(response.body, { ...response, headers });
+  }
+
   // Fire GA4 page_view asynchronously — does not block the response
   context.waitUntil(sendPageView(request, env));
 
