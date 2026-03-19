@@ -250,6 +250,38 @@ function checkInvariants() {
     log(FAIL, `Cannot read community/upload.js`);
     failures++;
   }
+
+  // 2h. Pagefind cache headers must use stale-while-revalidate, never no-cache/no-store.
+  // no-cache forces network revalidation on every request, which allows browser extensions
+  // (e.g. Comet/Perplexity) to intercept and strip MIME types from module scripts.
+  // no-store prevents caching entirely. Both break pagefind module loading.
+  const headersPath = join(ROOT, 'public/_headers');
+  try {
+    const headers = readFileSync(headersPath, 'utf8');
+    // Extract the /pagefind/* block (header block = path line + indented lines that follow)
+    const pfMatch = headers.match(/\/pagefind\/\*\s*\n((?:\s+.+\n?)+)/);
+    if (!pfMatch) {
+      log(FAIL, `public/_headers missing /pagefind/* section`);
+      failures++;
+    } else {
+      const pfBlock = pfMatch[1];
+      const hasNoCache = /\bno-cache\b/.test(pfBlock);
+      const hasNoStore = /\bno-store\b/.test(pfBlock);
+      const hasSWR = /\bstale-while-revalidate\b/.test(pfBlock);
+      if (hasNoCache || hasNoStore) {
+        log(FAIL, `/pagefind/* must not use no-cache or no-store (breaks module loading in Comet)`);
+        failures++;
+      } else if (!hasSWR) {
+        log(FAIL, `/pagefind/* missing stale-while-revalidate (needed for deploy freshness + extension safety)`);
+        failures++;
+      } else {
+        log(PASS, `Pagefind cache uses stale-while-revalidate (no-cache/no-store prohibited)`);
+      }
+    }
+  } catch {
+    log(FAIL, `Cannot read public/_headers`);
+    failures++;
+  }
 }
 
 // ─── Phase 3: Critical Files Must Exist ─────────────────────────────
