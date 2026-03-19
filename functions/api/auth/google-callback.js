@@ -23,7 +23,7 @@ async function handleReturningGoogleUser(db, googleId, email) {
   if (!user) return null;
   if (user.blocked) return { redirect: '/login?error=account_blocked' };
 
-  if (user.email.toLowerCase() !== email) {
+  if (!user.email || user.email.toLowerCase() !== email) {
     const conflict = await db.prepare('SELECT id FROM user WHERE email = ? COLLATE NOCASE AND id != ?')
       .bind(email, user.id).first();
     if (conflict) {
@@ -83,6 +83,11 @@ export async function onRequestGet({ request, env, waitUntil }) {
     const db = env.DB;
     if (!db) return redirect(LOGIN_ERROR_URL);
 
+    if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
+      log(env, waitUntil, 'auth', 'google_auth_error', 'error', 'missing google credentials');
+      return redirect(LOGIN_ERROR_URL);
+    }
+
     const url = new URL(request.url);
     const code = url.searchParams.get('code');
     const state = url.searchParams.get('state');
@@ -90,7 +95,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     // Handle user denying consent or other Google errors
     const error = url.searchParams.get('error');
     if (error || !code) {
-      return new Response(null, { status: 302, headers: { Location: `${SITE_URL}/login?error=oauth_denied` } });
+      return redirect(`${SITE_URL}/login?error=oauth_denied`);
     }
 
     // Determine where to send the user after login (prevent open redirects)

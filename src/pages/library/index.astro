@@ -442,8 +442,8 @@ const jsonLd = {
         cards[i].classList.remove('active', 'behind-1', 'behind-2', 'exiting');
       }
       cards[current].classList.add('active');
-      cards[(current + 1) % n].classList.add('behind-1');
-      cards[(current + 2) % n].classList.add('behind-2');
+      if (n > 1) cards[(current + 1) % n].classList.add('behind-1');
+      if (n > 2) cards[(current + 2) % n].classList.add('behind-2');
       setAccessibility();
     }
 
@@ -457,8 +457,8 @@ const jsonLd = {
       }
       cards[prev].classList.add('exiting');
       cards[current].classList.add('active');
-      cards[(current + 1) % n].classList.add('behind-1');
-      cards[(current + 2) % n].classList.add('behind-2');
+      if (n > 1) cards[(current + 1) % n].classList.add('behind-1');
+      if (n > 2) cards[(current + 2) % n].classList.add('behind-2');
       setAccessibility();
     }, 3000);
   })();
