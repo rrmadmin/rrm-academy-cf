@@ -1,0 +1,628 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BackToTop from '../../components/BackToTop.astro';
+import KeyTakeaways from '../../components/KeyTakeaways.astro';
+import ComparisonTable from '../../components/ComparisonTable.astro';
+import StatCallout from '../../components/StatCallout.astro';
+import PageCTA from '../../components/PageCTA.astro';
+
+// Block 1: MedicalWebPage + Article (injected via BaseLayout jsonLd prop)
+const pageSchema = {
+  '@context': 'https://schema.org',
+  '@type': ['Article', 'MedicalWebPage'],
+  headline: 'RRM vs IVF: How Do They Compare?',
+  description: 'A side-by-side comparison of Restorative Reproductive Medicine and IVF covering philosophy, success rates, risks, costs, and who each approach is for.',
+  author: {
+    '@type': 'Person',
+    '@id': 'https://rrmacademy.org/#naomi-whittaker',
+    name: 'Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI',
+    jobTitle: 'Board-Certified OBGYN',
+    url: 'https://rrmacademy.org/commentary/rrm-spotlight-naomi-whittaker-md/',
+    image: 'https://rrmacademy.org/images/authors/naomi-whittaker.webp',
+    sameAs: [
+      'https://www.instagram.com/napro_fertility_surgeon/',
+      'https://www.linkedin.com/in/naomi-whittaker-md-906b13101/',
+    ],
+  },
+  publisher: {
+    '@type': 'EducationalOrganization',
+    '@id': 'https://rrmacademy.org/#organization',
+    name: 'RRM Academy',
+  },
+  datePublished: '2026-03-18',
+  dateModified: '2026-03-18',
+  wordCount: 4200,
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': 'https://rrmacademy.org/compare/rrm-vs-ivf/',
+  },
+  about: [
+    {
+      '@type': 'MedicalTherapy',
+      name: 'Restorative Reproductive Medicine',
+      alternateName: 'RRM',
+    },
+    {
+      '@type': 'MedicalProcedure',
+      name: 'In Vitro Fertilization',
+      alternateName: 'IVF',
+    },
+  ],
+  articleSection: [
+    'What is the difference between RRM and IVF?',
+    'How do success rates compare?',
+    'What are the risks of IVF compared to RRM?',
+    'How much does RRM cost compared to IVF?',
+    'Who is RRM for?',
+    'Frequently Asked Questions',
+    'References',
+  ],
+  hasPart: [
+    { '@type': 'WebPageElement', name: 'What is the difference between RRM and IVF?', url: 'https://rrmacademy.org/compare/rrm-vs-ivf/#difference' },
+    { '@type': 'WebPageElement', name: 'How do success rates compare?', url: 'https://rrmacademy.org/compare/rrm-vs-ivf/#success-rates' },
+    { '@type': 'WebPageElement', name: 'What are the risks of IVF compared to RRM?', url: 'https://rrmacademy.org/compare/rrm-vs-ivf/#risks' },
+    { '@type': 'WebPageElement', name: 'How much does RRM cost compared to IVF?', url: 'https://rrmacademy.org/compare/rrm-vs-ivf/#cost' },
+    { '@type': 'WebPageElement', name: 'Who is RRM for?', url: 'https://rrmacademy.org/compare/rrm-vs-ivf/#who-is-rrm-for' },
+    { '@type': 'WebPageElement', name: 'Frequently Asked Questions', url: 'https://rrmacademy.org/compare/rrm-vs-ivf/#faq' },
+    { '@type': 'WebPageElement', name: 'References', url: 'https://rrmacademy.org/compare/rrm-vs-ivf/#references' },
+  ],
+  citation: [
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'Restorative reproductive medicine (RRM) outcomes compared to in-vitro fertilization (IVF)',
+      author: 'Boyle P, Toth A, Minjeur M, Turczynski C',
+      datePublished: '2025',
+      isPartOf: { '@type': 'Periodical', name: 'Journal of Restorative Reproductive Medicine' },
+    },
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'Natural procreative technology (NaProTechnology) for infertility: take-home baby rate in 1,310 couples',
+      author: 'Sanchez-Mendez JI, Lombarte M, Abengozar-Muela R, et al.',
+      datePublished: '2025',
+      isPartOf: { '@type': 'Periodical', name: 'Frontiers in Reproductive Health' },
+    },
+    {
+      '@type': 'CreativeWork',
+      name: 'The Fertility Sector 2024/25',
+      author: 'Human Fertilisation and Embryology Authority',
+      datePublished: '2025',
+    },
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'Healthy Singleton Pregnancies From Restorative Reproductive Medicine (RRM) After Failed IVF',
+      author: 'de Groot T, Andralojc KM, Boyle PC, Parnell TA',
+      datePublished: '2018',
+      isPartOf: { '@type': 'Periodical', name: 'Frontiers in Medicine' },
+    },
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'International Natural Procreative Technology Evaluation and Surveillance of Treatment for Subfertility (iNEST)',
+      author: 'Stanford JB, Parnell T, Kantor K, et al.',
+      datePublished: '2022',
+      isPartOf: { '@type': 'Periodical', name: 'Human Reproduction Open' },
+    },
+  ],
+};
+
+// Block 2: BreadcrumbList (inline in page body)
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+    { '@type': 'ListItem', position: 2, name: 'Compare', item: 'https://rrmacademy.org/compare/' },
+    { '@type': 'ListItem', position: 3, name: 'RRM vs IVF', item: 'https://rrmacademy.org/compare/rrm-vs-ivf/' },
+  ],
+};
+
+// Block 3: FAQPage (separate block per spec)
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'Is RRM as effective as IVF?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'RRM and IVF measure success differently. IVF reports per-cycle live birth rates; RRM reports cumulative live birth rates per couple over a treatment window. The first head-to-head comparison found a 41% crude live birth rate with RRM, comparable to a single IVF cycle with subsequent embryo transfers. Sanchez-Mendez et al. (2025) followed 1,310 couples and found a cumulative take-home baby rate of 62.1% at 36 months. In a post-IVF-failure population, Boyle et al. (2018) found a 32.1% adjusted live birth rate, comparable to another cycle of IVF.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How much does RRM cost compared to IVF?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'A full course of IVF typically costs $40,000 to $60,000 or more across multiple cycles. RRM costs a fraction of that. Diagnostic workup runs in the low thousands of dollars, and surgical intervention is a one-time cost. Many RRM components are billed as standard medical procedures covered by insurance. Arkansas mandated insurance coverage for RRM in 2025.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Can RRM work after failed IVF?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes. De Groot, Boyle et al. (2018) studied 403 couples who had already failed a mean of 2.1 IVF cycles, with a mean female age of 37.2 years. The adjusted RRM live birth rate was 32.1%. Women aged 35-38 achieved 37.5%. The study concluded that patients who have already tried IVF can achieve comparable live birth outcomes with RRM.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What is the success rate of NaProTechnology?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Published success rates for NaProTechnology span 29% to 66% adjusted cumulative live birth rate depending on population and duration. The largest study (Sanchez-Mendez et al., 2025) followed 1,310 couples and found 50% at 24 months and 62.1% at 36+ months. Age-stratified: 83.7% for ages 18-30, 53.3% for ages 36-40, and 24.4% for women over 40.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Is RRM covered by insurance?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Individual RRM components are standard medical procedures with established billing codes and are covered by most insurance plans when properly documented. The challenge arises with the integrated RRM approach. Arkansas mandated insurance coverage for RRM in 2025. Ask your RRM clinician\'s billing team to walk through what is covered under your specific plan.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Do I need to be religious to use RRM?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'No. RRM is a medical approach using diagnostic laparoscopy, timed hormonal testing, surgical excision, and targeted treatment. NaProTechnology developed within a Catholic academic tradition, but the published evidence base reflects clinical settings and populations not defined by religious identity. Many couples who pursue RRM are secular.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How long does RRM treatment take?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Initial evaluation takes one to three menstrual cycles. The Boyle 2025 study found an average time to conception of 12 months. The Sanchez-Mendez 2025 cohort had a median treatment duration of 10.9 months. Unlike IVF, where each cycle is a discrete event, RRM treatment builds a corrected biological environment in which natural conception can occur across many cycles.',
+      },
+    },
+  ],
+};
+
+const takeawayItems = [
+  'Restorative Reproductive Medicine (RRM) is a diagnostic and treatment model that identifies and addresses the underlying causes of infertility; IVF bypasses those causes without treating them.',
+  'The first head-to-head comparison of RRM versus IVF found a 41% crude live birth rate in RRM patients, comparable to a single cycle of IVF with subsequent embryo transfers, while producing far fewer premature births and multiple pregnancies.',
+  'In a cohort of 1,310 couples treated with NaProTechnology, the adjusted cumulative take-home baby rate reached 62.1% at 36 or more months of treatment, including couples with prior failed ART attempts.',
+  'IVF carries documented risks that RRM does not: ovarian hyperstimulation syndrome in up to 30% of cycles, a multiple pregnancy rate more than 20 times higher than natural conception, and elevated rates of preterm birth even in singleton pregnancies.',
+  'A full course of IVF, including multiple cycles, costs $40,000 to $60,000 or more. RRM workup and treatment typically costs a fraction of that, while addressing the conditions that cause infertility rather than working around them.',
+];
+
+const comparisonRows = [
+  { dimension: 'Philosophy', optionA: 'Diagnose and treat the underlying condition', optionB: 'Bypass the underlying condition to achieve pregnancy' },
+  { dimension: 'Typical total cost', optionA: 'A fraction of IVF', optionB: '$15,000-$30,000 per cycle; $40,000-$60,000+ total' },
+  { dimension: 'Success metric', optionA: 'Cumulative live birth rate over 24 months', optionB: 'Per-cycle live birth rate' },
+  { dimension: 'Reported success', optionA: '52.8% cumulative at 24 months', optionB: '~30% per cycle (HFEA)' },
+  { dimension: 'After failed IVF', optionA: 'Comparable outcomes to another IVF cycle', optionB: 'Declining returns per additional cycle' },
+  { dimension: 'Surgical training', optionA: 'Fertility-focused fellowship (NaPro)', optionB: 'No minimum endo/tubal surgery requirements' },
+  { dimension: 'Risks', optionA: 'Standard medical/surgical risks', optionB: 'OHSS, multiple pregnancy, prematurity, low birth weight' },
+  { dimension: 'Long-term health', optionA: 'Treats the underlying condition', optionB: 'Underlying condition remains unaddressed' },
+  { dimension: 'Insurance', optionA: 'Often codeable as diagnostic/treatment', optionB: 'Varies by state mandate; often out-of-pocket' },
+];
+---
+
+<BaseLayout
+  title="RRM vs IVF: How Do They Compare? | RRM Academy"
+  description="A side-by-side comparison of Restorative Reproductive Medicine and IVF covering philosophy, success rates, risks, costs, and who each approach is for."
+  canonicalUrl="https://rrmacademy.org/compare/rrm-vs-ivf/"
+  ogType="article"
+  publishDate="2026-03-18"
+  jsonLd={pageSchema}
+>
+  <!-- Separate JSON-LD blocks (not @graph) per spec -->
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+  <div class="page-wrapper" data-pagefind-body>
+    <span data-pagefind-meta="type:Compare" style="display:none"></span>
+    <span data-pagefind-meta="title:RRM vs IVF: How Do They Compare?" style="display:none"></span>
+    <div class="container">
+
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <a href="/compare/">Compare</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <span>RRM vs IVF</span>
+      </nav>
+
+      <h1>RRM vs IVF: How Do They Compare?</h1>
+
+      <div class="author-byline">
+        <span>By <strong><a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</a></strong></span>
+        <time datetime="2026-03-18">Last updated March 2026</time>
+      </div>
+
+      <!-- Mobile TOC -->
+      <details class="toc-mobile">
+        <summary>On this page</summary>
+        <ol>
+          <li><a href="#difference">What is the difference between RRM and IVF?</a></li>
+          <li><a href="#success-rates">How do success rates compare?</a></li>
+          <li><a href="#risks">What are the risks of IVF compared to RRM?</a></li>
+          <li><a href="#cost">How much does RRM cost compared to IVF?</a></li>
+          <li><a href="#who-is-rrm-for">Who is RRM for?</a></li>
+          <li><a href="#faq">Frequently Asked Questions</a></li>
+          <li><a href="#references">References</a></li>
+        </ol>
+      </details>
+
+      <!-- Article layout: sidebar TOC + main content -->
+      <div class="article-layout">
+
+        <!-- Desktop TOC (sticky sidebar, 1024px+) -->
+        <nav class="toc" aria-label="Table of contents">
+          <p class="toc-heading">On this page</p>
+          <ol>
+            <li><a href="#difference">What is the difference?</a></li>
+            <li><a href="#success-rates">Success rates</a></li>
+            <li><a href="#risks">Risks</a></li>
+            <li><a href="#cost">Cost</a></li>
+            <li><a href="#who-is-rrm-for">Who is RRM for?</a></li>
+            <li><a href="#faq">FAQ</a></li>
+            <li><a href="#references">References</a></li>
+          </ol>
+        </nav>
+
+        <!-- Main content -->
+        <article class="article-content prose">
+
+          <KeyTakeaways items={takeawayItems} />
+
+          <ComparisonTable
+            optionALabel="RRM"
+            optionBLabel="IVF"
+            rows={comparisonRows}
+          />
+
+          <!-- Section: What is the difference between RRM and IVF? -->
+          <section id="difference">
+            <h2>What is the difference between RRM and IVF?</h2>
+
+            <p>This is the question most couples eventually ask. Not "which one works" but "what are they actually doing?"</p>
+
+            <p>IVF is a procedure. Ovarian stimulation drives the production of multiple eggs. Those eggs are retrieved, fertilized in a laboratory, and one or more embryos are transferred into the uterus. The goal is pregnancy. The underlying condition, whether endometriosis, hormonal dysfunction, poor sperm quality, or something else entirely, remains. IVF works around the problem. It does not fix it.</p>
+
+            <p>RRM is a diagnostic and treatment model. The goal is to find out why a couple is not conceiving and correct it. That means timed hormonal testing across the full menstrual cycle, not a single cycle-day-3 draw. It means investigating the luteal phase, cervical mucus quality, ovulatory function, and male factor. It means surgical evaluation when the history suggests endometriosis, tubal occlusion, or adhesive disease. And it means treating what is found: excising endometriosis, unblocking tubes through selective salpingography, optimizing progesterone support, correcting thyroid and metabolic dysfunction.</p>
+
+            <p>The standard infertility workup most couples receive before being referred to IVF is genuinely limited. A progesterone level drawn on cycle day one tells you almost nothing about luteal function. A standard HSG identifies gross tubal obstruction but misses partial occlusion and cannot treat what it finds. Laparoscopy for unexplained infertility is explicitly recommended against by major professional societies. The result: a woman is told her infertility is "unexplained" when in fact it is undiagnosed.</p>
+
+            <p>In RRM, "unexplained infertility" is not a diagnosis. It is a clinical failure. The label exists because the diagnostic tools were not thorough enough to find the answer.</p>
+
+            <p>Dr. Naomi Whittaker, MD, a board-certified OBGYN and NaProTechnology fellowship-trained surgeon, describes what she finds when these patients come to her after years of being told nothing is wrong: stage IV endometriosis. Bilateral tubal occlusion. Luteal phase defects. Thyroid dysfunction. Male factor. Multiple conditions, all present, none identified. The same patient sent to IVF without any of this information.</p>
+
+            <p>IVF's procedural model creates risks that the restorative model does not. Ovarian hyperstimulation, multiple gestation, and elevated rates of pregnancy complications are not rare or theoretical. They are documented consequences of the pharmacological stimulation protocol. These are iatrogenic risks: risks created by the treatment itself.</p>
+
+            <p>RRM adds no iatrogenic risk because it does not impose artificial stimulation. It works to restore what the body is already trying to do.</p>
+
+            <p>There is also a difference in what happens to the underlying disease. A woman with PCOS who conceives via IVF still has PCOS after delivery. The insulin resistance, cardiovascular risk, and metabolic complications remain unaddressed. A woman treated through RRM for PCOS has her hormonal environment corrected. The fertility outcome and the long-term health outcome point in the same direction.</p>
+
+            <p>This is the core distinction. Not a debate about which technology is better. A difference in what the goal of treatment actually is.</p>
+          </section>
+
+          <!-- Section: How do success rates compare? -->
+          <section id="success-rates">
+            <h2>How do success rates compare?</h2>
+
+            <p>The most frequently cited statistic in fertility medicine is the IVF live birth rate per cycle. For women under 35, the HFEA (the UK's mandatory fertility reporting body) reports approximately 33% per embryo transferred. That number drops with age: to roughly 17% at 38-39, 11% at 40-42, and below 5% after 42.<sup><a href="#ref-3">[3]</a></sup></p>
+
+            <p>What those per-cycle numbers do not capture: most couples do not conceive on the first cycle. They attempt two, three, or more. The cumulative cost and cumulative exposure to the pharmacological protocol compound with each round. Success rates calculated per cycle also do not account for the couples who stop treatment after repeated failures, which means the published success figure reflects only those who persisted through the full process.</p>
+
+            <p>RRM measures outcomes differently. Success is reported as a cumulative live birth rate per couple over a defined treatment window, typically 24 months. This is a more honest metric. It asks: what is a couple's actual probability of going home with a baby over a course of treatment?</p>
+
+            <p>Three key studies answer this question directly.</p>
+
+            <p><strong>Boyle et al., 2025</strong> is the first published head-to-head comparison of RRM outcomes against IVF registry data.<sup><a href="#ref-1">[1]</a></sup> This study followed 187 couples treated at one clinic in Dublin, Ireland in 2019. The mean female age was 36.4 years. Couples had been trying to conceive for a mean of 32.2 months. Nineteen percent had previously undergone IVF. The results: 52% of couples conceived, and 41% achieved a documented live birth.</p>
+
+            <StatCallout
+              stat="41% crude live birth rate"
+              source="Boyle et al., 2025"
+              sourceUrl="https://rrmacademy.org/library/restorative-reproductive-medicine-rrm-outcomes-compared-to-in-vitro-fertilization-rec4qqhafqb8stlnd/"
+            />
+
+            <p>When benchmarked against IVF registry data, the RRM live birth rate was comparable to a single cycle of IVF with subsequent embryo transfers, and higher than a single cycle of IVF with a single embryo transfer. Neonatal outcomes were substantially better. Only 4% of singleton RRM babies were born premature. The SART-reported singleton prematurity rate for IVF is 11.8%, and for all IVF pregnancies 14.4%.<sup><a href="#ref-1">[1]</a></sup> The twin rate in the RRM cohort was 2 sets of twins among 187 couples. Twin rates from IVF run more than 20 times higher than natural conception.<sup><a href="#ref-3">[3]</a></sup></p>
+
+            <p><strong>Sanchez-Mendez et al., 2025</strong> is the largest published RRM outcomes study to date, following 1,310 couples treated with NaProTechnology over five years at a specialized clinic in Madrid, Spain.<sup><a href="#ref-2">[2]</a></sup> This was a difficult population: 27.5% had prior ART attempts, and many had unfavorable prognostic factors. The crude take-home baby rate was 35.3%. Using Kaplan-Meier survival analysis adjusted for treatment duration, the cumulative take-home baby rate was:</p>
+
+            <StatCallout
+              stat="50% cumulative take-home baby rate at 24 months, 62.1% at 36+ months"
+              source="Sanchez-Mendez et al., 2025"
+              sourceUrl="https://rrmacademy.org/library/natural-procreative-technology-naprotechnology-for-infertility-take-home-baby-ra-recv02qu0r8ycnzoa/"
+            />
+
+            <p>Age mattered substantially. Younger women (ages 18-30) achieved an 83.7% adjusted cumulative rate. Women 36-40 achieved 53.3%. Women over 40 achieved 24.4%. These age-stratified figures allow for honest, specific counseling. They also compare favorably to IVF success rates in the same age groups, particularly for older patients where IVF per-cycle rates fall sharply.</p>
+
+            <p><strong>De Groot, Boyle et al., 2018</strong> studied a rescue scenario: 403 couples who had already failed IVF, with a mean of 2.1 prior IVF cycles (range 1-9), mean female age 37.2, mean infertility duration 5.8 years.<sup><a href="#ref-4">[4]</a></sup> This is one of the hardest populations in reproductive medicine. The adjusted RRM live birth rate was 32.1%. Women aged 35-38 achieved 37.5%. The study's conclusion was direct: these patients could achieve live birth outcomes comparable to another cycle of IVF.</p>
+
+            <StatCallout
+              stat="32.1% adjusted live birth rate in post-IVF-failure population, mean female age 37.2, mean 2.1 prior failed IVF cycles"
+              source="de Groot, Boyle et al., 2018"
+              sourceUrl="https://rrmacademy.org/library/healthy-singleton-pregnancies-from-restorative-reproductive-medicine-rrm-after-f-recior3akxtg2a6ya/"
+            />
+
+            <p>The neonatal data from this cohort: average birth weight 3,374g (7lb 7oz), 92% born at term, one twin pregnancy in 403 patients, no very low birth weight babies.<sup><a href="#ref-4">[4]</a></sup></p>
+
+            <p><strong>Stanford et al., 2022</strong>, the iNEST study, documents the consistency of RRM outcomes across 10 clinical sites in four countries (Canada, Poland, UK, and USA).<sup><a href="#ref-5">[5]</a></sup> Among all 834 enrolled couples, 44% achieved at least one live birth during the follow-up period. The mean female age was 34 years. Ovulation-related disorders were diagnosed in 87%, endometriosis in 31%, nutritional disorders in 47%, and abnormal semen analysis in 24%. The iNEST data confirms that RRM works across diverse practice settings, not just in optimized specialty centers.</p>
+
+            <p>One methodological point belongs here. RRM studies cannot be designed as randomized controlled trials for the same reason IVF studies never were. Randomizing couples to a treatment they have not chosen is ethically prohibited. IVF was adopted as a standard of care based on case series and uncontrolled observational data. Demanding that RRM meet an evidentiary standard IVF itself never met is not a scientific objection. It is a double standard.</p>
+          </section>
+
+          <!-- Section: What are the risks of IVF compared to RRM? -->
+          <section id="risks">
+            <h2>What are the risks of IVF compared to RRM?</h2>
+
+            <p>RRM works to facilitate natural conception. Its risk profile is that of a spontaneous pregnancy, not a pharmacological intervention. IVF introduces a set of iatrogenic risks that do not exist in the restorative model.</p>
+
+            <h3>Ovarian Hyperstimulation Syndrome</h3>
+
+            <p>OHSS is a complication unique to the pharmacological stimulation protocols of IVF. It occurs in up to 30% of IVF cycles, with severe OHSS requiring hospitalization in approximately 1% of cases.<sup><a href="#ref-3">[3]</a></sup> Symptoms range from abdominal bloating and pain to ascites, electrolyte imbalance, and dangerous blood clots. PCOS patients face the highest risk. OHSS is not a side effect that can be engineered away without sacrificing the core goal of IVF. The goal is to stimulate as many follicles as possible. OHSS is what happens when that goal succeeds too well. RRM, which aims to restore normal ovulation, carries zero risk of OHSS by design.</p>
+
+            <h3>Multiple Pregnancy</h3>
+
+            <p>Multiple gestation is the most consequential safety gap between the two approaches. IVF produces multiple pregnancies at more than 20 times the rate of natural conception.<sup><a href="#ref-3">[3]</a></sup> Twin and higher-order pregnancies carry significantly elevated rates of preterm labor, maternal complications, NICU admission, and long-term developmental consequences. The RRM studies consistently report near-physiological twin rates: 1 twin pregnancy among 403 patients in the Boyle 2018 post-IVF-failure cohort, and 2 sets of twins among 187 couples in Boyle 2025. The shift toward single embryo transfer in IVF has reduced, but not eliminated, this problem. A documented "direct effect" of ART on prematurity persists even in singleton pregnancies, independent of multiple gestations.</p>
+
+            <h3>Pregnancy Complications</h3>
+
+            <p>IVF pregnancies carry elevated rates of preeclampsia, gestational diabetes, gestational anemia, and maternal morbidity.<sup><a href="#ref-7">[7]</a></sup> Studies comparing embryo transfer pregnancies to natural conceptions find significantly higher incidence of these complications even after controlling for maternal age and underlying conditions. One analysis using gestational surrogates, all proven healthy carriers, found that IVF-conceived embryos produced worse maternal outcomes than the surrogates' own natural pregnancies. The implication: the IVF process itself, not just the underlying infertility, introduces part of the maternal risk. RRM pregnancies are natural conceptions in a treated, healthier body.</p>
+
+            <h3>Neonatal Outcomes</h3>
+
+            <p>Singleton babies born after IVF have prematurity rates nearly three times those of RRM-conceived singletons. The SART-reported singleton prematurity rate is 11.8%; the Boyle 2025 RRM cohort recorded 4.0%.<sup><a href="#ref-1">[1]</a></sup> In the Boyle 2018 post-IVF-failure cohort, no very low birth weight babies were born and 92% delivered at term.<sup><a href="#ref-4">[4]</a></sup> Low birth weight in IVF singletons is documented across multiple large analyses. These are not theoretical risks. They are recorded outcomes.</p>
+
+            <h3>Long-Term Child Health</h3>
+
+            <p>The evidence on long-term child health after IVF is incomplete but shows consistent signals worth noting. Meta-analyses report a 41% increased relative risk of birth defects in IVF-conceived singletons compared to natural conceptions. Some studies observe a moderately increased risk of childhood cancer, including leukemia, and elevated cardiovascular measures in IVF children. Embryo cryopreservation, now standard in IVF, has been associated in at least one study with an increased childhood cancer risk. These are signals in an incomplete dataset, not certainties. RRM avoids the question entirely: the child is conceived naturally in a treated body, with no procedural risk to account for.</p>
+
+            <h3>The Ethical Dimension</h3>
+
+            <p>IVF requires the creation of embryos. Most IVF cycles create more embryos than are transferred. Couples must decide what to do with those that remain: indefinite storage, donation to research, donation to other families, or destruction. Women and couples report significant emotional distress over the fate of stored embryos. Legal disputes over embryo custody are documented across multiple countries. RRM produces no surplus embryos. Conception occurs naturally, from a single act of procreation. For couples with ethical concerns about embryo creation, RRM is the only option that does not require confronting this question. That is not a religious argument. It is a clinical description.</p>
+          </section>
+
+          <!-- Section: How much does RRM cost compared to IVF? -->
+          <section id="cost">
+            <h2>How much does RRM cost compared to IVF?</h2>
+
+            <p>A full course of IVF, including retrieval cycles, medications, genetic testing, frozen embryo transfers, and monitoring, typically costs $10,000 to $15,000 per cycle in the United States. Most couples do not succeed on the first cycle. When realistic attempt numbers are factored in, total financial exposure runs $40,000 to $60,000 or more. That estimate excludes downstream costs: hospitalization for severe OHSS, high-risk obstetric management, NICU stays for premature or low birth weight newborns, or long-term care for birth complications.</p>
+
+            <p>RRM treatment costs a fraction of that. Diagnostic workup, including timed hormonal panels across multiple cycle phases, anatomical evaluation, and male factor assessment, typically runs in the low thousands of dollars. Surgical intervention for endometriosis excision, tubal cannulation, or adhesion prevention is a one-time cost that differs structurally from the per-cycle billing of IVF. Ongoing monitoring and medication add to the total, but the overall financial exposure is substantially lower.</p>
+
+            <p>The Boyle 2018 study calculated potential healthcare savings from avoided multiple pregnancies in its 403-patient cohort at approximately $285,000.<sup><a href="#ref-4">[4]</a></sup> That estimate covered only costs from the single twin pregnancy that occurred. It does not capture the full downstream cost difference between a 4% and a 14.4% prematurity rate across a population.</p>
+
+            <p>Insurance coverage for RRM components varies. The individual elements of an RRM workup are standard medical procedures with established billing codes and are covered by most insurance plans when properly documented and indicated. Some insurers are more familiar with IVF reimbursement pathways and may require additional documentation. Coverage depends on the specific insurer, the employer's benefit plan, the diagnosis codes used, and the clinician's billing approach. Arkansas mandated insurance coverage for RRM in 2025. The coverage landscape is changing.</p>
+
+            <p>Anyone evaluating RRM should work with their clinician's billing team to verify what is covered under their specific plan before making cost assumptions in either direction.</p>
+          </section>
+
+          <!-- Section: Who is RRM for? -->
+          <section id="who-is-rrm-for">
+            <h2>Who is RRM for?</h2>
+
+            <p>RRM is a full reproductive health discipline, not a fertility protocol. It applies across the reproductive lifespan: to young women with painful periods who have not yet been diagnosed, to couples actively trying to conceive, to women with recurrent pregnancy loss, and to couples who have already failed IVF and want to understand why.</p>
+
+            <p>The better question is: who has the most to gain from diagnosis before treatment?</p>
+
+            <p><strong>Couples with unexplained infertility.</strong> "Unexplained" means the workup did not identify a cause. In RRM, that is a starting point, not an endpoint. The standard workup misses luteal phase defects, partial tubal occlusion, cervical factor, and early endometriosis. A thorough RRM evaluation finds answers that the standard workup was not designed to find.</p>
+
+            <p><strong>Women with endometriosis.</strong> Endometriosis affects an estimated 1 in 10 women. The median time to diagnosis is 9 years. Hormonal suppression masks symptoms but does not treat the disease. RRM uses excision surgery, the only surgical approach that removes the disease rather than suppressing it, paired with adhesion prevention and post-surgical hormonal optimization to restore the pelvic environment for natural conception.</p>
+
+            <p><strong>Women with PCOS.</strong> PCOS is the most common ovulatory disorder. In RRM, it is approached through targeted hormonal assessment, cycle tracking to identify ovulatory dysfunction, correction of insulin resistance, and medication protocols that work with the hormonal cycle rather than overriding it. Unlike ovarian stimulation in IVF, which carries elevated OHSS risk in PCOS patients, RRM protocols aim to restore normal single-follicle ovulation.</p>
+
+            <p><strong>Couples with recurrent pregnancy loss.</strong> Two or more losses warrant investigation. RRM evaluates progesterone insufficiency across the luteal phase, thyroid dysfunction, anatomical issues, immune factors, and male factor contributions. Progesterone support in early pregnancy, guided by cycle-timed monitoring, addresses a documented mechanism of loss.</p>
+
+            <p><strong>Couples who have already failed IVF.</strong> The Boyle 2018 study established that couples with a mean of 2.1 prior failed IVF cycles can achieve live birth rates comparable to another cycle of IVF through RRM.<sup><a href="#ref-4">[4]</a></sup> When IVF fails, the productive question is: what was the underlying condition that the procedure did not address?</p>
+
+            <p><strong>Couples with male factor infertility.</strong> Male factor is the sole or primary cause in approximately 20% of infertile couples, and a contributing factor in another 30-40%. RRM evaluates the male partner beyond a basic semen analysis and includes urological referral for varicocele repair when indicated. Treatment addresses the male partner's health directly rather than bypassing his contribution through ICSI.</p>
+
+            <p><strong>Couples seeking care aligned with their values.</strong> Some couples object to IVF on ethical grounds related to embryo creation. Others prefer diagnosis before bypassing. Others want a clinician who remains involved through pregnancy rather than discharging them at a positive test. RRM serves all of these situations.</p>
+
+            <p>On timing: RRM requires cycle monitoring and unfolds over months. The iNEST cohort followed couples for up to 36 months, and Sanchez-Mendez 2025 reports a median treatment duration of 10.9 months.<sup><a href="#ref-2">[2]</a></sup><sup><a href="#ref-5">[5]</a></sup> That is a real commitment, and stating it plainly is fair. The comparison is not "RRM is slower, therefore worse." The comparison is: a diagnostic and treatment process that addresses the problem, versus repeated cycles of a procedure that bypasses it.</p>
+          </section>
+
+          <!-- Section: FAQ -->
+          <section id="faq">
+            <h2>Frequently Asked Questions</h2>
+
+            <details class="faq-item">
+              <summary>Is RRM as effective as IVF?</summary>
+              <p>RRM and IVF measure success differently, which makes direct comparison genuinely difficult. IVF reports per-cycle live birth rates. RRM reports cumulative live birth rates per couple over a treatment window, typically 24 months. These are different denominators measuring different things.</p>
+              <p>When the numbers are placed side by side using appropriate metrics, the comparison is favorable for RRM. The first head-to-head comparison found a 41% crude live birth rate with RRM, comparable to a single IVF cycle with subsequent embryo transfers.<sup><a href="#ref-1">[1]</a></sup> Sanchez-Mendez et al. (2025) followed 1,310 couples and found a cumulative take-home baby rate of 62.1% at 36 months or more.<sup><a href="#ref-2">[2]</a></sup> In a post-IVF-failure population of 403 couples with a mean age of 37.2 years, Boyle et al. (2018) found a 32.1% adjusted live birth rate, comparable to another cycle of IVF for the same patients.<sup><a href="#ref-4">[4]</a></sup></p>
+              <p>Beyond the numbers: IVF produces a pregnancy by bypassing the underlying problem. RRM produces a pregnancy by correcting it. For couples who succeed with RRM, future pregnancies benefit from the same treated biology.</p>
+              <p>Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+            </details>
+
+            <details class="faq-item">
+              <summary>How much does RRM cost compared to IVF?</summary>
+              <p>A full course of IVF, covering multiple retrieval cycles, medications, genetic testing, frozen embryo transfers, and monitoring, typically costs $40,000 to $60,000 or more. Individual cycles are quoted at $10,000 to $15,000, but most couples require more than one. Those estimates exclude costs from complications: OHSS hospitalization, high-risk obstetric management, or NICU care for premature newborns.</p>
+              <p>RRM costs a fraction of that. Diagnostic workup, including timed hormonal panels, anatomical evaluation, and male factor assessment, runs in the low thousands of dollars. Surgical intervention, when indicated, is a one-time cost. Ongoing monitoring and medication add to the total, but the overall financial exposure is substantially lower than multi-cycle IVF.</p>
+              <p>Many RRM components are billed as standard medical procedures covered by insurance when properly documented. Coverage for the integrated RRM approach varies by insurer and jurisdiction. Arkansas mandated insurance coverage for RRM in 2025. Anyone evaluating costs should work with their RRM clinician's billing team to understand what is covered under their specific plan.</p>
+              <p>Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+            </details>
+
+            <details class="faq-item">
+              <summary>Can RRM work after failed IVF?</summary>
+              <p>Yes, and there is direct published evidence for this. De Groot, Boyle et al. (2018) studied 403 couples who had already failed a mean of 2.1 IVF cycles (range 1-9), with a mean female age of 37.2 years and a mean infertility duration of 5.8 years.<sup><a href="#ref-4">[4]</a></sup> One of the hardest populations in reproductive medicine. The adjusted RRM live birth rate was 32.1%. Women aged 35-38 achieved 37.5%. The study concluded that patients who have already tried IVF can achieve comparable live birth outcomes with RRM compared to another cycle of IVF. A published case report documents a successful pregnancy after 16 years of infertility and eight failed embryo transfers.<sup><a href="#ref-6">[6]</a></sup></p>
+              <p>When IVF fails, the productive question is: what was the underlying condition that the procedure did not address? IVF bypasses the problem. If the bypass fails repeatedly, the problem is still present. RRM goes back to the diagnostic starting point, evaluates what may have been missed, and applies targeted treatment. For many couples, this produces the answer that repeated IVF cycles did not.</p>
+              <p>Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+            </details>
+
+            <details class="faq-item">
+              <summary>What is the success rate of NaProTechnology?</summary>
+              <p>NaProTechnology is one primary approach within the broader RRM framework. It uses the Creighton Model FertilityCare System for cycle monitoring and applies targeted medical and surgical treatment to identified underlying conditions.</p>
+              <p>Published success rates across RRM studies using NaProTechnology span 29% to 66% adjusted cumulative live birth rate, depending on the study population and treatment duration. The largest study to date, Sanchez-Mendez et al. (2025), followed 1,310 couples over five years and found an adjusted cumulative take-home baby rate of 50% at 24 months and 62.1% at 36 months or more.<sup><a href="#ref-2">[2]</a></sup> That cohort included couples with prior failed ART, advanced maternal age, and prolonged infertility.</p>
+              <p>Age-stratified rates from the same study: 83.7% for women aged 18-30, 53.3% for women aged 36-40, and 24.4% for women over 40.</p>
+              <p>The iNEST study followed 834 couples across 10 sites in four countries and found that 44% achieved at least one live birth during the study period.<sup><a href="#ref-5">[5]</a></sup></p>
+              <p>Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+            </details>
+
+            <details class="faq-item">
+              <summary>Is RRM covered by insurance?</summary>
+              <p>This question does not have a single answer, and anyone who gives you a simple yes or no is oversimplifying.</p>
+              <p>The individual components of an RRM evaluation and treatment plan are standard medical procedures with established billing codes. Timed hormonal bloodwork, diagnostic laparoscopy, progesterone supplementation, surgical excision of endometriosis, thyroid evaluation, and semen analysis all have standard procedure codes and are covered by most insurance plans when properly documented and indicated.</p>
+              <p>The challenge arises at the level of the integrated RRM approach. Some insurers are more familiar with IVF reimbursement pathways and may require specific documentation or prior authorization. Coverage depends on the specific insurer, the employer's benefit plan, and the clinician's billing approach.</p>
+              <p>Arkansas passed legislation in 2025 mandating insurance coverage for RRM, the first state to do so. Federal discussion on coverage continues.</p>
+              <p>The practical path forward: ask an RRM clinician's billing team to walk through what is covered under your specific plan. Do not assume coverage, but do not assume exclusion either.</p>
+              <p>Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+            </details>
+
+            <details class="faq-item">
+              <summary>Do I need to be religious to use RRM?</summary>
+              <p>No.</p>
+              <p>RRM is a medical approach. Its methods are diagnostic laparoscopy, timed hormonal testing, surgical excision, cycle tracking as a clinical diagnostic tool, and targeted treatment of identified conditions. None of these require religious adherence to be effective.</p>
+              <p>NaProTechnology, which developed within a Catholic academic tradition at the Pope Paul VI Institute, is one methodology within the broader RRM field. Some RRM clinicians practice within a faith-motivated framework. Others do not. The published evidence base, including the Boyle 2025 and Sanchez-Mendez 2025 studies from Ireland and Spain, reflects clinical settings and populations not defined by religious identity.</p>
+              <p>Many couples who pursue RRM are secular. They chose it because they want answers about why they are not conceiving, because they have concerns about IVF's risks and costs, or because they have already failed IVF and are looking for what comes next.</p>
+              <p>If a clinician's personal values affect how they counsel you in ways that do not feel right for your situation, find another RRM clinician. The approach is the medicine, not the provider's framework.</p>
+              <p>Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+            </details>
+
+            <details class="faq-item">
+              <summary>How long does RRM treatment take?</summary>
+              <p>RRM is a diagnostic and treatment process that unfolds over months, not a single procedure.</p>
+              <p>Initial evaluation typically takes one to three menstrual cycles. This allows for timed hormonal testing at multiple points across the cycle, including progesterone at peak plus 3, 5, 7, 9, and 11 days, along with cervical mucus assessment, ultrasound follicular tracking when indicated, and male factor evaluation. Many couples undergo diagnostic laparoscopy during this phase to evaluate for endometriosis and tubal patency.</p>
+              <p>The Boyle 2025 study found an average time to conception, for couples who achieved a live birth, of 12 months from the start of treatment.<sup><a href="#ref-1">[1]</a></sup> The Sanchez-Mendez 2025 cohort had a median NaProTechnology treatment duration of 10.9 months.<sup><a href="#ref-2">[2]</a></sup> The iNEST study followed couples for up to 36 months, reflecting realistic variation in a complex patient population.<sup><a href="#ref-5">[5]</a></sup></p>
+              <p>The treatment window is also reusable across future pregnancies. Unlike IVF, where each cycle is a discrete and expensive event, RRM treatment builds a corrected biological environment in which natural conception can occur across many cycles. Seventy-four percent of couples in the Boyle 2025 cohort who sought a second pregnancy succeeded.<sup><a href="#ref-1">[1]</a></sup></p>
+              <p>Couples evaluating RRM should understand that this is a commitment of several months. Whether that investment, toward diagnosing and treating the problem, is preferable to repeated cycles of a procedure that bypasses it, is the right question to ask.</p>
+              <p>Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+            </details>
+          </section>
+
+          <!-- Course CTA -->
+          <PageCTA
+            href="/courses/rrm-vs-ivf/"
+            title="Watch the Free Course"
+            description="This page summarizes the key differences. Dr. Whittaker covers the full evidence, including patient stories and surgical training comparisons, in a free video course."
+          />
+
+          <!-- Related Comparisons -->
+          <section id="related-comparisons" class="related-comparisons">
+            <h2>Related Comparisons</h2>
+            <p>More comparisons coming soon.</p>
+          </section>
+
+          <!-- References -->
+          <section class="references" id="references">
+            <h2>References</h2>
+            <ol>
+              <li id="ref-1">Boyle P, Toth A, Minjeur M, Turczynski C. Restorative reproductive medicine (RRM) outcomes compared to in-vitro fertilization (IVF) for the treatment of infertility: a retrospective evaluation of a 2019 clinic cohort compared to one cycle of IVF. <em>Journal of Restorative Reproductive Medicine</em>. 2025;1. doi:10.63264/gejytw70. <a href="https://rrmacademy.org/library/restorative-reproductive-medicine-rrm-outcomes-compared-to-in-vitro-fertilization-rec4qqhafqb8stlnd/">View in library</a></li>
+              <li id="ref-2">Sanchez-Mendez JI, Lombarte M, Abengozar-Muela R, et al. Natural procreative technology (NaProTechnology) for infertility: take-home baby rate and clinical outcomes in a 5-year single-center cohort of 1,310 couples. <em>Frontiers in Reproductive Health</em>. 2025;7:1696679. doi:10.3389/frph.2025.1696679. <a href="https://rrmacademy.org/library/natural-procreative-technology-naprotechnology-for-infertility-take-home-baby-ra-recv02qu0r8ycnzoa/">View in library</a></li>
+              <li id="ref-3">Human Fertilisation and Embryology Authority. The Fertility Sector 2024/25. 2025. <a href="https://rrmacademy.org/library/the-fertility-sector-202425-recthw4mknjg2k8fa/">View in library</a></li>
+              <li id="ref-4">de Groot T, Andralojc KM, Boyle PC, Parnell TA. Healthy Singleton Pregnancies From Restorative Reproductive Medicine (RRM) After Failed IVF. <em>Frontiers in Medicine</em>. 2018;5:210. doi:10.3389/fmed.2018.00210. <a href="https://rrmacademy.org/library/healthy-singleton-pregnancies-from-restorative-reproductive-medicine-rrm-after-f-recior3akxtg2a6ya/">View in library</a></li>
+              <li id="ref-5">Stanford JB, Parnell T, Kantor K, et al. International Natural Procreative Technology Evaluation and Surveillance of Treatment for Subfertility (iNEST): enrollment and methods. <em>Human Reproduction Open</em>. 2022;2022(3):hoac033. doi:10.1093/hropen/hoac033. <a href="https://rrmacademy.org/library/international-natural-procreative-technology-evaluation-and-surveillance-of-trea-recudgdct40otosdm/">View in library</a></li>
+              <li id="ref-6">Boyle PC, Stanford JB, Zecevic I. Successful pregnancy with restorative reproductive medicine after 16 years of infertility, three recurrent miscarriages, and eight unsuccessful embryo transfers with in vitro fertilization/intracytoplasmic sperm injection: a case report. <em>Journal of Medical Case Reports</em>. 2022. <a href="https://rrmacademy.org/library/successful-pregnancy-with-restorative-reproductive-medicine-after-16-years-of-in-recismo1fzymsx9jo/">View in library</a></li>
+              <li id="ref-7">Almasi-Hashiani A, Omani-Samani R, Mohammadi M, et al. Assisted reproductive technology and the risk of preeclampsia: an updated systematic review and meta-analysis. <em>BMC Pregnancy and Childbirth</em>. 2019. <a href="https://rrmacademy.org/library/assisted-reproductive-technology-and-the-risk-of-preeclampsia-an-updated-systema-reccpdeshwwxvgzwt/">View in library</a></li>
+              <li id="ref-8">Alukal JP, Lamb DJ. Intracytoplasmic sperm injection (ICSI): what are the risks? <em>Urologic Clinics of North America</em>. 2008. <a href="https://rrmacademy.org/library/intracytoplasmic-sperm-injection-icsi--what-are-the-risks-recsyzkxmivrzhdru/">View in library</a></li>
+              <li id="ref-9">Hilgers TW, Boyle PC. Chapter 50: Pregnancy Following Failed ART. In: <em>The Medical and Surgical Practice of NaProTECHNOLOGY</em>. 2004. <a href="https://rrmacademy.org/library/chapter-50-pregnancy-following-failed-art-recvcowsvv3wl0sxr/">View in library</a></li>
+            </ol>
+          </section>
+
+          <p class="disclaimer">This content is for educational purposes only and does not constitute medical advice. Consult a qualified clinician for personalized care.</p>
+
+        </article>
+      </div>
+    </div>
+  </div>
+  <BackToTop />
+</BaseLayout>
+
+<style is:inline>
+  .faq-item {
+    border-bottom: 1px solid var(--border-color);
+    padding: var(--space-4) 0;
+  }
+
+  .faq-item:last-child {
+    border-bottom: none;
+  }
+
+  .faq-item summary {
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: var(--text-primary);
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    line-height: 1.4;
+  }
+
+  .faq-item summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq-item summary::before {
+    content: '+';
+    font-size: 1.25rem;
+    font-weight: 300;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    width: 1.25rem;
+    text-align: center;
+    transition: transform 0.2s;
+  }
+
+  .faq-item[open] summary::before {
+    content: '\2212';
+  }
+
+  .faq-item p {
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-top: var(--space-3);
+    margin-bottom: var(--space-3);
+    padding-left: 1.75rem;
+  }
+
+  .faq-item p:last-child {
+    margin-bottom: 0;
+    font-style: italic;
+    font-size: 0.875rem;
+  }
+
+  .related-comparisons {
+    background: var(--bg-surface);
+    border-radius: var(--radius-md, 8px);
+    padding: 1.5rem 2rem;
+    margin: 2rem 0;
+  }
+
+  .related-comparisons h2 {
+    margin-top: 0;
+  }
+
+  .related-comparisons p {
+    color: var(--text-secondary);
+    margin-bottom: 0;
+  }
+
+  .references {
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+  }
+
+  .references li {
+    margin-bottom: var(--space-3);
+  }
+
+  .disclaimer {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    margin-top: var(--space-8);
+    line-height: 1.6;
+    font-style: italic;
+  }
+
+  .author-byline {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: calc(-1 * var(--space-2));
+    margin-bottom: var(--space-6);
+    line-height: 1.6;
+  }
+
+  @media (min-width: 1024px) {
+    .container {
+      max-width: calc(var(--max-width-article) + 220px + var(--space-10) + var(--space-8) * 2);
+    }
+  }
+</style>
