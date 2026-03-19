@@ -51,6 +51,22 @@ function transformRecord(record: AirtableRecord): BlogPost | null {
   };
 }
 
+/**
+ * Normalize image URLs to /api/assets/ proxy paths for R2 caching.
+ * Handles absolute site URLs, relative static paths, and R2 public URLs.
+ */
+function normalizeImageUrl(url: string): string {
+  if (!url) return url;
+  const sitePrefix = 'https://rrmacademy.org/images/';
+  if (url.startsWith(sitePrefix)) {
+    return '/api/assets/' + url.slice(sitePrefix.length);
+  }
+  if (url.startsWith('/images/')) {
+    return '/api/assets/' + url.slice('/images/'.length);
+  }
+  return url;
+}
+
 function sortByDate(posts: BlogPost[]): BlogPost[] {
   return [...posts].sort((a, b) => {
     if (!a.publishDate && !b.publishDate) return 0;
@@ -65,6 +81,7 @@ export async function fetchAllPosts(): Promise<BlogPost[]> {
   try {
     const cached = await import('../data/posts.json');
     const posts = (cached.default || cached) as BlogPost[];
+    for (const p of posts) p.coverImageUrl = normalizeImageUrl(p.coverImageUrl);
     console.log(`[blog] Loaded ${posts.length} posts from cache`);
     return sortByDate(posts);
   } catch (err: any) {
