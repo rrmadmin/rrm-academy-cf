@@ -1,0 +1,51 @@
+---
+// PageCTA.astro
+// Generic CTA card. Reusable for course CTAs, provider directory CTAs, etc.
+interface Props {
+  href: string;
+  title: string;
+  description: string;
+  icon?: string;
+}
+const { href, title, description } = Astro.props;
+---
+
+<div class="page-cta">
+  <h3 class="page-cta__title">{title}</h3>
+  <p class="page-cta__description">{description}</p>
+  <a href={href} class="page-cta__link">Learn more &rarr;</a>
+</div>
+
+<style>
+  .page-cta {
+    background: var(--bg-surface);
+    border-radius: var(--radius-md, 8px);
+    padding: 1.5rem 2rem;
+    margin: 2rem 0;
+    box-shadow: var(--shadow-sm);
+    border-left: 4px solid var(--accent);
+  }
+
+  .page-cta__title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+    color: var(--text-primary);
+  }
+
+  .page-cta__description {
+    color: var(--text-secondary);
+    margin: 0 0 1rem 0;
+    line-height: 1.6;
+  }
+
+  .page-cta__link {
+    font-weight: 500;
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .page-cta__link:hover {
+    text-decoration: underline;
+  }
+</style>

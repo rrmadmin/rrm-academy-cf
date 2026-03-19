@@ -1,0 +1,48 @@
+---
+// StatCallout.astro
+// Highlighted statistic block. Used inline in comparison page sections.
+interface Props {
+  stat: string;
+  source: string;
+  sourceUrl?: string;
+}
+const { stat, source, sourceUrl } = Astro.props;
+---
+
+<aside class="stat-callout">
+  <p class="stat-callout__number">{stat}</p>
+  <p class="stat-callout__source">
+    {sourceUrl ? <a href={sourceUrl}>{source}</a> : source}
+  </p>
+</aside>
+
+<style>
+  .stat-callout {
+    background: var(--bg-surface);
+    border-radius: var(--radius-md, 8px);
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+  }
+
+  .stat-callout__number {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.25rem 0;
+    line-height: 1.3;
+  }
+
+  .stat-callout__source {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+
+  .stat-callout__source a {
+    color: var(--text-secondary);
+    text-decoration: underline;
+  }
+</style>
