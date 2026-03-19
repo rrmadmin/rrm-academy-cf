@@ -81,7 +81,7 @@ async function createNewGoogleUser(db, email, name, firstName, lastName, googleI
 export async function onRequestGet({ request, env, waitUntil }) {
   try {
     const db = env.DB;
-    if (!db) return redirect(LOGIN_ERROR_URL);
+    if (!db) return htmlRedirect(LOGIN_ERROR_URL);
 
     const url = new URL(request.url);
     const code = url.searchParams.get('code');
@@ -90,7 +90,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     // Handle user denying consent or other Google errors
     const error = url.searchParams.get('error');
     if (error || !code) {
-      return new Response(null, { status: 302, headers: { Location: `${SITE_URL}/login?error=oauth_denied` } });
+      return htmlRedirect(`${SITE_URL}/login?error=oauth_denied`);
     }
 
     // Determine where to send the user after login (prevent open redirects)
@@ -104,14 +104,14 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
     if (!tokens.access_token) {
       log(env, waitUntil, 'auth', 'google_auth_error', 'error', 'token exchange failed');
-      return redirect(LOGIN_ERROR_URL);
+      return htmlRedirect(LOGIN_ERROR_URL);
     }
 
     // Get user profile from Google
     const profile = await getGoogleProfile(tokens.access_token);
     if (!profile.id || !profile.email) {
       log(env, waitUntil, 'auth', 'google_auth_error', 'error', 'profile missing id or email');
-      return redirect(LOGIN_ERROR_URL);
+      return htmlRedirect(LOGIN_ERROR_URL);
     }
 
     const googleId = String(profile.id);
@@ -125,20 +125,20 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
     // 1. Check if google_id already linked to an account
     const r1 = await handleReturningGoogleUser(db, googleId, email);
-    if (r1?.redirect) return redirect(r1.redirect);
+    if (r1?.redirect) return htmlRedirect(r1.redirect);
     if (r1) ({ user } = r1);
 
     // 2. Check if email matches an existing account (first Google login for this user)
     if (!user) {
       const r2 = await linkGoogleToVerifiedUser(db, googleId, email, avatarUrl);
-      if (r2?.redirect) return redirect(r2.redirect);
+      if (r2?.redirect) return htmlRedirect(r2.redirect);
       if (r2) ({ user } = r2);
     }
 
     // 2b. Unverified account with this email — Google proves ownership, upgrade it
     if (!user) {
       const r3 = await upgradeUnverifiedUser(db, googleId, email, avatarUrl);
-      if (r3?.redirect) return redirect(r3.redirect);
+      if (r3?.redirect) return htmlRedirect(r3.redirect);
       if (r3) ({ user } = r3);
     }
 
@@ -150,7 +150,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
       } catch (err) {
         if (err.message && err.message.includes('UNIQUE constraint')) {
           const r4retry = await handleReturningGoogleUser(db, googleId, email);
-          if (r4retry?.redirect) return redirect(r4retry.redirect);
+          if (r4retry?.redirect) return htmlRedirect(r4retry.redirect);
           if (r4retry) ({ user } = r4retry);
         }
         if (!user) throw err;
@@ -163,29 +163,28 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
     // Check if user is blocked
     if (user.blocked) {
-      return redirect('/login?error=account_blocked');
+      return htmlRedirect('/login?error=account_blocked');
     }
 
     // Create session (same pattern as login.js)
     const session = await createSession(db, user.id);
 
-    return new Response(null, {
-      status: 302,
-      headers: {
-        Location: returnTo,
-        'Set-Cookie': sessionCookie(session.id, session.expiresAt),
-      },
+    return htmlRedirect(returnTo, {
+      'Set-Cookie': sessionCookie(session.id, session.expiresAt),
     });
   } catch (err) {
     console.error('Google OAuth callback error:', err);
     log(env, waitUntil, 'auth', 'google_auth_error', 'error', err.message);
-    return redirect(LOGIN_ERROR_URL);
+    return htmlRedirect(LOGIN_ERROR_URL);
   }
 }
 
-function redirect(location) {
-  return new Response(null, {
+// CF Pages _headers can convert 302 → 200, so include HTML fallback
+// that performs the redirect via meta refresh + JS even if status is wrong.
+function htmlRedirect(location, extraHeaders) {
+  const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${location}"></head><body><script>window.location.href=${JSON.stringify(location)}</script></body></html>`;
+  return new Response(html, {
     status: 302,
-    headers: { Location: location },
+    headers: { Location: location, 'Content-Type': 'text/html;charset=UTF-8', ...extraHeaders },
   });
 }
