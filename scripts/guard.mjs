@@ -490,6 +490,71 @@ function checkCrmSafety() {
   }
 }
 
+// ─── Phase 6: Link Format (trailing slashes) ────────────────────────
+
+function checkLinkFormat() {
+  console.log(`\n${BOLD}Phase 6: Link format (trailing slashes)${RESET}`);
+
+  // Astro config uses trailingSlash: 'always' + format: 'directory'.
+  // CF Pages serves 200 with empty body for non-trailing-slash directory paths
+  // instead of redirecting, so internal links MUST include trailing slashes.
+  //
+  // Pattern: match href="/library/${...slug}" or href={`/library/${...slug}`}
+  // WITHOUT a trailing slash before the closing quote/backtick.
+  // Also covers /commentary/, /courses/, /faqs/, /guides/, and pillar pages.
+
+  const LINK_DIRS = [
+    join(ROOT, 'src/pages'),
+    join(ROOT, 'src/components'),
+    join(ROOT, 'src/layouts'),
+  ];
+
+  // Matches template literals: href={`/section/${expr}`} or href={`/section/${expr}`}
+  // where the expression is NOT followed by a /
+  // Also matches static strings: href="/section/slug" (no trailing slash, not a bare index)
+  const SLUG_HREF_RE = /href\s*=\s*\{`\/(library|commentary|courses|faqs|guides|glossary)\/\$\{[^}]+\}`\}/g;
+  const STATIC_HREF_RE = /href\s*=\s*["']\/(library|commentary|courses|faqs)\/[a-z0-9][a-z0-9_-]+["']/g;
+
+  let foundBadLinks = 0;
+
+  for (const dir of LINK_DIRS) {
+    let files;
+    try { files = collectFilesAll(dir); } catch { continue; }
+
+    for (const filePath of files) {
+      const ext = filePath.split('.').pop();
+      if (!['astro', 'js', 'mjs', 'ts'].includes(ext)) continue;
+
+      const rel = relative(ROOT, filePath);
+      let content;
+      try { content = readFileSync(filePath, 'utf8'); } catch { continue; }
+
+      // Check template literal hrefs: /section/${slug} without trailing /
+      for (const match of content.matchAll(SLUG_HREF_RE)) {
+        const full = match[0];
+        // Good: href={`/library/${slug}/`}  Bad: href={`/library/${slug}`}
+        if (!full.includes('/`}')) {
+          log(FAIL, `${rel}: missing trailing slash in dynamic href — ${full.slice(0, 60)}`);
+          foundBadLinks++;
+          failures++;
+        }
+      }
+
+      // Check static string hrefs: /section/slug without trailing /
+      for (const match of content.matchAll(STATIC_HREF_RE)) {
+        const full = match[0];
+        log(FAIL, `${rel}: missing trailing slash in static href — ${full.slice(0, 60)}`);
+        foundBadLinks++;
+        failures++;
+      }
+    }
+  }
+
+  if (foundBadLinks === 0) {
+    log(PASS, 'All internal content hrefs include trailing slashes');
+  }
+}
+
 // ─── Main ───────────────────────────────────────────────────────────
 
 console.log(`${BOLD}RRM Academy — Security Guard${RESET}`);
@@ -502,6 +567,7 @@ checkInvariants();
 checkRequiredFiles();
 scanSecrets();
 checkCrmSafety();
+checkLinkFormat();
 
 console.log('');
 if (failures > 0) {
