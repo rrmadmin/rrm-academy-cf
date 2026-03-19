@@ -137,13 +137,26 @@ async function processImage(attachment, slug) {
 }
 
 /**
- * Transform R2 public URLs to /api/assets/ proxy paths for caching.
- * R2 public domain serves with no cache headers; the proxy adds
- * Cache-Control: public, max-age=31536000, immutable.
+ * Normalize image URLs to /api/assets/ proxy paths for caching.
+ * Handles three source formats:
+ *   1. R2 public URLs (https://pub-xxx.r2.dev/commentary/...)
+ *   2. Absolute site URLs (https://rrmacademy.org/images/commentary/...)
+ *   3. Relative static paths (/images/commentary/...)
+ * The proxy adds Cache-Control: public, max-age=31536000, immutable.
  */
 function r2UrlToProxy(url) {
-  if (url && url.startsWith(R2_PUBLIC_URL)) {
+  if (!url) return url;
+  if (url.startsWith(R2_PUBLIC_URL)) {
     return url.replace(R2_PUBLIC_URL, '/api/assets');
+  }
+  // Absolute site URLs pointing to static images
+  const sitePrefix = 'https://rrmacademy.org/images/';
+  if (url.startsWith(sitePrefix)) {
+    return '/api/assets/' + url.slice(sitePrefix.length);
+  }
+  // Relative static paths
+  if (url.startsWith('/images/')) {
+    return '/api/assets/' + url.slice('/images/'.length);
   }
   return url;
 }
