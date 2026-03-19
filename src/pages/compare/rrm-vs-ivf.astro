@@ -101,6 +101,20 @@ const pageSchema = {
       datePublished: '2022',
       isPartOf: { '@type': 'Periodical', name: 'Human Reproduction Open' },
     },
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'Successful pregnancy with restorative reproductive medicine after 16 years of infertility',
+      author: 'Boyle PC, Stanford JB, Zecevic I',
+      datePublished: '2022',
+      isPartOf: { '@type': 'Periodical', name: 'Journal of Medical Case Reports' },
+    },
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'Assisted reproductive technology and the risk of preeclampsia: an updated systematic review and meta-analysis',
+      author: 'Almasi-Hashiani A, Omani-Samani R, Mohammadi M, et al.',
+      datePublished: '2019',
+      isPartOf: { '@type': 'Periodical', name: 'BMC Pregnancy and Childbirth' },
+    },
   ],
 };
 
@@ -141,7 +155,7 @@ const faqSchema = {
       name: 'Can RRM work after failed IVF?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Yes. De Groot, Boyle et al. (2018) studied 403 couples who had already failed a mean of 2.1 IVF cycles, with a mean female age of 37.2 years. The adjusted RRM live birth rate was 32.1%. Women aged 35-38 achieved 37.5%. The study concluded that patients who have already tried IVF can achieve comparable live birth outcomes with RRM.',
+        text: 'Yes. De Groot, Boyle et al. (2018) studied 403 couples who had already failed a mean of 2.1 IVF cycles, with a mean female age of 37.2 years. The adjusted RRM live birth rate was 32.1%. Women aged 35-38 achieved 37.5%. The study concluded that patients who have already tried IVF can achieve comparable live birth outcomes with RRM compared to another cycle of IVF.',
       },
     },
     {
@@ -173,7 +187,7 @@ const faqSchema = {
       name: 'How long does RRM treatment take?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Initial evaluation takes one to three menstrual cycles. The Boyle 2025 study found an average time to conception of 12 months. The Sanchez-Mendez 2025 cohort had a median treatment duration of 10.9 months. Unlike IVF, where each cycle is a discrete event, RRM treatment builds a corrected biological environment in which natural conception can occur across many cycles.',
+        text: 'Initial evaluation takes one to three menstrual cycles. Among couples who achieved a live birth, the Boyle 2025 study found an average time to conception of 12 months. The Sanchez-Mendez 2025 cohort had a median treatment duration of 10.9 months. Unlike IVF, where each cycle is a discrete event, RRM treatment builds a corrected biological environment in which natural conception can occur across many cycles.',
       },
     },
   ],
@@ -189,7 +203,7 @@ const takeawayItems = [
 
 const comparisonRows = [
   { dimension: 'Philosophy', optionA: 'Diagnose and treat the underlying condition', optionB: 'Bypass the underlying condition to achieve pregnancy' },
-  { dimension: 'Typical total cost', optionA: 'A fraction of IVF', optionB: '$15,000-$30,000 per cycle; $40,000-$60,000+ total' },
+  { dimension: 'Typical total cost', optionA: 'A fraction of IVF', optionB: '$10,000-$15,000 per cycle; $40,000-$60,000+ total' },
   { dimension: 'Success metric', optionA: 'Cumulative live birth rate over 24 months', optionB: 'Per-cycle live birth rate' },
   { dimension: 'Reported success', optionA: '52.8% cumulative at 24 months', optionB: '~30% per cycle (HFEA)' },
   { dimension: 'After failed IVF', optionA: 'Comparable outcomes to another IVF cycle', optionB: 'Declining returns per additional cycle' },
@@ -289,7 +303,7 @@ const comparisonRows = [
 
             <p>In RRM, "unexplained infertility" is not a diagnosis. It is a clinical failure. The label exists because the diagnostic tools were not thorough enough to find the answer.</p>
 
-            <p>Dr. Naomi Whittaker, MD, a board-certified OBGYN and NaProTechnology fellowship-trained surgeon, describes what she finds when these patients come to her after years of being told nothing is wrong: stage IV endometriosis. Bilateral tubal occlusion. Luteal phase defects. Thyroid dysfunction. Male factor. Multiple conditions, all present, none identified. The same patient sent to IVF without any of this information.</p>
+            <p>What a thorough evaluation actually finds in these patients, after years of being told nothing is wrong: stage IV endometriosis. Bilateral tubal occlusion. Luteal phase defects. Thyroid dysfunction. Male factor. Multiple conditions, all present, none identified. The same patient sent to IVF without any of this information.</p>
 
             <p>IVF's procedural model creates risks that the restorative model does not. Ovarian hyperstimulation, multiple gestation, and elevated rates of pregnancy complications are not rare or theoretical. They are documented consequences of the pharmacological stimulation protocol. These are iatrogenic risks: risks created by the treatment itself.</p>
 
@@ -447,7 +461,7 @@ const comparisonRows = [
 
             <details class="faq-item">
               <summary>What is the success rate of NaProTechnology?</summary>
-              <p>NaProTechnology is one primary approach within the broader RRM framework. It uses the Creighton Model FertilityCare System for cycle monitoring and applies targeted medical and surgical treatment to identified underlying conditions.</p>
+              <p>NaProTechnology and RRM share the same philosophy of diagnosing and treating underlying conditions. NaProTechnology uses the Creighton Model FertilityCare System for cycle monitoring and applies targeted medical and surgical treatment to identified causes of infertility.</p>
               <p>Published success rates across RRM studies using NaProTechnology span 29% to 66% adjusted cumulative live birth rate, depending on the study population and treatment duration. The largest study to date, Sanchez-Mendez et al. (2025), followed 1,310 couples over five years and found an adjusted cumulative take-home baby rate of 50% at 24 months and 62.1% at 36 months or more.<sup><a href="#ref-2">[2]</a></sup> That cohort included couples with prior failed ART, advanced maternal age, and prolonged infertility.</p>
               <p>Age-stratified rates from the same study: 83.7% for women aged 18-30, 53.3% for women aged 36-40, and 24.4% for women over 40.</p>
               <p>The iNEST study followed 834 couples across 10 sites in four countries and found that 44% achieved at least one live birth during the study period.<sup><a href="#ref-5">[5]</a></sup></p>
@@ -468,7 +482,7 @@ const comparisonRows = [
               <summary>Do I need to be religious to use RRM?</summary>
               <p>No.</p>
               <p>RRM is a medical approach. Its methods are diagnostic laparoscopy, timed hormonal testing, surgical excision, cycle tracking as a clinical diagnostic tool, and targeted treatment of identified conditions. None of these require religious adherence to be effective.</p>
-              <p>NaProTechnology, which developed within a Catholic academic tradition at the Pope Paul VI Institute, is one methodology within the broader RRM field. Some RRM clinicians practice within a faith-motivated framework. Others do not. The published evidence base, including the Boyle 2025 and Sanchez-Mendez 2025 studies from Ireland and Spain, reflects clinical settings and populations not defined by religious identity.</p>
+              <p>NaProTechnology developed within a Catholic academic tradition at the Pope Paul VI Institute. Some clinicians who practice NaProTechnology or RRM work within a faith-motivated framework. Others do not. The published evidence base, including the Boyle 2025 and Sanchez-Mendez 2025 studies from Ireland and Spain, reflects clinical settings and populations not defined by religious identity.</p>
               <p>Many couples who pursue RRM are secular. They chose it because they want answers about why they are not conceiving, because they have concerns about IVF's risks and costs, or because they have already failed IVF and are looking for what comes next.</p>
               <p>If a clinician's personal values affect how they counsel you in ways that do not feel right for your situation, find another RRM clinician. The approach is the medicine, not the provider's framework.</p>
               <p>Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
@@ -509,8 +523,6 @@ const comparisonRows = [
               <li id="ref-5">Stanford JB, Parnell T, Kantor K, et al. International Natural Procreative Technology Evaluation and Surveillance of Treatment for Subfertility (iNEST): enrollment and methods. <em>Human Reproduction Open</em>. 2022;2022(3):hoac033. doi:10.1093/hropen/hoac033. <a href="https://rrmacademy.org/library/international-natural-procreative-technology-evaluation-and-surveillance-of-trea-recudgdct40otosdm/">View in library</a></li>
               <li id="ref-6">Boyle PC, Stanford JB, Zecevic I. Successful pregnancy with restorative reproductive medicine after 16 years of infertility, three recurrent miscarriages, and eight unsuccessful embryo transfers with in vitro fertilization/intracytoplasmic sperm injection: a case report. <em>Journal of Medical Case Reports</em>. 2022. <a href="https://rrmacademy.org/library/successful-pregnancy-with-restorative-reproductive-medicine-after-16-years-of-in-recismo1fzymsx9jo/">View in library</a></li>
               <li id="ref-7">Almasi-Hashiani A, Omani-Samani R, Mohammadi M, et al. Assisted reproductive technology and the risk of preeclampsia: an updated systematic review and meta-analysis. <em>BMC Pregnancy and Childbirth</em>. 2019. <a href="https://rrmacademy.org/library/assisted-reproductive-technology-and-the-risk-of-preeclampsia-an-updated-systema-reccpdeshwwxvgzwt/">View in library</a></li>
-              <li id="ref-8">Alukal JP, Lamb DJ. Intracytoplasmic sperm injection (ICSI): what are the risks? <em>Urologic Clinics of North America</em>. 2008. <a href="https://rrmacademy.org/library/intracytoplasmic-sperm-injection-icsi--what-are-the-risks-recsyzkxmivrzhdru/">View in library</a></li>
-              <li id="ref-9">Hilgers TW, Boyle PC. Chapter 50: Pregnancy Following Failed ART. In: <em>The Medical and Surgical Practice of NaProTECHNOLOGY</em>. 2004. <a href="https://rrmacademy.org/library/chapter-50-pregnancy-following-failed-art-recvcowsvv3wl0sxr/">View in library</a></li>
             </ol>
           </section>
 
