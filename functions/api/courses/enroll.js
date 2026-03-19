@@ -92,8 +92,8 @@ async function handleEnroll(request, env, waitUntil) {
   const sessionParams = {
     mode: 'payment',
     line_items: [{ price: course.stripePriceId, quantity: 1 }],
-    success_url: `${origin}/courses/${course.slug}?enrolled=1`,
-    cancel_url: `${origin}/courses/${course.slug}`,
+    success_url: `${origin}/courses/${course.slug}/?enrolled=1`,
+    cancel_url: `${origin}/courses/${course.slug}/`,
     metadata: { type: 'course', courseId: course.id },
     client_reference_id: session.userId,
   };
