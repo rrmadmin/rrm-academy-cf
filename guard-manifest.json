@@ -27,11 +27,11 @@
       "note": "Authenticated password change"
     },
     "functions/api/auth/google.js": {
-      "hash": "b4cd3fa49ece06d467782e4df098dfe771399e7d5cf51e4ed07834f18d1dd4c7",
+      "hash": "c3a8dcec807643f0001aad83b4a9d2197a03748db8fb0e330f02293d401bc9c6",
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "51a77cfd66f49618701b2a820cee74826eee961c0cd564064d83856fcc167798",
+      "hash": "26cd31bcbf16e99ef689a87604ea81fe6b23e59bea0c76eb45c18f06663db1cf",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
@@ -103,7 +103,7 @@
       "note": "Public newsletter intake (rate-limited)"
     },
     "functions/api/search/semantic.js": {
-      "hash": "f8341f80584bb1e7db755517d5ed2a6d69d17829faa9d3c2289c7c45d35fb0c5",
+      "hash": "18ea2039bc68d8796bc9a2ce5585c57c8d187860a447f024a274dcd933b2c58f",
       "note": "Billed AI.run() + Vectorize (rate-limited)"
     },
     "functions/api/community/_shared.js": {
