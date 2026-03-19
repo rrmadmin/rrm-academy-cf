@@ -56,7 +56,7 @@ const jsonLd = {
         <div class="hero__ticker-stack" id="ticker-stack">
           {ticker.map((item, i) => (
             <a
-              href={`/library/${item.slug}`}
+              href={`/library/${item.slug}/`}
               class:list={['ticker-card', { active: i === 0 }]}
               data-index={i}
               aria-hidden={i !== 0 ? "true" : undefined}
