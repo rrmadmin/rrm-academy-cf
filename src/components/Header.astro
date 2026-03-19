@@ -833,25 +833,18 @@ const mobileNavSections = [
     else setTimeout(fn, 50);
   }
 
-  // Skip auth fetches entirely for anonymous visitors (no session cookie).
-  // This eliminates 2 network requests on every page load for ~95% of traffic.
-  var hasSession = document.cookie.indexOf('session=') !== -1;
-
-  var sessionP = hasSession
-    ? fetch('/api/auth/session', { credentials: 'same-origin' })
-        .then(function(r) { return r.json(); })
-        .catch(function() { return { ok: false }; })
-    : Promise.resolve({ ok: false });
+  // Session cookie is HttpOnly (invisible to JS), so always fetch.
+  var sessionP = fetch('/api/auth/session', { credentials: 'same-origin' })
+    .then(function(r) { return r.json(); })
+    .catch(function() { return { ok: false }; });
 
   // Auth-dependent nav: resolve session + community status before showing links
   deferWork(function() {
     var header = document.querySelector('.site-header');
 
-    var communityP = hasSession
-      ? fetch('/api/community/status', { credentials: 'same-origin' })
-          .then(function(r) { return r.json(); })
-          .catch(function() { return { ok: false }; })
-      : Promise.resolve({ ok: false });
+    var communityP = fetch('/api/community/status', { credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .catch(function() { return { ok: false }; });
 
     Promise.all([sessionP, communityP]).then(function(results) {
       var session = results[0];
