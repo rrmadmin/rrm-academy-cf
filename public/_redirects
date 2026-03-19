@@ -21,22 +21,9 @@
 /commentary/page/1 /commentary/ 301
 /commentary/page/1/ /commentary/ 301
 
-# Fix: CF Pages _headers /* rule converts internal trailing-slash 301 to empty 200.
-# These explicit redirects fire before _headers can interfere, preventing blank pages.
-# Every page that appears in emails, Stripe redirects, or OAuth flows needs coverage.
-/endo-survey/take /endo-survey/take/ 301
-/reset-password /reset-password/ 301
-/login /login/ 301
-/account /account/ 301
-/donate /donate/ 301
-/donate/thank-you /donate/thank-you/ 301
-/save-the-uterus-club /save-the-uterus-club/ 301
-/save-the-uterus-club/thank-you /save-the-uterus-club/thank-you/ 301
-/community /community/ 301
-/library /library/ 301
-/contact /contact/ 301
-/signup /signup/ 301
-/guides /guides/ 301
+# Trailing-slash redirects handled by middleware (_middleware.js).
+# DO NOT add trailing-slash rules here -- _redirects fires before middleware
+# and _headers converts the 301 to a mangled 200.
 
 # Old Wix survey slug
 /3-tier-endometriosis-symptom-self-survey /endo-survey/ 301
