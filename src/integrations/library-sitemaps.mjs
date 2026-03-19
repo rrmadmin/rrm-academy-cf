@@ -63,8 +63,11 @@ export default function librarySitemaps() {
         const tier2 = [];
         for (const a of articles) {
           if (!a.slug) continue;
-          const lastmod = a.lastModified
-            ? a.lastModified.split('T')[0]
+          // Use article publication date for lastmod (not Airtable lastModified,
+          // which resets to the same date on bulk syncs).
+          const rawDate = a.datePublished || a.lastModified;
+          const lastmod = rawDate
+            ? rawDate.split('T')[0]
             : undefined;
           const url = {
             loc: `${SITE}/library/${a.slug}/`,
