@@ -16,7 +16,7 @@ export interface BlogPost {
   publishDate: string;
   wordCount: number;
   seoKeywords: string;
-  audioUrl: string;
+  audioUrl?: string;
   lastModified: string;
 }
 
@@ -46,7 +46,6 @@ function transformRecord(record: AirtableRecord): BlogPost | null {
     publishDate: f['Actual Publish Date'] || '',
     wordCount: f['Word Count'] ? Number(f['Word Count']) : 0,
     seoKeywords: f['SEO Keywords'] || '',
-    audioUrl: f['Audio URL'] || '',
     lastModified: f['Last Modified'] || '',
   };
 }
