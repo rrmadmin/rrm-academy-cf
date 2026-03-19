@@ -15,19 +15,19 @@ import {
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
 
-const LOGIN_ERROR_URL = '/login?error=oauth_failed';
+const LOGIN_ERROR_URL = '/login/?error=oauth_failed';
 
 async function handleReturningGoogleUser(db, googleId, email) {
   const user = await db.prepare('SELECT id, email, blocked FROM user WHERE google_id = ?')
     .bind(googleId).first();
   if (!user) return null;
-  if (user.blocked) return { redirect: '/login?error=account_blocked' };
+  if (user.blocked) return { redirect: '/login/?error=account_blocked' };
 
   if (!user.email || user.email.toLowerCase() !== email) {
     const conflict = await db.prepare('SELECT id FROM user WHERE email = ? COLLATE NOCASE AND id != ?')
       .bind(email, user.id).first();
     if (conflict) {
-      return { redirect: '/login?error=email_conflict' };
+      return { redirect: '/login/?error=email_conflict' };
     }
     await db.prepare("UPDATE user SET email = ?, updated_at = datetime('now') WHERE id = ?")
       .bind(email, user.id).run();
@@ -41,10 +41,10 @@ async function linkGoogleToVerifiedUser(db, googleId, email, avatarUrl) {
   const user = await db.prepare('SELECT id, email, google_id, blocked FROM user WHERE email = ? COLLATE NOCASE AND email_verified = 1')
     .bind(email).first();
   if (!user) return null;
-  if (user.blocked) return { redirect: '/login?error=account_blocked' };
+  if (user.blocked) return { redirect: '/login/?error=account_blocked' };
 
   if (user.google_id && user.google_id !== googleId) {
-    return { redirect: '/login?error=account_conflict' };
+    return { redirect: '/login/?error=account_conflict' };
   }
   await db.prepare(
     `UPDATE user SET google_id = ?, avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ?`
@@ -58,7 +58,7 @@ async function upgradeUnverifiedUser(db, googleId, email, avatarUrl) {
     .bind(email).first();
   if (!unverified) return null;
 
-  if (unverified.blocked) return { redirect: '/login?error=account_blocked' };
+  if (unverified.blocked) return { redirect: '/login/?error=account_blocked' };
   await db.batch([
     db.prepare("UPDATE user SET google_id = ?, email_verified = 1, hashed_password = '', avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ?")
       .bind(googleId, avatarUrl, unverified.id),
@@ -95,7 +95,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     // Handle user denying consent or other Google errors
     const error = url.searchParams.get('error');
     if (error || !code) {
-      return redirect(`${SITE_URL}/login?error=oauth_denied`);
+      return redirect(`${SITE_URL}/login/?error=oauth_denied`);
     }
 
     // Determine where to send the user after login (prevent open redirects)
@@ -168,7 +168,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
     // Check if user is blocked
     if (user.blocked) {
-      return redirect('/login?error=account_blocked');
+      return redirect('/login/?error=account_blocked');
     }
 
     // Create session (same pattern as login.js)

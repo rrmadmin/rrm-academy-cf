@@ -89,7 +89,7 @@ export async function onRequestPost(context) {
     );
 
     // Build magic link
-    let surveyUrl = `https://rrmacademy.org/endo-survey/take?token=${token}`;
+    let surveyUrl = `https://rrmacademy.org/endo-survey/take/?token=${token}`;
     if (userorigin) surveyUrl += `&userorigin=${encodeURIComponent(userorigin)}`;
     if (utmSource) surveyUrl += `&utm_source=${encodeURIComponent(utmSource)}`;
 

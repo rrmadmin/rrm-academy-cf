@@ -134,8 +134,8 @@ async function handleCheckout(request, env, waitUntil) {
         },
         quantity: 1,
       }],
-      success_url: `${origin}/donate/thank-you?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/donate`,
+      success_url: `${origin}/donate/thank-you/?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/donate/`,
     };
 
     if (stripeCustomerId) {
@@ -194,7 +194,7 @@ async function handleCheckout(request, env, waitUntil) {
           error: blocking.status === 'past_due'
             ? 'You have a membership with a payment issue. Please update your payment method from your account page.'
             : 'You already have an active membership. You can change or cancel it from your account page.',
-          redirect: '/account',
+          redirect: '/account/',
         }, 409);
       }
     }
@@ -202,8 +202,8 @@ async function handleCheckout(request, env, waitUntil) {
     const sessionParams = {
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${origin}/save-the-uterus-club/thank-you?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/save-the-uterus-club`,
+      success_url: `${origin}/save-the-uterus-club/thank-you/?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/save-the-uterus-club/`,
       metadata: { tier },
       custom_text: {
         submit: { message: 'Your monthly donation supports evidence-based reproductive health education through the RRM Foundation, a 501(c)(3) nonprofit.' },

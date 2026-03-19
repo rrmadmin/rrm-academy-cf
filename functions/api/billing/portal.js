@@ -54,7 +54,7 @@ async function handlePortal(request, env) {
   const origin = SITE_URL;
   const portalSession = await stripe.billingPortal.sessions.create({
     customer: user.stripe_customer_id,
-    return_url: `${origin}/account`,
+    return_url: `${origin}/account/`,
   });
 
   return json({ ok: true, url: portalSession.url });

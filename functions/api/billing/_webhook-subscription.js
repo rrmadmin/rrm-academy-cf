@@ -52,7 +52,7 @@ export async function handleSubscriptionDeleted(db, event, env, request, waitUnt
           'You still have access to any courses you purchased separately.',
           '',
           'If you\'d like to rejoin, you can do so anytime at:',
-          `${SITE_URL}/save-the-uterus-club`,
+          `${SITE_URL}/save-the-uterus-club/`,
           '',
           'Thank you for supporting evidence-based reproductive health.',
           '',
