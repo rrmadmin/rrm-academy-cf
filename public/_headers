@@ -30,9 +30,9 @@
 /images/og/*
   Cache-Control: public, max-age=604800
 
-# Cache search index chunks for 1 day
+# Pagefind: revalidate every request (ETag gives 304 when unchanged)
 /pagefind/*
-  Cache-Control: public, max-age=86400
+  Cache-Control: public, no-cache
 
 # API endpoints — no caching
 /api/*
