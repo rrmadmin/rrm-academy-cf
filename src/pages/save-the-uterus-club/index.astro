@@ -595,9 +595,10 @@ const jsonLd = {
   .member-banner__inner {
     display: flex;
     align-items: center;
-    gap: var(--space-5);
-    border-color: #27ae60;
-    border-width: 2px;
+    gap: var(--space-4);
+    border: 2px solid #27ae60;
+    background: rgba(39, 174, 96, 0.06);
+    padding: var(--space-4) var(--space-5);
   }
   .member-banner__check {
     color: #27ae60;
@@ -605,14 +606,16 @@ const jsonLd = {
   }
   .member-banner__info {
     flex: 1;
+    min-width: 0;
   }
   .member-banner__info h2 {
-    font-size: 1.25rem;
-    margin-bottom: var(--space-1);
+    font-size: 1.125rem;
+    margin-bottom: 0.125rem;
   }
   .member-banner__info p {
     font-size: 0.875rem;
     color: var(--text-secondary);
+    margin: 0;
   }
   .member-banner__actions {
     display: flex;
