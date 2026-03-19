@@ -71,6 +71,22 @@ export async function onRequest(context) {
     return new Response(response.body, { ...response, headers });
   }
 
+  // Universal trailing-slash redirect for HTML pages.
+  // CF Pages internally 301-redirects /page to /page/, but _headers /* rules
+  // convert that 301 to a 200 with empty body (blank page). By handling the
+  // redirect here in middleware, we bypass that bug entirely.
+  if (
+    !url.pathname.endsWith('/') &&
+    !url.pathname.startsWith('/api/') &&
+    !url.pathname.startsWith('/cdn-cgi/') &&
+    !url.pathname.includes('.')
+  ) {
+    return Response.redirect(
+      `${url.origin}${url.pathname}/${url.search}`,
+      301
+    );
+  }
+
   // Fire GA4 page_view asynchronously — does not block the response
   context.waitUntil(sendPageView(request, env));
 
