@@ -27,7 +27,7 @@
       "note": "Authenticated password change"
     },
     "functions/api/auth/google.js": {
-      "hash": "f0e5fb81d60725062a676e14575277f26a44178ab98e47130a8b339e4610f2e6",
+      "hash": "b4cd3fa49ece06d467782e4df098dfe771399e7d5cf51e4ed07834f18d1dd4c7",
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
