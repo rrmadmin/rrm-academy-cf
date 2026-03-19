@@ -251,14 +251,13 @@ function checkInvariants() {
     failures++;
   }
 
-  // 2h. Pagefind cache headers must use stale-while-revalidate, never no-cache/no-store.
-  // no-cache forces network revalidation on every request, which allows browser extensions
-  // (e.g. Comet/Perplexity) to intercept and strip MIME types from module scripts.
-  // no-store prevents caching entirely. Both break pagefind module loading.
+  // 2h. Pagefind must use no-cache (unhashed filenames need revalidation every request).
+  // The SearchBar uses fetch+blob URL to bypass MIME stripping by browser extensions,
+  // so no-cache is safe. no-store is prohibited (wastes bandwidth, no ETag 304s).
+  // stale-while-revalidate is prohibited (serves version-mismatched files across deploys).
   const headersPath = join(ROOT, 'public/_headers');
   try {
     const headers = readFileSync(headersPath, 'utf8');
-    // Extract the /pagefind/* block (header block = path line + indented lines that follow)
     const pfMatch = headers.match(/\/pagefind\/\*\s*\n((?:\s+.+\n?)+)/);
     if (!pfMatch) {
       log(FAIL, `public/_headers missing /pagefind/* section`);
@@ -268,14 +267,17 @@ function checkInvariants() {
       const hasNoCache = /\bno-cache\b/.test(pfBlock);
       const hasNoStore = /\bno-store\b/.test(pfBlock);
       const hasSWR = /\bstale-while-revalidate\b/.test(pfBlock);
-      if (hasNoCache || hasNoStore) {
-        log(FAIL, `/pagefind/* must not use no-cache or no-store (breaks module loading in Comet)`);
+      if (hasNoStore) {
+        log(FAIL, `/pagefind/* must not use no-store (prevents ETag 304s)`);
         failures++;
-      } else if (!hasSWR) {
-        log(FAIL, `/pagefind/* missing stale-while-revalidate (needed for deploy freshness + extension safety)`);
+      } else if (hasSWR) {
+        log(FAIL, `/pagefind/* must not use stale-while-revalidate (causes version mismatches across deploys)`);
+        failures++;
+      } else if (!hasNoCache) {
+        log(FAIL, `/pagefind/* must use no-cache (unhashed filenames need revalidation)`);
         failures++;
       } else {
-        log(PASS, `Pagefind cache uses stale-while-revalidate (no-cache/no-store prohibited)`);
+        log(PASS, `Pagefind cache uses no-cache (blob URL import handles extension MIME stripping)`);
       }
     }
   } catch {

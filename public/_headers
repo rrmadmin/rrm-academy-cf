@@ -5,7 +5,7 @@
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   X-Frame-Options: SAMEORIGIN
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://challenges.cloudflare.com https://embed.cloudflarestream.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; font-src 'self'; connect-src 'self' https://challenges.cloudflare.com https://cloudflareinsights.com; frame-src https://challenges.cloudflare.com https://customer-99owhsi4yh33gohc.cloudflarestream.com; object-src 'none'; base-uri 'self'; form-action 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://challenges.cloudflare.com https://embed.cloudflarestream.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; font-src 'self'; connect-src 'self' https://challenges.cloudflare.com https://cloudflareinsights.com; frame-src https://challenges.cloudflare.com https://customer-99owhsi4yh33gohc.cloudflarestream.com; object-src 'none'; base-uri 'self'; form-action 'self'
 
 # ──────────────────────────────────────────────
 # Cache-Control rules
@@ -30,11 +30,10 @@
 /images/og/*
   Cache-Control: public, max-age=604800
 
-# Pagefind: serve from cache, revalidate in background after 10 min.
-# Short max-age prevents stale index after deploys; stale-while-revalidate
-# lets the browser use cached JS immediately (avoids extension interference).
+# Pagefind: always revalidate (ETag gives 304 when unchanged).
+# Must not cache across deploys — unhashed filenames cause version mismatches.
 /pagefind/*
-  Cache-Control: public, max-age=600, stale-while-revalidate=86400
+  Cache-Control: public, no-cache
 
 # API endpoints — no caching
 /api/*
