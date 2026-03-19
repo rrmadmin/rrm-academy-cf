@@ -1,0 +1,115 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const comparisons = [
+  {
+    title: 'RRM vs IVF: How Do They Compare?',
+    href: '/compare/rrm-vs-ivf/',
+    description: 'A side-by-side comparison of Restorative Reproductive Medicine and IVF, covering success rates, costs, risks, and treatment philosophy.',
+    author: 'Dr. Naomi Whittaker',
+  },
+];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'Fertility Treatment Comparisons',
+  description: 'Evidence-based comparisons of fertility treatments, including RRM vs IVF, NaProTechnology, and more.',
+  url: 'https://rrmacademy.org/compare/',
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: comparisons.length,
+    itemListElement: comparisons.map((c, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: c.title,
+      url: `https://rrmacademy.org${c.href}`,
+    })),
+  },
+};
+---
+<BaseLayout
+  title="Compare | Fertility Treatment Comparisons"
+  description="Evidence-based comparisons of fertility treatments. RRM vs IVF, NaProTechnology vs IVF, and more. Written by board-certified physicians."
+  canonicalUrl="https://rrmacademy.org/compare/"
+  jsonLd={jsonLd}
+>
+  <div class="page-wrapper">
+    <div class="container container--narrow">
+
+      <section class="compare-hero">
+        <h1 class="hero-title animate-enter" style="--stagger: 0;">Compare Fertility Treatments</h1>
+        <p class="compare-intro animate-enter" style="--stagger: 1;">Evidence-based comparisons of fertility treatment approaches, written by board-certified physicians and grounded in peer-reviewed research.</p>
+      </section>
+
+      <div class="compare-list animate-enter" style="--stagger: 2;">
+        {comparisons.map((comp) => (
+          <a href={comp.href} class="compare-card">
+            <h2 class="compare-card__title">{comp.title}</h2>
+            <p class="compare-card__description">{comp.description}</p>
+            <span class="compare-card__author">{comp.author}</span>
+          </a>
+        ))}
+      </div>
+
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .compare-hero {
+    padding: 3rem 0 2rem;
+    text-align: center;
+  }
+
+  .hero-title {
+    margin: 0 0 1rem 0;
+  }
+
+  .compare-intro {
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  .compare-list {
+    display: grid;
+    gap: 1.5rem;
+    padding-bottom: 4rem;
+  }
+
+  .compare-card {
+    display: block;
+    background: var(--bg-surface);
+    border-radius: var(--radius-md, 8px);
+    padding: 1.5rem 2rem;
+    box-shadow: var(--shadow-sm);
+    text-decoration: none;
+    color: inherit;
+    transition: box-shadow 0.2s ease;
+  }
+
+  .compare-card:hover {
+    box-shadow: var(--shadow-md);
+  }
+
+  .compare-card__title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+    color: var(--text-primary);
+  }
+
+  .compare-card__description {
+    color: var(--text-secondary);
+    margin: 0 0 0.75rem 0;
+    line-height: 1.5;
+  }
+
+  .compare-card__author {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+</style>
