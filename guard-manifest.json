@@ -15,7 +15,7 @@
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
-      "hash": "eb72a02cd652bc924508d42a46cd7fc104050f1bd188f2ebb2836c6048e492f6",
+      "hash": "125e3e00aeba9030ce89db376802f83c989e0a914b2dde49898cab558199fe66",
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
@@ -27,11 +27,11 @@
       "note": "Authenticated password change"
     },
     "functions/api/auth/google.js": {
-      "hash": "c3a8dcec807643f0001aad83b4a9d2197a03748db8fb0e330f02293d401bc9c6",
+      "hash": "c83426151a9e2ed8d36bdcfec91f675f80d2fe9864b7970cd6537d9679cd4f9f",
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "26cd31bcbf16e99ef689a87604ea81fe6b23e59bea0c76eb45c18f06663db1cf",
+      "hash": "69e34213ed0ee44da08a1ad62237edb626c1b82adb7a4f68127d482b90cd3a19",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
@@ -43,7 +43,7 @@
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
-      "hash": "6138c2ceff33cfbf6d33707b20a29ed481b275012d4a5fb7fb96dd963ebf2beb",
+      "hash": "17e5c1df436f9532c38751ceb5ed8e1b45e640a0efe186b6ee0c1fc2e225f613",
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
@@ -51,15 +51,15 @@
       "note": "Billing status"
     },
     "functions/api/billing/portal.js": {
-      "hash": "69f4c0d776f701f29f7139967c7f74d4adc8f17159a621fa5bba77e113b8138f",
+      "hash": "1f840203be1cf0bce22550e7bc394fcd7d9e6978e2822628229f1bc46bba1960",
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "5d3b9f5a0ccece8eb30da33d9afc9af1b9697d6a7f41207a90abb651cf5b8c40",
+      "hash": "14d712937dd1dac999a29601a94334e2da239da8d87bc3eb5cb767127040adb4",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
-      "hash": "895a7da286ff25ba8b030820a10fa05f977ea07ef424e804e84d98fab6e1f2b2",
+      "hash": "23efadd5d9d695cb77dd908c085f16616f111efb1c80014b70cc03279d24ca17",
       "note": "Subscription lifecycle handler"
     },
     "functions/api/billing/_webhook-shared.js": {
@@ -87,7 +87,7 @@
       "note": "Survey submission + PII pseudonymization"
     },
     "functions/api/survey/request.js": {
-      "hash": "278d666b8016e7111da32b11c866aad4f33e60e4b9c1a983cf3e7fdbc9bed6d3",
+      "hash": "4b7669e6fd6a80cdfba73b50ead2b88c6a5ace04171fa78e38221bb9f7030b65",
       "note": "Magic-link token generation"
     },
     "functions/api/newsletter/send.js": {
@@ -131,7 +131,7 @@
       "note": "Pre-checkout account lookup"
     },
     "functions/api/billing/_webhook-invoice.js": {
-      "hash": "6cd8a08bab630fbad61ab3c06db03947f395029698740e8846049096aaff9bed",
+      "hash": "e694fc3af66fd24cc836814edda104534a432d0dae26a9f4d1573a124a4d9e25",
       "note": "Invoice event handler"
     },
     "functions/api/community/upload.js": {

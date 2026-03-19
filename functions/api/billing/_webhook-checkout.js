@@ -95,7 +95,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
           '',
           'Your course purchase is confirmed and your course is ready to start.',
           '',
-          `Go to your courses: ${SITE_URL}/account`,
+          `Go to your courses: ${SITE_URL}/account/`,
           '',
           'Thank you for investing in your health education.',
           '',
@@ -150,15 +150,15 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
           'Here\'s what to do next:',
           '',
           '1. Join the member group -- this is where live call dates, resources, and discussion happen:',
-          `   ${SITE_URL}/community`,
+          `   ${SITE_URL}/community/`,
           '',
           '2. Join the free Uterus Allies group chat on Instagram:',
           '   https://www.instagram.com/direct/t/7768750249851959/',
           '',
           '3. Explore the Research Library -- over 3,000 peer-reviewed resources:',
-          `   ${SITE_URL}/library`,
+          `   ${SITE_URL}/library/`,
           '',
-          `You can manage your membership anytime at ${SITE_URL}/account`,
+          `You can manage your membership anytime at ${SITE_URL}/account/`,
           '',
           'Thank you for supporting evidence-based reproductive health.',
           '',
@@ -285,7 +285,7 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
         'INSERT INTO password_reset (id, user_id, token_hash, expires_at) VALUES (?, ?, ?, ?)'
       ).bind(generateId(), id, tokenHash, expiresAt).run();
 
-      const setPasswordUrl = `${SITE_URL}/reset-password?token=${token}`;
+      const setPasswordUrl = `${SITE_URL}/reset-password/?token=${token}`;
 
       await sendEmailSafe(env, waitUntil, {
         to: email,

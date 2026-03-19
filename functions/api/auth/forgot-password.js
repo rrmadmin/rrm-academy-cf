@@ -59,7 +59,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
       ).bind(generateId(), user.id, tokenHash, expiresAt).run();
 
       // Build reset link
-      const resetUrl = `https://rrmacademy.org/reset-password?token=${token}`;
+      const resetUrl = `https://rrmacademy.org/reset-password/?token=${token}`;
 
       try {
         await sendEmail(env, {
