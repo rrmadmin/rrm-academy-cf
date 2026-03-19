@@ -448,7 +448,7 @@
     "slug": "neofertility-medical-training",
     "description": "The NeoFertility Medical Training Cohort is an 11-week live program providing a structured diagnostic and treatment framework for infertility and recurrent miscarriage using Restorative Reproductive Medicine.\n\nDesigned for Family Medicine, OB/GYN, and women's health clinicians, this cohort combines on-demand coursework with live mentorship from Dr. Phil Boyle, founder of NeoFertility and a pioneer in RRM.\n\nThe program covers:\n\n• The foundations of Restorative Reproductive Medicine\n\n• Diagnostic and treatment protocols for hormonal and cycle-related conditions\n\n• The psychology of conception and patient relationships\n\n• Chart Neo app integration for data-driven patient care\n\n• Case studies and outcome-based implementation",
     "shortDescription": "11-week live training in Restorative Reproductive Medicine for clinicians treating infertility and recurrent miscarriage. Led by Dr. Phil Boyle. 20+ CME credits.",
-    "image": "/images/course-covers/neofertility-med-training.webp",
+    "image": "/api/assets/course-covers/neofertility-med-training.webp",
     "imageAlt": "NeoFertility Medical Training Cohort promotional graphic with Neo logo",
     "priceCents": 120000,
     "isFree": false,
