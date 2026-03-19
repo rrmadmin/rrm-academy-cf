@@ -323,12 +323,20 @@
     if (spinnerTimer) { clearInterval(spinnerTimer); spinnerTimer = null; }
   }
 
-  // Load Pagefind on first interaction — single shared promise prevents race conditions
+  // Load Pagefind on first interaction — single shared promise prevents race conditions.
+  // Uses fetch+blob URL instead of direct import() to bypass browser extensions
+  // (e.g. Comet/Perplexity) that strip MIME types from module script responses.
   function ensurePagefind() {
     if (!pagefindReady) {
-      pagefindReady = import('/pagefind/pagefind.js').then(function(pf) {
-        return pf.init().then(function() { return pf; });
-      });
+      pagefindReady = fetch('/pagefind/pagefind.js')
+        .then(function(r) { return r.text(); })
+        .then(function(js) {
+          var blob = new Blob([js], { type: 'application/javascript' });
+          return import(URL.createObjectURL(blob));
+        })
+        .then(function(pf) {
+          return pf.init({ basePath: '/pagefind/' }).then(function() { return pf; });
+        });
     }
     return pagefindReady;
   }

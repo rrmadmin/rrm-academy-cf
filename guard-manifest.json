@@ -115,7 +115,7 @@
       "note": "Expired data deletion from D1"
     },
     "scripts/guard.mjs": {
-      "hash": "0ad00ee6a37fb6e70ceba9e8570abeb3cc9d8823a3ed0b814ddaab550f8dee8e",
+      "hash": "f4737220a980b9dfde9d01b66ae2fd4bc56c053e404b63cbfa4e96c8528e5e1c",
       "note": "Guard script (self-guarding)"
     },
     "functions/api/auth/verify-email.js": {
