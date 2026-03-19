@@ -195,9 +195,9 @@ const faqSchema = {
         <PdfDownload slug="femm" />
       </div>
 
-      <aside class="editorial-notice" role="note">
-        <span class="editorial-notice__body"><strong>Editorial notice:</strong> This article is under active review. Some sections may be incomplete or contain errors while our medical team refines the content. If you notice an issue, please <a href="/contact/">let us know</a>.</span>
-      </aside>
+      <!-- REVIEWER BYLINE — uncomment when Dr. Erin approves
+      <p class="reviewer-byline">Medically reviewed by <strong>Dr. Erin Cleary, MD, CFCMC</strong></p>
+      -->
 
       <!-- Mobile TOC -->
       <details class="toc-mobile">
@@ -562,6 +562,14 @@ const faqSchema = {
     margin-top: calc(-1 * var(--space-2));
     margin-bottom: var(--space-6);
     line-height: 1.6;
+  }
+
+  .reviewer-byline {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-top: calc(-1 * var(--space-4));
+    margin-bottom: var(--space-6);
   }
 
   .table-wrap {
