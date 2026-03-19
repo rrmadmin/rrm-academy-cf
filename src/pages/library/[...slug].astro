@@ -55,7 +55,7 @@ const jsonLd: any = {
   '@context': 'https://schema.org',
   '@type': 'MedicalScholarlyArticle',
   name: article.title,
-  url: `https://rrmacademy.org/library/${article.slug}`,
+  url: `https://rrmacademy.org/library/${article.slug}/`,
   publisher: {
     '@type': 'Organization',
     name: 'RRM Academy',
@@ -138,7 +138,7 @@ const showFreeFullText = article.oaUrl
   && article.oaUrl !== article.sourceUrl
   && article.oaUrl !== (article.doi ? `https://doi.org/${article.doi}` : '');
 
-const canonicalUrl = `https://rrmacademy.org/library/${article.slug}`;
+const canonicalUrl = `https://rrmacademy.org/library/${article.slug}/`;
 
 // Highwire Press citation meta for Zotero Connector
 const citationAuthors = article.authors?.split(';').map(a => a.trim()).filter(Boolean) || [];
