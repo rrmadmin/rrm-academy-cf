@@ -1,11 +1,8 @@
 # ──────────────────────────────────────────────
-# Security headers — all pages
+# Security headers — applied by middleware (_middleware.js), NOT here.
+# DO NOT add a /* catch-all rule. It corrupts CF Pages' internal 301
+# trailing-slash redirects into 200 with empty body (blank pages).
 # ──────────────────────────────────────────────
-/*
-  Strict-Transport-Security: max-age=31536000; includeSubDomains
-  X-Frame-Options: SAMEORIGIN
-  Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://challenges.cloudflare.com https://embed.cloudflarestream.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; font-src 'self'; connect-src 'self' https://challenges.cloudflare.com https://cloudflareinsights.com; frame-src https://challenges.cloudflare.com https://customer-99owhsi4yh33gohc.cloudflarestream.com; object-src 'none'; base-uri 'self'; form-action 'self'
 
 # ──────────────────────────────────────────────
 # Cache-Control rules

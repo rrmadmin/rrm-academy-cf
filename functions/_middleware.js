@@ -181,6 +181,19 @@ export async function onRequest(context) {
     return response;
   }
 
-  // Continue to static assets / functions
-  return context.next();
+  // Continue to static assets / functions, then inject security headers.
+  // Security headers were previously in _headers /* catch-all, but that rule
+  // corrupted CF Pages' internal 301 trailing-slash redirects into 200 with
+  // empty body. Applying them here avoids that bug.
+  const response = await context.next();
+  const headers = new Headers(response.headers);
+  headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  headers.set('X-Frame-Options', 'SAMEORIGIN');
+  headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  headers.set('X-Content-Type-Options', 'nosniff');
+  if (!headers.has('Content-Security-Policy')) {
+    headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://challenges.cloudflare.com https://embed.cloudflarestream.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; font-src 'self'; connect-src 'self' https://challenges.cloudflare.com https://cloudflareinsights.com; frame-src https://challenges.cloudflare.com https://customer-99owhsi4yh33gohc.cloudflarestream.com; object-src 'none'; base-uri 'self'; form-action 'self'");
+  }
+  return new Response(response.body, { ...response, headers });
 }
