@@ -30,9 +30,11 @@
 /images/og/*
   Cache-Control: public, max-age=604800
 
-# Pagefind: revalidate every request (ETag gives 304 when unchanged)
+# Pagefind: serve from cache, revalidate in background after 10 min.
+# Short max-age prevents stale index after deploys; stale-while-revalidate
+# lets the browser use cached JS immediately (avoids extension interference).
 /pagefind/*
-  Cache-Control: public, no-cache
+  Cache-Control: public, max-age=600, stale-while-revalidate=86400
 
 # API endpoints — no caching
 /api/*
