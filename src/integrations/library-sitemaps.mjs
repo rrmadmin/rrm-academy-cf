@@ -63,15 +63,12 @@ export default function librarySitemaps() {
         const tier2 = [];
         for (const a of articles) {
           if (!a.slug) continue;
-          // Use article publication date for lastmod (not Airtable lastModified,
-          // which resets to the same date on bulk syncs).
-          const rawDate = a.datePublished || a.lastModified;
-          const lastmod = rawDate
-            ? rawDate.split('T')[0]
-            : undefined;
+          // Omit lastmod: datePublished is the original paper's date (e.g. 1935),
+          // not when this page was created. Airtable lastModified resets on bulk
+          // syncs (all 3,207 records = same date). No meaningful page-modification
+          // signal exists, so omit rather than mislead Google.
           const url = {
             loc: `${SITE}/library/${a.slug}/`,
-            lastmod,
           };
           if (classifyTier(a) === 3) {
             tier3.push(url);
