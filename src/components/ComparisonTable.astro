@@ -1,0 +1,93 @@
+---
+// ComparisonTable.astro
+// Semantic HTML <table> for side-by-side comparison.
+// Uses <table> (not CSS grid) because AI parsers extract <table> reliably.
+interface Props {
+  optionALabel: string;
+  optionBLabel: string;
+  rows: Array<{ dimension: string; optionA: string; optionB: string }>;
+}
+const { optionALabel, optionBLabel, rows } = Astro.props;
+---
+
+<div class="comparison-table-wrapper">
+  <table class="comparison-table">
+    <thead>
+      <tr>
+        <th scope="col"></th>
+        <th scope="col">{optionALabel}</th>
+        <th scope="col">{optionBLabel}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {rows.map((row) => (
+        <tr>
+          <th scope="row">{row.dimension}</th>
+          <td>{row.optionA}</td>
+          <td>{row.optionB}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .comparison-table-wrapper {
+    overflow-x: auto;
+    margin: 2rem 0;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+    min-width: 600px;
+  }
+
+  .comparison-table thead th {
+    background: var(--bg-surface);
+    font-weight: 600;
+    text-align: left;
+    padding: 0.875rem 1rem;
+    border-bottom: 2px solid var(--border-color);
+    color: var(--text-primary);
+  }
+
+  .comparison-table thead th:first-child {
+    width: 22%;
+  }
+
+  .comparison-table tbody th {
+    font-weight: 600;
+    text-align: left;
+    padding: 0.875rem 1rem;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+  }
+
+  .comparison-table tbody td {
+    padding: 0.875rem 1rem;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  .comparison-table tbody tr:last-child th,
+  .comparison-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  @media (max-width: 640px) {
+    .comparison-table {
+      font-size: 0.875rem;
+    }
+    .comparison-table thead th,
+    .comparison-table tbody th,
+    .comparison-table tbody td {
+      padding: 0.625rem 0.75rem;
+    }
+  }
+</style>
