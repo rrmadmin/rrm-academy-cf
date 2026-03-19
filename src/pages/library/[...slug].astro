@@ -596,7 +596,7 @@ const citationMeta = {
   // RIS citation generation (shared by download button + batch export)
   function generateRIS(d) {
     var lines = ['TY  - JOUR'];
-    var authors = (d.authors || '').split(';');
+    var authors = (d.authors || '').split(/[,;]/);
     for (var i = 0; i < authors.length; i++) {
       var a = authors[i].trim();
       if (a) lines.push('AU  - ' + a);

@@ -23,7 +23,7 @@ async function handleReturningGoogleUser(db, googleId, email) {
   if (!user) return null;
   if (user.blocked) return { redirect: '/login?error=account_blocked' };
 
-  if (user.email.toLowerCase() !== email) {
+  if (!user.email || user.email.toLowerCase() !== email) {
     const conflict = await db.prepare('SELECT id FROM user WHERE email = ? COLLATE NOCASE AND id != ?')
       .bind(email, user.id).first();
     if (conflict) {
@@ -82,6 +82,11 @@ export async function onRequestGet({ request, env, waitUntil }) {
   try {
     const db = env.DB;
     if (!db) return htmlRedirect(LOGIN_ERROR_URL);
+
+    if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
+      log(env, waitUntil, 'auth', 'google_auth_error', 'error', 'missing google credentials');
+      return redirect(LOGIN_ERROR_URL);
+    }
 
     const url = new URL(request.url);
     const code = url.searchParams.get('code');

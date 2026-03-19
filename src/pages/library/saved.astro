@@ -395,7 +395,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         var ris = '';
         saved.forEach(function(d) {
           var lines = ['TY  - JOUR'];
-          var authors = (d.authors || '').split(';');
+          var authors = (d.authors || '').split(/[,;]/);
           for (var i = 0; i < authors.length; i++) {
             var a = authors[i].trim();
             if (a) lines.push('AU  - ' + a);
