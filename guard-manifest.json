@@ -106,6 +106,10 @@
       "hash": "09d110c75ccd796e53dfc2567868cf44caefe691a95715149f5a4ce8fae7a237",
       "note": "Billed AI.run() + Vectorize (rate-limited)"
     },
+    "src/components/SearchBar.astro": {
+      "hash": "c2ca035e4a1132dab7e09d6fa627ea0f6b61b601e80cf8f6095005ec86d7cce2",
+      "note": "Search UX + RRF fusion (Pagefind init, relevance boost, error resilience)"
+    },
     "functions/api/community/_shared.js": {
       "hash": "d488f8a662bc4a8077d8bb7cf563b3d616474758d2160622e38bc1525e34d82d",
       "note": "Community access control (requireMember)"
