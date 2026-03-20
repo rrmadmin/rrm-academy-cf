@@ -515,6 +515,29 @@
         }
       }
 
+      // RRM Relevance boost: 4th RRF signal based on rrmRelevance field.
+      // Own content (Article/FAQ/Course/Guide) and Core RRM get max boost.
+      // Tiebreaker strength (K=50) -- won't override strong keyword matches.
+      var RELEVANCE_K = 50;
+      var _relevanceMap = { '5 - Core RRM': 0, '4 - Highly Relevant': 10, '3 - Relevant': 25, '2 - Peripheral': 45, '1 - Not RRM': 60 };
+      var _ownContentTypes = { 'Article': 1, 'FAQ': 1, 'Course': 1, 'Guide': 1 };
+      for (var rlKey in fusedMap) {
+        var rlEntry = fusedMap[rlKey];
+        var rlMeta = rlEntry.data.meta || {};
+        var rlRank = 30;
+        if (_ownContentTypes[rlMeta.type]) {
+          rlRank = 0;
+        } else if (rlMeta.rrmRelevance && _relevanceMap[rlMeta.rrmRelevance] !== undefined) {
+          rlRank = _relevanceMap[rlMeta.rrmRelevance];
+        }
+        rlEntry.score += 1 / (RELEVANCE_K + rlRank);
+
+        // Sentiment penalty: demote hostile/critical articles
+        var rlSentiment = rlMeta.sentiment;
+        if (rlSentiment === 'hostile') rlEntry.score -= 0.02;
+        else if (rlSentiment === 'critical') rlEntry.score -= 0.01;
+      }
+
       // Sort by fused RRF score descending
       var fusedList = [];
       for (var fKey in fusedMap) {
