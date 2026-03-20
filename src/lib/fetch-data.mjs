@@ -67,6 +67,7 @@ function mapRecord(record) {
     rrmRelevance: f['⚡️ RRM Relevance (AI)'] || '',
     domain: f['⚡️ Domain (AI)'] || '',
     lastModified: f['Last Modified'] || '',
+    dateAddedToLibrary: record.createdTime || '',
   };
 }
 
