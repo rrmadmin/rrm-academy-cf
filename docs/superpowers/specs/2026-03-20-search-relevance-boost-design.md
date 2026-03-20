@@ -53,22 +53,24 @@ Relevance mapping:
 ```
 
 Constants:
-- `RELEVANCE_K = 25` (smaller than RRF_K=60, so relevance is a strong signal)
+- `RELEVANCE_K = 50` (close to RRF_K=60 -- relevance is a strong tiebreaker, not a trump card)
 - Score: `1 / (RELEVANCE_K + relevanceRank)`
 
 Expected boost values:
 | Category | Rank | Boost |
 |----------|------|-------|
-| Own content / Core RRM | 0 | +0.040 |
-| Highly Relevant | 10 | +0.029 |
-| Relevant | 25 | +0.020 |
-| Missing | 30 | +0.018 |
-| Peripheral | 45 | +0.014 |
-| Not RRM | 60 | +0.012 |
+| Own content / Core RRM | 0 | +0.020 |
+| Highly Relevant | 10 | +0.017 |
+| Relevant | 25 | +0.013 |
+| Missing | 30 | +0.013 |
+| Peripheral | 45 | +0.011 |
+| Not RRM | 60 | +0.009 |
 
-The gap between Core RRM and Not RRM (+0.028) is large enough to reorder results that are close in Pagefind/semantic score. Combined with recency, a 2020 Core RRM paper would score ~+0.062 in boost signals alone vs ~+0.027 for a 2012 Not RRM paper -- a 2.3x advantage before Pagefind/semantic even factor in.
+The gap between Core RRM and Not RRM (+0.011) is roughly equivalent to 3 Pagefind positions -- enough to reorder results that are close in keyword match score, but not enough to override a strong keyword match. This prevents a Core RRM article about surgery from leapfrogging a directly relevant Peripheral article about the user's actual query. Combined with recency, a 2020 Core RRM paper scores ~+0.042 in boost signals vs ~+0.024 for a 2012 Not RRM paper -- a 1.8x advantage.
 
 **Implementation:** Read from `entry.data.meta.rrmRelevance` and `entry.data.meta.sentiment` in the same `for (var rKey in fusedMap)` loop where recency is applied. The meta fields come from Pagefind's `result.data()` return value. For results synthesized from semantic-only (created in the else block at ~line 486), these meta fields will be undefined -- handled by the "missing/empty" default.
+
+**Future tuning:** Track internal search analytics (queries, click position, "Show more" usage) to determine if K=50 is right. If users consistently click past Core RRM results to reach lower-ranked articles, K is too low. If Core RRM results are still buried behind old reviews, K is too high.
 
 ### 3. Sentiment penalty
 
@@ -104,7 +106,13 @@ Results that appear in **both** Pagefind and Vectorize DO have Pagefind metadata
 
 **Late-arriving semantic addenda** (results that arrive after the 300ms timeout, appended at ~line 545) are second-class: they're appended unsorted and don't go through the RRF fusion loop. These do NOT get relevance/sentiment adjustments. This is acceptable -- they're already lower-priority results that missed the main ranking window.
 
-### 6. What this does NOT do
+### 6. Known limitations
+
+- **404 page search** (`src/pages/404.astro`) uses raw Pagefind with no RRF fusion, no relevance boost, and no sentiment penalty. Result ordering will diverge between library search and 404 search. This is acceptable -- the 404 search is a lightweight fallback for lost users, not the primary search experience.
+- **Non-English interaction:** The existing non-English penalty (+1000 to Pagefind rank) dwarfs the relevance boost. A Core RRM article in Polish still ranks far below English results. This is intentional for an English-language site.
+- **No search analytics yet.** Internal search tracking (queries, click position, "Show more" usage) would enable data-driven tuning of K constants and rank mappings. This is a future enhancement.
+
+### 7. What this does NOT do
 
 - Does not change Pagefind indexing weights (title=10, authors=5, etc.)
 - Does not change the semantic search endpoint
