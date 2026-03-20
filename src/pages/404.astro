@@ -330,8 +330,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   function ensurePagefind() {
     if (!pagefindReady) {
-      pagefindReady = import('/pagefind/pagefind.js').then(function(pf) {
-        return pf.init().then(function() { return pf; });
+      pagefindReady = import('/pagefind/pagefind.js').catch(function() {
+        return fetch('/pagefind/pagefind.js')
+          .then(function(r) { return r.text(); })
+          .then(function(js) {
+            var blob = new Blob([js], { type: 'application/javascript' });
+            return import(URL.createObjectURL(blob));
+          });
+      }).then(function(pf) {
+        return pf.options({ basePath: '/pagefind/' }).then(function() { return pf.init(); }).then(function() { return pf; });
+      }).catch(function(err) {
+        pagefindReady = null;
+        throw err;
       });
     }
     return pagefindReady;
@@ -438,7 +448,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     if (excerpt) {
       var p = document.createElement('p');
       p.className = 'sr-excerpt';
-      p.innerHTML = excerpt;
+      p.textContent = excerpt.replace(/<\/?mark>/g, '');
       a.appendChild(p);
     }
     return a;

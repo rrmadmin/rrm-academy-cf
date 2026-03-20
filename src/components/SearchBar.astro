@@ -338,6 +338,9 @@
           });
       }).then(function(pf) {
         return pf.options({ basePath: '/pagefind/' }).then(function() { return pf.init(); }).then(function() { return pf; });
+      }).catch(function(err) {
+        pagefindReady = null;
+        throw err;
       });
     }
     return pagefindReady;
@@ -390,31 +393,31 @@
       // Fire both searches in parallel
       var semanticPromise = fetch('/api/search/semantic?q=' + encodeURIComponent(query))
         .then(function(r) { return r.json(); })
-        .catch(function() { return { results: [] }; });
+        .catch(function(err) { console.warn('Semantic search failed:', err.message || err); return { results: [] }; });
 
       var pf = await ensurePagefind();
       var search = await pf.search(query);
-      if (query !== currentQuery) return;
+      if (query !== currentQuery) { stopLoadingSpinner(); return; }
       // Pre-load top Pagefind results for metadata access
       var toPreload = search.results.slice(0, PRELOAD_CAP);
-      var pfLoaded = await Promise.all(
+      var pfLoaded = (await Promise.all(
         toPreload.map(function(r, i) {
           return r.data().then(function(d) {
             d._pfRank = i;
             // Non-English penalty: push far down the Pagefind ranking
             if (isNonEnglish(d.meta && d.meta.title)) d._pfRank += 1000;
             return d;
-          });
+          }).catch(function() { return null; });
         })
-      );
-      if (query !== currentQuery) return;
+      )).filter(Boolean);
+      if (query !== currentQuery) { stopLoadingSpinner(); return; }
 
       // Wait for semantic with 300ms timeout (Pagefind is already done)
       var semanticData = await Promise.race([
         semanticPromise,
         new Promise(function(resolve) { setTimeout(function() { resolve(null); }, 300); })
       ]);
-      if (query !== currentQuery) return;
+      if (query !== currentQuery) { stopLoadingSpinner(); return; }
 
       var semanticResults = (semanticData && semanticData.results || []).filter(function(sr) { return sr.score >= 0.5; });
 
@@ -549,7 +552,6 @@
           for (var ei = 0; ei < preloadedData.length; ei++) {
             var eUrl = toRelative(preloadedData[ei].url).toLowerCase();
             existingUrls[eUrl] = true;
-            existingUrls[extractSlug(eUrl)] = true;
             var eRecId = extractRecId(eUrl);
             if (eRecId) existingRecIds[eRecId] = true;
           }
