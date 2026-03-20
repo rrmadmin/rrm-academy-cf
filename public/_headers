@@ -33,10 +33,12 @@
 /images/og/*
   Cache-Control: public, max-age=604800
 
-# Pagefind: always revalidate (ETag gives 304 when unchanged).
-# Must not cache across deploys — unhashed filenames cause version mismatches.
+# Pagefind: no-store prevents browsers from caching fragments across deploys.
+# CF Pages returns 200 (not 404) for missing files, so no-cache + revalidation
+# causes browsers to cache HTML 404 pages as valid fragment data after deploys.
+# Fragments are small (~2-5KB) and only loaded on search, so no-store is fine.
 /pagefind/*
-  Cache-Control: public, no-cache
+  Cache-Control: no-store
 
 # API endpoints — no caching, lock CORS to production origin
 /api/*

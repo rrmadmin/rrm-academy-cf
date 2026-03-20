@@ -251,9 +251,10 @@ function checkInvariants() {
     failures++;
   }
 
-  // 2h. Pagefind must use no-cache (unhashed filenames need revalidation every request).
-  // The SearchBar uses fetch+blob URL to bypass MIME stripping by browser extensions,
-  // so no-cache is safe. no-store is prohibited (wastes bandwidth, no ETag 304s).
+  // 2h. Pagefind must use no-store (prevents cross-deploy fragment cache poisoning).
+  // CF Pages returns 200 (not 404) for missing files. With no-cache, browsers cache
+  // HTML 404 pages as fragment data after deploys. no-store prevents this entirely.
+  // Fragments are small (~2-5KB, loaded on search only) so bandwidth cost is negligible.
   // stale-while-revalidate is prohibited (serves version-mismatched files across deploys).
   const headersPath = join(ROOT, 'public/_headers');
   try {
@@ -264,20 +265,16 @@ function checkInvariants() {
       failures++;
     } else {
       const pfBlock = pfMatch[1];
-      const hasNoCache = /\bno-cache\b/.test(pfBlock);
       const hasNoStore = /\bno-store\b/.test(pfBlock);
       const hasSWR = /\bstale-while-revalidate\b/.test(pfBlock);
-      if (hasNoStore) {
-        log(FAIL, `/pagefind/* must not use no-store (prevents ETag 304s)`);
-        failures++;
-      } else if (hasSWR) {
+      if (hasSWR) {
         log(FAIL, `/pagefind/* must not use stale-while-revalidate (causes version mismatches across deploys)`);
         failures++;
-      } else if (!hasNoCache) {
-        log(FAIL, `/pagefind/* must use no-cache (unhashed filenames need revalidation)`);
+      } else if (!hasNoStore) {
+        log(FAIL, `/pagefind/* must use no-store (CF Pages returns 200 for missing files, poisoning no-cache)`);
         failures++;
       } else {
-        log(PASS, `Pagefind cache uses no-cache (blob URL import handles extension MIME stripping)`);
+        log(PASS, `Pagefind cache uses no-store (prevents cross-deploy fragment poisoning)`);
       }
     }
   } catch {
