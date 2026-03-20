@@ -172,6 +172,8 @@ const citationMeta = {
 >
   <div class="page-wrapper" data-pagefind-body>
     <span data-pagefind-meta="type:Research" style="display:none"></span>
+    {article.rrmRelevance && <span data-pagefind-meta={`rrmRelevance:${article.rrmRelevance}`} style="display:none"></span>}
+    {article.sentiment && <span data-pagefind-meta={`sentiment:${article.sentiment}`} style="display:none"></span>}
     <div class="container container--narrow">
       <!-- Breadcrumb + Save -->
       <div class="article-topbar" data-pagefind-ignore>
