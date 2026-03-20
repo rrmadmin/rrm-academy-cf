@@ -189,7 +189,7 @@ if (post.publishDate) {
   jsonLd.dateModified = post.publishDate;
 }
 if (post.coverImageUrl) {
-  jsonLd.image = post.coverImageUrl;
+  jsonLd.image = post.coverImageUrl.startsWith('http') ? post.coverImageUrl : `https://rrmacademy.org${post.coverImageUrl}`;
 }
 if (post.excerpt) {
   jsonLd.description = post.excerpt;
@@ -280,7 +280,7 @@ if (post.slug === 'glossary-of-restorative-reproductive-medicine-rrm' && post.co
 
 const { '@context': _ctx, ...blogPostingNode } = jsonLd;
 const graphNodes = [blogPostingNode, breadcrumbNode];
-if (post.slug === 'rrm-spotlight-naomi-whittaker-md') graphNodes.push(whittakerPersonNode);
+if (isWhittakerPost) graphNodes.push(whittakerPersonNode);
 if (glossaryTermNodes.length > 0) {
   // Add DefinedTermSet + first 50 terms (schema size limit)
   graphNodes.push({

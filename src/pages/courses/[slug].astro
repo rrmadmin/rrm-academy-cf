@@ -51,7 +51,7 @@ const courseSchema = {
   name: course.title,
   description: course.seo?.description || course.shortDescription,
   url: `https://rrmacademy.org/courses/${course.slug}/`,
-  ...(course.image ? { image: course.image } : {}),
+  ...(course.image ? { image: `https://rrmacademy.org${course.image}` } : {}),
   provider: isAffiliate
     ? { '@type': 'Organization', name: 'NeoFertility', url: 'https://www.neofertilitytraining.com/' }
     : { '@type': 'Organization', '@id': 'https://rrmacademy.org/#organization', name: 'RRM Academy', url: 'https://rrmacademy.org/' },
