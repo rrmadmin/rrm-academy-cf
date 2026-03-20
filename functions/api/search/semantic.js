@@ -12,7 +12,6 @@ function isRateLimited(ip) {
     for (const [k, v] of rateLimitMap) {
       if (now - v.start > RATE_WINDOW) {
         rateLimitMap.delete(k);
-        break;
       }
     }
   }
@@ -68,7 +67,7 @@ export async function onRequestGet(context) {
     const seen = new Set();
     const results = [];
     for (const m of matches.matches) {
-      if (!m.metadata) continue;
+      if (!m.metadata || (!m.metadata.url && !m.metadata.slug)) continue;
       const url = m.metadata.url || `/library/${m.metadata.slug}/`;
       const recMatch = url.match(/-(rec[a-zA-Z0-9]+)\/?$/);
       const dedupKey = recMatch ? recMatch[1].toLowerCase() : url.toLowerCase();
