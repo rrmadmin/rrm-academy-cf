@@ -335,7 +335,7 @@
           return import(URL.createObjectURL(blob));
         })
         .then(function(pf) {
-          return pf.init({ basePath: '/pagefind/' }).then(function() { return pf; });
+          return pf.options({ basePath: '/pagefind/' }).then(function() { return pf.init(); }).then(function() { return pf; });
         });
     }
     return pagefindReady;
