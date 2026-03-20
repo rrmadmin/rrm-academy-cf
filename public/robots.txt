@@ -1,6 +1,21 @@
+# =============================================================================
+# rrmacademy.org/robots.txt
+#
+# Strategy: MAXIMUM AI VISIBILITY
+# All public content is accessible to all crawlers -- search, training, and
+# traditional. Private paths (auth, API, community, dev) blocked consistently.
+#
+# AI search crawlers (ChatGPT-User, Perplexity-User, etc.) fetch content in
+# real time when users ask questions -- allowing them = appearing in AI answers.
+#
+# AI training crawlers (GPTBot, ClaudeBot, etc.) build future model knowledge.
+# For a young site building authority, training inclusion = future visibility.
+# To block training later, change their Allow: / to Disallow: /
+# =============================================================================
+
+# --- Default rules (Googlebot, Bingbot, and all unlisted crawlers) -----------
 User-agent: *
 Allow: /
-
 Disallow: /login
 Disallow: /signup
 Disallow: /forgot-password
@@ -16,39 +31,49 @@ Disallow: /ivf-success-calculator
 Disallow: /community/
 Disallow: /dev/
 
-# AI crawlers: library content and llms.txt are explicitly welcomed
-User-agent: GPTBot
-Allow: /library/
-Allow: /llms.txt
-Disallow: /api/
-Disallow: /account
-Disallow: /community/
-Disallow: /dev/
-
-User-agent: Google-Extended
-Allow: /library/
-Allow: /llms.txt
-Disallow: /dev/
-
-User-agent: PerplexityBot
-Allow: /library/
-Allow: /llms.txt
-Disallow: /api/
-Disallow: /account
-Disallow: /community/
-Disallow: /dev/
-
-User-agent: ClaudeBot
-Allow: /library/
-Allow: /llms.txt
-Disallow: /api/
-Disallow: /account
-Disallow: /community/
-Disallow: /dev/
-
+# =============================================================================
+# AI SEARCH / RETRIEVAL CRAWLERS
+# Real-time fetching for AI search products (ChatGPT Search, Perplexity,
+# Claude, Google AI Overviews, Apple Intelligence). These drive citations
+# and referral traffic. Keep allowed.
+# =============================================================================
+User-agent: ChatGPT-User
+User-agent: OAI-SearchBot
+User-agent: Claude-Web
+User-agent: Perplexity-User
 User-agent: Applebot-Extended
-Allow: /library/
-Allow: /llms.txt
+Allow: /
+Disallow: /api/
+Disallow: /account
+Disallow: /community/
 Disallow: /dev/
+Disallow: /data/
+
+# =============================================================================
+# AI TRAINING CRAWLERS
+# Bulk indexing for LLM pre-training and fine-tuning. Allowing these gets
+# content into future model knowledge. To block training later while keeping
+# search visibility, change Allow: / to Disallow: / in this section only.
+# =============================================================================
+User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: PerplexityBot
+User-agent: Google-Extended
+User-agent: Meta-ExternalAgent
+User-agent: Amazonbot
+User-agent: cohere-ai
+User-agent: CCBot
+Allow: /
+Disallow: /api/
+Disallow: /account
+Disallow: /community/
+Disallow: /dev/
+Disallow: /data/
+
+# =============================================================================
+# BLOCKED (aggressive scrapers, not standards-compliant)
+# =============================================================================
+User-agent: Bytespider
+Disallow: /
 
 Sitemap: https://rrmacademy.org/sitemap-index.xml
