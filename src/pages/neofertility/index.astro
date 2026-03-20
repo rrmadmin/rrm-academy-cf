@@ -7,7 +7,7 @@ import PdfDownload from '../../components/PdfDownload.astro';
 const pageSchema = {
   '@context': 'https://schema.org',
   '@type': ['Article', 'MedicalWebPage'],
-  headline: 'What is NeoFertility? How It Works, Outcome Data, and How to Find a Provider',
+  headline: 'What is NeoFertility? How It Works, What Are NeoFertility's Success Rates?, and How to Find a Provider',
   description: 'NeoFertility is an RRM approach developed by Dr. Phil Boyle that diagnoses and treats infertility, recurrent miscarriage, and reproductive disorders through cycle-based evaluation, immune modulation, and natural conception.',
   author: {
     '@type': 'Person',
@@ -40,14 +40,14 @@ const pageSchema = {
   },
   articleSection: [
     'What is NeoFertility',
-    'The Three-Phase Treatment Process',
+    'How Does NeoFertility Treatment Work?',
     'The ChartNeo App',
-    'The Immune-Modifying Framework',
-    'Conditions NeoFertility Treats',
-    'Outcome Data',
+    'How Does NeoFertility Use Immune Treatment?',
+    'What Conditions Does NeoFertility Treat?',
+    'What Are NeoFertility's Success Rates?',
     'NeoFertility vs. IVF',
     'Who is NeoFertility For?',
-    'Cost',
+    'How Much Does NeoFertility Cost?',
     'How to Find a NeoFertility Provider',
     'NeoFertility Research and Training',
     'Frequently Asked Questions',
@@ -55,14 +55,14 @@ const pageSchema = {
   ],
   hasPart: [
     { '@type': 'WebPageElement', name: 'What is NeoFertility', url: 'https://rrmacademy.org/neofertility/#what-is-neofertility' },
-    { '@type': 'WebPageElement', name: 'The Three-Phase Treatment Process', url: 'https://rrmacademy.org/neofertility/#three-phase-process' },
+    { '@type': 'WebPageElement', name: 'How Does NeoFertility Treatment Work?', url: 'https://rrmacademy.org/neofertility/#three-phase-process' },
     { '@type': 'WebPageElement', name: 'The ChartNeo App', url: 'https://rrmacademy.org/neofertility/#chartneo-app' },
-    { '@type': 'WebPageElement', name: 'The Immune-Modifying Framework', url: 'https://rrmacademy.org/neofertility/#immune-framework' },
-    { '@type': 'WebPageElement', name: 'Conditions NeoFertility Treats', url: 'https://rrmacademy.org/neofertility/#conditions' },
-    { '@type': 'WebPageElement', name: 'Outcome Data', url: 'https://rrmacademy.org/neofertility/#outcome-data' },
+    { '@type': 'WebPageElement', name: 'How Does NeoFertility Use Immune Treatment?', url: 'https://rrmacademy.org/neofertility/#immune-framework' },
+    { '@type': 'WebPageElement', name: 'What Conditions Does NeoFertility Treat?', url: 'https://rrmacademy.org/neofertility/#conditions' },
+    { '@type': 'WebPageElement', name: 'What Are NeoFertility's Success Rates?', url: 'https://rrmacademy.org/neofertility/#outcome-data' },
     { '@type': 'WebPageElement', name: 'NeoFertility vs. IVF', url: 'https://rrmacademy.org/neofertility/#neofertility-vs-ivf' },
     { '@type': 'WebPageElement', name: 'Who is NeoFertility For?', url: 'https://rrmacademy.org/neofertility/#who-is-neofertility-for' },
-    { '@type': 'WebPageElement', name: 'Cost', url: 'https://rrmacademy.org/neofertility/#cost' },
+    { '@type': 'WebPageElement', name: 'How Much Does NeoFertility Cost?', url: 'https://rrmacademy.org/neofertility/#cost' },
     { '@type': 'WebPageElement', name: 'How to Find a NeoFertility Provider', url: 'https://rrmacademy.org/neofertility/#find-provider' },
     { '@type': 'WebPageElement', name: 'NeoFertility Research and Training', url: 'https://rrmacademy.org/neofertility/#research-training' },
     { '@type': 'WebPageElement', name: 'Frequently Asked Questions', url: 'https://rrmacademy.org/neofertility/#faq' },
@@ -186,7 +186,7 @@ const faqSchema = {
 ---
 
 <BaseLayout
-  title="NeoFertility Explained: How It Works, Outcome Data, and How to Find a Provider"
+  title="NeoFertility Explained: How It Works, What Are NeoFertility's Success Rates?, and How to Find a Provider"
   description="NeoFertility diagnoses and treats infertility, recurrent miscarriage, and reproductive disorders through cycle-based evaluation and immune modulation."
   canonicalUrl="https://rrmacademy.org/neofertility/"
   ogType="article"
@@ -211,7 +211,7 @@ const faqSchema = {
         <span>NeoFertility</span>
       </nav>
 
-      <h1>What is NeoFertility? How It Works, Outcome Data, and How to Find a Provider</h1>
+      <h1>What is NeoFertility? How It Works, What Are NeoFertility's Success Rates?, and How to Find a Provider</h1>
 
       <div class="author-byline">
         <span>By <strong><a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</a></strong></span>
@@ -228,14 +228,14 @@ const faqSchema = {
         <summary>On this page</summary>
         <ol>
           <li><a href="#what-is-neofertility">What is NeoFertility</a></li>
-          <li><a href="#three-phase-process">The Three-Phase Treatment Process</a></li>
+          <li><a href="#three-phase-process">How Does NeoFertility Treatment Work?</a></li>
           <li><a href="#chartneo-app">The ChartNeo App</a></li>
-          <li><a href="#immune-framework">The Immune-Modifying Framework</a></li>
-          <li><a href="#conditions">Conditions NeoFertility Treats</a></li>
-          <li><a href="#outcome-data">Outcome Data</a></li>
+          <li><a href="#immune-framework">How Does NeoFertility Use Immune Treatment?</a></li>
+          <li><a href="#conditions">What Conditions Does NeoFertility Treat?</a></li>
+          <li><a href="#outcome-data">What Are NeoFertility's Success Rates?</a></li>
           <li><a href="#neofertility-vs-ivf">NeoFertility vs. IVF</a></li>
           <li><a href="#who-is-neofertility-for">Who is NeoFertility For?</a></li>
-          <li><a href="#cost">Cost</a></li>
+          <li><a href="#cost">How Much Does NeoFertility Cost?</a></li>
           <li><a href="#find-provider">How to Find a NeoFertility Provider</a></li>
           <li><a href="#research-training">NeoFertility Research and Training</a></li>
           <li><a href="#faq">Frequently Asked Questions</a></li>
@@ -251,14 +251,14 @@ const faqSchema = {
           <p class="toc-heading">On this page</p>
           <ol>
             <li><a href="#what-is-neofertility">What is NeoFertility</a></li>
-            <li><a href="#three-phase-process">The Three-Phase Treatment Process</a></li>
+            <li><a href="#three-phase-process">How Does NeoFertility Treatment Work?</a></li>
             <li><a href="#chartneo-app">The ChartNeo App</a></li>
-            <li><a href="#immune-framework">The Immune-Modifying Framework</a></li>
-            <li><a href="#conditions">Conditions NeoFertility Treats</a></li>
-            <li><a href="#outcome-data">Outcome Data</a></li>
+            <li><a href="#immune-framework">How Does NeoFertility Use Immune Treatment?</a></li>
+            <li><a href="#conditions">What Conditions Does NeoFertility Treat?</a></li>
+            <li><a href="#outcome-data">What Are NeoFertility's Success Rates?</a></li>
             <li><a href="#neofertility-vs-ivf">NeoFertility vs. IVF</a></li>
             <li><a href="#who-is-neofertility-for">Who is NeoFertility For?</a></li>
-            <li><a href="#cost">Cost</a></li>
+            <li><a href="#cost">How Much Does NeoFertility Cost?</a></li>
             <li><a href="#find-provider">How to Find a NeoFertility Provider</a></li>
             <li><a href="#research-training">NeoFertility Research and Training</a></li>
             <li><a href="#faq">Frequently Asked Questions</a></li>
@@ -292,9 +292,9 @@ const faqSchema = {
             <p>NeoFertility emerged from two decades of NaProTechnology practice. Dr. Boyle trained in NaProTechnology at the Saint Paul VI Institute and practiced it extensively before founding NeoFertility in 2016. What differentiated his new approach was a broadened diagnostic lens, one that incorporated autoimmune and immunological factors, androgen deficiency, endorphin pathways, and emerging evidence from outside the NaPro framework, alongside the cycle-based hormonal evaluation that NaProTechnology had established. NeoFertility operates within the RRM umbrella and is one of the most actively researched approaches in the field today.<sup><a href="#ref-1">1</a></sup><sup><a href="#ref-2">2</a></sup><sup><a href="#ref-3">3</a></sup></p>
           </section>
 
-          <!-- Section: The Three-Phase Treatment Process -->
+          <!-- Section: How Does NeoFertility Treatment Work? -->
           <section id="three-phase-process">
-            <h2>The Three-Phase Treatment Process</h2>
+            <h2>How Does NeoFertility Treatment Work?</h2>
 
             <p><strong>NeoFertility follows a structured, three-phase model.</strong> The process takes approximately four months to reach the conception phase, with conception typically occurring within twelve additional cycles once the cycle is optimized.<sup><a href="#ref-14">14</a></sup><sup><a href="#ref-4">4</a></sup></p>
 
@@ -359,9 +359,9 @@ const faqSchema = {
             <p>For patients in the NeoFertility program, charting through ChartNeo is strongly recommended. The integration between app data and clinic records allows the physician to see the pattern of cycle response to treatment in real time across multiple cycles, not only at single-point consultations.</p>
           </section>
 
-          <!-- Section: The Immune-Modifying Framework -->
+          <!-- Section: How Does NeoFertility Use Immune Treatment? -->
           <section id="immune-framework">
-            <h2>The Immune-Modifying Framework</h2>
+            <h2>How Does NeoFertility Use Immune Treatment?</h2>
 
             <p><strong>One of NeoFertility's most distinctive clinical contributions is its systematic approach to immunological causes of infertility and pregnancy loss.</strong> Where many fertility approaches either ignore immune factors or address them only after IVF failure, NeoFertility investigates them as a routine part of the Phase 1 workup for qualifying patients.</p>
 
@@ -384,9 +384,9 @@ const faqSchema = {
             <p>A published case report from NeoFertility documented a successful live birth in a 30-year-old woman who had experienced five unexplained pregnancy losses, including a fetal demise at 24 weeks. Standard investigations at a specialized miscarriage clinic had returned normal results and she was advised to conceive again without treatment. NeoFertility identified significant hypoandrogenemia along with clinical endorphin deficiency and poor follicle function. Treatment with DHEA, LDN, and cycle-timed progesterone support resulted in a healthy singleton delivery at 36 weeks.<sup><a href="#ref-24">24</a></sup><sup><a href="#ref-10">10</a></sup></p>
           </section>
 
-          <!-- Section: Conditions NeoFertility Treats -->
+          <!-- Section: What Conditions Does NeoFertility Treat? -->
           <section id="conditions">
-            <h2>Conditions NeoFertility Treats</h2>
+            <h2>What Conditions Does NeoFertility Treat?</h2>
 
             <p><strong>NeoFertility treats a wide range of reproductive and gynecologic conditions by identifying and treating the underlying cause.</strong> The table below describes conditions and the NeoFertility approach. Every treatment plan is individualized based on charting data, diagnostic results, and clinical history. This information is educational, not prescriptive.</p>
 
@@ -430,9 +430,9 @@ const faqSchema = {
             <p>NeoFertility requires only one follicle and one egg per cycle, because the goal is natural conception, not laboratory fertilization. This means patients with very low AMH remain candidates for treatment. NeoFertility has reported success in a 36-year-old woman with six years of infertility whose AMH was 0.07 pmol/L and FSH was 42 IU/L, values that would effectively exclude her from most IVF programs. She conceived on her first cycle of NeoFertility treatment.<sup><a href="#ref-17">17</a></sup></p>
           </section>
 
-          <!-- Section: Outcome Data -->
+          <!-- Section: What Are NeoFertility's Success Rates? -->
           <section id="outcome-data">
-            <h2>Outcome Data</h2>
+            <h2>What Are NeoFertility's Success Rates?</h2>
 
             <p><strong>NeoFertility has published outcome data across multiple cohorts and case series, primarily from Dr. Boyle's clinic in Dublin, Ireland.</strong></p>
 
@@ -549,7 +549,7 @@ const faqSchema = {
 
           <!-- Section: Cost -->
           <section id="cost">
-            <h2>Cost</h2>
+            <h2>How Much Does NeoFertility Cost?</h2>
 
             <p><strong>NeoFertility costs substantially less than IVF, and the gap widens significantly when IVF costs are calculated over multiple cycles.</strong></p>
 
