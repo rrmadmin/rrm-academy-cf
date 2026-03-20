@@ -63,12 +63,14 @@ export default function librarySitemaps() {
         const tier2 = [];
         for (const a of articles) {
           if (!a.slug) continue;
-          // Omit lastmod: datePublished is the original paper's date (e.g. 1935),
-          // not when this page was created. Airtable lastModified resets on bulk
-          // syncs (all 3,207 records = same date). No meaningful page-modification
-          // signal exists, so omit rather than mislead Google.
+          // dateAddedToLibrary = Airtable createdTime (when record entered yellowbase).
+          // Currently uniform (2026-03-12 bulk sync) but will diverge as new
+          // articles are added. Falls back to lastModified, then omits.
+          const rawDate = a.dateAddedToLibrary || a.lastModified;
+          const lastmod = rawDate ? rawDate.split('T')[0] : undefined;
           const url = {
             loc: `${SITE}/library/${a.slug}/`,
+            lastmod,
           };
           if (classifyTier(a) === 3) {
             tier3.push(url);
