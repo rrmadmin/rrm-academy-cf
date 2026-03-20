@@ -70,8 +70,6 @@ export default defineConfig({
           '/community/',
           '/linkinbio/jointhecall',
           '/page/',
-          '/what-is-rrm',
-          '/common-questions-about-rrm',
           '/admin/',
           '/ivf-success-calculator',
           '/dev/',
