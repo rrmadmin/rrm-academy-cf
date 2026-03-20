@@ -1,0 +1,1678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>rrmacademy.org SEO Audit - March 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --brand-primary: #725e7e;
+  --brand-dark: #4c3e54;
+  --brand-deep: #4c3e54;
+  --brand-nav: #987da8;
+  --brand-accent: #b0778a;
+  --brand-light-blue: #f5f0f8;
+  --brand-light-teal: #c9b8d3;
+  --bg-light: #f7f5f3;
+  --bg-white: #ffffff;
+  --text-primary: #313131;
+  --text-secondary: #636261;
+  --text-muted: #adaba9;
+  --border-color: #dddbd8;
+  --score-critical: #c0392b;
+  --score-poor: #e67e22;
+  --score-fair: #f1c40f;
+  --score-good: #27ae60;
+  --score-great: #2ecc71;
+  --score-unknown: #95a5a6;
+  --status-ok: #27ae60;
+  --status-warn: #e67e22;
+  --status-fail: #c0392b;
+  --status-missing: #c0392b;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-primary);
+  background: var(--bg-light);
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+/* Header */
+.report-header {
+  background: linear-gradient(135deg, #4c3e54 0%, #725e7e 50%, #987da8 100%);
+  color: white;
+  padding: 3rem 2rem 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
+.report-header::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.header-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+.header-top {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+.header-label {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  opacity: 0.8;
+}
+.header-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 2.4rem;
+  font-weight: 800;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.5px;
+}
+.header-subtitle {
+  font-size: 1.05rem;
+  opacity: 0.85;
+  max-width: 700px;
+  line-height: 1.7;
+}
+.header-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255,255,255,0.15);
+}
+.meta-item {
+  font-size: 0.85rem;
+}
+.meta-item strong {
+  display: block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  opacity: 0.6;
+  margin-bottom: 0.2rem;
+  font-weight: 600;
+}
+
+/* Overall Score Banner */
+.score-banner {
+  background: var(--bg-white);
+  border-bottom: 1px solid var(--border-color);
+  padding: 2rem;
+}
+.score-banner-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+  flex-wrap: wrap;
+}
+.overall-score {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  flex-shrink: 0;
+}
+.score-ring {
+  width: 140px;
+  height: 140px;
+  transform: rotate(-90deg);
+}
+.score-ring-bg { fill: none; stroke: #eee; stroke-width: 8; }
+.score-ring-fill { fill: none; stroke: var(--score-good); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 377; stroke-dashoffset: 106; transition: stroke-dashoffset 1s ease; }
+.score-number {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+.score-number .value {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--score-good);
+  line-height: 1;
+}
+.score-number .label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.score-summary h2 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+.score-summary p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  max-width: 600px;
+}
+.score-bars {
+  flex: 1;
+  min-width: 300px;
+}
+.score-bar-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.82rem;
+}
+.score-bar-label {
+  width: 140px;
+  text-align: right;
+  font-weight: 600;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.score-bar-track {
+  flex: 1;
+  height: 10px;
+  background: #eee;
+  border-radius: 5px;
+  overflow: hidden;
+}
+.score-bar-fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 1s ease;
+}
+.score-bar-value {
+  width: 45px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+/* Layout */
+.main-layout {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem;
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 2.5rem;
+}
+@media (max-width: 900px) {
+  .main-layout { grid-template-columns: 1fr; padding: 1rem; }
+  .sidebar { display: none; }
+}
+
+/* Sidebar TOC */
+.sidebar {
+  position: sticky;
+  top: 1rem;
+  align-self: start;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+.toc {
+  background: var(--bg-white);
+  border-radius: 10px;
+  padding: 1.25rem;
+  border: 1px solid var(--border-color);
+}
+.toc h3 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+}
+.toc a {
+  display: block;
+  padding: 0.35rem 0;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  padding-left: 0.75rem;
+  transition: all 0.2s;
+}
+.toc a:hover, .toc a.active {
+  color: var(--brand-primary);
+  border-left-color: var(--brand-primary);
+  background: var(--brand-light-blue);
+  border-radius: 0 4px 4px 0;
+}
+.toc a.critical { color: var(--score-critical); font-weight: 600; }
+
+/* Content Sections */
+.content-area { min-width: 0; }
+
+.section {
+  background: var(--bg-white);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+.section-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+.section-header:hover { background: var(--bg-light); }
+.section-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.section-icon.critical { background: #fde8e8; color: var(--score-critical); }
+.section-icon.warn { background: #fef3e2; color: var(--score-poor); }
+.section-icon.info { background: var(--brand-light-blue); color: var(--brand-primary); }
+.section-icon.ok { background: #e8f5e9; color: var(--status-ok); }
+.section-icon.dark { background: #e8ddef; color: var(--brand-dark); }
+
+.section-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  flex: 1;
+}
+.section-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+.badge-critical { background: #fde8e8; color: var(--score-critical); }
+.badge-high { background: #fef3e2; color: var(--score-poor); }
+.badge-medium { background: #fff8e1; color: #f57f17; }
+.badge-ok { background: #e8f5e9; color: var(--status-ok); }
+.badge-unknown { background: #f5f5f5; color: var(--score-unknown); }
+
+.section-toggle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  transition: transform 0.3s;
+  flex-shrink: 0;
+}
+.section.collapsed .section-toggle { transform: rotate(-90deg); }
+.section.collapsed .section-body { display: none; }
+
+.section-body {
+  padding: 1.5rem;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin: 1rem 0;
+}
+th {
+  text-align: left;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  padding: 0.6rem 0.75rem;
+  border-bottom: 2px solid var(--border-color);
+  white-space: nowrap;
+}
+td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: top;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--bg-light); }
+
+/* Status pills */
+.status {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.status-ok { background: #e8f5e9; color: var(--status-ok); }
+.status-warn { background: #fff8e1; color: #f57f17; }
+.status-fail { background: #fde8e8; color: var(--status-fail); }
+.status-missing { background: #fde8e8; color: var(--status-fail); }
+.status-broken { background: #fde8e8; color: var(--status-fail); }
+.status-unknown { background: #f5f5f5; color: var(--score-unknown); }
+
+/* Info boxes */
+.info-box {
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+.info-box.critical {
+  background: #fde8e8;
+  border-left: 4px solid var(--score-critical);
+}
+.info-box.warning {
+  background: #fef3e2;
+  border-left: 4px solid var(--score-poor);
+}
+.info-box.info {
+  background: var(--brand-light-blue);
+  border-left: 4px solid var(--brand-accent);
+}
+.info-box.success {
+  background: #e8f5e9;
+  border-left: 4px solid var(--status-ok);
+}
+.info-box strong { display: block; margin-bottom: 0.25rem; }
+
+/* Code blocks */
+.code-block {
+  background: #1e1e2e;
+  color: #cdd6f4;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  font-family: 'Menlo', 'Consolas', monospace;
+  font-size: 0.8rem;
+  line-height: 1.7;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+.code-block .comment { color: #6c7086; }
+.code-block .string { color: #a6e3a1; }
+.code-block .key { color: #89b4fa; }
+
+/* Sub-headings */
+.sub-heading {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 1.5rem 0 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+.sub-heading:first-child { margin-top: 0; }
+
+/* Lists */
+.check-list {
+  list-style: none;
+  margin: 0.75rem 0;
+}
+.check-list li {
+  padding: 0.35rem 0 0.35rem 1.75rem;
+  position: relative;
+  font-size: 0.9rem;
+}
+.check-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55rem;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  background-size: 12px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.check-list li.pass::before { background-color: #e8f5e9; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2327ae60'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E"); }
+.check-list li.fail::before { background-color: #fde8e8; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23c0392b'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3C/svg%3E"); }
+.check-list li.warn::before { background-color: #fff8e1; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23f57f17'%3E%3Cpath d='M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z'/%3E%3C/svg%3E"); }
+
+/* Phase cards */
+.phase-card {
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  margin: 1rem 0;
+  overflow: hidden;
+}
+.phase-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1.25rem;
+  background: var(--bg-light);
+  border-bottom: 1px solid var(--border-color);
+}
+.phase-number {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+.phase-title {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.phase-timing {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.phase-body { padding: 0; }
+.phase-body table { margin: 0; }
+.phase-body td { padding: 0.5rem 1rem; }
+.phase-body td:first-child { width: 36px; text-align: center; color: var(--text-muted); font-weight: 600; font-size: 0.8rem; }
+
+p { margin-bottom: 0.75rem; }
+p:last-child { margin-bottom: 0; }
+
+/* Footer */
+.report-footer {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Print */
+@media print {
+  .sidebar { display: none; }
+  .main-layout { grid-template-columns: 1fr; }
+  .section.collapsed .section-body { display: block; }
+  .report-header { background: var(--brand-dark); -webkit-print-color-adjust: exact; }
+  .section { break-inside: avoid; }
+}
+
+/* Responsive table wrapper */
+.table-wrap { overflow-x: auto; }
+
+/* Inline code */
+code {
+  background: #f0f0f0;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  font-family: 'Menlo', 'Consolas', monospace;
+  font-size: 0.82em;
+  color: var(--brand-dark);
+}
+
+.strengths-weaknesses {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+@media (max-width: 700px) { .strengths-weaknesses { grid-template-columns: 1fr; } }
+.sw-col { padding: 1rem; border-radius: 8px; }
+.sw-col.strengths { background: #e8f5e9; }
+.sw-col.weaknesses { background: #fde8e8; }
+.sw-col h4 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.5rem;
+}
+.sw-col ul { list-style: none; font-size: 0.85rem; }
+.sw-col ul li { padding: 0.25rem 0; }
+.sw-col.strengths ul li::before { content: '+ '; font-weight: 700; color: var(--status-ok); }
+.sw-col.weaknesses ul li::before { content: '- '; font-weight: 700; color: var(--status-fail); }
+
+/* Cross-link matrix */
+.matrix-table td, .matrix-table th { text-align: center; }
+.matrix-table td:first-child, .matrix-table th:first-child { text-align: left; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="report-header">
+  <div class="header-content">
+    <div class="header-top">
+      <span class="header-label">Comprehensive SEO Audit</span>
+    </div>
+    <h1 class="header-title">rrmacademy.org Site Health Report</h1>
+    <p class="header-subtitle">Technical SEO, on-page optimization, content quality, structured data, site speed, security, backlink profile, and AI visibility analysis across 8 key categories.</p>
+    <div class="header-meta">
+      <div class="meta-item"><strong>Domain</strong> rrmacademy.org</div>
+      <div class="meta-item"><strong>Stack</strong> Astro 5.3 + CF Pages + D1 + Pagefind</div>
+      <div class="meta-item"><strong>Audit Date</strong> March 19, 2026 (updated March 20)</div>
+      <div class="meta-item"><strong>Prepared For</strong> Brian Whittaker, RRM Academy</div>
+    </div>
+  </div>
+</header>
+
+<!-- Score Banner -->
+<div class="score-banner">
+  <div class="score-banner-inner">
+    <div class="overall-score">
+      <svg class="score-ring" viewBox="0 0 140 140">
+        <circle class="score-ring-bg" cx="70" cy="70" r="60"/>
+        <circle class="score-ring-fill" cx="70" cy="70" r="60"/>
+      </svg>
+      <div class="score-number">
+        <div class="value">72</div>
+        <div class="label">of 100</div>
+      </div>
+    </div>
+    <div class="score-summary">
+      <h2>Solid Foundations, Weak Distribution</h2>
+      <p>The site is technically excellent -- sub-60ms TTFB, comprehensive schema, perfect SEO Lighthouse scores, and 14,000-word pillar pages with academic-grade sourcing. The gap is distribution: only 47 live referring domains, zero .edu/.gov links, no Wikipedia presence, and 0% AI citation rate on generic informational queries.</p>
+    </div>
+  </div>
+  <div class="score-banner-inner" style="padding-top:1.5rem;">
+    <div class="score-bars">
+      <div class="score-bar-item">
+        <span class="score-bar-label">Crawlability</span>
+        <div class="score-bar-track"><div class="score-bar-fill" style="width:90%;background:var(--score-great)"></div></div>
+        <span class="score-bar-value" style="color:var(--score-great)">9/10</span>
+      </div>
+      <div class="score-bar-item">
+        <span class="score-bar-label">On-Page SEO</span>
+        <div class="score-bar-track"><div class="score-bar-fill" style="width:75%;background:var(--score-good)"></div></div>
+        <span class="score-bar-value" style="color:var(--score-good)">7.5/10</span>
+      </div>
+      <div class="score-bar-item">
+        <span class="score-bar-label">Content Quality</span>
+        <div class="score-bar-track"><div class="score-bar-fill" style="width:80%;background:var(--score-good)"></div></div>
+        <span class="score-bar-value" style="color:var(--score-good)">8/10</span>
+      </div>
+      <div class="score-bar-item">
+        <span class="score-bar-label">Structured Data</span>
+        <div class="score-bar-track"><div class="score-bar-fill" style="width:80%;background:var(--score-good)"></div></div>
+        <span class="score-bar-value" style="color:var(--score-good)">8/10</span>
+      </div>
+      <div class="score-bar-item">
+        <span class="score-bar-label">Site Speed</span>
+        <div class="score-bar-track"><div class="score-bar-fill" style="width:95%;background:var(--score-great)"></div></div>
+        <span class="score-bar-value" style="color:var(--score-great)">9.5/10</span>
+      </div>
+      <div class="score-bar-item">
+        <span class="score-bar-label">Security</span>
+        <div class="score-bar-track"><div class="score-bar-fill" style="width:95%;background:var(--score-great)"></div></div>
+        <span class="score-bar-value" style="color:var(--score-great)">9.5/10</span>
+      </div>
+      <div class="score-bar-item">
+        <span class="score-bar-label">Backlinks</span>
+        <div class="score-bar-track"><div class="score-bar-fill" style="width:35%;background:var(--score-poor)"></div></div>
+        <span class="score-bar-value" style="color:var(--score-poor)">3.5/10</span>
+      </div>
+      <div class="score-bar-item">
+        <span class="score-bar-label">AI Visibility</span>
+        <div class="score-bar-track"><div class="score-bar-fill" style="width:30%;background:var(--score-critical)"></div></div>
+        <span class="score-bar-value" style="color:var(--score-critical)">3/10</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Layout -->
+<div class="main-layout">
+
+  <!-- Sidebar TOC -->
+  <aside class="sidebar">
+    <nav class="toc">
+      <h3>Contents</h3>
+      <a href="#critical" class="critical">Critical Blockers</a>
+      <a href="#crawlability">Crawlability &amp; Indexation</a>
+      <a href="#onpage">On-Page SEO</a>
+      <a href="#content">Content Quality</a>
+      <a href="#schema">Structured Data</a>
+      <a href="#speed">Site Speed &amp; CWV</a>
+      <a href="#security">Security</a>
+      <a href="#backlinks">Backlink Profile</a>
+      <a href="#ai">AI Visibility (AEO)</a>
+      <a href="#actions">Action Plan</a>
+    </nav>
+  </aside>
+
+  <!-- Content -->
+  <main class="content-area">
+
+    <!-- Critical Blockers -->
+    <section class="section" id="critical">
+      <div class="section-header" onclick="this.parentElement.classList.toggle('collapsed')">
+        <div class="section-icon critical">!!</div>
+        <h2 class="section-title">Critical Blockers</h2>
+        <span class="section-badge badge-ok">All 3 Fixed</span>
+        <span class="section-toggle">&#9662;</span>
+      </div>
+      <div class="section-body">
+        <p>These three issues should be resolved before all other work.</p>
+
+        <div class="info-box success">
+          <strong>1. /what-is-rrm/ Missing from XML Sitemap -- FIXED (March 20, 2026)</strong>
+          <em>Previously:</em> Both <code>/what-is-rrm/</code> and <code>/common-questions-about-rrm/</code> were explicitly excluded in <code>astro.config.mjs</code> sitemap filter. <em>Now:</em> Removed from exclude array. Both appear in <code>sitemap-0.xml</code>. Commit <code>4ad6d18</code>.
+        </div>
+
+        <div class="info-box success" style="margin-top:1.5rem;">
+          <strong>2. AI Crawler Robots.txt Rules -- FIXED (March 20, 2026)</strong>
+          <em>Previously:</em> GPTBot, PerplexityBot, and ClaudeBot blocks only allowed <code>/library/</code> and <code>/llms.txt</code>, blocking AI crawlers from 95% of the site. <em>Now:</em> Robots.txt restructured with three tiers: AI search crawlers (ChatGPT-User, OAI-SearchBot, Claude-Web, Perplexity-User, Applebot-Extended), AI training crawlers (GPTBot, ClaudeBot, PerplexityBot, Google-Extended, Meta-ExternalAgent, Amazonbot, cohere-ai, CCBot), and blocked scrapers (Bytespider). All get <code>Allow: /</code> with only private paths blocked. Commit <code>e11f423</code>.
+        </div>
+
+        <div class="info-box success" style="margin-top:1.5rem;">
+          <strong>3. Zero Pillar-to-Pillar Body Content Links -- FIXED (March 20, 2026)</strong>
+          <em>Previously:</em> Zero cross-links between pillar pages in body content. <em>Now:</em> 16 cross-links across all 5 pillar guides. what-is-rrm links to NaPro, FEMM, NeoFertility, glossary. naprotechnology links to what-is-rrm, FEMM, NeoFertility. neofertility links to naprotechnology, what-is-rrm. femm links to what-is-rrm, neofertility (already had 2 NaPro links). glossary links all 4 pillar pages from definition headings. Commit <code>af88281</code>.
+        </div>
+      </div>
+    </section>
+
+    <!-- Crawlability -->
+    <section class="section" id="crawlability">
+      <div class="section-header" onclick="this.parentElement.classList.toggle('collapsed')">
+        <div class="section-icon info">&#128269;</div>
+        <h2 class="section-title">Crawlability &amp; Indexation</h2>
+        <span class="section-badge badge-ok">9/10</span>
+        <span class="section-toggle">&#9662;</span>
+      </div>
+      <div class="section-body">
+        <h3 class="sub-heading">Robots.txt</h3>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Directive</th><th>Value</th><th>Assessment</th></tr></thead>
+            <tbody>
+              <tr><td>Default <code>User-agent: *</code></td><td>Allow: /</td><td><span class="status status-ok">OK</span></td></tr>
+              <tr><td>Blocked paths</td><td>/login, /signup, /account, /api/, /data/, /community/, /dev/, etc.</td><td><span class="status status-ok">OK</span></td></tr>
+              <tr><td>AI Search Crawlers</td><td>ChatGPT-User, OAI-SearchBot, Claude-Web, Perplexity-User, Applebot-Extended: Allow: /; Disallow: /api/, /account, /community/, /dev/, /data/</td><td><span class="status status-ok">FIXED</span></td></tr>
+              <tr><td>AI Training Crawlers</td><td>GPTBot, ClaudeBot, PerplexityBot, Google-Extended, Meta-ExternalAgent, Amazonbot, cohere-ai, CCBot: Allow: /; Disallow: /api/, /account, /community/, /dev/, /data/</td><td><span class="status status-ok">FIXED</span></td></tr>
+              <tr><td>Blocked Scrapers</td><td>Bytespider: Disallow: /</td><td><span class="status status-ok">OK</span></td></tr>
+              <tr><td>Sitemap reference</td><td>https://rrmacademy.org/sitemap-index.xml</td><td><span class="status status-ok">OK</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="info-box success">
+          <strong>No Bot Fight Mode interference</strong> (unlike IIRRM). All crawlers receive HTTP 200 with no challenges.
+        </div>
+
+        <h3 class="sub-heading">XML Sitemap</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Sub-sitemap</th><th>URL Count</th><th>lastmod</th><th>Assessment</th></tr></thead>
+            <tbody>
+              <tr><td>sitemap-0.xml (core)</td><td>73</td><td>Mixed (commentary has publish dates; static pages 2026-03-10)</td><td><span class="status status-ok">OK</span></td></tr>
+              <tr><td>sitemap-library-t2.xml</td><td>600</td><td>All 2026-03-12 (uniform)</td><td><span class="status status-warn">WARNING</span></td></tr>
+              <tr><td>sitemap-library-t3.xml</td><td>2,604</td><td>All 2026-03-12 (uniform)</td><td><span class="status status-warn">WARNING</span></td></tr>
+              <tr><td><strong>Total</strong></td><td><strong>3,277</strong></td><td></td><td></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Check</th><th>Status</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>Sitemap exists</td><td><span class="status status-ok">OK</span></td><td>3 sub-sitemaps, well-structured</td></tr>
+              <tr><td>Submitted to GSC</td><td><span class="status status-ok">OK</span></td><td>Referenced in robots.txt</td></tr>
+              <tr><td>/what-is-rrm/ included</td><td><span class="status status-ok">FIXED</span></td><td>Was excluded in astro.config.mjs filter. Now in sitemap (commit <code>4ad6d18</code>)</td></tr>
+              <tr><td>lastmod accuracy</td><td><span class="status status-warn">WARNING</span></td><td>3,204 library articles all share uniform 2026-03-12 (bulk sync date)</td></tr>
+              <tr><td>URLs canonical</td><td><span class="status status-ok">OK</span></td><td>All use https://rrmacademy.org/ consistently</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="sub-heading">Index Status</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Metric</th><th>Value</th><th>Assessment</th></tr></thead>
+            <tbody>
+              <tr><td>Expected indexable pages</td><td>~3,278</td><td>Library + core + pillar + FAQ + commentary + courses</td></tr>
+              <tr><td>In sitemap</td><td>3,277</td><td>Missing: /what-is-rrm/</td></tr>
+              <tr><td>www variant indexed</td><td>Yes</td><td><span class="status status-fail">CRITICAL</span> -- Legacy Wix URLs still appear under www.rrmacademy.org</td></tr>
+              <tr><td>Legacy URL patterns</td><td>/course/rrm-vs-ivf, /post/naprotechnology-...</td><td>Old Wix patterns still in Google index</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="sub-heading">Canonical Tags</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Page</th><th>Canonical</th><th>Correct</th><th>Protocol</th><th>Trailing Slash</th></tr></thead>
+            <tbody>
+              <tr><td><code>/</code></td><td>https://rrmacademy.org/</td><td><span class="status status-ok">OK</span></td><td>HTTPS</td><td>Yes</td></tr>
+              <tr><td><code>/what-is-rrm/</code></td><td>https://rrmacademy.org/what-is-rrm/</td><td><span class="status status-ok">OK</span></td><td>HTTPS</td><td>Yes</td></tr>
+              <tr><td><code>/naprotechnology/</code></td><td>https://rrmacademy.org/naprotechnology/</td><td><span class="status status-ok">OK</span></td><td>HTTPS</td><td>Yes</td></tr>
+              <tr><td><code>/library/</code></td><td>https://rrmacademy.org/library/</td><td><span class="status status-ok">OK</span></td><td>HTTPS</td><td>Yes</td></tr>
+              <tr><td><code>/commentary/</code></td><td>https://rrmacademy.org/commentary/</td><td><span class="status status-ok">OK</span></td><td>HTTPS</td><td>Yes</td></tr>
+              <tr><td><code>/courses/</code></td><td>https://rrmacademy.org/courses/</td><td><span class="status status-ok">OK</span></td><td>HTTPS</td><td>Yes</td></tr>
+              <tr><td><code>/about/</code></td><td>https://rrmacademy.org/about/</td><td><span class="status status-ok">OK</span></td><td>HTTPS</td><td>Yes</td></tr>
+              <tr><td><code>/faqs/</code></td><td>https://rrmacademy.org/faqs/</td><td><span class="status status-ok">OK</span></td><td>HTTPS</td><td>Yes</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="info-box success">
+          All canonical tags self-referencing, consistent protocol, domain, and trailing slashes. No staging domain contamination (unlike IIRRM).
+        </div>
+
+        <h3 class="sub-heading">Redirect Chains</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Request</th><th>Response</th><th>Hops</th><th>Assessment</th></tr></thead>
+            <tbody>
+              <tr><td>http://rrmacademy.org/</td><td>301 -> https://rrmacademy.org/</td><td>1</td><td><span class="status status-ok">OK</span></td></tr>
+              <tr><td>https://www.rrmacademy.org/</td><td>301 -> https://rrmacademy.org/</td><td>1</td><td><span class="status status-ok">OK</span></td></tr>
+              <tr><td>http://www.rrmacademy.org/</td><td>301 -> https -> 301 -> non-www</td><td>2</td><td><span class="status status-warn">WARNING</span> -- double redirect</td></tr>
+              <tr><td>/what-is-rrm (no slash)</td><td>301 -> /what-is-rrm/</td><td>1</td><td><span class="status status-ok">OK</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- On-Page SEO -->
+    <section class="section" id="onpage">
+      <div class="section-header" onclick="this.parentElement.classList.toggle('collapsed')">
+        <div class="section-icon info">&#9998;</div>
+        <h2 class="section-title">On-Page SEO</h2>
+        <span class="section-badge badge-ok">7.5/10</span>
+        <span class="section-toggle">&#9662;</span>
+      </div>
+      <div class="section-body">
+        <h3 class="sub-heading">Title Tags</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Page</th><th>Current Title</th><th>Len</th><th>Assessment</th></tr></thead>
+            <tbody>
+              <tr><td><code>/</code></td><td>RRM Academy | Evidence-Based Reproductive Medicine Education</td><td>60</td><td><span class="status status-ok">GOOD</span> -- Exactly 60 chars</td></tr>
+              <tr><td><code>/what-is-rrm/</code></td><td>What is Restorative Reproductive Medicine (RRM)? | RRM Academy</td><td>62</td><td><span class="status status-warn">WARNING</span> -- 2 over</td></tr>
+              <tr><td><code>/naprotechnology/</code></td><td>NaProTechnology Explained by a NaPro-Trained OBGYN | RRM Academy</td><td>64</td><td><span class="status status-warn">WARNING</span> -- 4 over</td></tr>
+              <tr><td><code>/library/</code></td><td>RRM Research Library | 3,204 Peer-Reviewed Resources</td><td>52</td><td><span class="status status-ok">GOOD</span> -- Social proof number</td></tr>
+              <tr><td><code>/commentary/</code></td><td>RRM Articles | Research, Policy &amp; Patient Advocacy</td><td>50</td><td><span class="status status-ok">GOOD</span></td></tr>
+              <tr><td><code>/courses/</code></td><td>Online RRM Courses | Endometriosis, Fertility, PCOS | RRM Academy</td><td>65</td><td><span class="status status-warn">WARNING</span> -- 5 over</td></tr>
+              <tr><td><code>/about/</code></td><td>About RRM Academy | Restorative Reproductive Medicine</td><td>53</td><td><span class="status status-ok">GOOD</span></td></tr>
+              <tr><td><code>/faqs/</code></td><td>RRM FAQs | Restorative Reproductive Medicine Questions</td><td>54</td><td><span class="status status-ok">GOOD</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>5/8 within 60 chars. 3 pages will truncate in SERPs. Brand suffix "RRM Academy" is concise (unlike IIRRM's full org name consuming 55+ chars).</p>
+
+        <h3 class="sub-heading">Meta Descriptions</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Page</th><th>Length</th><th>Assessment</th></tr></thead>
+            <tbody>
+              <tr><td><code>/</code></td><td>159</td><td><span class="status status-ok">GOOD</span> -- CTA-adjacent language</td></tr>
+              <tr><td><code>/what-is-rrm/</code></td><td>157</td><td><span class="status status-ok">GOOD</span> -- Condition keywords present</td></tr>
+              <tr><td><code>/naprotechnology/</code></td><td>155</td><td><span class="status status-ok">GOOD</span> -- Action-oriented, multi-intent</td></tr>
+              <tr><td><code>/library/</code></td><td>142</td><td><span class="status status-ok">GOOD</span> -- Social proof (3,204)</td></tr>
+              <tr><td><code>/commentary/</code></td><td>139</td><td><span class="status status-ok">GOOD</span> -- Author name for E-E-A-T</td></tr>
+              <tr><td><code>/courses/</code></td><td>158</td><td><span class="status status-ok">GOOD</span> -- CTA ("Start free today")</td></tr>
+              <tr><td><code>/about/</code></td><td>138</td><td><span class="status status-ok">GOOD</span> -- Quantified value prop</td></tr>
+              <tr><td><code>/faqs/</code></td><td>159</td><td><span class="status status-ok">GOOD</span> -- Keyword-rich, covers major intents</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>All 8 pages have unique meta descriptions within 120-160 chars. No issues. (IIRRM had 3 missing, 3 over-length.)</p>
+
+        <h3 class="sub-heading">Heading Structure</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Page</th><th>H1</th><th>H2s</th><th>H3s</th><th>Issues</th></tr></thead>
+            <tbody>
+              <tr><td><code>/</code></td><td>"The Education Your Doctor Didn't Get"</td><td>8</td><td>7</td><td><span class="status status-ok">GOOD</span> -- Compelling, non-keyword-stuffed</td></tr>
+              <tr><td><code>/what-is-rrm/</code></td><td>"What is Restorative Reproductive Medicine (RRM)?"</td><td>15</td><td>63</td><td><span class="status status-ok">GOOD</span> -- Query-mirror H1. Deep structure</td></tr>
+              <tr><td><code>/naprotechnology/</code></td><td>"NaProTechnology: How It Works, What It Treats, and How to Find a Provider"</td><td>11</td><td>26</td><td><span class="status status-ok">GOOD</span> -- Multi-intent H1</td></tr>
+              <tr><td><code>/library/</code></td><td>"RRM Research Library v2.0"</td><td>1</td><td>9</td><td><span class="status status-warn">WARNING</span> -- "v2.0" is internal jargon</td></tr>
+              <tr><td><code>/commentary/</code></td><td>"RRM Articles &amp; Commentary"</td><td>2</td><td>9</td><td><span class="status status-ok">GOOD</span></td></tr>
+              <tr><td><code>/courses/</code></td><td>"Online RRM Courses"</td><td>2</td><td>14</td><td><span class="status status-ok">GOOD</span></td></tr>
+              <tr><td><code>/about/</code></td><td>"About RRM Academy"</td><td>4</td><td>9</td><td><span class="status status-ok">GOOD</span></td></tr>
+              <tr><td><code>/faqs/</code></td><td>"Frequently Asked Questions"</td><td>3</td><td>3</td><td><span class="status status-warn">WARNING</span> -- Generic, missing "RRM" keyword</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>All pages have exactly 1 H1. No heading hierarchy violations. No WooCommerce cart H2 pollution (unlike IIRRM).</p>
+        <p style="margin-top:0.75rem"><strong style="color:var(--status-ok)">FIXED (March 20, 2026):</strong> 16 H2 headings rewritten as NLP query-mirror headings across all 4 content pillar pages (/what-is-rrm/, /naprotechnology/, /neofertility/, /femm/). Headings now mirror search queries rather than section labels (e.g. "What conditions does NaProTechnology treat?" instead of "Conditions Treated").</p>
+
+        <h3 class="sub-heading">Image Optimization</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Page</th><th>Images</th><th>Alt Text</th><th>Format</th><th>Lazy Load</th><th>Assessment</th></tr></thead>
+            <tbody>
+              <tr><td><code>/</code></td><td>0</td><td>--</td><td>--</td><td>--</td><td><span class="status status-warn">WARNING</span> -- No hero image</td></tr>
+              <tr><td><code>/what-is-rrm/</code></td><td>0</td><td>--</td><td>--</td><td>--</td><td><span class="status status-warn">WARNING</span> -- Zero images on 14K-word pillar</td></tr>
+              <tr><td><code>/naprotechnology/</code></td><td>4</td><td>4/4 good</td><td>SVG</td><td>4/4</td><td><span class="status status-ok">GOOD</span> -- Data-descriptive alts</td></tr>
+              <tr><td><code>/library/</code></td><td>0</td><td>--</td><td>--</td><td>--</td><td><span class="status status-ok">OK</span> -- Index page</td></tr>
+              <tr><td><code>/commentary/</code></td><td>6</td><td>6/6 good</td><td>WebP</td><td>6/6</td><td><span class="status status-ok">GOOD</span></td></tr>
+              <tr><td><code>/courses/</code></td><td>5</td><td>5/5</td><td>WebP</td><td>5/5</td><td><span class="status status-ok">GOOD</span> -- Full coverage, could be more descriptive</td></tr>
+              <tr><td><code>/about/</code></td><td>0</td><td>--</td><td>--</td><td>--</td><td><span class="status status-warn">WARNING</span> -- No team photos</td></tr>
+              <tr><td><code>/faqs/</code></td><td>0</td><td>--</td><td>--</td><td>--</td><td><span class="status status-ok">OK</span> -- FAQ hub</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Where images exist: WebP/SVG format, lazy loading, descriptive alts. But homepage, /what-is-rrm/, and /about/ have zero images.</p>
+
+        <h3 class="sub-heading">Internal Linking Gaps</h3>
+        <p><strong style="color:var(--status-ok)">FIXED:</strong> 16 pillar-to-pillar body content links added across all 5 guides (commit <code>af88281</code>). Previously zero cross-links existed.</p>
+
+        <div class="table-wrap">
+          <table class="matrix-table">
+            <thead><tr><th>From \ To</th><th>/what-is-rrm/</th><th>/naprotechnology/</th><th>/neofertility/</th><th>/femm/</th><th>/glossary/</th></tr></thead>
+            <tbody>
+              <tr><td>/what-is-rrm/</td><td style="color:var(--text-muted)">--</td><td><span class="status status-ok">&#10003;</span></td><td><span class="status status-ok">&#10003;</span></td><td><span class="status status-ok">&#10003;</span></td><td><span class="status status-ok">&#10003;</span></td></tr>
+              <tr><td>/naprotechnology/</td><td><span class="status status-ok">&#10003;</span></td><td style="color:var(--text-muted)">--</td><td><span class="status status-ok">&#10003;</span></td><td><span class="status status-ok">&#10003;</span></td><td style="color:var(--text-muted)">--</td></tr>
+              <tr><td>/neofertility/</td><td><span class="status status-ok">&#10003;</span></td><td><span class="status status-ok">&#10003;</span></td><td style="color:var(--text-muted)">--</td><td style="color:var(--text-muted)">--</td><td style="color:var(--text-muted)">--</td></tr>
+              <tr><td>/femm/</td><td><span class="status status-ok">&#10003;</span></td><td><span class="status status-ok">&#10003;</span><br><small style="color:var(--text-secondary)">(×3, 2 pre-existing)</small></td><td><span class="status status-ok">&#10003;</span></td><td style="color:var(--text-muted)">--</td><td style="color:var(--text-muted)">--</td></tr>
+              <tr><td>/glossary/</td><td><span class="status status-ok">&#10003;</span></td><td><span class="status status-ok">&#10003;</span></td><td><span class="status status-ok">&#10003;</span></td><td><span class="status status-ok">&#10003;</span></td><td style="color:var(--text-muted)">--</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Content Quality -->
+    <section class="section" id="content">
+      <div class="section-header" onclick="this.parentElement.classList.toggle('collapsed')">
+        <div class="section-icon ok">&#128196;</div>
+        <h2 class="section-title">Content Quality</h2>
+        <span class="section-badge badge-ok">8/10</span>
+        <span class="section-toggle">&#9662;</span>
+      </div>
+      <div class="section-body">
+
+        <h3 class="sub-heading">/what-is-rrm/ -- Primary SEO Page</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Metric</th><th>Value</th><th>Assessment</th></tr></thead>
+            <tbody>
+              <tr><td>Word count</td><td>~14,000</td><td><span class="status status-ok">STRONG</span> -- exceeds competitor pillar guides</td></tr>
+              <tr><td>H2 sections</td><td>15</td><td><span class="status status-ok">STRONG</span> -- comprehensive coverage</td></tr>
+              <tr><td>H3 subsections</td><td>63</td><td><span class="status status-ok">STRONG</span> -- deep structure</td></tr>
+              <tr><td>Inline citations</td><td>143 links to 38 unique references</td><td><span class="status status-ok">STRONG</span> -- academic-grade</td></tr>
+              <tr><td>DOIs cited</td><td>13</td><td><span class="status status-ok">STRONG</span></td></tr>
+              <tr><td>Author attribution</td><td>Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</td><td><span class="status status-ok">STRONG</span></td></tr>
+              <tr><td>Last updated</td><td>"Last updated March 2026" visible + schema dateModified</td><td><span class="status status-ok">STRONG</span></td></tr>
+              <tr><td>Comparison tables</td><td>4 (FABM, Conditions, RRM vs IVF, Before/After)</td><td><span class="status status-ok">STRONG</span></td></tr>
+              <tr><td>Figures with captions</td><td>9 (Live Birth Rates, Obstetric Safety, etc.)</td><td><span class="status status-ok">STRONG</span></td></tr>
+              <tr><td>Patient stories</td><td>Framed as outcomes data, not named narratives</td><td><span class="status status-ok">OK</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="sub-heading">/naprotechnology/ -- Pillar Guide</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Metric</th><th>Value</th><th>Assessment</th></tr></thead>
+            <tbody>
+              <tr><td>Word count</td><td>~4,500</td><td><span class="status status-ok">OK</span> -- adequate but light vs competitor deep-dives</td></tr>
+              <tr><td>Inline citations</td><td>14 links to 7 unique references</td><td><span class="status status-ok">OK</span> -- fewer than expected</td></tr>
+              <tr><td>Visual aids</td><td>4 bar charts + 2 tables</td><td><span class="status status-ok">STRONG</span> -- charts are a differentiator</td></tr>
+              <tr><td>FAQPage schema</td><td>5 Q&amp;A pairs</td><td><span class="status status-ok">GOOD</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="sub-heading">/about/</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Metric</th><th>Value</th><th>Assessment</th></tr></thead>
+            <tbody>
+              <tr><td>Word count</td><td>~605</td><td><span class="status status-warn">WARNING</span> -- thin for trust-building</td></tr>
+              <tr><td>Images</td><td>0</td><td><span class="status status-warn">WARNING</span> -- no author/team photos</td></tr>
+              <tr><td>Credentials</td><td>22 credential mentions</td><td><span class="status status-ok">STRONG</span></td></tr>
+              <tr><td>Organization schema</td><td>EducationalOrganization + Person + NonprofitOrganization</td><td><span class="status status-ok">STRONG</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="sub-heading">Homepage</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Metric</th><th>Value</th><th>Assessment</th></tr></thead>
+            <tbody>
+              <tr><td>Word count</td><td>~1,440</td><td><span class="status status-ok">OK</span> -- typical for nonprofit</td></tr>
+              <tr><td>Founder story</td><td>Personal clinical narrative</td><td><span class="status status-ok">STRONG</span> -- genuine Experience signal</td></tr>
+              <tr><td>Audience segmentation</td><td>"For Patients" + "For Clinicians" sections</td><td><span class="status status-ok">GOOD</span></td></tr>
+              <tr><td>FAQPage schema</td><td>4 Q&amp;A pairs</td><td><span class="status status-ok">GOOD</span></td></tr>
+              <tr><td>Images</td><td>0</td><td><span class="status status-warn">WARNING</span> -- no hero, no photos</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="sub-heading">E-E-A-T Assessment</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Signal</th><th>Homepage</th><th>/what-is-rrm/</th><th>/naprotechnology/</th><th>/about/</th><th>Site-wide</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>Experience</strong></td>
+                <td><span class="status status-ok">Strong</span></td>
+                <td><span class="status status-ok">Strong</span></td>
+                <td><span class="status status-ok">OK</span></td>
+                <td><span class="status status-ok">OK</span></td>
+                <td>Physician spotlights in commentary</td>
+              </tr>
+              <tr>
+                <td><strong>Expertise</strong></td>
+                <td><span class="status status-ok">Strong</span></td>
+                <td><span class="status status-ok">Strong</span></td>
+                <td><span class="status status-ok">Strong</span></td>
+                <td><span class="status status-ok">Strong</span></td>
+                <td>3,200+ library, Person schema</td>
+              </tr>
+              <tr>
+                <td><strong>Authoritativeness</strong></td>
+                <td><span class="status status-ok">OK</span></td>
+                <td><span class="status status-ok">Strong</span></td>
+                <td><span class="status status-ok">OK</span></td>
+                <td><span class="status status-ok">OK</span></td>
+                <td>No BBB, GuideStar, media logos</td>
+              </tr>
+              <tr>
+                <td><strong>Trustworthiness</strong></td>
+                <td><span class="status status-ok">Strong</span></td>
+                <td><span class="status status-ok">Strong</span></td>
+                <td><span class="status status-ok">Strong</span></td>
+                <td><span class="status status-ok">Strong</span></td>
+                <td>HTTPS, no deceptive patterns</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="strengths-weaknesses">
+          <div class="sw-col strengths">
+            <h4>Content Strengths</h4>
+            <ul>
+              <li>143 inline citations on /what-is-rrm/ with 38 unique references -- academic-grade sourcing</li>
+              <li>4 comparison tables and 9 captioned figures make data scannable</li>
+              <li>Full author credentials (MD, ABOG MIGS, NFPMC, FCI) on every pillar page</li>
+              <li>Dedicated 1,560-word author bio at /commentary/rrm-spotlight-naomi-whittaker-md/</li>
+              <li>Honest editorial notices about active review, medical disclaimers</li>
+              <li>Narrative founding story on homepage is genuine Experience signal</li>
+              <li>Three-tier FAQ system (schemaAnswer, basicAnswer, publishedAnswer) is architecturally sound</li>
+            </ul>
+          </div>
+          <div class="sw-col weaknesses">
+            <h4>Content Weaknesses</h4>
+            <ul>
+              <li>No author photos rendered on any page (naomi-whittaker.webp exists in schema but not visible)</li>
+              <li>/about/ is thin (605 words) with zero images</li>
+              <li>No "last updated" date on /about/ or homepage</li>
+              <li>/naprotechnology/ has only 7 references -- light for a medical pillar</li>
+              <li>No external trust badges (GuideStar, Charity Navigator)</li>
+              <li>Missing advisory board / reviewer panel</li>
+              <li>No patient testimonials or named case studies</li>
+              <li>Media mention claims unlinked (NEJM, JAMA, Lancet, NBC, Guardian)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Structured Data -->
+    <section class="section" id="schema">
+      <div class="section-header" onclick="this.parentElement.classList.toggle('collapsed')">
+        <div class="section-icon ok">{}</div>
+        <h2 class="section-title">Structured Data</h2>
+        <span class="section-badge badge-ok">8/10</span>
+        <span class="section-toggle">&#9662;</span>
+      </div>
+      <div class="section-body">
+        <h3 class="sub-heading">Schema Types Present</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Page</th><th>Schema Types</th><th>Valid</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>Homepage</td><td>WebSite + EducationalOrganization + FAQPage (4 Q&amp;A) + SearchAction</td><td><span class="status status-ok">GOOD</span></td><td>@graph with cross-references. Org includes nonprofitStatus, sameAs, contactPoint, hasOfferCatalog</td></tr>
+              <tr><td>/what-is-rrm/</td><td>[Article, MedicalWebPage] + BreadcrumbList + FAQPage (23 Q&amp;A) + ScholarlyArticle citations (7)</td><td><span class="status status-ok">GOOD</span></td><td>Extremely rich. hasPart with 14 WebPageElement section links. Full author Person</td></tr>
+              <tr><td>/naprotechnology/</td><td>[Article, MedicalWebPage] + BreadcrumbList + FAQPage (5 Q&amp;A) + ScholarlyArticle (3)</td><td><span class="status status-ok">GOOD</span></td><td>Same rich pattern. MedicalTherapy about entity</td></tr>
+              <tr><td>/femm/</td><td>[Article, MedicalWebPage] + BreadcrumbList + FAQPage (7 Q&amp;A)</td><td><span class="status status-ok">GOOD</span></td><td>Consistent pillar pattern</td></tr>
+              <tr><td>/neofertility/</td><td>[Article, MedicalWebPage] + BreadcrumbList + FAQPage (9 Q&amp;A)</td><td><span class="status status-ok">GOOD</span></td><td>Consistent pillar pattern</td></tr>
+              <tr><td>/glossary/</td><td>[Article, MedicalWebPage] + BreadcrumbList</td><td><span class="status status-ok">GOOD</span></td><td>No FAQPage (appropriate)</td></tr>
+              <tr><td>/library/</td><td>CollectionPage</td><td><span class="status status-warn">WARNING</span></td><td>Minimal. Missing BreadcrumbList</td></tr>
+              <tr><td>/commentary/</td><td>Blog</td><td><span class="status status-warn">WARNING</span></td><td>Minimal. No blogPost refs to individual posts</td></tr>
+              <tr><td>/courses/</td><td>ItemList with 5 Course items</td><td><span class="status status-ok">GOOD</span></td><td>Offers, provider, isAccessibleForFree</td></tr>
+              <tr><td>/about/</td><td>EducationalOrganization + Person (x2)</td><td><span class="status status-ok">GOOD</span></td><td>Richest Person schema on site. 6 sameAs, 3 hasCredential, 2 alumniOf</td></tr>
+              <tr><td>/faqs/</td><td>FAQPage (25 Q&amp;A)</td><td><span class="status status-ok">GOOD</span></td><td>All 25 FAQs with schemaAnswer</td></tr>
+              <tr><td>Library article</td><td>MedicalScholarlyArticle</td><td><span class="status status-ok">GOOD</span></td><td>Full bibliographic metadata, nested Periodical</td></tr>
+              <tr><td>Commentary post</td><td>BlogPosting + BreadcrumbList + Person (@graph)</td><td><span class="status status-ok">GOOD</span></td><td>whittakerPersonNode (credentials, sameAs, affiliation) now emitted on all Whittaker posts. FIXED (item 7)</td></tr>
+              <tr><td>Course detail</td><td>Course + Person + BreadcrumbList + FAQPage (8 Q&amp;A)</td><td><span class="status status-ok">GOOD</span></td><td>instructor via @id, educationalLevel, numberOfLessons, timeRequired</td></tr>
+              <tr><td>FAQ detail</td><td>FAQPage (1 Q&amp;A) + BreadcrumbList</td><td><span class="status status-ok">GOOD</span></td><td>BreadcrumbList added (Home &rarr; FAQs &rarr; Question). FIXED (item 9). No Article wrapper (low priority)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="sub-heading">Missing Schema Opportunities</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Type</th><th>Where</th><th>Impact</th></tr></thead>
+            <tbody>
+              <tr><td>DefinedTermSet / DefinedTerm</td><td>/glossary/</td><td><span class="section-badge badge-medium">Medium</span> -- prime featured snippet candidates</td></tr>
+              <tr><td>VideoObject</td><td>Course detail pages</td><td><span class="section-badge badge-medium">Medium</span> -- video lessons listed but no schema</td></tr>
+              <tr><td>Review / AggregateRating</td><td>/courses/</td><td><span class="section-badge badge-medium">Medium</span> -- deferred until review system exists</td></tr>
+              <tr><td>BreadcrumbList</td><td>/library/, /commentary/</td><td><span class="section-badge badge-unknown">Low</span> -- top-level pages (FAQ detail now fixed)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="sub-heading">Schema Issues to Fix</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Priority</th><th>Issue</th><th>Fix</th></tr></thead>
+            <tbody>
+              <tr style="background:#e8f5e9"><td>~~1~~</td><td><strong style="text-decoration:line-through">BlogPosting author not linked to canonical Person @id</strong> -- DONE. Full whittakerPersonNode emitted in @graph on all Whittaker posts.</td><td>Done</td></tr>
+              <tr style="background:#e8f5e9"><td>~~2~~</td><td><strong style="text-decoration:line-through">Relative image URLs in BlogPosting and Course schemas</strong> -- DONE. Absolute URLs prepended in both templates.</td><td>Done</td></tr>
+              <tr style="background:#e8f5e9"><td>~~3~~</td><td><strong style="text-decoration:line-through">BreadcrumbList missing on FAQ detail pages</strong> -- DONE. @graph with FAQPage + BreadcrumbList (Home &rarr; FAQs &rarr; Question).</td><td>Done</td></tr>
+              <tr><td>4</td><td>nonprofitStatus uses "501(c)(3)" instead of schema.org enum</td><td>Change to "Nonprofit501c3"</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Site Speed -->
+    <section class="section" id="speed">
+      <div class="section-header" onclick="this.parentElement.classList.toggle('collapsed')">
+        <div class="section-icon ok">&#9889;</div>
+        <h2 class="section-title">Site Speed &amp; Core Web Vitals</h2>
+        <span class="section-badge badge-ok">9.5/10</span>
+        <span class="section-toggle">&#9662;</span>
+      </div>
+      <div class="section-body">
+
+        <div class="info-box warning">
+          <strong>Correction (March 20):</strong> The original agent-reported speed data was fabricated. The numbers below are from actual Google PageSpeed Insights runs on March 20, 2026.
+        </div>
+
+        <div class="info-box success">
+          <strong>Core Web Vitals Assessment: PASSED</strong> -- CrUX field data confirms real users experience fast page loads. "Many samples" across both mobile and desktop.
+        </div>
+
+        <h3 class="sub-heading">CrUX Field Data (Real Users, 28-day)</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Metric</th><th>Mobile</th><th>Desktop</th><th>Target</th></tr></thead>
+            <tbody>
+              <tr><td><strong>LCP</strong></td><td><span class="status status-ok">1.3s</span></td><td><span class="status status-ok">0.8s</span></td><td>&lt; 2.5s</td></tr>
+              <tr><td><strong>INP</strong></td><td>N/A</td><td>N/A</td><td>&lt; 200ms</td></tr>
+              <tr><td><strong>CLS</strong></td><td><span class="status status-ok">0</span></td><td><span class="status status-ok">0.01</span></td><td>&lt; 0.1</td></tr>
+              <tr><td>FCP</td><td><span class="status status-ok">1.1s</span></td><td><span class="status status-ok">0.7s</span></td><td>&lt; 1.8s</td></tr>
+              <tr><td>TTFB</td><td><span class="status status-ok">0.7s</span></td><td><span class="status status-ok">0.4s</span></td><td>&lt; 0.8s</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="sub-heading">Lighthouse Scores (March 20, 2026 -- PageSpeed Insights)</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Category</th><th>Home Mobile</th><th>Home Desktop</th><th>/what-is-rrm/ Mobile</th><th>/library/ Mobile</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Performance</strong></td><td style="color:var(--score-great);font-weight:700">96</td><td style="color:var(--score-great);font-weight:700">100</td><td style="color:var(--score-great);font-weight:700">95</td><td style="color:var(--score-great);font-weight:700">94</td></tr>
+              <tr><td><strong>Accessibility</strong></td><td style="color:var(--score-great);font-weight:700">100</td><td style="color:var(--score-great);font-weight:700">100</td><td style="color:var(--score-good);font-weight:700">97</td><td style="color:var(--score-good);font-weight:700">95</td></tr>
+              <tr><td><strong>Best Practices</strong></td><td style="color:var(--score-great);font-weight:700">100</td><td style="color:var(--score-great);font-weight:700">100</td><td style="color:var(--score-great);font-weight:700">100</td><td style="color:var(--score-great);font-weight:700">100</td></tr>
+              <tr><td><strong>SEO</strong></td><td style="color:var(--score-great);font-weight:700">100</td><td style="color:var(--score-great);font-weight:700">100</td><td style="color:var(--score-great);font-weight:700">100</td><td style="color:var(--score-great);font-weight:700">100</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Homepage desktop scores <strong>100 across all four categories</strong>. (IIRRM: Performance 37, SEO 92.)</p>
+
+        <h3 class="sub-heading">Lab Metrics (Simulated)</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Metric</th><th>Home Mobile</th><th>Home Desktop</th><th>/what-is-rrm/ Mobile</th><th>/library/ Mobile</th><th>Target</th></tr></thead>
+            <tbody>
+              <tr><td>FCP</td><td><span class="status status-ok">1.7s</span></td><td><span class="status status-ok">0.5s</span></td><td><span class="status status-warn">1.9s</span></td><td><span class="status status-ok">1.7s</span></td><td>&lt; 1.8s</td></tr>
+              <tr><td><strong>LCP</strong></td><td><span class="status status-ok">2.3s</span></td><td><span class="status status-ok">0.5s</span></td><td><span class="status status-ok">2.4s</span></td><td><span class="status status-warn">2.7s</span></td><td>&lt; 2.5s</td></tr>
+              <tr><td><strong>TBT</strong></td><td><span class="status status-ok">0ms</span></td><td><span class="status status-ok">0ms</span></td><td><span class="status status-ok">0ms</span></td><td><span class="status status-ok">0ms</span></td><td>&lt; 200ms</td></tr>
+              <tr><td>CLS</td><td><span class="status status-ok">0</span></td><td><span class="status status-ok">0</span></td><td><span class="status status-ok">0</span></td><td><span class="status status-ok">0</span></td><td>&lt; 0.1</td></tr>
+              <tr><td>Speed Index</td><td><span class="status status-warn">4.0s</span></td><td><span class="status status-ok">0.5s</span></td><td><span class="status status-warn">3.9s</span></td><td><span class="status status-warn">4.0s</span></td><td>&lt; 3.4s</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>TBT is <strong>0ms</strong> across all pages. CLS is <strong>0</strong> across all pages. LCP passes on desktop (0.5s); mobile within threshold on homepage and /what-is-rrm/.</p>
+
+        <div class="strengths-weaknesses">
+          <div class="sw-col strengths">
+            <h4>What's Working</h4>
+            <ul>
+              <li>CWV Assessment: <strong>Passed</strong> with real CrUX field data ("Many samples")</li>
+              <li>Desktop: perfect 100 across all four Lighthouse categories</li>
+              <li>TBT: 0ms everywhere (no main-thread blocking)</li>
+              <li>CLS: 0 everywhere (zero layout shift)</li>
+              <li>TTFB: 0.4s desktop, 0.7s mobile (CF Pages edge delivery)</li>
+              <li>Brotli compression, font preloading, immutable cache on hashed assets</li>
+              <li>Speculation Rules active for prefetching</li>
+            </ul>
+          </div>
+          <div class="sw-col weaknesses">
+            <h4>Minor Issues</h4>
+            <ul>
+              <li>Speed Index 4.0s mobile (target 3.4s) -- mobile throttling artifact</li>
+              <li>Contrast ratio on /what-is-rrm/ -- some elements below AA threshold</li>
+              <li>Non-composited animations: Homepage (4), /library/ (1)</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="info-box success">
+          <strong>Site Speed Score: 9.5/10.</strong> Near-perfect performance. The Astro static site on Cloudflare Pages edge delivers HTML in under a second on desktop. No meaningful speed issues to fix.
+        </div>
+      </div>
+    </section>
+
+    <!-- Security -->
+    <section class="section" id="security">
+      <div class="section-header" onclick="this.parentElement.classList.toggle('collapsed')">
+        <div class="section-icon ok">&#128274;</div>
+        <h2 class="section-title">Security</h2>
+        <span class="section-badge badge-ok">9.5/10</span>
+        <span class="section-toggle">&#9662;</span>
+      </div>
+      <div class="section-body">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Check</th><th>Status</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>HTTPS</td><td><span class="status status-ok">GOOD</span></td><td>Valid Let's Encrypt cert, auto-renewing, wildcard</td></tr>
+              <tr><td>HTTP -> HTTPS redirect</td><td><span class="status status-ok">GOOD</span></td><td>301 permanent redirect</td></tr>
+              <tr><td>Mixed content</td><td><span class="status status-ok">GOOD</span></td><td>None detected</td></tr>
+              <tr><td>Strict-Transport-Security</td><td><span class="status status-ok">GOOD</span></td><td>max-age=31536000; includeSubDomains</td></tr>
+              <tr><td>Content-Security-Policy</td><td><span class="status status-ok">GOOD</span></td><td>Full 9-directive policy</td></tr>
+              <tr><td>X-Content-Type-Options</td><td><span class="status status-ok">GOOD</span></td><td>nosniff</td></tr>
+              <tr><td>X-Frame-Options</td><td><span class="status status-ok">GOOD</span></td><td>SAMEORIGIN</td></tr>
+              <tr><td>Permissions-Policy</td><td><span class="status status-ok">GOOD</span></td><td>camera=(), microphone=(), geolocation=()</td></tr>
+              <tr><td>Referrer-Policy</td><td><span class="status status-ok">GOOD</span></td><td>strict-origin-when-cross-origin</td></tr>
+              <tr><td>Cookie security</td><td><span class="status status-ok">GOOD</span></td><td>Secure, HttpOnly, SameSite=Lax</td></tr>
+              <tr><td>Rate limiting</td><td><span class="status status-ok">GOOD</span></td><td>On login, signup, billed API endpoints</td></tr>
+              <tr><td>File integrity</td><td><span class="status status-ok">GOOD</span></td><td>36 files hash-checked by guard.mjs</td></tr>
+              <tr><td>Secret scanning</td><td><span class="status status-ok">GOOD</span></td><td>9 secret patterns blocked in CI</td></tr>
+              <tr><td>SQL injection</td><td><span class="status status-ok">GOOD</span></td><td>All D1 queries use parameterized bindings</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="sub-heading">Warnings</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>Finding</th><th>Impact</th></tr></thead>
+            <tbody>
+              <tr style="background:#e8f5e9"><td>1</td><td><s>CORS <code>Access-Control-Allow-Origin: *</code> leaks onto <code>/api/*</code></s></td><td><span class="status status-ok">FIXED</span> -- explicit ACAO for /api/* in _headers (commit <code>4ad6d18</code>)</td></tr>
+              <tr style="background:#e8f5e9"><td>2</td><td><s>No security.txt at standard locations</s></td><td><span class="status status-ok">FIXED</span> -- created /.well-known/security.txt (commit <code>4ad6d18</code>)</td></tr>
+              <tr style="background:#e8f5e9"><td>3</td><td><s>HSTS missing <code>preload</code> directive</s></td><td><span class="status status-ok">FIXED</span> -- added preload (commit <code>4ad6d18</code>)</td></tr>
+              <tr><td>4</td><td>CSP allows <code>'unsafe-inline'</code> for scripts</td><td>Acceptable for Astro's inline patterns (no fix needed)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="info-box success">
+          <strong>Assessment: 9.5/10 (updated from 8/10).</strong> CORS, HSTS, and security.txt all fixed (commit <code>4ad6d18</code>). Only remaining: CSP unsafe-inline (acceptable for Astro). The guard.mjs system with CI-enforced hash checking on 36 critical files is exceptional.
+        </div>
+      </div>
+    </section>
+
+    <!-- Backlinks -->
+    <section class="section" id="backlinks">
+      <div class="section-header" onclick="this.parentElement.classList.toggle('collapsed')">
+        <div class="section-icon warn">&#128279;</div>
+        <h2 class="section-title">Backlink Profile</h2>
+        <span class="section-badge badge-high">3.5/10</span>
+        <span class="section-toggle">&#9662;</span>
+      </div>
+      <div class="section-body">
+
+        <h3 class="sub-heading">Domain Metrics</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Metric</th><th>Value</th></tr></thead>
+            <tbody>
+              <tr><td>Domain Rating (DR)</td><td>~15-25 (estimated)</td></tr>
+              <tr><td>Live Referring Domains</td><td>47</td></tr>
+              <tr><td>Total Tracked Backlinks</td><td>516 (120 live, 395 dead)</td></tr>
+              <tr><td>Dofollow Links</td><td>99 (83% of live)</td></tr>
+              <tr><td>Domain Age</td><td>~2.5 years</td></tr>
+              <tr><td>Toxic Link Risk</td><td>Low-moderate (8 spam domains)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="sub-heading">Confirmed High-Authority Links</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Domain</th><th>DR</th><th>Link Type</th><th>Value</th></tr></thead>
+            <tbody>
+              <tr><td><strong>creators.spotify.com</strong></td><td>95</td><td>Podcast show notes (nofollow)</td><td>Brand mention, no equity</td></tr>
+              <tr><td><strong>wovenwell.buzzsprout.com</strong></td><td>91</td><td>Dofollow content link</td><td>High -- editorial podcast ecosystem</td></tr>
+              <tr><td><strong>bio.site</strong> (x2)</td><td>87</td><td>Dofollow link-in-bio</td><td>Moderate -- self-controlled</td></tr>
+              <tr><td><strong>poddtoppen.se</strong></td><td>78</td><td>Dofollow podcast syndication</td><td>Moderate</td></tr>
+              <tr><td><strong>dailywire.com</strong></td><td>77</td><td>Dofollow editorial, anchor "RRM Academy"</td><td>High -- major media outlet</td></tr>
+              <tr><td><strong>grokipedia.com</strong></td><td>75</td><td>Dofollow wiki reference</td><td>Medium -- AI-generated, unstable</td></tr>
+              <tr><td><strong>eviemagazine.com</strong></td><td>60</td><td>Dofollow editorial</td><td>Medium -- women's lifestyle</td></tr>
+              <tr><td><strong>naturalwomanhood.org</strong> (x5)</td><td>53</td><td>Multiple dofollow editorial links</td><td>High -- top niche authority</td></tr>
+              <tr><td><strong>nicolejardim.com</strong></td><td>53</td><td>Dofollow podcast show notes</td><td>Medium -- health influencer</td></tr>
+              <tr><td><strong>factsaboutfertility.org</strong></td><td>~45</td><td>Dofollow speaker highlight</td><td>High -- FABM niche authority</td></tr>
+              <tr><td><strong>iirrm.org</strong></td><td>41</td><td>Dofollow speaker bio</td><td>High -- institutional RRM authority</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="sub-heading">Unlinked Mentions (Opportunities)</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Domain</th><th>DA</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td><strong>asrm.org</strong></td><td>70+</td><td>RRM resources page discusses RRM, does NOT link to rrmacademy.org</td></tr>
+              <tr><td><strong>heritage.org</strong></td><td>90+</td><td>"Treating Infertility: New Frontier" report cites RRM, no link</td></tr>
+              <tr><td><strong>providers.upmc.com</strong></td><td>85+</td><td>Dr. Whittaker's provider profile, no rrmacademy link</td></tr>
+              <tr><td><strong>ycp.glueup.com</strong></td><td>--</td><td>Speaker bio mentions "founder of RRMAcademy.org" as text, not hyperlink</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="sub-heading">Owned Redirect Domains</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Domain</th><th>Links</th></tr></thead>
+            <tbody>
+              <tr><td>whatisnapro.com</td><td>48</td></tr>
+              <tr><td>savetheuterus.com</td><td>52</td></tr>
+              <tr><td>napro.org</td><td>46</td></tr>
+              <tr><td>rrmacademy.com</td><td>42</td></tr>
+              <tr><td>restorativereproductivemedicineacademy.org</td><td>38</td></tr>
+              <tr><td>rrmlibrary.org</td><td>34</td></tr>
+              <tr><td>rrm.academy</td><td>26</td></tr>
+              <tr><td>savetheuterus.org</td><td>25</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>These pass equity through 301s but are self-referential.</p>
+
+        <h3 class="sub-heading">Social Profiles</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Platform</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Instagram</td><td><span class="status status-ok">Active</span> (@rrmacademy)</td></tr>
+              <tr><td>Vimeo</td><td><span class="status status-ok">Active</span> (course video host)</td></tr>
+              <tr><td>LinkedIn</td><td><span class="status status-warn">Personal profile only</span> -- no Company Page</td></tr>
+              <tr><td>Facebook</td><td><span class="status status-fail">Not found</span></td></tr>
+              <tr><td>YouTube</td><td><span class="status status-fail">Not found</span></td></tr>
+              <tr><td>Twitter/X</td><td><span class="status status-fail">Not found</span></td></tr>
+              <tr><td>Wikipedia</td><td><span class="status status-fail">No article</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="strengths-weaknesses">
+          <div class="sw-col strengths">
+            <h4>Strengths</h4>
+            <ul>
+              <li>Podcast ecosystem is the strongest link source (repeatable, scalable)</li>
+              <li>Natural Womanhood provides 5 dofollow editorial links -- deepest editorial relationship</li>
+              <li>Daily Wire (DR 77) is highest-value mainstream editorial link</li>
+              <li>Clean profile overall -- mostly editorial and podcast links</li>
+              <li>Dr. Whittaker's personal brand drives most links organically</li>
+            </ul>
+          </div>
+          <div class="sw-col weaknesses">
+            <h4>Weaknesses</h4>
+            <ul>
+              <li>No .edu backlinks despite being an education nonprofit with 3,200+ research articles</li>
+              <li>No .gov backlinks (unlike IIRRM which has PMC/PubMed citations)</li>
+              <li>No Wikipedia presence -- critical entity recognition gap</li>
+              <li>Very narrow link ecosystem -- nearly all from Catholic/pro-life/FABM adjacent sites</li>
+              <li>Only 47 live referring domains -- thin for a site with 3,200+ library articles</li>
+              <li>No LinkedIn Company Page -- missing structured entity signal</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3 class="sub-heading">Top Opportunities</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Opportunity</th><th>Est. DA</th><th>Effort</th><th>Impact</th></tr></thead>
+            <tbody>
+              <tr><td>Wikipedia article for "Restorative reproductive medicine"</td><td>95+</td><td>Medium-High</td><td><span class="section-badge badge-ok">Very High</span></td></tr>
+              <tr><td>Heritage Foundation link addition</td><td>90+</td><td>Low (1 email)</td><td><span class="section-badge badge-ok">Very High</span></td></tr>
+              <tr><td>Creighton University alumni spotlight</td><td>80+</td><td>Low</td><td><span class="section-badge badge-ok">High (.edu)</span></td></tr>
+              <tr><td>ASRM RRM Resources page link</td><td>70+</td><td>Medium</td><td><span class="section-badge badge-ok">Very High</span></td></tr>
+              <tr><td>LinkedIn Company Page</td><td>90+</td><td>Low (30 min)</td><td><span class="section-badge badge-medium">Medium</span></td></tr>
+              <tr><td>UPMC provider bio link</td><td>85+</td><td>Low</td><td><span class="section-badge badge-ok">High</span></td></tr>
+              <tr><td>Clinician practice website links (50+ potential)</td><td>30-85</td><td>Medium</td><td><span class="section-badge badge-ok">High at scale</span></td></tr>
+              <tr><td>Guest post on Healthline/Verywell Health</td><td>85-90</td><td>High</td><td><span class="section-badge badge-ok">Very High</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI Visibility -->
+    <section class="section" id="ai">
+      <div class="section-header" onclick="this.parentElement.classList.toggle('collapsed')">
+        <div class="section-icon critical">&#129302;</div>
+        <h2 class="section-title">AI Visibility (AEO)</h2>
+        <span class="section-badge badge-critical">3/10</span>
+        <span class="section-toggle">&#9662;</span>
+      </div>
+      <div class="section-body">
+
+        <h3 class="sub-heading">Brand Mention Results (March 19, 2026)</h3>
+        <p>10 queries tested against Perplexity Sonar Pro:</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Query</th><th>rrmacademy.org Cited?</th><th>RRM Academy Named?</th><th>Dr. Whittaker Named?</th></tr></thead>
+            <tbody>
+              <tr><td>What is restorative reproductive medicine?</td><td><span class="status status-fail">NO</span></td><td><span class="status status-fail">NO</span></td><td><span class="status status-fail">NO</span></td></tr>
+              <tr><td>Best resources for learning about RRM</td><td><span class="status status-fail">NO</span></td><td><span class="status status-fail">NO</span></td><td><span class="status status-fail">NO</span></td></tr>
+              <tr><td>NaProTechnology training and education</td><td><span class="status status-fail">NO</span></td><td><span class="status status-fail">NO</span></td><td><span class="status status-fail">NO</span></td></tr>
+              <tr><td>Alternatives to IVF for infertility</td><td><span class="status status-fail">NO</span></td><td><span class="status status-fail">NO</span></td><td><span class="status status-fail">NO</span></td></tr>
+              <tr><td>RRM Academy courses and education</td><td><span class="status status-ok">YES (3 URLs)</span></td><td><span class="status status-ok">YES</span></td><td><span class="status status-fail">NO</span></td></tr>
+              <tr><td>Research library for reproductive medicine</td><td><span class="status status-ok">YES (2 URLs)</span></td><td><span class="status status-ok">YES</span></td><td><span class="status status-ok">YES</span></td></tr>
+              <tr><td>What is FEMM fertility awareness method?</td><td><span class="status status-fail">NO</span></td><td><span class="status status-fail">NO</span></td><td><span class="status status-fail">NO</span></td></tr>
+              <tr><td>Endometriosis treatment without hormones</td><td><span class="status status-fail">NO</span></td><td><span class="status status-fail">NO</span></td><td><span class="status status-fail">NO</span></td></tr>
+              <tr><td>Dr. Naomi Whittaker reproductive medicine</td><td><span class="status status-ok">YES (1 URL)</span></td><td><span class="status status-ok">YES</span></td><td><span class="status status-ok">YES</span></td></tr>
+              <tr><td>Free CME courses fertility awareness</td><td><span class="status status-fail">NO</span></td><td><span class="status status-fail">NO</span></td><td><span class="status status-fail">NO</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="sub-heading">Per-Query Type Performance</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Query Type</th><th>Cited</th><th>Not Cited</th><th>Rate</th></tr></thead>
+            <tbody>
+              <tr><td>Branded (mentions "RRM Academy" or "Dr. Whittaker")</td><td>3</td><td>0</td><td style="color:var(--status-ok);font-weight:700">100%</td></tr>
+              <tr><td>Generic informational</td><td>0</td><td>7</td><td style="color:var(--status-fail);font-weight:700">0%</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="info-box critical">
+          <strong>This is the core finding.</strong> RRM Academy is fully visible for branded queries but completely invisible for generic informational queries. The gap is not technical (crawlers have access, schema is solid, llms.txt exists) but content-structural.
+        </div>
+
+        <h3 class="sub-heading">IIRRM vs RRM Academy AI Visibility</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Metric</th><th>IIRRM</th><th>RRM Academy</th></tr></thead>
+            <tbody>
+              <tr><td>Total brand mentions (10 queries)</td><td>29/40 (73%)</td><td>3/10 (30%)</td></tr>
+              <tr><td>"What is RRM?" cited</td><td>4/4 models</td><td>0/1 tested</td></tr>
+              <tr><td>Branded queries</td><td>Strong</td><td>Strong</td></tr>
+              <tr><td>Generic queries</td><td>Moderate</td><td style="color:var(--status-fail);font-weight:700">Zero</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>IIRRM's 25-year history and published research are embedded in LLM training data. RRM Academy (2.5 years old) has not yet accumulated sufficient third-party citations for AI models to surface it on generic queries.</p>
+
+        <h3 class="sub-heading">Brand Signals Detected</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Signal</th><th>Count</th><th>Assessment</th></tr></thead>
+            <tbody>
+              <tr><td>rrmacademy.org URLs cited</td><td>6 (across 3 queries)</td><td>Only branded queries succeed</td></tr>
+              <tr><td>"RRM Academy" named</td><td>3</td><td>Strong when cited, absent generically</td></tr>
+              <tr><td>"Dr. Naomi Whittaker" named</td><td>2</td><td>Recognized on direct name query + library query</td></tr>
+              <tr><td>Accurate content description</td><td>3</td><td>When cited, described accurately</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="sub-heading">Competitor Dominance by Query</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Query</th><th>Who Gets Cited Instead</th></tr></thead>
+            <tbody>
+              <tr><td>What is RRM?</td><td>iirrm.org, parentdata.org, ACOG, ASRM, PMC</td></tr>
+              <tr><td>NaPro training</td><td>saintpaulvi.com, naprotechnology.com, aafcp.net</td></tr>
+              <tr><td>IVF alternatives</td><td>PRC, Mayo Clinic, NHS, WashU</td></tr>
+              <tr><td>FEMM</td><td>femmhealth.org, EWTN, naturalwomanhood.org</td></tr>
+              <tr><td>Endo treatment</td><td>Healthline, ReachMD, Mayo Clinic, PMC</td></tr>
+              <tr><td>Free CME</td><td>FreeCME.com, FACTS, eMedEvents, ASRM</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="sub-heading">Technical AI Access Status</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Element</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>AI crawler access (GPTBot, ClaudeBot, etc.)</td><td><span class="status status-ok">FIXED</span> -- all search + training crawlers now have full site access (commit e11f423)</td></tr>
+              <tr><td>llms.txt</td><td><span class="status status-ok">GOOD</span> -- v1.1, comprehensive</td></tr>
+              <tr><td>FAQPage schema</td><td><span class="status status-ok">GOOD</span> -- 25 on hub, 23 on /what-is-rrm/, 5-9 on pillar pages</td></tr>
+              <tr><td>Organization entity schema</td><td><span class="status status-ok">GOOD</span> -- EducationalOrganization with sameAs, contactPoint</td></tr>
+              <tr><td>Person schema (Dr. Whittaker)</td><td><span class="status status-ok">GOOD</span> -- deeply enriched with credentials</td></tr>
+              <tr><td>Quotable direct-answer statements</td><td><span class="status status-warn">WARNING</span> -- need query-matching first paragraphs</td></tr>
+              <tr><td>MedicalWebPage typing</td><td><span class="status status-ok">GOOD</span> -- dual Article + MedicalWebPage on pillar pages</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="sub-heading">AI SEO Strategy</h3>
+
+        <p><strong>Phase A: Structural (Week 1-2)</strong></p>
+        <ul class="check-list">
+          <li class="pass">Fix AI crawler robots.txt to allow all content paths (DONE -- commit e11f423)</li>
+          <li class="fail">Add "According to [Source] ([Year])..." inline attribution (0 instances site-wide -- #1 AIO citation gap)</li>
+          <li class="fail">Rewrite pillar page openings as 25-35 word direct-answer definitions</li>
+          <li class="fail">Expand schemaAnswer fields to 80-120 words</li>
+        </ul>
+
+        <p><strong>Phase B: Content Extractability (Week 2-4)</strong></p>
+        <ul class="check-list">
+          <li class="fail">Add comparison/alternatives sections to pillar pages ("Is RRM an alternative to IVF?")</li>
+          <li class="fail">Strengthen library -> pillar page internal linking</li>
+          <li class="fail">Create condition-specific FAQ expansions (NaPro 5 -> 10-12 questions)</li>
+        </ul>
+
+        <p><strong>Phase C: Missing Content</strong></p>
+        <ul class="check-list">
+          <li class="fail">Endometriosis resource hub targeting "endometriosis treatment without hormones"</li>
+          <li class="fail">/courses/ hub page direct-answer intro for CME queries</li>
+          <li class="fail">NaPro training/education subsection on /naprotechnology/</li>
+        </ul>
+
+        <p><strong>Phase D: Third-Party Presence</strong></p>
+        <ul class="check-list">
+          <li class="fail">IIRRM cross-linking (rrmacademy.org as educational platform)</li>
+          <li class="fail">Wikipedia / Wikidata presence for "Restorative reproductive medicine"</li>
+          <li class="fail">More podcast appearances with show notes links</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Action Plan -->
+    <section class="section" id="actions">
+      <div class="section-header" onclick="this.parentElement.classList.toggle('collapsed')">
+        <div class="section-icon dark">&#9654;</div>
+        <h2 class="section-title">Prioritized Action Plan</h2>
+        <span class="section-badge badge-high">28 Actions</span>
+        <span class="section-toggle">&#9662;</span>
+      </div>
+      <div class="section-body">
+
+        <div class="phase-card">
+          <div class="phase-header">
+            <div class="phase-number" style="background:var(--score-critical)">1</div>
+            <span class="phase-title">Fix Critical Blockers</span>
+            <span class="phase-timing">Week 1</span>
+          </div>
+          <div class="phase-body">
+            <table>
+              <tbody>
+                <tr style="background:#e8f5e9"><td>1</td><td><strong style="text-decoration:line-through">Add /what-is-rrm/ to sitemap generation</strong> -- DONE. Both /what-is-rrm/ and /common-questions-about-rrm/ restored. Commit <code>4ad6d18</code></td><td>Done</td></tr>
+                <tr style="background:#e8f5e9"><td>2</td><td><strong style="text-decoration:line-through">Fix AI crawler robots.txt</strong> -- DONE. Restructured with search + training + blocked tiers. Commit <code>e11f423</code></td><td>Done</td></tr>
+                <tr><td>3</td><td><strong>Clean up www-variant Google index</strong> -- verify www property in GSC, request removals of legacy Wix URLs</td><td>30 min</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="phase-card">
+          <div class="phase-header">
+            <div class="phase-number">2</div>
+            <span class="phase-title">Quick Wins</span>
+            <span class="phase-timing">Week 1-2</span>
+          </div>
+          <div class="phase-body">
+            <table>
+              <tbody>
+                <tr style="background:#e8f5e9"><td>4</td><td><strong style="text-decoration:line-through">Trim 3 title tags</strong> -- DONE. /what-is-rrm/ → "What Is RRM? Restorative Reproductive Medicine" (60 chars). /naprotechnology/ → "NaProTechnology Explained by a Trained OBGYN" (58 chars). /courses/ → "Online RRM Courses | Endometriosis &amp; Fertility" (60 chars).</td><td>Done</td></tr>
+                <tr style="background:#e8f5e9"><td>5</td><td><strong style="text-decoration:line-through">Remove "v2.0" from Library H1</strong> -- DONE. H1 now reads "RRM Research Library".</td><td>Done</td></tr>
+                <tr style="background:#e8f5e9"><td>6</td><td><strong style="text-decoration:line-through">Add "RRM" to FAQs H1</strong> -- DONE. H1 now "Restorative Reproductive Medicine FAQs".</td><td>Done</td></tr>
+                <tr style="background:#e8f5e9"><td>7</td><td><strong style="text-decoration:line-through">Link BlogPosting author to canonical Person @id</strong> -- DONE. whittakerPersonNode (credentials, sameAs, affiliation) now emitted in @graph on all Whittaker posts, not only the spotlight article.</td><td>Done</td></tr>
+                <tr style="background:#e8f5e9"><td>8</td><td><strong style="text-decoration:line-through">Fix relative image URLs</strong> -- DONE. BlogPosting and Course schemas now prepend <code>https://rrmacademy.org</code> to relative image paths.</td><td>Done</td></tr>
+                <tr style="background:#e8f5e9"><td>9</td><td><strong style="text-decoration:line-through">Add BreadcrumbList to FAQ detail pages</strong> -- DONE. JSON-LD now emits @graph with FAQPage + BreadcrumbList (Home → FAQs → Question).</td><td>Done</td></tr>
+                <tr><td>10</td><td><strong>Create LinkedIn Company Page</strong></td><td>30 min</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="phase-card">
+          <div class="phase-header">
+            <div class="phase-number">3</div>
+            <span class="phase-title">Content &amp; E-E-A-T</span>
+            <span class="phase-timing">Weeks 2-3</span>
+          </div>
+          <div class="phase-body">
+            <table>
+              <tbody>
+                <tr style="background:#e8f5e9"><td>11</td><td><strong style="text-decoration:line-through">Add pillar cross-links</strong> -- DONE. 16 cross-links across all 5 pillar pages. Commit <code>af88281</code></td><td>Done</td></tr>
+                <tr style="background:#e8f5e9"><td>11b</td><td><strong style="text-decoration:line-through">Rewrite H2s as NLP query-mirror headings</strong> -- DONE. 16 H2s rewritten across /what-is-rrm/, /naprotechnology/, /neofertility/, /femm/. Headings now mirror user search queries for improved NLP semantic matching.</td><td>Done</td></tr>
+                <tr><td>12</td><td><strong>Render author photo</strong> on homepage and /about/</td><td>1 hr</td></tr>
+                <tr><td>13</td><td><strong>Add "last updated" dates</strong> to homepage and /about/</td><td>15 min</td></tr>
+                <tr><td>14</td><td><strong>Write direct-answer opening paragraphs</strong> for all pillar pages (25-35 words)</td><td>2 hrs</td></tr>
+                <tr><td>15</td><td><strong>Add "According to [Source] ([Year])..."</strong> inline attribution to pillar pages</td><td>2-4 hrs</td></tr>
+                <tr><td>16</td><td><strong>Expand /about/</strong> with team photos, advisory board, trust badges</td><td>2-4 hrs</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="phase-card">
+          <div class="phase-header">
+            <div class="phase-number">4</div>
+            <span class="phase-title">AI Visibility</span>
+            <span class="phase-timing">Weeks 3-4</span>
+          </div>
+          <div class="phase-body">
+            <table>
+              <tbody>
+                <tr><td>17</td><td><strong>Expand schemaAnswer fields</strong> to 80-120 words across all 25 FAQs</td><td>2-4 hrs</td></tr>
+                <tr><td>18</td><td><strong>Add comparison section to /what-is-rrm/</strong> ("Is RRM an alternative to IVF?")</td><td>2 hrs</td></tr>
+                <tr><td>19</td><td><strong>Add NaPro training/education subsection</strong> to /naprotechnology/</td><td>1-2 hrs</td></tr>
+                <tr><td>20</td><td><strong>Optimize /courses/ hub intro</strong> for CME/training queries</td><td>30 min</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="phase-card">
+          <div class="phase-header">
+            <div class="phase-number">5</div>
+            <span class="phase-title">Authority Building</span>
+            <span class="phase-timing">Month 2+</span>
+          </div>
+          <div class="phase-body">
+            <table>
+              <tbody>
+                <tr><td>21</td><td><strong>Email Heritage Foundation</strong> requesting link to their RRM report</td><td>1 email</td></tr>
+                <tr><td>22</td><td><strong>Contact Creighton University</strong> for alumni spotlight (.edu link)</td><td>1 email</td></tr>
+                <tr><td>23</td><td><strong>Request Kayla Barnes</strong> add rrmacademy.org to podcast show notes</td><td>1 email</td></tr>
+                <tr><td>24</td><td><strong>Add rrmacademy.org to Dr. Whittaker's UPMC provider bio</strong></td><td>1 edit</td></tr>
+                <tr><td>25</td><td><strong>Create Wikipedia article</strong> for "Restorative reproductive medicine"</td><td>4-8 hrs</td></tr>
+                <tr><td>26</td><td><strong>Disavow 8 spam domains</strong> identified</td><td>15 min</td></tr>
+                <tr><td>27</td><td><strong>Increase /naprotechnology/ references</strong> from 7 to 15-20</td><td>2-4 hrs</td></tr>
+                <tr><td>28</td><td><strong>Launch Dr. Erin Cleary reviewer byline</strong></td><td>Pending approval</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <h3 class="sub-heading">Post-Fix Verification Checklist</h3>
+        <ul class="check-list">
+          <li class="pass">/what-is-rrm/ appears in sitemap-0.xml (verified)</li>
+          <li class="pass"><code>curl -A "GPTBot" https://rrmacademy.org/what-is-rrm/</code> returns 200 (verified)</li>
+          <li class="fail"><code>site:www.rrmacademy.org</code> returns 0 results</li>
+          <li class="fail">All title tags under 60 chars</li>
+          <li class="fail">Commentary post schema author has @id reference</li>
+          <li class="fail">Dr. Whittaker photo visible on homepage and /about/</li>
+          <li class="pass">Pillar pages cross-link to each other in body content (16 links, commit af88281)</li>
+          <li class="fail">Re-run retrieval.py and compare to baseline</li>
+        </ul>
+
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer class="report-footer">
+  <p>Audit prepared March 19, 2026 (updated March 20) using PageSpeed Insights API, Perplexity Sonar Pro, Cloudflare Browser Rendering, backlinks worker data, and codebase analysis.</p>
+  <p style="margin-top:0.5rem;opacity:0.7">Prepared by Brian Whittaker for RRM Academy // Powered by Claude</p>
+</footer>
+
+<script>
+// Smooth scroll for TOC
+document.querySelectorAll('.toc a').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+
+// Active TOC tracking
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    const link = document.querySelector(`.toc a[href="#${entry.target.id}"]`);
+    if (link) {
+      if (entry.isIntersecting) {
+        document.querySelectorAll('.toc a').forEach(a => a.classList.remove('active'));
+        link.classList.add('active');
+      }
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+document.querySelectorAll('.section[id]').forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

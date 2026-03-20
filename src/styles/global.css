@@ -1015,8 +1015,76 @@ blockquote a {
   margin-bottom: var(--space-8);
   font-style: italic;
   display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+.author-byline__photo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.author-byline__text {
+  display: block;
+}
+.byline-author,
+.byline-reviewer {
+  display: inline;
+}
+.byline-author::after {
+  content: ' ·';
+}
+.byline-date {
+  display: block;
+  margin-top: 0.1em;
+}
+@media (min-width: 769px) {
+  .author-byline__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1em;
+  }
+  .byline-author,
+  .byline-reviewer { display: block; }
+  .byline-author::after { content: ''; }
+  .byline-date { display: block; margin-top: 0; }
+}
+.author-avatar-stack {
+  display: flex;
+  flex-shrink: 0;
+}
+.author-avatar-stack .author-byline__photo,
+.author-avatar-stack .author-byline__initials {
+  border: 2px solid var(--bg-page, #f7f5f3);
+  position: relative;
+}
+.author-avatar-stack > *:nth-child(1) { z-index: 4; }
+.author-avatar-stack > *:nth-child(2) { z-index: 3; margin-left: -10px; }
+.author-avatar-stack > *:nth-child(3) { z-index: 2; margin-left: -10px; }
+.author-avatar-stack > *:nth-child(4) { z-index: 1; margin-left: -10px; }
+.author-byline__initials {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--sand-200, #e8e2d9);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-style: normal;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+@media (min-width: 769px) {
+  .author-byline__photo { width: 48px; height: 48px; }
+  .author-byline__initials { width: 48px; height: 48px; font-size: 0.8125rem; }
+  .author-avatar-stack > *:nth-child(2),
+  .author-avatar-stack > *:nth-child(3),
+  .author-avatar-stack > *:nth-child(4) { margin-left: -14px; }
 }
 
 .author-byline strong {
