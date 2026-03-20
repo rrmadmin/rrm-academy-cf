@@ -308,6 +308,7 @@
   var spinnerTimer = null;
 
   function startLoadingSpinner() {
+    stopLoadingSpinner();
     resultsEl.innerHTML = '<p class="sr-loading">Searching <span class="sr-loading-spinner"></span></p>';
     var el = resultsEl.querySelector('.sr-loading-spinner');
     if (!el) return;
@@ -352,6 +353,7 @@
     clearBtn.classList.toggle('hidden', !q);
     clearTimeout(debounceTimer);
     if (!q) {
+      stopLoadingSpinner();
       resultsEl.innerHTML = '';
       preloadedData = [];
       currentQuery = '';
@@ -583,7 +585,7 @@
             var lr = lateResults[li];
             var lrUrl = toRelative(lr.url).toLowerCase();
             var lrRecId = extractRecId(lrUrl);
-            if (existingUrls[lrUrl] || existingUrls[lr.slug && lr.slug.toLowerCase()] || (lrRecId && existingRecIds[lrRecId])) continue;
+            if (existingUrls[lrUrl] || (lrRecId && existingRecIds[lrRecId])) continue;
             preloadedData.push({
               url: lr.url, excerpt: '',
               meta: { title: lr.title, authors: lr.authors || '', year: lr.year ? String(lr.year) : '', type: lr.type || 'Research' },
@@ -733,6 +735,6 @@
   // Results panel positioning handled by CSS
 
   // Preload pagefind on focus for faster first search
-  input.addEventListener('focus', function() { ensurePagefind(); }, { once: true });
+  input.addEventListener('focus', function() { ensurePagefind().catch(function(){}); }, { once: true });
 })();
 </script>
