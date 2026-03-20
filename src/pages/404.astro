@@ -387,10 +387,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   async function loadMore() {
     var batch = currentResults.slice(shown, shown + PER_PAGE);
+    var allData = (await Promise.all(batch.map(function(r) {
+      return r.data().catch(function() { return null; });
+    }))).filter(Boolean);
     var fragment = document.createDocumentFragment();
-    for (var i = 0; i < batch.length; i++) {
-      var data = await batch[i].data();
-      fragment.appendChild(renderResult(data));
+    for (var i = 0; i < allData.length; i++) {
+      fragment.appendChild(renderResult(allData[i]));
     }
     var oldBtn = resultsEl.querySelector('.sr-more');
     if (oldBtn) oldBtn.remove();
@@ -405,10 +407,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
   }
 
+  function toRelative(url) {
+    try { return new URL(url).pathname; } catch(e) { return url; }
+  }
+
   function renderResult(data) {
     var a = document.createElement('a');
     a.className = 'sr-item';
-    a.href = data.url;
+    a.href = toRelative(data.url);
     var title = data.meta && data.meta.title ? data.meta.title : '';
     var authors = data.meta && data.meta.authors ? data.meta.authors : '';
     var year = data.meta && data.meta.year ? data.meta.year : '';
@@ -470,6 +476,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   });
 
   input.addEventListener('input', onInput);
-  input.addEventListener('focus', function() { ensurePagefind(); }, { once: true });
+  input.addEventListener('focus', function() { ensurePagefind().catch(function(){}); }, { once: true });
 })();
 </script>
