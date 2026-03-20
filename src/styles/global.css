@@ -1027,30 +1027,18 @@ blockquote a {
   flex-shrink: 0;
 }
 .author-byline__text {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1em;
 }
-.byline-author,
-.byline-reviewer {
-  display: inline;
+/* reviewer inline layout — mobile only, only when reviewer present */
+@media (max-width: 768px) {
+  .author-byline__text.has-reviewer .byline-author { display: inline; }
+  .author-byline__text.has-reviewer .byline-author::after { content: ' ·'; }
+  .author-byline__text.has-reviewer .byline-reviewer { display: inline; font-size: 0.8125rem; font-style: normal; }
 }
-.byline-author::after {
-  content: ' ·';
-}
-.byline-date {
-  display: block;
-  margin-top: 0.1em;
-}
-@media (min-width: 769px) {
-  .author-byline__text {
-    display: flex;
-    flex-direction: column;
-    gap: 0.1em;
-  }
-  .byline-author,
-  .byline-reviewer { display: block; }
-  .byline-author::after { content: ''; }
-  .byline-date { display: block; margin-top: 0; }
-}
+.byline-reviewer { font-size: 0.8125rem; font-style: normal; }
+.byline-date { display: block; }
 .author-avatar-stack {
   display: flex;
   flex-shrink: 0;
