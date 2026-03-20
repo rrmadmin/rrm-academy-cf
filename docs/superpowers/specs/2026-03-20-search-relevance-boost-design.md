@@ -1,7 +1,7 @@
 # Search Relevance Boost: RRM Relevance + Sentiment Penalty
 
 **Date:** 2026-03-20
-**Status:** Draft
+**Status:** Implemented
 **Scope:** SearchBar.astro RRF fusion, library article template, Pagefind meta
 
 ## Problem
