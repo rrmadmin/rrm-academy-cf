@@ -328,6 +328,7 @@ A zero-dependency Node.js script (`scripts/guard.mjs`) that blocks deployments i
 - `functions/_middleware.js` — auth gating for /account and /community
 - `wrangler.toml` — D1, KV, R2 bindings
 - `scripts/guard.mjs` — self-guarding
+- `src/components/SearchBar.astro` — search UX + RRF fusion (Pagefind init, relevance boost, error resilience)
 
 **Security invariants** (always enforced, even after `guard:update`):
 - All `Access-Control-Allow-Origin` values in `functions/` must be `https://rrmacademy.org`
