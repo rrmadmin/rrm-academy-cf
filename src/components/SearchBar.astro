@@ -324,19 +324,21 @@
   }
 
   // Load Pagefind on first interaction — single shared promise prevents race conditions.
-  // Uses fetch+blob URL instead of direct import() to bypass browser extensions
-  // (e.g. Comet/Perplexity) that strip MIME types from module script responses.
+  // Tries direct import first (fastest), falls back to fetch+blob URL for browsers
+  // whose extensions strip MIME types (e.g. Comet/Perplexity).
   function ensurePagefind() {
     if (!pagefindReady) {
-      pagefindReady = fetch('/pagefind/pagefind.js')
-        .then(function(r) { return r.text(); })
-        .then(function(js) {
-          var blob = new Blob([js], { type: 'application/javascript' });
-          return import(URL.createObjectURL(blob));
-        })
-        .then(function(pf) {
-          return pf.options({ basePath: '/pagefind/' }).then(function() { return pf.init(); }).then(function() { return pf; });
-        });
+      pagefindReady = import('/pagefind/pagefind.js').catch(function() {
+        // Direct import failed (MIME stripped?) — try blob URL with explicit type
+        return fetch('/pagefind/pagefind.js')
+          .then(function(r) { return r.text(); })
+          .then(function(js) {
+            var blob = new Blob([js], { type: 'application/javascript' });
+            return import(URL.createObjectURL(blob));
+          });
+      }).then(function(pf) {
+        return pf.options({ basePath: '/pagefind/' }).then(function() { return pf.init(); }).then(function() { return pf; });
+      });
     }
     return pagefindReady;
   }
@@ -582,6 +584,7 @@
         });
       }
     } catch(e) {
+      console.error('Search failed:', e);
       stopLoadingSpinner();
       if (query !== currentQuery) return;
       resultsEl.innerHTML = '<p class="sr-empty">Search unavailable</p>';
