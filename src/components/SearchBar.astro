@@ -493,16 +493,19 @@
       }
 
       // Recency boost: additive RRF-style term (like a virtual 3rd ranking system)
-      // Current year = rank 0 bonus, tapering to zero at 15+ years old
+      // Uses smaller K (30 vs 60) and gentler age curve so recent papers
+      // meaningfully outrank older keyword-dense papers on broad queries.
+      // 2026: +0.033, 2020: +0.021, 2012: +0.014, 2006: +0.008, <2006: 0
+      var RECENCY_K = 30;
       var currentYear = new Date().getFullYear();
       for (var rKey in fusedMap) {
         var entry = fusedMap[rKey];
         var yr = parseInt(entry.data.meta && entry.data.meta.year, 10);
         if (yr > 0) {
           var age = Math.max(0, currentYear - yr);
-          if (age < 15) {
-            var recencyRank = Math.round(age * 4);
-            entry.score += 1 / (RRF_K + recencyRank);
+          if (age < 20) {
+            var recencyRank = Math.round(age * 2.5);
+            entry.score += 1 / (RECENCY_K + recencyRank);
           }
         }
       }
