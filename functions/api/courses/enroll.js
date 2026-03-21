@@ -17,6 +17,7 @@ import {
 import { log } from '../_log.js';
 import { getCourse, getIncludedCourseIds } from './_shared.js';
 import { sendGA4Event } from '../_ga4.js';
+import { notifyAdminEnrollment } from './_notify-admin.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -69,6 +70,17 @@ async function handleEnroll(request, env, waitUntil) {
   // --- Free course: enroll immediately ---
   if (course.isFree) {
     await enrollUser(db, session.userId, courseId, null);
+    waitUntil((async () => {
+      const user = await db.prepare('SELECT email, name FROM user WHERE id = ?')
+        .bind(session.userId).first();
+      await notifyAdminEnrollment(env, {
+        studentEmail: user?.email || 'unknown',
+        studentName: user?.name || '',
+        courseTitle: course.title,
+        courseId,
+        isFree: true,
+      });
+    })().catch(() => {}));
     waitUntil(sendGA4Event(env, request, 'sign_up', {
       event_category: 'course_enrollment', items: [{ item_name: `Course: ${courseId}` }],
     }).catch(() => {}));
