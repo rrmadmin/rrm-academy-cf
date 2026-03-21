@@ -17,6 +17,7 @@ import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
 import { sendEmailSafe } from './_webhook-shared.js';
 import { verifyAndTagEmail } from '../_elv.js';
+import { notifyAdminEnrollment } from '../courses/_notify-admin.js';
 
 /**
  * @param {D1Database} db
@@ -103,6 +104,14 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
           'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315',
         ].join('\n'),
       });
+      const course = getCourse(courseId);
+      waitUntil(notifyAdminEnrollment(env, {
+        studentEmail: email,
+        studentName: name || '',
+        courseTitle: course?.title || courseId,
+        courseId,
+        isFree: false,
+      }).catch(() => {}));
     } else if (email && !env.AWS_ACCESS_KEY_ID) {
       log(env, waitUntil, 'billing', 'enrollment_email_skipped', 'skipped', `${email} ${courseId} (SES not configured)`);
     }

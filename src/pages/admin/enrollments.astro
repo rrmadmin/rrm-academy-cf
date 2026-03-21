@@ -1,0 +1,356 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import coursesData from '../../data/courses.json';
+const courseMap = Object.fromEntries(coursesData.map(c => [c.id, c.title]));
+---
+<BaseLayout title="Enrollments | Admin" description="Admin enrollment dashboard" noindex={true} bodyClass="admin-page">
+
+  <div class="admin-bar">
+    <div class="container admin-bar__inner">
+      <span class="admin-bar__title">RRM Admin</span>
+      <nav class="admin-bar__nav">
+        <a href="/admin/backlinks/" class="admin-bar__link">Backlinks</a>
+        <a href="/admin/conversions/" class="admin-bar__link">Conversions</a>
+        <a href="/admin/content/" class="admin-bar__link">Content</a>
+        <a href="/admin/email/" class="admin-bar__link">Email</a>
+        <a href="/admin/seo/" class="admin-bar__link">SEO</a>
+        <a href="/admin/revenue/" class="admin-bar__link">Revenue</a>
+        <a href="/admin/enrollments/" class="admin-bar__link admin-bar__link--active">Enrollments</a>
+      </nav>
+      <div class="admin-bar__actions">
+        <a href="/" class="admin-bar__site-link">Return to site</a>
+        <button class="admin-bar__logout" id="logout-btn">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <section id="dashboard" class="en-section">
+    <div class="container">
+
+      <div class="en-header">
+        <h1>Enrollments</h1>
+        <div class="en-controls">
+          <button class="btn btn--primary en-btn" id="refresh-btn">Refresh</button>
+        </div>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="en-metrics en-metrics--4" id="stats-grid">
+        <div class="en-card">
+          <span class="en-card__label">Total Enrollments</span>
+          <span class="en-card__value" id="s-total">--</span>
+        </div>
+        <div class="en-card">
+          <span class="en-card__label">Unique Students</span>
+          <span class="en-card__value" id="s-students">--</span>
+        </div>
+        <div class="en-card">
+          <span class="en-card__label">Last 30 Days</span>
+          <span class="en-card__value en-card__value--green" id="s-30d">--</span>
+        </div>
+        <div class="en-card">
+          <span class="en-card__label">Last 7 Days</span>
+          <span class="en-card__value en-card__value--green" id="s-7d">--</span>
+        </div>
+      </div>
+
+      <!-- Course breakdown -->
+      <h2 class="en-heading">By Course</h2>
+      <div class="en-table-wrap">
+        <table class="en-table">
+          <thead>
+            <tr>
+              <th>Course</th>
+              <th>Total</th>
+              <th>30d</th>
+              <th>7d</th>
+              <th>Completed</th>
+              <th>Paid</th>
+            </tr>
+          </thead>
+          <tbody id="course-tbody">
+            <tr><td colspan="6" class="en-empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Recent enrollments -->
+      <h2 class="en-heading">Recent Enrollments</h2>
+      <div class="en-filters">
+        <select class="form-input en-select" id="filter-course">
+          <option value="">All Courses</option>
+        </select>
+        <button class="btn btn--primary en-btn" id="apply-btn">Apply</button>
+      </div>
+      <div class="en-table-wrap">
+        <table class="en-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Student</th>
+              <th>Email</th>
+              <th>Course</th>
+              <th>Type</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="list-tbody">
+            <tr><td colspan="6" class="en-empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="en-pagination" id="pagination">
+        <button class="btn en-page-btn" id="prev-btn" disabled>&larr; Prev</button>
+        <span class="en-page-info" id="page-info">Page 1</span>
+        <button class="btn en-page-btn" id="next-btn" disabled>Next &rarr;</button>
+      </div>
+
+    </div>
+  </section>
+
+  <script define:vars={{ courseMap }}>
+  (function () {
+    function esc(str) { var d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+    function num(n) { return (n || 0).toLocaleString(); }
+
+    function formatTime(iso) {
+      if (!iso) return '--';
+      var d = new Date(iso + 'Z');
+      if (isNaN(d.getTime())) return '--';
+      return d.toLocaleString('en-US', {
+        timeZone: 'America/New_York',
+        month: 'short', day: 'numeric',
+        hour: 'numeric', minute: '2-digit', hour12: true,
+      });
+    }
+
+    function courseName(id) {
+      return courseMap[id] || id;
+    }
+
+    var currentPage = 1;
+    var totalPages = 1;
+    var courseFilter = '';
+
+    var courseTbody = document.getElementById('course-tbody');
+    var listTbody = document.getElementById('list-tbody');
+    var pageInfo = document.getElementById('page-info');
+    var prevBtn = document.getElementById('prev-btn');
+    var nextBtn = document.getElementById('next-btn');
+    var filterCourse = document.getElementById('filter-course');
+
+    async function apiCall(params) {
+      var qs = params ? '?' + new URLSearchParams(params).toString() : '';
+      var resp = await fetch('/api/admin/enrollments' + qs, { credentials: 'include' });
+      if (resp.status === 401 || resp.status === 403) {
+        window.location.href = '/login/?redirect=/admin/enrollments/';
+        return;
+      }
+      var data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Request failed');
+      return data;
+    }
+
+    async function loadSummary() {
+      try {
+        var resp = await apiCall({ view: 'summary' });
+        var d = resp.data || {};
+        var t = d.totals || {};
+        document.getElementById('s-total').textContent = num(t.total_enrollments);
+        document.getElementById('s-students').textContent = num(t.unique_students);
+        document.getElementById('s-30d').textContent = num(t.last_30d);
+        document.getElementById('s-7d').textContent = num(t.last_7d);
+
+        var courses = d.by_course || [];
+        if (!courses.length) {
+          courseTbody.innerHTML = '<tr><td colspan="6" class="en-empty">No enrollments yet</td></tr>';
+          return;
+        }
+
+        // Populate course filter dropdown
+        filterCourse.innerHTML = '<option value="">All Courses</option>';
+        courses.forEach(function (c) {
+          var opt = document.createElement('option');
+          opt.value = c.course_id;
+          opt.textContent = courseName(c.course_id);
+          filterCourse.appendChild(opt);
+        });
+        if (courseFilter) filterCourse.value = courseFilter;
+
+        courseTbody.innerHTML = courses.map(function (c) {
+          return '<tr>' +
+            '<td>' + esc(courseName(c.course_id)) + '</td>' +
+            '<td><strong>' + num(c.total) + '</strong></td>' +
+            '<td>' + num(c.last_30d) + '</td>' +
+            '<td>' + num(c.last_7d) + '</td>' +
+            '<td>' + num(c.completed) + '</td>' +
+            '<td>' + num(c.paid) + '</td>' +
+            '</tr>';
+        }).join('');
+      } catch (e) {
+        courseTbody.innerHTML = '<tr><td colspan="6" class="en-empty en-error">' + esc(e.message) + '</td></tr>';
+      }
+    }
+
+    async function loadList() {
+      listTbody.innerHTML = '<tr><td colspan="6" class="en-empty">Loading...</td></tr>';
+      try {
+        var params = { view: 'list', page: currentPage };
+        if (courseFilter) params.course_id = courseFilter;
+        var resp = await apiCall(params);
+        var d = resp.data || {};
+        var rows = d.enrollments || [];
+        totalPages = d.pages || 1;
+        currentPage = d.page || 1;
+
+        if (!rows.length) {
+          listTbody.innerHTML = '<tr><td colspan="6" class="en-empty">No enrollments found</td></tr>';
+          updatePagination();
+          return;
+        }
+
+        listTbody.innerHTML = rows.map(function (r) {
+          var isPaid = !!r.stripe_payment_intent;
+          var typeBadge = isPaid
+            ? '<span class="en-badge en-badge--paid">Paid</span>'
+            : '<span class="en-badge en-badge--free">Free</span>';
+          var statusBadge = r.completed_at
+            ? '<span class="en-badge en-badge--completed">Completed</span>'
+            : '<span class="en-badge en-badge--active">Active</span>';
+          return '<tr>' +
+            '<td class="en-col-time">' + esc(formatTime(r.enrolled_at)) + '</td>' +
+            '<td>' + esc(r.name || '--') + '</td>' +
+            '<td class="en-col-email">' + esc(r.email || '--') + '</td>' +
+            '<td>' + esc(courseName(r.course_id)) + '</td>' +
+            '<td>' + typeBadge + '</td>' +
+            '<td>' + statusBadge + '</td>' +
+            '</tr>';
+        }).join('');
+
+        updatePagination();
+      } catch (e) {
+        listTbody.innerHTML = '<tr><td colspan="6" class="en-empty en-error">' + esc(e.message) + '</td></tr>';
+      }
+    }
+
+    function updatePagination() {
+      pageInfo.textContent = 'Page ' + currentPage + ' of ' + totalPages;
+      prevBtn.disabled = currentPage <= 1;
+      nextBtn.disabled = currentPage >= totalPages;
+    }
+
+    // Events
+    document.getElementById('logout-btn').addEventListener('click', async function () {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+      window.location.href = '/login/';
+    });
+
+    document.getElementById('refresh-btn').addEventListener('click', function () {
+      loadSummary();
+      loadList();
+    });
+
+    document.getElementById('apply-btn').addEventListener('click', function () {
+      courseFilter = filterCourse.value;
+      currentPage = 1;
+      loadList();
+    });
+
+    prevBtn.addEventListener('click', function () {
+      if (currentPage > 1) { currentPage--; loadList(); }
+    });
+
+    nextBtn.addEventListener('click', function () {
+      if (currentPage < totalPages) { currentPage++; loadList(); }
+    });
+
+    // Init
+    loadSummary();
+    loadList();
+  })();
+  </script>
+
+</BaseLayout>
+
+<style>
+  :root {
+    --admin-rose-700: #8a606e;
+    --admin-rose-300: #c9a8b2;
+    --admin-bg: #faf8f5;
+    --admin-surface: #ffffff;
+    --admin-border: #d9d3cc;
+    --admin-text: #313131;
+    --admin-text-muted: #636261;
+    --admin-text-faint: #949392;
+  }
+
+  :global(.admin-page) :global(.site-header) { display: none; }
+  :global(.admin-page) :global(footer) { display: none; }
+
+  .admin-bar { background: #3d2a32; color: #f0e5e9; position: sticky; top: 0; z-index: 100; }
+  .admin-bar__inner { display: flex; align-items: center; height: 48px; gap: var(--space-6); }
+  .admin-bar__title { font-family: 'Cormorant Garamond', 'Georgia', serif; font-weight: 600; font-size: 1.25rem; color: var(--admin-rose-300); white-space: nowrap; }
+  .admin-bar__nav { display: flex; gap: var(--space-1); }
+  .admin-bar__link { font-size: 0.8125rem; font-weight: 400; color: rgba(255,255,255,0.6); text-decoration: none; padding: 4px 12px; border-radius: var(--radius-sm); transition: color 0.15s, background 0.15s; }
+  .admin-bar__link:hover { color: #fff; text-decoration: none; }
+  .admin-bar__link--active { color: #fff; background: rgba(255,255,255,0.1); font-weight: 500; }
+  .admin-bar__actions { display: flex; align-items: center; gap: var(--space-3); margin-left: auto; }
+  .admin-bar__site-link { font-size: 0.8125rem; font-weight: 500; color: var(--admin-rose-300); text-decoration: none; padding: 5px 16px; border: 1px solid var(--admin-rose-300); border-radius: var(--radius-pill); transition: color 0.15s, border-color 0.15s; }
+  .admin-bar__site-link:hover { color: #fff; border-color: #fff; text-decoration: none; }
+  .admin-bar__logout { font-size: 0.8125rem; color: rgba(255,255,255,0.5); background: none; border: none; cursor: pointer; padding: 4px 8px; }
+  .admin-bar__logout:hover { color: #fff; }
+
+  .en-section { padding: var(--space-8) 0; background: var(--admin-bg); min-height: 80vh; }
+  .en-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6); flex-wrap: wrap; gap: var(--space-3); }
+  .en-header h1 { margin-bottom: 0; color: var(--admin-text); }
+  .en-controls { display: flex; gap: var(--space-3); align-items: center; }
+  .en-btn { background: var(--admin-rose-700); border-color: var(--admin-rose-700); color: #fff; }
+  .en-btn:hover { background: #764d5e; }
+
+  .en-heading { color: var(--admin-text); margin-bottom: var(--space-4); margin-top: var(--space-6); font-size: 1.125rem; }
+
+  /* Stat cards */
+  .en-metrics { display: grid; gap: var(--space-4); margin-bottom: var(--space-6); }
+  .en-metrics--4 { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 768px) { .en-metrics--4 { grid-template-columns: repeat(2, 1fr); } }
+
+  .en-card { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--radius-md); padding: var(--space-4) var(--space-5); text-align: center; }
+  .en-card__label { display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--admin-text-faint); margin-bottom: var(--space-1); }
+  .en-card__value { display: block; font-size: 1.75rem; font-weight: 700; color: var(--admin-text); font-family: 'Inter', sans-serif; }
+  .en-card__value--green { color: #27ae60; }
+
+  /* Filters */
+  .en-filters { display: flex; gap: var(--space-3); align-items: center; margin-bottom: var(--space-4); flex-wrap: wrap; }
+  .en-select { max-width: 300px; border-color: var(--admin-border); }
+  .en-select:focus { border-color: var(--admin-rose-700); box-shadow: 0 0 0 2px rgba(138,96,110,0.15); outline: none; }
+
+  /* Table */
+  .en-table-wrap { overflow-x: auto; border: 1px solid var(--admin-border); border-radius: var(--radius-md); background: var(--admin-surface); margin-bottom: var(--space-4); }
+  .en-empty { text-align: center; color: var(--admin-text-faint); padding: var(--space-8) var(--space-4); }
+  .en-error { color: #c0392b; }
+
+  /* Pagination */
+  .en-pagination { display: flex; align-items: center; justify-content: center; gap: var(--space-4); margin-bottom: var(--space-4); }
+  .en-page-btn { background: none; border: 1px solid var(--admin-border); color: var(--admin-rose-700); padding: 6px 16px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.8125rem; }
+  .en-page-btn:hover:not(:disabled) { border-color: var(--admin-rose-700); background: #f0e5e9; }
+  .en-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .en-page-info { font-size: 0.8125rem; color: var(--admin-text-muted); }
+
+  .en-col-time { white-space: nowrap; font-size: 0.8125rem; }
+  .en-col-email { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+</style>
+
+<style is:global>
+  .en-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+  .en-table th, .en-table td { padding: var(--space-3) var(--space-4); text-align: left; border-bottom: 1px solid #d9d3cc; }
+  .en-table th { background: #eee5dd; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: #636261; }
+  .en-table tbody tr:last-child td { border-bottom: none; }
+  .en-table tbody tr:hover { background: #f0e5e9; }
+  .en-badge { display: inline-block; padding: 2px 8px; border-radius: var(--radius-sm); font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+  .en-badge--paid { background: #e3f2fd; color: #1565c0; }
+  .en-badge--free { background: #f3e5f5; color: #7b1fa2; }
+  .en-badge--completed { background: #e8f5e9; color: #2e7d32; }
+  .en-badge--active { background: #fff3e0; color: #e65100; }
+</style>
