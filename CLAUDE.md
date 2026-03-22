@@ -367,7 +367,7 @@ When a post needs references, research each one live before inserting. If asked 
 
 CI enforces this: `scripts/verify-citations.mjs` (v2, multi-API cascade) runs on every blog deploy and blocks publication if any citation fails verification.
 
-## Coding Standards (from 36 /arise runs, 414 findings)
+## Coding Standards (from 40 /arise runs, 451 findings)
 
 These are the top recurring bug patterns. Violating any of these will be caught by /arise and cost time to fix. Get them right the first time.
 
@@ -405,6 +405,8 @@ Before shipping any new endpoint or modifying an existing one, verify:
 - [ ] Missing env/binding returns 503, not silent 200
 - [ ] `if (!env.X)` patterns always have an explicit `return new Response(JSON.stringify({error:...}), {status: 503})`
 - [ ] After fixing a pattern in one file, grep for siblings with the same pattern
+- [ ] No `${variable}` inside SQL strings -- use `?` params (D1 prepared statements)
+- [ ] Write/delete SQL with `user_id =` binds from session (`context.data.user.id`), never from request body
 - [ ] Rate limits on any endpoint that calls a billed service
 
 ## Rules
@@ -415,7 +417,7 @@ Before shipping any new endpoint or modifying an existing one, verify:
   - Specific FAQ answer: `rrm-cli get faq <slug> --full`
   - Related content: `rrm-cli related <type> <slug> --type=article`
   - After using content: `rrm-cli annotate <type> <slug> --key=used_for --value="task description"`
-- **When writing or modifying code in `functions/api/`, dispatch the `coder` agent** (`subagent_type: "coder"`). It reads sibling files first and validates against the 5 coding standards above. Do not write endpoint code directly -- always use the coder agent.
+- **When writing or modifying code in `functions/api/`, dispatch the `coder` agent** (`subagent_type: "coder"`). It reads sibling files first and validates against 9 rules + 10 deterministic proof gates. Do not write endpoint code directly -- always use the coder agent.
 - Read relevant `STYLE-GUIDE.md` sections before editing styles
 - Never hardcode colors, spacing, or fonts -- use design tokens
 - Keep edits focused, show before/after summaries
