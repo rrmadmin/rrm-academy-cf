@@ -57,6 +57,12 @@ Full plan in `rrm-router/RRM Router PRD/PRD-Index.md` Post-Launch Roadmap.
 
 ## Queued
 
+### Page Templatization
+
+Full spec at `docs/superpowers/specs/2026-03-21-page-templatization-design.md`. Plan at `docs/plans/2026-03-21-page-templatization-plan.md`.
+
+15 intermediate Astro layouts (PillarLayout, AuthLayout, LegalLayout, etc.) to eliminate per-page SEO drift. 61-check CI proof gate (`verify-seo.mjs`) with 5 tiers: universal SEO (22), type-specific schema (18), AEO/GEO signals (12, pillar + FAQ only), asset integrity (5), site-level (4). Non-blocking initially, blocking for new pages later. Incremental migration with mobile-first Playwright baseline snapshots (375/768/1280px). Commentary excluded from AEO/GEO (personal voice). Provider directory layouts deferred.
+
 ### Admin Content Dashboard Backend
 
 The `/admin/content/` page exists but has no API endpoint (`/api/admin/content`). Needs a backend that queries CF Analytics Engine (or CF Web Analytics API) for page views, sessions, referrers, content category breakdown, and avg duration. The frontend is already built and expects a specific response shape.
