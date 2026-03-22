@@ -874,8 +874,8 @@ code {
             <thead><tr><th>Page</th><th>Images</th><th>Alt Text</th><th>Format</th><th>Lazy Load</th><th>Assessment</th></tr></thead>
             <tbody>
               <tr><td><code>/</code></td><td>0</td><td>--</td><td>--</td><td>--</td><td><span class="status status-warn">WARNING</span> -- No hero image</td></tr>
-              <tr><td><code>/what-is-rrm/</code></td><td>0</td><td>--</td><td>--</td><td>--</td><td><span class="status status-warn">WARNING</span> -- Zero images on 14K-word pillar</td></tr>
-              <tr><td><code>/naprotechnology/</code></td><td>4</td><td>4/4 good</td><td>SVG</td><td>4/4</td><td><span class="status status-ok">GOOD</span> -- Data-descriptive alts</td></tr>
+              <tr><td><code>/what-is-rrm/</code></td><td>1</td><td>1/1 good</td><td>WebP</td><td>eager</td><td><span class="status status-warn">WARNING</span> -- Only image is author byline avatar (48px). No content images on 14K-word pillar</td></tr>
+              <tr><td><code>/naprotechnology/</code></td><td>5</td><td>5/5 good</td><td>SVG + WebP</td><td>4/5</td><td><span class="status status-ok">GOOD</span> -- 4 data SVGs + author byline avatar</td></tr>
               <tr><td><code>/library/</code></td><td>0</td><td>--</td><td>--</td><td>--</td><td><span class="status status-ok">OK</span> -- Index page</td></tr>
               <tr><td><code>/commentary/</code></td><td>6</td><td>6/6 good</td><td>WebP</td><td>6/6</td><td><span class="status status-ok">GOOD</span></td></tr>
               <tr><td><code>/courses/</code></td><td>5</td><td>5/5</td><td>WebP</td><td>5/5</td><td><span class="status status-ok">GOOD</span> -- Full coverage, could be more descriptive</td></tr>
@@ -884,7 +884,7 @@ code {
             </tbody>
           </table>
         </div>
-        <p>Where images exist: WebP/SVG format, lazy loading, descriptive alts. But homepage, /what-is-rrm/, and /about/ have zero images.</p>
+        <p>All pillar pages include a 48px author byline avatar (WebP, eager-loaded, proper alt text). This is metadata, not content imagery. Where content images exist: WebP/SVG format, lazy loading, descriptive alts. Homepage, /what-is-rrm/ (content images), and /about/ remain gaps.</p>
 
         <h3 class="sub-heading">Internal Linking Gaps</h3>
         <p><strong style="color:var(--status-ok)">FIXED:</strong> 16 pillar-to-pillar body content links added across all 5 guides (commit <code>af88281</code>). Previously zero cross-links existed.</p>
