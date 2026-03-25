@@ -115,6 +115,5 @@ async function main() {
 
 main().catch(err => {
   console.error(`Snapshot failed: ${err.message}`);
-  // Non-blocking -- don't fail the deploy over a snapshot error
-  process.exit(0);
+  process.exit(1);
 });
