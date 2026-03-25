@@ -63,12 +63,15 @@ export default function librarySitemaps() {
         const tier2 = [];
         for (const a of articles) {
           if (!a.slug) continue;
-          // lastModified = Airtable record modification time. Reflects when page
-          // content last changed (enrichment, AI commentary, field updates).
-          // Currently uniform (2026-03-12 bulk sync) but diverges as individual
-          // articles are enriched. This is the semantically correct field.
+          // lastModified = D1 updated_at. Reflects when article record last changed.
+          // Format may be ISO 8601 (2026-03-12T04:38:14.000Z) or D1 datetime
+          // (2026-03-25 02:34:34). Normalize to YYYY-MM-DDThh:mm:ssZ for sitemaps.
           const rawDate = a.lastModified;
-          const lastmod = rawDate ? rawDate.split('T')[0] : undefined;
+          let lastmod;
+          if (rawDate) {
+            const d = new Date(rawDate.includes('T') ? rawDate : rawDate.replace(' ', 'T') + 'Z');
+            lastmod = isNaN(d.getTime()) ? rawDate.slice(0, 10) : d.toISOString().replace(/\.\d{3}Z$/, 'Z');
+          }
           const url = {
             loc: `${SITE}/library/${a.slug}/`,
             lastmod,
