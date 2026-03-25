@@ -105,9 +105,7 @@ async function main() {
   if (existing.length > MAX_SNAPSHOTS) {
     const toDelete = existing.slice(0, existing.length - MAX_SNAPSHOTS);
     console.log(`Pruning ${toDelete.length} old snapshots (keeping ${MAX_SNAPSHOTS})`);
-    for (const old of toDelete) {
-      await deleteObject(old);
-    }
+    await Promise.all(toDelete.map(old => deleteObject(old)));
   }
 
   console.log(`Snapshots: ${Math.min(existing.length + 1, MAX_SNAPSHOTS)} stored`);

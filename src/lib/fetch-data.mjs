@@ -12,6 +12,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, renameSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import { fetchWithRetry } from './fetch-retry.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_PATH = join(__dirname, '..', 'data', 'articles.json');
@@ -81,62 +82,8 @@ function sortArticles(articles) {
   return articles;
 }
 
-/** Fetch from the D1 worker with retry logic. Accepts full URL. */
-async function fetchFromWorker(token, url = WORKER_URL) {
-  let res;
-  let lastError;
-  for (let attempt = 0; attempt < 5; attempt++) {
-    try {
-      res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-        signal: AbortSignal.timeout(30000),
-      });
-      lastError = undefined;
-      if (res.ok || (res.status !== 429 && res.status < 500)) break;
-    } catch (e) {
-      lastError = e;
-    }
-    const delay = Math.pow(2, attempt) * 1000;
-    console.warn(`Retry ${attempt + 1}/5 in ${delay / 1000}s...`);
-    await new Promise(r => setTimeout(r, delay));
-  }
-
-  if (lastError) throw lastError;
-  if (!res || !res.ok) {
-    const err = res ? await res.text() : 'No response';
-    throw new Error(`Worker ${res?.status}: ${err}`);
-  }
-
-  return res.json();
-}
-
-/** Fetch a single article. Returns the article object or null if not found. */
-async function fetchSingleFromWorker(token, url) {
-  let res;
-  let lastError;
-  for (let attempt = 0; attempt < 5; attempt++) {
-    try {
-      res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-        signal: AbortSignal.timeout(15000),
-      });
-      lastError = undefined;
-      if (res.ok || (res.status !== 429 && res.status < 500)) break;
-    } catch (e) {
-      lastError = e;
-    }
-    const delay = Math.pow(2, attempt) * 1000;
-    console.warn(`Retry ${attempt + 1}/5 in ${delay / 1000}s...`);
-    await new Promise(r => setTimeout(r, delay));
-  }
-
-  if (lastError) throw lastError;
-  if (res?.status === 404) return null;
-  if (!res || !res.ok) {
-    const err = res ? await res.text() : 'No response';
-    throw new Error(`Worker ${res?.status}: ${err}`);
-  }
-  return res.json();
+function authHeaders(token) {
+  return { Authorization: `Bearer ${token}` };
 }
 
 function writeArticles(articles) {
@@ -168,7 +115,7 @@ async function fetchSingle(recordId) {
   // Fetch single article from worker (returns null on 404)
   console.log(`Fetching single record from D1 worker: ${recordId}`);
   const singleUrl = `${WORKER_URL}?id=${encodeURIComponent(recordId)}`;
-  const record = await fetchSingleFromWorker(token, singleUrl);
+  const record = await fetchWithRetry(singleUrl, { headers: authHeaders(token) }, { timeout: 15000, allow404: true });
 
   // Remove old version of this record (if present)
   const before = articles.length;
@@ -198,19 +145,19 @@ async function fetchSingle(recordId) {
   // Ping Airtable webhook to confirm record was processed (onDeck -> Synced)
   // Kept for backward compatibility with Airtable automation trigger
   const webhookUrl = process.env.AIRTABLE_WEBHOOK_URL;
-  if (!webhookUrl) {
+  if (webhookUrl) {
+    try {
+      const ping = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ record_id: recordId, status: 'processed', articles_count: articles.length }),
+      });
+      console.log(`Airtable webhook: ${ping.ok ? 'confirmed' : ping.status}`);
+    } catch (e) {
+      console.warn(`Airtable webhook ping failed: ${e.message}`);
+    }
+  } else {
     console.warn('AIRTABLE_WEBHOOK_URL not set, skipping webhook ping');
-  }
-  try {
-    if (!webhookUrl) throw new Error('skipped');
-    const ping = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ record_id: recordId, status: 'processed', articles_count: articles.length }),
-    });
-    console.log(`Airtable webhook: ${ping.ok ? 'confirmed' : ping.status}`);
-  } catch (e) {
-    console.warn(`Airtable webhook ping failed: ${e.message}`);
   }
 }
 
@@ -236,7 +183,7 @@ async function fetchAll() {
   }
 
   console.log('Fetching all articles from D1 worker...');
-  const raw = await fetchFromWorker(token);
+  const raw = await fetchWithRetry(WORKER_URL, { headers: authHeaders(token) });
   console.log(`Worker returned ${raw.length} published articles`);
 
   const articles = raw.map(mapWorkerRecord).filter(Boolean);
