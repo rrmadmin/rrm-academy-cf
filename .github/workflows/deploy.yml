@@ -62,9 +62,9 @@ jobs:
         id: data-cache
         with:
           path: src/data
-          key: airtable-data-${{ steps.date.outputs.date }}
+          key: site-data-${{ steps.date.outputs.date }}
           restore-keys: |
-            airtable-data-
+            site-data-
 
       - name: Restore git-committed data files over cache
         run: git checkout HEAD -- src/data/quizzes.json src/data/courses.json src/data/funding-projects.json
