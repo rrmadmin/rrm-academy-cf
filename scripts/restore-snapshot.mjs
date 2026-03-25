@@ -79,12 +79,8 @@ async function main() {
   if (arg === 'latest') {
     target = snapshots[snapshots.length - 1];
   } else {
-    target = snapshots.find(s => s.name.startsWith(arg));
-    if (!target) {
-      // Try reverse (most recent matching prefix)
-      const matches = snapshots.filter(s => s.name.startsWith(arg));
-      target = matches[matches.length - 1];
-    }
+    const matches = snapshots.filter(s => s.name.startsWith(arg));
+    target = matches[matches.length - 1];
   }
 
   if (!target) {

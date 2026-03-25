@@ -312,8 +312,12 @@ async function fetchSingle(recordId) {
   console.log(`\nWrote ${posts.length} posts to ${OUTPUT_PATH}`);
 
   // Ping Airtable webhook to confirm record was processed
-  const webhookUrl = 'https://hooks.airtable.com/workflows/v1/genericWebhook/app1CKV1heL0qH2Oz/wflO4Uy5374Zi4hgI/wtrjleL4JKsEvMa7a';
+  const webhookUrl = process.env.AIRTABLE_BLOG_WEBHOOK_URL;
+  if (!webhookUrl) {
+    console.warn('AIRTABLE_BLOG_WEBHOOK_URL not set, skipping webhook ping');
+  }
   try {
+    if (!webhookUrl) throw new Error('skipped');
     const ping = await fetch(webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

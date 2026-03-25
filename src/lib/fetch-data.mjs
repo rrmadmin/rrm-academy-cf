@@ -197,8 +197,12 @@ async function fetchSingle(recordId) {
 
   // Ping Airtable webhook to confirm record was processed (onDeck -> Synced)
   // Kept for backward compatibility with Airtable automation trigger
-  const webhookUrl = 'https://hooks.airtable.com/workflows/v1/genericWebhook/app78UTVdeFph9qhL/wflCWOVSQdw1B8DVJ/wtrtpAQok7EXF3coj';
+  const webhookUrl = process.env.AIRTABLE_WEBHOOK_URL;
+  if (!webhookUrl) {
+    console.warn('AIRTABLE_WEBHOOK_URL not set, skipping webhook ping');
+  }
   try {
+    if (!webhookUrl) throw new Error('skipped');
     const ping = await fetch(webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
