@@ -71,7 +71,7 @@ export async function onRequestPost(context) {
       },
       body: JSON.stringify({
         event_type: 'publish',
-        client_payload: { recordId: recordId },
+        client_payload: { article_id: recordId },
       }),
     });
 

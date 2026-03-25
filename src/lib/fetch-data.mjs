@@ -1,73 +1,70 @@
 /**
- * Standalone script to fetch Airtable data and cache as JSON.
- * Run: AIRTABLE_PAT=xxx node src/lib/fetch-data.mjs
+ * Fetch library articles from the D1 enrichment worker and cache as JSON.
+ * Run: WORKER_AUTH_TOKEN=xxx node src/lib/fetch-data.mjs
  *
- * Single-record mode: RECORD_ID=recXXX fetches one record, merges into
- * existing articles.json cache. Used by repository_dispatch to avoid
- * re-fetching 3000+ articles for a single change.
+ * Single-record mode: RECORD_ID=recXXX fetches all articles from the worker,
+ * finds the matching record, and merges into existing articles.json cache.
+ * Used by repository_dispatch to update a single article without a full rebuild.
+ *
+ * Replaces the previous Airtable-based fetch (Priority 4: D1 cutover).
  */
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync, renameSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import { API_URL, FIELDS } from './airtable-config.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_PATH = join(__dirname, '..', 'data', 'articles.json');
 const DRY_RUN = process.argv.includes('--dry-run');
 
-// --- Record mapping (shared between full fetch and single-record) ---
+const WORKER_URL = 'https://rrm-library-worker.administrator-cloudflare.workers.dev/articles';
 
-function mapRecord(record) {
-  const f = record.fields;
-  const slug = f['⚡️ SEO:Slug'];
-  const title = f['⚡️ Title'];
-  if (!slug || !title) return null;
+// --- Worker response mapping ---
 
-  const oaFlag = f['⚡️ Is Open Access'] || '';
-  const isOpenAccess = oaFlag === 'Open Access';
-  const accessLevel = isOpenAccess ? 'open' : 'restricted';
+/**
+ * Map a worker article object to the articles.json schema.
+ * The worker returns camelCase fields; this normalizes types for Astro components.
+ */
+function mapWorkerRecord(r) {
+  if (!r.slug || !r.title) return null;
 
   return {
-    id: record.id,
-    slug: slug.trim().toLowerCase(),
-    title: title.replace(/\.\s*$/, ''),
-    authors: f['⚡️ Author(s)'] || '',
-    shortCitation: f['⚡️ Short Citation'] || '',
-    year: f['⚡️ Year'] ? Number(f['⚡️ Year']) : null,
-    abstract: f['⚡️ Abstract'] || '',
-    journal: f['⚡️ Journal'] || '',
-    journalAbbv: f['⚡️ Journal Abbv'] || '',
-    doi: f['⚡️ DOI'] || '',
-    pmid: '',
-    sourceUrl: f['⚡️ Source URL'] || '',
-    datePublished: f['⚡️ Date Published'] || '',
-    volume: f['⚡️ Volume'] || '',
-    issue: f['⚡️ Issue'] || '',
-    pages: f['⚡️ Pages'] || '',
-    keywords: f['⚡️ Keywords'] || '',
-    apaCitation: f['⚡️ Citation'] || '',
-    vancouverCitation: f['⚡️ Vancouver Citation'] || '',
-    mlaCitation: f['⚡️ MLA Citation'] || '',
-    topics: f['⚡️ Topics (AI)']
-      ? f['⚡️ Topics (AI)'].split('\n').map(t => t.trim()).filter(Boolean)
-      : [],
-    searchTerms: f['⚡️ Search Terms (AI)']
-      ? f['⚡️ Search Terms (AI)'].split('\n').map(t => t.trim()).filter(Boolean)
-      : [],
-    enrichmentStatus: f['Sync to RRM Library'] || '',
-    identifiers: oaFlag ? [oaFlag] : [],
-    isOpenAccess,
-    isCopyrighted: oaFlag === '©',
-    oaType: '',
-    license: '',
-    oaUrl: '',
-    accessLevel,
-    sentiment: f['⚡️ Sentiment (AI)'] || '',
-    rrmRelevance: f['⚡️ RRM Relevance (AI)'] || '',
-    domain: f['⚡️ Domain (AI)'] || '',
-    lastModified: f['Last Modified'] || '',
-    dateAddedToLibrary: record.createdTime || '',
+    id: r.id,
+    slug: (r.slug || '').trim().toLowerCase(),
+    title: (r.title || '').replace(/\.\s*$/, ''),
+    authors: r.authors || '',
+    shortCitation: r.shortCitation || '',
+    year: r.year ?? null,
+    abstract: r.abstract || '',
+    journal: r.journal || '',
+    journalAbbv: r.journalAbbv || '',
+    doi: r.doi || '',
+    pmid: r.pmid || '',
+    sourceUrl: r.sourceUrl || '',
+    datePublished: r.datePublished || '',
+    volume: r.volume || '',
+    issue: r.issue || '',
+    pages: r.pages || '',
+    // Worker returns keywords as JSON array; Astro components expect a string
+    keywords: Array.isArray(r.keywords) ? r.keywords.join(', ') : (r.keywords || ''),
+    apaCitation: r.apaCitation || '',
+    vancouverCitation: r.vancouverCitation || '',
+    mlaCitation: r.mlaCitation || '',
+    topics: Array.isArray(r.topics) ? r.topics : [],
+    searchTerms: Array.isArray(r.searchTerms) ? r.searchTerms : [],
+    enrichmentStatus: r.enrichmentStatus || '',
+    identifiers: Array.isArray(r.identifiers) ? r.identifiers : [],
+    isOpenAccess: !!r.isOpenAccess,
+    isCopyrighted: !!r.isCopyrighted,
+    oaType: r.oaType || '',
+    license: r.license || '',
+    oaUrl: r.oaUrl || '',
+    accessLevel: r.accessLevel || 'restricted',
+    sentiment: r.sentiment || '',
+    rrmRelevance: r.rrmRelevance || '',
+    domain: r.domain || '',
+    lastModified: r.lastModified || '',
+    dateAddedToLibrary: r.dateAddedToLibrary || '',
   };
 }
 
@@ -84,24 +81,15 @@ function sortArticles(articles) {
   return articles;
 }
 
-// --- Single-record merge mode ---
-
-async function fetchSingle(recordId) {
-  const pat = process.env.AIRTABLE_PAT;
-  if (!pat) {
-    console.error('Error: AIRTABLE_PAT environment variable required');
-    process.exit(1);
-  }
-
-  const url = `${API_URL}/${recordId}`;
-
-  console.log(`Fetching single record: ${recordId}`);
+/** Fetch from the D1 worker with retry logic. Accepts full URL. */
+async function fetchFromWorker(token, url = WORKER_URL) {
   let res;
   let lastError;
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
       res = await fetch(url, {
-        headers: { Authorization: `Bearer ${pat}` },
+        headers: { Authorization: `Bearer ${token}` },
+        signal: AbortSignal.timeout(30000),
       });
       lastError = undefined;
       if (res.ok || (res.status !== 429 && res.status < 500)) break;
@@ -116,12 +104,56 @@ async function fetchSingle(recordId) {
   if (lastError) throw lastError;
   if (!res || !res.ok) {
     const err = res ? await res.text() : 'No response';
-    throw new Error(`Airtable ${res?.status}: ${err}`);
+    throw new Error(`Worker ${res?.status}: ${err}`);
   }
 
-  const record = await res.json();
-  const syncStatus = record.fields?.['Sync to RRM Library'];
-  const isSynced = syncStatus === 'Synced' || syncStatus === 'onDeck';
+  return res.json();
+}
+
+/** Fetch a single article. Returns the article object or null if not found. */
+async function fetchSingleFromWorker(token, url) {
+  let res;
+  let lastError;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      res = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+        signal: AbortSignal.timeout(15000),
+      });
+      lastError = undefined;
+      if (res.ok || (res.status !== 429 && res.status < 500)) break;
+    } catch (e) {
+      lastError = e;
+    }
+    const delay = Math.pow(2, attempt) * 1000;
+    console.warn(`Retry ${attempt + 1}/5 in ${delay / 1000}s...`);
+    await new Promise(r => setTimeout(r, delay));
+  }
+
+  if (lastError) throw lastError;
+  if (res?.status === 404) return null;
+  if (!res || !res.ok) {
+    const err = res ? await res.text() : 'No response';
+    throw new Error(`Worker ${res?.status}: ${err}`);
+  }
+  return res.json();
+}
+
+function writeArticles(articles) {
+  mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
+  const tmpPath = OUTPUT_PATH + '.tmp';
+  writeFileSync(tmpPath, JSON.stringify(articles, null, 2));
+  renameSync(tmpPath, OUTPUT_PATH);
+}
+
+// --- Single-record merge mode ---
+
+async function fetchSingle(recordId) {
+  const token = process.env.WORKER_AUTH_TOKEN;
+  if (!token) {
+    console.error('Error: WORKER_AUTH_TOKEN environment variable required');
+    process.exit(1);
+  }
 
   // Load existing articles.json
   let articles = [];
@@ -133,20 +165,24 @@ async function fetchSingle(recordId) {
     return fetchAll();
   }
 
+  // Fetch single article from worker (returns null on 404)
+  console.log(`Fetching single record from D1 worker: ${recordId}`);
+  const singleUrl = `${WORKER_URL}?id=${encodeURIComponent(recordId)}`;
+  const record = await fetchSingleFromWorker(token, singleUrl);
+
   // Remove old version of this record (if present)
   const before = articles.length;
   articles = articles.filter(a => a.id !== recordId);
   const wasPresent = articles.length < before;
 
-  if (!isSynced) {
-    // Record is no longer synced -- remove it
+  if (!record) {
     if (wasPresent) {
-      console.log(`Record ${recordId} sync="${syncStatus}" -- removed from articles.json`);
+      console.log(`Record ${recordId} removed from articles.json`);
     } else {
-      console.log(`Record ${recordId} sync="${syncStatus}" -- not in articles.json, nothing to do`);
+      console.log(`Record ${recordId} not in articles.json -- nothing to do`);
     }
   } else {
-    const article = mapRecord(record);
+    const article = mapWorkerRecord(record);
     if (!article) {
       console.log(`Record ${recordId} missing slug or title -- skipped`);
     } else {
@@ -156,26 +192,21 @@ async function fetchSingle(recordId) {
   }
 
   sortArticles(articles);
-
-  mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
-  const tmpPath = OUTPUT_PATH + '.tmp';
-  writeFileSync(tmpPath, JSON.stringify(articles, null, 2));
-  renameSync(tmpPath, OUTPUT_PATH);
+  writeArticles(articles);
   console.log(`\nWrote ${articles.length} articles to ${OUTPUT_PATH}`);
 
   // Ping Airtable webhook to confirm record was processed (onDeck -> Synced)
+  // Kept for backward compatibility with Airtable automation trigger
   const webhookUrl = 'https://hooks.airtable.com/workflows/v1/genericWebhook/app78UTVdeFph9qhL/wflCWOVSQdw1B8DVJ/wtrtpAQok7EXF3coj';
-  if (webhookUrl) {
-    try {
-      const ping = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ record_id: recordId, status: 'processed', articles_count: articles.length }),
-      });
-      console.log(`Airtable webhook: ${ping.ok ? 'confirmed' : ping.status}`);
-    } catch (e) {
-      console.warn(`Airtable webhook ping failed: ${e.message}`);
-    }
+  try {
+    const ping = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ record_id: recordId, status: 'processed', articles_count: articles.length }),
+    });
+    console.log(`Airtable webhook: ${ping.ok ? 'confirmed' : ping.status}`);
+  } catch (e) {
+    console.warn(`Airtable webhook ping failed: ${e.message}`);
   }
 }
 
@@ -194,65 +225,21 @@ async function fetchAll() {
     return;
   }
 
-  const pat = process.env.AIRTABLE_PAT;
-  if (!pat) {
-    console.error('Error: AIRTABLE_PAT environment variable required');
+  const token = process.env.WORKER_AUTH_TOKEN;
+  if (!token) {
+    console.error('Error: WORKER_AUTH_TOKEN environment variable required');
     process.exit(1);
   }
 
-  const articles = [];
-  let offset;
-  let page = 0;
+  console.log('Fetching all articles from D1 worker...');
+  const raw = await fetchFromWorker(token);
+  console.log(`Worker returned ${raw.length} published articles`);
 
-  const formula = encodeURIComponent("{Sync to RRM Library}='Synced'");
-  const fieldsParams = FIELDS.map(f => `fields[]=${encodeURIComponent(f)}`).join('&');
-
-  do {
-    page++;
-    const url = `${API_URL}?${fieldsParams}&filterByFormula=${formula}&pageSize=100${
-      offset ? `&offset=${offset}` : ''
-    }`;
-
-    let res;
-    let lastError;
-    for (let attempt = 0; attempt < 5; attempt++) {
-      try {
-        res = await fetch(url, {
-          headers: { Authorization: `Bearer ${pat}` },
-        });
-        lastError = undefined;
-        if (res.ok || (res.status !== 429 && res.status < 500)) break;
-      } catch (e) {
-        lastError = e;
-      }
-      const delay = Math.pow(2, attempt) * 1000;
-      console.warn(`Retry ${attempt + 1}/5 in ${delay / 1000}s...`);
-      await new Promise(r => setTimeout(r, delay));
-    }
-
-    if (lastError) throw lastError;
-    if (!res || !res.ok) {
-      const err = res ? await res.text() : 'No response';
-      throw new Error(`Airtable ${res?.status}: ${err}`);
-    }
-
-    const data = await res.json();
-    offset = data.offset;
-
-    for (const record of data.records) {
-      const article = mapRecord(record);
-      if (article) articles.push(article);
-    }
-
-    console.log(`Page ${page}: ${data.records.length} records (${articles.length} total)`);
-  } while (offset);
+  const articles = raw.map(mapWorkerRecord).filter(Boolean);
+  console.log(`Mapped ${articles.length} valid articles (${raw.length - articles.length} skipped)`);
 
   sortArticles(articles);
-
-  mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
-  const tmpPath = OUTPUT_PATH + '.tmp';
-  writeFileSync(tmpPath, JSON.stringify(articles, null, 2));
-  renameSync(tmpPath, OUTPUT_PATH);
+  writeArticles(articles);
   console.log(`\nWrote ${articles.length} articles to ${OUTPUT_PATH}`);
 }
 

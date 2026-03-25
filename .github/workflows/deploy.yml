@@ -17,7 +17,7 @@ on:
   workflow_dispatch:
     inputs:
       skip_fetch:
-        description: 'Skip Airtable data fetch (use cached data from last run)'
+        description: 'Skip data fetch (use cached data from last run)'
         required: false
         default: 'false'
         type: boolean
@@ -84,15 +84,16 @@ jobs:
       - name: Fetch single library article (dispatch)
         if: ${{ github.event.client_payload.article_id }}
         env:
-          AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
+          WORKER_AUTH_TOKEN: ${{ secrets.WORKER_AUTH_TOKEN }}
           RECORD_ID: ${{ github.event.client_payload.article_id }}
         run: |
           npm run fetch-data
           echo "Articles: $(node -e "console.log(require('./src/data/articles.json').length)")"
 
-      - name: Fetch all data from Airtable
+      - name: Fetch all data
         if: ${{ github.event_name != 'push' && !inputs.skip_fetch && !github.event.client_payload.record_id && !github.event.client_payload.article_id && steps.data-cache.outputs.cache-hit != 'true' }}
         env:
+          WORKER_AUTH_TOKEN: ${{ secrets.WORKER_AUTH_TOKEN }}
           AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
           TINIFY_API_KEY: ${{ secrets.TINIFY_API_KEY }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

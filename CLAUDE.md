@@ -16,7 +16,7 @@
   - `repository_dispatch` with `record_id` (blog post publish from editorial base)
   - `workflow_dispatch` (manual, optional skip_fetch)
 - **Build**: `npm run build` (runs `astro build && npx pagefind --site dist`)
-- **Data**: `AIRTABLE_PAT=xxx npm run fetch-all` then `npm run build`
+- **Data**: `WORKER_AUTH_TOKEN=xxx AIRTABLE_PAT=xxx npm run fetch-all` then `npm run build`
 - **Router Worker**: `~/iCode/projects/rrm-router/src/index.js`
 - **Wix site code**: `~/iCode/projects/rrm-academy-wix/`
 
@@ -32,23 +32,18 @@ Two Airtable bases feed the library. Never confuse them.
 ### Literature Pipeline
 
 ```
-Greenbase: Wiki (Add) table          ← Rose bot or manual entry
-    │  BIFID enrichment pipeline
+D1 (rrm-library)                     ← enrichment worker writes published articles
+    │  rrm-library-worker /articles endpoint (Bearer auth)
     ▼
-Greenbase: BIFID table               ← master record, all enrichment metadata
-    │  Airtable base-to-base sync (automatic)
-    │  (triggered by "Sync to RRM Library" = "Synced" on BIFID record)
-    ▼
-Yellowbase: ⚡️ Synced Literature     ← curated public fields only
-    │  Airtable automation: sets "onDeck", sends repository_dispatch with article_id
-    ▼
-GitHub Actions: fetch-data.mjs       ← single-record mode (accepts onDeck or Synced)
+GitHub Actions: fetch-data.mjs       ← WORKER_AUTH_TOKEN, full or single-record (?id=xxx)
     ▼
 src/data/articles.json → Astro build → rrmacademy.org/library
-    │  On success: pings Airtable webhook → automation sets "Synced"
+    │  On success: pings Airtable webhook (backward compat with yellowbase automation)
 ```
 
-**Config:** Base/table IDs in `src/lib/airtable-config.mjs`. Filter: `{Sync to RRM Library}='Synced'`.
+**Legacy trigger:** Yellowbase Airtable automation still fires repository_dispatch with `article_id`. The fetch now reads from D1, not Airtable.
+
+**Worker endpoint:** `https://rrm-library-worker.administrator-cloudflare.workers.dev/articles` (all) or `?id=recXXX` (single).
 
 ### Blog Pipeline
 
