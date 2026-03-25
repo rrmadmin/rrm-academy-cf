@@ -313,19 +313,19 @@ async function fetchSingle(recordId) {
 
   // Ping Airtable webhook to confirm record was processed
   const webhookUrl = process.env.AIRTABLE_BLOG_WEBHOOK_URL;
-  if (!webhookUrl) {
+  if (webhookUrl) {
+    try {
+      const ping = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ record_id: recordId, status: 'processed', posts_count: posts.length }),
+      });
+      console.log(`Airtable webhook: ${ping.ok ? 'confirmed' : ping.status}`);
+    } catch (e) {
+      console.warn(`Airtable webhook ping failed: ${e.message}`);
+    }
+  } else {
     console.warn('AIRTABLE_BLOG_WEBHOOK_URL not set, skipping webhook ping');
-  }
-  try {
-    if (!webhookUrl) throw new Error('skipped');
-    const ping = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ record_id: recordId, status: 'processed', posts_count: posts.length }),
-    });
-    console.log(`Airtable webhook: ${ping.ok ? 'confirmed' : ping.status}`);
-  } catch (e) {
-    console.warn(`Airtable webhook ping failed: ${e.message}`);
   }
 }
 
