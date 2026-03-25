@@ -77,6 +77,7 @@ jobs:
           TINIFY_API_KEY: ${{ secrets.TINIFY_API_KEY }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          AIRTABLE_BLOG_WEBHOOK_URL: ${{ secrets.AIRTABLE_BLOG_WEBHOOK_URL }}
         run: |
           npm run fetch-blog
           echo "Posts: $(node -e "console.log(require('./src/data/posts.json').length)")"
@@ -86,6 +87,7 @@ jobs:
         env:
           WORKER_AUTH_TOKEN: ${{ secrets.WORKER_AUTH_TOKEN }}
           RECORD_ID: ${{ github.event.client_payload.article_id }}
+          AIRTABLE_WEBHOOK_URL: ${{ secrets.AIRTABLE_WEBHOOK_URL }}
         run: |
           npm run fetch-data
           echo "Articles: $(node -e "console.log(require('./src/data/articles.json').length)")"
@@ -98,6 +100,8 @@ jobs:
           TINIFY_API_KEY: ${{ secrets.TINIFY_API_KEY }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          AIRTABLE_WEBHOOK_URL: ${{ secrets.AIRTABLE_WEBHOOK_URL }}
+          AIRTABLE_BLOG_WEBHOOK_URL: ${{ secrets.AIRTABLE_BLOG_WEBHOOK_URL }}
         run: |
           npm run fetch-all
           echo "Articles: $(node -e "console.log(require('./src/data/articles.json').length)")"
@@ -132,7 +136,9 @@ jobs:
 
       - name: Verify blog citations
         if: ${{ github.event.client_payload.record_id }}
-        run: node scripts/verify-citations.mjs --record "${{ github.event.client_payload.record_id }}"
+        env:
+          RECORD_ID: ${{ github.event.client_payload.record_id }}
+        run: node scripts/verify-citations.mjs --record "$RECORD_ID"
 
       - name: Verify all blog citations (full rebuild)
         if: ${{ github.event_name != 'push' && !github.event.client_payload.record_id && !github.event.client_payload.article_id }}
