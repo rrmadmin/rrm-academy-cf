@@ -50,7 +50,7 @@ const jsonLd = {
 
       <h2 class="sr-only">Available Courses</h2>
       <div class="courses-grid animate-enter" style="--stagger: 2;">
-        {coursesData.map((course, i) => (
+        {coursesData.filter((c: any) => !c.comingSoon).map((course, i) => (
           <CourseCard course={course} eager={i < 2} />
         ))}
       </div>
