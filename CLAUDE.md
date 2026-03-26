@@ -43,7 +43,7 @@ src/data/articles.json → Astro build → rrmacademy.org/library
 
 **Legacy trigger:** Yellowbase Airtable automation still fires repository_dispatch with `article_id`. The fetch now reads from D1, not Airtable.
 
-**Worker endpoint:** `https://rrm-library-worker.administrator-cloudflare.workers.dev/articles` (all) or `?id=recXXX` (single).
+**Worker endpoint:** `https://rrm-library-worker.administrator-cloudflare.workers.dev/articles` (all) or `?id=recXXX` (single). Filters: `is_published = 1 AND is_retracted = 0 AND type NOT IN ('faq', 'post', 'course', 'guide')`. Use exclusion filter (NOT IN) so new research types are included by default.
 
 ### Blog Pipeline
 
@@ -62,7 +62,7 @@ src/data/posts.json → Astro build → rrmacademy.org/commentary
 
 ### Full Rebuild
 
-`fetch-all` fetches all 4 data sources: articles, posts, FAQs, courses. Runs on push-to-main and workflow_dispatch (unless skip_fetch). GitHub Actions caches data per day (`airtable-data-YYYY-MM-DD`).
+`fetch-all` fetches all 4 data sources: articles, posts, FAQs, courses. Cache key: `site-data-YYYY-MM-DD` (ET timezone). `workflow_dispatch` always fetches fresh (bypasses cache). `repository_dispatch` uses cache. `push` events skip fetch entirely.
 
 ## Docs
 
