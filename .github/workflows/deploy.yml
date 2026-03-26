@@ -170,23 +170,6 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name rrm-academy
 
-      - name: Rebuild dedupe index
-        if: ${{ always() && steps.deploy.outcome == 'success' }}
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          KV_NAMESPACE_ID: ${{ secrets.LIBRARY_INDEX_KV_ID }}
-        run: node scripts/rebuild-dedupe-index.mjs
-        continue-on-error: true
-
-      - name: Re-embed library vectors
-        if: ${{ steps.deploy.outcome == 'success' }}
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: node scripts/embed-library-ci.mjs
-        continue-on-error: true
-
       - name: Notify Observatory
         if: always()
         run: |
