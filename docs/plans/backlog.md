@@ -46,7 +46,7 @@ Full plan in `rrm-router/RRM Router PRD/PRD-Index.md` Post-Launch Roadmap.
 - **Layer 3: Brand-Facts page** -- `/brand-facts` with Wikipedia-style org facts, EIN, credentials
 - **Layer 4: Machine-readable brand data** -- `public/.well-known/brand-facts.json`
 - ~~**Layer 5: Schema markup audit**~~ DONE -- all major types implemented (MedicalScholarlyArticle, BlogPosting, FAQPage, Course, ItemList, DefinedTermSet, Organization, Person)
-- **Layer 6: Third-party citation building** -- Wikidata page, press page, resource directory outreach, Reddit engagement
+- **Layer 6: Third-party citation building** -- ~~Wikidata entries~~ IN PROGRESS (spec + plan at `~/iCode/docs/superpowers/specs/2026-03-25-wikidata-rrm-entries-design.md` and `~/iCode/docs/superpowers/plans/2026-03-25-wikidata-rrm-entries.md`). Fix NaPro Q23815908 classification + create RRM item. ~14 day execution. Press page, resource directory outreach, Reddit engagement still pending
 
 ### Community
 
