@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Commentary Batch 1 Review</title>
+<style>
+  :root {
+    --bg: #faf9f7;
+    --surface: #fff;
+    --text: #313131;
+    --text2: #555;
+    --text3: #888;
+    --accent: #725e7e;
+    --accent-light: #f0eaf3;
+    --border: #e5e2dd;
+    --green: #2d7d46;
+    --green-light: #e8f5e9;
+    --blue: #1a6fb5;
+    --blue-light: #e3f0fa;
+    --amber: #b58a1a;
+    --amber-light: #fdf4e3;
+    --font-heading: 'Cormorant Garamond', Georgia, serif;
+    --font-body: 'Inter', -apple-system, system-ui, sans-serif;
+    --radius: 10px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: var(--font-body); background: var(--bg); color: var(--text); line-height: 1.7; }
+
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .header h1 {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .header .meta {
+    font-size: 0.8125rem;
+    color: var(--text3);
+  }
+
+  .tabs {
+    display: flex;
+    gap: 0;
+    background: var(--surface);
+    border-bottom: 2px solid var(--border);
+    padding: 0 2rem;
+    overflow-x: auto;
+  }
+  .tab {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text3);
+    cursor: pointer;
+    border: none;
+    background: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    white-space: nowrap;
+    transition: all 0.15s;
+    font-family: var(--font-body);
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .tab .tab-num {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    text-align: center;
+    border-radius: 50%;
+    background: var(--border);
+    color: var(--text3);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    margin-right: 0.5rem;
+  }
+  .tab.active .tab-num {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .content {
+    max-width: 740px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 4rem;
+  }
+
+  /* Article meta bar */
+  .article-meta {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    font-size: 0.8125rem;
+  }
+  .article-meta dt { color: var(--text3); font-weight: 500; }
+  .article-meta dd { color: var(--text); margin-bottom: 0.5rem; }
+  .article-meta .full-width { grid-column: 1 / -1; }
+
+  .post-type {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .type-question { background: var(--amber-light); color: var(--amber); }
+  .type-means { background: var(--blue-light); color: var(--blue); }
+  .type-appointment { background: var(--green-light); color: var(--green); }
+  .type-good-care { background: var(--accent-light); color: var(--accent); }
+  .type-not-alone { background: #f3e8f5; color: #7b2d8e; }
+
+  .layer-badge {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    background: var(--border);
+    color: var(--text2);
+    margin-left: 0.5rem;
+  }
+
+  /* Prose */
+  .prose h2 {
+    font-family: var(--font-heading);
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1.25;
+    margin-bottom: 1.5rem;
+    color: var(--text);
+  }
+  .prose p {
+    margin-bottom: 1.25rem;
+    font-size: 0.9375rem;
+  }
+  .prose strong {
+    font-weight: 600;
+    color: var(--text);
+  }
+  .prose .lead {
+    font-size: 1.0625rem;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.65;
+  }
+  .prose .subhead {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    color: var(--text);
+  }
+
+  /* Actionable close box */
+  .action-box {
+    background: var(--accent-light);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 1.25rem 1.5rem;
+    margin: 2rem 0;
+  }
+  .action-box h3 {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--accent);
+  }
+  .action-box ul {
+    margin: 0;
+    padding-left: 1.25rem;
+  }
+  .action-box li {
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+  }
+
+  /* Library link */
+  .library-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin-top: 2rem;
+    font-size: 0.8125rem;
+    color: var(--text2);
+    text-decoration: none;
+    transition: border-color 0.15s;
+  }
+  .library-link:hover { border-color: var(--accent); }
+  .library-link .lib-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--accent-light);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 0.875rem;
+  }
+
+  /* Status badges */
+  .status {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 100px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .status-drafted { background: var(--green-light); color: var(--green); }
+  .status-pending { background: var(--amber-light); color: var(--amber); }
+
+  .byline {
+    font-size: 0.8125rem;
+    color: var(--text3);
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Citation chain */
+  .citation-chain {
+    margin-top: 2rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .citation-chain summary {
+    padding: 1rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .citation-chain summary::before {
+    content: '\25B6';
+    font-size: 0.625rem;
+    color: var(--text3);
+    transition: transform 0.15s;
+  }
+  .citation-chain[open] summary::before {
+    transform: rotate(90deg);
+  }
+  .citation-chain summary::-webkit-details-marker { display: none; }
+  .citation-chain .chain-body {
+    padding: 1rem 1.25rem;
+    background: var(--bg);
+    font-size: 0.8125rem;
+    line-height: 1.8;
+  }
+  .citation-chain .chain-body h4 {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text3);
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  .citation-chain .chain-body h4:first-child { margin-top: 0; }
+  .citation-chain .chain-body ul {
+    padding-left: 1.25rem;
+    margin: 0;
+  }
+  .citation-chain .chain-body li {
+    margin-bottom: 0.375rem;
+    color: var(--text2);
+  }
+  .citation-chain .chain-body li strong {
+    color: var(--text);
+  }
+
+  /* Patient angle box */
+  .patient-angle {
+    background: #fef9f0;
+    border-left: 3px solid var(--amber);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+  }
+  .patient-angle h3 {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--amber);
+  }
+  .patient-angle p {
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: var(--text2);
+  }
+
+  /* Evidence summary */
+  .evidence-summary {
+    background: var(--blue-light);
+    border-left: 3px solid var(--blue);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+  }
+  .evidence-summary h3 {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--blue);
+  }
+  .evidence-summary ul {
+    margin: 0;
+    padding-left: 1.25rem;
+  }
+  .evidence-summary li {
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+    color: var(--text2);
+  }
+
+  @media (max-width: 640px) {
+    .tabs { padding: 0 1rem; }
+    .content { padding: 1.5rem 1rem 3rem; }
+    .article-meta { grid-template-columns: 1fr; }
+  }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="header">
+  <h1>Commentary Batch 1 Review</h1>
+  <div class="meta">8 posts / 2 drafted, 6 planned / March 2026</div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="1"><span class="tab-num">1</span>NaPro Outcomes</button>
+  <button class="tab" data-tab="2"><span class="tab-num">2</span>Body Literacy</button>
+  <button class="tab" data-tab="3"><span class="tab-num">3</span>NCL/S-MAP</button>
+  <button class="tab" data-tab="4"><span class="tab-num">4</span>PCOS</button>
+  <button class="tab" data-tab="5"><span class="tab-num">5</span>Male Factor</button>
+  <button class="tab" data-tab="6"><span class="tab-num">6</span>RPL/Miscarriage</button>
+  <button class="tab" data-tab="7"><span class="tab-num">7</span>Endo Outcomes</button>
+  <button class="tab" data-tab="8"><span class="tab-num">8</span>Cycle Science</button>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 1: NaPro Outcomes (DRAFTED) -->
+<!-- ============================================================ -->
+<div class="panel active" id="panel-1">
+<div class="content">
+  <div class="article-meta">
+    <div class="full-width">
+      <span class="post-type type-means">"Here's what that means for you"</span>
+      <span class="status status-drafted" style="margin-left:0.5rem">DRAFTED</span>
+      <span class="layer-badge">Layer 4</span>
+    </div>
+    <div><dt>Source article</dt><dd>Sanchez-Mendez et al., Frontiers in Reproductive Health, 2025</dd></div>
+    <div><dt>PMID</dt><dd>41323405</dd></div>
+    <div><dt>Domain</dt><dd>NaPro / Infertility</dd></div>
+    <div><dt>Key number</dt><dd>Ch. 51 fecundability NaPro 3.11 vs Rock 1.82</dd></div>
+  </div>
+
+  <h2 class="prose">1,310 Couples. Five Years. One Clinic. A 62.1% Take-Home Baby Rate.</h2>
+  <div class="byline">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</div>
+
+  <div class="prose">
+    <p class="lead">That number needs context. The study by Sanchez-Mendez et al. (2025, Frontiers in Reproductive Health) ran retrospectively across a 5-year cohort of infertile couples treated with NaProTechnology. More than a quarter of them had already failed conventional ART. Mean female age was 35. The median infertility duration was 24 months before they walked in.</p>
+
+    <p>The crude take-home baby rate was 35.3%. That is 463 live births in 1,310 couples. The actuarially adjusted cumulative rate, accounting for the median treatment duration of 10.9 months, reached 62.1%. These are not the same number dressed differently. The crude rate captures what the observation window could see. The adjusted rate models what the full cohort achieves given adequate time.</p>
+
+    <p class="subhead">The age bands are the most clinically useful numbers in this paper.</p>
+
+    <p>83.7% adjusted THBR for women aged 18-30. 53.3% for ages 36-40. 24.4% for women over 40. A 38-year-old sitting across the desk asking "is it too late?" gets a real answer here, not a shrug toward the nearest ART clinic.</p>
+
+    <p class="subhead">What the diagnoses tell us.</p>
+
+    <p>The average couple in this cohort carried 2.5 diagnosable conditions. Endometriosis, hormonal dysfunction, male factor, and endometrial disorders were each identified as independent positive predictors of a take-home baby. Read that again: having a diagnosis, including endometriosis, predicted better outcomes than having none. The mechanism is not mysterious. Diagnosis enables treatment. No diagnosis means treating nothing. What conventional medicine calls "unexplained infertility" is, in this cohort, a workup that has not been completed yet.</p>
+
+    <p>Recurrent pregnancy loss as the reason for consultation was also a positive predictor. These are not the easiest patients. They are the ones medicine has already sent away.</p>
+
+    <p class="subhead">The male partner is in this data.</p>
+
+    <p>Mean male age was 36.9 years. Male factor appeared as an independent predictor of success. Both partners were evaluated and both were treated. Couples, not individual patients, are the unit of care.</p>
+
+    <p class="subhead">Limitations worth naming.</p>
+
+    <p>This is a retrospective, single-center study. The adjusted cumulative rate depends on actuarial modeling and dropout assumptions. The authors conducted sensitivity analysis, which is appropriate, but the precise figure is model-dependent. There is no concurrent comparison arm. One clinic's outcomes reflect that clinic's protocols and surgical expertise. The 62.1% figure should be read as a real-world signal from a rigorous NaProTechnology center, not a universal guarantee.</p>
+
+    <p class="subhead">What this adds to the evidence base.</p>
+
+    <p>This is the largest single-center NaProTechnology cohort published to date. Stanford, Parnell, and Boyle (2008) established baseline outcomes in an Irish general practice. Tham, Schliep, and Stanford (2012) replicated in a Canadian setting. De Groot et al. (2018) contributed European data. The 2025 Sanchez-Mendez study works with a harder population: older, longer-infertile, with prior ART failures in the denominator. The evidence base keeps growing. It keeps pointing the same direction.</p>
+
+    <p>Couples who have been told their infertility is unexplained have not been fully evaluated. The evaluation comes first. The treatment follows. The take-home baby is the result.</p>
+  </div>
+
+  <div class="action-box">
+    <h3>What to bring to your next appointment</h3>
+    <ul>
+      <li>Ask your provider how many diagnosable conditions they have evaluated for. The average in this study was 2.5 per couple.</li>
+      <li>If you have been told your infertility is "unexplained," ask specifically: have we looked at endometriosis, hormonal dysfunction, endometrial pathology, and male factor?</li>
+      <li>If you are over 35, know that age-stratified data exists. 53.3% cumulative THBR at 36-40 is not a reason to stop looking. It is a reason to start the diagnostic process now.</li>
+      <li>Ask whether both partners have been fully evaluated. Male factor was a positive predictor when treated.</li>
+    </ul>
+  </div>
+
+  <details class="citation-chain">
+    <summary>Citation Chain</summary>
+    <div class="chain-body">
+      <h4>Textbook Chapters (Hilgers, The Medical & Surgical Practice of NaProTechnology)</h4>
+      <ul>
+        <li><strong>Ch. 40</strong> -- NaProTechnology outcomes overview: cumulative pregnancy rates across multiple diagnostic categories</li>
+        <li><strong>Ch. 51</strong> -- Fecundability comparison: <strong>NaPro 3.11 vs Rock 1.82</strong>, the core superiority metric for targeted treatment vs empiric approaches</li>
+        <li><strong>Ch. 38</strong> -- Diagnostic protocol: the systematic multi-system evaluation that identifies 2.5 conditions per couple on average</li>
+      </ul>
+      <h4>Network References</h4>
+      <ul>
+        <li><strong>Stanford, Parnell, Boyle 2008</strong> -- Outcomes of NaProTechnology in an Irish general practice: first major replication cohort, established baseline pregnancy rates</li>
+        <li><strong>Tham, Schliep, Stanford 2012</strong> -- Canadian replication cohort: confirmed outcomes in a different healthcare system and population</li>
+        <li><strong>de Groot et al. 2018</strong> -- European NaPro data: expanded the geographic and demographic range of the evidence base</li>
+      </ul>
+    </div>
+  </details>
+
+  <div class="library-link">
+    <div class="lib-icon">&#x1F4C4;</div>
+    <div>
+      <strong>Read the full study in the RRM Research Library</strong><br>
+      Sanchez-Mendez et al. (2025). Natural procreative technology for infertility: take-home baby rate and clinical outcomes. PMID: 41323405
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 2: Body Literacy (DRAFTED) -->
+<!-- ============================================================ -->
+<div class="panel" id="panel-2">
+<div class="content">
+  <div class="article-meta">
+    <div class="full-width">
+      <span class="post-type type-not-alone">"You're not doing this alone"</span>
+      <span class="status status-drafted" style="margin-left:0.5rem">DRAFTED</span>
+      <span class="layer-badge">Layer 2</span>
+    </div>
+    <div><dt>Source article</dt><dd>Wainwright et al., Reproductive Health, 2025</dd></div>
+    <div><dt>PMID</dt><dd>40846945</dd></div>
+    <div><dt>Domain</dt><dd>Body Literacy / Fertility Awareness</dd></div>
+    <div><dt>Key number</dt><dd>94.5% accuracy (Ch. 61) vs 41% can't ID fertile window</dd></div>
+  </div>
+
+  <h2 class="prose">Four in Ten Women Trying to Conceive Cannot Identify Their Own Fertile Window</h2>
+  <div class="byline">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</div>
+
+  <div class="prose">
+    <p class="lead">You have probably been there. Months of trying, apps with conflicting predictions, and the creeping feeling that you are doing something wrong. Here is the thing: you are not doing something wrong. You were never taught.</p>
+
+    <p>A 2025 study in Reproductive Health surveyed 97,414 women in the UK who were actively trying to conceive. Forty-one percent of them could not accurately identify their fertile window. That is not a general population number. These are women who were already motivated enough to seek out a health assessment while trying for a pregnancy.</p>
+
+    <p class="subhead">Irregular cycles compound the problem dramatically.</p>
+
+    <p>Women with irregular cycles had a fertile window awareness rate of just 26.8%, compared to 73.9% in women with regular cycles. Misidentifying your cycle as regular when it is not nearly tripled the odds of not knowing your fertile window (OR = 2.99). Nearly 1 in 4 women with irregular cycles had no idea when they were fertile.</p>
+
+    <p class="subhead">The youngest women are the least informed.</p>
+
+    <p>Among women under 25, only 42.5% correctly identified their fertile window. Knowledge improved with age, reaching 67.1% in the 36-40 cohort, before dropping again after 45. Younger women who conceive later after prolonged trying will arrive in fertility clinics with years of misdirected effort behind them.</p>
+
+    <p class="subhead">Basic cycle literacy is also missing.</p>
+
+    <p>16.7% of women did not know their own cycle length. Among women who described their cycles as regular, 10% still could not state their cycle length. And 1.5% of the cohort reported their cycle and period as the same length. That is a fundamental misunderstanding of menstrual physiology that no app will fix.</p>
+
+    <p class="subhead">Longer time trying correlates with lower knowledge.</p>
+
+    <p>Women trying for over 12 months showed lower fertile window knowledge (53.7%) than those trying under 12 months (62.6%). The longer you struggle without structured guidance, the less confident you become. That is not a personal failing. It is what happens when the healthcare system tells couples to "just relax and try for a year" without teaching them anything about their biology.</p>
+
+    <p class="subhead">What charting changes.</p>
+
+    <p>In RRM, Creighton Model charting closes this gap from the first appointment. The chart makes the fertile window visible in real time. It removes the guesswork. It creates a data record that informs every clinical decision that follows. But it does more than that. It reveals what the cycle is actually telling you: ovulation timing, luteal phase adequacy, mucus quality, cycle length variation. Irregular cycles are not just inconvenient. They are a clinical signal that prompts evaluation for PCOS, thyroid dysfunction, luteal phase defect, and other treatable conditions.</p>
+
+    <p>The appropriate response to cycle confusion is not a better app. It is a clinical workup with a provider who reads your chart.</p>
+
+    <p class="subhead">A note on the study.</p>
+
+    <p>This research was funded by Hertility Health Ltd, a UK company that sells digital fertility assessments. Their business model benefits from demonstrating knowledge gaps. That does not invalidate the findings (the sample size is enormous and the direction aligns with other literature), but it is worth knowing. The study also collected no data from male partners, despite conception being a couple process.</p>
+  </div>
+
+  <div class="action-box">
+    <h3>What this means for you</h3>
+    <ul>
+      <li>If you are charting, you are already ahead of 41% of women trying to conceive. That is not a small thing.</li>
+      <li>If your cycles are irregular, do not accept "that's just how your body is." Irregular cycles are a clinical finding, not a personality trait. Ask for evaluation.</li>
+      <li>If you have been trying for more than 12 months and no one has taught you to identify your fertile window with precision, that is a gap in your care, not a gap in your effort.</li>
+      <li>Ask your provider: can you read my chart? If they cannot, that tells you something about the care model.</li>
+    </ul>
+  </div>
+
+  <details class="citation-chain">
+    <summary>Citation Chain</summary>
+    <div class="chain-body">
+      <h4>Textbook Chapters (Hilgers, The Medical & Surgical Practice of NaProTechnology)</h4>
+      <ul>
+        <li><strong>Ch. 61</strong> -- Creighton Model System accuracy: <strong>94.5% accuracy</strong> in identifying the fertile window, the precision benchmark against which the 41% gap becomes clinically alarming</li>
+        <li><strong>Ch. 14</strong> -- Cervical mucus biomarkers: the physiological basis for charting-based fertile window identification, the biological observations that make real-time cycle monitoring possible</li>
+      </ul>
+      <h4>Network References</h4>
+      <ul>
+        <li><strong>Stanford 2015</strong> -- Fertility-awareness-based methods in clinical practice: review of charting accuracy and clinical utility across multiple FABM systems</li>
+        <li><strong>Fehring et al.</strong> -- Cervical mucus and ovulation correlation studies: independent validation of mucus-based charting as a reliable proxy for ovulation timing</li>
+      </ul>
+    </div>
+  </details>
+
+  <div class="library-link">
+    <div class="lib-icon">&#x1F4C4;</div>
+    <div>
+      <strong>Read the full study in the RRM Research Library</strong><br>
+      Wainwright et al. (2025). Fertility awareness in 97,414 women trying to conceive. PMID: 40846945
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 3: NCL/S-MAP (Naomi's Work) -->
+<!-- ============================================================ -->
+<div class="panel" id="panel-3">
+<div class="content">
+  <div class="article-meta">
+    <div class="full-width">
+      <span class="post-type type-good-care">"This is what good care looks like"</span>
+      <span class="status status-pending">PLANNED</span>
+      <span class="layer-badge">Layer 3</span>
+    </div>
+    <div><dt>Source article</dt><dd>Whittaker AAGL 2024 case series (NCL/S-MAP)</dd></div>
+    <div><dt>PMID</dt><dd>Presentation data</dd></div>
+    <div><dt>Domain</dt><dd>Endometriosis / Surgical Technique</dd></div>
+    <div><dt>Key number</dt><dd>89.1% of "normal" laps had missed endo (Ch. 63); 4 cancers found, p = 0.0000000001</dd></div>
+  </div>
+
+  <h2 class="prose">The Surgery That Found What Everyone Else Missed</h2>
+  <div class="byline">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</div>
+
+  <div class="patient-angle">
+    <h3>Patient Angle</h3>
+    <p>Case D was told to get a hysterectomy. Instead, she got an NCL with S-MAP protocol. They found cancer no one else had seen, treated it, and she brought home a baby. That is the difference between a surgery that removes organs and one that investigates them. When 89.1% of laparoscopies previously called "normal" reveal missed endometriosis under near-contact lens magnification, the question is not whether the disease was there. The question is whether anyone looked hard enough to find it.</p>
+  </div>
+
+  <div class="evidence-summary">
+    <h3>Key Evidence</h3>
+    <ul>
+      <li><strong>89.1%</strong> of prior "normal" laparoscopies had missed endometriosis when re-examined with NCL technique (Hilgers Ch. 63)</li>
+      <li><strong>4 occult cancers found</strong> incidentally during systematic mapping -- probability of finding this many by chance: 0.0000000001</li>
+      <li>S-MAP (Systematic Mapping and Pathology) protocol ensures every peritoneal surface is examined and biopsied, not just visually obvious lesions</li>
+      <li>Case D: recommended for hysterectomy elsewhere, NCL/S-MAP revealed treatable pathology including malignancy, preserved fertility, achieved live birth</li>
+    </ul>
+  </div>
+
+  <details class="citation-chain">
+    <summary>Citation Chain</summary>
+    <div class="chain-body">
+      <h4>Textbook Chapters (Hilgers, The Medical & Surgical Practice of NaProTechnology)</h4>
+      <ul>
+        <li><strong>Ch. 63</strong> -- Near-contact laparoscopy findings: 89.1% of "normal" laparoscopies had missed endometriosis; includes 5 key supporting references on magnification-dependent detection rates and the inadequacy of standard-view laparoscopy</li>
+      </ul>
+      <h4>Network References</h4>
+      <ul>
+        <li><strong>Redwine 1988</strong> (PMID 3190209) -- Landmark study on atypical endometriosis appearances: demonstrated that visual inspection at standard magnification misses non-pigmented and subtle lesions, the foundational argument for near-contact technique</li>
+        <li><strong>Yeung et al. 2024</strong> -- Repeat surgery outcomes: data on what a second, more thorough surgical look reveals when the first surgery was incomplete</li>
+        <li><strong>Whittaker-Yeung 2025</strong> -- Combined case series establishing NCL/S-MAP as a systematic diagnostic and therapeutic protocol with measurable outcomes in previously "treated" patients</li>
+      </ul>
+    </div>
+  </details>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 4: PCOS -->
+<!-- ============================================================ -->
+<div class="panel" id="panel-4">
+<div class="content">
+  <div class="article-meta">
+    <div class="full-width">
+      <span class="post-type type-appointment">"Bring this to your next appointment"</span>
+      <span class="status status-pending">PLANNED</span>
+      <span class="layer-badge">Layer 3</span>
+    </div>
+    <div><dt>Source article</dt><dd>Greff et al. 2023 meta-analysis + Hilgers Ch. 75 (OWR)</dd></div>
+    <div><dt>PMID</dt><dd>Nestler 1999 NEJM; Greff 2023</dd></div>
+    <div><dt>Domain</dt><dd>PCOS</dd></div>
+    <div><dt>Key number</dt><dd>OWR 91% ovulation / 92% pregnancy (Halbe via Ch. 75); Inositol 86% ovulation (Nestler 1999)</dd></div>
+  </div>
+
+  <h2 class="prose">The PCOS Treatment Your Doctor Probably Has Not Mentioned</h2>
+  <div class="byline">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</div>
+
+  <div class="patient-angle">
+    <h3>Patient Angle</h3>
+    <p>You were told you have PCOS. You were handed metformin or birth control and told to come back when you want to get pregnant. But nobody mentioned that ovarian wedge resection -- a surgical approach refined over 90 years -- achieves 91% ovulation and 92% pregnancy rates. Nobody mentioned that myo-inositol, a naturally occurring compound, restores ovulation in 86% of cases in randomized trials. These are not fringe treatments. They are published, replicated, and available. The problem is not that the evidence does not exist. The problem is that no one brought it to your appointment.</p>
+  </div>
+
+  <div class="evidence-summary">
+    <h3>Key Evidence</h3>
+    <ul>
+      <li><strong>OWR (Ovarian Wedge Resection):</strong> 91% ovulation rate, 92% pregnancy rate (Halbe 1972 series, via Hilgers Ch. 75)</li>
+      <li><strong>Myo-inositol:</strong> 86% ovulation restoration in clomiphene-resistant PCOS (Nestler, NEJM, 1999)</li>
+      <li><strong>Meta-analysis (Greff 2023):</strong> Inositol confirmed non-inferior to metformin for insulin resistance, testosterone, cycle normalization, with superior tolerability</li>
+      <li><strong>Historical lineage:</strong> Stein-Leventhal 1935 first described the condition; Stein 1965 long-term OWR follow-up; Adashi 1981 confirmed mechanism</li>
+      <li><strong>Adhesion concern addressed:</strong> Modern microsurgical technique and letrozole addendum reduce historical adhesion risks</li>
+    </ul>
+  </div>
+
+  <details class="citation-chain">
+    <summary>Citation Chain</summary>
+    <div class="chain-body">
+      <h4>Textbook Chapters (Hilgers, The Medical & Surgical Practice of NaProTechnology)</h4>
+      <ul>
+        <li><strong>Ch. 75</strong> -- Ovarian Wedge Resection (OWR): comprehensive surgical protocol for PCOS with historical outcome data. Contains 5+ key references:
+          <ul>
+            <li><strong>Stein &amp; Leventhal 1935</strong> -- Original description of polycystic ovarian syndrome and first surgical intervention</li>
+            <li><strong>Stein 1965</strong> -- Long-term follow-up of OWR patients confirming sustained ovulatory benefit</li>
+            <li><strong>Halbe 1972</strong> -- Series reporting <strong>91% ovulation / 92% pregnancy</strong> rates post-OWR</li>
+            <li><strong>Adashi 1981</strong> -- Mechanistic confirmation of how wedge resection restores ovulatory function</li>
+            <li>Adhesion studies -- Documented and mitigated: modern microsurgical approach reduces adhesion formation</li>
+          </ul>
+        </li>
+      </ul>
+      <h4>Network References</h4>
+      <ul>
+        <li><strong>Nestler et al. 1999</strong> (NEJM) -- Landmark RCT: myo-inositol restored ovulation in 86% of clomiphene-resistant PCOS women, the first high-impact trial establishing inositol as a legitimate PCOS intervention</li>
+        <li><strong>Greff et al. 2023</strong> -- Meta-analysis of inositol in PCOS: confirmed non-inferiority to metformin across insulin resistance, androgen levels, and menstrual regularity, with fewer GI side effects</li>
+        <li><strong>Yildirim et al. 2003</strong> -- Additional evidence on inositol's insulin-sensitizing mechanism in PCOS</li>
+        <li><strong>Letrozole addendum</strong> -- Adjunctive ovulation induction data complementing surgical and nutraceutical approaches</li>
+      </ul>
+    </div>
+  </details>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 5: Male Factor -->
+<!-- ============================================================ -->
+<div class="panel" id="panel-5">
+<div class="content">
+  <div class="article-meta">
+    <div class="full-width">
+      <span class="post-type type-question">"You were right to question that"</span>
+      <span class="status status-pending">PLANNED</span>
+      <span class="layer-badge">Layer 3</span>
+    </div>
+    <div><dt>Source article</dt><dd>Grande et al. 2025, Andrology</dd></div>
+    <div><dt>PMID</dt><dd>39930939</dd></div>
+    <div><dt>Domain</dt><dd>Male Factor / Andrology</dd></div>
+    <div><dt>Key number</dt><dd>Idiopathic dropped 30-50% to 8%; 40.9% natural pregnancy; Ch. 47: 75% clomiphene response</dd></div>
+  </div>
+
+  <h2 class="prose">His Workup Was Never Finished Either</h2>
+  <div class="byline">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</div>
+
+  <div class="patient-angle">
+    <h3>Patient Angle</h3>
+    <p>He got a semen analysis. It came back "normal" or "slightly low." Nobody did a physical exam. Nobody checked for varicocele. Nobody ran hormones. Nobody assessed DNA fragmentation. Then someone recommended IVF with ICSI -- a procedure that bypasses the male problem entirely instead of diagnosing and treating it. In 1,014 couples who actually got a complete andrological workup, "idiopathic" male infertility dropped from the standard 30-50% to just 8%. And 40.9% conceived naturally with targeted treatment. If nobody looked past his semen analysis, the evaluation is not complete.</p>
+  </div>
+
+  <div class="evidence-summary">
+    <h3>Key Evidence</h3>
+    <ul>
+      <li><strong>Idiopathic collapse:</strong> With thorough workup, "unexplained" male infertility dropped from 30-50% to just <strong>8%</strong> (Grande et al. 2025, 1,014 couples)</li>
+      <li><strong>40.9%</strong> natural pregnancy rate when specific male diagnoses were identified and treated</li>
+      <li><strong>Ch. 47:</strong> 75% response rate to clomiphene in male factor, 538-patient series; includes Kruger strict morphology critique</li>
+      <li><strong>DNA fragmentation:</strong> SDF testing reclassifies "normal" semen analyses; associated with recurrent pregnancy loss and failed ART</li>
+      <li><strong>Antioxidants:</strong> Cochrane meta-analysis shows 4.85x improvement in pregnancy rates with targeted supplementation</li>
+    </ul>
+  </div>
+
+  <details class="citation-chain">
+    <summary>Citation Chain</summary>
+    <div class="chain-body">
+      <h4>Textbook Chapters (Hilgers, The Medical & Surgical Practice of NaProTechnology)</h4>
+      <ul>
+        <li><strong>Ch. 47</strong> -- Male factor evaluation and treatment in NaProTechnology: 538-patient series demonstrating 75% clomiphene response rate; includes critique of Kruger strict morphology as overly restrictive gating criterion that pushes couples to ICSI prematurely</li>
+      </ul>
+      <h4>Network References</h4>
+      <ul>
+        <li><strong>Grande et al. 2025</strong> (PMID 39930939) -- 1,014 couples: comprehensive andrological workup collapsed idiopathic diagnosis from 30-50% to 8%, with 40.9% natural conception rate after targeted treatment</li>
+        <li><strong>Esteves 2020</strong> -- Sperm DNA fragmentation (SDF) review: established SDF as a clinically actionable male fertility biomarker missed by standard semen analysis</li>
+        <li><strong>Cochrane antioxidant review</strong> -- Meta-analysis of antioxidant therapy for male subfertility: 4.85x pregnancy rate improvement, supporting targeted supplementation in diagnosed oxidative stress</li>
+        <li><strong>Stanford 2021</strong> -- NaPro-aligned male factor treatment outcomes: integrated couple-based approach confirming that treating both partners improves results</li>
+      </ul>
+    </div>
+  </details>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 6: RPL/Miscarriage -->
+<!-- ============================================================ -->
+<div class="panel" id="panel-6">
+<div class="content">
+  <div class="article-meta">
+    <div class="full-width">
+      <span class="post-type type-not-alone">"You're not doing this alone"</span>
+      <span class="status status-pending">PLANNED</span>
+      <span class="layer-badge">Layer 4</span>
+    </div>
+    <div><dt>Source article</dt><dd>Boyle et al. 2024</dd></div>
+    <div><dt>PMID</dt><dd>38426161</dd></div>
+    <div><dt>Domain</dt><dd>Miscarriage / RPL</dd></div>
+    <div><dt>Key number</dt><dd>79% success with 3+ losses (Ch. 57); 84% for women <=37 (Ch. 50)</dd></div>
+  </div>
+
+  <h2 class="prose">After Five Losses and No Answers, One Hormone Test Changed Everything</h2>
+  <div class="byline">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</div>
+
+  <div class="patient-angle">
+    <h3>Patient Angle</h3>
+    <p>Five pregnancies. Five losses. The standard RPL workup found nothing: no clotting disorder, no anatomical anomaly, no chromosomal abnormality. She was told it was "bad luck" and to "try again." What nobody tested was her androgen levels. RRM evaluation found hypoandrogenemia -- an insufficient level of DHEA-S that compromises endometrial receptivity and early pregnancy support. It is not on the standard RPL panel. When it was identified and treated, the outcome changed. This is not one case. Hilgers Chapter 57 reports a 79% subsequent live birth rate in women with three or more prior losses. Chapter 50 reports 84% for women 37 and under. These are not women with easy histories. These are the ones conventional medicine could not help.</p>
+  </div>
+
+  <div class="evidence-summary">
+    <h3>Key Evidence</h3>
+    <ul>
+      <li><strong>79%</strong> subsequent live birth rate in women with 3+ prior losses (Hilgers Ch. 57)</li>
+      <li><strong>84%</strong> success rate for RPL women aged 37 and under (Hilgers Ch. 50)</li>
+      <li><strong>933-patient safety cohort</strong> for hormone supplementation protocols (Hilgers Ch. 55)</li>
+      <li><strong>Boyle et al. 2024</strong> (PMID 38426161): hypoandrogenemia identified as a treatable cause of RPL missed by standard workup</li>
+      <li><strong>PRISM 2019:</strong> Progesterone in Recurrent Miscarriage trial -- supports the biological plausibility of hormonal intervention</li>
+    </ul>
+  </div>
+
+  <details class="citation-chain">
+    <summary>Citation Chain</summary>
+    <div class="chain-body">
+      <h4>Textbook Chapters (Hilgers, The Medical & Surgical Practice of NaProTechnology)</h4>
+      <ul>
+        <li><strong>Ch. 57</strong> -- Recurrent pregnancy loss treatment outcomes: 79% subsequent live birth rate in women with 3+ losses; comprehensive protocol includes 47 supporting references covering hormonal evaluation, treatment protocols, and outcome data</li>
+        <li><strong>Ch. 58</strong> -- Hormonal supplementation in early pregnancy: protocol details for progesterone, hCG, and androgen support timed to the cycle chart</li>
+        <li><strong>Ch. 54</strong> -- Pre-conception hormonal evaluation: identifying luteal phase deficiency, hypoandrogenemia, and other treatable causes before the next pregnancy</li>
+        <li><strong>Ch. 55</strong> -- Safety data: 933-patient cohort demonstrating safety of the NaPro hormonal supplementation protocol, the largest safety series for this approach</li>
+        <li><strong>Ch. 50</strong> -- Age-stratified outcomes: 84% success rate for women 37 and under, establishing that age alone is not a contraindication to investigation</li>
+      </ul>
+      <h4>Network References</h4>
+      <ul>
+        <li><strong>Boyle et al. 2024</strong> (PMID 38426161) -- Hypoandrogenemia in RPL: identified low DHEA-S as a treatable cause missed by standard RPL workup panels</li>
+        <li><strong>Boyle 2022</strong> (PMID 35729591) -- Earlier work establishing the androgen-RPL connection and treatment response data</li>
+        <li><strong>Carpentier, Stanford, Boyle 2016</strong> (NEJM) -- NaProTechnology correspondence published in the New England Journal of Medicine, establishing mainstream visibility for the approach</li>
+        <li><strong>PRISM trial 2019</strong> -- Progesterone in Recurrent Miscarriage: large RCT supporting hormonal supplementation in RPL, aligning with the biological premise of NaPro's timed hormone support</li>
+        <li><strong>Daya 1988</strong> -- Meta-analysis of progesterone support in RPL: early evidence for hormonal supplementation that the NaPro protocol expanded upon with chart-timed precision</li>
+      </ul>
+    </div>
+  </details>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 7: Endo Outcomes -->
+<!-- ============================================================ -->
+<div class="panel" id="panel-7">
+<div class="content">
+  <div class="article-meta">
+    <div class="full-width">
+      <span class="post-type type-means">"Here's what that means for you"</span>
+      <span class="status status-pending">PLANNED</span>
+      <span class="layer-badge">Layer 3</span>
+    </div>
+    <div><dt>Source article</dt><dd>Yeung et al. 2024, 620 patients</dd></div>
+    <div><dt>PMID</dt><dd>Yeung 2024</dd></div>
+    <div><dt>Domain</dt><dd>Endometriosis / Surgical Outcomes</dd></div>
+    <div><dt>Key number</dt><dd>2.5% repeat surgery rate (excision) vs 98.7% recurrence with cauterization (Ch. 79)</dd></div>
+  </div>
+
+  <h2 class="prose">A 2.5% Repeat Surgery Rate. That Is What Excision Looks Like.</h2>
+  <div class="byline">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</div>
+
+  <div class="patient-angle">
+    <h3>Patient Angle</h3>
+    <p>You had surgery for endometriosis. The pain came back. You had another surgery. The pain came back again. You are starting to think the disease is unbeatable. It is not unbeatable. It was not properly removed. Cauterization and ablation destroy the surface of endometriosis lesions while leaving the root intact. Recurrence with these techniques hits 98.7% in long-term follow-up. Excision -- cutting the lesion out completely, root and all -- drops the repeat surgery rate to 2.5% in a 620-patient series. That is not a marginal improvement. That is a fundamentally different outcome. The disease is the same. The surgery is not.</p>
+  </div>
+
+  <div class="evidence-summary">
+    <h3>Key Evidence</h3>
+    <ul>
+      <li><strong>2.5%</strong> repeat surgery rate with complete excision (Yeung et al. 2024, n=620)</li>
+      <li><strong>98.7%</strong> recurrence rate with cauterization/ablation in long-term follow-up (Hilgers Ch. 79)</li>
+      <li><strong>Excision site recurrence:</strong> 7.2% vs vaporization 22.3% -- three-fold reduction at the lesion level</li>
+      <li><strong>Teenager data:</strong> Yeung 2011 confirmed excision is safe and effective in adolescents, relevant for early intervention</li>
+      <li><strong>Deep infiltrating disease:</strong> Yeung 2016 DRP (deeply infiltrating rectovaginal endo) data shows excision feasibility even in advanced disease</li>
+    </ul>
+  </div>
+
+  <details class="citation-chain">
+    <summary>Citation Chain</summary>
+    <div class="chain-body">
+      <h4>Textbook Chapters (Hilgers, The Medical & Surgical Practice of NaProTechnology)</h4>
+      <ul>
+        <li><strong>Ch. 79</strong> -- Endometriosis surgical technique and outcomes: excision vs destruction, with 36 supporting references documenting recurrence rates, technique comparisons, and long-term follow-up data</li>
+        <li><strong>Ch. 42</strong> -- Endometriosis diagnosis: classification systems, staging, and the role of biopsy confirmation in surgical management</li>
+        <li><strong>Ch. 70</strong> -- Endometriosis and fertility: how complete excision improves reproductive outcomes beyond pain relief alone</li>
+      </ul>
+      <h4>Network References</h4>
+      <ul>
+        <li><strong>Yeung et al. 2024</strong> -- 620-patient excision cohort: <strong>2.5% repeat surgery rate</strong>, the largest modern single-technique excision outcome series</li>
+        <li><strong>Yeung 2011</strong> -- Excision in teenagers: established safety and efficacy of early surgical intervention in adolescent endometriosis</li>
+        <li><strong>Yeung 2013</strong> -- Multicenter excision outcomes: replicated single-center findings across multiple surgical sites</li>
+        <li><strong>Yeung 2016</strong> -- Deeply infiltrating rectovaginal endometriosis (DRPs): demonstrated that even advanced disease responds to thorough excision technique</li>
+        <li><strong>Whittaker-Yeung 2025</strong> -- Combined NCL/S-MAP and excision data: integrating diagnostic precision with surgical completeness</li>
+      </ul>
+    </div>
+  </details>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 8: Cycle Science -->
+<!-- ============================================================ -->
+<div class="panel" id="panel-8">
+<div class="content">
+  <div class="article-meta">
+    <div class="full-width">
+      <span class="post-type type-means">"Here's what that means for you"</span>
+      <span class="status status-pending">PLANNED</span>
+      <span class="layer-badge">Layer 2</span>
+    </div>
+    <div><dt>Source article</dt><dd>Ng et al. 2020 + Henry/Prior 2024</dd></div>
+    <div><dt>PMID</dt><dd>32521725 (Ng); 39320898 (Henry/Prior)</dd></div>
+    <div><dt>Domain</dt><dd>Cycle Science / Luteal Phase</dd></div>
+    <div><dt>Key number</dt><dd>75% of losses = implantation failure; 55% of healthy women had short LP; Day-21 progesterone is flawed (Ch. 19)</dd></div>
+  </div>
+
+  <h2 class="prose">Your Pregnancy May Be Decided Before the Embryo Arrives</h2>
+  <div class="byline">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</div>
+
+  <div class="patient-angle">
+    <h3>Patient Angle</h3>
+    <p>You were told your progesterone was "fine." They drew it on day 21. But your cycle is 32 days, not 28, which means day 21 was not even close to your mid-luteal peak. That single blood draw -- timed to an assumption about your body instead of to your actual ovulation -- may have missed the problem entirely. Seventy-five percent of early pregnancy losses are now attributed to implantation failure, not embryonic defects. And 55% of healthy, ovulating women had at least one short luteal phase over a 12-month observation period. The luteal phase is not a background process. It is the foundation the embryo lands on. If nobody measured it correctly, nobody knows whether it was adequate.</p>
+  </div>
+
+  <div class="evidence-summary">
+    <h3>Key Evidence</h3>
+    <ul>
+      <li><strong>75%</strong> of early pregnancy losses attributed to implantation failure, not embryonic defects (Ng et al. 2020)</li>
+      <li><strong>55%</strong> of healthy ovulating women had at least one short luteal phase over 12 months (Henry/Prior 2024)</li>
+      <li><strong>Day-21 progesterone is fundamentally flawed:</strong> Ch. 19 case study demonstrates 92.7%/96.3% targeting accuracy only when timed to actual ovulation via charting, not calendar assumption</li>
+      <li><strong>Prior's body of work (1982-2025):</strong> Decades of evidence that ovulatory disturbances are common, subclinical, and clinically consequential -- not rare edge cases</li>
+    </ul>
+  </div>
+
+  <details class="citation-chain">
+    <summary>Citation Chain</summary>
+    <div class="chain-body">
+      <h4>Textbook Chapters (Hilgers, The Medical & Surgical Practice of NaProTechnology)</h4>
+      <ul>
+        <li><strong>Ch. 19</strong> -- Hormone timing methodology: <strong>92.7% / 96.3% targeting accuracy</strong> when progesterone draws are timed to charted ovulation rather than calendar day 21; includes case study demonstrating how standard-day timing misses clinically significant luteal deficiency</li>
+        <li><strong>Ch. 35</strong> -- Luteal phase deficiency: pathophysiology, diagnostic criteria, and treatment protocols for inadequate post-ovulatory support</li>
+        <li><strong>Ch. 27</strong> -- Progesterone supplementation: chart-timed dosing protocols that respond to the individual cycle rather than population averages</li>
+      </ul>
+      <h4>Network References</h4>
+      <ul>
+        <li><strong>Ng et al. 2020</strong> (PMID 32521725) -- Implantation failure as the dominant cause of early pregnancy loss: 75% of losses attributable to endometrial receptivity, not embryo quality</li>
+        <li><strong>Henry &amp; Prior 2024</strong> (PMID 39320898) -- Luteal phase variability in healthy women: 55% had at least one short luteal phase, 29% of cycles showed ovulatory disturbances over 12 months of observation</li>
+        <li><strong>Prior 1982-2025</strong> -- Body of work spanning 40+ years establishing that subclinical ovulatory disturbances (short luteal phase, anovulation, luteal out-of-phase events) are common in apparently healthy women and clinically consequential for fertility and bone health</li>
+        <li><strong>Miller 2015</strong> -- Endometrial receptivity timing: the implantation window is narrower and more variable than standard protocols assume</li>
+        <li><strong>Balasch 1986</strong> -- Early work on luteal phase deficiency and recurrent pregnancy loss: established the link between inadequate progesterone support and failed implantation</li>
+      </ul>
+    </div>
+  </details>
+</div>
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
