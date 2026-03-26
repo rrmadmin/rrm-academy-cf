@@ -41,12 +41,33 @@ All structural items complete: `/guides/index.astro` exists, Header has "Learn" 
 
 Full plan in `rrm-router/RRM Router PRD/PRD-Index.md` Post-Launch Roadmap.
 
-- **Layer 1: Answer Intent Map** -- run 50+ queries across ChatGPT/Perplexity/Claude/Gemini, log who gets recommended. Baseline scan done (4/80, 5%). Repeat monthly.
+- **Layer 1: Answer Intent Map** -- run 50+ queries across ChatGPT/Perplexity/Claude/Gemini, log who gets recommended. Baseline scan done (6/80, 7.5%). Repeat monthly.
 - **Layer 2: Answer Hubs** -- pillar guides at root (`/endometriosis/`, `/pcos/`, etc.) with TL;DR blocks, ranked resources, comparison tables, FAQ sections. Listed on `/guides/` index
 - **Layer 3: Brand-Facts page** -- `/brand-facts` with Wikipedia-style org facts, EIN, credentials
 - **Layer 4: Machine-readable brand data** -- `public/.well-known/brand-facts.json`
 - ~~**Layer 5: Schema markup audit**~~ DONE -- all major types implemented (MedicalScholarlyArticle, BlogPosting, FAQPage, Course, ItemList, DefinedTermSet, Organization, Person)
 - **Layer 6: Third-party citation building** -- ~~Wikidata entries~~ IN PROGRESS (spec + plan at `~/iCode/docs/superpowers/specs/2026-03-25-wikidata-rrm-entries-design.md` and `~/iCode/docs/superpowers/plans/2026-03-25-wikidata-rrm-entries.md`). Fix NaPro Q23815908 classification + create RRM item. ~14 day execution. Press page, resource directory outreach, Reddit engagement still pending
+
+### Domain Authority (CITE Audit 2026-03-26)
+
+CITE Score: **44/100 (Low)**. C: 50, I: 25, T: 60, E: 30. Full audit output in session. Priority order: entity establishment > external link building > AI citation optimization > SERP features.
+
+**Quick wins (< 1 week):**
+- [ ] Add FAQ schema to all pillar pages (targets SERP features + AI citations)
+- [ ] Ensure all pillar page lead statements are bold, complete, with "RRM Academy" as subject
+- [ ] Add `sameAs` links to Organization schema for all social profiles
+
+**Medium effort (1-4 weeks):**
+- [ ] Create Wikidata entity for "Restorative Reproductive Medicine" (already planned in Layer 6)
+- [ ] Guest commentary in AAFP or similar medical education publication
+- [ ] Pitch Dr. Whittaker for 2-3 medical education podcasts beyond niche
+
+**Strategic (1-3 months):**
+- [ ] Earn .edu backlinks by offering CME content to medical school libraries
+- [ ] Build LinkedIn Organization page with regular posting
+- [ ] Pursue coverage in Catholic health media (OSV, NCR) and women's health publications
+- [ ] Reciprocal citation strategy with FEMM, FertilityCare, Marquette Method orgs
+- [ ] Fix backlink profile: 8/10 top referring domains are owned properties -- need editorial links
 
 ### Community
 
