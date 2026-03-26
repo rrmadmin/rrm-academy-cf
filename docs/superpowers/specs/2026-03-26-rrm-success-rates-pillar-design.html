@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RRM Success Rates Pillar Page -- Design Spec</title>
+<style>
+  :root {
+    --bg: #1a1a2e;
+    --bg-surface: #16213e;
+    --bg-elevated: #1e2a4a;
+    --text: #e0e0e0;
+    --text-muted: #9ca3af;
+    --accent: #6c9bff;
+    --accent-dim: #3a5a8c;
+    --border: #2a3a5c;
+    --highlight: #fbbf24;
+    --green: #34d399;
+    --red: #f87171;
+    --orange: #fb923c;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 2rem;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 1.5rem;
+    color: var(--highlight);
+    border-bottom: 2px solid var(--accent-dim);
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  h2 {
+    font-size: 1.15rem;
+    color: var(--accent);
+    margin: 2rem 0 0.75rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border);
+  }
+  h3 {
+    font-size: 1rem;
+    color: var(--green);
+    margin: 1.5rem 0 0.5rem;
+  }
+  p { margin: 0.5rem 0; }
+  strong { color: #fff; }
+  em { color: var(--orange); font-style: normal; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  ul, ol { margin: 0.5rem 0 0.5rem 1.5rem; }
+  li { margin: 0.3rem 0; }
+  li strong { color: var(--highlight); }
+
+  .meta {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+  }
+  .meta span { color: var(--text-muted); }
+  .meta strong { color: var(--accent); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.8rem;
+  }
+  th {
+    background: var(--bg-elevated);
+    color: var(--accent);
+    text-align: left;
+    padding: 0.5rem 0.6rem;
+    border-bottom: 2px solid var(--accent-dim);
+    white-space: nowrap;
+  }
+  td {
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:hover td { background: rgba(108, 155, 255, 0.05); }
+
+  .callout {
+    background: var(--bg-elevated);
+    border-left: 3px solid var(--highlight);
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .callout p { font-size: 0.9rem; }
+
+  .section-box {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    margin: 0.75rem 0;
+  }
+  .section-box h4 {
+    color: var(--highlight);
+    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
+  }
+  .section-box p { font-size: 0.85rem; color: var(--text-muted); }
+
+  .tag {
+    display: inline-block;
+    background: var(--accent-dim);
+    color: var(--text);
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    margin: 0.15rem 0.25rem 0.15rem 0;
+  }
+  .tag-green { background: #065f46; color: #34d399; }
+  .tag-orange { background: #7c2d12; color: #fb923c; }
+  .tag-red { background: #7f1d1d; color: #f87171; }
+
+  .not-list li {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+  .not-list li strong { color: var(--red); }
+
+  code {
+    background: var(--bg-elevated);
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.85em;
+    color: var(--green);
+  }
+
+  .toc {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0;
+  }
+  .toc h3 { margin-top: 0; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .toc ol { font-size: 0.85rem; }
+  .toc li { margin: 0.25rem 0; }
+  .toc a { color: var(--text); }
+  .toc a:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<h1>RRM Success Rates Pillar Page -- Design Spec</h1>
+
+<div class="meta">
+  <span>Date:</span> <strong>2026-03-26</strong> &nbsp;&bull;&nbsp;
+  <span>URL:</span> <strong>/rrm-success-rates/</strong> &nbsp;&bull;&nbsp;
+  <span>Author:</span> <strong>Dr. Naomi Whittaker</strong> &nbsp;&bull;&nbsp;
+  <span>Type:</span> <strong>Pillar guide (root-level)</strong>
+</div>
+
+<div class="toc">
+  <h3>Contents</h3>
+  <ol>
+    <li><a href="#purpose">Purpose</a></li>
+    <li><a href="#audience">Audience &amp; VOC Constraints</a></li>
+    <li><a href="#evidence">Evidence Base (13 studies)</a></li>
+    <li><a href="#structure">Page Structure (8 sections)</a></li>
+    <li><a href="#schema">Schema / SEO / AEO</a></li>
+    <li><a href="#links">Internal Links</a></li>
+    <li><a href="#not">What This Page Is NOT</a></li>
+    <li><a href="#notes">Notes</a></li>
+  </ol>
+</div>
+
+<h2 id="purpose">Purpose</h2>
+<p>A single authoritative page synthesizing all published RRM outcomes data. Replaces the need to visit IIRRM's flat bullet list. Answers the question patients actually ask: <strong>"Does this work?"</strong></p>
+
+<h2 id="audience">Audience</h2>
+
+<p><strong>Primary:</strong> The Exhausted Patient <span class="tag">30-42</span> <span class="tag-orange">failed conventional treatment</span> <span class="tag-red">trust damaged</span> and The Values-Driven Couple <span class="tag">26-40</span> <span class="tag-green">decided against IVF</span></p>
+
+<p><strong>Secondary:</strong> The Curious Generalist (OBGYN/family medicine) and The Frustrated OBGYN (wants outcome data to cite)</p>
+
+<div class="callout">
+  <p><strong>VOC constraints:</strong></p>
+  <ul>
+    <li>Empathy before proof. Recognition before statistics.</li>
+    <li>OB/GYN comfort score is <strong>1.1/5</strong>. These patients have earned their skepticism.</li>
+    <li>Never position against IVF combatively. Frame as "a different approach to a different question."</li>
+    <li>Buyers are already motivated. They lack information, not motivation.</li>
+  </ul>
+</div>
+
+<h2 id="evidence">Evidence Base</h2>
+
+<p>13 studies, all in D1 with full text in R2 (.md format). <span class="tag-green">13/13 published</span> <span class="tag-green">13/13 full text</span></p>
+
+<h3>RRM Outcomes Studies (10)</h3>
+
+<table>
+  <thead>
+    <tr><th>Study</th><th>Year</th><th>Country</th><th>N</th><th>Key outcome</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>Sanchez-Mendez</strong></td><td>2025</td><td>Spain</td><td>1,310</td><td>62.1% adj. cum. take-home baby rate</td></tr>
+    <tr><td><strong>Grande</strong> (Andrology)</td><td>2025</td><td>Italy</td><td>1,014</td><td>40.9% spontaneous pregnancy</td></tr>
+    <tr><td><strong>Boyle</strong> JRRM</td><td>2025</td><td>Ireland</td><td>187</td><td>41% live birth rate</td></tr>
+    <tr><td><strong>Stanford</strong> iNEST</td><td>2022</td><td>USA/CAN/UK/PL</td><td>834</td><td>57% conception rate</td></tr>
+    <tr><td><strong>James</strong> (medRxiv*)</td><td>2021</td><td>Australia</td><td>162</td><td>57.4% adj. cum. live birth @ 24mo</td></tr>
+    <tr><td><strong>Horodenchuk</strong></td><td>2020</td><td>Ukraine</td><td>282</td><td>73.6% adj. cum. live birth @ 24mo</td></tr>
+    <tr><td><strong>Marshell</strong></td><td>2019</td><td>Australia</td><td>384</td><td>62.5% adj. cum. conception @ 24mo</td></tr>
+    <tr><td><strong>de Groot/Boyle</strong></td><td>2018</td><td>Ireland</td><td>403</td><td>32.1% adj. cum. LB (after failed IVF)</td></tr>
+    <tr><td><strong>Frank-Herrmann</strong></td><td>2017</td><td>Germany</td><td>187</td><td>38-56% conception @ 8mo</td></tr>
+    <tr><td><strong>Tham</strong></td><td>2012</td><td>Canada</td><td>108</td><td>66% adj. cum. live birth @ 24mo</td></tr>
+    <tr><td><strong>Stanford/Boyle</strong> JABFM</td><td>2008</td><td>Ireland</td><td>1,072</td><td>52.8% adj. cum. live birth @ 24mo</td></tr>
+  </tbody>
+</table>
+
+<p style="font-size:0.8rem; color:var(--text-muted);">* Not yet peer-reviewed (preprint)</p>
+
+<h3>ART Comparison Studies (2)</h3>
+
+<table>
+  <thead>
+    <tr><th>Study</th><th>Year</th><th>Key finding</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>Sanders</strong> (BMC)</td><td>2022</td><td>IVF = 4.24x preterm risk, IUI = 3.17x</td></tr>
+    <tr><td><strong>Stanford</strong> (BJOG)</td><td>2016</td><td>ART singleton preterm OR 3.28, LBW OR 2.91</td></tr>
+  </tbody>
+</table>
+
+<h3>Registry</h3>
+<p><strong>STORRM</strong> (University of Utah) -- ongoing international registry. Mentioned, not cited as outcomes data.</p>
+
+<h2 id="structure">Page Structure</h2>
+
+<div class="section-box">
+  <h4>1. Recognition Section (above the fold)</h4>
+  <p>Short, empathetic opening. Validates the reader's experience before any data. Per VOC: "What I was told would work, didn't" is the shared origin story.</p>
+  <p><strong>H1:</strong> "RRM Success Rates: What the Research Shows"</p>
+  <p>1-2 sentences acknowledging the search. Bridge to evidence. <em>No stats in this section. Recognition first.</em></p>
+</div>
+
+<div class="section-box">
+  <h4>2. Key Takeaways Box</h4>
+  <p>Styled callout (same pattern as <code>/what-is-rrm/</code>). 4-5 bold lead statements with "RRM" as subject (AEO-optimized):</p>
+  <ul>
+    <li><strong>RRM research reports live birth rates of 32% to 66%</strong> depending on patient population and follow-up duration.</li>
+    <li><strong>RRM has been studied in over 4,500 couples across 8 countries on 4 continents.</strong></li>
+    <li><strong>RRM achieves pregnancies even after failed IVF.</strong> 403 couples, 100% prior IVF failure, 32.1% adj. cum. LBR, 92% full-term.</li>
+    <li><strong>RRM reduces "unexplained" infertility to under 10% of cases.</strong> Idiopathic infertility dropped from 30-50% to 8%.</li>
+    <li><strong>RRM births are overwhelmingly singleton and full-term.</strong> Multiple pregnancy rates near zero.</li>
+  </ul>
+</div>
+
+<div class="section-box">
+  <h4>3. The Evidence: RRM Outcomes by Study</h4>
+  <p>Narrative synthesis organized by theme, not chronologically. Each subsection weaves 2-3 studies.</p>
+  <ul>
+    <li><strong>3a: "Does RRM work for infertility?"</strong> -- Core outcomes. Sanchez-Mendez, JABFM, Canada.</li>
+    <li><strong>3b: "What if I've already tried IVF?"</strong> -- de Groot/Boyle 2018, Andrology prior-ART subgroup.</li>
+    <li><strong>3c: "Does age matter?"</strong> -- Age-stratified data. Honest about constraints.</li>
+    <li><strong>3d: "What about male factor infertility?"</strong> -- Grande/Andrology 2025. 87% treatable causes.</li>
+    <li><strong>3e: "How long does it take?"</strong> -- Time-to-conception data vs IVF timelines.</li>
+  </ul>
+</div>
+
+<div class="section-box">
+  <h4>4. Study Comparison Table</h4>
+  <p>Interactive/sortable table for clinicians. All 10 outcomes studies. Columns: Study, Year, Country, N, Mean age, Prior ART %, Duration trying, Outcome metric, Rate, Journal. Each row links to library detail page. Mobile-responsive.</p>
+</div>
+
+<div class="section-box">
+  <h4>5. How RRM Compares to IVF</h4>
+  <p>Supporting section, not the headline. Frame per VOC: "A different approach to a different question."</p>
+  <ul>
+    <li>Live birth rates (RRM 32-66% cumulative vs IVF ~28% per cycle)</li>
+    <li>Multiple pregnancy (RRM: near zero vs IVF: 20-30% twin rate)</li>
+    <li>Preterm birth risk (IVF 4.24x, IUI 3.17x vs RRM baseline)</li>
+    <li>Cost (RRM fraction of IVF's $40K-$60K)</li>
+    <li>What you learn (RRM gives a diagnosis; IVF bypasses without one)</li>
+  </ul>
+</div>
+
+<div class="section-box">
+  <h4>6. About the STORRM Registry</h4>
+  <p>Brief section. Ongoing international registry at University of Utah. Future data source.</p>
+</div>
+
+<div class="section-box">
+  <h4>7. FAQ Section (FAQPage schema)</h4>
+  <p>5-7 questions from persona objections and search queries:</p>
+  <ul>
+    <li>"What are the success rates of RRM treatment?"</li>
+    <li>"Does RRM work after failed IVF?"</li>
+    <li>"How long does RRM treatment take to achieve pregnancy?"</li>
+    <li>"Is RRM effective for women over 35?"</li>
+    <li>"How do RRM success rates compare to IVF?"</li>
+    <li>"Does RRM address male factor infertility?"</li>
+    <li>"Is the evidence for RRM peer-reviewed?"</li>
+  </ul>
+  <p>Each: <code>schemaAnswer</code> (JSON-LD), <code>basicAnswer</code> (hub), full answer on page with citations.</p>
+</div>
+
+<div class="section-box">
+  <h4>8. References</h4>
+  <p>Numbered reference list. All 13 studies in Vancouver format. Each links to library detail page.</p>
+</div>
+
+<h2 id="schema">Schema / SEO / AEO</h2>
+
+<h3>Schema (JSON-LD)</h3>
+<ul>
+  <li><code>Article</code> + <code>MedicalWebPage</code> (same pattern as <code>/what-is-rrm/</code>)</li>
+  <li><code>Person</code> (Dr. Whittaker, <code>@id</code> reference)</li>
+  <li><code>FAQPage</code> for the FAQ section</li>
+  <li><code>BreadcrumbList</code>: Home &gt; Guides &gt; RRM Success Rates</li>
+  <li><code>hasPart</code> array for each H2 section with anchors</li>
+</ul>
+
+<h3>SEO</h3>
+<table>
+  <tr><td style="color:var(--text-muted); white-space:nowrap;">Title tag</td><td><strong>RRM Success Rates: Published Outcomes from 4,500+ Couples | RRM Academy</strong></td></tr>
+  <tr><td style="color:var(--text-muted); white-space:nowrap;">Meta description</td><td>Peer-reviewed RRM research reports live birth rates of 32% to 66%. Data from 13 studies across 8 countries. See how RRM compares to IVF.</td></tr>
+  <tr><td style="color:var(--text-muted); white-space:nowrap;">H1</td><td><strong>RRM Success Rates: What the Research Shows</strong></td></tr>
+  <tr><td style="color:var(--text-muted); white-space:nowrap;">Target keywords</td><td>
+    <span class="tag">RRM success rates</span>
+    <span class="tag">NaProTechnology success rates</span>
+    <span class="tag">RRM outcomes</span>
+    <span class="tag">does RRM work</span>
+    <span class="tag">RRM vs IVF success rates</span>
+    <span class="tag">restorative reproductive medicine results</span>
+  </td></tr>
+</table>
+
+<h3>AEO Optimization</h3>
+<p>Bold lead phrases in Key Takeaways are complete citable statements with "RRM" as subject. FAQ schema answers designed for AI citation. Section headers in question-format.</p>
+
+<h2 id="links">Internal Links</h2>
+
+<h3>From this page</h3>
+<ul>
+  <li>Each cited study &rarr; <code>/library/[slug]</code></li>
+  <li>"What is RRM?" context &rarr; <code>/what-is-rrm/</code></li>
+  <li>NaPro-specific &rarr; <code>/naprotechnology/</code></li>
+  <li>Free course CTA &rarr; <code>/courses/rrm-vs-ivf</code></li>
+  <li>Find a provider &rarr; provider directory (when live)</li>
+</ul>
+
+<h3>To this page (update these)</h3>
+<ul>
+  <li><code>/what-is-rrm/#evidence</code> -- slim down, link here for full data</li>
+  <li><code>/naprotechnology/</code> -- link to this page for outcomes</li>
+  <li><code>/neofertility/</code> -- link for comparative outcomes</li>
+  <li><code>/guides/</code> -- add to guides index</li>
+  <li><code>/faqs/is-rrm-evidence-based</code> -- link here</li>
+</ul>
+
+<h2 id="not">What This Page Is NOT</h2>
+<ul class="not-list">
+  <li><strong>Not an attack on IVF.</strong> Per VOC: many patients carry grief about failed IVF. Frame comparison as information, not judgment.</li>
+  <li><strong>Not a comprehensive RRM explainer.</strong> That's <code>/what-is-rrm/</code>.</li>
+  <li><strong>Not a research library.</strong> That's <code>/library/</code>. This page synthesizes; the library stores.</li>
+  <li><strong>Not a sales page.</strong> Per VOC: buyers are already motivated. Give them information, not persuasion.</li>
+</ul>
+
+<h2 id="notes">Notes</h2>
+<ul>
+  <li>The medRxiv preprint (James 2021) is not yet peer-reviewed. Flag on page with a note.</li>
+  <li>The Andrology study (Grande 2025) uses "natural fertility" not "RRM" but describes the same multidisciplinary, root-cause, couple-centered approach with fertility awareness integration. Classify as RRM-aligned.</li>
+  <li><strong>Estimated word count:</strong> 4,000-6,000 words</li>
+  <li><strong>Estimated read time:</strong> 20-25 minutes</li>
+  <li><strong>Components:</strong> BackToTop (existing), PdfDownload (existing), Study comparison table (new), Key Takeaways callout (existing pattern)</li>
+</ul>
+
+</body>
+</html>
