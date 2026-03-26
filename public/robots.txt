@@ -27,10 +27,9 @@ Disallow: /donate/thank-you
 Disallow: /save-the-uterus-club/thank-you
 Disallow: /api/
 Disallow: /data/
+Disallow: /ivf-success-calculator
+Disallow: /community/
 Disallow: /dev/
-# /community/ and /ivf-success-calculator removed from Disallow.
-# These pages have noindex meta tags. Allowing crawl lets Google
-# discover noindex and deindex the 4 "indexed, though blocked" pages.
 
 # =============================================================================
 # AI SEARCH / RETRIEVAL CRAWLERS
@@ -46,6 +45,7 @@ User-agent: Applebot-Extended
 Allow: /
 Disallow: /api/
 Disallow: /account
+Disallow: /community/
 Disallow: /dev/
 Disallow: /data/
 
@@ -66,6 +66,7 @@ User-agent: CCBot
 Allow: /
 Disallow: /api/
 Disallow: /account
+Disallow: /community/
 Disallow: /dev/
 Disallow: /data/
 
