@@ -20,6 +20,7 @@ const jsonLd = {
       postalCode: '17011',
       addressCountry: 'US',
     },
+    email: 'contact@rrmacademy.org',
     sameAs: [
       'https://www.instagram.com/rrmacademy',
     ],
@@ -149,6 +150,11 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
 
         <!-- Sidebar info -->
         <div class="contact-info">
+          <div class="contact-block">
+            <h3>Email</h3>
+            <a href="mailto:contact@rrmacademy.org" class="contact-email">contact@rrmacademy.org</a>
+          </div>
+
           <div class="contact-block">
             <h3>Mailing address</h3>
             <address class="contact-address">
@@ -489,6 +495,14 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
     color: var(--accent);
   }
   .contact-social:hover {
+    color: var(--accent-hover);
+  }
+  .contact-email {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .contact-email:hover {
     color: var(--accent-hover);
   }
 

@@ -62,6 +62,7 @@ const jsonLd = {
       contactPoint: {
         '@type': 'ContactPoint',
         contactType: 'customer support',
+        email: 'contact@rrmacademy.org',
         url: 'https://rrmacademy.org/contact/',
       },
       hasOfferCatalog: {
@@ -127,12 +128,13 @@ const jsonLd = {
         <p class="hp-hero__subtitle animate-enter" style="--stagger: 2;">
           Courses and a {articleCount.toLocaleString()}-article library built for the day you realized suppressive medicine wasn't a plan.
         </p>
-        <div class="hp-hero__links animate-enter" style="--stagger: 3;">
+        <p class="hp-hero__nonprofit animate-enter" style="--stagger: 3;">A 501(c)(3) nonprofit education platform</p>
+        <div class="hp-hero__links animate-enter" style="--stagger: 4;">
           <a href="/courses/" class="btn btn--primary">Explore Courses</a>
           <a href="/library/" class="btn btn--secondary">Browse {articleCount.toLocaleString()} Studies</a>
         </div>
       </div>
-      <div class="hp-hero__trust animate-enter" style="--stagger: 4;">
+      <div class="hp-hero__trust animate-enter" style="--stagger: 5;">
         <div class="hp-trust__logos">
           <span class="hp-trust__logo hp-trust__logo--nejm">New England Journal of Medicine</span>
           <span class="hp-trust__logo hp-trust__logo--jama">JAMA</span>
@@ -515,6 +517,13 @@ const jsonLd = {
     font-size: 1.125rem;
     line-height: 1.75;
     color: var(--text-secondary);
+    margin-bottom: var(--space-3);
+  }
+
+  .hp-hero__nonprofit {
+    font-size: 0.8125rem;
+    letter-spacing: 0.04em;
+    color: var(--text-tertiary);
     margin-bottom: var(--space-5);
   }
 
@@ -541,7 +550,11 @@ const jsonLd = {
     }
     .hp-hero__subtitle {
       font-size: 0.9375rem;
-      margin-bottom: var(--space-6);
+      margin-bottom: var(--space-2);
+    }
+    .hp-hero__nonprofit {
+      font-size: 0.75rem;
+      margin-bottom: var(--space-5);
     }
     .hp-hero__links {
       flex-direction: row;
