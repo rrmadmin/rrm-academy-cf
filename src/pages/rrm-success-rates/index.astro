@@ -660,3 +660,149 @@ const faqSchema = {
   <p class="page-updated">Last updated: March 2026</p>
   <BackToTop />
 </BaseLayout>
+
+<style>
+  /* ── Author byline ──────────────────────────────────────────── */
+  .author-byline {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: calc(-1 * var(--space-2));
+    margin-bottom: var(--space-6);
+    line-height: 1.6;
+  }
+
+  .author-byline__photo {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  .author-byline__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  /* ── Table wrapper (horizontal scroll on mobile) ────────────── */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: var(--space-4) 0 var(--space-6);
+  }
+
+  /* ── Data tables ────────────────────────────────────────────── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+  }
+
+  th {
+    background: var(--bg-surface);
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: var(--text-primary);
+    padding: var(--space-3) var(--space-4);
+    text-align: left;
+    border-bottom: 2px solid var(--border-color);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+    line-height: 1.5;
+    color: var(--text-secondary);
+  }
+
+  /* Striped rows for readability on wide comparison tables */
+  tbody tr:nth-child(even) td {
+    background: var(--bg-body);
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  /* Sticky first column on wide tables */
+  @media (min-width: 640px) {
+    .table-responsive table td:first-child,
+    .table-responsive table th:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      background: var(--bg-surface);
+    }
+
+    tbody tr:nth-child(even) td:first-child {
+      background: var(--bg-body);
+    }
+  }
+
+  /* ── Table footnote ─────────────────────────────────────────── */
+  .table-footnote {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    margin-top: calc(-1 * var(--space-2));
+    margin-bottom: var(--space-6);
+    line-height: 1.6;
+  }
+
+  /* ── References list ────────────────────────────────────────── */
+  .references {
+    font-size: 0.8125rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+  }
+
+  .references h2 {
+    color: var(--text-primary);
+  }
+
+  .references ol {
+    padding-left: var(--space-5);
+  }
+
+  .references li {
+    margin-bottom: var(--space-3);
+  }
+
+  /* ── FAQ definition list ────────────────────────────────────── */
+  .faq-list dt {
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: var(--text-primary);
+    margin-top: var(--space-6);
+    margin-bottom: var(--space-2);
+  }
+
+  .faq-list dd {
+    margin-left: 0;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: var(--space-4);
+  }
+
+  /* ── Override container width for article layout at 1024px ──── */
+  @media (min-width: 1024px) {
+    .container {
+      max-width: calc(var(--max-width-article) + 220px + var(--space-10) + var(--space-8) * 2);
+    }
+  }
+
+  /* ── Mobile table adjustments ───────────────────────────────── */
+  @media (max-width: 639px) {
+    th,
+    td {
+      font-size: 0.75rem;
+      padding: var(--space-2) var(--space-3);
+    }
+  }
+</style>
