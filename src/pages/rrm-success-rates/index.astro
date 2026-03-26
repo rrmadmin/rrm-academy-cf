@@ -1,0 +1,249 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BackToTop from '../../components/BackToTop.astro';
+import PdfDownload from '../../components/PdfDownload.astro';
+
+// Block 1: MedicalWebPage + Article (injected via BaseLayout jsonLd prop)
+const pageSchema = {
+  '@context': 'https://schema.org',
+  '@type': ['Article', 'MedicalWebPage'],
+  headline: 'RRM Success Rates: What the Research Shows',
+  description: 'Peer-reviewed RRM research reports live birth rates of 32% to 66%. Data from 13 studies across 8 countries. See how RRM compares to IVF.',
+  image: 'https://rrmacademy.org/images/og-default.png',
+  author: {
+    '@type': 'Person',
+    '@id': 'https://rrmacademy.org/#naomi-whittaker',
+    name: 'Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI',
+    jobTitle: 'Board-Certified OBGYN, NaProTechnology Fellow',
+    url: 'https://rrmacademy.org/commentary/rrm-spotlight-naomi-whittaker-md/',
+    image: 'https://rrmacademy.org/images/authors/naomi-whittaker.webp',
+    sameAs: [
+      'https://www.instagram.com/napro_fertility_surgeon/',
+      'https://www.linkedin.com/in/naomi-whittaker-md-906b13101/',
+    ],
+  },
+  publisher: {
+    '@type': 'EducationalOrganization',
+    '@id': 'https://rrmacademy.org/#organization',
+    name: 'RRM Academy',
+  },
+  datePublished: '2026-03-26',
+  dateModified: '2026-03-26',
+  wordCount: 5000,
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': 'https://rrmacademy.org/rrm-success-rates/',
+  },
+  about: {
+    '@type': 'MedicalTherapy',
+    name: 'Restorative Reproductive Medicine',
+  },
+  articleSection: [
+    'Key Takeaways',
+    'Does RRM Work for Infertility?',
+    'What if I\'ve Already Tried IVF?',
+    'Does Age Matter?',
+    'What About Male Factor Infertility?',
+    'How Long Does It Take?',
+    'Study Comparison Table',
+    'How RRM Compares to IVF',
+    'About the STORRM Registry',
+    'Frequently Asked Questions',
+    'References',
+  ],
+  hasPart: [
+    { '@type': 'WebPageElement', name: 'Key Takeaways', url: 'https://rrmacademy.org/rrm-success-rates/#key-takeaways' },
+    { '@type': 'WebPageElement', name: 'Does RRM Work for Infertility?', url: 'https://rrmacademy.org/rrm-success-rates/#does-rrm-work' },
+    { '@type': 'WebPageElement', name: 'What if I\'ve Already Tried IVF?', url: 'https://rrmacademy.org/rrm-success-rates/#after-failed-ivf' },
+    { '@type': 'WebPageElement', name: 'Does Age Matter?', url: 'https://rrmacademy.org/rrm-success-rates/#age' },
+    { '@type': 'WebPageElement', name: 'What About Male Factor Infertility?', url: 'https://rrmacademy.org/rrm-success-rates/#male-factor' },
+    { '@type': 'WebPageElement', name: 'How Long Does It Take?', url: 'https://rrmacademy.org/rrm-success-rates/#time-to-conception' },
+    { '@type': 'WebPageElement', name: 'Study Comparison Table', url: 'https://rrmacademy.org/rrm-success-rates/#study-table' },
+    { '@type': 'WebPageElement', name: 'How RRM Compares to IVF', url: 'https://rrmacademy.org/rrm-success-rates/#rrm-vs-ivf' },
+    { '@type': 'WebPageElement', name: 'About the STORRM Registry', url: 'https://rrmacademy.org/rrm-success-rates/#storrm' },
+    { '@type': 'WebPageElement', name: 'Frequently Asked Questions', url: 'https://rrmacademy.org/rrm-success-rates/#faq' },
+    { '@type': 'WebPageElement', name: 'References', url: 'https://rrmacademy.org/rrm-success-rates/#references' },
+  ],
+  citation: [
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'Natural procreative technology (NaProTechnology) for infertility: take-home baby rate and clinical outcomes in a 5-year single-center cohort of 1,310 couples',
+      author: 'Sanchez-Mendez JI, et al.',
+      datePublished: '2025',
+      isPartOf: { '@type': 'Periodical', name: 'Frontiers in Reproductive Health' },
+    },
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'Comprehensive diagnostic and therapeutic approach to male factor infertility in couples seeking restorative reproductive medicine',
+      author: 'Grande G, et al.',
+      datePublished: '2025',
+      isPartOf: { '@type': 'Periodical', name: 'Andrology' },
+    },
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'Restorative reproductive medicine (RRM) outcomes compared to in-vitro fertilization for the treatment of infertility',
+      author: 'Boyle P, et al.',
+      datePublished: '2025',
+      isPartOf: { '@type': 'Periodical', name: 'Journal of Restorative Reproductive Medicine' },
+    },
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'International Natural Procreative Technology Evaluation and Surveillance of Treatment for Subfertility (iNEST): cohort study design',
+      author: 'Stanford JB, et al.',
+      datePublished: '2022',
+      isPartOf: { '@type': 'Periodical', name: 'Human Reproduction Open' },
+    },
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'Fertility treatments and the risk of preterm birth among women with subfertility: a systematic review and meta-analysis',
+      author: 'Sanders JN, et al.',
+      datePublished: '2022',
+      isPartOf: { '@type': 'Periodical', name: 'Reproductive Health' },
+    },
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'Pregnancy outcomes from a restorative infertility treatment model: a single centre case series',
+      author: 'James G, et al.',
+      datePublished: '2021',
+      isPartOf: { '@type': 'Periodical', name: 'medRxiv' },
+    },
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'Restorative reproductive medicine for infertility and recurrent miscarriage in the outpatient gynaecological practice in Ukraine',
+      author: 'Horodenchuk Z, et al.',
+      datePublished: '2020',
+      isPartOf: { '@type': 'Periodical', name: 'Fides et Ratio' },
+    },
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'Stratification of fertility potential according to cervical mucus symptoms in couples presenting with subfertility',
+      author: 'Marshell M, et al.',
+      datePublished: '2019',
+      isPartOf: { '@type': 'Periodical', name: 'Human Fertility' },
+    },
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'Healthy Singleton Pregnancies From Restorative Reproductive Medicine (RRM) After Failed IVF',
+      author: 'de Groot T, et al.',
+      datePublished: '2018',
+      isPartOf: { '@type': 'Periodical', name: 'Frontiers in Medicine' },
+    },
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'Natural conception rates in subfertile couples following fertility awareness training',
+      author: 'Frank-Herrmann P, et al.',
+      datePublished: '2017',
+      isPartOf: { '@type': 'Periodical', name: 'Archives of Gynecology and Obstetrics' },
+    },
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'Fertility treatments and adverse perinatal outcomes from a normally-fertile population: a cohort study',
+      author: 'Stanford JB, et al.',
+      datePublished: '2016',
+      isPartOf: { '@type': 'Periodical', name: 'BJOG' },
+    },
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'Natural procreative technology for infertility and recurrent miscarriage: outcomes in a Canadian family practice',
+      author: 'Tham E, et al.',
+      datePublished: '2012',
+      isPartOf: { '@type': 'Periodical', name: 'Canadian Family Physician' },
+    },
+    {
+      '@type': 'ScholarlyArticle',
+      name: 'Outcomes from treatment of infertility with natural procreative technology in an Irish general practice',
+      author: 'Stanford JB, et al.',
+      datePublished: '2008',
+      isPartOf: { '@type': 'Periodical', name: 'Journal of the American Board of Family Medicine' },
+    },
+  ],
+};
+
+// Block 2: BreadcrumbList (inline in page body)
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+    { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://rrmacademy.org/guides/' },
+    { '@type': 'ListItem', position: 3, name: 'RRM Success Rates', item: 'https://rrmacademy.org/rrm-success-rates/' },
+  ],
+};
+
+// Block 3: FAQPage (separate block per spec -- avoids Google validation issues with merged schemas)
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'What are the success rates of RRM treatment?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Published RRM research reports adjusted cumulative live birth rates of 32% to 66% depending on patient population and follow-up duration. The largest cohort of 1,310 couples reported an adjusted cumulative take-home baby rate of 62.1%.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Does RRM work after failed IVF?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes. In a study of 403 couples where 100% had prior IVF failure, RRM treatment achieved an adjusted cumulative live birth rate of 32.1%, with 92% of babies born at full term.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How long does RRM treatment take to achieve pregnancy?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Published data shows 77% of RRM pregnancies are achieved within the first 6 months and 92.5% within the first 12 months. One study reported an average time to conception of 12 months for live birth patients.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Is RRM effective for women over 35?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'RRM outcomes vary by age, as expected. Studies report pregnancy rates of approximately 50% for women under 34, approximately 30% for women under 40, and meaningful but lower rates for women over 40.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How do RRM success rates compare to IVF?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'RRM reports adjusted cumulative live birth rates of 32% to 66% over 24 months, compared to IVF per-cycle live birth rates of approximately 28%. RRM pregnancies are overwhelmingly singleton and full-term, while IVF carries a 4.24 times higher risk of preterm birth.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Does RRM address male factor infertility?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes. One multicenter study of 1,014 couples found that comprehensive andrological evaluation identified treatable causes in 87% of male partners, reducing idiopathic infertility from the typical 30-50% to just 8%.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Is the evidence for RRM peer-reviewed?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes. RRM outcomes have been published in peer-reviewed journals including Human Reproduction Open, Frontiers in Medicine, the Journal of the American Board of Family Medicine, and the Canadian Family Physician, among others.',
+      },
+    },
+  ],
+};
+---
+
+<BaseLayout
+  title="RRM Success Rates: Published Outcomes from 4,500+ Couples | RRM Academy"
+  description="Peer-reviewed RRM research reports live birth rates of 32% to 66%. Data from 13 studies across 8 countries. See how RRM compares to IVF."
+  canonicalUrl="https://rrmacademy.org/rrm-success-rates/"
+  jsonLd={pageSchema}
+>
+  <!-- Separate JSON-LD blocks (not @graph) per spec -->
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+  <!-- Content will be added in subsequent tasks -->
+</BaseLayout>
