@@ -35,6 +35,7 @@ All structural items complete: `/guides/index.astro` exists, Header has "Learn" 
 - ~~Update Header.astro nav: Learn dropdown~~ DONE
 - ~~Add `/guides` to router ASTRO_ROUTES~~ DONE
 - **Planned guides** (content, not structural): mental health (STUC members), 9 Facts About NaPro, endo guide, PCOS guide
+- **`/rrm-success-rates/` pillar page** -- ON BRANCH `feat/rrm-success-rates`. Build passes, 8 commits. Voice needs another pass (more direct Gianna tone). Then merge to main + add to router ASTRO_ROUTES. Spec: `docs/superpowers/specs/2026-03-26-rrm-success-rates-pillar-design.md`. Also update cross-links from `/what-is-rrm/#evidence`, `/naprotechnology/`, `/faqs/is-rrm-evidence-based`
 
 ### AEO (Answer Engine Optimization)
 
