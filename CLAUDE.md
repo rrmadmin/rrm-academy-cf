@@ -20,30 +20,24 @@
 - **Router Worker**: `~/iCode/projects/rrm-router/src/index.js`
 - **Wix site code**: `~/iCode/projects/rrm-academy-wix/`
 
-## Airtable Architecture
+## Library Architecture
 
-Two Airtable bases feed the library. Never confuse them.
-
-| Base | Nickname | Base ID | Purpose |
-|------|----------|---------|---------|
-| RRM Library | **Greenbase** | `appyZWo2G7iByXCgZ` | Master enrichment base — all 3,200+ articles, 106 fields, BIFID/PMID/Authors/Wiki tables. Never exposed to the public web. |
-| ⚡️ Library | **Yellowbase** | `app78UTVdeFph9qhL` | Curated public subset — only safe fields, only synced records. This is what the site fetches. |
+Library data lives in **D1** (`rrm-library`). Airtable is NOT used for library data.
 
 ### Literature Pipeline
 
 ```
-D1 (rrm-library)                     ← enrichment worker writes published articles
+D1 (rrm-library)                     ← enrichment worker manages all articles
     │  rrm-library-worker /articles endpoint (Bearer auth)
     ▼
 GitHub Actions: fetch-data.mjs       ← WORKER_AUTH_TOKEN, full or single-record (?id=xxx)
     ▼
 src/data/articles.json → Astro build → rrmacademy.org/library
-    │  On success: pings Airtable webhook (backward compat with yellowbase automation)
 ```
 
-**Legacy trigger:** Yellowbase Airtable automation still fires repository_dispatch with `article_id`. The fetch now reads from D1, not Airtable.
-
 **Worker endpoint:** `https://rrm-library-worker.administrator-cloudflare.workers.dev/articles` (all) or `?id=recXXX` (single). Filters: `is_published = 1 AND is_retracted = 0 AND type NOT IN ('faq', 'post', 'course', 'guide')`. Use exclusion filter (NOT IN) so new research types are included by default.
+
+**Ingest endpoint:** POST `/ingest` with Bearer auth. Creates new articles at `intake` status. Enrichment cron picks them up automatically.
 
 ### Blog Pipeline
 
@@ -292,7 +286,7 @@ Push to `claude/` branch -- GitHub Actions auto-builds + merges. No local creden
 
 ## Shared Config
 
-- **Airtable IDs**: Library and Blog base/table IDs live in `src/lib/airtable-config.mjs` and `src/lib/blog-config.mjs` — imported by both `.ts` (Astro build) and `.mjs` (CLI scripts)
+- **Airtable IDs**: Blog base/table IDs live in `src/lib/blog-config.mjs` — imported by both `.ts` (Astro build) and `.mjs` (CLI scripts). Library data comes from D1, not Airtable
 - **Stripe API version**: `STRIPE_API_VERSION` in `functions/api/auth/_shared.js` — imported by all 6 Stripe consumers
 - **Site URL for emails**: `SITE_URL` in `functions/api/auth/_shared.js` — used in transactional email body links only (CORS origin stays hardcoded for security; Astro pages use `Astro.site`)
 - **Navigation**: Desktop, mobile, and footer navs are intentionally different item sets — see comments in `Header.astro` and `Footer.astro`
@@ -355,7 +349,7 @@ A zero-dependency Node.js script (`scripts/guard.mjs`) that blocks deployments i
 
 Citations must come from one of:
 - Perplexity research (live web search, verified)
-- The RRM Research Library (Airtable BIFID)
+- The RRM Research Library (D1 rrm-library, via rrm-cli)
 - Brian directly
 
 When a post needs references, research each one live before inserting. If asked to "add citations" to existing content, look them up via Perplexity or the library first. Never generate a PMID, DOI, or journal reference from memory.
