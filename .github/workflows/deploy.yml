@@ -112,6 +112,19 @@ jobs:
           fail=0
           # Minimum expected record counts (fail deploy if below these)
           declare -A MIN_COUNTS=( [articles.json]=2500 [posts.json]=5 [faqs.json]=10 [courses.json]=1 )
+
+          # Load baselines for regression detection
+          BASELINES_FILE="src/data/.baselines.json"
+          declare -A BASELINES
+          if [ -f "$BASELINES_FILE" ]; then
+            while IFS='=' read -r key val; do
+              BASELINES[$key]=$val
+            done < <(node -e "
+              const b = JSON.parse(require('fs').readFileSync('$BASELINES_FILE','utf8'));
+              for (const [k,v] of Object.entries(b)) console.log(k + '=' + v);
+            ")
+          fi
+
           for f in src/data/articles.json src/data/posts.json src/data/faqs.json src/data/courses.json; do
             base=$(basename "$f")
             if [ ! -f "$f" ]; then
@@ -121,14 +134,18 @@ jobs:
             else
               count=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$f','utf8')).length)")
               min=${MIN_COUNTS[$base]:-1}
+              baseline=${BASELINES[$base]:-0}
               if [ "$count" = "0" ]; then
                 echo "ERROR: $f contains zero records. Aborting to prevent empty deploy."
                 fail=1
               elif [ "$count" -lt "$min" ]; then
                 echo "ERROR: $f has only $count records (minimum: $min). Possible data loss."
                 fail=1
+              elif [ "$baseline" -gt "0" ] && [ "$count" -lt "$((baseline - 1))" ]; then
+                echo "ERROR: $f dropped from $baseline to $count records (max allowed drop: 1). Possible data regression."
+                fail=1
               else
-                echo "OK: $f has $count records (minimum: $min)"
+                echo "OK: $f has $count records (minimum: $min, baseline: $baseline)"
               fi
             fi
           done
@@ -169,6 +186,24 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name rrm-academy
+
+      - name: Update data baselines
+        if: success()
+        run: |
+          node -e "
+            const fs = require('fs');
+            const baselines = {};
+            for (const f of ['articles.json','posts.json','faqs.json','courses.json']) {
+              const data = JSON.parse(fs.readFileSync('src/data/' + f, 'utf8'));
+              baselines[f] = data.length;
+            }
+            fs.writeFileSync('src/data/.baselines.json', JSON.stringify(baselines, null, 2) + '\n');
+            console.log('Updated baselines:', baselines);
+          "
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/data/.baselines.json
+          git diff --cached --quiet || git commit -m "chore: update data baselines after deploy" && git push || echo "Baseline update skipped (no changes)"
 
       - name: Notify Observatory
         if: always()
