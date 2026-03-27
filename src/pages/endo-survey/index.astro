@@ -4,7 +4,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Quiz',
-  name: '3-Tier Endometriosis Symptom Self-Survey',
+  name: 'Free Endometriosis Self-Assessment Tool',
   description: 'An evidence-based self-assessment tool developed by Dr. Naomi Whittaker, board-certified OB/GYN, to help identify symptoms associated with endometriosis.',
   author: {
     '@type': 'Person',
@@ -27,8 +27,8 @@ const jsonLd = {
 };
 ---
 <BaseLayout
-  title="Endometriosis Symptom Self-Survey"
-  description="Do your symptoms point to endometriosis? This evidence-based self-survey from Dr. Naomi Whittaker helps assess your level of suspicion for endometriosis."
+  title="Free Endometriosis Self-Assessment: Do You Have Endo?"
+  description="Think you might have endometriosis? Take this free online self-assessment from a board-certified OB/GYN. 36 symptoms across 3 tiers of clinical suspicion. Not a diagnosis -- a starting point for your next appointment."
   canonicalUrl="https://rrmacademy.org/endo-survey"
   jsonLd={jsonLd}
 >
@@ -52,14 +52,15 @@ const jsonLd = {
   <div class="page-body">
     <section class="survey-intro">
       <div class="container container--narrow">
+        <h2 class="survey-intro__heading">Can You Self-Diagnose Endometriosis?</h2>
         <p class="survey-intro__lead">
           Too many women spend years being told their pain is normal. It is not.
         </p>
         <p>
-          I developed this self-survey based on the endometriosis symptom patterns I constantly see in my practice. It uses a 3-tier scoring system to help you assess your level of suspicion, from symptoms most strongly associated with endometriosis down to those that raise general concern.
+          You cannot self-diagnose endometriosis -- only surgery can confirm it. But you can assess your symptoms. I developed this self-assessment based on the endometriosis symptom patterns I constantly see in my practice. It uses a 3-tier scoring system to help you evaluate your level of suspicion, from symptoms most strongly associated with endometriosis down to those that raise general concern.
         </p>
         <p>
-          This is not a diagnosis. Endometriosis can only be confirmed through surgery. But this survey can give you language for what you are experiencing, and it can help you walk into your next appointment with a clearer picture.
+          This is not a diagnosis. But this assessment can give you language for what you are experiencing, and it can help you walk into your next appointment with a clearer picture.
         </p>
 
         <div class="survey-how">
@@ -203,6 +204,10 @@ const jsonLd = {
   /* Intro */
   .survey-intro {
     padding: 0;
+  }
+  .survey-intro__heading {
+    font-size: 1.75rem;
+    margin-bottom: var(--space-4);
   }
   .survey-intro__lead {
     font-size: 1.125rem;
