@@ -305,6 +305,38 @@ const citationMeta = {
         )}
       </div>
 
+      <!-- Synopsis (above abstract for SEO/AEO -- structured, citable content first) -->
+      {article.insights && (
+        <section class="article-insights" aria-label="Synopsis">
+          <h2 class="detail-heading">Synopsis</h2>
+          <div class="insights-tldr">
+            <p>{article.insights.tldr}</p>
+          </div>
+          {article.insights.key_findings && article.insights.key_findings.length > 0 && (
+            <div class="insights-findings">
+              <h3 class="insights-subheading">Key Findings</h3>
+              <ul>
+                {article.insights.key_findings.map(finding => (
+                  <li>{finding}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {article.insights.clinical_implications && (
+            <div class="insights-relevance">
+              <h3 class="insights-subheading">Clinical Implications</h3>
+              <p>{article.insights.clinical_implications}</p>
+            </div>
+          )}
+          {article.insights.rrm_context && (
+            <div class="insights-context">
+              <h3 class="insights-subheading">RRM Context</h3>
+              <p>{article.insights.rrm_context}</p>
+            </div>
+          )}
+        </section>
+      )}
+
       <!-- Abstract -->
       <section class="abstract" aria-label="Abstract">
         <h2 class="detail-heading">Abstract</h2>
@@ -323,6 +355,7 @@ const citationMeta = {
           ))
         )}
       </section>
+
       <!-- Topics -->
       {article.topics.length > 0 && (
         <section class="article-topics" aria-label="Topics">
@@ -468,10 +501,61 @@ const citationMeta = {
   }
   .detail-heading {
     font-family: 'Cormorant Garamond', 'Georgia', serif;
-    font-size: 1.125rem;
+    font-size: 1.375rem;
     font-weight: 600;
     margin-bottom: var(--space-4);
     color: var(--neutral-900);
+  }
+  .article-insights {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md, 8px);
+    padding: var(--space-8);
+    margin-bottom: var(--space-8);
+  }
+  .article-insights .detail-heading {
+    font-size: 1.375rem;
+    margin-top: 0;
+    margin-bottom: var(--space-4);
+  }
+  .insights-tldr {
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.6;
+    color: var(--text-primary);
+    margin-bottom: var(--space-6);
+  }
+  .insights-subheading {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.0625rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+    color: var(--text-primary);
+    margin-bottom: var(--space-3);
+  }
+  .insights-findings {
+    margin-bottom: var(--space-5);
+  }
+  .insights-findings ul {
+    list-style: disc;
+    padding-left: var(--space-5);
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+  }
+  .insights-findings li {
+    margin-bottom: var(--space-2);
+  }
+  .insights-relevance,
+  .insights-context {
+    margin-bottom: var(--space-4);
+  }
+  .insights-relevance p,
+  .insights-context p {
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
   }
   .article-topics {
     margin-bottom: var(--space-8);
