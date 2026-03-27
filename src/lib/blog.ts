@@ -1,8 +1,7 @@
 /**
  * Blog data layer for RRM Academy Commentary.
- * Fetches editorial commentary posts from cached JSON or Airtable API.
+ * Reads from cached posts.json (populated by fetch-blog-data.mjs from D1).
  */
-import { API_URL, FIELDS } from './blog-config.mjs';
 
 export interface BlogPost {
   id: string;
@@ -18,37 +17,6 @@ export interface BlogPost {
   seoKeywords: string;
   audioUrl: string;
   lastModified: string;
-}
-
-interface AirtableRecord {
-  id: string;
-  fields: Record<string, any>;
-}
-
-function transformRecord(record: AirtableRecord): BlogPost | null {
-  const f = record.fields;
-
-  if (f['Status'] !== 'Published') return null;
-
-  const slug = f['Slug'];
-  const title = f['Title'];
-  if (!slug || !title) return null;
-
-  return {
-    id: record.id,
-    slug: slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, ''),
-    title: title.trim(),
-    excerpt: f['Excerpt'] || '',
-    content: f['Content'] || '',
-    author: f['Author'] || '',
-    contentPillar: f['Content Pillar'] || '',
-    coverImageUrl: f['Processed Cover URL'] || '',
-    publishDate: f['Actual Publish Date'] || '',
-    wordCount: f['Word Count'] ? Number(f['Word Count']) : 0,
-    seoKeywords: f['SEO Keywords'] || '',
-    audioUrl: '',
-    lastModified: f['Last Modified'] || '',
-  };
 }
 
 /**
@@ -77,7 +45,6 @@ function sortByDate(posts: BlogPost[]): BlogPost[] {
 }
 
 export async function fetchAllPosts(): Promise<BlogPost[]> {
-  // Try cached JSON first
   try {
     const cached = await import('../data/posts.json');
     const posts = (cached.default || cached) as BlogPost[];
@@ -85,68 +52,8 @@ export async function fetchAllPosts(): Promise<BlogPost[]> {
     console.log(`[blog] Loaded ${posts.length} posts from cache`);
     return sortByDate(posts);
   } catch (err: any) {
-    if (err?.code === 'ERR_MODULE_NOT_FOUND') {
-      // No cache file — fall through to API fetch
-    } else {
-      throw new Error(`posts.json exists but failed to load: ${err.message}`);
-    }
+    throw new Error(`posts.json not found. Run: WORKER_AUTH_TOKEN=xxx npm run fetch-blog`);
   }
-
-  const pat = import.meta.env.AIRTABLE_PAT || process.env.AIRTABLE_PAT;
-  if (!pat) {
-    throw new Error('AIRTABLE_PAT required. Run: npm run fetch-blog');
-  }
-
-  const posts: BlogPost[] = [];
-  let offset: string | undefined;
-
-  const formula = encodeURIComponent("{Status}='Published'");
-  const fieldsParams = FIELDS.map(f => `fields[]=${encodeURIComponent(f)}`).join('&');
-
-  do {
-    const url = `${API_URL}?${fieldsParams}&filterByFormula=${formula}&pageSize=100${
-      offset ? `&offset=${offset}` : ''
-    }`;
-
-    let res: Response | undefined;
-    let lastError: Error | undefined;
-    for (let attempt = 0; attempt < 5; attempt++) {
-      try {
-        res = await fetch(url, {
-          headers: { Authorization: `Bearer ${pat}` },
-        });
-        lastError = undefined;
-        if (res.ok || (res.status !== 429 && res.status < 500)) break;
-      } catch (e: any) {
-        lastError = e;
-      }
-      const delay = Math.pow(2, attempt) * 1000;
-      await new Promise(r => setTimeout(r, delay));
-    }
-
-    if (lastError) throw lastError;
-    if (!res || !res.ok) {
-      const err = res ? await res.text() : 'No response';
-      throw new Error(`Airtable API error ${res?.status}: ${err}`);
-    }
-
-    const data = await res.json();
-    offset = data.offset;
-
-    for (const record of data.records) {
-      const post = transformRecord(record);
-      if (post) posts.push(post);
-    }
-  } while (offset);
-
-  const seen = new Set<string>();
-  const deduplicated = posts.filter(p => {
-    if (seen.has(p.slug)) return false;
-    seen.add(p.slug);
-    return true;
-  });
-
-  return sortByDate(deduplicated);
 }
 
 /**
