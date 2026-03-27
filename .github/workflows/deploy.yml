@@ -112,6 +112,8 @@ jobs:
           fail=0
           # Minimum expected record counts (fail deploy if below these)
           declare -A MIN_COUNTS=( [articles.json]=2500 [posts.json]=5 [faqs.json]=10 [courses.json]=1 )
+          # Max allowed drop per data file (articles churn with retractions; posts/faqs/courses should not drop)
+          declare -A MAX_DROP=( [articles.json]=50 [posts.json]=1 [faqs.json]=1 [courses.json]=1 )
 
           # Load baselines for regression detection
           BASELINES_FILE="src/data/.baselines.json"
@@ -135,14 +137,15 @@ jobs:
               count=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$f','utf8')).length)")
               min=${MIN_COUNTS[$base]:-1}
               baseline=${BASELINES[$base]:-0}
+              max_drop=${MAX_DROP[$base]:-1}
               if [ "$count" = "0" ]; then
                 echo "ERROR: $f contains zero records. Aborting to prevent empty deploy."
                 fail=1
               elif [ "$count" -lt "$min" ]; then
                 echo "ERROR: $f has only $count records (minimum: $min). Possible data loss."
                 fail=1
-              elif [ "$baseline" -gt "0" ] && [ "$count" -lt "$((baseline - 1))" ]; then
-                echo "ERROR: $f dropped from $baseline to $count records (max allowed drop: 1). Possible data regression."
+              elif [ "$baseline" -gt "0" ] && [ "$count" -lt "$((baseline - max_drop))" ]; then
+                echo "ERROR: $f dropped from $baseline to $count records (max allowed drop: $max_drop). Possible data regression."
                 fail=1
               else
                 echo "OK: $f has $count records (minimum: $min, baseline: $baseline)"
