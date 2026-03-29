@@ -113,6 +113,12 @@ async function handleWebhook(request, env, waitUntil) {
     case 'invoice.payment_failed':
       result = await handlePaymentFailed(db, event, env, request, waitUntil);
       break;
+    case 'charge.refunded': {
+      const charge = event.data.object;
+      log(env, waitUntil, 'billing', 'charge_refunded', 'ok',
+        `charge=${charge.id} customer=${charge.customer || 'none'} amount=${charge.amount_refunded}`);
+      break;
+    }
     default:
       log(env, waitUntil, 'billing', 'webhook_unhandled', 'skipped', event.type);
   }

@@ -39,23 +39,23 @@
       "note": "Email validation + disposable/typo detection"
     },
     "functions/api/stripe-webhook.js": {
-      "hash": "a3bd9c13a0d18336ac9619e3140cbd847c99e2f47daf5482be2f68dab75c5cf6",
+      "hash": "ed1763299e698b86a386edf6c3427ea1740854c9d365676266940897df8303e0",
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
-      "hash": "17e5c1df436f9532c38751ceb5ed8e1b45e640a0efe186b6ee0c1fc2e225f613",
+      "hash": "90ae072a1a9be567f9676da30825517dffd62c06b2c905c1bd6a2fee5b1cbfb6",
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
-      "hash": "c9d00b726eb9a6d52fda8d860b483dc2d86e865fd015ebf1e1dfb6daf24b8864",
+      "hash": "b16e7caeba8da2139bad70504863bc5edb2776161ebd41e6825b26a8b2ff7a6c",
       "note": "Billing status"
     },
     "functions/api/billing/portal.js": {
-      "hash": "1f840203be1cf0bce22550e7bc394fcd7d9e6978e2822628229f1bc46bba1960",
+      "hash": "bd345fdc28503e2c12e0927d3af8cddb01ac38946bfa5ed23212cd503814cb01",
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "d98291a9497211895a935b9b7f3188a1a9afc93585e4cb9071bb5c6f2b16ebdc",
+      "hash": "0d155cd00a1457bde393f8334b35e3c72a1527f377711e830d185a065260708a",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
@@ -111,7 +111,7 @@
       "note": "Search UX + RRF fusion (Pagefind init, relevance boost, error resilience)"
     },
     "functions/api/community/_shared.js": {
-      "hash": "01fe59b194ee390c0991383dea6320a1615a10f657e0e1962788402e8a59e113",
+      "hash": "79441332aac2ed0e8a2c3ada06a9aa9644d661705470219620d01790cd763f2d",
       "note": "Community access control (requireMember)"
     },
     "functions/api/admin/cleanup.js": {
