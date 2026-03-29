@@ -183,10 +183,14 @@ export async function onRequestGet({ request, env, waitUntil }) {
   }
 }
 
+function escapeHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 // CF Pages _headers can convert 302 → 200, so include HTML fallback
 // that performs the redirect via meta refresh + JS even if status is wrong.
 function htmlRedirect(location, extraHeaders) {
-  const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${location}"></head><body><script>window.location.href=${JSON.stringify(location)}</script></body></html>`;
+  const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${escapeHtml(location)}"></head><body><script>window.location.href=${JSON.stringify(location)}</script></body></html>`;
   return new Response(html, {
     status: 302,
     headers: { Location: location, 'Content-Type': 'text/html;charset=UTF-8', ...extraHeaders },

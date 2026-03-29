@@ -82,7 +82,8 @@ export async function onRequest(context) {
     !url.pathname.includes('.')
   ) {
     const target = `${url.origin}${url.pathname}/${url.search}`;
-    const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${target}"></head><body><script>window.location.href=${JSON.stringify(target)}</script></body></html>`;
+    const escaped = target.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${escaped}"></head><body><script>window.location.href=${JSON.stringify(target)}</script></body></html>`;
     return new Response(html, {
       status: 301,
       headers: { Location: target, 'Content-Type': 'text/html;charset=UTF-8' },
