@@ -57,7 +57,6 @@ export async function onRequestGet({ request, env, waitUntil }) {
       headers
     );
   } catch (err) {
-    console.error('session GET error:', err.message, err.stack);
     log(env, waitUntil, 'auth', 'session_error', 'error', err.message);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
