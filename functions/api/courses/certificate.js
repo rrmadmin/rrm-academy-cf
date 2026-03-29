@@ -38,7 +38,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     if (!course.hasCertificate) return htmlError('This course does not offer a certificate.', 400);
 
     const enrollment = await db.prepare(
-      'SELECT id, completed_at, certificate_issued_at FROM enrollment WHERE user_id = ? AND course_id = ?'
+      'SELECT id, completed_at, certificate_issued_at FROM enrollment WHERE user_id = ? AND course_id = ? AND revoked_at IS NULL'
     ).bind(session.userId, courseId).first();
     if (!enrollment) return htmlError('You are not enrolled in this course.', 403);
     if (!enrollment.completed_at) return htmlError('Course not yet completed.', 403);
@@ -60,7 +60,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
         "UPDATE enrollment SET certificate_issued_at = datetime('now') WHERE user_id = ? AND course_id = ? AND certificate_issued_at IS NULL"
       ).bind(session.userId, courseId).run();
       const updated = await db.prepare(
-        'SELECT certificate_issued_at FROM enrollment WHERE user_id = ? AND course_id = ?'
+        'SELECT certificate_issued_at FROM enrollment WHERE user_id = ? AND course_id = ? AND revoked_at IS NULL'
       ).bind(session.userId, courseId).first();
       issuedAt = updated?.certificate_issued_at;
     }

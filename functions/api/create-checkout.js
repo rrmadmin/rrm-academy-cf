@@ -182,7 +182,7 @@ async function handleCheckout(request, env, waitUntil) {
       return json({ ok: false, error: 'Invalid tier' }, 400);
     }
     // Guard: reject test-mode price IDs when using a live key
-    if (stripeKey.startsWith('sk_live_') && priceId.includes('test')) {
+    if (stripeKey.startsWith('sk_live_') && priceId.includes('_test_')) {
       console.error(`BLOCKED: test-mode price ID for tier "${tier}": ${priceId}`);
       return json({ ok: false, error: 'Payments not configured' }, 500);
     }
@@ -195,16 +195,15 @@ async function handleCheckout(request, env, waitUntil) {
         limit: 10,
       });
       const blocking = existing.data.find(s =>
-        s.status === 'active' || s.status === 'trialing' || s.status === 'past_due'
+        s.status === 'active' || s.status === 'trialing' || s.status === 'past_due' || s.status === 'incomplete'
       );
       if (blocking) {
-        return json({
-          ok: false,
-          error: blocking.status === 'past_due'
-            ? 'You have a membership with a payment issue. Please update your payment method from your account page.'
-            : 'You already have an active membership. You can change or cancel it from your account page.',
-          redirect: '/account/',
-        }, 409);
+        const msg = blocking.status === 'past_due'
+          ? 'You have a membership with a payment issue. Please update your payment method from your account page.'
+          : blocking.status === 'incomplete'
+            ? 'You have a pending membership checkout. Please complete or cancel it before starting a new one.'
+            : 'You already have an active membership. You can change or cancel it from your account page.';
+        return json({ ok: false, error: msg, redirect: '/account/' }, 409);
       }
     }
 

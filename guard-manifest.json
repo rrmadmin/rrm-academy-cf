@@ -39,15 +39,15 @@
       "note": "Email validation + disposable/typo detection"
     },
     "functions/api/stripe-webhook.js": {
-      "hash": "ed1763299e698b86a386edf6c3427ea1740854c9d365676266940897df8303e0",
+      "hash": "5ef4cfdf2a1c711a7bcc9fd6874aeb6a9d4f591aefa42c19db930e74a19a29f3",
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
-      "hash": "90ae072a1a9be567f9676da30825517dffd62c06b2c905c1bd6a2fee5b1cbfb6",
+      "hash": "b13669ea1a9f1d4fbbfaa3a85db40df182c5f5e794c3ee72c8b8faf15e977188",
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
-      "hash": "b16e7caeba8da2139bad70504863bc5edb2776161ebd41e6825b26a8b2ff7a6c",
+      "hash": "66d4c3e7710a99dcaffa4cc45627aee2d485e40d2636d3889edecf2ea24dbac7",
       "note": "Billing status"
     },
     "functions/api/billing/portal.js": {
@@ -55,7 +55,7 @@
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "0d155cd00a1457bde393f8334b35e3c72a1527f377711e830d185a065260708a",
+      "hash": "068f7438f028d9ce6bced3195d02e5671cb671006dcf3e2436454e34d3eecb89",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
