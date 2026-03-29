@@ -122,15 +122,15 @@ export async function requireMember(request, env) {
   try {
     subs = await stripe.subscriptions.list({
       customer: user.stripe_customer_id,
-      status: 'active',
-      limit: 1,
+      limit: 10,
     });
   } catch (err) {
     console.error('Stripe API error in requireMember:', err.message);
     return json({ ok: false, error: 'Unable to verify membership. Please try again.' }, 503);
   }
 
-  if (!subs.data.length) {
+  const validSub = subs.data.find(s => ['active', 'trialing', 'past_due'].includes(s.status));
+  if (!validSub) {
     return json({ ok: false, error: 'Membership required' }, 403);
   }
 
@@ -139,7 +139,7 @@ export async function requireMember(request, env) {
   if (env.STRIPE_PRICE_HERO) priceToTier[env.STRIPE_PRICE_HERO] = 'hero';
   if (env.STRIPE_PRICE_SUPERHERO) priceToTier[env.STRIPE_PRICE_SUPERHERO] = 'superhero';
 
-  const price = subs.data[0].items.data[0]?.price;
+  const price = validSub.items.data[0]?.price;
   const tier = priceToTier[price?.id] || 'member';
 
   return { user, tier, session };

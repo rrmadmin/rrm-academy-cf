@@ -87,10 +87,14 @@ async function handleCheckout(request, env, waitUntil) {
         userId = user.id;
         stripeCustomerId = user.stripe_customer_id;
         if (!stripeCustomerId && userEmail) {
-          const customer = await stripe.customers.create({ email: userEmail, metadata: { user_id: userId } });
-          stripeCustomerId = customer.id;
-          await db.prepare('UPDATE user SET stripe_customer_id = ? WHERE id = ?')
-            .bind(stripeCustomerId, userId).run();
+          try {
+            const customer = await stripe.customers.create({ email: userEmail, metadata: { user_id: userId } });
+            stripeCustomerId = customer.id;
+            await db.prepare('UPDATE user SET stripe_customer_id = ? WHERE id = ?')
+              .bind(stripeCustomerId, userId).run();
+          } catch {
+            stripeCustomerId = null;
+          }
         }
       }
     }
@@ -115,8 +119,8 @@ async function handleCheckout(request, env, waitUntil) {
 
   // --- One-time donation ---
   if (mode === 'payment') {
-    const cents = parseInt(amount, 10);
-    if (!cents || cents < 500) {
+    const cents = Number(amount);
+    if (!Number.isInteger(cents) || cents < 500) {
       return json({ ok: false, error: 'Minimum donation is $5' }, 400);
     }
     if (cents > 99999900) {
@@ -154,7 +158,12 @@ async function handleCheckout(request, env, waitUntil) {
       ...(gaCampaign && { ga_campaign: gaCampaign }),
     };
 
-    const checkoutSession = await stripe.checkout.sessions.create(sessionParams);
+    let checkoutSession;
+    try {
+      checkoutSession = await stripe.checkout.sessions.create(sessionParams);
+    } catch {
+      return json({ ok: false, error: 'Payment service temporarily unavailable. Please try again.' }, 503);
+    }
     waitUntil(sendGA4Event(env, request, 'begin_checkout', {
       currency: 'USD', value: cents / 100, items: [{ item_name: 'Donation' }],
     }).catch(() => {}));
@@ -225,7 +234,12 @@ async function handleCheckout(request, env, waitUntil) {
       ...(gaCampaign && { ga_campaign: gaCampaign }),
     };
 
-    const checkoutSession = await stripe.checkout.sessions.create(sessionParams);
+    let checkoutSession;
+    try {
+      checkoutSession = await stripe.checkout.sessions.create(sessionParams);
+    } catch {
+      return json({ ok: false, error: 'Payment service temporarily unavailable. Please try again.' }, 503);
+    }
     waitUntil(sendGA4Event(env, request, 'begin_checkout', {
       currency: 'USD', items: [{ item_name: `STUC ${tier}` }],
     }).catch(() => {}));

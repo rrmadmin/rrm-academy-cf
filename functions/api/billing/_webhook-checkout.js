@@ -31,15 +31,17 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
   const session = event.data.object;
 
   // Link Stripe customer to D1 user, or auto-create account for anonymous checkout
+  const checkoutType = session.metadata?.type;
   try {
     await ensureAccountForCheckout(db, session, env, waitUntil);
   } catch (linkErr) {
     log(env, waitUntil, 'billing', 'account_link_fail', 'error', linkErr.message, 0, 500);
-    // Return 500 so Stripe retries -- user needs an account for course access
-    return new Response(JSON.stringify({ ok: false, error: 'Account linkage failed' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    if (checkoutType === 'course') {
+      return new Response(JSON.stringify({ ok: false, error: 'Account linkage failed' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
   }
 
   // Course purchase: create enrollment
@@ -259,6 +261,9 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
       await db.prepare('UPDATE user SET stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE id = ?')
         .bind(customerId, existing.id).run();
       log(env, waitUntil, 'billing', 'stripe_linked', 'ok', `${customerId} -> user ${existing.id} (by email)`);
+    } else if (customerId && existing.stripe_customer_id && existing.stripe_customer_id !== customerId) {
+      log(env, waitUntil, 'billing', 'stripe_customer_mismatch', 'warning',
+        `user ${existing.id} has ${existing.stripe_customer_id} but checkout used ${customerId}`);
     }
     return;
   }
