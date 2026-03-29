@@ -35,7 +35,8 @@ async function handleSummary(db) {
            COUNT(DISTINCT e.user_id) as unique_students,
            SUM(CASE WHEN e.enrolled_at >= datetime('now', '-30 days') THEN 1 ELSE 0 END) as last_30d,
            SUM(CASE WHEN e.enrolled_at >= datetime('now', '-7 days') THEN 1 ELSE 0 END) as last_7d
-         FROM enrollment e`
+         FROM enrollment e
+         WHERE e.revoked_at IS NULL`
       )
       .first();
 
@@ -48,6 +49,7 @@ async function handleSummary(db) {
            SUM(CASE WHEN e.completed_at IS NOT NULL THEN 1 ELSE 0 END) as completed,
            SUM(CASE WHEN e.stripe_payment_intent IS NOT NULL THEN 1 ELSE 0 END) as paid
          FROM enrollment e
+         WHERE e.revoked_at IS NULL
          GROUP BY e.course_id
          ORDER BY total DESC`
       )
@@ -89,10 +91,10 @@ async function handleList(url, db, env) {
   try {
     const countRow = courseId
       ? await db
-          .prepare('SELECT COUNT(*) as total FROM enrollment e WHERE e.course_id = ?')
+          .prepare('SELECT COUNT(*) as total FROM enrollment e WHERE e.course_id = ? AND e.revoked_at IS NULL')
           .bind(courseId)
           .first()
-      : await db.prepare('SELECT COUNT(*) as total FROM enrollment e').first();
+      : await db.prepare('SELECT COUNT(*) as total FROM enrollment e WHERE e.revoked_at IS NULL').first();
 
     const total = countRow?.total ?? 0;
 
@@ -103,7 +105,7 @@ async function handleList(url, db, env) {
                     u.email, u.name
              FROM enrollment e
              JOIN user u ON e.user_id = u.id
-             WHERE e.course_id = ?
+             WHERE e.course_id = ? AND e.revoked_at IS NULL
              ORDER BY e.enrolled_at DESC
              LIMIT ? OFFSET ?`
           )
@@ -115,6 +117,7 @@ async function handleList(url, db, env) {
                     u.email, u.name
              FROM enrollment e
              JOIN user u ON e.user_id = u.id
+             WHERE e.revoked_at IS NULL
              ORDER BY e.enrolled_at DESC
              LIMIT ? OFFSET ?`
           )

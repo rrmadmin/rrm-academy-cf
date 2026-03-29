@@ -53,7 +53,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     if (!allFree) {
       const placeholders = courses.map(() => '?').join(', ');
       const enrollment = await db.prepare(
-        `SELECT id FROM enrollment WHERE user_id = ? AND course_id IN (${placeholders})`
+        `SELECT id FROM enrollment WHERE user_id = ? AND course_id IN (${placeholders}) AND revoked_at IS NULL`
       ).bind(session.userId, ...courses.map(c => c.id)).first();
       if (!enrollment) return json({ ok: false, error: 'Not enrolled' }, 403);
     }

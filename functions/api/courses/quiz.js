@@ -50,7 +50,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
     // Verify enrolled
     const enrollment = await db.prepare(
-      'SELECT id FROM enrollment WHERE user_id = ? AND course_id = ?'
+      'SELECT id FROM enrollment WHERE user_id = ? AND course_id = ? AND revoked_at IS NULL'
     ).bind(session.userId, courseId).first();
     if (!enrollment) return json({ ok: false, error: 'Not enrolled' }, 403);
 
@@ -134,7 +134,7 @@ async function handleQuizSubmit(request, env) {
 
   // Verify enrolled
   const enrollment = await db.prepare(
-    'SELECT id FROM enrollment WHERE user_id = ? AND course_id = ?'
+    'SELECT id FROM enrollment WHERE user_id = ? AND course_id = ? AND revoked_at IS NULL'
   ).bind(session.userId, courseId).first();
   if (!enrollment) return json({ ok: false, error: 'Not enrolled' }, 403);
 

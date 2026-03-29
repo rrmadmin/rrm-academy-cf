@@ -43,7 +43,7 @@ export async function onRequestGet({ request, params, env }) {
       const course = getCourseBySlug(keyParts[1]);
       if (course && !course.isFree) {
         const enrollment = await env.DB.prepare(
-          'SELECT id FROM enrollment WHERE user_id = ? AND course_id = ?'
+          'SELECT id FROM enrollment WHERE user_id = ? AND course_id = ? AND revoked_at IS NULL'
         ).bind(session.userId, course.id).first();
         if (!enrollment) return new Response('Forbidden', { status: 403 });
       }
