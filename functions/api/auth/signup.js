@@ -147,7 +147,6 @@ export async function onRequestPost({ request, env, waitUntil }) {
       { 'Set-Cookie': sessionCookie(sessionId, sessionExpiresAt) }
     );
   } catch (err) {
-    console.error(err);
     log(env, waitUntil, 'auth', 'signup_fail', 'error', err.message);
     return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500);
   }

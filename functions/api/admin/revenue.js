@@ -8,6 +8,7 @@
  */
 import Stripe from 'stripe';
 import { json, optionsResponse, STRIPE_API_VERSION, requireSuperAdmin } from '../auth/_shared.js';
+import { log } from '../_log.js';
 
 // Revenue data changes frequently enough to warrant a shorter cache than other admin endpoints.
 // TODO: at scale (20K+ subs), replace the MRR for await loop with a webhook-maintained running total in KV.
@@ -131,7 +132,7 @@ export async function onRequestGet({ request, env }) {
 
     return json({ ok: true, data: report, cached: false });
   } catch (err) {
-    console.error('Revenue API error:', err.message);
+    log(env, null, 'admin', 'revenue_error', 'error', err.message, 0, 502);
     return json({ ok: false, error: 'Failed to fetch revenue data' }, 502);
   }
 }

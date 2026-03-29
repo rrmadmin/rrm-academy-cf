@@ -56,7 +56,6 @@ export async function onRequestPatch({ request, env, waitUntil }) {
       user: { firstName, lastName, name },
     });
   } catch (err) {
-    console.error(err);
     log(env, waitUntil, 'auth', 'profile_error', 'error', err.message);
     return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500);
   }

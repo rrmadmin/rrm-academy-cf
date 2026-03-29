@@ -76,7 +76,6 @@ export async function onRequestPost({ request, env, waitUntil }) {
       { 'Set-Cookie': sessionCookie(newSessionId, newExpiresAt) }
     );
   } catch (err) {
-    console.error(err);
     log(env, waitUntil, 'auth', 'change_password_error', 'error', err.message);
     return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500);
   }

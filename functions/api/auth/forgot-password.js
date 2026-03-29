@@ -90,7 +90,6 @@ export async function onRequestPost({ request, env, waitUntil }) {
     // Always return success (no email enumeration)
     return json({ ok: true, message: 'If an account exists with that email, a reset link has been sent.' });
   } catch (err) {
-    console.error(err);
     log(env, waitUntil, 'auth', 'forgot_password_error', 'error', err.message);
     return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500);
   }
