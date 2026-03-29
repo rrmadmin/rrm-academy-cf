@@ -27,11 +27,11 @@
       "note": "Authenticated password change"
     },
     "functions/api/auth/google.js": {
-      "hash": "c83426151a9e2ed8d36bdcfec91f675f80d2fe9864b7970cd6537d9679cd4f9f",
+      "hash": "a351748ca346ac43d169b8e0b6842a28101b729a59b27848cde0527a15e80f3b",
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "7f00e16d57caa059334c223fbea9d777532b9b7e565f8139cbd1cff3d5d62221",
+      "hash": "ef0de9ec0c9475cdb7a5b4bba9383b865d90fd9be4edcc30d4d49d46cf196fae",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
@@ -67,7 +67,7 @@
       "note": "Shared webhook helpers"
     },
     "functions/_middleware.js": {
-      "hash": "ced250565d47fe742dd56d2fe774ec40873c802ebda861292d700002a864a1cb",
+      "hash": "87264faf4f407ddaf27e6843882eed845cc0a51dfb894c2511ca397b9d8696ce",
       "note": "Auth gating"
     },
     "wrangler.toml": {
@@ -111,7 +111,7 @@
       "note": "Search UX + RRF fusion (Pagefind init, relevance boost, error resilience)"
     },
     "functions/api/community/_shared.js": {
-      "hash": "d488f8a662bc4a8077d8bb7cf563b3d616474758d2160622e38bc1525e34d82d",
+      "hash": "01fe59b194ee390c0991383dea6320a1615a10f657e0e1962788402e8a59e113",
       "note": "Community access control (requireMember)"
     },
     "functions/api/admin/cleanup.js": {
