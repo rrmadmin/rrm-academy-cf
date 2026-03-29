@@ -17,10 +17,11 @@ export async function onRequestGet({ env, request }) {
   const authUrl = googleAuthUrl(env.GOOGLE_CLIENT_ID, redirectUri);
 
   const target = `${authUrl}&state=${encodeURIComponent(redirect)}`;
+  const escapedTarget = target.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
   // CF Pages _headers can convert 302 → 200, so include an HTML fallback
   // that performs the redirect via meta refresh + JS even if the status is wrong.
-  const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${target}"></head><body><script>window.location.href=${JSON.stringify(target)}</script></body></html>`;
+  const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${escapedTarget}"></head><body><script>window.location.href=${JSON.stringify(target)}</script></body></html>`;
 
   return new Response(html, {
     status: 302,
