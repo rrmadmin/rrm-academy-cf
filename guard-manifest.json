@@ -3,7 +3,7 @@
   "description": "Critical file integrity manifest. Run `npm run guard:update` after intentional changes.",
   "files": {
     "functions/api/auth/_shared.js": {
-      "hash": "f074bc5a9c7861395d2c8e5c671681e8a2150e700b500d619bfa488fab47ee9b",
+      "hash": "fda8cd7ed0fc5d9c05ae6a09ac4896038a5c835822b1003e63bcfca446a5b12b",
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
@@ -91,11 +91,11 @@
       "note": "Magic-link token generation"
     },
     "functions/api/newsletter/send.js": {
-      "hash": "6c9c834a5ed36e747fb48192d6192dec2bd5b6b8dd23b2cb27d3a87d6c1734af",
+      "hash": "bdda9b709d93fff2a7248c6f99d3162d7357f69579117ff408a63906a35e5fb8",
       "note": "Mass email send (admin-only)"
     },
     "functions/api/newsletter/unsubscribe.js": {
-      "hash": "567a9f91462a278e0024269a9aa090a8405cd18aa7d58a5737f2d65ace6f68fd",
+      "hash": "d8ef0e18d7761d96bb84dfc2595c8aaf6b1f980b62e4c2088ef993463db8082a",
       "note": "CAN-SPAM unsubscribe (status update)"
     },
     "functions/api/newsletter/subscribe.js": {
@@ -115,7 +115,7 @@
       "note": "Community access control (requireMember)"
     },
     "functions/api/admin/cleanup.js": {
-      "hash": "37fa1393c1dc7a9b8018ecf85c9beb5a95bcc29ee4186b5b3eb628409767c6a2",
+      "hash": "199a1d06c6918393813c3d7b851c0952bbff9fa244d6a8f9495501bc815ad4da",
       "note": "Expired data deletion from D1"
     },
     "scripts/guard.mjs": {
@@ -143,7 +143,7 @@
       "note": "R2 image upload (file validation)"
     },
     "functions/api/pdf/request.js": {
-      "hash": "101123109d55265b7d214671ea2c2fe69a4b6cf46d09ab2f91a20a9d0a681a86",
+      "hash": "47f9ffb5662a94754328e883b8240d10c2bb40df342a959bc5c4bada55a661e5",
       "note": "PDF magic-link token generation"
     },
     "functions/api/pdf/redeem.js": {

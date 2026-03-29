@@ -7,16 +7,17 @@ import { log } from '../_log.js';
 import { hmacToken } from './_tracking.js';
 
 async function unsubscribe(db, email, waitUntil, env) {
-  await db.prepare(
-    "UPDATE newsletter_subscriber SET status = 'unsubscribed', unsubscribed_at = datetime('now') WHERE email = ? COLLATE NOCASE AND status = 'active'"
-  ).bind(email).run();
-  // Sync user table opt-in flag
-  await db.prepare(
-    "UPDATE user SET newsletter_opt_in = 0 WHERE email = ? COLLATE NOCASE"
-  ).bind(email).run();
-  await db.prepare(
-    "INSERT INTO email_log (event, email, category, source) VALUES ('unsubscribed', ?, 'newsletter', 'newsletter/unsubscribe')"
-  ).bind(email.toLowerCase()).run();
+  await db.batch([
+    db.prepare(
+      "UPDATE newsletter_subscriber SET status = 'unsubscribed', unsubscribed_at = datetime('now') WHERE email = ? COLLATE NOCASE AND status = 'active'"
+    ).bind(email),
+    db.prepare(
+      "UPDATE user SET newsletter_opt_in = 0 WHERE email = ? COLLATE NOCASE"
+    ).bind(email),
+    db.prepare(
+      "INSERT INTO email_log (event, email, category, source) VALUES ('unsubscribed', ?, 'newsletter', 'newsletter/unsubscribe')"
+    ).bind(email.toLowerCase()),
+  ]);
   log(env, waitUntil, 'newsletter', 'unsubscribe', 'ok', email, 0, 200);
 }
 
