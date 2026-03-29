@@ -50,7 +50,12 @@ export async function onRequestGet({ request, params, env }) {
     }
   }
 
-  const object = await env.R2_ASSETS.get(key);
+  let object;
+  try {
+    object = await env.R2_ASSETS.get(key);
+  } catch {
+    return new Response('Service Unavailable', { status: 502 });
+  }
   if (!object) return new Response('Not Found', { status: 404 });
 
   const contentType =

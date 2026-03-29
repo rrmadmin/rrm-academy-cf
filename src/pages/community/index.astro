@@ -869,7 +869,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
       function linkify(text) {
         if (!text) return '';
-        var s = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        var s = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
         // 1. Image markdown: ![alt](url) → <img>
         s = s.replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+|\/api\/assets\/[^\s)]+)\)/g,
