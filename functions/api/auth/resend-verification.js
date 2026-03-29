@@ -74,7 +74,6 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     return json({ ok: true });
   } catch (err) {
-    console.error(err);
     log(env, waitUntil, 'auth', 'resend_verification_error', 'error', err.message);
     return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500);
   }

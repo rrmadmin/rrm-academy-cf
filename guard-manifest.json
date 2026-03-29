@@ -7,23 +7,23 @@
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
-      "hash": "60678fe8d0cc6075d1f291935a4814bccce3ee99232ca5ccc1d9c54e66f69fb9",
+      "hash": "03372cfc18430535cc1ac2410f6ef233519bbbdc4149a3f5792bd5da8b4f822e",
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "85331c83825342a212316e4b5d7fbe23ceb53f0e297068ba1c7425b050411e04",
+      "hash": "d04646cdc9a80af897fdc742344ebfa306ad86010ac36b1b2a7bfe2ebd5f266b",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
-      "hash": "125e3e00aeba9030ce89db376802f83c989e0a914b2dde49898cab558199fe66",
+      "hash": "44373336a837a790a77c0388873791a190153ba6136d802d6312e2ea04e0b257",
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
-      "hash": "a70d58526efc88fcc7325472abd3de2f612187b8931415e4ee8644ad1cd553d4",
+      "hash": "25d1d4e929cc5efefa100017ae7b29c49330762d74fdc336f78ed06f0dab1f45",
       "note": "Reset token consumption + password change"
     },
     "functions/api/auth/change-password.js": {
-      "hash": "6586c91ff82eb3295018c7e202abfe7e93be32c477ab04155bf27bc5af6401ef",
+      "hash": "77976263176f28d0eb494f3d96d32ca07d6a59664264ae0bf2dc65b55f402746",
       "note": "Authenticated password change"
     },
     "functions/api/auth/google.js": {
@@ -31,7 +31,7 @@
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "69e34213ed0ee44da08a1ad62237edb626c1b82adb7a4f68127d482b90cd3a19",
+      "hash": "7f00e16d57caa059334c223fbea9d777532b9b7e565f8139cbd1cff3d5d62221",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
@@ -123,7 +123,7 @@
       "note": "Guard script (self-guarding)"
     },
     "functions/api/auth/verify-email.js": {
-      "hash": "7fecf3932ea907951d45df73fb8a18e76dbee684b36eb172935c625ea14c9949",
+      "hash": "2d4bfe465dbbb68cea4dc7dc15d8e10d38535bcaff8b7da10f4d3e2effa8d36a",
       "note": "Email verification token consumption"
     },
     "functions/api/auth/logout.js": {

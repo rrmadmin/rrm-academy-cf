@@ -178,7 +178,6 @@ export async function onRequestGet({ request, env, waitUntil }) {
       'Set-Cookie': sessionCookie(session.id, session.expiresAt),
     });
   } catch (err) {
-    console.error('Google OAuth callback error:', err);
     log(env, waitUntil, 'auth', 'google_auth_error', 'error', err.message);
     return htmlRedirect(LOGIN_ERROR_URL);
   }
