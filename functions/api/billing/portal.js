@@ -18,14 +18,14 @@ export async function onRequestOptions() {
 
 export async function onRequestPost({ request, env, waitUntil }) {
   try {
-    return await handlePortal(request, env);
+    return await handlePortal(request, env, waitUntil);
   } catch (err) {
     log(env, waitUntil, 'billing', 'portal_error', 'error', err.message, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 }
 
-async function handlePortal(request, env) {
+async function handlePortal(request, env, waitUntil) {
   const db = env.DB;
   const stripeKey = env.STRIPE_SECRET_KEY;
   if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
@@ -52,10 +52,19 @@ async function handlePortal(request, env) {
   });
 
   const origin = SITE_URL;
-  const portalSession = await stripe.billingPortal.sessions.create({
-    customer: user.stripe_customer_id,
-    return_url: `${origin}/account/`,
-  });
+  let portalSession;
+  try {
+    portalSession = await stripe.billingPortal.sessions.create({
+      customer: user.stripe_customer_id,
+      return_url: `${origin}/account/`,
+    });
+  } catch (err) {
+    if (err.code === 'resource_missing') {
+      return json({ ok: false, error: 'No billing account found. Please contact support.' }, 404);
+    }
+    log(env, waitUntil, 'billing', 'portal_error', 'error', `stripe portal: ${err.message}`, 0, 503);
+    return json({ ok: false, error: 'Payment service temporarily unavailable. Please try again.' }, 503);
+  }
 
   return json({ ok: true, url: portalSession.url });
 }
