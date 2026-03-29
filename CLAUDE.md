@@ -264,7 +264,11 @@ Endo survey splits PII from health data across two systems:
 
 ## Webhook Event Dedup
 
-`webhook_event` table in D1 stores Stripe `event.id` on first processing. `INSERT OR IGNORE` skips duplicates on retries. Prevents duplicate welcome emails and account creation.
+`webhook_event` table in D1 stores Stripe `event.id` on first processing. `INSERT OR IGNORE` skips duplicates on retries. Dedup record deleted only on 5xx (transient errors), not 4xx (permanent failures). Prevents duplicate welcome emails and account creation.
+
+## Enrollment Revocation
+
+Full Stripe refunds (`charge.refunded === true`) soft-revoke enrollment via `revoked_at` column. Guard blocks `DELETE FROM enrollment`, so use UPDATE instead. All 16 enrollment access queries include `AND revoked_at IS NULL`. Partial refunds log only. Admin email on every revocation.
 
 ## Semantic Search
 
@@ -398,7 +402,7 @@ Before shipping any new endpoint or modifying an existing one, verify:
 - [ ] Write/delete SQL with `user_id =` binds from session (`context.data.user.id`), never from request body
 - [ ] Rate limits on any endpoint that calls a billed service
 
-8. **Endpoint Quality Gates (from /arise -- 544 findings, 45 runs).** Before shipping a new endpoint, verify:
+8. **Endpoint Quality Gates (from /arise -- 544 findings, 45 runs, codified in coder agent G1-G11).** Before shipping a new endpoint, verify:
    - Every Stripe/R2/SES call in its own try/catch (not just outer handler). Return 503 with user-friendly message on external service failure. Gold standard: `courses/enroll.js:121-126`.
    - HTML template literals escape `"` in attribute contexts (not just `<` `>` `&`). Use the `escapeHtml()` helper in `google-callback.js` which covers all 5 entities.
    - Error responses use `{ ok: false, error: 'user-friendly message' }` + `console.error(err.message)`. Never expose `err.message` to the client.
@@ -418,7 +422,7 @@ Before shipping any new endpoint or modifying an existing one, verify:
   - Specific FAQ answer: `rrm-cli get faq <slug> --full`
   - Related content: `rrm-cli related <type> <slug> --type=article`
   - After using content: `rrm-cli annotate <type> <slug> --key=used_for --value="task description"`
-- **When writing or modifying code in `functions/api/`, dispatch the `coder` agent** (`subagent_type: "coder"`). It reads sibling files first and validates against 9 rules + 10 deterministic proof gates. Do not write endpoint code directly -- always use the coder agent.
+- **When writing or modifying code in `functions/api/`, dispatch the `coder` agent** (`subagent_type: "coder"`). It reads sibling files first and validates against 9 rules + 11 deterministic proof gates (G1-G11). Do not write endpoint code directly -- always use the coder agent.
 - Read relevant `STYLE-GUIDE.md` sections before editing styles
 - Never hardcode colors, spacing, or fonts -- use design tokens
 - Keep edits focused, show before/after summaries
