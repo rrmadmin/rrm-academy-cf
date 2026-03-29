@@ -88,8 +88,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
        WHERE ct.tag IN ('elv:spamtrap', 'elv:email_disabled', 'elv:disposable', 'elv:invalid', 'elv:dead_server', 'elv:invalid_mx')`
     ).all()).results;
     for (const r of badTags) suppressedEmails.add(r.email?.toLowerCase());
-  } catch {
-    // Non-fatal: if contact tables don't exist yet, skip suppression
+  } catch (err) {
+    if (!err?.message?.includes('no such table')) {
+      log(env, waitUntil, 'newsletter', 'suppression_query_error', 'warn', err?.message || 'unknown', 0, 0);
+    }
   }
 
   // Query active subscribers, paginated by ID with LIMIT (parameterized, no string interpolation)
