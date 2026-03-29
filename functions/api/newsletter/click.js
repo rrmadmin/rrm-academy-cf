@@ -33,8 +33,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
         const recipientEmail = (subRow?.email || '').toLowerCase();
 
         const result = await env.DB.prepare(
-          "INSERT OR IGNORE INTO newsletter_event (send_id, subscriber_id, event, detail) VALUES (?, ?, 'clicked', ?)"
-        ).bind(sendId, subscriberId, dest).run();
+          "INSERT INTO newsletter_event (send_id, subscriber_id, event, detail) SELECT ?, ?, 'clicked', ? WHERE NOT EXISTS (SELECT 1 FROM newsletter_event WHERE send_id = ? AND subscriber_id = ? AND event = 'clicked' AND detail = ?)"
+        ).bind(sendId, subscriberId, dest, sendId, subscriberId, dest).run();
 
         await env.DB.prepare("UPDATE newsletter_subscriber SET last_clicked_at = datetime('now') WHERE id = ?")
           .bind(subscriberId).run();
