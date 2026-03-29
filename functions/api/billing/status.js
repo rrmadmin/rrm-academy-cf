@@ -88,8 +88,11 @@ async function handleStatus(request, env, waitUntil) {
   // --- Build subscription ---
   let subscription = null;
   if (subscriptions.data.length) {
-    const sub = subscriptions.data.find(s => s.status === 'active' || s.status === 'trialing' || s.status === 'past_due')
-      || subscriptions.data[0];
+    const displayable = new Set(['active', 'trialing', 'past_due', 'incomplete']);
+    const sub = subscriptions.data.find(s => displayable.has(s.status));
+    if (!sub) {
+      return json({ ok: true, subscription: null, donations, payments });
+    }
     const price = sub.items.data[0]?.price;
 
     const priceToTier = {};

@@ -71,6 +71,7 @@ CREATE TABLE IF NOT EXISTS enrollment (
     completed_at TEXT,
     stripe_payment_intent TEXT,
     certificate_issued_at TEXT,
+    revoked_at TEXT,
     UNIQUE(user_id, course_id)
 );
 

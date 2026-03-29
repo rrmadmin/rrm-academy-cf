@@ -50,7 +50,7 @@ async function getProgressSummary(db, userId) {
        WHERE sp.user_id = e.user_id AND sp.course_id = e.course_id AND sp.completed = 1
       ) as completed_steps
     FROM enrollment e
-    WHERE e.user_id = ?
+    WHERE e.user_id = ? AND e.revoked_at IS NULL
     ORDER BY e.enrolled_at DESC
   `).bind(userId).all();
 
@@ -79,7 +79,7 @@ async function getDetailedProgress(db, userId, courseId) {
 
   // Verify enrolled
   const enrollment = await db.prepare(
-    'SELECT id, enrolled_at, completed_at, certificate_issued_at FROM enrollment WHERE user_id = ? AND course_id = ?'
+    'SELECT id, enrolled_at, completed_at, certificate_issued_at FROM enrollment WHERE user_id = ? AND course_id = ? AND revoked_at IS NULL'
   ).bind(userId, courseId).first();
   if (!enrollment) return json({ ok: false, error: 'Not enrolled' }, 403);
 
@@ -157,7 +157,7 @@ async function handleProgressUpdate(request, env) {
 
   // Verify enrolled
   const enrollment = await db.prepare(
-    'SELECT id FROM enrollment WHERE user_id = ? AND course_id = ?'
+    'SELECT id FROM enrollment WHERE user_id = ? AND course_id = ? AND revoked_at IS NULL'
   ).bind(session.userId, courseId).first();
   if (!enrollment) return json({ ok: false, error: 'Not enrolled' }, 403);
 

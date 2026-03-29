@@ -86,8 +86,8 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
     }
 
     // Send course enrollment confirmation email
-    const email = session.customer_details?.email || session.customer_email;
-    const name = session.customer_details?.name || '';
+    const email = (session.customer_details?.email || session.customer_email || '').toLowerCase().trim() || null;
+    const name = (session.customer_details?.name || '').slice(0, 200);
     if (email && env.AWS_ACCESS_KEY_ID) {
       await sendEmailSafe(env, waitUntil, {
         to: email,
@@ -122,7 +122,10 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
   // Build GA4 identity overrides from checkout metadata (real user, not Stripe server)
   const gaOverrides = {};
   if (session.metadata?.ga_client_id) gaOverrides.client_id = session.metadata.ga_client_id;
-  if (session.metadata?.ga_session_id) gaOverrides.session_id = Number(session.metadata.ga_session_id);
+  if (session.metadata?.ga_session_id) {
+    const sid = Number(session.metadata.ga_session_id);
+    if (Number.isFinite(sid)) gaOverrides.session_id = sid;
+  }
 
   const pageLocation = session.success_url?.replace(/\?.*$/, '') || SITE_URL;
 
@@ -144,8 +147,8 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
   const stucTiers = { member: 'Member', hero: 'Uterus Hero', superhero: 'Super Hero' };
   const tier = session.metadata?.tier || '';
   if (session.mode === 'subscription' && stucTiers[tier]) {
-    const email = session.customer_details?.email || session.customer_email;
-    const name = session.customer_details?.name || '';
+    const email = (session.customer_details?.email || session.customer_email || '').toLowerCase().trim() || null;
+    const name = (session.customer_details?.name || '').slice(0, 200);
     const tierLabel = stucTiers[tier];
 
     if (email && env.AWS_ACCESS_KEY_ID) {
@@ -227,7 +230,7 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
   }
 
   // ELV tag (non-blocking -- payment already completed, just tag for CRM)
-  const name = session.customer_details?.name || '';
+  const name = (session.customer_details?.name || '').slice(0, 200);
   const [first, ...rest] = name.split(' ');
   waitUntil(verifyAndTagEmail(email, env, {
     firstName: first || '', lastName: rest.join(' ') || '', source: 'checkout',
@@ -264,6 +267,23 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
     } else if (customerId && existing.stripe_customer_id && existing.stripe_customer_id !== customerId) {
       log(env, waitUntil, 'billing', 'stripe_customer_mismatch', 'warning',
         `user ${existing.id} has ${existing.stripe_customer_id} but checkout used ${customerId}`);
+      if (env.AWS_ACCESS_KEY_ID) {
+        waitUntil(sendEmailSafe(env, waitUntil, {
+          to: 'administrator@rrmacademy.org',
+          subject: `Stripe customer mismatch: ${email}`,
+          source: 'billing/customer-mismatch',
+          text: [
+            'A Stripe customer mismatch was detected during checkout.',
+            '',
+            `Email:             ${email}`,
+            `User ID:           ${existing.id}`,
+            `Linked customer:   ${existing.stripe_customer_id}`,
+            `Checkout customer: ${customerId}`,
+            '',
+            'The checkout customer may need to be merged in Stripe Dashboard.',
+          ].join('\n'),
+        }).catch(() => {}));
+      }
     }
     return;
   }
@@ -275,13 +295,32 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
   const ins = await db.prepare(
     `INSERT OR IGNORE INTO user (id, email, email_verified, hashed_password, name, stripe_customer_id, role)
      VALUES (?, ?, 1, '', ?, ?, 'member')`
-  ).bind(id, email, name, customerId || null).run();
+  ).bind(id, email, name || null, customerId || null).run();
 
   if (ins.meta.changes === 0) {
     // Another request created the account first -- link Stripe ID to existing account
     if (customerId) {
-      await db.prepare('UPDATE user SET stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE email = ? COLLATE NOCASE AND stripe_customer_id IS NULL')
+      const upd = await db.prepare('UPDATE user SET stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE email = ? COLLATE NOCASE AND stripe_customer_id IS NULL')
         .bind(customerId, email).run();
+      if (upd.meta.changes === 0) {
+        log(env, waitUntil, 'billing', 'orphaned_stripe_customer', 'warning',
+          `${email} already linked to different customer, ${customerId} orphaned`);
+        if (env.AWS_ACCESS_KEY_ID) {
+          waitUntil(sendEmailSafe(env, waitUntil, {
+            to: 'administrator@rrmacademy.org',
+            subject: `Orphaned Stripe customer: ${customerId}`,
+            source: 'billing/orphaned-customer',
+            text: [
+              'A concurrent checkout created an orphaned Stripe customer.',
+              '',
+              `Email:             ${email}`,
+              `Orphaned customer: ${customerId}`,
+              '',
+              'This customer has no D1 user linked. Consider merging in Stripe Dashboard.',
+            ].join('\n'),
+          }).catch(() => {}));
+        }
+      }
     }
     log(env, waitUntil, 'billing', 'stripe_linked', 'ok', `${email} concurrent, linked ${customerId}`);
     return;
