@@ -55,7 +55,7 @@ export async function onRequestPost(context) {
     }
 
     // Verify Turnstile token
-    const turnstileOk = await verifyTurnstile(env.CF_TURNSTILE_SECRET, body.turnstileToken, ip);
+    const turnstileOk = await verifyTurnstile(env.CF_TURNSTILE_SECRET, body.turnstileToken, ip, env);
     if (!turnstileOk) {
       return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
     }

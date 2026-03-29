@@ -98,7 +98,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const emailLogResult = await db.prepare(
       "DELETE FROM email_log WHERE created_at < datetime('now', '-90 days')"
     ).run();
-    emailLogPruned = emailLogResult.changes;
+    emailLogPruned = emailLogResult.meta.changes;
   } catch (err) {
     log(env, waitUntil, 'admin', 'cleanup_email_log_error', 'error', err.message);
   }

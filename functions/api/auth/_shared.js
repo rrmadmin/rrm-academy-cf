@@ -183,7 +183,7 @@ export function getSessionIdFromCookie(request) {
 
 // --- Turnstile verification ---
 
-export async function verifyTurnstile(secret, token, ip) {
+export async function verifyTurnstile(secret, token, ip, env) {
   if (!secret) return false;
   if (!token) return false;
   try {
@@ -194,7 +194,14 @@ export async function verifyTurnstile(secret, token, ip) {
     });
     const result = await resp.json();
     return result.success;
-  } catch {
+  } catch (err) {
+    if (env?.EVENTS) {
+      env.EVENTS.writeDataPoint({
+        blobs: ['rrm-academy', 'turnstile', 'verify_network_error', 'error', (err?.message || 'unknown').slice(0, 200)],
+        doubles: [0, 1, 0],
+        indexes: ['verify_network_error'],
+      });
+    }
     return false;
   }
 }

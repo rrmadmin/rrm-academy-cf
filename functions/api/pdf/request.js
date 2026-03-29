@@ -74,6 +74,10 @@ export async function onRequestPost(context) {
       await env.DB.prepare(
         'INSERT INTO pdf_token (token, email, guide_slug, expires_at) VALUES (?, ?, ?, unixepoch() + 86400)'
       ).bind(token, email, guide_slug).run();
+    } else {
+      await env.DB.prepare(
+        'UPDATE pdf_token SET expires_at = unixepoch() + 86400 WHERE token = ? AND used_at IS NULL'
+      ).bind(token).run();
     }
 
     const sub = await env.DB.prepare(

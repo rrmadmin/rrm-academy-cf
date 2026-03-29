@@ -66,15 +66,35 @@ export async function onRequestPost({ request, env, waitUntil }) {
       const email = r.emailAddress?.toLowerCase();
       if (!email) continue;
 
+      const subscriber = await db.prepare(
+        "SELECT id FROM newsletter_subscriber WHERE email = ? COLLATE NOCASE"
+      ).bind(email).first();
+
+      let sendId = null;
+      if (subscriber) {
+        const lastEvent = await db.prepare(
+          "SELECT send_id FROM newsletter_event WHERE subscriber_id = ? AND event = 'sent' ORDER BY id DESC LIMIT 1"
+        ).bind(subscriber.id).first();
+        sendId = lastEvent?.send_id || null;
+      }
+
       if (bounceType === 'Permanent') {
-        await db.batch([
+        const batch = [
           db.prepare(
             "UPDATE newsletter_subscriber SET status = 'bounced', bounce_count = bounce_count + 1 WHERE email = ? COLLATE NOCASE"
           ).bind(email),
           db.prepare(
             "INSERT INTO email_log (event, email, category, source, detail) VALUES ('bounced', ?, 'newsletter', 'ses/bounce-webhook', ?)"
           ).bind(email, bounceType),
-        ]);
+        ];
+        if (sendId) {
+          batch.push(
+            db.prepare(
+              "UPDATE newsletter_send SET bounce_count = bounce_count + 1 WHERE id = ?"
+            ).bind(sendId)
+          );
+        }
+        await db.batch(batch);
       } else {
         // Soft bounce: increment count, suppress after 3
         await db.prepare(
@@ -88,9 +108,19 @@ export async function onRequestPost({ request, env, waitUntil }) {
             "UPDATE newsletter_subscriber SET status = 'bounced' WHERE email = ? COLLATE NOCASE"
           ).bind(email).run();
         }
-        await db.prepare(
-          "INSERT INTO email_log (event, email, category, source, detail) VALUES ('bounced', ?, 'newsletter', 'ses/bounce-webhook', ?)"
-        ).bind(email, bounceType).run();
+        const softBatch = [
+          db.prepare(
+            "INSERT INTO email_log (event, email, category, source, detail) VALUES ('bounced', ?, 'newsletter', 'ses/bounce-webhook', ?)"
+          ).bind(email, bounceType),
+        ];
+        if (sendId) {
+          softBatch.push(
+            db.prepare(
+              "UPDATE newsletter_send SET bounce_count = bounce_count + 1 WHERE id = ?"
+            ).bind(sendId)
+          );
+        }
+        await db.batch(softBatch);
       }
       log(env, waitUntil, 'newsletter', 'bounce', bounceType === 'Permanent' ? 'error' : 'warn', email, 0, 0);
     }
