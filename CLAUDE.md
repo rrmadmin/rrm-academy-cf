@@ -398,6 +398,18 @@ Before shipping any new endpoint or modifying an existing one, verify:
 - [ ] Write/delete SQL with `user_id =` binds from session (`context.data.user.id`), never from request body
 - [ ] Rate limits on any endpoint that calls a billed service
 
+8. **Endpoint Quality Gates (from /arise -- 544 findings, 45 runs).** Before shipping a new endpoint, verify:
+   - Every Stripe/R2/SES call in its own try/catch (not just outer handler). Return 503 with user-friendly message on external service failure. Gold standard: `courses/enroll.js:121-126`.
+   - HTML template literals escape `"` in attribute contexts (not just `<` `>` `&`). Use the `escapeHtml()` helper in `google-callback.js` which covers all 5 entities.
+   - Error responses use `{ ok: false, error: 'user-friendly message' }` + `console.error(err.message)`. Never expose `err.message` to the client.
+   - Auth-gated endpoints check `user.blocked` after session validation. See `community/_shared.js` `requireMember()` for the pattern.
+   - `db.batch()` for multi-table writes (not sequential `.run()` calls). Partial failure leaves inconsistent state without batching.
+   - Rate limiting on all public endpoints that call billed services (Stripe, SES, R2, Vectorize).
+   - `INSERT` dedup: verify a UNIQUE constraint exists before using `OR IGNORE`. Without the constraint, IGNORE never fires.
+   - Deletion cascades: clean up R2 objects too, not just D1 rows. Currently zero `R2_ASSETS.delete()` calls exist -- this is a known gap.
+   - Config/env missing: return 503 with specific message identifying which binding is missing, not generic 500.
+   - Newsletter/tracking: use `WHERE NOT EXISTS` for dedup if the table lacks a UNIQUE constraint.
+
 ## Rules
 
 - **When writing RRM content, consult `rrm-cli` first.** The CLI has the correct tone, framing, and citations. Do not default to external sources when the knowledge base has what you need.

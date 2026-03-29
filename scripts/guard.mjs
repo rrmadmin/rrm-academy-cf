@@ -281,6 +281,37 @@ function checkInvariants() {
     log(FAIL, `Cannot read public/_headers`);
     failures++;
   }
+
+  // 2i. HTML escaping in template literals (XSS prevention)
+  // google-callback.js must contain escapeHtml helper to sanitize user-supplied values
+  // before interpolation into HTML responses. community/index.astro must use &quot;
+  // in its linkify function to prevent stored XSS via crafted URLs.
+  try {
+    const gcContent = readFileSync(googleCallbackPath, 'utf8');
+    if (gcContent.includes('escapeHtml')) {
+      log(PASS, `google-callback.js contains escapeHtml (XSS prevention)`);
+    } else {
+      log(FAIL, `google-callback.js missing escapeHtml — XSS regression`);
+      failures++;
+    }
+  } catch {
+    log(FAIL, `Cannot read google-callback.js for escapeHtml check`);
+    failures++;
+  }
+
+  const communityIndexPath = join(ROOT, 'src/pages/community/index.astro');
+  try {
+    const communityIndex = readFileSync(communityIndexPath, 'utf8');
+    if (communityIndex.includes('&quot;')) {
+      log(PASS, `community/index.astro contains &quot; in linkify (stored XSS prevention)`);
+    } else {
+      log(FAIL, `community/index.astro missing &quot; in linkify — stored XSS regression`);
+      failures++;
+    }
+  } catch {
+    log(FAIL, `Cannot read community/index.astro`);
+    failures++;
+  }
 }
 
 // ─── Phase 3: Critical Files Must Exist ─────────────────────────────
