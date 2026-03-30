@@ -66,7 +66,6 @@ function mapWorkerRecord(r) {
     domain: r.domain || '',
     lastModified: r.lastModified || '',
     dateAddedToLibrary: r.dateAddedToLibrary || '',
-    insights: r.insights || null,
   };
 }
 
