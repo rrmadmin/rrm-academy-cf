@@ -442,8 +442,12 @@ async function processCoverImage(imageUrl, courseId) {
   // Upload both to R2 under course-covers/ (public, no auth gate)
   const webpKey = `course-covers/${courseId}-v2.webp`;
   const jpgKey = `course-covers/${courseId}-v2.jpg`;
-  uploadBufferToR2(webpBuffer, webpKey, 'image/webp');
-  uploadBufferToR2(jpgBuffer, jpgKey, 'image/jpeg');
+  try {
+    uploadBufferToR2(webpBuffer, webpKey, 'image/webp');
+    uploadBufferToR2(jpgBuffer, jpgKey, 'image/jpeg');
+  } catch (err) {
+    console.warn(`  ${courseId}: R2 upload failed (${err.message?.slice(0, 80)}), using existing images`);
+  }
 
   console.log(`  ${courseId}: done - WebP ${(webpBuffer.length / 1024).toFixed(0)} KB, JPG ${(jpgBuffer.length / 1024).toFixed(0)} KB`);
   return `/api/assets/${webpKey}`;
