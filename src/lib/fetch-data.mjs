@@ -184,7 +184,8 @@ async function fetchAll() {
   }
 
   console.log('Fetching all articles from D1 worker...');
-  const raw = await fetchWithRetry(WORKER_URL, { headers: authHeaders(token) });
+  const response = await fetchWithRetry(`${WORKER_URL}?limit=5000`, { headers: authHeaders(token) });
+  const raw = Array.isArray(response) ? response : response.results;
   console.log(`Worker returned ${raw.length} published articles`);
 
   const articles = raw.map(mapWorkerRecord).filter(Boolean);
