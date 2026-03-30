@@ -39,13 +39,6 @@ export interface Article {
   domain: string;
   lastModified: string;
   dateAddedToLibrary: string;
-  insights: {
-    tldr: string;
-    key_findings: string[];
-    clinical_relevance: string;
-    methodology: string;
-    rrm_context: string;
-  } | null;
 }
 
 export async function fetchAllArticles(): Promise<Article[]> {
