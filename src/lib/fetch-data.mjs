@@ -1,6 +1,6 @@
 /**
  * Fetch library articles from the D1 enrichment worker and cache as JSON.
- * Run: WORKER_AUTH_TOKEN=xxx node src/lib/fetch-data.mjs
+ * Run: LIBRARY_BUILD_TOKEN=xxx node src/lib/fetch-data.mjs
  *
  * Single-record mode: RECORD_ID=recXXX fetches all articles from the worker,
  * finds the matching record, and merges into existing articles.json cache.
@@ -66,6 +66,7 @@ function mapWorkerRecord(r) {
     domain: r.domain || '',
     lastModified: r.lastModified || '',
     dateAddedToLibrary: r.dateAddedToLibrary || '',
+    insights: r.insights || null,
   };
 }
 
@@ -96,9 +97,9 @@ function writeArticles(articles) {
 // --- Single-record merge mode ---
 
 async function fetchSingle(recordId) {
-  const token = process.env.WORKER_AUTH_TOKEN;
+  const token = process.env.LIBRARY_BUILD_TOKEN || process.env.WORKER_AUTH_TOKEN;
   if (!token) {
-    console.error('Error: WORKER_AUTH_TOKEN environment variable required');
+    console.error('Error: LIBRARY_BUILD_TOKEN environment variable required');
     process.exit(1);
   }
 
@@ -176,9 +177,9 @@ async function fetchAll() {
     return;
   }
 
-  const token = process.env.WORKER_AUTH_TOKEN;
+  const token = process.env.LIBRARY_BUILD_TOKEN || process.env.WORKER_AUTH_TOKEN;
   if (!token) {
-    console.error('Error: WORKER_AUTH_TOKEN environment variable required');
+    console.error('Error: LIBRARY_BUILD_TOKEN environment variable required');
     process.exit(1);
   }
 

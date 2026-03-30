@@ -52,7 +52,7 @@ export async function fetchAllPosts(): Promise<BlogPost[]> {
     console.log(`[blog] Loaded ${posts.length} posts from cache`);
     return sortByDate(posts);
   } catch (err: any) {
-    throw new Error(`posts.json not found. Run: WORKER_AUTH_TOKEN=xxx npm run fetch-blog`);
+    throw new Error(`posts.json not found. Run: WORKER_AUTH_TOKEN=xxx npm run fetch-blog (blog uses WORKER_AUTH_TOKEN)`);
   }
 }
 

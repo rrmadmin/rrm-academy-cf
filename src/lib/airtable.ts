@@ -39,6 +39,13 @@ export interface Article {
   domain: string;
   lastModified: string;
   dateAddedToLibrary: string;
+  insights: {
+    tldr: string;
+    key_findings: string[];
+    clinical_relevance: string;
+    methodology: string;
+    rrm_context: string;
+  } | null;
 }
 
 export async function fetchAllArticles(): Promise<Article[]> {
@@ -52,7 +59,7 @@ export async function fetchAllArticles(): Promise<Article[]> {
     throw new Error('articles.json is empty');
   } catch (err: any) {
     if (err?.code === 'ERR_MODULE_NOT_FOUND') {
-      throw new Error('articles.json not found. Run: WORKER_AUTH_TOKEN=xxx npm run fetch-data');
+      throw new Error('articles.json not found. Run: LIBRARY_BUILD_TOKEN=xxx npm run fetch-data');
     }
     throw new Error(`Failed to load articles.json: ${err?.message}`);
   }
