@@ -211,6 +211,112 @@
 }
 
 /* ═══════════════════════════════════════════════
+   E-INK THEME
+   Warm RRM Academy palette: cream, sand, browns.
+   Grayscale filter handles desaturation.
+   ═══════════════════════════════════════════════ */
+[data-theme="eink"] {
+  /* Use existing RRM Academy sand/cream colors */
+  --purple-900: #4c3e54;
+  --purple-700: #725e7e;
+  --purple-500: #987da8;
+  --purple-300: #c9b8d3;
+  --purple-200: #d5c6de;
+  --purple-100: #e8ddef;
+  --purple-50: #f5f0f8;
+
+  --neutral-900: #313131;
+  --neutral-700: #5a5045;
+  --neutral-600: #7a7068;
+  --neutral-500: #9a9088;
+  --neutral-400: #b8a8a0;
+  --neutral-300: #d8c8c0;
+  --neutral-200: #e8ddd5;
+  --neutral-100: #f7f0e8;
+  --cream: #eee5dd;
+  --white: #f7f5f3;
+
+  /* Sand browns - core RRM brand */
+  --sand-700: #7a6850;
+  --sand-500: #a09078;
+  --sand-300: #d0c0b0;
+
+  /* Muted rose */
+  --rose-700: #906860;
+  --rose-500: #b09890;
+  --rose-300: #e0d0c8;
+  --rose-100: #f0e8e0;
+  --rose-50: #f7f0e8;
+
+  /* Muted sage */
+  --sage-700: #6a7560;
+  --sage-500: #90a080;
+  --sage-300: #c0d0b8;
+  --sage-100: #e8f0e0;
+  --sage-50: #f0f5e8;
+
+  /* Tier colors - sand-based */
+  --tier1-accent: #7a6050;
+  --tier1-bg: #f0e8e0;
+  --tier1-border: #d8c8c0;
+
+  --tier2-accent: #8a7850;
+  --tier2-bg: #f0e8e0;
+  --tier2-border: #d0c0b0;
+
+  --tier3-accent: #607050;
+  --tier3-bg: #e8f0e0;
+  --tier3-border: #c0d0b8;
+
+  --bg-card: #f0e8e0;
+
+  --green-700: #506040;
+  --green-100: #e8f0e0;
+  --amber-700: #7a6850;
+  --amber-100: #f0e8e0;
+
+  /* Core backgrounds - warm cream family */
+  --bg-body: #f7f0e8;
+  --bg-surface: #eee5dd;
+  --bg-header: #f0e8e0;
+  --text-primary: #2a2520;
+  --text-secondary: #5a5045;
+  --text-tertiary: #7a7068;
+  --text-muted: #9a9088;
+  --accent: #5a5045;
+  --accent-hover: #3a3530;
+  --border-color: #d8c8c0;
+  --border-light: #e8ddd5;
+
+  /* Grain - warmer tone */
+  --grain-opacity: 0.04;
+  --grain-blend: multiply;
+
+  /* No shadows for print feel */
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+
+  /* Footer */
+  --footer-bg: #3a3530;
+  --footer-text: #b0a8a0;
+  --footer-heading: #f7f0e8;
+  --footer-link: #b0a8a0;
+  --footer-link-hover: #f7f0e8;
+  --footer-accent: #d8c8c0;
+  --footer-accent-hover: #f0e8e0;
+  --footer-muted: #9a9088;
+  --footer-border: rgba(247, 240, 232, 0.1);
+
+  --color-error: #8a5048;
+
+  --gradient-hero: none;
+  --gradient-hero-subtle: none;
+
+  --focus-ring: rgba(90, 80, 69, 0.12);
+}
+
+/* ═══════════════════════════════════════════════
    SPACING & LAYOUT (theme-independent)
    ═══════════════════════════════════════════════ */
 :root {
@@ -236,13 +342,18 @@
 }
 
 /* ═══════════════════════════════════════════════
-   E-INK FILTER + GRAIN (dark mode only)
+   E-INK FILTER + GRAIN (dark + eink modes)
    ═══════════════════════════════════════════════ */
 [data-theme="dark"] body {
   filter: saturate(0.7) sepia(0.04) brightness(0.98) contrast(1.05);
 }
 
-[data-theme="dark"] body::before {
+[data-theme="eink"] body {
+  filter: grayscale(100%) contrast(1.1) brightness(0.97);
+}
+
+[data-theme="dark"] body::before,
+[data-theme="eink"] body::before {
   content: '';
   position: fixed;
   top: 0;
