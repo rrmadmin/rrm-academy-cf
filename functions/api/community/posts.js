@@ -274,18 +274,23 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const id = generateId();
     const db = env.DB;
 
+    // For events, prepend title to content if provided separately
+    const contentToStore = (type === 'event' && title && typeof title === 'string' && title.trim())
+      ? title.trim() + '\n\n' + postBody.trim()
+      : postBody.trim();
+
     await db.prepare(`
       INSERT INTO community_post (id, author_id, type, content, event_date, event_link, resource_url, channel)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
-      id, user.id, type, postBody.trim(),
+      id, user.id, type, contentToStore,
       eventDate || null, eventLink || null, resourceUrl || null, channel
     ).run();
 
     // Send email notification (fire-and-forget)
     try {
       await notifyNewPost(env, db, {
-        id, body: postBody.trim(), authorId: user.id,
+        id, body: contentToStore, authorId: user.id,
       }, displayName(user));
     } catch (err) {
       log(env, waitUntil, 'community', 'post_error', 'error', `notification: ${err.message}`, 0, 0);
@@ -294,7 +299,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     return json({
       ok: true,
       post: {
-        id, type, body: postBody.trim(),
+        id, type, body: contentToStore,
         pinned: false, eventDate, eventLink, resourceUrl,
         createdAt: new Date().toISOString().replace('T', ' ').slice(0, 19),
         authorId: user.id,
