@@ -1,4 +1,4 @@
-import { fetchAllPosts } from '../../lib/blog';
+import { fetchAllPosts } from '../../../lib/blog';
 
 function escapeCdata(str: string): string {
   return str.replace(/]]>/g, ']]]]><![CDATA[>');
