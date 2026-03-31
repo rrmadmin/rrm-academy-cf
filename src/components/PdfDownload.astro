@@ -59,10 +59,6 @@ if (!config?.enabled) return;
   </div>
 </div>
 
-{TURNSTILE_SITE_KEY && (
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer is:inline></script>
-)}
-
 <script is:inline>
   (function () {
     var trigger = document.getElementById('pdf-trigger');
@@ -84,6 +80,19 @@ if (!config?.enabled) return;
     var pendingSubmit = null;
     var isLoggedIn = false;
     var triggerHTML = trigger.innerHTML;
+
+    // Lazy-load Turnstile script (not on page load -- only when modal opens)
+    var turnstileLoading = false;
+    var turnstileLoaded = false;
+    function loadTurnstileScript() {
+      if (turnstileLoading || turnstileLoaded) return;
+      turnstileLoading = true;
+      var s = document.createElement('script');
+      s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+      s.async = true;
+      s.onload = function () { turnstileLoaded = true; };
+      document.head.appendChild(s);
+    }
 
     // Check session on load
     fetch('/api/auth/session', { credentials: 'include' })
@@ -122,6 +131,8 @@ if (!config?.enabled) return;
       }
       modal.hidden = false;
       document.body.style.overflow = 'hidden';
+      // Lazy-load Turnstile when modal opens
+      loadTurnstileScript();
       // Init Turnstile after modal is visible (invisible widget fails in display:none)
       if (!turnstileInited && typeof turnstile !== 'undefined') {
         turnstileInited = true;

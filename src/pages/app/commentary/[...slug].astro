@@ -1,0 +1,485 @@
+---
+import AppShell from '../../../layouts/AppShell.astro';
+import AuthorByline from '../../components/AuthorByline.astro';
+import AudioPlayer from '../../components/AudioPlayer.astro';
+import BlogCard from '../../components/BlogCard.astro';
+import { fetchAllPosts, getRelatedPosts, type BlogPost } from '../../lib/blog';
+import { Marked } from 'marked';
+
+export async function getStaticPaths() {
+  const posts = await fetchAllPosts();
+
+  return posts.map(post => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+interface Props {
+  post: BlogPost;
+}
+
+const { post } = Astro.props;
+const allPosts = await fetchAllPosts();
+const related = getRelatedPosts(post, allPosts, 3);
+
+function escapeAttr(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+const dangerousUri = /^\s*(javascript|data|vbscript):/i;
+
+// Strip raw HTML blocks and block dangerous URI schemes in links and images
+const marked = new Marked({
+  renderer: {
+    html() { return ''; },
+    link({ href, title, tokens }) {
+      const text = this.parser.parseInline(tokens);
+      if (href && dangerousUri.test(href)) {
+        return text;
+      }
+      const titleAttr = title ? ` title="${escapeAttr(title)}"` : '';
+      return `<a href="${escapeAttr(href ?? '')}"${titleAttr}>${text}</a>`;
+    },
+    image({ href, title, text }) {
+      if (href && dangerousUri.test(href)) {
+        return text || '';
+      }
+      const titleAttr = title ? ` title="${escapeAttr(title)}"` : '';
+      const altAttr = text ? ` alt="${escapeAttr(text)}"` : ' alt=""';
+      return `<img src="${escapeAttr(href ?? '')}"${altAttr}${titleAttr} />`;
+    },
+  },
+});
+
+// Pre-process markdown to fix common authoring issues
+function sanitizeMarkdown(md: string): string {
+  let result = md
+    // Remove ghost links: [ ](url) — invisible copy-paste artifacts
+    .replace(/\[\s*\]\([^)]+\)/g, '')
+    // Fix quadruple bold markers around links: ****[text](url)**** → **[text](url)**
+    .replace(/\*{4}\[/g, '**[')
+    .replace(/\]\([^)]+\)\*{4}/g, (m) => m.replace(/\*{4}$/, '**'))
+    // Remove bold wrapping links: **[text](url)** → [text](url) (links are already styled)
+    .replace(/\*{2,3}(\[[^\]]+\]\([^)]+\))\*{2,3}/g, '$1')
+    // Remove redundant bold inside headings: ## **Text** or ##**Text** → ## Text
+    .replace(/^(#{1,6})\s*\*\*(.+?)\*\*\s*$/gm, '$1 $2')
+    // Fix headings missing space after #: ##Text → ## Text
+    .replace(/^(#{1,6})([^\s#])/gm, '$1 $2')
+    // Fix numbered lists missing space: 1.**text → \n1. **text
+    .replace(/(\d+)\.\*\*/g, '\n\n$1. **')
+    // Fix dash lists missing space: -**text → \n- **text (inline or at line start)
+    .replace(/([^\n])-\*\*/g, '$1\n\n- **')
+    .replace(/^-\*\*/gm, '- **')
+    // Break bold subheadings into new paragraphs: sentence.**Subheading:** → sentence.\n\n**Subheading:**
+    // Match after punctuation or word chars; (?<!\d) prevents splitting numbered list items (e.g. "2. **Term:**")
+    // Matches bold phrases ending with colon or period before closing **
+    .replace(/(?<!\d)([a-zA-Z0-9.!?:)\]])\s*(\*\*[^*\n]{5,}?[.:]\*\*)/g, '$1\n\n$2');
+
+  // Escape tildes before numbers (~70%) to prevent markdown strikethrough
+  result = result.replace(/~(\d)/g, '\\~$1');
+
+  // Fix trailing space inside bold (single-line only): **text ** → **text**
+  result = result.replace(/\*\*([^*\n]+?)[ \t]+\*\*/g, '**$1**');
+
+  // Fix ** stuck between word chars: word**bold text**word
+  // Process line by line, counting ALL ** to track open/close state
+  result = result.split('\n').map(line => {
+    // First pass: find all ** positions (exactly 2 stars, not 3+)
+    const starPositions: number[] = [];
+    for (let i = 0; i < line.length - 1; i++) {
+      if (line[i] === '*' && line[i+1] === '*' &&
+          (i + 2 >= line.length || line[i+2] !== '*') &&
+          (i === 0 || line[i-1] !== '*')) {
+        starPositions.push(i);
+        i++; // skip the second *
+      }
+    }
+
+    // Each ** alternates: 0th=open, 1st=close, 2nd=open, etc.
+    const needsFix = new Map<number, 'open' | 'close'>();
+    starPositions.forEach((pos, idx) => {
+      const before = pos > 0 ? line[pos - 1] : '';
+      const after = pos + 2 < line.length ? line[pos + 2] : '';
+      const beforeIsWord = /[a-zA-Z0-9.,;:!?)\]]/.test(before);
+      const afterIsWord = /[a-zA-Z0-9(\[]/.test(after);
+      if (beforeIsWord && afterIsWord) {
+        needsFix.set(pos, idx % 2 === 0 ? 'open' : 'close');
+      }
+    });
+
+    if (needsFix.size === 0) return line;
+
+    // Second pass: rebuild with spaces
+    let out = '';
+    let i = 0;
+    while (i < line.length) {
+      if (needsFix.has(i)) {
+        if (needsFix.get(i) === 'open') {
+          out += ' **';
+        } else {
+          out += '** ';
+        }
+        i += 2;
+      } else {
+        out += line[i];
+        i++;
+      }
+    }
+    return out;
+  }).join('\n');
+
+  // Remove orphaned ** that have no matching pair on the same line
+  result = result.split('\n').map(line => {
+    // Count ** (exactly 2 stars)
+    let count = 0;
+    for (let i = 0; i < line.length - 1; i++) {
+      if (line[i] === '*' && line[i+1] === '*' &&
+          (i + 2 >= line.length || line[i+2] !== '*') &&
+          (i === 0 || line[i-1] !== '*')) {
+        count++;
+        i++;
+      }
+    }
+    // If odd number of **, remove the first one (likely orphaned closing from stripped bold)
+    if (count % 2 === 1) {
+      line = line.replace(/\*\*/, '');
+    }
+    return line;
+  }).join('\n');
+
+  return result;
+}
+
+// Render markdown content to HTML
+const htmlContent = post.content ? await marked.parse(sanitizeMarkdown(post.content)) : '';
+
+// Meta description from excerpt
+const metaDescription = post.excerpt
+  ? post.excerpt.slice(0, 155) + (post.excerpt.length > 155 ? '...' : '')
+  : `${post.title} - RRM Academy Commentary`;
+
+// Schema.org JSON-LD
+const isWhittakerPost = post.author === 'Naomi Whittaker' || post.author === 'Dr. Naomi Whittaker';
+
+const jsonLd: any = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: post.title,
+  url: `https://rrmacademy.org/commentary/${post.slug}/`,
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': `https://rrmacademy.org/commentary/${post.slug}/`,
+  },
+  publisher: {
+    '@type': 'Organization',
+    '@id': 'https://rrmacademy.org/#organization',
+    name: 'RRM Academy',
+    url: 'https://rrmacademy.org/',
+  },
+};
+
+if (post.author) {
+  jsonLd.author = isWhittakerPost
+    ? { '@type': 'Person', '@id': 'https://rrmacademy.org/#naomi-whittaker', name: post.author }
+    : { '@type': 'Person', name: post.author };
+}
+if (post.publishDate) {
+  jsonLd.datePublished = post.publishDate;
+  jsonLd.dateModified = post.publishDate;
+}
+if (post.coverImageUrl) {
+  jsonLd.image = post.coverImageUrl.startsWith('http') ? post.coverImageUrl : `https://rrmacademy.org${post.coverImageUrl}`;
+}
+if (post.excerpt) {
+  jsonLd.description = post.excerpt;
+}
+
+// For Dr. Whittaker's physician spotlight, add Person schema via @graph
+const whittakerPersonNode = {
+  '@type': 'Person',
+  '@id': 'https://rrmacademy.org/#naomi-whittaker',
+  name: 'Dr. Naomi Whittaker',
+  honorificPrefix: 'Dr.',
+  honorificSuffix: 'MD',
+  givenName: 'Naomi',
+  familyName: 'Whittaker',
+  jobTitle: 'Founder & Medical Director',
+  description: "Board-certified obstetrician-gynecologist, Physician Lead at UPMC Divine Mercy Women's Health, and founder of RRM Academy.",
+  url: 'https://rrmacademy.org/commentary/rrm-spotlight-naomi-whittaker-md/',
+  image: 'https://rrmacademy.org/images/authors/naomi-whittaker.webp',
+  sameAs: [
+    'https://www.instagram.com/napro_fertility_surgeon/',
+    'https://www.linkedin.com/in/naomi-whittaker-md-906b13101/',
+  ],
+  affiliation: [
+    {
+      '@type': 'MedicalOrganization',
+      name: "UPMC Divine Mercy Women's Health",
+    },
+    {
+      '@type': 'EducationalOrganization',
+      '@id': 'https://rrmacademy.org/#organization',
+      name: 'RRM Academy',
+      url: 'https://rrmacademy.org',
+    },
+  ],
+  hasCredential: [
+    {
+      '@type': 'EducationalOccupationalCredential',
+      credentialCategory: 'Board Certification',
+      name: 'Board-Certified Obstetrician-Gynecologist',
+    },
+    {
+      '@type': 'EducationalOccupationalCredential',
+      credentialCategory: 'Fellowship',
+      name: 'Medical and Surgical NaProTechnology Fellowship',
+    },
+  ],
+  knowsAbout: [
+    'Restorative Reproductive Medicine',
+    'NaProTechnology',
+    'Endometriosis Surgery',
+    'PCOS Treatment',
+    'Infertility Diagnosis and Treatment',
+    'Fertility Awareness-Based Methods',
+  ],
+};
+
+const breadcrumbNode = {
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+    { '@type': 'ListItem', position: 2, name: 'Commentary', item: 'https://rrmacademy.org/commentary/' },
+    { '@type': 'ListItem', position: 3, name: post.title, item: `https://rrmacademy.org/commentary/${post.slug}/` },
+  ],
+};
+
+// DefinedTerm schema for glossary post
+const glossaryTermNodes: any[] = [];
+if (post.slug === 'glossary-of-restorative-reproductive-medicine-rrm' && post.content) {
+  const termPattern = /\*\*([^*]{3,60}?):?\*\*\s*[-–:]?\s*([^*\n]{20,300})/g;
+  let match;
+  while ((match = termPattern.exec(post.content)) !== null) {
+    const name = match[1].replace(/:$/, '').trim();
+    const desc = match[2].trim();
+    if (name && desc) {
+      glossaryTermNodes.push({
+        '@type': 'DefinedTerm',
+        name,
+        description: desc,
+        inDefinedTermSet: {
+          '@type': 'DefinedTermSet',
+          name: 'Restorative Reproductive Medicine Glossary',
+          url: `https://rrmacademy.org/commentary/${post.slug}/`,
+        },
+      });
+    }
+  }
+}
+
+const { '@context': _ctx, ...blogPostingNode } = jsonLd;
+const graphNodes = [blogPostingNode, breadcrumbNode];
+if (isWhittakerPost) graphNodes.push(whittakerPersonNode);
+if (glossaryTermNodes.length > 0) {
+  // Add DefinedTermSet + first 50 terms (schema size limit)
+  graphNodes.push({
+    '@type': 'DefinedTermSet',
+    name: 'Restorative Reproductive Medicine Glossary',
+    url: `https://rrmacademy.org/commentary/${post.slug}/`,
+    hasDefinedTerm: glossaryTermNodes.slice(0, 50),
+  });
+}
+const finalJsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': graphNodes,
+};
+
+const canonicalUrl = `https://rrmacademy.org/commentary/${post.slug}/`;
+---
+<AppShell
+  title={post.title}
+  description={metaDescription}
+  canonicalUrl={canonicalUrl}
+  ogType="article"
+  ogImage={post.coverImageUrl}
+  publishDate={post.publishDate}
+  jsonLd={finalJsonLd}
+>
+  <div class="page-wrapper" data-pagefind-body>
+    <span data-pagefind-meta="type:Article" style="display:none"></span>
+    <span data-pagefind-meta={`title:${post.title}`} style="display:none"></span>
+    {post.author && <span data-pagefind-meta={`authors:${post.author}`} style="display:none"></span>}
+    {post.publishDate && <span data-pagefind-meta={`year:${post.publishDate.split('-')[0]}`} style="display:none"></span>}
+    <div class="container container--narrow">
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/commentary/">Commentary</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <span>{post.title.length > 50 ? post.title.slice(0, 50) + '...' : post.title}</span>
+      </nav>
+
+      <!-- Cover Image -->
+      {post.coverImageUrl && (
+        <div class="cover-image">
+          <img
+            src={post.coverImageUrl}
+            alt={post.title}
+            loading="eager"
+            decoding="async"
+            fetchpriority="high"
+            width="760"
+            height="400"
+          />
+        </div>
+      )}
+
+      <!-- Title -->
+      <h1 class="post-title">{post.title}</h1>
+
+      <!-- Byline -->
+      <AuthorByline author={post.author} date={post.publishDate} />
+      {post.audioUrl && <AudioPlayer audioUrl={post.audioUrl} />}
+    </div>
+
+    <!-- Content -->
+    <div class="container container--narrow">
+      <div class="prose" set:html={htmlContent} />
+    </div>
+
+    <!-- Related Posts -->
+    {related.length > 0 && (
+      <div class="container container--narrow">
+        <section class="related-section" aria-label="Related posts">
+          <h2 class="detail-heading">More from this series</h2>
+          <div class="related-grid">
+            {related.map(rel => (
+              <BlogCard post={rel} basePath="/app/commentary/" />
+            ))}
+          </div>
+        </section>
+      </div>
+    )}
+  </div>
+</AppShell>
+
+<style>
+  .post-title {
+    font-size: 2rem;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    margin-bottom: var(--space-4);
+  }
+
+  @media (min-width: 769px) {
+    .post-title {
+      font-size: 2.5rem;
+    }
+  }
+
+  .cover-image {
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-8);
+    background: var(--neutral-100);
+  }
+  .cover-image img {
+    width: 100%;
+    height: auto;
+  }
+
+  /* Prose — article body typography */
+  .prose {
+    margin-top: var(--space-8);
+    margin-bottom: var(--space-12);
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--text-primary);
+  }
+  .prose :global(h2) {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-top: var(--space-10);
+    margin-bottom: var(--space-4);
+    line-height: 1.3;
+  }
+  .prose :global(h3) {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: var(--space-8);
+    margin-bottom: var(--space-3);
+    line-height: 1.3;
+  }
+  .prose :global(p) {
+    margin-bottom: var(--space-5);
+  }
+  .prose :global(a) {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .prose :global(a:hover) {
+    color: var(--purple-900);
+  }
+  .prose :global(strong) {
+    font-weight: 600;
+  }
+  .prose :global(blockquote) {
+    border-left: 3px solid var(--sand-300);
+    padding-left: var(--space-5);
+    margin: var(--space-6) 0;
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+  .prose :global(ul),
+  .prose :global(ol) {
+    margin-bottom: var(--space-5);
+    padding-left: var(--space-6);
+  }
+  .prose :global(li) {
+    margin-bottom: var(--space-2);
+  }
+  .prose :global(hr) {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: var(--space-8) 0;
+  }
+  .prose :global(img) {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+    margin: var(--space-6) 0;
+  }
+
+  .detail-heading {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: var(--space-4);
+    color: var(--text-primary);
+  }
+
+  .related-section {
+    margin-top: var(--space-12);
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--border-color);
+  }
+
+  .related-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+  }
+  @media (min-width: 640px) {
+    .related-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (min-width: 1024px) {
+    .related-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>

@@ -4,10 +4,11 @@ import type { Article } from '../lib/airtable';
 interface Props {
   article: Article;
   compact?: boolean;
+  basePath?: string;
 }
 
-const { article, compact = false } = Astro.props;
-const href = `/library/${article.slug}/`;
+const { article, compact = false, basePath = '/library/' } = Astro.props;
+const href = `${basePath}${article.slug}/`;
 const truncLen = compact ? 120 : 200;
 const truncatedAbstract = article.abstract
   ? article.abstract.slice(0, truncLen) + (article.abstract.length > truncLen ? '...' : '')
