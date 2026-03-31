@@ -1,7 +1,7 @@
 ---
 import AppShell from '../../../../layouts/AppShell.astro';
-import BlogCard from '../../../components/BlogCard.astro';
-import { fetchAllPosts } from '../../../lib/blog';
+import BlogCard from '../../../../components/BlogCard.astro';
+import { fetchAllPosts } from '../../../../lib/blog';
 
 export async function getStaticPaths() {
   const PER_PAGE = 6;

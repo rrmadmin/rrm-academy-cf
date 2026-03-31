@@ -1,9 +1,9 @@
 ---
 import AppShell from '../../../layouts/AppShell.astro';
-import AuthorByline from '../../components/AuthorByline.astro';
-import AudioPlayer from '../../components/AudioPlayer.astro';
-import BlogCard from '../../components/BlogCard.astro';
-import { fetchAllPosts, getRelatedPosts, type BlogPost } from '../../lib/blog';
+import AuthorByline from '../../../components/AuthorByline.astro';
+import AudioPlayer from '../../../components/AudioPlayer.astro';
+import BlogCard from '../../../components/BlogCard.astro';
+import { fetchAllPosts, getRelatedPosts, type BlogPost } from '../../../lib/blog';
 import { Marked } from 'marked';
 
 export async function getStaticPaths() {
