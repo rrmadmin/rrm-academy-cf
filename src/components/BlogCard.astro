@@ -3,10 +3,12 @@ import type { BlogPost } from '../lib/blog';
 
 interface Props {
   post: BlogPost;
+  eager?: boolean;
+  basePath?: string;
 }
 
-const { post } = Astro.props;
-const href = `/commentary/${post.slug}/`;
+const { post, eager = false, basePath = '/commentary/' } = Astro.props;
+const href = `${basePath}${post.slug}/`;
 
 // Format date
 let formattedDate = '';
@@ -36,7 +38,7 @@ const excerpt = post.excerpt
         <img
           src={post.coverImageUrl}
           alt={post.title}
-          loading="lazy"
+          loading={eager ? 'eager' : 'lazy'}
           decoding="async"
         />
       </div>
