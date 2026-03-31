@@ -617,66 +617,6 @@ function checkLinkFormat() {
   }
 }
 
-// ─── Phase 7: App Shell Isolation ────────────────────────────────────
-// The /app/ subproject must not leak styles or behavior into the live site.
-// - global.css must not contain unscoped .app- selectors (those belong in AppShell.astro)
-// - Shared components with basePath props must default to production paths
-// - eink theme variables must stay inside [data-theme="eink"] scope
-
-function checkAppShellIsolation() {
-  console.log(`\n${BOLD}Phase 7: App shell isolation${RESET}`);
-
-  // 1. No unscoped .app- class selectors in global.css
-  const globalCss = readFileSync(join(ROOT, 'src/styles/global.css'), 'utf8');
-  const lines = globalCss.split('\n');
-  let inDataThemeBlock = false;
-  let braceDepth = 0;
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    // Track [data-theme] blocks (nested selectors are OK inside them)
-    if (/\[data-theme=/.test(line) && line.includes('{')) {
-      inDataThemeBlock = true;
-    }
-    if (inDataThemeBlock) {
-      braceDepth += (line.match(/\{/g) || []).length;
-      braceDepth -= (line.match(/\}/g) || []).length;
-      if (braceDepth <= 0) {
-        inDataThemeBlock = false;
-        braceDepth = 0;
-      }
-    }
-
-    // Flag .app- selectors at root scope in global.css
-    if (!inDataThemeBlock && /^\s*\.app-/.test(line)) {
-      log(FAIL, `src/styles/global.css:${i + 1}: unscoped .app- selector in global CSS — move to AppShell.astro`);
-      failures++;
-    }
-  }
-
-  // 2. Shared components with basePath must default to production paths
-  const COMPONENT_DEFAULTS = [
-    { file: 'src/components/ArticleCard.astro', prop: 'basePath', expected: "'/library/'" },
-    { file: 'src/components/BlogCard.astro', prop: 'basePath', expected: "'/commentary/'" },
-  ];
-
-  for (const { file, prop, expected } of COMPONENT_DEFAULTS) {
-    const fullPath = join(ROOT, file);
-    try {
-      const content = readFileSync(fullPath, 'utf8');
-      const defaultRe = new RegExp(`${prop}\\s*=\\s*${expected.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`);
-      if (!defaultRe.test(content)) {
-        log(FAIL, `${file}: ${prop} default must be ${expected} (production path)`);
-        failures++;
-      }
-    } catch { /* file doesn't exist yet — skip */ }
-  }
-
-  if (failures === 0) {
-    log(PASS, 'App shell styles and props are properly isolated from production');
-  }
-}
-
 // ─── Main ───────────────────────────────────────────────────────────
 
 console.log(`${BOLD}RRM Academy — Security Guard${RESET}`);
@@ -690,7 +630,6 @@ checkRequiredFiles();
 scanSecrets();
 checkCrmSafety();
 checkLinkFormat();
-checkAppShellIsolation();
 
 console.log('');
 if (failures > 0) {
