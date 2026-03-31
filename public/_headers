@@ -29,15 +29,10 @@
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
 
-# Cache OG images for 1 week (no hashed filenames, but rarely change)
-/images/og/*
-  Cache-Control: public, max-age=604800
-
-# Cache author photos for 1 week — unhashed static files, rarely change.
-# Without this, CF Pages serves max-age=0 which causes broken images on
-# deploys when edge nodes haven't propagated the new file yet.
-# This is the same vulnerability fixed for commentary images in df303af.
-/images/authors/*
+# Cache all static images for 1 week — unhashed filenames break on deploys
+# when CF Pages edge nodes haven't propagated yet (max-age=0 default = 404).
+# Covers /images/og/, /images/authors/, /images/course-covers/, loose files, etc.
+/images/*
   Cache-Control: public, max-age=604800
 
 # Pagefind: no-store prevents browsers from caching fragments across deploys.
