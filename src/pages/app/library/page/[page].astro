@@ -1,7 +1,7 @@
 ---
 import AppShell from '../../../../layouts/AppShell.astro';
-import ArticleCard from '../../../components/ArticleCard.astro';
-import { fetchAllArticles } from '../../../lib/airtable';
+import ArticleCard from '../../../../components/ArticleCard.astro';
+import { fetchAllArticles } from '../../../../lib/airtable';
 
 export async function getStaticPaths() {
   const perPage = 50;
