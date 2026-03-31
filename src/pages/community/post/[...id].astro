@@ -278,7 +278,7 @@ export function getStaticPaths() {
         if (!text) return '';
         var s = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         s = s.replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+|\/api\/assets\/[^\s)]+)\)/g,
-          '<img src="$2" alt="$1" class="post-inline-img" loading="lazy" />');
+          '<img src="$2" alt="$1" class="post-inline-img" loading="lazy" style="display:block;max-width:100%;max-height:480px;object-fit:contain;border-radius:8px;margin:12px 0" />');
         s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
           '<a href="$2" target="_blank" rel="noopener">$1</a>');
         s = s.replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/gm,
