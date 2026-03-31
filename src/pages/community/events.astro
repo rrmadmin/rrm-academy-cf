@@ -178,12 +178,36 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           });
       }
 
+      // --- Content helpers ---
+      function splitEventContent(body) {
+        if (!body) return { title: '', description: '', images: [] };
+        // Extract images first
+        var images = [];
+        var cleaned = body.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, function(m, alt, src) {
+          images.push({ alt: alt, src: src });
+          return '';
+        });
+        // Split remaining text on double newline
+        var lines = cleaned.split('\n\n').map(function(s) { return s.trim(); }).filter(Boolean);
+        var title = (lines[0] || '').trim();
+        var description = lines.slice(1).join('\n\n').trim();
+        return { title: title, description: description, images: images };
+      }
+
+      function renderEventImages(images) {
+        if (!images || !images.length) return '';
+        return images.map(function(img) {
+          return '<img src="' + escapeHtml(img.src) + '" alt="' + escapeHtml(img.alt) + '" class="event-image" loading="lazy" />';
+        }).join('');
+      }
+
       // --- Render upcoming event card ---
       function renderUpcomingCard(ev) {
         var d = new Date(ev.eventDate);
         var formattedDate = formatEventDate(d);
         var formattedTime = formatEventTime(d);
-        var calUrl = buildCalendarUrl(ev.title, d, ev.body);
+        var content = splitEventContent(ev.body);
+        var calUrl = buildCalendarUrl(content.title, d, content.description);
         var postedAgo = timeAgo(ev.createdAt);
 
         var html = '<div class="event-card card">';
@@ -193,10 +217,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         html += '</div>';
         html += '<div class="event-card-body">';
         html += '<p class="event-datetime">' + formattedDate + ' at ' + formattedTime + '</p>';
-        html += '<h3 class="event-title">' + escapeHtml(ev.title) + '</h3>';
-        if (ev.body) {
-          html += '<p class="event-body">' + escapeHtml(truncate(ev.body, 200)) + '</p>';
+        html += '<h3 class="event-title">' + escapeHtml(content.title) + '</h3>';
+        if (content.description) {
+          html += '<p class="event-body">' + escapeHtml(truncate(content.description, 200)) + '</p>';
         }
+        html += renderEventImages(content.images);
         html += '<div class="event-actions">';
         if (ev.eventLink) {
           html += '<a href="' + escapeHtml(ev.eventLink) + '" target="_blank" rel="noopener noreferrer" class="btn btn--join">Join Call</a>';
@@ -213,6 +238,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       function renderPastCard(ev) {
         var d = new Date(ev.eventDate);
         var formattedDate = formatEventDate(d);
+        var content = splitEventContent(ev.body);
 
         var html = '<div class="event-card event-card--past card">';
         html += '<div class="event-date-badge event-date-badge--past">';
@@ -221,7 +247,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         html += '</div>';
         html += '<div class="event-card-body">';
         html += '<p class="event-datetime">' + formattedDate + '</p>';
-        html += '<h3 class="event-title">' + escapeHtml(ev.title) + '</h3>';
+        html += '<h3 class="event-title">' + escapeHtml(content.title) + '</h3>';
+        if (content.description) {
+          html += '<p class="event-body">' + escapeHtml(truncate(content.description, 150)) + '</p>';
+        }
         if (ev.resourceUrl) {
           html += '<a href="' + escapeHtml(ev.resourceUrl) + '" target="_blank" rel="noopener noreferrer" class="event-recording-link">View Recording</a>';
         }
@@ -529,6 +558,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     line-height: 1.7;
     color: var(--text-secondary);
     margin-bottom: var(--space-3);
+  }
+  .event-image {
+    max-width: 100%;
+    border-radius: var(--radius-md, 8px);
+    margin: var(--space-2) 0 var(--space-3);
   }
 
   /* Actions */
