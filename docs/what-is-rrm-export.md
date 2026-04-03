@@ -93,7 +93,7 @@
         {
           '@type': 'ScholarlyArticle',
           name: 'Healthy Singleton Pregnancies from Restorative Reproductive Medicine (RRM) After Failed IVF',
-          author: 'Boyle PC, de Groot T, Andralojc KM, Stanford JB',
+          author: 'Boyle PC, de Groot T, Andralojc KM, Smith TA',
           datePublished: '2018',
           isPartOf: { '@type': 'Periodical', name: 'Frontiers in Medicine' },
         },
@@ -2063,7 +2063,7 @@ Start with online education through [RRM Academy](/courses/). For formal credent
               American College of Obstetricians and Gynecologists. "Menstruation in Girls and Adolescents: Using the Menstrual Cycle as a Vital Sign." Committee Opinion No. 651, December 2015 (reaffirmed 2025).
               Katz P, Showstack J, Smith JF, et al. "Costs of Infertility Treatment: Results from an 18-Month Prospective Cohort Study." *Fertility and Sterility* 95, no. 3 (2011): 915-921.
               Human Fertilisation and Embryology Authority. "Fertility Treatment 2021: Trends and Figures." HFEA, 2023. [hfea.gov.uk](https://www.hfea.gov.uk/about-us/publications/research-and-data/fertility-treatment-2021-preliminary-trends-and-figures/)
-              Boyle PC, de Groot T, Andralojc KM, Stanford JB. "Healthy Singleton Pregnancies from Restorative Reproductive Medicine (RRM) After Failed IVF." *Frontiers in Medicine* 5 (2018): 210.
+              Boyle PC, de Groot T, Andralojc KM, Smith TA. "Healthy Singleton Pregnancies from Restorative Reproductive Medicine (RRM) After Failed IVF." *Frontiers in Medicine* 5 (2018): 210.
               James G, McLinden LA, Hatch J, Mol BW. "Pregnancy Outcomes from a Restorative Infertility Treatment Model." Preprint, medRxiv, 2021. DOI: 10.1101/2021.04.14.21251044.
               Bewley S, Foo L, Braude P. "Adverse Outcomes from IVF." *BMJ* 342 (2011): d436.
               RESTORE Act, H.R. 3589, 119th Congress (2025). Legislation to expand access to restorative reproductive medicine as an alternative fertility treatment approach.

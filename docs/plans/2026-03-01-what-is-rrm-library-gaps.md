@@ -20,7 +20,7 @@ Papers cited in the pillar article that may need to be added to the RRM Research
 | 14 | Menstruation in Girls and Adolescents: Using the Menstrual Cycle as a Vital Sign | ACOG | ACOG Committee Opinion No. 651 | 2015 | Uncertain (ACOG opinion) | Check if in library; relevant clinical guideline |
 | 15 | Costs of Infertility Treatment: Results from an 18-Month Prospective Cohort Study | Katz P, Showstack J, Smith JF, et al. | Fertility and Sterility | 2011 | Yes (peer-reviewed, cost data) | Verify present |
 | 16 | Fertility Treatment 2021: Trends and Figures | HFEA | HFEA report | 2023 | No (government report) | Skip -- not a journal article |
-| 17 | Healthy Singleton Pregnancies from RRM After Failed IVF | Boyle PC, de Groot T, Andralojc KM, Stanford JB | Frontiers in Medicine | 2018 | Yes (peer-reviewed, core RRM paper) | Verify present |
+| 17 | Healthy Singleton Pregnancies from RRM After Failed IVF | Boyle PC, de Groot T, Andralojc KM, Smith TA | Frontiers in Medicine | 2018 | Yes (peer-reviewed, core RRM paper) | Verify present |
 | 18 | Pregnancy Outcomes from a Restorative Infertility Treatment Model | Stanford JB | medRxiv preprint | 2021 | Uncertain (preprint) | Check if in library; ingest if policy allows preprints |
 | 19 | Adverse Outcomes from IVF | Bewley S, Foo L, Braude P | BMJ | 2011 | Yes (peer-reviewed, IVF outcomes) | Verify present |
 | 20 | RESTORE Act, H.R. 3589 | 119th Congress | Legislation | 2025 | No (legislation) | Skip -- not a journal article |
