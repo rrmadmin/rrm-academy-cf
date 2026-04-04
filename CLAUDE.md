@@ -5,6 +5,8 @@
 
 > Wix-to-Cloudflare migration via strangler fig pattern. Phases 0-8 complete (courses, quizzes, enrollment, progress tracking, comments, certificates all live). Active work tracked in `docs/plans/backlog.md`.
 
+> **Ecosystem map:** `docs/rrm-academy-ecosystem.json` is the structured map of the entire RRM Academy system -- infrastructure, databases, contact model, deploy pipelines, workers, projects, people, finances, calendar, and timeline. Read it for system-wide context. Also available via `GET /api/admin/ecosystem` (ADMIN_API_SECRET auth) and D1 `system_config` table (`key = 'ecosystem-map'`).
+
 ## Quick Reference
 
 - **Stack**: Astro 5.3 (static) + Pagefind + CF Pages Functions + D1
@@ -96,6 +98,7 @@ docs/
 | Backlog & project status | `docs/plans/backlog.md` |
 | Airtable-to-CF data pipeline | `docs/architecture/airtable-cf-pipeline.md` |
 | ICD-10 codes (endo survey) | `docs/endo-survey-icd10-internal.md` |
+| Ecosystem SSOT | `docs/rrm-academy-ecosystem.json` |
 
 ## Site Map
 
