@@ -149,6 +149,21 @@
     "functions/api/pdf/redeem.js": {
       "hash": "96960bb3773e12f1bd648f6857a8f28cea1e893eec467ae5491f8789b48d565b",
       "note": "PDF token consumption + download"
+    },
+    "functions/api/faqs.js": {
+      "hash": "f324b0e1d26d542cb04cb287f5cf418c25162e0e174c966ca20fadb653b484f2"
+    },
+    "functions/api/admin/faqs/index.js": {
+      "hash": "7a9189859b99bab03f80c60ba94d5534969ddb0a4609112feafd77a57db7a4c2"
+    },
+    "functions/api/admin/faqs/[id].js": {
+      "hash": "24a5692b54b001e8eb11c4d9dda6c529d81a639158ea10f4c78963b858be9e7c"
+    },
+    "functions/api/admin/faqs/[id]/library-refs.js": {
+      "hash": "545246dcd957a5e460d7fb10832898bd06146e2ef54b1df14e96f4a5b7940f59"
+    },
+    "functions/api/admin/faqs/[id]/resources.js": {
+      "hash": "4067fb11b7af3a78247d4597a939aeda876eafe35136577c7979b2db5f19fd27"
     }
   }
 }
