@@ -83,7 +83,7 @@ export function mockDB(queryMap = {}) {
         _calls.push({ sql: this._sql, bound: this._bindings, method: 'run' });
         const spec = findMatch(this._sql);
         if (spec?.throws) throw new Error(spec.throws);
-        return spec?.run !== undefined ? spec.run : { success: true };
+        return spec?.run !== undefined ? spec.run : { success: true, meta: { changes: 1 } };
       },
     };
     return stmt;
