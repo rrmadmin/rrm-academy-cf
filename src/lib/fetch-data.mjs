@@ -96,7 +96,7 @@ function writeArticles(articles) {
 // --- Single-record merge mode ---
 
 async function fetchSingle(recordId) {
-  const token = process.env.LIBRARY_BUILD_TOKEN || process.env.WORKER_AUTH_TOKEN;
+  const token = process.env.LIBRARY_BUILD_TOKEN;
   if (!token) {
     console.error('Error: LIBRARY_BUILD_TOKEN environment variable required');
     process.exit(1);
@@ -176,7 +176,7 @@ async function fetchAll() {
     return;
   }
 
-  const token = process.env.LIBRARY_BUILD_TOKEN || process.env.WORKER_AUTH_TOKEN;
+  const token = process.env.LIBRARY_BUILD_TOKEN;
   if (!token) {
     console.error('Error: LIBRARY_BUILD_TOKEN environment variable required');
     process.exit(1);
