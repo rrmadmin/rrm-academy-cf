@@ -4,6 +4,14 @@ import { log } from '../../_log.js';
 const VALID_CATEGORIES = new Set(['Foundational', 'Condition-Specific', 'Common Concerns']);
 const VALID_STATUSES = new Set(['draft', 'published', 'archived']);
 
+function slugify(text) {
+  return text.toLowerCase()
+    .replace(/['']/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
+}
+
 export function onRequestOptions() {
   return optionsResponse();
 }
@@ -40,17 +48,13 @@ function mapRow(r, refs, resources) {
 }
 
 async function fetchWithRefs(db, id) {
-  const row = await db.prepare('SELECT * FROM faq WHERE id = ?').bind(id).first();
+  const [row, { results: refs }, { results: resources }] = await Promise.all([
+    db.prepare('SELECT * FROM faq WHERE id = ?').bind(id).first(),
+    db.prepare('SELECT * FROM faq_library_ref WHERE faq_id = ? ORDER BY sort_order ASC').bind(id).all(),
+    db.prepare('SELECT * FROM faq_resource WHERE faq_id = ? ORDER BY sort_order ASC').bind(id).all(),
+  ]);
+
   if (!row) return null;
-
-  const { results: refs } = await db.prepare(
-    'SELECT * FROM faq_library_ref WHERE faq_id = ? ORDER BY sort_order ASC'
-  ).bind(id).all();
-
-  const { results: resources } = await db.prepare(
-    'SELECT * FROM faq_resource WHERE faq_id = ? ORDER BY sort_order ASC'
-  ).bind(id).all();
-
   return mapRow(row, refs || [], resources || []);
 }
 
@@ -120,6 +124,28 @@ export async function onRequestPut(context) {
     faqCode: 'faq_code',
   };
 
+  if (body.basicAnswer !== undefined && typeof body.basicAnswer === 'string' && body.basicAnswer.length > 50000) {
+    return json({ ok: false, error: 'basicAnswer_too_long' }, 400);
+  }
+  if (body.schemaAnswer !== undefined && typeof body.schemaAnswer === 'string' && body.schemaAnswer.length > 5000) {
+    return json({ ok: false, error: 'schemaAnswer_too_long' }, 400);
+  }
+  if (body.publishedAnswer !== undefined && typeof body.publishedAnswer === 'string' && body.publishedAnswer.length > 100000) {
+    return json({ ok: false, error: 'publishedAnswer_too_long' }, 400);
+  }
+  if (body.seoTitle !== undefined && typeof body.seoTitle === 'string' && body.seoTitle.length > 200) {
+    return json({ ok: false, error: 'seoTitle_too_long' }, 400);
+  }
+  if (body.seoDescription !== undefined && typeof body.seoDescription === 'string' && body.seoDescription.length > 500) {
+    return json({ ok: false, error: 'seoDescription_too_long' }, 400);
+  }
+  if (body.faqCode !== undefined && typeof body.faqCode === 'string' && body.faqCode.length > 50) {
+    return json({ ok: false, error: 'faqCode_too_long' }, 400);
+  }
+  if (body.label !== undefined && typeof body.label === 'string' && body.label.length > 500) {
+    return json({ ok: false, error: 'label_too_long' }, 400);
+  }
+
   if (body.category !== undefined && !VALID_CATEGORIES.has(body.category)) {
     return json({ ok: false, error: 'invalid_category' }, 400);
   }
@@ -143,6 +169,11 @@ export async function onRequestPut(context) {
       setClauses.push(`${colName} = ?`);
       bindings.push(body[bodyKey]);
     }
+  }
+
+  if (body.question !== undefined && typeof body.question === 'string') {
+    setClauses.push('slug = ?');
+    bindings.push(slugify(body.question.trim()));
   }
 
   if (setClauses.length === 0) {

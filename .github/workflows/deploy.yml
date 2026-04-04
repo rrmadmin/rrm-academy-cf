@@ -165,7 +165,7 @@ jobs:
         run: node scripts/verify-citations.mjs --record "$RECORD_ID"
 
       - name: Verify all blog citations (full rebuild)
-        if: ${{ github.event_name != 'push' && !github.event.client_payload.record_id && !github.event.client_payload.article_id }}
+        if: ${{ github.event_name != 'push' && !github.event.client_payload.record_id && !github.event.client_payload.article_id && !github.event.client_payload.faq_id }}
         run: node scripts/verify-citations.mjs
         continue-on-error: true
 
