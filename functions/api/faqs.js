@@ -39,21 +39,15 @@ export async function onRequestGet(context) {
         return json({ ok: false, error: 'Invalid id' }, 400);
       }
 
-      const row = await env.DB.prepare(
-        'SELECT * FROM faq WHERE id = ?'
-      ).bind(id).first();
+      const [row, { results: refs }, { results: resources }] = await Promise.all([
+        env.DB.prepare('SELECT * FROM faq WHERE id = ?').bind(id).first(),
+        env.DB.prepare('SELECT * FROM faq_library_ref WHERE faq_id = ? ORDER BY sort_order ASC').bind(id).all(),
+        env.DB.prepare('SELECT * FROM faq_resource WHERE faq_id = ? ORDER BY sort_order ASC').bind(id).all(),
+      ]);
 
       if (!row) {
         return json({ ok: false, error: 'not_found' }, 404);
       }
-
-      const { results: refs } = await env.DB.prepare(
-        'SELECT * FROM faq_library_ref WHERE faq_id = ? ORDER BY sort_order ASC'
-      ).bind(id).all();
-
-      const { results: resources } = await env.DB.prepare(
-        'SELECT * FROM faq_resource WHERE faq_id = ? ORDER BY sort_order ASC'
-      ).bind(id).all();
 
       return json({ ok: true, data: mapRow(row, refs || [], resources || []) });
     }
@@ -62,13 +56,17 @@ export async function onRequestGet(context) {
       "SELECT * FROM faq WHERE status = 'published' ORDER BY sort_order ASC"
     ).all();
 
-    const { results: allRefs } = await env.DB.prepare(
-      'SELECT * FROM faq_library_ref ORDER BY sort_order ASC'
-    ).all();
+    if (!rows || rows.length === 0) {
+      return json({ ok: true, results: [] });
+    }
 
-    const { results: allResources } = await env.DB.prepare(
-      'SELECT * FROM faq_resource ORDER BY sort_order ASC'
-    ).all();
+    const faqIds = rows.map(r => r.id);
+    const placeholders = faqIds.map(() => '?').join(', ');
+
+    const [{ results: allRefs }, { results: allResources }] = await Promise.all([
+      env.DB.prepare(`SELECT * FROM faq_library_ref WHERE faq_id IN (${placeholders}) ORDER BY sort_order ASC`).bind(...faqIds).all(),
+      env.DB.prepare(`SELECT * FROM faq_resource WHERE faq_id IN (${placeholders}) ORDER BY sort_order ASC`).bind(...faqIds).all(),
+    ]);
 
     const refsByFaqId = groupById(allRefs || [], 'faq_id');
     const resourcesByFaqId = groupById(allResources || [], 'faq_id');

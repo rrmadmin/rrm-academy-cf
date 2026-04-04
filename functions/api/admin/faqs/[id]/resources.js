@@ -83,10 +83,13 @@ export async function onRequestDelete(context) {
   }
 
   try {
-    await env.DB.prepare(
+    const result = await env.DB.prepare(
       'DELETE FROM faq_resource WHERE id = ? AND faq_id = ?'
     ).bind(resourceId, faqId).run();
 
+    if (result.meta.changes === 0) {
+      return json({ ok: false, error: 'not_found' }, 404);
+    }
     return json({ ok: true });
   } catch (err) {
     log(env, waitUntil, 'admin-faq', 'resource_delete_error', 'error', err.message, 0, 500);
