@@ -400,6 +400,7 @@ These are the top recurring bug patterns. Violating any of these will be caught 
    - **Write-after-read atomicity.** Never read a value, compute in JS, then write back without a transaction. Use `db.batch()` or `BEGIN/COMMIT` for read-modify-write patterns. Token-consumed-before-write-confirmed is the #1 data-loss pattern.
    - **INTEGER vs TEXT types.** SQLite is loosely typed but D1 enforces declared types on some operations. Don't store booleans as "true"/"false" strings -- use 0/1.
    - **datetime format consistency.** Always use ISO 8601 (`datetime('now')` in SQL, `new Date().toISOString()` in JS). Never store Unix timestamps or locale-formatted dates.
+   - **ON DELETE CASCADE is inert in D1.** D1 does not run `PRAGMA foreign_keys = ON` per connection. All `ON DELETE CASCADE` / `ON UPDATE CASCADE` declarations in the schema are decorative. Always use explicit child-row cleanup via `db.batch()` before deleting a parent row. Example: `functions/api/admin/faqs/[id].js` DELETE handler.
 
 ### Prevention Checklist
 
@@ -418,8 +419,11 @@ Before shipping any new endpoint or modifying an existing one, verify:
 - [ ] No `${variable}` inside SQL strings -- use `?` params (D1 prepared statements)
 - [ ] Write/delete SQL with `user_id =` binds from session (`context.data.user.id`), never from request body
 - [ ] Rate limits on any endpoint that calls a billed service
+- [ ] ON DELETE CASCADE tables: explicit child cleanup in `db.batch()` (D1 doesn't honor CASCADE)
+- [ ] Single-record dispatch endpoints: status guard in fetch script (don't publish drafts)
+- [ ] After adding length caps: verify no dead validation for fields not in the target table
 
-8. **Endpoint Quality Gates (from /arise -- 544 findings, 45 runs, codified in coder agent G1-G11).** Before shipping a new endpoint, verify:
+8. **Endpoint Quality Gates (from /arise -- 643 findings, 50 runs, codified in coder agent G1-G13).** Before shipping a new endpoint, verify:
    - Every Stripe/R2/SES call in its own try/catch (not just outer handler). Return 503 with user-friendly message on external service failure. Gold standard: `courses/enroll.js:121-126`.
    - HTML template literals escape `"` in attribute contexts (not just `<` `>` `&`). Use the `escapeHtml()` helper in `google-callback.js` which covers all 5 entities.
    - Error responses use `{ ok: false, error: 'user-friendly message' }` + `console.error(err.message)`. Never expose `err.message` to the client.
@@ -430,6 +434,8 @@ Before shipping any new endpoint or modifying an existing one, verify:
    - Deletion cascades: clean up R2 objects too, not just D1 rows. Currently zero `R2_ASSETS.delete()` calls exist -- this is a known gap.
    - Config/env missing: return 503 with specific message identifying which binding is missing, not generic 500.
    - Newsletter/tracking: use `WHERE NOT EXISTS` for dedup if the table lacks a UNIQUE constraint.
+   - **G12: CASCADE cleanup.** After any `DELETE FROM` on a table with child tables, verify explicit child-row cleanup via `db.batch()`. Don't trust `ON DELETE CASCADE` in D1 -- it is inert without `PRAGMA foreign_keys = ON` (which D1 doesn't set). Gold standard: `admin/faqs/[id].js` DELETE handler.
+   - **G13: Status gate.** Any single-record fetch endpoint that returns all statuses (for preview) must have a downstream status guard in the build fetch script. The build script must skip or remove non-published records from the output JSON. Gold standard: `fetch-faq-data.mjs` `fetchSingle()` status check.
 
 ## Rules
 
@@ -439,7 +445,7 @@ Before shipping any new endpoint or modifying an existing one, verify:
   - Specific FAQ answer: `rrm-cli get faq <slug> --full`
   - Related content: `rrm-cli related <type> <slug> --type=article`
   - After using content: `rrm-cli annotate <type> <slug> --key=used_for --value="task description"`
-- **When writing or modifying code in `functions/api/`, dispatch the `coder` agent** (`subagent_type: "coder"`). It reads sibling files first and validates against 9 rules + 11 deterministic proof gates (G1-G11). Do not write endpoint code directly -- always use the coder agent.
+- **When writing or modifying code in `functions/api/`, dispatch the `coder` agent** (`subagent_type: "coder"`). It reads sibling files first and validates against 9 rules + 13 deterministic proof gates (G1-G13). Do not write endpoint code directly -- always use the coder agent.
 - Read relevant `STYLE-GUIDE.md` sections before editing styles
 - Never hardcode colors, spacing, or fonts -- use design tokens
 - Keep edits focused, show before/after summaries
