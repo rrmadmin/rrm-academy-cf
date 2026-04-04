@@ -193,7 +193,11 @@ export async function onRequestDelete(context) {
     const existing = await env.DB.prepare('SELECT id FROM faq WHERE id = ?').bind(id).first();
     if (!existing) return json({ ok: false, error: 'not_found' }, 404);
 
-    await env.DB.prepare('DELETE FROM faq WHERE id = ?').bind(id).run();
+    await env.DB.batch([
+      env.DB.prepare('DELETE FROM faq_library_ref WHERE faq_id = ?').bind(id),
+      env.DB.prepare('DELETE FROM faq_resource WHERE faq_id = ?').bind(id),
+      env.DB.prepare('DELETE FROM faq WHERE id = ?').bind(id),
+    ]);
     return json({ ok: true });
   } catch (err) {
     log(env, waitUntil, 'admin-faq', 'delete_error', 'error', err.message, 0, 500);
