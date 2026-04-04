@@ -88,8 +88,17 @@ jobs:
           npm run fetch-data
           echo "Articles: $(node -e "console.log(require('./src/data/articles.json').length)")"
 
+      - name: Fetch single FAQ (dispatch)
+        if: ${{ github.event.client_payload.faq_id }}
+        env:
+          LIBRARY_BUILD_TOKEN: ${{ secrets.LIBRARY_BUILD_TOKEN }}
+          RECORD_ID: ${{ github.event.client_payload.faq_id }}
+        run: |
+          npm run fetch-faqs
+          echo "FAQs: $(node -e "console.log(require('./src/data/faqs.json').length)")"
+
       - name: Fetch all data
-        if: ${{ github.event_name != 'push' && !inputs.skip_fetch && !github.event.client_payload.record_id && !github.event.client_payload.article_id && (github.event_name == 'workflow_dispatch' || steps.data-cache.outputs.cache-hit != 'true') }}
+        if: ${{ github.event_name != 'push' && !inputs.skip_fetch && !github.event.client_payload.record_id && !github.event.client_payload.article_id && !github.event.client_payload.faq_id && (github.event_name == 'workflow_dispatch' || steps.data-cache.outputs.cache-hit != 'true') }}
         env:
           LIBRARY_BUILD_TOKEN: ${{ secrets.LIBRARY_BUILD_TOKEN }}
           AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
