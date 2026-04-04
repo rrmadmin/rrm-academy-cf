@@ -142,10 +142,6 @@ export async function onRequestPut(context) {
   if (body.faqCode !== undefined && typeof body.faqCode === 'string' && body.faqCode.length > 50) {
     return json({ ok: false, error: 'faqCode_too_long' }, 400);
   }
-  if (body.label !== undefined && typeof body.label === 'string' && body.label.length > 500) {
-    return json({ ok: false, error: 'label_too_long' }, 400);
-  }
-
   if (body.category !== undefined && !VALID_CATEGORIES.has(body.category)) {
     return json({ ok: false, error: 'invalid_category' }, 400);
   }
@@ -184,12 +180,13 @@ export async function onRequestPut(context) {
   bindings.push(id);
 
   try {
-    const existing = await env.DB.prepare('SELECT id FROM faq WHERE id = ?').bind(id).first();
-    if (!existing) return json({ ok: false, error: 'not_found' }, 404);
-
-    await env.DB.prepare(
+    const result = await env.DB.prepare(
       `UPDATE faq SET ${setClauses.join(', ')} WHERE id = ?`
     ).bind(...bindings).run();
+
+    if (result.meta.changes === 0) {
+      return json({ ok: false, error: 'not_found' }, 404);
+    }
 
     const data = await fetchWithRefs(env.DB, id);
     return json({ ok: true, data });
