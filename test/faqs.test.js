@@ -22,8 +22,8 @@ function makeRequest(opts = {}) {
 }
 
 describe('GET /api/faqs -- auth', () => {
-  it('returns 503 when WORKER_AUTH_TOKEN missing', async () => {
-    const env = mockEnv({ WORKER_AUTH_TOKEN: undefined });
+  it('returns 503 when LIBRARY_BUILD_TOKEN missing', async () => {
+    const env = mockEnv({ LIBRARY_BUILD_TOKEN: undefined });
     const req = makeRequest();
     const wt = mockWaitUntil();
     const res = await onRequestGet(makeContext(req, env, wt));
@@ -33,7 +33,7 @@ describe('GET /api/faqs -- auth', () => {
   });
 
   it('returns 401 when Bearer token is wrong', async () => {
-    const env = mockEnv({ WORKER_AUTH_TOKEN: TOKEN });
+    const env = mockEnv({ LIBRARY_BUILD_TOKEN: TOKEN });
     const req = makeRequest({ headers: { Authorization: 'Bearer wrong-token' } });
     const wt = mockWaitUntil();
     const res = await onRequestGet(makeContext(req, env, wt));
@@ -43,7 +43,7 @@ describe('GET /api/faqs -- auth', () => {
   });
 
   it('returns 503 when DB missing', async () => {
-    const env = mockEnv({ WORKER_AUTH_TOKEN: TOKEN, DB: undefined });
+    const env = mockEnv({ LIBRARY_BUILD_TOKEN: TOKEN, DB: undefined });
     const req = makeRequest();
     const wt = mockWaitUntil();
     const res = await onRequestGet(makeContext(req, env, wt));
@@ -79,7 +79,7 @@ describe('GET /api/faqs -- all records', () => {
       'FROM faq_resource ORDER': { all: { results: [resource] } },
     });
 
-    const env = mockEnv({ WORKER_AUTH_TOKEN: TOKEN, DB: db });
+    const env = mockEnv({ LIBRARY_BUILD_TOKEN: TOKEN, DB: db });
     const req = makeRequest();
     const wt = mockWaitUntil();
     const res = await onRequestGet(makeContext(req, env, wt));
@@ -137,7 +137,7 @@ describe('GET /api/faqs -- all records', () => {
       'FROM faq_resource ORDER': { all: { results: [] } },
     });
 
-    const env = mockEnv({ WORKER_AUTH_TOKEN: TOKEN, DB: db });
+    const env = mockEnv({ LIBRARY_BUILD_TOKEN: TOKEN, DB: db });
     const req = makeRequest();
     const wt = mockWaitUntil();
     const res = await onRequestGet(makeContext(req, env, wt));
@@ -173,7 +173,7 @@ describe('GET /api/faqs -- single record', () => {
       'FROM faq_resource WHERE faq_id': { all: { results: [] } },
     });
 
-    const env = mockEnv({ WORKER_AUTH_TOKEN: TOKEN, DB: db });
+    const env = mockEnv({ LIBRARY_BUILD_TOKEN: TOKEN, DB: db });
     const req = makeRequest({ url: 'https://rrmacademy.org/api/faqs?id=faq_003' });
     const wt = mockWaitUntil();
     const res = await onRequestGet(makeContext(req, env, wt));
@@ -193,7 +193,7 @@ describe('GET /api/faqs -- single record', () => {
       'FROM faq WHERE id': { first: null },
     });
 
-    const env = mockEnv({ WORKER_AUTH_TOKEN: TOKEN, DB: db });
+    const env = mockEnv({ LIBRARY_BUILD_TOKEN: TOKEN, DB: db });
     const req = makeRequest({ url: 'https://rrmacademy.org/api/faqs?id=faq_unknown' });
     const wt = mockWaitUntil();
     const res = await onRequestGet(makeContext(req, env, wt));

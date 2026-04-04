@@ -1,7 +1,7 @@
 /**
  * GET /api/faqs - Serve FAQ data from D1.
  *
- * Auth: Bearer WORKER_AUTH_TOKEN (build-time fetch only, not public).
+ * Auth: Bearer LIBRARY_BUILD_TOKEN (build-time fetch only, not public).
  *
  * Query params:
  *   ?id=faq_xxx  - single FAQ by ID (any status, for preview/rebuild)
@@ -18,12 +18,12 @@ export async function onRequestGet(context) {
   const { request, env, waitUntil } = context;
 
   try {
-    if (!env.WORKER_AUTH_TOKEN) {
+    if (!env.LIBRARY_BUILD_TOKEN) {
       return json({ ok: false, error: 'Server misconfigured' }, 503);
     }
 
     const auth = request.headers.get('Authorization');
-    if (auth !== `Bearer ${env.WORKER_AUTH_TOKEN}`) {
+    if (auth !== `Bearer ${env.LIBRARY_BUILD_TOKEN}`) {
       return json({ ok: false, error: 'Unauthorized' }, 401);
     }
 

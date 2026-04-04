@@ -1,6 +1,6 @@
 /**
  * Fetch FAQ data from D1 via /api/faqs endpoint and cache as JSON.
- * Run: WORKER_AUTH_TOKEN=xxx node src/lib/fetch-faq-data.mjs
+ * Run: LIBRARY_BUILD_TOKEN=xxx node src/lib/fetch-faq-data.mjs
  *
  * Single-record mode: RECORD_ID=recXXX fetches one FAQ for merge.
  * Full mode: fetches all published FAQs.
@@ -81,9 +81,9 @@ function resolveLibraryRefs(faqs, articleIndex) {
 }
 
 async function fetchSingle(recordId) {
-  const token = process.env.WORKER_AUTH_TOKEN;
+  const token = process.env.LIBRARY_BUILD_TOKEN;
   if (!token) {
-    console.error('Error: WORKER_AUTH_TOKEN environment variable required');
+    console.error('Error: LIBRARY_BUILD_TOKEN environment variable required');
     process.exit(1);
   }
 
@@ -151,9 +151,9 @@ async function fetchAll() {
     return;
   }
 
-  const token = process.env.WORKER_AUTH_TOKEN;
+  const token = process.env.LIBRARY_BUILD_TOKEN;
   if (!token) {
-    console.error('Error: WORKER_AUTH_TOKEN environment variable required');
+    console.error('Error: LIBRARY_BUILD_TOKEN environment variable required');
     process.exit(1);
   }
 
