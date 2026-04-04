@@ -54,6 +54,23 @@ src/data/posts.json → Astro build → rrmacademy.org/commentary
 
 **Config:** Base/table IDs in `src/lib/blog-config.mjs`.
 
+### FAQ Pipeline
+
+```
+D1 (rrm-auth, faq table)             ← admin API endpoints for CRUD
+    │  GET /api/faqs (Bearer LIBRARY_BUILD_TOKEN)
+    ▼
+GitHub Actions: fetch-faq-data.mjs   ← full or single-record (?id=faq_xxx)
+    ▼
+src/data/faqs.json → Astro build → rrmacademy.org/faqs
+```
+
+**Tables:** `faq` (main), `faq_library_ref` (article cross-references), `faq_resource` (external evidence URLs). Schema in `scripts/migrate-faqs-to-d1.sql`.
+
+**Admin endpoints:** `POST/PUT/DELETE /api/admin/faqs/` -- session + admin role auth. Library refs and resources managed via sub-endpoints (`/api/admin/faqs/:id/library-refs`, `/api/admin/faqs/:id/resources`).
+
+**Single-record dispatch:** `repository_dispatch` with `{ faq_id: "faq_xxx" }` triggers `fetch-faq-data.mjs` in single-record mode.
+
 ### Full Rebuild
 
 `fetch-all` fetches all 4 data sources: articles, posts, FAQs, courses. Cache key: `site-data-YYYY-MM-DD` (ET timezone). `workflow_dispatch` always fetches fresh (bypasses cache). `repository_dispatch` uses cache. `push` events skip fetch entirely.
