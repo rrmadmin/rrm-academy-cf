@@ -77,10 +77,13 @@ export async function onRequestDelete(context) {
   }
 
   try {
-    await env.DB.prepare(
+    const result = await env.DB.prepare(
       'DELETE FROM faq_library_ref WHERE faq_id = ? AND article_id = ?'
     ).bind(faqId, articleId).run();
 
+    if (result.meta.changes === 0) {
+      return json({ ok: false, error: 'not_found' }, 404);
+    }
     return json({ ok: true });
   } catch (err) {
     log(env, waitUntil, 'admin-faq', 'library_ref_delete_error', 'error', err.message, 0, 500);

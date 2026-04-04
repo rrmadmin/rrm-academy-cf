@@ -116,6 +116,25 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'question_too_long' }, 400);
   }
 
+  if (basicAnswer !== undefined && typeof basicAnswer === 'string' && basicAnswer.length > 50000) {
+    return json({ ok: false, error: 'basicAnswer_too_long' }, 400);
+  }
+  if (schemaAnswer !== undefined && typeof schemaAnswer === 'string' && schemaAnswer.length > 5000) {
+    return json({ ok: false, error: 'schemaAnswer_too_long' }, 400);
+  }
+  if (publishedAnswer !== undefined && typeof publishedAnswer === 'string' && publishedAnswer.length > 100000) {
+    return json({ ok: false, error: 'publishedAnswer_too_long' }, 400);
+  }
+  if (seoTitle !== undefined && typeof seoTitle === 'string' && seoTitle.length > 200) {
+    return json({ ok: false, error: 'seoTitle_too_long' }, 400);
+  }
+  if (seoDescription !== undefined && typeof seoDescription === 'string' && seoDescription.length > 500) {
+    return json({ ok: false, error: 'seoDescription_too_long' }, 400);
+  }
+  if (body.faqCode !== undefined && typeof body.faqCode === 'string' && body.faqCode.length > 50) {
+    return json({ ok: false, error: 'faqCode_too_long' }, 400);
+  }
+
   if (typeof category !== 'string' || !VALID_CATEGORIES.has(category)) {
     return json({ ok: false, error: 'invalid_category' }, 400);
   }

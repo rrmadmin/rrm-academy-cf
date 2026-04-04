@@ -6,14 +6,18 @@
 export interface EvidenceLink {
   title: string;
   url: string;
+  sortOrder?: number;
 }
 
 export interface LibraryRef {
-  author: string;
-  year: number;
-  slug: string;
-  title: string;
-  shortCitation: string;
+  articleId: string;
+  label?: string | null;
+  sortOrder?: number;
+  author?: string;
+  year?: number | null;
+  slug?: string;
+  title?: string;
+  shortCitation?: string;
 }
 
 export interface FAQ {
