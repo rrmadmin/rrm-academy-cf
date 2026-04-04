@@ -214,7 +214,7 @@ describe('PUT /api/admin/faqs/[id] -- update', () => {
     const updatedRow = { ...FAQ_ROW, basic_answer: 'Updated answer.', updated_at: '2026-04-01 00:00:00' };
     const db = mockDB({
       'SELECT id FROM faq WHERE id': { first: { id: 'faq_abc123' } },
-      'UPDATE faq SET': { run: { success: true } },
+      'UPDATE faq SET': { run: { success: true, meta: { changes: 1 } } },
       'SELECT * FROM faq WHERE id': { first: updatedRow },
       'FROM faq_library_ref WHERE faq_id': { all: { results: [] } },
       'FROM faq_resource WHERE faq_id': { all: { results: [] } },
@@ -236,7 +236,7 @@ describe('PUT /api/admin/faqs/[id] -- update', () => {
 
   it('returns 404 when FAQ does not exist', async () => {
     const db = mockDB({
-      'SELECT id FROM faq WHERE id': { first: null },
+      'UPDATE faq SET': { run: { success: true, meta: { changes: 0 } } },
     });
 
     const req = mockRequest('PUT', {
