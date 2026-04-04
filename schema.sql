@@ -393,3 +393,11 @@ CREATE TABLE IF NOT EXISTS faq_resource (
 );
 
 CREATE INDEX IF NOT EXISTS idx_faq_resource_faq ON faq_resource(faq_id);
+
+-- System configuration (ecosystem map, future config)
+
+CREATE TABLE IF NOT EXISTS system_config (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TEXT DEFAULT (datetime('now'))
+);
