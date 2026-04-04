@@ -75,8 +75,8 @@ describe('GET /api/faqs -- all records', () => {
 
     const db = mockDB({
       "FROM faq WHERE status": { all: { results: [faqRow] } },
-      'FROM faq_library_ref ORDER': { all: { results: [libRef] } },
-      'FROM faq_resource ORDER': { all: { results: [resource] } },
+      'FROM faq_library_ref': { all: { results: [libRef] } },
+      'FROM faq_resource': { all: { results: [resource] } },
     });
 
     const env = mockEnv({ LIBRARY_BUILD_TOKEN: TOKEN, DB: db });
