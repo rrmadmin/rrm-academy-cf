@@ -42,11 +42,12 @@ export async function onRequestPost(context) {
   const resolvedSortOrder = typeof sortOrder === 'number' ? sortOrder : 0;
 
   try {
-    await env.DB.prepare(
+    const result = await env.DB.prepare(
       'INSERT OR IGNORE INTO faq_library_ref (faq_id, article_id, label, sort_order) VALUES (?, ?, ?, ?)'
     ).bind(faqId, articleId.trim(), label ?? null, resolvedSortOrder).run();
 
-    return json({ ok: true });
+    const status = result.meta.changes > 0 ? 201 : 200;
+    return json({ ok: true, created: result.meta.changes > 0 }, status);
   } catch (err) {
     log(env, waitUntil, 'admin-faq', 'library_ref_add_error', 'error', err.message, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);

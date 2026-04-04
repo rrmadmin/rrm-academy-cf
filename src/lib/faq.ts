@@ -31,6 +31,7 @@ export interface FAQ {
   seoTitle: string;
   seoDescription: string;
   sortOrder: number;
+  status: string;
   category: 'Foundational' | 'Condition-Specific' | 'Common Concerns';
   evidence: EvidenceLink[];
   libraryRefs: LibraryRef[];

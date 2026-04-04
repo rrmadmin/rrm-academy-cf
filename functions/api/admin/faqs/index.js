@@ -61,17 +61,11 @@ export async function onRequestGet(context) {
   }
 
   try {
-    const { results: rows } = await env.DB.prepare(
-      'SELECT * FROM faq ORDER BY sort_order ASC'
-    ).all();
-
-    const { results: allRefs } = await env.DB.prepare(
-      'SELECT * FROM faq_library_ref ORDER BY sort_order ASC'
-    ).all();
-
-    const { results: allResources } = await env.DB.prepare(
-      'SELECT * FROM faq_resource ORDER BY sort_order ASC'
-    ).all();
+    const [{ results: rows }, { results: allRefs }, { results: allResources }] = await Promise.all([
+      env.DB.prepare('SELECT * FROM faq ORDER BY sort_order ASC').all(),
+      env.DB.prepare('SELECT * FROM faq_library_ref ORDER BY sort_order ASC').all(),
+      env.DB.prepare('SELECT * FROM faq_resource ORDER BY sort_order ASC').all(),
+    ]);
 
     const refsByFaqId = groupById(allRefs || [], 'faq_id');
     const resourcesByFaqId = groupById(allResources || [], 'faq_id');
