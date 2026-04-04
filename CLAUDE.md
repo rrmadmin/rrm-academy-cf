@@ -423,19 +423,35 @@ Before shipping any new endpoint or modifying an existing one, verify:
 - [ ] Single-record dispatch endpoints: status guard in fetch script (don't publish drafts)
 - [ ] After adding length caps: verify no dead validation for fields not in the target table
 
-8. **Endpoint Quality Gates (from /arise -- 643 findings, 50 runs, codified in coder agent G1-G13).** Before shipping a new endpoint, verify:
-   - Every Stripe/R2/SES call in its own try/catch (not just outer handler). Return 503 with user-friendly message on external service failure. Gold standard: `courses/enroll.js:121-126`.
-   - HTML template literals escape `"` in attribute contexts (not just `<` `>` `&`). Use the `escapeHtml()` helper in `google-callback.js` which covers all 5 entities.
-   - Error responses use `{ ok: false, error: 'user-friendly message' }` + `console.error(err.message)`. Never expose `err.message` to the client.
-   - Auth-gated endpoints check `user.blocked` after session validation. See `community/_shared.js` `requireMember()` for the pattern.
-   - `db.batch()` for multi-table writes (not sequential `.run()` calls). Partial failure leaves inconsistent state without batching.
-   - Rate limiting on all public endpoints that call billed services (Stripe, SES, R2, Vectorize).
-   - `INSERT` dedup: verify a UNIQUE constraint exists before using `OR IGNORE`. Without the constraint, IGNORE never fires.
-   - Deletion cascades: clean up R2 objects too, not just D1 rows. Currently zero `R2_ASSETS.delete()` calls exist -- this is a known gap.
-   - Config/env missing: return 503 with specific message identifying which binding is missing, not generic 500.
-   - Newsletter/tracking: use `WHERE NOT EXISTS` for dedup if the table lacks a UNIQUE constraint.
-   - **G12: CASCADE cleanup.** After any `DELETE FROM` on a table with child tables, verify explicit child-row cleanup via `db.batch()`. Don't trust `ON DELETE CASCADE` in D1 -- it is inert without `PRAGMA foreign_keys = ON` (which D1 doesn't set). Gold standard: `admin/faqs/[id].js` DELETE handler.
-   - **G13: Status gate.** Any single-record fetch endpoint that returns all statuses (for preview) must have a downstream status guard in the build fetch script. The build script must skip or remove non-published records from the output JSON. Gold standard: `fetch-faq-data.mjs` `fetchSingle()` status check.
+### QA Gates (from /arise -- 643 findings, 50 runs)
+
+Two tiers of enforcement. Proof gates are automated and deterministic. Review gates require judgment and context.
+
+**Proof gates** -- automated by `arise-scanner` (`arise-scan --json --files [files]`). Binary pass/fail, <1s, zero judgment. Run before every commit.
+
+| Rule | Scanner ID | What it greps for |
+|------|-----------|-------------------|
+| External fetch in try/catch | `unwrapped-await` | Stripe/SES/R2/fetch calls outside try blocks |
+| err.message not in response | `error-leak` | `err.message` inside `json()` or `Response` |
+| COLLATE NOCASE on text WHERE | `collate-nocase` | `WHERE.*email\|slug\|name` without COLLATE |
+| db.batch() for multi-writes | `unbatched-writes` | Sequential `.run()` calls without batch |
+| Missing env guard | `silent-failure` | `!env.X` patterns without explicit error return |
+| No INSERT OR REPLACE | `insert-or-replace` | `INSERT OR REPLACE` (silently overwrites) |
+| CASCADE child cleanup | `cascade-cleanup` (candidate) | `DELETE FROM` on parent table without child deletes in batch |
+| HTML escapes 5 entities | `html-escape` (candidate) | Template literals with HTML missing `escapeHtml()` |
+
+Scanner rules are the source of truth. If arise-scanner catches it, the coder agent does not re-check it.
+
+**Review gates** -- applied by the `coder` agent when reading/writing code. Require context, sibling comparison, or architectural judgment. Cannot be automated.
+
+| Gate | What the coder agent checks | Gold standard |
+|------|----------------------------|---------------|
+| R1: Blocked user check | Auth-gated endpoints check `user.blocked` after session validation | `community/_shared.js` `requireMember()` |
+| R2: Rate limiting scope | Public endpoints calling billed services (Stripe, SES, R2, Vectorize) have rate limits | `search/semantic.js` IP rate limiter |
+| R3: UNIQUE before OR IGNORE | Cross-ref `schema.sql` to verify a UNIQUE constraint exists before using `INSERT OR IGNORE` | `scripts/migrate-faqs-to-d1.sql` UNIQUE on `(faq_id, article_id)` |
+| R4: R2 cleanup on delete | DELETE handlers that remove D1 rows also clean up associated R2 objects | Known gap -- zero `R2_ASSETS.delete()` calls exist |
+| R5: Status gate in build | Single-record fetch endpoints returning all statuses have a downstream status guard in the build fetch script | `fetch-faq-data.mjs` `fetchSingle()` status check |
+| R6: Sibling pattern match | After writing/fixing code, grep the same directory for the pattern and apply consistently | Every /arise run's "fix one, grep all" step |
 
 ## Rules
 
@@ -445,7 +461,7 @@ Before shipping any new endpoint or modifying an existing one, verify:
   - Specific FAQ answer: `rrm-cli get faq <slug> --full`
   - Related content: `rrm-cli related <type> <slug> --type=article`
   - After using content: `rrm-cli annotate <type> <slug> --key=used_for --value="task description"`
-- **When writing or modifying code in `functions/api/`, dispatch the `coder` agent** (`subagent_type: "coder"`). It reads sibling files first and validates against 9 rules + 13 deterministic proof gates (G1-G13). Do not write endpoint code directly -- always use the coder agent.
+- **When writing or modifying code in `functions/api/`, dispatch the `coder` agent** (`subagent_type: "coder"`). It reads sibling files first, runs arise-scanner proof gates (automated), and applies 6 review gates (R1-R6) requiring judgment. Do not write endpoint code directly -- always use the coder agent.
 - Read relevant `STYLE-GUIDE.md` sections before editing styles
 - Never hardcode colors, spacing, or fonts -- use design tokens
 - Keep edits focused, show before/after summaries
