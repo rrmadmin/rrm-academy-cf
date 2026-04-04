@@ -115,7 +115,7 @@ async function fetchSingle(recordId) {
 
   // Remove old version of this record (if present)
   const before = faqs.length;
-  faqs = faqs.filter(f => f.id !== recordId && f.slug !== faq.slug);
+  faqs = faqs.filter(f => f.id !== recordId);
   const wasPresent = faqs.length < before;
 
   // Resolve library refs if articles.json available

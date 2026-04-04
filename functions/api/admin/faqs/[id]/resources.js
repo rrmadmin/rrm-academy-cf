@@ -48,11 +48,12 @@ export async function onRequestPost(context) {
   const resolvedSortOrder = typeof sortOrder === 'number' ? sortOrder : 0;
 
   try {
-    await env.DB.prepare(
+    const result = await env.DB.prepare(
       'INSERT OR IGNORE INTO faq_resource (faq_id, title, url, sort_order) VALUES (?, ?, ?, ?)'
     ).bind(faqId, title.trim(), url.trim(), resolvedSortOrder).run();
 
-    return json({ ok: true });
+    const status = result.meta.changes > 0 ? 201 : 200;
+    return json({ ok: true, created: result.meta.changes > 0 }, status);
   } catch (err) {
     log(env, waitUntil, 'admin-faq', 'resource_add_error', 'error', err.message, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
