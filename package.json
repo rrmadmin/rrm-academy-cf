@@ -16,6 +16,7 @@
     "guard": "node scripts/guard.mjs",
     "guard:update": "node scripts/guard.mjs --update",
     "guard:install": "cp hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit",
+    "sync-ecosystem": "node scripts/sync-ecosystem.mjs",
     "embed": "npx wrangler dev scripts/embed-library.mjs --port 8688 --compatibility-date 2025-01-01",
     "pipeline:snapshot": "node scripts/pipeline.mjs snapshot",
     "pipeline:dry-run": "node scripts/pipeline.mjs dry-run",
