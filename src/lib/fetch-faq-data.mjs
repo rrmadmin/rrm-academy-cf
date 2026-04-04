@@ -115,7 +115,7 @@ async function fetchSingle(recordId) {
 
   // Remove old version of this record (if present)
   const before = faqs.length;
-  faqs = faqs.filter(f => f.id !== recordId);
+  faqs = faqs.filter(f => f.id !== recordId && f.slug !== faq.slug);
   const wasPresent = faqs.length < before;
 
   // Resolve library refs if articles.json available
@@ -126,8 +126,12 @@ async function fetchSingle(recordId) {
   }
 
   // Add updated FAQ
-  faqs.push(faq);
-  console.log(`${wasPresent ? 'Updated' : 'Added'} FAQ: ${faq.slug || faq.id}`);
+  if (faq.status !== 'published') {
+    console.log(`Removed non-published FAQ (status: ${faq.status}): ${faq.slug || faq.id}`);
+  } else {
+    faqs.push(faq);
+    console.log(`${wasPresent ? 'Updated' : 'Added'} FAQ: ${faq.slug || faq.id}`);
+  }
 
   sortFaqs(faqs);
 
