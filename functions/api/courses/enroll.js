@@ -17,7 +17,15 @@ import {
 import { log } from '../_log.js';
 import { getCourse, getIncludedCourseIds } from './_shared.js';
 import { sendGA4Event } from '../_ga4.js';
+import { classifySource, extractUtm, getClientId, deriveSessionId } from '../_ga4-source.js';
 import { notifyAdminEnrollment } from './_notify-admin.js';
+
+function parseCookie(cookieHeader, name) {
+  if (!cookieHeader) return '';
+  const match = cookieHeader.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]*)'));
+  if (!match) return '';
+  try { return decodeURIComponent(match[1]); } catch { return ''; }
+}
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -69,21 +77,24 @@ async function handleEnroll(request, env, waitUntil) {
 
   // --- Free course: enroll immediately ---
   if (course.isFree) {
-    await enrollUser(db, session.userId, courseId, null);
-    waitUntil((async () => {
-      const user = await db.prepare('SELECT email, name FROM user WHERE id = ?')
-        .bind(session.userId).first();
-      await notifyAdminEnrollment(env, {
-        studentEmail: user?.email || 'unknown',
-        studentName: user?.name || '',
-        courseTitle: course.title,
-        courseId,
-        isFree: true,
-      });
-    })().catch(() => {}));
-    waitUntil(sendGA4Event(env, request, 'sign_up', {
-      event_category: 'course_enrollment', items: [{ item_name: `Course: ${courseId}` }],
-    }).catch(() => {}));
+    const wasNewlyEnrolled = await enrollUser(db, session.userId, courseId, null);
+    if (wasNewlyEnrolled) {
+      waitUntil((async () => {
+        const user = await db.prepare('SELECT email, name FROM user WHERE id = ?')
+          .bind(session.userId).first();
+        await notifyAdminEnrollment(env, {
+          studentEmail: user?.email || 'unknown',
+          studentName: user?.name || '',
+          courseTitle: course.title,
+          courseId,
+          isFree: true,
+        });
+      })().catch(() => {}));
+      waitUntil(sendGA4Event(env, request, 'generate_lead', {
+        lead_source: 'free_course',
+        items: [{ item_name: `Course: ${courseId}` }],
+      }).catch(() => {}));
+    }
     return json({ ok: true, enrolled: true });
   }
 
@@ -100,13 +111,36 @@ async function handleEnroll(request, env, waitUntil) {
   const user = await db.prepare('SELECT email, stripe_customer_id FROM user WHERE id = ?')
     .bind(session.userId).first();
 
+  // Derive GA4 source attribution from entry cookies (same as create-checkout.js)
+  const cookies = request.headers.get('Cookie') || '';
+  const entryRef = parseCookie(cookies, 'entry_ref');
+  const entryUrl = parseCookie(cookies, 'entry_url');
+  const referrer = entryRef || request.headers.get('Referer') || '';
+  const landingUrl = entryUrl || request.url;
+  const utmParams = extractUtm(landingUrl);
+  const { source, medium } = classifySource(referrer);
+  const gaSource = utmParams.utm_source || source;
+  const gaMedium = utmParams.utm_medium || medium;
+  const gaCampaign = utmParams.utm_campaign || '';
+  const clientId = await getClientId(request);
+  const dateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+  const gaSessionId = await deriveSessionId(clientId, dateStr);
+
   const origin = SITE_URL;
   const sessionParams = {
     mode: 'payment',
     line_items: [{ price: course.stripePriceId, quantity: 1 }],
     success_url: `${origin}/courses/${course.slug}/?enrolled=1`,
     cancel_url: `${origin}/courses/${course.slug}/`,
-    metadata: { type: 'course', courseId: course.id },
+    metadata: {
+      type: 'course',
+      courseId: course.id,
+      ga_client_id: clientId,
+      ga_session_id: String(gaSessionId),
+      ga_source: gaSource,
+      ga_medium: gaMedium,
+      ...(gaCampaign && { ga_campaign: gaCampaign }),
+    },
     client_reference_id: session.userId,
   };
 
@@ -125,13 +159,18 @@ async function handleEnroll(request, env, waitUntil) {
     return json({ ok: false, error: 'Payment service unavailable. Please try again shortly.' }, 503);
   }
   waitUntil(sendGA4Event(env, request, 'begin_checkout', {
-    currency: 'USD', items: [{ item_name: `Course: ${courseId}` }],
+    page_location: entryUrl || request.headers.get('Referer') || SITE_URL,
+    currency: 'USD',
+    ...(course.priceCents && { value: course.priceCents / 100 }),
+    items: [{ item_name: `Course: ${courseId}` }],
   }).catch(() => {}));
   return json({ ok: true, enrolled: false, checkoutUrl: checkoutSession.url });
 }
 
 /**
  * Create enrollment row(s) for a user. Handles "includes" (e.g. Masterclass → Long-Term Endo).
+ * Returns true if the primary enrollment row was newly inserted (INSERT OR IGNORE changed a row).
+ * Returns false if the user was already enrolled (idempotent re-call).
  * Exported for use by stripe-webhook.js.
  */
 export async function enrollUser(db, userId, courseId, stripePaymentIntent) {
@@ -151,5 +190,6 @@ export async function enrollUser(db, userId, courseId, stripePaymentIntent) {
     );
   }
 
-  await db.batch(statements);
+  const results = await db.batch(statements);
+  return results[0]?.meta?.changes > 0;
 }

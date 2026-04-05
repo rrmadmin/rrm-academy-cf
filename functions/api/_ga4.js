@@ -10,12 +10,20 @@ import { buildSourceParams, getClientId } from './_ga4-source.js';
 
 const GA4_ENDPOINT = 'https://www.google-analytics.com/mp/collect';
 
+let warnedMissing = false;
+
 /**
  * @param {object} overrides - Optional. { client_id, session_id } to use instead of
  *   deriving from request headers. Used by stripe-webhook to replay the real user identity.
  */
 export async function sendGA4Event(env, request, eventName, params = {}, overrides = {}) {
-  if (!env.GA4_MEASUREMENT_ID || !env.GA4_API_SECRET) return;
+  if (!env.GA4_MEASUREMENT_ID || !env.GA4_API_SECRET) {
+    if (!warnedMissing) {
+      console.warn('GA4: missing', !env.GA4_MEASUREMENT_ID ? 'GA4_MEASUREMENT_ID' : 'GA4_API_SECRET');
+      warnedMissing = true;
+    }
+    return;
+  }
 
   try {
     const clientId = overrides.client_id || await getClientId(request);

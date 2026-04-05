@@ -189,7 +189,7 @@ export async function onRequestPost(context) {
       expirationTtl: TOKEN_TTL,
     });
 
-    waitUntil(sendGA4Event(env, request, 'generate_lead', { event_category: 'endo_survey' }).catch(() => {}));
+    waitUntil(sendGA4Event(env, request, 'generate_lead', { lead_source: 'endo_survey' }).catch(() => {}));
 
     return json({ ok: true });
   } catch (err) {
