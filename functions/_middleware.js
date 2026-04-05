@@ -33,15 +33,21 @@ async function sendPageView(request, env) {
   try {
     const clientId = await getClientId(request);
     const sourceParams = await buildSourceParams(request, clientId);
+    const sanitizedUrl = new URL(request.url);
+    sanitizedUrl.searchParams.delete('token');
+    sanitizedUrl.searchParams.delete('session_id');
     const payload = {
       client_id: clientId,
       events: [{
         name: 'page_view',
         params: {
-          page_location: request.url,
+          page_location: sanitizedUrl.href,
           page_referrer: request.headers.get('Referer') || '',
           engagement_time_msec: 1,
           ...sourceParams,
+          ...(request.cf?.country && { geo_country: request.cf.country }),
+          ...(request.cf?.regionCode && { geo_region: request.cf.regionCode }),
+          ...(request.cf?.city && { geo_city: request.cf.city }),
         },
       }],
     };
@@ -81,6 +87,7 @@ export async function onRequest(context) {
     !url.pathname.startsWith('/cdn-cgi/') &&
     !url.pathname.includes('.')
   ) {
+    context.waitUntil(sendPageView(request, env));
     const target = `${url.origin}${url.pathname}/${url.search}`;
     const escaped = target.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${escaped}"></head><body><script>window.location.href=${JSON.stringify(target)}</script></body></html>`;
@@ -90,8 +97,24 @@ export async function onRequest(context) {
     });
   }
 
-  // Fire GA4 page_view asynchronously — does not block the response
-  context.waitUntil(sendPageView(request, env));
+  // Fire GA4 page_view asynchronously — does not block the response.
+  // Skip if this request is a redirect follow-up from our own trailing-slash redirect
+  // (Referer would be same host with non-slash path) to avoid double-counting.
+  {
+    const referer = request.headers.get('Referer') || '';
+    let isRedirectFollowUp = false;
+    try {
+      const refUrl = new URL(referer);
+      if (refUrl.hostname === url.hostname && refUrl.pathname + '/' === url.pathname) {
+        isRedirectFollowUp = true;
+      }
+    } catch {
+      // ignore parse errors
+    }
+    if (!isRedirectFollowUp) {
+      context.waitUntil(sendPageView(request, env));
+    }
+  }
 
   // 301 redirect: library.rrmacademy.org → rrmacademy.org/library
   if (url.hostname === 'library.rrmacademy.org') {

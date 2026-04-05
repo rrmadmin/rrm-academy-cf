@@ -127,7 +127,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
     if (Number.isFinite(sid)) gaOverrides.session_id = sid;
   }
 
-  const pageLocation = session.success_url?.replace(/\?.*$/, '') || SITE_URL;
+  const pageLocation = (session.cancel_url || session.success_url || SITE_URL).replace(/\?.*$/, '');
 
   // GA4: track completed course purchase
   if (session.metadata?.type === 'course' && session.payment_intent) {
@@ -186,7 +186,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
   }
 
   // GA4: track completed donation or membership purchase
-  if (session.mode === 'payment' && session.metadata?.type !== 'course') {
+  if (session.mode === 'payment' && (session.metadata?.type === 'donation' || !session.metadata?.type)) {
     waitUntil(sendGA4Event(env, request, 'purchase', {
       page_location: pageLocation,
       currency: 'USD',
