@@ -151,6 +151,7 @@ async function handleCheckout(request, env, waitUntil) {
     if (userId) sessionParams.client_reference_id = userId;
     sessionParams.metadata = {
       ...(sessionParams.metadata || {}),
+      type: 'donation',
       ga_source: gaSource,
       ga_medium: gaMedium,
       ga_client_id: clientId,
@@ -165,6 +166,7 @@ async function handleCheckout(request, env, waitUntil) {
       return json({ ok: false, error: 'Payment service temporarily unavailable. Please try again.' }, 503);
     }
     waitUntil(sendGA4Event(env, request, 'begin_checkout', {
+      page_location: entry_url || request.headers.get('Referer') || SITE_URL,
       currency: 'USD', value: cents / 100, items: [{ item_name: 'Donation' }],
     }).catch(() => {}));
     return json({ ok: true, url: checkoutSession.url });
@@ -239,8 +241,10 @@ async function handleCheckout(request, env, waitUntil) {
     } catch {
       return json({ ok: false, error: 'Payment service temporarily unavailable. Please try again.' }, 503);
     }
+    const tierValueMap = { member: 10, hero: 25, superhero: 50 };
     waitUntil(sendGA4Event(env, request, 'begin_checkout', {
-      currency: 'USD', items: [{ item_name: `STUC ${tier}` }],
+      page_location: entry_url || request.headers.get('Referer') || SITE_URL,
+      currency: 'USD', value: tierValueMap[tier] ?? 0, items: [{ item_name: `STUC ${tier}` }],
     }).catch(() => {}));
     return json({ ok: true, url: checkoutSession.url });
   }

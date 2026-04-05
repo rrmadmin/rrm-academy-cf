@@ -43,7 +43,7 @@
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
-      "hash": "b13669ea1a9f1d4fbbfaa3a85db40df182c5f5e794c3ee72c8b8faf15e977188",
+      "hash": "b4d8d411c6461bc499eaa454f5d1931c2db6f683ba4d56d718e3514220f0aaae",
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
@@ -55,7 +55,7 @@
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "068f7438f028d9ce6bced3195d02e5671cb671006dcf3e2436454e34d3eecb89",
+      "hash": "6a66709818ac948a8ba6f3259b2b7fa4a916e88040d7b7f0034a02d9f6ef99a4",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
@@ -67,7 +67,7 @@
       "note": "Shared webhook helpers"
     },
     "functions/_middleware.js": {
-      "hash": "87264faf4f407ddaf27e6843882eed845cc0a51dfb894c2511ca397b9d8696ce",
+      "hash": "30b52859c4df63068968c4b447076b73205468ff26a2401fbd311c3d57aae02e",
       "note": "Auth gating"
     },
     "wrangler.toml": {
@@ -83,11 +83,11 @@
       "note": "EmailListVerify SMTP validation"
     },
     "functions/api/survey/submit.js": {
-      "hash": "7418a2134dd8a276e84a10c76a5dee29483b1f697cb60e3b1ce02fd2c205fc70",
+      "hash": "b86e8a112526de2cab369b983b02caf8fbd982e681b0799c52fa08885f01b225",
       "note": "Survey submission + PII pseudonymization"
     },
     "functions/api/survey/request.js": {
-      "hash": "4b7669e6fd6a80cdfba73b50ead2b88c6a5ace04171fa78e38221bb9f7030b65",
+      "hash": "70250b500ca8b164ed06698b7b2833c5e8011a3fcac18a8c92fd0dbb3bc54a8d",
       "note": "Magic-link token generation"
     },
     "functions/api/newsletter/send.js": {
@@ -99,7 +99,7 @@
       "note": "CAN-SPAM unsubscribe (status update)"
     },
     "functions/api/newsletter/subscribe.js": {
-      "hash": "0050285e93426586794c61933c1e12ea158cd8c599fe1c9696c62fab7cba5414",
+      "hash": "6107315de925a58d56c9a781468de881b4dd077e290cc440c65e956c6bbc85cc",
       "note": "Public newsletter intake (rate-limited)"
     },
     "functions/api/search/semantic.js": {
