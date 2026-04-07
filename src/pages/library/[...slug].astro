@@ -131,8 +131,8 @@ if (article.license && LICENSE_URLS[article.license]) {
   jsonLd.license = LICENSE_URLS[article.license];
 }
 
-// Source link only when there's no DOI (non-journal sources need it; DOI covers journal articles)
-const showSourceLink = article.sourceUrl && !article.doi;
+// Source link when there's no DOI, or when sourceUrl differs from the DOI link (dead DOI fallback)
+const showSourceLink = article.sourceUrl && (!article.doi || article.sourceUrl !== `https://doi.org/${article.doi}`);
 // Free full text only when oaUrl differs from both sourceUrl and DOI
 const showFreeFullText = article.oaUrl
   && article.oaUrl !== article.sourceUrl
