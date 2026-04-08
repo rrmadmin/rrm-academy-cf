@@ -187,8 +187,14 @@ async function fetchAll() {
   const raw = Array.isArray(response) ? response : response.results;
   console.log(`Worker returned ${raw.length} published articles`);
 
-  const articles = raw.map(mapWorkerRecord).filter(Boolean);
-  console.log(`Mapped ${articles.length} valid articles (${raw.length - articles.length} skipped)`);
+  // Exclude non-article types as a safety net (worker already filters, but cache may be stale)
+  const EXCLUDED_TYPES = new Set(['faq', 'post', 'course', 'guide']);
+  const filtered = raw.filter(r => !EXCLUDED_TYPES.has(r.type));
+  if (filtered.length < raw.length) {
+    console.log(`Filtered ${raw.length - filtered.length} non-article records (type exclusion)`);
+  }
+  const articles = filtered.map(mapWorkerRecord).filter(Boolean);
+  console.log(`Mapped ${articles.length} valid articles`);
 
   sortArticles(articles);
   writeArticles(articles);
