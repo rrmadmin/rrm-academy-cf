@@ -374,6 +374,13 @@ const citationMeta = {
         </div>
       )}
 
+      {(article.pmid || article.doi) && (
+        <div data-pagefind-weight="10" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">
+          {article.pmid && `PMID ${article.pmid} ${article.pmid}`}
+          {article.doi && `DOI ${article.doi} ${article.doi}`}
+        </div>
+      )}
+
       <!-- Citations -->
       {(article.apaCitation || article.vancouverCitation || article.mlaCitation) && (
         <section class="article-citations" aria-label="Citations" data-pagefind-ignore="all">
