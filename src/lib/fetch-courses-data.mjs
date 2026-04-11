@@ -29,6 +29,7 @@ import { tmpdir } from 'os';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_PATH = join(__dirname, '..', 'data', 'courses.json');
+const OVERRIDES_PATH = join(__dirname, '..', 'data', 'courses-overrides.json');
 const DRY_RUN = process.argv.includes('--dry-run');
 
 const R2_BUCKET = 'rrm-assets';
@@ -624,11 +625,54 @@ async function fetchAll() {
     }
   }
 
+  // Merge affiliate / externally-hosted courses that are NOT in Airtable.
+  // These entries live in courses-overrides.json and are inserted at their
+  // declared _position (default: append). Without this, fetch-all silently
+  // drops any course that only exists in the overrides file.
+  mergeOverrides(courses);
+
   mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
   const tmpOutput = OUTPUT_PATH + '.tmp';
   writeFileSync(tmpOutput, JSON.stringify(courses, null, 2));
   renameSync(tmpOutput, OUTPUT_PATH);
   console.log(`\nWrote ${courses.length} courses to ${OUTPUT_PATH}`);
+}
+
+function mergeOverrides(courses) {
+  if (!existsSync(OVERRIDES_PATH)) {
+    console.log('\nNo courses-overrides.json found, skipping merge');
+    return;
+  }
+
+  let overrides;
+  try {
+    overrides = JSON.parse(readFileSync(OVERRIDES_PATH, 'utf-8'));
+  } catch (err) {
+    throw new Error(`Failed to parse ${OVERRIDES_PATH}: ${err.message}`);
+  }
+  if (!Array.isArray(overrides)) {
+    throw new Error(`${OVERRIDES_PATH} must be a JSON array`);
+  }
+
+  console.log(`\nMerging ${overrides.length} override course(s)...`);
+  for (const raw of overrides) {
+    if (!raw || typeof raw !== 'object' || !raw.id || !raw.slug) {
+      throw new Error(`Override entry missing required id/slug: ${JSON.stringify(raw)}`);
+    }
+    const position = Number.isInteger(raw._position) ? raw._position : courses.length;
+    const entry = { ...raw };
+    delete entry._position;
+
+    const existingIndex = courses.findIndex(c => c.id === entry.id || c.slug === entry.slug);
+    if (existingIndex >= 0) {
+      courses[existingIndex] = entry;
+      console.log(`  ${entry.id}: replaced at index ${existingIndex}`);
+    } else {
+      const insertAt = Math.max(0, Math.min(position, courses.length));
+      courses.splice(insertAt, 0, entry);
+      console.log(`  ${entry.id}: inserted at index ${insertAt}`);
+    }
+  }
 }
 
 fetchAll().catch(err => {
