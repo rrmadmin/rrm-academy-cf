@@ -73,9 +73,25 @@ src/data/faqs.json → Astro build → rrmacademy.org/faqs
 
 **Single-record dispatch:** `repository_dispatch` with `{ faq_id: "faq_xxx" }` triggers `fetch-faq-data.mjs` in single-record mode.
 
+### Courses Pipeline
+
+```
+Airtable (app0nohI0WrgFWOE3, Courses/Modules/Lessons tables)
+    │  fetch-courses-data.mjs (AIRTABLE_PAT)
+    │  ↓ after Airtable fetch: merge src/data/courses-overrides.json
+    ▼
+src/data/courses.json → Astro build → rrmacademy.org/courses
+```
+
+**Affiliate / externally-hosted courses live in `src/data/courses-overrides.json`**, NOT Airtable. `fetch-courses-data.mjs` merges them after the Airtable pull, honoring a `_position` field (default: append) and replacing in-place if a matching `id`/`slug` exists (idempotent). NeoFertility Medical Training Cohort is the first override -- it has no Airtable record, so without the merge step every `workflow_dispatch` / cache-miss deploy silently wipes it and 404s `/courses/neofertility-medical-training/`.
+
+**Adding a new affiliate course:** append an entry to `courses-overrides.json` with `_position` hint. The deploy auto-merges on the next fetch-all. Push deploys skip fetch, so the committed `courses.json` ships as-is.
+
 ### Full Rebuild
 
 `fetch-all` fetches all 4 data sources: articles, posts, FAQs, courses. Cache key: `site-data-YYYY-MM-DD` (ET timezone). `workflow_dispatch` always fetches fresh (bypasses cache). `repository_dispatch` uses cache. `push` events skip fetch entirely.
+
+**Baseline auto-commit requires `permissions: contents: write`** in `deploy.yml`. The Update data baselines step writes `src/data/.baselines.json` and runs `git push`; without write permission the push 403s and the fallback `|| echo "Baseline update skipped (no changes)"` swallows it as a misleading success. If baselines drift from reality (check CI logs for actual counts), verify permissions first before editing the file.
 
 ## Docs
 
