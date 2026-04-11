@@ -21,5 +21,7 @@ survey-preview.html
 # App shell prototype (removed from production)
 src/pages/app/
 src/layouts/AppShell.astro
+# Brainstorming companion mockups
+.superpowers/
 # Generated OG images (rebuilt every deploy)
 public/images/og/og-*.png
