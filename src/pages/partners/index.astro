@@ -280,12 +280,12 @@ function locationText(p: PublicPartner): string {
     align-items: center;
   }
   .breadcrumbs a { color: var(--text-secondary); }
-  .breadcrumbs a:hover { color: var(--color-primary); }
+  .breadcrumbs a:hover { color: var(--accent); }
 
   .partners-hero {
     padding: var(--space-10) 0 var(--space-8);
-    background: var(--color-surface);
-    border-bottom: 1px solid var(--color-border);
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-color);
   }
   .partners-hero h1 {
     font-family: 'Cormorant Garamond', Georgia, serif;
@@ -317,12 +317,12 @@ function locationText(p: PublicPartner): string {
   .partners-tiers, .partners-principles, .partners-list-section, .partners-apply-cta, .partners-faq, .partners-assets {
     padding: var(--space-10) 0;
   }
-  .partners-tiers { background: var(--color-bg); }
-  .partners-principles { background: var(--color-surface); border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); }
-  .partners-list-section { background: var(--color-bg); }
-  .partners-apply-cta { background: var(--color-surface); border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); }
-  .partners-faq { background: var(--color-bg); }
-  .partners-assets { background: var(--color-surface); border-top: 1px solid var(--color-border); }
+  .partners-tiers { background: var(--bg-body); }
+  .partners-principles { background: var(--bg-surface); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); }
+  .partners-list-section { background: var(--bg-body); }
+  .partners-apply-cta { background: var(--bg-surface); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); }
+  .partners-faq { background: var(--bg-body); }
+  .partners-assets { background: var(--bg-surface); border-top: 1px solid var(--border-color); }
 
   .partners-tiers h2, .partners-principles h2, .partners-list-section h2, .partners-faq h2, .partners-assets h2 {
     font-family: 'Cormorant Garamond', Georgia, serif;
@@ -344,15 +344,15 @@ function locationText(p: PublicPartner): string {
     margin-top: var(--space-6);
   }
   .tier-card {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     padding: var(--space-6);
     opacity: 0.7;
   }
   .tier-card--active {
     opacity: 1;
-    border-color: var(--color-primary);
+    border-color: var(--accent);
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   }
   .tier-badge {
@@ -361,14 +361,14 @@ function locationText(p: PublicPartner): string {
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--text-secondary);
-    background: var(--color-bg);
+    background: var(--bg-body);
     padding: 4px 10px;
     border-radius: var(--radius-pill);
     margin-bottom: var(--space-3);
   }
   .tier-badge--active {
     color: #fff;
-    background: var(--color-primary);
+    background: var(--accent);
   }
   .tier-card h3 {
     font-family: 'Cormorant Garamond', Georgia, serif;
@@ -389,15 +389,15 @@ function locationText(p: PublicPartner): string {
     gap: var(--space-4);
     align-items: flex-start;
     padding: var(--space-5);
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
+    background: var(--bg-body);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
   }
   .principle-num {
     font-family: 'Cormorant Garamond', Georgia, serif;
     font-size: 1.75rem;
     font-weight: 600;
-    color: var(--color-primary);
+    color: var(--accent);
     min-width: 2.5em;
   }
   .principle-body h3 {
@@ -422,8 +422,8 @@ function locationText(p: PublicPartner): string {
     gap: var(--space-5);
   }
   .partner-card {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     padding: var(--space-5);
     display: flex;
@@ -465,7 +465,7 @@ function locationText(p: PublicPartner): string {
   .partner-card__link {
     margin-top: auto;
     font-weight: 600;
-    color: var(--color-primary);
+    color: var(--accent);
     text-decoration: none;
     font-size: 0.9375rem;
   }
@@ -479,8 +479,8 @@ function locationText(p: PublicPartner): string {
   }
 
   .apply-card {
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
+    background: var(--bg-body);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     padding: var(--space-8);
     text-align: center;
@@ -496,8 +496,8 @@ function locationText(p: PublicPartner): string {
     max-width: 820px;
   }
   .faq-item {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     padding: var(--space-4) var(--space-5);
   }
@@ -512,7 +512,7 @@ function locationText(p: PublicPartner): string {
     content: '+';
     float: right;
     font-size: 1.25rem;
-    color: var(--color-primary);
+    color: var(--accent);
     transition: transform 0.2s;
   }
   .faq-item[open] summary::after { content: '-'; }
@@ -529,8 +529,8 @@ function locationText(p: PublicPartner): string {
     margin-top: var(--space-6);
   }
   .asset-item {
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
+    background: var(--bg-body);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     padding: var(--space-5);
     text-align: center;
@@ -540,9 +540,9 @@ function locationText(p: PublicPartner): string {
     gap: var(--space-3);
   }
   .asset-item--dark { background: #2a1e23; border-color: #2a1e23; }
-  .asset-item--dark a { color: var(--color-rose-300, #c9a8b2); }
+  .asset-item--dark a { color: var(--rose-300); }
   .asset-item img { max-width: 100%; height: auto; }
-  .asset-item a { font-size: 0.875rem; color: var(--color-primary); font-weight: 600; text-decoration: none; }
+  .asset-item a { font-size: 0.875rem; color: var(--accent); font-weight: 600; text-decoration: none; }
   .asset-item a:hover { text-decoration: underline; }
 
   .assets-rules-link {
