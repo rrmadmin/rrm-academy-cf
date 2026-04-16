@@ -126,7 +126,7 @@ export async function onRequestPost(context) {
         messages: [{ role: 'system', content: SYSTEM_PROMPT }, { role: 'user', content: message }],
         stream: false,
       }),
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(28000),
     });
   } catch (err) {
     const isTimeout = err.name === 'AbortError' || err.name === 'TimeoutError';
