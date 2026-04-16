@@ -106,6 +106,8 @@ function mapRow(r, refs, resources) {
     seoDescription: r.seo_description,
     sortOrder: r.sort_order,
     status: r.status,
+    updatedAt: r.updated_at,
+    createdAt: r.created_at,
     evidence: (resources || []).map(r => ({ title: r.title, url: r.url, sortOrder: r.sort_order })),
     libraryRefs: (refs || []).map(r => ({ articleId: r.article_id, label: r.label, sortOrder: r.sort_order })),
   };
