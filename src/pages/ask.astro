@@ -24,7 +24,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           name="message"
           rows="2"
           maxlength="500"
-          placeholder="What does RRM say about PCOS and progesterone?"
+          placeholder="What does RRM say about PCOS and progesterone?&#10;(\u2318 + Enter to submit)"
           required
         ></textarea>
         <div class="ask-form__row">
@@ -52,6 +52,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       function updateCount() { count.textContent = input.value.length + ' / 500'; }
       input.addEventListener('input', updateCount);
       updateCount();
+
+      // Cmd+Enter (Mac) or Ctrl+Enter (Win/Linux) submits the form
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+          e.preventDefault();
+          if (typeof form.requestSubmit === 'function') form.requestSubmit();
+          else form.dispatchEvent(new Event('submit', { cancelable: true }));
+        }
+      });
 
       function escapeHtml(s) {
         return String(s)
