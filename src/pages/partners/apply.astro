@@ -1,0 +1,397 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { FRIEND_PRINCIPLES } from '../../lib/partners.ts';
+import { TURNSTILE_SITE_KEY } from '../../lib/turnstile';
+
+const canonical = 'https://rrmacademy.org/partners/apply/';
+const pageTitle = 'Apply to Become an Educational Partner';
+const pageDescription = 'Apply for RRM Academy Educational Partner recognition. Friend tier is self-attested. All four principles must be affirmed. Reviewed within seven days.';
+---
+<BaseLayout title={pageTitle} description={pageDescription} canonical={canonical} noindex={false}>
+
+  <section class="apply-hero">
+    <div class="container container--narrow">
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span aria-hidden="true">/</span>
+        <a href="/partners/">Educational Partners</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">Apply</span>
+      </nav>
+
+      <h1>Apply for Friend partnership</h1>
+
+      <p class="apply-lede">
+        Affirm the four Friend principles, tell us about your clinic, and submit. We review applications within seven days. Approved partners receive a welcome email with badges, a tagline kit, and a link to their listing on the public directory.
+      </p>
+    </div>
+  </section>
+
+  <section class="apply-section">
+    <div class="container container--narrow">
+
+      <form id="apply-form" class="apply-form" novalidate>
+
+        <fieldset class="form-fieldset">
+          <legend>Clinic details</legend>
+
+          <div class="form-group">
+            <label class="form-label" for="apply-name">Clinic or organization name <span class="form-required">*</span></label>
+            <input class="form-input" type="text" id="apply-name" name="name" required maxlength="120" autocomplete="organization" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="apply-site-url">Public website (must start with https://) <span class="form-required">*</span></label>
+            <input class="form-input" type="url" id="apply-site-url" name="site_url" required maxlength="300" placeholder="https://" autocomplete="url" />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="apply-country">Country <span class="form-required">*</span></label>
+              <input class="form-input" type="text" id="apply-country" name="country" required maxlength="80" autocomplete="country-name" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="apply-city">City</label>
+              <input class="form-input" type="text" id="apply-city" name="city" maxlength="80" autocomplete="address-level2" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="apply-blurb">Short description (optional, up to 500 chars)</label>
+            <textarea class="form-input form-textarea" id="apply-blurb" name="blurb" maxlength="500" rows="3" placeholder="One to three sentences about your practice"></textarea>
+            <span class="form-hint" id="blurb-count"></span>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-fieldset">
+          <legend>Primary RRM provider</legend>
+
+          <div class="form-group">
+            <label class="form-label" for="apply-provider-name">Provider name <span class="form-required">*</span></label>
+            <input class="form-input" type="text" id="apply-provider-name" name="provider_name" required maxlength="120" placeholder="Dr. Jane Smith" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="apply-provider-credential">Credential <span class="form-required">*</span></label>
+            <input class="form-input" type="text" id="apply-provider-credential" name="provider_credential" required maxlength="80" placeholder="NPI, medical council number, or registration ID" />
+            <span class="form-hint">For US: NPI. Outside US: medical registration number.</span>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-fieldset">
+          <legend>Contact</legend>
+
+          <div class="form-group">
+            <label class="form-label" for="apply-email">Contact email <span class="form-required">*</span></label>
+            <input class="form-input" type="email" id="apply-email" name="contact_email" required maxlength="200" autocomplete="email" />
+            <span class="form-hint">We send the approval or rejection notice here.</span>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-fieldset">
+          <legend>Friend principles</legend>
+          <p class="form-intro">All four must be checked to submit.</p>
+
+          {FRIEND_PRINCIPLES.map((p) => (
+            <label class="affirm-row">
+              <input class="affirm-check" type="checkbox" name={`affirm_${p.key}`} data-affirm={p.key} required />
+              <span>
+                <strong>{p.label}</strong>
+                <span class="affirm-desc">{p.description}</span>
+              </span>
+            </label>
+          ))}
+        </fieldset>
+
+        <div id="apply-turnstile" class="apply-turnstile" data-sitekey={TURNSTILE_SITE_KEY}></div>
+
+        <button id="apply-submit" class="btn btn--primary btn--large" type="submit" disabled>Submit application</button>
+
+        <div id="apply-error" class="apply-feedback apply-feedback--error" hidden>
+          <p id="apply-error-text"></p>
+        </div>
+      </form>
+
+      <div id="apply-success" class="apply-feedback apply-feedback--success" hidden>
+        <div class="apply-feedback__icon">&#10003;</div>
+        <h3>Application received</h3>
+        <p>We review applications within seven days. You will hear back at the contact email you provided.</p>
+      </div>
+    </div>
+  </section>
+
+  {TURNSTILE_SITE_KEY && (
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer is:inline></script>
+  )}
+
+  <script is:inline>
+    (function () {
+      var form = document.getElementById('apply-form');
+      if (!form) return;
+
+      var submitBtn = document.getElementById('apply-submit');
+      var successEl = document.getElementById('apply-success');
+      var errorEl = document.getElementById('apply-error');
+      var errorText = document.getElementById('apply-error-text');
+      var blurbField = document.getElementById('apply-blurb');
+      var blurbCount = document.getElementById('blurb-count');
+      var affirmChecks = document.querySelectorAll('.affirm-check');
+      var turnstileWidgetId = null;
+      var pendingPayload = null;
+
+      if (blurbField && blurbCount) {
+        blurbField.addEventListener('input', function () {
+          var len = blurbField.value.length;
+          blurbCount.textContent = len > 0 ? len + ' / 500' : '';
+        });
+      }
+
+      function updateSubmitEnabled() {
+        var allChecked = true;
+        affirmChecks.forEach(function (cb) { if (!cb.checked) allChecked = false; });
+        submitBtn.disabled = !allChecked;
+      }
+      affirmChecks.forEach(function (cb) { cb.addEventListener('change', updateSubmitEnabled); });
+      updateSubmitEnabled();
+
+      function showError(msg) {
+        errorText.textContent = msg;
+        errorEl.hidden = false;
+        successEl.hidden = true;
+      }
+
+      function showSuccess() {
+        successEl.hidden = false;
+        errorEl.hidden = true;
+        form.hidden = true;
+      }
+
+      var errorMessages = {
+        invalid_turnstile: 'The spam check failed. Please refresh and try again.',
+        affirmations_required: 'All four principles must be affirmed.',
+        site_url_must_be_https: 'Site URL must start with https://.',
+        contact_email_invalid: 'That email address does not look right.',
+        slug_conflict: 'A clinic with a very similar name already applied. Contact administrator@rrmacademy.org.',
+        service_unavailable: 'Service temporarily unavailable. Please try again in a moment.',
+        internal_error: 'Something went wrong. Please try again.',
+      };
+
+      function humanize(code) {
+        if (errorMessages[code]) return errorMessages[code];
+        if (/_too_long$/.test(code)) return 'A field was too long. Please shorten and retry.';
+        if (/_required$/.test(code)) return 'A required field was missing.';
+        return 'Application failed. Please check your entries and retry.';
+      }
+
+      function initTurnstile() {
+        var container = document.getElementById('apply-turnstile');
+        if (!container || typeof turnstile === 'undefined') return;
+        turnstileWidgetId = turnstile.render(container, {
+          sitekey: container.dataset.sitekey,
+          size: 'invisible',
+          callback: function (token) {
+            if (pendingPayload) {
+              pendingPayload.turnstile_token = token;
+              submitPayload(pendingPayload);
+              pendingPayload = null;
+            }
+          },
+          'error-callback': function () {
+            showError('Spam check failed. Please refresh and try again.');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit application';
+            pendingPayload = null;
+          },
+        });
+      }
+
+      var tsCheck = setInterval(function () {
+        if (typeof turnstile !== 'undefined') {
+          clearInterval(tsCheck);
+          initTurnstile();
+        }
+      }, 200);
+      setTimeout(function () { clearInterval(tsCheck); }, 10000);
+
+      async function submitPayload(payload) {
+        try {
+          var res = await fetch('/api/partners/apply', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          var data = await res.json().catch(function () { return {}; });
+          if (res.ok && data.ok) {
+            showSuccess();
+            return;
+          }
+          showError(humanize(data.error || 'unknown'));
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit application';
+        } catch (e) {
+          showError('Network error. Please try again.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit application';
+        }
+      }
+
+      form.addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        errorEl.hidden = true;
+
+        var affirmations = {};
+        var allAffirmed = true;
+        affirmChecks.forEach(function (cb) {
+          var key = cb.dataset.affirm;
+          affirmations[key] = cb.checked;
+          if (!cb.checked) allAffirmed = false;
+        });
+        if (!allAffirmed) {
+          showError('All four principles must be affirmed.');
+          return;
+        }
+
+        var city = document.getElementById('apply-city').value.trim();
+        var blurb = document.getElementById('apply-blurb').value.trim();
+
+        var payload = {
+          name: document.getElementById('apply-name').value.trim(),
+          site_url: document.getElementById('apply-site-url').value.trim(),
+          country: document.getElementById('apply-country').value.trim(),
+          provider_name: document.getElementById('apply-provider-name').value.trim(),
+          provider_credential: document.getElementById('apply-provider-credential').value.trim(),
+          contact_email: document.getElementById('apply-email').value.trim(),
+          affirmations: affirmations,
+        };
+        if (city) payload.city = city;
+        if (blurb) payload.blurb = blurb;
+
+        if (!/^https:\/\//.test(payload.site_url)) {
+          showError('Site URL must start with https://.');
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
+
+        if (turnstileWidgetId !== null && typeof turnstile !== 'undefined') {
+          pendingPayload = payload;
+          turnstile.execute(turnstileWidgetId);
+        } else {
+          showError('Spam check not ready. Please wait a moment and retry.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit application';
+        }
+      });
+    })();
+  </script>
+
+</BaseLayout>
+
+<style>
+  .breadcrumbs {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-4);
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .breadcrumbs a { color: var(--text-secondary); }
+  .breadcrumbs a:hover { color: var(--color-primary); }
+
+  .apply-hero {
+    padding: var(--space-10) 0 var(--space-6);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .apply-hero h1 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: clamp(1.875rem, 4vw, 2.5rem);
+    font-weight: 600;
+    margin-bottom: var(--space-4);
+  }
+  .apply-lede {
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    max-width: 68ch;
+  }
+
+  .apply-section {
+    padding: var(--space-8) 0 var(--space-12);
+    background: var(--color-bg);
+  }
+
+  .apply-form { display: grid; gap: var(--space-6); }
+
+  .form-fieldset {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-5) var(--space-6);
+    background: var(--color-surface);
+  }
+  .form-fieldset legend {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: 1.25rem;
+    padding: 0 var(--space-2);
+  }
+  .form-intro {
+    color: var(--text-secondary);
+    margin-bottom: var(--space-4);
+    font-size: 0.9375rem;
+  }
+
+  .form-group { margin-top: var(--space-4); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin-top: var(--space-4); }
+  @media (max-width: 640px) { .form-row { grid-template-columns: 1fr; } }
+  .form-label { display: block; font-weight: 500; margin-bottom: var(--space-2); font-size: 0.9375rem; }
+  .form-required { color: var(--color-primary); }
+  .form-hint { display: block; font-size: 0.8125rem; color: var(--text-secondary); margin-top: 4px; }
+
+  .affirm-row {
+    display: flex;
+    gap: var(--space-3);
+    align-items: flex-start;
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    margin-top: var(--space-3);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .affirm-row:has(.affirm-check:checked) {
+    border-color: var(--color-primary);
+    background: var(--color-bg);
+  }
+  .affirm-check { margin-top: 4px; flex-shrink: 0; }
+  .affirm-desc { display: block; color: var(--text-secondary); font-size: 0.9375rem; margin-top: 4px; line-height: 1.55; }
+
+  .apply-turnstile { display: flex; justify-content: center; min-height: 0; }
+
+  .apply-feedback {
+    padding: var(--space-5);
+    border-radius: var(--radius-md);
+    margin-top: var(--space-4);
+  }
+  .apply-feedback--success {
+    background: #e8f5e9;
+    color: #2e7d32;
+    text-align: center;
+  }
+  .apply-feedback--success h3 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 600;
+    margin: var(--space-2) 0;
+  }
+  .apply-feedback__icon {
+    font-size: 2.5rem;
+    color: #2e7d32;
+  }
+  .apply-feedback--error {
+    background: #ffebee;
+    color: #c62828;
+  }
+</style>
