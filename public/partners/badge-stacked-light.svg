@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="RRM Academy Educational Partner">
+  <style>
+    .bg { fill: #ffffff; stroke: #d9d3cc; stroke-width: 1; }
+    .mark { fill: #b0778a; }
+    .title { fill: #313131; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 22px; font-weight: 600; letter-spacing: 0.02em; text-anchor: middle; }
+    .label { fill: #636261; font-family: 'Inter', 'Helvetica Neue', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; text-anchor: middle; }
+    .divider { stroke: #d9d3cc; stroke-width: 1; }
+  </style>
+  <rect class="bg" x="0.5" y="0.5" width="199" height="199" rx="8"/>
+  <g transform="translate(100, 68)">
+    <circle class="mark" cx="0" cy="0" r="28"/>
+    <text x="0" y="10" text-anchor="middle" fill="#ffffff" font-family="Cormorant Garamond, Georgia, serif" font-size="32" font-weight="600">R</text>
+  </g>
+  <text class="title" x="100" y="128">RRM Academy</text>
+  <line class="divider" x1="56" y1="144" x2="144" y2="144"/>
+  <text class="label" x="100" y="164">Educational</text>
+  <text class="label" x="100" y="180">Partner</text>
+</svg>
