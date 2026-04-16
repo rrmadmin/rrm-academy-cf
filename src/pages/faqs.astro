@@ -5,30 +5,79 @@ import { fetchAllFaqs, groupByCategory } from '../lib/faq';
 const allFaqs = await fetchAllFaqs();
 const groups = groupByCategory(allFaqs);
 
-// FAQPage JSON-LD from all published FAQs
+// D1 emits timestamps as "YYYY-MM-DD HH:MM:SS" (UTC, no Z).
+// Normalize to ISO before parsing so V8 doesn't treat them as local time.
+function toIsoUtc(ts: string | undefined | null): string | null {
+  if (!ts) return null;
+  if (ts.includes('T')) return ts.endsWith('Z') ? ts : ts + 'Z';
+  return ts.replace(' ', 'T') + 'Z';
+}
+
+const updatedTimestamps = allFaqs
+  .map(f => toIsoUtc(f.updatedAt))
+  .filter((s): s is string => s !== null)
+  .map(s => Date.parse(s))
+  .filter(n => Number.isFinite(n));
+const createdTimestamps = allFaqs
+  .map(f => toIsoUtc(f.createdAt))
+  .filter((s): s is string => s !== null)
+  .map(s => Date.parse(s))
+  .filter(n => Number.isFinite(n));
+
+const latestUpdated = updatedTimestamps.length
+  ? new Date(Math.max(...updatedTimestamps))
+  : new Date();
+const earliestCreated = createdTimestamps.length
+  ? new Date(Math.min(...createdTimestamps))
+  : latestUpdated;
+
+const lastUpdatedLabel = new Intl.DateTimeFormat('en-US', {
+  month: 'long',
+  year: 'numeric',
+}).format(latestUpdated);
+
+// JSON-LD: FAQPage + BreadcrumbList in a single @graph.
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  name: 'Frequently Asked Questions about Restorative Reproductive Medicine',
-  description: 'Answers to common questions about RRM, NaProTechnology, fertility charting, treatment approaches, success rates, and costs.',
-  mainEntity: allFaqs.map(faq => ({
-    '@type': 'Question',
-    name: faq.question,
-    acceptedAnswer: {
-      '@type': 'Answer',
-      text: faq.schemaAnswer || faq.basicAnswer || faq.publishedAnswer,
+  '@graph': [
+    {
+      '@type': 'FAQPage',
+      name: 'Frequently Asked Questions about Restorative Reproductive Medicine',
+      description: 'Answers to common questions about RRM, NaProTechnology, fertility charting, treatment approaches, success rates, and costs.',
+      dateModified: latestUpdated.toISOString(),
+      datePublished: earliestCreated.toISOString(),
+      mainEntity: allFaqs.map(faq => ({
+        '@type': 'Question',
+        name: faq.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: faq.schemaAnswer || faq.basicAnswer || faq.publishedAnswer,
+        },
+      })),
     },
-  })),
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+        { '@type': 'ListItem', position: 2, name: 'FAQs', item: 'https://rrmacademy.org/faqs/' },
+      ],
+    },
+  ],
 };
 ---
 <BaseLayout
   title="RRM FAQs | Restorative Reproductive Medicine Questions"
-  description="Answers to common questions about Restorative Reproductive Medicine (RRM), NaProTechnology, fertility charting, treatment approaches, success rates, and costs."
+  description="Answers to common questions about Restorative Reproductive Medicine (RRM), NaProTechnology, fertility charting, treatment, and costs."
   canonicalUrl="https://rrmacademy.org/faqs"
   jsonLd={jsonLd}
 >
   <div class="page-wrapper">
     <div class="container container--narrow">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <span aria-current="page">FAQs</span>
+      </nav>
 
       <section class="faqs-hero">
         <h1 class="hero-title animate-enter" style="--stagger: 0;">Restorative Reproductive Medicine FAQs</h1>
@@ -69,7 +118,7 @@ const jsonLd = {
         </div>
       </section>
 
-    <p class="page-updated">Last updated: February 2026</p>
+    <p class="page-updated">Last updated: {lastUpdatedLabel}</p>
     </div>
   </div>
 </BaseLayout>
@@ -153,4 +202,20 @@ const jsonLd = {
     flex-wrap: wrap;
   }
 
+  .breadcrumb {
+    font-size: 0.875rem;
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-6);
+  }
+  .breadcrumb a {
+    color: var(--text-tertiary);
+    text-decoration: none;
+  }
+  .breadcrumb a:hover {
+    color: var(--accent);
+    text-decoration: underline;
+  }
+  .breadcrumb [aria-current="page"] {
+    color: var(--text-secondary);
+  }
 </style>
