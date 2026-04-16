@@ -1,0 +1,550 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import partners from '../../data/partners.json';
+import { FRIEND_PRINCIPLES } from '../../lib/partners.ts';
+
+const pageTitle = 'Educational Partners';
+const pageDescription = 'An RRM Academy Educational Partner is a clinic or organization that publicly affirms the principles of restorative reproductive medicine and agrees to a defined alignment standard.';
+const canonical = 'https://rrmacademy.org/partners/';
+
+// Build the partner MedicalOrganization nodes for JSON-LD
+const partnerNodes = partners.map((p) => ({
+  '@type': 'MedicalOrganization',
+  '@id': `${canonical}#${p.slug}`,
+  name: p.name,
+  url: p.site_url,
+  address: {
+    '@type': 'PostalAddress',
+    addressCountry: p.country,
+    ...(p.city ? { addressLocality: p.city } : {}),
+  },
+  medicalSpecialty: 'ReproductiveMedicine',
+  ...(p.blurb ? { description: p.blurb } : {}),
+}));
+
+const itemList = {
+  '@type': 'ItemList',
+  '@id': `${canonical}#partner-list`,
+  itemListElement: partners.map((p, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    url: p.site_url,
+    name: p.name,
+  })),
+};
+
+const faqPage = {
+  '@type': 'FAQPage',
+  '@id': `${canonical}#faq`,
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'What is an RRM Academy Educational Partner?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'An RRM Academy Educational Partner is a clinic or organization that publicly affirms the core principles of restorative reproductive medicine. The entry tier is the Friend partnership, which is based on self-attestation. A clinic confirms that it uses fertility awareness-based methods for diagnosis, prefers surgical excision over ablation when surgery is indicated, offers RRM as the primary fertility pathway, and teaches patients to understand their own cycles. This is a clear signal of alignment, not an endorsement of any specific provider or outcome.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How is a Friend partner different from an Accredited clinic?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Friend is self-attested and currently the only tier open for applications. A clinic reads the four principles, affirms each one, and applies. Accredited is a future tier that will require editorial review by RRM Academy plus verification through a recognized training or board pathway. Accredited is not yet open, and no clinic carries that designation today. If you see a clinic claiming to be RRM Academy accredited, that claim is not accurate.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Does RRM Academy endorse the clinical practice of its partners?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'No. Friend partnership signals principle alignment, not endorsement of specific treatments, outcomes, or providers. We do not audit charts, verify individual cases, or guarantee that any given clinic is the right fit for your situation. Patients should evaluate each clinic on its own merits: training, case volume, transparency about success rates, and how well the clinical approach matches the diagnosis. A Friend partner is a reasonable starting point for a conversation, not a promise.',
+      },
+    },
+  ],
+};
+
+const breadcrumbList = {
+  '@type': 'BreadcrumbList',
+  '@id': `${canonical}#breadcrumbs`,
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+    { '@type': 'ListItem', position: 2, name: 'Educational Partners', item: canonical },
+  ],
+};
+
+const pageSchema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'CollectionPage',
+      '@id': canonical,
+      name: pageTitle,
+      description: pageDescription,
+      url: canonical,
+      inLanguage: 'en-US',
+      about: {
+        '@type': 'Thing',
+        name: 'Restorative Reproductive Medicine',
+      },
+      mainEntity: itemList,
+      isPartOf: { '@id': 'https://rrmacademy.org/#organization' },
+    },
+    {
+      '@type': 'EducationalOrganization',
+      '@id': 'https://rrmacademy.org/#organization',
+      additionalType: 'NGO',
+      name: 'RRM Academy',
+      url: 'https://rrmacademy.org',
+      description: 'RRM Academy is a nonprofit educational platform for restorative reproductive medicine.',
+      subOrganization: partnerNodes.map((p) => ({ '@id': p['@id'] })),
+    },
+    ...partnerNodes,
+    itemList,
+    faqPage,
+    breadcrumbList,
+  ],
+};
+
+function domainOnly(url) {
+  return url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+}
+
+function locationText(p) {
+  if (p.city && p.country) return `${p.city}, ${p.country}`;
+  return p.country || '';
+}
+---
+<BaseLayout title={pageTitle} description={pageDescription} canonical={canonical} jsonLd={pageSchema}>
+
+  <section class="partners-hero">
+    <div class="container">
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">Educational Partners</span>
+      </nav>
+
+      <h1>Educational Partners</h1>
+
+      <p class="partners-lede">{pageDescription}</p>
+
+      <p class="partners-intro">
+        Restorative reproductive medicine works best when patients can find aligned care close to home.
+        The Educational Partners program recognizes clinics and organizations that publicly affirm the
+        principles we teach at RRM Academy. Patients get a trust shortcut; aligned clinicians get a
+        clear way to signal what kind of care they practice.
+      </p>
+
+      <div class="partners-cta-row">
+        <a href="#partner-list" class="btn btn--primary">See partner clinics</a>
+        <a href="/partners/apply/" class="btn btn--secondary">Apply to become a partner</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="partners-tiers">
+    <div class="container">
+      <h2>Three tiers. One starts today.</h2>
+      <div class="tier-grid">
+        <div class="tier-card tier-card--active">
+          <span class="tier-badge tier-badge--active">Open for applications</span>
+          <h3>Friend</h3>
+          <p>Self-attested alignment with four principles. Open to any clinic or organization that publicly affirms the standard.</p>
+        </div>
+        <div class="tier-card">
+          <span class="tier-badge">Coming soon</span>
+          <h3>Partner</h3>
+          <p>Directory-gated. Requires a listing in a recognized RRM or NaPro provider directory plus Friend tier affirmations.</p>
+        </div>
+        <div class="tier-card">
+          <span class="tier-badge">Coming soon</span>
+          <h3>Accredited</h3>
+          <p>Editorial review. Requires Partner tier qualification plus clinical review by RRM Academy. Not yet open.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="partners-principles" id="principles">
+    <div class="container">
+      <h2>The four Friend principles</h2>
+      <p class="section-lede">Every Friend partner publicly affirms each of the following.</p>
+      <ol class="principles-list">
+        {FRIEND_PRINCIPLES.map((p, i) => (
+          <li class="principle">
+            <span class="principle-num">{String(i + 1).padStart(2, '0')}</span>
+            <div class="principle-body">
+              <h3>{p.label}</h3>
+              <p>{p.description}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="partners-list-section" id="partner-list">
+    <div class="container">
+      <h2>Friend partners</h2>
+
+      {partners.length === 0 ? (
+        <p class="empty-state">No Friend partners are listed yet. <a href="/partners/apply/">Apply to become the first.</a></p>
+      ) : (
+        <ul class="partner-cards">
+          {partners.map((p) => (
+            <li class="partner-card">
+              <div class="partner-card__header">
+                <h3>{p.name}</h3>
+                {locationText(p) && <span class="partner-card__location">{locationText(p)}</span>}
+              </div>
+              {p.blurb && <p class="partner-card__blurb">{p.blurb}</p>}
+              <p class="partner-card__provider">
+                <strong>{p.provider_name}</strong>
+                {p.provider_credential && <span class="partner-card__credential">{p.provider_credential}</span>}
+              </p>
+              <a class="partner-card__link" href={p.site_url} rel="external noopener" target="_blank">
+                Visit {domainOnly(p.site_url)}
+                <span aria-hidden="true">&rarr;</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  </section>
+
+  <section class="partners-apply-cta">
+    <div class="container">
+      <div class="apply-card">
+        <h2>Lead a clinic that aligns?</h2>
+        <p>If your practice affirms the four Friend principles, apply for public recognition. Applications are reviewed within seven days.</p>
+        <a href="/partners/apply/" class="btn btn--primary btn--large">Apply now</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="partners-faq" id="faq">
+    <div class="container">
+      <h2>Frequently asked</h2>
+      <div class="faq-list">
+        {faqPage.mainEntity.map((q) => (
+          <details class="faq-item">
+            <summary>{q.name}</summary>
+            <p>{q.acceptedAnswer.text}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="partners-assets" id="assets">
+    <div class="container">
+      <h2>Partner asset kit</h2>
+      <p class="section-lede">Once approved, Friend partners receive badge and tagline assets for their site. You can preview them here.</p>
+      <div class="assets-grid">
+        <div class="asset-item">
+          <img src="/partners/badge-horizontal-light.svg" alt="Educational Partner badge, horizontal light variant" loading="lazy" />
+          <a href="/partners/badge-horizontal-light.svg" download>Horizontal, light</a>
+        </div>
+        <div class="asset-item asset-item--dark">
+          <img src="/partners/badge-horizontal-dark.svg" alt="Educational Partner badge, horizontal dark variant" loading="lazy" />
+          <a href="/partners/badge-horizontal-dark.svg" download>Horizontal, dark</a>
+        </div>
+        <div class="asset-item">
+          <img src="/partners/badge-stacked-light.svg" alt="Educational Partner badge, stacked light variant" loading="lazy" />
+          <a href="/partners/badge-stacked-light.svg" download>Stacked, light</a>
+        </div>
+        <div class="asset-item asset-item--dark">
+          <img src="/partners/badge-stacked-dark.svg" alt="Educational Partner badge, stacked dark variant" loading="lazy" />
+          <a href="/partners/badge-stacked-dark.svg" download>Stacked, dark</a>
+        </div>
+      </div>
+      <p class="assets-rules-link">
+        <a href="/partners/tagline-rules.md">Read the full tagline and linking rules</a>
+      </p>
+    </div>
+  </section>
+
+</BaseLayout>
+
+<style>
+  .breadcrumbs {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-4);
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+  }
+  .breadcrumbs a { color: var(--text-secondary); }
+  .breadcrumbs a:hover { color: var(--color-primary); }
+
+  .partners-hero {
+    padding: var(--space-10) 0 var(--space-8);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .partners-hero h1 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: clamp(2.25rem, 5vw, 3.25rem);
+    font-weight: 600;
+    margin-bottom: var(--space-4);
+    color: var(--text-primary);
+  }
+  .partners-lede {
+    font-size: 1.25rem;
+    line-height: 1.5;
+    color: var(--text-primary);
+    max-width: 62ch;
+    margin-bottom: var(--space-4);
+  }
+  .partners-intro {
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    color: var(--text-secondary);
+    max-width: 68ch;
+    margin-bottom: var(--space-6);
+  }
+  .partners-cta-row {
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+  }
+
+  .partners-tiers, .partners-principles, .partners-list-section, .partners-apply-cta, .partners-faq, .partners-assets {
+    padding: var(--space-10) 0;
+  }
+  .partners-tiers { background: var(--color-bg); }
+  .partners-principles { background: var(--color-surface); border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); }
+  .partners-list-section { background: var(--color-bg); }
+  .partners-apply-cta { background: var(--color-surface); border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); }
+  .partners-faq { background: var(--color-bg); }
+  .partners-assets { background: var(--color-surface); border-top: 1px solid var(--color-border); }
+
+  .partners-tiers h2, .partners-principles h2, .partners-list-section h2, .partners-faq h2, .partners-assets h2 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
+    font-weight: 600;
+    margin-bottom: var(--space-3);
+  }
+  .section-lede {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-6);
+    max-width: 60ch;
+  }
+
+  .tier-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--space-5);
+    margin-top: var(--space-6);
+  }
+  .tier-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-6);
+    opacity: 0.7;
+  }
+  .tier-card--active {
+    opacity: 1;
+    border-color: var(--color-primary);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .tier-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    background: var(--color-bg);
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    margin-bottom: var(--space-3);
+  }
+  .tier-badge--active {
+    color: #fff;
+    background: var(--color-primary);
+  }
+  .tier-card h3 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 600;
+    margin-bottom: var(--space-2);
+  }
+  .tier-card p { color: var(--text-secondary); font-size: 0.9375rem; line-height: 1.55; }
+
+  .principles-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: var(--space-5);
+  }
+  .principle {
+    display: flex;
+    gap: var(--space-4);
+    align-items: flex-start;
+    padding: var(--space-5);
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+  .principle-num {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    min-width: 2.5em;
+  }
+  .principle-body h3 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin-bottom: var(--space-2);
+  }
+  .principle-body p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    font-size: 0.9375rem;
+    margin: 0;
+  }
+
+  .partner-cards {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--space-5);
+  }
+  .partner-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-5);
+    display: flex;
+    flex-direction: column;
+  }
+  .partner-card__header {
+    margin-bottom: var(--space-3);
+  }
+  .partner-card__header h3 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: 1.375rem;
+    margin-bottom: 4px;
+  }
+  .partner-card__location {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .partner-card__blurb {
+    color: var(--text-secondary);
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    margin-bottom: var(--space-3);
+  }
+  .partner-card__provider {
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    margin-bottom: var(--space-4);
+  }
+  .partner-card__credential {
+    display: block;
+    color: var(--text-secondary);
+    font-weight: 400;
+    margin-top: 2px;
+    font-size: 0.8125rem;
+  }
+  .partner-card__link {
+    margin-top: auto;
+    font-weight: 600;
+    color: var(--color-primary);
+    text-decoration: none;
+    font-size: 0.9375rem;
+  }
+  .partner-card__link:hover { text-decoration: underline; }
+
+  .empty-state {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: var(--space-6) 0;
+    font-size: 1.0625rem;
+  }
+
+  .apply-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-8);
+    text-align: center;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .apply-card h2 { margin-bottom: var(--space-3); }
+  .apply-card p { color: var(--text-secondary); margin-bottom: var(--space-5); max-width: 52ch; margin-left: auto; margin-right: auto; }
+
+  .faq-list {
+    display: grid;
+    gap: var(--space-3);
+    max-width: 820px;
+  }
+  .faq-item {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4) var(--space-5);
+  }
+  .faq-item summary {
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+    font-size: 1.0625rem;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary::after {
+    content: '+';
+    float: right;
+    font-size: 1.25rem;
+    color: var(--color-primary);
+    transition: transform 0.2s;
+  }
+  .faq-item[open] summary::after { content: '-'; }
+  .faq-item p {
+    margin-top: var(--space-3);
+    color: var(--text-secondary);
+    line-height: 1.65;
+  }
+
+  .assets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-4);
+    margin-top: var(--space-6);
+  }
+  .asset-item {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-5);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .asset-item--dark { background: #2a1e23; border-color: #2a1e23; }
+  .asset-item--dark a { color: var(--color-rose-300, #c9a8b2); }
+  .asset-item img { max-width: 100%; height: auto; }
+  .asset-item a { font-size: 0.875rem; color: var(--color-primary); font-weight: 600; text-decoration: none; }
+  .asset-item a:hover { text-decoration: underline; }
+
+  .assets-rules-link {
+    margin-top: var(--space-5);
+    font-size: 0.9375rem;
+  }
+</style>
