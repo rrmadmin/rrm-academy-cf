@@ -1,0 +1,233 @@
+[
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "FAQPage",
+        "name": "Frequently Asked Questions about Restorative Reproductive Medicine",
+        "description": "Answers to common questions about RRM, NaProTechnology, fertility charting, treatment approaches, success rates, and costs.",
+        "dateModified": "2026-04-04T03:41:48.000Z",
+        "datePublished": "2026-04-04T03:41:48.000Z",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is Restorative Reproductive Medicine (RRM)?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Restorative Reproductive Medicine (RRM) is a medical approach that identifies and treats the root causes of infertility and reproductive health conditions to restore natural fertility. RRM focuses on helping couples conceive naturally by addressing underlying conditions rather than bypassing the reproductive system."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How is RRM different from IVF/IUI\u2011centered care?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "RRM diagnoses and treats underlying reproductive health conditions while ART bypasses these conditions to achieve pregnancy without addressing root causes. RRM focuses on restoring natural reproductive function through thorough evaluation and targeted treatment of specific conditions like endometriosis, PCOS, and male factor issues."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What conditions does RRM address?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "RRM addresses root causes of infertility including endometriosis, PCOS, thyroid dysfunction, luteal phase defects, recurrent pregnancy loss, male factor issues, fibroids, polyps, and chronic endometritis. Each couple receives individualized protocol blocks targeting their specific combination of reproductive health conditions."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What is NaProTECHNOLOGY and the Creighton Model (CrMS)?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "NaProTECHNOLOGY is a medical approach that works with natural fertility cycles to diagnose and treat reproductive disorders using the Creighton Model FertilityCare System for biomarker tracking. The standardized charting method tracks cervical mucus patterns and other fertility signs to identify root causes and time treatments with natural cycles."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What does \"natural conception\" mean in RRM?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Natural conception in RRM means conception that occurs through intercourse within a woman's reproductive system, as opposed to laboratory fertilization. RRM works to restore couples' natural reproductive function so they can conceive through intercourse by treating underlying causes."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is RRM evidence-based? (key trials, registries, and guidelines)",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "RRM is evidence-based through peer-reviewed outcome studies including Stanford 2008, Tham 2012, Boyle 2025, and the Sanchez-Mendez 2025 cohort (n=1,310), plus ongoing data collection through the iNEST registry. RRM clinicians follow established medical guidelines for PCOS, recurrent pregnancy loss, and endometriosis while focusing on addressing underlying causes."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How does RRM approach recurrent miscarriage (RPL)?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "RRM approaches recurrent pregnancy loss through systematic evaluation of genetic, anatomic, endocrine, immune, and male factors. Treatment is targeted based on identified causes, including progesterone support when indicated by PRISM trial evidence."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Which labs, imaging, and cycle tracking does RRM use?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "RRM uses CrMS cycle charting, luteal hormone profiles at Peak+3/+5/+7/+9/+11, follicle ultrasound series, HSG/SIS imaging, and WHO 6th edition semen analysis. All diagnostic timing is individualized based on each couple's observed cycle patterns for improved accuracy."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What should I expect at a first RRM consult?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "A first RRM consult includes thorough history intake for both partners, an introduction to fertility charting, development of a targeted diagnostic plan, and collaborative goal-setting. The appointment establishes a foundation for cause-based reproductive medicine through thorough assessment and education."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How does RRM handle male\u2011factor evaluation (Restorative Andrology)?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "RRM provides thorough Restorative Andrology evaluation and treatment, addressing male reproductive health as an integral part of couple-centered fertility care. Treatment targets root causes including hormonal imbalances, varicoceles, infections, and lifestyle factors that impact sperm production and function."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Where does progesterone fit in early pregnancy support?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Progesterone can reduce miscarriage risk in early pregnancy for women with a history of recurrent losses or early bleeding. The PRISM trial showed significant benefit in these specific groups but no benefit for women without these risk factors."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What's RRM's stance on thyroid and fertility?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "RRM screens for both overt and subclinical thyroid disease in fertility patients, using individualized thresholds rather than routine levothyroxine treatment for all TPO-positive euthyroid patients. This evidence-based approach follows recent trials showing no fertility benefit from automatic levothyroxine treatment in women with thyroid antibodies but normal thyroid function."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is letrozole first\u2011line for anovulatory PCOS in RRM?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, letrozole is first-line treatment for ovulation induction in anovulatory PCOS according to international guidelines. RRM protocols include thorough metabolic optimization alongside letrozole therapy to address root causes of PCOS."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Do I need to be Catholic to use Creighton/NaPro or see an RRM clinician?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No, religious affiliation is not required to use the Creighton Model, NaProTechnology, or see an RRM clinician. These are evidence-based medical systems available to people of all faiths and backgrounds, with many secular health institutions now offering these services."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How do I get started or find an RRM clinician/educator near me?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "To find an RRM clinician, use the International Institute of Restorative Reproductive Medicine provider directory or locate a FertilityCare center through their physician directory. Many RRM practitioners also offer virtual consultations to expand access beyond geographic limitations."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How much does RRM or NaProTechnology treatment cost compared to IVF?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "RRM costs vary by diagnosis and treatment plan, but many components are covered by standard health insurance because RRM uses standard diagnostic and treatment codes for diagnosed medical conditions. IVF costs $15,000 to $30,000 per cycle in the United States, with most couples spending $40,000 to $60,000 total. A prospective cohort study found IVF costs on average 20 times more than medication-based fertility treatments."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does insurance cover NaProTechnology or RRM treatment?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Most insurance plans provide partial coverage for RRM diagnostic testing and surgical procedures, though coverage varies significantly by plan. Diagnostic procedures and surgical treatments typically qualify for standard reproductive health benefits."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How long does RRM treatment typically take before pregnancy?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "RRM treatment typically takes 6-18 months for fertility restoration, depending on individual conditions and root causes. Unlike conventional fertility treatments, RRM addresses underlying dysfunction which may take longer initially but provides sustainable reproductive health improvements."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What are the success rates for NaProTechnology and RRM?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "RRM success rates vary by condition and couple-specific factors, with published studies showing crude live birth rates of 26-41% and adjusted cumulative rates of 50-62%. Success in RRM measures thorough reproductive health restoration including symptom resolution, cycle normalization, and natural conception outcomes."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Why haven't I heard of RRM or NaProTechnology before?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "RRM and NaProTechnology remain relatively unknown because they challenge conventional medical approaches that prioritize suppressive treatments over root cause diagnosis. Most physicians receive minimal training in reproductive endocrinology beyond prescribing hormonal suppression or referring to IVF."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What is the difference between Creighton Model, Marquette Method, FEMM, and symptothermal charting?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The Creighton Model, Marquette Method, FEMM, and symptothermal charting are different fertility awareness methods that teach couples to identify fertile phases using various biomarkers like cervical mucus and temperature. Each method has different approaches but can achieve 95-99% effectiveness when taught properly."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How does infertility affect mental health, and where can I find support?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Infertility creates significant psychological distress, with depression and anxiety rates comparable to cancer and heart disease patients. Research shows 15-54% depression rates and up to 60% anxiety rates in couples facing fertility challenges. Professional mental health support specialized in fertility issues, combined with clear medical understanding, provides essential emotional resilience."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does fertility really 'fall off a cliff' at 35?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Fertility does decline with age, but the \"cliff at 35\" narrative oversimplifies a gradual process and often ignores treatable underlying conditions. Research shows 82% of women aged 35-39 without known fertility issues conceived within one year of trying."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How does RRM diagnose and treat luteal phase deficiency?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "RRM diagnoses luteal phase deficiency using CrMS cycle tracking combined with properly timed hormone testing. Treatment focuses on correcting underlying causes like thyroid dysfunction or hyperprolactinemia rather than indefinite progesterone supplementation."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What fertility supplements have evidence behind them (CoQ10, vitamin D, DHEA, inositol)?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "RRM uses targeted testing to identify nutritional deficiencies before supplement recommendations. Evidence supports CoQ10 for reproductive cell quality, vitamin D for hormonal function, and omega-3 fatty acids for healthy inflammation responses. Supplements support natural fertility when specific deficiencies are documented."
+            }
+          }
+        ]
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://rrmacademy.org/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "FAQs",
+            "item": "https://rrmacademy.org/faqs/"
+          }
+        ]
+      }
+    ]
+  }
+]
