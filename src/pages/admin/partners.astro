@@ -1,0 +1,362 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Partners | Admin" description="Admin educational partners dashboard" noindex={true} bodyClass="admin-page">
+
+  <div class="admin-bar">
+    <div class="container admin-bar__inner">
+      <span class="admin-bar__title">RRM Admin</span>
+      <nav class="admin-bar__nav">
+        <a href="/admin/backlinks/" class="admin-bar__link">Backlinks</a>
+        <a href="/admin/conversions/" class="admin-bar__link">Conversions</a>
+        <a href="/admin/content/" class="admin-bar__link">Content</a>
+        <a href="/admin/email/" class="admin-bar__link">Email</a>
+        <a href="/admin/seo/" class="admin-bar__link">SEO</a>
+        <a href="/admin/revenue/" class="admin-bar__link">Revenue</a>
+        <a href="/admin/enrollments/" class="admin-bar__link">Enrollments</a>
+        <a href="/admin/partners/" class="admin-bar__link admin-bar__link--active">Partners</a>
+      </nav>
+      <div class="admin-bar__actions">
+        <a href="/" class="admin-bar__site-link">Return to site</a>
+        <button class="admin-bar__logout" id="logout-btn">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="en-section">
+    <div class="container">
+
+      <div class="en-header">
+        <h1>Educational Partners</h1>
+        <div class="en-controls">
+          <button class="btn btn--primary en-btn" id="refresh-btn">Refresh</button>
+        </div>
+      </div>
+
+      <div class="en-metrics en-metrics--4">
+        <div class="en-card">
+          <span class="en-card__label">Pending</span>
+          <span class="en-card__value en-card__value--amber" id="s-pending">--</span>
+        </div>
+        <div class="en-card">
+          <span class="en-card__label">Active</span>
+          <span class="en-card__value en-card__value--green" id="s-active">--</span>
+        </div>
+        <div class="en-card">
+          <span class="en-card__label">Rejected</span>
+          <span class="en-card__value" id="s-rejected">--</span>
+        </div>
+        <div class="en-card">
+          <span class="en-card__label">Revoked</span>
+          <span class="en-card__value" id="s-revoked">--</span>
+        </div>
+      </div>
+
+      <h2 class="en-heading">Pending Review</h2>
+      <div class="en-table-wrap">
+        <table class="en-table">
+          <thead>
+            <tr>
+              <th>Clinic</th>
+              <th>Site</th>
+              <th>Location</th>
+              <th>Provider</th>
+              <th>Email</th>
+              <th>Submitted</th>
+              <th class="en-col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="pending-tbody">
+            <tr><td colspan="7" class="en-empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 class="en-heading">Active</h2>
+      <div class="en-table-wrap">
+        <table class="en-table">
+          <thead>
+            <tr>
+              <th>Clinic</th>
+              <th>Site</th>
+              <th>Location</th>
+              <th>Provider</th>
+              <th>Approved</th>
+              <th class="en-col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="active-tbody">
+            <tr><td colspan="6" class="en-empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 class="en-heading">Rejected &amp; Revoked</h2>
+      <div class="en-table-wrap">
+        <table class="en-table">
+          <thead>
+            <tr>
+              <th>Clinic</th>
+              <th>Status</th>
+              <th>Notes</th>
+              <th>Submitted</th>
+            </tr>
+          </thead>
+          <tbody id="closed-tbody">
+            <tr><td colspan="4" class="en-empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </section>
+
+  <script>
+  (function () {
+    function esc(str) { var d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
+    function num(n) { return (n || 0).toLocaleString(); }
+
+    function formatDate(iso) {
+      if (!iso) return '--';
+      var d = new Date((iso.includes('T') ? iso : iso + 'Z'));
+      if (isNaN(d.getTime())) return '--';
+      return d.toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function locationText(p) {
+      if (p.city && p.country) return p.city + ', ' + p.country;
+      return p.country || '--';
+    }
+
+    var pendingTbody = document.getElementById('pending-tbody');
+    var activeTbody = document.getElementById('active-tbody');
+    var closedTbody = document.getElementById('closed-tbody');
+
+    async function apiGet() {
+      var resp = await fetch('/api/admin/partners', { credentials: 'include' });
+      if (resp.status === 401 || resp.status === 403) {
+        window.location.href = '/login/?redirect=/admin/partners/';
+        return;
+      }
+      var data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Request failed');
+      return data;
+    }
+
+    async function apiAction(id, action, reason) {
+      var resp = await fetch('/api/admin/partners/' + encodeURIComponent(id), {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reason ? { action: action, reason: reason } : { action: action }),
+      });
+      var data = await resp.json().catch(function () { return {}; });
+      if (!resp.ok) throw new Error(data.error || 'Action failed');
+      return data;
+    }
+
+    function pendingRow(p) {
+      var id = esc(p.id);
+      return '<tr>' +
+        '<td><strong>' + esc(p.name) + '</strong></td>' +
+        '<td><a href="' + esc(p.site_url) + '" target="_blank" rel="external noopener">' + esc(p.site_url.replace(/^https?:\/\//, '')) + '</a></td>' +
+        '<td>' + esc(locationText(p)) + '</td>' +
+        '<td>' + esc(p.provider_name) + '<br><small>' + esc(p.provider_credential) + '</small></td>' +
+        '<td class="en-col-email">' + esc(p.contact_email) + '</td>' +
+        '<td class="en-col-time">' + esc(formatDate(p.created_at)) + '</td>' +
+        '<td class="en-col-actions">' +
+          '<button class="en-action en-action--approve" data-id="' + id + '" data-action="approve">Approve</button>' +
+          '<button class="en-action en-action--reject" data-id="' + id + '" data-action="reject">Reject</button>' +
+        '</td>' +
+        '</tr>';
+    }
+
+    function activeRow(p) {
+      var id = esc(p.id);
+      return '<tr>' +
+        '<td><strong>' + esc(p.name) + '</strong></td>' +
+        '<td><a href="' + esc(p.site_url) + '" target="_blank" rel="external noopener">' + esc(p.site_url.replace(/^https?:\/\//, '')) + '</a></td>' +
+        '<td>' + esc(locationText(p)) + '</td>' +
+        '<td>' + esc(p.provider_name) + '</td>' +
+        '<td class="en-col-time">' + esc(formatDate(p.approved_at)) + '</td>' +
+        '<td class="en-col-actions">' +
+          '<button class="en-action en-action--revoke" data-id="' + id + '" data-action="revoke">Revoke</button>' +
+        '</td>' +
+        '</tr>';
+    }
+
+    function closedRow(p) {
+      var badge = p.status === 'rejected'
+        ? '<span class="en-badge en-badge--rejected">Rejected</span>'
+        : '<span class="en-badge en-badge--revoked">Revoked</span>';
+      return '<tr>' +
+        '<td><strong>' + esc(p.name) + '</strong></td>' +
+        '<td>' + badge + '</td>' +
+        '<td class="en-col-notes">' + esc(p.notes) + '</td>' +
+        '<td class="en-col-time">' + esc(formatDate(p.created_at)) + '</td>' +
+        '</tr>';
+    }
+
+    function render(partners) {
+      var buckets = { pending: [], active: [], rejected: [], revoked: [] };
+      partners.forEach(function (p) { if (buckets[p.status]) buckets[p.status].push(p); });
+
+      document.getElementById('s-pending').textContent = num(buckets.pending.length);
+      document.getElementById('s-active').textContent = num(buckets.active.length);
+      document.getElementById('s-rejected').textContent = num(buckets.rejected.length);
+      document.getElementById('s-revoked').textContent = num(buckets.revoked.length);
+
+      pendingTbody.innerHTML = buckets.pending.length
+        ? buckets.pending.map(pendingRow).join('')
+        : '<tr><td colspan="7" class="en-empty">No pending applications</td></tr>';
+
+      activeTbody.innerHTML = buckets.active.length
+        ? buckets.active.map(activeRow).join('')
+        : '<tr><td colspan="6" class="en-empty">No active partners</td></tr>';
+
+      var closed = buckets.rejected.concat(buckets.revoked);
+      closedTbody.innerHTML = closed.length
+        ? closed.map(closedRow).join('')
+        : '<tr><td colspan="4" class="en-empty">No rejected or revoked partners</td></tr>';
+
+      // Wire up action buttons
+      document.querySelectorAll('.en-action').forEach(function (btn) {
+        btn.addEventListener('click', handleAction);
+      });
+    }
+
+    async function handleAction(ev) {
+      var btn = ev.currentTarget;
+      var id = btn.getAttribute('data-id');
+      var action = btn.getAttribute('data-action');
+      var reason = null;
+
+      if (action === 'reject' || action === 'revoke') {
+        var prompt_msg = action === 'reject'
+          ? 'Reason for rejection (sent to applicant):'
+          : 'Reason for revocation (sent to partner):';
+        reason = window.prompt(prompt_msg);
+        if (reason === null) return; // cancelled
+        reason = reason.trim();
+        if (!reason) { alert('Reason is required.'); return; }
+        if (reason.length > 500) { alert('Reason must be 500 characters or fewer.'); return; }
+      } else if (action === 'approve') {
+        if (!window.confirm('Approve this clinic as a Friend partner? This will send a welcome email.')) return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Working...';
+
+      try {
+        await apiAction(id, action, reason);
+        await load();
+      } catch (e) {
+        alert('Failed: ' + e.message);
+        btn.disabled = false;
+        btn.textContent = action.charAt(0).toUpperCase() + action.slice(1);
+      }
+    }
+
+    async function load() {
+      pendingTbody.innerHTML = '<tr><td colspan="7" class="en-empty">Loading...</td></tr>';
+      activeTbody.innerHTML = '<tr><td colspan="6" class="en-empty">Loading...</td></tr>';
+      closedTbody.innerHTML = '<tr><td colspan="4" class="en-empty">Loading...</td></tr>';
+      try {
+        var data = await apiGet();
+        render((data && data.partners) || []);
+      } catch (e) {
+        var msg = '<tr><td class="en-empty en-error">' + esc(e.message) + '</td></tr>';
+        pendingTbody.innerHTML = msg.replace('<td class', '<td colspan="7" class');
+        activeTbody.innerHTML = msg.replace('<td class', '<td colspan="6" class');
+        closedTbody.innerHTML = msg.replace('<td class', '<td colspan="4" class');
+      }
+    }
+
+    document.getElementById('logout-btn').addEventListener('click', async function () {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+      window.location.href = '/login/';
+    });
+
+    document.getElementById('refresh-btn').addEventListener('click', load);
+
+    load();
+  })();
+  </script>
+
+</BaseLayout>
+
+<style>
+  :root {
+    --admin-rose-700: #8a606e;
+    --admin-rose-300: #c9a8b2;
+    --admin-bg: #faf8f5;
+    --admin-surface: #ffffff;
+    --admin-border: #d9d3cc;
+    --admin-text: #313131;
+    --admin-text-muted: #636261;
+    --admin-text-faint: #949392;
+  }
+
+  :global(.admin-page) :global(.site-header) { display: none; }
+  :global(.admin-page) :global(footer) { display: none; }
+
+  .admin-bar { background: #3d2a32; color: #f0e5e9; position: sticky; top: 0; z-index: 100; }
+  .admin-bar__inner { display: flex; align-items: center; height: 48px; gap: var(--space-6); }
+  .admin-bar__title { font-family: 'Cormorant Garamond', 'Georgia', serif; font-weight: 600; font-size: 1.25rem; color: var(--admin-rose-300); white-space: nowrap; }
+  .admin-bar__nav { display: flex; gap: var(--space-1); flex-wrap: wrap; }
+  .admin-bar__link { font-size: 0.8125rem; font-weight: 400; color: rgba(255,255,255,0.6); text-decoration: none; padding: 4px 12px; border-radius: var(--radius-sm); transition: color 0.15s, background 0.15s; }
+  .admin-bar__link:hover { color: #fff; text-decoration: none; }
+  .admin-bar__link--active { color: #fff; background: rgba(255,255,255,0.1); font-weight: 500; }
+  .admin-bar__actions { display: flex; align-items: center; gap: var(--space-3); margin-left: auto; }
+  .admin-bar__site-link { font-size: 0.8125rem; font-weight: 500; color: var(--admin-rose-300); text-decoration: none; padding: 5px 16px; border: 1px solid var(--admin-rose-300); border-radius: var(--radius-pill); transition: color 0.15s, border-color 0.15s; }
+  .admin-bar__site-link:hover { color: #fff; border-color: #fff; text-decoration: none; }
+  .admin-bar__logout { font-size: 0.8125rem; color: rgba(255,255,255,0.5); background: none; border: none; cursor: pointer; padding: 4px 8px; }
+  .admin-bar__logout:hover { color: #fff; }
+
+  .en-section { padding: var(--space-8) 0; background: var(--admin-bg); min-height: 80vh; }
+  .en-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6); flex-wrap: wrap; gap: var(--space-3); }
+  .en-header h1 { margin-bottom: 0; color: var(--admin-text); }
+  .en-controls { display: flex; gap: var(--space-3); align-items: center; }
+  .en-btn { background: var(--admin-rose-700); border-color: var(--admin-rose-700); color: #fff; }
+  .en-btn:hover { background: #764d5e; }
+
+  .en-heading { color: var(--admin-text); margin-bottom: var(--space-4); margin-top: var(--space-6); font-size: 1.125rem; }
+
+  .en-metrics { display: grid; gap: var(--space-4); margin-bottom: var(--space-6); }
+  .en-metrics--4 { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 768px) { .en-metrics--4 { grid-template-columns: repeat(2, 1fr); } }
+
+  .en-card { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--radius-md); padding: var(--space-4) var(--space-5); text-align: center; }
+  .en-card__label { display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--admin-text-faint); margin-bottom: var(--space-1); }
+  .en-card__value { display: block; font-size: 1.75rem; font-weight: 700; color: var(--admin-text); font-family: 'Inter', sans-serif; }
+  .en-card__value--green { color: #27ae60; }
+  .en-card__value--amber { color: #d97706; }
+
+  .en-table-wrap { overflow-x: auto; border: 1px solid var(--admin-border); border-radius: var(--radius-md); background: var(--admin-surface); margin-bottom: var(--space-4); }
+  .en-empty { text-align: center; color: var(--admin-text-faint); padding: var(--space-8) var(--space-4); }
+  .en-error { color: #c0392b; }
+
+  .en-col-time { white-space: nowrap; font-size: 0.8125rem; }
+  .en-col-email { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.8125rem; }
+  .en-col-notes { max-width: 360px; font-size: 0.8125rem; color: var(--admin-text-muted); white-space: pre-wrap; }
+  .en-col-actions { white-space: nowrap; }
+</style>
+
+<style is:global>
+  .en-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+  .en-table th, .en-table td { padding: var(--space-3) var(--space-4); text-align: left; border-bottom: 1px solid #d9d3cc; vertical-align: top; }
+  .en-table th { background: #eee5dd; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: #636261; }
+  .en-table tbody tr:last-child td { border-bottom: none; }
+  .en-table tbody tr:hover { background: #f0e5e9; }
+  .en-action { font-size: 0.75rem; font-weight: 600; padding: 4px 10px; border-radius: var(--radius-sm); border: 1px solid transparent; cursor: pointer; margin-right: 4px; }
+  .en-action--approve { background: #e8f5e9; color: #2e7d32; border-color: #c8e6c9; }
+  .en-action--approve:hover:not(:disabled) { background: #2e7d32; color: #fff; }
+  .en-action--reject { background: #ffebee; color: #c62828; border-color: #ffcdd2; }
+  .en-action--reject:hover:not(:disabled) { background: #c62828; color: #fff; }
+  .en-action--revoke { background: #fff3e0; color: #e65100; border-color: #ffe0b2; }
+  .en-action--revoke:hover:not(:disabled) { background: #e65100; color: #fff; }
+  .en-action:disabled { opacity: 0.5; cursor: not-allowed; }
+  .en-badge { display: inline-block; padding: 2px 8px; border-radius: var(--radius-sm); font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+  .en-badge--rejected { background: #ffebee; color: #c62828; }
+  .en-badge--revoked { background: #fff3e0; color: #e65100; }
+</style>
