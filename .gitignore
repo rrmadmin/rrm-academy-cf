@@ -25,3 +25,12 @@ src/layouts/AppShell.astro
 .superpowers/
 # Generated OG images (rebuilt every deploy)
 public/images/og/og-*.png
+# Claude Code session state
+.claude/
+# Playwright test output
+test-results/
+# Pillar-edit A/B comparison artifacts
+section-compare*.html
+dot-art-examples.html
+# Library ingest scratch dir
+fulltext/
