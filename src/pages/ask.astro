@@ -128,6 +128,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
               appendError('You have reached today\u2019s question limit. Come back tomorrow.');
             } else if (d.error === 'forbidden' || res.status === 403) {
               appendError('This account cannot use /ask right now.');
+            } else if (d.error === 'upstream_timeout' || res.status === 504) {
+              appendError('The answer is taking longer than expected. Please try again.');
+            } else if (d.error === 'upstream_error' || res.status === 502) {
+              appendError('Research layer is unreachable. Please try again in a moment.');
             } else {
               appendError('Something went wrong. Please try again.');
             }
