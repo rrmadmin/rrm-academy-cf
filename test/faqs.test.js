@@ -68,6 +68,8 @@ describe('GET /api/faqs -- all records', () => {
       seo_description: 'Learn about RRM.',
       sort_order: 1,
       status: 'published',
+      updated_at: '2026-04-10T12:00:00',
+      created_at: '2026-01-15T08:00:00',
     };
 
     const libRef = { faq_id: 'faq_001', article_id: 'rec123', label: 'Study A', sort_order: 1 };
@@ -103,6 +105,8 @@ describe('GET /api/faqs -- all records', () => {
     assert.equal(faq.seoDescription, 'Learn about RRM.');
     assert.equal(faq.sortOrder, 1);
     assert.equal(faq.status, 'published');
+    assert.equal(faq.updatedAt, '2026-04-10T12:00:00');
+    assert.equal(faq.createdAt, '2026-01-15T08:00:00');
 
     assert.equal(faq.libraryRefs.length, 1);
     assert.equal(faq.libraryRefs[0].articleId, 'rec123');
@@ -165,6 +169,8 @@ describe('GET /api/faqs -- single record', () => {
       seo_description: null,
       sort_order: 99,
       status: 'draft',
+      updated_at: '2026-03-01T00:00:00',
+      created_at: '2026-03-01T00:00:00',
     };
 
     const db = mockDB({
@@ -184,6 +190,7 @@ describe('GET /api/faqs -- single record', () => {
     assert.ok(body.data);
     assert.equal(body.data.id, 'faq_003');
     assert.equal(body.data.status, 'draft');
+    assert.equal(body.data.updatedAt, '2026-03-01T00:00:00');
     assert.ok(Array.isArray(body.data.libraryRefs));
     assert.ok(Array.isArray(body.data.evidence));
   });
