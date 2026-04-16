@@ -11,7 +11,8 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
   <section class="auth-page">
     <div class="container container--narrow">
       <div class="auth-card">
-        <h1>Create account</h1>
+        <h1 id="signup-heading">Create account</h1>
+        <p id="signup-subheading" class="signup-subheading" hidden></p>
 
         <form id="signup-form" class="auth-form" novalidate>
           <div class="form-row">
@@ -107,8 +108,24 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
       var errorEl = document.getElementById('auth-error');
       var errorText = document.getElementById('auth-error-text');
       var verifyEmailEl = document.getElementById('verify-email');
+      var signupSubheading = document.getElementById('signup-subheading');
       var turnstileWidgetId = null;
       var pendingSubmit = null;
+
+      // Parse ?next= param -- if present and safe, tag signup source and redirect post-verify.
+      var nextParam = '';
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var raw = params.get('next') || '';
+        if (raw && raw.charAt(0) === '/' && raw.indexOf('//') !== 0) nextParam = raw;
+      } catch (_) {}
+
+      if (nextParam === '/ask' || nextParam === '/ask/') {
+        document.getElementById('signup-heading').textContent = 'Create your free account';
+        signupSubheading.textContent = 'One free account unlocks our conversational research layer -- ask anything about restorative reproductive medicine.';
+        signupSubheading.hidden = false;
+        if (googleBtn) googleBtn.setAttribute('href', '/api/auth/google?next=' + encodeURIComponent(nextParam));
+      }
 
       function initTurnstile() {
         var el = document.getElementById('turnstile-container');
@@ -153,7 +170,7 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
         fetch('/api/auth/signup', {
           method: 'POST', credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ firstName: firstName, lastName: lastName, email: email, password: password, turnstileToken: token }),
+          body: JSON.stringify({ firstName: firstName, lastName: lastName, email: email, password: password, turnstileToken: token, next: nextParam }),
         })
           .then(function (r) {
             return r.text().then(function (text) {
@@ -204,7 +221,11 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
         })
           .then(function (r) { return r.json(); })
           .then(function (data) {
-            if (data.ok) { window.location.href = '/account/'; }
+            if (data.ok) {
+              var dest = nextParam || '/account/';
+              if (dest === '/ask') dest = '/ask/';
+              window.location.href = dest;
+            }
             else { showError(data.error || 'Verification failed.'); verifyBtn.disabled = false; verifyBtn.textContent = 'Verify'; }
           })
           .catch(function () { showError('Network error.'); verifyBtn.disabled = false; verifyBtn.textContent = 'Verify'; });
@@ -239,7 +260,8 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
     max-width: 420px; margin: 0 auto; padding: var(--space-10) var(--space-8);
     background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg);
   }
-  .auth-card h1 { text-align: center; margin-bottom: var(--space-8); font-size: 1.75rem; }
+  .auth-card h1 { text-align: center; margin-bottom: var(--space-4); font-size: 1.75rem; }
+  .signup-subheading { text-align: center; color: var(--text-secondary); font-size: 0.9375rem; line-height: 1.5; margin-bottom: var(--space-6); }
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
   .auth-form .form-group { margin-bottom: var(--space-5); }
   .auth-form .form-label { display: block; font-family: 'Inter', sans-serif; font-size: 0.8125rem; font-weight: 500; margin-bottom: var(--space-2); }

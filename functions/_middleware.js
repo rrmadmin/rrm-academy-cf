@@ -135,7 +135,8 @@ export async function onRequest(context) {
 
   const needsAuth =
     url.pathname === '/account' || url.pathname.startsWith('/account/') ||
-    url.pathname === '/community' || url.pathname.startsWith('/community/');
+    url.pathname === '/community' || url.pathname.startsWith('/community/') ||
+    url.pathname === '/ask' || url.pathname.startsWith('/ask/');
 
   if (needsAuth) {
     if (!env.DB) {
@@ -143,8 +144,15 @@ export async function onRequest(context) {
     }
     const sessionId = getSessionIdFromCookie(request);
 
+    // /ask converts unauth users into signups (conversion funnel).
+    // Other protected routes send unauth users to /login.
+    const isAsk = url.pathname === '/ask' || url.pathname.startsWith('/ask/');
+    const redirectBase = isAsk ? '/signup/' : '/login/';
+    const redirectParam = isAsk ? 'next' : 'redirect';
+    const authRedirect = `https://rrmacademy.org${redirectBase}?${redirectParam}=${encodeURIComponent(url.pathname)}`;
+
     if (!sessionId) {
-      return Response.redirect(`https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname)}`, 302);
+      return Response.redirect(authRedirect, 302);
     }
 
     const session = await validateSession(env.DB, sessionId);
@@ -152,7 +160,7 @@ export async function onRequest(context) {
       return new Response(null, {
         status: 302,
         headers: {
-          'Location': `https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname)}`,
+          'Location': authRedirect,
           'Set-Cookie': 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
         },
       });

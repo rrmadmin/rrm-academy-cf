@@ -11,7 +11,7 @@
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "d04646cdc9a80af897fdc742344ebfa306ad86010ac36b1b2a7bfe2ebd5f266b",
+      "hash": "4b1bf822c615e1a209b1ea03da2e8d2e94a2f513a0ed0e6f502a77c9f692a89f",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
@@ -67,7 +67,7 @@
       "note": "Shared webhook helpers"
     },
     "functions/_middleware.js": {
-      "hash": "30b52859c4df63068968c4b447076b73205468ff26a2401fbd311c3d57aae02e",
+      "hash": "5d8d23b05a8f467ae6d9f483964c9e0d0daf3ee45f34f0c501232489ca57c0f1",
       "note": "Auth gating"
     },
     "wrangler.toml": {
@@ -105,6 +105,10 @@
     "functions/api/search/semantic.js": {
       "hash": "09d110c75ccd796e53dfc2567868cf44caefe691a95715149f5a4ce8fae7a237",
       "note": "Billed AI.run() + Vectorize (rate-limited)"
+    },
+    "functions/api/ask.js": {
+      "hash": "d66d5166a5af7383b1095eef9dd3cdd60aef7470babc1f395a3470875c032f3d",
+      "note": "NLWeb AI Search proxy (auth + rate-limited, billed upstream)"
     },
     "src/components/SearchBar.astro": {
       "hash": "c2ca035e4a1132dab7e09d6fa627ea0f6b61b601e80cf8f6095005ec86d7cce2",
