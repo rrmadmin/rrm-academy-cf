@@ -1,7 +1,9 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import partners from '../../data/partners.json';
-import { FRIEND_PRINCIPLES } from '../../lib/partners.ts';
+import partnersData from '../../data/partners.json';
+import { FRIEND_PRINCIPLES, type PublicPartner } from '../../lib/partners.ts';
+
+const partners = partnersData as PublicPartner[];
 
 const pageTitle = 'Educational Partners';
 const pageDescription = 'An RRM Academy Educational Partner is a clinic or organization that publicly affirms the principles of restorative reproductive medicine and agrees to a defined alignment standard.';
@@ -106,16 +108,16 @@ const pageSchema = {
   ],
 };
 
-function domainOnly(url) {
+function domainOnly(url: string): string {
   return url.replace(/^https?:\/\//, '').replace(/\/$/, '');
 }
 
-function locationText(p) {
+function locationText(p: PublicPartner): string {
   if (p.city && p.country) return `${p.city}, ${p.country}`;
   return p.country || '';
 }
 ---
-<BaseLayout title={pageTitle} description={pageDescription} canonical={canonical} jsonLd={pageSchema}>
+<BaseLayout title={pageTitle} description={pageDescription} canonicalUrl={canonical} jsonLd={pageSchema}>
 
   <section class="partners-hero">
     <div class="container">
