@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { fetchAllFaqs, getRelatedFaqs, type FAQ } from '../../lib/faq';
+import { fetchAllFaqs, getRelatedFaqs, PILLAR_CTA_MAP, type FAQ } from '../../lib/faq';
 
 export async function getStaticPaths() {
   const faqs = await fetchAllFaqs();
@@ -17,6 +17,23 @@ interface Props {
 }
 
 const { faq, allFaqs } = Astro.props;
+const pillar = PILLAR_CTA_MAP[faq.faqId] ?? null;
+
+// D1 emits timestamps as "YYYY-MM-DD HH:MM:SS" (UTC, no Z).
+// Normalize to ISO so V8 parses them as UTC, not local.
+function toIsoUtc(ts: string | undefined | null): string | null {
+  if (!ts) return null;
+  if (ts.includes('T')) return ts.endsWith('Z') ? ts : ts + 'Z';
+  return ts.replace(' ', 'T') + 'Z';
+}
+
+const updatedIso = toIsoUtc(faq.updatedAt);
+const createdIso = toIsoUtc(faq.createdAt);
+
+const lastUpdatedLabel = updatedIso
+  ? new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(new Date(updatedIso))
+  : null;
+
 const related = getRelatedFaqs(faq, allFaqs, 5);
 
 // Published Answer is already HTML from Airtable (trusted source)
@@ -37,6 +54,8 @@ const jsonLd = {
   '@graph': [
     {
       '@type': 'FAQPage',
+      dateModified: updatedIso,
+      datePublished: createdIso,
       mainEntity: [{
         '@type': 'Question',
         name: faq.question,
@@ -79,7 +98,12 @@ const jsonLd = {
       <!-- Question -->
       <h1 class="faq-title">{faq.question}</h1>
 
-      <span class="faq-category-badge">{faq.category}</span>
+      <div class="faq-meta-row">
+        <span class="faq-category-badge">{faq.category}</span>
+        {lastUpdatedLabel && (
+          <span class="faq-updated">Last updated {lastUpdatedLabel}</span>
+        )}
+      </div>
 
       <!-- Full Answer -->
       <div class="prose" set:html={htmlAnswer} />
@@ -135,8 +159,17 @@ const jsonLd = {
       <section class="faq-cta">
         <h2>Ready to go deeper?</h2>
         <div class="faq-cta__links">
-          <a href="/courses/" class="btn btn--primary">Explore Courses</a>
-          <a href="/library/" class="btn btn--secondary">Browse the Research Library</a>
+          {pillar ? (
+            <>
+              <a href={pillar.href} class="btn btn--primary">{pillar.label}</a>
+              <a href="/library/" class="btn btn--secondary">Browse the Research Library</a>
+            </>
+          ) : (
+            <>
+              <a href="/courses/" class="btn btn--primary">Explore Courses</a>
+              <a href="/library/" class="btn btn--secondary">Browse the Research Library</a>
+            </>
+          )}
         </div>
       </section>
 
@@ -172,7 +205,21 @@ const jsonLd = {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm, 4px);
     padding: var(--space-1) var(--space-2);
+  }
+
+  .faq-meta-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-wrap: wrap;
     margin-bottom: var(--space-6);
+  }
+  .faq-meta-row .faq-category-badge {
+    margin-bottom: 0;
+  }
+  .faq-updated {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
   }
 
   /* Prose — answer body typography */
