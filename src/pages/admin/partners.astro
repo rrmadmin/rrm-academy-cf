@@ -113,50 +113,74 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
   <script>
   (function () {
-    function esc(str) { var d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
-    function num(n) { return (n || 0).toLocaleString(); }
+    type PartnerStatus = 'pending' | 'active' | 'rejected' | 'revoked';
+    interface Partner {
+      id: string;
+      name: string;
+      site_url: string;
+      country: string;
+      city: string | null;
+      provider_name: string;
+      provider_credential: string;
+      contact_email: string;
+      notes: string | null;
+      status: PartnerStatus;
+      created_at: string;
+      approved_at: string | null;
+    }
 
-    function formatDate(iso) {
+    function esc(str: string | null | undefined): string {
+      const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML;
+    }
+    function num(n: number | null | undefined): string { return (n || 0).toLocaleString(); }
+
+    function formatDate(iso: string | null | undefined): string {
       if (!iso) return '--';
-      var d = new Date((iso.includes('T') ? iso : iso + 'Z'));
+      const d = new Date((iso.includes('T') ? iso : iso + 'Z'));
       if (isNaN(d.getTime())) return '--';
       return d.toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', year: 'numeric' });
     }
 
-    function locationText(p) {
+    function locationText(p: Partner): string {
       if (p.city && p.country) return p.city + ', ' + p.country;
       return p.country || '--';
     }
 
-    var pendingTbody = document.getElementById('pending-tbody');
-    var activeTbody = document.getElementById('active-tbody');
-    var closedTbody = document.getElementById('closed-tbody');
+    const pendingTbody = document.getElementById('pending-tbody') as HTMLTableSectionElement;
+    const activeTbody = document.getElementById('active-tbody') as HTMLTableSectionElement;
+    const closedTbody = document.getElementById('closed-tbody') as HTMLTableSectionElement;
+    const sPending = document.getElementById('s-pending') as HTMLElement;
+    const sActive = document.getElementById('s-active') as HTMLElement;
+    const sRejected = document.getElementById('s-rejected') as HTMLElement;
+    const sRevoked = document.getElementById('s-revoked') as HTMLElement;
+    const logoutBtn = document.getElementById('logout-btn') as HTMLButtonElement;
+    const refreshBtn = document.getElementById('refresh-btn') as HTMLButtonElement;
 
-    async function apiGet() {
-      var resp = await fetch('/api/admin/partners', { credentials: 'include' });
+    async function apiGet(): Promise<{ partners?: Partner[] } | undefined> {
+      const resp = await fetch('/api/admin/partners', { credentials: 'include' });
       if (resp.status === 401 || resp.status === 403) {
         window.location.href = '/login/?redirect=/admin/partners/';
         return;
       }
-      var data = await resp.json();
+      const data = await resp.json();
       if (!resp.ok) throw new Error(data.error || 'Request failed');
       return data;
     }
 
-    async function apiAction(id, action, reason) {
-      var resp = await fetch('/api/admin/partners/' + encodeURIComponent(id), {
+    async function apiAction(id: string, action: string, reason: string | null): Promise<unknown> {
+      const resp = await fetch('/api/admin/partners/' + encodeURIComponent(id), {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(reason ? { action: action, reason: reason } : { action: action }),
       });
-      var data = await resp.json().catch(function () { return {}; });
+      const data = await resp.json().catch(function () { return {}; });
       if (!resp.ok) throw new Error(data.error || 'Action failed');
       return data;
     }
 
-    function pendingRow(p) {
-      var id = esc(p.id);
+    function pendingRow(p: Partner): string {
+      const id = esc(p.id);
       return '<tr>' +
         '<td><strong>' + esc(p.name) + '</strong></td>' +
         '<td><a href="' + esc(p.site_url) + '" target="_blank" rel="external noopener">' + esc(p.site_url.replace(/^https?:\/\//, '')) + '</a></td>' +
@@ -171,8 +195,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         '</tr>';
     }
 
-    function activeRow(p) {
-      var id = esc(p.id);
+    function activeRow(p: Partner): string {
+      const id = esc(p.id);
       return '<tr>' +
         '<td><strong>' + esc(p.name) + '</strong></td>' +
         '<td><a href="' + esc(p.site_url) + '" target="_blank" rel="external noopener">' + esc(p.site_url.replace(/^https?:\/\//, '')) + '</a></td>' +
@@ -185,8 +209,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         '</tr>';
     }
 
-    function closedRow(p) {
-      var badge = p.status === 'rejected'
+    function closedRow(p: Partner): string {
+      const badge = p.status === 'rejected'
         ? '<span class="en-badge en-badge--rejected">Rejected</span>'
         : '<span class="en-badge en-badge--revoked">Revoked</span>';
       return '<tr>' +
@@ -197,14 +221,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         '</tr>';
     }
 
-    function render(partners) {
-      var buckets = { pending: [], active: [], rejected: [], revoked: [] };
+    function render(partners: Partner[]): void {
+      const buckets: Record<PartnerStatus, Partner[]> = { pending: [], active: [], rejected: [], revoked: [] };
       partners.forEach(function (p) { if (buckets[p.status]) buckets[p.status].push(p); });
 
-      document.getElementById('s-pending').textContent = num(buckets.pending.length);
-      document.getElementById('s-active').textContent = num(buckets.active.length);
-      document.getElementById('s-rejected').textContent = num(buckets.rejected.length);
-      document.getElementById('s-revoked').textContent = num(buckets.revoked.length);
+      sPending.textContent = num(buckets.pending.length);
+      sActive.textContent = num(buckets.active.length);
+      sRejected.textContent = num(buckets.rejected.length);
+      sRevoked.textContent = num(buckets.revoked.length);
 
       pendingTbody.innerHTML = buckets.pending.length
         ? buckets.pending.map(pendingRow).join('')
@@ -214,25 +238,25 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         ? buckets.active.map(activeRow).join('')
         : '<tr><td colspan="6" class="en-empty">No active partners</td></tr>';
 
-      var closed = buckets.rejected.concat(buckets.revoked);
+      const closed = buckets.rejected.concat(buckets.revoked);
       closedTbody.innerHTML = closed.length
         ? closed.map(closedRow).join('')
         : '<tr><td colspan="4" class="en-empty">No rejected or revoked partners</td></tr>';
 
       // Wire up action buttons
       document.querySelectorAll('.en-action').forEach(function (btn) {
-        btn.addEventListener('click', handleAction);
+        btn.addEventListener('click', handleAction as EventListener);
       });
     }
 
-    async function handleAction(ev) {
-      var btn = ev.currentTarget;
-      var id = btn.getAttribute('data-id');
-      var action = btn.getAttribute('data-action');
-      var reason = null;
+    async function handleAction(ev: Event): Promise<void> {
+      const btn = ev.currentTarget as HTMLButtonElement;
+      const id = btn.getAttribute('data-id');
+      const action = btn.getAttribute('data-action');
+      let reason: string | null = null;
 
       if (action === 'reject' || action === 'revoke') {
-        var prompt_msg = action === 'reject'
+        const prompt_msg = action === 'reject'
           ? 'Reason for rejection (sent to applicant):'
           : 'Reason for revocation (sent to partner):';
         reason = window.prompt(prompt_msg);
@@ -247,37 +271,39 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       btn.disabled = true;
       btn.textContent = 'Working...';
 
+      if (!id || !action) { btn.disabled = false; return; }
+
       try {
         await apiAction(id, action, reason);
         await load();
       } catch (e) {
-        alert('Failed: ' + e.message);
+        alert('Failed: ' + (e instanceof Error ? e.message : String(e)));
         btn.disabled = false;
         btn.textContent = action.charAt(0).toUpperCase() + action.slice(1);
       }
     }
 
-    async function load() {
+    async function load(): Promise<void> {
       pendingTbody.innerHTML = '<tr><td colspan="7" class="en-empty">Loading...</td></tr>';
       activeTbody.innerHTML = '<tr><td colspan="6" class="en-empty">Loading...</td></tr>';
       closedTbody.innerHTML = '<tr><td colspan="4" class="en-empty">Loading...</td></tr>';
       try {
-        var data = await apiGet();
+        const data = await apiGet();
         render((data && data.partners) || []);
       } catch (e) {
-        var msg = '<tr><td class="en-empty en-error">' + esc(e.message) + '</td></tr>';
+        const msg = '<tr><td class="en-empty en-error">' + esc(e instanceof Error ? e.message : String(e)) + '</td></tr>';
         pendingTbody.innerHTML = msg.replace('<td class', '<td colspan="7" class');
         activeTbody.innerHTML = msg.replace('<td class', '<td colspan="6" class');
         closedTbody.innerHTML = msg.replace('<td class', '<td colspan="4" class');
       }
     }
 
-    document.getElementById('logout-btn').addEventListener('click', async function () {
+    logoutBtn.addEventListener('click', async function () {
       await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
       window.location.href = '/login/';
     });
 
-    document.getElementById('refresh-btn').addEventListener('click', load);
+    refreshBtn.addEventListener('click', load);
 
     load();
   })();
