@@ -107,7 +107,7 @@
       "note": "Billed AI.run() + Vectorize (rate-limited)"
     },
     "functions/api/ask.js": {
-      "hash": "8e681c01c3ef7651080cecaab6a1a8617b7244753c06252929d25f39f4557582",
+      "hash": "d1e489258f8056520aa7be6a42881606f451c684c7afa0ad3f231c5fa079f849",
       "note": "NLWeb AI Search proxy (auth + rate-limited, billed upstream)"
     },
     "src/components/SearchBar.astro": {
