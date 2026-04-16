@@ -110,6 +110,7 @@ jobs:
           npm run fetch-all
           echo "Articles: $(node -e "console.log(require('./src/data/articles.json').length)")"
           echo "Posts: $(node -e "console.log(require('./src/data/posts.json').length)")"
+          echo "Partners: $(node -e "console.log(require('./src/data/partners.json').length)")"
 
       - name: Verify data files
         run: |
@@ -200,7 +201,7 @@ jobs:
           node -e "
             const fs = require('fs');
             const baselines = {};
-            for (const f of ['articles.json','posts.json','faqs.json','courses.json']) {
+            for (const f of ['articles.json','posts.json','faqs.json','courses.json','partners.json']) {
               const data = JSON.parse(fs.readFileSync('src/data/' + f, 'utf8'));
               baselines[f] = data.length;
             }
