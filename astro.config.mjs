@@ -39,6 +39,21 @@ function buildDateMap() {
     }
   } catch {}
 
+  // /partners/ lastmod = max(approved_at) across active Friend partners.
+  // Re-crawls naturally when a new partner lands or an existing one's status changes.
+  try {
+    const partners = JSON.parse(
+      readFileSync(join(__dirname, 'src/data/partners.json'), 'utf-8')
+    );
+    const maxApproved = partners.reduce(
+      (acc, p) => (p.approved_at && p.approved_at > acc ? p.approved_at : acc),
+      ''
+    );
+    if (maxApproved) {
+      map.set('/partners/', maxApproved.split('T')[0]);
+    }
+  } catch {}
+
   return map;
 }
 
