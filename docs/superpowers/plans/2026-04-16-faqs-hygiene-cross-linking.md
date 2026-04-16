@@ -4,7 +4,7 @@
 
 **Goal:** Fix FAQ-section drift since D1 migration: expose timestamps through the data layer, add hub breadcrumb + dynamic freshness, add pillar-aware CTAs on detail pages, clean curly-quote / NBSP typography in F12 and F06 questions, tighten hub meta description.
 
-**Architecture:** Single-repo, single-deploy. One guarded API file edit (`mapRow`), one D1 DML file, two Astro templates, one TS library addition (pillar map). Test-first on the API change using the existing `node --test` harness. Template changes verified via `npm run build` + post-deploy curl.
+**Architecture:** Single-repo, **two-deploy** sequence (deploy 1 = API layer; deploy 2 = data + templates). `fetch-faqs` hits the live `/api/faqs` endpoint, so the `mapRow` change (Task 1) must reach production before Task 4 regenerates `faqs.json`. One guarded API file edit (`mapRow`), one D1 DML file, two Astro templates, one TS library addition (pillar map). Test-first on the API change using the existing `node --test` harness. Template changes verified via `npm run build` + post-deploy curl.
 
 **Tech Stack:** Astro 5.3, Cloudflare Pages Functions (D1 + KV), TypeScript, node:test (unit tests for Pages Functions), wrangler CLI for D1.
 
@@ -127,12 +127,23 @@ Expected: `guard-manifest.json` regenerated with new hash for `functions/api/faq
 Run: `npm run guard`
 Expected: exit code 0, no invariant violations.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 7: Commit and push (deploy 1)**
 
 ```bash
 git add functions/api/faqs.js test/faqs.test.js guard-manifest.json
 git commit -m "feat(faqs): expose updatedAt/createdAt via /api/faqs"
+git push origin main
 ```
+
+- [ ] **Step 8: Wait for deploy 1 to land**
+
+Run: `gh run watch --exit-status`
+Expected: green deploy. Then verify live endpoint:
+
+```bash
+curl -sH "Authorization: Bearer $(op read 'op://Automation/RRM Library Worker Build Token/credential')" https://rrmacademy.org/api/faqs | jq '.results[0] | {updatedAt, createdAt}'
+```
+Expected: both fields non-null. Do not proceed to Task 2 until this passes.
 
 ---
 
@@ -648,7 +659,7 @@ Expected: output contains `href="/courses/"` and `Explore Courses` (the fallback
 
 ---
 
-## Task 8: Push + deploy
+## Task 8: Push + deploy 2
 
 **Files:**
 - No file changes.
@@ -656,7 +667,7 @@ Expected: output contains `href="/courses/"` and `Explore Courses` (the fallback
 - [ ] **Step 1: Review pending commits**
 
 Run: `git log --oneline origin/main..HEAD`
-Expected: 6 commits — mapRow/guard, lib/faq.ts, SQL file, faqs.json regen, hub template, detail template.
+Expected: 5 commits — lib/faq.ts, SQL file, faqs.json regen, hub template, detail template. (Task 1's mapRow commit already pushed in deploy 1.)
 
 - [ ] **Step 2: Push to main**
 
