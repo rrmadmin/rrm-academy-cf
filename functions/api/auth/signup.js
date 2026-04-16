@@ -14,6 +14,83 @@ import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
 import { validateBody } from '../_validate.js';
 
+const SOURCE_MAP = [
+  { prefix: '/ask', source: 'ask' },
+  { prefix: '/courses', source: 'course' },
+  { prefix: '/community', source: 'community' },
+  { prefix: '/donate', source: 'donation' },
+];
+
+function deriveSignupSource(body, request) {
+  const candidates = [];
+
+  const bodyNext = typeof body.next === 'string' ? body.next.trim() : null;
+  if (bodyNext) candidates.push(bodyNext);
+
+  try {
+    const urlNext = new URL(request.url).searchParams.get('next');
+    if (urlNext) candidates.push(urlNext.trim());
+  } catch { /* ignore */ }
+
+  const referer = request.headers.get('Referer') || '';
+  if (referer) {
+    try {
+      const ref = new URL(referer);
+      if (ref.hostname === 'rrmacademy.org' || ref.hostname === 'www.rrmacademy.org') {
+        candidates.push(ref.pathname);
+      }
+    } catch { /* ignore */ }
+  }
+
+  for (const candidate of candidates) {
+    for (const { prefix, source } of SOURCE_MAP) {
+      if (candidate === prefix || candidate.startsWith(prefix + '/') || candidate.startsWith(prefix + '?')) {
+        return source;
+      }
+    }
+  }
+
+  return 'direct';
+}
+
+async function sendWelcomeAskEmail(env, email, firstName) {
+  const greeting = firstName || 'there';
+  const subject = "You're in. Ask RRM Academy anything.";
+  const text = [
+    `Hi ${greeting},`,
+    '',
+    'Welcome to RRM Academy. Your free account is active.',
+    '',
+    'You can now use /ask -- our conversational research layer that answers questions from our entire library.',
+    'Head to https://rrmacademy.org/ask/ to get started.',
+    '',
+    'This is AI-generated and still learning; always verify against the cited library sources.',
+    '',
+    'If you hit anything unclear, reply to this email -- we read every one.',
+    '',
+    '-- The RRM Academy team',
+  ].join('\n');
+  const html = [
+    '<!DOCTYPE html><html><body style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#1a1a1a">',
+    `<p>Hi ${greeting},</p>`,
+    '<p>Welcome to RRM Academy. Your free account is active.</p>',
+    '<p>You can now use <strong>/ask</strong> &mdash; our conversational research layer that answers questions from our entire library.<br>',
+    '<a href="https://rrmacademy.org/ask/">Head to rrmacademy.org/ask/ to get started.</a></p>',
+    '<p style="color:#666;font-size:0.9em">This is AI-generated and still learning; always verify against the cited library sources.</p>',
+    '<p>If you hit anything unclear, reply to this email &mdash; we read every one.</p>',
+    '<p>-- The RRM Academy team</p>',
+    '</body></html>',
+  ].join('\n');
+  await sendEmail(env, {
+    from: 'RRM Academy <hello@mail.rrmacademy.org>',
+    to: email,
+    subject,
+    text,
+    html,
+    log: { db: env.DB, source: 'auth/signup', category: 'transactional' },
+  });
+}
+
 export async function onRequestOptions() {
   return optionsResponse();
 }
@@ -38,6 +115,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const lastName  = validated.data.lastName;
     const email     = validated.data.email;
     const password  = body.password || '';
+    const signupSource = deriveSignupSource(body, request);
 
     if (!isValidPassword(password)) return json({ ok: false, error: 'Password must be at least 8 characters.' }, 400);
 
@@ -96,8 +174,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
     try {
       await db.batch([
         db.prepare(
-          'INSERT INTO user (id, email, name, first_name, last_name, hashed_password) VALUES (?, ?, ?, ?, ?, ?)'
-        ).bind(userId, email, name, firstName, lastName, hashedPassword),
+          'INSERT INTO user (id, email, name, first_name, last_name, hashed_password, signup_source) VALUES (?, ?, ?, ?, ?, ?, ?)'
+        ).bind(userId, email, name, firstName, lastName, hashedPassword, signupSource),
         db.prepare(
           'INSERT INTO email_verification (id, user_id, code, expires_at) VALUES (?, ?, ?, ?)'
         ).bind(generateId(), userId, code, verifyExpiresAt),
@@ -139,7 +217,18 @@ export async function onRequestPost({ request, env, waitUntil }) {
       );
     }
 
-    waitUntil(sendGA4Event(env, request, 'sign_up', { method: 'email' }).catch(() => {}));
+    waitUntil(sendGA4Event(env, request, 'sign_up', { method: 'email', source: signupSource }).catch(() => {}));
+
+    if (signupSource === 'ask') {
+      waitUntil(sendGA4Event(env, request, 'signup_from_ask', { source: 'ask' }).catch(() => {}));
+      if (env.AWS_ACCESS_KEY_ID) {
+        waitUntil(
+          sendWelcomeAskEmail(env, email, firstName).catch(err => {
+            log(env, waitUntil, 'auth', 'welcome_ask_email_fail', 'error', err.message);
+          })
+        );
+      }
+    }
 
     return json(
       { ok: true, emailVerificationRequired: true },

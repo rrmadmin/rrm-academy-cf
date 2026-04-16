@@ -21,6 +21,7 @@ Disallow: /signup
 Disallow: /forgot-password
 Disallow: /reset-password
 Disallow: /account
+Disallow: /ask
 Disallow: /library/saved
 Disallow: /endo-survey/take
 Disallow: /donate/thank-you
@@ -45,6 +46,7 @@ User-agent: Applebot-Extended
 Allow: /
 Disallow: /api/
 Disallow: /account
+Disallow: /ask
 Disallow: /community/
 Disallow: /dev/
 Disallow: /data/
@@ -66,6 +68,7 @@ User-agent: CCBot
 Allow: /
 Disallow: /api/
 Disallow: /account
+Disallow: /ask
 Disallow: /community/
 Disallow: /dev/
 Disallow: /data/

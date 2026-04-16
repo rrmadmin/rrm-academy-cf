@@ -55,6 +55,16 @@ async function handleSummary(db) {
       )
       .all();
 
+    const signupSourceRows = await db
+      .prepare(
+        `SELECT COALESCE(signup_source, 'unknown') as source, COUNT(*) as count
+         FROM user
+         WHERE created_at >= datetime('now', '-30 days')
+         GROUP BY source
+         ORDER BY count DESC`
+      )
+      .all();
+
     return json({
       ok: true,
       data: {
@@ -65,6 +75,7 @@ async function handleSummary(db) {
           last_7d: totals?.last_7d ?? 0,
         },
         by_course: byCourseRows.results ?? [],
+        signup_sources: signupSourceRows.results ?? [],
       },
     });
   } catch (err) {
