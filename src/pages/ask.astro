@@ -117,12 +117,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           })
           .then(function (res) {
             if (loader.parentNode) loader.parentNode.removeChild(loader);
-            if (res.status === 200 && res.data && res.data.answer) {
-              appendMessage('assistant', res.data.answer, res.data.citations);
-            } else if (res.status === 429) {
-              appendError('You have reached today\u2019s question limit. Come back tomorrow.');
-            } else if (res.status === 401) {
+            var d = res.data || {};
+            // CF Pages /* headers rule can mangle non-200 status codes, so key
+            // decisions off the JSON body's error field as well as res.status.
+            if (d.answer) {
+              appendMessage('assistant', d.answer, d.citations);
+            } else if (d.error === 'unauthorized' || res.status === 401) {
               window.location.href = '/signup/?next=/ask';
+            } else if (d.error === 'rate_limited' || res.status === 429) {
+              appendError('You have reached today\u2019s question limit. Come back tomorrow.');
+            } else if (d.error === 'forbidden' || res.status === 403) {
+              appendError('This account cannot use /ask right now.');
             } else {
               appendError('Something went wrong. Please try again.');
             }
