@@ -5,7 +5,6 @@
  *
  * Body: { action: 'approve' | 'reject' | 'revoke', reason?: string }
  */
-// TODO: task 10 - wire _emails.js helpers
 import { json, optionsResponse, requireSuperAdmin } from '../../auth/_shared.js';
 import { log } from '../../_log.js';
 
@@ -116,7 +115,6 @@ export async function onRequest({ request, env, params }) {
 
     const updatedPartner = { ...partner, status: newStatus };
 
-    // TODO: task 10 - wire _emails.js helpers
     try {
       const emails = await import('../../partners/_emails.js');
       if (action === 'approve') {
