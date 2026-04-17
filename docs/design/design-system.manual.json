@@ -1,0 +1,149 @@
+{
+  "_note": "Hand-curated non-CSS facts (brand rules, fonts, typography scale). Merged into design-system.json by scripts/generate-design-tokens.mjs. Edit this file when STYLE-GUIDE.md or fonts.css change, then regenerate.",
+  "brand": {
+    "name": "RRM Academy",
+    "wordmark": {
+      "text": "RRM Academy",
+      "fontFamily": "Cormorant Garamond",
+      "fontWeight": 600,
+      "colorToken": "--text-primary",
+      "rules": [
+        "The brand is a pure Cormorant Garamond 600 text wordmark. No graphic mark exists.",
+        "Do NOT invent a circle+R monogram, seal, glyph, badge mark, or any icon. The tree logo was deprecated.",
+        "In any branded asset (badge, OG image, certificate), the wordmark is the biggest element. Eyebrow labels and descriptors are always secondary.",
+        "Canonical treatment lives in src/components/Header.astro .logo__text (Cormorant 600, 1.625rem, --text-primary)."
+      ]
+    },
+    "accent": {
+      "colorToken": "--accent",
+      "lightValue": "#725e7e",
+      "darkValue": "#b8a3c4",
+      "einkValue": "#5a5045",
+      "rules": [
+        "Brand accent is purple. Never rose, never sand, never any other palette.",
+        "Rose is a semantic palette used for community/feminine UI accents and is NOT a brand accent.",
+        "Purple is used sparingly: accent links, buttons, interactive states. It never competes with content."
+      ]
+    },
+    "darkAssetPalette": {
+      "note": "When designing a dark variant of any branded asset, use these tokens so the asset reads as native to the site footer.",
+      "bgToken": "--footer-bg",
+      "bgValue": "#313131",
+      "textValue": "#ffffff",
+      "accentToken": "--footer-accent",
+      "accentValue": "#c9b8d3"
+    },
+    "philosophy": "Purple as authority. The brand purple (#725e7e) is used sparingly -- accent links, buttons, interactive states. It never competes with content."
+  },
+  "fonts": {
+    "source": "src/styles/fonts.css (@fontsource packages, self-hosted woff2)",
+    "families": {
+      "display": {
+        "cssStack": "'Cormorant Garamond', Georgia, 'Times New Roman', serif",
+        "primary": "Cormorant Garamond",
+        "use": "Display -- headings, blockquotes, hero text, FAQ questions, stat numbers, wordmark"
+      },
+      "ui": {
+        "cssStack": "'Inter', 'Helvetica Neue', Arial, sans-serif",
+        "primary": "Inter",
+        "use": "UI -- body text, buttons, inputs, labels, meta, navigation"
+      }
+    },
+    "loaded": [
+      { "family": "Cormorant Garamond", "weight": 400, "style": "normal", "format": "woff2" },
+      { "family": "Cormorant Garamond", "weight": 600, "style": "normal", "format": "woff2" },
+      { "family": "Inter", "weight": 400, "style": "normal", "format": "woff2" },
+      { "family": "Inter", "weight": 500, "style": "normal", "format": "woff2" },
+      { "family": "Inter", "weight": 600, "style": "normal", "format": "woff2" }
+    ]
+  },
+  "typography": {
+    "source": "STYLE-GUIDE.md Typography section",
+    "scale": {
+      "h1": {
+        "family": "display",
+        "fontSize": "2rem",
+        "fontSizeMobile": "1.5rem",
+        "fontWeight": 600,
+        "lineHeight": 1.15
+      },
+      "h2": {
+        "family": "display",
+        "fontSize": "1.75rem",
+        "fontSizeMobile": "1.375rem",
+        "fontWeight": 600,
+        "lineHeight": 1.15,
+        "marginBottomToken": "--space-6"
+      },
+      "h3": {
+        "family": "display",
+        "fontSize": "1.5rem",
+        "fontWeight": 600,
+        "lineHeight": 1.15,
+        "marginBottomToken": "--space-3"
+      },
+      "h4": {
+        "family": "display",
+        "fontSize": "1.25rem",
+        "fontWeight": 600,
+        "lineHeight": 1.15,
+        "marginBottomToken": "--space-2"
+      },
+      "body": {
+        "family": "ui",
+        "fontSize": "1rem",
+        "fontWeight": 400,
+        "lineHeight": 1.75
+      },
+      "prose": {
+        "family": "ui",
+        "fontSize": "0.9375rem",
+        "fontWeight": 400,
+        "lineHeight": 1.8,
+        "colorToken": "--text-secondary",
+        "use": "Static/info pages"
+      },
+      "meta": {
+        "family": "ui",
+        "fontSizeMin": "0.75rem",
+        "fontSizeMax": "0.875rem",
+        "fontWeight": 500,
+        "use": "Journal lines, timestamps, counts"
+      },
+      "eyebrow": {
+        "family": "ui",
+        "fontSize": "0.6875rem",
+        "fontWeight": 600,
+        "textTransform": "uppercase",
+        "use": "Small labels, badge text, eyebrow labels"
+      }
+    },
+    "hero": {
+      "interiorPageH1": {
+        "fontSize": "clamp(2rem, 1.5rem + 2vw, 2.5rem)",
+        "class": ".hero-title",
+        "use": "About, Donate, FAQs"
+      },
+      "homepageH1": {
+        "fontSize": "clamp(2rem, 1.2rem + 3.5vw, 4.25rem)"
+      },
+      "homepageH2": {
+        "fontSize": "clamp(1.75rem, 1.25rem + 1.5vw, 2.75rem)"
+      },
+      "libraryHeroH1": {
+        "fontSizeMobile": "2.5rem",
+        "fontSizeDesktop": "3.5rem",
+        "breakpoint": "769px"
+      },
+      "commentaryHeroH1": {
+        "fontSizeMobile": "2.5rem",
+        "fontSizeDesktop": "3.5rem",
+        "breakpoint": "769px"
+      },
+      "articleDetailH1": {
+        "fontSize": "1.875rem",
+        "fontSizeMobile": "1.5rem"
+      }
+    }
+  }
+}
