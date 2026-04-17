@@ -124,7 +124,7 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
         document.getElementById('signup-heading').textContent = 'Create your free account';
         signupSubheading.textContent = 'One free account unlocks our conversational research layer -- ask anything about restorative reproductive medicine.';
         signupSubheading.hidden = false;
-        if (googleBtn) googleBtn.setAttribute('href', '/api/auth/google?next=' + encodeURIComponent(nextParam));
+        if (googleBtn) googleBtn.setAttribute('href', '/api/auth/google?redirect=' + encodeURIComponent(nextParam));
       }
 
       function initTurnstile() {
