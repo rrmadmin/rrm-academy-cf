@@ -184,6 +184,9 @@ jobs:
       - name: Verify design system SSOT is in sync
         run: npm run design-tokens:check
 
+      - name: Audit design tokens (no phantoms)
+        run: npm run design-tokens:audit
+
       - name: Build site
         run: npm run build
 

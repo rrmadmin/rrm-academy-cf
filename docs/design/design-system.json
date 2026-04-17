@@ -1480,13 +1480,25 @@
         "type": "dimension",
         "cssVariable": "--max-width-page"
       }
+    },
+    "fontFamily": {
+      "display": {
+        "value": "'Cormorant Garamond', Georgia, 'Times New Roman', serif",
+        "type": "fontFamily",
+        "cssVariable": "--font-display"
+      },
+      "body": {
+        "value": "'Inter', 'Helvetica Neue', Arial, sans-serif",
+        "type": "fontFamily",
+        "cssVariable": "--font-body"
+      }
     }
   },
   "counts": {
     "light": 73,
     "dark": 73,
     "eink": 73,
-    "shared": 17,
-    "total": 236
+    "shared": 19,
+    "total": 238
   }
 }
