@@ -135,6 +135,44 @@ test.describe('Commentary mobile', () => {
 });
 
 // ---------------------------------------------------------------
+// Mobile hamburger right-alignment
+// ---------------------------------------------------------------
+// The mobile hamburger was broken before (misaligned / missing).
+// Restoring it was a deliberate fix. This test asserts it renders at
+// the right edge of the header on mobile viewports so regressions are
+// caught at the runtime layer (companion to scripts/verify-mobile-hamburger.mjs).
+test.describe('Mobile hamburger', () => {
+  test('visible and right-aligned within the header', async ({ page, viewport }) => {
+    // Only meaningful at mobile widths; skip at desktop.
+    test.skip((viewport?.width ?? 0) >= 900, 'desktop project: hamburger is hidden');
+
+    await page.goto('/');
+    await waitForReady(page);
+
+    const toggle = page.locator('.mobile-toggle').first();
+    await expect(toggle, 'mobile-toggle element exists').toHaveCount(1);
+    await expect(toggle, 'mobile-toggle is visible at mobile viewport').toBeVisible();
+
+    const { headerRight, toggleRight, hasHamburgerSpan } = await toggle.evaluate((el) => {
+      const header = el.closest('.site-header') || el.closest('header') || el.parentElement;
+      return {
+        headerRight: header ? header.getBoundingClientRect().right : window.innerWidth,
+        toggleRight: el.getBoundingClientRect().right,
+        hasHamburgerSpan: !!el.querySelector('.hamburger'),
+      };
+    });
+
+    expect(hasHamburgerSpan, 'mobile-toggle contains a .hamburger span').toBe(true);
+    // Hamburger right edge must sit within 48px of the header right edge.
+    // 48px covers padding/gap variations; anything more means it drifted left.
+    expect(
+      headerRight - toggleRight,
+      `hamburger not right-aligned: headerRight=${headerRight}, toggleRight=${toggleRight}`,
+    ).toBeLessThanOrEqual(48);
+  });
+});
+
+// ---------------------------------------------------------------
 // Additional high-traffic pages
 // ---------------------------------------------------------------
 test.describe('Other pages mobile', () => {
