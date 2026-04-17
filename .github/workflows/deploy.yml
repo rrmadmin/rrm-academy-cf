@@ -181,6 +181,9 @@ jobs:
       - name: Type check (baseline)
         run: npm run check-types
 
+      - name: Verify design system SSOT is in sync
+        run: npm run design-tokens:check
+
       - name: Build site
         run: npm run build
 
