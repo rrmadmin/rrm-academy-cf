@@ -21,6 +21,7 @@ const STATIC_PAGES = [
   { slug: 'donate', title: 'Donate', description: 'Support a 501(c)(3) nonprofit advancing restorative reproductive medicine. Your donation funds free courses and research resources.' },
   { slug: 'donate-thank-you', title: 'Thank You for Your Donation', description: 'Your tax-deductible donation helps advance evidence-based reproductive health education.' },
   { slug: 'faqs', title: 'Frequently Asked Questions', description: 'Common questions about restorative reproductive medicine, NaProTechnology, fertility awareness, and RRM Academy.' },
+  { slug: 'ask', title: 'Ask RRM Academy', description: 'Ask a question about restorative reproductive medicine. Answers drawn from the RRM Academy research library, FAQs, and pillar guides.' },
   { slug: 'library', title: 'Research Library', description: 'The largest free collection of RRM research. Peer-reviewed articles on endometriosis, PCOS, infertility, and reproductive health.' },
   { slug: 'commentary', title: 'Commentary', description: 'Expert commentary on restorative reproductive medicine from Dr. Naomi Whittaker. Research updates, patient advocacy, and clinical insights.' },
   { slug: 'courses', title: 'Courses', description: 'Online courses in endometriosis, fertility, PCOS, and restorative reproductive medicine.' },
