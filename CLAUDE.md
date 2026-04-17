@@ -110,6 +110,7 @@ docs/
 
 | Topic | File |
 |-------|------|
+| Design system entry point | `DESIGN.md` |
 | Design system SSOT (machine-readable) | `docs/design/design-system.json` |
 | Design system narrative (human-readable) | `STYLE-GUIDE.md` |
 | Backlog & project status | `docs/plans/backlog.md` |
