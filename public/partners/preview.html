@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Partner Badge — Size Test</title>
+<style>
+  :root {
+    --bg: #faf8f5;
+    --panel: #ffffff;
+    --dark-panel: #1e1a16;
+    --text: #313131;
+    --muted: #636261;
+    --border: #dddbd8;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 40px; background: var(--bg); font-family: -apple-system, 'Inter', sans-serif; color: var(--text); }
+  h1 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 600; margin: 0 0 8px; }
+  p.sub { color: var(--muted); margin: 0 0 32px; max-width: 60ch; }
+  section { margin-bottom: 48px; }
+  h2 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.25rem; margin: 0 0 16px; color: var(--text); font-weight: 600; }
+  .row { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-end; padding: 20px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; }
+  .row.dark { background: var(--dark-panel); }
+  .row.dark .size-label { color: #9a9088; }
+  .row.dark h2 { color: #dcd6ce; }
+  .specimen { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .specimen img { display: block; }
+  .size-label { font-size: 11px; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
+  /* Background context strip */
+  .context { margin-top: 48px; padding: 24px; background: #313131; border-radius: 8px; }
+  .context h2 { color: #c9b8d3; }
+  .footer-line { display: flex; align-items: center; gap: 24px; color: #adaba9; font-size: 13px; padding: 16px 0; border-top: 1px solid rgba(255,255,255,0.1); }
+  .footer-line img { flex-shrink: 0; }
+</style>
+</head>
+<body>
+  <h1>RRM Academy Partner Badge — Size Test</h1>
+  <p class="sub">All four variants rendered at the actual sizes they'll appear in the wild. Documented minimums: horizontal >= 56px, stacked >= 80px. Sizes below the minimum are shown for stress-testing only and should use the text link "Educational partner of RRM Academy" instead of a badge.</p>
+
+  <section>
+    <h2>Horizontal — Light (target: email signatures, light footers)</h2>
+    <div class="row">
+      <div class="specimen"><img src="badge-horizontal-light.svg" style="height: 24px"><span class="size-label">24px</span></div>
+      <div class="specimen"><img src="badge-horizontal-light.svg" style="height: 32px"><span class="size-label">32px</span></div>
+      <div class="specimen"><img src="badge-horizontal-light.svg" style="height: 40px"><span class="size-label">40px (below min)</span></div>
+      <div class="specimen"><img src="badge-horizontal-light.svg" style="height: 56px"><span class="size-label">56px — min</span></div>
+      <div class="specimen"><img src="badge-horizontal-light.svg" style="height: 80px"><span class="size-label">80px</span></div>
+      <div class="specimen"><img src="badge-horizontal-light.svg" style="height: 120px"><span class="size-label">120px</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Horizontal — Dark (target: dark footers, social banners)</h2>
+    <div class="row dark">
+      <div class="specimen"><img src="badge-horizontal-dark.svg" style="height: 24px"><span class="size-label">24px</span></div>
+      <div class="specimen"><img src="badge-horizontal-dark.svg" style="height: 32px"><span class="size-label">32px</span></div>
+      <div class="specimen"><img src="badge-horizontal-dark.svg" style="height: 40px"><span class="size-label">40px (below min)</span></div>
+      <div class="specimen"><img src="badge-horizontal-dark.svg" style="height: 56px"><span class="size-label">56px — min</span></div>
+      <div class="specimen"><img src="badge-horizontal-dark.svg" style="height: 80px"><span class="size-label">80px</span></div>
+      <div class="specimen"><img src="badge-horizontal-dark.svg" style="height: 120px"><span class="size-label">120px</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Stacked — Light (target: about pages, cards)</h2>
+    <div class="row">
+      <div class="specimen"><img src="badge-stacked-light.svg" style="height: 48px"><span class="size-label">48px</span></div>
+      <div class="specimen"><img src="badge-stacked-light.svg" style="height: 72px"><span class="size-label">72px</span></div>
+      <div class="specimen"><img src="badge-stacked-light.svg" style="height: 96px"><span class="size-label">96px — min</span></div>
+      <div class="specimen"><img src="badge-stacked-light.svg" style="height: 128px"><span class="size-label">128px</span></div>
+      <div class="specimen"><img src="badge-stacked-light.svg" style="height: 180px"><span class="size-label">180px</span></div>
+      <div class="specimen"><img src="badge-stacked-light.svg" style="height: 220px"><span class="size-label">220px — download</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Stacked — Dark</h2>
+    <div class="row dark">
+      <div class="specimen"><img src="badge-stacked-dark.svg" style="height: 48px"><span class="size-label">48px</span></div>
+      <div class="specimen"><img src="badge-stacked-dark.svg" style="height: 72px"><span class="size-label">72px</span></div>
+      <div class="specimen"><img src="badge-stacked-dark.svg" style="height: 96px"><span class="size-label">96px — min</span></div>
+      <div class="specimen"><img src="badge-stacked-dark.svg" style="height: 128px"><span class="size-label">128px</span></div>
+      <div class="specimen"><img src="badge-stacked-dark.svg" style="height: 180px"><span class="size-label">180px</span></div>
+      <div class="specimen"><img src="badge-stacked-dark.svg" style="height: 220px"><span class="size-label">220px — download</span></div>
+    </div>
+  </section>
+
+  <section class="context">
+    <h2>In context: partner-clinic dark footer</h2>
+    <div class="footer-line">
+      <img src="badge-horizontal-dark.svg" style="height: 40px">
+      <span>NeoFertility is an educational partner of RRM Academy — learn more at rrmacademy.org/partners</span>
+    </div>
+    <div class="footer-line">
+      <img src="badge-horizontal-dark.svg" style="height: 32px">
+      <span>© 2026 Example Clinic. All rights reserved.</span>
+    </div>
+  </section>
+</body>
+</html>

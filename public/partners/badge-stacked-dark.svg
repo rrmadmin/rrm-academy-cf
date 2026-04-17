@@ -1,58 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 260" role="img" aria-label="RRM Academy Educational Partner">
-  <defs>
-    <linearGradient id="gold-stack-dark" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#e8c988"/>
-      <stop offset="50%" stop-color="#c9a961"/>
-      <stop offset="100%" stop-color="#a88848"/>
-    </linearGradient>
-    <radialGradient id="deep-glow" cx="0.5" cy="0.4" r="0.7">
-      <stop offset="0%" stop-color="#3d2a32"/>
-      <stop offset="100%" stop-color="#2a1e23"/>
-    </radialGradient>
-  </defs>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="RRM Academy Educational Partner">
   <style>
-    .bg { fill: url(#deep-glow); }
-    .frame-outer { fill: none; stroke: url(#gold-stack-dark); stroke-width: 0.85; }
-    .frame-inner { fill: none; stroke: url(#gold-stack-dark); stroke-width: 0.5; opacity: 0.5; }
-    .rule { stroke: url(#gold-stack-dark); stroke-width: 1; }
-    .ornament-fill { fill: url(#gold-stack-dark); }
-    .ornament-stroke { fill: none; stroke: url(#gold-stack-dark); stroke-width: 0.9; }
-    .eyebrow { fill: #c9a961; font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.32em; text-transform: uppercase; text-anchor: middle; }
-    .wordmark { fill: #f7f0e8; font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size: 30px; font-weight: 600; letter-spacing: 0.015em; text-anchor: middle; }
-    .footer { fill: #c9a961; font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif; font-size: 7.5px; font-weight: 500; letter-spacing: 0.35em; text-transform: uppercase; text-anchor: middle; opacity: 0.9; }
-    .year { fill: #c9a961; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 11px; font-style: italic; font-weight: 400; letter-spacing: 0.12em; text-anchor: middle; opacity: 0.85; }
+    .bg { fill: #1e1a16; }
+    .frame { fill: none; stroke: #c9a961; stroke-width: 2.5; }
+    .rule { stroke: #c9a961; stroke-width: 1.5; opacity: 0.6; }
+    .dot { fill: #c9a961; }
+    .label { fill: #f7f0e8; font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif; font-size: 28px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; text-anchor: middle; }
+    .wordmark { fill: #c9a961; font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size: 26px; font-weight: 600; font-style: italic; letter-spacing: 0.02em; text-anchor: middle; }
   </style>
-  <rect class="bg" width="260" height="260"/>
-  <rect class="frame-outer" x="10" y="10" width="240" height="240" rx="2"/>
-  <rect class="frame-inner" x="16" y="16" width="228" height="228" rx="1"/>
-
-  <g>
-    <path class="ornament-stroke" d="M 22 30 L 22 22 L 30 22"/>
-    <path class="ornament-stroke" d="M 238 30 L 238 22 L 230 22"/>
-    <path class="ornament-stroke" d="M 22 230 L 22 238 L 30 238"/>
-    <path class="ornament-stroke" d="M 238 230 L 238 238 L 230 238"/>
-    <path class="ornament-fill" d="M 26 26 L 28 28 L 26 30 L 24 28 Z"/>
-    <path class="ornament-fill" d="M 234 26 L 236 28 L 234 30 L 232 28 Z"/>
-    <path class="ornament-fill" d="M 26 230 L 28 232 L 26 234 L 24 232 Z"/>
-    <path class="ornament-fill" d="M 234 230 L 236 232 L 234 234 L 232 232 Z"/>
-  </g>
-
-  <g transform="translate(130, 58)">
-    <path class="ornament-fill" d="M -8 0 L -6 -2 L -4 0 L -6 2 Z"/>
-    <path class="ornament-fill" d="M 0 -3 L 3 0 L 0 3 L -3 0 Z"/>
-    <path class="ornament-fill" d="M 4 0 L 6 -2 L 8 0 L 6 2 Z"/>
-  </g>
-
-  <text class="eyebrow" x="130" y="90">Educational</text>
-  <text class="eyebrow" x="130" y="108">Partner</text>
-
-  <line class="rule" x1="76" y1="126" x2="184" y2="126"/>
-  <circle class="ornament-fill" cx="130" cy="126" r="2.5"/>
-  <circle cx="130" cy="126" r="1.2" fill="#2a1e23"/>
-
-  <text class="wordmark" x="130" y="166">RRM</text>
-  <text class="wordmark" x="130" y="198">Academy</text>
-
-  <line class="rule" x1="86" y1="214" x2="174" y2="214" opacity="0.4"/>
-  <text class="year" x="130" y="232">rrmacademy.org</text>
+  <rect class="bg" width="240" height="240"/>
+  <rect class="frame" x="10" y="10" width="220" height="220"/>
+  <text class="label" x="120" y="83">Educational</text>
+  <text class="label" x="120" y="123">Partner</text>
+  <line class="rule" x1="76" y1="148" x2="106" y2="148"/>
+  <circle class="dot" cx="120" cy="148" r="2.5"/>
+  <line class="rule" x1="134" y1="148" x2="164" y2="148"/>
+  <text class="wordmark" x="120" y="180">RRM Academy</text>
 </svg>

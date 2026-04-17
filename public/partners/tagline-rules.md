@@ -49,6 +49,14 @@ Use the provided SVG badges at their native size or scaled proportionally.
 Do not recolor, rotate, crop, or overlay text. Light badge on light
 backgrounds; dark badge on dark backgrounds.
 
+### Minimum sizes
+
+- Horizontal badge: **56 px tall** minimum (footer / in-line placement).
+- Stacked badge: **96 px tall** minimum (cards, about pages, download kit).
+
+Below the minimum, do not scale the badge down further. Use the text link
+"Educational partner of RRM Academy" instead.
+
 ## If your status changes
 
 If you stop aligning with the four principles (see our `/partners/` page) or
