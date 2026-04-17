@@ -19,6 +19,8 @@
     "guard:install": "cp hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit",
     "design-tokens": "node scripts/generate-design-tokens.mjs",
     "design-tokens:check": "node scripts/generate-design-tokens.mjs --check",
+    "design-tokens:audit": "node scripts/audit-design-tokens.mjs",
+    "design-tokens:audit:strict": "node scripts/audit-design-tokens.mjs --strict",
     "sync-ecosystem": "node scripts/sync-ecosystem.mjs",
     "embed": "npx wrangler dev scripts/embed-library.mjs --port 8688 --compatibility-date 2025-01-01",
     "pipeline:snapshot": "node scripts/pipeline.mjs snapshot",
