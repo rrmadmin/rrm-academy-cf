@@ -209,11 +209,23 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   .ask-header h1 { font-size: 2rem; margin-bottom: var(--space-3); }
   .ask-sub { color: var(--text-secondary); font-size: 0.9375rem; line-height: 1.5; }
 
-  .ask-thread { max-width: 720px; margin: 0 auto var(--space-6); display: flex; flex-direction: column; gap: var(--space-4); }
-  .ask-msg { border-radius: var(--radius-lg); padding: var(--space-4) var(--space-5); font-size: 0.9375rem; line-height: 1.55; }
-  .ask-msg--user { background: var(--bg-surface); border: 1px solid var(--border-color); align-self: flex-end; max-width: 85%; }
-  .ask-msg--assistant { background: var(--bg-card); border: 1px solid var(--border-color); max-width: 95%; }
-  .ask-msg--error { background: rgba(192,57,43,0.05); border: 1px solid var(--color-error); color: var(--color-error); }
+  .ask-thread { max-width: 720px; margin: 0 auto var(--space-6); display: flex; flex-direction: column; gap: var(--space-5); }
+  .ask-msg { font-size: 0.9375rem; line-height: 1.55; }
+  .ask-msg--user {
+    align-self: flex-end; max-width: 80%;
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+    color: var(--text-primary);
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-lg) var(--radius-lg) var(--radius-sm) var(--radius-lg);
+  }
+  .ask-msg--assistant {
+    align-self: stretch; max-width: 100%;
+    background: transparent; border: none;
+    padding: 0 0 0 var(--space-5);
+    border-left: 2px solid var(--accent);
+  }
+  .ask-msg--error { background: rgba(192,57,43,0.05); border: 1px solid var(--color-error); color: var(--color-error); padding: var(--space-3) var(--space-5); border-radius: var(--radius-lg); }
   .ask-msg__body { word-wrap: break-word; overflow-wrap: anywhere; }
   .ask-msg__body p { margin: 0 0 var(--space-3); }
   .ask-msg__body p:last-child { margin-bottom: 0; }
