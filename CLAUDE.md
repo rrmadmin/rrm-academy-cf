@@ -332,6 +332,12 @@ Full Stripe refunds (`charge.refunded === true`) soft-revoke enrollment via `rev
 
 `deploy.yml` enforces minimum record counts: articles >= 2500, posts >= 5, faqs >= 10, courses >= 1. Prevents catastrophic data loss from deploying.
 
+**Two "baseline" files exist and are independent — don't confuse them:**
+- `src/data/.baselines.json` -- record-count floor for articles/posts/faqs/courses JSON. Auto-updated by CI after green deploys.
+- `scripts/type-check-baseline.json` -- Astro `npx astro check` error count ceiling. Deploy's `Type check (baseline)` step fails if current errors > baseline. NOT auto-updated. Manually bump via `node scripts/check-types.mjs --update` OR fix the errors.
+
+A commit introducing new type errors silently blocks deploys until the baseline is bumped or errors are fixed. Always run `npm run check-types` before pushing.
+
 ## Mobile Editing
 
 Push to `claude/` branch -- GitHub Actions auto-builds + merges. No local credentials needed.
