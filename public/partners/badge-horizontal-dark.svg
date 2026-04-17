@@ -1,12 +1,34 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 96" role="img" aria-label="RRM Academy Educational Partner">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 120" role="img" aria-label="RRM Academy Educational Partner">
+  <defs>
+    <linearGradient id="gold-dark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e8c988"/>
+      <stop offset="50%" stop-color="#c9a961"/>
+      <stop offset="100%" stop-color="#a88848"/>
+    </linearGradient>
+  </defs>
   <style>
-    .bg { fill: #313131; }
-    .rule { stroke: #c9b8d3; stroke-width: 1.5; }
-    .eyebrow { fill: #c9b8d3; font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; }
-    .wordmark { fill: #ffffff; font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size: 28px; font-weight: 600; letter-spacing: 0.01em; }
+    .bg { fill: #2a1e23; }
+    .frame-outer { fill: none; stroke: url(#gold-dark); stroke-width: 0.75; }
+    .frame-inner { fill: none; stroke: url(#gold-dark); stroke-width: 0.5; opacity: 0.45; }
+    .rule { stroke: url(#gold-dark); stroke-width: 1; }
+    .ornament { fill: url(#gold-dark); }
+    .eyebrow { fill: #c9a961; font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif; font-size: 9px; font-weight: 600; letter-spacing: 0.28em; text-transform: uppercase; text-anchor: middle; }
+    .wordmark { fill: #f7f0e8; font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size: 32px; font-weight: 600; letter-spacing: 0.015em; text-anchor: middle; }
+    .footer { fill: #c9a961; font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif; font-size: 8px; font-weight: 500; letter-spacing: 0.32em; text-transform: uppercase; text-anchor: middle; opacity: 0.85; }
   </style>
-  <rect class="bg" width="320" height="96" rx="4"/>
-  <text class="eyebrow" x="24" y="34">Educational Partner</text>
-  <line class="rule" x1="24" y1="46" x2="60" y2="46"/>
-  <text class="wordmark" x="24" y="72">RRM Academy</text>
+  <rect class="bg" width="360" height="120"/>
+  <rect class="frame-outer" x="6" y="6" width="348" height="108"/>
+  <rect class="frame-inner" x="10" y="10" width="340" height="100"/>
+  <g>
+    <path d="M 14 18 L 14 14 L 18 14" fill="none" stroke="url(#gold-dark)" stroke-width="0.9"/>
+    <path d="M 346 18 L 346 14 L 342 14" fill="none" stroke="url(#gold-dark)" stroke-width="0.9"/>
+    <path d="M 14 102 L 14 106 L 18 106" fill="none" stroke="url(#gold-dark)" stroke-width="0.9"/>
+    <path d="M 346 102 L 346 106 L 342 106" fill="none" stroke="url(#gold-dark)" stroke-width="0.9"/>
+  </g>
+  <text class="eyebrow" x="180" y="38">Educational Partner</text>
+  <line class="rule" x1="90" y1="48" x2="168" y2="48"/>
+  <circle class="ornament" cx="180" cy="48" r="2"/>
+  <line class="rule" x1="192" y1="48" x2="270" y2="48"/>
+  <text class="wordmark" x="180" y="82">RRM Academy</text>
+  <text class="footer" x="180" y="102">Restorative Reproductive Medicine</text>
 </svg>
