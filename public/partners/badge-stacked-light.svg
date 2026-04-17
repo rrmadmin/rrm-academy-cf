@@ -1,18 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="RRM Academy Educational Partner">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 280" role="img" aria-label="RRM Academy Educational Partner">
   <style>
-    .bg { fill: #ffffff; }
-    .frame { fill: none; stroke: #725e7e; stroke-width: 2.5; }
-    .rule { stroke: #725e7e; stroke-width: 1.5; opacity: 0.55; }
-    .dot { fill: #725e7e; }
-    .label { fill: #313131; font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif; font-size: 28px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; text-anchor: middle; }
-    .wordmark { fill: #725e7e; font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size: 26px; font-weight: 600; font-style: italic; letter-spacing: 0.02em; text-anchor: middle; }
+    .bg { fill: #725e7e; }
+    .label { fill: #ffffff; font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif; font-size: 28px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; text-anchor: middle; }
+    .wordmark { fill: #eee5dd; font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size: 30px; font-weight: 600; letter-spacing: 0.015em; text-anchor: middle; }
   </style>
-  <rect class="bg" width="240" height="240"/>
-  <rect class="frame" x="10" y="10" width="220" height="220"/>
-  <text class="label" x="120" y="83">Educational</text>
-  <text class="label" x="120" y="123">Partner</text>
-  <line class="rule" x1="76" y1="148" x2="106" y2="148"/>
-  <circle class="dot" cx="120" cy="148" r="2.5"/>
-  <line class="rule" x1="134" y1="148" x2="164" y2="148"/>
-  <text class="wordmark" x="120" y="180">RRM Academy</text>
+  <!-- Arched top, flat bottom (apothecary / ecclesiastical arch) -->
+  <path class="bg" d="M 0 120 Q 0 0 120 0 Q 240 0 240 120 L 240 280 L 0 280 Z"/>
+  <text class="label" x="120" y="115">Educational</text>
+  <text class="label" x="120" y="155">Partner</text>
+  <text class="wordmark" x="120" y="210">RRM Academy</text>
 </svg>
