@@ -1,18 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="RRM Academy Educational Partner">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 280" role="img" aria-label="RRM Academy Educational Partner">
   <style>
-    .bg { fill: #1e1a16; }
-    .frame { fill: none; stroke: #c9a961; stroke-width: 2.5; }
-    .rule { stroke: #c9a961; stroke-width: 1.5; opacity: 0.6; }
-    .dot { fill: #c9a961; }
+    .bg { fill: #2e2636; }
     .label { fill: #f7f0e8; font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif; font-size: 28px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; text-anchor: middle; }
-    .wordmark { fill: #c9a961; font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size: 26px; font-weight: 600; font-style: italic; letter-spacing: 0.02em; text-anchor: middle; }
+    .wordmark { fill: #c9b8d3; font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size: 30px; font-weight: 600; letter-spacing: 0.015em; text-anchor: middle; }
   </style>
-  <rect class="bg" width="240" height="240"/>
-  <rect class="frame" x="10" y="10" width="220" height="220"/>
-  <text class="label" x="120" y="83">Educational</text>
-  <text class="label" x="120" y="123">Partner</text>
-  <line class="rule" x1="76" y1="148" x2="106" y2="148"/>
-  <circle class="dot" cx="120" cy="148" r="2.5"/>
-  <line class="rule" x1="134" y1="148" x2="164" y2="148"/>
-  <text class="wordmark" x="120" y="180">RRM Academy</text>
+  <path class="bg" d="M 0 120 Q 0 0 120 0 Q 240 0 240 120 L 240 280 L 0 280 Z"/>
+  <text class="label" x="120" y="115">Educational</text>
+  <text class="label" x="120" y="155">Partner</text>
+  <text class="wordmark" x="120" y="210">RRM Academy</text>
 </svg>
