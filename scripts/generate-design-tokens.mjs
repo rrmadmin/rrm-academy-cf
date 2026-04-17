@@ -147,6 +147,8 @@ function classify(name) {
   if (radiusMatch) return { group: 'radius', step: radiusMatch[1] };
   const maxWidthMatch = name.match(/^max-width-(\w+)$/);
   if (maxWidthMatch) return { group: 'maxWidth', prop: maxWidthMatch[1] };
+  const fontMatch = name.match(/^font-(\w+)$/);
+  if (fontMatch) return { group: 'fontFamily', prop: fontMatch[1] };
 
   return { group: 'unclassified', name };
 }
@@ -171,6 +173,7 @@ function typeOf(group) {
     case 'spacing': return 'dimension';
     case 'radius': return 'dimension';
     case 'maxWidth': return 'dimension';
+    case 'fontFamily': return 'fontFamily';
     default: return 'other';
   }
 }
@@ -228,7 +231,7 @@ function buildTheme(tokens) {
 }
 
 function buildShared(tokens) {
-  const out = { spacing: {}, radius: {}, maxWidth: {} };
+  const out = { spacing: {}, radius: {}, maxWidth: {}, fontFamily: {} };
   for (const [name, value] of Object.entries(tokens)) {
     const c = classify(name);
     const type = typeOf(c.group);
@@ -242,6 +245,9 @@ function buildShared(tokens) {
         break;
       case 'maxWidth':
         out.maxWidth[c.prop] = leaf;
+        break;
+      case 'fontFamily':
+        out.fontFamily[c.prop] = leaf;
         break;
       default:
         throw new Error(`Unclassified shared token: ${name} = ${value}`);
