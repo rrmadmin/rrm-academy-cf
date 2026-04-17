@@ -110,11 +110,23 @@ docs/
 
 | Topic | File |
 |-------|------|
-| Design system | `STYLE-GUIDE.md` |
+| Design system SSOT (machine-readable) | `docs/design/design-system.json` |
+| Design system narrative (human-readable) | `STYLE-GUIDE.md` |
 | Backlog & project status | `docs/plans/backlog.md` |
 | Airtable-to-CF data pipeline | `docs/architecture/airtable-cf-pipeline.md` |
 | ICD-10 codes (endo survey) | `docs/endo-survey-icd10-internal.md` |
 | Ecosystem SSOT | `docs/rrm-academy-ecosystem.json` |
+
+### Design System SSOT
+
+`docs/design/design-system.json` is the canonical machine-readable source of truth for all design tokens, brand rules, fonts, and typography. It is auto-generated from `src/styles/global.css` (CSS tokens) and `docs/design/design-system.manual.json` (brand rules, fonts, typography scale).
+
+- Read this file FIRST before writing CSS, designing badges, or making any brand-related decision. Do NOT guess token names.
+- Top-level sections: `brand`, `fonts`, `typography`, `themes.light|dark|eink`, `shared`.
+- To change a CSS token: edit `src/styles/global.css`, then run `npm run design-tokens`.
+- To change a brand rule or typography scale: edit `docs/design/design-system.manual.json`, then run `npm run design-tokens`.
+- CI runs `npm run design-tokens:check` and blocks deploys on drift.
+- **Deprecated:** `docs/design/tokens.json` (older static snapshot, no longer consumed). Do not read. Will be removed.
 
 ## Site Map
 
@@ -483,7 +495,8 @@ Scanner rules are the source of truth. If arise-scanner catches it, the coder ag
   - Related content: `rrm-cli related <type> <slug> --type=article`
   - After using content: `rrm-cli annotate <type> <slug> --key=used_for --value="task description"`
 - **When writing or modifying code in `functions/api/`, dispatch the `coder` agent** (`subagent_type: "coder"`). It reads sibling files first, runs arise-scanner proof gates (automated), and applies 6 review gates (R1-R6) requiring judgment. Do not write endpoint code directly -- always use the coder agent.
-- Read relevant `STYLE-GUIDE.md` sections before editing styles
-- Never hardcode colors, spacing, or fonts -- use design tokens
+- **Before editing styles or designing any branded asset, read `docs/design/design-system.json`** (the machine-readable SSOT). Cross-reference `STYLE-GUIDE.md` only for narrative context. Do not guess token names -- if a token is not in the SSOT, it does not exist.
+- Never hardcode colors, spacing, or fonts -- use CSS variables that exist in the SSOT
+- When editing `src/styles/global.css` or `docs/design/design-system.manual.json`, run `npm run design-tokens` and commit the regenerated `docs/design/design-system.json`. CI will block on drift.
 - Keep edits focused, show before/after summaries
 - After modifying a guarded file, run `npm run guard:update` before committing
