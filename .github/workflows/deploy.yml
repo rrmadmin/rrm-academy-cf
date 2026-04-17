@@ -187,6 +187,9 @@ jobs:
       - name: Audit design tokens (no phantoms)
         run: npm run design-tokens:audit
 
+      - name: Verify mobile hamburger (present + right-aligned)
+        run: npm run verify-hamburger
+
       - name: Build site
         run: npm run build
 
