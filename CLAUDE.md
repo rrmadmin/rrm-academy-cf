@@ -87,9 +87,44 @@ src/data/courses.json → Astro build → rrmacademy.org/courses
 
 **Adding a new affiliate course:** append an entry to `courses-overrides.json` with `_position` hint. The deploy auto-merges on the next fetch-all. Push deploys skip fetch, so the committed `courses.json` ships as-is.
 
+### Glossary Pipeline
+
+Glossary moved from a monolithic 1200-line Astro file to D1 SSOT on 2026-04-18 (commit d63dee3). Three D1 tables in `rrm-auth` back the page.
+
+```
+D1 (rrm-auth, glossary_term + glossary_reference + glossary_abbreviation tables)
+    │  GET /api/glossary/terms (Bearer LIBRARY_BUILD_TOKEN)
+    ▼
+GitHub Actions: fetch-glossary-data.mjs   ← full or single-record (?id=term_xxx)
+    ▼
+src/data/glossary.json → Astro build → rrmacademy.org/glossary
+```
+
+**Tables:**
+- `glossary_term` (132 rows) — slug (UNIQUE COLLATE NOCASE), name, part (I-VIII), sort_order, body_html, abbreviation, pillar_link, status
+- `glossary_reference` (58 rows) — ref_num (UNIQUE), anchor_text, url, publisher, journal
+- `glossary_abbreviation` (52 rows) — abbreviation (PK), full_term, term_slug (nullable link to glossary_term), sort_order
+
+**Schema file:** `scripts/migrate-glossary-to-d1.sql`. Run to create tables.
+
+**Seeding (idempotent upsert via ON CONFLICT):**
+- `scripts/regenerate-glossary-seed.mjs` — reads `src/data/glossary.json` → emits `scripts/migrate-glossary-data.sql`
+- `scripts/seed-glossary-abbreviations.mjs` — hand-curated 52 abbreviations + emits SQL + merges into glossary.json
+- Safe to re-run. Preserves admin edits. To wipe: run `scripts/reset-glossary-data.sql` first.
+
+**Destructive reset:** `scripts/reset-glossary-data.sql` wipes all 3 tables. Never run unless intentional.
+
+**Archived (DO NOT RUN):** `scripts/parse-glossary-to-seed.mjs` — one-shot migration parser from the pre-2026-04-18 monolithic .astro. Throws on execute. Kept for historical context.
+
+**Single-record dispatch:** `repository_dispatch` with `{ glossary_term_id: "term_xxx" }` triggers `fetch-glossary-data.mjs` in single-record mode.
+
+**Page rendering:** `src/pages/glossary/index.astro` is data-driven. Imports `src/data/glossary.json`. Auto-generates TOC, A-Z index (from term names), abbreviations table, references list. Emits 3 JSON-LD blocks: Article+MedicalWebPage, BreadcrumbList, DefinedTermSet (132 DefinedTerm entities for per-term AEO).
+
+**Editing protocol:** D1 is SSOT. Edit via `wrangler d1 execute rrm-auth --remote --command "UPDATE glossary_term SET body_html=... WHERE slug='xxx'"` or via future admin UI. Then trigger rebuild. Never edit term bodies in `src/pages/glossary/index.astro` — that file only has template logic + hardcoded intro/CTA.
+
 ### Full Rebuild
 
-`fetch-all` fetches all 4 data sources: articles, posts, FAQs, courses. Cache key: `site-data-YYYY-MM-DD` (ET timezone). `workflow_dispatch` always fetches fresh (bypasses cache). `repository_dispatch` uses cache. `push` events skip fetch entirely.
+`fetch-all` fetches all 5 data sources: articles, posts, FAQs, courses, glossary. Cache key: `site-data-YYYY-MM-DD` (ET timezone). `workflow_dispatch` always fetches fresh (bypasses cache). `repository_dispatch` uses cache. `push` events skip fetch entirely.
 
 **Baseline auto-commit requires `permissions: contents: write`** in `deploy.yml`. The Update data baselines step writes `src/data/.baselines.json` and runs `git push`; without write permission the push 403s and the fallback `|| echo "Baseline update skipped (no changes)"` swallows it as a misleading success. If baselines drift from reality (check CI logs for actual counts), verify permissions first before editing the file.
 
@@ -331,10 +366,10 @@ Full Stripe refunds (`charge.refunded === true`) soft-revoke enrollment via `rev
 
 ## CI Deploy Guard
 
-`deploy.yml` enforces minimum record counts: articles >= 2500, posts >= 5, faqs >= 10, courses >= 1. Prevents catastrophic data loss from deploying.
+`deploy.yml` enforces minimum record counts: articles >= 2500, posts >= 5, faqs >= 10, courses >= 1, glossary terms >= 100, glossary references >= 30, glossary abbreviations >= 40. Glossary also enforces max term drop of 5 per deploy. Prevents catastrophic data loss from deploying.
 
 **Two "baseline" files exist and are independent — don't confuse them:**
-- `src/data/.baselines.json` -- record-count floor for articles/posts/faqs/courses JSON. Auto-updated by CI after green deploys.
+- `src/data/.baselines.json` -- record-count floor for articles/posts/faqs/courses JSON + glossary.terms/references/abbreviations. Auto-updated by CI after green deploys.
 - `scripts/type-check-baseline.json` -- Astro `npx astro check` error count ceiling. Deploy's `Type check (baseline)` step fails if current errors > baseline. NOT auto-updated. Manually bump via `node scripts/check-types.mjs --update` OR fix the errors.
 
 A commit introducing new type errors silently blocks deploys until the baseline is bumped or errors are fixed. Always run `npm run check-types` before pushing.
