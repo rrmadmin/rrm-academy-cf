@@ -39,8 +39,8 @@ function buildDateMap() {
     }
   } catch {}
 
-  // /partners/ lastmod = max(approved_at) across active Friend partners.
-  // Re-crawls naturally when a new partner lands or an existing one's status changes.
+  // /partners/ lastmod = max(approved_at) across active Friends.
+  // Re-crawls naturally when a new Friend lands or an existing one's status changes.
   try {
     const partners = JSON.parse(
       readFileSync(join(__dirname, 'src/data/partners.json'), 'utf-8')
