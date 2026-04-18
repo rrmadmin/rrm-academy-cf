@@ -35,6 +35,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
   const db = env.DB;
   const now = Math.floor(Date.now() / 1000);
+  const sevenDaysAgo = now - 7 * 86400;
+  const pdfTokenCutoff = now - 86400;
+
   const pruned = {
     sessions: 0,
     password_resets: 0,
@@ -43,68 +46,50 @@ export async function onRequestPost({ request, env, waitUntil }) {
     newsletter_events: 0,
     pdf_tokens: 0,
     email_log: 0,
+    search_log: 0,
   };
 
+  // Single-DB cleanup: batched for atomicity and fewer round trips.
+  // Order matches the `pruned` keys so results[i] maps to the right counter.
+  let batchFailed = false;
   try {
-    const r = await db.prepare('DELETE FROM session WHERE expires_at < ?').bind(now).run();
-    pruned.sessions = r.meta.changes;
+    const results = await db.batch([
+      db.prepare('DELETE FROM session WHERE expires_at < ?').bind(now),
+      db.prepare('DELETE FROM password_reset WHERE expires_at < ?').bind(now),
+      db.prepare('DELETE FROM email_verification WHERE expires_at < ?').bind(now),
+      db.prepare('DELETE FROM webhook_event WHERE processed_at < ?').bind(sevenDaysAgo),
+      db.prepare("DELETE FROM newsletter_event WHERE created_at < datetime(?, 'unixepoch')").bind(now - 90 * 86400),
+      db.prepare('DELETE FROM pdf_token WHERE expires_at < ?').bind(pdfTokenCutoff),
+      db.prepare("DELETE FROM email_log WHERE created_at < datetime('now', '-90 days')"),
+    ]);
+    pruned.sessions = results[0]?.meta?.changes ?? 0;
+    pruned.password_resets = results[1]?.meta?.changes ?? 0;
+    pruned.email_verifications = results[2]?.meta?.changes ?? 0;
+    pruned.webhook_events = results[3]?.meta?.changes ?? 0;
+    pruned.newsletter_events = results[4]?.meta?.changes ?? 0;
+    pruned.pdf_tokens = results[5]?.meta?.changes ?? 0;
+    pruned.email_log = results[6]?.meta?.changes ?? 0;
   } catch (err) {
-    log(env, waitUntil, 'admin', 'cleanup_sessions_error', 'error', err.message);
+    batchFailed = true;
+    log(env, waitUntil, 'admin', 'cleanup_batch_error', 'error', err.message);
   }
 
+  // search_log lives in a separate D1 (rrm-analytics) so it runs outside the batch.
   try {
-    const r = await db.prepare('DELETE FROM password_reset WHERE expires_at < ?').bind(now).run();
-    pruned.password_resets = r.meta.changes;
+    if (env.ANALYTICS_DB) {
+      const r = await env.ANALYTICS_DB.prepare(
+        "DELETE FROM search_log WHERE created_at < datetime('now', '-365 days')"
+      ).run();
+      pruned.search_log = r.meta.changes;
+    }
   } catch (err) {
-    log(env, waitUntil, 'admin', 'cleanup_resets_error', 'error', err.message);
+    log(env, waitUntil, 'admin', 'cleanup_search_log_error', 'error', err.message);
   }
 
-  try {
-    const r = await db.prepare('DELETE FROM email_verification WHERE expires_at < ?').bind(now).run();
-    pruned.email_verifications = r.meta.changes;
-  } catch (err) {
-    log(env, waitUntil, 'admin', 'cleanup_verifications_error', 'error', err.message);
+  const total = pruned.sessions + pruned.password_resets + pruned.email_verifications + pruned.webhook_events + pruned.newsletter_events + pruned.pdf_tokens + pruned.email_log + pruned.search_log;
+  log(env, waitUntil, 'admin', 'cleanup_completed', batchFailed ? 'error' : 'ok', `pruned ${total} rows${batchFailed ? ' (batch failed)' : ''}`, 0, batchFailed ? 500 : 200);
+  if (batchFailed) {
+    return json({ ok: false, error: 'cleanup_batch_failed', pruned }, 500);
   }
-
-  try {
-    const sevenDaysAgo = now - 7 * 86400;
-    const r = await db.prepare('DELETE FROM webhook_event WHERE processed_at < ?').bind(sevenDaysAgo).run();
-    pruned.webhook_events = r.meta.changes;
-  } catch (err) {
-    log(env, waitUntil, 'admin', 'cleanup_webhook_events_error', 'error', err.message);
-  }
-
-  try {
-    const ninetyDaysAgo = now - 90 * 86400;
-    const r = await db.prepare(
-      "DELETE FROM newsletter_event WHERE created_at < datetime(?, 'unixepoch')"
-    ).bind(ninetyDaysAgo).run();
-    pruned.newsletter_events = r.meta.changes;
-  } catch (err) {
-    log(env, waitUntil, 'admin', 'cleanup_newsletter_events_error', 'error', err.message);
-  }
-
-  try {
-    const r = await db.prepare(
-      'DELETE FROM pdf_token WHERE expires_at < ?'
-    ).bind(now - 86400).run();
-    pruned.pdf_tokens = r.meta.changes;
-  } catch (err) {
-    log(env, waitUntil, 'admin', 'cleanup_pdf_token_error', 'error', err.message);
-  }
-
-  let emailLogPruned = 0;
-  try {
-    const emailLogResult = await db.prepare(
-      "DELETE FROM email_log WHERE created_at < datetime('now', '-90 days')"
-    ).run();
-    emailLogPruned = emailLogResult.meta.changes;
-  } catch (err) {
-    log(env, waitUntil, 'admin', 'cleanup_email_log_error', 'error', err.message);
-  }
-  pruned.email_log = emailLogPruned;
-
-  const total = pruned.sessions + pruned.password_resets + pruned.email_verifications + pruned.webhook_events + pruned.newsletter_events + pruned.pdf_tokens + pruned.email_log;
-  log(env, waitUntil, 'admin', 'cleanup_completed', 'ok', `pruned ${total} rows`, 0, 200);
   return json({ ok: true, pruned });
 }

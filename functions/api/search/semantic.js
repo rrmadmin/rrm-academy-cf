@@ -1,5 +1,6 @@
 import { CORS_HEADERS } from '../auth/_shared.js';
 import { log } from '../_log.js';
+import { logSearchQuery, hashIp, extractRequestMeta } from '../_search_log.js';
 
 // Simple IP rate limiter: max 20 requests per minute per IP
 const rateLimitMap = new Map();
@@ -26,19 +27,43 @@ function isRateLimited(ip) {
 
 export async function onRequestGet(context) {
   const { request, env, waitUntil } = context;
+  const start = Date.now();
   const url = new URL(request.url);
   const query = url.searchParams.get('q');
+  const ip = request.headers.get('cf-connecting-ip') || 'unknown';
+  const { user_agent_short, referer_path } = extractRequestMeta(request);
 
   if (!query || query.length < 2) {
+    if (query && query.length > 0) {
+      await logSearchQuery(env, {
+        source: 'semantic',
+        query,
+        ip_hash: await hashIp(ip),
+        results_count: 0,
+        duration_ms: Date.now() - start,
+        http_status: 200,
+        user_agent_short,
+        referer_path,
+      });
+    }
     return Response.json({ results: [] }, { headers: CORS_HEADERS });
   }
 
   if (query.length > 500) {
+    await logSearchQuery(env, {
+      source: 'semantic',
+      query,
+      ip_hash: await hashIp(ip),
+      results_count: 0,
+      duration_ms: Date.now() - start,
+      http_status: 400,
+      user_agent_short,
+      referer_path,
+    });
     return Response.json({ results: [], error: 'query_too_long' }, { status: 400, headers: CORS_HEADERS });
   }
 
   // Rate limit by IP to protect billed AI/Vectorize calls
-  const ip = request.headers.get('cf-connecting-ip') || 'unknown';
   if (isRateLimited(ip)) {
     return Response.json({ results: [], error: 'rate_limited' }, { status: 429, headers: CORS_HEADERS });
   }
@@ -55,6 +80,16 @@ export async function onRequestGet(context) {
     const queryVector = embedding.data?.[0];
     if (!queryVector) {
       log(env, waitUntil, 'search', 'embedding_failed', 'error', 'AI returned no vector', 0, 502);
+      await logSearchQuery(env, {
+        source: 'semantic',
+        query,
+        ip_hash: await hashIp(ip),
+        results_count: 0,
+        duration_ms: Date.now() - start,
+        http_status: 502,
+        user_agent_short,
+        referer_path,
+      });
       return Response.json({ results: [], error: 'embedding_failed' }, { status: 502, headers: CORS_HEADERS });
     }
 
@@ -68,9 +103,9 @@ export async function onRequestGet(context) {
     const results = [];
     for (const m of matches.matches) {
       if (!m.metadata || (!m.metadata.url && !m.metadata.slug)) continue;
-      const url = m.metadata.url || `/library/${m.metadata.slug}/`;
-      const recMatch = url.match(/-(rec[a-zA-Z0-9]+)\/?$/);
-      const dedupKey = recMatch ? recMatch[1].toLowerCase() : url.toLowerCase();
+      const matchUrl = m.metadata.url || `/library/${m.metadata.slug}/`;
+      const recMatch = matchUrl.match(/-(rec[a-zA-Z0-9]+)\/?$/);
+      const dedupKey = recMatch ? recMatch[1].toLowerCase() : matchUrl.toLowerCase();
       if (seen.has(dedupKey)) continue;
       seen.add(dedupKey);
       results.push({
@@ -80,13 +115,33 @@ export async function onRequestGet(context) {
         authors: m.metadata.authors,
         type: m.metadata.type || 'Research',
         score: m.score,
-        url,
+        url: matchUrl,
       });
     }
 
+    await logSearchQuery(env, {
+      source: 'semantic',
+      query,
+      ip_hash: await hashIp(ip),
+      results_count: results.length,
+      duration_ms: Date.now() - start,
+      http_status: 200,
+      user_agent_short,
+      referer_path,
+    });
     return Response.json({ results }, { headers: CORS_HEADERS });
   } catch (err) {
     log(env, waitUntil, 'search', 'semantic_error', 'error', err.message, 0, 500);
+    await logSearchQuery(env, {
+      source: 'semantic',
+      query,
+      ip_hash: await hashIp(ip),
+      results_count: 0,
+      duration_ms: Date.now() - start,
+      http_status: 500,
+      user_agent_short,
+      referer_path,
+    });
     return Response.json({ results: [], error: 'search_failed' }, { status: 500, headers: CORS_HEADERS });
   }
 }

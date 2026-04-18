@@ -293,6 +293,7 @@
 
   var pagefindReady = null;
   var debounceTimer = null;
+  var lastBeaconedQuery = '';
   var shown = 0;
   var INITIAL_PAGE = 5;
   var PER_PAGE = 8;
@@ -322,6 +323,24 @@
 
   function stopLoadingSpinner() {
     if (spinnerTimer) { clearInterval(spinnerTimer); spinnerTimer = null; }
+  }
+
+  // Beacon the user's search query + result count to /api/search/log for
+  // content-gap analysis. Fire-and-forget, deduped per unique query, capped
+  // at 500 chars, skipped for queries under 2 chars.
+  function beaconQuery(query, resultsCount) {
+    if (!query || query.length < 2 || query.length > 500) return;
+    if (query === lastBeaconedQuery) return;
+    lastBeaconedQuery = query;
+    try {
+      fetch('/api/search/log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: query, results_count: resultsCount, source: 'pagefind' }),
+        keepalive: true,
+        credentials: 'same-origin',
+      }).catch(function(){});
+    } catch(e) {}
   }
 
   // Load Pagefind on first interaction — single shared promise prevents race conditions.
@@ -553,6 +572,7 @@
       isFirstPage = true;
       stopLoadingSpinner();
       resultsEl.innerHTML = '';
+      beaconQuery(query, totalCount);
 
       if (totalCount === 0) {
         resultsEl.innerHTML = '<p class="sr-empty">No results found for \u201c' + escHtml(query) + '\u201d</p>';
