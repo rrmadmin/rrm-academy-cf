@@ -20,7 +20,7 @@
       "pages_project": "rrm-academy",
       "account_workers_subdomain": "administrator-cloudflare",
       "d1": {
-        "rrm-auth": { "binding": "DB", "purpose": "Users, sessions, enrollments, community, CRM, billing, FAQs, blog, practitioners, newsletter" },
+        "rrm-auth": { "binding": "DB", "purpose": "Users, sessions, enrollments, community, CRM, billing, FAQs, blog, glossary, practitioners, newsletter" },
         "rrm-library": { "purpose": "Research library articles, knowledge base, article bodies" },
         "rrm-survey": { "purpose": "Survey pseudonymization (email + Airtable record ID)" }
       },
@@ -114,7 +114,10 @@
           "posts": { "purpose": "Blog/commentary posts (D1 is SSOT since 2026-03-27)", "route": "/commentary/" },
           "faq": { "purpose": "FAQ entries with three-tier answers", "route": "/faqs/" },
           "faq_library_ref": { "purpose": "FAQ cross-references to library articles" },
-          "faq_resource": { "purpose": "FAQ external evidence URLs" }
+          "faq_resource": { "purpose": "FAQ external evidence URLs" },
+          "glossary_term": { "rows": 132, "key": "id (term_slug)", "unique": "slug", "purpose": "Glossary term definitions (D1 is SSOT since 2026-04-18)", "route": "/glossary/" },
+          "glossary_reference": { "rows": 58, "key": "id", "unique": "ref_num", "purpose": "Glossary numbered citations" },
+          "glossary_abbreviation": { "rows": 52, "key": "abbreviation", "purpose": "Glossary abbreviation quick-reference table; term_slug optionally links to a glossary_term" }
         },
         "billing": {
           "webhook_event": { "purpose": "Stripe webhook dedup (event_id)" },
@@ -210,17 +213,20 @@
       "repository_dispatch_article": { "payload": "{ article_id }", "does": "Fetch single article from library worker, build" },
       "repository_dispatch_blog": { "payload": "{ record_id }", "does": "Fetch single blog post, build" },
       "repository_dispatch_faq": { "payload": "{ faq_id }", "does": "Fetch single FAQ, build" },
-      "workflow_dispatch": { "does": "Full fetch-all (articles, posts, FAQs, courses), build" }
+      "repository_dispatch_glossary": { "payload": "{ glossary_term_id }", "does": "Fetch single glossary term, build" },
+      "workflow_dispatch": { "does": "Full fetch-all (articles, posts, FAQs, courses, glossary), build" }
     },
     "data_sources": {
       "articles": { "from": "rrm-library-worker /articles", "auth": "LIBRARY_BUILD_TOKEN", "script": "src/lib/fetch-data.mjs", "output": "src/data/articles.json" },
       "posts": { "from": "GET /api/blog/posts", "auth": "LIBRARY_BUILD_TOKEN", "script": "src/lib/fetch-blog-data.mjs", "output": "src/data/posts.json" },
       "faqs": { "from": "GET /api/faqs", "auth": "LIBRARY_BUILD_TOKEN", "script": "src/lib/fetch-faq-data.mjs", "output": "src/data/faqs.json" },
-      "courses": { "from": "Static (committed to git)", "script": "src/lib/fetch-courses-data.mjs (exists but not used -- courses.json is git-tracked)", "output": "src/data/courses.json" }
+      "courses": { "from": "Static (committed to git)", "script": "src/lib/fetch-courses-data.mjs (exists but not used -- courses.json is git-tracked)", "output": "src/data/courses.json" },
+      "glossary": { "from": "GET /api/glossary/terms", "auth": "LIBRARY_BUILD_TOKEN", "script": "src/lib/fetch-glossary-data.mjs", "output": "src/data/glossary.json (nested: terms, references, abbreviations)", "ssot_since": "2026-04-18" }
     },
     "guards": {
-      "minimum_counts": { "articles": 2500, "posts": 5, "faqs": 10, "courses": 1 },
-      "regression_baselines": ".baselines.json (git-tracked). Posts max drop=1, articles max drop=50. Auto-updates after successful deploy."
+      "minimum_counts": { "articles": 2500, "posts": 5, "faqs": 10, "courses": 1, "glossary.terms": 100, "glossary.references": 30, "glossary.abbreviations": 40 },
+      "max_drop": { "articles": 50, "posts": 1, "faqs": 1, "courses": 1, "glossary.terms": 5 },
+      "regression_baselines": ".baselines.json (git-tracked). Auto-updates after successful deploy."
     }
   },
   "projects": {
