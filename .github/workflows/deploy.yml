@@ -107,7 +107,7 @@ jobs:
           echo "Glossary terms: $(node -e "console.log(require('./src/data/glossary.json').terms.length)")"
 
       - name: Fetch all data
-        if: ${{ github.event_name != 'push' && !inputs.skip_fetch && !github.event.client_payload.record_id && !github.event.client_payload.article_id && !github.event.client_payload.faq_id && !github.event.client_payload.glossary_term_id && (github.event_name == 'workflow_dispatch' || steps.data-cache.outputs.cache-hit != 'true') }}
+        if: ${{ !inputs.skip_fetch && !github.event.client_payload.record_id && !github.event.client_payload.article_id && !github.event.client_payload.faq_id && !github.event.client_payload.glossary_term_id }}
         env:
           LIBRARY_BUILD_TOKEN: ${{ secrets.LIBRARY_BUILD_TOKEN }}
           AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
