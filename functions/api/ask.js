@@ -6,6 +6,7 @@
 import { json, optionsResponse, getSessionIdFromCookie, validateSession } from './auth/_shared.js';
 import { validateBody } from './_validate.js';
 import { log } from './_log.js';
+import { logSearchQuery, hashIp, extractRequestMeta } from './_search_log.js';
 
 async function hashShort(text) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
@@ -186,6 +187,19 @@ export async function onRequestPost(context) {
       indexes: ['ask'],
     });
   }
+
+  const { user_agent_short, referer_path } = extractRequestMeta(request);
+  await logSearchQuery(env, {
+    source: 'ask',
+    query: message,
+    user_id: user.id,
+    ip_hash: await hashIp(request.headers.get('cf-connecting-ip') || ''),
+    results_count: null,
+    duration_ms: durationMs,
+    http_status: httpStatus,
+    user_agent_short,
+    referer_path,
+  });
 
   return json({ answer, citations });
 }

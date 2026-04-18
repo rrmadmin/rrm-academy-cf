@@ -71,7 +71,7 @@
       "note": "Auth gating"
     },
     "wrangler.toml": {
-      "hash": "296251b3334a5e82f33b7f00fd45d87bbda18bb59a8bb188bcbd3ef586b7b5ea",
+      "hash": "3c1acd76ddde49b0b1e135ef66efc6a631d6d47c8ef893e5cb9217eeb718a29c",
       "note": "D1, KV, R2 bindings"
     },
     "functions/api/_ses.js": {
@@ -103,15 +103,15 @@
       "note": "Public newsletter intake (rate-limited)"
     },
     "functions/api/search/semantic.js": {
-      "hash": "09d110c75ccd796e53dfc2567868cf44caefe691a95715149f5a4ce8fae7a237",
+      "hash": "b999f768d2afbc982754a25eb79d2d5a7ee85c62bfde532102a2ef1bc193ab0b",
       "note": "Billed AI.run() + Vectorize (rate-limited)"
     },
     "functions/api/ask.js": {
-      "hash": "d1e489258f8056520aa7be6a42881606f451c684c7afa0ad3f231c5fa079f849",
+      "hash": "51537171cad850af3cdf9a4a2aa118863209b80d1827f0babf32f878277d68b7",
       "note": "NLWeb AI Search proxy (auth + rate-limited, billed upstream)"
     },
     "src/components/SearchBar.astro": {
-      "hash": "f7b6636d9cea39c86527db169e77aaa547b951f6dd9147ceccf3d802d4ef55b9",
+      "hash": "1032c61e3ef8a0774f4281bed701314eba9322f7588fb1cf0de75d20c110f0b6",
       "note": "Search UX + RRF fusion (Pagefind init, relevance boost, error resilience)"
     },
     "functions/api/community/_shared.js": {
@@ -119,7 +119,7 @@
       "note": "Community access control (requireMember)"
     },
     "functions/api/admin/cleanup.js": {
-      "hash": "199a1d06c6918393813c3d7b851c0952bbff9fa244d6a8f9495501bc815ad4da",
+      "hash": "b66521f1902d24cfb4c24cf3d6366191bb8d593238bdf1421e80365ff1a281bb",
       "note": "Expired data deletion from D1"
     },
     "scripts/guard.mjs": {
