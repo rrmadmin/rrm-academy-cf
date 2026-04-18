@@ -59,8 +59,8 @@ Below the minimum, do not scale the badge down further. Use the text link
 
 ## If your status changes
 
-If you stop aligning with the four principles (see our `/partners/` page) or
-your Friend status is revoked, please remove the tagline and badge within
-14 days.
+If you stop aligning with the three RRM principles or the clinical scope
+(see our `/partners/` page) or your Friend status is revoked, please remove
+the tagline and badge within 14 days.
 
 Questions: administrator@rrmacademy.org

@@ -8,7 +8,7 @@ import { log } from '../_log.js';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const AFFIRMATION_KEYS = ['fabm_diagnosis', 'excision_over_ablation', 'rrm_primary_path', 'patient_education'];
+const AFFIRMATION_KEYS = ['find_the_cause', 'treat_the_disease', 'restore_function', 'rrm_scope'];
 
 function generatePartnerId() {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -165,10 +165,10 @@ export async function onRequestPost(context) {
   const trimmedBlurb = (blurb && typeof blurb === 'string') ? blurb.trim() || null : null;
   const trimmedEmail = contact_email.trim().toLowerCase();
   const affirmationsJson = JSON.stringify({
-    fabm_diagnosis: true,
-    excision_over_ablation: true,
-    rrm_primary_path: true,
-    patient_education: true,
+    find_the_cause: true,
+    treat_the_disease: true,
+    restore_function: true,
+    rrm_scope: true,
   });
 
   const id = generatePartnerId();

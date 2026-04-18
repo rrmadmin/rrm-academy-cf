@@ -1,12 +1,12 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import partnersData from '../../data/partners.json';
-import { FRIEND_PRINCIPLES, type PublicPartner } from '../../lib/partners.ts';
+import { FRIEND_PRINCIPLES, FRIEND_SCOPE_ATTESTATION, type PublicPartner } from '../../lib/partners.ts';
 
 const partners = partnersData as PublicPartner[];
 
 const pageTitle = 'Educational Partners';
-const pageDescription = 'An RRM Academy Educational Partner is a clinic or organization that publicly affirms the principles of restorative reproductive medicine and agrees to a defined alignment standard.';
+const pageDescription = 'An RRM Academy Educational Partner is a clinic or organization that publicly affirms the core principles of restorative reproductive medicine: cause-based evaluation, cycle-informed diagnosis, and restorative pathways first.';
 const canonical = 'https://rrmacademy.org/partners/';
 
 // Build the partner MedicalOrganization nodes for JSON-LD
@@ -44,15 +44,15 @@ const faqPage = {
       name: 'What is an RRM Academy Educational Partner?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'An RRM Academy Educational Partner is a clinic or organization that publicly affirms the core principles of restorative reproductive medicine. The entry tier is the Friend partnership, which is based on self-attestation. A clinic confirms that it uses fertility awareness-based methods for diagnosis, prefers surgical excision over ablation when surgery is indicated, offers RRM as the primary fertility pathway, and teaches patients to understand their own cycles. This is a clear signal of alignment, not an endorsement of any specific provider or outcome.',
+        text: 'An RRM Academy Educational Partner is a clinic or organization that publicly affirms the core principles of restorative reproductive medicine. The entry tier is Friends, which is based on self-attestation. A clinic confirms that it practices within the three RRM principles (find the cause, treat the disease, restore function) and that its care treats diagnosable conditions with the goal of restoring healthy natural function. This is a clear signal of alignment, not an endorsement of any specific provider or outcome.',
       },
     },
     {
       '@type': 'Question',
-      name: 'How is a Friend partner different from an Accredited clinic?',
+      name: 'How is a Friend different from an Accredited clinic?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Friend is self-attested and currently the only tier open for applications. A clinic reads the four principles, affirms each one, and applies. Accredited is a future tier that will require editorial review by RRM Academy plus verification through a recognized training or board pathway. Accredited is not yet open, and no clinic carries that designation today. If you see a clinic claiming to be RRM Academy accredited, that claim is not accurate.',
+        text: 'Friends is self-attested and currently the only tier open for applications. A clinic reads the three principles and the scope attestation, affirms each one, and applies. Accredited is a future tier that will require editorial review by RRM Academy plus verification through a recognized training or board pathway. Accredited is not yet open, and no clinic carries that designation today. If you see a clinic claiming to be RRM Academy accredited, that claim is not accurate.',
       },
     },
     {
@@ -60,7 +60,7 @@ const faqPage = {
       name: 'Does RRM Academy endorse the clinical practice of its partners?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'No. Friend partnership signals principle alignment, not endorsement of specific treatments, outcomes, or providers. We do not audit charts, verify individual cases, or guarantee that any given clinic is the right fit for your situation. Patients should evaluate each clinic on its own merits: training, case volume, transparency about success rates, and how well the clinical approach matches the diagnosis. A Friend partner is a reasonable starting point for a conversation, not a promise.',
+        text: 'No. A Friend listing signals principle alignment, not endorsement of specific treatments, outcomes, or providers. We do not audit charts, verify individual cases, or guarantee that any given clinic is the right fit for your situation. Patients should evaluate each clinic on its own merits: training, case volume, transparency about success rates, and how well the clinical approach matches the diagnosis. A Friend clinic is a reasonable starting point for a conversation, not a promise.',
       },
     },
   ],
@@ -132,10 +132,9 @@ function locationText(p: PublicPartner): string {
       <p class="partners-lede">{pageDescription}</p>
 
       <p class="partners-intro">
-        Restorative reproductive medicine works best when patients can find aligned care close to home.
-        The Educational Partners program recognizes clinics and organizations that publicly affirm the
-        principles we teach at RRM Academy. Patients get a trust shortcut; aligned clinicians get a
-        clear way to signal what kind of care they practice.
+        Restorative reproductive medicine works best when couples can find aligned care close to home.
+        The Educational Partners program is how clinics publicly signal that alignment. For patients,
+        it narrows the search. For clinicians, it makes their approach visible to the people who need it.
       </p>
 
       <div class="partners-cta-row">
@@ -151,13 +150,13 @@ function locationText(p: PublicPartner): string {
       <div class="tier-grid">
         <div class="tier-card tier-card--active">
           <span class="tier-badge tier-badge--active">Open for applications</span>
-          <h3>Friend</h3>
-          <p>Self-attested alignment with four principles. Open to any clinic or organization that publicly affirms the standard.</p>
+          <h3>Friends</h3>
+          <p>Self-attested alignment with the three RRM principles and the clinical scope of RRM. Open to any clinic or organization that publicly affirms the standard.</p>
         </div>
         <div class="tier-card">
           <span class="tier-badge">Coming soon</span>
           <h3>Partner</h3>
-          <p>Directory-gated. Requires a listing in a recognized RRM or NaPro provider directory plus Friend tier affirmations.</p>
+          <p>Directory-gated. Requires a listing in a recognized RRM or NaPro provider directory plus Friends-tier affirmations.</p>
         </div>
         <div class="tier-card">
           <span class="tier-badge">Coming soon</span>
@@ -170,8 +169,8 @@ function locationText(p: PublicPartner): string {
 
   <section class="partners-principles" id="principles">
     <div class="container">
-      <h2>The four Friend principles</h2>
-      <p class="section-lede">Every Friend partner publicly affirms each of the following.</p>
+      <h2>The three principles every Friend affirms</h2>
+      <p class="section-lede">These are the three core principles of restorative reproductive medicine. A Friend clinic publicly affirms each one.</p>
       <ol class="principles-list">
         {FRIEND_PRINCIPLES.map((p, i) => (
           <li class="principle">
@@ -186,12 +185,38 @@ function locationText(p: PublicPartner): string {
     </div>
   </section>
 
+  <section class="partners-scope" id="scope">
+    <div class="container">
+      <h2>Clinical scope of RRM</h2>
+      <p class="section-lede">
+        RRM is a clinical framework with a defined scope. A practice operating within that framework identifies the underlying cause of a reproductive condition, treats it directly, and measures outcomes in live births and restored function. That scope determines what belongs inside an RRM visit and what does not.
+      </p>
+      <div class="scope-grid">
+        <div class="scope-item">
+          <h3>Assisted reproductive technologies</h3>
+          <p>
+            RRM treats the conditions that impair the reproductive system. A diagnosis becomes the clinical target. The goal of every RRM visit is restoring the body's own healthy function. When that function returns, fertility often follows, along with cycle regularity, pain resolution, and hormonal balance. RRM treats the disease. It does not substitute for the body's own work.
+          </p>
+        </div>
+        <div class="scope-item">
+          <h3>Suppressive medications</h3>
+          <p>
+            When a named reproductive condition is present, RRM treats the disease. Pain from endometriosis points to active disease. Cycle irregularity points to a diagnosable hormonal disruption. Each condition has a cause. RRM clinicians identify it and treat it directly.
+          </p>
+        </div>
+      </div>
+      <p class="scope-attestation">
+        <strong>Scope attestation:</strong> {FRIEND_SCOPE_ATTESTATION}
+      </p>
+    </div>
+  </section>
+
   <section class="partners-list-section" id="partner-list">
     <div class="container">
-      <h2>Friend partners</h2>
+      <h2>Friends</h2>
 
       {partners.length === 0 ? (
-        <p class="empty-state">No Friend partners are listed yet. <a href="/partners/apply/">Apply to become the first.</a></p>
+        <p class="empty-state">No Friends are listed yet. <a href="/partners/apply/">Apply to become the first.</a></p>
       ) : (
         <ul class="partner-cards">
           {partners.map((p) => (
@@ -220,7 +245,7 @@ function locationText(p: PublicPartner): string {
     <div class="container">
       <div class="apply-card">
         <h2>Lead a clinic that aligns?</h2>
-        <p>If your practice affirms the four Friend principles, apply for public recognition. Applications are reviewed within seven days.</p>
+        <p>If your practice affirms the three principles and the RRM clinical scope, apply to join the Friends directory. Applications are reviewed within seven days.</p>
         <a href="/partners/apply/" class="btn btn--primary btn--large">Apply now</a>
       </div>
     </div>
@@ -237,34 +262,6 @@ function locationText(p: PublicPartner): string {
           </details>
         ))}
       </div>
-    </div>
-  </section>
-
-  <section class="partners-assets" id="assets">
-    <div class="container">
-      <h2>Partner asset kit</h2>
-      <p class="section-lede">Once approved, Friend partners receive badge and tagline assets for their site. You can preview them here.</p>
-      <div class="assets-grid">
-        <div class="asset-item">
-          <img src="/partners/badge-horizontal-light.svg" alt="Educational Partner badge, horizontal light variant" loading="lazy" />
-          <a href="/partners/badge-horizontal-light.svg" download>Horizontal, light</a>
-        </div>
-        <div class="asset-item asset-item--dark">
-          <img src="/partners/badge-horizontal-dark.svg" alt="Educational Partner badge, horizontal dark variant" loading="lazy" />
-          <a href="/partners/badge-horizontal-dark.svg" download>Horizontal, dark</a>
-        </div>
-        <div class="asset-item">
-          <img src="/partners/badge-stacked-light.svg" alt="Educational Partner badge, stacked light variant" loading="lazy" />
-          <a href="/partners/badge-stacked-light.svg" download>Stacked, light</a>
-        </div>
-        <div class="asset-item asset-item--dark">
-          <img src="/partners/badge-stacked-dark.svg" alt="Educational Partner badge, stacked dark variant" loading="lazy" />
-          <a href="/partners/badge-stacked-dark.svg" download>Stacked, dark</a>
-        </div>
-      </div>
-      <p class="assets-rules-link">
-        <a href="/partners/tagline-rules.md">Read the full tagline and linking rules</a>
-      </p>
     </div>
   </section>
 
@@ -314,17 +311,17 @@ function locationText(p: PublicPartner): string {
     flex-wrap: wrap;
   }
 
-  .partners-tiers, .partners-principles, .partners-list-section, .partners-apply-cta, .partners-faq, .partners-assets {
+  .partners-tiers, .partners-principles, .partners-scope, .partners-list-section, .partners-apply-cta, .partners-faq {
     padding: var(--space-10) 0;
   }
   .partners-tiers { background: var(--bg-body); }
   .partners-principles { background: var(--bg-surface); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); }
+  .partners-scope { background: var(--bg-body); border-bottom: 1px solid var(--border-color); }
   .partners-list-section { background: var(--bg-body); }
   .partners-apply-cta { background: var(--bg-surface); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); }
   .partners-faq { background: var(--bg-body); }
-  .partners-assets { background: var(--bg-surface); border-top: 1px solid var(--border-color); }
 
-  .partners-tiers h2, .partners-principles h2, .partners-list-section h2, .partners-faq h2, .partners-assets h2 {
+  .partners-tiers h2, .partners-principles h2, .partners-scope h2, .partners-list-section h2, .partners-faq h2 {
     font-family: 'Cormorant Garamond', Georgia, serif;
     font-size: clamp(1.75rem, 3vw, 2.25rem);
     font-weight: 600;
@@ -522,31 +519,42 @@ function locationText(p: PublicPartner): string {
     line-height: 1.65;
   }
 
-  .assets-grid {
+  .scope-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: var(--space-4);
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-5);
     margin-top: var(--space-6);
   }
-  .asset-item {
-    background: var(--bg-body);
+  .scope-item {
+    background: var(--bg-surface);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     padding: var(--space-5);
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-3);
   }
-  .asset-item--dark { background: #2a1e23; border-color: #2a1e23; }
-  .asset-item--dark a { color: var(--rose-300); }
-  .asset-item img { max-width: 100%; height: auto; }
-  .asset-item a { font-size: 0.875rem; color: var(--accent); font-weight: 600; text-decoration: none; }
-  .asset-item a:hover { text-decoration: underline; }
-
-  .assets-rules-link {
-    margin-top: var(--space-5);
+  .scope-item h3 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin-bottom: var(--space-3);
+  }
+  .scope-item p {
+    color: var(--text-secondary);
+    line-height: 1.65;
     font-size: 0.9375rem;
+    margin: 0;
+  }
+  .scope-attestation {
+    margin-top: var(--space-6);
+    padding: var(--space-5);
+    background: var(--bg-surface);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    line-height: 1.6;
+    max-width: 72ch;
+  }
+  .scope-attestation strong {
+    color: var(--accent);
+    margin-right: var(--space-2);
   }
 </style>

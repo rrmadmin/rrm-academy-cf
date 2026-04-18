@@ -3,10 +3,10 @@
 // See: docs/superpowers/specs/2026-04-16-educational-partners-program-design.md
 
 export interface PartnerAffirmations {
-  fabm_diagnosis: boolean;
-  excision_over_ablation: boolean;
-  rrm_primary_path: boolean;
-  patient_education: boolean;
+  find_the_cause: boolean;
+  treat_the_disease: boolean;
+  restore_function: boolean;
+  rrm_scope: boolean;
 }
 
 export type PartnerTier = 'friend' | 'partner' | 'accredited';
@@ -66,27 +66,24 @@ export function generatePartnerId(): string {
 
 export const FRIEND_PRINCIPLES = [
   {
-    key: 'fabm_diagnosis',
-    label: 'FABM-informed diagnosis',
+    key: 'find_the_cause',
+    label: 'Find the cause',
     description:
-      'Fertility awareness-based methods are used for cycle tracking, diagnosis, and protocol design, including evaluation of male-factor contributors.',
+      'Every evaluation begins with the question: what is producing these symptoms? Cycle-timed diagnostics, imaging, and targeted lab work are used to identify the specific condition. The workup does not stop at "unexplained."',
   },
   {
-    key: 'excision_over_ablation',
-    label: 'Excision over ablation when surgery is indicated',
+    key: 'treat_the_disease',
+    label: 'Treat the disease',
     description:
-      'When endometriosis surgery is indicated, surgical excision is preferred over ablation. Clinics may take a medical-first approach to endometriosis management; this principle applies only to surgical choice.',
+      'Treatment is matched to the diagnosis. Hormonal support, surgery, metabolic intervention, or a combination, each targeted to the finding. Nothing is empiric. Nothing is generic.',
   },
   {
-    key: 'rrm_primary_path',
-    label: 'RRM as primary path',
+    key: 'restore_function',
+    label: 'Restore function',
     description:
-      'Restorative reproductive medicine is offered as the primary fertility pathway. IVF is not promoted as a first-line option.',
-  },
-  {
-    key: 'patient_education',
-    label: 'Patient education as standard of care',
-    description:
-      'Patients are taught to understand their own cycles, symptoms, and treatment rationale.',
+      'The goal is a body working as it should. When the disease is treated, reproductive function, including fertility, cycle regularity, hormonal balance, and pain resolution, often returns on its own.',
   },
 ] as const;
+
+export const FRIEND_SCOPE_ATTESTATION =
+  "Our care is delivered within the RRM clinical scope: treating diagnosable conditions with the goal of restoring healthy natural function, not suppressing symptoms or substituting for the body's own capacity.";

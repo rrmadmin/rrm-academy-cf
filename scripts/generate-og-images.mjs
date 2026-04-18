@@ -41,7 +41,7 @@ const STATIC_PAGES = [
   { slug: 'save-the-uterus-club', title: 'Save the Uterus Club', description: 'Join a community of patients and providers committed to restorative reproductive medicine.' },
   { slug: 'save-the-uterus-club-thank-you', title: 'Welcome to Save the Uterus Club', description: "You're officially a member. Here's how to get started." },
   { slug: 'partners', title: 'Educational Partners', description: 'Clinics and organizations that publicly affirm the principles of restorative reproductive medicine.' },
-  { slug: 'partners-apply', title: 'Apply for Friend Partnership', description: 'Affirm the four Friend principles and apply for RRM Academy Educational Partner recognition.' },
+  { slug: 'partners-apply', title: 'Apply to Become a Friend', description: 'Affirm the three RRM principles and the clinical scope. Apply to join the RRM Academy Friends directory.' },
   { slug: '404', title: 'Page Not Found', description: "The page you're looking for doesn't exist or has been moved." },
 ];
 
