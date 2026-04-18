@@ -244,6 +244,14 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name rrm-academy
 
+      - name: Refresh Vectorize embeddings
+        if: ${{ success() && github.event_name != 'push' }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node scripts/embed-library-ci.mjs
+        continue-on-error: true
+
       - name: Update data baselines
         if: success()
         run: |

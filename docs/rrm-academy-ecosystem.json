@@ -1,7 +1,7 @@
 {
   "name": "RRM Academy Ecosystem",
-  "last_updated": "2026-04-04",
-  "staleness_note": "Row counts and financial summaries are approximate snapshots. Manually maintained -- update when infrastructure changes. n8n workflow counts, contact/user counts, and YTD financials drift over time.",
+  "last_updated": "2026-04-18",
+  "staleness_note": "Row counts, financial summaries, and timeline drift over time. This document is the system-wide SSOT -- update when infrastructure changes, subsystems ship, or pipelines migrate. Row counts are approximate snapshots; query D1 for authoritative values.",
   "organization": {
     "name": "RRM Academy",
     "url": "https://rrmacademy.org",
@@ -21,40 +21,91 @@
       "account_workers_subdomain": "administrator-cloudflare",
       "d1": {
         "rrm-auth": { "binding": "DB", "purpose": "Users, sessions, enrollments, community, CRM, billing, FAQs, blog, glossary, practitioners, newsletter" },
-        "rrm-library": { "purpose": "Research library articles, knowledge base, article bodies" },
-        "rrm-survey": { "purpose": "Survey pseudonymization (email + Airtable record ID)" }
+        "rrm-library": { "purpose": "Research library articles, knowledge base, article bodies, verified facts, relationships" },
+        "rrm-survey": { "purpose": "Survey pseudonymization (email + Airtable record ID + token-claim atomicity)" }
       },
       "r2": {
         "rrm-assets": { "binding": "R2_ASSETS", "purpose": "Community uploads, blog images, course covers, source material PDFs" }
       },
       "kv": {
         "COMMUNITY_KV": { "purpose": "Email cooldowns, admin dashboard cache" },
-        "MARKETING_INTEL_KV": { "purpose": "Marketing intelligence snapshots" }
+        "MARKETING_INTEL_KV": { "purpose": "Marketing intelligence snapshots, broken link deltas" },
+        "SURVEY_TOKENS": {
+          "binding": "SURVEY_TOKENS",
+          "purpose": "Endo survey magic-link tokens + email rate-limit reverse lookups",
+          "ttl_seconds": 86400,
+          "keys": [
+            "token:{uuid} -> { email, created, used, userorigin, utmSource }",
+            "email:{address} -> { token, created } (10min rate limit)"
+          ]
+        }
       },
       "analytics_engine": {
-        "datasets": ["worker-events (standalone Workers)", "worker_events (CF Pages Functions)"],
+        "datasets": ["worker-events (standalone Workers)", "worker_events (CF Pages Functions, hyphen not allowed in binding)"],
         "schema": "blobs[worker, event, action, status, detail], doubles[duration, count, httpStatus], indexes[action]",
         "query_script": "scripts/query-events.sh",
         "gotcha": "writeDataPoint() returns void -- never wrap in waitUntil() in Pages Functions"
       },
       "vectorize": {
         "model": "@cf/baai/bge-base-en-v1.5",
-        "purpose": "Semantic search for library, blog, FAQs, courses",
+        "purpose": "Semantic search for library, blog, FAQs, courses (half of the fusion system; see search_system)",
         "refresh_local": "npm run embed (scripts/embed-library.mjs, uses Worker bindings via wrangler dev --remote)",
-        "refresh_ci": "scripts/embed-library-ci.mjs (REST API, CI-capable but NOT wired into deploy.yml)",
-        "note": "Must refresh manually after data-heavy changes (bulk enrichment, new content types). ~100s for 3,200+ entries"
+        "refresh_ci": "scripts/embed-library-ci.mjs (REST API, production-ready but NOT yet wired into deploy.yml)",
+        "metadata_constraint": "No null values -- filter nulls before upsert",
+        "note": "Manual refresh after data-heavy changes (bulk enrichment, new content types). ~100s for 3,200+ entries"
       },
-      "survey_tokens_kv": {
-        "binding": "SURVEY_TOKENS",
-        "purpose": "Endo survey magic-link tokens (24h TTL)"
+      "ai_search": {
+        "instance_name": "rrm-academy-ask",
+        "public_endpoint": "https://383a8638-22b4-46c2-823d-1d42dbcb2bf3.search.ai.cloudflare.com",
+        "model": "Llama 3.3 70B",
+        "purpose": "Conversational research layer powering /ask page (auth-gated)",
+        "live_since": "2026-04-16",
+        "crawl": {
+          "source": "Website (Rendered Sites)",
+          "include": ["rrmacademy.org", "www.rrmacademy.org"],
+          "exclude": ["/account/*", "/admin/*", "/api/*", "/login", "/signup", "lesson steps (noindex)"]
+        },
+        "rate_limiting": {
+          "public_api": "120 req/60s (CF default)",
+          "per_user": "20 queries/day (KV-tracked, key ask:rate:{userId}:{YYYY-MM-DD})"
+        },
+        "pages_secret": "NLWEB_SEARCH_URL (bound to rrm-academy CF Pages project)",
+        "consumed_by": "functions/api/ask.js",
+        "signup_flow": "New signups from /ask tracked via user.signup_source='ask'; welcome-ask email sent inline"
       }
     },
     "aws": {
       "ses": {
         "region": "us-east-1",
         "iam_user": "rrm-ses-sender",
-        "send_from": "mail.rrmacademy.org",
-        "purpose": "All transactional email"
+        "send_from_domain": "mail.rrmacademy.org",
+        "bounce_domain": "bounce.mail.rrmacademy.org",
+        "dkim_spf_dmarc": "All configured; custom MAIL FROM isolates bounces",
+        "wrapper": "functions/api/_ses.js (aws4fetch, no AWS SDK)",
+        "env_vars": ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_SES_REGION"],
+        "sender_addresses": {
+          "hello@": "Signup welcome",
+          "accounts@": "Auth, verification, password reset, billing, enrollment",
+          "survey@": "Survey magic-links",
+          "alerts@": "System alerts to admin",
+          "contact@": "Contact form routing",
+          "info@": "PDF/guide delivery",
+          "newsletter@": "Bulk sends (Naomi byline)",
+          "noreply@": "Community notifications",
+          "administrator@": "Educational Partners program"
+        },
+        "email_types": {
+          "signup": ["welcome", "welcome_ask", "email_verification", "resend_verification"],
+          "auth": ["password_reset"],
+          "billing": ["course_ready", "membership_welcome", "membership_cancelled", "payment_failed"],
+          "contact": ["admin_notify", "user_confirm"],
+          "newsletter": ["send", "rss_triggered"],
+          "survey": ["request_link", "d1_alert"],
+          "community": ["new_post", "reply_notification", "flag_report"],
+          "partners": ["welcome", "rejection", "revocation"],
+          "pdf": ["request_link"],
+          "admin": ["enrollment_notify", "customer_mismatch", "orphaned_customer"]
+        }
       }
     },
     "n8n": {
@@ -65,7 +116,7 @@
       "api_credential": "op://Automation/n8n API Key/credential",
       "mcp_status": "BROKEN -- use REST API",
       "key_workflows": {
-        "daily_cleanup": { "id": "La9Bauj70L82oua8", "schedule": "5 AM UTC", "does": "Prunes expired sessions/resets/verifications" },
+        "daily_cleanup": { "id": "La9Bauj70L82oua8", "schedule": "5 AM UTC", "does": "Prunes expired sessions/resets/verifications/webhook events >7d" },
         "down_detector": { "id": "HxxCkFOPbrXa0r08", "schedule": "Every 5 min", "does": "Checks site health, Telegram alert on failure" }
       }
     },
@@ -81,73 +132,249 @@
       "purpose": "Primary application database for rrmacademy.org",
       "tables": {
         "people": {
-          "user": { "rows": 3966, "key": "id (UUID)", "unique": "email", "purpose": "Site accounts (login, password, Stripe link, role)", "has_email": true },
-          "contact": { "rows": 6783, "key": "id (UUID)", "unique": "email", "fk": "user_id (optional)", "purpose": "CRM umbrella -- anyone who touched RRM Academy", "has_email": true },
-          "contact_tag": { "rows": 25684, "key": "contact_id + tag", "purpose": "Tags on contacts (source, behavior, segment)" },
+          "user": {
+            "rows": 3966,
+            "key": "id (UUID)",
+            "unique": "email (COLLATE NOCASE)",
+            "purpose": "Site accounts (login, password, Stripe link, role, signup_source)",
+            "fields": ["id", "email", "name", "hashed_password (PBKDF2; '' for OAuth-only)", "role (user|mod|admin|superadmin)", "blocked", "email_verified", "google_id", "stripe_customer_id", "newsletter_opt_in", "newsletter_opted_in_at", "signup_source (ask|course|community|donation|organic)", "total_donated (stale vs Stripe)", "created_at"],
+            "has_email": true
+          },
+          "contact": {
+            "rows": 6783,
+            "key": "id (UUID)",
+            "unique": "email (COLLATE NOCASE)",
+            "fk": "user_id -> user.id (optional)",
+            "purpose": "CRM umbrella -- anyone who touched RRM Academy",
+            "has_email": true
+          },
+          "contact_tag": { "rows": 25684, "key": "contact_id + tag", "purpose": "Tags on contacts (source, behavior, segment, elv:* validation)" },
           "contact_address": { "key": "contact_id", "purpose": "Mailing addresses for contacts" },
           "contact_change_log": { "key": "contact_id", "purpose": "Audit trail for CRM changes" },
-          "newsletter_subscriber": { "rows": 6385, "key": "id", "unique": "email", "fk": "user_id (optional)", "purpose": "Newsletter list with segments, status, engagement tracking", "has_email": true },
-          "practitioner": { "key": "id", "purpose": "Provider directory records (scraped + manual)" }
+          "newsletter_subscriber": {
+            "rows": 6385,
+            "key": "id",
+            "unique": "email (COLLATE NOCASE)",
+            "fk": "user_id -> user.id (optional)",
+            "purpose": "Newsletter list with segments, status, engagement tracking",
+            "status_values": ["active", "unsubscribed", "bounced", "complained"],
+            "has_email": true
+          },
+          "practitioner": {
+            "rows": 4774,
+            "key": "id (TEXT)",
+            "purpose": "Provider directory records (21 sources consolidated, NPI+Healthgrades+Perplexity verified)",
+            "ssot": "projects/rrm-provider-directory/provider-directory.json",
+            "schema_cols": 27,
+            "by_listability": { "full": 2250, "basic": 986, "minimal": 19, "unlisted": 1519 },
+            "badge_system": "21 badges across 5 groups (action, type-clinical, type-wellness, type-educational, entity, context, trust)",
+            "methods_tracked": ["femm", "creighton", "napro", "neofertility", "marquette", "billings", "sympto-thermal", "boston-crosscheck", "lam", "nfpta", "sensiplan", "other"],
+            "top_method_counts": { "femm": 996, "creighton": 851, "napro": 739 },
+            "live_status": "pre-deploy (dev preview at /dev/providers, password-gated, noindex). Production target /providers/"
+          }
         },
         "auth": {
-          "session": { "purpose": "Active login sessions", "fk": "user_id" },
-          "email_verification": { "purpose": "Pending email verifications", "fk": "user_id" },
-          "password_reset": { "purpose": "Password reset tokens", "fk": "user_id" }
+          "session": {
+            "purpose": "Active login sessions",
+            "fk": "user_id",
+            "fields": ["id", "user_id", "expires_at"],
+            "duration_days": 30,
+            "auto_renew_at_days": 15,
+            "cleanup_schedule": "5 AM UTC via n8n La9Bauj70L82oua8"
+          },
+          "email_verification": {
+            "purpose": "Pending email verification codes (NOT magic-links)",
+            "fk": "user_id",
+            "fields": ["id", "user_id", "code (8-char)", "expires_at"],
+            "ttl_hours": 1
+          },
+          "password_reset": {
+            "purpose": "Password reset tokens",
+            "fk": "user_id",
+            "fields": ["id", "user_id", "token_hash (SHA-256)", "expires_at"],
+            "note": "Token hashed in DB; unhashed token sent in email link"
+          }
         },
         "membership": {
-          "user_label": { "rows": 90, "key": "user_id + label", "purpose": "Tier badges and achievement labels (STUC tiers, course completions)", "stuc_labels": ["Save the Uterus Club \uD83C\uDFF7\uFE0F (grandfathered)", "Uterus Member \uD83D\uDC3B", "Uterus Hero \uD83D\uDC96", "Uterus Super Hero \uD83E\uDDB8\u200D\u2640\uFE0F"] }
+          "user_label": {
+            "rows": 90,
+            "key": "user_id + label",
+            "purpose": "Tier badges and achievement labels (STUC tiers, course completions)",
+            "stuc_labels": [
+              "Save the Uterus Club 🏷️ (grandfathered from Wix)",
+              "Uterus Member 🐻 (member tier)",
+              "Uterus Hero 💖 (hero tier)",
+              "Uterus Super Hero 🦸\u200d♀️ (superhero tier)"
+            ],
+            "achievement_labels": [
+              "Donor 👏",
+              "Masterclass in Endometriosis & Surgery",
+              "Long Term Endometriosis Management",
+              "Restorative Reproductive Medicine (RRM) vs Standard ART",
+              "Postpartum Depression & Anxiety: a restorative approach"
+            ]
+          }
         },
         "courses": {
-          "enrollment": { "rows": 266, "key": "user_id + course_id", "purpose": "Course enrollments with payment and revocation tracking", "fk": "user_id" },
+          "enrollment": {
+            "rows": 266,
+            "key": "user_id + course_id",
+            "unique": "(user_id, course_id)",
+            "purpose": "Course enrollments with payment and revocation tracking",
+            "fields": ["id", "user_id", "course_id", "enrolled_at", "completed_at", "revoked_at (soft-delete on full refund)", "stripe_charge_id", "role"]
+          },
           "step_progress": { "purpose": "Lesson completion tracking", "fk": "user_id" },
           "quiz_response": { "purpose": "Quiz/questionnaire answers", "fk": "user_id" },
           "lesson_comment": { "purpose": "Comments on course lessons", "fk": "user_id" },
           "saved_article": { "rows": 20, "purpose": "Bookmarked library articles", "fk": "user_id" }
         },
         "community": {
-          "community_post": { "purpose": "STUC community posts", "fk": "author_id -> user" },
-          "community_comment": { "purpose": "Post comments", "fk": "author_id -> user" },
-          "community_reaction": { "purpose": "Emoji reactions", "fk": "user_id" },
-          "community_flag": { "purpose": "Reported content", "fk": "user_id" }
+          "community_post": {
+            "purpose": "STUC community posts",
+            "fk": "author_id -> user",
+            "fields": {
+              "type": "TEXT (discussion|announcement|event|resource)",
+              "channel": "TEXT DEFAULT 'stuc' (stuc|members|masterclass)",
+              "event_date": "TEXT (ISO8601, nullable)",
+              "event_link": "TEXT (nullable)",
+              "resource_url": "TEXT (nullable)",
+              "pinned": "INTEGER DEFAULT 0"
+            },
+            "access_control": "requireMember() gate; announcement/event/resource = staff-only; members+masterclass channels read-only for non-admin"
+          },
+          "community_comment": {
+            "purpose": "Post comments with threading",
+            "fk": ["post_id -> community_post", "author_id -> user", "parent_id -> community_comment (self-ref)"]
+          },
+          "community_reaction": { "purpose": "Emoji reactions on posts/comments", "fk": "user_id" },
+          "community_flag": {
+            "purpose": "Content moderation: reported posts/comments",
+            "fk": ["user_id (reporter)", "resolved_by (admin)"],
+            "fields": {
+              "reason": "TEXT (inappropriate|spam|harassment|other)",
+              "status": "TEXT DEFAULT 'pending' (pending|resolved|dismissed)",
+              "note": "TEXT (nullable, max 500 chars)"
+            },
+            "unique": "(user_id, target_type, target_id)"
+          }
         },
         "content": {
-          "posts": { "purpose": "Blog/commentary posts (D1 is SSOT since 2026-03-27)", "route": "/commentary/" },
-          "faq": { "purpose": "FAQ entries with three-tier answers", "route": "/faqs/" },
-          "faq_library_ref": { "purpose": "FAQ cross-references to library articles" },
-          "faq_resource": { "purpose": "FAQ external evidence URLs" },
-          "glossary_term": { "rows": 132, "key": "id (term_slug)", "unique": "slug", "purpose": "Glossary term definitions (D1 is SSOT since 2026-04-18)", "route": "/glossary/" },
+          "posts": {
+            "rows": 18,
+            "key": "id (TEXT)",
+            "unique": "slug (COLLATE NOCASE)",
+            "purpose": "Blog/commentary posts",
+            "ssot_since": "2026-03-27",
+            "route": "/commentary/",
+            "fields": ["id", "slug", "title", "content", "excerpt", "author (default: 'Naomi Whittaker, MD')", "content_pillar", "cover_image_url", "publish_date (ISO 8601)", "status (draft|review|published|archived)", "word_count", "seo_keywords", "created_at", "updated_at"],
+            "indexes": ["idx_posts_slug", "idx_posts_status", "idx_posts_publish_date"]
+          },
+          "faq": {
+            "rows": 25,
+            "key": "id (TEXT PK)",
+            "unique": "slug (COLLATE NOCASE)",
+            "purpose": "FAQ entries with three-tier answers (basic/schema/published)",
+            "ssot_since": "2026-04-04",
+            "route": "/faqs/",
+            "tiers": ["schemaAnswer (JSON-LD)", "basicAnswer (hub)", "publishedAnswer (detail)"],
+            "fields_notable": {
+              "status": "draft|published|archived",
+              "category": "Foundational|Condition-Specific|Common Concerns"
+            }
+          },
+          "faq_library_ref": { "purpose": "FAQ cross-references to library articles", "unique": "(faq_id, article_id)" },
+          "faq_resource": { "rows": 18, "purpose": "FAQ external evidence URLs", "unique": "(faq_id, url)" },
+          "glossary_term": {
+            "rows": 132,
+            "key": "id (term_slug)",
+            "unique": "slug (COLLATE NOCASE)",
+            "purpose": "Glossary term definitions",
+            "ssot_since": "2026-04-18",
+            "route": "/glossary/",
+            "fields": ["slug", "name", "part (I-VIII)", "sort_order", "body_html", "abbreviation", "pillar_link", "status"]
+          },
           "glossary_reference": { "rows": 58, "key": "id", "unique": "ref_num", "purpose": "Glossary numbered citations" },
-          "glossary_abbreviation": { "rows": 52, "key": "abbreviation", "purpose": "Glossary abbreviation quick-reference table; term_slug optionally links to a glossary_term" }
+          "glossary_abbreviation": { "rows": 52, "key": "abbreviation", "purpose": "Glossary abbreviation quick-reference; term_slug optionally links to a glossary_term" }
         },
         "billing": {
-          "webhook_event": { "purpose": "Stripe webhook dedup (event_id)" },
-          "affiliate_clicks": { "purpose": "Affiliate link click tracking" }
+          "webhook_event": { "purpose": "Stripe webhook dedup (event_id). INSERT OR IGNORE on retry. Deletes only on 5xx (transient), not 4xx (permanent)." },
+          "affiliate_clicks": {
+            "purpose": "Affiliate link click tracking (logged-in user clicks to partner sites)",
+            "key": "id (INTEGER PK)",
+            "unique": "(user_id, course_id, click_date)",
+            "fields": ["user_id", "course_id", "click_date (YYYY-MM-DD)", "clicked_at (ISO 8601)"]
+          }
         },
         "email": {
-          "email_log": { "purpose": "All sent email audit trail" },
-          "newsletter_send": { "purpose": "Newsletter send records" },
-          "newsletter_event": { "purpose": "Per-subscriber send events (opens, clicks)" }
+          "email_log": {
+            "purpose": "Audit trail for all sent email",
+            "fields": ["event (send|failed)", "email", "category (transactional|newsletter)", "source (45+ origin tags)", "subject", "detail", "send_id", "timestamp"]
+          },
+          "newsletter_send": {
+            "purpose": "Bulk send records with delivery metrics",
+            "status_values": ["draft", "sending", "sent", "failed"],
+            "config": { "PAGE_SIZE": 80, "BATCH_SIZE": 10, "BATCH_DELAY_MS": 500 },
+            "commentary_slug": "Optional column linking RSS-triggered sends to a post"
+          },
+          "newsletter_event": {
+            "purpose": "Per-subscriber send events (opens, clicks, bounces, complaints)",
+            "events": ["sent", "delivered", "opened", "clicked", "bounced", "complained"]
+          }
         },
         "other": {
           "pdf_token": { "purpose": "Magic-link tokens for PDF downloads" },
-          "system_config": { "purpose": "System configuration (this ecosystem map)", "note": "Created by this spec" }
+          "system_config": { "purpose": "System configuration (including this ecosystem map)", "keys": ["ecosystem-map"] }
         }
       }
     },
     "rrm-library": {
-      "purpose": "Research library (3,200+ articles)",
+      "purpose": "Research library (3,200+ articles), guardrails, voice profiles, and verified facts",
       "tables": {
-        "articles": { "purpose": "Journal articles, books, reports, preprints" },
-        "knowledge": { "rows": 38, "purpose": "Guardrails (22), voice analyses (11), voice profiles (3), frameworks (2) -- all internal classification" },
-        "article_bodies": { "purpose": "Full-text content for articles" }
+        "articles": {
+          "purpose": "Journal articles, books, reports, preprints",
+          "type_allowlist_since": "2026-04-07",
+          "published_types": ["article", "book", "book-chapter", "chapter", "report", "preprint", "addendum", "conference-presentation", "clinical-protocol", "other", "op-ed", "assessment"],
+          "excluded_from_articles_endpoint": ["faq", "post", "course", "guide"]
+        },
+        "article_bodies": { "purpose": "Full-text content for articles (populated via /link-fulltext)" },
+        "knowledge": {
+          "rows": 38,
+          "purpose": "Internal classification records",
+          "breakdown": { "guardrails": 22, "voice_analyses": 11, "voice_profiles": 3, "frameworks": 2 },
+          "classification": "internal"
+        },
+        "facts": {
+          "rows": 1060,
+          "key": "id",
+          "purpose": "Verified claims with provenance. Consumed by /check-facts; written via /promote-facts (admin scope).",
+          "fields": ["id", "claim", "category", "domain", "tradition", "claim_type", "body", "source_id", "verified (0|1|2)", "verification_notes (source quote)", "created_at", "updated_at"],
+          "verified_levels": {
+            "0": "unverified",
+            "1": "library-linked",
+            "2": "pubmed-verified"
+          },
+          "wave_1_status": "COMPLETE -- 782 Hilgers facts from NaProTECHNOLOGY textbook promoted and linked",
+          "planned_waves": "2-5 (future sources TBD)"
+        },
+        "relationships": {
+          "purpose": "Content relationships (cites, supports, extracted_from facts->articles, etc.)"
+        }
       },
       "worker": "rrm-library-worker",
       "base_url": "https://rrm-library-worker.administrator-cloudflare.workers.dev"
     },
     "rrm-survey": {
-      "purpose": "Survey pseudonymization",
+      "purpose": "Survey pseudonymization (email ↔ Airtable record ID)",
       "tables": {
-        "survey_identities": { "purpose": "Email + Airtable record ID mapping" }
+        "survey_identities": {
+          "purpose": "Email + Airtable record ID mapping",
+          "fields": ["id", "email", "airtable_record_id (UNIQUE)", "source", "created_at"],
+          "sources": ["endo-survey-v1 (live submissions)", "endo-survey-v1-backfill (migration)"]
+        },
+        "survey_token_claims": {
+          "purpose": "Atomic double-submit prevention",
+          "unique": "token"
+        }
       }
     }
   },
@@ -158,7 +385,7 @@
       "user": "A contact who has a digital relationship with the site -- created an account, bought a course, donated via Stripe, etc.",
       "member": "A user with active STUC membership (Stripe subscription OR grandfathered label OR staff role)",
       "student": "A user with one or more course enrollments",
-      "donor": "A contact who has donated (tracked in contact.total_donated)",
+      "donor": "A contact who has donated (tracked in contact.total_donated; stale, see gaps)",
       "subscriber": "A contact on the newsletter list (newsletter_subscriber table)"
     },
     "linking": {
@@ -170,18 +397,20 @@
       "contact_to_tags": "contact_tag.contact_id -> contact.id"
     },
     "source_of_truth": {
-      "stuc_membership_active": "Stripe subscriptions API (status in active/trialing/past_due) OR user_label 'Save the Uterus Club \uD83C\uDFF7\uFE0F' (grandfathered) OR user.role >= mod (staff)",
-      "stuc_tier": "Stripe price ID mapped to env vars (STRIPE_PRICE_MEMBER/HERO/SUPERHERO). Grandfathered = member tier. Staff = staff tier.",
+      "stuc_membership_active": "Stripe subscriptions API (status in active/trialing/past_due) OR user_label 'Save the Uterus Club 🏷️' (grandfathered) OR user.role >= mod (staff). Gated via requireMember() in community/_shared.js.",
+      "stuc_tier": "Stripe price ID mapped to env vars (STRIPE_PRICE_MEMBER/HERO/SUPERHERO). Grandfathered = member tier. Staff = staff tier. Default if price missing: member.",
       "stuc_cancellation": "Stripe webhook customer.subscription.deleted fires email but does NOT write to D1. Gap: no D1 record of cancellation date or reason.",
+      "community_access_blocked": "user.blocked = 1 returns 403 'Account suspended' on requireMember()",
       "course_enrollment": "D1 enrollment table. revoked_at for refunded.",
-      "newsletter_status": "D1 newsletter_subscriber.status (active/unsubscribed/bounced/complained)",
-      "donation_history": "Stripe API + contact.total_donated (may be stale)",
+      "newsletter_status": "D1 newsletter_subscriber.status (active/unsubscribed/bounced/complained); also mirrored in user.newsletter_opt_in (0/1)",
+      "donation_history": "Stripe API (live charges + subscriptions). D1 contact.total_donated exists but is NOT maintained by webhooks -- stale.",
       "email_validity": "contact_tag with elv:* tags from EmailListVerify"
     },
     "known_gaps": [
       "STUC cancellations not recorded in D1 -- only Stripe webhook log + email sent",
-      "contact.total_donated may be stale vs Stripe",
+      "contact.total_donated not synced from Stripe webhooks -- stale",
       "Wix legacy data (groups, labels) is unreliable -- do not use as source of truth",
+      "PayPal donations sync only via n8n Airtable automation, not to D1",
       "No unified 'person profile' view joining all tables"
     ],
     "lookup_recipes": {
@@ -195,8 +424,8 @@
         "-- Then query Stripe: stripe.subscriptions.list({ customer: user.stripe_customer_id })"
       ],
       "all_stuc_members": [
-        "-- Active Stripe subscribers (need Stripe API call per user with stripe_customer_id)",
-        "-- Grandfathered: SELECT u.* FROM [user] u JOIN user_label ul ON u.id = ul.user_id WHERE ul.label = 'Save the Uterus Club \uD83C\uDFF7\uFE0F'",
+        "-- Active Stripe subscribers (requires Stripe API call per user with stripe_customer_id)",
+        "-- Grandfathered: SELECT u.* FROM [user] u JOIN user_label ul ON u.id = ul.user_id WHERE ul.label = 'Save the Uterus Club 🏷️'",
         "-- Staff: SELECT * FROM [user] WHERE role IN ('mod', 'admin', 'superadmin')",
         "-- Note: requireMember() in community/_shared.js implements this logic"
       ],
@@ -209,25 +438,456 @@
     "github_repo": "rrmadmin/rrm-academy-cf",
     "workflow": "deploy.yml",
     "triggers": {
-      "push_to_main": { "does": "Astro build only (no data fetch)", "when": "Code changes" },
+      "push_to_main": { "does": "Astro build only (no data fetch, no citation verification)", "when": "Code changes" },
       "repository_dispatch_article": { "payload": "{ article_id }", "does": "Fetch single article from library worker, build" },
-      "repository_dispatch_blog": { "payload": "{ record_id }", "does": "Fetch single blog post, build" },
+      "repository_dispatch_blog": { "payload": "{ record_id }", "does": "Fetch single blog post, build (citation verify on single-record, blocking)" },
       "repository_dispatch_faq": { "payload": "{ faq_id }", "does": "Fetch single FAQ, build" },
       "repository_dispatch_glossary": { "payload": "{ glossary_term_id }", "does": "Fetch single glossary term, build" },
-      "workflow_dispatch": { "does": "Full fetch-all (articles, posts, FAQs, courses, glossary), build" }
+      "workflow_dispatch": { "does": "Full fetch-all (articles, posts, FAQs, courses, glossary), build. Citation verify runs but continue-on-error." }
     },
     "data_sources": {
-      "articles": { "from": "rrm-library-worker /articles", "auth": "LIBRARY_BUILD_TOKEN", "script": "src/lib/fetch-data.mjs", "output": "src/data/articles.json" },
-      "posts": { "from": "GET /api/blog/posts", "auth": "LIBRARY_BUILD_TOKEN", "script": "src/lib/fetch-blog-data.mjs", "output": "src/data/posts.json" },
-      "faqs": { "from": "GET /api/faqs", "auth": "LIBRARY_BUILD_TOKEN", "script": "src/lib/fetch-faq-data.mjs", "output": "src/data/faqs.json" },
-      "courses": { "from": "Static (committed to git)", "script": "src/lib/fetch-courses-data.mjs (exists but not used -- courses.json is git-tracked)", "output": "src/data/courses.json" },
-      "glossary": { "from": "GET /api/glossary/terms", "auth": "LIBRARY_BUILD_TOKEN", "script": "src/lib/fetch-glossary-data.mjs", "output": "src/data/glossary.json (nested: terms, references, abbreviations)", "ssot_since": "2026-04-18" }
+      "articles": { "from": "rrm-library-worker /articles", "auth": "LIBRARY_BUILD_TOKEN (rrm_build_ scope)", "script": "src/lib/fetch-data.mjs", "output": "src/data/articles.json" },
+      "posts": { "from": "GET /api/blog/posts", "auth": "LIBRARY_BUILD_TOKEN", "script": "src/lib/fetch-blog-data.mjs", "output": "src/data/posts.json", "ssot_since": "2026-03-27" },
+      "faqs": { "from": "GET /api/faqs", "auth": "LIBRARY_BUILD_TOKEN", "script": "src/lib/fetch-faq-data.mjs", "output": "src/data/faqs.json", "ssot_since": "2026-04-04" },
+      "courses": {
+        "from": "Airtable (RRM Courses base app0nohI0WrgFWOE3) + src/data/courses-overrides.json (affiliate courses)",
+        "auth": "AIRTABLE_PAT",
+        "script": "src/lib/fetch-courses-data.mjs",
+        "process": "Fetch Courses/Modules/Lessons tables -> transform to nested JSON -> merge courses-overrides.json (idempotent, honors _position field) -> optimize cover images via Tinify -> upload to R2",
+        "output": "src/data/courses.json",
+        "critical_note": "NeoFertility Medical Training Cohort lives ONLY in overrides.json (no Airtable record). Without the merge step, every cache-miss deploy silently 404s /courses/neofertility-medical-training/"
+      },
+      "glossary": {
+        "from": "GET /api/glossary/terms",
+        "auth": "LIBRARY_BUILD_TOKEN",
+        "script": "src/lib/fetch-glossary-data.mjs",
+        "output": "src/data/glossary.json (nested: terms, references, abbreviations)",
+        "ssot_since": "2026-04-18"
+      }
     },
     "guards": {
       "minimum_counts": { "articles": 2500, "posts": 5, "faqs": 10, "courses": 1, "glossary.terms": 100, "glossary.references": 30, "glossary.abbreviations": 40 },
       "max_drop": { "articles": 50, "posts": 1, "faqs": 1, "courses": 1, "glossary.terms": 5 },
-      "regression_baselines": ".baselines.json (git-tracked). Auto-updates after successful deploy."
+      "regression_baselines": ".baselines.json (git-tracked). Auto-updates after successful deploy.",
+      "type_check_baseline": "scripts/type-check-baseline.json (Astro check errors ceiling, NOT auto-updated; bump via node scripts/check-types.mjs --update)",
+      "citation_verification": "scripts/verify-citations.mjs v2 (multi-API cascade) -- blocks single-record blog dispatch, continue-on-error on full deploy"
+    },
+    "permissions_required": "contents: write (for baseline auto-commit)"
+  },
+  "content": {
+    "pillar_guides": {
+      "architecture_decision": "2026-03-12: flat URLs at root for SEO authority; /guides/ is an index page, not a URL parent",
+      "live": [
+        { "slug": "naprotechnology", "url": "/naprotechnology/", "status": "published" },
+        { "slug": "what-is-rrm", "url": "/what-is-rrm/", "status": "published" },
+        { "slug": "common-questions-about-rrm", "url": "/common-questions-about-rrm", "status": "published", "note": "Present with breadcrumb but currently absent from /guides/ index cards -- UX gap" },
+        { "slug": "femm", "url": "/femm/", "status": "published" },
+        { "slug": "neofertility", "url": "/neofertility/", "status": "published" },
+        { "slug": "glossary", "url": "/glossary/", "status": "published", "ssot_since": "2026-04-18" }
+      ],
+      "planned": [
+        { "slug": "endometriosis", "status": "planned" },
+        { "slug": "pcos", "status": "planned" }
+      ],
+      "in_review": [
+        { "slug": "rrm-success-rates", "branch": "feat/rrm-success-rates", "status": "pending_voice_review" }
+      ],
+      "index_page": { "url": "/guides/", "purpose": "Lists and links all pillar guides (not a URL parent)" }
     }
+  },
+  "affiliate_system": {
+    "purpose": "Externally-hosted partner courses -- no Stripe, click-through to partner",
+    "ssot": "src/data/courses-overrides.json (hand-curated, git-tracked, merged at build)",
+    "fields": {
+      "isAffiliate": "boolean (true = external)",
+      "affiliateUrl": "string (e.g. https://chartneo.com/RRMA)",
+      "couponCode": "string (partner discount code)",
+      "couponDiscount": "string (human-readable, e.g. '5%')",
+      "affiliatePriceCents": "number (discounted price)",
+      "cohortDates": "{ start, end } ISO strings"
+    },
+    "routing": {
+      "listing_page": "/courses/[slug]/ (Astro static, conditionally rendered on isAffiliate)",
+      "enrollment_click": "POST /api/courses/affiliate-click (logs to affiliate_clicks table, redirects to affiliateUrl)",
+      "build_merge": "src/lib/fetch-courses-data.mjs merges courses-overrides.json after Airtable fetch (load-bearing)"
+    },
+    "tracking_table": "databases.rrm-auth.tables.billing.affiliate_clicks",
+    "live_courses": [
+      {
+        "id": "neofertility-med-training",
+        "title": "NeoFertility Medical Training Cohort",
+        "slug": "neofertility-medical-training",
+        "cohort_dates": "2026-04-20 to 2026-07-02",
+        "coupon": "RRMA-S26 (5% off)",
+        "instructor": "Dr. Phil Boyle",
+        "price": "$1,200 full / $1,140 with coupon"
+      }
+    ]
+  },
+  "design_system": {
+    "ssot_path": "docs/design/design-system.json (machine-readable, auto-generated)",
+    "generation_workflow": {
+      "source_files": [
+        "src/styles/global.css (CSS tokens: 3 themes × 73 tokens + 19 shared = 238 total)",
+        "docs/design/design-system.manual.json (brand rules, fonts, typography scale)"
+      ],
+      "generator": "scripts/generate-design-tokens.mjs",
+      "output": "docs/design/design-system.json",
+      "command": "npm run design-tokens"
+    },
+    "ci_gates": [
+      { "name": "SSOT drift check", "command": "npm run design-tokens:check", "blocks_deploy": true },
+      { "name": "Phantom token audit", "command": "npm run design-tokens:audit", "blocks_deploy": true, "purpose": "Fail if any var(--X) references undefined tokens" }
+    ],
+    "themes": ["light", "dark", "eink"],
+    "token_counts": { "per_theme": 73, "shared": 19, "total": 238 },
+    "brand": {
+      "wordmark": "RRM Academy in Cormorant Garamond 600, text-only (no graphic mark or icon)",
+      "accent_color": "--accent (#725e7e light / #b8a3c4 dark / #5a5045 eink) -- purple, never rose",
+      "accent_philosophy": "Purple as authority, used sparingly (links, buttons, interactive states)",
+      "dark_asset_palette": "--footer-bg (#313131) + --footer-accent (#c9b8d3) for branded assets in dark contexts",
+      "forbidden": ["rose as brand accent", "invented monograms/seals/icons", "tree logo (deprecated)"]
+    },
+    "fonts": {
+      "display": { "family": "Cormorant Garamond", "weights": [400, 600], "hosting": "self-hosted woff2 via @fontsource" },
+      "ui": { "family": "Inter", "weights": [400, 500, 600], "hosting": "self-hosted woff2 via @fontsource" }
+    },
+    "entry_points": {
+      "DESIGN.md": "Human entry point (tells where to read/edit)",
+      "STYLE-GUIDE.md": "Narrative companion (not machine-parsed)",
+      "design-system.json": "Machine-readable SSOT"
+    },
+    "deprecated": "docs/design/tokens.json (older static snapshot, no longer consumed)"
+  },
+  "editorial_system": {
+    "overview": "Voice-gated copywriting agents per brand. Proof gates are deterministic (grep/quote/read), not claim-based.",
+    "agents": {
+      "gianna": {
+        "persona": "Dr. Naomi Whittaker, MD, OBGYN, MIGS, NFPMC, FCI",
+        "scope": "RRM Academy content (rrmacademy.org)",
+        "content_types": ["library_commentaries", "patient_faqs", "patient_articles", "blog_posts", "social_copy"],
+        "proof_gates": 14,
+        "guardrails_source": "rrm-library D1 knowledge table (22 guardrails)",
+        "voice_profile_path": "~/iCode/vault/self/voice-gianna.md",
+        "agent_definition": "~/.claude/agents/gianna-copywriter.md",
+        "output_tiers": {
+          "library_commentary_deep": "1000w",
+          "library_commentary_standard": "700w",
+          "library_commentary_minimal": "350w",
+          "patient_faq": "100-250w",
+          "patient_article": "400-900w",
+          "social": "platform-dependent"
+        },
+        "target_cadence": "8x/month (commentary / 'The Bridge')",
+        "pipeline": "D1 posts table -> editorial review -> Gianna voice gate -> publish -> /commentary/"
+      },
+      "patrick": {
+        "persona": "Dr. Phil Boyle, MICGP MRCGP, founder NeoFertility, president IIRRM",
+        "scope": "NeoFertility ecosystem (neofertility.ie/.us/.eu/.com/.co.uk, iirrm.org)",
+        "content_types": ["condition_pages", "faq_answers", "blog_posts", "clinician_training", "website_copy"],
+        "proof_gates": 22,
+        "voice_profile_path": "~/iCode/projects/neofertility/voice-patrick.md",
+        "agent_definition": "~/.claude/agents/patrick-copywriter.md",
+        "editorial_config": "~/iCode/projects/neofertility/CLAUDE.md",
+        "research_sources": ["rrm-cli", "D1 rrm-library", "R2 full-text"]
+      }
+    },
+    "governance": {
+      "brand_separation": "Gianna and Patrick are mutually exclusive. NeoFertility content must route through Patrick for voice approval.",
+      "proof_gate_framework": "Deterministic quote/grep/read checks. No claim-based self-assessment.",
+      "voice_profile_storage": "External .md files, updated independently of agent definitions."
+    }
+  },
+  "fact_system": {
+    "purpose": "Guardrail checking + verified-fact claim matching for all RRM content",
+    "storage": {
+      "facts_table": "databases.rrm-library.tables.facts (1,060 rows, verified >= 1)",
+      "guardrails_table": "databases.rrm-library.tables.knowledge (22 guardrails)"
+    },
+    "endpoints": {
+      "POST /check": {
+        "purpose": "Validate text against guardrails (returns triggered guardrails)",
+        "logic": "Query knowledge WHERE type='guardrail' AND is_active=1; extract trigger terms; case-insensitive match",
+        "auth_scope": "agent + admin"
+      },
+      "POST /check-facts": {
+        "purpose": "Verify claims in text against verified facts",
+        "logic": "Extract claims (percentages, dollars, sample sizes, cohort years); numeric match ±2% tolerance; common-error phrase matching",
+        "auth_scope": "agent + admin"
+      },
+      "POST /promote-facts": {
+        "purpose": "UPSERT facts + extracted_from relationships",
+        "schema": "{ id, claim, verified >= 1, verification_notes (source quote) }",
+        "auth_scope": "admin only"
+      }
+    },
+    "local_mirror": {
+      "tool": "rrm-cli",
+      "commands": ["check", "check-facts", "promote-facts --list --source --review --push"],
+      "local_fact_count": "~162 (expanded 2026-03-28 from deep extraction of 13 IIRRM outcome papers + HFEA/ESHRE data)"
+    },
+    "wave_status": {
+      "wave_1": "COMPLETE -- 782 Hilgers facts (NaProTECHNOLOGY textbook) promoted and linked",
+      "waves_2_to_5": "READY -- sources TBD"
+    },
+    "citation_integrity": "Blog deploy blocked by scripts/verify-citations.mjs v2 (multi-API cascade). Never insert citations from model knowledge -- always live research."
+  },
+  "search_system": {
+    "architecture": "Pagefind (client-side full-text, instant) + Vectorize (server-side semantic, ~200ms) merged via Reciprocal Rank Fusion (RRF) in src/components/SearchBar.astro",
+    "fusion": {
+      "algorithm": "Reciprocal Rank Fusion (RRF)",
+      "formula": "sum(1/(K+rank)) across Pagefind + Vectorize + recency + relevance signals",
+      "parameters": [
+        { "name": "RRF_K", "value": 60, "purpose": "Pagination constant for keyword/semantic merge" },
+        { "name": "RECENCY_K", "value": 30, "purpose": "Boost recent papers (age < 20 years)" },
+        { "name": "RELEVANCE_K", "value": 50, "purpose": "Tiebreaker for rrmRelevance + own-content boost" }
+      ],
+      "semantic_timeout_ms": 300,
+      "late_arrival_handling": "Append semantic results as addenda if they arrive after Pagefind"
+    },
+    "dedup": "By URL (normalized to path) + record ID (slug-rename resilient)",
+    "signals": {
+      "non_english_penalty": 1000,
+      "sentiment_penalties": { "hostile": -0.02, "critical": -0.01 },
+      "rrm_relevance": "5-point scale (Core RRM -> Not RRM)"
+    },
+    "api": {
+      "path": "/api/search/semantic",
+      "method": "GET",
+      "query_param": "q",
+      "query_cap_chars": 500,
+      "rate_limit": "20 req/min per IP (cf-connecting-ip)",
+      "rate_limit_purpose": "Protect billed AI.run() + Vectorize.query()",
+      "authentication": "None (public)",
+      "response_shape": "{ results: [{ url, title, type, score, authors, year }] }"
+    },
+    "embedding_pipeline": {
+      "model": "@cf/baai/bge-base-en-v1.5",
+      "local": {
+        "script": "scripts/embed-library.mjs",
+        "trigger": "npm run embed (wrangler dev --remote + Worker bindings)",
+        "content_sources": {
+          "articles": "title + Domain + Topics + SearchTerms + abstract",
+          "posts": "title + seoKeywords + excerpt + content",
+          "faqs": "question + category + answer",
+          "courses": "title + description + section titles + seo.keywords"
+        },
+        "metadata_constraint": "No null values; omit fields when value is null",
+        "text_truncation": 2000,
+        "batch_size": 100
+      },
+      "ci": {
+        "script": "scripts/embed-library-ci.mjs",
+        "method": "Cloudflare REST API (CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID)",
+        "features": ["Stale vector cleanup (list + delete)", "Pre-publish validation (articles >= 2500)", "Batch upsert"],
+        "status": "Production-ready; NOT wired into deploy.yml yet"
+      },
+      "refresh_cadence": "Manual (post data-heavy changes). ~100s for 3,200+ entries"
+    }
+  },
+  "newsletter_system": {
+    "description": "Transactional email list for research commentary and course updates (distinct from transactional SES email)",
+    "ssot_since": "2025-11-15",
+    "tables_ref": "databases.rrm-auth.tables.people.newsletter_subscriber + .email.newsletter_send + .email.newsletter_event",
+    "segments": {
+      "schema": "JSON array in newsletter_subscriber.segments column",
+      "count_total": 15,
+      "from_crm_tags": ["endo-survey", "marketing-opted-in", "member", "course-interest", "customer", "course-endo-masterclass", "research-subscriber", "download-workbook", "stuc", "donor", "course-rrm-vs-art", "legacy-squarespace", "biosite-lead"],
+      "programmatic": ["enrolled (from enrollment table)", "stripe-customer (from user.stripe_customer_id)"]
+    },
+    "subscribe_flow": {
+      "endpoint": "POST /api/newsletter/subscribe",
+      "rate_limit": "10/15min per IP",
+      "turnstile": true,
+      "elv_blocking_tags": ["spamtrap", "email_disabled", "disposable", "invalid", "dead_server", "invalid_mx"],
+      "opt_in_type": "Single opt-in (no confirmation page)",
+      "dual_write": ["newsletter_subscriber row", "user.newsletter_opt_in = 1", "user.newsletter_opted_in_at = now()"]
+    },
+    "unsubscribe_flow": {
+      "rfc": "RFC 8058 (List-Unsubscribe-Post)",
+      "methods": ["GET token-validated (confirmation page)", "POST one-click (no page)"],
+      "policy": "UPDATE status='unsubscribed' + UPDATE user.newsletter_opt_in = 0. NEVER DELETE (CAN-SPAM)."
+    },
+    "send_flow": {
+      "endpoint": "POST /api/newsletter/send",
+      "auth": "ADMIN_API_SECRET Bearer",
+      "suppression_safety_net": "Queries elv:* blocked tags before send",
+      "pagination": { "page_size": 80, "batch_size": 10, "batch_delay_ms": 500 }
+    },
+    "scripts": {
+      "verify-crm-elv.mjs": "Bulk SMTP-level mailbox verification, tags contacts",
+      "import-newsletter-subscribers.mjs": "CRM -> newsletter_subscriber via ELV-safe tags",
+      "segment-newsletter.mjs": "Populate segments column from contact_tag + enrollment + Stripe data"
+    }
+  },
+  "auth_system": {
+    "model": "Custom auth (no third-party identity provider). PBKDF2 password hashing. Session cookies in D1.",
+    "oauth_providers": {
+      "google": {
+        "enabled": true,
+        "env_vars": ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"],
+        "endpoints": {
+          "GET /api/auth/google": "Redirect to Google OAuth consent",
+          "GET /api/auth/google-callback": "Token exchange + account link/create"
+        },
+        "account_linking_cascade": [
+          "1. Hit by google_id -> return user",
+          "2. Hit by email on verified account -> link (set google_id)",
+          "3. Hit by email on unverified account -> auto-upgrade (set email_verified=1)",
+          "4. No match -> create new user with email_verified=1"
+        ],
+        "security": ["user.blocked check before session issue", "hashed_password = '' for OAuth-only users", "isSafeRedirect on post-login URL"]
+      }
+    },
+    "email_verification": {
+      "method": "8-char code (NOT magic-link)",
+      "ttl_hours": 1,
+      "table": "email_verification (id, user_id, code, expires_at)",
+      "endpoints": {
+        "POST /api/auth/verify-email": "Requires session; consumes code",
+        "POST /api/auth/resend-verification": "Rate-limited per user_id"
+      },
+      "elv_integration": {
+        "at_signup": true,
+        "blocks_on": ["invalid", "disposable", "bounced"],
+        "creates_contact_tag": "elv:STATUS"
+      }
+    },
+    "session": {
+      "table": "session (id, user_id, expires_at)",
+      "duration_days": 30,
+      "auto_renew_at_days": 15,
+      "cleanup_schedule": "5 AM UTC via n8n",
+      "cookie_flags": "HttpOnly; Secure; SameSite=Lax; Path=/"
+    },
+    "rate_limiting": {
+      "login": "5 req / 15 min per IP",
+      "signup": "5 req / 15 min per IP",
+      "verify_email": "5 req / 15 min per user_id",
+      "scope": "Per CF Pages isolate (resets on cold start)"
+    },
+    "turnstile": {
+      "on_endpoints": ["POST /api/auth/login", "POST /api/auth/signup", "POST /api/auth/forgot-password", "POST /api/newsletter/subscribe"],
+      "env_var": "CF_TURNSTILE_SECRET",
+      "fallback": "Submit after 5s timeout (never hard-blocks)"
+    },
+    "middleware_gating": {
+      "file": "functions/_middleware.js",
+      "gated_paths": ["/account (any user)", "/community (requireMember)", "/ask (any user; unauth -> /signup)", "/admin/* (superadmin only)"]
+    }
+  },
+  "endo_survey_system": {
+    "purpose": "Pseudonymized self-assessment for endometriosis risk",
+    "live_since": "2026-03-09",
+    "routes": {
+      "/endo-survey/": "Landing page",
+      "/endo-survey/take": "Assessment form"
+    },
+    "api_endpoints": {
+      "POST /api/survey/request": "Email magic-link (rate-limited 10min/IP, 10min email cooldown)",
+      "GET /api/survey/validate": "Token validity check (used/expired)",
+      "POST /api/survey/submit": "Store results in Airtable + D1, strip email from KV",
+      "POST /api/survey/event": "Beacon tracking (calculate, download_pdf, copy_for_ai, follow_instagram) -> Analytics Engine"
+    },
+    "pseudonymization": {
+      "d1_rrm_survey": "Email + Airtable record ID mapping (survey_identities)",
+      "airtable": "Symptoms, scores, metadata (no email). Base appb7HeeJQsVe3Jpr, table tblMAw2tih2ie3ZCu",
+      "kv_survey_tokens": "Token -> email mapping, stripped after submit"
+    },
+    "failure_handling": "D1 insert failure logs to Analytics Engine + sends SES alert to administrator@rrmacademy.org (async waitUntil)",
+    "nurture_flow": {
+      "design_doc": "docs/plans/endo-survey-nurture-sequence.md",
+      "high_scorers": "6-email sequence",
+      "score_zero": "3-email sequence",
+      "status": "specced, automation TBD"
+    },
+    "icd10_internal": "docs/endo-survey-icd10-internal.md"
+  },
+  "donations_system": {
+    "stripe": {
+      "mode": "payment",
+      "min_cents": 500,
+      "max_cents": 99999900,
+      "success_url": "/donate/thank-you/?session_id={CHECKOUT_SESSION_ID}",
+      "cancel_url": "/donate/",
+      "receipt": "Stripe-managed (no custom template)",
+      "webhook_event": "checkout.session.completed (only -- no charge.completed handler)",
+      "ga4_event": "purchase (fired at checkout creation, not thank-you confirmation)"
+    },
+    "paypal": {
+      "integration": "Hardcoded link on /donate page; no API integration",
+      "sync": "Manual via n8n PayPal -> Airtable workflow (monthly 5th)"
+    },
+    "pages": {
+      "/donate/": "src/pages/donate/index.astro",
+      "/donate/thank-you": "src/pages/donate/thank-you.astro"
+    },
+    "tax_deductible": true,
+    "recipient": "RRM Foundation 501(c)(3), EIN 93-4594315",
+    "known_gap": "contact.total_donated NOT synced from Stripe webhooks. Stripe API is SSOT; D1 column decays over time."
+  },
+  "workers": {
+    "rrm-router": { "status": "active", "purpose": "Edge reverse proxy (Astro vs Wix strangler fig). Runs BEFORE CF Pages middleware." },
+    "rrm-library-worker": {
+      "status": "active",
+      "purpose": "Library enrichment, article API, knowledge, facts, classification, integrity audit",
+      "base_url": "https://rrm-library-worker.administrator-cloudflare.workers.dev",
+      "crons": [
+        "Every 60s (* * * * *): enrichment tick",
+        "Sunday 6AM UTC (0 6 * * 7): retraction scan",
+        "Saturday 6AM UTC (0 6 * * 6): metadata verify tick (100 records/week via CrossRef)"
+      ],
+      "endpoints": [
+        "/health (no auth)",
+        "/status",
+        "/articles (type allowlist, excludes faq/post/course/guide; supports ?id=, ?limit=, ?offset=)",
+        "/knowledge",
+        "/content",
+        "/search (supports ?q=, ?type=, ?tradition=, ?include_all=true admin-only)",
+        "/related",
+        "/relationships",
+        "/check",
+        "/check-facts",
+        "/promote-facts",
+        "/integrity",
+        "/ingest (accepts recXXX or UUID format for deterministic id)",
+        "/classify-result",
+        "/insights-result",
+        "/bodies (GET agent, POST admin)",
+        "/annotate",
+        "/learn",
+        "/link-fulltext (canonical -- handles PDF + MD + article_bodies; supports ?prefix= for custom R2 prefix)",
+        "/link-pdf (backward-compat alias)",
+        "/normalize-abstracts"
+      ],
+      "endpoint_scopes": {
+        "build (rrm_build_)": ["status", "articles", "knowledge"],
+        "agent (rrm_agent_)": ["status", "articles", "knowledge", "content", "search", "related", "relationships", "check", "check-facts", "bodies (GET)"],
+        "admin (rrm_admin_)": "all endpoints including promote-facts, integrity, ingest, classify-result, insights-result, annotate, learn, link-fulltext, link-pdf, normalize-abstracts, bodies (POST)"
+      },
+      "auth": {
+        "rrm_build_": "read-only (build-time fetches)",
+        "rrm_agent_": "read + validate (safe for public distribution)",
+        "rrm_admin_": "full write access (ingest, classify, promote-facts)"
+      },
+      "legacy_note": "WORKER_AUTH_TOKEN fully removed 2026-04-03; all consumers on scoped tokens"
+    },
+    "rrm-library-intake": { "status": "active", "purpose": "Rose Telegram bot for library article intake" },
+    "rrm-backlinks": { "status": "active", "purpose": "Backlink monitoring (D1 + AE + Ahrefs)" },
+    "rrm-seo-monitor": { "status": "active", "purpose": "SEO health checks", "crons": ["daily", "weekly"] },
+    "rrm-observatory": { "status": "active", "purpose": "AE queries, alerts, daily/weekly Telegram digests" },
+    "rrm-marketing-intel": { "status": "active", "purpose": "Marketing intelligence heartbeat", "crons": ["daily"] },
+    "rrm-mcp": { "status": "active", "purpose": "MCP server for Naomi's Perplexity (5 tools, API key auth, AE telemetry)" },
+    "openrouter-proxy": { "status": "active", "purpose": "CORS proxy for OpenRouter API", "note": "Managed via CF dashboard (no local project directory)" },
+    "rrm-finance-sync": { "status": "stub", "purpose": "Payment sync to Airtable ledger" },
+    "overwatch-worker": { "status": "paused", "purpose": "External endpoint monitoring" }
+  },
+  "sites": {
+    "rrmacademy.org": { "platform": "Astro 5.3 + CF Pages", "status": "active", "pages_project": "rrm-academy" },
+    "rrm.foundation": { "platform": "Static site", "status": "active", "repo": "rrm-foundation-site" },
+    "whittaker.ai": { "platform": "Static HTML + CF Pages", "status": "active", "note": "Client reports hosted here" },
+    "whittaker-quest.pages.dev": { "platform": "CF Pages", "status": "active" },
+    "caesar-blog.pages.dev": { "platform": "CF Pages", "status": "active", "repo": "caesar-blog" }
   },
   "projects": {
     "rrm-academy-cf": { "path": "projects/rrm-academy-cf/", "github": "rrmadmin/rrm-academy-cf", "purpose": "Main site (Astro + CF Pages)" },
@@ -244,7 +904,7 @@
     "rrm-foundation": { "path": "projects/rrm-foundation/", "github": "rrmadmin/rrm-foundation", "purpose": "Foundation bookkeeping, ledger, 990, receipts" },
     "rrm-foundation-site": { "path": "projects/rrm-foundation-site/", "github": "rrmadmin/rrm-foundation-site", "purpose": "rrm.foundation website" },
     "rrm-finance-sync": { "path": "projects/rrm-finance-sync/", "purpose": "Payment sync worker (stub)" },
-    "rrm-provider-directory": { "path": "projects/rrm-provider-directory/", "purpose": "Find a Provider feature" },
+    "rrm-provider-directory": { "path": "projects/rrm-provider-directory/", "purpose": "Find a Provider feature (SSOT at provider-directory.json)" },
     "arise-scanner": { "path": "projects/arise-scanner/", "purpose": "Deterministic bug scanner (7 rules, 98 tests)" },
     "vault": { "path": "vault/", "github": "rrmadmin/ars-contexta", "purpose": "Knowledge management system" },
     "skills": { "path": "skills/", "github": "rrmadmin/claude-skills", "purpose": "Claude Code skills" },
@@ -262,37 +922,6 @@
     "brand-radar": { "path": "projects/brand-radar/", "purpose": "Brand mention monitoring" },
     "arcade": { "path": "projects/arcade/", "purpose": "Brian's Arcade game server" }
   },
-  "workers": {
-    "rrm-router": { "status": "active", "purpose": "Edge reverse proxy (Astro vs Wix strangler fig)" },
-    "rrm-library-worker": {
-      "status": "active",
-      "purpose": "Library enrichment, article API, knowledge, facts, classification",
-      "base_url": "https://rrm-library-worker.administrator-cloudflare.workers.dev",
-      "crons": ["Every 60s: enrichment cycle", "Weekly Sun 6AM UTC: retraction scan"],
-      "endpoints": ["/articles", "/knowledge", "/check", "/check-facts", "/promote-facts", "/link-pdf", "/ingest", "/status"],
-      "auth": {
-        "rrm_build_": "read-only (articles, knowledge, status)",
-        "rrm_agent_": "read + validate",
-        "rrm_admin_": "full write access"
-      }
-    },
-    "rrm-library-intake": { "status": "active", "purpose": "Rose Telegram bot" },
-    "rrm-backlinks": { "status": "active", "purpose": "Backlink monitoring (D1 + AE + Ahrefs)" },
-    "rrm-seo-monitor": { "status": "active", "purpose": "SEO health checks", "crons": ["daily", "weekly"] },
-    "rrm-observatory": { "status": "active", "purpose": "AE queries, alerts, daily/weekly Telegram digests" },
-    "rrm-marketing-intel": { "status": "active", "purpose": "Marketing intelligence heartbeat", "crons": ["daily"] },
-    "rrm-mcp": { "status": "active", "purpose": "MCP server for Perplexity (5 tools, API key auth, AE telemetry)" },
-    "openrouter-proxy": { "status": "active", "purpose": "CORS proxy for OpenRouter API", "note": "No local project directory -- managed via CF dashboard" },
-    "rrm-finance-sync": { "status": "stub", "purpose": "Payment sync to Airtable ledger" },
-    "overwatch-worker": { "status": "paused", "purpose": "External endpoint monitoring" }
-  },
-  "sites": {
-    "rrmacademy.org": { "platform": "Astro 5.3 + CF Pages", "status": "active", "pages_project": "rrm-academy" },
-    "rrm.foundation": { "platform": "Static site", "status": "active", "repo": "rrm-foundation-site" },
-    "whittaker.ai": { "platform": "Static HTML + CF Pages", "status": "active", "note": "Client reports hosted here" },
-    "whittaker-quest.pages.dev": { "platform": "CF Pages", "status": "active" },
-    "caesar-blog.pages.dev": { "platform": "CF Pages", "status": "active", "repo": "caesar-blog" }
-  },
   "credentials": {
     "vault": "Automation",
     "service_account": "Whittaker Automation (OP_SERVICE_ACCOUNT_TOKEN in ~/.zshrc)",
@@ -307,14 +936,22 @@
       "NCBI API Key": { "purpose": "PubMed E-utilities (10 req/s)" },
       "Perplexity API Key": { "purpose": "Perplexity Search API (native pplx- key)" },
       "RRM Library Worker Build Token": { "scope": "rrm_build_", "purpose": "Read-only (articles, knowledge, status)" },
-      "RRM Library Worker Agent Token": { "scope": "rrm_agent_", "purpose": "Read + validate" },
-      "RRM Library Worker Admin Token": { "scope": "rrm_admin_", "purpose": "Full write access" },
+      "RRM Library Worker Agent Token": { "scope": "rrm_agent_", "purpose": "Read + validate (safe for public distribution)" },
+      "RRM Library Worker Admin Token": { "scope": "rrm_admin_", "purpose": "Full write access (ingest, classify, promote-facts)" },
       "Google Stitch API Key": { "purpose": "Stitch AI UI design SDK" },
-      "AWS SES -- RRM Academy": { "purpose": "SES sending credentials" }
+      "AWS SES -- RRM Academy": {
+        "purpose": "SES sending credentials",
+        "scope": "IAM user rrm-ses-sender (SendEmail action only)",
+        "region": "us-east-1",
+        "env_vars": ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_SES_REGION"]
+      },
+      "NLWeb Search URL": { "purpose": "Base URL for rrm-academy-ask CF AI Search endpoint", "env_var": "NLWEB_SEARCH_URL" },
+      "One-Punch-Man-Token": { "purpose": "CF API token-management bootstrap (IP-locked to 72.95.9.135)" }
     },
     "gotchas": [
       "RRM Admin @ Google: use item ID, @ breaks op read",
       "RRM n8n Notifications telegram: field name is 'password' not 'credential'",
+      "Dnsireland -- NeoFertility Cpanel: must use --fields password --reveal",
       "If op read fails, use: op item get '<item>' --vault Automation --format json"
     ]
   },
@@ -340,15 +977,17 @@
       "products": {
         "stuc_membership": {
           "tiers": {
-            "member": { "price_env": "STRIPE_PRICE_MEMBER", "amount": "$9/mo", "label": "Uterus Member \uD83D\uDC3B" },
-            "hero": { "price_env": "STRIPE_PRICE_HERO", "amount": "$19/mo", "label": "Uterus Hero \uD83D\uDC96" },
-            "superhero": { "price_env": "STRIPE_PRICE_SUPERHERO", "amount": "$99/mo", "label": "Uterus Super Hero \uD83E\uDDB8\u200D\u2640\uFE0F" }
+            "member": { "price_env": "STRIPE_PRICE_MEMBER", "amount": "$9/mo", "label": "Uterus Member 🐻" },
+            "hero": { "price_env": "STRIPE_PRICE_HERO", "amount": "$19/mo", "label": "Uterus Hero 💖" },
+            "superhero": { "price_env": "STRIPE_PRICE_SUPERHERO", "amount": "$99/mo", "label": "Uterus Super Hero 🦸\u200d♀️" }
           },
           "mode": "subscription",
-          "tax_deductible": true
+          "tax_deductible": true,
+          "access_gate": "requireMember() in community/_shared.js",
+          "default_tier_if_price_missing": "member"
         },
-        "donations": { "mode": "payment", "min_cents": 500, "max_cents": 99999900 },
-        "courses": { "mode": "payment", "pricing": "per-course stripePriceId in courses.ts" }
+        "donations": { "mode": "payment", "min_cents": 500, "max_cents": 99999900, "tax_deductible": true },
+        "courses": { "mode": "payment", "pricing": "per-course stripePriceId in courses.json", "note": "Affiliate courses skip Stripe entirely (external redirect)" }
       },
       "api_version": "2024-12-18.acacia",
       "endpoints": {
@@ -381,7 +1020,7 @@
       "summary": {
         "2024": { "records": 73, "income": 9348, "expenses": 1573, "net": 7775 },
         "2025": { "records": 592, "income": 14962, "expenses": 12954, "net": 2008 },
-        "2026_ytd": { "through": "2026-02-08", "records": 88, "income": 1432, "expenses": 367, "net": 1065 }
+        "2026_ytd": { "through": "2026-02-08", "records": 88, "income": 1432, "expenses": 367, "net": 1065, "note": "STALE -- re-query ledger for current YTD" }
       },
       "filings": {
         "990n_due": "2026-05-15",
@@ -398,6 +1037,7 @@
       "crons": [
         { "what": "Library enrichment", "schedule": "Every 60s", "worker": "rrm-library-worker" },
         { "what": "Retraction scan", "schedule": "Weekly Sun 6AM UTC", "worker": "rrm-library-worker" },
+        { "what": "Metadata verify", "schedule": "Weekly Sat 6AM UTC", "worker": "rrm-library-worker" },
         { "what": "SEO health check (daily)", "schedule": "Daily", "worker": "rrm-seo-monitor" },
         { "what": "SEO health check (weekly)", "schedule": "Weekly", "worker": "rrm-seo-monitor" },
         { "what": "Observatory daily digest", "schedule": "Daily", "worker": "rrm-observatory" },
@@ -413,6 +1053,7 @@
     },
     "upcoming": [
       { "what": "RRM Congress abstract deadline", "date": "2026-05-01" },
+      { "what": "Form 990-N filing due", "date": "2026-05-15" },
       { "what": "RRM Congress 2026", "date": "2026-10-09/10-10", "location": "Orlando, FL" }
     ]
   },
@@ -430,15 +1071,23 @@
     { "date": "2026-01", "precision": "month", "event": "Courses, quizzes, enrollment live on Astro" },
     { "date": "2026-02", "precision": "month", "event": "STUC community migrated from Wix to D1" },
     { "date": "2026-02-20", "precision": "day", "event": "First Stripe course purchase on new platform" },
-    { "date": "2026-03-09", "precision": "day", "event": "Endo survey pseudonymization deployed" },
-    { "date": "2026-03-12", "precision": "day", "event": "Pillar page architecture decision (flat URLs)" },
+    { "date": "2026-03-09", "precision": "day", "event": "Endo survey pseudonymization deployed (request/validate/submit/event endpoints + D1 identity store)" },
+    { "date": "2026-03-12", "precision": "day", "event": "Pillar page architecture decision (flat URLs at root for SEO authority)" },
     { "date": "2026-03-17", "precision": "day", "event": "Admin email log dashboard live" },
     { "date": "2026-03-21", "precision": "day", "event": "Admin enrollments dashboard live" },
-    { "date": "2026-03-27", "precision": "day", "event": "Blog pipeline moved from Airtable to D1" },
-    { "date": "2026-03-28", "precision": "day", "event": "Knowledge table created in rrm-library D1" },
-    { "date": "2026-03-29", "precision": "day", "event": "Enrollment revocation system deployed" },
+    { "date": "2026-03-27", "precision": "day", "event": "Blog pipeline moved from Airtable to D1 (posts table SSOT)" },
+    { "date": "2026-03-28", "precision": "day", "event": "Knowledge table created in rrm-library D1 (22 guardrails, 11 voice analyses, 3 voice profiles, 2 frameworks)" },
+    { "date": "2026-03-29", "precision": "day", "event": "Enrollment revocation system deployed (revoked_at soft delete)" },
     { "date": "2026-03-30", "precision": "day", "event": "Rose proof gates deployed, scoped auth tokens live" },
-    { "date": "2026-04-03", "precision": "day", "event": "Legacy auth token retired, all consumers on scoped tokens" },
-    { "date": "2026-04-04", "precision": "day", "event": "Ecosystem SSOT created" }
+    { "date": "2026-04-03", "precision": "day", "event": "Legacy WORKER_AUTH_TOKEN retired, all consumers on scoped tokens (build/agent/admin)" },
+    { "date": "2026-04-04", "precision": "day", "event": "Ecosystem SSOT created; FAQ D1 migration completed" },
+    { "date": "2026-04-07", "precision": "day", "event": "rrm-library /articles type allowlist excludes faq/post/course/guide; library pipeline skills deployed" },
+    { "date": "2026-04-08", "precision": "day", "event": "PMID/DOI body-text extraction and Pagefind indexing for exact-match searches" },
+    { "date": "2026-04-11", "precision": "day", "event": "/search DOI/PMID/recID exact-match early-exit lookup deployed" },
+    { "date": "2026-04-16", "precision": "day", "event": "/ask (NLWeb AI Search + Llama 3.3 70B) live at rrmacademy.org/ask (auth-gated, 20q/day rate limit, signup_source tracking)" },
+    { "date": "2026-04-16", "precision": "day", "event": "Provider directory repo consolidated" },
+    { "date": "2026-04-16", "precision": "day", "event": "NeoFertility M365 cutover completed" },
+    { "date": "2026-04-17", "precision": "day", "event": "Glossary migrated from monolithic Astro component to D1 SSOT (132 terms, 58 references, 52 abbreviations; commit d63dee3)" },
+    { "date": "2026-04-18", "precision": "day", "event": "Ecosystem SSOT expansion: pillar_guides, affiliate_system, design_system, editorial_system, fact_system, search_system, newsletter_system, auth_system, ai_search added" }
   ]
 }
