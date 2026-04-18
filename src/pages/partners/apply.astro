@@ -1,11 +1,11 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { FRIEND_PRINCIPLES } from '../../lib/partners.ts';
+import { FRIEND_PRINCIPLES, FRIEND_SCOPE_ATTESTATION } from '../../lib/partners.ts';
 import { TURNSTILE_SITE_KEY } from '../../lib/turnstile';
 
 const canonical = 'https://rrmacademy.org/partners/apply/';
-const pageTitle = 'Apply to Become an Educational Partner';
-const pageDescription = 'Apply for RRM Academy Educational Partner recognition. Friend tier is self-attested. All four principles must be affirmed. Reviewed within seven days.';
+const pageTitle = 'Apply to Become a Friend';
+const pageDescription = 'Apply for RRM Academy Friends listing. Friends is self-attested. The three RRM principles and the clinical scope must be affirmed. Reviewed within seven days.';
 ---
 <BaseLayout title={pageTitle} description={pageDescription} canonicalUrl={canonical} noindex={false}>
 
@@ -19,10 +19,10 @@ const pageDescription = 'Apply for RRM Academy Educational Partner recognition. 
         <span aria-current="page">Apply</span>
       </nav>
 
-      <h1>Apply for Friend partnership</h1>
+      <h1>Apply to become a Friend</h1>
 
       <p class="apply-lede">
-        Affirm the four Friend principles, tell us about your clinic, and submit. We review applications within seven days. Approved partners receive a welcome email with badges, a tagline kit, and a link to their listing on the public directory.
+        Affirm the three RRM principles and the clinical scope, tell us about your clinic, and submit. We review applications within seven days. Approved clinics receive a welcome email and a link to their listing in the Friends directory.
       </p>
     </div>
   </section>
@@ -89,8 +89,8 @@ const pageDescription = 'Apply for RRM Academy Educational Partner recognition. 
         </fieldset>
 
         <fieldset class="form-fieldset">
-          <legend>Friend principles</legend>
-          <p class="form-intro">All four must be checked to submit.</p>
+          <legend>The three principles</legend>
+          <p class="form-intro">All three must be checked to submit.</p>
 
           {FRIEND_PRINCIPLES.map((p) => (
             <label class="affirm-row">
@@ -101,6 +101,19 @@ const pageDescription = 'Apply for RRM Academy Educational Partner recognition. 
               </span>
             </label>
           ))}
+        </fieldset>
+
+        <fieldset class="form-fieldset">
+          <legend>Clinical scope</legend>
+          <p class="form-intro">Affirm that your clinic's care is delivered within the RRM clinical scope.</p>
+
+          <label class="affirm-row">
+            <input class="affirm-check" type="checkbox" name="affirm_rrm_scope" data-affirm="rrm_scope" required />
+            <span>
+              <strong>Scope attestation</strong>
+              <span class="affirm-desc">{FRIEND_SCOPE_ATTESTATION}</span>
+            </span>
+          </label>
         </fieldset>
 
         <div id="apply-turnstile" class="apply-turnstile" data-sitekey={TURNSTILE_SITE_KEY}></div>
@@ -168,7 +181,7 @@ const pageDescription = 'Apply for RRM Academy Educational Partner recognition. 
 
       var errorMessages = {
         invalid_turnstile: 'The spam check failed. Please refresh and try again.',
-        affirmations_required: 'All four principles must be affirmed.',
+        affirmations_required: 'All principles and the scope attestation must be affirmed.',
         site_url_must_be_https: 'Site URL must start with https://.',
         contact_email_invalid: 'That email address does not look right.',
         slug_conflict: 'A clinic with a very similar name already applied. Contact administrator@rrmacademy.org.',
@@ -247,7 +260,7 @@ const pageDescription = 'Apply for RRM Academy Educational Partner recognition. 
           if (!cb.checked) allAffirmed = false;
         });
         if (!allAffirmed) {
-          showError('All four principles must be affirmed.');
+          showError('All principles and the scope attestation must be affirmed.');
           return;
         }
 

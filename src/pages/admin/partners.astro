@@ -265,7 +265,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         if (!reason) { alert('Reason is required.'); return; }
         if (reason.length > 500) { alert('Reason must be 500 characters or fewer.'); return; }
       } else if (action === 'approve') {
-        if (!window.confirm('Approve this clinic as a Friend partner? This will send a welcome email.')) return;
+        if (!window.confirm('Approve this clinic as a Friend? This will send a welcome email.')) return;
       }
 
       btn.disabled = true;

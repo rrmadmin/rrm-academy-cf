@@ -10,7 +10,6 @@ import { sendEmail } from '../_ses.js';
 const FROM = 'RRM Academy <administrator@mail.rrmacademy.org>';
 const REPLY_TO = 'administrator@rrmacademy.org';
 const PROGRAM_URL = 'https://rrmacademy.org/partners/';
-const ASSETS_URL = 'https://rrmacademy.org/partners/#assets';
 const TAGLINE_RULES_URL = 'https://rrmacademy.org/partners/tagline-rules.md';
 
 function escapeHtml(s) {
@@ -31,15 +30,12 @@ export async function sendPartnerWelcomeEmail(env, partner) {
 
   const text = `Hi ${clinicName},
 
-Your application has been approved. ${clinicName} is now a Friend tier Educational Partner of RRM Academy.
+Your application has been approved. ${clinicName} is now a Friend in the RRM Academy Educational Partners program.
 
-Friend tier is a self-attested alignment with the four principles we teach at RRM Academy. It is a clear signal that your clinic is a reasonable starting point for patients looking for RRM-aligned care. It is not clinical endorsement, and your acceptance of the four principles is the basis for the listing.
+Friends is a self-attested designation for clinics that practice within the three RRM principles: find the cause, treat the disease, restore function. It signals to patients that your practice treats what other pathways bypass, and that restoring the body's own healthy function is your clinical goal. This is not a clinical endorsement; your attestation of those principles is the basis for the listing.
 
 Your listing is live at:
 ${listingUrl}
-
-Asset kit (four SVG badges + usage rules):
-${ASSETS_URL}
 
 Tagline and linking rules (please read before adding the tagline to your site):
 ${TAGLINE_RULES_URL}
@@ -61,15 +57,12 @@ RRM Academy`;
 
   const html = `<p>Hi ${escapeHtml(clinicName)},</p>
 
-<p>Your application has been approved. <strong>${escapeHtml(clinicName)}</strong> is now a Friend tier Educational Partner of RRM Academy.</p>
+<p>Your application has been approved. <strong>${escapeHtml(clinicName)}</strong> is now a Friend in the RRM Academy Educational Partners program.</p>
 
-<p>Friend tier is a self-attested alignment with the four principles we teach at RRM Academy. It is a clear signal that your clinic is a reasonable starting point for patients looking for RRM-aligned care. It is not clinical endorsement, and your acceptance of the four principles is the basis for the listing.</p>
+<p>Friends is a self-attested designation for clinics that practice within the three RRM principles: find the cause, treat the disease, restore function. It signals to patients that your practice treats what other pathways bypass, and that restoring the body's own healthy function is your clinical goal. This is not a clinical endorsement; your attestation of those principles is the basis for the listing.</p>
 
 <p><strong>Your listing is live at:</strong><br>
 <a href="${listingUrl}">${listingUrl}</a></p>
-
-<p><strong>Asset kit</strong> (four SVG badges + usage rules):<br>
-<a href="${ASSETS_URL}">${ASSETS_URL}</a></p>
 
 <p><strong>Tagline and linking rules</strong> (please read before adding the tagline to your site):<br>
 <a href="${TAGLINE_RULES_URL}">${TAGLINE_RULES_URL}</a></p>
@@ -109,7 +102,7 @@ export async function sendPartnerRejectionEmail(env, partner, reason) {
 
   const text = `Hi ${clinicName},
 
-Thank you for applying to the RRM Academy Educational Partners program. After review, we are not able to list ${clinicName} as a Friend partner at this time.
+Thank you for applying to the RRM Academy Educational Partners program. After review, we are not able to list ${clinicName} as a Friend at this time.
 
 Reason provided by our review:
 
@@ -125,7 +118,7 @@ RRM Academy`;
 
   const html = `<p>Hi ${escapeHtml(clinicName)},</p>
 
-<p>Thank you for applying to the RRM Academy Educational Partners program. After review, we are not able to list <strong>${escapeHtml(clinicName)}</strong> as a Friend partner at this time.</p>
+<p>Thank you for applying to the RRM Academy Educational Partners program. After review, we are not able to list <strong>${escapeHtml(clinicName)}</strong> as a Friend at this time.</p>
 
 <p><strong>Reason provided by our review:</strong></p>
 
@@ -159,7 +152,7 @@ export async function sendPartnerRevocationEmail(env, partner, reason) {
 
   const text = `Hi ${clinicName},
 
-This is a notice that ${clinicName}'s Friend tier Educational Partner status with RRM Academy has been revoked.
+This is a notice that ${clinicName}'s Friend status with RRM Academy has been revoked.
 
 Reason:
 
@@ -175,7 +168,7 @@ RRM Academy`;
 
   const html = `<p>Hi ${escapeHtml(clinicName)},</p>
 
-<p>This is a notice that <strong>${escapeHtml(clinicName)}</strong>'s Friend tier Educational Partner status with RRM Academy has been revoked.</p>
+<p>This is a notice that <strong>${escapeHtml(clinicName)}</strong>'s Friend status with RRM Academy has been revoked.</p>
 
 <p><strong>Reason:</strong></p>
 
