@@ -15,10 +15,11 @@
 import articles from '../src/data/articles.json';
 
 // Optional imports -- these files may not exist locally
-let posts = [], faqs = [], courses = [];
+let posts = [], faqs = [], courses = [], glossary = { terms: [] };
 try { posts = (await import('../src/data/posts.json', { with: { type: 'json' } })).default; } catch {}
 try { faqs = (await import('../src/data/faqs.json', { with: { type: 'json' } })).default; } catch {}
 try { courses = (await import('../src/data/courses.json', { with: { type: 'json' } })).default; } catch {}
+try { glossary = (await import('../src/data/glossary.json', { with: { type: 'json' } })).default; } catch {}
 
 const BATCH_SIZE = 100;
 const MAX_TEXT_LEN = 2000;
@@ -98,6 +99,18 @@ function buildEntries() {
     });
   }
 
+  for (const t of glossary.terms || []) {
+    if (!t.slug || !t.name) continue;
+    const stripped = (t.bodyHtml || '').replace(/<sup>[\s\S]*?<\/sup>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    const parts = [t.name];
+    if (stripped) parts.push(stripped);
+    entries.push({
+      slug: `glossary-${t.slug}`, text: parts.join('. '),
+      type: 'Glossary', url: `/glossary/#${t.slug}`,
+      title: t.name, year: null, authors: '',
+    });
+  }
+
   return entries;
 }
 
@@ -114,7 +127,7 @@ export default {
     try {
       const entries = buildEntries();
       const startFrom = parseInt(url.searchParams.get('start') || '0');
-      log(`Found ${entries.length} entries (${articles.length} articles, ${posts.length} posts, ${faqs.length} FAQs, ${courses.length} courses). Starting from ${startFrom}.`);
+      log(`Found ${entries.length} entries (${articles.length} articles, ${posts.length} posts, ${faqs.length} FAQs, ${courses.length} courses, ${(glossary.terms || []).length} glossary terms). Starting from ${startFrom}.`);
       let embedded = startFrom;
 
       for (let i = startFrom; i < entries.length; i += BATCH_SIZE) {
