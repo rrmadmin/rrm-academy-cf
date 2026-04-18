@@ -1,7 +1,7 @@
 /**
  * CF Pages Function middleware for RRM Academy.
  * Handles:
- * 1. Subdomain redirects (library.rrmacademy.org → rrmacademy.org/library)
+ * 1. Subdomain redirects (library.rrmacademy.org -> rrmacademy.org/library)
  * 2. Auth protection for /account/* and /community/* routes
  * 3. GA4 server-side page_view tracking (fire-and-forget via waitUntil)
  *
@@ -13,6 +13,31 @@ import { buildSourceParams, getClientId } from './api/_ga4-source.js';
 
 const GA4_ENDPOINT = 'https://www.google-analytics.com/mp/collect';
 
+const CSP_VALUE = "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://challenges.cloudflare.com https://embed.cloudflarestream.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; font-src 'self'; connect-src 'self' https://challenges.cloudflare.com https://cloudflareinsights.com; frame-src https://challenges.cloudflare.com https://customer-99owhsi4yh33gohc.cloudflarestream.com; object-src 'none'; base-uri 'self'; form-action 'self'";
+
+/**
+ * Inject the standard 6 security headers onto any Response. Returns a new
+ * Response so callers can use it as a drop-in wrapper around redirects,
+ * early-return errors, and renewed-session responses. Clones headers so the
+ * original response's Headers object is never mutated.
+ */
+function withSecurityHeaders(response) {
+  const headers = new Headers(response.headers);
+  headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  headers.set('X-Frame-Options', 'SAMEORIGIN');
+  headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  headers.set('X-Content-Type-Options', 'nosniff');
+  if (!headers.has('Content-Security-Policy')) {
+    headers.set('Content-Security-Policy', CSP_VALUE);
+  }
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 /**
  * Fires a GA4 page_view hit via Measurement Protocol.
  * Called with ctx.waitUntil() so it never blocks the response.
@@ -22,7 +47,7 @@ async function sendPageView(request, env) {
 
   const url = new URL(request.url);
 
-  // Only fire for HTML page requests — skip API routes and assets
+  // Only fire for HTML page requests -- skip API routes and assets
   if (url.pathname.startsWith('/api/')) return;
   const accept = request.headers.get('Accept') || '';
   if (!accept.includes('text/html')) return;
@@ -61,7 +86,7 @@ async function sendPageView(request, env) {
       }
     );
   } catch {
-    // Silent — never let analytics failures affect the user
+    // Silent -- never let analytics failures affect the user
   }
 }
 
@@ -74,7 +99,11 @@ export async function onRequest(context) {
     const response = await context.next();
     const headers = new Headers(response.headers);
     headers.set('X-Robots-Tag', 'noindex');
-    return new Response(response.body, { ...response, headers });
+    return withSecurityHeaders(new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    }));
   }
 
   // Universal trailing-slash redirect for HTML pages.
@@ -87,50 +116,33 @@ export async function onRequest(context) {
     !url.pathname.startsWith('/cdn-cgi/') &&
     !url.pathname.includes('.')
   ) {
-    context.waitUntil(sendPageView(request, env));
     const target = `${url.origin}${url.pathname}/${url.search}`;
     const escaped = target.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${escaped}"></head><body><script>window.location.href=${JSON.stringify(target)}</script></body></html>`;
-    return new Response(html, {
+    return withSecurityHeaders(new Response(html, {
       status: 301,
       headers: { Location: target, 'Content-Type': 'text/html;charset=UTF-8' },
-    });
+    }));
   }
 
-  // Fire GA4 page_view asynchronously — does not block the response.
-  // Skip if this request is a redirect follow-up from our own trailing-slash redirect
-  // (Referer would be same host with non-slash path) to avoid double-counting.
-  {
-    const referer = request.headers.get('Referer') || '';
-    let isRedirectFollowUp = false;
-    try {
-      const refUrl = new URL(referer);
-      if (refUrl.hostname === url.hostname && refUrl.pathname + '/' === url.pathname) {
-        isRedirectFollowUp = true;
-      }
-    } catch {
-      // ignore parse errors
-    }
-    if (!isRedirectFollowUp) {
-      context.waitUntil(sendPageView(request, env));
-    }
-  }
+  // Fire GA4 page_view asynchronously -- does not block the response.
+  context.waitUntil(sendPageView(request, env));
 
-  // 301 redirect: library.rrmacademy.org → rrmacademy.org/library
+  // 301 redirect: library.rrmacademy.org -> rrmacademy.org/library
   if (url.hostname === 'library.rrmacademy.org') {
     const path = url.pathname.startsWith('/library') ? url.pathname : `/library${url.pathname}`;
-    return Response.redirect(
+    return withSecurityHeaders(Response.redirect(
       `https://rrmacademy.org${path}${url.search}`,
       301
-    );
+    ));
   }
 
   // Redirect mixed-case library URLs to lowercase (fixes old saved bookmarks)
   if (url.pathname.toLowerCase().startsWith('/library') && url.pathname !== url.pathname.toLowerCase()) {
-    return Response.redirect(
+    return withSecurityHeaders(Response.redirect(
       `${url.origin}${url.pathname.toLowerCase()}${url.search}`,
       301
-    );
+    ));
   }
 
   const needsAuth =
@@ -140,7 +152,7 @@ export async function onRequest(context) {
 
   if (needsAuth) {
     if (!env.DB) {
-      return new Response('Service Unavailable', { status: 503 });
+      return withSecurityHeaders(new Response('Service Unavailable', { status: 503 }));
     }
     const sessionId = getSessionIdFromCookie(request);
 
@@ -152,65 +164,73 @@ export async function onRequest(context) {
     const authRedirect = `https://rrmacademy.org${redirectBase}?${redirectParam}=${encodeURIComponent(url.pathname)}`;
 
     if (!sessionId) {
-      return Response.redirect(authRedirect, 302);
+      return withSecurityHeaders(Response.redirect(authRedirect, 302));
     }
 
     const session = await validateSession(env.DB, sessionId);
     if (!session) {
-      return new Response(null, {
+      return withSecurityHeaders(new Response(null, {
         status: 302,
         headers: {
           'Location': authRedirect,
           'Set-Cookie': 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
         },
-      });
+      }));
     }
 
     const response = await context.next();
     if (session.renewed) {
-      const newResponse = new Response(response.body, response);
-      newResponse.headers.append('Set-Cookie', sessionCookie(session.id, session.expiresAt));
-      return newResponse;
+      const headers = new Headers(response.headers);
+      headers.append('Set-Cookie', sessionCookie(session.id, session.expiresAt));
+      return withSecurityHeaders(new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      }));
     }
-    return response;
+    return withSecurityHeaders(response);
   }
 
   // Admin pages: require session + superadmin role
   const isAdminPage = url.pathname === '/admin' || url.pathname.startsWith('/admin/');
   if (isAdminPage) {
     if (!env.DB) {
-      return new Response('Service Unavailable', { status: 503 });
+      return withSecurityHeaders(new Response('Service Unavailable', { status: 503 }));
     }
     const sessionId = getSessionIdFromCookie(request);
     if (!sessionId) {
-      return Response.redirect(`https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname)}`, 302);
+      return withSecurityHeaders(Response.redirect(`https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname)}`, 302));
     }
 
     const session = await validateSession(env.DB, sessionId);
     if (!session) {
-      return new Response(null, {
+      return withSecurityHeaders(new Response(null, {
         status: 302,
         headers: {
           'Location': `https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname)}`,
           'Set-Cookie': 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
         },
-      });
+      }));
     }
 
     // Check role
     const user = await env.DB.prepare('SELECT role FROM user WHERE id = ?')
       .bind(session.userId).first();
     if (!user || !roleAtLeast(user.role, 'superadmin')) {
-      return new Response('Forbidden', { status: 403 });
+      return withSecurityHeaders(new Response('Forbidden', { status: 403 }));
     }
 
     const response = await context.next();
     if (session.renewed) {
-      const newResponse = new Response(response.body, response);
-      newResponse.headers.append('Set-Cookie', sessionCookie(session.id, session.expiresAt));
-      return newResponse;
+      const headers = new Headers(response.headers);
+      headers.append('Set-Cookie', sessionCookie(session.id, session.expiresAt));
+      return withSecurityHeaders(new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      }));
     }
-    return response;
+    return withSecurityHeaders(response);
   }
 
   // Continue to static assets / functions, then inject security headers.
@@ -218,18 +238,5 @@ export async function onRequest(context) {
   // corrupted CF Pages' internal 301 trailing-slash redirects into 200 with
   // empty body. Applying them here avoids that bug.
   const response = await context.next();
-  const headers = new Headers(response.headers);
-  headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-  headers.set('X-Frame-Options', 'SAMEORIGIN');
-  headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-  headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  headers.set('X-Content-Type-Options', 'nosniff');
-  if (!headers.has('Content-Security-Policy')) {
-    headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://challenges.cloudflare.com https://embed.cloudflarestream.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; font-src 'self'; connect-src 'self' https://challenges.cloudflare.com https://cloudflareinsights.com; frame-src https://challenges.cloudflare.com https://customer-99owhsi4yh33gohc.cloudflarestream.com; object-src 'none'; base-uri 'self'; form-action 'self'");
-  }
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  });
+  return withSecurityHeaders(response);
 }
