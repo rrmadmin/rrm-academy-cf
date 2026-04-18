@@ -97,8 +97,17 @@ jobs:
           npm run fetch-faqs
           echo "FAQs: $(node -e "console.log(require('./src/data/faqs.json').length)")"
 
+      - name: Fetch single glossary term (dispatch)
+        if: ${{ github.event.client_payload.glossary_term_id }}
+        env:
+          LIBRARY_BUILD_TOKEN: ${{ secrets.LIBRARY_BUILD_TOKEN }}
+          RECORD_ID: ${{ github.event.client_payload.glossary_term_id }}
+        run: |
+          npm run fetch-glossary
+          echo "Glossary terms: $(node -e "console.log(require('./src/data/glossary.json').terms.length)")"
+
       - name: Fetch all data
-        if: ${{ github.event_name != 'push' && !inputs.skip_fetch && !github.event.client_payload.record_id && !github.event.client_payload.article_id && !github.event.client_payload.faq_id && (github.event_name == 'workflow_dispatch' || steps.data-cache.outputs.cache-hit != 'true') }}
+        if: ${{ github.event_name != 'push' && !inputs.skip_fetch && !github.event.client_payload.record_id && !github.event.client_payload.article_id && !github.event.client_payload.faq_id && !github.event.client_payload.glossary_term_id && (github.event_name == 'workflow_dispatch' || steps.data-cache.outputs.cache-hit != 'true') }}
         env:
           LIBRARY_BUILD_TOKEN: ${{ secrets.LIBRARY_BUILD_TOKEN }}
           AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
@@ -157,6 +166,37 @@ jobs:
               fi
             fi
           done
+
+          # Glossary has a nested structure: { terms, references, abbreviations }
+          gloss_file="src/data/glossary.json"
+          if [ -f "$gloss_file" ]; then
+            gloss_terms=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$gloss_file','utf8')).terms.length)")
+            gloss_refs=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$gloss_file','utf8')).references.length)")
+            gloss_abbrs=$(node -e "console.log((JSON.parse(require('fs').readFileSync('$gloss_file','utf8')).abbreviations || []).length)")
+            gloss_min_terms=100
+            gloss_min_refs=30
+            gloss_min_abbrs=40
+            gloss_baseline=${BASELINES[glossary.terms]:-0}
+            gloss_max_drop=5
+            if [ "$gloss_terms" -lt "$gloss_min_terms" ]; then
+              echo "ERROR: $gloss_file has only $gloss_terms terms (minimum: $gloss_min_terms). Possible data loss."
+              fail=1
+            elif [ "$gloss_refs" -lt "$gloss_min_refs" ]; then
+              echo "ERROR: $gloss_file has only $gloss_refs references (minimum: $gloss_min_refs). Possible data loss."
+              fail=1
+            elif [ "$gloss_abbrs" -lt "$gloss_min_abbrs" ]; then
+              echo "ERROR: $gloss_file has only $gloss_abbrs abbreviations (minimum: $gloss_min_abbrs). Possible data loss."
+              fail=1
+            elif [ "$gloss_baseline" -gt "0" ] && [ "$gloss_terms" -lt "$((gloss_baseline - gloss_max_drop))" ]; then
+              echo "ERROR: $gloss_file terms dropped from $gloss_baseline to $gloss_terms (max allowed drop: $gloss_max_drop)."
+              fail=1
+            else
+              echo "OK: $gloss_file has $gloss_terms terms + $gloss_refs refs + $gloss_abbrs abbrs (baseline terms: $gloss_baseline)"
+            fi
+          else
+            echo "WARN: $gloss_file not found. Skipping glossary guard (push events skip fetch)."
+          fi
+
           [ "$fail" = "0" ] || exit 1
 
       - name: Verify blog citations
@@ -213,6 +253,13 @@ jobs:
             for (const f of ['articles.json','posts.json','faqs.json','courses.json','partners.json']) {
               const data = JSON.parse(fs.readFileSync('src/data/' + f, 'utf8'));
               baselines[f] = data.length;
+            }
+            // Glossary has nested structure; track terms + refs + abbrs separately.
+            if (fs.existsSync('src/data/glossary.json')) {
+              const g = JSON.parse(fs.readFileSync('src/data/glossary.json','utf8'));
+              baselines['glossary.terms'] = (g.terms || []).length;
+              baselines['glossary.references'] = (g.references || []).length;
+              baselines['glossary.abbreviations'] = (g.abbreviations || []).length;
             }
             fs.writeFileSync('src/data/.baselines.json', JSON.stringify(baselines, null, 2) + '\n');
             console.log('Updated baselines:', baselines);

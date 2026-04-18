@@ -3,5 +3,8 @@
   "posts.json": 18,
   "faqs.json": 25,
   "courses.json": 11,
-  "partners.json": 0
+  "partners.json": 0,
+  "glossary.terms": 132,
+  "glossary.references": 58,
+  "glossary.abbreviations": 52
 }
