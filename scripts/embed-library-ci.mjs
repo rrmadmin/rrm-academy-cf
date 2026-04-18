@@ -43,6 +43,11 @@ const articles = loadJSON('articles.json');
 const posts = loadJSON('posts.json');
 const faqs = loadJSON('faqs.json');
 const courses = loadJSON('courses.json');
+const glossary = (() => {
+  const path = join(DATA_DIR, 'glossary.json');
+  if (!existsSync(path)) return { terms: [] };
+  return JSON.parse(readFileSync(path, 'utf-8'));
+})();
 
 // --- Build unified vector entries ---
 
@@ -126,11 +131,32 @@ function buildEntries() {
     });
   }
 
+  // Glossary terms -- embed name + stripped body for definitional retrieval
+  for (const t of glossary.terms || []) {
+    if (!t.slug || !t.name) continue;
+    const stripped = (t.bodyHtml || '')
+      .replace(/<sup>[\s\S]*?<\/sup>/g, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const parts = [t.name];
+    if (stripped) parts.push(stripped);
+    entries.push({
+      slug: `glossary-${t.slug}`,
+      text: parts.join('. '),
+      type: 'Glossary',
+      url: `/glossary/#${t.slug}`,
+      title: t.name,
+      year: null,
+      authors: '',
+    });
+  }
+
   return entries;
 }
 
 const entries = buildEntries();
-console.log(`Content: ${articles.length} articles, ${posts.length} posts, ${faqs.length} FAQs, ${courses.length} courses`);
+console.log(`Content: ${articles.length} articles, ${posts.length} posts, ${faqs.length} FAQs, ${courses.length} courses, ${(glossary.terms || []).length} glossary terms`);
 console.log(`Total entries to embed: ${entries.length}`);
 
 if (articles.length < 2500) {
