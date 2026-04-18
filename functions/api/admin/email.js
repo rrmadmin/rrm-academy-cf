@@ -110,7 +110,7 @@ async function handleLog(url, db) {
   const offset = (page - 1) * limit;
 
   const conditions = ['created_at >= ?', 'created_at <= ?'];
-  const params = [from, to + 'T23:59:59'];
+  const params = [from.slice(0, 10), to.slice(0, 10) + ' 23:59:59'];
 
   if (eventFilter.length > 0) {
     conditions.push(`event IN (${eventFilter.map(() => '?').join(', ')})`);
@@ -191,7 +191,7 @@ async function handleRecipient(url, db) {
        ORDER BY ${sortCol} ${order}
        LIMIT ? OFFSET ?`
     )
-    .bind(rawEmail, from, to + 'T23:59:59', limit, offset)
+    .bind(rawEmail, from.slice(0, 10), to.slice(0, 10) + ' 23:59:59', limit, offset)
     .all();
 
   const summary = await db
@@ -245,7 +245,7 @@ async function handleStats(url, db) {
        FROM email_log
        WHERE created_at >= ? AND created_at <= ?`
     )
-    .bind(from, to + 'T23:59:59')
+    .bind(from.slice(0, 10), to.slice(0, 10) + ' 23:59:59')
     .first();
 
   const bySourceRows = await db
@@ -262,7 +262,7 @@ async function handleStats(url, db) {
        GROUP BY source
        ORDER BY sent DESC`
     )
-    .bind(from, to + 'T23:59:59')
+    .bind(from.slice(0, 10), to.slice(0, 10) + ' 23:59:59')
     .all();
 
   const byDayRows = await db
@@ -279,7 +279,7 @@ async function handleStats(url, db) {
        GROUP BY day
        ORDER BY day ASC`
     )
-    .bind(from, to + 'T23:59:59')
+    .bind(from.slice(0, 10), to.slice(0, 10) + ' 23:59:59')
     .all();
 
   return json({

@@ -1561,6 +1561,58 @@
       "createdAt": "2026-04-18 15:15:06"
     },
     {
+      "id": "term_pms",
+      "slug": "pms",
+      "name": "Premenstrual Syndrome (PMS)",
+      "part": "VI",
+      "sortOrder": 52,
+      "bodyHtml": "<p><strong>Premenstrual syndrome (PMS)</strong> is a cyclical cluster of physical and emotional symptoms occurring in the luteal phase of the menstrual cycle and resolving with the onset of menstruation. Common symptoms include bloating, breast tenderness, mood changes, headache, and fatigue. These symptoms recur predictably in relation to ovulation and are absent in the follicular phase.</p>\n\n<p>Standard medicine often treats PMS as an inevitability. RRM treats it as a signal. PMS that is severe, recurrent, or cycle-consistent warrants investigation. In many cases, the underlying driver is luteal phase deficiency: inadequate progesterone production by the corpus luteum following ovulation. Thyroid dysfunction, particularly subclinical hypothyroidism, is another frequent and underdiagnosed contributor.</p>\n\n<p>RRM clinicians evaluate cycle charts alongside serum hormone levels drawn at timed intervals across the luteal phase. This approach distinguishes PMS driven by hormonal deficiency from PMDD (premenstrual dysphoric disorder), a more severe, psychiatrically classified condition. The distinction matters because the treatment pathways differ.<sup><a href=\"#ref-66\">66</a></sup></p>\n\n<p>Hilgers documented that women with PMS show significantly decreased luteal phase progesterone, estradiol, and beta-endorphin levels compared to controls, and that cycle-timed hormonal support achieved marked improvement in the majority of cases.<sup><a href=\"#ref-67\">67</a></sup></p>\n\n<p>PMS is information. It points toward a hormonal pattern. The clinician's job is to read it.</p>\n\n<p>See also: <a href=\"#luteal-phase-deficiency\">Luteal Phase Deficiency</a>, <a href=\"#corpus-luteum\">Corpus Luteum</a>, <a href=\"#hypothyroidism\">Hypothyroidism</a>.</p>",
+      "abbreviation": "PMS",
+      "pillarLink": null,
+      "status": "published",
+      "updatedAt": "2026-04-18 22:02:57",
+      "createdAt": "2026-04-18 22:02:57"
+    },
+    {
+      "id": "term_tsh",
+      "slug": "tsh",
+      "name": "Thyroid-Stimulating Hormone (TSH)",
+      "part": "VI",
+      "sortOrder": 53,
+      "bodyHtml": "<p><strong>Thyroid-stimulating hormone (TSH)</strong> is secreted by the anterior pituitary gland and drives the thyroid gland to produce thyroxine (T4) and triiodothyronine (T3). When thyroid output falls, TSH rises. When output is high, TSH falls. It is the primary clinical marker for thyroid function.</p>\n\n<p>Standard laboratory reference ranges for TSH span roughly 0.5 to 4.5 mIU/L. \"Within normal limits\" is not the same as \"optimal for reproduction.\" Research published in the <em>Journal of Clinical Endocrinology and Metabolism</em> found that higher TSH levels within the standard normal range were independently associated with unexplained infertility.<sup><a href=\"#ref-68\">68</a></sup> For women trying to conceive, many RRM clinicians target a TSH below 2.5 mIU/L, because subclinical hypothyroidism at higher values within the standard range carries documented risk for anovulation, luteal phase insufficiency, and miscarriage.</p>\n\n<p>The practical implication: a TSH of 3.8 mIU/L may not trigger treatment from a general practitioner. An RRM clinician may read that same value as a contributor to cycle dysfunction and act on it.</p>\n\n<p>TSH should be evaluated alongside free T4, free T3, and thyroid antibody levels when reproductive concerns are present. Autoimmune thyroid disease can affect fertility even when TSH remains near-normal.</p>\n\n<p>See also: <a href=\"#hypothyroidism\">Hypothyroidism</a>.</p>",
+      "abbreviation": "TSH",
+      "pillarLink": null,
+      "status": "published",
+      "updatedAt": "2026-04-18 22:02:57",
+      "createdAt": "2026-04-18 22:02:57"
+    },
+    {
+      "id": "term_bmi",
+      "slug": "bmi",
+      "name": "Body Mass Index (BMI)",
+      "part": "VI",
+      "sortOrder": 54,
+      "bodyHtml": "<p><strong>Body mass index (BMI)</strong> is a calculation of weight relative to height (kg/m²). It functions as a population-level screening tool, not a precise measure of individual metabolic health. BMI does not account for muscle mass, body composition, fat distribution, or ethnicity-based variation. Clinicians use it as one data point, not a verdict.</p>\n\n<p>At the extremes, BMI has measurable effects on reproductive function. A BMI below 18.5 can suppress the hypothalamic-pituitary axis, reducing gonadotropin release and preventing ovulation. A BMI above 30 drives insulin resistance and elevated androgens, both of which blunt ovulatory signaling, particularly in women with PCOS. Research confirms that both low and high preconception BMI elevate subfertility risk independently of other factors.<sup><a href=\"#ref-69\">69</a></sup> Metabolic contributors to fertility disorders deserve systematic evaluation rather than a single number.<sup><a href=\"#ref-70\">70</a></sup></p>\n\n<p>RRM does not moralize about weight. It identifies the metabolic pathway affecting ovulation and addresses it directly. Is this hypothalamic suppression from under-fueling? Is this insulin-mediated androgen excess? The answer changes the clinical approach.</p>\n\n<p>See also: <a href=\"#pcos\">PCOS</a>, <a href=\"#insulin-resistance\">Insulin Resistance</a>, <a href=\"#anovulatory-cycles\">Anovulatory Cycles</a>.</p>",
+      "abbreviation": "BMI",
+      "pillarLink": null,
+      "status": "published",
+      "updatedAt": "2026-04-18 22:02:57",
+      "createdAt": "2026-04-18 22:02:57"
+    },
+    {
+      "id": "term_molimina",
+      "slug": "molimina",
+      "name": "Molimina",
+      "part": "VI",
+      "sortOrder": 55,
+      "bodyHtml": "<p><strong>Molimina</strong> (from Latin: exertions) describes the cluster of mild physiological symptoms that occur in the late luteal phase as a direct result of progesterone production by the corpus luteum. Typical symptoms include mild breast tenderness, a sense of pelvic fullness, subtle fluid retention, and slight shifts in energy or mood. These symptoms appear predictably before menstruation and resolve when it begins.</p>\n\n<p>Molimina is a positive diagnostic sign, not a pathological condition. When a patient reports these symptoms in a predictable cycle pattern correlated with peak-day timing, the clinician knows ovulation occurred and that a functioning corpus luteum formed. No serum progesterone test is required to confirm this. The chart confirms it.</p>\n\n<p>This distinguishes molimina from PMS. PMS is a symptom complex that often reflects hormonal imbalance, particularly luteal phase deficiency. Molimina reflects normal luteal progesterone activity. Mild premenstrual awareness is not a problem to be eliminated. It is the body reporting that ovulation happened.</p>\n\n<p>In NaProTechnology-informed practice, the Creighton Model chart captures the cycle pattern across months. The presence of consistent molimina, correlated with peak day, is clinical information. Absence of molimina in a patient who previously experienced it can signal a deteriorating luteal phase.</p>\n\n<p>See also: <a href=\"#corpus-luteum\">Corpus Luteum</a>, <a href=\"#peak-day\">Peak Day</a>, <a href=\"#luteal-phase\">Luteal Phase</a>, <a href=\"#luteal-phase-deficiency\">Luteal Phase Deficiency</a>, <a href=\"#anovulatory-cycles\">Anovulatory Cycles</a>.</p>",
+      "abbreviation": null,
+      "pillarLink": null,
+      "status": "published",
+      "updatedAt": "2026-04-18 22:02:57",
+      "createdAt": "2026-04-18 22:02:57"
+    },
+    {
       "id": "term_reproductive-endocrinology",
       "slug": "reproductive-endocrinology",
       "name": "Reproductive Endocrinology",
@@ -1676,6 +1728,19 @@
       "status": "published",
       "updatedAt": "2026-04-18 15:15:06",
       "createdAt": "2026-04-18 15:15:06"
+    },
+    {
+      "id": "term_nfpmc",
+      "slug": "nfpmc",
+      "name": "NaProTechnology Medical Consultant (NFPMC)",
+      "part": "VII",
+      "sortOrder": 8,
+      "bodyHtml": "<p>A <strong>NaProTechnology Medical Consultant (NFPMC)</strong> is a physician (MD or DO) who has completed formal postgraduate training in NaProTechnology through an accredited program. Training routes include the fellowship at the Pope Paul VI Institute for the Study of Human Reproduction and the AAFCP Medical Consultant program. The credential is distinct from standard OBGYN or reproductive endocrinology training and requires specific coursework in Creighton Model charting interpretation, NaPro diagnostic protocols, and NaPro surgical technique.</p>\n\n<p>Patients frequently search for a \"NaPro doctor,\" \"NaPro OBGYN,\" or \"NaPro surgeon.\" These terms all describe the NFPMC role.</p>\n\n<p>The NFPMC is distinct from an FCP (FertilityCare Practitioner). An FCP is a credentialed instructor of the Creighton Model Fertility Care System who teaches patients to observe and record their cycle. The NFPMC receives that chart data, runs the diagnostic workup, orders cycle-timed hormone panels, interprets results, prescribes medications, and performs surgical intervention when indicated. The physician and the practitioner work as a team. Neither role replaces the other.</p>\n\n<p>The chart is not optional. An NFPMC practicing reproductive medicine without Creighton chart data is practicing without the diagnostic input that makes the NaPro approach function. The chart is the data source. The physician reads it.</p>\n\n<p>See also: <a href=\"#fcp\">FertilityCare Practitioner (FCP)</a>, <a href=\"#fertilitycare-practice\">FertilityCare Practice</a>, <a href=\"#creighton-model\">Creighton Model</a>.</p>",
+      "abbreviation": "NFPMC",
+      "pillarLink": null,
+      "status": "published",
+      "updatedAt": "2026-04-18 22:02:57",
+      "createdAt": "2026-04-18 22:02:57"
     },
     {
       "id": "term_napro-vs-rrm",
@@ -1832,6 +1897,58 @@
       "status": "published",
       "updatedAt": "2026-04-18 15:15:06",
       "createdAt": "2026-04-18 15:15:06"
+    },
+    {
+      "id": "term_art",
+      "slug": "art",
+      "name": "Assisted Reproductive Technology (ART)",
+      "part": "VIII",
+      "sortOrder": 12,
+      "bodyHtml": "<p><strong>Assisted Reproductive Technology (ART)</strong> is the umbrella term for medical procedures that involve handling eggs, sperm, or embryos outside the body to achieve pregnancy. This includes in vitro fertilization (IVF), intracytoplasmic sperm injection (ICSI), intrauterine insemination (IUI), donor egg and donor sperm cycles, embryo transfer, and gestational surrogacy. Insurance documents, fertility clinic literature, and public health data all use ART as the standard classification.</p>\n\n<p>ART procedures are bypass technologies. They work around reproductive barriers without investigating or treating the underlying cause. A woman with undiagnosed endometriosis who undergoes IVF still has endometriosis. A couple with undiagnosed male factor who pursues IUI still has an undiagnosed male factor. The conception method changes. The underlying condition does not.</p>\n\n<p>RRM is not ART. The two approaches reflect opposite premises. ART proceeds from the assumption that the body cannot succeed and builds technology around that assumption. RRM asks why the body has not succeeded, then treats the answer. These are different questions, not competing techniques.</p>\n\n<p>ART live-birth rates vary substantially by maternal age, diagnosis, and clinic. Per CDC and HFEA annual reporting, national averages for fresh non-donor IVF cycles decline sharply after age 35. Patients deserve accurate, age-stratified outcome data before consenting to any ART procedure.</p>\n\n<p>See also: <a href=\"#ivf\">IVF</a>, <a href=\"#iui\">IUI</a>, <a href=\"#icsi\">ICSI</a>, <a href=\"#ivf-vs-rrm\">IVF vs. RRM</a>.</p>",
+      "abbreviation": "ART",
+      "pillarLink": null,
+      "status": "published",
+      "updatedAt": "2026-04-18 22:02:57",
+      "createdAt": "2026-04-18 22:02:57"
+    },
+    {
+      "id": "term_oc",
+      "slug": "oc",
+      "name": "Oral Contraceptive (OC)",
+      "part": "VIII",
+      "sortOrder": 13,
+      "bodyHtml": "<p><strong>Oral contraceptives (OCs)</strong> are hormone-based medications taken by mouth to prevent pregnancy. Combined oral contraceptives (COCs) contain synthetic estrogen and progestin. Progestin-only pills contain progestin alone. Both work primarily by suppressing pituitary gonadotropin release, preventing ovulation. The menstrual cycle is not regulated by the pill; it is suppressed and replaced by a withdrawal bleed timed to the pill-free interval.</p>\n\n<p>OCs are prescribed for contraception and for non-contraceptive indications: painful periods, PCOS symptom management, endometriosis-related pain, and acne. In each application, the mechanism is the same: cycle suppression. Symptoms may diminish while the medication is taken. The underlying condition does not change.</p>\n\n<p>When a patient stops an OC prescribed for endometriosis pain, the disease remains, at whatever stage it reached during suppression. When a patient stops an OC prescribed for PCOS, the androgen excess and anovulation return. The suppression was not treatment. RRM clinicians use the term \"suppressive medications\" precisely because it names what these drugs do.</p>\n\n<p>Documented effects associated with long-term OC use include changes in bone mineral density, cardiovascular risk markers, and mood. The strength of the evidence varies by outcome, and these risks are rarely discussed in standard prescribing conversations. Patients using OCs for years deserve that information.<sup><a href=\"#ref-71\">71</a></sup></p>\n\n<p>See also: <a href=\"#endometriosis\">Endometriosis</a>, <a href=\"#pcos\">PCOS</a>.</p>",
+      "abbreviation": "OC",
+      "pillarLink": null,
+      "status": "published",
+      "updatedAt": "2026-04-18 22:02:57",
+      "createdAt": "2026-04-18 22:02:57"
+    },
+    {
+      "id": "term_iud",
+      "slug": "iud",
+      "name": "Intrauterine Device (IUD)",
+      "part": "VIII",
+      "sortOrder": 14,
+      "bodyHtml": "<p>An <strong>intrauterine device (IUD)</strong> is a small, T-shaped device inserted into the uterine cavity for contraception. Two primary types are in clinical use.</p>\n\n<p>The copper IUD works without hormones. Copper ions impair sperm motility and reduce fertilization. At higher concentrations, copper may also affect implantation if fertilization occurs, though the primary mechanism operates before fertilization.</p>\n\n<p>The hormonal IUD releases levonorgestrel, a synthetic progestin, locally into the uterine cavity. It thickens cervical mucus, thins the endometrial lining, and may suppress ovulation in some users, particularly in the first year. Its primary mechanisms are cervical and endometrial. Whether post-fertilization effects occur remains a matter of scientific debate and is directly relevant to informed consent for couples who consider fertilization the beginning of a new life.<sup><a href=\"#ref-72\">72</a></sup></p>\n\n<p>Side effects: the copper IUD frequently causes heavier menstrual bleeding and increased cramping. The hormonal IUD frequently causes irregular bleeding or amenorrhea. Amenorrhea eliminates menstrual cycle data as a diagnostic source. Both types carry a small risk of expulsion, uterine perforation at insertion, and infection during the insertion procedure.</p>\n\n<p>RRM does not prescribe or recommend IUDs. Understanding how they work is part of informed care.</p>\n\n<p>See also: <a href=\"#endometriosis\">Endometriosis</a>, <a href=\"#rpl\">Recurrent Pregnancy Loss (RPL)</a>.</p>",
+      "abbreviation": "IUD",
+      "pillarLink": null,
+      "status": "published",
+      "updatedAt": "2026-04-18 22:02:57",
+      "createdAt": "2026-04-18 22:02:57"
+    },
+    {
+      "id": "term_hrt",
+      "slug": "hrt",
+      "name": "Hormone Replacement Therapy (HRT)",
+      "part": "VIII",
+      "sortOrder": 15,
+      "bodyHtml": "<p><strong>Hormone replacement therapy (HRT)</strong> refers to exogenous administration of estrogen, progesterone, or both, to supplement or replace hormonal production the body is no longer sustaining at adequate levels. Testosterone may also be included. HRT is used primarily for menopausal symptoms and for premature ovarian insufficiency (POI), a condition in which ovarian function declines before age 40.</p>\n\n<p>RRM draws a clear distinction between two uses of exogenous hormones. The first: replacing what the body genuinely cannot produce. A 32-year-old with POI who has no functional ovarian estrogen production needs physiological replacement. That is restorative medicine. Without it, she faces accelerated bone loss, cardiovascular risk, and neurological effects. The second use: administering hormones to suppress or override normal reproductive function. RRM does not operate in the second category.</p>\n\n<p>When HRT is medically indicated, RRM clinicians generally favor bioidentical hormone formulations. Bioidentical hormones are structurally identical to the hormones the body produces. Synthetic formulations are not. The evidence comparing bioidentical and synthetic preparations continues to develop, and the difference matters for receptor binding, metabolism, and long-term safety profile.</p>\n\n<p>Patients with POI benefit from early, thorough evaluation before beginning HRT, including discussion of fertility implications. Evidence-based guidelines recommend HRT in POI until at least the average age of natural menopause, given the documented risks of untreated estrogen deficiency.<sup><a href=\"#ref-73\">73</a></sup></p>\n\n<p>See also: <a href=\"#poi\">Premature Ovarian Insufficiency (POI)</a>, <a href=\"#dor\">Diminished Ovarian Reserve (DOR)</a>.</p>",
+      "abbreviation": "HRT",
+      "pillarLink": null,
+      "status": "published",
+      "updatedAt": "2026-04-18 22:02:57",
+      "createdAt": "2026-04-18 22:02:57"
     }
   ],
   "references": [
@@ -2289,6 +2406,62 @@
       "url": "https://pubmed.ncbi.nlm.nih.gov/27717732/",
       "publisher": null,
       "journal": "American Journal of Obstetrics and Gynecology"
+    },
+    {
+      "refNum": 66,
+      "anchorText": "Hofmeister S, Bodden S. Premenstrual Syndrome and Premenstrual Dysphoric Disorder. Am Fam Physician. 2016.",
+      "url": "https://rrmacademy.org/library/premenstrual-syndrome-and-premenstrual-dysphoric-disorder-recyo6u3gndvwnmd6/",
+      "publisher": null,
+      "journal": "American Family Physician"
+    },
+    {
+      "refNum": 67,
+      "anchorText": "A double-blind placebo-controlled trial of progesterone vaginal suppositories in the treatment of premenstrual syndrome.",
+      "url": "https://rrmacademy.org/library/a-double-blind-placebo-controlled-trial-of-progesterone-vaginal-suppositories-in-recisedqiieqkf1uj/",
+      "publisher": null,
+      "journal": "Fertility and Sterility"
+    },
+    {
+      "refNum": 68,
+      "anchorText": "Orouji Jokar T et al. Higher TSH Levels Within the Normal Range Are Associated With Unexplained Infertility. J Clin Endocrinol Metab. 2017.",
+      "url": "https://rrmacademy.org/library/higher-tsh-levels-within-the-normal-range-are-associated-with-unexplained-infert-recfswcfajl43swbh/",
+      "publisher": null,
+      "journal": "Journal of Clinical Endocrinology and Metabolism"
+    },
+    {
+      "refNum": 69,
+      "anchorText": "Hu Q et al. The association between preconception body mass index and subfertility. Utah Womens Health Rev. 2020.",
+      "url": "https://rrmacademy.org/library/the-association-between-preconception-body-mass-index-and-subfertility-among-his-recwqm3nm0wf7ex8n/",
+      "publisher": null,
+      "journal": "The Utah Women's Health Review"
+    },
+    {
+      "refNum": 70,
+      "anchorText": "Westerman R, Kuhnt AK. Metabolic risk factors and fertility disorders: a narrative review. Reprod Biomed Soc Online. 2021.",
+      "url": "https://rrmacademy.org/library/metabolic-risk-factors-and-fertility-disorders-a-narrative-review-of-the-female--recrgevvogrhpsvrb/",
+      "publisher": null,
+      "journal": "Reproductive Biomedicine & Society Online"
+    },
+    {
+      "refNum": 71,
+      "anchorText": "Williams WV et al. Hormonally Active Contraceptives Part I: Risks Acknowledged and Unacknowledged. Linacre Q. 2021.",
+      "url": "https://rrmacademy.org/library/hormonally-active-contraceptives-part-i-risks-acknowledged-and-unacknowledged-recrdkj7l2ft6afzf/",
+      "publisher": null,
+      "journal": "The Linacre Quarterly"
+    },
+    {
+      "refNum": 72,
+      "anchorText": "Stanford JB, Mikolajczyk RT. Mechanisms of action of intrauterine devices: update and estimation of postfertilization effects. Am J Obstet Gynecol. 2002.",
+      "url": "https://rrmacademy.org/library/mechanisms-of-action-of-intrauterine-devices-update-and-estimation-of-postfertil-reczn2vz80mt5hrwl/",
+      "publisher": null,
+      "journal": "American Journal of Obstetrics and Gynecology"
+    },
+    {
+      "refNum": 73,
+      "anchorText": "Panay N et al. Evidence-based guideline: premature ovarian insufficiency. Climacteric. 2024.",
+      "url": "https://rrmacademy.org/library/evidence-based-guideline-premature-ovarian-insufficiency-recaieeabmuvia3vb/",
+      "publisher": null,
+      "journal": "Climacteric"
     }
   ],
   "abbreviations": [
@@ -2603,7 +2776,55 @@
       "fullTerm": "Antral Follicle Count",
       "termSlug": "afc",
       "sortOrder": 51
+    },
+    {
+      "abbreviation": "PMS",
+      "fullTerm": "Premenstrual Syndrome",
+      "termSlug": "pms",
+      "sortOrder": 53
+    },
+    {
+      "abbreviation": "TSH",
+      "fullTerm": "Thyroid-Stimulating Hormone",
+      "termSlug": "tsh",
+      "sortOrder": 54
+    },
+    {
+      "abbreviation": "BMI",
+      "fullTerm": "Body Mass Index",
+      "termSlug": "bmi",
+      "sortOrder": 55
+    },
+    {
+      "abbreviation": "NFPMC",
+      "fullTerm": "NaProTechnology Medical Consultant",
+      "termSlug": "nfpmc",
+      "sortOrder": 56
+    },
+    {
+      "abbreviation": "ART",
+      "fullTerm": "Assisted Reproductive Technology",
+      "termSlug": "art",
+      "sortOrder": 57
+    },
+    {
+      "abbreviation": "OC",
+      "fullTerm": "Oral Contraceptive",
+      "termSlug": "oc",
+      "sortOrder": 58
+    },
+    {
+      "abbreviation": "IUD",
+      "fullTerm": "Intrauterine Device",
+      "termSlug": "iud",
+      "sortOrder": 59
+    },
+    {
+      "abbreviation": "HRT",
+      "fullTerm": "Hormone Replacement Therapy",
+      "termSlug": "hrt",
+      "sortOrder": 60
     }
   ],
-  "generatedAt": "2026-04-18T16:31:50.684Z"
+  "generatedAt": "2026-04-18T22:10:09.235Z"
 }

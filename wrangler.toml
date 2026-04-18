@@ -26,6 +26,11 @@ binding = "SURVEY_DB"
 database_name = "rrm-survey"
 database_id = "55e8038c-d73c-4db3-8ed0-8a34694f360a"
 
+[[d1_databases]]
+binding = "ANALYTICS_DB"
+database_name = "rrm-analytics"
+database_id = "8967f69e-1213-411f-a4a9-5586889ad401"
+
 [[r2_buckets]]
 binding = "R2_ASSETS"
 bucket_name = "rrm-assets"
