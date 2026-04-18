@@ -103,11 +103,11 @@
       "note": "Public newsletter intake (rate-limited)"
     },
     "functions/api/search/semantic.js": {
-      "hash": "b999f768d2afbc982754a25eb79d2d5a7ee85c62bfde532102a2ef1bc193ab0b",
+      "hash": "daa3375c4a0a1a3ce71c0681ade76aed24318b6e8beed7fa818e46b9274acf4b",
       "note": "Billed AI.run() + Vectorize (rate-limited)"
     },
     "functions/api/ask.js": {
-      "hash": "51537171cad850af3cdf9a4a2aa118863209b80d1827f0babf32f878277d68b7",
+      "hash": "997011873c8edbc1e3730be4f9ca6f87cb97b07d26fb662350bddcf4b2ea620b",
       "note": "NLWeb AI Search proxy (auth + rate-limited, billed upstream)"
     },
     "src/components/SearchBar.astro": {
@@ -119,7 +119,7 @@
       "note": "Community access control (requireMember)"
     },
     "functions/api/admin/cleanup.js": {
-      "hash": "b66521f1902d24cfb4c24cf3d6366191bb8d593238bdf1421e80365ff1a281bb",
+      "hash": "3218c9e86e12b16bd6438dcc68917a4053bdb64d2c7969473f8db425bd013b05",
       "note": "Expired data deletion from D1"
     },
     "scripts/guard.mjs": {

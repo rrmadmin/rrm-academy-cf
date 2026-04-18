@@ -51,6 +51,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
   // Single-DB cleanup: batched for atomicity and fewer round trips.
   // Order matches the `pruned` keys so results[i] maps to the right counter.
+  let batchFailed = false;
   try {
     const results = await db.batch([
       db.prepare('DELETE FROM session WHERE expires_at < ?').bind(now),
@@ -69,6 +70,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     pruned.pdf_tokens = results[5]?.meta?.changes ?? 0;
     pruned.email_log = results[6]?.meta?.changes ?? 0;
   } catch (err) {
+    batchFailed = true;
     log(env, waitUntil, 'admin', 'cleanup_batch_error', 'error', err.message);
   }
 
@@ -85,6 +87,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
   }
 
   const total = pruned.sessions + pruned.password_resets + pruned.email_verifications + pruned.webhook_events + pruned.newsletter_events + pruned.pdf_tokens + pruned.email_log + pruned.search_log;
-  log(env, waitUntil, 'admin', 'cleanup_completed', 'ok', `pruned ${total} rows`, 0, 200);
+  log(env, waitUntil, 'admin', 'cleanup_completed', batchFailed ? 'error' : 'ok', `pruned ${total} rows${batchFailed ? ' (batch failed)' : ''}`, 0, batchFailed ? 500 : 200);
+  if (batchFailed) {
+    return json({ ok: false, error: 'cleanup_batch_failed', pruned }, 500);
+  }
   return json({ ok: true, pruned });
 }

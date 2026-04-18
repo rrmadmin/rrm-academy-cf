@@ -65,16 +65,6 @@ export async function onRequestGet(context) {
 
   // Rate limit by IP to protect billed AI/Vectorize calls
   if (isRateLimited(ip)) {
-    await logSearchQuery(env, {
-      source: 'semantic',
-      query,
-      ip_hash: await hashIp(ip),
-      results_count: 0,
-      duration_ms: Date.now() - start,
-      http_status: 429,
-      user_agent_short,
-      referer_path,
-    });
     return Response.json({ results: [], error: 'rate_limited' }, { status: 429, headers: CORS_HEADERS });
   }
 

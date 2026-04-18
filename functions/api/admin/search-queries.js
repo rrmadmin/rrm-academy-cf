@@ -25,7 +25,7 @@ export function onRequestOptions() {
 
 export async function onRequestGet({ request, env, waitUntil }) {
   if (!env.ADMIN_API_SECRET) {
-    return json({ error: 'service_unavailable' }, 503);
+    return json({ ok: false, error: 'Not configured' }, 503);
   }
 
   const auth = request.headers.get('Authorization') || '';
@@ -38,11 +38,11 @@ export async function onRequestGet({ request, env, waitUntil }) {
     mismatch |= authBytes[i] ^ expectedBytes[i];
   }
   if (mismatch !== 0) {
-    return json({ error: 'unauthorized' }, 401);
+    return json({ ok: false, error: 'Unauthorized' }, 401);
   }
 
   if (!env.ANALYTICS_DB) {
-    return json({ error: 'service_unavailable' }, 503);
+    return json({ ok: false, error: 'Server misconfigured' }, 503);
   }
 
   const url = new URL(request.url);
@@ -79,7 +79,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
   // Build WHERE conditions (shared across views)
   const conditions = ['created_at >= ?', 'created_at <= ?'];
-  const params = [from, to + 'T23:59:59'];
+  const params = [from.slice(0, 10), to.slice(0, 10) + ' 23:59:59'];
 
   if (source) {
     conditions.push('source = ?');
@@ -111,7 +111,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
          LIMIT ? OFFSET ?`
       ).bind(...params, limit, offset).all();
 
-      return json({ results: rows.results ?? [], total });
+      return json({ ok: true, results: rows.results ?? [], total });
     }
 
     if (view === 'top') {
@@ -123,7 +123,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
          LIMIT ?`
       ).bind(...params, limit).all();
 
-      return json({ top: rows.results ?? [] });
+      return json({ ok: true, top: rows.results ?? [] });
     }
 
     if (view === 'gaps') {
@@ -135,7 +135,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
          LIMIT ?`
       ).bind(...params, limit).all();
 
-      return json({ gaps: rows.results ?? [] });
+      return json({ ok: true, gaps: rows.results ?? [] });
     }
 
     if (view === 'users') {
@@ -147,6 +147,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
       ).bind(...params).first();
 
       return json({
+        ok: true,
         summary: {
           users: row?.users ?? 0,
           ips: row?.ips ?? 0,
@@ -154,10 +155,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
         },
       });
     }
-
-    return json({ error: 'invalid_view' }, 400);
   } catch (err) {
     log(env, waitUntil, 'admin', 'search_queries_error', 'error', err.message, 0, 500);
-    return json({ error: 'service_error' }, 500);
+    return json({ ok: false, error: 'Query failed' }, 500);
   }
 }
