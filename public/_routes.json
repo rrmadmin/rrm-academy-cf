@@ -1,5 +1,5 @@
 {
   "version": 1,
-  "include": ["/api/*", "/account/*", "/community/*", "/ask/*", "/admin/*"],
-  "exclude": []
+  "include": ["/*"],
+  "exclude": ["/_astro/*", "/images/*", "/pagefind/*", "/fonts/*", "/favicon.ico", "/robots.txt", "/sitemap-index.xml", "/sitemap.xml", "/llms.txt"]
 }
