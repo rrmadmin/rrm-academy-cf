@@ -6,10 +6,26 @@
 import { json, optionsResponse, getSessionIdFromCookie, validateSession } from './auth/_shared.js';
 import { validateBody } from './_validate.js';
 import { log } from './_log.js';
+import { logSearchQuery, hashIp, extractRequestMeta } from './_search_log.js';
 
 async function hashShort(text) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
   return Array.from(new Uint8Array(buf), b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
+}
+
+async function logAskQuery(env, request, message, userId, start, httpStatus) {
+  const { user_agent_short, referer_path } = extractRequestMeta(request);
+  await logSearchQuery(env, {
+    source: 'ask',
+    query: message,
+    user_id: userId,
+    ip_hash: await hashIp(request.headers.get('cf-connecting-ip') || ''),
+    results_count: null,
+    duration_ms: Date.now() - start,
+    http_status: httpStatus,
+    user_agent_short,
+    referer_path,
+  });
 }
 
 function utcDateKey() {
@@ -112,6 +128,7 @@ export async function onRequestPost(context) {
 
   // Env guard for upstream URL
   if (!env.NLWEB_SEARCH_URL) {
+    await logAskQuery(env, request, message, user.id, start, 503);
     return json({ error: 'service_unavailable' }, 503);
   }
 
@@ -132,6 +149,7 @@ export async function onRequestPost(context) {
     const isTimeout = err.name === 'AbortError' || err.name === 'TimeoutError';
     httpStatus = isTimeout ? 504 : 502;
     log(env, waitUntil, 'ask', 'upstream_fetch_error', 'error', err.message, Date.now() - start, httpStatus);
+    await logAskQuery(env, request, message, user.id, start, httpStatus);
     if (isTimeout) {
       return json({ error: 'upstream_timeout' }, 504);
     }
@@ -141,6 +159,7 @@ export async function onRequestPost(context) {
   if (!upstreamResp.ok) {
     httpStatus = 502;
     log(env, waitUntil, 'ask', 'upstream_non2xx', 'error', String(upstreamResp.status), Date.now() - start, 502);
+    await logAskQuery(env, request, message, user.id, start, 502);
     return json({ error: 'upstream_error' }, 502);
   }
 
@@ -149,12 +168,14 @@ export async function onRequestPost(context) {
     upstreamData = await upstreamResp.json();
   } catch (err) {
     log(env, waitUntil, 'ask', 'upstream_parse_error', 'error', err.message, Date.now() - start, 502);
+    await logAskQuery(env, request, message, user.id, start, 502);
     return json({ error: 'upstream_error' }, 502);
   }
 
   const answer = upstreamData?.choices?.[0]?.message?.content;
   if (typeof answer !== 'string') {
     log(env, waitUntil, 'ask', 'upstream_no_answer', 'error', 'no content in choices[0]', Date.now() - start, 502);
+    await logAskQuery(env, request, message, user.id, start, 502);
     return json({ error: 'upstream_error' }, 502);
   }
 
@@ -186,6 +207,19 @@ export async function onRequestPost(context) {
       indexes: ['ask'],
     });
   }
+
+  const { user_agent_short, referer_path } = extractRequestMeta(request);
+  await logSearchQuery(env, {
+    source: 'ask',
+    query: message,
+    user_id: user.id,
+    ip_hash: await hashIp(request.headers.get('cf-connecting-ip') || ''),
+    results_count: null,
+    duration_ms: durationMs,
+    http_status: httpStatus,
+    user_agent_short,
+    referer_path,
+  });
 
   return json({ answer, citations });
 }
