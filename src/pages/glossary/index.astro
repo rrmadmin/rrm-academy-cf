@@ -147,16 +147,21 @@ const breadcrumbSchema = {
 };
 
 // DefinedTermSet: each term as a citable AEO entity (@id=#slug).
-// Prefer the bold lead sentence as description; fall back to first 250 stripped chars.
+// Prefer the bold lead sentence; if short, also include the next paragraph for AEO citation pickup.
+// Target ~600-800 chars (AEO sweet spot per SEO Operator review 2026-04-18).
 function extractDescription(bodyHtml: string): string {
   if (!bodyHtml) return '';
+  const stripped = bodyHtml.replace(/<sup>[\s\S]*?<\/sup>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
   const boldMatch = bodyHtml.match(/<strong>([\s\S]+?)<\/strong>/);
   if (boldMatch) {
     const bold = boldMatch[1].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-    if (bold) return bold.length > 300 ? bold.slice(0, 297) + '...' : bold;
+    if (bold.length >= 400) return bold.length > 800 ? bold.slice(0, 797) + '...' : bold;
+    const idx = stripped.indexOf(bold);
+    const start = idx >= 0 ? idx : 0;
+    const window = stripped.slice(start, start + 800).trim();
+    return window.length > 800 ? window.slice(0, 797) + '...' : window;
   }
-  const text = bodyHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-  return text.length > 250 ? text.slice(0, 247) + '...' : text;
+  return stripped.length > 800 ? stripped.slice(0, 797) + '...' : stripped;
 }
 const TERM_SET_ID = 'https://rrmacademy.org/glossary/#defined-term-set';
 const definedTermSetSchema = {
