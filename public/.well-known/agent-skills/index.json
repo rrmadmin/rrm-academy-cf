@@ -1,0 +1,26 @@
+{
+  "$schema": "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
+  "skills": [
+    {
+      "name": "rrm-research-lookup",
+      "type": "skill-md",
+      "description": "Search the RRM Academy research library (3,200+ physician-curated peer-reviewed articles) for evidence on restorative reproductive medicine, NaProTechnology, fertility awareness-based methods, endometriosis excision, PCOS, recurrent miscarriage, and women's reproductive endocrinology. Use when the user asks about any of these topics and needs a citation-grade source.",
+      "url": "/.well-known/agent-skills/rrm-research-lookup/SKILL.md",
+      "digest": "sha256:4eff1fb9c28a4ceb56eca1b13696ca3d04ef5f74059860da9e3fd67db5326dc2"
+    },
+    {
+      "name": "rrm-editorial-guardrails",
+      "type": "skill-md",
+      "description": "Validate draft content against RRM Academy editorial standards before publishing. Flags inappropriate IVF framing, hormonal suppression framed as curative, misuse of NaProTechnology / Creighton / FEMM terminology, and scope violations. Use when writing or reviewing any content about restorative reproductive medicine, women's reproductive health, endometriosis, PCOS, or infertility.",
+      "url": "/.well-known/agent-skills/rrm-editorial-guardrails/SKILL.md",
+      "digest": "sha256:3596fbe7875440bbfd1c2268317c872f09f01e81e31f36d014ba013cefd50435"
+    },
+    {
+      "name": "rrm-fact-verification",
+      "type": "skill-md",
+      "description": "Verify statistical claims about restorative reproductive medicine, NaProTechnology, fertility awareness-based methods, endometriosis, PCOS, or IVF outcomes against the RRM Academy curated facts database. Use before publishing any content that quotes pregnancy rates, success rates, prevalence figures, or other numerical claims in women's reproductive health.",
+      "url": "/.well-known/agent-skills/rrm-fact-verification/SKILL.md",
+      "digest": "sha256:0e2e00f67cd6fe4b869b5ee50ba11b5c56e5f942fe45a087acf28b41433f87fb"
+    }
+  ]
+}
