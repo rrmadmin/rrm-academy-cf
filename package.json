@@ -34,7 +34,7 @@
     "fetch-all:dry": "node src/lib/fetch-data.mjs --dry-run && node src/lib/fetch-blog-data.mjs --dry-run && node src/lib/fetch-faq-data.mjs --dry-run && node src/lib/fetch-courses-data.mjs --dry-run && node src/lib/fetch-partners-data.mjs --dry-run && node src/lib/fetch-glossary-data.mjs --dry-run",
     "verify-citations": "node scripts/verify-citations.mjs",
     "lint": "eslint functions/",
-    "test": "node --test 'test/*.test.js'",
+    "test": "node --test test/*.test.js",
     "test:e2e": "npx playwright test",
     "test:e2e:mobile": "npx playwright test --project=iphone-se --project=iphone-xr",
     "check-types": "node scripts/check-types.mjs",
