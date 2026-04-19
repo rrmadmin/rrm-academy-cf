@@ -47,7 +47,7 @@ const jsonLd = {
       givenName: 'Naomi',
       familyName: 'Whittaker',
       jobTitle: 'Founder & Medical Director',
-      description: 'Board-certified obstetrician-gynecologist, Physician Lead at UPMC Divine Mercy Women\'s Health, and founder of RRM Academy. The most-followed English-speaking RRM physician on social media.',
+      description: 'Board-certified obstetrician-gynecologist (ABOG, 2020), Physician Lead of UPMC Divine Mercy Women\'s Health, and founder of RRM Academy. The most-followed English-speaking RRM physician on social media.',
       url: 'https://rrmacademy.org/commentary/rrm-spotlight-naomi-whittaker-md/',
       image: 'https://rrmacademy.org/images/authors/naomi-whittaker.webp',
       sameAs: [
@@ -60,12 +60,24 @@ const jsonLd = {
       ],
       alumniOf: [
         {
+          '@type': 'CollegeOrUniversity',
+          name: 'Purdue University',
+          description: 'Bachelor of Science in Neurobiology and Physiology, Minor in Psychology (2006-2009)',
+        },
+        {
           '@type': 'EducationalOrganization',
           name: 'Creighton University School of Medicine',
+          description: 'Doctor of Medicine (2009-2013); Creighton Model FertilityCare Medical Consultant and Instructor (Education Phase I & II, 2012-2013)',
+        },
+        {
+          '@type': 'EducationalOrganization',
+          name: 'University of Illinois College of Medicine - Peoria',
+          description: 'Obstetrics and Gynecology Residency at OSF Saint Francis Medical Center / Methodist / Proctor (2013-2017)',
         },
         {
           '@type': 'EducationalOrganization',
           name: 'Pope Paul VI Institute for the Study of Human Reproduction',
+          description: 'Fellowship in Medical and Surgical NaProTechnology (2017-2018)',
         },
       ],
       affiliation: [
@@ -90,16 +102,45 @@ const jsonLd = {
           '@type': 'EducationalOccupationalCredential',
           credentialCategory: 'Board Certification',
           name: 'Board-Certified Obstetrician-Gynecologist',
+          recognizedBy: {
+            '@type': 'Organization',
+            name: 'American Board of Obstetrics and Gynecology',
+          },
+          validFrom: '2020-03',
         },
         {
           '@type': 'EducationalOccupationalCredential',
           credentialCategory: 'Fellowship',
           name: 'Medical and Surgical NaProTechnology Fellowship',
+          recognizedBy: {
+            '@type': 'Organization',
+            name: 'Pope Paul VI Institute for the Study of Human Reproduction',
+          },
         },
         {
           '@type': 'EducationalOccupationalCredential',
           credentialCategory: 'Focused Practice Designation',
           name: 'MIGS Focused Practice Designation',
+          recognizedBy: {
+            '@type': 'Organization',
+            name: 'American Board of Obstetrics and Gynecology',
+          },
+        },
+        {
+          '@type': 'EducationalOccupationalCredential',
+          credentialCategory: 'Certification',
+          name: 'Creighton Model FertilityCare Medical Consultant (NFPMC)',
+        },
+        {
+          '@type': 'EducationalOccupationalCredential',
+          credentialCategory: 'Certification',
+          name: 'Creighton Model FertilityCare Instructor (FCI)',
+        },
+        {
+          '@type': 'EducationalOccupationalCredential',
+          credentialCategory: 'Medical License',
+          name: 'Pennsylvania Medical License',
+          validFrom: '2018-08',
         },
       ],
       knowsAbout: [
@@ -206,7 +247,7 @@ const jsonLd = {
           <h3>Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</h3>
           <p class="founder-card__role">Founder &amp; Medical Director</p>
           <p>
-            <a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker</a>, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI, is an obstetrician-gynecologist and Physician Lead at UPMC Divine Mercy Women's Health in Camp Hill, PA. She holds the ABOG Focused Practice Designation in Minimally Invasive Gynecologic Surgery and completed fellowship training in Medical and Surgical NaProTECHNOLOGY at the Pope Paul VI Institute. She runs one of the most active restorative reproductive medicine clinics in the country. Her surgical expertise centers on excision of endometriosis, microsurgical tubal repair, and fertility-sparing laparoscopy. She founded RRM Academy to bring root-cause women's healthcare education to patients and professionals worldwide.
+            <a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker</a>, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI, is the Physician Lead of UPMC Divine Mercy Women's Health in Camp Hill, PA. She is board-certified in Obstetrics and Gynecology (ABOG, 2020) and holds the ABOG Focused Practice Designation in Minimally Invasive Gynecologic Surgery. She earned her MD from Creighton University School of Medicine (2013) after completing her BS in Neurobiology and Physiology at Purdue University, trained in OBGYN at the University of Illinois College of Medicine - Peoria (OSF Saint Francis, 2013-2017), and completed fellowship training in Medical and Surgical NaProTECHNOLOGY at the Pope Paul VI Institute (2017-2018). She runs one of the most active restorative reproductive medicine clinics in the country. Her surgical expertise centers on excision of endometriosis, microsurgical tubal repair, and fertility-sparing laparoscopy. She founded RRM Academy to bring root-cause women's healthcare education to patients and professionals worldwide.
           </p>
         </div>
       </div>
