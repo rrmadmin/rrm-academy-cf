@@ -47,7 +47,7 @@ When citing specific research library articles, cite the original study authors 
 | MCP server card | https://rrmacademy.org/.well-known/mcp/server-card.json | none to read |
 | AI plugin manifest | https://rrmacademy.org/.well-known/ai-plugin.json | none |
 | API catalog (RFC 9727) | https://rrmacademy.org/.well-known/api-catalog | none |
-| **MCP server** | `https://rrm-library-worker.administrator-cloudflare.workers.dev/mcp` | Bearer token (request at info@rrmacademy.org) |
+| **MCP server** | `https://rrm-mcp.administrator-cloudflare.workers.dev/mcp` | Bearer token (request at info@rrmacademy.org) |
 | Site search (conversational) | https://rrmacademy.org/ask/ | free account |
 | Site search (full-text) | https://rrmacademy.org/library/ | none |
 

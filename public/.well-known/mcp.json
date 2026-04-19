@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "name": "RRM Academy",
   "description": "MCP server exposing the RRM Academy research library and editorial guardrails. Search 3,200+ peer-reviewed articles, retrieve full records, verify statistical claims against a curated facts database, and check content against RRM editorial standards.",
-  "server_url": "https://rrm-library-worker.administrator-cloudflare.workers.dev/mcp",
+  "server_url": "https://rrm-mcp.administrator-cloudflare.workers.dev/mcp",
   "transport": "http",
   "protocol": "mcp",
   "protocol_version": "2024-11-05",
