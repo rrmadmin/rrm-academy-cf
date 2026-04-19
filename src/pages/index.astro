@@ -16,6 +16,7 @@ const jsonLd = {
       '@id': 'https://rrmacademy.org/#website',
       name: 'RRM Academy',
       url: 'https://rrmacademy.org/',
+      inLanguage: 'en',
       publisher: { '@id': 'https://rrmacademy.org/#organization' },
       potentialAction: {
         '@type': 'SearchAction',
@@ -24,6 +25,10 @@ const jsonLd = {
           urlTemplate: 'https://rrmacademy.org/library/?q={search_term_string}',
         },
         'query-input': 'required name=search_term_string',
+      },
+      speakable: {
+        '@type': 'SpeakableSpecification',
+        cssSelector: ['.hp-hero h1', '.hp-hero__subtitle', '.hp-section p'],
       },
     },
     {
@@ -70,6 +75,18 @@ const jsonLd = {
         name: 'RRM Academy Courses',
         url: 'https://rrmacademy.org/courses/',
         numberOfItems: liveCourseCount,
+        itemListElement: coursesData
+          .filter((c: any) => !c.comingSoon)
+          .map((c: any) => ({
+            '@type': 'Offer',
+            url: `https://rrmacademy.org/courses/${c.slug}/`,
+            name: c.title,
+            category: 'Medical Education',
+            price: c.isFree ? '0.00' : ((c.priceCents ?? 0) / 100).toFixed(2),
+            priceCurrency: 'USD',
+            availability: 'https://schema.org/InStock',
+            seller: { '@id': 'https://rrmacademy.org/#organization' },
+          })),
       },
     },
     {
