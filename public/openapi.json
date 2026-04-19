@@ -1,0 +1,144 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "RRM Academy Agent API",
+    "version": "1.0.0",
+    "description": "Programmatic access to the RRM Academy research library and editorial guardrails, exposed via the Model Context Protocol (MCP). 3,200+ peer-reviewed articles on restorative reproductive medicine, NaProTechnology, fertility awareness-based methods, endometriosis, PCOS, and related women's health topics. Clinical content curated under the direction of Dr. Naomi Whittaker, MD.",
+    "contact": {
+      "name": "RRM Academy",
+      "email": "info@rrmacademy.org",
+      "url": "https://rrmacademy.org"
+    },
+    "license": {
+      "name": "Fair-use citation",
+      "url": "https://rrmacademy.org/terms-of-use/"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://rrm-library-worker.administrator-cloudflare.workers.dev",
+      "description": "Production MCP server (Cloudflare Worker)"
+    }
+  ],
+  "security": [{ "bearerAuth": [] }],
+  "paths": {
+    "/mcp": {
+      "post": {
+        "operationId": "mcp_invoke",
+        "summary": "Invoke an MCP tool",
+        "description": "Model Context Protocol JSON-RPC 2.0 entry point. Dispatches to one of five tools: search, check_guardrails, check_facts, get_article, find_related. Use the MCP client libraries (@modelcontextprotocol/sdk) for idiomatic access rather than raw HTTP.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/JsonRpcRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "JSON-RPC response envelope",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/JsonRpcResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "503": {
+            "description": "Upstream unavailable",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "health_check",
+        "summary": "Health check",
+        "description": "Returns 200 when the MCP server is reachable. Unauthenticated.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": { "schema": { "type": "string", "example": "ok" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "opaque",
+        "description": "Bearer API key. Contact info@rrmacademy.org to request access."
+      }
+    },
+    "schemas": {
+      "JsonRpcRequest": {
+        "type": "object",
+        "required": ["jsonrpc", "method", "id"],
+        "properties": {
+          "jsonrpc": { "type": "string", "const": "2.0" },
+          "method": {
+            "type": "string",
+            "enum": ["tools/list", "tools/call", "initialize"]
+          },
+          "params": {
+            "type": "object",
+            "description": "For tools/call: { name: string, arguments: object }. Tool names: search, check_guardrails, check_facts, get_article, find_related."
+          },
+          "id": { "oneOf": [{ "type": "string" }, { "type": "number" }] }
+        }
+      },
+      "JsonRpcResponse": {
+        "type": "object",
+        "required": ["jsonrpc", "id"],
+        "properties": {
+          "jsonrpc": { "type": "string", "const": "2.0" },
+          "id": { "oneOf": [{ "type": "string" }, { "type": "number" }] },
+          "result": { "type": "object" },
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": { "type": "integer" },
+              "message": { "type": "string" },
+              "data": {}
+            }
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string", "description": "Machine-readable error code" },
+          "message": { "type": "string", "description": "Human-readable error detail" }
+        },
+        "required": ["error"]
+      }
+    }
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "name": "RRM Academy",
+  "description": "Search and retrieve peer-reviewed research on restorative reproductive medicine (RRM), NaProTechnology, fertility awareness-based methods, endometriosis excision surgery, PCOS, and related women's health topics. Also validates text against RRM editorial guardrails and verifies statistical claims against a curated facts database.",
+  "version": "1.0.0",
+  "serverUrl": "https://rrm-library-worker.administrator-cloudflare.workers.dev/mcp",
+  "protocol": "mcp",
+  "protocolVersion": "2024-11-05",
+  "transport": "http",
+  "authentication": {
+    "type": "bearer",
+    "required": true,
+    "description": "Contact info@rrmacademy.org to request an API key."
+  },
+  "tools": [
+    {
+      "name": "search",
+      "description": "Search the RRM Academy research library. 3,200+ peer-reviewed articles on restorative reproductive medicine. Supports filters for type, tradition (napro/femm/billings), year, and pagination.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string", "maxLength": 500, "description": "Search query (keywords, author names, topics)" },
+          "type": { "type": "string", "description": "Filter by article type" },
+          "tradition": { "type": "string", "description": "Filter by RRM tradition (napro, femm, billings)" },
+          "year": { "type": "string", "description": "Publication year or range (e.g. '2020' or '2018-2023')" },
+          "limit": { "type": "integer", "default": 10, "minimum": 1, "maximum": 50 },
+          "offset": { "type": "integer", "default": 0, "minimum": 0 }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "name": "check_guardrails",
+      "description": "Validate text against RRM Academy editorial guardrails. Flags inappropriate IVF recommendations, incorrect terminology, and improper framing. Run before publishing any RRM-related content.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "text": { "type": "string", "maxLength": 50000 },
+          "tradition": { "type": "string" }
+        },
+        "required": ["text"]
+      }
+    },
+    {
+      "name": "check_facts",
+      "description": "Verify statistical claims in text against the RRM Academy verified facts database. Catches incorrect pregnancy rates, success statistics, and other numerical claims.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "text": { "type": "string", "maxLength": 50000 }
+        },
+        "required": ["text"]
+      }
+    },
+    {
+      "name": "get_article",
+      "description": "Retrieve a specific article by type and slug. Returns abstract, citation, and metadata.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "maxLength": 50 },
+          "slug": { "type": "string", "maxLength": 200 }
+        },
+        "required": ["type", "slug"]
+      }
+    },
+    {
+      "name": "find_related",
+      "description": "Find articles related to a specific library item. Traverses citation relationships and topic connections.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "maxLength": 50 },
+          "slug": { "type": "string", "maxLength": 200 },
+          "depth": { "type": "integer", "default": 1, "minimum": 1, "maximum": 3 },
+          "limit": { "type": "integer", "default": 20 },
+          "filter_type": { "type": "string" }
+        },
+        "required": ["type", "slug"]
+      }
+    }
+  ],
+  "rateLimits": {
+    "description": "Subject to Cloudflare Workers standard limits and RRM Academy fair-use policy.",
+    "requestsPerMinute": 60
+  },
+  "contact": "info@rrmacademy.org",
+  "homepage": "https://rrmacademy.org",
+  "license": "Research library metadata is freely available under fair-use citation. See https://rrmacademy.org/terms-of-use/."
+}
