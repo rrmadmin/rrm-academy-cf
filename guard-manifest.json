@@ -31,7 +31,7 @@
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "ef0de9ec0c9475cdb7a5b4bba9383b865d90fd9be4edcc30d4d49d46cf196fae",
+      "hash": "b3fba797d1e3d69ce2f9000e31b41af7b8518f77f9e3f0ae9d89422569266e38",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
@@ -91,7 +91,7 @@
       "note": "Magic-link token generation"
     },
     "functions/api/newsletter/send.js": {
-      "hash": "bdda9b709d93fff2a7248c6f99d3162d7357f69579117ff408a63906a35e5fb8",
+      "hash": "457d5e57ce524d6d2538f1b228fcc897d9b8272ad59db47bc6817ab876ded206",
       "note": "Mass email send (admin-only)"
     },
     "functions/api/newsletter/unsubscribe.js": {
@@ -107,7 +107,7 @@
       "note": "Billed AI.run() + Vectorize (rate-limited)"
     },
     "functions/api/ask.js": {
-      "hash": "997011873c8edbc1e3730be4f9ca6f87cb97b07d26fb662350bddcf4b2ea620b",
+      "hash": "51ef7fef91970f4575b10b7b44794f14e54c7da4dc274c37308522f61be28cfa",
       "note": "NLWeb AI Search proxy (auth + rate-limited, billed upstream)"
     },
     "src/components/SearchBar.astro": {
