@@ -13,8 +13,16 @@
 # To block training later, change their Allow: / to Disallow: /
 # =============================================================================
 
+# --- Content Signals (contentsignals.org / draft-romm-aipref-contentsignals) --
+# Explicit AI usage preferences. Matches the "maximum AI visibility" stance
+# above: agents may use our content for training, search, and input to LLM
+# answers. Any future tightening (e.g. ai-train=no) should also flip the
+# relevant User-agent blocks below to Disallow.
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
+
 # --- Default rules (Googlebot, Bingbot, and all unlisted crawlers) -----------
 User-agent: *
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
 Allow: /
 Disallow: /login
 Disallow: /signup
