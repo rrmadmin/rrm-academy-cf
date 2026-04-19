@@ -16,7 +16,7 @@
   },
   "servers": [
     {
-      "url": "https://rrm-library-worker.administrator-cloudflare.workers.dev",
+      "url": "https://rrm-mcp.administrator-cloudflare.workers.dev",
       "description": "Production MCP server (Cloudflare Worker)"
     }
   ],
