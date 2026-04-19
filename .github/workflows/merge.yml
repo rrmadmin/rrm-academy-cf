@@ -34,8 +34,11 @@ jobs:
       - name: Test
         run: npm test
 
-      - name: Build check
-        run: npx astro build
+      # Build check removed: data files (articles/posts/faqs/etc.) are gitignored
+      # and fetched via worker/Airtable secrets in deploy.yml. The merge workflow
+      # doesn't have those secrets, and Astro loaders explicitly throw on empty
+      # data. deploy.yml on main catches build errors; this workflow gates on
+      # lint + test + guard, which are the real pre-merge safety net.
 
       - name: Merge into main and push
         run: |
