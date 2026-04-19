@@ -85,7 +85,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
     if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
       log(env, waitUntil, 'auth', 'google_auth_error', 'error', 'missing google credentials');
-      return redirect(LOGIN_ERROR_URL);
+      return htmlRedirect(LOGIN_ERROR_URL);
     }
 
     const url = new URL(request.url);

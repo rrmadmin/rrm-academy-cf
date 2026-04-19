@@ -55,7 +55,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     sendId = crypto.randomUUID();
 
     // Count total recipients upfront (only on first call)
-    let totalRecipients = 0;
+    let totalRecipients;
     if (!segments || segments.length === 0) {
       const countResult = await db.prepare(
         "SELECT COUNT(*) as c FROM newsletter_subscriber WHERE status = 'active'"
@@ -156,14 +156,11 @@ export async function onRequestPost({ request, env, waitUntil }) {
           log: { db, source: 'newsletter/send', category: 'newsletter' },
         });
 
-        // Record sent event
-        await db.prepare(
-          "INSERT INTO newsletter_event (send_id, subscriber_id, event) VALUES (?, ?, 'sent')"
-        ).bind(sendId, sub.id).run();
-
-        await db.prepare(
-          "UPDATE newsletter_subscriber SET last_sent_at = datetime('now') WHERE id = ?"
-        ).bind(sub.id).run();
+        // Record sent event + bump last_sent_at atomically
+        await db.batch([
+          db.prepare("INSERT INTO newsletter_event (send_id, subscriber_id, event) VALUES (?, ?, 'sent')").bind(sendId, sub.id),
+          db.prepare("UPDATE newsletter_subscriber SET last_sent_at = datetime('now') WHERE id = ?").bind(sub.id)
+        ]);
 
         return sub.id;
       })

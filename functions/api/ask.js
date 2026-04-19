@@ -83,7 +83,7 @@ export async function onRequestPost(context) {
   }
 
   const rateLimitKey = `ask:rate:${user.id}:${utcDateKey()}`;
-  let currentCount = 0;
+  let currentCount;
   try {
     const raw = await env.COMMUNITY_KV.get(rateLimitKey);
     currentCount = raw ? parseInt(raw, 10) : 0;
@@ -134,7 +134,7 @@ export async function onRequestPost(context) {
 
   // Proxy to AI Search /chat/completions
   let upstreamResp;
-  let httpStatus = 502;
+  let httpStatus;
   try {
     upstreamResp = await fetch(`${env.NLWEB_SEARCH_URL}/chat/completions`, {
       method: 'POST',
@@ -157,7 +157,6 @@ export async function onRequestPost(context) {
   }
 
   if (!upstreamResp.ok) {
-    httpStatus = 502;
     log(env, waitUntil, 'ask', 'upstream_non2xx', 'error', String(upstreamResp.status), Date.now() - start, 502);
     await logAskQuery(env, request, message, user.id, start, 502);
     return json({ error: 'upstream_error' }, 502);
