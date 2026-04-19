@@ -34,3 +34,4 @@ section-compare*.html
 dot-art-examples.html
 # Library ingest scratch dir
 fulltext/
+docs/fact-check/*.bak
