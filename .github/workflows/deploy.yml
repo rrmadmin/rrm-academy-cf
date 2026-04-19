@@ -252,6 +252,13 @@ jobs:
         run: node scripts/embed-library-ci.mjs
         continue-on-error: true
 
+      - name: Submit to IndexNow
+        if: success()
+        env:
+          INDEXNOW_KEY: b8afc8c2e9b698654fff259a02fe1b51
+        run: node scripts/submit-indexnow.mjs
+        continue-on-error: true
+
       - name: Update data baselines
         if: success()
         run: |
