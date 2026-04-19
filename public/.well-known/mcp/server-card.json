@@ -2,7 +2,7 @@
   "name": "RRM Academy",
   "description": "Search and retrieve peer-reviewed research on restorative reproductive medicine (RRM), NaProTechnology, fertility awareness-based methods, endometriosis excision surgery, PCOS, and related women's health topics. Also validates text against RRM editorial guardrails and verifies statistical claims against a curated facts database.",
   "version": "1.0.0",
-  "serverUrl": "https://rrm-library-worker.administrator-cloudflare.workers.dev/mcp",
+  "serverUrl": "https://rrm-mcp.administrator-cloudflare.workers.dev/mcp",
   "protocol": "mcp",
   "protocolVersion": "2024-11-05",
   "transport": "http",
