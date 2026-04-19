@@ -122,6 +122,8 @@ src/data/glossary.json → Astro build → rrmacademy.org/glossary
 
 **Editing protocol:** D1 is SSOT. Edit via `wrangler d1 execute rrm-auth --remote --command "UPDATE glossary_term SET body_html=... WHERE slug='xxx'"` or via future admin UI. Then trigger rebuild. Never edit term bodies in `src/pages/glossary/index.astro` — that file only has template logic + hardcoded intro/CTA.
 
+**MANDATORY: route ALL glossary edits through the `/glossary-update` skill.** The skill (at `~/.claude/skills/glossary-update/SKILL.md`) encodes the full workflow: slug uniqueness check, sort_order computation per part, MAX(ref_num) lookup, Gianna dispatch for prose, batch SQL via `/tmp/glossary-bulk.sql`, single-record vs full rebuild dispatch, and live verification. Direct `wrangler d1 execute` calls without invoking the skill skip required structural lookups and have repeatedly produced misordered terms, missing cross-references, and stale src/data/glossary.json. Gianna agent is also instructed to invoke this skill before drafting any glossary content.
+
 ### Full Rebuild
 
 `fetch-all` fetches all 5 data sources: articles, posts, FAQs, courses, glossary. Cache key: `site-data-YYYY-MM-DD` (ET timezone). `workflow_dispatch` always fetches fresh (bypasses cache). `repository_dispatch` uses cache. `push` events skip fetch entirely.
