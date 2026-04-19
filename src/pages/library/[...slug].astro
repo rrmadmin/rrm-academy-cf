@@ -165,6 +165,30 @@ function personFromRecord(rec: AuthorRec) {
 const authorRecords = dedupeAuthorRecords(authorRecordsRaw);
 const AUTHOR_CAP = 20;
 
+// Unique institutions for the visible affiliations block. Dedup by ROR id when
+// present (canonical); fall back to normalized name so two authors at the same
+// unrorred institution collapse. Only emit when authors are shown inline (not
+// consortium fallback) and at least one record has institution data.
+type Affiliation = { name: string; ror: string | null };
+function uniqueAffiliations(records: AuthorRec[]): Affiliation[] {
+  const seen = new Set<string>();
+  const out: Affiliation[] = [];
+  for (const r of records) {
+    const name = cleanAffiliationName(r.primary_institution_name);
+    if (!name) continue;
+    const ror = r.primary_ror_id || null;
+    const key = ror || name.toLowerCase().replace(/\s+/g, ' ').trim();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ name, ror });
+  }
+  return out;
+}
+const affiliations =
+  authorRecords.length > 0 && authorRecords.length <= AUTHOR_CAP
+    ? uniqueAffiliations(authorRecords)
+    : [];
+
 if (authorRecords.length > AUTHOR_CAP) {
   // Consortium / mega-paper: emit single Organization using the legacy authors
   // string (which for these papers is the consortium name, e.g. "GBD 2023 ...
@@ -382,6 +406,31 @@ const citationMeta = {
           </span>
         )}
       </div>
+      {affiliations.length > 0 && (
+        <ul class="article-affiliations" data-pagefind-ignore aria-label="Author affiliations">
+          {affiliations.map((aff) => (
+            <li class="affiliation">
+              <span class="affiliation__name">{aff.name}</span>
+              {aff.ror && (
+                <a
+                  class="affiliation__ror"
+                  href={aff.ror}
+                  target="_blank"
+                  rel="noopener"
+                  aria-label={`ROR record for ${aff.name}`}
+                  title={`Research Organization Registry: ${aff.ror}`}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 17L17 7"/>
+                    <path d="M8 7h9v9"/>
+                  </svg>
+                  <span class="affiliation__ror-label">ROR</span>
+                </a>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
       {article.year && (
         <span data-pagefind-meta={`year:${article.year}`} style="display:none"></span>
       )}
@@ -585,6 +634,50 @@ const citationMeta = {
     color: var(--neutral-700);
     line-height: 1.6;
     margin-bottom: var(--space-2);
+  }
+  .article-affiliations {
+    list-style: none;
+    padding: 0;
+    margin: var(--space-2) 0 var(--space-3);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    font-size: 0.8125rem;
+    color: var(--neutral-600);
+    line-height: 1.5;
+  }
+  .affiliation {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5em;
+    flex-wrap: wrap;
+  }
+  .affiliation__name {
+    font-style: italic;
+  }
+  .affiliation__ror {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25em;
+    padding: 0.125em 0.5em;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    color: var(--neutral-700);
+    background: var(--neutral-100);
+    border: 1px solid var(--neutral-200);
+    border-radius: 3px;
+    transition: background 120ms ease, border-color 120ms ease;
+  }
+  .affiliation__ror:hover,
+  .affiliation__ror:focus {
+    background: var(--neutral-200);
+    border-color: var(--neutral-300);
+  }
+  .affiliation__ror svg {
+    opacity: 0.75;
   }
   .journal-line {
     font-family: 'Cormorant Garamond', 'Georgia', serif;
