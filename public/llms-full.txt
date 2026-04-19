@@ -147,7 +147,7 @@ The RRM Academy MCP server exposes 5 tools. Contact info@rrmacademy.org to reque
 - `check_guardrails` — Validate text against RRM editorial standards.
 - `check_facts` — Verify statistical claims against the curated facts database.
 
-Server URL: `https://rrm-library-worker.administrator-cloudflare.workers.dev/mcp`
+Server URL: `https://rrm-mcp.administrator-cloudflare.workers.dev/mcp`
 
 ## Update frequency
 
