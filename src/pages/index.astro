@@ -6,7 +6,7 @@ import coursesData from '../data/courses.json';
 const articles = await fetchAllArticles();
 const articleCount = articles.length;
 
-const liveCourseCount = coursesData.filter((c: any) => !c.comingSoon).length;
+const liveCourseCount = coursesData.filter((c: any) => !c.comingSoon && !c.isAffiliate).length;
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -76,7 +76,7 @@ const jsonLd = {
         url: 'https://rrmacademy.org/courses/',
         numberOfItems: liveCourseCount,
         itemListElement: coursesData
-          .filter((c: any) => !c.comingSoon)
+          .filter((c: any) => !c.comingSoon && !c.isAffiliate)
           .map((c: any) => ({
             '@type': 'Offer',
             url: `https://rrmacademy.org/courses/${c.slug}/`,
