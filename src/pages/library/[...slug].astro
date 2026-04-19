@@ -343,10 +343,18 @@ const citationMeta = {
 
       <!-- Authors + access icon -->
       <div class="article-meta-row">
-        {article.shortCitation ? (
-          <p class="short-citation" data-pagefind-weight="5" data-pagefind-meta="authors">{article.shortCitation}</p>
+        {authorRecords.length > 0 && authorRecords.length <= AUTHOR_CAP ? (
+          <p class="short-citation" data-pagefind-weight="5" data-pagefind-meta="authors"
+          >{authorRecords.map((rec, i) => {
+            const name = rec.full_name || rec.name;
+            const orcid = orcidUrl(rec.orcid);
+            const isLast = i === authorRecords.length - 1;
+            return (<span class="author-chunk"><span class="author-name">{name}</span>{orcid && <a href={orcid} class="orcid-link" target="_blank" rel="noopener me" aria-label={`ORCID profile for ${name}`} title={`ORCID: ${rec.orcid}`}><svg width="14" height="14" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><circle cx="128" cy="128" r="128" fill="#A6CE39"/><path fill="#FFF" d="M86.3 186.2H70.9V79.1h15.4v107.1zm22.6-107.1h41.6c39.6 0 57 28.3 57 53.6 0 27.5-21.5 53.6-56.8 53.6h-41.8V79.1zm15.4 93.3h24.5c34.9 0 42.9-26.5 42.9-39.7 0-21.5-13.7-39.7-43.7-39.7h-23.7v79.4zM88.7 56.8c0 5.5-4.5 10.1-10.1 10.1-5.6 0-10.1-4.6-10.1-10.1 0-5.6 4.5-10.1 10.1-10.1 5.6 0 10.1 4.6 10.1 10.1z"/></svg></a>}{!isLast && ', '}</span>);
+          })}</p>
         ) : article.authors ? (
           <p class="short-citation" data-pagefind-weight="5" data-pagefind-meta="authors">{article.authors}</p>
+        ) : article.shortCitation ? (
+          <p class="short-citation" data-pagefind-weight="5" data-pagefind-meta="authors">{article.shortCitation}</p>
         ) : null}
         {article.accessLevel === 'open' && (
           <span class="access-badge access-badge--open" title={article.oaType ? `${article.oaType} Open Access` : 'Open Access'}>
@@ -554,6 +562,23 @@ const citationMeta = {
     color: var(--neutral-600);
     font-weight: 500;
     margin: 0;
+    line-height: 1.55;
+  }
+  .orcid-link {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 0.25em;
+    vertical-align: -2px;
+    text-decoration: none;
+    opacity: 0.9;
+    transition: opacity 120ms ease;
+  }
+  .orcid-link:hover,
+  .orcid-link:focus {
+    opacity: 1;
+  }
+  .orcid-link svg {
+    display: block;
   }
   .article-authors {
     font-size: 0.875rem;
