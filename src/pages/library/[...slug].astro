@@ -63,7 +63,119 @@ const jsonLd: any = {
   },
 };
 
-if (article.authors) {
+// Build Person JSON-LD per author. Prefer structured authorRecords (D1-backed:
+// includes ORCID sameAs and affiliation with ROR) when available; fall back to
+// the legacy comma-separated authors string for any article without enrichment.
+//
+// Dedup: the authors table still has pre-enrichment rows alongside the newly
+// enriched ones for some articles (2,515 open dedup_flags as of 2026-04-18).
+// Collapse duplicates here so JSON-LD doesn't emit the same person twice.
+const authorRecordsRaw = Array.isArray(article.authorRecords) ? article.authorRecords : [];
+
+function orcidUrl(orcid: string | null | undefined): string | null {
+  if (!orcid) return null;
+  const clean = String(orcid).trim();
+  if (!/^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/i.test(clean)) return null;
+  return `https://orcid.org/${clean.toUpperCase()}`;
+}
+
+// Dedup key: lastname + first-initial. Tolerates middle-initial variations
+// ("Lauren Wise" vs "Lauren A Wise" both produce "wise l"), which is the
+// dominant legacy-vs-enriched collision shape. Collisions on this key are
+// only acted on when one side has an ORCID, so false positives are safe.
+function nameKey(fullName: string | null | undefined): string {
+  if (!fullName) return '';
+  const n = String(fullName)
+    .toLowerCase()
+    .normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[.,]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const parts = n.split(' ').filter(Boolean);
+  if (parts.length === 0) return '';
+  if (parts.length === 1) return parts[0];
+  const last = parts[parts.length - 1];
+  const firstInitial = parts[0][0] || '';
+  return `${last} ${firstInitial}`;
+}
+
+type AuthorRec = typeof authorRecordsRaw[number];
+
+function dedupeAuthorRecords(records: AuthorRec[]): AuthorRec[] {
+  // Pass 1: collapse by ORCID. When multiple records share an ORCID, keep the
+  // one with the richest affiliation data.
+  const byOrcid = new Map<string, AuthorRec>();
+  const noOrcid: AuthorRec[] = [];
+  for (const r of records) {
+    if (r.orcid) {
+      const prev = byOrcid.get(r.orcid);
+      if (!prev) { byOrcid.set(r.orcid, r); continue; }
+      const prevScore = (prev.primary_ror_id ? 2 : 0) + (prev.primary_institution_name ? 1 : 0);
+      const nextScore = (r.primary_ror_id ? 2 : 0) + (r.primary_institution_name ? 1 : 0);
+      if (nextScore > prevScore) byOrcid.set(r.orcid, r);
+    } else {
+      noOrcid.push(r);
+    }
+  }
+  // Pass 2: among no-ORCID entries, drop any whose nameKey is already covered
+  // by an ORCID-bearing record (legacy duplicate of an enriched author).
+  const orcidNameKeys = new Set([...byOrcid.values()].map(r => nameKey(r.full_name || r.name)));
+  const seenNoOrcidKey = new Set<string>();
+  const keptNoOrcid: AuthorRec[] = [];
+  for (const r of noOrcid) {
+    const key = nameKey(r.full_name || r.name);
+    if (key && orcidNameKeys.has(key)) continue;
+    if (key && seenNoOrcidKey.has(key)) continue;
+    if (key) seenNoOrcidKey.add(key);
+    keptNoOrcid.push(r);
+  }
+  return [...byOrcid.values(), ...keptNoOrcid];
+}
+
+// Cap affiliation name length: raw PubMed affiliations can include the entire
+// authors-affiliations block ("Authors' Affiliations: 1Slone ...") which is
+// hundreds of chars and not a valid organization name.
+function cleanAffiliationName(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const s = String(raw).trim();
+  if (!s) return null;
+  if (s.length <= 200) return s;
+  return s.slice(0, 197) + '...';
+}
+
+function personFromRecord(rec: AuthorRec) {
+  const person: any = {
+    '@type': 'Person',
+    name: rec.full_name || rec.name,
+  };
+  const orcid = orcidUrl(rec.orcid);
+  if (orcid) person.sameAs = orcid;
+  const institutionName = cleanAffiliationName(rec.primary_institution_name);
+  const fallbackAff = cleanAffiliationName(rec.affiliation);
+  if (institutionName) {
+    const org: any = { '@type': 'Organization', name: institutionName };
+    if (rec.primary_ror_id) org.sameAs = rec.primary_ror_id;
+    person.affiliation = org;
+  } else if (fallbackAff) {
+    person.affiliation = { '@type': 'Organization', name: fallbackAff };
+  }
+  return person;
+}
+
+const authorRecords = dedupeAuthorRecords(authorRecordsRaw);
+const AUTHOR_CAP = 20;
+
+if (authorRecords.length > AUTHOR_CAP) {
+  // Consortium / mega-paper: emit single Organization using the legacy authors
+  // string (which for these papers is the consortium name, e.g. "GBD 2023 ...
+  // Collaborators"). Emitting thousands of Person entries bloats HTML and
+  // Google's JSON-LD parser caps usefulness well below that anyway.
+  jsonLd.author = article.authors
+    ? [{ '@type': 'Organization', name: article.authors.trim() }]
+    : [{ '@type': 'Organization', name: 'Consortium Authors' }];
+} else if (authorRecords.length > 0) {
+  jsonLd.author = authorRecords.map(personFromRecord);
+} else if (article.authors) {
   jsonLd.author = article.authors.split(',').map(name => ({
     '@type': 'Person',
     name: name.trim(),

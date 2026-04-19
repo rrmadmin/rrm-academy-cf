@@ -66,6 +66,7 @@ function mapWorkerRecord(r) {
     domain: r.domain || '',
     lastModified: r.lastModified || '',
     dateAddedToLibrary: r.dateAddedToLibrary || '',
+    authorRecords: Array.isArray(r.authorRecords) ? r.authorRecords : [],
   };
 }
 
