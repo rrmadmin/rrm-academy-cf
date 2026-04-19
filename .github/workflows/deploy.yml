@@ -106,6 +106,39 @@ jobs:
           npm run fetch-glossary
           echo "Glossary terms: $(node -e "console.log(require('./src/data/glossary.json').terms.length)")"
 
+      - name: Compute IndexNow single URL (dispatch)
+        if: ${{ github.event.client_payload.record_id || github.event.client_payload.article_id || github.event.client_payload.faq_id }}
+        env:
+          BLOG_RECORD_ID: ${{ github.event.client_payload.record_id }}
+          ARTICLE_ID: ${{ github.event.client_payload.article_id }}
+          FAQ_ID: ${{ github.event.client_payload.faq_id }}
+        run: |
+          node -e "
+            const fs = require('fs');
+            function findSlug(file, id, key='id') {
+              if (!fs.existsSync(file) || !id) return null;
+              try {
+                const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+                const list = Array.isArray(data) ? data : (data.terms || data.articles || data.posts || []);
+                const r = list.find(x => x[key] === id);
+                return r ? r.slug : null;
+              } catch { return null; }
+            }
+            const blogSlug = findSlug('src/data/posts.json', process.env.BLOG_RECORD_ID);
+            const articleSlug = findSlug('src/data/articles.json', process.env.ARTICLE_ID);
+            const faqSlug = findSlug('src/data/faqs.json', process.env.FAQ_ID);
+            let url = '';
+            if (blogSlug) url = 'https://rrmacademy.org/commentary/' + blogSlug + '/';
+            else if (articleSlug) url = 'https://rrmacademy.org/library/' + articleSlug + '/';
+            else if (faqSlug) url = 'https://rrmacademy.org/faqs/' + faqSlug + '/';
+            if (url) {
+              fs.appendFileSync(process.env.GITHUB_ENV, 'INDEXNOW_SINGLE_URL=' + url + '\n');
+              console.log('IndexNow single URL: ' + url);
+            } else {
+              console.log('IndexNow: could not resolve dispatch record to URL — will fall back to full sitemap');
+            }
+          "
+
       - name: Fetch all data
         if: ${{ !inputs.skip_fetch && !github.event.client_payload.record_id && !github.event.client_payload.article_id && !github.event.client_payload.faq_id && !github.event.client_payload.glossary_term_id }}
         env:
