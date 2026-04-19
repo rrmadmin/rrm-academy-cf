@@ -40,3 +40,47 @@
 /api/*
   Cache-Control: no-store
   Access-Control-Allow-Origin: https://rrmacademy.org
+
+# ==============================================
+# Agent discovery — RFC 8288 Link headers
+# Homepage advertises sitemap, llms.txt, openapi, markdown fallback, and
+# API catalog so AI agents can discover integration points from HTTP headers
+# alone (no HTML parse required).
+# ==============================================
+
+/
+  Link: </sitemap.xml>; rel="sitemap"; type="application/xml"
+  Link: </llms.txt>; rel="describedby"; type="text/plain"; title="llms.txt"
+  Link: </llms-full.txt>; rel="describedby"; type="text/plain"; title="llms-full.txt"
+  Link: </openapi.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"
+  Link: </.well-known/api-catalog>; rel="api-catalog"; type="application/linkset+json"
+  Link: </index.md>; rel="alternate"; type="text/markdown"; title="Markdown"
+  Link: </pricing.md>; rel="alternate"; type="text/markdown"; title="Pricing"
+
+# Machine-readable agent files — correct content types
+/llms.txt
+  Content-Type: text/plain; charset=utf-8
+
+/llms-full.txt
+  Content-Type: text/plain; charset=utf-8
+
+/pricing.md
+  Content-Type: text/markdown; charset=utf-8
+
+/index.md
+  Content-Type: text/markdown; charset=utf-8
+
+/openapi.json
+  Content-Type: application/vnd.oai.openapi+json;version=3.1; charset=utf-8
+
+/.well-known/api-catalog
+  Content-Type: application/linkset+json; charset=utf-8
+
+/.well-known/ai-plugin.json
+  Content-Type: application/json; charset=utf-8
+
+/.well-known/mcp.json
+  Content-Type: application/json; charset=utf-8
+
+/.well-known/mcp/server-card.json
+  Content-Type: application/json; charset=utf-8
