@@ -41,7 +41,13 @@
     "test:e2e:mobile": "npx playwright test --project=iphone-se --project=iphone-xr",
     "check-types": "node scripts/check-types.mjs",
     "check-types:update": "node scripts/check-types.mjs --update",
-    "verify-templates": "node scripts/verify-templates.mjs"
+    "verify-templates": "node scripts/verify-templates.mjs",
+    "quality:coverage": "node scripts/quality/coverage.mjs",
+    "quality:mutation": "node scripts/quality/mutation.mjs",
+    "quality:crap": "node scripts/quality/crap.mjs",
+    "quality:deps": "node scripts/quality/deps.mjs",
+    "quality:all": "node scripts/quality/dashboard.mjs",
+    "quality:fast": "node scripts/quality/dashboard.mjs --skip-mutation"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.3.0",
