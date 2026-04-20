@@ -246,5 +246,116 @@ const resolvedTwitterImage = resolvedOgImage.endsWith('.webp')
     <slot />
   </main>
   <Footer />
+
+  <script is:inline>
+    // WebMCP tool exposure for AI agents browsing the page.
+    // Spec: https://webmachinelearning.github.io/webmcp/
+    // Validator: https://isitagentready.com (checks navigator.modelContext on load)
+    (function registerWebMCPTools() {
+      if (typeof navigator === 'undefined') return;
+      var mc = navigator.modelContext;
+      if (!mc || typeof mc.registerTool !== 'function') return;
+
+      var controller = typeof AbortController === 'function' ? new AbortController() : null;
+      var signal = controller ? controller.signal : undefined;
+
+      var tools = [
+        {
+          name: 'search_rrm_library',
+          description: 'Search the RRM Academy research library (3,200+ peer-reviewed articles on restorative reproductive medicine, NaProTechnology, endometriosis excision, fertility awareness-based methods, PCOS, and reproductive endocrinology). Returns ranked results with titles, authors, year, and library URLs.',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              query: { type: 'string', description: 'Natural-language search query.', minLength: 2, maxLength: 500 },
+              limit: { type: 'integer', description: 'Max results to return (1-20).', minimum: 1, maximum: 20, default: 10 }
+            },
+            required: ['query']
+          },
+          execute: async function (args) {
+            var limit = Math.max(1, Math.min(20, args.limit || 10));
+            var url = '/api/search/semantic?q=' + encodeURIComponent(args.query) + '&limit=' + limit;
+            var res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) throw new Error('Search failed: HTTP ' + res.status);
+            var data = await res.json();
+            return { results: (data.results || []).slice(0, limit).map(function (r) {
+              return { title: r.title, url: r.url, snippet: r.snippet, type: r.type, score: r.score };
+            }) };
+          }
+        },
+        {
+          name: 'ask_rrm_academy',
+          description: 'Ask a natural-language question about restorative reproductive medicine. Answered by RRM Academy\'s conversational AI grounded in the research library. Requires authentication; anonymous callers receive a sign-in URL.',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              question: { type: 'string', description: 'Natural-language question.', minLength: 3, maxLength: 500 }
+            },
+            required: ['question']
+          },
+          execute: async function (args) {
+            var res = await fetch('/api/ask', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ message: args.question })
+            });
+            var data = await res.json().catch(function () { return {}; });
+            if (res.status === 401) {
+              return { error: 'authentication_required', signin_url: 'https://rrmacademy.org/login' };
+            }
+            if (res.status === 429) {
+              return { error: 'rate_limited', detail: 'Daily /ask quota exceeded.' };
+            }
+            if (!res.ok) throw new Error('Ask failed: HTTP ' + res.status);
+            return data;
+          }
+        },
+        {
+          name: 'navigate_to_section',
+          description: 'Navigate this browser tab to a major RRM Academy section (pillar guides, library, FAQs, commentary, courses, glossary, community).',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              section: {
+                type: 'string',
+                enum: ['home', 'library', 'faqs', 'commentary', 'courses', 'glossary', 'community', 'naprotechnology', 'what-is-rrm', 'femm', 'neofertility', 'common-questions-about-rrm', 'donate', 'contact'],
+                description: 'Named site section.'
+              }
+            },
+            required: ['section']
+          },
+          execute: async function (args) {
+            var map = {
+              home: '/',
+              library: '/library/',
+              faqs: '/faqs/',
+              commentary: '/commentary/',
+              courses: '/courses/',
+              glossary: '/glossary/',
+              community: '/community/',
+              naprotechnology: '/naprotechnology/',
+              'what-is-rrm': '/what-is-rrm/',
+              femm: '/femm/',
+              neofertility: '/neofertility/',
+              'common-questions-about-rrm': '/common-questions-about-rrm/',
+              donate: '/donate/',
+              contact: '/contact/'
+            };
+            var path = map[args.section];
+            if (!path) throw new Error('Unknown section: ' + args.section);
+            window.location.assign(path);
+            return { navigated_to: path };
+          }
+        }
+      ];
+
+      for (var i = 0; i < tools.length; i++) {
+        try {
+          mc.registerTool(tools[i], signal ? { signal: signal } : undefined);
+        } catch (err) {
+          // Swallow: some shims reject duplicate registration on hot reload
+        }
+      }
+    })();
+  </script>
 </body>
 </html>
