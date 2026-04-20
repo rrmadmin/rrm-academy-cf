@@ -2,6 +2,11 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BackToTop from '../../components/BackToTop.astro';
 import PdfDownload from '../../components/PdfDownload.astro';
+import LastUpdated from '../../components/LastUpdated.astro';
+import pageDates from '../../data/page-dates.json';
+
+const PAGE_PATH = '/what-is-rrm/';
+const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-03-01';
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -30,7 +35,7 @@ const jsonLd = {
         name: 'RRM Academy',
       },
       datePublished: '2026-03-01',
-      dateModified: '2026-03-14',
+      dateModified: LAST_MODIFIED,
       wordCount: 15172,
       articleSection: [
         'Key Takeaways',
@@ -352,7 +357,7 @@ const jsonLd = {
         <img src="/images/authors/naomi-whittaker.webp" alt="Dr. Naomi Whittaker, MD" class="author-byline__photo" width="48" height="48" />
         <div class="author-byline__text">
           <span>By <strong><a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</a></strong></span>
-          <time datetime="2026-03-01">Last updated March 2026</time>
+          <LastUpdated path="/what-is-rrm/" />
           <PdfDownload slug="what-is-rrm" />
         </div>
       </div>

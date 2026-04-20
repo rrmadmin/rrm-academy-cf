@@ -1,6 +1,7 @@
 ---
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import pageDates from '../data/page-dates.json';
 import '../styles/fonts.css';
 import '../styles/global.css';
 
@@ -20,6 +21,7 @@ interface Props {
   ogImageWidth?: number;
   ogImageHeight?: number;
   publishDate?: string;
+  lastModified?: string;
   jsonLd?: object;
   bodyClass?: string;
   noindex?: boolean;
@@ -50,6 +52,7 @@ const {
   ogImageWidth = 1200,
   ogImageHeight = 630,
   publishDate,
+  lastModified,
   jsonLd,
   bodyClass,
   citationMeta,
@@ -58,6 +61,16 @@ const {
 } = Astro.props;
 
 const fullTitle = (title.includes('RRM Academy') || title.startsWith('RRM ')) ? title : `${title} | RRM Academy`;
+
+// Auto-resolve lastModified from page-dates.json unless explicitly provided.
+// Page-dates is git-derived for static pages + D1 updated_at for content.
+const resolvedLastModified = (() => {
+  if (lastModified) return lastModified.match(/^\d{4}-\d{2}-\d{2}/)?.[0] || null;
+  const p = Astro.url.pathname;
+  const key = p.endsWith('/') ? p : p + '/';
+  return (pageDates.dates as Record<string, string>)[key] || null;
+})();
+
 const rawCanonical = canonicalUrl || Astro.url.href;
 const canonicalObj = new URL(rawCanonical);
 canonicalObj.pathname = canonicalObj.pathname.endsWith('/') ? canonicalObj.pathname : `${canonicalObj.pathname}/`;
@@ -131,6 +144,8 @@ const resolvedTwitterImage = resolvedOgImage.endsWith('.webp')
   <meta property="og:image:height" content={String(ogImageHeight)} />
   <meta property="og:image:alt" content={title} />
   {ogType === 'article' && publishDate && <meta property="article:published_time" content={publishDate} />}
+  {resolvedLastModified && <meta property="article:modified_time" content={resolvedLastModified} />}
+  {resolvedLastModified && <meta name="last-modified" content={resolvedLastModified} />}
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
