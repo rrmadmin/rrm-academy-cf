@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   merge-to-main:
@@ -47,3 +48,13 @@ jobs:
           git checkout main
           git merge ${{ github.sha }} --no-edit
           git push origin main
+
+      # GITHUB_TOKEN pushes do NOT trigger other workflows (GitHub anti-recursion).
+      # Explicitly dispatch Build & Deploy on main so merges from claude/**
+      # actually ship. Without this, merges land silently and production drifts.
+      - name: Trigger Build & Deploy
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run deploy.yml --ref main
+          echo "Triggered Build & Deploy on main"
