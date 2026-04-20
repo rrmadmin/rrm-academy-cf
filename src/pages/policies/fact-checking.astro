@@ -1,0 +1,99 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebPage',
+      '@id': 'https://rrmacademy.org/policies/fact-checking/',
+      url: 'https://rrmacademy.org/policies/fact-checking/',
+      name: 'Fact-Checking Policy',
+      description: 'How RRM Academy verifies clinical claims, citations, and statistics before publication.',
+      isPartOf: { '@id': 'https://rrmacademy.org/#website' },
+      about: { '@id': 'https://rrmacademy.org/#organization' },
+      inLanguage: 'en',
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+        { '@type': 'ListItem', position: 2, name: 'Policies', item: 'https://rrmacademy.org/policies/' },
+        { '@type': 'ListItem', position: 3, name: 'Fact-Checking Policy', item: 'https://rrmacademy.org/policies/fact-checking/' },
+      ],
+    },
+  ],
+};
+---
+<BaseLayout
+  title="Fact-Checking Policy"
+  description="How RRM Academy verifies clinical claims, citations, and statistics before publication. Multi-API verification cascade, physician review, and automated citation gate."
+  canonicalUrl="https://rrmacademy.org/policies/fact-checking/"
+  jsonLd={jsonLd}
+>
+  <div class="page-wrapper prose">
+    <div class="container container--narrow">
+      <h1>Fact-Checking Policy</h1>
+      <p class="effective-date">Effective Date: April 20, 2026</p>
+
+      <section class="legal-section">
+        <h2>Why Fact-Checking Matters Here</h2>
+        <p>RRM Academy is a medical education platform. Readers use our content to understand their health, evaluate treatment options, and make decisions with their clinicians. A hallucinated statistic or a fabricated citation is not just a quality problem -- it is an existential threat to a medical education site. Our fact-checking process is built accordingly.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>What We Verify</h2>
+        <p>Before publication, every article is checked for:</p>
+        <ul>
+          <li><strong>Citation existence.</strong> Every DOI, PMID, and URL is confirmed to resolve to the claimed source. We do not insert citations from model knowledge alone.</li>
+          <li><strong>Citation accuracy.</strong> Every cited statistic is confirmed against the actual source. The claim in our article must match what the source says.</li>
+          <li><strong>Statistic integrity.</strong> Numbers, percentages, sample sizes, and effect estimates are traced to their primary source.</li>
+          <li><strong>Clinical accuracy.</strong> Treatment descriptions, diagnostic criteria, and disease definitions are reviewed by a credentialed clinician.</li>
+          <li><strong>RRM alignment.</strong> Content is reviewed to ensure it reflects restorative reproductive medicine principles and does not misrepresent RRM practice.</li>
+        </ul>
+      </section>
+
+      <section class="legal-section">
+        <h2>How We Verify</h2>
+        <p>Citation verification uses a multi-API cascade. Each cited URL passes through:</p>
+        <ol>
+          <li><strong>HTTP resolution.</strong> The URL must return a live response.</li>
+          <li><strong>Source content check.</strong> The target page is fetched and the cited claim is located within it. Live sources beat memory.</li>
+          <li><strong>Bibliographic API cross-reference.</strong> For journal articles, metadata (title, authors, year, DOI) is cross-checked against CrossRef, PubMed, and Semantic Scholar.</li>
+          <li><strong>Rendering fallback.</strong> Bot-protected pages are verified through a headless browser when the direct fetch fails.</li>
+        </ol>
+        <p>Any citation that fails this cascade blocks publication. Our CI pipeline enforces this automatically: <code>scripts/verify-citations.mjs</code> runs on every deploy and halts the build if any citation fails.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Research Library Integrity</h2>
+        <p>The RRM Research Library holds more than 3,000 peer-reviewed articles. Every record is enriched from authoritative bibliographic APIs (CrossRef, PubMed, OpenAlex) and includes verified metadata, DOIs, and, where available, ORCID identifiers for authors and ROR identifiers for their institutions. Retracted articles are flagged through a weekly automated retraction scan and labeled on their library pages.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Clinical Review</h2>
+        <p>Clinical content is reviewed by a credentialed RRM clinician before publication. Pillar guides receive review from our editorial lead, <a href="/about/#naomi-whittaker">Dr. Naomi Whittaker</a>, or from a designated reviewing clinician. Patient-facing content is additionally reviewed for voice and for alignment with the <a href="/policies/editorial/">Editorial Policy</a>.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>What Happens When We Get It Wrong</h2>
+        <p>Errors are corrected under our <a href="/policies/corrections/">Corrections Policy</a>. If you believe a claim on this site is not accurately sourced or does not match what the cited source says, please <a href="/contact/">contact us</a> and we will investigate.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>What We Do Not Do</h2>
+        <p>We do not generate citations from model knowledge. We do not cite sources we have not read or resolved. We do not infer statistics from memory. When a claim we want to make is not supported by a verifiable source, we either omit it or say explicitly that the evidence is limited.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Related Policies</h2>
+        <ul>
+          <li><a href="/policies/editorial/">Editorial Policy</a></li>
+          <li><a href="/policies/corrections/">Corrections Policy</a></li>
+          <li><a href="/privacy-policy/">Privacy Policy</a></li>
+          <li><a href="/medical-disclaimer/">Medical Disclaimer</a></li>
+        </ul>
+      </section>
+    </div>
+  </div>
+</BaseLayout>

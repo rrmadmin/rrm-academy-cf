@@ -65,6 +65,9 @@ const jsonLd = {
         'https://www.linkedin.com/company/rrmacademy',
         'https://www.instagram.com/rrmacademy',
       ],
+      publishingPrinciples: 'https://rrmacademy.org/policies/editorial/',
+      correctionsPolicy: 'https://rrmacademy.org/policies/corrections/',
+      verificationFactCheckingPolicy: 'https://rrmacademy.org/policies/fact-checking/',
       contactPoint: {
         '@type': 'ContactPoint',
         contactType: 'customer support',
@@ -126,6 +129,12 @@ const jsonLd = {
             text: 'Start with the right questions. Do they perform excision, not ablation? Do they evaluate both partners? Do they chart cycles before diagnosing? RRM Academy gives you the knowledge to evaluate any provider, not just the ones on a list.',
           },
         },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
       ],
     },
   ],
