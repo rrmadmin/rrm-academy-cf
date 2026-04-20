@@ -205,6 +205,10 @@ For follow-up specs — listed so we don't lose them:
 - **Spec D:** CI integration — run `quality:all` on PR, fail on threshold regression, post summary comment.
 - **Spec E:** Architecture tests via dependency-cruiser — forbid edge runtime imports in `src/lib/`, forbid Airtable creds in non-fetcher files, etc.
 
+## 13a. Branch Decision
+
+Work executes on `feat/og-on-demand` (the branch where spec + plan were authored). A fresh worktree is not required because the scope is strictly additive: no files in `src/lib/`, `functions/api/`, or any shipping code path are modified. All new files live under `scripts/quality/`, `test/`, `docs/quality/`, `docs/superpowers/`, and three new root-level config files (`stryker.conf.json`, `.dependency-cruiser.cjs`, `eslint.quality.config.js`). The `BASELINE.md` commit is cherry-pickable to `main` if needed.
+
 ## 14. Acceptance Criteria
 
 The pass is done when:
@@ -217,4 +221,4 @@ The pass is done when:
 6. ✅ `BASELINE.md` is committed and readable
 7. ✅ `reports/quality/` is gitignored
 8. ✅ `test/quality-crap.test.js` passes
-9. ✅ Running `npm run quality:all` twice in a row produces identical `BASELINE.md` (deterministic)
+9. ✅ Running `npm run quality:all` twice in a row produces byte-identical `BASELINE.md` **data sections** (summary, CRAP bands, coverage gaps, dep violations). The footer metadata (`Generated:` timestamp, `Commit:` SHA) is expected to vary and is excluded from the determinism diff. Verified via `grep -v '^\*\*Generated:' ... | diff` in plan Task 11 Step 4.
