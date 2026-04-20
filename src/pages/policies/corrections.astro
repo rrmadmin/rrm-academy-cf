@@ -1,0 +1,83 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebPage',
+      '@id': 'https://rrmacademy.org/policies/corrections/',
+      url: 'https://rrmacademy.org/policies/corrections/',
+      name: 'Corrections Policy',
+      description: 'How RRM Academy handles errors, corrections, retractions, and updates to published content.',
+      isPartOf: { '@id': 'https://rrmacademy.org/#website' },
+      about: { '@id': 'https://rrmacademy.org/#organization' },
+      inLanguage: 'en',
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+        { '@type': 'ListItem', position: 2, name: 'Policies', item: 'https://rrmacademy.org/policies/' },
+        { '@type': 'ListItem', position: 3, name: 'Corrections Policy', item: 'https://rrmacademy.org/policies/corrections/' },
+      ],
+    },
+  ],
+};
+---
+<BaseLayout
+  title="Corrections Policy"
+  description="How RRM Academy handles errors, corrections, retractions, and updates to published content. Transparent correction process with clear documentation."
+  canonicalUrl="https://rrmacademy.org/policies/corrections/"
+  jsonLd={jsonLd}
+>
+  <div class="page-wrapper prose">
+    <div class="container container--narrow">
+      <h1>Corrections Policy</h1>
+      <p class="effective-date">Effective Date: April 20, 2026</p>
+
+      <section class="legal-section">
+        <h2>Our Commitment</h2>
+        <p>RRM Academy publishes clinical education material that readers may rely on when making health decisions. We take factual accuracy seriously. When we publish an error, we correct it promptly and transparently.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>How We Handle Corrections</h2>
+        <p>When an error is confirmed, we correct it and document the change on the affected page. The type of notification depends on the severity of the error:</p>
+        <ul>
+          <li><strong>Typographical and formatting errors</strong> -- corrected silently. No on-page notice.</li>
+          <li><strong>Factual errors that do not change the meaning</strong> (for example, a misspelled author name, a wrong year) -- corrected with a dated "Updated" note at the foot of the article.</li>
+          <li><strong>Factual errors that materially change the meaning</strong> (for example, a misstated statistic, a reversed clinical recommendation, an incorrect citation) -- corrected with a visible Correction Notice at the top of the article, dated, explaining what changed and why. The original claim is identified. The corrected claim is cited.</li>
+          <li><strong>Errors severe enough to compromise the article's integrity</strong> -- the article is retracted. A retraction notice replaces the page and remains indefinitely. Links to the retracted article resolve to the retraction notice.</li>
+        </ul>
+      </section>
+
+      <section class="legal-section">
+        <h2>Citation and Source Errors</h2>
+        <p>If a cited source is retracted, superseded, or shown to be unreliable, we update the affected article and disclose the change. For the RRM Research Library specifically, articles flagged as retracted in PubMed or CrossRef are marked as retracted in our database within seven days of discovery. The library's automated retraction scan runs weekly.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Reporting an Error</h2>
+        <p>If you believe we have published an error, please tell us. Include the page URL, the specific claim you believe is incorrect, and, if possible, a citation supporting the correction.</p>
+        <p>Email or contact form: <a href="/contact/">rrmacademy.org/contact</a></p>
+        <p>We acknowledge correction requests within three business days and resolve verified errors within seven business days. Complex corrections requiring physician review may take longer; we will communicate status.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Version History</h2>
+        <p>Significant content updates are tracked in the page's <code>dateModified</code> timestamp, visible on the page and emitted in structured data. This lets readers verify when a page last changed.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Related Policies</h2>
+        <ul>
+          <li><a href="/policies/editorial/">Editorial Policy</a></li>
+          <li><a href="/policies/fact-checking/">Fact-Checking Policy</a></li>
+          <li><a href="/privacy-policy/">Privacy Policy</a></li>
+          <li><a href="/medical-disclaimer/">Medical Disclaimer</a></li>
+        </ul>
+      </section>
+    </div>
+  </div>
+</BaseLayout>
