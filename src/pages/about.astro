@@ -34,7 +34,7 @@ const jsonLd = {
         addressCountry: 'US',
       },
       sameAs: [
-        'https://www.linkedin.com/company/rrm-academy',
+        'https://www.linkedin.com/company/rrmacademy',
         'https://www.instagram.com/rrmacademy',
       ],
     },
@@ -192,6 +192,7 @@ const jsonLd = {
     <div class="container container--narrow">
       <h1 class="hero-title">About RRM Academy</h1>
       <p class="about-hero__tagline">Education for true healing and reproductive health</p>
+      <p class="about-hero__updated"><time datetime="2026-04-19">Last updated April 19, 2026</time></p>
     </div>
   </section>
 
@@ -256,7 +257,16 @@ const jsonLd = {
     <div class="container container--narrow">
       <h2>Meet our founder</h2>
 
-      <div class="card founder-card">
+      <div class="card founder-card founder-card--with-photo">
+        <img
+          src="/images/authors/naomi-whittaker.webp"
+          alt="Dr. Naomi Whittaker, MD, Board-Certified OBGYN, Founder and Medical Director of RRM Academy"
+          class="founder-card__photo"
+          width="200"
+          height="200"
+          loading="lazy"
+          decoding="async"
+        />
         <div class="founder-card__content">
           <h3>Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</h3>
           <p class="founder-card__role">Founder &amp; Medical Director</p>
@@ -401,6 +411,43 @@ const jsonLd = {
   }
   .founder-card__content p:last-child {
     margin-bottom: 0;
+  }
+  .founder-card--with-photo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4);
+    text-align: center;
+  }
+  .founder-card__photo {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  }
+  @media (min-width: 640px) {
+    .founder-card--with-photo {
+      flex-direction: row;
+      align-items: flex-start;
+      text-align: left;
+    }
+    .founder-card__photo {
+      width: 160px;
+      height: 160px;
+    }
+  }
+
+  /* Last-updated timestamp */
+  .about-hero__updated {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    margin-top: var(--space-3);
+    margin-bottom: 0;
+  }
+  .about-hero__updated time {
+    font-style: normal;
   }
 
   /* CTA list */
