@@ -6,9 +6,11 @@
 
 **Architecture:** Each tool gets its own thin wrapper script under `scripts/quality/`. Reports land in `reports/quality/` (gitignored). A dashboard script joins all outputs into a single committed `docs/quality/BASELINE.md`. One fixture-based unit test validates the custom CRAP calculator.
 
-**Tech Stack:** Node 20 ESM, `c8`, `@stryker-mutator/core`, `@stryker-mutator/api`, ESLint `complexity` + `eslint-plugin-sonarjs`, `dependency-cruiser`, `node --test`.
+**Tech Stack:** Node 20 ESM, `c8`, `@stryker-mutator/core`, `@stryker-mutator/api`, ESLint `complexity` + `eslint-plugin-sonarjs` + `@typescript-eslint/parser` (for `.ts` complexity), `dependency-cruiser`, `node --test`.
 
 **Spec:** `docs/superpowers/specs/2026-04-20-src-lib-quality-baseline-design.md`
+
+**Branch decision:** Executing on `feat/og-on-demand` (not a fresh worktree) is acceptable because this work is strictly additive — no files in `src/lib/` or `functions/api/` are modified, no shipping code paths are touched, and the BASELINE.md commit will be cherry-pickable if needed.
 
 ---
 
@@ -61,10 +63,13 @@ npm install --save-dev \
   @stryker-mutator/core@^9.0.1 \
   @stryker-mutator/api@^9.0.1 \
   eslint-plugin-sonarjs@^3.0.2 \
-  dependency-cruiser@^16.10.0
+  dependency-cruiser@^16.10.0 \
+  @typescript-eslint/parser@^8.20.0
 ```
 
-Expected: `package.json` gains 5 new entries under `devDependencies`, `package-lock.json` updates, install completes with no errors.
+Expected: `package.json` gains 6 new entries under `devDependencies`, `package-lock.json` updates, install completes with no errors.
+
+(`@typescript-eslint/parser` is required for ESLint to walk `.ts` files in `src/lib/` — without it, 8 of 16 target files would be silently skipped by the complexity pass.)
 
 - [ ] **Step 2: Verify versions installed**
 
@@ -73,9 +78,10 @@ Run:
 npx c8 --version
 npx stryker --version
 npx depcruise --version
+node -e "import('@typescript-eslint/parser').then(m => console.log('ts-parser:', typeof m.parse))"
 ```
 
-Expected: prints version strings for all three.
+Expected: prints version strings for the first three and `ts-parser: function` for the fourth.
 
 - [ ] **Step 3: Commit**
 
@@ -212,10 +218,10 @@ Create `scripts/quality/lib/crap-calc.mjs`:
  * CRAP score calculator.
  * CRAP(f) = CC(f)² × (1 − coverage(f))³ + CC(f)
  *
- * Bands (industry convention):
- *   CRAP ≤ 5   → healthy
- *   CRAP ≤ 30  → acceptable
- *   CRAP >  30 → danger (refactor or add tests)
+ * Bands (industry convention; closed/open intervals are explicit):
+ *   healthy    = [0, 5]     — CRAP ≤ 5
+ *   acceptable = (5, 30]    — 5 < CRAP ≤ 30
+ *   danger     = (30, ∞)    — CRAP > 30 (refactor or add tests)
  */
 
 /**
@@ -280,14 +286,23 @@ Create `scripts/quality/coverage.mjs`:
  * Run c8 over the existing node:test suite, scoped to src/lib/**.
  * Writes HTML + JSON reports to reports/quality/coverage/.
  *
+ * Exit policy:
+ *   - Tests may fail (existing test/ directory includes functions/api tests
+ *     that import things not on this branch; their failure is not our concern
+ *     here). We tolerate non-zero c8 exit ONLY if coverage-final.json landed.
+ *   - If the JSON report is absent after the run, something went catastrophically
+ *     wrong (c8 itself crashed, wrong Node version, etc.). Exit 1 with a clear
+ *     error so the dashboard shows a failure rather than stale data.
+ *
  * Usage: node scripts/quality/coverage.mjs
  */
 import { spawn } from 'node:child_process';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, access } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
 const OUT = resolve(ROOT, 'reports', 'quality', 'coverage');
+const JSON_REPORT = resolve(OUT, 'coverage-final.json');
 
 await mkdir(OUT, { recursive: true });
 
@@ -305,10 +320,18 @@ const args = [
 
 console.log(`[coverage] running: npx ${args.join(' ')}`);
 const child = spawn('npx', args, { cwd: ROOT, stdio: 'inherit' });
-child.on('exit', (code) => {
-  // c8 exits non-zero if tests fail; we still want the report, so tolerate
-  // non-zero only when the JSON report landed.
-  process.exit(code === 0 ? 0 : 0);
+child.on('exit', async (code) => {
+  try {
+    await access(JSON_REPORT);
+    if (code !== 0) {
+      console.warn(`[coverage] tests exited ${code} but coverage-final.json landed — continuing.`);
+    }
+    process.exit(0);
+  } catch {
+    console.error(`[coverage] FATAL: coverage-final.json missing at ${JSON_REPORT}`);
+    console.error(`[coverage] c8 child exited ${code} and produced no JSON. See logs above.`);
+    process.exit(1);
+  }
 });
 ```
 
@@ -355,24 +378,42 @@ Create `eslint.quality.config.js`:
  * Kept separate from eslint.config.js so `npm run lint` is unchanged.
  * complexity and sonarjs/cognitive-complexity are set to 'warn' with a
  * threshold of 1 so EVERY function gets a report entry.
+ *
+ * TypeScript files in src/lib/ (8 of 16) require @typescript-eslint/parser
+ * or they'd be silently skipped by the complexity pass.
  */
 import js from '@eslint/js';
 import sonarjs from 'eslint-plugin-sonarjs';
+import tsParser from '@typescript-eslint/parser';
+
+const complexityRules = {
+  // Report every function regardless of size — threshold 1 = always report
+  complexity: ['warn', { max: 1 }],
+  'sonarjs/cognitive-complexity': ['warn', 1],
+};
 
 export default [
   js.configs.recommended,
   {
-    files: ['src/lib/**/*.{js,mjs,ts}'],
+    // JS/MJS files — default espree parser
+    files: ['src/lib/**/*.{js,mjs}'],
     plugins: { sonarjs },
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
     },
-    rules: {
-      // Report every function regardless of size — threshold 1 = always report
-      complexity: ['warn', { max: 1 }],
-      'sonarjs/cognitive-complexity': ['warn', 1],
+    rules: complexityRules,
+  },
+  {
+    // TS files — typescript-eslint parser, no type-checking (fast)
+    files: ['src/lib/**/*.ts'],
+    plugins: { sonarjs },
+    languageOptions: {
+      parser: tsParser,
+      ecmaVersion: 2022,
+      sourceType: 'module',
     },
+    rules: complexityRules,
   },
 ];
 ```
@@ -433,7 +474,16 @@ node -e "import('./scripts/quality/lib/load-complexity.mjs').then(m => m.loadCom
 
 Expected: prints file count > 0 and a sample entry with `line`, `name`, and `cc` number.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 4: Verify `.ts` files are NOT silently skipped**
+
+Run:
+```bash
+node -e "import('./scripts/quality/lib/load-complexity.mjs').then(m => m.loadComplexity()).then(r => { const tsFiles = Object.keys(r).filter(k => k.endsWith('.ts')); const jsFiles = Object.keys(r).filter(k => k.endsWith('.mjs') || k.endsWith('.js')); console.log('ts files with complexity data:', tsFiles.length); console.log('js/mjs files with complexity data:', jsFiles.length); if (tsFiles.length === 0) { console.error('FATAL: no .ts files reported — parser likely not loaded'); process.exit(1); } })"
+```
+
+Expected: `ts files with complexity data: N` where N ≥ 1 (there are 8 `.ts` files in `src/lib/`, at least several should have reportable functions). If the output reports 0 `.ts` files, the typescript-eslint parser is not wired correctly — fix before proceeding to Task 6.
+
+- [ ] **Step 5: Commit**
 
 ```bash
 git add eslint.quality.config.js scripts/quality/lib/load-complexity.mjs
@@ -787,24 +837,52 @@ Create `scripts/quality/mutation.mjs`:
  * Run Stryker mutation testing scoped to src/lib/**.
  * Emits HTML + JSON to reports/quality/mutation/.
  *
+ * Abort policy (lights-off safety):
+ *   - Hard wall-clock cap of 15 minutes (MUTATION_TIMEOUT_MS).
+ *   - On timeout: SIGTERM Stryker, then SIGKILL after 5s grace.
+ *   - Writes reports/quality/mutation/TIMED_OUT marker so dashboard can note it.
+ *   - Exits 2 on timeout (distinct from 0 = ok, 1 = crash).
+ *
+ * Override with env: MUTATION_TIMEOUT_MS=1800000 node scripts/quality/mutation.mjs
+ *
  * Usage: node scripts/quality/mutation.mjs
  *
- * Note: mutation testing is slow; budget 2–10 minutes for first run.
+ * Note: mutation testing is slow; budget 2–10 minutes for first run on 16 files.
  */
 import { spawn } from 'node:child_process';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
-await mkdir(resolve(ROOT, 'reports', 'quality', 'mutation'), { recursive: true });
+const MUT_DIR = resolve(ROOT, 'reports', 'quality', 'mutation');
+const TIMEOUT_MS = Number(process.env.MUTATION_TIMEOUT_MS ?? 15 * 60 * 1000);
+
+await mkdir(MUT_DIR, { recursive: true });
 
 const child = spawn('npx', ['stryker', 'run', 'stryker.conf.json'], {
   cwd: ROOT,
   stdio: 'inherit',
 });
-child.on('exit', (code) => {
+
+let timedOut = false;
+const killTimer = setTimeout(() => {
+  timedOut = true;
+  console.error(`\n[mutation] TIMEOUT after ${TIMEOUT_MS}ms — killing Stryker`);
+  child.kill('SIGTERM');
+  setTimeout(() => {
+    if (!child.killed) child.kill('SIGKILL');
+  }, 5000).unref();
+}, TIMEOUT_MS);
+killTimer.unref();
+
+child.on('exit', async (code) => {
+  clearTimeout(killTimer);
+  if (timedOut) {
+    await writeFile(resolve(MUT_DIR, 'TIMED_OUT'), `Timed out after ${TIMEOUT_MS}ms at ${new Date().toISOString()}\n`);
+    process.exit(2);
+  }
   // Stryker exits non-zero if mutation score under threshold; we don't set
-  // a threshold, so any exit is fine.
+  // a threshold, so any non-timeout exit is fine.
   process.exit(code ?? 0);
 });
 ```
@@ -1142,7 +1220,10 @@ lines.push('');
 // --- Mutation survivors (top 20) ---
 lines.push('## Top 20 surviving mutants');
 lines.push('');
-if (!mutReport) {
+const timedOutMarker = await tryRead(resolve(ROOT, 'reports/quality/mutation/TIMED_OUT'));
+if (timedOutMarker) {
+  lines.push(`⚠ Mutation run timed out. ${timedOutMarker.trim()}`);
+} else if (!mutReport) {
   lines.push(skipMutation ? '_Skipped (--skip-mutation)._' : '⚠ Mutation report missing.');
 } else {
   const survivors = [];
@@ -1208,19 +1289,22 @@ node scripts/quality/dashboard.mjs
 
 Expected: all four tools run. `BASELINE.md` contains all sections including top-20 surviving mutants.
 
-- [ ] **Step 4: Verify determinism**
+- [ ] **Step 4: Verify determinism (data sections only)**
 
-Run twice in a row and diff:
+The `Generated:` timestamp is expected to differ between runs — it is footer metadata, not report data. This check filters it out before diffing to verify the data sections are byte-identical.
+
+Run twice in a row and diff (excluding the timestamp line):
 ```bash
 node scripts/quality/dashboard.mjs --skip-mutation
-cp docs/quality/BASELINE.md /tmp/baseline1.md
+grep -v '^\*\*Generated:' docs/quality/BASELINE.md > /tmp/baseline1.md
 node scripts/quality/dashboard.mjs --skip-mutation
-diff /tmp/baseline1.md docs/quality/BASELINE.md
+grep -v '^\*\*Generated:' docs/quality/BASELINE.md > /tmp/baseline2.md
+diff /tmp/baseline1.md /tmp/baseline2.md
 ```
 
-Expected: the only lines that differ are the "Generated:" timestamp at the footer. Data sections are byte-identical.
+Expected: empty diff. Data sections (summary, CRAP bands, coverage gaps, deps) are byte-identical across runs.
 
-If data sections differ: check for nondeterministic sorts in `dashboard.mjs` or report generators and fix before proceeding.
+If the diff is non-empty: check for nondeterministic sorts in `dashboard.mjs` or report generators and fix before proceeding.
 
 - [ ] **Step 5: Commit**
 
