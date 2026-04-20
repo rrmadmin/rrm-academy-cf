@@ -53,22 +53,41 @@ The old instance exposed `/chat/completions` (retrieval + generation bundled). T
 
 ## Data-loading strategy
 
-**Revised 2026-04-20 post-spike** based on real corpus inspection (`articles.json`: 3,021 records) and the Phase 0.5 experiments:
+**Revised 2026-04-20 post-spike** based on live rrm-library worker response inspection (500-record sample of 3,247 published articles) and the Phase 0.5 experiments:
 
-**Key shape (locked):** `/library/<slug>-<recid>.md` — `.md` extension REQUIRED (server uses it for content-type inference; non-suffixed keys fail with `unable_to_determine_file_content_type`). Length cap ~150 chars (confirmed: 121 works, 171 fails). Unicode (`ü`, `ł`, `α`, `μ`) round-trips exactly. 87 production slugs exceed 100 chars — of those, any over ~140 needs a shorter key scheme (hash-suffix fallback stored in D1).
+**Correction to an earlier draft of this section:** a deep-trace agent flagged `rrmRelevance` and `domain` as "100% empty" in the corpus. That analyzed the committed (stale) `src/data/articles.json`, not the live rrm-library worker. The worker at `GET /articles` actually returns:
+
+| Field | Fill rate (500 sample) | Format |
+|-------|-----------------------:|--------|
+| `rrmRelevance` | 96.0% | labeled string `"4 - Highly Relevant"` through `"1 - Not RRM"`; empty when unclassified |
+| `domain` | 100.0% | clean categorical: `Endometriosis`, `Infertility`, `NaProTECHNOLOGY`, `Fertility Awareness`, `Pregnancy`, … (~30 values) |
+| `sentiment` | 100.0% | `neutral` / `critical` / `hostile` / `supportive` |
+| `topics` | 99.8% | array of hierarchical strings `"A > B > C"` |
+| `isOpenAccess` | 100.0% | boolean |
+| `year` | 100.0% | integer |
+
+Committed `src/data/articles.json` just hasn't been rebuilt since the worker started surfacing these fields. Next `fetch-all` refreshes. **No separate backfill step is required**; source of truth is the rrm-library D1 (Airtable was phased out for library data on 2026-04-07, per project CLAUDE.md).
+
+**Key shape (locked):** `/library/<slug>-<recid>.md` — `.md` extension REQUIRED (server uses it for content-type inference; non-suffixed keys fail with `unable_to_determine_file_content_type`). Length cap ~150 chars (confirmed: 121 works, 171 fails). Unicode (`ü`, `ł`, `α`, `μ`) round-trips exactly. Any slug over ~140 chars needs a shorter scheme: truncate to 120 chars + sha8 hash suffix, with full slug preserved in D1 `ai_search_docs.full_slug`.
 
 **Custom metadata schema (locked on 5 fields — the cap):**
 ```json
 [
   {"field_name":"type","data_type":"text"},
   {"field_name":"year","data_type":"number"},
-  {"field_name":"topic_primary","data_type":"text"},
+  {"field_name":"domain","data_type":"text"},
   {"field_name":"rrm_relevance","data_type":"number"},
   {"field_name":"is_open_access","data_type":"boolean"}
 ]
 ```
 
-Reasoning: `domain` and `rrm_relevance` as envisioned in the original plan **do not exist in the production corpus** (`articles.json` shows `domain: ""` on 3,021/3,021 and `rrmRelevance: null` on 3,021/3,021). The real taxonomy is `topics` (array, populated on 2,979/3,021). CF does not accept array metadata values — arrays fail with `invalid_metadata_format`. The workaround is pick-a-primary: `topic_primary = topics[0]` and rely on vector recall for the rest, OR explode per topic (corpus × 2-3). **Decision: topic_primary in metadata, full topic array in the chunk text body so BM25 still matches.** `rrm_relevance` sourced from rrm-cli's D1 `knowledge.rrm_relevance` (not the empty Airtable column) — backfill script required before Phase 1 day 1. `url` and `title` are NOT in metadata (5-field cap busts): URL is derivable from `key` (we set `key = URL path`), title is looked up from D1 by parsed recid at citation-render time.
+- `type`: `article` / `post` / `faq` / `glossary` / `pillar`. Straight string from source.
+- `year`: stringified integer from the worker.
+- `domain`: clean categorical from the worker, 100% fill. Perfect facet field.
+- `rrm_relevance`: worker returns labeled string `"4 - Highly Relevant"`; **loader parses the leading digit** (`String(parseInt(rrmRelevance))` → `"4"`) so the schema-declared `data_type: number` coerces to `4`. The 4% of records with empty `rrmRelevance` are unclassified — **loader skips them** (they re-enter the index on the next run after the classifier catches up). Don't index noise.
+- `is_open_access`: worker returns boolean; loader stringifies to `"true"` / `"false"`.
+- `topics` (the hierarchical array, 99.8% fill): deliberately NOT a metadata slot — the hierarchical `"A > B > C"` format is messy for facets, and arrays aren't accepted by CF (verified). Loader instead inlines the full array as prose in the chunk text (`Topics: A > B > C; D > E > F.`) so BM25 matches it at query time. Can be promoted to a 6th metadata slot later; schema expansion is non-destructive (verified in Phase 0.5 Q13).
+- `url` and `title` are not in metadata: `url = key` by construction; `title` is looked up from D1 by parsed recid at citation-render time.
 
 All metadata values MUST be strings at the SDK level (verified: numeric values fail even when the schema declares `data_type: number`; server coerces strings on the way in). Phase 1 loader stringifies everything.
 
@@ -126,7 +145,7 @@ CREATE INDEX idx_ai_search_docs_source_type ON ai_search_docs(source_type);
 - Reads `src/data/articles.json` + `posts.json` + `faqs.json` + `glossary.json` + pillar-page constants.
 - For each record: build `key` (`/library/<slug>.md` etc; if length > 140, truncate slug to 120 and append sha8 of full slug, store full slug in `ai_search_docs.full_slug`).
 - Body: `# <title>\n\n` + full topic array as inline prose (`Topics: a, b, c.`) + abstract/content with frontmatter stripped. No YAML frontmatter in body.
-- Metadata (`{ metadata: {...} }` third arg, all values stringified): `type`, `year: String(year ?? "0")` (0-sentinel for 7 articles with null year), `topic_primary: String(topics[0] ?? "")`, `rrm_relevance: String(rrmRelevance)` **from rrm-cli D1 knowledge.rrm_relevance — Airtable column is null, backfill into articles.json before first run**, `is_open_access: isOpenAccess ? "true" : "false"`.
+- Metadata (`{ metadata: {...} }` third arg, all values stringified): `type`, `year: String(year ?? "0")` (0-sentinel only for records with null year, if any), `domain: String(domain ?? "")` (worker returns this at 100% fill; if a record legitimately has empty domain, skip — treat as "not indexable yet"), `rrm_relevance: String(parseInt(rrmRelevance) || "")` (parse leading digit from the worker's `"4 - Highly Relevant"` format; skip records with empty rrmRelevance — classifier hasn't caught up), `is_open_access: isOpenAccess ? "true" : "false"`.
 - Skip logic: compute `content_hash`; if `D1.get(key).content_hash === new_hash`, skip (bump `last_seen_at`).
 - Upload in batches of 10 via `Promise.all` (~3.3s/doc parallel). Store `{key, item_id, content_hash}` in D1 post-upload.
 - Reconcile: find `ai_search_docs` rows where `last_seen_at < run_started_at` — these are orphans. Dry-run default; `--execute --max-delete 50` to actually call `instance.items.delete(item_id)` and `DELETE FROM ai_search_docs WHERE key = ?`.
@@ -238,7 +257,7 @@ Every phase must satisfy:
 | Billing surprise post-beta | Low | CF has 30-day notice before billing. Budget alarm on Workers AI + AI Search spend. |
 | Crawler instance enable wipes / shadows upload-instance items | Low | Two-instance design: crawler is a separate instance. First enable of `rrm-academy-search-site` will be tick-gated and watched. |
 | Key length > 140 chars for some slugs | **Confirmed** | Loader truncates + appends sha8; D1 `full_slug` column preserves the original. |
-| `rrm_relevance` column empty in Airtable | **Confirmed** | Backfill from rrm-cli D1 `knowledge.rrm_relevance` before Phase 1 day 1. Blocks Phase 1 start until done. |
+| ~~`rrm_relevance` column empty in Airtable~~ | **False alarm** | Earlier tracer analyzed stale committed JSON. Live rrm-library worker returns `rrmRelevance` at 96% fill and `domain` at 100% fill; no backfill required. Airtable is not the source (library D1 is, since 2026-04-07). |
 | Whittaker.ai pattern assumption wrong | Low | Scoped out of this plan. Proved separately after v2 ships. |
 
 ## Open questions — all resolved in Phase 0 + 0.5 (see Spike Results section)
