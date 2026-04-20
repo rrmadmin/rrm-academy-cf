@@ -38,10 +38,14 @@ const jsonLd = {
         'https://www.linkedin.com/company/rrmacademy',
         'https://www.instagram.com/rrmacademy',
       ],
+      publishingPrinciples: 'https://rrmacademy.org/policies/editorial/',
+      correctionsPolicy: 'https://rrmacademy.org/policies/corrections/',
+      verificationFactCheckingPolicy: 'https://rrmacademy.org/policies/fact-checking/',
     },
     {
-      '@type': 'Person',
+      '@type': ['Physician', 'Person'],
       '@id': 'https://rrmacademy.org/#naomi-whittaker',
+      mainEntityOfPage: 'https://rrmacademy.org/about/#naomi-whittaker',
       name: 'Dr. Naomi Whittaker',
       honorificPrefix: 'Dr.',
       honorificSuffix: 'MD',
@@ -51,6 +55,15 @@ const jsonLd = {
       description: 'Board-certified obstetrician-gynecologist (ABOG, 2020), Physician Lead of UPMC Divine Mercy Women\'s Health, and founder of RRM Academy. The most-followed English-speaking RRM physician on social media.',
       url: 'https://rrmacademy.org/commentary/rrm-spotlight-naomi-whittaker-md/',
       image: 'https://rrmacademy.org/images/authors/naomi-whittaker.webp',
+      medicalSpecialty: [
+        'Obstetrics',
+        'Gynecology',
+        'ReproductiveMedicine',
+        'Surgical',
+      ],
+      knowsLanguage: ['en'],
+      worksFor: { '@id': 'https://rrmacademy.org/#organization' },
+      publishingPrinciples: 'https://rrmacademy.org/policies/editorial/',
       identifier: [
         {
           '@type': 'PropertyValue',
