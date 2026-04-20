@@ -242,6 +242,41 @@ docs/
 
 SEO changes to these templates automatically apply to all existing and future content. No per-item overrides exist.
 
+## OG Images (on-demand)
+
+Every page's `<meta property="og:image">` points at `/og/<slug>.png?v=${OG_VERSION}`. PNGs are rendered on demand by `functions/og/[[path]].js` via `workers-og` (satori + resvg-wasm). No pre-built PNGs ship with the site -- the lookup is a static `src/data/og-index.json` map built at deploy time from articles/posts/faqs/courses + a static-page constant.
+
+**Pipeline:**
+
+```
+fetch-all (articles.json, posts.json, faqs.json, courses.json, glossary.json)
+    |
+    v
+scripts/build-og-index.mjs  -> src/data/og-index.json (gitignored)
+    |  (runs first inside `npm run build`)
+    v
+astro build  -> dist/
+    |
+    v
+Pages deploy  -> functions/og/[[path]].js imports og-index.json at request time
+```
+
+**Slug convention** matches `routeToOgSlug()` in BaseLayout.astro:
+- `/` -> `homepage`
+- `/what-is-rrm` -> `what-is-rrm`
+- `/library/<slug>` -> `library-<slug>`
+- `/commentary/<slug>` -> `commentary-<slug>`
+- `/faqs/<slug>` -> `faqs-<slug>`
+- `/courses/<slug>` -> `courses-<slug>`
+
+Unknown slugs -> branded fallback card (still 200 PNG, never a 404).
+
+**Cache busting (`OG_VERSION`):** The version constant lives at `src/lib/og-config.ts`. Bump it whenever the satori template design changes (palette, typography, layout, fallback card). BaseLayout.astro appends `?v=${OG_VERSION}` to every og:image URL -- bumping changes the cache key at both the CF edge and every social scraper (Facebook/LinkedIn/Twitter/iMessage/Slack) that caches per URL.
+
+**Cache-Control:** `public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800`. Never `immutable` -- that strands old palettes at the edge forever.
+
+**Router:** `/og` is in `ASTRO_ROUTES` in rrm-router/src/index.js. Without that entry, the router proxies `/og/*` to Wix and the function never sees the request.
+
 ## Components
 
 `src/components/`: Header, Footer, SearchBar, ArticleCard, BlogCard, CourseCard, Citation, AuthorByline, TopicTag, LibraryFundingCallout
