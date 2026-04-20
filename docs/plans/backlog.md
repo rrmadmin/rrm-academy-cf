@@ -4,6 +4,19 @@
 
 ## Priority
 
+### SEO Audit 2026-04-18 -- Remaining Open Items
+
+Most April audit items shipped 2026-04-19 / 2026-04-20 (Physician entity, policy pages, Organization trust fields, BreadcrumbList, IndexNow, sitemap chunking, CF managed-robots-txt unblock, timestamp system, pillar inline-author flatten, commentary/library hub linked @graph). See `projects/whittaker-ai/public/reports/rrmacademy/2026-04-18/index.html` for full audit + current state (80/100 from 68/100 baseline). Remaining open actionable items:
+
+- **#4 Wikidata QIDs** -- mint Wikidata entries for RRM Academy (Organization) + Dr. Whittaker (Person), then add the QIDs as `sameAs` on both entities. Highest-leverage remaining entity-graph move for LLM retrieval. Effort: high (multi-week, needs notability evidence + Wikidata community review). Separate workstream, not a code task
+- **#7 Condition pages** -- ship `/conditions/endometriosis/`, `/conditions/pcos/`, `/conditions/adenomyosis/`. Each needs direct-answer opening, `MedicalCondition` schema, cross-links to relevant library articles. Currently covered only inside pillar guides. Splitting doubles conditioned entry points for AI retrieval. Effort: medium per page
+- **#8 Compare pages** -- ship standalone `/compare/napro-vs-ivf/` and `/compare/rrm-vs-ivf/` (both currently 404). Partial mitigation already live: "Is RRM an Alternative to IVF?" H3 section on `/what-is-rrm/` citing Boyle 2025. Effort: medium
+- **#9 FAQ schemaAnswer expansion** -- expand `schemaAnswer` fields to 80-120 word target across all 25 FAQ detail pages. Validate each with Rich Results Test. Effort: Gianna-dispatch (content) + D1 UPDATE (mechanical)
+
+Items explicitly SKIPPED per Perplexity verification (not backlog):
+- #6 "Key Takeaways" -> "Here is what matters:" rename -- folk SEO, zero evidence of LLM-extraction impact. Memory: `feedback-aeo-folk-rules.md`
+- #12 `/schema/*.json` + `schemamap.xml` (NLWeb pattern) -- proposal-only, zero adoption by ChatGPT/Claude/Perplexity/Gemini. Memory: `feedback-nlweb-schemamap-skip.md`
+
 ### Internal Linking (Quick Wins)
 
 Full plan at `docs/plans/2026-03-10-internal-linking-plan.md`.
