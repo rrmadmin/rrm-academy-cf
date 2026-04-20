@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import LastUpdated from '../components/LastUpdated.astro';
 import articlesData from '../data/articles.json';
 
 const libraryCount = articlesData.length.toLocaleString();
@@ -192,7 +193,7 @@ const jsonLd = {
     <div class="container container--narrow">
       <h1 class="hero-title">About RRM Academy</h1>
       <p class="about-hero__tagline">Education for true healing and reproductive health</p>
-      <p class="about-hero__updated"><time datetime="2026-04-19">Last updated April 19, 2026</time></p>
+      <p class="about-hero__updated"><LastUpdated path="/about/" /></p>
     </div>
   </section>
 

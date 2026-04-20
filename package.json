@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "node scripts/generate-og-images.mjs && astro build && npx pagefind --site dist",
+    "build": "node scripts/generate-og-images.mjs && node scripts/generate-page-dates.mjs && astro build && npx pagefind --site dist",
     "build:astro": "astro build",
+    "page-dates": "node scripts/generate-page-dates.mjs",
     "preview": "astro preview",
     "fetch-data": "node src/lib/fetch-data.mjs",
     "fetch-blog": "node src/lib/fetch-blog-data.mjs",

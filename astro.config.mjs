@@ -7,40 +7,26 @@ import { dirname, join } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// Commentary posts: use Airtable Last Modified (individually edited).
-// Static pages: use a fixed "last reviewed" date.
-// Library articles: handled by library-sitemaps integration (not in sitemap-0).
-const STATIC_PAGE_DATE = '2026-03-10';
+// Sitemap lastmod is now sourced from src/data/page-dates.json, which is
+// generated pre-build by scripts/generate-page-dates.mjs:
+//   - Static pages -> git log last commit date (no manual bump required)
+//   - D1-backed content -> updated_at from articles/posts/faqs/glossary/courses
+// Fallback date: today, for first-ever builds before the script runs.
+const FALLBACK_DATE = new Date().toISOString().slice(0, 10);
 
-function buildDateMap() {
-  const map = new Map();
-
-  // Static pages -- update this date when content is meaningfully revised
-  const staticPages = [
-    '/', '/about/', '/courses/', '/faqs/', '/donate/',
-    '/library/', '/commentary/', '/contact/', '/endo-survey/',
-    '/save-the-uterus-club/', '/terms-of-use/', '/privacy-policy/',
-    '/medical-disclaimer/',
-  ];
-  for (const p of staticPages) {
-    map.set(p, STATIC_PAGE_DATE);
-  }
-
+function loadPageDates() {
   try {
-    const posts = JSON.parse(
-      readFileSync(join(__dirname, 'src/data/posts.json'), 'utf-8')
-    );
-    for (const p of posts) {
-      if (!p.slug) continue;
-      const date = p.publishDate || p.lastModified;
-      if (date) {
-        map.set(`/commentary/${p.slug}/`, date.split('T')[0]);
-      }
-    }
-  } catch {}
+    const raw = readFileSync(join(__dirname, 'src/data/page-dates.json'), 'utf-8');
+    const payload = JSON.parse(raw);
+    return new Map(Object.entries(payload.dates || {}));
+  } catch {
+    return new Map();
+  }
+}
 
-  // /partners/ lastmod = max(approved_at) across active Friends.
-  // Re-crawls naturally when a new Friend lands or an existing one's status changes.
+// /partners/ lastmod overrides page-dates with max(approved_at) across active Friends
+// because a Friend status change doesn't touch the partners.astro source file.
+function partnersLastmod() {
   try {
     const partners = JSON.parse(
       readFileSync(join(__dirname, 'src/data/partners.json'), 'utf-8')
@@ -49,15 +35,15 @@ function buildDateMap() {
       (acc, p) => (p.approved_at && p.approved_at > acc ? p.approved_at : acc),
       ''
     );
-    if (maxApproved) {
-      map.set('/partners/', maxApproved.split('T')[0]);
-    }
-  } catch {}
-
-  return map;
+    return maxApproved ? maxApproved.split('T')[0] : null;
+  } catch {
+    return null;
+  }
 }
 
-const dateMap = buildDateMap();
+const dateMap = loadPageDates();
+const partnersDate = partnersLastmod();
+if (partnersDate) dateMap.set('/partners/', partnersDate);
 
 export default defineConfig({
   output: 'static',
@@ -104,8 +90,7 @@ export default defineConfig({
       serialize: (item) => {
         const path = new URL(item.url).pathname;
         const date = dateMap.get(path);
-        // Pages with a specific date use it; everything else gets the static review date
-        item.lastmod = date || STATIC_PAGE_DATE;
+        item.lastmod = date || FALLBACK_DATE;
         return item;
       },
     }),

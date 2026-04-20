@@ -1,5 +1,10 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import LastUpdated from '../../components/LastUpdated.astro';
+import pageDates from '../../data/page-dates.json';
+
+const PAGE_PATH = '/femm/';
+const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-03-15';
 import BackToTop from '../../components/BackToTop.astro';
 import PdfDownload from '../../components/PdfDownload.astro';
 
@@ -27,7 +32,7 @@ const pageSchema = {
     name: 'RRM Academy',
   },
   datePublished: '2026-03-15',
-  dateModified: '2026-03-15',
+  dateModified: LAST_MODIFIED,
   wordCount: 4200,
   mainEntityOfPage: {
     '@type': 'WebPage',
@@ -197,7 +202,7 @@ const faqSchema = {
         <div class="author-byline__text has-reviewer">
           <span class="byline-author">By <strong><a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</a></strong></span>
           <span class="byline-reviewer">Reviewed by <strong>Erin Kay, DO</strong></span>
-          <time class="byline-date" datetime="2026-03-15">Last updated March 2026</time>
+          <LastUpdated path="/femm/" class="byline-date" />
           <PdfDownload slug="femm" />
         </div>
       </div>
