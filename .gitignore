@@ -40,3 +40,4 @@ docs/fact-check/*.bak
 # Quality tooling artifacts
 reports/quality/
 .stryker-tmp/
+coverage/

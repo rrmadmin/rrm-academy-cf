@@ -62,7 +62,7 @@ npm install --save-dev \
   c8@^10.1.3 \
   @stryker-mutator/core@^9.0.1 \
   @stryker-mutator/api@^9.0.1 \
-  eslint-plugin-sonarjs@^3.0.2 \
+  eslint-plugin-sonarjs@^4.0.0 \
   dependency-cruiser@^16.10.0 \
   @typescript-eslint/parser@^8.20.0
 ```
