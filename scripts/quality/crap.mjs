@@ -16,6 +16,7 @@ import { loadCoverage } from './lib/load-coverage.mjs';
 import { loadComplexity } from './lib/load-complexity.mjs';
 import { crap, bandFor } from './lib/crap-calc.mjs';
 import { mdTable, fmt, pct } from './lib/render-markdown.mjs';
+import { isUntouched } from './lib/coverage-helpers.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
 const OUT_DIR = resolve(ROOT, 'reports', 'quality');
@@ -26,11 +27,6 @@ const [coverageByFile, complexityByFile] = await Promise.all([
   loadCoverage(),
   loadComplexity(),
 ]);
-
-/** A file is "untouched" if its only fnMap entry is c8's synthetic placeholder. */
-function isUntouched(covEntries) {
-  return covEntries.length === 1 && covEntries[0].name === '(empty-report)';
-}
 
 const records = [];
 const files = new Set([...Object.keys(coverageByFile), ...Object.keys(complexityByFile)]);

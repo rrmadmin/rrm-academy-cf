@@ -14,6 +14,7 @@ import { mkdir, readFile, writeFile, access } from 'node:fs/promises';
 import { resolve, relative } from 'node:path';
 import { loadCoverage } from './lib/load-coverage.mjs';
 import { mdTable, fmt, pct } from './lib/render-markdown.mjs';
+import { avgCoverage } from './lib/coverage-helpers.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
 const OUT = resolve(ROOT, 'docs', 'quality', 'BASELINE.md');
@@ -87,12 +88,8 @@ if (!covReport || !crapReport) {
   const coverageByFile = await loadCoverage();
   for (const [absPath, entries] of Object.entries(coverageByFile)) {
     const rel = relative(ROOT, absPath);
-    const total = entries.length;
-    // Filter synthetic empty-report entries before averaging
     const real = entries.filter(e => e.name !== '(empty-report)');
-    const isUntouched = total === 1 && entries[0]?.name === '(empty-report)';
-    const avgCov = isUntouched ? 0 : (real.length === 0 ? 1 : real.reduce((s, e) => s + e.coverage, 0) / real.length);
-    byFile[rel] = { coverage: avgCov, fns: real.length };
+    byFile[rel] = { coverage: avgCoverage(entries), fns: real.length };
   }
   const maxCrapByFile = {};
   for (const r of crapReport.records) {
@@ -144,12 +141,7 @@ if (!covReport) {
 } else {
   const coverageByFile = await loadCoverage();
   const gaps = Object.entries(coverageByFile)
-    .map(([p, entries]) => {
-      const real = entries.filter(e => e.name !== '(empty-report)');
-      const isUntouched = entries.length === 1 && entries[0]?.name === '(empty-report)';
-      const avg = isUntouched ? 0 : (real.length === 0 ? 1 : real.reduce((s, e) => s + e.coverage, 0) / real.length);
-      return { file: relative(ROOT, p), coverage: avg };
-    })
+    .map(([p, entries]) => ({ file: relative(ROOT, p), coverage: avgCoverage(entries) }))
     .filter(x => x.coverage < 0.5)
     .sort((a, b) => {
       if (a.coverage !== b.coverage) return a.coverage - b.coverage;
