@@ -8,18 +8,54 @@ const posts = await fetchAllPosts();
 const PER_PAGE = 6;
 const displayPosts = posts.slice(0, PER_PAGE);
 
+// Linked @graph: Blog -> WebSite -> Organization all referenced by @id.
+// Blog node carries BreadcrumbList + identifies lead author via @id-ref.
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'Blog',
-  name: 'RRM Academy Commentary',
-  description: 'Expert clinical perspectives on restorative reproductive medicine from RRM Academy.',
-  url: 'https://rrmacademy.org/commentary/',
-  publisher: {
-    '@type': 'Organization',
-    '@id': 'https://rrmacademy.org/#organization',
-    name: 'RRM Academy',
-    url: 'https://rrmacademy.org/',
-  },
+  '@graph': [
+    {
+      '@type': 'Blog',
+      '@id': 'https://rrmacademy.org/commentary/#blog',
+      name: 'RRM Academy Commentary',
+      description: 'Expert clinical perspectives on restorative reproductive medicine from RRM Academy.',
+      url: 'https://rrmacademy.org/commentary/',
+      inLanguage: 'en',
+      isPartOf: { '@id': 'https://rrmacademy.org/#website' },
+      about: { '@id': 'https://rrmacademy.org/#organization' },
+      publisher: { '@id': 'https://rrmacademy.org/#organization' },
+      author: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+      breadcrumb: { '@id': 'https://rrmacademy.org/commentary/#breadcrumb' },
+    },
+    {
+      '@type': 'WebSite',
+      '@id': 'https://rrmacademy.org/#website',
+      url: 'https://rrmacademy.org/',
+      name: 'RRM Academy',
+      publisher: { '@id': 'https://rrmacademy.org/#organization' },
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: 'https://rrmacademy.org/library/?q={search_term_string}',
+        },
+        'query-input': 'required name=search_term_string',
+      },
+    },
+    {
+      '@type': 'Organization',
+      '@id': 'https://rrmacademy.org/#organization',
+      name: 'RRM Academy',
+      url: 'https://rrmacademy.org/',
+    },
+    {
+      '@type': 'BreadcrumbList',
+      '@id': 'https://rrmacademy.org/commentary/#breadcrumb',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+        { '@type': 'ListItem', position: 2, name: 'Commentary', item: 'https://rrmacademy.org/commentary/' },
+      ],
+    },
+  ],
 };
 ---
 <BaseLayout
