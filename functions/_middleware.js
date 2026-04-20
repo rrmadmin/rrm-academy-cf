@@ -4,6 +4,7 @@
  * 1. Subdomain redirects (library.rrmacademy.org -> rrmacademy.org/library)
  * 2. Auth protection for /account/* and /community/* routes
  * 3. GA4 server-side page_view tracking (fire-and-forget via waitUntil)
+ * 4. Arrivl AI bot analytics (fire-and-forget via waitUntil)
  *
  * NOTE: Old library slug redirects are handled by the rrm-router Worker,
  * not here (avoids loading the 500KB redirect map on every request).
@@ -12,6 +13,7 @@ import { getSessionIdFromCookie, validateSession, sessionCookie, roleAtLeast } f
 import { buildSourceParams, getClientId } from './api/_ga4-source.js';
 
 const GA4_ENDPOINT = 'https://www.google-analytics.com/mp/collect';
+const ARRIVL_ENDPOINT = 'https://arrivl.ai/api/v1/intake/pageview';
 
 const CSP_VALUE = "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://challenges.cloudflare.com https://embed.cloudflarestream.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; font-src 'self'; connect-src 'self' https://challenges.cloudflare.com https://cloudflareinsights.com; frame-src https://challenges.cloudflare.com https://customer-99owhsi4yh33gohc.cloudflarestream.com; object-src 'none'; base-uri 'self'; form-action 'self'";
 
@@ -90,6 +92,32 @@ async function sendPageView(request, env) {
   }
 }
 
+/**
+ * Fires an Arrivl pageview hit (AI bot analytics).
+ * Called with ctx.waitUntil() so it never blocks the response.
+ */
+async function sendArrivlPageview(request, env) {
+  if (!env.ARRIVL_WEBSITE_KEY) return;
+
+  const url = new URL(request.url);
+  if (url.pathname.startsWith('/api/')) return;
+  const accept = request.headers.get('Accept') || '';
+  if (!accept.includes('text/html')) return;
+
+  const xff = request.headers.get('x-forwarded-for') || '';
+  const ip = xff.split(',')[0].trim() || request.headers.get('cf-connecting-ip') || '';
+
+  const params = new URLSearchParams({
+    url: request.url,
+    userAgent: request.headers.get('User-Agent') || '',
+    ref: request.headers.get('Referer') || '',
+    ip,
+    websiteKey: env.ARRIVL_WEBSITE_KEY,
+  });
+
+  await fetch(`${ARRIVL_ENDPOINT}?${params}`, { method: 'GET' }).catch(() => {});
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
@@ -127,6 +155,9 @@ export async function onRequest(context) {
 
   // Fire GA4 page_view asynchronously -- does not block the response.
   context.waitUntil(sendPageView(request, env));
+
+  // Fire Arrivl AI bot analytics asynchronously -- does not block the response.
+  context.waitUntil(sendArrivlPageview(request, env));
 
   // 301 redirect: library.rrmacademy.org -> rrmacademy.org/library
   if (url.hostname === 'library.rrmacademy.org') {
