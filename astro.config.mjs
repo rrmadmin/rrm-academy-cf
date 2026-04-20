@@ -76,10 +76,26 @@ export default defineConfig({
           '/dev/',
         ];
         if (exclude.some((path) => page.includes(path))) return false;
-        // Library article pages are handled by library-sitemaps integration (tier split)
-        // Keep /library/ index page but exclude individual articles
         const url = new URL(page);
         const path = url.pathname;
+        // Per-collection sitemaps handled by library-sitemaps integration:
+        //   pillars, commentary, faqs, courses, policies, library tiers.
+        // Keep collection hub pages out too -- they are included in their
+        // respective chunk sitemaps.
+        const chunkedPillars = [
+          '/what-is-rrm/',
+          '/naprotechnology/',
+          '/neofertility/',
+          '/femm/',
+          '/common-questions-about-rrm/',
+          '/glossary/',
+          '/guides/',
+        ];
+        if (chunkedPillars.includes(path)) return false;
+        if (path.startsWith('/commentary/')) return false;
+        if (path.startsWith('/faqs/')) return false;
+        if (path.startsWith('/courses/')) return false;
+        if (path.startsWith('/policies/')) return false;
         if (path.startsWith('/library/') && path !== '/library/') return false;
         // Course lesson steps are noindex — exclude from sitemap
         // Pattern: /courses/[slug]/[stepId]/ (3+ segments under /courses/)

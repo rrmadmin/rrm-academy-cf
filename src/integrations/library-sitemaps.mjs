@@ -1,20 +1,87 @@
 /**
- * Custom Astro integration: Library Tier Sitemaps
+ * Custom Astro integration: Chunked Sitemaps by Content Collection
  *
- * Generates separate sitemaps for library articles by enrichment tier:
- *   - sitemap-library-t3.xml  (abstract + journal + citation = richest content)
- *   - sitemap-library-t2.xml  (partial enrichment, no abstract)
+ * Emits one sitemap per content collection for better GSC coverage reporting
+ * and more actionable indexing insight. Each sitemap has real <lastmod>
+ * sourced from src/data/page-dates.json (git log for static pages, D1
+ * updated_at for dynamic content).
  *
- * Appends these to sitemap-index.xml so Google crawls tier 3 first.
- * Library pages are excluded from @astrojs/sitemap via the filter in astro.config.
+ * Chunks emitted:
+ *   sitemap-pillars.xml      -- pillar guides (highest SEO priority)
+ *   sitemap-commentary.xml   -- /commentary/* (hub + posts)
+ *   sitemap-faqs.xml         -- /faqs/* (hub + detail pages)
+ *   sitemap-courses.xml      -- /courses/* (hub + course pages)
+ *   sitemap-policies.xml     -- /policies/* (editorial, corrections, fact-checking)
+ *   sitemap-library-t3.xml   -- library articles with abstract + journal + citation
+ *   sitemap-library-t2.xml   -- library articles with partial enrichment
+ *
+ * URLs claimed by these chunks are filtered OUT of @astrojs/sitemap
+ * (see astro.config.mjs), leaving sitemap-0.xml for residual pages
+ * (homepage, about, contact, donate, STUC, legal, linkinbio, library hub).
+ *
+ * File name kept as library-sitemaps.mjs for git-history continuity.
+ * Export name `librarySitemaps` kept for the same reason.
  */
 
 import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
 const SITE = 'https://rrmacademy.org';
+const BUILD_DATE = new Date().toISOString().split('T')[0];
 
-function classifyTier(article) {
+const PILLAR_PATHS = [
+  '/what-is-rrm/',
+  '/naprotechnology/',
+  '/neofertility/',
+  '/femm/',
+  '/common-questions-about-rrm/',
+  '/glossary/',
+  '/guides/',
+];
+
+const POLICY_PATHS = [
+  '/policies/',
+  '/policies/editorial/',
+  '/policies/corrections/',
+  '/policies/fact-checking/',
+];
+
+function readJson(outDir, relName) {
+  const candidates = [
+    join(outDir, '..', 'src', 'data', relName),
+    join(process.cwd(), 'src', 'data', relName),
+  ];
+  for (const p of candidates) {
+    try {
+      return JSON.parse(readFileSync(p, 'utf-8'));
+    } catch {
+      /* try next */
+    }
+  }
+  return null;
+}
+
+// Normalize mixed date formats to sitemap-friendly ISO string.
+// Accepts ISO 8601, SQLite datetime ("2026-03-25 02:34:34"), or YYYY-MM-DD.
+function toIsoLastmod(raw) {
+  if (!raw) return undefined;
+  try {
+    const iso = raw.includes('T') ? raw : raw.replace(' ', 'T') + (raw.length <= 10 ? 'T00:00:00Z' : 'Z');
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return raw.slice(0, 10);
+    return d.toISOString().replace(/\.\d{3}Z$/, 'Z');
+  } catch {
+    return raw.slice(0, 10);
+  }
+}
+
+function dateForPath(pageDates, path) {
+  const dateStr = pageDates?.dates?.[path];
+  if (!dateStr) return undefined;
+  return `${dateStr}T00:00:00Z`;
+}
+
+function classifyArticleTier(article) {
   const hasAbstract = article.abstract && article.abstract.trim().length > 50;
   const hasJournal = article.journal && article.journal.trim().length > 0;
   const hasCitation = article.apaCitation && article.apaCitation.trim().length > 0;
@@ -23,9 +90,13 @@ function classifyTier(article) {
 }
 
 function buildSitemapXml(urls) {
-  const entries = urls.map(u => `  <url>
-    <loc>${u.loc}</loc>${u.lastmod ? `\n    <lastmod>${u.lastmod}</lastmod>` : ''}
-  </url>`).join('\n');
+  const entries = urls
+    .filter((u) => u.loc)
+    .map(
+      (u) =>
+        `  <url>\n    <loc>${u.loc}</loc>${u.lastmod ? `\n    <lastmod>${u.lastmod}</lastmod>` : ''}\n  </url>`
+    )
+    .join('\n');
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -33,85 +104,153 @@ ${entries}
 </urlset>`;
 }
 
+function writeChunk(outDir, name, urls, label) {
+  if (!urls.length) {
+    console.log(`[chunked-sitemaps] ${label}: 0 URLs, skipping ${name}`);
+    return false;
+  }
+  writeFileSync(join(outDir, name), buildSitemapXml(urls));
+  console.log(`[chunked-sitemaps] ${label}: ${urls.length} URLs -> ${name}`);
+  return true;
+}
+
 export default function librarySitemaps() {
   return {
-    name: 'library-sitemaps',
+    name: 'chunked-sitemaps',
     hooks: {
       'astro:build:done': ({ dir }) => {
         const outDir = dir.pathname;
 
-        // Read articles data
-        let articles;
-        try {
-          articles = JSON.parse(
-            readFileSync(join(outDir, '..', 'src', 'data', 'articles.json'), 'utf-8')
-          );
-        } catch {
-          // Fallback: try from project root
-          try {
-            articles = JSON.parse(
-              readFileSync(join(process.cwd(), 'src', 'data', 'articles.json'), 'utf-8')
-            );
-          } catch (e) {
-            console.warn('[library-sitemaps] Could not read articles.json:', e.message);
-            return;
-          }
-        }
+        const pageDates = readJson(outDir, 'page-dates.json');
+        const articles = readJson(outDir, 'articles.json') ?? [];
+        const posts = readJson(outDir, 'posts.json') ?? [];
+        const faqs = readJson(outDir, 'faqs.json') ?? [];
+        const courses = readJson(outDir, 'courses.json') ?? [];
 
-        // Split by tier
+        // -- Pillars chunk
+        const pillarUrls = PILLAR_PATHS.map((p) => ({
+          loc: `${SITE}${p}`,
+          lastmod: dateForPath(pageDates, p),
+        }));
+
+        // -- Commentary chunk (hub + posts)
+        const commentaryUrls = [
+          {
+            loc: `${SITE}/commentary/`,
+            lastmod: dateForPath(pageDates, '/commentary/'),
+          },
+          ...posts
+            .filter((p) => p.slug && p.status !== 'draft')
+            .map((p) => ({
+              loc: `${SITE}/commentary/${p.slug}/`,
+              lastmod: toIsoLastmod(p.lastModified || p.publishDate),
+            })),
+        ];
+
+        // -- FAQs chunk (hub + slugs)
+        const faqUrls = [
+          {
+            loc: `${SITE}/faqs/`,
+            lastmod: dateForPath(pageDates, '/faqs/'),
+          },
+          ...faqs
+            .filter((f) => f.slug && f.status !== 'draft')
+            .map((f) => ({
+              loc: `${SITE}/faqs/${f.slug}/`,
+              lastmod: toIsoLastmod(f.updatedAt || f.createdAt),
+            })),
+        ];
+
+        // -- Courses chunk (hub + slugs; skip coming-soon)
+        const courseUrls = [
+          {
+            loc: `${SITE}/courses/`,
+            lastmod: dateForPath(pageDates, '/courses/'),
+          },
+          ...courses
+            .filter((c) => c.slug && !c.comingSoon)
+            .map((c) => ({
+              loc: `${SITE}/courses/${c.slug}/`,
+              lastmod: dateForPath(pageDates, `/courses/${c.slug}/`),
+            })),
+        ];
+
+        // -- Policies chunk
+        const policyUrls = POLICY_PATHS.map((p) => ({
+          loc: `${SITE}${p}`,
+          lastmod: dateForPath(pageDates, p),
+        }));
+
+        // -- Library tier chunks
         const tier3 = [];
         const tier2 = [];
         for (const a of articles) {
           if (!a.slug) continue;
-          // lastModified = D1 updated_at. Reflects when article record last changed.
-          // Format may be ISO 8601 (2026-03-12T04:38:14.000Z) or D1 datetime
-          // (2026-03-25 02:34:34). Normalize to YYYY-MM-DDThh:mm:ssZ for sitemaps.
-          const rawDate = a.lastModified;
-          let lastmod;
-          if (rawDate) {
-            const d = new Date(rawDate.includes('T') ? rawDate : rawDate.replace(' ', 'T') + 'Z');
-            lastmod = isNaN(d.getTime()) ? rawDate.slice(0, 10) : d.toISOString().replace(/\.\d{3}Z$/, 'Z');
-          }
           const url = {
             loc: `${SITE}/library/${a.slug}/`,
-            lastmod,
+            lastmod: toIsoLastmod(a.lastModified),
           };
-          if (classifyTier(a) === 3) {
-            tier3.push(url);
-          } else {
-            tier2.push(url);
-          }
+          if (classifyArticleTier(a) === 3) tier3.push(url);
+          else tier2.push(url);
         }
 
-        // Write tier sitemaps
-        const t3Path = join(outDir, 'sitemap-library-t3.xml');
-        const t2Path = join(outDir, 'sitemap-library-t2.xml');
-        writeFileSync(t3Path, buildSitemapXml(tier3));
-        writeFileSync(t2Path, buildSitemapXml(tier2));
+        const emittedSitemaps = [];
+        if (writeChunk(outDir, 'sitemap-pillars.xml', pillarUrls, 'Pillars')) {
+          emittedSitemaps.push('sitemap-pillars.xml');
+        }
+        if (writeChunk(outDir, 'sitemap-commentary.xml', commentaryUrls, 'Commentary')) {
+          emittedSitemaps.push('sitemap-commentary.xml');
+        }
+        if (writeChunk(outDir, 'sitemap-faqs.xml', faqUrls, 'FAQs')) {
+          emittedSitemaps.push('sitemap-faqs.xml');
+        }
+        if (writeChunk(outDir, 'sitemap-courses.xml', courseUrls, 'Courses')) {
+          emittedSitemaps.push('sitemap-courses.xml');
+        }
+        if (writeChunk(outDir, 'sitemap-policies.xml', policyUrls, 'Policies')) {
+          emittedSitemaps.push('sitemap-policies.xml');
+        }
+        if (writeChunk(outDir, 'sitemap-library-t3.xml', tier3, 'Library T3')) {
+          emittedSitemaps.push('sitemap-library-t3.xml');
+        }
+        if (writeChunk(outDir, 'sitemap-library-t2.xml', tier2, 'Library T2')) {
+          emittedSitemaps.push('sitemap-library-t2.xml');
+        }
 
-        console.log(`[library-sitemaps] Tier 3: ${tier3.length} articles -> sitemap-library-t3.xml`);
-        console.log(`[library-sitemaps] Tier 2: ${tier2.length} articles -> sitemap-library-t2.xml`);
-
-        // Update sitemap-index.xml to include library sitemaps
+        // Patch sitemap-index.xml to include all per-collection chunks.
+        // Order: pillars -> commentary -> faqs -> courses -> policies ->
+        //        library-t3 -> sitemap-0 (residual) -> library-t2.
+        // Rationale: crawlers work top-down; pillar + commentary + t3 are
+        // the highest-value content for AI retrieval and GSC indexing.
         const indexPath = join(outDir, 'sitemap-index.xml');
         try {
-          let indexXml = readFileSync(indexPath, 'utf-8');
+          const entry = (name) =>
+            `  <sitemap>\n    <loc>${SITE}/${name}</loc>\n    <lastmod>${BUILD_DATE}</lastmod>\n  </sitemap>`;
 
-          // Insert library tier sitemaps BEFORE sitemap-0 so Google crawls
-          // richest library content first, then pages/commentary, then tier 2.
-          // Include lastmod on each <sitemap> entry using today's build date.
-          const buildDate = new Date().toISOString().split('T')[0];
-          const t3Entry = `  <sitemap>\n    <loc>${SITE}/sitemap-library-t3.xml</loc>\n    <lastmod>${buildDate}</lastmod>\n  </sitemap>`;
-          const t2Entry = `  <sitemap>\n    <loc>${SITE}/sitemap-library-t2.xml</loc>\n    <lastmod>${buildDate}</lastmod>\n  </sitemap>`;
-          indexXml = indexXml.replace(
-            /<sitemap><loc>[^<]*sitemap-0\.xml<\/loc><\/sitemap>/,
-            `${t3Entry}\n  <sitemap>\n    <loc>${SITE}/sitemap-0.xml</loc>\n    <lastmod>${buildDate}</lastmod>\n  </sitemap>\n${t2Entry}`
-          );
+          const ordered = [
+            'sitemap-pillars.xml',
+            'sitemap-commentary.xml',
+            'sitemap-faqs.xml',
+            'sitemap-courses.xml',
+            'sitemap-policies.xml',
+            'sitemap-library-t3.xml',
+            'sitemap-0.xml',
+            'sitemap-library-t2.xml',
+          ].filter((name) => name === 'sitemap-0.xml' || emittedSitemaps.includes(name));
+
+          const body = ordered.map(entry).join('\n');
+
+          const indexXml = `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${body}
+</sitemapindex>`;
 
           writeFileSync(indexPath, indexXml);
-          console.log('[library-sitemaps] Updated sitemap-index.xml with library tier sitemaps');
+          console.log(
+            `[chunked-sitemaps] Rewrote sitemap-index.xml with ${ordered.length} child sitemaps`
+          );
         } catch (e) {
-          console.warn('[library-sitemaps] Could not update sitemap-index.xml:', e.message);
+          console.warn('[chunked-sitemaps] Could not update sitemap-index.xml:', e.message);
         }
       },
     },
