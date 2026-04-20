@@ -1,0 +1,63 @@
+---
+/**
+ * <LastUpdated /> -- renders a visible, machine-readable "Last updated" timestamp
+ * backed by src/data/page-dates.json (git-derived for static pages, D1 updated_at
+ * for content types). Single source of truth for page freshness.
+ *
+ * Usage:
+ *   <LastUpdated />                  -- auto-resolves from Astro.url.pathname
+ *   <LastUpdated path="/what-is-rrm/" />  -- explicit path
+ *   <LastUpdated date="2026-04-19" /> -- override (escape hatch; prefer auto)
+ *
+ * Renders nothing if no date is resolvable (fail-closed; never shows "unknown").
+ */
+import pageDates from '../data/page-dates.json';
+
+interface Props {
+  path?: string;
+  date?: string;
+  prefix?: string;
+  class?: string;
+}
+
+const { path, date: explicitDate, prefix = 'Last updated', class: className } = Astro.props;
+
+const resolvedPath =
+  path ||
+  (() => {
+    const p = Astro.url.pathname;
+    return p.endsWith('/') ? p : p + '/';
+  })();
+
+const rawDate = explicitDate || pageDates.dates?.[resolvedPath] || null;
+
+// Normalize to YYYY-MM-DD
+const isoDate = rawDate?.match(/^(\d{4}-\d{2}-\d{2})/)?.[1] || null;
+
+let formatted: string | null = null;
+if (isoDate) {
+  try {
+    formatted = new Date(isoDate + 'T00:00:00Z').toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      timeZone: 'UTC',
+    });
+  } catch {
+    formatted = isoDate;
+  }
+}
+---
+{isoDate && formatted && (
+  <time datetime={isoDate} class:list={['last-updated', className]}>
+    {prefix} {formatted}
+  </time>
+)}
+
+<style>
+  .last-updated {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    font-style: normal;
+  }
+</style>

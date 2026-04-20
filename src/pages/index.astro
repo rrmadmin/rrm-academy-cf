@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import LastUpdated from '../components/LastUpdated.astro';
 import { fetchAllArticles } from '../lib/airtable';
 import coursesData from '../data/courses.json';
 
@@ -151,7 +152,7 @@ const jsonLd = {
           <a href="/library/" class="btn btn--secondary">Browse {articleCount.toLocaleString()} Studies</a>
         </div>
         <p class="hp-hero__nonprofit animate-enter" style="--stagger: 4;">A 501(c)(3) nonprofit education platform</p>
-        <p class="hp-hero__updated animate-enter" style="--stagger: 5;"><time datetime="2026-04-19">Last updated April 19, 2026</time></p>
+        <p class="hp-hero__updated animate-enter" style="--stagger: 5;"><LastUpdated path="/" /></p>
       </div>
       <div class="hp-hero__trust animate-enter" style="--stagger: 6;">
         <div class="hp-trust__logos">
