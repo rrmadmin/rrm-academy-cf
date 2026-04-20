@@ -1,5 +1,6 @@
 #!/bin/sh
-# Pre-commit hook: runs security guard on critical file changes
+# Pre-commit hook: runs security guard on critical file changes,
+# and iOS auto-zoom guard on any staged .astro/.css change.
 # Install: npm run guard:install
 # Bypass: git commit --no-verify
 
@@ -18,10 +19,21 @@ scripts/guard.mjs
 guard-manifest.json
 "
 
-# Check if any staged file is critical
 STAGED=$(git diff --cached --name-only)
-TRIGGER=0
 
+# --- iOS auto-zoom guard: any staged .astro or .css file under src/ ---
+if echo "$STAGED" | grep -qE '^src/.*\.(astro|css)$'; then
+  node scripts/guard-ios-zoom.mjs
+  if [ $? -ne 0 ]; then
+    echo ""
+    echo "Commit blocked by iOS auto-zoom guard."
+    echo "Fix sub-16px font-size on form controls, or bypass with --no-verify."
+    exit 1
+  fi
+fi
+
+# --- Security guard: only on critical file changes ---
+TRIGGER=0
 for file in $CRITICAL_FILES; do
   case "$STAGED" in
     *"$file"*) TRIGGER=1; break ;;
