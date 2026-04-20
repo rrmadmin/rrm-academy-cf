@@ -1,0 +1,1146 @@
+{
+  "generated": "2026-04-18 16:36:12 UTC",
+  "page": "/common-questions-about-rrm",
+  "source": "serper.dev (Google SERP PAA, autocomplete, related searches)",
+  "summary": {
+    "total_paas_collected": 102,
+    "by_status": {
+      "partial": 10,
+      "noise": 62,
+      "missing": 19,
+      "covered": 1,
+      "flag-ivf-legit": 4,
+      "flag-religion": 6
+    },
+    "by_theme": {
+      "definition": 4,
+      "noise": 3,
+      "how-it-works": 4,
+      "effectiveness": 4,
+      "cost-insurance": 11,
+      "ivf-comparison": 21,
+      "providers": 4,
+      "conditions": 4,
+      "fam-methods": 26,
+      "religion": 6,
+      "criticism": 4,
+      "male-factor": 9,
+      "process-timeline": 2
+    },
+    "current_page_question_count": 5,
+    "recommendation_count": 10
+  },
+  "current_page_questions": [
+    "Does RRM delay fertility treatment?",
+    "Is RRM only practiced for religious reasons?",
+    "Does RRM have lower success rates than IVF?",
+    "Is it safe to skip IVF and try RRM instead?",
+    "What does ACOG say about RRM?"
+  ],
+  "paa_gap_list": [
+    {
+      "question": "What is RRM vs IVF?",
+      "source": "restorative reproductive medicine",
+      "depth": 1,
+      "status": "partial",
+      "theme": "definition",
+      "priority": 5,
+      "rationale": "High-value seed-level PAA. Current page touches comparison in Q3/Q4 but doesn't open with a plain-English 'what is RRM' definition. Opening Q needed."
+    },
+    {
+      "question": "What is MCH in IVF?",
+      "source": "restorative reproductive medicine",
+      "depth": 1,
+      "status": "noise",
+      "theme": "noise",
+      "priority": 0,
+      "rationale": "Unrelated hematology term collision."
+    },
+    {
+      "question": "How does RRM work?",
+      "source": "restorative reproductive medicine",
+      "depth": 1,
+      "status": "missing",
+      "theme": "how-it-works",
+      "priority": 5,
+      "rationale": "Seed-level PAA. Current page has zero 'how RRM works' explainer."
+    },
+    {
+      "question": "Is NaPro more effective than IVF?",
+      "source": "is NaPro effective",
+      "depth": 1,
+      "status": "covered",
+      "theme": "effectiveness",
+      "priority": 2,
+      "rationale": "Q3 on current page addresses this head-on."
+    },
+    {
+      "question": "Is RRM cheaper than IVF?",
+      "source": "does restorative reproductive medicine work",
+      "depth": 1,
+      "status": "missing",
+      "theme": "cost-insurance",
+      "priority": 5,
+      "rationale": "Extremely common searcher question. Page has a cost row in Q3 table but no direct cost Q+A."
+    },
+    {
+      "question": "How does restorative reproductive medicine work?",
+      "source": "does restorative reproductive medicine work",
+      "depth": 1,
+      "status": "missing",
+      "theme": "how-it-works",
+      "priority": 5,
+      "rationale": "Same as above, different phrasing."
+    },
+    {
+      "question": "What is the best alternative to IVF?",
+      "source": "alternative to IVF",
+      "depth": 1,
+      "status": "partial",
+      "theme": "ivf-comparison",
+      "priority": 5,
+      "rationale": "High-value searcher question. Current page Q4 handles 'skip IVF' defensively. A direct 'alternatives' Q+A is missing."
+    },
+    {
+      "question": "What kind of doctor performs NaProTECHNOLOGY?",
+      "source": "NaProTechnology cost",
+      "depth": 1,
+      "status": "missing",
+      "theme": "providers",
+      "priority": 5,
+      "rationale": "Tier-1 provider question. Page has zero provider info."
+    },
+    {
+      "question": "How effective is NaProTECHNOLOGY?",
+      "source": "NaProTechnology cost",
+      "depth": 1,
+      "status": "partial",
+      "theme": "effectiveness",
+      "priority": 5,
+      "rationale": "Covered obliquely by Q3 (RRM vs IVF table); direct 'is it effective' answer missing."
+    },
+    {
+      "question": "Are Napro doctors covered by insurance?",
+      "source": "does insurance cover NaProTechnology",
+      "depth": 1,
+      "status": "missing",
+      "theme": "cost-insurance",
+      "priority": 4,
+      "rationale": "Variant of above; subsume."
+    },
+    {
+      "question": "What fertility testing is usually covered by insurance?",
+      "source": "does insurance cover NaProTechnology",
+      "depth": 1,
+      "status": "noise",
+      "theme": "cost-insurance",
+      "priority": 1,
+      "rationale": "Off-scope."
+    },
+    {
+      "question": "How much do 3 rounds of IUI cost?",
+      "source": "restorative reproductive medicine cost",
+      "depth": 1,
+      "status": "noise",
+      "theme": "ivf-comparison",
+      "priority": 1,
+      "rationale": "Off-scope."
+    },
+    {
+      "question": "What is the difference between IVF and RRM?",
+      "source": "restorative reproductive medicine cost",
+      "depth": 1,
+      "status": "partial",
+      "theme": "ivf-comparison",
+      "priority": 4,
+      "rationale": "Semi-covered by Q3 (success rates) but a direct definitional contrast is missing."
+    },
+    {
+      "question": "Can a NaPro doctor help with suspected endometriosis?",
+      "source": "NaProTechnology for endometriosis",
+      "depth": 1,
+      "status": "missing",
+      "theme": "conditions",
+      "priority": 4,
+      "rationale": "Specific condition + provider overlap."
+    },
+    {
+      "question": "Does insurance cover NaProTECHNOLOGY?",
+      "source": "NaProTechnology for endometriosis",
+      "depth": 1,
+      "status": "missing",
+      "theme": "cost-insurance",
+      "priority": 5,
+      "rationale": "Tier-1 question. Uncovered."
+    },
+    {
+      "question": "What is a RRM doctor?",
+      "source": "how to find an RRM doctor",
+      "depth": 1,
+      "status": "missing",
+      "theme": "providers",
+      "priority": 4,
+      "rationale": "Provider-shaped question, no provider coverage on page."
+    },
+    {
+      "question": "What is the best fertility clinic in Colorado?",
+      "source": "how to find an RRM doctor",
+      "depth": 1,
+      "status": "noise",
+      "theme": "providers",
+      "priority": 1,
+      "rationale": "Local, off-scope."
+    },
+    {
+      "question": "How much does a fertility consultation cost?",
+      "source": "how to find an RRM doctor",
+      "depth": 1,
+      "status": "noise",
+      "theme": "cost-insurance",
+      "priority": 2,
+      "rationale": "Too generic, not RRM-specific."
+    },
+    {
+      "question": "What is RRM medical?",
+      "source": "how to find an RRM doctor",
+      "depth": 1,
+      "status": "partial",
+      "theme": "definition",
+      "priority": 2,
+      "rationale": "Duplicate of earlier; subsume."
+    },
+    {
+      "question": "Which infertility technique has the highest success rate?",
+      "source": "NaProTechnology success rates",
+      "depth": 1,
+      "status": "noise",
+      "theme": "ivf-comparison",
+      "priority": 1,
+      "rationale": "Too broad. IVF-centric framing. Don't add."
+    },
+    {
+      "question": "What are the drawbacks of NFP?",
+      "source": "NaProTechnology success rates",
+      "depth": 1,
+      "status": "noise",
+      "theme": "fam-methods",
+      "priority": 1,
+      "rationale": "NFP is contraception framing; not RRM."
+    },
+    {
+      "question": "How many rounds of IVF for a 40 year old?",
+      "source": "RRM success rates by age",
+      "depth": 1,
+      "status": "flag-ivf-legit",
+      "theme": "ivf-comparison",
+      "priority": 0,
+      "rationale": "FLAG. IVF-legitimizing. Do not add."
+    },
+    {
+      "question": "What is the failure rate of the Creighton method?",
+      "source": "Creighton Model effectiveness",
+      "depth": 1,
+      "status": "noise",
+      "theme": "fam-methods",
+      "priority": 2,
+      "rationale": "Creighton is a FABM, adjacent. Tie to /naprotechnology or /femm, not this page."
+    },
+    {
+      "question": "What are the disadvantages of the Creighton Model?",
+      "source": "Creighton Model effectiveness",
+      "depth": 1,
+      "status": "noise",
+      "theme": "fam-methods",
+      "priority": 2,
+      "rationale": "Same. Off-scope for pillar."
+    },
+    {
+      "question": "What is the failure rate of natural family planning methods?",
+      "source": "Creighton Model effectiveness",
+      "depth": 1,
+      "status": "noise",
+      "theme": "fam-methods",
+      "priority": 1,
+      "rationale": "Same."
+    },
+    {
+      "question": "Which fertility awareness method is most effective?",
+      "source": "Creighton Model effectiveness",
+      "depth": 1,
+      "status": "noise",
+      "theme": "fam-methods",
+      "priority": 2,
+      "rationale": "Belongs on /femm pillar."
+    },
+    {
+      "question": "What does femm fertility stand for?",
+      "source": "FEMM fertility awareness",
+      "depth": 1,
+      "status": "noise",
+      "theme": "fam-methods",
+      "priority": 1,
+      "rationale": "Cross-page topic; pillar page on FEMM exists."
+    },
+    {
+      "question": "What is femm used for?",
+      "source": "FEMM fertility awareness",
+      "depth": 1,
+      "status": "noise",
+      "theme": "fam-methods",
+      "priority": 1,
+      "rationale": "Belongs on /femm pillar."
+    },
+    {
+      "question": "How accurate is the fam method?",
+      "source": "FEMM fertility awareness",
+      "depth": 1,
+      "status": "noise",
+      "theme": "fam-methods",
+      "priority": 1,
+      "rationale": "Off-scope."
+    },
+    {
+      "question": "Is the femm app free?",
+      "source": "FEMM fertility awareness",
+      "depth": 1,
+      "status": "noise",
+      "theme": "fam-methods",
+      "priority": 1,
+      "rationale": "Off-scope."
+    },
+    {
+      "question": "Is NaProTECHNOLOGY religiously affiliated?",
+      "source": "NaProTechnology criticism",
+      "depth": 1,
+      "status": "flag-religion",
+      "theme": "religion",
+      "priority": 0,
+      "rationale": "FLAG. Current page Q2 addresses religious origin. Do not add separate Q; hard rule against Catholic disclaimer framing."
+    },
+    {
+      "question": "Is husband sperm used in IVF?",
+      "source": "NaProTechnology criticism",
+      "depth": 1,
+      "status": "noise",
+      "theme": "ivf-comparison",
+      "priority": 0,
+      "rationale": "Noise."
+    },
+    {
+      "question": "Why did Michelle Obama do IVF?",
+      "source": "NaProTechnology criticism",
+      "depth": 1,
+      "status": "noise",
+      "theme": "ivf-comparison",
+      "priority": 0,
+      "rationale": "Noise. Celebrity query."
+    },
+    {
+      "question": "What is the ACOG 30 minute rule?",
+      "source": "ACOG RRM statement",
+      "depth": 1,
+      "status": "noise",
+      "theme": "criticism",
+      "priority": 1,
+      "rationale": "Unrelated ACOG OB guideline."
+    },
+    {
+      "question": "What is the ACOG abortion policy statement?",
+      "source": "ACOG RRM statement",
+      "depth": 1,
+      "status": "noise",
+      "theme": "criticism",
+      "priority": 1,
+      "rationale": "Off-scope."
+    },
+    {
+      "question": "What is an example of restorative reproductive medicine?",
+      "source": "restorative reproductive medicine for men",
+      "depth": 1,
+      "status": "missing",
+      "theme": "how-it-works",
+      "priority": 4,
+      "rationale": "Concrete examples missing from page. Strong teaching opportunity."
+    },
+    {
+      "question": "Does NaPro help male infertility?",
+      "source": "NaProTechnology male factor infertility",
+      "depth": 1,
+      "status": "missing",
+      "theme": "male-factor",
+      "priority": 5,
+      "rationale": "Completely missing from page. Top-tier gap (RRM is not only for women)."
+    },
+    {
+      "question": "Can I conceive with 2% sperm morphology?",
+      "source": "NaProTechnology male factor infertility",
+      "depth": 1,
+      "status": "noise",
+      "theme": "male-factor",
+      "priority": 2,
+      "rationale": "Specific clinical, not pillar."
+    },
+    {
+      "question": "What is NaPro Catholic?",
+      "source": "is NaProTechnology Catholic",
+      "depth": 1,
+      "status": "flag-religion",
+      "theme": "religion",
+      "priority": 0,
+      "rationale": "FLAG. Covered by Q2, do not add."
+    },
+    {
+      "question": "What do Catholics use instead of birth control?",
+      "source": "is NaProTechnology Catholic",
+      "depth": 1,
+      "status": "flag-religion",
+      "theme": "religion",
+      "priority": 0,
+      "rationale": "FLAG. Off-topic for RRM pillar; hard-rule avoid."
+    },
+    {
+      "question": "What to expect from a NaPro appointment?",
+      "source": "what happens at a NaPro appointment",
+      "depth": 1,
+      "status": "missing",
+      "theme": "process-timeline",
+      "priority": 4,
+      "rationale": "Patient-journey question; completely uncovered."
+    },
+    {
+      "question": "Is NaPro surgery covered by insurance?",
+      "source": "what happens at a NaPro appointment",
+      "depth": 1,
+      "status": "missing",
+      "theme": "cost-insurance",
+      "priority": 4,
+      "rationale": "Sub-question on procedure-level coverage. Cluster into one insurance Q."
+    },
+    {
+      "question": "What conditions does NaPro treat?",
+      "source": "what happens at a NaPro appointment",
+      "depth": 1,
+      "status": "missing",
+      "theme": "conditions",
+      "priority": 5,
+      "rationale": "Core scope question. Page implies endometriosis/PCOS but never lists conditions explicitly."
+    },
+    {
+      "question": "How to conceive without IUI?",
+      "source": "IUI alternatives",
+      "depth": 1,
+      "status": "missing",
+      "theme": "ivf-comparison",
+      "priority": 3,
+      "rationale": "IUI alternatives question. Could answer in alternative-to-IVF Q."
+    },
+    {
+      "question": "Which is safer, IVF or IUI?",
+      "source": "IUI alternatives",
+      "depth": 1,
+      "status": "flag-ivf-legit",
+      "theme": "ivf-comparison",
+      "priority": 0,
+      "rationale": "FLAG. IVF-centric framing; avoid legitimizing. Redirect to RRM framing if covered at all."
+    },
+    {
+      "question": "What is RRM in infertility?",
+      "source": "What is RRM vs IVF?",
+      "depth": 2,
+      "status": "partial",
+      "theme": "definition",
+      "priority": 4,
+      "rationale": "Synonym variant of above. Same gap."
+    },
+    {
+      "question": "Is it better to have high or low MCH?",
+      "source": "What is MCH in IVF?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "noise",
+      "priority": 0,
+      "rationale": "Hematology noise."
+    },
+    {
+      "question": "What does high MCH mean when pregnant?",
+      "source": "What is MCH in IVF?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "noise",
+      "priority": 0,
+      "rationale": "Hematology noise."
+    },
+    {
+      "question": "What are the benefits of RRM?",
+      "source": "How does RRM work?",
+      "depth": 2,
+      "status": "missing",
+      "theme": "how-it-works",
+      "priority": 5,
+      "rationale": "Classic high-intent PAA. Current page is defense-shaped ('Does RRM delay...'); benefits framing absent."
+    },
+    {
+      "question": "What is the full form of RRM?",
+      "source": "How does RRM work?",
+      "depth": 2,
+      "status": "partial",
+      "theme": "definition",
+      "priority": 2,
+      "rationale": "Just the acronym. Covered implicitly in page title/intro."
+    },
+    {
+      "question": "What is the less brutal alternative to IVF?",
+      "source": "Is NaPro more effective than IVF?",
+      "depth": 2,
+      "status": "partial",
+      "theme": "ivf-comparison",
+      "priority": 3,
+      "rationale": "Same intent, emotional framing. Subsume into 'alternative to IVF' Q."
+    },
+    {
+      "question": "How much do 6 rounds of IUI cost?",
+      "source": "Is RRM cheaper than IVF?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "ivf-comparison",
+      "priority": 1,
+      "rationale": "Off-scope."
+    },
+    {
+      "question": "Why is Clomid not recommended for over 40?",
+      "source": "What is the best alternative to IVF?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "ivf-comparison",
+      "priority": 1,
+      "rationale": "Off-scope."
+    },
+    {
+      "question": "What is the success rate of NaProTECHNOLOGY?",
+      "source": "How effective is NaProTECHNOLOGY?",
+      "depth": 2,
+      "status": "partial",
+      "theme": "effectiveness",
+      "priority": 4,
+      "rationale": "Q3 cites rates but hedged as 'comparison'. A stand-alone 'success rate' question is missing."
+    },
+    {
+      "question": "Does NaProTECHNOLOGY work?",
+      "source": "How effective is NaProTECHNOLOGY?",
+      "depth": 2,
+      "status": "partial",
+      "theme": "effectiveness",
+      "priority": 5,
+      "rationale": "Binary 'does it work' question is exactly what skeptical patients ask. Not directly answered."
+    },
+    {
+      "question": "What is the NaPro procedure?",
+      "source": "Are Napro doctors covered by insurance?",
+      "depth": 2,
+      "status": "missing",
+      "theme": "process-timeline",
+      "priority": 4,
+      "rationale": "Process question; page does not describe what patients actually do."
+    },
+    {
+      "question": "What is NaPro certified?",
+      "source": "Are Napro doctors covered by insurance?",
+      "depth": 2,
+      "status": "missing",
+      "theme": "providers",
+      "priority": 3,
+      "rationale": "Credentialing question. Quick answer."
+    },
+    {
+      "question": "How much does a full fertility test cost?",
+      "source": "What fertility testing is usually covered by insurance?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "cost-insurance",
+      "priority": 1,
+      "rationale": "Off-scope."
+    },
+    {
+      "question": "Is 37 too late for IVF?",
+      "source": "What fertility testing is usually covered by insurance?",
+      "depth": 2,
+      "status": "flag-ivf-legit",
+      "theme": "ivf-comparison",
+      "priority": 0,
+      "rationale": "FLAG. IVF-centric."
+    },
+    {
+      "question": "What doctor to see for suspected endometriosis?",
+      "source": "Can a NaPro doctor help with suspected endometriosis?",
+      "depth": 2,
+      "status": "missing",
+      "theme": "conditions",
+      "priority": 3,
+      "rationale": "RRM-relevant; could be folded into provider or conditions Q."
+    },
+    {
+      "question": "Can you get endometriosis while on Depo-Provera?",
+      "source": "Can a NaPro doctor help with suspected endometriosis?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "conditions",
+      "priority": 1,
+      "rationale": "Niche clinical, off-pillar."
+    },
+    {
+      "question": "Which IVF clinic has the best success rate?",
+      "source": "What is the best fertility clinic in Colorado?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "ivf-comparison",
+      "priority": 0,
+      "rationale": "Noise. Not RRM."
+    },
+    {
+      "question": "Which IVF hospital has the highest success rate?",
+      "source": "What is the best fertility clinic in Colorado?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "ivf-comparison",
+      "priority": 0,
+      "rationale": "Noise."
+    },
+    {
+      "question": "How much does it cost to get your fertility checked?",
+      "source": "How much does a fertility consultation cost?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "cost-insurance",
+      "priority": 1,
+      "rationale": "Off-scope."
+    },
+    {
+      "question": "How much does it cost to have a fertility check?",
+      "source": "How much does a fertility consultation cost?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "cost-insurance",
+      "priority": 1,
+      "rationale": "Off-scope."
+    },
+    {
+      "question": "Is IUI 100% successful?",
+      "source": "Which infertility technique has the highest success rate?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "ivf-comparison",
+      "priority": 0,
+      "rationale": "Noise."
+    },
+    {
+      "question": "What are the disadvantages of NFP?",
+      "source": "What are the drawbacks of NFP?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "fam-methods",
+      "priority": 1,
+      "rationale": "Same."
+    },
+    {
+      "question": "What percent of Catholics use NFP?",
+      "source": "What are the drawbacks of NFP?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "fam-methods",
+      "priority": 1,
+      "rationale": "Religious framing; skip per hard rule."
+    },
+    {
+      "question": "Does NFP affect intimacy?",
+      "source": "What are the drawbacks of NFP?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "fam-methods",
+      "priority": 1,
+      "rationale": "Off-scope."
+    },
+    {
+      "question": "Is NFP a reliable birth control?",
+      "source": "What are the drawbacks of NFP?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "fam-methods",
+      "priority": 1,
+      "rationale": "Off-scope."
+    },
+    {
+      "question": "Are my eggs still good at 40?",
+      "source": "How many rounds of IVF for a 40 year old?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "ivf-comparison",
+      "priority": 1,
+      "rationale": "Off-scope."
+    },
+    {
+      "question": "What is the success rate of the Creighton Model?",
+      "source": "What is the failure rate of the Creighton method?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "fam-methods",
+      "priority": 2,
+      "rationale": "Same."
+    },
+    {
+      "question": "How accurate is the Creighton Model?",
+      "source": "What is the failure rate of the Creighton method?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "fam-methods",
+      "priority": 2,
+      "rationale": "Same."
+    },
+    {
+      "question": "What are the pros and cons of the rhythm method?",
+      "source": "What are the disadvantages of the Creighton Model?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "fam-methods",
+      "priority": 1,
+      "rationale": "Off-scope."
+    },
+    {
+      "question": "Which family planning method has the highest failure rate?",
+      "source": "What is the failure rate of natural family planning methods?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "fam-methods",
+      "priority": 1,
+      "rationale": "Off-scope."
+    },
+    {
+      "question": "Why do condoms have a 2% failure rate?",
+      "source": "What is the failure rate of natural family planning methods?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "fam-methods",
+      "priority": 1,
+      "rationale": "Noise."
+    },
+    {
+      "question": "How successful is natural family planning?",
+      "source": "What is the failure rate of natural family planning methods?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "fam-methods",
+      "priority": 1,
+      "rationale": "Same."
+    },
+    {
+      "question": "Is Plan B 100% success rate?",
+      "source": "What is the failure rate of natural family planning methods?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "fam-methods",
+      "priority": 1,
+      "rationale": "Noise."
+    },
+    {
+      "question": "What is the best fertility awareness method?",
+      "source": "Which fertility awareness method is most effective?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "fam-methods",
+      "priority": 1,
+      "rationale": "Same."
+    },
+    {
+      "question": "What is the least effective fertility awareness method?",
+      "source": "Which fertility awareness method is most effective?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "fam-methods",
+      "priority": 1,
+      "rationale": "Same."
+    },
+    {
+      "question": "What makes femm unique?",
+      "source": "What does femm fertility stand for?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "fam-methods",
+      "priority": 1,
+      "rationale": "Off-scope."
+    },
+    {
+      "question": "What is the FEMM LH test?",
+      "source": "What is femm used for?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "fam-methods",
+      "priority": 1,
+      "rationale": "Off-scope."
+    },
+    {
+      "question": "Will I 100% get pregnant while ovulating?",
+      "source": "How accurate is the fam method?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "fam-methods",
+      "priority": 1,
+      "rationale": "Noise."
+    },
+    {
+      "question": "What are the downsides of the rhythm method?",
+      "source": "How accurate is the fam method?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "fam-methods",
+      "priority": 1,
+      "rationale": "Off-scope."
+    },
+    {
+      "question": "Is NAPRO considered ethical?",
+      "source": "Is NaProTECHNOLOGY religiously affiliated?",
+      "depth": 2,
+      "status": "flag-religion",
+      "theme": "religion",
+      "priority": 0,
+      "rationale": "FLAG. Ethics framing often Catholic-adjacent. Existing Q2 is sufficient."
+    },
+    {
+      "question": "Does IVF use your partner's sperm?",
+      "source": "Is husband sperm used in IVF?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "ivf-comparison",
+      "priority": 0,
+      "rationale": "Noise."
+    },
+    {
+      "question": "What is the number one reason IVF fails?",
+      "source": "Is husband sperm used in IVF?",
+      "depth": 2,
+      "status": "flag-ivf-legit",
+      "theme": "ivf-comparison",
+      "priority": 0,
+      "rationale": "FLAG. IVF-centric."
+    },
+    {
+      "question": "Can you be on Wegovy while doing IVF?",
+      "source": "Is husband sperm used in IVF?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "ivf-comparison",
+      "priority": 0,
+      "rationale": "Noise."
+    },
+    {
+      "question": "Does IVF use father's sperm?",
+      "source": "Is husband sperm used in IVF?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "ivf-comparison",
+      "priority": 0,
+      "rationale": "Noise."
+    },
+    {
+      "question": "What is the 30-minute rule for expedited delivery?",
+      "source": "What is the ACOG 30 minute rule?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "criticism",
+      "priority": 1,
+      "rationale": "Off-scope."
+    },
+    {
+      "question": "Why wait 2 years after a C-section?",
+      "source": "What is the ACOG 30 minute rule?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "criticism",
+      "priority": 0,
+      "rationale": "Off-scope."
+    },
+    {
+      "question": "Is 38% sperm motility good?",
+      "source": "Does NaPro help male infertility?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "male-factor",
+      "priority": 1,
+      "rationale": "Off-scope."
+    },
+    {
+      "question": "What are the top 3 causes of male infertility?",
+      "source": "Does NaPro help male infertility?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "male-factor",
+      "priority": 2,
+      "rationale": "Generic; off-page."
+    },
+    {
+      "question": "Can naproxen affect male fertility?",
+      "source": "Does NaPro help male infertility?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "male-factor",
+      "priority": 1,
+      "rationale": "Naproxen/NaPro confusion, skip."
+    },
+    {
+      "question": "Is a morphology of 2% sperm normal?",
+      "source": "Can I conceive with 2% sperm morphology?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "male-factor",
+      "priority": 1,
+      "rationale": "Off-scope."
+    },
+    {
+      "question": "How to improve 2% sperm morphology?",
+      "source": "Can I conceive with 2% sperm morphology?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "male-factor",
+      "priority": 1,
+      "rationale": "Off-scope."
+    },
+    {
+      "question": "Is it possible to conceive naturally with 2% morphology?",
+      "source": "Can I conceive with 2% sperm morphology?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "male-factor",
+      "priority": 1,
+      "rationale": "Off-scope."
+    },
+    {
+      "question": "Is IVF possible with 2% morphology?",
+      "source": "Can I conceive with 2% sperm morphology?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "male-factor",
+      "priority": 1,
+      "rationale": "Off-scope."
+    },
+    {
+      "question": "Is NaProTECHNOLOGY Catholic?",
+      "source": "What is NaPro Catholic?",
+      "depth": 2,
+      "status": "flag-religion",
+      "theme": "religion",
+      "priority": 0,
+      "rationale": "FLAG. Same as above."
+    },
+    {
+      "question": "Do Catholics not like birth control?",
+      "source": "What do Catholics use instead of birth control?",
+      "depth": 2,
+      "status": "flag-religion",
+      "theme": "religion",
+      "priority": 0,
+      "rationale": "FLAG. Off-topic."
+    },
+    {
+      "question": "Do NaPro doctors take insurance?",
+      "source": "Is NaPro surgery covered by insurance?",
+      "depth": 2,
+      "status": "missing",
+      "theme": "cost-insurance",
+      "priority": 4,
+      "rationale": "Variant of above; subsume."
+    },
+    {
+      "question": "How do I get my insurance to cover gyno surgery?",
+      "source": "Is NaPro surgery covered by insurance?",
+      "depth": 2,
+      "status": "noise",
+      "theme": "cost-insurance",
+      "priority": 2,
+      "rationale": "Broader gyn question, off-scope for pillar."
+    }
+  ],
+  "recommendations": [
+    {
+      "id": "rec-01",
+      "question": "What is restorative reproductive medicine (RRM)?",
+      "priority": 5,
+      "theme": "definition",
+      "status_of_gap": "partial",
+      "rationale": "Highest-volume cluster (6 PAA variants). Current page opens with intro prose but has no dedicated plain-English definition Q. Subsumes: What is RRM vs IVF?, What is RRM in infertility?, What is RRM fertility treatment?, What is the full form of RRM?, What is RRM medical?, What is the difference between IVF and RRM?",
+      "backing_paas": [
+        "What is RRM vs IVF?",
+        "What is RRM in infertility?",
+        "What is RRM fertility treatment?",
+        "What is the full form of RRM?",
+        "What is RRM medical?",
+        "What is the difference between IVF and RRM?"
+      ]
+    },
+    {
+      "id": "rec-02",
+      "question": "How does restorative reproductive medicine work?",
+      "priority": 5,
+      "theme": "how-it-works",
+      "status_of_gap": "missing",
+      "rationale": "Seed-level PAA with zero coverage on page. Searchers want the mechanism before the defense. Subsumes how-does-RRM-work, NaPro-procedure, what-is-an-example-of-RRM.",
+      "backing_paas": [
+        "How does RRM work?",
+        "How does restorative reproductive medicine work?",
+        "What is the NaPro procedure?",
+        "What is an example of restorative reproductive medicine?"
+      ]
+    },
+    {
+      "id": "rec-03",
+      "question": "What conditions does RRM treat?",
+      "priority": 5,
+      "theme": "conditions",
+      "status_of_gap": "missing",
+      "rationale": "Core scope question. Page mentions endometriosis and PCOS inside other answers but never lists conditions. Matches Brian's note that RRM is full reproductive health, not just infertility.",
+      "backing_paas": [
+        "What conditions does NaPro treat?",
+        "Can a NaPro doctor help with suspected endometriosis?",
+        "What doctor to see for suspected endometriosis?"
+      ]
+    },
+    {
+      "id": "rec-04",
+      "question": "Does RRM treat male infertility?",
+      "priority": 5,
+      "theme": "male-factor",
+      "status_of_gap": "missing",
+      "rationale": "Male factor accounts for roughly 40 percent of couple infertility and is completely absent from the current page. Keeps RRM from being narrowed to female fertility only.",
+      "backing_paas": [
+        "Does NaPro help male infertility?"
+      ]
+    },
+    {
+      "id": "rec-05",
+      "question": "What kind of doctor provides RRM / NaProTechnology care?",
+      "priority": 5,
+      "theme": "providers",
+      "status_of_gap": "missing",
+      "rationale": "Top-tier provider PAA. Page has zero provider info. Should cover NFPMC / FCP / MIGS credentialing and how to find one.",
+      "backing_paas": [
+        "What kind of doctor performs NaProTechnology?",
+        "What is a RRM doctor?",
+        "What is NaPro certified?"
+      ]
+    },
+    {
+      "id": "rec-06",
+      "question": "How much does RRM cost, and is it covered by insurance?",
+      "priority": 5,
+      "theme": "cost-insurance",
+      "status_of_gap": "missing",
+      "rationale": "Five separate PAA variants cluster on cost and insurance. Current page has one table row. Needs a standalone Q covering cost ranges, CPT-coded procedures, and which plans typically cover RRM surgery vs consults.",
+      "backing_paas": [
+        "Is RRM cheaper than IVF?",
+        "Does insurance cover NaProTechnology?",
+        "Are NaPro doctors covered by insurance?",
+        "Do NaPro doctors take insurance?",
+        "Is NaPro surgery covered by insurance?"
+      ]
+    },
+    {
+      "id": "rec-07",
+      "question": "Is RRM effective? Does it actually work?",
+      "priority": 4,
+      "theme": "effectiveness",
+      "status_of_gap": "partial",
+      "rationale": "Current Q3 answers comparatively ('lower success rates than IVF?'). Searchers asking 'does NaPro work?' want an affirmative direct answer first, then comparison. Stand-alone Q strengthens AEO retrieval.",
+      "backing_paas": [
+        "How effective is NaProTechnology?",
+        "What is the success rate of NaProTechnology?",
+        "Does NaProTechnology work?"
+      ]
+    },
+    {
+      "id": "rec-08",
+      "question": "What happens at an RRM appointment?",
+      "priority": 4,
+      "theme": "process-timeline",
+      "status_of_gap": "missing",
+      "rationale": "Patient-journey question, reduces friction for people considering their first visit. Should cover intake, cycle charting, diagnostics, and follow-up cadence.",
+      "backing_paas": [
+        "What to expect from a NaPro appointment?"
+      ]
+    },
+    {
+      "id": "rec-09",
+      "question": "Is RRM a real alternative to IVF?",
+      "priority": 4,
+      "theme": "ivf-comparison",
+      "status_of_gap": "partial",
+      "rationale": "Current Q4 ('safe to skip IVF?') is defensive. This reframes the same intent affirmatively, which matches the actual searcher phrasing 'best alternative to IVF.' Could replace or precede current Q4.",
+      "backing_paas": [
+        "What is the best alternative to IVF?",
+        "What is the less brutal alternative to IVF?",
+        "How to conceive without IUI?"
+      ]
+    },
+    {
+      "id": "rec-10",
+      "question": "What are the benefits of RRM?",
+      "priority": 4,
+      "theme": "how-it-works",
+      "status_of_gap": "missing",
+      "rationale": "High-intent PAA. Current page is defense-shaped. A benefits Q establishes affirmative framing early. Can live inside rec-02 answer or stand alone. Avoid 'alternative medicine' framing.",
+      "backing_paas": [
+        "What are the benefits of RRM?"
+      ]
+    }
+  ],
+  "flagged_hard_rule_religion": [
+    {
+      "question": "Is NaProTECHNOLOGY religiously affiliated?",
+      "source": "NaProTechnology criticism",
+      "note": "Do not add. Hard rule: no Catholic/religious disclaimer framing. Current Q2 on page is sufficient."
+    },
+    {
+      "question": "What is NaPro Catholic?",
+      "source": "is NaProTechnology Catholic",
+      "note": "Do not add. Hard rule: no Catholic/religious disclaimer framing. Current Q2 on page is sufficient."
+    },
+    {
+      "question": "What do Catholics use instead of birth control?",
+      "source": "is NaProTechnology Catholic",
+      "note": "Do not add. Hard rule: no Catholic/religious disclaimer framing. Current Q2 on page is sufficient."
+    },
+    {
+      "question": "Is NAPRO considered ethical?",
+      "source": "Is NaProTECHNOLOGY religiously affiliated?",
+      "note": "Do not add. Hard rule: no Catholic/religious disclaimer framing. Current Q2 on page is sufficient."
+    },
+    {
+      "question": "Is NaProTECHNOLOGY Catholic?",
+      "source": "What is NaPro Catholic?",
+      "note": "Do not add. Hard rule: no Catholic/religious disclaimer framing. Current Q2 on page is sufficient."
+    },
+    {
+      "question": "Do Catholics not like birth control?",
+      "source": "What do Catholics use instead of birth control?",
+      "note": "Do not add. Hard rule: no Catholic/religious disclaimer framing. Current Q2 on page is sufficient."
+    }
+  ],
+  "flagged_ivf_legitimizing": [
+    {
+      "question": "How many rounds of IVF for a 40 year old?",
+      "source": "RRM success rates by age",
+      "note": "Flagged for editorial review before adding. IVF-legitimizing framing risk."
+    },
+    {
+      "question": "Which is safer, IVF or IUI?",
+      "source": "IUI alternatives",
+      "note": "Flagged for editorial review before adding. IVF-legitimizing framing risk."
+    },
+    {
+      "question": "Is 37 too late for IVF?",
+      "source": "What fertility testing is usually covered by insurance?",
+      "note": "Flagged for editorial review before adding. IVF-legitimizing framing risk."
+    },
+    {
+      "question": "What is the number one reason IVF fails?",
+      "source": "Is husband sperm used in IVF?",
+      "note": "Flagged for editorial review before adding. IVF-legitimizing framing risk."
+    }
+  ]
+}
