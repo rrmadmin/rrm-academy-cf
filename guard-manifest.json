@@ -67,7 +67,7 @@
       "note": "Shared webhook helpers"
     },
     "functions/_middleware.js": {
-      "hash": "4169e2d62284ff20b5712971790f103a586cc773f1c9d1dd5a902c77517354ef",
+      "hash": "67ed55ea3acfbe6b36a2981de21e4b69e79c1c42314a620831141b0169c3bfef",
       "note": "Auth gating"
     },
     "wrangler.toml": {
