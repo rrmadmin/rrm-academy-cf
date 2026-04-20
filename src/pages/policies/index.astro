@@ -1,0 +1,62 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'CollectionPage',
+      '@id': 'https://rrmacademy.org/policies/',
+      url: 'https://rrmacademy.org/policies/',
+      name: 'Policies',
+      description: 'Editorial, corrections, fact-checking, privacy, and medical policies for RRM Academy.',
+      isPartOf: { '@id': 'https://rrmacademy.org/#website' },
+      about: { '@id': 'https://rrmacademy.org/#organization' },
+      inLanguage: 'en',
+      hasPart: [
+        { '@id': 'https://rrmacademy.org/policies/editorial/' },
+        { '@id': 'https://rrmacademy.org/policies/corrections/' },
+        { '@id': 'https://rrmacademy.org/policies/fact-checking/' },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+        { '@type': 'ListItem', position: 2, name: 'Policies', item: 'https://rrmacademy.org/policies/' },
+      ],
+    },
+  ],
+};
+---
+<BaseLayout
+  title="Policies"
+  description="Editorial, corrections, fact-checking, privacy, and medical policies for RRM Academy. How we research, write, review, and correct our content."
+  canonicalUrl="https://rrmacademy.org/policies/"
+  jsonLd={jsonLd}
+>
+  <div class="page-wrapper prose">
+    <div class="container container--narrow">
+      <h1>Policies</h1>
+      <p>How RRM Academy researches, writes, reviews, and corrects its content.</p>
+
+      <section class="legal-section">
+        <h2>Editorial and Content</h2>
+        <ul>
+          <li><a href="/policies/editorial/"><strong>Editorial Policy</strong></a> -- Who writes our content, sourcing standards, review process, and editorial independence.</li>
+          <li><a href="/policies/corrections/"><strong>Corrections Policy</strong></a> -- How we handle errors, corrections, retractions, and updates.</li>
+          <li><a href="/policies/fact-checking/"><strong>Fact-Checking Policy</strong></a> -- How we verify clinical claims, citations, and statistics before publication.</li>
+        </ul>
+      </section>
+
+      <section class="legal-section">
+        <h2>User and Legal</h2>
+        <ul>
+          <li><a href="/privacy-policy/"><strong>Privacy Policy</strong></a> -- How we collect, use, and protect your information.</li>
+          <li><a href="/terms-of-use/"><strong>Terms of Use</strong></a> -- Site usage terms.</li>
+          <li><a href="/medical-disclaimer/"><strong>Medical Disclaimer</strong></a> -- Important information about the educational scope of this site.</li>
+        </ul>
+      </section>
+    </div>
+  </div>
+</BaseLayout>
