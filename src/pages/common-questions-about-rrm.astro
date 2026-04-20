@@ -1,6 +1,11 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import BackToTop from '../components/BackToTop.astro';
+import LastUpdated from '../components/LastUpdated.astro';
+import pageDates from '../data/page-dates.json';
+
+const PAGE_PATH = '/common-questions-about-rrm/';
+const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-03-01';
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -29,7 +34,7 @@ const jsonLd = {
         name: 'RRM Academy',
       },
       datePublished: '2026-03-01',
-      dateModified: '2026-03-01',
+      dateModified: LAST_MODIFIED,
       mainEntityOfPage: 'https://rrmacademy.org/common-questions-about-rrm',
     },
     {
@@ -102,7 +107,7 @@ const jsonLd = {
       <h1>Common Questions About Restorative Reproductive Medicine</h1>
 
       <p class="author-byline">
-        By <strong>Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</strong> &mdash; <time datetime="2026-03-01">March 2026</time>
+        By <strong>Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</strong> &middot; <LastUpdated path="/common-questions-about-rrm/" />
       </p>
 
       <article class="prose">
