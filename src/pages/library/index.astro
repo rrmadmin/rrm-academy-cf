@@ -16,26 +16,63 @@ const ticker = articles.slice(0, 8).map(a => ({
   shortCitation: a.shortCitation,
 }));
 
-// Schema.org for landing page
+// Schema.org for landing page -- linked @graph with WebSite + Organization
+// referenced by @id, plus SearchAction on the WebSite node so LLMs and
+// Google both surface the library's search capability.
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'CollectionPage',
-  name: 'RRM Research Library',
-  description: 'The largest free collection of academic references related to restorative reproductive medicine.',
-  url: 'https://rrmacademy.org/library/',
-  numberOfItems: articles.length,
-  isPartOf: {
-    '@type': 'WebSite',
-    '@id': 'https://rrmacademy.org/#website',
-    name: 'RRM Academy',
-    url: 'https://rrmacademy.org/',
-  },
-  publisher: {
-    '@type': 'Organization',
-    '@id': 'https://rrmacademy.org/#organization',
-    name: 'RRM Academy',
-    url: 'https://rrmacademy.org/',
-  },
+  '@graph': [
+    {
+      '@type': 'CollectionPage',
+      '@id': 'https://rrmacademy.org/library/#collection',
+      name: 'RRM Research Library',
+      description: 'The largest free collection of academic references related to restorative reproductive medicine.',
+      url: 'https://rrmacademy.org/library/',
+      numberOfItems: articles.length,
+      inLanguage: 'en',
+      isPartOf: { '@id': 'https://rrmacademy.org/#website' },
+      about: { '@id': 'https://rrmacademy.org/#organization' },
+      publisher: { '@id': 'https://rrmacademy.org/#organization' },
+      breadcrumb: { '@id': 'https://rrmacademy.org/library/#breadcrumb' },
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: 'https://rrmacademy.org/library/?q={search_term_string}',
+        },
+        'query-input': 'required name=search_term_string',
+      },
+    },
+    {
+      '@type': 'WebSite',
+      '@id': 'https://rrmacademy.org/#website',
+      url: 'https://rrmacademy.org/',
+      name: 'RRM Academy',
+      publisher: { '@id': 'https://rrmacademy.org/#organization' },
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: 'https://rrmacademy.org/library/?q={search_term_string}',
+        },
+        'query-input': 'required name=search_term_string',
+      },
+    },
+    {
+      '@type': 'Organization',
+      '@id': 'https://rrmacademy.org/#organization',
+      name: 'RRM Academy',
+      url: 'https://rrmacademy.org/',
+    },
+    {
+      '@type': 'BreadcrumbList',
+      '@id': 'https://rrmacademy.org/library/#breadcrumb',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+        { '@type': 'ListItem', position: 2, name: 'Research Library', item: 'https://rrmacademy.org/library/' },
+      ],
+    },
+  ],
 };
 ---
 <BaseLayout
