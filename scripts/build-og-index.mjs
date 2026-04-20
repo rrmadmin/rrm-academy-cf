@@ -205,7 +205,8 @@ function main() {
       if (!a || !a.slug) continue;
       index[`library-${a.slug}`] = {
         title: clamp(a.title || 'Research Article', MAX_TITLE_LEN),
-        description: clamp(a.abstract || a.shortCitation || 'Peer-reviewed research from the RRM Academy Library.', MAX_DESC_LEN),
+        // description dropped from bundled entries to keep Pages Function cold-start fast.
+        // Satori renders title-only cards cleanly. Descriptions remain on static pages.
       };
       counts.library += 1;
     }
