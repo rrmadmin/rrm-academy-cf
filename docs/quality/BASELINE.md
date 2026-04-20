@@ -20,7 +20,6 @@ _Snapshot of coverage, mutation score, CRAP, and dependency rules for `src/lib/`
 | src/lib/fetch-glossary-data.mjs | 0.0% | — | 210.0 |
 | src/lib/fetch-partners-data.mjs | 0.0% | — | 56.0 |
 | src/lib/fetch-retry.mjs | 0.0% | — | 380.0 |
-| src/lib/og-config.ts | 0.0% | — | — |
 | src/lib/partners.ts | 0.0% | — | 6.0 |
 | src/lib/turnstile.ts | 0.0% | — | — |
 
@@ -74,7 +73,6 @@ _Snapshot of coverage, mutation score, CRAP, and dependency rules for `src/lib/`
 | src/lib/fetch-glossary-data.mjs | 0.0% |
 | src/lib/fetch-partners-data.mjs | 0.0% |
 | src/lib/fetch-retry.mjs | 0.0% |
-| src/lib/og-config.ts | 0.0% |
 | src/lib/partners.ts | 0.0% |
 | src/lib/turnstile.ts | 0.0% |
 
@@ -91,11 +89,10 @@ _Skipped (--skip-mutation)._
 | no-orphans | warn | src/lib/blog.ts | src/lib/blog.ts |
 | no-orphans | warn | src/lib/courses.ts | src/lib/courses.ts |
 | no-orphans | warn | src/lib/faq.ts | src/lib/faq.ts |
-| no-orphans | warn | src/lib/og-config.ts | src/lib/og-config.ts |
 | no-orphans | warn | src/lib/partners.ts | src/lib/partners.ts |
 | no-orphans | warn | src/lib/turnstile.ts | src/lib/turnstile.ts |
 
 ---
 
-**Generated:** 2026-04-20T22:32:39.302Z  
-**Commit:** `f31ee03`
+**Generated:** 2026-04-20T22:34:12.682Z  
+**Commit:** `1763a63`
