@@ -8,6 +8,7 @@ src/data/guides.json
 scraped/
 .env
 .env.local
+.dev.vars
 !.env.example
 .wrangler
 .firecrawl/
