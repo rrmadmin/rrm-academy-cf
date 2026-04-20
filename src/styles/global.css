@@ -1123,6 +1123,17 @@ blockquote a {
   text-decoration: underline;
 }
 
+/* Pillar page lead paragraph -- 25-35 word AEO-optimized opener */
+.pillar-lead {
+  font-size: 1.125rem;
+  line-height: 1.65;
+  margin-bottom: var(--space-5);
+  color: var(--text-primary);
+}
+.pillar-lead strong {
+  font-weight: 600;
+}
+
 /* Author byline */
 .author-byline {
   font-size: 0.875rem;

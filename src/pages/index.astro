@@ -61,7 +61,7 @@ const jsonLd = {
         nonprofitStatus: '501(c)(3)',
       },
       sameAs: [
-        'https://www.linkedin.com/company/rrm-academy',
+        'https://www.linkedin.com/company/rrmacademy',
         'https://www.instagram.com/rrmacademy',
       ],
       contactPoint: {
@@ -150,8 +150,9 @@ const jsonLd = {
           <a href="/library/" class="btn btn--secondary">Browse {articleCount.toLocaleString()} Studies</a>
         </div>
         <p class="hp-hero__nonprofit animate-enter" style="--stagger: 4;">A 501(c)(3) nonprofit education platform</p>
+        <p class="hp-hero__updated animate-enter" style="--stagger: 5;"><time datetime="2026-04-19">Last updated April 19, 2026</time></p>
       </div>
-      <div class="hp-hero__trust animate-enter" style="--stagger: 5;">
+      <div class="hp-hero__trust animate-enter" style="--stagger: 6;">
         <div class="hp-trust__logos">
           <span class="hp-trust__logo hp-trust__logo--nejm">New England Journal of Medicine</span>
           <span class="hp-trust__logo hp-trust__logo--jama">JAMA</span>
@@ -314,6 +315,25 @@ const jsonLd = {
     <section class="hp-section hp-section--alt">
       <div class="container container--narrow">
         <h2>Built on a Moment That Should Not Have Happened</h2>
+
+        <div class="hp-founder">
+          <img
+            src="/images/authors/naomi-whittaker.webp"
+            alt="Dr. Naomi Whittaker, MD, Board-Certified OBGYN and Founder of RRM Academy"
+            class="hp-founder__photo"
+            width="120"
+            height="120"
+            loading="lazy"
+            decoding="async"
+          />
+          <div class="hp-founder__meta">
+            <span class="hp-founder__name">
+              <a href="/commentary/rrm-spotlight-naomi-whittaker-md/"><strong>Dr. Naomi Whittaker, MD</strong></a>
+            </span>
+            <span class="hp-founder__cred">Board-Certified OBGYN, MIGS, NFPMC, FCI &middot; Founder, RRM Academy</span>
+          </div>
+        </div>
+
         <blockquote>
           <p>
             "I'll never forget a patient I saw during my residency. She had a history of
@@ -542,7 +562,55 @@ const jsonLd = {
     letter-spacing: 0.04em;
     color: var(--text-tertiary);
     margin-top: var(--space-4);
+    margin-bottom: var(--space-2);
+  }
+
+  .hp-hero__updated {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0;
     margin-bottom: var(--space-5);
+  }
+  .hp-hero__updated time {
+    font-style: normal;
+  }
+
+  /* Founder credit block in "Built on a Moment" section */
+  .hp-founder {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+  .hp-founder__photo {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  }
+  .hp-founder__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15em;
+    min-width: 0;
+  }
+  .hp-founder__name {
+    font-size: 1rem;
+    color: var(--text-primary);
+  }
+  .hp-founder__cred {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+  @media (min-width: 640px) {
+    .hp-founder__photo {
+      width: 96px;
+      height: 96px;
+    }
   }
 
   .hp-hero__links {
