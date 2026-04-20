@@ -45,11 +45,16 @@ const jsonLd = {
 
       <section class="courses-hero">
         <h1 class="animate-enter" style="--stagger: 0;">Online RRM Courses</h1>
-        <p class="courses-hero__sub animate-enter" style="--stagger: 1;">Self-paced video courses on endometriosis, fertility, and reproductive health from leading specialists in restorative reproductive medicine.</p>
+        <p class="courses-hero__sub animate-enter" style="--stagger: 1;">Self-paced online training in Restorative Reproductive Medicine for clinicians and patients. Courses cover endometriosis surgery, NaProTechnology fundamentals, cycle-based diagnostics, and fertility care, taught by board-certified OBGYNs and RRM-trained specialists.</p>
+        <p class="courses-hero__audiences animate-enter" style="--stagger: 2;">
+          <strong>Clinicians:</strong> expand your training in root-cause reproductive care beyond standard OBGYN, family medicine, and endocrinology curricula.
+          <br />
+          <strong>Patients:</strong> learn what a real diagnostic workup looks like and how to evaluate surgical and fertility care.
+        </p>
       </section>
 
       <h2 class="sr-only">Available Courses</h2>
-      <div class="courses-grid animate-enter" style="--stagger: 2;">
+      <div class="courses-grid animate-enter" style="--stagger: 3;">
         {coursesData.filter((c: any) => !c.comingSoon).map((course, i) => (
           <CourseCard course={course} eager={i < 2} />
         ))}
@@ -145,7 +150,17 @@ const jsonLd = {
   .courses-hero__sub {
     font-size: 0.9375rem;
     color: var(--text-secondary);
-    max-width: 560px;
+    max-width: 680px;
+  }
+  .courses-hero__audiences {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    max-width: 680px;
+    margin-top: var(--space-3);
+    line-height: 1.65;
+  }
+  .courses-hero__audiences strong {
+    color: var(--text-primary);
   }
 
   .courses-grid {
