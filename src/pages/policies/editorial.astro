@@ -1,0 +1,88 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebPage',
+      '@id': 'https://rrmacademy.org/policies/editorial/',
+      url: 'https://rrmacademy.org/policies/editorial/',
+      name: 'Editorial Policy',
+      description: 'How RRM Academy selects, writes, reviews, and publishes content on restorative reproductive medicine.',
+      isPartOf: { '@id': 'https://rrmacademy.org/#website' },
+      about: { '@id': 'https://rrmacademy.org/#organization' },
+      inLanguage: 'en',
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+        { '@type': 'ListItem', position: 2, name: 'Policies', item: 'https://rrmacademy.org/policies/' },
+        { '@type': 'ListItem', position: 3, name: 'Editorial Policy', item: 'https://rrmacademy.org/policies/editorial/' },
+      ],
+    },
+  ],
+};
+---
+<BaseLayout
+  title="Editorial Policy"
+  description="How RRM Academy selects, writes, reviews, and publishes content on restorative reproductive medicine. Physician review, peer-reviewed sourcing, and conflict-of-interest disclosure."
+  canonicalUrl="https://rrmacademy.org/policies/editorial/"
+  jsonLd={jsonLd}
+>
+  <div class="page-wrapper prose">
+    <div class="container container--narrow">
+      <h1>Editorial Policy</h1>
+      <p class="effective-date">Effective Date: April 20, 2026</p>
+
+      <section class="legal-section">
+        <h2>Purpose</h2>
+        <p>RRM Academy publishes educational content on restorative reproductive medicine (RRM), NaProTechnology, fertility awareness-based methods, endometriosis excision surgery, and reproductive endocrinology. Our content is for patient education and clinician reference. It does not replace individualized medical advice from a qualified clinician.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Who Writes Our Content</h2>
+        <p>All clinical content is authored or reviewed by credentialed clinicians with demonstrated expertise in restorative reproductive medicine. Our editorial lead is <a href="/about/#naomi-whittaker">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</a>. Contributing clinicians hold active medical licenses and relevant fellowship training or board certifications.</p>
+        <p>Patient stories, commentary, and lay-authored content are clearly labeled. Non-clinician contributions do not make treatment recommendations and are reviewed for factual accuracy and alignment with RRM principles before publication.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Sourcing Standards</h2>
+        <p>Clinical claims are sourced from peer-reviewed medical literature. Primary sources include the RRM Research Library (our curated database of more than 3,000 peer-reviewed articles), PubMed, CrossRef, and the published guidelines of professional societies.</p>
+        <p>We cite primary research rather than press releases, and we provide direct links or DOIs wherever possible. When a claim is not yet supported by published evidence, we say so explicitly.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Editorial Independence</h2>
+        <p>RRM Academy is a program of the Restorative Reproductive Medicine Foundation Inc., a 501(c)(3) nonprofit (EIN 93-4594315). We accept no payment, sponsorship, or in-kind support from pharmaceutical manufacturers, assisted reproductive technology providers, or commercial fertility clinics. Course affiliate relationships, where they exist, are disclosed on the relevant course page.</p>
+        <p>Funding sources and material financial relationships are disclosed on our <a href="/about/">About page</a>. Authors disclose any conflicts of interest relevant to a specific article at the point of publication.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Review Process</h2>
+        <p>New clinical articles are reviewed for accuracy, citation integrity, and voice alignment before publication. Pillar guides and condition-level content receive physician review from an RRM-trained clinician. Posts that cite statistics undergo automated citation verification before deploy; URLs that fail verification block publication.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Scope and Limits</h2>
+        <p>RRM Academy does not provide medical diagnosis, treatment, or personalized care recommendations. Our content explains what RRM is, how it works, and what the evidence shows. It is not a substitute for care from a qualified clinician. Readers with specific medical concerns should seek evaluation from a physician trained in restorative reproductive medicine.</p>
+      </section>
+
+      <section class="legal-section">
+        <h2>Related Policies</h2>
+        <ul>
+          <li><a href="/policies/corrections/">Corrections Policy</a></li>
+          <li><a href="/policies/fact-checking/">Fact-Checking Policy</a></li>
+          <li><a href="/privacy-policy/">Privacy Policy</a></li>
+          <li><a href="/medical-disclaimer/">Medical Disclaimer</a></li>
+        </ul>
+      </section>
+
+      <section class="legal-section">
+        <h2>Questions</h2>
+        <p>Editorial questions and content suggestions: <a href="/contact/">rrmacademy.org/contact</a>.</p>
+      </section>
+    </div>
+  </div>
+</BaseLayout>
