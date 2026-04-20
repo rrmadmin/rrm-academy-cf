@@ -1,8 +1,5 @@
 {
   "resource": "https://rrm-mcp.administrator-cloudflare.workers.dev",
-  "authorization_servers": [
-    "https://rrmacademy.org"
-  ],
   "scopes_supported": [
     "mcp:read",
     "mcp:invoke"

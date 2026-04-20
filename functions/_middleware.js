@@ -30,6 +30,7 @@ function withSecurityHeaders(response) {
   headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   headers.set('X-Content-Type-Options', 'nosniff');
+  headers.set('Content-Signal', 'ai-train=yes, search=yes, ai-input=yes');
   if (!headers.has('Content-Security-Policy')) {
     headers.set('Content-Security-Policy', CSP_VALUE);
   }
@@ -115,7 +116,11 @@ async function sendArrivlPageview(request, env) {
     websiteKey: env.ARRIVL_WEBSITE_KEY,
   });
 
-  await fetch(`${ARRIVL_ENDPOINT}?${params}`, { method: 'GET' }).catch(() => {});
+  try {
+    await fetch(`${ARRIVL_ENDPOINT}?${params}`, { method: 'GET' });
+  } catch {
+    // Silent -- never let analytics failures affect the user
+  }
 }
 
 export async function onRequest(context) {
