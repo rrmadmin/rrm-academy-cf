@@ -1,16 +1,23 @@
 {
-  "resource": "https://rrm-mcp.administrator-cloudflare.workers.dev",
+  "resource": "https://rrmacademy.org",
+  "authorization_servers": [
+    "https://rrmacademy.org"
+  ],
   "scopes_supported": [
     "mcp:read",
-    "mcp:invoke"
+    "mcp:invoke",
+    "library:read",
+    "faq:read"
   ],
   "bearer_methods_supported": [
     "header"
   ],
+  "resource_name": "RRM Academy",
   "resource_documentation": "https://rrmacademy.org/openapi.json",
   "resource_policy_uri": "https://rrmacademy.org/terms-of-use/",
   "resource_tos_uri": "https://rrmacademy.org/terms-of-use/",
+  "x-mcp-server": "https://rrm-mcp.administrator-cloudflare.workers.dev/mcp",
   "x-access-model": "out-of-band",
-  "x-access-instructions": "The rrm-mcp resource accepts Bearer API keys issued out-of-band. Contact info@rrmacademy.org to request a key. Tool discovery (initialize, tools/list) is unauthenticated per MCP spec; tools/call and other invocation methods require the Bearer token in the Authorization header.",
+  "x-access-instructions": "Bearer API keys are issued out-of-band. Contact info@rrmacademy.org to request a key. MCP tool discovery (initialize, tools/list) is unauthenticated per spec; tools/call requires the Bearer token in the Authorization header.",
   "x-contact": "info@rrmacademy.org"
 }
