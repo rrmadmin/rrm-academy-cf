@@ -2,7 +2,12 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BackToTop from '../../components/BackToTop.astro';
 import PdfDownload from '../../components/PdfDownload.astro';
+import LastUpdated from '../../components/LastUpdated.astro';
 import glossaryData from '../../data/glossary.json';
+import pageDates from '../../data/page-dates.json';
+
+const PAGE_PATH = '/glossary/';
+const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-03-15';
 
 // Static part metadata (section IDs + display headings)
 const PARTS = [
@@ -107,7 +112,7 @@ const pageSchema = {
     name: 'RRM Academy',
   },
   datePublished: '2026-03-15',
-  dateModified: '2026-04-17',
+  dateModified: LAST_MODIFIED,
   wordCount,
   mainEntityOfPage: {
     '@type': 'WebPage',
@@ -221,7 +226,7 @@ const definedTermSetSchema = {
         <img src="/images/authors/naomi-whittaker.webp" alt="Dr. Naomi Whittaker, MD" class="author-byline__photo" width="48" height="48" />
         <div class="author-byline__text">
           <span>By <strong><a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</a></strong></span>
-          <time datetime="2026-04-17">Updated April 2026</time>
+          <LastUpdated path="/glossary/" prefix="Updated" />
           <PdfDownload slug="glossary" />
         </div>
       </div>
