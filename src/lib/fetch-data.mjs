@@ -22,51 +22,58 @@ const WORKER_URL = 'https://rrm-library-worker.administrator-cloudflare.workers.
 
 // --- Worker response mapping ---
 
+const strOr = (v, fallback = '') => v || fallback;
+const nullableYear = (v) => v ?? null;
+const arrayOr = (v) => (Array.isArray(v) ? v : []);
+// Worker returns keywords as JSON array; Astro components expect a string
+const keywordsToString = (v) => (Array.isArray(v) ? v.join(', ') : (v || ''));
+const normalizeSlug = (v) => (v || '').trim().toLowerCase();
+const stripTrailingDot = (v) => (v || '').replace(/\.\s*$/, '');
+
 /**
  * Map a worker article object to the articles.json schema.
  * The worker returns camelCase fields; this normalizes types for Astro components.
  */
-function mapWorkerRecord(r) {
+export function mapWorkerRecord(r) {
   if (!r.slug || !r.title) return null;
 
   return {
     id: r.id,
-    slug: (r.slug || '').trim().toLowerCase(),
-    title: (r.title || '').replace(/\.\s*$/, ''),
-    authors: r.authors || '',
-    shortCitation: r.shortCitation || '',
-    year: r.year ?? null,
-    abstract: r.abstract || '',
-    journal: r.journal || '',
-    journalAbbv: r.journalAbbv || '',
-    doi: r.doi || '',
-    pmid: r.pmid || '',
-    sourceUrl: r.sourceUrl || '',
-    datePublished: r.datePublished || '',
-    volume: r.volume || '',
-    issue: r.issue || '',
-    pages: r.pages || '',
-    // Worker returns keywords as JSON array; Astro components expect a string
-    keywords: Array.isArray(r.keywords) ? r.keywords.join(', ') : (r.keywords || ''),
-    apaCitation: r.apaCitation || '',
-    vancouverCitation: r.vancouverCitation || '',
-    mlaCitation: r.mlaCitation || '',
-    topics: Array.isArray(r.topics) ? r.topics : [],
-    searchTerms: Array.isArray(r.searchTerms) ? r.searchTerms : [],
-    enrichmentStatus: r.enrichmentStatus || '',
-    identifiers: Array.isArray(r.identifiers) ? r.identifiers : [],
+    slug: normalizeSlug(r.slug),
+    title: stripTrailingDot(r.title),
+    authors: strOr(r.authors),
+    shortCitation: strOr(r.shortCitation),
+    year: nullableYear(r.year),
+    abstract: strOr(r.abstract),
+    journal: strOr(r.journal),
+    journalAbbv: strOr(r.journalAbbv),
+    doi: strOr(r.doi),
+    pmid: strOr(r.pmid),
+    sourceUrl: strOr(r.sourceUrl),
+    datePublished: strOr(r.datePublished),
+    volume: strOr(r.volume),
+    issue: strOr(r.issue),
+    pages: strOr(r.pages),
+    keywords: keywordsToString(r.keywords),
+    apaCitation: strOr(r.apaCitation),
+    vancouverCitation: strOr(r.vancouverCitation),
+    mlaCitation: strOr(r.mlaCitation),
+    topics: arrayOr(r.topics),
+    searchTerms: arrayOr(r.searchTerms),
+    enrichmentStatus: strOr(r.enrichmentStatus),
+    identifiers: arrayOr(r.identifiers),
     isOpenAccess: !!r.isOpenAccess,
     isCopyrighted: !!r.isCopyrighted,
-    oaType: r.oaType || '',
-    license: r.license || '',
-    oaUrl: r.oaUrl || '',
-    accessLevel: r.accessLevel || 'restricted',
-    sentiment: r.sentiment || '',
-    rrmRelevance: r.rrmRelevance || '',
-    domain: r.domain || '',
-    lastModified: r.lastModified || '',
-    dateAddedToLibrary: r.dateAddedToLibrary || '',
-    authorRecords: Array.isArray(r.authorRecords) ? r.authorRecords : [],
+    oaType: strOr(r.oaType),
+    license: strOr(r.license),
+    oaUrl: strOr(r.oaUrl),
+    accessLevel: strOr(r.accessLevel, 'restricted'),
+    sentiment: strOr(r.sentiment),
+    rrmRelevance: strOr(r.rrmRelevance),
+    domain: strOr(r.domain),
+    lastModified: strOr(r.lastModified),
+    dateAddedToLibrary: strOr(r.dateAddedToLibrary),
+    authorRecords: arrayOr(r.authorRecords),
   };
 }
 
@@ -202,10 +209,13 @@ async function fetchAll() {
   console.log(`\nWrote ${articles.length} articles to ${OUTPUT_PATH}`);
 }
 
-const recordId = process.env.RECORD_ID;
-const main = recordId ? () => fetchSingle(recordId) : fetchAll;
+const isMain = process.argv[1] === fileURLToPath(import.meta.url);
+if (isMain) {
+  const recordId = process.env.RECORD_ID;
+  const main = recordId ? () => fetchSingle(recordId) : fetchAll;
 
-main().catch(err => {
-  console.error(err);
-  process.exit(1);
-});
+  main().catch(err => {
+    console.error(err);
+    process.exit(1);
+  });
+}

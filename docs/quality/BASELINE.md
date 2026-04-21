@@ -15,11 +15,11 @@ _Snapshot of coverage, mutation score, CRAP, and dependency rules for `src/lib/`
 | src/lib/faq.ts | 0.0% | — | 12.0 |
 | src/lib/fetch-blog-data.mjs | 0.0% | — | 72.0 |
 | src/lib/fetch-courses-data.mjs | 0.0% | — | 650.0 |
-| src/lib/fetch-data.mjs | 0.0% | — | 1406.0 |
+| src/lib/fetch-data.mjs | 53.8% | — | 110.0 |
 | src/lib/fetch-faq-data.mjs | 0.0% | — | 156.0 |
 | src/lib/fetch-glossary-data.mjs | 0.0% | — | 210.0 |
 | src/lib/fetch-partners-data.mjs | 0.0% | — | 56.0 |
-| src/lib/fetch-retry.mjs | 0.0% | — | 380.0 |
+| src/lib/fetch-retry.mjs | 3.7% | — | 341.4 |
 | src/lib/partners.ts | 0.0% | — | 6.0 |
 | src/lib/turnstile.ts | 0.0% | — | — |
 
@@ -27,9 +27,8 @@ _Snapshot of coverage, mutation score, CRAP, and dependency rules for `src/lib/`
 
 | File | Function | Line | CC | Cov | CRAP |
 | --- | --- | --- | --- | --- | --- |
-| src/lib/fetch-data.mjs | mapWorkerRecord | 29 | 37 | 0.0% | 1406.0 |
 | src/lib/fetch-courses-data.mjs | transformCourse | 154 | 25 | 0.0% | 650.0 |
-| src/lib/fetch-retry.mjs | fetchWithRetry | 12 | 19 | 0.0% | 380.0 |
+| src/lib/fetch-retry.mjs | fetchWithRetry | 12 | 19 | 3.7% | 341.4 |
 | src/lib/fetch-courses-data.mjs | assembleNestedCourses | 274 | 16 | 0.0% | 272.0 |
 | src/lib/fetch-courses-data.mjs | fetchTable | 104 | 14 | 0.0% | 210.0 |
 | src/lib/fetch-glossary-data.mjs | fetchSingle | 45 | 14 | 0.0% | 210.0 |
@@ -38,7 +37,7 @@ _Snapshot of coverage, mutation score, CRAP, and dependency rules for `src/lib/`
 | src/lib/abstract-parser.ts | parseStructuredAbstract | 174 | 11 | 0.0% | 132.0 |
 | src/lib/fetch-courses-data.mjs | mergeOverrides | 641 | 11 | 0.0% | 132.0 |
 | src/lib/fetch-courses-data.mjs | transformLesson | 229 | 10 | 0.0% | 110.0 |
-| src/lib/fetch-data.mjs | fetchSingle | 99 | 10 | 0.0% | 110.0 |
+| src/lib/fetch-data.mjs | fetchSingle | 106 | 10 | 0.0% | 110.0 |
 | src/lib/courses.ts | fetchAllCourses | 68 | 9 | 0.0% | 90.0 |
 | src/lib/fetch-courses-data.mjs | syncAttachmentsToR2 | 519 | 9 | 0.0% | 90.0 |
 | src/lib/fetch-faq-data.mjs | fetchAll | 145 | 9 | 0.0% | 90.0 |
@@ -54,7 +53,7 @@ _Snapshot of coverage, mutation score, CRAP, and dependency rules for `src/lib/`
 | src/lib/fetch-partners-data.mjs | fetchWithRetry | 18 | 7 | 0.0% | 56.0 |
 | src/lib/fetch-partners-data.mjs | main | 35 | 7 | 0.0% | 56.0 |
 | src/lib/fetch-courses-data.mjs | processCoverImages | 457 | 6 | 0.0% | 42.0 |
-| src/lib/fetch-data.mjs | fetchAll | 167 | 6 | 0.0% | 42.0 |
+| src/lib/fetch-data.mjs | fetchAll | 174 | 6 | 0.0% | 42.0 |
 
 ## Coverage gaps (<50%)
 
@@ -68,13 +67,12 @@ _Snapshot of coverage, mutation score, CRAP, and dependency rules for `src/lib/`
 | src/lib/faq.ts | 0.0% |
 | src/lib/fetch-blog-data.mjs | 0.0% |
 | src/lib/fetch-courses-data.mjs | 0.0% |
-| src/lib/fetch-data.mjs | 0.0% |
 | src/lib/fetch-faq-data.mjs | 0.0% |
 | src/lib/fetch-glossary-data.mjs | 0.0% |
 | src/lib/fetch-partners-data.mjs | 0.0% |
-| src/lib/fetch-retry.mjs | 0.0% |
 | src/lib/partners.ts | 0.0% |
 | src/lib/turnstile.ts | 0.0% |
+| src/lib/fetch-retry.mjs | 3.7% |
 
 ## Top 20 surviving mutants
 
@@ -94,5 +92,5 @@ _Skipped (--skip-mutation)._
 
 ---
 
-**Generated:** 2026-04-20T22:34:12.682Z  
-**Commit:** `1763a63`
+**Generated:** 2026-04-21T00:52:48.111Z  
+**Commit:** `1505e11`
