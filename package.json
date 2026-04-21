@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "node scripts/generate-og-images.mjs && node scripts/generate-page-dates.mjs && astro build && npx pagefind --site dist",
+    "build": "node scripts/build-og-index.mjs && node scripts/generate-page-dates.mjs && astro build && npx pagefind --site dist",
     "build:astro": "astro build",
     "page-dates": "node scripts/generate-page-dates.mjs",
     "preview": "astro preview",
@@ -51,15 +51,14 @@
     "aws4fetch": "^1.0.20",
     "jspdf": "^4.2.0",
     "marked": "^15.0.12",
-    "stripe": "^20.3.1"
+    "stripe": "^20.3.1",
+    "workers-og": "^0.0.27"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.7",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.58.2",
-    "@resvg/resvg-js": "^2.6.2",
     "eslint": "^10.0.2",
-    "pagefind": "^1.3.0",
-    "satori": "^0.25.0"
+    "pagefind": "^1.3.0"
   }
 }

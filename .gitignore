@@ -5,6 +5,7 @@ src/data/articles.json
 src/data/posts.json
 src/data/faqs.json
 src/data/guides.json
+src/data/og-index.json
 scraped/
 .env
 .env.local

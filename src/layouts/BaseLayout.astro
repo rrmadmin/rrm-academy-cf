@@ -2,6 +2,7 @@
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import pageDates from '../data/page-dates.json';
+import { OG_VERSION } from '../lib/og-config';
 import '../styles/fonts.css';
 import '../styles/global.css';
 
@@ -76,7 +77,10 @@ const canonicalObj = new URL(rawCanonical);
 canonicalObj.pathname = canonicalObj.pathname.endsWith('/') ? canonicalObj.pathname : `${canonicalObj.pathname}/`;
 const canonical = canonicalObj.href;
 const siteOrigin = 'https://rrmacademy.org';
-// Convention-based OG image: derive slug from URL path
+// Convention-based OG image: derive slug from URL path, served on-demand by
+// functions/og/[[path]].js. Unknown slugs return a branded fallback card.
+// Bump OG_VERSION in src/lib/og-config.ts to force scraper re-unfurl after
+// palette or template changes.
 function routeToOgSlug(pathname) {
   if (pathname === '/' || pathname === '') return 'homepage';
   const paginationMatch = pathname.match(/^\/(library|commentary)\/page\/\d+\/?$/);
@@ -84,7 +88,7 @@ function routeToOgSlug(pathname) {
   return pathname.replace(/^\/|\/$/g, '').replace(/\//g, '-');
 }
 const ogSlug = routeToOgSlug(Astro.url.pathname);
-const conventionOgPath = `/images/og/og-${ogSlug}.png`;
+const conventionOgPath = `/og/${ogSlug}.png?v=${OG_VERSION}`;
 const resolvedOgImage = ogImage
   ? (ogImage.startsWith('http') ? ogImage : `${siteOrigin}${ogImage}`)
   : `${siteOrigin}${conventionOgPath}`;
