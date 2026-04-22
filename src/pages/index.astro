@@ -151,7 +151,7 @@ const jsonLd = {
     <!-- Hero -->
     <section class="hp-hero" aria-labelledby="hp-hero-h1">
       <div class="container container--narrow">
-        <p class="hp-hero__descriptor animate-enter" style="--stagger: 0;">The Training Your Doctor Didn't Get</p>
+        <p class="hp-hero__descriptor animate-enter" style="--stagger: 0;">A 501(c)(3) nonprofit education platform</p>
         <h1 id="hp-hero-h1" class="animate-enter" style="--stagger: 1;">Evidence-Based Restorative Reproductive Medicine Education</h1>
         <p class="hp-hero__subtitle animate-enter" style="--stagger: 2;">
           {articleCount.toLocaleString()} research articles and expert-led courses in restorative reproductive medicine.
@@ -160,8 +160,7 @@ const jsonLd = {
           <a href="/courses/" class="btn btn--primary">Explore Courses</a>
           <a href="/library/" class="btn btn--secondary">Browse {articleCount.toLocaleString()} Studies</a>
         </div>
-        <p class="hp-hero__nonprofit animate-enter" style="--stagger: 4;">A 501(c)(3) nonprofit education platform</p>
-        <p class="hp-hero__updated animate-enter" style="--stagger: 5;"><LastUpdated path="/" /></p>
+        <p class="hp-hero__updated animate-enter" style="--stagger: 4;"><LastUpdated path="/" /></p>
       </div>
       <div class="hp-hero__trust animate-enter" style="--stagger: 6;">
         <div class="hp-trust__logos">
@@ -579,7 +578,7 @@ const jsonLd = {
   .hp-hero__updated {
     font-size: 0.75rem;
     color: var(--text-muted);
-    margin-top: 0;
+    margin-top: var(--space-6);
     margin-bottom: var(--space-5);
   }
   .hp-hero__updated time {
@@ -634,8 +633,9 @@ const jsonLd = {
     .hp-hero {
       min-height: calc(100vh - 56px);
       padding: var(--space-10) 0 var(--space-8);
-      justify-content: flex-start;
-      padding-top: 18vh;
+    }
+    .hp-hero__updated {
+      display: none;
     }
     .hp-hero__descriptor {
       font-size: 0.6875rem;

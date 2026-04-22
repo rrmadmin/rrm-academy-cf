@@ -34,6 +34,7 @@ if (article.volume) {
   journalParts.push(vol);
 }
 if (article.pages) journalParts.push(article.pages);
+if (article.year) journalParts.push(String(article.year));
 const journalLine = journalParts.join(', ');
 
 // Build description for meta
@@ -137,7 +138,13 @@ function dedupeAuthorRecords(records: AuthorRec[]): AuthorRec[] {
 // hundreds of chars and not a valid organization name.
 function cleanAffiliationName(raw: string | null | undefined): string | null {
   if (!raw) return null;
-  const s = String(raw).trim();
+  let s = String(raw).trim();
+  if (!s) return null;
+  // Strip PubMed-style "Authors' Affiliations:" prefix (smart or straight quote)
+  s = s.replace(/^Authors['’]?\s*Affiliations?\s*:?\s*/i, '');
+  // Strip leading superscript-like number prefix ("1Slone", "2 Lombardi")
+  s = s.replace(/^\d+\s*/, '');
+  s = s.trim();
   if (!s) return null;
   if (s.length <= 200) return s;
   return s.slice(0, 197) + '...';
@@ -407,29 +414,35 @@ const citationMeta = {
         )}
       </div>
       {affiliations.length > 0 && (
-        <ul class="article-affiliations" data-pagefind-ignore aria-label="Author affiliations">
-          {affiliations.map((aff) => (
-            <li class="affiliation">
-              <span class="affiliation__name">{aff.name}</span>
-              {aff.ror && (
-                <a
-                  class="affiliation__ror"
-                  href={aff.ror}
-                  target="_blank"
-                  rel="noopener"
-                  aria-label={`ROR record for ${aff.name}`}
-                  title={`Research Organization Registry: ${aff.ror}`}
-                >
-                  <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M7 17L17 7"/>
-                    <path d="M8 7h9v9"/>
-                  </svg>
-                  <span class="affiliation__ror-label">ROR</span>
-                </a>
-              )}
-            </li>
-          ))}
-        </ul>
+        <details class="article-affiliations-wrap" data-pagefind-ignore>
+          <summary class="article-affiliations-summary">
+            <span>Author affiliations{affiliations.length > 1 ? ` (${affiliations.length})` : ''}</span>
+            <svg class="article-affiliations-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </summary>
+          <ul class="article-affiliations" aria-label="Author affiliations">
+            {affiliations.map((aff) => (
+              <li class="affiliation">
+                <span class="affiliation__name">{aff.name}</span>
+                {aff.ror && (
+                  <a
+                    class="affiliation__ror"
+                    href={aff.ror}
+                    target="_blank"
+                    rel="noopener"
+                    aria-label={`ROR record for ${aff.name}`}
+                    title={`Research Organization Registry: ${aff.ror}`}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M7 17L17 7"/>
+                      <path d="M8 7h9v9"/>
+                    </svg>
+                    <span class="affiliation__ror-label">ROR</span>
+                  </a>
+                )}
+              </li>
+            ))}
+          </ul>
+        </details>
       )}
       {article.year && (
         <span data-pagefind-meta={`year:${article.year}`} style="display:none"></span>
@@ -635,10 +648,32 @@ const citationMeta = {
     line-height: 1.6;
     margin-bottom: var(--space-2);
   }
+  .article-affiliations-wrap {
+    margin: var(--space-2) 0 var(--space-3);
+  }
+  .article-affiliations-summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--neutral-600);
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+    padding: 2px 0;
+  }
+  .article-affiliations-summary::-webkit-details-marker { display: none; }
+  .article-affiliations-summary:hover { color: var(--neutral-900); }
+  .article-affiliations-chevron {
+    transition: transform 150ms ease;
+  }
+  .article-affiliations-wrap[open] .article-affiliations-chevron {
+    transform: rotate(180deg);
+  }
   .article-affiliations {
     list-style: none;
     padding: 0;
-    margin: var(--space-2) 0 var(--space-3);
+    margin: var(--space-2) 0 0;
     display: flex;
     flex-direction: column;
     gap: var(--space-1);

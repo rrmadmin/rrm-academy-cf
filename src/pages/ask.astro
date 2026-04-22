@@ -12,7 +12,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <header class="ask-header">
         <p class="ask-eyebrow">Beta</p>
         <h1>Ask RRM Academy</h1>
-        <p class="ask-sub">Answers drawn from our research library, FAQs, and pillar guides. AI-generated -- verify against the cited sources.</p>
+        <p class="ask-sub">Answers drawn from our research library, FAQs, and pillar guides.</p>
       </header>
 
       <div class="ask-thread" id="ask-thread" aria-live="polite"></div>
@@ -52,6 +52,29 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       function updateCount() { count.textContent = input.value.length + ' / 500'; }
       input.addEventListener('input', updateCount);
       updateCount();
+
+      // Rotating example placeholders (only while input is empty + unfocused)
+      var examples = [
+        'What does RRM say about PCOS and progesterone?',
+        'How does NaProTechnology treat endometriosis?',
+        'Can FABMs help identify ovulatory dysfunction?',
+        'What are the success rates of RRM for unexplained infertility?',
+        'How does excision surgery compare to ablation for endometriosis?',
+        'What is the evidence behind excision surgery for endometriosis?',
+        'How does RRM differ from IVF for recurrent miscarriage?',
+        'What role does luteal phase support play in RRM?'
+      ];
+      var pIdx = 0;
+      function rotatePlaceholder() {
+        if (document.activeElement === input || input.value !== '') return;
+        input.classList.add('placeholder-fading');
+        setTimeout(function () {
+          pIdx = (pIdx + 1) % examples.length;
+          input.placeholder = examples[pIdx];
+          input.classList.remove('placeholder-fading');
+        }, 400);
+      }
+      setInterval(rotatePlaceholder, 4500);
 
       // Cmd+Enter (Mac) or Ctrl+Enter (Win/Linux) submits the form
       input.addEventListener('keydown', function (e) {
@@ -257,10 +280,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   }
   .ask-form textarea {
     width: 100%; border: none; background: transparent; resize: vertical;
-    font-family: 'Inter', sans-serif; font-size: 0.9375rem; color: var(--text-primary);
+    font-family: 'Inter', sans-serif; font-size: 1rem; color: var(--text-primary);
     line-height: 1.5;
   }
   .ask-form textarea:focus { outline: none; }
+  .ask-form textarea::placeholder {
+    color: var(--text-muted);
+    opacity: 0.65;
+    font-style: italic;
+    transition: opacity 0.4s;
+  }
+  .ask-form textarea.placeholder-fading::placeholder {
+    opacity: 0;
+  }
   .ask-form__row { display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-3); }
   .ask-count { font-size: 0.75rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 

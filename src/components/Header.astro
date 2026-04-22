@@ -128,7 +128,6 @@ const mobileNavSections = [
       <!-- Mobile-only footer inside nav panel -->
       <div class="mobile-nav-footer">
         <div class="mobile-nav-footer__actions">
-          <a href="/ask/" class="btn btn--secondary mobile-ask-btn">Ask <span class="mobile-ask-btn__beta">Beta</span></a>
           <a href="/account/" class="btn btn--secondary">Account</a>
           <a href="/donate/" class="donate-btn">Donate</a>
           <div class="mobile-nav-footer__utils">
@@ -155,15 +154,18 @@ const mobileNavSections = [
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v8l3-3 3 3V2"/><path class="book-body" d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/></svg>
         <span class="saved-count" id="saved-count">0</span>
       </a>
-      <a href="/ask/" class="ask-header-btn" id="desktop-ask-btn" title="Ask RRM Academy (beta)">
+      <a href="/ask/" class="ask-header-btn" id="desktop-ask-btn" title="Ask RRM Academy">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         <span>Ask</span>
-        <span class="ask-header-btn__beta">Beta</span>
       </a>
       <a href="/account/" class="btn btn--secondary btn--pill" id="desktop-account-btn">Account</a>
       <a href="/donate/" class="donate-btn" id="desktop-donate-btn">Donate</a>
     </div>
 
+    <a href="/ask/" class="mobile-ask-top" title="Ask RRM Academy">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>Ask</span>
+    </a>
     <input type="checkbox" id="nav-toggle" class="sr-only" aria-label="Toggle menu" />
     <label for="nav-toggle" class="mobile-toggle" aria-hidden="true">
       <span class="hamburger"></span>
@@ -362,13 +364,13 @@ const mobileNavSections = [
     align-items: center;
     justify-content: center;
     font-family: 'Inter', sans-serif;
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     font-weight: 500;
     line-height: 1;
-    padding: 8px 24px;
+    padding: 10px 24px;
     color: var(--white);
     background: var(--purple-700);
-    border: none;
+    border: 1px solid var(--purple-700);
     border-radius: var(--radius-pill);
     text-decoration: none;
     box-shadow: 0 1px 2px rgba(0,0,0,0.1);
@@ -495,7 +497,7 @@ const mobileNavSections = [
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 18px;
+    padding: 9px 17px;
     line-height: 1;
     color: var(--text-secondary);
     background: var(--bg-surface);
@@ -513,23 +515,29 @@ const mobileNavSections = [
     background: color-mix(in srgb, var(--accent) 6%, transparent);
     text-decoration: none;
   }
-  .ask-header-btn__beta {
-    font-size: 0.625rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+  /* Mobile Ask button (top bar, left of hamburger) */
+  .mobile-ask-top {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    line-height: 1;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    text-decoration: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  }
+  .mobile-ask-top:hover {
     color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 12%, transparent);
-    padding: 1px 5px;
-    border-radius: var(--radius-sm);
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 6%, transparent);
+    text-decoration: none;
   }
-  .mobile-ask-btn { display: inline-flex; align-items: center; gap: 6px; }
-  .mobile-ask-btn__beta {
-    font-size: 0.625rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
-    color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent);
-    padding: 1px 5px; border-radius: var(--radius-sm);
-  }
-
   /* Theme toggle (mobile nav footer) */
   .theme-toggle {
     display: flex;
@@ -567,10 +575,10 @@ const mobileNavSections = [
   /* Account button pill (secondary style matching donate shape) */
   .btn--pill {
     font-family: 'Inter', sans-serif;
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     font-weight: 500;
     line-height: 1;
-    padding: 8px 24px;
+    padding: 10px 24px;
     border-radius: var(--radius-pill);
   }
 
@@ -661,8 +669,8 @@ const mobileNavSections = [
     .main-nav { display: none; }
     .header-search { display: none; }
     .header-actions { display: none; }
-    .mobile-search-btn { display: flex; margin-left: auto; }
-    .mobile-toggle { display: block; margin-left: auto; }
+    .mobile-ask-top { display: inline-flex; margin-left: auto; }
+    .mobile-toggle { display: block; }
 
     /* ── Nav panel (open state) ── */
     .site-header:has(#nav-toggle:checked) .main-nav {
@@ -811,9 +819,6 @@ const mobileNavSections = [
       font-size: 0.8125rem;
       justify-content: center;
       width: 100%;
-    }
-    .mobile-nav-footer__actions .mobile-ask-btn {
-      grid-column: 1 / -1;
     }
     .mobile-nav-footer__utils {
       grid-column: 1 / -1;

@@ -50,7 +50,7 @@ if (isoDate) {
 ---
 {isoDate && formatted && (
   <time datetime={isoDate} class:list={['last-updated', className]}>
-    {prefix} {formatted}
+    {`${prefix} ${formatted}`}
   </time>
 )}
 
