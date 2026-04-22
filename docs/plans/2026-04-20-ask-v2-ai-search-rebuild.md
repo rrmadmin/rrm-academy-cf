@@ -1,191 +1,268 @@
-# /ask v2 — Rebuild on CF AI Search Agent Primitive
+# Search Rebuild — /library first, /ask follows
 
 **Date:** 2026-04-20
 **Status:** Plan (not yet executing)
 **Replaces:** `2026-04-16-nlweb-integration.md`
 **Owner:** Brian
-**Blast radius:** Customer-facing `/ask` endpoint. Ship behind feature flag, rollback = flip flag.
+**Sequencing decision:** Pivoted 2026-04-20 — /library search leads (evidence-backed pain), /ask v2 follows (opportunistic, near-free once namespace is live).
+**Blast radius:** /library search bar (449 queries / 14 days) then /ask (3 queries / 14 days). Both ship behind independent feature flags; rollback = flip flag.
+
+## Evidence — why this order
+
+Pulled `rrm-analytics.search_log` for the last 14 days (2026-04-20):
+
+| Source | Volume | Avg latency | Avg results | Errors |
+|--------|--------|-------------|-------------|--------|
+| semantic (Vectorize) | 449 | 359 ms | 5.8 | 0 |
+| pagefind (client) | 411 | n/a | 10.0 | 0 |
+| ask | 3 | 22190 ms | n/a | 0 |
+
+**User signal:** Brian reports intermittent miss on /library ("semantic isn't quite smart enough — I can tell"). Query log confirms the shape of his pain — short exact-term queries where pure vector drifts:
+
+- `thyroid` searched 3× (capped at 5 results each time — same user returning, not finding it)
+- `whittaker` searched 2× (name query — Vectorize returns semantic neighbors, not exact byline matches)
+- `levothyroxine`, `isthmocele`, `short follicular phase`, `cyst` — all at the k=5 cap, meaning "enough returned" not "good returned"
+- `/ask` saw 3 queries in 2 weeks — not yet a source of user pain, only Naomi has surfaced tuning asks (captured below)
+
+The primitive's hybrid retrieval (BM25 + vector + optional cross-encoder reranker) is designed for exactly this class of miss. Premise is evidence-backed on /library; /ask v2 rides along once the corpus + binding are proven.
 
 ## Goal
 
-Rebuild the `/ask` conversational layer on Cloudflare's new **AI Search agent primitive** (`ai_search_namespaces` binding, announced 2026-04-16, evolution of AutoRAG). Gain hybrid BM25 + vector retrieval, richer metadata boosting, and per-tenant provisioning pattern that whittaker.ai will reuse.
+Unify /ask and /library search onto Cloudflare's AI Search agent primitive (`ai_search_namespaces` binding, released 2026-04-16, evolution of AutoRAG). One namespace, one corpus, two consumers. Fix exact-term drift on /library. Inherit the same upgrade on /ask with no extra corpus work. Replace the separate `scripts/embed-library-ci.mjs` embedding CI step with one `uploadAndPoll()` loader.
 
-Ship without breaking the live `/ask` page, without regressing AEO baseline, and without touching the UI.
-
-## Today (what's live)
-
-- AutoRAG instance `rrm-academy-ask` (account `ecf2c5bc8b5ebd634bcb587b3890910a`, rendered-site crawl over rrmacademy.org).
-- Public OpenAI-compatible endpoint at `https://383a8638-22b4-46c2-823d-1d42dbcb2bf3.search.ai.cloudflare.com/chat/completions`.
-- `functions/api/ask.js` — session auth, blocked check, KV rate limit (20/day), input validation, `AbortSignal.timeout(28000)`, AE logging + D1 `rrm-analytics` search-query logging, editorial system prompt inline.
-- `src/pages/ask.astro` — unchanged UI, Cmd+Enter submit, markdown, citations.
-- Generator: Llama 3.3 70B.
-- Secret: `NLWEB_SEARCH_URL` on CF Pages `rrm-academy` project.
-- Known gaps: cold-start latency up to 15s, CF Pages `_headers` 4xx→200 corruption (workaround in ask.astro).
-
-## Why rebuild now
-
-1. **Hybrid retrieval fixes exact-term drift.** Queries like "NaProTechnology", "CA-125", "recXXX" IDs, drug names, and protocol acronyms currently drift because pure-vector misses exact strings. BM25 via the new primitive matches them directly.
-2. **Programmatic corpus control.** `uploadAndPoll()` lets us feed library articles with rich metadata (year, authors, domain, rrm_relevance, status) instead of relying on HTML crawl. Lets us boost fresh/high-relevance articles. Lets us exclude draft or retracted records surgically.
-3. **Unlocks whittaker.ai per-practice.** Paid tier allows 5,000 instances per account. The binding supports runtime `create()`. Once the shape is proven on `/ask`, whittaker.ai provisions one namespace per clinic at deploy.
-4. **Better observability.** First-party binding returns structured results the Worker owns — no parsing OpenAI-shaped responses, no brittle `choices[0].message.citations || context || []` extraction.
+**Hard cost constraint:** generation stays on Workers AI (Llama 3.3 70B today, swap to Kimi K2.5 only if the RRM guardrail harness justifies it). No Sonnet, no Anthropic API for /ask. Retrieval is the only paid-beta layer, and CF AI Search is free during beta with 30-day billing notice.
 
 ## Non-goals
 
-- **Do not redesign `src/pages/ask.astro`.** UI stays identical.
-- **Do not change the response contract.** `{ answer, citations }` shape preserved — citations remain `{ url, title }`.
-- **Do not touch `/search` (Pagefind) or `/api/search/semantic` (Vectorize).** Separate systems, separate plan if we unify later.
-- **Do not alter rate limits, auth, or logging.** Keep 20/day KV limit, session + blocked check, D1 `rrm-analytics` writes, AE `worker_events` writes.
-- **Do not ship whittaker.ai changes in this plan.** Prove the pattern here first.
+- Do not redesign `src/pages/ask.astro` or the SearchBar visual shell (polish lands in Wave 2 Phase 8, separately flagged).
+- Do not change response contracts. `{ answer, citations }` for /ask, `{ results: [...] }` for /library (with one added optional `feedback_token` field for the miss button).
+- Do not remove Pagefind — client-side type-ahead stays, it wins on latency and offline.
+- Do not touch rate limits, auth, or D1 logging. Preserve exactly.
+- Do not ship whittaker.ai per-practice in this plan. Prove the pattern here first.
+- Do not introduce Sonnet or any off-platform LLM. Workers AI only.
 
-## Architecture decision — retrieval + generation split
+## Wave 1 — /library semantic replacement (pain is here)
 
-The old instance exposed `/chat/completions` (retrieval + generation bundled). The new primitive's `search()` returns retrieved chunks; generation is caller-owned.
+### Architecture
 
-**Decision:** split them. Retrieve via `env.ASK_KB.search({...})`, then run generation via `env.AI.run(model, { messages: [...] })` with the retrieved chunks injected into the prompt.
+Replace `functions/api/search/semantic.js` (Vectorize-backed) with `functions/api/search/library.js` (AI Search namespace). SearchBar.astro still fuses via Reciprocal Rank Fusion; the semantic leg swaps engine underneath.
 
-**Why split:**
-- Swap generation models independently (Llama 3.3 70B → Kimi K2.5 → future) without re-indexing.
-- System prompt (editorial rules) stays plain-text and greppable in the repo, not stapled to a service URL.
-- Citation extraction is deterministic from `search()` results, not parsed out of a model response.
-- Matches the Agents SDK pattern used in `agentic-inbox` and future rrm-mcp tools.
+Namespace: `rrm-academy-search` (single instance, hybrid index: BM25 + vector, Porter tokenizer for natural-language corpus, cross-encoder reranker evaluated in Phase 3).
 
-**Trade-off:** two round trips instead of one. Mitigated by: search is fast (<500ms typically), Workers AI is colocated.
+Consumers:
 
-## Data-loading strategy
-
-Two sources into a single namespace instance:
-
-1. **Programmatic upload (primary)** — For every published library article, upload a derived markdown doc:
-   ```
-   title, authors, year, domain, rrm_relevance, abstract, URL
-   + body if fulltext linked
-   ```
-   Metadata fields on each upload: `type=article`, `year`, `rrm_relevance`, `domain`, `status=published`. Enables `boost_by: [{ field: "rrm_relevance", direction: "desc" }]` and `{ field: "year", direction: "desc" }` at query time. Re-runs on every full deploy (not every push — too expensive). Use `uploadAndPoll()` batches, resume-safe by content hash stored alongside in D1 `ai_search_docs` table.
-
-2. **Site crawl (secondary)** — Let the namespace also crawl rrmacademy.org for pages we don't load programmatically (commentary, FAQs, pillar guides, glossary). Same site-crawl toggle the old AutoRAG used.
-
-Corpus size target: ~3,200 articles + ~20 FAQs + ~132 glossary terms + ~48 commentary posts + ~7 pillar pages ≈ 3,400 docs. Well within the 500k-file hybrid ceiling.
-
-## Model choice
-
-| Model | Pros | Cons |
-|-------|------|------|
-| `@cf/meta/llama-3.3-70b-instruct-fp8-fast` (current) | Known-good, stable on RRM content, generous context | No tool-calling surface, older |
-| `@cf/moonshotai/kimi-k2.5` (what agentic-inbox uses) | Newer, fast, good for structured output | Less tested on RRM editorial prompt |
-
-**Recommendation:** keep Llama 3.3 70B for v2 launch. Swap later only if guardrail harness shows Kimi matches or exceeds Llama on the RRM 31-query harness. Model swap is a one-line change post-split.
-
-## Implementation phases
+| Consumer | Endpoint | Operation | Response |
+|----------|---------|-----------|----------|
+| /library SearchBar | `/api/search/library` | `search()` | `{ results, feedback_token }` |
+| /ask (Wave 2) | `/api/ask` | `search()` + `AI.run()` | `{ answer, citations }` |
 
 ### Phase 0 — Spike (1-2 hours, no user impact)
 
-- Create throwaway namespace `ask-spike` in the CF dashboard.
-- Verify `ai_search_namespaces` binding works inside a CF Pages Function (not just a standalone Worker). If Pages Functions don't support it yet, the whole plan stops and we pivot to a dedicated Worker with service binding.
-- Run `uploadAndPoll()` against 3 sample docs. Query with `search()`. Confirm the result shape, citation fields, and metadata boost behavior.
-- Deliverable: one-paragraph finding in this doc under "Spike results".
+Verify in a throwaway Worker:
 
-### Phase 1 — Corpus loader script (1 day)
+1. `ai_search_namespaces` binding works inside **CF Pages Functions**, not just standalone Workers. If Pages-only doesn't support it yet, fallback = dedicated Worker + service binding from Pages. This is the single biggest unknown.
+2. Result shape from `search()` — what fields land, how citations surface, how score + rank appear.
+3. `uploadAndPoll()` behavior with markdown + metadata object. Does frontmatter get stripped? Does metadata live inside the file or the third argument?
+4. **Metadata filter semantics** — does `filter: { type: { $in: [...] } }` work, or is it post-query filtering? Upload 3 docs with `type=article|faq|post`, then query with a filter clause. Also test: what happens when a doc is missing a filter field — excluded or kept? (Supportive-reviewer note — highest-leverage Phase 0 check because Phase 8 facets depend on it.)
+5. Can one instance be fed by both programmatic `uploadAndPoll()` AND site crawl without conflict?
 
-- `scripts/ask-corpus-upload.mjs` — standalone Node script.
-- Reads `src/data/articles.json`, filters `status === 'published'`, emits a derived markdown per article with frontmatter metadata.
-- Reads hash log from D1 `ai_search_docs` table (new), skips unchanged docs.
-- Uses `@cloudflare/ai` client or raw REST `uploadAndPoll` endpoint with account API token.
-- Logs progress + writes hash + namespace doc_id into D1 for idempotency.
-- Manual run first; later hooked into `deploy.yml` after green deploys.
+Deliverable: one-paragraph "Spike results" appended here. Kill-switch: if Pages Functions don't support the binding and a service-bound Worker adds >300ms, stop and reassess.
 
-### Phase 2 — New endpoint `/api/ask` v2 (behind flag)
+### Phase 1 — Corpus loader (1 day)
 
-- Dispatch the **coder agent** (mandatory for `functions/api/` edits per project rules). Brief includes:
-  - Read siblings in `functions/api/` before writing (R6).
-  - Preserve the 503-on-missing-binding, try/catch-around-fetch, `{ answer, citations }` contract, no err.message to client.
-  - Use `context.env.ASK_KB` binding for search.
-  - Use `context.env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', ...)` for generation.
-  - Inject retrieved chunks into the user turn before the model call.
-  - Preserve D1 `rrm-analytics` logging + AE `worker_events` logging identically.
-  - Flag `ASK_V2_ENABLED` (env var): when falsy, fall through to current NLWeb path; when truthy, use the new path.
-- System prompt moves to `functions/api/_ask_prompt.js` so it's imported, not duplicated.
-- Add `scripts/guard.mjs` entry for the new shared prompt file (editorial rules are security-adjacent — protect against silent tampering).
+`scripts/search-corpus-upload.mjs`:
+
+- Reads `src/data/articles.json`, `posts.json`, `faqs.json`, `glossary.json`, `courses.json`, plus pillar pages.
+- Emits one derived markdown per doc with rich metadata: `type`, `year`, `rrm_relevance`, `domain`, `authors[]`, `status`, `url`, `updated_at`.
+- Hash log in new D1 table `ai_search_docs` (`doc_id, content_hash, uploaded_at, source_type`). Skip unchanged docs.
+- **Reconcile pass** (supportive-reviewer #1): diff D1 published set against `ai_search_docs.doc_id`. Delete orphans via namespace delete API. Dry-run default, `--apply` flag to execute. Hard max-delete guard — refuses if >50 deletions in one run.
+- **Idempotency** (P17 below): second run on unchanged source must produce zero mutations, zero hash writes.
+- Runs manually for Phase 0-3 validation. Wired into `deploy.yml` only after Phase 5 cutover.
+
+### Phase 2 — `/api/search/library` endpoint (1 day, flagged)
+
+Dispatch **coder agent** (mandatory for `functions/api/` edits per project rules).
+
+- New file: `functions/api/search/library.js`. Leaves `semantic.js` intact during flag window.
+- `SEARCH_V2_ENABLED` gate via KV (`COMMUNITY_KV` key `feature:search_v2`) — **not env var**. Flips globally in <60s, no deploy needed. Middleware short-circuits on read, resilient to v2 module failing to load at boot (supportive-reviewer #5).
+- Response contract: `{ results: Array<{ url, title, type, snippet, score, year?, domain?, rrm_relevance? }>, feedback_token: string }`. Preserve SearchBar RRF logic unchanged.
+- IP rate limit preserved (20/min per cf-connecting-ip) in the new file.
+- `boost_by` configurable per request via query params, default `[{ field: 'rrm_relevance', direction: 'desc' }, { field: 'year', direction: 'desc' }]`.
+- Type filter: `?type=article|post|faq|glossary|course` → maps to namespace filter clause validated in Phase 0.
+- AE logging: `event='library_search_v2'` — duration, result count, http status, reranker_used, boost_fields.
+- D1 `rrm-analytics.search_log` writes with `source='semantic_v2'` during rollout, flipped to `'semantic'` at cutover (keep historical comparison clean).
+- System rule: no `err.message` to client; structured `{ error: 'code' }` only; 503 on missing binding.
 
 ### Phase 3 — Side-by-side eval (half day)
 
-- Run `scripts/aeo-check.py` 25-query baseline against both v1 and v2, tag output.
-- Run `test-guardrails.js` 31-query harness against v2. Compare to 87% v1 baseline.
-- Manual smoke: 10 hand-picked queries including exact-string targets ("CA-125", "NaProTechnology", "recXXX lookups", "Hilgers protocol", "Creighton Model"), each tested on v1 and v2, citations compared.
-- Deliverable: eval table in this doc under "Eval results". Go/no-go criteria:
-  - AEO ≥ v1 baseline (6/25) — regress = no-go.
-  - Guardrail ≥ 87% — regress = no-go.
-  - Citation URL validity 100% (no 404s from v2 citations) — any broken URL = no-go.
-  - P50 latency ≤ current; P95 ≤ 20s — breach = tune before rollout.
+Miss corpus built from 14-day search log (already have it). 20 queries covering:
 
-### Phase 4 — Feature-flag rollout
+- **Exact-term targets:** `thyroid`, `whittaker`, `levothyroxine`, `isthmocele`, `NaProTechnology`, `CA-125`, `Hilgers`, `Creighton`, `recXXX` IDs, PMID lookups.
+- **Conceptual:** `short follicular phase`, `recurrent miscarriage testing`, `endo symptoms I missed`, `PCOS without weight gain`, `progesterone support in luteal phase`.
+- **Type-scoped:** same query across `type=article` vs `type=faq`.
 
-- Flip `ASK_V2_ENABLED=true` for admin user(s) only (gate on `user.is_admin` inside ask.js).
-- 24h observation: D1 `search_queries` source tagged `ask_v2`, AE queries filtered by event.
-- Flip to all authenticated users.
-- 48h observation.
-- Remove the flag and the v1 code path.
+For each: run v1 (`semantic.js`) and v2 (`library.js`), capture top-5 results side by side. Score manually 1-5 on relevance. Record latency P50/P95.
 
-### Phase 5 — Retire v1
+**Reranker A/B** — same set, reranker on vs off. Keep on only if NDCG@3 improves ≥0.05 at ≤100ms extra latency.
 
-- Delete `NLWEB_SEARCH_URL` secret from CF Pages.
-- Decommission AutoRAG instance `rrm-academy-ask` (or leave it dormant — free during beta anyway, kept as escape hatch for 2 weeks).
-- Remove 1Password item "NLWeb Search URL" after 30 days.
-- Update memory `nlweb-ask-project.md` → rewrite as `ask-v2-project.md`.
-- Update `CLAUDE.md` AI Search Instance row.
+Deliverable: eval table appended to this doc.
 
-## Proof gates / acceptance
+**Go/no-go gates:**
+- Top-3 relevance median ≥ v1.
+- P95 latency ≤ 600ms end-to-end (v1 is ~500ms after fusion).
+- No citation URL regressions (every returned URL returns 200).
+- Zero `snippet` field with HTML escape bugs.
 
-Every phase must satisfy:
+### Phase 4 — Miss-button sidecar (half day, parallel with Phase 3)
 
-- **P1 — Binding guard.** `if (!env.ASK_KB) return json({ error: 'service_unavailable' }, 503);` present. No silent 200.
-- **P2 — Fetch/try-catch.** Both `.search()` and `.AI.run()` wrapped; upstream timeout preserved; no err.message leaked.
-- **P3 — Response shape stable.** Returns `{ answer: string, citations: Array<{url, title?}> }`. ask.astro untouched.
-- **P4 — Logging parity.** Every v2 call writes to `rrm-analytics.search_queries` with `source='ask'` (unchanged) or `source='ask_v2'` during rollout, then back to `'ask'`. AE writeDataPoint preserved, not wrapped in waitUntil.
-- **P5 — Editorial rules enforced.** System prompt imported from `_ask_prompt.js`; grep for the IVF reframe phrase must return hits in both v2 code paths.
-- **P6 — Rate limit preserved.** Same KV key pattern (`ask:rate:${user.id}:${utcDateKey()}`), same cap, same 48h TTL.
-- **P7 — Guard manifest.** `_ask_prompt.js` hash-registered via `npm run guard:update`.
-- **P8 — arise-scan clean.** Run `arise-scan --json --files functions/api/ask.js functions/api/_ask_prompt.js`; zero findings on silent-failure / unwrapped-await / error-leak rules.
-- **P9 — Coder agent sibling check.** Agent reports sibling patterns matched in same directory.
-- **P10 — E2E live check.** After cutover, real HTTP POST to `/api/ask` returns valid answer + ≥1 citation with reachable URL.
+Ship a "didn't find what I needed" signal on SearchBar regardless of engine, so we build an ongoing miss corpus from real usage.
+
+- Schema: `ALTER TABLE search_log ADD COLUMN feedback TEXT;` (values: `miss`, `hit`, null). Or new table `search_feedback(log_id, feedback, created_at)` to avoid write-amplifying `search_log`. Pick via Phase 0 comment.
+- Endpoint: `POST /api/search/feedback` with body `{ token, value: 'miss' | 'hit' }`. `token` is the `feedback_token` returned from `/api/search/library` and `/api/search/semantic` — HMAC-signed `{log_id, exp}`, 1-hour TTL.
+- SearchBar UI: small "didn't find it?" button below results. Click → POST + visual confirmation. No modal, no form.
+- Admin view: extend `/api/admin/search-queries` with `feedback` filter.
+
+This ships independent of the engine swap. Works on v1, works on v2. Gives us a permanent diagnostic tool.
+
+### Phase 5 — Rollout
+
+- Flip KV `feature:search_v2=true` for admin user(s) only (check `user.is_admin` in `library.js`).
+- 24h observation, **health-based abort** (supportive-reviewer #2):
+  - Abort if `semantic_v2` 5xx rate >2%, OR P95 >1s, OR mean results_count drops >30% vs `semantic` baseline over any 1h window.
+  - Gate is a query against `worker_events`, not eyeballing dashboards.
+- Flip to all users. 48h observation under same gates.
+- Remove flag + v1 code path.
+
+### Phase 6 — Retire Vectorize
+
+- 2 weeks after v2 cutover, with zero miss-rate regression.
+- Delete `functions/api/search/semantic.js` (guarded file — run `npm run guard:update`).
+- Delete `scripts/embed-library-ci.mjs`.
+- Decommission Vectorize index `rrm-library-embeddings`.
+- Update CLAUDE.md "Semantic Search" section.
+
+### Phase 7 — SearchBar UX upgrade (1-2 days, engine-independent, separately flagged)
+
+Ships independently of Waves. Gated on `SEARCHBAR_V2_ENABLED` KV flag.
+
+- Facet chips: type, year range, domain, rrm_relevance tier. Map to query params (real re-query, bookmarkable URLs — P15 below).
+- Result previews: 2-line snippet with matched-term highlighting via `<mark>` on the snippet field. Must escape HTML before wrapping (supportive-reviewer proof gate adjacent).
+- Type badge + year + domain pill per result.
+- "Did you mean": on zero results, show the reranker's top retrieval without filters.
+- Keyboard: `/` focuses, `Esc` clears, arrow keys navigate.
+- Empty state: "popular queries" from `search_log` top-N last-30d. Refreshes weekly.
+
+Read `docs/design/design-system.json` before any styling.
+
+## Wave 2 — /ask v2 (opportunistic, near-free after Wave 1)
+
+Starts only after Wave 1 Phase 5 cutover is green. Reuses the already-loaded corpus in the same namespace.
+
+### Architecture
+
+Split retrieval from generation. Retrieve via `env.SEARCH_KB.search({...})`, generate via `env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', { messages: [...] })` with retrieved chunks in the user turn.
+
+**Why split:** swap models without re-indexing, system prompt stays greppable in repo, citation extraction is deterministic. Trade-off: two round trips instead of one. Verified acceptable in Wave 1 Phase 3 latency numbers.
+
+### Phase 8 — `/api/ask` v2 endpoint (1 day, flagged)
+
+- Coder agent.
+- `ASK_V2_ENABLED` KV flag.
+- System prompt moves to `functions/api/_ask_prompt.js` (imported, not duplicated). Add to guard manifest.
+- `functions/api/search/library.js` stays untouched — /ask calls the namespace directly via its own binding, not through the /library endpoint. Keeps the contracts clean.
+- Preserve: 20/day KV rate limit, session + blocked check, D1 search_log write (`source='ask'`), AE writeDataPoint (direct, never `waitUntil`'d), `{ answer, citations }` response contract.
+
+### Phase 9 — Naomi's /ask tuning backlog
+
+(Brian to forward Naomi's specific observations — placeholder section for her input.)
+
+Known candidates to capture once notes arrive:
+- Editorial rule refinements in `_ask_prompt.js`
+- Citation preference (library URLs only? specific journal tiers?)
+- Tone calibration for specific query types (e.g. patient-facing vs clinician-facing)
+- Answer length / structure preferences
+
+Ship as targeted edits to `_ask_prompt.js`, each under a "Naomi tuning" commit prefix, each testable against a pinned query set she approves.
+
+### Phase 10 — Generator model evaluation (half day, optional)
+
+Only if Phase 8 data shows Llama 3.3 70B falls short on the RRM 31-query guardrail harness (currently 87% baseline).
+
+- A/B: Llama 3.3 70B vs Kimi K2.5 on the harness + Naomi's pinned queries.
+- Swap only if Kimi meets or beats Llama on harness AND Naomi approves tone.
+- One-line change in `ask.js` post-split.
+- Hard constraint: must stay on Workers AI. Sonnet is off the table until a revenue case justifies the per-query cost.
+
+### Phase 11 — /ask v2 rollout + retire v1
+
+Same pattern as Wave 1: admin → all → cutover → 2-week dormant rollback.
+
+## Proof gates (applies across both waves unless scoped)
+
+- **P1 — Binding guard.** Missing env/binding returns 503 JSON, never silent 200.
+- **P2 — Fetch try/catch.** Every external call (namespace `search()`, `uploadAndPoll()`, `AI.run()`) wrapped. No `err.message` leaked.
+- **P3 — Response shape stable.** `{ results }` for /library, `{ answer, citations }` for /ask. ask.astro + SearchBar untouched.
+- **P4 — Logging parity.** `search_log` writes for every search + ask request.
+- **P5 — Editorial rules enforced.** [**/ask only**] `_ask_prompt.js` imported; grep for IVF-reframe phrase returns hits.
+- **P6 — Rate limit preserved.** Same KV key patterns, same caps, same TTLs.
+- **P7 — Guard manifest.** New files hash-registered via `npm run guard:update`.
+- **P8 — arise-scan clean.** Zero findings on `silent-failure`, `unwrapped-await`, `error-leak` for new files.
+- **P9 — Coder agent sibling check.** Agent reports siblings read and patterns matched.
+- **P10 — E2E live check post-cutover.** Real HTTP POST returns valid result + ≥1 reachable URL.
+- **P11 — Type filter.** `?type=article` returns only articles; `?type=faq` returns only FAQs.
+- **P12 — SearchBar fallback.** If /api/search/library errors, Pagefind still returns. No blank state.
+- **P13 — Corpus completeness.** After loader run, namespace doc count ≥ v1 counts (articles ≥ 2500, posts ≥ 5, faqs ≥ 10, glossary ≥ 100).
+- **P14 — Pagefind untouched.** SearchBar still loads Pagefind index on mount; JS-off keyword search still works.
+- **P15 — Facet URLs bookmarkable.** Every facet combination produces a shareable URL (query-string state).
+- **P16 — Citation URL shape-check at write time** (supportive-reviewer). Every extracted citation must match `^/library/rec[a-z0-9]+/?$` or `^https://rrmacademy\.org/`. Reject malformed, log `citation_malformed`.
+- **P17 — Loader idempotency** (supportive-reviewer). Two consecutive runs on unchanged source produce zero namespace mutations and zero `ai_search_docs` writes.
+- **P18 — Reconcile dry-run default.** `scripts/search-corpus-upload.mjs --reconcile` without `--apply` writes nothing.
+- **P19 — KV rollback works when module fails to load** (supportive-reviewer). Test: intentionally break v2 import, confirm middleware short-circuit returns 503 with `Retry-After` before the v2 module initializes.
 
 ## Rollback
 
-- **Pre-cutover:** flip `ASK_V2_ENABLED=false`. Traffic reverts to v1 path on next request. No deploy needed.
-- **Post-cutover:** revert the commit that removed the v1 path; redeploy. `NLWEB_SEARCH_URL` secret stays in place for 2 weeks minimum after Phase 5 exactly for this reason.
+- Pre-cutover: `npx wrangler kv:key put --binding=COMMUNITY_KV feature:search_v2 false` — live globally in <60s.
+- Post-cutover (v1 code still in repo): flip flag back, redeploy only if the middleware short-circuit is inadequate.
+- After v1 deletion: revert commit, redeploy. Vectorize index stays dormant 2 weeks minimum as escape hatch.
 
 ## Risks
 
-| Risk | Likelihood | Mitigation |
-|------|-----------|------------|
-| `ai_search_namespaces` not supported in CF Pages Functions | Medium | Phase 0 spike. Fallback: dedicated Worker with service binding from Pages. |
-| Hybrid retrieval returns different result shape than expected | Low | Phase 0 verifies result shape. Citation extractor is deterministic. |
-| Corpus upload exceeds free tier during spike | Low | 3,400 docs well under 100k free-tier ceiling; beta pricing = free. |
-| Cold-start latency higher than current | Medium | Monitor AE duration_ms by percentile. 28s timeout ceiling unchanged. |
-| Kimi/Llama drift from editorial rules under hybrid retrieval | Medium | Guardrail harness 87% must hold as go-gate in Phase 3. |
-| Billing surprise post-beta | Low | CF has 30-day notice before billing. Budget alarm on Workers AI spend. |
-| Whittaker.ai pattern assumption wrong | Low | Scoped out of this plan. Proved separately after v2 ships. |
-
-## Open questions (resolve during Phase 0)
-
-1. Does `ai_search_namespaces` binding work inside CF Pages Functions, or Workers only?
-2. What's the actual result shape of `search()` — metadata fields returned, score, rank, chunk text?
-3. Does `uploadAndPoll()` accept markdown with frontmatter, or does it strip? Metadata goes via the third-argument object regardless?
-4. Can we configure one instance with **both** programmatic upload **and** site crawl, or do they conflict?
-5. Is there a first-party streaming response (SSE) on the binding, or is generation always caller-owned? (Probably caller-owned given the split architecture anyway.)
+| Risk | Mitigation |
+|------|-----------|
+| `ai_search_namespaces` not supported in CF Pages Functions | Phase 0 spike. Fallback = dedicated Worker + service binding. |
+| Metadata filter semantics not as expected | Phase 0 check #4. Phase 7 facets depend on it. |
+| Corpus loader drifts away from D1 (retractions, archives) | Phase 1 reconcile pass with dry-run + max-delete guard. |
+| Namespace fragmentation across future sites (whittaker.ai, neofertility.ie, IIRRM, lunira) | Explicitly scoped out. Revisit as a separate "multi-tenant search topology" plan after this ships. |
+| Beta billing surprise | CF 30-day notice before billing. Add billing alarm on Workers AI spend. |
+| Reranker cost at scale | Phase 3 A/B gates it on measured NDCG uplift, not vibes. |
+| Kimi/Llama drift from editorial rules | Phase 10 guardrail harness gate. Default is "stay on Llama." |
+| KV-flag rollback fails under import-time crash | P19 proof gate. Middleware short-circuit is a layer above the v2 module. |
 
 ## Not doing (explicit)
 
-- Not introducing CF Workers AI function calling / tools surface.
-- Not adding conversation history or chat memory (ask.astro is single-turn by design).
-- Not changing the 20/day limit to a paid tier override.
-- Not streaming the answer (current `stream: false` stays).
-- Not modifying the signup flow, welcome-ask email, or `signup_source` capture.
+- Not introducing Sonnet, GPT, or any non-Workers-AI generator.
+- Not adding conversation history to /ask.
+- Not streaming /ask responses.
+- Not modifying signup flow or welcome-ask email.
+- Not building whittaker.ai per-clinic namespaces in this plan.
+- Not unifying Pagefind onto the new primitive (separate decision post-cutover).
+
+## Open questions (resolve in Phase 0)
+
+1. Does `ai_search_namespaces` binding work inside CF Pages Functions?
+2. Result shape from `search()` — metadata fields, score, rank, chunk text?
+3. Does `uploadAndPoll()` accept markdown with frontmatter?
+4. Does metadata filter support `$in` / substring / null handling?
+5. Can one instance be fed by both `uploadAndPoll()` AND site crawl simultaneously?
 
 ## Links
 
 - CF blog: `blog.cloudflare.com/ai-search-agent-primitive/` (2026-04-16)
 - Memory: `cf-ai-search-agent-primitive.md`
-- v1 plan: `2026-04-16-nlweb-integration.md`
-- Current code: `functions/api/ask.js`, `src/pages/ask.astro`
-- Guardrail harness: `projects/neofertility-ie/scripts/test-guardrails.js` + RRM 31-query set
-- AEO baseline: `projects/neofertility-ie/scripts/aeo-check.py` (currently 6/25 on /ask)
+- Superseded v1 plan: `2026-04-16-nlweb-integration.md`
+- Current code: `functions/api/ask.js`, `functions/api/search/semantic.js`, `src/components/SearchBar.astro`
+- 14-day query evidence: `rrm-analytics.search_log` pull 2026-04-20
+- Supportive review: 2026-04-20 (supportive SWE)
+- Contrarian review: 2026-04-20 (contrarian SWE)
+- Guardrail harness: `projects/neofertility-ie/scripts/test-guardrails.js`
+- AEO baseline: `projects/neofertility-ie/scripts/aeo-check.py`
