@@ -55,6 +55,9 @@ jobs:
       - name: Security guard
         run: node scripts/guard.mjs
 
+      - name: iOS auto-zoom guard
+        run: node scripts/guard-ios-zoom.mjs
+
       - name: Get cache date
         id: date
         run: echo "date=$(TZ=America/New_York date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
