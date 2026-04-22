@@ -154,19 +154,17 @@ const mobileNavSections = [
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v8l3-3 3 3V2"/><path class="book-body" d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/></svg>
         <span class="saved-count" id="saved-count">0</span>
       </a>
-      <a href="/ask/" class="ask-header-btn" id="desktop-ask-btn" title="Ask RRM Academy (beta)">
+      <a href="/ask/" class="ask-header-btn" id="desktop-ask-btn" title="Ask RRM Academy">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         <span>Ask</span>
-        <span class="ask-header-btn__beta">Beta</span>
       </a>
       <a href="/account/" class="btn btn--secondary btn--pill" id="desktop-account-btn">Account</a>
       <a href="/donate/" class="donate-btn" id="desktop-donate-btn">Donate</a>
     </div>
 
-    <a href="/ask/" class="mobile-ask-top" title="Ask RRM Academy (beta)">
+    <a href="/ask/" class="mobile-ask-top" title="Ask RRM Academy">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       <span>Ask</span>
-      <span class="mobile-ask-top__beta">Beta</span>
     </a>
     <input type="checkbox" id="nav-toggle" class="sr-only" aria-label="Toggle menu" />
     <label for="nav-toggle" class="mobile-toggle" aria-hidden="true">
@@ -517,16 +515,6 @@ const mobileNavSections = [
     background: color-mix(in srgb, var(--accent) 6%, transparent);
     text-decoration: none;
   }
-  .ask-header-btn__beta {
-    font-size: 0.625rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 12%, transparent);
-    padding: 1px 5px;
-    border-radius: var(--radius-sm);
-  }
   /* Mobile Ask button (top bar, left of hamburger) */
   .mobile-ask-top {
     display: none;
@@ -550,17 +538,6 @@ const mobileNavSections = [
     background: color-mix(in srgb, var(--accent) 6%, transparent);
     text-decoration: none;
   }
-  .mobile-ask-top__beta {
-    font-size: 0.5625rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 12%, transparent);
-    padding: 1px 4px;
-    border-radius: var(--radius-sm);
-  }
-
   /* Theme toggle (mobile nav footer) */
   .theme-toggle {
     display: flex;
