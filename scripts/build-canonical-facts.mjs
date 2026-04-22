@@ -249,6 +249,7 @@ function buildEntity(entitySlug) {
     entity: entity.slug,
     entity_name: entity.name,
     editorial_owner: entity.editorial_owner,
+    editorial_owner_refs: entity.editorial_owner_refs || [],
     schema_version: SCHEMA_VERSION,
     ssot: true,
     regenerable: true,
