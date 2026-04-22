@@ -111,9 +111,10 @@ const resolvedTwitterImage = resolvedOgImage.endsWith('.webp')
       var saved = localStorage.getItem('rrm_theme');
       if (saved) {
         document.documentElement.setAttribute('data-theme', saved);
-      } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        localStorage.setItem('rrm_theme', 'dark');
+      } else {
+        var initial = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', initial);
+        localStorage.setItem('rrm_theme', initial);
       }
     })();
   </script>
