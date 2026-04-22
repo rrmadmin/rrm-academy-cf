@@ -3,9 +3,14 @@
     "entity": "naprotechnology",
     "entity_name": "NaProTechnology",
     "editorial_owner": "Thomas W. Hilgers, MD (historical canon); Naomi M. Whittaker, MD (contemporary)",
+    "editorial_owner_refs": [
+      {
+        "@id": "https://rrmacademy.org/about/#naomi-whittaker"
+      }
+    ],
     "schema_version": "1.0.0",
     "ssot": true,
-    "generated_at": "2026-04-19T04:47:18.325Z",
+    "generated_at": "2026-04-22T17:17:51.562Z",
     "generated_by": "scripts/build-canonical-facts.mjs",
     "source": "D1 rrm-library.facts (tradition filter) + _manual overrides",
     "regenerable": true,
@@ -16,9 +21,8 @@
       "fabm": 538
     },
     "evidence_tier_tally": {
-      "peer_reviewed": 668,
-      "clinical_experience": 1902,
-      "clinic_presentation": 1
+      "peer_reviewed": 669,
+      "clinical_experience": 1902
     },
     "source_resolved_count": 2386,
     "source_unresolved_count": 185
@@ -59494,16 +59498,16 @@
         "title": "Case Series: Diagnosis and Treatment of Four Rare Cancers by a Single Surgeon Due to Systematic Mapping and Near Contact Techniques",
         "short_citation": "Whittaker NM, AAGL 2024",
         "pmid": null,
-        "doi": null,
-        "source_url": "https://aagl.org/event/53rd-global-congress-on-migs/",
-        "journal": "AAGL 53rd Global Congress on MIGS",
+        "doi": "10.1016/j.jmig.2024.09.699",
+        "source_url": "https://doi.org/10.1016/j.jmig.2024.09.699",
+        "journal": "Journal of Minimally Invasive Gynecology",
         "year": 2024,
         "authors": "Whittaker NM",
         "type": "conference-presentation"
       },
       "verification_notes": "Quote: 'The Systematic Mapping of the Abdomen and Pelvis (S-MAP) method was described in the NaProTechnology textbook by Dr. Thomas Hilgers and the \"S-MAP\" term coined by this author.' Section: Interventions. Author = Whittaker NM.",
       "verified": 1,
-      "evidence_tier": "clinic_presentation",
+      "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
       "last_verified_at": "2026-04-19 00:27:01"
     },

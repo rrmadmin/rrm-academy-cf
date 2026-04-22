@@ -36,6 +36,9 @@ export const ENTITIES = {
     slug: 'naprotechnology',
     name: 'NaProTechnology',
     editorial_owner: 'Thomas W. Hilgers, MD (historical canon); Naomi M. Whittaker, MD (contemporary)',
+    editorial_owner_refs: [
+      { '@id': 'https://rrmacademy.org/about/#naomi-whittaker' },
+    ],
     output_path: 'docs/fact-check/naprotechnology-canonical-facts.json',
     matches: (traditions) => traditions.some((t) => t === 'napro'),
   },
@@ -43,6 +46,9 @@ export const ENTITIES = {
     slug: 'rrm',
     name: 'Restorative Reproductive Medicine (shared)',
     editorial_owner: 'Naomi M. Whittaker, MD',
+    editorial_owner_refs: [
+      { '@id': 'https://rrmacademy.org/about/#naomi-whittaker' },
+    ],
     output_path: 'docs/fact-check/rrm-canonical-facts.json',
     matches: (traditions) =>
       traditions.some((t) => t === 'rrm-shared' || t === 'independent'),
@@ -51,6 +57,7 @@ export const ENTITIES = {
     slug: 'creighton',
     name: 'Creighton Model FertilityCare System',
     editorial_owner: 'Thomas W. Hilgers, MD; FertilityCare Centers of America',
+    editorial_owner_refs: [],
     output_path: 'docs/fact-check/creighton-canonical-facts.json',
     matches: (traditions) => traditions.some((t) => t === 'fabm'),
   },
@@ -59,6 +66,9 @@ export const ENTITIES = {
     name: 'NeoFertility',
     editorial_owner:
       'Phil C. Boyle, MD (clinical); Linda (practice operations only)',
+    editorial_owner_refs: [
+      { '@id': 'https://iirrm.org/people/phil-boyle' },
+    ],
     // This file lives outside rrm-academy-cf. Builder resolves relative to --project-root.
     output_path:
       '../neofertility-ie/docs/fact-check/neofertility-canonical-facts.json',
@@ -80,6 +90,7 @@ export function emptyDocument(entitySlug) {
       entity: entity.slug,
       entity_name: entity.name,
       editorial_owner: entity.editorial_owner,
+      editorial_owner_refs: entity.editorial_owner_refs || [],
       schema_version: SCHEMA_VERSION,
       ssot: true,
       generated_at: null,
