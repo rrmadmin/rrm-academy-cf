@@ -62,6 +62,7 @@ export default defineConfig({
           '/forgot-password',
           '/reset-password',
           '/account',
+          '/ask',
           '/library/saved',
           '/endo-survey/take',
           '/donate/thank-you',
