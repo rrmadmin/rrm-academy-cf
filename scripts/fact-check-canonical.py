@@ -49,6 +49,7 @@ CANONICAL_PATHS = {
     "rrm": PROJECT_DIR / "docs/fact-check/rrm-canonical-facts.json",
     "creighton": PROJECT_DIR / "docs/fact-check/creighton-canonical-facts.json",
     "neofertility": PROJECT_DIR.parent / "neofertility-ie/docs/fact-check/neofertility-canonical-facts.json",
+    "femm": PROJECT_DIR / "docs/fact-check/femm-canonical-facts.json",
 }
 
 DEFAULT_RESULTS_DIR = PROJECT_DIR / "docs/fact-check-results"

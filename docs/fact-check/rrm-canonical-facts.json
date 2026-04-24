@@ -33,7 +33,8 @@
     "evidence_tier_definitions": {
       "peer_reviewed": "Published in a peer-reviewed journal, verified PMID/DOI.",
       "clinic_presentation": "Clinic document, slide deck, or non-peer-reviewed manuscript. Usable with caveat.",
-      "clinical_experience": "Clinician-attributed statement without a traceable document. Cite with explicit framing."
+      "clinical_experience": "Clinician-attributed statement without a traceable document. Cite with explicit framing.",
+      "organizational_primary": "FEMM/RHRI, Saint Paul VI, clinic fact sheet, or NeoFertility institutional document (not peer-reviewed article, not clinician-attributed). Cite with document name and date."
     },
     "curator_overrides": []
   },

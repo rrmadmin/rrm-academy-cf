@@ -10,12 +10,12 @@
     ],
     "schema_version": "1.0.0",
     "ssot": true,
-    "generated_at": "2026-04-24T02:27:18.928Z",
+    "generated_at": "2026-04-24T03:03:12.248Z",
     "generated_by": "scripts/build-canonical-facts.mjs",
     "source": "D1 rrm-library.facts (tradition='femm') + _manual.curator_overrides",
     "regenerable": true,
     "record_count": 0,
-    "seed_status": "manually seeded from FEMM pillar (Erin-reviewed) + FEMM 2020 Organization Fact Sheet. D1 facts.tradition='femm' tagging pending.",
+    "seed_status": "Manually seeded from FEMM pillar (Erin-reviewed) + FEMM 2020 Organization Fact Sheet. Article-level tagging: 27 Vigil/Blackwell-Brown/Contreras/Del-Rio core RHRI records tagged 'femm' in D1 articles.traditions (2026-04-23). Fact-level extraction from tagged articles pending (/fact-extraction pass) -- will populate facts[] array.",
     "tradition_tally": {},
     "evidence_tier_tally": {},
     "source_resolved_count": 0,
@@ -163,6 +163,217 @@
           "source_url": "https://femmhealth.org/wp-content/uploads/2020/07/FEMM-Organization-Fact-Sheet-2020-F.pdf",
           "type": "organizational-fact-sheet",
           "year": 2020
+        },
+        "last_verified_at": "2026-04-23"
+      },
+      {
+        "id": "femm-ovulation-as-vital-sign",
+        "claim": "FEMM's core clinical principle: ovulation is a vital sign. Disruptions to ovulation reflect underlying hormonal dysfunction, not normal variation to be managed with suppressive medication.",
+        "body": "A central tenet of FEMM's clinical model is that a woman's cycle is a continuous health record. Absent, irregular, or disrupted ovulation signals something diagnosable and treatable, rather than a variant of normal to be suppressed. This principle aligns FEMM with the broader RRM discipline: diagnose and treat the underlying condition rather than bypass or mask it.",
+        "tradition": [
+          "femm"
+        ],
+        "evidence_tier": "organizational_primary",
+        "source": {
+          "citation": "RRM Academy. FEMM pillar guide. 2026. (Vetted by Dr. Erin, FEMM-trained MD.)",
+          "source_url": "https://rrmacademy.org/femm/",
+          "type": "pillar-page",
+          "year": 2026
+        },
+        "last_verified_at": "2026-04-23"
+      },
+      {
+        "id": "femm-hormones-systemic-health",
+        "claim": "Reproductive hormones affect whole-body health: brain function, bone density, blood sugar regulation, mood, and cardiovascular health. FEMM treats hormonal health as systemic health.",
+        "body": "FEMM extends reproductive endocrinology beyond the uterus. Estrogen, progesterone, FSH, and LH each influence cognition, skeletal integrity, glucose homeostasis, mood, and cardiovascular function. RHRI researchers have identified links between abnormal ovulation and conditions not typically framed as reproductive, including coronary heart disease and Type 2 diabetes linked to irregular cycles and chronic anovulation.",
+        "tradition": [
+          "femm"
+        ],
+        "evidence_tier": "organizational_primary",
+        "source": {
+          "citation": "RRM Academy. FEMM pillar guide. 2026. (Vetted by Dr. Erin, FEMM-trained MD.)",
+          "source_url": "https://rrmacademy.org/femm/",
+          "type": "pillar-page",
+          "year": 2026
+        },
+        "last_verified_at": "2026-04-23"
+      },
+      {
+        "id": "femm-four-key-hormones",
+        "claim": "FEMM tracks four key reproductive hormones across the cycle: estrogen, progesterone, FSH, and LH.",
+        "body": "Estrogen, progesterone, follicle-stimulating hormone (FSH), and luteinizing hormone (LH) govern every phase of the menstrual cycle. Their interplay dictates follicle development, ovulation, and luteal-phase support. Disruptions in any of the four produce observable changes in the biomarkers (cervical mucus, bleeding patterns, LH strip results) a woman charts with FEMM.",
+        "tradition": [
+          "femm"
+        ],
+        "evidence_tier": "organizational_primary",
+        "source": {
+          "citation": "RRM Academy. FEMM pillar guide. 2026. (Vetted by Dr. Erin, FEMM-trained MD.)",
+          "source_url": "https://rrmacademy.org/femm/",
+          "type": "pillar-page",
+          "year": 2026
+        },
+        "last_verified_at": "2026-04-23"
+      },
+      {
+        "id": "femm-biomarker-hormone-mapping",
+        "claim": "Biomarker-to-hormone mapping: cervical mucus reflects estrogen/progesterone activity; bleeding qualities reflect prior-cycle hormonal status; urinary LH strips detect the LH surge that triggers ovulation within 24-36 hours.",
+        "body": "Each FEMM biomarker has an underlying hormonal basis. Cervical mucus quality and quantity changes daily in response to estrogen and progesterone; specific patterns (dry, moist, estrogenic, stretchy/lubricative) correspond to hormonal phases and signal the approach and confirmation of ovulation. Menstruation qualities (tail-end brown bleeding, premenstrual spotting, heavy flow) reflect the hormonal levels of the previous cycle. Urinary LH strips used from cycle day seven or from the appearance of estrogenic mucus detect the LH surge, which triggers ovulation within 24 to 36 hours, providing objective hormonal confirmation of the fertile window.",
+        "tradition": [
+          "femm"
+        ],
+        "evidence_tier": "organizational_primary",
+        "source": {
+          "citation": "RRM Academy. FEMM pillar guide. 2026. (Vetted by Dr. Erin, FEMM-trained MD.)",
+          "source_url": "https://rrmacademy.org/femm/",
+          "type": "pillar-page",
+          "year": 2026
+        },
+        "last_verified_at": "2026-04-23"
+      },
+      {
+        "id": "femm-cycle-timed-labwork",
+        "claim": "FEMM-trained providers anchor hormonal testing to the actual ovulatory event identified on the chart, not to a calendar-based day 21 progesterone draw.",
+        "body": "Standard reproductive workups often draw progesterone on cycle day 21, assuming ovulation on day 14 of a 28-day cycle. This model fails for many women. FEMM providers time bloodwork to the actual peak identified on the patient's chart, drawing serial hormone levels across the luteal phase to capture progesterone and estradiol curves that a single draw would miss entirely. This precision allows identification of luteal phase deficiency, ovulatory dysfunction, thyroid-related cycle disruption, and subtle estrogen imbalances that standard workups consistently miss.",
+        "tradition": [
+          "femm"
+        ],
+        "evidence_tier": "organizational_primary",
+        "source": {
+          "citation": "RRM Academy. FEMM pillar guide. 2026. (Vetted by Dr. Erin, FEMM-trained MD.)",
+          "source_url": "https://rrmacademy.org/femm/",
+          "type": "pillar-page",
+          "year": 2026
+        },
+        "last_verified_at": "2026-04-23"
+      },
+      {
+        "id": "femm-pcos-phenotype-approach",
+        "claim": "FEMM uses a phenotype-based approach to PCOS, identifying whether the primary driver is insulin resistance, inflammation, adrenal androgen excess, or post-pill disruption, then targeting treatment to the specific phenotype.",
+        "body": "Rather than applying a one-size-fits-all suppressive protocol (e.g., oral contraceptives as default), FEMM-trained providers differentiate PCOS phenotypes and direct treatment to the underlying driver. Phenotypes include insulin-resistant PCOS, inflammatory PCOS, adrenal androgen excess, and post-pill (hypothalamic) disruption. Treatment paths differ accordingly, ranging from insulin-sensitizing agents and dietary intervention to anti-inflammatory protocols to hypothalamic-pituitary recovery support.",
+        "tradition": [
+          "femm"
+        ],
+        "evidence_tier": "organizational_primary",
+        "source": {
+          "citation": "RRM Academy. FEMM pillar guide. 2026. (Vetted by Dr. Erin, FEMM-trained MD.)",
+          "source_url": "https://rrmacademy.org/femm/",
+          "type": "pillar-page",
+          "year": 2026
+        },
+        "last_verified_at": "2026-04-23"
+      },
+      {
+        "id": "femm-conditions-addressed",
+        "claim": "FEMM protocols address PCOS, endometriosis, ovulatory dysfunction, infertility, recurrent pregnancy loss, thyroid dysfunction, PMS/PMDD, depression, menopausal disorders, and more.",
+        "body": "FEMM's clinical scope spans reproductive and hormonal disorders that share an ovulatory or endocrine root. The RHRI develops diagnostic and treatment protocols for each condition, grounded in current biomedical research and updated as new evidence emerges.",
+        "tradition": [
+          "femm"
+        ],
+        "evidence_tier": "organizational_primary",
+        "source": {
+          "citation": "RRM Academy. FEMM pillar guide. 2026. (Vetted by Dr. Erin, FEMM-trained MD.)",
+          "source_url": "https://rrmacademy.org/femm/",
+          "type": "pillar-page",
+          "year": 2026
+        },
+        "last_verified_at": "2026-04-23"
+      },
+      {
+        "id": "femm-no-religious-affiliation",
+        "claim": "FEMM is science-based and available to women of all faiths and none. FEMM has no religious affiliation.",
+        "body": "Unlike NaProTechnology, which was developed within a Catholic institution, FEMM has no religious affiliation. Its protocols are grounded in reproductive endocrinology and clinical research. Many secular health systems and independent providers worldwide use FEMM protocols. This distinction places FEMM explicitly within the Restorative Reproductive Medicine umbrella while differentiating it from NaPro, which predates the RRM framework by two decades and does not consider itself part of it.",
+        "tradition": [
+          "femm"
+        ],
+        "evidence_tier": "organizational_primary",
+        "source": {
+          "citation": "RRM Academy. FEMM pillar guide. 2026. (Vetted by Dr. Erin, FEMM-trained MD.)",
+          "source_url": "https://rrmacademy.org/femm/",
+          "type": "pillar-page",
+          "year": 2026
+        },
+        "last_verified_at": "2026-04-23"
+      },
+      {
+        "id": "femm-brown-estrogen-lineage",
+        "claim": "James Brown, PhD, was the first to document and publish the pattern of estrogen across a woman's cycle and is often called the 'father of estrogen.'",
+        "body": "FEMM's scientific foundation rests on decades of research in reproductive endocrinology. James Brown, PhD, documented the estrogen curve across the menstrual cycle, establishing the hormonal baseline that modern FABM and RRM protocols build on. His work gave clinicians a framework for interpreting biomarker observations as hormonal events rather than as isolated physical findings.",
+        "tradition": [
+          "femm"
+        ],
+        "evidence_tier": "organizational_primary",
+        "source": {
+          "citation": "RRM Academy. FEMM pillar guide. 2026. (Vetted by Dr. Erin, FEMM-trained MD.)",
+          "source_url": "https://rrmacademy.org/femm/",
+          "type": "pillar-page",
+          "year": 2026
+        },
+        "last_verified_at": "2026-04-23"
+      },
+      {
+        "id": "femm-steinberger-endocrinology-lineage",
+        "claim": "Dr. Emil Steinberger's foundational endocrinology research helped establish the hormonal framework FEMM protocols use today.",
+        "body": "Alongside James Brown, Emil Steinberger's endocrinology research is foundational to FEMM's clinical model. His work contributed to the hormonal framework RHRI applies to diagnosis and treatment protocols, particularly those involving the hypothalamic-pituitary-gonadal axis.",
+        "tradition": [
+          "femm"
+        ],
+        "evidence_tier": "organizational_primary",
+        "source": {
+          "citation": "RRM Academy. FEMM pillar guide. 2026. (Vetted by Dr. Erin, FEMM-trained MD.)",
+          "source_url": "https://rrmacademy.org/femm/",
+          "type": "pillar-page",
+          "year": 2026
+        },
+        "last_verified_at": "2026-04-23"
+      },
+      {
+        "id": "femm-rhri-cme-accredited",
+        "claim": "RHRI publishes peer-reviewed research, develops CME-accredited (AAFP) courses, and collaborates with researchers across multiple countries and disciplines.",
+        "body": "The Reproductive Health Research Institute (RHRI) is a multidisciplinary team of medical doctors, reproductive endocrinologists, neurobiologists, ecologists, nurses, and psychologists. It publishes peer-reviewed research, develops CME-accredited courses through the American Academy of Family Physicians (AAFP), and collaborates internationally to expand the FEMM evidence base. Advanced topic courses (8 to 12 CME each) cover obesity, mental health, ovarian aging, and related subjects beyond the core Intro + Masterclass pathway.",
+        "tradition": [
+          "femm"
+        ],
+        "evidence_tier": "organizational_primary",
+        "source": {
+          "citation": "RRM Academy. FEMM pillar guide. 2026. (Vetted by Dr. Erin, FEMM-trained MD.)",
+          "source_url": "https://rrmacademy.org/femm/",
+          "type": "pillar-page",
+          "year": 2026
+        },
+        "last_verified_at": "2026-04-23"
+      },
+      {
+        "id": "femm-post-ivf-failure-pathway",
+        "claim": "FEMM-trained providers can diagnose underlying conditions after IVF failure that the IVF pathway never investigated. One cohort of 403 couples with an average of 2.1 prior failed IVF cycles achieved a life-table live birth rate of 32.1% through natural conception after RRM evaluation and treatment.",
+        "body": "When IVF fails, the underlying condition that prevented natural conception typically remains unaddressed. FEMM-trained providers perform diagnostic evaluations that often identify conditions the IVF workup never investigated, then design targeted treatment. The RRM evidence base documents this pathway: in a cohort of 403 couples with an average of 2.1 prior failed IVF cycles, RRM evaluation and treatment produced a life-table live birth rate of 32.1% through natural conception (Boyle 2018). Attribution: statistic is from NeoFertility/Boyle RRM practice; the pathway is applicable across FEMM Medical Management clinicians.",
+        "tradition": [
+          "femm",
+          "rrm-shared"
+        ],
+        "evidence_tier": "peer_reviewed",
+        "source": {
+          "citation": "Boyle PC, de Groot T, Andralojc KM, Parnell TA. Natural Procreative Technology for infertility and recurrent miscarriage: outcomes in a general practice setting. Ir Med J. 2018.",
+          "type": "journal-article",
+          "year": 2018
+        },
+        "editorial_caveats": [
+          "Statistic sourced from Boyle 2018 (NeoFertility/Irish GP cohort), not FEMM-specific. Framing: FEMM-trained providers operate in the same post-IVF-failure evaluation pattern documented across RRM."
+        ],
+        "last_verified_at": "2026-04-23"
+      },
+      {
+        "id": "femm-method-classification-shm",
+        "claim": "FEMM is part of the family of fertility awareness-based methods (FABMs) and is specifically a Sympto-Hormonal Method (SHM), distinct from mucus-only (Billings, Creighton), sympto-thermal (STM), and rhythm-based methods.",
+        "body": "Within the FABM taxonomy, FEMM belongs to the Sympto-Hormonal class because it combines symptom-based charting (cervical mucus, bleeding) with urinary hormone testing (LH strips). This distinguishes FEMM from mucus-only methods like the Billings Ovulation Method and the Creighton Model FertilityCare System, from sympto-thermal methods that pair mucus with basal body temperature, and from calendar/rhythm methods. The addition of objective hormone confirmation is FEMM's technical differentiator.",
+        "tradition": [
+          "femm"
+        ],
+        "evidence_tier": "organizational_primary",
+        "source": {
+          "citation": "RRM Academy. FEMM pillar guide. 2026. (Vetted by Dr. Erin, FEMM-trained MD.)",
+          "source_url": "https://rrmacademy.org/femm/",
+          "type": "pillar-page",
+          "year": 2026
         },
         "last_verified_at": "2026-04-23"
       }
