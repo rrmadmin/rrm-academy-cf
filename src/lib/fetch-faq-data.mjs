@@ -15,6 +15,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, renameSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import { fetchResponseWithRetry } from './fetch-retry.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_PATH = join(__dirname, '..', 'data', 'faqs.json');
@@ -22,23 +23,6 @@ const ARTICLES_PATH = join(__dirname, '..', 'data', 'articles.json');
 const DRY_RUN = process.argv.includes('--dry-run');
 
 const FAQS_URL = 'https://rrmacademy.org/api/faqs';
-
-async function fetchWithRetry(url, options, retries = 5) {
-  let lastError;
-  for (let attempt = 0; attempt < retries; attempt++) {
-    try {
-      const res = await fetch(url, options);
-      if (res.ok || (res.status !== 429 && res.status < 500)) return res;
-      lastError = new Error(`HTTP ${res.status}`);
-    } catch (e) {
-      lastError = e;
-    }
-    const delay = Math.pow(2, attempt) * 1000;
-    console.warn(`Retry ${attempt + 1}/${retries} in ${delay / 1000}s...`);
-    await new Promise(r => setTimeout(r, delay));
-  }
-  throw lastError;
-}
 
 function sortFaqs(faqs) {
   faqs.sort((a, b) => (a.sortOrder ?? 999) - (b.sortOrder ?? 999));
@@ -88,7 +72,7 @@ async function fetchSingle(recordId) {
   }
 
   console.log(`Fetching single FAQ: ${recordId}`);
-  const res = await fetchWithRetry(`${FAQS_URL}?id=${encodeURIComponent(recordId)}`, {
+  const res = await fetchResponseWithRetry(`${FAQS_URL}?id=${encodeURIComponent(recordId)}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 
@@ -162,7 +146,7 @@ async function fetchAll() {
   }
 
   console.log('Fetching all published FAQs from D1...');
-  const res = await fetchWithRetry(FAQS_URL, {
+  const res = await fetchResponseWithRetry(FAQS_URL, {
     headers: { Authorization: `Bearer ${token}` },
   });
 
