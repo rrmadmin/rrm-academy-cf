@@ -715,7 +715,11 @@ const relatedCourses = course.relatedCourses
     </script>
   )}
 
-  <!-- Enrollment + Progress (client-side) v2 -->
+  <!-- Enrollment + Progress (client-side) -->
+
+  {isAffiliate && (
+    <div id="diag-onWaitlist" data-onWaitlist={String(onWaitlist)} data-waitlistUrl={waitlistUrl || 'undef'} data-nextCohortLabel={nextCohortLabel || 'undef'} style="display:none"></div>
+  )}
   {!isAffiliate && (
   <script is:inline define:vars={{ courseId: course.id, courseSlug: course.slug, firstStepId: firstStep?.id }}>
     (function () {
