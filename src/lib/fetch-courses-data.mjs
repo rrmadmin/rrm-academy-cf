@@ -636,8 +636,6 @@ async function fetchAll() {
   writeFileSync(tmpOutput, JSON.stringify(courses, null, 2));
   renameSync(tmpOutput, OUTPUT_PATH);
   console.log(`\nWrote ${courses.length} courses to ${OUTPUT_PATH}`);
-  const neo = courses.find(c => c.slug === 'neofertility-medical-training');
-  console.log(`[DIAG] neofertility-medical-training waitlistUrl=${neo?.waitlistUrl} nextCohortLabel=${neo?.nextCohortLabel} isAffiliate=${neo?.isAffiliate}`);
 }
 
 function mergeOverrides(courses) {
