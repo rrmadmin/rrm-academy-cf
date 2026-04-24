@@ -1,0 +1,24 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "packageManager": "npm",
+  "testRunner": "command",
+  "commandRunner": {
+    "command": "node --test test/quality-crap.test.js"
+  },
+  "coverageAnalysis": "off",
+  "mutate": [
+    "src/lib/**/*.{js,mjs,ts}",
+    "!src/lib/**/*.test.js"
+  ],
+  "reporters": ["html", "json", "clear-text"],
+  "htmlReporter": {
+    "fileName": "reports/quality/mutation/mutation.html"
+  },
+  "jsonReporter": {
+    "fileName": "reports/quality/mutation/mutation.json"
+  },
+  "tempDirName": ".stryker-tmp",
+  "timeoutMS": 30000,
+  "concurrency": 4,
+  "checkers": []
+}
