@@ -21,6 +21,8 @@ interface Props {
     comingSoon?: boolean;
     isAffiliate?: boolean;
     cohortDates?: { start: string; end: string };
+    waitlistUrl?: string;
+    nextCohortLabel?: string;
   };
   enrolled?: boolean;
   progress?: { completedSteps: number; totalSteps: number };
@@ -40,11 +42,13 @@ const instructor = course.instructors.find(i => i.role === 'Lead Instructor')?.n
 const progressPct = progress && progress.totalSteps > 0 ? Math.round((progress.completedSteps / progress.totalSteps) * 100) : 0;
 
 const isAffiliate = !!course.isAffiliate;
+const onWaitlist = isAffiliate && !!course.waitlistUrl;
 let cohortLabel = '';
 if (isAffiliate && course.cohortDates) {
   const fmt = (d: string, opts: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('en-US', opts).format(new Date(d + 'T00:00:00'));
   cohortLabel = `${fmt(course.cohortDates.start, { month: 'short', day: 'numeric' })} – ${fmt(course.cohortDates.end, { month: 'short', day: 'numeric', year: 'numeric' })}`;
 }
+const cardCohortText = onWaitlist && course.nextCohortLabel ? `Next: ${course.nextCohortLabel}` : cohortLabel;
 ---
 
 {isComingSoon ? (
@@ -79,7 +83,8 @@ if (isAffiliate && course.cohortDates) {
         width="400"
         height="225"
       />
-      {isAffiliate && <span class="course-card__badge course-card__badge--partner">Partner Course</span>}
+      {onWaitlist && <span class="course-card__badge course-card__badge--waitlist">Waitlist Open</span>}
+      {isAffiliate && !onWaitlist && <span class="course-card__badge course-card__badge--partner">Partner Course</span>}
       {!isAffiliate && course.isFree && <span class="course-card__badge course-card__badge--free">Free</span>}
       {!isAffiliate && course.hasCertificate && <span class="course-card__badge course-card__badge--cert">Certificate</span>}
     </div>
@@ -98,7 +103,7 @@ if (isAffiliate && course.cohortDates) {
             11 weeks
           </span>
           <span class="course-card__meta-item">
-            {cohortLabel}
+            {cardCohortText}
           </span>
         </div>
       ) : (
@@ -126,7 +131,7 @@ if (isAffiliate && course.cohortDates) {
         </div>
       ) : (
         <div class="course-card__footer">
-          <span class="course-card__price">{price}</span>
+          <span class="course-card__price">{onWaitlist ? 'Join Waitlist' : price}</span>
           <span class="course-card__cta">View Course</span>
         </div>
       )}
@@ -219,6 +224,11 @@ if (isAffiliate && course.cohortDates) {
     left: var(--space-3);
     background: #e0f0ff;
     color: #1a6bb5;
+  }
+  .course-card__badge--waitlist {
+    left: var(--space-3);
+    background: #fef3c7;
+    color: #92400e;
   }
 
   .course-card__body {
