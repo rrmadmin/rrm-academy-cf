@@ -127,7 +127,7 @@ Plan ready at `docs/plans/2026-03-09-google-ad-grants-plan.md`. Waiting on ~1 mo
 
 - **Refine IVF comparison stats** -- updated with HFEA 2022 data (commit `1dc3579`). Two RRM stats still have `[CITE]` markers needing source citations. Review the comparison table for accuracy and completeness.
 - **Draft FAQ approval** -- 37 draft Condition-Specific FAQs pending Naomi's review. 6 high-priority for AEO (see PRD Post-Launch Roadmap). 3 missing FAQs need creation: "What is NaProTechnology?", "Best resources for endo patients?", "What is reproductive restoration medicine?" (Blocked on Naomi)
-- **Tag FEMM-tradition facts in D1** -- `femm` entity scaffolded at `docs/fact-check/femm-canonical-facts.json` with 8 seeded curator_overrides, but `record_count: 0` until D1 `facts.tradition` gets `'femm'` tagging on FEMM-specific rows. Tag pass + rerun `node scripts/build-canonical-facts.mjs --entity femm` to populate the `facts: []` array.
+- **Extract FEMM facts from tagged D1 articles** -- `femm` entity scaffolded at `docs/fact-check/femm-canonical-facts.json` with 21 curator_overrides. 27 D1 articles now tagged `'femm'` in `articles.traditions` (Vigil 1st-author + Blackwell/Brown/Vigil Ovarian Monitor lineage + Contreras/Vigil insulin/PCOS + Del-Rio/Vigil RHRI neurobiology). Builder reads `facts.tradition`, not `articles.traditions`, so `record_count: 0` until `/fact-extraction` runs on the tagged articles (rrm_relevance >= 3) and promoted facts inherit `tradition = ["femm"]`. Then rerun `node scripts/build-canonical-facts.mjs --entity femm` to populate the `facts: []` array.
 
 ### Pillar Page Section Refinement Backlog
 
