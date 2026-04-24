@@ -47,7 +47,7 @@
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
-      "hash": "66d4c3e7710a99dcaffa4cc45627aee2d485e40d2636d3889edecf2ea24dbac7",
+      "hash": "c154701c2b4d9554d29237463612bc9500eaf8a9fd1bbdd35b322ec0d9462f19",
       "note": "Billing status"
     },
     "functions/api/billing/portal.js": {
@@ -115,7 +115,7 @@
       "note": "Search UX + RRF fusion (Pagefind init, relevance boost, error resilience)"
     },
     "functions/api/community/_shared.js": {
-      "hash": "79441332aac2ed0e8a2c3ada06a9aa9644d661705470219620d01790cd763f2d",
+      "hash": "e0c56d210902154e399f7a55a8ce6169a1b5c9ecc2ff02f3967401abed015dd6",
       "note": "Community access control (requireMember)"
     },
     "functions/api/admin/cleanup.js": {

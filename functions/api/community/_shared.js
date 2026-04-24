@@ -104,6 +104,19 @@ export async function requireMember(request, env) {
     return { user, tier: 'member', session };
   }
 
+  // Active Wix subscribers (new grandfather path, covers donors missing the legacy label)
+  try {
+    const wixSub = await db.prepare(
+      "SELECT tier FROM wix_subscription WHERE (user_id = ? OR email = ? COLLATE NOCASE) AND status = 'active' LIMIT 1"
+    ).bind(user.id, user.email).first();
+    if (wixSub) {
+      return { user, tier: wixSub.tier || 'member', session };
+    }
+  } catch (err) {
+    // Wix lookup must not block community access for Stripe members
+    console.error('requireMember wix lookup failed:', err.message);
+  }
+
   // Members need an active subscription
   if (!env.STRIPE_SECRET_KEY) {
     console.error('STRIPE_SECRET_KEY not configured');
