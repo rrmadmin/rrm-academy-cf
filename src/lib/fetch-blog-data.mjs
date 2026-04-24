@@ -11,29 +11,13 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, renameSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import { fetchResponseWithRetry } from './fetch-retry.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_PATH = join(__dirname, '..', 'data', 'posts.json');
 const DRY_RUN = process.argv.includes('--dry-run');
 
 const POSTS_URL = 'https://rrmacademy.org/api/blog/posts';
-
-async function fetchWithRetry(url, options, retries = 5) {
-  let lastError;
-  for (let attempt = 0; attempt < retries; attempt++) {
-    try {
-      const res = await fetch(url, options);
-      if (res.ok || (res.status !== 429 && res.status < 500)) return res;
-      lastError = new Error(`HTTP ${res.status}`);
-    } catch (e) {
-      lastError = e;
-    }
-    const delay = Math.pow(2, attempt) * 1000;
-    console.warn(`Retry ${attempt + 1}/${retries} in ${delay / 1000}s...`);
-    await new Promise(r => setTimeout(r, delay));
-  }
-  throw lastError;
-}
 
 function sortPosts(posts) {
   posts.sort((a, b) => {
@@ -53,7 +37,7 @@ async function fetchSingle(recordId) {
   }
 
   console.log(`Fetching single post: ${recordId}`);
-  const res = await fetchWithRetry(`${POSTS_URL}?id=${encodeURIComponent(recordId)}`, {
+  const res = await fetchResponseWithRetry(`${POSTS_URL}?id=${encodeURIComponent(recordId)}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 
@@ -116,7 +100,7 @@ async function fetchAll() {
   }
 
   console.log('Fetching all published posts from D1...');
-  const res = await fetchWithRetry(POSTS_URL, {
+  const res = await fetchResponseWithRetry(POSTS_URL, {
     headers: { Authorization: `Bearer ${token}` },
   });
 
