@@ -149,6 +149,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
               </dl>
               <p id="billing-cancel-notice" class="billing-cancel-notice" hidden>Your membership will end at the next donation date.</p>
               <button id="manage-billing-btn" class="btn btn--secondary btn--sm" style="margin-top: var(--space-4);">Manage Billing</button>
+              <div id="manage-billing-wix-note" hidden class="billing-wix-note">
+                <p>Your recurring donation is processed through our legacy platform. To update your card, change your amount, or cancel, email <a href="mailto:support@rrmacademy.org">support@rrmacademy.org</a> — we'll respond within 1 business day.</p>
+              </div>
               <div id="billing-payments" hidden>
                 <h3 class="billing-history-heading">Payment History</h3>
                 <div id="payments-list" class="donations-list"></div>
@@ -423,6 +426,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       }
 
       // --- Billing ---
+      function escapeHtml(str) {
+        return String(str).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+
       function renderHistoryList(items, listEl, toggleBtn, containerEl) {
         if (!items.length) return;
         var html = '';
@@ -430,10 +439,18 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           var dateStr = new Date(d.date * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
           var amountStr = '$' + (d.amount / 100).toFixed(2);
           var hiddenAttr = i >= 1 ? ' hidden' : '';
+          var receiptHtml;
+          if (d.receiptNumber) {
+            receiptHtml = '<span class="donation-receipt history-receipt">Receipt #' + escapeHtml(String(d.receiptNumber)) + '</span>';
+          } else if (d.receiptUrl) {
+            receiptHtml = '<a href="' + d.receiptUrl + '" target="_blank" rel="noopener noreferrer" class="donation-receipt">Receipt</a>';
+          } else {
+            receiptHtml = '<span class="donation-receipt"></span>';
+          }
           html += '<div class="donation-row"' + hiddenAttr + ' data-history-row>' +
             '<span class="donation-date">' + dateStr + '</span>' +
             '<span class="donation-amount">' + amountStr + '</span>' +
-            (d.receiptUrl ? '<a href="' + d.receiptUrl + '" target="_blank" rel="noopener noreferrer" class="donation-receipt">Receipt</a>' : '<span class="donation-receipt"></span>') +
+            receiptHtml +
           '</div>';
         });
         listEl.innerHTML = html;
@@ -488,6 +505,18 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
                 billingDate.textContent = '--';
               }
               if (sub.cancelAtPeriodEnd) cancelNotice.hidden = false;
+
+              // Wix-source subs route "Manage Billing" to a mailto helper, not Stripe portal
+              var manageBtn = document.getElementById('manage-billing-btn');
+              var manageNote = document.getElementById('manage-billing-wix-note');
+              if (sub.source === 'wix') {
+                if (manageBtn) manageBtn.hidden = true;
+                if (manageNote) manageNote.hidden = false;
+              } else {
+                if (manageBtn) manageBtn.hidden = false;
+                if (manageNote) manageNote.hidden = true;
+              }
+
               billingActive.hidden = false;
             }
 
@@ -623,6 +652,17 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     background: rgba(230, 126, 34, 0.08);
     border-radius: var(--radius-md);
   }
+  .billing-wix-note {
+    margin-top: var(--space-4);
+    padding: var(--space-4);
+    background: var(--bg-body);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+  .billing-wix-note p { margin: 0; }
+  .billing-wix-note a { color: var(--accent); text-decoration: underline; }
   .billing-history-heading {
     font-size: 0.9375rem;
     font-weight: 600;
