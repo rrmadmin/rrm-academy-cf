@@ -37,3 +37,7 @@ dot-art-examples.html
 # Library ingest scratch dir
 fulltext/
 docs/fact-check/*.bak
+# Quality tooling artifacts
+reports/quality/
+.stryker-tmp/
+coverage/
