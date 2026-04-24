@@ -74,6 +74,17 @@ export const ENTITIES = {
       '../neofertility-ie/docs/fact-check/neofertility-canonical-facts.json',
     matches: (traditions) => traditions.some((t) => t === 'neofertility'),
   },
+  femm: {
+    slug: 'femm',
+    name: 'FEMM (Fertility Education and Medical Management)',
+    editorial_owner:
+      'Pilar Vigil, MD, PhD, OB/GYN, FACOG (RHRI); Erin (FEMM-trained reviewer, RRM Academy side)',
+    editorial_owner_refs: [
+      { '@id': 'https://rrmacademy.org/femm/' },
+    ],
+    output_path: 'docs/fact-check/femm-canonical-facts.json',
+    matches: (traditions) => traditions.some((t) => t === 'femm'),
+  },
 };
 
 export const ENTITY_SLUGS = Object.keys(ENTITIES);
