@@ -1,11 +1,12 @@
 /**
  * GET /api/billing/status
- * Returns the logged-in user's subscription status from Stripe.
+ * Returns the logged-in user's subscription status from Stripe and/or Wix.
  * Requires authentication (session cookie).
  *
  * Response:
  *   { ok: true, subscription: null }  — no active subscription
- *   { ok: true, subscription: { tier, status, currentPeriodEnd, cancelAtPeriodEnd } }
+ *   { ok: true, subscription: { tier, status, currentPeriodEnd, cancelAtPeriodEnd, source } }
+ *   source is 'stripe' or 'wix'; UI uses this to route Manage Billing correctly.
  */
 import Stripe from 'stripe';
 import {
@@ -13,6 +14,10 @@ import {
   STRIPE_API_VERSION,
 } from '../auth/_shared.js';
 import { log } from '../_log.js';
+
+function toUnix(isoString) {
+  return Math.floor(new Date(isoString).getTime() / 1000);
+}
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -40,73 +45,129 @@ async function handleStatus(request, env, waitUntil) {
     return json({ ok: false, error: 'Not authenticated' }, 401);
   }
 
-  // --- Get user's stripe_customer_id ---
-  const user = await db.prepare('SELECT stripe_customer_id FROM user WHERE id = ?')
+  // --- Get user's stripe_customer_id and email ---
+  const user = await db.prepare('SELECT stripe_customer_id, email FROM user WHERE id = ?')
     .bind(session.userId).first();
-  if (!user || !user.stripe_customer_id) {
+  if (!user) {
     return json({ ok: true, subscription: null, donations: [], payments: [] });
   }
 
-  // --- Query Stripe for subscriptions + charges in parallel ---
-  const stripe = new Stripe(stripeKey, {
-    httpClient: Stripe.createFetchHttpClient(),
-    apiVersion: STRIPE_API_VERSION,
-  });
-
-  let subscriptions, charges;
-  try {
-    [subscriptions, charges] = await Promise.all([
-      stripe.subscriptions.list({
-        customer: user.stripe_customer_id,
-        status: 'all',
-        limit: 10,
-        expand: ['data.items.data.price'],
-      }),
-      stripe.charges.list({
-        customer: user.stripe_customer_id,
-        limit: 50,
-      }),
-    ]);
-  } catch (err) {
-    if (err.code === 'resource_missing') {
-      return json({ ok: true, subscription: null, donations: [], payments: [] });
-    }
-    log(env, waitUntil, 'billing', 'status_error', 'error', `stripe list: ${err.message}`, 0, 503);
-    return json({ ok: false, error: 'Payment service temporarily unavailable. Please try again.' }, 503);
-  }
-
-  // --- Build charge lists ---
-  const succeeded = charges.data.filter(c => c.status === 'succeeded');
-  const mapCharge = c => ({
-    amount: c.amount,
-    date: c.created,
-    receiptUrl: c.receipt_url || null,
-  });
-  const donations = succeeded.filter(c => !c.invoice).map(mapCharge);
-  const payments = succeeded.filter(c => !!c.invoice).map(mapCharge);
-
-  // --- Build subscription ---
+  // --- Default empty Stripe result ---
+  let stripeDonations = [];
+  let stripePayments = [];
   let subscription = null;
-  if (subscriptions.data.length) {
-    const displayable = new Set(['active', 'trialing', 'past_due', 'incomplete']);
-    const sub = subscriptions.data.find(s => displayable.has(s.status));
-    if (!sub) {
-      return json({ ok: true, subscription: null, donations, payments });
+
+  if (user.stripe_customer_id) {
+    // --- Query Stripe for subscriptions + charges in parallel ---
+    const stripe = new Stripe(stripeKey, {
+      httpClient: Stripe.createFetchHttpClient(),
+      apiVersion: STRIPE_API_VERSION,
+    });
+
+    let subscriptions, charges;
+    try {
+      [subscriptions, charges] = await Promise.all([
+        stripe.subscriptions.list({
+          customer: user.stripe_customer_id,
+          status: 'all',
+          limit: 10,
+          expand: ['data.items.data.price'],
+        }),
+        stripe.charges.list({
+          customer: user.stripe_customer_id,
+          limit: 50,
+        }),
+      ]);
+    } catch (err) {
+      if (err.code === 'resource_missing') {
+        // customer deleted from Stripe — fall through to Wix lookup
+        subscriptions = { data: [] };
+        charges = { data: [] };
+      } else {
+        log(env, waitUntil, 'billing', 'status_error', 'error', `stripe list: ${err.message}`, 0, 503);
+        return json({ ok: false, error: 'Payment service temporarily unavailable. Please try again.' }, 503);
+      }
     }
-    const price = sub.items.data[0]?.price;
 
-    const priceToTier = {};
-    if (env.STRIPE_PRICE_MEMBER) priceToTier[env.STRIPE_PRICE_MEMBER] = 'member';
-    if (env.STRIPE_PRICE_HERO) priceToTier[env.STRIPE_PRICE_HERO] = 'hero';
-    if (env.STRIPE_PRICE_SUPERHERO) priceToTier[env.STRIPE_PRICE_SUPERHERO] = 'superhero';
+    // --- Build Stripe charge lists ---
+    const succeeded = charges.data.filter(c => c.status === 'succeeded');
+    const mapCharge = c => ({
+      amount: c.amount,
+      date: c.created,
+      receiptUrl: c.receipt_url || null,
+      source: 'stripe',
+    });
+    stripeDonations = succeeded.filter(c => !c.invoice).map(mapCharge);
+    stripePayments = succeeded.filter(c => !!c.invoice).map(mapCharge);
 
-    subscription = {
-      tier: priceToTier[price?.id] || price?.nickname || 'Member',
-      status: sub.status,
-      currentPeriodEnd: sub.current_period_end,
-      cancelAtPeriodEnd: sub.cancel_at_period_end,
-    };
+    // --- Build Stripe subscription ---
+    if (subscriptions.data.length) {
+      const displayable = new Set(['active', 'trialing', 'past_due', 'incomplete']);
+      const sub = subscriptions.data.find(s => displayable.has(s.status));
+      if (sub) {
+        const price = sub.items.data[0]?.price;
+
+        const priceToTier = {};
+        if (env.STRIPE_PRICE_MEMBER) priceToTier[env.STRIPE_PRICE_MEMBER] = 'member';
+        if (env.STRIPE_PRICE_HERO) priceToTier[env.STRIPE_PRICE_HERO] = 'hero';
+        if (env.STRIPE_PRICE_SUPERHERO) priceToTier[env.STRIPE_PRICE_SUPERHERO] = 'superhero';
+
+        subscription = {
+          tier: priceToTier[price?.id] || price?.nickname || 'Member',
+          status: sub.status,
+          currentPeriodEnd: sub.current_period_end,
+          cancelAtPeriodEnd: sub.cancel_at_period_end,
+          source: 'stripe',
+        };
+      }
+    }
   }
+
+  // --- Query Wix tables in parallel ---
+  let wixDonations = [];
+  try {
+    const userId = session.userId;
+    const email = user.email || '';
+    const [wixSubRow, wixPayRows] = await Promise.all([
+      db.prepare(
+        'SELECT tier, status, amount_cents, next_expected_at FROM wix_subscription' +
+        ' WHERE (user_id = ? OR email = ? COLLATE NOCASE) AND status = \'active\'' +
+        ' ORDER BY started_at DESC LIMIT 1'
+      ).bind(userId, email).first(),
+      db.prepare(
+        'SELECT amount_cents, paid_at, receipt_number FROM wix_payment' +
+        ' WHERE (user_id = ? OR email = ? COLLATE NOCASE) AND payment_status = \'PAID\'' +
+        ' ORDER BY paid_at DESC LIMIT 50'
+      ).bind(userId, email).all(),
+    ]);
+
+    // Surface Wix subscription only when Stripe has none
+    if (!subscription && wixSubRow) {
+      subscription = {
+        tier: wixSubRow.tier,
+        status: wixSubRow.status,
+        currentPeriodEnd: wixSubRow.next_expected_at ? toUnix(wixSubRow.next_expected_at) : null,
+        cancelAtPeriodEnd: false,
+        source: 'wix',
+        amount: wixSubRow.amount_cents,
+      };
+    }
+
+    wixDonations = (wixPayRows.results || []).map(p => ({
+      amount: p.amount_cents,
+      date: toUnix(p.paid_at),
+      receiptUrl: null,
+      receiptNumber: p.receipt_number || null,
+      source: 'wix',
+    }));
+  } catch (err) {
+    log(env, waitUntil, 'billing', 'wix_lookup_error', 'error', err.message, 0, 500);
+    // Non-fatal: fall back to Stripe-only result
+  }
+
+  // --- Merge and sort donations ---
+  const donations = [...stripeDonations, ...wixDonations].sort((a, b) => b.date - a.date);
+  const payments = stripePayments;
 
   return json({ ok: true, subscription, donations, payments });
 }
