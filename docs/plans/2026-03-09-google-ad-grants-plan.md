@@ -1,8 +1,10 @@
 # Google Ad Grants Approval Plan
 
 **Goal:** Get RRM Foundation approved for Google Ad Grants ($10k/month free Search ads)
-**Status:** Previously rejected (2025) against old Wix site. Rejection reason: "Change the website to load quickly and have clear navigation. Include substantial, up-to-date content and calls-to-action."
+**Status:** **RE-APPLICATION SUBMITTED 2026-04-21.** Awaiting Google review (3-7 business days, up to 30 if extended).
+**Previously rejected** (2025) against old Wix site. Rejection reason: "Change the website to load quickly and have clear navigation. Include substantial, up-to-date content and calls-to-action."
 **Current site:** rrmacademy.org (Astro 5 on Cloudflare Pages, fully rebuilt since rejection)
+**Google Ads Customer ID:** 946-776-3868 (owner: administrator@rrmacademy.org)
 
 ---
 
@@ -74,14 +76,28 @@ Before resubmitting rrmacademy.org:
 
 ---
 
-## Phase 4: Resubmit
+## Phase 4: Resubmit — DONE 2026-04-21
 
-1. Go to Google for Nonprofits console (already enrolled)
-2. Enter `rrmacademy.org` in the website field
-3. Submit website for review
-4. Watch the welcome video (step 2 in their flow)
-5. Submit the activation request (step 3)
-6. Wait 3-7 business days (up to 30 if extended review)
+- [x] Created Google Ads account (Customer ID 946-776-3868, administrator@rrmacademy.org)
+- [x] Went to Google for Nonprofits console
+- [x] Entered `rrmacademy.org` as the website
+- [x] Submitted website for review
+- [x] Submitted the activation request
+- [ ] **Awaiting Google review (3-7 business days, up to 30 if extended)**
+
+**Post-approval checklist** (flip these when the activation email arrives):
+- [ ] Verify billing summary shows "We don't bill you" (confirms Ad Grants account, not commercial)
+- [ ] Link GA4 (373595121 or whichever property is RRM Academy) → Google Ads under Tools → Setup → Linked accounts
+- [ ] Import GA4 conversions into Google Ads (signup, endo survey request, course enrollment, donate)
+- [ ] Verify Tag status is Active (was "Tag inactive: 0" on submission)
+- [ ] Create the 5 campaigns from Phase 5 below as paused drafts
+- [ ] Enable sitelink extensions (2+ per campaign required by policy)
+- [ ] Confirm account currency = USD, no payment method attached
+
+**If rejected:**
+- Read the rejection reason carefully (Google sends specific feedback)
+- Update this plan with the reason + remediation
+- Wait minimum 14 days before resubmitting per Google's guidance
 
 ---
 
