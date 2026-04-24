@@ -37,6 +37,8 @@ Her clinical focus areas include:
 
 Having delivered over 1,600 babies during her career, Dr. Pakiz made the deliberate choice to set aside obstetrical practice and dedicate her skills exclusively to [treating gynecologic disease](https://vivifyfertilityhealth.com/faq/). This decision was driven by the overwhelming need for physicians who approach conditions like endometriosis with advanced surgical expertise and a commitment to organ preservation.
 
+![Dr. Kristina Pakiz, MD](/images/commentary/rrm-physician-spotlight-kristina-pakiz-md-inline.webp)
+
 ## Surgical Approach
 
 What sets Dr. Pakiz apart surgically is her commitment to restore the pelvic anatomy to normal. Instead of removing damaged organs, [Vivify's approach](https://vivifyfertilityhealth.com/about/) carefully repairs them, with every aspect of the operation deliberate, placing preservation of fertility and prevention of scar tissue as paramount priorities. She performs surgery at three [CHI Health system hospitals](https://providers.chihealth.com/p/kristina-a-pakiz-1447461645): Bergan Mercy and Immanuel in Omaha, and St. Elizabeth in Lincoln, as well as the Omaha Surgical Center.
@@ -90,6 +92,5 @@ Dr. Pakiz is a wife and mother to [five children](https://forlifeandfamily.org/e
 * **Practice:** [Vivify Women's Health and Fertility](https://vivifyfertilityhealth.com)
 * **Location:** 10506 Burt Circle, Omaha, NE 68114
 * **Phone:** (402) 203-8000
-* **Instagram:** [@vivifyfertilityhealth](https://www.instagram.com/vivifyfertilityhealth/), @thefertilehive
+* **Instagram:** [@vivifyfertilityhealth](https://www.instagram.com/vivifyfertilityhealth/), [@thefertilehive](https://www.instagram.com/thefertilehive/)
 * **The Fertile Hive:** [thefertilehive.com](https://thefertilehive.com)
-* **Find an RRM provider near you:** [RRM Provider Directory](/find-a-provider/)
