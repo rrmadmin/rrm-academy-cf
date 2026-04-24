@@ -15,7 +15,7 @@
 - **Deploy**: Three triggers, all via GitHub Actions → CF Pages:
   - `git push origin main` (code changes)
   - `repository_dispatch` with `article_id` (library article publish from yellowbase)
-  - `repository_dispatch` with `record_id` (blog post publish from editorial base)
+  - `repository_dispatch` with `record_id` (blog post publish from D1 `posts` table)
   - `workflow_dispatch` (manual, optional skip_fetch)
 - **Build**: `npm run build` (runs `astro build && npx pagefind --site dist`)
 - **Data**: `WORKER_AUTH_TOKEN=xxx AIRTABLE_PAT=xxx npm run fetch-all` then `npm run build`
@@ -43,18 +43,23 @@ src/data/articles.json → Astro build → rrmacademy.org/library
 
 ### Blog Pipeline
 
+Blog posts moved from Airtable to D1 on 2026-03-27. D1 (`rrm-auth.posts`) is SSOT. Authoring flow: Google Docs -> Claude Code -> D1 insert/update. `src/data/posts.json` is a stale build artifact; never grep it to resolve a slug. Query D1 directly.
+
 ```
-Airtable Editorial base              ← draft → review → publish
-    │  Airtable automation: sets Status="Publishing", sends dispatch with record_id
+D1 (rrm-auth, posts table)           ← SSOT. Authoring via Claude Code from Google Docs
+    │  GET /api/blog/posts (Bearer LIBRARY_BUILD_TOKEN)
+    │  Single-record: ?id=recXXX. Full: all published.
     ▼
-GitHub Actions: fetch-blog-data.mjs  ← single-record mode (accepts Publishing or Published)
-    │  Image pipeline: download → Tinify compress → WebP+JPG → R2 upload
+GitHub Actions: fetch-blog-data.mjs  ← full or single-record mode
+    │  Image pipeline: /commentary-cover skill handles cover swaps (Sharp → R2)
     ▼
 src/data/posts.json → Astro build → rrmacademy.org/commentary
-    │  On success: pings Airtable webhook → automation sets "Published"
 ```
 
-**Config:** Base/table IDs in `src/lib/blog-config.mjs`.
+**Resolve a slug:** query D1 directly, e.g.
+`wrangler d1 execute rrm-auth --remote --command "SELECT id, slug, title, cover_image_url FROM posts WHERE slug LIKE '%keyword%'"`.
+
+**Schema:** `posts(id, slug, title, content, excerpt, author, content_pillar, cover_image_url, publish_date, status, word_count, seo_keywords, created_at, updated_at)`. `cover_image_url` is R2-served via `/api/assets/commentary/<slug>.webp` for all new posts.
 
 ### FAQ Pipeline
 
@@ -417,7 +422,7 @@ Push to `claude/` branch -- GitHub Actions auto-builds + merges. No local creden
 
 ## Shared Config
 
-- **Airtable IDs**: Blog base/table IDs live in `src/lib/blog-config.mjs` — imported by both `.ts` (Astro build) and `.mjs` (CLI scripts). Library data comes from D1, not Airtable
+- **Blog posts**: D1 `rrm-auth.posts` is SSOT (migrated from Airtable 2026-03-27). Library data is also D1 (`rrm-library`). Airtable is still used for courses + endo survey only
 - **Stripe API version**: `STRIPE_API_VERSION` in `functions/api/auth/_shared.js` — imported by all 6 Stripe consumers
 - **Site URL for emails**: `SITE_URL` in `functions/api/auth/_shared.js` — used in transactional email body links only (CORS origin stays hardcoded for security; Astro pages use `Astro.site`)
 - **Navigation**: Desktop, mobile, and footer navs are intentionally different item sets — see comments in `Header.astro` and `Footer.astro`
