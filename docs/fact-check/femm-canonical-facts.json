@@ -1,0 +1,172 @@
+{
+  "_meta": {
+    "entity": "femm",
+    "entity_name": "FEMM (Fertility Education and Medical Management)",
+    "editorial_owner": "Pilar Vigil, MD, PhD, OB/GYN, FACOG (RHRI); Erin (FEMM-trained reviewer, RRM Academy side)",
+    "editorial_owner_refs": [
+      {
+        "@id": "https://rrmacademy.org/femm/"
+      }
+    ],
+    "schema_version": "1.0.0",
+    "ssot": true,
+    "generated_at": "2026-04-24T02:27:18.928Z",
+    "generated_by": "scripts/build-canonical-facts.mjs",
+    "source": "D1 rrm-library.facts (tradition='femm') + _manual.curator_overrides",
+    "regenerable": true,
+    "record_count": 0,
+    "seed_status": "manually seeded from FEMM pillar (Erin-reviewed) + FEMM 2020 Organization Fact Sheet. D1 facts.tradition='femm' tagging pending.",
+    "tradition_tally": {},
+    "evidence_tier_tally": {},
+    "source_resolved_count": 0,
+    "source_unresolved_count": 0
+  },
+  "_manual": {
+    "editorial_notes": [
+      "Source hierarchy: (1) FEMM 2020 Organization Fact Sheet (primary, institutional), (2) rrmacademy.org/femm/ pillar (Erin-reviewed, FEMM-trained MD), (3) RHRI publications (femmhealth.org / rhrinstitute.org).",
+      "Do NOT cite the Duane & Brown 2025 FACTS article as a FEMM-specific source — it covers RRM broadly and does not carry FEMM organizational numbers.",
+      "2020 Fact Sheet figures (app downloads, review count) should be caveat-cited as 'as of 2020' until FEMM publishes newer numbers.",
+      "No provider-training count is publicly sourced. Any figure claiming 'X providers trained' must be traced to a FEMM/RHRI primary document before use."
+    ],
+    "evidence_tier_definitions": {
+      "peer_reviewed": "Published in a peer-reviewed journal, verified PMID/DOI.",
+      "clinic_presentation": "Clinic document, slide deck, or non-peer-reviewed manuscript. Usable with caveat.",
+      "clinical_experience": "Clinician-attributed statement without a traceable document. Cite with explicit framing.",
+      "organizational_primary": "FEMM/RHRI institutional document (fact sheet, annual report, official website). Cite with document name and date."
+    },
+    "curator_overrides": [
+      {
+        "id": "femm-founded-2012-nyc",
+        "claim": "FEMM was founded in 2012 and is headquartered at 228 East 71st Street, New York, NY 10021.",
+        "body": "FEMM (Fertility Education and Medical Management) is a women's health program founded in 2012 and headquartered in New York City. Its scientific foundation rests on decades of research in reproductive endocrinology, anchored in the work of James Brown, PhD (first to document the pattern of estrogen across a woman's cycle) and Dr. Emil Steinberger (hormonal framework for modern FEMM protocols).",
+        "tradition": [
+          "femm"
+        ],
+        "evidence_tier": "organizational_primary",
+        "source": {
+          "citation": "FEMM Health. Organization Fact Sheet. 2020.",
+          "source_url": "https://femmhealth.org/wp-content/uploads/2020/07/FEMM-Organization-Fact-Sheet-2020-F.pdf",
+          "type": "organizational-fact-sheet",
+          "year": 2020
+        },
+        "last_verified_at": "2026-04-23"
+      },
+      {
+        "id": "femm-app-downloads-2020",
+        "claim": "As of 2020, the FEMM app had 400,000+ downloads across 161 countries and a 4.6 rating from 3,000+ reviews.",
+        "body": "Per the FEMM 2020 Organization Fact Sheet: app downloads exceed 400,000 across 161 countries; user rating 4.6/5 from more than 3,000 reviews; available on iOS and Android. Figures are point-in-time as of 2020 and should be refreshed from a newer FEMM institutional document before citing as current.",
+        "tradition": [
+          "femm"
+        ],
+        "evidence_tier": "organizational_primary",
+        "source": {
+          "citation": "FEMM Health. Organization Fact Sheet. 2020.",
+          "source_url": "https://femmhealth.org/wp-content/uploads/2020/07/FEMM-Organization-Fact-Sheet-2020-F.pdf",
+          "type": "organizational-fact-sheet",
+          "year": 2020
+        },
+        "editorial_caveats": [
+          "Time-anchor to 2020. Do not present as current without a newer FEMM source."
+        ],
+        "last_verified_at": "2026-04-23"
+      },
+      {
+        "id": "femm-app-languages-7",
+        "claim": "The FEMM app is available in 7 languages: English, Spanish, Portuguese, French, Hungarian, Croatian, and Swahili.",
+        "body": "The FEMM mobile application supports seven languages and runs on iOS and Android. Language coverage reflects FEMM's international reach, with providers and users across Europe, Latin America, Africa, and beyond.",
+        "tradition": [
+          "femm"
+        ],
+        "evidence_tier": "organizational_primary",
+        "source": {
+          "citation": "RRM Academy. FEMM pillar guide. 2026. (Vetted by Dr. Erin, FEMM-trained MD.)",
+          "source_url": "https://rrmacademy.org/femm/",
+          "type": "pillar-page",
+          "year": 2026
+        },
+        "last_verified_at": "2026-04-23"
+      },
+      {
+        "id": "femm-sympto-hormonal-method",
+        "claim": "FEMM is classified as a Sympto-Hormonal Method (SHM), combining cervical mucus observation with urinary LH testing.",
+        "body": "FEMM is a fertility awareness-based method (FABM) of the Sympto-Hormonal class. The biomarkers tracked are: (1) cervical mucus (daily observations of quality and quantity, reflecting estrogen and progesterone activity); (2) bleeding (menstruation patterns signaling prior-cycle hormonal status); (3) urinary LH testing (strips used from cycle day seven or first estrogenic mucus to capture the LH surge, which triggers ovulation within 24-36 hours).",
+        "tradition": [
+          "femm"
+        ],
+        "evidence_tier": "organizational_primary",
+        "source": {
+          "citation": "RRM Academy. FEMM pillar guide. 2026. (Vetted by Dr. Erin, FEMM-trained MD.)",
+          "source_url": "https://rrmacademy.org/femm/",
+          "type": "pillar-page",
+          "year": 2026
+        },
+        "last_verified_at": "2026-04-23"
+      },
+      {
+        "id": "femm-two-layer-system",
+        "claim": "FEMM uses a two-layer system: FEMM Teachers (non-prescribing chart educators) and FEMM Medical Providers (MD/NP/prescribers trained to diagnose and treat using RHRI protocols).",
+        "body": "FEMM Teachers are trained to help women observe and record biomarkers accurately, identify potential hormonal patterns, and refer clients to a FEMM-trained medical provider when abnormalities appear. Teachers do not prescribe and do not diagnose specific reproductive disorders. FEMM Medical Providers are clinicians (physicians, nurse practitioners, and other prescribers) trained through the FEMM Medical Management program to read patient charts alongside complete clinical workups, diagnose underlying hormonal conditions, and implement RHRI-developed treatment protocols. Certified providers must retake the Masterclass every two years to maintain certification.",
+        "tradition": [
+          "femm"
+        ],
+        "evidence_tier": "organizational_primary",
+        "source": {
+          "citation": "RRM Academy. FEMM pillar guide. 2026. (Vetted by Dr. Erin, FEMM-trained MD.)",
+          "source_url": "https://rrmacademy.org/femm/",
+          "type": "pillar-page",
+          "year": 2026
+        },
+        "last_verified_at": "2026-04-23"
+      },
+      {
+        "id": "femm-provider-certification-38-cme",
+        "claim": "FEMM Medical Provider certification requires completion of the Intro course (20 AAFP CME) and the Masterclass (18 AAFP CME), totaling 38 CME credits. Certified providers are enrolled as RHRI Fellows. Biennial Masterclass renewal is required to maintain certification.",
+        "body": "RHRI offers a two-step pathway to Certified FEMM Medical Provider status. The Intro course is online and self-paced, covering FEMM research foundations and reproductive physiology (20 AAFP CME). The Masterclass is offered live in-person and online annually, covering RHRI diagnostic and treatment protocols for ovulatory dysfunction, PCOS, thyroid imbalances, and infertility, with protocol textbooks included (18 AAFP CME). Clinicians who complete both steps (38 total CME credits) earn the Certified FEMM Medical Provider designation and enrollment as RHRI Fellows. Advanced topic courses (8-12 CME each) cover obesity, mental health, ovarian aging, and other subjects.",
+        "tradition": [
+          "femm"
+        ],
+        "evidence_tier": "organizational_primary",
+        "source": {
+          "citation": "RRM Academy. FEMM pillar guide. 2026. (Vetted by Dr. Erin, FEMM-trained MD.)",
+          "source_url": "https://rrmacademy.org/femm/",
+          "type": "pillar-page",
+          "year": 2026
+        },
+        "last_verified_at": "2026-04-23"
+      },
+      {
+        "id": "femm-rhri-leadership-vigil",
+        "claim": "FEMM's clinical and research arm is the Reproductive Health Research Institute (RHRI), led by Dr. Pilar Vigil, MD, PhD, OB/GYN, FACOG.",
+        "body": "The Reproductive Health Research Institute (RHRI) is FEMM's clinical and research arm. It is led by Dr. Pilar Vigil, MD, PhD, OB/GYN, FACOG, a specialist in obstetrics and gynecology with a PhD in Biological Sciences from the Pontifical Catholic University of Chile. Dr. Vigil completed postdoctoral studies at the Texas Institute for Reproductive Medicine and Endocrinology and the Royal Women's Hospital in Melbourne, Australia, and is a faculty member at the Pontifical Catholic University of Chile. Her published research spans cervical mucus biology, reproductive endocrinology, and hormonal contraception, providing the scientific backbone for FEMM's clinical protocols. The RHRI is a multidisciplinary team of medical doctors, reproductive endocrinologists, neurobiologists, ecologists, nurses, and psychologists.",
+        "tradition": [
+          "femm"
+        ],
+        "evidence_tier": "organizational_primary",
+        "source": {
+          "citation": "RRM Academy. FEMM pillar guide. 2026. (Vetted by Dr. Erin, FEMM-trained MD.)",
+          "source_url": "https://rrmacademy.org/femm/",
+          "type": "pillar-page",
+          "year": 2026
+        },
+        "last_verified_at": "2026-04-23"
+      },
+      {
+        "id": "femm-not-for-profit-no-pharma",
+        "claim": "FEMM operates as a not-for-profit organization. FEMM does not share or sell user data with third parties and is not funded by drug or pharmaceutical companies.",
+        "body": "Per the FEMM 2020 Organization Fact Sheet: FEMM is a not-for-profit. User data is neither shared nor sold to third parties. FEMM is not funded by drug or pharmaceutical companies, which FEMM cites as ensuring freedom from commercial bias in its research and freedom from pressures to monetize user data.",
+        "tradition": [
+          "femm"
+        ],
+        "evidence_tier": "organizational_primary",
+        "source": {
+          "citation": "FEMM Health. Organization Fact Sheet. 2020.",
+          "source_url": "https://femmhealth.org/wp-content/uploads/2020/07/FEMM-Organization-Fact-Sheet-2020-F.pdf",
+          "type": "organizational-fact-sheet",
+          "year": 2020
+        },
+        "last_verified_at": "2026-04-23"
+      }
+    ]
+  },
+  "facts": []
+}
