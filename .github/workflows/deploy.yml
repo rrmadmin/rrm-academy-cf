@@ -72,7 +72,7 @@ jobs:
             site-data-
 
       - name: Restore git-committed data files over cache
-        run: git checkout HEAD -- src/data/quizzes.json src/data/courses.json src/data/funding-projects.json
+        run: git checkout HEAD -- src/data/quizzes.json src/data/courses.json src/data/courses-overrides.json src/data/funding-projects.json
 
       - name: Fetch single blog record (dispatch)
         if: ${{ github.event.client_payload.record_id }}
