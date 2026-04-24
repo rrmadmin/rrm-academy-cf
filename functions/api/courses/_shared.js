@@ -117,4 +117,13 @@ export async function checkCourseCompletion(db, userId, courseId) {
   return { courseCompleted, certificateIssued };
 }
 
+/**
+ * Returns true iff the given courseId corresponds to an affiliate course that
+ * has a waitlistUrl (i.e. the course is currently in waitlist mode).
+ */
+export function isWaitlistCourse(courseId) {
+  const course = getCourse(courseId);
+  return !!(course?.isAffiliate && course?.waitlistUrl);
+}
+
 export { coursesData };

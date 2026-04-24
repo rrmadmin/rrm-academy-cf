@@ -170,7 +170,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const sessionId = generateSessionId();
     const sessionExpiresAt = Math.floor((Date.now() + 30 * 24 * 60 * 60 * 1000) / 1000);
 
-    // Atomic batch: user + email_verification + session
+    // Atomic batch: user + email_verification + session + waitlist backfill
     try {
       await db.batch([
         db.prepare(
@@ -182,6 +182,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
         db.prepare(
           'INSERT INTO session (id, user_id, expires_at) VALUES (?, ?, ?)'
         ).bind(sessionId, userId, sessionExpiresAt),
+        db.prepare(
+          'UPDATE course_waitlist SET user_id = ?1 WHERE email = ?2 COLLATE NOCASE AND user_id IS NULL'
+        ).bind(userId, email),
       ]);
     } catch (batchErr) {
       if (batchErr.message && batchErr.message.includes('UNIQUE constraint failed')) {

@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import coursesData from '../../data/courses.json';
+import { TURNSTILE_SITE_KEY } from '../../lib/turnstile';
 
 export function getStaticPaths() {
   return coursesData.map((course) => ({
@@ -38,11 +39,15 @@ function formatDuration(seconds: number) {
 const firstStep = course.isAffiliate ? null : course.sections[0]?.steps[0];
 
 const isAffiliate = !!course.isAffiliate;
+const waitlistUrl = (course as any).waitlistUrl as string | undefined;
+const nextCohortLabel = (course as any).nextCohortLabel as string | undefined;
+const onWaitlist = isAffiliate && !!waitlistUrl;
 let cohortLabel = '';
 if (isAffiliate && course.cohortDates) {
   const fmt = (d: string, opts: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('en-US', opts).format(new Date(d + 'T00:00:00'));
   cohortLabel = `${fmt(course.cohortDates.start, { month: 'short', day: 'numeric' })} to ${fmt(course.cohortDates.end, { month: 'short', day: 'numeric', year: 'numeric' })}`;
 }
+const cohortPillText = onWaitlist && nextCohortLabel ? `Next cohort: ${nextCohortLabel}` : cohortLabel;
 const affiliatePrice = isAffiliate && course.affiliatePriceCents ? `$${(course.affiliatePriceCents / 100).toFixed(0)}` : '';
 
 // Schema.org Course
@@ -68,8 +73,8 @@ const courseSchema = {
     '@type': 'Offer',
     price: course.isFree ? '0' : (course.priceCents / 100).toFixed(2),
     priceCurrency: 'USD',
-    availability: 'https://schema.org/InStock',
-    ...(isAffiliate && course.affiliateUrl ? { url: course.affiliateUrl } : {}),
+    availability: onWaitlist ? 'https://schema.org/PreOrder' : 'https://schema.org/InStock',
+    ...(onWaitlist ? { url: `https://rrmacademy.org/courses/${course.slug}/` } : (isAffiliate && course.affiliateUrl ? { url: course.affiliateUrl } : {})),
   },
   ...(!isAffiliate ? {
     hasCourseInstance: {
@@ -221,8 +226,9 @@ const relatedCourses = course.relatedCourses
                   </span>
                   <span class="meta-pill">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                    {cohortLabel}
+                    {cohortPillText}
                   </span>
+                  {onWaitlist && <span class="meta-pill meta-pill--waitlist">Waitlist Open</span>}
                   <span class="meta-pill meta-pill--partner">Partner Course</span>
                 </>
               ) : (
@@ -252,7 +258,14 @@ const relatedCourses = course.relatedCourses
             </div>
             <p class="course-hero__instructor">{isAffiliate ? `Offered by NeoFertility | Led by ${instructor?.name}` : `Taught by ${instructor?.name}`}</p>
             <div class="course-hero__actions" id="hero-actions" data-pagefind-ignore>
-              {isAffiliate ? (
+              {onWaitlist ? (
+                <div class="hero-cta-static">
+                  <p class="waitlist-status">Enrollment for the current cohort is closed. The next cohort begins <strong>{nextCohortLabel}</strong>.</p>
+                  <button type="button" class="btn btn--primary btn--lg" data-waitlist-open aria-haspopup="dialog" aria-controls="waitlist-modal">
+                    Join the Waitlist
+                  </button>
+                </div>
+              ) : isAffiliate ? (
                 <div class="hero-cta-static">
                   <span class="course-hero__price">{price}</span>
                   <a href={course.affiliateUrl} class="btn btn--primary btn--lg affiliate-cta-btn" target="_blank" rel="noopener sponsored">
@@ -462,8 +475,15 @@ const relatedCourses = course.relatedCourses
     <!-- Bottom CTA -->
     <section class="course-section course-bottom-cta" data-pagefind-ignore>
       <div class="container container--narrow" style="text-align: center;">
-        <h2>Ready to Start?</h2>
-        {isAffiliate ? (
+        <h2>{onWaitlist ? "Don't Miss the Next Cohort" : 'Ready to Start?'}</h2>
+        {onWaitlist ? (
+          <>
+            <p class="section-sub">Enrollment for the current cohort is closed. Join the waitlist to be notified when the {nextCohortLabel} cohort opens.</p>
+            <button type="button" class="btn btn--primary btn--lg" data-waitlist-open aria-haspopup="dialog" aria-controls="waitlist-modal">
+              Join the Waitlist
+            </button>
+          </>
+        ) : isAffiliate ? (
           <>
             <p class="section-sub">Enrollment and payment handled by NeoFertility.</p>
             <a href={course.affiliateUrl} class="btn btn--primary btn--lg affiliate-cta-btn" target="_blank" rel="noopener sponsored">
@@ -483,10 +503,39 @@ const relatedCourses = course.relatedCourses
     </section>
 
     <p class="page-updated">Last updated: February 2026</p>
+
+    {onWaitlist && (
+      <div class="waitlist-modal" id="waitlist-modal" role="dialog" aria-modal="true" aria-labelledby="waitlist-modal-title" aria-hidden="true" hidden>
+        <div class="waitlist-modal__backdrop" data-waitlist-close></div>
+        <div class="waitlist-modal__card" role="document">
+          <button type="button" class="waitlist-modal__close" data-waitlist-close aria-label="Close">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <div class="waitlist-modal__body" id="waitlist-modal-body">
+            <h2 id="waitlist-modal-title" class="waitlist-modal__title">Join the Waitlist</h2>
+            <p class="waitlist-modal__sub">Enrollment for the current cohort is closed. Drop your email and we'll notify you when the <strong>{nextCohortLabel}</strong> cohort opens.</p>
+            <form class="waitlist-form" id="waitlist-modal-form" data-waitlist-form data-course-id={course.id}>
+              <label for="waitlist-modal-email" class="visually-hidden">Email address</label>
+              <input id="waitlist-modal-email" type="email" name="email" class="waitlist-input" placeholder="Your email address" required autocomplete="email" />
+              <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true" />
+              <div class="waitlist-turnstile" data-waitlist-turnstile></div>
+              <button type="submit" class="btn btn--primary btn--lg waitlist-btn" data-waitlist-btn>Notify Me</button>
+              <p class="waitlist-feedback" data-waitlist-feedback aria-live="polite"></p>
+            </form>
+          </div>
+          <div class="waitlist-modal__body waitlist-success" id="waitlist-modal-success" hidden>
+            <h2 class="waitlist-modal__title">You're on the list</h2>
+            <p class="waitlist-success-msg">We'll email you when {nextCohortLabel} enrollment opens.</p>
+            <p class="affiliate-disclosure">Prefer to sign up directly? <a href={waitlistUrl} target="_blank" rel="noopener">Visit NeoFertility's waitlist</a>.</p>
+            <button type="button" class="btn btn--secondary waitlist-btn" data-waitlist-close>Close</button>
+          </div>
+        </div>
+      </div>
+    )}
   </div>
 
   {isAffiliate && (
-    <script is:inline define:vars={{ affiliateUrl: course.affiliateUrl, courseId: course.id }}>
+    <script is:inline define:vars={{ affiliateUrl: course.affiliateUrl, courseId: course.id, onWaitlist, TURNSTILE_SITE_KEY }}>
       (function () {
         // Auth-gated coupon display
         var couponShow = document.getElementById('affiliate-coupon');
@@ -498,6 +547,11 @@ const relatedCourses = course.relatedCourses
             if (data.user && data.user.id) {
               if (couponShow) couponShow.hidden = false;
               if (couponHide) couponHide.hidden = true;
+              // Pre-fill waitlist email if logged in
+              if (onWaitlist && data.user.email) {
+                var modalEmail = document.getElementById('waitlist-modal-email');
+                if (modalEmail) modalEmail.value = data.user.email;
+              }
             }
           })
           .catch(function () {});
@@ -516,6 +570,147 @@ const relatedCourses = course.relatedCourses
             }).catch(function () {});
           });
         }
+
+        // Waitlist modal handling
+        if (!onWaitlist) return;
+
+        var modal = document.getElementById('waitlist-modal');
+        var form = document.getElementById('waitlist-modal-form');
+        var formBody = document.getElementById('waitlist-modal-body');
+        var successBody = document.getElementById('waitlist-modal-success');
+        var emailInput = form ? form.querySelector('input[name="email"]') : null;
+        if (!modal || !form) return;
+
+        var lastFocus = null;
+        var turnstileReady = false;
+        var turnstileLoading = false;
+        var widgetToken = '';
+        var widgetId = null;
+
+        function loadTurnstile() {
+          if (turnstileLoading) return;
+          turnstileLoading = true;
+          var script = document.createElement('script');
+          script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+          script.async = true;
+          script.onload = function () { turnstileReady = true; renderWidget(); };
+          document.head.appendChild(script);
+        }
+
+        function renderWidget() {
+          if (!turnstileReady || !window.turnstile || widgetId != null) return;
+          var container = form.querySelector('[data-waitlist-turnstile]');
+          if (!container) return;
+          widgetId = window.turnstile.render(container, {
+            sitekey: TURNSTILE_SITE_KEY,
+            size: 'invisible',
+            callback: function (token) { widgetToken = token; },
+          });
+        }
+
+        function openModal() {
+          lastFocus = document.activeElement;
+          modal.hidden = false;
+          modal.setAttribute('aria-hidden', 'false');
+          document.body.style.overflow = 'hidden';
+          loadTurnstile();
+          setTimeout(function () { if (emailInput) emailInput.focus(); }, 30);
+        }
+
+        function closeModal() {
+          modal.hidden = true;
+          modal.setAttribute('aria-hidden', 'true');
+          document.body.style.overflow = '';
+          if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+        }
+
+        document.querySelectorAll('[data-waitlist-open]').forEach(function (btn) {
+          btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            openModal();
+          });
+        });
+
+        modal.querySelectorAll('[data-waitlist-close]').forEach(function (btn) {
+          btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            closeModal();
+          });
+        });
+
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape' && !modal.hidden) closeModal();
+        });
+
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          var btn = form.querySelector('[data-waitlist-btn]');
+          var feedback = form.querySelector('[data-waitlist-feedback]');
+          var websiteInput = form.querySelector('input[name="website"]');
+          var email = emailInput ? emailInput.value.trim() : '';
+          if (!email) return;
+
+          btn.disabled = true;
+          btn.textContent = '...';
+          feedback.textContent = '';
+          feedback.className = 'waitlist-feedback';
+
+          var executePromise;
+          if (!widgetToken && window.turnstile && widgetId != null) {
+            executePromise = new Promise(function (resolve) {
+              var timeout = setTimeout(resolve, 5000);
+              try {
+                window.turnstile.execute(widgetId, {
+                  callback: function (token) { clearTimeout(timeout); widgetToken = token; resolve(); },
+                  'error-callback': function () { clearTimeout(timeout); resolve(); },
+                });
+              } catch (ex) { clearTimeout(timeout); resolve(); }
+            });
+          } else {
+            executePromise = Promise.resolve();
+          }
+
+          executePromise.then(function () {
+            return fetch('/api/courses/waitlist', {
+              method: 'POST',
+              credentials: 'same-origin',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                courseId: courseId,
+                email: email,
+                turnstileToken: widgetToken,
+                website: websiteInput ? websiteInput.value : '',
+              }),
+            });
+          }).then(function (r) { return r.json(); })
+            .then(function (data) {
+              if (data.ok) {
+                if (formBody) formBody.hidden = true;
+                if (successBody) successBody.hidden = false;
+              } else {
+                feedback.textContent = data.error === 'spam_check_failed'
+                  ? 'Spam check failed. Please try again.'
+                  : data.error === 'email_rejected'
+                  ? 'This email address could not be verified. Please use a different email.'
+                  : data.error === 'rate_limited'
+                  ? 'Too many requests. Please try again later.'
+                  : 'Something went wrong. Please try again.';
+                feedback.classList.add('waitlist-feedback--error');
+                btn.disabled = false;
+                btn.textContent = 'Notify Me';
+              }
+              if (window.turnstile && widgetId != null) {
+                window.turnstile.reset(widgetId);
+                widgetToken = '';
+              }
+            })
+            .catch(function () {
+              feedback.textContent = 'Network error. Please try again.';
+              feedback.classList.add('waitlist-feedback--error');
+              btn.disabled = false;
+              btn.textContent = 'Notify Me';
+            });
+        });
       })();
     </script>
   )}
@@ -967,6 +1162,24 @@ const relatedCourses = course.relatedCourses
     border-color: #b3d9f7;
   }
 
+  /* Waitlist Open pill (amber) */
+  .meta-pill--waitlist {
+    color: #92400e;
+    background: #fef3c7;
+    border-color: #fcd34d;
+  }
+
+  /* Waitlist status text in hero CTA */
+  .waitlist-status {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: var(--space-3);
+  }
+  .waitlist-status strong {
+    color: var(--text-primary);
+  }
+
   /* What's Included */
   .whats-included {
     padding-left: var(--space-6);
@@ -1010,5 +1223,174 @@ const relatedCourses = course.relatedCourses
   }
   .course-bottom-cta .section-sub {
     margin-bottom: var(--space-6);
+  }
+
+  /* Waitlist inline form */
+  .waitlist-form-wrap {
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    text-align: left;
+  }
+  .waitlist-row {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+  }
+  .waitlist-input {
+    flex: 1;
+    min-width: 200px;
+    padding: 9px 14px;
+    font-size: 0.875rem;
+    font-family: 'Inter', system-ui, sans-serif;
+    border: 1.5px solid var(--neutral-300);
+    border-radius: var(--radius-pill, 9999px);
+    background: var(--bg-surface, #fff);
+    color: var(--text-primary);
+    transition: border-color 0.15s;
+  }
+  .waitlist-input:focus {
+    outline: none;
+    border-color: var(--purple-700);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+  .waitlist-input::placeholder {
+    color: var(--text-tertiary, var(--neutral-400));
+  }
+  .waitlist-btn {
+    white-space: nowrap;
+  }
+  .waitlist-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .waitlist-feedback {
+    font-size: 0.8125rem;
+    margin-top: var(--space-2);
+    min-height: 1.2em;
+  }
+  .waitlist-feedback--error {
+    color: var(--color-error, #dc2626);
+  }
+  .waitlist-success {
+    padding: var(--space-4) 0;
+  }
+  .waitlist-success-msg {
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-bottom: var(--space-2);
+  }
+  @media (max-width: 480px) {
+    .waitlist-row {
+      flex-direction: column;
+    }
+    .waitlist-btn {
+      width: 100%;
+    }
+  }
+
+  /* Waitlist modal */
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .waitlist-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-4);
+  }
+  .waitlist-modal[hidden] {
+    display: none;
+  }
+  .waitlist-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(17, 12, 34, 0.55);
+    backdrop-filter: blur(3px);
+    cursor: pointer;
+  }
+  .waitlist-modal__card {
+    position: relative;
+    width: 100%;
+    max-width: 480px;
+    background: var(--bg-surface, #fff);
+    border-radius: var(--radius-lg, 16px);
+    padding: var(--space-8) var(--space-6) var(--space-6);
+    box-shadow: 0 24px 60px rgba(17, 12, 34, 0.35);
+    animation: waitlistModalIn 160ms ease-out;
+  }
+  @keyframes waitlistModalIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .waitlist-modal__close {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    background: transparent;
+    border: 0;
+    border-radius: 999px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .waitlist-modal__close:hover {
+    background: var(--neutral-100);
+    color: var(--text-primary);
+  }
+  .waitlist-modal__close:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+  .waitlist-modal__title {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+    margin: 0 0 var(--space-2);
+    color: var(--text-primary);
+  }
+  .waitlist-modal__sub {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: var(--space-5);
+  }
+  .waitlist-modal__body .waitlist-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .waitlist-modal__body .waitlist-input {
+    width: 100%;
+    padding: 11px 16px;
+    font-size: 0.9375rem;
+  }
+  .waitlist-modal__body .waitlist-btn {
+    width: 100%;
+  }
+  .waitlist-modal__body.waitlist-success {
+    text-align: center;
+  }
+  .waitlist-modal__body.waitlist-success .waitlist-btn {
+    margin-top: var(--space-4);
+    width: auto;
+    min-width: 140px;
   }
 </style>
