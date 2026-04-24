@@ -3,8 +3,8 @@ import { fetchAllPosts } from '../lib/blog';
 import '../styles/fonts.css';
 import '../styles/global.css';
 
-const allPosts = await fetchAllPosts();
-const posts = allPosts.slice(0, 15);
+const posts = await fetchAllPosts();
+const INITIAL_BATCH = 15;
 ---
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
@@ -71,9 +71,14 @@ const posts = allPosts.slice(0, 15);
     <a href="/library/" class="cta-button cta-button--secondary">Research Library: 3,000+ Articles</a>
 
     <!-- Blog post image grid -->
-    <div class="post-grid">
-      {posts.map((post) => (
-        <a href={`/commentary/${post.slug}/`} class="post-grid__item" title={post.title}>
+    <div class="post-grid" data-initial-batch={INITIAL_BATCH}>
+      {posts.map((post, i) => (
+        <a
+          href={`/commentary/${post.slug}/`}
+          class="post-grid__item"
+          title={post.title}
+          data-lazy={i >= INITIAL_BATCH ? '' : null}
+        >
           {post.coverImageUrl ? (
             <img
               src={post.coverImageUrl}
@@ -90,6 +95,35 @@ const posts = allPosts.slice(0, 15);
         </a>
       ))}
     </div>
+    <div class="post-grid__sentinel" aria-hidden="true"></div>
+
+    <script>
+      const grid = document.querySelector<HTMLDivElement>('.post-grid');
+      const sentinel = document.querySelector<HTMLDivElement>('.post-grid__sentinel');
+      if (grid && sentinel) {
+        const BATCH = 15;
+        const hidden = Array.from(grid.querySelectorAll<HTMLElement>('[data-lazy]'));
+        hidden.forEach((el) => { el.hidden = true; });
+
+        if (hidden.length === 0) {
+          sentinel.remove();
+        } else {
+          let idx = 0;
+          const reveal = () => {
+            hidden.slice(idx, idx + BATCH).forEach((el) => { el.hidden = false; });
+            idx += BATCH;
+            if (idx >= hidden.length) {
+              observer.disconnect();
+              sentinel.remove();
+            }
+          };
+          const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) reveal();
+          }, { rootMargin: '600px 0px' });
+          observer.observe(sentinel);
+        }
+      }
+    </script>
 
     <!-- Footer -->
     <footer class="bio-footer">
@@ -273,6 +307,11 @@ const posts = allPosts.slice(0, 15);
     font-size: 1.5rem;
     font-weight: 600;
     color: var(--purple-300);
+  }
+
+  .post-grid__sentinel {
+    width: 100%;
+    height: 1px;
   }
 
   /* ── Footer ── */
