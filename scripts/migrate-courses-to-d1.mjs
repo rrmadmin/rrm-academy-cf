@@ -60,44 +60,116 @@ try {
 const overrideIds = new Set(overrides.map((o) => (o.id || '').toLowerCase()));
 const overrideSlugs = new Set(overrides.map((o) => (o.slug || '').toLowerCase()));
 
-// --check-fk: assert every enrollment.course_id is satisfied by either a
-// migrated course (this script's output IDs) or an override course. Exits
-// non-zero on drift. Designed for manual operator use -- not invoked by CI.
+// --check-fk: assert every course_id and step_id referenced in user-data
+// tables is satisfied by either a migrated course (this script's output IDs)
+// or an override course. Exits non-zero on drift. Designed for manual operator
+// use -- not invoked by CI. Validates wrangler envelope shape; distinguishes
+// empty-table from satisfied-FK.
+//
+// Tables checked:
+//   course_id: enrollment, step_progress, quiz_response, lesson_comment,
+//              affiliate_clicks, course_waitlist
+//   step_id:   step_progress, quiz_response, lesson_comment
 if (process.argv.includes('--check-fk')) {
   runFkCheck();
-  // runFkCheck calls process.exit; this is unreachable but keeps intent clear.
   process.exit(0);
 }
 
+// Re-run guard: refuse to emit SQL without an explicit acknowledgement flag.
+// This script uses INSERT OR REPLACE, which clobbers admin edits (notably
+// status='archived') on re-run. Operator discipline is enforced here so a
+// stray `node migrate-courses-to-d1.mjs > migrate-courses-data.sql` from
+// shell history can't silently regenerate destructive SQL.
+if (!process.argv.includes('--seed-mode-i-understand')) {
+  process.stderr.write(
+    'REFUSING TO EMIT SQL: this script generates INSERT OR REPLACE statements that\n' +
+    'will overwrite admin-edited rows (notably course.status) on the next wrangler\n' +
+    'd1 execute. To proceed, pass --seed-mode-i-understand explicitly:\n' +
+    '\n' +
+    '  node scripts/migrate-courses-to-d1.mjs --seed-mode-i-understand \\\n' +
+    '    > scripts/migrate-courses-data.sql\n' +
+    '\n' +
+    'For a read-only FK pre-flight (no SQL emitted), use --check-fk instead.\n'
+  );
+  process.exit(5);
+}
+
 function runFkCheck() {
-  const migratedIds = new Set();
+  const migratedCourseIds = new Set();
+  const migratedStepIds = new Set();
   for (const course of courses) {
     const idLower = (course.id || '').toLowerCase();
     const slugLower = (course.slug || '').toLowerCase();
     if (overrideIds.has(idLower) || overrideSlugs.has(slugLower)) continue;
-    migratedIds.add(course.id);
+    migratedCourseIds.add(course.id);
+    for (const section of course.sections || []) {
+      for (const step of section.steps || []) {
+        if (step.id) migratedStepIds.add(step.id);
+      }
+    }
   }
   const overrideRawIds = new Set(overrides.map((o) => o.id));
-  const allowedIds = new Set([...migratedIds, ...overrideRawIds]);
+  const allowedCourseIds = new Set([...migratedCourseIds, ...overrideRawIds]);
 
+  const courseIdQuery = [
+    'SELECT course_id FROM enrollment',
+    'SELECT course_id FROM step_progress',
+    'SELECT course_id FROM quiz_response',
+    'SELECT course_id FROM lesson_comment',
+    'SELECT course_id FROM affiliate_clicks',
+    'SELECT course_id FROM course_waitlist',
+  ].join(' UNION ');
+
+  const stepIdQuery = [
+    'SELECT step_id FROM step_progress',
+    'SELECT step_id FROM quiz_response',
+    'SELECT step_id FROM lesson_comment',
+  ].join(' UNION ');
+
+  const courseIdRows = runWranglerQuery(courseIdQuery, 'course_id union');
+  const courseIdValues = courseIdRows.map((r) => r.course_id).filter((v) => v !== null && v !== undefined);
+  const courseOrphans = courseIdValues.filter((id) => !allowedCourseIds.has(id));
+
+  const stepIdRows = runWranglerQuery(stepIdQuery, 'step_id union');
+  const stepIdValues = stepIdRows.map((r) => r.step_id).filter((v) => v !== null && v !== undefined);
+  const stepOrphans = stepIdValues.filter((id) => !migratedStepIds.has(id));
+
+  if (courseOrphans.length > 0 || stepOrphans.length > 0) {
+    if (courseOrphans.length > 0) {
+      process.stderr.write(
+        `FK CHECK FAIL: ${courseOrphans.length} course_id values orphaned: ${courseOrphans.join(', ')}\n`
+      );
+    }
+    if (stepOrphans.length > 0) {
+      process.stderr.write(
+        `FK CHECK FAIL: ${stepOrphans.length} step_id values orphaned: ${stepOrphans.join(', ')}\n`
+      );
+    }
+    process.exit(3);
+  }
+
+  const courseStatus = courseIdValues.length === 0
+    ? `0 rows (verify the 6 tables are intentionally empty)`
+    : `${courseIdValues.length} distinct course_id values satisfied (${migratedCourseIds.size} migrated + ${overrideRawIds.size} override)`;
+  const stepStatus = stepIdValues.length === 0
+    ? `0 rows (verify the 3 tables are intentionally empty)`
+    : `${stepIdValues.length} distinct step_id values satisfied (${migratedStepIds.size} migrated)`;
+
+  process.stderr.write(`FK CHECK PASS (course_id): ${courseStatus}\n`);
+  process.stderr.write(`FK CHECK PASS (step_id):   ${stepStatus}\n`);
+  process.exit(0);
+}
+
+function runWranglerQuery(sql, label) {
   let raw;
   try {
     raw = execFileSync(
       'npx',
-      [
-        'wrangler',
-        'd1',
-        'execute',
-        'rrm-auth',
-        '--remote',
-        '--json',
-        '--command',
-        'SELECT DISTINCT course_id FROM enrollment',
-      ],
+      ['wrangler', 'd1', 'execute', 'rrm-auth', '--remote', '--json', '--command', sql],
       { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'pipe'] }
     );
   } catch (err) {
-    process.stderr.write(`FATAL: wrangler enrollment query failed: ${err.message}\n`);
+    process.stderr.write(`FATAL: wrangler ${label} query failed: ${err.message}\n`);
     process.exit(2);
   }
 
@@ -105,25 +177,27 @@ function runFkCheck() {
   try {
     parsed = JSON.parse(raw);
   } catch (err) {
-    process.stderr.write(`FATAL: cannot parse wrangler --json output: ${err.message}\n`);
+    process.stderr.write(`FATAL: cannot parse wrangler --json output for ${label}: ${err.message}\n`);
     process.exit(2);
   }
 
-  // wrangler --json returns an array of result envelopes; each has .results.
-  const rows = Array.isArray(parsed) ? (parsed[0]?.results ?? []) : (parsed.results ?? []);
-  const enrollmentIds = rows.map((r) => r.course_id).filter((v) => v !== null && v !== undefined);
-
-  const orphans = enrollmentIds.filter((id) => !allowedIds.has(id));
-  if (orphans.length > 0) {
-    process.stderr.write(
-      `FK CHECK FAIL: ${orphans.length} enrollment.course_id values not in migrated+override set: ${orphans.join(', ')}\n`
-    );
-    process.exit(3);
+  // wrangler --json returns an array of result envelopes. Verify shape before
+  // pulling .results -- a `success: false` envelope or unexpected key would
+  // otherwise nullish-coalesce to [] and silently pass the FK check.
+  const envelope = Array.isArray(parsed) ? parsed[0] : parsed;
+  if (!envelope || typeof envelope !== 'object') {
+    process.stderr.write(`FATAL: wrangler ${label} returned non-object envelope\n`);
+    process.exit(2);
   }
-  process.stderr.write(
-    `FK CHECK PASS: ${enrollmentIds.length} distinct enrollment.course_id values all satisfied (${migratedIds.size} migrated + ${overrideRawIds.size} override)\n`
-  );
-  process.exit(0);
+  if (envelope.success === false) {
+    process.stderr.write(`FATAL: wrangler ${label} envelope reports success=false: ${JSON.stringify(envelope).slice(0, 500)}\n`);
+    process.exit(2);
+  }
+  if (!('results' in envelope)) {
+    process.stderr.write(`FATAL: wrangler ${label} envelope missing .results key: ${JSON.stringify(envelope).slice(0, 500)}\n`);
+    process.exit(2);
+  }
+  return Array.isArray(envelope.results) ? envelope.results : [];
 }
 
 function esc(val) {
