@@ -10,7 +10,7 @@
  *        node scripts/quality/dashboard.mjs --skip-mutation  (faster iteration)
  */
 import { execSync } from 'node:child_process';
-import { mkdir, readFile, writeFile, access } from 'node:fs/promises';
+import { mkdir, readFile, readdir, writeFile, access } from 'node:fs/promises';
 import { resolve, relative } from 'node:path';
 import { loadCoverage } from './lib/load-coverage.mjs';
 import { mdTable, fmt, pct } from './lib/render-markdown.mjs';
@@ -27,7 +27,7 @@ function run(label, cmd) {
     execSync(cmd, { cwd: ROOT, stdio: 'inherit' });
     return true;
   } catch (err) {
-    console.error(`[${label}] failed:`, err.message);
+    console.error(`[${label}] failed: status=${err.status ?? 'n/a'} ${err.message}`);
     return false;
   }
 }
@@ -68,7 +68,9 @@ async function tryReadJson(path) {
 
 const covReport = await tryReadJson(resolve(ROOT, 'reports/quality/coverage/coverage-final.json'));
 const crapReport = await tryReadJson(resolve(ROOT, 'reports/quality/crap.json'));
-const mutReport = await tryReadJson(resolve(ROOT, 'reports/quality/mutation/mutation.json'));
+const mutReport = skipMutation
+  ? null
+  : await tryReadJson(resolve(ROOT, 'reports/quality/mutation/mutation.json'));
 const depsReport = await tryReadJson(resolve(ROOT, 'reports/quality/deps.json'));
 
 const lines = [];
@@ -104,7 +106,11 @@ if (!covReport || !crapReport) {
     }
   }
 
-  const allFiles = new Set([...Object.keys(byFile), ...Object.keys(maxCrapByFile), ...Object.keys(mutByFile)]);
+  const libDirEntries = (await readdir(resolve(ROOT, 'src/lib'))).sort();
+  const libFiles = libDirEntries
+    .filter(f => /\.(js|mjs|ts)$/.test(f) && !/\.test\./.test(f))
+    .map(f => `src/lib/${f}`);
+  const allFiles = new Set([...Object.keys(byFile), ...Object.keys(maxCrapByFile), ...Object.keys(mutByFile), ...libFiles]);
   const rows = [...allFiles].sort().map(f => [
     f,
     byFile[f] ? pct(byFile[f].coverage) : '—',
@@ -154,7 +160,7 @@ if (!covReport) {
 lines.push('');
 
 // --- Mutation survivors (top 20) ---
-lines.push('## Top 20 surviving mutants');
+lines.push('## Mutation survivors (top 20)');
 lines.push('');
 const timedOutMarker = await tryRead(resolve(ROOT, 'reports/quality/mutation/TIMED_OUT'));
 if (timedOutMarker) {
@@ -177,7 +183,9 @@ if (timedOutMarker) {
   }
   survivors.sort((a, b) => {
     if (a.file !== b.file) return a.file < b.file ? -1 : 1;
-    return a.line - b.line;
+    if (a.line !== b.line) return a.line - b.line;
+    if (a.mutator !== b.mutator) return a.mutator < b.mutator ? -1 : 1;
+    return (a.replacement ?? '') < (b.replacement ?? '') ? -1 : 1;
   });
   const top20 = survivors.slice(0, 20);
   lines.push(top20.length === 0
