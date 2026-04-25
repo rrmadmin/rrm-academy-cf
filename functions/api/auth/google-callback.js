@@ -11,6 +11,7 @@
 import {
   generateId, createSession, sessionCookie,
   exchangeGoogleCode, getGoogleProfile, isSafeRedirect, SITE_URL,
+  waitlistBackfillStatement,
 } from './_shared.js';
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
@@ -29,9 +30,14 @@ async function handleReturningGoogleUser(db, googleId, email) {
     if (conflict) {
       return { redirect: '/login/?error=email_conflict' };
     }
-    await db.prepare("UPDATE user SET email = ?, updated_at = datetime('now') WHERE id = ?")
-      .bind(email, user.id).run();
+    await db.batch([
+      db.prepare("UPDATE user SET email = ?, updated_at = datetime('now') WHERE id = ?")
+        .bind(email, user.id),
+      waitlistBackfillStatement(db, user.id, email),
+    ]);
     user.email = email;
+  } else {
+    await waitlistBackfillStatement(db, user.id, email).run();
   }
 
   return { user };
@@ -46,9 +52,12 @@ async function linkGoogleToVerifiedUser(db, googleId, email, avatarUrl) {
   if (user.google_id && user.google_id !== googleId) {
     return { redirect: '/login/?error=account_conflict' };
   }
-  await db.prepare(
-    `UPDATE user SET google_id = ?, avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ?`
-  ).bind(googleId, avatarUrl, user.id).run();
+  await db.batch([
+    db.prepare(
+      `UPDATE user SET google_id = ?, avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ?`
+    ).bind(googleId, avatarUrl, user.id),
+    waitlistBackfillStatement(db, user.id, email),
+  ]);
 
   return { user };
 }
@@ -63,6 +72,7 @@ async function upgradeUnverifiedUser(db, googleId, email, avatarUrl) {
     db.prepare("UPDATE user SET google_id = ?, email_verified = 1, hashed_password = '', avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ?")
       .bind(googleId, avatarUrl, unverified.id),
     db.prepare('DELETE FROM session WHERE user_id = ?').bind(unverified.id),
+    waitlistBackfillStatement(db, unverified.id, email),
   ]);
 
   return { user: unverified };
@@ -70,10 +80,13 @@ async function upgradeUnverifiedUser(db, googleId, email, avatarUrl) {
 
 async function createNewGoogleUser(db, email, name, firstName, lastName, googleId, avatarUrl) {
   const id = generateId();
-  await db.prepare(
-    `INSERT INTO user (id, email, email_verified, hashed_password, name, first_name, last_name, google_id, role, avatar_url)
-     VALUES (?, ?, 1, '', ?, ?, ?, ?, 'member', ?)`
-  ).bind(id, email, name, firstName, lastName, googleId, avatarUrl).run();
+  await db.batch([
+    db.prepare(
+      `INSERT INTO user (id, email, email_verified, hashed_password, name, first_name, last_name, google_id, role, avatar_url)
+       VALUES (?, ?, 1, '', ?, ?, ?, ?, 'member', ?)`
+    ).bind(id, email, name, firstName, lastName, googleId, avatarUrl),
+    waitlistBackfillStatement(db, id, email),
+  ]);
 
   return { user: { id, email, blocked: 0 } };
 }

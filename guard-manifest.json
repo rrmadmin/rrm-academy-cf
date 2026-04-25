@@ -3,7 +3,7 @@
   "description": "Critical file integrity manifest. Run `npm run guard:update` after intentional changes.",
   "files": {
     "functions/api/auth/_shared.js": {
-      "hash": "fda8cd7ed0fc5d9c05ae6a09ac4896038a5c835822b1003e63bcfca446a5b12b",
+      "hash": "4a2d6762f5a507acf655660f173e1302759123a74fd627922e5852d87b8883a5",
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
@@ -11,7 +11,7 @@
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "fa01bb7e079dd7b685826ec0e396b89ae36468f86cccbd2c04274d93b030349d",
+      "hash": "d6688ac3140025d9a818a859aa04aa625e1157a1da7e7c1ac1b16d50a75afe0e",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
@@ -31,7 +31,7 @@
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "b3fba797d1e3d69ce2f9000e31b41af7b8518f77f9e3f0ae9d89422569266e38",
+      "hash": "8ebd305219d189e60e25a1c8541b6f55bf4e6a7f323afe3dbbf04c749744ce54",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
@@ -79,7 +79,7 @@
       "note": "SES email sending infrastructure"
     },
     "functions/api/_elv.js": {
-      "hash": "217b4b44eaf0bf3d01f201da6ec1e386b9c5626c612cf0e03b0b8805b472ff22",
+      "hash": "3f0eade4f0ddeaecbb364fdaa21b5f0747f0d390b65dfbcbd63fff9e7e7adc20",
       "note": "EmailListVerify SMTP validation"
     },
     "functions/api/survey/submit.js": {

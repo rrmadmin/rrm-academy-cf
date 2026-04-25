@@ -77,37 +77,37 @@ export async function verifyAndTagEmail(email, env, { firstName, lastName, sourc
   const result = await verifyEmailELV(email, env);
 
   // Tag in D1 (non-blocking, best-effort)
+  let contactId = null;
   if (env.DB && result.status !== 'skipped') {
     try {
-      // Upsert contact
-      await env.DB.prepare(
+      // Upsert contact — RETURNING id eliminates the separate SELECT (2 RTs instead of 3).
+      // contact_tag depends on the returned id so it cannot be batched with the upsert.
+      const contact = await env.DB.prepare(
         `INSERT INTO contact (id, email, first_name, last_name, source)
          VALUES (?, ?, ?, ?, ?)
          ON CONFLICT(email) DO UPDATE SET
            first_name = COALESCE(NULLIF(excluded.first_name, ''), contact.first_name),
            last_name = COALESCE(NULLIF(excluded.last_name, ''), contact.last_name),
-           updated_at = datetime('now')`
+           updated_at = datetime('now')
+         RETURNING id`
       ).bind(
         crypto.randomUUID(), email, firstName || '', lastName || '', source || 'website'
-      ).run();
+      ).first();
 
-      // Get contact ID for tagging
-      const contact = await env.DB.prepare(
-        'SELECT id FROM contact WHERE email = ? COLLATE NOCASE'
-      ).bind(email).first();
+      contactId = contact?.id || null;
 
-      if (contact) {
+      if (contactId) {
         await env.DB.prepare(
           `INSERT OR REPLACE INTO contact_tag (contact_id, tag, source)
            VALUES (?, ?, 'emaillistverify')`
-        ).bind(contact.id, `elv:${result.status}`).run();
+        ).bind(contactId, `elv:${result.status}`).run();
       }
     } catch {
       // Non-fatal -- don't block the user action over a CRM tag failure
     }
   }
 
-  return result;
+  return { ...result, contactId };
 }
 
 function statusMessage(status) {
