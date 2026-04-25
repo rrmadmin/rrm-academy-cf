@@ -283,6 +283,19 @@ export async function requireSuperAdmin(request, db) {
   return { user, session };
 }
 
+// --- Course waitlist backfill ---
+
+/**
+ * Returns a prepared D1 statement that links waitlist rows for `email` to `userId`.
+ * Safe to include in a db.batch() or call with .run() directly.
+ * Idempotent: only touches rows where user_id IS NULL.
+ */
+export function waitlistBackfillStatement(db, userId, email) {
+  return db.prepare(
+    'UPDATE course_waitlist SET user_id = ?1 WHERE email = ?2 COLLATE NOCASE AND user_id IS NULL'
+  ).bind(userId, email);
+}
+
 // --- Google OAuth helpers ---
 
 export function googleAuthUrl(clientId, redirectUri) {

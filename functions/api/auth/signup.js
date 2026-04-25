@@ -5,7 +5,7 @@
 import {
   json, optionsResponse, generateId, generateSessionId, generateToken,
   hashPassword, sessionCookie, verifyTurnstile, checkRateLimit,
-  isValidPassword,
+  isValidPassword, waitlistBackfillStatement,
 } from './_shared.js';
 import { validateEmail } from './_email-validate.js';
 import { verifyAndTagEmail } from '../_elv.js';
@@ -182,9 +182,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
         db.prepare(
           'INSERT INTO session (id, user_id, expires_at) VALUES (?, ?, ?)'
         ).bind(sessionId, userId, sessionExpiresAt),
-        db.prepare(
-          'UPDATE course_waitlist SET user_id = ?1 WHERE email = ?2 COLLATE NOCASE AND user_id IS NULL'
-        ).bind(userId, email),
+        waitlistBackfillStatement(db, userId, email),
       ]);
     } catch (batchErr) {
       if (batchErr.message && batchErr.message.includes('UNIQUE constraint failed')) {
