@@ -19,7 +19,7 @@
  * src/lib/ yet — that's the baseline signal).
  */
 import { spawn } from 'node:child_process';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, rm, unlink, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
@@ -27,6 +27,7 @@ const MUT_DIR = resolve(ROOT, 'reports', 'quality', 'mutation');
 const TIMEOUT_MS = Number(process.env.MUTATION_TIMEOUT_MS ?? 15 * 60 * 1000);
 
 await mkdir(MUT_DIR, { recursive: true });
+await unlink(resolve(MUT_DIR, 'TIMED_OUT')).catch(() => {});
 
 const child = spawn('npx', ['stryker', 'run', 'stryker.conf.json'], {
   cwd: ROOT,
@@ -48,6 +49,7 @@ child.on('exit', async (code) => {
   clearTimeout(killTimer);
   if (timedOut) {
     await writeFile(resolve(MUT_DIR, 'TIMED_OUT'), `Timed out after ${TIMEOUT_MS}ms at ${new Date().toISOString()}\n`);
+    await rm(resolve(ROOT, '.stryker-tmp'), { recursive: true, force: true }).catch(() => {});
     process.exit(2);
   }
   // Stryker exits non-zero if mutation score under threshold; we don't set
