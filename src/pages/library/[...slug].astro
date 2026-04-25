@@ -6,6 +6,7 @@ import ArticleCard from '../../components/ArticleCard.astro';
 import LibraryFundingCallout from '../../components/LibraryFundingCallout.astro';
 import { fetchAllArticles, getRelatedArticles, type Article } from '../../lib/airtable';
 import { parseStructuredAbstract } from '../../lib/abstract-parser';
+import { parseMarkdown, looksLikeMarkdown } from '../../lib/markdown-sanitize';
 
 export async function getStaticPaths() {
   const articles = await fetchAllArticles();
@@ -24,6 +25,19 @@ interface Props {
 const { article, allArticles } = Astro.props;
 const related = getRelatedArticles(article, allArticles, 4);
 const abstractSections = parseStructuredAbstract(article.abstract);
+const renderedAbstractSections = await Promise.all(
+  abstractSections.map(async (section) => ({
+    heading: section.heading,
+    html: looksLikeMarkdown(section.text)
+      ? await parseMarkdown(section.text)
+      : section.text
+          .split(/\n\s*\n/)
+          .map((p) => p.replace(/\s+/g, ' ').trim())
+          .filter(Boolean)
+          .map((p) => `<p>${p.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`)
+          .join(''),
+  }))
+);
 
 // Build journal citation line
 const journalParts: string[] = [];
@@ -522,17 +536,15 @@ const citationMeta = {
       <!-- Abstract -->
       <section class="abstract" aria-label="Abstract">
         <h2 class="detail-heading">Abstract</h2>
-        {abstractSections.length === 0 ? (
+        {renderedAbstractSections.length === 0 ? (
           <p class="abstract-empty">No abstract available for this article.</p>
         ) : (
-          abstractSections.map(section => (
+          renderedAbstractSections.map(section => (
             <div class="abstract-section">
               {section.heading && (
                 <span class="abstract-heading">{section.heading}</span>
               )}
-              {section.text.split(/\n/).filter(p => p.trim()).map(para => (
-                <p>{para.trim()}</p>
-              ))}
+              <Fragment set:html={section.html} />
             </div>
           ))
         )}
@@ -770,6 +782,54 @@ const citationMeta = {
     color: var(--neutral-500);
     font-style: italic;
     font-size: 0.875rem;
+  }
+  .abstract-section :global(p) {
+    margin: 0 0 var(--space-3) 0;
+  }
+  .abstract-section :global(p:last-child) {
+    margin-bottom: 0;
+  }
+  .abstract-section :global(h1),
+  .abstract-section :global(h2),
+  .abstract-section :global(h3),
+  .abstract-section :global(h4) {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-weight: 600;
+    color: var(--neutral-900);
+    margin: var(--space-5) 0 var(--space-3) 0;
+  }
+  .abstract-section :global(h1) { font-size: 1.375rem; }
+  .abstract-section :global(h2) { font-size: 1.1875rem; }
+  .abstract-section :global(h3) { font-size: 1.0625rem; }
+  .abstract-section :global(h4) { font-size: 1rem; }
+  .abstract-section :global(ul),
+  .abstract-section :global(ol) {
+    margin: 0 0 var(--space-3) 0;
+    padding-left: var(--space-5);
+  }
+  .abstract-section :global(li) {
+    margin-bottom: var(--space-1);
+    line-height: 1.6;
+  }
+  .abstract-section :global(a) {
+    color: var(--purple-700);
+    word-break: break-word;
+  }
+  .abstract-section :global(a:hover) {
+    text-decoration: underline;
+  }
+  .abstract-section :global(code) {
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.875em;
+    background: var(--neutral-100);
+    padding: 0.125em 0.375em;
+    border-radius: 4px;
+  }
+  .abstract-section :global(blockquote) {
+    margin: var(--space-3) 0;
+    padding-left: var(--space-4);
+    border-left: 3px solid var(--border-color);
+    color: var(--neutral-700);
   }
   .detail-heading {
     font-family: 'Cormorant Garamond', 'Georgia', serif;
