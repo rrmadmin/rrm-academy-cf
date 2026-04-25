@@ -6,21 +6,21 @@
     "editorial_owner_refs": [],
     "schema_version": "1.0.0",
     "ssot": true,
-    "generated_at": "2026-04-22T16:27:43.825Z",
+    "generated_at": "2026-04-25T23:14:13.016Z",
     "generated_by": "scripts/build-canonical-facts.mjs",
     "source": "D1 rrm-library.facts (tradition filter) + _manual overrides",
     "regenerable": true,
-    "record_count": 545,
+    "record_count": 605,
     "tradition_tally": {
-      "napro": 538,
-      "fabm": 545
+      "napro": 598,
+      "fabm": 605
     },
     "evidence_tier_tally": {
-      "clinical_experience": 360,
+      "clinical_experience": 420,
       "peer_reviewed": 185
     },
-    "source_resolved_count": 520,
-    "source_unresolved_count": 25
+    "source_resolved_count": 575,
+    "source_unresolved_count": 30
   },
   "_manual": {
     "editorial_notes": [],
@@ -3184,6 +3184,576 @@
       "last_verified_at": "2026-04-19 04:40:22"
     },
     {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-1",
+      "claim": "The CrMS pregnancy classification divides pregnancies into three categories: achieving related, avoiding related, and unresolved, with avoiding-related pregnancies further subdivided.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"The pregnancy classification of the CrMS divides pregnancies into three categories: achieving related, avoiding related, and unresolved.\" Section: Pregnancy Classification.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-12",
+      "claim": "Gross (single decrement) life-table rates are the most accurate to compare between studies, but they are higher than net life-table rates and cannot be compared directly to net life-table or Pearl rates.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Gross (single decrement) life-table rates are the most accurate to compare between studies, but they are somewhat higher than net life-table rates\" Section: Statistical Methods.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-14",
+      "claim": "Couples are taught that days considered fertile by virtue of incomplete or absent observations of fertility biomarkers at the vulva are achieving-related days when intercourse occurs.",
+      "category": "protocol",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"This includes days that are considered fertile by virtue of incomplete or absent observations of the fertility biomarkers at the vulva.\" Section: Relationship to Sexual Behavior.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-15",
+      "claim": "Pearl rates for a study group followed for one year are usually similar but not always identical to net multiple-decrement life-table rates.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Pearl rates for a study group followed for just one year will usually (but not always) be similar to net multiple-decrement life-table rates.\" Section: Statistical Methods.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-16",
+      "claim": "Effectiveness rates are calculated as the pregnancy rate from each measure subtracted from 100 percent.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Effectiveness rates are the pregnancy rate from each measure subtracted (or divided) from 100.\" Section: Table 16-3.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-17",
+      "claim": "In CrMS studies, total pregnancy rates include method-related, use-related, and achieving-related pregnancies, making them higher than total rates from other NFP studies that exclude intended pregnancies.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"total pregnancy rates for CrMS studies will be higher than total pregnancy rates for studies of other NFP or family planning methods\" Section: Comparison of Method and Use Effectiveness.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-18",
+      "claim": "The principle for handling unresolved pregnancies in CrMS analysis is to distribute them proportionally among the other rate categories.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"The principle in dealing with unresolved pregnancies is to distribute them proportionally among the other rates.\" Section: Unresolved Pregnancies.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-19",
+      "claim": "In CrMS effectiveness studies, couples with known infertility at study start are excluded from analysis to avoid biasing pregnancy rates downward.",
+      "category": "methodology",
+      "domain": "infertility",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"couples with known infertility at the start of the study are usually excluded from the analysis.\" Section: Defining Infertility in CrMS Studies.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-2",
+      "claim": "In CrMS teaching, intercourse or genital contact on days of fertility constitutes achieving-related behavior and abandons use of the method to avoid pregnancy.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"intercourse (or genital contact) on days of fertility abandons use of the method to avoid pregnancy and adopts use of the method to achieve pregnancy.\" Section: Relationship to Sexual Behavior.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-20",
+      "claim": "Use-related pregnancies under the CrMS definition are lower than under definitions used by older contraceptive efficacy studies, because some pregnancies classified as achieving-related in CrMS would be 'unplanned' (user pregnancies) in older studies.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Use-related pregnancies will be somewhat lower under the CrMS definition than under the definition used by many older contraceptive efficacy studies\" Section: Definition Differences with Older Studies.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-21",
+      "claim": "Use-related pregnancy rate represents the pregnancy rate couples are likely to achieve with real-world consistent use of the method to avoid pregnancy, accounting for user or teacher errors.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Use-related pregnancy rate = What pregnancy rate couples are likely to achieve with \\\"real world\\\" consistent use of the method to avoid pregnancy, accounting for user or teacher errors.\" Section: Value of Different Rates.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-22",
+      "claim": "In the new approach to CrMS analysis, perfect-use, imperfect-use, and typical-use measures use only cycles of the corresponding type of use as denominators rather than all cycles.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"the denominators in each case would be the cycles for which the type of use is known to be occurring, rather than all cycles in the study\" Section: Adapting the New Approach to the CrMS.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-23",
+      "claim": "The preferred statistical method used in all published CrMS effectiveness studies to date is life-table analysis.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"the preferred statistical method used in all studies to date is life table analysis.\" Section: Table 16-3.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-24",
+      "claim": "No published CrMS study has reported confidence intervals for pregnancy rates, identified as a priority for future research.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"No published CrMS study has reported confidence intervals for the pregnancy rates.\" Section: Confidence Intervals.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-25",
+      "claim": "Most CrMS effectiveness studies have followed couples for up to two years; longer-term follow-up is identified as needed to understand how effectiveness and use patterns change over time.",
+      "category": "epidemiology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Most CrMS studies have followed couples for up to two years.\" Section: Long-Term Outcomes.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-3",
+      "claim": "In one CrMS effectiveness study, more than half of all achieving-related pregnancies were considered 'planned' by the couple.",
+      "category": "outcome",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"In one CrMS study, over half of all achieving-related pregnancies that occurred were considered \\\"planned\\\" by the couple.\" Section: The Role of Intentions.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-4",
+      "claim": "In CrMS effectiveness studies, infertility is operationally defined as six cycles of achieving-related use (intercourse during the fertile time) without pregnancy, at which point couples are removed from analysis and referred for evaluation.",
+      "category": "protocol",
+      "domain": "infertility",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"This is defined as six cycles of achieving-related use (intercourse during the fertile time) without pregnancy.\" Section: Defining Infertility in CrMS Studies.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-7",
+      "claim": "Five published CrMS effectiveness studies exist: Hilgers/Prebil/Daly 1984, Doud 1987, Fehring/Lawrence/Philpot 1994, Hilgers/Stanford 1998, and Howard/Stanford 1999.",
+      "category": "epidemiology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"each of the five published effectiveness studies of the CrMS is among the most solid effectiveness studies available in NFP\" Section: Features of a Good Effectiveness Study.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-8",
+      "claim": "Under the new approach to CrMS effectiveness measurement, the achieving-related pregnancy rate over one year is estimated to be at least 20 percent and likely higher.",
+      "category": "outcome",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"The rates will probably be on the order of at least 20 percent and maybe higher.\" Section: How Rates Would Look with the New Approach.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
       "id": "fact-chapter-17-achieving-related-pregnancy-rate-and-its-natural-adaptability-1",
       "claim": "Since its introduction in 1980, five prospective trials of the CREIGHTON MODEL FertilityCare System (CrMS) have been conducted to evaluate method- and use-effectiveness.",
       "category": "methodology",
@@ -6138,6 +6708,96 @@
       "last_verified_at": "2026-04-19 04:40:24"
     },
     {
+      "id": "fact-chapter-3-naprotechnology-and-the-new-humanism-17",
+      "claim": "Hilgers published a foundational two-volume work titled 'The Scientific Foundations of the Ovulation Method' in 1995 through Pope Paul VI Institute Press, Omaha.",
+      "category": "epidemiology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "reckJ0hRu3MQGQO4j",
+        "slug": "chapter-3-naprotechnology-and-the-new-humanism",
+        "title": "Chapter 3: NaProTECHNOLOGY and the New Humanism",
+        "short_citation": "Mirkes R, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Mirkes R",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"T. W. Hilgers, The Scientific Foundations of the Ovulation Method (Omaha: Pope Paul VI Institute Press, 1995)\" Section: References, n25.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:48"
+    },
+    {
+      "id": "fact-chapter-3-naprotechnology-and-the-new-humanism-6",
+      "claim": "Dr. Hilgers credits the prodigious research of Drs. John and Lyn Billings on the Ovulation Method, which began in 1953, as foundational to the development of NaProTECHNOLOGY.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "reckJ0hRu3MQGQO4j",
+        "slug": "chapter-3-naprotechnology-and-the-new-humanism",
+        "title": "Chapter 3: NaProTECHNOLOGY and the New Humanism",
+        "short_citation": "Mirkes R, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Mirkes R",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Drs. John and Lyn Billings, whose prodigious research on the Ovulation Method began in 1953\" Section: I. NPT: The Vision of Its Pioneer, Originality and Creativity.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:48"
+    },
+    {
+      "id": "fact-chapter-3-naprotechnology-and-the-new-humanism-7",
+      "claim": "Dr. Erik Odeblad's research, foundational to NaProTECHNOLOGY, focused on two foci: the biophysical characteristics of cervical mucus throughout the menstrual cycle and the mapping of the endocervix.",
+      "category": "cycle-biomarker",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "reckJ0hRu3MQGQO4j",
+        "slug": "chapter-3-naprotechnology-and-the-new-humanism",
+        "title": "Chapter 3: NaProTECHNOLOGY and the New Humanism",
+        "short_citation": "Mirkes R, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Mirkes R",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"the biophysical characteristics of cervical mucus throughout the menstrual cycle and the mapping of the endocervix\" Section: I. NPT: The Vision of Its Pioneer, Originality and Creativity.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:48"
+    },
+    {
       "id": "fact-chapter-31-ovarian-cysts-evaluation-and-treatment-14",
       "claim": "Most LUFs occur in cycles with a normal-length post-Peak phase; a normal post-Peak phase does not confirm ovulation occurred.",
       "category": "charting",
@@ -6586,6 +7246,161 @@
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
       "last_verified_at": "2026-04-19 04:40:25"
+    },
+    {
+      "id": "fact-chapter-34-cancer-naprotechnology-and-early-detection-11",
+      "claim": "In a 15-year Pope Paul VI Institute study of 28 women who developed breast cancer, 27 (96.4%) had regular cycles; only 1 (3.6%) had irregular cycles (with PCOD).",
+      "category": "cycle-biomarker",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": null,
+        "slug": null,
+        "title": null,
+        "short_citation": null,
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": null,
+        "year": null,
+        "authors": null,
+        "type": null,
+        "raw_source_id": "chapter-34-cancer-naprotechnology-and-early-detection"
+      },
+      "verification_notes": "Quote: \"In this group of 28 patients, 27 (96.4%) had regular cycles. Only one (3.6%) had irregular cycles\" Section: Breast Cancer.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-34-cancer-naprotechnology-and-early-detection-13",
+      "claim": "Among 16 breast cancer patients, 13 (81.2%) had post-Peak phase variability of 4+ days versus only 2 of 20 controls (10.0%); statistically significant (p<.0001).",
+      "category": "cycle-biomarker",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": null,
+        "slug": null,
+        "title": null,
+        "short_citation": null,
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": null,
+        "year": null,
+        "authors": null,
+        "type": null,
+        "raw_source_id": "chapter-34-cancer-naprotechnology-and-early-detection"
+      },
+      "verification_notes": "Quote: \"13 patients had a post-Peak phase with a variability of four or more days in duration (81.2%) compared to a control group of only 2 patients (10.0%)\" Section: Breast Cancer.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-34-cancer-naprotechnology-and-early-detection-15",
+      "claim": "CrMS biomarkers preceding breast cancer include premenstrual spotting, limited mucus cycles, and tail-end brown bleeding (TEB), all suggesting decreased progesterone production.",
+      "category": "cycle-biomarker",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "biomarker",
+      "body": null,
+      "source": {
+        "article_id": null,
+        "slug": null,
+        "title": null,
+        "short_citation": null,
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": null,
+        "year": null,
+        "authors": null,
+        "type": null,
+        "raw_source_id": "chapter-34-cancer-naprotechnology-and-early-detection"
+      },
+      "verification_notes": "Quote: \"premenstrual spotting, which is a biomarker of the decreased progesterone production\" and \"two days of tail-end brown bleeding (TEB), which suggests decreased progesterone production.\" Section: Breast Cancer.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-34-cancer-naprotechnology-and-early-detection-16",
+      "claim": "The Treloar dataset (started 1934, 50+ years of menstrual events) showed women with extreme cycle length at ages 25-29 had nearly twofold increased breast cancer incidence.",
+      "category": "epidemiology",
+      "domain": "diagnostics",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": null,
+        "slug": null,
+        "title": null,
+        "short_citation": null,
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": null,
+        "year": null,
+        "authors": null,
+        "type": null,
+        "raw_source_id": "chapter-34-cancer-naprotechnology-and-early-detection"
+      },
+      "verification_notes": "Quote: \"women who had cycles of extreme length at ages 25 to 29 years had a nearly twofold increased incidence of breast cancer.\" Section: Breast Cancer.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-34-cancer-naprotechnology-and-early-detection-5",
+      "claim": "Adenomatous hyperplasia patients have delayed Peak Days and long mucus cycles, but overall cycles of 32 to 36 days, suggesting relative estrogen overexposure or progesterone underexposure.",
+      "category": "cycle-biomarker",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "biomarker",
+      "body": null,
+      "source": {
+        "article_id": null,
+        "slug": null,
+        "title": null,
+        "short_citation": null,
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": null,
+        "year": null,
+        "authors": null,
+        "type": null,
+        "raw_source_id": "chapter-34-cancer-naprotechnology-and-early-detection"
+      },
+      "verification_notes": "Quote: \"women who have adenomatous hyperplasia also have delayed Peak Days and long mucus cycles. However, their overall cycles are 32 to 36 days in duration\" Section: Endometrial Cancer.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
     },
     {
       "id": "fact-chapter-35-follicular-and-luteal-phase-deficiencies-advancing-concepts-and-new-10",
@@ -8330,6 +9145,996 @@
       "evidence_tier": "clinical_experience",
       "editorial_caveats": [],
       "last_verified_at": "2026-04-19 04:40:27"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-1",
+      "claim": "Ovum viability is less than 24 hours after ovulation, so conception days are determined by sperm viability/transport, which depends on type E (estrogenic) cervical mucus.",
+      "category": "pathology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"ovum viability is less than 24 hours after ovulation\" Section: Introduction.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-10",
+      "claim": "For normally fertile couples, daily fecundity was greater than 0.05 from day -4 to day +2 relative to the Peak Day.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Daily fecundity (point estimate) was greater than 0.05 for normally fertile couples from day -4 to day +2\" Section: Key Findings on Daily Fecundity.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-11",
+      "claim": "For subfertile couples, daily fecundity was greater than 0.05 only from day -1 to day +1 relative to the Peak Day.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"for subfertile couples from day -1 to day +1\" Section: Key Findings on Daily Fecundity.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-12",
+      "claim": "Daily fecundity exceeded 0.01 for normally fertile couples from day -5 to day +4, and for subfertile couples from day -4 to day +3.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"daily fecundity was greater than 0.01 for normally fertile couples from day -5 to day +4\" Section: Key Findings on Daily Fecundity.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-13",
+      "claim": "The duration of the fecund window (probabilities >0.05) was 6 days for normally fertile couples but only 3 days for subfertile couples.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"duration of the fecund window is less for subfertile couples (3 days for probabilities greater than 0.05)\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-14",
+      "claim": "In normally fertile couples, mucus cycle score had a near-linear positive correlation with cycle fecundity; this relationship was not found in subfertile couples.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"near linear positive relationship between the mucus cycle score and cycle fecundity for fertile couples\" Section: Multivariable Analysis.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-15",
+      "claim": "Mean mucus cycle score in the total sample was 7.6 (range 1.7 to 13.5); normally fertile couples averaged 7.5 and subfertile couples 7.8 (p=0.36).",
+      "category": "epidemiology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"mean mucus cycle score in the total sample was 7.6 (with a range 1.7 to 13.5)\" Section: Multivariable Analysis.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-16",
+      "claim": "Among apparently normally fertile couples, the 95th percentile have cycle fecundity over 85 percent on the Peak Day, while the 5th percentile have less than 4 percent.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"couples in the 95th percentile...have cycle fecundity of over 85 percent if they have intercourse on the Peak Day\" Section: Variability in Fecundity.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-17",
+      "claim": "Among subfertile couples, even those at the 95th percentile have a probability of pregnancy on the Peak Day of no more than 25 percent.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"among the subfertile couples, even those at the 95th percentile have a probability of pregnancy of no more than 25 percent\" Section: Variability in Fecundity.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-18",
+      "claim": "Among subfertile couples, those at the 25th percentile have cycle fecundity of less than 5 percent on the Peak Day.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"those at the 25th percentile have cycle fecundity of less than 5 percent\" Section: Variability in Fecundity.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-2",
+      "claim": "The Peak Day is defined as the last day on which a woman observes vaginal discharge that is lubricative, clear, or stretchy.",
+      "category": "charting",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"the last day on which a woman observes vaginal discharge which is lubricative, clear, or stretchy\" Section: Introduction.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-20",
+      "claim": "The Peak Day could not be reliably identified in 4.7 percent of cycles, often indicating abnormal or absent ovulation requiring medical consultation.",
+      "category": "diagnostics",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"This occurred in 4.7 percent of cycles\" Section: Statistical Model.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-21",
+      "claim": "For both normally fertile and subfertile couples, median menstrual cycle length was 29 days, with 80 percent lasting 25 to 33 days.",
+      "category": "epidemiology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"median length of menstrual cycles entered into the study was 29 days, with 80 percent of menstrual cycles lasting between 25 and 33 days\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-22",
+      "claim": "In subfertile couples studied, the average time spent trying to conceive before joining CrMS was 3.0 years (range 0.25 to 11 years; n=65).",
+      "category": "epidemiology",
+      "domain": "infertility",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"average time spent trying to conceive before joining the CrMS was 3.0 years; range 0.25 to 11 years\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-23",
+      "claim": "71 percent of couples seeking pregnancy at CrMS entry had documented evidence of previous difficulty achieving pregnancy.",
+      "category": "epidemiology",
+      "domain": "infertility",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Most (71%) couples who indicated at entry to CrMS instruction that they were trying to achieve pregnancy gave evidence of previous difficulty\" Section: Subfertile Couples.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-25",
+      "claim": "In subfertile couples, 9 of 30 conceptions occurred within the first two follow-up CrMS instructional visits.",
+      "category": "outcome",
+      "domain": "infertility",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"a substantial proportion of conceptions (9 of the 30) in the subfertile group occurred within the first two follow-up CrMS instructional visits\" Section: Study Limitations.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-26",
+      "claim": "This was the first study to include subfertile couples and to systematically examine mucus discharge quality in relation to probability of conception.",
+      "category": "methodology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"the first study to look systematically at the quality of mucus discharge and the probability of conception\" Section: Introduction.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-27",
+      "claim": "Highest probability of conception occurred on the Peak Day itself, departing from prior studies that found peak fecundity 1-2 days before the Peak Day or estimated ovulation.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"the highest probability of conception occurs on the peak mucus day rather than one or two days prior to the Peak Day\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-28",
+      "claim": "Recent oral contraceptive discontinuation can lower mucus cycle score quality for at least several cycles after stopping.",
+      "category": "hormone",
+      "domain": "hormones",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"recently used oral contraceptives which lower the quality of the mucus cycle score for at least several cycles after discontinuation\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-29",
+      "claim": "Sample demographics: 93% white, 71% married (19% engaged), 65% college graduates, 71% Roman Catholic, 67% nulliparous.",
+      "category": "epidemiology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"predominantly white (93%), married (71%, an additional 19% were engaged), well educated (65% college graduates)\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-3",
+      "claim": "The Peak Day occurs within +/- 2 days of ovulation in approximately 95 percent of menstrual cycles.",
+      "category": "cycle-biomarker",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"occurring +/- 2 days of the date of ovulation in about 95 percent of menstrual cycles\" Section: Introduction.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-30",
+      "claim": "Of the 1116 normally-fertile-pool couples, 108 were excluded due to history of Depo Provera or IUD use, indicating these methods affect fertility/mucus assessment.",
+      "category": "methodology",
+      "domain": "hormones",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"108 were excluded because they had a history of use of Depo Provera or the intrauterine device\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-31",
+      "claim": "Study eligibility limited woman's age at entry to 18-39 years, requiring sexual activity within two cycles of entry, and not breastfeeding/pregnant at entry.",
+      "category": "methodology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"age at entry between 18 and 39 years, sexually active within two menstrual cycles of entry, not pregnant at entry, not breastfeeding\" Section: Normally Fertile Couples.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-32",
+      "claim": "The study used four standard CrMS data forms: General Intake Form, Follow-up Form, daily chart, and pregnancy evaluation form.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"the General Intake Form; 2) the Follow-up Form; 3) the CrMS daily chart; and 4) the CrMS pregnancy evaluation form\" Section: Study Procedures.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-33",
+      "claim": "Mucus cycle score >0 requires a Peak Day; a score of 0 indicates a dry cycle with no Peak Day.",
+      "category": "charting",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"A score of 0 indicates a dry cycle with no Peak Day\" Section: Mucus Cycle Score.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-34",
+      "claim": "Mucus discharge serves as a marker for sperm survival likelihood; mucus quantity and quality depend on estrogen levels and may reflect ovum viability.",
+      "category": "pathology",
+      "domain": "hormones",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"the quantity and quality of mucus discharge in the menstrual cycle is dependent on the estrogen levels\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-35",
+      "claim": "The chapter concludes the CrMS should be considered a first-line intervention for timing intercourse to conceive in both normally fertile and subfertile couples.",
+      "category": "protocol",
+      "domain": "infertility",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"The CrMS should be considered a first-line intervention for timing intercourse to conceive\" Section: Conclusions.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-4",
+      "claim": "The biological fecund window is approximately 5 to 6 days, but clinically estimated via the CrMS chart it is generally 9 to 10 days due to mucus onset variability and Peak Day variation.",
+      "category": "cycle-biomarker",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"clinically estimated fecund window as identified in the CrMS chart is generally 9 to 10 days\" Section: Definitions.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-5",
+      "claim": "The CrMS daily vaginal discharge recording score ranges from 0 to 16, based on stretch, color, and sensation of discharge per the VDRS.",
+      "category": "charting",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"converted to a daily numerical score ranging from 0 to 16\" Section: Mucus Cycle Score.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-6",
+      "claim": "The mucus cycle score is calculated by averaging daily VDRS scores from the Peak Day and the five days preceding it (a 6-day window).",
+      "category": "charting",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"average of the daily scores from the Peak Day and five days preceding the Peak Day\" Section: Mucus Cycle Score.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-7",
+      "claim": "A regular mucus cycle score has been clinically designated as 7.6 or greater.",
+      "category": "cycle-biomarker",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "biomarker",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"clinically a regular mucus cycle score has been designated as 7.6 or greater\" Section: Mucus Cycle Score.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-8",
+      "claim": "The CREIGHTON MODEL Multicenter Fecundity Study analyzed 309 normally fertile couples (1681 cycles, 81 pregnancies) and 117 subfertile couples (373 cycles, 30 pregnancies).",
+      "category": "epidemiology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"1681 cycles were eligible for analysis, among which were 81 pregnancies\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-9",
+      "claim": "In normally fertile couples, peak daily fecundity (and cycle fecundity) on the Peak Day was 0.38; in subfertile couples it was 0.14.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"highest daily fecundity was found to be on the Peak Day (0.38 for normally fertile couples, and 0.14 for subfertile couples)\" Section: Key Findings on Daily Fecundity.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
     },
     {
       "id": "fact-chapter-49-family-physicians-approach-12",
