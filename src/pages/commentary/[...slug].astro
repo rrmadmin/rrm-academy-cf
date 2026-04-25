@@ -4,7 +4,7 @@ import AuthorByline from '../../components/AuthorByline.astro';
 import AudioPlayer from '../../components/AudioPlayer.astro';
 import BlogCard from '../../components/BlogCard.astro';
 import { fetchAllPosts, getRelatedPosts, type BlogPost } from '../../lib/blog';
-import { Marked } from 'marked';
+import { parseMarkdown } from '../../lib/markdown-sanitize';
 
 export async function getStaticPaths() {
   const posts = await fetchAllPosts();
@@ -23,136 +23,7 @@ const { post } = Astro.props;
 const allPosts = await fetchAllPosts();
 const related = getRelatedPosts(post, allPosts, 3);
 
-function escapeAttr(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-const dangerousUri = /^\s*(javascript|data|vbscript):/i;
-
-// Strip raw HTML blocks and block dangerous URI schemes in links and images
-const marked = new Marked({
-  renderer: {
-    html() { return ''; },
-    link({ href, title, tokens }) {
-      const text = this.parser.parseInline(tokens);
-      if (href && dangerousUri.test(href)) {
-        return text;
-      }
-      const titleAttr = title ? ` title="${escapeAttr(title)}"` : '';
-      return `<a href="${escapeAttr(href ?? '')}"${titleAttr}>${text}</a>`;
-    },
-    image({ href, title, text }) {
-      if (href && dangerousUri.test(href)) {
-        return text || '';
-      }
-      const titleAttr = title ? ` title="${escapeAttr(title)}"` : '';
-      const altAttr = text ? ` alt="${escapeAttr(text)}"` : ' alt=""';
-      return `<img src="${escapeAttr(href ?? '')}"${altAttr}${titleAttr} />`;
-    },
-  },
-});
-
-// Pre-process markdown to fix common authoring issues
-function sanitizeMarkdown(md: string): string {
-  let result = md
-    // Remove ghost links: [ ](url) — invisible copy-paste artifacts
-    .replace(/\[\s*\]\([^)]+\)/g, '')
-    // Fix quadruple bold markers around links: ****[text](url)**** → **[text](url)**
-    .replace(/\*{4}\[/g, '**[')
-    .replace(/\]\([^)]+\)\*{4}/g, (m) => m.replace(/\*{4}$/, '**'))
-    // Remove bold wrapping links: **[text](url)** → [text](url) (links are already styled)
-    .replace(/\*{2,3}(\[[^\]]+\]\([^)]+\))\*{2,3}/g, '$1')
-    // Remove redundant bold inside headings: ## **Text** or ##**Text** → ## Text
-    .replace(/^(#{1,6})\s*\*\*(.+?)\*\*\s*$/gm, '$1 $2')
-    // Fix headings missing space after #: ##Text → ## Text
-    .replace(/^(#{1,6})([^\s#])/gm, '$1 $2')
-    // Fix numbered lists missing space: 1.**text → \n1. **text
-    .replace(/(\d+)\.\*\*/g, '\n\n$1. **')
-    // Fix dash lists missing space: -**text → \n- **text (inline or at line start)
-    .replace(/([^\n])-\*\*/g, '$1\n\n- **')
-    .replace(/^-\*\*/gm, '- **')
-    // Break bold subheadings into new paragraphs: sentence.**Subheading:** → sentence.\n\n**Subheading:**
-    // Match after punctuation or word chars; (?<!\d) prevents splitting numbered list items (e.g. "2. **Term:**")
-    // Matches bold phrases ending with colon or period before closing **
-    .replace(/(?<!\d)([a-zA-Z0-9.!?:)\]])\s*(\*\*[^*\n]{5,}?[.:]\*\*)/g, '$1\n\n$2');
-
-  // Escape tildes before numbers (~70%) to prevent markdown strikethrough
-  result = result.replace(/~(\d)/g, '\\~$1');
-
-  // Fix trailing space inside bold (single-line only): **text ** → **text**
-  result = result.replace(/\*\*([^*\n]+?)[ \t]+\*\*/g, '**$1**');
-
-  // Fix ** stuck between word chars: word**bold text**word
-  // Process line by line, counting ALL ** to track open/close state
-  result = result.split('\n').map(line => {
-    // First pass: find all ** positions (exactly 2 stars, not 3+)
-    const starPositions: number[] = [];
-    for (let i = 0; i < line.length - 1; i++) {
-      if (line[i] === '*' && line[i+1] === '*' &&
-          (i + 2 >= line.length || line[i+2] !== '*') &&
-          (i === 0 || line[i-1] !== '*')) {
-        starPositions.push(i);
-        i++; // skip the second *
-      }
-    }
-
-    // Each ** alternates: 0th=open, 1st=close, 2nd=open, etc.
-    const needsFix = new Map<number, 'open' | 'close'>();
-    starPositions.forEach((pos, idx) => {
-      const before = pos > 0 ? line[pos - 1] : '';
-      const after = pos + 2 < line.length ? line[pos + 2] : '';
-      const beforeIsWord = /[a-zA-Z0-9.,;:!?)\]]/.test(before);
-      const afterIsWord = /[a-zA-Z0-9(\[]/.test(after);
-      if (beforeIsWord && afterIsWord) {
-        needsFix.set(pos, idx % 2 === 0 ? 'open' : 'close');
-      }
-    });
-
-    if (needsFix.size === 0) return line;
-
-    // Second pass: rebuild with spaces
-    let out = '';
-    let i = 0;
-    while (i < line.length) {
-      if (needsFix.has(i)) {
-        if (needsFix.get(i) === 'open') {
-          out += ' **';
-        } else {
-          out += '** ';
-        }
-        i += 2;
-      } else {
-        out += line[i];
-        i++;
-      }
-    }
-    return out;
-  }).join('\n');
-
-  // Remove orphaned ** that have no matching pair on the same line
-  result = result.split('\n').map(line => {
-    // Count ** (exactly 2 stars)
-    let count = 0;
-    for (let i = 0; i < line.length - 1; i++) {
-      if (line[i] === '*' && line[i+1] === '*' &&
-          (i + 2 >= line.length || line[i+2] !== '*') &&
-          (i === 0 || line[i-1] !== '*')) {
-        count++;
-        i++;
-      }
-    }
-    // If odd number of **, remove the first one (likely orphaned closing from stripped bold)
-    if (count % 2 === 1) {
-      line = line.replace(/\*\*/, '');
-    }
-    return line;
-  }).join('\n');
-
-  return result;
-}
-
-// Render markdown content to HTML
-const htmlContent = post.content ? await marked.parse(sanitizeMarkdown(post.content)) : '';
+const htmlContent = await parseMarkdown(post.content || '');
 
 // Meta description from excerpt
 const metaDescription = post.excerpt
