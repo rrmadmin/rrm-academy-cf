@@ -1,8 +1,8 @@
 # `src/lib/` Quality Baseline — Design
 
 **Date:** 2026-04-20
-**Scope:** `src/lib/` (16 files, 2,327 lines — build-time data fetchers and shared TS utilities)
-**Status:** Proposed
+**Scope:** `src/lib/` (16 files, 2,322 lines — build-time data fetchers and shared TS utilities)
+**Status:** As-built — pipeline is already running locally; this doc captures the design retroactively before commit
 **Author:** Brian + Claude
 
 ## 1. Purpose
@@ -35,13 +35,13 @@ src/lib/
 ├── blog.ts                     (72)
 ├── courses.ts                 (114)
 ├── faq.ts                     (127)
-├── fetch-blog-data.mjs        (161)
+├── fetch-blog-data.mjs        (145)
 ├── fetch-courses-data.mjs     (681)   ← largest; likely CRAP hotspot
-├── fetch-data.mjs             (211)
-├── fetch-faq-data.mjs         (206)
-├── fetch-glossary-data.mjs    (157)
-├── fetch-partners-data.mjs     (77)
-├── fetch-retry.mjs             (38)
+├── fetch-data.mjs             (221)
+├── fetch-faq-data.mjs         (190)
+├── fetch-glossary-data.mjs    (141)
+├── fetch-partners-data.mjs     (61)
+├── fetch-retry.mjs             (87)
 ├── og-config.ts                (11)
 ├── partners.ts                 (89)
 └── turnstile.ts                (10)
@@ -54,9 +54,9 @@ All files are Node/browser JS or TS — no edge runtime, no Astro-component synt
 | Concern | Tool | Why |
 |---|---|---|
 | Line/branch coverage | **c8** | Native Node, zero-config for ESM, works with `node --test` (the project's existing runner). No Jest/Vitest migration needed. |
-| Mutation testing | **Stryker-js** (`@stryker-mutator/core`) with `@stryker-mutator/api` and the `node-test` runner | Industry standard; supports ESM; per-file reports. |
-| Cyclomatic complexity | **ESLint `complexity` rule** (set to report-only) + **`eslint-plugin-sonarjs`** for `cognitive-complexity` | Already have ESLint; no extra toolchain. SonarJS cognitive-complexity is often more actionable than classic CC. |
-| CRAP score | **Custom `scripts/quality/crap.mjs`** | No maintained npm package. Formula is trivial: `CRAP(f) = CC(f)² × (1 − coverage(f))³ + CC(f)`. Reads c8 JSON + ESLint JSON output, joins on file+function, emits `reports/quality/crap.json` and a sorted markdown table. |
+| Mutation testing | **Stryker-js** (`@stryker-mutator/core`) with the `node-test` runner | Industry standard; supports ESM; per-file reports. |
+| Cyclomatic complexity | **ESLint `complexity` rule** (set to report-only) | Already have ESLint; no extra toolchain. (Cognitive-complexity via `eslint-plugin-sonarjs` was considered but dropped — the plugin's output wasn't being consumed by `crap.mjs`.) |
+| CRAP score | **Custom `scripts/quality/crap.mjs`** | No maintained npm package. Formula is trivial: `CRAP(f) = CC(f)² × (1 − coverage(f))³ + CC(f)`. Reads c8 JSON + ESLint JSON output, joins on file+function. Per-function coverage is **computed**, not pre-emitted — c8 gives `fnMap` (function ranges) and `statementMap` (statement ranges) but no per-function rate, so `crap.mjs` intersects statement ranges with each function range and averages hit counts. Emits `reports/quality/crap.json` and a sorted markdown table. |
 | Dependency rules | **`dependency-cruiser`** | De-facto standard. Config file lets us encode rules like "no cycles" and "`.ts` utilities must not import build-time `.mjs` fetchers". |
 
 Everything runs locally via npm scripts. No hosted services, no CI changes in this pass.
@@ -75,7 +75,9 @@ scripts/quality/
 └── lib/
     ├── load-coverage.mjs     # parse c8 JSON
     ├── load-complexity.mjs   # run ESLint programmatically, parse results
-    └── render-markdown.mjs   # shared table renderer
+    ├── render-markdown.mjs   # shared table renderer
+    ├── crap-calc.mjs         # pure CRAP formula + band classification
+    └── coverage-helpers.mjs  # untouched-file detection + coverage averaging
 ```
 
 Reports land in `reports/quality/` (gitignored — these are artifacts, regenerate them):
@@ -122,12 +124,13 @@ Added to `package.json`:
     "quality:mutation":  "node scripts/quality/mutation.mjs",
     "quality:crap":      "node scripts/quality/crap.mjs",
     "quality:deps":      "node scripts/quality/deps.mjs",
-    "quality:all":       "node scripts/quality/dashboard.mjs"
+    "quality:all":       "node scripts/quality/dashboard.mjs",
+    "quality:fast":      "node scripts/quality/dashboard.mjs --skip-mutation"
   }
 }
 ```
 
-Each is independently runnable (for iteration speed). `quality:all` runs them in order and regenerates the baseline doc.
+Each is independently runnable (for iteration speed). `quality:all` runs them in order and regenerates the baseline doc. `quality:fast` skips the mutation step for sub-minute iteration; use it during local CRAP/coverage hacking. The full `quality:all` is the canonical run that produces the committed `BASELINE.md`.
 
 ## 7. CRAP Formula
 
@@ -148,14 +151,15 @@ Interpretation (industry convention):
 
 Our baseline report will bucket every function into these three bands and list all red-band functions at the top of `BASELINE.md`.
 
+**Math caveat for threshold-setting (Spec B):** with full coverage, CRAP collapses to `CC` itself, since `(1 − 1)³ = 0` zeroes out the squared-CC term. So a function with CC = 25 (e.g. `transformCourse` in today's baseline) **cannot** reach CRAP ≤ 5 by adding tests — only by splitting. The ≤ 5 healthy band is therefore a joint complexity-and-coverage target, not a pure coverage target. Spec B will need to choose between (a) treating ≤ 30 as the production gate and ≤ 5 as aspirational, or (b) accepting that any ≤ 5 target implies refactoring high-CC functions before/alongside test authoring.
+
 ## 8. Dependency-cruiser Ruleset (seed)
 
-`.dependency-cruiser.cjs` starts minimal, targeting only `src/lib/`:
+`.dependency-cruiser.cjs` starts minimal, targeting only `src/lib/`. The orphan check plus the path-anchored fetcher rule are sufficient at this scope; an external-import allowlist was considered but dropped as redundant for the baseline pass.
 
 1. **`no-circular`** — warn on any import cycle.
-2. **`no-orphans`** — warn on files with zero importers *and* zero importees, excluding entry-point fetchers.
-3. **`ts-must-not-import-fetchers`** — error if any `*.ts` file imports a `fetch-*.mjs` (TS utilities are for runtime code; fetchers are build-time only).
-4. **`no-external-except-allowlist`** — warn on imports outside `src/lib/`, `node_modules`, or Node builtins.
+2. **`no-orphans`** — warn on files with zero importers *and* zero importees, **excluding `fetch-*.mjs` build-time entry points** (they're invoked via npm scripts, not imported, so the orphan checker would flag every fetcher otherwise). Express in config as `pathNot: 'src/lib/fetch-.*\\.mjs$'`.
+3. **`fetchers-are-build-time-only`** — error if any non-fetcher file imports a `fetch-*` module. Expressed in dependency-cruiser as `target: { path: '^src/lib/fetch-' }, from: { pathNot: '^src/lib/fetch-' }`. The boundary is **build-time vs runtime**, not `.ts` vs `.mjs` — file extension is incidental, the path prefix is the actual contract. (Today they happen to align: every fetcher is `.mjs`, every runtime utility is `.ts`. A path-anchored rule survives anyone later writing a build-time helper in TS or a runtime helper in MJS.)
 
 Scoped strictly to `src/lib/`. We'll expand to the rest of the codebase later.
 
@@ -163,10 +167,10 @@ Scoped strictly to `src/lib/`. We'll expand to the rest of the codebase later.
 
 Sections in order:
 
-1. **Summary table** — one row per file: lines, coverage %, mutation score %, max CRAP, dep violations
+1. **Summary table** — one row per file: coverage %, mutation score %, max CRAP. Each `src/lib/` file gets a row even if untested or function-free (placeholders shown as `—`).
 2. **CRAP red list** — every function with CRAP > 30, sorted descending, with `file:line`
 3. **Coverage gaps** — files with <50% coverage
-4. **Mutation survivors** — top 20 surviving mutants (actionable for test authoring)
+4. **Mutation survivors (top 20)** — surviving mutants (actionable for test authoring), sorted by `file:line:mutator` for stable rendering across runs
 5. **Dependency violations** — rule + file + direction
 6. **Generated** — timestamp and git SHA for traceability
 
@@ -190,20 +194,20 @@ That's it. If the tooling grows, so do its tests.
 
 | Risk | Mitigation |
 |---|---|
-| Stryker is slow on 16 files | Scope to `src/lib/**` only; mutation runs in CI-optional `quality:mutation` script, not `quality:all` default. (Re-evaluated if baseline run >5min.) |
-| ESLint complexity reporting is function-level but c8 is statement-level | `crap.mjs` maps statement coverage into function ranges using c8's `fnMap` (per-function coverage is in the JSON already). |
+| Stryker is slow on 16 files | `quality:all` runs mutation by default; use `quality:fast` (or `--skip-mutation`) for sub-1-min iteration. Re-evaluate if mutation run >5 min. |
+| ESLint complexity reporting is function-level but c8 is statement-level | `crap.mjs` computes per-function coverage by intersecting `statementMap` entries with each `fnMap` range and averaging hit counts. c8 emits ranges, not pre-computed per-function rates — this is real (small) code, not a free lookup. |
 | `.mjs` + `.ts` mix confuses tooling | c8 handles both. Stryker needs explicit `mutate: ["src/lib/**/*.{mjs,ts}"]`. Dependency-cruiser needs `--ts-config`. All three verified to work during implementation. |
 | Existing `test/*.test.js` files mostly cover `functions/api/`, not `src/lib/` | Expected. The baseline will show near-0% coverage on `src/lib/`. That's the point — it's the starting line. |
 | Running Stryker pollutes `src/lib/` with temp files | Stryker's sandbox mode confines writes to `.stryker-tmp/`. Added to `.gitignore`. |
 
 ## 13. Out-of-Scope (Parking Lot)
 
-For follow-up specs — listed so we don't lose them:
+For follow-up specs — listed so we don't lose them. Order matters: gate the small surface in CI **before** scaling pipeline scope, otherwise Spec C ships baseline numbers for 123 files with zero enforcement and the political cost of adding the gate later goes up.
 
-- **Spec B (next):** Write tests to hit targets — 100% line coverage, ≥85% mutation score, CRAP ≤5 per function. Includes breakup of `fetch-courses-data.mjs` if CRAP requires.
-- **Spec C:** Same pipeline applied to `functions/api/` (107 files) — this is where Gherkin/Cucumber is worth adding, because endpoints have user-observable behavior.
-- **Spec D:** CI integration — run `quality:all` on PR, fail on threshold regression, post summary comment.
-- **Spec E:** Architecture tests via dependency-cruiser — forbid edge runtime imports in `src/lib/`, forbid Airtable creds in non-fetcher files, etc.
+- **Spec B (next):** Write tests + set thresholds for `src/lib/`. Targets: ≥85% mutation score, CRAP ≤30 (acceptable band) as the gate, ≤5 aspirational per function. Includes refactoring high-CC functions in `fetch-courses-data.mjs` (today's baseline: `transformCourse` CC=25 → CRAP 650, `assembleNestedCourses` CC=16 → CRAP 272). The CRAP-math caveat in §7 means tests alone cannot reach the ≤5 band on those functions — refactoring is part of Spec B's scope, not deferred.
+- **Spec D:** CI gate on `src/lib/` only — run `quality:all` on PR, fail on threshold regression, post summary comment. Small surface, low political cost. Lock in baseline behavior **before** scaling scope to `functions/api/`.
+- **Spec C:** Extend pipeline to `functions/api/` (107 files). **Scope is 5–10× Spec B**, not a drop-in extension: mixed runtimes (Pages Functions emulator), Stripe webhook handlers, auth middleware, Vectorize-billed paths, R2 + SES side effects. Stryker mutation runs will be slow and many mutants are infeasible to kill without test fixtures for Stripe sandbox / SES / R2. Gherkin/Cucumber-style behavioral tests may earn their keep here because endpoints have user-observable behavior. Treat as provisional until Spec B + D land.
+- **Spec E:** Architecture rules in `dependency-cruiser` — forbid edge-runtime imports in `src/lib/`, forbid Airtable creds in non-fetcher files, etc. Small enough to fold into Spec B or D if no follow-up author wants it as its own spec.
 
 ## 13a. Branch Decision
 
@@ -221,4 +225,4 @@ The pass is done when:
 6. ✅ `BASELINE.md` is committed and readable
 7. ✅ `reports/quality/` is gitignored
 8. ✅ `test/quality-crap.test.js` passes
-9. ✅ Running `npm run quality:all` twice in a row produces byte-identical `BASELINE.md` **data sections** (summary, CRAP bands, coverage gaps, dep violations). The footer metadata (`Generated:` timestamp, `Commit:` SHA) is expected to vary and is excluded from the determinism diff. Verified via `grep -v '^\*\*Generated:' ... | diff` in plan Task 11 Step 4.
+9. ✅ Running `npm run quality:all` twice in a row produces byte-identical `BASELINE.md` **deterministic data sections**: summary table, CRAP bands, coverage gaps, dependency violations. Mutation survivors are sorted by `file:line:mutator` so the rendered list is stable when the same mutants survive, but Stryker runs aren't fully deterministic across executions (random mutator order, time-bounded execution can drop slow mutants), so a mutant on the boundary of the top-20 cutoff may drop in or out — the mutation-survivors section is therefore excluded from the determinism diff. Footer metadata (`Generated:` timestamp, `Commit:` SHA) is also excluded. Verified via `grep -v -E '^(\*\*Generated|\*\*Commit|## Mutation|⚠ Mutation)' ... | diff` in plan Task 11 Step 4.

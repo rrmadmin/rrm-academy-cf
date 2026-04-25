@@ -19,7 +19,7 @@ import { resolve } from 'node:path';
 
 async function globTestFiles() {
   const dir = resolve(ROOT, 'test');
-  const entries = await readdir(dir);
+  const entries = (await readdir(dir)).sort();
   return entries.filter(f => f.endsWith('.test.js')).map(f => `test/${f}`);
 }
 
@@ -35,7 +35,7 @@ const args = [
   '--reporter=html',
   '--reporter=text-summary',
   '--report-dir', OUT,
-  '--include', 'src/lib/**',
+  '--include', 'src/lib/**/*.{js,mjs,ts}',
   '--exclude', 'test/**',
   '--all',
   'node', '--test', ...await globTestFiles(),
