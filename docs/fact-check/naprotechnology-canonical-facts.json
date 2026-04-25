@@ -10,22 +10,22 @@
     ],
     "schema_version": "1.0.0",
     "ssot": true,
-    "generated_at": "2026-04-22T17:17:51.562Z",
+    "generated_at": "2026-04-25T23:14:12.987Z",
     "generated_by": "scripts/build-canonical-facts.mjs",
     "source": "D1 rrm-library.facts (tradition filter) + _manual overrides",
     "regenerable": true,
-    "record_count": 2571,
+    "record_count": 2683,
     "tradition_tally": {
-      "napro": 2571,
-      "rrm-shared": 397,
-      "fabm": 538
+      "napro": 2683,
+      "rrm-shared": 408,
+      "fabm": 598
     },
     "evidence_tier_tally": {
       "peer_reviewed": 669,
-      "clinical_experience": 1902
+      "clinical_experience": 2014
     },
-    "source_resolved_count": 2386,
-    "source_unresolved_count": 185
+    "source_resolved_count": 2482,
+    "source_unresolved_count": 201
   },
   "_manual": {
     "editorial_notes": [],
@@ -5487,6 +5487,576 @@
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
       "last_verified_at": "2026-04-19 04:40:22"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-1",
+      "claim": "The CrMS pregnancy classification divides pregnancies into three categories: achieving related, avoiding related, and unresolved, with avoiding-related pregnancies further subdivided.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"The pregnancy classification of the CrMS divides pregnancies into three categories: achieving related, avoiding related, and unresolved.\" Section: Pregnancy Classification.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-12",
+      "claim": "Gross (single decrement) life-table rates are the most accurate to compare between studies, but they are higher than net life-table rates and cannot be compared directly to net life-table or Pearl rates.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Gross (single decrement) life-table rates are the most accurate to compare between studies, but they are somewhat higher than net life-table rates\" Section: Statistical Methods.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-14",
+      "claim": "Couples are taught that days considered fertile by virtue of incomplete or absent observations of fertility biomarkers at the vulva are achieving-related days when intercourse occurs.",
+      "category": "protocol",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"This includes days that are considered fertile by virtue of incomplete or absent observations of the fertility biomarkers at the vulva.\" Section: Relationship to Sexual Behavior.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-15",
+      "claim": "Pearl rates for a study group followed for one year are usually similar but not always identical to net multiple-decrement life-table rates.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Pearl rates for a study group followed for just one year will usually (but not always) be similar to net multiple-decrement life-table rates.\" Section: Statistical Methods.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-16",
+      "claim": "Effectiveness rates are calculated as the pregnancy rate from each measure subtracted from 100 percent.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Effectiveness rates are the pregnancy rate from each measure subtracted (or divided) from 100.\" Section: Table 16-3.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-17",
+      "claim": "In CrMS studies, total pregnancy rates include method-related, use-related, and achieving-related pregnancies, making them higher than total rates from other NFP studies that exclude intended pregnancies.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"total pregnancy rates for CrMS studies will be higher than total pregnancy rates for studies of other NFP or family planning methods\" Section: Comparison of Method and Use Effectiveness.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-18",
+      "claim": "The principle for handling unresolved pregnancies in CrMS analysis is to distribute them proportionally among the other rate categories.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"The principle in dealing with unresolved pregnancies is to distribute them proportionally among the other rates.\" Section: Unresolved Pregnancies.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-19",
+      "claim": "In CrMS effectiveness studies, couples with known infertility at study start are excluded from analysis to avoid biasing pregnancy rates downward.",
+      "category": "methodology",
+      "domain": "infertility",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"couples with known infertility at the start of the study are usually excluded from the analysis.\" Section: Defining Infertility in CrMS Studies.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-2",
+      "claim": "In CrMS teaching, intercourse or genital contact on days of fertility constitutes achieving-related behavior and abandons use of the method to avoid pregnancy.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"intercourse (or genital contact) on days of fertility abandons use of the method to avoid pregnancy and adopts use of the method to achieve pregnancy.\" Section: Relationship to Sexual Behavior.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-20",
+      "claim": "Use-related pregnancies under the CrMS definition are lower than under definitions used by older contraceptive efficacy studies, because some pregnancies classified as achieving-related in CrMS would be 'unplanned' (user pregnancies) in older studies.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Use-related pregnancies will be somewhat lower under the CrMS definition than under the definition used by many older contraceptive efficacy studies\" Section: Definition Differences with Older Studies.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-21",
+      "claim": "Use-related pregnancy rate represents the pregnancy rate couples are likely to achieve with real-world consistent use of the method to avoid pregnancy, accounting for user or teacher errors.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Use-related pregnancy rate = What pregnancy rate couples are likely to achieve with \\\"real world\\\" consistent use of the method to avoid pregnancy, accounting for user or teacher errors.\" Section: Value of Different Rates.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-22",
+      "claim": "In the new approach to CrMS analysis, perfect-use, imperfect-use, and typical-use measures use only cycles of the corresponding type of use as denominators rather than all cycles.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"the denominators in each case would be the cycles for which the type of use is known to be occurring, rather than all cycles in the study\" Section: Adapting the New Approach to the CrMS.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-23",
+      "claim": "The preferred statistical method used in all published CrMS effectiveness studies to date is life-table analysis.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"the preferred statistical method used in all studies to date is life table analysis.\" Section: Table 16-3.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-24",
+      "claim": "No published CrMS study has reported confidence intervals for pregnancy rates, identified as a priority for future research.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"No published CrMS study has reported confidence intervals for the pregnancy rates.\" Section: Confidence Intervals.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-25",
+      "claim": "Most CrMS effectiveness studies have followed couples for up to two years; longer-term follow-up is identified as needed to understand how effectiveness and use patterns change over time.",
+      "category": "epidemiology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Most CrMS studies have followed couples for up to two years.\" Section: Long-Term Outcomes.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-3",
+      "claim": "In one CrMS effectiveness study, more than half of all achieving-related pregnancies were considered 'planned' by the couple.",
+      "category": "outcome",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"In one CrMS study, over half of all achieving-related pregnancies that occurred were considered \\\"planned\\\" by the couple.\" Section: The Role of Intentions.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-4",
+      "claim": "In CrMS effectiveness studies, infertility is operationally defined as six cycles of achieving-related use (intercourse during the fertile time) without pregnancy, at which point couples are removed from analysis and referred for evaluation.",
+      "category": "protocol",
+      "domain": "infertility",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"This is defined as six cycles of achieving-related use (intercourse during the fertile time) without pregnancy.\" Section: Defining Infertility in CrMS Studies.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-7",
+      "claim": "Five published CrMS effectiveness studies exist: Hilgers/Prebil/Daly 1984, Doud 1987, Fehring/Lawrence/Philpot 1994, Hilgers/Stanford 1998, and Howard/Stanford 1999.",
+      "category": "epidemiology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"each of the five published effectiveness studies of the CrMS is among the most solid effectiveness studies available in NFP\" Section: Features of a Good Effectiveness Study.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
+    },
+    {
+      "id": "fact-chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms-8",
+      "claim": "Under the new approach to CrMS effectiveness measurement, the achieving-related pregnancy rate over one year is estimated to be at least 20 percent and likely higher.",
+      "category": "outcome",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "reccAcuFywlsNxS6W",
+        "slug": "chapter-16-measuring-effectiveness-and-pregnancy-rates-of-the-crms",
+        "title": "Chapter 16: Measuring Effectiveness and Pregnancy Rates of the CrMS",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"The rates will probably be on the order of at least 20 percent and maybe higher.\" Section: How Rates Would Look with the New Approach.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:49"
     },
     {
       "id": "fact-chapter-17-achieving-related-pregnancy-rate-and-its-natural-adaptability-1",
@@ -14293,6 +14863,647 @@
       "last_verified_at": "2026-04-19 04:40:24"
     },
     {
+      "id": "fact-chapter-3-naprotechnology-and-the-new-humanism-1",
+      "claim": "NaProTECHNOLOGY is defined as a complex of medical and surgical interventions designed to undergird a woman's fertility and the health of her reproductive system, structured as restorative health care that respects and optimizes rather than obviates or suppresses the natural procreative process.",
+      "category": "methodology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reckJ0hRu3MQGQO4j",
+        "slug": "chapter-3-naprotechnology-and-the-new-humanism",
+        "title": "Chapter 3: NaProTECHNOLOGY and the New Humanism",
+        "short_citation": "Mirkes R, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Mirkes R",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"a complex of medical and surgical interventions designed to undergird a woman's fertility and the health of her reproductive system\" Section: References, n2.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:48"
+    },
+    {
+      "id": "fact-chapter-3-naprotechnology-and-the-new-humanism-10",
+      "claim": "The acronym NaPro reveals the core mission: clinical research and medicine that work cooperatively with a woman's natural procreative system, distinguishing dominion (cooperation) from domination (suppression and replacement) of procreative order.",
+      "category": "methodology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reckJ0hRu3MQGQO4j",
+        "slug": "chapter-3-naprotechnology-and-the-new-humanism",
+        "title": "Chapter 3: NaProTECHNOLOGY and the New Humanism",
+        "short_citation": "Mirkes R, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Mirkes R",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"to pursue clinical research and medicine that work cooperatively with a woman's natural procreative system\" Section: I. NPT: The Vision of Its Pioneer, Sense of Mission.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:48"
+    },
+    {
+      "id": "fact-chapter-3-naprotechnology-and-the-new-humanism-11",
+      "claim": "NaProTECHNOLOGY's ethical framework satisfies Donum Vitae's moral principles by assisting (rather than replacing) the conjugal act to achieve its natural end of pregnancy and by not destroying newly developing human life.",
+      "category": "methodology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "reckJ0hRu3MQGQO4j",
+        "slug": "chapter-3-naprotechnology-and-the-new-humanism",
+        "title": "Chapter 3: NaProTECHNOLOGY and the New Humanism",
+        "short_citation": "Mirkes R, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Mirkes R",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"reproductive technology that assists the conjugal act to achieve its natural end of pregnancy could be morally licit\" Section: III. NPT: The Vision of Its Ethics.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:48"
+    },
+    {
+      "id": "fact-chapter-3-naprotechnology-and-the-new-humanism-12",
+      "claim": "Per Donum Vitae as cited in this chapter, reproductive technology is morally licit only if it does not destroy newly developing human life and does not dispense with a personal act of intercourse between husband and wife.",
+      "category": "methodology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "reckJ0hRu3MQGQO4j",
+        "slug": "chapter-3-naprotechnology-and-the-new-humanism",
+        "title": "Chapter 3: NaProTECHNOLOGY and the New Humanism",
+        "short_citation": "Mirkes R, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Mirkes R",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"does not destroy newly developing human life and that does not dispense with a personal act of intercourse between husband and wife\" Section: III. NPT: The Vision of Its Ethics.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:48"
+    },
+    {
+      "id": "fact-chapter-3-naprotechnology-and-the-new-humanism-13",
+      "claim": "John Paul II in Evangelium Vitae no. 88 explicitly endorsed centers for natural methods of regulating fertility as a valuable help to responsible parenthood, citing this support in personal correspondence to the Pope Paul VI Institute.",
+      "category": "epidemiology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "reckJ0hRu3MQGQO4j",
+        "slug": "chapter-3-naprotechnology-and-the-new-humanism",
+        "title": "Chapter 3: NaProTECHNOLOGY and the New Humanism",
+        "short_citation": "Mirkes R, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Mirkes R",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"centers for natural methods of regulating fertility should be promoted as a valuable help to responsible parenthood\" Section: V. NPT: The Vision of Its Ecclesial Supporters.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:48"
+    },
+    {
+      "id": "fact-chapter-3-naprotechnology-and-the-new-humanism-14",
+      "claim": "The Pope Paul VI Institute received papal recognition dated from the Vatican on 24 August 1995, with John Paul II affirming the Institute's role in promoting truth about sex and Church teachings on marriage and family.",
+      "category": "epidemiology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "reckJ0hRu3MQGQO4j",
+        "slug": "chapter-3-naprotechnology-and-the-new-humanism",
+        "title": "Chapter 3: NaProTECHNOLOGY and the New Humanism",
+        "short_citation": "Mirkes R, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Mirkes R",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"From the Vatican, 24 August 1995\" Section: V. NPT: The Vision of Its Ecclesial Supporters, footnote 118.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:48"
+    },
+    {
+      "id": "fact-chapter-3-naprotechnology-and-the-new-humanism-16",
+      "claim": "Per Evangelium Vitae as cited in this chapter, IVF programs typically produce a number of embryos greater than that needed for implantation in the woman's womb, with surplus 'spare embryos' subsequently destroyed or used for research.",
+      "category": "outcome",
+      "domain": "infertility",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "reckJ0hRu3MQGQO4j",
+        "slug": "chapter-3-naprotechnology-and-the-new-humanism",
+        "title": "Chapter 3: NaProTECHNOLOGY and the New Humanism",
+        "short_citation": "Mirkes R, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Mirkes R",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"the number of embryos produced is often greater than that needed for implantation in the woman's womb\" Section: V. NPT: The Vision of Its Ecclesial Supporters.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:48"
+    },
+    {
+      "id": "fact-chapter-3-naprotechnology-and-the-new-humanism-17",
+      "claim": "Hilgers published a foundational two-volume work titled 'The Scientific Foundations of the Ovulation Method' in 1995 through Pope Paul VI Institute Press, Omaha.",
+      "category": "epidemiology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "reckJ0hRu3MQGQO4j",
+        "slug": "chapter-3-naprotechnology-and-the-new-humanism",
+        "title": "Chapter 3: NaProTECHNOLOGY and the New Humanism",
+        "short_citation": "Mirkes R, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Mirkes R",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"T. W. Hilgers, The Scientific Foundations of the Ovulation Method (Omaha: Pope Paul VI Institute Press, 1995)\" Section: References, n25.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:48"
+    },
+    {
+      "id": "fact-chapter-3-naprotechnology-and-the-new-humanism-18",
+      "claim": "Hilgers published 'Reproductive Medicine and Violations of the Laws of Nature as the basis of the Culture of Confusion' in Linacre Quarterly volume 69, February 2002, pages 79-86.",
+      "category": "epidemiology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "reckJ0hRu3MQGQO4j",
+        "slug": "chapter-3-naprotechnology-and-the-new-humanism",
+        "title": "Chapter 3: NaProTECHNOLOGY and the New Humanism",
+        "short_citation": "Mirkes R, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Mirkes R",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Reproductive Medicine and Violations of the Laws of Nature as the basis of the Culture of Confusion, Linacre Quarterly 69 (February, 2002): 79-86\" Section: References.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:48"
+    },
+    {
+      "id": "fact-chapter-3-naprotechnology-and-the-new-humanism-19",
+      "claim": "Hilgers responded directly to Pope Paul VI's plea (issued via Humanae Vitae, 1968) for the development of a science-based, moral method of family planning, joining a small coterie of Catholic professionals in this work.",
+      "category": "epidemiology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "reckJ0hRu3MQGQO4j",
+        "slug": "chapter-3-naprotechnology-and-the-new-humanism",
+        "title": "Chapter 3: NaProTECHNOLOGY and the New Humanism",
+        "short_citation": "Mirkes R, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Mirkes R",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Pope Paul VI's plea for the development of a science-based, moral method of family planning\" Section: I. NPT: The Vision of Its Pioneer, Man of Faith.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:48"
+    },
+    {
+      "id": "fact-chapter-3-naprotechnology-and-the-new-humanism-2",
+      "claim": "NaProTECHNOLOGY functions as obstetric and gynecological medicine that evaluates and treats hormonal and/or anatomical abnormalities identified as root causes of infertility or, in pregnancy, causes of miscarriage.",
+      "category": "methodology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reckJ0hRu3MQGQO4j",
+        "slug": "chapter-3-naprotechnology-and-the-new-humanism",
+        "title": "Chapter 3: NaProTECHNOLOGY and the New Humanism",
+        "short_citation": "Mirkes R, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Mirkes R",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"effectively treats a host of abnormalities (whether hormonal and/or anatomical or both) which are the root causes of infertility\" Section: References, n2.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:48"
+    },
+    {
+      "id": "fact-chapter-3-naprotechnology-and-the-new-humanism-20",
+      "claim": "NaProTECHNOLOGY's anthropological vision is held to be falsifiable: it must conform to the natural truth about the human person and human procreation enshrined in magisterial teaching, or it is, by Hilgers' own standard, bad medicine and bogus science.",
+      "category": "methodology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reckJ0hRu3MQGQO4j",
+        "slug": "chapter-3-naprotechnology-and-the-new-humanism",
+        "title": "Chapter 3: NaProTECHNOLOGY and the New Humanism",
+        "short_citation": "Mirkes R, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Mirkes R",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"either the anthropological vision behind NaPro conforms to the natural truth... or NPT is simply bad medicine and bogus science\" Section: I. NPT: The Vision of Its Pioneer, Man of Faith.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:48"
+    },
+    {
+      "id": "fact-chapter-3-naprotechnology-and-the-new-humanism-21",
+      "claim": "The chapter author identifies the Pontifical Academy of Sciences as comprising distinguished scientists from around the world appointed by the Pope, lending institutional weight to the 2003 'new humanism' statement.",
+      "category": "epidemiology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reckJ0hRu3MQGQO4j",
+        "slug": "chapter-3-naprotechnology-and-the-new-humanism",
+        "title": "Chapter 3: NaProTECHNOLOGY and the New Humanism",
+        "short_citation": "Mirkes R, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Mirkes R",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"The academy (comprised of distinguished scientists from around the world appointed by the Pope)\" Section: Opening.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:48"
+    },
+    {
+      "id": "fact-chapter-3-naprotechnology-and-the-new-humanism-22",
+      "claim": "Hilgers anticipated that double-blind randomized clinical trials conducted by independent researchers would be critical for broader medical-community acceptance of NaProTECHNOLOGY's claims.",
+      "category": "methodology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "reckJ0hRu3MQGQO4j",
+        "slug": "chapter-3-naprotechnology-and-the-new-humanism",
+        "title": "Chapter 3: NaProTECHNOLOGY and the New Humanism",
+        "short_citation": "Mirkes R, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Mirkes R",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"researchers other than him will conduct the double-blind randomized clinical trials that could well be critical in winning over doubting Thomases\" Section: I. NPT: The Vision of Its Pioneer, Man of Humility.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:48"
+    },
+    {
+      "id": "fact-chapter-3-naprotechnology-and-the-new-humanism-23",
+      "claim": "The chapter cites Gaudium et spes #36 (via Origins 21, Oct 10, 1991, p 283) as the magisterial basis for NaProTECHNOLOGY's claim that scientific investigation in accord with moral norms never truly conflicts with faith.",
+      "category": "methodology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "reckJ0hRu3MQGQO4j",
+        "slug": "chapter-3-naprotechnology-and-the-new-humanism",
+        "title": "Chapter 3: NaProTECHNOLOGY and the New Humanism",
+        "short_citation": "Mirkes R, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Mirkes R",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Gaudium et spes, # 36 (cited in 'The Collaboration of Science and Religion,' Origins 21 (Oct. 10, 1991): 283)\" Section: References.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:48"
+    },
+    {
+      "id": "fact-chapter-3-naprotechnology-and-the-new-humanism-24",
+      "claim": "The chapter cites Pope John Paul II's 'Address to the University of Fribourg' (Origins 14, June 28, 1984, p 105) as the source of his framework for rigorous research methodology applied to NaProTECHNOLOGY.",
+      "category": "methodology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "reckJ0hRu3MQGQO4j",
+        "slug": "chapter-3-naprotechnology-and-the-new-humanism",
+        "title": "Chapter 3: NaProTECHNOLOGY and the New Humanism",
+        "short_citation": "Mirkes R, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Mirkes R",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"John Paul II, 'Address to the University of Fribourg,' Origins 14 (June 28, 1984): 105\" Section: References.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:48"
+    },
+    {
+      "id": "fact-chapter-3-naprotechnology-and-the-new-humanism-25",
+      "claim": "The 30th anniversary (1998) and 35th anniversary (2003) of Humanae Vitae produced pastoral letters from U.S. bishops including Archbishop Chaput of Denver, Bishop Steinbock of Fresno, and Bishop Galeone of St. Augustine, supporting NaPro-aligned teachings.",
+      "category": "epidemiology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "reckJ0hRu3MQGQO4j",
+        "slug": "chapter-3-naprotechnology-and-the-new-humanism",
+        "title": "Chapter 3: NaProTECHNOLOGY and the New Humanism",
+        "short_citation": "Mirkes R, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Mirkes R",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"30th (1998) and 35th (2003) anniversaries of HV have precipitated some outstanding pastoral letters from bishops\" Section: V. NPT: The Vision of Its Ecclesial Supporters, footnote 117.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:48"
+    },
+    {
+      "id": "fact-chapter-3-naprotechnology-and-the-new-humanism-3",
+      "claim": "NaProTECHNOLOGY enables couples to both avoid and achieve pregnancy in a manner consistent with the comprehensive meaning of their conjugal union, distinguishing it from artificial reproductive technologies.",
+      "category": "methodology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reckJ0hRu3MQGQO4j",
+        "slug": "chapter-3-naprotechnology-and-the-new-humanism",
+        "title": "Chapter 3: NaProTECHNOLOGY and the New Humanism",
+        "short_citation": "Mirkes R, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Mirkes R",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"enables couples to avoid and achieve a pregnancy in a way consistent with the comprehensive meaning of their conjugal union\" Section: References, n2.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:48"
+    },
+    {
+      "id": "fact-chapter-3-naprotechnology-and-the-new-humanism-4",
+      "claim": "The Pontifical Academy of Sciences issued a statement in June 2003 on the Cultural Values of the Natural Sciences, calling for a 'new humanism' integrating science, ethics, and faith through dialogue rather than opposition.",
+      "category": "epidemiology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "reckJ0hRu3MQGQO4j",
+        "slug": "chapter-3-naprotechnology-and-the-new-humanism",
+        "title": "Chapter 3: NaProTECHNOLOGY and the New Humanism",
+        "short_citation": "Mirkes R, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Mirkes R",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Statement of the Pontifical Academy of Sciences on the Cultural Values of the Natural Sciences, Zenit, 6/17/2003\" Section: References, n1.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:48"
+    },
+    {
+      "id": "fact-chapter-3-naprotechnology-and-the-new-humanism-5",
+      "claim": "At the time of writing (2004), Dr. Thomas W. Hilgers was in his 28th year of NaProTECHNOLOGY research, having begun the work in response to Pope Paul VI's call following Humanae Vitae.",
+      "category": "epidemiology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "reckJ0hRu3MQGQO4j",
+        "slug": "chapter-3-naprotechnology-and-the-new-humanism",
+        "title": "Chapter 3: NaProTECHNOLOGY and the New Humanism",
+        "short_citation": "Mirkes R, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Mirkes R",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Hilgers is cruising into his 28th year of research and still counting\" Section: I. NPT: The Vision of Its Pioneer, Man of Long-suffering.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:48"
+    },
+    {
+      "id": "fact-chapter-3-naprotechnology-and-the-new-humanism-6",
+      "claim": "Dr. Hilgers credits the prodigious research of Drs. John and Lyn Billings on the Ovulation Method, which began in 1953, as foundational to the development of NaProTECHNOLOGY.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "reckJ0hRu3MQGQO4j",
+        "slug": "chapter-3-naprotechnology-and-the-new-humanism",
+        "title": "Chapter 3: NaProTECHNOLOGY and the New Humanism",
+        "short_citation": "Mirkes R, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Mirkes R",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Drs. John and Lyn Billings, whose prodigious research on the Ovulation Method began in 1953\" Section: I. NPT: The Vision of Its Pioneer, Originality and Creativity.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:48"
+    },
+    {
+      "id": "fact-chapter-3-naprotechnology-and-the-new-humanism-7",
+      "claim": "Dr. Erik Odeblad's research, foundational to NaProTECHNOLOGY, focused on two foci: the biophysical characteristics of cervical mucus throughout the menstrual cycle and the mapping of the endocervix.",
+      "category": "cycle-biomarker",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "reckJ0hRu3MQGQO4j",
+        "slug": "chapter-3-naprotechnology-and-the-new-humanism",
+        "title": "Chapter 3: NaProTECHNOLOGY and the New Humanism",
+        "short_citation": "Mirkes R, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Mirkes R",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"the biophysical characteristics of cervical mucus throughout the menstrual cycle and the mapping of the endocervix\" Section: I. NPT: The Vision of Its Pioneer, Originality and Creativity.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:48"
+    },
+    {
       "id": "fact-chapter-30-postpartum-depression-evaluation-and-treatment-1",
       "claim": "Up to 32% of women may alter future childbearing plans (adoption, sterilization, or abortion) because of depressive episodes.",
       "category": "epidemiology",
@@ -17339,6 +18550,498 @@
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
       "last_verified_at": "2026-04-19 04:40:25"
+    },
+    {
+      "id": "fact-chapter-34-cancer-naprotechnology-and-early-detection-1",
+      "claim": "Approximately 25 percent of young women with endometrial carcinoma will also have polycystic ovarian disease (PCOD), with chronic anovulation and unopposed estrogen as the major underlying factor.",
+      "category": "epidemiology",
+      "domain": "pcos",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": null,
+        "slug": null,
+        "title": null,
+        "short_citation": null,
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": null,
+        "year": null,
+        "authors": null,
+        "type": null,
+        "raw_source_id": "chapter-34-cancer-naprotechnology-and-early-detection"
+      },
+      "verification_notes": "Quote: \"Roughly 25 percent of young women with endometrial carcinoma will also have polycystic ovarian disease (PCOD).\" Section: Endometrial Cancer.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-34-cancer-naprotechnology-and-early-detection-10",
+      "claim": "Cowan et al. (1981) found that infertile women with progesterone deficiency had a 5.4 times increased incidence of premenopausal breast cancer compared to infertile women with non-hormonal causes.",
+      "category": "epidemiology",
+      "domain": "hormones",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": null,
+        "slug": null,
+        "title": null,
+        "short_citation": null,
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": null,
+        "year": null,
+        "authors": null,
+        "type": null,
+        "raw_source_id": "chapter-34-cancer-naprotechnology-and-early-detection"
+      },
+      "verification_notes": "Quote: \"women with progesterone deficiency had a 5.4 times increased incidence of premenopausal breast cancer\" Section: Breast Cancer. Cited: Cowan LD et al, Am J Epidem 114:209-217, 1981.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-34-cancer-naprotechnology-and-early-detection-11",
+      "claim": "In a 15-year Pope Paul VI Institute study of 28 women who developed breast cancer, 27 (96.4%) had regular cycles; only 1 (3.6%) had irregular cycles (with PCOD).",
+      "category": "cycle-biomarker",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": null,
+        "slug": null,
+        "title": null,
+        "short_citation": null,
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": null,
+        "year": null,
+        "authors": null,
+        "type": null,
+        "raw_source_id": "chapter-34-cancer-naprotechnology-and-early-detection"
+      },
+      "verification_notes": "Quote: \"In this group of 28 patients, 27 (96.4%) had regular cycles. Only one (3.6%) had irregular cycles\" Section: Breast Cancer.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-34-cancer-naprotechnology-and-early-detection-12",
+      "claim": "In breast cancer patients, post-Peak Peak+5, +7, and +9 progesterone levels were significantly lower (p<.005 to .0001) than controls, while post-Peak estradiol profiles were within normal range.",
+      "category": "hormone",
+      "domain": "hormones",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "biomarker",
+      "body": null,
+      "source": {
+        "article_id": null,
+        "slug": null,
+        "title": null,
+        "short_citation": null,
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": null,
+        "year": null,
+        "authors": null,
+        "type": null,
+        "raw_source_id": "chapter-34-cancer-naprotechnology-and-early-detection"
+      },
+      "verification_notes": "Quote: \"the Peak +5, 7, and 9 progesterone levels were significantly lower (p<.005 to .0001) from the control group.\" Section: Breast Cancer.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-34-cancer-naprotechnology-and-early-detection-13",
+      "claim": "Among 16 breast cancer patients, 13 (81.2%) had post-Peak phase variability of 4+ days versus only 2 of 20 controls (10.0%); statistically significant (p<.0001).",
+      "category": "cycle-biomarker",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": null,
+        "slug": null,
+        "title": null,
+        "short_citation": null,
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": null,
+        "year": null,
+        "authors": null,
+        "type": null,
+        "raw_source_id": "chapter-34-cancer-naprotechnology-and-early-detection"
+      },
+      "verification_notes": "Quote: \"13 patients had a post-Peak phase with a variability of four or more days in duration (81.2%) compared to a control group of only 2 patients (10.0%)\" Section: Breast Cancer.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-34-cancer-naprotechnology-and-early-detection-15",
+      "claim": "CrMS biomarkers preceding breast cancer include premenstrual spotting, limited mucus cycles, and tail-end brown bleeding (TEB), all suggesting decreased progesterone production.",
+      "category": "cycle-biomarker",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "biomarker",
+      "body": null,
+      "source": {
+        "article_id": null,
+        "slug": null,
+        "title": null,
+        "short_citation": null,
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": null,
+        "year": null,
+        "authors": null,
+        "type": null,
+        "raw_source_id": "chapter-34-cancer-naprotechnology-and-early-detection"
+      },
+      "verification_notes": "Quote: \"premenstrual spotting, which is a biomarker of the decreased progesterone production\" and \"two days of tail-end brown bleeding (TEB), which suggests decreased progesterone production.\" Section: Breast Cancer.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-34-cancer-naprotechnology-and-early-detection-16",
+      "claim": "The Treloar dataset (started 1934, 50+ years of menstrual events) showed women with extreme cycle length at ages 25-29 had nearly twofold increased breast cancer incidence.",
+      "category": "epidemiology",
+      "domain": "diagnostics",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": null,
+        "slug": null,
+        "title": null,
+        "short_citation": null,
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": null,
+        "year": null,
+        "authors": null,
+        "type": null,
+        "raw_source_id": "chapter-34-cancer-naprotechnology-and-early-detection"
+      },
+      "verification_notes": "Quote: \"women who had cycles of extreme length at ages 25 to 29 years had a nearly twofold increased incidence of breast cancer.\" Section: Breast Cancer.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-34-cancer-naprotechnology-and-early-detection-17",
+      "claim": "Approximately 30,000 new ovarian cancer cases are diagnosed and 15,000 women die annually in the US; 2% of US women are at lifetime risk; ovarian cancer accounts for 5% of female cancer deaths.",
+      "category": "epidemiology",
+      "domain": "diagnostics",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": null,
+        "slug": null,
+        "title": null,
+        "short_citation": null,
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": null,
+        "year": null,
+        "authors": null,
+        "type": null,
+        "raw_source_id": "chapter-34-cancer-naprotechnology-and-early-detection"
+      },
+      "verification_notes": "Quote: \"Approximately 30,000 new cases of ovarian cancer are diagnosed and 15,000 women die from this disease in a given year.\" Section: Ovarian Cancer.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-34-cancer-naprotechnology-and-early-detection-18",
+      "claim": "The five-year survival rate for advanced-stage ovarian cancer is 25-30%, and 70-75% of patients present at this advanced stage.",
+      "category": "outcome",
+      "domain": "diagnostics",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": null,
+        "slug": null,
+        "title": null,
+        "short_citation": null,
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": null,
+        "year": null,
+        "authors": null,
+        "type": null,
+        "raw_source_id": "chapter-34-cancer-naprotechnology-and-early-detection"
+      },
+      "verification_notes": "Quote: \"The five-year survival rate for women with advanced stage disease is only 25 to 30 percent and 70 to 75 percent will present in this fashion.\" Section: Ovarian Cancer.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-34-cancer-naprotechnology-and-early-detection-20",
+      "claim": "In a documented case, a patient with mucinous tumor of borderline malignancy had a follicle 3.14 cm at rupture, with reversed FSH/LH levels and elevated androgens, despite normal E2 and progesterone profiles.",
+      "category": "diagnostics",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "biomarker",
+      "body": null,
+      "source": {
+        "article_id": null,
+        "slug": null,
+        "title": null,
+        "short_citation": null,
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": null,
+        "year": null,
+        "authors": null,
+        "type": null,
+        "raw_source_id": "chapter-34-cancer-naprotechnology-and-early-detection"
+      },
+      "verification_notes": "Quote: \"the follicle was very large just prior to rupture (3.14 cm)\" and \"her FSH/LH levels were reversed and her androgens were elevated.\" Section: Ovarian Cancer.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-34-cancer-naprotechnology-and-early-detection-21",
+      "claim": "Babies born to women with breast cancer may have significantly lower birthweight and higher spontaneous abortion rates, but no increased risk of congenital anomalies; maternal survival appears unchanged.",
+      "category": "outcome",
+      "domain": "miscarriage",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": null,
+        "slug": null,
+        "title": null,
+        "short_citation": null,
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": null,
+        "year": null,
+        "authors": null,
+        "type": null,
+        "raw_source_id": "chapter-34-cancer-naprotechnology-and-early-detection"
+      },
+      "verification_notes": "Quote: \"the birthweight of babies born to women with breast cancer may be significantly lower\" and \"the spontaneous abortion rate appears to be higher.\" Section: Final Note.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-34-cancer-naprotechnology-and-early-detection-5",
+      "claim": "Adenomatous hyperplasia patients have delayed Peak Days and long mucus cycles, but overall cycles of 32 to 36 days, suggesting relative estrogen overexposure or progesterone underexposure.",
+      "category": "cycle-biomarker",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "biomarker",
+      "body": null,
+      "source": {
+        "article_id": null,
+        "slug": null,
+        "title": null,
+        "short_citation": null,
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": null,
+        "year": null,
+        "authors": null,
+        "type": null,
+        "raw_source_id": "chapter-34-cancer-naprotechnology-and-early-detection"
+      },
+      "verification_notes": "Quote: \"women who have adenomatous hyperplasia also have delayed Peak Days and long mucus cycles. However, their overall cycles are 32 to 36 days in duration\" Section: Endometrial Cancer.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-34-cancer-naprotechnology-and-early-detection-6",
+      "claim": "One in eight women in the United States will develop breast cancer during her lifetime; in 2002 there were 205,000 new cases and 40,000 deaths.",
+      "category": "epidemiology",
+      "domain": "diagnostics",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": null,
+        "slug": null,
+        "title": null,
+        "short_citation": null,
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": null,
+        "year": null,
+        "authors": null,
+        "type": null,
+        "raw_source_id": "chapter-34-cancer-naprotechnology-and-early-detection"
+      },
+      "verification_notes": "Quote: \"One in eight women in the United States will develop breast cancer during her lifetime.\" and \"new cases in 2002 was 205,000\" Section: Breast Cancer.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-34-cancer-naprotechnology-and-early-detection-7",
+      "claim": "The diagnosis of Stage I breast cancer increased 113 percent between 1983 and 1997 according to SEER data.",
+      "category": "epidemiology",
+      "domain": "diagnostics",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": null,
+        "slug": null,
+        "title": null,
+        "short_citation": null,
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": null,
+        "year": null,
+        "authors": null,
+        "type": null,
+        "raw_source_id": "chapter-34-cancer-naprotechnology-and-early-detection"
+      },
+      "verification_notes": "Quote: \"The diagnosis of Stage I breast cancer increased 113 percent between 1983 and 1997\" Section: Breast Cancer.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-34-cancer-naprotechnology-and-early-detection-8",
+      "claim": "Invasive lobular carcinoma accounts for 10 to 15 percent of invasive breast cancers and originates in the glandular tissue of the breast.",
+      "category": "pathology",
+      "domain": "diagnostics",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": null,
+        "slug": null,
+        "title": null,
+        "short_citation": null,
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": null,
+        "year": null,
+        "authors": null,
+        "type": null,
+        "raw_source_id": "chapter-34-cancer-naprotechnology-and-early-detection"
+      },
+      "verification_notes": "Quote: \"invasive lobular carcinoma. This accounts for 10 to 15 percent of invasive breast cancers.\" Section: Breast Cancer.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-34-cancer-naprotechnology-and-early-detection-9",
+      "claim": "Breast cancer is 100 times more common in women than in men; women with personal history of breast cancer are 3-4 times more likely to have a recurrence.",
+      "category": "epidemiology",
+      "domain": "diagnostics",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": null,
+        "slug": null,
+        "title": null,
+        "short_citation": null,
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": null,
+        "year": null,
+        "authors": null,
+        "type": null,
+        "raw_source_id": "chapter-34-cancer-naprotechnology-and-early-detection"
+      },
+      "verification_notes": "Quote: \"It is 100 times more common in women.\" and \"women with a history of breast cancer are three to four times more likely to have a recurrence\" Section: Breast Cancer.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
     },
     {
       "id": "fact-chapter-35-follicular-and-luteal-phase-deficiencies-advancing-concepts-and-new-1",
@@ -27182,6 +28885,1025 @@
       "last_verified_at": "2026-04-19 04:40:27"
     },
     {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-1",
+      "claim": "Ovum viability is less than 24 hours after ovulation, so conception days are determined by sperm viability/transport, which depends on type E (estrogenic) cervical mucus.",
+      "category": "pathology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"ovum viability is less than 24 hours after ovulation\" Section: Introduction.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-10",
+      "claim": "For normally fertile couples, daily fecundity was greater than 0.05 from day -4 to day +2 relative to the Peak Day.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Daily fecundity (point estimate) was greater than 0.05 for normally fertile couples from day -4 to day +2\" Section: Key Findings on Daily Fecundity.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-11",
+      "claim": "For subfertile couples, daily fecundity was greater than 0.05 only from day -1 to day +1 relative to the Peak Day.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"for subfertile couples from day -1 to day +1\" Section: Key Findings on Daily Fecundity.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-12",
+      "claim": "Daily fecundity exceeded 0.01 for normally fertile couples from day -5 to day +4, and for subfertile couples from day -4 to day +3.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"daily fecundity was greater than 0.01 for normally fertile couples from day -5 to day +4\" Section: Key Findings on Daily Fecundity.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-13",
+      "claim": "The duration of the fecund window (probabilities >0.05) was 6 days for normally fertile couples but only 3 days for subfertile couples.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"duration of the fecund window is less for subfertile couples (3 days for probabilities greater than 0.05)\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-14",
+      "claim": "In normally fertile couples, mucus cycle score had a near-linear positive correlation with cycle fecundity; this relationship was not found in subfertile couples.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"near linear positive relationship between the mucus cycle score and cycle fecundity for fertile couples\" Section: Multivariable Analysis.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-15",
+      "claim": "Mean mucus cycle score in the total sample was 7.6 (range 1.7 to 13.5); normally fertile couples averaged 7.5 and subfertile couples 7.8 (p=0.36).",
+      "category": "epidemiology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"mean mucus cycle score in the total sample was 7.6 (with a range 1.7 to 13.5)\" Section: Multivariable Analysis.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-16",
+      "claim": "Among apparently normally fertile couples, the 95th percentile have cycle fecundity over 85 percent on the Peak Day, while the 5th percentile have less than 4 percent.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"couples in the 95th percentile...have cycle fecundity of over 85 percent if they have intercourse on the Peak Day\" Section: Variability in Fecundity.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-17",
+      "claim": "Among subfertile couples, even those at the 95th percentile have a probability of pregnancy on the Peak Day of no more than 25 percent.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"among the subfertile couples, even those at the 95th percentile have a probability of pregnancy of no more than 25 percent\" Section: Variability in Fecundity.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-18",
+      "claim": "Among subfertile couples, those at the 25th percentile have cycle fecundity of less than 5 percent on the Peak Day.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"those at the 25th percentile have cycle fecundity of less than 5 percent\" Section: Variability in Fecundity.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-2",
+      "claim": "The Peak Day is defined as the last day on which a woman observes vaginal discharge that is lubricative, clear, or stretchy.",
+      "category": "charting",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"the last day on which a woman observes vaginal discharge which is lubricative, clear, or stretchy\" Section: Introduction.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-20",
+      "claim": "The Peak Day could not be reliably identified in 4.7 percent of cycles, often indicating abnormal or absent ovulation requiring medical consultation.",
+      "category": "diagnostics",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"This occurred in 4.7 percent of cycles\" Section: Statistical Model.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-21",
+      "claim": "For both normally fertile and subfertile couples, median menstrual cycle length was 29 days, with 80 percent lasting 25 to 33 days.",
+      "category": "epidemiology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"median length of menstrual cycles entered into the study was 29 days, with 80 percent of menstrual cycles lasting between 25 and 33 days\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-22",
+      "claim": "In subfertile couples studied, the average time spent trying to conceive before joining CrMS was 3.0 years (range 0.25 to 11 years; n=65).",
+      "category": "epidemiology",
+      "domain": "infertility",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"average time spent trying to conceive before joining the CrMS was 3.0 years; range 0.25 to 11 years\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-23",
+      "claim": "71 percent of couples seeking pregnancy at CrMS entry had documented evidence of previous difficulty achieving pregnancy.",
+      "category": "epidemiology",
+      "domain": "infertility",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Most (71%) couples who indicated at entry to CrMS instruction that they were trying to achieve pregnancy gave evidence of previous difficulty\" Section: Subfertile Couples.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-24",
+      "claim": "Statistical analysis used a Bayesian model (Dunson) accounting for couple-specific and cycle-specific factors rather than the Schwartz model which assumes equal fecundity across couples.",
+      "category": "methodology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Our analysis was based on a Bayesian model proposed by Dunson, which accounts for couple-specific and cycle-specific factors\" Section: Statistical Model.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-25",
+      "claim": "In subfertile couples, 9 of 30 conceptions occurred within the first two follow-up CrMS instructional visits.",
+      "category": "outcome",
+      "domain": "infertility",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"a substantial proportion of conceptions (9 of the 30) in the subfertile group occurred within the first two follow-up CrMS instructional visits\" Section: Study Limitations.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-26",
+      "claim": "This was the first study to include subfertile couples and to systematically examine mucus discharge quality in relation to probability of conception.",
+      "category": "methodology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"the first study to look systematically at the quality of mucus discharge and the probability of conception\" Section: Introduction.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-27",
+      "claim": "Highest probability of conception occurred on the Peak Day itself, departing from prior studies that found peak fecundity 1-2 days before the Peak Day or estimated ovulation.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"the highest probability of conception occurs on the peak mucus day rather than one or two days prior to the Peak Day\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-28",
+      "claim": "Recent oral contraceptive discontinuation can lower mucus cycle score quality for at least several cycles after stopping.",
+      "category": "hormone",
+      "domain": "hormones",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"recently used oral contraceptives which lower the quality of the mucus cycle score for at least several cycles after discontinuation\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-29",
+      "claim": "Sample demographics: 93% white, 71% married (19% engaged), 65% college graduates, 71% Roman Catholic, 67% nulliparous.",
+      "category": "epidemiology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"predominantly white (93%), married (71%, an additional 19% were engaged), well educated (65% college graduates)\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-3",
+      "claim": "The Peak Day occurs within +/- 2 days of ovulation in approximately 95 percent of menstrual cycles.",
+      "category": "cycle-biomarker",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"occurring +/- 2 days of the date of ovulation in about 95 percent of menstrual cycles\" Section: Introduction.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-30",
+      "claim": "Of the 1116 normally-fertile-pool couples, 108 were excluded due to history of Depo Provera or IUD use, indicating these methods affect fertility/mucus assessment.",
+      "category": "methodology",
+      "domain": "hormones",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"108 were excluded because they had a history of use of Depo Provera or the intrauterine device\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-31",
+      "claim": "Study eligibility limited woman's age at entry to 18-39 years, requiring sexual activity within two cycles of entry, and not breastfeeding/pregnant at entry.",
+      "category": "methodology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"age at entry between 18 and 39 years, sexually active within two menstrual cycles of entry, not pregnant at entry, not breastfeeding\" Section: Normally Fertile Couples.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-32",
+      "claim": "The study used four standard CrMS data forms: General Intake Form, Follow-up Form, daily chart, and pregnancy evaluation form.",
+      "category": "methodology",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"the General Intake Form; 2) the Follow-up Form; 3) the CrMS daily chart; and 4) the CrMS pregnancy evaluation form\" Section: Study Procedures.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-33",
+      "claim": "Mucus cycle score >0 requires a Peak Day; a score of 0 indicates a dry cycle with no Peak Day.",
+      "category": "charting",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"A score of 0 indicates a dry cycle with no Peak Day\" Section: Mucus Cycle Score.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-34",
+      "claim": "Mucus discharge serves as a marker for sperm survival likelihood; mucus quantity and quality depend on estrogen levels and may reflect ovum viability.",
+      "category": "pathology",
+      "domain": "hormones",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"the quantity and quality of mucus discharge in the menstrual cycle is dependent on the estrogen levels\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-35",
+      "claim": "The chapter concludes the CrMS should be considered a first-line intervention for timing intercourse to conceive in both normally fertile and subfertile couples.",
+      "category": "protocol",
+      "domain": "infertility",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"The CrMS should be considered a first-line intervention for timing intercourse to conceive\" Section: Conclusions.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-4",
+      "claim": "The biological fecund window is approximately 5 to 6 days, but clinically estimated via the CrMS chart it is generally 9 to 10 days due to mucus onset variability and Peak Day variation.",
+      "category": "cycle-biomarker",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"clinically estimated fecund window as identified in the CrMS chart is generally 9 to 10 days\" Section: Definitions.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-5",
+      "claim": "The CrMS daily vaginal discharge recording score ranges from 0 to 16, based on stretch, color, and sensation of discharge per the VDRS.",
+      "category": "charting",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"converted to a daily numerical score ranging from 0 to 16\" Section: Mucus Cycle Score.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-6",
+      "claim": "The mucus cycle score is calculated by averaging daily VDRS scores from the Peak Day and the five days preceding it (a 6-day window).",
+      "category": "charting",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"average of the daily scores from the Peak Day and five days preceding the Peak Day\" Section: Mucus Cycle Score.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-7",
+      "claim": "A regular mucus cycle score has been clinically designated as 7.6 or greater.",
+      "category": "cycle-biomarker",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "biomarker",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"clinically a regular mucus cycle score has been designated as 7.6 or greater\" Section: Mucus Cycle Score.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-8",
+      "claim": "The CREIGHTON MODEL Multicenter Fecundity Study analyzed 309 normally fertile couples (1681 cycles, 81 pregnancies) and 117 subfertile couples (373 cycles, 30 pregnancies).",
+      "category": "epidemiology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"1681 cycles were eligible for analysis, among which were 81 pregnancies\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
+      "id": "fact-chapter-48-fecundity-and-mucus-cycle-score-9",
+      "claim": "In normally fertile couples, peak daily fecundity (and cycle fecundity) on the Peak Day was 0.38; in subfertile couples it was 0.14.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recAzU7D0x0vYDCsj",
+        "slug": "chapter-48-fecundity-and-mucus-cycle-score",
+        "title": "Chapter 48: Fecundity and Mucus Cycle Score",
+        "short_citation": "Stanford JB, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Stanford JB",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"highest daily fecundity was found to be on the Peak Day (0.38 for normally fertile couples, and 0.14 for subfertile couples)\" Section: Key Findings on Daily Fecundity.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:50"
+    },
+    {
       "id": "fact-chapter-49-family-physicians-approach-1",
       "claim": "NaProTechnology consultations last an average of 40 to 45 minutes, longer than most other specialties, with couples reviewed every three to four months.",
       "category": "protocol",
@@ -35787,6 +38509,619 @@
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
       "last_verified_at": "2026-04-19 04:40:29"
+    },
+    {
+      "id": "fact-chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive-1",
+      "claim": "The American Society for Reproductive Medicine estimated that nearly 20 percent of women wait until after age 35 to start their families.",
+      "category": "epidemiology",
+      "domain": "infertility",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recSSOBh4hPqKgdPa",
+        "slug": "chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive",
+        "title": "Chapter 59: Fertility, Conception, and Childbirth in Women of Mature Reproductive Age",
+        "short_citation": "Parnell T, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Parnell T",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"nearly 20 percent of women wait until after age 35 to start their families\" Section: Review of the Problem.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:51"
+    },
+    {
+      "id": "fact-chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive-10",
+      "claim": "At puberty approximately 200,000 primary oocytes await the biochemical signal that initiates menarche and recurs throughout the reproductive lifespan.",
+      "category": "pathology",
+      "domain": "hormones",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recSSOBh4hPqKgdPa",
+        "slug": "chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive",
+        "title": "Chapter 59: Fertility, Conception, and Childbirth in Women of Mature Reproductive Age",
+        "short_citation": "Parnell T, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Parnell T",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"At puberty, approximately 200,000 primary oocytes await the biochemical 'on' switch\" Section: Theory 1: Oocyte Deterioration.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:51"
+    },
+    {
+      "id": "fact-chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive-11",
+      "claim": "Oocytes are formed in utero and complete their first meiotic division at approximately the fifth month of gestational age.",
+      "category": "pathology",
+      "domain": "hormones",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recSSOBh4hPqKgdPa",
+        "slug": "chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive",
+        "title": "Chapter 59: Fertility, Conception, and Childbirth in Women of Mature Reproductive Age",
+        "short_citation": "Parnell T, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Parnell T",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Oocytes are initially formed in utero and have undergone their first meiotic division at about the fifth month of gestational age\" Section: Theory 1.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:51"
+    },
+    {
+      "id": "fact-chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive-12",
+      "claim": "NaProTECHNOLOGY treatment data show no increased risk of twin or higher order pregnancies, distinguishing it from ART which markedly increases multiple-gestation risk.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recSSOBh4hPqKgdPa",
+        "slug": "chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive",
+        "title": "Chapter 59: Fertility, Conception, and Childbirth in Women of Mature Reproductive Age",
+        "short_citation": "Parnell T, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Parnell T",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"NPT does not increase the risk of twin or higher order pregnancies\" Section: Summary.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:51"
+    },
+    {
+      "id": "fact-chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive-13",
+      "claim": "ART procedures including ovulation induction and oocyte retrieval often require suppression of existing hypothalamic-pituitary function rather than restoring it.",
+      "category": "protocol",
+      "domain": "infertility",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recSSOBh4hPqKgdPa",
+        "slug": "chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive",
+        "title": "Chapter 59: Fertility, Conception, and Childbirth in Women of Mature Reproductive Age",
+        "short_citation": "Parnell T, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Parnell T",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"ovulation induction and oocyte retrieval often require suppression of existing hypothalamic-pituitary function\" Section: The Fundamental Difference.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:51"
+    },
+    {
+      "id": "fact-chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive-14",
+      "claim": "NPT seeks to maximize the periconceptual hormonal milieu by normalizing physiologic parameters during ovulation, fertilization, and implantation rather than circumventing dysfunction.",
+      "category": "methodology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recSSOBh4hPqKgdPa",
+        "slug": "chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive",
+        "title": "Chapter 59: Fertility, Conception, and Childbirth in Women of Mature Reproductive Age",
+        "short_citation": "Parnell T, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Parnell T",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"By normalizing physiologic parameters, NPT hopes to maximize the periconceptual hormonal milieu\" Section: The NPT Approach.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:51"
+    },
+    {
+      "id": "fact-chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive-15",
+      "claim": "The first IVF child was born in 1978, and ART experts acknowledge that the long-term aging effects on adults conceived via ART remain unknown.",
+      "category": "epidemiology",
+      "domain": "infertility",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "recSSOBh4hPqKgdPa",
+        "slug": "chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive",
+        "title": "Chapter 59: Fertility, Conception, and Childbirth in Women of Mature Reproductive Age",
+        "short_citation": "Parnell T, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Parnell T",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"the first in vitro fertilization (IVF) child was born in 1978\" Section: What ART Experts Acknowledge.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:51"
+    },
+    {
+      "id": "fact-chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive-16",
+      "claim": "ART procedures have been introduced clinically without the well-defined protocols and risk-disclosure requirements applied to new pharmaceuticals.",
+      "category": "epidemiology",
+      "domain": "infertility",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "recSSOBh4hPqKgdPa",
+        "slug": "chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive",
+        "title": "Chapter 59: Fertility, Conception, and Childbirth in Women of Mature Reproductive Age",
+        "short_citation": "Parnell T, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Parnell T",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"ART procedures have not been and are not being introduced according to well-defined protocols and are introduced without knowledge of the risks\" Section: ART Experts Acknowledge.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:51"
+    },
+    {
+      "id": "fact-chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive-17",
+      "claim": "The Tietze 1957 Hutterite study examined a community where women typically had one married partner and used no family planning to assess natural reproductive span.",
+      "category": "epidemiology",
+      "domain": "infertility",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "recSSOBh4hPqKgdPa",
+        "slug": "chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive",
+        "title": "Chapter 59: Fertility, Conception, and Childbirth in Women of Mature Reproductive Age",
+        "short_citation": "Parnell T, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Parnell T",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Women in the community would usually only have one married partner and would not actively use any form of family planning\" Section: The Hutterite Study.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:51"
+    },
+    {
+      "id": "fact-chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive-18",
+      "claim": "NPT improved outcomes in mature gravidae are attributed to focusing on cooperating with and restoring normal reproductive function rather than altering oocytes or embryonic genetic makeup.",
+      "category": "methodology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recSSOBh4hPqKgdPa",
+        "slug": "chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive",
+        "title": "Chapter 59: Fertility, Conception, and Childbirth in Women of Mature Reproductive Age",
+        "short_citation": "Parnell T, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Parnell T",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"focusing on cooperating with and restoring normal reproductive function\" Section: The NPT Approach.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:51"
+    },
+    {
+      "id": "fact-chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive-19",
+      "claim": "The preovulatory LH surge resets the process of meiotic development for the ovulating oocyte under coordinated pituitary-ovarian feedback control.",
+      "category": "hormone",
+      "domain": "hormones",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recSSOBh4hPqKgdPa",
+        "slug": "chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive",
+        "title": "Chapter 59: Fertility, Conception, and Childbirth in Women of Mature Reproductive Age",
+        "short_citation": "Parnell T, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Parnell T",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"The preovulatory LH surge resets the process of meiotic development for that oocyte\" Section: Theory 1.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:51"
+    },
+    {
+      "id": "fact-chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive-2",
+      "claim": "In maternity care, patients aged 35 and older are classified as advanced maternal age, with elevated risks for instrumental/caesarean delivery, prenatal complications, premature delivery, and low-birth weight infants.",
+      "category": "epidemiology",
+      "domain": "infertility",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recSSOBh4hPqKgdPa",
+        "slug": "chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive",
+        "title": "Chapter 59: Fertility, Conception, and Childbirth in Women of Mature Reproductive Age",
+        "short_citation": "Parnell T, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Parnell T",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"patients aged 35 and older are considered to be of advanced maternal age\" Section: Review of the Problem.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:51"
+    },
+    {
+      "id": "fact-chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive-20",
+      "claim": "IIRRM researchers began reviewing NPT outcomes from existing Ireland databases in 2002 to evaluate efficacy in infertile couples.",
+      "category": "methodology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "recSSOBh4hPqKgdPa",
+        "slug": "chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive",
+        "title": "Chapter 59: Fertility, Conception, and Childbirth in Women of Mature Reproductive Age",
+        "short_citation": "Parnell T, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Parnell T",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"In 2002, researchers with the International Institute of Restorative Reproductive Medicine (IIRRM) began a review process\" Section: NaProTECHNOLOGY and Perinatal Outcomes.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:51"
+    },
+    {
+      "id": "fact-chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive-21",
+      "claim": "Concerns about ART singleton offspring include possible genetic imprinting disturbances during fertilization and early embryo exposure to artificial culture media, with rare disease associations such as retinoblastoma.",
+      "category": "pathology",
+      "domain": "infertility",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "recSSOBh4hPqKgdPa",
+        "slug": "chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive",
+        "title": "Chapter 59: Fertility, Conception, and Childbirth in Women of Mature Reproductive Age",
+        "short_citation": "Parnell T, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Parnell T",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"increased risk of rare diseases such as retinoblastoma and congenital cancers, possibly secondary to problems with genetic imprinting\" Section: Risks of ART.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:51"
+    },
+    {
+      "id": "fact-chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive-3",
+      "claim": "The IIRRM NaProTECHNOLOGY Ireland database review reported an overall infertility treatment success rate of 43.8 percent calculated by 24-month life-table analysis.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recSSOBh4hPqKgdPa",
+        "slug": "chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive",
+        "title": "Chapter 59: Fertility, Conception, and Childbirth in Women of Mature Reproductive Age",
+        "short_citation": "Parnell T, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Parnell T",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"with an overall success rate of 43.8 percent, calculated by 24-month life-table analysis\" Section: NaProTECHNOLOGY and Perinatal Outcomes.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:51"
+    },
+    {
+      "id": "fact-chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive-4",
+      "claim": "Women age 38 and older with prior failed IVF achieved a 15.1 percent live birth rate when subsequently treated with NaProTECHNOLOGY in the Ireland database.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recSSOBh4hPqKgdPa",
+        "slug": "chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive",
+        "title": "Chapter 59: Fertility, Conception, and Childbirth in Women of Mature Reproductive Age",
+        "short_citation": "Parnell T, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Parnell T",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Those women who had undergone IVF, however, had lower success rates with 15.1 percent achieving live birth\" Section: Table 59-2.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:51"
+    },
+    {
+      "id": "fact-chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive-5",
+      "claim": "In NPT-conceived pregnancies (Ireland database), 94.1% of infants were born at 37 weeks gestation or beyond, with no infants born earlier than 35 weeks.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recSSOBh4hPqKgdPa",
+        "slug": "chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive",
+        "title": "Chapter 59: Fertility, Conception, and Childbirth in Women of Mature Reproductive Age",
+        "short_citation": "Parnell T, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Parnell T",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"the majority of infants (94.1%) were born at 37 weeks or beyond. There were no infants born earlier than 35 weeks\" Section: Table 59-8.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:51"
+    },
+    {
+      "id": "fact-chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive-6",
+      "claim": "NPT-conceived pregnancies in the Ireland database had a prematurity rate of 5.9 percent.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recSSOBh4hPqKgdPa",
+        "slug": "chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive",
+        "title": "Chapter 59: Fertility, Conception, and Childbirth in Women of Mature Reproductive Age",
+        "short_citation": "Parnell T, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Parnell T",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"This gives a prematurity rate of 5.9 percent\" Section: Table 59-8.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:51"
+    },
+    {
+      "id": "fact-chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive-7",
+      "claim": "In NPT-conceived pregnancies (Ireland database), the low birth weight rate (<2500 grams) was 4.6% (5/109 recorded birth weights).",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recSSOBh4hPqKgdPa",
+        "slug": "chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive",
+        "title": "Chapter 59: Fertility, Conception, and Childbirth in Women of Mature Reproductive Age",
+        "short_citation": "Parnell T, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Parnell T",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Low birth weight rate (<2500 grams): 4.6% (5/109)\" Section: Table 59-8.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:51"
+    },
+    {
+      "id": "fact-chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive-8",
+      "claim": "In NPT-conceived pregnancies (Ireland database), the very low birth weight rate (<1500 grams) was 0.9% (1/109).",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recSSOBh4hPqKgdPa",
+        "slug": "chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive",
+        "title": "Chapter 59: Fertility, Conception, and Childbirth in Women of Mature Reproductive Age",
+        "short_citation": "Parnell T, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Parnell T",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"Very low birth weight rate (<1500 grams): 0.9% (1/109)\" Section: Table 59-8.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:51"
+    },
+    {
+      "id": "fact-chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive-9",
+      "claim": "The NPT mature gravidae cohort in the Ireland database had an average maternal age of 37.9 years and an average infertility duration of 4.6 years.",
+      "category": "epidemiology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recSSOBh4hPqKgdPa",
+        "slug": "chapter-59-fertility-conception-and-childbirth-in-women-of-mature-reproductive",
+        "title": "Chapter 59: Fertility, Conception, and Childbirth in Women of Mature Reproductive Age",
+        "short_citation": "Parnell T, 2004",
+        "pmid": null,
+        "doi": null,
+        "source_url": null,
+        "journal": "The Medical and Surgical Practice of NaProTECHNOLOGY",
+        "year": 2004,
+        "authors": "Parnell T",
+        "type": "chapter"
+      },
+      "verification_notes": "Quote: \"advanced maternal age (35-44, average 37.9) and lengthy history of infertility (4.6 years on average)\" Section: International Population Studies.",
+      "verified": 1,
+      "evidence_tier": "clinical_experience",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-25 23:13:51"
     },
     {
       "id": "fact-chapter-6-introductory-presentation-of-the-crms-1",
