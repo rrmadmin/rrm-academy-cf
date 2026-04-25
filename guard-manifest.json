@@ -3,7 +3,7 @@
   "description": "Critical file integrity manifest. Run `npm run guard:update` after intentional changes.",
   "files": {
     "functions/api/auth/_shared.js": {
-      "hash": "4a2d6762f5a507acf655660f173e1302759123a74fd627922e5852d87b8883a5",
+      "hash": "b2f0d43926c169a3fe2c882751bc05a9ea92ef9a0bbcae4fafa6209ce8a7e33f",
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
@@ -91,7 +91,7 @@
       "note": "Magic-link token generation"
     },
     "functions/api/newsletter/send.js": {
-      "hash": "457d5e57ce524d6d2538f1b228fcc897d9b8272ad59db47bc6817ab876ded206",
+      "hash": "ed9c6c07f437c677df832e83a87030464ba7d195e9907c3520109497a9bd6559",
       "note": "Mass email send (admin-only)"
     },
     "functions/api/newsletter/unsubscribe.js": {
@@ -155,7 +155,7 @@
       "note": "PDF token consumption + download"
     },
     "functions/api/faqs.js": {
-      "hash": "5bcd62735db2794c621dcfe37d59995672387708edbb9fe014ee40d5c210f663"
+      "hash": "733854b25946ef2acd0ee19a6d2ccba73821b6fbc6672d12193551c400c10f82"
     },
     "functions/api/admin/faqs/index.js": {
       "hash": "7a9189859b99bab03f80c60ba94d5534969ddb0a4609112feafd77a57db7a4c2"

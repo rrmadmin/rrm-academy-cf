@@ -14,6 +14,7 @@ import { log } from '../_log.js';
 import { sendRawEmail } from '../_ses.js';
 import { renderEmail } from './_template.js';
 import { unsubscribeHeaders } from './_tracking.js';
+import { constantTimeEqual } from '../auth/_shared.js';
 
 const PAGE_SIZE = 80;           // subscribers per invocation
 const BATCH_SIZE = 10;          // concurrent sends per batch
@@ -22,7 +23,7 @@ const BATCH_DELAY_MS = 500;     // pause between batches; 10 concurrent + networ
 export async function onRequestPost({ request, env, waitUntil }) {
   // Admin auth
   const auth = request.headers.get('Authorization');
-  if (!env.ADMIN_API_SECRET || auth !== `Bearer ${env.ADMIN_API_SECRET}`) {
+  if (!env.ADMIN_API_SECRET || !constantTimeEqual(auth, `Bearer ${env.ADMIN_API_SECRET}`)) {
     return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
   }
 

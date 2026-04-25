@@ -8,7 +8,7 @@
  *   ?part=I       - all published terms in that part, ordered by sort_order ASC
  *   (none)        - all published terms + all references, for full build
  */
-import { json, optionsResponse } from '../auth/_shared.js';
+import { json, optionsResponse, constantTimeEqual } from '../auth/_shared.js';
 import { log } from '../_log.js';
 
 const VALID_PARTS = new Set(['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII']);
@@ -25,7 +25,7 @@ export async function onRequestGet(context) {
   }
 
   const auth = request.headers.get('Authorization');
-  if (auth !== `Bearer ${env.LIBRARY_BUILD_TOKEN}`) {
+  if (!constantTimeEqual(auth, `Bearer ${env.LIBRARY_BUILD_TOKEN}`)) {
     return json({ ok: false, error: 'Unauthorized' }, 401);
   }
 
