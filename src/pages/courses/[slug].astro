@@ -608,12 +608,45 @@ const relatedCourses = course.relatedCourses
           });
         }
 
+        var focusTrapHandler = null;
+
+        function getFocusables() {
+          var sel = 'button:not([disabled]), [href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+          return Array.prototype.slice.call(modal.querySelectorAll(sel));
+        }
+
+        function installFocusTrap() {
+          focusTrapHandler = function (e) {
+            if (e.key !== 'Tab') return;
+            var focusables = getFocusables();
+            if (!focusables.length) return;
+            var first = focusables[0];
+            var last = focusables[focusables.length - 1];
+            if (e.shiftKey && document.activeElement === first) {
+              e.preventDefault();
+              last.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+              e.preventDefault();
+              first.focus();
+            }
+          };
+          modal.addEventListener('keydown', focusTrapHandler);
+        }
+
+        function uninstallFocusTrap() {
+          if (focusTrapHandler) {
+            modal.removeEventListener('keydown', focusTrapHandler);
+            focusTrapHandler = null;
+          }
+        }
+
         function openModal() {
           lastFocus = document.activeElement;
           modal.hidden = false;
           modal.setAttribute('aria-hidden', 'false');
           document.body.style.overflow = 'hidden';
           loadTurnstile();
+          installFocusTrap();
           setTimeout(function () { if (emailInput) emailInput.focus(); }, 30);
         }
 
@@ -621,6 +654,7 @@ const relatedCourses = course.relatedCourses
           modal.hidden = true;
           modal.setAttribute('aria-hidden', 'true');
           document.body.style.overflow = '';
+          uninstallFocusTrap();
           if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
         }
 
