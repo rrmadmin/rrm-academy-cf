@@ -7,21 +7,22 @@ _Snapshot of coverage, mutation score, CRAP, and dependency rules for `src/lib/`
 
 | File | Line cov | Mutation | Max CRAP |
 | --- | --- | --- | --- |
-| src/lib/abstract-parser.ts | 0.0% | — | 132.0 |
-| src/lib/airtable-config.mjs | 0.0% | — | — |
-| src/lib/airtable.ts | 0.0% | — | 56.0 |
-| src/lib/blog.ts | 0.0% | — | 30.0 |
-| src/lib/courses.ts | 0.0% | — | 90.0 |
-| src/lib/faq.ts | 0.0% | — | 12.0 |
-| src/lib/fetch-blog-data.mjs | 0.0% | — | 72.0 |
-| src/lib/fetch-courses-data.mjs | 0.0% | — | 650.0 |
-| src/lib/fetch-data.mjs | 53.8% | — | 110.0 |
-| src/lib/fetch-faq-data.mjs | 0.0% | — | 156.0 |
-| src/lib/fetch-glossary-data.mjs | 0.0% | — | 210.0 |
-| src/lib/fetch-partners-data.mjs | 0.0% | — | 56.0 |
-| src/lib/fetch-retry.mjs | 100.0% | — | 14.0 |
-| src/lib/partners.ts | 0.0% | — | 6.0 |
-| src/lib/turnstile.ts | 0.0% | — | — |
+| src/lib/abstract-parser.ts | 0.0% | 0.0% | 132.0 |
+| src/lib/airtable-config.mjs | 0.0% | 0.0% | — |
+| src/lib/airtable.ts | 0.0% | 0.0% | 56.0 |
+| src/lib/blog.ts | 0.0% | 0.0% | 30.0 |
+| src/lib/courses.ts | 0.0% | 0.0% | 90.0 |
+| src/lib/faq.ts | 0.0% | 0.0% | 12.0 |
+| src/lib/fetch-blog-data.mjs | 0.0% | 0.0% | 72.0 |
+| src/lib/fetch-courses-data.mjs | 0.0% | 0.0% | 650.0 |
+| src/lib/fetch-data.mjs | 53.8% | 22.1% | 110.0 |
+| src/lib/fetch-faq-data.mjs | 0.0% | 0.0% | 156.0 |
+| src/lib/fetch-glossary-data.mjs | 0.0% | 0.0% | 210.0 |
+| src/lib/fetch-partners-data.mjs | 0.0% | 0.0% | 56.0 |
+| src/lib/fetch-retry.mjs | 100.0% | 77.4% | 14.0 |
+| src/lib/og-config.ts | 0.0% | 0.0% | — |
+| src/lib/partners.ts | 0.0% | 0.0% | 6.0 |
+| src/lib/turnstile.ts | 0.0% | 0.0% | — |
 
 ## CRAP danger band (>30)
 
@@ -65,26 +66,45 @@ _Snapshot of coverage, mutation score, CRAP, and dependency rules for `src/lib/`
 | src/lib/fetch-faq-data.mjs | 0.0% |
 | src/lib/fetch-glossary-data.mjs | 0.0% |
 | src/lib/fetch-partners-data.mjs | 0.0% |
+| src/lib/og-config.ts | 0.0% |
 | src/lib/partners.ts | 0.0% |
 | src/lib/turnstile.ts | 0.0% |
 
-## Top 20 surviving mutants
+## Mutation survivors (top 20)
 
-⚠ Mutation run timed out. Timed out after 90000ms at 2026-04-22T18:04:35.360Z
+| File | Line | Mutator | Replacement |
+| --- | --- | --- | --- |
+| src/lib/abstract-parser.ts | 17 | StringLiteral | `""` |
+| src/lib/abstract-parser.ts | 18 | ArrayDeclaration | `[]` |
+| src/lib/abstract-parser.ts | 20 | StringLiteral | `""` |
+| src/lib/abstract-parser.ts | 21 | StringLiteral | `""` |
+| src/lib/abstract-parser.ts | 22 | StringLiteral | `""` |
+| src/lib/abstract-parser.ts | 23 | StringLiteral | `""` |
+| src/lib/abstract-parser.ts | 24 | StringLiteral | `""` |
+| src/lib/abstract-parser.ts | 25 | StringLiteral | `""` |
+| src/lib/abstract-parser.ts | 26 | StringLiteral | `""` |
+| src/lib/abstract-parser.ts | 27 | StringLiteral | `""` |
+| src/lib/abstract-parser.ts | 28 | StringLiteral | `""` |
+| src/lib/abstract-parser.ts | 29 | StringLiteral | `""` |
+| src/lib/abstract-parser.ts | 30 | StringLiteral | `""` |
+| src/lib/abstract-parser.ts | 31 | StringLiteral | `""` |
+| src/lib/abstract-parser.ts | 32 | StringLiteral | `""` |
+| src/lib/abstract-parser.ts | 33 | StringLiteral | `""` |
+| src/lib/abstract-parser.ts | 34 | StringLiteral | `""` |
+| src/lib/abstract-parser.ts | 35 | StringLiteral | `""` |
+| src/lib/abstract-parser.ts | 36 | StringLiteral | `""` |
+| src/lib/abstract-parser.ts | 37 | StringLiteral | `""` |
 
 ## Dependency violations
 
 | Rule | Severity | From | To |
 | --- | --- | --- | --- |
 | no-orphans | warn | src/lib/abstract-parser.ts | src/lib/abstract-parser.ts |
-| no-orphans | warn | src/lib/airtable.ts | src/lib/airtable.ts |
-| no-orphans | warn | src/lib/blog.ts | src/lib/blog.ts |
-| no-orphans | warn | src/lib/courses.ts | src/lib/courses.ts |
-| no-orphans | warn | src/lib/faq.ts | src/lib/faq.ts |
+| no-orphans | warn | src/lib/og-config.ts | src/lib/og-config.ts |
 | no-orphans | warn | src/lib/partners.ts | src/lib/partners.ts |
 | no-orphans | warn | src/lib/turnstile.ts | src/lib/turnstile.ts |
 
 ---
 
-**Generated:** 2026-04-23T16:23:41.594Z  
-**Commit:** `5a43608`
+**Generated:** 2026-04-25T04:35:19.840Z  
+**Commit:** `0e31575`

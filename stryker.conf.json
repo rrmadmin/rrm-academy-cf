@@ -2,8 +2,9 @@
   "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
   "packageManager": "npm",
   "testRunner": "command",
+  "_comment_commandRunner": "These three tests are the ones that exercise src/lib/: lib-fetch-data covers fetch-data.mjs, fetch-retry covers fetch-retry.mjs, quality-crap covers crap-calc + the join. Without exercising src/lib/, mutants survive trivially.",
   "commandRunner": {
-    "command": "node --test test/quality-crap.test.js"
+    "command": "node --test test/lib-fetch-data.test.js test/fetch-retry.test.js test/quality-crap.test.js"
   },
   "coverageAnalysis": "off",
   "mutate": [
