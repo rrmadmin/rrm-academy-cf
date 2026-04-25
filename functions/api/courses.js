@@ -38,7 +38,7 @@ export async function onRequestGet(context) {
     const url = new URL(request.url);
     const id = url.searchParams.get('id');
 
-    if (id !== null && id !== '') {
+    if (id !== null) {
       if (typeof id !== 'string' || id.length > 100) {
         return json({ ok: false, error: 'Invalid id' }, 400);
       }
@@ -116,8 +116,9 @@ function mapCourse(c, sections, steps, preview) {
     mappedSections = mappedSections.filter(sec => sec.steps.length > 0);
   }
 
-  const allStepIds = new Set(mappedSections.flatMap(sec => sec.steps.map(s => s.id)));
-
+  // TODO (admin layer): refuse to set status='draft' or delete a step that is
+  // referenced as course.certificate_quiz_step_id. Integrity belongs at write
+  // time, not at read time.
   const course = {
     id: c.id,
     slug: c.slug,
@@ -145,7 +146,7 @@ function mapCourse(c, sections, steps, preview) {
     sections: mappedSections,
   };
 
-  if (c.certificate_quiz_step_id != null && allStepIds.has(c.certificate_quiz_step_id)) {
+  if (c.certificate_quiz_step_id != null) {
     course.certificateQuizId = c.certificate_quiz_step_id;
   }
 
