@@ -16,6 +16,14 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, renameSync } from '
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { fetchResponseWithRetry } from './fetch-retry.mjs';
+import { sanitizeHtml } from './html-sanitize.mjs';
+
+function cleanFaq(faq) {
+  if (faq && typeof faq.publishedAnswer === 'string' && faq.publishedAnswer.length > 0) {
+    faq.publishedAnswer = sanitizeHtml(faq.publishedAnswer);
+  }
+  return faq;
+}
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_PATH = join(__dirname, '..', 'data', 'faqs.json');
@@ -85,7 +93,7 @@ async function fetchSingle(recordId) {
   if (!body.ok || !body.data) {
     throw new Error(`FAQ API error: ${body.error || 'no data'}`);
   }
-  const faq = body.data;
+  const faq = cleanFaq(body.data);
 
   // Load existing faqs.json
   let faqs = [];
@@ -159,8 +167,8 @@ async function fetchAll() {
   if (!body.ok || !body.results) {
     throw new Error(`FAQ API error: ${body.error || 'no results'}`);
   }
-  const faqs = body.results;
-  console.log(`Fetched ${faqs.length} published FAQs`);
+  const faqs = body.results.map(cleanFaq);
+  console.log(`Fetched ${faqs.length} published FAQs (sanitized)`);
 
   // Resolve library refs if articles.json available
   if (existsSync(ARTICLES_PATH)) {

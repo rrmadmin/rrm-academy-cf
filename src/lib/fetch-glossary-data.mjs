@@ -12,6 +12,14 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, renameSync } from '
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { fetchResponseWithRetry } from './fetch-retry.mjs';
+import { sanitizeHtml } from './html-sanitize.mjs';
+
+function cleanTerm(term) {
+  if (term && typeof term.bodyHtml === 'string' && term.bodyHtml.length > 0) {
+    term.bodyHtml = sanitizeHtml(term.bodyHtml);
+  }
+  return term;
+}
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_PATH = join(__dirname, '..', 'data', 'glossary.json');
@@ -47,7 +55,7 @@ async function fetchSingle(recordId) {
   if (!body.ok || !body.data) {
     throw new Error(`Glossary API error: ${body.error || 'no data'}`);
   }
-  const term = body.data;
+  const term = cleanTerm(body.data);
 
   // Load existing glossary.json
   if (!existsSync(OUTPUT_PATH)) {
@@ -121,8 +129,9 @@ async function fetchAll() {
   if (!body.ok || !body.results) {
     throw new Error(`Glossary API error: ${body.error || 'no results'}`);
   }
-  const { terms = [], references = [], abbreviations = [] } = body.results;
-  console.log(`Fetched ${terms.length} terms + ${references.length} references + ${abbreviations.length} abbreviations`);
+  const { terms: rawTerms = [], references = [], abbreviations = [] } = body.results;
+  const terms = rawTerms.map(cleanTerm);
+  console.log(`Fetched ${terms.length} terms (sanitized) + ${references.length} references + ${abbreviations.length} abbreviations`);
 
   terms.sort(sortTerms);
   references.sort((a, b) => (a.refNum ?? 0) - (b.refNum ?? 0));

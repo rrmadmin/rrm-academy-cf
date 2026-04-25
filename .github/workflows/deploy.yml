@@ -248,6 +248,15 @@ jobs:
         run: node scripts/verify-citations.mjs
         continue-on-error: true
 
+      - name: Pre-deploy content QA (deterministic + optional Sonnet)
+        if: ${{ github.event_name != 'push' }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node scripts/qa-pre-deploy.mjs
+        continue-on-error: true
+
       - name: Snapshot data to R2
         if: ${{ github.event_name != 'push' }}
         env:
@@ -297,6 +306,13 @@ jobs:
         run: node scripts/submit-indexnow.mjs
         continue-on-error: true
 
+      - name: Post-deploy render quality (sample, non-blocking)
+        if: success()
+        env:
+          SITE_URL: https://rrmacademy.org
+        run: node scripts/qa-post-deploy.mjs
+        continue-on-error: true
+
       - name: Update data baselines
         if: success()
         run: |
@@ -331,6 +347,14 @@ jobs:
           if [ -f citation-summary.json ]; then
             CITATIONS=$(cat citation-summary.json)
           fi
+          QA_PRE="{}"
+          if [ -f qa-pre-summary.json ]; then
+            QA_PRE=$(cat qa-pre-summary.json)
+          fi
+          QA_POST="{}"
+          if [ -f qa-post-summary.json ]; then
+            QA_POST=$(cat qa-post-summary.json)
+          fi
           curl -sf -X POST \
             "https://rrm-observatory.administrator-cloudflare.workers.dev/api/deploy" \
             -H "Authorization: Bearer ${{ secrets.OBSERVATORY_API_TOKEN }}" \
@@ -341,5 +365,7 @@ jobs:
               \"commit\": \"${{ github.sha }}\",
               \"duration_ms\": $DURATION_MS,
               \"url\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\",
-              \"citations\": $CITATIONS
+              \"citations\": $CITATIONS,
+              \"qa_pre\": $QA_PRE,
+              \"qa_post\": $QA_POST
             }" || echo "Observatory notification failed (non-blocking)"
