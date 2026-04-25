@@ -12,11 +12,11 @@ module.exports = {
       to: { circular: true },
     },
     {
-      name: 'ts-must-not-import-fetchers',
+      name: 'fetchers-are-build-time-only',
       severity: 'error',
-      comment: 'TS utilities are runtime; fetch-*.mjs scripts are build-time only.',
-      from: { path: '^src/lib/.+\\.ts$' },
-      to: { path: '^src/lib/fetch-.+\\.mjs$' },
+      comment: 'Build-time fetch-*.mjs scripts must not be imported by runtime modules (build-time vs runtime, not .ts vs .mjs).',
+      from: { path: '^src/lib/', pathNot: '^src/lib/fetch-' },
+      to: { path: '^src/lib/fetch-' },
     },
     {
       name: 'no-orphans',
@@ -35,7 +35,6 @@ module.exports = {
   ],
   options: {
     doNotFollow: { path: 'node_modules' },
-    includeOnly: { path: '^src/lib' },
     tsPreCompilationDeps: true,
     enhancedResolveOptions: {
       extensions: ['.js', '.mjs', '.cjs', '.ts', '.tsx'],

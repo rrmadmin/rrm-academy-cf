@@ -206,6 +206,15 @@ export async function verifyTurnstile(secret, token, ip, env) {
   }
 }
 
+// --- Constant-time string comparison (prevents timing attacks on Bearer tokens) ---
+
+export function constantTimeEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  let m = 0;
+  for (let i = 0; i < a.length; i++) m |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return m === 0;
+}
+
 // --- Rate limiting (simple, in-memory per-isolate — good enough for low traffic) ---
 // For production scale, use CF Rate Limiting rules or D1-backed counters.
 

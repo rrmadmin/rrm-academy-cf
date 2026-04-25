@@ -4,7 +4,7 @@
  * Auth: Bearer LIBRARY_BUILD_TOKEN (same gate as /api/faqs).
  * Returns the PublicPartner subset -- admin-only fields stripped.
  */
-import { json, optionsResponse } from '../auth/_shared.js';
+import { json, optionsResponse, constantTimeEqual } from '../auth/_shared.js';
 import { log } from '../_log.js';
 
 export function onRequestOptions() {
@@ -23,7 +23,7 @@ export async function onRequestGet(context) {
   }
 
   const auth = request.headers.get('Authorization');
-  if (auth !== `Bearer ${env.LIBRARY_BUILD_TOKEN}`) {
+  if (!constantTimeEqual(auth, `Bearer ${env.LIBRARY_BUILD_TOKEN}`)) {
     return json({ error: 'unauthorized' }, 401);
   }
 
