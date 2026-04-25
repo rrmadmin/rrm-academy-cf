@@ -7,7 +7,7 @@
  *   ?id=faq_xxx  - single FAQ by ID (any status, for preview/rebuild)
  *   (none)       - all published FAQs, sorted by sort_order ASC
  */
-import { json, optionsResponse } from './auth/_shared.js';
+import { json, optionsResponse, constantTimeEqual } from './auth/_shared.js';
 import { log } from './_log.js';
 
 export function onRequestOptions() {
@@ -23,7 +23,7 @@ export async function onRequestGet(context) {
     }
 
     const auth = request.headers.get('Authorization');
-    if (auth !== `Bearer ${env.LIBRARY_BUILD_TOKEN}`) {
+    if (!constantTimeEqual(auth, `Bearer ${env.LIBRARY_BUILD_TOKEN}`)) {
       return json({ ok: false, error: 'Unauthorized' }, 401);
     }
 
