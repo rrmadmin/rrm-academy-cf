@@ -1,13 +1,52 @@
 #!/usr/bin/env node
 // Audit D1 `posts` table completeness + R2 cover existence.
-// Usage: node scripts/audit-commentary.mjs [--json] [--strict]
+// Usage: node scripts/audit-commentary.mjs [--json] [--strict] [--update-baseline]
 // Exit code 0 on pass, 1 on issues (use --strict to fail on warnings too).
+//
+// --update-baseline rewrites scripts/.commentary-slug-baseline.json with current slugs.
+// Run after a deliberate slug rename (and after adding a 301 in rrm-router).
 
 import { execFileSync } from 'node:child_process';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
 
 const args = new Set(process.argv.slice(2));
 const JSON_OUT = args.has('--json');
 const STRICT = args.has('--strict');
+const UPDATE_BASELINE = args.has('--update-baseline');
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const BASELINE_PATH = resolve(__dirname, '.commentary-slug-baseline.json');
+
+// Locked pillar vocabulary. Add a new value here ONLY when Brian has
+// deliberately introduced a new pillar. A typo or casing drift must fail
+// the audit rather than silently extend the set.
+const PILLAR_VOCAB = new Set([
+  'Education - NaPro/RRM',
+  'Education - Endometriosis',
+  'Education - PCOS',
+  'Patient Education',
+  'Clinician Education',
+  'Personal/Practice',
+  'Research Highlight',
+  'Systems Critique',
+  'Empowerment',
+]);
+
+// Invisible / formatting characters that break Astro's markdown renderer
+// when they land inside fenced code or at token boundaries. Detected with
+// names so the warning points at the specific intruder.
+const CONTROL_CHARS = [
+  { name: 'ZWSP',        re: /​/g },
+  { name: 'ZWNJ',        re: /‌/g },
+  { name: 'ZWJ',         re: /‍/g },
+  { name: 'BOM',         re: /﻿/g },
+  { name: 'NBSP',        re: / /g },
+  { name: 'word-joiner', re: /⁠/g },
+  { name: 'CRLF',        re: /\r\n/g  },
+  { name: 'CR',          re: /(?<!\n)\r(?!\n)/g },
+];
 
 const ACCOUNT_ID = 'ecf2c5bc8b5ebd634bcb587b3890910a';
 const R2_BUCKET = 'rrm-assets';
@@ -35,7 +74,7 @@ if (!process.env.CLOUDFLARE_API_TOKEN) {
 log('info', 'Querying D1 rrm-auth.posts...');
 const queryOut = sh('npx', [
   'wrangler', 'd1', 'execute', 'rrm-auth', '--remote',
-  '--command', `SELECT id, slug, title, status, cover_image_url, publish_date, word_count, LENGTH(content) AS body_len, LENGTH(excerpt) AS excerpt_len, LENGTH(seo_keywords) AS keywords_len FROM posts ORDER BY publish_date DESC`,
+  '--command', `SELECT id, slug, title, content, excerpt, content_pillar, status, cover_image_url, publish_date, word_count, LENGTH(content) AS body_len, LENGTH(excerpt) AS excerpt_len, LENGTH(seo_keywords) AS keywords_len FROM posts ORDER BY publish_date DESC`,
   '--json',
 ]);
 const d1 = JSON.parse(queryOut);
@@ -84,6 +123,61 @@ const slugCounts = new Map();
 for (const p of posts) slugCounts.set(p.slug, (slugCounts.get(p.slug) ?? 0) + 1);
 for (const [slug, count] of slugCounts) {
   if (count > 1) issues.error.push({ slug, code: 'duplicate-slug', detail: `appears ${count}x` });
+}
+
+// 4. Control-char / invisible-char scan (content + title + excerpt).
+// ZWSP inside a fenced code block breaks Astro's renderer silently.
+// NBSP and CRLF cause flaky diffs and render edge cases.
+for (const p of posts) {
+  for (const field of ['title', 'excerpt', 'content']) {
+    const val = p[field] ?? '';
+    if (!val) continue;
+    const hits = [];
+    for (const { name, re } of CONTROL_CHARS) {
+      const matches = val.match(re);
+      if (matches) hits.push(`${name}x${matches.length}`);
+    }
+    if (hits.length > 0) {
+      flag('warn', p, 'invisible-chars', `${field}: ${hits.join(', ')}`);
+    }
+  }
+}
+
+// 5. Pillar vocabulary lock. Empty pillar is a warning; unknown pillar
+// is an error. New pillars must be added to PILLAR_VOCAB above explicitly.
+for (const p of posts) {
+  const pillar = p.content_pillar ?? '';
+  if (p.status !== 'published') continue;
+  if (pillar === '') {
+    flag('warn', p, 'empty-pillar', '');
+  } else if (!PILLAR_VOCAB.has(pillar)) {
+    flag('error', p, 'unknown-pillar', `"${pillar}" not in vocab`);
+  }
+}
+
+// 6. Slug-immutability baseline. On first run, writes baseline. On later
+// runs, flags any id whose slug changed since baseline. New ids are OK.
+let baseline = null;
+if (existsSync(BASELINE_PATH)) {
+  try {
+    baseline = JSON.parse(readFileSync(BASELINE_PATH, 'utf8'));
+  } catch (err) {
+    log('warn', `baseline exists but could not parse: ${err.message}`);
+  }
+}
+if (baseline) {
+  for (const p of posts) {
+    const prior = baseline[p.id];
+    if (prior && prior !== p.slug) {
+      flag('error', p, 'slug-changed', `${prior} -> ${p.slug} (id=${p.id}). Add 301 in rrm-router before rerunning with --update-baseline.`);
+    }
+  }
+}
+
+if (UPDATE_BASELINE || !baseline) {
+  const next = Object.fromEntries(posts.map(p => [p.id, p.slug]));
+  writeFileSync(BASELINE_PATH, JSON.stringify(next, null, 2) + '\n');
+  log('ok', `baseline ${baseline ? 'updated' : 'initialized'}: ${BASELINE_PATH}`);
 }
 
 // 4. R2 object existence per slug (HEAD via edge, since CF workers.dev R2 API requires account-scoped token)
