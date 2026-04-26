@@ -204,6 +204,10 @@ async function main() {
     const before = row[cfg.field] || '';
     const after = cfg.sanitize(before);
     if (after === before) continue;
+    if (after.trim().length === 0 && before.trim().length > 0) {
+      skipped.push({ id, ratio: '1.00', beforeLen: before.length, afterLen: after.length, reason: 'sanitized to empty' });
+      continue;
+    }
     const ratio = before.length > 0 ? Math.abs(after.length - before.length) / before.length : 1;
     if (ratio > 0.30 && !args.force) {
       skipped.push({ id, ratio: ratio.toFixed(2), beforeLen: before.length, afterLen: after.length });
@@ -248,12 +252,13 @@ async function main() {
     }
   }
   const tmpFile = `/tmp/clean-content-${args.type}-${Date.now()}.sql`;
-  const lines = [];
+  const lines = ['BEGIN TRANSACTION;'];
   for (const c of changed) {
     const hexAfter = Buffer.from(c.after, 'utf-8').toString('hex');
     const escapedId = String(c.id).replace(/'/g, "''");
     lines.push(`UPDATE ${cfg.table} SET ${cfg.field} = X'${hexAfter}' WHERE ${cfg.idCol} = '${escapedId}';`);
   }
+  lines.push('COMMIT;');
   writeFileSync(tmpFile, lines.join('\n'));
   console.log(`\n[apply] writing ${changed.length} UPDATE(s) via ${tmpFile} ...`);
   try {
@@ -267,7 +272,10 @@ async function main() {
     try { unlinkSync(tmpFile); } catch {}
   }
 
-  // 6. Trigger ONE full rebuild
+  // 6. Trigger ONE full rebuild. D1 already has new content; if dispatch fails,
+  //    the live site keeps serving stale build artifacts until the next deploy.
+  //    Surface this as a non-zero exit (distinct from D1-fail exit 1) so
+  //    monitoring can catch the half-complete state.
   console.log(`\n[rebuild] triggering single workflow_dispatch full rebuild ...`);
   try {
     const ghToken = execSync(`op read 'op://Automation/Github PAT/credential'`, { encoding: 'utf8' }).trim();
@@ -282,11 +290,15 @@ async function main() {
     if (r.status === 0) {
       console.log(`[rebuild] dispatched. Watch at https://github.com/rrmadmin/rrm-academy-cf/actions`);
     } else {
-      console.warn(`[rebuild] gh dispatch returned ${r.status}. Trigger manually if needed.`);
+      console.error(`[rebuild] gh dispatch returned ${r.status}. D1 has new content but site is serving stale build.`);
+      console.error(`[rebuild] trigger manually: gh workflow run deploy.yml --repo rrmadmin/rrm-academy-cf`);
+      process.exitCode = 2;
     }
   } catch (err) {
-    console.warn(`[rebuild] could not auto-trigger: ${err.message}`);
-    console.warn(`[rebuild] trigger manually: gh workflow run deploy.yml --repo rrmadmin/rrm-academy-cf`);
+    console.error(`[rebuild] could not auto-trigger: ${err.message}`);
+    console.error(`[rebuild] D1 has new content but site is serving stale build.`);
+    console.error(`[rebuild] trigger manually: gh workflow run deploy.yml --repo rrmadmin/rrm-academy-cf`);
+    process.exitCode = 2;
   }
 
   console.log(`\n[done] applied ${changed.length}, skipped ${skipped.length}, backup at ${backupPath}`);
