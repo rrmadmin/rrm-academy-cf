@@ -98,8 +98,13 @@ async function fetchSingle(recordId) {
   // Load existing faqs.json
   let faqs = [];
   if (existsSync(OUTPUT_PATH)) {
-    faqs = JSON.parse(readFileSync(OUTPUT_PATH, 'utf-8'));
-    console.log(`Loaded ${faqs.length} existing FAQs from cache`);
+    try {
+      faqs = JSON.parse(readFileSync(OUTPUT_PATH, 'utf-8'));
+      console.log(`Loaded ${faqs.length} existing FAQs from cache`);
+    } catch (err) {
+      console.warn(`Cache malformed (${err.message}). Falling back to full fetch.`);
+      return fetchAll();
+    }
   } else {
     console.warn('Cache missing. Falling back to full fetch.');
     return fetchAll();
