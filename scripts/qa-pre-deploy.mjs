@@ -159,7 +159,10 @@ async function loadPrevSnapshot(spec) {
   if (!text) return null;
   try {
     const parsed = JSON.parse(text);
-    return spec.nested ? (parsed[spec.nested] || []) : parsed;
+    if (spec.nested) {
+      return Array.isArray(parsed?.[spec.nested]) ? parsed[spec.nested] : [];
+    }
+    return Array.isArray(parsed) ? parsed : null;
   } catch {
     return null;
   }
@@ -220,25 +223,30 @@ async function main() {
       defects: [],
     };
 
+    const escalatedIds = new Set();
     if (ANTHROPIC_KEY && flagged.length > 0 && summary.sonnetCallsUsed < MAX_SONNET_CALLS) {
       const toEscalate = flagged.slice(0, MAX_SONNET_CALLS - summary.sonnetCallsUsed);
       for (const f of toEscalate) {
         const rec = current.find((r) => r.id === f.id);
         if (!rec) continue;
         const result = await escalate(rec, spec.type, spec.field);
-        summary.sonnetCallsUsed++;
         if (result.error) {
           typeReport.defects.push({ id: f.id, sonnetError: result.error });
           continue;
         }
+        summary.sonnetCallsUsed++;
+        escalatedIds.add(f.id);
         if (Array.isArray(result.defects) && result.defects.length > 0) {
           typeReport.defects.push({ id: f.id, defects: result.defects });
           summary.totalDefects += result.defects.length;
         }
       }
-    } else if (!ANTHROPIC_KEY) {
-      // no LLM -- report deterministic flags as defects directly
-      for (const f of flagged) {
+    }
+    // Fallback: any flagged record not escalated to Sonnet (no key, budget cap,
+    // or missing record) gets reported as a deterministic-flag defect so it is
+    // never silently dropped.
+    for (const f of flagged) {
+      if (!escalatedIds.has(f.id)) {
         typeReport.defects.push({ id: f.id, defects: [{ type: 'deterministic-flag', severity: 'low' }] });
         summary.totalDefects += 1;
       }

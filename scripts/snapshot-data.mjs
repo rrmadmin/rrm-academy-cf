@@ -145,8 +145,18 @@ async function snapshotOne(spec) {
 }
 
 async function main() {
+  const failures = [];
   for (const spec of TYPES) {
-    await snapshotOne(spec);
+    try {
+      await snapshotOne(spec);
+    } catch (err) {
+      console.error(`[fail] ${spec.type}: ${err.message}`);
+      failures.push(spec.type);
+    }
+  }
+  if (failures.length > 0) {
+    console.error(`Snapshot failed for: ${failures.join(', ')}`);
+    process.exit(1);
   }
 }
 
