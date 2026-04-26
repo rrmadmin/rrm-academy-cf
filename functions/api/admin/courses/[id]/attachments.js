@@ -12,10 +12,14 @@ const ALLOWED_TYPES = {
 };
 
 function sanitizeName(raw) {
-  return raw
-    .replace(/[\x00-\x1f\x7f]/g, '')
-    .replace(/[/\\]/g, '')
-    .trim();
+  let out = '';
+  for (const ch of raw) {
+    const code = ch.charCodeAt(0);
+    if (code < 0x20 || code === 0x7f) continue;
+    if (ch === '/' || ch === '\\') continue;
+    out += ch;
+  }
+  return out.trim();
 }
 
 export function onRequestOptions() {
