@@ -3,7 +3,6 @@ import { log } from '../../_log.js';
 
 const VALID_STATUSES = new Set(['draft', 'published', 'archived']);
 const VALID_ACCESS_TYPES = new Set(['public', 'private']);
-const ID_PATTERN = /^[a-z][a-z0-9-]*$/;
 
 export function onRequestOptions() {
   return optionsResponse();
