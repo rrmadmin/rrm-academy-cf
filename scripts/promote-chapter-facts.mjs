@@ -17,7 +17,7 @@
  */
 
 import { readFileSync, readdirSync, writeFileSync, existsSync, statSync } from 'fs';
-import { join } from 'path';
+import { join, basename } from 'path';
 import { execFileSync } from 'child_process';
 
 const STAGING_DIR = '/tmp/chapter-facts';
@@ -122,8 +122,10 @@ if (flags.chapter) {
   }
   files = [p];
 } else {
+  // Accept ONLY canonical staging files — rejects .raw.json, .prompt.txt,
+  // .tmp, .error.txt, _failures.json automatically.
   files = readdirSync(STAGING_DIR)
-    .filter((f) => f.endsWith('.json') && !f.includes('.prompt.'))
+    .filter((f) => /^[a-z0-9][a-z0-9-]*\.json$/.test(f) && f !== '_failures.json')
     .map((f) => join(STAGING_DIR, f));
 }
 
@@ -217,7 +219,10 @@ for (const f of files) {
       console.error(`  ⚠ ${f}: dropped ${dropped} malformed fact${dropped === 1 ? '' : 's'}`);
     }
     allFacts.push(...clean);
-    byChapter.push({ slug: doc.chapter_slug, count: clean.length });
+    // Staging JSON's chapter_slug field is unreliable (Opus may omit it);
+    // derive from filename so byChapter reporting always shows the actual slug.
+    const chapterSlug = basename(f, '.json');
+    byChapter.push({ slug: chapterSlug, count: clean.length });
   } catch (err) {
     console.error(`  skip ${f}: ${err.message}`);
     failures.push({ file: f, status: 'parse_error', error: String(err.message || err).slice(0, 300) });

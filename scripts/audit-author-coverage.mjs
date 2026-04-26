@@ -53,10 +53,12 @@ if (!useAll && !rawAuthor) {
 }
 
 // Validate last name: alphanumeric + hyphen only, max 30 chars.
+// Must start with a letter and end with a letter or digit (or be a single letter)
+// — rejects pure-hyphen names, leading/trailing hyphens, and bare digits.
 function validateLastname(name) {
   if (typeof name !== 'string') return null;
   const cleaned = name.toLowerCase().trim();
-  if (!/^[a-z0-9-]{1,30}$/.test(cleaned)) return null;
+  if (!/^[a-z][a-z0-9-]{0,28}[a-z0-9]$|^[a-z]$/.test(cleaned)) return null;
   return cleaned;
 }
 
@@ -84,11 +86,19 @@ function d1Query(sql) {
   } catch (err) {
     throw new Error(`wrangler failed: ${String(err.message || err).slice(0, 400)}`);
   }
-  const match = raw.match(/(\[[\s\S]*\])\s*$/);
-  if (!match) {
-    throw new Error(`d1_query_parse_error: could not extract JSON array from wrangler output. First 300 chars: ${raw.slice(0, 300)}`);
+  // Find the last line that starts with '[' (the JSON array wrangler emits at end).
+  // Greedy match-from-anywhere would break if wrangler ever logs a line containing '['
+  // before the JSON payload (banners, warnings).
+  const lines = raw.split('\n');
+  let jsonStart = -1;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (lines[i].startsWith('[')) { jsonStart = i; break; }
   }
-  const parsed = JSON.parse(match[1]);
+  if (jsonStart === -1) {
+    throw new Error(`d1_query_parse_error: no JSON array in wrangler output. First 300 chars: ${raw.slice(0, 300)}`);
+  }
+  const jsonStr = lines.slice(jsonStart).join('\n');
+  const parsed = JSON.parse(jsonStr);
   return parsed[0]?.results || [];
 }
 
