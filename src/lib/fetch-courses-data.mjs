@@ -95,7 +95,7 @@ async function fetchSingle(recordId) {
     courses = JSON.parse(readFileSync(OUTPUT_PATH, 'utf-8'));
     console.log(`Loaded ${courses.length} existing courses from cache`);
   } else {
-    console.warn('Cache missing. Falling back to full fetch.');
+    console.warn('WARN: cache miss on single-record dispatch — promoting to fetchAll. This means src/data/courses.json was not restored from git before fetch (deploy.yml step "Restore git-committed data files over cache" failed or was skipped). Investigate if this recurs.');
     return fetchAll();
   }
 
@@ -114,8 +114,17 @@ async function fetchSingle(recordId) {
   if (course.status !== 'published') {
     console.log(`Removed non-published course (status: ${course.status}): ${course.slug || course.id}`);
   } else {
+    // status field is admin-mode-only (endpoint exposes it for the R5 guard
+    // above); strip before persist to keep cache shape byte-equivalent to the
+    // pre-D1 Airtable contract and prevent downstream code from branching on
+    // a field that's already filtered upstream.
+    delete course.status;
     courses.push(course);
-    console.log(`${wasPresent ? 'Updated' : 'Added'} course: ${course.slug || course.id}`);
+    if (wasPresent) {
+      console.log(`Updated course: ${course.slug || course.id}`);
+    } else {
+      console.warn(`WARN: appended new course (not in cache): ${course.slug || course.id}. If sortOrder is undefined, course will land at end of catalog.`);
+    }
   }
 
   // Sort D1 courses by sortOrder so the catalog order is stable across
@@ -182,6 +191,14 @@ async function fetchAll() {
   const courses = body.results;
   console.log(`Fetched ${courses.length} published courses from D1`);
 
+  // Strip status field — endpoint exposes it for the R5 status guard in
+  // fetchSingle, but persisting it widens the courses.json contract beyond
+  // what the pre-D1 Airtable shape carried. Downstream code (Astro pages,
+  // override entries) doesn't read course.status; keep the cache shape tight.
+  for (const course of courses) {
+    delete course.status;
+  }
+
   // Sort D1 courses by sortOrder before merging overrides (endpoint already
   // sorts but explicit sort here is defensive against future endpoint changes).
   sortD1Courses(courses);
@@ -199,9 +216,15 @@ async function fetchAll() {
 }
 
 function mergeOverrides(courses) {
+  // Overrides are INSERT/REPLACE only — never PRUNE. If you remove an entry
+  // from courses-overrides.json that previously slotted into the catalog, the
+  // next full fetch will simply not re-insert it (D1 doesn't know about it
+  // either), so it disappears from courses.json. But if a course was added
+  // both as a D1 row AND an override (collision below), the override wins
+  // forever until the override entry is deleted. Don't expect this function
+  // to clean up stale state — it operates per-fetch from a clean D1 base.
   if (!existsSync(OVERRIDES_PATH)) {
-    console.log('\nNo courses-overrides.json found, skipping merge');
-    return;
+    throw new Error(`FATAL: ${OVERRIDES_PATH} missing. NeoFertility (and any other affiliate / externally-hosted courses) cannot be merged. Without these, the build silently 404s their /courses/<slug>/ URLs. If the file was deleted intentionally, restore it from git or remove the affected courses from the catalog explicitly.`);
   }
 
   let overrides;
@@ -225,8 +248,8 @@ function mergeOverrides(courses) {
 
     const existingIndex = courses.findIndex(c => c.id === entry.id || c.slug === entry.slug);
     if (existingIndex >= 0) {
+      console.warn(`  WARN: override ${entry.id} collides with D1 row at index ${existingIndex} — D1 data discarded. If the course has fully migrated to D1, remove the override entry from courses-overrides.json.`);
       courses[existingIndex] = entry;
-      console.log(`  ${entry.id}: replaced at index ${existingIndex}`);
     } else {
       const insertAt = Math.max(0, Math.min(position, courses.length));
       courses.splice(insertAt, 0, entry);
