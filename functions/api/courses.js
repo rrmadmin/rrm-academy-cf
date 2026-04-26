@@ -143,6 +143,7 @@ function mapCourse(c, sections, steps, preview) {
     faqs: parseArray(c.faqs_json),
     attachments: parseArray(c.attachments_json),
     status: c.status,
+    sortOrder: c.sort_order,
     sections: mappedSections,
   };
 
