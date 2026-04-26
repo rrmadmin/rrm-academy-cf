@@ -86,13 +86,21 @@ function d1Query(sql) {
     );
   }
   // wrangler outputs some non-JSON lead bytes occasionally; extract the JSON array.
-  const match = out.match(/(\[[\s\S]*\])\s*$/);
-  if (!match) {
+  // Find the last line that starts with '[' (the JSON array wrangler emits at end).
+  // Greedy match-from-anywhere would break if wrangler ever logs a line containing '['
+  // before the JSON payload (banners, warnings).
+  const lines = out.split('\n');
+  let jsonStart = -1;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (lines[i].startsWith('[')) { jsonStart = i; break; }
+  }
+  if (jsonStart === -1) {
     console.error('D1 output could not be parsed as JSON:');
     console.error(out.slice(0, 500));
     throw new Error('d1_query_parse_error');
   }
-  const parsed = JSON.parse(match[1]);
+  const jsonStr = lines.slice(jsonStart).join('\n');
+  const parsed = JSON.parse(jsonStr);
   return parsed[0]?.results || [];
 }
 
@@ -262,6 +270,20 @@ function buildEntity(entitySlug) {
     .sort((a, b) => a.id.localeCompare(b.id));
 
   doc.facts = applyCuratorOverrides(canonicalFacts, doc._manual);
+
+  // Guard against silent data loss: if a regen drops record_count by >5% vs the
+  // prior on-disk value, abort unless --force. Prevents a tradition-tag bug or
+  // accidental D1 wipe from quietly shrinking a published SSOT.
+  const priorCount = existing?._meta?.record_count;
+  if (typeof priorCount === 'number' && priorCount > 0 && doc.facts.length < priorCount * 0.95) {
+    const dropPct = ((1 - doc.facts.length / priorCount) * 100).toFixed(1);
+    console.warn(`  ⚠ ${entitySlug} record_count dropped ${priorCount} → ${doc.facts.length} (-${dropPct}%, >5% loss). Re-run with --force to override.`);
+    if (!flags.force) {
+      console.error(`  ✗ Aborting SSOT write to prevent data loss. Add --force to bypass.`);
+      process.exit(1);
+    }
+  }
+
   doc._meta.record_count = doc.facts.length;
   doc._meta.generated_at = new Date().toISOString();
 
