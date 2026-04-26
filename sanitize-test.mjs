@@ -221,6 +221,16 @@ const onclickStripped = sanitizeHtml('<a href="https://example.com" onclick="ale
 notContains('onclick handler removed', onclickStripped, 'onclick');
 contains('href preserved', onclickStripped, 'href="https://example.com"');
 
+const onclickUnquoted = sanitizeHtml('<a href="#" onclick=alert(1)>x</a>');
+notContains('unquoted onclick removed', onclickUnquoted, 'onclick');
+
+const onmouseoverUnquoted = sanitizeHtml('<a onmouseover=alert(1) href="#">x</a>');
+notContains('unquoted onmouseover removed', onmouseoverUnquoted, 'onmouseover');
+
+const comboBypass = sanitizeHtml('<a href=javascript:alert(1) onclick=alert(2)>x</a>');
+notContains('combo bypass href stripped', comboBypass, 'javascript:');
+notContains('combo bypass onclick stripped', comboBypass, 'onclick');
+
 eq('looksDirty empty p', looksDirty('<p>x</p><p></p>'), true);
 eq('looksDirty word artifact', looksDirty('<p class="MsoNormal">x</p>'), true);
 eq('looksDirty double-encoded', looksDirty('A &amp;amp; B'), true);
