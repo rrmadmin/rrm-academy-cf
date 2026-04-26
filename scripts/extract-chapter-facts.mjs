@@ -265,7 +265,9 @@ function extractInnerJson(claudeJsonEnvelope, slug) {
       reasons.push(`#${i} ${label}: no parseable Quote: field in verification_notes`);
       return false;
     }
-    const quoteLen = quoteMatch[1].length;
+    // Use Array.from to count Unicode code points, not UTF-16 code units;
+    // a single emoji (e.g. 🩺) should count as 1 char, not 2.
+    const quoteLen = Array.from(quoteMatch[1]).length;
     if (quoteLen > 150) {
       reasons.push(`#${i} ${label}: quote ${quoteLen} chars > 150 limit`);
       return false;
@@ -401,4 +403,5 @@ console.log(`Staging dir: ${STAGING_DIR}`);
 if (failed.length) {
   console.log(`\nFailures:`);
   failed.forEach((f) => console.log(`  ${f.slug}: ${f.error.slice(0, 140)}`));
+  process.exit(1);
 }
