@@ -6,7 +6,7 @@
     "editorial_owner_refs": [],
     "schema_version": "1.0.0",
     "ssot": true,
-    "generated_at": "2026-04-26T18:48:35.928Z",
+    "generated_at": "2026-04-26T18:49:48.403Z",
     "generated_by": "scripts/build-canonical-facts.mjs",
     "source": "D1 rrm-library.facts (tradition filter) + _manual overrides",
     "regenerable": true,
