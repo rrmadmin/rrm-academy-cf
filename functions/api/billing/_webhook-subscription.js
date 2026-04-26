@@ -36,6 +36,16 @@ export async function handleSubscriptionDeleted(db, event, env, request, waitUnt
   const sub = event.data.object;
   log(env, waitUntil, 'billing', 'subscription_deleted', 'ok', `${sub.id} customer=${sub.customer}`);
 
+  try {
+    await db.prepare(
+      "UPDATE wix_subscription SET migration_status='wix_cancelled' " +
+      "WHERE stripe_subscription_id=? AND migration_status='migrated'"
+    ).bind(sub.id).run();
+  } catch (cancelErr) {
+    log(env, waitUntil, 'billing', 'migration_cancel_flag_fail', 'error',
+      `${sub.id}: ${cancelErr.message}`);
+  }
+
   // Send cancellation confirmation email
   if (env.AWS_ACCESS_KEY_ID) {
     const email = await getEmailByStripeCustomer(db, sub.customer, env, waitUntil);
