@@ -10,16 +10,16 @@
     ],
     "schema_version": "1.0.0",
     "ssot": true,
-    "generated_at": "2026-04-26T18:46:45.263Z",
+    "generated_at": "2026-04-26T18:48:35.879Z",
     "generated_by": "scripts/build-canonical-facts.mjs",
     "source": "D1 rrm-library.facts (tradition filter) + _manual overrides",
     "regenerable": true,
-    "record_count": 3701,
+    "record_count": 3722,
     "tradition_tally": {
-      "napro": 3701,
-      "rrm-shared": 1422,
-      "fabm": 814,
-      "creighton": 933,
+      "napro": 3722,
+      "rrm-shared": 1443,
+      "fabm": 815,
+      "creighton": 936,
       "conventional": 43,
       "billings": 5,
       "femm": 3,
@@ -27,11 +27,11 @@
       "independent": 4
     },
     "evidence_tier_tally": {
-      "peer_reviewed": 1662,
+      "peer_reviewed": 1683,
       "clinical_experience": 2014,
       "clinic_presentation": 25
     },
-    "source_resolved_count": 3500,
+    "source_resolved_count": 3521,
     "source_unresolved_count": 201
   },
   "_manual": {
@@ -62825,6 +62825,186 @@
       "last_verified_at": "2026-04-19 04:40:34"
     },
     {
+      "id": "fact-rec0vLer3AsJKi99G-2",
+      "claim": "Five years of COC use is associated with a 24 percent increased risk for breast cancer during use.",
+      "category": "epidemiology",
+      "domain": "hormones",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "rec0vLer3AsJKi99G",
+        "slug": "reducing-uterine-and-ovarian-mortality-risks-of-religious-sisters-a-critique-and-rec1djrnimg5holas",
+        "title": "Reducing uterine and ovarian mortality risks of religious sisters",
+        "short_citation": "Hemphill CK et al., 2012",
+        "pmid": null,
+        "doi": "10.5840/ncbq201212250",
+        "source_url": "https://www.pdcnet.org/C1257D43006C9AB1/file/343F07B86121AF9585257D800059C209/$FILE/ncbq_2012_0012_0002_0043_0047.pdf",
+        "journal": "The national Catholic bioethics quarterly",
+        "year": 2012,
+        "authors": "Hemphill CK, Karges KK, Mirkes R",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"a 24 percent increased risk for breast cancer during COC use\" Section: Minimization of Adverse Effects.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:48:31"
+    },
+    {
+      "id": "fact-rec0vLer3AsJKi99G-3",
+      "claim": "Five years of COC use is associated with at least a 100 percent increased risk for myocardial infarction.",
+      "category": "epidemiology",
+      "domain": "hormones",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "rec0vLer3AsJKi99G",
+        "slug": "reducing-uterine-and-ovarian-mortality-risks-of-religious-sisters-a-critique-and-rec1djrnimg5holas",
+        "title": "Reducing uterine and ovarian mortality risks of religious sisters",
+        "short_citation": "Hemphill CK et al., 2012",
+        "pmid": null,
+        "doi": "10.5840/ncbq201212250",
+        "source_url": "https://www.pdcnet.org/C1257D43006C9AB1/file/343F07B86121AF9585257D800059C209/$FILE/ncbq_2012_0012_0002_0043_0047.pdf",
+        "journal": "The national Catholic bioethics quarterly",
+        "year": 2012,
+        "authors": "Hemphill CK, Karges KK, Mirkes R",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"at least a 100 percent increased risk for myocardial infarction\" Section: Minimization of Adverse Effects.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:48:31"
+    },
+    {
+      "id": "fact-rec0vLer3AsJKi99G-4",
+      "claim": "Five years of COC use is associated with a 40 percent decrease in ovarian cancer mortality risk.",
+      "category": "epidemiology",
+      "domain": "hormones",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "rec0vLer3AsJKi99G",
+        "slug": "reducing-uterine-and-ovarian-mortality-risks-of-religious-sisters-a-critique-and-rec1djrnimg5holas",
+        "title": "Reducing uterine and ovarian mortality risks of religious sisters",
+        "short_citation": "Hemphill CK et al., 2012",
+        "pmid": null,
+        "doi": "10.5840/ncbq201212250",
+        "source_url": "https://www.pdcnet.org/C1257D43006C9AB1/file/343F07B86121AF9585257D800059C209/$FILE/ncbq_2012_0012_0002_0043_0047.pdf",
+        "journal": "The national Catholic bioethics quarterly",
+        "year": 2012,
+        "authors": "Hemphill CK, Karges KK, Mirkes R",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"the woman who uses the COC for five years incurs the benefit of a 40 percent decrease in ovarian cancer mortality risk\" Section: Minimization of Adverse Effects.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:48:31"
+    },
+    {
+      "id": "fact-rec0vLer3AsJKi99G-5",
+      "claim": "The World Health Organization's IARC has classified the oral contraceptive as a carcinogen.",
+      "category": "epidemiology",
+      "domain": "hormones",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "rec0vLer3AsJKi99G",
+        "slug": "reducing-uterine-and-ovarian-mortality-risks-of-religious-sisters-a-critique-and-rec1djrnimg5holas",
+        "title": "Reducing uterine and ovarian mortality risks of religious sisters",
+        "short_citation": "Hemphill CK et al., 2012",
+        "pmid": null,
+        "doi": "10.5840/ncbq201212250",
+        "source_url": "https://www.pdcnet.org/C1257D43006C9AB1/file/343F07B86121AF9585257D800059C209/$FILE/ncbq_2012_0012_0002_0043_0047.pdf",
+        "journal": "The national Catholic bioethics quarterly",
+        "year": 2012,
+        "authors": "Hemphill CK, Karges KK, Mirkes R",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"the World Health Organization's decision to classify the oral contraceptive as a carcinogen\" Section: Minimization of Adverse Effects.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:48:31"
+    },
+    {
+      "id": "fact-rec0vLer3AsJKi99G-6",
+      "claim": "COC package inserts warn that use may increase risk of breast cancer and cancer of the reproductive organs.",
+      "category": "epidemiology",
+      "domain": "hormones",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "rec0vLer3AsJKi99G",
+        "slug": "reducing-uterine-and-ovarian-mortality-risks-of-religious-sisters-a-critique-and-rec1djrnimg5holas",
+        "title": "Reducing uterine and ovarian mortality risks of religious sisters",
+        "short_citation": "Hemphill CK et al., 2012",
+        "pmid": null,
+        "doi": "10.5840/ncbq201212250",
+        "source_url": "https://www.pdcnet.org/C1257D43006C9AB1/file/343F07B86121AF9585257D800059C209/$FILE/ncbq_2012_0012_0002_0043_0047.pdf",
+        "journal": "The national Catholic bioethics quarterly",
+        "year": 2012,
+        "authors": "Hemphill CK, Karges KK, Mirkes R",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"warning on package inserts that use of commonly prescribed COCs 'may increase risk of breast cancer and cancer of the reproductive organs.'\" Section: Minimization of Adverse Effects.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:48:31"
+    },
+    {
+      "id": "fact-rec0vLer3AsJKi99G-7",
+      "claim": "In Britt and Short's referenced 1900-1954 graphic data, before age seventy nuns had a lower rate of death from uterine cancer than the female control group, contradicting the proposal's hypothesis.",
+      "category": "epidemiology",
+      "domain": "endometriosis",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "rec0vLer3AsJKi99G",
+        "slug": "reducing-uterine-and-ovarian-mortality-risks-of-religious-sisters-a-critique-and-rec1djrnimg5holas",
+        "title": "Reducing uterine and ovarian mortality risks of religious sisters",
+        "short_citation": "Hemphill CK et al., 2012",
+        "pmid": null,
+        "doi": "10.5840/ncbq201212250",
+        "source_url": "https://www.pdcnet.org/C1257D43006C9AB1/file/343F07B86121AF9585257D800059C209/$FILE/ncbq_2012_0012_0002_0043_0047.pdf",
+        "journal": "The national Catholic bioethics quarterly",
+        "year": 2012,
+        "authors": "Hemphill CK, Karges KK, Mirkes R",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"before age seventy, the Sisters had a lower rate of death from uterine cancer than the control group\" Section: Data Ambiguity.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:48:31"
+    },
+    {
       "id": "fact-rec17gACxNYBOWcrF-1",
       "claim": "Substantial human fecundity is restricted to approximately 5-6 days of the menstrual cycle, making the timing of intercourse a strong determinant of expected pregnancies.",
       "category": "cycle-biomarker",
@@ -63390,13 +63570,73 @@
       "last_verified_at": "2026-04-26 03:34:50"
     },
     {
+      "id": "fact-rec1yQ60aHk3K22a9-14",
+      "claim": "NaPro mucus enhancers include vitamin B6, guaifenesin, antibiotics such as amoxicillin, and FertileCM (which contains L-arginine, a nitric oxide precursor).",
+      "category": "protocol",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "rec1yQ60aHk3K22a9",
+        "slug": "the-evaluation-and-treatment-of-cervical-factor-infertility-a-medical-moral-anal-recdkvjhcuigoqnsb",
+        "title": "The Evaluation and Treatment of Cervical Factor Infertility a Medical-Moral  Analysis",
+        "short_citation": "Keefe CE et al., 2012",
+        "pmid": "30082986",
+        "doi": "10.1179/002436312804827127",
+        "source_url": "https://doi.org/10.1179/002436312804827127",
+        "journal": "The Linacre Quarterly",
+        "year": 2012,
+        "authors": "Keefe CE, Mirkes R, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Mucus enhancer treatments for limited cervical mucus include vitamin B6, guaifenesin, antibiotics such as amoxicillin, and FertileCM.\" Section: Treatment.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:48:31"
+    },
+    {
+      "id": "fact-rec1yQ60aHk3K22a9-15",
+      "claim": "In the index case, vitamin B6 500 mg SR daily for 8 weeks raised the patient's mucus cycle score from 4.5 to 8, after which she conceived in two cycles of fertility-focused intercourse.",
+      "category": "protocol",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "rec1yQ60aHk3K22a9",
+        "slug": "the-evaluation-and-treatment-of-cervical-factor-infertility-a-medical-moral-anal-recdkvjhcuigoqnsb",
+        "title": "The Evaluation and Treatment of Cervical Factor Infertility a Medical-Moral  Analysis",
+        "short_citation": "Keefe CE et al., 2012",
+        "pmid": "30082986",
+        "doi": "10.1179/002436312804827127",
+        "source_url": "https://doi.org/10.1179/002436312804827127",
+        "journal": "The Linacre Quarterly",
+        "year": 2012,
+        "authors": "Keefe CE, Mirkes R, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"After eight weeks on this mucus enhancer, her mucus cycle score went from an average of 4.5 to 8\" Section: Treatment.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:48:31"
+    },
+    {
       "id": "fact-rec1yQ60aHk3K22a9-2",
-      "claim": "CrMS mucus cycle scores are categorized as: dry cycles (score 0), limited mucus cycles (0.1-7.5), and regular mucus cycles (above 7.6).",
+      "claim": "The Creighton Model VDRS converts cervical mucus observations into a daily numerical score from 0 to 16, with a cycle score averaged from peak day plus the five preceding days.",
       "category": "charting",
       "domain": "CREIGHTON",
       "tradition": [
-        "creighton",
         "napro",
+        "creighton",
         "rrm-shared"
       ],
       "claim_type": "definition",
@@ -63414,23 +63654,23 @@
         "authors": "Keefe CE, Mirkes R, Yeung PP Jr",
         "type": "article"
       },
-      "verification_notes": "Quote: \"limited mucus cycles, with scores ranging from 0.1 to 7.5; and 3) regular mucus cycles, with scores above 7.6.\" Section: Diagnosis.",
+      "verification_notes": "Quote: \"This recording system is converted to a daily numerical score ranging from zero to sixteen.\" Section: Diagnosis.",
       "verified": 1,
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
-      "last_verified_at": "2026-04-26 18:42:08"
+      "last_verified_at": "2026-04-26 18:48:31"
     },
     {
       "id": "fact-rec1yQ60aHk3K22a9-3",
-      "claim": "Stanford, Smith, and Dunson evaluated 1,681 menstrual cycles charted with CrMS and demonstrated positive correlation of mucus score categories to pregnancy probability.",
-      "category": "cycle-biomarker",
+      "claim": "CrMS cycle score categories are: dry cycles = 0, limited mucus cycles = 0.1-7.5, and regular mucus cycles >= 7.6.",
+      "category": "charting",
       "domain": "CREIGHTON",
       "tradition": [
-        "creighton",
         "napro",
+        "creighton",
         "rrm-shared"
       ],
-      "claim_type": "cited-study",
+      "claim_type": "definition",
       "body": null,
       "source": {
         "article_id": "rec1yQ60aHk3K22a9",
@@ -63445,11 +63685,41 @@
         "authors": "Keefe CE, Mirkes R, Yeung PP Jr",
         "type": "article"
       },
-      "verification_notes": "Quote: \"Stanford, J.R. Smith, and D.B. Dunson evaluated 1,681 menstrual cycles charted with the CrMS and demonstrated a positive correlation\" Section: Diagnosis.",
+      "verification_notes": "Quote: \"1) dry cycles, with a score of 0; 2) limited mucus cycles, with scores ranging from 0.1 to 7.5; and 3) regular mucus cycles, with scores above 7.6.\" Section: Diagnosis.",
       "verified": 1,
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
-      "last_verified_at": "2026-04-26 18:42:08"
+      "last_verified_at": "2026-04-26 18:48:31"
+    },
+    {
+      "id": "fact-rec1yQ60aHk3K22a9-4",
+      "claim": "In a NaPro cohort of 11 patients given amoxicillin during the fertile window, mean mucus cycle scores improved from 4.0 to 9.0 (p<0.003).",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "rec1yQ60aHk3K22a9",
+        "slug": "the-evaluation-and-treatment-of-cervical-factor-infertility-a-medical-moral-anal-recdkvjhcuigoqnsb",
+        "title": "The Evaluation and Treatment of Cervical Factor Infertility a Medical-Moral  Analysis",
+        "short_citation": "Keefe CE et al., 2012",
+        "pmid": "30082986",
+        "doi": "10.1179/002436312804827127",
+        "source_url": "https://doi.org/10.1179/002436312804827127",
+        "journal": "The Linacre Quarterly",
+        "year": 2012,
+        "authors": "Keefe CE, Mirkes R, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"in a group of eleven patients taking amoxicillin during the fertile window, mucus cycles scores went from an average of 4.0 to an average score of 9\" Section: Treatment.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:48:31"
     },
     {
       "id": "fact-rec1yQ60aHk3K22a9-5",
@@ -63515,15 +63785,16 @@
     },
     {
       "id": "fact-rec1yQ60aHk3K22a9-8",
-      "claim": "In Hilgers' series, 40 patients with limited mucus cycles (avg 3.2 years prior infertility) achieved 40% pregnancy rate using fertility-focused intercourse alone or with vitamin B6, mean time-to-pregnancy 5.4 months.",
+      "claim": "In Stanford et al., subfertile couples with a three-day fertile window achieved a 26% conception rate using fertility-focused intercourse alone via CrMS.",
       "category": "outcome",
-      "domain": "NaProTECHNOLOGY",
+      "domain": "infertility",
       "tradition": [
-        "napro",
         "creighton",
-        "rrm-shared"
+        "napro",
+        "rrm-shared",
+        "fabm"
       ],
-      "claim_type": "statistic",
+      "claim_type": "cited-study",
       "body": null,
       "source": {
         "article_id": "rec1yQ60aHk3K22a9",
@@ -63538,11 +63809,11 @@
         "authors": "Keefe CE, Mirkes R, Yeung PP Jr",
         "type": "article"
       },
-      "verification_notes": "Quote: \"Forty patients with limited mucus cycles...had a 40 percent pregnancy rate...The length of time to pregnancy was a mean of 5.4 months.\" Section: Outcomes.",
+      "verification_notes": "Quote: \"subfertile couples with a three-day fertile window had a 26 percent rate of conception with using fertility-focused intercourse only.\" Section: Treatment.",
       "verified": 1,
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
-      "last_verified_at": "2026-04-26 18:42:08"
+      "last_verified_at": "2026-04-26 18:48:31"
     },
     {
       "id": "fact-rec2K2thTYOL9m4Fd-1",
@@ -72024,6 +72295,97 @@
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
       "last_verified_at": "2026-04-26 03:34:53"
+    },
+    {
+      "id": "fact-recfZtYHozYlkrdQb-1",
+      "claim": "FertilityCare System method-effectiveness rate for avoiding pregnancy is 99.5% and use-effectiveness rate is 96.8%, per Hilgers' summary of peer-reviewed publications.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "creighton",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recfZtYHozYlkrdQb",
+        "slug": "protecting-the-right-of-informed-conscience-in-reproductive-medicine-recck24xm54qayj1x",
+        "title": "Protecting the right of informed conscience in reproductive medicine",
+        "short_citation": "Mirkes R, 2008",
+        "pmid": "18662951",
+        "doi": "10.1093/jmp/jhn016",
+        "source_url": "https://doi.org/10.1093/jmp/jhn016",
+        "journal": "The Journal of Medicine and Philosophy",
+        "year": 2008,
+        "authors": "Mirkes R",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"FertilityCare's method- and use-effectiveness rates for avoiding pregnancy are 99.5% and 96.8%, respectively.\" Section: Directive Two — scientific misinformation.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:48:31"
+    },
+    {
+      "id": "fact-recfZtYHozYlkrdQb-2",
+      "claim": "The Medical and Surgical Practice of NaProTechnology textbook documents three decades of clinical research involving 8,600 reproductive-age women and over 200,000 individual research observations.",
+      "category": "methodology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recfZtYHozYlkrdQb",
+        "slug": "protecting-the-right-of-informed-conscience-in-reproductive-medicine-recck24xm54qayj1x",
+        "title": "Protecting the right of informed conscience in reproductive medicine",
+        "short_citation": "Mirkes R, 2008",
+        "pmid": "18662951",
+        "doi": "10.1093/jmp/jhn016",
+        "source_url": "https://doi.org/10.1093/jmp/jhn016",
+        "journal": "The Journal of Medicine and Philosophy",
+        "year": 2008,
+        "authors": "Mirkes R",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"this definitive textbook meticulously documents the study of 8,600 reproductive age women and over 200,000 individual research observations.\" Section: Directive Two — scientific misinformation.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:48:31"
+    },
+    {
+      "id": "fact-recfZtYHozYlkrdQb-3",
+      "claim": "NaProTechnology manages repeat miscarriage with thorough diagnostic evaluation, early pregnancy identification via cycle charting, and continued progesterone plus hCG support to insure full-term delivery.",
+      "category": "protocol",
+      "domain": "miscarriage",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "recfZtYHozYlkrdQb",
+        "slug": "protecting-the-right-of-informed-conscience-in-reproductive-medicine-recck24xm54qayj1x",
+        "title": "Protecting the right of informed conscience in reproductive medicine",
+        "short_citation": "Mirkes R, 2008",
+        "pmid": "18662951",
+        "doi": "10.1093/jmp/jhn016",
+        "source_url": "https://doi.org/10.1093/jmp/jhn016",
+        "journal": "The Journal of Medicine and Philosophy",
+        "year": 2008,
+        "authors": "Mirkes R",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"administers early and continued support with progesterone and human chorionic gonadotropin to insure full-term delivery.\" Section: Directive Two — imposition of beliefs.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:48:31"
     },
     {
       "id": "fact-recG8yr9olW0X1Zd9-1",
@@ -88729,6 +89091,278 @@
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
       "last_verified_at": "2026-04-26 03:34:52"
+    },
+    {
+      "id": "fact-recUICa8pwUK5Ui7j-1",
+      "claim": "In a study of 1,239 infertile couples, NPT medical infertility protocols produced a live birth rate similar to that of cohort ART treatments.",
+      "category": "outcome",
+      "domain": "infertility",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "recUICa8pwUK5Ui7j",
+        "slug": "naprotechnology-and-conscientious-obgyn-medicine-rec0wtjd4jewnicft",
+        "title": "NaProTECHNOLOGY and Conscientious OB/GYN Medicine",
+        "short_citation": "Jemelka BE et al., 2013",
+        "pmid": "23472811",
+        "doi": "10.1001/virtualmentor.2013.15.3.stas1-1303",
+        "source_url": "https://doi.org/10.1001/virtualmentor.2013.15.3.stas1-1303",
+        "journal": "The Virtual Mentor : VM",
+        "year": 2013,
+        "authors": "Jemelka BE, Parker DW, Mirkes R",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"used in a study of 1,239 infertile couples, they resulted in a live birth rate similar to that of cohort ART treatments\" Section: NaProTECHNOLOGY infertility protocols.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:48:31"
+    },
+    {
+      "id": "fact-recUICa8pwUK5Ui7j-11",
+      "claim": "A normal vulvar mucus cycle has a regular length between 21 and 38 days.",
+      "category": "cycle-biomarker",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "creighton",
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recUICa8pwUK5Ui7j",
+        "slug": "naprotechnology-and-conscientious-obgyn-medicine-rec0wtjd4jewnicft",
+        "title": "NaProTECHNOLOGY and Conscientious OB/GYN Medicine",
+        "short_citation": "Jemelka BE et al., 2013",
+        "pmid": "23472811",
+        "doi": "10.1001/virtualmentor.2013.15.3.stas1-1303",
+        "source_url": "https://doi.org/10.1001/virtualmentor.2013.15.3.stas1-1303",
+        "journal": "The Virtual Mentor : VM",
+        "year": 2013,
+        "authors": "Jemelka BE, Parker DW, Mirkes R",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"a normal vulvar mucus cycle of regular length (i.e., between 21 and 38 days)\" Section: Figure 1 chart description.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:48:31"
+    },
+    {
+      "id": "fact-recUICa8pwUK5Ui7j-12",
+      "claim": "The peak day in CrMS charting is marked with 'P' on the last day of vulvar mucus discharge that is clear, stretchy, or lubricative, identifying the peak day of fertility.",
+      "category": "charting",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "creighton",
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recUICa8pwUK5Ui7j",
+        "slug": "naprotechnology-and-conscientious-obgyn-medicine-rec0wtjd4jewnicft",
+        "title": "NaProTECHNOLOGY and Conscientious OB/GYN Medicine",
+        "short_citation": "Jemelka BE et al., 2013",
+        "pmid": "23472811",
+        "doi": "10.1001/virtualmentor.2013.15.3.stas1-1303",
+        "source_url": "https://doi.org/10.1001/virtualmentor.2013.15.3.stas1-1303",
+        "journal": "The Virtual Mentor : VM",
+        "year": 2013,
+        "authors": "Jemelka BE, Parker DW, Mirkes R",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"marks the last day of vulvar mucus discharge that is clear, stretchy, or lubricative with a \\\"P\\\" to indicate the peak day\" Section: Figure 1 chart description.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:48:31"
+    },
+    {
+      "id": "fact-recUICa8pwUK5Ui7j-13",
+      "claim": "PEARS (pelvic excision and repair surgery) is a form of plastic reconstructive pelvic surgery to remove diseased tissue and repair organs without forming pelvic adhesions, performed via robot-assisted laparoscopy or laparotomy.",
+      "category": "surgery",
+      "domain": "endometriosis",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "recUICa8pwUK5Ui7j",
+        "slug": "naprotechnology-and-conscientious-obgyn-medicine-rec0wtjd4jewnicft",
+        "title": "NaProTECHNOLOGY and Conscientious OB/GYN Medicine",
+        "short_citation": "Jemelka BE et al., 2013",
+        "pmid": "23472811",
+        "doi": "10.1001/virtualmentor.2013.15.3.stas1-1303",
+        "source_url": "https://doi.org/10.1001/virtualmentor.2013.15.3.stas1-1303",
+        "journal": "The Virtual Mentor : VM",
+        "year": 2013,
+        "authors": "Jemelka BE, Parker DW, Mirkes R",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"PEARS is a form of plastic reconstructive surgery of the pelvis with the primary intent of removing diseased tissue\" Section: Surgical NPT techniques.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:48:31"
+    },
+    {
+      "id": "fact-recUICa8pwUK5Ui7j-2",
+      "claim": "Ovarian wedge resection for polycystic ovaries yields a 70% chance of pregnancy, twice as effective as clomiphene.",
+      "category": "surgery",
+      "domain": "pcos",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recUICa8pwUK5Ui7j",
+        "slug": "naprotechnology-and-conscientious-obgyn-medicine-rec0wtjd4jewnicft",
+        "title": "NaProTECHNOLOGY and Conscientious OB/GYN Medicine",
+        "short_citation": "Jemelka BE et al., 2013",
+        "pmid": "23472811",
+        "doi": "10.1001/virtualmentor.2013.15.3.stas1-1303",
+        "source_url": "https://doi.org/10.1001/virtualmentor.2013.15.3.stas1-1303",
+        "journal": "The Virtual Mentor : VM",
+        "year": 2013,
+        "authors": "Jemelka BE, Parker DW, Mirkes R",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"brings the patient a 70 percent chance of pregnancy i.e., it is twice as effective as clomiphene\" Section: Surgical NPT for polycystic ovaries.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:48:31"
+    },
+    {
+      "id": "fact-recUICa8pwUK5Ui7j-3",
+      "claim": "Published Gore-Tex adhesion barrier protocols in NPT surgery show a statistically significant decrease in subsequent adhesion scores on second-look laparoscopy.",
+      "category": "surgery",
+      "domain": "surgery",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "recUICa8pwUK5Ui7j",
+        "slug": "naprotechnology-and-conscientious-obgyn-medicine-rec0wtjd4jewnicft",
+        "title": "NaProTECHNOLOGY and Conscientious OB/GYN Medicine",
+        "short_citation": "Jemelka BE et al., 2013",
+        "pmid": "23472811",
+        "doi": "10.1001/virtualmentor.2013.15.3.stas1-1303",
+        "source_url": "https://doi.org/10.1001/virtualmentor.2013.15.3.stas1-1303",
+        "journal": "The Virtual Mentor : VM",
+        "year": 2013,
+        "authors": "Jemelka BE, Parker DW, Mirkes R",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Published Gore-Tex protocols reveal a statistically significant decrease in subsequent adhesion scores on second-look laparoscopy\" Section: Near adhesion-free surgery.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:48:31"
+    },
+    {
+      "id": "fact-recUICa8pwUK5Ui7j-5",
+      "claim": "In 1,045 patients treated with NPT infertility protocols, more than 60% became pregnant within 24 months and nearly 70% within 36 months.",
+      "category": "outcome",
+      "domain": "infertility",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recUICa8pwUK5Ui7j",
+        "slug": "naprotechnology-and-conscientious-obgyn-medicine-rec0wtjd4jewnicft",
+        "title": "NaProTECHNOLOGY and Conscientious OB/GYN Medicine",
+        "short_citation": "Jemelka BE et al., 2013",
+        "pmid": "23472811",
+        "doi": "10.1001/virtualmentor.2013.15.3.stas1-1303",
+        "source_url": "https://doi.org/10.1001/virtualmentor.2013.15.3.stas1-1303",
+        "journal": "The Virtual Mentor : VM",
+        "year": 2013,
+        "authors": "Jemelka BE, Parker DW, Mirkes R",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"1,045 patients treated with NPT infertility protocols, more than 60 percent became pregnant within 24 months and nearly 70 percent within 36 months\" Section: NPT effectiveness.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:48:31"
+    },
+    {
+      "id": "fact-recUICa8pwUK5Ui7j-6",
+      "claim": "A meta-analysis comparing conventional surgery and IVF for endometriosis-related infertility found per-woman pregnancy rates of 55.3% with surgery vs 9.9% with IVF.",
+      "category": "outcome",
+      "domain": "endometriosis",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "recUICa8pwUK5Ui7j",
+        "slug": "naprotechnology-and-conscientious-obgyn-medicine-rec0wtjd4jewnicft",
+        "title": "NaProTECHNOLOGY and Conscientious OB/GYN Medicine",
+        "short_citation": "Jemelka BE et al., 2013",
+        "pmid": "23472811",
+        "doi": "10.1001/virtualmentor.2013.15.3.stas1-1303",
+        "source_url": "https://doi.org/10.1001/virtualmentor.2013.15.3.stas1-1303",
+        "journal": "The Virtual Mentor : VM",
+        "year": 2013,
+        "authors": "Jemelka BE, Parker DW, Mirkes R",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"per-woman pregnancy rates with surgery were 55.3 percent while those with IVF were 9.9 percent\" Section: Endometriosis-related infertility.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:48:31"
+    },
+    {
+      "id": "fact-recUICa8pwUK5Ui7j-7",
+      "claim": "NPT-treated patients have lower per-cycle fecundability (3.13%) than IVF patients (13.3%), but a higher overall number ultimately achieve pregnancy.",
+      "category": "outcome",
+      "domain": "infertility",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recUICa8pwUK5Ui7j",
+        "slug": "naprotechnology-and-conscientious-obgyn-medicine-rec0wtjd4jewnicft",
+        "title": "NaProTECHNOLOGY and Conscientious OB/GYN Medicine",
+        "short_citation": "Jemelka BE et al., 2013",
+        "pmid": "23472811",
+        "doi": "10.1001/virtualmentor.2013.15.3.stas1-1303",
+        "source_url": "https://doi.org/10.1001/virtualmentor.2013.15.3.stas1-1303",
+        "journal": "The Virtual Mentor : VM",
+        "year": 2013,
+        "authors": "Jemelka BE, Parker DW, Mirkes R",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"a 3.13 percent chance of conceiving within a given period) than those treated with IVF (13.3 percent)\" Section: Fecundability comparison.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:48:31"
     },
     {
       "id": "fact-recuMNNBIv5h4fLs7-1",
