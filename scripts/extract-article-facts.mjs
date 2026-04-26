@@ -57,6 +57,14 @@ const ALLOWED_TRADITIONS = new Set([
   'conventional', 'billings', 'neofertility',
 ]);
 
+const ALLOWED_CATEGORIES = new Set([
+  'outcome','protocol','surgery','pathology','hormone','epidemiology',
+  'diagnostics','charting','cycle-biomarker','methodology'
+]);
+const ALLOWED_CLAIM_TYPES = new Set([
+  'statistic','protocol','cited-study','biomarker','definition'
+]);
+
 // Article ID format: rec + 14..17 alphanumeric characters (D1 has both 17-char and 20-char total IDs).
 const REC_ID_RE = /^rec[A-Za-z0-9]{14,17}$/;
 // Fact ID format per FPG-1 (flexible to match actual D1 article ID lengths).
@@ -137,11 +145,19 @@ function d1Query(sql) {
   } catch (err) {
     throw new Error(`wrangler failed: ${String(err.message || err).slice(0, 400)}`);
   }
-  const match = raw.match(/(\[[\s\S]*\])\s*$/);
-  if (!match) {
-    throw new Error(`d1_query_parse_error: could not extract JSON array. First 300 chars: ${raw.slice(0, 300)}`);
+  // Find the last line that starts with '[' (the JSON array wrangler emits at end).
+  // Greedy match-from-anywhere would break if wrangler ever logs a line containing '['
+  // before the JSON payload (banners, warnings).
+  const lines = raw.split('\n');
+  let jsonStart = -1;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (lines[i].startsWith('[')) { jsonStart = i; break; }
   }
-  const parsed = JSON.parse(match[1]);
+  if (jsonStart === -1) {
+    throw new Error(`d1_query_parse_error: no JSON array in wrangler output. First 300 chars: ${raw.slice(0, 300)}`);
+  }
+  const jsonStr = lines.slice(jsonStart).join('\n');
+  const parsed = JSON.parse(jsonStr);
   return parsed[0]?.results || [];
 }
 
@@ -382,9 +398,34 @@ function extractInnerJson(claudeJsonEnvelope, articleId) {
       return false;
     }
 
+    // The rec-portion INSIDE f.id must match articleId; otherwise an Opus output
+    // like {id:"fact-recOTHER1234567-1", source_id:"recCORRECT..."} would silently
+    // pass both gates and end up associated with the wrong article.
+    const idRecMatch = f.id.match(/^fact-(rec[A-Za-z0-9]{14,17})-\d+$/);
+    if (!idRecMatch || idRecMatch[1] !== articleId) {
+      reasons.push(`#${i} ${label}: fact.id rec-portion (${idRecMatch?.[1]}) != articleId (${articleId})`);
+      return false;
+    }
+
     // source_id must equal the article recXXX.
     if (f.source_id !== articleId) {
       reasons.push(`#${i} ${label}: source_id mismatch (${f.source_id} vs ${articleId})`);
+      return false;
+    }
+
+    // Claim length cap (system prompt declares ≤300 chars; allow some headroom at 600).
+    if (typeof f.claim !== 'string' || f.claim.length > 600) {
+      reasons.push(`#${i} ${label}: claim missing or > 600 chars`);
+      return false;
+    }
+    // Enum allowlists for category and claim_type (only enforced when present;
+    // both fields are optional in the existing schema, allowing null/undefined).
+    if (typeof f.category === 'string' && !ALLOWED_CATEGORIES.has(f.category)) {
+      reasons.push(`#${i} ${label}: category "${f.category}" not in allowed set`);
+      return false;
+    }
+    if (typeof f.claim_type === 'string' && !ALLOWED_CLAIM_TYPES.has(f.claim_type)) {
+      reasons.push(`#${i} ${label}: claim_type "${f.claim_type}" not in allowed set`);
       return false;
     }
 
@@ -421,7 +462,9 @@ function extractInnerJson(claudeJsonEnvelope, articleId) {
       reasons.push(`#${i} ${label}: no parseable Quote: field in verification_notes`);
       return false;
     }
-    const quoteLen = quoteMatch[1].length;
+    // Use Array.from to count Unicode code points, not UTF-16 code units;
+    // a single emoji (e.g. 🩺) should count as 1 char, not 2.
+    const quoteLen = Array.from(quoteMatch[1]).length;
     if (quoteLen > 150) {
       reasons.push(`#${i} ${label}: quote ${quoteLen} chars > 150 limit`);
       return false;
@@ -517,8 +560,12 @@ let traditions;
 if (flags.author) {
   author = flags.author;
   traditions = AUTHOR_TRADITIONS[author];
+} else if (flags.article) {
+  // Force the operator to specify --author for any single-article retry,
+  // preventing silent tradition mistagging via 'unknown' / ['rrm-shared'].
+  console.error(`Error: --article requires --author. Specify --author <lastname> from: ${Object.keys(AUTHOR_TRADITIONS).join(', ')}`);
+  process.exit(1);
 } else {
-  // --article without --author: attempt to derive from D1 metadata, fall back to generic.
   author = 'unknown';
   traditions = ['rrm-shared'];
 }
@@ -599,4 +646,5 @@ console.log(`Staging dir: ${STAGING_DIR}`);
 if (failed.length) {
   console.log('\nFailures:');
   failed.forEach((f) => console.log(`  ${f.id}: ${f.error.slice(0, 140)}`));
+  process.exit(1);
 }
