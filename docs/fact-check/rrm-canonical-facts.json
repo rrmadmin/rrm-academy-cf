@@ -10,28 +10,28 @@
     ],
     "schema_version": "1.0.0",
     "ssot": true,
-    "generated_at": "2026-04-26T18:48:35.908Z",
+    "generated_at": "2026-04-26T18:49:48.380Z",
     "generated_by": "scripts/build-canonical-facts.mjs",
     "source": "D1 rrm-library.facts (tradition filter) + _manual overrides",
     "regenerable": true,
-    "record_count": 3121,
+    "record_count": 3150,
     "tradition_tally": {
-      "rrm-shared": 2937,
+      "rrm-shared": 2966,
       "neofertility": 90,
       "napro": 1443,
       "billings": 95,
       "fabm": 680,
       "creighton": 1008,
-      "conventional": 227,
+      "conventional": 256,
       "independent": 556,
       "femm": 147
     },
     "evidence_tier_tally": {
       "clinical_experience": 841,
-      "peer_reviewed": 2256,
+      "peer_reviewed": 2285,
       "clinic_presentation": 24
     },
-    "source_resolved_count": 2847,
+    "source_resolved_count": 2876,
     "source_unresolved_count": 274
   },
   "_manual": {
@@ -29484,6 +29484,246 @@
       "last_verified_at": "2026-04-26 03:34:50"
     },
     {
+      "id": "fact-rec6BQ6qBD5MJ824z-1",
+      "claim": "In a series of 132 consecutive patients with endometriosis, the cul-de-sac was the most frequently involved pelvic site at 61.4% across all ages.",
+      "category": "epidemiology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "rec6BQ6qBD5MJ824z",
+        "slug": "the-distribution-of-endometriosis-in-the-pelvis-by-age-groups-and-fertility-recvs67aq9cgbgu4r",
+        "title": "The distribution of endometriosis in the pelvis by age groups and fertility",
+        "short_citation": "Redwine DB, 1987",
+        "pmid": "3792572",
+        "doi": "10.1016/s0015-0282(16)49956-5",
+        "source_url": "https://doi.org/10.1016/s0015-0282(16)49956-5",
+        "journal": "Fertility and Sterility",
+        "year": 1987,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Cul-de-sac 78.6 78.3 52.8 56.0 52.6 61.4\" Section: Table 1, Frequency of Involvement of Pelvic Sites Versus Age.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
+      "id": "fact-rec6BQ6qBD5MJ824z-2",
+      "claim": "Patients aged 16 to 27 years (n=55) had a mean of 3.25 ± 1.92 pelvic areas involved by endometriosis, compared with 2.60 ± 1.64 in patients 28 to 52 years (n=77), P < 0.046.",
+      "category": "epidemiology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "rec6BQ6qBD5MJ824z",
+        "slug": "the-distribution-of-endometriosis-in-the-pelvis-by-age-groups-and-fertility-recvs67aq9cgbgu4r",
+        "title": "The distribution of endometriosis in the pelvis by age groups and fertility",
+        "short_citation": "Redwine DB, 1987",
+        "pmid": "3792572",
+        "doi": "10.1016/s0015-0282(16)49956-5",
+        "source_url": "https://doi.org/10.1016/s0015-0282(16)49956-5",
+        "journal": "Fertility and Sterility",
+        "year": 1987,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Patients 16 to 27 years of age (n = 55) had a mean of 3.25 ± 1.92 (SD) pelvic areas involved\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
+      "id": "fact-rec6BQ6qBD5MJ824z-3",
+      "claim": "All nulligravid women (n=46) had a mean of 3.39 ± 2.00 pelvic areas involved versus 2.45 ± 1.64 in ever-gravid women (n=86), a significant difference (P < 0.01).",
+      "category": "epidemiology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "rec6BQ6qBD5MJ824z",
+        "slug": "the-distribution-of-endometriosis-in-the-pelvis-by-age-groups-and-fertility-recvs67aq9cgbgu4r",
+        "title": "The distribution of endometriosis in the pelvis by age groups and fertility",
+        "short_citation": "Redwine DB, 1987",
+        "pmid": "3792572",
+        "doi": "10.1016/s0015-0282(16)49956-5",
+        "source_url": "https://doi.org/10.1016/s0015-0282(16)49956-5",
+        "journal": "Fertility and Sterility",
+        "year": 1987,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"All nulligravid women (n = 46) had a mean of 3.39 ± 2.00 (SD) pelvic areas involved, while all ever gravid women (n = 86) had a mean of 2.45 ± 1.64\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
+      "id": "fact-rec6BQ6qBD5MJ824z-4",
+      "claim": "In this 132-patient series, endometriosis did not involve more pelvic areas in older age groups, suggesting it is a positionally static disease that does not spread in the pelvis with advancing age.",
+      "category": "pathology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "rec6BQ6qBD5MJ824z",
+        "slug": "the-distribution-of-endometriosis-in-the-pelvis-by-age-groups-and-fertility-recvs67aq9cgbgu4r",
+        "title": "The distribution of endometriosis in the pelvis by age groups and fertility",
+        "short_citation": "Redwine DB, 1987",
+        "pmid": "3792572",
+        "doi": "10.1016/s0015-0282(16)49956-5",
+        "source_url": "https://doi.org/10.1016/s0015-0282(16)49956-5",
+        "journal": "Fertility and Sterility",
+        "year": 1987,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"endometriosis is a positionally static disease, not spreading in the pelvis with advancing age.\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
+      "id": "fact-rec6BQ6qBD5MJ824z-5",
+      "claim": "Among 132 endometriosis patients, presenting symptoms included chronic pelvic pain (72%), dysmenorrhea (45%), dyspareunia (39%), and infertility (29%); 13 patients were asymptomatic.",
+      "category": "epidemiology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "rec6BQ6qBD5MJ824z",
+        "slug": "the-distribution-of-endometriosis-in-the-pelvis-by-age-groups-and-fertility-recvs67aq9cgbgu4r",
+        "title": "The distribution of endometriosis in the pelvis by age groups and fertility",
+        "short_citation": "Redwine DB, 1987",
+        "pmid": "3792572",
+        "doi": "10.1016/s0015-0282(16)49956-5",
+        "source_url": "https://doi.org/10.1016/s0015-0282(16)49956-5",
+        "journal": "Fertility and Sterility",
+        "year": 1987,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Chronic pelvic pain was experienced by 72%, dysmenorrhea by 45%, dyspareunia by 39%, and infertility by 29%.\" Section: Materials and Methods.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
+      "id": "fact-rec6BQ6qBD5MJ824z-6",
+      "claim": "A 16-area pelvic map was used prospectively in all 132 patients to record distribution of biopsy-proven endometriosis, with histologic confirmation in 129 patients via glandular epithelium and stroma.",
+      "category": "methodology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "rec6BQ6qBD5MJ824z",
+        "slug": "the-distribution-of-endometriosis-in-the-pelvis-by-age-groups-and-fertility-recvs67aq9cgbgu4r",
+        "title": "The distribution of endometriosis in the pelvis by age groups and fertility",
+        "short_citation": "Redwine DB, 1987",
+        "pmid": "3792572",
+        "doi": "10.1016/s0015-0282(16)49956-5",
+        "source_url": "https://doi.org/10.1016/s0015-0282(16)49956-5",
+        "journal": "Fertility and Sterility",
+        "year": 1987,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"A pelvic map dividing the pelvis into 16 separate areas was used prospectively in all patients to record distribution of biopsy-proven disease.\" Section: Materials and Methods.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
+      "id": "fact-rec6BQ6qBD5MJ824z-7",
+      "claim": "In age-controlled analysis, nulliparous women had significantly more pelvic areas involved than parous women in the 21-25 year group (4.20 vs 2.00, P<0.01) and 26-30 year group (3.27 vs 2.27, P<0.046).",
+      "category": "epidemiology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "rec6BQ6qBD5MJ824z",
+        "slug": "the-distribution-of-endometriosis-in-the-pelvis-by-age-groups-and-fertility-recvs67aq9cgbgu4r",
+        "title": "The distribution of endometriosis in the pelvis by age groups and fertility",
+        "short_citation": "Redwine DB, 1987",
+        "pmid": "3792572",
+        "doi": "10.1016/s0015-0282(16)49956-5",
+        "source_url": "https://doi.org/10.1016/s0015-0282(16)49956-5",
+        "journal": "Fertility and Sterility",
+        "year": 1987,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"4.20 ± 2.34 (n = 15) 3.27 ± 1.39 (n = 26)... 2.00 ± 1.53 (n = 7) 2.27 ± 1.69 (n = 26)... < 0.01 < 0.046\" Section: Table 2.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
+      "id": "fact-rec6BQ6qBD5MJ824z-8",
+      "claim": "In this cohort, 65% of endometriosis patients had been pregnant and 51% were parous; 14% had terminated or spontaneously aborted their only pregnancy without a subsequent live birth.",
+      "category": "epidemiology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "rec6BQ6qBD5MJ824z",
+        "slug": "the-distribution-of-endometriosis-in-the-pelvis-by-age-groups-and-fertility-recvs67aq9cgbgu4r",
+        "title": "The distribution of endometriosis in the pelvis by age groups and fertility",
+        "short_citation": "Redwine DB, 1987",
+        "pmid": "3792572",
+        "doi": "10.1016/s0015-0282(16)49956-5",
+        "source_url": "https://doi.org/10.1016/s0015-0282(16)49956-5",
+        "journal": "Fertility and Sterility",
+        "year": 1987,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Sixty-five percent had been pregnant, while 51% were parous. Fourteen percent had either terminated or spontaneously aborted their only pregnancy\" Section: Materials and Methods.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
       "id": "fact-rec6g5ZIOEK3JEIqN-1",
       "claim": "In China, an estimated 63% of men and 3.8% of women are smokers, creating high background rates of environmental tobacco smoke (ETS) exposure for women.",
       "category": "epidemiology",
@@ -42772,6 +43012,426 @@
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
       "last_verified_at": "2026-04-26 03:34:53"
+    },
+    {
+      "id": "fact-recfx7l5SV0KsDZdh-1",
+      "claim": "Among 1,785 patients with endometriosis (excluding 194 with prior hysterectomy), only 19 (1.06%) had ovarian involvement exclusively with no other pelvic areas of disease.",
+      "category": "epidemiology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recfx7l5SV0KsDZdh",
+        "slug": "ovarian-endometriosis-a-marker-for-more-extensive-pelvic-and-intestinal-disease-recrdxbttt7rorrsv",
+        "title": "Ovarian endometriosis: a marker for more extensive pelvic and intestinal disease",
+        "short_citation": "Redwine DB, 1999",
+        "pmid": "10439002",
+        "doi": "10.1016/s0015-0282(99)00211-3",
+        "source_url": "https://doi.org/10.1016/s0015-0282(99)00211-3",
+        "journal": "Fertility and Sterility",
+        "year": 1999,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Among 1,785 patients, only 19 (1.06%) had ovarian involvement exclusively with no other pelvic areas of involvement.\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
+      "id": "fact-recfx7l5SV0KsDZdh-11",
+      "claim": "A substantial minority of patients (450 of 1,785, 25%) had received no previous medical or surgical therapy before referral.",
+      "category": "epidemiology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recfx7l5SV0KsDZdh",
+        "slug": "ovarian-endometriosis-a-marker-for-more-extensive-pelvic-and-intestinal-disease-recrdxbttt7rorrsv",
+        "title": "Ovarian endometriosis: a marker for more extensive pelvic and intestinal disease",
+        "short_citation": "Redwine DB, 1999",
+        "pmid": "10439002",
+        "doi": "10.1016/s0015-0282(99)00211-3",
+        "source_url": "https://doi.org/10.1016/s0015-0282(99)00211-3",
+        "journal": "Fertility and Sterility",
+        "year": 1999,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"A substantial minority of patients (450 [25%]) had no previous therapy.\" Section: Materials and Methods.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
+      "id": "fact-recfx7l5SV0KsDZdh-12",
+      "claim": "The revised AFS classification system cannot accurately gauge pelvic endometriosis extent because most points score for adhesions, most endometriosis points are assigned to ovaries, and intestinal disease is not scored at all.",
+      "category": "methodology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recfx7l5SV0KsDZdh",
+        "slug": "ovarian-endometriosis-a-marker-for-more-extensive-pelvic-and-intestinal-disease-recrdxbttt7rorrsv",
+        "title": "Ovarian endometriosis: a marker for more extensive pelvic and intestinal disease",
+        "short_citation": "Redwine DB, 1999",
+        "pmid": "10439002",
+        "doi": "10.1016/s0015-0282(99)00211-3",
+        "source_url": "https://doi.org/10.1016/s0015-0282(99)00211-3",
+        "journal": "Fertility and Sterility",
+        "year": 1999,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"intestinal disease is not scored in that classification system.\" Section: Materials and Methods.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
+      "id": "fact-recfx7l5SV0KsDZdh-13",
+      "claim": "Identifying and treating only ovarian endometriosis carries a 98.9% likelihood that other pelvic or intestinal disease is being left untreated, contributing to repetitive surgeries.",
+      "category": "surgery",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recfx7l5SV0KsDZdh",
+        "slug": "ovarian-endometriosis-a-marker-for-more-extensive-pelvic-and-intestinal-disease-recrdxbttt7rorrsv",
+        "title": "Ovarian endometriosis: a marker for more extensive pelvic and intestinal disease",
+        "short_citation": "Redwine DB, 1999",
+        "pmid": "10439002",
+        "doi": "10.1016/s0015-0282(99)00211-3",
+        "source_url": "https://doi.org/10.1016/s0015-0282(99)00211-3",
+        "journal": "Fertility and Sterility",
+        "year": 1999,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"there is a 98.9% likelihood that other pelvic or intestinal disease is being left untreated.\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
+      "id": "fact-recfx7l5SV0KsDZdh-14",
+      "claim": "Patients with previous medical or surgical therapy had more extensive pelvic and intestinal disease than untreated patients, and medical therapy rarely if ever eradicates even minimal endometriosis.",
+      "category": "outcome",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recfx7l5SV0KsDZdh",
+        "slug": "ovarian-endometriosis-a-marker-for-more-extensive-pelvic-and-intestinal-disease-recrdxbttt7rorrsv",
+        "title": "Ovarian endometriosis: a marker for more extensive pelvic and intestinal disease",
+        "short_citation": "Redwine DB, 1999",
+        "pmid": "10439002",
+        "doi": "10.1016/s0015-0282(99)00211-3",
+        "source_url": "https://doi.org/10.1016/s0015-0282(99)00211-3",
+        "journal": "Fertility and Sterility",
+        "year": 1999,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Medical therapy rarely, if ever, eradicates even minimal endometriosis\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
+      "id": "fact-recfx7l5SV0KsDZdh-15",
+      "claim": "Of patients with surgically suspected peritoneal endometriosis, common nonendometriotic biopsy findings included chronic inflammation (275), calcifications (122), stroma alone (92), hemosiderin (54), endosalpingiosis (34), and foreign body reaction (32).",
+      "category": "diagnostics",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recfx7l5SV0KsDZdh",
+        "slug": "ovarian-endometriosis-a-marker-for-more-extensive-pelvic-and-intestinal-disease-recrdxbttt7rorrsv",
+        "title": "Ovarian endometriosis: a marker for more extensive pelvic and intestinal disease",
+        "short_citation": "Redwine DB, 1999",
+        "pmid": "10439002",
+        "doi": "10.1016/s0015-0282(99)00211-3",
+        "source_url": "https://doi.org/10.1016/s0015-0282(99)00211-3",
+        "journal": "Fertility and Sterility",
+        "year": 1999,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Chronic inflammation 275 Calcifications 122 Stroma 92 Hemosiderin 54\" Section: Table 2.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
+      "id": "fact-recfx7l5SV0KsDZdh-2",
+      "claim": "Patients with ovarian endometriosis had a mean of 4.39 pelvic areas involved versus 2.96 in patients without ovarian disease (difference 1.43, 95% CI 1.23-1.64).",
+      "category": "outcome",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recfx7l5SV0KsDZdh",
+        "slug": "ovarian-endometriosis-a-marker-for-more-extensive-pelvic-and-intestinal-disease-recrdxbttt7rorrsv",
+        "title": "Ovarian endometriosis: a marker for more extensive pelvic and intestinal disease",
+        "short_citation": "Redwine DB, 1999",
+        "pmid": "10439002",
+        "doi": "10.1016/s0015-0282(99)00211-3",
+        "source_url": "https://doi.org/10.1016/s0015-0282(99)00211-3",
+        "journal": "Fertility and Sterility",
+        "year": 1999,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Mean no. (6SD) of pelvic areas 4.39 6 2.24 2.96 6 1.83 1.43 1.23–1.64\" Section: Table 3, All patients.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
+      "id": "fact-recfx7l5SV0KsDZdh-3",
+      "claim": "Patients with ovarian endometriosis had a mean of 0.80 intestinal areas involved versus 0.24 in patients without ovarian disease (difference 0.56, 95% CI 0.42-0.71).",
+      "category": "outcome",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recfx7l5SV0KsDZdh",
+        "slug": "ovarian-endometriosis-a-marker-for-more-extensive-pelvic-and-intestinal-disease-recrdxbttt7rorrsv",
+        "title": "Ovarian endometriosis: a marker for more extensive pelvic and intestinal disease",
+        "short_citation": "Redwine DB, 1999",
+        "pmid": "10439002",
+        "doi": "10.1016/s0015-0282(99)00211-3",
+        "source_url": "https://doi.org/10.1016/s0015-0282(99)00211-3",
+        "journal": "Fertility and Sterility",
+        "year": 1999,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Mean no. (6SD) of intestinal areas 0.80 6 0.99 0.24 6 0.58 0.56 0.42–0.71\" Section: Table 3, All patients.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
+      "id": "fact-recfx7l5SV0KsDZdh-4",
+      "claim": "Ovarian endometriosis carried a 2.82-fold relative risk of intestinal disease (95% CI 2.44-3.26) compared with patients without ovarian involvement.",
+      "category": "outcome",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recfx7l5SV0KsDZdh",
+        "slug": "ovarian-endometriosis-a-marker-for-more-extensive-pelvic-and-intestinal-disease-recrdxbttt7rorrsv",
+        "title": "Ovarian endometriosis: a marker for more extensive pelvic and intestinal disease",
+        "short_citation": "Redwine DB, 1999",
+        "pmid": "10439002",
+        "doi": "10.1016/s0015-0282(99)00211-3",
+        "source_url": "https://doi.org/10.1016/s0015-0282(99)00211-3",
+        "journal": "Fertility and Sterility",
+        "year": 1999,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Relative risk of intestinal disease when ovaries involved ... 2.82 2.44–3.26\" Section: Table 5, All patients.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
+      "id": "fact-recfx7l5SV0KsDZdh-5",
+      "claim": "When intestinal endometriosis coexists with ovarian disease, the relative risk of full-thickness or segmental bowel resection rises 1.39-fold (95% CI 1.16-1.66).",
+      "category": "surgery",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recfx7l5SV0KsDZdh",
+        "slug": "ovarian-endometriosis-a-marker-for-more-extensive-pelvic-and-intestinal-disease-recrdxbttt7rorrsv",
+        "title": "Ovarian endometriosis: a marker for more extensive pelvic and intestinal disease",
+        "short_citation": "Redwine DB, 1999",
+        "pmid": "10439002",
+        "doi": "10.1016/s0015-0282(99)00211-3",
+        "source_url": "https://doi.org/10.1016/s0015-0282(99)00211-3",
+        "journal": "Fertility and Sterility",
+        "year": 1999,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Relative risk of full-thickness or segmental resection when ovaries involved ... 1.39 1.16–1.66\" Section: Table 6.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
+      "id": "fact-recfx7l5SV0KsDZdh-6",
+      "claim": "Cul de sac was the single most common pelvic site of endometriosis (1,202 of 1,781 patients, 72.2%), exceeding ovarian involvement.",
+      "category": "epidemiology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recfx7l5SV0KsDZdh",
+        "slug": "ovarian-endometriosis-a-marker-for-more-extensive-pelvic-and-intestinal-disease-recrdxbttt7rorrsv",
+        "title": "Ovarian endometriosis: a marker for more extensive pelvic and intestinal disease",
+        "short_citation": "Redwine DB, 1999",
+        "pmid": "10439002",
+        "doi": "10.1016/s0015-0282(99)00211-3",
+        "source_url": "https://doi.org/10.1016/s0015-0282(99)00211-3",
+        "journal": "Fertility and Sterility",
+        "year": 1999,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Cul de sac 1,202 (72.2)\" Section: Table 1, Pelvic sites.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
+      "id": "fact-recfx7l5SV0KsDZdh-7",
+      "claim": "Left ovary involvement (18.2%) and right ovary involvement (17.4%) were less common than peritoneal sites including cul de sac, broad ligaments, uterosacrals, and bladder.",
+      "category": "epidemiology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recfx7l5SV0KsDZdh",
+        "slug": "ovarian-endometriosis-a-marker-for-more-extensive-pelvic-and-intestinal-disease-recrdxbttt7rorrsv",
+        "title": "Ovarian endometriosis: a marker for more extensive pelvic and intestinal disease",
+        "short_citation": "Redwine DB, 1999",
+        "pmid": "10439002",
+        "doi": "10.1016/s0015-0282(99)00211-3",
+        "source_url": "https://doi.org/10.1016/s0015-0282(99)00211-3",
+        "journal": "Fertility and Sterility",
+        "year": 1999,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Left ovary 303 (18.2) Right ovary 290 (17.4)\" Section: Table 1, Pelvic sites.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
+      "id": "fact-recfx7l5SV0KsDZdh-8",
+      "claim": "Sigmoid colon was the most common intestinal site of endometriosis (297 of 1,668 patients, 17.8%), followed by rectal nodule (12.8%), ileum (4.1%), appendix (2.7%), and cecum (2.0%).",
+      "category": "epidemiology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recfx7l5SV0KsDZdh",
+        "slug": "ovarian-endometriosis-a-marker-for-more-extensive-pelvic-and-intestinal-disease-recrdxbttt7rorrsv",
+        "title": "Ovarian endometriosis: a marker for more extensive pelvic and intestinal disease",
+        "short_citation": "Redwine DB, 1999",
+        "pmid": "10439002",
+        "doi": "10.1016/s0015-0282(99)00211-3",
+        "source_url": "https://doi.org/10.1016/s0015-0282(99)00211-3",
+        "journal": "Fertility and Sterility",
+        "year": 1999,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Sigmoid 297 (17.8) Rectal nodule 213 (12.8) Ileum 69 (4.1) Cecum 33 (2.0) Appendix 45 (2.7)\" Section: Table 1, Intestinal sites.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
+      "id": "fact-recfx7l5SV0KsDZdh-9",
+      "claim": "Of 482 patients with ovarian endometriosis, 105 (21.7%) had complete cul de sac obliteration versus only 5.8% (75/1,303) of patients without ovarian disease.",
+      "category": "pathology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recfx7l5SV0KsDZdh",
+        "slug": "ovarian-endometriosis-a-marker-for-more-extensive-pelvic-and-intestinal-disease-recrdxbttt7rorrsv",
+        "title": "Ovarian endometriosis: a marker for more extensive pelvic and intestinal disease",
+        "short_citation": "Redwine DB, 1999",
+        "pmid": "10439002",
+        "doi": "10.1016/s0015-0282(99)00211-3",
+        "source_url": "https://doi.org/10.1016/s0015-0282(99)00211-3",
+        "journal": "Fertility and Sterility",
+        "year": 1999,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Of 482 patients with ovarian endometriosis, 105 (21.7%) had complete cul de sac obliteration\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
     },
     {
       "id": "fact-recfZtYHozYlkrdQb-1",
@@ -69530,6 +70190,216 @@
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
       "last_verified_at": "2026-04-26 03:34:54"
+    },
+    {
+      "id": "fact-recR8Y0YSVBaL5Mxe-1",
+      "claim": "Among 2,260 patients undergoing surgical treatment of endometriosis by Redwine, 15 cases of diaphragmatic endometriosis were encountered (8 symptomatic, 7 asymptomatic).",
+      "category": "epidemiology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recR8Y0YSVBaL5Mxe",
+        "slug": "diaphragmatic-endometriosis-diagnosis-surgical-management-and-long-term-results--rec6hflbdpsrhusqv",
+        "title": "Diaphragmatic endometriosis: diagnosis, surgical management, and long-term results of treatment",
+        "short_citation": "Redwine DB, 2002",
+        "pmid": "11821085",
+        "doi": "10.1016/s0015-0282(01)02998-3",
+        "source_url": "https://doi.org/10.1016/s0015-0282(01)02998-3",
+        "journal": "Fertility and Sterility",
+        "year": 2002,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Among 2,260 patients undergoing surgical treatment of endometriosis by the author, 15 cases of diaphragmatic endometriosis have been encountered.\" Section: Materials and Methods.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
+      "id": "fact-recR8Y0YSVBaL5Mxe-10",
+      "claim": "Symptomatic patients (mean age 30.7, range 22.7-34.6 years) were significantly younger than asymptomatic patients with diaphragmatic disease (mean 35.0, range 21.4-47.0 years).",
+      "category": "epidemiology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recR8Y0YSVBaL5Mxe",
+        "slug": "diaphragmatic-endometriosis-diagnosis-surgical-management-and-long-term-results--rec6hflbdpsrhusqv",
+        "title": "Diaphragmatic endometriosis: diagnosis, surgical management, and long-term results of treatment",
+        "short_citation": "Redwine DB, 2002",
+        "pmid": "11821085",
+        "doi": "10.1016/s0015-0282(01)02998-3",
+        "source_url": "https://doi.org/10.1016/s0015-0282(01)02998-3",
+        "journal": "Fertility and Sterility",
+        "year": 2002,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"the average age of the eight symptomatic patients was significantly younger (30.7, range 22.7-34.6 years), than the seven patients with asymptomatic\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
+      "id": "fact-recR8Y0YSVBaL5Mxe-12",
+      "claim": "The phrenic nerve cannot be reliably identified at laparoscopy as a discrete structure on either side of the diaphragm; resections up to 12 cm did not produce clinically significant pulmonary dysfunction.",
+      "category": "surgery",
+      "domain": "surgery",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recR8Y0YSVBaL5Mxe",
+        "slug": "diaphragmatic-endometriosis-diagnosis-surgical-management-and-long-term-results--rec6hflbdpsrhusqv",
+        "title": "Diaphragmatic endometriosis: diagnosis, surgical management, and long-term results of treatment",
+        "short_citation": "Redwine DB, 2002",
+        "pmid": "11821085",
+        "doi": "10.1016/s0015-0282(01)02998-3",
+        "source_url": "https://doi.org/10.1016/s0015-0282(01)02998-3",
+        "journal": "Fertility and Sterility",
+        "year": 2002,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"the phrenic nerve cannot be identified as a discrete structure on either side of the diaphragm.\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
+      "id": "fact-recR8Y0YSVBaL5Mxe-13",
+      "claim": "A meta-analysis of 80 catamenial pneumothorax cases found no diaphragmatic endometriosis; none of the 8 patients in this series had documented catamenial pneumothorax.",
+      "category": "epidemiology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "recR8Y0YSVBaL5Mxe",
+        "slug": "diaphragmatic-endometriosis-diagnosis-surgical-management-and-long-term-results--rec6hflbdpsrhusqv",
+        "title": "Diaphragmatic endometriosis: diagnosis, surgical management, and long-term results of treatment",
+        "short_citation": "Redwine DB, 2002",
+        "pmid": "11821085",
+        "doi": "10.1016/s0015-0282(01)02998-3",
+        "source_url": "https://doi.org/10.1016/s0015-0282(01)02998-3",
+        "journal": "Fertility and Sterility",
+        "year": 2002,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"A meta-analysis of case reports of catamenial pneumothorax (20) found no case of diaphragmatic endometriosis among 80 cases of catamenial pneumothorax\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
+      "id": "fact-recR8Y0YSVBaL5Mxe-3",
+      "claim": "All 8 symptomatic patients had full-thickness invasive diaphragmatic disease with pleural surface discoloration; individual posterior lesions ranged 1-5 cm and surgical specimens up to 12 cm.",
+      "category": "pathology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recR8Y0YSVBaL5Mxe",
+        "slug": "diaphragmatic-endometriosis-diagnosis-surgical-management-and-long-term-results--rec6hflbdpsrhusqv",
+        "title": "Diaphragmatic endometriosis: diagnosis, surgical management, and long-term results of treatment",
+        "short_citation": "Redwine DB, 2002",
+        "pmid": "11821085",
+        "doi": "10.1016/s0015-0282(01)02998-3",
+        "source_url": "https://doi.org/10.1016/s0015-0282(01)02998-3",
+        "journal": "Fertility and Sterility",
+        "year": 2002,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"100% of eight symptomatic patients had pleural discoloration indicating full-thickness inflammation of the diaphragm\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
+      "id": "fact-recR8Y0YSVBaL5Mxe-5",
+      "claim": "Anterior diaphragmatic 'sentinel lesions' under 1 cm were observed in 5 of 8 (63%) symptomatic patients and visible from the umbilical port, but masked deeper posterior disease.",
+      "category": "diagnostics",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recR8Y0YSVBaL5Mxe",
+        "slug": "diaphragmatic-endometriosis-diagnosis-surgical-management-and-long-term-results--rec6hflbdpsrhusqv",
+        "title": "Diaphragmatic endometriosis: diagnosis, surgical management, and long-term results of treatment",
+        "short_citation": "Redwine DB, 2002",
+        "pmid": "11821085",
+        "doi": "10.1016/s0015-0282(01)02998-3",
+        "source_url": "https://doi.org/10.1016/s0015-0282(01)02998-3",
+        "journal": "Fertility and Sterility",
+        "year": 2002,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"sentinel lesion of the anterior diaphragm. Such lesions were observed in five of eight symptomatic patients (63%)\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
+    },
+    {
+      "id": "fact-recR8Y0YSVBaL5Mxe-7",
+      "claim": "In Nezhat's comparison series, only 2 of 7 (29%) symptomatic patients were cured by laparoscopic laser vaporization, contrasted with 7 of 8 (88%) cured by full-thickness resection at laparotomy in this study.",
+      "category": "outcome",
+      "domain": "surgery",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "recR8Y0YSVBaL5Mxe",
+        "slug": "diaphragmatic-endometriosis-diagnosis-surgical-management-and-long-term-results--rec6hflbdpsrhusqv",
+        "title": "Diaphragmatic endometriosis: diagnosis, surgical management, and long-term results of treatment",
+        "short_citation": "Redwine DB, 2002",
+        "pmid": "11821085",
+        "doi": "10.1016/s0015-0282(01)02998-3",
+        "source_url": "https://doi.org/10.1016/s0015-0282(01)02998-3",
+        "journal": "Fertility and Sterility",
+        "year": 2002,
+        "authors": "Redwine DB",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"two of seven (29%) symptomatic patients were cured of their symptoms following laser vaporization\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:49:44"
     },
     {
       "id": "fact-recR9EbI0HlXOMu2W-1",
