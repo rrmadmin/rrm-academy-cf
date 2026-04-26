@@ -6,17 +6,17 @@
     "editorial_owner_refs": [],
     "schema_version": "1.0.0",
     "ssot": true,
-    "generated_at": "2026-04-26T18:46:45.313Z",
+    "generated_at": "2026-04-26T18:48:35.928Z",
     "generated_by": "scripts/build-canonical-facts.mjs",
     "source": "D1 rrm-library.facts (tradition filter) + _manual overrides",
     "regenerable": true,
-    "record_count": 1289,
+    "record_count": 1290,
     "tradition_tally": {
-      "napro": 814,
-      "fabm": 1289,
+      "napro": 815,
+      "fabm": 1290,
       "billings": 95,
-      "rrm-shared": 679,
-      "creighton": 291,
+      "rrm-shared": 680,
+      "creighton": 292,
       "femm": 147,
       "conventional": 25,
       "independent": 25,
@@ -24,9 +24,9 @@
     },
     "evidence_tier_tally": {
       "clinical_experience": 420,
-      "peer_reviewed": 869
+      "peer_reviewed": 870
     },
-    "source_resolved_count": 1259,
+    "source_resolved_count": 1260,
     "source_unresolved_count": 30
   },
   "_manual": {
@@ -19224,6 +19224,38 @@
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
       "last_verified_at": "2026-04-26 18:44:36"
+    },
+    {
+      "id": "fact-rec1yQ60aHk3K22a9-8",
+      "claim": "In Stanford et al., subfertile couples with a three-day fertile window achieved a 26% conception rate using fertility-focused intercourse alone via CrMS.",
+      "category": "outcome",
+      "domain": "infertility",
+      "tradition": [
+        "creighton",
+        "napro",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "rec1yQ60aHk3K22a9",
+        "slug": "the-evaluation-and-treatment-of-cervical-factor-infertility-a-medical-moral-anal-recdkvjhcuigoqnsb",
+        "title": "The Evaluation and Treatment of Cervical Factor Infertility a Medical-Moral  Analysis",
+        "short_citation": "Keefe CE et al., 2012",
+        "pmid": "30082986",
+        "doi": "10.1179/002436312804827127",
+        "source_url": "https://doi.org/10.1179/002436312804827127",
+        "journal": "The Linacre Quarterly",
+        "year": 2012,
+        "authors": "Keefe CE, Mirkes R, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"subfertile couples with a three-day fertile window had a 26 percent rate of conception with using fertility-focused intercourse only.\" Section: Treatment.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:48:31"
     },
     {
       "id": "fact-rec2XSiBzIxuQkhqL-8",
