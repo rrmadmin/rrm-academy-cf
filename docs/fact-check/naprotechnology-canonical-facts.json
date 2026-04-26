@@ -10,16 +10,16 @@
     ],
     "schema_version": "1.0.0",
     "ssot": true,
-    "generated_at": "2026-04-26T14:53:54.480Z",
+    "generated_at": "2026-04-26T14:59:50.087Z",
     "generated_by": "scripts/build-canonical-facts.mjs",
     "source": "D1 rrm-library.facts (tradition filter) + _manual overrides",
     "regenerable": true,
-    "record_count": 3628,
+    "record_count": 3634,
     "tradition_tally": {
-      "napro": 3628,
-      "rrm-shared": 1350,
-      "fabm": 811,
-      "creighton": 925,
+      "napro": 3634,
+      "rrm-shared": 1356,
+      "fabm": 814,
+      "creighton": 927,
       "conventional": 29,
       "billings": 5,
       "femm": 3,
@@ -27,10 +27,10 @@
       "independent": 2
     },
     "evidence_tier_tally": {
-      "peer_reviewed": 1614,
+      "peer_reviewed": 1620,
       "clinical_experience": 2014
     },
-    "source_resolved_count": 3427,
+    "source_resolved_count": 3433,
     "source_unresolved_count": 201
   },
   "_manual": {
@@ -66101,6 +66101,67 @@
       "last_verified_at": "2026-04-26 03:34:50"
     },
     {
+      "id": "fact-rec78BXZjGrcM1acY-4",
+      "claim": "NaProTechnology (NaProTech) is defined as the integration of NFP with women's health care, including ethical treatment of cervical problems and other women's health issues.",
+      "category": "methodology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "rec78BXZjGrcM1acY",
+        "slug": "the-linacre-quarterly-rhythm-nfp-and-human-fertility-from-popes-pius-xi-through--recrx78gqidbqt2ok",
+        "title": "The Linacre Quarterly, Rhythm, NFP, and Human Fertility from Popes Pius XI  through Benedict XVI",
+        "short_citation": "Fehring RJ et al., 2012",
+        "pmid": "30082984",
+        "doi": "10.1179/002436312804827091",
+        "source_url": "https://doi.org/10.1179/002436312804827091",
+        "journal": "The Linacre Quarterly",
+        "year": 2012,
+        "authors": "Fehring RJ, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"They describe the use of natural procreative technology or NaProTech (i.e., the integration of NFP with women's health care)\" Section: Editorial.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:59:20"
+    },
+    {
+      "id": "fact-rec78BXZjGrcM1acY-7",
+      "claim": "In 2009, Pope Benedict XVI expressed gratitude to NFP physicians and scientists working on ways to treat and manage infertility so couples can procreate with full respect for personal dignity and the child to be born.",
+      "category": "methodology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "rrm-shared",
+        "napro",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "rec78BXZjGrcM1acY",
+        "slug": "the-linacre-quarterly-rhythm-nfp-and-human-fertility-from-popes-pius-xi-through--recrx78gqidbqt2ok",
+        "title": "The Linacre Quarterly, Rhythm, NFP, and Human Fertility from Popes Pius XI  through Benedict XVI",
+        "short_citation": "Fehring RJ et al., 2012",
+        "pmid": "30082984",
+        "doi": "10.1179/002436312804827091",
+        "source_url": "https://doi.org/10.1179/002436312804827091",
+        "journal": "The Linacre Quarterly",
+        "year": 2012,
+        "authors": "Fehring RJ, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Pope Benedict XVI (like Pius XI in 1932) expressed gratitude to NFP physicians and scientists working on ways to treat and manage infertility\" Section: Editorial.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:59:20"
+    },
+    {
       "id": "fact-rec7CFiuXNw0Qixh9-1",
       "claim": "The fertile window spans approximately 6 days, beginning about 5 days before ovulation and extending through the day of ovulation, with no documented conception on the day after ovulation.",
       "category": "cycle-biomarker",
@@ -81797,6 +81858,66 @@
       "last_verified_at": "2026-04-26 03:34:52"
     },
     {
+      "id": "fact-recP2H0aUpGHUwj98-11",
+      "claim": "Saccone et al. 2017 meta-analysis (10 RCTs) found supplemental progestogens in the first trimester reduced recurrent miscarriage risk (RR 0.72, 95% CI 0.53-0.97) and increased live birth rate (RR 1.07, 95% CI 1.02-1.15).",
+      "category": "outcome",
+      "domain": "miscarriage",
+      "tradition": [
+        "rrm-shared",
+        "napro"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "recP2H0aUpGHUwj98",
+        "slug": "current-medical-research-winterspring-2017-recaem5pcfz53vhpz",
+        "title": "Current Medical Research: Winter/Spring 2017",
+        "short_citation": "Fehring RJ et al., 2018",
+        "pmid": "29970939",
+        "doi": "10.1177/0024363918756392",
+        "source_url": "https://doi.org/10.1177/0024363918756392",
+        "journal": "The Linacre Quarterly",
+        "year": 2018,
+        "authors": "Fehring RJ, Raviele K",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"lower risk of recurrent miscarriage (RR ¼ 0.72, 95 percent CI [0.53, 0.97]) and higher live birth rate (RR ¼ 1.07, 95 percent CI [1.02, 1.15])\" Section: Synthetic Progestogen Supplementation.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:59:20"
+    },
+    {
+      "id": "fact-recP2H0aUpGHUwj98-12",
+      "claim": "Stephenson et al. 2017: in 59 women with recurrent pregnancy loss and elevated nCyclinE (>20%), pregnancy success rose from 6% (16/255) prior to 69% (57/83) after luteal-start vaginal micronized progesterone (100-200 mg starting 3 days after LH surge).",
+      "category": "outcome",
+      "domain": "miscarriage",
+      "tradition": [
+        "rrm-shared",
+        "napro"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "recP2H0aUpGHUwj98",
+        "slug": "current-medical-research-winterspring-2017-recaem5pcfz53vhpz",
+        "title": "Current Medical Research: Winter/Spring 2017",
+        "short_citation": "Fehring RJ et al., 2018",
+        "pmid": "29970939",
+        "doi": "10.1177/0024363918756392",
+        "source_url": "https://doi.org/10.1177/0024363918756392",
+        "journal": "The Linacre Quarterly",
+        "year": 2018,
+        "authors": "Fehring RJ, Raviele K",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"6 percent (16/255) in prior pregnancies versus 69 percent (57/83) in subsequent pregnancies\" Section: Synthetic Progestogen Supplementation.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:59:20"
+    },
+    {
       "id": "fact-recPm2TLFu4IoAYn3-10",
       "claim": "Image quality varied substantially in the ENDO operative cohort: 52% of women with endometriosis had good-quality images vs. only 21% of women without endometriosis.",
       "category": "methodology",
@@ -84055,6 +84176,70 @@
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
       "last_verified_at": "2026-04-26 03:34:54"
+    },
+    {
+      "id": "fact-recqUPD7uFmZtsEvE-1",
+      "claim": "In a Marquette University survey of 334 NFP-using couples, 70% of husbands and 88% of wives reported NFP had a good effect on their spiritual well-being.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "fabm",
+        "creighton",
+        "rrm-shared",
+        "napro"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recqUPD7uFmZtsEvE",
+        "slug": "spiritual-care-of-couples-practicing-natural-family-planning-receauxzckd8wt0fx",
+        "title": "Spiritual Care of Couples Practicing Natural Family Planning",
+        "short_citation": "Fehring RJ et al., 2013",
+        "pmid": "30083000",
+        "doi": "10.1179/0024363913Z.00000000023",
+        "source_url": "https://doi.org/10.1179/0024363913Z.00000000023",
+        "journal": "The Linacre Quarterly",
+        "year": 2013,
+        "authors": "Fehring RJ, Rodriguez D",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"70 percent of the husbands and 88 percent of the wives felt that NFP had a good effect on their spiritual well-being\" Section: Spiritual responses to the practice of NFP.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:59:21"
+    },
+    {
+      "id": "fact-recqUPD7uFmZtsEvE-5",
+      "claim": "Approximately 4% of sexually active Catholic couples currently use NFP, with most using contraception or sterilization.",
+      "category": "epidemiology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "fabm",
+        "creighton",
+        "rrm-shared",
+        "napro"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recqUPD7uFmZtsEvE",
+        "slug": "spiritual-care-of-couples-practicing-natural-family-planning-receauxzckd8wt0fx",
+        "title": "Spiritual Care of Couples Practicing Natural Family Planning",
+        "short_citation": "Fehring RJ et al., 2013",
+        "pmid": "30083000",
+        "doi": "10.1179/0024363913Z.00000000023",
+        "source_url": "https://doi.org/10.1179/0024363913Z.00000000023",
+        "journal": "The Linacre Quarterly",
+        "year": 2013,
+        "authors": "Fehring RJ, Rodriguez D",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"There are only about 4 percent of sexually active Catholic couples that currently use NFP\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:59:21"
     },
     {
       "id": "fact-recqZT89JyKkR2pwi-1",
