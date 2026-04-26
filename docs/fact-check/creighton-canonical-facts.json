@@ -6,26 +6,27 @@
     "editorial_owner_refs": [],
     "schema_version": "1.0.0",
     "ssot": true,
-    "generated_at": "2026-04-26T18:44:41.124Z",
+    "generated_at": "2026-04-26T18:46:45.313Z",
     "generated_by": "scripts/build-canonical-facts.mjs",
     "source": "D1 rrm-library.facts (tradition filter) + _manual overrides",
     "regenerable": true,
-    "record_count": 1288,
+    "record_count": 1289,
     "tradition_tally": {
-      "napro": 813,
-      "fabm": 1288,
+      "napro": 814,
+      "fabm": 1289,
       "billings": 95,
-      "rrm-shared": 678,
+      "rrm-shared": 679,
       "creighton": 291,
       "femm": 147,
       "conventional": 25,
-      "independent": 25
+      "independent": 25,
+      "neofertility": 1
     },
     "evidence_tier_tally": {
       "clinical_experience": 420,
-      "peer_reviewed": 868
+      "peer_reviewed": 869
     },
-    "source_resolved_count": 1258,
+    "source_resolved_count": 1259,
     "source_unresolved_count": 30
   },
   "_manual": {
@@ -27660,6 +27661,38 @@
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
       "last_verified_at": "2026-04-26 03:34:51"
+    },
+    {
+      "id": "fact-reckChCp8tX5fGh8v-1",
+      "claim": "Observational study of 99 normally cycling women contributing 266 menstrual cycles, recruited 1996-1997 from eight European natural family planning clinics in France, Italy, Germany, Belgium, and Spain.",
+      "category": "methodology",
+      "domain": "hormones",
+      "tradition": [
+        "napro",
+        "neofertility",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reckChCp8tX5fGh8v",
+        "slug": "hormonal-predictors-of-abnormal-luteal-phases-in-normally-cycling-women-recqokfiboyyawlxf",
+        "title": "Hormonal Predictors of Abnormal Luteal Phases in Normally Cycling Women",
+        "short_citation": "Abdulla SH et al., 2018",
+        "pmid": "29881719",
+        "doi": "10.3389/fpubh.2018.00144",
+        "source_url": "https://doi.org/10.3389/fpubh.2018.00144",
+        "journal": "Frontiers in Public Health",
+        "year": 2018,
+        "authors": "Abdulla SH, Bouchard TP, Leiva RA, Boyle P, Iwaz J, Ecochard R",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Ninety-nine women contributing 266 menstrual cycles.\" Section: Patient(s).",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:46:39"
     },
     {
       "id": "fact-reckcWureUsK1JkUC-1",

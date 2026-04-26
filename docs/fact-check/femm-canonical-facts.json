@@ -10,7 +10,7 @@
     ],
     "schema_version": "1.0.0",
     "ssot": true,
-    "generated_at": "2026-04-26T18:44:41.133Z",
+    "generated_at": "2026-04-26T18:46:45.322Z",
     "generated_by": "scripts/build-canonical-facts.mjs",
     "source": "D1 rrm-library.facts (tradition='femm') + _manual.curator_overrides",
     "regenerable": true,
