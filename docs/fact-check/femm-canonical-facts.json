@@ -10,15 +10,24 @@
     ],
     "schema_version": "1.0.0",
     "ssot": true,
-    "generated_at": "2026-04-25T23:14:13.024Z",
+    "generated_at": "2026-04-26T03:35:23.540Z",
     "generated_by": "scripts/build-canonical-facts.mjs",
     "source": "D1 rrm-library.facts (tradition='femm') + _manual.curator_overrides",
     "regenerable": true,
-    "record_count": 0,
+    "record_count": 4,
     "seed_status": "Manually seeded from FEMM pillar (Erin-reviewed) + FEMM 2020 Organization Fact Sheet. Article-level tagging: 27 Vigil/Blackwell-Brown/Contreras/Del-Rio core RHRI records tagged 'femm' in D1 articles.traditions (2026-04-23). Fact-level extraction from tagged articles pending (/fact-extraction pass) -- will populate facts[] array.",
-    "tradition_tally": {},
-    "evidence_tier_tally": {},
-    "source_resolved_count": 0,
+    "tradition_tally": {
+      "rrm-shared": 4,
+      "creighton": 3,
+      "napro": 3,
+      "fabm": 4,
+      "femm": 4,
+      "billings": 1
+    },
+    "evidence_tier_tally": {
+      "peer_reviewed": 4
+    },
+    "source_resolved_count": 4,
     "source_unresolved_count": 0
   },
   "_manual": {
@@ -379,5 +388,137 @@
       }
     ]
   },
-  "facts": []
+  "facts": [
+    {
+      "id": "fact-recAcnXAc869eFmqs-9",
+      "claim": "In normal-length menstrual cycles, the timing of onset of the fertile window in any particular cycle may vary by up to 15 days (Day 6 to Day 21).",
+      "category": "cycle-biomarker",
+      "domain": "hormones",
+      "tradition": [
+        "rrm-shared",
+        "creighton",
+        "napro",
+        "fabm",
+        "femm",
+        "billings"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "recAcnXAc869eFmqs",
+        "slug": "fecundability-in-relation-to-use-of-mobile-computing-apps-to-track-the-menstrual-recwizuu47gjpjusp",
+        "title": "Fecundability in relation to use of mobile computing apps to track the menstrual cycle",
+        "short_citation": "Stanford JB et al., 2020",
+        "pmid": "32910202",
+        "doi": "10.1093/humrep/deaa176",
+        "source_url": "https://doi.org/10.1093/humrep/deaa176",
+        "journal": "Human Reproduction (Oxford, England)",
+        "year": 2020,
+        "authors": "Stanford JB, Willis SK, Hatch EE, Rothman KJ, Wise LA",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"the timing of onset of the fertile window in any particular cycle may vary by up to 15 days (Day 6 to 21)\" Section: Introduction.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 03:34:50"
+    },
+    {
+      "id": "fact-recR9EbI0HlXOMu2W-7",
+      "claim": "Ovulation typically occurs about 24 hours after onset of the urinary LH surge and will not occur in its absence, making LH a highly reliable indicator of impending ovulation.",
+      "category": "cycle-biomarker",
+      "domain": "hormones",
+      "tradition": [
+        "rrm-shared",
+        "creighton",
+        "napro",
+        "fabm",
+        "femm"
+      ],
+      "claim_type": "biomarker",
+      "body": null,
+      "source": {
+        "article_id": "recR9EbI0HlXOMu2W",
+        "slug": "increased-likelihood-of-pregnancy-using-an-app-connected-ovulation-test-system-a-recm8bde3mmji3w3g",
+        "title": "Increased Likelihood of Pregnancy Using an App-Connected Ovulation Test System: A  Randomized Controlled Trial",
+        "short_citation": "Johnson S et al., 2019",
+        "pmid": "31483187",
+        "doi": "10.1089/jwh.2019.7850",
+        "source_url": "https://doi.org/10.1089/jwh.2019.7850",
+        "journal": "Journal of Women's Health (2002)",
+        "year": 2019,
+        "authors": "Johnson S, Stanford JB, Warren G, Bond S, Bench-Capon S, Zinaman MJ",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Ovulation typically occurs ~24 hours after the onset of the LH surge and will not occur in its absence.\" Section: Introduction.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 03:34:52"
+    },
+    {
+      "id": "fact-recR9EbI0HlXOMu2W-8",
+      "claim": "Urinary estrone-3-glucuronide (E3G), a principal estradiol metabolite, rises substantially about 3 days before ovulation through about 5 days postovulation, marking the broader fertile window.",
+      "category": "cycle-biomarker",
+      "domain": "hormones",
+      "tradition": [
+        "rrm-shared",
+        "femm",
+        "fabm"
+      ],
+      "claim_type": "biomarker",
+      "body": null,
+      "source": {
+        "article_id": "recR9EbI0HlXOMu2W",
+        "slug": "increased-likelihood-of-pregnancy-using-an-app-connected-ovulation-test-system-a-recm8bde3mmji3w3g",
+        "title": "Increased Likelihood of Pregnancy Using an App-Connected Ovulation Test System: A  Randomized Controlled Trial",
+        "short_citation": "Johnson S et al., 2019",
+        "pmid": "31483187",
+        "doi": "10.1089/jwh.2019.7850",
+        "source_url": "https://doi.org/10.1089/jwh.2019.7850",
+        "journal": "Journal of Women's Health (2002)",
+        "year": 2019,
+        "authors": "Johnson S, Stanford JB, Warren G, Bond S, Bench-Capon S, Zinaman MJ",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"estrone-3-glucuronide (E3G), have been observed to rise substantially ~3 days before ovulation until about 5 days postovulation\" Section: Introduction.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 03:34:52"
+    },
+    {
+      "id": "fact-recR9EbI0HlXOMu2W-9",
+      "claim": "Even in women with an average 28-day cycle, ovulation can occur as early as day 11 and as late as day 20, undermining calendar-based fertile-window prediction.",
+      "category": "cycle-biomarker",
+      "domain": "hormones",
+      "tradition": [
+        "rrm-shared",
+        "creighton",
+        "napro",
+        "fabm",
+        "femm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recR9EbI0HlXOMu2W",
+        "slug": "increased-likelihood-of-pregnancy-using-an-app-connected-ovulation-test-system-a-recm8bde3mmji3w3g",
+        "title": "Increased Likelihood of Pregnancy Using an App-Connected Ovulation Test System: A  Randomized Controlled Trial",
+        "short_citation": "Johnson S et al., 2019",
+        "pmid": "31483187",
+        "doi": "10.1089/jwh.2019.7850",
+        "source_url": "https://doi.org/10.1089/jwh.2019.7850",
+        "journal": "Journal of Women's Health (2002)",
+        "year": 2019,
+        "authors": "Johnson S, Stanford JB, Warren G, Bond S, Bench-Capon S, Zinaman MJ",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"for women with an average cycle length of 28 days, ovulation can occur as early as day 11 and as late as day 20 in the cycle.\" Section: Introduction.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 03:34:52"
+    }
+  ]
 }
