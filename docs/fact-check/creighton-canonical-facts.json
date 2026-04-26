@@ -6,25 +6,26 @@
     "editorial_owner_refs": [],
     "schema_version": "1.0.0",
     "ssot": true,
-    "generated_at": "2026-04-26T03:35:23.532Z",
+    "generated_at": "2026-04-26T14:53:54.533Z",
     "generated_by": "scripts/build-canonical-facts.mjs",
     "source": "D1 rrm-library.facts (tradition filter) + _manual overrides",
     "regenerable": true,
-    "record_count": 883,
+    "record_count": 908,
     "tradition_tally": {
-      "napro": 810,
-      "fabm": 883,
+      "napro": 811,
+      "fabm": 908,
       "creighton": 220,
-      "rrm-shared": 278,
+      "rrm-shared": 303,
       "conventional": 2,
       "billings": 9,
+      "independent": 25,
       "femm": 4
     },
     "evidence_tier_tally": {
       "clinical_experience": 420,
-      "peer_reviewed": 463
+      "peer_reviewed": 488
     },
-    "source_resolved_count": 853,
+    "source_resolved_count": 878,
     "source_unresolved_count": 30
   },
   "_manual": {
@@ -18996,6 +18997,37 @@
       "last_verified_at": "2026-04-26 03:34:50"
     },
     {
+      "id": "fact-rec9piEjbBXwYK40X-5",
+      "claim": "AMH levels in the general reproductive lifespan rise into the mid-twenties then plateau and decline beginning in the early to mid-thirties; the threshold AMH >=2 ng/ml is commonly used in fertility literature to assess odds of live birth.",
+      "category": "cycle-biomarker",
+      "domain": "hormones",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "biomarker",
+      "body": null,
+      "source": {
+        "article_id": "rec9piEjbBXwYK40X",
+        "slug": "lower-anti-mu00fcllerian-hormone-levels-are-associated-with-hiv-in-reproductive--reckknsyjfyx2ri00",
+        "title": "Lower anti-Müllerian hormone levels are associated with HIV in reproductive age women and shorter leukocyte telomere length among late reproductive age women",
+        "short_citation": "Clara E Van Ommen et al., 2023",
+        "pmid": "36726239",
+        "doi": "10.1097/QAD.0000000000003481",
+        "source_url": "https://doi.org/10.1097/QAD.0000000000003481",
+        "journal": "AIDS",
+        "year": 2023,
+        "authors": "Clara E Van Ommen, Anthony Y Y Hsieh, Arianne Y Albert, Elana R Kimmel, Helene C F Cote, Evelyn J Maan, Jerilynn C Prior, Neora Pick, Melanie C M Murray",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"AMH initially increases into the mid-twenties, then plateaus and begins to decline in the early to mid-thirties\" Section: Introduction.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:21"
+    },
+    {
       "id": "fact-recAcnXAc869eFmqs-1",
       "claim": "In the PRESTO prospective cohort, use of any menstrual cycle tracking app at baseline was associated with a 20% increase in per-cycle fecundability (FR 1.20, 95% CI 1.13-1.28 for selected apps; FR 1.21, 95% CI 1.13-1.30 for other apps).",
       "category": "outcome",
@@ -19584,6 +19616,37 @@
       "last_verified_at": "2026-04-26 03:34:50"
     },
     {
+      "id": "fact-recBkMhtnjmSZQBQk-15",
+      "claim": "Cyclic physical and mood symptoms (molimina) are normal and diagnostic of ovulatory cycles, per Magyar et al. progesterone-validated criteria.",
+      "category": "diagnostics",
+      "domain": "diagnostics",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recBkMhtnjmSZQBQk",
+        "slug": "conditioning-exercise-decreases-premenstrual-symptoms-a-prospective-controlled-6-rec0vpy49auadkczx",
+        "title": "Conditioning exercise decreases premenstrual symptoms: a prospective, controlled 6-month trial",
+        "short_citation": "Prior JC et al., 1987",
+        "pmid": "3549364",
+        "doi": "10.1016/s0015-0282(16)59045-1",
+        "source_url": "https://doi.org/10.1016/s0015-0282(16)59045-1",
+        "journal": "Fertility and Sterility",
+        "year": 1987,
+        "authors": "Prior JC, Vigna Y, Sciarretta D, Alojado N, Schulzer M",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Cyclic physical and mood symptoms (molimina) are normal and diagnostic of ovulatory cycles.\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:21"
+    },
+    {
       "id": "fact-recCBeADt02sVzym4-1",
       "claim": "In population-based studies in Germany and the United States, between 20% and 47% of women expressed interest in future use of modern NFP, depending on question wording.",
       "category": "epidemiology",
@@ -20121,6 +20184,99 @@
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
       "last_verified_at": "2026-04-26 03:34:53"
+    },
+    {
+      "id": "fact-rece0spmxH6bRRuEx-4",
+      "claim": "In a prospective Teen Bone Study (n=38, mean age 10.6), ovulation was documented no earlier than 10±5 months postmenarche; only 27 of 93 cycles (29%) were ovulatory while 66 (71%) were anovulatory.",
+      "category": "cycle-biomarker",
+      "domain": "hormones",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "rece0spmxH6bRRuEx",
+        "slug": "progesterone-and-bone-actions-promoting-bone-health-in-women-recablvyxmzj7uelk",
+        "title": "Progesterone and bone: actions promoting bone health in women",
+        "short_citation": "Seifert-Klauss V et al., 2010",
+        "pmid": "21052538",
+        "doi": "10.4061/2010/845180",
+        "source_url": "https://doi.org/10.4061/2010/845180",
+        "journal": "Journal of Osteoporosis",
+        "year": 2010,
+        "authors": "Seifert-Klauss V, Prior JC",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"27 (29%) cycles were ovulatory while 66 (71%) were anovulatory. Ovulation was documented no earlier than 10 ± 5 months postmenarche\" Section: Progesterone, Ovulation, and Peak Bone Mass.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:22"
+    },
+    {
+      "id": "fact-rece0spmxH6bRRuEx-5",
+      "claim": "Pooled meta-analysis of 5 prospective studies (n=458 premenopausal women) showed normally ovulatory cycles gained +0.53%/year spinal BMD versus -0.68%/year loss in women with ovulatory disturbances.",
+      "category": "outcome",
+      "domain": "hormones",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "rece0spmxH6bRRuEx",
+        "slug": "progesterone-and-bone-actions-promoting-bone-health-in-women-recablvyxmzj7uelk",
+        "title": "Progesterone and bone: actions promoting bone health in women",
+        "short_citation": "Seifert-Klauss V et al., 2010",
+        "pmid": "21052538",
+        "doi": "10.4061/2010/845180",
+        "source_url": "https://doi.org/10.4061/2010/845180",
+        "journal": "Journal of Osteoporosis",
+        "year": 2010,
+        "authors": "Seifert-Klauss V, Prior JC",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Totals (Mean) 458 2.1 31.4 22.5 6.6 28.9 +0.53 −0.68\" Section: Table 1 totals row.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:22"
+    },
+    {
+      "id": "fact-rece0spmxH6bRRuEx-9",
+      "claim": "In the PEKNO study (n=28 with complete data), the percentage of ovulatory cycles correlated significantly with 2-year QCT bone density change in pre/perimenopausal women (r=-0.7, P<.05).",
+      "category": "outcome",
+      "domain": "hormones",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "rece0spmxH6bRRuEx",
+        "slug": "progesterone-and-bone-actions-promoting-bone-health-in-women-recablvyxmzj7uelk",
+        "title": "Progesterone and bone: actions promoting bone health in women",
+        "short_citation": "Seifert-Klauss V et al., 2010",
+        "pmid": "21052538",
+        "doi": "10.4061/2010/845180",
+        "source_url": "https://doi.org/10.4061/2010/845180",
+        "journal": "Journal of Osteoporosis",
+        "year": 2010,
+        "authors": "Seifert-Klauss V, Prior JC",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"the proportion of ovulatory cycles related to QCT bone change (r = −0.7, P < .05)\" Section: Bone Turnover Markers in Perimenopause.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:22"
     },
     {
       "id": "fact-receHZhoAhlUzO7OE-6",
@@ -22346,6 +22502,99 @@
       "last_verified_at": "2026-04-26 03:34:51"
     },
     {
+      "id": "fact-recLkhPge8CMAaTa3-4",
+      "claim": "Anovulation occurred in 5 of 7 PCOS participants and 9 of 24 controls; luteal phase lengths did not differ significantly between groups (P = 0.167).",
+      "category": "cycle-biomarker",
+      "domain": "pcos",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recLkhPge8CMAaTa3",
+        "slug": "experiences-of-women-living-with-polycystic-ovary-syndrome-a-pilot-case-control--recmhbhgpcob8gfes",
+        "title": "Experiences of women living with Polycystic Ovary Syndrome: A pilot case-control,  single-cycle, daily Menstrual Cycle Diary study during the SARS-CoV-2 pandemic",
+        "short_citation": "Nelson K et al., 2024",
+        "pmid": "38157371",
+        "doi": "10.1371/journal.pone.0296377",
+        "source_url": "https://doi.org/10.1371/journal.pone.0296377",
+        "journal": "PloS One",
+        "year": 2024,
+        "authors": "Nelson K, Shirin S, Kalidasan D, Prior JC",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"luteal phase lengths were also similar between PCOS and controls (P = .167); anovulation occurred in 5 with PCOS, and in 9 controls.\" Section: Abstract.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:21"
+    },
+    {
+      "id": "fact-recLkhPge8CMAaTa3-6",
+      "claim": "Subclinical ovulatory disturbances (short luteal phase or anovulation) were highly prevalent in both groups: 85.7% of PCOS cases and 66.7% of controls.",
+      "category": "cycle-biomarker",
+      "domain": "pcos",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recLkhPge8CMAaTa3",
+        "slug": "experiences-of-women-living-with-polycystic-ovary-syndrome-a-pilot-case-control--recmhbhgpcob8gfes",
+        "title": "Experiences of women living with Polycystic Ovary Syndrome: A pilot case-control,  single-cycle, daily Menstrual Cycle Diary study during the SARS-CoV-2 pandemic",
+        "short_citation": "Nelson K et al., 2024",
+        "pmid": "38157371",
+        "doi": "10.1371/journal.pone.0296377",
+        "source_url": "https://doi.org/10.1371/journal.pone.0296377",
+        "journal": "PloS One",
+        "year": 2024,
+        "authors": "Nelson K, Shirin S, Kalidasan D, Prior JC",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"the presence of subclinical ovulatory disturbances, including short luteal phases anovulation, were high in both cases (85.7%) and controls (66.7%).\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:21"
+    },
+    {
+      "id": "fact-recLkhPge8CMAaTa3-8",
+      "claim": "Ovulation was confirmed using the validated Quantitative Basal Temperature (QBT) method; normal luteal phases average ~12 days, short luteal phases show <10 days of elevated temperature, and anovulation is diagnosed when no significant rise occurs or rise lasts <4 days.",
+      "category": "diagnostics",
+      "domain": "diagnostics",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recLkhPge8CMAaTa3",
+        "slug": "experiences-of-women-living-with-polycystic-ovary-syndrome-a-pilot-case-control--recmhbhgpcob8gfes",
+        "title": "Experiences of women living with Polycystic Ovary Syndrome: A pilot case-control,  single-cycle, daily Menstrual Cycle Diary study during the SARS-CoV-2 pandemic",
+        "short_citation": "Nelson K et al., 2024",
+        "pmid": "38157371",
+        "doi": "10.1371/journal.pone.0296377",
+        "source_url": "https://doi.org/10.1371/journal.pone.0296377",
+        "journal": "PloS One",
+        "year": 2024,
+        "authors": "Nelson K, Shirin S, Kalidasan D, Prior JC",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Using QBT, normal luteal phase lengths average ~12 days but are at least 10 days long.\" Section: Methods / Data collection tools.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:21"
+    },
+    {
       "id": "fact-recLQlCJYFiDQqX9t-1",
       "claim": "In a Danish preconception cohort of 11,328 participants, use of any fertility indicator was associated with a 14% increase in per-cycle probability of conception compared to non-users.",
       "category": "outcome",
@@ -22730,6 +22979,68 @@
       "last_verified_at": "2026-04-26 03:34:51"
     },
     {
+      "id": "fact-recmfa7gfn2G9HhEg-8",
+      "claim": "The QBT short luteal phase threshold is <10 days, while the LH peak threshold is <12 days, because the basal temperature rise follows the LH peak by 24-36 hours on average.",
+      "category": "diagnostics",
+      "domain": "diagnostics",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recmfa7gfn2G9HhEg",
+        "slug": "fluid-retention-over-the-menstrual-cycle-1-year-data-from-the-prospective-ovulat-recfydqn0xlmhdot9",
+        "title": "Fluid Retention over the Menstrual Cycle: 1-Year Data from the Prospective  Ovulation Cohort",
+        "short_citation": "White CP et al., 2011",
+        "pmid": "21845193",
+        "doi": "10.1155/2011/138451",
+        "source_url": "https://doi.org/10.1155/2011/138451",
+        "journal": "Obstetrics and Gynecology International",
+        "year": 2011,
+        "authors": "White CP, Hitchcock CL, Vigna YM, Prior JC",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"the threshold for short luteal phase by QBT is 10 days; the threshold by LH peak is 12 days\" Section: Methods.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:22"
+    },
+    {
+      "id": "fact-recMs096P8ObvWmHO-3",
+      "claim": "Maturation to predictably ovulatory cycles with normal luteal phase length takes about 12 years after menarche.",
+      "category": "cycle-biomarker",
+      "domain": "hormones",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recMs096P8ObvWmHO",
+        "slug": "how-can-we-protect-peak-bone-mass-and-future-bone-health-for-adolescent-women----reckr5ylo8wv4eihg",
+        "title": "HOW CAN WE PROTECT PEAK BONE MASS AND FUTURE BONE HEALTH FOR ADOLESCENT WOMEN? -  BY SUPPORTING OVULATION AND AVOIDING COMBINED HORMONAL CONTRACEPTION USE",
+        "short_citation": "Prior JC, 2017",
+        "pmid": "28977329",
+        "doi": "10.1590/1984-0462/;2017;35;2;00019",
+        "source_url": "https://doi.org/10.1590/1984-0462/;2017;35;2;00019",
+        "journal": "Revista Paulista De Pediatria : Orgao Oficial Da Sociedade De Pediatria De Sao  Paulo",
+        "year": 2017,
+        "authors": "Prior JC",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Maturation to predictably ovulatory cycles with a normal luteal phase length, however, takes about 12 years after menarche.\" Section: Normal Cycle and Ovulation Development.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:21"
+    },
+    {
       "id": "fact-recnHUsq6musCtaGC-13",
       "claim": "The Creighton Model teaches women to observe and interpret cervical fluid secretion and vaginal bleeding patterns to identify ovulation timing and the fertile window.",
       "category": "methodology",
@@ -22760,6 +23071,99 @@
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
       "last_verified_at": "2026-04-26 03:34:53"
+    },
+    {
+      "id": "fact-recNlCICJseCMXleC-12",
+      "claim": "An LH surge can occur without subsequent ovulation and adequate luteal phase progesterone, particularly in perimenopausal women, making LH-only ovulation detection unreliable.",
+      "category": "diagnostics",
+      "domain": "diagnostics",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recNlCICJseCMXleC",
+        "slug": "feeling-of-self-worth-in-healthy-premenopausal-women-relationships-with-menstrua-rectgt7bksqyheudw",
+        "title": "Feeling of self-worth in healthy premenopausal women-relationships with menstrual cycles and ovulation over 1-year in the prospective ovulation cohort",
+        "short_citation": "Shirazian N et al., 2025",
+        "pmid": "40794779",
+        "doi": "10.1371/journal.pone.0327539",
+        "source_url": "https://doi.org/10.1371/journal.pone.0327539",
+        "journal": "PloS one",
+        "year": 2025,
+        "authors": "Shirazian N, Shirin S, Kalidasan D, Prior JC",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"an LH surge may occur and not be followed by ovulation and luteal phase progesterone levels, especially in perimenopausal women\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:21"
+    },
+    {
+      "id": "fact-recNlCICJseCMXleC-3",
+      "claim": "The Prospective Ovulation Cohort analyzed 53 healthy premenopausal women with at least 8 cycles of daily Menstrual Cycle Diary data, totaling 720 cycles with 694 having valid QBT ovulation data.",
+      "category": "methodology",
+      "domain": "diagnostics",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recNlCICJseCMXleC",
+        "slug": "feeling-of-self-worth-in-healthy-premenopausal-women-relationships-with-menstrua-rectgt7bksqyheudw",
+        "title": "Feeling of self-worth in healthy premenopausal women-relationships with menstrual cycles and ovulation over 1-year in the prospective ovulation cohort",
+        "short_citation": "Shirazian N et al., 2025",
+        "pmid": "40794779",
+        "doi": "10.1371/journal.pone.0327539",
+        "source_url": "https://doi.org/10.1371/journal.pone.0327539",
+        "journal": "PloS one",
+        "year": 2025,
+        "authors": "Shirazian N, Shirin S, Kalidasan D, Prior JC",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"53 women's data included a total of 720 menstrual cycles with 694 cycles having valid QBT© ovulation data\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:21"
+    },
+    {
+      "id": "fact-recNlCICJseCMXleC-4",
+      "claim": "Enrollment required two consecutive normal-length cycles (21-36 days) with normally ovulatory luteal phase length of at least 10 days, validated by Quantitative Basal Temperature analysis.",
+      "category": "methodology",
+      "domain": "diagnostics",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "recNlCICJseCMXleC",
+        "slug": "feeling-of-self-worth-in-healthy-premenopausal-women-relationships-with-menstrua-rectgt7bksqyheudw",
+        "title": "Feeling of self-worth in healthy premenopausal women-relationships with menstrual cycles and ovulation over 1-year in the prospective ovulation cohort",
+        "short_citation": "Shirazian N et al., 2025",
+        "pmid": "40794779",
+        "doi": "10.1371/journal.pone.0327539",
+        "source_url": "https://doi.org/10.1371/journal.pone.0327539",
+        "journal": "PloS one",
+        "year": 2025,
+        "authors": "Shirazian N, Shirin S, Kalidasan D, Prior JC",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"two consecutive, normal-length (21–36 day) and normally ovulatory (luteal phase length ≥ 10 days) cycles by the validated\" Section: Study population.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:21"
     },
     {
       "id": "fact-recoBpkaPJvbMyaig-1",
@@ -23096,6 +23500,130 @@
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
       "last_verified_at": "2026-04-26 03:34:53"
+    },
+    {
+      "id": "fact-recoi8DyI7sdWai6i-10",
+      "claim": "High luteal phase progesterone levels increase core temperature approximately 0.2°C and require approximately 300 additional kilocalories per day of energy.",
+      "category": "hormone",
+      "domain": "hormones",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "biomarker",
+      "body": null,
+      "source": {
+        "article_id": "recoi8DyI7sdWai6i",
+        "slug": "adaptive-reversible-hypothalamic-reproductive-suppression-more-than-functional-h-recg7i8bdrehhx10g",
+        "title": "Adaptive, reversible, hypothalamic reproductive suppression: More than functional  hypothalamic amenorrhea",
+        "short_citation": "Prior JC, 2022",
+        "pmid": "36339445",
+        "doi": "10.3389/fendo.2022.893889",
+        "source_url": "https://doi.org/10.3389/fendo.2022.893889",
+        "journal": "Frontiers in Endocrinology",
+        "year": 2022,
+        "authors": "Prior JC",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"High luteal phase progesterone levels raise the core temperature (generally 0.2°C), which requires approximately 300 kilocalories\" Section: Endocrinology.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:22"
+    },
+    {
+      "id": "fact-recoi8DyI7sdWai6i-2",
+      "claim": "In a population-based Norwegian study of over 3,000 women aged 20-49 years with normal cycle lengths of 21-35 days, subclinical ovulatory disturbances (SOD) occurred in 24%-37% of cycles.",
+      "category": "epidemiology",
+      "domain": "hormones",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recoi8DyI7sdWai6i",
+        "slug": "adaptive-reversible-hypothalamic-reproductive-suppression-more-than-functional-h-recg7i8bdrehhx10g",
+        "title": "Adaptive, reversible, hypothalamic reproductive suppression: More than functional  hypothalamic amenorrhea",
+        "short_citation": "Prior JC, 2022",
+        "pmid": "36339445",
+        "doi": "10.3389/fendo.2022.893889",
+        "source_url": "https://doi.org/10.3389/fendo.2022.893889",
+        "journal": "Frontiers in Endocrinology",
+        "year": 2022,
+        "authors": "Prior JC",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"3,000 Norwegian women aged 20–49 years with normal cycle lengths of 21–35 days long found that SOD occurred in 24%– 37% of cycles\" Section: A spectrum of clinical entities.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:22"
+    },
+    {
+      "id": "fact-recoi8DyI7sdWai6i-4",
+      "claim": "In 53 healthy normal-weight women aged 20-41 with normal cycles tracked over 1 year, short luteal phases occurred in 25% of cycles and anovulation in 6.2%, while all cycles remained 21-35 days.",
+      "category": "epidemiology",
+      "domain": "hormones",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recoi8DyI7sdWai6i",
+        "slug": "adaptive-reversible-hypothalamic-reproductive-suppression-more-than-functional-h-recg7i8bdrehhx10g",
+        "title": "Adaptive, reversible, hypothalamic reproductive suppression: More than functional  hypothalamic amenorrhea",
+        "short_citation": "Prior JC, 2022",
+        "pmid": "36339445",
+        "doi": "10.3389/fendo.2022.893889",
+        "source_url": "https://doi.org/10.3389/fendo.2022.893889",
+        "journal": "Frontiers in Endocrinology",
+        "year": 2022,
+        "authors": "Prior JC",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"short luteal phases occurred for 25% and anovulation for 6.2%; all cycles, however, were of 21–35 days\" Section: A spectrum of clinical entities.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:22"
+    },
+    {
+      "id": "fact-recoi8DyI7sdWai6i-8",
+      "claim": "Across a normal menstrual cycle, the luteal phase progesterone peak rises 1,400% above its follicular low, while estradiol peaks at 220% above its follicular baseline at mid-cycle.",
+      "category": "hormone",
+      "domain": "hormones",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "biomarker",
+      "body": null,
+      "source": {
+        "article_id": "recoi8DyI7sdWai6i",
+        "slug": "adaptive-reversible-hypothalamic-reproductive-suppression-more-than-functional-h-recg7i8bdrehhx10g",
+        "title": "Adaptive, reversible, hypothalamic reproductive suppression: More than functional  hypothalamic amenorrhea",
+        "short_citation": "Prior JC, 2022",
+        "pmid": "36339445",
+        "doi": "10.3389/fendo.2022.893889",
+        "source_url": "https://doi.org/10.3389/fendo.2022.893889",
+        "journal": "Frontiers in Endocrinology",
+        "year": 2022,
+        "authors": "Prior JC",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"P4 level during the luteal phase rises to a peak that is 1,400% higher than its follicular low level\" Section: Endocrinology of adaptive suppression.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:22"
     },
     {
       "id": "fact-recOLK9MSH6qFESxs-2",
@@ -23700,6 +24228,37 @@
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
       "last_verified_at": "2026-04-26 03:34:54"
+    },
+    {
+      "id": "fact-recQnig8vjthgZpeb-6",
+      "claim": "In a population-based HUNT3 cohort study of over 3,000 Norwegian women, the point prevalence of ovulatory disturbances in normal-length menstrual cycles was 24%–37%.",
+      "category": "cycle-biomarker",
+      "domain": "hormones",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recQnig8vjthgZpeb",
+        "slug": "prospective-analyses-of-sexgender-related-publication-decisions-in-general-medic-recjp2fx6gdaugian",
+        "title": "Prospective analyses of sex/gender-related publication decisions in general  medical journals: editorial rejection of population-based women's reproductive  physiology",
+        "short_citation": "Kalidasan D et al., 2022",
+        "pmid": "35217542",
+        "doi": "10.1136/bmjopen-2021-057854",
+        "source_url": "https://doi.org/10.1136/bmjopen-2021-057854",
+        "journal": "BMJ Open",
+        "year": 2022,
+        "authors": "Kalidasan D, Goshtasebi A, Chrisler J, Brown HL, Prior JC",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"the point prevalence of ovulatory disturbances was 24%–37% in normal-length cycles in over 3000 women\" Section: Introduction.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:21"
     },
     {
       "id": "fact-recqZT89JyKkR2pwi-1",
@@ -24805,6 +25364,68 @@
       "last_verified_at": "2026-04-26 03:34:52"
     },
     {
+      "id": "fact-recS32hAZKqIEWhnX-2",
+      "claim": "The ovulatory threshold for cycle-timed serum progesterone is >=9.5 nmol/L (>=3 ng/ml).",
+      "category": "diagnostics",
+      "domain": "hormones",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "biomarker",
+      "body": null,
+      "source": {
+        "article_id": "recS32hAZKqIEWhnX",
+        "slug": "ovulatory-and-anovulatory-cycle-phase-influences-on-qt-interval-dynamics-during-the-menstrual-cycle-rec0lbpdnaspbyp5z",
+        "title": "Ovulatory and anovulatory cycle phase influences on QT interval dynamics during the menstrual cycle",
+        "short_citation": "Naderi B et al., 2025",
+        "pmid": "40378165",
+        "doi": "10.1371/journal.pone.0320846",
+        "source_url": "https://doi.org/10.1371/journal.pone.0320846",
+        "journal": "PloS one",
+        "year": 2025,
+        "authors": "Naderi B, Yee L, Shirin S, Prior JC, Cheung C, Davies B, Krahn AD",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"cycle-timed serum progesterone level (ovulatory threshold of ≥9.5 nmol/L; ≥ 3 ng/ml)\" Section: Introduction.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:21"
+    },
+    {
+      "id": "fact-recS32hAZKqIEWhnX-3",
+      "claim": "A normal luteal phase by Quantitative Basal Temperature is >=10 days; short luteal phase is <10 days.",
+      "category": "cycle-biomarker",
+      "domain": "hormones",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "biomarker",
+      "body": null,
+      "source": {
+        "article_id": "recS32hAZKqIEWhnX",
+        "slug": "ovulatory-and-anovulatory-cycle-phase-influences-on-qt-interval-dynamics-during-the-menstrual-cycle-rec0lbpdnaspbyp5z",
+        "title": "Ovulatory and anovulatory cycle phase influences on QT interval dynamics during the menstrual cycle",
+        "short_citation": "Naderi B et al., 2025",
+        "pmid": "40378165",
+        "doi": "10.1371/journal.pone.0320846",
+        "source_url": "https://doi.org/10.1371/journal.pone.0320846",
+        "journal": "PloS one",
+        "year": 2025,
+        "authors": "Naderi B, Yee L, Shirin S, Prior JC, Cheung C, Davies B, Krahn AD",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"normally ovulatory (by QBT© with ≥10 day LP; short LP < 10 days)\" Section: Introduction.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:21"
+    },
+    {
       "id": "fact-recSLOtpQD6RWnUXB-1",
       "claim": "The European Study of Daily Fecundability enrolled 782 women from seven European natural family planning centres between 1992 and 1996, contributing prospective data on 7288 menstrual cycles.",
       "category": "methodology",
@@ -25443,6 +26064,69 @@
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
       "last_verified_at": "2026-04-26 03:34:52"
+    },
+    {
+      "id": "fact-recUmPWDl9QuG4Cdj-9",
+      "claim": "Current combined hormonal contraceptive users had higher log(CRP/albumin) levels (1.9 +/- 0.4) than non-users (1.4 +/- 0.4), p = 0.01.",
+      "category": "outcome",
+      "domain": "hormones",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "fabm",
+        "napro"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recUmPWDl9QuG4Cdj",
+        "slug": "competing-factors-link-to-bone-health-in-polycystic-ovary-syndrome-chronic-low-g-recffdf7puwohkzj4",
+        "title": "Competing Factors Link to Bone Health in Polycystic Ovary Syndrome: Chronic  Low-Grade Inflammation Takes a Toll",
+        "short_citation": "Kalyan S et al., 2017",
+        "pmid": "28611442",
+        "doi": "10.1038/s41598-017-03685-x",
+        "source_url": "https://doi.org/10.1038/s41598-017-03685-x",
+        "journal": "Scientific Reports",
+        "year": 2017,
+        "authors": "Kalyan S, Patel MS, Kingwell E, Côté HCF, Liu D, Prior JC",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Log(CRP/albumin) levels differed between current CHC users (1.9 ± 0.4) versus non-users (1.4 ± 0.4), p = 0.01\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:21"
+    },
+    {
+      "id": "fact-recUwu4igzQuuWVsU-5",
+      "claim": "In the QBT© method used in MOS2, a normally ovulatory cycle is defined by a luteal phase length of >=10 days; cycles with fewer than 4 days of temperatures above the cycle's temperature average are classified anovulatory.",
+      "category": "methodology",
+      "domain": "diagnostics",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "recUwu4igzQuuWVsU",
+        "slug": "menstrual-cramps-in-anovulatory-versus-normally-ovulatory-cycles-sars-cov-2-pandemic-daily-data-plus-a-meta-analysis-of-cramps-and-anovulation-recf5fwggocmzovfg",
+        "title": "Menstrual Cramps in Anovulatory versus Normally Ovulatory Cycles - SARS-COV-2 Pandemic Daily Data Plus a Meta-Analysis of Cramps and Anovulation",
+        "short_citation": "Mann G et al., 2024",
+        "pmid": "39005755",
+        "doi": "10.2147/JPR.S457484",
+        "source_url": "https://doi.org/10.2147/JPR.S457484",
+        "journal": "Journal of pain research",
+        "year": 2024,
+        "authors": "Mann G, Shirin S, Bann S, Yong PJ, Kalidasan D, Goshtasebi A, Prior JC",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"a normally ovulatory cycle is defined by our QBT© method as having a luteal phase length of ≥10 days.\" Section: Quantitative Basal Temperature Analysis.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:22"
     },
     {
       "id": "fact-recVQAUnQvRuUFNNK-3",
@@ -26443,6 +27127,99 @@
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
       "last_verified_at": "2026-04-26 03:34:54"
+    },
+    {
+      "id": "fact-recwtbK5cMhRo6Zeo-10",
+      "claim": "By Quantitative Basal Temperature methods, follicular phase length ranges 12–26 days and luteal phase length ranges 4–16 days in normal-length ovulatory menstrual cycles.",
+      "category": "cycle-biomarker",
+      "domain": "hormones",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recwtbK5cMhRo6Zeo",
+        "slug": "prospective-1-year-assessment-of-within-woman-variability-of-follicular-and-luteal-phase-lengths-in-healthy-women-prescreened-to-have-normal-menstrual-cycle-and-luteal-phase-lengths-reckjrhsqkpd8sxp3",
+        "title": "Prospective 1-year assessment of within-woman variability of follicular and luteal phase lengths in healthy women prescreened to have normal menstrual cycle and luteal phase lengths",
+        "short_citation": "Henry S et al., 2024",
+        "pmid": "39320898",
+        "doi": "10.1093/humrep/deae215",
+        "source_url": "https://doi.org/10.1093/humrep/deae215",
+        "journal": "Human reproduction (Oxford, England)",
+        "year": 2024,
+        "authors": "Henry S, Shirin S, Goshtasebi A, Prior JC",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"FP, and LP lengths appear to generally range between 12–26 days and 4–16 days, respectively, by QBT© methods\" Section: Discussion — Range of FP and LP lengths.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:22"
+    },
+    {
+      "id": "fact-recwtbK5cMhRo6Zeo-14",
+      "claim": "Within-woman variability of FP length >7 days occurred in 50.9% of women and LP length >7 days occurred in 33.6%, considerably more than the 33.6% and 9.0% reported by Fehring et al. (2006).",
+      "category": "cycle-biomarker",
+      "domain": "hormones",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recwtbK5cMhRo6Zeo",
+        "slug": "prospective-1-year-assessment-of-within-woman-variability-of-follicular-and-luteal-phase-lengths-in-healthy-women-prescreened-to-have-normal-menstrual-cycle-and-luteal-phase-lengths-reckjrhsqkpd8sxp3",
+        "title": "Prospective 1-year assessment of within-woman variability of follicular and luteal phase lengths in healthy women prescreened to have normal menstrual cycle and luteal phase lengths",
+        "short_citation": "Henry S et al., 2024",
+        "pmid": "39320898",
+        "doi": "10.1093/humrep/deae215",
+        "source_url": "https://doi.org/10.1093/humrep/deae215",
+        "journal": "Human reproduction (Oxford, England)",
+        "year": 2024,
+        "authors": "Henry S, Shirin S, Goshtasebi A, Prior JC",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"FP and LP length variability of greater than 7 days to be 33.6% and 9.0%, respectively (versus 50.9% and 33.6% in this study)\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:22"
+    },
+    {
+      "id": "fact-recwtbK5cMhRo6Zeo-2",
+      "claim": "Mean follicular phase length was 17.6 days (95% CI 17.0–18.2) and median luteal phase length was 10.9 days (range 8.3–12.5) in 676 ovulatory cycles from 53 healthy premenopausal women tracked by Quantitative Basal Temperature.",
+      "category": "cycle-biomarker",
+      "domain": "hormones",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recwtbK5cMhRo6Zeo",
+        "slug": "prospective-1-year-assessment-of-within-woman-variability-of-follicular-and-luteal-phase-lengths-in-healthy-women-prescreened-to-have-normal-menstrual-cycle-and-luteal-phase-lengths-reckjrhsqkpd8sxp3",
+        "title": "Prospective 1-year assessment of within-woman variability of follicular and luteal phase lengths in healthy women prescreened to have normal menstrual cycle and luteal phase lengths",
+        "short_citation": "Henry S et al., 2024",
+        "pmid": "39320898",
+        "doi": "10.1093/humrep/deae215",
+        "source_url": "https://doi.org/10.1093/humrep/deae215",
+        "journal": "Human reproduction (Oxford, England)",
+        "year": 2024,
+        "authors": "Henry S, Shirin S, Goshtasebi A, Prior JC",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Mean FP length was 17.6 days (95% CI 17.0–18.2) and median LP length was 10.9 days (range 8.3–12.5 days).\" Section: Results — Menstrual cycle data.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:22"
     },
     {
       "id": "fact-recXp2MFrb2AMuQPa-13",

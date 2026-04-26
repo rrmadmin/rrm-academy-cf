@@ -10,26 +10,27 @@
     ],
     "schema_version": "1.0.0",
     "ssot": true,
-    "generated_at": "2026-04-26T03:35:23.488Z",
+    "generated_at": "2026-04-26T14:53:54.480Z",
     "generated_by": "scripts/build-canonical-facts.mjs",
     "source": "D1 rrm-library.facts (tradition filter) + _manual overrides",
     "regenerable": true,
-    "record_count": 3626,
+    "record_count": 3628,
     "tradition_tally": {
-      "napro": 3626,
-      "rrm-shared": 1348,
-      "fabm": 810,
+      "napro": 3628,
+      "rrm-shared": 1350,
+      "fabm": 811,
       "creighton": 925,
       "conventional": 29,
       "billings": 5,
       "femm": 3,
-      "neofertility": 1
+      "neofertility": 1,
+      "independent": 2
     },
     "evidence_tier_tally": {
-      "peer_reviewed": 1612,
+      "peer_reviewed": 1614,
       "clinical_experience": 2014
     },
-    "source_resolved_count": 3425,
+    "source_resolved_count": 3427,
     "source_unresolved_count": 201
   },
   "_manual": {
@@ -87232,6 +87233,38 @@
       "last_verified_at": "2026-04-26 03:34:52"
     },
     {
+      "id": "fact-recUmPWDl9QuG4Cdj-9",
+      "claim": "Current combined hormonal contraceptive users had higher log(CRP/albumin) levels (1.9 +/- 0.4) than non-users (1.4 +/- 0.4), p = 0.01.",
+      "category": "outcome",
+      "domain": "hormones",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "fabm",
+        "napro"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recUmPWDl9QuG4Cdj",
+        "slug": "competing-factors-link-to-bone-health-in-polycystic-ovary-syndrome-chronic-low-g-recffdf7puwohkzj4",
+        "title": "Competing Factors Link to Bone Health in Polycystic Ovary Syndrome: Chronic  Low-Grade Inflammation Takes a Toll",
+        "short_citation": "Kalyan S et al., 2017",
+        "pmid": "28611442",
+        "doi": "10.1038/s41598-017-03685-x",
+        "source_url": "https://doi.org/10.1038/s41598-017-03685-x",
+        "journal": "Scientific Reports",
+        "year": 2017,
+        "authors": "Kalyan S, Patel MS, Kingwell E, Côté HCF, Liu D, Prior JC",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Log(CRP/albumin) levels differed between current CHC users (1.9 ± 0.4) versus non-users (1.4 ± 0.4), p = 0.01\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:21"
+    },
+    {
       "id": "fact-recuYeXTzr9ZCA8gv-1",
       "claim": "Among 797 women with an hCG-detected pregnancy in the EAGeR trial, 188 pregnancies (23.6%) ended in loss.",
       "category": "outcome",
@@ -91499,6 +91532,37 @@
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
       "last_verified_at": "2026-04-26 03:34:54"
+    },
+    {
+      "id": "fact-recysw2ykGpoymqHP-8",
+      "claim": "In the Stephenson et al. study, vaginal micronized progesterone 100 mg every 12 hours started in luteal phase yielded a live birth rate of 68% vs 51% in controls (OR 2.1, 95% CI 1.0-4.4) when guided by elevated nuclear CyclinE expression.",
+      "category": "outcome",
+      "domain": "miscarriage",
+      "tradition": [
+        "independent",
+        "rrm-shared",
+        "napro"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "recysw2ykGpoymqHP",
+        "slug": "micronized-vaginal-progesterone-to-prevent-miscarriage-a-critical-evaluation-of--recgcsx91hhg7nvqy",
+        "title": "Micronized vaginal progesterone to prevent miscarriage: a critical evaluation of  randomized evidence",
+        "short_citation": "Coomarasamy A et al., 2020",
+        "pmid": "32008730",
+        "doi": "10.1016/j.ajog.2019.12.006",
+        "source_url": "https://doi.org/10.1016/j.ajog.2019.12.006",
+        "journal": "American Journal of Obstetrics and Gynecology",
+        "year": 2020,
+        "authors": "Coomarasamy A, Devall AJ, Brosens JJ, Quenby S, Stephenson MD, Sierra S, Christiansen OB, Small R, Brewin J, Roberts TE, Dhillon-Smith R, Harb H, Noordali H, Papadopoulou A, Eapen A, Prior M, Di Renzo GC, Hinshaw K, Mol BW, Lumsden MA, Khalaf Y, Shennan A, Goddijn M, van Wely M, Al-Memar M, Bennett P, Bourne T, Rai R, Regan L, Gallos ID",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"luteal phase start vaginal micronized progesterone compared with controls, 68% vs 51%; OR, 2.1 (95% CI, 1.0–4.4)\" Section: Biologic plausibility.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 14:53:22"
     },
     {
       "id": "fact-recyXNboH2ECLmdXr-1",
