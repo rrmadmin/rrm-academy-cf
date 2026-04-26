@@ -6,26 +6,26 @@
     "editorial_owner_refs": [],
     "schema_version": "1.0.0",
     "ssot": true,
-    "generated_at": "2026-04-26T15:03:30.339Z",
+    "generated_at": "2026-04-26T18:42:12.893Z",
     "generated_by": "scripts/build-canonical-facts.mjs",
     "source": "D1 rrm-library.facts (tradition filter) + _manual overrides",
     "regenerable": true,
-    "record_count": 1199,
+    "record_count": 1201,
     "tradition_tally": {
-      "napro": 814,
-      "fabm": 1199,
+      "napro": 813,
+      "fabm": 1201,
       "creighton": 289,
-      "rrm-shared": 589,
+      "rrm-shared": 591,
       "femm": 147,
-      "conventional": 19,
+      "conventional": 23,
       "billings": 11,
       "independent": 25
     },
     "evidence_tier_tally": {
       "clinical_experience": 420,
-      "peer_reviewed": 779
+      "peer_reviewed": 781
     },
-    "source_resolved_count": 1169,
+    "source_resolved_count": 1171,
     "source_unresolved_count": 30
   },
   "_manual": {
@@ -19392,13 +19392,13 @@
       "last_verified_at": "2026-04-26 03:34:50"
     },
     {
-      "id": "fact-rec78BXZjGrcM1acY-7",
-      "claim": "In 2009, Pope Benedict XVI expressed gratitude to NFP physicians and scientists working on ways to treat and manage infertility so couples can procreate with full respect for personal dignity and the child to be born.",
+      "id": "fact-rec78BXZjGrcM1acY-4",
+      "claim": "The term 'rhythm method' derives its name from Leo Latz's 1932 book 'The Rhythm of Sterility and Fertility in Women,' which described a calendar-based method of natural family planning.",
       "category": "methodology",
-      "domain": "NaProTECHNOLOGY",
+      "domain": "FABM",
       "tradition": [
+        "conventional",
         "rrm-shared",
-        "napro",
         "fabm"
       ],
       "claim_type": "definition",
@@ -19416,22 +19416,23 @@
         "authors": "Fehring RJ, Yeung PP Jr",
         "type": "article"
       },
-      "verification_notes": "Quote: \"Pope Benedict XVI (like Pius XI in 1932) expressed gratitude to NFP physicians and scientists working on ways to treat and manage infertility\" Section: Editorial.",
+      "verification_notes": "Quote: \"a very simple calendar-based method of natural family planning that today takes the name 'rhythm' from his book.\" Section: history of NFP.",
       "verified": 1,
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
-      "last_verified_at": "2026-04-26 14:59:20"
+      "last_verified_at": "2026-04-26 18:42:08"
     },
     {
       "id": "fact-rec78BXZjGrcM1acY-9",
-      "claim": "Researchers at the Georgetown University Reproductive Institute developed a modern evidence-based calendar method of NFP, analyzed in this issue by Mary Schneider and Dr. Fehring.",
-      "category": "methodology",
+      "claim": "Bertotti's analysis of the 2006-2010 National Survey of Family Growth examined differences between current and past NFP users among reproductive-age women in the United States.",
+      "category": "epidemiology",
       "domain": "FABM",
       "tradition": [
-        "fabm",
-        "rrm-shared"
+        "conventional",
+        "rrm-shared",
+        "fabm"
       ],
-      "claim_type": "definition",
+      "claim_type": "cited-study",
       "body": null,
       "source": {
         "article_id": "rec78BXZjGrcM1acY",
@@ -19446,11 +19447,11 @@
         "authors": "Fehring RJ, Yeung PP Jr",
         "type": "article"
       },
-      "verification_notes": "Quote: \"a modern evidenced-based calendar method of NFP developed by researchers at the Georgetown University Reproductive Institute.\" Section: Editorial.",
+      "verification_notes": "Quote: \"Dr. Bertotti's paper analyzes data from the 2006–2010 National Survey of Family Growth to show differences in current and past users of NFP\" Section: special issue contents.",
       "verified": 1,
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
-      "last_verified_at": "2026-04-26 14:59:20"
+      "last_verified_at": "2026-04-26 18:42:08"
     },
     {
       "id": "fact-rec7CFiuXNw0Qixh9-1",
@@ -26179,6 +26180,68 @@
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
       "last_verified_at": "2026-04-26 14:53:21"
+    },
+    {
+      "id": "fact-reclKUIwHUCWMP7XX-8",
+      "claim": "Fertility monitors capture the LH surge in over 75% of cycles, while traditional calendar-based or cycle-length algorithms detect the LH surge in only 37%-57% of cycles.",
+      "category": "methodology",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "reclKUIwHUCWMP7XX",
+        "slug": "usual-dietary-isoflavone-intake-and-reproductive-function-across-the-menstrual-c-recflj3tq3wq9xr8t",
+        "title": "Usual dietary isoflavone intake and reproductive function across the menstrual cycle",
+        "short_citation": "Filiberto AC et al., 2013",
+        "pmid": "23998910",
+        "doi": "10.1016/j.fertnstert.2013.08.002",
+        "source_url": "https://doi.org/10.1016/j.fertnstert.2013.08.002",
+        "journal": "Fertility and sterility",
+        "year": 2013,
+        "authors": "Filiberto AC, Mumford SL, Pollack AZ, Zhang C, Yeung EH, Schliep KC, Perkins NJ, Wactawski-Wende J, Schisterman EF",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Fertility monitors capture the LH surge in >75% of cycles, whereas traditional algorithms... only detect the LH surge in 37%–57% of cycles\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-reclKUIwHUCWMP7XX-9",
+      "claim": "BioCycle visits were timed with Clearblue Easy Fertility Monitors to correspond to menstruation, midfollicular, late follicular, LH/FSH surges, ovulation, and early/mid/late luteal phases.",
+      "category": "methodology",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "reclKUIwHUCWMP7XX",
+        "slug": "usual-dietary-isoflavone-intake-and-reproductive-function-across-the-menstrual-c-recflj3tq3wq9xr8t",
+        "title": "Usual dietary isoflavone intake and reproductive function across the menstrual cycle",
+        "short_citation": "Filiberto AC et al., 2013",
+        "pmid": "23998910",
+        "doi": "10.1016/j.fertnstert.2013.08.002",
+        "source_url": "https://doi.org/10.1016/j.fertnstert.2013.08.002",
+        "journal": "Fertility and sterility",
+        "year": 2013,
+        "authors": "Filiberto AC, Mumford SL, Pollack AZ, Zhang C, Yeung EH, Schliep KC, Perkins NJ, Wactawski-Wende J, Schisterman EF",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"visits timed with the use of fertility monitors (Clearblue Easy Fertility Monitor; Inverness Medical) to correspond to menstruation, midfollicular\" Section: Study Design.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
     },
     {
       "id": "fact-recLQlCJYFiDQqX9t-1",

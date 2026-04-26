@@ -10,27 +10,27 @@
     ],
     "schema_version": "1.0.0",
     "ssot": true,
-    "generated_at": "2026-04-26T15:03:30.322Z",
+    "generated_at": "2026-04-26T18:42:12.873Z",
     "generated_by": "scripts/build-canonical-facts.mjs",
     "source": "D1 rrm-library.facts (tradition filter) + _manual overrides",
     "regenerable": true,
-    "record_count": 2843,
+    "record_count": 2941,
     "tradition_tally": {
-      "rrm-shared": 2659,
+      "rrm-shared": 2757,
       "neofertility": 31,
-      "napro": 1356,
-      "fabm": 589,
-      "creighton": 997,
+      "napro": 1360,
+      "fabm": 591,
+      "creighton": 1002,
       "independent": 554,
-      "conventional": 109,
+      "conventional": 205,
       "femm": 147,
       "billings": 11
     },
     "evidence_tier_tally": {
       "clinical_experience": 841,
-      "peer_reviewed": 2002
+      "peer_reviewed": 2100
     },
-    "source_resolved_count": 2569,
+    "source_resolved_count": 2667,
     "source_unresolved_count": 274
   },
   "_manual": {
@@ -23824,6 +23824,191 @@
       "last_verified_at": "2026-04-26 03:34:50"
     },
     {
+      "id": "fact-rec1yQ60aHk3K22a9-12",
+      "claim": "Deaton et al. RCT showed clomiphene citrate plus IUI achieved 35% cumulative pregnancy rate over 4 cycles vs 14% for timed intercourse controls.",
+      "category": "outcome",
+      "domain": "infertility",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "rec1yQ60aHk3K22a9",
+        "slug": "the-evaluation-and-treatment-of-cervical-factor-infertility-a-medical-moral-anal-recdkvjhcuigoqnsb",
+        "title": "The Evaluation and Treatment of Cervical Factor Infertility a Medical-Moral  Analysis",
+        "short_citation": "Keefe CE et al., 2012",
+        "pmid": "30082986",
+        "doi": "10.1179/002436312804827127",
+        "source_url": "https://doi.org/10.1179/002436312804827127",
+        "journal": "The Linacre Quarterly",
+        "year": 2012,
+        "authors": "Keefe CE, Mirkes R, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"cumulative pregnancy rate in the treatment group was 35 percent over four cycles as compared to 14 percent in the control group.\" Section: Outcomes.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-rec1yQ60aHk3K22a9-2",
+      "claim": "CrMS mucus cycle scores are categorized as: dry cycles (score 0), limited mucus cycles (0.1-7.5), and regular mucus cycles (above 7.6).",
+      "category": "charting",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "creighton",
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "rec1yQ60aHk3K22a9",
+        "slug": "the-evaluation-and-treatment-of-cervical-factor-infertility-a-medical-moral-anal-recdkvjhcuigoqnsb",
+        "title": "The Evaluation and Treatment of Cervical Factor Infertility a Medical-Moral  Analysis",
+        "short_citation": "Keefe CE et al., 2012",
+        "pmid": "30082986",
+        "doi": "10.1179/002436312804827127",
+        "source_url": "https://doi.org/10.1179/002436312804827127",
+        "journal": "The Linacre Quarterly",
+        "year": 2012,
+        "authors": "Keefe CE, Mirkes R, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"limited mucus cycles, with scores ranging from 0.1 to 7.5; and 3) regular mucus cycles, with scores above 7.6.\" Section: Diagnosis.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-rec1yQ60aHk3K22a9-3",
+      "claim": "Stanford, Smith, and Dunson evaluated 1,681 menstrual cycles charted with CrMS and demonstrated positive correlation of mucus score categories to pregnancy probability.",
+      "category": "cycle-biomarker",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "creighton",
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "rec1yQ60aHk3K22a9",
+        "slug": "the-evaluation-and-treatment-of-cervical-factor-infertility-a-medical-moral-anal-recdkvjhcuigoqnsb",
+        "title": "The Evaluation and Treatment of Cervical Factor Infertility a Medical-Moral  Analysis",
+        "short_citation": "Keefe CE et al., 2012",
+        "pmid": "30082986",
+        "doi": "10.1179/002436312804827127",
+        "source_url": "https://doi.org/10.1179/002436312804827127",
+        "journal": "The Linacre Quarterly",
+        "year": 2012,
+        "authors": "Keefe CE, Mirkes R, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Stanford, J.R. Smith, and D.B. Dunson evaluated 1,681 menstrual cycles charted with the CrMS and demonstrated a positive correlation\" Section: Diagnosis.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-rec1yQ60aHk3K22a9-5",
+      "claim": "In 11 patients taking amoxicillin during the fertile window, mucus cycle scores improved from average 4.0 to 9 (p<0.003).",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "creighton",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "rec1yQ60aHk3K22a9",
+        "slug": "the-evaluation-and-treatment-of-cervical-factor-infertility-a-medical-moral-anal-recdkvjhcuigoqnsb",
+        "title": "The Evaluation and Treatment of Cervical Factor Infertility a Medical-Moral  Analysis",
+        "short_citation": "Keefe CE et al., 2012",
+        "pmid": "30082986",
+        "doi": "10.1179/002436312804827127",
+        "source_url": "https://doi.org/10.1179/002436312804827127",
+        "journal": "The Linacre Quarterly",
+        "year": 2012,
+        "authors": "Keefe CE, Mirkes R, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"eleven patients taking amoxicillin during the fertile window, mucus cycles scores went from an average of 4.0 to an average score of 9 (p  0.003)\" Section: Treatment.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-rec1yQ60aHk3K22a9-7",
+      "claim": "Stanford, Smith, and Dunson found subfertile couples with a three-day fertile window achieved a 26% conception rate using fertility-focused intercourse only.",
+      "category": "outcome",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "creighton",
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "rec1yQ60aHk3K22a9",
+        "slug": "the-evaluation-and-treatment-of-cervical-factor-infertility-a-medical-moral-anal-recdkvjhcuigoqnsb",
+        "title": "The Evaluation and Treatment of Cervical Factor Infertility a Medical-Moral  Analysis",
+        "short_citation": "Keefe CE et al., 2012",
+        "pmid": "30082986",
+        "doi": "10.1179/002436312804827127",
+        "source_url": "https://doi.org/10.1179/002436312804827127",
+        "journal": "The Linacre Quarterly",
+        "year": 2012,
+        "authors": "Keefe CE, Mirkes R, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"subfertile couples with a three-day fertile window had a 26 percent rate of conception with using fertility-focused intercourse only.\" Section: Treatment.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-rec1yQ60aHk3K22a9-8",
+      "claim": "In Hilgers' series, 40 patients with limited mucus cycles (avg 3.2 years prior infertility) achieved 40% pregnancy rate using fertility-focused intercourse alone or with vitamin B6, mean time-to-pregnancy 5.4 months.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "creighton",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "rec1yQ60aHk3K22a9",
+        "slug": "the-evaluation-and-treatment-of-cervical-factor-infertility-a-medical-moral-anal-recdkvjhcuigoqnsb",
+        "title": "The Evaluation and Treatment of Cervical Factor Infertility a Medical-Moral  Analysis",
+        "short_citation": "Keefe CE et al., 2012",
+        "pmid": "30082986",
+        "doi": "10.1179/002436312804827127",
+        "source_url": "https://doi.org/10.1179/002436312804827127",
+        "journal": "The Linacre Quarterly",
+        "year": 2012,
+        "authors": "Keefe CE, Mirkes R, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Forty patients with limited mucus cycles...had a 40 percent pregnancy rate...The length of time to pregnancy was a mean of 5.4 months.\" Section: Outcomes.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
       "id": "fact-rec2K2thTYOL9m4Fd-1",
       "claim": "After adjustment, women with subfertility who conceived via IVF had 4.24 times higher odds of preterm birth (95% CI 2.05-8.77) compared to subfertile women who used no treatment during the month of conception.",
       "category": "outcome",
@@ -28906,12 +29091,12 @@
       "last_verified_at": "2026-04-26 03:34:50"
     },
     {
-      "id": "fact-rec78BXZjGrcM1acY-4",
-      "claim": "NaProTechnology (NaProTech) is defined as the integration of NFP with women's health care, including ethical treatment of cervical problems and other women's health issues.",
-      "category": "methodology",
+      "id": "fact-rec78BXZjGrcM1acY-2",
+      "claim": "The 1930 Anglican Lambeth Conference resolution approved the use of artificial birth control for rare occasions and only for married couples, prompting Pope Pius XI's Casti connubii response.",
+      "category": "epidemiology",
       "domain": "NaProTECHNOLOGY",
       "tradition": [
-        "napro",
+        "conventional",
         "rrm-shared"
       ],
       "claim_type": "definition",
@@ -28929,20 +29114,20 @@
         "authors": "Fehring RJ, Yeung PP Jr",
         "type": "article"
       },
-      "verification_notes": "Quote: \"They describe the use of natural procreative technology or NaProTech (i.e., the integration of NFP with women's health care)\" Section: Editorial.",
+      "verification_notes": "Quote: \"the 1930 Anglican Lambeth Conference resolution that approved the use of artificial birth control for rare occasions and only for married couples.\" Section: opening paragraph.",
       "verified": 1,
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
-      "last_verified_at": "2026-04-26 14:59:20"
+      "last_verified_at": "2026-04-26 18:42:08"
     },
     {
-      "id": "fact-rec78BXZjGrcM1acY-7",
-      "claim": "In 2009, Pope Benedict XVI expressed gratitude to NFP physicians and scientists working on ways to treat and manage infertility so couples can procreate with full respect for personal dignity and the child to be born.",
+      "id": "fact-rec78BXZjGrcM1acY-4",
+      "claim": "The term 'rhythm method' derives its name from Leo Latz's 1932 book 'The Rhythm of Sterility and Fertility in Women,' which described a calendar-based method of natural family planning.",
       "category": "methodology",
-      "domain": "NaProTECHNOLOGY",
+      "domain": "FABM",
       "tradition": [
+        "conventional",
         "rrm-shared",
-        "napro",
         "fabm"
       ],
       "claim_type": "definition",
@@ -28960,19 +29145,50 @@
         "authors": "Fehring RJ, Yeung PP Jr",
         "type": "article"
       },
-      "verification_notes": "Quote: \"Pope Benedict XVI (like Pius XI in 1932) expressed gratitude to NFP physicians and scientists working on ways to treat and manage infertility\" Section: Editorial.",
+      "verification_notes": "Quote: \"a very simple calendar-based method of natural family planning that today takes the name 'rhythm' from his book.\" Section: history of NFP.",
       "verified": 1,
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
-      "last_verified_at": "2026-04-26 14:59:20"
+      "last_verified_at": "2026-04-26 18:42:08"
     },
     {
-      "id": "fact-rec78BXZjGrcM1acY-9",
-      "claim": "Researchers at the Georgetown University Reproductive Institute developed a modern evidence-based calendar method of NFP, analyzed in this issue by Mary Schneider and Dr. Fehring.",
+      "id": "fact-rec78BXZjGrcM1acY-6",
+      "claim": "NaProTechnology (NaProTech) is defined as the integration of natural family planning (NFP) with women's health care.",
       "category": "methodology",
-      "domain": "FABM",
+      "domain": "NaProTECHNOLOGY",
       "tradition": [
-        "fabm",
+        "conventional",
+        "rrm-shared",
+        "napro"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "rec78BXZjGrcM1acY",
+        "slug": "the-linacre-quarterly-rhythm-nfp-and-human-fertility-from-popes-pius-xi-through--recrx78gqidbqt2ok",
+        "title": "The Linacre Quarterly, Rhythm, NFP, and Human Fertility from Popes Pius XI  through Benedict XVI",
+        "short_citation": "Fehring RJ et al., 2012",
+        "pmid": "30082984",
+        "doi": "10.1179/002436312804827091",
+        "source_url": "https://doi.org/10.1179/002436312804827091",
+        "journal": "The Linacre Quarterly",
+        "year": 2012,
+        "authors": "Fehring RJ, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"the use of natural procreative technology or NaProTech (i.e., the integration of NFP with women's health care)\" Section: special issue contents.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-rec78BXZjGrcM1acY-7",
+      "claim": "The implementation of Humanae vitae teachings was one of the reasons for the rapid decline in membership in the Catholic Medical Association following the 1968 encyclical.",
+      "category": "epidemiology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "conventional",
         "rrm-shared"
       ],
       "claim_type": "definition",
@@ -28990,11 +29206,72 @@
         "authors": "Fehring RJ, Yeung PP Jr",
         "type": "article"
       },
-      "verification_notes": "Quote: \"a modern evidenced-based calendar method of NFP developed by researchers at the Georgetown University Reproductive Institute.\" Section: Editorial.",
+      "verification_notes": "Quote: \"was one of the reasons for the rapid decline in membership in the Catholic Medical Association at that time.\" Section: February 2013 issue preview.",
       "verified": 1,
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
-      "last_verified_at": "2026-04-26 14:59:20"
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-rec78BXZjGrcM1acY-8",
+      "claim": "In 2009, Pope Benedict XVI expressed gratitude to NFP physicians and scientists working on ways to treat and manage infertility while respecting personal dignity of couples and children.",
+      "category": "epidemiology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "rec78BXZjGrcM1acY",
+        "slug": "the-linacre-quarterly-rhythm-nfp-and-human-fertility-from-popes-pius-xi-through--recrx78gqidbqt2ok",
+        "title": "The Linacre Quarterly, Rhythm, NFP, and Human Fertility from Popes Pius XI  through Benedict XVI",
+        "short_citation": "Fehring RJ et al., 2012",
+        "pmid": "30082984",
+        "doi": "10.1179/002436312804827091",
+        "source_url": "https://doi.org/10.1179/002436312804827091",
+        "journal": "The Linacre Quarterly",
+        "year": 2012,
+        "authors": "Fehring RJ, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"In 2009, Pope Benedict XVI (like Pius XI in 1932) expressed gratitude to NFP physicians and scientists working on ways to treat and manage infertility\" Section: closing.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-rec78BXZjGrcM1acY-9",
+      "claim": "Bertotti's analysis of the 2006-2010 National Survey of Family Growth examined differences between current and past NFP users among reproductive-age women in the United States.",
+      "category": "epidemiology",
+      "domain": "FABM",
+      "tradition": [
+        "conventional",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "rec78BXZjGrcM1acY",
+        "slug": "the-linacre-quarterly-rhythm-nfp-and-human-fertility-from-popes-pius-xi-through--recrx78gqidbqt2ok",
+        "title": "The Linacre Quarterly, Rhythm, NFP, and Human Fertility from Popes Pius XI  through Benedict XVI",
+        "short_citation": "Fehring RJ et al., 2012",
+        "pmid": "30082984",
+        "doi": "10.1179/002436312804827091",
+        "source_url": "https://doi.org/10.1179/002436312804827091",
+        "journal": "The Linacre Quarterly",
+        "year": 2012,
+        "authors": "Fehring RJ, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Dr. Bertotti's paper analyzes data from the 2006–2010 National Survey of Family Growth to show differences in current and past users of NFP\" Section: special issue contents.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
     },
     {
       "id": "fact-rec7CFiuXNw0Qixh9-1",
@@ -36970,6 +37247,366 @@
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
       "last_verified_at": "2026-04-26 03:34:53"
+    },
+    {
+      "id": "fact-recDmtwJufMqwflY0-1",
+      "claim": "Systematic review identified 1,073 studies, read 138 in detail, and included 23 beta-hCG studies, 4 direct embryo observation studies, 2 PSBG studies, and 1 Hsp10 study on IUD users.",
+      "category": "methodology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recDmtwJufMqwflY0",
+        "slug": "systematic-review-of-postfertilization-effects-and-potential-for-embryo-formatio-rec0rfrgkec2luqbu",
+        "title": "Systematic Review of Postfertilization Effects and Potential for Embryo Formation and Loss during the Use of Intrauterine Devices",
+        "short_citation": "Buskmiller C et al., 2020",
+        "pmid": "32431449",
+        "doi": "10.1177/0024363919854289",
+        "source_url": "https://doi.org/10.1177/0024363919854289",
+        "journal": "The Linacre Quarterly",
+        "year": 2020,
+        "authors": "Buskmiller C, Harrison D, Ruppersberger LA, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"1,073 studies were identified and 138 were read in detail. Twenty-three studies of b-hCG, 4 studies of direct observation of embryos\" Section: Abstract Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recDmtwJufMqwflY0-10",
+      "claim": "Ylikorkala et al. (1980) found PSBG positive in 7 of 214 cycles (3.3%) of Cu-IUD users, providing additional evidence of trophoblastic protein elaboration.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "recDmtwJufMqwflY0",
+        "slug": "systematic-review-of-postfertilization-effects-and-potential-for-embryo-formatio-rec0rfrgkec2luqbu",
+        "title": "Systematic Review of Postfertilization Effects and Potential for Embryo Formation and Loss during the Use of Intrauterine Devices",
+        "short_citation": "Buskmiller C et al., 2020",
+        "pmid": "32431449",
+        "doi": "10.1177/0024363919854289",
+        "source_url": "https://doi.org/10.1177/0024363919854289",
+        "journal": "The Linacre Quarterly",
+        "year": 2020,
+        "authors": "Buskmiller C, Harrison D, Ruppersberger LA, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Yikorkala et al. (1980) looked at assays of PSBG, which was positive in 7 of the 214 cycles (3.3 percent)\" Section: PSBG.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recDmtwJufMqwflY0-11",
+      "claim": "Ortiz and Croxatto's 2007 reanalysis of Alvarez et al. specimens found 2 confirmed embryos plus 2 uncertain/abnormal embryos, yielding a possible fertilization rate of 28% of recovered cells in IUD users.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "recDmtwJufMqwflY0",
+        "slug": "systematic-review-of-postfertilization-effects-and-potential-for-embryo-formatio-rec0rfrgkec2luqbu",
+        "title": "Systematic Review of Postfertilization Effects and Potential for Embryo Formation and Loss during the Use of Intrauterine Devices",
+        "short_citation": "Buskmiller C et al., 2020",
+        "pmid": "32431449",
+        "doi": "10.1177/0024363919854289",
+        "source_url": "https://doi.org/10.1177/0024363919854289",
+        "journal": "The Linacre Quarterly",
+        "year": 2020,
+        "authors": "Buskmiller C, Harrison D, Ruppersberger LA, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"reanalyzed the ova from Alvarez et al.'s study and found that two of the specimens were embryos\" Section: Direct Observation of Embryos.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recDmtwJufMqwflY0-12",
+      "claim": "Cole and Gutierrez (2009) demonstrated mean pituitary beta-hCG of 1.52 +/- 0.91 IU/L in 90% of 277 ovulatory cycles, with 89% of positive tests within 7 days of LH peak.",
+      "category": "cycle-biomarker",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "recDmtwJufMqwflY0",
+        "slug": "systematic-review-of-postfertilization-effects-and-potential-for-embryo-formatio-rec0rfrgkec2luqbu",
+        "title": "Systematic Review of Postfertilization Effects and Potential for Embryo Formation and Loss during the Use of Intrauterine Devices",
+        "short_citation": "Buskmiller C et al., 2020",
+        "pmid": "32431449",
+        "doi": "10.1177/0024363919854289",
+        "source_url": "https://doi.org/10.1177/0024363919854289",
+        "journal": "The Linacre Quarterly",
+        "year": 2020,
+        "authors": "Buskmiller C, Harrison D, Ruppersberger LA, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"mean b-hCG of 1.52 ± 0.91 IU/L in 90 percent of 277 ovulatory cycles\" Section: Introduction.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recDmtwJufMqwflY0-14",
+      "claim": "No randomized trials exist comparing embryo formation and loss between IUD users and noncontracepting controls; existing evidence comes from observational and cross-sectional designs only.",
+      "category": "methodology",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recDmtwJufMqwflY0",
+        "slug": "systematic-review-of-postfertilization-effects-and-potential-for-embryo-formatio-rec0rfrgkec2luqbu",
+        "title": "Systematic Review of Postfertilization Effects and Potential for Embryo Formation and Loss during the Use of Intrauterine Devices",
+        "short_citation": "Buskmiller C et al., 2020",
+        "pmid": "32431449",
+        "doi": "10.1177/0024363919854289",
+        "source_url": "https://doi.org/10.1177/0024363919854289",
+        "journal": "The Linacre Quarterly",
+        "year": 2020,
+        "authors": "Buskmiller C, Harrison D, Ruppersberger LA, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"There are no randomized trials of embryo formation and loss in IUD users compared with noncontracepting controls.\" Section: Abstract Discussion.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recDmtwJufMqwflY0-15",
+      "claim": "Capitanio et al. (1978) detected beta-hCG in 5 of 12 ovulatory cycles (41.7%) of Cu-IUD users using multi-sample protocol from CD16 to next CD1.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "recDmtwJufMqwflY0",
+        "slug": "systematic-review-of-postfertilization-effects-and-potential-for-embryo-formatio-rec0rfrgkec2luqbu",
+        "title": "Systematic Review of Postfertilization Effects and Potential for Embryo Formation and Loss during the Use of Intrauterine Devices",
+        "short_citation": "Buskmiller C et al., 2020",
+        "pmid": "32431449",
+        "doi": "10.1177/0024363919854289",
+        "source_url": "https://doi.org/10.1177/0024363919854289",
+        "journal": "The Linacre Quarterly",
+        "year": 2020,
+        "authors": "Buskmiller C, Harrison D, Ruppersberger LA, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Cu-IUD: 5/12 (41.7)\" Section: Table 3, Capitanio et al. (1978), rated II-3-good quality.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recDmtwJufMqwflY0-2",
+      "claim": "Across all included IUD studies regardless of quality, 7.3% of IUD users (124/1,699) had evidence of fertilization and pregnancy failure.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recDmtwJufMqwflY0",
+        "slug": "systematic-review-of-postfertilization-effects-and-potential-for-embryo-formatio-rec0rfrgkec2luqbu",
+        "title": "Systematic Review of Postfertilization Effects and Potential for Embryo Formation and Loss during the Use of Intrauterine Devices",
+        "short_citation": "Buskmiller C et al., 2020",
+        "pmid": "32431449",
+        "doi": "10.1177/0024363919854289",
+        "source_url": "https://doi.org/10.1177/0024363919854289",
+        "journal": "The Linacre Quarterly",
+        "year": 2020,
+        "authors": "Buskmiller C, Harrison D, Ruppersberger LA, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"7.3 percent of IUD users had evidence of fertilization and pregnancy failure.\" Section: Abstract Results / Table 3.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recDmtwJufMqwflY0-3",
+      "claim": "In good-quality studies only, 4.5% of IUD users (10/220) had evidence of fertilization without clinical pregnancy.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recDmtwJufMqwflY0",
+        "slug": "systematic-review-of-postfertilization-effects-and-potential-for-embryo-formatio-rec0rfrgkec2luqbu",
+        "title": "Systematic Review of Postfertilization Effects and Potential for Embryo Formation and Loss during the Use of Intrauterine Devices",
+        "short_citation": "Buskmiller C et al., 2020",
+        "pmid": "32431449",
+        "doi": "10.1177/0024363919854289",
+        "source_url": "https://doi.org/10.1177/0024363919854289",
+        "journal": "The Linacre Quarterly",
+        "year": 2020,
+        "authors": "Buskmiller C, Harrison D, Ruppersberger LA, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"In good-quality studies, 4.5 percent had evidence of fertilization and pregnancy failure.\" Section: Abstract Results / Table 3.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recDmtwJufMqwflY0-4",
+      "claim": "Clinical pregnancy rates with IUDs are approximately 2 per 1,000 woman-years for LNG-IUDs and 8 per 1,000 woman-years for Cu-IUDs.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recDmtwJufMqwflY0",
+        "slug": "systematic-review-of-postfertilization-effects-and-potential-for-embryo-formatio-rec0rfrgkec2luqbu",
+        "title": "Systematic Review of Postfertilization Effects and Potential for Embryo Formation and Loss during the Use of Intrauterine Devices",
+        "short_citation": "Buskmiller C et al., 2020",
+        "pmid": "32431449",
+        "doi": "10.1177/0024363919854289",
+        "source_url": "https://doi.org/10.1177/0024363919854289",
+        "journal": "The Linacre Quarterly",
+        "year": 2020,
+        "authors": "Buskmiller C, Harrison D, Ruppersberger LA, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"clinical pregnancy occurring in 2 of the 1,000 woman-years for levonorgestrel IUDs (LNG-IUDs) and 8 of the 1,000 woman-years for copper IUDs\" Section: Introduction.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recDmtwJufMqwflY0-5",
+      "claim": "Among Cu-IUD users with late-luteal beta-hCG distinguished from LH, approximately 6.2% (62 of 996) showed probable trophoblastic activity, indicating fertilization without clinical pregnancy.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recDmtwJufMqwflY0",
+        "slug": "systematic-review-of-postfertilization-effects-and-potential-for-embryo-formatio-rec0rfrgkec2luqbu",
+        "title": "Systematic Review of Postfertilization Effects and Potential for Embryo Formation and Loss during the Use of Intrauterine Devices",
+        "short_citation": "Buskmiller C et al., 2020",
+        "pmid": "32431449",
+        "doi": "10.1177/0024363919854289",
+        "source_url": "https://doi.org/10.1177/0024363919854289",
+        "journal": "The Linacre Quarterly",
+        "year": 2020,
+        "authors": "Buskmiller C, Harrison D, Ruppersberger LA, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"probable trophoblastic activity in 62 Cu-IUD users of the 996, which were examined separately (approximately 6.2 percent)\" Section: b-hCG in Serum and Urine.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recDmtwJufMqwflY0-7",
+      "claim": "Smart et al. (1982) detected Hsp10 (early pregnancy factor) in 6 of 23 cycles (26%) in IUD users versus 0 of 13 cycles in controls; none survived to elaborate detectable beta-hCG.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "recDmtwJufMqwflY0",
+        "slug": "systematic-review-of-postfertilization-effects-and-potential-for-embryo-formatio-rec0rfrgkec2luqbu",
+        "title": "Systematic Review of Postfertilization Effects and Potential for Embryo Formation and Loss during the Use of Intrauterine Devices",
+        "short_citation": "Buskmiller C et al., 2020",
+        "pmid": "32431449",
+        "doi": "10.1177/0024363919854289",
+        "source_url": "https://doi.org/10.1177/0024363919854289",
+        "journal": "The Linacre Quarterly",
+        "year": 2020,
+        "authors": "Buskmiller C, Harrison D, Ruppersberger LA, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Smart et al. (1982) detected Hsp10 in six of the twenty-three cycles in IUD users as compared with zero of the thirteen cycles in controls.\" Section: Early Pregnancy Factor.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recDmtwJufMqwflY0-9",
+      "claim": "Seppälä et al. (1978) found PSBG positive in 6 of 94 cycles (6.4%) in Cu-IUD users, suggesting trophoblastic activity beyond beta-hCG detection.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "recDmtwJufMqwflY0",
+        "slug": "systematic-review-of-postfertilization-effects-and-potential-for-embryo-formatio-rec0rfrgkec2luqbu",
+        "title": "Systematic Review of Postfertilization Effects and Potential for Embryo Formation and Loss during the Use of Intrauterine Devices",
+        "short_citation": "Buskmiller C et al., 2020",
+        "pmid": "32431449",
+        "doi": "10.1177/0024363919854289",
+        "source_url": "https://doi.org/10.1177/0024363919854289",
+        "journal": "The Linacre Quarterly",
+        "year": 2020,
+        "authors": "Buskmiller C, Harrison D, Ruppersberger LA, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"also looked at assays of PSBG, which was positive in 6 of the 94 cycles (6.4 percent)\" Section: PSBG.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
     },
     {
       "id": "fact-rece0spmxH6bRRuEx-1",
@@ -50851,6 +51488,368 @@
       "last_verified_at": "2026-04-26 14:53:21"
     },
     {
+      "id": "fact-reclKUIwHUCWMP7XX-1",
+      "claim": "The BioCycle study was a prospective cohort of 259 regularly menstruating, healthy premenopausal women aged 18-44 years recruited from western New York and followed for up to two menstrual cycles.",
+      "category": "methodology",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reclKUIwHUCWMP7XX",
+        "slug": "usual-dietary-isoflavone-intake-and-reproductive-function-across-the-menstrual-c-recflj3tq3wq9xr8t",
+        "title": "Usual dietary isoflavone intake and reproductive function across the menstrual cycle",
+        "short_citation": "Filiberto AC et al., 2013",
+        "pmid": "23998910",
+        "doi": "10.1016/j.fertnstert.2013.08.002",
+        "source_url": "https://doi.org/10.1016/j.fertnstert.2013.08.002",
+        "journal": "Fertility and sterility",
+        "year": 2013,
+        "authors": "Filiberto AC, Mumford SL, Pollack AZ, Zhang C, Yeung EH, Schliep KC, Perkins NJ, Wactawski-Wende J, Schisterman EF",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"prospective cohort study of 259 regularly menstruating, healthy, premenopausal women aged 18–44 years.\" Section: Study Design.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-reclKUIwHUCWMP7XX-10",
+      "claim": "94% of BioCycle participants completed seven or eight clinic visits per cycle, indicating high compliance with the intensive cycle-phase sampling protocol.",
+      "category": "methodology",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "reclKUIwHUCWMP7XX",
+        "slug": "usual-dietary-isoflavone-intake-and-reproductive-function-across-the-menstrual-c-recflj3tq3wq9xr8t",
+        "title": "Usual dietary isoflavone intake and reproductive function across the menstrual cycle",
+        "short_citation": "Filiberto AC et al., 2013",
+        "pmid": "23998910",
+        "doi": "10.1016/j.fertnstert.2013.08.002",
+        "source_url": "https://doi.org/10.1016/j.fertnstert.2013.08.002",
+        "journal": "Fertility and sterility",
+        "year": 2013,
+        "authors": "Filiberto AC, Mumford SL, Pollack AZ, Zhang C, Yeung EH, Schliep KC, Perkins NJ, Wactawski-Wende J, Schisterman EF",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Participants were highly compliant with the study protocol, with 94% completing seven or eight clinic visits per cycle.\" Section: Study Design.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-reclKUIwHUCWMP7XX-11",
+      "claim": "Prior intervention trials emulating Asian diets used isoflavone supplementation of 23-84.4 mg/day, an order of magnitude higher than typical American dietary intakes.",
+      "category": "epidemiology",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "reclKUIwHUCWMP7XX",
+        "slug": "usual-dietary-isoflavone-intake-and-reproductive-function-across-the-menstrual-c-recflj3tq3wq9xr8t",
+        "title": "Usual dietary isoflavone intake and reproductive function across the menstrual cycle",
+        "short_citation": "Filiberto AC et al., 2013",
+        "pmid": "23998910",
+        "doi": "10.1016/j.fertnstert.2013.08.002",
+        "source_url": "https://doi.org/10.1016/j.fertnstert.2013.08.002",
+        "journal": "Fertility and sterility",
+        "year": 2013,
+        "authors": "Filiberto AC, Mumford SL, Pollack AZ, Zhang C, Yeung EH, Schliep KC, Perkins NJ, Wactawski-Wende J, Schisterman EF",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"intervention trials attempt to emulate diets characteristic of the Asian population, with isoflavone supplementation of 23–84.4 mg/d\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-reclKUIwHUCWMP7XX-12",
+      "claim": "Daidzein and genistein were the predominant dietary isoflavones consumed, primarily from soy milk, vegetarian meat substitutes (veggie burgers, soybeans, tofu), and granola/meal replacement bars.",
+      "category": "epidemiology",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reclKUIwHUCWMP7XX",
+        "slug": "usual-dietary-isoflavone-intake-and-reproductive-function-across-the-menstrual-c-recflj3tq3wq9xr8t",
+        "title": "Usual dietary isoflavone intake and reproductive function across the menstrual cycle",
+        "short_citation": "Filiberto AC et al., 2013",
+        "pmid": "23998910",
+        "doi": "10.1016/j.fertnstert.2013.08.002",
+        "source_url": "https://doi.org/10.1016/j.fertnstert.2013.08.002",
+        "journal": "Fertility and sterility",
+        "year": 2013,
+        "authors": "Filiberto AC, Mumford SL, Pollack AZ, Zhang C, Yeung EH, Schliep KC, Perkins NJ, Wactawski-Wende J, Schisterman EF",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Daidzein and genistein were the predominant isoflavones consumed in the diet\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-reclKUIwHUCWMP7XX-13",
+      "claim": "Isoflavones can bind to SHBG and stimulate its synthesis in the liver, reducing bioavailability of sex hormones transported to hormone-dependent tissues.",
+      "category": "hormone",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reclKUIwHUCWMP7XX",
+        "slug": "usual-dietary-isoflavone-intake-and-reproductive-function-across-the-menstrual-c-recflj3tq3wq9xr8t",
+        "title": "Usual dietary isoflavone intake and reproductive function across the menstrual cycle",
+        "short_citation": "Filiberto AC et al., 2013",
+        "pmid": "23998910",
+        "doi": "10.1016/j.fertnstert.2013.08.002",
+        "source_url": "https://doi.org/10.1016/j.fertnstert.2013.08.002",
+        "journal": "Fertility and sterility",
+        "year": 2013,
+        "authors": "Filiberto AC, Mumford SL, Pollack AZ, Zhang C, Yeung EH, Schliep KC, Perkins NJ, Wactawski-Wende J, Schisterman EF",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Isoflavones can bind to SHBG and stimulate its synthesis in the liver, thereby reducing the bioavailability of sex hormones\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-reclKUIwHUCWMP7XX-2",
+      "claim": "Of 259 BioCycle women, 35 (14%) had anovulatory cycles: 28 (11%) had one anovulatory cycle and 7 (3%) had two anovulatory cycles.",
+      "category": "epidemiology",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "reclKUIwHUCWMP7XX",
+        "slug": "usual-dietary-isoflavone-intake-and-reproductive-function-across-the-menstrual-c-recflj3tq3wq9xr8t",
+        "title": "Usual dietary isoflavone intake and reproductive function across the menstrual cycle",
+        "short_citation": "Filiberto AC et al., 2013",
+        "pmid": "23998910",
+        "doi": "10.1016/j.fertnstert.2013.08.002",
+        "source_url": "https://doi.org/10.1016/j.fertnstert.2013.08.002",
+        "journal": "Fertility and sterility",
+        "year": 2013,
+        "authors": "Filiberto AC, Mumford SL, Pollack AZ, Zhang C, Yeung EH, Schliep KC, Perkins NJ, Wactawski-Wende J, Schisterman EF",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"35 of the 259 (14%) women were considered to be anovulatory, including 28 (11%) who had one anovulatory cycle\" Section: Hormone Assessment.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-reclKUIwHUCWMP7XX-3",
+      "claim": "Cycles were classified as anovulatory if progesterone concentration was at or below 5 ng/mL throughout the entire cycle and no serum LH peak was observed on later cycle phase visits.",
+      "category": "methodology",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "reclKUIwHUCWMP7XX",
+        "slug": "usual-dietary-isoflavone-intake-and-reproductive-function-across-the-menstrual-c-recflj3tq3wq9xr8t",
+        "title": "Usual dietary isoflavone intake and reproductive function across the menstrual cycle",
+        "short_citation": "Filiberto AC et al., 2013",
+        "pmid": "23998910",
+        "doi": "10.1016/j.fertnstert.2013.08.002",
+        "source_url": "https://doi.org/10.1016/j.fertnstert.2013.08.002",
+        "journal": "Fertility and sterility",
+        "year": 2013,
+        "authors": "Filiberto AC, Mumford SL, Pollack AZ, Zhang C, Yeung EH, Schliep KC, Perkins NJ, Wactawski-Wende J, Schisterman EF",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Cycles were classified as anovulatory if the P concentration was ≤ 5 ng/mL throughout the entire cycle\" Section: Hormone Assessment.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-reclKUIwHUCWMP7XX-4",
+      "claim": "BioCycle participants had an arithmetic mean total isoflavone intake of 2.8 mg/day (geometric mean 0.86 mg/d, IQR 0.33-1.9), comparable to American women in NHANES (mean 1.3 mg/d).",
+      "category": "epidemiology",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "reclKUIwHUCWMP7XX",
+        "slug": "usual-dietary-isoflavone-intake-and-reproductive-function-across-the-menstrual-c-recflj3tq3wq9xr8t",
+        "title": "Usual dietary isoflavone intake and reproductive function across the menstrual cycle",
+        "short_citation": "Filiberto AC et al., 2013",
+        "pmid": "23998910",
+        "doi": "10.1016/j.fertnstert.2013.08.002",
+        "source_url": "https://doi.org/10.1016/j.fertnstert.2013.08.002",
+        "journal": "Fertility and sterility",
+        "year": 2013,
+        "authors": "Filiberto AC, Mumford SL, Pollack AZ, Zhang C, Yeung EH, Schliep KC, Perkins NJ, Wactawski-Wende J, Schisterman EF",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"arithmetic mean total isoflavone intake of 2.8 mg/d (geometric mean 0.86 mg/d, IQR 0.33–1.9\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-reclKUIwHUCWMP7XX-5",
+      "claim": "Usual dietary isoflavone intake showed no statistically significant association with total estradiol, free estradiol, or ovulatory LH or FSH concentrations across the menstrual cycle.",
+      "category": "outcome",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "reclKUIwHUCWMP7XX",
+        "slug": "usual-dietary-isoflavone-intake-and-reproductive-function-across-the-menstrual-c-recflj3tq3wq9xr8t",
+        "title": "Usual dietary isoflavone intake and reproductive function across the menstrual cycle",
+        "short_citation": "Filiberto AC et al., 2013",
+        "pmid": "23998910",
+        "doi": "10.1016/j.fertnstert.2013.08.002",
+        "source_url": "https://doi.org/10.1016/j.fertnstert.2013.08.002",
+        "journal": "Fertility and sterility",
+        "year": 2013,
+        "authors": "Filiberto AC, Mumford SL, Pollack AZ, Zhang C, Yeung EH, Schliep KC, Perkins NJ, Wactawski-Wende J, Schisterman EF",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"There were no statistically significant associations between isoflavone intake and total E2, free E2, or ovulatory LH or FSH\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-reclKUIwHUCWMP7XX-7",
+      "claim": "Isoflavone intake was not associated with incident anovulation in fully adjusted models (Q4 vs Q1: OR 0.87, 95% CI 0.32-1.66).",
+      "category": "outcome",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "reclKUIwHUCWMP7XX",
+        "slug": "usual-dietary-isoflavone-intake-and-reproductive-function-across-the-menstrual-c-recflj3tq3wq9xr8t",
+        "title": "Usual dietary isoflavone intake and reproductive function across the menstrual cycle",
+        "short_citation": "Filiberto AC et al., 2013",
+        "pmid": "23998910",
+        "doi": "10.1016/j.fertnstert.2013.08.002",
+        "source_url": "https://doi.org/10.1016/j.fertnstert.2013.08.002",
+        "journal": "Fertility and sterility",
+        "year": 2013,
+        "authors": "Filiberto AC, Mumford SL, Pollack AZ, Zhang C, Yeung EH, Schliep KC, Perkins NJ, Wactawski-Wende J, Schisterman EF",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"fully adjusted model for Q4 vs. Q1: odds ratio [OR] 0.87, 95% CI 0.32–1.66\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-reclKUIwHUCWMP7XX-8",
+      "claim": "Fertility monitors capture the LH surge in over 75% of cycles, while traditional calendar-based or cycle-length algorithms detect the LH surge in only 37%-57% of cycles.",
+      "category": "methodology",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "reclKUIwHUCWMP7XX",
+        "slug": "usual-dietary-isoflavone-intake-and-reproductive-function-across-the-menstrual-c-recflj3tq3wq9xr8t",
+        "title": "Usual dietary isoflavone intake and reproductive function across the menstrual cycle",
+        "short_citation": "Filiberto AC et al., 2013",
+        "pmid": "23998910",
+        "doi": "10.1016/j.fertnstert.2013.08.002",
+        "source_url": "https://doi.org/10.1016/j.fertnstert.2013.08.002",
+        "journal": "Fertility and sterility",
+        "year": 2013,
+        "authors": "Filiberto AC, Mumford SL, Pollack AZ, Zhang C, Yeung EH, Schliep KC, Perkins NJ, Wactawski-Wende J, Schisterman EF",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Fertility monitors capture the LH surge in >75% of cycles, whereas traditional algorithms... only detect the LH surge in 37%–57% of cycles\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-reclKUIwHUCWMP7XX-9",
+      "claim": "BioCycle visits were timed with Clearblue Easy Fertility Monitors to correspond to menstruation, midfollicular, late follicular, LH/FSH surges, ovulation, and early/mid/late luteal phases.",
+      "category": "methodology",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared",
+        "fabm"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "reclKUIwHUCWMP7XX",
+        "slug": "usual-dietary-isoflavone-intake-and-reproductive-function-across-the-menstrual-c-recflj3tq3wq9xr8t",
+        "title": "Usual dietary isoflavone intake and reproductive function across the menstrual cycle",
+        "short_citation": "Filiberto AC et al., 2013",
+        "pmid": "23998910",
+        "doi": "10.1016/j.fertnstert.2013.08.002",
+        "source_url": "https://doi.org/10.1016/j.fertnstert.2013.08.002",
+        "journal": "Fertility and sterility",
+        "year": 2013,
+        "authors": "Filiberto AC, Mumford SL, Pollack AZ, Zhang C, Yeung EH, Schliep KC, Perkins NJ, Wactawski-Wende J, Schisterman EF",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"visits timed with the use of fertility monitors (Clearblue Easy Fertility Monitor; Inverness Medical) to correspond to menstruation, midfollicular\" Section: Study Design.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
       "id": "fact-recLpoutaODvmziD6-1",
       "claim": "In the ENDO Study operative cohort, women with visualised endometriosis had a higher prevalence of miscarriages with adjusted prevalence ratio 1.48 (95% CI 1.23, 1.77) compared with women without endometriosis.",
       "category": "outcome",
@@ -57183,6 +58182,336 @@
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
       "last_verified_at": "2026-04-26 03:34:53"
+    },
+    {
+      "id": "fact-recOf5SfvQWzeH9g2-1",
+      "claim": "In this pilot study, cumulative 4-year pregnancy rate was 85% in the ePTFE group versus 65% in the no-ePTFE group following endometrioma cystectomy and excision (p=0.69, not statistically significant).",
+      "category": "outcome",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recOf5SfvQWzeH9g2",
+        "slug": "fertility-after-expanded-polytetrafluoroethylene-use-after-endometrioma-cystecto-recxsbt197qgtu9qq",
+        "title": "Fertility after expanded polytetrafluoroethylene use after endometrioma  cystectomy: a pilot study",
+        "short_citation": "Yeung PP Jr et al., 2023",
+        "pmid": "38076007",
+        "doi": "10.3389/frph.2023.1231029",
+        "source_url": "https://doi.org/10.3389/frph.2023.1231029",
+        "journal": "Frontiers in Reproductive Health",
+        "year": 2023,
+        "authors": "Yeung PP Jr, Su MS, Voltz J, Gavard JA",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"High cumulative 4-year pregnancy rates were observed for women with expanded polytetrafluoroethylene compared to women without (85% vs. 65%, p = 0.69)\" Section: Results/Abstract.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recOf5SfvQWzeH9g2-10",
+      "claim": "Endometriomas affect up to 44% of women with endometriosis and have been associated with diminished ovarian reserve.",
+      "category": "epidemiology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recOf5SfvQWzeH9g2",
+        "slug": "fertility-after-expanded-polytetrafluoroethylene-use-after-endometrioma-cystecto-recxsbt197qgtu9qq",
+        "title": "Fertility after expanded polytetrafluoroethylene use after endometrioma  cystectomy: a pilot study",
+        "short_citation": "Yeung PP Jr et al., 2023",
+        "pmid": "38076007",
+        "doi": "10.3389/frph.2023.1231029",
+        "source_url": "https://doi.org/10.3389/frph.2023.1231029",
+        "journal": "Frontiers in Reproductive Health",
+        "year": 2023,
+        "authors": "Yeung PP Jr, Su MS, Voltz J, Gavard JA",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"These ovarian cysts composed of endometrial-like tissue filled with old blood affect up to 44% of women with endometriosis\" Section: Introduction.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recOf5SfvQWzeH9g2-11",
+      "claim": "Endometriosis affects up to 50% of infertile women, supporting endometriosis-associated infertility as a major clinical concern.",
+      "category": "epidemiology",
+      "domain": "infertility",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recOf5SfvQWzeH9g2",
+        "slug": "fertility-after-expanded-polytetrafluoroethylene-use-after-endometrioma-cystecto-recxsbt197qgtu9qq",
+        "title": "Fertility after expanded polytetrafluoroethylene use after endometrioma  cystectomy: a pilot study",
+        "short_citation": "Yeung PP Jr et al., 2023",
+        "pmid": "38076007",
+        "doi": "10.3389/frph.2023.1231029",
+        "source_url": "https://doi.org/10.3389/frph.2023.1231029",
+        "journal": "Frontiers in Reproductive Health",
+        "year": 2023,
+        "authors": "Yeung PP Jr, Su MS, Voltz J, Gavard JA",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Endometriosis affects up to 50% of women who are infertile\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recOf5SfvQWzeH9g2-13",
+      "claim": "Median age of qualifying women was 30 years; median preoperative infertility duration was 48 months (range 12-120 months); 82.1% reported infertility preoperatively.",
+      "category": "epidemiology",
+      "domain": "infertility",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recOf5SfvQWzeH9g2",
+        "slug": "fertility-after-expanded-polytetrafluoroethylene-use-after-endometrioma-cystecto-recxsbt197qgtu9qq",
+        "title": "Fertility after expanded polytetrafluoroethylene use after endometrioma  cystectomy: a pilot study",
+        "short_citation": "Yeung PP Jr et al., 2023",
+        "pmid": "38076007",
+        "doi": "10.3389/frph.2023.1231029",
+        "source_url": "https://doi.org/10.3389/frph.2023.1231029",
+        "journal": "Frontiers in Reproductive Health",
+        "year": 2023,
+        "authors": "Yeung PP Jr, Su MS, Voltz J, Gavard JA",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Twenty-three (82.1%) women reported being infertile at the time of the preoperative questionnaire with a median time of infertility of 48 months\" Section: Demographics.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recOf5SfvQWzeH9g2-15",
+      "claim": "This is the first study examining how an adhesion-prevention strategy targeting the adnexa during endometriosis surgery affects pregnancy rates.",
+      "category": "methodology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recOf5SfvQWzeH9g2",
+        "slug": "fertility-after-expanded-polytetrafluoroethylene-use-after-endometrioma-cystecto-recxsbt197qgtu9qq",
+        "title": "Fertility after expanded polytetrafluoroethylene use after endometrioma  cystectomy: a pilot study",
+        "short_citation": "Yeung PP Jr et al., 2023",
+        "pmid": "38076007",
+        "doi": "10.3389/frph.2023.1231029",
+        "source_url": "https://doi.org/10.3389/frph.2023.1231029",
+        "journal": "Frontiers in Reproductive Health",
+        "year": 2023,
+        "authors": "Yeung PP Jr, Su MS, Voltz J, Gavard JA",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"This is the first study examining how adhesion prevention strategy targeting the adnexa during surgery for endometriosis affects pregnancy rates.\" Section: Abstract Discussion.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recOf5SfvQWzeH9g2-2",
+      "claim": "Among women with infertility prior to surgery, cumulative 4-year pregnancy rate was 83% in the ePTFE group versus 33% in the no-ePTFE group (p=0.89, underpowered pilot).",
+      "category": "outcome",
+      "domain": "infertility",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recOf5SfvQWzeH9g2",
+        "slug": "fertility-after-expanded-polytetrafluoroethylene-use-after-endometrioma-cystecto-recxsbt197qgtu9qq",
+        "title": "Fertility after expanded polytetrafluoroethylene use after endometrioma  cystectomy: a pilot study",
+        "short_citation": "Yeung PP Jr et al., 2023",
+        "pmid": "38076007",
+        "doi": "10.3389/frph.2023.1231029",
+        "source_url": "https://doi.org/10.3389/frph.2023.1231029",
+        "journal": "Frontiers in Reproductive Health",
+        "year": 2023,
+        "authors": "Yeung PP Jr, Su MS, Voltz J, Gavard JA",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"cumulative 4-year pregnancy rates...for women with expanded polytetrafluoroethylene compared to women without (83% vs. 33%, p = 0.89)\" Section: Abstract Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recOf5SfvQWzeH9g2-4",
+      "claim": "Surgical technique was laparoscopic optimal excision (cutting out, not ablating, all visible typical and atypical lesions) of endometriosis with carbon dioxide laser, performed by a single surgeon.",
+      "category": "surgery",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "recOf5SfvQWzeH9g2",
+        "slug": "fertility-after-expanded-polytetrafluoroethylene-use-after-endometrioma-cystecto-recxsbt197qgtu9qq",
+        "title": "Fertility after expanded polytetrafluoroethylene use after endometrioma  cystectomy: a pilot study",
+        "short_citation": "Yeung PP Jr et al., 2023",
+        "pmid": "38076007",
+        "doi": "10.3389/frph.2023.1231029",
+        "source_url": "https://doi.org/10.3389/frph.2023.1231029",
+        "journal": "Frontiers in Reproductive Health",
+        "year": 2023,
+        "authors": "Yeung PP Jr, Su MS, Voltz J, Gavard JA",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"laparoscopic optimal excision (defined as removing by cutting out, as opposed to ablating, all visible lesions—typical and atypical\" Section: Surgical technique.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recOf5SfvQWzeH9g2-6",
+      "claim": "Of the 29 women analyzed, 96.6% had ASRM Stage IV (severe) endometriosis; in the no-ePTFE group, 100% were Stage IV.",
+      "category": "epidemiology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recOf5SfvQWzeH9g2",
+        "slug": "fertility-after-expanded-polytetrafluoroethylene-use-after-endometrioma-cystecto-recxsbt197qgtu9qq",
+        "title": "Fertility after expanded polytetrafluoroethylene use after endometrioma  cystectomy: a pilot study",
+        "short_citation": "Yeung PP Jr et al., 2023",
+        "pmid": "38076007",
+        "doi": "10.3389/frph.2023.1231029",
+        "source_url": "https://doi.org/10.3389/frph.2023.1231029",
+        "journal": "Frontiers in Reproductive Health",
+        "year": 2023,
+        "authors": "Yeung PP Jr, Su MS, Voltz J, Gavard JA",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Almost all (96.6%) of the women were ASRM Stage IV...In the no ePTFE group, 100% of women were ASRM Stage IV\" Section: Endometriosis surgical characteristics.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recOf5SfvQWzeH9g2-7",
+      "claim": "Total post-surgery pregnancy rate across all 29 women was 14/29 (48.3%); ePTFE group 10/18 (55.6%) versus no-ePTFE 4/11 (36.4%), p=0.54.",
+      "category": "outcome",
+      "domain": "infertility",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recOf5SfvQWzeH9g2",
+        "slug": "fertility-after-expanded-polytetrafluoroethylene-use-after-endometrioma-cystecto-recxsbt197qgtu9qq",
+        "title": "Fertility after expanded polytetrafluoroethylene use after endometrioma  cystectomy: a pilot study",
+        "short_citation": "Yeung PP Jr et al., 2023",
+        "pmid": "38076007",
+        "doi": "10.3389/frph.2023.1231029",
+        "source_url": "https://doi.org/10.3389/frph.2023.1231029",
+        "journal": "Frontiers in Reproductive Health",
+        "year": 2023,
+        "authors": "Yeung PP Jr, Su MS, Voltz J, Gavard JA",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"The total number of women who became pregnant was 14/29 (48.3%). The rate of pregnancy in the ePTFE group (55.6% vs. 36.4%, p = 0.54\" Section: Pregnancy rates.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recOf5SfvQWzeH9g2-8",
+      "claim": "Among infertile women at baseline, 8/16 (50.0%) ePTFE versus 2/7 (28.6%) no-ePTFE achieved pregnancy post-surgery (p=0.41).",
+      "category": "outcome",
+      "domain": "infertility",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recOf5SfvQWzeH9g2",
+        "slug": "fertility-after-expanded-polytetrafluoroethylene-use-after-endometrioma-cystecto-recxsbt197qgtu9qq",
+        "title": "Fertility after expanded polytetrafluoroethylene use after endometrioma  cystectomy: a pilot study",
+        "short_citation": "Yeung PP Jr et al., 2023",
+        "pmid": "38076007",
+        "doi": "10.3389/frph.2023.1231029",
+        "source_url": "https://doi.org/10.3389/frph.2023.1231029",
+        "journal": "Frontiers in Reproductive Health",
+        "year": 2023,
+        "authors": "Yeung PP Jr, Su MS, Voltz J, Gavard JA",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"8 of 16 (50.0%) women in the ePTFE group and two of seven (28.6%) women in the no ePTFE group became pregnant\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recOf5SfvQWzeH9g2-9",
+      "claim": "The majority of post-surgery pregnancies in this cohort occurred within the first two years after excision surgery.",
+      "category": "outcome",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recOf5SfvQWzeH9g2",
+        "slug": "fertility-after-expanded-polytetrafluoroethylene-use-after-endometrioma-cystecto-recxsbt197qgtu9qq",
+        "title": "Fertility after expanded polytetrafluoroethylene use after endometrioma  cystectomy: a pilot study",
+        "short_citation": "Yeung PP Jr et al., 2023",
+        "pmid": "38076007",
+        "doi": "10.3389/frph.2023.1231029",
+        "source_url": "https://doi.org/10.3389/frph.2023.1231029",
+        "journal": "Frontiers in Reproductive Health",
+        "year": 2023,
+        "authors": "Yeung PP Jr, Su MS, Voltz J, Gavard JA",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"The majority of all pregnancies occurred within the first two years post-surgery.\" Section: Pregnancy rates.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
     },
     {
       "id": "fact-recoi8DyI7sdWai6i-1",
@@ -71243,6 +72572,426 @@
       "last_verified_at": "2026-04-26 15:03:25"
     },
     {
+      "id": "fact-recVHV5Ay6IBgg7Li-1",
+      "claim": "Among 107 consecutive patients with preoperative deep dyspareunia who underwent laparoscopic excision, endometriosis was confirmed histologically in 88/107 (82.2%) of women.",
+      "category": "epidemiology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recVHV5Ay6IBgg7Li",
+        "slug": "deep-retraction-pockets-endometriosis-and-quality-of-life-rec1cifot4igsqwxo",
+        "title": "Deep Retraction Pockets, Endometriosis, and Quality of Life",
+        "short_citation": "Yeung PP Jr et al., 2016",
+        "pmid": "27242981",
+        "doi": "10.3389/fpubh.2016.00085",
+        "source_url": "https://doi.org/10.3389/fpubh.2016.00085",
+        "journal": "Frontiers in Public Health",
+        "year": 2016,
+        "authors": "Yeung PP Jr, Logan I, Gavard JA",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Endometriosis was confirmed histologically in any location excised in 88/107 (82.2%) of the women\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recVHV5Ay6IBgg7Li-10",
+      "claim": "Women with endometriosis confirmed in DRPs had median quality of life scores improve from 50.0 to 90.0 (p<0.01) after excision surgery.",
+      "category": "outcome",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recVHV5Ay6IBgg7Li",
+        "slug": "deep-retraction-pockets-endometriosis-and-quality-of-life-rec1cifot4igsqwxo",
+        "title": "Deep Retraction Pockets, Endometriosis, and Quality of Life",
+        "short_citation": "Yeung PP Jr et al., 2016",
+        "pmid": "27242981",
+        "doi": "10.3389/fpubh.2016.00085",
+        "source_url": "https://doi.org/10.3389/fpubh.2016.00085",
+        "journal": "Frontiers in Public Health",
+        "year": 2016,
+        "authors": "Yeung PP Jr, Logan I, Gavard JA",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Endometriosis 7 50.0 90.0 30.0 <0.01\" Section: Table 4, Quality of life score.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recVHV5Ay6IBgg7Li-12",
+      "claim": "Only 9/44 (20.5%) of women with endometriosis who completed the postoperative questionnaire took hormonal suppression after surgery.",
+      "category": "protocol",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recVHV5Ay6IBgg7Li",
+        "slug": "deep-retraction-pockets-endometriosis-and-quality-of-life-rec1cifot4igsqwxo",
+        "title": "Deep Retraction Pockets, Endometriosis, and Quality of Life",
+        "short_citation": "Yeung PP Jr et al., 2016",
+        "pmid": "27242981",
+        "doi": "10.3389/fpubh.2016.00085",
+        "source_url": "https://doi.org/10.3389/fpubh.2016.00085",
+        "journal": "Frontiers in Public Health",
+        "year": 2016,
+        "authors": "Yeung PP Jr, Logan I, Gavard JA",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Of the women with endometriosis anywhere who completed the postoperative questionnaire, 9/44 (20.5%) took hormonal suppression after surgery.\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recVHV5Ay6IBgg7Li-13",
+      "claim": "Pain with bowel movements among women with DRPs improved from a median of 7.0 to 0.0 (p<0.05) after excision surgery on a 10-point scale.",
+      "category": "outcome",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recVHV5Ay6IBgg7Li",
+        "slug": "deep-retraction-pockets-endometriosis-and-quality-of-life-rec1cifot4igsqwxo",
+        "title": "Deep Retraction Pockets, Endometriosis, and Quality of Life",
+        "short_citation": "Yeung PP Jr et al., 2016",
+        "pmid": "27242981",
+        "doi": "10.3389/fpubh.2016.00085",
+        "source_url": "https://doi.org/10.3389/fpubh.2016.00085",
+        "journal": "Frontiers in Public Health",
+        "year": 2016,
+        "authors": "Yeung PP Jr, Logan I, Gavard JA",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Pain with bowel movements score Deep retraction pockets 11 7.0 0.0 -6.0 <0.05\" Section: Table 4.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recVHV5Ay6IBgg7Li-14",
+      "claim": "Authors recommend that deep retraction pockets be excised at the time of surgery in patients with deep dyspareunia, since pockets may harbor endometriosis even when surface appears clear.",
+      "category": "protocol",
+      "domain": "surgery",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "recVHV5Ay6IBgg7Li",
+        "slug": "deep-retraction-pockets-endometriosis-and-quality-of-life-rec1cifot4igsqwxo",
+        "title": "Deep Retraction Pockets, Endometriosis, and Quality of Life",
+        "short_citation": "Yeung PP Jr et al., 2016",
+        "pmid": "27242981",
+        "doi": "10.3389/fpubh.2016.00085",
+        "source_url": "https://doi.org/10.3389/fpubh.2016.00085",
+        "journal": "Frontiers in Public Health",
+        "year": 2016,
+        "authors": "Yeung PP Jr, Logan I, Gavard JA",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"we recommend that DRP be removed at the time of excision surgery in patients with deep dyspareunia\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recVHV5Ay6IBgg7Li-15",
+      "claim": "Median postoperative follow-up was 13 months (range 12-25 months), with 53/107 (49.5%) of women completing the postoperative questionnaire.",
+      "category": "methodology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recVHV5Ay6IBgg7Li",
+        "slug": "deep-retraction-pockets-endometriosis-and-quality-of-life-rec1cifot4igsqwxo",
+        "title": "Deep Retraction Pockets, Endometriosis, and Quality of Life",
+        "short_citation": "Yeung PP Jr et al., 2016",
+        "pmid": "27242981",
+        "doi": "10.3389/fpubh.2016.00085",
+        "source_url": "https://doi.org/10.3389/fpubh.2016.00085",
+        "journal": "Frontiers in Public Health",
+        "year": 2016,
+        "authors": "Yeung PP Jr, Logan I, Gavard JA",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"postoperative questionnaire was completed by 53/107 (49.5%) of the women at a median time after surgery of 13 months and a range of 12-25 months\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recVHV5Ay6IBgg7Li-2",
+      "claim": "Deep retraction pockets (DRPs) in the posterior cul-de-sac or uterosacral ligaments were present in 25/107 (23.4%) of women presenting with deep dyspareunia.",
+      "category": "epidemiology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recVHV5Ay6IBgg7Li",
+        "slug": "deep-retraction-pockets-endometriosis-and-quality-of-life-rec1cifot4igsqwxo",
+        "title": "Deep Retraction Pockets, Endometriosis, and Quality of Life",
+        "short_citation": "Yeung PP Jr et al., 2016",
+        "pmid": "27242981",
+        "doi": "10.3389/fpubh.2016.00085",
+        "source_url": "https://doi.org/10.3389/fpubh.2016.00085",
+        "journal": "Frontiers in Public Health",
+        "year": 2016,
+        "authors": "Yeung PP Jr, Logan I, Gavard JA",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"25/107 (23.4%) of the women with deep dyspareunia had DRP within the posterior cul-de-sac or uterosacral ligaments\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recVHV5Ay6IBgg7Li-3",
+      "claim": "Of 31 deep retraction pockets excised, 15 (48.4%) contained histologically confirmed endometriosis.",
+      "category": "pathology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recVHV5Ay6IBgg7Li",
+        "slug": "deep-retraction-pockets-endometriosis-and-quality-of-life-rec1cifot4igsqwxo",
+        "title": "Deep Retraction Pockets, Endometriosis, and Quality of Life",
+        "short_citation": "Yeung PP Jr et al., 2016",
+        "pmid": "27242981",
+        "doi": "10.3389/fpubh.2016.00085",
+        "source_url": "https://doi.org/10.3389/fpubh.2016.00085",
+        "journal": "Frontiers in Public Health",
+        "year": 2016,
+        "authors": "Yeung PP Jr, Logan I, Gavard JA",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"31 DRPs were excised from 25 women with DRPs in the posterior cul-de-sac or uterosacral ligaments, of which 15/31 (48.4%) had endometriosis\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recVHV5Ay6IBgg7Li-4",
+      "claim": "Of 10 deep retraction pockets that appeared clear with no visible surface lesions, 3 (30.0%) contained endometriosis on histology, indicating clear pockets can still harbor disease.",
+      "category": "pathology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recVHV5Ay6IBgg7Li",
+        "slug": "deep-retraction-pockets-endometriosis-and-quality-of-life-rec1cifot4igsqwxo",
+        "title": "Deep Retraction Pockets, Endometriosis, and Quality of Life",
+        "short_citation": "Yeung PP Jr et al., 2016",
+        "pmid": "27242981",
+        "doi": "10.3389/fpubh.2016.00085",
+        "source_url": "https://doi.org/10.3389/fpubh.2016.00085",
+        "journal": "Frontiers in Public Health",
+        "year": 2016,
+        "authors": "Yeung PP Jr, Logan I, Gavard JA",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Of these 10 DRPs without visible surface lesions, 3 (30.0%) had endometriosis on histology.\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recVHV5Ay6IBgg7Li-5",
+      "claim": "Among the 25 women with DRPs, 15/25 (60.0%) had endometriosis confirmed histologically in at least one pocket.",
+      "category": "epidemiology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recVHV5Ay6IBgg7Li",
+        "slug": "deep-retraction-pockets-endometriosis-and-quality-of-life-rec1cifot4igsqwxo",
+        "title": "Deep Retraction Pockets, Endometriosis, and Quality of Life",
+        "short_citation": "Yeung PP Jr et al., 2016",
+        "pmid": "27242981",
+        "doi": "10.3389/fpubh.2016.00085",
+        "source_url": "https://doi.org/10.3389/fpubh.2016.00085",
+        "journal": "Frontiers in Public Health",
+        "year": 2016,
+        "authors": "Yeung PP Jr, Logan I, Gavard JA",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Twenty-five of the 107 women (23.4%) had DRP in the posterior cul-de-sac or uterosacral ligaments, of whom 15/25 (60.0%) had endometriosis confirmed\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recVHV5Ay6IBgg7Li-6",
+      "claim": "Deep retraction pocket locations where endometriosis most commonly occurred were the left and right uterosacral ligaments, each present in 9/31 (29.0%) of DRPs.",
+      "category": "pathology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recVHV5Ay6IBgg7Li",
+        "slug": "deep-retraction-pockets-endometriosis-and-quality-of-life-rec1cifot4igsqwxo",
+        "title": "Deep Retraction Pockets, Endometriosis, and Quality of Life",
+        "short_citation": "Yeung PP Jr et al., 2016",
+        "pmid": "27242981",
+        "doi": "10.3389/fpubh.2016.00085",
+        "source_url": "https://doi.org/10.3389/fpubh.2016.00085",
+        "journal": "Frontiers in Public Health",
+        "year": 2016,
+        "authors": "Yeung PP Jr, Logan I, Gavard JA",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"DRP locations where endometriosis most commonly occurred were the left and right uterosacral ligaments, being present in 9/31 (29.0%) DRP for each.\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recVHV5Ay6IBgg7Li-7",
+      "claim": "Among women with endometriosis in DRPs, 13/15 (86.7%) had Stage II endometriosis and 2/15 (13.3%) had Stage III endometriosis by r-ASRM classification.",
+      "category": "pathology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recVHV5Ay6IBgg7Li",
+        "slug": "deep-retraction-pockets-endometriosis-and-quality-of-life-rec1cifot4igsqwxo",
+        "title": "Deep Retraction Pockets, Endometriosis, and Quality of Life",
+        "short_citation": "Yeung PP Jr et al., 2016",
+        "pmid": "27242981",
+        "doi": "10.3389/fpubh.2016.00085",
+        "source_url": "https://doi.org/10.3389/fpubh.2016.00085",
+        "journal": "Frontiers in Public Health",
+        "year": 2016,
+        "authors": "Yeung PP Jr, Logan I, Gavard JA",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"13/15 (86.7%) had Stage II endometriosis and 2/15 (13.3%) had Stage III endometriosis by the r-ASRM classification.\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recVHV5Ay6IBgg7Li-8",
+      "claim": "After excision surgery, women with DRPs had median deep dyspareunia scores improve from 6.0 preoperatively to 4.0 postoperatively (p<0.01) on a 10-point scale.",
+      "category": "outcome",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recVHV5Ay6IBgg7Li",
+        "slug": "deep-retraction-pockets-endometriosis-and-quality-of-life-rec1cifot4igsqwxo",
+        "title": "Deep Retraction Pockets, Endometriosis, and Quality of Life",
+        "short_citation": "Yeung PP Jr et al., 2016",
+        "pmid": "27242981",
+        "doi": "10.3389/fpubh.2016.00085",
+        "source_url": "https://doi.org/10.3389/fpubh.2016.00085",
+        "journal": "Frontiers in Public Health",
+        "year": 2016,
+        "authors": "Yeung PP Jr, Logan I, Gavard JA",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Deep retraction pockets 13 6.0 4.0 -2.0 <0.01\" Section: Table 4, Deep pain with intercourse score.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recVHV5Ay6IBgg7Li-9",
+      "claim": "Quality of life improved significantly after excision surgery for women with DRPs, with median scores rising from 55.0 to 80.0 (p<0.05) on a 100-point scale.",
+      "category": "outcome",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recVHV5Ay6IBgg7Li",
+        "slug": "deep-retraction-pockets-endometriosis-and-quality-of-life-rec1cifot4igsqwxo",
+        "title": "Deep Retraction Pockets, Endometriosis, and Quality of Life",
+        "short_citation": "Yeung PP Jr et al., 2016",
+        "pmid": "27242981",
+        "doi": "10.3389/fpubh.2016.00085",
+        "source_url": "https://doi.org/10.3389/fpubh.2016.00085",
+        "journal": "Frontiers in Public Health",
+        "year": 2016,
+        "authors": "Yeung PP Jr, Logan I, Gavard JA",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Quality of life score Deep retraction pockets 12 55.0 80.0 25.0 <0.05\" Section: Table 4.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
       "id": "fact-recVQAUnQvRuUFNNK-1",
       "claim": "In the PROMISE trial, nearly 33% of women screened (515 of 1568) were excluded because of subfertility, meaning the trial did not address progesterone supplementation in women with coexisting subfertility.",
       "category": "methodology",
@@ -71881,6 +73630,396 @@
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
       "last_verified_at": "2026-04-26 03:34:52"
+    },
+    {
+      "id": "fact-recvxSkFtBxS2eWIY-1",
+      "claim": "The BioCycle Study (2005-2007) prospectively followed 259 healthy, regularly menstruating women aged 18-44 from upstate New York across one to two menstrual cycles.",
+      "category": "methodology",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recvxSkFtBxS2eWIY",
+        "slug": "the-influences-of-sleep-duration-chronotype-and-nightwork-on-the-ovarian-cycle-rec01avrmni2q9vw0",
+        "title": "The influences of sleep duration, chronotype, and nightwork on the ovarian cycle",
+        "short_citation": "Michels KA et al., 2020",
+        "pmid": "31778080",
+        "doi": "10.1080/07420528.2019.1694938",
+        "source_url": "https://doi.org/10.1080/07420528.2019.1694938",
+        "journal": "Chronobiology international",
+        "year": 2020,
+        "authors": "Michels KA, Mendola P, Schliep KC, Yeung EH, Ye A, Dunietz GL, Wactawski-Wende J, Kim K, Freeman JR, Schisterman EF, Mumford SL",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"The BioCycle Study (2005–2007) is a prospective cohort of 259 women recruited from upstate New York (NY), U.S.\" Section: Study population.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recvxSkFtBxS2eWIY-10",
+      "claim": "Women with morning chronotypes showed a suggested but non-significant 2.5-fold increased risk of sporadic anovulation (RR 2.50, 95% CI 0.93, 6.77) compared to those with intermediate chronotypes.",
+      "category": "outcome",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recvxSkFtBxS2eWIY",
+        "slug": "the-influences-of-sleep-duration-chronotype-and-nightwork-on-the-ovarian-cycle-rec01avrmni2q9vw0",
+        "title": "The influences of sleep duration, chronotype, and nightwork on the ovarian cycle",
+        "short_citation": "Michels KA et al., 2020",
+        "pmid": "31778080",
+        "doi": "10.1080/07420528.2019.1694938",
+        "source_url": "https://doi.org/10.1080/07420528.2019.1694938",
+        "journal": "Chronobiology international",
+        "year": 2020,
+        "authors": "Michels KA, Mendola P, Schliep KC, Yeung EH, Ye A, Dunietz GL, Wactawski-Wende J, Kim K, Freeman JR, Schisterman EF, Mumford SL",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"an increased risk for those with morning chronotypes was suggested (RR 2.50, CI 0.93, 6.77)\" Section: Chronotype.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recvxSkFtBxS2eWIY-11",
+      "claim": "In the BioCycle cohort, women reported their shortest daily sleep durations around ovulation and longest in the mid-luteal phase, with means ranging 6.9 to 7.1 hours across the cycle.",
+      "category": "cycle-biomarker",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recvxSkFtBxS2eWIY",
+        "slug": "the-influences-of-sleep-duration-chronotype-and-nightwork-on-the-ovarian-cycle-rec01avrmni2q9vw0",
+        "title": "The influences of sleep duration, chronotype, and nightwork on the ovarian cycle",
+        "short_citation": "Michels KA et al., 2020",
+        "pmid": "31778080",
+        "doi": "10.1080/07420528.2019.1694938",
+        "source_url": "https://doi.org/10.1080/07420528.2019.1694938",
+        "journal": "Chronobiology international",
+        "year": 2020,
+        "authors": "Michels KA, Mendola P, Schliep KC, Yeung EH, Ye A, Dunietz GL, Wactawski-Wende J, Kim K, Freeman JR, Schisterman EF, Mumford SL",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"The least-square means ranged from 6.9 to 7.1 hours of daily sleep across the cycle.\" Section: Daily sleep duration.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recvxSkFtBxS2eWIY-13",
+      "claim": "As many as a third of US women report sleeping less than 6-7 hours in a typical 24-hour period, below the 7-hour minimum recommended by major sleep medicine bodies.",
+      "category": "epidemiology",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recvxSkFtBxS2eWIY",
+        "slug": "the-influences-of-sleep-duration-chronotype-and-nightwork-on-the-ovarian-cycle-rec01avrmni2q9vw0",
+        "title": "The influences of sleep duration, chronotype, and nightwork on the ovarian cycle",
+        "short_citation": "Michels KA et al., 2020",
+        "pmid": "31778080",
+        "doi": "10.1080/07420528.2019.1694938",
+        "source_url": "https://doi.org/10.1080/07420528.2019.1694938",
+        "journal": "Chronobiology international",
+        "year": 2020,
+        "authors": "Michels KA, Mendola P, Schliep KC, Yeung EH, Ye A, Dunietz GL, Wactawski-Wende J, Kim K, Freeman JR, Schisterman EF, Mumford SL",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"as many as a third of women in the United States report sleeping less than 6 to 7 hours in a typical 24 hour period\" Section: Introduction.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recvxSkFtBxS2eWIY-14",
+      "claim": "Decreased risk of sporadic anovulation was suggested with increasing daily sleep hours leading up to the LH surge but did not reach statistical significance (RR 0.79, 95% CI 0.59, 1.06).",
+      "category": "outcome",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recvxSkFtBxS2eWIY",
+        "slug": "the-influences-of-sleep-duration-chronotype-and-nightwork-on-the-ovarian-cycle-rec01avrmni2q9vw0",
+        "title": "The influences of sleep duration, chronotype, and nightwork on the ovarian cycle",
+        "short_citation": "Michels KA et al., 2020",
+        "pmid": "31778080",
+        "doi": "10.1080/07420528.2019.1694938",
+        "source_url": "https://doi.org/10.1080/07420528.2019.1694938",
+        "journal": "Chronobiology international",
+        "year": 2020,
+        "authors": "Michels KA, Mendola P, Schliep KC, Yeung EH, Ye A, Dunietz GL, Wactawski-Wende J, Kim K, Freeman JR, Schisterman EF, Mumford SL",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"A decreased risk for sporadic anovulation was suggested with increasing hours of daily sleep leading up to the LH surge... (RR 0.79, CI 0.59, 1.06).\" Section: Daily sleep duration.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recvxSkFtBxS2eWIY-2",
+      "claim": "BioCycle participants provided fasting blood samples at up to eight clinic visits per cycle (up to sixteen per participant), timed to menstruation, follicular, LH peak, ovulation, and luteal phases.",
+      "category": "methodology",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "protocol",
+      "body": null,
+      "source": {
+        "article_id": "recvxSkFtBxS2eWIY",
+        "slug": "the-influences-of-sleep-duration-chronotype-and-nightwork-on-the-ovarian-cycle-rec01avrmni2q9vw0",
+        "title": "The influences of sleep duration, chronotype, and nightwork on the ovarian cycle",
+        "short_citation": "Michels KA et al., 2020",
+        "pmid": "31778080",
+        "doi": "10.1080/07420528.2019.1694938",
+        "source_url": "https://doi.org/10.1080/07420528.2019.1694938",
+        "journal": "Chronobiology international",
+        "year": 2020,
+        "authors": "Michels KA, Mendola P, Schliep KC, Yeung EH, Ye A, Dunietz GL, Wactawski-Wende J, Kim K, Freeman JR, Schisterman EF, Mumford SL",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Fasting blood samples were collected at eight clinic visits across each menstrual cycle (up to sixteen samples per participant)\" Section: Data collection.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recvxSkFtBxS2eWIY-3",
+      "claim": "Each additional hour of average daily sleep was associated with a 3.9% increase in mean estradiol levels (95% CI 2.0%, 5.9%) in regularly menstruating women.",
+      "category": "hormone",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recvxSkFtBxS2eWIY",
+        "slug": "the-influences-of-sleep-duration-chronotype-and-nightwork-on-the-ovarian-cycle-rec01avrmni2q9vw0",
+        "title": "The influences of sleep duration, chronotype, and nightwork on the ovarian cycle",
+        "short_citation": "Michels KA et al., 2020",
+        "pmid": "31778080",
+        "doi": "10.1080/07420528.2019.1694938",
+        "source_url": "https://doi.org/10.1080/07420528.2019.1694938",
+        "journal": "Chronobiology international",
+        "year": 2020,
+        "authors": "Michels KA, Mendola P, Schliep KC, Yeung EH, Ye A, Dunietz GL, Wactawski-Wende J, Kim K, Freeman JR, Schisterman EF, Mumford SL",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"For every hour increase, we noted mean estradiol levels increased by 3.9% (CI 2.0, 5.9%)\" Section: Daily sleep duration.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recvxSkFtBxS2eWIY-4",
+      "claim": "Each additional hour of average daily sleep was associated with a 9.4% increase in mean luteal phase progesterone levels (95% CI 4.0%, 15.2%).",
+      "category": "hormone",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recvxSkFtBxS2eWIY",
+        "slug": "the-influences-of-sleep-duration-chronotype-and-nightwork-on-the-ovarian-cycle-rec01avrmni2q9vw0",
+        "title": "The influences of sleep duration, chronotype, and nightwork on the ovarian cycle",
+        "short_citation": "Michels KA et al., 2020",
+        "pmid": "31778080",
+        "doi": "10.1080/07420528.2019.1694938",
+        "source_url": "https://doi.org/10.1080/07420528.2019.1694938",
+        "journal": "Chronobiology international",
+        "year": 2020,
+        "authors": "Michels KA, Mendola P, Schliep KC, Yeung EH, Ye A, Dunietz GL, Wactawski-Wende J, Kim K, Freeman JR, Schisterman EF, Mumford SL",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"mean luteal progesterone levels increased by 9.4% (CI 4.0, 15.2%)\" Section: Daily sleep duration.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recvxSkFtBxS2eWIY-5",
+      "claim": "Women reporting fewer than 7 hours of daily sleep leading up to clinic visits had a 7.0% reduction in mean estradiol (95% CI -11.3%, -2.5%) compared to those with longer sleep.",
+      "category": "hormone",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recvxSkFtBxS2eWIY",
+        "slug": "the-influences-of-sleep-duration-chronotype-and-nightwork-on-the-ovarian-cycle-rec01avrmni2q9vw0",
+        "title": "The influences of sleep duration, chronotype, and nightwork on the ovarian cycle",
+        "short_citation": "Michels KA et al., 2020",
+        "pmid": "31778080",
+        "doi": "10.1080/07420528.2019.1694938",
+        "source_url": "https://doi.org/10.1080/07420528.2019.1694938",
+        "journal": "Chronobiology international",
+        "year": 2020,
+        "authors": "Michels KA, Mendola P, Schliep KC, Yeung EH, Ye A, Dunietz GL, Wactawski-Wende J, Kim K, Freeman JR, Schisterman EF, Mumford SL",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"reductions in mean estradiol (−7.0% CI −11.3, −2.5%)... were indicated for women reporting <7 hours sleep per day\" Section: Daily sleep duration.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recvxSkFtBxS2eWIY-6",
+      "claim": "Sleeping fewer than 7 hours of daily sleep was associated with earlier phase shifts (peaks) for LH, FSH, and progesterone across the menstrual cycle.",
+      "category": "hormone",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recvxSkFtBxS2eWIY",
+        "slug": "the-influences-of-sleep-duration-chronotype-and-nightwork-on-the-ovarian-cycle-rec01avrmni2q9vw0",
+        "title": "The influences of sleep duration, chronotype, and nightwork on the ovarian cycle",
+        "short_citation": "Michels KA et al., 2020",
+        "pmid": "31778080",
+        "doi": "10.1080/07420528.2019.1694938",
+        "source_url": "https://doi.org/10.1080/07420528.2019.1694938",
+        "journal": "Chronobiology international",
+        "year": 2020,
+        "authors": "Michels KA, Mendola P, Schliep KC, Yeung EH, Ye A, Dunietz GL, Wactawski-Wende J, Kim K, Freeman JR, Schisterman EF, Mumford SL",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Reporting average daily sleep of <7 hours was associated with earlier phase shifts (i.e., peaks) for LH, FSH, and progesterone\" Section: Daily sleep duration.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recvxSkFtBxS2eWIY-7",
+      "claim": "Women reporting employment with night/shift work had 9.9% lower mean testosterone concentrations (95% CI -18.4%, -0.4%) compared to women employed without night/shift work.",
+      "category": "hormone",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recvxSkFtBxS2eWIY",
+        "slug": "the-influences-of-sleep-duration-chronotype-and-nightwork-on-the-ovarian-cycle-rec01avrmni2q9vw0",
+        "title": "The influences of sleep duration, chronotype, and nightwork on the ovarian cycle",
+        "short_citation": "Michels KA et al., 2020",
+        "pmid": "31778080",
+        "doi": "10.1080/07420528.2019.1694938",
+        "source_url": "https://doi.org/10.1080/07420528.2019.1694938",
+        "journal": "Chronobiology international",
+        "year": 2020,
+        "authors": "Michels KA, Mendola P, Schliep KC, Yeung EH, Ye A, Dunietz GL, Wactawski-Wende J, Kim K, Freeman JR, Schisterman EF, Mumford SL",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"night/shift work percent difference: −9.9%, CI −18.4, −0.4%\" Section: Night/Shift work.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recvxSkFtBxS2eWIY-8",
+      "claim": "Unemployed women in the cohort had 12.0% lower mean testosterone concentrations (95% CI -21.4%, -1.4%) compared to women employed without night/shift work.",
+      "category": "hormone",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recvxSkFtBxS2eWIY",
+        "slug": "the-influences-of-sleep-duration-chronotype-and-nightwork-on-the-ovarian-cycle-rec01avrmni2q9vw0",
+        "title": "The influences of sleep duration, chronotype, and nightwork on the ovarian cycle",
+        "short_citation": "Michels KA et al., 2020",
+        "pmid": "31778080",
+        "doi": "10.1080/07420528.2019.1694938",
+        "source_url": "https://doi.org/10.1080/07420528.2019.1694938",
+        "journal": "Chronobiology international",
+        "year": 2020,
+        "authors": "Michels KA, Mendola P, Schliep KC, Yeung EH, Ye A, Dunietz GL, Wactawski-Wende J, Kim K, Freeman JR, Schisterman EF, Mumford SL",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"unemployed percent difference: −12.0%, 95% CI −21.4, −1.4%\" Section: Night/Shift work.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recvxSkFtBxS2eWIY-9",
+      "claim": "Women with night/shift work had higher mean LH concentrations across the entire menstrual cycle in harmonic models compared to women without night/shift work.",
+      "category": "hormone",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recvxSkFtBxS2eWIY",
+        "slug": "the-influences-of-sleep-duration-chronotype-and-nightwork-on-the-ovarian-cycle-rec01avrmni2q9vw0",
+        "title": "The influences of sleep duration, chronotype, and nightwork on the ovarian cycle",
+        "short_citation": "Michels KA et al., 2020",
+        "pmid": "31778080",
+        "doi": "10.1080/07420528.2019.1694938",
+        "source_url": "https://doi.org/10.1080/07420528.2019.1694938",
+        "journal": "Chronobiology international",
+        "year": 2020,
+        "authors": "Michels KA, Mendola P, Schliep KC, Yeung EH, Ye A, Dunietz GL, Wactawski-Wende J, Kim K, Freeman JR, Schisterman EF, Mumford SL",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Women reporting night/shift work had higher mean LH concentrations across the entire menstrual cycle in the harmonic models.\" Section: Night/Shift work.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
     },
     {
       "id": "fact-recw2IL8z3bRnWJFR-10",
@@ -73280,6 +75419,426 @@
       "last_verified_at": "2026-04-26 03:34:52"
     },
     {
+      "id": "fact-recWfogLoeB8OAvqf-1",
+      "claim": "Hoogland scoring defines ovulation as requiring both follicular rupture on ultrasound AND a midluteal progesterone level >5 nmol/L, implicitly classifying follicular ruptures with low luteal progesterone as 'nonovulation'.",
+      "category": "methodology",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recWfogLoeB8OAvqf",
+        "slug": "systematic-review-of-ovarian-activity-and-potential-for-embryo-formation-and-los-recoiufjcfwwkucwh",
+        "title": "Systematic Review of Ovarian Activity and Potential for Embryo Formation and Loss during the Use of Hormonal Contraception",
+        "short_citation": "Harrison D et al., 2018",
+        "pmid": "32431378",
+        "doi": "10.1177/0024363918815611",
+        "source_url": "https://doi.org/10.1177/0024363918815611",
+        "journal": "The Linacre Quarterly",
+        "year": 2018,
+        "authors": "Harrison D, Buskmiller C, Chireau M, Ruppersberger LA, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Hoogland scoring defines ovulation as having occurred with both follicular rupture on ultrasound plus a threshold midluteal progesterone level\" Section: Introduction.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recWfogLoeB8OAvqf-10",
+      "claim": "Croxatto et al. (2006) observed ovulatory dysfunction in 31% (15/48) of nestorone/ethinylestradiol vaginal ring cycles vs 6% (3/48) of control cycles (p=.003), rising to 71% in ring cycles with follicular rupture.",
+      "category": "outcome",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recWfogLoeB8OAvqf",
+        "slug": "systematic-review-of-ovarian-activity-and-potential-for-embryo-formation-and-los-recoiufjcfwwkucwh",
+        "title": "Systematic Review of Ovarian Activity and Potential for Embryo Formation and Loss during the Use of Hormonal Contraception",
+        "short_citation": "Harrison D et al., 2018",
+        "pmid": "32431378",
+        "doi": "10.1177/0024363918815611",
+        "source_url": "https://doi.org/10.1177/0024363918815611",
+        "journal": "The Linacre Quarterly",
+        "year": 2018,
+        "authors": "Harrison D, Buskmiller C, Chireau M, Ruppersberger LA, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Ovulatory dysfunction was observed in 31% (15/48) of ring cycles and in 6% (3/48) of control cycles (p = .003)\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recWfogLoeB8OAvqf-11",
+      "claim": "Birtch, Olatunbosun, and Pierson observed clinically abnormal progesterone concentrations following ovulation in approximately 40% of women after discontinuation of oral contraceptives, suggesting persisting luteal dysfunction.",
+      "category": "outcome",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recWfogLoeB8OAvqf",
+        "slug": "systematic-review-of-ovarian-activity-and-potential-for-embryo-formation-and-los-recoiufjcfwwkucwh",
+        "title": "Systematic Review of Ovarian Activity and Potential for Embryo Formation and Loss during the Use of Hormonal Contraception",
+        "short_citation": "Harrison D et al., 2018",
+        "pmid": "32431378",
+        "doi": "10.1177/0024363918815611",
+        "source_url": "https://doi.org/10.1177/0024363918815611",
+        "journal": "The Linacre Quarterly",
+        "year": 2018,
+        "authors": "Harrison D, Buskmiller C, Chireau M, Ruppersberger LA, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Clinically abnormal progesterone concentrations were observed following ovulation in approximately 40% of women following discontinuation of OC.\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recWfogLoeB8OAvqf-12",
+      "claim": "Croxatto et al. (1998) noted follicular rupture in 30 percent of study cycles (9 of 30) using a mifepristone-nomegestrol acetate sequential regimen.",
+      "category": "outcome",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recWfogLoeB8OAvqf",
+        "slug": "systematic-review-of-ovarian-activity-and-potential-for-embryo-formation-and-los-recoiufjcfwwkucwh",
+        "title": "Systematic Review of Ovarian Activity and Potential for Embryo Formation and Loss during the Use of Hormonal Contraception",
+        "short_citation": "Harrison D et al., 2018",
+        "pmid": "32431378",
+        "doi": "10.1177/0024363918815611",
+        "source_url": "https://doi.org/10.1177/0024363918815611",
+        "journal": "The Linacre Quarterly",
+        "year": 2018,
+        "authors": "Harrison D, Buskmiller C, Chireau M, Ruppersberger LA, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Croxatto et al. (1998) noted follicular rupture in 30 percent of study cycles (nine of thirty).\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recWfogLoeB8OAvqf-13",
+      "claim": "Croxatto et al. (1998) found endometrial biopsies during progestin treatment cycles showed disturbed glandular development with development always far ahead of the stroma and behind that required for embryo synchrony.",
+      "category": "pathology",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "recWfogLoeB8OAvqf",
+        "slug": "systematic-review-of-ovarian-activity-and-potential-for-embryo-formation-and-los-recoiufjcfwwkucwh",
+        "title": "Systematic Review of Ovarian Activity and Potential for Embryo Formation and Loss during the Use of Hormonal Contraception",
+        "short_citation": "Harrison D et al., 2018",
+        "pmid": "32431378",
+        "doi": "10.1177/0024363918815611",
+        "source_url": "https://doi.org/10.1177/0024363918815611",
+        "journal": "The Linacre Quarterly",
+        "year": 2018,
+        "authors": "Harrison D, Buskmiller C, Chireau M, Ruppersberger LA, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"The most advanced development of the glands was always far ahead of the stroma and behind that required for the synchrony with the embryo.\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recWfogLoeB8OAvqf-14",
+      "claim": "Liukkonen et al. (1984) found that 3 of 25 (12 percent) cases diagnosed as luteinized unruptured follicles by ultrasound actually had ovulation stigmata present at laparoscopy.",
+      "category": "diagnostics",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recWfogLoeB8OAvqf",
+        "slug": "systematic-review-of-ovarian-activity-and-potential-for-embryo-formation-and-los-recoiufjcfwwkucwh",
+        "title": "Systematic Review of Ovarian Activity and Potential for Embryo Formation and Loss during the Use of Hormonal Contraception",
+        "short_citation": "Harrison D et al., 2018",
+        "pmid": "32431378",
+        "doi": "10.1177/0024363918815611",
+        "source_url": "https://doi.org/10.1177/0024363918815611",
+        "journal": "The Linacre Quarterly",
+        "year": 2018,
+        "authors": "Harrison D, Buskmiller C, Chireau M, Ruppersberger LA, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"three of the cases (12 percent) diagnosed as an LUF by ultrasound had ovulation stigmata present.\" Section: Ultrasound visualization of follicular rupture.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recWfogLoeB8OAvqf-15",
+      "claim": "The systematic review concluded that follicular ruptures and egg release with subsequent low luteal progesterone are documented in women using hormonal contraception, and this risk of embryo loss should be included in informed consent.",
+      "category": "protocol",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "recWfogLoeB8OAvqf",
+        "slug": "systematic-review-of-ovarian-activity-and-potential-for-embryo-formation-and-los-recoiufjcfwwkucwh",
+        "title": "Systematic Review of Ovarian Activity and Potential for Embryo Formation and Loss during the Use of Hormonal Contraception",
+        "short_citation": "Harrison D et al., 2018",
+        "pmid": "32431378",
+        "doi": "10.1177/0024363918815611",
+        "source_url": "https://doi.org/10.1177/0024363918815611",
+        "journal": "The Linacre Quarterly",
+        "year": 2018,
+        "authors": "Harrison D, Buskmiller C, Chireau M, Ruppersberger LA, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"This information should be included in informed consent for women who are considering the use of hormonal contraception.\" Section: Abstract.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recWfogLoeB8OAvqf-2",
+      "claim": "Birtch et al. (2006) documented an ultrasound-verified ovulation in a 30 ug EE/150 ug LNG OC group with a serum progesterone of only 0.79 ng/mL (2.51 nmol/L) measured 6 days postovulation.",
+      "category": "cycle-biomarker",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recWfogLoeB8OAvqf",
+        "slug": "systematic-review-of-ovarian-activity-and-potential-for-embryo-formation-and-los-recoiufjcfwwkucwh",
+        "title": "Systematic Review of Ovarian Activity and Potential for Embryo Formation and Loss during the Use of Hormonal Contraception",
+        "short_citation": "Harrison D et al., 2018",
+        "pmid": "32431378",
+        "doi": "10.1177/0024363918815611",
+        "source_url": "https://doi.org/10.1177/0024363918815611",
+        "journal": "The Linacre Quarterly",
+        "year": 2018,
+        "authors": "Harrison D, Buskmiller C, Chireau M, Ruppersberger LA, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"the serum progesterone level observed on Day 6 post-ovulation was 0.79 ng/mL [2.51 nmol/L]\" Section: Threshold progesterone level.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recWfogLoeB8OAvqf-3",
+      "claim": "Croxatto et al. (1998) found that 5 of 9 studied cycles demonstrated follicular rupture but would be classified as anovulatory based on endocrine criteria such as luteal progesterone.",
+      "category": "outcome",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recWfogLoeB8OAvqf",
+        "slug": "systematic-review-of-ovarian-activity-and-potential-for-embryo-formation-and-los-recoiufjcfwwkucwh",
+        "title": "Systematic Review of Ovarian Activity and Potential for Embryo Formation and Loss during the Use of Hormonal Contraception",
+        "short_citation": "Harrison D et al., 2018",
+        "pmid": "32431378",
+        "doi": "10.1177/0024363918815611",
+        "source_url": "https://doi.org/10.1177/0024363918815611",
+        "journal": "The Linacre Quarterly",
+        "year": 2018,
+        "authors": "Harrison D, Buskmiller C, Chireau M, Ruppersberger LA, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"five out of nine studied cycles demonstrated follicular rupture but would be considered anovulatory based on 'endocrine criteria for ovulation'\" Section: Threshold progesterone level.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recWfogLoeB8OAvqf-4",
+      "claim": "D'Hooghe et al. (1996) recovered eggs in 13 percent of baboon cycles where no visible ovarian stigma was present at laparoscopy, demonstrating absence of stigma cannot rule out egg release.",
+      "category": "diagnostics",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recWfogLoeB8OAvqf",
+        "slug": "systematic-review-of-ovarian-activity-and-potential-for-embryo-formation-and-los-recoiufjcfwwkucwh",
+        "title": "Systematic Review of Ovarian Activity and Potential for Embryo Formation and Loss during the Use of Hormonal Contraception",
+        "short_citation": "Harrison D et al., 2018",
+        "pmid": "32431378",
+        "doi": "10.1177/0024363918815611",
+        "source_url": "https://doi.org/10.1177/0024363918815611",
+        "journal": "The Linacre Quarterly",
+        "year": 2018,
+        "authors": "Harrison D, Buskmiller C, Chireau M, Ruppersberger LA, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"The authors recovered eggs in 13 percent of cycles without a visible ovarian stigma at the time of laparoscopy.\" Section: Direct visualization of stigma of ovulation.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recWfogLoeB8OAvqf-5",
+      "claim": "Check et al. (1990) found that 56 of 220 patients failing ultrasound criteria for follicular collapse (5-mm decrease) still had a 5.4 percent pregnancy rate, proving egg release can occur without meeting sonographic ovulation criteria.",
+      "category": "diagnostics",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recWfogLoeB8OAvqf",
+        "slug": "systematic-review-of-ovarian-activity-and-potential-for-embryo-formation-and-los-recoiufjcfwwkucwh",
+        "title": "Systematic Review of Ovarian Activity and Potential for Embryo Formation and Loss during the Use of Hormonal Contraception",
+        "short_citation": "Harrison D et al., 2018",
+        "pmid": "32431378",
+        "doi": "10.1177/0024363918815611",
+        "source_url": "https://doi.org/10.1177/0024363918815611",
+        "journal": "The Linacre Quarterly",
+        "year": 2018,
+        "authors": "Harrison D, Buskmiller C, Chireau M, Ruppersberger LA, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"This group, which did not meet ultrasound criteria for follicular rupture, had a 5.4 percent pregnancy rate\" Section: Ultrasound visualization of follicular rupture.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recWfogLoeB8OAvqf-6",
+      "claim": "Arce et al. (2011) showed live birth rates stratified by midluteal progesterone: 8% at 7.9-10 ng/mL, 15% at >10-15 ng/mL, 21% at >15-25 ng/mL, 29% at >25-40 ng/mL, and 32% at >40 ng/mL.",
+      "category": "outcome",
+      "domain": "infertility",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recWfogLoeB8OAvqf",
+        "slug": "systematic-review-of-ovarian-activity-and-potential-for-embryo-formation-and-los-recoiufjcfwwkucwh",
+        "title": "Systematic Review of Ovarian Activity and Potential for Embryo Formation and Loss during the Use of Hormonal Contraception",
+        "short_citation": "Harrison D et al., 2018",
+        "pmid": "32431378",
+        "doi": "10.1177/0024363918815611",
+        "source_url": "https://doi.org/10.1177/0024363918815611",
+        "journal": "The Linacre Quarterly",
+        "year": 2018,
+        "authors": "Harrison D, Buskmiller C, Chireau M, Ruppersberger LA, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"P > 25–40 ng/mL (LBR = 29 percent) P > 40 ng/mL (LBR = 32 percent)\" Section: Dysfunctional ovulation.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recWfogLoeB8OAvqf-7",
+      "claim": "Hull and coworkers reported a midluteal-phase progesterone concentration of 30 nmol/L as the lower limit for conception in natural menstrual cycles, raised to approximately 90 nmol/L in gonadotrophin-stimulated cycles.",
+      "category": "cycle-biomarker",
+      "domain": "infertility",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "recWfogLoeB8OAvqf",
+        "slug": "systematic-review-of-ovarian-activity-and-potential-for-embryo-formation-and-los-recoiufjcfwwkucwh",
+        "title": "Systematic Review of Ovarian Activity and Potential for Embryo Formation and Loss during the Use of Hormonal Contraception",
+        "short_citation": "Harrison D et al., 2018",
+        "pmid": "32431378",
+        "doi": "10.1177/0024363918815611",
+        "source_url": "https://doi.org/10.1177/0024363918815611",
+        "journal": "The Linacre Quarterly",
+        "year": 2018,
+        "authors": "Harrison D, Buskmiller C, Chireau M, Ruppersberger LA, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"a mid-luteal-phase progesterone concentration of 30nmol/l as the lower limit for conception in natural menstrual cycles\" Section: Dysfunctional ovulation.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recWfogLoeB8OAvqf-8",
+      "claim": "Across the studies reviewed, Hoogland 'ovulation' (follicular rupture plus midluteal progesterone >5 nmol/L) occurred in less than 5 percent of cycles on any hormonal contraceptive formulation analyzed.",
+      "category": "outcome",
+      "domain": "hormones",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recWfogLoeB8OAvqf",
+        "slug": "systematic-review-of-ovarian-activity-and-potential-for-embryo-formation-and-los-recoiufjcfwwkucwh",
+        "title": "Systematic Review of Ovarian Activity and Potential for Embryo Formation and Loss during the Use of Hormonal Contraception",
+        "short_citation": "Harrison D et al., 2018",
+        "pmid": "32431378",
+        "doi": "10.1177/0024363918815611",
+        "source_url": "https://doi.org/10.1177/0024363918815611",
+        "journal": "The Linacre Quarterly",
+        "year": 2018,
+        "authors": "Harrison D, Buskmiller C, Chireau M, Ruppersberger LA, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"(Hoogland ovulation) occurs less than 5 percent of the time on any of the formulations analyzed in the spreadsheet.\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
       "id": "fact-recwFou1ja5Awm7Ho-1",
       "claim": "In the Fertility Experiences Study cohort of 867 women with primary infertility, 84% presented first to a generalist provider for fertility care.",
       "category": "epidemiology",
@@ -74305,6 +76864,396 @@
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
       "last_verified_at": "2026-04-26 03:34:54"
+    },
+    {
+      "id": "fact-recWsdwTUUbWcQsi9-1",
+      "claim": "In this multicenter study of 100 women undergoing excision for endometriosis, 84% indicated they would be willing to participate in a randomized trial of laparoscopic excision versus ablation.",
+      "category": "methodology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recWsdwTUUbWcQsi9",
+        "slug": "a-pilot-feasibility-multicenter-study-of-patients-after-excision-of-endometriosi-rec0gin2tgsgwngt9",
+        "title": "A pilot feasibility multicenter study of patients after excision of  endometriosis",
+        "short_citation": "Yeung PP Jr et al., 2013",
+        "pmid": "23743377",
+        "doi": "10.4293/108680812X13517013317833",
+        "source_url": "https://doi.org/10.4293/108680812X13517013317833",
+        "journal": "JSLS : Journal of the Society of Laparoendoscopic Surgeons",
+        "year": 2013,
+        "authors": "Yeung PP Jr, Tu F, Bajzak K, Lamvu G, Guzovsky O, Agnelli R, Peavey M, Winer W, Albee R, Sinervo K",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"84.0% (84 of 100) of the patients who completed the initial questionnaire indicated that they would be willing to participate in a randomized trial\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recWsdwTUUbWcQsi9-10",
+      "claim": "Patients who underwent surgery without histologically confirmed endometriosis showed no improvement in QOL scores, though pelvic pain (P<.01) and dyspareunia (P<.03) did improve.",
+      "category": "outcome",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recWsdwTUUbWcQsi9",
+        "slug": "a-pilot-feasibility-multicenter-study-of-patients-after-excision-of-endometriosi-rec0gin2tgsgwngt9",
+        "title": "A pilot feasibility multicenter study of patients after excision of  endometriosis",
+        "short_citation": "Yeung PP Jr et al., 2013",
+        "pmid": "23743377",
+        "doi": "10.4293/108680812X13517013317833",
+        "source_url": "https://doi.org/10.4293/108680812X13517013317833",
+        "journal": "JSLS : Journal of the Society of Laparoendoscopic Surgeons",
+        "year": 2013,
+        "authors": "Yeung PP Jr, Tu F, Bajzak K, Lamvu G, Guzovsky O, Agnelli R, Peavey M, Winer W, Albee R, Sinervo K",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"who did not have histologically confirmed endometriosis, we found no improvement in QOL scores\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recWsdwTUUbWcQsi9-11",
+      "claim": "Deep dyspareunia was the most predictive preoperative symptom for histologically confirmed endometriosis (74.0%), while chronic pelvic pain was least predictive (71.6%).",
+      "category": "diagnostics",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recWsdwTUUbWcQsi9",
+        "slug": "a-pilot-feasibility-multicenter-study-of-patients-after-excision-of-endometriosi-rec0gin2tgsgwngt9",
+        "title": "A pilot feasibility multicenter study of patients after excision of  endometriosis",
+        "short_citation": "Yeung PP Jr et al., 2013",
+        "pmid": "23743377",
+        "doi": "10.4293/108680812X13517013317833",
+        "source_url": "https://doi.org/10.4293/108680812X13517013317833",
+        "journal": "JSLS : Journal of the Society of Laparoendoscopic Surgeons",
+        "year": 2013,
+        "authors": "Yeung PP Jr, Tu F, Bajzak K, Lamvu G, Guzovsky O, Agnelli R, Peavey M, Winer W, Albee R, Sinervo K",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"chronic pelvic pain being the least predictive and deep dyspareunia being the most predictive\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recWsdwTUUbWcQsi9-12",
+      "claim": "The mean follow-up time after excision surgery in this multicenter study was 8.5 months (range 6-14 months).",
+      "category": "methodology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recWsdwTUUbWcQsi9",
+        "slug": "a-pilot-feasibility-multicenter-study-of-patients-after-excision-of-endometriosi-rec0gin2tgsgwngt9",
+        "title": "A pilot feasibility multicenter study of patients after excision of  endometriosis",
+        "short_citation": "Yeung PP Jr et al., 2013",
+        "pmid": "23743377",
+        "doi": "10.4293/108680812X13517013317833",
+        "source_url": "https://doi.org/10.4293/108680812X13517013317833",
+        "journal": "JSLS : Journal of the Society of Laparoendoscopic Surgeons",
+        "year": 2013,
+        "authors": "Yeung PP Jr, Tu F, Bajzak K, Lamvu G, Guzovsky O, Agnelli R, Peavey M, Winer W, Albee R, Sinervo K",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"The mean time after which the follow-up questionnaire was completed was 8.5 months (range, 6 –14 months)\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recWsdwTUUbWcQsi9-13",
+      "claim": "Bladder symptoms VAS scores decreased significantly from 2.6 preoperatively to 0.6 postoperatively (P<.001) after excision of endometriosis.",
+      "category": "outcome",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recWsdwTUUbWcQsi9",
+        "slug": "a-pilot-feasibility-multicenter-study-of-patients-after-excision-of-endometriosi-rec0gin2tgsgwngt9",
+        "title": "A pilot feasibility multicenter study of patients after excision of  endometriosis",
+        "short_citation": "Yeung PP Jr et al., 2013",
+        "pmid": "23743377",
+        "doi": "10.4293/108680812X13517013317833",
+        "source_url": "https://doi.org/10.4293/108680812X13517013317833",
+        "journal": "JSLS : Journal of the Society of Laparoendoscopic Surgeons",
+        "year": 2013,
+        "authors": "Yeung PP Jr, Tu F, Bajzak K, Lamvu G, Guzovsky O, Agnelli R, Peavey M, Winer W, Albee R, Sinervo K",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Bladder symptoms 2.6 (n=65) 0.6 (n=41) -1.8 <.001\" Section: Table 2.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recWsdwTUUbWcQsi9-2",
+      "claim": "Of 90 patients who underwent excision surgery for suspected endometriosis, 72.2% (65/90) had histologically confirmed endometriosis.",
+      "category": "diagnostics",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recWsdwTUUbWcQsi9",
+        "slug": "a-pilot-feasibility-multicenter-study-of-patients-after-excision-of-endometriosi-rec0gin2tgsgwngt9",
+        "title": "A pilot feasibility multicenter study of patients after excision of  endometriosis",
+        "short_citation": "Yeung PP Jr et al., 2013",
+        "pmid": "23743377",
+        "doi": "10.4293/108680812X13517013317833",
+        "source_url": "https://doi.org/10.4293/108680812X13517013317833",
+        "journal": "JSLS : Journal of the Society of Laparoendoscopic Surgeons",
+        "year": 2013,
+        "authors": "Yeung PP Jr, Tu F, Bajzak K, Lamvu G, Guzovsky O, Agnelli R, Peavey M, Winer W, Albee R, Sinervo K",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"72.2% (65 of 90) had histologically confirmed endometriosis\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recWsdwTUUbWcQsi9-3",
+      "claim": "After excision of endometriosis, mean pelvic pain VAS scores decreased from 5.2 preoperatively to 2.4 postoperatively (P<.001) in patients with histologically confirmed endometriosis.",
+      "category": "outcome",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recWsdwTUUbWcQsi9",
+        "slug": "a-pilot-feasibility-multicenter-study-of-patients-after-excision-of-endometriosi-rec0gin2tgsgwngt9",
+        "title": "A pilot feasibility multicenter study of patients after excision of  endometriosis",
+        "short_citation": "Yeung PP Jr et al., 2013",
+        "pmid": "23743377",
+        "doi": "10.4293/108680812X13517013317833",
+        "source_url": "https://doi.org/10.4293/108680812X13517013317833",
+        "journal": "JSLS : Journal of the Society of Laparoendoscopic Surgeons",
+        "year": 2013,
+        "authors": "Yeung PP Jr, Tu F, Bajzak K, Lamvu G, Guzovsky O, Agnelli R, Peavey M, Winer W, Albee R, Sinervo K",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Pelvic pain 5.2 (n=65) 2.4 (n=43) -2.6 <.001\" Section: Table 2.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recWsdwTUUbWcQsi9-4",
+      "claim": "Mean dysmenorrhea VAS scores decreased from 7.5 preoperatively to 4.0 postoperatively (P=.002) following excision of endometriosis.",
+      "category": "outcome",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recWsdwTUUbWcQsi9",
+        "slug": "a-pilot-feasibility-multicenter-study-of-patients-after-excision-of-endometriosi-rec0gin2tgsgwngt9",
+        "title": "A pilot feasibility multicenter study of patients after excision of  endometriosis",
+        "short_citation": "Yeung PP Jr et al., 2013",
+        "pmid": "23743377",
+        "doi": "10.4293/108680812X13517013317833",
+        "source_url": "https://doi.org/10.4293/108680812X13517013317833",
+        "journal": "JSLS : Journal of the Society of Laparoendoscopic Surgeons",
+        "year": 2013,
+        "authors": "Yeung PP Jr, Tu F, Bajzak K, Lamvu G, Guzovsky O, Agnelli R, Peavey M, Winer W, Albee R, Sinervo K",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Dysmenorrhea 7.5 (n=65) 4.0 (n=36) -2.6 .002\" Section: Table 2.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recWsdwTUUbWcQsi9-5",
+      "claim": "Mean dyspareunia VAS scores decreased from 5.1 preoperatively to 2.0 postoperatively (P<.001) after excision of endometriosis.",
+      "category": "outcome",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recWsdwTUUbWcQsi9",
+        "slug": "a-pilot-feasibility-multicenter-study-of-patients-after-excision-of-endometriosi-rec0gin2tgsgwngt9",
+        "title": "A pilot feasibility multicenter study of patients after excision of  endometriosis",
+        "short_citation": "Yeung PP Jr et al., 2013",
+        "pmid": "23743377",
+        "doi": "10.4293/108680812X13517013317833",
+        "source_url": "https://doi.org/10.4293/108680812X13517013317833",
+        "journal": "JSLS : Journal of the Society of Laparoendoscopic Surgeons",
+        "year": 2013,
+        "authors": "Yeung PP Jr, Tu F, Bajzak K, Lamvu G, Guzovsky O, Agnelli R, Peavey M, Winer W, Albee R, Sinervo K",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Dyspareunia 5.1 (n=61) 2.0 (n=41) -3.0 <.001\" Section: Table 2.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recWsdwTUUbWcQsi9-6",
+      "claim": "Quality of life scores improved significantly from 63.3 preoperatively to 83.3 postoperatively (mean improvement 20 points, P<.001) after excision surgery for endometriosis.",
+      "category": "outcome",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recWsdwTUUbWcQsi9",
+        "slug": "a-pilot-feasibility-multicenter-study-of-patients-after-excision-of-endometriosi-rec0gin2tgsgwngt9",
+        "title": "A pilot feasibility multicenter study of patients after excision of  endometriosis",
+        "short_citation": "Yeung PP Jr et al., 2013",
+        "pmid": "23743377",
+        "doi": "10.4293/108680812X13517013317833",
+        "source_url": "https://doi.org/10.4293/108680812X13517013317833",
+        "journal": "JSLS : Journal of the Society of Laparoendoscopic Surgeons",
+        "year": 2013,
+        "authors": "Yeung PP Jr, Tu F, Bajzak K, Lamvu G, Guzovsky O, Agnelli R, Peavey M, Winer W, Albee R, Sinervo K",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"QOL 63.3 (n=65) 83.3 (n=43) 20.0 <.001\" Section: Table 2.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recWsdwTUUbWcQsi9-7",
+      "claim": "Bowel symptoms did not show statistically significant improvement after excision of endometriosis (mean change -0.3, P=.6), unlike all other measured pain outcomes.",
+      "category": "outcome",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recWsdwTUUbWcQsi9",
+        "slug": "a-pilot-feasibility-multicenter-study-of-patients-after-excision-of-endometriosi-rec0gin2tgsgwngt9",
+        "title": "A pilot feasibility multicenter study of patients after excision of  endometriosis",
+        "short_citation": "Yeung PP Jr et al., 2013",
+        "pmid": "23743377",
+        "doi": "10.4293/108680812X13517013317833",
+        "source_url": "https://doi.org/10.4293/108680812X13517013317833",
+        "journal": "JSLS : Journal of the Society of Laparoendoscopic Surgeons",
+        "year": 2013,
+        "authors": "Yeung PP Jr, Tu F, Bajzak K, Lamvu G, Guzovsky O, Agnelli R, Peavey M, Winer W, Albee R, Sinervo K",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Bowel symptoms 3.4 (n=65) 2.0 (n=42) -0.3 .6\" Section: Table 2.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recWsdwTUUbWcQsi9-8",
+      "claim": "Of patients with histologically proven endometriosis, 84.6% (55/65) had received either previous hormonal therapy or prior ablation surgery, indicating those interventions failed to suppress or prevent disease.",
+      "category": "epidemiology",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recWsdwTUUbWcQsi9",
+        "slug": "a-pilot-feasibility-multicenter-study-of-patients-after-excision-of-endometriosi-rec0gin2tgsgwngt9",
+        "title": "A pilot feasibility multicenter study of patients after excision of  endometriosis",
+        "short_citation": "Yeung PP Jr et al., 2013",
+        "pmid": "23743377",
+        "doi": "10.4293/108680812X13517013317833",
+        "source_url": "https://doi.org/10.4293/108680812X13517013317833",
+        "journal": "JSLS : Journal of the Society of Laparoendoscopic Surgeons",
+        "year": 2013,
+        "authors": "Yeung PP Jr, Tu F, Bajzak K, Lamvu G, Guzovsky O, Agnelli R, Peavey M, Winer W, Albee R, Sinervo K",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"55 of 65 (84.6%) overall had received previous hormonal therapy or surgery\" Section: Results.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-recWsdwTUUbWcQsi9-9",
+      "claim": "Adding postoperative hormonal suppression after excision did not produce additional reduction in VAS pain scores or improvement in QOL scores compared to no suppression.",
+      "category": "outcome",
+      "domain": "endometriosis",
+      "tradition": [
+        "conventional",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "recWsdwTUUbWcQsi9",
+        "slug": "a-pilot-feasibility-multicenter-study-of-patients-after-excision-of-endometriosi-rec0gin2tgsgwngt9",
+        "title": "A pilot feasibility multicenter study of patients after excision of  endometriosis",
+        "short_citation": "Yeung PP Jr et al., 2013",
+        "pmid": "23743377",
+        "doi": "10.4293/108680812X13517013317833",
+        "source_url": "https://doi.org/10.4293/108680812X13517013317833",
+        "journal": "JSLS : Journal of the Society of Laparoendoscopic Surgeons",
+        "year": 2013,
+        "authors": "Yeung PP Jr, Tu F, Bajzak K, Lamvu G, Guzovsky O, Agnelli R, Peavey M, Winer W, Albee R, Sinervo K",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"the addition of hormonal suppression after excision did not further reduce VAS scores for pain or benefit QOL scores\" Section: Discussion.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
     },
     {
       "id": "fact-recwtbK5cMhRo6Zeo-1",

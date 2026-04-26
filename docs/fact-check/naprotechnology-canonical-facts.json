@@ -10,27 +10,27 @@
     ],
     "schema_version": "1.0.0",
     "ssot": true,
-    "generated_at": "2026-04-26T15:03:30.296Z",
+    "generated_at": "2026-04-26T18:42:12.844Z",
     "generated_by": "scripts/build-canonical-facts.mjs",
     "source": "D1 rrm-library.facts (tradition filter) + _manual overrides",
     "regenerable": true,
-    "record_count": 3634,
+    "record_count": 3638,
     "tradition_tally": {
-      "napro": 3634,
-      "rrm-shared": 1356,
-      "fabm": 814,
-      "creighton": 927,
-      "conventional": 29,
+      "napro": 3638,
+      "rrm-shared": 1360,
+      "fabm": 813,
+      "creighton": 932,
+      "conventional": 30,
       "billings": 5,
       "femm": 3,
       "neofertility": 1,
       "independent": 2
     },
     "evidence_tier_tally": {
-      "peer_reviewed": 1620,
+      "peer_reviewed": 1624,
       "clinical_experience": 2014
     },
-    "source_resolved_count": 3433,
+    "source_resolved_count": 3437,
     "source_unresolved_count": 201
   },
   "_manual": {
@@ -63389,6 +63389,161 @@
       "last_verified_at": "2026-04-26 03:34:50"
     },
     {
+      "id": "fact-rec1yQ60aHk3K22a9-2",
+      "claim": "CrMS mucus cycle scores are categorized as: dry cycles (score 0), limited mucus cycles (0.1-7.5), and regular mucus cycles (above 7.6).",
+      "category": "charting",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "creighton",
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "definition",
+      "body": null,
+      "source": {
+        "article_id": "rec1yQ60aHk3K22a9",
+        "slug": "the-evaluation-and-treatment-of-cervical-factor-infertility-a-medical-moral-anal-recdkvjhcuigoqnsb",
+        "title": "The Evaluation and Treatment of Cervical Factor Infertility a Medical-Moral  Analysis",
+        "short_citation": "Keefe CE et al., 2012",
+        "pmid": "30082986",
+        "doi": "10.1179/002436312804827127",
+        "source_url": "https://doi.org/10.1179/002436312804827127",
+        "journal": "The Linacre Quarterly",
+        "year": 2012,
+        "authors": "Keefe CE, Mirkes R, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"limited mucus cycles, with scores ranging from 0.1 to 7.5; and 3) regular mucus cycles, with scores above 7.6.\" Section: Diagnosis.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-rec1yQ60aHk3K22a9-3",
+      "claim": "Stanford, Smith, and Dunson evaluated 1,681 menstrual cycles charted with CrMS and demonstrated positive correlation of mucus score categories to pregnancy probability.",
+      "category": "cycle-biomarker",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "creighton",
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "cited-study",
+      "body": null,
+      "source": {
+        "article_id": "rec1yQ60aHk3K22a9",
+        "slug": "the-evaluation-and-treatment-of-cervical-factor-infertility-a-medical-moral-anal-recdkvjhcuigoqnsb",
+        "title": "The Evaluation and Treatment of Cervical Factor Infertility a Medical-Moral  Analysis",
+        "short_citation": "Keefe CE et al., 2012",
+        "pmid": "30082986",
+        "doi": "10.1179/002436312804827127",
+        "source_url": "https://doi.org/10.1179/002436312804827127",
+        "journal": "The Linacre Quarterly",
+        "year": 2012,
+        "authors": "Keefe CE, Mirkes R, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Stanford, J.R. Smith, and D.B. Dunson evaluated 1,681 menstrual cycles charted with the CrMS and demonstrated a positive correlation\" Section: Diagnosis.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-rec1yQ60aHk3K22a9-5",
+      "claim": "In 11 patients taking amoxicillin during the fertile window, mucus cycle scores improved from average 4.0 to 9 (p<0.003).",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "creighton",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "rec1yQ60aHk3K22a9",
+        "slug": "the-evaluation-and-treatment-of-cervical-factor-infertility-a-medical-moral-anal-recdkvjhcuigoqnsb",
+        "title": "The Evaluation and Treatment of Cervical Factor Infertility a Medical-Moral  Analysis",
+        "short_citation": "Keefe CE et al., 2012",
+        "pmid": "30082986",
+        "doi": "10.1179/002436312804827127",
+        "source_url": "https://doi.org/10.1179/002436312804827127",
+        "journal": "The Linacre Quarterly",
+        "year": 2012,
+        "authors": "Keefe CE, Mirkes R, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"eleven patients taking amoxicillin during the fertile window, mucus cycles scores went from an average of 4.0 to an average score of 9 (p  0.003)\" Section: Treatment.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-rec1yQ60aHk3K22a9-7",
+      "claim": "Stanford, Smith, and Dunson found subfertile couples with a three-day fertile window achieved a 26% conception rate using fertility-focused intercourse only.",
+      "category": "outcome",
+      "domain": "CREIGHTON",
+      "tradition": [
+        "creighton",
+        "napro",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "rec1yQ60aHk3K22a9",
+        "slug": "the-evaluation-and-treatment-of-cervical-factor-infertility-a-medical-moral-anal-recdkvjhcuigoqnsb",
+        "title": "The Evaluation and Treatment of Cervical Factor Infertility a Medical-Moral  Analysis",
+        "short_citation": "Keefe CE et al., 2012",
+        "pmid": "30082986",
+        "doi": "10.1179/002436312804827127",
+        "source_url": "https://doi.org/10.1179/002436312804827127",
+        "journal": "The Linacre Quarterly",
+        "year": 2012,
+        "authors": "Keefe CE, Mirkes R, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"subfertile couples with a three-day fertile window had a 26 percent rate of conception with using fertility-focused intercourse only.\" Section: Treatment.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
+      "id": "fact-rec1yQ60aHk3K22a9-8",
+      "claim": "In Hilgers' series, 40 patients with limited mucus cycles (avg 3.2 years prior infertility) achieved 40% pregnancy rate using fertility-focused intercourse alone or with vitamin B6, mean time-to-pregnancy 5.4 months.",
+      "category": "outcome",
+      "domain": "NaProTECHNOLOGY",
+      "tradition": [
+        "napro",
+        "creighton",
+        "rrm-shared"
+      ],
+      "claim_type": "statistic",
+      "body": null,
+      "source": {
+        "article_id": "rec1yQ60aHk3K22a9",
+        "slug": "the-evaluation-and-treatment-of-cervical-factor-infertility-a-medical-moral-anal-recdkvjhcuigoqnsb",
+        "title": "The Evaluation and Treatment of Cervical Factor Infertility a Medical-Moral  Analysis",
+        "short_citation": "Keefe CE et al., 2012",
+        "pmid": "30082986",
+        "doi": "10.1179/002436312804827127",
+        "source_url": "https://doi.org/10.1179/002436312804827127",
+        "journal": "The Linacre Quarterly",
+        "year": 2012,
+        "authors": "Keefe CE, Mirkes R, Yeung PP Jr",
+        "type": "article"
+      },
+      "verification_notes": "Quote: \"Forty patients with limited mucus cycles...had a 40 percent pregnancy rate...The length of time to pregnancy was a mean of 5.4 months.\" Section: Outcomes.",
+      "verified": 1,
+      "evidence_tier": "peer_reviewed",
+      "editorial_caveats": [],
+      "last_verified_at": "2026-04-26 18:42:08"
+    },
+    {
       "id": "fact-rec2K2thTYOL9m4Fd-1",
       "claim": "After adjustment, women with subfertility who conceived via IVF had 4.24 times higher odds of preterm birth (95% CI 2.05-8.77) compared to subfertile women who used no treatment during the month of conception.",
       "category": "outcome",
@@ -66101,44 +66256,14 @@
       "last_verified_at": "2026-04-26 03:34:50"
     },
     {
-      "id": "fact-rec78BXZjGrcM1acY-4",
-      "claim": "NaProTechnology (NaProTech) is defined as the integration of NFP with women's health care, including ethical treatment of cervical problems and other women's health issues.",
+      "id": "fact-rec78BXZjGrcM1acY-6",
+      "claim": "NaProTechnology (NaProTech) is defined as the integration of natural family planning (NFP) with women's health care.",
       "category": "methodology",
       "domain": "NaProTECHNOLOGY",
       "tradition": [
-        "napro",
-        "rrm-shared"
-      ],
-      "claim_type": "definition",
-      "body": null,
-      "source": {
-        "article_id": "rec78BXZjGrcM1acY",
-        "slug": "the-linacre-quarterly-rhythm-nfp-and-human-fertility-from-popes-pius-xi-through--recrx78gqidbqt2ok",
-        "title": "The Linacre Quarterly, Rhythm, NFP, and Human Fertility from Popes Pius XI  through Benedict XVI",
-        "short_citation": "Fehring RJ et al., 2012",
-        "pmid": "30082984",
-        "doi": "10.1179/002436312804827091",
-        "source_url": "https://doi.org/10.1179/002436312804827091",
-        "journal": "The Linacre Quarterly",
-        "year": 2012,
-        "authors": "Fehring RJ, Yeung PP Jr",
-        "type": "article"
-      },
-      "verification_notes": "Quote: \"They describe the use of natural procreative technology or NaProTech (i.e., the integration of NFP with women's health care)\" Section: Editorial.",
-      "verified": 1,
-      "evidence_tier": "peer_reviewed",
-      "editorial_caveats": [],
-      "last_verified_at": "2026-04-26 14:59:20"
-    },
-    {
-      "id": "fact-rec78BXZjGrcM1acY-7",
-      "claim": "In 2009, Pope Benedict XVI expressed gratitude to NFP physicians and scientists working on ways to treat and manage infertility so couples can procreate with full respect for personal dignity and the child to be born.",
-      "category": "methodology",
-      "domain": "NaProTECHNOLOGY",
-      "tradition": [
+        "conventional",
         "rrm-shared",
-        "napro",
-        "fabm"
+        "napro"
       ],
       "claim_type": "definition",
       "body": null,
@@ -66155,11 +66280,11 @@
         "authors": "Fehring RJ, Yeung PP Jr",
         "type": "article"
       },
-      "verification_notes": "Quote: \"Pope Benedict XVI (like Pius XI in 1932) expressed gratitude to NFP physicians and scientists working on ways to treat and manage infertility\" Section: Editorial.",
+      "verification_notes": "Quote: \"the use of natural procreative technology or NaProTech (i.e., the integration of NFP with women's health care)\" Section: special issue contents.",
       "verified": 1,
       "evidence_tier": "peer_reviewed",
       "editorial_caveats": [],
-      "last_verified_at": "2026-04-26 14:59:20"
+      "last_verified_at": "2026-04-26 18:42:08"
     },
     {
       "id": "fact-rec7CFiuXNw0Qixh9-1",
