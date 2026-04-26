@@ -183,6 +183,87 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
     } else if (email && !env.AWS_ACCESS_KEY_ID) {
       log(env, waitUntil, 'billing', 'membership_email_skipped', 'skipped', `${email} ${tierLabel} (SES not configured)`);
     }
+
+    if (email && db) {
+      try {
+        const wixSubs = await db.prepare(
+          "SELECT wix_subscription_id, status FROM wix_subscription " +
+          "WHERE email = ? COLLATE NOCASE " +
+          "ORDER BY started_at DESC"
+        ).bind(email).all();
+        const rows = wixSubs.results || [];
+        const primary = rows[0];
+        if (primary) {
+          const upd = await db.prepare(
+            "UPDATE wix_subscription " +
+            "SET migration_status='stripe_active', " +
+            "    stripe_subscription_id=?, " +
+            "    migration_notes=COALESCE(migration_notes,'') || " +
+            "      strftime('%Y-%m-%dT%H:%M:%fZ','now') || ' handoff session=' || ? || char(10) " +
+            "WHERE wix_subscription_id=? AND stripe_subscription_id IS NULL"
+          ).bind(session.subscription, session.id, primary.wix_subscription_id).run();
+
+          if (upd.meta.changes === 0) {
+            const existing = await db.prepare(
+              "SELECT stripe_subscription_id FROM wix_subscription WHERE wix_subscription_id=?"
+            ).bind(primary.wix_subscription_id).first();
+            await sendEmailSafe(env, waitUntil, {
+              to: 'administrator@rrmacademy.org',
+              subject: `STUC migration: duplicate Stripe sub for ${email}`,
+              source: 'billing/migration-handoff-dup',
+              text:
+`A second Stripe sub started for an already-handed-off donor.
+Email:    ${email}
+Existing: ${existing?.stripe_subscription_id || '(none)'}
+New:      ${session.subscription}
+Wix sub:  ${primary.wix_subscription_id}
+
+Refund the duplicate in Stripe Dashboard, then cancel the Wix sub if not already done.`,
+            });
+          } else {
+            const siblingLines = rows.map(r =>
+              `  - ${r.wix_subscription_id} (status=${r.status})`
+            ).join('\n');
+            await sendEmailSafe(env, waitUntil, {
+              to: 'administrator@rrmacademy.org',
+              subject: `STUC migration: cancel Wix sub for ${email}`,
+              source: 'billing/migration-handoff',
+              text:
+`${email} just started Stripe sub ${session.subscription}.
+
+VERIFY FIRST in Stripe Dashboard that the sub status is 'active'
+(checkout.session.completed fires before subscription confirms -- a 3DS
+failure or card decline mid-flow can leave the customer without an
+active Stripe sub. Cancelling Wix prematurely creates a coverage gap).
+
+Once confirmed active, cancel the following Wix sub(s) within 24h
+to prevent double-billing:
+${siblingLines}
+
+Wix Dashboard -> Subscriptions -> Cancel immediately (NOT end-of-cycle).`,
+            });
+          }
+        }
+      } catch (handoffErr) {
+        log(env, waitUntil, 'billing', 'migration_handoff_fail', 'error',
+          `${email}: ${handoffErr.message}`);
+        await sendEmailSafe(env, waitUntil, {
+          to: 'administrator@rrmacademy.org',
+          subject: `STUC migration handoff FAILED for ${email}`,
+          source: 'billing/migration-handoff-error',
+          text:
+`Migration handoff threw for ${email}.
+Error: (see AE log for details)
+Stripe sub: ${session.subscription}
+Manually mark wix_subscription row:
+  UPDATE wix_subscription
+  SET migration_status='stripe_active',
+      stripe_subscription_id='${session.subscription}'
+  WHERE email='${email}' COLLATE NOCASE
+  ORDER BY started_at DESC LIMIT 1;`,
+        });
+      }
+    }
   }
 
   // GA4: track completed donation or membership purchase
