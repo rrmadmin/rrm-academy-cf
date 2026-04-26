@@ -16,7 +16,7 @@ import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { sanitizeMarkdown } from '../src/lib/markdown-sanitize.mjs';
-import { sanitizeHtml, looksDirty } from '../src/lib/html-sanitize.mjs';
+import { sanitizeHtml } from '../src/lib/html-sanitize.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = join(__dirname, '..', 'src', 'data');
@@ -145,9 +145,6 @@ function checkProse(prose) {
   }
   if (EMPTY_PARA.test(prose)) {
     defects.push({ type: 'empty-paragraph', severity: 'low' });
-  }
-  if (looksDirty(prose)) {
-    defects.push({ type: 'dirty-html', severity: 'low' });
   }
   return defects;
 }

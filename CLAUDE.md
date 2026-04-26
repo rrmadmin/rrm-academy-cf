@@ -90,7 +90,7 @@ src/data/courses.json → Astro build → rrmacademy.org/courses
 
 **Affiliate / externally-hosted courses live in `src/data/courses-overrides.json`**, NOT Airtable. `fetch-courses-data.mjs` merges them after the Airtable pull, honoring a `_position` field (default: append) and replacing in-place if a matching `id`/`slug` exists (idempotent). NeoFertility Medical Training Cohort is the first override -- it has no Airtable record, so without the merge step every `workflow_dispatch` / cache-miss deploy silently wipes it and 404s `/courses/neofertility-medical-training/`.
 
-**Adding a new affiliate course:** append an entry to `courses-overrides.json` with `_position` hint. The deploy auto-merges on the next fetch-all. Push deploys skip fetch, so the committed `courses.json` ships as-is.
+**Adding a new affiliate course:** append an entry to `courses-overrides.json` with `_position` hint. The deploy auto-merges on the next fetch-all (push, workflow_dispatch, and full repository_dispatch all fetch fresh; single-record dispatches use cache + targeted patch).
 
 ### Glossary Pipeline
 
@@ -131,7 +131,7 @@ src/data/glossary.json → Astro build → rrmacademy.org/glossary
 
 ### Full Rebuild
 
-`fetch-all` fetches all 5 data sources: articles, posts, FAQs, courses, glossary. Cache key: `site-data-YYYY-MM-DD` (ET timezone). `workflow_dispatch` always fetches fresh (bypasses cache). `repository_dispatch` uses cache. `push` events skip fetch entirely.
+`fetch-all` fetches all 5 data sources: articles, posts, FAQs, courses, glossary. Cache key: `site-data-YYYY-MM-DD` (ET timezone). Since 2026-04-18, push events also fetch fresh (cache acts as fallback only) -- this fixes silent content rollback when committed `src/data/*.json` drifts from D1. `workflow_dispatch` always fetches fresh. Single-record `repository_dispatch` (record_id / article_id / faq_id / glossary_term_id) uses cache + 1-record patch.
 
 **Baseline auto-commit requires `permissions: contents: write`** in `deploy.yml`. The Update data baselines step writes `src/data/.baselines.json` and runs `git push`; without write permission the push 403s and the fallback `|| echo "Baseline update skipped (no changes)"` swallows it as a misleading success. If baselines drift from reality (check CI logs for actual counts), verify permissions first before editing the file.
 
