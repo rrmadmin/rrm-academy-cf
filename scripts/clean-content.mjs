@@ -256,7 +256,7 @@ async function main() {
   for (const c of changed) {
     const hexAfter = Buffer.from(c.after, 'utf-8').toString('hex');
     const escapedId = String(c.id).replace(/'/g, "''");
-    lines.push(`UPDATE ${cfg.table} SET ${cfg.field} = X'${hexAfter}' WHERE ${cfg.idCol} = '${escapedId}';`);
+    lines.push(`UPDATE ${cfg.table} SET ${cfg.field} = CAST(X'${hexAfter}' AS TEXT) WHERE ${cfg.idCol} = '${escapedId}';`);
   }
   writeFileSync(tmpFile, lines.join('\n'));
   console.log(`\n[apply] writing ${changed.length} UPDATE(s) via ${tmpFile} ...`);

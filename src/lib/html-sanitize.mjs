@@ -49,8 +49,8 @@ export function sanitizeHtml(html) {
 
   // Strip <script> blocks entirely (editorial content should never have these).
   result = result.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
-  // Strip on* event handler attributes.
-  result = result.replace(/\s+on[a-z]+\s*=\s*("[^"]*"|'[^']*')/gi, '');
+  // Strip on* event handler attributes (quoted or unquoted).
+  result = result.replace(/\s+on[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '');
 
   // Collapse runs of &nbsp; and trailing &nbsp; in text nodes.
   result = result.replace(/(?:&nbsp;){2,}/g, ' ');
