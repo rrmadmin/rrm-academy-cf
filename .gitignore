@@ -41,3 +41,7 @@ docs/fact-check/*.bak
 reports/quality/
 .stryker-tmp/
 coverage/
+
+
+# Audit + extraction transient outputs
+scripts/out/
