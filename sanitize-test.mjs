@@ -177,6 +177,42 @@ notContains('javascript href stripped from output', dangerHref, 'javascript:');
 const dangerImg = sanitizeHtml('<img src="javascript:alert(1)">');
 notContains('javascript src stripped', dangerImg, 'javascript:');
 
+const newlineHref = sanitizeHtml('<a href="java\nscript:alert(1)">x</a>');
+contains('newline-in-scheme href neutralized', newlineHref, 'href="#"');
+notContains('newline-in-scheme javascript: stripped', newlineHref, 'javascript:');
+notContains('newline-in-scheme literal stripped', newlineHref, 'java\nscript:');
+
+const tabHref = sanitizeHtml('<a href="java\tscript:alert(1)">x</a>');
+contains('tab-in-scheme href neutralized', tabHref, 'href="#"');
+notContains('tab-in-scheme javascript: stripped', tabHref, 'javascript:');
+
+const carriageHref = sanitizeHtml('<a href="java\rscript:alert(1)">x</a>');
+contains('cr-in-scheme href neutralized', carriageHref, 'href="#"');
+
+const newlineImg = sanitizeHtml('<img src="java\nscript:alert(1)">');
+notContains('newline-in-scheme img src stripped', newlineImg, 'javascript:');
+notContains('newline-in-scheme img literal stripped', newlineImg, 'java\nscript:');
+
+const unquotedHref = sanitizeHtml('<a href=javascript:alert(1)>x</a>');
+notContains('unquoted javascript href stripped', unquotedHref, 'javascript:');
+
+const unquotedImg = sanitizeHtml('<img src=javascript:alert(1)>');
+notContains('unquoted javascript img src stripped', unquotedImg, 'javascript:');
+
+const unquotedSafeHref = sanitizeHtml('<a href=https://example.com>ok</a>');
+contains('unquoted safe href quoted', unquotedSafeHref, 'href="https://example.com"');
+
+const dataHrefUnquoted = sanitizeHtml('<a href=data:text/html,<script>alert(1)</script>>x</a>');
+notContains('unquoted data: href stripped', dataHrefUnquoted, 'data:text/html');
+
+const md4 = await parseMarkdown('a [bad](java\nscript:alert(1)) here');
+notContains('parseMarkdown drops javascript: with embedded newline', md4, 'javascript:');
+notContains('parseMarkdown emits no anchor for newline-in-scheme', md4, '<a ');
+
+const md5 = await parseMarkdown('a [bad](java%0Ascript:alert(1)) here');
+notContains('parseMarkdown drops percent-encoded-newline javascript:', md5, 'javascript:');
+notContains('parseMarkdown emits no anchor for percent-encoded-newline', md5, '<a ');
+
 const scriptStripped = sanitizeHtml('<p>before</p><script>alert(1)</script><p>after</p>');
 notContains('script tag removed', scriptStripped, '<script');
 notContains('script body removed', scriptStripped, 'alert(1)');

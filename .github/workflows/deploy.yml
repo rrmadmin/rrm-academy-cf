@@ -249,7 +249,6 @@ jobs:
         continue-on-error: true
 
       - name: Pre-deploy content QA (deterministic + optional Sonnet)
-        if: ${{ github.event_name != 'push' }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -258,7 +257,6 @@ jobs:
         continue-on-error: true
 
       - name: Snapshot data to R2
-        if: ${{ github.event_name != 'push' }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

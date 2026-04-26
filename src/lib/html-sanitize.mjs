@@ -13,8 +13,8 @@ function isDangerousUri(href) {
     .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCharCode(parseInt(h, 16)))
     .replace(/&#(\d+);/g, (_, d) => String.fromCharCode(parseInt(d, 10)));
   try { normalized = decodeURIComponent(normalized); } catch {}
-  normalized = normalized.replace(/[ --​-‏﻿]/g, '');
-  return /^\s*(javascript|data|vbscript|file|blob|filesystem):/i.test(normalized);
+  normalized = normalized.replace(/[\x00-\x20\x7f --​-‏﻿]/g, '');
+  return /^(javascript|data|vbscript|file|blob|filesystem):/i.test(normalized);
 }
 
 export function sanitizeHtml(html) {
@@ -36,13 +36,13 @@ export function sanitizeHtml(html) {
     .replace(/&amp;quot;/g, '&quot;');
 
   // Neutralize dangerous href / src.
-  result = result.replace(/(<a\b[^>]*?\shref\s*=\s*)("([^"]*)"|'([^']*)')/gi, (m, prefix, _q, dq, sq) => {
-    const href = dq ?? sq ?? '';
+  result = result.replace(/(<a\b[^>]*?\shref\s*=\s*)("([^"]*)"|'([^']*)'|([^\s>]+))/gi, (m, prefix, _q, dq, sq, uq) => {
+    const href = dq ?? sq ?? uq ?? '';
     if (isDangerousUri(href)) return prefix + '"#"';
     return prefix + `"${escapeAttr(href)}"`;
   });
-  result = result.replace(/(<img\b[^>]*?\ssrc\s*=\s*)("([^"]*)"|'([^']*)')/gi, (m, prefix, _q, dq, sq) => {
-    const src = dq ?? sq ?? '';
+  result = result.replace(/(<img\b[^>]*?\ssrc\s*=\s*)("([^"]*)"|'([^']*)'|([^\s>]+))/gi, (m, prefix, _q, dq, sq, uq) => {
+    const src = dq ?? sq ?? uq ?? '';
     if (isDangerousUri(src)) return prefix + '""';
     return prefix + `"${escapeAttr(src)}"`;
   });
