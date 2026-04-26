@@ -17,12 +17,17 @@
  */
 
 import { readFileSync, readdirSync, writeFileSync, existsSync, statSync } from 'fs';
-import { join } from 'path';
+import { join, basename } from 'path';
 import { execFileSync } from 'child_process';
 
 const STAGING_DIR = '/tmp/article-facts';
 const FAIL_PATH = '/tmp/article-facts/_failures.json';
 const WORKER = 'https://rrm-library-worker.administrator-cloudflare.workers.dev';
+
+const ALLOWED_TRADITIONS = new Set([
+  'rrm-shared','independent','fabm','napro','creighton',
+  'femm','conventional','billings','neofertility'
+]);
 
 const argv = process.argv.slice(2);
 const flags = {
@@ -123,8 +128,10 @@ if (flags.article) {
   }
   files = [p];
 } else {
+  // Accept ONLY canonical staging files (rec*.json) — rejects .raw.json,
+  // .prompt.txt, .tmp, .error.txt, _failures.json automatically.
   files = readdirSync(STAGING_DIR)
-    .filter((f) => f.endsWith('.json') && !f.includes('.prompt.') && f !== '_failures.json')
+    .filter((f) => /^rec[A-Za-z0-9]{14,17}\.json$/.test(f) && f !== '_failures.json')
     .map((f) => join(STAGING_DIR, f));
 }
 
@@ -147,6 +154,10 @@ function normalizeTradition(t) {
       } catch {
         return null;
       }
+    } else if (s.startsWith('{')) {
+      // A JSON-object string is not a valid tradition input — bail out
+      // before the comma-split fallback turns it into junk tokens.
+      return null;
     }
     if (arr === null) {
       arr = s.includes(',') ? s.split(',') : [s];
@@ -158,7 +169,11 @@ function normalizeTradition(t) {
     .map((v) => (typeof v === 'string' ? v.trim() : ''))
     .filter((v) => v.length > 0);
   if (clean.length === 0) return null;
-  return JSON.stringify(clean);
+  // Drop unknown tradition values; if nothing remains, return null so
+  // canonical JSONs exclude the fact rather than store invalid tags.
+  const valid = clean.filter((v) => ALLOWED_TRADITIONS.has(v));
+  if (valid.length === 0) return null;
+  return JSON.stringify(valid);
 }
 
 const failures = [];
@@ -216,10 +231,13 @@ for (const f of files) {
       console.error(`  [warn] ${f}: dropped ${dropped} malformed fact${dropped === 1 ? '' : 's'}`);
     }
     allFacts.push(...clean);
-    byArticle.push({ id: doc.article_id, count: clean.length });
+    // Staging JSON has no `article_id` field; derive from filename so
+    // byArticle reporting shows the actual recXXX, not undefined.
+    const articleId = basename(f, '.json');
+    byArticle.push({ id: articleId, count: clean.length });
   } catch (err) {
     console.error(`  skip ${f}: ${err.message}`);
-    failures.push({ file: f, status: 'parse_error', error: String(err.message || err).slice(0, 300) });
+    failures.push({ type: 'parse_error', file: f, status: 'parse_error', error: String(err.message || err).slice(0, 300) });
     parseErrorCount += 1;
     flushFailures();
   }
@@ -250,7 +268,7 @@ for (let i = 0; i < allFacts.length; i += flags.batch) {
   const { status, body, fatal } = result;
   if (status !== 200 || !body.ok) {
     console.log(`FAIL (HTTP ${status}): ${JSON.stringify(body).slice(0, 300)}`);
-    failures.push({ batch: batchNum, status, body, fact_ids: batch.map((f) => f.id) });
+    failures.push({ type: 'http_error', batch: batchNum, status, body, fact_ids: batch.map((f) => f.id) });
     flushFailures();
     if (fatal || status === 401) {
       console.error(`\nAborting: token rejected (401). Remaining batches: ${totalBatches - batchNum}`);
