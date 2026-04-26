@@ -111,12 +111,22 @@ jobs:
           npm run fetch-glossary
           echo "Glossary terms: $(node -e "console.log(require('./src/data/glossary.json').terms.length)")"
 
+      - name: Fetch single course (dispatch)
+        if: ${{ github.event.client_payload.course_id }}
+        env:
+          LIBRARY_BUILD_TOKEN: ${{ secrets.LIBRARY_BUILD_TOKEN }}
+          RECORD_ID: ${{ github.event.client_payload.course_id }}
+        run: |
+          npm run fetch-courses
+          echo "Courses: $(node -e "console.log(require('./src/data/courses.json').length)")"
+
       - name: Compute IndexNow single URL (dispatch)
-        if: ${{ github.event.client_payload.record_id || github.event.client_payload.article_id || github.event.client_payload.faq_id }}
+        if: ${{ github.event.client_payload.record_id || github.event.client_payload.article_id || github.event.client_payload.faq_id || github.event.client_payload.course_id }}
         env:
           BLOG_RECORD_ID: ${{ github.event.client_payload.record_id }}
           ARTICLE_ID: ${{ github.event.client_payload.article_id }}
           FAQ_ID: ${{ github.event.client_payload.faq_id }}
+          COURSE_ID: ${{ github.event.client_payload.course_id }}
         run: |
           node -e "
             const fs = require('fs');
@@ -132,10 +142,12 @@ jobs:
             const blogSlug = findSlug('src/data/posts.json', process.env.BLOG_RECORD_ID);
             const articleSlug = findSlug('src/data/articles.json', process.env.ARTICLE_ID);
             const faqSlug = findSlug('src/data/faqs.json', process.env.FAQ_ID);
+            const courseSlug = findSlug('src/data/courses.json', process.env.COURSE_ID);
             let url = '';
             if (blogSlug) url = 'https://rrmacademy.org/commentary/' + blogSlug + '/';
             else if (articleSlug) url = 'https://rrmacademy.org/library/' + articleSlug + '/';
             else if (faqSlug) url = 'https://rrmacademy.org/faqs/' + faqSlug + '/';
+            else if (courseSlug) url = 'https://rrmacademy.org/courses/' + courseSlug + '/';
             if (url) {
               fs.appendFileSync(process.env.GITHUB_ENV, 'INDEXNOW_SINGLE_URL=' + url + '\n');
               console.log('IndexNow single URL: ' + url);
@@ -145,7 +157,7 @@ jobs:
           "
 
       - name: Fetch all data
-        if: ${{ !inputs.skip_fetch && !github.event.client_payload.record_id && !github.event.client_payload.article_id && !github.event.client_payload.faq_id && !github.event.client_payload.glossary_term_id }}
+        if: ${{ !inputs.skip_fetch && !github.event.client_payload.record_id && !github.event.client_payload.article_id && !github.event.client_payload.faq_id && !github.event.client_payload.glossary_term_id && !github.event.client_payload.course_id }}
         env:
           LIBRARY_BUILD_TOKEN: ${{ secrets.LIBRARY_BUILD_TOKEN }}
           AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
