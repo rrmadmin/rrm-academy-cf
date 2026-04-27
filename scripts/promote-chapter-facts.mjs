@@ -275,8 +275,10 @@ console.log(`Upserted:   ${total_upserted}`);
 console.log(`Relationships: ${total_relationships}`);
 console.log(`Parse errors: ${parseErrorCount}`);
 console.log(`Failures:   ${failures.length}${aborted ? ' (ABORTED on 401)' : ''}`);
+if (aborted) process.exit(2);
 if (failures.length) {
   flushFailures();
   console.log(`Failure log: ${FAIL_PATH}`);
+  process.exit(1);
 }
-if (aborted) process.exit(2);
+if (parseErrorCount) process.exit(1);
