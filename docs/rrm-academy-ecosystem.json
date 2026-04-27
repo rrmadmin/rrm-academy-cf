@@ -1,6 +1,6 @@
 {
   "name": "RRM Academy Ecosystem",
-  "last_updated": "2026-04-18",
+  "last_updated": "2026-04-26",
   "staleness_note": "Row counts, financial summaries, and timeline drift over time. This document is the system-wide SSOT -- update when infrastructure changes, subsystems ship, or pipelines migrate. Row counts are approximate snapshots; query D1 for authoritative values.",
   "organization": {
     "name": "RRM Academy",
@@ -106,6 +106,49 @@
           "pdf": ["request_link"],
           "admin": ["enrollment_notify", "customer_mismatch", "orphaned_customer"]
         }
+      }
+    },
+    "google": {
+      "ga4": {
+        "property_name": "RRM Academy (Cloudflare)",
+        "property_id": "526304690",
+        "measurement_id": "G-TSWRY7XLR0",
+        "timezone": "America/New_York",
+        "purpose": "Server-side pageviews + conversions via Measurement Protocol from _middleware.js",
+        "data_api_access": {
+          "method": "OAuth refresh-token (NOT ADC, NOT service account)",
+          "credential": "op://Automation/nvsmltslwkasqgb7tklf6nlnq4/credential (item: 'GA4 OAuth Creds (CF Pages)')",
+          "credential_shape": "{ client_id, client_secret, refresh_token } JSON",
+          "scope": "https://www.googleapis.com/auth/analytics.readonly",
+          "production_consumer": "functions/api/admin/_ga4.js (env GA4_OAUTH_CREDS = same JSON)",
+          "local_cli": "~/iCode/scripts/ga4.py",
+          "required_header": "x-goog-user-project: rrm-academy"
+        },
+        "measurement_protocol": {
+          "credential": "op://Automation/GA4 RRM Academy (Cloudflare)/credential (api_secret in password field)",
+          "endpoint": "https://www.google-analytics.com/mp/collect",
+          "fired_from": "functions/_middleware.js via ctx.waitUntil()",
+          "client_id_strategy": "deterministic hash of IP + User-Agent (no cookies)"
+        },
+        "traffic_pattern_2026_04": {
+          "snapshot_date": "2026-04-24",
+          "window": "last 28 days",
+          "peak_day_of_week": "Friday (129 sessions), then Tuesday (105)",
+          "peak_hour_et": "16:00 ET (4 PM, 93 sessions), then 15:00 ET (87), 13:00 ET (85)",
+          "peak_cell": "Fri 15:00 ET (30 sessions)"
+        }
+      },
+      "search_console": {
+        "site": "https://rrmacademy.org/",
+        "access": "ADC with webmasters scope; query via curl + x-goog-user-project: rrm-academy"
+      },
+      "adc_scopes": ["cloud-platform", "drive", "webmasters"],
+      "adc_quota_project": "rrm-academy",
+      "calendar": {
+        "access": "Service-account impersonation",
+        "service_account": "rrm-calendar-automation@rrm-academy.iam.gserviceaccount.com",
+        "skill": "~/.claude/skills/google-calendar/SKILL.md",
+        "note": "Workspace policy blocks OAuth client re-auth + SA keys; impersonation bypasses both"
       }
     },
     "n8n": {
@@ -443,6 +486,7 @@
       "repository_dispatch_blog": { "payload": "{ record_id }", "does": "Fetch single blog post, build (citation verify on single-record, blocking)" },
       "repository_dispatch_faq": { "payload": "{ faq_id }", "does": "Fetch single FAQ, build" },
       "repository_dispatch_glossary": { "payload": "{ glossary_term_id }", "does": "Fetch single glossary term, build" },
+      "repository_dispatch_course": { "payload": "{ course_id }", "does": "Fetch single course from D1, build. Added 2026-04-26 (Step 6)." },
       "workflow_dispatch": { "does": "Full fetch-all (articles, posts, FAQs, courses, glossary), build. Citation verify runs but continue-on-error." }
     },
     "data_sources": {
@@ -450,12 +494,16 @@
       "posts": { "from": "GET /api/blog/posts", "auth": "LIBRARY_BUILD_TOKEN", "script": "src/lib/fetch-blog-data.mjs", "output": "src/data/posts.json", "ssot_since": "2026-03-27" },
       "faqs": { "from": "GET /api/faqs", "auth": "LIBRARY_BUILD_TOKEN", "script": "src/lib/fetch-faq-data.mjs", "output": "src/data/faqs.json", "ssot_since": "2026-04-04" },
       "courses": {
-        "from": "Airtable (RRM Courses base app0nohI0WrgFWOE3) + src/data/courses-overrides.json (affiliate courses)",
-        "auth": "AIRTABLE_PAT",
+        "from": "GET /api/courses (D1 rrm-auth: course + course_section + course_step) + src/data/courses-overrides.json (affiliate courses)",
+        "auth": "LIBRARY_BUILD_TOKEN",
         "script": "src/lib/fetch-courses-data.mjs",
-        "process": "Fetch Courses/Modules/Lessons tables -> transform to nested JSON -> merge courses-overrides.json (idempotent, honors _position field) -> optimize cover images via Tinify -> upload to R2",
+        "process": "Fetch published courses from /api/courses (full or single-record) -> filter overrides + sort D1 by sortOrder -> merge courses-overrides.json (idempotent, honors _position field) -> atomic write via .tmp + rename. Endpoint-down resilience: 5xx after retries -> log + exit 0 with courses.json untouched.",
         "output": "src/data/courses.json",
-        "critical_note": "NeoFertility Medical Training Cohort lives ONLY in overrides.json (no Airtable record). Without the merge step, every cache-miss deploy silently 404s /courses/neofertility-medical-training/"
+        "ssot_since": "2026-04-26",
+        "soak_through": "2026-05-03",
+        "step_10_cleanup": "drop AIRTABLE_PAT + TINIFY_API_KEY from Fetch all data env, untrack courses.json from git, archive Airtable base app0nohI0WrgFWOE3",
+        "critical_note": "NeoFertility Medical Training Cohort lives ONLY in overrides.json (no D1 record). Without the merge step, every cache-miss deploy silently 404s /courses/neofertility-medical-training/. Migration script's --check-fk validates 6 course_id + 3 step_id reference tables.",
+        "authoring": "17 admin endpoints under functions/api/admin/courses/* (session + admin role). MANDATORY: route ALL course edits through /courses-update skill at ~/.claude/skills/courses-update/SKILL.md. Migration script (scripts/migrate-courses-to-d1.mjs) is one-shot seed only -- requires --seed-mode-i-understand flag and clobbers admin-edited status."
       },
       "glossary": {
         "from": "GET /api/glossary/terms",
@@ -468,11 +516,12 @@
     "guards": {
       "minimum_counts": { "articles": 2500, "posts": 5, "faqs": 10, "courses": 1, "glossary.terms": 100, "glossary.references": 30, "glossary.abbreviations": 40 },
       "max_drop": { "articles": 50, "posts": 1, "faqs": 1, "courses": 1, "glossary.terms": 5 },
+      "absolute_floor": { "articles": 3000, "posts": 18, "faqs": 22, "courses": 8, "_added": "2026-04-25 per /arise --deep #8", "_purpose": "Count below floor fails immediately regardless of baseline ratchet -- prevents slow cumulative data loss across consecutive deploys." },
       "regression_baselines": ".baselines.json (git-tracked). Auto-updates after successful deploy.",
       "type_check_baseline": "scripts/type-check-baseline.json (Astro check errors ceiling, NOT auto-updated; bump via node scripts/check-types.mjs --update)",
       "citation_verification": "scripts/verify-citations.mjs v2 (multi-API cascade) -- blocks single-record blog dispatch, continue-on-error on full deploy"
     },
-    "permissions_required": "contents: write (for baseline auto-commit)"
+    "permissions_required": "contents: write (for baseline auto-commit). WORKFLOWS_PAT secret required for any .github/workflows/*.yml change to auto-merge (default GITHUB_TOKEN cannot push workflow files); bootstrapped via PR #8 on 2026-04-26."
   },
   "content": {
     "pillar_guides": {
@@ -509,7 +558,7 @@
     "routing": {
       "listing_page": "/courses/[slug]/ (Astro static, conditionally rendered on isAffiliate)",
       "enrollment_click": "POST /api/courses/affiliate-click (logs to affiliate_clicks table, redirects to affiliateUrl)",
-      "build_merge": "src/lib/fetch-courses-data.mjs merges courses-overrides.json after Airtable fetch (load-bearing)"
+      "build_merge": "src/lib/fetch-courses-data.mjs merges courses-overrides.json after D1 fetch (load-bearing). Cutover from Airtable: 2026-04-26."
     },
     "tracking_table": "databases.rrm-auth.tables.billing.affiliate_clicks",
     "live_courses": [
@@ -601,7 +650,7 @@
   "fact_system": {
     "purpose": "Guardrail checking + verified-fact claim matching for all RRM content",
     "storage": {
-      "facts_table": "databases.rrm-library.tables.facts (1,060 rows, verified >= 1)",
+      "facts_table": "databases.rrm-library.tables.facts (~6,883 rows, verified >= 1, post Phase 1 Tier A author corpus closeout 2026-04-26)",
       "guardrails_table": "databases.rrm-library.tables.knowledge (22 guardrails)"
     },
     "endpoints": {
@@ -628,7 +677,70 @@
     },
     "wave_status": {
       "wave_1": "COMPLETE -- 782 Hilgers facts (NaProTECHNOLOGY textbook) promoted and linked",
-      "waves_2_to_5": "READY -- sources TBD"
+      "hilgers_textbook_closeout": "COMPLETE 2026-04-25 -- 90/90 numeric chapters, 4,266 D1 facts",
+      "phase_1_tier_a_author_corpus": "COMPLETE 2026-04-26 -- 9 authors, 181 articles, 2,108 new facts (Stanford 1112, Prior 370, Fehring 157, Vigil 150, Yeung 104, Billings 87, Boyle 65, Mirkes 34, Redwine 29)",
+      "phase_2_tier_b_fulltext": "PENDING -- ~261 articles missing fulltext (Hilgers 188, Prior 110, Stanford 38, Fehring 47, others)",
+      "phase_3_dedup_admin_ui": "PENDING -- 2,515 open author_dedup_flags blocking Tier 2 author hub pages"
+    },
+    "pipeline": {
+      "audit": {
+        "script": "scripts/audit-author-coverage.mjs",
+        "purpose": "Per-author Tier A/B work-queue generator. Splits articles into facts-ready (Tier A) and fulltext-needed (Tier B). Outputs CSVs to scripts/out/ (gitignored)."
+      },
+      "extract": {
+        "script": "scripts/extract-article-facts.mjs",
+        "purpose": "D1-sourced journal-article fact orchestrator. Reads article body from D1 article_bodies, dispatches Opus 4.7 high-effort via `claude -p`, validates output against FPG-1..6 + tradition allowlist + enum allowlists.",
+        "sibling": "scripts/extract-chapter-facts.mjs (textbook chapter variant, source body from rrm-cli SQLite)"
+      },
+      "promote": {
+        "script": "scripts/promote-article-facts.mjs",
+        "purpose": "POSTs staged facts to rrm-library-worker /promote-facts in batches with retry/backoff. Idempotent upsert via PRIMARY KEY id.",
+        "sibling": "scripts/promote-chapter-facts.mjs"
+      },
+      "ssot_build": {
+        "script": "scripts/build-canonical-facts.mjs",
+        "purpose": "Reads D1 facts, filters by entity tradition matcher, writes 5 canonical-facts JSONs (naprotechnology, rrm, creighton, neofertility, femm). Preserves _manual editorial overrides. Aborts on >5% record_count drop unless --force.",
+        "schema_module": "scripts/lib/canonical-facts-schema.mjs (entity definitions + tradition matchers)",
+        "ssot_paths": [
+          "docs/fact-check/naprotechnology-canonical-facts.json",
+          "docs/fact-check/rrm-canonical-facts.json",
+          "docs/fact-check/creighton-canonical-facts.json",
+          "../neofertility-ie/docs/fact-check/neofertility-canonical-facts.json",
+          "docs/fact-check/femm-canonical-facts.json"
+        ]
+      }
+    },
+    "proof_gates": {
+      "purpose": "5 deterministic gates that prevent the bug classes /arise --deep found 2026-04-26 (commit 70958c2 -- Creighton matcher dropped 724 facts, promote-* silent on partial failure, validator-prompt enum drift). Each gate has binary pass/fail semantics, no LLM judgment.",
+      "runner": "scripts/gates/validate-fact-pipeline.mjs",
+      "docs": "scripts/gates/README.md",
+      "commands": {
+        "full": "npm run gates",
+        "quick": "npm run gates:check",
+        "single": "node scripts/gates/validate-fact-pipeline.mjs --gate G1",
+        "json": "node scripts/gates/validate-fact-pipeline.mjs --json"
+      },
+      "gates": {
+        "G1": "Schema self-consistency -- entity matchers in canonical-facts-schema.mjs ref only ALLOWED_TRADITIONS values; slug-named traditions accepted by their entity; every ALLOWED_TRADITIONS value routes to >=1 entity",
+        "G2": "SSOT integrity -- record_count match, 4 fact-id pattern allowlist (article rec, chapter slug, legacy curator, registry), tradition validity, entity matcher routing",
+        "G3": "Validator-prompt enum sync -- ALLOWED_CATEGORIES + ALLOWED_CLAIM_TYPES Sets match enums declared in system-prompt.md",
+        "G4": "Orchestrator exit codes -- every script with failed/failures array calls process.exit(non-zero) inside the failure block (static check)",
+        "G5": "D1<->SSOT reconciliation -- D1 fact count per entity matches SSOT _meta.record_count within +/-2 tolerance (network-dependent; --quick skips)"
+      },
+      "wired_into": {
+        "pre_commit_hook": ".git/hooks/pre-commit (auto-fires on changes to canonical-facts-schema.mjs, extract-*-facts.mjs, promote-*-facts.mjs, build-canonical-facts.mjs, system-prompt.md)",
+        "trigger_files": [
+          "scripts/lib/canonical-facts-schema.mjs",
+          "scripts/extract-article-facts.mjs",
+          "scripts/extract-chapter-facts.mjs",
+          "scripts/promote-article-facts.mjs",
+          "scripts/promote-chapter-facts.mjs",
+          "scripts/build-canonical-facts.mjs",
+          "scripts/article-extraction/system-prompt.md",
+          "scripts/chapter-extraction/system-prompt.md"
+        ]
+      },
+      "shipped": "2026-04-26 (commit c47731c). Caught 2 latent bugs on first run: stranded conventional + billings traditions (G1), missing process.exit on promote-* failure (G4). Both fixed in same commit."
     },
     "citation_integrity": "Blog deploy blocked by scripts/verify-citations.mjs v2 (multi-API cascade). Never insert citations from model knowledge -- always live research."
   },
