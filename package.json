@@ -47,7 +47,9 @@
     "quality:crap": "node scripts/quality/crap.mjs",
     "quality:deps": "node scripts/quality/deps.mjs",
     "quality:all": "node scripts/quality/dashboard.mjs",
-    "quality:fast": "node scripts/quality/dashboard.mjs --skip-mutation"
+    "quality:fast": "node scripts/quality/dashboard.mjs --skip-mutation",
+    "gates": "node scripts/gates/validate-fact-pipeline.mjs",
+    "gates:check": "node scripts/gates/validate-fact-pipeline.mjs --quick"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.3.0",
