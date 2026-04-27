@@ -80,17 +80,38 @@ src/data/faqs.json → Astro build → rrmacademy.org/faqs
 
 ### Courses Pipeline
 
+Courses moved from Airtable to D1 on 2026-04-26 (PR #8 + commits 924722d → 9ae363f). D1 (`rrm-auth`) is SSOT across 3 tables: `course`, `course_section`, `course_step`. Authoring flow: admin endpoints (`/api/admin/courses/*`) — never raw SQL.
+
 ```
-Airtable (app0nohI0WrgFWOE3, Courses/Modules/Lessons tables)
-    │  fetch-courses-data.mjs (AIRTABLE_PAT)
-    │  ↓ after Airtable fetch: merge src/data/courses-overrides.json
+D1 (rrm-auth, course + course_section + course_step)
+    │  GET /api/courses (Bearer LIBRARY_BUILD_TOKEN)
+    │  Single-record: ?id=<courseId>. Full: all status='published'.
+    ▼
+GitHub Actions: fetch-courses-data.mjs   ← full or single-record (?id=<courseId>)
+    │  ↓ after D1 fetch: merge src/data/courses-overrides.json (affiliate slot)
     ▼
 src/data/courses.json → Astro build → rrmacademy.org/courses
 ```
 
-**Affiliate / externally-hosted courses live in `src/data/courses-overrides.json`**, NOT Airtable. `fetch-courses-data.mjs` merges them after the Airtable pull, honoring a `_position` field (default: append) and replacing in-place if a matching `id`/`slug` exists (idempotent). NeoFertility Medical Training Cohort is the first override -- it has no Airtable record, so without the merge step every `workflow_dispatch` / cache-miss deploy silently wipes it and 404s `/courses/neofertility-medical-training/`.
+**Tables:** `course` (10 D1-origin rows; PK is human-readable id like `masterclass-endo-surgery`, slug UNIQUE COLLATE NOCASE), `course_section` (33 rows; FK to course), `course_step` (70 rows; FK to course_section + denormalized course_id). All step IDs preserved verbatim because `enrollment.course_id`, `step_progress.step_id`, `quiz_response`, `lesson_comment`, `affiliate_clicks`, `course_waitlist` reference them by string.
 
-**Adding a new affiliate course:** append an entry to `courses-overrides.json` with `_position` hint. The deploy auto-merges on the next fetch-all (push, workflow_dispatch, and full repository_dispatch all fetch fresh; single-record dispatches use cache + targeted patch).
+**Schema file:** `scripts/migrate-courses-to-d1.sql`. Migration script `scripts/migrate-courses-to-d1.mjs` is one-shot seed only — re-running requires `--seed-mode-i-understand` flag and clobbers admin-edited status (per /arise --deep finding #3). For pre-flight FK check (read-only), `node scripts/migrate-courses-to-d1.mjs --check-fk`.
+
+**Public endpoint** `functions/api/courses.js`: Bearer LIBRARY_BUILD_TOKEN. Full mode filters `status='published'`; single-mode `?id=X` returns any-status course; `?id=X&preview=1` returns any-status steps too.
+
+**Admin endpoints** under `functions/api/admin/courses/` (17 total, session+admin role): course CRUD + section CRUD + step CRUD + multipart attachments. Enforces FK refusals (course DELETE refused if any of 6 ref tables have rows), cert-quiz integrity (step PUT/DELETE refused if step is referenced as `course.certificate_quiz_step_id` for any course), explicit `db.batch()` cleanup (CASCADE inert in D1).
+
+**Affiliate / externally-hosted courses live in `src/data/courses-overrides.json`**, NOT D1. `fetch-courses-data.mjs` merges them after the D1 fetch, honoring a `_position` field (default: append) and replacing in-place if a matching `id`/`slug` exists (idempotent). NeoFertility Medical Training Cohort is the only override today — it has no D1 record, so without the merge step every cache-miss deploy silently wipes it and 404s `/courses/neofertility-medical-training/`. Migration script's override skip filter excludes any override id/slug (case-insensitive, matches schema COLLATE NOCASE).
+
+**Adding a new affiliate course:** append an entry to `courses-overrides.json` with `_position` hint and PR. Deploys auto-merge on the next fetch-all.
+
+**Single-record dispatch:** `repository_dispatch` with `{ course_id: "<id>" }` triggers `fetch-courses-data.mjs` single-mode. Single-mode filters out updated id + all overrides, sorts D1 by sortOrder, then re-merges overrides at their `_position` — handles BOTH publish (status='published' re-adds) AND un-publish (status='draft'/'archived' leaves removed).
+
+**Endpoint-down resilience:** if `/api/courses` returns 5xx after retries, fetch script logs loudly and `process.exit(0)` with `courses.json` untouched. Combined with `MAX_DROP=1` and `ABSOLUTE_FLOOR=8` deploy guards, an outage is a no-op deploy, not a data-loss deploy.
+
+**MANDATORY: route ALL course edits through the `/courses-update` skill** at `~/.claude/skills/courses-update/SKILL.md`. Workflows A-H cover edit metadata, add section, add step (with Stream UID validation), upload attachment, status changes, deletes, affiliate edits (route to JSON), and pre-flight FK check. Direct `wrangler d1 execute` bypasses input validation, FK checks, and cert-quiz integrity that admin endpoints enforce.
+
+**Soak window (Step 9 of migration plan):** 2026-04-26 → ~2026-05-03. During soak, no Airtable edits and no code changes to course pipeline. Step 10 cleanup follows: drop AIRTABLE_PAT + TINIFY_API_KEY from "Fetch all data" env, untrack `src/data/courses.json` from git, archive the legacy Airtable base. See `docs/plans/backlog.md` and memory `courses-d1-migration.md`.
 
 ### Glossary Pipeline
 
@@ -480,6 +501,42 @@ A zero-dependency Node.js script (`scripts/guard.mjs`) that blocks deployments i
 - `npm run guard:install` — install pre-commit hook
 
 **Runs automatically**: pre-commit hook (local, critical files only), CI deploy workflow, CI claude/** auto-merge workflow.
+
+## Fact Pipeline Proof Gates
+
+`scripts/gates/validate-fact-pipeline.mjs` runs 5 deterministic gates that prevent the bug classes /arise --deep found in the canonical-facts pipeline (commit 70958c2 — Creighton matcher dropped 724 facts; promote-* silent on partial failure; validator/prompt enum drift). Wired to npm + pre-commit hook.
+
+**Gates**:
+
+| Gate | What it prevents |
+|------|------------------|
+| **G1** Schema self-consistency | Entity matchers in `scripts/lib/canonical-facts-schema.mjs` referencing missing/wrong tradition values; slug-named traditions not accepted by their entity; values in ALLOWED_TRADITIONS that route to no entity (the "stranded fact" pattern) |
+| **G2** SSOT integrity | `_meta.record_count` drift, malformed fact IDs (4 patterns: `fact-rec*-N` article, `fact-<slug>-N` chapter, `fact-<slug>` legacy curator, `<registry>-<slug>` legacy registry), invalid tradition arrays, broken matcher routing |
+| **G3** Validator-prompt enum sync | `ALLOWED_CATEGORIES` + `ALLOWED_CLAIM_TYPES` Sets in `extract-article-facts.mjs` must match enums declared in `scripts/article-extraction/system-prompt.md` exactly (same for chapter side when added) |
+| **G4** Orchestrator exit codes | Every script with a `failed`/`failures` array must call `process.exit(<non-zero>)` inside the failure block. Static check via brace-balanced regex |
+| **G5** D1↔SSOT reconciliation | D1 fact count per entity matches SSOT `_meta.record_count` within ±2 tolerance. Network-dependent; skipped in `--quick` mode |
+
+**Commands**:
+- `npm run gates` — full G1-G5 (queries D1)
+- `npm run gates:check` — quick G1-G4 (no network) — pre-commit invokes this
+- `node scripts/gates/validate-fact-pipeline.mjs --gate G1` — single gate
+- `node scripts/gates/validate-fact-pipeline.mjs --json` — machine-readable output
+
+**Pre-commit auto-fires** on changes to:
+- `scripts/lib/canonical-facts-schema.mjs`
+- `scripts/extract-article-facts.mjs`, `scripts/extract-chapter-facts.mjs`
+- `scripts/promote-article-facts.mjs`, `scripts/promote-chapter-facts.mjs`
+- `scripts/build-canonical-facts.mjs`
+- `scripts/article-extraction/system-prompt.md`, `scripts/chapter-extraction/system-prompt.md`
+
+**When you change**:
+- A schema entity matcher → run `npm run gates` to confirm D1 routing still aligns.
+- An orchestrator's enum (system prompt) → update validator allowlist Sets to match.
+- The ALLOWED_TRADITIONS list → ensure ≥1 entity matcher accepts the new value, OR document why it's intentionally stranded.
+
+**Bypass**: `git commit --no-verify` (don't, except for emergency reverts).
+
+Docs: `scripts/gates/README.md`.
 
 ## Citation Integrity
 
