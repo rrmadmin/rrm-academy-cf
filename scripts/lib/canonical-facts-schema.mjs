@@ -51,7 +51,7 @@ export const ENTITIES = {
     ],
     output_path: 'docs/fact-check/rrm-canonical-facts.json',
     matches: (traditions) =>
-      traditions.some((t) => t === 'rrm-shared' || t === 'independent'),
+      traditions.some((t) => t === 'rrm-shared' || t === 'independent' || t === 'conventional'),
   },
   creighton: {
     slug: 'creighton',
@@ -59,7 +59,7 @@ export const ENTITIES = {
     editorial_owner: 'Thomas W. Hilgers, MD; FertilityCare Centers of America',
     editorial_owner_refs: [],
     output_path: 'docs/fact-check/creighton-canonical-facts.json',
-    matches: (traditions) => traditions.some((t) => t === 'creighton' || t === 'fabm'),
+    matches: (traditions) => traditions.some((t) => t === 'creighton' || t === 'fabm' || t === 'billings'),
   },
   neofertility: {
     slug: 'neofertility',
