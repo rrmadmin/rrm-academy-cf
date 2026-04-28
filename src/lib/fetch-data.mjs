@@ -149,24 +149,6 @@ async function fetchSingle(recordId) {
   sortArticles(articles);
   writeArticles(articles);
   console.log(`\nWrote ${articles.length} articles to ${OUTPUT_PATH}`);
-
-  // Ping Airtable webhook to confirm record was processed (onDeck -> Synced)
-  // Kept for backward compatibility with Airtable automation trigger
-  const webhookUrl = process.env.AIRTABLE_WEBHOOK_URL;
-  if (webhookUrl) {
-    try {
-      const ping = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ record_id: recordId, status: 'processed', articles_count: articles.length }),
-      });
-      console.log(`Airtable webhook: ${ping.ok ? 'confirmed' : ping.status}`);
-    } catch (e) {
-      console.warn(`Airtable webhook ping failed: ${e.message}`);
-    }
-  } else {
-    console.warn('AIRTABLE_WEBHOOK_URL not set, skipping webhook ping');
-  }
 }
 
 // --- Main ---
