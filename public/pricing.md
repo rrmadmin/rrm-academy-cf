@@ -30,7 +30,7 @@ All course prices are one-time payments (USD). Lifetime access to purchased mate
 
 ## Free resources
 
-- RRM Research Library (3,247+ peer-reviewed articles): https://rrmacademy.org/library/
+- RRM Research Library (3,370+ peer-reviewed articles): https://rrmacademy.org/library/
 - Pillar guides: https://rrmacademy.org/what-is-rrm/, https://rrmacademy.org/naprotechnology/, https://rrmacademy.org/femm/, https://rrmacademy.org/neofertility/
 - Glossary: https://rrmacademy.org/glossary/
 - FAQs: https://rrmacademy.org/faqs/

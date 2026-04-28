@@ -89,6 +89,13 @@ function routeToOgSlug(pathname) {
 }
 const ogSlug = routeToOgSlug(Astro.url.pathname);
 const conventionOgPath = `/og/${ogSlug}.png?v=${OG_VERSION}`;
+// RSS autodiscovery: surface the right feed when the page lives under a feed-bearing section.
+const rssFeed = (() => {
+  const p = Astro.url.pathname;
+  if (p === '/library/' || p.startsWith('/library/')) return { href: '/library/rss.xml', title: 'RRM Academy Research Library' };
+  if (p === '/commentary/' || p.startsWith('/commentary/')) return { href: '/commentary/rss.xml', title: 'RRM Academy Commentary' };
+  return null;
+})();
 const resolvedOgImage = ogImage
   ? (ogImage.startsWith('http') ? ogImage : `${siteOrigin}${ogImage}`)
   : `${siteOrigin}${conventionOgPath}`;
@@ -136,6 +143,7 @@ const resolvedTwitterImage = resolvedOgImage.endsWith('.webp')
   <link rel="alternate" hreflang="en" href={canonical} />
   <link rel="alternate" hreflang="x-default" href={canonical} />
   {markdownUrl && <link rel="alternate" type="text/markdown" href={markdownUrl} title="Markdown" />}
+  {rssFeed && <link rel="alternate" type="application/rss+xml" href={rssFeed.href} title={rssFeed.title} />}
 
   <!-- Open Graph -->
   <meta property="og:title" content={fullTitle} />
@@ -267,7 +275,7 @@ const resolvedTwitterImage = resolvedOgImage.endsWith('.webp')
       var tools = [
         {
           name: 'search_rrm_library',
-          description: 'Search the RRM Academy research library (3,200+ peer-reviewed articles on restorative reproductive medicine, NaProTechnology, endometriosis excision, fertility awareness-based methods, PCOS, and reproductive endocrinology). Returns ranked results with titles, authors, year, and library URLs.',
+          description: 'Search the RRM Academy research library (3,370+ peer-reviewed articles on restorative reproductive medicine, NaProTechnology, endometriosis excision, fertility awareness-based methods, PCOS, and reproductive endocrinology). Returns ranked results with titles, authors, year, and library URLs.',
           inputSchema: {
             type: 'object',
             properties: {

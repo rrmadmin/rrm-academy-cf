@@ -17,7 +17,7 @@
   "tools": [
     {
       "name": "search",
-      "description": "Search the RRM Academy research library. 3,200+ peer-reviewed articles on restorative reproductive medicine. Supports filters for type, tradition (napro/femm/billings), year, and pagination.",
+      "description": "Search the RRM Academy research library. 3,370+ peer-reviewed articles on restorative reproductive medicine. Supports filters for type, tradition (napro/femm/billings), year, and pagination.",
       "inputSchema": {
         "type": "object",
         "properties": {
