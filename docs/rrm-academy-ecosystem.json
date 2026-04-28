@@ -863,10 +863,10 @@
         "process": "Fetch published courses from /api/courses (full or single-record) -> filter overrides + sort D1 by sortOrder -> merge courses-overrides.json (idempotent, honors _position field) -> atomic write via .tmp + rename. Endpoint-down resilience: 5xx after retries -> log + exit 0 with courses.json untouched.",
         "output": "src/data/courses.json",
         "ssot_since": "2026-04-26",
-        "soak_through": "2026-05-03",
-        "step_10_cleanup": "drop AIRTABLE_PAT + TINIFY_API_KEY from Fetch all data env, untrack courses.json from git, archive Airtable base app0nohI0WrgFWOE3",
+        "soak_through": "2026-05-03 (cleanup mostly executed early on 2026-04-27 per Brian)",
         "critical_note": "NeoFertility Medical Training Cohort lives ONLY in overrides.json (no D1 record). Without the merge step, every cache-miss deploy silently 404s /courses/neofertility-medical-training/. Migration script's --check-fk validates 6 course_id + 3 step_id reference tables.",
-        "authoring": "17 admin endpoints under functions/api/admin/courses/* (session + admin role). MANDATORY: route ALL course edits through /courses-update skill at ~/.claude/skills/courses-update/SKILL.md. Migration script (scripts/migrate-courses-to-d1.mjs) is one-shot seed only -- requires --seed-mode-i-understand flag and clobbers admin-edited status."
+        "authoring": "17 admin endpoints under functions/api/admin/courses/* (session + admin role). MANDATORY: route ALL course edits through /courses-update skill at ~/.claude/skills/courses-update/SKILL.md. Migration script (scripts/migrate-courses-to-d1.mjs) is one-shot seed only -- requires --seed-mode-i-understand flag and clobbers admin-edited status.",
+        "cleanup_executed_2026_04_27": "AIRTABLE_PAT + TINIFY_API_KEY + AIRTABLE_WEBHOOK_URL dropped from deploy.yml. Pending: untrack src/data/courses.json from git, archive Airtable base app0nohI0WrgFWOE3."
       },
       "glossary": {
         "from": "GET /api/glossary/terms",
@@ -1594,7 +1594,8 @@
     },
     "rrm-finance-sync": {
       "status": "stub",
-      "purpose": "Payment sync to Airtable ledger"
+      "purpose": "Payment sync to Airtable ledger",
+      "_status_2026_04_27": "STUB (undeployed) AND target ledger is dormant. Effectively dead."
     },
     "overwatch-worker": {
       "status": "paused",
@@ -1771,7 +1772,7 @@
   "airtable_status": {
     "_audit_date": "2026-04-27",
     "_cleanup_executed": "2026-04-27",
-    "policy": "Airtable is deprecated for rrm-academy content. D1 is SSOT. Endo survey is the only remaining HIPAA-driven by-design holdout. Foundation finance is on Airtable but stale/dormant.",
+    "policy": "Airtable is deprecated for rrm-academy content. D1 is SSOT. Endo survey is the only by-design Airtable holdout (HIPAA pseudonymization). Foundation finance is stale/dormant \u2014 treat as archive, not active.",
     "migrated_to_d1": {
       "library_articles": {
         "target": "D1 rrm-library",
@@ -1792,6 +1793,11 @@
       "courses": {
         "target": "D1 rrm-auth.course + course_section + course_step",
         "since": "2026-04-26"
+      },
+      "library_intake_appendNote": {
+        "target": "D1 rrm-library.annotations via rrm-library-worker /annotate",
+        "since": "2026-04-27 (deployed commit 70065dd)",
+        "key_format": "rose-note-${Date.now()} so notes accumulate (UNIQUE on content_id+key)"
       }
     },
     "remaining_holdouts": {
@@ -1802,14 +1808,6 @@
         "split": "D1 rrm-survey.survey_identities holds email + airtable_record_id; Airtable holds symptoms+scores+metadata (no email)",
         "rationale": "HIPAA-driven pseudonymization. Brian explicitly opted to keep on Airtable for now (2026-04-27).",
         "status": "BY_DESIGN_HOLDOUT_KEEP"
-      },
-      "library_intake_appendNote": {
-        "file": "projects/rrm-library-intake/src/ingest.ts:appendNote",
-        "called_from": "src/index.ts:278 (user reply-to flow)",
-        "airtable_base": "appyZWo2G7iByXCgZ",
-        "airtable_table": "tblQj2nqDpbp2058Z",
-        "rationale": "Rose's note-append legacy. Brian directive 2026-04-27: stop updating Airtable, migrate to D1 /annotate endpoint on rrm-library-worker.",
-        "status": "MIGRATING_TO_D1_ANNOTATE"
       }
     },
     "removed_2026_04_27": {
@@ -1859,7 +1857,7 @@
         "purpose": "n8n REST API"
       },
       "OpenClaw Airtable PAT": {
-        "purpose": "Airtable API access (all bases)"
+        "purpose": "Airtable API access. Active scope (2026-04-27): endo-survey runtime + dormant Foundation ledger only. NOT for new code."
       },
       "OpenAI API Key": {
         "purpose": "Image gen, Whisper"
@@ -2013,7 +2011,8 @@
           "6040 Processing Fees",
           "6150 Software & Apps",
           "6330 Professional Fees"
-        ]
+        ],
+        "_status_2026_04_27": "STALE/DORMANT per Brian. n8n financial workflows are paused (host down). Ledger not actively maintained. Treat as historical archive."
       },
       "summary": {
         "2024": {
@@ -2056,7 +2055,8 @@
         "monthly_6th": [
           "Bank Reconciliation (11am)",
           "Budget & Cash Flow Analysis (12pm)"
-        ]
+        ],
+        "_status_2026_04_27": "DORMANT \u2014 n8n host down, Foundation ledger no longer actively maintained per Brian 2026-04-27."
       }
     }
   },
