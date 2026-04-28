@@ -200,7 +200,8 @@ export async function onRequest(context) {
   const needsAuth =
     url.pathname === '/account' || url.pathname.startsWith('/account/') ||
     url.pathname === '/community' || url.pathname.startsWith('/community/') ||
-    url.pathname === '/ask' || url.pathname.startsWith('/ask/');
+    url.pathname === '/ask' || url.pathname.startsWith('/ask/') ||
+    url.pathname === '/save-the-uterus-club/migrate' || url.pathname.startsWith('/save-the-uterus-club/migrate/');
 
   if (needsAuth) {
     if (!env.DB) {
