@@ -184,7 +184,117 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
       log(env, waitUntil, 'billing', 'membership_email_skipped', 'skipped', `${email} ${tierLabel} (SES not configured)`);
     }
 
-    if (email && db) {
+    // Metadata-first migration handoff (INV-3, INV-9)
+    // When create-checkout (Phase 3.1) sets session.metadata.wix_subscription_id, we know
+    // EXACTLY which Wix sub to migrate -- no email guessing required. Defense against
+    // email-mismatch hijack and against multi-Wix-sub donors getting the wrong row marked.
+    let migrationHandled = false;
+    const wixSubIdMeta = session.metadata?.wix_subscription_id || null;
+    if (wixSubIdMeta && db && typeof wixSubIdMeta === 'string' && /^wxs_[a-z0-9_-]+$/i.test(wixSubIdMeta)) {
+      try {
+        // Pre-read the row so we can include next_expected_at in the admin email.
+        const wixRow = await db.prepare(
+          "SELECT email, tier, amount_cents, next_expected_at, stripe_subscription_id " +
+          "FROM wix_subscription WHERE wix_subscription_id = ?"
+        ).bind(wixSubIdMeta).first();
+
+        if (!wixRow) {
+          // Token referenced a row that doesn't exist -- log and fall through to email-match.
+          env.EVENTS?.writeDataPoint({
+            blobs: ['billing', 'stuc-migration', 'metadata-row-missing', wixSubIdMeta, ''],
+            indexes: ['metadata-row-missing'],
+          });
+        } else if (wixRow.stripe_subscription_id) {
+          // Already migrated -- duplicate webhook OR a race we lost. Idempotent: do nothing.
+          env.EVENTS?.writeDataPoint({
+            blobs: ['billing', 'stuc-migration', 'metadata-already-migrated', wixSubIdMeta, session.subscription || ''],
+            indexes: ['metadata-already-migrated'],
+          });
+          migrationHandled = true;
+        } else {
+          // Atomic UPDATE filtered by stripe_subscription_id IS NULL gives idempotency
+          // even without the pre-check above (defense in depth against retry race).
+          const upd = await db.prepare(
+            "UPDATE wix_subscription " +
+            "SET migration_status='stripe_active', " +
+            "    stripe_subscription_id=?, " +
+            "    migration_handoff_started_at=NULL, " +
+            "    migration_notes=COALESCE(migration_notes,'') || " +
+            "      strftime('%Y-%m-%dT%H:%M:%fZ','now') || ' metadata-handoff session=' || ? || char(10), " +
+            "    updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') " +
+            "WHERE wix_subscription_id=? AND stripe_subscription_id IS NULL"
+          ).bind(session.subscription, session.id, wixSubIdMeta).run();
+
+          if ((upd.meta?.changes ?? 0) === 0) {
+            // Lost the race (another retry beat us). Log and treat as handled.
+            env.EVENTS?.writeDataPoint({
+              blobs: ['billing', 'stuc-migration', 'metadata-no-update', wixSubIdMeta, session.subscription || ''],
+              indexes: ['metadata-no-update'],
+            });
+            migrationHandled = true;
+          } else {
+            // Send admin "cancel Wix sub" email, then mark admin_notified_at.
+            const donorEmail = (session.customer_details?.email || session.customer_email || wixRow.email || '').toLowerCase().trim();
+            const nextChargeDate = wixRow.next_expected_at
+              ? new Date(wixRow.next_expected_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+              : 'their next scheduled donation date';
+
+            try {
+              await sendEmailSafe(env, waitUntil, {
+                to: 'administrator@rrmacademy.org',
+                subject: `STUC migration: cancel Wix sub for ${donorEmail || wixSubIdMeta}`,
+                source: 'billing/migration-metadata',
+                text:
+`${donorEmail || '(unknown email)'} just migrated Wix → Stripe via the new self-service flow.
+
+Wix sub:        ${wixSubIdMeta}
+Stripe sub:     ${session.subscription}
+Tier:           ${wixRow.tier}
+Amount:         $${(wixRow.amount_cents / 100).toFixed(2)}/mo
+Next charge:    ${nextChargeDate}
+
+Stripe is set to start the subscription with trial_end clamped to the donor's next
+expected Wix charge date -- they will not be double-charged.
+
+VERIFY in Stripe Dashboard that the sub status is 'active', then cancel the Wix sub
+within 24 hours to prevent double-billing.
+
+Wix Dashboard -> Subscriptions -> Cancel immediately (NOT end-of-cycle).`,
+              });
+
+              // Mark notified so cron Sweep 2 doesn't re-send.
+              await db.prepare(
+                "UPDATE wix_subscription SET admin_notified_at=strftime('%s','now') WHERE wix_subscription_id=?"
+              ).bind(wixSubIdMeta).run();
+
+              env.EVENTS?.writeDataPoint({
+                blobs: ['billing', 'stuc-migration', 'metadata-handoff-ok', wixSubIdMeta, session.subscription || ''],
+                indexes: ['metadata-handoff-ok'],
+              });
+            } catch (notifyErr) {
+              // SES failed -- log, leave admin_notified_at NULL so cron Sweep 2 retries.
+              // Per existing project pattern, do NOT throw a 5xx; the migration UPDATE already
+              // succeeded and re-running the webhook would hit the idempotent-no-changes branch.
+              log(env, waitUntil, 'billing', 'metadata_admin_notify_fail', 'error',
+                `${wixSubIdMeta}: ${notifyErr.message}`);
+            }
+
+            migrationHandled = true;
+          }
+        }
+      } catch (metaErr) {
+        // Metadata path threw -- log and fall through to email-match (defense in depth).
+        log(env, waitUntil, 'billing', 'metadata_handoff_fail', 'error',
+          `${wixSubIdMeta}: ${metaErr.message}`);
+        env.EVENTS?.writeDataPoint({
+          blobs: ['billing', 'stuc-migration', 'metadata-handoff-error', wixSubIdMeta, ''],
+          indexes: ['metadata-handoff-error'],
+        });
+      }
+    }
+
+    // Existing email-match path runs only if metadata path didn't successfully handle.
+    if (!migrationHandled && email && db) {
       try {
         const wixSubs = await db.prepare(
           "SELECT wix_subscription_id, status FROM wix_subscription " +
