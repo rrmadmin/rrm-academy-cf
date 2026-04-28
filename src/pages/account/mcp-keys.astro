@@ -1,0 +1,552 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="MCP API Keys"
+  description="Generate and manage API keys for the RRM Academy MCP connector."
+  canonicalUrl="https://rrmacademy.org/account/mcp-keys"
+  noindex
+>
+  <section class="auth-page">
+    <div class="container container--narrow">
+
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/account/">My Account</a>
+        <span aria-hidden="true"> › </span>
+        <span>MCP API Keys</span>
+      </nav>
+
+      <!-- Loading -->
+      <div id="page-loading" class="account-loading">
+        <p>Loading…</p>
+      </div>
+
+      <!-- Not logged in -->
+      <div id="page-guest" class="auth-card" hidden>
+        <h1>MCP API Keys</h1>
+        <p class="auth-intro">Please log in to manage your API keys.</p>
+        <a href="/login/?redirect=/account/mcp-keys" class="btn btn--primary auth-submit">Log in</a>
+        <div class="auth-links">
+          <span>Don't have an account?</span>
+          <a href="/signup/?redirect=/account/mcp-keys">Create one — it's free</a>
+        </div>
+      </div>
+
+      <!-- Dashboard -->
+      <div id="page-content" hidden>
+
+        <header class="mcp-keys-header">
+          <h1>MCP API Keys</h1>
+          <p class="mcp-keys-intro">
+            API keys connect your AI assistant — Claude, ChatGPT, Perplexity — to the RRM Academy
+            research library and editorial guardrails. Generate a separate key for each device or app.
+            <a href="/connect/">Setup instructions →</a>
+          </p>
+        </header>
+
+        <div class="account-section">
+          <div class="section-header">
+            <h2>Your keys</h2>
+            <button id="create-btn" class="btn btn--primary btn--sm">+ Create new key</button>
+          </div>
+
+          <div id="keys-empty" class="account-placeholder" hidden>
+            <p>You don't have any keys yet. Create one to connect your AI.</p>
+          </div>
+
+          <div id="keys-error" class="account-banner account-banner--warning" hidden>
+            <p id="keys-error-text">Could not load your keys.</p>
+          </div>
+
+          <table id="keys-table" class="mcp-keys-table" hidden>
+            <thead>
+              <tr>
+                <th>Label</th>
+                <th>Key</th>
+                <th>Created</th>
+                <th>Last used</th>
+                <th>Status</th>
+                <th aria-label="Actions"></th>
+              </tr>
+            </thead>
+            <tbody id="keys-tbody"></tbody>
+          </table>
+
+          <p class="mcp-keys-limit">Up to 5 active keys per account.</p>
+        </div>
+
+        <div class="account-section mcp-keys-help">
+          <h2>What's an MCP key?</h2>
+          <p>It's a Bearer token your AI client sends to <code>https://mcp.rrmacademy.org/mcp</code> to prove it's authorized. Treat it like a password — don't paste it into a public chat or commit it to git.</p>
+          <p>If a device is lost or compromised, revoke its key here. Other keys keep working.</p>
+        </div>
+
+      </div>
+
+      <!-- Create-key modal (form) -->
+      <div id="create-modal" class="mcp-modal" hidden>
+        <div class="mcp-modal-backdrop" data-modal-close></div>
+        <div class="mcp-modal-card" role="dialog" aria-labelledby="create-modal-title">
+          <h2 id="create-modal-title">Create a new key</h2>
+          <form id="create-form">
+            <div class="form-group">
+              <label class="form-label" for="create-label">Label</label>
+              <input class="form-input" type="text" id="create-label" name="label" required maxlength="60" placeholder="e.g. Claude Desktop" autocomplete="off" />
+              <p class="form-hint">A short name so you remember which device or app uses it.</p>
+            </div>
+            <div id="create-error" class="profile-feedback profile-feedback--error" hidden>
+              <p id="create-error-text"></p>
+            </div>
+            <div class="mcp-modal-actions">
+              <button type="button" class="btn btn--text" data-modal-close>Cancel</button>
+              <button type="submit" id="create-submit" class="btn btn--primary">Create key</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Plaintext-display modal (after create) -->
+      <div id="plaintext-modal" class="mcp-modal" hidden>
+        <div class="mcp-modal-backdrop"></div>
+        <div class="mcp-modal-card" role="dialog" aria-labelledby="plaintext-modal-title">
+          <h2 id="plaintext-modal-title">Your new key — copy it now</h2>
+          <p class="plaintext-warning">This is the only time the full key will be shown. Save it somewhere safe before closing.</p>
+          <div class="plaintext-row">
+            <code id="plaintext-value"></code>
+            <button id="plaintext-copy" class="btn btn--secondary btn--sm">Copy</button>
+          </div>
+          <p class="form-hint">Paste it into your AI client's connector setup. See <a href="/connect/">setup instructions</a> if you're not sure where.</p>
+          <div class="mcp-modal-actions">
+            <button id="plaintext-done" class="btn btn--primary">I've saved it</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Revoke confirmation modal -->
+      <div id="revoke-modal" class="mcp-modal" hidden>
+        <div class="mcp-modal-backdrop" data-modal-close></div>
+        <div class="mcp-modal-card" role="dialog" aria-labelledby="revoke-modal-title">
+          <h2 id="revoke-modal-title">Revoke this key?</h2>
+          <p>The AI client using <strong id="revoke-label"></strong> will stop working immediately. This can't be undone.</p>
+          <div class="mcp-modal-actions">
+            <button type="button" class="btn btn--text" data-modal-close>Cancel</button>
+            <button id="revoke-confirm" class="btn btn--primary mcp-revoke-btn">Revoke</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <script is:inline>
+    (function () {
+      var loadingEl = document.getElementById('page-loading');
+      var guestEl = document.getElementById('page-guest');
+      var contentEl = document.getElementById('page-content');
+      var emptyEl = document.getElementById('keys-empty');
+      var errorEl = document.getElementById('keys-error');
+      var errorTextEl = document.getElementById('keys-error-text');
+      var tableEl = document.getElementById('keys-table');
+      var tbodyEl = document.getElementById('keys-tbody');
+      var createBtn = document.getElementById('create-btn');
+
+      var createModal = document.getElementById('create-modal');
+      var createForm = document.getElementById('create-form');
+      var createLabel = document.getElementById('create-label');
+      var createSubmit = document.getElementById('create-submit');
+      var createError = document.getElementById('create-error');
+      var createErrorText = document.getElementById('create-error-text');
+
+      var plaintextModal = document.getElementById('plaintext-modal');
+      var plaintextValue = document.getElementById('plaintext-value');
+      var plaintextCopy = document.getElementById('plaintext-copy');
+      var plaintextDone = document.getElementById('plaintext-done');
+
+      var revokeModal = document.getElementById('revoke-modal');
+      var revokeLabelEl = document.getElementById('revoke-label');
+      var revokeConfirmBtn = document.getElementById('revoke-confirm');
+      var pendingRevokeId = null;
+
+      function fmtDate(s) {
+        if (!s) return '—';
+        try {
+          var d = new Date(s.replace(' ', 'T') + 'Z');
+          if (isNaN(d.getTime())) return s;
+          return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+        } catch (_) { return s; }
+      }
+
+      function fmtRelative(s) {
+        if (!s) return 'never';
+        try {
+          var d = new Date(s.replace(' ', 'T') + 'Z');
+          var diff = Date.now() - d.getTime();
+          if (isNaN(diff)) return s;
+          var min = Math.floor(diff / 60000);
+          if (min < 1) return 'just now';
+          if (min < 60) return min + ' min ago';
+          var hr = Math.floor(min / 60);
+          if (hr < 24) return hr + ' hr ago';
+          var day = Math.floor(hr / 24);
+          if (day < 30) return day + 'd ago';
+          return fmtDate(s);
+        } catch (_) { return s; }
+      }
+
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      }
+
+      function showError(msg) {
+        errorTextEl.textContent = msg;
+        errorEl.hidden = false;
+      }
+
+      function hideError() { errorEl.hidden = true; }
+
+      function renderKeys(keys) {
+        if (!keys || keys.length === 0) {
+          tableEl.hidden = true;
+          emptyEl.hidden = false;
+          return;
+        }
+        emptyEl.hidden = true;
+        tbodyEl.innerHTML = '';
+        keys.forEach(function (k) {
+          var tr = document.createElement('tr');
+          var revoked = !!k.revoked_at;
+          if (revoked) tr.classList.add('mcp-key-revoked');
+          tr.innerHTML =
+            '<td>' + escapeHtml(k.label) + '</td>' +
+            '<td><code>' + escapeHtml(k.key_preview) + '…</code></td>' +
+            '<td>' + fmtDate(k.created_at) + '</td>' +
+            '<td>' + fmtRelative(k.last_used_at) + '</td>' +
+            '<td>' + (revoked ? '<span class="mcp-key-status mcp-key-status--revoked">Revoked</span>' : '<span class="mcp-key-status mcp-key-status--active">Active</span>') + '</td>' +
+            '<td>' + (revoked ? '' : '<button class="btn btn--text btn--sm mcp-revoke" data-id="' + escapeHtml(k.id) + '" data-label="' + escapeHtml(k.label) + '">Revoke</button>') + '</td>';
+          tbodyEl.appendChild(tr);
+        });
+        tableEl.hidden = false;
+
+        // Wire revoke buttons
+        var btns = tbodyEl.querySelectorAll('.mcp-revoke');
+        for (var i = 0; i < btns.length; i++) {
+          btns[i].addEventListener('click', function (e) {
+            pendingRevokeId = this.getAttribute('data-id');
+            revokeLabelEl.textContent = this.getAttribute('data-label');
+            revokeModal.hidden = false;
+          });
+        }
+      }
+
+      function loadKeys() {
+        hideError();
+        return fetch('/api/account/mcp-keys', { credentials: 'same-origin' })
+          .then(function (r) { return r.json().then(function (j) { return { status: r.status, body: j }; }); })
+          .then(function (res) {
+            if (res.status === 401) {
+              loadingEl.hidden = true;
+              contentEl.hidden = true;
+              guestEl.hidden = false;
+              return;
+            }
+            if (!res.body.ok) {
+              showError(res.body.error || 'Could not load keys.');
+              return;
+            }
+            renderKeys(res.body.keys || []);
+          })
+          .catch(function () { showError('Network error.'); });
+      }
+
+      function init() {
+        fetch('/api/auth/session', { credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            loadingEl.hidden = true;
+            if (!data || !data.user) {
+              guestEl.hidden = false;
+              return;
+            }
+            contentEl.hidden = false;
+            return loadKeys();
+          })
+          .catch(function () {
+            loadingEl.hidden = true;
+            guestEl.hidden = false;
+          });
+      }
+
+      // Modal helpers
+      function closeModal(modal) { modal.hidden = true; }
+      document.querySelectorAll('[data-modal-close]').forEach(function (el) {
+        el.addEventListener('click', function () {
+          var modal = el.closest('.mcp-modal');
+          if (modal) closeModal(modal);
+        });
+      });
+
+      // Create flow
+      createBtn.addEventListener('click', function () {
+        createError.hidden = true;
+        createForm.reset();
+        createModal.hidden = false;
+        setTimeout(function () { createLabel.focus(); }, 50);
+      });
+
+      createForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var label = (createLabel.value || '').trim();
+        if (!label) {
+          createErrorText.textContent = 'Label is required.';
+          createError.hidden = false;
+          return;
+        }
+        createSubmit.disabled = true;
+        createSubmit.textContent = 'Creating…';
+        fetch('/api/account/mcp-keys', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ label: label }),
+        })
+          .then(function (r) { return r.json().then(function (j) { return { status: r.status, body: j }; }); })
+          .then(function (res) {
+            createSubmit.disabled = false;
+            createSubmit.textContent = 'Create key';
+            if (!res.body.ok) {
+              var msg = 'Could not create key.';
+              if (res.body.error === 'max_keys_reached') msg = 'You’ve reached the 5-key limit. Revoke an existing key first.';
+              else if (res.body.error === 'label_too_long') msg = 'Label is too long (max 60 chars).';
+              else if (res.body.error === 'label_required') msg = 'Label is required.';
+              else if (res.status === 429) msg = 'Too many attempts. Please wait a few minutes.';
+              createErrorText.textContent = msg;
+              createError.hidden = false;
+              return;
+            }
+            closeModal(createModal);
+            plaintextValue.textContent = res.body.plaintext;
+            plaintextModal.hidden = false;
+            loadKeys();
+          })
+          .catch(function () {
+            createSubmit.disabled = false;
+            createSubmit.textContent = 'Create key';
+            createErrorText.textContent = 'Network error.';
+            createError.hidden = false;
+          });
+      });
+
+      // Plaintext modal — copy + done
+      plaintextCopy.addEventListener('click', function () {
+        var text = plaintextValue.textContent;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function () {
+            plaintextCopy.textContent = 'Copied!';
+            setTimeout(function () { plaintextCopy.textContent = 'Copy'; }, 2000);
+          });
+        }
+      });
+
+      plaintextDone.addEventListener('click', function () {
+        plaintextValue.textContent = '';
+        closeModal(plaintextModal);
+      });
+
+      // Revoke flow
+      revokeConfirmBtn.addEventListener('click', function () {
+        if (!pendingRevokeId) return closeModal(revokeModal);
+        revokeConfirmBtn.disabled = true;
+        revokeConfirmBtn.textContent = 'Revoking…';
+        fetch('/api/account/mcp-keys/' + encodeURIComponent(pendingRevokeId), {
+          method: 'DELETE',
+          credentials: 'same-origin',
+        })
+          .then(function (r) { return r.json().then(function (j) { return { status: r.status, body: j }; }); })
+          .then(function () {
+            revokeConfirmBtn.disabled = false;
+            revokeConfirmBtn.textContent = 'Revoke';
+            pendingRevokeId = null;
+            closeModal(revokeModal);
+            loadKeys();
+          })
+          .catch(function () {
+            revokeConfirmBtn.disabled = false;
+            revokeConfirmBtn.textContent = 'Revoke';
+            showError('Could not revoke key. Please try again.');
+          });
+      });
+
+      init();
+    })();
+  </script>
+
+  <style>
+    .breadcrumb {
+      font-size: 0.8125rem;
+      color: var(--text-tertiary);
+      margin-bottom: var(--space-6);
+    }
+    .breadcrumb a { color: var(--accent); text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+
+    .mcp-keys-header { margin-bottom: var(--space-6); }
+    .mcp-keys-header h1 {
+      font-family: var(--font-serif);
+      font-size: 2rem;
+      margin: 0 0 var(--space-3);
+    }
+    .mcp-keys-intro {
+      color: var(--text-secondary);
+      max-width: 36rem;
+      line-height: 1.6;
+    }
+    .mcp-keys-intro a { color: var(--accent); }
+
+    .account-section {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: var(--space-6);
+      margin-bottom: var(--space-6);
+    }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-4);
+    }
+    .section-header h2 { margin: 0; font-size: 1.25rem; }
+
+    .mcp-keys-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    .mcp-keys-table th, .mcp-keys-table td {
+      text-align: left;
+      padding: var(--space-3) var(--space-2);
+      border-bottom: 1px solid var(--border-light);
+    }
+    .mcp-keys-table th {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-tertiary);
+    }
+    .mcp-keys-table code {
+      font-family: "SF Mono", Menlo, monospace;
+      font-size: 0.75rem;
+      background: var(--purple-50);
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      color: var(--purple-900);
+    }
+    .mcp-key-revoked td { opacity: 0.55; }
+
+    .mcp-key-status {
+      display: inline-block;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      padding: 2px 10px;
+      border-radius: 12px;
+    }
+    .mcp-key-status--active { background: var(--green-100); color: var(--green-700); }
+    .mcp-key-status--revoked { background: var(--neutral-200); color: var(--neutral-600); }
+
+    .mcp-keys-limit {
+      margin-top: var(--space-4);
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+    }
+
+    .mcp-keys-help h2 { font-size: 1.125rem; margin-bottom: var(--space-3); }
+    .mcp-keys-help p { color: var(--text-secondary); line-height: 1.7; }
+    .mcp-keys-help code {
+      font-family: "SF Mono", Menlo, monospace;
+      font-size: 0.8125rem;
+      background: var(--purple-50);
+      padding: 1px 6px;
+      border-radius: var(--radius-sm);
+      color: var(--purple-900);
+    }
+
+    /* Modal */
+    .mcp-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-4);
+    }
+    .mcp-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(49, 49, 49, 0.55);
+      backdrop-filter: blur(2px);
+    }
+    .mcp-modal-card {
+      position: relative;
+      background: var(--bg-surface);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      padding: var(--space-6);
+      max-width: 30rem;
+      width: 100%;
+    }
+    .mcp-modal-card h2 {
+      font-family: var(--font-serif);
+      font-size: 1.5rem;
+      margin: 0 0 var(--space-4);
+    }
+    .mcp-modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--space-3);
+      margin-top: var(--space-5);
+    }
+
+    .form-hint {
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      margin-top: var(--space-1);
+    }
+
+    .plaintext-warning {
+      background: var(--cream, #eee5dd);
+      border-left: 3px solid #b08e4b;
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      color: var(--text-primary);
+      margin-bottom: var(--space-4);
+    }
+    .plaintext-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      background: var(--neutral-100);
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-3);
+    }
+    .plaintext-row code {
+      flex: 1;
+      font-family: "SF Mono", Menlo, monospace;
+      font-size: 0.8125rem;
+      word-break: break-all;
+      color: var(--purple-900);
+      background: transparent;
+      padding: 0;
+    }
+
+    @media (max-width: 640px) {
+      .mcp-keys-table { font-size: 0.8125rem; }
+      .mcp-keys-table th, .mcp-keys-table td { padding: var(--space-2); }
+    }
+  </style>
+</BaseLayout>
