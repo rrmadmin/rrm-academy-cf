@@ -1770,8 +1770,8 @@
   },
   "airtable_status": {
     "_audit_date": "2026-04-27",
-    "_audit_method": "5 parallel sub-agents (Explore + general-purpose) verified file-by-file across rrm-academy-cf, rrm-library-intake, rrm-library-worker, rrm-foundation, rrm-finance-sync. n8n host was 502 during audit so financial workflows verified from rrm-foundation/CLAUDE.md only.",
-    "policy": "Airtable is deprecated for rrm-academy content. D1 is SSOT. Foundation finance is intentional Airtable forever (BOOKKEEPING-STRATEGY-2026.md).",
+    "_cleanup_executed": "2026-04-27",
+    "policy": "Airtable is deprecated for rrm-academy content. D1 is SSOT. Endo survey is the only remaining HIPAA-driven by-design holdout. Foundation finance is on Airtable but stale/dormant.",
     "migrated_to_d1": {
       "library_articles": {
         "target": "D1 rrm-library",
@@ -1791,77 +1791,59 @@
       },
       "courses": {
         "target": "D1 rrm-auth.course + course_section + course_step",
-        "since": "2026-04-26",
-        "soak_through": "2026-05-03"
+        "since": "2026-04-26"
       }
     },
-    "transitional_holdouts": {
+    "remaining_holdouts": {
       "endo_survey_submissions": {
         "file": "functions/api/survey/submit.js",
         "airtable_base": "appb7HeeJQsVe3Jpr",
         "airtable_table": "tblMAw2tih2ie3ZCu",
         "split": "D1 rrm-survey.survey_identities holds email + airtable_record_id; Airtable holds symptoms+scores+metadata (no email)",
-        "rationale": "HIPAA-driven pseudonymization. No migration plan today.",
-        "status": "BY_DESIGN_HOLDOUT"
+        "rationale": "HIPAA-driven pseudonymization. Brian explicitly opted to keep on Airtable for now (2026-04-27).",
+        "status": "BY_DESIGN_HOLDOUT_KEEP"
       },
       "library_intake_appendNote": {
         "file": "projects/rrm-library-intake/src/ingest.ts:appendNote",
         "called_from": "src/index.ts:278 (user reply-to flow)",
         "airtable_base": "appyZWo2G7iByXCgZ",
         "airtable_table": "tblQj2nqDpbp2058Z",
-        "rationale": "Rose's note-append legacy. Bot ingestion itself is fully D1 via /ingest endpoint.",
-        "status": "TODO_MIGRATE_TO_D1"
-      },
-      "crm_merge_script": {
-        "file": "projects/rrm-academy-cf/scripts/build-contact-crm.mjs",
-        "reads": "3 Airtable bases (Master, SQSP, 3-Tier)",
-        "writes": "D1 rrm-auth.contact",
-        "callers": "manual CLI only (--dry-run / --execute)",
-        "last_modified": "2026-03-12",
-        "status": "ACTIVE_MANUAL_TRANSITIONAL"
-      },
-      "stuc_publisher": {
-        "file": "projects/rrm-academy-cf/scripts/stuc-pipeline/publish.mjs",
-        "writes": "Airtable courses base app0nohI0WrgFWOE3",
-        "guard": "--i-understand-d1-divergence flag required (PR #9)",
-        "callers": "manual CLI only",
-        "status": "ACTIVE_MANUAL_GUARDED"
+        "rationale": "Rose's note-append legacy. Brian directive 2026-04-27: stop updating Airtable, migrate to D1 /annotate endpoint on rrm-library-worker.",
+        "status": "MIGRATING_TO_D1_ANNOTATE"
       }
     },
-    "step_10_courses_cleanup_queue": {
-      "_when": "after courses soak ~2026-05-03",
-      "deploy_yml_dead_env_vars": [
+    "removed_2026_04_27": {
+      "deploy_yml_dead_env_vars_dropped": [
         "AIRTABLE_PAT (line 163)",
-        "TINIFY_API_KEY (line 164)"
+        "TINIFY_API_KEY (line 164)",
+        "AIRTABLE_WEBHOOK_URL (lines 91, 167)"
       ],
-      "dead_or_broken_scripts_to_delete": [
-        "scripts/optimize-course-covers.mjs (DEAD, last touched 2026-03-12, no callers)",
-        "scripts/unpublish-post.sh (BROKEN since 2026-03-27 blog migration; patches Airtable, posts are D1)",
-        "src/lib/airtable-config.mjs (ORPHANED, zero importers)",
-        "scripts/migrate-survey-identities.mjs (DEAD one-shot, already executed)"
+      "scripts_deleted": [
+        "scripts/build-contact-crm.mjs (D1 contact table is SSOT, 7,163 rows)",
+        "scripts/optimize-course-covers.mjs (DEAD)",
+        "scripts/unpublish-post.sh (BROKEN since blog migration)",
+        "scripts/migrate-survey-identities.mjs (one-shot already executed)",
+        "src/lib/airtable-config.mjs (orphaned)",
+        "scripts/stuc-pipeline/ entire directory (publish.mjs, download.sh, manifest.json) \u2014 D1 admin endpoints replace it"
       ],
-      "git_untrack": [
-        "src/data/courses.json"
-      ],
-      "airtable_base_to_archive": "app0nohI0WrgFWOE3 (courses)",
-      "stuc_publisher_decision_pending": "rewrite scripts/stuc-pipeline/publish.mjs for D1 OR delete entirely"
+      "code_blocks_removed": [
+        "src/lib/fetch-data.mjs Airtable webhook ping block (decorative pre-D1 cache notification)"
+      ]
     },
-    "intentional_separate_ecosystem": {
+    "intentional_separate_ecosystem_now_dormant": {
       "foundation_finance_ledger": {
         "airtable_base": "appdRYaSoJmeZSqU6",
         "airtable_table": "tblh96WpbmB7T8Cz1",
         "row_count_approx": 753,
-        "policy": "Airtable forever. BOOKKEEPING-STRATEGY-2026.md commits to unified ledger + scaling via Airtable Plus tier (2027-2028). No migration planned.",
-        "n8n_workflows": "Wix Payments + PayPal monthly sync, duplicate detection, large-expense alerts, bank reconciliation, budget reports, Drive backup, recurring expense watchdog, 990-N reminders, year-end summary, quarterly board summary"
+        "policy_per_BOOKKEEPING_STRATEGY_2026": "Airtable forever, scaling via Plus tier 2027-2028",
+        "actual_status_2026_04_27": "STALE_DORMANT per Brian. n8n financial workflows are paused/dead. Ledger no longer actively maintained.",
+        "implication": "Treat as historical archive, not live system. Don't propose extensions to it."
       }
     },
-    "n8n_host_alert": {
-      "_observed_during_audit": "2026-04-27",
+    "n8n_host_status": {
       "host": "https://n8n.rrmacademy.org (108.174.50.7)",
-      "status_at_audit": "HARD_DOWN_502",
-      "scope": "All requests to / and /api/v1/* return 502 Caddy upstream errors. Caddy up, n8n process down.",
-      "risk": "Financial cron jobs (Wix/PayPal sync on 5th, reconciliation on 6th, etc.) are at risk if not restored before May 5.",
-      "remediation": "SSH to 108.174.50.7 and restart n8n container."
+      "status_at_audit": "HARD_DOWN_502 (Caddy up, n8n process down)",
+      "remediation_priority": "LOW (per Brian 2026-04-27: financial workflows are stale/dead anyway; no urgency)"
     }
   },
   "credentials": {
