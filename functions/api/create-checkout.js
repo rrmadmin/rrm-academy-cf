@@ -174,18 +174,124 @@ async function handleCheckout(request, env, waitUntil) {
 
   // --- Recurring membership ---
   if (mode === 'subscription') {
+    // --- Wix migration: validate optional wix_sub_id input ---
+    const wixSubIdInput = body.wix_sub_id;
+    if (wixSubIdInput !== undefined && wixSubIdInput !== null) {
+      if (typeof wixSubIdInput !== 'string' || wixSubIdInput.length > 100 ||
+          !/^wxs_[a-z0-9_-]+$/i.test(wixSubIdInput)) {
+        return json({ ok: false, error: 'Invalid wix_sub_id' }, 400);
+      }
+    }
+    const wixSubId = wixSubIdInput || null;
+
+    // --- Layer 3: look up pending Wix subscription (feature-flagged) ---
+    const stucV2 = env.STUC_MIGRATION_UX_V2 === 'true';
+    let wixLookup = null;
+    if (stucV2 && env.DB && (wixSubId || userEmail)) {
+      try {
+        wixLookup = await env.DB.prepare(
+          "SELECT wix_subscription_id, tier, amount_cents, next_expected_at, status, migration_status " +
+          "FROM wix_subscription " +
+          "WHERE (wix_subscription_id = ? OR email = ? COLLATE NOCASE) " +
+          "  AND status = 'active' " +
+          "  AND migration_status = 'pending' " +
+          "ORDER BY started_at DESC " +
+          "LIMIT 1"
+        ).bind(wixSubId, userEmail || '').first();
+      } catch {
+        env.EVENTS?.writeDataPoint({
+          blobs: ['billing', 'stuc-migration', 'lookup-error', '', ''],
+          indexes: ['stuc-migration-lookup-error'],
+        });
+        wixLookup = null;
+      }
+    }
+
+    // --- Migration: atomic write-lock + off-amount detection + trial_end clamp ---
+    let useCustomAmount = false;
+    let trialEndUnix = null;
+    let migrationMetadata = {};
+
+    if (wixLookup) {
+      // Atomic write-lock with 15-min TTL
+      let lockResult;
+      try {
+        lockResult = await env.DB.prepare(
+          "UPDATE wix_subscription " +
+          "SET migration_handoff_started_at = strftime('%s','now') " +
+          "WHERE wix_subscription_id = ? " +
+          "  AND (migration_handoff_started_at IS NULL " +
+          "       OR migration_handoff_started_at < strftime('%s','now') - 900)"
+        ).bind(wixLookup.wix_subscription_id).run();
+      } catch {
+        lockResult = { meta: { changes: 1 } };
+      }
+      if ((lockResult?.meta?.changes ?? 0) === 0) {
+        return json({ ok: false, error: 'migration_in_progress' }, 409);
+      }
+
+      // Off-amount detection
+      const STANDARD_CENTS = new Set([900, 1900, 9900]);
+      if (!STANDARD_CENTS.has(wixLookup.amount_cents) && body.acknowledge_off_amount !== true) {
+        return json({
+          ok: false,
+          error: 'off_amount',
+          amount_cents: wixLookup.amount_cents,
+          standard_tiers: [
+            { tier: 'member',    amount_cents: 900 },
+            { tier: 'hero',      amount_cents: 1900 },
+            { tier: 'superhero', amount_cents: 9900 },
+          ],
+        }, 412);
+      }
+      useCustomAmount = !STANDARD_CENTS.has(wixLookup.amount_cents);
+
+      // trial_end clamp: must be at least 1 day out, at most ~2 years out
+      const nowSec = Math.floor(Date.now() / 1000);
+      const trialEndCandidate = wixLookup.next_expected_at
+        ? Math.floor(new Date(wixLookup.next_expected_at).getTime() / 1000)
+        : null;
+      if (
+        Number.isFinite(trialEndCandidate) &&
+        trialEndCandidate > nowSec + 86400 &&
+        trialEndCandidate < nowSec + 730 * 86400
+      ) {
+        trialEndUnix = trialEndCandidate;
+      } else if (trialEndCandidate !== null) {
+        env.EVENTS?.writeDataPoint({
+          blobs: ['billing', 'stuc-migration', 'trial-end-out-of-range', wixLookup.wix_subscription_id, String(trialEndCandidate)],
+          indexes: ['trial-end-out-of-range'],
+        });
+      }
+
+      migrationMetadata = {
+        wix_subscription_id: wixLookup.wix_subscription_id,
+        migration_handoff: 'true',
+      };
+    } else if (stucV2) {
+      env.EVENTS?.writeDataPoint({
+        blobs: ['billing', 'stuc-migration', 'cold-checkout', userEmail || 'anon', wixSubId || ''],
+        indexes: ['cold-checkout'],
+      });
+    }
+
+    // --- Tier resolution: fall back to wixLookup.tier when no tier sent ---
+    let effectiveTier = tier;
+    if (!effectiveTier && wixLookup) effectiveTier = wixLookup.tier;
+    if (useCustomAmount && !effectiveTier) effectiveTier = 'member';
+
     const priceMap = {
       member: env.STRIPE_PRICE_MEMBER,
       hero: env.STRIPE_PRICE_HERO,
       superhero: env.STRIPE_PRICE_SUPERHERO,
     };
-    const priceId = Object.hasOwn(priceMap, tier) ? priceMap[tier] : undefined;
+    const priceId = Object.hasOwn(priceMap, effectiveTier) ? priceMap[effectiveTier] : undefined;
     if (!priceId) {
       return json({ ok: false, error: 'Invalid tier' }, 400);
     }
     // Guard: reject test-mode price IDs when using a live key
     if (stripeKey.startsWith('sk_live_') && priceId.includes('_test_')) {
-      console.error(`BLOCKED: test-mode price ID for tier "${tier}": ${priceId}`);
+      console.error(`BLOCKED: test-mode price ID for tier "${effectiveTier}": ${priceId}`);
       return json({ ok: false, error: 'Payments not configured' }, 500);
     }
 
@@ -209,12 +315,25 @@ async function handleCheckout(request, env, waitUntil) {
       }
     }
 
+    // --- Build line_items: use price_data for off-amount donors ---
+    const lineItems = useCustomAmount && wixLookup
+      ? [{
+          price_data: {
+            currency: 'usd',
+            product_data: { name: `Save the Uterus Club ($${(wixLookup.amount_cents / 100).toFixed(0)}/month)` },
+            unit_amount: wixLookup.amount_cents,
+            recurring: { interval: 'month' },
+          },
+          quantity: 1,
+        }]
+      : [{ price: priceId, quantity: 1 }];
+
     const sessionParams = {
       mode: 'subscription',
-      line_items: [{ price: priceId, quantity: 1 }],
+      line_items: lineItems,
       success_url: `${origin}/save-the-uterus-club/thank-you/?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/save-the-uterus-club/`,
-      metadata: { tier },
+      metadata: { tier: effectiveTier },
       custom_text: {
         submit: { message: 'Your monthly donation supports evidence-based reproductive health education through the RRM Foundation, a 501(c)(3) nonprofit.' },
       },
@@ -228,12 +347,21 @@ async function handleCheckout(request, env, waitUntil) {
     if (userId) sessionParams.client_reference_id = userId;
     sessionParams.metadata = {
       ...sessionParams.metadata,
+      ...migrationMetadata,
       ga_source: gaSource,
       ga_medium: gaMedium,
       ga_client_id: clientId,
       ga_session_id: String(sessionId),
       ...(gaCampaign && { ga_campaign: gaCampaign }),
     };
+
+    // Carry migration metadata into subscription_data so webhook can read it
+    if (Object.keys(migrationMetadata).length > 0) {
+      sessionParams.subscription_data = {
+        ...(trialEndUnix ? { trial_end: trialEndUnix } : {}),
+        metadata: migrationMetadata,
+      };
+    }
 
     let checkoutSession;
     try {
@@ -244,7 +372,7 @@ async function handleCheckout(request, env, waitUntil) {
     const tierValueMap = { member: 10, hero: 25, superhero: 50 };
     waitUntil(sendGA4Event(env, request, 'begin_checkout', {
       page_location: entry_url || request.headers.get('Referer') || SITE_URL,
-      currency: 'USD', value: tierValueMap[tier] ?? 0, items: [{ item_name: `STUC ${tier}` }],
+      currency: 'USD', value: tierValueMap[effectiveTier] ?? 0, items: [{ item_name: `STUC ${effectiveTier}` }],
     }).catch(() => {}));
     return json({ ok: true, url: checkoutSession.url });
   }
