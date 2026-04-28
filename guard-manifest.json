@@ -66,6 +66,10 @@
       "hash": "2be8ce987f6b5c338a4456476fc45dfbd0c705d48753e2d2e2131af831f44e4b",
       "note": "Shared webhook helpers"
     },
+    "functions/api/billing/_migration-token.js": {
+      "hash": "cc61cc87995c747adbb6a8c53b033dcf0331e693361b9a355a683d5057209132",
+      "note": "HMAC-SHA256 magic-link token for Wix-to-Stripe donor migration"
+    },
     "functions/_middleware.js": {
       "hash": "d081aaa2a11e381170665b93d9ca46a213b744f69f0817bba0f6b8a72f8b0965",
       "note": "Auth gating"
