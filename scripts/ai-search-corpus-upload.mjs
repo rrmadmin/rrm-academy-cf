@@ -305,16 +305,22 @@ async function d1Query(sql, params = [], attempt = 0) {
     headers: { Authorization: `Bearer ${D1_TOKEN}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ sql, params }),
   });
-  if ((r.status === 429 || r.status >= 500) && attempt < 3) {
-    await new Promise((res) => setTimeout(res, 500 * 2 ** attempt));
-    return d1Query(sql, params, attempt + 1);
-  }
   const text = await r.text();
   let json;
   try {
     json = JSON.parse(text);
   } catch {
+    if (r.status >= 500 && attempt < 3) {
+      await new Promise((res) => setTimeout(res, 500 * 2 ** attempt));
+      return d1Query(sql, params, attempt + 1);
+    }
     throw new Error(`D1 query non-JSON: ${r.status}: ${text.slice(0, 300)}`);
+  }
+  const errs = json.errors || [];
+  const rateLimited = r.status === 429 || r.status >= 500 || errs.some((e) => e.code === 429 || e.code === 971 || (e.message || '').toLowerCase().includes('rate'));
+  if (rateLimited && attempt < 4) {
+    await new Promise((res) => setTimeout(res, 750 * 2 ** attempt));
+    return d1Query(sql, params, attempt + 1);
   }
   if (!r.ok || json.success === false) {
     throw new Error(`D1 query failed: ${JSON.stringify(json.errors || text.slice(0, 300))}`);
@@ -360,10 +366,9 @@ async function d1DeleteDoc(key) {
 
 const ITEMS_BASE = `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/ai-search/namespaces/${NAMESPACE}/instances/${INSTANCE}/items`;
 
-async function uploadItem({ key, body, metadata }) {
+async function uploadItem({ key, body, metadata }, attempt = 0) {
   const form = new FormData();
   const blob = new Blob([body], { type: 'text/markdown' });
-  // The "filename" form field becomes the item key
   form.append('file', blob, key);
   form.append('metadata', JSON.stringify(metadata));
   const r = await fetch(ITEMS_BASE, {
@@ -376,7 +381,17 @@ async function uploadItem({ key, body, metadata }) {
   try {
     json = JSON.parse(text);
   } catch {
+    if (r.status >= 500 && attempt < 3) {
+      await new Promise((res) => setTimeout(res, 750 * 2 ** attempt));
+      return uploadItem({ key, body, metadata }, attempt + 1);
+    }
     throw new Error(`upload non-JSON ${r.status}: ${text.slice(0, 300)}`);
+  }
+  const errs = json.errors || [];
+  const rateLimited = r.status === 429 || r.status >= 500 || errs.some((e) => e.code === 10429 || e.code === 971 || (e.message || '').toLowerCase().includes('rate'));
+  if (rateLimited && attempt < 4) {
+    await new Promise((res) => setTimeout(res, 750 * 2 ** attempt));
+    return uploadItem({ key, body, metadata }, attempt + 1);
   }
   if (!r.ok || json.success === false) {
     throw new Error(`upload failed for ${key}: ${JSON.stringify(json.errors || text.slice(0, 300))}`);
