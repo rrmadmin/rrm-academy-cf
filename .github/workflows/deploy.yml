@@ -355,7 +355,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add src/data/.baselines.json
-          git diff --cached --quiet || git commit -m "chore: update data baselines after deploy" && git push || echo "Baseline update skipped (no changes)"
+          if git diff --cached --quiet; then
+            echo "No baseline changes to commit"
+          else
+            git commit -m "chore: update data baselines after deploy"
+            git push
+          fi
 
       - name: Notify Observatory
         if: always()
