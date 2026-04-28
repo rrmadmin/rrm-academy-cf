@@ -127,6 +127,22 @@ export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
 
+  // Pre-fetch feature:search_v2 flag once per request so ask.js and
+  // search/semantic.js can read context.data.searchV2 without a duplicate KV call.
+  // Fail-closed to 'off' on any error -- the flag must NEVER fail-open to v2.
+  context.data = context.data || {};
+  if (env.COMMUNITY_KV) {
+    try {
+      const flagVal = await env.COMMUNITY_KV.get('feature:search_v2');
+      const valid = ['off', 'admin', 'all'];
+      context.data.searchV2 = valid.includes(flagVal) ? flagVal : 'off';
+    } catch {
+      context.data.searchV2 = 'off';
+    }
+  } else {
+    context.data.searchV2 = 'off';
+  }
+
   // Block search engine indexing of CF Pages preview domains
   if (url.hostname.endsWith('.pages.dev')) {
     const response = await context.next();
