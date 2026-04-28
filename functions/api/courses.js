@@ -39,7 +39,7 @@ export async function onRequestGet(context) {
     const id = url.searchParams.get('id');
 
     if (id !== null) {
-      if (typeof id !== 'string' || id.length > 100) {
+      if (typeof id !== 'string' || id.length === 0 || id.length > 100) {
         return json({ ok: false, error: 'Invalid id' }, 400);
       }
 
