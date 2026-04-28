@@ -38,7 +38,7 @@ export async function handleSubscriptionDeleted(db, event, env, request, waitUnt
 
   try {
     await db.prepare(
-      "UPDATE wix_subscription SET migration_status='wix_cancelled' " +
+      "UPDATE wix_subscription SET migration_status='fully_exited' " +
       "WHERE stripe_subscription_id=? AND migration_status='migrated'"
     ).bind(sub.id).run();
   } catch (cancelErr) {

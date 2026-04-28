@@ -104,7 +104,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
       db.prepare(
         "SELECT email, stripe_subscription_id, updated_at " +
         "FROM wix_subscription " +
-        "WHERE migration_status='wix_cancelled' " +
+        "WHERE migration_status='fully_exited' " +
         "  AND updated_at > datetime('now','-30 days') " +
         "ORDER BY updated_at DESC " +
         "LIMIT ?"
