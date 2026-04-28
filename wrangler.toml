@@ -45,3 +45,11 @@ binding = "AI"
 [[analytics_engine_datasets]]
 binding = "EVENTS"
 dataset = "worker_events"
+
+# Service binding to rrm-ai-search Worker — owns the ai_search_namespaces binding
+# which CF Pages Functions cannot bind directly. Pages calls
+# env.AI_SEARCH.fetch("https://internal/ask"|"https://internal/search", ...)
+# with Bearer AI_SEARCH_WORKER_AUTH.
+[[services]]
+binding = "AI_SEARCH"
+service = "rrm-ai-search"
