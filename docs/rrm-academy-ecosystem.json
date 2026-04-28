@@ -77,32 +77,74 @@
         "note": "Manual refresh after data-heavy changes (bulk enrichment, new content types). ~100s for 3,200+ entries"
       },
       "ai_search": {
-        "instance_name": "rrm-academy-ask",
-        "public_endpoint": "https://383a8638-22b4-46c2-823d-1d42dbcb2bf3.search.ai.cloudflare.com",
-        "model": "Llama 3.3 70B",
-        "purpose": "Conversational research layer powering /ask page (auth-gated)",
-        "live_since": "2026-04-16",
-        "crawl": {
-          "source": "Website (Rendered Sites)",
-          "include": [
-            "rrmacademy.org",
-            "www.rrmacademy.org"
+        "namespace": "rrm-academy-search",
+        "primary_since": "2026-04-28",
+        "purpose": "Conversational research layer powering /ask page + replacement for Vectorize semantic search",
+        "model": "Llama 3.3 70B (Workers AI, @cf/meta/llama-3.3-70b-instruct-fp8-fast)",
+        "retrieval": "Hybrid (BM25 keyword + vector) within the AI Search namespace",
+        "instances": {
+          "rrm-academy-search-articles": {
+            "type": "built-in storage",
+            "items": "3,556+",
+            "metadata_schema": [
+              "type",
+              "year",
+              "domain",
+              "rrm_relevance",
+              "is_open_access"
+            ],
+            "loaded_by": "scripts/ai-search-corpus-upload.mjs (CI on every Pages deploy + Sunday 08:00 UTC reconcile cron)"
+          },
+          "rrm-academy-search-site": {
+            "type": "web-crawler",
+            "source": "rrmacademy.org",
+            "status": "DISABLED at Worker level — produced duplicate hits (every D1 article appeared once as upload + once as crawl)"
+          }
+        },
+        "consumer_worker": {
+          "name": "rrm-ai-search",
+          "url": "https://rrm-ai-search.administrator-cloudflare.workers.dev",
+          "github": "rrmadmin/rrm-ai-search (private)",
+          "local_path": "~/iCode/projects/rrm-ai-search/",
+          "purpose": "Owns ai_search_namespaces binding (CF Pages Functions cannot bind it directly). Pages calls via service binding.",
+          "endpoints": [
+            "POST /ask (hybrid retrieval + LLM generation)",
+            "POST /search (hybrid retrieval only, Vectorize-shape envelope)"
           ],
-          "exclude": [
-            "/account/*",
-            "/admin/*",
-            "/api/*",
-            "/login",
-            "/signup",
-            "lesson steps (noindex)"
+          "bindings": [
+            "ASK_KB (AI Search namespace)",
+            "AI (Workers AI)",
+            "AUTH_DB (D1 rrm-auth — citation title lookups for posts/faq/glossary_term)",
+            "LIBRARY_DB (D1 rrm-library — citation title lookups for articles)",
+            "EVENTS (AE worker-events)"
+          ],
+          "auth": "Bearer AI_SEARCH_WORKER_AUTH (shared secret on Pages env + Worker secret)"
+        },
+        "pages_consumer": {
+          "binding_block": "[[services]] AI_SEARCH = rrm-ai-search (in rrm-academy-cf wrangler.toml)",
+          "feature_flag": {
+            "kv_key": "feature:search_v2 in COMMUNITY_KV",
+            "values": "off | admin | all",
+            "current": "all",
+            "fail_closed": "_middleware.js defaults to 'off' on KV read failure"
+          },
+          "consumed_by": [
+            "functions/api/ask.js (v1/v2 branch on shouldUseV2)",
+            "functions/api/search/semantic.js (same v1/v2 routing)"
           ]
         },
         "rate_limiting": {
-          "public_api": "120 req/60s (CF default)",
-          "per_user": "20 queries/day (KV-tracked, key ask:rate:{userId}:{YYYY-MM-DD})"
+          "public_api": "120 req/60s (CF default at the Worker)",
+          "per_user_ask": "20 queries/day (KV-tracked, key ask:rate:{userId}:{YYYY-MM-DD})",
+          "search_endpoint": "20 req/min per IP (cf-connecting-ip)"
         },
-        "pages_secret": "NLWEB_SEARCH_URL (bound to rrm-academy CF Pages project)",
-        "consumed_by": "functions/api/ask.js",
+        "deprecated_v1": {
+          "instance_name": "rrm-academy-ask",
+          "public_endpoint": "https://383a8638-22b4-46c2-823d-1d42dbcb2bf3.search.ai.cloudflare.com",
+          "type": "AutoRAG (crawler-based)",
+          "status": "DEPRECATED 2026-04-28; retained behind feature flag for emergency revert",
+          "retirement_target": "2026-05-12 (after 2-week soak); drops NLWEB_SEARCH_URL secret + deletes AutoRAG instance + decommissions Vectorize index rrm-library-vectors"
+        },
         "signup_flow": "New signups from /ask tracked via user.signup_source='ask'; welcome-ask email sent inline"
       }
     },
@@ -1224,10 +1266,10 @@
     "citation_integrity": "Blog deploy blocked by scripts/verify-citations.mjs v2 (multi-API cascade). Never insert citations from model knowledge -- always live research."
   },
   "search_system": {
-    "architecture": "Pagefind (client-side full-text, instant) + Vectorize (server-side semantic, ~200ms) merged via Reciprocal Rank Fusion (RRF) in src/components/SearchBar.astro",
+    "architecture": "Pagefind (client-side full-text, instant) merged with semantic results from /api/search/semantic via Reciprocal Rank Fusion (RRF) in src/components/SearchBar.astro. As of 2026-04-28 the semantic backend is the rrm-ai-search Worker (hybrid BM25+vector against AI Search namespace rrm-academy-search). Pre-2026-04-28 it was Vectorize index rrm-library-vectors.",
     "fusion": {
       "algorithm": "Reciprocal Rank Fusion (RRF)",
-      "formula": "sum(1/(K+rank)) across Pagefind + Vectorize + recency + relevance signals",
+      "formula": "sum(1/(K+rank)) across Pagefind + semantic + recency + relevance signals",
       "parameters": [
         {
           "name": "RRF_K",
@@ -1263,36 +1305,33 @@
       "query_param": "q",
       "query_cap_chars": 500,
       "rate_limit": "20 req/min per IP (cf-connecting-ip)",
-      "rate_limit_purpose": "Protect billed AI.run() + Vectorize.query()",
+      "rate_limit_purpose": "Protect billed Workers AI + AI Search query calls",
       "authentication": "None (public)",
-      "response_shape": "{ results: [{ url, title, type, score, authors, year }] }"
+      "response_shape": "{ results: [{ url, title, type, score, authors, year }] }",
+      "routing": "v1/v2 branch on context.data.searchV2 from _middleware.js (KV feature:search_v2). v2 path forwards to rrm-ai-search Worker via service binding; v1 falls back to Vectorize. Anonymous + tier=admin still v1 until full rollout."
     },
-    "embedding_pipeline": {
-      "model": "@cf/baai/bge-base-en-v1.5",
+    "v2_pipeline": {
+      "namespace": "rrm-academy-search",
+      "primary_instance": "rrm-academy-search-articles",
+      "loader_script": "scripts/ai-search-corpus-upload.mjs",
+      "ci_steps": [
+        ".github/workflows/deploy.yml — corpus upload runs after Pages deploy on every push (continue-on-error: true, ::warning:: annotation)",
+        ".github/workflows/ai-search-reconcile.yml — Sunday 08:00 UTC (--full-rebuild + --reconcile --execute --max-delete 50)"
+      ],
+      "key_to_title_lookup": "rrm-ai-search Worker resolves citation titles via D1: 2-layer batched lookup. Direct slug→title per source table (articles/posts/faq.question/glossary_term.name); fallback through ai_search_docs.full_slug for sha8-truncated keys."
+    },
+    "v1_deprecated_pipeline": {
+      "model": "@cf/baai/bge-base-en-v1.5 (Vectorize)",
+      "vectorize_index": "rrm-library-vectors",
       "local": {
         "script": "scripts/embed-library.mjs",
-        "trigger": "npm run embed (wrangler dev --remote + Worker bindings)",
-        "content_sources": {
-          "articles": "title + Domain + Topics + SearchTerms + abstract",
-          "posts": "title + seoKeywords + excerpt + content",
-          "faqs": "question + category + answer",
-          "courses": "title + description + section titles + seo.keywords"
-        },
-        "metadata_constraint": "No null values; omit fields when value is null",
-        "text_truncation": 2000,
-        "batch_size": 100
+        "trigger": "npm run embed (wrangler dev --remote + Worker bindings)"
       },
       "ci": {
         "script": "scripts/embed-library-ci.mjs",
-        "method": "Cloudflare REST API (CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID)",
-        "features": [
-          "Stale vector cleanup (list + delete)",
-          "Pre-publish validation (articles >= 2500)",
-          "Batch upsert"
-        ],
-        "status": "Production-ready; NOT wired into deploy.yml yet"
+        "status": "Retained for rollback during 2-week soak"
       },
-      "refresh_cadence": "Manual (post data-heavy changes). ~100s for 3,200+ entries"
+      "retirement_target": "2026-05-12 — drop scripts, delete Vectorize index"
     }
   },
   "newsletter_system": {
@@ -1587,6 +1626,13 @@
       "status": "active",
       "purpose": "MCP server for Naomi's Perplexity (5 tools, API key auth, AE telemetry)"
     },
+    "rrm-ai-search": {
+      "status": "active",
+      "purpose": "Standalone Worker that owns the ai_search_namespaces binding (Pages cannot bind it directly). Service-bound from rrm-academy CF Pages as AI_SEARCH. Backs /ask + /api/search/semantic with hybrid retrieval against rrm-academy-search namespace + Llama 3.3 70B generation.",
+      "base_url": "https://rrm-ai-search.administrator-cloudflare.workers.dev",
+      "github": "rrmadmin/rrm-ai-search (private)",
+      "live_since": "2026-04-28"
+    },
     "openrouter-proxy": {
       "status": "active",
       "purpose": "CORS proxy for OpenRouter API",
@@ -1656,6 +1702,11 @@
     "rrm-cli": {
       "path": "projects/rrm-cli/",
       "purpose": "Local knowledge base CLI"
+    },
+    "rrm-ai-search": {
+      "path": "projects/rrm-ai-search/",
+      "github": "rrmadmin/rrm-ai-search",
+      "purpose": "Standalone Worker backing /ask + /api/search/semantic via AI Search namespace + Workers AI"
     },
     "rrm-mcp": {
       "path": "projects/rrm-mcp/",
@@ -1900,8 +1951,23 @@
         ]
       },
       "NLWeb Search URL": {
-        "purpose": "Base URL for rrm-academy-ask CF AI Search endpoint",
+        "purpose": "Base URL for legacy rrm-academy-ask AutoRAG endpoint (DEPRECATED 2026-04-28; retained behind feature:search_v2 flag for emergency revert until 2026-05-12 retirement)",
         "env_var": "NLWEB_SEARCH_URL"
+      },
+      "Cloudflare API Token - AI Search 180d (account-scoped)": {
+        "purpose": "Corpus loader auth (CI: AI_SEARCH_API_TOKEN GitHub secret in rrm-academy-cf)",
+        "permissions": "AI Search Write + Account Settings Read + Workers AI Write",
+        "expires": "2026-10-25",
+        "ip_locked": true
+      },
+      "Cloudflare API Token - Phase 2 (account-scoped, 90d)": {
+        "purpose": "rrm-ai-search Worker deploy + KV feature flag toggle + Pages env var write",
+        "permissions": "AI Search Write + Workers Scripts Write + Workers KV Storage Edit + Workers AI Write + Account Settings Read + Pages Write",
+        "expires": "~2026-07-27"
+      },
+      "AI Search Worker Auth Token": {
+        "purpose": "Bearer secret shared between rrm-academy CF Pages and rrm-ai-search Worker. Set on BOTH ends as AI_SEARCH_WORKER_AUTH (Pages env var production secret_text + Worker secret).",
+        "validates": "Authorization header on every Worker call"
       },
       "One-Punch-Man-Token": {
         "purpose": "CF API token-management bootstrap (IP-locked to 72.95.9.135)"
