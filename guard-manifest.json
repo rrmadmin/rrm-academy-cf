@@ -67,11 +67,11 @@
       "note": "Shared webhook helpers"
     },
     "functions/_middleware.js": {
-      "hash": "7caea722a2b3c71014187ed74cb432a102727b3e5e9e9807107e8b0d616f64a2",
+      "hash": "d081aaa2a11e381170665b93d9ca46a213b744f69f0817bba0f6b8a72f8b0965",
       "note": "Auth gating"
     },
     "wrangler.toml": {
-      "hash": "3c1acd76ddde49b0b1e135ef66efc6a631d6d47c8ef893e5cb9217eeb718a29c",
+      "hash": "ede58e2941c37be1d607acabfd53d0bd1f90952c721bb42e483fe2ba775e13c5",
       "note": "D1, KV, R2 bindings"
     },
     "functions/api/_ses.js": {
@@ -103,11 +103,15 @@
       "note": "Public newsletter intake (rate-limited)"
     },
     "functions/api/search/semantic.js": {
-      "hash": "daa3375c4a0a1a3ce71c0681ade76aed24318b6e8beed7fa818e46b9274acf4b",
+      "hash": "059f39ea80fb388d8d4f4e6eef5569902d648095b9358cb87d822ccdaad321d2",
       "note": "Billed AI.run() + Vectorize (rate-limited)"
     },
+    "functions/api/_ask_prompt.js": {
+      "hash": "4c5c4a3809cdd0336db1dec7f8c57db84cafbfdec2ca6e00e32b15778c41eb33",
+      "note": "SYSTEM_PROMPT for /api/ask -- single source of truth"
+    },
     "functions/api/ask.js": {
-      "hash": "d71018f6a503a9c3d77b0b43e7d69d63334b330f5414185ff3448de669a80119",
+      "hash": "b193ee38ba407e4cbeac77edb0b4bd508200de3179fade83495e5f4b828c9009",
       "note": "NLWeb AI Search proxy (auth + rate-limited, billed upstream)"
     },
     "src/components/SearchBar.astro": {
