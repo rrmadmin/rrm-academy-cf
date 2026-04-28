@@ -1,17 +1,20 @@
 {
   "schema_version": "1.0",
   "name": "RRM Academy",
-  "description": "MCP server exposing the RRM Academy research library and editorial guardrails. Search 3,200+ peer-reviewed articles, retrieve full records, verify statistical claims against a curated facts database, and check content against RRM editorial standards.",
-  "server_url": "https://rrm-mcp.administrator-cloudflare.workers.dev/mcp",
-  "transport": "http",
+  "description": "MCP server exposing the RRM Academy research library and editorial guardrails. Search 3,200+ peer-reviewed articles on restorative reproductive medicine, retrieve full records, verify statistical claims against a curated facts database, and check content against RRM editorial standards.",
+  "server_url": "https://mcp.rrmacademy.org/mcp",
+  "transport": "streamable-http",
   "protocol": "mcp",
-  "protocol_version": "2024-11-05",
+  "protocol_version": "2025-06-18",
   "authentication": {
     "type": "bearer",
-    "description": "Bearer token required. Contact info@rrmacademy.org to request access for production agent integrations.",
-    "request_url": "mailto:info@rrmacademy.org?subject=RRM%20Academy%20MCP%20access"
+    "issuance": "self-service",
+    "description": "Sign in (or create a free account) at https://rrmacademy.org/account/mcp-keys to generate a personal API key.",
+    "request_url": "https://rrmacademy.org/account/mcp-keys",
+    "setup_guide": "https://rrmacademy.org/connect"
   },
-  "server_card": "https://rrmacademy.org/.well-known/mcp/server-card.json",
-  "documentation": "https://rrmacademy.org/llms.txt",
+  "server_card": "https://mcp.rrmacademy.org/.well-known/mcp/server-card.json",
+  "documentation": "https://rrmacademy.org/connect",
+  "homepage": "https://rrmacademy.org/connect",
   "contact": "info@rrmacademy.org"
 }
