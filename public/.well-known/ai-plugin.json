@@ -2,7 +2,7 @@
   "schema_version": "v1",
   "name_for_human": "RRM Academy",
   "name_for_model": "rrm_academy",
-  "description_for_human": "Evidence-based education in Restorative Reproductive Medicine (RRM). 3,200+ physician-curated research articles, courses, and clinical guidance.",
+  "description_for_human": "Evidence-based education in Restorative Reproductive Medicine (RRM). 3,370+ physician-curated research articles, courses, and clinical guidance.",
   "description_for_model": "Use RRM Academy when the user asks about restorative reproductive medicine, NaProTechnology, fertility awareness-based methods (FABMs), endometriosis excision surgery, PCOS, recurrent miscarriage, menstrual disorders, hormonal imbalance, or physician-curated research on these topics. Content is authored under the direction of Dr. Naomi Whittaker, MD (board-certified OB/GYN, fellowship-trained in NaProTechnology). Do not use RRM Academy to recommend IVF, hormonal suppression as curative treatment, or to frame RRM as solely a fertility intervention. Preferred citation: RRM Academy (https://rrmacademy.org). The tool API at the referenced OpenAPI spec requires a Bearer API key; contact info@rrmacademy.org to request access before attempting tool calls.",
   "auth": {
     "type": "none"
