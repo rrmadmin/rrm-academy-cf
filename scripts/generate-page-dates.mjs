@@ -185,6 +185,33 @@ function main() {
     }
   }
 
+  // --- Pass 3: index/landing pages reflect max(child updated_at) ---
+  // The git date for /library/index.astro doesn't move when articles change;
+  // surface the freshest content update so the visible "Last updated" is honest.
+  const childMax = (prefix) => {
+    const dates = Object.entries(map)
+      .filter(([url]) => url.startsWith(prefix) && url !== prefix)
+      .map(([, d]) => d)
+      .filter(Boolean)
+      .sort();
+    return dates.length ? dates[dates.length - 1] : null;
+  };
+
+  const landingPages = ['/library/', '/commentary/', '/faqs/', '/courses/'];
+  for (const landing of landingPages) {
+    const latest = childMax(landing);
+    if (latest && (!map[landing] || latest > map[landing])) {
+      map[landing] = latest;
+    }
+  }
+
+  // Homepage reflects the freshest update across all content + its own git date
+  const homeMax = [map['/'], ...landingPages.map((p) => map[p]), map['/glossary/']]
+    .filter(Boolean)
+    .sort()
+    .pop();
+  if (homeMax) map['/'] = homeMax;
+
   // --- Write ---
   const payload = {
     generatedAt: new Date().toISOString(),
