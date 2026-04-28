@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "name": "RRM Academy",
-  "description": "MCP server exposing the RRM Academy research library and editorial guardrails. Search 3,200+ peer-reviewed articles on restorative reproductive medicine, retrieve full records, verify statistical claims against a curated facts database, and check content against RRM editorial standards.",
+  "description": "MCP server exposing the RRM Academy research library and editorial guardrails. Search 3,370+ peer-reviewed articles on restorative reproductive medicine, retrieve full records, verify statistical claims against a curated facts database, and check content against RRM editorial standards.",
   "server_url": "https://mcp.rrmacademy.org/mcp",
   "transport": "streamable-http",
   "protocol": "mcp",
