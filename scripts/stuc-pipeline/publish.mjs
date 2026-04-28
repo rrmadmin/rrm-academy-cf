@@ -48,15 +48,29 @@ const LESSONS_TABLE = 'tbl5RdpAUj8ub4nz4';
 
 const args = process.argv.slice(2);
 const DRY_RUN = args.includes('--dry-run');
+const D1_DIVERGENCE_ACK = args.includes('--i-understand-d1-divergence');
 const courseId = args.find(a => !a.startsWith('--'));
 
 if (!courseId) {
   const manifest = JSON.parse(readFileSync(MANIFEST_PATH, 'utf8'));
-  console.log('Usage: node publish.mjs <course-id> [--dry-run]\n');
+  console.log('Usage: node publish.mjs <course-id> [--dry-run] [--i-understand-d1-divergence]\n');
   console.log('Available courses:');
   for (const c of manifest.courses) {
     console.log(`  ${c.courseId} [${c.status}]`);
   }
+  process.exit(1);
+}
+
+if (!D1_DIVERGENCE_ACK && !DRY_RUN) {
+  console.error('ABORT: STUC publisher writes Airtable, but rrmacademy.org reads D1.');
+  console.error('Running this without Phase 2b (write-path migration) will create silent');
+  console.error('drift between Airtable manifest and the live site (Module/Lesson rows');
+  console.error('orphaned, Stream UID floating, "Coming Soon" flag flipped on a record');
+  console.error('production never reads).');
+  console.error('');
+  console.error('See: feedback-airtable-deprecated memory + docs/superpowers/specs/2026-04-03-publish-path-d1-migration-design.md');
+  console.error('');
+  console.error('Pass --i-understand-d1-divergence to bypass (and reconcile to D1 manually).');
   process.exit(1);
 }
 
