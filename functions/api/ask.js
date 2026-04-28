@@ -88,8 +88,8 @@ export async function onRequestPost(context) {
     const raw = await env.COMMUNITY_KV.get(rateLimitKey);
     currentCount = raw ? parseInt(raw, 10) : 0;
   } catch (err) {
-    log(env, waitUntil, 'ask', 'kv_read_error', 'error', err.message, 0, 500);
-    return json({ error: 'service_error' }, 500);
+    log(env, waitUntil, 'ask', 'kv_read_error', 'error', err.message, 0, 503);
+    return json({ error: 'service_unavailable' }, 503);
   }
 
   if (currentCount >= RATE_LIMIT_MAX) {
@@ -99,14 +99,8 @@ export async function onRequestPost(context) {
     return json({ error: 'rate_limited', reset: tomorrow.toISOString() }, 429);
   }
 
-  try {
-    await env.COMMUNITY_KV.put(rateLimitKey, String(currentCount + 1), { expirationTtl: RATE_LIMIT_TTL });
-  } catch (err) {
-    log(env, waitUntil, 'ask', 'kv_write_error', 'error', err.message, 0, 500);
-    return json({ error: 'service_error' }, 500);
-  }
-
-  // Parse and validate body
+  // Parse and validate body BEFORE writing the rate-limit counter
+  // so malformed payloads do not burn quota
   let body;
   try {
     body = await request.json();
@@ -125,6 +119,13 @@ export async function onRequestPost(context) {
   }
 
   const message = validated.data.message;
+
+  try {
+    await env.COMMUNITY_KV.put(rateLimitKey, String(currentCount + 1), { expirationTtl: RATE_LIMIT_TTL });
+  } catch (err) {
+    log(env, waitUntil, 'ask', 'kv_write_error', 'error', err.message, 0, 503);
+    return json({ error: 'service_unavailable' }, 503);
+  }
 
   // Env guard for upstream URL
   if (!env.NLWEB_SEARCH_URL) {
