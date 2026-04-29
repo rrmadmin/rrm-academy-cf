@@ -7,6 +7,7 @@ import LibraryFundingCallout from '../../components/LibraryFundingCallout.astro'
 import { fetchAllArticles, getRelatedArticles, type Article } from '../../lib/airtable';
 import { parseStructuredAbstract } from '../../lib/abstract-parser';
 import { parseMarkdown, looksLikeMarkdown } from '../../lib/markdown-sanitize';
+import { buildMedicalScholarlyArticle } from '../../lib/identity';
 
 export async function getStaticPaths() {
   const articles = await fetchAllArticles();
@@ -60,23 +61,10 @@ const metaDescription = article.abstract
 const doiUrl = article.doi ? `https://doi.org/${article.doi}` : '';
 const pubmedUrl = article.pmid ? `https://pubmed.ncbi.nlm.nih.gov/${article.pmid}/` : '';
 
-// Parse pages for schema
-const pageMatch = article.pages?.match(/^(\d+)\s*[-–]\s*(\d+)$/);
-const pageStart = pageMatch ? pageMatch[1] : article.pages || undefined;
-const pageEnd = pageMatch ? pageMatch[2] : undefined;
-
-// Schema.org JSON-LD
-const jsonLd: any = {
-  '@context': 'https://schema.org',
-  '@type': 'MedicalScholarlyArticle',
-  name: article.title,
-  url: `https://rrmacademy.org/library/${article.slug}/`,
-  publisher: {
-    '@type': 'Organization',
-    name: 'RRM Academy',
-    url: 'https://rrmacademy.org',
-  },
-};
+// Schema.org JSON-LD — delegated to buildMedicalScholarlyArticle (Phase 7).
+// Helpers below (orcidUrl, nameKey, dedupeAuthorRecords, cleanAffiliationName,
+// uniqueAffiliations) remain because the visible markup still depends on them.
+const jsonLd = buildMedicalScholarlyArticle(article);
 
 // Build Person JSON-LD per author. Prefer structured authorRecords (D1-backed:
 // includes ORCID sameAs and affiliation with ROR) when available; fall back to
@@ -164,25 +152,6 @@ function cleanAffiliationName(raw: string | null | undefined): string | null {
   return s.slice(0, 197) + '...';
 }
 
-function personFromRecord(rec: AuthorRec) {
-  const person: any = {
-    '@type': 'Person',
-    name: rec.full_name || rec.name,
-  };
-  const orcid = orcidUrl(rec.orcid);
-  if (orcid) person.sameAs = orcid;
-  const institutionName = cleanAffiliationName(rec.primary_institution_name);
-  const fallbackAff = cleanAffiliationName(rec.affiliation);
-  if (institutionName) {
-    const org: any = { '@type': 'Organization', name: institutionName };
-    if (rec.primary_ror_id) org.sameAs = rec.primary_ror_id;
-    person.affiliation = org;
-  } else if (fallbackAff) {
-    person.affiliation = { '@type': 'Organization', name: fallbackAff };
-  }
-  return person;
-}
-
 const authorRecords = dedupeAuthorRecords(authorRecordsRaw);
 const AUTHOR_CAP = 20;
 
@@ -209,84 +178,6 @@ const affiliations =
   authorRecords.length > 0 && authorRecords.length <= AUTHOR_CAP
     ? uniqueAffiliations(authorRecords)
     : [];
-
-if (authorRecords.length > AUTHOR_CAP) {
-  // Consortium / mega-paper: emit single Organization using the legacy authors
-  // string (which for these papers is the consortium name, e.g. "GBD 2023 ...
-  // Collaborators"). Emitting thousands of Person entries bloats HTML and
-  // Google's JSON-LD parser caps usefulness well below that anyway.
-  jsonLd.author = article.authors
-    ? [{ '@type': 'Organization', name: article.authors.trim() }]
-    : [{ '@type': 'Organization', name: 'Consortium Authors' }];
-} else if (authorRecords.length > 0) {
-  jsonLd.author = authorRecords.map(personFromRecord);
-} else if (article.authors) {
-  jsonLd.author = article.authors.split(',').map(name => ({
-    '@type': 'Person',
-    name: name.trim(),
-  }));
-}
-
-if (article.datePublished) {
-  jsonLd.datePublished = article.datePublished;
-}
-
-if (article.abstract) {
-  jsonLd.abstract = article.abstract;
-}
-
-if (article.journal) {
-  const isPartOf: any = {
-    '@type': 'Periodical',
-    name: article.journal,
-  };
-
-  if (article.volume) {
-    jsonLd.isPartOf = {
-      '@type': 'PublicationVolume',
-      volumeNumber: article.volume,
-      isPartOf: article.issue
-        ? { '@type': 'PublicationIssue', issueNumber: article.issue, isPartOf: isPartOf }
-        : isPartOf,
-    };
-  } else {
-    jsonLd.isPartOf = isPartOf;
-  }
-}
-
-if (pageStart) jsonLd.pageStart = pageStart;
-if (pageEnd) jsonLd.pageEnd = pageEnd;
-
-const identifiers: any[] = [];
-if (article.doi) {
-  identifiers.push({ '@type': 'PropertyValue', propertyID: 'doi', value: article.doi });
-  jsonLd.sameAs = doiUrl;
-}
-if (article.pmid) {
-  identifiers.push({ '@type': 'PropertyValue', propertyID: 'PMID', value: article.pmid });
-}
-if (identifiers.length) jsonLd.identifier = identifiers;
-
-// OA metadata
-if (article.accessLevel === 'open' || article.accessLevel === 'free') {
-  jsonLd.isAccessibleForFree = true;
-} else {
-  jsonLd.isAccessibleForFree = false;
-}
-
-// License URL
-const LICENSE_URLS: Record<string, string> = {
-  'CC-BY': 'https://creativecommons.org/licenses/by/4.0/',
-  'CC-BY-SA': 'https://creativecommons.org/licenses/by-sa/4.0/',
-  'CC-BY-NC': 'https://creativecommons.org/licenses/by-nc/4.0/',
-  'CC-BY-NC-SA': 'https://creativecommons.org/licenses/by-nc-sa/4.0/',
-  'CC-BY-ND': 'https://creativecommons.org/licenses/by-nd/4.0/',
-  'CC-BY-NC-ND': 'https://creativecommons.org/licenses/by-nc-nd/4.0/',
-  'CC0': 'https://creativecommons.org/publicdomain/zero/1.0/',
-};
-if (article.license && LICENSE_URLS[article.license]) {
-  jsonLd.license = LICENSE_URLS[article.license];
-}
 
 // Source link when there's no DOI, or when sourceUrl differs from the DOI link (dead DOI fallback)
 const showSourceLink = article.sourceUrl && (!article.doi || article.sourceUrl !== `https://doi.org/${article.doi}`);
@@ -326,6 +217,7 @@ const citationMeta = {
   ogType="article"
   jsonLd={jsonLd}
   citationMeta={citationMeta}
+  speakable={['.article-title', '.article-meta-row', '.abstract']}
 >
   <div class="page-wrapper" data-pagefind-body>
     <span data-pagefind-meta="type:Research" style="display:none"></span>
