@@ -23,7 +23,7 @@
       ],
       "item": [
         {
-          "href": "https://rrm-mcp.administrator-cloudflare.workers.dev/mcp",
+          "href": "https://mcp.rrmacademy.org/mcp",
           "type": "application/json",
           "title": "RRM Academy MCP Server",
           "profile": "https://modelcontextprotocol.io/specification/2024-11-05"
