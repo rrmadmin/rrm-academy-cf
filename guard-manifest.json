@@ -43,7 +43,7 @@
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
-      "hash": "b4d8d411c6461bc499eaa454f5d1931c2db6f683ba4d56d718e3514220f0aaae",
+      "hash": "b2d69eec49ed0991057cb8eabb97b7049d6e1e81241d6a6ce7beaa6bd1cd32af",
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
@@ -55,19 +55,23 @@
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "77ef3e62e63d9ffc78952542cb178fa23b8c160e3183fb31b993e0188f1f7f79",
+      "hash": "2a0cfabaa3903778edcd9627eb324d4c565e22deaa8288bdcc98bfbc656a8aac",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
-      "hash": "8bed69e69e1de0807cb42ba4d80e26d52c4f17f7fa6ee0fbbb18ee7298fb8fa7",
+      "hash": "63ecc98d8bf5259c863bbcf150fcca12ea0112c9157c756fd33927bc8d5210bd",
       "note": "Subscription lifecycle handler"
     },
     "functions/api/billing/_webhook-shared.js": {
       "hash": "2be8ce987f6b5c338a4456476fc45dfbd0c705d48753e2d2e2131af831f44e4b",
       "note": "Shared webhook helpers"
     },
+    "functions/api/billing/_migration-token.js": {
+      "hash": "cc61cc87995c747adbb6a8c53b033dcf0331e693361b9a355a683d5057209132",
+      "note": "HMAC-SHA256 magic-link token for Wix-to-Stripe donor migration"
+    },
     "functions/_middleware.js": {
-      "hash": "d081aaa2a11e381170665b93d9ca46a213b744f69f0817bba0f6b8a72f8b0965",
+      "hash": "95d5a9c30ebcf56f31e5a5c66388065b8616d329fd105cfefc43c651c22ba397",
       "note": "Auth gating"
     },
     "wrangler.toml": {
@@ -126,8 +130,12 @@
       "hash": "3218c9e86e12b16bd6438dcc68917a4053bdb64d2c7969473f8db425bd013b05",
       "note": "Expired data deletion from D1"
     },
+    "functions/api/admin/wix-migration-link.js": {
+      "hash": "58131eb4bdd6b8dd93b9b353a9a7cad6722472ec18484b89e76412d6555fc6c0",
+      "note": "Admin endpoint: manually link wix_subscription to CF user (Layer 4 reconciliation)"
+    },
     "scripts/guard.mjs": {
-      "hash": "c714ed7324ae8031023535d3a65135f13047976d54f5ab486728cf1a6c119758",
+      "hash": "b9f23392af168ca73ab3324c643a7b7b6922bd494584023b30487f963ca1bf88",
       "note": "Guard script (self-guarding)"
     },
     "functions/api/auth/verify-email.js": {
