@@ -13,7 +13,7 @@
     "ssot:dry-run": "SITE_SSOT_ENABLED=1 node ../../tools/site-ssot/bin/ssot-emit.mjs --project . --dry-run",
     "ssot:schemamap": "node ../../tools/site-ssot/bin/ssot-schemamap.mjs --project .",
     "standards": "echo \"standards-gate: pending Phase 9\"",
-    "postbuild": "npm run ssot:schemamap && npm run standards",
+    "postbuild": "node scripts/ssot-postbuild.mjs",
     "page-dates": "node scripts/generate-page-dates.mjs",
     "preview": "astro preview",
     "fetch-data": "node src/lib/fetch-data.mjs",
