@@ -1,0 +1,100 @@
+---
+import { getSocialHandles } from '../lib/identity';
+
+interface Props {
+  size?: 'sm' | 'md';
+  variant?: 'footer' | 'page';
+}
+
+const { size = 'sm', variant = 'page' } = Astro.props;
+const handles = getSocialHandles();
+const dim = size === 'md' ? 22 : 16;
+
+const ICONS: Record<string, string> = {
+  instagram:
+    '<rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect><path d="M16 11.37a4 4 0 1 1-7.914 1.173 4 4 0 0 1 7.914-1.173z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>',
+  linkedin:
+    '<path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle>',
+  x:
+    '<path d="M18 4l-6.5 8.5L18 20h-3l-5.2-7L4 20H2l7-9-7-7h3l4.7 6.5L15 4z"></path>',
+  tiktok:
+    '<path d="M21 8a5 5 0 0 1-5-5h-4v12a3 3 0 1 1-3-3"></path>',
+  facebook:
+    '<path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>',
+  youtube:
+    '<path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>',
+  substack:
+    '<rect x="4" y="3" width="16" height="3"></rect><rect x="4" y="9" width="16" height="3"></rect><polygon points="4 15 12 22 20 15 4 15"></polygon>',
+  threads:
+    '<path d="M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18z"></path><path d="M16 9c-1-1.5-2.5-2-4-2-3 0-5 2-5 5s2 5 5 5c2 0 3.5-1 4-3"></path>',
+};
+---
+
+<div class={`social-row social-row--${size} social-row--${variant}`} role="navigation" aria-label="Social media links">
+  {handles.map((h) => (
+    <a
+      href={h.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="social-row__link"
+      aria-label={h.aria_label}
+    >
+      <svg
+        width={dim}
+        height={dim}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.75"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+        focusable="false"
+        set:html={ICONS[h.platform] || ''}
+      />
+    </a>
+  ))}
+</div>
+
+<style>
+  .social-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .social-row--page {
+    justify-content: center;
+    margin-block: var(--space-6);
+  }
+  .social-row--footer {
+    justify-content: center;
+    padding-block: var(--space-4);
+    border-top: 1px solid var(--footer-border);
+    border-bottom: 1px solid var(--footer-border);
+  }
+  .social-row__link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--footer-link, var(--text-secondary));
+    transition: color 0.15s ease, transform 0.15s ease;
+    padding: var(--space-2);
+  }
+  .social-row--page .social-row__link {
+    color: var(--accent);
+  }
+  .social-row__link:hover,
+  .social-row__link:focus-visible {
+    color: var(--footer-link-hover, var(--accent-hover));
+    transform: translateY(-1px);
+  }
+  .social-row--page .social-row__link:hover,
+  .social-row--page .social-row__link:focus-visible {
+    color: var(--accent-hover);
+  }
+  .social-row__link:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+</style>
