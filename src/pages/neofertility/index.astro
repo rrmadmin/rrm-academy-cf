@@ -4,9 +4,17 @@ import BackToTop from '../../components/BackToTop.astro';
 import PdfDownload from '../../components/PdfDownload.astro';
 import LastUpdated from '../../components/LastUpdated.astro';
 import pageDates from '../../data/page-dates.json';
+import { buildScholarlyArticleStub } from '../../lib/identity';
 
 const PAGE_PATH = '/neofertility/';
 const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-03-15';
+
+// Helper: build a ScholarlyArticle stub for citation embedding (strip @context).
+function citeStub(props: { name: string; author: string; datePublished: string; journal?: string }) {
+  const node = buildScholarlyArticleStub(props) as Record<string, unknown> & { '@context'?: unknown };
+  const { '@context': _ctx, ...rest } = node;
+  return rest;
+}
 
 // Block 1: MedicalWebPage + Article (injected via BaseLayout jsonLd prop)
 const pageSchema = {
@@ -63,27 +71,24 @@ const pageSchema = {
     { '@type': 'WebPageElement', name: 'References', url: 'https://rrmacademy.org/neofertility/#references' },
   ],
   citation: [
-    {
-      '@type': 'ScholarlyArticle',
+    citeStub({
       name: 'RRM Outcomes Compared to In Vitro Fertilization for the Treatment of Infertility',
       author: 'Boyle P, Toth A, Minjeur M, Turczynski C',
       datePublished: '2025',
-      isPartOf: { '@type': 'Periodical', name: 'Journal of Restorative Reproductive Medicine' },
-    },
-    {
-      '@type': 'ScholarlyArticle',
+      journal: 'Journal of Restorative Reproductive Medicine',
+    }),
+    citeStub({
       name: 'Healthy Singleton Pregnancies from Restorative Reproductive Medicine (RRM) after Failed IVF',
       author: 'Boyle PC, de Groot T, Andralojc KM, Parnell TA',
       datePublished: '2018',
-      isPartOf: { '@type': 'Periodical', name: 'Frontiers in Medicine' },
-    },
-    {
-      '@type': 'ScholarlyArticle',
+      journal: 'Frontiers in Medicine',
+    }),
+    citeStub({
       name: 'Successful pregnancy using oral DHEA treatment for hypoandrogenemia in a 30-year-old female with 5 recurrent pregnancy losses',
       author: 'Boyle P, Pandalache R, Turczynski C',
       datePublished: '2024',
-      isPartOf: { '@type': 'Periodical', name: 'Frontiers in Medicine' },
-    },
+      journal: 'Frontiers in Medicine',
+    }),
   ],
 };
 
@@ -186,6 +191,7 @@ const faqSchema = {
   ogType="article"
   publishDate="2026-03-15"
   jsonLd={pageSchema}
+  speakable={['.pillar-lead', 'h1']}
 >
   <!-- Separate JSON-LD blocks (not @graph) per spec -->
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
