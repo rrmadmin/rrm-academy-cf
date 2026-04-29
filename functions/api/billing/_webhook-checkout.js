@@ -8,8 +8,9 @@
  * - Send STUC membership welcome email
  * - Fire GA4 purchase events (course, donation, subscription)
  */
+import Stripe from 'stripe';
 import {
-  SITE_URL, generateId, generateToken, hashToken,
+  SITE_URL, generateId, generateToken, hashToken, STRIPE_API_VERSION,
 } from '../auth/_shared.js';
 import { enrollUser } from '../courses/enroll.js';
 import { getCourse } from '../courses/_shared.js';
@@ -282,39 +283,86 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
           });
           migrationHandled = true;
         } else {
-          // Atomic UPDATE filtered by stripe_subscription_id IS NULL gives idempotency
-          // even without the pre-check above (defense in depth against retry race).
-          const upd = await db.prepare(
-            "UPDATE wix_subscription " +
-            "SET migration_status='stripe_active', " +
-            "    stripe_subscription_id=?, " +
-            "    migration_handoff_started_at=NULL, " +
-            "    migration_notes=COALESCE(migration_notes,'') || " +
-            "      strftime('%Y-%m-%dT%H:%M:%fZ','now') || ' metadata-handoff session=' || ? || char(10), " +
-            "    updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') " +
-            "WHERE wix_subscription_id=? AND stripe_subscription_id IS NULL"
-          ).bind(session.subscription, session.id, wixSubIdMeta).run();
-
-          if ((upd.meta?.changes ?? 0) === 0) {
-            // Lost the race (another retry beat us). Log and treat as handled.
+          // 3DS-incomplete guard (Bug #11): Stripe sub may still be 'incomplete' when this
+          // webhook fires if the donor's 3DS challenge timed out or the bank declined mid-flow.
+          // Flipping migration_status='stripe_active' + emailing admin to cancel Wix at this
+          // moment can leave the donor with zero active subs if the Stripe sub never confirms.
+          //
+          // Conservative behavior: verify sub.status is 'active' or 'trialing' BEFORE the UPDATE.
+          // If not, clear the lock (so the donor can retry without 15-min penalty), log to AE,
+          // and skip the migration flip. Phase 7 cron Sweep 2 will reconcile slow-3DS donors
+          // whose subs eventually become active.
+          let stripeSubStatus = null;
+          try {
+            if (env.STRIPE_SECRET_KEY && session.subscription) {
+              const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
+                apiVersion: STRIPE_API_VERSION,
+                httpClient: Stripe.createFetchHttpClient(),
+              });
+              const sub = await stripe.subscriptions.retrieve(session.subscription);
+              stripeSubStatus = sub.status;
+            }
+          } catch (stripeReadErr) {
+            // Stripe API hiccup — log and fail-CLOSED (skip UPDATE) for safety.
+            log(env, waitUntil, 'billing', 'metadata_stripe_retrieve_fail', 'error',
+              `${wixSubIdMeta}: ${stripeReadErr.message}`);
             env.EVENTS?.writeDataPoint({
-              blobs: ['billing', 'stuc-migration', 'metadata-no-update', wixSubIdMeta, session.subscription || ''],
-              indexes: ['metadata-no-update'],
+              blobs: ['billing', 'stuc-migration', 'stripe-retrieve-error', wixSubIdMeta, session.subscription || ''],
+              indexes: ['stripe-retrieve-error'],
             });
+            stripeSubStatus = 'unknown';
+          }
+
+          if (stripeSubStatus !== 'active' && stripeSubStatus !== 'trialing') {
+            // Sub is not yet usable — clear the lock so the donor can retry, but DO NOT
+            // flip migration_status or email admin. Phase 7 cron handles slow-3DS reconciliation.
+            await db.prepare(
+              "UPDATE wix_subscription SET migration_handoff_started_at = NULL " +
+              "WHERE wix_subscription_id = ? AND stripe_subscription_id IS NULL"
+            ).bind(wixSubIdMeta).run();
+
+            env.EVENTS?.writeDataPoint({
+              blobs: ['billing', 'stuc-migration', 'stripe-sub-not-ready', wixSubIdMeta, stripeSubStatus || 'unknown'],
+              indexes: ['stripe-sub-not-ready'],
+            });
+            log(env, waitUntil, 'billing', 'metadata_handoff_deferred', 'info',
+              `${wixSubIdMeta}: Stripe sub status=${stripeSubStatus} (not active/trialing); skipping UPDATE`);
+
             migrationHandled = true;
           } else {
-            // Send admin "cancel Wix sub" email, then mark admin_notified_at.
-            const donorEmail = (session.customer_details?.email || session.customer_email || wixRow.email || '').toLowerCase().trim();
-            const nextChargeDate = wixRow.next_expected_at
-              ? new Date(wixRow.next_expected_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-              : 'their next scheduled donation date';
+            // Atomic UPDATE filtered by stripe_subscription_id IS NULL gives idempotency
+            // even without the pre-check above (defense in depth against retry race).
+            const upd = await db.prepare(
+              "UPDATE wix_subscription " +
+              "SET migration_status='stripe_active', " +
+              "    stripe_subscription_id=?, " +
+              "    migration_handoff_started_at=NULL, " +
+              "    migration_notes=COALESCE(migration_notes,'') || " +
+              "      strftime('%Y-%m-%dT%H:%M:%fZ','now') || ' metadata-handoff session=' || ? || char(10), " +
+              "    updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') " +
+              "WHERE wix_subscription_id=? AND stripe_subscription_id IS NULL"
+            ).bind(session.subscription, session.id, wixSubIdMeta).run();
 
-            try {
-              await sendEmailSafe(env, waitUntil, {
-                to: 'administrator@rrmacademy.org',
-                subject: `STUC migration: cancel Wix sub for ${donorEmail || wixSubIdMeta}`,
-                source: 'billing/migration-metadata',
-                text:
+            if ((upd.meta?.changes ?? 0) === 0) {
+              // Lost the race (another retry beat us). Log and treat as handled.
+              env.EVENTS?.writeDataPoint({
+                blobs: ['billing', 'stuc-migration', 'metadata-no-update', wixSubIdMeta, session.subscription || ''],
+                indexes: ['metadata-no-update'],
+              });
+              migrationHandled = true;
+            } else {
+              // Send admin "cancel Wix sub" email, then mark admin_notified_at.
+              const donorEmail = (session.customer_details?.email || session.customer_email || wixRow.email || '').toLowerCase().trim();
+              const nextChargeDate = wixRow.next_expected_at
+                ? new Date(wixRow.next_expected_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+                : 'their next scheduled donation date';
+
+              try {
+                await sendEmailSafe(env, waitUntil, {
+                  to: 'administrator@rrmacademy.org',
+                  subject: `STUC migration: cancel Wix sub for ${donorEmail || wixSubIdMeta}`,
+                  source: 'billing/migration-metadata',
+                  text:
 `${donorEmail || '(unknown email)'} just migrated Wix → Stripe via the new self-service flow.
 
 Wix sub:        ${wixSubIdMeta}
@@ -330,26 +378,27 @@ VERIFY in Stripe Dashboard that the sub status is 'active', then cancel the Wix 
 within 24 hours to prevent double-billing.
 
 Wix Dashboard -> Subscriptions -> Cancel immediately (NOT end-of-cycle).`,
-              });
+                });
 
-              // Mark notified so cron Sweep 2 doesn't re-send.
-              await db.prepare(
-                "UPDATE wix_subscription SET admin_notified_at=strftime('%s','now') WHERE wix_subscription_id=?"
-              ).bind(wixSubIdMeta).run();
+                // Mark notified so cron Sweep 2 doesn't re-send.
+                await db.prepare(
+                  "UPDATE wix_subscription SET admin_notified_at=strftime('%s','now') WHERE wix_subscription_id=?"
+                ).bind(wixSubIdMeta).run();
 
-              env.EVENTS?.writeDataPoint({
-                blobs: ['billing', 'stuc-migration', 'metadata-handoff-ok', wixSubIdMeta, session.subscription || ''],
-                indexes: ['metadata-handoff-ok'],
-              });
-            } catch (notifyErr) {
-              // SES failed -- log, leave admin_notified_at NULL so cron Sweep 2 retries.
-              // Per existing project pattern, do NOT throw a 5xx; the migration UPDATE already
-              // succeeded and re-running the webhook would hit the idempotent-no-changes branch.
-              log(env, waitUntil, 'billing', 'metadata_admin_notify_fail', 'error',
-                `${wixSubIdMeta}: ${notifyErr.message}`);
+                env.EVENTS?.writeDataPoint({
+                  blobs: ['billing', 'stuc-migration', 'metadata-handoff-ok', wixSubIdMeta, session.subscription || ''],
+                  indexes: ['metadata-handoff-ok'],
+                });
+              } catch (notifyErr) {
+                // SES failed -- log, leave admin_notified_at NULL so cron Sweep 2 retries.
+                // Per existing project pattern, do NOT throw a 5xx; the migration UPDATE already
+                // succeeded and re-running the webhook would hit the idempotent-no-changes branch.
+                log(env, waitUntil, 'billing', 'metadata_admin_notify_fail', 'error',
+                  `${wixSubIdMeta}: ${notifyErr.message}`);
+              }
+
+              migrationHandled = true;
             }
-
-            migrationHandled = true;
           }
         }
       } catch (metaErr) {
@@ -364,6 +413,13 @@ Wix Dashboard -> Subscriptions -> Cancel immediately (NOT end-of-cycle).`,
     }
 
     // Existing email-match path runs only if metadata path didn't successfully handle.
+    // TODO (future round): the email-match path has the same 3DS race condition as Bug #11.
+    // It is intentionally NOT guarded here because email-match is the legacy fallback for
+    // cold checkouts (no wix_subscription_id metadata) — the existing admin email already
+    // says "VERIFY FIRST in Stripe Dashboard that the sub status is 'active'", which covers
+    // the manual verification step. Phase 3.1 + 3.2 route all migration handoffs through the
+    // metadata path, so email-match is cold-checkout-only in practice. If that changes,
+    // add a stripe.subscriptions.retrieve guard here matching the metadata-path pattern.
     if (!migrationHandled && email && db) {
       try {
         const wixSubs = await db.prepare(
