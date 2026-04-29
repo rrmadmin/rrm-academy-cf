@@ -24,24 +24,86 @@ function escapeHtml(s) {
     .replace(/'/g, '&#39;');
 }
 
-// Strip markdown image embeds + collapse to a single description string for
-// meta tags. Mirrors splitEventContent() in /community/events.astro.
-function summarize(content) {
-  if (!content) return { title: '', description: '', firstImage: null };
+// Strip any line that exposes joining credentials (Meet URL, dial-in, PIN).
+// Members get the Meet link via the "Join Call" button (sourced from event_link);
+// joining info MUST NOT appear in body, og:description, or JSON-LD.
+const JOIN_INFO_PATTERNS = [
+  /^\s*(?:google\s+meet|meet)\s*link\s*:.*$/im,
+  /^\s*join\s+(?:via\s+)?google\s+meet\s*:.*$/im,
+  /^\s*join\s+(?:the\s+)?call\s*:.*$/im,
+  /^\s*dial(?:-?in)?\s*:.*$/im,
+  /^\s*phone\s*:.*$/im,
+  /^\s*pin\s*:.*$/im,
+  /^.*meet\.google\.com.*$/im,
+  /^.*tel\.meet.*$/im,
+  /^\s*tel:.*$/im,
+];
+
+function scrubJoinInfo(text) {
+  if (!text) return text;
+  let out = text;
+  for (const re of JOIN_INFO_PATTERNS) {
+    out = out.replace(new RegExp(re.source, 'gim'), '');
+  }
+  // Catch any leftover bare meet URLs that weren't on their own line.
+  out = out.replace(/https?:\/\/meet\.google\.com\/[A-Za-z0-9?=&-]+/gi, '');
+  out = out.replace(/https?:\/\/tel\.meet\/[A-Za-z0-9?=&-]+/gi, '');
+  // Collapse blank lines created by removals.
+  out = out.replace(/\n{3,}/g, '\n\n').trim();
+  return out;
+}
+
+// Strip markdown image embeds, scrub join info, return chunked safe content.
+function summarize(content, { scrub = true } = {}) {
+  if (!content) return { title: '', description: '', firstImage: null, chunks: [] };
   let firstImage = null;
-  const cleaned = content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_m, _alt, src) => {
+  const noImages = content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_m, _alt, src) => {
     if (!firstImage) firstImage = src;
     return '';
   });
+  const cleaned = scrub ? scrubJoinInfo(noImages) : noImages;
   const chunks = cleaned.split('\n\n').map(s => s.trim()).filter(Boolean);
   const title = chunks[0] || '';
   const description = chunks.slice(1).join(' ').replace(/\s+/g, ' ').trim();
-  return { title, description, firstImage };
+  return { title, description, firstImage, chunks };
 }
 
 function extractSpeaker(content) {
   const m = (content || '').match(/^\s*Speaker:\s*(.+?)\s*$/m);
   return m ? m[1].trim() : null;
+}
+
+// Render a body chunk with markdown link support: [label](url) -> <a>.
+// Escapes everything else, only allows http/https URLs in hrefs.
+function renderBodyChunk(text) {
+  const safeUrl = (u) => {
+    try {
+      const p = new URL(u);
+      if (p.protocol !== 'http:' && p.protocol !== 'https:') return null;
+      return p.toString();
+    } catch {
+      return null;
+    }
+  };
+  const MD_LINK = /\[([^\]]+)\]\(([^)\s]+)\)/g;
+  const tokens = [];
+  let last = 0;
+  let m;
+  while ((m = MD_LINK.exec(text)) !== null) {
+    if (m.index > last) tokens.push({ t: 'text', v: text.slice(last, m.index) });
+    const url = safeUrl(m[2]);
+    if (url) {
+      tokens.push({ t: 'link', label: m[1], href: url });
+    } else {
+      tokens.push({ t: 'text', v: m[0] });
+    }
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) tokens.push({ t: 'text', v: text.slice(last) });
+  return tokens.map(tok => {
+    if (tok.t === 'text') return escapeHtml(tok.v);
+    return `<a class="link" href="${escapeHtml(tok.href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(tok.label)}</a>`;
+  }).join('');
 }
 
 function abs(url) {
@@ -96,12 +158,21 @@ function ctaForVisitor(tier, event) {
   const isPast = Number.isFinite(startMs) && startMs < Date.now() - 60 * 60 * 1000;
 
   if (isPast) {
+    if (tier === 'staff' || tier === 'member') {
+      return {
+        primaryHref: SITE_ORIGIN + '/community/events',
+        primaryLabel: 'See member archive',
+        secondaryHref: null,
+        secondaryLabel: null,
+        note: 'This event has ended. Members can find the recording in the community archive.',
+      };
+    }
     return {
-      primaryHref: SITE_ORIGIN + '/community/events',
-      primaryLabel: 'Browse upcoming events',
-      secondaryHref: null,
-      secondaryLabel: null,
-      note: 'This event has ended.',
+      primaryHref: SITE_ORIGIN + '/save-the-uterus-club',
+      primaryLabel: 'Join Save the Uterus Club to Watch',
+      secondaryHref: SITE_ORIGIN + '/community/events',
+      secondaryLabel: 'See all events',
+      note: 'This event has ended. Save the Uterus Club members get the recording, transcript, and Gemini notes.',
     };
   }
 
@@ -119,20 +190,20 @@ function ctaForVisitor(tier, event) {
   if (tier === 'authenticated') {
     return {
       primaryHref: SITE_ORIGIN + '/save-the-uterus-club',
-      primaryLabel: 'Become a STUC member to attend',
+      primaryLabel: 'Join Save the Uterus Club to Watch',
       secondaryHref: SITE_ORIGIN + '/community/events',
       secondaryLabel: 'See all events',
-      note: 'Save the Uterus Club members get the live Meet link plus the recording, transcript, and Gemini notes.',
+      note: 'Save the Uterus Club members attend live and get the recording, transcript, and Gemini notes afterward.',
     };
   }
 
   // anonymous
   return {
     primaryHref: SITE_ORIGIN + '/save-the-uterus-club',
-    primaryLabel: 'Join Save the Uterus Club',
+    primaryLabel: 'Join Save the Uterus Club to Watch',
     secondaryHref: SITE_ORIGIN + '/login?redirect=' + encodeURIComponent('/events/' + (event.slug || '')),
-    secondaryLabel: 'Sign in',
-    note: 'Save the Uterus Club is the live, members-only community for women navigating endometriosis, infertility, and reproductive health with restorative care.',
+    secondaryLabel: 'Already a member? Sign in',
+    note: 'Save the Uterus Club members attend the live call and get the recording, transcript, and Gemini notes afterward. New members get instant access.',
   };
 }
 
@@ -151,8 +222,9 @@ function formatDate(iso) {
   });
 }
 
-function renderHtml({ event, summary, speaker, visitor, cta, canonical }) {
+function renderHtml({ event, summary, speaker, visitor, cta, canonical, memberSummary }) {
   const title = event.title || summary.title || 'Save the Uterus Club Event';
+  // summary.description is already scrubbed of Meet URL / dial / PIN.
   const description = (summary.description || `Live members-only call from Save the Uterus Club.`).slice(0, 300);
   const fullTitle = `${title} | Save the Uterus Club`;
   const ogImage = abs(event.og_image_url || summary.firstImage) || (SITE_ORIGIN + '/og/save-the-uterus-club.png?v=8');
@@ -161,6 +233,8 @@ function renderHtml({ event, summary, speaker, visitor, cta, canonical }) {
   const startISO = Number.isFinite(startMs) ? new Date(startMs).toISOString() : event.event_date;
   const endISO = endMs ? new Date(endMs).toISOString() : null;
 
+  // CRITICAL: Never expose the Meet link in JSON-LD. location.url points at the
+  // public landing page itself; the Meet link is gated behind STUC membership.
   const eventJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Event',
@@ -172,7 +246,7 @@ function renderHtml({ event, summary, speaker, visitor, cta, canonical }) {
     eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
     location: {
       '@type': 'VirtualLocation',
-      url: event.event_link || SITE_ORIGIN + '/save-the-uterus-club',
+      url: canonical,
     },
     image: ogImage,
     organizer: {
@@ -193,7 +267,12 @@ function renderHtml({ event, summary, speaker, visitor, cta, canonical }) {
     eventJsonLd.performer = { '@type': 'Person', name: speaker };
   }
 
-  const bodyText = (summary.description || '').replace(/\s+/g, ' ').trim();
+  // Member visitors see the full content (Meet link, dial, PIN). Everyone else
+  // gets the scrubbed version. Chunks preserve the \n\n paragraph structure.
+  const isMember = visitor && (visitor.tier === 'staff' || visitor.tier === 'member');
+  const renderChunks = (isMember && memberSummary ? memberSummary : summary).chunks || [];
+  // Chunk 0 is the title (rendered in <h1>), so skip it for the body.
+  const bodyChunks = renderChunks.slice(1);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -308,8 +387,18 @@ function renderHtml({ event, summary, speaker, visitor, cta, canonical }) {
     margin: 24px 0 32px;
     background: var(--color-line);
   }
-  .body p { margin: 0 0 16px; font-size: 17px; }
-  .body p a { color: var(--color-accent); text-decoration: underline; text-underline-offset: 3px; }
+  .body { margin: 0 0 8px; }
+  .body p { margin: 0 0 18px; font-size: 17px; line-height: 1.65; }
+  .body p:last-child { margin-bottom: 0; }
+  .link, .body a {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    transition: color .12s ease;
+    overflow-wrap: anywhere;
+  }
+  .link:hover, .body a:hover { color: #532e3b; text-decoration-thickness: 2px; }
 
   .cta {
     margin: 40px 0 0;
@@ -376,7 +465,7 @@ function renderHtml({ event, summary, speaker, visitor, cta, canonical }) {
 
   ${event.og_image_url || summary.firstImage ? `<img class="flyer" src="${escapeHtml(abs(event.og_image_url || summary.firstImage))}" alt="${escapeHtml(title)}" loading="eager" fetchpriority="high">` : ''}
 
-  ${bodyText ? `<div class="body"><p>${escapeHtml(bodyText)}</p></div>` : ''}
+  ${bodyChunks.length ? `<div class="body">${bodyChunks.map(c => `<p>${renderBodyChunk(c)}</p>`).join('\n')}</div>` : ''}
 
   <section class="cta" aria-label="Attend this event">
     ${cta.note ? `<p class="cta__note">${escapeHtml(cta.note)}</p>` : ''}
@@ -427,19 +516,22 @@ export async function onRequestGet({ request, params, env }) {
     return Response.redirect(`${SITE_ORIGIN}/events/${event.slug}`, 301);
   }
 
-  const summary = summarize(event.content);
+  const summary = summarize(event.content, { scrub: true });        // public/meta
+  const memberSummary = summarize(event.content, { scrub: false }); // member body
   const speaker = extractSpeaker(event.content);
   const visitor = await classifyVisitor(request, env);
   const cta = ctaForVisitor(visitor.tier, event);
   const canonical = `${SITE_ORIGIN}/events/${event.slug || event.id}`;
 
-  const html = renderHtml({ event, summary, speaker, visitor, cta, canonical });
+  const html = renderHtml({ event, summary, memberSummary, speaker, visitor, cta, canonical });
 
+  // Cache must vary on cookie because content + CTA differ for members vs anonymous.
   return new Response(html, {
     status: 200,
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
-      'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=300',
+      'Cache-Control': 'private, max-age=0, must-revalidate',
+      'Vary': 'Cookie',
       'X-Robots-Tag': 'index, follow',
     },
   });
