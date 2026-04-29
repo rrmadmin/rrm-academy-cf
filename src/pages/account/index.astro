@@ -121,6 +121,15 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             </div>
           </div>
 
+          <div class="account-section" id="member-courses-section" hidden>
+            <div class="member-courses-header">
+              <h2>Save the Uterus Club Courses</h2>
+              <span id="member-courses-tier" class="member-courses-tier"></span>
+            </div>
+            <div id="member-courses-banner" class="member-courses-banner" hidden></div>
+            <div id="member-courses-list" class="courses-list"></div>
+          </div>
+
           <div class="account-section" id="courses-section">
             <h2>Courses</h2>
             <div id="courses-loading" class="account-placeholder">Loading courses...</div>
@@ -392,6 +401,55 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         'neofertility-med-training': { title: 'NeoFertility Medical Training Cohort', slug: 'neofertility-medical-training' },
       };
 
+      var TIER_DISPLAY = { member: '🐻 Member', hero: '💖 Hero', superhero: '🦸‍♀️ Superhero', staff: 'Staff' };
+
+      function renderCourseItem(c) {
+        var meta = courseMeta[c.courseId] || { title: c.courseId, slug: c.courseId };
+        var pct = c.totalSteps > 0 ? Math.round((c.completedSteps / c.totalSteps) * 100) : 0;
+        var completed = !!c.completedAt;
+        var statusText = completed ? 'Completed' : (pct > 0 ? pct + '% complete' : 'Not started');
+        var lessonText = c.completedSteps + ' / ' + c.totalSteps + ' lessons';
+        var statusClass = completed ? 'course-item__status--done' : (pct > 0 ? 'course-item__status--progress' : 'course-item__status--new');
+        return '<a href="/courses/' + meta.slug + '/" class="course-item">' +
+          '<div class="course-item__title">' + meta.title + '</div>' +
+          '<div class="course-item__bar"><div class="course-item__fill" style="width:' + pct + '%"></div></div>' +
+          '<div class="course-item__meta">' +
+            '<span class="course-item__status ' + statusClass + '">' + statusText + '</span>' +
+            '<span class="course-item__lessons">' + lessonText + '</span>' +
+          '</div>' +
+        '</a>';
+      }
+
+      function renderMemberSection(memberCourses) {
+        var section = document.getElementById('member-courses-section');
+        var listEl = document.getElementById('member-courses-list');
+        var tierEl = document.getElementById('member-courses-tier');
+        var bannerEl = document.getElementById('member-courses-banner');
+        if (!section || !listEl) return;
+
+        var html = '';
+        for (var i = 0; i < memberCourses.length; i++) html += renderCourseItem(memberCourses[i]);
+        listEl.innerHTML = html;
+        section.hidden = false;
+
+        // Decorate with membership status fetched from /api/community/status
+        fetch('/api/community/status', { credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (statusData) {
+            if (!statusData || !statusData.ok) return;
+            if (statusData.access === 'member' && statusData.user && statusData.user.tier) {
+              if (tierEl) tierEl.textContent = 'Included with your ' + (TIER_DISPLAY[statusData.user.tier] || statusData.user.tier) + ' tier';
+            } else {
+              // Enrolled rows exist but membership is not active — show resume banner.
+              if (bannerEl) {
+                bannerEl.innerHTML = 'Your Save the Uterus Club membership has lapsed. Your progress is saved. <a href="/save-the-uterus-club/">Resume membership</a> to continue these courses.';
+                bannerEl.hidden = false;
+              }
+            }
+          })
+          .catch(function () { /* leave decorations off on network error */ });
+      }
+
       function loadCourses() {
         var coursesLoading = document.getElementById('courses-loading');
         var coursesNone = document.getElementById('courses-none');
@@ -405,25 +463,22 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
               coursesNone.hidden = false;
               return;
             }
-            var html = '';
-            data.courses.forEach(function (c) {
-              var meta = courseMeta[c.courseId] || { title: c.courseId, slug: c.courseId };
-              var pct = c.totalSteps > 0 ? Math.round((c.completedSteps / c.totalSteps) * 100) : 0;
-              var completed = !!c.completedAt;
-              var statusText = completed ? 'Completed' : (pct > 0 ? pct + '% complete' : 'Not started');
-              var lessonText = c.completedSteps + ' / ' + c.totalSteps + ' lessons';
-              var statusClass = completed ? 'course-item__status--done' : (pct > 0 ? 'course-item__status--progress' : 'course-item__status--new');
-              html += '<a href="/courses/' + meta.slug + '/" class="course-item">' +
-                '<div class="course-item__title">' + meta.title + '</div>' +
-                '<div class="course-item__bar"><div class="course-item__fill" style="width:' + pct + '%"></div></div>' +
-                '<div class="course-item__meta">' +
-                  '<span class="course-item__status ' + statusClass + '">' + statusText + '</span>' +
-                  '<span class="course-item__lessons">' + lessonText + '</span>' +
-                '</div>' +
-              '</a>';
-            });
-            coursesList.innerHTML = html;
-            coursesList.hidden = false;
+            // Split by accessType so members courses get their own subsection.
+            var memberCourses = [];
+            var otherCourses = [];
+            for (var i = 0; i < data.courses.length; i++) {
+              if (data.courses[i].accessType === 'members') memberCourses.push(data.courses[i]);
+              else otherCourses.push(data.courses[i]);
+            }
+            if (memberCourses.length > 0) renderMemberSection(memberCourses);
+            if (otherCourses.length > 0) {
+              var html = '';
+              for (var j = 0; j < otherCourses.length; j++) html += renderCourseItem(otherCourses[j]);
+              coursesList.innerHTML = html;
+              coursesList.hidden = false;
+            } else {
+              coursesNone.hidden = false;
+            }
           })
           .catch(function () {
             coursesLoading.hidden = true;
@@ -629,6 +684,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .profile-feedback--error { margin-bottom: var(--space-4); padding: var(--space-3) var(--space-4); background: rgba(192,57,43,0.05); border: 1px solid var(--color-error); border-radius: var(--radius-md); color: var(--color-error); font-size: 0.875rem; }
   .profile-feedback--success { margin-bottom: var(--space-4); padding: var(--space-3) var(--space-4); background: rgba(39,174,96,0.08); border: 1px solid rgba(39,174,96,0.3); border-radius: var(--radius-md); color: #27ae60; font-size: 0.875rem; }
   .courses-list { display: grid; gap: var(--space-3); }
+  .member-courses-header { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-4); }
+  .member-courses-header h2 { margin: 0; }
+  .member-courses-tier { font-size: 0.75rem; font-weight: 500; color: var(--purple-700); background: var(--purple-50); padding: 4px 10px; border-radius: var(--radius-pill); }
+  .member-courses-banner { padding: var(--space-3) var(--space-4); background: #fef3c7; border: 1px solid #fcd34d; color: #92400e; border-radius: var(--radius-md); font-size: 0.875rem; margin-bottom: var(--space-4); }
+  .member-courses-banner a { color: #92400e; font-weight: 600; text-decoration: underline; }
   :global(.course-item) {
     display: block;
     padding: var(--space-4) var(--space-5);
