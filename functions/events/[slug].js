@@ -222,7 +222,7 @@ function formatDate(iso) {
   });
 }
 
-function renderHtml({ event, summary, speaker, visitor, cta, canonical }) {
+function renderHtml({ event, summary, speaker, visitor, cta, canonical, memberSummary }) {
   const title = event.title || summary.title || 'Save the Uterus Club Event';
   // summary.description is already scrubbed of Meet URL / dial / PIN.
   const description = (summary.description || `Live members-only call from Save the Uterus Club.`).slice(0, 300);
@@ -267,11 +267,12 @@ function renderHtml({ event, summary, speaker, visitor, cta, canonical }) {
     eventJsonLd.performer = { '@type': 'Person', name: speaker };
   }
 
-  // The Meet URL, dial-in number, and PIN are NEVER rendered as page text
-  // for any visitor. Members get the link via the "Join Call" button only.
-  // This prevents accidental exposure via screenshots, screen sharing, or
-  // browser extensions that scrape page text.
-  const renderChunks = summary.chunks || [];
+  // Members + staff see the full content (Meet URL, dial, PIN rendered as
+  // styled clickable links). Non-members and anonymous get the scrubbed
+  // version. og:description / twitter / JSON-LD always use the scrubbed
+  // summary regardless of visitor.
+  const isMember = visitor && (visitor.tier === 'staff' || visitor.tier === 'member');
+  const renderChunks = (isMember && memberSummary ? memberSummary : summary).chunks || [];
   // Chunk 0 is the title (rendered in <h1>), so skip it for the body.
   const bodyChunks = renderChunks.slice(1);
 
@@ -517,15 +518,16 @@ export async function onRequestGet({ request, params, env }) {
     return Response.redirect(`${SITE_ORIGIN}/events/${event.slug}`, 301);
   }
 
-  // ALWAYS scrub Meet URL / dial-in / PIN. The Join Call button is the only
-  // place the link appears, and only for members (CTA logic).
+  // summary: scrubbed (used for og/twitter/JSON-LD AND non-member body).
+  // memberSummary: full content (used only for member/staff body rendering).
   const summary = summarize(event.content, { scrub: true });
+  const memberSummary = summarize(event.content, { scrub: false });
   const speaker = extractSpeaker(event.content);
   const visitor = await classifyVisitor(request, env);
   const cta = ctaForVisitor(visitor.tier, event);
   const canonical = `${SITE_ORIGIN}/events/${event.slug || event.id}`;
 
-  const html = renderHtml({ event, summary, speaker, visitor, cta, canonical });
+  const html = renderHtml({ event, summary, memberSummary, speaker, visitor, cta, canonical });
 
   // Cache must vary on cookie because content + CTA differ for members vs anonymous.
   return new Response(html, {
