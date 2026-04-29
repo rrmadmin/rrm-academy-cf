@@ -27,11 +27,52 @@
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { existsSync, mkdirSync, rmSync, copyFileSync } from 'node:fs';
+import { existsSync, mkdirSync, rmSync, copyFileSync, readFileSync, writeFileSync } from 'node:fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, '..');
 const TOOL_ROOT = resolve(PROJECT_ROOT, '../../tools/site-ssot');
+
+// CI fallback: if the site-ssot tool isn't present (e.g. GitHub Actions runner
+// where ~/iCode/tools/site-ssot/ doesn't exist), emit a minimal schema snapshot
+// from the local ssot/*.json + src/data/team.json. Skip agent-surfaces emission;
+// the static-overrides/ copy step still runs at the end. Restore full behavior
+// once the tool is vendored or published.
+function emitFallbackSchema(generatedDir) {
+  const schemaOut = resolve(generatedDir, 'ssot-schema.json');
+  const org = JSON.parse(readFileSync(resolve(PROJECT_ROOT, 'ssot/organization.json'), 'utf8'));
+  const site = JSON.parse(readFileSync(resolve(PROJECT_ROOT, 'ssot/site.json'), 'utf8'));
+  let team = { members: [] };
+  try {
+    team = JSON.parse(readFileSync(resolve(PROJECT_ROOT, 'src/data/team.json'), 'utf8'));
+  } catch {
+    // team.json optional; people array stays empty
+  }
+  const orgTypes = Array.isArray(org.types) && org.types.length ? org.types : ['Organization'];
+  const stub = {
+    organization: {
+      '@type': orgTypes,
+      '@id': org['@id'] || `${site.url}/#organization`,
+      name: site.name || org.legal_name || 'RRM Academy',
+      url: site.url || 'https://rrmacademy.org',
+      sameAs: Array.isArray(org.same_as) ? org.same_as : [],
+    },
+    website: {
+      '@type': 'WebSite',
+      '@id': `${site.url || 'https://rrmacademy.org'}/#website`,
+      name: site.name || 'RRM Academy',
+      url: site.url || 'https://rrmacademy.org',
+      description: site.description || '',
+    },
+    people: (team.members || []).map((m) => ({
+      '@type': 'Person',
+      '@id': m.ssot_id || `${site.url || 'https://rrmacademy.org'}/#${(m.given_name || '').toLowerCase()}-${(m.family_name || '').toLowerCase()}`,
+      name: m.name || `${m.given_name || ''} ${m.family_name || ''}`.trim(),
+    })).filter((p) => p['@id'] && p.name),
+  };
+  writeFileSync(schemaOut, JSON.stringify(stub, null, 2));
+  console.log(`[ssot-prebuild] CI fallback: wrote minimal schema to ${schemaOut} (${stub.people.length} people)`);
+}
 
 const raw = process.env.SITE_SSOT_ENABLED;
 const flag = raw === undefined ? '1' : raw;
@@ -59,18 +100,20 @@ if (existsSync(coursesSnapshotter)) {
 const generatedDir = resolve(PROJECT_ROOT, 'src/generated');
 mkdirSync(generatedDir, { recursive: true });
 const schemaWriter = resolve(TOOL_ROOT, 'bin/ssot-emit-schema.mjs');
-if (!existsSync(schemaWriter)) {
-  console.error(`[ssot-prebuild] FATAL: ssot-emit-schema.mjs not found at ${schemaWriter}`);
-  process.exit(1);
-}
-const schemaOut = resolve(generatedDir, 'ssot-schema.json');
-const sres = spawnSync('node', [schemaWriter, '--project', PROJECT_ROOT, '--out', schemaOut], {
-  stdio: 'inherit',
-  env: process.env,
-});
-if (sres.status !== 0) {
-  console.error(`[ssot-prebuild] FATAL: ssot-emit-schema exited ${sres.status}`);
-  process.exit(sres.status || 1);
+const toolMissing = !existsSync(schemaWriter);
+if (toolMissing) {
+  console.warn(`[ssot-prebuild] WARN: ssot-emit-schema.mjs not found at ${schemaWriter} — using CI fallback`);
+  emitFallbackSchema(generatedDir);
+} else {
+  const schemaOut = resolve(generatedDir, 'ssot-schema.json');
+  const sres = spawnSync('node', [schemaWriter, '--project', PROJECT_ROOT, '--out', schemaOut], {
+    stdio: 'inherit',
+    env: process.env,
+  });
+  if (sres.status !== 0) {
+    console.error(`[ssot-prebuild] FATAL: ssot-emit-schema exited ${sres.status}`);
+    process.exit(sres.status || 1);
+  }
 }
 
 if (flag === '0') {
@@ -99,15 +142,19 @@ if (flag === '0') {
   process.exit(0);
 }
 
-console.log(`[ssot-prebuild] SITE_SSOT_ENABLED=1 — emitting agent-native surfaces`);
-const ssotEmit = resolve(TOOL_ROOT, 'bin/ssot-emit.mjs');
-const res = spawnSync('node', [ssotEmit, '--project', PROJECT_ROOT], {
-  stdio: 'inherit',
-  env: { ...process.env, SITE_SSOT_ENABLED: '1' },
-});
-if (res.status !== 0) {
-  console.error(`[ssot-prebuild] FATAL: ssot-emit exited ${res.status}`);
-  process.exit(res.status || 1);
+if (toolMissing) {
+  console.log(`[ssot-prebuild] SITE_SSOT_ENABLED=1 — agent-native emit skipped (tool missing in this environment)`);
+} else {
+  console.log(`[ssot-prebuild] SITE_SSOT_ENABLED=1 — emitting agent-native surfaces`);
+  const ssotEmit = resolve(TOOL_ROOT, 'bin/ssot-emit.mjs');
+  const res = spawnSync('node', [ssotEmit, '--project', PROJECT_ROOT], {
+    stdio: 'inherit',
+    env: { ...process.env, SITE_SSOT_ENABLED: '1' },
+  });
+  if (res.status !== 0) {
+    console.error(`[ssot-prebuild] FATAL: ssot-emit exited ${res.status}`);
+    process.exit(res.status || 1);
+  }
 }
 
 // Phase 0a-bis: restore static llms.txt + llms-full.txt from snapshots in
