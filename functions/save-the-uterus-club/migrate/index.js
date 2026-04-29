@@ -1,4 +1,4 @@
-// functions/save-the-uterus-club/migrate.js
+// functions/save-the-uterus-club/migrate/index.js
 // Magic-link landing for STUC Wix→Stripe migration.
 // Validates token, enforces email-binding interstitial (INV-3), renders confirm UI.
 // Behind STUC_MIGRATION_UX_V2 feature flag.
