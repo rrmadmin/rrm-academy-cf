@@ -1,0 +1,34 @@
+{
+  "issuer": "https://rrmacademy.org",
+  "authorization_endpoint": "https://rrmacademy.org/account/mcp-keys",
+  "token_endpoint": "https://rrmacademy.org/account/mcp-keys",
+  "scopes_supported": [
+    "mcp:read",
+    "mcp:invoke",
+    "library:read",
+    "faq:read"
+  ],
+  "response_types_supported": ["token"],
+  "grant_types_supported": [
+    "urn:ietf:params:oauth:grant-type:api-key"
+  ],
+  "token_endpoint_auth_methods_supported": ["none"],
+  "service_documentation": "https://rrmacademy.org/connect",
+  "x-account-signup-url": "https://rrmacademy.org/signup",
+  "op_policy_uri": "https://rrmacademy.org/terms-of-use/",
+  "op_tos_uri": "https://rrmacademy.org/terms-of-use/",
+  "x-access-model": "self-service",
+  "x-access-instructions": "RRM Academy uses self-service Bearer API keys instead of an interactive OAuth code flow. Sign in (or create a free account) at https://rrmacademy.org/account/mcp-keys to generate, label, and revoke keys. Pass the key as Authorization: Bearer <key> on every tool call.",
+  "x-auth-flow": [
+    "Step 1: Create a free RRM Academy account at https://rrmacademy.org/signup (or sign in if you already have one).",
+    "Step 2: Visit https://rrmacademy.org/account/mcp-keys.",
+    "Step 3: Click 'Generate new key', label it (e.g. 'Claude Desktop', 'Perplexity'), copy the displayed token. The token is shown once.",
+    "Step 4: Configure your MCP client with server URL https://mcp.rrmacademy.org/mcp and Authorization: Bearer <token>.",
+    "Step 5: tools/list and initialize work without auth so clients can enumerate capabilities; tools/call requires the Bearer token.",
+    "Step 6: Revoke or rotate keys at any time from the same page; revocation takes effect immediately."
+  ],
+  "x-streaming": true,
+  "x-mcp-server": "https://mcp.rrmacademy.org/mcp",
+  "x-connect-page": "https://rrmacademy.org/connect",
+  "x-contact": "info@rrmacademy.org"
+}

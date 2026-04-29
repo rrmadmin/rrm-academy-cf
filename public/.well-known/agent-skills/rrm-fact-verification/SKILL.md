@@ -20,13 +20,13 @@ Before publishing:
 
 ### Automated (preferred)
 
-Call the MCP server at `https://rrm-mcp.administrator-cloudflare.workers.dev/mcp`:
+Call the MCP server at `https://mcp.rrmacademy.org/mcp`:
 
 ```
 check_facts(text)
 ```
 
-Returns a list of claims found in the text, each matched to a verified fact (or flagged unverified). Requires Bearer API key — request via info@rrmacademy.org.
+Returns a list of claims found in the text, each matched to a verified fact (or flagged unverified). Requires a Bearer API key, self-service at https://rrmacademy.org/account/mcp-keys.
 
 The facts database is physician-curated from peer-reviewed studies, Q-IVF Annual Reports, HFEA data, IIRRM outcome papers, and the Hilgers NaProTechnology textbook. Each fact traces to a direct source quote.
 
@@ -59,6 +59,6 @@ For any claim:
 
 ## References
 
-- MCP server: `https://rrm-mcp.administrator-cloudflare.workers.dev/mcp`
+- MCP server: `https://mcp.rrmacademy.org/mcp`
 - Research library: `https://rrmacademy.org/library/`
 - Verified facts are referenced in `https://rrmacademy.org/llms-full.txt`

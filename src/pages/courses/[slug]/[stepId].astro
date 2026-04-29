@@ -267,6 +267,7 @@ function stepTypeLabel(type: string) {
     videoDuration: step.duration || 0,
     videoWatchReq: course.settings?.videoWatchRequirement || 0.9,
     fixedOrder: course.settings?.stepOrder === 'fixed',
+    isMembersCourse: (course as any).accessType === 'members',
     autoplayNext: course.settings?.autoplayNextVideo || false,
     hasCertificate: !!course.hasCertificate,
   }}>
@@ -285,12 +286,40 @@ function stepTypeLabel(type: string) {
       var isCompleted = false;
       var canComplete = stepType === 'article'; // videos need watch %, quizzes use their own submit flow
 
+      // Render an inline paywall card in place of the video / step body.
+      // Used when a member's subscription has lapsed mid-session and we don't want to silently redirect.
+      function showMembershipLapsedPaywall() {
+        var container = document.getElementById('video-container') || document.getElementById('stream-loading');
+        if (!container) {
+          window.location.href = '/courses/' + courseSlug + '/';
+          return;
+        }
+        container.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;min-height:240px;padding:32px;background:#0c0c10;color:#eaeaea;text-align:center;gap:14px;">' +
+          '<div style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:1.5rem;line-height:1.25;">Your Save the Uterus Club membership has lapsed</div>' +
+          '<p style="font-size:0.9375rem;color:#cfcfd6;max-width:420px;margin:0;">Resume membership to continue this course. Your progress is saved.</p>' +
+          '<a href="/save-the-uterus-club/" class="btn btn--primary" style="margin-top:6px;">Resume Membership</a>' +
+          '<a href="/contact/" style="font-size:0.8125rem;color:#a8a8b3;">Need help? Contact us</a>' +
+          '</div>';
+        container.style.display = 'flex';
+        container.style.background = '#0c0c10';
+        // Suppress the Mark Complete + Next buttons; nothing for them to act on.
+        var markBtn = document.getElementById('mark-complete-btn');
+        if (markBtn) markBtn.style.display = 'none';
+        var nextBtn = document.getElementById('next-lesson-btn');
+        if (nextBtn) nextBtn.classList.add('btn--disabled');
+      }
+
       // --- Auth check + load progress ---
       fetch('/api/courses/progress?courseId=' + encodeURIComponent(courseId), { credentials: 'same-origin' })
         .then(function (r) { return r.json(); })
         .then(function (data) {
           if (!data.ok) {
-            // Not enrolled — redirect to course detail
+            // Not enrolled. For member courses, show in-place paywall (graceful) instead of redirect-loop.
+            // Logged-out + non-member courses: redirect to course detail (existing behavior).
+            if (isMembersCourse) {
+              showMembershipLapsedPaywall();
+              return;
+            }
             window.location.href = '/courses/' + courseSlug + '/';
             return;
           }
@@ -368,8 +397,16 @@ function stepTypeLabel(type: string) {
 
       function loadStreamVideo(resumeTime) {
         fetch('/api/stream/token?videoId=' + encodeURIComponent(streamUid), { credentials: 'same-origin' })
-          .then(function (r) { return r.json(); })
+          .then(function (r) {
+            if (r.status === 403 && isMembersCourse) {
+              // Membership lapsed mid-session; render in-place paywall, don't fall through to generic error.
+              showMembershipLapsedPaywall();
+              return null;
+            }
+            return r.json();
+          })
           .then(function (data) {
+            if (!data) return;
             if (!data.ok || !data.token) {
               var container = document.getElementById('stream-loading');
               if (container) container.textContent = 'Unable to load video. Please try refreshing.';

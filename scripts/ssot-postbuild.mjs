@@ -3,15 +3,15 @@
  * SSOT postbuild for rrm-academy-cf.
  *
  * Runs after astro build to emit public/schemamap.xml via the site-ssot tool,
- * then runs the standards-gate stub.
+ * then runs the standards-gate against dist/.
  *
- * CI fallback: when ../../tools/site-ssot/ isn't present (the tool lives at
- * ~/iCode/tools/site-ssot/ on Brian's local machine but isn't vendored into
- * this repo), skip the schemamap emit gracefully so the deploy can proceed.
- * Mirrors the same pattern used in scripts/ssot-prebuild.mjs.
+ * CI fallback: when ../../tools/site-ssot/ or ../../tools/standards-gate/
+ * isn't present (the tools live at ~/iCode/tools/* on Brian's local machine
+ * but aren't vendored into this repo), skip that step gracefully so the
+ * deploy can proceed. Mirrors the same pattern used in scripts/ssot-prebuild.mjs.
  *
- * Restore full behavior by vendoring tools/site-ssot/ into the repo or
- * publishing it as an npm package.
+ * Restore full behavior by vendoring tools/site-ssot/ + tools/standards-gate/
+ * into the repo or publishing them as npm packages.
  */
 
 import { spawnSync } from 'node:child_process';
@@ -21,9 +21,10 @@ import { existsSync } from 'node:fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, '..');
-const TOOL_ROOT = resolve(PROJECT_ROOT, '../../tools/site-ssot');
+const SITE_SSOT_ROOT = resolve(PROJECT_ROOT, '../../tools/site-ssot');
+const STANDARDS_GATE_ROOT = resolve(PROJECT_ROOT, '../../tools/standards-gate');
 
-const schemamap = resolve(TOOL_ROOT, 'bin/ssot-schemamap.mjs');
+const schemamap = resolve(SITE_SSOT_ROOT, 'bin/ssot-schemamap.mjs');
 if (!existsSync(schemamap)) {
   console.warn(`[ssot-postbuild] WARN: ssot-schemamap.mjs not found at ${schemamap} — skipped (CI fallback)`);
 } else {
@@ -38,5 +39,20 @@ if (!existsSync(schemamap)) {
   }
 }
 
-// standards-gate is a stub (pending Phase 9 per package.json comment); just echo.
-console.log('standards-gate: pending Phase 9');
+const standardsGate = resolve(STANDARDS_GATE_ROOT, 'run.mjs');
+const distDir = resolve(PROJECT_ROOT, 'dist');
+if (!existsSync(standardsGate)) {
+  console.warn(`[ssot-postbuild] WARN: standards-gate not found at ${standardsGate} — skipped (CI fallback)`);
+} else if (!existsSync(distDir)) {
+  console.warn(`[ssot-postbuild] WARN: dist/ not found at ${distDir} — standards-gate skipped`);
+} else {
+  console.log('[ssot-postbuild] running standards-gate against dist/');
+  const res = spawnSync('node', ['--max-old-space-size=8192', standardsGate, distDir], {
+    stdio: 'inherit',
+    env: process.env,
+  });
+  if (res.status !== 0) {
+    console.error(`[ssot-postbuild] FATAL: standards-gate exited ${res.status}`);
+    process.exit(res.status || 1);
+  }
+}

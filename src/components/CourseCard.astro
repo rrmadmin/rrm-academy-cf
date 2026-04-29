@@ -23,6 +23,7 @@ interface Props {
     cohortDates?: { start: string; end: string };
     waitlistUrl?: string;
     nextCohortLabel?: string;
+    accessType?: string;
   };
   enrolled?: boolean;
   progress?: { completedSteps: number; totalSteps: number };
@@ -30,6 +31,7 @@ interface Props {
 
 const { course, enrolled = false, progress } = Astro.props;
 const isComingSoon = !!course.comingSoon;
+const isMembersOnly = course.accessType === 'members';
 
 const totalSteps = course.sections.reduce((sum, s) => sum + s.steps.length, 0);
 const totalVideos = course.sections.reduce((sum, s) => sum + s.steps.filter((st: any) => st.type === 'video').length, 0);
@@ -75,17 +77,24 @@ const cardCohortText = onWaitlist && course.nextCohortLabel ? `Next: ${course.ne
   </div>
 ) : (
   <a href={`/courses/${course.slug}/`} class="course-card">
-    <div class="course-card__image">
-      <img
-        src={course.image}
-        alt={course.imageAlt || course.title}
-        loading="lazy"
-        width="400"
-        height="225"
-      />
+    <div class={`course-card__image${!course.image ? ' course-card__image--placeholder' : ''}`}>
+      {course.image ? (
+        <img
+          src={course.image}
+          alt={course.imageAlt || course.title}
+          loading="lazy"
+          width="400"
+          height="225"
+        />
+      ) : (
+        <div class="course-card__cover-placeholder" aria-hidden="true">
+          <span class="course-card__cover-mark">RRM Academy</span>
+        </div>
+      )}
       {onWaitlist && <span class="course-card__badge course-card__badge--waitlist">Waitlist Open</span>}
       {isAffiliate && !onWaitlist && <span class="course-card__badge course-card__badge--partner">Partner Course</span>}
-      {!isAffiliate && course.isFree && <span class="course-card__badge course-card__badge--free">Free</span>}
+      {isMembersOnly && <span class="course-card__badge course-card__badge--members">🐻 Free for Members</span>}
+      {!isAffiliate && !isMembersOnly && course.isFree && <span class="course-card__badge course-card__badge--free">Free</span>}
       {!isAffiliate && course.hasCertificate && <span class="course-card__badge course-card__badge--cert">Certificate</span>}
     </div>
     <div class="course-card__body">
@@ -131,7 +140,7 @@ const cardCohortText = onWaitlist && course.nextCohortLabel ? `Next: ${course.ne
         </div>
       ) : (
         <div class="course-card__footer">
-          <span class="course-card__price">{onWaitlist ? 'Join Waitlist' : price}</span>
+          <span class="course-card__price">{onWaitlist ? 'Join Waitlist' : (isMembersOnly ? 'Free for Members' : price)}</span>
           <span class="course-card__cta">View Course</span>
         </div>
       )}
@@ -229,6 +238,29 @@ const cardCohortText = onWaitlist && course.nextCohortLabel ? `Next: ${course.ne
     left: var(--space-3);
     background: #fef3c7;
     color: #92400e;
+  }
+  .course-card__badge--members {
+    left: var(--space-3);
+    background: var(--purple-50);
+    color: var(--purple-700);
+  }
+  .course-card__image--placeholder {
+    background: linear-gradient(135deg, var(--purple-50) 0%, #efe9f5 50%, #faf3f8 100%);
+  }
+  .course-card__cover-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .course-card__cover-mark {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-weight: 600;
+    font-size: 1.5rem;
+    color: var(--purple-700);
+    letter-spacing: 0.04em;
+    opacity: 0.85;
   }
 
   .course-card__body {

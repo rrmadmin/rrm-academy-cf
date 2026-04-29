@@ -216,6 +216,21 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             input.focus();
           });
       });
+
+      // Auto-submit when arriving with ?q=<query> in the URL.
+      // Trims, caps to the 500-char input limit, pre-fills, and submits once on load.
+      try {
+        var q = new URLSearchParams(window.location.search).get('q');
+        if (q) {
+          q = q.trim().slice(0, 500);
+          if (q) {
+            input.value = q;
+            updateCount();
+            if (typeof form.requestSubmit === 'function') form.requestSubmit();
+            else form.dispatchEvent(new Event('submit', { cancelable: true }));
+          }
+        }
+      } catch (e) { /* URLSearchParams unavailable -- silently skip */ }
     })();
   </script>
 </BaseLayout>

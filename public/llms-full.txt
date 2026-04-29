@@ -1,8 +1,8 @@
 # RRM Academy — Full Agent Context
 
 > https://rrmacademy.org
-> Version: 1.0
-> Last updated: 2026-04-19
+> Version: 1.1
+> Last updated: 2026-04-29
 > License for reuse: Fair-use citation. See https://rrmacademy.org/terms-of-use/
 
 This file is the single-request, comprehensive context for AI agents and crawlers. For the concise version, see [/llms.txt](https://rrmacademy.org/llms.txt). For agent-specific development guidance, see [AGENTS.md](https://github.com/rrmadmin/rrm-academy-cf/blob/main/AGENTS.md).
@@ -139,7 +139,7 @@ For AI agents and programmatic integrations:
 
 ### MCP tools (Bearer-auth)
 
-The RRM Academy MCP server exposes 5 tools. Contact info@rrmacademy.org to request an API key.
+The RRM Academy MCP server exposes 5 tools. Generate a free Bearer API key at https://rrmacademy.org/account/mcp-keys (self-service, revocable, no waitlist).
 
 - `search` — Search the RRM Academy research library. Filters: type, tradition, year, limit, offset.
 - `get_article` — Retrieve a specific article by type and slug.
@@ -147,7 +147,7 @@ The RRM Academy MCP server exposes 5 tools. Contact info@rrmacademy.org to reque
 - `check_guardrails` — Validate text against RRM editorial standards.
 - `check_facts` — Verify statistical claims against the curated facts database.
 
-Server URL: `https://rrm-mcp.administrator-cloudflare.workers.dev/mcp`
+Server URL: `https://mcp.rrmacademy.org/mcp`
 
 ## Update frequency
 

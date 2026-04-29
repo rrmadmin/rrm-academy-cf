@@ -3,35 +3,52 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import CourseCard from '../../components/CourseCard.astro';
 import coursesData from '../../data/courses.json';
 
+// Members-only courses are LIVE (not coming-soon) — they pass the catalog filter.
+// Coming-soon non-members courses stay hidden until promoted.
+const isVisible = (c: any) => !(c.comingSoon && c.accessType !== 'members');
+const visibleCourses = coursesData.filter(isVisible);
+
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'ItemList',
   name: 'RRM Academy Courses',
   description: 'Evidence-based courses on endometriosis, fertility, and reproductive medicine from Dr. Naomi Whittaker.',
   url: 'https://rrmacademy.org/courses/',
-  numberOfItems: coursesData.filter((c: any) => !c.comingSoon).length,
-  itemListElement: coursesData.filter((c: any) => !c.comingSoon).map((course: any, i: number) => ({
-    '@type': 'ListItem',
-    position: i + 1,
-    item: {
-      '@type': 'Course',
-      name: course.title,
-      description: course.shortDescription,
-      url: `https://rrmacademy.org/courses/${course.slug}/`,
-      ...(course.image ? { image: course.image } : {}),
-      provider: course.isAffiliate
-        ? { '@type': 'Organization', name: 'NeoFertility', url: 'https://www.neofertilitytraining.com/' }
-        : { '@type': 'Organization', '@id': 'https://rrmacademy.org/#organization', name: 'RRM Academy', url: 'https://rrmacademy.org/' },
-      isAccessibleForFree: course.isFree,
-      offers: {
-        '@type': 'Offer',
-        price: course.isFree ? '0' : (course.priceCents / 100).toFixed(2),
-        priceCurrency: 'USD',
-        availability: 'https://schema.org/InStock',
-        ...(course.isAffiliate && course.affiliateUrl ? { url: course.affiliateUrl } : {}),
+  numberOfItems: visibleCourses.length,
+  itemListElement: visibleCourses.map((course: any, i: number) => {
+    const isMembers = course.accessType === 'members';
+    return {
+      '@type': 'ListItem',
+      position: i + 1,
+      item: {
+        '@type': 'Course',
+        name: course.title,
+        description: course.shortDescription,
+        url: `https://rrmacademy.org/courses/${course.slug}/`,
+        ...(course.image ? { image: course.image } : {}),
+        provider: course.isAffiliate
+          ? { '@type': 'Organization', name: 'NeoFertility', url: 'https://www.neofertilitytraining.com/' }
+          : { '@type': 'Organization', '@id': 'https://rrmacademy.org/#organization', name: 'RRM Academy', url: 'https://rrmacademy.org/' },
+        isAccessibleForFree: !isMembers && course.isFree,
+        offers: isMembers
+          ? {
+              '@type': 'Offer',
+              price: '9.00',
+              priceCurrency: 'USD',
+              availability: 'https://schema.org/InStock',
+              category: 'Save the Uterus Club Membership',
+              url: 'https://rrmacademy.org/save-the-uterus-club/',
+            }
+          : {
+              '@type': 'Offer',
+              price: course.isFree ? '0' : (course.priceCents / 100).toFixed(2),
+              priceCurrency: 'USD',
+              availability: 'https://schema.org/InStock',
+              ...(course.isAffiliate && course.affiliateUrl ? { url: course.affiliateUrl } : {}),
+            },
       },
-    },
-  })),
+    };
+  }),
 };
 ---
 <BaseLayout
@@ -55,7 +72,7 @@ const jsonLd = {
 
       <h2 class="sr-only">Available Courses</h2>
       <div class="courses-grid animate-enter" style="--stagger: 3;">
-        {coursesData.filter((c: any) => !c.comingSoon).map((course, i) => (
+        {visibleCourses.map((course, i) => (
           <CourseCard course={course} eager={i < 2} />
         ))}
       </div>
