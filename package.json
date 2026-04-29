@@ -14,7 +14,7 @@
     "ssot:schemamap": "node ../../tools/site-ssot/bin/ssot-schemamap.mjs --project .",
     "standards": "node --max-old-space-size=8192 ../../tools/standards-gate/run.mjs dist/",
     "standards:strict": "node --max-old-space-size=8192 ../../tools/standards-gate/run.mjs dist/ --strict",
-    "postbuild": "npm run ssot:schemamap && npm run standards",
+    "postbuild": "node scripts/ssot-postbuild.mjs",
     "page-dates": "node scripts/generate-page-dates.mjs",
     "preview": "astro preview",
     "fetch-data": "node src/lib/fetch-data.mjs",
