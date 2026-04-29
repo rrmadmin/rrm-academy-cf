@@ -9,6 +9,12 @@
  * - "includes" handled: Masterclass enrollment also enrolls in Long-Term Endo.
  * - Idempotent: re-enrolling returns { enrolled: true } with no side effects.
  */
+/**
+ * NOTE: For courses with accessType === 'members', isFree=true semantically means
+ * "no Stripe checkout required" (membership is the access grant), NOT "free for everyone".
+ * The members-gate runs before the isFree branch so non-members are blocked even though
+ * isFree is true. Do not refactor the isFree fast-path without preserving this ordering.
+ */
 import Stripe from 'stripe';
 import {
   json, optionsResponse, getSessionIdFromCookie, validateSession, generateId,
@@ -19,6 +25,7 @@ import { getCourse, getIncludedCourseIds } from './_shared.js';
 import { sendGA4Event } from '../_ga4.js';
 import { classifySource, extractUtm, getClientId, deriveSessionId } from '../_ga4-source.js';
 import { notifyAdminEnrollment } from './_notify-admin.js';
+import { requireMember } from '../community/_shared.js';
 
 function parseCookie(cookieHeader, name) {
   if (!cookieHeader) return '';
@@ -62,8 +69,14 @@ async function handleEnroll(request, env, waitUntil) {
 
   const course = getCourse(courseId);
   if (!course) return json({ ok: false, error: 'Course not found' }, 404);
-  if (course.comingSoon) return json({ ok: false, error: 'Course not yet available' }, 400);
+  if (course.comingSoon && course.accessType !== 'members') {
+    return json({ ok: false, error: 'Course not yet available' }, 400);
+  }
   if (course.isAffiliate) return json({ ok: false, error: 'External enrollment only' }, 400);
+  if (course.accessType === 'members') {
+    const memberResult = await requireMember(request, env);
+    if (memberResult instanceof Response) return memberResult;
+  }
 
   // Idempotent: already enrolled → return success
   // Re-run enrollUser to ensure included courses exist (handles partial-failure retry)
@@ -79,19 +92,21 @@ async function handleEnroll(request, env, waitUntil) {
   if (course.isFree) {
     const wasNewlyEnrolled = await enrollUser(db, session.userId, courseId, null);
     if (wasNewlyEnrolled) {
-      waitUntil((async () => {
-        const user = await db.prepare('SELECT email, name FROM user WHERE id = ?')
-          .bind(session.userId).first();
-        await notifyAdminEnrollment(env, {
-          studentEmail: user?.email || 'unknown',
-          studentName: user?.name || '',
-          courseTitle: course.title,
-          courseId,
-          isFree: true,
-        });
-      })().catch(() => {}));
+      if (course.accessType !== 'members') {
+        waitUntil((async () => {
+          const user = await db.prepare('SELECT email, name FROM user WHERE id = ?')
+            .bind(session.userId).first();
+          await notifyAdminEnrollment(env, {
+            studentEmail: user?.email || 'unknown',
+            studentName: user?.name || '',
+            courseTitle: course.title,
+            courseId,
+            isFree: true,
+          });
+        })().catch(() => {}));
+      }
       waitUntil(sendGA4Event(env, request, 'generate_lead', {
-        lead_source: 'free_course',
+        lead_source: course.accessType === 'members' ? 'member_course' : 'free_course',
         items: [{ item_name: `Course: ${courseId}` }],
       }).catch(() => {}));
     }
