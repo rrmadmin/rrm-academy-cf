@@ -1,5 +1,11 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import coursesData from '../../data/courses.json';
+
+const courseMetaMap: Record<string, { title: string; slug: string; image: string }> = {};
+for (const c of coursesData) {
+  courseMetaMap[c.id] = { title: c.title, slug: c.slug, image: c.image };
+}
 ---
 <BaseLayout
   title="My Account"
@@ -39,6 +45,61 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         </div>
 
         <div class="account-sections">
+
+          <!-- 1. Courses (highest engagement) -->
+          <div class="account-section" id="courses-section">
+            <h2>Courses</h2>
+            <div id="courses-loading" class="account-placeholder">Loading courses...</div>
+            <div id="courses-none" hidden>
+              <p class="account-placeholder">You haven't enrolled in any courses yet.</p>
+              <a href="/courses/" class="btn btn--secondary btn--sm" style="margin-top: var(--space-4); display: inline-flex;">Browse Courses</a>
+            </div>
+            <div id="courses-list" class="course-card-grid" hidden></div>
+          </div>
+
+          <!-- 2. Membership / billing -->
+          <div class="account-section" id="billing-section">
+            <h2>Membership</h2>
+            <div id="billing-loading" class="account-placeholder">Loading billing info...</div>
+            <div id="billing-none" hidden>
+              <p class="account-placeholder">You don't have an active membership.</p>
+              <a href="/save-the-uterus-club/" class="btn btn--secondary btn--sm" style="margin-top: var(--space-4); display: inline-flex;">Join the Save the Uterus Club</a>
+            </div>
+            <div id="billing-active" hidden>
+              <dl class="account-details">
+                <dt>Membership</dt>
+                <dd id="billing-tier"></dd>
+                <dt>Status</dt>
+                <dd id="billing-status"></dd>
+                <dt>Next donation</dt>
+                <dd id="billing-date"></dd>
+              </dl>
+              <p id="billing-cancel-notice" class="billing-cancel-notice" hidden>Your membership will end at the next donation date.</p>
+              <button id="manage-billing-btn" class="btn btn--secondary btn--sm" style="margin-top: var(--space-4);">Manage Billing</button>
+              <div id="manage-billing-wix-note" hidden class="billing-wix-note">
+                <p>Your recurring donation is processed through our legacy platform. To update your card, change your amount, or cancel, email <a href="mailto:support@rrmacademy.org">support@rrmacademy.org</a> — we'll respond within 1 business day.</p>
+              </div>
+              <div id="billing-payments" hidden>
+                <h3 class="billing-history-heading">Payment History</h3>
+                <div id="payments-list" class="donations-list"></div>
+                <button id="payments-show-all" class="btn btn--text btn--sm history-toggle" hidden>Show all</button>
+              </div>
+            </div>
+            <div id="billing-donations" hidden>
+              <h3 class="billing-history-heading">Donation History</h3>
+              <div id="donations-list" class="donations-list"></div>
+              <button id="donations-show-all" class="btn btn--text btn--sm history-toggle" hidden>Show all</button>
+            </div>
+          </div>
+
+          <!-- 3. Saved articles (placeholder slot) -->
+          <div class="account-section" id="saved-section">
+            <h2>Saved Articles</h2>
+            <p class="account-placeholder">Articles you've bookmarked from the Research Library.</p>
+            <a href="/library/saved/" class="btn btn--secondary btn--sm" style="margin-top: var(--space-4); display: inline-flex;">View saved articles</a>
+          </div>
+
+          <!-- 4. Profile + Password -->
           <div class="account-section">
             <div class="profile-password-grid">
               <!-- Profile column -->
@@ -121,56 +182,17 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             </div>
           </div>
 
-          <div class="account-section" id="courses-section">
-            <h2>Courses</h2>
-            <div id="courses-loading" class="account-placeholder">Loading courses...</div>
-            <div id="courses-none" hidden>
-              <p class="account-placeholder">You haven't enrolled in any courses yet.</p>
-              <a href="/courses/" class="btn btn--secondary btn--sm" style="margin-top: var(--space-4); display: inline-flex;">Browse Courses</a>
-            </div>
-            <div id="courses-list" class="courses-list" hidden></div>
-          </div>
-
-          <div class="account-section" id="billing-section">
-            <h2>Billing</h2>
-            <div id="billing-loading" class="account-placeholder">Loading billing info...</div>
-            <div id="billing-none" hidden>
-              <p class="account-placeholder">You don't have an active membership.</p>
-              <a href="/save-the-uterus-club/" class="btn btn--secondary btn--sm" style="margin-top: var(--space-4); display: inline-flex;">Join the Save the Uterus Club</a>
-            </div>
-            <div id="billing-active" hidden>
-              <dl class="account-details">
-                <dt>Membership</dt>
-                <dd id="billing-tier"></dd>
-                <dt>Status</dt>
-                <dd id="billing-status"></dd>
-                <dt>Next donation</dt>
-                <dd id="billing-date"></dd>
-              </dl>
-              <p id="billing-cancel-notice" class="billing-cancel-notice" hidden>Your membership will end at the next donation date.</p>
-              <button id="manage-billing-btn" class="btn btn--secondary btn--sm" style="margin-top: var(--space-4);">Manage Billing</button>
-              <div id="manage-billing-wix-note" hidden class="billing-wix-note">
-                <p>Your recurring donation is processed through our legacy platform. To update your card, change your amount, or cancel, email <a href="mailto:support@rrmacademy.org">support@rrmacademy.org</a> — we'll respond within 1 business day.</p>
-              </div>
-              <div id="billing-payments" hidden>
-                <h3 class="billing-history-heading">Payment History</h3>
-                <div id="payments-list" class="donations-list"></div>
-                <button id="payments-show-all" class="btn btn--text btn--sm history-toggle" hidden>Show all</button>
-              </div>
-            </div>
-            <div id="billing-donations" hidden>
-              <h3 class="billing-history-heading">Donation History</h3>
-              <div id="donations-list" class="donations-list"></div>
-              <button id="donations-show-all" class="btn btn--text btn--sm history-toggle" hidden>Show all</button>
-            </div>
-          </div>
-
+          <!-- 5. MCP API keys (power-user) -->
           <div class="account-section" id="mcp-section">
             <h2>MCP API Keys</h2>
             <p class="account-placeholder">Connect Claude, ChatGPT, or Perplexity to the RRM Academy research library.</p>
             <a href="/account/mcp-keys/" class="btn btn--secondary btn--sm" style="margin-top: var(--space-4); display: inline-flex;">Manage keys</a>
           </div>
+
         </div>
+
+        <!-- Course metadata for client-side rendering (cover images, titles, slugs from courses.json) -->
+        <script type="application/json" id="course-meta-data" set:html={JSON.stringify(courseMetaMap)}></script>
       </div>
 
     </div>
@@ -378,19 +400,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       });
 
       // --- Courses ---
-      var courseMeta = {
-        'masterclass-endo-surgery': { title: 'Masterclass in Endometriosis & Surgery', slug: 'masterclass-in-endometriosis-and-surgery' },
-        'long-term-endo': { title: 'Long Term Endometriosis Management', slug: 'long-term-endometriosis-management' },
-        'postpartum': { title: 'Postpartum Depression & Anxiety', slug: 'postpartum-depression-anxiety' },
-        'rrm-vs-ivf': { title: 'RRM vs Standard ART', slug: 'rrm-vs-ivf' },
-        'hormones-through-the-lifespan': { title: 'Hormones Through the Lifespan', slug: 'hormones-through-the-lifespan' },
-        'pelvic-floor-rehabilitation': { title: 'Pelvic Floor Rehabilitation', slug: 'pelvic-floor-rehabilitation' },
-        'infertility-existential-trauma': { title: 'Infertility as Existential Trauma', slug: 'infertility-existential-trauma' },
-        'fertility-based-family-planning': { title: 'Fertility-Based Methods of Family Planning', slug: 'fertility-based-family-planning' },
-        'aip-diet-inflammation': { title: 'Why the AIP Diet Is Not Enough to Reduce Inflammation', slug: 'aip-diet-inflammation' },
-        'functional-lab-testing-napro': { title: 'Functional Lab Testing, NaPro Technology, and Preconception Care', slug: 'functional-lab-testing-napro' },
-        'neofertility-med-training': { title: 'NeoFertility Medical Training Cohort', slug: 'neofertility-medical-training' },
-      };
+      var courseMeta = {};
+      try {
+        var metaScript = document.getElementById('course-meta-data');
+        if (metaScript) courseMeta = JSON.parse(metaScript.textContent || '{}');
+      } catch (_e) {
+        courseMeta = {};
+      }
 
       function loadCourses() {
         var coursesLoading = document.getElementById('courses-loading');
@@ -407,18 +423,26 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             }
             var html = '';
             data.courses.forEach(function (c) {
-              var meta = courseMeta[c.courseId] || { title: c.courseId, slug: c.courseId };
+              var meta = courseMeta[c.courseId] || { title: c.courseId, slug: c.courseId, image: '' };
               var pct = c.totalSteps > 0 ? Math.round((c.completedSteps / c.totalSteps) * 100) : 0;
               var completed = !!c.completedAt;
               var statusText = completed ? 'Completed' : (pct > 0 ? pct + '% complete' : 'Not started');
               var lessonText = c.completedSteps + ' / ' + c.totalSteps + ' lessons';
-              var statusClass = completed ? 'course-item__status--done' : (pct > 0 ? 'course-item__status--progress' : 'course-item__status--new');
-              html += '<a href="/courses/' + meta.slug + '/" class="course-item">' +
-                '<div class="course-item__title">' + meta.title + '</div>' +
-                '<div class="course-item__bar"><div class="course-item__fill" style="width:' + pct + '%"></div></div>' +
-                '<div class="course-item__meta">' +
-                  '<span class="course-item__status ' + statusClass + '">' + statusText + '</span>' +
-                  '<span class="course-item__lessons">' + lessonText + '</span>' +
+              var statusClass = completed ? 'course-mini__status--done' : (pct > 0 ? 'course-mini__status--progress' : 'course-mini__status--new');
+              var imgHtml = meta.image
+                ? '<img src="' + escapeHtml(meta.image) + '" alt="' + escapeHtml(meta.title) + '" loading="lazy" width="400" height="225">'
+                : '<div class="course-mini__image-placeholder" aria-hidden="true"></div>';
+              html += '<a href="/courses/' + escapeHtml(meta.slug) + '/" class="course-mini">' +
+                '<div class="course-mini__image">' + imgHtml + '</div>' +
+                '<div class="course-mini__body">' +
+                  '<div class="course-mini__title">' + escapeHtml(meta.title) + '</div>' +
+                  '<div class="course-mini__bar" role="progressbar" aria-valuenow="' + pct + '" aria-valuemin="0" aria-valuemax="100">' +
+                    '<div class="course-mini__fill" style="width:' + pct + '%"></div>' +
+                  '</div>' +
+                  '<div class="course-mini__meta">' +
+                    '<span class="course-mini__status ' + statusClass + '">' + statusText + '</span>' +
+                    '<span class="course-mini__lessons">' + lessonText + '</span>' +
+                  '</div>' +
                 '</div>' +
               '</a>';
             });
@@ -628,27 +652,89 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .profile-actions { display: flex; gap: var(--space-3); margin-top: var(--space-2); }
   .profile-feedback--error { margin-bottom: var(--space-4); padding: var(--space-3) var(--space-4); background: rgba(192,57,43,0.05); border: 1px solid var(--color-error); border-radius: var(--radius-md); color: var(--color-error); font-size: 0.875rem; }
   .profile-feedback--success { margin-bottom: var(--space-4); padding: var(--space-3) var(--space-4); background: rgba(39,174,96,0.08); border: 1px solid rgba(39,174,96,0.3); border-radius: var(--radius-md); color: #27ae60; font-size: 0.875rem; }
-  .courses-list { display: grid; gap: var(--space-3); }
-  :global(.course-item) {
-    display: block;
-    padding: var(--space-4) var(--space-5);
+  .course-card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-5);
+  }
+  @media (max-width: 640px) {
+    .course-card-grid { grid-template-columns: 1fr; }
+  }
+  :global(.course-mini) {
+    display: flex;
+    flex-direction: column;
     background: var(--bg-body);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
+    overflow: hidden;
     text-decoration: none;
     color: inherit;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
   }
-  :global(.course-item:hover) { border-color: var(--purple-300); box-shadow: var(--shadow-sm); text-decoration: none; color: inherit; }
-  :global(.course-item__title) { font-size: 0.9375rem; font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-3); }
-  :global(.course-item__bar) { width: 100%; height: 6px; background: var(--neutral-200); border-radius: 3px; overflow: hidden; margin-bottom: var(--space-2); }
-  :global(.course-item__fill) { height: 100%; background: var(--green-700); border-radius: 3px; transition: width 0.3s; }
-  :global(.course-item__meta) { display: flex; justify-content: space-between; align-items: center; }
-  :global(.course-item__status) { font-size: 0.8125rem; font-weight: 500; }
-  :global(.course-item__status--done) { color: var(--green-700, #2d7a4f); }
-  :global(.course-item__status--progress) { color: var(--purple-700); }
-  :global(.course-item__status--new) { color: var(--text-muted); }
-  :global(.course-item__lessons) { font-size: 0.75rem; color: var(--text-tertiary); }
+  :global(.course-mini:hover) {
+    border-color: var(--purple-300);
+    box-shadow: var(--shadow-sm);
+    text-decoration: none;
+    color: inherit;
+  }
+  :global(.course-mini__image) {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--neutral-100);
+  }
+  :global(.course-mini__image img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s;
+  }
+  :global(.course-mini:hover .course-mini__image img) {
+    transform: scale(1.03);
+  }
+  :global(.course-mini__image-placeholder) {
+    width: 100%;
+    height: 100%;
+    background: var(--neutral-100);
+  }
+  :global(.course-mini__body) {
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  :global(.course-mini__title) {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.3;
+  }
+  :global(.course-mini__bar) {
+    width: 100%;
+    height: 6px;
+    background: var(--neutral-200);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: var(--space-1);
+  }
+  :global(.course-mini__fill) {
+    height: 100%;
+    background: var(--green-700);
+    border-radius: 3px;
+    transition: width 0.3s;
+  }
+  :global(.course-mini__meta) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--space-1);
+  }
+  :global(.course-mini__status) { font-size: 0.8125rem; font-weight: 500; }
+  :global(.course-mini__status--done) { color: var(--green-700, #2d7a4f); }
+  :global(.course-mini__status--progress) { color: var(--purple-700); }
+  :global(.course-mini__status--new) { color: var(--text-muted); }
+  :global(.course-mini__lessons) { font-size: 0.75rem; color: var(--text-tertiary); }
 
   .billing-cancel-notice {
     font-size: 0.8125rem;
