@@ -499,6 +499,15 @@ for (const c of coursesData) {
         }
       }
 
+      // Brand-canonical tier labels — must match copy used on /save-the-uterus-club/
+      // and /donate/. Lookup falls back to the raw slug if a new tier ships before
+      // this map is updated, so the page never renders empty.
+      var tierNames = {
+        member: 'STUC Member',
+        hero: 'Uterus Hero',
+        superhero: 'Uterus Super Hero',
+      };
+
       function loadBilling() {
         var billingLoading = document.getElementById('billing-loading');
         var billingNone = document.getElementById('billing-none');
@@ -527,7 +536,7 @@ for (const c of coursesData) {
 
             if (hasSub) {
               var sub = data.subscription;
-              billingTier.textContent = sub.tier;
+              billingTier.textContent = tierNames[sub.tier] || sub.tier;
               billingStatus.textContent = sub.status.charAt(0).toUpperCase() + sub.status.slice(1);
               if (sub.currentPeriodEnd) {
                 billingDate.textContent = new Date(sub.currentPeriodEnd * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -536,14 +545,17 @@ for (const c of coursesData) {
               }
               if (sub.cancelAtPeriodEnd) cancelNotice.hidden = false;
 
-              // Wix-source subs route "Manage Billing" to a mailto helper, not Stripe portal
+              // Wix-source subs route "Manage Billing" to a mailto helper, not Stripe portal.
+              // Use inline style.display, not the [hidden] attribute -- global `.btn { display: inline-flex }`
+              // wins the cascade against the UA `[hidden] { display: none }` rule, so the attribute alone
+              // would leave both the Stripe button AND the Wix mailto note visible at once.
               var manageBtn = document.getElementById('manage-billing-btn');
               var manageNote = document.getElementById('manage-billing-wix-note');
               if (sub.source === 'wix') {
-                if (manageBtn) manageBtn.hidden = true;
+                if (manageBtn) manageBtn.style.display = 'none';
                 if (manageNote) manageNote.hidden = false;
               } else {
-                if (manageBtn) manageBtn.hidden = false;
+                if (manageBtn) manageBtn.style.display = '';
                 if (manageNote) manageNote.hidden = true;
               }
 
