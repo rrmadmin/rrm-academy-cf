@@ -9,7 +9,8 @@ import {
   json, optionsResponse, getSessionIdFromCookie, validateSession, generateId,
 } from '../auth/_shared.js';
 import { log } from '../_log.js';
-import { isValidStep } from './_shared.js';
+import { isValidStep, getCourse } from './_shared.js';
+import { requireMember } from '../community/_shared.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -128,6 +129,13 @@ export async function onRequestPost({ request, env, waitUntil }) {
       'SELECT id FROM enrollment WHERE user_id = ? AND course_id = ? AND revoked_at IS NULL'
     ).bind(session.userId, courseId).first();
     if (!enrollment) return json({ ok: false, error: 'Not enrolled' }, 403);
+
+    // Members-only courses: re-verify active membership before allowing writes
+    const commentCourse = getCourse(courseId);
+    if (commentCourse?.accessType === 'members') {
+      const memberResult = await requireMember(request, env);
+      if (memberResult instanceof Response) return memberResult;
+    }
 
     // If replying, verify parent comment exists and belongs to this step
     if (parentId) {

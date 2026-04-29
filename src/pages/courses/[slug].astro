@@ -39,6 +39,7 @@ function formatDuration(seconds: number) {
 const firstStep = course.isAffiliate ? null : course.sections[0]?.steps[0];
 
 const isAffiliate = !!course.isAffiliate;
+const isMembers = (course as any).accessType === 'members';
 const waitlistUrl = (course as any).waitlistUrl as string | undefined;
 const nextCohortLabel = (course as any).nextCohortLabel as string | undefined;
 const onWaitlist = isAffiliate && !!waitlistUrl;
@@ -68,14 +69,23 @@ const courseSchema = {
   ...(course.teaches?.length ? { teaches: course.teaches } : {}),
   ...(!isAffiliate ? { numberOfLessons: totalSteps } : {}),
   ...(!isAffiliate ? { timeRequired: hours > 0 ? `PT${hours}H${minutes}M` : `PT${minutes}M` } : {}),
-  isAccessibleForFree: course.isFree,
-  offers: {
-    '@type': 'Offer',
-    price: course.isFree ? '0' : (course.priceCents / 100).toFixed(2),
-    priceCurrency: 'USD',
-    availability: onWaitlist ? 'https://schema.org/PreOrder' : 'https://schema.org/InStock',
-    ...(onWaitlist ? { url: `https://rrmacademy.org/courses/${course.slug}/` } : (isAffiliate && course.affiliateUrl ? { url: course.affiliateUrl } : {})),
-  },
+  isAccessibleForFree: !isMembers && course.isFree,
+  offers: isMembers
+    ? {
+        '@type': 'Offer',
+        price: '9.00',
+        priceCurrency: 'USD',
+        availability: 'https://schema.org/InStock',
+        category: 'Save the Uterus Club Membership',
+        url: 'https://rrmacademy.org/save-the-uterus-club/',
+      }
+    : {
+        '@type': 'Offer',
+        price: course.isFree ? '0' : (course.priceCents / 100).toFixed(2),
+        priceCurrency: 'USD',
+        availability: onWaitlist ? 'https://schema.org/PreOrder' : 'https://schema.org/InStock',
+        ...(onWaitlist ? { url: `https://rrmacademy.org/courses/${course.slug}/` } : (isAffiliate && course.affiliateUrl ? { url: course.affiliateUrl } : {})),
+      },
   ...(!isAffiliate ? {
     hasCourseInstance: {
       '@type': 'CourseInstance',
@@ -285,6 +295,33 @@ const relatedCourses = course.relatedCourses
                   </div>
                   <p class="affiliate-disclosure">This is an affiliate link. RRM Academy may earn a commission at no cost to you.</p>
                 </div>
+              ) : isMembers ? (
+                <>
+                  <!-- Static: members-only default (logged-out / non-member). JS swaps to enrolled or member-start when applicable. -->
+                  <div class="hero-cta-static hero-cta-members" id="members-cta-join">
+                    <span class="course-hero__price course-hero__price--members">Members $9/mo</span>
+                    <a href="/save-the-uterus-club/" class="btn btn--primary btn--lg">Join Save the Uterus Club</a>
+                    <a href={`/login/?redirect=/courses/${course.slug}/`} class="course-login-link">Already a member? Log in</a>
+                    <p class="members-hero__note">Included with any Save the Uterus Club tier. Cancel anytime.</p>
+                  </div>
+                  <!-- Active member, not yet enrolled: hidden until JS confirms membership -->
+                  <div class="hero-cta-static hero-cta-members" id="members-cta-start" hidden>
+                    <span class="members-tier-badge" id="members-tier-badge">Included with your membership</span>
+                    <button class="btn btn--primary btn--lg enroll-btn" data-course-id={course.id} data-free="true">Start Learning</button>
+                  </div>
+                  <!-- Active member, already enrolled: standard continue UI -->
+                  <div class="hero-cta-enrolled" hidden>
+                    <a href={firstStep ? `/courses/${course.slug}/${firstStep.id}/` : '#'} class="btn btn--primary btn--lg" id="continue-btn">
+                      Continue Learning
+                    </a>
+                    <div class="hero-progress" id="hero-progress" hidden>
+                      <div class="hero-progress__bar" role="progressbar" aria-valuenow={0} aria-valuemin={0} aria-valuemax={100} aria-label="Course progress">
+                        <div class="hero-progress__fill" id="hero-progress-fill"></div>
+                      </div>
+                      <span class="hero-progress__text" id="hero-progress-text"></span>
+                    </div>
+                  </div>
+                </>
               ) : (
                 <>
                   <!-- Static: shown before JS hydrates -->
@@ -480,7 +517,7 @@ const relatedCourses = course.relatedCourses
     <!-- Bottom CTA -->
     <section class="course-section course-bottom-cta" data-pagefind-ignore>
       <div class="container container--narrow" style="text-align: center;">
-        <h2>{course.comingSoon ? 'Coming Soon' : onWaitlist ? "Don't Miss the Next Cohort" : 'Ready to Start?'}</h2>
+        <h2>{course.comingSoon ? 'Coming Soon' : onWaitlist ? "Don't Miss the Next Cohort" : isMembers ? 'Save the Uterus Club Members Get Instant Access' : 'Ready to Start?'}</h2>
         {course.comingSoon ? (
           <p class="section-sub">This course is in development. We're working on production. We'll announce on the homepage and in the newsletter when enrollment opens.</p>
         ) : onWaitlist ? (
@@ -497,6 +534,11 @@ const relatedCourses = course.relatedCourses
               Enroll at NeoFertility
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px; vertical-align: middle;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             </a>
+          </>
+        ) : isMembers ? (
+          <>
+            <p class="section-sub">This course is included with any Save the Uterus Club tier ($9, $19, or $99/month). Members already? <a href={`/login/?redirect=/courses/${course.slug}/`}>Log in</a>.</p>
+            <a href="/save-the-uterus-club/" class="btn btn--primary btn--lg">Join the Club</a>
           </>
         ) : (
           <>
@@ -758,74 +800,103 @@ const relatedCourses = course.relatedCourses
 
   <!-- Enrollment + Progress (client-side) -->
   {!isAffiliate && (
-  <script is:inline define:vars={{ courseId: course.id, courseSlug: course.slug, firstStepId: firstStep?.id }}>
+  <script is:inline define:vars={{ courseId: course.id, courseSlug: course.slug, firstStepId: firstStep?.id, isMembers }}>
     (function () {
-      var staticCta = document.querySelector('.hero-cta-static');
+      var staticCtas = document.querySelectorAll('.hero-cta-static');
       var enrolledCta = document.querySelector('.hero-cta-enrolled');
       var heroProgress = document.getElementById('hero-progress');
       var progressFill = document.getElementById('hero-progress-fill');
       var progressText = document.getElementById('hero-progress-text');
       var continueBtn = document.getElementById('continue-btn');
       var enrollBtns = document.querySelectorAll('.enroll-btn');
+      var membersJoin = document.getElementById('members-cta-join');
+      var membersStart = document.getElementById('members-cta-start');
+      var membersTierBadge = document.getElementById('members-tier-badge');
 
-      // Check enrollment status
-      fetch('/api/courses/progress?courseId=' + encodeURIComponent(courseId), { credentials: 'same-origin' })
-        .then(function (r) { return r.json(); })
-        .then(function (data) {
-          if (!data.ok) return; // Not enrolled or not logged in — keep static CTA
+      var TIER_DISPLAY = { member: '🐻 Member', hero: '💖 Hero', superhero: '🦸‍♀️ Superhero', staff: 'Staff' };
 
-          // User is enrolled — switch to enrolled CTA
-          staticCta.hidden = true;
-          enrolledCta.hidden = false;
+      function hideAllStatic() { for (var i = 0; i < staticCtas.length; i++) staticCtas[i].hidden = true; }
+      function showEnrolled() { hideAllStatic(); if (enrolledCta) enrolledCta.hidden = false; }
 
-          // Find the first incomplete step for "Continue" button
-          var steps = data.steps || {};
-          var resumeStep = firstStepId;
-          var foundIncomplete = false;
-          var sections = document.querySelectorAll('.curriculum__module');
-          var completedCount = 0;
-          var totalCount = 0;
-
-          document.querySelectorAll('.curriculum__step').forEach(function (el) {
-            var stepId = el.getAttribute('data-step-id');
-            totalCount++;
-            if (steps[stepId] && steps[stepId].completed) {
-              completedCount++;
-              el.classList.add('curriculum__step--completed');
-            } else if (!foundIncomplete) {
-              resumeStep = stepId;
-              foundIncomplete = true;
-            }
-          });
-
-          if (resumeStep) {
-            continueBtn.href = '/courses/' + courseSlug + '/' + resumeStep + '/';
+      function applyProgress(data) {
+        var steps = data.steps || {};
+        var resumeStep = firstStepId;
+        var foundIncomplete = false;
+        var completedCount = 0;
+        var totalCount = 0;
+        document.querySelectorAll('.curriculum__step').forEach(function (el) {
+          var stepId = el.getAttribute('data-step-id');
+          totalCount++;
+          if (steps[stepId] && steps[stepId].completed) {
+            completedCount++;
+            el.classList.add('curriculum__step--completed');
+          } else if (!foundIncomplete) {
+            resumeStep = stepId;
+            foundIncomplete = true;
           }
-
-          // Show progress
-          if (totalCount > 0) {
-            var pct = Math.round((completedCount / totalCount) * 100);
-            heroProgress.hidden = false;
-            progressFill.style.width = pct + '%';
-            progressText.textContent = pct + '% complete (' + completedCount + '/' + totalCount + ' lessons)';
-            var bar = heroProgress.querySelector('[role="progressbar"]');
-            if (bar) bar.setAttribute('aria-valuenow', String(pct));
-          }
-
-          // Hide bottom CTA enroll buttons
-          for (var i = 0; i < enrollBtns.length; i++) {
-            var btn = enrollBtns[i];
-            var wrapper = btn.closest('.course-bottom-cta');
-            if (wrapper) wrapper.hidden = true;
-          }
-        })
-        .catch(function () {
-          // Network error — leave static CTA visible
         });
+        if (resumeStep && continueBtn) continueBtn.href = '/courses/' + courseSlug + '/' + resumeStep + '/';
+        if (totalCount > 0 && heroProgress) {
+          var pct = Math.round((completedCount / totalCount) * 100);
+          heroProgress.hidden = false;
+          progressFill.style.width = pct + '%';
+          progressText.textContent = pct + '% complete (' + completedCount + '/' + totalCount + ' lessons)';
+          var bar = heroProgress.querySelector('[role="progressbar"]');
+          if (bar) bar.setAttribute('aria-valuenow', String(pct));
+        }
+        // Hide bottom CTA enroll buttons when enrolled
+        for (var i = 0; i < enrollBtns.length; i++) {
+          var wrapper = enrollBtns[i].closest('.course-bottom-cta');
+          if (wrapper) wrapper.hidden = true;
+        }
+      }
 
-      // Enroll button handler
+      function showMembersStart(tier) {
+        // Active member (or staff) but not yet enrolled. Swap join CTA for Start Learning.
+        if (membersJoin) membersJoin.hidden = true;
+        if (membersStart) membersStart.hidden = false;
+        if (membersTierBadge && tier && TIER_DISPLAY[tier]) {
+          membersTierBadge.textContent = 'Included with your ' + TIER_DISPLAY[tier] + ' tier';
+        }
+      }
+
+      // Wire enroll handlers for all enroll-buttons (members "Start Learning" + non-member "Enroll Now"/"Start Learning")
       for (var i = 0; i < enrollBtns.length; i++) {
         enrollBtns[i].addEventListener('click', handleEnroll);
+      }
+
+      if (isMembers) {
+        // Member courses: confirm membership FIRST so the CTA we show matches what the server will accept.
+        // /api/community/status returns { ok, access: 'anonymous'|'registered'|'member', user?: { tier, role } }
+        fetch('/api/community/status', { credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (statusData) {
+            if (!statusData || !statusData.ok || statusData.access !== 'member') {
+              return null; // Not a member (or not logged in) — leave join CTA as-is.
+            }
+            var tier = statusData.user && statusData.user.tier;
+            return fetch('/api/courses/progress?courseId=' + encodeURIComponent(courseId), { credentials: 'same-origin' })
+              .then(function (r) { return r.json(); })
+              .then(function (data) {
+                if (data && data.ok) {
+                  showEnrolled();
+                  applyProgress(data);
+                } else {
+                  showMembersStart(tier);
+                }
+              });
+          })
+          .catch(function () { /* leave default join CTA */ });
+      } else {
+        // Non-member courses: existing flow (free + paid).
+        fetch('/api/courses/progress?courseId=' + encodeURIComponent(courseId), { credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (!data.ok) return; // Not enrolled or not logged in — keep static CTA
+            showEnrolled();
+            applyProgress(data);
+          })
+          .catch(function () { /* leave static CTA */ });
       }
 
       function handleEnroll(e) {
@@ -937,6 +1008,29 @@ const relatedCourses = course.relatedCourses
   /* Coming-soon variant: muted instead of accent so users don't read it as a CTA */
   .course-hero__price--coming-soon {
     color: var(--text-muted, var(--text-tertiary));
+  }
+
+  /* Members tier price label */
+  .course-hero__price--members {
+    color: var(--purple-700);
+  }
+  .hero-cta-members {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .members-hero__note {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    margin: 0;
+  }
+  .members-tier-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--purple-700);
+    background: var(--purple-50);
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
   }
 
   .course-hero__actions[hidden],
