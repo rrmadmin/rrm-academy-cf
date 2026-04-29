@@ -299,10 +299,10 @@ const relatedCourses = course.relatedCourses
                 <>
                   <!-- Static: members-only default (logged-out / non-member). JS swaps to enrolled or member-start when applicable. -->
                   <div class="hero-cta-static hero-cta-members" id="members-cta-join">
-                    <span class="course-hero__price course-hero__price--members">Members $9/mo</span>
+                    <span class="course-hero__price course-hero__price--members">Free for Members</span>
                     <a href="/save-the-uterus-club/" class="btn btn--primary btn--lg">Join Save the Uterus Club</a>
                     <a href={`/login/?redirect=/courses/${course.slug}/`} class="course-login-link">Already a member? Log in</a>
-                    <p class="members-hero__note">Included with any Save the Uterus Club tier. Cancel anytime.</p>
+                    <p class="members-hero__note">Included with any Save the Uterus Club tier — from $9/mo. Cancel anytime.</p>
                   </div>
                   <!-- Active member, not yet enrolled: hidden until JS confirms membership -->
                   <div class="hero-cta-static hero-cta-members" id="members-cta-start" hidden>
@@ -352,13 +352,19 @@ const relatedCourses = course.relatedCourses
               )}
             </div>
           </div>
-          <div class="course-hero__image">
-            <img
-              src={course.image}
-              alt={course.imageAlt || course.title}
-              width="560"
-              height="315"
-            />
+          <div class={`course-hero__image${!course.image ? ' course-hero__image--placeholder' : ''}`}>
+            {course.image ? (
+              <img
+                src={course.image}
+                alt={course.imageAlt || course.title}
+                width="560"
+                height="315"
+              />
+            ) : (
+              <div class="course-hero__cover-placeholder" aria-hidden="true">
+                <span class="course-hero__cover-mark">RRM Academy</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1094,6 +1100,25 @@ const relatedCourses = course.relatedCourses
     width: 100%;
     height: auto;
     display: block;
+  }
+  .course-hero__image--placeholder {
+    aspect-ratio: 16 / 9;
+    background: linear-gradient(135deg, var(--purple-50) 0%, #efe9f5 50%, #faf3f8 100%);
+  }
+  .course-hero__cover-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .course-hero__cover-mark {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-weight: 600;
+    font-size: 2rem;
+    color: var(--purple-700);
+    letter-spacing: 0.04em;
+    opacity: 0.85;
   }
 
   @media (max-width: 768px) {
