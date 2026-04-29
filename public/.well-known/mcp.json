@@ -32,7 +32,7 @@
         "type": "object",
         "properties": {
           "query": { "type": "string", "maxLength": 500, "description": "Search query (keywords, author names, topics)" },
-          "type": { "type": "string", "description": "Filter by article type (article, book, book-chapter, chapter, report, preprint, addendum, conference-presentation, other, op-ed)" },
+          "type": { "type": "string", "description": "Filter by article type (article, book, book-chapter, chapter, report, preprint, addendum, conference-presentation, clinical-protocol, assessment, other, op-ed)" },
           "tradition": { "type": "string", "description": "Filter by RRM tradition (e.g. napro, femm, billings)" },
           "year": { "type": "string", "description": "Filter by publication year or range (e.g. \"2020\" or \"2018-2023\")" },
           "limit": { "type": "integer", "default": 10, "minimum": 1, "maximum": 50, "description": "Max results to return (1-50)" },
