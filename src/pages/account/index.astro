@@ -447,7 +447,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           var hiddenAttr = i >= 1 ? ' hidden' : '';
           var receiptHtml;
           if (d.receiptNumber) {
-            receiptHtml = '<span class="donation-receipt history-receipt">Receipt #' + escapeHtml(String(d.receiptNumber)) + '</span>';
+            receiptHtml = '<span class="donation-receipt history-receipt">Save the Uterus Club Donation Receipt #' + escapeHtml(String(d.receiptNumber)) + '</span>';
           } else if (d.receiptUrl) {
             receiptHtml = '<a href="' + d.receiptUrl + '" target="_blank" rel="noopener noreferrer" class="donation-receipt">Receipt</a>';
           } else {
