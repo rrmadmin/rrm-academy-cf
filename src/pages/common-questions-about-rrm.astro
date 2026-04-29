@@ -3,9 +3,41 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import BackToTop from '../components/BackToTop.astro';
 import LastUpdated from '../components/LastUpdated.astro';
 import pageDates from '../data/page-dates.json';
+import { buildFAQPage, buildBreadcrumbList } from '../lib/identity';
 
 const PAGE_PATH = '/common-questions-about-rrm/';
 const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-03-01';
+
+// FAQPage from buildFAQPage (strip @context for embedding in @graph).
+const faqPageRaw = buildFAQPage([
+  {
+    question: 'Does RRM delay fertility treatment?',
+    answer: 'RRM diagnostic evaluation typically takes 1-3 months, comparable to the preparation timeline for an IVF cycle. Treatment can begin immediately upon diagnosis. For patients with conditions like endometriosis, RRM surgical treatment has shown pregnancy rates of 55.3% per woman, and a 2021 study showed a 41% live birth rate with RRM treatment followed by timed intercourse. For patients over 38 or with conditions where time is critical (severe diminished ovarian reserve, for example), delays in any form can reduce success rates. RRM practitioners should counsel patients about age-related urgency and ensure patients understand all available options.',
+  },
+  {
+    question: 'Is RRM only practiced for religious reasons?',
+    answer: 'While NaProTechnology was developed at the Saint Paul VI Institute (a Catholic institution), the medical techniques used in RRM (including excision surgery for endometriosis, hormonal evaluation and support, and diagnostic imaging) are standard medical practices used across all healthcare settings. The research supporting RRM outcomes has been published in mainstream peer-reviewed journals including BMC Pregnancy and Childbirth and Fertility and Sterility. Many RRM practitioners are motivated by both clinical evidence and ethical commitments. This is not unique to RRM. All medical practice involves values-based decisions. The relevant question is whether the treatments are effective and whether patients receive complete informed consent.',
+  },
+  {
+    question: 'Does RRM have lower success rates than IVF?',
+    answer: 'Direct comparison is difficult because patient populations differ. Published data shows live birth rates with RRM of approximately 29% at 2 years (all ages) and 34% for patients under 35, compared to IVF live birth rates of approximately 31% (all ages) and 35% for ages 18-34, per embryo transferred (HFEA 2022). RRM is strongest in conditions where the underlying cause is treatable (endometriosis, PCOS, hormonal deficiency). Patients deserve to understand the evidence for all available options so they can make informed decisions with their providers.',
+  },
+  {
+    question: 'Is it safe to skip IVF and try RRM instead?',
+    answer: 'RRM treatments (surgery, medications, hormonal support) are themselves proven medical interventions. Excision surgery for endometriosis is considered the gold standard even in conventional gynecology. Hormonal evaluation and treatment for luteal phase deficiency, PCOS, and thyroid disorders is standard endocrine care. The "alternative" framing mischaracterizes RRM as outside conventional medicine when most of its component treatments are within it. Patient autonomy includes the right to choose any treatment, including IVF. No provider, whether RRM or conventional, should pressure patients toward or away from a specific approach. The ethical obligation is complete informed consent.',
+  },
+  {
+    question: 'What does ACOG say about RRM?',
+    answer: 'ACOG published an issue brief expressing concerns about RRM, particularly regarding informed consent, delays in treatment, and the restriction of IVF access in some institutional settings. RRM Academy shares ACOG\'s commitment to informed consent. We agree that restricting access to any evidence-based treatment, including IVF, without full informed consent is wrong. We also believe that presenting IVF as the only fertility treatment without discussing root-cause alternatives is equally incomplete informed consent.',
+  },
+]) as Record<string, unknown>;
+const breadcrumbRaw = buildBreadcrumbList([
+  { name: 'Home', url: 'https://rrmacademy.org/' },
+  { name: 'Guides', url: 'https://rrmacademy.org/guides/' },
+  { name: 'Common Questions About RRM', url: 'https://rrmacademy.org/common-questions-about-rrm/' },
+]) as Record<string, unknown>;
+const { '@context': _faqCtx, ...faqPageNode } = faqPageRaw;
+const { '@context': _bcCtx, ...breadcrumbNode } = breadcrumbRaw;
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -26,59 +58,8 @@ const jsonLd = {
       dateModified: LAST_MODIFIED,
       mainEntityOfPage: 'https://rrmacademy.org/common-questions-about-rrm',
     },
-    {
-      '@type': 'FAQPage',
-      mainEntity: [
-        {
-          '@type': 'Question',
-          name: 'Does RRM delay fertility treatment?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'RRM diagnostic evaluation typically takes 1-3 months, comparable to the preparation timeline for an IVF cycle. Treatment can begin immediately upon diagnosis. For patients with conditions like endometriosis, RRM surgical treatment has shown pregnancy rates of 55.3% per woman, and a 2021 study showed a 41% live birth rate with RRM treatment followed by timed intercourse. For patients over 38 or with conditions where time is critical (severe diminished ovarian reserve, for example), delays in any form can reduce success rates. RRM practitioners should counsel patients about age-related urgency and ensure patients understand all available options.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'Is RRM only practiced for religious reasons?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'While NaProTechnology was developed at the Saint Paul VI Institute (a Catholic institution), the medical techniques used in RRM (including excision surgery for endometriosis, hormonal evaluation and support, and diagnostic imaging) are standard medical practices used across all healthcare settings. The research supporting RRM outcomes has been published in mainstream peer-reviewed journals including BMC Pregnancy and Childbirth and Fertility and Sterility. Many RRM practitioners are motivated by both clinical evidence and ethical commitments. This is not unique to RRM. All medical practice involves values-based decisions. The relevant question is whether the treatments are effective and whether patients receive complete informed consent.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'Does RRM have lower success rates than IVF?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'Direct comparison is difficult because patient populations differ. Published data shows live birth rates with RRM of approximately 29% at 2 years (all ages) and 34% for patients under 35, compared to IVF live birth rates of approximately 31% (all ages) and 35% for ages 18-34, per embryo transferred (HFEA 2022). RRM is strongest in conditions where the underlying cause is treatable (endometriosis, PCOS, hormonal deficiency). Patients deserve to understand the evidence for all available options so they can make informed decisions with their providers.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'Is it safe to skip IVF and try RRM instead?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'RRM treatments (surgery, medications, hormonal support) are themselves proven medical interventions. Excision surgery for endometriosis is considered the gold standard even in conventional gynecology. Hormonal evaluation and treatment for luteal phase deficiency, PCOS, and thyroid disorders is standard endocrine care. The "alternative" framing mischaracterizes RRM as outside conventional medicine when most of its component treatments are within it. Patient autonomy includes the right to choose any treatment, including IVF. No provider, whether RRM or conventional, should pressure patients toward or away from a specific approach. The ethical obligation is complete informed consent.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'What does ACOG say about RRM?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'ACOG published an issue brief expressing concerns about RRM, particularly regarding informed consent, delays in treatment, and the restriction of IVF access in some institutional settings. RRM Academy shares ACOG\'s commitment to informed consent. We agree that restricting access to any evidence-based treatment, including IVF, without full informed consent is wrong. We also believe that presenting IVF as the only fertility treatment without discussing root-cause alternatives is equally incomplete informed consent.',
-          },
-        },
-      ],
-    },
-    {
-      '@type': 'BreadcrumbList',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
-        { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://rrmacademy.org/guides/' },
-        { '@type': 'ListItem', position: 3, name: 'Common Questions About RRM', item: 'https://rrmacademy.org/common-questions-about-rrm/' },
-      ],
-    },
+    faqPageNode,
+    breadcrumbNode,
   ],
 };
 ---
@@ -89,6 +70,7 @@ const jsonLd = {
   ogType="article"
   publishDate="2026-03-01"
   jsonLd={jsonLd}
+  speakable={['.pillar-lead', 'h1']}
 >
   <div class="page-wrapper" data-pagefind-ignore="all">
     <div class="container container--narrow">
