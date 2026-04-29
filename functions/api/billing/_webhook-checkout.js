@@ -152,34 +152,104 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
     const tierLabel = stucTiers[tier];
 
     if (email && env.AWS_ACCESS_KEY_ID) {
-      await sendEmailSafe(env, waitUntil, {
-        to: email,
-        subject: 'Welcome to the Save the Uterus Club',
-        source: 'billing/checkout-membership',
-        text: [
-          `Hi ${name || 'there'},`,
-          '',
-          `Welcome to the Save the Uterus Club! You're now a ${tierLabel} member.`,
-          '',
-          'Here\'s what to do next:',
-          '',
-          '1. Join the member group -- this is where live call dates, resources, and discussion happen:',
-          `   ${SITE_URL}/community/`,
-          '',
-          '2. Join the free Uterus Allies group chat on Instagram:',
-          '   https://www.instagram.com/direct/t/7768750249851959/',
-          '',
-          '3. Explore the Research Library -- over 3,000 peer-reviewed resources:',
-          `   ${SITE_URL}/library/`,
-          '',
-          `You can manage your membership anytime at ${SITE_URL}/account/`,
-          '',
-          'Thank you for supporting evidence-based reproductive health.',
-          '',
-          'RRM Academy',
-          'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315',
-        ].join('\n'),
-      });
+      const isMigrationDonor = typeof session.metadata?.wix_subscription_id === 'string' &&
+        /^wxs_[a-z0-9_-]+$/i.test(session.metadata.wix_subscription_id);
+
+      if (isMigrationDonor) {
+        // Existing member switching payment systems — send confirmation, not new-member welcome
+        let nextChargeSentence = '';
+        let wixAmountDollars = null;
+        try {
+          const wixRow = await db.prepare(
+            "SELECT amount_cents, next_expected_at FROM wix_subscription WHERE wix_subscription_id = ?"
+          ).bind(session.metadata.wix_subscription_id).first();
+
+          if (wixRow) {
+            wixAmountDollars = (wixRow.amount_cents / 100).toFixed(0);
+            const nowSec = Math.floor(Date.now() / 1000);
+            const nextAtSec = wixRow.next_expected_at
+              ? Math.floor(new Date(wixRow.next_expected_at).getTime() / 1000)
+              : null;
+            const isUsable = Number.isFinite(nextAtSec) && nextAtSec > nowSec;
+            if (isUsable) {
+              const humanDate = new Date(wixRow.next_expected_at).toLocaleDateString('en-US', {
+                year: 'numeric', month: 'long', day: 'numeric',
+              });
+              nextChargeSentence = `Your next donation will be processed on ${humanDate} at $${wixAmountDollars}/month -- the same date and same amount you were already on.`;
+            } else {
+              // Past or null next_expected_at (Beth scenario): charge starts now
+              const fallbackDate = new Date();
+              fallbackDate.setMonth(fallbackDate.getMonth() + 1);
+              const humanDate = fallbackDate.toLocaleDateString('en-US', {
+                year: 'numeric', month: 'long', day: 'numeric',
+              });
+              nextChargeSentence = `Your next donation will be processed on ${humanDate} at $${wixAmountDollars}/month -- going forward you'll be charged on the same day each month.`;
+            }
+          }
+        } catch (wixReadErr) {
+          log(env, waitUntil, 'billing', 'migration_email_wix_read_fail', 'error',
+            `${session.metadata.wix_subscription_id}: ${wixReadErr.message}`);
+          // Fall through with no date sentence -- email is still sent
+        }
+
+        const amountLine = wixAmountDollars
+          ? ` at $${wixAmountDollars}/month`
+          : '';
+        const chargeLine = nextChargeSentence ||
+          `Your donation${amountLine} will continue going forward.`;
+
+        await sendEmailSafe(env, waitUntil, {
+          to: email,
+          subject: 'Your donation switch is complete',
+          source: 'billing/checkout-membership-migration',
+          text: [
+            `Hi ${name || 'there'},`,
+            '',
+            'Your switch over to our new payment system is complete. Thank you for staying with us.',
+            '',
+            `${chargeLine} You won't be double-charged. We'll cancel your previous Wix donation within 24 hours.`,
+            '',
+            `Manage your membership any time at ${SITE_URL}/account/`,
+            '',
+            'If you see two charges in the same month, please email us at administrator@rrmacademy.org and we\'ll sort it immediately.',
+            '',
+            'Thank you for supporting evidence-based reproductive health.',
+            '',
+            'RRM Academy',
+            'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315',
+          ].join('\n'),
+        });
+      } else {
+        // New member — standard welcome email with onboarding list
+        await sendEmailSafe(env, waitUntil, {
+          to: email,
+          subject: 'Welcome to the Save the Uterus Club',
+          source: 'billing/checkout-membership',
+          text: [
+            `Hi ${name || 'there'},`,
+            '',
+            `Welcome to the Save the Uterus Club! You're now a ${tierLabel} member.`,
+            '',
+            'Here\'s what to do next:',
+            '',
+            '1. Join the member group -- this is where live call dates, resources, and discussion happen:',
+            `   ${SITE_URL}/community/`,
+            '',
+            '2. Join the free Uterus Allies group chat on Instagram:',
+            '   https://www.instagram.com/direct/t/7768750249851959/',
+            '',
+            '3. Explore the Research Library -- over 3,000 peer-reviewed resources:',
+            `   ${SITE_URL}/library/`,
+            '',
+            `You can manage your membership anytime at ${SITE_URL}/account/`,
+            '',
+            'Thank you for supporting evidence-based reproductive health.',
+            '',
+            'RRM Academy',
+            'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315',
+          ].join('\n'),
+        });
+      }
     } else if (email && !env.AWS_ACCESS_KEY_ID) {
       log(env, waitUntil, 'billing', 'membership_email_skipped', 'skipped', `${email} ${tierLabel} (SES not configured)`);
     }

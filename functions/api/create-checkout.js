@@ -213,7 +213,27 @@ async function handleCheckout(request, env, waitUntil) {
     let migrationMetadata = {};
 
     if (wixLookup) {
-      // Atomic write-lock with 15-min TTL
+      // Off-amount detection: reject BEFORE acquiring the lock so a 412 does not
+      // hold the 15-min mutex. A donor who sees the off-amount prompt and re-POSTs
+      // with acknowledge_off_amount:true must be able to acquire the lock on the
+      // second request -- if we locked first they'd hit 409 instead.
+      const STANDARD_CENTS = new Set([900, 1900, 9900]);
+      if (!STANDARD_CENTS.has(wixLookup.amount_cents) && body.acknowledge_off_amount !== true) {
+        return json({
+          ok: false,
+          error: 'off_amount',
+          amount_cents: wixLookup.amount_cents,
+          standard_tiers: [
+            { tier: 'member',    amount_cents: 900 },
+            { tier: 'hero',      amount_cents: 1900 },
+            { tier: 'superhero', amount_cents: 9900 },
+          ],
+        }, 412);
+      }
+      useCustomAmount = !STANDARD_CENTS.has(wixLookup.amount_cents);
+
+      // Atomic write-lock with 15-min TTL — only acquired for requests we're
+      // forwarding to Stripe (off-amount rejection has already been handled above).
       let lockResult;
       try {
         lockResult = await env.DB.prepare(
@@ -229,22 +249,6 @@ async function handleCheckout(request, env, waitUntil) {
       if ((lockResult?.meta?.changes ?? 0) === 0) {
         return json({ ok: false, error: 'migration_in_progress' }, 409);
       }
-
-      // Off-amount detection
-      const STANDARD_CENTS = new Set([900, 1900, 9900]);
-      if (!STANDARD_CENTS.has(wixLookup.amount_cents) && body.acknowledge_off_amount !== true) {
-        return json({
-          ok: false,
-          error: 'off_amount',
-          amount_cents: wixLookup.amount_cents,
-          standard_tiers: [
-            { tier: 'member',    amount_cents: 900 },
-            { tier: 'hero',      amount_cents: 1900 },
-            { tier: 'superhero', amount_cents: 9900 },
-          ],
-        }, 412);
-      }
-      useCustomAmount = !STANDARD_CENTS.has(wixLookup.amount_cents);
 
       // trial_end clamp: must be at least 1 day out, at most ~2 years out
       const nowSec = Math.floor(Date.now() / 1000);
