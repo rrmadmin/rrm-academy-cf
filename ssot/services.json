@@ -1,0 +1,5 @@
+{
+  "$schema": "../../../tools/site-ssot/schemas/1/services.schema.json",
+  "version": "1.0.0",
+  "services": []
+}

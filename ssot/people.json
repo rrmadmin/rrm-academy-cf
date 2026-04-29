@@ -1,0 +1,13 @@
+{
+  "$schema": "../../../tools/site-ssot/schemas/1/people.schema.json",
+  "version": "1.0.0",
+  "references": [
+    {
+      "@id": "https://rrmacademy.org/#naomi-whittaker",
+      "local_override": {
+        "job_title": "Lead Instructor",
+        "description": "TBD-GIANNA"
+      }
+    }
+  ]
+}
