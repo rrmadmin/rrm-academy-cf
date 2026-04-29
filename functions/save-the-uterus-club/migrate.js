@@ -25,7 +25,9 @@ function logEvent(env, action, indexes) {
       blobs: ['billing', 'stuc-migration', action, indexes.reason || '', JSON.stringify(indexes)],
       indexes: [action]
     });
-  } catch {}
+  } catch {
+    // AE telemetry is best-effort; never break user flow on logging failure
+  }
 }
 
 function htmlResponse(html, status = 200) {
