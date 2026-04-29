@@ -25,6 +25,10 @@
 # DO NOT add trailing-slash rules here -- _redirects fires before middleware
 # and _headers converts the 301 to a mangled 200.
 
+# Old Wix event page slug
+/events/how-disconnecting-women-from-their-bodies-supports-big-ivf /commentary/ 301
+/events/how-disconnecting-women-from-their-bodies-supports-big-ivf/ /commentary/ 301
+
 # Old Wix survey slug
 /3-tier-endometriosis-symptom-self-survey /endo-survey/ 301
 /3-tier-endometriosis-symptom-self-survey/ /endo-survey/ 301
