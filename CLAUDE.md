@@ -180,6 +180,18 @@ docs/
 | Airtable-to-CF data pipeline | `docs/architecture/airtable-cf-pipeline.md` |
 | ICD-10 codes (endo survey) | `docs/endo-survey-icd10-internal.md` |
 | Ecosystem SSOT | `docs/rrm-academy-ecosystem.json` |
+| Site-SSOT inputs | `ssot/` (site, organization, people refs, services, agent-surfaces) |
+| Site-SSOT identity helper | `src/lib/identity.ts` reads from `src/generated/ssot-schema.json` (gitignored, regenerated each build) |
+
+### Site-SSOT (Phase 0a / 2026-04-29)
+
+`rrm-academy-cf` is the second site-ssot consumer (after neofertility-ie). The `ssot/*.json` files declare site identity, organization, people refs to `~/iCode/config/ecosystem-identity/`, services, and agent-surfaces (incl. `social_handles`).
+
+`scripts/ssot-prebuild.mjs` runs before `astro build` (chained in `package.json` build) and writes `src/generated/ssot-schema.json`. Pages import via `src/lib/identity.ts` — `getOrganizationJsonLd()`, `getTeam()`, `getSocialHandles()`, `buildIdentityGraph()`. Build-time assertion: every social_handle URL must exist in `organization.sameAs`.
+
+`SITE_SSOT_ENABLED=1` (default) emits `public/llms.txt`, `public/llms-full.txt`, `public/agents.md`, `public/.well-known/agent-card.json` from agent-surfaces.json. `=0` skips these and just regenerates the schema snapshot.
+
+Validation: `npm run ssot:validate` (schema + cross-ref) and `npm run ssot:smoke` (1P refs).
 
 ### Design System SSOT
 
