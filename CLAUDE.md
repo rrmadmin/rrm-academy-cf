@@ -18,7 +18,7 @@
   - `repository_dispatch` with `record_id` (blog post publish from D1 `posts` table)
   - `workflow_dispatch` (manual, optional skip_fetch)
 - **Build**: `npm run build` (runs `astro build && npx pagefind --site dist`)
-- **Data**: `WORKER_AUTH_TOKEN=xxx AIRTABLE_PAT=xxx npm run fetch-all` then `npm run build`
+- **Data**: `LIBRARY_BUILD_TOKEN=xxx npm run fetch-all` then `npm run build` (post-courses-cutover; AIRTABLE_PAT/TINIFY_API_KEY still in deploy.yml env but DEAD — no fetcher consumes them. Step 10 cleanup pending.)
 - **Router Worker**: `~/iCode/projects/rrm-router/src/index.js`
 - **Wix site code**: `~/iCode/projects/rrm-academy-wix/`
 
@@ -180,6 +180,18 @@ docs/
 | Airtable-to-CF data pipeline | `docs/architecture/airtable-cf-pipeline.md` |
 | ICD-10 codes (endo survey) | `docs/endo-survey-icd10-internal.md` |
 | Ecosystem SSOT | `docs/rrm-academy-ecosystem.json` |
+| Site-SSOT inputs | `ssot/` (site, organization, people refs, services, agent-surfaces) |
+| Site-SSOT identity helper | `src/lib/identity.ts` reads from `src/generated/ssot-schema.json` (gitignored, regenerated each build) |
+
+### Site-SSOT (Phase 0a / 2026-04-29)
+
+`rrm-academy-cf` is the second site-ssot consumer (after neofertility-ie). The `ssot/*.json` files declare site identity, organization, people refs to `~/iCode/config/ecosystem-identity/`, services, and agent-surfaces (incl. `social_handles`).
+
+`scripts/ssot-prebuild.mjs` runs before `astro build` (chained in `package.json` build) and writes `src/generated/ssot-schema.json`. Pages import via `src/lib/identity.ts` — `getOrganizationJsonLd()`, `getTeam()`, `getSocialHandles()`, `buildIdentityGraph()`. Build-time assertion: every social_handle URL must exist in `organization.sameAs`.
+
+`SITE_SSOT_ENABLED=1` (default) emits `public/llms.txt`, `public/llms-full.txt`, `public/agents.md`, `public/.well-known/agent-card.json` from agent-surfaces.json. `=0` skips these and just regenerates the schema snapshot.
+
+Validation: `npm run ssot:validate` (schema + cross-ref) and `npm run ssot:smoke` (1P refs).
 
 ### Design System SSOT
 
@@ -443,7 +455,7 @@ Push to `claude/` branch -- GitHub Actions auto-builds + merges. No local creden
 
 ## Shared Config
 
-- **Blog posts**: D1 `rrm-auth.posts` is SSOT (migrated from Airtable 2026-03-27). Library data is also D1 (`rrm-library`). Airtable is still used for courses + endo survey only
+- **Blog posts**: D1 `rrm-auth.posts` is SSOT (migrated from Airtable 2026-03-27). Library, FAQs, glossary, courses also D1. **Airtable holdouts:** endo survey symptom data (`appb7HeeJQsVe3Jpr` — by-design HIPAA pseudonymization split), STUC publisher (manual CLI with `--i-understand-d1-divergence` guard). See `~/iCode/CLAUDE.md` "Airtable Deprecation" for the complete current map (verified 2026-04-27).
 - **Stripe API version**: `STRIPE_API_VERSION` in `functions/api/auth/_shared.js` — imported by all 6 Stripe consumers
 - **Site URL for emails**: `SITE_URL` in `functions/api/auth/_shared.js` — used in transactional email body links only (CORS origin stays hardcoded for security; Astro pages use `Astro.site`)
 - **Navigation**: Desktop, mobile, and footer navs are intentionally different item sets — see comments in `Header.astro` and `Footer.astro`

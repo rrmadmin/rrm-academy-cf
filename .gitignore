@@ -6,6 +6,8 @@ src/data/posts.json
 src/data/faqs.json
 src/data/guides.json
 src/data/og-index.json
+# Site-SSOT regenerated snapshot (built every deploy from ssot/*.json + identity registry)
+src/generated/
 scraped/
 .env
 .env.local

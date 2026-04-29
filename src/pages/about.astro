@@ -1,31 +1,22 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import LastUpdated from '../components/LastUpdated.astro';
+import TeamCard from '../components/TeamCard.astro';
+import SocialRow from '../components/SocialRow.astro';
 import articlesData from '../data/articles.json';
+import { getOrganizationJsonLd, getTeam } from '../lib/identity';
 
 const libraryCount = articlesData.length.toLocaleString();
+const team = getTeam();
+
+const orgFromSsot = getOrganizationJsonLd();
+const { '@context': _orgCtx, ...orgNode } = orgFromSsot as Record<string, unknown> & { '@context'?: unknown };
 
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
     {
-      '@type': 'EducationalOrganization',
-      '@id': 'https://rrmacademy.org/#organization',
-      name: 'RRM Academy',
-      alternateName: 'Restorative Reproductive Medicine Academy',
-      url: 'https://rrmacademy.org',
-      description: 'RRM Academy provides expert-led, evidence-based education in Restorative Reproductive Medicine for patients and healthcare professionals.',
-      foundingDate: '2023',
-      parentOrganization: {
-        '@type': 'Organization',
-        name: 'Restorative Reproductive Medicine Foundation',
-        taxID: '93-4594315',
-        nonprofitStatus: 'Nonprofit501c3',
-      },
-      founder: {
-        '@type': 'Person',
-        '@id': 'https://rrmacademy.org/#naomi-whittaker',
-      },
+      ...orgNode,
       address: {
         '@type': 'PostalAddress',
         streetAddress: '3401 Hartzdale Dr, Ste 103B PMB 3518',
@@ -34,10 +25,6 @@ const jsonLd = {
         postalCode: '17011',
         addressCountry: 'US',
       },
-      sameAs: [
-        'https://www.linkedin.com/company/rrmacademy',
-        'https://www.instagram.com/rrmacademy',
-      ],
       publishingPrinciples: 'https://rrmacademy.org/policies/editorial/',
       correctionsPolicy: 'https://rrmacademy.org/policies/corrections/',
       verificationFactCheckingPolicy: 'https://rrmacademy.org/policies/fact-checking/',
@@ -223,6 +210,7 @@ const jsonLd = {
   description={`Expert-led education in restorative reproductive medicine. 12 clinician-taught courses and ${libraryCount} research resources, all free or low-cost.`}
   canonicalUrl="https://rrmacademy.org/about"
   jsonLd={jsonLd}
+  speakable={['.about-hero p', '.about-lead', '.about-mission']}
 >
   <!-- Hero -->
   <section class="about-hero">
@@ -289,38 +277,21 @@ const jsonLd = {
     </div>
   </section>
 
-  <!-- Founder -->
+  <!-- Team -->
   <section class="about-section about-section--alt">
     <div class="container container--narrow">
-      <h2>Meet our founder</h2>
+      <h2>Our team</h2>
+      <p class="team-intro">
+        RRM Academy is governed by the board of the Restorative Reproductive Medicine Foundation, the 501(c)(3) parent organization that funds and oversees its educational mission.
+      </p>
 
-      <div class="card founder-card founder-card--with-photo">
-        <img
-          src="/images/authors/naomi-whittaker.webp"
-          alt="Dr. Naomi Whittaker, MD, Board-Certified OBGYN, Founder and Medical Director of RRM Academy"
-          class="founder-card__photo"
-          width="200"
-          height="200"
-          loading="lazy"
-          decoding="async"
-        />
-        <div class="founder-card__content">
-          <h3>Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</h3>
-          <p class="founder-card__role">Founder &amp; Medical Director</p>
-          <p>
-            <a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker</a>, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI, is the Physician Lead of UPMC Divine Mercy Women's Health in Camp Hill, PA. She is board-certified in Obstetrics and Gynecology (ABOG, 2020) and holds the ABOG Focused Practice Designation in Minimally Invasive Gynecologic Surgery. She earned her MD from Creighton University School of Medicine (2013) after completing her BS in Neurobiology and Physiology at Purdue University, trained in OBGYN at the University of Illinois College of Medicine - Peoria (OSF Saint Francis, 2013-2017), and completed fellowship training in Medical and Surgical NaProTECHNOLOGY at the Pope Paul VI Institute (2017-2018). She runs one of the most active restorative reproductive medicine clinics in the country. Her surgical expertise centers on excision of endometriosis, microsurgical tubal repair, and fertility-sparing laparoscopy. She founded RRM Academy to bring root-cause women's healthcare education to patients and professionals worldwide.
-          </p>
-        </div>
+      <div class="team-grid">
+        {team.map((member) => <TeamCard member={member} />)}
       </div>
 
-      <div class="card founder-card">
-        <div class="founder-card__content">
-          <h3>Brian Whittaker</h3>
-          <p class="founder-card__role">Executive Director</p>
-          <p>
-            Brian Whittaker serves as Executive Director of the Restorative Reproductive Medicine Foundation, overseeing the technology, operations, and strategic direction of RRM Academy. He leads the development of the RRM Research Library, one of the largest freely accessible collections of academic references in restorative reproductive medicine, and manages the organization's educational platform and digital infrastructure.
-          </p>
-        </div>
+      <div class="team-follow">
+        <p class="team-follow__label">Follow RRM Academy</p>
+        <SocialRow size="md" variant="page" />
       </div>
     </div>
   </section>
@@ -428,52 +399,39 @@ const jsonLd = {
     margin-bottom: 0;
   }
 
-  /* Founder cards — extends global .card */
-  .founder-card {
-    background: var(--bg-body);
+  /* Team section */
+  .team-intro {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
     margin-bottom: var(--space-6);
   }
-  .founder-card:last-child {
-    margin-bottom: 0;
+  .team-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
   }
-  .founder-card h3 {
-    font-size: 1.25rem;
-    margin-bottom: var(--space-1);
+  @media (min-width: 768px) {
+    .team-grid {
+      grid-template-columns: 1fr;
+    }
+    .team-grid > :global(.team-card) {
+      padding-block: var(--space-4);
+      border-bottom: 1px solid var(--border-light);
+    }
+    .team-grid > :global(.team-card:last-child) {
+      border-bottom: none;
+    }
   }
-  .founder-card__role {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--accent);
-    margin-bottom: var(--space-4);
-  }
-  .founder-card__content p:last-child {
-    margin-bottom: 0;
-  }
-  .founder-card--with-photo {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-4);
+  .team-follow {
+    margin-top: var(--space-6);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--border-light);
     text-align: center;
   }
-  .founder-card__photo {
-    width: 140px;
-    height: 140px;
-    border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  }
-  @media (min-width: 640px) {
-    .founder-card--with-photo {
-      flex-direction: row;
-      align-items: flex-start;
-      text-align: left;
-    }
-    .founder-card__photo {
-      width: 160px;
-      height: 160px;
-    }
+  .team-follow__label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-2);
   }
 
   /* Last-updated timestamp */

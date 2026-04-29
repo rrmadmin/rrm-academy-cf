@@ -18,7 +18,7 @@ const args = [
   'depcruise',
   '--config', '.dependency-cruiser.cjs',
   '--output-type', 'json',
-  'src/lib',
+  'src',
 ];
 
 console.log(`[deps] running: npx ${args.join(' ')}`);
@@ -46,6 +46,6 @@ child.on('exit', async (code) => {
     console.error('[deps] no stdout captured from depcruise');
     if (stderr) console.error(stderr);
   }
-  // Always exit 0 — baseline, not a gate.
-  process.exit(0);
+  // Exit non-zero only on tool failure (no output); rule violations are not failures.
+  process.exit(stdout ? 0 : 1);
 });

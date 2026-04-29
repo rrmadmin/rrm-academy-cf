@@ -1,0 +1,78 @@
+name: AI Search reconcile (weekly)
+
+on:
+  schedule:
+    # Sunday 08:00 UTC — runs after rrm-library-worker's retraction-scan cron (Sun 06:00 UTC)
+    # so retracted/unpublished records are excluded from articles.json before we reconcile.
+    - cron: '0 8 * * 0'
+  workflow_dispatch:
+    inputs:
+      max_delete:
+        description: 'Maximum orphan deletions allowed in this run'
+        required: false
+        default: '50'
+        type: string
+      execute:
+        description: 'Actually delete (false = dry-run)'
+        required: false
+        default: 'false'
+        type: boolean
+
+concurrency:
+  group: ai-search-reconcile
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Fetch fresh source data (so reconcile sees the current corpus)
+        env:
+          LIBRARY_BUILD_TOKEN: ${{ secrets.LIBRARY_BUILD_TOKEN }}
+          ADMIN_API_SECRET: ${{ secrets.ADMIN_API_SECRET }}
+        run: |
+          node scripts/fetch-data.mjs
+          node scripts/fetch-blog-data.mjs
+          node scripts/fetch-faq-data.mjs
+          node scripts/fetch-glossary-data.mjs
+
+      - name: Full-rebuild upload pass (bumps last_seen_at on every live record)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.AI_SEARCH_API_TOKEN }}
+          D1_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node scripts/ai-search-corpus-upload.mjs --full-rebuild
+
+      - name: Reconcile orphans
+        id: reconcile
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.AI_SEARCH_API_TOKEN }}
+          D1_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          MAX_DELETE: ${{ github.event.inputs.max_delete || '50' }}
+          EXECUTE: ${{ github.event.inputs.execute || 'false' }}
+        run: |
+          if [ "$EXECUTE" = "true" ]; then
+            node scripts/ai-search-corpus-upload.mjs --reconcile --execute --max-delete "$MAX_DELETE"
+          else
+            node scripts/ai-search-corpus-upload.mjs --reconcile
+            echo "::notice title=AI Search reconcile (dry-run)::Add execute=true on workflow_dispatch to actually delete orphans."
+          fi
+
+      - name: Surface reconcile result
+        if: always()
+        run: |
+          if [ "${{ steps.reconcile.outcome }}" = "failure" ]; then
+            echo "::warning title=AI Search reconcile failed::Check logs. Orphan cleanup did not complete this week. Re-run manually via workflow_dispatch."
+          fi

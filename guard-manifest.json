@@ -3,7 +3,7 @@
   "description": "Critical file integrity manifest. Run `npm run guard:update` after intentional changes.",
   "files": {
     "functions/api/auth/_shared.js": {
-      "hash": "4a2d6762f5a507acf655660f173e1302759123a74fd627922e5852d87b8883a5",
+      "hash": "b2f0d43926c169a3fe2c882751bc05a9ea92ef9a0bbcae4fafa6209ce8a7e33f",
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
@@ -43,7 +43,7 @@
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
-      "hash": "b4d8d411c6461bc499eaa454f5d1931c2db6f683ba4d56d718e3514220f0aaae",
+      "hash": "b2d69eec49ed0991057cb8eabb97b7049d6e1e81241d6a6ce7beaa6bd1cd32af",
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
@@ -55,23 +55,27 @@
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "6a66709818ac948a8ba6f3259b2b7fa4a916e88040d7b7f0034a02d9f6ef99a4",
+      "hash": "2a0cfabaa3903778edcd9627eb324d4c565e22deaa8288bdcc98bfbc656a8aac",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
-      "hash": "23efadd5d9d695cb77dd908c085f16616f111efb1c80014b70cc03279d24ca17",
+      "hash": "63ecc98d8bf5259c863bbcf150fcca12ea0112c9157c756fd33927bc8d5210bd",
       "note": "Subscription lifecycle handler"
     },
     "functions/api/billing/_webhook-shared.js": {
       "hash": "2be8ce987f6b5c338a4456476fc45dfbd0c705d48753e2d2e2131af831f44e4b",
       "note": "Shared webhook helpers"
     },
+    "functions/api/billing/_migration-token.js": {
+      "hash": "cc61cc87995c747adbb6a8c53b033dcf0331e693361b9a355a683d5057209132",
+      "note": "HMAC-SHA256 magic-link token for Wix-to-Stripe donor migration"
+    },
     "functions/_middleware.js": {
-      "hash": "7caea722a2b3c71014187ed74cb432a102727b3e5e9e9807107e8b0d616f64a2",
+      "hash": "95d5a9c30ebcf56f31e5a5c66388065b8616d329fd105cfefc43c651c22ba397",
       "note": "Auth gating"
     },
     "wrangler.toml": {
-      "hash": "3c1acd76ddde49b0b1e135ef66efc6a631d6d47c8ef893e5cb9217eeb718a29c",
+      "hash": "ede58e2941c37be1d607acabfd53d0bd1f90952c721bb42e483fe2ba775e13c5",
       "note": "D1, KV, R2 bindings"
     },
     "functions/api/_ses.js": {
@@ -91,7 +95,7 @@
       "note": "Magic-link token generation"
     },
     "functions/api/newsletter/send.js": {
-      "hash": "457d5e57ce524d6d2538f1b228fcc897d9b8272ad59db47bc6817ab876ded206",
+      "hash": "ed9c6c07f437c677df832e83a87030464ba7d195e9907c3520109497a9bd6559",
       "note": "Mass email send (admin-only)"
     },
     "functions/api/newsletter/unsubscribe.js": {
@@ -103,11 +107,15 @@
       "note": "Public newsletter intake (rate-limited)"
     },
     "functions/api/search/semantic.js": {
-      "hash": "daa3375c4a0a1a3ce71c0681ade76aed24318b6e8beed7fa818e46b9274acf4b",
+      "hash": "059f39ea80fb388d8d4f4e6eef5569902d648095b9358cb87d822ccdaad321d2",
       "note": "Billed AI.run() + Vectorize (rate-limited)"
     },
+    "functions/api/_ask_prompt.js": {
+      "hash": "4c5c4a3809cdd0336db1dec7f8c57db84cafbfdec2ca6e00e32b15778c41eb33",
+      "note": "SYSTEM_PROMPT for /api/ask -- single source of truth"
+    },
     "functions/api/ask.js": {
-      "hash": "51ef7fef91970f4575b10b7b44794f14e54c7da4dc274c37308522f61be28cfa",
+      "hash": "b193ee38ba407e4cbeac77edb0b4bd508200de3179fade83495e5f4b828c9009",
       "note": "NLWeb AI Search proxy (auth + rate-limited, billed upstream)"
     },
     "src/components/SearchBar.astro": {
@@ -122,8 +130,12 @@
       "hash": "3218c9e86e12b16bd6438dcc68917a4053bdb64d2c7969473f8db425bd013b05",
       "note": "Expired data deletion from D1"
     },
+    "functions/api/admin/wix-migration-link.js": {
+      "hash": "58131eb4bdd6b8dd93b9b353a9a7cad6722472ec18484b89e76412d6555fc6c0",
+      "note": "Admin endpoint: manually link wix_subscription to CF user (Layer 4 reconciliation)"
+    },
     "scripts/guard.mjs": {
-      "hash": "c714ed7324ae8031023535d3a65135f13047976d54f5ab486728cf1a6c119758",
+      "hash": "b9f23392af168ca73ab3324c643a7b7b6922bd494584023b30487f963ca1bf88",
       "note": "Guard script (self-guarding)"
     },
     "functions/api/auth/verify-email.js": {
@@ -155,7 +167,7 @@
       "note": "PDF token consumption + download"
     },
     "functions/api/faqs.js": {
-      "hash": "5bcd62735db2794c621dcfe37d59995672387708edbb9fe014ee40d5c210f663"
+      "hash": "733854b25946ef2acd0ee19a6d2ccba73821b6fbc6672d12193551c400c10f82"
     },
     "functions/api/admin/faqs/index.js": {
       "hash": "7a9189859b99bab03f80c60ba94d5534969ddb0a4609112feafd77a57db7a4c2"

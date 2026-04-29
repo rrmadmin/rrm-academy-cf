@@ -4,10 +4,11 @@
  * If a new post exists that hasn't been sent, triggers a newsletter send.
  */
 import { log } from '../_log.js';
+import { constantTimeEqual } from '../auth/_shared.js';
 
 export async function onRequestPost({ request, env, waitUntil }) {
   const auth = request.headers.get('Authorization');
-  if (!env.ADMIN_API_SECRET || auth !== `Bearer ${env.ADMIN_API_SECRET}`) {
+  if (!env.ADMIN_API_SECRET || !constantTimeEqual(auth, `Bearer ${env.ADMIN_API_SECRET}`)) {
     return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
   }
 

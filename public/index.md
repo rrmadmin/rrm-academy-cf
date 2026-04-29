@@ -4,7 +4,7 @@
 >
 > https://rrmacademy.org
 
-The training your doctor didn't get. RRM Academy is the educational home for [Restorative Reproductive Medicine (RRM)](https://rrmacademy.org/what-is-rrm/). 3,247+ research articles and expert-led courses, curated under the direction of Dr. Naomi Whittaker, MD (Board-Certified OB/GYN, MIGS, NFPMC, FCI), a NaProTechnology fellowship-trained surgeon. A project of the Restorative Reproductive Medicine Foundation, a 501(c)(3) nonprofit (EIN 93-4594315).
+The training your doctor didn't get. RRM Academy is the educational home for [Restorative Reproductive Medicine (RRM)](https://rrmacademy.org/what-is-rrm/). 3,370+ research articles and expert-led courses, curated under the direction of Dr. Naomi Whittaker, MD (Board-Certified OB/GYN, MIGS, NFPMC, FCI), a NaProTechnology fellowship-trained surgeon. A project of the Restorative Reproductive Medicine Foundation, a 501(c)(3) nonprofit (EIN 93-4594315).
 
 ## What RRM is
 
@@ -14,7 +14,7 @@ A woman's cycle is diagnostic data, not background noise.
 
 ## What you'll find here
 
-- **[Research Library](https://rrmacademy.org/library/)** — 3,247+ physician-curated peer-reviewed articles. Full bibliographic metadata, DOIs, classifications, and citation formats. The largest freely accessible collection of its kind.
+- **[Research Library](https://rrmacademy.org/library/)** — 3,370+ physician-curated peer-reviewed articles. Full bibliographic metadata, DOIs, classifications, and citation formats. The largest freely accessible collection of its kind.
 - **[Courses](https://rrmacademy.org/courses/)** — continuing education for clinicians and patients. From free introductory material to full masterclasses.
 - **[Pillar Guides](https://rrmacademy.org/guides/)** — in-depth clinical education on [What is RRM](https://rrmacademy.org/what-is-rrm/), [NaProTechnology](https://rrmacademy.org/naprotechnology/), [FEMM](https://rrmacademy.org/femm/), [NeoFertility](https://rrmacademy.org/neofertility/), and the [Glossary](https://rrmacademy.org/glossary/).
 - **[FAQs](https://rrmacademy.org/faqs/)** — patient-facing answers to common clinical questions.

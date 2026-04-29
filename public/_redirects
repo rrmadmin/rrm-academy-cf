@@ -3,9 +3,9 @@
 
 /sitemap.xml /sitemap-index.xml 301
 
-# Draft pages — 302 until ready to publish
-/common-questions-about-rrm /faqs/ 302
-/common-questions-about-rrm/ /faqs/ 302
+# Legacy URL retired 2026-04-27 -- 301 now that destination is canonical
+/common-questions-about-rrm /faqs/ 301
+/common-questions-about-rrm/ /faqs/ 301
 
 # Old Wix course/page slugs — linked from naomiwhittaker.com biosite and possibly other sources
 /endometriosis-and-surgery-101 /courses/masterclass-in-endometriosis-and-surgery/ 301

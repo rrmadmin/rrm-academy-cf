@@ -8,8 +8,9 @@
  * - Send STUC membership welcome email
  * - Fire GA4 purchase events (course, donation, subscription)
  */
+import Stripe from 'stripe';
 import {
-  SITE_URL, generateId, generateToken, hashToken,
+  SITE_URL, generateId, generateToken, hashToken, STRIPE_API_VERSION,
 } from '../auth/_shared.js';
 import { enrollUser } from '../courses/enroll.js';
 import { getCourse } from '../courses/_shared.js';
@@ -152,36 +153,352 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
     const tierLabel = stucTiers[tier];
 
     if (email && env.AWS_ACCESS_KEY_ID) {
-      await sendEmailSafe(env, waitUntil, {
-        to: email,
-        subject: 'Welcome to the Save the Uterus Club',
-        source: 'billing/checkout-membership',
-        text: [
-          `Hi ${name || 'there'},`,
-          '',
-          `Welcome to the Save the Uterus Club! You're now a ${tierLabel} member.`,
-          '',
-          'Here\'s what to do next:',
-          '',
-          '1. Join the member group -- this is where live call dates, resources, and discussion happen:',
-          `   ${SITE_URL}/community/`,
-          '',
-          '2. Join the free Uterus Allies group chat on Instagram:',
-          '   https://www.instagram.com/direct/t/7768750249851959/',
-          '',
-          '3. Explore the Research Library -- over 3,000 peer-reviewed resources:',
-          `   ${SITE_URL}/library/`,
-          '',
-          `You can manage your membership anytime at ${SITE_URL}/account/`,
-          '',
-          'Thank you for supporting evidence-based reproductive health.',
-          '',
-          'RRM Academy',
-          'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315',
-        ].join('\n'),
-      });
+      const isMigrationDonor = typeof session.metadata?.wix_subscription_id === 'string' &&
+        /^wxs_[a-z0-9_-]+$/i.test(session.metadata.wix_subscription_id);
+
+      if (isMigrationDonor) {
+        // Existing member switching payment systems — send confirmation, not new-member welcome
+        let nextChargeSentence = '';
+        let wixAmountDollars = null;
+        try {
+          const wixRow = await db.prepare(
+            "SELECT amount_cents, next_expected_at FROM wix_subscription WHERE wix_subscription_id = ?"
+          ).bind(session.metadata.wix_subscription_id).first();
+
+          if (wixRow) {
+            wixAmountDollars = (wixRow.amount_cents / 100).toFixed(0);
+            const nowSec = Math.floor(Date.now() / 1000);
+            const nextAtSec = wixRow.next_expected_at
+              ? Math.floor(new Date(wixRow.next_expected_at).getTime() / 1000)
+              : null;
+            const isUsable = Number.isFinite(nextAtSec) && nextAtSec > nowSec;
+            if (isUsable) {
+              const humanDate = new Date(wixRow.next_expected_at).toLocaleDateString('en-US', {
+                year: 'numeric', month: 'long', day: 'numeric',
+              });
+              nextChargeSentence = `Your next donation will be processed on ${humanDate} at $${wixAmountDollars}/month -- the same date and same amount you were already on.`;
+            } else {
+              // Past or null next_expected_at (Beth scenario): charge starts now
+              const fallbackDate = new Date();
+              fallbackDate.setMonth(fallbackDate.getMonth() + 1);
+              const humanDate = fallbackDate.toLocaleDateString('en-US', {
+                year: 'numeric', month: 'long', day: 'numeric',
+              });
+              nextChargeSentence = `Your next donation will be processed on ${humanDate} at $${wixAmountDollars}/month -- going forward you'll be charged on the same day each month.`;
+            }
+          }
+        } catch (wixReadErr) {
+          log(env, waitUntil, 'billing', 'migration_email_wix_read_fail', 'error',
+            `${session.metadata.wix_subscription_id}: ${wixReadErr.message}`);
+          // Fall through with no date sentence -- email is still sent
+        }
+
+        const amountLine = wixAmountDollars
+          ? ` at $${wixAmountDollars}/month`
+          : '';
+        const chargeLine = nextChargeSentence ||
+          `Your donation${amountLine} will continue going forward.`;
+
+        await sendEmailSafe(env, waitUntil, {
+          to: email,
+          subject: 'Your donation switch is complete',
+          source: 'billing/checkout-membership-migration',
+          text: [
+            `Hi ${name || 'there'},`,
+            '',
+            'Your switch over to our new payment system is complete. Thank you for staying with us.',
+            '',
+            `${chargeLine} You won't be double-charged. We'll cancel your previous Wix donation within 24 hours.`,
+            '',
+            `Manage your membership any time at ${SITE_URL}/account/`,
+            '',
+            'If you see two charges in the same month, please email us at administrator@rrmacademy.org and we\'ll sort it immediately.',
+            '',
+            'Thank you for supporting evidence-based reproductive health.',
+            '',
+            'RRM Academy',
+            'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315',
+          ].join('\n'),
+        });
+      } else {
+        // New member — standard welcome email with onboarding list
+        await sendEmailSafe(env, waitUntil, {
+          to: email,
+          subject: 'Welcome to the Save the Uterus Club',
+          source: 'billing/checkout-membership',
+          text: [
+            `Hi ${name || 'there'},`,
+            '',
+            `Welcome to the Save the Uterus Club! You're now a ${tierLabel} member.`,
+            '',
+            'Here\'s what to do next:',
+            '',
+            '1. Join the member group -- this is where live call dates, resources, and discussion happen:',
+            `   ${SITE_URL}/community/`,
+            '',
+            '2. Join the free Uterus Allies group chat on Instagram:',
+            '   https://www.instagram.com/direct/t/7768750249851959/',
+            '',
+            '3. Explore the Research Library -- over 3,000 peer-reviewed resources:',
+            `   ${SITE_URL}/library/`,
+            '',
+            `You can manage your membership anytime at ${SITE_URL}/account/`,
+            '',
+            'Thank you for supporting evidence-based reproductive health.',
+            '',
+            'RRM Academy',
+            'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315',
+          ].join('\n'),
+        });
+      }
     } else if (email && !env.AWS_ACCESS_KEY_ID) {
       log(env, waitUntil, 'billing', 'membership_email_skipped', 'skipped', `${email} ${tierLabel} (SES not configured)`);
+    }
+
+    // Metadata-first migration handoff (INV-3, INV-9)
+    // When create-checkout (Phase 3.1) sets session.metadata.wix_subscription_id, we know
+    // EXACTLY which Wix sub to migrate -- no email guessing required. Defense against
+    // email-mismatch hijack and against multi-Wix-sub donors getting the wrong row marked.
+    let migrationHandled = false;
+    const wixSubIdMeta = session.metadata?.wix_subscription_id || null;
+    if (wixSubIdMeta && db && typeof wixSubIdMeta === 'string' && /^wxs_[a-z0-9_-]+$/i.test(wixSubIdMeta)) {
+      try {
+        // Pre-read the row so we can include next_expected_at in the admin email.
+        const wixRow = await db.prepare(
+          "SELECT email, tier, amount_cents, next_expected_at, stripe_subscription_id " +
+          "FROM wix_subscription WHERE wix_subscription_id = ?"
+        ).bind(wixSubIdMeta).first();
+
+        if (!wixRow) {
+          // Token referenced a row that doesn't exist -- log and fall through to email-match.
+          env.EVENTS?.writeDataPoint({
+            blobs: ['billing', 'stuc-migration', 'metadata-row-missing', wixSubIdMeta, ''],
+            indexes: ['metadata-row-missing'],
+          });
+        } else if (wixRow.stripe_subscription_id) {
+          // Already migrated -- duplicate webhook OR a race we lost. Idempotent: do nothing.
+          env.EVENTS?.writeDataPoint({
+            blobs: ['billing', 'stuc-migration', 'metadata-already-migrated', wixSubIdMeta, session.subscription || ''],
+            indexes: ['metadata-already-migrated'],
+          });
+          migrationHandled = true;
+        } else {
+          // 3DS-incomplete guard (Bug #11): Stripe sub may still be 'incomplete' when this
+          // webhook fires if the donor's 3DS challenge timed out or the bank declined mid-flow.
+          // Flipping migration_status='stripe_active' + emailing admin to cancel Wix at this
+          // moment can leave the donor with zero active subs if the Stripe sub never confirms.
+          //
+          // Conservative behavior: verify sub.status is 'active' or 'trialing' BEFORE the UPDATE.
+          // If not, clear the lock (so the donor can retry without 15-min penalty), log to AE,
+          // and skip the migration flip. Phase 7 cron Sweep 2 will reconcile slow-3DS donors
+          // whose subs eventually become active.
+          let stripeSubStatus = null;
+          try {
+            if (env.STRIPE_SECRET_KEY && session.subscription) {
+              const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
+                apiVersion: STRIPE_API_VERSION,
+                httpClient: Stripe.createFetchHttpClient(),
+              });
+              const sub = await stripe.subscriptions.retrieve(session.subscription);
+              stripeSubStatus = sub.status;
+            }
+          } catch (stripeReadErr) {
+            // Stripe API hiccup — log and fail-CLOSED (skip UPDATE) for safety.
+            log(env, waitUntil, 'billing', 'metadata_stripe_retrieve_fail', 'error',
+              `${wixSubIdMeta}: ${stripeReadErr.message}`);
+            env.EVENTS?.writeDataPoint({
+              blobs: ['billing', 'stuc-migration', 'stripe-retrieve-error', wixSubIdMeta, session.subscription || ''],
+              indexes: ['stripe-retrieve-error'],
+            });
+            stripeSubStatus = 'unknown';
+          }
+
+          if (stripeSubStatus !== 'active' && stripeSubStatus !== 'trialing') {
+            // Sub is not yet usable — clear the lock so the donor can retry, but DO NOT
+            // flip migration_status or email admin. Phase 7 cron handles slow-3DS reconciliation.
+            await db.prepare(
+              "UPDATE wix_subscription SET migration_handoff_started_at = NULL " +
+              "WHERE wix_subscription_id = ? AND stripe_subscription_id IS NULL"
+            ).bind(wixSubIdMeta).run();
+
+            env.EVENTS?.writeDataPoint({
+              blobs: ['billing', 'stuc-migration', 'stripe-sub-not-ready', wixSubIdMeta, stripeSubStatus || 'unknown'],
+              indexes: ['stripe-sub-not-ready'],
+            });
+            log(env, waitUntil, 'billing', 'metadata_handoff_deferred', 'info',
+              `${wixSubIdMeta}: Stripe sub status=${stripeSubStatus} (not active/trialing); skipping UPDATE`);
+
+            migrationHandled = true;
+          } else {
+            // Atomic UPDATE filtered by stripe_subscription_id IS NULL gives idempotency
+            // even without the pre-check above (defense in depth against retry race).
+            const upd = await db.prepare(
+              "UPDATE wix_subscription " +
+              "SET migration_status='stripe_active', " +
+              "    stripe_subscription_id=?, " +
+              "    migration_handoff_started_at=NULL, " +
+              "    migration_notes=COALESCE(migration_notes,'') || " +
+              "      strftime('%Y-%m-%dT%H:%M:%fZ','now') || ' metadata-handoff session=' || ? || char(10), " +
+              "    updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') " +
+              "WHERE wix_subscription_id=? AND stripe_subscription_id IS NULL"
+            ).bind(session.subscription, session.id, wixSubIdMeta).run();
+
+            if ((upd.meta?.changes ?? 0) === 0) {
+              // Lost the race (another retry beat us). Log and treat as handled.
+              env.EVENTS?.writeDataPoint({
+                blobs: ['billing', 'stuc-migration', 'metadata-no-update', wixSubIdMeta, session.subscription || ''],
+                indexes: ['metadata-no-update'],
+              });
+              migrationHandled = true;
+            } else {
+              // Send admin "cancel Wix sub" email, then mark admin_notified_at.
+              const donorEmail = (session.customer_details?.email || session.customer_email || wixRow.email || '').toLowerCase().trim();
+              const nextChargeDate = wixRow.next_expected_at
+                ? new Date(wixRow.next_expected_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+                : 'their next scheduled donation date';
+
+              try {
+                await sendEmailSafe(env, waitUntil, {
+                  to: 'administrator@rrmacademy.org',
+                  subject: `STUC migration: cancel Wix sub for ${donorEmail || wixSubIdMeta}`,
+                  source: 'billing/migration-metadata',
+                  text:
+`${donorEmail || '(unknown email)'} just migrated Wix → Stripe via the new self-service flow.
+
+Wix sub:        ${wixSubIdMeta}
+Stripe sub:     ${session.subscription}
+Tier:           ${wixRow.tier}
+Amount:         $${(wixRow.amount_cents / 100).toFixed(2)}/mo
+Next charge:    ${nextChargeDate}
+
+Stripe is set to start the subscription with trial_end clamped to the donor's next
+expected Wix charge date -- they will not be double-charged.
+
+VERIFY in Stripe Dashboard that the sub status is 'active', then cancel the Wix sub
+within 24 hours to prevent double-billing.
+
+Wix Dashboard -> Subscriptions -> Cancel immediately (NOT end-of-cycle).`,
+                });
+
+                // Mark notified so cron Sweep 2 doesn't re-send.
+                await db.prepare(
+                  "UPDATE wix_subscription SET admin_notified_at=strftime('%s','now') WHERE wix_subscription_id=?"
+                ).bind(wixSubIdMeta).run();
+
+                env.EVENTS?.writeDataPoint({
+                  blobs: ['billing', 'stuc-migration', 'metadata-handoff-ok', wixSubIdMeta, session.subscription || ''],
+                  indexes: ['metadata-handoff-ok'],
+                });
+              } catch (notifyErr) {
+                // SES failed -- log, leave admin_notified_at NULL so cron Sweep 2 retries.
+                // Per existing project pattern, do NOT throw a 5xx; the migration UPDATE already
+                // succeeded and re-running the webhook would hit the idempotent-no-changes branch.
+                log(env, waitUntil, 'billing', 'metadata_admin_notify_fail', 'error',
+                  `${wixSubIdMeta}: ${notifyErr.message}`);
+              }
+
+              migrationHandled = true;
+            }
+          }
+        }
+      } catch (metaErr) {
+        // Metadata path threw -- log and fall through to email-match (defense in depth).
+        log(env, waitUntil, 'billing', 'metadata_handoff_fail', 'error',
+          `${wixSubIdMeta}: ${metaErr.message}`);
+        env.EVENTS?.writeDataPoint({
+          blobs: ['billing', 'stuc-migration', 'metadata-handoff-error', wixSubIdMeta, ''],
+          indexes: ['metadata-handoff-error'],
+        });
+      }
+    }
+
+    // Existing email-match path runs only if metadata path didn't successfully handle.
+    // TODO (future round): the email-match path has the same 3DS race condition as Bug #11.
+    // It is intentionally NOT guarded here because email-match is the legacy fallback for
+    // cold checkouts (no wix_subscription_id metadata) — the existing admin email already
+    // says "VERIFY FIRST in Stripe Dashboard that the sub status is 'active'", which covers
+    // the manual verification step. Phase 3.1 + 3.2 route all migration handoffs through the
+    // metadata path, so email-match is cold-checkout-only in practice. If that changes,
+    // add a stripe.subscriptions.retrieve guard here matching the metadata-path pattern.
+    if (!migrationHandled && email && db) {
+      try {
+        const wixSubs = await db.prepare(
+          "SELECT wix_subscription_id, status FROM wix_subscription " +
+          "WHERE email = ? COLLATE NOCASE " +
+          "ORDER BY started_at DESC"
+        ).bind(email).all();
+        const rows = wixSubs.results || [];
+        const primary = rows[0];
+        if (primary) {
+          const upd = await db.prepare(
+            "UPDATE wix_subscription " +
+            "SET migration_status='stripe_active', " +
+            "    stripe_subscription_id=?, " +
+            "    migration_notes=COALESCE(migration_notes,'') || " +
+            "      strftime('%Y-%m-%dT%H:%M:%fZ','now') || ' handoff session=' || ? || char(10) " +
+            "WHERE wix_subscription_id=? AND stripe_subscription_id IS NULL"
+          ).bind(session.subscription, session.id, primary.wix_subscription_id).run();
+
+          if (upd.meta.changes === 0) {
+            const existing = await db.prepare(
+              "SELECT stripe_subscription_id FROM wix_subscription WHERE wix_subscription_id=?"
+            ).bind(primary.wix_subscription_id).first();
+            await sendEmailSafe(env, waitUntil, {
+              to: 'administrator@rrmacademy.org',
+              subject: `STUC migration: duplicate Stripe sub for ${email}`,
+              source: 'billing/migration-handoff-dup',
+              text:
+`A second Stripe sub started for an already-handed-off donor.
+Email:    ${email}
+Existing: ${existing?.stripe_subscription_id || '(none)'}
+New:      ${session.subscription}
+Wix sub:  ${primary.wix_subscription_id}
+
+Refund the duplicate in Stripe Dashboard, then cancel the Wix sub if not already done.`,
+            });
+          } else {
+            const siblingLines = rows.map(r =>
+              `  - ${r.wix_subscription_id} (status=${r.status})`
+            ).join('\n');
+            await sendEmailSafe(env, waitUntil, {
+              to: 'administrator@rrmacademy.org',
+              subject: `STUC migration: cancel Wix sub for ${email}`,
+              source: 'billing/migration-handoff',
+              text:
+`${email} just started Stripe sub ${session.subscription}.
+
+VERIFY FIRST in Stripe Dashboard that the sub status is 'active'
+(checkout.session.completed fires before subscription confirms -- a 3DS
+failure or card decline mid-flow can leave the customer without an
+active Stripe sub. Cancelling Wix prematurely creates a coverage gap).
+
+Once confirmed active, cancel the following Wix sub(s) within 24h
+to prevent double-billing:
+${siblingLines}
+
+Wix Dashboard -> Subscriptions -> Cancel immediately (NOT end-of-cycle).`,
+            });
+          }
+        }
+      } catch (handoffErr) {
+        log(env, waitUntil, 'billing', 'migration_handoff_fail', 'error',
+          `${email}: ${handoffErr.message}`);
+        await sendEmailSafe(env, waitUntil, {
+          to: 'administrator@rrmacademy.org',
+          subject: `STUC migration handoff FAILED for ${email}`,
+          source: 'billing/migration-handoff-error',
+          text:
+`Migration handoff threw for ${email}.
+Error: (see AE log for details)
+Stripe sub: ${session.subscription}
+Manually mark wix_subscription row:
+  UPDATE wix_subscription
+  SET migration_status='stripe_active',
+      stripe_subscription_id='${session.subscription}'
+  WHERE email='${email}' COLLATE NOCASE
+  ORDER BY started_at DESC LIMIT 1;`,
+        });
+      }
     }
   }
 

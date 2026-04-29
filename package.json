@@ -5,8 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "node scripts/build-og-index.mjs && node scripts/generate-page-dates.mjs && astro build && npx pagefind --site dist",
+    "build": "node scripts/build-og-index.mjs && node scripts/generate-page-dates.mjs && SITE_SSOT_ENABLED=${SITE_SSOT_ENABLED:-1} node scripts/ssot-prebuild.mjs && astro build && npx pagefind --site dist",
     "build:astro": "astro build",
+    "ssot:validate": "node ../../tools/site-ssot/bin/ssot-validate.mjs --project .",
+    "ssot:smoke": "node ../../tools/site-ssot/bin/ssot-smoke.mjs --project .",
+    "ssot:emit": "SITE_SSOT_ENABLED=1 node ../../tools/site-ssot/bin/ssot-emit.mjs --project .",
+    "ssot:dry-run": "SITE_SSOT_ENABLED=1 node ../../tools/site-ssot/bin/ssot-emit.mjs --project . --dry-run",
+    "ssot:schemamap": "node ../../tools/site-ssot/bin/ssot-schemamap.mjs --project .",
+    "standards": "node --max-old-space-size=8192 ../../tools/standards-gate/run.mjs dist/",
+    "standards:strict": "node --max-old-space-size=8192 ../../tools/standards-gate/run.mjs dist/ --strict",
+    "postbuild": "node scripts/ssot-postbuild.mjs",
     "page-dates": "node scripts/generate-page-dates.mjs",
     "preview": "astro preview",
     "fetch-data": "node src/lib/fetch-data.mjs",
@@ -73,7 +81,6 @@
     "c8": "^10.1.3",
     "dependency-cruiser": "^16.10.4",
     "eslint": "^10.0.2",
-    "eslint-plugin-sonarjs": "^4.0.3",
     "pagefind": "^1.3.0",
     "satori": "^0.25.0"
   }

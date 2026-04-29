@@ -1,0 +1,18 @@
+{
+  "$schema": "../../../tools/site-ssot/schemas/1/site.schema.json",
+  "version": "1.0.0",
+  "site_type": "educational",
+  "name": "RRM Academy",
+  "url": "https://rrmacademy.org",
+  "preview_url": "https://rrm-academy.pages.dev",
+  "tagline": "Peer-reviewed RRM education for patients and clinicians.",
+  "description": "RRM Academy is a nonprofit education platform for restorative reproductive medicine. The research library indexes 3,200+ peer-reviewed articles; a 130-term glossary, clinical courses, and patient FAQs complete the resource set.",
+  "languages": ["en", "en-US"],
+  "logo": "/favicon.svg",
+  "locale": {
+    "primary": "en-US",
+    "currency": "USD",
+    "phone_format": "E.164",
+    "address_format": "PostalAddress"
+  }
+}

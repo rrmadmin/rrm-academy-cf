@@ -3,7 +3,7 @@
   "info": {
     "title": "RRM Academy Agent API",
     "version": "1.0.0",
-    "description": "Programmatic access to the RRM Academy research library and editorial guardrails, exposed via the Model Context Protocol (MCP). 3,200+ peer-reviewed articles on restorative reproductive medicine, NaProTechnology, fertility awareness-based methods, endometriosis, PCOS, and related women's health topics. Clinical content curated under the direction of Dr. Naomi Whittaker, MD.",
+    "description": "Programmatic access to the RRM Academy research library and editorial guardrails, exposed via the Model Context Protocol (MCP). 3,370+ peer-reviewed articles on restorative reproductive medicine, NaProTechnology, fertility awareness-based methods, endometriosis, PCOS, and related women's health topics. Clinical content curated under the direction of Dr. Naomi Whittaker, MD.",
     "contact": {
       "name": "RRM Academy",
       "email": "info@rrmacademy.org",

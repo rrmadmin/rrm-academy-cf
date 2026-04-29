@@ -1,35 +1,30 @@
 import { fetchAllPosts } from '../../lib/blog';
+import { escapeCdata, escapeXml, toUtcString } from '../../lib/rss';
 
-function escapeCdata(str: string): string {
-  return str.replace(/]]>/g, ']]]]><![CDATA[>');
-}
-
-function escapeXml(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-function toUtcString(dateStr: string): string {
-  const d = new Date(dateStr + 'T00:00:00Z');
-  return isNaN(d.getTime()) ? '' : d.toUTCString();
-}
+const FEED_ITEM_LIMIT = 50;
 
 export async function GET() {
   const posts = await fetchAllPosts();
 
-  const lastBuildDate = (posts.length > 0 && posts[0].publishDate
-    ? toUtcString(posts[0].publishDate)
+  const recent = posts.slice(0, FEED_ITEM_LIMIT);
+
+  const lastBuildDate = (recent.length > 0 && recent[0].publishDate
+    ? toUtcString(recent[0].publishDate)
     : '') || new Date().toUTCString();
 
-  const items = posts.map(post => {
+  const items = recent.map(post => {
     const pubDate = post.publishDate ? toUtcString(post.publishDate) : '';
+    if (post.publishDate && !pubDate) {
+      console.warn('[rss-commentary] Invalid publishDate for post', post.id, post.publishDate);
+    }
 
     return `    <item>
       <title><![CDATA[${escapeCdata(post.title)}]]></title>
-      <link>https://rrmacademy.org/commentary/${escapeXml(post.slug)}</link>
-      <guid isPermaLink="true">https://rrmacademy.org/commentary/${escapeXml(post.slug)}</guid>
+      <link>https://rrmacademy.org/commentary/${escapeXml(post.slug)}/</link>
+      <guid isPermaLink="true">https://rrmacademy.org/commentary/${escapeXml(post.slug)}/</guid>
       <description><![CDATA[${escapeCdata(post.excerpt || '')}]]></description>
       ${pubDate ? `<pubDate>${pubDate}</pubDate>` : ''}
-      ${post.author ? `<dc:creator>${escapeXml(post.author)}</dc:creator>` : ''}
+      ${post.author ? `<dc:creator><![CDATA[${escapeCdata(post.author)}]]></dc:creator>` : ''}
     </item>`;
   });
 
@@ -49,6 +44,7 @@ ${items.join('\n')}
   return new Response(rss.trim(), {
     headers: {
       'Content-Type': 'application/xml; charset=utf-8',
+      'Cache-Control': 'public, max-age=3600, s-maxage=3600',
     },
   });
 }

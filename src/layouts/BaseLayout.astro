@@ -3,6 +3,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import pageDates from '../data/page-dates.json';
 import { OG_VERSION } from '../lib/og-config';
+import { getOrganizationJsonLd, getWebsiteJsonLd, buildSpeakable } from '../lib/identity';
 import '../styles/fonts.css';
 import '../styles/global.css';
 
@@ -24,6 +25,7 @@ interface Props {
   publishDate?: string;
   lastModified?: string;
   jsonLd?: object;
+  speakable?: string[];
   bodyClass?: string;
   noindex?: boolean;
   markdownUrl?: string;
@@ -55,6 +57,7 @@ const {
   publishDate,
   lastModified,
   jsonLd,
+  speakable,
   bodyClass,
   citationMeta,
   noindex,
@@ -89,6 +92,13 @@ function routeToOgSlug(pathname) {
 }
 const ogSlug = routeToOgSlug(Astro.url.pathname);
 const conventionOgPath = `/og/${ogSlug}.png?v=${OG_VERSION}`;
+// RSS autodiscovery: surface the right feed when the page lives under a feed-bearing section.
+const rssFeed = (() => {
+  const p = Astro.url.pathname;
+  if (p === '/library/' || p.startsWith('/library/')) return { href: '/library/rss.xml', title: 'RRM Academy Research Library' };
+  if (p === '/commentary/' || p.startsWith('/commentary/')) return { href: '/commentary/rss.xml', title: 'RRM Academy Commentary' };
+  return null;
+})();
 const resolvedOgImage = ogImage
   ? (ogImage.startsWith('http') ? ogImage : `${siteOrigin}${ogImage}`)
   : `${siteOrigin}${conventionOgPath}`;
@@ -96,6 +106,55 @@ const resolvedOgImage = ogImage
 const resolvedTwitterImage = resolvedOgImage.endsWith('.webp')
   ? resolvedOgImage.replace(/\.webp$/, '.jpg')
   : resolvedOgImage;
+
+// Default JSON-LD payload (Organization + WebSite from SSOT) — only used when
+// the page does not pass an explicit jsonLd prop. Phase 3 (2026-04-29).
+//
+// The SSOT Organization node uses the `legal_name` ("RRM Foundation"). On the
+// public brand surface we want "RRM Academy" as the visible name, so we override
+// here. We also layer `description`, `knowsAbout`, and the editorial policies
+// triple — these aren't yet modeled in ssot/organization.json. Once the SSOT
+// gains those fields, this layer becomes empty and we drop it.
+let defaultJsonLdPayload: Record<string, unknown> | null = null;
+let defaultSpeakableNode: Record<string, unknown> | null = null;
+if (!jsonLd) {
+  const orgRaw = getOrganizationJsonLd() as Record<string, unknown>;
+  const websiteRaw = getWebsiteJsonLd() as Record<string, unknown>;
+  const { '@context': _orgCtx, ...orgBase } = orgRaw;
+  const { '@context': _webCtx, ...webBase } = websiteRaw;
+  const organization: Record<string, unknown> = {
+    ...orgBase,
+    name: 'RRM Academy',
+    description:
+      'RRM Academy is a trusted nonprofit educational platform and reference source for restorative reproductive medicine (RRM), NaProTechnology, fertility awareness-based methods, endometriosis excision surgery, and reproductive endocrinology. The RRM Research Library is the largest freely accessible collection of peer-reviewed academic references on these topics available online.',
+    knowsAbout: [
+      'Restorative Reproductive Medicine',
+      'NaProTechnology',
+      'Fertility Awareness-Based Methods',
+      'Endometriosis Excision Surgery',
+      'Reproductive Endocrinology',
+      'Natural Family Planning',
+      'Hormonal Health',
+      'PCOS',
+      'Infertility Diagnosis and Treatment',
+    ],
+    publishingPrinciples: 'https://rrmacademy.org/policies/editorial/',
+    correctionsPolicy: 'https://rrmacademy.org/policies/corrections/',
+    verificationFactCheckingPolicy: 'https://rrmacademy.org/policies/fact-checking/',
+  };
+  defaultJsonLdPayload = {
+    '@context': 'https://schema.org',
+    '@graph': [organization, webBase],
+  };
+  if (speakable && speakable.length > 0) {
+    defaultSpeakableNode = buildSpeakable({ cssSelectors: speakable }) as Record<string, unknown> | null;
+  }
+} else if (speakable && speakable.length > 0) {
+  // Page passed both `jsonLd` AND `speakable`. Emit the SpeakableSpecification
+  // as an additional JSON-LD block alongside the page's custom jsonLd. Pages
+  // can opt out by inlining the speakable node into their jsonLd directly.
+  defaultSpeakableNode = buildSpeakable({ cssSelectors: speakable }) as Record<string, unknown> | null;
+}
 ---
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
@@ -136,6 +195,7 @@ const resolvedTwitterImage = resolvedOgImage.endsWith('.webp')
   <link rel="alternate" hreflang="en" href={canonical} />
   <link rel="alternate" hreflang="x-default" href={canonical} />
   {markdownUrl && <link rel="alternate" type="text/markdown" href={markdownUrl} title="Markdown" />}
+  {rssFeed && <link rel="alternate" type="application/rss+xml" href={rssFeed.href} title={rssFeed.title} />}
 
   <!-- Open Graph -->
   <meta property="og:title" content={fullTitle} />
@@ -198,51 +258,10 @@ const resolvedTwitterImage = resolvedOgImage.endsWith('.webp')
   {jsonLd ? (
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
   ) : (
-    <script type="application/ld+json" set:html={JSON.stringify({
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "Organization",
-          "@id": "https://rrmacademy.org/#organization",
-          "name": "RRM Academy",
-          "url": "https://rrmacademy.org",
-          "description": "RRM Academy is a trusted nonprofit educational platform and reference source for restorative reproductive medicine (RRM), NaProTechnology, fertility awareness-based methods, endometriosis excision surgery, and reproductive endocrinology. The RRM Research Library is the largest freely accessible collection of peer-reviewed academic references on these topics available online.",
-          "founder": { "@id": "https://rrmacademy.org/#naomi-whittaker" },
-          "knowsAbout": [
-            "Restorative Reproductive Medicine",
-            "NaProTechnology",
-            "Fertility Awareness-Based Methods",
-            "Endometriosis Excision Surgery",
-            "Reproductive Endocrinology",
-            "Natural Family Planning",
-            "Hormonal Health",
-            "PCOS",
-            "Infertility Diagnosis and Treatment"
-          ],
-          "sameAs": [
-            "https://www.instagram.com/rrmacademy/",
-            "https://www.youtube.com/@rrmacademy",
-            "https://www.linkedin.com/company/rrmacademy"
-          ],
-          "publishingPrinciples": "https://rrmacademy.org/policies/editorial/",
-          "correctionsPolicy": "https://rrmacademy.org/policies/corrections/",
-          "verificationFactCheckingPolicy": "https://rrmacademy.org/policies/fact-checking/"
-        },
-        {
-          "@type": "WebSite",
-          "@id": "https://rrmacademy.org/#website",
-          "url": "https://rrmacademy.org",
-          "name": "RRM Academy",
-          "description": "Nonprofit education in restorative reproductive medicine, NaProTechnology, and evidence-based women's health.",
-          "publisher": { "@id": "https://rrmacademy.org/#organization" },
-          "potentialAction": {
-            "@type": "SearchAction",
-            "target": "https://rrmacademy.org/library/?q={search_term_string}",
-            "query-input": "required name=search_term_string"
-          }
-        }
-      ]
-    })} />
+    <script type="application/ld+json" set:html={JSON.stringify(defaultJsonLdPayload)} />
+  )}
+  {defaultSpeakableNode && (
+    <script type="application/ld+json" set:html={JSON.stringify(defaultSpeakableNode)} />
   )}
 </head>
 <body class:list={[bodyClass]}>
@@ -267,7 +286,7 @@ const resolvedTwitterImage = resolvedOgImage.endsWith('.webp')
       var tools = [
         {
           name: 'search_rrm_library',
-          description: 'Search the RRM Academy research library (3,200+ peer-reviewed articles on restorative reproductive medicine, NaProTechnology, endometriosis excision, fertility awareness-based methods, PCOS, and reproductive endocrinology). Returns ranked results with titles, authors, year, and library URLs.',
+          description: 'Search the RRM Academy research library (3,370+ peer-reviewed articles on restorative reproductive medicine, NaProTechnology, endometriosis excision, fertility awareness-based methods, PCOS, and reproductive endocrinology). Returns ranked results with titles, authors, year, and library URLs.',
           inputSchema: {
             type: 'object',
             properties: {

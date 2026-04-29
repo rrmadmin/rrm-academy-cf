@@ -148,7 +148,7 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
             if (data.ok) {
               var params = new URLSearchParams(window.location.search);
               var dest = params.get('redirect') || '/account/';
-              if (!/^\/[a-zA-Z0-9\-_\/]*$/.test(dest)) dest = '/account/';
+              if (!dest || dest.charAt(0) !== '/' || dest.indexOf('//') === 0 || dest.indexOf('/\\') === 0 || dest.length > 500) dest = '/account/';
               if (dest.length > 1 && dest.charAt(dest.length - 1) !== '/') dest += '/';
               window.location.href = dest;
             } else {

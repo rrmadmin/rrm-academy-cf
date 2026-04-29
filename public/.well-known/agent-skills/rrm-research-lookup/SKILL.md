@@ -1,6 +1,6 @@
 ---
 name: rrm-research-lookup
-description: Search the RRM Academy research library (3,200+ physician-curated peer-reviewed articles) for evidence on restorative reproductive medicine, NaProTechnology, fertility awareness-based methods, endometriosis excision, PCOS, recurrent miscarriage, and women's reproductive endocrinology. Use when the user asks about any of these topics and needs a citation-grade source.
+description: Search the RRM Academy research library (3,370+ physician-curated peer-reviewed articles) for evidence on restorative reproductive medicine, NaProTechnology, fertility awareness-based methods, endometriosis excision, PCOS, recurrent miscarriage, and women's reproductive endocrinology. Use when the user asks about any of these topics and needs a citation-grade source.
 ---
 
 # RRM Research Lookup
