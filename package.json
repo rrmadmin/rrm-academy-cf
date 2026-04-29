@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "node scripts/build-og-index.mjs && node scripts/generate-page-dates.mjs && SITE_SSOT_ENABLED=${SITE_SSOT_ENABLED:-0} node scripts/ssot-prebuild.mjs && astro build && npx pagefind --site dist",
+    "build": "node scripts/build-og-index.mjs && node scripts/generate-page-dates.mjs && SITE_SSOT_ENABLED=${SITE_SSOT_ENABLED:-1} node scripts/ssot-prebuild.mjs && astro build && npx pagefind --site dist",
     "build:astro": "astro build",
     "ssot:validate": "node ../../tools/site-ssot/bin/ssot-validate.mjs --project .",
     "ssot:smoke": "node ../../tools/site-ssot/bin/ssot-smoke.mjs --project .",

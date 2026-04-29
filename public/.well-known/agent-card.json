@@ -1,0 +1,23 @@
+{
+  "name": "rrmacademy",
+  "description": "TBD-GIANNA — Gianna will rewrite this agent description in clinical voice during Phase 0b.",
+  "url": "https://rrmacademy.org",
+  "capabilities": [
+    "information",
+    "research-citations",
+    "ask-endpoint",
+    "mcp-tools",
+    "library-search",
+    "glossary-lookup",
+    "faq-retrieval"
+  ],
+  "contact": {
+    "email": "administrator@rrmacademy.org"
+  },
+  "surfaces": {
+    "llms": "https://rrmacademy.org/llms.txt",
+    "llms_full": "https://rrmacademy.org/llms-full.txt",
+    "agents_md": "https://rrmacademy.org/agents.md"
+  },
+  "updated_at": "2026-04-29"
+}
