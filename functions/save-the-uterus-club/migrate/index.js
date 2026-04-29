@@ -4,7 +4,7 @@
 // Behind STUC_MIGRATION_UX_V2 feature flag.
 
 import { validateMigrationToken } from '../../api/billing/_migration-token.js';
-import { getSessionIdFromCookie, validateSession } from '../../api/auth/_shared.js';
+import { getSessionIdFromCookie, validateSession, SITE_URL } from '../../api/auth/_shared.js';
 
 function escapeHtml(s) {
   return String(s)
@@ -217,8 +217,11 @@ export async function onRequestGet(context) {
   const token = url.searchParams.get('t') || '';
 
   // Feature flag gate: when off, redirect to public STUC page.
+  // Use SITE_URL (canonical rrmacademy.org) instead of url.origin — when this
+  // Function runs behind the rrm-router service binding, url.origin is
+  // rrm-academy.pages.dev, which 404s on direct hits.
   if (env.STUC_MIGRATION_UX_V2 !== 'true') {
-    return Response.redirect(`${url.origin}/save-the-uterus-club/`, 302);
+    return Response.redirect(`${SITE_URL}/save-the-uterus-club/`, 302);
   }
 
   // Required env: signing secret + DB.
@@ -252,7 +255,7 @@ export async function onRequestGet(context) {
   const session = sessionId ? await validateSession(env.DB, sessionId) : null;
   if (!session) {
     return Response.redirect(
-      `${url.origin}/login/?redirect=${encodeURIComponent(url.pathname + url.search)}`,
+      `${SITE_URL}/login/?redirect=${encodeURIComponent(url.pathname + url.search)}`,
       302
     );
   }
@@ -261,7 +264,7 @@ export async function onRequestGet(context) {
     'SELECT id, email FROM user WHERE id = ?'
   ).bind(session.userId).first();
   if (!user) {
-    return Response.redirect(`${url.origin}/login/`, 302);
+    return Response.redirect(`${SITE_URL}/login/`, 302);
   }
 
   // Look up the wix_subscription by PK (NOTE: PK is wix_subscription_id, not id).
