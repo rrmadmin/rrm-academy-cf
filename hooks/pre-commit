@@ -32,6 +32,18 @@ if echo "$STAGED" | grep -qE '^src/.*\.(astro|css)$'; then
   fi
 fi
 
+# --- Agent discovery guard: any staged .well-known/ or agent-readiness file ---
+if echo "$STAGED" | grep -qE '^public/(\.well-known/|agents\.md|llms(-full)?\.txt|openapi\.json)'; then
+  node scripts/agent-discovery-check.mjs
+  if [ $? -ne 0 ]; then
+    echo ""
+    echo "Commit blocked by agent-discovery guard."
+    echo "If a SKILL.md changed: run 'npm run guard:agent-skills:regen' to refresh digests."
+    echo "Otherwise fix the drift the guard reported, or bypass with --no-verify."
+    exit 1
+  fi
+fi
+
 # --- Security guard: only on critical file changes ---
 TRIGGER=0
 for file in $CRITICAL_FILES; do
