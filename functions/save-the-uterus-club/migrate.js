@@ -1,10 +1,10 @@
-// functions/save-the-uterus-club/migrate/index.js
+// functions/save-the-uterus-club/migrate.js
 // Magic-link landing for STUC Wix→Stripe migration.
 // Validates token, enforces email-binding interstitial (INV-3), renders confirm UI.
 // Behind STUC_MIGRATION_UX_V2 feature flag.
 
-import { validateMigrationToken } from '../../api/billing/_migration-token.js';
-import { getSessionIdFromCookie, validateSession, SITE_URL } from '../../api/auth/_shared.js';
+import { validateMigrationToken } from '../api/billing/_migration-token.js';
+import { getSessionIdFromCookie, validateSession, SITE_URL } from '../api/auth/_shared.js';
 
 function escapeHtml(s) {
   return String(s)

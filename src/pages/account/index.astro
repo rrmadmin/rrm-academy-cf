@@ -46,7 +46,17 @@ for (const c of coursesData) {
 
         <div class="account-sections">
 
-          <!-- 1. Courses (highest engagement) -->
+          <!-- 1a. STUC member courses (gated, shown only to active members) -->
+          <div class="account-section" id="member-courses-section" hidden>
+            <div class="member-courses-header">
+              <h2>Save the Uterus Club Courses</h2>
+              <span id="member-courses-tier" class="member-courses-tier"></span>
+            </div>
+            <div id="member-courses-banner" class="member-courses-banner" hidden></div>
+            <div id="member-courses-list" class="course-card-grid"></div>
+          </div>
+
+          <!-- 1b. Courses (highest engagement) -->
           <div class="account-section" id="courses-section">
             <h2>Courses</h2>
             <div id="courses-loading" class="account-placeholder">Loading courses...</div>
@@ -408,6 +418,63 @@ for (const c of coursesData) {
         courseMeta = {};
       }
 
+      var TIER_DISPLAY = { member: '🐻 Member', hero: '💖 Hero', superhero: '🦸‍♀️ Superhero', staff: 'Staff' };
+
+      function renderCourseMini(c) {
+        var meta = courseMeta[c.courseId] || { title: c.courseId, slug: c.courseId, image: '' };
+        var pct = c.totalSteps > 0 ? Math.round((c.completedSteps / c.totalSteps) * 100) : 0;
+        var completed = !!c.completedAt;
+        var statusText = completed ? 'Completed' : (pct > 0 ? pct + '% complete' : 'Not started');
+        var lessonText = c.completedSteps + ' / ' + c.totalSteps + ' lessons';
+        var statusClass = completed ? 'course-mini__status--done' : (pct > 0 ? 'course-mini__status--progress' : 'course-mini__status--new');
+        var imgHtml = meta.image
+          ? '<img src="' + escapeHtml(meta.image) + '" alt="' + escapeHtml(meta.title) + '" loading="lazy" width="400" height="225">'
+          : '<div class="course-mini__image-placeholder" aria-hidden="true"></div>';
+        return '<a href="/courses/' + escapeHtml(meta.slug) + '/" class="course-mini">' +
+          '<div class="course-mini__image">' + imgHtml + '</div>' +
+          '<div class="course-mini__body">' +
+            '<div class="course-mini__title">' + escapeHtml(meta.title) + '</div>' +
+            '<div class="course-mini__bar" role="progressbar" aria-valuenow="' + pct + '" aria-valuemin="0" aria-valuemax="100">' +
+              '<div class="course-mini__fill" style="width:' + pct + '%"></div>' +
+            '</div>' +
+            '<div class="course-mini__meta">' +
+              '<span class="course-mini__status ' + statusClass + '">' + statusText + '</span>' +
+              '<span class="course-mini__lessons">' + lessonText + '</span>' +
+            '</div>' +
+          '</div>' +
+        '</a>';
+      }
+
+      function renderMemberSection(memberCourses) {
+        var section = document.getElementById('member-courses-section');
+        var listEl = document.getElementById('member-courses-list');
+        var tierEl = document.getElementById('member-courses-tier');
+        var bannerEl = document.getElementById('member-courses-banner');
+        if (!section || !listEl) return;
+
+        var html = '';
+        for (var i = 0; i < memberCourses.length; i++) html += renderCourseMini(memberCourses[i]);
+        listEl.innerHTML = html;
+        section.hidden = false;
+
+        // Decorate with membership status fetched from /api/community/status
+        fetch('/api/community/status', { credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (statusData) {
+            if (!statusData || !statusData.ok) return;
+            if (statusData.access === 'member' && statusData.user && statusData.user.tier) {
+              if (tierEl) tierEl.textContent = 'Included with your ' + (TIER_DISPLAY[statusData.user.tier] || statusData.user.tier) + ' tier';
+            } else {
+              // Enrolled rows exist but membership is not active — show resume banner.
+              if (bannerEl) {
+                bannerEl.innerHTML = 'Your Save the Uterus Club membership has lapsed. Your progress is saved. <a href="/save-the-uterus-club/">Resume membership</a> to continue these courses.';
+                bannerEl.hidden = false;
+              }
+            }
+          })
+          .catch(function () { /* leave decorations off on network error */ });
+      }
+
       function loadCourses() {
         var coursesLoading = document.getElementById('courses-loading');
         var coursesNone = document.getElementById('courses-none');
@@ -421,33 +488,23 @@ for (const c of coursesData) {
               coursesNone.hidden = false;
               return;
             }
-            var html = '';
-            data.courses.forEach(function (c) {
-              var meta = courseMeta[c.courseId] || { title: c.courseId, slug: c.courseId, image: '' };
-              var pct = c.totalSteps > 0 ? Math.round((c.completedSteps / c.totalSteps) * 100) : 0;
-              var completed = !!c.completedAt;
-              var statusText = completed ? 'Completed' : (pct > 0 ? pct + '% complete' : 'Not started');
-              var lessonText = c.completedSteps + ' / ' + c.totalSteps + ' lessons';
-              var statusClass = completed ? 'course-mini__status--done' : (pct > 0 ? 'course-mini__status--progress' : 'course-mini__status--new');
-              var imgHtml = meta.image
-                ? '<img src="' + escapeHtml(meta.image) + '" alt="' + escapeHtml(meta.title) + '" loading="lazy" width="400" height="225">'
-                : '<div class="course-mini__image-placeholder" aria-hidden="true"></div>';
-              html += '<a href="/courses/' + escapeHtml(meta.slug) + '/" class="course-mini">' +
-                '<div class="course-mini__image">' + imgHtml + '</div>' +
-                '<div class="course-mini__body">' +
-                  '<div class="course-mini__title">' + escapeHtml(meta.title) + '</div>' +
-                  '<div class="course-mini__bar" role="progressbar" aria-valuenow="' + pct + '" aria-valuemin="0" aria-valuemax="100">' +
-                    '<div class="course-mini__fill" style="width:' + pct + '%"></div>' +
-                  '</div>' +
-                  '<div class="course-mini__meta">' +
-                    '<span class="course-mini__status ' + statusClass + '">' + statusText + '</span>' +
-                    '<span class="course-mini__lessons">' + lessonText + '</span>' +
-                  '</div>' +
-                '</div>' +
-              '</a>';
-            });
-            coursesList.innerHTML = html;
-            coursesList.hidden = false;
+            // Split by accessType so STUC-gated courses get their own subsection,
+            // and render both sections via the shared course-mini card style.
+            var memberCourses = [];
+            var otherCourses = [];
+            for (var i = 0; i < data.courses.length; i++) {
+              if (data.courses[i].accessType === 'members') memberCourses.push(data.courses[i]);
+              else otherCourses.push(data.courses[i]);
+            }
+            if (memberCourses.length > 0) renderMemberSection(memberCourses);
+            if (otherCourses.length > 0) {
+              var html = '';
+              for (var j = 0; j < otherCourses.length; j++) html += renderCourseMini(otherCourses[j]);
+              coursesList.innerHTML = html;
+              coursesList.hidden = false;
+            } else if (memberCourses.length === 0) {
+              coursesNone.hidden = false;
+            }
           })
           .catch(function () {
             coursesLoading.hidden = true;
@@ -672,6 +729,12 @@ for (const c of coursesData) {
   @media (max-width: 640px) {
     .course-card-grid { grid-template-columns: 1fr; }
   }
+  /* STUC member courses section (decoration sourced from /api/community/status) */
+  .member-courses-header { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-4); }
+  .member-courses-header h2 { margin: 0; }
+  .member-courses-tier { font-size: 0.75rem; font-weight: 500; color: var(--purple-700); background: var(--purple-50); padding: 4px 10px; border-radius: var(--radius-pill); }
+  .member-courses-banner { padding: var(--space-3) var(--space-4); background: #fef3c7; border: 1px solid #fcd34d; color: #92400e; border-radius: var(--radius-md); font-size: 0.875rem; margin-bottom: var(--space-4); }
+  .member-courses-banner a { color: #92400e; font-weight: 600; text-decoration: underline; }
   :global(.course-mini) {
     display: flex;
     flex-direction: column;

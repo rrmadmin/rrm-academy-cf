@@ -1,6 +1,6 @@
 {
   "name": "RRM Academy Ecosystem",
-  "last_updated": "2026-04-27",
+  "last_updated": "2026-04-29",
   "staleness_note": "Row counts, financial summaries, and timeline drift over time. This document is the system-wide SSOT -- update when infrastructure changes, subsystems ship, or pipelines migrate. Row counts are approximate snapshots; query D1 for authoritative values.",
   "organization": {
     "name": "RRM Academy",
@@ -446,13 +446,13 @@
             "key": "user_id + label",
             "purpose": "Tier badges and achievement labels (STUC tiers, course completions)",
             "stuc_labels": [
-              "Save the Uterus Club \ud83c\udff7\ufe0f (grandfathered from Wix)",
-              "Uterus Member \ud83d\udc3b (member tier)",
-              "Uterus Hero \ud83d\udc96 (hero tier)",
-              "Uterus Super Hero \ud83e\uddb8\u200d\u2640\ufe0f (superhero tier)"
+              "Save the Uterus Club 🏷️ (grandfathered from Wix)",
+              "Uterus Member 🐻 (member tier)",
+              "Uterus Hero 💖 (hero tier)",
+              "Uterus Super Hero 🦸‍♀️ (superhero tier)"
             ],
             "achievement_labels": [
-              "Donor \ud83d\udc4f",
+              "Donor 👏",
               "Masterclass in Endometriosis & Surgery",
               "Long Term Endometriosis Management",
               "Restorative Reproductive Medicine (RRM) vs Standard ART",
@@ -766,7 +766,7 @@
       "base_url": "https://rrm-library-worker.administrator-cloudflare.workers.dev"
     },
     "rrm-survey": {
-      "purpose": "Survey pseudonymization (email \u2194 Airtable record ID)",
+      "purpose": "Survey pseudonymization (email ↔ Airtable record ID)",
       "tables": {
         "survey_identities": {
           "purpose": "Email + Airtable record ID mapping",
@@ -808,7 +808,7 @@
       "contact_to_tags": "contact_tag.contact_id -> contact.id"
     },
     "source_of_truth": {
-      "stuc_membership_active": "Stripe subscriptions API (status in active/trialing/past_due) OR user_label 'Save the Uterus Club \ud83c\udff7\ufe0f' (grandfathered) OR user.role >= mod (staff). Gated via requireMember() in community/_shared.js.",
+      "stuc_membership_active": "Stripe subscriptions API (status in active/trialing/past_due) OR user_label 'Save the Uterus Club 🏷️' (grandfathered) OR user.role >= mod (staff). Gated via requireMember() in community/_shared.js.",
       "stuc_tier": "Stripe price ID mapped to env vars (STRIPE_PRICE_MEMBER/HERO/SUPERHERO). Grandfathered = member tier. Staff = staff tier. Default if price missing: member.",
       "stuc_cancellation": "Stripe webhook customer.subscription.deleted fires email but does NOT write to D1. Gap: no D1 record of cancellation date or reason.",
       "community_access_blocked": "user.blocked = 1 returns 403 'Account suspended' on requireMember()",
@@ -836,7 +836,7 @@
       ],
       "all_stuc_members": [
         "-- Active Stripe subscribers (requires Stripe API call per user with stripe_customer_id)",
-        "-- Grandfathered: SELECT u.* FROM [user] u JOIN user_label ul ON u.id = ul.user_id WHERE ul.label = 'Save the Uterus Club \ud83c\udff7\ufe0f'",
+        "-- Grandfathered: SELECT u.* FROM [user] u JOIN user_label ul ON u.id = ul.user_id WHERE ul.label = 'Save the Uterus Club 🏷️'",
         "-- Staff: SELECT * FROM [user] WHERE role IN ('mod', 'admin', 'superadmin')",
         "-- Note: requireMember() in community/_shared.js implements this logic"
       ],
@@ -1042,7 +1042,7 @@
     "ssot_path": "docs/design/design-system.json (machine-readable, auto-generated)",
     "generation_workflow": {
       "source_files": [
-        "src/styles/global.css (CSS tokens: 3 themes \u00d7 73 tokens + 19 shared = 238 total)",
+        "src/styles/global.css (CSS tokens: 3 themes × 73 tokens + 19 shared = 238 total)",
         "docs/design/design-system.manual.json (brand rules, fonts, typography scale)"
       ],
       "generator": "scripts/generate-design-tokens.mjs",
@@ -1178,7 +1178,7 @@
       },
       "POST /check-facts": {
         "purpose": "Verify claims in text against verified facts",
-        "logic": "Extract claims (percentages, dollars, sample sizes, cohort years); numeric match \u00b12% tolerance; common-error phrase matching",
+        "logic": "Extract claims (percentages, dollars, sample sizes, cohort years); numeric match ±2% tolerance; common-error phrase matching",
         "auth_scope": "agent + admin"
       },
       "POST /promote-facts": {
@@ -1823,7 +1823,7 @@
   "airtable_status": {
     "_audit_date": "2026-04-27",
     "_cleanup_executed": "2026-04-27",
-    "policy": "Airtable is deprecated for rrm-academy content. D1 is SSOT. Endo survey is the only by-design Airtable holdout (HIPAA pseudonymization). Foundation finance is stale/dormant \u2014 treat as archive, not active.",
+    "policy": "Airtable is deprecated for rrm-academy content. D1 is SSOT. Endo survey is the only by-design Airtable holdout (HIPAA pseudonymization). Foundation finance is stale/dormant — treat as archive, not active.",
     "migrated_to_d1": {
       "library_articles": {
         "target": "D1 rrm-library",
@@ -1873,7 +1873,7 @@
         "scripts/unpublish-post.sh (BROKEN since blog migration)",
         "scripts/migrate-survey-identities.mjs (one-shot already executed)",
         "src/lib/airtable-config.mjs (orphaned)",
-        "scripts/stuc-pipeline/ entire directory (publish.mjs, download.sh, manifest.json) \u2014 D1 admin endpoints replace it"
+        "scripts/stuc-pipeline/ entire directory (publish.mjs, download.sh, manifest.json) — D1 admin endpoints replace it"
       ],
       "code_blocks_removed": [
         "src/lib/fetch-data.mjs Airtable webhook ping block (decorative pre-D1 cache notification)"
@@ -2025,17 +2025,17 @@
             "member": {
               "price_env": "STRIPE_PRICE_MEMBER",
               "amount": "$9/mo",
-              "label": "Uterus Member \ud83d\udc3b"
+              "label": "Uterus Member 🐻"
             },
             "hero": {
               "price_env": "STRIPE_PRICE_HERO",
               "amount": "$19/mo",
-              "label": "Uterus Hero \ud83d\udc96"
+              "label": "Uterus Hero 💖"
             },
             "superhero": {
               "price_env": "STRIPE_PRICE_SUPERHERO",
               "amount": "$99/mo",
-              "label": "Uterus Super Hero \ud83e\uddb8\u200d\u2640\ufe0f"
+              "label": "Uterus Super Hero 🦸‍♀️"
             }
           },
           "mode": "subscription",
@@ -2139,7 +2139,7 @@
           "Bank Reconciliation (11am)",
           "Budget & Cash Flow Analysis (12pm)"
         ],
-        "_status_2026_04_27": "DORMANT \u2014 n8n host down, Foundation ledger no longer actively maintained per Brian 2026-04-27."
+        "_status_2026_04_27": "DORMANT — n8n host down, Foundation ledger no longer actively maintained per Brian 2026-04-27."
       }
     }
   },
@@ -2382,5 +2382,137 @@
       "precision": "day",
       "event": "Ecosystem SSOT expansion: pillar_guides, affiliate_system, design_system, editorial_system, fact_system, search_system, newsletter_system, auth_system, ai_search added"
     }
-  ]
+  ],
+  "google_workspace_automation": {
+    "description": "Programmatic access to Google Calendar + Meet for the rrmacademy.org Workspace tenant. Uses service-account impersonation via DWD (admin.google.com) — bypasses the OAuth-client and SA-key-creation policy blocks.",
+    "last_updated": "2026-04-29",
+    "service_account": {
+      "email": "rrm-calendar-automation@rrm-academy.iam.gserviceaccount.com",
+      "oauth_client_id": "109390456003154447200",
+      "gcp_project": "rrm-academy",
+      "impersonator": "administrator@rrmacademy.org",
+      "iam_binding": "administrator@rrmacademy.org has roles/iam.serviceAccountTokenCreator on the SA"
+    },
+    "domain_wide_delegation": {
+      "status": "active",
+      "activated_at": "2026-04-29",
+      "admin_console_url": "https://admin.google.com/ac/owl/domainwidedelegation",
+      "scopes": [
+        "https://www.googleapis.com/auth/calendar",
+        "https://www.googleapis.com/auth/calendar.events",
+        "https://www.googleapis.com/auth/meetings.space.created"
+      ],
+      "enabled_apis": [
+        "calendar-json.googleapis.com",
+        "meet.googleapis.com"
+      ]
+    },
+    "helper_script": "~/iCode/scripts/google-auth/impersonate-token.py",
+    "token_minting": {
+      "method": "signJwt + JWT-bearer grant (no SA key file)",
+      "ttl_seconds": 3600,
+      "command": "TOKEN=$(python3 ~/iCode/scripts/google-auth/impersonate-token.py)"
+    },
+    "calendars": {
+      "save_the_uterus_club_meetings": {
+        "id": "c_3a2f5b51b1c3cf72bc460391c065948b5775f0f3597594c68ae2841278c37a8f@group.calendar.google.com",
+        "summary": "Save the Uterus Club Meetings",
+        "timezone": "America/New_York",
+        "data_owner": "administrator@rrmacademy.org",
+        "purpose": "STUC monthly live calls (Uterus Allies Call series)",
+        "linked_d1": "rrm-auth.community_post (channel='stuc', type='event')"
+      },
+      "neofertility_email_security": {
+        "id": "6823aecb168f24c5469de1cc9e08312a33533eff6888f7f297203cf05def0afa@group.calendar.google.com",
+        "summary": "NeoFertility Email Security",
+        "purpose": "DMARC ramp + email security workstream events",
+        "data_owner": "service account (shared with admin via ACL)"
+      }
+    },
+    "meet_defaults": {
+      "stuc_event_canonical": {
+        "description": "Canonical Google Meet space configuration for every STUC event. Set at space creation via Meet REST API v2 (POST /v2/spaces) BEFORE attaching to a Calendar event via conferenceData.conferenceId. Replaces the Calendar createRequest path so settings are correct from the first join.",
+        "workspace_tier_required": "Business Standard or above (programmatic recording requirement)",
+        "api_settable": {
+          "config": {
+            "accessType": "OPEN",
+            "moderation": "ON",
+            "moderationRestrictions": {
+              "chatRestriction": "NO_RESTRICTION",
+              "reactionRestriction": "NO_RESTRICTION",
+              "presentRestriction": "NO_RESTRICTION",
+              "defaultJoinAsViewerType": "OFF"
+            },
+            "attendanceReportGenerationType": "GENERATE_REPORT",
+            "artifactConfig": {
+              "recordingConfig": {
+                "autoRecordingGeneration": "ON"
+              },
+              "transcriptionConfig": {
+                "autoTranscriptionGeneration": "ON"
+              },
+              "smartNotesConfig": {
+                "autoSmartNotesGeneration": "ON"
+              }
+            }
+          }
+        },
+        "ui_only_no_api": {
+          "note": "These match Brian's STUC defaults but are NOT exposed by Meet REST API v2 as of 2026-04-29. They must be set per-host-account in the Meet UI Host Settings, or rely on Google's account-level defaults that Brian has already configured.",
+          "host_management": "ON (already on at the org/account level)",
+          "share_screen": "ON for contributors",
+          "send_reactions": "ON",
+          "full_emoji_set": "ON",
+          "continuous_meeting_chat": "OFF",
+          "let_participants_send_messages": "ON",
+          "let_contributors_share_addons": "ON",
+          "third_party_app_av_access": "ON",
+          "waiting_room": "ON",
+          "bring_in_automatically": "OFF",
+          "waiting_room_message": "Please wait until a meeting host brings you into the call",
+          "captions_language": "English",
+          "include_captions": "ON"
+        },
+        "lockable_via_admin_console": "Some of the ui_only_no_api settings can be enforced as Workspace policy at admin.google.com -> Apps -> Google Workspace -> Settings for Google Meet (org-wide defaults). Recommended for STUC: lock recording=ON, transcription=ON, smart-notes=ON, attendance-report=ON at the OU level so they apply to every meeting Brian creates."
+      }
+    },
+    "create_event_pattern": {
+      "summary": "Replaces the legacy Calendar createRequest path so Meet settings are correct from creation.",
+      "steps": [
+        "1. Mint impersonation token via impersonate-token.py (subject=administrator@rrmacademy.org)",
+        "2. POST https://meet.googleapis.com/v2/spaces with the meet_defaults.stuc_event_canonical.api_settable.config payload -> response includes meetingCode + meetingUri + phoneAccess",
+        "3. POST https://www.googleapis.com/calendar/v3/calendars/<CAL_ID>/events?conferenceDataVersion=1 with conferenceData.conferenceId = the meetingCode (NOT createRequest)",
+        "4. Add attendees + sendUpdates=all",
+        "5. Persist Meet link to D1 community_post.event_link + content"
+      ]
+    },
+    "first_end_to_end": {
+      "event": "How Disconnecting Women From Their Bodies Supports Big IVF",
+      "speaker": "Olivia Mitchell (@yourfertility.yourfuture)",
+      "date": "2026-04-29 18:00 ET",
+      "calendar_event_id": "0r0ra5bnhntcp46g797agjrk8t",
+      "meet_space": "spaces/DS235q5oinIB",
+      "meet_link": "https://meet.google.com/fye-qtyv-wee",
+      "d1_post_id": "eb206b66ce9b70b19492948db5f3090c",
+      "flyer_r2_key": "community/8adec7f2-a519-4f89-a2cf-27572de36f60.webp"
+    }
+  },
+  "public_event_landing_pages": {
+    "description": "Shareable per-event landing pages at /events/<slug>. SSR via CF Pages Function functions/events/[slug].js — reads D1 community_post (channel='stuc', type='event'). NOT auth-gated. Renders full OG/Twitter meta + Event schema.org JSON-LD so social/SMS link previews show the flyer + title + date. Session-aware CTA: STUC member -> Join Call (Meet link); logged-in non-member -> Become a STUC member; anonymous -> Join STUC + Sign in.",
+    "live_at": "https://rrmacademy.org/events/<slug>",
+    "router_route": "/events (added to ASTRO_ROUTES in rrm-router 2026-04-29)",
+    "function_path": "functions/events/[slug].js",
+    "d1_lookup": "WHERE channel='stuc' AND type='event' AND (slug=? COLLATE NOCASE OR id=?). UUID -> slug 301 redirect when slug exists.",
+    "required_columns": {
+      "slug": "TEXT, UNIQUE COLLATE NOCASE indexed where NOT NULL. Kebab-case from title, max 80 chars at hyphen boundary.",
+      "og_image_url": "TEXT. R2 path /api/assets/community/<uuid>.webp. Renders as og:image."
+    },
+    "session_classification": {
+      "anonymous": "Join Save the Uterus Club (primary) + Sign in (secondary)",
+      "authenticated_non_member": "Become a STUC member to attend",
+      "member_or_staff": "Join Call (links to event_link) + See all events",
+      "past_event": "Browse upcoming events. CTA changes 1h after event_date."
+    },
+    "first_use": "How Disconnecting Women From Their Bodies Supports Big IVF (Olivia Mitchell, 2026-04-29 6PM ET) -> https://rrmacademy.org/events/how-disconnecting-women-from-their-bodies-supports-big-ivf"
+  }
 }

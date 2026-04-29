@@ -58,6 +58,9 @@ jobs:
       - name: iOS auto-zoom guard
         run: node scripts/guard-ios-zoom.mjs
 
+      - name: Agent discovery surface guard
+        run: node scripts/agent-discovery-check.mjs
+
       - name: Get cache date
         id: date
         run: echo "date=$(TZ=America/New_York date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
@@ -297,6 +300,15 @@ jobs:
 
       - name: Verify templates
         run: npm run verify-templates
+
+      - name: Standards gate
+        run: |
+          if [ -f ../../tools/standards-gate/run.mjs ]; then
+            npm run standards
+          else
+            echo "[standards-gate] WARN: ../../tools/standards-gate/run.mjs not vendored — skipped (CI fallback)"
+            echo "Already enforced by postbuild during 'npm run build' when the tool is present."
+          fi
 
       - name: Deploy to Cloudflare Pages
         id: deploy
