@@ -1,0 +1,18 @@
+{
+  "$schema": "../../../tools/site-ssot/schemas/1/site.schema.json",
+  "version": "1.0.0",
+  "site_type": "educational",
+  "name": "RRM Academy",
+  "url": "https://rrmacademy.org",
+  "preview_url": "https://rrm-academy.pages.dev",
+  "tagline": "TBD-GIANNA",
+  "description": "TBD-GIANNA — Gianna will rewrite this site description in clinical voice during Phase 0b.",
+  "languages": ["en", "en-US"],
+  "logo": "/favicon.svg",
+  "locale": {
+    "primary": "en-US",
+    "currency": "USD",
+    "phone_format": "E.164",
+    "address_format": "PostalAddress"
+  }
+}

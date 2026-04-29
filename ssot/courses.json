@@ -1,0 +1,251 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.0.0",
+  "_note": "Courses snapshot — committed file. Phase 1's ssot-prebuild will re-snapshot from D1 on every build. Source: src/data/courses.json (D1-merged with src/data/courses-overrides.json). Not validated by ssot-validate (out-of-band file).",
+  "courses": [
+    {
+      "@id": "https://rrmacademy.org/courses/neofertility-medical-training/#course",
+      "@type": "Course",
+      "name": "NeoFertility Medical Training Cohort",
+      "description": "TBD-GIANNA",
+      "provider": { "@id": "https://rrmacademy.org/#organization" },
+      "instructor": [
+        { "@id": "https://rrmacademy.org/courses/neofertility-medical-training/#instructor-phil-boyle" }
+      ],
+      "hasCourseInstance": [
+        {
+          "@type": "CourseInstance",
+          "courseMode": "online",
+          "courseWorkload": "selfPaced"
+        }
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": 1200,
+        "priceCurrency": "USD"
+      }
+    },
+    {
+      "@id": "https://rrmacademy.org/courses/long-term-endometriosis-management/#course",
+      "@type": "Course",
+      "name": "Long Term Endometriosis Management",
+      "description": "TBD-GIANNA",
+      "provider": { "@id": "https://rrmacademy.org/#organization" },
+      "instructor": [
+        { "@id": "https://rrmacademy.org/#naomi-whittaker" }
+      ],
+      "hasCourseInstance": [
+        {
+          "@type": "CourseInstance",
+          "courseMode": "online",
+          "courseWorkload": "selfPaced"
+        }
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": 19,
+        "priceCurrency": "USD"
+      }
+    },
+    {
+      "@id": "https://rrmacademy.org/courses/postpartum-depression-anxiety/#course",
+      "@type": "Course",
+      "name": "Postpartum Depression & Anxiety: A Restorative Approach to Recovery",
+      "description": "TBD-GIANNA",
+      "provider": { "@id": "https://rrmacademy.org/#organization" },
+      "instructor": [
+        { "@id": "https://rrmacademy.org/#naomi-whittaker" }
+      ],
+      "hasCourseInstance": [
+        {
+          "@type": "CourseInstance",
+          "courseMode": "online",
+          "courseWorkload": "selfPaced"
+        }
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": 0,
+        "priceCurrency": "USD"
+      }
+    },
+    {
+      "@id": "https://rrmacademy.org/courses/rrm-vs-ivf/#course",
+      "@type": "Course",
+      "name": "Restorative Reproductive Medicine (RRM) vs Standard ART: A New Approach to Infertility",
+      "description": "TBD-GIANNA",
+      "provider": { "@id": "https://rrmacademy.org/#organization" },
+      "instructor": [
+        { "@id": "https://rrmacademy.org/#naomi-whittaker" }
+      ],
+      "hasCourseInstance": [
+        {
+          "@type": "CourseInstance",
+          "courseMode": "online",
+          "courseWorkload": "selfPaced"
+        }
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": 0,
+        "priceCurrency": "USD"
+      }
+    },
+    {
+      "@id": "https://rrmacademy.org/courses/hormones-through-the-lifespan/#course",
+      "@type": "Course",
+      "name": "Hormones Through the Lifespan: Cycles, Conditions, and Menopause",
+      "description": "TBD-GIANNA",
+      "provider": { "@id": "https://rrmacademy.org/#organization" },
+      "instructor": [
+        { "@id": "https://rrmacademy.org/courses/hormones-through-the-lifespan/#instructor-ana-garcia" }
+      ],
+      "hasCourseInstance": [
+        {
+          "@type": "CourseInstance",
+          "courseMode": "online",
+          "courseWorkload": "selfPaced"
+        }
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": 0,
+        "priceCurrency": "USD"
+      }
+    },
+    {
+      "@id": "https://rrmacademy.org/courses/pelvic-floor-rehabilitation/#course",
+      "@type": "Course",
+      "name": "Pelvic Floor Rehabilitation",
+      "description": "TBD-GIANNA",
+      "provider": { "@id": "https://rrmacademy.org/#organization" },
+      "instructor": [
+        { "@id": "https://rrmacademy.org/courses/pelvic-floor-rehabilitation/#instructor-amanda-simmons" }
+      ],
+      "hasCourseInstance": [
+        {
+          "@type": "CourseInstance",
+          "courseMode": "online",
+          "courseWorkload": "selfPaced"
+        }
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": 0,
+        "priceCurrency": "USD"
+      }
+    },
+    {
+      "@id": "https://rrmacademy.org/courses/infertility-existential-trauma/#course",
+      "@type": "Course",
+      "name": "Infertility as Existential Trauma",
+      "description": "TBD-GIANNA",
+      "provider": { "@id": "https://rrmacademy.org/#organization" },
+      "instructor": [
+        { "@id": "https://rrmacademy.org/courses/infertility-existential-trauma/#instructor-clay-brigance" }
+      ],
+      "hasCourseInstance": [
+        {
+          "@type": "CourseInstance",
+          "courseMode": "online",
+          "courseWorkload": "selfPaced"
+        }
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": 0,
+        "priceCurrency": "USD"
+      }
+    },
+    {
+      "@id": "https://rrmacademy.org/courses/fertility-based-family-planning/#course",
+      "@type": "Course",
+      "name": "Fertility-Based Methods of Family Planning: New Horizons",
+      "description": "TBD-GIANNA",
+      "provider": { "@id": "https://rrmacademy.org/#organization" },
+      "instructor": [
+        { "@id": "https://rrmacademy.org/courses/fertility-based-family-planning/#instructor-william-nolan" }
+      ],
+      "hasCourseInstance": [
+        {
+          "@type": "CourseInstance",
+          "courseMode": "online",
+          "courseWorkload": "selfPaced"
+        }
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": 0,
+        "priceCurrency": "USD"
+      }
+    },
+    {
+      "@id": "https://rrmacademy.org/courses/aip-diet-inflammation/#course",
+      "@type": "Course",
+      "name": "Why the AIP Diet Is Not Enough to Reduce Inflammation",
+      "description": "TBD-GIANNA",
+      "provider": { "@id": "https://rrmacademy.org/#organization" },
+      "instructor": [
+        { "@id": "https://rrmacademy.org/courses/aip-diet-inflammation/#instructor-rita-johnson" }
+      ],
+      "hasCourseInstance": [
+        {
+          "@type": "CourseInstance",
+          "courseMode": "online",
+          "courseWorkload": "selfPaced"
+        }
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": 0,
+        "priceCurrency": "USD"
+      }
+    },
+    {
+      "@id": "https://rrmacademy.org/courses/functional-lab-testing-napro/#course",
+      "@type": "Course",
+      "name": "Functional Lab Testing, NaPro Technology, and Preconception Care",
+      "description": "TBD-GIANNA",
+      "provider": { "@id": "https://rrmacademy.org/#organization" },
+      "instructor": [
+        { "@id": "https://rrmacademy.org/courses/functional-lab-testing-napro/#instructor-ana-garcia" },
+        { "@id": "https://rrmacademy.org/courses/functional-lab-testing-napro/#instructor-hannah-ducote" },
+        { "@id": "https://rrmacademy.org/courses/functional-lab-testing-napro/#instructor-elena-climov" }
+      ],
+      "hasCourseInstance": [
+        {
+          "@type": "CourseInstance",
+          "courseMode": "online",
+          "courseWorkload": "selfPaced"
+        }
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": 0,
+        "priceCurrency": "USD"
+      }
+    },
+    {
+      "@id": "https://rrmacademy.org/courses/masterclass-in-endometriosis-and-surgery/#course",
+      "@type": "Course",
+      "name": "Masterclass in Endometriosis & Surgery",
+      "description": "TBD-GIANNA",
+      "provider": { "@id": "https://rrmacademy.org/#organization" },
+      "instructor": [
+        { "@id": "https://rrmacademy.org/#naomi-whittaker" }
+      ],
+      "hasCourseInstance": [
+        {
+          "@type": "CourseInstance",
+          "courseMode": "online",
+          "courseWorkload": "selfPaced"
+        }
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": 199,
+        "priceCurrency": "USD"
+      }
+    }
+  ]
+}
