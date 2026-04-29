@@ -1,0 +1,68 @@
+{
+  "$schema": "../../../tools/site-ssot/schemas/1/agent-surfaces.schema.json",
+  "version": "1.0.0",
+  "llms": {
+    "when_to_use": [
+      "TBD-GIANNA"
+    ],
+    "not_suitable_for": [
+      "TBD-GIANNA"
+    ],
+    "primary_urls": [
+      { "label": "Homepage", "path": "/" },
+      { "label": "Library", "path": "/library/" },
+      { "label": "Glossary", "path": "/glossary/" },
+      { "label": "FAQs", "path": "/faqs/" },
+      { "label": "Courses", "path": "/courses/" },
+      { "label": "Ask", "path": "/ask/" }
+    ]
+  },
+  "agent_card": {
+    "name": "rrmacademy",
+    "description": "TBD-GIANNA — Gianna will rewrite this agent description in clinical voice during Phase 0b.",
+    "capabilities": [
+      "information",
+      "research-citations",
+      "ask-endpoint",
+      "mcp-tools",
+      "library-search",
+      "glossary-lookup",
+      "faq-retrieval"
+    ],
+    "contact": "administrator@rrmacademy.org"
+  },
+  "policies": {
+    "non_goals": [
+      "TBD-GIANNA"
+    ],
+    "voice": "TBD-GIANNA"
+  },
+  "fact_sources": [
+    { "path": "https://library.rrmacademy.org/", "role": "content-corpus" },
+    { "path": "https://rrmacademy.org/llms-full.txt", "role": "content-corpus" },
+    { "path": "~/iCode/config/canonical-facts/", "role": "ssot-stats" }
+  ],
+  "social_handles": [
+    {
+      "platform": "instagram",
+      "url": "https://www.instagram.com/rrmacademy",
+      "handle": "@rrmacademy",
+      "aria_label": "RRM Academy on Instagram",
+      "order": 1
+    },
+    {
+      "platform": "youtube",
+      "url": "https://www.youtube.com/@rrmacademy",
+      "handle": "@rrmacademy",
+      "aria_label": "RRM Academy on YouTube",
+      "order": 2
+    },
+    {
+      "platform": "linkedin",
+      "url": "https://www.linkedin.com/company/rrmacademy",
+      "handle": "RRM Academy",
+      "aria_label": "RRM Academy on LinkedIn",
+      "order": 3
+    }
+  ]
+}
