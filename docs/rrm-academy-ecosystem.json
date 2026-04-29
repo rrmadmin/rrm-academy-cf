@@ -1981,12 +1981,15 @@
     ]
   },
   "people": {
+    "_note": "Lightweight system-context refs. Canonical Person records live in ~/iCode/config/ecosystem-identity/people.json (referenced by ssot_ref).",
     "brian": {
       "name": "Brian Whittaker",
-      "role": "Administrator, RRM Academy",
+      "academy_role": "Executive Director",
+      "foundation_role": "Board Treasurer and Acting Executive Lead",
       "email": "bwhittaker@rrmacademy.org",
       "location": "Harrisburg, PA",
       "timezone": "America/New_York",
+      "ssot_ref": "https://rrmacademy.org/#brian-whittaker",
       "git": {
         "user.name": "RRM Admin",
         "user.email": "administrator+git@rrmacademy.org"
@@ -1995,9 +1998,23 @@
     "naomi": {
       "name": "Dr. Naomi Whittaker, MD",
       "credentials": "Board-Certified OBGYN, MIGS, NFPMC, FCI",
-      "role": "Lead instructor, canonical byline author",
+      "academy_role": "Founder and Lead Instructor",
+      "foundation_role": "Board Chair and Chief Medical Director",
       "npi": "1881034908",
-      "practice_address": "225 Grandview Ave Ste 302, Camp Hill, PA 17011"
+      "practice_address": "225 Grandview Ave Ste 302, Camp Hill, PA 17011",
+      "ssot_ref": "https://rrmacademy.org/#naomi-whittaker"
+    },
+    "bailey": {
+      "name": "Bailey Long",
+      "academy_role": "Board Secretary",
+      "foundation_role": "Board Secretary",
+      "ssot_ref": "https://rrmacademy.org/#bailey-long"
+    },
+    "erin": {
+      "name": "Dr. Erin Callaghan",
+      "academy_role": "Clinical Advisor",
+      "foundation_role": "Clinical Advisor",
+      "ssot_ref": "https://rrmacademy.org/#erin-callaghan"
     }
   },
   "finances": {
