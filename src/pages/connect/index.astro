@@ -1,0 +1,496 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import LastUpdated from '../../components/LastUpdated.astro';
+import pageDates from '../../data/page-dates.json';
+
+const PAGE_PATH = '/connect/';
+const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-04-28';
+
+const pageSchema = {
+  '@context': 'https://schema.org',
+  '@type': ['WebPage', 'SoftwareApplication'],
+  name: 'RRM Academy MCP — Connector for AI Assistants',
+  headline: 'Connect any AI to RRM Academy',
+  description:
+    'A free Model Context Protocol (MCP) connector that gives Claude, ChatGPT, and Perplexity direct access to the RRM Academy research library, editorial guardrails, and verified clinical statistics.',
+  url: 'https://rrmacademy.org/connect/',
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'Web',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+    description: 'Free for verified RRM Academy account holders.',
+  },
+  publisher: {
+    '@type': 'EducationalOrganization',
+    '@id': 'https://rrmacademy.org/#organization',
+    name: 'RRM Academy',
+  },
+  datePublished: '2026-04-28',
+  dateModified: LAST_MODIFIED,
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': 'https://rrmacademy.org/connect/',
+  },
+  about: {
+    '@type': 'Thing',
+    name: 'Model Context Protocol (MCP)',
+    description: 'Open protocol for connecting AI assistants to external tools and knowledge bases.',
+    url: 'https://modelcontextprotocol.io',
+  },
+  featureList: [
+    'Search 3,370+ peer-reviewed articles',
+    'Retrieve full article details',
+    'Find related research via citations',
+    'Validate text against RRM editorial guardrails',
+    'Verify statistics against curated facts database',
+  ],
+  audience: {
+    '@type': 'Audience',
+    name: 'Clinicians, researchers, and educators working in restorative reproductive medicine',
+  },
+};
+---
+<BaseLayout
+  title="Connect AI to RRM Academy"
+  description="Free MCP connector — give Claude, ChatGPT, or Perplexity direct access to the RRM Academy research library, editorial guardrails, and verified clinical statistics. 5-minute setup."
+  canonicalUrl="https://rrmacademy.org/connect/"
+  jsonLd={pageSchema}
+  lastModified={LAST_MODIFIED}
+>
+  <article class="page-wrapper">
+    <div class="container container--narrow connect-page">
+
+      <header class="connect-hero">
+        <span class="connect-eyebrow">Developer · Connector</span>
+        <h1>Connect any AI to <em>RRM Academy</em></h1>
+        <p class="connect-lede">
+          Give Claude, ChatGPT, or Perplexity direct access to 3,370+ peer-reviewed articles, RRM editorial guardrails, and verified clinical statistics. Free, 5-minute setup.
+        </p>
+      </header>
+
+      <!-- ── Sign-in CTA card ── -->
+      <section class="connect-cta-card" id="get-started">
+        <div class="connect-cta-content">
+          <h2>Get your API key</h2>
+          <p>Free with any RRM Academy account. Generate, label, and revoke keys per device — Claude Desktop, ChatGPT, Perplexity Pro, or your own scripts.</p>
+        </div>
+        <div class="connect-cta-actions">
+          <a href="/login/?redirect=/account/mcp-keys" class="btn btn--primary btn--lg" id="connect-cta-signed-out">Sign in to generate</a>
+          <a href="/account/mcp-keys/" class="btn btn--primary btn--lg" id="connect-cta-signed-in" hidden>Manage your keys</a>
+          <a href="/signup/?redirect=/account/mcp-keys" class="btn btn--text" id="connect-cta-signup">Or create a free account →</a>
+        </div>
+      </section>
+
+      <!-- ── Connection details card ── -->
+      <section class="connect-section">
+        <h2>Connection details</h2>
+        <p>Every AI client asks for the same two values. Copy them into the connector setup form.</p>
+
+        <div class="connect-fields">
+          <div class="connect-field">
+            <span class="connect-field-label">Server URL</span>
+            <div class="connect-field-row">
+              <code id="connect-server-url">https://mcp.rrmacademy.org/mcp</code>
+              <button class="btn btn--secondary btn--sm connect-copy" data-copy="https://mcp.rrmacademy.org/mcp">Copy</button>
+            </div>
+          </div>
+          <div class="connect-field">
+            <span class="connect-field-label">Transport</span>
+            <code>Streamable HTTP</code>
+          </div>
+          <div class="connect-field">
+            <span class="connect-field-label">Auth method</span>
+            <code>API key (Bearer token)</code>
+          </div>
+          <div class="connect-field">
+            <span class="connect-field-label">API key</span>
+            <span class="connect-field-note">Generated when you sign in →</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Per-client setup ── -->
+      <section class="connect-section">
+        <h2>Per-client setup</h2>
+        <p>Pick your AI client. Each takes about 2 minutes once you have your key.</p>
+
+        <details class="connect-client" open>
+          <summary>
+            <span class="connect-client-name">Claude (claude.ai)</span>
+            <span class="connect-client-meta">Pro, Team, Enterprise</span>
+          </summary>
+          <ol class="connect-steps">
+            <li>Open <a href="https://claude.ai" target="_blank" rel="noopener">claude.ai</a> and sign in.</li>
+            <li>Click your profile picture (bottom-left) → <strong>Settings</strong>.</li>
+            <li>Go to <strong>Connectors</strong> → <strong>Add custom connector</strong>.</li>
+            <li>Fill in:
+              <ul>
+                <li><strong>Name:</strong> RRM Academy</li>
+                <li><strong>Server URL:</strong> <code>https://mcp.rrmacademy.org/mcp</code></li>
+                <li><strong>Auth:</strong> Bearer token</li>
+                <li><strong>API key:</strong> (paste your key from <a href="/account/mcp-keys/">/account/mcp-keys</a>)</li>
+              </ul>
+            </li>
+            <li>Click <strong>Add</strong>. Five tools appear when the connection succeeds.</li>
+            <li>In any chat, open the <strong>Search and tools</strong> menu and enable <strong>RRM Academy</strong>.</li>
+          </ol>
+        </details>
+
+        <details class="connect-client">
+          <summary>
+            <span class="connect-client-name">Claude Desktop</span>
+            <span class="connect-client-meta">macOS &amp; Windows app</span>
+          </summary>
+          <ol class="connect-steps">
+            <li>Open <strong>Claude Desktop</strong>.</li>
+            <li>Menu bar → <strong>Claude</strong> → <strong>Settings</strong> (macOS), or <strong>File → Settings</strong> (Windows).</li>
+            <li>Open the <strong>Connectors</strong> tab → <strong>Add custom connector</strong>.</li>
+            <li>Use the same field values as the web setup above.</li>
+            <li>Save. The five RRM Academy tools appear in the tools picker.</li>
+          </ol>
+          <p class="connect-note">If you don't see "Connectors", update Claude Desktop — recent versions added remote MCP support.</p>
+        </details>
+
+        <details class="connect-client">
+          <summary>
+            <span class="connect-client-name">ChatGPT</span>
+            <span class="connect-client-meta">Pro, Business, Enterprise</span>
+          </summary>
+          <ol class="connect-steps">
+            <li>Open <a href="https://chatgpt.com" target="_blank" rel="noopener">chatgpt.com</a> or the desktop app.</li>
+            <li>Profile icon (top-right) → <strong>Settings</strong>.</li>
+            <li>Open <strong>Connectors</strong> → <strong>Add</strong> → <strong>Custom MCP server</strong>.</li>
+            <li>Fill in:
+              <ul>
+                <li><strong>Name:</strong> RRM Academy</li>
+                <li><strong>Server URL:</strong> <code>https://mcp.rrmacademy.org/mcp</code></li>
+                <li><strong>Authentication:</strong> API key / Bearer token</li>
+                <li><strong>API key:</strong> (paste your key)</li>
+              </ul>
+            </li>
+            <li>Save. ChatGPT lists the five tools on success.</li>
+            <li>In a chat, open the tools picker and enable <strong>RRM Academy</strong>.</li>
+          </ol>
+          <p class="connect-note">Deep Research can also call MCP tools — give it permission to use the RRM Academy connector when you ask an RRM-related question.</p>
+        </details>
+
+        <details class="connect-client">
+          <summary>
+            <span class="connect-client-name">Perplexity</span>
+            <span class="connect-client-meta">Pro</span>
+          </summary>
+          <ol class="connect-steps">
+            <li>Open <a href="https://perplexity.ai" target="_blank" rel="noopener">perplexity.ai</a> (web or Mac app).</li>
+            <li>Profile icon (bottom-left) → <strong>Settings</strong>.</li>
+            <li><strong>Connectors</strong> → <strong>+ Add</strong> → <strong>Remote</strong>.</li>
+            <li>Fill in:
+              <ul>
+                <li><strong>Name:</strong> RRM Academy</li>
+                <li><strong>MCP Server URL:</strong> <code>https://mcp.rrmacademy.org/mcp</code></li>
+                <li><strong>Transport:</strong> Streamable HTTP</li>
+                <li><strong>Auth:</strong> API Key</li>
+                <li><strong>API Key:</strong> (paste your key)</li>
+              </ul>
+            </li>
+            <li>Save. A green checkmark means you're connected.</li>
+            <li>Create a Perplexity <strong>Space</strong> for RRM work and paste your system prompt — keeps the AI reaching for the connector first.</li>
+          </ol>
+        </details>
+      </section>
+
+      <!-- ── Tools ── -->
+      <section class="connect-section">
+        <h2>The five tools</h2>
+        <p>Once connected, your AI gains these capabilities. Just ask in natural language — the AI picks the right tool.</p>
+
+        <ul class="connect-tools">
+          <li><strong>search</strong> — 3,370+ peer-reviewed articles on RRM, NaProTechnology, FABMs, endometriosis, PCOS, and women's health. Filter by author, year, type, or tradition.</li>
+          <li><strong>get_article</strong> — full details on a specific article: abstract, citation, journal, year, RRM relevance score.</li>
+          <li><strong>find_related</strong> — articles related to one you've found, via citations and shared topics. Widen the lens around a single paper.</li>
+          <li><strong>check_guardrails</strong> — validate a draft against RRM editorial standards. Run before publishing anything written about RRM topics.</li>
+          <li><strong>check_facts</strong> — verify pregnancy rates, success percentages, and prevalence figures against the curated facts database.</li>
+        </ul>
+      </section>
+
+      <!-- ── Privacy ── -->
+      <section class="connect-section connect-privacy">
+        <h2>Privacy &amp; logging</h2>
+        <p><strong>What we log:</strong> every tool call gets a timestamp, the tool name, the response status, and a label identifying which API key was used. No prompt content beyond what's required to fulfill the search.</p>
+        <p><strong>What stays private:</strong> your AI conversations live with your AI provider (Anthropic, OpenAI, Perplexity). RRM Academy only sees the specific search query or fact-check text routed through a tool — never the surrounding chat.</p>
+        <p><strong>Revoking access:</strong> revoke a key from <a href="/account/mcp-keys/">your account</a>. Takes effect immediately; other keys keep working.</p>
+      </section>
+
+      <!-- ── Resources ── -->
+      <section class="connect-section">
+        <h2>More</h2>
+        <ul class="connect-links">
+          <li><a href="/connect-install-guide.pdf" download>Download the install guide (PDF)</a> — same content as this page, formatted for sharing.</li>
+          <li><a href="https://mcp.rrmacademy.org/.well-known/mcp/server-card.json">Server card</a> — full machine-readable tool list.</li>
+          <li><a href="https://mcp.rrmacademy.org/.well-known/mcp.json">MCP descriptor</a> — server metadata for agent discovery.</li>
+          <li><a href="/llms.txt">llms.txt</a> — site map for AI crawlers.</li>
+          <li>Setup help: <a href="mailto:info@rrmacademy.org">info@rrmacademy.org</a></li>
+        </ul>
+      </section>
+
+      <LastUpdated date={LAST_MODIFIED} />
+    </div>
+  </article>
+
+  <script is:inline>
+    (function () {
+      // Toggle CTA buttons based on session
+      var signedOutCta = document.getElementById('connect-cta-signed-out');
+      var signedInCta = document.getElementById('connect-cta-signed-in');
+      var signupCta = document.getElementById('connect-cta-signup');
+      fetch('/api/auth/session', { credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data && data.user) {
+            signedOutCta.hidden = true;
+            signedInCta.hidden = false;
+            signupCta.hidden = true;
+          }
+        })
+        .catch(function () { /* default state — assume signed-out */ });
+
+      // Copy buttons
+      var btns = document.querySelectorAll('.connect-copy');
+      btns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var text = btn.getAttribute('data-copy');
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function () {
+              var orig = btn.textContent;
+              btn.textContent = 'Copied!';
+              setTimeout(function () { btn.textContent = orig; }, 2000);
+            });
+          }
+        });
+      });
+    })();
+  </script>
+
+  <style>
+    .connect-page { padding-bottom: var(--space-12); }
+
+    .connect-hero {
+      margin-bottom: var(--space-10);
+      padding-bottom: var(--space-8);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .connect-eyebrow {
+      display: inline-block;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--accent);
+      margin-bottom: var(--space-4);
+    }
+    .connect-hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 1.5rem + 2vw, 2.75rem);
+      font-weight: 600;
+      line-height: 1.1;
+      margin: 0 0 var(--space-5);
+    }
+    .connect-hero h1 em { font-style: italic; color: var(--accent); }
+    .connect-lede {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 1.25rem;
+      line-height: 1.5;
+      color: var(--text-secondary);
+      max-width: 36rem;
+      margin: 0;
+    }
+
+    /* Sign-in CTA card */
+    .connect-cta-card {
+      background: linear-gradient(135deg, var(--purple-50) 0%, var(--cream, #eee5dd) 100%);
+      border-left: 4px solid var(--accent);
+      border-radius: var(--radius-md);
+      padding: var(--space-6) var(--space-8);
+      margin-bottom: var(--space-10);
+      display: grid;
+      gap: var(--space-5);
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 720px) {
+      .connect-cta-card { grid-template-columns: 1.4fr 1fr; align-items: center; }
+    }
+    .connect-cta-content h2 {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      margin: 0 0 var(--space-2);
+    }
+    .connect-cta-content p {
+      color: var(--text-secondary);
+      margin: 0;
+      line-height: 1.5;
+    }
+    .connect-cta-actions {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      align-items: flex-start;
+    }
+    @media (min-width: 720px) { .connect-cta-actions { align-items: flex-end; } }
+    /* .btn sets display:inline-flex which overrides the user-agent [hidden] { display:none } */
+    .connect-cta-actions [hidden] { display: none !important; }
+
+    /* Sections */
+    .connect-section { margin-bottom: var(--space-10); }
+    .connect-section h2 {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      margin: 0 0 var(--space-4);
+    }
+    .connect-section > p {
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: var(--space-4);
+    }
+
+    /* Connection details */
+    .connect-fields {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: var(--space-5) var(--space-6);
+      display: grid;
+      gap: var(--space-3);
+    }
+    .connect-field {
+      display: grid;
+      grid-template-columns: 7rem 1fr;
+      align-items: center;
+      gap: var(--space-4);
+    }
+    .connect-field-label {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.10em;
+      color: var(--text-tertiary);
+    }
+    .connect-field code {
+      font-family: "SF Mono", Menlo, monospace;
+      font-size: 0.8125rem;
+      background: var(--purple-50);
+      color: var(--purple-900);
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      word-break: break-all;
+    }
+    .connect-field-row {
+      display: flex;
+      gap: var(--space-3);
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .connect-field-note {
+      font-style: italic;
+      color: var(--text-secondary);
+      font-size: 0.8125rem;
+    }
+    @media (max-width: 600px) {
+      .connect-field { grid-template-columns: 1fr; gap: var(--space-1); }
+    }
+
+    /* Per-client accordion */
+    .connect-client {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: var(--space-4) var(--space-5);
+      margin-bottom: var(--space-3);
+    }
+    .connect-client > summary {
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+    }
+    .connect-client > summary::-webkit-details-marker { display: none; }
+    .connect-client > summary::after {
+      content: "›";
+      color: var(--accent);
+      font-size: 1.25rem;
+      margin-left: auto;
+      transform: rotate(90deg);
+      transition: transform 0.2s;
+    }
+    .connect-client[open] > summary::after { transform: rotate(-90deg); }
+    .connect-client-name {
+      font-family: var(--font-display);
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .connect-client-meta {
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      font-weight: 500;
+    }
+    .connect-steps {
+      margin: var(--space-4) 0 0;
+      padding-left: 1.5rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+    .connect-steps li { margin-bottom: var(--space-3); }
+    .connect-steps ul {
+      margin: var(--space-2) 0 0;
+      padding-left: 1.25rem;
+      list-style: disc;
+    }
+    .connect-steps code {
+      font-family: "SF Mono", Menlo, monospace;
+      font-size: 0.8125rem;
+      background: var(--purple-50);
+      color: var(--purple-900);
+      padding: 1px 6px;
+      border-radius: var(--radius-sm);
+    }
+    .connect-note {
+      margin-top: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      background: var(--neutral-100);
+      border-left: 3px solid var(--purple-300);
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    /* Tools list */
+    .connect-tools {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .connect-tools li {
+      padding: var(--space-3) 0;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .connect-tools li:last-child { border-bottom: none; }
+    .connect-tools strong {
+      font-family: "SF Mono", Menlo, monospace;
+      font-size: 0.875rem;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* Privacy + links */
+    .connect-privacy p { margin-bottom: var(--space-3); }
+    .connect-links { padding-left: 1.25rem; line-height: 1.8; }
+    .connect-links a { color: var(--accent); }
+  </style>
+</BaseLayout>

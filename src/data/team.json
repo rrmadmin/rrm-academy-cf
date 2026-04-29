@@ -1,0 +1,57 @@
+{
+  "$comment": "UI source-of-truth for the /about/ Team section. Bios are TODO placeholders. Edit before public ship.",
+  "members": [
+    {
+      "ssot_id": "https://rrmacademy.org/#naomi-whittaker",
+      "given_name": "Naomi",
+      "family_name": "Whittaker",
+      "name": "Dr. Naomi Whittaker",
+      "credentials": "MD, Board-Certified OBGYN, MIGS, NFPMC, FCI",
+      "academy_role": "Founder and Lead Instructor",
+      "foundation_role": "Board Chair and Chief Medical Director",
+      "photo": "/images/authors/naomi-whittaker.webp",
+      "photo_alt": "Dr. Naomi Whittaker, MD",
+      "bio_paragraphs": ["TODO: Brian"],
+      "display_order": 1
+    },
+    {
+      "ssot_id": "https://rrmacademy.org/#brian-whittaker",
+      "given_name": "Brian",
+      "family_name": "Whittaker",
+      "name": "Brian Whittaker",
+      "credentials": null,
+      "academy_role": "Executive Director",
+      "foundation_role": "Board Treasurer and Acting Executive Lead",
+      "photo": "/images/authors/brian-whittaker.webp",
+      "photo_alt": "Brian Whittaker",
+      "bio_paragraphs": ["TODO: Brian"],
+      "display_order": 2
+    },
+    {
+      "ssot_id": "https://rrmacademy.org/#bailey-long",
+      "given_name": "Bailey",
+      "family_name": "Long",
+      "name": "Bailey Long",
+      "credentials": null,
+      "academy_role": "Board Secretary",
+      "foundation_role": "Board Secretary",
+      "photo": null,
+      "photo_alt": "Bailey Long",
+      "bio_paragraphs": ["TODO: Brian"],
+      "display_order": 3
+    },
+    {
+      "ssot_id": "https://rrmacademy.org/#erin-callaghan",
+      "given_name": "Erin",
+      "family_name": "Callaghan",
+      "name": "Dr. Erin Callaghan",
+      "credentials": null,
+      "academy_role": "Clinical Advisor",
+      "foundation_role": "Clinical Advisor",
+      "photo": null,
+      "photo_alt": "Dr. Erin Callaghan",
+      "bio_paragraphs": ["TODO: Brian"],
+      "display_order": 4
+    }
+  ]
+}

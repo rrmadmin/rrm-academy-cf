@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { fetchAllFaqs, groupByCategory } from '../lib/faq';
+import { buildFAQPage, buildBreadcrumbList } from '../lib/identity';
 
 const allFaqs = await fetchAllFaqs();
 const groups = groupByCategory(allFaqs);
@@ -37,31 +38,30 @@ const lastUpdatedLabel = new Intl.DateTimeFormat('en-US', {
 }).format(latestUpdated);
 
 // JSON-LD: FAQPage + BreadcrumbList in a single @graph.
+// FAQPage built via buildFAQPage; name/description/dates layered on top.
+const faqPageRaw = buildFAQPage(
+  allFaqs.map(faq => ({
+    question: faq.question,
+    answer: faq.schemaAnswer || faq.basicAnswer || faq.publishedAnswer,
+  }))
+) as Record<string, unknown>;
+const breadcrumbRaw = buildBreadcrumbList([
+  { name: 'Home', url: 'https://rrmacademy.org/' },
+  { name: 'FAQs', url: 'https://rrmacademy.org/faqs/' },
+]) as Record<string, unknown>;
+const { '@context': _faqCtx, ...faqPageNode } = faqPageRaw;
+const { '@context': _bcCtx, ...breadcrumbNode } = breadcrumbRaw;
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
     {
-      '@type': 'FAQPage',
+      ...faqPageNode,
       name: 'Frequently Asked Questions about Restorative Reproductive Medicine',
       description: 'Answers to common questions about RRM, NaProTechnology, fertility charting, treatment approaches, success rates, and costs.',
       dateModified: latestUpdated.toISOString(),
       datePublished: earliestCreated.toISOString(),
-      mainEntity: allFaqs.map(faq => ({
-        '@type': 'Question',
-        name: faq.question,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: faq.schemaAnswer || faq.basicAnswer || faq.publishedAnswer,
-        },
-      })),
     },
-    {
-      '@type': 'BreadcrumbList',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
-        { '@type': 'ListItem', position: 2, name: 'FAQs', item: 'https://rrmacademy.org/faqs/' },
-      ],
-    },
+    breadcrumbNode,
   ],
 };
 ---
@@ -70,6 +70,7 @@ const jsonLd = {
   description="Answers to common questions about Restorative Reproductive Medicine (RRM), NaProTechnology, fertility charting, treatment, and costs."
   canonicalUrl="https://rrmacademy.org/faqs"
   jsonLd={jsonLd}
+  speakable={['.hero-title', '.faqs-intro']}
 >
   <div class="page-wrapper">
     <div class="container container--narrow">

@@ -122,7 +122,7 @@ Two production instances on namespace `rrm-academy-search`:
 
 **1a. Provisioning script** `scripts/ai-search-provision.mjs` (idempotent, checked into CI):
 - Creates namespace `rrm-academy-search` if absent.
-- Creates `rrm-academy-search-articles` instance with `hybrid_search_enabled: true` (type defaults to built-in-storage). PUTs the 5-field schema (`type`, `year`, `topic_primary`, `rrm_relevance`, `is_open_access`) via REST.
+- Creates `rrm-academy-search-articles` instance with `hybrid_search_enabled: true` (type defaults to built-in-storage). PUTs the 5-field schema (`type`, `year`, `domain`, `rrm_relevance`, `is_open_access`) via REST.
 - Creates `rrm-academy-search-site` instance with `type: "web-crawler"`, `source: "rrmacademy.org"`, `hybrid_search_enabled: true`. Leaves `enable: false` for initial deploy (site crawl added in a follow-up tick once upload-only is green in production).
 - Uses `CLOUDFLARE_API_TOKEN` from CF Pages env (token needs `AI Search Write`). Verifies `custom_metadata` round-trip after PUT.
 
@@ -238,7 +238,7 @@ Every phase must satisfy:
 - **P10 — E2E live check.** After cutover, real HTTP POST to `/api/ask` returns valid answer + ≥1 citation with reachable URL. Real GET to `/api/search/semantic?q=CA-125` returns the target article at rank 1.
 - **P11 — D1 idempotency.** `ai_search_docs.item_id` is populated for every indexed `key`. Reconcile dry-run shows zero orphans immediately after a full-rebuild run.
 - **P12 — Key-length fallback.** Any article with canonical slug > 140 chars has `ai_search_docs.full_slug` set and a truncated+hashed key. Spot-check 3 production records with long slugs post-rebuild.
-- **P13 — Metadata type fidelity.** For a sample of 10 indexed docs, `item.metadata` returned by `search()` shows `year` as number, `is_open_access` as boolean, `type` and `topic_primary` as strings. Schema coercion verified end-to-end.
+- **P13 — Metadata type fidelity.** For a sample of 10 indexed docs, `item.metadata` returned by `search()` shows `year` as number, `rrm_relevance` as number, `is_open_access` as boolean, `type` and `domain` as strings. Schema coercion verified end-to-end.
 
 ## Rollback
 
@@ -293,7 +293,7 @@ Every phase must satisfy:
 
 All experiments ran against namespace `ask-spike` in CF account `ecf2c5bc8b5ebd634bcb587b3890910a` with instances `spike-basic` (built-in storage + 4-field schema + hybrid enabled), `spike-realkey` (no schema, for key-charset tests), `spike-bd` (boolean/datetime schema), `spike-evo` (schema-evolution test), and `spike-crawler` (web-crawler type, never enabled). Harness at `~/iCode/scratch/ai-search-spike/worker/index.js` (Worker endpoints `/e1-reupload` through `/e13-schema-evolution` plus `/e1b`, `/e2b`, `/e3b` follow-ups). Wrangler 4.84.0. Token scoped to AI Search Write + Workers Scripts Write + Workers AI Write + Pages Write + Account Settings Read, IP-locked, auto-expires 2026-05-05.
 
-**Overall verdict:** GO, with plan edits applied in this commit. The central premise of the rebuild -- hybrid BM25 fixes exact-term drift -- was verified directly against `"CA-125"`, `"recXXXABC123"`, and `"DHEA sulfate"` (all rank-1 retrieval). No killswitch. One architectural fork (dedicated Worker + service binding for Pages), one metadata-schema design change (topic_primary replacing empty `domain`/`rrm_relevance` fields that do not actually exist in the corpus), one operational requirement (D1 `ai_search_docs` table persists `key ↔ item_id` for delete by ID).
+**Overall verdict:** GO, with plan edits applied in this commit. The central premise of the rebuild -- hybrid BM25 fixes exact-term drift -- was verified directly against `"CA-125"`, `"recXXXABC123"`, and `"DHEA sulfate"` (all rank-1 retrieval). No killswitch. One architectural fork (dedicated Worker + service binding for Pages), one metadata-schema confirmation (`domain` and `rrm_relevance` ARE populated 100% / 96% by the live worker; an earlier draft proposed `topic_primary` based on stale `articles.json` data — corrected in commit 8cec63b), one operational requirement (D1 `ai_search_docs` table persists `key ↔ item_id` for delete by ID).
 
 ### Q1. Binding works in Pages Functions? -- **NO (verified via CF API, not just wrangler).**
 
@@ -392,7 +392,7 @@ const citations = r.chunks.map(c => ({
    { "custom_metadata": [
        {"field_name":"type","data_type":"text"},
        {"field_name":"year","data_type":"number"},
-       {"field_name":"topic_primary","data_type":"text"},
+       {"field_name":"domain","data_type":"text"},
        {"field_name":"rrm_relevance","data_type":"number"},
        {"field_name":"is_open_access","data_type":"boolean"}
    ]}
@@ -419,7 +419,7 @@ Envelope: `{ ai_search_options: { retrieval: { filters: {...} } } }`. Operators:
 | `type: {"$nin": ["post"]}` | **INCLUDED** |
 | `year: {"$gte": 2024}` | excluded (deterministic) |
 
-**Phase 7 facet rule (simplified):** prefer `$eq` and `$in` for faceted UI filters. `$ne` / `$nin` include missing-field docs — use them intentionally or pair with a presence guard (e.g. `{"type":{"$in":["article"]}, "topic_primary":{"$ne":"excluded"}}`).
+**Phase 7 facet rule (simplified):** prefer `$eq` and `$in` for faceted UI filters. `$ne` / `$nin` include missing-field docs — use them intentionally or pair with a presence guard (e.g. `{"type":{"$in":["article"]}, "domain":{"$ne":"Other"}}`).
 
 **Unknown / experimental operators (all tested):**
 
