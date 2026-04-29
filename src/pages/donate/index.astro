@@ -201,15 +201,24 @@ const jsonLd = {
           var sub = billing.subscription;
           if (sub.status !== 'active' && sub.status !== 'trialing') return;
 
-          // Grey out the current tier card and button
+          // Wix-source members: starting a fresh Stripe Checkout would create a
+          // parallel monthly sub on top of their active Wix sub (double charge).
+          // Lock all tier buttons and route changes through email.
+          var isWix = sub.source === 'wix';
+
           var buttons = document.querySelectorAll('.tier-btn');
           for (var i = 0; i < buttons.length; i++) {
-            if (buttons[i].dataset.tier === sub.tier) {
-              var card = buttons[i].closest('.tier-card');
+            var btn = buttons[i];
+            if (btn.dataset.tier === sub.tier) {
+              var card = btn.closest('.tier-card');
               card.classList.add('tier-card--current');
-              buttons[i].disabled = true;
-              buttons[i].textContent = 'Your Plan';
-              buttons[i].classList.add('tier-btn--disabled');
+              btn.disabled = true;
+              btn.textContent = 'Your Plan';
+              btn.classList.add('tier-btn--disabled');
+            } else if (isWix) {
+              btn.textContent = 'Email to Change';
+              btn.dataset.target = 'email';
+              btn.classList.add('tier-btn--wix-locked');
             }
           }
 
@@ -231,10 +240,21 @@ const jsonLd = {
         })
         .catch(function () { /* not logged in or network error — ignore */ });
 
-      // --- Tier buttons → Stripe Checkout ---
+      // --- Tier buttons → Stripe Checkout (or mailto for Wix-source members) ---
       document.querySelectorAll('.tier-btn[data-tier]').forEach(function (btn) {
         btn.addEventListener('click', function () {
           if (btn.classList.contains('tier-btn--disabled')) return;
+
+          // Wix-source member: route to email instead of starting a parallel Stripe sub
+          if (btn.dataset.target === 'email') {
+            var targetTier = btn.dataset.tier;
+            window.location.href = 'mailto:support@rrmacademy.org?subject=' +
+              encodeURIComponent('Change my monthly membership tier') +
+              '&body=' + encodeURIComponent(
+                'Please change my monthly membership to the ' + targetTier + ' tier.'
+              );
+            return;
+          }
 
           var tier = btn.dataset.tier;
           btn.disabled = true;
@@ -485,6 +505,10 @@ const jsonLd = {
   .tier-btn--disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+  /* Wix-source members: button stays clickable but visually distinct (mailto handler) */
+  .tier-btn--wix-locked {
+    border-style: dashed;
   }
 
   /* CTA section — recurring tiers */
