@@ -11,6 +11,7 @@ import {
   json, optionsResponse, getSessionIdFromCookie, validateSession,
 } from '../auth/_shared.js';
 import { log } from '../_log.js';
+import { requireMember } from '../community/_shared.js';
 import coursesData from '../../../src/data/courses.json';
 
 const streamUidToCourses = new Map();
@@ -49,13 +50,21 @@ export async function onRequestGet({ request, env, waitUntil }) {
     const courses = streamUidToCourses.get(videoId);
     if (!courses) return json({ ok: false, error: 'Unknown video' }, 404);
 
-    const allFree = courses.every(c => c.isFree);
-    if (!allFree) {
-      const placeholders = courses.map(() => '?').join(', ');
-      const enrollment = await db.prepare(
-        `SELECT id FROM enrollment WHERE user_id = ? AND course_id IN (${placeholders}) AND revoked_at IS NULL`
-      ).bind(session.userId, ...courses.map(c => c.id)).first();
-      if (!enrollment) return json({ ok: false, error: 'Not enrolled' }, 403);
+    const needsMember = courses.some(c => c.accessType === 'members');
+    if (needsMember) {
+      // Live membership re-check on every token request (1h token TTL).
+      // Member courses: membership IS the access grant; enrollment row alone is insufficient.
+      const memberResult = await requireMember(request, env);
+      if (memberResult instanceof Response) return memberResult;
+    } else {
+      const allFree = courses.every(c => c.isFree);
+      if (!allFree) {
+        const placeholders = courses.map(() => '?').join(', ');
+        const enrollment = await db.prepare(
+          `SELECT id FROM enrollment WHERE user_id = ? AND course_id IN (${placeholders}) AND revoked_at IS NULL`
+        ).bind(session.userId, ...courses.map(c => c.id)).first();
+        if (!enrollment) return json({ ok: false, error: 'Not enrolled' }, 403);
+      }
     }
 
     const signingKeyJwk = env.STREAM_SIGNING_KEY;
