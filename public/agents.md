@@ -5,7 +5,19 @@ Updated: 2026-04-29
 
 ## About this site
 
-RRM Academy is a nonprofit education platform for restorative reproductive medicine. The research library indexes 3,200+ peer-reviewed articles; a 130-term glossary, clinical courses, and patient FAQs complete the resource set.
+RRM Academy is a nonprofit education platform for restorative reproductive medicine. The research library indexes 3,370+ peer-reviewed articles; a 132-term glossary, clinical courses, and patient FAQs complete the resource set.
+
+## AI Connector (MCP Server)
+
+RRM Academy publishes a free Model Context Protocol (MCP) connector. Any AI assistant (Claude, ChatGPT, Perplexity, custom agents) can search the library, retrieve articles, and validate text against editorial guardrails directly.
+
+- Server endpoint: https://mcp.rrmacademy.org/mcp
+- Transport: Streamable HTTP
+- Auth: Bearer token (self-service Bearer API key)
+- Issuance: Sign in (or create a free account) at https://rrmacademy.org/account/mcp-keys to generate a key
+- Setup guide: https://rrmacademy.org/connect
+- MCP descriptor: https://rrmacademy.org/.well-known/mcp.json
+- Server card (full tool list): https://rrmacademy.org/.well-known/mcp/server-card.json
 
 ## Agent capabilities
 
