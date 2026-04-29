@@ -4,9 +4,17 @@ import BackToTop from '../../components/BackToTop.astro';
 import PdfDownload from '../../components/PdfDownload.astro';
 import LastUpdated from '../../components/LastUpdated.astro';
 import pageDates from '../../data/page-dates.json';
+import { buildScholarlyArticleStub } from '../../lib/identity';
 
 const PAGE_PATH = '/what-is-rrm/';
 const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-03-01';
+
+// Helper: build a ScholarlyArticle stub for citation embedding (strip @context).
+function citeStub(props: { name: string; author: string; datePublished: string; journal?: string }) {
+  const node = buildScholarlyArticleStub(props) as Record<string, unknown> & { '@context'?: unknown };
+  const { '@context': _ctx, ...rest } = node;
+  return rest;
+}
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -67,55 +75,48 @@ const jsonLd = {
         { '@type': 'WebPageElement', name: 'Frequently Asked Questions', url: 'https://rrmacademy.org/what-is-rrm/#faq' },
       ],
       citation: [
-        {
-          '@type': 'ScholarlyArticle',
+        citeStub({
           name: 'Outcomes from Treatment of Infertility with Natural Procreative Technology in an Irish General Practice',
           author: 'Stanford JB, Parnell TA, Boyle PC',
           datePublished: '2008',
-          isPartOf: { '@type': 'Periodical', name: 'The Journal of the American Board of Family Medicine' },
-        },
-        {
-          '@type': 'ScholarlyArticle',
+          journal: 'The Journal of the American Board of Family Medicine',
+        }),
+        citeStub({
           name: 'Natural Procreative Technology for Infertility and Recurrent Miscarriage',
           author: 'Tham E, Schliep K, Stanford J',
           datePublished: '2012',
-          isPartOf: { '@type': 'Periodical', name: 'Canadian Family Physician' },
-        },
-        {
-          '@type': 'ScholarlyArticle',
+          journal: 'Canadian Family Physician',
+        }),
+        citeStub({
           name: 'Fertility Awareness-Based Methods for Women\'s Health and Family Planning',
           author: 'Duane M, Stanford JB, Porucznik CA, Vigil P',
           datePublished: '2022',
-          isPartOf: { '@type': 'Periodical', name: 'Frontiers in Medicine' },
-        },
-        {
-          '@type': 'ScholarlyArticle',
+          journal: 'Frontiers in Medicine',
+        }),
+        citeStub({
           name: 'Successful Pregnancy with Restorative Reproductive Medicine after 16 Years of Infertility',
           author: 'Boyle PC, Stanford JB, Zecevic I',
           datePublished: '2022',
-          isPartOf: { '@type': 'Periodical', name: 'Journal of Medical Case Reports' },
-        },
-        {
-          '@type': 'ScholarlyArticle',
+          journal: 'Journal of Medical Case Reports',
+        }),
+        citeStub({
           name: 'Healthy Singleton Pregnancies from Restorative Reproductive Medicine (RRM) After Failed IVF',
           author: 'Boyle PC, de Groot T, Andralojc KM, Parnell TA',
           datePublished: '2018',
-          isPartOf: { '@type': 'Periodical', name: 'Frontiers in Medicine' },
-        },
-        {
-          '@type': 'ScholarlyArticle',
+          journal: 'Frontiers in Medicine',
+        }),
+        citeStub({
           name: 'RRM Outcomes Compared to IVF for the Treatment of Infertility',
           author: 'Boyle P, Toth A, Minjeur M, Turczynski C',
           datePublished: '2025',
-          isPartOf: { '@type': 'Periodical', name: 'Journal of Restorative Reproductive Medicine' },
-        },
-        {
-          '@type': 'ScholarlyArticle',
+          journal: 'Journal of Restorative Reproductive Medicine',
+        }),
+        citeStub({
           name: 'Natural Procreative Technology (NaProTechnology) for Infertility: Take-Home Baby Rate and Clinical Outcomes in a 5-Year Single-Center Cohort of 1,310 Couples',
           author: 'Sanchez-Mendez JI, et al.',
           datePublished: '2025',
-          isPartOf: { '@type': 'Periodical', name: 'Frontiers in Reproductive Health' },
-        },
+          journal: 'Frontiers in Reproductive Health',
+        }),
       ],
     },
     {
@@ -326,6 +327,7 @@ const jsonLd = {
   ogType="article"
   publishDate="2026-03-01"
   jsonLd={jsonLd}
+  speakable={['.pillar-lead', 'h1']}
 >
   <div class="page-wrapper" data-pagefind-body>
     <span data-pagefind-meta="type:Guide" style="display:none"></span>
