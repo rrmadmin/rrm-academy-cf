@@ -1,22 +1,24 @@
 /**
  * POST /api/ask
  * Conversational AI endpoint: validates session, rate-limits per user/day via KV,
- * then proxies to Cloudflare AI Search /chat/completions.
+ * then proxies to either the rrm-ai-search Worker (v2) or Cloudflare AI Search (v1)
+ * based on the feature:search_v2 KV flag stamped by middleware.
  */
-import { json, optionsResponse, getSessionIdFromCookie, validateSession } from './auth/_shared.js';
+import { json, optionsResponse, getSessionIdFromCookie, validateSession, roleAtLeast } from './auth/_shared.js';
 import { validateBody } from './_validate.js';
 import { log } from './_log.js';
 import { logSearchQuery, hashIp, extractRequestMeta } from './_search_log.js';
+import { SYSTEM_PROMPT } from './_ask_prompt.js';
 
 async function hashShort(text) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
   return Array.from(new Uint8Array(buf), b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
 }
 
-async function logAskQuery(env, request, message, userId, start, httpStatus) {
+async function logAskQuery(env, request, message, userId, start, httpStatus, source) {
   const { user_agent_short, referer_path } = extractRequestMeta(request);
   await logSearchQuery(env, {
-    source: 'ask',
+    source: source || 'ask',
     query: message,
     user_id: userId,
     ip_hash: await hashIp(request.headers.get('cf-connecting-ip') || ''),
@@ -35,18 +37,11 @@ function utcDateKey() {
 const RATE_LIMIT_MAX = 20;
 const RATE_LIMIT_TTL = 172800; // 48h in seconds
 
-const SYSTEM_PROMPT = `You are the RRM Academy conversational research layer. Your answers are grounded strictly in the RRM Academy library (Dr. Naomi Whittaker and the restorative reproductive medicine literature).
-
-EDITORIAL RULES (non-negotiable):
-1. Never recommend IVF for any condition. When IVF is mentioned, describe what the library documents about IVF outcomes, then explain the RRM approach (diagnose and treat root causes). Do not present IVF as a "better choice" for severe endometriosis, older women, or any other scenario. Do not suggest "if you want something widely available, IVF".
-2. For "unexplained infertility": open by reframing gently. In RRM, "unexplained" usually means "not yet diagnosed" -- underlying endometriosis, PCOS, sperm factor, thyroid, or progesterone deficiency are commonly missed. Acknowledge the user respectfully if they use the term. Never scold, never open with "actually your diagnosis is wrong". Lead with curiosity and hope.
-3. RRM is evidence-based medicine grounded in reproductive physiology. Do not describe RRM as secular. Do not volunteer disclaimers about religion. Treat religion as relevant only if the user explicitly asks.
-4. Never use em dashes (use a double-hyphen -- or restructure the sentence).
-5. Refer to Dr. Phil Boyle as "Dr. Boyle", never "Phil".
-6. Cite library URLs exactly as retrieved. Do not fabricate URLs, PMIDs, DOIs, or statistics.
-7. Do not append a "this is AI-generated" disclaimer; the page already shows one.
-
-Answer concisely, warmly, and clinically. Keep the RRM lens (root-cause diagnosis, restorative treatment, natural conception) central.`;
+function shouldUseV2(tier, user) {
+  if (tier === 'all') return true;
+  if (tier === 'admin' && user && roleAtLeast(user.role, 'admin')) return true;
+  return false;
+}
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -68,7 +63,7 @@ export async function onRequestPost(context) {
   }
 
   const user = await env.DB.prepare(
-    'SELECT id, blocked FROM user WHERE id = ?'
+    'SELECT id, role, blocked FROM user WHERE id = ?'
   ).bind(session.userId).first();
   if (!user) {
     return json({ error: 'unauthorized' }, 401);
@@ -88,8 +83,8 @@ export async function onRequestPost(context) {
     const raw = await env.COMMUNITY_KV.get(rateLimitKey);
     currentCount = raw ? parseInt(raw, 10) : 0;
   } catch (err) {
-    log(env, waitUntil, 'ask', 'kv_read_error', 'error', err.message, 0, 500);
-    return json({ error: 'service_error' }, 500);
+    log(env, waitUntil, 'ask', 'kv_read_error', 'error', err.message, 0, 503);
+    return json({ error: 'service_unavailable' }, 503);
   }
 
   if (currentCount >= RATE_LIMIT_MAX) {
@@ -99,14 +94,8 @@ export async function onRequestPost(context) {
     return json({ error: 'rate_limited', reset: tomorrow.toISOString() }, 429);
   }
 
-  try {
-    await env.COMMUNITY_KV.put(rateLimitKey, String(currentCount + 1), { expirationTtl: RATE_LIMIT_TTL });
-  } catch (err) {
-    log(env, waitUntil, 'ask', 'kv_write_error', 'error', err.message, 0, 500);
-    return json({ error: 'service_error' }, 500);
-  }
-
-  // Parse and validate body
+  // Parse and validate body BEFORE writing the rate-limit counter
+  // so malformed payloads do not burn quota
   let body;
   try {
     body = await request.json();
@@ -126,13 +115,120 @@ export async function onRequestPost(context) {
 
   const message = validated.data.message;
 
-  // Env guard for upstream URL
-  if (!env.NLWEB_SEARCH_URL) {
-    await logAskQuery(env, request, message, user.id, start, 503);
+  try {
+    await env.COMMUNITY_KV.put(rateLimitKey, String(currentCount + 1), { expirationTtl: RATE_LIMIT_TTL });
+  } catch (err) {
+    log(env, waitUntil, 'ask', 'kv_write_error', 'error', err.message, 0, 503);
     return json({ error: 'service_unavailable' }, 503);
   }
 
-  // Proxy to AI Search /chat/completions
+  // Read v2 tier stamped by middleware; default to 'off'
+  const tier = context.data?.searchV2 || 'off';
+
+  if (shouldUseV2(tier, user)) {
+    // v2 path: service binding to rrm-ai-search Worker
+    if (!env.AI_SEARCH) {
+      log(env, waitUntil, 'ask', 'v2_binding_missing', 'error', 'AI_SEARCH binding absent', 0, 503);
+      await logAskQuery(env, request, message, user.id, start, 503, 'ask_v2');
+      return json({ error: 'service_unavailable' }, 503);
+    }
+    if (!env.AI_SEARCH_WORKER_AUTH) {
+      log(env, waitUntil, 'ask', 'v2_auth_missing', 'error', 'AI_SEARCH_WORKER_AUTH secret absent', 0, 503);
+      await logAskQuery(env, request, message, user.id, start, 503, 'ask_v2');
+      return json({ error: 'service_unavailable' }, 503);
+    }
+
+    let v2Resp;
+    let httpStatus;
+    try {
+      v2Resp = await env.AI_SEARCH.fetch('https://internal/ask', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${env.AI_SEARCH_WORKER_AUTH}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message, editorialPrompt: SYSTEM_PROMPT }),
+        signal: AbortSignal.timeout(28000),
+      });
+    } catch (err) {
+      const isTimeout = err.name === 'AbortError' || err.name === 'TimeoutError';
+      httpStatus = isTimeout ? 504 : 502;
+      log(env, waitUntil, 'ask', 'v2_fetch_error', 'error', err.message, Date.now() - start, httpStatus);
+      await logAskQuery(env, request, message, user.id, start, httpStatus, 'ask_v2');
+      if (isTimeout) {
+        return json({ error: 'upstream_timeout' }, 504);
+      }
+      return json({ error: 'upstream_error' }, 502);
+    }
+
+    if (!v2Resp.ok) {
+      log(env, waitUntil, 'ask', 'v2_non2xx', 'error', String(v2Resp.status), Date.now() - start, 502);
+      await logAskQuery(env, request, message, user.id, start, 502, 'ask_v2');
+      return json({ error: 'upstream_error' }, 502);
+    }
+
+    let v2Data;
+    try {
+      v2Data = await v2Resp.json();
+    } catch (err) {
+      log(env, waitUntil, 'ask', 'v2_parse_error', 'error', err.message, Date.now() - start, 502);
+      await logAskQuery(env, request, message, user.id, start, 502, 'ask_v2');
+      return json({ error: 'upstream_error' }, 502);
+    }
+
+    if (typeof v2Data?.answer !== 'string') {
+      log(env, waitUntil, 'ask', 'v2_no_answer', 'error', 'no answer field in v2 response', Date.now() - start, 502);
+      await logAskQuery(env, request, message, user.id, start, 502, 'ask_v2');
+      return json({ error: 'upstream_error' }, 502);
+    }
+
+    const answer = v2Data.answer;
+    const rawCitations = v2Data.citations;
+    const citations = Array.isArray(rawCitations)
+      ? rawCitations
+          .filter(c => c && typeof c.url === 'string')
+          .map(c => {
+            const out = { url: c.url };
+            if (c.title && typeof c.title === 'string') out.title = c.title;
+            return out;
+          })
+      : [];
+
+    httpStatus = 200;
+    const durationMs = Date.now() - start;
+
+    if (env.EVENTS) {
+      const hashedQuery = await hashShort(message);
+      const hashedUserId = await hashShort(user.id);
+      env.EVENTS.writeDataPoint({
+        blobs: ['rrm-academy', 'ask', 'query', String(httpStatus), hashedQuery, hashedUserId, 'v2'],
+        doubles: [durationMs, 1, httpStatus],
+        indexes: ['ask'],
+      });
+    }
+
+    const { user_agent_short, referer_path } = extractRequestMeta(request);
+    await logSearchQuery(env, {
+      source: 'ask_v2',
+      query: message,
+      user_id: user.id,
+      ip_hash: await hashIp(request.headers.get('cf-connecting-ip') || ''),
+      results_count: null,
+      duration_ms: durationMs,
+      http_status: httpStatus,
+      user_agent_short,
+      referer_path,
+    });
+
+    return json({ answer, citations });
+  }
+
+  // v1 path: legacy NLWeb AI Search proxy
+  if (!env.NLWEB_SEARCH_URL) {
+    await logAskQuery(env, request, message, user.id, start, 503, 'ask');
+    return json({ error: 'service_unavailable' }, 503);
+  }
+
   let upstreamResp;
   let httpStatus;
   try {
@@ -149,7 +245,7 @@ export async function onRequestPost(context) {
     const isTimeout = err.name === 'AbortError' || err.name === 'TimeoutError';
     httpStatus = isTimeout ? 504 : 502;
     log(env, waitUntil, 'ask', 'upstream_fetch_error', 'error', err.message, Date.now() - start, httpStatus);
-    await logAskQuery(env, request, message, user.id, start, httpStatus);
+    await logAskQuery(env, request, message, user.id, start, httpStatus, 'ask');
     if (isTimeout) {
       return json({ error: 'upstream_timeout' }, 504);
     }
@@ -158,7 +254,7 @@ export async function onRequestPost(context) {
 
   if (!upstreamResp.ok) {
     log(env, waitUntil, 'ask', 'upstream_non2xx', 'error', String(upstreamResp.status), Date.now() - start, 502);
-    await logAskQuery(env, request, message, user.id, start, 502);
+    await logAskQuery(env, request, message, user.id, start, 502, 'ask');
     return json({ error: 'upstream_error' }, 502);
   }
 
@@ -167,18 +263,17 @@ export async function onRequestPost(context) {
     upstreamData = await upstreamResp.json();
   } catch (err) {
     log(env, waitUntil, 'ask', 'upstream_parse_error', 'error', err.message, Date.now() - start, 502);
-    await logAskQuery(env, request, message, user.id, start, 502);
+    await logAskQuery(env, request, message, user.id, start, 502, 'ask');
     return json({ error: 'upstream_error' }, 502);
   }
 
   const answer = upstreamData?.choices?.[0]?.message?.content;
   if (typeof answer !== 'string') {
     log(env, waitUntil, 'ask', 'upstream_no_answer', 'error', 'no content in choices[0]', Date.now() - start, 502);
-    await logAskQuery(env, request, message, user.id, start, 502);
+    await logAskQuery(env, request, message, user.id, start, 502, 'ask');
     return json({ error: 'upstream_error' }, 502);
   }
 
-  // Extract citations from AI Search response (may be in context or a citations field)
   const rawCitations =
     upstreamData?.choices?.[0]?.message?.citations ||
     upstreamData?.choices?.[0]?.message?.context ||
@@ -196,12 +291,11 @@ export async function onRequestPost(context) {
   httpStatus = 200;
   const durationMs = Date.now() - start;
 
-  // AE logging (direct writeDataPoint -- returns void, never wrap in waitUntil)
   if (env.EVENTS) {
     const hashedQuery = await hashShort(message);
     const hashedUserId = await hashShort(user.id);
     env.EVENTS.writeDataPoint({
-      blobs: ['rrm-academy', 'ask', 'query', String(httpStatus), hashedQuery, hashedUserId],
+      blobs: ['rrm-academy', 'ask', 'query', String(httpStatus), hashedQuery, hashedUserId, 'v1'],
       doubles: [durationMs, 1, httpStatus],
       indexes: ['ask'],
     });

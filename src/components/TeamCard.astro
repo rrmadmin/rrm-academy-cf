@@ -1,0 +1,139 @@
+---
+import type { TeamMember } from '../lib/identity';
+
+interface Props {
+  member: TeamMember;
+}
+
+const { member } = Astro.props;
+const initials = `${member.given_name?.[0] || ''}${member.family_name?.[0] || ''}`.toUpperCase();
+const hasPhoto = Boolean(member.photo);
+const bios = (member.bio_paragraphs || []).filter(
+  (p) => p && !/^TODO/i.test(p)
+);
+const hasBio = bios.length > 0;
+const showFoundationRole = member.foundation_role && member.foundation_role !== member.academy_role;
+---
+
+<article class="team-card" id={member.ssot_id?.split('#')[1] || undefined}>
+  <div class="team-card__media">
+    {hasPhoto ? (
+      <img
+        src={member.photo}
+        alt={member.photo_alt}
+        class="team-card__photo"
+        loading="lazy"
+        decoding="async"
+        width="160"
+        height="160"
+      />
+    ) : (
+      <div class="team-card__photo team-card__photo--placeholder" aria-hidden="true">
+        <span class="team-card__initials">{initials}</span>
+      </div>
+    )}
+  </div>
+  <div class="team-card__body">
+    <h3 class="team-card__name">{member.name}</h3>
+    {member.credentials && (
+      <p class="team-card__credentials">{member.credentials}</p>
+    )}
+    <p class="team-card__role">{member.academy_role}</p>
+    {showFoundationRole && (
+      <p class="team-card__foundation-role">RRM Foundation: {member.foundation_role}</p>
+    )}
+    {hasBio && (
+      <div class="team-card__bio">
+        {bios.map((p) => <p>{p}</p>)}
+      </div>
+    )}
+  </div>
+</article>
+
+<style>
+  .team-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4);
+    text-align: center;
+    background: var(--bg-body);
+  }
+  .team-card__media {
+    flex-shrink: 0;
+  }
+  .team-card__photo {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    display: block;
+  }
+  .team-card__photo--placeholder {
+    background: var(--purple-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .team-card__initials {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: 2.5rem;
+    line-height: 1;
+    color: var(--purple-700);
+    letter-spacing: 0.02em;
+  }
+  .team-card__body {
+    width: 100%;
+  }
+  .team-card__name {
+    font-size: 1.25rem;
+    margin-bottom: var(--space-1);
+  }
+  .team-card__credentials {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-2);
+  }
+  .team-card__role {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--accent);
+    margin-bottom: var(--space-2);
+  }
+  .team-card__foundation-role {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-3);
+    font-style: italic;
+  }
+  .team-card__bio {
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    text-align: left;
+  }
+  .team-card__bio p {
+    margin-bottom: var(--space-3);
+  }
+  .team-card__bio p:last-child {
+    margin-bottom: 0;
+  }
+
+  @media (min-width: 640px) {
+    .team-card {
+      flex-direction: row;
+      align-items: flex-start;
+      text-align: left;
+      gap: var(--space-5);
+    }
+    .team-card__photo {
+      width: 160px;
+      height: 160px;
+    }
+    .team-card__bio {
+      text-align: left;
+    }
+  }
+</style>

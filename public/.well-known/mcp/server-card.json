@@ -2,19 +2,22 @@
   "name": "RRM Academy",
   "description": "Search and retrieve peer-reviewed research on restorative reproductive medicine (RRM), NaProTechnology, fertility awareness-based methods, endometriosis excision surgery, PCOS, and related women's health topics. Also validates text against RRM editorial guardrails and verifies statistical claims against a curated facts database.",
   "version": "1.0.0",
-  "serverUrl": "https://rrm-mcp.administrator-cloudflare.workers.dev/mcp",
+  "serverUrl": "https://mcp.rrmacademy.org/mcp",
   "protocol": "mcp",
-  "protocolVersion": "2024-11-05",
-  "transport": "http",
+  "protocolVersion": "2025-06-18",
+  "transport": "streamable-http",
   "authentication": {
     "type": "bearer",
     "required": true,
-    "description": "Contact info@rrmacademy.org to request an API key."
+    "issuance": "self-service",
+    "description": "Sign in at https://rrmacademy.org/account/mcp-keys to generate a personal API key.",
+    "request_url": "https://rrmacademy.org/account/mcp-keys",
+    "setup_guide": "https://rrmacademy.org/connect"
   },
   "tools": [
     {
       "name": "search",
-      "description": "Search the RRM Academy research library. 3,200+ peer-reviewed articles on restorative reproductive medicine. Supports filters for type, tradition (napro/femm/billings), year, and pagination.",
+      "description": "Search the RRM Academy research library. 3,370+ peer-reviewed articles on restorative reproductive medicine. Supports filters for type, tradition (napro/femm/billings), year, and pagination.",
       "inputSchema": {
         "type": "object",
         "properties": {

@@ -77,32 +77,74 @@
         "note": "Manual refresh after data-heavy changes (bulk enrichment, new content types). ~100s for 3,200+ entries"
       },
       "ai_search": {
-        "instance_name": "rrm-academy-ask",
-        "public_endpoint": "https://383a8638-22b4-46c2-823d-1d42dbcb2bf3.search.ai.cloudflare.com",
-        "model": "Llama 3.3 70B",
-        "purpose": "Conversational research layer powering /ask page (auth-gated)",
-        "live_since": "2026-04-16",
-        "crawl": {
-          "source": "Website (Rendered Sites)",
-          "include": [
-            "rrmacademy.org",
-            "www.rrmacademy.org"
+        "namespace": "rrm-academy-search",
+        "primary_since": "2026-04-28",
+        "purpose": "Conversational research layer powering /ask page + replacement for Vectorize semantic search",
+        "model": "Llama 3.3 70B (Workers AI, @cf/meta/llama-3.3-70b-instruct-fp8-fast)",
+        "retrieval": "Hybrid (BM25 keyword + vector) within the AI Search namespace",
+        "instances": {
+          "rrm-academy-search-articles": {
+            "type": "built-in storage",
+            "items": "3,556+",
+            "metadata_schema": [
+              "type",
+              "year",
+              "domain",
+              "rrm_relevance",
+              "is_open_access"
+            ],
+            "loaded_by": "scripts/ai-search-corpus-upload.mjs (CI on every Pages deploy + Sunday 08:00 UTC reconcile cron)"
+          },
+          "rrm-academy-search-site": {
+            "type": "web-crawler",
+            "source": "rrmacademy.org",
+            "status": "DISABLED at Worker level — produced duplicate hits (every D1 article appeared once as upload + once as crawl)"
+          }
+        },
+        "consumer_worker": {
+          "name": "rrm-ai-search",
+          "url": "https://rrm-ai-search.administrator-cloudflare.workers.dev",
+          "github": "rrmadmin/rrm-ai-search (private)",
+          "local_path": "~/iCode/projects/rrm-ai-search/",
+          "purpose": "Owns ai_search_namespaces binding (CF Pages Functions cannot bind it directly). Pages calls via service binding.",
+          "endpoints": [
+            "POST /ask (hybrid retrieval + LLM generation)",
+            "POST /search (hybrid retrieval only, Vectorize-shape envelope)"
           ],
-          "exclude": [
-            "/account/*",
-            "/admin/*",
-            "/api/*",
-            "/login",
-            "/signup",
-            "lesson steps (noindex)"
+          "bindings": [
+            "ASK_KB (AI Search namespace)",
+            "AI (Workers AI)",
+            "AUTH_DB (D1 rrm-auth — citation title lookups for posts/faq/glossary_term)",
+            "LIBRARY_DB (D1 rrm-library — citation title lookups for articles)",
+            "EVENTS (AE worker-events)"
+          ],
+          "auth": "Bearer AI_SEARCH_WORKER_AUTH (shared secret on Pages env + Worker secret)"
+        },
+        "pages_consumer": {
+          "binding_block": "[[services]] AI_SEARCH = rrm-ai-search (in rrm-academy-cf wrangler.toml)",
+          "feature_flag": {
+            "kv_key": "feature:search_v2 in COMMUNITY_KV",
+            "values": "off | admin | all",
+            "current": "all",
+            "fail_closed": "_middleware.js defaults to 'off' on KV read failure"
+          },
+          "consumed_by": [
+            "functions/api/ask.js (v1/v2 branch on shouldUseV2)",
+            "functions/api/search/semantic.js (same v1/v2 routing)"
           ]
         },
         "rate_limiting": {
-          "public_api": "120 req/60s (CF default)",
-          "per_user": "20 queries/day (KV-tracked, key ask:rate:{userId}:{YYYY-MM-DD})"
+          "public_api": "120 req/60s (CF default at the Worker)",
+          "per_user_ask": "20 queries/day (KV-tracked, key ask:rate:{userId}:{YYYY-MM-DD})",
+          "search_endpoint": "20 req/min per IP (cf-connecting-ip)"
         },
-        "pages_secret": "NLWEB_SEARCH_URL (bound to rrm-academy CF Pages project)",
-        "consumed_by": "functions/api/ask.js",
+        "deprecated_v1": {
+          "instance_name": "rrm-academy-ask",
+          "public_endpoint": "https://383a8638-22b4-46c2-823d-1d42dbcb2bf3.search.ai.cloudflare.com",
+          "type": "AutoRAG (crawler-based)",
+          "status": "DEPRECATED 2026-04-28; retained behind feature flag for emergency revert",
+          "retirement_target": "2026-05-12 (after 2-week soak); drops NLWEB_SEARCH_URL secret + deletes AutoRAG instance + decommissions Vectorize index rrm-library-vectors"
+        },
         "signup_flow": "New signups from /ask tracked via user.signup_source='ask'; welcome-ask email sent inline"
       }
     },
@@ -863,10 +905,10 @@
         "process": "Fetch published courses from /api/courses (full or single-record) -> filter overrides + sort D1 by sortOrder -> merge courses-overrides.json (idempotent, honors _position field) -> atomic write via .tmp + rename. Endpoint-down resilience: 5xx after retries -> log + exit 0 with courses.json untouched.",
         "output": "src/data/courses.json",
         "ssot_since": "2026-04-26",
-        "soak_through": "2026-05-03",
-        "step_10_cleanup": "drop AIRTABLE_PAT + TINIFY_API_KEY from Fetch all data env, untrack courses.json from git, archive Airtable base app0nohI0WrgFWOE3",
+        "soak_through": "2026-05-03 (cleanup mostly executed early on 2026-04-27 per Brian)",
         "critical_note": "NeoFertility Medical Training Cohort lives ONLY in overrides.json (no D1 record). Without the merge step, every cache-miss deploy silently 404s /courses/neofertility-medical-training/. Migration script's --check-fk validates 6 course_id + 3 step_id reference tables.",
-        "authoring": "17 admin endpoints under functions/api/admin/courses/* (session + admin role). MANDATORY: route ALL course edits through /courses-update skill at ~/.claude/skills/courses-update/SKILL.md. Migration script (scripts/migrate-courses-to-d1.mjs) is one-shot seed only -- requires --seed-mode-i-understand flag and clobbers admin-edited status."
+        "authoring": "17 admin endpoints under functions/api/admin/courses/* (session + admin role). MANDATORY: route ALL course edits through /courses-update skill at ~/.claude/skills/courses-update/SKILL.md. Migration script (scripts/migrate-courses-to-d1.mjs) is one-shot seed only -- requires --seed-mode-i-understand flag and clobbers admin-edited status.",
+        "cleanup_executed_2026_04_27": "AIRTABLE_PAT + TINIFY_API_KEY + AIRTABLE_WEBHOOK_URL dropped from deploy.yml. Pending: untrack src/data/courses.json from git, archive Airtable base app0nohI0WrgFWOE3."
       },
       "glossary": {
         "from": "GET /api/glossary/terms",
@@ -1224,10 +1266,10 @@
     "citation_integrity": "Blog deploy blocked by scripts/verify-citations.mjs v2 (multi-API cascade). Never insert citations from model knowledge -- always live research."
   },
   "search_system": {
-    "architecture": "Pagefind (client-side full-text, instant) + Vectorize (server-side semantic, ~200ms) merged via Reciprocal Rank Fusion (RRF) in src/components/SearchBar.astro",
+    "architecture": "Pagefind (client-side full-text, instant) merged with semantic results from /api/search/semantic via Reciprocal Rank Fusion (RRF) in src/components/SearchBar.astro. As of 2026-04-28 the semantic backend is the rrm-ai-search Worker (hybrid BM25+vector against AI Search namespace rrm-academy-search). Pre-2026-04-28 it was Vectorize index rrm-library-vectors.",
     "fusion": {
       "algorithm": "Reciprocal Rank Fusion (RRF)",
-      "formula": "sum(1/(K+rank)) across Pagefind + Vectorize + recency + relevance signals",
+      "formula": "sum(1/(K+rank)) across Pagefind + semantic + recency + relevance signals",
       "parameters": [
         {
           "name": "RRF_K",
@@ -1263,36 +1305,33 @@
       "query_param": "q",
       "query_cap_chars": 500,
       "rate_limit": "20 req/min per IP (cf-connecting-ip)",
-      "rate_limit_purpose": "Protect billed AI.run() + Vectorize.query()",
+      "rate_limit_purpose": "Protect billed Workers AI + AI Search query calls",
       "authentication": "None (public)",
-      "response_shape": "{ results: [{ url, title, type, score, authors, year }] }"
+      "response_shape": "{ results: [{ url, title, type, score, authors, year }] }",
+      "routing": "v1/v2 branch on context.data.searchV2 from _middleware.js (KV feature:search_v2). v2 path forwards to rrm-ai-search Worker via service binding; v1 falls back to Vectorize. Anonymous + tier=admin still v1 until full rollout."
     },
-    "embedding_pipeline": {
-      "model": "@cf/baai/bge-base-en-v1.5",
+    "v2_pipeline": {
+      "namespace": "rrm-academy-search",
+      "primary_instance": "rrm-academy-search-articles",
+      "loader_script": "scripts/ai-search-corpus-upload.mjs",
+      "ci_steps": [
+        ".github/workflows/deploy.yml — corpus upload runs after Pages deploy on every push (continue-on-error: true, ::warning:: annotation)",
+        ".github/workflows/ai-search-reconcile.yml — Sunday 08:00 UTC (--full-rebuild + --reconcile --execute --max-delete 50)"
+      ],
+      "key_to_title_lookup": "rrm-ai-search Worker resolves citation titles via D1: 2-layer batched lookup. Direct slug→title per source table (articles/posts/faq.question/glossary_term.name); fallback through ai_search_docs.full_slug for sha8-truncated keys."
+    },
+    "v1_deprecated_pipeline": {
+      "model": "@cf/baai/bge-base-en-v1.5 (Vectorize)",
+      "vectorize_index": "rrm-library-vectors",
       "local": {
         "script": "scripts/embed-library.mjs",
-        "trigger": "npm run embed (wrangler dev --remote + Worker bindings)",
-        "content_sources": {
-          "articles": "title + Domain + Topics + SearchTerms + abstract",
-          "posts": "title + seoKeywords + excerpt + content",
-          "faqs": "question + category + answer",
-          "courses": "title + description + section titles + seo.keywords"
-        },
-        "metadata_constraint": "No null values; omit fields when value is null",
-        "text_truncation": 2000,
-        "batch_size": 100
+        "trigger": "npm run embed (wrangler dev --remote + Worker bindings)"
       },
       "ci": {
         "script": "scripts/embed-library-ci.mjs",
-        "method": "Cloudflare REST API (CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID)",
-        "features": [
-          "Stale vector cleanup (list + delete)",
-          "Pre-publish validation (articles >= 2500)",
-          "Batch upsert"
-        ],
-        "status": "Production-ready; NOT wired into deploy.yml yet"
+        "status": "Retained for rollback during 2-week soak"
       },
-      "refresh_cadence": "Manual (post data-heavy changes). ~100s for 3,200+ entries"
+      "retirement_target": "2026-05-12 — drop scripts, delete Vectorize index"
     }
   },
   "newsletter_system": {
@@ -1587,6 +1626,13 @@
       "status": "active",
       "purpose": "MCP server for Naomi's Perplexity (5 tools, API key auth, AE telemetry)"
     },
+    "rrm-ai-search": {
+      "status": "active",
+      "purpose": "Standalone Worker that owns the ai_search_namespaces binding (Pages cannot bind it directly). Service-bound from rrm-academy CF Pages as AI_SEARCH. Backs /ask + /api/search/semantic with hybrid retrieval against rrm-academy-search namespace + Llama 3.3 70B generation.",
+      "base_url": "https://rrm-ai-search.administrator-cloudflare.workers.dev",
+      "github": "rrmadmin/rrm-ai-search (private)",
+      "live_since": "2026-04-28"
+    },
     "openrouter-proxy": {
       "status": "active",
       "purpose": "CORS proxy for OpenRouter API",
@@ -1594,7 +1640,8 @@
     },
     "rrm-finance-sync": {
       "status": "stub",
-      "purpose": "Payment sync to Airtable ledger"
+      "purpose": "Payment sync to Airtable ledger",
+      "_status_2026_04_27": "STUB (undeployed) AND target ledger is dormant. Effectively dead."
     },
     "overwatch-worker": {
       "status": "paused",
@@ -1655,6 +1702,11 @@
     "rrm-cli": {
       "path": "projects/rrm-cli/",
       "purpose": "Local knowledge base CLI"
+    },
+    "rrm-ai-search": {
+      "path": "projects/rrm-ai-search/",
+      "github": "rrmadmin/rrm-ai-search",
+      "purpose": "Standalone Worker backing /ask + /api/search/semantic via AI Search namespace + Workers AI"
     },
     "rrm-mcp": {
       "path": "projects/rrm-mcp/",
@@ -1768,6 +1820,81 @@
       "purpose": "Brian's Arcade game server"
     }
   },
+  "airtable_status": {
+    "_audit_date": "2026-04-27",
+    "_cleanup_executed": "2026-04-27",
+    "policy": "Airtable is deprecated for rrm-academy content. D1 is SSOT. Endo survey is the only by-design Airtable holdout (HIPAA pseudonymization). Foundation finance is stale/dormant — treat as archive, not active.",
+    "migrated_to_d1": {
+      "library_articles": {
+        "target": "D1 rrm-library",
+        "since": "pre-2026-03"
+      },
+      "blog_posts": {
+        "target": "D1 rrm-auth.posts",
+        "since": "2026-03-27"
+      },
+      "faqs": {
+        "target": "D1 rrm-auth.faq",
+        "since": "2026-03-28"
+      },
+      "glossary": {
+        "target": "D1 rrm-auth.glossary_term + glossary_reference + glossary_abbreviation",
+        "since": "2026-04-18"
+      },
+      "courses": {
+        "target": "D1 rrm-auth.course + course_section + course_step",
+        "since": "2026-04-26"
+      },
+      "library_intake_appendNote": {
+        "target": "D1 rrm-library.annotations via rrm-library-worker /annotate",
+        "since": "2026-04-27 (deployed commit 70065dd)",
+        "key_format": "rose-note-${Date.now()} so notes accumulate (UNIQUE on content_id+key)"
+      }
+    },
+    "remaining_holdouts": {
+      "endo_survey_submissions": {
+        "file": "functions/api/survey/submit.js",
+        "airtable_base": "appb7HeeJQsVe3Jpr",
+        "airtable_table": "tblMAw2tih2ie3ZCu",
+        "split": "D1 rrm-survey.survey_identities holds email + airtable_record_id; Airtable holds symptoms+scores+metadata (no email)",
+        "rationale": "HIPAA-driven pseudonymization. Brian explicitly opted to keep on Airtable for now (2026-04-27).",
+        "status": "BY_DESIGN_HOLDOUT_KEEP"
+      }
+    },
+    "removed_2026_04_27": {
+      "deploy_yml_dead_env_vars_dropped": [
+        "AIRTABLE_PAT (line 163)",
+        "TINIFY_API_KEY (line 164)",
+        "AIRTABLE_WEBHOOK_URL (lines 91, 167)"
+      ],
+      "scripts_deleted": [
+        "scripts/build-contact-crm.mjs (D1 contact table is SSOT, 7,163 rows)",
+        "scripts/optimize-course-covers.mjs (DEAD)",
+        "scripts/unpublish-post.sh (BROKEN since blog migration)",
+        "scripts/migrate-survey-identities.mjs (one-shot already executed)",
+        "src/lib/airtable-config.mjs (orphaned)",
+        "scripts/stuc-pipeline/ entire directory (publish.mjs, download.sh, manifest.json) — D1 admin endpoints replace it"
+      ],
+      "code_blocks_removed": [
+        "src/lib/fetch-data.mjs Airtable webhook ping block (decorative pre-D1 cache notification)"
+      ]
+    },
+    "intentional_separate_ecosystem_now_dormant": {
+      "foundation_finance_ledger": {
+        "airtable_base": "appdRYaSoJmeZSqU6",
+        "airtable_table": "tblh96WpbmB7T8Cz1",
+        "row_count_approx": 753,
+        "policy_per_BOOKKEEPING_STRATEGY_2026": "Airtable forever, scaling via Plus tier 2027-2028",
+        "actual_status_2026_04_27": "STALE_DORMANT per Brian. n8n financial workflows are paused/dead. Ledger no longer actively maintained.",
+        "implication": "Treat as historical archive, not live system. Don't propose extensions to it."
+      }
+    },
+    "n8n_host_status": {
+      "host": "https://n8n.rrmacademy.org (108.174.50.7)",
+      "status_at_audit": "HARD_DOWN_502 (Caddy up, n8n process down)",
+      "remediation_priority": "LOW (per Brian 2026-04-27: financial workflows are stale/dead anyway; no urgency)"
+    }
+  },
   "credentials": {
     "vault": "Automation",
     "service_account": "Whittaker Automation (OP_SERVICE_ACCOUNT_TOKEN in ~/.zshrc)",
@@ -1781,7 +1908,7 @@
         "purpose": "n8n REST API"
       },
       "OpenClaw Airtable PAT": {
-        "purpose": "Airtable API access (all bases)"
+        "purpose": "Airtable API access. Active scope (2026-04-27): endo-survey runtime + dormant Foundation ledger only. NOT for new code."
       },
       "OpenAI API Key": {
         "purpose": "Image gen, Whisper"
@@ -1824,8 +1951,23 @@
         ]
       },
       "NLWeb Search URL": {
-        "purpose": "Base URL for rrm-academy-ask CF AI Search endpoint",
+        "purpose": "Base URL for legacy rrm-academy-ask AutoRAG endpoint (DEPRECATED 2026-04-28; retained behind feature:search_v2 flag for emergency revert until 2026-05-12 retirement)",
         "env_var": "NLWEB_SEARCH_URL"
+      },
+      "Cloudflare API Token - AI Search 180d (account-scoped)": {
+        "purpose": "Corpus loader auth (CI: AI_SEARCH_API_TOKEN GitHub secret in rrm-academy-cf)",
+        "permissions": "AI Search Write + Account Settings Read + Workers AI Write",
+        "expires": "2026-10-25",
+        "ip_locked": true
+      },
+      "Cloudflare API Token - Phase 2 (account-scoped, 90d)": {
+        "purpose": "rrm-ai-search Worker deploy + KV feature flag toggle + Pages env var write",
+        "permissions": "AI Search Write + Workers Scripts Write + Workers KV Storage Edit + Workers AI Write + Account Settings Read + Pages Write",
+        "expires": "~2026-07-27"
+      },
+      "AI Search Worker Auth Token": {
+        "purpose": "Bearer secret shared between rrm-academy CF Pages and rrm-ai-search Worker. Set on BOTH ends as AI_SEARCH_WORKER_AUTH (Pages env var production secret_text + Worker secret).",
+        "validates": "Authorization header on every Worker call"
       },
       "One-Punch-Man-Token": {
         "purpose": "CF API token-management bootstrap (IP-locked to 72.95.9.135)"
@@ -1839,12 +1981,15 @@
     ]
   },
   "people": {
+    "_note": "Lightweight system-context refs. Canonical Person records live in ~/iCode/config/ecosystem-identity/people.json (referenced by ssot_ref).",
     "brian": {
       "name": "Brian Whittaker",
-      "role": "Administrator, RRM Academy",
+      "academy_role": "Executive Director",
+      "foundation_role": "Board Treasurer and Acting Executive Lead",
       "email": "bwhittaker@rrmacademy.org",
       "location": "Harrisburg, PA",
       "timezone": "America/New_York",
+      "ssot_ref": "https://rrmacademy.org/#brian-whittaker",
       "git": {
         "user.name": "RRM Admin",
         "user.email": "administrator+git@rrmacademy.org"
@@ -1853,9 +1998,23 @@
     "naomi": {
       "name": "Dr. Naomi Whittaker, MD",
       "credentials": "Board-Certified OBGYN, MIGS, NFPMC, FCI",
-      "role": "Lead instructor, canonical byline author",
+      "academy_role": "Founder and Lead Instructor",
+      "foundation_role": "Board Chair and Chief Medical Director",
       "npi": "1881034908",
-      "practice_address": "225 Grandview Ave Ste 302, Camp Hill, PA 17011"
+      "practice_address": "225 Grandview Ave Ste 302, Camp Hill, PA 17011",
+      "ssot_ref": "https://rrmacademy.org/#naomi-whittaker"
+    },
+    "bailey": {
+      "name": "Bailey Long",
+      "academy_role": "Board Secretary",
+      "foundation_role": "Board Secretary",
+      "ssot_ref": "https://rrmacademy.org/#bailey-long"
+    },
+    "erin": {
+      "name": "Dr. Erin Callaghan",
+      "academy_role": "Clinical Advisor",
+      "foundation_role": "Clinical Advisor",
+      "ssot_ref": "https://rrmacademy.org/#erin-callaghan"
     }
   },
   "finances": {
@@ -1935,7 +2094,8 @@
           "6040 Processing Fees",
           "6150 Software & Apps",
           "6330 Professional Fees"
-        ]
+        ],
+        "_status_2026_04_27": "STALE/DORMANT per Brian. n8n financial workflows are paused (host down). Ledger not actively maintained. Treat as historical archive."
       },
       "summary": {
         "2024": {
@@ -1978,7 +2138,8 @@
         "monthly_6th": [
           "Bank Reconciliation (11am)",
           "Budget & Cash Flow Analysis (12pm)"
-        ]
+        ],
+        "_status_2026_04_27": "DORMANT — n8n host down, Foundation ledger no longer actively maintained per Brian 2026-04-27."
       }
     }
   },

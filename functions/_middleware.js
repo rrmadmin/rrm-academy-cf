@@ -127,6 +127,22 @@ export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
 
+  // Pre-fetch feature:search_v2 flag once per request so ask.js and
+  // search/semantic.js can read context.data.searchV2 without a duplicate KV call.
+  // Fail-closed to 'off' on any error -- the flag must NEVER fail-open to v2.
+  context.data = context.data || {};
+  if (env.COMMUNITY_KV) {
+    try {
+      const flagVal = await env.COMMUNITY_KV.get('feature:search_v2');
+      const valid = ['off', 'admin', 'all'];
+      context.data.searchV2 = valid.includes(flagVal) ? flagVal : 'off';
+    } catch {
+      context.data.searchV2 = 'off';
+    }
+  } else {
+    context.data.searchV2 = 'off';
+  }
+
   // Block search engine indexing of CF Pages preview domains
   if (url.hostname.endsWith('.pages.dev')) {
     const response = await context.next();
@@ -184,7 +200,8 @@ export async function onRequest(context) {
   const needsAuth =
     url.pathname === '/account' || url.pathname.startsWith('/account/') ||
     url.pathname === '/community' || url.pathname.startsWith('/community/') ||
-    url.pathname === '/ask' || url.pathname.startsWith('/ask/');
+    url.pathname === '/ask' || url.pathname.startsWith('/ask/') ||
+    url.pathname === '/save-the-uterus-club/migrate' || url.pathname.startsWith('/save-the-uterus-club/migrate/');
 
   if (needsAuth) {
     if (!env.DB) {
@@ -197,7 +214,7 @@ export async function onRequest(context) {
     const isAsk = url.pathname === '/ask' || url.pathname.startsWith('/ask/');
     const redirectBase = isAsk ? '/signup/' : '/login/';
     const redirectParam = isAsk ? 'next' : 'redirect';
-    const authRedirect = `https://rrmacademy.org${redirectBase}?${redirectParam}=${encodeURIComponent(url.pathname)}`;
+    const authRedirect = `https://rrmacademy.org${redirectBase}?${redirectParam}=${encodeURIComponent(url.pathname + url.search)}`;
 
     if (!sessionId) {
       return withSecurityHeaders(Response.redirect(authRedirect, 302));
@@ -235,7 +252,7 @@ export async function onRequest(context) {
     }
     const sessionId = getSessionIdFromCookie(request);
     if (!sessionId) {
-      return withSecurityHeaders(Response.redirect(`https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname)}`, 302));
+      return withSecurityHeaders(Response.redirect(`https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname + url.search)}`, 302));
     }
 
     const session = await validateSession(env.DB, sessionId);
@@ -243,7 +260,7 @@ export async function onRequest(context) {
       return withSecurityHeaders(new Response(null, {
         status: 302,
         headers: {
-          'Location': `https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname)}`,
+          'Location': `https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname + url.search)}`,
           'Set-Cookie': 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
         },
       }));
