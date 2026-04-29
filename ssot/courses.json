@@ -8,15 +8,19 @@
       "@type": "Course",
       "name": "NeoFertility Medical Training Cohort",
       "description": "TBD-GIANNA",
-      "provider": { "@id": "https://rrmacademy.org/#organization" },
+      "provider": {
+        "@id": "https://rrmacademy.org/#organization"
+      },
       "instructor": [
-        { "@id": "https://rrmacademy.org/courses/neofertility-medical-training/#instructor-phil-boyle" }
+        {
+          "@id": "https://rrmacademy.org/courses/neofertility-medical-training/#instructor-phil-boyle"
+        }
       ],
       "hasCourseInstance": [
         {
           "@type": "CourseInstance",
           "courseMode": "online",
-          "courseWorkload": "selfPaced"
+          "courseWorkload": "scheduled"
         }
       ],
       "offers": {
@@ -30,9 +34,13 @@
       "@type": "Course",
       "name": "Long Term Endometriosis Management",
       "description": "TBD-GIANNA",
-      "provider": { "@id": "https://rrmacademy.org/#organization" },
+      "provider": {
+        "@id": "https://rrmacademy.org/#organization"
+      },
       "instructor": [
-        { "@id": "https://rrmacademy.org/#naomi-whittaker" }
+        {
+          "@id": "https://rrmacademy.org/#naomi-whittaker"
+        }
       ],
       "hasCourseInstance": [
         {
@@ -52,9 +60,13 @@
       "@type": "Course",
       "name": "Postpartum Depression & Anxiety: A Restorative Approach to Recovery",
       "description": "TBD-GIANNA",
-      "provider": { "@id": "https://rrmacademy.org/#organization" },
+      "provider": {
+        "@id": "https://rrmacademy.org/#organization"
+      },
       "instructor": [
-        { "@id": "https://rrmacademy.org/#naomi-whittaker" }
+        {
+          "@id": "https://rrmacademy.org/#naomi-whittaker"
+        }
       ],
       "hasCourseInstance": [
         {
@@ -74,9 +86,13 @@
       "@type": "Course",
       "name": "Restorative Reproductive Medicine (RRM) vs Standard ART: A New Approach to Infertility",
       "description": "TBD-GIANNA",
-      "provider": { "@id": "https://rrmacademy.org/#organization" },
+      "provider": {
+        "@id": "https://rrmacademy.org/#organization"
+      },
       "instructor": [
-        { "@id": "https://rrmacademy.org/#naomi-whittaker" }
+        {
+          "@id": "https://rrmacademy.org/#naomi-whittaker"
+        }
       ],
       "hasCourseInstance": [
         {
@@ -96,9 +112,13 @@
       "@type": "Course",
       "name": "Hormones Through the Lifespan: Cycles, Conditions, and Menopause",
       "description": "TBD-GIANNA",
-      "provider": { "@id": "https://rrmacademy.org/#organization" },
+      "provider": {
+        "@id": "https://rrmacademy.org/#organization"
+      },
       "instructor": [
-        { "@id": "https://rrmacademy.org/courses/hormones-through-the-lifespan/#instructor-ana-garcia" }
+        {
+          "@id": "https://rrmacademy.org/courses/hormones-through-the-lifespan/#instructor-ana-garcia"
+        }
       ],
       "hasCourseInstance": [
         {
@@ -118,9 +138,13 @@
       "@type": "Course",
       "name": "Pelvic Floor Rehabilitation",
       "description": "TBD-GIANNA",
-      "provider": { "@id": "https://rrmacademy.org/#organization" },
+      "provider": {
+        "@id": "https://rrmacademy.org/#organization"
+      },
       "instructor": [
-        { "@id": "https://rrmacademy.org/courses/pelvic-floor-rehabilitation/#instructor-amanda-simmons" }
+        {
+          "@id": "https://rrmacademy.org/courses/pelvic-floor-rehabilitation/#instructor-amanda-simmons"
+        }
       ],
       "hasCourseInstance": [
         {
@@ -140,9 +164,13 @@
       "@type": "Course",
       "name": "Infertility as Existential Trauma",
       "description": "TBD-GIANNA",
-      "provider": { "@id": "https://rrmacademy.org/#organization" },
+      "provider": {
+        "@id": "https://rrmacademy.org/#organization"
+      },
       "instructor": [
-        { "@id": "https://rrmacademy.org/courses/infertility-existential-trauma/#instructor-clay-brigance" }
+        {
+          "@id": "https://rrmacademy.org/courses/infertility-existential-trauma/#instructor-clay-brigance"
+        }
       ],
       "hasCourseInstance": [
         {
@@ -162,9 +190,13 @@
       "@type": "Course",
       "name": "Fertility-Based Methods of Family Planning: New Horizons",
       "description": "TBD-GIANNA",
-      "provider": { "@id": "https://rrmacademy.org/#organization" },
+      "provider": {
+        "@id": "https://rrmacademy.org/#organization"
+      },
       "instructor": [
-        { "@id": "https://rrmacademy.org/courses/fertility-based-family-planning/#instructor-william-nolan" }
+        {
+          "@id": "https://rrmacademy.org/courses/fertility-based-family-planning/#instructor-william-nolan"
+        }
       ],
       "hasCourseInstance": [
         {
@@ -184,9 +216,13 @@
       "@type": "Course",
       "name": "Why the AIP Diet Is Not Enough to Reduce Inflammation",
       "description": "TBD-GIANNA",
-      "provider": { "@id": "https://rrmacademy.org/#organization" },
+      "provider": {
+        "@id": "https://rrmacademy.org/#organization"
+      },
       "instructor": [
-        { "@id": "https://rrmacademy.org/courses/aip-diet-inflammation/#instructor-rita-johnson" }
+        {
+          "@id": "https://rrmacademy.org/courses/aip-diet-inflammation/#instructor-rita-johnson"
+        }
       ],
       "hasCourseInstance": [
         {
@@ -206,11 +242,19 @@
       "@type": "Course",
       "name": "Functional Lab Testing, NaPro Technology, and Preconception Care",
       "description": "TBD-GIANNA",
-      "provider": { "@id": "https://rrmacademy.org/#organization" },
+      "provider": {
+        "@id": "https://rrmacademy.org/#organization"
+      },
       "instructor": [
-        { "@id": "https://rrmacademy.org/courses/functional-lab-testing-napro/#instructor-ana-garcia" },
-        { "@id": "https://rrmacademy.org/courses/functional-lab-testing-napro/#instructor-hannah-ducote" },
-        { "@id": "https://rrmacademy.org/courses/functional-lab-testing-napro/#instructor-elena-climov" }
+        {
+          "@id": "https://rrmacademy.org/courses/functional-lab-testing-napro/#instructor-ana-garcia"
+        },
+        {
+          "@id": "https://rrmacademy.org/courses/functional-lab-testing-napro/#instructor-hannah-ducote"
+        },
+        {
+          "@id": "https://rrmacademy.org/courses/functional-lab-testing-napro/#instructor-elena-climov"
+        }
       ],
       "hasCourseInstance": [
         {
@@ -230,9 +274,13 @@
       "@type": "Course",
       "name": "Masterclass in Endometriosis & Surgery",
       "description": "TBD-GIANNA",
-      "provider": { "@id": "https://rrmacademy.org/#organization" },
+      "provider": {
+        "@id": "https://rrmacademy.org/#organization"
+      },
       "instructor": [
-        { "@id": "https://rrmacademy.org/#naomi-whittaker" }
+        {
+          "@id": "https://rrmacademy.org/#naomi-whittaker"
+        }
       ],
       "hasCourseInstance": [
         {
