@@ -94,8 +94,8 @@ export async function onRequestPost(context) {
     return json({ error: 'rate_limited', reset: tomorrow.toISOString() }, 429);
   }
 
-  // Parse and validate body BEFORE writing the rate-limit counter
-  // so malformed payloads do not burn quota
+  // Parse and validate body. The rate-limit counter is written only after a successful
+  // upstream response, so server-side failures do not burn the user's daily quota.
   let body;
   try {
     body = await request.json();
@@ -114,13 +114,6 @@ export async function onRequestPost(context) {
   }
 
   const message = validated.data.message;
-
-  try {
-    await env.COMMUNITY_KV.put(rateLimitKey, String(currentCount + 1), { expirationTtl: RATE_LIMIT_TTL });
-  } catch (err) {
-    log(env, waitUntil, 'ask', 'kv_write_error', 'error', err.message, 0, 503);
-    return json({ error: 'service_unavailable' }, 503);
-  }
 
   // Read v2 tier stamped by middleware; default to 'off'
   const tier = context.data?.searchV2 || 'off';
@@ -176,8 +169,8 @@ export async function onRequestPost(context) {
       return json({ error: 'upstream_error' }, 502);
     }
 
-    if (typeof v2Data?.answer !== 'string') {
-      log(env, waitUntil, 'ask', 'v2_no_answer', 'error', 'no answer field in v2 response', Date.now() - start, 502);
+    if (typeof v2Data?.answer !== 'string' || v2Data.answer.length === 0) {
+      log(env, waitUntil, 'ask', 'v2_no_answer', 'error', 'empty or missing answer in v2 response', Date.now() - start, 502);
       await logAskQuery(env, request, message, user.id, start, 502, 'ask_v2');
       return json({ error: 'upstream_error' }, 502);
     }
@@ -219,6 +212,11 @@ export async function onRequestPost(context) {
       user_agent_short,
       referer_path,
     });
+
+    waitUntil(
+      env.COMMUNITY_KV.put(rateLimitKey, String(currentCount + 1), { expirationTtl: RATE_LIMIT_TTL })
+        .catch(err => log(env, waitUntil, 'ask', 'kv_write_error', 'warn', err.message, 0, 0))
+    );
 
     return json({ answer, citations });
   }
@@ -268,8 +266,8 @@ export async function onRequestPost(context) {
   }
 
   const answer = upstreamData?.choices?.[0]?.message?.content;
-  if (typeof answer !== 'string') {
-    log(env, waitUntil, 'ask', 'upstream_no_answer', 'error', 'no content in choices[0]', Date.now() - start, 502);
+  if (typeof answer !== 'string' || answer.length === 0) {
+    log(env, waitUntil, 'ask', 'upstream_no_answer', 'error', 'empty or missing content in choices[0]', Date.now() - start, 502);
     await logAskQuery(env, request, message, user.id, start, 502, 'ask');
     return json({ error: 'upstream_error' }, 502);
   }
@@ -313,6 +311,11 @@ export async function onRequestPost(context) {
     user_agent_short,
     referer_path,
   });
+
+  waitUntil(
+    env.COMMUNITY_KV.put(rateLimitKey, String(currentCount + 1), { expirationTtl: RATE_LIMIT_TTL })
+      .catch(err => log(env, waitUntil, 'ask', 'kv_write_error', 'warn', err.message, 0, 0))
+  );
 
   return json({ answer, citations });
 }
