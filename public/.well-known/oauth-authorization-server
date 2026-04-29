@@ -2,7 +2,6 @@
   "issuer": "https://rrmacademy.org",
   "authorization_endpoint": "https://rrmacademy.org/account/mcp-keys",
   "token_endpoint": "https://rrmacademy.org/account/mcp-keys",
-  "registration_endpoint": "https://rrmacademy.org/signup",
   "scopes_supported": [
     "mcp:read",
     "mcp:invoke",
@@ -14,8 +13,8 @@
     "urn:ietf:params:oauth:grant-type:api-key"
   ],
   "token_endpoint_auth_methods_supported": ["none"],
-  "code_challenge_methods_supported": ["S256"],
   "service_documentation": "https://rrmacademy.org/connect",
+  "x-account-signup-url": "https://rrmacademy.org/signup",
   "op_policy_uri": "https://rrmacademy.org/terms-of-use/",
   "op_tos_uri": "https://rrmacademy.org/terms-of-use/",
   "x-access-model": "self-service",
