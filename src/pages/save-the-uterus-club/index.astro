@@ -282,15 +282,21 @@ const jsonLd = {
           var dateEl = document.getElementById('member-next-date');
           tierEl.textContent = tierNames[sub.tier] || sub.tier;
 
-          if (sub.cancelAtPeriodEnd) {
+          if (sub.cancelAtPeriodEnd && sub.currentPeriodEnd) {
             dateEl.textContent = 'Your membership ends ' + new Date(sub.currentPeriodEnd * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
           } else if (sub.currentPeriodEnd) {
             dateEl.textContent = 'Next donation: ' + new Date(sub.currentPeriodEnd * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+          } else {
+            dateEl.textContent = 'Active monthly membership';
           }
 
           banner.hidden = false;
 
-          // Update tier buttons: current tier disabled, others show upgrade/downgrade
+          // Update tier buttons: current tier disabled, others show upgrade/downgrade.
+          // Wix-source members can't use Stripe portal or new-tier checkout (would
+          // create a parallel Stripe sub on top of their Wix sub = double charge),
+          // so route their tier-change action to email instead.
+          var isWix = sub.source === 'wix';
           var tierOrder = ['member', 'hero', 'superhero'];
           var currentIdx = tierOrder.indexOf(sub.tier);
           var buttons = document.querySelectorAll('.tier-btn');
@@ -301,9 +307,23 @@ const jsonLd = {
               buttons[i].disabled = true;
               buttons[i].textContent = 'Your Plan';
               buttons[i].classList.add('tier-btn--disabled');
+            } else if (isWix) {
+              buttons[i].textContent = 'Email to Change';
+              buttons[i].dataset.target = 'email';
+              buttons[i].classList.add('tier-btn--wix-locked');
             } else {
               buttons[i].textContent = btnIdx > currentIdx ? 'Upgrade' : 'Downgrade';
               buttons[i].classList.add('tier-btn--change');
+            }
+          }
+
+          // Wix-source members: swap "Manage Billing" → "Manage Membership" → /account/
+          // (Stripe portal returns 4xx for them since they have no Stripe customer.)
+          if (isWix) {
+            var manageBtn = document.getElementById('manage-billing-btn');
+            if (manageBtn) {
+              manageBtn.textContent = 'Manage Membership';
+              manageBtn.dataset.target = 'account';
             }
           }
 
@@ -313,9 +333,13 @@ const jsonLd = {
         })
         .catch(function () {});
 
-      // Manage billing → Stripe portal
+      // Manage billing → Stripe portal (Stripe-source) or /account/ (Wix-source)
       document.getElementById('manage-billing-btn').addEventListener('click', function () {
         var btn = this;
+        if (btn.dataset.target === 'account') {
+          window.location.href = '/account/';
+          return;
+        }
         btn.disabled = true;
         btn.textContent = 'Opening...';
         fetch('/api/billing/portal', { method: 'POST', credentials: 'same-origin' })
@@ -335,12 +359,25 @@ const jsonLd = {
           });
       });
 
-      // Tier buttons → Stripe Checkout (new members) or billing portal (existing members changing tier)
+      // Tier buttons → Stripe Checkout (new members), billing portal (Stripe members
+      // changing tier), or mailto (Wix-source members — Stripe portal won't work and
+      // a fresh checkout would create a parallel sub).
       document.querySelectorAll('.tier-btn[data-tier]').forEach(function (btn) {
         btn.addEventListener('click', function () {
           if (btn.classList.contains('tier-btn--disabled')) return;
 
-          // Existing subscriber changing tier → billing portal
+          // Wix-source member changing tier → email (no Stripe surface to use)
+          if (btn.dataset.target === 'email') {
+            var newTier = btn.dataset.tier;
+            window.location.href = 'mailto:support@rrmacademy.org?subject=' +
+              encodeURIComponent('Change my Save the Uterus Club tier') +
+              '&body=' + encodeURIComponent(
+                'Please change my Save the Uterus Club membership to the ' + newTier + ' tier.'
+              );
+            return;
+          }
+
+          // Existing Stripe subscriber changing tier → billing portal
           if (btn.classList.contains('tier-btn--change')) {
             btn.disabled = true;
             var label = btn.textContent;
@@ -628,6 +665,12 @@ const jsonLd = {
     opacity: 0.5;
     cursor: default;
     pointer-events: none;
+  }
+
+  /* Wix-source members can't tier-change in-app — button looks active but resolves to mailto */
+  .tier-btn--wix-locked {
+    /* keep clickable so the mailto handler fires; visual cue distinguishes from upgrade/downgrade */
+    border-style: dashed;
   }
 
   /* Responsive */
