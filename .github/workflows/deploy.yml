@@ -298,6 +298,9 @@ jobs:
       - name: Verify templates
         run: npm run verify-templates
 
+      - name: Standards gate
+        run: npm run standards
+
       - name: Deploy to Cloudflare Pages
         id: deploy
         uses: cloudflare/wrangler-action@v3
