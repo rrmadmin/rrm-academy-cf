@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { fetchAllFaqs, getRelatedFaqs, PILLAR_CTA_MAP, type FAQ } from '../../lib/faq';
+import { buildFAQPage, buildBreadcrumbList } from '../../lib/identity';
 
 export async function getStaticPaths() {
   const faqs = await fetchAllFaqs();
@@ -49,30 +50,26 @@ const metaDescription = faq.seoDescription
 const canonicalUrl = `https://rrmacademy.org/faqs/${faq.slug}`;
 
 // FAQPage JSON-LD (single Q&A — editorially authored, not community Q&A)
+// Built via SSOT-aware buildFAQPage + buildBreadcrumbList; dates layered after.
+const faqPageRaw = buildFAQPage([
+  { question: faq.question, answer: faq.schemaAnswer || faq.basicAnswer || faq.publishedAnswer },
+]) as Record<string, unknown>;
+const breadcrumbRaw = buildBreadcrumbList([
+  { name: 'Home', url: 'https://rrmacademy.org/' },
+  { name: 'FAQs', url: 'https://rrmacademy.org/faqs/' },
+  { name: faq.question, url: `https://rrmacademy.org/faqs/${faq.slug}/` },
+]) as Record<string, unknown>;
+const { '@context': _faqCtx, ...faqPageNode } = faqPageRaw;
+const { '@context': _bcCtx, ...breadcrumbNode } = breadcrumbRaw;
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
     {
-      '@type': 'FAQPage',
+      ...faqPageNode,
       dateModified: updatedIso,
       datePublished: createdIso,
-      mainEntity: [{
-        '@type': 'Question',
-        name: faq.question,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: faq.schemaAnswer || faq.basicAnswer || faq.publishedAnswer,
-        },
-      }],
     },
-    {
-      '@type': 'BreadcrumbList',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
-        { '@type': 'ListItem', position: 2, name: 'FAQs', item: 'https://rrmacademy.org/faqs/' },
-        { '@type': 'ListItem', position: 3, name: faq.question, item: `https://rrmacademy.org/faqs/${faq.slug}/` },
-      ],
-    },
+    breadcrumbNode,
   ],
 };
 ---
@@ -81,6 +78,7 @@ const jsonLd = {
   description={metaDescription}
   canonicalUrl={canonicalUrl}
   jsonLd={jsonLd}
+  speakable={['.faq-title', '.prose p']}
 >
   <div class="page-wrapper" data-pagefind-body>
     <span data-pagefind-meta="type:FAQ" style="display:none"></span>
