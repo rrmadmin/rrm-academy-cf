@@ -16,7 +16,7 @@
   },
   "servers": [
     {
-      "url": "https://rrm-mcp.administrator-cloudflare.workers.dev",
+      "url": "https://mcp.rrmacademy.org",
       "description": "Production MCP server (Cloudflare Worker)"
     }
   ],
@@ -94,7 +94,7 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "opaque",
-        "description": "Bearer API key. Contact info@rrmacademy.org to request access."
+        "description": "Bearer API key. Self-service issuance at https://rrmacademy.org/account/mcp-keys."
       }
     },
     "schemas": {
