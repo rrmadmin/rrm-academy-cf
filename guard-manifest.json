@@ -130,6 +130,10 @@
       "hash": "3218c9e86e12b16bd6438dcc68917a4053bdb64d2c7969473f8db425bd013b05",
       "note": "Expired data deletion from D1"
     },
+    "functions/api/admin/wix-migration-link.js": {
+      "hash": "58131eb4bdd6b8dd93b9b353a9a7cad6722472ec18484b89e76412d6555fc6c0",
+      "note": "Admin endpoint: manually link wix_subscription to CF user (Layer 4 reconciliation)"
+    },
     "scripts/guard.mjs": {
       "hash": "b9f23392af168ca73ab3324c643a7b7b6922bd494584023b30487f963ca1bf88",
       "note": "Guard script (self-guarding)"
