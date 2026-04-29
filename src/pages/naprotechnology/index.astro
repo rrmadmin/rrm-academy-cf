@@ -4,6 +4,14 @@ import BackToTop from '../../components/BackToTop.astro';
 import PdfDownload from '../../components/PdfDownload.astro';
 import LastUpdated from '../../components/LastUpdated.astro';
 import pageDates from '../../data/page-dates.json';
+import { buildScholarlyArticleStub } from '../../lib/identity';
+
+// Helper: build a ScholarlyArticle stub for citation embedding (strip @context).
+function citeStub(props: { name: string; author: string; datePublished: string; journal?: string }) {
+  const node = buildScholarlyArticleStub(props) as Record<string, unknown> & { '@context'?: unknown };
+  const { '@context': _ctx, ...rest } = node;
+  return rest;
+}
 
 const PAGE_PATH = '/naprotechnology/';
 const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-03-12';
@@ -60,27 +68,24 @@ const pageSchema = {
     { '@type': 'WebPageElement', name: 'References', url: 'https://rrmacademy.org/naprotechnology/#references' },
   ],
   citation: [
-    {
-      '@type': 'ScholarlyArticle',
+    citeStub({
       name: 'RRM Outcomes Compared to IVF for the Treatment of Infertility',
       author: 'Boyle P, Toth A, Minjeur M, Turczynski C',
       datePublished: '2025',
-      isPartOf: { '@type': 'Periodical', name: 'Journal of Restorative Reproductive Medicine' },
-    },
-    {
-      '@type': 'ScholarlyArticle',
+      journal: 'Journal of Restorative Reproductive Medicine',
+    }),
+    citeStub({
       name: 'Natural Procreative Technology (NaProTechnology) for Infertility: Take-Home Baby Rate and Clinical Outcomes in a 5-Year Single-Center Cohort of 1,310 Couples',
       author: 'S\u00e1nchez M\u00e9ndez JI, et al.',
       datePublished: '2025',
-      isPartOf: { '@type': 'Periodical', name: 'Frontiers in Reproductive Health' },
-    },
-    {
-      '@type': 'ScholarlyArticle',
+      journal: 'Frontiers in Reproductive Health',
+    }),
+    citeStub({
       name: 'The Long-Term Rate of Repeat Surgery After Optimal Excision Surgery of Endometriosis at a Single Tertiary Referral Center',
       author: 'Yeung P Jr, Mohan A, Gavard JA',
       datePublished: '2024',
-      isPartOf: { '@type': 'Periodical', name: 'Acta Scientific Women\'s Health' },
-    },
+      journal: 'Acta Scientific Women\'s Health',
+    }),
   ],
 };
 
@@ -151,6 +156,7 @@ const faqSchema = {
   ogType="article"
   publishDate="2026-03-12"
   jsonLd={pageSchema}
+  speakable={['.pillar-lead', 'h1']}
 >
   <!-- Separate JSON-LD blocks (not @graph) per spec -->
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />

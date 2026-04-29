@@ -75,7 +75,7 @@
       "note": "Auth gating"
     },
     "wrangler.toml": {
-      "hash": "ede58e2941c37be1d607acabfd53d0bd1f90952c721bb42e483fe2ba775e13c5",
+      "hash": "ba038e0ef1df686fd18db4256f92e642334cbc9cf991a0348b1d2d042dfb43de",
       "note": "D1, KV, R2 bindings"
     },
     "functions/api/_ses.js": {
@@ -115,7 +115,7 @@
       "note": "SYSTEM_PROMPT for /api/ask -- single source of truth"
     },
     "functions/api/ask.js": {
-      "hash": "b193ee38ba407e4cbeac77edb0b4bd508200de3179fade83495e5f4b828c9009",
+      "hash": "bbe1a6f2a001a2823128fa777361af4fe3969dd16cdb9cdb7a695ce107cb0506",
       "note": "NLWeb AI Search proxy (auth + rate-limited, billed upstream)"
     },
     "src/components/SearchBar.astro": {

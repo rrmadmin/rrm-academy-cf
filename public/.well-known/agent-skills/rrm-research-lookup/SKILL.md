@@ -31,7 +31,7 @@ Two interfaces are available:
 
 ### 2. MCP server (Bearer auth, tool access)
 
-Endpoint: `https://rrm-mcp.administrator-cloudflare.workers.dev/mcp`
+Endpoint: `https://mcp.rrmacademy.org/mcp`
 
 Tools available:
 
@@ -39,7 +39,7 @@ Tools available:
 - `get_article(type, slug)` — full article metadata + citation.
 - `find_related(type, slug, [depth, limit])` — traverse citation and topic relationships.
 
-`initialize` and `tools/list` are unauthenticated — any client can enumerate capabilities. `tools/call` requires a Bearer API key. Request access: info@rrmacademy.org.
+`initialize` and `tools/list` are unauthenticated, so any client can enumerate capabilities. `tools/call` requires a Bearer API key. Self-service at https://rrmacademy.org/account/mcp-keys.
 
 ## Citation convention
 

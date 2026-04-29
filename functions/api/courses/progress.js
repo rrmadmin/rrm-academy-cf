@@ -54,14 +54,18 @@ async function getProgressSummary(db, userId) {
     ORDER BY e.enrolled_at DESC
   `).bind(userId).all();
 
-  const courses = enrollments.results.map(e => ({
-    courseId: e.course_id,
-    enrolledAt: e.enrolled_at,
-    completedAt: e.completed_at,
-    certificateIssuedAt: e.certificate_issued_at,
-    completedSteps: e.completed_steps,
-    totalSteps: getTotalSteps(e.course_id),
-  }));
+  const courses = enrollments.results.map(e => {
+    const courseObj = getCourse(e.course_id);
+    return {
+      courseId: e.course_id,
+      enrolledAt: e.enrolled_at,
+      completedAt: e.completed_at,
+      certificateIssuedAt: e.certificate_issued_at,
+      completedSteps: e.completed_steps,
+      totalSteps: getTotalSteps(e.course_id),
+      accessType: courseObj?.accessType ?? null,
+    };
+  });
 
   return json({ ok: true, courses });
 }
@@ -105,6 +109,7 @@ async function getDetailedProgress(db, userId, courseId) {
       completedAt: enrollment.completed_at,
       certificateIssuedAt: enrollment.certificate_issued_at,
     },
+    accessType: course.accessType ?? null,
     steps: stepMap,
   });
 }

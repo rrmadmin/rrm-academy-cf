@@ -2,7 +2,7 @@ import { json, optionsResponse } from '../../auth/_shared.js';
 import { log } from '../../_log.js';
 
 const VALID_STATUSES = new Set(['draft', 'published', 'archived']);
-const VALID_ACCESS_TYPES = new Set(['public', 'private']);
+const VALID_ACCESS_TYPES = new Set(['public', 'private', 'members']);
 
 export function onRequestOptions() {
   return optionsResponse();

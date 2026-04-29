@@ -53,3 +53,10 @@ dataset = "worker_events"
 [[services]]
 binding = "AI_SEARCH"
 service = "rrm-ai-search"
+
+# Service binding to rrm-mcp Worker. Apex /mcp proxy uses zero-hop service
+# binding instead of public fetch to mcp.rrmacademy.org. Falls back to public
+# fetch when binding is absent (local wrangler dev).
+[[services]]
+binding = "MCP_BACKEND"
+service = "rrm-mcp"
