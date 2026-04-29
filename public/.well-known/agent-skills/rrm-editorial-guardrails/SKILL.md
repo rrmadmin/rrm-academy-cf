@@ -50,12 +50,12 @@ RRM Academy publishes clinical education content. Every draft should pass these 
 
 ### MCP-based (automated)
 
-If you have access to the RRM Academy MCP server (`https://rrm-mcp.administrator-cloudflare.workers.dev/mcp`), call:
+If you have access to the RRM Academy MCP server (`https://mcp.rrmacademy.org/mcp`), call:
 
 - `check_guardrails(text, [tradition])` — returns any violations found in the draft.
 - `check_facts(text)` — verifies statistical claims against the curated facts database.
 
-Both tools require a Bearer API key. Request access: info@rrmacademy.org.
+Both tools require a Bearer API key. Self-service at https://rrmacademy.org/account/mcp-keys.
 
 ### Manual
 
