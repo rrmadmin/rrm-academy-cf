@@ -7,7 +7,7 @@
       "@id": "https://rrmacademy.org/courses/neofertility-medical-training/#course",
       "@type": "Course",
       "name": "NeoFertility Medical Training Cohort",
-      "description": "TBD-GIANNA",
+      "description": "The NeoFertility Medical Training Cohort is an 11-week live program providing a structured diagnostic and treatment framework for infertility and recurrent miscarriage using Restorative Reproductive Medicine.\n\nDesigned for Family Medicine, OB/GYN, and women's health clinicians, this cohort combines on-demand coursework with live mentorship from Dr. Phil Boyle, founder of NeoFertility and a pioneer in RRM.\n\nThe program covers:\n\n• The foundations of Restorative Reproductive Medicine\n\n• Diagnostic and treatment protocols for hormonal and cycle-related conditions\n\n• The psychology of conception and patient relationships\n\n• Chart Neo app integration for data-driven patient care\n\n• Case studies and outcome-based implementation",
       "provider": {
         "@id": "https://rrmacademy.org/#organization"
       },
@@ -33,7 +33,7 @@
       "@id": "https://rrmacademy.org/courses/long-term-endometriosis-management/#course",
       "@type": "Course",
       "name": "Long Term Endometriosis Management",
-      "description": "TBD-GIANNA",
+      "description": "This essential course equips both women with endometriosis and healthcare professionals with the knowledge and tools for effective long-term symptom management.\n\nFor Patients:\n• Empowerment through Knowledge — Gain a deep understanding of how lifestyle, diet, supplements, and medications can influence your endometriosis symptoms.\n• Practical Strategies — Discover actionable steps to implement in your daily life for improved well-being and reduced pain.\n• Holistic Approach — Explore a range of evidence-based and complementary therapies to manage endometriosis holistically.\n\nFor Healthcare Professionals:\n• Expand Your Expertise — Enhance your understanding of long-term endometriosis management strategies beyond surgical interventions.\n• Guide Your Patients — Gain valuable insights to confidently advise and support your patients in managing their endometriosis symptoms.\n• Improve Patient Outcomes — Discover effective tools and resources to help your patients achieve lasting relief and improve their quality of life.",
       "provider": {
         "@id": "https://rrmacademy.org/#organization"
       },
@@ -59,7 +59,7 @@
       "@id": "https://rrmacademy.org/courses/postpartum-depression-anxiety/#course",
       "@type": "Course",
       "name": "Postpartum Depression & Anxiety: A Restorative Approach to Recovery",
-      "description": "TBD-GIANNA",
+      "description": "This course discusses postpartum depression and anxiety, exploring its causes, symptoms, and a restorative approach to healing.\n\nDr. Naomi Whittaker, a fertility surgeon specializing in women's health, delves into the limitations of conventional treatments and offers insights into the effectiveness of bioidentical progesterone.\n\nKey topics covered:\n• Understanding the different types of postpartum mood disorders\n• Exploring the physiological and hormonal factors contributing to postpartum depression\n• Discussing the limitations of traditional treatment approaches like SSRIs\n• Highlighting the benefits of bioidentical progesterone as a natural and effective solution\n• Providing actionable steps for prevention and seeking support",
       "provider": {
         "@id": "https://rrmacademy.org/#organization"
       },
@@ -85,7 +85,7 @@
       "@id": "https://rrmacademy.org/courses/rrm-vs-ivf/#course",
       "@type": "Course",
       "name": "Restorative Reproductive Medicine (RRM) vs Standard ART: A New Approach to Infertility",
-      "description": "TBD-GIANNA",
+      "description": "This course dives deep into the world of infertility treatment, comparing the standard Assisted Reproductive Technology (ART) like IVF and IUI with a lesser-known approach called Restorative Reproductive Medicine (RRM).\n\nDr. Naomi Whittaker, an OBGYN fertility surgeon specializing in RRM, discusses the limitations of conventional infertility treatment and explores the potential of RRM as a more holistic and effective solution.\n\nKey topics covered:\n• The shortcomings of standard OBGYN training in addressing infertility\n• The facts behind IVF and IUI success rates and their associated risks\n• The ethical, financial, and medical concerns surrounding ART\n• The principles of RRM and its focus on identifying and treating the root causes of infertility\n• Real patient stories showcasing the effectiveness of RRM",
       "provider": {
         "@id": "https://rrmacademy.org/#organization"
       },
@@ -111,7 +111,7 @@
       "@id": "https://rrmacademy.org/courses/hormones-through-the-lifespan/#course",
       "@type": "Course",
       "name": "Hormones Through the Lifespan: Cycles, Conditions, and Menopause",
-      "description": "TBD-GIANNA",
+      "description": "Dr. Ana Garcia, OB/GYN and NaProTechnology-trained physician, walks through the full arc of female hormonal health: how cycles work, what disrupts them, conditions like PCOS and endometriosis, and how to support the body through perimenopause and menopause with a restorative approach.",
       "provider": {
         "@id": "https://rrmacademy.org/#organization"
       },
@@ -137,7 +137,7 @@
       "@id": "https://rrmacademy.org/courses/pelvic-floor-rehabilitation/#course",
       "@type": "Course",
       "name": "Pelvic Floor Rehabilitation",
-      "description": "TBD-GIANNA",
+      "description": "Dr. Amanda Simmons, Doctor of Physical Therapy and pelvic floor specialist at Ascend Pelvic Health, covers the anatomy and function of the pelvic floor, common dysfunctions (pain, prolapse, incontinence), and evidence-based rehabilitation approaches for patients navigating reproductive and pelvic health conditions.",
       "provider": {
         "@id": "https://rrmacademy.org/#organization"
       },
@@ -163,7 +163,7 @@
       "@id": "https://rrmacademy.org/courses/infertility-existential-trauma/#course",
       "@type": "Course",
       "name": "Infertility as Existential Trauma",
-      "description": "TBD-GIANNA",
+      "description": "Dr. Clay Brigance, Licensed Professional Counselor and researcher, examines infertility as a form of existential trauma and PTSD. This session covers the psychological impact of fertility struggles, grief responses, and therapeutic approaches that help patients process and heal — essential knowledge for both patients and the providers who support them.",
       "provider": {
         "@id": "https://rrmacademy.org/#organization"
       },
@@ -189,7 +189,7 @@
       "@id": "https://rrmacademy.org/courses/fertility-based-family-planning/#course",
       "@type": "Course",
       "name": "Fertility-Based Methods of Family Planning: New Horizons",
-      "description": "TBD-GIANNA",
+      "description": "Dr. William Nolan presents the current landscape of fertility-based methods of family planning (FBMFPs), including the latest research, emerging methods, and how these approaches align with NaProTechnology and restorative reproductive medicine principles. Designed for both providers and patients seeking alternatives to hormonal contraception.",
       "provider": {
         "@id": "https://rrmacademy.org/#organization"
       },
@@ -215,7 +215,7 @@
       "@id": "https://rrmacademy.org/courses/aip-diet-inflammation/#course",
       "@type": "Course",
       "name": "Why the AIP Diet Is Not Enough to Reduce Inflammation",
-      "description": "TBD-GIANNA",
+      "description": "Rita Johnson, functional medicine practitioner, breaks down the science and limitations of the Autoimmune Protocol (AIP) diet for patients managing chronic inflammation, endometriosis, PCOS, and other reproductive conditions. Learn what diet alone cannot address, and what a comprehensive anti-inflammatory protocol — including gut health, lifestyle, and targeted support — actually requires.",
       "provider": {
         "@id": "https://rrmacademy.org/#organization"
       },
@@ -241,7 +241,7 @@
       "@id": "https://rrmacademy.org/courses/functional-lab-testing-napro/#course",
       "@type": "Course",
       "name": "Functional Lab Testing, NaPro Technology, and Preconception Care",
-      "description": "TBD-GIANNA",
+      "description": "Dr. Ana Garcia (OB/GYN), Hannah Ducote (RN, fertility coach), and Elena Climov (FNP-C, IFMCP) discuss how functional lab testing integrates with NaProTechnology and RRM protocols to support preconception care. Topics include hormone panels, thyroid, micronutrient testing, and how to use data to guide targeted preconception support.",
       "provider": {
         "@id": "https://rrmacademy.org/#organization"
       },
@@ -273,7 +273,7 @@
       "@id": "https://rrmacademy.org/courses/masterclass-in-endometriosis-and-surgery/#course",
       "@type": "Course",
       "name": "Masterclass in Endometriosis & Surgery",
-      "description": "TBD-GIANNA",
+      "description": "Take control of your endometriosis journey with this comprehensive masterclass led by Dr. Naomi Whittaker, a NaProTechnology trained OBGYN and endometriosis specialist.\n\nDesigned for both women living with endometriosis and healthcare professionals, this course offers:\n\n• Clarity and understanding — Debunk common myths and gain in-depth knowledge about endometriosis and its impact on fertility.\n\n• Surgical insights — Explore various surgical approaches, including NaProTechnology's meticulous techniques and focus on adhesion prevention.\n\n• Informed decision-making — Learn how to choose the right endometriosis surgeon for you and navigate the surgical process with confidence.\n\n• Long-term management — Discover effective strategies for managing endometriosis symptoms through lifestyle changes, supplements, and medications.\n\nWhether you're considering surgery, waiting for an appointment, or seeking to better guide your patients, this masterclass empowers you with the knowledge and tools you need to find lasting relief and achieve your fertility goals.",
       "provider": {
         "@id": "https://rrmacademy.org/#organization"
       },

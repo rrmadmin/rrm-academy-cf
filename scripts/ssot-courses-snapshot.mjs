@@ -107,11 +107,15 @@ function buildOffer(course) {
 }
 
 function buildSsotCourse(course) {
+  // Description: prefer D1 description (course.description) for fresh content;
+  // fall back to TBD-GIANNA if missing so Gianna can backfill later. The D1
+  // description field is the source of truth for course-level prose.
+  const description = (course.description && String(course.description).trim()) || 'TBD-GIANNA';
   return {
     '@id': `https://rrmacademy.org/courses/${course.slug}/#course`,
     '@type': 'Course',
     name: course.title,
-    description: 'TBD-GIANNA',
+    description,
     provider: { '@id': ORG_ID },
     instructor: buildInstructorRefs(course),
     hasCourseInstance: buildCourseInstance(course),
