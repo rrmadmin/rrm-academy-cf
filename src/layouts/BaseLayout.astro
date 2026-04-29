@@ -149,6 +149,11 @@ if (!jsonLd) {
   if (speakable && speakable.length > 0) {
     defaultSpeakableNode = buildSpeakable({ cssSelectors: speakable }) as Record<string, unknown> | null;
   }
+} else if (speakable && speakable.length > 0) {
+  // Page passed both `jsonLd` AND `speakable`. Emit the SpeakableSpecification
+  // as an additional JSON-LD block alongside the page's custom jsonLd. Pages
+  // can opt out by inlining the speakable node into their jsonLd directly.
+  defaultSpeakableNode = buildSpeakable({ cssSelectors: speakable }) as Record<string, unknown> | null;
 }
 ---
 <!DOCTYPE html>
@@ -255,7 +260,7 @@ if (!jsonLd) {
   ) : (
     <script type="application/ld+json" set:html={JSON.stringify(defaultJsonLdPayload)} />
   )}
-  {!jsonLd && defaultSpeakableNode && (
+  {defaultSpeakableNode && (
     <script type="application/ld+json" set:html={JSON.stringify(defaultSpeakableNode)} />
   )}
 </head>
