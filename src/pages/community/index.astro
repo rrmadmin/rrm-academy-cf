@@ -370,7 +370,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
                   var imgTag = '![image](' + data.url + ')';
                   var body = bodyTextarea.value;
                   bodyTextarea.value = body + (body ? '\n' : '') + imgTag;
-                  previewEl.innerHTML = '<img src="' + data.url + '" class="compose-image-preview__thumb" />'
+                  previewEl.innerHTML = '<img src="' + data.url + '" alt="Uploaded image preview" class="compose-image-preview__thumb" />'
                     + '<button type="button" class="compose-image-preview__remove" title="Remove">&times;</button>';
                   previewEl.querySelector('.compose-image-preview__remove').addEventListener('click', function () {
                     bodyTextarea.value = bodyTextarea.value.replace(imgTag, '').trim();
@@ -871,7 +871,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         if (!text) return '';
         var s = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-        // 1. Image markdown: ![alt](url) → <img>
+        // 1. Image markdown: ![alt](url) -> img element
         s = s.replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+|\/api\/assets\/[^\s)]+)\)/g,
           '<img src="$2" alt="$1" class="post-inline-img" loading="lazy" />');
 
