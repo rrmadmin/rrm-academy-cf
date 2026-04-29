@@ -29,6 +29,8 @@
     "guard:update": "node scripts/guard.mjs --update",
     "guard:install": "cp hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit",
     "guard:ios-zoom": "node scripts/guard-ios-zoom.mjs",
+    "guard:agent-discovery": "node scripts/agent-discovery-check.mjs",
+    "guard:agent-skills:regen": "node scripts/regen-agent-skills-digests.mjs",
     "design-tokens": "node scripts/generate-design-tokens.mjs",
     "design-tokens:check": "node scripts/generate-design-tokens.mjs --check",
     "design-tokens:audit": "node scripts/audit-design-tokens.mjs",
