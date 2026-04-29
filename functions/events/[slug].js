@@ -172,7 +172,7 @@ function ctaForVisitor(tier, event) {
       primaryLabel: 'Join Save the Uterus Club to Watch',
       secondaryHref: SITE_ORIGIN + '/community/events',
       secondaryLabel: 'See all events',
-      note: 'This event has ended. Save the Uterus Club members get the recording, transcript, and Gemini notes.',
+      note: 'This event has ended. Save the Uterus Club is creating a different kind of healthcare model — members get the full recording, transcript, and Gemini notes from every call.',
     };
   }
 
@@ -193,7 +193,7 @@ function ctaForVisitor(tier, event) {
       primaryLabel: 'Join Save the Uterus Club to Watch',
       secondaryHref: SITE_ORIGIN + '/community/events',
       secondaryLabel: 'See all events',
-      note: 'Save the Uterus Club members attend live and get the recording, transcript, and Gemini notes afterward.',
+      note: 'Members attend the live call and get the recording, transcript, and Gemini notes afterward.',
     };
   }
 
@@ -203,7 +203,7 @@ function ctaForVisitor(tier, event) {
     primaryLabel: 'Join Save the Uterus Club to Watch',
     secondaryHref: SITE_ORIGIN + '/login?redirect=' + encodeURIComponent('/events/' + (event.slug || '')),
     secondaryLabel: 'Already a member? Sign in',
-    note: 'Save the Uterus Club members attend the live call and get the recording, transcript, and Gemini notes afterward. New members get instant access.',
+    note: 'Save the Uterus Club is creating a different kind of healthcare model — one where the uterus isn\'t blamed for every problem and women get real answers. Members attend the live call and get the recording, transcript, and Gemini notes.',
   };
 }
 
