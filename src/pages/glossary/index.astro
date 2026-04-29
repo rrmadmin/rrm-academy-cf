@@ -188,6 +188,7 @@ const definedTermSetSchema = {
   ogType="article"
   publishDate="2026-03-15"
   jsonLd={pageSchema}
+  speakable={['.pillar-lead', '.pillar-lead strong']}
 >
   <!-- Separate JSON-LD block for breadcrumbs -->
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />

@@ -3,11 +3,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import LastUpdated from '../components/LastUpdated.astro';
 import { fetchAllArticles } from '../lib/airtable';
 import coursesData from '../data/courses.json';
+import { getPersonJsonLd } from '../lib/identity';
 
 const articles = await fetchAllArticles();
 const articleCount = articles.length;
 
 const liveCourseCount = coursesData.filter((c: any) => !c.comingSoon && !c.isAffiliate).length;
+
+// Naomi Person from SSOT — strip @context for nesting in @graph.
+const naomiNode = getPersonJsonLd('https://rrmacademy.org/#naomi-whittaker');
+const { '@context': _naomiCtx, ...naomi } = (naomiNode || {}) as Record<string, unknown> & { '@context'?: unknown };
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -27,11 +32,8 @@ const jsonLd = {
         },
         'query-input': 'required name=search_term_string',
       },
-      speakable: {
-        '@type': 'SpeakableSpecification',
-        cssSelector: ['.hp-hero h1', '.hp-hero__subtitle', '.hp-section p'],
-      },
     },
+    naomi,
     {
       '@type': ['EducationalOrganization', 'Organization'],
       '@id': 'https://rrmacademy.org/#organization',
@@ -40,19 +42,7 @@ const jsonLd = {
       url: 'https://rrmacademy.org/',
       description: 'The leading educational platform for patients and professionals seeking to understand and apply Restorative Reproductive Medicine.',
       foundingDate: '2023',
-      founder: {
-        '@type': 'Person',
-        '@id': 'https://rrmacademy.org/#naomi-whittaker',
-        name: 'Dr. Naomi Whittaker',
-        jobTitle: 'Board-Certified OB/GYN',
-        honorificPrefix: 'Dr.',
-        url: 'https://rrmacademy.org/commentary/rrm-spotlight-naomi-whittaker-md/',
-        image: 'https://rrmacademy.org/images/authors/naomi-whittaker.webp',
-        sameAs: [
-          'https://www.instagram.com/napro_fertility_surgeon/',
-          'https://www.linkedin.com/in/naomi-whittaker-md-906b13101/',
-        ],
-      },
+      founder: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
       nonprofitStatus: 'Nonprofit501c3',
       areaServed: 'Global',
       parentOrganization: {
@@ -145,6 +135,7 @@ const jsonLd = {
   description="RRM Academy offers evidence-based education in Restorative Reproductive Medicine. Courses, a research library, and expert guidance for patients and clinicians."
   canonicalUrl="https://rrmacademy.org/"
   jsonLd={jsonLd}
+  speakable={['.hp-hero h1', '.hp-hero__subtitle', '.hp-section p']}
   markdownUrl="/index.md"
 >
   <div class="hp">
