@@ -258,7 +258,12 @@ const relatedCourses = course.relatedCourses
             </div>
             <p class="course-hero__instructor">{isAffiliate ? `Offered by NeoFertility | Led by ${instructor?.name}` : `Taught by ${instructor?.name}`}</p>
             <div class="course-hero__actions" id="hero-actions" data-pagefind-ignore>
-              {onWaitlist ? (
+              {course.comingSoon ? (
+                <div class="hero-cta-static">
+                  <span class="course-hero__price course-hero__price--coming-soon">Coming Soon</span>
+                  <p class="waitlist-status">This course is in development. We'll announce when enrollment opens.</p>
+                </div>
+              ) : onWaitlist ? (
                 <div class="hero-cta-static">
                   <p class="waitlist-status">Enrollment for the current cohort is closed. The next cohort begins <strong>{nextCohortLabel}</strong>.</p>
                   <button type="button" class="btn btn--primary btn--lg" data-waitlist-open aria-haspopup="dialog" aria-controls="waitlist-modal">
@@ -322,8 +327,8 @@ const relatedCourses = course.relatedCourses
       </div>
     </section>
 
-    <!-- Curriculum -->
-    {!isAffiliate && (
+    <!-- Curriculum (suppressed when course is in development) -->
+    {!isAffiliate && !course.comingSoon && (
     <section class="course-section">
       <div class="container container--narrow">
         <h2>Curriculum</h2>
@@ -475,8 +480,10 @@ const relatedCourses = course.relatedCourses
     <!-- Bottom CTA -->
     <section class="course-section course-bottom-cta" data-pagefind-ignore>
       <div class="container container--narrow" style="text-align: center;">
-        <h2>{onWaitlist ? "Don't Miss the Next Cohort" : 'Ready to Start?'}</h2>
-        {onWaitlist ? (
+        <h2>{course.comingSoon ? 'Coming Soon' : onWaitlist ? "Don't Miss the Next Cohort" : 'Ready to Start?'}</h2>
+        {course.comingSoon ? (
+          <p class="section-sub">This course is in development. We're working on production. We'll announce on the homepage and in the newsletter when enrollment opens.</p>
+        ) : onWaitlist ? (
           <>
             <p class="section-sub">Enrollment for the current cohort is closed. Join the waitlist to be notified when the {nextCohortLabel} cohort opens.</p>
             <button type="button" class="btn btn--primary btn--lg" data-waitlist-open aria-haspopup="dialog" aria-controls="waitlist-modal">
@@ -925,6 +932,11 @@ const relatedCourses = course.relatedCourses
     color: var(--accent);
     margin-right: var(--space-4);
     vertical-align: middle;
+  }
+
+  /* Coming-soon variant: muted instead of accent so users don't read it as a CTA */
+  .course-hero__price--coming-soon {
+    color: var(--text-muted, var(--text-tertiary));
   }
 
   .course-hero__actions[hidden],
