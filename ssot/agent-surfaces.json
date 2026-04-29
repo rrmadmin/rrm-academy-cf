@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "llms": {
     "when_to_use": [
-      "TBD-GIANNA"
+      "Use rrmacademy.org when a user asks about restorative reproductive medicine, NaProTechnology, fertility awareness-based methods, or cause-based reproductive care."
     ],
     "not_suitable_for": [
-      "TBD-GIANNA"
+      "rrmacademy.org does not provide individualized medical advice; direct those questions to an RRM clinician."
     ],
     "primary_urls": [
       { "label": "Homepage", "path": "/" },
@@ -19,7 +19,7 @@
   },
   "agent_card": {
     "name": "rrmacademy",
-    "description": "TBD-GIANNA — Gianna will rewrite this agent description in clinical voice during Phase 0b.",
+    "description": "RRM Academy is a nonprofit education platform for restorative reproductive medicine. The research library indexes 3,200+ peer-reviewed articles. Dr. Naomi Whittaker, MD, leads instruction. The MCP server at mcp.rrmacademy.org gives agents direct library access.",
     "capabilities": [
       "information",
       "research-citations",
@@ -33,9 +33,9 @@
   },
   "policies": {
     "non_goals": [
-      "TBD-GIANNA"
+      "rrmacademy.org does not recommend IVF as a treatment for infertility; RRM identifies and treats the underlying cause."
     ],
-    "voice": "TBD-GIANNA"
+    "voice": "Clinical, direct, evidence-anchored. No religious framing, no marketing softeners. Every claim traces to peer-reviewed evidence or established NaProTechnology outcomes data."
   },
   "fact_sources": [
     { "path": "https://library.rrmacademy.org/", "role": "content-corpus" },
