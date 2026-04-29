@@ -1,5 +1,7 @@
 /**
  * GET    /api/community/posts?type=&before=&limit=&channel=  — list posts
+ * GET    /api/community/posts?id=                             — single post by ID
+ * GET    /api/community/posts?slug=                           — single event post by slug
  * POST   /api/community/posts                                 — create post
  * PATCH  /api/community/posts                                 — edit / pin
  * DELETE /api/community/posts                                 — delete post
@@ -31,6 +33,23 @@ function isSafeUrl(url) {
   }
 }
 
+function isOgImageUrlSafe(url) {
+  if (isSafeUrl(url)) return true;
+  return url.startsWith('/api/assets/community/');
+}
+
+function slugify(input) {
+  return input
+    .toLowerCase()
+    .replace(/[–—]/g, '-')
+    .replace(/'/g, '')
+    .replace(/[^a-z0-9_-]+/g, '-')
+    .replace(/-{2,}/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80)
+    .replace(/-+$/, '');
+}
+
 export async function onRequestOptions() {
   return optionsResponse();
 }
@@ -47,17 +66,32 @@ export async function onRequestGet({ request, env, waitUntil }) {
     const db = env.DB;
     const tierPlaceholders = TIER_LABELS.map(() => '?').join(', ');
 
-    // Single post by ID
+    // Single post by ID or slug
     const singleId = url.searchParams.get('id');
-    if (singleId) {
-      const row = await db.prepare(`
-        SELECT p.*, u.name as author_name, u.first_name, u.last_name, u.role as author_role, u.avatar_url as author_avatar,
-          (SELECT ul.label FROM user_label ul WHERE ul.user_id = p.author_id AND ul.label IN (${tierPlaceholders}) LIMIT 1) as author_tier_label,
-          (SELECT COUNT(*) FROM community_comment WHERE post_id = p.id) as comment_count
-        FROM community_post p
-        JOIN user u ON u.id = p.author_id
-        WHERE p.id = ?
-      `).bind(...TIER_LABELS, singleId).first();
+    const singleSlug = url.searchParams.get('slug');
+    if (singleId || singleSlug) {
+      let row;
+      if (singleId) {
+        if (typeof singleId !== 'string' || singleId.length > 100) return json({ ok: false, error: 'Invalid id' }, 400);
+        row = await db.prepare(`
+          SELECT p.*, u.name as author_name, u.first_name, u.last_name, u.role as author_role, u.avatar_url as author_avatar,
+            (SELECT ul.label FROM user_label ul WHERE ul.user_id = p.author_id AND ul.label IN (${tierPlaceholders}) LIMIT 1) as author_tier_label,
+            (SELECT COUNT(*) FROM community_comment WHERE post_id = p.id) as comment_count
+          FROM community_post p
+          JOIN user u ON u.id = p.author_id
+          WHERE p.id = ?
+        `).bind(...TIER_LABELS, singleId).first();
+      } else {
+        if (typeof singleSlug !== 'string' || singleSlug.length > 100) return json({ ok: false, error: 'Invalid slug' }, 400);
+        row = await db.prepare(`
+          SELECT p.*, u.name as author_name, u.first_name, u.last_name, u.role as author_role, u.avatar_url as author_avatar,
+            (SELECT ul.label FROM user_label ul WHERE ul.user_id = p.author_id AND ul.label IN (${tierPlaceholders}) LIMIT 1) as author_tier_label,
+            (SELECT COUNT(*) FROM community_comment WHERE post_id = p.id) as comment_count
+          FROM community_post p
+          JOIN user u ON u.id = p.author_id
+          WHERE p.slug = ? COLLATE NOCASE AND p.type = 'event'
+        `).bind(...TIER_LABELS, singleSlug).first();
+      }
 
       if (!row) return json({ ok: false, error: 'Post not found' }, 404);
 
@@ -65,24 +99,27 @@ export async function onRequestGet({ request, env, waitUntil }) {
         return json({ ok: false, error: 'Not authorized for this channel' }, 403);
       }
 
+      const targetId = row.id;
+
       // Reactions
       const reactions = await db.prepare(`
         SELECT emoji, COUNT(*) as count FROM community_reaction
         WHERE target_type = 'post' AND target_id = ? GROUP BY emoji
-      `).bind(singleId).all();
+      `).bind(targetId).all();
       const reactionMap = {};
       for (const r of reactions.results) reactionMap[r.emoji] = r.count;
 
       const mine = await db.prepare(`
         SELECT emoji FROM community_reaction
         WHERE target_type = 'post' AND target_id = ? AND user_id = ?
-      `).bind(singleId, user.id).all();
+      `).bind(targetId, user.id).all();
       const myReactions = mine.results.map(r => r.emoji);
 
       return json({ ok: true, post: {
         id: row.id, type: row.type, body: postContent(row),
         pinned: !!row.pinned, eventDate: row.event_date, eventLink: row.event_link,
         resourceUrl: row.resource_url, createdAt: row.created_at, updatedAt: row.updated_at,
+        slug: row.slug || null, ogImageUrl: row.og_image_url || null,
         authorId: row.author_id, authorName: row.author_name || displayName(row),
         authorRole: row.author_role, authorAvatar: row.author_avatar || null,
         authorTier: tierFromLabel(row.author_tier_label), commentCount: row.comment_count,
@@ -197,6 +234,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
       resourceUrl: r.resource_url,
       createdAt: r.created_at,
       updatedAt: r.updated_at,
+      slug: r.slug || null,
+      ogImageUrl: r.og_image_url || null,
       authorId: r.author_id,
       authorName: r.author_name || displayName(r),
       authorRole: r.author_role,
@@ -229,7 +268,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     }
     if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
-    const { type, title, body: postBody, eventDate, eventLink, resourceUrl, channel: reqChannel } = body;
+    const { type, title, body: postBody, eventDate, eventLink, resourceUrl, channel: reqChannel, slug: reqSlug, ogImageUrl: reqOgImageUrl } = body;
 
     // Validate channel
     const channel = reqChannel || 'stuc';
@@ -279,13 +318,75 @@ export async function onRequestPost({ request, env, waitUntil }) {
       ? title.trim() + '\n\n' + postBody.trim()
       : postBody.trim();
 
-    await db.prepare(`
-      INSERT INTO community_post (id, author_id, type, content, event_date, event_link, resource_url, channel)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).bind(
-      id, user.id, type, contentToStore,
-      eventDate || null, eventLink || null, resourceUrl || null, channel
-    ).run();
+    // Slug and ogImageUrl for event posts
+    let finalSlug = null;
+    let finalOgImageUrl = null;
+    if (type === 'event') {
+      if (reqOgImageUrl !== undefined && reqOgImageUrl !== null) {
+        if (typeof reqOgImageUrl !== 'string' || reqOgImageUrl.length > 2000) {
+          return json({ ok: false, error: 'Invalid og_image_url' }, 400);
+        }
+        if (!isOgImageUrlSafe(reqOgImageUrl)) {
+          return json({ ok: false, error: 'og_image_url must be http/https or a community asset path' }, 400);
+        }
+        finalOgImageUrl = reqOgImageUrl;
+      }
+
+      // Determine candidate slug
+      let candidateBase;
+      if (reqSlug !== undefined && reqSlug !== null) {
+        if (typeof reqSlug !== 'string' || reqSlug.length > 100) {
+          return json({ ok: false, error: 'Invalid slug' }, 400);
+        }
+        candidateBase = slugify(reqSlug);
+      } else {
+        const slugSource = (title && typeof title === 'string' && title.trim())
+          ? title.trim()
+          : postBody.trim().slice(0, 60);
+        candidateBase = slugify(slugSource);
+      }
+
+      if (!candidateBase) {
+        return json({ ok: false, error: 'Could not generate a valid slug from title' }, 400);
+      }
+
+      // Uniqueness check with collision retry
+      let candidate = candidateBase;
+      let collision = await db.prepare(
+        'SELECT 1 FROM community_post WHERE slug = ? COLLATE NOCASE'
+      ).bind(candidate).first();
+
+      if (collision) {
+        let found = false;
+        for (let i = 2; i <= 99; i++) {
+          candidate = candidateBase + '-' + i;
+          collision = await db.prepare(
+            'SELECT 1 FROM community_post WHERE slug = ? COLLATE NOCASE'
+          ).bind(candidate).first();
+          if (!collision) { found = true; break; }
+        }
+        if (!found) {
+          return json({ ok: false, error: 'slug_conflict' }, 409);
+        }
+      }
+      finalSlug = candidate;
+    }
+
+    try {
+      await db.prepare(`
+        INSERT INTO community_post (id, author_id, type, content, event_date, event_link, resource_url, channel, slug, og_image_url)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).bind(
+        id, user.id, type, contentToStore,
+        eventDate || null, eventLink || null, resourceUrl || null, channel,
+        finalSlug, finalOgImageUrl
+      ).run();
+    } catch (err) {
+      if (err.message?.includes('UNIQUE constraint')) {
+        return json({ ok: false, error: 'slug_conflict' }, 409);
+      }
+      throw err;
+    }
 
     // Send email notification (fire-and-forget)
     try {
@@ -301,6 +402,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
       post: {
         id, type, body: contentToStore,
         pinned: false, eventDate, eventLink, resourceUrl,
+        slug: finalSlug, ogImageUrl: finalOgImageUrl,
         createdAt: new Date().toISOString().replace('T', ' ').slice(0, 19),
         authorId: user.id,
         authorName: displayName(user),
@@ -333,7 +435,7 @@ export async function onRequestPatch({ request, env, waitUntil }) {
     }
     if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
-    const { postId, title, body: postBody, eventDate, eventLink, resourceUrl, pinned } = body;
+    const { postId, title, body: postBody, eventDate, eventLink, resourceUrl, pinned, slug: reqSlug, ogImageUrl: reqOgImageUrl } = body;
     if (!postId || typeof postId !== 'string' || postId.length > 100) return json({ ok: false, error: 'postId required' }, 400);
 
     const db = env.DB;
@@ -345,7 +447,7 @@ export async function onRequestPatch({ request, env, waitUntil }) {
       if (!canPin(user.role)) return json({ ok: false, error: 'Not authorized' }, 403);
     }
 
-    const hasBodyEdits = postBody !== undefined || eventDate !== undefined || eventLink !== undefined || resourceUrl !== undefined;
+    const hasBodyEdits = postBody !== undefined || eventDate !== undefined || eventLink !== undefined || resourceUrl !== undefined || reqSlug !== undefined || reqOgImageUrl !== undefined;
 
     if (hasBodyEdits) {
       if (ARCHIVE_CHANNELS.includes(post.channel) && !roleAtLeast(user.role, 'admin')) {
@@ -378,13 +480,52 @@ export async function onRequestPatch({ request, env, waitUntil }) {
       updates.push('resource_url = ?'); values.push(resourceUrl);
     }
 
+    if (reqSlug !== undefined) {
+      if (reqSlug === null) {
+        updates.push('slug = ?'); values.push(null);
+      } else {
+        if (typeof reqSlug !== 'string' || reqSlug.length > 100) {
+          return json({ ok: false, error: 'Invalid slug' }, 400);
+        }
+        const newSlug = slugify(reqSlug);
+        if (!newSlug) return json({ ok: false, error: 'Invalid slug' }, 400);
+        // Uniqueness check — exclude the current post
+        const collision = await db.prepare(
+          'SELECT 1 FROM community_post WHERE slug = ? COLLATE NOCASE AND id != ?'
+        ).bind(newSlug, postId).first();
+        if (collision) return json({ ok: false, error: 'slug_conflict' }, 409);
+        updates.push('slug = ?'); values.push(newSlug);
+      }
+    }
+
+    if (reqOgImageUrl !== undefined) {
+      if (reqOgImageUrl === null) {
+        updates.push('og_image_url = ?'); values.push(null);
+      } else {
+        if (typeof reqOgImageUrl !== 'string' || reqOgImageUrl.length > 2000) {
+          return json({ ok: false, error: 'Invalid og_image_url' }, 400);
+        }
+        if (!isOgImageUrlSafe(reqOgImageUrl)) {
+          return json({ ok: false, error: 'og_image_url must be http/https or a community asset path' }, 400);
+        }
+        updates.push('og_image_url = ?'); values.push(reqOgImageUrl);
+      }
+    }
+
     if (!updates.length) return json({ ok: false, error: 'Nothing to update' }, 400);
 
     updates.push("updated_at = datetime('now')");
     values.push(postId);
 
-    await db.prepare(`UPDATE community_post SET ${updates.join(', ')} WHERE id = ?`)
-      .bind(...values).run();
+    try {
+      await db.prepare(`UPDATE community_post SET ${updates.join(', ')} WHERE id = ?`)
+        .bind(...values).run();
+    } catch (err) {
+      if (err.message?.includes('UNIQUE constraint')) {
+        return json({ ok: false, error: 'slug_conflict' }, 409);
+      }
+      throw err;
+    }
 
     return json({ ok: true });
   } catch (err) {
