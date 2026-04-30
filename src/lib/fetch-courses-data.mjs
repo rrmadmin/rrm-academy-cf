@@ -29,6 +29,21 @@ const DRY_RUN = process.argv.includes('--dry-run');
 
 const COURSES_URL = 'https://rrmacademy.org/api/courses';
 
+const SECTION_FLOOR = 30;
+const STEP_FLOOR = 65;
+
+function countSectionsAndSteps(courses) {
+  let sections = 0;
+  let steps = 0;
+  for (const course of courses) {
+    sections += course.sections?.length ?? 0;
+    for (const section of course.sections ?? []) {
+      steps += section.steps?.length ?? 0;
+    }
+  }
+  return { sections, steps };
+}
+
 function sortD1Courses(courses) {
   // Sort D1-origin courses by sortOrder ASC. Overrides MUST be filtered out
   // before calling this -- they have no sortOrder and slot in via mergeOverrides
@@ -136,11 +151,21 @@ async function fetchSingle(recordId) {
   // they are spliced relative to the (now-sorted) D1 array indices.
   mergeOverrides(courses);
 
+  const { sections, steps } = countSectionsAndSteps(courses);
+  if (sections < SECTION_FLOOR) {
+    console.error(`FATAL: section count after merge is ${sections} (floor: ${SECTION_FLOOR}). Possible D1 data loss. Leaving courses.json untouched.`);
+    process.exit(1);
+  }
+  if (steps < STEP_FLOOR) {
+    console.error(`FATAL: step count after merge is ${steps} (floor: ${STEP_FLOOR}). Possible D1 data loss. Leaving courses.json untouched.`);
+    process.exit(1);
+  }
+
   mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
   const tmpPath = OUTPUT_PATH + '.tmp';
   writeFileSync(tmpPath, JSON.stringify(courses, null, 2));
   renameSync(tmpPath, OUTPUT_PATH);
-  console.log(`Wrote ${courses.length} courses to ${OUTPUT_PATH}`);
+  console.log(`Wrote ${courses.length} courses to ${OUTPUT_PATH} (${sections} sections, ${steps} steps)`);
 }
 
 async function fetchAll() {
@@ -208,11 +233,21 @@ async function fetchAll() {
   // them and 404s their /courses/<slug>/ URLs.
   mergeOverrides(courses);
 
+  const { sections, steps } = countSectionsAndSteps(courses);
+  if (sections < SECTION_FLOOR) {
+    console.error(`FATAL: section count after merge is ${sections} (floor: ${SECTION_FLOOR}). Possible D1 data loss. Leaving courses.json untouched.`);
+    process.exit(1);
+  }
+  if (steps < STEP_FLOOR) {
+    console.error(`FATAL: step count after merge is ${steps} (floor: ${STEP_FLOOR}). Possible D1 data loss. Leaving courses.json untouched.`);
+    process.exit(1);
+  }
+
   mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
   const tmpPath = OUTPUT_PATH + '.tmp';
   writeFileSync(tmpPath, JSON.stringify(courses, null, 2));
   renameSync(tmpPath, OUTPUT_PATH);
-  console.log(`Wrote ${courses.length} courses to ${OUTPUT_PATH}`);
+  console.log(`Wrote ${courses.length} courses to ${OUTPUT_PATH} (${sections} sections, ${steps} steps)`);
 }
 
 function mergeOverrides(courses) {
