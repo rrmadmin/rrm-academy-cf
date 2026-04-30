@@ -326,7 +326,11 @@ function checkRequiredFiles() {
     { path: 'functions/api/community/_shared.js', note: 'Community access control (requireMember)' },
     { path: 'functions/api/contact/submit.js', note: 'Contact form' },
     { path: 'src/data/quizzes.json', note: 'Course quiz content' },
-    { path: 'src/data/courses.json', note: 'Course structure' },
+    // src/data/courses.json removed 2026-04-30 — D1 (rrm-auth.course + course_section
+    // + course_step) is SSOT. File is built fresh every deploy by
+    // src/lib/fetch-courses-data.mjs and is not present at checkout time. The
+    // post-fetch existence + minimum-record checks live in deploy.yml's
+    // "Verify data files" step (MIN_COUNTS / ABSOLUTE_FLOOR / sections+steps floors).
   ];
 
   for (const { path, note } of REQUIRED) {
