@@ -225,6 +225,26 @@ jobs:
             fi
           done
 
+          # Courses have nested sections and steps -- count them to catch table wipes
+          courses_file="src/data/courses.json"
+          if [ -f "$courses_file" ]; then
+            course_sections=$(node -e "const d=JSON.parse(require('fs').readFileSync('$courses_file','utf8')); console.log(d.reduce((a,c)=>a+(c.sections?.length||0),0))")
+            course_steps=$(node -e "const d=JSON.parse(require('fs').readFileSync('$courses_file','utf8')); console.log(d.reduce((a,c)=>a+(c.sections||[]).reduce((b,s)=>b+(s.steps?.length||0),0),0))")
+            courses_section_floor=30
+            courses_step_floor=65
+            if [ "$course_sections" -lt "$courses_section_floor" ]; then
+              echo "ERROR: $courses_file has only $course_sections sections (absolute floor: $courses_section_floor). Possible data loss from migration or table wipe."
+              fail=1
+            elif [ "$course_steps" -lt "$courses_step_floor" ]; then
+              echo "ERROR: $courses_file has only $course_steps steps (absolute floor: $courses_step_floor). Possible data loss from migration or table wipe."
+              fail=1
+            else
+              echo "OK: $courses_file has $course_sections sections + $course_steps steps (floors: $courses_section_floor sections, $courses_step_floor steps)"
+            fi
+          else
+            echo "WARN: $courses_file not found. Skipping section/step guard."
+          fi
+
           # Glossary has a nested structure: { terms, references, abbreviations }
           gloss_file="src/data/glossary.json"
           if [ -f "$gloss_file" ]; then
