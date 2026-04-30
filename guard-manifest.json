@@ -135,7 +135,7 @@
       "note": "Admin endpoint: manually link wix_subscription to CF user (Layer 4 reconciliation)"
     },
     "scripts/guard.mjs": {
-      "hash": "b9f23392af168ca73ab3324c643a7b7b6922bd494584023b30487f963ca1bf88",
+      "hash": "90a6d2b8ccd51fdab8e0c826e0bd1e7fb4e916e312870324f2309e80056b8339",
       "note": "Guard script (self-guarding)"
     },
     "functions/api/auth/verify-email.js": {
