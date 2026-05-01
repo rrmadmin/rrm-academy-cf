@@ -32,7 +32,7 @@ function formatDuration(seconds: number) {
   if (!seconds) return '';
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
-  return s > 0 ? `${m}:${String(s).padStart(2, '0')}` : `${m} min`;
+  return `${m}:${String(s).padStart(2, '0')}`;
 }
 
 // Find the first step for the "Start Course" CTA
