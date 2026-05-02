@@ -1,6 +1,6 @@
 {
   "name": "RRM Academy Ecosystem",
-  "last_updated": "2026-05-01",
+  "last_updated": "2026-05-02",
   "staleness_note": "Row counts, financial summaries, and timeline drift over time. This document is the system-wide SSOT -- update when infrastructure changes, subsystems ship, or pipelines migrate. Row counts are approximate snapshots; query D1 for authoritative values.",
   "organization": {
     "name": "RRM Academy",
@@ -1819,6 +1819,11 @@
     "arcade": {
       "path": "projects/arcade/",
       "purpose": "Brian's Arcade game server"
+    },
+    "rrm-research-drafts": {
+      "path": "research-drafts/",
+      "github": "rrmadmin/rrm-research-drafts",
+      "purpose": "Scholarly research papers and abstracts in active drafting (JRRM, IIRRM Congress 2026). 9 active drafts as of 2026-05-02. SSOT: research-drafts.json. Pipeline doc: PIPELINE.md (7-stage idea -> refinement -> draft -> review -> decide -> edit -> final-review)."
     }
   },
   "airtable_status": {
@@ -2239,9 +2244,9 @@
       "event": "SpiceRabbit (legacy project, rebranding period)"
     },
     {
-      "date": "2021",
-      "precision": "year",
-      "event": "RRM Foundation incorporated as 501(c)(3), EIN 93-4594315"
+      "date": "2023-11-28",
+      "precision": "day",
+      "event": "RRM Foundation incorporated as Domestic Nonprofit Corporation in Pennsylvania (Entity #0013656807). IRS 501(c)(3) determination letter issued 2024-01-29 effective retroactive to 2023-11-28. EIN 93-4594315. Public charity status 170(b)(1)(A)(vi). DLN 26053423002454."
     },
     {
       "date": "2022",
@@ -2387,6 +2392,26 @@
       "date": "2026-05-01",
       "precision": "day",
       "event": "STUC member courses cut into individual lessons. 5 full-length recordings (~9.6h) on CF Stream cut into 33 lesson clips via clip API. Sources deleted from Stream after clips verified ready (originals on Google Drive). Course step count: 70 -> 103. Section count: 33 -> 66. Per-instructor thumbnails set; expanded course descriptions written from Gemini transcripts; em dashes and double dashes removed sitewide on the 6 STUC course descriptions."
+    },
+    {
+      "date": "2026-05-02",
+      "precision": "day",
+      "event": "Ovulation taxonomy paper Stage 1 idea brief drafted (research-drafts/ovulation-taxonomy/) -- IIRRM Congress 2026 late-breaking + JRRM full-paper target. Pairs structurally with category-critique abstract (same pathology-as-diagnostic-entity move one diagnostic level deeper). Brown 2011 Hum Reprod Update continuum precedent verified by Opus sub-agent (PMC9527465)."
+    },
+    {
+      "date": "2026-05-02",
+      "precision": "day",
+      "event": "FIGO Ovulatory Disorders Classification System (Munro 2022, Hum Reprod) ingested to RRM Library: D1 record recseIPRSZKu8bz9P6la, full markdown body in R2, classified rrm_relevance=4, live at /library/the-figo-ovulatory-disorders-classification-system-seiprszk/."
+    },
+    {
+      "date": "2026-05-02",
+      "precision": "day",
+      "event": "classify-library skill rewritten: in-loop classification by running Claude Code model is the default; api.anthropic.com path retained only for unattended cron / explicit benchmarks. Triggered by accidental Anthropic API spend during FIGO 2022 ingest. OpenClaw Anthropic API 1P key disabled by Brian. Memory: feedback-no-api-callout-when-claude-in-loop.md."
+    },
+    {
+      "date": "2026-05-02",
+      "precision": "day",
+      "event": "4 author_dedup_flags inserted (IDs 2516-2519) for Brown 2011 (recR07BCJsIHJLXIR) -- 3 duplicate Jacques P. Brown / Universite Laval records to merge into author-j-p-brown, plus 1 wrong-person flag preventing future enrichment from linking the bone-density researcher to the ovulation continuum paper (which is by James B. Brown of U Melbourne, deceased)."
     }
   ],
   "google_workspace_automation": {
