@@ -254,7 +254,9 @@ jobs:
 
           # STUC course structure guard: each STUC course must have its expected lesson count.
           # Catches accidental partial wipes (e.g., deleting a lesson without restoring it).
-          # Counts set 2026-05-01 after STUC lesson cutting completed.
+          # Counts set 2026-05-01 after STUC lesson cutting completed. Only courses currently
+          # status=published in D1 are listed here. functional-lab-testing-napro was unpublished
+          # 2026-05-01 (transcript-only, no video) -- if re-published it should be added back.
           if [ -f "$courses_file" ]; then
             node -e "
               const d = JSON.parse(require('fs').readFileSync('$courses_file', 'utf8'));
@@ -264,7 +266,6 @@ jobs:
                 'infertility-existential-trauma': 8,
                 'fertility-based-family-planning': 7,
                 'aip-diet-inflammation': 6,
-                'functional-lab-testing-napro': 0,
               };
               let stucFail = false;
               for (const [id, want] of Object.entries(expected)) {
