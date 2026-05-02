@@ -384,24 +384,20 @@ jobs:
         run: node scripts/embed-library-ci.mjs
         continue-on-error: true
 
-      - name: Upload corpus to AI Search (Phase 1c — /ask v2 rebuild)
-        id: ai_search_upload
-        if: ${{ !inputs.skip_fetch && env.AI_SEARCH_API_TOKEN != '' }}
-        env:
-          AI_SEARCH_API_TOKEN: ${{ secrets.AI_SEARCH_API_TOKEN }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.AI_SEARCH_API_TOKEN }}
-          D1_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: node scripts/ai-search-corpus-upload.mjs
-        continue-on-error: true
-
-      - name: Surface AI Search loader status
-        if: always() && steps.ai_search_upload.conclusion != 'skipped'
-        run: |
-          if [ "${{ steps.ai_search_upload.outcome }}" = "success" ]; then
-            echo "::notice title=AI Search corpus loader OK::Phase 1 corpus refresh complete."
-          else
-            echo "::warning title=AI Search corpus loader ${{ steps.ai_search_upload.outcome }}::The /ask v2 corpus index did not fully refresh on this deploy (outcome=${{ steps.ai_search_upload.outcome }}). Check the upload step's logs. Index will catch up on the next run via hash-skip; weekly reconcile cron will still fire."
-          fi
+      # AI Search corpus upload is a separate job (`ai_search_refresh` below).
+      # Reason: the upload pushes ~4,300 items at ~1.85 items/sec, which needs
+      # ~40 min to complete a full rebuild. The deploy job has a 15-min budget
+      # and got truncated every run, leaving the index ~15-17% advanced per
+      # deploy. Hoisting the loader into its own job with its own timeout
+      # decouples it from the deploy SLA. Data files are passed via artifact.
+      - name: Upload data files for AI Search refresh
+        if: ${{ !inputs.skip_fetch }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-data
+          path: src/data/*.json
+          retention-days: 1
+          if-no-files-found: error
 
       - name: Submit to IndexNow
         if: success()
@@ -494,3 +490,51 @@ jobs:
               \"qa_pre\": $QA_PRE,
               \"qa_post\": $QA_POST
             }" || echo "Observatory notification failed (non-blocking)"
+
+  # AI Search corpus refresh runs as its own job so the long-tail
+  # ai-search-corpus-upload.mjs (4,300+ items at ~1.85 items/sec → ~40 min)
+  # doesn't get axed by the deploy job's 15-min timeout. The script is
+  # idempotent (hash-skip on existing items) and non-blocking for the
+  # main deploy — failures here do not affect the live site.
+  ai_search_refresh:
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    if: ${{ !inputs.skip_fetch && needs.deploy.result == 'success' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Restore data files from deploy job
+        uses: actions/download-artifact@v4
+        with:
+          name: site-data
+          path: src/data
+
+      - name: Upload corpus to AI Search (Phase 1c — /ask v2 rebuild)
+        id: ai_search_upload
+        if: ${{ env.AI_SEARCH_API_TOKEN != '' }}
+        env:
+          AI_SEARCH_API_TOKEN: ${{ secrets.AI_SEARCH_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.AI_SEARCH_API_TOKEN }}
+          D1_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node scripts/ai-search-corpus-upload.mjs
+        continue-on-error: true
+
+      - name: Surface AI Search loader status
+        if: always() && steps.ai_search_upload.conclusion != 'skipped'
+        run: |
+          if [ "${{ steps.ai_search_upload.outcome }}" = "success" ]; then
+            echo "::notice title=AI Search corpus loader OK::Phase 1 corpus refresh complete."
+          else
+            echo "::warning title=AI Search corpus loader ${{ steps.ai_search_upload.outcome }}::The /ask v2 corpus index did not fully refresh on this deploy (outcome=${{ steps.ai_search_upload.outcome }}). Check the upload step's logs. Index will catch up on the next run via hash-skip; weekly reconcile cron will still fire."
+          fi
