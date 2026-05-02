@@ -1,0 +1,75 @@
+{
+  "courseId": "aip-diet-inflammation",
+  "sourceUid": "dce9110de40240a809abd07d73ab9eab",
+  "sourceDuration": 4521,
+  "approved": true,
+  "contentStart": 702,
+  "contentEnd": 4397,
+  "trimmedChitChat": {
+    "startTrimmed": "00:00:00-00:11:42 — Tech check, intro greetings, kudos to Lorraine, banter about new phones.",
+    "endTrimmed": "01:13:17-01:15:21 — Final goodbyes, follow-up logistics, sign-off chatter."
+  },
+  "lessons": [
+    {
+      "order": 1,
+      "sectionId": "aip-why-aip-isnt-enough",
+      "stepId": "aip-why-aip-isnt-enough-1",
+      "title": "Why the AIP Diet Isn't Enough: Restrictive Diets and Hidden Inflammation",
+      "startTimeSeconds": 702,
+      "endTimeSeconds": 1688,
+      "durationSeconds": 986,
+      "topicSummary": "Rita's 'I am safe' nervous-system framing connects immune regulation to discussion. Naomi shares her physician perspective on minimal nutrition training. Rita introduces herself (Creighton FCP, NTP, RWS-trained), explains her shift to functional medicine. Critiques AIP as severely restrictive symptom management that fails to address root causes — poor digestion, vitamin/mineral deficiencies, co-infections, dysbiotic bacteria, parasites, yeast, blood-sugar dysregulation."
+    },
+    {
+      "order": 2,
+      "sectionId": "aip-case-pcos-endo",
+      "stepId": "aip-case-pcos-endo-1",
+      "title": "Case Study 1: PCOS and Endometriosis",
+      "startTimeSeconds": 1688,
+      "endTimeSeconds": 2230,
+      "durationSeconds": 542,
+      "topicSummary": "30-year-old client with PCOS and endometriosis. GI map revealed poor fat breakdown (high steatocrit), gluten reactivity, and dysbiotic bacteria correlated with low estrogen and progesterone. 12-week supplement protocol focused on fat digestion (beets, Beta Plus, Beta TCP) and microbial eradication. Result: first 30-day cycle without progesterone, 10 lbs lost, hair regrowth."
+    },
+    {
+      "order": 3,
+      "sectionId": "aip-case-severe-endo",
+      "stepId": "aip-case-severe-endo-1",
+      "title": "Case Study 2: Severe Endometriosis with Parasites and Lyme",
+      "startTimeSeconds": 2230,
+      "endTimeSeconds": 3037,
+      "durationSeconds": 807,
+      "topicSummary": "18-year-old post-excision with PMDD, chronic pain, hot flashes, Lyme history. GI map showed Morganella, Pseudomonas, Citrobacter, Blastocystis hominis, depleted Secretory IgA. Protocol: stomach-acid support, probiotic, eradication agents, parasite cleanse (passed several large tapeworms). Includes Naomi's clinical aside on Lyme/endometriosis correlation and Herxheimer reactions post-surgery."
+    },
+    {
+      "order": 4,
+      "sectionId": "aip-functional-testing-protocols",
+      "stepId": "aip-functional-testing-protocols-1",
+      "title": "Functional Testing, Protocol Timing, and Avoiding Long-Term Supplement Dependence",
+      "startTimeSeconds": 3037,
+      "endTimeSeconds": 3744,
+      "durationSeconds": 707,
+      "topicSummary": "Q&A on Rita's training (Restorative Wellness Solutions), supplement selection, when she recommends GI map (~90% of clients). Optimal protocol timing — ideally 3 months pre-surgery. Four-month engagement model. Critical principle: neither restrictive diets nor supplement-heavy regimens should be long-term solutions; restore the body's own digestive function."
+    },
+    {
+      "order": 5,
+      "sectionId": "aip-fat-absorption-dairy",
+      "stepId": "aip-fat-absorption-dairy-1",
+      "title": "Restoring Fat Absorption and Whole-Fat Dairy",
+      "startTimeSeconds": 3744,
+      "endTimeSeconds": 4190,
+      "durationSeconds": 446,
+      "topicSummary": "Naomi connects fat absorption to calming inflammation, parallels IV intralipids for recurrent pregnancy loss. Rita explains bile-salt protocol post-cholecystectomy and long-term sequelae of gallbladder removal. Whole-fat dairy and the 'war on fat'. Reframing healing as nourishment vs restriction."
+    },
+    {
+      "order": 6,
+      "sectionId": "aip-prolactin-management",
+      "stepId": "aip-prolactin-management-1",
+      "title": "Q&A: Managing Elevated Prolactin",
+      "startTimeSeconds": 4190,
+      "endTimeSeconds": 4397,
+      "durationSeconds": 207,
+      "topicSummary": "Victoria's Q&A on elevated prolactin: confirming a true high (fasting, no nipple stimulation/intercourse), Vitex as natural option, cabergoline twice weekly, bromocriptine alternative, brain MRI thresholds, and Naomi's deprescribing principle for both supplements and extreme diets."
+    }
+  ],
+  "notes": "APPROVED 2026-05-01. 6 lessons. Case studies split. Prolactin Q&A separated into its own lesson. All lessons contiguous: 702->1688->2230->3037->3744->4190->4397."
+}

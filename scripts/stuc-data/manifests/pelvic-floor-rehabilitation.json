@@ -1,0 +1,75 @@
+{
+  "courseId": "pelvic-floor-rehabilitation",
+  "sourceUid": "0c363c504aa969cdfc2881a4a2c4db19",
+  "sourceDuration": 5325,
+  "approved": true,
+  "contentStart": 0,
+  "contentEnd": 5204,
+  "trimmedChitChat": {
+    "startTrimmed": "None — Naomi opens with introduction immediately at 00:00:00.",
+    "endTrimmed": "Final ~121s (01:26:44 to 01:28:45) — brief 'we'll do a follow up' exchange and personal goodbyes."
+  },
+  "lessons": [
+    {
+      "order": 1,
+      "sectionId": "pfr-foundations",
+      "stepId": "pfr-foundations-1",
+      "title": "Foundations: Why Pelvic Floor Health Matters and How It Works",
+      "startTimeSeconds": 0,
+      "endTimeSeconds": 841,
+      "durationSeconds": 841,
+      "topicSummary": "Dr. Amanda Simmons' background, prevalence of PFD (1 in 4 women), education gap, pelvic floor anatomy (superficial vs deep), functions, tone spectrum, A-frame house model, and core canister."
+    },
+    {
+      "order": 2,
+      "sectionId": "pfr-incontinence-bladder",
+      "stepId": "pfr-incontinence-bladder-1",
+      "title": "Incontinence, Bladder Habits, and Urgency Management",
+      "startTimeSeconds": 841,
+      "endTimeSeconds": 1640,
+      "durationSeconds": 799,
+      "topicSummary": "Urge vs stress vs mixed vs athletic incontinence, bladder mechanics, healthy bladder habits, bladder diary, quick flicks for urgency, retraining, and PFMT as gold standard."
+    },
+    {
+      "order": 3,
+      "sectionId": "pfr-prolapse-pain",
+      "stepId": "pfr-prolapse-pain-1",
+      "title": "Prolapse, Constipation, and Vaginal Pain",
+      "startTimeSeconds": 1640,
+      "endTimeSeconds": 2534,
+      "durationSeconds": 894,
+      "topicSummary": "POP (41-50% on exam, 3-6% symptomatic), grading, pessaries, PFMT plus whole-body strength, toileting habits, squatty potty, constipation management, heavy lifting as protective for prolapse, and vaginal pain causes/treatments."
+    },
+    {
+      "order": 4,
+      "sectionId": "pfr-pregnancy-postpartum",
+      "stepId": "pfr-pregnancy-postpartum-1",
+      "title": "Pregnancy, Postpartum, and the Six-Week Rule Debunked",
+      "startTimeSeconds": 2534,
+      "endTimeSeconds": 3285,
+      "durationSeconds": 751,
+      "topicSummary": "Diastasis recti, pelvic girdle pain, lifting heavy in pregnancy, birth prep, pushing strategies, debunking the six-week immobilization rule, and strain variability."
+    },
+    {
+      "order": 5,
+      "sectionId": "pfr-finding-pt",
+      "stepId": "pfr-finding-pt-1",
+      "title": "What Pelvic Floor PT Looks Like, Screening a Provider, and Initial Q&A",
+      "startTimeSeconds": 3285,
+      "endTimeSeconds": 4247,
+      "durationSeconds": 962,
+      "topicSummary": "What a pelvic floor PT visit looks like, criteria for screening a high-quality PT (certifications, internal assessment training, holistic view, must incorporate strength training), red flags (Kegels-and-breathing-only PTs), Ascend resources, and initial Q&A on culture/body disconnect, standards in the field ('PT 2.0' vs underloaded traditional PT), litigation-driven blanket recommendations, and nervous system reconnection."
+    },
+    {
+      "order": 6,
+      "sectionId": "pfr-scar-ic-hypermobility",
+      "stepId": "pfr-scar-ic-hypermobility-1",
+      "title": "Q&A: Scar Tissue, Interstitial Cystitis, and Hypermobility",
+      "startTimeSeconds": 4247,
+      "endTimeSeconds": 5204,
+      "durationSeconds": 957,
+      "topicSummary": "Scar tissue work after multiple surgeries (cupping, scraping, tissue mobilization), interstitial cystitis as a symptom cluster (not a single diagnosis), pelvic floor dysfunction and IC overlap, and hypermobility/proprioception/POTS connections."
+    }
+  ],
+  "notes": "APPROVED 2026-05-01 with split option C. 6 lessons. Lesson 5+6 split at 01:10:47 (4247s) where scar tissue Q&A begins. All lessons contiguous: 0->841->1640->2534->3285->4247->5204."
+}

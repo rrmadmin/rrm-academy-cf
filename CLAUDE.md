@@ -93,7 +93,7 @@ GitHub Actions: fetch-courses-data.mjs   ← full or single-record (?id=<courseI
 src/data/courses.json → Astro build → rrmacademy.org/courses
 ```
 
-**Tables:** `course` (10 D1-origin rows; PK is human-readable id like `masterclass-endo-surgery`, slug UNIQUE COLLATE NOCASE), `course_section` (33 rows; FK to course), `course_step` (70 rows; FK to course_section + denormalized course_id). All step IDs preserved verbatim because `enrollment.course_id`, `step_progress.step_id`, `quiz_response`, `lesson_comment`, `affiliate_clicks`, `course_waitlist` reference them by string.
+**Tables:** `course` (10 D1-origin rows; PK is human-readable id like `masterclass-endo-surgery`, slug UNIQUE COLLATE NOCASE), `course_section` (66 rows; FK to course), `course_step` (103 rows; FK to course_section + denormalized course_id). All step IDs preserved verbatim because `enrollment.course_id`, `step_progress.step_id`, `quiz_response`, `lesson_comment`, `affiliate_clicks`, `course_waitlist` reference them by string. Counts grew on 2026-05-01 when 5 STUC courses were cut from single full-length recordings into 33 individual lesson clips via the CF Stream clip API.
 
 **Schema file:** `scripts/migrate-courses-to-d1.sql`. Migration script `scripts/migrate-courses-to-d1.mjs` is one-shot seed only — re-running requires `--seed-mode-i-understand` flag and clobbers admin-edited status (per /arise --deep finding #3). For pre-flight FK check (read-only), `node scripts/migrate-courses-to-d1.mjs --check-fk`.
 
