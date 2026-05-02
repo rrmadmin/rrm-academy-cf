@@ -98,7 +98,7 @@
           "rrm-academy-search-site": {
             "type": "web-crawler",
             "source": "rrmacademy.org",
-            "status": "DISABLED at Worker level — produced duplicate hits (every D1 article appeared once as upload + once as crawl)"
+            "status": "DISABLED at Worker level \u2014 produced duplicate hits (every D1 article appeared once as upload + once as crawl)"
           }
         },
         "consumer_worker": {
@@ -114,8 +114,8 @@
           "bindings": [
             "ASK_KB (AI Search namespace)",
             "AI (Workers AI)",
-            "AUTH_DB (D1 rrm-auth — citation title lookups for posts/faq/glossary_term)",
-            "LIBRARY_DB (D1 rrm-library — citation title lookups for articles)",
+            "AUTH_DB (D1 rrm-auth \u2014 citation title lookups for posts/faq/glossary_term)",
+            "LIBRARY_DB (D1 rrm-library \u2014 citation title lookups for articles)",
             "EVENTS (AE worker-events)"
           ],
           "auth": "Bearer AI_SEARCH_WORKER_AUTH (shared secret on Pages env + Worker secret)"
@@ -446,13 +446,13 @@
             "key": "user_id + label",
             "purpose": "Tier badges and achievement labels (STUC tiers, course completions)",
             "stuc_labels": [
-              "Save the Uterus Club 🏷️ (grandfathered from Wix)",
-              "Uterus Member 🐻 (member tier)",
-              "Uterus Hero 💖 (hero tier)",
-              "Uterus Super Hero 🦸‍♀️ (superhero tier)"
+              "Save the Uterus Club \ud83c\udff7\ufe0f (grandfathered from Wix)",
+              "Uterus Member \ud83d\udc3b (member tier)",
+              "Uterus Hero \ud83d\udc96 (hero tier)",
+              "Uterus Super Hero \ud83e\uddb8\u200d\u2640\ufe0f (superhero tier)"
             ],
             "achievement_labels": [
-              "Donor 👏",
+              "Donor \ud83d\udc4f",
               "Masterclass in Endometriosis & Surgery",
               "Long Term Endometriosis Management",
               "Restorative Reproductive Medicine (RRM) vs Standard ART",
@@ -766,7 +766,7 @@
       "base_url": "https://rrm-library-worker.administrator-cloudflare.workers.dev"
     },
     "rrm-survey": {
-      "purpose": "Survey pseudonymization (email ↔ Airtable record ID)",
+      "purpose": "Survey pseudonymization (email \u2194 Airtable record ID)",
       "tables": {
         "survey_identities": {
           "purpose": "Email + Airtable record ID mapping",
@@ -808,7 +808,7 @@
       "contact_to_tags": "contact_tag.contact_id -> contact.id"
     },
     "source_of_truth": {
-      "stuc_membership_active": "Stripe subscriptions API (status in active/trialing/past_due) OR user_label 'Save the Uterus Club 🏷️' (grandfathered) OR user.role >= mod (staff). Gated via requireMember() in community/_shared.js.",
+      "stuc_membership_active": "Stripe subscriptions API (status in active/trialing/past_due) OR user_label 'Save the Uterus Club \ud83c\udff7\ufe0f' (grandfathered) OR user.role >= mod (staff). Gated via requireMember() in community/_shared.js.",
       "stuc_tier": "Stripe price ID mapped to env vars (STRIPE_PRICE_MEMBER/HERO/SUPERHERO). Grandfathered = member tier. Staff = staff tier. Default if price missing: member.",
       "stuc_cancellation": "Stripe webhook customer.subscription.deleted fires email but does NOT write to D1. Gap: no D1 record of cancellation date or reason.",
       "community_access_blocked": "user.blocked = 1 returns 403 'Account suspended' on requireMember()",
@@ -836,7 +836,7 @@
       ],
       "all_stuc_members": [
         "-- Active Stripe subscribers (requires Stripe API call per user with stripe_customer_id)",
-        "-- Grandfathered: SELECT u.* FROM [user] u JOIN user_label ul ON u.id = ul.user_id WHERE ul.label = 'Save the Uterus Club 🏷️'",
+        "-- Grandfathered: SELECT u.* FROM [user] u JOIN user_label ul ON u.id = ul.user_id WHERE ul.label = 'Save the Uterus Club \ud83c\udff7\ufe0f'",
         "-- Staff: SELECT * FROM [user] WHERE role IN ('mod', 'admin', 'superadmin')",
         "-- Note: requireMember() in community/_shared.js implements this logic"
       ],
@@ -1043,7 +1043,7 @@
     "ssot_path": "docs/design/design-system.json (machine-readable, auto-generated)",
     "generation_workflow": {
       "source_files": [
-        "src/styles/global.css (CSS tokens: 3 themes × 73 tokens + 19 shared = 238 total)",
+        "src/styles/global.css (CSS tokens: 3 themes \u00d7 73 tokens + 19 shared = 238 total)",
         "docs/design/design-system.manual.json (brand rules, fonts, typography scale)"
       ],
       "generator": "scripts/generate-design-tokens.mjs",
@@ -1179,7 +1179,7 @@
       },
       "POST /check-facts": {
         "purpose": "Verify claims in text against verified facts",
-        "logic": "Extract claims (percentages, dollars, sample sizes, cohort years); numeric match ±2% tolerance; common-error phrase matching",
+        "logic": "Extract claims (percentages, dollars, sample sizes, cohort years); numeric match \u00b12% tolerance; common-error phrase matching",
         "auth_scope": "agent + admin"
       },
       "POST /promote-facts": {
@@ -1316,10 +1316,10 @@
       "primary_instance": "rrm-academy-search-articles",
       "loader_script": "scripts/ai-search-corpus-upload.mjs",
       "ci_steps": [
-        ".github/workflows/deploy.yml — corpus upload runs after Pages deploy on every push (continue-on-error: true, ::warning:: annotation)",
-        ".github/workflows/ai-search-reconcile.yml — Sunday 08:00 UTC (--full-rebuild + --reconcile --execute --max-delete 50)"
+        ".github/workflows/deploy.yml \u2014 corpus upload runs after Pages deploy on every push (continue-on-error: true, ::warning:: annotation)",
+        ".github/workflows/ai-search-reconcile.yml \u2014 Sunday 08:00 UTC (--full-rebuild + --reconcile --execute --max-delete 50)"
       ],
-      "key_to_title_lookup": "rrm-ai-search Worker resolves citation titles via D1: 2-layer batched lookup. Direct slug→title per source table (articles/posts/faq.question/glossary_term.name); fallback through ai_search_docs.full_slug for sha8-truncated keys."
+      "key_to_title_lookup": "rrm-ai-search Worker resolves citation titles via D1: 2-layer batched lookup. Direct slug\u2192title per source table (articles/posts/faq.question/glossary_term.name); fallback through ai_search_docs.full_slug for sha8-truncated keys."
     },
     "v1_deprecated_pipeline": {
       "model": "@cf/baai/bge-base-en-v1.5 (Vectorize)",
@@ -1332,7 +1332,7 @@
         "script": "scripts/embed-library-ci.mjs",
         "status": "Retained for rollback during 2-week soak"
       },
-      "retirement_target": "2026-05-12 — drop scripts, delete Vectorize index"
+      "retirement_target": "2026-05-12 \u2014 drop scripts, delete Vectorize index"
     }
   },
   "newsletter_system": {
@@ -1640,9 +1640,24 @@
       "note": "Managed via CF dashboard (no local project directory)"
     },
     "rrm-finance-sync": {
-      "status": "stub",
-      "purpose": "Payment sync to Airtable ledger",
-      "_status_2026_04_27": "STUB (undeployed) AND target ledger is dormant. Effectively dead."
+      "status": "code-complete; awaiting Phase 4 Plaid Link + secret deploy",
+      "purpose": "Daily 5-source finance aggregator (PayPal Reports + Stripe balance_transactions + Wix eCom Orders + Plaid Bluevine + CF subscriptions) -> RRM Foundation Google Sheet SSOT",
+      "phase_0_complete": true,
+      "phase_0_completed_at": "2026-05-01",
+      "cron": "0 8 * * * UTC",
+      "kill_switch_var": "SYNC_ENABLED",
+      "kill_switch_default": "false",
+      "plan_file": "~/.claude/plans/i-need-to-keep-spicy-pony.md",
+      "secrets_in_1password": [
+        "Plaid - RRM Finance",
+        "PayPal REST App - RRM Foundation",
+        "Stripe Restricted Key - rrm-finance-sync",
+        "Wix API - RRM Finance Sync (existing)",
+        "Cloudflare API Token - Account Bootstrap (existing)",
+        "Sheets OAuth Refresh - rrm-finance-sync",
+        "RRM Finance Master Sheet ID"
+      ],
+      "_replaces_2026_04_27_status": "Was 'STUB (undeployed) AND target ledger is dormant. Effectively dead.' -- revived 2026-05-01 as part of Airtable->Sheet SSOT migration."
     },
     "overwatch-worker": {
       "status": "paused",
@@ -1744,7 +1759,12 @@
     },
     "rrm-finance-sync": {
       "path": "projects/rrm-finance-sync/",
-      "purpose": "Payment sync worker (stub)"
+      "github": "rrmadmin/rrm-finance-sync",
+      "purpose": "Daily 5-source finance aggregator (PayPal, Stripe, Wix, Plaid Bluevine, CF subscriptions) -> Google Sheet SSOT (RRM Foundation Ledger)",
+      "status": "Phase 0 complete 2026-05-01. All 9 prereqs verified + 7 1P items live. Ready for secret deploy + Plaid Link (Phase 4) + soak.",
+      "cron": "0 8 * * * UTC",
+      "kill_switch_var": "SYNC_ENABLED",
+      "plan_file": "~/.claude/plans/i-need-to-keep-spicy-pony.md"
     },
     "rrm-provider-directory": {
       "path": "projects/rrm-provider-directory/",
@@ -1824,7 +1844,7 @@
   "airtable_status": {
     "_audit_date": "2026-04-27",
     "_cleanup_executed": "2026-04-27",
-    "policy": "Airtable is deprecated for rrm-academy content. D1 is SSOT. Endo survey is the only by-design Airtable holdout (HIPAA pseudonymization). Foundation finance is stale/dormant — treat as archive, not active.",
+    "policy": "Airtable is deprecated for rrm-academy content. D1 is SSOT. Endo survey is the only by-design Airtable holdout (HIPAA pseudonymization). Foundation finance is stale/dormant \u2014 treat as archive, not active.",
     "migrated_to_d1": {
       "library_articles": {
         "target": "D1 rrm-library",
@@ -1874,7 +1894,7 @@
         "scripts/unpublish-post.sh (BROKEN since blog migration)",
         "scripts/migrate-survey-identities.mjs (one-shot already executed)",
         "src/lib/airtable-config.mjs (orphaned)",
-        "scripts/stuc-pipeline/ entire directory (publish.mjs, download.sh, manifest.json) — D1 admin endpoints replace it"
+        "scripts/stuc-pipeline/ entire directory (publish.mjs, download.sh, manifest.json) \u2014 D1 admin endpoints replace it"
       ],
       "code_blocks_removed": [
         "src/lib/fetch-data.mjs Airtable webhook ping block (decorative pre-D1 cache notification)"
@@ -1887,7 +1907,8 @@
         "row_count_approx": 753,
         "policy_per_BOOKKEEPING_STRATEGY_2026": "Airtable forever, scaling via Plus tier 2027-2028",
         "actual_status_2026_04_27": "STALE_DORMANT per Brian. n8n financial workflows are paused/dead. Ledger no longer actively maintained.",
-        "implication": "Treat as historical archive, not live system. Don't propose extensions to it."
+        "implication": "Treat Airtable base as historical archive only. Do NOT write new Airtable code anywhere in rrm-academy. New finance writes go through rrm-finance-sync -> Sheet.",
+        "actual_status_2026_05_01": "MIGRATED to Google Sheet SSOT (1CAIPG7PtBThxmiHIux39IHDYaboA9bZB4pPoJOaQ_eA). Airtable base preserved as historical archive only. Phase 2 migration scripts ready; cutover pending Phase 4 Plaid Link."
       }
     },
     "n8n_host_status": {
@@ -1909,7 +1930,7 @@
         "purpose": "n8n REST API"
       },
       "OpenClaw Airtable PAT": {
-        "purpose": "Airtable API access. Active scope (2026-04-27): endo-survey runtime + dormant Foundation ledger only. NOT for new code."
+        "purpose": "Airtable API access. Active scope (2026-05-01): endo-survey runtime ONLY. Foundation finance ledger migrated to Google Sheet 2026-05-01; Airtable base appdRYaSoJmeZSqU6 retained as historical archive. PAT presence is not a license to write new Airtable code anywhere in rrm-academy."
       },
       "OpenAI API Key": {
         "purpose": "Image gen, Whisper"
@@ -1972,6 +1993,21 @@
       },
       "One-Punch-Man-Token": {
         "purpose": "CF API token-management bootstrap (IP-locked to 72.95.9.135)"
+      },
+      "Plaid - RRM Finance": {
+        "purpose": "Plaid client_id + production+sandbox secrets for rrm-finance-sync Worker. Bluevine bank aggregation via institution_id ins_127296 (Coastal Community Bank). 1P fields: client_id, secret_production, secret_sandbox, environment_default=production, institution_id_bluevine. Production access requires Plaid Onboarding approval (security/fraud questionnaires submitted 2026-04-30 + 4 security policy PDFs at Drive folder 13gld88wkBXesyv_v1zSyYv1EUC_vMsH8)."
+      },
+      "PayPal REST App - RRM Foundation": {
+        "purpose": "PayPal Reports + Transaction Search read access. Reuses existing 'RRMF Finances Sync' app (app_id APP-7RK63958YX3500421) on merchant account XERQZ6JU8887G. Smoke-tested 2026-05-01 (OAuth + reporting/search/read both confirmed). 1P fields: client_id, credential, app_id, environment=live, app_name."
+      },
+      "Stripe Restricted Key - rrm-finance-sync": {
+        "purpose": "Read-only Stripe access for rrm-finance-sync Worker (rk_live_). Account acct_1OMFeJAYnsgNHm0H (Restorative Reproductive Medicine Foundation Inc, business_type=non_profit). Scopes: charges + balance + balance_transactions + payouts + refunds + disputes + customers (all READ). Smoke-tested 2026-05-01: 7 reads OK, write denied. Does NOT reuse 'RRMA Stripe API' sk_live_ which powers rrm-academy-cf checkout flows (per /arise HIGH #13)."
+      },
+      "Sheets OAuth Refresh - rrm-finance-sync": {
+        "purpose": "Google OAuth refresh token for Worker access to RRM Finance Master Sheet. Drive scope sufficient for sheets.values:append + values:update endpoints. Pattern matches existing 'nvsmltslwkasqgb7tklf6nlnq4' GA4 precedent. 1P fields: client_id, client_secret, refresh_token."
+      },
+      "RRM Finance Master Sheet ID": {
+        "purpose": "Sheet ID of 'RRM Foundation Ledger 2024-' Google Sheet (1CAIPG7PtBThxmiHIux39IHDYaboA9bZB4pPoJOaQ_eA). Bound to rrm-finance-sync Worker as GSHEETS_SHEET_ID."
       }
     },
     "gotchas": [
@@ -2026,17 +2062,17 @@
             "member": {
               "price_env": "STRIPE_PRICE_MEMBER",
               "amount": "$9/mo",
-              "label": "Uterus Member 🐻"
+              "label": "Uterus Member \ud83d\udc3b"
             },
             "hero": {
               "price_env": "STRIPE_PRICE_HERO",
               "amount": "$19/mo",
-              "label": "Uterus Hero 💖"
+              "label": "Uterus Hero \ud83d\udc96"
             },
             "superhero": {
               "price_env": "STRIPE_PRICE_SUPERHERO",
               "amount": "$99/mo",
-              "label": "Uterus Super Hero 🦸‍♀️"
+              "label": "Uterus Super Hero \ud83e\uddb8\u200d\u2640\ufe0f"
             }
           },
           "mode": "subscription",
@@ -2075,15 +2111,65 @@
       "legal_name": "Restorative Reproductive Medicine Foundation Inc",
       "ein": "93-4594315",
       "status": "Active 501(c)(3)",
+      "founding_date": "2023-11-28",
+      "incorporation": {
+        "state": "Pennsylvania",
+        "country": "US",
+        "filing_type": "Domestic Nonprofit Corporation",
+        "filing_law": "Pennsylvania Nonprofit Corporation Law of 1988",
+        "entity_number": "0013656807",
+        "file_date": "2023-11-28",
+        "venue_county": "Dauphin",
+        "registered_agent": "Rocket Lawyer Corporate Services LLC, 600 N. 2nd St., Ste. 401, Harrisburg, PA 17101",
+        "incorporators": [
+          "Brian Whittaker",
+          "Naomi Whittaker"
+        ],
+        "purpose_statement": "To foster and spread Restorative Reproductive Medicine principles to the public and healthcare industry.",
+        "stock_basis": "nonstock",
+        "members": "none"
+      },
+      "irs": {
+        "section": "501(c)(3)",
+        "public_charity_classification": "170(b)(1)(A)(vi)",
+        "effective_date_of_exemption": "2023-11-28",
+        "determination_letter_date": "2024-01-29",
+        "dln": "26053423002454",
+        "form_990_required": "990-N",
+        "accounting_period_ending": "December 31",
+        "contribution_deductibility": true
+      },
+      "mailing_address": {
+        "street": "3401 Hartzdale Dr Ste 103B PMB 3518",
+        "city": "Camp Hill",
+        "state": "PA",
+        "postal_code": "17011",
+        "country": "US"
+      },
       "accounts": [
         "Bluevine Checking",
-        "PayPal (incl PPGF)"
+        "PayPal (incl PPGF)",
+        "Stripe Balance",
+        "Wix Payments"
       ],
       "ledger": {
-        "system": "Unified Airtable ledger",
-        "base_id": "appdRYaSoJmeZSqU6",
-        "table_id": "tblh96WpbmB7T8Cz1",
-        "records": 753,
+        "ssot_target": "Google Sheet",
+        "ssot_id": "1CAIPG7PtBThxmiHIux39IHDYaboA9bZB4pPoJOaQ_eA",
+        "ssot_url": "https://docs.google.com/spreadsheets/d/1CAIPG7PtBThxmiHIux39IHDYaboA9bZB4pPoJOaQ_eA/edit",
+        "ssot_title": "RRM Foundation Ledger 2024-",
+        "tabs": [
+          "Inbox",
+          "Ledger",
+          "Categories",
+          "Vendors",
+          "Funds",
+          "Bluevine Live",
+          "CF Spend",
+          "Monthly Summary",
+          "Donations Summary",
+          "Course Revenue Summary",
+          "Software Watchlist"
+        ],
         "income_categories": [
           "4600 Donations",
           "4610 Course Revenue",
@@ -2096,7 +2182,21 @@
           "6150 Software & Apps",
           "6330 Professional Fees"
         ],
-        "_status_2026_04_27": "STALE/DORMANT per Brian. n8n financial workflows are paused (host down). Ledger not actively maintained. Treat as historical archive."
+        "transfer_categories": [
+          "8000 Internal Transfer"
+        ],
+        "funds": [
+          "General Fund",
+          "RRM Academy",
+          "Save the Uterus Club"
+        ],
+        "legacy_airtable": {
+          "base_id": "appdRYaSoJmeZSqU6",
+          "table_id": "tblh96WpbmB7T8Cz1",
+          "records": 753,
+          "status_2026_04_27": "STALE/DORMANT \u2014 preserved as historical archive; SSOT migrated to Google Sheet 2026-05-01"
+        },
+        "migration_status_2026_05_01": "Phase 0 COMPLETE 2026-05-01. All 9 prereqs landed in 1Password: Plaid (production env, ins_127296=Bluevine), PayPal REST App (reused existing 'RRMF Finances Sync', OAuth + Transaction Search smoke-tested live), Stripe restricted key (rk_live_, 7 read scopes, write denied), Wix App (existing 'Wix API - RRM Finance Sync', ow-managed), CF Account Bootstrap token (existing, billing scope), Google Sheets OAuth refresh, Master Sheet ID, CF subscriptions API verified. 11-tab Sheet scaffolded. Phase 1.5 + Phase 2 + Phase 5 migration scripts ready (projects/rrm-foundation/bookkeeping-2026/). Worker code complete (projects/rrm-finance-sync/, 29 tests passing). Next: deploy secrets, Phase 4 (Plaid Link localhost flow), 7-day soak with SYNC_ENABLED=false then flip true."
       },
       "summary": {
         "2024": {
@@ -2117,7 +2217,7 @@
           "income": 1432,
           "expenses": 367,
           "net": 1065,
-          "note": "STALE -- re-query ledger for current YTD"
+          "note": "STALE -- re-query ledger for current YTD; Sheet migration pending"
         }
       },
       "filings": {
@@ -2130,17 +2230,82 @@
         ]
       },
       "automation": {
-        "monthly_5th": [
-          "Wix Payments -> Airtable (9am)",
-          "PayPal -> Airtable (10am)",
-          "Duplicate Detection (11am)",
-          "Large Expense Alert $100+ (12pm)"
+        "active_2026_05_01": "rrm-finance-sync Worker scaffolded (5 source connectors: PayPal Reports, Stripe balance_transactions, Wix eCom Orders, Plaid Bluevine, CF subscriptions). Cron 0 8 * * * UTC. Kill switch: SYNC_ENABLED=false until Phase 0 secrets land.",
+        "legacy_n8n_dormant": [
+          "Wix Payments -> Airtable (5th 9am)",
+          "PayPal -> Airtable (5th 10am)",
+          "Duplicate Detection (5th 11am)",
+          "Large Expense Alert $100+ (5th 12pm)",
+          "Bank Reconciliation (6th 11am)",
+          "Budget & Cash Flow (6th 12pm)",
+          "Recurring Expense Watchdog (8th 9am)",
+          "Year-End Summary (Jan 2 9am)",
+          "Quarterly Board Summary (Apr/Jul/Oct/Jan 1)"
         ],
-        "monthly_6th": [
-          "Bank Reconciliation (11am)",
-          "Budget & Cash Flow Analysis (12pm)"
+        "_status_2026_04_27": "n8n host (108.174.50.7) down. Workflows above will PORT to Sheets Apps Script during Phase 6 of finance-sync migration; not all will be restored on n8n.",
+        "plan_file": "~/.claude/plans/i-need-to-keep-spicy-pony.md"
+      },
+      "stripe_account": {
+        "id": "acct_1OMFeJAYnsgNHm0H",
+        "legal_name": "Restorative Reproductive Medicine Foundation Inc",
+        "business_type": "non_profit",
+        "country": "US",
+        "shared_use": "Single Stripe account handles BOTH RRM Academy (donations, courses, STUC memberships) and Foundation operations. The legal entity on the account is the Foundation. The 1Password item naming 'RRMA Stripe API' is historical -- it's the Foundation account.",
+        "tax_id_provided_to_stripe": false,
+        "tax_id_gap_note": "EIN 93-4594315 not yet on file with Stripe (Settings -> Business details). Non-blocking but worth fixing.",
+        "credentials_1p": {
+          "production_secret_key": "RRMA Stripe API (sk_live_, full secret -- powers rrm-academy-cf checkout flows)",
+          "restricted_read_key": "Stripe Restricted Key - rrm-finance-sync (rk_live_, 7 read scopes -- rrm-finance-sync only)",
+          "test_keys": "RRMF Stripe Test API (sk_test_/pk_test_, test mode only)"
+        }
+      },
+      "paypal_account": {
+        "merchant_account": "XERQZ6JU8887G",
+        "email": "foundation+paypal@rrmacademy.org",
+        "rest_app": {
+          "name": "RRMF Finances Sync",
+          "app_id": "APP-7RK63958YX3500421",
+          "scopes": "reporting/search/read (Transaction Search) + standard payment scopes",
+          "credential_1p": "PayPal REST App - RRM Foundation"
+        }
+      },
+      "security_policies": {
+        "drive_folder_id": "13gld88wkBXesyv_v1zSyYv1EUC_vMsH8",
+        "drive_folder_name": "RRM Foundation - Security Documentation",
+        "policies": [
+          {
+            "id": "RRMF-SEC-001",
+            "title": "Information Security Policy",
+            "version": "1.0",
+            "effective_date": "2026-05-01",
+            "next_review": "2027-05-15"
+          },
+          {
+            "id": "RRMF-SEC-002",
+            "title": "Access Controls Policy",
+            "version": "1.0",
+            "effective_date": "2026-05-01",
+            "next_review": "2027-05-15"
+          },
+          {
+            "id": "RRMF-SEC-003",
+            "title": "MFA Implementation Statement",
+            "version": "1.0",
+            "effective_date": "2026-05-01",
+            "next_review": "2027-05-15"
+          },
+          {
+            "id": "RRMF-SEC-004",
+            "title": "Data Retention and Disposal Policy",
+            "version": "1.0",
+            "effective_date": "2026-05-01",
+            "next_review": "2027-05-15"
+          }
         ],
-        "_status_2026_04_27": "DORMANT — n8n host down, Foundation ledger no longer actively maintained per Brian 2026-04-27."
+        "source_markdown": "projects/rrm-foundation/bookkeeping-2026/security-policies/",
+        "render_script": "projects/rrm-foundation/bookkeeping-2026/security-policies/render-policies.py",
+        "annual_review_cadence": "Aligned with 990-N filing cycle (May of each year). Treasurer accountable.",
+        "drafted_for": "Plaid Production Onboarding (2026-04-30/05-01)"
       }
     }
   },
@@ -2390,7 +2555,7 @@
     }
   ],
   "google_workspace_automation": {
-    "description": "Programmatic access to Google Calendar + Meet for the rrmacademy.org Workspace tenant. Uses service-account impersonation via DWD (admin.google.com) — bypasses the OAuth-client and SA-key-creation policy blocks.",
+    "description": "Programmatic access to Google Calendar + Meet for the rrmacademy.org Workspace tenant. Uses service-account impersonation via DWD (admin.google.com) \u2014 bypasses the OAuth-client and SA-key-creation policy blocks.",
     "last_updated": "2026-04-29",
     "service_account": {
       "email": "rrm-calendar-automation@rrm-academy.iam.gserviceaccount.com",
@@ -2504,7 +2669,7 @@
     }
   },
   "public_event_landing_pages": {
-    "description": "Shareable per-event landing pages at /events/<slug>. SSR via CF Pages Function functions/events/[slug].js — reads D1 community_post (channel='stuc', type='event'). NOT auth-gated. Renders full OG/Twitter meta + Event schema.org JSON-LD so social/SMS link previews show the flyer + title + date. Session-aware CTA: STUC member -> Join Call (Meet link); logged-in non-member -> Become a STUC member; anonymous -> Join STUC + Sign in.",
+    "description": "Shareable per-event landing pages at /events/<slug>. SSR via CF Pages Function functions/events/[slug].js \u2014 reads D1 community_post (channel='stuc', type='event'). NOT auth-gated. Renders full OG/Twitter meta + Event schema.org JSON-LD so social/SMS link previews show the flyer + title + date. Session-aware CTA: STUC member -> Join Call (Meet link); logged-in non-member -> Become a STUC member; anonymous -> Join STUC + Sign in.",
     "live_at": "https://rrmacademy.org/events/<slug>",
     "router_route": "/events (added to ASTRO_ROUTES in rrm-router 2026-04-29)",
     "function_path": "functions/events/[slug].js",
