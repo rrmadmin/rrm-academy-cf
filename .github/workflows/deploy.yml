@@ -443,7 +443,23 @@ jobs:
             echo "No baseline changes to commit"
           else
             git commit -m "chore: update data baselines after deploy"
-            git push
+            # Concurrent workflows can push to main between this run's checkout and push.
+            # Rebase + retry absorbs that race; deploy already succeeded so a stale
+            # baseline is harmless (next green deploy refreshes it).
+            pushed=0
+            for attempt in 1 2 3 4 5; do
+              if git push; then
+                pushed=1
+                echo "Baseline push succeeded on attempt $attempt"
+                break
+              fi
+              echo "Baseline push attempt $attempt rejected; rebasing and retrying..."
+              git pull --rebase origin main || true
+              sleep $((attempt * 2))
+            done
+            if [ "$pushed" != "1" ]; then
+              echo "::warning::Baseline push failed after 5 attempts; baselines not updated this run"
+            fi
           fi
 
       - name: Notify Observatory
