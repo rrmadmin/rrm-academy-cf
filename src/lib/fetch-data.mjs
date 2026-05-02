@@ -173,7 +173,9 @@ async function fetchAll() {
   }
 
   console.log('Fetching all articles from D1 worker...');
-  const response = await fetchWithRetry(`${WORKER_URL}?limit=5000`, { headers: authHeaders(token) });
+  // Timeout 90s (default 30s). Payload is 25MB+ across 3,200+ articles and worker
+  // response time has crossed the 30s default, causing every retry to time out.
+  const response = await fetchWithRetry(`${WORKER_URL}?limit=5000`, { headers: authHeaders(token) }, { timeout: 90000 });
   const raw = Array.isArray(response) ? response : response.results;
   console.log(`Worker returned ${raw.length} published articles`);
 
