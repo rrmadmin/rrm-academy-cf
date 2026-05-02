@@ -1,0 +1,214 @@
+{
+  "$comment": "Pre-drafted Wikidata new-item structures for mowsenter to create after warmup. Goal: one safe SEO link from Wikidata to rrmacademy.org (Brian's stated goal 2026-05-01). Strategy: two purely additive items, no edits to NaPro Q23815908 or any other contested item. All QIDs verified live via Special:EntityData on 2026-05-01.",
+  "$created": "2026-05-01",
+  "$account": "mowsenter",
+  "$gate": "Sitting 5 + Sitting 6 must complete first; account must have ~22+ edits across mixed types before either item is created.",
+  "$existing_assets": {
+    "Q136663845": {
+      "label": "International Institute for Restorative Reproductive Medicine",
+      "note": "IIRRM already exists on Wikidata. Has P31:Q163740 (nonprofit), P571 (inception 2000), P856 (iirrm.org), P6782 ROR 02ph6p167, P17 country UK. Reference asset for both new items below.",
+      "verified": "2026-05-01"
+    }
+  },
+  "$primary_documentary_evidence": {
+    "comment": "Both PDFs supplied by Brian on 2026-05-01 are public records suitable as Wikidata references and ROR application supporting documents.",
+    "pa_articles_of_incorporation": {
+      "filename": "Business Formation - RRM Foundation (1).pdf",
+      "filed_with": "Pennsylvania Department of State, Bureau of Corporations and Charitable Organizations",
+      "filed_date": "2023-11-28",
+      "entity_number": "0013656807",
+      "filing_type": "Domestic Nonprofit Corporation",
+      "stated_purpose": "To foster and spread Restorative Reproductive Medicine principles to the public and healthcare industry.",
+      "incorporators": ["Brian Whittaker", "Naomi Whittaker"],
+      "incorporator_address": "3401 Hartzdale Dr Ste 103B PMB 3518, Camp Hill, PA 17011",
+      "registered_office": "Rocket Lawyer Corporate Services LLC, Dauphin County",
+      "public_record_url_template": "https://file.dos.pa.gov/search/business (search by entity #0013656807)"
+    },
+    "irs_501c3_determination": {
+      "filename": "501c3 Approval - RRM Foundation (1).pdf",
+      "letter_type": "IRS Letter 947 (Rev. 2-2020)",
+      "letter_date": "2024-01-29",
+      "ein": "93-4594315",
+      "effective_date_of_exemption": "2023-11-28",
+      "public_charity_status": "170(b)(1)(A)(vi)",
+      "form_990_required": "Yes",
+      "contribution_deductibility": "Yes",
+      "dln": "26053423002454",
+      "public_record_url": "https://apps.irs.gov/app/eos/ (search EIN 93-4594315)"
+    },
+    "propublica_nonprofit_explorer": {
+      "url_template": "https://projects.propublica.org/nonprofits/organizations/934594315",
+      "comment": "ProPublica mirrors IRS Form 990 filings as public data. Direct, citable, durable URL — strongest single-link reference for any Wikidata claim about RRM Foundation."
+    }
+  },
+
+  "items": [
+    {
+      "label_en": "restorative reproductive medicine",
+      "$comment_label_case": "Wikidata convention is lowercase for common nouns and concept terms; keep the abbreviation 'RRM' in aliases not labels.",
+      "description_en": "branch of medicine that diagnoses and treats the underlying causes of reproductive dysfunction",
+      "aliases_en": [
+        "RRM",
+        "restorative reproductive medicine specialty"
+      ],
+      "claims": [
+        {
+          "property": "P31",
+          "property_label": "instance of",
+          "target": "Q930752",
+          "target_label": "medical specialty",
+          "verified": "2026-05-01",
+          "references": [
+            {
+              "P854": "https://iirrm.org/",
+              "comment": "IIRRM defines RRM as a medical specialty; IIRRM itself is Q136663845 on Wikidata"
+            },
+            {
+              "P854": "https://rrmacademy.org/what-is-rrm/",
+              "comment": "RRM Academy pillar guide — primary source for SEO backlink goal"
+            }
+          ]
+        },
+        {
+          "property": "P279",
+          "property_label": "subclass of",
+          "target": "Q351870",
+          "target_label": "reproductive medicine",
+          "verified": "2026-05-01",
+          "references": [
+            {
+              "P854": "https://rrmacademy.org/what-is-rrm/",
+              "comment": "self-anchor; subclass relationship justified by overlapping clinical scope"
+            }
+          ]
+        },
+        {
+          "property": "P973",
+          "property_label": "described at URL",
+          "target_url": "https://rrmacademy.org/what-is-rrm/",
+          "$comment": "PRIMARY SEO LINK. P973 is the entity-level URL property Google KG ingests for canonical entity description.",
+          "qualifiers": [
+            {
+              "P407": "Q1860",
+              "P407_label": "language of work or name: English"
+            }
+          ]
+        }
+      ],
+      "$do_not_add_yet": [
+        "P361 (part of) → IIRRM Q136663845 — defer to later edit, not part of initial creation, to keep first revision clean and minimal"
+      ]
+    },
+
+    {
+      "label_en": "RRM Academy",
+      "description_en": "online educational platform for restorative reproductive medicine",
+      "aliases_en": [
+        "Restorative Reproductive Medicine Academy",
+        "rrmacademy.org"
+      ],
+      "claims": [
+        {
+          "property": "P31",
+          "property_label": "instance of",
+          "targets": [
+            {
+              "qid": "Q5341295",
+              "label": "educational organization",
+              "verified": "2026-05-01"
+            },
+            {
+              "qid": "Q163740",
+              "label": "nonprofit organization",
+              "verified": "2026-05-01",
+              "$comment": "Inherits from operating-brand status under RRM Foundation Inc, which is a 501(c)(3) confirmed via ProPublica EIN 93-4594315"
+            }
+          ],
+          "references": [
+            {
+              "P854": "https://projects.propublica.org/nonprofits/organizations/934594315",
+              "comment": "ProPublica Nonprofit Explorer — public IRS Form 990 data confirming 501(c)(3) status of parent foundation"
+            }
+          ]
+        },
+        {
+          "property": "P856",
+          "property_label": "official website",
+          "target_url": "https://rrmacademy.org/",
+          "$comment": "PRIMARY SEO LINK FOR THIS ITEM. P856 is the canonical org-website property Google KG ingests as authoritative.",
+          "qualifiers": [
+            {
+              "P407": "Q1860",
+              "P407_label": "language of work or name: English"
+            }
+          ]
+        },
+        {
+          "property": "P17",
+          "property_label": "country",
+          "target": "Q30",
+          "target_label": "United States",
+          "verified": "2026-05-01"
+        },
+        {
+          "property": "P571",
+          "property_label": "inception",
+          "target_time": "+2022-01-01T00:00:00Z",
+          "target_precision": 9,
+          "$comment_precision": "9 = year-only precision per Wikibase time-value spec",
+          "source": "ecosystem JSON timeline: 'RRM Academy launched on Wix' (2022)",
+          "verified": "2026-05-01"
+        },
+        {
+          "property": "P159",
+          "property_label": "headquarters location",
+          "target": "Q961372",
+          "target_label": "Camp Hill, Pennsylvania",
+          "$comment": "Operates from RRM Foundation's HQ (Camp Hill, PA). RRM Academy is a virtual platform but the operating brand inherits the parent foundation's physical HQ.",
+          "verified": "2026-05-01"
+        },
+        {
+          "property": "P127",
+          "property_label": "owned by",
+          "target_string": "Restorative Reproductive Medicine Foundation Inc",
+          "$comment": "Use snaktype:somevalue + qualifier P1448 (official name) string, OR defer this claim until RRM Foundation has its own Wikidata item. Safer: use P1454 (legal form) instead with target Q5697166 (501(c)(3) organization) or similar."
+        }
+      ],
+      "$do_not_add_yet": [
+        "P749 (parent organization): RRM Foundation needs its own Wikidata item first. Defer.",
+        "P6782 (ROR ID): pending — see ROR discussion in spec footer."
+      ]
+    }
+  ],
+
+  "creation_workflow": {
+    "1_login": "Same auto-login pattern as Sitting 4 (1P item fqgsa6aibyhdmyvuy4im6yhuvm, submit #wpLoginAttempt)",
+    "2_pre_check_no_duplicate": "Run wbsearchentities for each item label. If Wikidata already has an item (e.g., someone else created RRM in the meantime), abort and reassess.",
+    "3_create_item": "API call: action=wbeditentity, new=item, data={labels, descriptions, aliases, claims}",
+    "4_verify": "GET Special:EntityData/Q[new]/json, confirm P31 + P973/P856 + references all present",
+    "5_log": "Capture new QID for memory + plan files"
+  },
+
+  "risk_register": [
+    {
+      "risk": "WD:RFD nomination on notability grounds",
+      "likelihood": "low for specialty item, low-medium for org item",
+      "mitigation": "WD:N criterion 2 (clearly identifiable entity describable via serious public references). Specialty: JRRM, IIRRM, board-cert track. Org: ProPublica IRS data, parent foundation 501(c)(3), ROR if obtainable."
+    },
+    {
+      "risk": "Patroller adds P31:Q2717322 (natural family planning) to RRM specialty item",
+      "likelihood": "low — RRM is not NFP and item description makes that clear",
+      "mitigation": "If happens, leave the contested claim for later resolution; do not edit war"
+    },
+    {
+      "risk": "Item gets merged into NaPro item by a patroller who sees them as same topic",
+      "likelihood": "low — RRM is the broader specialty, NaPro is a specific protocol within it; not the same scope",
+      "mitigation": "Item description distinguishes scope clearly. If merged anyway, the SEO link migrates to NaPro and that's still a backlink to rrmacademy.org."
+    }
+  ],
+
+  "alternative_simpler_path": {
+    "$comment": "If both new items feel like too much surface area, the absolute-minimum path is to add P973 (described at URL) → rrmacademy.org/what-is-rrm/ to an EXISTING item where the addition is taxonomically defensible. Candidates: Q23815908 (NaPro) — risky due to watcher set; Q3069771 (Creighton Model) — might survive as an external resource. Single-edit, no new-item creation.",
+    "$tradeoff": "Less SEO surface than dedicated items, but zero new-item-notability risk."
+  }
+}
