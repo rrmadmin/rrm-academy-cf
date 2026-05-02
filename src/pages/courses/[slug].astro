@@ -35,6 +35,41 @@ function formatDuration(seconds: number) {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
+// Escape HTML for safe set:html usage. Description copy is admin-authored
+// (D1 admin endpoints, session+role gated) so this is defense-in-depth.
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Parse inline markdown-style links [text](url) and emit <a> tags.
+// All non-link text is HTML-escaped. Internal links (starting with /) get
+// no rel attributes. External links get rel="noopener" target="_blank".
+function renderInlineLinks(text: string): string {
+  const parts: string[] = [];
+  const re = /\[([^\]]+)\]\(([^)]+)\)/g;
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) parts.push(escapeHtml(text.slice(last, m.index)));
+    const label = escapeHtml(m[1]);
+    const href = m[2];
+    const isExternal = /^https?:\/\//.test(href);
+    if (isExternal) {
+      parts.push(`<a href="${escapeHtml(href)}" rel="noopener" target="_blank">${label}</a>`);
+    } else {
+      parts.push(`<a href="${escapeHtml(href)}">${label}</a>`);
+    }
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) parts.push(escapeHtml(text.slice(last)));
+  return parts.join('');
+}
+
 // Find the first step for the "Start Course" CTA
 const firstStep = course.isAffiliate ? null : course.sections[0]?.steps[0];
 
@@ -51,24 +86,85 @@ if (isAffiliate && course.cohortDates) {
 const cohortPillText = onWaitlist && nextCohortLabel ? `Next cohort: ${nextCohortLabel}` : cohortLabel;
 const affiliatePrice = isAffiliate && course.affiliatePriceCents ? `$${(course.affiliatePriceCents / 100).toFixed(0)}` : '';
 
+// Resolve instructor schema node for non-affiliate courses.
+// If instructors[0] is Naomi, use the canonical @id reference.
+// Otherwise emit a Person node with name + jobTitle from the data.
+function resolveInstructorNode(instructors: any[]): any {
+  const lead = instructors?.find((i: any) => i.role === 'Lead Instructor') || instructors?.[0];
+  if (!lead) return { '@id': 'https://rrmacademy.org/#naomi-whittaker' };
+  const name: string = lead.name || '';
+  if (name.toLowerCase().includes('whittaker') || name.toLowerCase().includes('naomi')) {
+    return { '@id': 'https://rrmacademy.org/#naomi-whittaker' };
+  }
+  const node: any = { '@type': 'Person', name };
+  if (lead.role && lead.role !== 'Lead Instructor') node.jobTitle = lead.role;
+  return node;
+}
+
+// Convert duration in seconds to ISO 8601 duration string (PTXhYmZs).
+function isoDuration(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  let iso = 'PT';
+  if (h > 0) iso += `${h}H`;
+  if (m > 0) iso += `${m}M`;
+  if (s > 0) iso += `${s}S`;
+  return iso || 'PT0S';
+}
+
+// Build hasPart array from all sections/steps for Course-with-Curriculum rich result.
+function buildHasPart(sections: any[], slug: string): any[] {
+  const parts: any[] = [];
+  let position = 1;
+  for (const section of sections) {
+    for (const step of section.steps || []) {
+      const entry: any = {
+        '@type': 'Lesson',
+        name: step.title,
+        position,
+        url: `https://rrmacademy.org/courses/${slug}/${step.id}/`,
+      };
+      if (step.duration) {
+        entry.timeRequired = isoDuration(step.duration);
+      }
+      entry.learningResourceType = step.type === 'video' ? 'Video' : step.type === 'quiz' ? 'Quiz' : 'Article';
+      parts.push(entry);
+      position++;
+    }
+  }
+  return parts;
+}
+
+const courseInstructorNode = isAffiliate
+  ? { '@type': 'Person', name: 'Dr. Phil Boyle', '@id': 'https://rrmacademy.org/courses/neofertility-medical-training/#phil-boyle' }
+  : resolveInstructorNode(course.instructors);
+
+const courseImageUrl = course.image
+  ? (course.image.startsWith('http://') || course.image.startsWith('https://')
+      ? course.image
+      : `https://rrmacademy.org${course.image}`)
+  : undefined;
+
+const hasPart = !isAffiliate && course.sections?.length > 0 ? buildHasPart(course.sections, course.slug) : [];
+
 // Schema.org Course
 const courseSchema = {
   '@type': 'Course',
   name: course.title,
   description: course.seo?.description || course.shortDescription,
   url: `https://rrmacademy.org/courses/${course.slug}/`,
-  ...(course.image ? { image: `https://rrmacademy.org${course.image}` } : {}),
+  ...(courseImageUrl ? { image: courseImageUrl } : {}),
   provider: isAffiliate
     ? { '@type': 'Organization', name: 'NeoFertility', url: 'https://www.neofertilitytraining.com/' }
     : { '@type': 'Organization', '@id': 'https://rrmacademy.org/#organization', name: 'RRM Academy', url: 'https://rrmacademy.org/' },
-  instructor: isAffiliate
-    ? { '@type': 'Person', name: 'Dr. Phil Boyle', '@id': 'https://rrmacademy.org/courses/neofertility-medical-training/#phil-boyle' }
-    : { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+  instructor: courseInstructorNode,
   educationalLevel: 'Beginner to Advanced',
   ...(course.topics?.length ? { about: course.topics } : {}),
   ...(course.teaches?.length ? { teaches: course.teaches } : {}),
   ...(!isAffiliate ? { numberOfLessons: totalSteps } : {}),
   ...(!isAffiliate ? { timeRequired: hours > 0 ? `PT${hours}H${minutes}M` : `PT${minutes}M` } : {}),
+  ...(!isAffiliate && hasPart.length > 0 ? { hasPart } : {}),
   isAccessibleForFree: !isMembers && course.isFree,
   offers: isMembers
     ? {
@@ -91,7 +187,7 @@ const courseSchema = {
       '@type': 'CourseInstance',
       courseMode: 'online',
       courseWorkload: hours > 0 ? `PT${hours}H${minutes}M` : `PT${minutes}M`,
-      instructor: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+      instructor: courseInstructorNode,
     },
   } : {}),
 };
@@ -414,12 +510,12 @@ const relatedCourses = course.relatedCourses
               return (
                 <ul>
                   {items.map((item: string) => (
-                    <li>{item.replace(/^[•]\s*/, '')}</li>
+                    <li set:html={renderInlineLinks(item.replace(/^[•]\s*/, ''))} />
                   ))}
                 </ul>
               );
             }
-            return <p>{para}</p>;
+            return <p set:html={renderInlineLinks(para)} />;
           })}
         </div>
       </div>
