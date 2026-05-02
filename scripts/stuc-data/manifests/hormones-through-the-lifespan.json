@@ -1,0 +1,76 @@
+{
+  "courseId": "hormones-through-the-lifespan",
+  "sourceUid": "8c3432de9a63273809771b91bd2c09a5",
+  "sourceDuration": 6416,
+  "approved": true,
+  "contentStart": 344,
+  "contentEnd": 5417,
+  "trimmedChitChat": {
+    "startTrimmed": "00:00:00-00:05:44 — tech/screen-share troubleshooting, greetings, small talk about an upcoming conference (Seattle), Brian joining the room",
+    "midTrimmed": "01:11:07-01:20:17 — spiritual motherhood tangent + medical-system critique with problematic sub-content (naturopath/PA categorical attack, sexual revolution analogy, Cochrane attack). NOT included in any lesson.",
+    "endTrimmed": "01:30:17-end — personal goodbyes, chit-chat about Florida/Miami, Orlando conference, kids"
+  },
+  "lessons": [
+    {
+      "order": 1,
+      "sectionId": "htl-menstrual-cycle-foundations",
+      "stepId": "htl-menstrual-cycle-foundations-1",
+      "title": "The Menstrual Cycle: Brain, Ovary, and Uterus",
+      "startTimeSeconds": 344,
+      "endTimeSeconds": 1285,
+      "durationSeconds": 941,
+      "topicSummary": "Dr. Garcia introduces herself and her functional/bioidentical approach, then walks through the HPO axis: GnRH pulsatility, pituitary FSH/LH, follicular development, the estradiol-triggered LH surge, corpus luteum and progesterone, the endometrial garden analogy, and how synthetic birth control disrupts the natural rhythm. Closes with progesterone deficiency, PMS, anovulation, and recurrent miscarriage."
+    },
+    {
+      "order": 2,
+      "sectionId": "htl-prolactin-lactation",
+      "stepId": "htl-prolactin-lactation-1",
+      "title": "The Prolactin and Lactation Axis",
+      "startTimeSeconds": 1285,
+      "endTimeSeconds": 1639,
+      "durationSeconds": 354,
+      "topicSummary": "Anatomy and function of the prolactin pathway: PIH, prolactin, oxytocin, milk production. Clinical signs of hyperprolactinemia (intermenstrual bleeding, galactorrhea), causes (SSRIs, pituitary adenoma, breast stimulation), and how elevated prolactin disrupts FSH/LH and prevents ovulation."
+    },
+    {
+      "order": 3,
+      "sectionId": "htl-thyroid-axis",
+      "stepId": "htl-thyroid-axis-1",
+      "title": "The Thyroid Axis and T4-to-T3 Conversion",
+      "startTimeSeconds": 1639,
+      "endTimeSeconds": 2326,
+      "durationSeconds": 687,
+      "topicSummary": "TRH/TSH/T4/T3 cascade and why functional medicine treats 'thyroid dysfunction'. Covers Hashimoto's diagnosis via TPO antibodies and post-menopausal hypothyroidism prevalence."
+    },
+    {
+      "order": 4,
+      "sectionId": "htl-insulin-gut-pcos",
+      "stepId": "htl-insulin-gut-pcos-1",
+      "title": "Insulin, the Gut Microbiome, and PCOS",
+      "startTimeSeconds": 2326,
+      "endTimeSeconds": 3171,
+      "durationSeconds": 845,
+      "topicSummary": "Insulin overreaction as a growth factor driving fat storage, fatty liver, and cardiovascular risk. PCOS pathophysiology. The gut: poor chewing, dysbiosis, leaky barrier, autoimmunity, and nutrient malabsorption."
+    },
+    {
+      "order": 5,
+      "sectionId": "htl-menopause-bhrt",
+      "stepId": "htl-menopause-bhrt-1",
+      "title": "Menopause and Bioidentical Hormone Replacement",
+      "startTimeSeconds": 3171,
+      "endTimeSeconds": 4267,
+      "durationSeconds": 1096,
+      "topicSummary": "Menopause physiology and the rising role of testosterone post-cyclicity. Standard of care vs functional approach adding T3 thyroid and physiologic testosterone for cardiovascular, bone, muscle, libido, and GU benefits. Q&A on why HRT demand is exploding, individual decision-making, and societal stress on women's hormones. ENDS at 01:11:07 (4267s) before the spiritual motherhood / medical system tangents."
+    },
+    {
+      "order": 6,
+      "sectionId": "htl-case-hypothalamic-amenorrhea",
+      "stepId": "htl-case-hypothalamic-amenorrhea-1",
+      "title": "Case Study: Hypothalamic Amenorrhea with PCOS Pattern",
+      "startTimeSeconds": 4817,
+      "endTimeSeconds": 5417,
+      "durationSeconds": 600,
+      "topicSummary": "Live consultation: BMI 20, anti-inflammatory diet, low-dose naltrexone, low FSH, AMH 6.4 — hypothalamic-amenorrhea overlaid on PCOS pattern. Recommendations: increase naltrexone, IM progesterone reboot, red-light therapy, and nervous-system regulation."
+    }
+  ],
+  "notes": "APPROVED 2026-05-01. 6 lessons. Note: there is a deliberate gap between lesson 5 end (4267s = 01:11:07) and lesson 6 start (4817s = 01:20:17). The 9:10 gap covers the trimmed spiritual motherhood + medical system critique content that is NOT included in either clip."
+}

@@ -1,0 +1,85 @@
+{
+  "courseId": "fertility-based-family-planning",
+  "sourceUid": "984a1777bf59c7334e776e31aa3684ca",
+  "sourceDuration": 5140,
+  "approved": true,
+  "contentStart": 802,
+  "contentEnd": 4266,
+  "trimmedChitChat": {
+    "startTrimmed": "00:00:00-00:13:22 — Pre-lecture conversation: AAGL conference, MIGS/REI tubal surgery training, RRM apolitical positioning, $30B private equity industry, community connections, screen-share tech setup. All off-topic for FABM course.",
+    "endTrimmed": "01:11:06-01:25:32 — Closing pleasantries, scheduling, brief visitor check-in."
+  },
+  "lessons": [
+    {
+      "order": 1,
+      "sectionId": "fbm-introduction-and-prevalence",
+      "stepId": "fbm-introduction-and-prevalence-1",
+      "title": "Introduction to FABMs: Definition, Prevalence, and the Provider Knowledge Gap",
+      "startTimeSeconds": 802,
+      "endTimeSeconds": 1513,
+      "durationSeconds": 711,
+      "topicSummary": "Naomi introduces Dr. Nolan. Definition of FABMs (cervical mucus, BBT, urinary hormones, bleeding biomarkers). Rising prevalence (1% to 3%+ by 2018). Critique of misleading CDC 24% lump statistic. Provider knowledge gap: 40-50% of OBGYN trainees lack FABM training, 80-90% cannot explain specific methods, only 4% receive formal training."
+    },
+    {
+      "order": 2,
+      "sectionId": "fbm-methods-and-effectiveness",
+      "stepId": "fbm-methods-and-effectiveness-1",
+      "title": "The Six Categories of FABMs: Methods, Physiology, and Effectiveness Rates",
+      "startTimeSeconds": 1513,
+      "endTimeSeconds": 2346,
+      "durationSeconds": 833,
+      "topicSummary": "Six FABM categories. Calendar methods. Cervical mucus-only (Billings, Creighton, two-day) with deep dive into Eric Odeblad's research. BBT (Natural Cycles, BioAlth). Symptothermal (Sensiplan at 1.8% typical use, approaching IUD effectiveness). Hormonal monitoring (Marquette, Persona). Symptohormonal combinations."
+    },
+    {
+      "order": 3,
+      "sectionId": "fbm-cycle-wellness-optimization",
+      "stepId": "fbm-cycle-wellness-optimization-1",
+      "title": "New Horizons: Using the Cycle for Wellness, Exercise, and Nutrition Optimization",
+      "startTimeSeconds": 2346,
+      "endTimeSeconds": 2794,
+      "durationSeconds": 448,
+      "topicSummary": "Cycle as wellness tool. Stacy Sims/Huberman podcast reference. 6-month RCT showing cycle-tailored weight loss nearly doubled results (11.1 kg vs 6.8 kg). Estradiol stabilizes muscle membranes (follicular phase = strength training); luteal phase favors endurance and recovery."
+    },
+    {
+      "order": 4,
+      "sectionId": "fbm-clinical-applications",
+      "stepId": "fbm-clinical-applications-1",
+      "title": "Clinical Applications: PMS/PMDD, Cooperative Hormone Therapy, and PCOS",
+      "startTimeSeconds": 2794,
+      "endTimeSeconds": 3419,
+      "durationSeconds": 625,
+      "topicSummary": "PMS/PMDD diagnosis via accurate symptom diaries. Cooperative hormone therapy (FABM data to supplement, not suppress). PCOS pathophysiology: hyperinsulinemia drives ovarian androgen production, follicular atresia. Hypothesis: limiting insulin in early follicular phase via low-glycemic diet, fiber, ACV, post-meal movement, or fasting may rescue follicles."
+    },
+    {
+      "order": 5,
+      "sectionId": "fbm-cervical-mucus-deep-dive",
+      "stepId": "fbm-cervical-mucus-deep-dive-1",
+      "title": "Q&A: Cervical Mucus as Primary Biomarker",
+      "startTimeSeconds": 3419,
+      "endTimeSeconds": 3690,
+      "durationSeconds": 271,
+      "topicSummary": "Dr. Nolan's favorite-method reflection. Cervical mucus as 'king or queen' of fertility biomarkers. Partner-shared FABM literacy improving relationship communication around PMS/PMDD."
+    },
+    {
+      "order": 6,
+      "sectionId": "fbm-cycle-lifestyle-qa",
+      "stepId": "fbm-cycle-lifestyle-qa-1",
+      "title": "Q&A: Sleep, Cortisol, and Cycle-Phase Nutrition",
+      "startTimeSeconds": 3690,
+      "endTimeSeconds": 4117,
+      "durationSeconds": 427,
+      "topicSummary": "Critique of exercise physiology research using OCP-suppressed college cohorts. AI-assisted personalized cycle-phase meal planning via ChatGPT. Skipping breakfast: morning cortisol spike, glucose mobilization, brain-ovary signaling disruption. Sleep quality and metabolism (6-hour sleepers consume ~300 extra cal/day)."
+    },
+    {
+      "order": 7,
+      "sectionId": "fbm-marquette-vs-creighton",
+      "stepId": "fbm-marquette-vs-creighton-1",
+      "title": "Q&A: Comparing Marquette and Creighton Methods",
+      "startTimeSeconds": 4117,
+      "endTimeSeconds": 4266,
+      "durationSeconds": 149,
+      "topicSummary": "Marquette vs Creighton method comparison. Cervical mucus observations are objective with validated training. LH and estrogen tests can be false-positive in PCOS and insulin resistance. Urinary hormone metabolites have hydration and timing lag issues. Closing principle: when using multiple markers, always defer to the most fertile sign."
+    }
+  ],
+  "notes": "APPROVED 2026-05-01 with split option B then re-split. 7 lessons. Adjacency: 802->1513->2346->2794->3419->3690->4117->4266. Lesson 7 is short (2:29) but topically distinct."
+}

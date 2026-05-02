@@ -1,0 +1,79 @@
+{
+  "fbm-introduction-and-prevalence-1": {
+    "clipUid": "f13a0879405d0b00d6ef34f253279c97",
+    "sourceUid": "984a1777bf59c7334e776e31aa3684ca",
+    "startTimeSeconds": 802,
+    "endTimeSeconds": 1513,
+    "durationSeconds": 711,
+    "title": "Introduction to FABMs: Definition, Prevalence, and the Provider Knowledge Gap",
+    "sectionId": "fbm-introduction-and-prevalence",
+    "order": 1,
+    "name": "fertility-based-family-planning-fbm-introduction-and-prevalence-1.mp4"
+  },
+  "fbm-methods-and-effectiveness-1": {
+    "clipUid": "85fb555b3529c595399a774bb29f9fa2",
+    "sourceUid": "984a1777bf59c7334e776e31aa3684ca",
+    "startTimeSeconds": 1513,
+    "endTimeSeconds": 2346,
+    "durationSeconds": 833,
+    "title": "The Six Categories of FABMs: Methods, Physiology, and Effectiveness Rates",
+    "sectionId": "fbm-methods-and-effectiveness",
+    "order": 2,
+    "name": "fertility-based-family-planning-fbm-methods-and-effectiveness-1.mp4"
+  },
+  "fbm-cycle-wellness-optimization-1": {
+    "clipUid": "e11d200e1bb93b120da18c42cd2ef7ed",
+    "sourceUid": "984a1777bf59c7334e776e31aa3684ca",
+    "startTimeSeconds": 2346,
+    "endTimeSeconds": 2794,
+    "durationSeconds": 448,
+    "title": "New Horizons: Using the Cycle for Wellness, Exercise, and Nutrition Optimization",
+    "sectionId": "fbm-cycle-wellness-optimization",
+    "order": 3,
+    "name": "fertility-based-family-planning-fbm-cycle-wellness-optimization-1.mp4"
+  },
+  "fbm-clinical-applications-1": {
+    "clipUid": "2eb66494f04fff0c4f0de7b70f4fdfc2",
+    "sourceUid": "984a1777bf59c7334e776e31aa3684ca",
+    "startTimeSeconds": 2794,
+    "endTimeSeconds": 3419,
+    "durationSeconds": 625,
+    "title": "Clinical Applications: PMS/PMDD, Cooperative Hormone Therapy, and PCOS",
+    "sectionId": "fbm-clinical-applications",
+    "order": 4,
+    "name": "fertility-based-family-planning-fbm-clinical-applications-1.mp4"
+  },
+  "fbm-cervical-mucus-deep-dive-1": {
+    "clipUid": "c5e53e5d2d219da5a6a65e72f79a1691",
+    "sourceUid": "984a1777bf59c7334e776e31aa3684ca",
+    "startTimeSeconds": 3419,
+    "endTimeSeconds": 3690,
+    "durationSeconds": 271,
+    "title": "Q&A: Cervical Mucus as Primary Biomarker",
+    "sectionId": "fbm-cervical-mucus-deep-dive",
+    "order": 5,
+    "name": "fertility-based-family-planning-fbm-cervical-mucus-deep-dive-1.mp4"
+  },
+  "fbm-cycle-lifestyle-qa-1": {
+    "clipUid": "e2ec3fe32dbdbf9e8188309d3f2e0f4c",
+    "sourceUid": "984a1777bf59c7334e776e31aa3684ca",
+    "startTimeSeconds": 3690,
+    "endTimeSeconds": 4117,
+    "durationSeconds": 427,
+    "title": "Q&A: Sleep, Cortisol, and Cycle-Phase Nutrition",
+    "sectionId": "fbm-cycle-lifestyle-qa",
+    "order": 6,
+    "name": "fertility-based-family-planning-fbm-cycle-lifestyle-qa-1.mp4"
+  },
+  "fbm-marquette-vs-creighton-1": {
+    "clipUid": "086c5de02a651d5cab2ab24b92f93fee",
+    "sourceUid": "984a1777bf59c7334e776e31aa3684ca",
+    "startTimeSeconds": 4117,
+    "endTimeSeconds": 4266,
+    "durationSeconds": 149,
+    "title": "Q&A: Comparing Marquette and Creighton Methods",
+    "sectionId": "fbm-marquette-vs-creighton",
+    "order": 7,
+    "name": "fertility-based-family-planning-fbm-marquette-vs-creighton-1.mp4"
+  }
+}

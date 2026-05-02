@@ -1,0 +1,68 @@
+{
+  "aip-why-aip-isnt-enough-1": {
+    "clipUid": "92b99d78ea52445014d2556b23e2bf4b",
+    "sourceUid": "dce9110de40240a809abd07d73ab9eab",
+    "startTimeSeconds": 702,
+    "endTimeSeconds": 1688,
+    "durationSeconds": 986,
+    "title": "Why the AIP Diet Isn't Enough: Restrictive Diets and Hidden Inflammation",
+    "sectionId": "aip-why-aip-isnt-enough",
+    "order": 1,
+    "name": "aip-diet-inflammation-aip-why-aip-isnt-enough-1.mp4"
+  },
+  "aip-case-pcos-endo-1": {
+    "clipUid": "ae19ce45099d9b933b8b6db8751d0931",
+    "sourceUid": "dce9110de40240a809abd07d73ab9eab",
+    "startTimeSeconds": 1688,
+    "endTimeSeconds": 2230,
+    "durationSeconds": 542,
+    "title": "Case Study 1: PCOS and Endometriosis",
+    "sectionId": "aip-case-pcos-endo",
+    "order": 2,
+    "name": "aip-diet-inflammation-aip-case-pcos-endo-1.mp4"
+  },
+  "aip-case-severe-endo-1": {
+    "clipUid": "f7bef9af5d617d7c749d488f02baee0b",
+    "sourceUid": "dce9110de40240a809abd07d73ab9eab",
+    "startTimeSeconds": 2230,
+    "endTimeSeconds": 3037,
+    "durationSeconds": 807,
+    "title": "Case Study 2: Severe Endometriosis with Parasites and Lyme",
+    "sectionId": "aip-case-severe-endo",
+    "order": 3,
+    "name": "aip-diet-inflammation-aip-case-severe-endo-1.mp4"
+  },
+  "aip-functional-testing-protocols-1": {
+    "clipUid": "d688ffce033dd1cd94a20a14c03caaca",
+    "sourceUid": "dce9110de40240a809abd07d73ab9eab",
+    "startTimeSeconds": 3037,
+    "endTimeSeconds": 3744,
+    "durationSeconds": 707,
+    "title": "Functional Testing, Protocol Timing, and Avoiding Long-Term Supplement Dependence",
+    "sectionId": "aip-functional-testing-protocols",
+    "order": 4,
+    "name": "aip-diet-inflammation-aip-functional-testing-protocols-1.mp4"
+  },
+  "aip-fat-absorption-dairy-1": {
+    "clipUid": "10ef0c8982ae7a353990771b25d00c1e",
+    "sourceUid": "dce9110de40240a809abd07d73ab9eab",
+    "startTimeSeconds": 3744,
+    "endTimeSeconds": 4190,
+    "durationSeconds": 446,
+    "title": "Restoring Fat Absorption and Whole-Fat Dairy",
+    "sectionId": "aip-fat-absorption-dairy",
+    "order": 5,
+    "name": "aip-diet-inflammation-aip-fat-absorption-dairy-1.mp4"
+  },
+  "aip-prolactin-management-1": {
+    "clipUid": "778b6ea51e993d96b0fb6675dad7fd78",
+    "sourceUid": "dce9110de40240a809abd07d73ab9eab",
+    "startTimeSeconds": 4190,
+    "endTimeSeconds": 4397,
+    "durationSeconds": 207,
+    "title": "Q&A: Managing Elevated Prolactin",
+    "sectionId": "aip-prolactin-management",
+    "order": 6,
+    "name": "aip-diet-inflammation-aip-prolactin-management-1.mp4"
+  }
+}

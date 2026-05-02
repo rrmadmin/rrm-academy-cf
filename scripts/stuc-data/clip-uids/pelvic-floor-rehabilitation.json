@@ -1,0 +1,68 @@
+{
+  "pfr-foundations-1": {
+    "clipUid": "a39f73054b208f6781538bbe81836cc6",
+    "sourceUid": "0c363c504aa969cdfc2881a4a2c4db19",
+    "startTimeSeconds": 0,
+    "endTimeSeconds": 841,
+    "durationSeconds": 841,
+    "title": "Foundations: Why Pelvic Floor Health Matters and How It Works",
+    "sectionId": "pfr-foundations",
+    "order": 1,
+    "name": "pelvic-floor-rehabilitation-pfr-foundations-1.mp4"
+  },
+  "pfr-incontinence-bladder-1": {
+    "clipUid": "6405ea0daf95dd01e533c1968da633e0",
+    "sourceUid": "0c363c504aa969cdfc2881a4a2c4db19",
+    "startTimeSeconds": 841,
+    "endTimeSeconds": 1640,
+    "durationSeconds": 799,
+    "title": "Incontinence, Bladder Habits, and Urgency Management",
+    "sectionId": "pfr-incontinence-bladder",
+    "order": 2,
+    "name": "pelvic-floor-rehabilitation-pfr-incontinence-bladder-1.mp4"
+  },
+  "pfr-prolapse-pain-1": {
+    "clipUid": "bec387328ecfce4c8373c26c544d4f33",
+    "sourceUid": "0c363c504aa969cdfc2881a4a2c4db19",
+    "startTimeSeconds": 1640,
+    "endTimeSeconds": 2534,
+    "durationSeconds": 894,
+    "title": "Prolapse, Constipation, and Vaginal Pain",
+    "sectionId": "pfr-prolapse-pain",
+    "order": 3,
+    "name": "pelvic-floor-rehabilitation-pfr-prolapse-pain-1.mp4"
+  },
+  "pfr-pregnancy-postpartum-1": {
+    "clipUid": "bee5f6149831963cd93d0fd99b2dc676",
+    "sourceUid": "0c363c504aa969cdfc2881a4a2c4db19",
+    "startTimeSeconds": 2534,
+    "endTimeSeconds": 3285,
+    "durationSeconds": 751,
+    "title": "Pregnancy, Postpartum, and the Six-Week Rule Debunked",
+    "sectionId": "pfr-pregnancy-postpartum",
+    "order": 4,
+    "name": "pelvic-floor-rehabilitation-pfr-pregnancy-postpartum-1.mp4"
+  },
+  "pfr-finding-pt-1": {
+    "clipUid": "8359b2375cc274a30f287791b1d6f0d3",
+    "sourceUid": "0c363c504aa969cdfc2881a4a2c4db19",
+    "startTimeSeconds": 3285,
+    "endTimeSeconds": 4247,
+    "durationSeconds": 962,
+    "title": "What Pelvic Floor PT Looks Like, Screening a Provider, and Initial Q&A",
+    "sectionId": "pfr-finding-pt",
+    "order": 5,
+    "name": "pelvic-floor-rehabilitation-pfr-finding-pt-1.mp4"
+  },
+  "pfr-scar-ic-hypermobility-1": {
+    "clipUid": "2aa93726d077a6daf294801e2803a1ac",
+    "sourceUid": "0c363c504aa969cdfc2881a4a2c4db19",
+    "startTimeSeconds": 4247,
+    "endTimeSeconds": 5204,
+    "durationSeconds": 957,
+    "title": "Q&A: Scar Tissue, Interstitial Cystitis, and Hypermobility",
+    "sectionId": "pfr-scar-ic-hypermobility",
+    "order": 6,
+    "name": "pelvic-floor-rehabilitation-pfr-scar-ic-hypermobility-1.mp4"
+  }
+}

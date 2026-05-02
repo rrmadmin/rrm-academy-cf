@@ -1,6 +1,6 @@
 {
   "name": "RRM Academy Ecosystem",
-  "last_updated": "2026-04-29",
+  "last_updated": "2026-05-01",
   "staleness_note": "Row counts, financial summaries, and timeline drift over time. This document is the system-wide SSOT -- update when infrastructure changes, subsystems ship, or pipelines migrate. Row counts are approximate snapshots; query D1 for authoritative values.",
   "organization": {
     "name": "RRM Academy",
@@ -908,7 +908,8 @@
         "soak_through": "2026-05-03 (cleanup mostly executed early on 2026-04-27 per Brian)",
         "critical_note": "NeoFertility Medical Training Cohort lives ONLY in overrides.json (no D1 record). Without the merge step, every cache-miss deploy silently 404s /courses/neofertility-medical-training/. Migration script's --check-fk validates 6 course_id + 3 step_id reference tables.",
         "authoring": "17 admin endpoints under functions/api/admin/courses/* (session + admin role). MANDATORY: route ALL course edits through /courses-update skill at ~/.claude/skills/courses-update/SKILL.md. Migration script (scripts/migrate-courses-to-d1.mjs) is one-shot seed only -- requires --seed-mode-i-understand flag and clobbers admin-edited status.",
-        "cleanup_executed_2026_04_27": "AIRTABLE_PAT + TINIFY_API_KEY + AIRTABLE_WEBHOOK_URL dropped from deploy.yml. Pending: untrack src/data/courses.json from git, archive Airtable base app0nohI0WrgFWOE3."
+        "cleanup_executed_2026_04_27": "AIRTABLE_PAT + TINIFY_API_KEY + AIRTABLE_WEBHOOK_URL dropped from deploy.yml. Pending: untrack src/data/courses.json from git, archive Airtable base app0nohI0WrgFWOE3.",
+        "current_counts_2026_05_01": "10 D1 courses, 66 sections, 103 steps. STUC member-only courses (5 of 10) were cut from single full-length recordings into 33 individual lesson clips on 2026-05-01 via CF Stream clip API + admin endpoints. Originals deleted from Stream (saved on Google Drive)."
       },
       "glossary": {
         "from": "GET /api/glossary/terms",
@@ -2381,6 +2382,11 @@
       "date": "2026-04-18",
       "precision": "day",
       "event": "Ecosystem SSOT expansion: pillar_guides, affiliate_system, design_system, editorial_system, fact_system, search_system, newsletter_system, auth_system, ai_search added"
+    },
+    {
+      "date": "2026-05-01",
+      "precision": "day",
+      "event": "STUC member courses cut into individual lessons. 5 full-length recordings (~9.6h) on CF Stream cut into 33 lesson clips via clip API. Sources deleted from Stream after clips verified ready (originals on Google Drive). Course step count: 70 -> 103. Section count: 33 -> 66. Per-instructor thumbnails set; expanded course descriptions written from Gemini transcripts; em dashes and double dashes removed sitewide on the 6 STUC course descriptions."
     }
   ],
   "google_workspace_automation": {

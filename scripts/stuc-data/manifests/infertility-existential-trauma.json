@@ -1,0 +1,97 @@
+{
+  "courseId": "infertility-existential-trauma",
+  "sourceUid": "b6777a0d823429734658618b6c75f0aa",
+  "sourceDuration": 7890,
+  "approved": true,
+  "contentStart": 3011,
+  "contentEnd": 7776,
+  "trimmedChitChat": {
+    "startTrimmed": "00:00:00-00:50:11 — 50-min pre-call waiting / group chit-chat / tech checks. No salvageable educational content.",
+    "midTrimmedVictoria": "01:51:32-01:55:00 — Victoria Bergin shares personal infertility/marriage disclosure. Per Brian's directive, struck from the course.",
+    "midTrimmedLorraine": "02:01:48-02:03:59 — Lorraine Truman shares personal 5-year infertility disclosure. Per Brian's directive, struck from the course.",
+    "endTrimmed": "02:09:36-end — Personal goodbyes after Clay's CEO-of-emotions metaphor wraps."
+  },
+  "lessons": [
+    {
+      "order": 1,
+      "sectionId": "iet-personal-story-disenfranchised-grief",
+      "stepId": "iet-personal-story-disenfranchised-grief-1",
+      "title": "Why Infertility Is Different: Clay's Story and Disenfranchised Grief",
+      "startTimeSeconds": 3011,
+      "endTimeSeconds": 3697,
+      "durationSeconds": 686,
+      "topicSummary": "Clay Brigance's bio and personal infertility journey. Boat-in-storm metaphor. The 48% statistic. Disenfranchised grief. Clay's male-factor diagnosis story. Founding of Shiloh Counseling."
+    },
+    {
+      "order": 2,
+      "sectionId": "iet-ontological-death-couple-dynamics",
+      "stepId": "iet-ontological-death-couple-dynamics-1",
+      "title": "Infertility as Trauma: Ontological Death and Couple Breakdown Predictors",
+      "startTimeSeconds": 3697,
+      "endTimeSeconds": 4364,
+      "durationSeconds": 667,
+      "topicSummary": "Janet Jaffe's reproductive story theory, ontological death, brain can't distinguish death of a dream from physical death. Decisional conflict. Clay's research on 1,000+ couples: misattunement, heightened conflict, reduced/mechanical sex."
+    },
+    {
+      "order": 3,
+      "sectionId": "iet-male-experience-ptsd-research",
+      "stepId": "iet-male-experience-ptsd-research-1",
+      "title": "The Male Experience, Well-Intended Chivalry, and the 43% PTSD Finding",
+      "startTimeSeconds": 4364,
+      "endTimeSeconds": 5138,
+      "durationSeconds": 774,
+      "topicSummary": "Clay's qualitative study of seven men. Masculinity-equals-virility trap, well-intended chivalry, legacy-lost. Clay's 2023 PCL-5 study of 281 individuals: 43% meeting criteria for diagnosable PTSD vs. 2-5% baseline."
+    },
+    {
+      "order": 4,
+      "sectionId": "iet-self-soothing-mindfulness-support",
+      "stepId": "iet-self-soothing-mindfulness-support-1",
+      "title": "Self-Soothing, Interpersonal Mindfulness, and Building Support",
+      "startTimeSeconds": 5138,
+      "endTimeSeconds": 5734,
+      "durationSeconds": 596,
+      "topicSummary": "Trauma triggers physiological flooding; self-soothing back to prefrontal cortex. Accepting influence, metaphoric language, interpersonal mindfulness. Emotional vs practical support, friend-with-barbecue, five-friend prayer group. Clay's curated resource list."
+    },
+    {
+      "order": 5,
+      "sectionId": "iet-resilience-acceptance",
+      "stepId": "iet-resilience-acceptance-1",
+      "title": "Q&A: PTSD Duration, Resilience, and Achieving Acceptance",
+      "startTimeSeconds": 5734,
+      "endTimeSeconds": 6300,
+      "durationSeconds": 566,
+      "topicSummary": "Naomi's Q&A on the 43% PTSD cohort (~3 years average). Rock-in-pocket metaphor for grief over decades. Body Keeps the Score reference. Shift from expectation to grief-acceptance. Wet-soap metaphor. Clay's redefinition of masculinity. How providers can plant seeds of acceptance without forcing it."
+    },
+    {
+      "order": 6,
+      "sectionId": "iet-provider-co-regulation",
+      "stepId": "iet-provider-co-regulation-1",
+      "title": "Provider Co-Regulation and Clinical Presence",
+      "startTimeSeconds": 6300,
+      "endTimeSeconds": 6692,
+      "durationSeconds": 392,
+      "topicSummary": "Providers who slow down vs those who don't. Mirror neurons, regulated clinicians. Clay's example of his fertility doctor closing her laptop. Validating the time-pressure providers face."
+    },
+    {
+      "order": 7,
+      "sectionId": "iet-humility-boundaries",
+      "stepId": "iet-humility-boundaries-1",
+      "title": "Humility, Vertical Assessment, and Healthy Boundaries",
+      "startTimeSeconds": 6900,
+      "endTimeSeconds": 7308,
+      "durationSeconds": 408,
+      "topicSummary": "Clay's 94-couple study finding humility as the biggest predictor of couple satisfaction. The 26-question Vertical Assessment as non-diagnostic conversation starter. Healthy boundaries vs. turtling on social media and avoidance."
+    },
+    {
+      "order": 8,
+      "sectionId": "iet-recurrent-loss-hypervigilance",
+      "stepId": "iet-recurrent-loss-hypervigilance-1",
+      "title": "Recurrent Loss, Hypervigilance, and the CEO of Emotions",
+      "startTimeSeconds": 7439,
+      "endTimeSeconds": 7776,
+      "durationSeconds": 337,
+      "topicSummary": "Rebecca's question on hypervigilance after recurrent loss. Psychoeducation, unhooking from the loss narrative. Clay's CEO-and-board-of-emotions metaphor for holding anxiety, shame, hope, and joy at the same table."
+    }
+  ],
+  "notes": "APPROVED 2026-05-01. 8 lessons. Three internal trims: 6692-6900 (Victoria), 7308-7439 (Lorraine), and the 50-min pre-roll. All adjacent lessons contiguous within their segments."
+}

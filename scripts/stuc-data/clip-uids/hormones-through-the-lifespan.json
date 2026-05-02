@@ -1,0 +1,68 @@
+{
+  "htl-menstrual-cycle-foundations-1": {
+    "clipUid": "c30dd99ea5f640cc55fc090c7e3b5197",
+    "sourceUid": "8c3432de9a63273809771b91bd2c09a5",
+    "startTimeSeconds": 344,
+    "endTimeSeconds": 1285,
+    "durationSeconds": 941,
+    "title": "The Menstrual Cycle: Brain, Ovary, and Uterus",
+    "sectionId": "htl-menstrual-cycle-foundations",
+    "order": 1,
+    "name": "hormones-through-the-lifespan-htl-menstrual-cycle-foundations-1.mp4"
+  },
+  "htl-prolactin-lactation-1": {
+    "clipUid": "76471157eaf4c346f87a37f8943c6c19",
+    "sourceUid": "8c3432de9a63273809771b91bd2c09a5",
+    "startTimeSeconds": 1285,
+    "endTimeSeconds": 1639,
+    "durationSeconds": 354,
+    "title": "The Prolactin and Lactation Axis",
+    "sectionId": "htl-prolactin-lactation",
+    "order": 2,
+    "name": "hormones-through-the-lifespan-htl-prolactin-lactation-1.mp4"
+  },
+  "htl-thyroid-axis-1": {
+    "clipUid": "b0562899d59203bc98923757f26c6614",
+    "sourceUid": "8c3432de9a63273809771b91bd2c09a5",
+    "startTimeSeconds": 1639,
+    "endTimeSeconds": 2326,
+    "durationSeconds": 687,
+    "title": "The Thyroid Axis and T4-to-T3 Conversion",
+    "sectionId": "htl-thyroid-axis",
+    "order": 3,
+    "name": "hormones-through-the-lifespan-htl-thyroid-axis-1.mp4"
+  },
+  "htl-insulin-gut-pcos-1": {
+    "clipUid": "d7ab57f10e1a3781c1770a4a9f46ca27",
+    "sourceUid": "8c3432de9a63273809771b91bd2c09a5",
+    "startTimeSeconds": 2326,
+    "endTimeSeconds": 3171,
+    "durationSeconds": 845,
+    "title": "Insulin, the Gut Microbiome, and PCOS",
+    "sectionId": "htl-insulin-gut-pcos",
+    "order": 4,
+    "name": "hormones-through-the-lifespan-htl-insulin-gut-pcos-1.mp4"
+  },
+  "htl-menopause-bhrt-1": {
+    "clipUid": "6762f3195d33857351c7896b5c05fd88",
+    "sourceUid": "8c3432de9a63273809771b91bd2c09a5",
+    "startTimeSeconds": 3171,
+    "endTimeSeconds": 4267,
+    "durationSeconds": 1096,
+    "title": "Menopause and Bioidentical Hormone Replacement",
+    "sectionId": "htl-menopause-bhrt",
+    "order": 5,
+    "name": "hormones-through-the-lifespan-htl-menopause-bhrt-1.mp4"
+  },
+  "htl-case-hypothalamic-amenorrhea-1": {
+    "clipUid": "bc4366e121bc47d55c018d4973285420",
+    "sourceUid": "8c3432de9a63273809771b91bd2c09a5",
+    "startTimeSeconds": 4817,
+    "endTimeSeconds": 5417,
+    "durationSeconds": 600,
+    "title": "Case Study: Hypothalamic Amenorrhea with PCOS Pattern",
+    "sectionId": "htl-case-hypothalamic-amenorrhea",
+    "order": 6,
+    "name": "hormones-through-the-lifespan-htl-case-hypothalamic-amenorrhea-1.mp4"
+  }
+}
