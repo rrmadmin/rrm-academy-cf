@@ -233,8 +233,12 @@ jobs:
           if [ -f "$courses_file" ]; then
             course_sections=$(node -e "const d=JSON.parse(require('fs').readFileSync('$courses_file','utf8')); console.log(d.reduce((a,c)=>a+(c.sections?.length||0),0))")
             course_steps=$(node -e "const d=JSON.parse(require('fs').readFileSync('$courses_file','utf8')); console.log(d.reduce((a,c)=>a+(c.sections||[]).reduce((b,s)=>b+(s.steps?.length||0),0),0))")
-            courses_section_floor=30
-            courses_step_floor=65
+            # Floors set after STUC lesson cutting on 2026-05-01: 66 sections + 103 steps live.
+            # Floors leave ~25% margin to allow normal per-course tweaks without false alarms,
+            # but catch major regressions (e.g., admin endpoint bug wiping a course's steps,
+            # migration script re-seeding to original 33/70 single-step state).
+            courses_section_floor=55
+            courses_step_floor=90
             if [ "$course_sections" -lt "$courses_section_floor" ]; then
               echo "ERROR: $courses_file has only $course_sections sections (absolute floor: $courses_section_floor). Possible data loss from migration or table wipe."
               fail=1
@@ -246,6 +250,36 @@ jobs:
             fi
           else
             echo "WARN: $courses_file not found. Skipping section/step guard."
+          fi
+
+          # STUC course structure guard: each STUC course must have its expected lesson count.
+          # Catches accidental partial wipes (e.g., deleting a lesson without restoring it).
+          # Counts set 2026-05-01 after STUC lesson cutting completed.
+          if [ -f "$courses_file" ]; then
+            node -e "
+              const d = JSON.parse(require('fs').readFileSync('$courses_file', 'utf8'));
+              const expected = {
+                'hormones-through-the-lifespan': 6,
+                'pelvic-floor-rehabilitation': 6,
+                'infertility-existential-trauma': 8,
+                'fertility-based-family-planning': 7,
+                'aip-diet-inflammation': 6,
+                'functional-lab-testing-napro': 0,
+              };
+              let stucFail = false;
+              for (const [id, want] of Object.entries(expected)) {
+                const c = d.find(x => x.id === id);
+                if (!c) { console.error('ERROR: STUC course ' + id + ' missing from courses.json'); stucFail = true; continue; }
+                const stepCount = (c.sections || []).reduce((a, s) => a + (s.steps || []).length, 0);
+                if (stepCount < want) {
+                  console.error('ERROR: STUC course ' + id + ' has ' + stepCount + ' steps (expected >= ' + want + '). Lesson regression detected.');
+                  stucFail = true;
+                } else {
+                  console.log('OK: STUC course ' + id + ' has ' + stepCount + ' steps (expected >= ' + want + ')');
+                }
+              }
+              process.exit(stucFail ? 1 : 0);
+            " || fail=1
           fi
 
           # Glossary has a nested structure: { terms, references, abbreviations }
