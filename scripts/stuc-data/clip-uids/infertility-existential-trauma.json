@@ -1,0 +1,90 @@
+{
+  "iet-personal-story-disenfranchised-grief-1": {
+    "clipUid": "09972b08babff0b7607abb8ce6816724",
+    "sourceUid": "b6777a0d823429734658618b6c75f0aa",
+    "startTimeSeconds": 3011,
+    "endTimeSeconds": 3697,
+    "durationSeconds": 686,
+    "title": "Why Infertility Is Different: Clay's Story and Disenfranchised Grief",
+    "sectionId": "iet-personal-story-disenfranchised-grief",
+    "order": 1,
+    "name": "infertility-existential-trauma-iet-personal-story-disenfranchised-grief-1.mp4"
+  },
+  "iet-ontological-death-couple-dynamics-1": {
+    "clipUid": "4aaaaa105dc64501ae5a0205431e6fda",
+    "sourceUid": "b6777a0d823429734658618b6c75f0aa",
+    "startTimeSeconds": 3697,
+    "endTimeSeconds": 4364,
+    "durationSeconds": 667,
+    "title": "Infertility as Trauma: Ontological Death and Couple Breakdown Predictors",
+    "sectionId": "iet-ontological-death-couple-dynamics",
+    "order": 2,
+    "name": "infertility-existential-trauma-iet-ontological-death-couple-dynamics-1.mp4"
+  },
+  "iet-male-experience-ptsd-research-1": {
+    "clipUid": "6b05f0573fab55c3dca457e3bd239e63",
+    "sourceUid": "b6777a0d823429734658618b6c75f0aa",
+    "startTimeSeconds": 4364,
+    "endTimeSeconds": 5138,
+    "durationSeconds": 774,
+    "title": "The Male Experience, Well-Intended Chivalry, and the 43% PTSD Finding",
+    "sectionId": "iet-male-experience-ptsd-research",
+    "order": 3,
+    "name": "infertility-existential-trauma-iet-male-experience-ptsd-research-1.mp4"
+  },
+  "iet-self-soothing-mindfulness-support-1": {
+    "clipUid": "91d680226b7b4bc5ba1cc04681dd63b6",
+    "sourceUid": "b6777a0d823429734658618b6c75f0aa",
+    "startTimeSeconds": 5138,
+    "endTimeSeconds": 5734,
+    "durationSeconds": 596,
+    "title": "Self-Soothing, Interpersonal Mindfulness, and Building Support",
+    "sectionId": "iet-self-soothing-mindfulness-support",
+    "order": 4,
+    "name": "infertility-existential-trauma-iet-self-soothing-mindfulness-support-1.mp4"
+  },
+  "iet-resilience-acceptance-1": {
+    "clipUid": "dc226a891fc6bd77b8c5078d5e19cb40",
+    "sourceUid": "b6777a0d823429734658618b6c75f0aa",
+    "startTimeSeconds": 5734,
+    "endTimeSeconds": 6300,
+    "durationSeconds": 566,
+    "title": "Q&A: PTSD Duration, Resilience, and Achieving Acceptance",
+    "sectionId": "iet-resilience-acceptance",
+    "order": 5,
+    "name": "infertility-existential-trauma-iet-resilience-acceptance-1.mp4"
+  },
+  "iet-provider-co-regulation-1": {
+    "clipUid": "fbf61cee5e77830642586e01dff5e589",
+    "sourceUid": "b6777a0d823429734658618b6c75f0aa",
+    "startTimeSeconds": 6300,
+    "endTimeSeconds": 6692,
+    "durationSeconds": 392,
+    "title": "Provider Co-Regulation and Clinical Presence",
+    "sectionId": "iet-provider-co-regulation",
+    "order": 6,
+    "name": "infertility-existential-trauma-iet-provider-co-regulation-1.mp4"
+  },
+  "iet-humility-boundaries-1": {
+    "clipUid": "63ca1a01f425f7edacc0138468c4b00b",
+    "sourceUid": "b6777a0d823429734658618b6c75f0aa",
+    "startTimeSeconds": 6900,
+    "endTimeSeconds": 7308,
+    "durationSeconds": 408,
+    "title": "Humility, Vertical Assessment, and Healthy Boundaries",
+    "sectionId": "iet-humility-boundaries",
+    "order": 7,
+    "name": "infertility-existential-trauma-iet-humility-boundaries-1.mp4"
+  },
+  "iet-recurrent-loss-hypervigilance-1": {
+    "clipUid": "bb438acbd83aa26d4324cf8b2394cb13",
+    "sourceUid": "b6777a0d823429734658618b6c75f0aa",
+    "startTimeSeconds": 7439,
+    "endTimeSeconds": 7776,
+    "durationSeconds": 337,
+    "title": "Recurrent Loss, Hypervigilance, and the CEO of Emotions",
+    "sectionId": "iet-recurrent-loss-hypervigilance",
+    "order": 8,
+    "name": "infertility-existential-trauma-iet-recurrent-loss-hypervigilance-1.mp4"
+  }
+}

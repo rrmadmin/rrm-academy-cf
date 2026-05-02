@@ -1,0 +1,33 @@
+{
+  "hormones-through-the-lifespan": {
+    "streamUid": "8c3432de9a63273809771b91bd2c09a5",
+    "durationSeconds": 6416,
+    "thumbnailUrl": "https://customer-99owhsi4yh33gohc.cloudflarestream.com/8c3432de9a63273809771b91bd2c09a5/thumbnails/thumbnail.jpg"
+  },
+  "pelvic-floor-rehabilitation": {
+    "streamUid": "0c363c504aa969cdfc2881a4a2c4db19",
+    "durationSeconds": 5325,
+    "thumbnailUrl": "https://customer-99owhsi4yh33gohc.cloudflarestream.com/0c363c504aa969cdfc2881a4a2c4db19/thumbnails/thumbnail.jpg"
+  },
+  "infertility-existential-trauma": {
+    "streamUid": "b6777a0d823429734658618b6c75f0aa",
+    "durationSeconds": 7890,
+    "thumbnailUrl": "https://customer-99owhsi4yh33gohc.cloudflarestream.com/b6777a0d823429734658618b6c75f0aa/thumbnails/thumbnail.jpg"
+  },
+  "fertility-based-family-planning": {
+    "streamUid": "984a1777bf59c7334e776e31aa3684ca",
+    "durationSeconds": 5140,
+    "thumbnailUrl": "https://customer-99owhsi4yh33gohc.cloudflarestream.com/984a1777bf59c7334e776e31aa3684ca/thumbnails/thumbnail.jpg"
+  },
+  "aip-diet-inflammation": {
+    "streamUid": "dce9110de40240a809abd07d73ab9eab",
+    "durationSeconds": 4521,
+    "thumbnailUrl": "https://customer-99owhsi4yh33gohc.cloudflarestream.com/dce9110de40240a809abd07d73ab9eab/thumbnails/thumbnail.jpg"
+  },
+  "functional-lab-testing-napro": {
+    "streamUid": null,
+    "durationSeconds": null,
+    "thumbnailUrl": null,
+    "note": "Transcript-only course, no video recording"
+  }
+}
