@@ -1,6 +1,6 @@
 {
   "name": "RRM Academy Ecosystem",
-  "last_updated": "2026-05-02",
+  "last_updated": "2026-05-02T19:00:00Z",
   "staleness_note": "Row counts, financial summaries, and timeline drift over time. This document is the system-wide SSOT -- update when infrastructure changes, subsystems ship, or pipelines migrate. Row counts are approximate snapshots; query D1 for authoritative values.",
   "organization": {
     "name": "RRM Academy",
@@ -2013,6 +2013,9 @@
       },
       "RRM Finance Master Sheet ID": {
         "purpose": "Sheet ID of 'RRM Foundation Ledger 2024-' Google Sheet (1CAIPG7PtBThxmiHIux39IHDYaboA9bZB4pPoJOaQ_eA). Bound to rrm-finance-sync Worker as GSHEETS_SHEET_ID."
+      },
+      "Ahrefs API Token": {
+        "purpose": "Ahrefs API v3 access for rrmacademy.org SEO data (DR, backlinks, refdomains, organic keywords). Lite plan -- 100,000 units/month workspace budget. Token expires 2027-05-03. Generated 2026-05-02 at https://app.ahrefs.com/api/profile. Endpoint base: https://api.ahrefs.com/v3/. Auth: Authorization: Bearer <token>. Usage check: GET /v3/subscription-info/limits-and-usage. First baseline saved at projects/rrm-academy-cf/docs/seo/ahrefs-baselines/2026-05-02.md (DR=28, 914 live backlinks, 164 live refdomains, ~30 of top 50 are link-spam clusters)."
       }
     },
     "gotchas": [
