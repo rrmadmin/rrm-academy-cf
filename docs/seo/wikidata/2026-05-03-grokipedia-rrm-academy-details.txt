@@ -1,0 +1,43 @@
+RRM Academy is an online clinician-led education platform dedicated to restorative reproductive medicine, operated as the educational program of the Restorative Reproductive Medicine Foundation, a US 501(c)(3) public charity (EIN 93-4594315, public-charity classification 170(b)(1)(A)(vi)). Founded in 2022 by Dr. Naomi M. Whittaker, MD, a fellowship-trained NaProTechnology surgeon and 2024 recipient of the American Academy of FertilityCare Professionals Honorary Award.
+
+KEY FACTS
+- Legal name: RRM Academy. Aliases: Restorative Reproductive Medicine Academy, rrmacademy.org.
+- Inception: 2022 (originally on Wix; migrated to Astro and Cloudflare Pages in 2025).
+- Operating brand of: Restorative Reproductive Medicine Foundation Inc, a Pennsylvania domestic nonprofit corporation, entity number 0013656807, filed 2023-11-28 with the Pennsylvania Department of State.
+- IRS 501(c)(3) status: determined 2024-01-29, effective 2023-11-28. Form 990 filings publicly available via ProPublica Nonprofit Explorer.
+- Headquarters: 3401 Hartzdale Dr Ste 103B PMB 3518, Camp Hill, PA 17011, United States.
+- Founder: Dr. Naomi M. Whittaker, MD; board-certified obstetrician-gynecologist; ABOG Focused Practice Designation in Minimally Invasive Gynecologic Surgery; St. John Paul II Research Fellow in Medical and Surgical NaProTechnology (Pope Paul VI Institute, 2017-2018).
+- Mission: bridge the educational gap in restorative reproductive medicine for patients and healthcare professionals through evidence-based clinician-led courses, a curated research library, glossary, FAQs, and clinical decision-support content.
+- Content corpus: 3,200+ indexed peer-reviewed research articles in its Research Library; 10+ professional-CME and patient-facing courses; 25+ clinical FAQs; 22+ commentary articles; 193+ glossary terms; multiple pillar guides covering RRM, NaProTechnology, FEMM, NeoFertility, and Restorability.
+- Editorial scope: infertility, endometriosis, polycystic ovary syndrome, recurrent pregnancy loss, premature ovarian insufficiency, luteal phase deficiency, fertility-awareness based methods (FABMs), the Creighton Model FertilityCare System, NaProTechnology, restorative gynecologic surgery, and patient-centered cooperative care.
+- Patient programs: Save the Uterus Club member community; Endometriosis Symptom Self-Survey screening tool; AI-powered conversational search at /ask/.
+- Affiliate training: NeoFertility (Dublin, Ireland) clinician-training cohort.
+- Technical infrastructure: Astro 5.x static-site rendering on Cloudflare Pages; Cloudflare Workers AI Search (rrm-academy-search namespace, hybrid BM25 + vector retrieval over the indexed library); D1 relational backend for courses, community, and library data; R2 object storage; custom authentication and Stripe-based donations and memberships.
+- Agent and AI surface: schema.org JSON-LD on every page (Organization, MedicalWebPage, EducationalOrganization, Article, FAQPage, Course); IndexNow ping integration; llms.txt; agents.md; .well-known/agent-card.json for AI-agent discovery.
+
+SOURCES
+- Official website: https://rrmacademy.org/
+- About page: https://rrmacademy.org/about/
+- Research Library: https://rrmacademy.org/library/
+- Courses catalog: https://rrmacademy.org/courses/
+- What is Restorative Reproductive Medicine pillar guide: https://rrmacademy.org/what-is-rrm/
+- NaProTechnology pillar guide: https://rrmacademy.org/naprotechnology/
+- AI-powered conversational search: https://rrmacademy.org/ask/
+- Founder bio anchor: https://rrmacademy.org/about/#naomi-whittaker
+- Parent foundation website: https://rrm.foundation/
+- ProPublica Nonprofit Explorer record (501(c)(3), EIN 93-4594315): https://projects.propublica.org/nonprofits/organizations/934594315
+- IRS Tax Exempt Organization Search: https://apps.irs.gov/app/eos/
+- Founder ORCID: https://orcid.org/0000-0003-3706-3112
+- Founder Grokipedia entry (in review): https://grokipedia.com/page/Naomi_Whittaker
+- AAFCP awards page (founder is 2024 honoree): https://aafcp.net/about-us/awards
+- EPPC Technically Human profile of founder: https://eppc.org/publication/technically-human-dr-naomi-whittaker/
+- OSV News on NaProTechnology via founder: https://www.dioceseofscranton.org/naprotechnology-provides-alternative-to-ivf-for-couples-struggling-with-infertility/
+- MercatorNet authored commentary by founder: https://www.mercatornet.com/the-hidden-costs-of-ivf-heartbreak-health-risks-and-helplessness
+- FACTS About Fertility (educational network partner): https://www.factsaboutfertility.org/member/naomi-whittaker-md/
+- International Institute for Restorative Reproductive Medicine (sister society, Wikidata Q136663845): https://iirrm.org/
+- llms.txt agent surface: https://rrmacademy.org/llms.txt
+- agent-card.json: https://rrmacademy.org/.well-known/agent-card.json
+- Donations: https://rrmacademy.org/donate
+- Save the Uterus Club community: https://rrmacademy.org/save-the-uterus-club/
+- Glossary: https://rrmacademy.org/glossary/
+- FAQs: https://rrmacademy.org/faqs
