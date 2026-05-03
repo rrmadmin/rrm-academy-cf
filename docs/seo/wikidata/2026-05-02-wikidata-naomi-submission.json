@@ -297,6 +297,36 @@
           ]
         },
         {
+          "property": "P569",
+          "property_label": "date of birth",
+          "target_time": "+1986-00-00T00:00:00Z",
+          "target_precision": 9,
+          "$comment_precision": "9 = year-only precision per Wikibase time-value spec. Day and month deliberately omitted; no third-party source documents them and they are not authorized for public disclosure.",
+          "references": [
+            {
+              "P854": "https://rrmacademy.org/about/#naomi-whittaker",
+              "comment": "Self-anchor: birth year sourced via the SSOT ecosystem-identity registry (config/ecosystem-identity/people.json, birth_year=1986). Year matches her training timeline (Creighton MD 2013) and the family-emigration narrative documented in OSV News (2025) and MercatorNet (2018)."
+            }
+          ]
+        },
+        {
+          "property": "P172",
+          "property_label": "ethnic group",
+          "target": "Q1189552",
+          "target_label": "Polish Americans",
+          "$comment": "First-generation Polish American per family-emigration narrative. Q1189552 verified via SPARQL 2026-05-03.",
+          "references": [
+            {
+              "P854": "https://www.dioceseofscranton.org/naprotechnology-provides-alternative-to-ivf-for-couples-struggling-with-infertility/",
+              "comment": "OSV News piece via Diocese of Scranton (2025) describes her family's Polish-refugee origin"
+            },
+            {
+              "P854": "https://www.mercatornet.com/the-hidden-costs-of-ivf-heartbreak-health-risks-and-helplessness",
+              "comment": "MercatorNet 2018 commentary references the same family-of-origin narrative"
+            }
+          ]
+        },
+        {
           "property": "P496",
           "property_label": "ORCID iD",
           "target_string": "0000-0003-3706-3112",
@@ -368,11 +398,11 @@
         "P1411 (nominated for) — n/a",
         "P1066 (student of) — no specific named PhD/residency advisor publicly documented; defer.",
         "P1448 (official name) — full name with post-nominals reads as honorific spam on Wikidata; description carries this.",
-        "P19 (place of birth) / P569 (date of birth) — not in SSOT, not on ORCID. Do NOT add. WD:BLP advises caution on personal-detail claims for non-public-figure subjects.",
-        "P26 (spouse) — Brian is the spouse but he is not himself a Wikidata-notable person. Adding this would invite a doxxing-class talk-page complaint. Defer permanently or until Brian has independent Wikidata notability.",
+        "P19 (place of birth) — country of birth (United States) is in SSOT but specific city/state not authorized for public disclosure. Defer pending Naomi's explicit go-ahead.",
+        "P26 (spouse) — Brian is the spouse but he is not himself a Wikidata-notable person AND Brian explicitly declined to be named publicly. SSOT records spouse_status=married without name; Wikidata P26 requires a target item, so do not add. Defer permanently.",
         "P1454 (legal form) — n/a for person",
         "P1813 (short name) — covered by aliases",
-        "P1971 (number of children) — never. WD:BLP."
+        "P1971 (number of children) — SSOT records children_count=6 and Grokipedia bundle states 'married, six children'. On Wikidata, defer for now as a BLP-conservative choice. Re-evaluate after the item has lived for 30+ days without notability/RFD challenge."
       ]
     }
   ],
