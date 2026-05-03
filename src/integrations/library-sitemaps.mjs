@@ -82,10 +82,12 @@ function dateForPath(pageDates, path) {
 }
 
 function classifyArticleTier(article) {
-  const hasAbstract = article.abstract && article.abstract.trim().length > 50;
+  const abstractLen = article.abstract ? article.abstract.trim().length : 0;
+  if (abstractLen < 300) return null;
+  if (!article.domain || !article.domain.trim()) return null;
   const hasJournal = article.journal && article.journal.trim().length > 0;
   const hasCitation = article.apaCitation && article.apaCitation.trim().length > 0;
-  if (hasAbstract && hasJournal && hasCitation) return 3;
+  if (hasJournal && hasCitation) return 3;
   return 2;
 }
 
@@ -186,11 +188,13 @@ export default function librarySitemaps() {
         const tier2 = [];
         for (const a of articles) {
           if (!a.slug) continue;
+          const tier = classifyArticleTier(a);
+          if (tier === null) continue;
           const url = {
             loc: `${SITE}/library/${a.slug}/`,
             lastmod: toIsoLastmod(a.lastModified),
           };
-          if (classifyArticleTier(a) === 3) tier3.push(url);
+          if (tier === 3) tier3.push(url);
           else tier2.push(url);
         }
 
