@@ -1,6 +1,6 @@
 {
   "name": "RRM Academy Ecosystem",
-  "last_updated": "2026-05-02T19:00:00Z",
+  "last_updated": "2026-05-03T06:00:00Z",
   "staleness_note": "Row counts, financial summaries, and timeline drift over time. This document is the system-wide SSOT -- update when infrastructure changes, subsystems ship, or pipelines migrate. Row counts are approximate snapshots; query D1 for authoritative values.",
   "organization": {
     "name": "RRM Academy",
@@ -98,7 +98,7 @@
           "rrm-academy-search-site": {
             "type": "web-crawler",
             "source": "rrmacademy.org",
-            "status": "DISABLED at Worker level \u2014 produced duplicate hits (every D1 article appeared once as upload + once as crawl)"
+            "status": "DISABLED at Worker level — produced duplicate hits (every D1 article appeared once as upload + once as crawl)"
           }
         },
         "consumer_worker": {
@@ -114,8 +114,8 @@
           "bindings": [
             "ASK_KB (AI Search namespace)",
             "AI (Workers AI)",
-            "AUTH_DB (D1 rrm-auth \u2014 citation title lookups for posts/faq/glossary_term)",
-            "LIBRARY_DB (D1 rrm-library \u2014 citation title lookups for articles)",
+            "AUTH_DB (D1 rrm-auth — citation title lookups for posts/faq/glossary_term)",
+            "LIBRARY_DB (D1 rrm-library — citation title lookups for articles)",
             "EVENTS (AE worker-events)"
           ],
           "auth": "Bearer AI_SEARCH_WORKER_AUTH (shared secret on Pages env + Worker secret)"
@@ -314,7 +314,7 @@
           "user": {
             "rows": 3966,
             "key": "id (UUID)",
-            "unique": "email (COLLATE NOCASE)",
+            "unique": "email COLLATE NOCASE (table UNIQUE constraint + idx_user_email_nocase index added 2026-05-03 via migration 018; precheck 0 dup-email groups across 7,940 users)",
             "purpose": "Site accounts (login, password, Stripe link, role, signup_source)",
             "fields": [
               "id",
@@ -435,9 +435,10 @@
               "id",
               "user_id",
               "token_hash (SHA-256)",
-              "expires_at"
+              "expires_at",
+              "purpose ('reset' | 'welcome', DEFAULT 'reset', migration 019, 2026-05-03)"
             ],
-            "note": "Token hashed in DB; unhashed token sent in email link"
+            "note": "Token hashed in DB; unhashed token sent in email link. Purpose column added 2026-05-03 (migration 019) so forgot-password DELETE no longer destroys 7-day welcome tokens for Stripe-auto-created accounts."
           }
         },
         "membership": {
@@ -446,13 +447,13 @@
             "key": "user_id + label",
             "purpose": "Tier badges and achievement labels (STUC tiers, course completions)",
             "stuc_labels": [
-              "Save the Uterus Club \ud83c\udff7\ufe0f (grandfathered from Wix)",
-              "Uterus Member \ud83d\udc3b (member tier)",
-              "Uterus Hero \ud83d\udc96 (hero tier)",
-              "Uterus Super Hero \ud83e\uddb8\u200d\u2640\ufe0f (superhero tier)"
+              "Save the Uterus Club 🏷️ (grandfathered from Wix)",
+              "Uterus Member 🐻 (member tier)",
+              "Uterus Hero 💖 (hero tier)",
+              "Uterus Super Hero 🦸‍♀️ (superhero tier)"
             ],
             "achievement_labels": [
-              "Donor \ud83d\udc4f",
+              "Donor 👏",
               "Masterclass in Endometriosis & Surgery",
               "Long Term Endometriosis Management",
               "Restorative Reproductive Medicine (RRM) vs Standard ART",
@@ -766,7 +767,7 @@
       "base_url": "https://rrm-library-worker.administrator-cloudflare.workers.dev"
     },
     "rrm-survey": {
-      "purpose": "Survey pseudonymization (email \u2194 Airtable record ID)",
+      "purpose": "Survey pseudonymization (email ↔ Airtable record ID)",
       "tables": {
         "survey_identities": {
           "purpose": "Email + Airtable record ID mapping",
@@ -808,7 +809,7 @@
       "contact_to_tags": "contact_tag.contact_id -> contact.id"
     },
     "source_of_truth": {
-      "stuc_membership_active": "Stripe subscriptions API (status in active/trialing/past_due) OR user_label 'Save the Uterus Club \ud83c\udff7\ufe0f' (grandfathered) OR user.role >= mod (staff). Gated via requireMember() in community/_shared.js.",
+      "stuc_membership_active": "Stripe subscriptions API (status in active/trialing/past_due) OR user_label 'Save the Uterus Club 🏷️' (grandfathered) OR user.role >= mod (staff). Gated via requireMember() in community/_shared.js.",
       "stuc_tier": "Stripe price ID mapped to env vars (STRIPE_PRICE_MEMBER/HERO/SUPERHERO). Grandfathered = member tier. Staff = staff tier. Default if price missing: member.",
       "stuc_cancellation": "Stripe webhook customer.subscription.deleted fires email but does NOT write to D1. Gap: no D1 record of cancellation date or reason.",
       "community_access_blocked": "user.blocked = 1 returns 403 'Account suspended' on requireMember()",
@@ -836,7 +837,7 @@
       ],
       "all_stuc_members": [
         "-- Active Stripe subscribers (requires Stripe API call per user with stripe_customer_id)",
-        "-- Grandfathered: SELECT u.* FROM [user] u JOIN user_label ul ON u.id = ul.user_id WHERE ul.label = 'Save the Uterus Club \ud83c\udff7\ufe0f'",
+        "-- Grandfathered: SELECT u.* FROM [user] u JOIN user_label ul ON u.id = ul.user_id WHERE ul.label = 'Save the Uterus Club 🏷️'",
         "-- Staff: SELECT * FROM [user] WHERE role IN ('mod', 'admin', 'superadmin')",
         "-- Note: requireMember() in community/_shared.js implements this logic"
       ],
@@ -1043,7 +1044,7 @@
     "ssot_path": "docs/design/design-system.json (machine-readable, auto-generated)",
     "generation_workflow": {
       "source_files": [
-        "src/styles/global.css (CSS tokens: 3 themes \u00d7 73 tokens + 19 shared = 238 total)",
+        "src/styles/global.css (CSS tokens: 3 themes × 73 tokens + 19 shared = 238 total)",
         "docs/design/design-system.manual.json (brand rules, fonts, typography scale)"
       ],
       "generator": "scripts/generate-design-tokens.mjs",
@@ -1179,7 +1180,7 @@
       },
       "POST /check-facts": {
         "purpose": "Verify claims in text against verified facts",
-        "logic": "Extract claims (percentages, dollars, sample sizes, cohort years); numeric match \u00b12% tolerance; common-error phrase matching",
+        "logic": "Extract claims (percentages, dollars, sample sizes, cohort years); numeric match ±2% tolerance; common-error phrase matching",
         "auth_scope": "agent + admin"
       },
       "POST /promote-facts": {
@@ -1316,10 +1317,10 @@
       "primary_instance": "rrm-academy-search-articles",
       "loader_script": "scripts/ai-search-corpus-upload.mjs",
       "ci_steps": [
-        ".github/workflows/deploy.yml \u2014 corpus upload runs after Pages deploy on every push (continue-on-error: true, ::warning:: annotation)",
-        ".github/workflows/ai-search-reconcile.yml \u2014 Sunday 08:00 UTC (--full-rebuild + --reconcile --execute --max-delete 50)"
+        ".github/workflows/deploy.yml — corpus upload runs after Pages deploy on every push (continue-on-error: true, ::warning:: annotation)",
+        ".github/workflows/ai-search-reconcile.yml — Sunday 08:00 UTC (--full-rebuild + --reconcile --execute --max-delete 50)"
       ],
-      "key_to_title_lookup": "rrm-ai-search Worker resolves citation titles via D1: 2-layer batched lookup. Direct slug\u2192title per source table (articles/posts/faq.question/glossary_term.name); fallback through ai_search_docs.full_slug for sha8-truncated keys."
+      "key_to_title_lookup": "rrm-ai-search Worker resolves citation titles via D1: 2-layer batched lookup. Direct slug→title per source table (articles/posts/faq.question/glossary_term.name); fallback through ai_search_docs.full_slug for sha8-truncated keys."
     },
     "v1_deprecated_pipeline": {
       "model": "@cf/baai/bge-base-en-v1.5 (Vectorize)",
@@ -1332,7 +1333,7 @@
         "script": "scripts/embed-library-ci.mjs",
         "status": "Retained for rollback during 2-week soak"
       },
-      "retirement_target": "2026-05-12 \u2014 drop scripts, delete Vectorize index"
+      "retirement_target": "2026-05-12 — drop scripts, delete Vectorize index"
     }
   },
   "newsletter_system": {
@@ -1479,7 +1480,9 @@
         "/community (requireMember)",
         "/ask (any user; unauth -> /signup)",
         "/admin/* (superadmin only)"
-      ]
+      ],
+      "email_verified_required": "Community endpoints (functions/api/community/_shared.js requireMember) require user.email_verified = 1 as of 2026-05-03 (UX deep trace fix #3). Unverified Stripe-auto-created accounts get a 403 with humane verify-prompt copy.",
+      "notes": "Community gate hardened 2026-05-03: prior gate did not check email_verified, allowing unverified Stripe-auto-created members to post."
     }
   },
   "endo_survey_system": {
@@ -1849,7 +1852,7 @@
   "airtable_status": {
     "_audit_date": "2026-04-27",
     "_cleanup_executed": "2026-04-27",
-    "policy": "Airtable is deprecated for rrm-academy content. D1 is SSOT. Endo survey is the only by-design Airtable holdout (HIPAA pseudonymization). Foundation finance is stale/dormant \u2014 treat as archive, not active.",
+    "policy": "Airtable is deprecated for rrm-academy content. D1 is SSOT. Endo survey is the only by-design Airtable holdout (HIPAA pseudonymization). Foundation finance is stale/dormant — treat as archive, not active.",
     "migrated_to_d1": {
       "library_articles": {
         "target": "D1 rrm-library",
@@ -1899,7 +1902,7 @@
         "scripts/unpublish-post.sh (BROKEN since blog migration)",
         "scripts/migrate-survey-identities.mjs (one-shot already executed)",
         "src/lib/airtable-config.mjs (orphaned)",
-        "scripts/stuc-pipeline/ entire directory (publish.mjs, download.sh, manifest.json) \u2014 D1 admin endpoints replace it"
+        "scripts/stuc-pipeline/ entire directory (publish.mjs, download.sh, manifest.json) — D1 admin endpoints replace it"
       ],
       "code_blocks_removed": [
         "src/lib/fetch-data.mjs Airtable webhook ping block (decorative pre-D1 cache notification)"
@@ -2070,17 +2073,17 @@
             "member": {
               "price_env": "STRIPE_PRICE_MEMBER",
               "amount": "$9/mo",
-              "label": "Uterus Member \ud83d\udc3b"
+              "label": "Uterus Member 🐻"
             },
             "hero": {
               "price_env": "STRIPE_PRICE_HERO",
               "amount": "$19/mo",
-              "label": "Uterus Hero \ud83d\udc96"
+              "label": "Uterus Hero 💖"
             },
             "superhero": {
               "price_env": "STRIPE_PRICE_SUPERHERO",
               "amount": "$99/mo",
-              "label": "Uterus Super Hero \ud83e\uddb8\u200d\u2640\ufe0f"
+              "label": "Uterus Super Hero 🦸‍♀️"
             }
           },
           "mode": "subscription",
@@ -2202,7 +2205,7 @@
           "base_id": "appdRYaSoJmeZSqU6",
           "table_id": "tblh96WpbmB7T8Cz1",
           "records": 753,
-          "status_2026_04_27": "STALE/DORMANT \u2014 preserved as historical archive; SSOT migrated to Google Sheet 2026-05-01"
+          "status_2026_04_27": "STALE/DORMANT — preserved as historical archive; SSOT migrated to Google Sheet 2026-05-01"
         },
         "migration_status_2026_05_01": "Phase 0 COMPLETE 2026-05-01. All 9 prereqs landed in 1Password: Plaid (production env, ins_127296=Bluevine), PayPal REST App (reused existing 'RRMF Finances Sync', OAuth + Transaction Search smoke-tested live), Stripe restricted key (rk_live_, 7 read scopes, write denied), Wix App (existing 'Wix API - RRM Finance Sync', ow-managed), CF Account Bootstrap token (existing, billing scope), Google Sheets OAuth refresh, Master Sheet ID, CF subscriptions API verified. 11-tab Sheet scaffolded. Phase 1.5 + Phase 2 + Phase 5 migration scripts ready (projects/rrm-foundation/bookkeeping-2026/). Worker code complete (projects/rrm-finance-sync/, 29 tests passing). Next: deploy secrets, Phase 4 (Plaid Link localhost flow), 7-day soak with SYNC_ENABLED=false then flip true."
       },
@@ -2580,10 +2583,15 @@
       "date": "2026-05-02",
       "precision": "day",
       "event": "4 author_dedup_flags inserted (IDs 2516-2519) for Brown 2011 (recR07BCJsIHJLXIR) -- 3 duplicate Jacques P. Brown / Universite Laval records to merge into author-j-p-brown, plus 1 wrong-person flag preventing future enrichment from linking the bone-density researcher to the ovulation continuum paper (which is by James B. Brown of U Melbourne, deceased)."
+    },
+    {
+      "date": "2026-05-03",
+      "event": "UX deep trace shipped",
+      "detail": "/arise --deep + 4-persona overlay (Mary/Sarah/Edge/Beth+Jane) on rrmacademy.org user surface (79 files). 31 findings, 27 fixed in 2 prod waves (commits db55d6f Wave 1 HIGHs, 4639479 Wave 2 MED+LOW). 4 DISCUSS verdicts retained. Migrations 018 (NOCASE unique on user.email) + 019 (password_reset.purpose column) applied to remote D1. 287/287 unit + 80/80 e2e green. Carryover Wave 3: cs_xxx KV-nonce redesign + cancellation_request admin endpoint."
     }
   ],
   "google_workspace_automation": {
-    "description": "Programmatic access to Google Calendar + Meet for the rrmacademy.org Workspace tenant. Uses service-account impersonation via DWD (admin.google.com) \u2014 bypasses the OAuth-client and SA-key-creation policy blocks.",
+    "description": "Programmatic access to Google Calendar + Meet for the rrmacademy.org Workspace tenant. Uses service-account impersonation via DWD (admin.google.com) — bypasses the OAuth-client and SA-key-creation policy blocks.",
     "last_updated": "2026-04-29",
     "service_account": {
       "email": "rrm-calendar-automation@rrm-academy.iam.gserviceaccount.com",
@@ -2697,7 +2705,7 @@
     }
   },
   "public_event_landing_pages": {
-    "description": "Shareable per-event landing pages at /events/<slug>. SSR via CF Pages Function functions/events/[slug].js \u2014 reads D1 community_post (channel='stuc', type='event'). NOT auth-gated. Renders full OG/Twitter meta + Event schema.org JSON-LD so social/SMS link previews show the flyer + title + date. Session-aware CTA: STUC member -> Join Call (Meet link); logged-in non-member -> Become a STUC member; anonymous -> Join STUC + Sign in.",
+    "description": "Shareable per-event landing pages at /events/<slug>. SSR via CF Pages Function functions/events/[slug].js — reads D1 community_post (channel='stuc', type='event'). NOT auth-gated. Renders full OG/Twitter meta + Event schema.org JSON-LD so social/SMS link previews show the flyer + title + date. Session-aware CTA: STUC member -> Join Call (Meet link); logged-in non-member -> Become a STUC member; anonymous -> Join STUC + Sign in.",
     "live_at": "https://rrmacademy.org/events/<slug>",
     "router_route": "/events (added to ASTRO_ROUTES in rrm-router 2026-04-29)",
     "function_path": "functions/events/[slug].js",
