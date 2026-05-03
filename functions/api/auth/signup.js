@@ -157,6 +157,31 @@ export async function onRequestPost({ request, env, waitUntil }) {
     // Check if email already exists
     const existing = await db.prepare('SELECT id FROM user WHERE email = ? COLLATE NOCASE').bind(email).first();
     if (existing) {
+      // Anti-enumeration: silent 201, but fire-and-forget informational email with cooldown
+      if (env.COMMUNITY_KV) {
+        const cooldownKey = `signup-collision:${email.toLowerCase()}`;
+        const alreadySent = await env.COMMUNITY_KV.get(cooldownKey);
+        if (!alreadySent && env.AWS_ACCESS_KEY_ID) {
+          await env.COMMUNITY_KV.put(cooldownKey, '1', { expirationTtl: 3600 });
+          waitUntil(
+            sendEmail(env, {
+              from: 'RRM Academy <accounts@mail.rrmacademy.org>',
+              to: email,
+              subject: 'Did you try to sign up at RRM Academy?',
+              text: [
+                'Someone (maybe you) tried to create an RRM Academy account with this email address.',
+                '',
+                'If it was you, log in: https://rrmacademy.org/login/',
+                '',
+                "If you forgot your password, reset it: https://rrmacademy.org/forgot-password/",
+                '',
+                "If it wasn't you, you can safely ignore this email — no account was created or modified.",
+              ].join('\n'),
+              log: { db: env.DB, source: 'auth/signup', category: 'transactional' },
+            }).catch(err => logEmailFailure(env.DB, { email, category: 'transactional', source: 'auth/signup', subject: 'Did you try to sign up at RRM Academy?', detail: err.message }))
+          );
+        }
+      }
       return json({ ok: true, emailVerificationRequired: true }, 201);
     }
 

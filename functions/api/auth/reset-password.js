@@ -38,14 +38,14 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const now = Math.floor(Date.now() / 1000);
 
     const record = await db.prepare(
-      'SELECT id, user_id FROM password_reset WHERE token_hash = ? AND expires_at > ?'
+      "DELETE FROM password_reset WHERE token_hash = ? AND expires_at > ? AND purpose = 'reset' RETURNING user_id"
     ).bind(tokenHash, now).first();
 
     if (!record) {
-      return json({ ok: false, error: 'Invalid or expired reset link. Please request a new one.' }, 400);
+      return json({ ok: false, error: 'This reset link is invalid, expired, or has already been used. Please request a new one.' }, 400);
     }
 
-    // Update password, clean up tokens/sessions, create fresh session — atomically
+    // Update password, clean up sessions, create fresh session — atomically
     const hashedPassword = await hashPassword(password);
     const newSessionId = generateSessionId();
     const newExpiresAt = Math.floor((Date.now() + 30 * 24 * 60 * 60 * 1000) / 1000);
@@ -53,8 +53,6 @@ export async function onRequestPost({ request, env, waitUntil }) {
     await db.batch([
       db.prepare('UPDATE user SET hashed_password = ?, email_verified = 1, updated_at = datetime(\'now\') WHERE id = ?')
         .bind(hashedPassword, record.user_id),
-      db.prepare('DELETE FROM password_reset WHERE user_id = ?')
-        .bind(record.user_id),
       db.prepare('DELETE FROM session WHERE user_id = ?')
         .bind(record.user_id),
       db.prepare('INSERT INTO session (id, user_id, expires_at) VALUES (?, ?, ?)')
