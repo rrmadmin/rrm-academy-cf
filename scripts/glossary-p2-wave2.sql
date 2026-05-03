@@ -79,8 +79,25 @@ SET body_html = REPLACE(
 WHERE slug = 'art';
 
 -- ============================================================
+-- W2.7: NFPMC -- contextualize legacy designation + clarify training routes
+-- (NFPMC = pre-2019 designation; current credential is CrMSMC issued by AAFCP.
+--  SPVI Saint John Paul the Great Fellowship is a complementary, distinct
+--  one-year fellowship producing Senior Medical Consultants.)
+-- Brian's audience uses NFPMC colloquially because Naomi holds it -- retain
+-- term but contextualize per glossary review suggested fix.
+-- ============================================================
+UPDATE glossary_term
+SET body_html = REPLACE(
+      body_html,
+      '<p>A <strong>NaProTechnology Medical Consultant (NFPMC)</strong> is a physician (MD or DO) who has completed formal postgraduate training in NaProTechnology through an accredited program. Training routes include the fellowship at the Pope Paul VI Institute for the Study of Human Reproduction and the AAFCP Medical Consultant program. The credential is distinct from standard OBGYN or reproductive endocrinology training and requires specific coursework in Creighton Model charting interpretation, NaPro diagnostic protocols, and NaPro surgical technique.</p>',
+      '<p>A <strong>NaProTechnology Medical Consultant (NFPMC)</strong> is a physician (MD or DO) who has completed formal postgraduate training in NaProTechnology. "NFPMC" is the legacy designation for physicians who completed the Creighton Model System (CrMS) Medical Consultant program prior to 2019. The American Academy of FertilityCare Professionals (AAFCP) now issues this credential as CrMSMC (Creighton Model System Medical Consultant); the two are functionally synonymous in patient-facing usage. A complementary credential is awarded through the Saint John Paul the Great Fellowship at the Pope Paul VI Institute for the Study of Human Reproduction, a one-year postgraduate fellowship that includes NaPro surgical training and produces Senior Medical Consultants. The credential is distinct from standard OBGYN or reproductive endocrinology training and requires specific coursework in Creighton Model charting interpretation, NaPro diagnostic protocols, and NaPro surgical technique.</p>'
+    ),
+    updated_at = datetime('now')
+WHERE slug = 'nfpmc';
+
+-- ============================================================
 -- Verification queries (run after apply):
--- SELECT slug, substr(body_html, 1, 1200) FROM glossary_term
---   WHERE slug IN ('marquette-method','billings-ovulation-method','era','fcp','art')
+-- SELECT slug, substr(body_html, 1, 1500) FROM glossary_term
+--   WHERE slug IN ('marquette-method','billings-ovulation-method','era','fcp','art','nfpmc')
 --   ORDER BY slug;
 -- SELECT ref_num, anchor_text FROM glossary_reference WHERE ref_num = 86;
