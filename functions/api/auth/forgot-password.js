@@ -46,17 +46,14 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const user = await db.prepare('SELECT id, name FROM user WHERE email = ? COLLATE NOCASE').bind(email).first();
 
     if (user) {
-      // Delete any existing reset tokens for this user
-      await db.prepare('DELETE FROM password_reset WHERE user_id = ?').bind(user.id).run();
-
-      // Generate token
       const token = generateToken();
       const tokenHash = await hashToken(token);
-      const expiresAt = Math.floor(Date.now() / 1000) + 3600; // 1 hour
+      const expiresAt = Math.floor(Date.now() / 1000) + 3600;
 
-      await db.prepare(
-        'INSERT INTO password_reset (id, user_id, token_hash, expires_at) VALUES (?, ?, ?, ?)'
-      ).bind(generateId(), user.id, tokenHash, expiresAt).run();
+      await db.batch([
+        db.prepare("DELETE FROM password_reset WHERE user_id = ? AND purpose = 'reset'").bind(user.id),
+        db.prepare("INSERT INTO password_reset (id, user_id, token_hash, expires_at, purpose) VALUES (?, ?, ?, ?, 'reset')").bind(generateId(), user.id, tokenHash, expiresAt),
+      ]);
 
       // Build reset link
       const resetUrl = `https://rrmacademy.org/reset-password/?token=${token}`;

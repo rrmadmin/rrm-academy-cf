@@ -157,7 +157,45 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
         /^wxs_[a-z0-9_-]+$/i.test(session.metadata.wix_subscription_id);
 
       if (isMigrationDonor) {
-        // Existing member switching payment systems — send confirmation, not new-member welcome
+        // Verify Stripe sub is active before sending "switch complete" email.
+        // checkout.session.completed fires before 3DS confirms; an incomplete sub
+        // should get a "in progress" email, not a false confirmation.
+        let migrationEmailSubStatus = null;
+        if (env.STRIPE_SECRET_KEY && session.subscription) {
+          try {
+            const stripeForEmail = new Stripe(env.STRIPE_SECRET_KEY, {
+              apiVersion: STRIPE_API_VERSION,
+              httpClient: Stripe.createFetchHttpClient(),
+            });
+            const subForEmail = await stripeForEmail.subscriptions.retrieve(session.subscription);
+            migrationEmailSubStatus = subForEmail.status;
+          } catch (subEmailErr) {
+            log(env, waitUntil, 'billing', 'migration_email_sub_retrieve_fail', 'error',
+              `${session.metadata.wix_subscription_id}: ${subEmailErr.message}`);
+          }
+        }
+
+        if (migrationEmailSubStatus !== 'active' && migrationEmailSubStatus !== 'trialing') {
+          await sendEmailSafe(env, waitUntil, {
+            to: email,
+            subject: 'Your donation switch is in progress',
+            source: 'billing/checkout-membership-migration-pending',
+            text: [
+              `Hi ${name || 'there'},`,
+              '',
+              'Your donation switch is in progress. Your card needs an extra confirmation step.',
+              '',
+              'Watch for an email from Stripe to complete the payment. We\'ll keep your previous donation active until the new one confirms.',
+              '',
+              `Manage your membership any time at ${SITE_URL}/account/`,
+              '',
+              'If you have questions, email us at administrator@rrmacademy.org',
+              '',
+              'RRM Academy',
+              'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315',
+            ].join('\n'),
+          });
+        } else {
         let nextChargeSentence = '';
         let wixAmountDollars = null;
         try {
@@ -178,7 +216,6 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
               });
               nextChargeSentence = `Your next donation will be processed on ${humanDate} at $${wixAmountDollars}/month -- the same date and same amount you were already on.`;
             } else {
-              // Past or null next_expected_at (Beth scenario): charge starts now
               const fallbackDate = new Date();
               fallbackDate.setMonth(fallbackDate.getMonth() + 1);
               const humanDate = fallbackDate.toLocaleDateString('en-US', {
@@ -190,7 +227,6 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
         } catch (wixReadErr) {
           log(env, waitUntil, 'billing', 'migration_email_wix_read_fail', 'error',
             `${session.metadata.wix_subscription_id}: ${wixReadErr.message}`);
-          // Fall through with no date sentence -- email is still sent
         }
 
         const amountLine = wixAmountDollars
@@ -220,6 +256,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
             'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315',
           ].join('\n'),
         });
+        }
       } else {
         // New member — standard welcome email with onboarding list
         await sendEmailSafe(env, waitUntil, {
@@ -531,6 +568,31 @@ Manually mark wix_subscription row:
 }
 
 /**
+ * Handle checkout.session.expired: release migration lock so donor can retry immediately.
+ */
+export async function handleCheckoutExpired(db, event, env, waitUntil) {
+  const session = event.data.object;
+  const wixSubId = session.metadata?.wix_subscription_id;
+  if (!wixSubId || typeof wixSubId !== 'string' || !/^wxs_[a-z0-9_-]+$/i.test(wixSubId)) {
+    return null;
+  }
+  try {
+    await db.prepare(
+      "UPDATE wix_subscription SET migration_handoff_started_at = NULL " +
+      "WHERE wix_subscription_id = ? AND stripe_subscription_id IS NULL"
+    ).bind(wixSubId).run();
+    log(env, waitUntil, 'billing', 'migration_lock_released_on_expiry', 'ok', wixSubId);
+    env.EVENTS?.writeDataPoint({
+      blobs: ['billing', 'stuc-migration', 'lock-released-session-expired', wixSubId, session.id || ''],
+      indexes: ['lock-released-session-expired'],
+    });
+  } catch (err) {
+    log(env, waitUntil, 'billing', 'migration_lock_release_fail', 'error', `${wixSubId}: ${err.message}`);
+  }
+  return null;
+}
+
+/**
  * Ensure a D1 account exists for the checkout session's customer.
  *
  * 1. Logged-in user (client_reference_id set) -> link stripe_customer_id
@@ -549,8 +611,11 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
   // ELV tag (non-blocking -- payment already completed, just tag for CRM)
   const name = (session.customer_details?.name || '').slice(0, 200);
   const [first, ...rest] = name.split(' ');
+  const emailLocalParts = email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b(\w)/g, c => c.toUpperCase()).split(' ');
+  const derivedFirstName = first || emailLocalParts[0] || '';
+  const derivedLastName = rest.join(' ') || (first ? '' : emailLocalParts.slice(1).join(' '));
   waitUntil(verifyAndTagEmail(email, env, {
-    firstName: first || '', lastName: rest.join(' ') || '', source: 'checkout',
+    firstName: derivedFirstName || '', lastName: derivedLastName || '', source: 'checkout',
   }).catch(() => {}));
 
   // Case 1: User was logged in (client_reference_id = D1 user ID)
@@ -610,9 +675,9 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
   const id = generateId();
 
   const ins = await db.prepare(
-    `INSERT OR IGNORE INTO user (id, email, email_verified, hashed_password, name, stripe_customer_id, role)
-     VALUES (?, ?, 1, '', ?, ?, 'member')`
-  ).bind(id, email, name || null, customerId || null).run();
+    `INSERT OR IGNORE INTO user (id, email, email_verified, hashed_password, name, first_name, last_name, stripe_customer_id, role)
+     VALUES (?, ?, 1, '', ?, ?, ?, ?, 'member')`
+  ).bind(id, email, name || null, derivedFirstName || null, derivedLastName || null, customerId || null).run();
 
   if (ins.meta.changes === 0) {
     // Another request created the account first -- link Stripe ID to existing account
@@ -652,7 +717,7 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
       const expiresAt = Math.floor(Date.now() / 1000) + 7 * 24 * 3600;
 
       await db.prepare(
-        'INSERT INTO password_reset (id, user_id, token_hash, expires_at) VALUES (?, ?, ?, ?)'
+        "INSERT INTO password_reset (id, user_id, token_hash, expires_at, purpose) VALUES (?, ?, ?, ?, 'welcome')"
       ).bind(generateId(), id, tokenHash, expiresAt).run();
 
       const setPasswordUrl = `${SITE_URL}/reset-password/?token=${token}`;
@@ -662,7 +727,7 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
         subject: 'Your RRM Academy account is ready',
         source: 'billing/checkout-account',
         text: [
-          `Hi ${name || 'there'},`,
+          `Hi ${derivedFirstName || 'there'},`,
           '',
           'Thank you for your support! We\'ve created an RRM Academy account for you so you can view your donation history, receipts, and membership details.',
           '',

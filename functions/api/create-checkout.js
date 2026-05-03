@@ -343,6 +343,7 @@ async function handleCheckout(request, env, waitUntil) {
             product_data: { name: `Save the Uterus Club ($${(wixLookup.amount_cents / 100).toFixed(0)}/month)` },
             unit_amount: wixLookup.amount_cents,
             recurring: { interval: 'month' },
+            nickname: `STUC Custom $${(wixLookup.amount_cents / 100).toFixed(0)}/mo`,
           },
           quantity: 1,
         }]
@@ -376,10 +377,13 @@ async function handleCheckout(request, env, waitUntil) {
     };
 
     // Carry migration metadata into subscription_data so webhook can read it
-    if (Object.keys(migrationMetadata).length > 0) {
+    const offAmountSubMeta = useCustomAmount && wixLookup
+      ? { tier_custom: '1', amount_cents: String(wixLookup.amount_cents) }
+      : {};
+    if (Object.keys(migrationMetadata).length > 0 || Object.keys(offAmountSubMeta).length > 0) {
       sessionParams.subscription_data = {
         ...(trialEndUnix ? { trial_end: trialEndUnix } : {}),
-        metadata: migrationMetadata,
+        metadata: { ...migrationMetadata, ...offAmountSubMeta },
       };
     }
 

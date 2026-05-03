@@ -16,7 +16,7 @@
  */
 import Stripe from 'stripe';
 import { STRIPE_API_VERSION } from './auth/_shared.js';
-import { handleCheckoutCompleted } from './billing/_webhook-checkout.js';
+import { handleCheckoutCompleted, handleCheckoutExpired } from './billing/_webhook-checkout.js';
 import { handleSubscriptionUpdated, handleSubscriptionDeleted } from './billing/_webhook-subscription.js';
 import { handlePaymentFailed } from './billing/_webhook-invoice.js';
 import { log } from './_log.js';
@@ -103,6 +103,9 @@ async function handleWebhook(request, env, waitUntil) {
   switch (event.type) {
     case 'checkout.session.completed':
       result = await handleCheckoutCompleted(db, event, env, request, waitUntil);
+      break;
+    case 'checkout.session.expired':
+      result = await handleCheckoutExpired(db, event, env, waitUntil);
       break;
     case 'customer.subscription.updated':
       result = await handleSubscriptionUpdated(db, event, env, request, waitUntil);

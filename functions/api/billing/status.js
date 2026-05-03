@@ -112,12 +112,19 @@ async function handleStatus(request, env, waitUntil) {
         if (env.STRIPE_PRICE_HERO) priceToTier[env.STRIPE_PRICE_HERO] = 'hero';
         if (env.STRIPE_PRICE_SUPERHERO) priceToTier[env.STRIPE_PRICE_SUPERHERO] = 'superhero';
 
+        const mappedTier = priceToTier[price?.id] ||
+          (sub.metadata?.tier_custom === '1' ? 'custom' : null) ||
+          price?.nickname ||
+          null;
         subscription = {
-          tier: priceToTier[price?.id] || price?.nickname || 'Member',
+          tier: mappedTier,
           status: sub.status,
           currentPeriodEnd: sub.current_period_end,
           cancelAtPeriodEnd: sub.cancel_at_period_end,
           source: 'stripe',
+          ...(sub.metadata?.tier_custom === '1' && sub.items.data[0]?.price?.unit_amount != null
+            ? { amount: sub.items.data[0].price.unit_amount }
+            : {}),
         };
       }
     }
