@@ -46,7 +46,12 @@ interface GlossaryAbbreviation {
   termSlug: string | null;
   sortOrder: number;
 }
-const terms: GlossaryTerm[] = glossaryData.terms ?? [];
+// Only render published terms. Drafts/classified entries in glossary.json
+// must not appear in visible H3s, the A-Z index, or the DefinedTermSet
+// JSON-LD; the latter would otherwise emit @id values that point at spoke
+// pages getStaticPaths refuses to build (status='published' filter), causing
+// structured-data references to 404.
+const terms: GlossaryTerm[] = (glossaryData.terms ?? []).filter((t: GlossaryTerm) => t.status === 'published');
 const references: GlossaryReference[] = glossaryData.references ?? [];
 const abbreviations: GlossaryAbbreviation[] = (glossaryData.abbreviations ?? [])
   .slice()
