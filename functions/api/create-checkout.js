@@ -16,6 +16,7 @@ import {
   json, optionsResponse, getSessionIdFromCookie, validateSession, checkRateLimit,
   STRIPE_API_VERSION, SITE_URL,
 } from './auth/_shared.js';
+import { log } from './_log.js';
 import { sendGA4Event } from './_ga4.js';
 import { classifySource, extractUtm, getClientId, deriveSessionId } from './_ga4-source.js';
 
@@ -90,9 +91,11 @@ async function handleCheckout(request, env, waitUntil) {
           try {
             const customer = await stripe.customers.create({ email: userEmail, metadata: { user_id: userId } });
             stripeCustomerId = customer.id;
+            // arise-ignore unbatched-writes -- UPDATE depends on async Stripe result; cannot batch with the SELECT above or the wix_subscription lock UPDATE below
             await db.prepare('UPDATE user SET stripe_customer_id = ? WHERE id = ?')
               .bind(stripeCustomerId, userId).run();
-          } catch {
+          } catch (err) {
+            log(env, waitUntil, 'billing', 'stripe_customer_create_error', 'error', `stripe customer create: ${err.message}`, 0, 0);
             stripeCustomerId = null;
           }
         }
@@ -142,6 +145,12 @@ async function handleCheckout(request, env, waitUntil) {
       cancel_url: `${origin}/donate/`,
     };
 
+    sessionParams.payment_intent_data = {
+      description: 'Donation to RRM Foundation',
+      statement_descriptor_suffix: 'DONATION',
+      metadata: { type: 'donation' },
+    };
+
     if (stripeCustomerId) {
       sessionParams.customer = stripeCustomerId;
     } else {
@@ -162,7 +171,8 @@ async function handleCheckout(request, env, waitUntil) {
     let checkoutSession;
     try {
       checkoutSession = await stripe.checkout.sessions.create(sessionParams);
-    } catch {
+    } catch (err) {
+      log(env, waitUntil, 'billing', 'create_checkout_error', 'error', `stripe checkout: ${err.message}`, 0, 503);
       return json({ ok: false, error: 'Payment service temporarily unavailable. Please try again.' }, 503);
     }
     waitUntil(sendGA4Event(env, request, 'begin_checkout', {
@@ -301,11 +311,17 @@ async function handleCheckout(request, env, waitUntil) {
 
     // Guard: if logged-in user already has an active/trialing/past_due subscription, don't create a new one
     if (stripeCustomerId) {
-      const existing = await stripe.subscriptions.list({
-        customer: stripeCustomerId,
-        status: 'all',
-        limit: 10,
-      });
+      let existing;
+      try {
+        existing = await stripe.subscriptions.list({
+          customer: stripeCustomerId,
+          status: 'all',
+          limit: 10,
+        });
+      } catch (err) {
+        log(env, waitUntil, 'billing', 'subscriptions_list_error', 'error', `stripe subscriptions.list: ${err.message}`, 0, 503);
+        return json({ ok: false, error: 'Payment service temporarily unavailable. Please try again.' }, 503);
+      }
       const blocking = existing.data.find(s =>
         s.status === 'active' || s.status === 'trialing' || s.status === 'past_due' || s.status === 'incomplete'
       );
@@ -370,7 +386,8 @@ async function handleCheckout(request, env, waitUntil) {
     let checkoutSession;
     try {
       checkoutSession = await stripe.checkout.sessions.create(sessionParams);
-    } catch {
+    } catch (err) {
+      log(env, waitUntil, 'billing', 'create_subscription_error', 'error', `stripe checkout: ${err.message}`, 0, 503);
       return json({ ok: false, error: 'Payment service temporarily unavailable. Please try again.' }, 503);
     }
     const tierValueMap = { member: 10, hero: 25, superhero: 50 };
