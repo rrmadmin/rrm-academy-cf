@@ -92,6 +92,12 @@ CITE Score: **44/100 (Low)**. C: 50, I: 25, T: 60, E: 30. Full audit output in s
 
 ## Queued
 
+### Glossary as Internal-Link Hub
+
+Plan at `docs/plans/2026-05-03-glossary-as-internal-link-hub.md`.
+
+Invert the current pattern. Today some content (incl. course descriptions, now stripped) inlines `[term](/glossary/#<slug>)` links. The hub model puts the link list ON each glossary term: a "Discussed in" block per term with related courses, commentary, library articles, FAQs. Course descriptions stay clean (only related-course links allowed). Schema add: `glossary_term_link` join table in rrm-auth. Authoring via extended `/glossary-update` skill.
+
 ### Page Templatization
 
 Full spec at `docs/superpowers/specs/2026-03-21-page-templatization-design.md`. Plan at `docs/plans/2026-03-21-page-templatization-plan.md`.
