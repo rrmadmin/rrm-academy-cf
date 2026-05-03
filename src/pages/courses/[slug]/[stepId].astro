@@ -383,7 +383,12 @@ function stepTypeLabel(type: string) {
 
           // Load Stream video (signed token)
           if (stepType === 'video' && streamUid) {
-            var resumeTime = (steps[stepId] && steps[stepId].lastPositionSeconds > 0) ? steps[stepId].lastPositionSeconds : 0;
+            // On a completed lesson, treat the open as a rewatch from the start.
+            // The saved lastPositionSeconds is near the end, which would otherwise
+            // play ~5s and trigger the autoplay-next countdown.
+            var resumeTime = (!isCompleted && steps[stepId] && steps[stepId].lastPositionSeconds > 0)
+              ? steps[stepId].lastPositionSeconds
+              : 0;
             loadStreamVideo(resumeTime);
           }
         })
@@ -485,9 +490,8 @@ function stepTypeLabel(type: string) {
                     }
                   }
                 });
-              } else if (autoplayNext && nextStepUrl) {
-                showAutoplayCountdown();
               }
+              // No autoplay on rewatch: countdown only fires on the first-completion path above.
             });
             };
             document.head.appendChild(script);
