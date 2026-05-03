@@ -129,3 +129,27 @@
 /library/rla-2021-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-6c2cj4qx/ /404 410
 /library/rtac-code-of-practice-for-reproductive-technology-units-australia-and-new-zealan-tml78lnz /404 410
 /library/rtac-code-of-practice-for-reproductive-technology-units-australia-and-new-zealan-tml78lnz/ /404 410
+
+# Stale per-term glossary URLs (Ahrefs site audit 2026-05-03 -- 8x 404).
+# Glossary is a single-page index with fragment anchors; redirect to /glossary/#<slug>.
+# Internal source: src/data/courses.json (5 course descriptions) -- D1 SSOT,
+# refetched each deploy. Markdown links also need to be fixed in D1 via
+# /courses-update skill as a follow-up; redirects fix the 404s in the meantime.
+/glossary/billings-ovulation-method /glossary/#billings-ovulation-method 301
+/glossary/billings-ovulation-method/ /glossary/#billings-ovulation-method 301
+/glossary/creighton-model /glossary/#creighton-model 301
+/glossary/creighton-model/ /glossary/#creighton-model 301
+/glossary/endometriosis /glossary/#endometriosis 301
+/glossary/endometriosis/ /glossary/#endometriosis 301
+/glossary/infertility /glossary/#infertility 301
+/glossary/infertility/ /glossary/#infertility 301
+/glossary/marquette-method /glossary/#marquette-method 301
+/glossary/marquette-method/ /glossary/#marquette-method 301
+# NOTE: /glossary/ has no `menopause` anchor (closest term: HRT). Redirecting
+# to the glossary index. Add a `menopause` term to D1 to give this a true target.
+/glossary/menopause /glossary/ 301
+/glossary/menopause/ /glossary/ 301
+/glossary/pcos /glossary/#pcos 301
+/glossary/pcos/ /glossary/#pcos 301
+/glossary/pelvic-floor-physical-therapy /glossary/#pelvic-floor-physical-therapy 301
+/glossary/pelvic-floor-physical-therapy/ /glossary/#pelvic-floor-physical-therapy 301
