@@ -87,7 +87,10 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
       var oauthErrors = {
         oauth_failed: 'Google sign-in failed. Please try again.',
         oauth_denied: 'Google sign-in was cancelled.',
-        account_blocked: 'This account has been blocked.'
+        account_blocked: 'This account has been blocked.',
+        account_conflict: 'This Google account is already linked to a different RRM Academy account. Sign in with that Google account, or email administrator@rrmacademy.org to merge.',
+        email_conflict: 'A different account already uses this email. Try signing in with email/password instead.',
+        oauth_unavailable: 'Google sign-in is temporarily unavailable. Try email/password.'
       };
       var errorParam = params.get('error');
       if (errorParam && oauthErrors[errorParam]) {

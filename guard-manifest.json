@@ -11,15 +11,15 @@
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "d6688ac3140025d9a818a859aa04aa625e1157a1da7e7c1ac1b16d50a75afe0e",
+      "hash": "2883b18131f85b18e4ec1d19a7d498d2b1c0e97cf79a82fd6bc2fbadb1aae0f1",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
-      "hash": "44373336a837a790a77c0388873791a190153ba6136d802d6312e2ea04e0b257",
+      "hash": "e3e2875e2dcb41a7a7786c2615ee164451215b5afc7989942cc519a90bd82fbb",
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
-      "hash": "25d1d4e929cc5efefa100017ae7b29c49330762d74fdc336f78ed06f0dab1f45",
+      "hash": "a359e5aa04f35fb9188a62fd7eac64b67edec8698a8fd113b36a614dd0e6a901",
       "note": "Reset token consumption + password change"
     },
     "functions/api/auth/change-password.js": {
@@ -39,15 +39,15 @@
       "note": "Email validation + disposable/typo detection"
     },
     "functions/api/stripe-webhook.js": {
-      "hash": "5ef4cfdf2a1c711a7bcc9fd6874aeb6a9d4f591aefa42c19db930e74a19a29f3",
+      "hash": "86a3edd081a49bf924b1c7a7acfe135666944dd9a05db750b22d2a086ed919c5",
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
-      "hash": "c039027a1ed12397c8cdec64eec205982cadb094715c968cde1a7bf5646a6396",
+      "hash": "17b7949e713e15a80cab312b1b7ec226929c341abe411d0868d6c6aa956e40fd",
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
-      "hash": "c154701c2b4d9554d29237463612bc9500eaf8a9fd1bbdd35b322ec0d9462f19",
+      "hash": "c569ade6a36c5a7bbde8a684afb99e30708dc3659cc26fd62a0bf11c01d4dd01",
       "note": "Billing status"
     },
     "functions/api/billing/portal.js": {
@@ -55,7 +55,7 @@
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "2a0cfabaa3903778edcd9627eb324d4c565e22deaa8288bdcc98bfbc656a8aac",
+      "hash": "0dae3081938e3b12e4c64adb3cf5950b43758a55e1392aeabe4674419f9f3cfc",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
@@ -123,7 +123,7 @@
       "note": "Search UX + RRF fusion (Pagefind init, relevance boost, error resilience)"
     },
     "functions/api/community/_shared.js": {
-      "hash": "e0c56d210902154e399f7a55a8ce6169a1b5c9ecc2ff02f3967401abed015dd6",
+      "hash": "60e0185a48175bbc7d5204490ec32646f22398695538a5c94e47a2237c7b5aa0",
       "note": "Community access control (requireMember)"
     },
     "functions/api/admin/cleanup.js": {
