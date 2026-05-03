@@ -1,7 +1,9 @@
 ---
 // Single render path for a glossary term, used by:
 //   - /glossary/ (pillar): headingLevel="h3", inline anchor IDs preserved
-//   - /glossary/<slug>/ (spoke): headingLevel="h2", cross-refs rewritten to absolute URLs
+//   - /glossary/<slug>/ (spoke): headingLevel="h1", cross-refs rewritten to absolute URLs
+//     (the component IS the page heading on a spoke; the spoke route does NOT add
+//     a separate <h1>, otherwise the term name renders twice)
 // Edit-once / render-twice. The term body lives in D1 (glossary_term.body_html);
 // every visible rendering of it on the site flows through this component, which
 // makes drift between the pillar and the spokes physically impossible.
@@ -16,7 +18,7 @@ interface GlossaryTerm {
 
 interface Props {
   term: GlossaryTerm;
-  headingLevel: 'h2' | 'h3';
+  headingLevel: 'h1' | 'h2' | 'h3';
   /** "spoke" rewrites href="#xxx" to absolute URLs; "pillar" leaves anchors as-is. */
   mode: 'pillar' | 'spoke';
 }
