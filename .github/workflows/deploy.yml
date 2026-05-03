@@ -78,7 +78,7 @@ jobs:
         # courses.json is NOT restored — D1 is SSOT (Step 10 of D1 migration plan).
         # Tracking it caused stale-state regressions on non-course repository_dispatch
         # events that skip fetch-all (article_id / record_id / faq_id / glossary_term_id).
-        run: git checkout HEAD -- src/data/quizzes.json src/data/courses-overrides.json src/data/funding-projects.json src/data/team.json
+        run: git checkout HEAD -- src/data/quizzes.json src/data/courses-overrides.json src/data/funding-projects.json src/data/team.json src/data/.baselines.json
 
       - name: Fetch single blog record (dispatch)
         if: ${{ github.event.client_payload.record_id }}
