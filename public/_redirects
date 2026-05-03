@@ -32,3 +32,139 @@
 # Old Wix survey slug
 /3-tier-endometriosis-symptom-self-survey /endo-survey/ 301
 /3-tier-endometriosis-symptom-self-survey/ /endo-survey/ 301
+
+# Stale per-protocol library URLs (Ahrefs site audit 2026-05-03 -- 41x 404).
+# 61 sp-N clinical-protocol stubs (Hilgers protocols, dosings, patient-ed templates)
+# were ingested 2026-04-07 and archived 2026-05-03 per the no-public-protocols-or-dosings
+# rule. Records intentionally removed from D1 publish; URLs return 410 Gone so Google
+# deindexes faster than 404. Glob covers the 41 Ahrefs caught + the other 20 sp-N URLs
+# that may still surface in old crawls.
+/library/sp-* /404 410
+/library/sp-*/ /404 410
+
+# Stale ART-registry duplicate library URLs (Ahrefs site audit 2026-05-03 -- 41x 404).
+# 76 ART-registry-duplicate records (RLA / Q-IVF Sweden / ANZARD / French ABM / UK HFEA / RTAC)
+# were ingested with thin 698-char repeated abstracts and archived 2026-05-03 (status='archived').
+# These slugs match the lowercased forms Google retained from earlier crawls; the canonical
+# mixed-case slugs in D1 also 404 (records not published). Returning 410 Gone.
+/library/assisted-reproductive-technology-in-australia-and-new-zealand-2003-ssboxwli /404 410
+/library/assisted-reproductive-technology-in-australia-and-new-zealand-2003-ssboxwli/ /404 410
+/library/assisted-reproductive-technology-in-australia-and-new-zealand-2006-aderjz9p /404 410
+/library/assisted-reproductive-technology-in-australia-and-new-zealand-2006-aderjz9p/ /404 410
+/library/assisted-reproductive-technology-in-australia-and-new-zealand-2007-v6vlejbz /404 410
+/library/assisted-reproductive-technology-in-australia-and-new-zealand-2007-v6vlejbz/ /404 410
+/library/assisted-reproductive-technology-in-australia-and-new-zealand-2008-smjfawak /404 410
+/library/assisted-reproductive-technology-in-australia-and-new-zealand-2008-smjfawak/ /404 410
+/library/assisted-reproductive-technology-in-australia-and-new-zealand-2009-ofsk0nlz /404 410
+/library/assisted-reproductive-technology-in-australia-and-new-zealand-2009-ofsk0nlz/ /404 410
+/library/assisted-reproductive-technology-in-australia-and-new-zealand-2011-psitgtzq /404 410
+/library/assisted-reproductive-technology-in-australia-and-new-zealand-2011-psitgtzq/ /404 410
+/library/assisted-reproductive-technology-in-australia-and-new-zealand-2013-md61ftep /404 410
+/library/assisted-reproductive-technology-in-australia-and-new-zealand-2013-md61ftep/ /404 410
+/library/assisted-reproductive-technology-in-australia-and-new-zealand-2014-0ibr6lar /404 410
+/library/assisted-reproductive-technology-in-australia-and-new-zealand-2014-0ibr6lar/ /404 410
+/library/assisted-reproductive-technology-in-australia-and-new-zealand-2016-ct14gqmk /404 410
+/library/assisted-reproductive-technology-in-australia-and-new-zealand-2016-ct14gqmk/ /404 410
+/library/assisted-reproductive-technology-in-australia-and-new-zealand-2019-dop6yfk7 /404 410
+/library/assisted-reproductive-technology-in-australia-and-new-zealand-2019-dop6yfk7/ /404 410
+/library/assisted-reproductive-technology-in-australia-and-new-zealand-2020-ooytmghh /404 410
+/library/assisted-reproductive-technology-in-australia-and-new-zealand-2020-ooytmghh/ /404 410
+/library/assisted-reproductive-technology-in-australia-and-new-zealand-2021-hosgbpl9 /404 410
+/library/assisted-reproductive-technology-in-australia-and-new-zealand-2021-hosgbpl9/ /404 410
+/library/human-fertilisation-and-embryology-act-1990-lmwayq0r /404 410
+/library/human-fertilisation-and-embryology-act-1990-lmwayq0r/ /404 410
+/library/human-fertilisation-and-embryology-act-2008-v99nms5r /404 410
+/library/human-fertilisation-and-embryology-act-2008-v99nms5r/ /404 410
+/library/qivf-annual-report-2014-fertility-treatments-in-sweden-treatment-year-2012-hyffqosi /404 410
+/library/qivf-annual-report-2014-fertility-treatments-in-sweden-treatment-year-2012-hyffqosi/ /404 410
+/library/qivf-annual-report-2016-fertility-treatments-in-sweden-treatment-year-2014-bqojtqko /404 410
+/library/qivf-annual-report-2016-fertility-treatments-in-sweden-treatment-year-2014-bqojtqko/ /404 410
+/library/qivf-annual-report-2017-fertility-treatments-in-sweden-treatment-year-2015-yfomrqh6 /404 410
+/library/qivf-annual-report-2017-fertility-treatments-in-sweden-treatment-year-2015-yfomrqh6/ /404 410
+/library/qivf-annual-report-2019-fertility-treatments-in-sweden-treatment-year-2017-qic93k1q /404 410
+/library/qivf-annual-report-2019-fertility-treatments-in-sweden-treatment-year-2017-qic93k1q/ /404 410
+/library/qivf-annual-report-2020-fertility-treatments-in-sweden-treatment-year-2018-gumav1pe /404 410
+/library/qivf-annual-report-2020-fertility-treatments-in-sweden-treatment-year-2018-gumav1pe/ /404 410
+/library/qivf-annual-report-2021-fertility-treatments-in-sweden-treatment-year-2019-hlrqlj5i /404 410
+/library/qivf-annual-report-2021-fertility-treatments-in-sweden-treatment-year-2019-hlrqlj5i/ /404 410
+/library/qivf-annual-report-2022-fertility-treatments-in-sweden-treatment-year-2020-6805a2c2 /404 410
+/library/qivf-annual-report-2022-fertility-treatments-in-sweden-treatment-year-2020-6805a2c2/ /404 410
+/library/qivf-annual-report-2023-fertility-treatments-in-sweden-treatment-year-2021-5c64a31a /404 410
+/library/qivf-annual-report-2023-fertility-treatments-in-sweden-treatment-year-2021-5c64a31a/ /404 410
+/library/qivf-annual-report-2024-fertility-treatments-in-sweden-treatment-year-2022-e700dacd /404 410
+/library/qivf-annual-report-2024-fertility-treatments-in-sweden-treatment-year-2022-e700dacd/ /404 410
+/library/rapport-medical-et-scientifique-2017-assistance-medicale-a-la-procreation-synthe-ven14baq /404 410
+/library/rapport-medical-et-scientifique-2017-assistance-medicale-a-la-procreation-synthe-ven14baq/ /404 410
+/library/rapport-medical-et-scientifique-2020-assistance-medicale-a-la-procreation-gkaykgzq /404 410
+/library/rapport-medical-et-scientifique-2020-assistance-medicale-a-la-procreation-gkaykgzq/ /404 410
+/library/rla-1990-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-9hlxghqf /404 410
+/library/rla-1990-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-9hlxghqf/ /404 410
+/library/rla-1991-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-8kdd3yia /404 410
+/library/rla-1991-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-8kdd3yia/ /404 410
+/library/rla-1992-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-vtk758xb /404 410
+/library/rla-1992-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-vtk758xb/ /404 410
+/library/rla-1994-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-hkznhaid /404 410
+/library/rla-1994-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-hkznhaid/ /404 410
+/library/rla-1998-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-z1l8w8yl /404 410
+/library/rla-1998-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-z1l8w8yl/ /404 410
+/library/rla-2000-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-lzzk7shx /404 410
+/library/rla-2000-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-lzzk7shx/ /404 410
+/library/rla-2006-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-7rb0hxqf /404 410
+/library/rla-2006-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-7rb0hxqf/ /404 410
+/library/rla-2008-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-hqldnqss /404 410
+/library/rla-2008-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-hqldnqss/ /404 410
+/library/rla-2009-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-v8ulrcjv /404 410
+/library/rla-2009-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-v8ulrcjv/ /404 410
+/library/rla-2010-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-b8fhztpi /404 410
+/library/rla-2010-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-b8fhztpi/ /404 410
+/library/rla-2013-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-td7ceiul /404 410
+/library/rla-2013-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-td7ceiul/ /404 410
+/library/rla-2014-archival-report-latin-american-registry-of-assisted-reproduction-jbra-a-suyyam4b /404 410
+/library/rla-2014-archival-report-latin-american-registry-of-assisted-reproduction-jbra-a-suyyam4b/ /404 410
+/library/rla-2016-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-hqdnk8kk /404 410
+/library/rla-2016-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-hqdnk8kk/ /404 410
+/library/rla-2018-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-7mogunvt /404 410
+/library/rla-2018-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-7mogunvt/ /404 410
+/library/rla-2021-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-6c2cj4qx /404 410
+/library/rla-2021-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-6c2cj4qx/ /404 410
+/library/rtac-code-of-practice-for-reproductive-technology-units-australia-and-new-zealan-tml78lnz /404 410
+/library/rtac-code-of-practice-for-reproductive-technology-units-australia-and-new-zealan-tml78lnz/ /404 410
+
+# Stale per-term glossary URLs (Ahrefs site audit 2026-05-03 -- 8x 404).
+# Glossary is a single-page index with fragment anchors; redirect to /glossary/#<slug>.
+# Internal source: src/data/courses.json (5 course descriptions) -- D1 SSOT,
+# refetched each deploy. Markdown links also need to be fixed in D1 via
+# /courses-update skill as a follow-up; redirects fix the 404s in the meantime.
+/glossary/billings-ovulation-method /glossary/#billings-ovulation-method 301
+/glossary/billings-ovulation-method/ /glossary/#billings-ovulation-method 301
+/glossary/creighton-model /glossary/#creighton-model 301
+/glossary/creighton-model/ /glossary/#creighton-model 301
+/glossary/endometriosis /glossary/#endometriosis 301
+/glossary/endometriosis/ /glossary/#endometriosis 301
+/glossary/infertility /glossary/#infertility 301
+/glossary/infertility/ /glossary/#infertility 301
+/glossary/marquette-method /glossary/#marquette-method 301
+/glossary/marquette-method/ /glossary/#marquette-method 301
+# NOTE: /glossary/ has no `menopause` anchor (closest term: HRT). Redirecting
+# to the glossary index. Add a `menopause` term to D1 to give this a true target.
+/glossary/menopause /glossary/ 301
+/glossary/menopause/ /glossary/ 301
+/glossary/pcos /glossary/#pcos 301
+/glossary/pcos/ /glossary/#pcos 301
+/glossary/pelvic-floor-physical-therapy /glossary/#pelvic-floor-physical-therapy 301
+/glossary/pelvic-floor-physical-therapy/ /glossary/#pelvic-floor-physical-therapy 301
+
+# Stale one-off 404s from Ahrefs site audit 2026-05-03.
+# /find-a-provider/ -- 1 inbound internal link to a never-built page (the
+# provider directory is a planned project, not live). No internal source for
+# this link found in src/, functions/, public/, or src/data/*.json. Treat as
+# external/stale link rot. Homepage is the safest fallback target.
+/find-a-provider /  301
+/find-a-provider/ / 301
+
+# Stray "/i/" suffix on a real library article slug. The canonical article
+# is the same path without "/i/". No internal source for the bad link found
+# in our codebase -- artifact of an external referrer. Wildcard splat also
+# covers any other library slug that might pick up the same suffix.
+/library/*/i/ /library/:splat/ 301
+/library/*/i  /library/:splat/ 301
