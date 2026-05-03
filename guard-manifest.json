@@ -7,7 +7,7 @@
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
-      "hash": "03372cfc18430535cc1ac2410f6ef233519bbbdc4149a3f5792bd5da8b4f822e",
+      "hash": "f9ead91e40a7298e4630fcf228cf4008e6cf4a9f38f84aa27c61535f8883a3d9",
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
@@ -15,7 +15,7 @@
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
-      "hash": "e3e2875e2dcb41a7a7786c2615ee164451215b5afc7989942cc519a90bd82fbb",
+      "hash": "8318ed1014c0b8b5fae385f16113ea8c2cf2b1fd2dd8bbd3fab6802ce7c5eedf",
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
@@ -23,7 +23,7 @@
       "note": "Reset token consumption + password change"
     },
     "functions/api/auth/change-password.js": {
-      "hash": "77976263176f28d0eb494f3d96d32ca07d6a59664264ae0bf2dc65b55f402746",
+      "hash": "4a1d332ee85f5d64453955d82f5b2c55ae07633e0c877cddcfe9da2ae9085f1d",
       "note": "Authenticated password change"
     },
     "functions/api/auth/google.js": {
@@ -51,15 +51,15 @@
       "note": "Billing status"
     },
     "functions/api/billing/portal.js": {
-      "hash": "bd345fdc28503e2c12e0927d3af8cddb01ac38946bfa5ed23212cd503814cb01",
+      "hash": "0e481cb2bafbeebd0c18b0396162fbef762f2a36f026286e8bd838e9937ed7a6",
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "0dae3081938e3b12e4c64adb3cf5950b43758a55e1392aeabe4674419f9f3cfc",
+      "hash": "fbedfe98846bc01bef6af46e158775d0534f19c659ddfa2255ae1b4d4623e728",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
-      "hash": "63ecc98d8bf5259c863bbcf150fcca12ea0112c9157c756fd33927bc8d5210bd",
+      "hash": "c2035488c2a33d41967f633ba2cfb758a5a33bce0894278e2238596bc1f14166",
       "note": "Subscription lifecycle handler"
     },
     "functions/api/billing/_webhook-shared.js": {
@@ -115,7 +115,7 @@
       "note": "SYSTEM_PROMPT for /api/ask -- single source of truth"
     },
     "functions/api/ask.js": {
-      "hash": "bbe1a6f2a001a2823128fa777361af4fe3969dd16cdb9cdb7a695ce107cb0506",
+      "hash": "b4a44f9569e4fca7ac9ba3f2805e935fd0e984992d3c69c7080618bc25ef209a",
       "note": "NLWeb AI Search proxy (auth + rate-limited, billed upstream)"
     },
     "src/components/SearchBar.astro": {
@@ -123,7 +123,7 @@
       "note": "Search UX + RRF fusion (Pagefind init, relevance boost, error resilience)"
     },
     "functions/api/community/_shared.js": {
-      "hash": "60e0185a48175bbc7d5204490ec32646f22398695538a5c94e47a2237c7b5aa0",
+      "hash": "1ad354e777b67645629b36c7a7c771c16c90392685135e905d53f4fc1b0a71ae",
       "note": "Community access control (requireMember)"
     },
     "functions/api/admin/cleanup.js": {
@@ -151,11 +151,11 @@
       "note": "Pre-checkout account lookup"
     },
     "functions/api/billing/_webhook-invoice.js": {
-      "hash": "e694fc3af66fd24cc836814edda104534a432d0dae26a9f4d1573a124a4d9e25",
+      "hash": "2c36c046ff94905f9d55a5a4ec84e1d5623f7bce9a0c002657440ce93583777c",
       "note": "Invoice event handler"
     },
     "functions/api/community/upload.js": {
-      "hash": "1a3e082c4662c79763142c91ebb73eb9ef857e2cb45f8d7b4a4a3015577f63c9",
+      "hash": "1cd467d0b7db1c639be8c462dc7460a59a41b64ad0855164a627440646e589b3",
       "note": "R2 image upload (file validation)"
     },
     "functions/api/pdf/request.js": {
