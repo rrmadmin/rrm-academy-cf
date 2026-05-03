@@ -1,0 +1,200 @@
+---
+// Per-term glossary spoke page. One static route per published glossary_term row.
+// Renders the same body via <GlossaryTerm /> as the pillar at /glossary/, so D1 stays
+// SSOT and pillar-vs-spoke drift is structurally impossible.
+//
+// JSON-LD: 3 blocks. DefinedTerm + MedicalWebPage cross-reference each other via @id
+// (subjectOf <-> mainEntity), with the spoke registered as a member of the pillar's
+// DefinedTermSet. BreadcrumbList completes the trio.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import GlossaryTerm from '../../components/GlossaryTerm.astro';
+import glossaryData from '../../data/glossary.json';
+
+interface GlossaryTermRow {
+  id: string;
+  slug: string;
+  name: string;
+  part: string;
+  sortOrder: number;
+  bodyHtml: string;
+  abbreviation: string | null;
+  pillarLink: string | null;
+  status: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export function getStaticPaths() {
+  const terms = (glossaryData.terms ?? []) as GlossaryTermRow[];
+  return terms
+    .filter((t) => t.status === 'published')
+    .map((t) => ({ params: { slug: t.slug }, props: { term: t } }));
+}
+
+interface Props {
+  term: GlossaryTermRow;
+}
+
+const { term } = Astro.props;
+
+const TERM_SET_ID = 'https://rrmacademy.org/glossary/#defined-term-set';
+const SPOKE_URL = `https://rrmacademy.org/glossary/${term.slug}/`;
+const TERM_ID = `https://rrmacademy.org/glossary/${term.slug}/#term`;
+const WEBPAGE_ID = `https://rrmacademy.org/glossary/${term.slug}/#webpage`;
+
+// Description extractor mirrored from the pillar (src/pages/glossary/index.astro).
+// Prefer the bold lead sentence; fall back to body window. Target ~600-800 chars
+// for the DefinedTerm.description (AEO sweet spot per SEO Operator review 2026-04-18).
+function extractDescription(bodyHtml: string): string {
+  if (!bodyHtml) return '';
+  const stripped = bodyHtml.replace(/<sup>[\s\S]*?<\/sup>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const boldMatch = bodyHtml.match(/<strong>([\s\S]+?)<\/strong>/);
+  if (boldMatch) {
+    const bold = boldMatch[1].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    if (bold.length >= 400) return bold.length > 800 ? bold.slice(0, 797) + '...' : bold;
+    const idx = stripped.indexOf(bold);
+    const start = idx >= 0 ? idx : 0;
+    const window = stripped.slice(start, start + 800).trim();
+    return window.length > 800 ? window.slice(0, 797) + '...' : window;
+  }
+  return stripped.length > 800 ? stripped.slice(0, 797) + '...' : stripped;
+}
+
+// SEO meta description: 120-160 chars from the body. Tighter window than the
+// long-form DefinedTerm.description above.
+function extractSeoDescription(bodyHtml: string, name: string): string {
+  if (!bodyHtml) return `${name} in restorative reproductive medicine. Glossary entry from RRM Academy.`;
+  const stripped = bodyHtml.replace(/<sup>[\s\S]*?<\/sup>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  if (stripped.length <= 160) return stripped;
+  // Trim to a word boundary near 157 chars to leave room for the ellipsis.
+  const cut = stripped.slice(0, 157);
+  const lastSpace = cut.lastIndexOf(' ');
+  const truncated = lastSpace > 120 ? cut.slice(0, lastSpace) : cut;
+  return truncated + '...';
+}
+
+const longDescription = extractDescription(term.bodyHtml);
+const seoDescription = extractSeoDescription(term.bodyHtml, term.name);
+
+// Block 1: DefinedTerm (primary entity)
+const definedTermSchema: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': 'DefinedTerm',
+  '@id': TERM_ID,
+  name: term.name,
+  description: longDescription,
+  url: SPOKE_URL,
+  inDefinedTermSet: TERM_SET_ID,
+  subjectOf: { '@id': WEBPAGE_ID },
+};
+if (term.abbreviation) definedTermSchema.termCode = term.abbreviation;
+
+// Block 2: MedicalWebPage (page wrapper)
+const medicalWebPageSchema: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': 'MedicalWebPage',
+  '@id': WEBPAGE_ID,
+  url: SPOKE_URL,
+  name: `${term.name} | RRM Glossary`,
+  description: seoDescription,
+  mainEntity: { '@id': TERM_ID },
+  isPartOf: { '@id': TERM_SET_ID },
+  about: { '@type': 'MedicalTherapy', name: 'Restorative Reproductive Medicine', alternateName: 'RRM' },
+  author: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+  publisher: { '@id': 'https://rrmacademy.org/#organization' },
+  inLanguage: 'en-US',
+  specialty: { '@type': 'MedicalSpecialty', name: 'Reproductive Medicine' },
+};
+if (term.createdAt) medicalWebPageSchema.datePublished = term.createdAt;
+if (term.updatedAt) medicalWebPageSchema.dateModified = term.updatedAt;
+
+// Block 3: BreadcrumbList (Home > Guides > Glossary > term.name)
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+    { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://rrmacademy.org/guides/' },
+    { '@type': 'ListItem', position: 3, name: 'Glossary', item: 'https://rrmacademy.org/glossary/' },
+    { '@type': 'ListItem', position: 4, name: term.name, item: SPOKE_URL },
+  ],
+};
+---
+
+<BaseLayout
+  title={`${term.name} | RRM Glossary`}
+  description={seoDescription}
+  canonicalUrl={SPOKE_URL}
+  ogType="article"
+  publishDate={term.createdAt}
+  jsonLd={definedTermSchema}
+>
+  <!-- Additional JSON-LD blocks: MedicalWebPage wrapper + BreadcrumbList. -->
+  <script type="application/ld+json" set:html={JSON.stringify(medicalWebPageSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+
+  <div class="page-wrapper" data-pagefind-body>
+    <span data-pagefind-meta="type:Glossary" style="display:none"></span>
+    <span data-pagefind-meta={`title:${term.name}`} style="display:none"></span>
+    <div class="container">
+
+      <!-- Breadcrumb (matches pillar pattern) -->
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <a href="/guides/">Guides</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <a href="/glossary/">Glossary</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <span>{term.name}</span>
+      </nav>
+
+      <h1>{term.name}</h1>
+
+      <article class="prose">
+        <GlossaryTerm term={term} headingLevel="h2" mode="spoke" />
+
+        <div class="cta-box">
+          <h3>Back to the full glossary</h3>
+          <p>Browse all RRM terminology, methods, conditions, and references.</p>
+          <p><a href="/glossary/" class="btn btn--primary">Open the RRM Glossary</a></p>
+          <p><a href="/library/" class="btn btn--secondary">Browse the Research Library</a></p>
+        </div>
+
+        <p class="disclaimer"><em>This content is for educational purposes only and does not constitute medical advice. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</em></p>
+      </article>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .cta-box {
+    background: var(--bg-surface);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: var(--space-8);
+    text-align: center;
+    margin-top: var(--space-10);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .cta-box h3 {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    margin-bottom: var(--space-3);
+  }
+
+  .cta-box p {
+    margin-bottom: var(--space-4);
+  }
+
+  .cta-box p:last-child {
+    margin-bottom: 0;
+  }
+
+  .disclaimer {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    margin-top: var(--space-8);
+    line-height: 1.6;
+  }
+</style>

@@ -3,6 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import BackToTop from '../../components/BackToTop.astro';
 import PdfDownload from '../../components/PdfDownload.astro';
 import LastUpdated from '../../components/LastUpdated.astro';
+import GlossaryTerm from '../../components/GlossaryTerm.astro';
 import glossaryData from '../../data/glossary.json';
 import pageDates from '../../data/page-dates.json';
 
@@ -169,11 +170,11 @@ const definedTermSetSchema = {
   hasDefinedTerm: terms.map(t => {
     const entry: Record<string, unknown> = {
       '@type': 'DefinedTerm',
-      '@id': `https://rrmacademy.org/glossary/#${t.slug}`,
+      '@id': `https://rrmacademy.org/glossary/${t.slug}/#term`,
       name: t.name,
       description: extractDescription(t.bodyHtml),
       inDefinedTermSet: TERM_SET_ID,
-      url: `https://rrmacademy.org/glossary/#${t.slug}`,
+      url: `https://rrmacademy.org/glossary/${t.slug}/`,
     };
     if (t.abbreviation) entry.termCode = t.abbreviation;
     return entry;
@@ -284,14 +285,7 @@ const definedTermSetSchema = {
             <section id={p.id}>
               <h2>{p.title}</h2>
               {termsByPart[p.part].map(t => (
-                <>
-                  <h3 id={t.slug}>
-                    {t.pillarLink
-                      ? <a href={t.pillarLink}>{t.name}</a>
-                      : t.name}
-                  </h3>
-                  <Fragment set:html={t.bodyHtml} />
-                </>
+                <GlossaryTerm term={t} headingLevel="h3" mode="pillar" />
               ))}
             </section>
           ))}
