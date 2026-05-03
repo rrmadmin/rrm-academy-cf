@@ -170,7 +170,7 @@ async function handleQuizSubmit(request, env) {
     for (let i = 0; i < quiz.questions.length; i++) {
       const q = quiz.questions[i];
       const answer = answers[i];
-      if (typeof answer !== 'number' || answer < 0 || answer >= q.options.length) {
+      if (typeof answer !== 'number' || !Number.isFinite(answer) || answer < 0 || answer >= q.options.length) {
         return json({ ok: false, error: `Invalid answer for question ${i + 1}` }, 400);
       }
       const isCorrect = answer === q.correctIndex;

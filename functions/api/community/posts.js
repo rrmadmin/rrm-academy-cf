@@ -573,6 +573,15 @@ export async function onRequestDelete({ request, env, waitUntil }) {
       db.prepare('DELETE FROM community_post WHERE id = ?').bind(postId),
     ]);
 
+    if (post.og_image_url && env.R2_ASSETS) {
+      const match = post.og_image_url.match(/\/api\/assets\/(.+)$/);
+      if (match) {
+        waitUntil(env.R2_ASSETS.delete(match[1]).catch((err) => {
+          log(env, waitUntil, 'community', 'r2_cleanup_failed', 'error', err.message);
+        }));
+      }
+    }
+
     return json({ ok: true });
   } catch (err) {
     log(env, waitUntil, 'community', 'post_error', 'error', `DELETE: ${err.message}`, 0, 500);

@@ -71,7 +71,7 @@ export function validateBody(body, schema) {
       if (typeof raw !== 'string') {
         return { valid: false, error: `${field} must be a string`, status: 400 };
       }
-      const trimmed = raw.trim().toLowerCase();
+      const trimmed = raw.normalize('NFC').trim().toLowerCase();
       if (!trimmed || trimmed.length > 254 || !EMAIL_RE.test(trimmed)) {
         return { valid: false, error: `${field} must be a valid email address`, status: 400 };
       }

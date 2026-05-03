@@ -22,7 +22,7 @@ export async function handlePaymentFailed(db, event, env, request, waitUntil) {
   if (env.AWS_ACCESS_KEY_ID) {
     const email = await getEmailByStripeCustomer(db, invoice.customer, env, waitUntil);
     if (email) {
-      await sendEmailSafe(env, waitUntil, {
+      waitUntil(sendEmailSafe(env, waitUntil, {
         to: email,
         subject: 'Payment failed for your RRM Academy membership',
         source: 'billing/invoice-failed',
@@ -41,7 +41,7 @@ export async function handlePaymentFailed(db, event, env, request, waitUntil) {
           'RRM Academy',
           'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315',
         ].join('\n'),
-      });
+      }).catch(() => {}));
       log(env, waitUntil, 'billing', 'payment_failed_notified', 'ok', email);
     }
   }
