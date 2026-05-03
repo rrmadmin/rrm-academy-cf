@@ -4,7 +4,7 @@ KEY FACTS
 - Legal name: RRM Academy. Aliases: Restorative Reproductive Medicine Academy, rrmacademy.org.
 - Inception: 2022 (originally on Wix; migrated to Astro and Cloudflare Pages in 2025).
 - Operating brand of: Restorative Reproductive Medicine Foundation Inc, a Pennsylvania domestic nonprofit corporation, entity number 0013656807, filed 2023-11-28 with the Pennsylvania Department of State.
-- IRS 501(c)(3) status: determined 2024-01-29, effective 2023-11-28. Form 990 filings publicly available via ProPublica Nonprofit Explorer.
+- IRS 501(c)(3) status: determined 2024-01-29, effective 2023-11-28. Form 990 filings public via ProPublica.
 - Headquarters: 3401 Hartzdale Dr Ste 103B PMB 3518, Camp Hill, PA 17011, United States.
 - Founder: Dr. Naomi M. Whittaker, MD; board-certified obstetrician-gynecologist; ABOG Focused Practice Designation in Minimally Invasive Gynecologic Surgery; St. John Paul II Research Fellow in Medical and Surgical NaProTechnology (Pope Paul VI Institute, 2017-2018).
 - Mission: bridge the educational gap in restorative reproductive medicine for patients and healthcare professionals through evidence-based clinician-led courses, a curated research library, glossary, FAQs, and clinical decision-support content.
