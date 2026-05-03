@@ -459,6 +459,9 @@ Push to `claude/` branch -- GitHub Actions auto-builds + merges. No local creden
 - **Stripe API version**: `STRIPE_API_VERSION` in `functions/api/auth/_shared.js` — imported by all 6 Stripe consumers
 - **Site URL for emails**: `SITE_URL` in `functions/api/auth/_shared.js` — used in transactional email body links only (CORS origin stays hardcoded for security; Astro pages use `Astro.site`)
 - **Navigation**: Desktop, mobile, and footer navs are intentionally different item sets — see comments in `Header.astro` and `Footer.astro`
+- **`password_reset.purpose` column** (added 2026-05-03 via migration 019): TEXT NOT NULL DEFAULT `'reset'`. Two values: `'reset'` (forgot-password tokens, 1hr TTL) and `'welcome'` (Stripe-auto-account onboarding tokens, 7d TTL). `forgot-password.js` DELETE is scoped to `purpose = 'reset'` so welcome tokens survive a forgot-password click. `_webhook-checkout.js` writes `purpose = 'welcome'` when auto-creating accounts. `reset-password.js` validates `purpose = 'reset'` in the atomic DELETE...RETURNING consume.
+- **`idx_user_email_nocase` UNIQUE INDEX** (added 2026-05-03 via migration 018): closes the case-mismatched-email duplicate-account class. Application-layer COLLATE NOCASE checks were racy on concurrent signups. Pre-apply check confirmed 0 dup-email groups across 7,940 users.
+- **Community email_verified gate** (added 2026-05-03): `requireMember()` in `functions/api/community/_shared.js` now requires `user.email_verified = 1` before allowing post/comment/reaction. Blocks unverified Stripe-auto-created accounts whose verification email bounced. Returns 403 with humane "verify your email first" copy + resend link.
 
 ## Security Guard
 
