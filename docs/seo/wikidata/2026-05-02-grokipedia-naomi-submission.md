@@ -24,10 +24,11 @@ Whittaker is a 2024 recipient of the American Academy of FertilityCare Professio
 7. Restorative reproductive medicine and NaProTechnology
 8. RRM Academy and educational work
 9. Publications and presentations
-10. Awards and recognition
-11. Affiliations
-12. Personal life
-13. References
+10. Public communication
+11. Awards and recognition
+12. Affiliations
+13. Personal life
+14. References
 
 ## Article body draft
 
@@ -68,6 +69,10 @@ In 2022 Whittaker founded RRM Academy (rrmacademy.org), an online educational pl
 ### Publications and presentations
 
 Whittaker maintains an active research record under ORCID identifier 0000-0003-3706-3112, with 17 indexed publications and conference presentations [5]. Her undergraduate co-authorship in the Journal of Alzheimer's Disease (2009) examined the bioavailability of grape-seed-extract catechins in a rat model relevant to neurodegenerative disease [15]. During medical school at Creighton she co-authored multiple oncology abstracts published in the Journal of Clinical Oncology and presented at the American Society of Clinical Oncology Quality Care Symposium and other meetings, drawing on the National Cancer Database [27]. During residency she presented case reports and ethical analyses at American College of Obstetricians and Gynecologists national and district meetings, including a case of diamine oxidase deficiency proposed as a mechanism for postpartum anaphylaxis (ACOG 2017) and serial case reports on bilateral renal agenesis and serial amnioinfusion (ACOG 2015 and 2016) [5]. Her commentary on the IVF industry, titled "The Hidden Costs of IVF: Heartbreak, Health Risks, and Helplessness," was published in MercatorNet in February 2018 [9]. In 2026 she co-authored the chapter "Tuboplasty" (with William Nolan, first author) in the CRC Press Textbook of Minimally Invasive Gynecologic Surgery, covering microsurgical tubal repair techniques [29].
+
+### Public communication
+
+Whittaker maintains active public-education presences on X as @naomimwhittaker [31], on LinkedIn [32], on TikTok as @fertilitysurgeon [33], and on Instagram as @napro_fertility_surgeon [17], where she posts on cycle charting, endometriosis, NaProTechnology, and restorative reproductive medicine.
 
 ### Awards and recognition
 
@@ -135,6 +140,9 @@ Whittaker is married and has six children. Her oldest child was born during her 
 29. Nolan W, Whittaker N. "Tuboplasty," chapter 33 in Textbook of Minimally Invasive Gynecologic Surgery, CRC Press / Taylor and Francis, Boca Raton (April 2026), pp. 280-286. DOI 10.1201/9781003312109-33. ISBN 9781003312109. Supports: post-fellowship peer-edited textbook chapter on tubal microsurgery; co-authorship with William Nolan. https://doi.org/10.1201/9781003312109-33
 30. American Board of Obstetrics and Gynecology - Verify Certification (public verification form). Supports: board-certification status verification. https://www.abog.org/verify-certification
     Direct verification record (ABOG API, JSON, no auth): https://api.abog.org/diplomate/9032678/verify
+31. Naomi Whittaker on X (formerly Twitter), handle @naomimwhittaker. Supports: primary public-communication account; subject's own statements on cycle charting, endometriosis, NaProTechnology, and restorative reproductive medicine. https://x.com/naomimwhittaker
+32. Naomi Whittaker on LinkedIn. Supports: professional networking profile; employment history. https://www.linkedin.com/in/naomi-whittaker-md-906b13101/
+33. Naomi Whittaker on TikTok, handle @fertilitysurgeon. Supports: short-form patient-education video presence on fertility surgery and restorative reproductive medicine. https://www.tiktok.com/@fertilitysurgeon
 
 ## Submission checklist
 
