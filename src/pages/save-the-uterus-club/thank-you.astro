@@ -266,6 +266,31 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 </style>
 
 <script is:inline>
+  function pollAccount(sessionId, attempts) {
+    attempts = attempts || 3;
+    var delay = 1000;
+    function attempt(i) {
+      return fetch('/api/billing/checkout-account?session_id=' + encodeURIComponent(sessionId))
+        .then(function (r) { return r.ok ? r.json() : { accountExists: false }; })
+        .then(function (data) {
+          if (data.accountExists) return data;
+          if (i < attempts - 1) {
+            return new Promise(function (resolve) { setTimeout(resolve, delay); })
+              .then(function () { delay *= 2; return attempt(i + 1); });
+          }
+          return { accountExists: false };
+        })
+        .catch(function () {
+          if (i < attempts - 1) {
+            return new Promise(function (resolve) { setTimeout(resolve, delay); })
+              .then(function () { delay *= 2; return attempt(i + 1); });
+          }
+          return { accountExists: false };
+        });
+    }
+    return attempt(0);
+  }
+
   fetch('/api/auth/session', { credentials: 'same-origin' })
     .then(function (r) { return r.json(); })
     .then(function (data) {
@@ -281,12 +306,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         document.getElementById('create-account-prompt').hidden = false;
         return;
       }
-      fetch('/api/billing/checkout-account?session_id=' + encodeURIComponent(sessionId))
-        .then(function (r) { return r.json(); })
+      pollAccount(sessionId, 3)
         .then(function (acct) {
-          if (acct.ok && acct.accountExists && acct.needsPassword) {
+          if (acct.accountExists && acct.needsPassword) {
             document.getElementById('account-created-prompt').hidden = false;
-          } else if (acct.ok && acct.accountExists) {
+          } else if (acct.accountExists) {
             document.getElementById('account-exists-prompt').hidden = false;
           } else {
             document.getElementById('create-account-prompt').hidden = false;

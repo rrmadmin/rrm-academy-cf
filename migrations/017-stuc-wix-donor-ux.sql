@@ -19,6 +19,12 @@
 -- Why cancellation_request: separate table (not a wix_subscription column) because cancellation
 -- is per-source (wix OR stripe). A donor with both can request cancel of one without affecting
 -- the other. Index keeps "outstanding" lookup O(1).
+--
+-- Resolution model: rows are resolved manually by Brian after confirming the cancel in the
+-- Stripe or Wix dashboard. There is no automated cron resolver. To resolve a row:
+--   UPDATE cancellation_request SET resolved_at = unixepoch(), resolved_by = 'admin'
+--   WHERE id = '<row_id>';
+-- A future Wave 3 admin endpoint (/api/admin/cancellation-requests) may add list + resolve UI.
 
 CREATE TABLE IF NOT EXISTS cancellation_request (
   id                          TEXT PRIMARY KEY,

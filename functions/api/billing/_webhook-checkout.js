@@ -90,7 +90,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
     const email = (session.customer_details?.email || session.customer_email || '').toLowerCase().trim() || null;
     const name = (session.customer_details?.name || '').slice(0, 200);
     if (email && env.AWS_ACCESS_KEY_ID) {
-      await sendEmailSafe(env, waitUntil, {
+      waitUntil(sendEmailSafe(env, waitUntil, {
         to: email,
         subject: 'Your course is ready',
         source: 'billing/checkout-course',
@@ -106,7 +106,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
           'RRM Academy',
           'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315',
         ].join('\n'),
-      });
+      }).catch(() => {}));
       const course = getCourse(courseId);
       waitUntil(notifyAdminEnrollment(env, {
         studentEmail: email,
@@ -176,7 +176,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
         }
 
         if (migrationEmailSubStatus !== 'active' && migrationEmailSubStatus !== 'trialing') {
-          await sendEmailSafe(env, waitUntil, {
+          waitUntil(sendEmailSafe(env, waitUntil, {
             to: email,
             subject: 'Your donation switch is in progress',
             source: 'billing/checkout-membership-migration-pending',
@@ -194,7 +194,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
               'RRM Academy',
               'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315',
             ].join('\n'),
-          });
+          }).catch(() => {}));
         } else {
         let nextChargeSentence = '';
         let wixAmountDollars = null;
@@ -235,7 +235,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
         const chargeLine = nextChargeSentence ||
           `Your donation${amountLine} will continue going forward.`;
 
-        await sendEmailSafe(env, waitUntil, {
+        waitUntil(sendEmailSafe(env, waitUntil, {
           to: email,
           subject: 'Your donation switch is complete',
           source: 'billing/checkout-membership-migration',
@@ -255,11 +255,11 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
             'RRM Academy',
             'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315',
           ].join('\n'),
-        });
+        }).catch(() => {}));
         }
       } else {
         // New member — standard welcome email with onboarding list
-        await sendEmailSafe(env, waitUntil, {
+        waitUntil(sendEmailSafe(env, waitUntil, {
           to: email,
           subject: 'Welcome to the Save the Uterus Club',
           source: 'billing/checkout-membership',
@@ -286,7 +286,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
             'RRM Academy',
             'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315',
           ].join('\n'),
-        });
+        }).catch(() => {}));
       }
     } else if (email && !env.AWS_ACCESS_KEY_ID) {
       log(env, waitUntil, 'billing', 'membership_email_skipped', 'skipped', `${email} ${tierLabel} (SES not configured)`);
@@ -682,25 +682,29 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
   if (ins.meta.changes === 0) {
     // Another request created the account first -- link Stripe ID to existing account
     if (customerId) {
-      const upd = await db.prepare('UPDATE user SET stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE email = ? COLLATE NOCASE AND stripe_customer_id IS NULL')
-        .bind(customerId, email).run();
-      if (upd.meta.changes === 0) {
-        log(env, waitUntil, 'billing', 'orphaned_stripe_customer', 'warning',
-          `${email} already linked to different customer, ${customerId} orphaned`);
-        if (env.AWS_ACCESS_KEY_ID) {
-          waitUntil(sendEmailSafe(env, waitUntil, {
-            to: 'administrator@rrmacademy.org',
-            subject: `Orphaned Stripe customer: ${customerId}`,
-            source: 'billing/orphaned-customer',
-            text: [
-              'A concurrent checkout created an orphaned Stripe customer.',
-              '',
-              `Email:             ${email}`,
-              `Orphaned customer: ${customerId}`,
-              '',
-              'This customer has no D1 user linked. Consider merging in Stripe Dashboard.',
-            ].join('\n'),
-          }).catch(() => {}));
+      const existingForLink = await db.prepare('SELECT id FROM user WHERE email = ? COLLATE NOCASE').bind(email).first();
+      if (existingForLink) {
+        const upd = await db.prepare(
+          "UPDATE user SET stripe_customer_id = ?, updated_at = datetime('now') WHERE id = ? AND (stripe_customer_id IS NULL OR stripe_customer_id = ?)"
+        ).bind(customerId, existingForLink.id, customerId).run();
+        if (upd.meta.changes === 0) {
+          log(env, waitUntil, 'billing', 'orphaned_stripe_customer', 'warning',
+            `${email} already linked to different customer, ${customerId} orphaned`);
+          if (env.AWS_ACCESS_KEY_ID) {
+            waitUntil(sendEmailSafe(env, waitUntil, {
+              to: 'administrator@rrmacademy.org',
+              subject: `Orphaned Stripe customer: ${customerId}`,
+              source: 'billing/orphaned-customer',
+              text: [
+                'A concurrent checkout created an orphaned Stripe customer.',
+                '',
+                `Email:             ${email}`,
+                `Orphaned customer: ${customerId}`,
+                '',
+                'This customer has no D1 user linked. Consider merging in Stripe Dashboard.',
+              ].join('\n'),
+            }).catch(() => {}));
+          }
         }
       }
     }
@@ -722,7 +726,7 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
 
       const setPasswordUrl = `${SITE_URL}/reset-password/?token=${token}`;
 
-      await sendEmailSafe(env, waitUntil, {
+      waitUntil(sendEmailSafe(env, waitUntil, {
         to: email,
         subject: 'Your RRM Academy account is ready',
         source: 'billing/checkout-account',
@@ -739,7 +743,7 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
           'RRM Academy',
           'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315',
         ].join('\n'),
-      });
+      }).catch(() => {}));
       log(env, waitUntil, 'billing', 'welcome_email_sent', 'ok', `${email} account=${id}`);
     } catch (tokenErr) {
       log(env, waitUntil, 'billing', 'welcome_setup_fail', 'error', `${email}: ${tokenErr.message}`);

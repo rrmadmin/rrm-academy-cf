@@ -31,10 +31,23 @@ export async function onRequestPost(context) {
     if (!ext)
       return json({ error: 'Unsupported file type' }, 400);
 
+    var buf = await file.arrayBuffer();
+    var bytes = new Uint8Array(buf);
+    var isPng = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47;
+    var isJpeg = bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF;
+    var isWebp = bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50;
+    var isGif = bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38;
+    var sniffedOk = (file.type === 'image/png' && isPng) ||
+      (file.type === 'image/jpeg' && isJpeg) ||
+      (file.type === 'image/webp' && isWebp) ||
+      (file.type === 'image/gif' && isGif);
+    if (!sniffedOk)
+      return json({ error: 'File contents do not match declared type' }, 400);
+
     var id = crypto.randomUUID();
     var key = 'community/' + id + '.' + ext;
 
-    await env.R2_ASSETS.put(key, file.stream(), {
+    await env.R2_ASSETS.put(key, buf, {
       httpMetadata: { contentType: file.type },
     });
 

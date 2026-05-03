@@ -108,6 +108,7 @@ export async function requireMember(request, env) {
   }
 
   // Active Wix subscribers (new grandfather path, covers donors missing the legacy label)
+  let wixLookupFailed = false;
   try {
     const wixSub = await db.prepare(
       "SELECT tier FROM wix_subscription WHERE (user_id = ? OR email = ? COLLATE NOCASE) AND status = 'active' LIMIT 1"
@@ -116,8 +117,8 @@ export async function requireMember(request, env) {
       return { user, tier: wixSub.tier || 'member', session };
     }
   } catch (err) {
-    // Wix lookup must not block community access for Stripe members
     console.error('requireMember wix lookup failed:', err.message);
+    wixLookupFailed = true;
   }
 
   // Members need an active subscription
@@ -125,7 +126,16 @@ export async function requireMember(request, env) {
     console.error('STRIPE_SECRET_KEY not configured');
     return json({ ok: false, error: 'Server configuration error' }, 500);
   }
+  if (wixLookupFailed && !user.stripe_customer_id) {
+    return json({ ok: false, error: 'Membership check temporarily unavailable. Please retry.' }, 503);
+  }
   if (!user.stripe_customer_id) {
+    const anyWixForEmail = await db.prepare(
+      'SELECT id FROM wix_subscription WHERE email = ? COLLATE NOCASE LIMIT 1'
+    ).bind(user.email).first();
+    if (anyWixForEmail) {
+      return json({ ok: false, error: "We can't find an active membership tied to " + user.email + ". If you donated with a different email, contact administrator@rrmacademy.org and we'll link the accounts." }, 403);
+    }
     return json({ ok: false, error: 'Membership required' }, 403);
   }
 

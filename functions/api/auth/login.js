@@ -21,7 +21,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     try { body = await request.json(); } catch { return json({ ok: false, error: 'Invalid JSON' }, 400); }
     if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
-    const email = (body.email || '').trim().toLowerCase();
+    const email = (body.email || '').normalize('NFC').trim().toLowerCase();
     const password = body.password || '';
 
     if (!isValidEmail(email) || !password || password.length > 128) {

@@ -145,10 +145,13 @@ async function handleProgressUpdate(request, env) {
   if (!courseId || !stepId) {
     return json({ ok: false, error: 'courseId and stepId required' }, 400);
   }
-  if (score !== undefined && (typeof score !== 'number' || score < 0 || score > 100)) {
+  if (completed !== undefined && typeof completed !== 'boolean') {
+    return json({ ok: false, error: 'completed must be a boolean' }, 400);
+  }
+  if (score !== undefined && (typeof score !== 'number' || !Number.isFinite(score) || score < 0 || score > 100)) {
     return json({ ok: false, error: 'score must be a number 0-100' }, 400);
   }
-  if (lastPositionSeconds !== undefined && (typeof lastPositionSeconds !== 'number' || lastPositionSeconds < 0 || lastPositionSeconds > 86400)) {
+  if (lastPositionSeconds !== undefined && (typeof lastPositionSeconds !== 'number' || !Number.isFinite(lastPositionSeconds) || lastPositionSeconds < 0 || lastPositionSeconds > 86400)) {
     return json({ ok: false, error: 'lastPositionSeconds must be a number 0-86400' }, 400);
   }
 

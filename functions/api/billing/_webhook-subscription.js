@@ -50,7 +50,7 @@ export async function handleSubscriptionDeleted(db, event, env, request, waitUnt
   if (env.AWS_ACCESS_KEY_ID) {
     const email = await getEmailByStripeCustomer(db, sub.customer, env, waitUntil);
     if (email) {
-      await sendEmailSafe(env, waitUntil, {
+      waitUntil(sendEmailSafe(env, waitUntil, {
         to: email,
         subject: 'Your Save the Uterus Club membership has ended',
         source: 'billing/subscription-cancel',
@@ -69,7 +69,7 @@ export async function handleSubscriptionDeleted(db, event, env, request, waitUnt
           'RRM Academy',
           'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315',
         ].join('\n'),
-      });
+      }).catch(() => {}));
       log(env, waitUntil, 'billing', 'cancellation_email_sent', 'ok', email);
     }
   }

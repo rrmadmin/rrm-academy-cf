@@ -169,10 +169,19 @@ export async function onRequestPost(context) {
       return json({ error: 'upstream_error' }, 502);
     }
 
-    if (typeof v2Data?.answer !== 'string' || v2Data.answer.length === 0) {
-      log(env, waitUntil, 'ask', 'v2_no_answer', 'error', 'empty or missing answer in v2 response', Date.now() - start, 502);
+    if (typeof v2Data?.answer !== 'string') {
+      log(env, waitUntil, 'ask', 'v2_no_answer', 'error', 'missing answer in v2 response', Date.now() - start, 502);
       await logAskQuery(env, request, message, user.id, start, 502, 'ask_v2');
       return json({ error: 'upstream_error' }, 502);
+    }
+    if (v2Data.answer.length === 0) {
+      log(env, waitUntil, 'ask', 'v2_empty_answer', 'info', 'v2 returned empty — treating as no-result', Date.now() - start, 200);
+      await logAskQuery(env, request, message, user.id, start, 200, 'ask_v2_empty');
+      return json({
+        answer: "I don't have information from the RRM Library that directly addresses this question. Try rephrasing, or browse [/library/](https://rrmacademy.org/library/) for related research.",
+        citations: [],
+        fallback: true,
+      }, 200);
     }
 
     const answer = v2Data.answer;

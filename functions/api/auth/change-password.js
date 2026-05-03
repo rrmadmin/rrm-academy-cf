@@ -54,6 +54,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const valid = await verifyPassword(currentPassword, user.hashed_password);
     if (!valid) return json({ ok: false, error: 'Current password is incorrect.' }, 403);
 
+    const sameAsCurrent = await verifyPassword(newPassword, user.hashed_password);
+    if (sameAsCurrent) return json({ ok: false, error: 'New password must differ from your current password.' }, 400);
+
     // Hash and save new password, invalidate sessions, create fresh session — atomically
     const hashedPassword = await hashPassword(newPassword);
     const newSessionId = generateSessionId();

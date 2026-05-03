@@ -39,10 +39,21 @@ async function handlePortal(request, env, waitUntil) {
   }
 
   // --- Get user's stripe_customer_id ---
-  const user = await db.prepare('SELECT stripe_customer_id FROM user WHERE id = ?')
+  const user = await db.prepare('SELECT stripe_customer_id, email FROM user WHERE id = ?')
     .bind(session.userId).first();
   if (!user || !user.stripe_customer_id) {
-    return json({ ok: false, error: 'No billing account found' }, 404);
+    let wix = null;
+    try {
+      wix = await db.prepare(
+        "SELECT id FROM wix_subscription WHERE (user_id = ? OR email = ? COLLATE NOCASE) AND status = 'active' LIMIT 1"
+      ).bind(session.userId, user?.email || '').first();
+    } catch (_err) {
+      // wix_subscription lookup failed — fall through to generic error
+    }
+    if (wix) {
+      return json({ ok: false, error: 'Your donation is on our previous platform and cannot be managed through Stripe. Email administrator@rrmacademy.org for help managing it.' }, 404);
+    }
+    return json({ ok: false, error: 'You do not yet have a billing account. Donate or subscribe to set one up.' }, 404);
   }
 
   // --- Create portal session ---
