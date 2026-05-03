@@ -153,3 +153,18 @@
 /glossary/pcos/ /glossary/#pcos 301
 /glossary/pelvic-floor-physical-therapy /glossary/#pelvic-floor-physical-therapy 301
 /glossary/pelvic-floor-physical-therapy/ /glossary/#pelvic-floor-physical-therapy 301
+
+# Stale one-off 404s from Ahrefs site audit 2026-05-03.
+# /find-a-provider/ -- 1 inbound internal link to a never-built page (the
+# provider directory is a planned project, not live). No internal source for
+# this link found in src/, functions/, public/, or src/data/*.json. Treat as
+# external/stale link rot. Homepage is the safest fallback target.
+/find-a-provider /  301
+/find-a-provider/ / 301
+
+# Stray "/i/" suffix on a real library article slug. The canonical article
+# is the same path without "/i/". No internal source for the bad link found
+# in our codebase -- artifact of an external referrer. Wildcard splat also
+# covers any other library slug that might pick up the same suffix.
+/library/*/i/ /library/:splat/ 301
+/library/*/i  /library/:splat/ 301
