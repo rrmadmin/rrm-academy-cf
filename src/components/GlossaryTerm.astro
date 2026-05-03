@@ -1,0 +1,52 @@
+---
+// Single render path for a glossary term, used by:
+//   - /glossary/ (pillar): headingLevel="h3", inline anchor IDs preserved
+//   - /glossary/<slug>/ (spoke): headingLevel="h2", cross-refs rewritten to absolute URLs
+// Edit-once / render-twice. The term body lives in D1 (glossary_term.body_html);
+// every visible rendering of it on the site flows through this component, which
+// makes drift between the pillar and the spokes physically impossible.
+
+interface GlossaryTerm {
+  slug: string;
+  name: string;
+  bodyHtml: string;
+  abbreviation: string | null;
+  pillarLink: string | null;
+}
+
+interface Props {
+  term: GlossaryTerm;
+  headingLevel: 'h2' | 'h3';
+  /** "spoke" rewrites href="#xxx" to absolute URLs; "pillar" leaves anchors as-is. */
+  mode: 'pillar' | 'spoke';
+}
+
+const { term, headingLevel, mode } = Astro.props;
+
+// Cross-ref rewrite for spoke pages.
+//   #ref-N                       -> /glossary/#ref-N         (jump back to pillar's references list)
+//   #abbreviations / #references -> /glossary/#<id>          (jump back to pillar's section anchors)
+//   #<term-slug>                 -> /glossary/<term-slug>/   (link to sibling spoke)
+// The pillar leaves these as same-page anchors, so this only fires when mode === 'spoke'.
+// Pre-flight grep on glossary.json (2026-05-03) found 0 occurrences of #abbreviations or
+// #references in any term body, but the special-case lands defensively so future glossary
+// authoring against pillar section anchors does not produce 404s.
+function rewriteAnchors(html: string): string {
+  return html.replace(/href="#([^"]+)"/g, (_match, target: string) => {
+    if (target.startsWith('ref-') || target === 'abbreviations' || target === 'references') {
+      return `href="/glossary/#${target}"`;
+    }
+    return `href="/glossary/${target}/"`;
+  });
+}
+
+const renderedBody = mode === 'spoke' ? rewriteAnchors(term.bodyHtml) : term.bodyHtml;
+const HeadingTag = headingLevel;
+---
+
+<HeadingTag id={term.slug}>
+  {term.pillarLink
+    ? <a href={term.pillarLink}>{term.name}</a>
+    : term.name}
+</HeadingTag>
+<Fragment set:html={renderedBody} />
