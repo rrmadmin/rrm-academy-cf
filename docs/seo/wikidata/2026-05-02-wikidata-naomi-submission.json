@@ -1,0 +1,501 @@
+{
+  "$comment": "Pre-drafted Wikidata new-item structure for Dr. Naomi Whittaker, MD. Person items are BLP-class — every claim needs an independent reference. SSOT-derived from ~/iCode/config/ecosystem-identity/people.json + ORCID record + verified DOI publications. Builds on Brian's stated 2026-05-02 directive to start with Naomi while RRM Academy org-item readiness is still building. Does NOT auto-execute. The v2 plan (2026-04-19-wikidata-rrm-entries-v2.md) deferred this item to a later phase — see _strategy_note below before creating.",
+  "$created": "2026-05-02",
+  "$author_account": "mowsenter",
+  "$ssot_source": "~/iCode/config/ecosystem-identity/people.json (entry @id https://rrmacademy.org/about/#naomi-whittaker)",
+  "$publication_source": "~/iCode/naomi-orcid-works.csv (CrossRef-verified, 2026-04-19) + ORCID public record https://orcid.org/0000-0003-3706-3112",
+  "$gate": "DO NOT execute against mowsenter without first re-reading 2026-04-19-wikidata-rrm-entries-v2.md and confirming Brian wants to override the deferral. See _strategy_note.",
+
+  "_strategy_note": {
+    "context": "Brian (2026-05-02) wants Google credibility now and asked to start with Naomi rather than the planned RRM concept + RRM Academy items. He framed it as: 'submit Naomi to whom I could link RRM Academy as the org she founded.'",
+    "v2_plan_position": "2026-04-19 plan tagged the Naomi person item as 'Medium — DEFER' citing BLP rules and 'substantial third-party coverage of her specifically, not just the RRM field.' That deferral was written before this submission spec existed.",
+    "current_assessment": {
+      "for_proceeding": [
+        "AAFCP Honorary Award 2024 is the strongest single notability anchor — juried lifetime recognition placing her in the same roll as Hilgers (1985), Billings (1991), Mother Teresa (1993), Cardinal Levada (2011), Stanford (2015). Sourced to the awarding org's own awards page.",
+        "EPPC 'Technically Human' Feb 2026 profile is an independent BLP-class secondary source written by a non-affiliated author (Katelyn Walls Shelton).",
+        "Wikidata notability is more permissive than Wikipedia. WD:N criterion 2 (clearly identifiable subject describable via serious public references) is comfortably met.",
+        "Every proposed claim has an independent reference (no self-published-only claims). External-ID stack: ORCID + NPI + 4 CrossRef-verified DOIs + 6 physician-directory profiles.",
+        "Person items with strong external IDs routinely survive BLPDEL nominations on Wikidata. AAFCP + EPPC stack is well above the de-facto threshold.",
+        "Naomi's IIRRM affiliation is verifiable against an existing Wikidata item (IIRRM = Q136663845)."
+      ],
+      "against_proceeding_now": [
+        "Mowsenter account had 14 edits as of 2026-05-01 — not autoconfirmed (50-edit threshold).",
+        "BLP items receive higher patroller scrutiny than concept items.",
+        "A new-account-creates-BLP pattern is one of the most-flagged signals on mw:ORES.",
+        "The v2 plan ordering (concept → org → person) builds taxonomic context that supports the person item; reversing it removes that context."
+      ],
+      "recommendation": "Hold execution until mowsenter clears autoconfirmed (Sittings 5-8 in flight) AND the RRM concept item ships (so 'founder of' has a Wikidata target). Spec is ready to fire on that gate. If Brian wants to ship sooner, this spec is complete enough to do so — risk shifts to him."
+    }
+  },
+
+  "$existing_assets": {
+    "Q136663845": {
+      "label": "International Institute for Restorative Reproductive Medicine",
+      "use_for": "P1416 (affiliation) — IIRRM exists on Wikidata; Naomi is a member per IIRRM membership records and publishes on irrma.org"
+    },
+    "Q5184029": {
+      "label": "Creighton University School of Medicine",
+      "use_for": "P69 (educated at) — primary alma mater for MD"
+    },
+    "Q217741": {
+      "label": "Purdue University",
+      "use_for": "P69 (educated at) — undergraduate"
+    },
+    "Q7896131": {
+      "label": "University of Pittsburgh Medical Center",
+      "use_for": "P108 (employer) — current affiliation: UPMC Divine Mercy Women's Health (Central Pennsylvania)"
+    },
+    "Q23815908": {
+      "label": "Naprotechnology",
+      "use_for": "P800 (notable work topic) — fellowship-trained NaPro surgeon"
+    },
+    "Q3069771": {
+      "label": "Creighton Model FertilityCare System",
+      "use_for": "P800 (notable work topic) — Certified Creighton Model FertilityCare Instructor (FCI)"
+    },
+    "Q205764": {
+      "label": "endometriosis",
+      "use_for": "P800 (notable work topic) — endometriosis excision surgery is a stated practice focus"
+    },
+    "Q80015": {
+      "label": "obstetrics and gynaecology",
+      "use_for": "P101 (field of work) — primary medical specialty"
+    },
+    "Q59555009": {
+      "label": "American Board of Obstetrics and Gynecology",
+      "use_for": "Reference qualifier on board certification claim if rendered as P166 award; otherwise referenced in description only"
+    }
+  },
+
+  "_pre_check": {
+    "wbsearchentities_naomi_whittaker_2026-05-02": "no results — clean slate",
+    "wbsearchentities_orcid_lookup_2026-05-02": "SPARQL query for any item with P496=0000-0003-3706-3112 returned 0 bindings",
+    "next_step_before_create": "Re-run wbsearchentities AND the SPARQL ORCID query immediately before submission. If either returns a hit, abort and reassess."
+  },
+
+  "items": [
+    {
+      "label_en": "Naomi Whittaker",
+      "$comment_label_case": "Wikidata convention: person labels use the form most commonly used for the person, no honorifics or post-nominals. 'Naomi Whittaker' matches her ORCID credit-name and her independent third-party byline (factsaboutfertility.org, irrma.org).",
+      "description_en": "American obstetrician-gynecologist and NaProTechnology surgeon",
+      "$comment_description": "Wikidata descriptions are short, lowercase, no period, disambiguating. This pulls cleanly from her ORCID biography summary (which is self-authored but fact-mirroring) and is independently corroborated by NPI Registry (specialty taxonomy) and DOI publications (authorship pattern).",
+      "aliases_en": [
+        "Naomi M. Whittaker",
+        "Naomi Whittaker MD",
+        "Dr. Naomi Whittaker",
+        "Naomi Miriam Whittaker",
+        "Naomi Sasin",
+        "Naomi (Sasin) Whittaker"
+      ],
+
+      "claims": [
+        {
+          "property": "P31",
+          "property_label": "instance of",
+          "target": "Q5",
+          "target_label": "human",
+          "$comment": "Required first claim on every BLP. No reference required for trivially true claims.",
+          "verified_qid": "2026-05-02"
+        },
+        {
+          "property": "P21",
+          "property_label": "sex or gender",
+          "target": "Q6581072",
+          "target_label": "female",
+          "references": [
+            {
+              "P854": "https://orcid.org/0000-0003-3706-3112",
+              "comment": "ORCID biography uses she/her pronouns and women's-health practice scope"
+            }
+          ],
+          "verified_qid": "2026-05-02"
+        },
+        {
+          "property": "P27",
+          "property_label": "country of citizenship",
+          "target": "Q30",
+          "target_label": "United States",
+          "references": [
+            {
+              "P854": "https://npiregistry.cms.hhs.gov/provider-view/1881034908",
+              "comment": "US National Provider Identifier requires US licensure; her NPI 1881034908 is active in Pennsylvania"
+            }
+          ],
+          "verified_qid": "2026-05-02"
+        },
+        {
+          "property": "P735",
+          "property_label": "given name",
+          "target": "Q18508449",
+          "target_label": "Naomi (female given name)",
+          "verified_qid": "2026-05-02"
+        },
+        {
+          "property": "P734",
+          "property_label": "family name",
+          "target": "Q21507202",
+          "target_label": "Whittaker",
+          "verified_qid": "2026-05-02"
+        },
+        {
+          "property": "P106",
+          "property_label": "occupation",
+          "targets": [
+            { "qid": "Q39631", "label": "physician", "verified_qid": "2026-05-02" },
+            { "qid": "Q13638192", "label": "obstetrician", "verified_qid": "2026-05-02" },
+            { "qid": "Q774306", "label": "surgeon", "verified_qid": "2026-05-02" }
+          ],
+          "references": [
+            {
+              "P854": "https://npiregistry.cms.hhs.gov/provider-view/1881034908",
+              "comment": "NPI taxonomy lists OBGYN with FPD-MIGS subspecialty designation"
+            },
+            {
+              "P854": "https://orcid.org/0000-0003-3706-3112",
+              "comment": "ORCID biography: board-certified OBGYN and NaProTechnology surgeon"
+            },
+            {
+              "P854": "https://www.healthgrades.com/physician/dr-naomi-whittaker-y9s27lz",
+              "comment": "Healthgrades — independent physician directory listing OBGYN specialty"
+            },
+            {
+              "P854": "https://www.doximity.com/pub/naomi-whittaker-md",
+              "comment": "Doximity — independent peer-network physician directory"
+            },
+            {
+              "P854": "https://eppc.org/publication/technically-human-dr-naomi-whittaker/",
+              "comment": "EPPC Technically Human profile — independent third-party feature describing her clinical practice"
+            }
+          ]
+        },
+        {
+          "property": "P101",
+          "property_label": "field of work",
+          "target": "Q80015",
+          "target_label": "obstetrics and gynaecology",
+          "verified_qid": "2026-05-02"
+        },
+        {
+          "property": "P512",
+          "property_label": "academic degree",
+          "target": "Q913404",
+          "target_label": "Doctor of Medicine",
+          "qualifiers": [
+            { "P512_year": "+2013-00-00T00:00:00Z", "P512_year_precision": 9 }
+          ],
+          "references": [
+            {
+              "P854": "https://orcid.org/0000-0003-3706-3112",
+              "comment": "ORCID biography: 'medical degree from Creighton University School of Medicine (2013)'"
+            }
+          ],
+          "verified_qid": "2026-05-02"
+        },
+        {
+          "property": "P69",
+          "property_label": "educated at",
+          "targets": [
+            {
+              "qid": "Q217741",
+              "label": "Purdue University",
+              "qualifiers": [
+                { "P69_role_label": "undergraduate" }
+              ],
+              "verified_qid": "2026-05-02"
+            },
+            {
+              "qid": "Q5184029",
+              "label": "Creighton University School of Medicine",
+              "qualifiers": [
+                { "P512": "Q913404", "P512_label": "MD" },
+                { "P582_end_time": "+2013-00-00T00:00:00Z", "P582_precision": 9 }
+              ],
+              "verified_qid": "2026-05-02"
+            }
+          ],
+          "references": [
+            {
+              "P854": "https://orcid.org/0000-0003-3706-3112",
+              "comment": "ORCID biography lists both institutions with year"
+            }
+          ]
+        },
+        {
+          "property": "P108",
+          "property_label": "employer",
+          "target": "Q7896131",
+          "target_label": "University of Pittsburgh Medical Center",
+          "qualifiers": [
+            { "P276_location_label": "UPMC Divine Mercy Women's Health, Central Pennsylvania" }
+          ],
+          "references": [
+            {
+              "P854": "https://orcid.org/0000-0003-3706-3112",
+              "comment": "ORCID biography: 'practices at UPMC Divine Mercy Women's Health'"
+            },
+            {
+              "P854": "https://npiregistry.cms.hhs.gov/provider-view/1881034908",
+              "comment": "NPI Registry lists Pennsylvania practice address"
+            }
+          ],
+          "verified_qid": "2026-05-02"
+        },
+        {
+          "property": "P1416",
+          "property_label": "affiliation",
+          "target": "Q136663845",
+          "target_label": "International Institute for Restorative Reproductive Medicine",
+          "references": [
+            {
+              "P854": "https://irrma.org/case-report-a-life-saving-fertility-surgery-and-an-impossible-case-of-spontaneous-pregnancy/",
+              "comment": "IIRRM-published case report authored by Naomi Whittaker — independent third-party confirmation of IIRRM membership/affiliation"
+            }
+          ],
+          "verified_qid": "2026-05-02"
+        },
+        {
+          "property": "P800",
+          "property_label": "notable work",
+          "$comment": "P800 on a person item points to topics they are notable for working on, not to specific publications. Specific publications get their own scholarly-article items linked via author (P50) — see _publication_items_to_create_separately below.",
+          "targets": [
+            {
+              "qid": "Q23815908",
+              "label": "Naprotechnology",
+              "comment_role": "fellowship-trained NaPro surgeon (St. John Paul II Research Fellow, Pope Paul VI Institute)",
+              "verified_qid": "2026-05-02"
+            },
+            {
+              "qid": "Q3069771",
+              "label": "Creighton Model FertilityCare System",
+              "comment_role": "Certified FertilityCare Medical Consultant (NFPMC) and FertilityCare Instructor (FCI)",
+              "verified_qid": "2026-05-02"
+            },
+            {
+              "qid": "Q205764",
+              "label": "endometriosis",
+              "comment_role": "endometriosis excision surgery practice focus",
+              "verified_qid": "2026-05-02"
+            }
+          ],
+          "references": [
+            {
+              "P854": "https://orcid.org/0000-0003-3706-3112",
+              "comment": "ORCID biography lists clinical focus areas explicitly"
+            },
+            {
+              "P854": "https://www.factsaboutfertility.org/member/naomi-whittaker-md/",
+              "comment": "Independent third-party speaker profile (FACTS About Fertility, an educational org she does not control) describing her clinical scope"
+            },
+            {
+              "P854": "https://www.dioceseofscranton.org/naprotechnology-provides-alternative-to-ivf-for-couples-struggling-with-infertility/",
+              "comment": "OSV News piece via Diocese of Scranton (2025) — independent third-party news article on her NaProTechnology practice"
+            },
+            {
+              "P854": "https://eppc.org/publication/technically-human-dr-naomi-whittaker/",
+              "comment": "EPPC Technically Human profile (Feb 2026) — independent third-party feature on restorative reproductive medicine focus"
+            }
+          ]
+        },
+        {
+          "property": "P496",
+          "property_label": "ORCID iD",
+          "target_string": "0000-0003-3706-3112",
+          "$comment": "ORCID is the gold-standard external identifier for academic persons. P496 is required for any researcher item.",
+          "verified_2026-05-02": "ORCID record loads HTTP 200 with biography, 17 works, 4 researcher URLs"
+        },
+        {
+          "property": "P2002",
+          "property_label": "Twitter username",
+          "target_string": "naomimwhittaker",
+          "$comment": "Verify URL https://x.com/naomimwhittaker still loads at execution time. Bot-block returns 403 to curl but the page is human-accessible."
+        },
+        {
+          "property": "P2003",
+          "property_label": "Instagram username",
+          "target_string": "napro_fertility_surgeon",
+          "verified_2026-05-02": "URL loads HTTP 200"
+        },
+        {
+          "property": "P3185",
+          "property_label": "TikTok username",
+          "target_string": "fertilitysurgeon",
+          "$comment": "URL loads for humans; curl gets 403. Verify in-browser before submission."
+        },
+        {
+          "property": "P6634",
+          "property_label": "LinkedIn personal profile ID",
+          "target_string": "naomi-whittaker-md-906b13101",
+          "$comment": "LinkedIn returns 405 to curl HEAD but URL loads in browser."
+        },
+        {
+          "property": "P166",
+          "property_label": "award received",
+          "target_string_label": "AAFCP Honorary Award",
+          "$comment": "P166 with snaktype 'somevalue' + qualifier P1448 (official name) string 'AAFCP Honorary Award'. AAFCP itself does NOT have a Wikidata item yet — defer creating one until after Naomi's item is live. Award is juried, NOT annual: 25 lifetime honorees across 1985-2024 with multiple skipped years. Tier-signal company: Thomas Hilgers (1985), John & Evelyn Billings (1991), Mother Teresa of Calcutta (1993), Cardinal William J. Levada (2011), Joseph Stanford (2015), Janet Smith (2021), Sr. Renee Mirkes (2022), Tiffany Hoeckelman (2023). This is the strongest single notability anchor on the item.",
+          "qualifiers": [
+            { "P585_point_in_time": "+2024-00-00T00:00:00Z", "P585_precision": 9 },
+            { "P1448_official_name": "AAFCP Honorary Award" },
+            { "P1027_conferred_by_label": "American Academy of FertilityCare Professionals" }
+          ],
+          "references": [
+            {
+              "P854": "https://aafcp.net/about-us/awards",
+              "comment": "AAFCP awards page lists '2024 — Naomi Whittaker, MD, CFCMC' in the lifetime honoree roll. Independent first-party publication by the awarding organization."
+            }
+          ]
+        },
+        {
+          "property": "P973",
+          "property_label": "described at URL",
+          "target_url": "https://rrmacademy.org/about/#naomi-whittaker",
+          "$comment": "PRIMARY SEO LINK FOR THIS ITEM. Anchor link to her bio block on the about page. Same property pattern Brian used on the RRM concept item spec (2026-05-01).",
+          "qualifiers": [
+            { "P407": "Q1860", "P407_label": "language of work or name: English" }
+          ]
+        },
+        {
+          "property": "P973",
+          "property_label": "described at URL (second instance)",
+          "target_url": "https://eppc.org/publication/technically-human-dr-naomi-whittaker/",
+          "$comment": "EPPC 'Technically Human' Feb 2026 profile. Independent third-party feature by Katelyn Walls Shelton at the Ethics and Public Policy Center. Strongest BLP-class secondary source on the submission.",
+          "qualifiers": [
+            { "P407": "Q1860", "P407_label": "language of work or name: English" }
+          ]
+        }
+      ],
+
+      "$do_not_add_yet": [
+        "P1411 (nominated for) — n/a",
+        "P1066 (student of) — no specific named PhD/residency advisor publicly documented; defer.",
+        "P1448 (official name) — full name with post-nominals reads as honorific spam on Wikidata; description carries this.",
+        "P19 (place of birth) / P569 (date of birth) — not in SSOT, not on ORCID. Do NOT add. WD:BLP advises caution on personal-detail claims for non-public-figure subjects.",
+        "P26 (spouse) — Brian is the spouse but he is not himself a Wikidata-notable person. Adding this would invite a doxxing-class talk-page complaint. Defer permanently or until Brian has independent Wikidata notability.",
+        "P1454 (legal form) — n/a for person",
+        "P1813 (short name) — covered by aliases",
+        "P1971 (number of children) — never. WD:BLP."
+      ]
+    }
+  ],
+
+  "_publication_items_to_create_separately": {
+    "$comment": "These are scholarly-article items that should each be created as their own Wikidata items, with P50 (author) → Naomi's QID once it exists. Most can be auto-created via Magnus Manske's QuickStatements from CrossRef metadata. Order: lowest-risk (peer-reviewed JAD paper) first.",
+    "publications": [
+      {
+        "doi": "10.3233/JAD-2009-1135",
+        "pmid": "19625746",
+        "title": "Bioavailability of Gallic Acid and Catechins from Grape Seed Polyphenol Extract is Improved by Repeated Dosing in Rats: Implications for Treatment in Alzheimer's Disease",
+        "venue": "Journal of Alzheimer's Disease",
+        "venue_qid": "Q6294755",
+        "year": 2009,
+        "type": "peer-reviewed journal article",
+        "verified_at": "CrossRef + PubMed 2026-05-02",
+        "priority": "P1 — strongest publication anchor"
+      },
+      {
+        "doi": "10.1016/j.jmig.2024.09.699",
+        "title": "11099 Case Series: Diagnosis and Treatment of Four Rare Cancers by a Single Surgeon Due to Aggressive Surgical Approach to Endometriosis Resection",
+        "venue": "Journal of Minimally Invasive Gynecology",
+        "venue_qid": "Q15751470",
+        "year": 2024,
+        "type": "conference abstract in journal supplement",
+        "verified_at": "CrossRef 2026-04-19",
+        "priority": "P2 — recent, on-topic, single-author surgeon claim"
+      },
+      {
+        "dois": [
+          "10.1200/jco.2013.31.15_suppl.e14641",
+          "10.1200/jco.2012.30.34_suppl.257",
+          "10.1200/jco.2012.30.34_suppl.29",
+          "10.1200/jco.2012.30.34_suppl.34",
+          "10.1200/jco.2012.30.34_suppl.64"
+        ],
+        "venue": "Journal of Clinical Oncology",
+        "venue_qid": "Q400292",
+        "type": "ASCO conference abstracts in journal supplement",
+        "priority": "P3 — co-authored, same venue; create as a batch with QuickStatements"
+      },
+      {
+        "doi": "10.1096/fasebj.23.1_supplement.104.4",
+        "venue": "FASEB Journal",
+        "venue_qid": "Q520194",
+        "year": 2009,
+        "type": "Experimental Biology meeting abstract",
+        "priority": "P3"
+      }
+    ]
+  },
+
+  "_external_profiles_url_status": {
+    "verified_2026-05-02": [
+      { "url": "https://orcid.org/0000-0003-3706-3112", "status": 200 },
+      { "url": "https://npiregistry.cms.hhs.gov/provider-view/1881034908", "status": 200 },
+      { "url": "https://www.factsaboutfertility.org/member/naomi-whittaker-md/", "status": 200 },
+      { "url": "https://irrma.org/case-report-a-life-saving-fertility-surgery-and-an-impossible-case-of-spontaneous-pregnancy/", "status": 200 },
+      { "url": "https://www.instagram.com/napro_fertility_surgeon/", "status": 200 },
+      { "url": "https://rrmacademy.org/about/", "status": 200 }
+    ],
+    "bot_blocked_but_human_loadable": [
+      { "url": "https://www.linkedin.com/in/naomi-whittaker-md-906b13101/", "curl_status": 405, "verified_in_browser": "REQUIRED before submission" },
+      { "url": "https://x.com/naomimwhittaker", "curl_status": 403, "verified_in_browser": "REQUIRED before submission" },
+      { "url": "https://www.tiktok.com/@fertilitysurgeon", "curl_status": 403, "verified_in_browser": "REQUIRED before submission" }
+    ],
+    "dead_url_to_remove_from_ssot": {
+      "url": "https://factsaboutfertility.org/conference-speaker-highlight-naomi-whittaker-md/",
+      "curl_status": 404,
+      "action": "Remove from people.json same_as array; replaced functionally by https://www.factsaboutfertility.org/member/naomi-whittaker-md/"
+    }
+  },
+
+  "creation_workflow": {
+    "1_login": "Same auto-login pattern as Sittings 4-5 (1P item fqgsa6aibyhdmyvuy4im6yhuvm, submit #wpLoginAttempt). Verify mowsenter is autoconfirmed (Special:UserContributions count >= 50, account age >= 4 days). If NOT autoconfirmed, abort and re-evaluate _strategy_note.",
+    "2_pre_check_no_duplicate": "Re-run wbsearchentities for 'Naomi Whittaker' AND SPARQL P496 lookup for ORCID 0000-0003-3706-3112. Both must return zero. If either has a hit, abort.",
+    "3_pre_check_url_health": "Run the 12-URL HEAD probe again. Any new 4xx/5xx → fix the SSOT first, drop the broken URL from the submission, document.",
+    "4_create_item": "API call action=wbeditentity, new=item, data={labels, descriptions, aliases, claims}. Single transaction.",
+    "5_verify": "GET Special:EntityData/Q[new]/json. Confirm: P31:Q5, P21, P27, P496, P973 all present with at least one reference each.",
+    "6_log": "Capture new QID. Update memory `wikidata-naomi-item-live.md` with QID, creation timestamp, mowsenter edit count at time of creation.",
+    "7_followup_within_24h": "Add P50 (author) → new QID on the JAD-2009-1135 publication item (creates if missing). This converts a one-way 'described at URL' link into a two-way scholarly graph anchor."
+  },
+
+  "risk_register": [
+    {
+      "risk": "WD:RFD nomination on BLP-notability grounds",
+      "likelihood": "low if autoconfirmed; medium if submitted from 14-edit account",
+      "mitigation": "Every claim has independent reference. ORCID + NPI + 4 DOIs is comfortably above the de-facto BLP threshold. Notability discussion would resolve as 'kept' on these merits."
+    },
+    {
+      "risk": "Patroller adds {{Living person}} or BLP categorization that surfaces additional checks",
+      "likelihood": "high — and that's fine",
+      "mitigation": "BLP categorization is normal and welcome. Don't fight it."
+    },
+    {
+      "risk": "Description is challenged for 'NaProTechnology surgeon' phrasing",
+      "likelihood": "low",
+      "mitigation": "Phrasing matches her own ORCID self-description AND independent third-party speaker profiles. If challenged, fall back to 'American obstetrician-gynecologist specializing in restorative reproductive medicine' which uses Q-mappable terms."
+    },
+    {
+      "risk": "Item gets merged with a homonymous person if a Naomi Whittaker exists in another field",
+      "likelihood": "very low — wbsearchentities returned zero on 2026-05-02",
+      "mitigation": "ORCID 0000-0003-3706-3112 is a unique disambiguator. Any merge would be reverted with one diff."
+    },
+    {
+      "risk": "Instagram/TikTok handles reverted by patroller as unverified social",
+      "likelihood": "low",
+      "mitigation": "All three social profiles are linked from her own ORCID researcher-urls and from her rrmacademy.org bio. Reference each social-handle claim with the rrmacademy.org/about/#naomi-whittaker anchor."
+    },
+    {
+      "risk": "P973 → rrmacademy.org/about/#naomi-whittaker reverted as self-promo",
+      "likelihood": "low — pattern is conventional for person-with-personal-website items",
+      "mitigation": "If reverted, do not re-add. Per the v2 plan rule."
+    },
+    {
+      "risk": "Patroller flags 'mowsenter creates BLP from young account' as COI/SPA pattern",
+      "likelihood": "elevated if not autoconfirmed",
+      "mitigation": "Wait for autoconfirmed before submission. The COI disclosure on User:Mowsenter (Task 2 of v2 plan) addresses the affiliation directly."
+    }
+  ],
+
+  "alternative_simpler_path": {
+    "$comment": "If the full BLP item feels like too much surface area, the absolute-minimum path is to wait for the RRM Academy org item (2026-05-01 spec) to be created first, THEN add P112 (founded by) → string-only or somevalue with P1448 (official name) qualifier 'Naomi Whittaker'. This puts her name into the Wikidata graph WITHOUT creating a person item. Tradeoff: no SEO halo around her personally, only around the org.",
+    "deliverable_if_taken": "No new file needed; this becomes one additional claim in the RRM Academy item."
+  }
+}
