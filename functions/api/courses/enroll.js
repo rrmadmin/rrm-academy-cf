@@ -147,6 +147,11 @@ async function handleEnroll(request, env, waitUntil) {
     line_items: [{ price: course.stripePriceId, quantity: 1 }],
     success_url: `${origin}/courses/${course.slug}/?enrolled=1`,
     cancel_url: `${origin}/courses/${course.slug}/`,
+    payment_intent_data: {
+      description: `Course: ${course.title}`,
+      statement_descriptor_suffix: 'COURSE',
+      metadata: { type: 'course', courseId: course.id },
+    },
     metadata: {
       type: 'course',
       courseId: course.id,
