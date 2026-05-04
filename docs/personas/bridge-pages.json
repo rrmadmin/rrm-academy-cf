@@ -1,0 +1,14 @@
+{
+  "$schema": "./bridge-pages.schema.json",
+  "version": 1,
+  "pages": [
+    {
+      "url": "/schedule-with-dr-whittaker/",
+      "title": "Schedule with Dr Whittaker",
+      "intent": "navigational query capture for Dr Naomi Whittaker clinical appointments",
+      "outbound_destination_label": "UPMC profile",
+      "registered": "2026-05-04",
+      "min_inbound_links": 1
+    }
+  ]
+}
