@@ -75,8 +75,13 @@ export async function onRequestPut(context) {
   if (body.status !== undefined && !VALID_STATUSES.has(body.status)) {
     return json({ ok: false, error: 'invalid_status' }, 400);
   }
-  if (body.body_html !== undefined && typeof body.body_html === 'string' && body.body_html.length > 200000) {
-    return json({ ok: false, error: 'body_html_too_long' }, 400);
+  if (body.body_html !== undefined) {
+    if (typeof body.body_html !== 'string' || !body.body_html.trim()) {
+      return json({ ok: false, error: 'body_html_required' }, 400);
+    }
+    if (body.body_html.length > 200000) {
+      return json({ ok: false, error: 'body_html_too_long' }, 400);
+    }
   }
   if (body.abbreviation !== undefined && typeof body.abbreviation === 'string' && body.abbreviation.length > 100) {
     return json({ ok: false, error: 'abbreviation_too_long' }, 400);
@@ -150,6 +155,15 @@ export async function onRequestDelete(context) {
   try {
     const existing = await env.DB.prepare('SELECT id, slug FROM glossary_term WHERE id = ?').bind(id).first();
     if (!existing) return json({ ok: false, error: 'not_found' }, 404);
+
+    const citePattern1 = `%href="#${existing.slug}"%`;
+    const citePattern2 = `%href='#${existing.slug}'%`;
+    const { results: citing } = await env.DB.prepare(
+      "SELECT slug FROM glossary_term WHERE id != ? AND (body_html LIKE ?2 OR body_html LIKE ?3)"
+    ).bind(id, citePattern1, citePattern2).all();
+    if (citing && citing.length > 0) {
+      return json({ ok: false, error: 'term_in_use', detail: { citing_slugs: citing.map(r => r.slug) } }, 409);
+    }
 
     await env.DB.batch([
       env.DB.prepare('UPDATE glossary_abbreviation SET term_slug = NULL WHERE term_slug = ? COLLATE NOCASE').bind(existing.slug),
