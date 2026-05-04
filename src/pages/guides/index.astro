@@ -1,6 +1,10 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
+// Per-guide brand-anchored accent. RRM-owned guides use the RRM Academy purple
+// ramp; entity-specific guides use that entity's primary brand color sourced
+// from their canonical site. Hex values are scoped local accents, not new
+// global tokens \u2014 do not lift these into the SSOT.
 const guides = [
   {
     title: 'RRM Glossary',
@@ -8,6 +12,7 @@ const guides = [
     description: 'A comprehensive, evidence-based reference for the terminology, methods, conditions, and procedures encountered within the Restorative Reproductive Medicine framework.',
     author: 'Dr. Naomi Whittaker',
     readTime: '35 min read',
+    accent: 'var(--purple-700)',
   },
   {
     title: 'NaProTechnology: A Clinician\u2019s Guide',
@@ -15,6 +20,7 @@ const guides = [
     description: 'NaProTechnology diagnoses and treats the underlying conditions driving infertility, menstrual disorders, and early pregnancy loss. This guide covers how the method works, published outcomes data, how to find a qualified provider, and what to expect on cost and insurance.',
     author: 'Dr. Naomi Whittaker',
     readTime: '18 min read',
+    accent: '#f4b223', // Saint Paul VI Institute gold (popepaulvi.com)
   },
   {
     title: 'What is Restorative Reproductive Medicine?',
@@ -22,6 +28,7 @@ const guides = [
     description: 'The diagnostic and treatment philosophy behind RRM. How cause-based care differs from suppressive medicine, and what to expect from an RRM-trained clinician.',
     author: 'Dr. Naomi Whittaker',
     readTime: '60 min read',
+    accent: 'var(--purple-900)',
   },
   {
     title: 'What is FEMM?',
@@ -29,6 +36,7 @@ const guides = [
     description: 'FEMM (Fertility Education and Medical Management) teaches women to monitor hormonal biomarkers and connects them with trained providers who diagnose and treat the underlying conditions driving their symptoms.',
     author: 'Dr. Naomi Whittaker',
     readTime: '15 min read',
+    accent: '#e8006f', // FEMM Health magenta (femmhealth.org)
   },
   {
     title: 'What is NeoFertility?',
@@ -36,6 +44,7 @@ const guides = [
     description: 'NeoFertility diagnoses and treats the underlying causes of infertility and recurrent miscarriage using cycle-based evaluation, immunological testing, and targeted treatment to restore natural conception.',
     author: 'Dr. Naomi Whittaker',
     readTime: '22 min read',
+    accent: '#00a9e0', // NeoFertility brand blue (neofertility.ie/neo-tokens.css)
   },
 ];
 
@@ -86,7 +95,7 @@ const jsonLd = {
               <span class="guide-card__author">{guide.author}</span>
             </div>
           ) : (
-            <a href={guide.href} class="guide-card">
+            <a href={guide.href} class="guide-card" style={`--card-accent: ${guide.accent};`}>
               <h2 class="guide-card__title">{guide.title}</h2>
               <div class="guide-card__divider"></div>
               <p class="guide-card__desc">{guide.description}</p>
@@ -157,18 +166,32 @@ const jsonLd = {
   }
 
   .guide-card {
+    position: relative;
     display: block;
     padding: var(--space-4) var(--space-6);
     background: var(--bg-surface);
-    border: none;
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
     text-decoration: none;
-    transition: box-shadow 0.2s;
+    overflow: hidden;
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .guide-card::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: var(--card-accent, var(--purple-500));
   }
   .guide-card:hover {
-    box-shadow: var(--shadow-md);
+    border-color: var(--purple-300);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px -8px rgba(76, 62, 84, 0.18);
     text-decoration: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .guide-card { transition: border-color 0.2s ease; }
+    .guide-card:hover { transform: none; }
   }
   .guide-card__title {
     font-family: 'Cormorant Garamond', 'Georgia', serif;
@@ -181,9 +204,10 @@ const jsonLd = {
   .guide-card__divider {
     width: 180px;
     height: 4px;
-    background: linear-gradient(to right, var(--purple-700), var(--purple-300), transparent);
+    background: linear-gradient(to right, var(--card-accent, var(--purple-700)), transparent);
     border-radius: 1px;
     margin-bottom: var(--space-3);
+    opacity: 0.85;
   }
   .guide-card__desc {
     font-size: 0.9375rem;
