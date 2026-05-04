@@ -293,6 +293,13 @@ const jsonLd = {
         <p class="team-follow__label">Follow RRM Academy</p>
         <SocialRow size="md" variant="page" />
       </div>
+
+      <aside class="about-clinical-note">
+        <p>
+          <strong>Looking to schedule with Dr Whittaker as a patient?</strong>
+          <a href="/schedule-with-dr-whittaker/">See here for her clinical practice information</a>.
+        </p>
+      </aside>
     </div>
   </section>
 
@@ -497,5 +504,26 @@ const jsonLd = {
     padding-top: var(--space-4);
     border-top: 1px solid var(--border-light);
     margin-top: var(--space-6);
+  }
+
+  /* Clinical scheduling note */
+  .about-clinical-note {
+    margin: var(--space-10) auto 0;
+    max-width: 36rem;
+    padding: var(--space-5);
+    border-left: 3px solid var(--accent);
+    background: var(--bg-surface);
+    font-size: 0.9375rem;
+  }
+  .about-clinical-note p {
+    margin: 0;
+    color: var(--text-secondary);
+  }
+  .about-clinical-note a {
+    color: var(--accent);
+  }
+  .about-clinical-note a:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
   }
 </style>
