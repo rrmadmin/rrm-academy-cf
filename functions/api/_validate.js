@@ -99,6 +99,19 @@ export function validateBody(body, schema) {
       }
       data[field] = raw;
 
+    } else if (rules.type === 'enum') {
+      if (typeof raw !== 'string') {
+        return { valid: false, error: `${field} must be a string`, status: 400 };
+      }
+      const trimmed = raw.trim();
+      if (!Array.isArray(rules.values) || rules.values.length === 0) {
+        return { valid: false, error: `${field} schema misconfigured (no values)`, status: 500 };
+      }
+      if (!rules.values.includes(trimmed)) {
+        return { valid: false, error: `${field} must be one of: ${rules.values.join(', ')}`, status: 400 };
+      }
+      data[field] = trimmed;
+
     } else {
       return { valid: false, error: `Unknown type for ${field}`, status: 400 };
     }
