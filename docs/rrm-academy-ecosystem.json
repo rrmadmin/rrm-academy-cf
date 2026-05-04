@@ -2035,13 +2035,19 @@
       },
       "Ahrefs API Token": {
         "purpose": "Ahrefs API v3 access for rrmacademy.org SEO data (DR, backlinks, refdomains, organic keywords). Lite plan -- 100,000 units/month workspace budget. Token expires 2027-05-03. Generated 2026-05-02 at https://app.ahrefs.com/api/profile. Endpoint base: https://api.ahrefs.com/v3/. Auth: Authorization: Bearer <token>. Usage check: GET /v3/subscription-info/limits-and-usage. First baseline saved at projects/rrm-academy-cf/docs/seo/ahrefs-baselines/2026-05-02.md (DR=28, 914 live backlinks, 164 live refdomains, ~30 of top 50 are link-spam clusters)."
+      },
+      "RRM Academy ADMIN_API_SECRET": {
+        "purpose": "64-char hex Bearer token gating 7 admin endpoints on rrmacademy.org: /api/admin/cleanup, /api/admin/ecosystem, /api/admin/search-queries, /api/admin/wix-migration-link, /api/admin/wix-migration-email, /api/newsletter/send, /api/newsletter/rss-check. Set as CF Pages production env var ADMIN_API_SECRET on the rrm-academy project. Canonicalized 2026-05-03 (rotated + mirrored to 1P). NOT the same as 'RRM Admin Dashboard Token' which gates a different surface. Field: credential. Item id: m47d7wovwkxumpm5adyecqwjgy.",
+        "smoke_test": "SECRET=$(op read 'op://Automation/RRM Academy ADMIN_API_SECRET/credential') && curl -sS https://rrmacademy.org/api/admin/ecosystem -H \"Authorization: Bearer $SECRET\" | jq 'keys'",
+        "rotation_callers_to_update": "n8n Daily Cleanup workflow La9Bauj70L82oua8 (currently dormant -- n8n host down 2026-04-27); audit `grep -rn ADMIN_API_SECRET ~/iCode/projects/` before next rotation"
       }
     },
     "gotchas": [
       "RRM Admin @ Google: use item ID, @ breaks op read",
       "RRM n8n Notifications telegram: field name is 'password' not 'credential'",
       "Dnsireland -- NeoFertility Cpanel: must use --fields password --reveal",
-      "If op read fails, use: op item get '<item>' --vault Automation --format json"
+      "If op read fails, use: op item get '<item>' --vault Automation --format json",
+      "ADMIN_API_SECRET is in 1P as 'RRM Academy ADMIN_API_SECRET' (canonicalized 2026-05-03). Do NOT confuse with 'RRM Admin Dashboard Token' -- different credential."
     ]
   },
   "people": {
