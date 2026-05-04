@@ -1,6 +1,6 @@
 {
   "name": "RRM Academy Ecosystem",
-  "last_updated": "2026-05-03T06:00:00Z",
+  "last_updated": "2026-05-03T20:00:00Z",
   "staleness_note": "Row counts, financial summaries, and timeline drift over time. This document is the system-wide SSOT -- update when infrastructure changes, subsystems ship, or pipelines migrate. Row counts are approximate snapshots; query D1 for authoritative values.",
   "organization": {
     "name": "RRM Academy",
@@ -1643,13 +1643,16 @@
       "note": "Managed via CF dashboard (no local project directory)"
     },
     "rrm-finance-sync": {
-      "status": "code-complete; awaiting Phase 4 Plaid Link + secret deploy",
-      "purpose": "Daily 5-source finance aggregator (PayPal Reports + Stripe balance_transactions + Wix eCom Orders + Plaid Bluevine + CF subscriptions) -> RRM Foundation Google Sheet SSOT",
+      "status": "LIVE 2026-05-02 (4-source: PayPal+Stripe+Wix+CF). Plaid disabled pending production approval.",
+      "purpose": "Near-realtime 5-source finance aggregator (PayPal Reports + Stripe balance_transactions + Wix eCom Orders + Plaid Bluevine + CF subscriptions) -> RRM Foundation Google Sheet SSOT",
       "phase_0_complete": true,
       "phase_0_completed_at": "2026-05-01",
-      "cron": "0 8 * * * UTC",
+      "cron": "*/15 * * * * UTC (every 15 min) -- changed 2026-05-03 from `0 8 * * *` daily for near-realtime donor visibility. PayPal Reports API has its own ~3h freshness lag; Stripe/Wix near-instant.",
       "kill_switch_var": "SYNC_ENABLED",
-      "kill_switch_default": "false",
+      "kill_switch_default": "true (currently enabled)",
+      "plaid_switch_var": "PLAID_DISABLED",
+      "plaid_switch_default": "true (silent skip until access_token in place; production access pending Plaid risk-team approval)",
+      "worker_version": "6e40c9c5 (2026-05-03 cron tighten)",
       "plan_file": "~/.claude/plans/i-need-to-keep-spicy-pony.md",
       "secrets_in_1password": [
         "Plaid - RRM Finance",
@@ -1763,9 +1766,9 @@
     "rrm-finance-sync": {
       "path": "projects/rrm-finance-sync/",
       "github": "rrmadmin/rrm-finance-sync",
-      "purpose": "Daily 5-source finance aggregator (PayPal, Stripe, Wix, Plaid Bluevine, CF subscriptions) -> Google Sheet SSOT (RRM Foundation Ledger)",
-      "status": "Phase 0 complete 2026-05-01. All 9 prereqs verified + 7 1P items live. Ready for secret deploy + Plaid Link (Phase 4) + soak.",
-      "cron": "0 8 * * * UTC",
+      "purpose": "Near-realtime 5-source finance aggregator (PayPal, Stripe, Wix, Plaid Bluevine, CF subscriptions) -> Google Sheet SSOT (RRM Foundation Ledger)",
+      "status": "LIVE 2026-05-02 (4-source). Cron tightened from daily to every-15-min on 2026-05-03. Plaid disabled pending production approval (call with Plaid Mon 2026-05-04 3pm ET).",
+      "cron": "*/15 * * * * UTC",
       "kill_switch_var": "SYNC_ENABLED",
       "plan_file": "~/.claude/plans/i-need-to-keep-spicy-pony.md"
     },
@@ -2003,7 +2006,20 @@
         "purpose": "CF API token-management bootstrap (IP-locked to 72.95.9.135)"
       },
       "Plaid - RRM Finance": {
-        "purpose": "Plaid client_id + production+sandbox secrets for rrm-finance-sync Worker. Bluevine bank aggregation via institution_id ins_127296 (Coastal Community Bank). 1P fields: client_id, secret_production, secret_sandbox, environment_default=production, institution_id_bluevine. Production access requires Plaid Onboarding approval (security/fraud questionnaires submitted 2026-04-30 + 4 security policy PDFs at Drive folder 13gld88wkBXesyv_v1zSyYv1EUC_vMsH8)."
+        "purpose": "Plaid client_id + production+sandbox secrets for rrm-finance-sync Worker. Bluevine bank aggregation via institution_id ins_127296 (Coastal Community Bank). 1P fields: client_id, secret_production, secret_sandbox, environment_default=production, institution_id_bluevine. Production access requires Plaid Onboarding approval (security/fraud questionnaires submitted 2026-04-30 + 4 security policy PDFs at Drive folder 13gld88wkBXesyv_v1zSyYv1EUC_vMsH8).",
+        "client_id": "69f4f597eb58f1000d88b3d9",
+        "plan": "Pay As You Go ($0.30/transaction, expected ~$22.50/mo at ~75 txns/mo)",
+        "payg_signed_up_at": "2026-05-01",
+        "risk_review_status": "submitted 2026-05-01; 2-3 business days; pending as of 2026-05-03",
+        "product_enablement_call": {
+          "when": "2026-05-04 3:00-3:30pm ET",
+          "with": "Rohit Singh (rosingh@plaid.com), Business Associate, Plaid",
+          "meet_url": "https://meet.google.com/kty-ykid-fbb",
+          "calendar_event_id": "58e5reijvookmkk8svu67hvo3k (administrator@rrmacademy.org primary)",
+          "prep_doc": "https://docs.google.com/document/d/1NW-cBo1SpAXGrSvsfZ92p4pDHER71MyoD0_KyKih2ZI/edit",
+          "prep_md": "projects/rrm-foundation/docs/meetings/2026-05-04-plaid-rohit-singh-prep.md"
+        },
+        "post_call_steps": "If approved: Plaid Link localhost flow -> mint access_token -> wrangler secret put PLAID_ACCESS_TOKEN -> flip PLAID_DISABLED=false in wrangler.toml -> redeploy rrm-finance-sync."
       },
       "PayPal REST App - RRM Foundation": {
         "purpose": "PayPal Reports + Transaction Search read access. Reuses existing 'RRMF Finances Sync' app (app_id APP-7RK63958YX3500421) on merchant account XERQZ6JU8887G. Smoke-tested 2026-05-01 (OAuth + reporting/search/read both confirmed). 1P fields: client_id, credential, app_id, environment=live, app_name."
@@ -2207,7 +2223,8 @@
           "records": 753,
           "status_2026_04_27": "STALE/DORMANT — preserved as historical archive; SSOT migrated to Google Sheet 2026-05-01"
         },
-        "migration_status_2026_05_01": "Phase 0 COMPLETE 2026-05-01. All 9 prereqs landed in 1Password: Plaid (production env, ins_127296=Bluevine), PayPal REST App (reused existing 'RRMF Finances Sync', OAuth + Transaction Search smoke-tested live), Stripe restricted key (rk_live_, 7 read scopes, write denied), Wix App (existing 'Wix API - RRM Finance Sync', ow-managed), CF Account Bootstrap token (existing, billing scope), Google Sheets OAuth refresh, Master Sheet ID, CF subscriptions API verified. 11-tab Sheet scaffolded. Phase 1.5 + Phase 2 + Phase 5 migration scripts ready (projects/rrm-foundation/bookkeeping-2026/). Worker code complete (projects/rrm-finance-sync/, 29 tests passing). Next: deploy secrets, Phase 4 (Plaid Link localhost flow), 7-day soak with SYNC_ENABLED=false then flip true."
+        "migration_status_2026_05_01": "Phase 0 COMPLETE 2026-05-01. All 9 prereqs landed in 1Password: Plaid (production env, ins_127296=Bluevine), PayPal REST App (reused existing 'RRMF Finances Sync', OAuth + Transaction Search smoke-tested live), Stripe restricted key (rk_live_, 7 read scopes, write denied), Wix App (existing 'Wix API - RRM Finance Sync', ow-managed), CF Account Bootstrap token (existing, billing scope), Google Sheets OAuth refresh, Master Sheet ID, CF subscriptions API verified. 11-tab Sheet scaffolded. Phase 1.5 + Phase 2 + Phase 5 migration scripts ready (projects/rrm-foundation/bookkeeping-2026/). Worker code complete (projects/rrm-finance-sync/, 29 tests passing). Next: deploy secrets, Phase 4 (Plaid Link localhost flow), 7-day soak with SYNC_ENABLED=false then flip true.",
+        "migration_status_2026_05_03": "rrm-finance-sync LIVE since 2026-05-02 (SYNC_ENABLED=true, PLAID_DISABLED=true). Cron tightened to */15 * * * * on 2026-05-03 for near-realtime donor visibility. 4 sources active (PayPal/Stripe/Wix/CF). Plaid Phase 4 still gated on Plaid risk-team production approval -- product-enablement call with Rohit Singh scheduled Mon 2026-05-04 3pm ET."
       },
       "summary": {
         "2024": {
@@ -2241,6 +2258,7 @@
         ]
       },
       "automation": {
+        "active_2026_05_03": "rrm-finance-sync Worker LIVE since 2026-05-02. 4 source connectors active (PayPal Reports, Stripe balance_transactions, Wix eCom Orders, CF subscriptions); Plaid Bluevine pending production approval. Cron */15 * * * * UTC (every 15 min, tightened 2026-05-03 from `0 8 * * *` daily). SYNC_ENABLED=true, PLAID_DISABLED=true.",
         "active_2026_05_01": "rrm-finance-sync Worker scaffolded (5 source connectors: PayPal Reports, Stripe balance_transactions, Wix eCom Orders, Plaid Bluevine, CF subscriptions). Cron 0 8 * * * UTC. Kill switch: SYNC_ENABLED=false until Phase 0 secrets land.",
         "legacy_n8n_dormant": [
           "Wix Payments -> Airtable (5th 9am)",
@@ -2317,6 +2335,85 @@
         "render_script": "projects/rrm-foundation/bookkeeping-2026/security-policies/render-policies.py",
         "annual_review_cadence": "Aligned with 990-N filing cycle (May of each year). Treasurer accountable.",
         "drafted_for": "Plaid Production Onboarding (2026-04-30/05-01)"
+      },
+      "insurance": {
+        "_status_2026_05_03": "UNDERINSURED -- only General Liability is in force. No E&O/Professional Liability, Cyber, Media, D&O, or EPLI. Documented during 2026-05-03 coverage analysis.",
+        "active_policies": [
+          {
+            "line": "Commercial General Liability",
+            "carrier_brand": "ERGO Next Insurance",
+            "carrier_underwriters": [
+              "Next Insurance US Company",
+              "State National Insurance Company",
+              "National Specialty Insurance Company"
+            ],
+            "agent_of_record": "Next Insurance, Inc. (CA License 0K83405)",
+            "policy_number": "NXTCLH9J7R-01-GL",
+            "named_insured": "Restorative Reproductive Medicine Foundation Inc",
+            "insured_address": "3401 Hartzdale Dr Ste 103B, Camp Hill, PA 17011",
+            "effective_date": "2026-04-14",
+            "expiration_date": "2027-04-14",
+            "renewal_type": "auto-renew",
+            "premium_monthly_usd": 26.16,
+            "premium_annual_usd_estimate": 313.92,
+            "limits": "TBD -- declarations PDF attached to renewal email (Gmail thread 19d8a494da005dc0) but not yet parsed. Likely entry-tier $1M occurrence / $2M aggregate based on premium band.",
+            "billing_account_email": "administrator+nextinsurance@rrmacademy.org",
+            "portal": "https://my.nextinsurance.com",
+            "history": {
+              "originally_purchased": "2025-08 (policy NXTCLH9J7R-00-GL)",
+              "first_renewal": "2026-04-14 (policy NXTCLH9J7R-01-GL)"
+            }
+          }
+        ],
+        "coverage_gaps_identified_2026_05_03": [
+          {
+            "gap": "Professional Liability / Errors & Omissions + Media Liability",
+            "severity": "high",
+            "rationale": "rrmacademy.org publishes clinical/medical educational content (commentary, library, FAQs, glossary, courses, /ask AI answers), critiques IVF/ACOG/ASRM positions, names specific practices, and cites statistics. Also delivers tech/professional services to NeoFertility, IIRRM, and other clinicians. GL does not cover content-error claims, defamation/disparagement, copyright/IP infringement, or errors in professional services delivered.",
+            "typical_limit_recommendation_usd": "1M occurrence / 1M-2M aggregate (E&O + Media bundled)"
+          },
+          {
+            "gap": "Cyber Liability",
+            "severity": "high",
+            "rationale": "D1 holds ~7,000+ contact records, course enrollment + payment metadata, donor records, intake form data, community posts, and HIPAA-adjacent endo survey identity records. R2 holds community uploads. PA breach notification law (73 P.S. § 2301) triggers on any personal info breach. GL covers none of: breach response, regulatory notification, credit monitoring, ransomware, business interruption.",
+            "typical_limit_recommendation_usd": "1M-2M with breach response built in"
+          },
+          {
+            "gap": "Directors & Officers (D&O)",
+            "severity": "high",
+            "rationale": "501(c)(3) with a board. D&O protects directors personally and the org against mismanagement claims, donor lawsuits, regulatory inquiries (PA AG, IRS), and breach of fiduciary duty. Without D&O, board members are personally exposed. Also a board recruitment blocker.",
+            "typical_limit_recommendation_usd": "1M-2M"
+          },
+          {
+            "gap": "Employment Practices Liability (EPLI)",
+            "severity": "medium",
+            "rationale": "Low immediate exposure (no W-2 staff yet) but contractor misclassification, harassment, and discrimination claims surface immediately upon hiring. Typically bundled with D&O for nonprofits.",
+            "typical_limit_recommendation_usd": "500K-1M (or rolled into D&O package)"
+          },
+          {
+            "gap": "GL limit confirmation",
+            "severity": "low",
+            "rationale": "At $314/year the GL is almost certainly the entry-tier policy with low products/completed-operations sub-limits. Pull declarations PDF to confirm before underwriting decisions assume a higher limit."
+          }
+        ],
+        "recommended_carriers_to_quote_2026_05_03": [
+          "Nonprofits Insurance Alliance (NIA / NIAC) -- 501(c)(3)-only specialist, strong D&O pricing for small nonprofits",
+          "Hiscox -- fast online E&O + Cyber for content publishers",
+          "Coalition -- best-in-class Cyber with active breach response",
+          "Embroker -- bundled tech/media E&O + Cyber + GL",
+          "Philadelphia Insurance / Travelers / The Hartford -- established nonprofit lines via broker"
+        ],
+        "recommended_brokers_to_consider": [
+          "Affinity Nonprofits",
+          "501c Agencies Trust",
+          "Local PA broker specializing in nonprofits"
+        ],
+        "estimated_full_stack_annual_premium_usd_range": "2500-6000 (E&O + Cyber + D&O + EPLI for an org of this size and revenue)",
+        "next_actions": [
+          "Forward GL declarations PDF (renewal email 2026-04-14, Gmail thread 19d8a494da005dc0) to confirm limits and any unnoticed endorsements.",
+          "Engage a nonprofit-focused broker to shop the 4-line stack (E&O, Cyber, D&O, EPLI) across 6-10 carriers in one pass.",
+          "Re-evaluate GL limit when binding the new package so the whole portfolio is right-sized together."
+        ]
       }
     }
   },

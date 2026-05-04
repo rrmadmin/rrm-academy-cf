@@ -8,11 +8,13 @@
  *
  * Requires: wrangler CLI authenticated with Cloudflare.
  *
- * Uses --file (not --command) to avoid shell expansion of $, backticks, etc.
- * in the JSON content (e.g. "$9/mo" would be corrupted by shell interpolation).
+ * Storage format: `gz:<base64-gzip>` — D1 has a 100KB-per-statement limit
+ * and the raw JSON is now ~117KB. gzip+base64 brings it to ~49KB. The GET
+ * endpoint at functions/api/admin/ecosystem.js detects the `gz:` prefix and
+ * decompresses on read.
  *
- * INSERT OR REPLACE is intentional here -- this is a single-row KV store
- * where overwrite is the desired behavior. Not a multi-row data-loss risk.
+ * INSERT OR REPLACE is intentional — single-row KV store where overwrite is
+ * the desired behavior. Not a multi-row data-loss risk.
  */
 
 import { readFileSync, writeFileSync, unlinkSync } from 'fs';
@@ -20,6 +22,7 @@ import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { tmpdir } from 'os';
+import { gzipSync } from 'zlib';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = join(__dirname, '..');
@@ -35,13 +38,21 @@ try {
   process.exit(1);
 }
 
-// Escape single quotes for SQL, write to temp file to avoid shell expansion
-const escaped = jsonStr.replace(/'/g, "''");
-const sql = `INSERT OR REPLACE INTO system_config (key, value, updated_at) VALUES ('ecosystem-map', '${escaped}', datetime('now'));`;
+// Compress: gzip + base64. Prefix with `gz:` so GET endpoint can detect format.
+const gz = gzipSync(Buffer.from(jsonStr, 'utf-8'), { level: 9 });
+const encoded = `gz:${gz.toString('base64')}`;
+
+if (encoded.length > 95000) {
+  console.error(`Compressed payload (${encoded.length}b) exceeds D1 95KB safety margin. JSON has grown beyond gzip-safe zone — split into multiple keys.`);
+  process.exit(1);
+}
+
+// Write to temp file to avoid shell expansion of $, backticks, etc.
+const sql = `INSERT OR REPLACE INTO system_config (key, value, updated_at) VALUES ('ecosystem-map', '${encoded}', datetime('now'));`;
 const tmpFile = join(tmpdir(), `sync-ecosystem-${Date.now()}.sql`);
 writeFileSync(tmpFile, sql);
 
-console.log(`Syncing ecosystem JSON (${jsonStr.length} bytes) to D1 rrm-auth...`);
+console.log(`Syncing ecosystem JSON: raw ${jsonStr.length}b → gz+b64 ${encoded.length}b → D1 rrm-auth...`);
 
 try {
   execSync(
