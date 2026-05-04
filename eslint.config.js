@@ -26,6 +26,10 @@ export default [
         AbortController: 'readonly',
         AbortSignal: 'readonly',
         FormData: 'readonly',
+        Blob: 'readonly',
+        DecompressionStream: 'readonly',
+        CompressionStream: 'readonly',
+        ReadableStream: 'readonly',
       },
     },
     rules: {
