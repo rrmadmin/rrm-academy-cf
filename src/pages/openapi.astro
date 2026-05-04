@@ -1,0 +1,483 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import LastUpdated from '../components/LastUpdated.astro';
+import pageDates from '../data/page-dates.json';
+import spec from '../../public/openapi.json';
+
+const PAGE_PATH = '/openapi/';
+const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-05-04';
+
+const pageSchema = {
+  '@context': 'https://schema.org',
+  '@type': ['WebPage', 'TechArticle'],
+  name: 'RRM Academy Agent API — OpenAPI Reference',
+  headline: 'RRM Academy Agent API reference',
+  description:
+    'OpenAPI 3.1 reference for the RRM Academy MCP server. Endpoints, request/response schemas, authentication, and code samples for programmatic access to 3,370+ peer-reviewed RRM articles, editorial guardrails, and verified clinical statistics.',
+  url: 'https://rrmacademy.org/openapi/',
+  publisher: {
+    '@type': 'EducationalOrganization',
+    '@id': 'https://rrmacademy.org/#organization',
+    name: 'RRM Academy',
+  },
+  datePublished: '2026-05-04',
+  dateModified: LAST_MODIFIED,
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': 'https://rrmacademy.org/openapi/',
+  },
+};
+
+const server = spec.servers[0];
+
+type PathItem = Record<string, {
+  operationId?: string;
+  summary?: string;
+  description?: string;
+  security?: unknown[];
+  responses?: Record<string, { description?: string }>;
+}>;
+
+const endpoints = Object.entries(spec.paths as Record<string, PathItem>).flatMap(
+  ([path, ops]) =>
+    Object.entries(ops).map(([method, op]) => ({
+      path,
+      method: method.toUpperCase(),
+      ...op,
+      requiresAuth: !(Array.isArray(op.security) && op.security.length === 0),
+    })),
+);
+---
+<BaseLayout
+  title="RRM Academy Agent API — OpenAPI Reference"
+  description="OpenAPI 3.1 reference for the RRM Academy MCP server. Endpoints, schemas, auth, and code samples for programmatic access."
+  canonicalUrl="https://rrmacademy.org/openapi/"
+  jsonLd={pageSchema}
+  lastModified={LAST_MODIFIED}
+>
+  <article class="page-wrapper">
+    <div class="container container--narrow openapi-page">
+
+      <header class="openapi-hero">
+        <span class="openapi-eyebrow">Developer · API Reference</span>
+        <h1>{spec.info.title}</h1>
+        <p class="openapi-version">v{spec.info.version} · OpenAPI {spec.openapi}</p>
+        <p class="openapi-lede">{spec.info.description}</p>
+        <div class="openapi-actions">
+          <a href="/connect/" class="btn btn--secondary btn--sm">← Setup guide (/connect)</a>
+          <a href="/openapi.json" class="btn btn--secondary btn--sm">Raw spec (openapi.json)</a>
+        </div>
+      </header>
+
+      <section class="openapi-section">
+        <h2>Server</h2>
+        <div class="openapi-fields">
+          <div class="openapi-field">
+            <span class="openapi-field-label">Base URL</span>
+            <code>{server.url}</code>
+          </div>
+          <div class="openapi-field">
+            <span class="openapi-field-label">Description</span>
+            <span>{server.description}</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="openapi-section">
+        <h2>Authentication</h2>
+        <p>Bearer API key. Self-service issuance at <a href="/account/mcp-keys/">/account/mcp-keys</a>. Send as an HTTP header on every authenticated request:</p>
+        <pre class="openapi-code"><code>Authorization: Bearer YOUR_API_KEY</code></pre>
+        <p class="openapi-note">The <code>/health</code> endpoint is unauthenticated. All other endpoints require a valid key.</p>
+      </section>
+
+      <section class="openapi-section">
+        <h2>Endpoints</h2>
+
+        {endpoints.map((ep) => (
+          <article class="openapi-endpoint">
+            <header class="openapi-endpoint-header">
+              <span class={`openapi-method openapi-method--${ep.method.toLowerCase()}`}>{ep.method}</span>
+              <code class="openapi-path">{ep.path}</code>
+              {ep.requiresAuth && <span class="openapi-auth-badge">Bearer</span>}
+            </header>
+            {ep.summary && <p class="openapi-endpoint-summary">{ep.summary}</p>}
+            {ep.description && <p class="openapi-endpoint-desc">{ep.description}</p>}
+
+            <h4 class="openapi-subhead">Responses</h4>
+            <ul class="openapi-responses">
+              {ep.responses && Object.entries(ep.responses).map(([code, resp]) => (
+                <li>
+                  <code class={`openapi-status openapi-status--${code.startsWith('2') ? 'ok' : 'err'}`}>{code}</code>
+                  <span>{resp.description || ''}</span>
+                </li>
+              ))}
+            </ul>
+          </article>
+        ))}
+      </section>
+
+      <section class="openapi-section">
+        <h2>Code samples</h2>
+        <p>Discover the available tools, then call one. Replace <code>YOUR_API_KEY</code> with a key from <a href="/account/mcp-keys/">/account/mcp-keys</a>.</p>
+
+        <h3 class="openapi-subhead">curl</h3>
+        <pre class="openapi-code"><code>{`# 1. Initialize the session
+curl -X POST https://mcp.rrmacademy.org/mcp \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -H "Accept: application/json, text/event-stream" \\
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "initialize",
+    "params": {
+      "protocolVersion": "2025-06-18",
+      "capabilities": {},
+      "clientInfo": { "name": "my-app", "version": "0.1" }
+    }
+  }'
+
+# 2. List the available tools
+curl -X POST https://mcp.rrmacademy.org/mcp \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -H "Accept: application/json, text/event-stream" \\
+  -d '{ "jsonrpc": "2.0", "id": 2, "method": "tools/list" }'
+
+# 3. Call a tool (search the library)
+curl -X POST https://mcp.rrmacademy.org/mcp \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -H "Accept: application/json, text/event-stream" \\
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 3,
+    "method": "tools/call",
+    "params": {
+      "name": "search",
+      "arguments": { "query": "endometriosis excision outcomes" }
+    }
+  }'`}</code></pre>
+
+        <h3 class="openapi-subhead">Python (official MCP SDK)</h3>
+        <pre class="openapi-code"><code>{`# pip install "mcp[cli]"
+from mcp import ClientSession
+from mcp.client.streamable_http import streamablehttp_client
+
+async def main():
+    headers = {"Authorization": "Bearer YOUR_API_KEY"}
+    async with streamablehttp_client(
+        "https://mcp.rrmacademy.org/mcp",
+        headers=headers,
+    ) as (read, write, _):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+            tools = await session.list_tools()
+            result = await session.call_tool(
+                "search",
+                {"query": "endometriosis excision outcomes"},
+            )
+            print(result)
+
+import asyncio; asyncio.run(main())`}</code></pre>
+
+        <h3 class="openapi-subhead">Node.js (official MCP SDK)</h3>
+        <pre class="openapi-code"><code>{`// npm install @modelcontextprotocol/sdk
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+
+const transport = new StreamableHTTPClientTransport(
+  new URL("https://mcp.rrmacademy.org/mcp"),
+  {
+    requestInit: {
+      headers: { Authorization: "Bearer YOUR_API_KEY" },
+    },
+  },
+);
+
+const client = new Client({ name: "my-app", version: "0.1.0" });
+await client.connect(transport);
+
+const tools = await client.listTools();
+const result = await client.callTool({
+  name: "search",
+  arguments: { query: "endometriosis excision outcomes" },
+});
+console.log(result);`}</code></pre>
+      </section>
+
+      <section class="openapi-section">
+        <h2>Errors</h2>
+        <p>All authenticated endpoints share the same error envelope:</p>
+        <pre class="openapi-code"><code>{`{
+  "error": "machine_readable_code",
+  "message": "Human-readable explanation"
+}`}</code></pre>
+        <ul class="openapi-error-list">
+          <li><code>401</code> — missing or invalid bearer token</li>
+          <li><code>429</code> — rate limited; back off and retry</li>
+          <li><code>503</code> — upstream unavailable; transient</li>
+        </ul>
+      </section>
+
+      <section class="openapi-section">
+        <h2>Schemas</h2>
+        <p>Full request/response shapes (JSON Schema) for the MCP envelope and error type are in the <a href="/openapi.json">raw spec</a>. The MCP SDKs handle envelope serialization for you — most users never need to construct JSON-RPC envelopes by hand.</p>
+      </section>
+
+      <section class="openapi-section">
+        <h2>Discovery files</h2>
+        <ul class="openapi-links">
+          <li><a href="https://mcp.rrmacademy.org/.well-known/mcp.json">mcp.json descriptor</a> — server metadata for agent discovery</li>
+          <li><a href="https://mcp.rrmacademy.org/.well-known/mcp/server-card.json">server card</a> — full tool list with schemas</li>
+          <li><a href="/.well-known/oauth-protected-resource">RFC 9728 protected-resource metadata</a></li>
+          <li><a href="/.well-known/api-catalog">RFC 9727 API catalog</a></li>
+          <li><a href="/llms.txt">llms.txt</a> · <a href="/llms-full.txt">llms-full.txt</a></li>
+        </ul>
+      </section>
+
+      <LastUpdated date={LAST_MODIFIED} />
+    </div>
+  </article>
+
+  <style>
+    .openapi-page { padding-bottom: var(--space-12); }
+
+    .openapi-hero {
+      margin-bottom: var(--space-10);
+      padding-bottom: var(--space-8);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .openapi-eyebrow {
+      display: inline-block;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--accent);
+      margin-bottom: var(--space-4);
+    }
+    .openapi-hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 1.5rem + 2vw, 2.75rem);
+      font-weight: 600;
+      line-height: 1.1;
+      margin: 0 0 var(--space-3);
+    }
+    .openapi-version {
+      font-family: "SF Mono", Menlo, monospace;
+      font-size: 0.8125rem;
+      color: var(--text-tertiary);
+      margin: 0 0 var(--space-5);
+    }
+    .openapi-lede {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 1.125rem;
+      line-height: 1.5;
+      color: var(--text-secondary);
+      max-width: 42rem;
+      margin: 0 0 var(--space-5);
+    }
+    .openapi-actions {
+      display: flex;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+    }
+
+    .openapi-section { margin-bottom: var(--space-10); }
+    .openapi-section h2 {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      margin: 0 0 var(--space-4);
+    }
+    .openapi-section > p {
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: var(--space-4);
+    }
+    .openapi-subhead {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 600;
+      margin: var(--space-5) 0 var(--space-3);
+      color: var(--text-primary);
+    }
+
+    .openapi-fields {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: var(--space-5) var(--space-6);
+      display: grid;
+      gap: var(--space-3);
+    }
+    .openapi-field {
+      display: grid;
+      grid-template-columns: 8rem 1fr;
+      align-items: center;
+      gap: var(--space-4);
+    }
+    .openapi-field-label {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.10em;
+      color: var(--text-tertiary);
+    }
+    .openapi-field code {
+      font-family: "SF Mono", Menlo, monospace;
+      font-size: 0.8125rem;
+      background: var(--purple-50);
+      color: var(--purple-900);
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      word-break: break-all;
+    }
+    @media (max-width: 600px) {
+      .openapi-field { grid-template-columns: 1fr; gap: var(--space-1); }
+    }
+
+    .openapi-code {
+      background: var(--neutral-900, #1a1a1a);
+      color: var(--neutral-50, #f5f5f5);
+      padding: var(--space-4) var(--space-5);
+      border-radius: var(--radius-md);
+      overflow-x: auto;
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      margin: 0 0 var(--space-4);
+    }
+    .openapi-code code {
+      font-family: "SF Mono", Menlo, monospace;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+    .openapi-note {
+      padding: var(--space-3) var(--space-4);
+      background: var(--neutral-100);
+      border-left: 3px solid var(--purple-300);
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-top: var(--space-3);
+    }
+    .openapi-note code {
+      font-family: "SF Mono", Menlo, monospace;
+      font-size: 0.8125rem;
+      background: var(--purple-50);
+      color: var(--purple-900);
+      padding: 1px 6px;
+      border-radius: var(--radius-sm);
+    }
+
+    .openapi-endpoint {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: var(--space-5) var(--space-6);
+      margin-bottom: var(--space-4);
+    }
+    .openapi-endpoint-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-3);
+      flex-wrap: wrap;
+    }
+    .openapi-method {
+      font-family: "SF Mono", Menlo, monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      color: white;
+    }
+    .openapi-method--post { background: #16a34a; }
+    .openapi-method--get  { background: #2563eb; }
+    .openapi-method--put  { background: #ca8a04; }
+    .openapi-method--delete { background: #dc2626; }
+    .openapi-path {
+      font-family: "SF Mono", Menlo, monospace;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .openapi-auth-badge {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      background: var(--purple-50);
+      color: var(--purple-900);
+    }
+    .openapi-endpoint-summary {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0 0 var(--space-2);
+      line-height: 1.5;
+    }
+    .openapi-endpoint-desc {
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin: 0 0 var(--space-3);
+    }
+
+    .openapi-responses {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .openapi-responses li {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-2) 0;
+      border-bottom: 1px solid var(--border-light);
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+    .openapi-responses li:last-child { border-bottom: none; }
+    .openapi-status {
+      font-family: "SF Mono", Menlo, monospace;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      min-width: 3rem;
+      text-align: center;
+    }
+    .openapi-status--ok  { background: #dcfce7; color: #166534; }
+    .openapi-status--err { background: #fee2e2; color: #991b1b; }
+
+    .openapi-error-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .openapi-error-list li {
+      padding: var(--space-2) 0;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .openapi-error-list code {
+      font-family: "SF Mono", Menlo, monospace;
+      font-size: 0.8125rem;
+      background: var(--purple-50);
+      color: var(--purple-900);
+      padding: 1px 6px;
+      border-radius: var(--radius-sm);
+      margin-right: var(--space-2);
+    }
+
+    .openapi-links {
+      padding-left: 1.25rem;
+      line-height: 1.8;
+    }
+    .openapi-links a { color: var(--accent); }
+  </style>
+</BaseLayout>
