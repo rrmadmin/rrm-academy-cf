@@ -152,10 +152,11 @@ export async function onRequestDelete(context) {
 
     if (!existing) return json({ ok: false, error: 'not_found' }, 404);
 
-    const pattern = `%#ref-${parsed}%`;
+    const pattern1 = `%#ref-${parsed}"%`;
+    const pattern2 = `%#ref-${parsed}'%`;
     const { results: citing } = await env.DB.prepare(
-      "SELECT slug FROM glossary_term WHERE body_html LIKE ?"
-    ).bind(pattern).all();
+      "SELECT slug FROM glossary_term WHERE body_html LIKE ?1 OR body_html LIKE ?2"
+    ).bind(pattern1, pattern2).all();
 
     if (citing && citing.length > 0) {
       return json({

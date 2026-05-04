@@ -106,7 +106,7 @@ function buildEntries() {
     if (stripped) parts.push(stripped);
     entries.push({
       slug: `glossary-${t.slug}`, text: parts.join('. '),
-      type: 'Glossary', url: `/glossary/#${t.slug}`,
+      type: 'Glossary', url: `/glossary/${t.slug}/`,
       title: t.name, year: null, authors: '',
     });
   }

@@ -145,7 +145,7 @@ function buildEntries() {
       slug: `glossary-${t.slug}`,
       text: parts.join('. '),
       type: 'Glossary',
-      url: `/glossary/#${t.slug}`,
+      url: `/glossary/${t.slug}/`,
       title: t.name,
       year: null,
       authors: '',

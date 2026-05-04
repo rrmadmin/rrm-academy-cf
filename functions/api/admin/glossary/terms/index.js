@@ -62,6 +62,24 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'slug_too_long' }, 400);
   }
 
+  const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
+  const RESERVED_SLUGS = new Set([
+    'overview', 'abbreviations', 'references', 'key-takeaways',
+    'core-rrm-principles', 'fertility-awareness', 'clinical-approaches',
+    'diagnostic-tools', 'surgical-techniques', 'conditions',
+    'overlapping-disciplines', 'broader-framework',
+  ]);
+  const trimmedSlug = slug.trim();
+  if (!SLUG_RE.test(trimmedSlug)) {
+    return json({ ok: false, error: 'invalid_slug_format' }, 400);
+  }
+  if (trimmedSlug.startsWith('ref-')) {
+    return json({ ok: false, error: 'slug_reserved_ref_prefix' }, 400);
+  }
+  if (RESERVED_SLUGS.has(trimmedSlug)) {
+    return json({ ok: false, error: 'slug_reserved' }, 400);
+  }
+
   if (typeof name !== 'string' || !name.trim()) {
     return json({ ok: false, error: 'name_required' }, 400);
   }
@@ -89,7 +107,7 @@ export async function onRequestPost(context) {
   }
 
   const resolvedSortOrder = typeof sort_order === 'number' ? sort_order : 0;
-  const id = 'term_' + slug.trim();
+  const id = 'term_' + trimmedSlug.toLowerCase();
 
   try {
     const result = await env.DB.prepare(
@@ -97,7 +115,7 @@ export async function onRequestPost(context) {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
       id,
-      slug.trim(),
+      trimmedSlug.toLowerCase(),
       name.trim(),
       part,
       resolvedSortOrder,
@@ -120,6 +138,6 @@ export async function onRequestPost(context) {
     return json({ ok: true, data: row, created: true }, 201);
   } catch (err) {
     log(env, waitUntil, 'admin-glossary', 'term_create_fetch_error', 'error', err.message, 0, 500);
-    return json({ ok: true, data: { id, slug: slug.trim(), name: name.trim(), part, status: resolvedStatus }, created: true }, 201);
+    return json({ ok: true, data: { id, slug: trimmedSlug.toLowerCase(), name: name.trim(), part, status: resolvedStatus }, created: true }, 201);
   }
 }
