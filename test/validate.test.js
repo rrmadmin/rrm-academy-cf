@@ -211,3 +211,51 @@ describe('validateBody -- minLength enforcement', () => {
     assert.equal(result.valid, true);
   });
 });
+
+describe('validateBody -- enum type', () => {
+  it('accepts a value in the allowed set', () => {
+    const r = validateBody({ tier: 'gold' }, {
+      tier: { type: 'enum', values: ['gold', 'silver', 'bronze'], required: true },
+    });
+    assert.equal(r.valid, true);
+    assert.equal(r.data.tier, 'gold');
+  });
+
+  it('rejects a value not in the allowed set', () => {
+    const r = validateBody({ tier: 'platinum' }, {
+      tier: { type: 'enum', values: ['gold', 'silver'], required: true },
+    });
+    assert.equal(r.valid, false);
+    assert.equal(r.status, 400);
+    assert.match(r.error, /tier/);
+  });
+
+  it('rejects non-string enum values', () => {
+    const r = validateBody({ tier: 1 }, {
+      tier: { type: 'enum', values: ['gold'], required: true },
+    });
+    assert.equal(r.valid, false);
+    assert.equal(r.status, 400);
+  });
+
+  it('treats absent enum as missing -> uses required logic', () => {
+    const requiredResult = validateBody({}, {
+      tier: { type: 'enum', values: ['gold'], required: true },
+    });
+    assert.equal(requiredResult.valid, false);
+
+    const optionalResult = validateBody({}, {
+      tier: { type: 'enum', values: ['gold'], required: false },
+    });
+    assert.equal(optionalResult.valid, true);
+    assert.equal(optionalResult.data.tier, undefined);
+  });
+
+  it('strips whitespace before enum check', () => {
+    const r = validateBody({ tier: '  gold  ' }, {
+      tier: { type: 'enum', values: ['gold'], required: true },
+    });
+    assert.equal(r.valid, true);
+    assert.equal(r.data.tier, 'gold');
+  });
+});
