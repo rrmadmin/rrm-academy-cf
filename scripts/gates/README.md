@@ -71,3 +71,82 @@ files change:
 - `scripts/build-canonical-facts.mjs`
 - `scripts/article-extraction/system-prompt.md`
 - `scripts/chapter-extraction/system-prompt.md`
+
+---
+
+# Glossary Spoke Pipeline Gates
+
+Deterministic proof-gate runner for the glossary spoke pages pipeline (per-term URLs
+under `/glossary/<slug>/`, shipped 2026-05-03). Prevents the failure modes Brian
+flagged manually after the v1 launch: pillar/spoke filter drift, duplicate H1, and
+the structural drift class the shared <GlossaryTerm> component was built to prevent.
+
+## Usage
+
+```
+npm run gates:glossary            # all 5 gates (static-only today)
+npm run gates:glossary:check      # quick mode (no-op today; reserved for future network gates)
+node scripts/gates/validate-glossary-pipeline.mjs --gate G1
+node scripts/gates/validate-glossary-pipeline.mjs --json
+```
+
+## Gates
+
+### G1: Status Filter Agreement
+
+Both `src/pages/glossary/index.astro` (pillar) and `src/pages/glossary/[slug].astro`
+(spoke) must collect terms via `terms.filter(t => t.status === 'published')`. Drift
+between the two filters either leaks unpublished terms into the pillar's
+DefinedTermSet (whose @ids then 404 because the spoke route refuses to build them)
+or surfaces unpublished content as a canonical entity URL.
+
+### G2: Shared Render Path Enforcement
+
+`src/components/GlossaryTerm.astro` is the only file allowed to render glossary
+`bodyHtml` via `set:html`. Any other `.astro` file matching `set:html={...bodyHtml}`
+or `set:html={...body_html}` shapes fails the gate. This is the structural guarantee
+that pillar-vs-spoke drift is impossible: edit the body once in D1, two surfaces
+render the same string.
+
+### G3: Rewriter Anchor Coverage
+
+`rewriteAnchors()` inside `GlossaryTerm.astro` special-cases three anchor shapes
+(`ref-N` prefix, exact `abbreviations`, exact `references`) so they rewrite to
+`/glossary/#<anchor>` (jump back to pillar) instead of `/glossary/<anchor>/` (spoke
+link, which would 404). Drop one of the three, every spoke containing that anchor
+type ships broken links.
+
+### G4: Heading Level Contract
+
+The `headingLevel` Props type must be a union including `'h1'`, `'h2'`, `'h3'`. Every
+`<GlossaryTerm headingLevel="...">` consumer under `src/pages/` must pass a value
+inside the union. The pillar must use `"h3"` (under per-Part `<h2>` sections) and
+the spoke must use `"h1"` (the page heading). Catches the duplicate-H1 regression
+that landed at v1 launch (spoke route had its own `<h1>` AND the component rendered
+a second one).
+
+### G5: Schema @id Consistency (static source check)
+
+The spoke route declares three `@id` constants (`TERM_ID`, `WEBPAGE_ID`, `SPOKE_URL`)
+that must be parameterized on `${term.slug}` so each spoke gets a unique entity URL.
+The cross-references must wire correctly: `DefinedTerm.subjectOf -> WEBPAGE_ID` and
+`MedicalWebPage.mainEntity -> TERM_ID`. The `TERM_SET_ID` constant must equal
+`https://rrmacademy.org/glossary/#defined-term-set` on BOTH the spoke and the pillar
+so the `inDefinedTermSet` pointer resolves.
+
+## Pre-commit trigger
+
+The pre-commit hook runs `npm run gates:glossary:check` when either of these
+glossary surfaces change:
+
+- `src/components/GlossaryTerm.astro`
+- `src/pages/glossary/**/*.astro`
+
+## Companion: snapshot script
+
+`scripts/glossary-snapshot.mjs` is the runtime counterpart to these static gates.
+It walks the built `dist/glossary/` tree (or live site with `--live`) and validates
+per-spoke heading uniqueness, JSON-LD `@id` cross-refs, cross-ref rewriter coverage,
+and pillar/spoke parity (DefinedTermSet @id count vs spoke directory count, sitemap
+URL count vs spoke directory count). Wired into npm via `snapshot:glossary` (pillar
+only) and `snapshot:spokes` (spoke + parity).
