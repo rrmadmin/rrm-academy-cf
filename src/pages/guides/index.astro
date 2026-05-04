@@ -184,9 +184,9 @@ const jsonLd = {
     background: var(--card-accent, var(--purple-500));
   }
   .guide-card:hover {
-    border-color: var(--purple-300);
+    border-color: var(--card-accent, var(--purple-300));
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px -8px rgba(76, 62, 84, 0.18);
+    box-shadow: 0 6px 18px -8px color-mix(in srgb, var(--card-accent, var(--purple-500)) 35%, transparent);
     text-decoration: none;
   }
   @media (prefers-reduced-motion: reduce) {
