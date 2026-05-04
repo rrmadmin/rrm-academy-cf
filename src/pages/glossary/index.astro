@@ -69,7 +69,7 @@ for (const part of Object.keys(termsByPart)) {
 
 // Build A-Z index from all terms, grouped by first letter of name
 function firstLetter(name: string): string {
-  const m = name.match(/[A-Za-z]/);
+  const m = name.match(/\p{L}/u);
   return m ? m[0].toUpperCase() : '#';
 }
 const azMap = new Map<string, GlossaryTerm[]>();

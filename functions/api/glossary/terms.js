@@ -102,6 +102,13 @@ export async function onRequestGet(context) {
   }
 }
 
+function toIso(d) {
+  if (!d || typeof d !== 'string') return d;
+  if (d.includes('T') || d.endsWith('Z')) return d;
+  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(d)) return d.replace(' ', 'T') + 'Z';
+  return d;
+}
+
 function mapTerm(r) {
   return {
     id: r.id,
@@ -113,8 +120,8 @@ function mapTerm(r) {
     abbreviation: r.abbreviation,
     pillarLink: r.pillar_link,
     status: r.status,
-    updatedAt: r.updated_at,
-    createdAt: r.created_at,
+    updatedAt: toIso(r.updated_at),
+    createdAt: toIso(r.created_at),
   };
 }
 

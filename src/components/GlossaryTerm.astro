@@ -34,11 +34,15 @@ const { term, headingLevel, mode } = Astro.props;
 // #references in any term body, but the special-case lands defensively so future glossary
 // authoring against pillar section anchors does not produce 404s.
 function rewriteAnchors(html: string): string {
-  return html.replace(/href="#([^"]+)"/g, (_match, target: string) => {
-    if (target.startsWith('ref-') || target === 'abbreviations' || target === 'references') {
-      return `href="/glossary/#${target}"`;
+  return html.replace(/href=(["'])#([^"']+)\1/g, (_match, _quote, target: string) => {
+    const t = target.toLowerCase();
+    if (t.startsWith('ref-') || t === 'abbreviations' || t === 'references') {
+      return `href="/glossary/#${t}"`;
     }
-    return `href="/glossary/${target}/"`;
+    if (!/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(t)) {
+      return `href="/glossary/#${t}"`;
+    }
+    return `href="/glossary/${t}/"`;
   });
 }
 
