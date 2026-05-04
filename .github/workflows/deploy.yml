@@ -345,6 +345,13 @@ jobs:
       - name: Type check (baseline)
         run: npm run check-types
 
+      - name: Persona/enum sync check
+        run: node scripts/check-persona-enum-sync.mjs
+
+      - name: Bridge inbound-link warning (non-blocking)
+        run: node scripts/check-bridge-links.mjs
+        continue-on-error: true
+
       - name: Verify design system SSOT is in sync
         run: npm run design-tokens:check
 
