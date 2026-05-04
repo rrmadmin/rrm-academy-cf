@@ -356,6 +356,17 @@ jobs:
       - name: Build site
         run: npm run build
 
+      - name: Validate glossary spoke pages
+        # Skip on single-record dispatches: spoke set only refreshes on full rebuild
+        # (getStaticPaths re-runs against in-memory glossary.json, but dispatched
+        # single-record updates patch one term row, not the spoke directory layout).
+        # The status-filter agreement gate (G1-G5) is cheap and runs regardless.
+        if: ${{ !github.event.client_payload.record_id && !github.event.client_payload.article_id && !github.event.client_payload.faq_id && !github.event.client_payload.glossary_term_id && !github.event.client_payload.course_id }}
+        run: |
+          npm run gates:glossary:check
+          npm run snapshot:glossary
+          npm run snapshot:spokes
+
       - name: Verify templates
         run: npm run verify-templates
 

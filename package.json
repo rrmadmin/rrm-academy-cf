@@ -24,6 +24,8 @@
     "fetch-partners": "node src/lib/fetch-partners-data.mjs",
     "fetch-glossary": "node src/lib/fetch-glossary-data.mjs",
     "snapshot:glossary": "node scripts/glossary-snapshot.mjs",
+    "snapshot:spokes": "node scripts/glossary-snapshot.mjs --spokes",
+    "snapshot:spokes:live": "node scripts/glossary-snapshot.mjs --spokes --live",
     "fetch-all": "node src/lib/fetch-data.mjs && node src/lib/fetch-blog-data.mjs && node src/lib/fetch-faq-data.mjs && node src/lib/fetch-courses-data.mjs && node src/lib/fetch-partners-data.mjs && node src/lib/fetch-glossary-data.mjs",
     "guard": "node scripts/guard.mjs",
     "guard:update": "node scripts/guard.mjs --update",
@@ -59,7 +61,9 @@
     "quality:all": "node scripts/quality/dashboard.mjs",
     "quality:fast": "node scripts/quality/dashboard.mjs --skip-mutation",
     "gates": "node scripts/gates/validate-fact-pipeline.mjs",
-    "gates:check": "node scripts/gates/validate-fact-pipeline.mjs --quick"
+    "gates:check": "node scripts/gates/validate-fact-pipeline.mjs --quick",
+    "gates:glossary": "node scripts/gates/validate-glossary-pipeline.mjs",
+    "gates:glossary:check": "node scripts/gates/validate-glossary-pipeline.mjs --quick"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.3.0",

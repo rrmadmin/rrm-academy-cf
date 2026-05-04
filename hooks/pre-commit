@@ -44,6 +44,18 @@ if echo "$STAGED" | grep -qE '^public/(\.well-known/|agents\.md|llms(-full)?\.tx
   fi
 fi
 
+# --- Glossary spoke pipeline gates: any staged GlossaryTerm component or glossary route ---
+if echo "$STAGED" | grep -qE '^src/components/GlossaryTerm\.astro$|^src/pages/glossary/.*\.astro$'; then
+  node scripts/gates/validate-glossary-pipeline.mjs --quick
+  if [ $? -ne 0 ]; then
+    echo ""
+    echo "Commit blocked by glossary spoke pipeline gates."
+    echo "Status filter, render path, rewriter coverage, heading levels, or schema @ids drifted."
+    echo "Fix the failures above, or bypass with --no-verify."
+    exit 1
+  fi
+fi
+
 # --- Security guard: only on critical file changes ---
 TRIGGER=0
 for file in $CRITICAL_FILES; do
