@@ -4,6 +4,32 @@
   "_note": "Courses snapshot — committed file. Phase 1's ssot-prebuild will re-snapshot from D1 on every build. Source: src/data/courses.json (D1-merged with src/data/courses-overrides.json). Not validated by ssot-validate (out-of-band file).",
   "courses": [
     {
+      "@id": "https://rrmacademy.org/courses/masterclass-in-endometriosis-and-surgery/#course",
+      "@type": "Course",
+      "name": "Masterclass in Endometriosis & Surgery",
+      "description": "Take control of your endometriosis journey with this comprehensive masterclass led by Dr. Naomi Whittaker, a NaProTechnology trained OBGYN and endometriosis specialist.\n\nDesigned for both women living with endometriosis and healthcare professionals, this course offers:\n\n• Clarity and understanding — Debunk common myths and gain in-depth knowledge about endometriosis and its impact on fertility.\n\n• Surgical insights — Explore various surgical approaches, including NaProTechnology's meticulous techniques and focus on adhesion prevention.\n\n• Informed decision-making — Learn how to choose the right endometriosis surgeon for you and navigate the surgical process with confidence.\n\n• Long-term management — Discover effective strategies for managing endometriosis symptoms through lifestyle changes, supplements, and medications.\n\nWhether you're considering surgery, waiting for an appointment, or seeking to better guide your patients, this masterclass empowers you with the knowledge and tools you need to find lasting relief and achieve your fertility goals.",
+      "provider": {
+        "@id": "https://rrmacademy.org/#organization"
+      },
+      "instructor": [
+        {
+          "@id": "https://rrmacademy.org/#naomi-whittaker"
+        }
+      ],
+      "hasCourseInstance": [
+        {
+          "@type": "CourseInstance",
+          "courseMode": "online",
+          "courseWorkload": "selfPaced"
+        }
+      ],
+      "offers": {
+        "@type": "Offer",
+        "price": 199,
+        "priceCurrency": "USD"
+      }
+    },
+    {
       "@id": "https://rrmacademy.org/courses/neofertility-medical-training/#course",
       "@type": "Course",
       "name": "NeoFertility Medical Training Cohort",
@@ -111,7 +137,7 @@
       "@id": "https://rrmacademy.org/courses/hormones-through-the-lifespan/#course",
       "@type": "Course",
       "name": "Hormones Through the Lifespan: Cycles, Conditions, and Menopause",
-      "description": "Dr. Ana Garcia, OB/GYN and NaProTechnology-trained physician, walks through the full arc of female hormonal health: how cycles work, what disrupts them, conditions like PCOS and endometriosis, and how to support the body through perimenopause and menopause with a restorative approach.",
+      "description": "Join Dr. Ana Garcia, a NaProTechnology-trained OB/GYN, for a comprehensive journey through female hormonal health from menarche to menopause.\n\nThis presentation covers the full arc of how your hormones work, what disrupts them, and how to support your body at every stage:\n\n• The menstrual cycle as a vital sign: how the brain, pituitary, and ovaries coordinate hormone production, ovulation, and progesterone\n\n• Interconnected hormone axes: how prolactin, thyroid, and insulin pathways influence each other and your cycle\n\n• Common conditions decoded: [PCOS](/glossary/#pcos), [endometriosis](/glossary/#endometriosis), progesterone deficiency, recurrent miscarriage, and why birth control masks rather than treats\n\n• The gut-hormone connection: how the microbiome affects estrogen metabolism, inflammation, and overall hormonal balance\n\n• Navigating perimenopause and [menopause](/glossary/): bioidentical hormone replacement therapy (BHRT), functional medicine approaches, and what conventional training often misses\n\n• Live case discussion: Dr. Whittaker and Dr. Garcia work through a complex hypothalamic amenorrhea case with specific recommendations\n\nDesigned for both patients seeking to understand their own hormonal health and providers looking to deepen their restorative approach.",
       "provider": {
         "@id": "https://rrmacademy.org/#organization"
       },
@@ -137,7 +163,7 @@
       "@id": "https://rrmacademy.org/courses/pelvic-floor-rehabilitation/#course",
       "@type": "Course",
       "name": "Pelvic Floor Rehabilitation",
-      "description": "Dr. Amanda Simmons, Doctor of Physical Therapy and pelvic floor specialist at Ascend Pelvic Health, covers the anatomy and function of the pelvic floor, common dysfunctions (pain, prolapse, incontinence), and evidence-based rehabilitation approaches for patients navigating reproductive and pelvic health conditions.",
+      "description": "Dr. Amanda Simmons, Doctor of Physical Therapy and pelvic floor specialist at Ascend Pelvic Health, delivers a thorough clinical overview of pelvic floor anatomy, dysfunction, and evidence-based [pelvic floor physical therapy](/glossary/#pelvic-floor-physical-therapy).\n\nWhether you are living with pelvic floor issues or a provider wanting to better support your patients, this session covers:\n\n• Anatomy and function: the pelvic floor as a muscular \"hammock,\" its role in support, continence, sexual function, and core stability\n\n• The spectrum of dysfunction: understanding both overactive (hypertonic) and underactive pelvic floors, and why \"just do Kegels\" is often the wrong advice\n\n• Incontinence explained: stress, urge, and mixed incontinence types, healthy bladder habits, and practical strategies for managing urgency\n\n• Pelvic organ prolapse: prevalence, grading, symptoms, and why pelvic floor muscle training (PFMT) is the gold standard treatment\n\n• The core canister model: how the diaphragm, abdominals, and pelvic floor work together, and what happens when that system breaks down\n\n• Constipation, heavy lifting, and daily life: practical guidance on toileting posture, safe lifting mechanics, and lifestyle modifications\n\n• When to seek specialist care: what a pelvic floor PT evaluation looks like and what to expect from treatment\n\nIncludes a live Q&A with Dr. Whittaker addressing patient cases and referral pathways.",
       "provider": {
         "@id": "https://rrmacademy.org/#organization"
       },
@@ -163,13 +189,13 @@
       "@id": "https://rrmacademy.org/courses/infertility-existential-trauma/#course",
       "@type": "Course",
       "name": "Infertility as Existential Trauma",
-      "description": "Dr. Clay Brigance, Licensed Professional Counselor and researcher, examines infertility as a form of existential trauma and PTSD. This session covers the psychological impact of fertility struggles, grief responses, and therapeutic approaches that help patients process and heal — essential knowledge for both patients and the providers who support them.",
+      "description": "Dr. Clay Brigance, Licensed Professional Counselor and researcher, brings both clinical expertise and personal experience to this deeply human exploration of infertility as a form of existential trauma.\n\nDrawing from his own fertility journey and years of clinical practice, Dr. Brigance covers:\n\n• Infertility as trauma: why fertility struggles meet the clinical criteria for trauma and PTSD, and how the experience reshapes identity and meaning\n\n• The isolating nature of infertility: how couples withdraw from social connections, and why well-meaning advice often causes additional harm\n\n• The male experience: how men process fertility grief differently, the role of masculinity and \"well-intended chivalry,\" and why couples often grieve on different timelines\n\n• Couple dynamics and decisional conflict: navigating treatment decisions together when partners have different risk tolerances and emotional responses\n\n• Reproductive grief and PTSD research: what the clinical literature tells us about the psychological toll, including duration of symptoms and factors that predict resilience\n\n• Communication for non-therapists: practical guidance for providers, nurses, and support workers on how to avoid inadvertently adding to a patient's trauma\n\n• Achieving acceptance: how individuals and couples move through grief toward redefining identity and finding meaning, even without the outcome they hoped for\n\nEssential viewing for patients navigating fertility struggles and the providers, counselors, and support staff who walk alongside them. Pairs well with the [Restorative Reproductive Medicine](/what-is-rrm/) framework for understanding [infertility](/glossary/#infertility) as a multifaceted experience.",
       "provider": {
         "@id": "https://rrmacademy.org/#organization"
       },
       "instructor": [
         {
-          "@id": "https://rrmacademy.org/courses/infertility-existential-trauma/#instructor-clay-brigance"
+          "@id": "https://rrmacademy.org/courses/infertility-existential-trauma/#instructor-clay-brigance-phd"
         }
       ],
       "hasCourseInstance": [
@@ -189,7 +215,7 @@
       "@id": "https://rrmacademy.org/courses/fertility-based-family-planning/#course",
       "@type": "Course",
       "name": "Fertility-Based Methods of Family Planning: New Horizons",
-      "description": "Dr. William Nolan presents the current landscape of fertility-based methods of family planning (FBMFPs), including the latest research, emerging methods, and how these approaches align with NaProTechnology and restorative reproductive medicine principles. Designed for both providers and patients seeking alternatives to hormonal contraception.",
+      "description": "Dr. William Nolan, OB/GYN and minimally invasive surgery fellow, presents a data-driven overview of fertility awareness-based methods (FABMs): their effectiveness, clinical applications, and emerging research.\n\nThis lecture equips both patients and providers with the evidence needed to have informed conversations about family planning beyond hormonal contraception, with parallels to [NaProTechnology](/naprotechnology/) cooperative protocols:\n\n• What FABMs actually are: observable biomarkers (cervical mucus, basal body temperature, urinary hormones) and how they track the fertile window\n\n• Effectiveness data done right: why the CDC's collective 24% failure rate misrepresents individual methods, and what perfect-use and typical-use rates actually show for each category\n\n• The provider knowledge gap: 40-50% of OBGYN trainees lack significant FABM training, and 80-90% cannot explain specific methods to patients\n\n• Method-by-method review: calendar-based, cervical mucus-only ([Billings Ovulation Method](/glossary/#billings-ovulation-method), [Creighton Model](/glossary/#creighton-model)), BBT, symptothermal (Sensiplan), and hormonal monitoring methods (including the [Marquette Method](/glossary/#marquette-method)) with comparative efficacy data\n\n• Why cervical mucus matters most: the physiological basis for why mucus observation outperforms hormone testing in validated FABMs\n\n• Clinical applications beyond family planning: cycle-based approaches to nutrition, exercise, and weight management, with emerging research showing nearly double the weight loss when tailored to cycle phases\n\n• Cooperative hormone therapy and PCOS: how FABMs integrate with NaProTechnology treatment protocols\n\nIncludes a rich Q&A with Dr. Whittaker on industry dynamics, clinical collaboration, and making reproductive medicine patient-centric.",
       "provider": {
         "@id": "https://rrmacademy.org/#organization"
       },
@@ -215,7 +241,7 @@
       "@id": "https://rrmacademy.org/courses/aip-diet-inflammation/#course",
       "@type": "Course",
       "name": "Why the AIP Diet Is Not Enough to Reduce Inflammation",
-      "description": "Rita Johnson, functional medicine practitioner, breaks down the science and limitations of the Autoimmune Protocol (AIP) diet for patients managing chronic inflammation, endometriosis, PCOS, and other reproductive conditions. Learn what diet alone cannot address, and what a comprehensive anti-inflammatory protocol — including gut health, lifestyle, and targeted support — actually requires.",
+      "description": "Rita Johnson, functional medicine practitioner and Creighton Model FertilityCare Practitioner, challenges the assumption that diet alone can resolve chronic inflammation: and shows what a complete anti-inflammatory strategy actually requires.\n\nBorn from her own struggle with secondary infertility and years of frustration with symptom management, this session covers:\n\n• Why AIP falls short: the Autoimmune Protocol diet is at best temporary symptom management that fails to address root causes, and long-term restriction can worsen deficiencies\n\n• Beyond diet: the real sources of inflammation: poor digestive function, co-infections (Lyme, mold, parasites), disbiotic bacteria, yeast overgrowth, and blood sugar imbalances that signal the body it is \"not safe\" to produce sex hormones\n\n• Case study: [PCOS](/glossary/#pcos) and [endometriosis](/glossary/#endometriosis): a 30-year-old client whose GI map revealed impaired fat digestion directly correlated with low estrogen and progesterone, plus disbiotic bacteria driving inflammation. A 12-week targeted protocol produced dramatic improvement\n\n• Case study: severe [endometriosis](/glossary/#endometriosis) in a young client: low secretory IgA, disbiotic bacteria, and undetected parasites (tapeworms not caught on initial testing) found through functional lab testing\n\n• Functional testing as the missing piece: GI maps, food sensitivity panels, and the importance of testing before restricting\n\n• Long-term solutions: restoring organ function, targeted supplementation, the role of bile salts and fat absorption, and when to step down from protocols\n\nIncludes discussion with Dr. Whittaker on healthy fats for fertility, managing elevated prolactin, and nervous system support.",
       "provider": {
         "@id": "https://rrmacademy.org/#organization"
       },
@@ -234,64 +260,6 @@
       "offers": {
         "@type": "Offer",
         "price": 0,
-        "priceCurrency": "USD"
-      }
-    },
-    {
-      "@id": "https://rrmacademy.org/courses/functional-lab-testing-napro/#course",
-      "@type": "Course",
-      "name": "Functional Lab Testing, NaPro Technology, and Preconception Care",
-      "description": "Dr. Ana Garcia (OB/GYN), Hannah Ducote (RN, fertility coach), and Elena Climov (FNP-C, IFMCP) discuss how functional lab testing integrates with NaProTechnology and RRM protocols to support preconception care. Topics include hormone panels, thyroid, micronutrient testing, and how to use data to guide targeted preconception support.",
-      "provider": {
-        "@id": "https://rrmacademy.org/#organization"
-      },
-      "instructor": [
-        {
-          "@id": "https://rrmacademy.org/courses/functional-lab-testing-napro/#instructor-ana-garcia"
-        },
-        {
-          "@id": "https://rrmacademy.org/courses/functional-lab-testing-napro/#instructor-hannah-ducote"
-        },
-        {
-          "@id": "https://rrmacademy.org/courses/functional-lab-testing-napro/#instructor-elena-climov"
-        }
-      ],
-      "hasCourseInstance": [
-        {
-          "@type": "CourseInstance",
-          "courseMode": "online",
-          "courseWorkload": "selfPaced"
-        }
-      ],
-      "offers": {
-        "@type": "Offer",
-        "price": 0,
-        "priceCurrency": "USD"
-      }
-    },
-    {
-      "@id": "https://rrmacademy.org/courses/masterclass-in-endometriosis-and-surgery/#course",
-      "@type": "Course",
-      "name": "Masterclass in Endometriosis & Surgery",
-      "description": "Take control of your endometriosis journey with this comprehensive masterclass led by Dr. Naomi Whittaker, a NaProTechnology trained OBGYN and endometriosis specialist.\n\nDesigned for both women living with endometriosis and healthcare professionals, this course offers:\n\n• Clarity and understanding — Debunk common myths and gain in-depth knowledge about endometriosis and its impact on fertility.\n\n• Surgical insights — Explore various surgical approaches, including NaProTechnology's meticulous techniques and focus on adhesion prevention.\n\n• Informed decision-making — Learn how to choose the right endometriosis surgeon for you and navigate the surgical process with confidence.\n\n• Long-term management — Discover effective strategies for managing endometriosis symptoms through lifestyle changes, supplements, and medications.\n\nWhether you're considering surgery, waiting for an appointment, or seeking to better guide your patients, this masterclass empowers you with the knowledge and tools you need to find lasting relief and achieve your fertility goals.",
-      "provider": {
-        "@id": "https://rrmacademy.org/#organization"
-      },
-      "instructor": [
-        {
-          "@id": "https://rrmacademy.org/#naomi-whittaker"
-        }
-      ],
-      "hasCourseInstance": [
-        {
-          "@type": "CourseInstance",
-          "courseMode": "online",
-          "courseWorkload": "selfPaced"
-        }
-      ],
-      "offers": {
-        "@type": "Offer",
-        "price": 199,
         "priceCurrency": "USD"
       }
     }
