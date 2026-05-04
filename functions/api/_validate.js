@@ -13,12 +13,13 @@
  *   const { name, email, count } = result.data;
  *
  * Schema field options:
- *   type      'string' | 'number' | 'boolean' | 'email'  (required)
+ *   type      'string' | 'number' | 'boolean' | 'email' | 'enum'  (required)
  *   required  true | false  (default: false)
  *   maxLength max string length (strings and emails)
  *   minLength min string length after trim
  *   min       minimum value (numbers)
  *   max       maximum value (numbers)
+ *   values    allowed string values (enum only)
  *
  * Returns:
  *   { valid: true,  data: sanitizedBody }
