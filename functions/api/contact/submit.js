@@ -8,6 +8,8 @@ import { verifyAndTagEmail } from '../_elv.js';
 import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
 import { validateBody } from '../_validate.js';
+import { CONTACT_CATEGORIES, CATEGORY_SOURCES } from '../../../src/lib/contact-categories.js';
+import { buildContactSubject } from './_subject.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -36,9 +38,11 @@ export async function onRequestPost(context) {
     }
 
     const validated = validateBody(body, {
-      name:    { type: 'string', required: true, maxLength: 200 },
-      email:   { type: 'email',  required: true },
-      message: { type: 'string', required: true, minLength: 10, maxLength: 5000 },
+      name:            { type: 'string', required: true, maxLength: 200 },
+      email:           { type: 'email',  required: true },
+      message:         { type: 'string', required: true, minLength: 10, maxLength: 5000 },
+      category:        { type: 'enum', values: [...CONTACT_CATEGORIES], required: false },
+      category_source: { type: 'enum', values: [...CATEGORY_SOURCES], required: false },
     });
     if (!validated.valid) return json({ ok: false, error: validated.error }, validated.status);
 
@@ -46,6 +50,9 @@ export async function onRequestPost(context) {
     const name = validated.data.name.replace(/[\x00-\x1f\x7f]/g, '');
     const email = validated.data.email;
     const message = validated.data.message;
+    const category = validated.data.category || 'other';
+    const categorySource = validated.data.category_source || 'default';
+    const authStateAtSubmit = context.data?.user?.id ?? null;
 
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
 
@@ -73,7 +80,7 @@ export async function onRequestPost(context) {
     }
 
     // Send notification email via SES
-    const notifySubject = `[Contact] ${name} (${email})`;
+    const notifySubject = buildContactSubject(category, message);
     try {
       await sendEmail(env, {
         from: 'RRM Academy <contact@mail.rrmacademy.org>',
@@ -83,6 +90,8 @@ export async function onRequestPost(context) {
         text: [
           `Name: ${name}`,
           `Email: ${email}`,
+          `Category: ${category} (source: ${categorySource})`,
+          `Auth state at submit: ${authStateAtSubmit !== null ? `user:${authStateAtSubmit}` : 'anonymous'}`,
           '',
           message,
           '',
@@ -120,6 +129,7 @@ export async function onRequestPost(context) {
       await logEmailFailure(env.DB, { email, category: 'transactional', source: 'contact/confirm', subject: confirmSubject, detail: err.message });
     }
 
+    log(env, waitUntil, 'contact', 'submit_ok', 'ok', email, 0, 200, [category, categorySource]);
     return json({ ok: true });
   } catch (err) {
     console.error(err);
