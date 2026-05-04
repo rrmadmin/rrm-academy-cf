@@ -3328,12 +3328,6 @@
       "sortOrder": 20
     },
     {
-      "abbreviation": "MIS",
-      "fullTerm": "Minimally Invasive Surgery",
-      "termSlug": "minimally-invasive-surgery",
-      "sortOrder": 21
-    },
-    {
       "abbreviation": "S-MAP",
       "fullTerm": "Systematic Mapping of the Abdomen and Pelvis",
       "termSlug": "s-map",
