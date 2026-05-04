@@ -70,31 +70,38 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'term_slug_too_long' }, 400);
   }
 
+  if (sort_order !== undefined && (!Number.isInteger(sort_order) || sort_order < 0 || sort_order > 10000)) {
+    return json({ ok: false, error: 'sort_order_invalid' }, 400);
+  }
   const resolvedSortOrder = typeof sort_order === 'number' ? sort_order : 0;
 
-  try {
-    const result = await env.DB.prepare(
-      'INSERT OR IGNORE INTO glossary_abbreviation (abbreviation, full_term, term_slug, sort_order) VALUES (?, ?, ?, ?)'
-    ).bind(abbreviation.trim(), full_term.trim(), term_slug ?? null, resolvedSortOrder).run();
+  const normalizedTermSlug = (typeof term_slug === 'string' && term_slug.trim()) ? term_slug.trim() : null;
+  if (normalizedTermSlug !== null) {
+    try {
+      const exists = await env.DB.prepare(
+        'SELECT 1 FROM glossary_term WHERE slug = ? COLLATE NOCASE'
+      ).bind(normalizedTermSlug).first();
+      if (!exists) return json({ ok: false, error: 'term_slug_not_found' }, 400);
+    } catch (err) {
+      log(env, waitUntil, 'admin-glossary', 'abbr_term_slug_check_error', 'error', err.message, 0, 500);
+      return json({ ok: false, error: 'Internal error' }, 500);
+    }
+  }
 
-    if (result.meta.changes === 0) {
+  try {
+    const row = await env.DB.prepare(
+      'INSERT OR IGNORE INTO glossary_abbreviation (abbreviation, full_term, term_slug, sort_order) VALUES (?, ?, ?, ?) RETURNING *'
+    ).bind(abbreviation.trim(), full_term.trim(), normalizedTermSlug, resolvedSortOrder).first();
+
+    if (!row) {
       return json({ ok: false, error: 'abbreviation_already_exists' }, 409);
     }
+    return json({ ok: true, data: row, created: true }, 201);
   } catch (err) {
     if (err.message?.includes('UNIQUE constraint')) {
       return json({ ok: false, error: 'abbreviation_already_exists' }, 409);
     }
     log(env, waitUntil, 'admin-glossary', 'abbr_create_error', 'error', err.message, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
-  }
-
-  try {
-    const row = await env.DB.prepare(
-      'SELECT * FROM glossary_abbreviation WHERE abbreviation = ?'
-    ).bind(abbreviation.trim()).first();
-    return json({ ok: true, data: row, created: true }, 201);
-  } catch (err) {
-    log(env, waitUntil, 'admin-glossary', 'abbr_create_fetch_error', 'error', err.message, 0, 500);
-    return json({ ok: true, data: { abbreviation: abbreviation.trim(), full_term: full_term.trim() }, created: true }, 201);
   }
 }

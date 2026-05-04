@@ -77,7 +77,15 @@ async function fetchSingle(recordId) {
 
   if (term.status !== 'published') {
     console.log(`Removed non-published term (status: ${term.status}): ${term.slug || term.id}`);
-    writeAtomic({ terms: filtered, ...basePayload });
+    const archivedSlug = (term.slug || '').toLowerCase();
+    const updatedAbbreviations = archivedSlug
+      ? abbreviations.map(a =>
+          a.termSlug && a.termSlug.toLowerCase() === archivedSlug
+            ? { ...a, termSlug: null }
+            : a
+        )
+      : abbreviations;
+    writeAtomic({ terms: filtered, references, abbreviations: updatedAbbreviations, generatedAt: basePayload.generatedAt });
     console.log(`Wrote ${filtered.length} terms to ${OUTPUT_PATH}`);
     return;
   }

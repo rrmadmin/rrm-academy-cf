@@ -63,6 +63,19 @@ export async function onRequestPut(context) {
     return json({ ok: false, error: 'Invalid JSON' }, 400);
   }
 
+  const FIELD_MAP = {
+    anchor_text: 'anchor_text',
+    url: 'url',
+    journal: 'journal',
+    publisher: 'publisher',
+  };
+
+  const KNOWN_KEYS = new Set(Object.keys(FIELD_MAP));
+  const unknown = Object.keys(body).filter(k => !KNOWN_KEYS.has(k));
+  if (unknown.length > 0) {
+    return json({ ok: false, error: 'unknown_fields', detail: { unknown } }, 400);
+  }
+
   if (body.anchor_text !== undefined) {
     if (typeof body.anchor_text !== 'string' || !body.anchor_text.trim()) {
       return json({ ok: false, error: 'anchor_text_required' }, 400);
@@ -71,12 +84,24 @@ export async function onRequestPut(context) {
       return json({ ok: false, error: 'anchor_text_too_long' }, 400);
     }
   }
-  if (body.url !== undefined) {
-    if (typeof body.url !== 'string' || !body.url.trim()) {
-      return json({ ok: false, error: 'url_required' }, 400);
+  if (body.url !== undefined && body.url !== null && body.url !== '') {
+    if (typeof body.url !== 'string') {
+      return json({ ok: false, error: 'url_invalid_type' }, 400);
     }
     if (body.url.length > 1000) {
       return json({ ok: false, error: 'url_too_long' }, 400);
+    }
+    try {
+      const parsedUrl = new URL(body.url);
+      if (parsedUrl.protocol !== 'https:' && parsedUrl.protocol !== 'http:') {
+        return json({ ok: false, error: 'url_invalid_scheme' }, 400);
+      }
+    } catch {
+      return json({ ok: false, error: 'url_malformed' }, 400);
+    }
+  } else if (body.url !== undefined) {
+    if (typeof body.url !== 'string' || !body.url.trim()) {
+      return json({ ok: false, error: 'url_required' }, 400);
     }
   }
   if (body.journal !== undefined && typeof body.journal === 'string' && body.journal.length > 500) {
@@ -85,13 +110,6 @@ export async function onRequestPut(context) {
   if (body.publisher !== undefined && typeof body.publisher === 'string' && body.publisher.length > 500) {
     return json({ ok: false, error: 'publisher_too_long' }, 400);
   }
-
-  const FIELD_MAP = {
-    anchor_text: 'anchor_text',
-    url: 'url',
-    journal: 'journal',
-    publisher: 'publisher',
-  };
 
   const setClauses = [];
   const bindings = [];

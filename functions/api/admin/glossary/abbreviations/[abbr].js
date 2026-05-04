@@ -65,6 +65,18 @@ export async function onRequestPut(context) {
     return json({ ok: false, error: 'Invalid JSON' }, 400);
   }
 
+  const FIELD_MAP = {
+    full_term: 'full_term',
+    term_slug: 'term_slug',
+    sort_order: 'sort_order',
+  };
+
+  const KNOWN_KEYS = new Set(Object.keys(FIELD_MAP));
+  const unknown = Object.keys(body).filter(k => !KNOWN_KEYS.has(k));
+  if (unknown.length > 0) {
+    return json({ ok: false, error: 'unknown_fields', detail: { unknown } }, 400);
+  }
+
   if (body.full_term !== undefined) {
     if (typeof body.full_term !== 'string' || !body.full_term.trim()) {
       return json({ ok: false, error: 'full_term_required' }, 400);
@@ -76,20 +88,34 @@ export async function onRequestPut(context) {
   if (body.term_slug !== undefined && body.term_slug !== null && typeof body.term_slug === 'string' && body.term_slug.length > 100) {
     return json({ ok: false, error: 'term_slug_too_long' }, 400);
   }
+  if (body.sort_order !== undefined && (!Number.isInteger(body.sort_order) || body.sort_order < 0 || body.sort_order > 10000)) {
+    return json({ ok: false, error: 'sort_order_invalid' }, 400);
+  }
 
-  const FIELD_MAP = {
-    full_term: 'full_term',
-    term_slug: 'term_slug',
-    sort_order: 'sort_order',
-  };
+  const normalizedTermSlug = body.term_slug !== undefined
+    ? ((typeof body.term_slug === 'string' && body.term_slug.trim()) ? body.term_slug.trim() : null)
+    : undefined;
+
+  if (normalizedTermSlug !== undefined && normalizedTermSlug !== null) {
+    try {
+      const exists = await env.DB.prepare(
+        'SELECT 1 FROM glossary_term WHERE slug = ? COLLATE NOCASE'
+      ).bind(normalizedTermSlug).first();
+      if (!exists) return json({ ok: false, error: 'term_slug_not_found' }, 400);
+    } catch (err) {
+      log(env, waitUntil, 'admin-glossary', 'abbr_term_slug_check_error', 'error', err.message, 0, 500);
+      return json({ ok: false, error: 'Internal error' }, 500);
+    }
+  }
 
   const setClauses = [];
   const bindings = [];
 
   for (const [bodyKey, colName] of Object.entries(FIELD_MAP)) {
     if (body[bodyKey] !== undefined) {
+      const value = bodyKey === 'term_slug' ? normalizedTermSlug : body[bodyKey];
       setClauses.push(`${colName} = ?`);
-      bindings.push(body[bodyKey]);
+      bindings.push(value);
     }
   }
 

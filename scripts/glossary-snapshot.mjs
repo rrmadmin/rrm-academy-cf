@@ -67,16 +67,34 @@ function pass(msg) { console.log(`  PASS: ${msg}`); }
 // ---------- helpers shared by both modes ----------------------------------
 
 async function fetchHtml(url) {
-  let res;
-  try {
-    res = await fetch(url);
-  } catch (err) {
-    throw new Error(`GET ${url} threw: ${err.message}`);
+  let lastErr;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 15000);
+      try {
+        const res = await fetch(url, { signal: controller.signal });
+        if (!res.ok) {
+          if (res.status >= 500 && attempt < 3) {
+            await new Promise(r => setTimeout(r, attempt * 500));
+            continue;
+          }
+          throw new Error(`GET ${url} returned ${res.status}`);
+        }
+        return await res.text();
+      } finally {
+        clearTimeout(timer);
+      }
+    } catch (err) {
+      lastErr = err;
+      if (attempt < 3 && (err.name === 'AbortError' || err.message?.includes('fetch'))) {
+        await new Promise(r => setTimeout(r, attempt * 500));
+        continue;
+      }
+      throw err;
+    }
   }
-  if (!res.ok) {
-    throw new Error(`GET ${url} returned ${res.status}`);
-  }
-  return res.text();
+  throw lastErr;
 }
 
 function readDistFile(relPath) {

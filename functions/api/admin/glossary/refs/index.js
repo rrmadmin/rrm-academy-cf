@@ -52,8 +52,20 @@ export async function onRequestPost(context) {
 
   const { ref_num, anchor_text, url, journal, publisher } = body;
 
-  if (typeof ref_num !== 'number' || !Number.isInteger(ref_num) || ref_num < 1) {
-    return json({ ok: false, error: 'invalid_ref_num' }, 400);
+  let resolvedRefNum;
+  if (ref_num === undefined) {
+    try {
+      const maxRow = await env.DB.prepare('SELECT COALESCE(MAX(ref_num), 0) AS m FROM glossary_reference').first();
+      resolvedRefNum = (maxRow?.m ?? 0) + 1;
+    } catch (err) {
+      log(env, waitUntil, 'admin-glossary', 'ref_num_compute_error', 'error', err.message, 0, 500);
+      return json({ ok: false, error: 'Internal error' }, 500);
+    }
+  } else {
+    if (typeof ref_num !== 'number' || !Number.isInteger(ref_num) || ref_num < 1 || ref_num > 10000) {
+      return json({ ok: false, error: 'invalid_ref_num' }, 400);
+    }
+    resolvedRefNum = ref_num;
   }
 
   if (typeof anchor_text !== 'string' || !anchor_text.trim()) {
@@ -69,6 +81,14 @@ export async function onRequestPost(context) {
   if (url.length > 1000) {
     return json({ ok: false, error: 'url_too_long' }, 400);
   }
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+      return json({ ok: false, error: 'url_invalid_scheme' }, 400);
+    }
+  } catch {
+    return json({ ok: false, error: 'url_malformed' }, 400);
+  }
 
   if (journal !== undefined && typeof journal === 'string' && journal.length > 500) {
     return json({ ok: false, error: 'journal_too_long' }, 400);
@@ -78,26 +98,19 @@ export async function onRequestPost(context) {
   }
 
   try {
-    const result = await env.DB.prepare(
-      'INSERT OR IGNORE INTO glossary_reference (ref_num, anchor_text, url, journal, publisher) VALUES (?, ?, ?, ?, ?)'
-    ).bind(ref_num, anchor_text.trim(), url.trim(), journal ?? null, publisher ?? null).run();
+    const row = await env.DB.prepare(
+      'INSERT OR IGNORE INTO glossary_reference (ref_num, anchor_text, url, journal, publisher) VALUES (?, ?, ?, ?, ?) RETURNING *'
+    ).bind(resolvedRefNum, anchor_text.trim(), url.trim(), journal ?? null, publisher ?? null).first();
 
-    if (result.meta.changes === 0) {
+    if (!row) {
       return json({ ok: false, error: 'ref_num_already_exists' }, 409);
     }
+    return json({ ok: true, data: row, created: true }, 201);
   } catch (err) {
     if (err.message?.includes('UNIQUE constraint')) {
       return json({ ok: false, error: 'ref_num_already_exists' }, 409);
     }
     log(env, waitUntil, 'admin-glossary', 'ref_create_error', 'error', err.message, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
-  }
-
-  try {
-    const row = await env.DB.prepare('SELECT * FROM glossary_reference WHERE ref_num = ?').bind(ref_num).first();
-    return json({ ok: true, data: row, created: true }, 201);
-  } catch (err) {
-    log(env, waitUntil, 'admin-glossary', 'ref_create_fetch_error', 'error', err.message, 0, 500);
-    return json({ ok: true, data: { ref_num, anchor_text: anchor_text.trim(), url: url.trim() }, created: true }, 201);
   }
 }

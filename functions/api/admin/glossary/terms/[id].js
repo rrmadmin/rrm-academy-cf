@@ -61,6 +61,26 @@ export async function onRequestPut(context) {
     return json({ ok: false, error: 'Invalid JSON' }, 400);
   }
 
+  if (body.slug !== undefined) {
+    return json({ ok: false, error: 'slug_immutable_use_recreate' }, 400);
+  }
+
+  const FIELD_MAP = {
+    name: 'name',
+    part: 'part',
+    sort_order: 'sort_order',
+    body_html: 'body_html',
+    abbreviation: 'abbreviation',
+    pillar_link: 'pillar_link',
+    status: 'status',
+  };
+
+  const KNOWN_KEYS = new Set([...Object.keys(FIELD_MAP), 'slug']);
+  const unknown = Object.keys(body).filter(k => !KNOWN_KEYS.has(k));
+  if (unknown.length > 0) {
+    return json({ ok: false, error: 'unknown_fields', detail: { unknown } }, 400);
+  }
+
   if (body.name !== undefined) {
     if (typeof body.name !== 'string' || !body.name.trim()) {
       return json({ ok: false, error: 'name_required' }, 400);
@@ -86,19 +106,20 @@ export async function onRequestPut(context) {
   if (body.abbreviation !== undefined && typeof body.abbreviation === 'string' && body.abbreviation.length > 100) {
     return json({ ok: false, error: 'abbreviation_too_long' }, 400);
   }
-  if (body.pillar_link !== undefined && typeof body.pillar_link === 'string' && body.pillar_link.length > 500) {
-    return json({ ok: false, error: 'pillar_link_too_long' }, 400);
+  if (body.pillar_link !== undefined && body.pillar_link !== null && body.pillar_link !== '') {
+    if (typeof body.pillar_link !== 'string') {
+      return json({ ok: false, error: 'pillar_link_invalid_type' }, 400);
+    }
+    if (!body.pillar_link.startsWith('/') || body.pillar_link.startsWith('//')) {
+      return json({ ok: false, error: 'pillar_link_must_be_relative' }, 400);
+    }
+    if (body.pillar_link.length > 500) {
+      return json({ ok: false, error: 'pillar_link_too_long' }, 400);
+    }
   }
-
-  const FIELD_MAP = {
-    name: 'name',
-    part: 'part',
-    sort_order: 'sort_order',
-    body_html: 'body_html',
-    abbreviation: 'abbreviation',
-    pillar_link: 'pillar_link',
-    status: 'status',
-  };
+  if (body.sort_order !== undefined && (!Number.isInteger(body.sort_order) || body.sort_order < 0 || body.sort_order > 10000)) {
+    return json({ ok: false, error: 'sort_order_invalid' }, 400);
+  }
 
   const setClauses = [];
   const bindings = [];

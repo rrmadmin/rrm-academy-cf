@@ -91,14 +91,25 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'invalid_part' }, 400);
   }
 
-  if (body_html !== undefined && typeof body_html === 'string' && body_html.length > 200000) {
+  if (typeof body_html !== 'string' || !body_html.trim()) {
+    return json({ ok: false, error: 'body_html_required' }, 400);
+  }
+  if (body_html.length > 200000) {
     return json({ ok: false, error: 'body_html_too_long' }, 400);
   }
   if (abbreviation !== undefined && typeof abbreviation === 'string' && abbreviation.length > 100) {
     return json({ ok: false, error: 'abbreviation_too_long' }, 400);
   }
-  if (pillar_link !== undefined && typeof pillar_link === 'string' && pillar_link.length > 500) {
-    return json({ ok: false, error: 'pillar_link_too_long' }, 400);
+  if (pillar_link !== undefined && pillar_link !== null && pillar_link !== '') {
+    if (typeof pillar_link !== 'string') {
+      return json({ ok: false, error: 'pillar_link_invalid_type' }, 400);
+    }
+    if (!pillar_link.startsWith('/') || pillar_link.startsWith('//')) {
+      return json({ ok: false, error: 'pillar_link_must_be_relative' }, 400);
+    }
+    if (pillar_link.length > 500) {
+      return json({ ok: false, error: 'pillar_link_too_long' }, 400);
+    }
   }
 
   const resolvedStatus = status ?? 'draft';
@@ -106,13 +117,16 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'invalid_status' }, 400);
   }
 
+  if (sort_order !== undefined && (!Number.isInteger(sort_order) || sort_order < 0 || sort_order > 10000)) {
+    return json({ ok: false, error: 'sort_order_invalid' }, 400);
+  }
   const resolvedSortOrder = typeof sort_order === 'number' ? sort_order : 0;
   const id = 'term_' + trimmedSlug.toLowerCase();
 
   try {
-    const result = await env.DB.prepare(
+    const row = await env.DB.prepare(
       `INSERT OR IGNORE INTO glossary_term (id, slug, name, part, sort_order, body_html, abbreviation, pillar_link, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`
     ).bind(
       id,
       trimmedSlug.toLowerCase(),
@@ -121,23 +135,16 @@ export async function onRequestPost(context) {
       resolvedSortOrder,
       body_html ?? null,
       abbreviation ?? null,
-      pillar_link ?? null,
+      pillar_link !== undefined && pillar_link !== null && pillar_link !== '' ? pillar_link : null,
       resolvedStatus
-    ).run();
+    ).first();
 
-    if (result.meta.changes === 0) {
+    if (!row) {
       return json({ ok: false, error: 'slug_already_exists' }, 409);
     }
+    return json({ ok: true, data: row, created: true }, 201);
   } catch (err) {
     log(env, waitUntil, 'admin-glossary', 'term_create_error', 'error', err.message, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
-  }
-
-  try {
-    const row = await env.DB.prepare('SELECT * FROM glossary_term WHERE id = ?').bind(id).first();
-    return json({ ok: true, data: row, created: true }, 201);
-  } catch (err) {
-    log(env, waitUntil, 'admin-glossary', 'term_create_fetch_error', 'error', err.message, 0, 500);
-    return json({ ok: true, data: { id, slug: trimmedSlug.toLowerCase(), name: name.trim(), part, status: resolvedStatus }, created: true }, 201);
   }
 }
