@@ -1,0 +1,109 @@
+---
+/**
+ * BridgePagePrimitive -- reusable component for SEO bridge pages that capture
+ * branded navigational queries and funnel users to an external destination
+ * (e.g., UPMC profile, FACTS provider directory).
+ *
+ * Build-time prop validation prevents javascript:/data:/file: schemes.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+interface Props {
+  title: string;
+  intent?: string;
+  outboundLabel: string;
+  outboundUrl: string;
+  outboundRel?: string;
+  subjectPersonId?: string;
+  metaDescription?: string;
+}
+
+const { title, intent, outboundLabel, outboundUrl, outboundRel, subjectPersonId, metaDescription } = Astro.props as Props;
+
+// Build-time validation
+if (!title) throw new Error('BridgePagePrimitive: `title` is required');
+if (!outboundLabel) throw new Error('BridgePagePrimitive: `outboundLabel` is required');
+if (!outboundUrl) throw new Error('BridgePagePrimitive: `outboundUrl` is required');
+if (!/^(https?:\/\/|\/)/i.test(outboundUrl)) {
+  throw new Error(`BridgePagePrimitive: outboundUrl must start with https://, http://, or / -- got "${outboundUrl}"`);
+}
+
+const isExternal = /^https?:\/\//i.test(outboundUrl);
+const computedRel = outboundRel ?? (isExternal ? 'noopener noreferrer external' : '');
+
+const description = metaDescription ?? intent ?? title;
+
+const breadcrumbList = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'RRM Academy', item: 'https://rrmacademy.org/' },
+    { '@type': 'ListItem', position: 2, name: title, item: Astro.url.href },
+  ],
+};
+
+const webPage: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: title,
+  description,
+  url: Astro.url.href,
+};
+if (subjectPersonId) {
+  webPage.about = { '@id': subjectPersonId };
+}
+---
+<BaseLayout
+  title={title}
+  description={description}
+  canonicalUrl={Astro.url.href}
+  jsonLd={[webPage, breadcrumbList]}
+>
+  <section class="bridge-hero">
+    <div class="container container--narrow">
+      <h1>{title}</h1>
+      {intent && <p class="bridge-intent">{intent}</p>}
+    </div>
+  </section>
+
+  <section class="bridge-body">
+    <div class="container container--narrow">
+      <slot />
+
+      <p class="bridge-cta">
+        <a class="btn btn--primary" href={outboundUrl} rel={computedRel || undefined} target={isExternal ? '_blank' : undefined}>
+          {outboundLabel}
+        </a>
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .bridge-hero {
+    padding: var(--space-8) 0 var(--space-6);
+    border-bottom: 1px solid var(--border-color);
+    text-align: center;
+  }
+  .bridge-hero h1 {
+    font-size: clamp(2rem, 1.25rem + 2.5vw, 3.25rem);
+    margin-bottom: var(--space-3);
+  }
+  .bridge-intent {
+    color: var(--text-secondary);
+    margin: 0 auto;
+    max-width: 36rem;
+  }
+  .bridge-body {
+    padding: var(--space-10) 0;
+  }
+  @media (min-width: 769px) {
+    .bridge-body {
+      padding: var(--space-16) 0;
+    }
+  }
+  .bridge-cta {
+    margin-top: var(--space-8);
+    text-align: center;
+  }
+</style>
