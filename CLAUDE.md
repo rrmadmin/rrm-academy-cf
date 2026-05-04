@@ -5,7 +5,14 @@
 
 > Wix-to-Cloudflare migration via strangler fig pattern. Phases 0-8 complete (courses, quizzes, enrollment, progress tracking, comments, certificates all live). Active work tracked in `docs/plans/backlog.md`.
 
-> **Ecosystem map:** `docs/rrm-academy-ecosystem.json` is the structured map of the entire RRM Academy system -- infrastructure, databases, contact model, deploy pipelines, workers, projects, people, finances, calendar, and timeline. Read it for system-wide context. Also available via `GET /api/admin/ecosystem` (ADMIN_API_SECRET auth) and D1 `system_config` table (`key = 'ecosystem-map'`).
+> **Ecosystem map:** `docs/rrm-academy-ecosystem.json` is the structured map of the entire RRM Academy system -- infrastructure, databases, contact model, deploy pipelines, workers, projects, people, finances, calendar, and timeline. Read it for system-wide context. Also available via `GET /api/admin/ecosystem` (ADMIN_API_SECRET auth) and D1 `system_config` table (`key = 'ecosystem-map'`, gzip+base64-encoded with `gz:` prefix; the GET endpoint decodes on read).
+>
+> **Admin API smoke test (one-liner):**
+> ```bash
+> SECRET=$(op read 'op://Automation/RRM Academy ADMIN_API_SECRET/credential')
+> curl -sS https://rrmacademy.org/api/admin/ecosystem -H "Authorization: Bearer $SECRET" | jq 'keys'
+> ```
+> Same secret gates 7 endpoints: `/api/admin/cleanup`, `/api/admin/ecosystem`, `/api/admin/search-queries`, `/api/admin/wix-migration-link`, `/api/admin/wix-migration-email`, `/api/newsletter/send`, `/api/newsletter/rss-check`. After editing the ecosystem JSON, re-sync to D1 with `node scripts/sync-ecosystem.mjs` then verify with the curl above.
 
 ## Quick Reference
 
