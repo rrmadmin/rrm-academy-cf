@@ -1,6 +1,6 @@
 {
   "name": "RRM Academy Ecosystem",
-  "last_updated": "2026-05-03T20:00:00Z",
+  "last_updated": "2026-05-04T03:00:00Z",
   "staleness_note": "Row counts, financial summaries, and timeline drift over time. This document is the system-wide SSOT -- update when infrastructure changes, subsystems ship, or pipelines migrate. Row counts are approximate snapshots; query D1 for authoritative values.",
   "organization": {
     "name": "RRM Academy",
@@ -2343,47 +2343,178 @@
         "drafted_for": "Plaid Production Onboarding (2026-04-30/05-01)"
       },
       "insurance": {
-        "_status_2026_05_03": "UNDERINSURED -- only General Liability is in force. No E&O/Professional Liability, Cyber, Media, D&O, or EPLI. Documented during 2026-05-03 coverage analysis.",
+        "_status_2026_05_03": "PARTIALLY COVERED. Two policies in force: (1) Next Insurance bundled GL + Privacy and Network Liability (Cyber Micro PA), and (2) biBERK Miscellaneous Professional Liability / E&O (Berkshire Hathaway Direct). GL is at standard market limits ($1M occurrence / $2M aggregate, $1M Personal & Advertising Injury). E&O is at $1M / $1M with claim expense INSIDE limits. Cyber capacity is split across Next 'Micro' endorsement (limit TBD, likely $25K-$100K) and biBERK $100K sub-limit -- combined likely under $200K, undersized for the data surface. Remaining structural gaps: D&O (board personally exposed), EPLI (matters once W-2 staff exist), and copyright/trademark/IP (biBERK SECTION III.A.3 excludes; only Next GL Personal & Advertising Injury covers copyright in advertising material). Initial 2026-05-03 analysis missed biBERK because biBERK doesn't email renewal docs -- the only Gmail signal is a PayPal receipt for the premium charge.",
+        "current_total_annual_premium_usd": 868.92,
         "active_policies": [
           {
-            "line": "Commercial General Liability",
-            "carrier_brand": "ERGO Next Insurance",
-            "carrier_underwriters": [
-              "Next Insurance US Company",
-              "State National Insurance Company",
-              "National Specialty Insurance Company"
-            ],
-            "agent_of_record": "Next Insurance, Inc. (CA License 0K83405)",
+            "line": "Commercial General Liability + Privacy and Network Liability (bundled)",
+            "carrier_brand": "Next Insurance (formerly ERGO Next branding)",
+            "carrier_underwriter": "Next Insurance US Company (251 Little Falls Drive, Wilmington, DE 19808)",
+            "agent_of_record": "Next First Insurance Agency, Inc. (NFIA), Producer Code 18721225",
             "policy_number": "NXTCLH9J7R-01-GL",
-            "named_insured": "Restorative Reproductive Medicine Foundation Inc",
+            "previous_policy_number": "NXTCLH9J7R-00-GL",
+            "named_insured": "Brian Whittaker, Restorative Reproductive Medicine Foundation Inc",
+            "organization_type": "Corporation",
+            "type_of_business": "Health Educators (classification code 47367)",
             "insured_address": "3401 Hartzdale Dr Ste 103B, Camp Hill, PA 17011",
             "effective_date": "2026-04-14",
             "expiration_date": "2027-04-14",
             "renewal_type": "auto-renew",
-            "premium_monthly_usd": 26.16,
-            "premium_annual_usd_estimate": 313.92,
-            "limits": "TBD -- declarations PDF attached to renewal email (Gmail thread 19d8a494da005dc0) but not yet parsed. Likely entry-tier $1M occurrence / $2M aggregate based on premium band.",
+            "audit_period": "Annual (auditable)",
+            "coverage_parts": [
+              {
+                "name": "Commercial General Liability Coverage Part",
+                "premium_usd": 221.0,
+                "form": "CG 00 01 04 13",
+                "limits_usd": {
+                  "each_occurrence": 1000000,
+                  "general_aggregate": 2000000,
+                  "products_completed_operations_aggregate": 2000000,
+                  "personal_and_advertising_injury_per_person_or_org": 1000000,
+                  "damages_to_premises_rented_to_you_any_one_premises": 100000,
+                  "medical_expense_any_one_person": 15000
+                }
+              },
+              {
+                "name": "Privacy and Network Liability Coverage Part (Cyber Insurance Endorsement - Micro - PA)",
+                "premium_usd": 45.0,
+                "form": "NXUS-CY-2166.1-PA-0624",
+                "limits_usd": "TBD -- 'Micro' tier strongly suggests $25K-$100K range; declarations page for this Coverage Part not yet shared. Pull from Next portal."
+              }
+            ],
+            "premium": {
+              "coverage_parts_subtotal_usd": 266.0,
+              "service_fee_usd": 47.88,
+              "annual_total_usd": 313.88,
+              "monthly_billed_usd": 26.16,
+              "credit_card_transaction_fee_pct": 1.99,
+              "credit_card_fee_estimate_usd_per_year": 5.29
+            },
+            "key_endorsements_relevant_to_rrm_academy": [
+              "CG 21 06 05 14 -- Exclusion: Access Or Disclosure Of Confidential Or Personal Information And Data-Related Liability (with Limited Bodily Injury Exception). EXCLUDES data breach exposure from GL; the carve-back is the Privacy and Network Liability Coverage Part above.",
+              "CG 21 47 12 07 -- Employment-Related Practices Exclusion. Confirms NO EPLI on this policy.",
+              "CG 21 44 04 17 -- Limitation Of Coverage To Designated Premises, Project Or Operation. Coverage scoped to listed premises/operation; off-site or expanded operations may not be covered.",
+              "NXUS-GL-2032.2-0424 -- Child Care and Teachers' Professional Liability (ADD-BACK -- some educator professional liability included; sub-limit unknown).",
+              "NXUS-GL-2054.1-0318 -- Incidental Medical Malpractice Liability Coverage (ADD-BACK -- limited medical malpractice for incidental exposure; sub-limit unknown).",
+              "NXUS-GL-2059.1-0218 -- Unintentional Errors and Omission, Knowledge and Notice of Occurrence (procedural protection, not substantive E&O).",
+              "IL 01 20 10 13 -- Pennsylvania Changes - Defense Costs (carrier may seek reimbursement of defense costs if no covered claims, after written reservation).",
+              "IL 02 46 09 07 -- Pennsylvania Changes - Cancellation and Nonrenewal."
+            ],
+            "key_takeaways": [
+              "GL limits are STANDARD market levels: $1M/$2M aggregate, $1M Personal & Advertising Injury (libel, slander, copyright in advertising, invasion of privacy in advertising). Not undersized.",
+              "GL Personal & Advertising Injury at $1M provides SOME media-type coverage distinct from biBERK E&O. Confirm first-dollar priority.",
+              "Cyber endorsement is 'Micro' tier -- low limit. Combined with biBERK $100K cyber sub-limit, total cyber capacity is likely under $200K, undersized for the data surface.",
+              "GL bundle includes incidental medical malpractice add-back (NXUS-GL-2054.1) and educator professional liability add-back (NXUS-GL-2032.2) -- sub-limits unknown but worth pulling.",
+              "Coverage scoped to 'Health Educators' classification + 'Designated Premises' (CG 21 44). Activities outside that scope may not be covered."
+            ],
             "billing_account_email": "administrator+nextinsurance@rrmacademy.org",
             "portal": "https://my.nextinsurance.com",
+            "support": "support@nextinsurance.com | (855) 222-5919 | PO Box 60787, Palo Alto, CA 94306",
             "history": {
               "originally_purchased": "2025-08 (policy NXTCLH9J7R-00-GL)",
               "first_renewal": "2026-04-14 (policy NXTCLH9J7R-01-GL)"
             }
+          },
+          {
+            "line": "Miscellaneous Professional Liability (E&O)",
+            "carrier_brand": "biBERK",
+            "carrier_underwriter": "Berkshire Hathaway Direct Insurance Company (a Stock Company)",
+            "agent_of_record": "biBERK (P.O. Box 113247, Stamford, CT 06911)",
+            "policy_number": "N9PL939565",
+            "renewal_of": "N9PL464436",
+            "named_insured": "Restorative Reproductive Medicine Foundation",
+            "insured_address": "3401 Hartzdale Dr Ste 103B PMB 3518, Camp Hill, PA 17011",
+            "effective_date": "2026-04-17",
+            "expiration_date": "2027-04-17",
+            "policy_form": "claims-made",
+            "retroactive_date": "2025-04-17",
+            "schedule_of_insured_services": "Educational Consulting",
+            "limits": {
+              "each_wrongful_act_usd": 1000000,
+              "total_aggregate_usd": 1000000,
+              "claim_expense_inside_limits": true,
+              "_note": "Claim Expense (legal defense) is INSIDE the $1M limit, not in addition. A complex case can burn $200K-500K in defense before any damages payment, eroding effective coverage."
+            },
+            "retention_each_wrongful_act_usd": 1000,
+            "annual_exposure_revenue_usd": 10200,
+            "exposure_basis": "Per $1000 Revenue",
+            "premium": {
+              "net_variable_premium_usd": 273.0,
+              "expense_constant_usd": 282.0,
+              "annual_premium_usd": 555.0,
+              "payment_terms": "1 year"
+            },
+            "wrongful_act_definition_includes": [
+              "Negligent act, error, or omission",
+              "Defamation, libel, slander, product disparagement, trade libel, infliction of emotional distress, malicious falsehood",
+              "Invasion or interference with rights of privacy or publicity (false light, public disclosure of private facts, intrusion, breach of confidence, commercial appropriation of name/likeness)",
+              "Wrongful entry, eviction, trespass, eavesdropping",
+              "False arrest, detention, imprisonment",
+              "Malicious prosecution"
+            ],
+            "sub_limits_inside_total_aggregate": [
+              {
+                "coverage": "Disciplinary Proceedings claim expense",
+                "limit_usd": 10000
+              },
+              {
+                "coverage": "Insured's Claim Attendance Expense",
+                "limit_usd": 10000,
+                "per_day_cap_usd": 500
+              },
+              {
+                "coverage": "Subpoena Assistance",
+                "limit_usd": 15000
+              },
+              {
+                "coverage": "Cyber Liability (Security and Privacy + Regulatory Action Defense via MPL 00 61 03 18 endorsement)",
+                "limit_usd": 100000,
+                "endorsement_retroactive_date": "2025-04-17"
+              },
+              {
+                "coverage": "Sexual misconduct, sexual abuse, and/or child abuse (via MPL 99 02 03 18 Non-clinical Social Worker Change)",
+                "limit_usd": 250000
+              }
+            ],
+            "key_exclusions_relevant_to_rrm_academy": [
+              "SECTION III.A.3 -- Infringement, misappropriation, or theft of copyright, trademark, trade dress, trade name, service mark, patent, or trade secrets. (Cyber endorsement carves out only theft of Corporate Information on Insured's Computer System.) Image use on commentary, blog images, podcast art, etc. is NOT covered.",
+              "SECTION III.A.10 -- Services that can only be performed by a medical practitioner / health care provider. Educational content is in scope; clinical opinions or medical malpractice are out.",
+              "SECTION III.A.13 -- Gathering or acquisition of information about Internet users (spyware/adware framing).",
+              "SECTION III.A.14 -- Unsolicited faxes, electronic mail, telephone calls (TCPA / CAN-SPAM violations excluded).",
+              "SECTION III.A.16 -- Unauthorized access / use / alteration of any computer system. Carved out by cyber endorsement except for current/former partners/officers/directors who knowingly committed the act.",
+              "SECTION III.A.20 -- Failure to protect non-public PII. DELETED by MPL 00 61 cyber endorsement, but only up to the $100K Cyber sub-limit.",
+              "SECTION III.B claims-by exclusions -- claims by parents/affiliates, by other Insureds, by employees regarding employment relations, by federal/state/local regulatory authorities (unless the agency is a client and the claim relates to insured services delivered to them)."
+            ],
+            "extended_reporting_period_options": [
+              {
+                "length": "1 year",
+                "premium_pct_of_net_variable": 100
+              },
+              {
+                "length": "2 years",
+                "premium_pct_of_net_variable": 150
+              },
+              {
+                "length": "3 years",
+                "premium_pct_of_net_variable": 200
+              },
+              {
+                "length": "4 years",
+                "premium_pct_of_net_variable": 225
+              },
+              {
+                "length": "Unlimited",
+                "premium_pct_of_net_variable": 250
+              }
+            ],
+            "claim_reporting": {
+              "url": "https://www.biberk.com/policyholders/claims",
+              "phone": "1-844-472-0967",
+              "hours": "Mon-Fri 7AM-9PM EST"
+            }
           }
         ],
         "coverage_gaps_identified_2026_05_03": [
-          {
-            "gap": "Professional Liability / Errors & Omissions + Media Liability",
-            "severity": "high",
-            "rationale": "rrmacademy.org publishes clinical/medical educational content (commentary, library, FAQs, glossary, courses, /ask AI answers), critiques IVF/ACOG/ASRM positions, names specific practices, and cites statistics. Also delivers tech/professional services to NeoFertility, IIRRM, and other clinicians. GL does not cover content-error claims, defamation/disparagement, copyright/IP infringement, or errors in professional services delivered.",
-            "typical_limit_recommendation_usd": "1M occurrence / 1M-2M aggregate (E&O + Media bundled)"
-          },
-          {
-            "gap": "Cyber Liability",
-            "severity": "high",
-            "rationale": "D1 holds ~7,000+ contact records, course enrollment + payment metadata, donor records, intake form data, community posts, and HIPAA-adjacent endo survey identity records. R2 holds community uploads. PA breach notification law (73 P.S. § 2301) triggers on any personal info breach. GL covers none of: breach response, regulatory notification, credit monitoring, ransomware, business interruption.",
-            "typical_limit_recommendation_usd": "1M-2M with breach response built in"
-          },
           {
             "gap": "Directors & Officers (D&O)",
             "severity": "high",
@@ -2391,34 +2522,78 @@
             "typical_limit_recommendation_usd": "1M-2M"
           },
           {
+            "gap": "Cyber Liability total capacity too small for data surface",
+            "severity": "high",
+            "rationale": "Two cyber elements stacked: (1) Next Insurance Privacy and Network Liability Coverage Part (Cyber Insurance Endorsement - Micro - PA) at $45/yr, 'Micro' tier likely $25K-$100K, and (2) biBERK MPL Cyber sub-limit at $100K which sits INSIDE the $1M E&O aggregate. Combined effective cyber capacity is probably under $200K. D1 holds ~7,000+ contacts plus course enrollments, donor records, intake form data, community posts, and HIPAA-adjacent endo survey identity rows. PA breach notification law (73 P.S. § 2301) triggers on any personal info breach. Average breach response on 7K records can blow past $100K on notification alone. Need standalone $1M-$2M cyber policy with dedicated breach response, ransomware, and business interruption.",
+            "typical_limit_recommendation_usd": "1M-2M standalone cyber"
+          },
+          {
+            "gap": "Media / IP Liability (copyright, trademark, trade dress) -- partially covered, gaps remain",
+            "severity": "medium",
+            "rationale": "Partial coverage exists: Next GL Personal & Advertising Injury limit ($1M per person/org) covers libel, slander, copyright/trademark infringement IN ADVERTISING MATERIAL, and invasion of privacy in advertising. However: biBERK MPL SECTION III.A.3 EXCLUDES infringement / misappropriation / theft of copyright, trademark, trade dress, trade name, service mark, patent, or trade secrets in non-advertising contexts. RRM Academy publishes commentary with images, an active blog, an AI ask interface, and produces video/podcast content -- most of which is editorial/educational, NOT advertising material, so the GL Personal & Advertising Injury carve-in may not apply. Confirm Next GL definition of 'advertising material' to map exposure precisely; consider standalone Media Liability policy.",
+            "typical_limit_recommendation_usd": "500K-1M media (only if Next GL Personal & Advertising Injury is confirmed too narrow)"
+          },
+          {
             "gap": "Employment Practices Liability (EPLI)",
             "severity": "medium",
-            "rationale": "Low immediate exposure (no W-2 staff yet) but contractor misclassification, harassment, and discrimination claims surface immediately upon hiring. Typically bundled with D&O for nonprofits.",
+            "rationale": "Low immediate exposure (no W-2 staff yet) but contractor misclassification, harassment, and discrimination claims surface immediately upon hiring. Typically bundled with D&O for nonprofits. Both policies exclude EPLI: Next GL via CG 21 47 12 07 Employment-Related Practices Exclusion, and biBERK MPL via SECTION III.B.4 (employee claims).",
             "typical_limit_recommendation_usd": "500K-1M (or rolled into D&O package)"
           },
           {
-            "gap": "GL limit confirmation",
+            "gap": "GL Designated Premises limitation (CG 21 44)",
             "severity": "low",
-            "rationale": "At $314/year the GL is almost certainly the entry-tier policy with low products/completed-operations sub-limits. Pull declarations PDF to confirm before underwriting decisions assume a higher limit."
+            "rationale": "Next GL includes 'Limitation Of Coverage To Designated Premises, Project Or Operation'. Coverage is restricted to the designated premises and 'Health Educators' operation. Off-premises events, conferences, pop-ups, or in-person teaching may not be covered. If RRM Academy hosts a STUC live event or attends RRM Congress, confirm endorsement coverage in advance."
+          },
+          {
+            "gap": "Cyber 'Micro' tier limit not yet confirmed",
+            "severity": "low",
+            "rationale": "Next Insurance Privacy and Network Liability Coverage Part is endorsed via NXUS-CY-2166.1-PA-0624 ('Cyber Insurance Endorsement - Micro - PA') at $45/year. The 'Micro' tier name strongly suggests a small limit (likely $25K-$100K based on $45 premium). Pull declarations from the Next portal to confirm exact limit, retention, and breach response inclusions/exclusions before sizing the standalone cyber quote."
+          },
+          {
+            "gap": "Add-back endorsement sub-limits not yet confirmed",
+            "severity": "low",
+            "rationale": "Next GL includes two professional-liability add-back endorsements that may help fill some gaps but whose sub-limits are unknown: NXUS-GL-2032.2-0424 'Child Care and Teachers' Professional Liability' (relevant to educator role), and NXUS-GL-2054.1-0318 'Incidental Medical Malpractice Liability Coverage' (relevant given health-info content). Pull endorsement declarations to confirm sub-limits and exclusions; these may reduce the urgency of standalone media coverage if sufficiently broad."
           }
         ],
-        "recommended_carriers_to_quote_2026_05_03": [
-          "Nonprofits Insurance Alliance (NIA / NIAC) -- 501(c)(3)-only specialist, strong D&O pricing for small nonprofits",
-          "Hiscox -- fast online E&O + Cyber for content publishers",
-          "Coalition -- best-in-class Cyber with active breach response",
-          "Embroker -- bundled tech/media E&O + Cyber + GL",
-          "Philadelphia Insurance / Travelers / The Hartford -- established nonprofit lines via broker"
+        "strategy_pivot_2026_05_03": {
+          "decision": "Consolidate via NIAC (Nonprofits Insurance Alliance) bundled E&O + D&O + Cyber rather than stacking separate carriers per line. Drop Next Insurance GL if NIAC bundle covers GL/premises adequately. Home-office, no visitors, ~$10K/yr revenue means GL is low-value at current $314/yr.",
+          "rationale": "Perplexity second-opinion analysis: nonprofit-specialty carriers (NIAC) are typically 20-40% cheaper than commercial market for small 501(c)(3)s. Current $868.92/yr stack characterized as 'wildly overpriced' for a home-office nonprofit with no premises exposure. Bundled NIAC quote gives apples-to-apples comparison vs. piecemeal Hiscox/Embroker/Coalition shopping.",
+          "emails_sent_2026_05_03_21_36_ET": [
+            {
+              "to": "quotes@insurancefornonprofits.org",
+              "subject": "Bundled E&O + D&O + Cyber quote - small PA 501(c)(3), home-office, revenue ~$10K",
+              "from_account": "administrator@rrmacademy.org",
+              "expected_response": "1-2 weeks"
+            },
+            {
+              "to": "customerservice@biberk.com",
+              "subject": "Policy N9PL939565 - a few questions on the renewal",
+              "from_account": "administrator@rrmacademy.org",
+              "expected_response": "1-3 business days"
+            }
+          ]
+        },
+        "recommended_carriers_evaluated": [
+          "Nonprofits Insurance Alliance (NIA / NIAC) -- 501(c)(3)-only specialist, strong D&O pricing for small nonprofits. PRIMARY CHOICE post-pivot.",
+          "Hiscox -- fast online E&O + Cyber for content publishers. Considered, deprioritized after NIAC pivot.",
+          "Coalition -- best-in-class Cyber with active breach response. Fallback if NIAC cyber undersized.",
+          "Embroker -- bundled tech/media E&O + Cyber + GL. Considered, deprioritized.",
+          "Philadelphia Insurance / Travelers / The Hartford -- established nonprofit lines via broker. Fallback."
         ],
         "recommended_brokers_to_consider": [
           "Affinity Nonprofits",
           "501c Agencies Trust",
           "Local PA broker specializing in nonprofits"
         ],
-        "estimated_full_stack_annual_premium_usd_range": "2500-6000 (E&O + Cyber + D&O + EPLI for an org of this size and revenue)",
+        "estimated_full_stack_annual_premium_usd_range": "1500-3500 via NIAC bundle (down from 2500-6000 piecemeal). Compared to current $868.92 GL+E&O-only stack, expect a net increase of ~$700-2600/yr to add D&O + raise Cyber, with potential to drop Next GL ($314/yr refundable pro-rata).",
         "next_actions": [
-          "Forward GL declarations PDF (renewal email 2026-04-14, Gmail thread 19d8a494da005dc0) to confirm limits and any unnoticed endorsements.",
-          "Engage a nonprofit-focused broker to shop the 4-line stack (E&O, Cyber, D&O, EPLI) across 6-10 carriers in one pass.",
-          "Re-evaluate GL limit when binding the new package so the whole portfolio is right-sized together."
+          "WAIT for NIAC quote response (1-2 weeks from 2026-05-03 21:36 ET).",
+          "WAIT for biBERK answers on scope of 'Educational Consulting' Schedule of Insured Services + cyber sub-limit upgrade options (1-3 business days from 2026-05-03 21:36 ET).",
+          "When quotes return: apples-to-apples comparison + update SSOT with quoted numbers, then decide whether to drop biBERK in favor of NIAC bundle or keep biBERK + add NIAC D&O+Cyber only.",
+          "If NIAC bundle is bound: cancel Next Insurance GL (pro-rata refund of remaining ~11 months on 2026-04-14/2027-04-14 term).",
+          "Pull Privacy and Network Liability Coverage Part declarations from Next portal to confirm exact 'Micro' cyber limit before NIAC quote review.",
+          "Pull declarations for Next GL endorsements NXUS-GL-2032.2-0424 (Child Care and Teachers' PL) and NXUS-GL-2054.1-0318 (Incidental Medical Malpractice) to confirm sub-limits.",
+          "Calendar reminder before 2027-04-17 to evaluate biBERK renewal -- claims-made retro date discipline matters; do not let policy lapse."
         ]
       }
     }
