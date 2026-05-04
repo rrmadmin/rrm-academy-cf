@@ -1,0 +1,27 @@
+---
+// TODO before merge: replace upmcProfileUrl with Naomi's specific UPMC profile URL once confirmed.
+// Searched upmc.com/find-a-doctor, providers.upmc.com, and UPMC API -- all return JS-rendered
+// results not accessible via curl. Brian should confirm the direct profile link before merge.
+import BridgePagePrimitive from '../components/BridgePagePrimitive.astro';
+
+const upmcProfileUrl = 'https://www.upmc.com/find-a-doctor';
+---
+<BridgePagePrimitive
+  title="Schedule with Dr Whittaker"
+  intent="Dr Naomi Whittaker is a board-certified OBGYN. RRM Academy is her education project; clinical scheduling is handled by her current practice."
+  outboundLabel="Visit Dr Whittaker's clinical profile"
+  outboundUrl={upmcProfileUrl}
+  metaDescription="How to schedule a clinical appointment with Dr Naomi Whittaker, MD. RRM Academy is her education project; clinical care is provided through her current practice."
+  subjectPersonId="https://rrmacademy.org/about/#naomi-whittaker"
+>
+  <p>
+    Dr Naomi Whittaker, MD is a board-certified OBGYN and the lead instructor of RRM Academy.
+    She sees patients clinically through her current practice, separate from the educational
+    work she leads here.
+  </p>
+  <p>
+    To request an appointment, please visit her clinical profile, which carries current
+    scheduling instructions, contact information, and office locations. RRM Academy does
+    not schedule patient appointments.
+  </p>
+</BridgePagePrimitive>
