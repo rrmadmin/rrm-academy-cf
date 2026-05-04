@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "references": [
     {
-      "@id": "https://rrmacademy.org/#naomi-whittaker",
+      "@id": "https://rrmacademy.org/about/#naomi-whittaker",
       "local_override": {
         "job_title": "Lead Instructor",
         "description": "Dr. Whittaker founded RRM Academy to build an evidence-based education hub for restorative reproductive medicine. As lead instructor, she develops the clinical courses, research commentary, and patient resources that make RRM and NaProTechnology accessible to patients and the clinicians who care for them."
