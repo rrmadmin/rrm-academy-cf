@@ -257,6 +257,8 @@ Validation: `npm run ssot:validate` (schema + cross-ref) and `npm run ssot:smoke
 | `/medical-disclaimer` | `src/pages/medical-disclaimer.astro` |
 | `/linkinbio` | `src/pages/linkinbio.astro` |
 | `/linkinbio/jointhecall` | `src/pages/linkinbio/jointhecall.astro` |
+| `/connect` | `src/pages/connect/index.astro` (MCP setup guide + developer section) |
+| `/openapi` | `src/pages/openapi.astro` (OpenAPI 3.1 reference, build-time imports `public/openapi.json`) |
 | `/404` | `src/pages/404.astro` |
 
 ## Information Architecture
