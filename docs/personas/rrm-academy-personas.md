@@ -1,5 +1,5 @@
 ---
-# RRM Academy User Personas — machine-readable SSOT
+# RRM Academy User Personas -- machine-readable SSOT
 # This frontmatter block is parsed by scripts/check-persona-enum-sync.mjs.
 # Editing rules: keep `contact_form_category` values in sync with src/lib/contact-categories.ts.
 personas:
@@ -118,7 +118,7 @@ This document is the SSOT for user personas referenced by the contact form, brid
 
 ## Bucket A. Personas RRM Academy can serve via the contact form
 
-Eight personas (some sharing one card by design — see persona 2a/2b PayPal vs Stripe).
+Nine personas (some sharing one card by design -- see persona 2a/2b PayPal vs Stripe).
 
 ### Course taker
 
@@ -159,6 +159,6 @@ The existing rrmacademy.org `/find-a-provider/` URL 301-redirects to homepage; o
 
 ## Future bridge candidates (not built)
 
-- `/find-a-napro-doctor-near-me/` — long-tail SEO funnel, destination FACTS until first-party.
-- `/find-an-endometriosis-surgeon/` — same.
+- `/find-a-napro-doctor-near-me/` -- long-tail SEO funnel, destination FACTS until first-party.
+- `/find-an-endometriosis-surgeon/` -- same.
 - Additional candidates surface from SEO research over time.
