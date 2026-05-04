@@ -123,6 +123,16 @@ async function sendArrivlPageview(request, env) {
   }
 }
 
+const CASE_CANONICAL_PREFIXES = [
+  '/library',
+  '/schedule-with-dr-whittaker',
+];
+
+function shouldCanonicalize(pathname) {
+  const lower = pathname.toLowerCase();
+  return CASE_CANONICAL_PREFIXES.some(p => lower.startsWith(p)) && lower !== pathname;
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
@@ -189,8 +199,8 @@ export async function onRequest(context) {
     ));
   }
 
-  // Redirect mixed-case library URLs to lowercase (fixes old saved bookmarks)
-  if (url.pathname.toLowerCase().startsWith('/library') && url.pathname !== url.pathname.toLowerCase()) {
+  // Redirect mixed-case URLs to lowercase for all canonical prefixes
+  if (shouldCanonicalize(url.pathname)) {
     return withSecurityHeaders(Response.redirect(
       `${url.origin}${url.pathname.toLowerCase()}${url.search}`,
       301

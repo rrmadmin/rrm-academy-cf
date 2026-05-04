@@ -71,7 +71,7 @@
       "note": "HMAC-SHA256 magic-link token for Wix-to-Stripe donor migration"
     },
     "functions/_middleware.js": {
-      "hash": "95d5a9c30ebcf56f31e5a5c66388065b8616d329fd105cfefc43c651c22ba397",
+      "hash": "04470d1a05367ca750fc259c8ce0da60ea9472410e8fe76177830788b2ad9633",
       "note": "Auth gating"
     },
     "wrangler.toml": {
