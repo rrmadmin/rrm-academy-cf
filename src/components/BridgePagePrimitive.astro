@@ -34,7 +34,6 @@ const computedRel = outboundRel ?? (isExternal ? 'noopener noreferrer external' 
 const description = metaDescription ?? intent ?? title;
 
 const breadcrumbList = {
-  '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'RRM Academy', item: 'https://rrmacademy.org/' },
@@ -43,7 +42,6 @@ const breadcrumbList = {
 };
 
 const webPage: Record<string, unknown> = {
-  '@context': 'https://schema.org',
   '@type': 'WebPage',
   name: title,
   description,
@@ -52,12 +50,17 @@ const webPage: Record<string, unknown> = {
 if (subjectPersonId) {
   webPage.about = { '@id': subjectPersonId };
 }
+
+const jsonLdPayload: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@graph': [webPage, breadcrumbList],
+};
 ---
 <BaseLayout
   title={title}
   description={description}
   canonicalUrl={Astro.url.href}
-  jsonLd={[webPage, breadcrumbList]}
+  jsonLd={jsonLdPayload}
 >
   <section class="bridge-hero">
     <div class="container container--narrow">
