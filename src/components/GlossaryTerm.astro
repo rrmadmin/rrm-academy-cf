@@ -21,22 +21,29 @@ interface Props {
   headingLevel: 'h1' | 'h2' | 'h3';
   /** "spoke" rewrites href="#xxx" to absolute URLs; "pillar" leaves anchors as-is. */
   mode: 'pillar' | 'spoke';
+  /**
+   * On spoke pages that render their own per-term references list (Sources
+   * block), pass true so href="#ref-N" stays as a same-page jump instead of
+   * being rewritten to the pillar's master ref list at /glossary/#ref-N.
+   */
+  keepLocalRefAnchors?: boolean;
 }
 
-const { term, headingLevel, mode } = Astro.props;
+const { term, headingLevel, mode, keepLocalRefAnchors = false } = Astro.props;
 
 // Cross-ref rewrite for spoke pages.
-//   #ref-N                       -> /glossary/#ref-N         (jump back to pillar's references list)
+//   #ref-N                       -> /glossary/#ref-N         (jump back to pillar's references list,
+//                                                             unless keepLocalRefAnchors -> stays #ref-N)
 //   #abbreviations / #references -> /glossary/#<id>          (jump back to pillar's section anchors)
 //   #<term-slug>                 -> /glossary/<term-slug>/   (link to sibling spoke)
 // The pillar leaves these as same-page anchors, so this only fires when mode === 'spoke'.
-// Pre-flight grep on glossary.json (2026-05-03) found 0 occurrences of #abbreviations or
-// #references in any term body, but the special-case lands defensively so future glossary
-// authoring against pillar section anchors does not produce 404s.
 function rewriteAnchors(html: string): string {
   return html.replace(/href=(["'])#([^"']+)\1/g, (_match, _quote, target: string) => {
     const t = target.toLowerCase();
-    if (t.startsWith('ref-') || t === 'abbreviations' || t === 'references') {
+    if (t.startsWith('ref-')) {
+      return keepLocalRefAnchors ? `href="#${t}"` : `href="/glossary/#${t}"`;
+    }
+    if (t === 'abbreviations' || t === 'references') {
       return `href="/glossary/#${t}"`;
     }
     if (!/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(t)) {
@@ -55,4 +62,10 @@ const HeadingTag = headingLevel;
     ? <a href={term.pillarLink}>{term.name}</a>
     : term.name}
 </HeadingTag>
+<slot name="post-heading" />
 <Fragment set:html={renderedBody} />
+{mode === 'pillar' && (
+  <p class="term-spoke-link">
+    <a href={`/glossary/${term.slug}/`}>Open full entry &rarr;</a>
+  </p>
+)}
