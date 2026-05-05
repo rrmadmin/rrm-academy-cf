@@ -40,10 +40,11 @@ const { term, headingLevel, mode, keepLocalRefAnchors = false } = Astro.props;
 function rewriteAnchors(html: string): string {
   return html.replace(/href=(["'])#([^"']+)\1/g, (_match, _quote, target: string) => {
     const t = target.toLowerCase();
-    if (t.startsWith('ref-')) {
-      return keepLocalRefAnchors ? `href="#${t}"` : `href="/glossary/#${t}"`;
-    }
-    if (t === 'abbreviations' || t === 'references') {
+    if (t.startsWith('ref-') || t === 'abbreviations' || t === 'references') {
+      // Keep ref-N as same-page jumps when the spoke renders its own Sources
+      // block (keepLocalRefAnchors=true). Otherwise (and always for the
+      // abbreviations / references section anchors) jump back to the pillar.
+      if (keepLocalRefAnchors && t.startsWith('ref-')) return `href="#${t}"`;
       return `href="/glossary/#${t}"`;
     }
     if (!/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(t)) {
