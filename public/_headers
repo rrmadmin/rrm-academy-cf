@@ -50,6 +50,8 @@
 
 /
   Link: </sitemap.xml>; rel="sitemap"; type="application/xml"
+  Link: </schemamap.xml>; rel="describedby"; type="application/xml"; title="Schema Map"
+  Link: </library-feed.jsonl>; rel="alternate"; type="application/x-ndjson"; title="Library Feed (JSONL)"
   Link: </llms.txt>; rel="describedby"; type="text/plain"; title="llms.txt"
   Link: </llms-full.txt>; rel="describedby"; type="text/plain"; title="llms-full.txt"
   Link: </openapi.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"
@@ -63,6 +65,23 @@
 
 /llms-full.txt
   Content-Type: text/plain; charset=utf-8
+
+/library/llms.txt
+  Content-Type: text/plain; charset=utf-8
+
+/courses/llms.txt
+  Content-Type: text/plain; charset=utf-8
+
+/faqs/llms.txt
+  Content-Type: text/plain; charset=utf-8
+
+/library-feed.jsonl
+  Content-Type: application/x-ndjson; charset=utf-8
+  Cache-Control: public, max-age=3600, s-maxage=3600
+
+/schemamap.xml
+  Content-Type: application/xml; charset=utf-8
+  Cache-Control: public, max-age=3600, s-maxage=3600
 
 /pricing.md
   Content-Type: text/markdown; charset=utf-8

@@ -10,6 +10,8 @@ src/data/glossary.json
 src/data/og-index.json
 # Site-SSOT regenerated snapshot (built every deploy from ssot/*.json + identity registry)
 src/generated/
+# Library JSONL feed (regenerated each build from src/data/articles.json)
+public/library-feed.jsonl
 scraped/
 .env
 .env.local
