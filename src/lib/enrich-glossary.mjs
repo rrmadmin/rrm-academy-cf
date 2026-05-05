@@ -547,6 +547,41 @@ async function main() {
     t.relatedTerms = related.get(t.slug) || [];
   }
 
+  // 4. Per-term citations: scan bodyHtml for #ref-N anchors, hydrate from
+  //    glossary.references. Sorted by ref_num. Lets each spoke render its own
+  //    Sources list instead of jumping back to the pillar's master ref list.
+  const refByNum = new Map();
+  for (const r of (glossary.references || [])) {
+    if (typeof r.refNum === 'number') refByNum.set(r.refNum, r);
+  }
+  let citedTotal = 0;
+  for (const t of terms) {
+    const seen = new Set();
+    const re = /href="#ref-(\d+)"/g;
+    let m;
+    while ((m = re.exec(t.bodyHtml)) !== null) {
+      const n = parseInt(m[1], 10);
+      if (!Number.isFinite(n)) continue;
+      seen.add(n);
+    }
+    const list = [...seen]
+      .filter(n => refByNum.has(n))
+      .sort((a, b) => a - b)
+      .map(n => {
+        const r = refByNum.get(n);
+        return {
+          refNum: n,
+          anchorText: r.anchorText || '',
+          url: r.url || null,
+          publisher: r.publisher || null,
+          journal: r.journal || null,
+        };
+      });
+    t.citedReferences = list;
+    citedTotal += list.length;
+  }
+  console.log(`enrich-glossary: attached ${citedTotal} per-term citation entries (avg ${(citedTotal / terms.length).toFixed(1)} per term)`);
+
   glossary.enrichedAt = new Date().toISOString();
   writeAtomic(GLOSSARY_PATH, glossary);
   console.log(`enrich-glossary: wrote ${GLOSSARY_PATH}`);
