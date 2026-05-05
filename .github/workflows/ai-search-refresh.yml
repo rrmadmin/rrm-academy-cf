@@ -1,0 +1,65 @@
+name: AI Search Refresh
+
+on:
+  workflow_run:
+    workflows: ["Build & Deploy"]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+
+# Newer refresh runs cancel older ones. A hung refresh from the previous deploy
+# is automatically superseded by the next deploy's refresh -- no manual cancel,
+# no deploy queue blockage.
+concurrency:
+  group: ai-search-refresh
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event != 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Restore data files from upstream deploy
+        uses: actions/download-artifact@v4
+        with:
+          name: site-data
+          path: src/data
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload corpus to AI Search
+        id: ai_search_upload
+        if: ${{ env.AI_SEARCH_API_TOKEN != '' }}
+        timeout-minutes: 25
+        env:
+          AI_SEARCH_API_TOKEN: ${{ secrets.AI_SEARCH_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.AI_SEARCH_API_TOKEN }}
+          D1_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node scripts/ai-search-corpus-upload.mjs
+        continue-on-error: true
+
+      - name: Surface AI Search loader status
+        if: always() && steps.ai_search_upload.conclusion != 'skipped'
+        run: |
+          if [ "${{ steps.ai_search_upload.outcome }}" = "success" ]; then
+            echo "::notice title=AI Search corpus loader OK::Phase 1 corpus refresh complete."
+          else
+            echo "::warning title=AI Search corpus loader ${{ steps.ai_search_upload.outcome }}::The /ask v2 corpus index did not fully refresh on this deploy (outcome=${{ steps.ai_search_upload.outcome }}). Index will catch up on the next run via hash-skip; weekly reconcile cron will still fire."
+          fi
