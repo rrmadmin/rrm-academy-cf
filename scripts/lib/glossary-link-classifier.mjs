@@ -33,7 +33,7 @@ export function hasClassToken(classList, token) {
  * @param {string[]} args.classList                  tokenized class attribute
  * @param {string|null} args.parentTagName           lowercase tag name of parent or null
  * @param {string[]} args.parentClassList            tokenized parent class
- * @param {Set<string>} args.knownTermSlugs          all glossary term slugs (lowercased)
+ * @param {Set<string>} args.knownTermSlugs          Set of lowercased glossary term slugs (caller's responsibility)
  * @param {Set<string>} args.sectionIds              page section anchors that must NOT get gloss-xref
  * @returns {string} action — one of the closed-enum values
  */
@@ -70,9 +70,8 @@ export function classifyAnchor({ href, classList, parentTagName, parentClassList
 
   if (sectionIds.has(targetSlug)) return 'manual-review:section-anchor';
 
-  // Case-insensitive lookup against term slugs (D1 column is COLLATE NOCASE).
-  const lowered = new Set([...knownTermSlugs].map(s => s.toLowerCase()));
-  if (!lowered.has(targetSlug)) return 'manual-review:broken-target';
+  // Lookup against term slugs. Caller passes a Set of lowercased slugs.
+  if (!knownTermSlugs.has(targetSlug)) return 'manual-review:broken-target';
 
   if (hasClassToken(classList, 'gloss-xref')) return 'noop';
   return 'add-gloss-xref';
