@@ -233,7 +233,7 @@ const definedTermSetSchema = {
         <ol>
           <li><a href="#overview">Overview</a></li>
           {PARTS.map(p => (
-            <li><a href={`#${p.id}`}>{p.title}</a></li>
+            <li><a href={`#${p.id}`}>{p.shortTitle}</a></li>
           ))}
           <li><a href="#abbreviations">Abbreviations and Quick Reference</a></li>
           <li><a href="#references">References</a></li>
@@ -268,7 +268,7 @@ const definedTermSetSchema = {
           <ol>
             <li><a href="#overview">Overview</a></li>
             {PARTS.map(p => (
-              <li><a href={`#${p.id}`}>{p.title.replace(/^Part [IVX]+: /, `Part ${p.part}: `).split(': ')[0] + ': ' + p.shortTitle.split(' ').slice(0, 3).join(' ')}</a></li>
+              <li><a href={`#${p.id}`}>{p.shortTitle}</a></li>
             ))}
             <li><a href="#abbreviations">Abbreviations</a></li>
             <li><a href="#references">References</a></li>
@@ -288,7 +288,7 @@ const definedTermSetSchema = {
           <!-- Parts I-VIII: data-driven -->
           {PARTS.map(p => (
             <section id={p.id}>
-              <h2>{p.title}</h2>
+              <h2>{p.shortTitle}</h2>
               {termsByPart[p.part].map(t => (
                 <GlossaryTerm term={t} headingLevel="h3" mode="pillar" />
               ))}
