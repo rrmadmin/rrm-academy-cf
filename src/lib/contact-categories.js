@@ -32,13 +32,13 @@ export const CONTACT_CATEGORIES = [
 ];
 
 export const CONTACT_CATEGORY_LABELS = {
-  'course': 'Course question',
-  'stuc-billing': 'Member or recurring donor',
-  'clinician-or-researcher': 'Clinician or researcher',
-  'speaking': 'Speaking or media',
-  'partnership': 'Partnership or affiliate',
-  'donor-or-grants': 'Donor or grants',
-  'bug': 'Bug or accessibility',
+  'course': 'A course question',
+  'stuc-billing': 'A subscription or recurring donation',
+  'clinician-or-researcher': 'Research or library access',
+  'speaking': 'A speaking or media inquiry',
+  'partnership': 'A partnership',
+  'donor-or-grants': 'A major gift or grant',
+  'bug': 'A bug or accessibility issue',
   'other': 'Something else',
 };
 
