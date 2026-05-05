@@ -124,3 +124,16 @@ describe('classifyAnchor — pass-through variants', () => {
     assert.equal(classifyFirst('<a href="/what-is-rrm/">RRM</a>'), 'pillar-or-onsite');
   });
 });
+
+import { spawnSync } from 'node:child_process';
+
+describe('audit-glossary-links smoke', () => {
+  it('runs against current src/data/glossary.json without error', () => {
+    const r = spawnSync('node', ['scripts/audit-glossary-links.mjs'], { encoding: 'utf-8' });
+    assert.equal(r.status, 0);
+    const report = JSON.parse(r.stdout);
+    assert.ok(typeof report.actionCounts === 'object');
+    assert.ok(typeof report.termCount === 'number');
+    assert.ok(report.termCount > 100);
+  });
+});
