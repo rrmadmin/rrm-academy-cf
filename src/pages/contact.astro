@@ -49,58 +49,40 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
 
         <!-- Form wrap -->
         <div class="contact-form-wrap">
-          <h2>How can we help?</h2>
           <p class="contact-intro">
-            Pick the topic that fits and we'll point you to the fastest path. If your situation does not match any topic below, "Something else" routes to a general inbox.
+            Pick a topic below. If nothing fits, "Something else" is the right place to start.
           </p>
 
           <!-- Three primary cards (single-open accordion) -->
           <div class="contact-cards" role="region" aria-label="Common topics">
             <details name="contact-cards" class="contact-card" data-category="course">
-              <summary>I have a question about a course</summary>
+              <summary>I have a course question</summary>
               <div class="contact-card__body">
-                <p>If you're a course taker, the fastest paths are:</p>
-                <ul>
-                  <li><a href="/account">/account → My courses</a> for access, lesson progress, and certificates (login required).</li>
-                  <li><a href="/faqs/courses/">Course FAQs</a> for common questions.</li>
-                </ul>
-                <p><a href="#contact-form?category=course" class="contact-card__send" data-category="course" data-source="card">Still need help? Send a message →</a></p>
+                <p>Most course questions can be resolved in two places. Your <a href="/account">account page</a> (login required) shows your courses, progress, and certificates. The <a href="/faqs/courses/">course FAQs</a> cover the most common issues. If neither resolves it, send a message below.</p>
+                <p><a href="#contact-form?category=course" class="contact-card__send" data-category="course" data-source="card">Still need help? Send a message below.</a></p>
               </div>
             </details>
 
             <details name="contact-cards" class="contact-card" data-category="stuc-billing">
-              <summary>I'm a member or recurring donor</summary>
+              <summary>I'm a member or I give recurring donations</summary>
               <div class="contact-card__body">
-                <p>If your subscription is through RRM Academy (Stripe-managed):</p>
-                <ul>
-                  <li><a href="/account">/account → Manage subscription</a> for cancellation, card update, or receipts (login required).</li>
-                </ul>
-                <p>If you give recurring through PayPal directly:</p>
-                <ul>
-                  <li><a href="https://www.paypal.com/myaccount/autopay/" rel="noopener noreferrer external">PayPal → Settings → Payments → Manage automatic payments</a> to cancel or change.</li>
-                </ul>
-                <p><a href="#contact-form?category=stuc-billing" class="contact-card__send" data-category="stuc-billing" data-source="card">Still need help? Send a message →</a></p>
+                <p>Most changes are self-service. If you signed up through RRM Academy directly, log in and go to <a href="/account">your account page</a> to cancel, update your card, or get receipts. If you give through PayPal, go to <a href="https://www.paypal.com/myaccount/autopay/" rel="noopener noreferrer external">PayPal, then Settings, Payments, Manage automatic payments</a>. Not sure which applies to you? Check your original receipt email. Still need help? Send a message below.</p>
+                <p><a href="#contact-form?category=stuc-billing" class="contact-card__send" data-category="stuc-billing" data-source="card">Still need help? Send a message below.</a></p>
               </div>
             </details>
 
             <details name="contact-cards" class="contact-card" data-category="other">
-              <summary>Something else / not sure where to start</summary>
+              <summary>Something else, including questions about RRM</summary>
               <div class="contact-card__body">
-                <p>Try these first:</p>
-                <ul>
-                  <li><a href="/ask">/ask</a> for "is RRM right for me?" type questions (free RRM Academy account required).</li>
-                  <li><a href="/faqs">/faqs</a> for common questions.</li>
-                  <li>Pillar guides: <a href="/what-is-rrm/">What is RRM</a>, <a href="/naprotechnology/">NaProTechnology</a>, <a href="/femm/">FEMM</a>, <a href="/neofertility/">NeoFertility</a>.</li>
-                  <li><a href="/endo-survey/">Endo survey</a> if you're investigating endometriosis.</li>
-                </ul>
-                <p><a href="#contact-form?category=other" class="contact-card__send" data-category="other" data-source="card">Still need help? Send a message →</a></p>
+                <p>Before sending a message, a few resources might answer your question faster. The <a href="/ask">Ask tool</a> answers questions about RRM directly (free account required). The <a href="/faqs">FAQ page</a> covers common questions. If you're new to RRM or want to understand a specific approach, read the guides on <a href="/what-is-rrm/">RRM</a>, <a href="/naprotechnology/">NaProTechnology</a>, <a href="/femm/">FEMM</a>, or <a href="/neofertility/">NeoFertility</a>. If you're investigating whether you have endometriosis, start with the free <a href="/endo-survey/">endometriosis symptom survey</a>. Still need help? Send a message below.</p>
+                <p><a href="#contact-form?category=other" class="contact-card__send" data-category="other" data-source="card">Still need help? Send a message below.</a></p>
               </div>
             </details>
           </div>
 
           <!-- Other inquiries text-link line -->
           <p class="contact-other-inquiries">
-            Other inquiries:
+            Looking for something else?
             <a href="#contact-form?category=clinician-or-researcher" data-category="clinician-or-researcher" data-source="text-link">clinician or researcher</a> ·
             <a href="#contact-form?category=speaking" data-category="speaking" data-source="text-link">speaking or media</a> ·
             <a href="#contact-form?category=partnership" data-category="partnership" data-source="text-link">partnership</a> ·
@@ -112,7 +94,7 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
           <form id="contact-form" class="contact-form" novalidate action="/api/contact/submit" method="POST">
             <!-- Sending-as indicator -->
             <p class="sending-as" id="sending-as" aria-live="polite">
-              <span class="sending-as__label" id="sending-as-label">Sending as: <strong>Choose a topic above</strong></span>
+              <span class="sending-as__label" id="sending-as-label">Your message will go to: <strong>(choose a topic above)</strong></span>
               <a href="#contact-cards" class="sending-as__change" id="sending-as-change" hidden>[change]</a>
             </p>
 
@@ -121,7 +103,7 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
               <p class="form-noscript-note">JavaScript is off. Pick a topic to enable submit:</p>
             </noscript>
             <div class="form-group" id="category-fallback-group">
-              <label class="form-label" for="category-fallback">What is this about?</label>
+              <label class="form-label" for="category-fallback">What is your message about?</label>
               <select class="form-input" id="category-fallback" name="category-fallback">
                 <option value="">— Choose —</option>
                 <option value="course">Course question</option>
@@ -176,8 +158,8 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
           <!-- Success / error feedback (preserve existing) -->
           <div id="contact-success" class="contact-feedback contact-feedback--success" hidden>
             <div class="contact-feedback__icon">&#10003;</div>
-            <h3>Message sent</h3>
-            <p>Thank you for reaching out. We will get back to you as soon as possible.</p>
+            <h3>Message received</h3>
+            <p>We typically respond within two business days. If your question is urgent, check the <a href="/faqs">FAQ</a> or use the <a href="/ask">Ask tool</a> while you wait.</p>
           </div>
           <div id="contact-error" class="contact-feedback contact-feedback--error" hidden>
             <p id="contact-error-text"></p>
@@ -271,7 +253,7 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
         if (!CATEGORY_LABELS.hasOwnProperty(category)) return;
         hiddenCategory.value = category;
         hiddenSource.value = source || 'default';
-        sendingAsLabel.innerHTML = 'Sending as: <strong>' + CATEGORY_LABELS[category] + '</strong>';
+        sendingAsLabel.innerHTML = 'Your message will go to: <strong>' + CATEGORY_LABELS[category] + '</strong>';
         sendingAsChange.hidden = false;
         if (fallbackGroup) fallbackGroup.classList.add('js-hidden');
         if (fallbackSelect) fallbackSelect.value = category;
@@ -281,7 +263,7 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
       function clearCategory() {
         hiddenCategory.value = '';
         hiddenSource.value = '';
-        sendingAsLabel.innerHTML = 'Sending as: <strong>Choose a topic above</strong>';
+        sendingAsLabel.innerHTML = 'Your message will go to: <strong>(choose a topic above)</strong>';
         sendingAsChange.hidden = true;
         if (fallbackGroup) fallbackGroup.classList.remove('js-hidden');
         if (fallbackSelect) fallbackSelect.value = '';
@@ -465,7 +447,6 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
   /* Hero */
   .contact-hero {
     padding: var(--space-8) 0 var(--space-6);
-    border-bottom: 1px solid var(--border-color);
     text-align: center;
   }
   .contact-hero h1 {
