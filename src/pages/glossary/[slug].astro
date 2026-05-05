@@ -8,6 +8,7 @@
 // DefinedTermSet. BreadcrumbList completes the trio.
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import GlossaryTerm from '../../components/GlossaryTerm.astro';
+import LastUpdated from '../../components/LastUpdated.astro';
 import glossaryData from '../../data/glossary.json';
 
 interface RelatedTerm {
@@ -19,6 +20,14 @@ interface RelatedTerm {
 interface RelatedContentItem {
   slug: string;
   title: string;
+}
+
+interface CitedReference {
+  refNum: number;
+  anchorText: string;
+  url: string | null;
+  publisher: string | null;
+  journal: string | null;
 }
 
 interface GlossaryTermRow {
@@ -39,6 +48,7 @@ interface GlossaryTermRow {
     faqs?: RelatedContentItem[];
     courses?: RelatedContentItem[];
   };
+  citedReferences?: CitedReference[];
 }
 
 export function getStaticPaths() {
@@ -145,6 +155,7 @@ const breadcrumbSchema = {
   ogType="article"
   publishDate={term.createdAt}
   jsonLd={definedTermSchema}
+  speakable={['article.prose h1', 'article.prose > p:first-of-type']}
 >
   <!-- Additional JSON-LD blocks: MedicalWebPage wrapper + BreadcrumbList. -->
   <script type="application/ld+json" set:html={JSON.stringify(medicalWebPageSchema)} />
@@ -167,7 +178,37 @@ const breadcrumbSchema = {
       </nav>
 
       <article class="prose">
-        <GlossaryTerm term={term} headingLevel="h1" mode="spoke" />
+        <GlossaryTerm
+          term={term}
+          headingLevel="h1"
+          mode="spoke"
+          keepLocalRefAnchors={!!(term.citedReferences && term.citedReferences.length > 0)}
+        >
+          <div slot="post-heading" class="author-byline">
+            <img src="/images/authors/naomi-whittaker.webp" alt="Dr. Naomi Whittaker, MD" class="author-byline__photo" width="40" height="40" />
+            <div class="author-byline__text">
+              <span>By <strong><a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</a></strong></span>
+              <LastUpdated date={term.updatedAt || term.createdAt} prefix="Updated" />
+            </div>
+          </div>
+        </GlossaryTerm>
+
+        {term.citedReferences && term.citedReferences.length > 0 && (
+          <section class="term-sources" aria-labelledby="term-sources-heading">
+            <h2 id="term-sources-heading" class="term-sources__heading">Sources</h2>
+            <ol class="term-sources__list">
+              {term.citedReferences.map((r) => (
+                <li id={`ref-${r.refNum}`} class="term-sources__item">
+                  {r.url
+                    ? <a href={r.url} target="_blank" rel="noopener">{r.anchorText || r.url}</a>
+                    : <span>{r.anchorText}</span>}
+                  {r.journal && <span class="term-sources__journal">. <em>{r.journal}</em></span>}
+                  {r.publisher && !r.journal && <span class="term-sources__publisher">. {r.publisher}</span>}
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
 
         {term.relatedTerms && term.relatedTerms.length > 0 && (
           <aside class="related-terms" aria-labelledby="related-terms-heading">
@@ -238,6 +279,83 @@ const breadcrumbSchema = {
 <style>
   /* .gloss-xref styling lives in src/styles/global.css so pillar and spoke
      share one rendering path. */
+
+  .author-byline {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin: var(--space-4) 0 var(--space-8);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--border-color);
+  }
+  .author-byline__photo {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .author-byline__text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+  .author-byline__text a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  .author-byline__text a:hover {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .term-sources {
+    margin-top: var(--space-10);
+    padding: var(--space-6);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+  }
+  .term-sources__heading {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.375rem;
+    font-weight: 600;
+    margin: 0 0 var(--space-4) 0;
+    color: var(--text-primary);
+  }
+  .term-sources__list {
+    list-style: decimal;
+    padding-left: var(--space-5);
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .term-sources__item {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    scroll-margin-top: 5rem;
+  }
+  .term-sources__item a {
+    color: var(--text-primary);
+    text-decoration: none;
+    border-bottom: 1px solid var(--purple-200);
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  .term-sources__item a:hover {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .term-sources__journal,
+  .term-sources__publisher {
+    color: var(--text-secondary);
+  }
 
   .related-terms {
     margin-top: var(--space-10);
