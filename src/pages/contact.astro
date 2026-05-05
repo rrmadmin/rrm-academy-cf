@@ -49,9 +49,6 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
 
         <!-- Form wrap -->
         <div class="contact-form-wrap">
-          <p class="contact-intro">
-            Pick a topic below. If nothing fits, "Something else" is the right place to start.
-          </p>
 
           <aside class="contact-notice" aria-labelledby="contact-notice-heading">
             <h2 id="contact-notice-heading">Looking for clinical care?</h2>
@@ -67,59 +64,17 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
             </p>
           </aside>
 
-          <!-- Three primary cards (single-open accordion) -->
-          <div class="contact-cards" role="region" aria-label="Common topics">
-            <details name="contact-cards" class="contact-card" data-category="course">
-              <summary>I have a course question</summary>
-              <div class="contact-card__body">
-                <p>Most course questions can be resolved in two places. Your <a href="/account">account page</a> (login required) shows your courses, progress, and certificates. The <a href="/faqs/courses/">course FAQs</a> cover the most common issues. If neither resolves it, send a message below.</p>
-                <p><a href="#contact-form?category=course" class="contact-card__send" data-category="course" data-source="card">Still need help? Send a message below.</a></p>
-              </div>
-            </details>
-
-            <details name="contact-cards" class="contact-card" data-category="stuc-billing">
-              <summary>I'm a member or I give recurring donations</summary>
-              <div class="contact-card__body">
-                <p>Most changes are self-service. If you signed up through RRM Academy directly, log in and go to <a href="/account">your account page</a> to cancel, update your card, or get receipts. If you give through PayPal, go to <a href="https://www.paypal.com/myaccount/autopay/" rel="noopener noreferrer external">PayPal, then Settings, Payments, Manage automatic payments</a>. Not sure which applies to you? Check your original receipt email. Still need help? Send a message below.</p>
-                <p><a href="#contact-form?category=stuc-billing" class="contact-card__send" data-category="stuc-billing" data-source="card">Still need help? Send a message below.</a></p>
-              </div>
-            </details>
-
-            <details name="contact-cards" class="contact-card" data-category="other">
-              <summary>Something else, including questions about RRM</summary>
-              <div class="contact-card__body">
-                <p>Before sending a message, a few resources might answer your question faster. The <a href="/ask">Ask tool</a> answers questions about RRM directly (free account required). The <a href="/faqs">FAQ page</a> covers common questions. If you're new to RRM or want to understand a specific approach, read the guides on <a href="/what-is-rrm/">RRM</a>, <a href="/naprotechnology/">NaProTechnology</a>, <a href="/femm/">FEMM</a>, or <a href="/neofertility/">NeoFertility</a>. If you're investigating whether you have endometriosis, start with the free <a href="/endo-survey/">endometriosis symptom survey</a>. Still need help? Send a message below.</p>
-                <p><a href="#contact-form?category=other" class="contact-card__send" data-category="other" data-source="card">Still need help? Send a message below.</a></p>
-              </div>
-            </details>
-          </div>
-
-          <!-- Other inquiries text-link line -->
-          <p class="contact-other-inquiries">
-            Looking for something else?
-            <a href="#contact-form?category=clinician-or-researcher" data-category="clinician-or-researcher" data-source="text-link">clinician or researcher</a> ·
-            <a href="#contact-form?category=speaking" data-category="speaking" data-source="text-link">speaking or media</a> ·
-            <a href="#contact-form?category=partnership" data-category="partnership" data-source="text-link">partnership</a> ·
-            <a href="#contact-form?category=donor-or-grants" data-category="donor-or-grants" data-source="text-link">donor or grants</a> ·
-            <a href="#contact-form?category=bug" data-category="bug" data-source="text-link">bug or accessibility</a>
+          <p class="contact-selfserve">
+            For subscription changes or course access, see <a href="/account">your account</a>. Common questions are answered in the <a href="/faqs">FAQ</a>.
           </p>
 
-          <!-- Single form region -->
-          <form id="contact-form" class="contact-form" novalidate action="/api/contact/submit" method="POST">
-            <!-- Sending-as indicator -->
-            <p class="sending-as" id="sending-as" aria-live="polite">
-              <span class="sending-as__label" id="sending-as-label">Your message will go to: <strong>(choose a topic above)</strong></span>
-              <a href="#contact-cards" class="sending-as__change" id="sending-as-change" hidden>[change]</a>
-            </p>
+          <h2>Send us a message</h2>
 
-            <!-- JS-disabled fallback select (visible by default; JS hides when category set via card click) -->
-            <noscript>
-              <p class="form-noscript-note">JavaScript is off. Pick a topic to enable submit:</p>
-            </noscript>
-            <div class="form-group" id="category-fallback-group">
-              <label class="form-label" for="category-fallback">What is your message about?</label>
-              <select class="form-input" id="category-fallback" name="category-fallback">
-                <option value="">— Choose —</option>
+          <form id="contact-form" class="contact-form" novalidate>
+            <div class="form-group">
+              <label class="form-label" for="contact-category">What is your message about? <span class="form-required">*</span></label>
+              <select class="form-input" id="contact-category" name="category" required>
+                <option value="">Choose a topic</option>
                 <option value="course">Course question</option>
                 <option value="stuc-billing">Member or recurring donor</option>
                 <option value="clinician-or-researcher">Clinician or researcher</option>
@@ -130,9 +85,6 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
                 <option value="other">Something else</option>
               </select>
             </div>
-
-            <input type="hidden" name="category" id="category-hidden" value="" />
-            <input type="hidden" name="category_source" id="category-source-hidden" value="" />
 
             <div class="form-group">
               <label class="form-label" for="contact-message">Your message <span class="form-required">*</span></label>
@@ -156,7 +108,7 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
               <input class="form-input" type="email" id="contact-email" name="email" required autocomplete="email" placeholder="Email" />
             </div>
 
-            <!-- Honeypot — preserved -->
+            <!-- Honeypot (preserve exactly) -->
             <div class="form-group" style="position:absolute;left:-9999px;" aria-hidden="true">
               <label for="contact-website">Website</label>
               <input type="text" id="contact-website" name="website" tabindex="-1" autocomplete="off" />
@@ -166,7 +118,7 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
               <div id="turnstile-container" data-sitekey={TURNSTILE_SITE_KEY}></div>
             )}
 
-            <button type="submit" class="btn btn--primary contact-submit" id="contact-submit" disabled>Send</button>
+            <button type="submit" class="btn btn--primary contact-submit" id="contact-submit">Send</button>
           </form>
 
           <!-- Success / error feedback (preserve existing) -->
@@ -226,9 +178,6 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
 
   <script is:inline>
     (function () {
-      // Mark JS-loaded so CSS can hide the fallback select when a card sets category
-      document.documentElement.classList.add('js-loaded');
-
       var form = document.getElementById('contact-form');
       var submitBtn = document.getElementById('contact-submit');
       var successEl = document.getElementById('contact-success');
@@ -239,108 +188,13 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
       var firstNameField = document.getElementById('contact-first-name');
       var lastNameField = document.getElementById('contact-last-name');
       var emailField = document.getElementById('contact-email');
-      var hiddenCategory = document.getElementById('category-hidden');
-      var hiddenSource = document.getElementById('category-source-hidden');
-      var fallbackSelect = document.getElementById('category-fallback');
-      var fallbackGroup = document.getElementById('category-fallback-group');
-      var sendingAsLabel = document.getElementById('sending-as-label');
-      var sendingAsChange = document.getElementById('sending-as-change');
+      var categoryField = document.getElementById('contact-category');
       var turnstileWidgetId = null;
       var pendingSubmit = null;
+      var categorySource = 'select';
+      var hashPresetValue = null;
 
-      var CATEGORY_LABELS = {
-        'course': 'Course question',
-        'stuc-billing': 'Member or recurring donor',
-        'clinician-or-researcher': 'Clinician or researcher',
-        'speaking': 'Speaking or media',
-        'partnership': 'Partnership or affiliate',
-        'donor-or-grants': 'Donor or grants',
-        'bug': 'Bug or accessibility',
-        'other': 'Something else',
-      };
-
-      function reduceMotion() {
-        return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      }
-
-      function setCategory(category, source) {
-        if (!CATEGORY_LABELS.hasOwnProperty(category)) return;
-        hiddenCategory.value = category;
-        hiddenSource.value = source || 'default';
-        sendingAsLabel.innerHTML = 'Your message will go to: <strong>' + CATEGORY_LABELS[category] + '</strong>';
-        sendingAsChange.hidden = false;
-        if (fallbackGroup) fallbackGroup.classList.add('js-hidden');
-        if (fallbackSelect) fallbackSelect.value = category;
-        submitBtn.disabled = false;
-      }
-
-      function clearCategory() {
-        hiddenCategory.value = '';
-        hiddenSource.value = '';
-        sendingAsLabel.innerHTML = 'Your message will go to: <strong>(choose a topic above)</strong>';
-        sendingAsChange.hidden = true;
-        if (fallbackGroup) fallbackGroup.classList.remove('js-hidden');
-        if (fallbackSelect) fallbackSelect.value = '';
-        submitBtn.disabled = true;
-      }
-
-      function scrollToForm() {
-        var behavior = reduceMotion() ? 'auto' : 'smooth';
-        form.scrollIntoView({ behavior: behavior, block: 'start' });
-        var target = messageField.value ? (firstNameField.value ? emailField : firstNameField) : messageField;
-        setTimeout(function () { target.focus({ preventScroll: true }); }, behavior === 'auto' ? 0 : 300);
-      }
-
-      // Card / text-link clicks
-      document.querySelectorAll('[data-category][data-source]').forEach(function (el) {
-        el.addEventListener('click', function (ev) {
-          var cat = el.getAttribute('data-category');
-          var src = el.getAttribute('data-source');
-          if (!CATEGORY_LABELS.hasOwnProperty(cat)) return;
-          ev.preventDefault();
-          setCategory(cat, src);
-          scrollToForm();
-        });
-      });
-
-      // Fallback select
-      if (fallbackSelect) {
-        fallbackSelect.addEventListener('change', function () {
-          if (fallbackSelect.value && CATEGORY_LABELS.hasOwnProperty(fallbackSelect.value)) {
-            setCategory(fallbackSelect.value, 'select');
-          } else {
-            clearCategory();
-          }
-        });
-      }
-
-      // [change] link
-      if (sendingAsChange) {
-        sendingAsChange.addEventListener('click', function (ev) {
-          ev.preventDefault();
-          clearCategory();
-          // Close any open <details>
-          document.querySelectorAll('details[name="contact-cards"]').forEach(function (d) { d.open = false; });
-          var cards = document.querySelector('.contact-cards');
-          if (cards) {
-            var behavior = reduceMotion() ? 'auto' : 'smooth';
-            cards.scrollIntoView({ behavior: behavior, block: 'start' });
-          }
-        });
-      }
-
-      // URL-hash category preset (e.g., #contact-form?category=course)
-      function applyHashCategory() {
-        var hash = window.location.hash;
-        var m = hash.match(/category=([a-z0-9-]+)/);
-        if (m && CATEGORY_LABELS.hasOwnProperty(m[1])) {
-          setCategory(m[1], 'hash');
-        }
-      }
-      applyHashCategory();
-      window.addEventListener('hashchange', applyHashCategory);
-
-      // Auth prefill (client-side fetch)
+      // Auth prefill
       fetch('/api/auth/session', { credentials: 'same-origin' })
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (data) {
@@ -350,7 +204,28 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
           if (u.lastName && !lastNameField.value) lastNameField.value = u.lastName;
           if (u.email && !emailField.value) emailField.value = u.email;
         })
-        .catch(function () { /* leave empty on any failure */ });
+        .catch(function () {});
+
+      // URL hash category preset
+      var hashMatch = window.location.hash.match(/category=([a-z0-9-]+)/);
+      if (hashMatch) {
+        var values = Array.prototype.map.call(categoryField.options, function (o) { return o.value; });
+        if (values.indexOf(hashMatch[1]) >= 0) {
+          categoryField.value = hashMatch[1];
+          categorySource = 'hash';
+          hashPresetValue = hashMatch[1];
+        }
+      }
+
+      // If user manually changes the dropdown after a hash preset, revert source to 'select'
+      categoryField.addEventListener('change', function () {
+        if (hashPresetValue !== null && categoryField.value !== hashPresetValue) {
+          categorySource = 'select';
+          hashPresetValue = null;
+        } else if (hashPresetValue === null) {
+          categorySource = 'select';
+        }
+      });
 
       // Char counter
       if (messageField && charCount) {
@@ -360,7 +235,7 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
         });
       }
 
-      // Turnstile setup (preserve existing)
+      // Turnstile init
       function initTurnstile() {
         var container = document.getElementById('turnstile-container');
         if (!container || typeof turnstile === 'undefined') return;
@@ -386,16 +261,8 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
       }, 200);
       setTimeout(function () { clearInterval(tsCheck); }, 10000);
 
-      function showError(msg) {
-        errorText.textContent = msg;
-        errorEl.hidden = false;
-        successEl.hidden = true;
-      }
-      function showSuccess() {
-        successEl.hidden = false;
-        errorEl.hidden = true;
-        form.hidden = true;
-      }
+      function showError(msg) { errorText.textContent = msg; errorEl.hidden = false; successEl.hidden = true; }
+      function showSuccess() { successEl.hidden = false; errorEl.hidden = true; form.hidden = true; }
 
       form.addEventListener('submit', function (ev) {
         ev.preventDefault();
@@ -407,13 +274,12 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
         var email = emailField.value.trim();
         var message = messageField.value.trim();
         var website = form.elements['website'] ? form.elements['website'].value : '';
-        var category = hiddenCategory.value;
-        var categorySource = hiddenSource.value || 'default';
+        var category = categoryField.value;
 
+        if (!category) return showError('Please choose a topic.');
         if (!firstName) return showError('Please enter your first name.');
         if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showError('Please enter a valid email address.');
         if (message.length < 10) return showError('Please enter a message (at least 10 characters).');
-        if (!category) return showError('Please choose a topic above before sending.');
 
         submitBtn.disabled = true;
         submitBtn.textContent = 'Sending...';
@@ -438,9 +304,8 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
         })
           .then(function (r) { return r.json(); })
           .then(function (data) {
-            if (data.ok) {
-              showSuccess();
-            } else {
+            if (data.ok) showSuccess();
+            else {
               showError(data.error || 'Something went wrong. Please try again.');
               submitBtn.disabled = false;
               submitBtn.textContent = 'Send';
@@ -498,11 +363,6 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
   /* Form */
   .contact-form-wrap h2 {
     margin-bottom: var(--space-3);
-  }
-  .contact-intro {
-    color: var(--text-secondary);
-    margin-bottom: var(--space-8);
-    line-height: 1.7;
   }
   .contact-form .form-row {
     display: grid;
@@ -633,104 +493,7 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
     margin-bottom: 0;
   }
 
-  /* Cards (lightweight, typography-led) */
-  .contact-cards {
-    margin: var(--space-8) 0 var(--space-6);
-  }
-  .contact-card {
-    border-bottom: 1px solid var(--border-light);
-    padding: var(--space-5) 0;
-  }
-  .contact-card[open] {
-    background: var(--bg-surface);
-  }
-  .contact-card > summary {
-    font-family: var(--font-display, 'Cormorant Garamond', serif);
-    font-size: 1.25rem;
-    font-weight: 600;
-    cursor: pointer;
-    list-style: none;
-    padding: var(--space-2) 0;
-    position: relative;
-  }
-  .contact-card > summary::-webkit-details-marker { display: none; }
-  .contact-card > summary::after {
-    content: '+';
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 1.5rem;
-    color: var(--text-secondary);
-    transition: transform 0.15s;
-  }
-  .contact-card[open] > summary::after {
-    content: '\2212';
-  }
-  .contact-card__body {
-    padding: var(--space-3) 0 var(--space-5);
-    color: var(--text-secondary);
-  }
-  .contact-card__body ul {
-    margin: var(--space-3) 0;
-    padding-left: var(--space-5);
-  }
-  .contact-card__body li {
-    margin-bottom: var(--space-2);
-  }
-  .contact-card__send {
-    display: inline-block;
-    margin-top: var(--space-3);
-    font-weight: 500;
-    color: var(--accent);
-  }
-
-  /* Other inquiries line */
-  .contact-other-inquiries {
-    margin: var(--space-6) 0 var(--space-8);
-    font-size: 0.9375rem;
-    color: var(--text-secondary);
-    text-align: center;
-  }
-  .contact-other-inquiries a {
-    color: var(--accent);
-  }
-
-  /* Sending-as indicator */
-  .sending-as {
-    margin: 0 0 var(--space-5);
-    padding: var(--space-3) var(--space-4);
-    background: var(--bg-surface);
-    border-radius: var(--radius-md);
-    font-size: 0.9375rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: var(--space-3);
-  }
-  .sending-as__label strong {
-    color: var(--text-primary);
-  }
-  .sending-as__change {
-    font-size: 0.8125rem;
-    color: var(--accent);
-  }
-
-  /* Submit disabled state */
-  .contact-submit:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  /* JS-disabled fallback group: shown by default; JS hides when category is set via card */
-  #category-fallback-group {
-    margin-bottom: var(--space-5);
-  }
-  .js-loaded #category-fallback-group.js-hidden {
-    display: none;
-  }
-
-  /* Misroute notice (above cards) */
+  /* Misroute notice */
   .contact-notice {
     margin: var(--space-6) 0 var(--space-8);
     padding: var(--space-5) var(--space-6);
@@ -753,6 +516,17 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
     margin-bottom: 0;
   }
   .contact-notice a {
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  /* Self-serve line */
+  .contact-selfserve {
+    margin: var(--space-5) 0 var(--space-8);
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+  }
+  .contact-selfserve a {
     color: var(--accent);
     font-weight: 500;
   }
