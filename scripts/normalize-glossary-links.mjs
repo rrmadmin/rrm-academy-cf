@@ -158,6 +158,44 @@ const apply = flag('--apply');
 const limitRaw = arg('--limit');
 const limit = limitRaw ? parseInt(limitRaw, 10) : null;
 
+// ---------------------------------------------------------------------------
+// --rollback mode: emit inverse-UPDATE SQL from a snapshot file.
+// Must come AFTER outDir is assigned but BEFORE any data loading.
+//
+// Rollback UPDATEs do NOT include the CAS clause (no AND body_html = '...')
+// because rollback intent is to forcibly restore prior state regardless of
+// whatever is currently in D1.
+// ---------------------------------------------------------------------------
+
+const rollbackPath = arg('--rollback', null);
+
+if (rollbackPath) {
+  const snapshot = JSON.parse(readFileSync(rollbackPath, 'utf-8'));
+  const ts = new Date().toISOString().replace(/[:.]/g, '-');
+  const chunkFiles = [];
+  for (let i = 0; i < snapshot.length; i += CHUNK_SIZE) {
+    const chunk = snapshot.slice(i, i + CHUNK_SIZE);
+    const fileNum = String(Math.floor(i / CHUNK_SIZE) + 1).padStart(3, '0');
+    const path = `${outDir}/glossary-link-rollback.${ts}.${fileNum}.sql`;
+    const sql = [
+      'BEGIN TRANSACTION;',
+      ...chunk.map(d =>
+        `UPDATE glossary_term\n` +
+        `SET body_html = '${escapeSqlSingleQuote(d.body_html)}',\n` +
+        `    updated_at = datetime('now')\n` +
+        `WHERE slug = '${escapeSqlSingleQuote(d.slug)}';`
+      ),
+      'COMMIT;',
+    ].join('\n');
+    writeFileSync(path, sql);
+    chunkFiles.push(path);
+  }
+  console.log(`ROLLBACK SQL EMITTED. Wrote ${chunkFiles.length} chunks:`);
+  for (const f of chunkFiles) console.log(`  ${f}`);
+  console.log('NOT YET APPLIED. Run via /glossary-update Workflow H steps 1-2 to commit.');
+  process.exit(0);
+}
+
 // Load terms
 const terms = useD1 ? loadFromD1() : loadFromJson(dataPath);
 
