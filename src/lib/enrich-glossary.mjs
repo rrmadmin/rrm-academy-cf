@@ -506,6 +506,60 @@ async function main() {
   const totalAliases = aliasIndex.lookup.size;
   console.log(`enrich-glossary: built alias index with ${totalAliases} aliases`);
 
+  // 0. Extract editorial "See also" picks from bodyHtml and strip the
+  //    inline "See also: ..." sentence/paragraph. The slugs become
+  //    term.editorialRelated, which prepends the relatedTerms rail in
+  //    step 3 so curator picks render as the first chips. This collapses
+  //    the prior duplicate "See also" sentence + Related-terms rail into
+  //    a single visual surface (plan: clever-strolling-candle.md).
+  //
+  //    Two patterns covered:
+  //      A. <p>See also: <a>...</a>.</p>  -- own paragraph; remove whole <p>
+  //      B. ... last sentence. See also: <a>...</a>.</p>  -- inline tail
+  //         clause; remove just the See-also fragment, keep the parent
+  //         <p>/<li> tag so prose stays well-formed.
+  //    A "See also" mid-paragraph followed by more prose (no immediate
+  //    </p> / </li>) is intentionally left alone -- it's editorial prose,
+  //    not a closing clause.
+  const bySlug = new Map(terms.map(t => [t.slug, t]));
+  const SEE_ALSO_BLOCK = /\s*<p>\s*(?:<em>\s*)?[Ss]ee\s+also\b[\s\S]*?<\/p>/g;
+  const SEE_ALSO_INLINE = /(?:\.\s*|\s+)(?:<em>\s*)?[Ss]ee\s+also[:\s]+(?:\s*<a\s[^>]+>[^<]+<\/a>[,;\.\s]*)+(?:<\/em>\s*)?(?=<\/p>|<\/li>)/g;
+  let editorialTotal = 0;
+  for (const t of terms) {
+    const collected = [];
+    const collect = (m) => {
+      for (const s of [...m.matchAll(/href="#([a-z0-9-]+)"/gi)]) collected.push(s[1]);
+      return '';
+    };
+    let body = t.bodyHtml.replace(SEE_ALSO_BLOCK, collect);
+    body = body.replace(SEE_ALSO_INLINE, collect);
+    t.bodyHtml = body;
+
+    if (collected.length > 0) {
+      // Fresh extraction from a bodyHtml that contained "See also". Resolve
+      // slugs to known terms preserving order; dedupe; reject self.
+      const seen = new Set([t.slug]);
+      const editorial = [];
+      for (const slug of collected) {
+        if (seen.has(slug)) continue;
+        const o = bySlug.get(slug);
+        if (!o) continue;
+        seen.add(slug);
+        editorial.push({ slug: o.slug, name: o.name, part: o.part });
+      }
+      t.editorialRelated = editorial;
+    } else if (!Array.isArray(t.editorialRelated)) {
+      // First-time enrich on a term that has no "See also" -> empty.
+      t.editorialRelated = [];
+    }
+    // Else: bodyHtml was already stripped by a prior enrich pass; keep the
+    // previously-extracted editorialRelated. Full re-fetch (npm run
+    // fetch-glossary) clears editorialRelated by replacing the term row
+    // wholesale, so this preserve-path stays correct when D1 is the SSOT.
+    editorialTotal += t.editorialRelated.length;
+  }
+  console.log(`enrich-glossary: ${editorialTotal} editorial "See also" picks across ${terms.filter(t => t.editorialRelated.length > 0).length} terms`);
+
   // 1. Auto-link cross-glossary mentions in each term body. Strip any prior
   //    gloss-xref anchors first so reruns are deterministic (D1 sees only
   //    the original bodyHtml; this script owns every gloss-xref insertion).
@@ -541,10 +595,22 @@ async function main() {
   }
   console.log(`enrich-glossary: indexed ${totalBacklinks} backlinks across all terms`);
 
-  // 3. Related terms (mention graph + Part fallback).
+  // 3. Related terms: editorial "See also" picks first (preserves curator
+  //    sequence), then mention-graph + Part fallback fills the remaining
+  //    slots. Deduped by slug, capped at MAX_RELATED_TERMS.
   const related = computeRelatedTerms(terms, aliasIndex);
   for (const t of terms) {
-    t.relatedTerms = related.get(t.slug) || [];
+    const editorial = t.editorialRelated || [];
+    const algorithmic = related.get(t.slug) || [];
+    const seen = new Set();
+    const merged = [];
+    for (const r of [...editorial, ...algorithmic]) {
+      if (seen.has(r.slug)) continue;
+      seen.add(r.slug);
+      merged.push(r);
+      if (merged.length >= MAX_RELATED_TERMS) break;
+    }
+    t.relatedTerms = merged;
   }
 
   // 4. Per-term citations: scan bodyHtml for #ref-N anchors, hydrate from
