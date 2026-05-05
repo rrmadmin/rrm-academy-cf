@@ -16,7 +16,8 @@ echo "[capture] d1 row counts -> $BL/d1/"
 bash scripts/baseline/d1-counts.sh "$BL/d1"
 
 echo "[capture] arise-scan -> $BL/build/arise-scan.summary.json"
-arise-scan --json . > "$BL/build/arise-scan.json"
+# arise-scan exits 1 when findings exist (always, by design); ignore exit code
+arise-scan --json . > "$BL/build/arise-scan.json" || true
 python3 - <<EOF
 import json
 with open("$BL/build/arise-scan.json") as f:
