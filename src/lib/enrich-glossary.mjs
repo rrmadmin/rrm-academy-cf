@@ -495,11 +495,22 @@ async function main() {
     console.error('enrich-glossary: glossary.json not found or malformed; skipping.');
     return;
   }
+  if (!Array.isArray(glossary.references) || glossary.references.length < 30) {
+    console.error(`enrich-glossary: references count too low (${glossary.references?.length ?? 0}, expected >= 30); aborting`);
+    process.exit(1);
+  }
   const articles = readJson(ARTICLES_PATH, []);
   const faqs = readJson(FAQS_PATH, []);
   const courses = readJson(COURSES_PATH, []);
 
-  const terms = glossary.terms;
+  for (const t of glossary.terms) {
+    if (typeof t.bodyHtml !== 'string') {
+      console.warn(`enrich-glossary: skipping term ${t.slug ?? '(unknown)'} (bodyHtml=${typeof t.bodyHtml})`);
+      t.bodyHtml = '';
+    }
+  }
+
+  const terms = (glossary.terms || []).filter(t => t.status === 'published');
   console.log(`enrich-glossary: ${terms.length} terms; ${articles.length} articles, ${faqs.length} faqs, ${courses.length} courses`);
 
   const aliasIndex = buildAliasIndex(terms);
@@ -522,8 +533,8 @@ async function main() {
   //    </p> / </li>) is intentionally left alone -- it's editorial prose,
   //    not a closing clause.
   const bySlug = new Map(terms.map(t => [t.slug, t]));
-  const SEE_ALSO_BLOCK = /\s*<p>\s*(?:<em>\s*)?[Ss]ee\s+also\b[\s\S]*?<\/p>/g;
-  const SEE_ALSO_INLINE = /(?:\.\s*|\s+)(?:<em>\s*)?[Ss]ee\s+also[:\s]+(?:\s*<a\s[^>]+>[^<]+<\/a>[,;\.\s]*)+(?:<\/em>\s*)?(?=<\/p>|<\/li>)/g;
+  const SEE_ALSO_BLOCK = /\s*<p>\s*(?:<em>\s*)?[Ss]ee\s+also\b(?=[\s\S]*?<a\s[^>]*\bhref="#[a-z0-9-]+")[\s\S]*?<\/p>/g;
+  const SEE_ALSO_INLINE = /(?<=\.|\s)(?:<em>\s*)?[Ss]ee\s+also[:\s]+(?:\s*<a\s[^>]{1,200}>[^<]{1,200}<\/a>[,;\.\s]{0,5}){1,8}(?:<\/em>\s*)?(?=[\s\S]{0,200}?(?:<\/p>|<\/li>))/g;
   let editorialTotal = 0;
   for (const t of terms) {
     const collected = [];
@@ -543,7 +554,10 @@ async function main() {
       for (const slug of collected) {
         if (seen.has(slug)) continue;
         const o = bySlug.get(slug);
-        if (!o) continue;
+        if (!o) {
+          console.warn(`enrich-glossary: term ${t.slug} See-also references unknown slug "${slug}" — dropped`);
+          continue;
+        }
         seen.add(slug);
         editorial.push({ slug: o.slug, name: o.name, part: o.part });
       }
@@ -600,7 +614,12 @@ async function main() {
   //    slots. Deduped by slug, capped at MAX_RELATED_TERMS.
   const related = computeRelatedTerms(terms, aliasIndex);
   for (const t of terms) {
-    const editorial = t.editorialRelated || [];
+    const editorialRaw = t.editorialRelated || [];
+    const editorial = editorialRaw
+      .map(r => bySlug.get(r.slug))
+      .filter(Boolean)
+      .map(o => ({ slug: o.slug, name: o.name, part: o.part }));
+    t.editorialRelated = editorial;
     const algorithmic = related.get(t.slug) || [];
     const seen = new Set();
     const merged = [];
