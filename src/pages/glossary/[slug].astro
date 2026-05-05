@@ -10,6 +10,17 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import GlossaryTerm from '../../components/GlossaryTerm.astro';
 import glossaryData from '../../data/glossary.json';
 
+interface RelatedTerm {
+  slug: string;
+  name: string;
+  part: string;
+}
+
+interface RelatedContentItem {
+  slug: string;
+  title: string;
+}
+
 interface GlossaryTermRow {
   id: string;
   slug: string;
@@ -22,6 +33,12 @@ interface GlossaryTermRow {
   status: string;
   createdAt?: string;
   updatedAt?: string;
+  relatedTerms?: RelatedTerm[];
+  relatedContent?: {
+    library?: RelatedContentItem[];
+    faqs?: RelatedContentItem[];
+    courses?: RelatedContentItem[];
+  };
 }
 
 export function getStaticPaths() {
@@ -152,6 +169,59 @@ const breadcrumbSchema = {
       <article class="prose">
         <GlossaryTerm term={term} headingLevel="h1" mode="spoke" />
 
+        {term.relatedTerms && term.relatedTerms.length > 0 && (
+          <aside class="related-terms" aria-labelledby="related-terms-heading">
+            <h2 id="related-terms-heading" class="related-terms__heading">Related terms</h2>
+            <ul class="related-terms__list">
+              {term.relatedTerms.map((rt) => (
+                <li class="related-terms__item">
+                  <a href={`/glossary/${rt.slug}/`} class="related-terms__link">{rt.name}</a>
+                </li>
+              ))}
+            </ul>
+          </aside>
+        )}
+
+        {term.relatedContent && (
+          (term.relatedContent.library?.length || term.relatedContent.faqs?.length || term.relatedContent.courses?.length) ? (
+            <section class="discussed-in" aria-labelledby="discussed-in-heading">
+              <h2 id="discussed-in-heading" class="discussed-in__heading">Discussed in</h2>
+              <div class="discussed-in__grid">
+                {term.relatedContent.library && term.relatedContent.library.length > 0 && (
+                  <div class="discussed-in__group">
+                    <h3 class="discussed-in__label">Research library</h3>
+                    <ul class="discussed-in__list">
+                      {term.relatedContent.library.map((item) => (
+                        <li><a href={`/library/${item.slug}/`}>{item.title}</a></li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {term.relatedContent.faqs && term.relatedContent.faqs.length > 0 && (
+                  <div class="discussed-in__group">
+                    <h3 class="discussed-in__label">Patient questions</h3>
+                    <ul class="discussed-in__list">
+                      {term.relatedContent.faqs.map((item) => (
+                        <li><a href={`/faqs/${item.slug}/`}>{item.title}</a></li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {term.relatedContent.courses && term.relatedContent.courses.length > 0 && (
+                  <div class="discussed-in__group">
+                    <h3 class="discussed-in__label">Courses</h3>
+                    <ul class="discussed-in__list">
+                      {term.relatedContent.courses.map((item) => (
+                        <li><a href={`/courses/${item.slug}/`}>{item.title}</a></li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </section>
+          ) : null
+        )}
+
         <div class="cta-box">
           <h3>Back to the full glossary</h3>
           <p>Browse all RRM terminology, methods, conditions, and references.</p>
@@ -166,6 +236,107 @@ const breadcrumbSchema = {
 </BaseLayout>
 
 <style>
+  /* .gloss-xref styling lives in src/styles/global.css so pillar and spoke
+     share one rendering path. */
+
+  .related-terms {
+    margin-top: var(--space-10);
+    padding: var(--space-6);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+  }
+  .related-terms__heading {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.375rem;
+    font-weight: 600;
+    margin: 0 0 var(--space-3) 0;
+    color: var(--text-primary);
+  }
+  .related-terms__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .related-terms__item {
+    margin: 0;
+  }
+  .related-terms__link {
+    display: inline-block;
+    padding: 6px 12px;
+    background: var(--bg-body);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .related-terms__link:hover {
+    background: var(--purple-50);
+    color: var(--accent);
+    border-color: var(--purple-200);
+    text-decoration: none;
+  }
+
+  .discussed-in {
+    margin-top: var(--space-8);
+    padding: var(--space-6);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+  }
+  .discussed-in__heading {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.375rem;
+    font-weight: 600;
+    margin: 0 0 var(--space-4) 0;
+    color: var(--text-primary);
+  }
+  .discussed-in__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-6);
+  }
+  .discussed-in__group {
+    min-width: 0;
+  }
+  .discussed-in__label {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-tertiary);
+    margin: 0 0 var(--space-3) 0;
+  }
+  .discussed-in__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .discussed-in__list li {
+    margin: 0;
+  }
+  .discussed-in__list a {
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    text-decoration: none;
+    line-height: 1.45;
+    border-bottom: 1px solid transparent;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  .discussed-in__list a:hover {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
   .cta-box {
     background: var(--bg-surface);
     border: none;
