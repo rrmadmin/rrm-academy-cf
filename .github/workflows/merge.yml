@@ -62,9 +62,20 @@ jobs:
       # GITHUB_TOKEN pushes do NOT trigger other workflows (GitHub anti-recursion).
       # Explicitly dispatch Build & Deploy on main so merges from claude/**
       # actually ship. Without this, merges land silently and production drifts.
+      #
+      # Path filter mirrors deploy.yml's push trigger so doc-only merges (CLAUDE.md,
+      # docs/**, memory notes) don't burn ~10 billable Actions minutes per merge.
+      # Keep this list in sync with deploy.yml `on.push.paths`.
       - name: Trigger Build & Deploy
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh workflow run deploy.yml --ref main
-          echo "Triggered Build & Deploy on main"
+          CHANGED=$(git diff --name-only HEAD^..HEAD)
+          if echo "$CHANGED" | grep -qE '^(src/|public/|functions/|astro\.config|package\.json|package-lock\.json|tsconfig\.json)'; then
+            gh workflow run deploy.yml --ref main
+            echo "Triggered Build & Deploy on main"
+          else
+            echo "::notice title=Skipping Build & Deploy::Doc-only merge, no build-relevant paths touched."
+            echo "Changed files (first 10):"
+            echo "$CHANGED" | head -10
+          fi
