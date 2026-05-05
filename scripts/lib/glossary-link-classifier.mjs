@@ -3,7 +3,7 @@
  *
  * Imported by:
  *   - scripts/audit-glossary-links.mjs
- *   - scripts/normalize-glossary-links.mjs
+ *   - scripts/normalize-glossary-links.mjs (via lib/glossary-link-transforms.mjs)
  *   - scripts/check-glossary-link-classes.mjs
  *
  * Single source of truth — duplication is forbidden (see G3 pattern in
