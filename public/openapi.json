@@ -18,10 +18,190 @@
     {
       "url": "https://mcp.rrmacademy.org",
       "description": "Production MCP server (Cloudflare Worker)"
+    },
+    {
+      "url": "https://rrmacademy.org",
+      "description": "RRM Academy Pages (ask endpoint)"
     }
   ],
   "security": [{ "bearerAuth": [] }],
   "paths": {
+    "/api/ask": {
+      "get": {
+        "operationId": "ask_capability",
+        "summary": "NLWeb capability metadata",
+        "description": "Returns machine-readable capability JSON describing the /api/ask endpoint: supported methods, auth model, streaming transport, request/response shape, and guardrails. Unauthenticated. Cacheable for 1 hour.",
+        "security": [],
+        "servers": [{ "url": "https://rrmacademy.org" }],
+        "responses": {
+          "200": {
+            "description": "Capability descriptor",
+            "headers": {
+              "Cache-Control": {
+                "schema": { "type": "string" },
+                "description": "public, max-age=3600"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AskCapability" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "ask_query",
+        "summary": "Conversational AI over the RRM Research Library",
+        "description": "Answers questions scoped to restorative reproductive medicine using the RRM Library corpus. Two auth paths:\n\n**Session-authenticated (20 req/day):** Include the `session` cookie from `/api/auth/login`. Supports both JSON and SSE response formats based on the `Accept` header.\n\n**Anonymous (2 req/day/IP):** No cookie required. Always returns `text/event-stream`. Rate-limited per IP.\n\nSet `Accept: text/event-stream` to receive a streaming SSE response regardless of auth state.",
+        "security": [],
+        "servers": [{ "url": "https://rrmacademy.org" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["message"],
+                "properties": {
+                  "message": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 500,
+                    "description": "The question to ask the RRM Library AI"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Answer with citations. Content-Type is `application/json` for authenticated requests without SSE Accept header, or `text/event-stream` for anonymous requests and any SSE-accepting request.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AskResponse" }
+              },
+              "text/event-stream": {
+                "schema": {
+                  "type": "string",
+                  "description": "SSE stream. Two events: `data: <AskResponse JSON>` then `data: [DONE]`"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input (message missing, wrong type, or out of range)",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded. Session path: 20/day reset at midnight UTC. Anonymous path: 2/day, 48h TTL.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          },
+          "503": {
+            "description": "Upstream service unavailable",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      }
+    },
+    "/api/articles": {
+      "get": {
+        "operationId": "list_articles",
+        "summary": "List published library articles",
+        "description": "Returns a paginated list of published, non-retracted research articles from the RRM Academy library. Public, unauthenticated. Rate limited to 30 requests per minute per IP. Responses are edge-cached for 1 hour.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number (1-based). Default: 1. Max: 350.",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 350, "default": 1 }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Results per page. Default: 25. Max: 50.",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 50, "default": 25 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated article list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["page", "limit", "total", "total_pages", "results"],
+                  "properties": {
+                    "page": { "type": "integer", "example": 1 },
+                    "limit": { "type": "integer", "example": 25 },
+                    "total": { "type": "integer", "example": 3467 },
+                    "total_pages": { "type": "integer", "example": 139 },
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string", "example": "rec123abc" },
+                          "slug": { "type": "string", "example": "napro-endometriosis-2022" },
+                          "url": { "type": "string", "format": "uri", "example": "https://rrmacademy.org/library/napro-endometriosis-2022/" },
+                          "title": { "type": "string" },
+                          "authors": { "type": "string" },
+                          "year": { "type": "integer", "nullable": true },
+                          "journal": { "type": "string" },
+                          "doi": { "type": "string" },
+                          "pmid": { "type": "string" },
+                          "abstract": { "type": "string" },
+                          "topics": { "type": "array", "items": { "type": "string" } },
+                          "is_open_access": { "type": "boolean" },
+                          "date_added": { "type": "string", "format": "date", "nullable": true, "example": "2026-04-19" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid pagination parameters",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "invalid_pagination" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited (30 req/min per IP)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "rate_limited" }
+              }
+            }
+          },
+          "503": {
+            "description": "Upstream library service unavailable",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "service_unavailable" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/mcp": {
       "post": {
         "operationId": "mcp_invoke",
@@ -138,6 +318,39 @@
           "message": { "type": "string", "description": "Human-readable error detail" }
         },
         "required": ["error"]
+      },
+      "AskResponse": {
+        "type": "object",
+        "required": ["answer", "citations"],
+        "properties": {
+          "answer": { "type": "string", "description": "AI-generated answer scoped to RRM Library content" },
+          "citations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["url"],
+              "properties": {
+                "url": { "type": "string", "format": "uri" },
+                "title": { "type": "string" }
+              }
+            }
+          },
+          "fallback": { "type": "boolean", "description": "true when no relevant library content was found and a fallback message is returned" }
+        }
+      },
+      "AskCapability": {
+        "type": "object",
+        "properties": {
+          "endpoint": { "type": "string", "example": "/api/ask" },
+          "methods": { "type": "array", "items": { "type": "string" }, "example": ["GET", "POST"] },
+          "auth": { "type": "object" },
+          "streaming": { "type": "object" },
+          "request": { "type": "object" },
+          "response": { "type": "object" },
+          "guardrails": { "type": "object" },
+          "site": { "type": "string", "format": "uri" },
+          "library": { "type": "string", "format": "uri" }
+        }
       }
     }
   }

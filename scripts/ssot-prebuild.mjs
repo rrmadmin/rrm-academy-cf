@@ -121,6 +121,9 @@ if (flag === '0') {
   const cleanupPaths = [
     'public/llms.txt',
     'public/llms-full.txt',
+    'public/library/llms.txt',
+    'public/courses/llms.txt',
+    'public/faqs/llms.txt',
     'public/agents.md',
     'public/.well-known/agent-card.json',
     'public/schemamap.xml',
@@ -161,15 +164,23 @@ if (toolMissing) {
 // public/_static/. The current ssot-emit llms emitters produce output that is
 // materially worse than the hand-curated static versions until Gianna fills
 // the TBD-GIANNA prose placeholders in ssot/agent-surfaces.json.
+//
+// 2026-05-05: extended to mirror sectional llms.txt files for orank.ai
+// "Modular llms.txt per product area" agent-readiness check. Each sectional
+// file installs into the matching public/{section}/llms.txt path.
 const STATIC_RESTORES = [
   ['static-overrides/llms.txt', 'public/llms.txt'],
   ['static-overrides/llms-full.txt', 'public/llms-full.txt'],
+  ['static-overrides/library-llms.txt', 'public/library/llms.txt'],
+  ['static-overrides/courses-llms.txt', 'public/courses/llms.txt'],
+  ['static-overrides/faqs-llms.txt', 'public/faqs/llms.txt'],
 ];
 let restored = 0;
 for (const [from, to] of STATIC_RESTORES) {
   const fromAbs = resolve(PROJECT_ROOT, from);
   const toAbs = resolve(PROJECT_ROOT, to);
   if (existsSync(fromAbs)) {
+    mkdirSync(dirname(toAbs), { recursive: true });
     copyFileSync(fromAbs, toAbs);
     restored++;
   } else {
