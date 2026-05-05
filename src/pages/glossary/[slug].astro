@@ -203,8 +203,8 @@ const breadcrumbSchema = {
         </GlossaryTerm>
 
         {term.citedReferences && term.citedReferences.length > 0 && (
-          <section class="term-sources" aria-labelledby="term-sources-heading">
-            <h2 id="term-sources-heading" class="term-sources__heading">Sources</h2>
+          <section class="term-rail term-sources" aria-labelledby="term-sources-heading">
+            <h2 id="term-sources-heading" class="term-rail__eyebrow">Sources</h2>
             <ol class="term-sources__list">
               {term.citedReferences.map((r) => (
                 <li id={`ref-${r.refNum}`} class="term-sources__item">
@@ -220,8 +220,8 @@ const breadcrumbSchema = {
         )}
 
         {term.relatedTerms && term.relatedTerms.length > 0 && (
-          <aside class="related-terms" aria-labelledby="related-terms-heading">
-            <h2 id="related-terms-heading" class="related-terms__heading">Related terms</h2>
+          <aside class="term-rail related-terms" aria-labelledby="related-terms-heading">
+            <h2 id="related-terms-heading" class="term-rail__eyebrow">Related terms</h2>
             <ul class="related-terms__list">
               {term.relatedTerms.map((rt) => (
                 <li class="related-terms__item">
@@ -272,13 +272,6 @@ const breadcrumbSchema = {
           ) : null
         )}
 
-        <div class="cta-box">
-          <h3>Back to the full glossary</h3>
-          <p>Browse all RRM terminology, methods, conditions, and references.</p>
-          <p><a href="/glossary/" class="btn btn--primary">Open the RRM Glossary</a></p>
-          <p><a href="/library/" class="btn btn--secondary">Browse the Research Library</a></p>
-        </div>
-
         <p class="disclaimer"><em>This content is for educational purposes only and does not constitute medical advice. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</em></p>
       </article>
     </div>
@@ -323,20 +316,21 @@ const breadcrumbSchema = {
     border-bottom-color: var(--accent);
   }
 
-  .term-sources {
-    margin-top: var(--space-10);
-    padding: var(--space-6);
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
+  .term-rail {
+    margin-top: var(--space-8);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--border-color);
   }
-  .term-sources__heading {
-    font-family: 'Cormorant Garamond', 'Georgia', serif;
-    font-size: 1.375rem;
+  .term-rail__eyebrow {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6875rem;
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-tertiary);
     margin: 0 0 var(--space-4) 0;
-    color: var(--text-primary);
   }
+
   .term-sources__list {
     list-style: decimal;
     padding-left: var(--space-5);
@@ -366,20 +360,6 @@ const breadcrumbSchema = {
     color: var(--text-secondary);
   }
 
-  .related-terms {
-    margin-top: var(--space-10);
-    padding: var(--space-6);
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-  }
-  .related-terms__heading {
-    font-family: 'Cormorant Garamond', 'Georgia', serif;
-    font-size: 1.375rem;
-    font-weight: 600;
-    margin: 0 0 var(--space-3) 0;
-    color: var(--text-primary);
-  }
   .related-terms__list {
     list-style: none;
     padding: 0;
@@ -462,29 +442,6 @@ const breadcrumbSchema = {
   .discussed-in__list a:hover {
     color: var(--accent);
     border-bottom-color: var(--accent);
-  }
-
-  .cta-box {
-    background: var(--bg-surface);
-    border: none;
-    border-radius: var(--radius-md);
-    padding: var(--space-8);
-    text-align: center;
-    margin-top: var(--space-10);
-    box-shadow: var(--shadow-sm);
-  }
-
-  .cta-box h3 {
-    font-family: 'Cormorant Garamond', 'Georgia', serif;
-    margin-bottom: var(--space-3);
-  }
-
-  .cta-box p {
-    margin-bottom: var(--space-4);
-  }
-
-  .cta-box p:last-child {
-    margin-bottom: 0;
   }
 
   .disclaimer {
