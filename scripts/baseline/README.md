@@ -61,8 +61,32 @@ telemetry), GSC (top 200 pages), plus the manifest itself.
 
 ## Diff strategy
 
-**Fast diff (after every fix):** re-run `http.mjs` + `agent-surface.sh` + `d1-counts.sh`;
-compare with the locked baseline. Any drift = investigate before merging the fix.
+**Local pre-merge ritual** (TIER A fix → mandatory):
+
+```bash
+npm run baseline:capture       # captures _current/ from production (~3 min)
+npm run baseline:diff:hard     # exits 1 on any H1-H4 finding; merges blocked
+```
+
+The gate is currently OPT-IN — Brian must run it locally before merging a TIER A
+fix. CI wire-up is a known Phase 5 gap: the locked baseline (~6.5MB) lives outside
+the repo at `~/iCode/.arise-baselines/2026-05-05/`, so CI cannot diff without first
+solving locked-baseline distribution (commit a slim snapshot? upload to R2? ship via
+artifact?). Decision deferred until Phase 5.
+
+**Hard gates (exit 1 in `--gate hard` mode):**
+- **H1** HTTP status regression — any URL whose locked status was 2xx/3xx now 4xx/5xx,
+  OR was exactly 200 now anything else, OR content-type changed.
+- **H2** Body shrinkage — any URL with locked body > 5KB whose current body is < 50% of
+  locked. Covers all 55 HTTP URLs + the 6 agent-surface bytes. Closes the "page
+  returned 200 but went blank" failure mode (Mar 17-19 endo-survey incident).
+- **H3** D1 row count drop — > 5% drop on any table, > 1% drop on protected tables
+  (user, session, enrollment, contact, community_post, newsletter_subscriber, course,
+  faq, glossary_term, posts).
+- **H4** arise-scan HIGH count growth — locked + 5 = ceiling.
+
+**Soft signals (advisory only):** body sha drift, latency drift, agent-surface sha
+drift on llms.txt / openapi (often legitimate after content updates).
 
 **Deep diff (per fix wave):** re-run everything; use `scripts/diff-baseline.mjs` (Phase 5,
 TODO) to surface differences across visual, search ranking, and JSON-LD shape.
@@ -79,5 +103,7 @@ git rev-parse arise-sweep-YYYY-MM-DD-baseline^{}     # commit SHA
 git cat-file -p arise-sweep-YYYY-MM-DD-baseline      # tag object (message + commit pointer)
 ```
 
-The manifest's `git_commit` field is the commit that physically contains `manifest.json`
-in the working tree -- i.e. the same SHA you get from `git rev-parse <tag>^{}`.
+The manifest's `git_commit_at_capture` field is the rrm-academy-cf HEAD at the moment
+baselines were captured (BEFORE the manifest existed). The git tag itself points at the
+FIRST commit that physically contains the manifest. Use `git rev-parse <tag>^{}` to
+dereference. The two SHAs will always differ -- this is normal.

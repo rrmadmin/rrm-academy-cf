@@ -78,6 +78,19 @@ if (!existsSync(CURRENT)) die(`current baseline missing: ${CURRENT} -- re-run ht
       if (lk.headers && cur.headers && cur.headers['content-type'] && lk.headers['content-type'] && lk.headers['content-type'] !== cur.headers['content-type']) {
         findings.hard.push({ gate: 'H1', url: cur.url, msg: `content-type changed: '${lk.headers['content-type']}' -> '${cur.headers['content-type']}'` });
       }
+      // H2-HTTP: body shrinkage on any HTTP URL (extends agent-surface H2 to all 55 URLs).
+      // Only fires when locked size > 5000 bytes (avoid false positives on short JSON responses)
+      // AND current size < 50% of locked size. Closes the "endo-survey went blank but returned 200"
+      // failure mode from the Mar 17-19 incident.
+      if (lk.size && cur.size && lk.size > 5000 && cur.size < lk.size * SHRINK_THRESHOLD) {
+        findings.hard.push({
+          gate: 'H2',
+          url: cur.url,
+          locked_size: lk.size,
+          current_size: cur.size,
+          msg: `HTTP body shrank ${((1 - cur.size / lk.size) * 100).toFixed(1)}% (catastrophic; locked was ${lk.size}b, current is ${cur.size}b)`,
+        });
+      }
     }
   }
 }
