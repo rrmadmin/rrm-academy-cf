@@ -3,7 +3,8 @@
   "purpose": "Snapshot whole-site behavior so /arise fix waves can be diffed against a known-good state. The Mar 17-19 incident shipped 16 fixes in 48h and broke search, OAuth, blog images, and the endo survey for 48h. Phase 1 captures the regression-detection surface so a repeat is impossible.",
   "captured_at": "2026-05-05T18:21:27Z",
   "git_tag": "arise-sweep-2026-05-05-baseline",
-  "git_commit": "eb5fdb2e6c214e12508e30efc9b3fbcc81c137cd",
+  "git_commit_at_capture": "eb5fdb2e6c214e12508e30efc9b3fbcc81c137cd",
+  "git_commit_at_capture_note": "rrm-academy-cf HEAD at the moment baselines were captured (BEFORE this manifest existed). The git tag itself points at the FIRST commit that physically contains this manifest (use `git rev-parse arise-sweep-2026-05-05-baseline^{}` to dereference). The two will always differ -- this is normal.",
   "storage_root": "~/iCode/.arise-baselines/2026-05-05/",
   "total_size_mb": 7.7,
   "layers": {
