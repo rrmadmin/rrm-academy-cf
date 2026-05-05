@@ -174,6 +174,10 @@ jobs:
           echo "Posts: $(node -e "console.log(require('./src/data/posts.json').length)")"
           echo "Partners: $(node -e "console.log(require('./src/data/partners.json').length)")"
 
+      - name: Glossary link drift gate (Stage A — warn-only)
+        run: node scripts/check-glossary-link-classes.mjs
+        continue-on-error: true
+
       - name: Verify data files
         run: |
           fail=0

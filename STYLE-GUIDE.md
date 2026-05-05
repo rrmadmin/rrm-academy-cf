@@ -360,35 +360,21 @@ transition: background 0.15s, color 0.15s, border-color 0.15s
 
 ## Links
 
-### Default Link (`a`)
+The site has five canonical inline-link variants. Use the most specific that applies. Do not invent new variants without spec approval.
 
-```css
-color: var(--accent);
-text-decoration: none;
-transition: color 0.15s;
-```
+| # | Selector | Color | Underline | Use |
+|---|---|---|---|---|
+| 1 | `p a, li a, .prose a, blockquote a` (`global.css:501`) | `--accent` | yes, 2px offset | External sources, pillar-guide links, any non-glossary-internal inline link |
+| 2 | `.prose a.gloss-xref` (`global.css:1129`) | `inherit` (hover -> `--accent`) | yes, 1px, `--purple-200` | Linking to another glossary term inside a term body. Requires `.prose` ancestor (pillar AND spoke routes). |
+| 3 | `.cite-ref a` (`global.css:1615`) | `--accent` | no (hover yes) | Inline `<sup>` numbers pointing to the references list |
+| 4 | `.term-spoke-link a` (`global.css:1159`) | `--text-tertiary` (hover -> `--accent`) | no, border on hover | "Open full entry ->" beneath each term |
+| 5 | `.references .ref-backlink` (`global.css:1650`) | `--accent` | no | ↩ in references list |
 
-Hover: `color: var(--accent-hover)`
+**Token references:** `--accent`, `--accent-hover`, `--purple-200`, `--text-tertiary` all defined in `docs/design/design-system.json` (auto-generated from `src/styles/global.css`).
 
-### Prose Links (`p a`, `li a`, `.prose a`, `blockquote a`)
+**Spoke-page caveat:** Variant 2 requires a `.prose` ancestor. Pillar `/glossary/` wraps content in `<article class="prose">`. Spoke `/glossary/<slug>/` MUST also wrap `<GlossaryTerm>` content in a `.prose` container, or the selector silently fails on spokes.
 
-Same as above, plus:
-```css
-text-decoration: underline;
-text-underline-offset: 2px;
-```
-
-Inline links in running text always have underlines for WCAG link distinguishability.
-
-### External Links (`.external-link`)
-
-```
-display: inline-flex; align-items: center; gap: 5px
-font-size: 0.875rem; font-weight: 500
-color: var(--purple-700)
-```
-
-Hover: `color: var(--purple-900)`, no underline. Typically paired with an external-link SVG icon.
+**Drift prevention:** glossary term bodies are normalized via `scripts/normalize-glossary-links.mjs` and gated in CI by `scripts/check-glossary-link-classes.mjs`. See `docs/superpowers/specs/2026-05-05-glossary-link-style-normalization-design.md`.
 
 ---
 
