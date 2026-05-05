@@ -137,3 +137,72 @@ describe('audit-glossary-links smoke', () => {
     assert.ok(report.termCount > 100);
   });
 });
+
+import { applyTransforms } from '../scripts/lib/glossary-link-transforms.mjs';
+
+describe('applyTransforms — add-gloss-xref', () => {
+  it('adds gloss-xref to bare anchor', () => {
+    const out = applyTransforms('<p><a href="#endometriosis">e</a></p>', {
+      knownTermSlugs: KNOWN_SLUGS, sectionIds: SECTION_IDS,
+    });
+    assert.match(out, /class="gloss-xref"/);
+  });
+  it('adds gloss-xref alongside existing class', () => {
+    const out = applyTransforms('<p><a class="emphasis" href="#endometriosis">e</a></p>', {
+      knownTermSlugs: KNOWN_SLUGS, sectionIds: SECTION_IDS,
+    });
+    assert.match(out, /class="emphasis gloss-xref"|class="gloss-xref emphasis"/);
+  });
+  it('is idempotent', () => {
+    const once = applyTransforms('<p><a href="#endometriosis">e</a></p>', {
+      knownTermSlugs: KNOWN_SLUGS, sectionIds: SECTION_IDS,
+    });
+    const twice = applyTransforms(once, {
+      knownTermSlugs: KNOWN_SLUGS, sectionIds: SECTION_IDS,
+    });
+    assert.equal(once, twice);
+  });
+});
+
+describe('applyTransforms — citation', () => {
+  it('adds cite-ref to bare <sup>', () => {
+    const out = applyTransforms('<p><sup><a href="#ref-7">7</a></sup></p>', {
+      knownTermSlugs: KNOWN_SLUGS, sectionIds: SECTION_IDS,
+    });
+    assert.match(out, /<sup class="cite-ref">/);
+  });
+  it('adds cite-ref alongside existing class', () => {
+    const out = applyTransforms('<p><sup class="emphasis"><a href="#ref-7">7</a></sup></p>', {
+      knownTermSlugs: KNOWN_SLUGS, sectionIds: SECTION_IDS,
+    });
+    assert.match(out, /class="emphasis cite-ref"|class="cite-ref emphasis"/);
+  });
+  it('wraps bare <a> when no <sup>', () => {
+    const out = applyTransforms('<p><a href="#ref-7">7</a></p>', {
+      knownTermSlugs: KNOWN_SLUGS, sectionIds: SECTION_IDS,
+    });
+    assert.match(out, /<sup class="cite-ref"><a href="#ref-7">7<\/a><\/sup>/);
+  });
+});
+
+describe('applyTransforms — manual-review skip', () => {
+  it('does not transform terms with manual-review anchors', () => {
+    const input = '<p><a href="#nonexistent">x</a></p>';
+    const out = applyTransforms(input, {
+      knownTermSlugs: KNOWN_SLUGS, sectionIds: SECTION_IDS,
+    });
+    // applyTransforms returns null so caller knows to skip.
+    assert.equal(out, null);
+  });
+});
+
+describe('applyTransforms — preserves non-anchor content', () => {
+  it('keeps <strong>, text, <p> intact', () => {
+    const input = '<p><strong>Bold</strong> text and <a href="#endometriosis">e</a></p>';
+    const out = applyTransforms(input, {
+      knownTermSlugs: KNOWN_SLUGS, sectionIds: SECTION_IDS,
+    });
+    assert.match(out, /<strong>Bold<\/strong>/);
+    assert.match(out, /text and/);
+  });
+});
