@@ -1123,6 +1123,21 @@ blockquote a {
   text-decoration: underline;
 }
 
+/* Glossary cross-link auto-anchors injected by enrich-glossary.mjs.
+   Subtle dotted-style underline so cross-links don't disrupt prose flow.
+   Same render path on the pillar (#slug intra-page) and spoke (/glossary/<slug>/). */
+.prose a.gloss-xref {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--purple-200);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.prose a.gloss-xref:hover {
+  color: var(--accent);
+  text-decoration-color: var(--accent);
+}
+
 /* Pillar page lead paragraph -- 25-35 word AEO-optimized opener */
 .pillar-lead {
   font-size: 1.125rem;
