@@ -18,10 +18,23 @@ concurrency:
 
 jobs:
   refresh:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event != 'pull_request' }}
+    # Job-level `if`: GHA auto-evaluates without ${{ }} wrappers and the wrapper-form
+    # silently rejected successful triggers in early testing (2026-05-05). Keep it
+    # bare here. Pull-request guard happens inside steps via the source event check.
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
+      - name: Trigger debug
+        run: |
+          echo "::notice title=AI Search Refresh trigger::source=${{ github.event.workflow_run.id }} sha=${{ github.event.workflow_run.head_sha }} event=${{ github.event.workflow_run.event }} conclusion=${{ github.event.workflow_run.conclusion }} branch=${{ github.event.workflow_run.head_branch }}"
+
+      - name: Skip if source was a pull request
+        if: github.event.workflow_run.event == 'pull_request'
+        run: |
+          echo "::notice::Source workflow_run was a pull_request; skipping refresh."
+          exit 78
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
