@@ -53,6 +53,21 @@ const SLUG_TRUNC = 100;
 const POLL_TIMEOUT_MS = 60_000;
 const POLL_INTERVAL_MS = 1500;
 const CONCURRENCY = 10;
+const FETCH_TIMEOUT_MS = 30_000;
+
+// Wraps fetch() with an AbortController + per-request timeout. Without this,
+// a hung CF API connection (TCP accepted, no response) blocks the calling
+// loop indefinitely. POLL_TIMEOUT_MS gates the outer poll loop but cannot
+// recover from an inner fetch that never settles.
+async function fetchWithTimeout(url, opts = {}, timeoutMs = FETCH_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...opts, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 const args = process.argv.slice(2);
 const flag = (name) => args.includes(name);
@@ -300,7 +315,7 @@ function computeContentHash(doc) {
 // ----------------- D1 REST API -----------------
 
 async function d1Query(sql, params = [], attempt = 0) {
-  const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/d1/database/${D1_DB_ID}/query`, {
+  const r = await fetchWithTimeout(`https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/d1/database/${D1_DB_ID}/query`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${D1_TOKEN}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ sql, params }),
@@ -371,7 +386,7 @@ async function uploadItem({ key, body, metadata }, attempt = 0) {
   const blob = new Blob([body], { type: 'text/markdown' });
   form.append('file', blob, key);
   form.append('metadata', JSON.stringify(metadata));
-  const r = await fetch(ITEMS_BASE, {
+  const r = await fetchWithTimeout(ITEMS_BASE, {
     method: 'POST',
     headers: { Authorization: `Bearer ${TOKEN}` },
     body: form,
@@ -402,7 +417,7 @@ async function uploadItem({ key, body, metadata }, attempt = 0) {
 async function pollItem(itemId) {
   const start = Date.now();
   while (Date.now() - start < POLL_TIMEOUT_MS) {
-    const r = await fetch(`${ITEMS_BASE}/${itemId}`, {
+    const r = await fetchWithTimeout(`${ITEMS_BASE}/${itemId}`, {
       headers: { Authorization: `Bearer ${TOKEN}` },
     });
     const json = await r.json();
@@ -426,7 +441,7 @@ async function uploadAndPoll(doc) {
 }
 
 async function deleteItem(itemId) {
-  const r = await fetch(`${ITEMS_BASE}/${itemId}`, {
+  const r = await fetchWithTimeout(`${ITEMS_BASE}/${itemId}`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${TOKEN}` },
   });
