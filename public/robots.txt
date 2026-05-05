@@ -88,3 +88,6 @@ User-agent: Bytespider
 Disallow: /
 
 Sitemap: https://rrmacademy.org/sitemap-index.xml
+
+# NLWeb Schema Feeds -- structured data feeds for AI agents
+Schemamap: https://rrmacademy.org/library-feed.jsonl

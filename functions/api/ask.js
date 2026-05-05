@@ -40,6 +40,7 @@ function utcDateKey() {
 const RATE_LIMIT_MAX = 20;
 const RATE_LIMIT_MAX_ANON = 2;
 const RATE_LIMIT_TTL = 172800; // 48h in seconds
+const META = { response_type: 'answer', version: 'nlweb-1.0' };
 
 function shouldUseV2(tier, user) {
   if (tier === 'all') return true;
@@ -305,10 +306,11 @@ async function handleAuthedAsk(context, session) {
       .catch(err => log(env, waitUntil, 'ask', 'kv_write_error', 'warn', err.message, 0, 0))
   );
 
+  const payload = { ...result, _meta: META };
   if (wantsSSE) {
-    return sseResponse(result);
+    return sseResponse(payload);
   }
-  return json(result);
+  return json(payload);
 }
 
 async function handleAnonymousAsk(context) {
@@ -373,7 +375,7 @@ async function handleAnonymousAsk(context) {
       .catch(err => log(env, waitUntil, 'ask', 'kv_write_error_anon', 'warn', err.message, 0, 0))
   );
 
-  return sseResponse(result);
+  return sseResponse({ ...result, _meta: META });
 }
 
 const CAPABILITY_JSON = {
@@ -396,7 +398,7 @@ const CAPABILITY_JSON = {
     },
   },
   response: {
-    shape: { answer: 'string', citations: '{url, title?}[]' },
+    shape: { answer: 'string', citations: '{url, title?}[]', _meta: { response_type: 'string', version: 'string' } },
     sse_events: ['data: <answer-json>', 'data: [DONE]'],
   },
   guardrails: {
