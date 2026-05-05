@@ -49,7 +49,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Probe for site-data artifact
+        id: artifact_probe
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          n=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/artifacts" \
+                --jq '[.artifacts[] | select(.name == "site-data")] | length')
+          echo "count=$n" >> "$GITHUB_OUTPUT"
+          if [ "$n" -eq 0 ]; then
+            echo "::notice title=AI Search Refresh skipped::Source deploy uploaded no site-data artifact (likely skip_fetch=true). Nothing to refresh; exiting cleanly."
+          fi
+
       - name: Restore data files from upstream deploy
+        if: steps.artifact_probe.outputs.count != '0'
         uses: actions/download-artifact@v4
         with:
           name: site-data
@@ -59,7 +72,7 @@ jobs:
 
       - name: Upload corpus to AI Search
         id: ai_search_upload
-        if: ${{ env.AI_SEARCH_API_TOKEN != '' }}
+        if: steps.artifact_probe.outputs.count != '0' && env.AI_SEARCH_API_TOKEN != ''
         timeout-minutes: 25
         env:
           AI_SEARCH_API_TOKEN: ${{ secrets.AI_SEARCH_API_TOKEN }}
