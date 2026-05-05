@@ -1,0 +1,69 @@
+{
+  "phase": "1",
+  "purpose": "Snapshot whole-site behavior so /arise fix waves can be diffed against a known-good state. The Mar 17-19 incident shipped 16 fixes in 48h and broke search, OAuth, blog images, and the endo survey for 48h. Phase 1 captures the regression-detection surface so a repeat is impossible.",
+  "captured_at": "2026-05-05T18:21:27Z",
+  "git_tag": "arise-sweep-2026-05-05-baseline",
+  "git_commit": "eb5fdb2e6c214e12508e30efc9b3fbcc81c137cd",
+  "storage_root": "~/iCode/.arise-baselines/2026-05-05/",
+  "total_size_mb": 7.7,
+  "layers": {
+    "build": {
+      "files": ["build/build-summary.json", "build/check-types.txt", "build/type-check-baseline.json", "build/arise-scan.json", "build/arise-scan.summary.json", "build/npm-build.txt"],
+      "summary": { "build_status": "passed", "type_check_exit": 0, "arise_scan_high": 23, "build_warnings": 11 }
+    },
+    "test": {
+      "files": ["test/test-summary.json", "test/unit.txt", "test/e2e.json"],
+      "summary": { "unit_pass_rate": "316/317", "unit_failed": ["test/glossary-link-classifier.test.js"], "e2e_pass_rate": "89/93", "e2e_failed_signature": "notice block links to bridge page and FACTS (3 browsers)" }
+    },
+    "d1": {
+      "files": ["d1/rrm-auth-tables.json", "d1/rrm-auth-counts.txt", "d1/rrm-survey-tables.json", "d1/rrm-survey-counts.txt", "d1/rrm-analytics-tables.json", "d1/rrm-analytics-counts.txt", "d1/rrm-library-tables.json"],
+      "summary": { "rrm_auth_tables": 47, "rrm_auth_counts_captured": 45, "rrm_survey_tables": 4, "rrm_analytics_tables": 3, "rrm_library_tables": "schema only (different binding)" }
+    },
+    "agent_surface": {
+      "files": ["agent-surface/llms_txt.body", "agent-surface/openapi.body", "agent-surface/library_rss_xml.body", "agent-surface/commentary_rss_xml.body", "agent-surface/robots_txt.body", "agent-surface/sitemap-index_xml.body"],
+      "summary": {
+        "llms_txt_size": 8317, "llms_txt_sha": "516226630a1c8b8d",
+        "openapi_size": 117686, "openapi_sha": "0abe0b87292af119",
+        "library_rss_size": 60567, "library_rss_sha": "f7728c43c56227ca",
+        "commentary_rss_size": 15837, "commentary_rss_sha": "4e7ca9dd70cc37b0",
+        "robots_size": 3320, "robots_sha": "fb74ab0558af3c31",
+        "sitemap_index_size": 1058, "sitemap_index_sha": "318f33760022ea4c"
+      }
+    },
+    "http": {
+      "files": ["http/http-baseline.json"],
+      "summary": { "urls_probed": 55, "status_2xx": 33, "status_3xx": 13, "status_4xx": 9, "captured": "status + content-type/cache-control/cf-cache-status/etag/location + body sha + json shape per URL" }
+    },
+    "schema": {
+      "files": ["schema/jsonld-baseline.json"],
+      "summary": { "pages_probed": 18, "total_jsonld_blocks": 36, "type_distribution": "8 SpeakableSpecification, 5 BreadcrumbList, 5 MedicalWebPage, 4 Article, 3 FAQPage, plus DefinedTerm, ItemList, WebPage" }
+    },
+    "search": {
+      "files": ["search/top-queries.tsv", "search/search-baseline.json"],
+      "summary": { "top_queries_captured": 50, "all_returned_200": true, "avg_latency_ms": 1476, "ordered_result_ids_per_query": "captured for diff" }
+    },
+    "visual": {
+      "files": ["visual/visual-baseline.json", "visual/visual-progress.log", "visual/desktop/*.png", "visual/mobile/*.png"],
+      "summary": { "pages": 28, "viewports": 2, "captures_succeeded": 51, "captures_timed_out": 5, "timeout_pages": ["/", "/login", "/signup"], "note": "networkidle timeout on long-poll pages; baseline state" }
+    },
+    "ae": {
+      "files": ["ae/ae-summary.json", "ae/by-dataset.json", "ae/by-path.json", "ae/by-functional-route.json", "ae/errors-7d.json"],
+      "summary": { "period": "7d", "rrm_academy_events": 5026, "total_errors": 1, "subsystems_active": ["og_render", "community", "ask", "billing", "admin", "search", "auth", "courses", "newsletter", "survey"] }
+    },
+    "gsc": {
+      "files": ["gsc/gsc-top-200.json"],
+      "summary": { "period": "2026-04-28 to 2026-05-04", "total_pages": 200, "top_clicked": "uterine-isthmocele-c-section-scar-restorative-solutions (27 clicks, pos 8.4)" }
+    }
+  },
+  "diff_strategy": {
+    "fast_diff_after_fix": "compare http/http-baseline.json status_codes + body sha + agent-surface byte sha + d1 row counts + arise-scan high count. Any drift = investigate.",
+    "deep_diff": "regenerate visual/, search/, schema/ baselines and use scripts/diff-baseline.mjs (TODO Phase 5) to surface differences.",
+    "ae_diff": "after each TIER A fix, re-run ae/by-functional-route.json query for last 4-24h and compare error_summary.total_errors against this baseline."
+  },
+  "next_phases": {
+    "phase_2": "Discovery: /arise standard sweeps + /arise --deep persona traces produce a unified finding ledger (no fixes shipped)",
+    "phase_3": "Triage: every finding scored against fix-risk matrix; TIER A/B/C/D + 'do not fix' list assigned",
+    "phase_4": "Fix waves: per-surface, per-day, max 3 fixes per commit, full proof-gate suite per fix",
+    "phase_5": "Continuous regression detection between waves"
+  }
+}
