@@ -392,6 +392,12 @@ jobs:
             echo "Already enforced by postbuild during 'npm run build' when the tool is present."
           fi
 
+      - name: Lint CF Pages _headers
+        uses: rrmadmin/.github/.github/actions/lint-cf-headers@main
+        with:
+          headers-path: dist/_headers
+          tools-token: ${{ secrets.GH_TOOLS_PAT }}
+
       - name: Deploy to Cloudflare Pages
         id: deploy
         uses: cloudflare/wrangler-action@v3
