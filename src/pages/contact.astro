@@ -53,6 +53,20 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
             Pick a topic below. If nothing fits, "Something else" is the right place to start.
           </p>
 
+          <aside class="contact-notice" aria-labelledby="contact-notice-heading">
+            <h2 id="contact-notice-heading">Looking for clinical care?</h2>
+            <p>
+              To schedule an appointment with Dr Whittaker,
+              <a href="/schedule-with-dr-whittaker/">visit her scheduling page</a>.
+              RRM Academy is her teaching platform. Her patient appointments are booked separately.
+            </p>
+            <p>
+              To find an RRM or NaProTechnology-trained clinician near you, the
+              <a href="https://www.factsaboutfertility.org/find-a-provider/" target="_blank" rel="noopener noreferrer external">FACTS About Fertility provider directory</a>
+              lists physicians trained in cycle-based restorative care.
+            </p>
+          </aside>
+
           <!-- Three primary cards (single-open accordion) -->
           <div class="contact-cards" role="region" aria-label="Common topics">
             <details name="contact-cards" class="contact-card" data-category="course">
@@ -714,5 +728,32 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
   }
   .js-loaded #category-fallback-group.js-hidden {
     display: none;
+  }
+
+  /* Misroute notice (above cards) */
+  .contact-notice {
+    margin: var(--space-6) 0 var(--space-8);
+    padding: var(--space-5) var(--space-6);
+    border-left: 3px solid var(--accent);
+    background: var(--bg-surface);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  }
+  .contact-notice h2 {
+    font-family: var(--font-display, 'Cormorant Garamond', serif);
+    font-size: 1.375rem;
+    margin: 0 0 var(--space-3);
+  }
+  .contact-notice p {
+    margin: 0 0 var(--space-3);
+    color: var(--text-secondary);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+  }
+  .contact-notice p:last-child {
+    margin-bottom: 0;
+  }
+  .contact-notice a {
+    color: var(--accent);
+    font-weight: 500;
   }
 </style>
