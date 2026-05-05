@@ -135,6 +135,14 @@ const medicalWebPageSchema: Record<string, unknown> = {
 if (term.createdAt) medicalWebPageSchema.datePublished = term.createdAt;
 if (term.updatedAt) medicalWebPageSchema.dateModified = term.updatedAt;
 
+// Inline speakable into MedicalWebPage so we keep exactly 3 JSON-LD blocks
+// (S4 snapshot gate). BaseLayout's `speakable` prop emits a 4th block and
+// is documented as opt-out-via-inline. Term name + first body paragraph.
+medicalWebPageSchema.speakable = {
+  '@type': 'SpeakableSpecification',
+  cssSelector: ['article.prose h1', 'article.prose > p:first-of-type'],
+};
+
 // Block 3: BreadcrumbList (Home > Guides > Glossary > term.name)
 const breadcrumbSchema = {
   '@context': 'https://schema.org',
@@ -155,8 +163,9 @@ const breadcrumbSchema = {
   ogType="article"
   publishDate={term.createdAt}
   jsonLd={definedTermSchema}
-  speakable={['article.prose h1', 'article.prose > p:first-of-type']}
 >
+  <!-- Note: speakable is inlined into MedicalWebPage above (not via BaseLayout
+       speakable prop) so we ship exactly 3 JSON-LD blocks (snapshot gate S4). -->
   <!-- Additional JSON-LD blocks: MedicalWebPage wrapper + BreadcrumbList. -->
   <script type="application/ld+json" set:html={JSON.stringify(medicalWebPageSchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
