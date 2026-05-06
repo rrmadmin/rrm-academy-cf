@@ -17,7 +17,7 @@ clip_path = base / "clip-uids" / f"{course_id}.json"
 clip_map = json.loads(clip_path.read_text())
 
 cf_token = subprocess.check_output(
-    ["op", "read", "op://Automation/Cloudflare Stream Token/credential"]
+    ["op", "read", "op://Automation/CF - Stream - account/credential"]
 ).decode().strip()
 cf_account = "ecf2c5bc8b5ebd634bcb587b3890910a"
 

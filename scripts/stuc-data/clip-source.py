@@ -26,7 +26,7 @@ source_uid = manifest["sourceUid"]
 def op_read(path):
     return subprocess.check_output(["op", "read", path]).decode().strip()
 
-cf_token = op_read("op://Automation/Cloudflare Stream Token/credential")
+cf_token = op_read("op://Automation/CF - Stream - account/credential")
 cf_account = "ecf2c5bc8b5ebd634bcb587b3890910a"
 
 # Load existing clip map if any (resume support)
