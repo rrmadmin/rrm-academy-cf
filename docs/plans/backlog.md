@@ -28,18 +28,24 @@ Skip: hero imagery, stock photography, lifestyle shots, icon-decorated bullet li
 
 OG image / Twitter card variant for social sharing is a separate, smaller task worth pairing.
 
-### Endo Self-Survey: exact Wix-era PDF download count
+### Endo Self-Survey: per-user Wix download attribution
 
-The homepage displays `surveyCount = liveDistinct + sqspLegacyExact + wixLegacyEstimate`, where `sqspLegacyExact = 1,512` (Squarespace CSV, exact) and `wixLegacyEstimate = 4,271` (rough: 5,783 prior estimate minus the 1,512 Squarespace migrants who appear in the Wix members CSV via `source = 'import'`). Replace the Wix estimate with an exact count via the Wix Members API.
+The homepage displays `surveyCount = liveDistinct + sqspLegacyExact + wixLegacyEstimate`. Current values:
+- `liveDistinct` -- D1 `survey_identities` (CF Pages era, exact)
+- `sqspLegacyExact = 1,512` -- Squarespace CSV (exact)
+- `wixLegacyEstimate = 3,347` -- Wix File Share view counter (3,719 views, 10% repeat-view discount as of 2026-05-06)
 
-Cross-check that drove the deduction (2026-05-06): of 1,512 Squarespace emails, 1,504 were already in `rrm-auth.contact` (1,165 in `source = 'import'`, 1 in `source = 'wix-site'`, the rest in survey/endo-survey/biosite/etc). Only 8 Squarespace emails were absent from contact entirely. The platform path was `sqsp -> wix -> cf` and the Squarespace cohort migrated forward -- so the "5,983 Wix members" snapshot already counted them.
+The Wix value is now measurement-based (PDF view counter on `Endometriosis Symptom Self-Survey.pdf`, file uploaded Apr 25, 2024), which replaces the prior derivation `5,983 Wix members - 200 non-survey - 1,512 Squarespace migrants = 4,271`. The view-counter basis is more direct than the member-count basis.
+
+Open question for further refinement: per-user download attribution. The current Wix estimate cannot deduplicate against the Squarespace cohort (no email list per download event on Wix File Share). Some Squarespace migrants likely re-downloaded on Wix, which would inflate the combined `sqspLegacyExact + wixLegacyEstimate`. Without per-user attribution we cannot quantify the overlap.
 
 Approach options:
 - Wix Site API token (Wix Dashboard, Settings, Headless / API Keys, scope = Members Read) + GraphQL or REST member-activity query for downloads of the PDF asset
 - Wix Velo backend HTTP function querying member badges, tags, or segments specifically associated with the PDF download flow
 - Wix CSV member export filtered on the signup-source field, then deduplicated against the Squarespace CSV
+- Increase the repeat-view discount above 10% if a sample of authenticated viewers shows higher repeat behavior
 
-Once the exact Wix-only number is in hand, update the `WIX_LEGACY_ESTIMATE` constant in `functions/api/survey/count.js`. Bootstrap JSON refreshes on next deploy via `scripts/fetch-survey-count`.
+Once per-user attribution is in hand, recompute `WIX_LEGACY_ESTIMATE` (deduped against Squarespace) in `functions/api/survey/count.js`. Bootstrap JSON refreshes on next deploy via `scripts/fetch-survey-count`.
 
 Effort: low-medium. Blocker: Wix API token availability + which member metadata field tagged PDF downloads at signup. See `~/iCode/projects/rrm-academy-wix/CLAUDE.md` for project context.
 
