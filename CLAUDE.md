@@ -5,14 +5,16 @@
 
 > Wix-to-Cloudflare migration via strangler fig pattern. Phases 0-8 complete (courses, quizzes, enrollment, progress tracking, comments, certificates all live). Active work tracked in `docs/plans/backlog.md`.
 
-> **Ecosystem map:** `docs/rrm-academy-ecosystem.json` is the structured map of the entire RRM Academy system -- infrastructure, databases, contact model, deploy pipelines, workers, projects, people, finances, calendar, and timeline. Read it for system-wide context. Also available via `GET /api/admin/ecosystem` (ADMIN_API_SECRET auth) and D1 `system_config` table (`key = 'ecosystem-map'`, gzip+base64-encoded with `gz:` prefix; the GET endpoint decodes on read).
+> **Satellite repo (private):** Sensitive operational docs (ecosystem map, internal plans, runbooks, design docs with system internals) live in `rrmadmin/rrm-academy-internal`. Clone it as a sibling of this repo: `~/iCode/projects/rrm-academy-internal/`. Build scripts that consume satellite files (e.g. `sync-ecosystem.mjs`) resolve via env-var → sibling → absolute home fallback. Override with `RRM_INTERNAL_ECOSYSTEM_PATH` if cloned elsewhere.
+>
+> **Ecosystem map:** `rrm-academy-internal/ecosystem.json` is the structured map of the entire RRM Academy system -- infrastructure, databases, contact model, deploy pipelines, workers, projects, people, finances, calendar, and timeline. Read it for system-wide context. Also available via `GET /api/admin/ecosystem` (ADMIN_API_SECRET auth) and D1 `system_config` table (`key = 'ecosystem-map'`, gzip+base64-encoded with `gz:` prefix; the GET endpoint decodes on read).
 >
 > **Admin API smoke test (one-liner):**
 > ```bash
 > SECRET=$(op read 'op://Automation/RRM Academy ADMIN_API_SECRET/credential')
 > curl -sS https://rrmacademy.org/api/admin/ecosystem -H "Authorization: Bearer $SECRET" | jq 'keys'
 > ```
-> Same secret gates 7 endpoints: `/api/admin/cleanup`, `/api/admin/ecosystem`, `/api/admin/search-queries`, `/api/admin/wix-migration-link`, `/api/admin/wix-migration-email`, `/api/newsletter/send`, `/api/newsletter/rss-check`. After editing the ecosystem JSON, re-sync to D1 with `node scripts/sync-ecosystem.mjs` then verify with the curl above.
+> Same secret gates 7 endpoints: `/api/admin/cleanup`, `/api/admin/ecosystem`, `/api/admin/search-queries`, `/api/admin/wix-migration-link`, `/api/admin/wix-migration-email`, `/api/newsletter/send`, `/api/newsletter/rss-check`. After editing the ecosystem JSON in the satellite, re-sync to D1 with `node scripts/sync-ecosystem.mjs` then verify with the curl above.
 
 ## Quick Reference
 
@@ -187,7 +189,7 @@ docs/
 | Backlog & project status | `docs/plans/backlog.md` |
 | Airtable-to-CF data pipeline | `docs/architecture/airtable-cf-pipeline.md` |
 | ICD-10 codes (endo survey) | `docs/endo-survey-icd10-internal.md` |
-| Ecosystem SSOT | `docs/rrm-academy-ecosystem.json` |
+| Ecosystem SSOT | `rrm-academy-internal/ecosystem.json` (satellite repo, sibling clone) |
 | Site-SSOT inputs | `ssot/` (site, organization, people refs, services, agent-surfaces) |
 | Site-SSOT identity helper | `src/lib/identity.ts` reads from `src/generated/ssot-schema.json` (gitignored, regenerated each build) |
 
