@@ -17,6 +17,30 @@ Items explicitly SKIPPED per Perplexity verification (not backlog):
 - #6 "Key Takeaways" -> "Here is what matters:" rename -- folk SEO, zero evidence of LLM-extraction impact. Memory: `feedback-aeo-folk-rules.md`
 - #12 `/schema/*.json` + `schemamap.xml` (NLWeb pattern) -- proposal-only, zero adoption by ChatGPT/Claude/Perplexity/Gemini. Memory: `feedback-nlweb-schemamap-skip.md`
 
+### Homepage visuals: comparison diagram + commentary thumbnails
+
+Homepage is intentionally text-heavy to match high-anxiety audience register (Michelle persona, OB/GYN comfort 1.1/5). Two visual additions worth considering when bandwidth allows:
+
+1. **Designed comparison diagram** for the "Two Approaches. One Choice." section, replacing the side-by-side bullet list. Carries information (not decoration); preserves clinical register. Effort: medium (one branded SVG + a11y labels).
+2. **Latest commentary thumbnails** in the existing "Research and Commentary" section. Reuses already-authentic RRM Academy cover art (no stock photos), breaks up lower-half text density, supports CTR to commentary cluster. Effort: low (template tweak; covers + slugs already in `posts.json`).
+
+Skip: hero imagery, stock photography, lifestyle shots, icon-decorated bullet lists. Those undo the credibility text is currently doing.
+
+OG image / Twitter card variant for social sharing is a separate, smaller task worth pairing.
+
+### Endo Self-Survey: exact Wix-era PDF download count
+
+The homepage displays `surveyCount = liveDistinct + wixLegacyEstimate`, where `wixLegacyEstimate = 5,783` (rough: 5,983 total Wix members imported minus ~200 non-survey members). The Wix-era 3-tier endo self-survey was a PDF download gated behind Wix RRM Academy membership signup. Replace the rough estimate with an exact count via the Wix Members API.
+
+Approach options:
+- Wix Site API token (Wix Dashboard, Settings, Headless / API Keys, scope = Members Read) + GraphQL or REST member-activity query for downloads of the PDF asset
+- Wix Velo backend HTTP function querying member badges, tags, or segments specifically associated with the PDF download flow
+- Wix CSV member export filtered on the signup-source field (if that metadata was preserved in the Wix CMS at signup)
+
+Once the exact number is in hand, update the `WIX_LEGACY_ESTIMATE` constant in `functions/api/survey/count.js`. Bootstrap JSON refreshes on next deploy via `scripts/fetch-survey-count`.
+
+Effort: low-medium. Blocker: Wix API token availability + which member metadata field tagged PDF downloads at signup. See `~/iCode/projects/rrm-academy-wix/CLAUDE.md` for project context.
+
 ### Internal Linking (Quick Wins)
 
 Full plan at `docs/plans/2026-03-10-internal-linking-plan.md`.
