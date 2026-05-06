@@ -10,14 +10,18 @@
  *                       Source: Endo Self Survey Downloads on Squarespace CSV.
  *                       Cross-check: 1,504 of 1,512 already in rrm-auth.contact
  *                       (1,165 via source='import'); 8 not in contact at all.
- * `wixLegacyEstimate` = Wix-era PDF download cohort (Jun 2024 - Feb 2026), rough
- *                       estimate. Prior estimate of 5,783 (= 5,983 Wix members -
- *                       ~200 non-survey) implicitly included Squarespace migrants.
- *                       Subtracting the Squarespace exact gives Wix-only estimate.
- *                       Pending exact reconciliation via Wix Members API
- *                       (see docs/plans/backlog.md).
+ * `wixLegacyEstimate` = Wix-era PDF download cohort (Apr 2024 - Feb 2026),
+ *                       measurement-based estimate. Source: Wix File Share dashboard
+ *                       for "Endometriosis Symptom Self-Survey.pdf" (uploaded
+ *                       Apr 25, 2024) -- 3,719 lifetime views as of 2026-05-06.
+ *                       Discount 10% for repeat views by the same user -> ~3,347
+ *                       distinct viewers. Replaces prior 4,271 derivation (which
+ *                       was based on Wix MEMBER count minus Squarespace migrants);
+ *                       the view-counter basis is more direct. Refine via Wix
+ *                       Members API if per-user download attribution becomes
+ *                       available. See docs/plans/backlog.md.
  * `total`             = liveDistinct + sqspLegacyExact + wixLegacyEstimate
- *                       (honest "more than" framing; displayed floor stays ~7,000).
+ *                       (honest "more than" framing; current floor ~6,000).
  */
 import { json, optionsResponse } from '../auth/_shared.js';
 
@@ -30,13 +34,15 @@ const CACHE_HEADERS = {
 // 1,810 download submissions, 1,512 distinct emails. Platform was sqsp -> wix -> cf.
 const SQSP_LEGACY_EXACT = 1512;
 
-// Wix-era PDF download cohort (Jun 2024 - Feb 2026), rough estimate.
-// Prior estimate of 5,783 (= 5,983 Wix members - ~200 non-survey) implicitly
-// included Squarespace migrants. Cross-check against rrm-auth.contact showed
-// 1,504 of 1,512 Squarespace emails were already in contact (1,165 via
-// source='import'). Subtracting the Squarespace exact gives Wix-only estimate.
-// Refine via Wix Members API. See docs/plans/backlog.md.
-const WIX_LEGACY_ESTIMATE = 4271; // 5783 - 1512
+// Wix-era PDF download cohort (Apr 2024 - Feb 2026), measurement-based estimate.
+// Source: Wix File Share dashboard for "Endometriosis Symptom Self-Survey.pdf"
+// (uploaded Apr 25, 2024) -- 3,719 lifetime views as of 2026-05-06.
+// Discount 10% for repeat views by the same user -> ~3,347 distinct viewers.
+// Replaces prior 4,271 derivation (which was based on Wix MEMBER count minus
+// Squarespace migrants); the view-counter basis is more direct.
+// Refine via Wix Members API if per-user download attribution becomes
+// available. See docs/plans/backlog.md.
+const WIX_LEGACY_ESTIMATE = 3347; // floor(3719 * 0.9)
 
 export async function onRequestOptions() {
   return optionsResponse();
