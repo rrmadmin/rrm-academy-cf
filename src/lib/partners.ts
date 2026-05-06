@@ -1,6 +1,6 @@
 // src/lib/partners.ts
 // Shared types and helpers for the Educational Partners program.
-// See: docs/superpowers/specs/2026-04-16-educational-partners-program-design.md
+// See: rrm-academy-internal/superpowers/specs/2026-04-16-educational-partners-program-design.md (satellite repo)
 
 export interface PartnerAffirmations {
   find_the_cause: boolean;
