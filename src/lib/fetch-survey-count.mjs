@@ -44,9 +44,10 @@ async function main() {
     total,
     liveDistinct: Number(payload?.liveDistinct) || 0,
     liveSubmissions: Number(payload?.liveSubmissions) || 0,
+    sqspLegacyExact: Number(payload?.sqspLegacyExact) || 0,
     wixLegacyEstimate: Number(payload?.wixLegacyEstimate) || 0,
     lastUpdated: payload?.lastUpdated ?? new Date().toISOString(),
-    source: payload?.source ?? 'endo-survey-v1+ + wix-pdf-legacy-estimate',
+    source: payload?.source ?? 'endo-survey-v1+ + sqsp-pdf-exact + wix-pdf-legacy-estimate',
     fetchedAt: new Date().toISOString(),
   };
 
@@ -58,7 +59,7 @@ async function main() {
   const dir = dirname(OUTPUT_PATH);
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
   writeFileSync(OUTPUT_PATH, JSON.stringify(out, null, 2) + '\n');
-  console.log(`[survey-count] Wrote ${OUTPUT_PATH} (total=${out.total}, liveDistinct=${out.liveDistinct}, wixLegacyEstimate=${out.wixLegacyEstimate})`);
+  console.log(`[survey-count] Wrote ${OUTPUT_PATH} (total=${out.total}, liveDistinct=${out.liveDistinct}, sqspLegacyExact=${out.sqspLegacyExact}, wixLegacyEstimate=${out.wixLegacyEstimate})`);
 }
 
 main().catch(err => {
