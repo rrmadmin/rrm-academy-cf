@@ -276,7 +276,7 @@ git commit -m "chore: update guard manifest after survey submit changes"
  *   Wrangler authenticated (for D1 access)
  *
  * Usage:
- *   AIRTABLE_PAT=$(op read 'op://Automation/OpenClaw Airtable PAT/credential') node scripts/migrate-survey-identities.mjs
+ *   AIRTABLE_PAT=$(op read 'op://Automation/<redacted>/credential') node scripts/migrate-survey-identities.mjs
  *
  * What it does:
  *   1. Fetches all Airtable survey records with a populated Email field
@@ -290,7 +290,7 @@ import { execSync } from 'child_process';
 const AIRTABLE_PAT = process.env.AIRTABLE_PAT;
 if (!AIRTABLE_PAT) {
   console.error('AIRTABLE_PAT required. Run with:');
-  console.error("  AIRTABLE_PAT=$(op read 'op://Automation/OpenClaw Airtable PAT/credential') node scripts/migrate-survey-identities.mjs");
+  console.error("  AIRTABLE_PAT=$(op read 'op://Automation/<redacted>/credential') node scripts/migrate-survey-identities.mjs");
   process.exit(1);
 }
 
@@ -420,7 +420,7 @@ main().catch(err => {
 **Step 2: Test dry-run (verify it can connect)**
 
 ```bash
-AIRTABLE_PAT=$(op read 'op://Automation/OpenClaw Airtable PAT/credential') \
+AIRTABLE_PAT=$(op read 'op://Automation/<redacted>/credential') \
 AIRTABLE_SURVEY_BASE=<base-id> \
 AIRTABLE_SURVEY_TABLE=<table-id> \
 node scripts/migrate-survey-identities.mjs
@@ -463,7 +463,7 @@ Expected: `0` (empty table before migration).
 **Step 3: Run migration**
 
 ```bash
-AIRTABLE_PAT=$(op read 'op://Automation/OpenClaw Airtable PAT/credential') \
+AIRTABLE_PAT=$(op read 'op://Automation/<redacted>/credential') \
 AIRTABLE_SURVEY_BASE=<base-id> \
 AIRTABLE_SURVEY_TABLE=<table-id> \
 node scripts/migrate-survey-identities.mjs

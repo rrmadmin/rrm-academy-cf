@@ -521,13 +521,13 @@ op item create --vault Automation --category "API Credential" \
 echo "$SEO_TOKEN" | npx wrangler secret put SEO_MONITOR_API_TOKEN
 
 # Telegram bot token (same bot as down detector)
-op read 'op://Automation/RRM n8n Notifications telegram/credential' | npx wrangler secret put TELEGRAM_BOT_TOKEN
+op read 'op://Automation/<redacted>/credential' | npx wrangler secret put TELEGRAM_BOT_TOKEN
 
 # Telegram chat ID
 echo "8444326757" | npx wrangler secret put TELEGRAM_CHAT_ID
 
 # Backlinks API token
-op read 'op://Automation/RRM Backlinks API Token/credential' | npx wrangler secret put BACKLINKS_API_TOKEN
+op read 'op://Automation/<redacted>/credential' | npx wrangler secret put BACKLINKS_API_TOKEN
 ```
 
 **Step 3: Deploy**

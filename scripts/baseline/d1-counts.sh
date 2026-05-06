@@ -7,7 +7,7 @@ set -euo pipefail
 OUT="${1:-$HOME/iCode/.arise-baselines/$(date +%Y-%m-%d)/d1}"
 mkdir -p "$OUT"
 
-CF_TOKEN="${CLOUDFLARE_API_TOKEN:-$(op read 'op://Automation/Cloudflare API Token - Claude Code Full Access/credential')}"
+CF_TOKEN="${CLOUDFLARE_API_TOKEN:-$(op read 'op://Automation/<redacted>/credential')}"
 export CLOUDFLARE_API_TOKEN="$CF_TOKEN"
 
 for db in rrm-auth rrm-survey rrm-analytics; do

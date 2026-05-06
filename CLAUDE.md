@@ -11,7 +11,7 @@
 >
 > **Admin API smoke test (one-liner):**
 > ```bash
-> SECRET=$(op read 'op://Automation/RRM Academy ADMIN_API_SECRET/credential')
+> SECRET=$(op read 'op://Automation/<redacted>/credential')
 > curl -sS https://rrmacademy.org/api/admin/ecosystem -H "Authorization: Bearer $SECRET" | jq 'keys'
 > ```
 > Same secret gates 7 endpoints: `/api/admin/cleanup`, `/api/admin/ecosystem`, `/api/admin/search-queries`, `/api/admin/wix-migration-link`, `/api/admin/wix-migration-email`, `/api/newsletter/send`, `/api/newsletter/rss-check`. After editing the ecosystem JSON in the satellite, re-sync to D1 with `node scripts/sync-ecosystem.mjs` then verify with the curl above.
