@@ -30,14 +30,16 @@ OG image / Twitter card variant for social sharing is a separate, smaller task w
 
 ### Endo Self-Survey: exact Wix-era PDF download count
 
-The homepage displays `surveyCount = liveDistinct + wixLegacyEstimate`, where `wixLegacyEstimate = 5,783` (rough: 5,983 total Wix members imported minus ~200 non-survey members). The Wix-era 3-tier endo self-survey was a PDF download gated behind Wix RRM Academy membership signup. Replace the rough estimate with an exact count via the Wix Members API.
+The homepage displays `surveyCount = liveDistinct + sqspLegacyExact + wixLegacyEstimate`, where `sqspLegacyExact = 1,512` (Squarespace CSV, exact) and `wixLegacyEstimate = 4,271` (rough: 5,783 prior estimate minus the 1,512 Squarespace migrants who appear in the Wix members CSV via `source = 'import'`). Replace the Wix estimate with an exact count via the Wix Members API.
+
+Cross-check that drove the deduction (2026-05-06): of 1,512 Squarespace emails, 1,504 were already in `rrm-auth.contact` (1,165 in `source = 'import'`, 1 in `source = 'wix-site'`, the rest in survey/endo-survey/biosite/etc). Only 8 Squarespace emails were absent from contact entirely. The platform path was `sqsp -> wix -> cf` and the Squarespace cohort migrated forward -- so the "5,983 Wix members" snapshot already counted them.
 
 Approach options:
 - Wix Site API token (Wix Dashboard, Settings, Headless / API Keys, scope = Members Read) + GraphQL or REST member-activity query for downloads of the PDF asset
 - Wix Velo backend HTTP function querying member badges, tags, or segments specifically associated with the PDF download flow
-- Wix CSV member export filtered on the signup-source field (if that metadata was preserved in the Wix CMS at signup)
+- Wix CSV member export filtered on the signup-source field, then deduplicated against the Squarespace CSV
 
-Once the exact number is in hand, update the `WIX_LEGACY_ESTIMATE` constant in `functions/api/survey/count.js`. Bootstrap JSON refreshes on next deploy via `scripts/fetch-survey-count`.
+Once the exact Wix-only number is in hand, update the `WIX_LEGACY_ESTIMATE` constant in `functions/api/survey/count.js`. Bootstrap JSON refreshes on next deploy via `scripts/fetch-survey-count`.
 
 Effort: low-medium. Blocker: Wix API token availability + which member metadata field tagged PDF downloads at signup. See `~/iCode/projects/rrm-academy-wix/CLAUDE.md` for project context.
 
