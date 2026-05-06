@@ -22,8 +22,7 @@
   ],
   "same_as": [
     "https://www.instagram.com/rrmacademy",
-    "https://www.youtube.com/@rrmacademy",
-    "https://www.linkedin.com/company/rrmacademy"
+    "https://www.youtube.com/@rrmacademy"
   ],
   "member_of": [
     { "@id": "https://rrm.foundation/#organization" }

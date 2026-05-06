@@ -56,13 +56,6 @@
       "handle": "@rrmacademy",
       "aria_label": "RRM Academy on YouTube",
       "order": 2
-    },
-    {
-      "platform": "linkedin",
-      "url": "https://www.linkedin.com/company/rrmacademy",
-      "handle": "RRM Academy",
-      "aria_label": "RRM Academy on LinkedIn",
-      "order": 3
     }
   ]
 }
