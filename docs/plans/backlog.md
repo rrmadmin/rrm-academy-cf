@@ -62,9 +62,8 @@ SES newsletter system built (self-hosted, replaces Buttondown). Newsletter signu
 - ~~**RSS-to-email configuration**~~ DONE (2026-03-10)
 - **Domain warmup** -- graduated send schedule: Brian+Naomi only (days 1-3), engaged users (days 4-7), all students (days 8-14), full list (days 15+). Monitor bounce rate <2%, spam rate <0.1%
 - ~~**Privacy policy update**~~ DONE -- named Stripe, Amazon SES, and Cloudflare as processors (2026-03-10)
-- **Stale Mailchimp DKIM cleanup** -- `k2._domainkey` and `k3._domainkey` pointing to `mcsv.net`, likely orphaned. Ask Brian if these can be deleted.
 - **DMARC tightening** -- upgrade from `p=none` to `p=quarantine` after 2-4 weeks of clean sends
-- **CAN-SPAM physical address** -- get RRM Foundation mailing address from Brian for email footer
+- ~~**CAN-SPAM physical address**~~ DONE (2026-05-06) -- 3401 Hartzdale Dr, Ste 103B PMB 3518, Camp Hill, PA 17011 wired into `functions/api/newsletter/_template.js`
 
 ### ~~Site IA: "Learn" Nav + `/guides/` Index~~ DONE (2026-03-15)
 
@@ -112,7 +111,7 @@ CITE Score: **44/100 (Low)**. C: 50, I: 25, T: 60, E: 30. Full audit output in s
 
 - **Member transition email** -- draft and send welcome email to existing members explaining the new platform
 - **Meet recording pipeline** -- design doc at `docs/plans/2026-02-25-meet-recording-pipeline-design.md`. Auto-upload STUC live call recordings to community.
-- **Members + Masterclass archive import** -- ~197 Members posts + ~18 Masterclass posts not yet scraped. Blocked on Brian scraping via Claude in Chrome. Lower priority than transition email.
+- ~~**Members + Masterclass archive import**~~ DONE
 
 ---
 
@@ -211,10 +210,6 @@ All sections refined across 4 rounds. See memory `pillar-page-refinement-status.
 | Item | Blocker | Since |
 |------|---------|-------|
 | 37 draft Condition-Specific FAQs | Naomi review | 2026-03 |
-| Pakiz spotlight blog post | Cover image needed | 2026-03 |
-| Members + Masterclass archive import | Brian scraping via Chrome | 2026-02 |
-| CAN-SPAM physical address for email footer | Brian providing RRM Foundation mailing address | 2026-03 |
-| Stale Mailchimp DKIM cleanup (k2/k3._domainkey) | Brian confirming orphaned/deletable | 2026-03 |
 | IVF calculator production data | Needs verified HFEA figures replacing placeholders | 2026-03 |
 
 ---
