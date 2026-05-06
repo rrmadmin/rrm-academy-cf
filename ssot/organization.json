@@ -15,7 +15,7 @@
       "pii_class": "public",
       "jurisdiction_scope": ["US"],
       "provenance": {
-        "source": "docs/rrm-academy-ecosystem.json",
+        "source": "rrm-academy-internal/ecosystem.json",
         "display_decision": "approved"
       }
     }

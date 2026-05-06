@@ -2,9 +2,12 @@
 /**
  * sync-ecosystem.mjs
  *
- * Reads docs/rrm-academy-ecosystem.json and writes it to D1 system_config table.
- * Run manually after editing the JSON:
+ * Reads ecosystem.json from the rrm-academy-internal satellite repo and writes
+ * it to the D1 system_config table. Run manually after editing the JSON:
  *   node scripts/sync-ecosystem.mjs
+ *
+ * Resolves ecosystem.json via env-var → sibling clone → home-path fallback.
+ * Override with RRM_INTERNAL_ECOSYSTEM_PATH if cloned elsewhere.
  *
  * Requires: wrangler CLI authenticated with Cloudflare.
  *
@@ -13,20 +16,38 @@
  * endpoint at functions/api/admin/ecosystem.js detects the `gz:` prefix and
  * decompresses on read.
  *
- * INSERT OR REPLACE is intentional — single-row KV store where overwrite is
- * the desired behavior. Not a multi-row data-loss risk.
+ * The upsert pattern (single-row KV store on system_config) is intentional —
+ * overwrite is the desired behavior. Not a multi-row data-loss risk.
+ * See arise-ignore directive on the SQL line below.
  */
 
-import { readFileSync, writeFileSync, unlinkSync } from 'fs';
+import { readFileSync, writeFileSync, unlinkSync, existsSync } from 'fs';
 import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { tmpdir } from 'os';
+import { tmpdir, homedir } from 'os';
 import { gzipSync } from 'zlib';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = join(__dirname, '..');
-const jsonPath = join(projectRoot, 'docs', 'rrm-academy-ecosystem.json');
+
+// ecosystem.json lives in rrm-academy-internal (satellite repo) post-public-split.
+// Fallback chain: env override → sibling clone → absolute home path.
+const candidates = [
+  process.env.RRM_INTERNAL_ECOSYSTEM_PATH,
+  join(projectRoot, '..', 'rrm-academy-internal', 'ecosystem.json'),
+  join(homedir(), 'iCode', 'projects', 'rrm-academy-internal', 'ecosystem.json'),
+].filter(Boolean);
+const jsonPath = candidates.find(p => existsSync(p));
+if (!jsonPath) {
+  console.error('ecosystem.json not found.');
+  console.error('Clone rrmadmin/rrm-academy-internal as a sibling of rrm-academy-cf,');
+  console.error('OR set RRM_INTERNAL_ECOSYSTEM_PATH to the absolute path.');
+  console.error('');
+  console.error('Tried:');
+  for (const c of candidates) console.error(`  - ${c}`);
+  process.exit(2);
+}
 
 // Read and validate JSON
 let jsonStr;
@@ -48,6 +69,7 @@ if (encoded.length > 95000) {
 }
 
 // Write to temp file to avoid shell expansion of $, backticks, etc.
+// arise-ignore insert-or-replace -- intentional single-row KV upsert (system_config has 1 row per key); not multi-row data-loss
 const sql = `INSERT OR REPLACE INTO system_config (key, value, updated_at) VALUES ('ecosystem-map', '${encoded}', datetime('now'));`;
 const tmpFile = join(tmpdir(), `sync-ecosystem-${Date.now()}.sql`);
 writeFileSync(tmpFile, sql);
