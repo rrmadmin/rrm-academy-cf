@@ -38,7 +38,7 @@ export async function renderEmail({ body, sendId, subscriberId, email, secret })
   const html = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#333;max-width:600px;line-height:1.6;">
 ${wrappedBody}
 <p style="font-size:11px;color:#999;margin-top:32px;border-top:1px solid #eee;padding-top:12px;">
-RRM Academy | 3401 Hartzdale Dr, Camp Hill PA 17011<br>
+RRM Academy, a program of Restorative Reproductive Medicine Foundation Inc. | 3401 Hartzdale Dr, Ste 103B PMB 3518, Camp Hill, PA 17011<br>
 <a href="${unsubLink}" style="color:#999;">Unsubscribe</a>
 </p>
 <img src="${pixel}" width="1" height="1" style="display:none" alt="" />
@@ -46,7 +46,7 @@ RRM Academy | 3401 Hartzdale Dr, Camp Hill PA 17011<br>
 
   // Plain text fallback: use original body (not wrapped) so readers don't see tracking URLs
   const text = body.replace(/<[^>]+>/g, '').trim()
-    + `\n\n---\nRRM Academy | 3401 Hartzdale Dr, Camp Hill PA 17011\nUnsubscribe: ${unsubLink}`;
+    + `\n\n---\nRRM Academy, a program of Restorative Reproductive Medicine Foundation Inc. | 3401 Hartzdale Dr, Ste 103B PMB 3518, Camp Hill, PA 17011\nUnsubscribe: ${unsubLink}`;
 
   return { html, text };
 }
