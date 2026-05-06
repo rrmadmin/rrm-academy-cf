@@ -20,7 +20,7 @@
 ```bash
 cd /Users/brian/iCode/projects/rrm-academy-cf
 echo "G-TSWRY7XLR0" | npx wrangler pages secret put GA4_MEASUREMENT_ID --project-name rrm-academy
-echo "REDACTED" | npx wrangler pages secret put GA4_API_SECRET --project-name rrm-academy
+op read 'op://Automation/GA4 Measurement Protocol API Secret/credential' | npx wrangler pages secret put GA4_API_SECRET --project-name rrm-academy
 ```
 
 Expected: `✨ Success! Uploaded secret GA4_MEASUREMENT_ID` (and same for API_SECRET)

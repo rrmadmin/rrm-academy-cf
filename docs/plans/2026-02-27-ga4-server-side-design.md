@@ -54,7 +54,7 @@ Add one `sendGA4Event()` call inside specific API handlers:
 
 ```
 GA4_MEASUREMENT_ID = G-TSWRY7XLR0
-GA4_API_SECRET = REDACTED
+GA4_API_SECRET = <rotated 2026-05-05; live value in 1Password / CF Pages secret>
 ```
 
 ### 2. `_middleware.js` changes
