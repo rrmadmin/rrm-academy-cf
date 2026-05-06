@@ -58,7 +58,7 @@ async function main() {
   const dir = dirname(OUTPUT_PATH);
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
   writeFileSync(OUTPUT_PATH, JSON.stringify(out, null, 2) + '\n');
-  console.log(`[survey-count] Wrote ${OUTPUT_PATH} (count=${count})`);
+  console.log(`[survey-count] Wrote ${OUTPUT_PATH} (total=${out.total}, liveDistinct=${out.liveDistinct}, wixLegacyEstimate=${out.wixLegacyEstimate})`);
 }
 
 main().catch(err => {
