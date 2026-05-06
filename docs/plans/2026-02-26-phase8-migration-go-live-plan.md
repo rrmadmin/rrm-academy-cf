@@ -660,7 +660,7 @@ Explicit approval before moving to Layer 3.
 
 **Step 1: Verify current CF Pages Stripe keys are test mode**
 
-Brian confirms the current `STRIPE_SECRET_KEY` in CF Pages is a test key. The live key is in 1Password at `op://Automation/RRMA Stripe API/credential` and starts with `sk_live_`.
+Brian confirms the current `STRIPE_SECRET_KEY` in CF Pages is a test key. The live key is in 1Password at `op://Automation/<redacted>/credential` and starts with `sk_live_`.
 
 **Step 2: Get the live webhook signing secret**
 
@@ -668,7 +668,7 @@ The webhook endpoint `we_1T4bPBAYnsgNHm0HZvGhdOZw` is already live and pointing 
 
 ```bash
 source ~/.zshrc
-STRIPE_KEY=$(op read 'op://Automation/RRMA Stripe API/credential')
+STRIPE_KEY=$(op read 'op://Automation/<redacted>/credential')
 curl -s 'https://api.stripe.com/v1/webhook_endpoints/we_1T4bPBAYnsgNHm0HZvGhdOZw' -u "$STRIPE_KEY:" | python3 -c "import sys,json; print(json.load(sys.stdin).get('secret','NOT RETURNED - check dashboard'))"
 ```
 

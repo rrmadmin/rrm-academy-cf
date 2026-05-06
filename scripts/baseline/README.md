@@ -38,7 +38,7 @@ bash scripts/baseline/agent-surface.sh  "$BL/agent-surface"
 each search baseline run:
 
 ```bash
-CF_TOKEN=$(op read 'op://Automation/Cloudflare API Token - Claude Code Full Access/credential')
+CF_TOKEN=$(op read 'op://Automation/<redacted>/credential')
 CLOUDFLARE_API_TOKEN="$CF_TOKEN" npx wrangler d1 execute rrm-analytics --remote --json \
   --command "SELECT query, COUNT(*) AS n FROM search_log
              WHERE user_agent_short NOT LIKE '%curl%'
