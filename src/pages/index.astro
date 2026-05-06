@@ -3,139 +3,208 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import LastUpdated from '../components/LastUpdated.astro';
 import { fetchAllArticles } from '../lib/airtable';
 import coursesData from '../data/courses.json';
-import { getPersonJsonLd } from '../lib/identity';
+import surveyCountData from '../data/survey-count.json';
+import { buildIdentityGraph } from '../lib/identity';
 
 const articles = await fetchAllArticles();
 const articleCount = articles.length;
+const surveyCount = surveyCountData?.total ?? 0;
+// Round down to nearest 1,000 for honest "more than" framing
+// (the wixLegacyEstimate component is approximate pending Wix Members API).
+const surveyCountRounded = Math.floor(surveyCount / 1000) * 1000;
 
 const liveCourseCount = coursesData.filter((c: any) => !c.comingSoon && !c.isAffiliate).length;
 
-// Naomi Person from SSOT — strip @context for nesting in @graph.
-const naomiNode = getPersonJsonLd('https://rrmacademy.org/#naomi-whittaker');
-const { '@context': _naomiCtx, ...naomi } = (naomiNode || {}) as Record<string, unknown> & { '@context'?: unknown };
+// Identity graph (Organization + People) sourced from SSOT via buildIdentityGraph().
+// Inline augmentations below add homepage-specific properties the SSOT does not yet emit
+// (extra sameAs entries, parentOrganization @id ref + EIN identifier, OfferCatalog with
+// itemOffered Course refs, Naomi identifiers). Once SSOT is expanded these can be dropped.
+const identityNodes = buildIdentityGraph();
+const orgIdx = identityNodes.findIndex((n: any) => n['@id'] === 'https://rrmacademy.org/#organization');
+const naomiIdx = identityNodes.findIndex((n: any) => n['@id'] === 'https://rrmacademy.org/#naomi-whittaker');
+
+if (orgIdx >= 0) {
+  const org = identityNodes[orgIdx] as Record<string, unknown>;
+  // W1-2: ensure all three @types are declared.
+  org['@type'] = ['Organization', 'EducationalOrganization', 'MedicalOrganization'];
+  // W1-3: parentOrganization as @id ref + EIN as PropertyValue identifier.
+  org.parentOrganization = { '@id': 'https://rrm.foundation/#organization' };
+  org.identifier = [
+    {
+      '@type': 'PropertyValue',
+      propertyID: 'EIN',
+      value: '93-4594315',
+    },
+  ];
+  // W1-6: expand sameAs with the strongest entity anchors available. SSOT-bound
+  // entries are preserved; inline entries are appended (de-duped).
+  const ssotSameAs = Array.isArray(org.sameAs) ? (org.sameAs as string[]) : [];
+  const inlineSameAs = [
+    'https://www.instagram.com/rrmacademy',
+    'https://www.youtube.com/@rrmacademy',
+    'https://x.com/rrmacademy',
+    'https://projects.propublica.org/nonprofits/organizations/934594315',
+    'https://www.guidestar.org/profile/93-4594315',
+  ];
+  org.sameAs = Array.from(new Set([...ssotSameAs, ...inlineSameAs]));
+  // W1-30: subjectOf for agent-discovery surfaces.
+  org.subjectOf = [
+    { '@type': 'CreativeWork', url: 'https://rrmacademy.org/.well-known/agent-card.json', name: 'Agent Card' },
+    { '@type': 'CreativeWork', url: 'https://rrmacademy.org/llms.txt', name: 'LLMs Index' },
+  ];
+  // W1-8: OfferCatalog with itemOffered Course refs + Course nodes emitted at top level.
+  org.hasOfferCatalog = {
+    '@type': 'OfferCatalog',
+    name: 'RRM Academy Courses',
+    url: 'https://rrmacademy.org/courses/',
+    numberOfItems: liveCourseCount,
+    itemListElement: coursesData
+      .filter((c: any) => !c.comingSoon && !c.isAffiliate)
+      .map((c: any) => ({
+        '@type': 'Offer',
+        url: `https://rrmacademy.org/courses/${c.slug}/`,
+        name: c.title,
+        category: 'Medical Education',
+        price: c.isFree ? '0.00' : ((c.priceCents ?? 0) / 100).toFixed(2),
+        priceCurrency: 'USD',
+        availability: 'https://schema.org/InStock',
+        seller: { '@id': 'https://rrmacademy.org/#organization' },
+        itemOffered: { '@id': `https://rrmacademy.org/courses/${c.slug}/#course` },
+      })),
+  };
+  identityNodes[orgIdx] = org;
+}
+
+if (naomiIdx >= 0) {
+  const naomi = identityNodes[naomiIdx] as Record<string, unknown>;
+  // W1-7: ensure ORCID + NPI identifiers and worksFor are present on the homepage emit.
+  // (SSOT audit pending; this inline guarantee survives until SSOT carries them natively.)
+  const existingIdentifiers = Array.isArray(naomi.identifier) ? (naomi.identifier as any[]) : [];
+  const idMap = new Map(existingIdentifiers.map((i: any) => [i?.propertyID, i]));
+  if (!idMap.has('ORCID')) {
+    existingIdentifiers.push({ '@type': 'PropertyValue', propertyID: 'ORCID', value: '0000-0003-3706-3112' });
+  }
+  if (!idMap.has('NPI')) {
+    existingIdentifiers.push({ '@type': 'PropertyValue', propertyID: 'NPI', value: '1881034908' });
+  }
+  naomi.identifier = existingIdentifiers;
+  if (!naomi.worksFor) {
+    naomi.worksFor = { '@id': 'https://rrmacademy.org/#organization' };
+  }
+  if (!naomi.medicalSpecialty) {
+    naomi.medicalSpecialty = ['Obstetrics and Gynecology', 'Reproductive Medicine', 'Minimally Invasive Gynecologic Surgery'];
+  }
+  identityNodes[naomiIdx] = naomi;
+}
+
+// W1-4: FAQPage answers expanded to 80-120 words; nested under WebPage mainEntity;
+// each Answer carries author + publisher refs.
+const faqEntries = [
+  {
+    question: 'Is Restorative Reproductive Medicine backed by real evidence?',
+    answer:
+      `Yes. Restorative Reproductive Medicine is built on a published evidence base spanning reproductive endocrinology, surgical outcomes, cycle-based diagnostics, and NaProTechnology. The RRM Academy Research Library contains ${articleCount.toLocaleString()} scholarly works, indexed from medical journals, textbooks, and clinical references, organized so any reader can follow the citations to the source. Most are peer-reviewed; all are catalogued for review. The evidence has always been available; most patients were simply never told about it. The library is free to read and the citations are intact.`,
+  },
+  {
+    question: 'Will RRM Academy help me advocate for myself with my doctors?',
+    answer:
+      'That is exactly what it is for. Students leave knowing how to screen a surgeon, what to expect from a real diagnostic workup, and how to tell the difference between a provider who is investigating their condition and one who is just suppressing their symptoms. The courses teach the language clinicians use, the questions a thorough workup should answer, and the difference between excision and ablation, between cause-based diagnostics and standardized protocols. Some students stay with their current doctor and have better conversations. Others find a clinician who already practices RRM. Either way, you walk in informed.',
+  },
+  {
+    question: 'I am not a medical professional. Is RRM Academy for me?',
+    answer:
+      'Many students are patients, not clinicians. Some are both. The courses are built so that anyone dealing with a reproductive health challenge can understand what is happening in their body, what their options are, and what good care actually looks like. You do not need a medical degree to deserve that information. Patients who finish the foundational courses describe a shift from being a passive recipient of care to an informed participant in their own diagnostic process. Body literacy is a clinical tool, and learning it changes the conversations you have with every provider you see.',
+  },
+  {
+    question: 'How do I find a surgeon or provider I can trust?',
+    answer:
+      'Start with the right questions. Do they perform excision, not ablation? Do they evaluate both partners? Do they chart cycles before diagnosing? Do they investigate the cause before prescribing suppression? RRM Academy gives you the knowledge to evaluate any provider, not just the ones on a list. If you want a starting list while you build that confidence, the curated how-to-find-a-provider pathway is at /what-is-rrm/#get-started. Some students stay with their current doctor and have better conversations after taking a foundational course. Others seek out an RRM-trained clinician.',
+  },
+];
+
+const faqNode: Record<string, unknown> = {
+  '@type': 'FAQPage',
+  '@id': 'https://rrmacademy.org/#faq',
+  mainEntity: faqEntries.map((f) => ({
+    '@type': 'Question',
+    name: f.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: f.answer,
+      author: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+      publisher: { '@id': 'https://rrmacademy.org/#organization' },
+    },
+  })),
+};
+
+const webPageNode = {
+  '@type': 'WebPage',
+  '@id': 'https://rrmacademy.org/#webpage',
+  url: 'https://rrmacademy.org/',
+  name: 'RRM Academy',
+  isPartOf: { '@id': 'https://rrmacademy.org/#website' },
+  about: { '@id': 'https://rrmacademy.org/#organization' },
+  mainEntity: { '@id': 'https://rrmacademy.org/#faq' },
+  publisher: { '@id': 'https://rrmacademy.org/#organization' },
+};
+
+const websiteNode = {
+  '@type': 'WebSite',
+  '@id': 'https://rrmacademy.org/#website',
+  name: 'RRM Academy',
+  url: 'https://rrmacademy.org/',
+  inLanguage: 'en',
+  publisher: { '@id': 'https://rrmacademy.org/#organization' },
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: 'https://rrmacademy.org/library/?q={search_term_string}',
+    },
+    'query-input': 'required name=search_term_string',
+  },
+};
+
+// W1-25: Quotation node for Naomi's blockquote.
+const quotationNode = {
+  '@type': 'Quotation',
+  '@id': 'https://rrmacademy.org/#founder-quote',
+  text:
+    "I'll never forget a patient I saw during my residency. She had a history of miscarriages and was pregnant again, terrified. My attending told me to do nothing. 'If she's going to miscarry, she's going to miscarry.' That moment broke my heart.",
+  spokenByCharacter: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+};
+
+// W1-5: BreadcrumbList kept as @id-shaped node; single-item homepage breadcrumb.
+const breadcrumbNode = {
+  '@type': 'BreadcrumbList',
+  '@id': 'https://rrmacademy.org/#breadcrumb',
+  itemListElement: [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      item: { '@id': 'https://rrmacademy.org/', name: 'Home' },
+    },
+  ],
+};
 
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
-    {
-      '@type': 'WebSite',
-      '@id': 'https://rrmacademy.org/#website',
-      name: 'RRM Academy',
-      url: 'https://rrmacademy.org/',
-      inLanguage: 'en',
-      publisher: { '@id': 'https://rrmacademy.org/#organization' },
-      potentialAction: {
-        '@type': 'SearchAction',
-        target: {
-          '@type': 'EntryPoint',
-          urlTemplate: 'https://rrmacademy.org/library/?q={search_term_string}',
-        },
-        'query-input': 'required name=search_term_string',
-      },
-    },
-    naomi,
-    {
-      '@type': ['EducationalOrganization', 'Organization'],
-      '@id': 'https://rrmacademy.org/#organization',
-      name: 'RRM Academy',
-      alternateName: 'Restorative Reproductive Medicine Academy',
-      url: 'https://rrmacademy.org/',
-      description: 'The leading educational platform for patients and professionals seeking to understand and apply Restorative Reproductive Medicine.',
-      foundingDate: '2023',
-      founder: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
-      nonprofitStatus: 'Nonprofit501c3',
-      areaServed: 'Global',
-      parentOrganization: {
-        '@type': 'Organization',
-        name: 'Restorative Reproductive Medicine Foundation',
-        taxID: '93-4594315',
-        nonprofitStatus: 'Nonprofit501c3',
-      },
-      sameAs: [
-        'https://www.instagram.com/rrmacademy',
-        'https://www.youtube.com/@rrmacademy',
-      ],
-      publishingPrinciples: 'https://rrmacademy.org/policies/editorial/',
-      correctionsPolicy: 'https://rrmacademy.org/policies/corrections/',
-      verificationFactCheckingPolicy: 'https://rrmacademy.org/policies/fact-checking/',
-      contactPoint: {
-        '@type': 'ContactPoint',
-        contactType: 'customer support',
-        email: 'contact@rrmacademy.org',
-        url: 'https://rrmacademy.org/contact/',
-      },
-      hasOfferCatalog: {
-        '@type': 'OfferCatalog',
-        name: 'RRM Academy Courses',
-        url: 'https://rrmacademy.org/courses/',
-        numberOfItems: liveCourseCount,
-        itemListElement: coursesData
-          .filter((c: any) => !c.comingSoon && !c.isAffiliate)
-          .map((c: any) => ({
-            '@type': 'Offer',
-            url: `https://rrmacademy.org/courses/${c.slug}/`,
-            name: c.title,
-            category: 'Medical Education',
-            price: c.isFree ? '0.00' : ((c.priceCents ?? 0) / 100).toFixed(2),
-            priceCurrency: 'USD',
-            availability: 'https://schema.org/InStock',
-            seller: { '@id': 'https://rrmacademy.org/#organization' },
-          })),
-      },
-    },
-    {
-      '@type': 'FAQPage',
-      '@id': 'https://rrmacademy.org/#faq',
-      mainEntity: [
-        {
-          '@type': 'Question',
-          name: 'Is Restorative Reproductive Medicine backed by real evidence?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'Yes. The RRM Academy Research Library contains thousands of peer-reviewed articles published in medical journals. These are published studies, not opinion pieces. You can read them yourself and follow the citations.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'Will RRM Academy help me advocate for myself with my doctors?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'That is exactly what it is for. Students leave knowing how to screen a surgeon, what to expect from a real diagnostic workup, and how to tell the difference between a provider who is investigating their condition and one who is just suppressing their symptoms.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'I am not a medical professional. Is RRM Academy for me?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'Many of our students are patients, not clinicians. The courses are built so that anyone dealing with a reproductive health challenge can understand what is happening in their body, what their options are, and what good care looks like.',
-          },
-        },
-        {
-          '@type': 'Question',
-          name: 'How do I find a surgeon or provider I can trust?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'Start with the right questions. Do they perform excision, not ablation? Do they evaluate both partners? Do they chart cycles before diagnosing? RRM Academy gives you the knowledge to evaluate any provider, not just the ones on a list.',
-          },
-        },
-      ],
-    },
-    {
-      '@type': 'BreadcrumbList',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
-      ],
-    },
+    websiteNode,
+    webPageNode,
+    ...identityNodes,
+    faqNode,
+    breadcrumbNode,
+    quotationNode,
   ],
 };
 ---
 <BaseLayout
-  title="RRM Academy | Evidence-Based Reproductive Medicine Education"
-  description="RRM Academy offers evidence-based education in Restorative Reproductive Medicine. Courses, a research library, and expert guidance for patients and clinicians."
+  title="RRM Academy | Evidence-Based Restorative Reproductive Medicine Education"
+  description={`RRM Academy: ${articleCount.toLocaleString()}+ scholarly works, NaProTechnology-grounded courses, and clinical guidance from Dr. Naomi Whittaker, MD, on Restorative Reproductive Medicine for patients and clinicians.`}
   canonicalUrl="https://rrmacademy.org/"
   jsonLd={jsonLd}
-  speakable={['.hp-hero h1', '.hp-hero__subtitle', '.hp-section p']}
+  speakable={['.hp-hero h1', '.hp-hero__subtitle', '.hp-section:first-of-type p:first-of-type']}
   markdownUrl="/index.md"
 >
   <div class="hp">
@@ -145,11 +214,11 @@ const jsonLd = {
         <p class="hp-hero__descriptor animate-enter" style="--stagger: 0;">A 501(c)(3) nonprofit education platform</p>
         <h1 id="hp-hero-h1" class="animate-enter" style="--stagger: 1;">Evidence-Based Restorative Reproductive Medicine Education</h1>
         <p class="hp-hero__subtitle animate-enter" style="--stagger: 2;">
-          {articleCount.toLocaleString()} scholarly works related to RRM cataloged and linked to authors, institutions, and topics.
+          {articleCount.toLocaleString()} scholarly works on Restorative Reproductive Medicine, organized so you can read the evidence yourself.
         </p>
         <div class="hp-hero__links animate-enter" style="--stagger: 3;">
-          <a href="/courses/" class="btn btn--primary">Explore Courses</a>
-          <a href="/library/" class="btn btn--secondary">Browse {articleCount.toLocaleString()} Studies</a>
+          <a href="/library/" class="btn btn--primary">Browse {articleCount.toLocaleString()} Scholarly Works</a>
+          <a href="/glossary/" class="btn btn--secondary">Explore the Glossary</a>
         </div>
         <p class="hp-hero__updated animate-enter" style="--stagger: 4;"><LastUpdated path="/" /></p>
       </div>
@@ -171,16 +240,24 @@ const jsonLd = {
     <!-- Intro -->
     <section class="hp-section">
       <div class="container container--narrow">
+        <h2>What Is Restorative Reproductive Medicine?</h2>
+        <p>
+          If you have been told your pain is normal, your cycles are difficult, or your infertility is unexplained,
+          and something inside you has been quietly insisting that cannot be the whole story, you are reading the right page.
+        </p>
         <p>
           Painful periods are not a personality trait. Irregular cycles are not "just how you are."
           Infertility is not unexplained. It is undiagnosed.
         </p>
         <p>
-          RRM Academy is the educational home for <a href="/faqs/what-is-restorative-reproductive-medicine-rrm/">Restorative Reproductive Medicine</a>.
+          RRM Academy is the educational home for <a href="/what-is-rrm/">Restorative Reproductive Medicine</a>.
           The courses here train patients to understand their own cycles and clinicians to identify
-          the root cause of reproductive dysfunction and treat it directly. Our founder,
-          Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI, is a NaProTechnology fellowship-trained
-          surgeon. Everything here reflects her clinical standards.
+          the root cause of reproductive dysfunction and treat it directly.
+        </p>
+        <p>
+          RRM Academy was founded by <a href="/commentary/rrm-spotlight-naomi-whittaker-md/" rel="author">Dr. Naomi Whittaker, MD</a>,
+          Board-Certified OBGYN, MIGS, NFPMC, FCI. She is a <a href="/naprotechnology/">NaProTechnology</a> fellowship-trained surgeon.
+          The diagnostics, surgical standards, and educational content here reflect her NaProTechnology fellowship training and clinical practice.
         </p>
         <p>
           The goal is not indefinite condition management. The goal is answers and restored function.
@@ -191,17 +268,21 @@ const jsonLd = {
     <!-- Analogy -->
     <section class="hp-section hp-section--alt">
       <div class="container container--narrow">
-        <h2>The Check Engine Light Analogy</h2>
+        <h2>Why Symptom Suppression Fails: The Check Engine Light</h2>
+        <p>
+          If you have spent years being told to live with what you know is not normal, this analogy will sound familiar.
+        </p>
         <p>
           When the warning light comes on in your car, you don't cover it with tape. You open the hood.
         </p>
         <p>
           For decades, women have been handed the tape. Suppressive medications to mask the pain.
           Hormones to quiet the cycle. Bypass procedures when the cycle is too damaged to read.
+          For the partner, abnormal semen parameters are overlooked or attributed to stress.
           The underlying disease keeps advancing, unseen.
         </p>
         <p>
-          <a href="/faqs/what-is-restorative-reproductive-medicine-rrm/">Restorative Reproductive Medicine</a>
+          <a href="/what-is-rrm/">Restorative Reproductive Medicine</a>
           is the under-the-hood approach. RRM-trained clinicians investigate the fundamental why behind
           your symptoms. They identify whether the problem is hormonal, anatomical, inflammatory,
           nutritional, or some combination. Then they treat it.
@@ -215,24 +296,21 @@ const jsonLd = {
     <!-- How RRM Works -->
     <section class="hp-section">
       <div class="container container--narrow">
-        <h2>What RRM Looks Like</h2>
+        <h2>How Restorative Reproductive Medicine Works</h2>
         <p>
-          Every patient is different, and RRM does not follow a single fixed protocol. But the
-          same principles guide every case: find the cause, treat the disease, restore the function,
-          and cooperate with the body rather than working around it.
+          Every patient is different, and RRM does not follow a single fixed protocol. The same principles guide every case: find the cause, treat the disease, restore the function.
         </p>
         <p>
-          <strong>It starts with the question: why?</strong> RRM evaluates both partners. A woman's
+          <strong>It starts with the question: why?</strong> RRM <a href="/faqs/?q=evaluates-both-partners">evaluates both partners</a>. A woman's
           cycle is diagnostic data, not background noise. For an RRM-trained physician, a complete
           cycle chart surfaces what conventional workups miss. But the workup does not stop there.
-          Male factor assessment, hormonal panels, semen analysis -- diagnostics for both partners
+          Male factor assessment, hormonal panels, semen analysis: diagnostics for both partners
           are part of the picture from the start.
         </p>
         <p>
           <strong>Treatment targets the disease, not the symptom.</strong> What that looks like
-          depends on what is found. For
-          <a href="/courses/masterclass-in-endometriosis-and-surgery/">endometriosis</a>, it may mean
-          excision surgery to remove the disease itself rather than suppressing it with hormones.
+          depends on what is found. For endometriosis, it may mean
+          <a href="/faqs/?q=excision-surgery">excision surgery</a> to remove the disease itself rather than suppressing it with hormones.
           For tubal blockage, it may mean selective catheterization to clear and reopen the
           fallopian tubes without full surgery. For hormonal dysfunction, it may mean targeted medical support timed
           to the cycle. Because
@@ -241,10 +319,11 @@ const jsonLd = {
           educators, depending on what you need.
         </p>
         <p>
-          <strong>The goal is answers and restored function.</strong> When the underlying disease
-          is treated, hormonal rhythms can normalize and ovulation can return. For couples who want
+          <strong>When the underlying cause is treated, function returns.</strong> When treatment reaches the underlying disease, hormonal rhythms normalize and ovulation can return. For couples who want
           to conceive, natural conception becomes possible, sometimes for the first time. RRM
-          repairs the reproductive system rather than routing around it.
+          repairs the reproductive system rather than routing around it. Most people working through
+          an RRM workup see a clearer diagnostic picture within three to six cycles, though the path
+          and pace depend on what is found.
         </p>
         <p>
           <strong>You are part of the process.</strong> RRM cooperates with the natural cycle. You
@@ -252,6 +331,12 @@ const jsonLd = {
           Body literacy is a clinical tool, and understanding your own body changes the
           conversations you have with every provider.
         </p>
+        <h3>What the early work looks like</h3>
+        <ul>
+          <li><strong>Both-partner assessment:</strong> hormonal panels, semen analysis, and male factor evaluation alongside the female workup. This is usually the entry point.</li>
+          <li><strong>Cycle charting:</strong> a complete cycle chart that surfaces what conventional workups miss. Often layered with the assessment above; sometimes precedes it, depending on where you start.</li>
+          <li><strong>Finding a provider trained in cause-based care:</strong> the curated pathway at <a href="/what-is-rrm/#get-started">/what-is-rrm/#get-started</a>. Some patients find their provider before charting; most build the early data first and then bring it to a clinician who knows what to do with it.</li>
+        </ul>
       </div>
     </section>
 
@@ -260,8 +345,7 @@ const jsonLd = {
       <div class="container container--narrow">
         <h2>Two Approaches. One Choice.</h2>
         <p>
-          RRM does not declare that your body has failed and that technology must take over.
-          It asks: what is actually wrong, and can it be fixed? Often, the answer is yes.
+          RRM starts from a different question. Not "how do we work around this?" but "what is actually wrong, and can it be addressed?" For most couples, the answer is yes.
         </p>
 
         <div class="hp-comparison">
@@ -274,12 +358,12 @@ const jsonLd = {
             </ul>
           </div>
           <div class="hp-comparison__col">
-            <h3>Suppressive Medicine</h3>
+            <h3>Conventional Suppressive and Bypass Medicine</h3>
             <ul>
               <li><strong>Goal:</strong> Suppress symptoms or bypass the problem.</li>
               <li><strong>Method:</strong> Suppressive medications. Standardized protocols. Procedures that route around reproductive function rather than restoring it.</li>
               <li><strong>Your Role:</strong> A recipient of the protocol.</li>
-              <li><strong>The cost:</strong> Symptoms are masked while disease progresses undetected. Diagnoses are delayed by years. Hormonal suppression does not stop disease advancement. It hides it.</li>
+              <li><strong>The cost:</strong> Symptoms are masked while disease keeps advancing underneath. Diagnoses are delayed by years on average. <a href="/faqs/?q=hormonal-suppression">Hormonal suppression</a> does not stop disease, it hides it.</li>
             </ul>
           </div>
         </div>
@@ -291,24 +375,50 @@ const jsonLd = {
       <div class="container container--narrow">
         <h2>You Are in the Right Place</h2>
 
-        <h3>For Patients</h3>
+        <h3>If you are looking for answers about your own body</h3>
         <p>You belong here if:</p>
         <ul>
           <li>You have been told your painful or irregular cycles are "normal," and you know they are not.</li>
           <li>You have been diagnosed with <a href="/courses/masterclass-in-endometriosis-and-surgery/">endometriosis</a>, PCOS, or recurrent miscarriage and want more than indefinite symptom management.</li>
-          <li>You carry a diagnosis of "unexplained" infertility. (Undiagnosed is the more accurate word. RRM finds what was missed.)</li>
+          <li>You carry a diagnosis of <a href="/what-is-rrm/">"unexplained"</a> infertility. (Undiagnosed is the more accurate word. RRM finds what was missed.)</li>
           <li>You and your partner want to understand why conception has not happened and want a cause-based answer.</li>
-          <li>You prefer <a href="/courses/rrm-vs-ivf/">natural conception</a> and want to know what that path actually requires.</li>
+          <li>You have been through one or more IVF cycles, or been told donor eggs or a hysterectomy is your only option, and you are looking for a different question to be asked about your body.</li>
+          <li>You have been told your age or AMH puts you out of options, and you want to know what a different workup might still find.</li>
+          <li>You prefer natural conception and want to know what that path actually requires. <a href="/courses/rrm-vs-ivf/">See the RRM vs. IVF course.</a></li>
         </ul>
 
-        <h3>For Clinicians and Educators</h3>
+        <h3>If you are a clinician or allied professional</h3>
         <p>You belong here if:</p>
         <ul>
-          <li>You are a physician in OB/GYN, family medicine, or reproductive endocrinology who wants to offer patients real diagnostic and restorative options beyond suppressive medications and ART referrals.</li>
+          <li>You are a physician in OB/GYN or family medicine who wants to offer patients real diagnostic and restorative options beyond suppressive medications and specialist referrals.</li>
           <li>You are a nurse practitioner, midwife, nutritionist, mental health provider, or allied health professional who wants deeper expertise in cycle-based diagnostics and root-cause care.</li>
-          <li>You are a fertility awareness educator who wants clinical grounding for the work you do with clients.</li>
-          <li>You want to understand how NaProTechnology-based medicine, restorative surgery, and complementary disciplines integrate into a full patient care model.</li>
+          <li>You are a <a href="/femm/">fertility awareness educator</a> who wants clinical grounding for the work you do with clients.</li>
+          <li>You want to understand how <a href="/naprotechnology/">NaProTechnology</a>-based medicine, restorative surgery, and complementary disciplines integrate into a full patient care model.</li>
         </ul>
+      </div>
+    </section>
+
+    <!-- Endo self-survey -->
+    <section class="hp-section">
+      <div class="container container--narrow">
+        <h2>The Endometriosis Self-Survey</h2>
+        <p>
+          More than {surveyCountRounded.toLocaleString()} women have taken the
+          <a href="/endo-survey/"><strong>Endometriosis Self-Survey</strong></a>.
+          Many tell us it was the first time their symptoms looked legible on paper.
+          Pain timing, cycle irregularity, cramping, bowel and bladder symptoms:
+          the survey reads them as the connected picture they are, not as isolated
+          complaints clinicians can dismiss one at a time.
+        </p>
+        <p>
+          It is not a diagnosis. It is a structured self-assessment that maps your
+          experience to the patterns investigative care actually looks for, so you
+          can walk into your next appointment with the right questions and a clearer
+          account of what your body has been telling you.
+        </p>
+        <p>
+          <a href="/endo-survey/" class="btn btn--primary">Take the Self-Survey &rarr;</a>
+        </p>
       </div>
     </section>
 
@@ -316,6 +426,14 @@ const jsonLd = {
     <section class="hp-section hp-section--alt">
       <div class="container container--narrow">
         <h2>Built on a Moment That Should Not Have Happened</h2>
+
+        <blockquote>
+          <p>
+            "I'll never forget a patient I saw during my residency. She had a history of
+            miscarriages and was pregnant again, terrified. My attending told me to do nothing. 'If she's going to miscarry, she's
+            going to miscarry.' That moment broke my heart."
+          </p>
+        </blockquote>
 
         <div class="hp-founder">
           <img
@@ -334,24 +452,16 @@ const jsonLd = {
             <span class="hp-founder__cred">Board-Certified OBGYN, MIGS, NFPMC, FCI &middot; Founder, RRM Academy</span>
           </div>
         </div>
-
-        <blockquote>
-          <p>
-            "I'll never forget a patient I saw during my residency. She had a history of
-            miscarriages and was pregnant again, terrified. My attending told me to do nothing. 'If she's going to miscarry, she's
-            going to miscarry.' That moment broke my heart."
-          </p>
-          <cite>Dr. Naomi Whittaker, Founder of RRM Academy</cite>
-        </blockquote>
         <p>
           Dr. Whittaker built RRM Academy because of her. And the thousands like her. Women with
           real, diagnosable conditions who were told their pain was normal. Clinicians who wanted
           to help and were never taught how. Those are two separate failures, and they compound
-          each other. Dr. Whittaker is a board-certified OBGYN and NaProTechnology
+          each other. Dr. Whittaker is a Board-Certified OBGYN and <a href="/naprotechnology/">NaProTechnology</a>
           fellowship-trained physician. She knows what it looks like when the training gap meets
           the care gap. RRM Academy exists to close both: rigorous education for professionals
           across medicine, nursing, nutrition, and allied health, and honest, evidence-grounded
           information for patients who are tired of waiting for answers that never come.
+          If you have been carrying a question your doctor would not answer, you are exactly who Dr. Whittaker built this for.
         </p>
         <p>
           <a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Meet Dr. Naomi Whittaker &rarr;</a>
@@ -368,20 +478,20 @@ const jsonLd = {
           <li>
             <strong>Is this backed by real evidence?</strong> Yes. The
             <a href="/library/">RRM Academy Research Library</a> contains
-            {articleCount.toLocaleString()} peer-reviewed articles. These are published studies in
-            peer-reviewed journals, not opinion pieces. You can read them yourself and follow the
-            citations. The evidence is there. It has always been there. Most patients were just
+            {articleCount.toLocaleString()} scholarly works, indexed from medical journals, textbooks,
+            and clinical references. Most are peer-reviewed; all are catalogued for review. You can
+            read them yourself and follow the citations. The evidence is there. It has always been there. Most patients were just
             never told about it.
           </li>
           <li>
             <strong>Will this help me advocate for myself with my doctors?</strong> That is exactly
-            what it is for. Our students come in saying "I don't even know what questions to ask."
+            what it is for. Students often arrive saying "I don't even know what questions to ask."
             They leave knowing how to screen a surgeon, what to expect from a real diagnostic
             workup, and how to tell the difference between a provider who is investigating their
             condition and one who is just suppressing their symptoms.
           </li>
           <li>
-            <strong>I'm not a medical professional. Is this for me?</strong> Many of our students
+            <strong>I am not a medical professional. Is this for me?</strong> Many students
             are patients, not clinicians. Some are both. The courses are built so that anyone
             dealing with a reproductive health challenge can understand what is happening in their
             body, what their options are, and what good care actually looks like. You do not need
@@ -391,11 +501,18 @@ const jsonLd = {
             <strong>How do I find a surgeon or provider I can trust?</strong> Start with the right
             questions. Do they perform excision, not ablation? Do they evaluate both partners? Do
             they chart cycles before diagnosing? RRM Academy gives you the knowledge to evaluate
-            any provider, not just the ones on a list. Some students stay with their current doctor
-            and have better conversations. Others find an RRM-trained professional. Either way, you
-            walk in informed.
+            any provider, not just the ones on a list. If you want a starting list while you build
+            that confidence, the curated "how to find a provider" pathway is at
+            <a href="/what-is-rrm/#get-started">/what-is-rrm/#get-started</a>. Some students stay
+            with their current doctor and have better conversations. Others find an RRM-trained
+            professional. Either way, you walk in informed.
           </li>
         </ul>
+        <p>
+          More questions? See the full list of
+          <a href="/common-questions-about-rrm">common questions about RRM</a> or browse all
+          <a href="/faqs/">FAQs</a>.
+        </p>
       </div>
     </section>
 
@@ -405,7 +522,7 @@ const jsonLd = {
         <h2>Research and Commentary</h2>
         <p>
           <a href="/library/"><strong>Research Library.</strong></a>
-          {articleCount.toLocaleString()} peer-reviewed resources, organized and searchable. The most
+          {articleCount.toLocaleString()} scholarly works, organized and searchable. The most
           current evidence in reproductive endocrinology, surgical outcomes, cycle-based diagnostics,
           and NaProTechnology.
         </p>
@@ -414,6 +531,14 @@ const jsonLd = {
           RRM Academy faculty translate the research into clinical context. What a new study actually
           means. What the evidence supports. What it does not.
         </p>
+        <p>
+          <strong>Pillar Guides.</strong> Plain-language explainers of
+          <a href="/what-is-rrm/">Restorative Reproductive Medicine</a>,
+          <a href="/naprotechnology/">NaProTechnology</a>,
+          <a href="/femm/">FEMM</a>, and
+          <a href="/neofertility/">NeoFertility</a>, plus the most
+          <a href="/common-questions-about-rrm">common questions about RRM</a>.
+        </p>
       </div>
     </section>
 
@@ -421,23 +546,31 @@ const jsonLd = {
     <section class="hp-section">
       <div class="container container--narrow hp-cta">
         <h2>Start With the Evidence</h2>
-        <p class="hp-cta__tagline">Your body is not broken. It is waiting to be heard.</p>
+        <p class="hp-cta__tagline">Your body is not broken. It has signals. RRM is how you read them.</p>
         <p>
-          Most of the patients who find RRM Academy have spent years being told the wrong things.
-          That their pain is normal. That their cycles are just difficult. That their only option
-          is to suppress or bypass.
+          Most of the people who find RRM Academy have spent years being told the wrong things.
+          That your pain is normal. That your cycles are just difficult. That your only option
+          is to suppress or bypass. None of those were the whole story.
         </p>
         <p>
           The evidence says otherwise. The tools to find answers exist. The clinicians trained to
           use them exist, across family medicine, surgery, endocrinology, nutrition, and mental health.
         </p>
         <p>
-          You are in the right place.
+          The evidence exists. The clinicians exist. Your first step is a course or the library.
+        </p>
+        <p>
+          The Research Library is free to read. Courses range from free introductions to deep clinical training.
         </p>
         <div class="hp-cta__links">
           <a href="/courses/" class="btn btn--primary">Explore Courses</a>
           <a href="/library/" class="btn btn--secondary">Access the Research Library</a>
         </div>
+        <p>
+          Not ready for either? Start with the guides at <a href="/what-is-rrm/">/what-is-rrm/</a>
+          or browse <a href="/common-questions-about-rrm">common questions</a>.
+          There is also a community of students and members on this site who are walking the same questions you are.
+        </p>
       </div>
     </section>
 
