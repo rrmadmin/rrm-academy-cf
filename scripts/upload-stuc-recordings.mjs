@@ -13,7 +13,7 @@
  *
  * Auth (auto-resolved):
  *   gcloud auth application-default print-access-token       — Drive
- *   op read 'op://Automation/Cloudflare Stream Token/credential' — CF Stream
+ *   op read 'op://Automation/CF - Stream - account/credential' — CF Stream
  *
  * Outputs:
  *   /tmp/stuc-uploads/<courseId>.mp4        downloaded MP4 (kept for retry)
@@ -200,7 +200,7 @@ async function main() {
 
   console.log('Resolving credentials…');
   const driveToken = shell('gcloud auth application-default print-access-token');
-  const streamToken = shell(`op read 'op://Automation/Cloudflare Stream Token/credential'`);
+  const streamToken = shell(`op read 'op://Automation/CF - Stream - account/credential'`);
   const accountId = process.env.CLOUDFLARE_ACCOUNT_ID
     || (() => {
       try { return shell(`op read 'op://Automation/Cloudflare Account ID/credential'`); }
