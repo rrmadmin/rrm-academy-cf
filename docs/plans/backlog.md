@@ -199,13 +199,14 @@ All sections refined across 4 rounds. See memory `pillar-page-refinement-status.
 
 ## Operations
 
-- **Delete temporary CF API token** (`3h-YUCih...`) -- do in CF dashboard (Settings > API Tokens). Created for Stream signing key, no longer needed
-- **Verify CF Stream first billing cycle** (due ~Mar 22, 2026) -- confirm variable usage stays within included 10,000 min/mo allocation; update `docs/plans/2026-03-03-migration-cost-savings-analysis.md`
-- **Migration cost/savings analysis** -- update after Apr 2026 when Wix Plus lapses. Current net saving: $361.50/mo / $4,338/yr. Details: `docs/plans/2026-03-03-migration-cost-savings-analysis.md`
+- ~~**Delete temporary CF API token** (`3h-YUCih...`)~~ DONE (verified deleted 2026-05-06; not in active token list)
+- **Verify CF Stream delivery minutes** -- storage clean at 624/1000 min (62%, 93 videos, no overage as of 2026-05-06). Delivery-minutes confirmation requires `Account Analytics:Read` perm or 30s CF dashboard check (Stream > Analytics). Once confirmed within 10,000 min/mo cap, update `~/iCode/projects/rrm-academy-internal/plans/2026-03-03-migration-cost-savings-analysis.md` line 20 (replace `~$0-10 (TBD)` with actual)
+- **Migration cost/savings analysis update** -- doc moved to satellite repo at `~/iCode/projects/rrm-academy-internal/plans/2026-03-03-migration-cost-savings-analysis.md` (commit 725fab1). Last updated 2026-03-03, stale by 9wk. Wix Plus 2yr term lapsed ~Apr 30, 2026 -- Phase 9 Decommission not yet started (rrm-finance-sync still pulling from Wix every 15min, STUC donor migration UX in-flight on `claude/stuc-wix-donor-ux`). Cost line items needing update: Resend paid plan ($20/mo) was downgraded to free tier when rrm-academy-cf moved transactional email to AWS SES -- account retained on free plan for femtech-reviews-mvp signup emails (still active, $0/mo). Buttondown ($4.50/mo) replaced by self-hosted newsletter -- verify cancellation. Net saving likely ~$385/mo / $4,620/yr (up from $361.50 listed) once Buttondown confirmed cancelled. Action: confirm Buttondown cancelled, verify Wix Plus actually lapsed, update doc with Resend free-tier status + actual realized savings
 
-### /arise Recommendations (from run 14 intelligence report)
+### /arise Recommendations
 
-- **Input validation standardization** -- Create a shared `validateBody()` helper or lightweight schema validation for CF Pages Functions. Input validation is the only top-5 bug category (11% of all findings) without a structural fix. Every new endpoint re-invents type/length/range checks.
+- ~~**Input validation -- arise-scanner rule**~~ DONE (2026-05-06) -- `missing-validation` rule shipped in arise-scanner v0.7+. Flags `await request.json()` (or `await context.request.json()`) in any function that lacks both `validateBody()` and `typeof` guards. Zero current findings across 125 scanned endpoints -- every endpoint already validates inline or via the helper. Catches genuinely un-validated input on new endpoints.
+- **Optional: validateBody() consistency sweep** -- helper at `functions/api/_validate.js` adopted by 8 endpoints (~15%). The other ~42 hand-roll `typeof + length` checks inline (e.g. `community/posts.js` has 14 inline guards). Migration would standardize error shapes, auto-strip unknown fields, normalize emails. NOT a bug fix -- inline checks are functionally correct. Lower priority than originally framed; do opportunistically when touching endpoints, not as a one-shot sweep.
 - ~~**Turnstile resp.ok checks**~~ DONE -- HTTP status checks added to both `newsletter/subscribe.js` and `contact/submit.js` (2026-03-10)
 - ~~**Remaining alias cleanup in rrm-library scripts**~~ DONE -- enrich-trigger.py and verify-classifications.py migrated to `airtable_headers()` (2026-03-10)
 
