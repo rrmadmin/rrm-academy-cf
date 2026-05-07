@@ -1,0 +1,196 @@
+---
+// AppShellSheet.astro — mobile pull-up sheet (peek/half/full states).
+// Native <dialog> with focus trap, ::backdrop, ESC-to-close.
+// Feature-detected at mount; if 'showModal' absent (iOS 14-17, older Android),
+// adds .shell-no-sheet to <html> to hide peek bar entirely.
+//
+// SCRIPT ORDERING CONTRACT (do not break):
+//   This component's mount script (Task 14) reads `window.__rrmGetShellContext__`
+//   which is defined by AppShellChrome's pre-paint inline script (Task 9).
+//   Both are `<script is:inline>` and rely on document order — AppShellChrome
+//   MUST be rendered before AppShellSheet in every wrap task (21, 25). If you
+//   reorder them, AppShellSheet sees `__rrmGetShellContext__` as undefined and
+//   the sheet silently no-ops. See AppShellChrome.astro frontmatter for the
+//   full contract.
+---
+
+<button type="button" class="app-shell-sheet-peek" aria-controls="app-shell-sheet" aria-expanded="false" hidden>
+  <span class="app-shell-sheet-peek__label">In this index</span>
+  <span class="app-shell-sheet-peek__chevron" aria-hidden="true">▲</span>
+</button>
+
+<dialog id="app-shell-sheet" class="app-shell-sheet" data-pagefind-ignore="all" aria-modal="true" aria-labelledby="app-shell-sheet-title">
+  <div class="app-shell-sheet__grip" role="button" tabindex="0" aria-label="Drag to resize sheet">
+    <span class="app-shell-sheet__grip-handle" aria-hidden="true"></span>
+  </div>
+  <header class="app-shell-sheet__header">
+    <h2 id="app-shell-sheet-title" class="app-shell-sheet__title"></h2>
+    <button type="button" class="app-shell-sheet__close" aria-label="Close">×</button>
+  </header>
+  <ol class="app-shell-sheet__list" role="list"></ol>
+</dialog>
+
+<script is:inline>
+  // Wrapped in IIFE so feature-detect early `return` is legal and Task 15's
+  // drag handlers (appended below) share the same `sheet` / `ctx` closure.
+  (function () {
+    // Defensive: very old browsers may not expose HTMLDialogElement at all.
+    if (typeof HTMLDialogElement === 'undefined' || !('showModal' in HTMLDialogElement.prototype)) {
+      document.documentElement.classList.add('shell-no-sheet');
+      return; // Bare-minimum degradation: peek bar hidden, sheet does not mount.
+    }
+
+    // Defense-in-depth: only mount the sheet on article pages. AppShellSheet
+    // is rendered solely by article wrap tasks (21, 25), but if a future
+    // engineer accidentally drops <AppShellSheet /> onto an index/saved page,
+    // the sheet would otherwise hydrate from whatever is in sessionStorage.
+    var rootDiv = document.querySelector('.app-shell-layout[data-shell-context]');
+    if (!rootDiv || rootDiv.dataset.shellContext !== 'article') return;
+
+    var sheet = document.getElementById('app-shell-sheet');
+    var peek = document.querySelector('.app-shell-sheet-peek');
+    var ctx = window.__rrmGetShellContext__ ? window.__rrmGetShellContext__() : null;
+
+    if (!ctx || !sheet || !peek) {
+      if (peek) peek.hidden = true;
+      return;
+    }
+
+    // Hydrate sheet contents from sessionStorage (textContent only).
+    var title = sheet.querySelector('.app-shell-sheet__title');
+    var list = sheet.querySelector('.app-shell-sheet__list');
+    if (title) title.textContent = ctx.label;
+    if (list) {
+      var basePath = ctx.source === 'commentary' ? '/commentary/' : '/library/';
+      var currentSlug = location.pathname.replace(/^\/(library|commentary)\//, '').replace(/\/$/, '');
+      ctx.slugs.forEach(function (slug, i) {
+        var li = document.createElement('li');
+        var a = document.createElement('a');
+        a.href = basePath + slug + '/';
+        // Prefer real title from ctx.titles[i] (Task 10 writer captures it
+        // from card data-title); slug-replace is the fallback path only.
+        var label = (ctx.titles && ctx.titles[i]) || slug.replace(/-/g, ' ');
+        a.textContent = label;
+        if (slug === currentSlug) a.setAttribute('aria-current', 'page');
+        li.appendChild(a);
+        list.appendChild(li);
+      });
+    }
+
+    // Reveal peek bar; sheet starts hidden until peek-tap.
+    peek.hidden = false;
+    sheet.dataset.state = 'hidden';
+
+    peek.addEventListener('click', function () {
+      // showModal can throw InvalidStateError if dialog already open or detached.
+      try {
+        sheet.showModal();
+      } catch (e) {
+        return;
+      }
+      sheet.dataset.state = 'half';
+      peek.setAttribute('aria-expanded', 'true');
+    });
+
+    var closeBtn = sheet.querySelector('.app-shell-sheet__close');
+    if (closeBtn) closeBtn.addEventListener('click', function () {
+      sheet.dataset.state = 'peek';
+      sheet.close();
+      peek.setAttribute('aria-expanded', 'false');
+    });
+
+    // Resize listener: close sheet if entering desktop mode.
+    window.addEventListener('resize', function () {
+      if (window.innerWidth > 900 && sheet.open) {
+        sheet.close();
+        sheet.dataset.state = ctx ? 'peek' : 'hidden';
+      }
+    });
+
+    // NOTE: Task 15 appends drag handlers below this comment, BEFORE the
+    // closing `})();` that ends this IIFE. They share `sheet` and `ctx`.
+
+    // Pointer drag handlers (grip-only — list scroll does NOT drag sheet).
+    var grip = sheet.querySelector('.app-shell-sheet__grip');
+    var startY = null;
+    var startState = null;
+    var savedScrollY = 0;
+
+    // Idempotent body-lock restore — only acts if the lock was applied. Used by both
+    // pointerup (when snapped to hidden) and pointercancel (iOS notification-center
+    // preempt). NEVER call without first checking position === 'fixed'; otherwise
+    // a stray pointercancel without a matching pointerdown would clobber unrelated
+    // inline styles.
+    function restoreScroll() {
+      if (document.body.style.position !== 'fixed') return;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      window.scrollTo({ top: savedScrollY, behavior: 'instant' });
+    }
+
+    if (grip) {
+      grip.addEventListener('pointerdown', function (e) {
+        if (!e.target.closest('.app-shell-sheet__grip')) return;
+        startY = e.clientY;
+        startState = sheet.dataset.state;
+        // setPointerCapture throws if pointerId is invalid or element detached.
+        try { grip.setPointerCapture(e.pointerId); } catch (err) { /* non-fatal */ }
+        // Body scroll lock (rAF-gated for momentum-safety). Idempotent — if a
+        // previous drag's restore was preempted (e.g. crash mid-pointermove), do
+        // not re-apply on top of an already-locked body.
+        requestAnimationFrame(function () {
+          if (document.body.style.position === 'fixed') return;
+          savedScrollY = window.scrollY;
+          document.body.style.position = 'fixed';
+          document.body.style.top = '-' + savedScrollY + 'px';
+          document.body.style.width = '100%';
+        });
+      });
+
+      grip.addEventListener('pointermove', function (e) {
+        if (startY === null) return;
+        var deltaY = e.clientY - startY;
+        // First drag has no --current-y set; getPropertyValue returns ''. Fall back to 50.
+        var raw = getComputedStyle(sheet).getPropertyValue('--current-y');
+        var base = parseFloat(raw);
+        if (!isFinite(base)) base = 50;
+        var translatePct = Math.max(8, Math.min(100, base + (deltaY / window.innerHeight) * 100));
+        sheet.style.setProperty('--current-y', translatePct);
+      });
+
+      grip.addEventListener('pointerup', function (e) {
+        if (startY === null) return;
+        var endY = e.clientY;
+        var delta = endY - startY;
+        // Snap to nearest state.
+        var nextState;
+        if (delta > 80) {
+          nextState = startState === 'full' ? 'half' : startState === 'half' ? 'peek' : 'hidden';
+        } else if (delta < -80) {
+          nextState = startState === 'peek' ? 'half' : startState === 'half' ? 'full' : 'full';
+        } else {
+          nextState = startState;
+        }
+        sheet.dataset.state = nextState;
+        sheet.style.removeProperty('--current-y');
+        startY = null;
+        if (nextState === 'hidden') {
+          sheet.close();
+          // Restore scroll via shared idempotent helper.
+          restoreScroll();
+        }
+      });
+
+      // iOS notification pull-down (and other system gestures) preempt mid-drag
+      // with `pointercancel`, NOT `pointerup`. Without this handler, the body-lock
+      // styles stay applied — subsequent drags compound the lock and the page
+      // jumps when finally restored. Mirrors pointerup's restore branch.
+      grip.addEventListener('pointercancel', function () {
+        startY = null;
+        sheet.style.removeProperty('--current-y');
+        restoreScroll();
+      });
+    }
+  })();
+</script>

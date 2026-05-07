@@ -50,7 +50,7 @@ function buildCOinS(a: Article): string {
 
 const coinsTitle = buildCOinS(article);
 ---
-<article class:list={['article-card', { 'article-card--compact': compact }]}>
+<article class:list={['article-card', { 'article-card--compact': compact }]} data-article-card data-slug={article.slug} data-title={article.title || ''}>
   <span class="Z3988" title={coinsTitle}></span>
   <a href={href} class="article-card__link">
     <h3 class="article-card__title">{article.title}</h3>

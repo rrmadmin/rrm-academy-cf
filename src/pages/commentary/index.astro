@@ -1,7 +1,11 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BlogCard from '../../components/BlogCard.astro';
+import AppShellChrome from '../../components/AppShellChrome.astro';
 import { fetchAllPosts } from '../../lib/blog';
+import { isShellEnabled } from '../../lib/shell-routes';
+
+const SHELL_ENABLED = isShellEnabled('commentary');
 
 const posts = await fetchAllPosts();
 
@@ -59,65 +63,127 @@ const jsonLd = {
 };
 ---
 <BaseLayout
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
   title="RRM Articles | Research, Policy & Patient Advocacy"
   description="Expert commentary on restorative reproductive medicine from Dr. Naomi Whittaker. Research updates, patient advocacy, and clinical insights."
   canonicalUrl="https://rrmacademy.org/commentary"
   jsonLd={jsonLd}
 >
-  <!-- Hero -->
-  <section class="commentary-hero" data-pagefind-ignore="all">
-    <div class="container">
-      <h1 class="animate-enter" style="--stagger: 0;">RRM Articles &amp; Commentary</h1>
-      <p class="commentary-hero__subtitle animate-enter" style="--stagger: 1;">
-        Expert clinical perspectives on restorative reproductive medicine
-      </p>
-    </div>
-  </section>
-
-  <!-- Recent Posts -->
-  <section class="section commentary-posts animate-enter" style="--stagger: 2;" data-pagefind-ignore="all">
-    <div class="container">
-      <div class="section-header">
-        <h2 class="section-label">Recent posts</h2>
-        <span class="meta-count">{posts.length} articles</span>
-      </div>
-      <div class="blog-grid">
-        {displayPosts.map((post, i) => (
-          <BlogCard post={post} eager={i < 3} />
-        ))}
-      </div>
-
-      {posts.length > PER_PAGE && (
-        <div class="view-all">
-          <a href="/commentary/page/2/" class="btn btn--secondary">View all posts &rarr;</a>
+  {SHELL_ENABLED ? (
+    <AppShellChrome context="index" currentPath={Astro.url.pathname}>
+      <!-- Hero -->
+      <section class="commentary-hero" data-pagefind-ignore="all">
+        <div class="container">
+          <h1 class="animate-enter" style="--stagger: 0;">RRM Articles &amp; Commentary</h1>
+          <p class="commentary-hero__subtitle animate-enter" style="--stagger: 1;">
+            Expert clinical perspectives on restorative reproductive medicine
+          </p>
         </div>
-      )}
-    </div>
+      </section>
 
-  </section>
+      <!-- Recent Posts -->
+      <section class="section commentary-posts animate-enter" style="--stagger: 2;" data-pagefind-ignore="all">
+        <div class="container">
+          <div class="section-header">
+            <h2 class="section-label">Recent posts</h2>
+            <span class="meta-count">{posts.length} articles</span>
+          </div>
+          <div class="blog-grid">
+            {displayPosts.map((post, i) => (
+              <BlogCard post={post} eager={i < 3} />
+            ))}
+          </div>
 
-  <section class="commentary-intro">
-    <div class="container container--narrow">
-      <p>
-        The commentary section brings together clinical explainers, physician spotlights, patient stories, and research highlights from across the RRM community. Topics span endometriosis, PCOS, fertility, postpartum care, and the policy gaps that slow diagnosis and access to restorative treatment. <a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker</a> contributes clinical pieces alongside other RRM physicians, practitioners, and patients willing to share their experience.
-      </p>
-      <p>
-        Some posts translate findings directly from our <a href="/library/">Research Library</a> of more than 3,000 peer-reviewed articles. Others are personal, organizational, or advocacy-focused. All of them reflect the same core conviction: that accurate information, offered clearly, changes outcomes.
-      </p>
-    </div>
-  </section>
+          {posts.length > PER_PAGE && (
+            <div class="view-all">
+              <a href="/commentary/page/2/" class="btn btn--secondary">View all posts &rarr;</a>
+            </div>
+          )}
+        </div>
 
-  <!-- CTA -->
-  <section class="commentary-cta" data-pagefind-ignore="all">
-    <div class="container container--narrow">
-      <h2>Take the next step</h2>
-      <p>Learn more about your body, your options, and what real care looks like.</p>
-      <div class="commentary-cta__links">
-        <a href="/endo-survey/" class="btn btn--primary">Take the Endo Self-Survey</a>
-        <a href="/courses/" class="btn btn--secondary">Explore Courses</a>
-      </div>
-    </div>
-  </section>
+      </section>
+
+      <section class="commentary-intro">
+        <div class="container container--narrow">
+          <p>
+            The commentary section brings together clinical explainers, physician spotlights, patient stories, and research highlights from across the RRM community. Topics span endometriosis, PCOS, fertility, postpartum care, and the policy gaps that slow diagnosis and access to restorative treatment. <a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker</a> contributes clinical pieces alongside other RRM physicians, practitioners, and patients willing to share their experience.
+          </p>
+          <p>
+            Some posts translate findings directly from our <a href="/library/">Research Library</a> of more than 3,000 peer-reviewed articles. Others are personal, organizational, or advocacy-focused. All of them reflect the same core conviction: that accurate information, offered clearly, changes outcomes.
+          </p>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section class="commentary-cta" data-pagefind-ignore="all">
+        <div class="container container--narrow">
+          <h2>Take the next step</h2>
+          <p>Learn more about your body, your options, and what real care looks like.</p>
+          <div class="commentary-cta__links">
+            <a href="/endo-survey/" class="btn btn--primary">Take the Endo Self-Survey</a>
+            <a href="/courses/" class="btn btn--secondary">Explore Courses</a>
+          </div>
+        </div>
+      </section>
+    </AppShellChrome>
+  ) : (
+    <Fragment>
+      <!-- Hero -->
+      <section class="commentary-hero" data-pagefind-ignore="all">
+        <div class="container">
+          <h1 class="animate-enter" style="--stagger: 0;">RRM Articles &amp; Commentary</h1>
+          <p class="commentary-hero__subtitle animate-enter" style="--stagger: 1;">
+            Expert clinical perspectives on restorative reproductive medicine
+          </p>
+        </div>
+      </section>
+
+      <!-- Recent Posts -->
+      <section class="section commentary-posts animate-enter" style="--stagger: 2;" data-pagefind-ignore="all">
+        <div class="container">
+          <div class="section-header">
+            <h2 class="section-label">Recent posts</h2>
+            <span class="meta-count">{posts.length} articles</span>
+          </div>
+          <div class="blog-grid">
+            {displayPosts.map((post, i) => (
+              <BlogCard post={post} eager={i < 3} />
+            ))}
+          </div>
+
+          {posts.length > PER_PAGE && (
+            <div class="view-all">
+              <a href="/commentary/page/2/" class="btn btn--secondary">View all posts &rarr;</a>
+            </div>
+          )}
+        </div>
+
+      </section>
+
+      <section class="commentary-intro">
+        <div class="container container--narrow">
+          <p>
+            The commentary section brings together clinical explainers, physician spotlights, patient stories, and research highlights from across the RRM community. Topics span endometriosis, PCOS, fertility, postpartum care, and the policy gaps that slow diagnosis and access to restorative treatment. <a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker</a> contributes clinical pieces alongside other RRM physicians, practitioners, and patients willing to share their experience.
+          </p>
+          <p>
+            Some posts translate findings directly from our <a href="/library/">Research Library</a> of more than 3,000 peer-reviewed articles. Others are personal, organizational, or advocacy-focused. All of them reflect the same core conviction: that accurate information, offered clearly, changes outcomes.
+          </p>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section class="commentary-cta" data-pagefind-ignore="all">
+        <div class="container container--narrow">
+          <h2>Take the next step</h2>
+          <p>Learn more about your body, your options, and what real care looks like.</p>
+          <div class="commentary-cta__links">
+            <a href="/endo-survey/" class="btn btn--primary">Take the Endo Self-Survey</a>
+            <a href="/courses/" class="btn btn--secondary">Explore Courses</a>
+          </div>
+        </div>
+      </section>
+    </Fragment>
+  )}
 </BaseLayout>
 
 <style>

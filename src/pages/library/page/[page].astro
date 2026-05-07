@@ -1,7 +1,11 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import ArticleCard from '../../../components/ArticleCard.astro';
+import AppShellChrome from '../../../components/AppShellChrome.astro';
+import { isShellEnabled } from '../../../lib/shell-routes';
 import { fetchAllArticles } from '../../../lib/airtable';
+
+const SHELL_ENABLED = isShellEnabled('library');
 
 export async function getStaticPaths() {
   const perPage = 50;
@@ -41,7 +45,10 @@ for (let i = 1; i <= totalPages; i++) {
   title={`Browse Articles - Page ${currentPage}`}
   description={`Page ${currentPage} of ${totalPages} - Browse all articles in the RRM Research Library.`}
   canonicalUrl={`https://rrmacademy.org/library/page/${currentPage}`}
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
 >
+  {SHELL_ENABLED ? (
+    <AppShellChrome context="index" currentPath={Astro.url.pathname}>
   <section class="browse-page" data-pagefind-ignore="all">
     <div class="container">
       <nav class="breadcrumb" aria-label="Breadcrumb">
@@ -85,6 +92,54 @@ for (let i = 1; i <= totalPages; i++) {
       </nav>
     </div>
   </section>
+    </AppShellChrome>
+  ) : (
+    <Fragment>
+  <section class="browse-page" data-pagefind-ignore="all">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/library/">Research Library</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <span>Page {currentPage}</span>
+      </nav>
+
+      <div class="browse-header">
+        <div>
+          <h1>Browse all articles</h1>
+          <p class="browse-meta">
+            Showing {start + 1}&ndash;{Math.min(start + perPage, articles.length)} of {articles.length.toLocaleString()}
+          </p>
+        </div>
+        <a href="/library/#search" class="btn btn--secondary btn--sm">Search</a>
+      </div>
+
+      <div class="article-list">
+        {pageArticles.map(article => (
+          <ArticleCard article={article} />
+        ))}
+      </div>
+
+      <nav class="pagination" aria-label="Pagination">
+        {currentPage > 1 && (
+          <a href={`/library/page/${currentPage - 1}/`}>&laquo; Prev</a>
+        )}
+        {range.map(item => (
+          item === '...' ? (
+            <span class="ellipsis">&hellip;</span>
+          ) : item === currentPage ? (
+            <span class="current">{item}</span>
+          ) : (
+            <a href={`/library/page/${item}/`}>{item}</a>
+          )
+        ))}
+        {currentPage < totalPages && (
+          <a href={`/library/page/${currentPage + 1}/`}>Next &raquo;</a>
+        )}
+      </nav>
+    </div>
+  </section>
+    </Fragment>
+  )}
 </BaseLayout>
 
 <style>

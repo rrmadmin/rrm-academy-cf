@@ -1,0 +1,425 @@
+---
+// AppShellChrome.astro — left-sidebar app shell wrapper for /library/* and /commentary/*.
+//
+// Responsibilities (per spec §Component boundaries):
+//   - Emit <main class="app-shell-main"> directly (BaseLayout chrome="shell" omits its <main>)
+//   - Render desktop sidebar (above 900px), mobile bottom nav (≤900px), hamburger drawer
+//   - Middle column DOM is emitted ONLY on article pages (`context === 'article'`).
+//     Index and saved pages omit the <aside class="app-shell-middle-column"> entirely.
+//     The G-SEO-6 grep (Task 30 step 6) reflects this — it filters to article paths
+//     only. Do NOT switch to always-emit; doing so would carry an empty aside on
+//     index/saved and break the G-SEO-6 grep semantics.
+//   - Pre-paint inline script: read sessionStorage.rrm-shell-context, add .shell-no-context if absent
+//   - Card-click writer: capture intent, commit on pagehide
+//   - Theme toggle handler: shared __rrmThemeToggle__() IIFE
+//
+// All sessionStorage access wrapped in try/catch (per spec §Data flow).
+//
+// SCRIPT ORDERING CONTRACT (do not break):
+//   AppShellChrome's pre-paint inline script defines `window.__rrmGetShellContext__`
+//   (Task 9). AppShellSheet's mount script (Task 14) reads it. Both scripts are
+//   `<script is:inline>` and rely on document order — AppShellChrome MUST execute
+//   before AppShellSheet. Astro emits components in the order they're rendered,
+//   and every wrap task (21, 25) renders <AppShellChrome> wrapping the page,
+//   with <AppShellSheet> as a sibling AFTER it. Do not reorder these components
+//   in any wrap task or AppShellSheet will see `window.__rrmGetShellContext__`
+//   as undefined and silently no-op.
+
+// Frontmatter import emits app-shell.css as a global stylesheet — matches the
+// canonical pattern used by BaseLayout.astro (line 8: `import '../styles/global.css'`).
+// Do NOT use `<style>@import '/src/styles/app-shell.css';</style>` — Astro <style>
+// blocks are component-scoped (data-astro-cid hashing) and root-absolute @import
+// paths do not resolve in production builds.
+import '../styles/app-shell.css';
+
+// AppShellChrome runs INSIDE BaseLayout's slot. The `<body>` element belongs
+// to BaseLayout (`<body class:list={[bodyClass]}>` around line 267), so this
+// component cannot influence body classes from inside the slot. bodyClass is
+// owned by BaseLayout — pass it there, not here. Adding `bodyClass` to this
+// Props interface would create an inert prop that pages might pass and
+// silently lose. Don't.
+interface Props {
+  context: 'index' | 'article' | 'saved';
+  currentPath: string;
+}
+
+const { context, currentPath } = Astro.props;
+
+// Identify current section for aria-current on sidebar links.
+const inLibrary = currentPath.startsWith('/library');
+const inCommentary = currentPath.startsWith('/commentary');
+const inSaved = currentPath === '/library/saved' || currentPath === '/library/saved/';
+---
+
+<div class="app-shell-layout" data-shell-context={context}>
+  <!-- Desktop sidebar -->
+  <nav class="app-shell-nav" data-pagefind-ignore="all" aria-label="Primary">
+    <a href="/" class="app-shell-nav__brand" aria-label="RRM Academy home" data-clear-shell-context>
+      <strong>RRM Academy</strong>
+    </a>
+
+    <div class="app-shell-nav__section">
+      <div class="app-shell-nav__heading">Reading</div>
+      <a href="/library/" class="app-shell-nav__link" aria-current={inLibrary && !inSaved ? 'page' : undefined}>Research Library</a>
+      <a href="/commentary/" class="app-shell-nav__link" aria-current={inCommentary ? 'page' : undefined}>Commentary</a>
+      <a href="/library/saved/" class="app-shell-nav__link" aria-current={inSaved ? 'page' : undefined}>Saved Articles</a>
+    </div>
+
+    <div class="app-shell-nav__section">
+      <div class="app-shell-nav__heading">Explore</div>
+      <a href="/guides/" class="app-shell-nav__link">Guides ↗</a>
+      <a href="/faqs/" class="app-shell-nav__link">FAQs ↗</a>
+      <a href="/courses/" class="app-shell-nav__link">Courses ↗</a>
+      <a href="/community/" class="app-shell-nav__link">Community ↗</a>
+    </div>
+
+    <div class="app-shell-nav__spacer"></div>
+
+    <a href="/donate/" class="app-shell-nav__cta">Donate</a>
+
+    <div class="app-shell-nav__footer">
+      <a href="/account/" class="app-shell-nav__account">Account</a>
+      <button type="button" class="app-shell-nav__theme-toggle" aria-label="Toggle theme" data-theme-toggle>
+        <span class="icon-moon" aria-hidden="true">🌙</span>
+        <span class="icon-sun" aria-hidden="true">☀️</span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="app-shell-main">
+    <slot />
+  </main>
+
+  <!-- Middle column: emitted ONLY on article pages (`context === 'article'`).
+       Visibility on article pages is class-gated by .shell-no-context (spec
+       §No-context CSS gate). G-SEO-6 grep (Task 30 step 6) filters to article
+       paths only — do NOT switch to always-emit. -->
+  {context === 'article' && (
+    <aside class="app-shell-middle-column" data-pagefind-ignore="all" aria-label="In this index">
+      <div class="app-shell-middle-column__inner">
+        <h2 class="app-shell-middle-column__heading"></h2>
+        <ol class="app-shell-middle-column__list"></ol>
+      </div>
+    </aside>
+  )}
+
+  <!-- Mobile bottom nav -->
+  <nav class="app-shell-bottom-nav" data-pagefind-ignore="all" aria-label="Mobile primary">
+    <a href="/library/" class="app-shell-bottom-nav__tab" aria-current={inLibrary && !inSaved ? 'page' : undefined} data-clear-shell-context>Library</a>
+    <a href="/commentary/" class="app-shell-bottom-nav__tab" aria-current={inCommentary ? 'page' : undefined} data-clear-shell-context>Commentary</a>
+    <a href="/library/saved/" class="app-shell-bottom-nav__tab" aria-current={inSaved ? 'page' : undefined} data-clear-shell-context>Saved</a>
+    <a href="/account/" class="app-shell-bottom-nav__tab" data-clear-shell-context>Account</a>
+  </nav>
+
+  <!-- Mobile hamburger drawer (mirrors sidebar contents) -->
+  <button type="button" class="app-shell-drawer-toggle" aria-controls="app-shell-drawer" aria-expanded="false" aria-label="Open menu" data-pagefind-ignore="all">☰</button>
+  <aside id="app-shell-drawer" class="app-shell-drawer" data-pagefind-ignore="all" aria-label="Mobile navigation">
+    <button type="button" class="app-shell-drawer__close" aria-label="Close menu">×</button>
+    <div class="app-shell-nav__section">
+      <div class="app-shell-nav__heading">Reading</div>
+      <a href="/library/" class="app-shell-nav__link" data-clear-shell-context>Research Library</a>
+      <a href="/commentary/" class="app-shell-nav__link" data-clear-shell-context>Commentary</a>
+      <a href="/library/saved/" class="app-shell-nav__link" data-clear-shell-context>Saved Articles</a>
+    </div>
+    <div class="app-shell-nav__section">
+      <div class="app-shell-nav__heading">Explore</div>
+      <a href="/guides/" class="app-shell-nav__link" data-clear-shell-context>Guides</a>
+      <a href="/faqs/" class="app-shell-nav__link" data-clear-shell-context>FAQs</a>
+      <a href="/courses/" class="app-shell-nav__link" data-clear-shell-context>Courses</a>
+      <a href="/community/" class="app-shell-nav__link" data-clear-shell-context>Community</a>
+    </div>
+    <a href="/donate/" class="app-shell-nav__cta" data-clear-shell-context>Donate</a>
+    <a href="/account/" class="app-shell-nav__link" data-clear-shell-context>Account</a>
+    <button type="button" class="app-shell-nav__theme-toggle" aria-label="Toggle theme" data-theme-toggle>
+      <span class="icon-moon" aria-hidden="true">🌙</span>
+      <span class="icon-sun" aria-hidden="true">☀️</span>
+    </button>
+  </aside>
+  <div class="app-shell-drawer__overlay" aria-hidden="true"></div>
+</div>
+
+{/* No <style> block: app-shell.css is imported in frontmatter (above) so it
+    emits as a global stylesheet, matching BaseLayout's pattern. */}
+
+<script is:inline>
+  // PRE-PAINT (must run before any layout): if no/invalid sessionStorage context,
+  // add .shell-no-context to <html> to collapse middle column rail (spec §No-context CSS gate).
+  (function() {
+    // Slug cap is 250 chars; library data has slugs up to 230 chars (TRACER-A).
+    // Build-time test in tests/unit/canonical-lockdown.test.mjs asserts the data
+    // never exceeds this cap — keep the two in lockstep.
+    var SLUG_RE = /^[a-z0-9][a-z0-9-]{0,250}$/;
+    var ALLOWED_SOURCES = Object.create(null);
+    ALLOWED_SOURCES.library = 1;
+    ALLOWED_SOURCES.commentary = 1;
+    ALLOWED_SOURCES.search = 1;
+
+    function isValidContext(c) {
+      if (!c || typeof c !== 'object') return false;
+      if (!ALLOWED_SOURCES[c.source]) return false;
+      if (typeof c.label !== 'string' || c.label.length > 200) return false;
+      // Reject control chars (NULL bytes, RTL/LTR overrides, zero-width joiners,
+      // bidi-control codepoints). Adversarial labels of pure whitespace render
+      // as a phantom-tall heading even when textContent neutralizes XSS.
+      if (/[\x00-\x1f\x7f​-‏ - ⁦-⁩]/.test(c.label)) return false;
+      if (typeof c.returnUrl !== 'string' || c.returnUrl.length > 500) return false;
+      // Strict path-absolute. Reject leading // or /\, any scheme, control chars,
+      // and ASCII whitespace prefixes that some browsers normalize to
+      // protocol-relative URLs.
+      if (c.returnUrl[0] !== '/') return false;
+      if (c.returnUrl[1] === '/' || c.returnUrl[1] === '\\') return false;
+      if (c.returnUrl.indexOf('://') !== -1) return false;
+      if (c.returnUrl.indexOf('javascript:') === 0 || c.returnUrl.indexOf('data:') === 0) return false;
+      if (/[\x00-\x20\x7f]/.test(c.returnUrl)) return false;
+      if (!Array.isArray(c.slugs) || c.slugs.length === 0 || c.slugs.length > 500) return false;
+      // Filter (don't reject) bad entries: spec §Validator says "entries failing
+      // the regex are dropped; if length drops to 0 after filtering, return null."
+      // Track original indices so a parallel titles[] sync stays aligned.
+      var filtered = [];
+      var filteredIdx = [];
+      for (var i = 0; i < c.slugs.length; i++) {
+        if (typeof c.slugs[i] === 'string' && SLUG_RE.test(c.slugs[i])) {
+          filtered.push(c.slugs[i]);
+          filteredIdx.push(i);
+        }
+      }
+      if (filtered.length === 0) return false;
+      // Dedupe slugs preserving order; sync titles to the kept indices in lockstep
+      // so adversarial sessionStorage like slugs:["a","a","a"] doesn't render dupes.
+      var hasTitles = Array.isArray(c.titles);
+      var seen = Object.create(null);
+      var uniqueSlugs = [];
+      var uniqueTitles = [];
+      for (var j = 0; j < filtered.length; j++) {
+        if (!seen[filtered[j]]) {
+          seen[filtered[j]] = 1;
+          uniqueSlugs.push(filtered[j]);
+          if (hasTitles) uniqueTitles.push(c.titles[filteredIdx[j]] || '');
+        }
+      }
+      if (uniqueSlugs.length === 0) return false;
+      c.slugs = uniqueSlugs; // mutate accepted shape
+      if (typeof c.writtenAt !== 'number' || !isFinite(c.writtenAt) || c.writtenAt <= 0) return false;
+      // Titles array (optional) — must parallel slugs[] when present. Tolerate
+      // absence (legacy clients / writers that didn't capture titles), but
+      // drop any malformed shape rather than partial-render with wrong indices.
+      if (c.titles !== undefined) {
+        if (!hasTitles) {
+          c.titles = [];
+        } else {
+          // Replace with the lockstep-deduped titles[] built above.
+          c.titles = uniqueTitles;
+          for (var t = 0; t < c.titles.length; t++) {
+            if (typeof c.titles[t] !== 'string') c.titles[t] = '';
+            if (c.titles[t].length > 300) c.titles[t] = c.titles[t].slice(0, 300);
+          }
+        }
+      }
+      // Filters: must be a plain object (not array, not null) AND every key/
+      // value pair must be string-string. Spec line 178: "all keys and values
+      // are strings. Reject nested objects, arrays, null values."
+      if (c.filters) {
+        if (typeof c.filters !== 'object' || Array.isArray(c.filters)) return false;
+        for (var k in c.filters) {
+          if (!Object.prototype.hasOwnProperty.call(c.filters, k)) continue;
+          if (typeof k !== 'string' || typeof c.filters[k] !== 'string') return false;
+        }
+      }
+      return true;
+    }
+
+    var ctx = null;
+    try {
+      var raw = sessionStorage.getItem('rrm-shell-context');
+      if (raw) ctx = JSON.parse(raw);
+    } catch (e) { ctx = null; }
+    if (!isValidContext(ctx)) {
+      document.documentElement.classList.add('shell-no-context');
+    }
+
+    // Expose helper for sheet + middle column to reuse.
+    window.__rrmGetShellContext__ = function () {
+      try {
+        var raw = sessionStorage.getItem('rrm-shell-context');
+        if (!raw) return null;
+        var parsed = JSON.parse(raw);
+        return isValidContext(parsed) ? parsed : null;
+      } catch (e) { return null; }
+    };
+  })();
+
+  // Writer: only fires on index pages. Captures intent on card click;
+  // commits to sessionStorage on pagehide (Safari iOS race-safe).
+  (function() {
+    var rootDiv = document.querySelector('.app-shell-layout[data-shell-context]');
+    if (!rootDiv || rootDiv.dataset.shellContext !== 'index') return;
+
+    var pendingContext = null;
+    var clearRequested = false;
+
+    function captureFromCards() {
+      var cards = document.querySelectorAll('[data-article-card], [data-blog-card]');
+      var slugs = [];
+      var titles = [];
+      cards.forEach(function (card) {
+        var slug = card.dataset.slug;
+        var title = card.dataset.title || '';
+        if (slug && /^[a-z0-9][a-z0-9-]{0,250}$/.test(slug)) {
+          slugs.push(slug);
+          titles.push(title);
+        }
+      });
+      return { slugs: slugs, titles: titles };
+    }
+
+    // Always overwrite stale context on every index DOMContentLoaded (spec §Storage write robustness).
+    var captured = captureFromCards();
+    var visibleSlugs = captured.slugs;
+    var visibleTitles = captured.titles;
+    if (visibleSlugs.length === 0) {
+      // Empty filter / zero results: clear stale context.
+      try { sessionStorage.removeItem('rrm-shell-context'); } catch (e) {}
+    } else {
+      var source = location.pathname.indexOf('/commentary') === 0 ? 'commentary' : 'library';
+      var url = new URL(location.href);
+      var filters = {};
+      ['topic', 'q', 'sort'].forEach(function (k) {
+        var v = url.searchParams.get(k);
+        if (v && typeof v === 'string') filters[k] = v;
+      });
+      var label = (url.searchParams.get('topic') || 'All') + ' · ' + visibleSlugs.length + ' results';
+
+      pendingContext = {
+        source: source,
+        label: label,
+        slugs: visibleSlugs.slice(0, 500),
+        titles: visibleTitles.slice(0, 500),
+        returnUrl: url.pathname + url.search,
+        filters: filters,
+        writtenAt: Date.now()
+      };
+    }
+
+    // Commit on pagehide (top-level navigation race-safe on Safari iOS).
+    window.addEventListener('pagehide', function () {
+      if (clearRequested) return;
+      if (!pendingContext) return;
+      try { sessionStorage.setItem('rrm-shell-context', JSON.stringify(pendingContext)); } catch (e) {}
+    });
+
+    // Bottom-nav and logo links clear context (best-effort, never blocks navigation).
+    document.querySelectorAll('[data-clear-shell-context]').forEach(function (el) {
+      el.addEventListener('pointerdown', function () {
+        clearRequested = true;
+        try { sessionStorage.removeItem('rrm-shell-context'); } catch (e) {}
+      });
+    });
+  })();
+
+  // Middle column hydration (article pages only, when sessionStorage has valid context).
+  (function() {
+    var rootDiv = document.querySelector('.app-shell-layout[data-shell-context]');
+    if (!rootDiv || rootDiv.dataset.shellContext !== 'article') return;
+
+    var ctx = window.__rrmGetShellContext__ ? window.__rrmGetShellContext__() : null;
+    if (!ctx) return;
+
+    var aside = document.querySelector('.app-shell-middle-column');
+    if (!aside) return;
+
+    var heading = aside.querySelector('.app-shell-middle-column__heading');
+    var list = aside.querySelector('.app-shell-middle-column__list');
+    if (!heading || !list) return;
+
+    // textContent only, never innerHTML (XSS guard per spec §Render rules).
+    heading.textContent = ctx.label;
+
+    var currentSlug = location.pathname.replace(/^\/(library|commentary)\//, '').replace(/\/$/, '');
+    var basePath = ctx.source === 'commentary' ? '/commentary/' : '/library/';
+
+    ctx.slugs.forEach(function (slug, i) {
+      var li = document.createElement('li');
+      var a = document.createElement('a');
+      a.href = basePath + slug + '/';
+      // Prefer real title captured by the Task 10 writer (data-title on cards);
+      // fall back to slug-replace only when the title is missing/empty.
+      var label = (ctx.titles && ctx.titles[i]) || slug.replace(/-/g, ' ');
+      a.textContent = label;
+      if (slug === currentSlug) a.setAttribute('aria-current', 'page');
+      li.appendChild(a);
+      list.appendChild(li);
+    });
+  })();
+
+  // Theme toggle: shared handler so sidebar + drawer toggles operate identically.
+  // Header.astro / Footer.astro use the View Transitions API for the theme animation;
+  // mirror that here so the visual feel is consistent across shell + non-shell pages.
+  window.__rrmThemeToggle__ = (function() {
+    var lastClick = 0;
+    return function() {
+      var now = Date.now();
+      if (now - lastClick < 200) return; // debounce
+      lastClick = now;
+      var current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+      var next = current === 'dark' ? 'light' : 'dark';
+      var apply = function () {
+        document.documentElement.setAttribute('data-theme', next);
+        try { localStorage.setItem('rrm_theme', next); } catch (e) {}
+      };
+      if (typeof document.startViewTransition === 'function') {
+        document.startViewTransition(apply);
+      } else {
+        apply();
+      }
+    };
+  })();
+
+  document.querySelectorAll('[data-theme-toggle]').forEach(function (btn) {
+    btn.addEventListener('click', window.__rrmThemeToggle__);
+  });
+
+  // Cross-tab sync: when another tab writes rrm_theme, mirror the change here so
+  // open shell + non-shell tabs stay in lockstep without requiring a reload.
+  window.addEventListener('storage', function (e) {
+    if (e.key !== 'rrm_theme') return;
+    var theme = e.newValue === 'dark' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+  });
+
+  // Hamburger drawer: open/close + overlay/ESC handlers + bfcache restore.
+  (function() {
+    var toggle = document.querySelector('.app-shell-drawer-toggle');
+    var drawer = document.getElementById('app-shell-drawer');
+    var closeBtn = drawer && drawer.querySelector('.app-shell-drawer__close');
+    var overlay = document.querySelector('.app-shell-drawer__overlay');
+    if (!toggle || !drawer) return;
+
+    function open() {
+      drawer.dataset.open = 'true';
+      toggle.setAttribute('aria-expanded', 'true');
+      var firstFocusable = drawer.querySelector('a, button');
+      if (firstFocusable) firstFocusable.focus();
+    }
+    function close() {
+      drawer.dataset.open = 'false';
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.focus();
+    }
+    toggle.addEventListener('click', open);
+    if (closeBtn) closeBtn.addEventListener('click', close);
+    if (overlay) overlay.addEventListener('click', close);
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      if (drawer.dataset.open !== 'true') return;
+      var sheetEl = document.getElementById('app-shell-sheet');
+      if (sheetEl && sheetEl.open) return;
+      close();
+      e.stopPropagation();
+    });
+
+    window.addEventListener('pageshow', function (e) {
+      if (e.persisted) close();
+    });
+  })();
+</script>

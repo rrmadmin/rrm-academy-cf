@@ -889,7 +889,11 @@ git commit -m "feat: add pre-paint context gate + getShellContext validator"
 **Files:**
 - Modify: `src/components/AppShellChrome.astro` (extend the `<script>` block)
 
-- [ ] **Step 1: Append writer logic conditional on context="index"**
+- [ ] **Step 1: Set the data attribute on AppShellChrome's root**
+
+In the AppShellChrome.astro template, change `<div class="app-shell-layout">` to `<div class="app-shell-layout" data-shell-context={context}>`. The writer in Step 2 reads context from this wrapper div via `querySelector` (NOT from `document.documentElement.dataset`, which would require `set:html` and is asymmetric with how Astro emits per-component data attributes).
+
+- [ ] **Step 2: Append writer logic conditional on context="index"**
 
 (Note: requires Task 8.5 to have committed first; verify with `grep -c data-article-card src/components/ArticleCard.astro` returns ≥1. If 0, stop and complete Task 8.5 before proceeding.)
 
@@ -898,80 +902,68 @@ Inside the existing `<script is:inline>` block in AppShellChrome.astro, append:
 ```javascript
 // Writer: only fires on index pages. Captures intent on card click;
 // commits to sessionStorage on pagehide (Safari iOS race-safe).
-if (document.documentElement.dataset.shellContext === 'index') {
-  (function() {
-    var pendingContext = null;
+(function() {
+  var rootDiv = document.querySelector('.app-shell-layout[data-shell-context]');
+  if (!rootDiv || rootDiv.dataset.shellContext !== 'index') return;
 
-    function captureFromCards() {
-      var cards = document.querySelectorAll('[data-article-card], [data-blog-card]');
-      var slugs = [];
-      var titles = [];
-      cards.forEach(function (card) {
-        var slug = card.dataset.slug;
-        var title = card.dataset.title || '';
-        if (slug && /^[a-z0-9][a-z0-9-]{0,250}$/.test(slug)) {
-          slugs.push(slug);
-          titles.push(title);
-        }
-      });
-      return { slugs: slugs, titles: titles };
-    }
+  var pendingContext = null;
 
-    // Always overwrite stale context on every index DOMContentLoaded (spec §Storage write robustness).
-    var captured = captureFromCards();
-    var visibleSlugs = captured.slugs;
-    var visibleTitles = captured.titles;
-    if (visibleSlugs.length === 0) {
-      // Empty filter / zero results: clear stale context.
+  function captureFromCards() {
+    var cards = document.querySelectorAll('[data-article-card], [data-blog-card]');
+    var slugs = [];
+    var titles = [];
+    cards.forEach(function (card) {
+      var slug = card.dataset.slug;
+      var title = card.dataset.title || '';
+      if (slug && /^[a-z0-9][a-z0-9-]{0,250}$/.test(slug)) {
+        slugs.push(slug);
+        titles.push(title);
+      }
+    });
+    return { slugs: slugs, titles: titles };
+  }
+
+  // Always overwrite stale context on every index DOMContentLoaded (spec §Storage write robustness).
+  var captured = captureFromCards();
+  var visibleSlugs = captured.slugs;
+  var visibleTitles = captured.titles;
+  if (visibleSlugs.length === 0) {
+    // Empty filter / zero results: clear stale context.
+    try { sessionStorage.removeItem('rrm-shell-context'); } catch (e) {}
+  } else {
+    var source = location.pathname.indexOf('/commentary') === 0 ? 'commentary' : 'library';
+    var url = new URL(location.href);
+    var filters = {};
+    ['topic', 'q', 'sort'].forEach(function (k) {
+      var v = url.searchParams.get(k);
+      if (v && typeof v === 'string') filters[k] = v;
+    });
+    var label = (url.searchParams.get('topic') || 'All') + ' · ' + visibleSlugs.length + ' results';
+
+    pendingContext = {
+      source: source,
+      label: label,
+      slugs: visibleSlugs.slice(0, 500),
+      titles: visibleTitles.slice(0, 500),
+      returnUrl: url.pathname + url.search,
+      filters: filters,
+      writtenAt: Date.now()
+    };
+  }
+
+  // Commit on pagehide (top-level navigation race-safe on Safari iOS).
+  window.addEventListener('pagehide', function () {
+    if (!pendingContext) return;
+    try { sessionStorage.setItem('rrm-shell-context', JSON.stringify(pendingContext)); } catch (e) {}
+  });
+
+  // Bottom-nav and logo links clear context (best-effort, never blocks navigation).
+  document.querySelectorAll('[data-clear-shell-context]').forEach(function (el) {
+    el.addEventListener('pointerdown', function () {
       try { sessionStorage.removeItem('rrm-shell-context'); } catch (e) {}
-    } else {
-      var source = location.pathname.indexOf('/commentary') === 0 ? 'commentary' : 'library';
-      var url = new URL(location.href);
-      var filters = {};
-      ['topic', 'q', 'sort'].forEach(function (k) {
-        var v = url.searchParams.get(k);
-        if (v && typeof v === 'string') filters[k] = v;
-      });
-      var label = (url.searchParams.get('topic') || 'All') + ' · ' + visibleSlugs.length + ' results';
-
-      pendingContext = {
-        source: source,
-        label: label,
-        slugs: visibleSlugs.slice(0, 500),
-        titles: visibleTitles.slice(0, 500),
-        returnUrl: url.pathname + url.search,
-        filters: filters,
-        writtenAt: Date.now()
-      };
-    }
-
-    // Commit on pagehide (top-level navigation race-safe on Safari iOS).
-    window.addEventListener('pagehide', function () {
-      if (!pendingContext) return;
-      try { sessionStorage.setItem('rrm-shell-context', JSON.stringify(pendingContext)); } catch (e) {}
     });
-
-    // Bottom-nav and logo links clear context (best-effort, never blocks navigation).
-    document.querySelectorAll('[data-clear-shell-context]').forEach(function (el) {
-      el.addEventListener('pointerdown', function () {
-        try { sessionStorage.removeItem('rrm-shell-context'); } catch (e) {}
-      });
-    });
-  })();
-}
-```
-
-- [ ] **Step 2: Set the data attribute on AppShellChrome's root**
-
-In the AppShellChrome.astro template, change `<div class="app-shell-layout">` to `<div class="app-shell-layout" data-shell-context={context}>`.
-
-(You also need to set `<html>` lookups — but the script reads `document.documentElement.dataset.shellContext` which won't be set unless we use `set:html` or a different approach. Simplest: read from the wrapper `<div>` instead.)
-
-Actually update the script: change `if (document.documentElement.dataset.shellContext === 'index') {` to:
-
-```javascript
-var rootDiv = document.querySelector('.app-shell-layout[data-shell-context]');
-if (rootDiv && rootDiv.dataset.shellContext === 'index') {
+  });
+})();
 ```
 
 - [ ] **Step 3: Test in dev**
@@ -1744,7 +1736,23 @@ git add .github/workflows/deploy.yml
 git commit -m "ci: wire canonical-lockdown step + PUBLIC_SHELL_ROUTES env var"
 ```
 
-After push, check GitHub Actions UI: new "Canonical lockdown" step appears in deploy run. Step succeeds.
+- [ ] **Step 5: Verify the push event triggered a CI run (silent-drop guard)**
+
+Per `~/.claude/projects/-Users-brian-iCode/memory/feedback-push-event-silent-drop.md`, GitHub occasionally accepts a push but suppresses the `push` event so no workflow run appears. After pushing the commit from Step 4 (which happens at the end of all Phase 7 tasks, not here — but verify after that push):
+
+```bash
+gh run list --branch claude/library-app-shell-2026-05-07 --limit 1
+```
+
+Expected: a run appears within 1-2 minutes. If no run appears within 5 minutes, retrigger via empty commit:
+
+```bash
+git commit --allow-empty -m "ci: retrigger after silent push-event drop"
+git push
+gh run list --branch claude/library-app-shell-2026-05-07 --limit 1
+```
+
+After re-trigger: confirm the new "Canonical lockdown" step appears in the run and succeeds. If the retrigger also produces no run, stop and investigate (token scope, ref protection, branch policy) — do not loop.
 
 ---
 
@@ -2440,6 +2448,16 @@ git commit -m "test: cold-land, adversarial, and no-JS shell E2E"
 **Files:**
 - (verification only)
 
+- [ ] **Step 0 (MANDATORY): Build with shell routes enabled**
+
+Many gates below read from `dist/` (G-SEO-4, G-SEO-6). Without a shell-enabled build, `grep -L` returns empty (the "expected" pass) on a build that wraps nothing — silently passing the gate. This step makes that impossible.
+
+```bash
+PUBLIC_SHELL_ROUTES=commentary,library npm run build 2>&1 | tail -10
+```
+
+Expected: build succeeds (final line `[build] Complete!` or equivalent). If the build fails, STOP — do NOT proceed to Step 1 or to the push in Task 31. Report the failure and fix-forward.
+
 - [ ] **Step 1: G-SEO-1 + G-GUARD (BaseLayout hash)**
 Run: `npm run guard`
 Expected: 0.
@@ -2565,8 +2583,8 @@ The PR description should attach these screenshots as the visual proof for spec 
 - (no edits — push only)
 
 - [ ] **Step 1: Final local commit summary**
-Run: `git log --oneline ...origin/main | wc -l`
-Expected: 26-32 commits (Phase 1 through Phase 9).
+Run: `git log --oneline origin/main..HEAD | wc -l`
+Expected: 26-32 commits (Phase 1 through Phase 9). Two-dot range (`origin/main..HEAD`) reports commits ahead of main; three-dot (`...origin/main`) is symmetric difference and gives a confusing count if origin/main has commits the branch hasn't seen.
 
 - [ ] **Step 2: Push**
 Run: `git push -u origin claude/library-app-shell-2026-05-06`
@@ -2662,8 +2680,14 @@ Expected: 0 (library not yet enabled).
 
 - [ ] **Step 4: Wait 24h soak. Monitor with periodic automated checks:**
 
-Manual review surfaces (run at T+1h, T+6h, T+12h, T+24h):
-- GA4 bounce rate on /commentary/* — should be flat or improved
+**Numeric abort thresholds (any one trips → execute Rollback procedure at end of plan, do not advance to Step 5):**
+- `curl https://rrmacademy.org/commentary/` returns non-2xx for 3 consecutive retries at any check interval
+- `curl https://rrmacademy.org/commentary/<slug>/` returns non-2xx for 3 consecutive retries (sample one post per check)
+- `grep -c 'app-shell-nav'` against `/commentary/` returns 0 (shell wrap regressed)
+- AI Search Refresh workflow (`ai-search-refresh.yml` on `main`) shows `failure` conclusion in the most recent run
+
+Advisory metrics (review but do NOT auto-abort on these — they require human judgment):
+- GA4 bounce rate on /commentary/* (compare to 7-day pre-shell baseline; >20% increase warrants investigation, not auto-rollback)
 - GSC URL inspection on a sample commentary post — confirm rendered HTML has shell + canonical unchanged
 - Sentry / cloudflare logs — no spike in 4xx/5xx
 
