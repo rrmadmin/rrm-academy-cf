@@ -5,7 +5,7 @@
 import {
   json, optionsResponse, verifyPassword, sessionCookie,
   verifyTurnstile, checkRateLimit, isValidEmail,
-  generateSessionId, waitlistBackfillStatement,
+  generateSessionId, waitlistBackfillStatement, sessionInsertStatement,
 } from './_shared.js';
 import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
@@ -120,7 +120,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const sessionId = generateSessionId();
     const expiresAt = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
     await db.batch([
-      db.prepare('INSERT INTO session (id, user_id, expires_at) VALUES (?, ?, ?)').bind(sessionId, user.id, expiresAt),
+      sessionInsertStatement(db, sessionId, user.id, expiresAt),
       waitlistBackfillStatement(db, user.id, user.email),
     ]);
     const session = { id: sessionId, expiresAt };
