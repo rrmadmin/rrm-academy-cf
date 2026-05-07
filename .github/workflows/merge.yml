@@ -55,12 +55,17 @@ jobs:
       # lint + test + guard, which are the real pre-merge safety net.
 
       - name: Merge into main and push
+        id: merge
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout main
+          BEFORE=$(git rev-parse HEAD)
           git merge --no-ff ${{ github.sha }} --no-edit
+          AFTER=$(git rev-parse HEAD)
           git push origin main
+          echo "before=$BEFORE" >> "$GITHUB_OUTPUT"
+          echo "after=$AFTER" >> "$GITHUB_OUTPUT"
 
       # GITHUB_TOKEN pushes do NOT trigger other workflows (GitHub anti-recursion).
       # Explicitly dispatch Build & Deploy on main so merges from claude/**
@@ -70,10 +75,11 @@ jobs:
       # docs/**, memory notes) don't burn ~10 billable Actions minutes per merge.
       # Keep this list in sync with deploy.yml `on.push.paths`.
       - name: Trigger Build & Deploy
+        if: steps.merge.outputs.before != steps.merge.outputs.after
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          CHANGED=$(git diff --name-only HEAD^..HEAD)
+          CHANGED=$(git diff --name-only ${{ steps.merge.outputs.before }}..${{ steps.merge.outputs.after }})
           if echo "$CHANGED" | grep -qE '^(src/|public/|functions/|ssot/|astro\.config\.|wrangler\.toml$|scripts/(build-og-index|ssot-prebuild)\.mjs$|docs/design/design-system\.manual\.json$|package\.json$|package-lock\.json$|tsconfig\.json$)'; then
             gh workflow run deploy.yml --ref main
             echo "Triggered Build & Deploy on main"
