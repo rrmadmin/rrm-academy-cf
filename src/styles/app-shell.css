@@ -77,7 +77,7 @@
     grid-row: 1; /* /arise A4: confine sidebar to row 1 so it doesn't paint over footer */
     position: sticky;
     top: 0;
-    align-self: start;
+    align-self: stretch;
     max-height: 100vh;
     overflow-y: auto;
   }
@@ -94,7 +94,7 @@
     grid-row: 1; /* /arise A4 */
     position: sticky;
     top: 0;
-    align-self: start;
+    align-self: stretch;
     max-height: 100vh;
     overflow-y: auto;
   }
