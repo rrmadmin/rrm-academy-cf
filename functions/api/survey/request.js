@@ -71,8 +71,9 @@ export async function onRequestPost(context) {
 
     // Carry through UTM / userorigin params
     const url = new URL(request.url);
-    const userorigin = url.searchParams.get('userorigin') || body.userorigin || '';
-    const utmSource = url.searchParams.get('utm_source') || body.utm_source || '';
+    const sanitizeMarketingTag = (v) => (typeof v === 'string' && v.length <= 200 && v.length > 0) ? v : '';
+    const userorigin = sanitizeMarketingTag(url.searchParams.get('userorigin')) || sanitizeMarketingTag(body.userorigin) || '';
+    const utmSource = sanitizeMarketingTag(url.searchParams.get('utm_source')) || sanitizeMarketingTag(body.utm_source) || '';
 
     // Store token → email mapping
     await env.SURVEY_TOKENS.put(
