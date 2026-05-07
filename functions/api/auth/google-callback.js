@@ -127,8 +127,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
     // Get user profile from Google
     const profile = await getGoogleProfile(tokens.access_token);
-    if (!profile.id || !profile.email) {
-      log(env, waitUntil, 'auth', 'google_auth_error', 'error', 'profile missing id or email');
+    if (!profile.id || !profile.email || profile.verified_email !== true) {
+      log(env, waitUntil, 'auth', 'google_auth_error', 'error', 'profile missing or unverified');
       return htmlRedirect(LOGIN_ERROR_URL);
     }
 
