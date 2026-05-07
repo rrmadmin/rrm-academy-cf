@@ -55,3 +55,38 @@ test.describe('App shell — desktop (1440x900)', () => {
     expect(ctx).toBeNull();
   });
 });
+
+test.describe('App shell — mobile (375x812)', () => {
+  test.use({ baseURL: LOCAL_BASE_URL, viewport: { width: 375, height: 812 } });
+
+  test('mobile bottom nav visible, sidebar hidden', async ({ page }) => {
+    await page.goto('/library/');
+    await expect(page.locator('.app-shell-bottom-nav')).toBeVisible();
+    await expect(page.locator('.app-shell-nav')).not.toBeVisible();
+  });
+
+  test('hamburger drawer opens and closes', async ({ page }) => {
+    await page.goto('/library/');
+    await page.click('.app-shell-drawer-toggle');
+    await expect(page.locator('#app-shell-drawer')).toHaveAttribute('data-open', 'true');
+    await page.click('.app-shell-drawer__overlay');
+    await expect(page.locator('#app-shell-drawer')).toHaveAttribute('data-open', 'false');
+  });
+
+  test('peek bar appears after card click; sheet opens to half on tap', async ({ page }) => {
+    await page.goto('/library/');
+    await page.locator('[data-article-card]').first().click();
+    await expect(page.locator('.app-shell-sheet-peek')).toBeVisible();
+    await page.click('.app-shell-sheet-peek');
+    await expect(page.locator('.app-shell-sheet')).toHaveAttribute('data-state', 'half');
+  });
+
+  test('bottom-nav Library tab clears context and returns to /library/', async ({ page }) => {
+    await page.goto('/library/');
+    await page.locator('[data-article-card]').first().click();
+    await page.click('.app-shell-bottom-nav__tab[href="/library/"]');
+    await expect(page).toHaveURL(/\/library\/?$/);
+    const ctx = await page.evaluate(() => sessionStorage.getItem('rrm-shell-context'));
+    expect(ctx).toBeNull();
+  });
+});
