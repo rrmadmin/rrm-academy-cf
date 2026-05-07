@@ -1,0 +1,56 @@
+/* src/styles/app-shell.css
+ * Z-stack, theme tokens, layout grid, drawer, middle column, sheet, print rules.
+ * Z-stack and color tokens are the load-bearing primitives — proof gates G-Z-STACK
+ * and G-SEO-1 enforce them. */
+
+:root {
+  --z-bottom-nav: 60;
+  --z-sheet-peek: 70;
+  --z-sheet: 80;
+  --z-drawer: 90;
+  --z-modal: 100;
+
+  --shell-sidebar-width: 240px;
+  --shell-middle-column-width: 280px;
+  --shell-bottom-nav-height: 56px;
+  --shell-breakpoint-mobile: 900px;
+}
+
+:root[data-theme="dark"] {
+  --bg-primary: #0f1419;
+  --bg-secondary: #161c24;
+  --bg-tertiary: #1f2630;
+  --text-primary: #e6e9ee;
+  --text-secondary: #9aa4b8;
+  --border-subtle: #232a36;
+}
+
+/* Cold-land / no-context gate: collapses middle column rail before first paint. */
+.shell-no-context .app-shell-layout {
+  grid-template-columns: var(--shell-sidebar-width) 1fr 0;
+}
+.shell-no-context .app-shell-middle-column {
+  display: none;
+}
+
+/* Feature-detect fallback: hides peek bar when <dialog>.showModal absent. */
+.shell-no-sheet .app-shell-sheet,
+.shell-no-sheet .app-shell-sheet-peek {
+  display: none;
+}
+
+/* Print: hide all chrome, only article content prints. */
+@media print {
+  .app-shell-nav,
+  .app-shell-drawer,
+  .app-shell-bottom-nav,
+  .app-shell-sheet,
+  .app-shell-sheet-peek,
+  .app-shell-middle-column {
+    display: none !important;
+  }
+  .app-shell-main {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
