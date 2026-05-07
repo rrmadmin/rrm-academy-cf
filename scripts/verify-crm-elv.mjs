@@ -178,10 +178,9 @@ async function main() {
 
     processed += batch.length;
 
-    // Checkpoint every 50 emails
-    if (processed % 50 === 0 || processed === queue.length) {
-      saveCheckpoint(verified);
-    }
+    // Checkpoint after every batch -- JSON write cost (~5KB) is negligible vs
+    // ~$0.005/email API cost. Prevents losing up to 49 verifications on Ctrl-C.
+    saveCheckpoint(verified);
 
     // Progress
     const elapsed = (Date.now() - startTime) / 1000;
