@@ -201,15 +201,15 @@ const NAV_ICONS: Record<string, string> = {
     <button type="button" class="app-shell-drawer__close" aria-label="Close menu">×</button>
     <div class="app-shell-nav__section">
       <div class="app-shell-nav__heading">Reading</div>
-      <a href="/library/saved/" class="app-shell-nav__link" data-clear-shell-context>
+      <a href="/library/saved/" class="app-shell-nav__link" aria-current={inSaved ? 'page' : undefined} data-clear-shell-context>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/library/saved/']} />
         <span class="app-shell-nav__label">Saved Articles</span>
       </a>
-      <a href="/library/" class="app-shell-nav__link" data-clear-shell-context>
+      <a href="/library/" class="app-shell-nav__link" aria-current={inLibrary && !inSaved ? 'page' : undefined} data-clear-shell-context>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/library/']} />
         <span class="app-shell-nav__label">Research Library</span>
       </a>
-      <a href="/commentary/" class="app-shell-nav__link" data-clear-shell-context>
+      <a href="/commentary/" class="app-shell-nav__link" aria-current={inCommentary ? 'page' : undefined} data-clear-shell-context>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/commentary/']} />
         <span class="app-shell-nav__label">Commentary</span>
       </a>
