@@ -105,7 +105,8 @@ const inSaved = currentPath === '/library/saved' || currentPath === '/library/sa
   {context === 'article' && (
     <aside class="app-shell-middle-column" data-pagefind-ignore="all" aria-label="In this index">
       <div class="app-shell-middle-column__inner">
-        <h2 class="app-shell-middle-column__heading"></h2>
+        <h2 class="app-shell-middle-column__heading">Continue browsing</h2>
+        <p class="app-shell-middle-column__meta"></p>
         <ol class="app-shell-middle-column__list"></ol>
       </div>
     </aside>
@@ -375,12 +376,12 @@ const inSaved = currentPath === '/library/saved' || currentPath === '/library/sa
     var aside = document.querySelector('.app-shell-middle-column');
     if (!aside) return;
 
-    var heading = aside.querySelector('.app-shell-middle-column__heading');
+    var meta = aside.querySelector('.app-shell-middle-column__meta');
     var list = aside.querySelector('.app-shell-middle-column__list');
-    if (!heading || !list) return;
+    if (!meta || !list) return;
 
     // textContent only, never innerHTML (XSS guard per spec §Render rules).
-    heading.textContent = ctx.label;
+    meta.textContent = ctx.label;
 
     var currentSlug = location.pathname.replace(/^\/(library|commentary)\//, '').replace(/\/$/, '');
     var basePath = ctx.source === 'commentary' ? '/commentary/' : '/library/';
