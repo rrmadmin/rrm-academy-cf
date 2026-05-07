@@ -105,7 +105,7 @@ dist/
 
 ```
 # Copy to .dev.vars for local dev (never commit)
-# Get from: op read 'op://Automation/wix.api.academy/credential'
+# Get from: op read 'op://Automation/<redacted>/credential'
 WIX_IST_TOKEN=
 # Any random string; must match the value used when calling POST /sync
 ADMIN_API_SECRET=
@@ -142,7 +142,7 @@ rrmacademy.org /account page pulls from Stripe only. Wix donors (the Save the Ut
 ## Deploy
 
 ```bash
-wrangler secret put WIX_IST_TOKEN  # paste from op read 'op://Automation/wix.api.academy/credential'
+wrangler secret put WIX_IST_TOKEN  # paste from op read 'op://Automation/<redacted>/credential'
 wrangler secret put ADMIN_API_SECRET  # generate random
 wrangler deploy
 ```
@@ -1997,7 +1997,7 @@ If anything between Task 8 and Task 10 goes wrong, revert with:
 
 ```bash
 # 1. Unpublish worker (safe: no inbound webhooks will hit a nonexistent worker, they'll 404 and Wix will give up retry)
-export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/Cloudflare API Token - Claude Code Full Access/credential')
+export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/<redacted>/credential')
 cd ~/iCode/projects/rrm-wix-sync
 npx wrangler delete rrm-wix-sync
 
@@ -2020,7 +2020,7 @@ This block is safe to run any time before Task 11 (the first /api/billing/status
 
 ```bash
 cd ~/iCode/projects/rrm-academy-cf
-export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/Cloudflare API Token - Claude Code Full Access/credential')
+export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/<redacted>/credential')
 npx wrangler d1 execute rrm-auth --local --file=../rrm-wix-sync/schema.sql
 npx wrangler d1 execute rrm-auth --local --command "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('wix_subscription','wix_payment','system_config','wix_webhook_event')"
 ```
@@ -2031,7 +2031,7 @@ Expected: 4 tables listed.
 
 ```bash
 cd ~/iCode/projects/rrm-academy-cf
-export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/Cloudflare API Token - Claude Code Full Access/credential')
+export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/<redacted>/credential')
 npx wrangler d1 execute rrm-auth --remote --file=../rrm-wix-sync/schema.sql
 ```
 
@@ -2040,7 +2040,7 @@ Expected: "Executed N commands" with no errors. Indexes created.
 - [ ] **Step 3: Verify remote schema**
 
 ```bash
-export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/Cloudflare API Token - Claude Code Full Access/credential')
+export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/<redacted>/credential')
 npx wrangler d1 execute rrm-auth --remote --command "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('wix_subscription','wix_payment','system_config','wix_webhook_event')"
 npx wrangler d1 execute rrm-auth --remote --command "SELECT COUNT(*) FROM wix_subscription"
 npx wrangler d1 execute rrm-auth --remote --command "SELECT COUNT(*) FROM wix_payment"
@@ -2060,8 +2060,8 @@ No code to commit. Note in plan execution log that schema was applied to remote 
 
 ```bash
 cd ~/iCode/projects/rrm-wix-sync
-export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/Cloudflare API Token - Claude Code Full Access/credential')
-op read 'op://Automation/wix.api.academy/credential' | npx wrangler secret put WIX_IST_TOKEN
+export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/<redacted>/credential')
+op read 'op://Automation/<redacted>/credential' | npx wrangler secret put WIX_IST_TOKEN
 ```
 
 Expected: "Successfully deposited secret WIX_IST_TOKEN on rrm-wix-sync".
@@ -2069,7 +2069,7 @@ Expected: "Successfully deposited secret WIX_IST_TOKEN on rrm-wix-sync".
 - [ ] **Step 2: Generate and set ADMIN_API_SECRET**
 
 ```bash
-export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/Cloudflare API Token - Claude Code Full Access/credential')
+export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/<redacted>/credential')
 openssl rand -hex 32 | tee /tmp/rrm-wix-sync-admin-secret.txt | npx wrangler secret put ADMIN_API_SECRET
 ```
 
@@ -2087,7 +2087,7 @@ op item create --vault Automation --category "API Credential" \
 
 ```bash
 cd ~/iCode/projects/rrm-wix-sync
-export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/Cloudflare API Token - Claude Code Full Access/credential')
+export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/<redacted>/credential')
 
 op item get 346mczoiqhbppe4x2sxsopbot4 --vault Automation --reveal --format json \
   | python3 -c "
@@ -2107,7 +2107,7 @@ Expected: "Successfully deposited secret WIX_WEBHOOK_PUBLIC_KEY". If the python 
 
 ```bash
 cd ~/iCode/projects/rrm-wix-sync
-export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/Cloudflare API Token - Claude Code Full Access/credential')
+export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/<redacted>/credential')
 npx wrangler deploy
 ```
 
@@ -2170,7 +2170,7 @@ The 52 counts 51 Stores subs + 1 Pricing Plans legacy sub. `durationMs` may be 3
 
 ```bash
 cd ~/iCode/projects/rrm-academy-cf
-export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/Cloudflare API Token - Claude Code Full Access/credential')
+export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/<redacted>/credential')
 npx wrangler d1 execute rrm-auth --remote --command "SELECT wix_subscription_id, email, tier, status, cycle_count, amount_cents, last_order_at, user_id FROM wix_subscription WHERE email = 'vjgbergin@gmail.com' COLLATE NOCASE"
 npx wrangler d1 execute rrm-auth --remote --command "SELECT COUNT(*) AS payment_count FROM wix_payment WHERE email = 'vjgbergin@gmail.com' COLLATE NOCASE"
 ```
@@ -2182,7 +2182,7 @@ Expected:
 - [ ] **Step 3: Spot-check counts**
 
 ```bash
-export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/Cloudflare API Token - Claude Code Full Access/credential')
+export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/<redacted>/credential')
 npx wrangler d1 execute rrm-auth --remote --command "SELECT status, COUNT(*) FROM wix_subscription GROUP BY status"
 npx wrangler d1 execute rrm-auth --remote --command "SELECT product_source, COUNT(*) FROM wix_subscription GROUP BY product_source"
 npx wrangler d1 execute rrm-auth --remote --command "SELECT tier, COUNT(*) FROM wix_subscription GROUP BY tier"
@@ -2193,7 +2193,7 @@ Expected (from fishing report): ~30 active / ~22 inactive, ~51 stores / 1 pricin
 - [ ] **Step 4: Check user-link hit rate**
 
 ```bash
-export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/Cloudflare API Token - Claude Code Full Access/credential')
+export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/<redacted>/credential')
 npx wrangler d1 execute rrm-auth --remote --command "SELECT CASE WHEN user_id IS NULL THEN 'unlinked' ELSE 'linked' END AS state, COUNT(*) FROM wix_subscription GROUP BY state"
 ```
 
@@ -2214,7 +2214,7 @@ Only run this step AFTER Brian has completed the Task 9 Step 5 manual registrati
 
 ```bash
 cd ~/iCode/projects/rrm-academy-cf
-export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/Cloudflare API Token - Claude Code Full Access/credential')
+export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/<redacted>/credential')
 npx wrangler d1 execute rrm-auth --remote --command "SELECT event_id, event_type, entity_id, received_at, processed, status_code FROM wix_webhook_event ORDER BY received_at DESC LIMIT 5"
 ```
 
@@ -2623,7 +2623,7 @@ cd ~/iCode/projects/rrm-wix-sync
 # Edit wrangler.toml, remove or comment the [triggers] block
 git add wrangler.toml
 git commit -m "chore: pause wix sync cron"
-export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/Cloudflare API Token - Claude Code Full Access/credential')
+export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/<redacted>/credential')
 npx wrangler deploy
 ```
 

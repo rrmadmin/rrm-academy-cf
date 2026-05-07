@@ -349,8 +349,8 @@ git commit -m "feat: add RRM Success Rates to guides index"
 
 ```bash
 cd ~/iCode/projects/rrm-academy-cf
-WORKER_AUTH_TOKEN=$(op read 'op://Automation/RRM Library Worker Auth Token/credential') \
-AIRTABLE_PAT=$(op read 'op://Automation/OpenClaw Airtable PAT/credential') \
+WORKER_AUTH_TOKEN=$(op read 'op://Automation/<redacted>/credential') \
+AIRTABLE_PAT=$(op read 'op://Automation/<redacted>/credential') \
 npm run build 2>&1 | tail -20
 ```
 

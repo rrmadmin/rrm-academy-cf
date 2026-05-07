@@ -796,7 +796,7 @@ fetchAll().catch(err => {
 - [ ] **Step 3: Test locally against live API**
 
 ```bash
-WORKER_AUTH_TOKEN=$(op read 'op://Automation/RRM Library Worker Auth Token/credential') node src/lib/fetch-faq-data.mjs
+WORKER_AUTH_TOKEN=$(op read 'op://Automation/<redacted>/credential') node src/lib/fetch-faq-data.mjs
 ```
 
 Expected: Fetches FAQs from D1 API, writes `faqs.json`. Compare output with the Airtable-sourced backup:

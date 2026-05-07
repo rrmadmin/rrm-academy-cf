@@ -141,7 +141,7 @@ Run: `gh run watch --exit-status`
 Expected: green deploy. Then verify live endpoint:
 
 ```bash
-curl -sH "Authorization: Bearer $(op read 'op://Automation/RRM Library Worker Build Token/credential')" https://rrmacademy.org/api/faqs | jq '.results[0] | {updatedAt, createdAt}'
+curl -sH "Authorization: Bearer $(op read 'op://Automation/<redacted>/credential')" https://rrmacademy.org/api/faqs | jq '.results[0] | {updatedAt, createdAt}'
 ```
 Expected: both fields non-null. Do not proceed to Task 2 until this passes.
 
@@ -316,7 +316,7 @@ git commit -m "chore(faqs): D1 typography fix for F12 + F06"
 
 Run:
 ```bash
-LIBRARY_BUILD_TOKEN=$(op read 'op://Automation/RRM Library Worker Build Token/credential') npm run fetch-faqs
+LIBRARY_BUILD_TOKEN=$(op read 'op://Automation/<redacted>/credential') npm run fetch-faqs
 ```
 Expected: script prints "Wrote src/data/faqs.json (25 entries)" or similar.
 

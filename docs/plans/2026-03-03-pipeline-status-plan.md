@@ -437,7 +437,7 @@ Continue the `status()` function, after the deploy chain section:
 
 **Step 3: Test with AIRTABLE_PAT**
 
-Run: `source ~/.zshrc && AIRTABLE_PAT=$(op read 'op://Automation/OpenClaw Airtable PAT/credential') node scripts/pipeline.mjs status`
+Run: `source ~/.zshrc && AIRTABLE_PAT=$(op read 'op://Automation/<redacted>/credential') node scripts/pipeline.mjs status`
 Expected: Full output including enrichment counts from greenbase
 
 **Step 4: Test without AIRTABLE_PAT**

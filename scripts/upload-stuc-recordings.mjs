@@ -5,7 +5,7 @@
  *
  * One-shot script. Brian invokes manually:
  *
- *   export CLOUDFLARE_ACCOUNT_ID=$(op read 'op://Automation/Cloudflare Account ID/credential')
+ *   export CLOUDFLARE_ACCOUNT_ID=$(op read 'op://Automation/<redacted>/credential')
  *   node scripts/upload-stuc-recordings.mjs
  *
  *   # Or to skip a course:
@@ -13,7 +13,7 @@
  *
  * Auth (auto-resolved):
  *   gcloud auth application-default print-access-token       — Drive
- *   op read 'op://Automation/CF - Stream - account/credential' — CF Stream
+ *   op read 'op://Automation/<redacted>/credential' — CF Stream
  *
  * Outputs:
  *   /tmp/stuc-uploads/<courseId>.mp4        downloaded MP4 (kept for retry)
@@ -200,10 +200,10 @@ async function main() {
 
   console.log('Resolving credentials…');
   const driveToken = shell('gcloud auth application-default print-access-token');
-  const streamToken = shell(`op read 'op://Automation/CF - Stream - account/credential'`);
+  const streamToken = shell(`op read 'op://Automation/<redacted>/credential'`);
   const accountId = process.env.CLOUDFLARE_ACCOUNT_ID
     || (() => {
-      try { return shell(`op read 'op://Automation/Cloudflare Account ID/credential'`); }
+      try { return shell(`op read 'op://Automation/<redacted>/credential'`); }
       catch { throw new Error('Set CLOUDFLARE_ACCOUNT_ID env var (or create 1P item "Cloudflare Account ID")'); }
     })();
   if (!accountId) throw new Error('CLOUDFLARE_ACCOUNT_ID missing');

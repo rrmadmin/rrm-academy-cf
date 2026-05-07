@@ -198,7 +198,7 @@ Use the standard image pipeline: `sips` for any needed crop, then Tinify REST AP
 
 ```bash
 # Tinify compress + WebP convert
-TINIFY_KEY=$(op read 'op://Automation/Tinify API Key/credential' --reveal)
+TINIFY_KEY=$(op read 'op://Automation/<redacted>/credential' --reveal)
 curl -s --user "api:$TINIFY_KEY" --data-binary @/tmp/neo-cover.png https://api.tinify.com/shrink | jq -r '.output.url' | xargs -I{} curl -s {} --user "api:$TINIFY_KEY" -H "Content-Type: application/json" -d '{"convert":{"type":"image/webp"}}' -o public/images/course-covers/neofertility-med-training.webp
 ```
 

@@ -20,7 +20,7 @@ Research Google "People Also Ask" (PAA) questions for the pillar page `/common-q
 
 ### 1. Pull PAA data
 Use whichever tool has fresh SERP data:
-- SerpAPI (`op read 'op://Automation/SerpAPI/credential'` if it exists — check 1Password Automation vault)
+- SerpAPI (`op read 'op://Automation/<redacted>/credential'` if it exists — check 1Password Automation vault)
 - DataForSEO (check Automation vault)
 - Firecrawl or cf-render on a Google SERP (brittle, last resort)
 

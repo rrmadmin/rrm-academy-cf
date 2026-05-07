@@ -1677,8 +1677,8 @@ echo "<client_secret>" | npx wrangler secret put GOOGLE_CLIENT_SECRET
 source ~/.zshrc
 op item get 'AWS SES Credentials' --vault Automation --format json | jq '.fields[].label'
 # Then use the correct field names from the output:
-op read 'op://Automation/AWS SES Credentials/access_key_id' | npx wrangler secret put AWS_ACCESS_KEY_ID
-op read 'op://Automation/AWS SES Credentials/secret_access_key' | npx wrangler secret put AWS_SECRET_ACCESS_KEY
+op read 'op://Automation/<redacted>/access_key_id' | npx wrangler secret put AWS_ACCESS_KEY_ID
+op read 'op://Automation/<redacted>/secret_access_key' | npx wrangler secret put AWS_SECRET_ACCESS_KEY
 echo "us-east-1" | npx wrangler secret put AWS_SES_REGION
 ```
 
@@ -1694,7 +1694,7 @@ npx wrangler deploy
 First, get the API token:
 ```bash
 # Read the SEO monitor token (same one used in rrm-academy-cf as SEO_MONITOR_API_TOKEN)
-export TOKEN=$(op read 'op://Automation/SEO Monitor API Token/credential')
+export TOKEN=$(op read 'op://Automation/<redacted>/credential')
 ```
 
 Then test:
