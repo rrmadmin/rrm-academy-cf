@@ -109,5 +109,88 @@
 
     // NOTE: Task 15 appends drag handlers below this comment, BEFORE the
     // closing `})();` that ends this IIFE. They share `sheet` and `ctx`.
+
+    // Pointer drag handlers (grip-only — list scroll does NOT drag sheet).
+    var grip = sheet.querySelector('.app-shell-sheet__grip');
+    var startY = null;
+    var startState = null;
+    var savedScrollY = 0;
+
+    // Idempotent body-lock restore — only acts if the lock was applied. Used by both
+    // pointerup (when snapped to hidden) and pointercancel (iOS notification-center
+    // preempt). NEVER call without first checking position === 'fixed'; otherwise
+    // a stray pointercancel without a matching pointerdown would clobber unrelated
+    // inline styles.
+    function restoreScroll() {
+      if (document.body.style.position !== 'fixed') return;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      window.scrollTo({ top: savedScrollY, behavior: 'instant' });
+    }
+
+    if (grip) {
+      grip.addEventListener('pointerdown', function (e) {
+        if (!e.target.closest('.app-shell-sheet__grip')) return;
+        startY = e.clientY;
+        startState = sheet.dataset.state;
+        // setPointerCapture throws if pointerId is invalid or element detached.
+        try { grip.setPointerCapture(e.pointerId); } catch (err) { /* non-fatal */ }
+        // Body scroll lock (rAF-gated for momentum-safety). Idempotent — if a
+        // previous drag's restore was preempted (e.g. crash mid-pointermove), do
+        // not re-apply on top of an already-locked body.
+        requestAnimationFrame(function () {
+          if (document.body.style.position === 'fixed') return;
+          savedScrollY = window.scrollY;
+          document.body.style.position = 'fixed';
+          document.body.style.top = '-' + savedScrollY + 'px';
+          document.body.style.width = '100%';
+        });
+      });
+
+      grip.addEventListener('pointermove', function (e) {
+        if (startY === null) return;
+        var deltaY = e.clientY - startY;
+        // First drag has no --current-y set; getPropertyValue returns ''. Fall back to 50.
+        var raw = getComputedStyle(sheet).getPropertyValue('--current-y');
+        var base = parseFloat(raw);
+        if (!isFinite(base)) base = 50;
+        var translatePct = Math.max(8, Math.min(100, base + (deltaY / window.innerHeight) * 100));
+        sheet.style.setProperty('--current-y', translatePct);
+      });
+
+      grip.addEventListener('pointerup', function (e) {
+        if (startY === null) return;
+        var endY = e.clientY;
+        var delta = endY - startY;
+        // Snap to nearest state.
+        var nextState;
+        if (delta > 80) {
+          nextState = startState === 'full' ? 'half' : startState === 'half' ? 'peek' : 'hidden';
+        } else if (delta < -80) {
+          nextState = startState === 'peek' ? 'half' : startState === 'half' ? 'full' : 'full';
+        } else {
+          nextState = startState;
+        }
+        sheet.dataset.state = nextState;
+        sheet.style.removeProperty('--current-y');
+        startY = null;
+        if (nextState === 'hidden') {
+          sheet.close();
+          // Restore scroll via shared idempotent helper.
+          restoreScroll();
+        }
+      });
+
+      // iOS notification pull-down (and other system gestures) preempt mid-drag
+      // with `pointercancel`, NOT `pointerup`. Without this handler, the body-lock
+      // styles stay applied — subsequent drags compound the lock and the page
+      // jumps when finally restored. Mirrors pointerup's restore branch.
+      grip.addEventListener('pointercancel', function () {
+        startY = null;
+        sheet.style.removeProperty('--current-y');
+        restoreScroll();
+      });
+    }
   })();
 </script>
