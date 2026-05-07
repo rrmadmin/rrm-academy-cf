@@ -48,7 +48,7 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'Valid email is required.' }, 400);
   }
 
-  const emailCheck = await validateEmail(email);
+  const emailCheck = await validateEmail(email, env);
   if (!emailCheck.valid) {
     return json({ ok: false, error: emailCheck.error }, 400);
   }

@@ -3,15 +3,15 @@
   "description": "Critical file integrity manifest. Run `npm run guard:update` after intentional changes.",
   "files": {
     "functions/api/auth/_shared.js": {
-      "hash": "ee058f89491ff9fa261eff2fe8b02e374f508967ac42b604718516eb373ccc55",
+      "hash": "9213242f515c6c568eb39620650c0b011e9f1bb75733a51c69209718e7a8b55d",
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
-      "hash": "a5fc4b761f323bbe37283248e0457cd432ff7060dfefaeeb298fbab7a0443fa9",
+      "hash": "23f62e4f27ae7fd4884211d4d8a39dbd14be1244531a15c269062c943dfa5333",
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "55eb9520fff051cd3f3620cd6ed5ae8026be9f8acbeeb6fc66d80eefccd50b4b",
+      "hash": "6ac43be81d48823e070c4fd42dbbb9e8135f1cd3615ec3dc8d26b04e410d7db2",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
@@ -31,11 +31,11 @@
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "7c7aa6c0bf7ff45316c3f3b4c8b4de527ad1ac09c50eefce0e701bbf21c28070",
+      "hash": "57184b023ad06388f975f890ff9e47c88564e6a4c89b1df8d399454eef1be9bc",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
-      "hash": "06e30d7722399343188f6a0bb24052b452348c4aba383a4faede8e39b156db97",
+      "hash": "467457f38b2db762d8989bd08087a234995d70d80c1001ecd4f9ca2f34a449b4",
       "note": "Email validation + disposable/typo detection"
     },
     "functions/api/stripe-webhook.js": {
@@ -91,7 +91,7 @@
       "note": "Survey submission + PII pseudonymization"
     },
     "functions/api/survey/request.js": {
-      "hash": "ed0e68cb2723e41b63082fa18751167e0367d62100f4763597c84fc5faa0664e",
+      "hash": "b39730a24408c18ce0b9e77d111d23031f1a897667e5667133f2a53f65b5cf67",
       "note": "Magic-link token generation"
     },
     "functions/api/newsletter/send.js": {
@@ -159,7 +159,7 @@
       "note": "R2 image upload (file validation)"
     },
     "functions/api/pdf/request.js": {
-      "hash": "896f1f5255b6d2aea00b3301a49c51aff081785d4b0a827b078b4b3e904fffb1",
+      "hash": "79b33507cf560b3492d6a580489f52648618c19a749fffc21ca918da968b9bc3",
       "note": "PDF magic-link token generation"
     },
     "functions/api/pdf/redeem.js": {

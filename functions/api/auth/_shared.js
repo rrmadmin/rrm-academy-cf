@@ -54,7 +54,12 @@ export function generateToken() {
 // OWASP minimum for PBKDF2-SHA256. Originally 600K but CF Workers free plan
 // has a 10ms CPU time limit — 600K iterations exceeds it. 100K fits comfortably.
 // Upgrade to Workers Paid ($5/mo) allows 30s CPU and 600K+ iterations if needed.
-const PBKDF2_ITERATIONS = 100000;
+export const PBKDF2_ITERATIONS = 100000;
+
+// Dummy hash for constant-time login path when user is not found.
+// Constructed from PBKDF2_ITERATIONS so it stays in sync if the iteration count changes.
+// Format: iterations$salt(base64)$hash(base64) — same shape hashPassword() produces.
+export const DUMMY_PASSWORD_HASH = `${PBKDF2_ITERATIONS}$AAAAAAAAAAAAAAAAAAAAAA==$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=`;
 const SALT_LENGTH = 16;
 
 export async function hashPassword(password) {

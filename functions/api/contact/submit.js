@@ -68,7 +68,7 @@ export async function onRequestPost(context) {
     }
 
     // Deep email validation (disposable domain, MX check, typo detection)
-    const emailCheck = await validateEmail(email);
+    const emailCheck = await validateEmail(email, env);
     if (!emailCheck.valid) {
       return json({ ok: false, error: emailCheck.error, ...(emailCheck.suggestion ? { suggestion: emailCheck.suggestion } : {}) }, 400);
     }

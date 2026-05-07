@@ -6,6 +6,7 @@ import {
   json, optionsResponse, verifyPassword, sessionCookie,
   verifyTurnstile, checkRateLimit, isValidEmail,
   generateSessionId, waitlistBackfillStatement, sessionInsertStatement,
+  DUMMY_PASSWORD_HASH,
 } from './_shared.js';
 import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
@@ -48,8 +49,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     // Constant-time-ish: always verify even if user doesn't exist (prevent timing attacks)
     if (!user) {
-      // Hash a dummy password to spend similar time (iteration count must match PBKDF2_ITERATIONS)
-      await verifyPassword(password, '100000$AAAAAAAAAAAAAAAAAAA=$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=');
+      await verifyPassword(password, DUMMY_PASSWORD_HASH);
       return json({ ok: false, error: 'Invalid email or password.' }, 401);
     }
 

@@ -45,7 +45,7 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
     }
 
-    const emailCheck = await validateEmail(email);
+    const emailCheck = await validateEmail(email, env);
     if (!emailCheck.valid) {
       return json({ ok: false, error: emailCheck.error, ...(emailCheck.suggestion ? { suggestion: emailCheck.suggestion } : {}) }, 400);
     }
