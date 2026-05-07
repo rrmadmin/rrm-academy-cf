@@ -1,9 +1,9 @@
 # Library & Commentary App Shell — Design Spec
 
-**Date:** 2026-04-10
-**Status:** Design approved, ready for implementation plan
+**Date:** 2026-04-10 (amended 2026-05-06 after `/arise --deep` + scope simplification: eink theme dropped, 25 findings folded in)
+**Status:** Design approved + amended; ready for implementation plan
 **Scope:** `/library/*` and `/commentary/*` routes
-**Out of scope for v1:** Pillar guides, courses, FAQs, eink theme
+**Out of scope for v1:** Pillar guides, courses, FAQs
 
 ---
 
@@ -14,7 +14,7 @@ Replace the current top-header layout on Library and Commentary routes with a pe
 - Secondary exit-shell links (Guides, FAQs, Courses, Community)
 - A collapsible middle column on desktop showing "in this index" siblings when arriving from a list
 - A pull-up sheet on mobile that shows the same siblings
-- A theme toggle (light/dark in v1; eink in PR 2)
+- A theme toggle (light + dark)
 - A Donate CTA button and account footer
 
 The layout replaces the current `Header.astro` on these routes only. Non-shell pages keep the current Header and Footer untouched.
@@ -25,7 +25,7 @@ On 2026-03-30, commit `832a70d` added `src/layouts/AppShell.astro` and duplicate
 
 **The lesson:** no duplicate URLs. The shell replaces existing library and commentary pages in place. No `/app/` prefix, no alternate routes, no canonical split.
 
-The deleted prototype's CSS for dark theme, sidebar layout, and mobile drawer is reusable. The 285-line eink implementation guide is also in that commit and will inform PR 2.
+The deleted prototype's CSS for dark theme, sidebar layout, and mobile drawer is reusable.
 
 ## Decisions locked in during brainstorming
 
@@ -34,8 +34,8 @@ The deleted prototype's CSS for dark theme, sidebar layout, and mobile drawer is
 | Scope v1 | Library + Commentary routes | Shared "browse → read" shape. Pillars + courses join in a future phase. |
 | Desktop interaction | Hybrid: sidebar + main + collapsible middle column on article pages | Preserves SEO-clean URLs while giving a reader-app feel on desktop. |
 | Mobile interaction | Bottom nav + hamburger drawer + pull-up sheet for sibling context | Drawer holds exit-shell links; sheet mirrors the desktop middle column. |
-| Global nav on shell routes | Sidebar replaces Header entirely | Avoids double-nav clutter. Exit-shell links in sidebar navigate to non-shell pages where the current Header appears. |
-| Theme (v1) | Light + dark only | Eink deferred to PR 2 because scoping eink to two routes breaks UX when clicking to pillar pages, and making it global requires auditing every pillar page's scoped styles (3–5 days). |
+| Global nav on shell routes | Sidebar replaces Header entirely (BaseLayout `chrome="shell"` prop omits Header + Footer) | Avoids double-nav clutter. Exit-shell links in sidebar navigate to non-shell pages where the current Header appears. |
+| Theme (v1) | Light + dark only | v1 ships light + dark; no theme audit beyond shell pages. |
 | Rollout | Commentary first commit, library second commit, same PR | Commentary has 18 posts; library has 3,200+. Safer diff order. |
 | Architecture seam | `AppShellChrome.astro` wrapping component — NOT a `shell` prop on `BaseLayout` | Keeps head/meta logic pure. Avoids entangling SEO-critical meta with experimental UX chrome. |
 
@@ -73,10 +73,10 @@ The deleted prototype's CSS for dark theme, sidebar layout, and mobile drawer is
 ```
 src/
 ├── layouts/
-│   └── BaseLayout.astro              # UNCHANGED
+│   └── BaseLayout.astro              # CHANGED — gains `chrome="default"|"shell"` prop; FOUC inline script replaced (commit 1)
 ├── components/
-│   ├── Header.astro                  # UNCHANGED — still used by non-shell pages
-│   ├── Footer.astro                  # UNCHANGED — still used by non-shell pages
+│   ├── Header.astro                  # UNCHANGED, but BaseLayout's `chrome="shell"` prop omits it on shell routes
+│   ├── Footer.astro                  # UNCHANGED, but BaseLayout's `chrome="shell"` prop omits it on shell routes
 │   ├── AppShellChrome.astro          # NEW — sidebar, drawer, bottom nav, middle column, theme toggle
 │   └── AppShellSheet.astro           # NEW — mobile pull-up sheet, uses <dialog>
 ├── styles/
@@ -97,7 +97,7 @@ import AppShellChrome from '../../components/AppShellChrome.astro';
 import AppShellSheet from '../../components/AppShellSheet.astro';
 // ...existing imports
 ---
-<BaseLayout title={...} description={...} canonicalUrl={...} jsonLd={...}>
+<BaseLayout chrome="shell" title={...} description={...} canonicalUrl={...} jsonLd={...}>
   <AppShellChrome context="index" currentPath={Astro.url.pathname}>
     <!-- existing page body (hero, grid, cards, pagination) -->
   </AppShellChrome>
@@ -110,15 +110,17 @@ The `context` prop is one of:
 - `"article"` — library article or commentary post (middle column or sheet with siblings)
 - `"saved"` — saved articles page (user-specific, no siblings)
 
-`BaseLayout.astro` is untouched. Its head/meta/SEO logic remains the single source of truth.
+`BaseLayout.astro`'s `<script is:inline>` FOUC block (lines 167–179) is the single permitted edit, and a new `chrome="default"|"shell"` prop is added to suppress Header/Footer/outer `<main>` on shell routes. The rest (head, meta, SEO logic, citation tags, JSON-LD injection) remains the single source of truth.
 
 ### Component boundaries
 
 **`AppShellChrome.astro`** is responsible for:
+- Emitting the page's `<main class="app-shell-main">` element directly (when `BaseLayout chrome="shell"` is in effect, BaseLayout omits the outer `<main>` wrapper). Layout grid: `<aside class="app-shell-nav" data-pagefind-ignore="all">` (sidebar) + `<main class="app-shell-main">` (page content) + `<aside class="app-shell-middle-column" data-pagefind-ignore="all">` (siblings). Sidebar and middle column are siblings of `<main>`, not descendants — semantic HTML preserved. The `app-shell-main` class is the hook used by §Print styles and the §No-context CSS gate.
 - Rendering the desktop sidebar (above 900px)
 - Rendering the mobile bottom nav (below 900px, fixed position)
 - Rendering the mobile hamburger drawer (CSS `:target` fallback + JS-enhanced)
-- Rendering the desktop middle column when `context="article"` and sessionStorage has context
+- Always emitting the desktop middle column `<aside>` in static HTML so Pagefind's `data-pagefind-ignore` invariant (G-SEO-2) holds; visibility is class-gated only, never DOM-conditional. See §No-context CSS gate.
+- Emitting an inline `<script is:inline>` in the body's first child position (before `<aside class="app-shell-middle-column">`) that reads `sessionStorage.rrm-shell-context`. If absent or invalid (parse error, shape error, or storage API unavailable), it adds `shell-no-context` to `<html>.classList` BEFORE first paint.
 - Rendering the theme toggle button in the sidebar footer
 - Applying `bodyClass` propagation so `page-library` and similar classes still work
 - Applying `data-pagefind-ignore="all"` to the sidebar root and the middle column root
@@ -162,10 +164,40 @@ These two components share a small inline helper function `getShellContext()` th
 5. Clicking a bottom-nav tab (Library, Commentary, Saved, Account) or the sidebar logo calls `sessionStorage.removeItem('rrm-shell-context')` before navigation.
 6. Closing the tab kills sessionStorage naturally.
 
-**Stale handling:**
-- Malformed JSON / parse error → swallow, treat as no context
-- Empty `slugs[]` → treat as no context
-- Current slug not in `slugs[]` → render the list without highlighting any item (user landed mid-list)
+**`slugs[]` semantics:** In v1, `slugs[]` contains ONLY the slugs of cards visible on the current index page (page 1 = first paginated set, page 5 = page-5 set, etc.). The middle column and sheet display these siblings only; they do NOT virtualize the full filter result. A user browsing 3,200 articles with no filter will see middle column / sheet with the visible page's siblings (~50), not all 3,200. `returnUrl` and `filters` are persisted to enable a future v2 "fetch full filter on scroll" enhancement, but v1 ships with visible-page-only. This is documented in §Out of scope as "Sheet virtualization for filter result sets >500 entries."
+
+**Stale and adversarial handling:**
+
+After `JSON.parse`, the parsed object MUST pass a shape validator before any rendering. The validator runs in the shared `getShellContext()` helper; failure returns `null` (no context).
+
+Validation rules:
+- `source`: must be one of `'library'`, `'commentary'`, `'search'`. Reject other values.
+- `label`: typeof `'string'`, length ≤ 200. Always rendered via `textContent` only — never `innerHTML`. Never used as an attribute value or URL.
+- `slugs`: `Array.isArray()` true, length ≤ 500. Each entry must match `/^[a-z0-9][a-z0-9-]{0,80}$/` (the slug grammar). Entries failing the regex are dropped from the array; if length drops to 0 after filtering, return null.
+- `returnUrl`: typeof `'string'`, length ≤ 500. Must start with `/`, must NOT start with `//`, must NOT contain `://`, must NOT start with `javascript:` or `data:` or any other scheme. Reject otherwise.
+- `filters`: typeof `'object'`, plain object, all keys and values are strings. Reject nested objects, arrays, null values.
+- `writtenAt`: typeof `'number'`, finite, > 0.
+- Any extra keys: ignored (forward-compat).
+
+Render rules:
+- `label` and slug strings: always `textContent`, never `innerHTML`. Astro `.astro` template default escaping applies if rendered server-side, but middle column and sheet are client-hydrated, so the JS render path must use textContent explicitly.
+- `returnUrl`: only used as the `href` of an internal `<a>`. Never assigned to `location.href` programmatically. The startsWith-`/`-not-`//` check prevents both open redirect (`https://evil.com/`) and javascript: scheme XSS.
+- `slugs[N]`: only used to construct `/library/${slug}/` or `/commentary/${slug}/` href values; the slug-grammar regex ensures no path traversal or scheme injection.
+
+**Failure modes (all return null = no context, render full-width):**
+- Storage API unavailable (`SecurityError` on `getItem`/`setItem`): privacy-mode browsers (Safari Strict, Brave shields, Firefox Total Cookie Protection)
+- `JSON.parse` throws (malformed JSON)
+- Shape validation fails any rule above
+- `slugs[]` empty after grammar filtering
+- Current article's slug not in `slugs[]`: render the list without highlighting any entry (user landed mid-list — not a failure)
+
+**Storage write robustness:**
+- Every `sessionStorage.setItem`, `getItem`, `removeItem` call MUST be wrapped in try/catch. Failure (`SecurityError`, `QuotaExceededError`, `ReferenceError` if storage globally absent) degrades silently to no-context.
+- Card-click writer: use the `pagehide` event for the actual `setItem` call, not `click`. The click handler captures intent into a local var; pagehide commits to storage. This avoids Safari iOS's documented same-tick-storage-flush race during top-level navigation.
+- Bottom-nav and logo `removeItem` calls: real `<a href>` anchors with `pointerdown` clear (best-effort try/catch). The anchor's default navigation always proceeds regardless of clear success.
+- Writer captures slugs from the current page's visible cards (paginated index = ~50 entries). On any DOMContentLoaded for `context='index'`, the writer also UNCONDITIONALLY overwrites any stale context (so navigating between filter changes, pagination, or empty-result pages always reflects the current view, not a prior tab state). On `context='index'` with zero visible cards (empty filter), the writer CLEARS sessionStorage (does not write empty-slugs context).
+
+**Quota fallback:** If `setItem` throws `QuotaExceededError` (very rare given the 500-slug cap, but iOS Safari Private mode allows ~0 bytes), the writer falls back to no-context. The user's click navigates normally; article page renders full-width.
 
 **Not included (dropped from earlier draft):**
 - 60-minute staleness timer — sessionStorage dies with the tab; extra timer is complexity for no user value
@@ -186,8 +218,6 @@ Inline FOUC-prevention script in `BaseLayout.astro` `<head>`:
   })();
 </script>
 ```
-
-Eink is NOT part of this script in v1. PR 2 extends the script to accept `"eink"`.
 
 ### No server involvement
 
@@ -228,9 +258,20 @@ Every current library and commentary URL keeps its exact path, canonical, and re
 
 Current hard-coded canonicals in library/commentary index pages are preserved as-is. The shell never manipulates canonical URLs.
 
+**Wiring:** This script must be invoked from `.github/workflows/deploy.yml` to run on every push. Add a new step after the existing `Security guard` step:
+
+```yaml
+- name: Canonical lockdown
+  run: node scripts/check-canonical-lockdown.mjs
+```
+
+Workflow file edits to `deploy.yml` require the `WORKFLOWS_PAT` repo secret wired into `actions/checkout@v4` (per CLAUDE.md). Verify the workflow runs on the PR's first push; absence of the step is a silent gate failure.
+
+**Allowlist over denylist:** The script's source of truth is `ALLOWED_PARAMS` (an explicit list of permitted query parameters on `/library/*` and `/commentary/*`). Default v1 allowlist: `['topic', 'page', 'q', 'sort']` (verify against actual existing usage during pre-flight). Any query parameter NOT in the allowlist fails the gate — covers `?view=`, `?shell=`, `?app=`, `?app_layout=`, `?application=`, and anything else not explicitly approved. New canonical-affecting params require an explicit allowlist edit + reviewer sign-off.
+
 ### `/library/saved/` noindex
 
-Confirm the saved-articles page has `<meta name="robots" content="noindex, nofollow" />`. The sidebar surfaces this page more prominently now, so crawler exposure matters more than before. If the meta is missing, add it as part of this PR.
+`/library/saved/` already passes `noindex` to BaseLayout (saved.astro:9), and BaseLayout.astro:165 emits `<meta name="robots" content="noindex, nofollow" />` accordingly. Verify this in pre-flight by curling the built page and grepping the rendered HTML — do NOT add an inline `<meta>` tag to saved.astro (would duplicate). The sidebar's link to /library/saved/ does not need `rel="nofollow"`: noindex prevents indexing, crawl budget for a single auth-gated page is negligible, and the existing pattern (linking to noindex pages) is already in use across the site.
 
 ### Static rendering
 
@@ -268,17 +309,21 @@ Exact hex values pulled from `STYLE-GUIDE.md` at implementation time. Dark palet
 
 v1 applies `data-theme` to `<html>` globally (the FOUC script runs on every page), but only app-shell pages meaningfully respect the variants. Non-shell pages use current hardcoded light values. When clicking from library to a pillar page, the user's theme preference is remembered but visual application reverts to light for that page.
 
-This is a known temporary inconsistency. PR 2 (eink + full theme audit) resolves it.
+This is an acceptable inconsistency in v1. If Brian later wants global theming, that's a separate decision.
 
 ### Toggle behavior
 
 Light ↔ dark. Icon changes to reflect current state. Click handler debounced to one transition per 200ms. No OS `prefers-color-scheme` auto-detect — explicit user choice only.
 
-### Deferred to PR 2
+On shell pages, Header and Footer are not rendered (per `chrome="shell"` prop in BaseLayout). The theme toggle exists ONLY in the sidebar (desktop) and drawer (mobile). Both share a single inline IIFE (`window.__rrmThemeToggle__()`) defined once in AppShellChrome's mounted script; both sidebar and drawer toggle DOM nodes register click handlers against this shared function. Toggle state reads/writes from `localStorage.rrm_theme` debounced 200ms via the shared handler. CSS-driven icon visibility (`:root[data-theme='dark'] .icon-moon { display: none; }` etc.) keeps icons in sync without explicit JS.
 
-- Eink theme (three-way toggle, warm paper palette, serif body font, tighter line-height, larger base font size)
-- Theme audit across pillar pages / homepage / auth flows
-- Scoped `<style>` block review for every component on affected pages
+### No-context CSS gate
+
+CSS rule `.shell-no-context .app-shell-layout { grid-template-columns: 240px 1fr 0; } .shell-no-context .app-shell-middle-column { display: none; }` collapses the column rail before first paint on cold-land. Warm-arrive lacks the class; column renders normally. The `<aside class="app-shell-middle-column">` is ALWAYS emitted in static HTML so Pagefind's `data-pagefind-ignore` invariant (G-SEO-2) holds and Astro's single static build serves both cold and warm landings without CLS regression.
+
+### Migration note (theme)
+
+Existing users with `localStorage.rrm_theme` set retain their preference. New cold visitors with dark OS preference no longer auto-detect; they get light by default until they explicitly toggle. This is intentional — the v1 promise is explicit user choice. The pre-PR FOUC in `BaseLayout.astro` lines 167–179 wrote `localStorage.rrm_theme` from `prefers-color-scheme` on first visit; replacing that script with the read-only block in §Data flow is the single permitted BaseLayout edit.
 
 ## Mobile behavior
 
@@ -315,7 +360,17 @@ Three states:
 
 **Implementation:** native `<dialog>` element with `::backdrop`. Provides focus trap, inert background, ESC-to-close for free on iOS Safari 18+. Body scroll lock via `position: fixed; top: -scrollY; width: 100%` pattern.
 
+**Feature-detect:** AppShellSheet's mount script first checks `'showModal' in HTMLDialogElement.prototype`. If absent (iOS Safari 14–17 long-tail, older Android WebViews), the sheet does NOT render: peek bar is hidden via `<html>.classList.add('shell-no-sheet')`, getShellContext() returns null on this device for sheet purposes (middle column behavior on desktop is unaffected). Documented degradation: mobile users on these older browsers see no sheet, no peek bar — the same UX as cold-landing. No polyfill in v1 (cost not justified; long-tail diminishing). v2 may revisit.
+
+**CSS contract (load-bearing on iOS Safari):**
+- Sheet list element: `overscroll-behavior: contain; touch-action: pan-y;` — prevents scroll momentum from bubbling to the sheet body.
+- Grip element: `touch-action: none;` with `pointerdown` capture — prevents touch from being claimed by the underlying scroll container.
+- `pointerdown` handler on grip uses `event.target.closest('.sheet-grip')` predicate before binding pointermove; events bubbling from list scroll do not reach the grip handler.
+- Sheet body (`<dialog>`): `overscroll-behavior: contain;` to keep momentum contained even at sheet boundaries.
+
 **Touch handlers:** `pointerdown` on grip or peek bar captures starting Y. `pointermove` updates `translateY` clamped to `[hidden..full]`. `pointerup` snaps to nearest state based on velocity + position. Spring animation: `transition: transform 280ms cubic-bezier(0.32, 0.72, 0, 1)`. Horizontal swipes pass through. Scroll inside sheet list does not drag the sheet — only the grip area triggers drag.
+
+**Momentum-safe scroll lock:** Capture `scrollY` via `requestAnimationFrame` so momentum-scroll has settled at least one frame before lock applies: `requestAnimationFrame(() => { savedScrollY = window.scrollY; document.body.style.position = 'fixed'; document.body.style.top = `${-savedScrollY}px`; document.body.style.width = '100%'; })`. On sheet close, restore via `window.scrollTo({top: savedScrollY, behavior: 'instant'})`. Acceptance criterion: open sheet during a flick, close, verify final scroll position within 50px of pre-open position on a physical iPhone.
 
 **Accessibility:**
 - `<dialog role="dialog" aria-modal="true" aria-labelledby="sheet-title">`
@@ -377,15 +432,16 @@ Medical researchers print articles. Required on day one.
 | No-JS | Sidebar static HTML works. Bottom nav works. Drawer via `:target` CSS. Theme toggle inert. Sheet and middle column absent. |
 | `prefers-reduced-motion` | Sheet snap shortens to 80ms. Drawer slide instant. |
 | Narrow desktop (900–1200px) | Middle column drops to 200px. Below 900px → mobile mode. |
-| Very long sibling lists (300+) | Simple windowing: render first 50, lazy-load rest on scroll. |
+| Very long sibling lists (300+) | Not reachable in v1 (slugs[] is the current visible page only, capped at 50–100 entries). If v2 adds full-filter virtualization, render first 50 + lazy-load on scroll. |
 | Long article titles in sheet | `-webkit-line-clamp: 2` with `title` attribute for full text. |
 | RSS (`commentary/rss.xml.ts`) | Does not use BaseLayout. Unaffected. Verify in pre-flight. |
 | Sitemap.xml | Build-time. Unaffected. |
 | `rrm-router` interactions | Router runs before CF Pages. Shell client-side code makes no URL assumptions. |
 | Pagefind search click | SearchBar writes context with `source: 'search'`. **SearchBar is guarded** — requires `guard:update` + invariant re-verify as part of PR. |
 | Middle column indexed by Pagefind | `data-pagefind-ignore="all"` on aside root. Proof gate enforced. |
-| Canonical URL split via query string | Forbidden. Proof gate scans for `?view=\|?shell=\|?app=` patterns. |
-| `/library/saved/` noindex | Verify meta robots present. Fix if missing (adjacent to this PR). |
+| Canonical URL split via query string | Forbidden. Proof gate `check-canonical-lockdown.mjs` validates all query parameters on /library/* and /commentary/* are in the explicit `ALLOWED_PARAMS` allowlist; anything else fails the build. |
+| `/library/saved/` noindex | Verify in pre-flight (curl + grep `dist/library/saved/index.html`). Do NOT add inline tag — already emitted by BaseLayout from the `noindex` prop (see §`/library/saved/` noindex). |
+| Viewport crosses 900px boundary mid-session | Window resize listener calls `dialog.close()` if entering desktop mode while sheet is open. Middle column and sheet are both mounted in DOM at all viewports; CSS-hides one or the other. Sheet's open state resets to `peek` on entering mobile mode if sessionStorage has context, otherwise `hidden`. |
 
 ## Testing strategy
 
@@ -393,15 +449,17 @@ Medical researchers print articles. Required on day one.
 
 | Gate | Check | Enforcement |
 |---|---|---|
-| G-SEO-1 | `BaseLayout.astro` `<head>` block unchanged | Hash-diff against pre-PR baseline |
-| G-SEO-2 | `data-pagefind-ignore="all"` on sidebar AND middle column | `grep` in `AppShellChrome.astro` |
-| G-SEO-3 | No query-string shell modes | `scripts/check-canonical-lockdown.mjs` |
-| G-SEO-4 | `/library/saved/` has `noindex` meta | `grep` in `src/pages/library/saved.astro` |
-| G-SEO-5 | Canonical URL has no query params in shell-routed pages | Unit test against `articles.json` + `posts.json` |
+| G-SEO-1 | `BaseLayout.astro` `<head>` block byte-identical to pre-PR baseline EXCEPT the inline FOUC `<script is:inline>` at lines 167–179, which is the single permitted edit. | Hash-diff against pre-PR baseline (with the FOUC region carved out) |
+| G-SEO-2 | `data-pagefind-ignore="all"` on sidebar AND middle column AND `<dialog>` sheet root | `grep` across `AppShellChrome.astro` and `AppShellSheet.astro` — both must carry the attribute on every nav/aside/dialog root |
+| G-SEO-3 | No query-string shell modes; all `/library/*` + `/commentary/*` query params in `ALLOWED_PARAMS` allowlist | `scripts/check-canonical-lockdown.mjs` (allowlist source: `['topic', 'page', 'q', 'sort']` — denylist of `?view=\|?shell=\|?app=` is insufficient against future-param drift) |
+| G-SEO-4 | `/library/saved/` rendered HTML contains `<meta name="robots" content="noindex, nofollow" />` exactly once | post-build grep against `dist/library/saved/index.html`. Source-level grep against saved.astro is insufficient because noindex is emitted by BaseLayout from a prop. |
+| G-SEO-5 | Canonical URL has no query params in shell-routed pages; canonical never depends on JS-driven shell state | Unit test against `articles.json` + `posts.json`; verify no `?view=`/`?shell=` in canonical strings emitted by BaseLayout |
+| G-SEO-6 | `<aside class="app-shell-middle-column" data-pagefind-ignore="all">` always present in static HTML of every `/library/[slug]/` and `/commentary/[slug]/` page; visibility is class-gated via `.shell-no-context` only, never DOM-conditional. | `grep` build output |
 | G-GUARD | `BaseLayout.astro` hash matches `guard-manifest.json` (after being added) | `npm run guard` |
+| G-CHROME-1 | BaseLayout's `chrome` prop ∈ {`'default'`, `'shell'`}; shell routes pass `chrome='shell'`; non-shell routes either omit the prop or pass `'default'`. | `grep` across `src/pages/` |
 | G-ARCH-1 | No new `/app/` prefix paths | `grep` — fails if `src/pages/app/` has any file |
-| G-ARCH-2 | Only library + commentary pages wrap in `AppShellChrome` | `grep` across `src/pages/` |
-| G-Z-STACK | Z-index in app-shell CSS comes from custom props only | `grep` — fails on raw `z-index: \d+` in app-shell files |
+| G-ARCH-2 | NO non-library, non-commentary page in `src/pages/` imports `AppShellChrome`. Tolerates partial coverage during a multi-commit PR (commit 1 wraps commentary only; commit 2 wraps library). Failure mode: only fails on a non-shell page wrapping. | `grep` across `src/pages/` |
+| G-Z-STACK | Z-index in app-shell CSS comes from `--z-*` custom props only; bottom-nav < sheet-peek < sheet < drawer < modal stacking order is preserved | `grep` against `src/styles/app-shell.css` and any `<style>` blocks in `AppShellChrome.astro` / `AppShellSheet.astro` — fails on raw `z-index: \d+` (numeric literals); also asserts `--z-bottom-nav < --z-sheet-peek < --z-sheet < --z-drawer < --z-modal` numerically |
 
 ### Layer 2: Astro and TypeScript build verification
 
@@ -466,7 +524,6 @@ Diff against current screenshots to catch unintended layout shift on non-shell p
 
 ### Not tested in v1
 
-- Eink theme (PR 2)
 - Pillar pages / courses / FAQs shell integration (out of scope)
 - Vectorize re-embedding (no source data change)
 - Load testing the sheet
@@ -480,20 +537,23 @@ Two commits, one PR:
 - Create `AppShellChrome.astro` (emits the inline context-writer `<script>` when `context="index"`) and `AppShellSheet.astro`
 - Create `src/styles/app-shell.css`
 - Add `scripts/check-canonical-lockdown.mjs` to CI
-- Add `BaseLayout.astro` to `guard-manifest.json` (+ regenerate hashes via `npm run guard:update`)
-- Update `src/pages/commentary/index.astro`, `[...slug].astro`, `page/[page].astro` to wrap their body in `<AppShellChrome context="...">`
+- Replace BaseLayout.astro lines 167–179 (the existing FOUC `<script is:inline>` block) with the 3-line block specified in §Data flow > localStorage.rrm_theme. The existing block sets `localStorage.rrm_theme` from `prefers-color-scheme` on first visit, which contradicts the v1 "explicit user choice only" rule. Add the `chrome="default"|"shell"` prop to BaseLayout per Finding #2 (omits `<Header />`, `<Footer />`, and outer `<main>` when `chrome="shell"`). Re-run `npm run guard:update` to bake the new BaseLayout hash. Add BaseLayout.astro to `guard-manifest.json` IF NOT ALREADY PRESENT (verify in pre-flight).
+- Modify `src/components/SearchBar.astro` to write sessionStorage on Pagefind result click with `source: 'search'` (per spec line 384). Re-run `npm run guard:update` to rebake SearchBar's manifest hash. SearchBar is guarded — verify all security invariants still pass (`Access-Control-Allow-Origin`, no err.message leaks, no new external fetches without try/catch).
+- Update `src/pages/commentary/index.astro`, `[...slug].astro`, `page/[page].astro` to wrap their body in `<AppShellChrome context="...">` and pass `chrome="shell"` to BaseLayout
 - Add `<AppShellSheet />` to `commentary/[...slug].astro`
 - Verify commentary pages build, deploy to preview, smoke-test
 - Fix any commentary-specific issues before touching library
 
 **Commit 2 — library shell**
-- Update `src/pages/library/index.astro`, `[...slug].astro`, `page/[page].astro`, `saved.astro` to wrap their body in `<AppShellChrome context="...">`
+- Update `src/pages/library/index.astro`, `[...slug].astro`, `page/[page].astro`, `saved.astro` to wrap their body in `<AppShellChrome context="...">` and pass `chrome="shell"` to BaseLayout
 - Add `<AppShellSheet />` to `library/[...slug].astro`
 - Verify library pages build, deploy to preview, smoke-test
 - Confirm G-SEO-5 unit test passes (canonical URL lockdown)
 - Add Playwright tests
 
 Both commits ship together in one PR. No intermediate production deploy between them.
+
+**Atomicity guard:** Both commits ship behind a build-time env var `SHELL_ROUTES`. Default empty. Commit 1 introduces the components and CSS; the env var stays empty, so AppShellChrome wraps NOTHING in production. Commit 2 enables `SHELL_ROUTES=commentary,library` in `deploy.yml` and wraps the pages. If commit 2 fails CI, commit 1 lands inert. Reverting just the env-var change rolls back both routes atomically. Rollback procedure: open emergency PR setting `SHELL_ROUTES=` (empty); merge bypasses auto-FF queue. The rrm-academy-cf claude/* auto-FF policy means commit 1 can land on main alone; the env-var gate is what makes that safe.
 
 ## Risks and mitigations
 
@@ -503,10 +563,12 @@ Both commits ship together in one PR. No intermediate production deploy between 
 | Pagefind indexes sidebar/middle column content | Medium | `data-pagefind-ignore="all"` proof gate. Verify post-build. |
 | Canonical URL drift via query string | Low | Dedicated CI check. Forbidden at build time. |
 | `BaseLayout.astro` accidental meta regression | Low | Added to guard manifest in this PR. Pre-commit hook catches any hash mismatch. |
-| SearchBar (guarded) needs shell-aware changes | Medium | Plan the `guard:update` dance. Re-verify invariants before committing. |
-| Dark theme ripple to existing scoped styles | Medium | Shell-only scope in v1. Known temporary inconsistency. Resolved in PR 2. |
-| Sheet drag gesture conflicts with scroll | High | Grip-only drag trigger. Test on real touch device. |
-| Drawer + sheet z-index conflicts | Medium | CSS custom props for z-stack, proof gate. |
+| SearchBar (guarded) needs shell-aware changes | Medium | Modified in commit 1. `guard:update` dance + re-verify invariants before committing. |
+| Dark theme ripple to existing scoped styles | Medium | Shell-only scope in v1. Acceptable inconsistency; resolved only if Brian decides to expand theming to non-shell pages later. |
+| Theme toggle drift between sidebar and drawer | Low | Both register against shared `__rrmThemeToggle__` function; CSS-driven icon visibility means no explicit DOM sync needed. |
+| Sheet drag gesture conflicts with scroll | High | Grip-only drag trigger + `touch-action`/`overscroll-behavior` CSS contract on sheet list and grip (see §Mobile behavior). Test on real touch device. |
+| Drawer + sheet z-index conflicts | Medium | CSS custom props for z-stack (`--z-bottom-nav` < `--z-sheet-peek` < `--z-sheet` < `--z-drawer` < `--z-modal`); G-Z-STACK proof gate fails build on raw `z-index: \d+` in app-shell CSS. |
+| iOS 14–17 sheet absence | Low | Feature-detect via `'showModal' in HTMLDialogElement.prototype`; long-tail users see cold-land UX (no sheet, no peek bar). Acceptable in v1. |
 | Non-shell pages accidentally use shell CSS | Low | Scoped class names (`app-shell-*`). Pillar page screenshots in pre-merge diff. |
 
 ## Open questions for the plan
@@ -515,7 +577,7 @@ None. All architectural decisions are locked. The writing-plans skill should pro
 
 ## Out of scope for this PR (future work)
 
-- Eink theme (PR 2)
+- Theme expansion to non-shell pages
 - Pillar guides adopt the shell (future PR)
 - Courses adopt the shell (future PR)
 - FAQs adopt the shell (future PR)
@@ -526,4 +588,8 @@ None. All architectural decisions are locked. The writing-plans skill should pro
 
 ---
 
-**Review status:** Senior SWE review complete (2026-04-10). Verdict: needs revisions → all 10 revisions accepted → design updated → re-approved. Ready for implementation plan.
+**Review status:**
+- 2026-04-10: Senior SWE review complete. Verdict: needs revisions → all 10 revisions accepted → design updated → re-approved.
+- 2026-05-06: `/arise --deep` (4 Opus 4.7 tracers — Data Lifecycle, Error Cascade, Boundary Fuzzer, State Machine). 25 findings (2 CRITICAL, 8 HIGH, 7 MEDIUM, 8 LOW) folded in via 27 spec amendments. Eink theme dropped from scope (Brian decision). Two CRITICALs resolved by acknowledging BaseLayout receives two narrow, audited edits (FOUC inline script + new `chrome="default"|"shell"` prop) — the original "BaseLayout untouched" claim was false. Additional security hardening: sessionStorage shape validator, `pagehide` write bus, storage try/catch wrapping, dialog feature-detect, `SHELL_ROUTES` atomicity flag.
+
+Ready for implementation plan.
