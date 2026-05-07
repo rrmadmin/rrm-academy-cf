@@ -1,0 +1,242 @@
+/* src/styles/app-shell.css
+ * Z-stack, theme tokens, layout grid, drawer, middle column, sheet, print rules.
+ * Z-stack and color tokens are the load-bearing primitives — proof gates G-Z-STACK
+ * and G-SEO-1 enforce them. */
+
+:root {
+  --z-bottom-nav: 60;
+  --z-sheet-peek: 70;
+  --z-sheet: 80;
+  --z-drawer: 90;
+  --z-modal: 100;
+
+  --shell-sidebar-width: 240px;
+  --shell-middle-column-width: 280px;
+  --shell-bottom-nav-height: 56px;
+  --shell-breakpoint-mobile: 900px;
+}
+
+:root[data-theme="dark"] {
+  --bg-primary: #0f1419;
+  --bg-secondary: #161c24;
+  --bg-tertiary: #1f2630;
+  --text-primary: #e6e9ee;
+  --text-secondary: #9aa4b8;
+  --border-subtle: #232a36;
+}
+
+/* Cold-land / no-context gate: collapses middle column rail before first paint. */
+.shell-no-context .app-shell-layout {
+  grid-template-columns: var(--shell-sidebar-width) 1fr 0;
+}
+.shell-no-context .app-shell-middle-column {
+  display: none;
+}
+
+/* Feature-detect fallback: hides peek bar when <dialog>.showModal absent. */
+.shell-no-sheet .app-shell-sheet,
+.shell-no-sheet .app-shell-sheet-peek {
+  display: none;
+}
+
+/* Print: hide all chrome, only article content prints. */
+@media print {
+  .app-shell-nav,
+  .app-shell-drawer,
+  .app-shell-bottom-nav,
+  .app-shell-sheet,
+  .app-shell-sheet-peek,
+  .app-shell-middle-column {
+    display: none !important;
+  }
+  .app-shell-main {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
+
+/* Desktop layout grid (above mobile breakpoint).
+ * Hard-coded 901px because CSS custom properties cannot resolve inside @media query conditions.
+ * --shell-breakpoint-mobile in :root is documentation-only. */
+@media (min-width: 901px) {
+  .app-shell-layout {
+    display: grid;
+    grid-template-columns: var(--shell-sidebar-width) 1fr var(
+        --shell-middle-column-width
+      );
+    grid-template-areas: "nav main aside";
+    min-height: 100vh;
+  }
+  .app-shell-nav {
+    grid-area: nav;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .app-shell-main {
+    grid-area: main;
+    min-width: 0;
+  }
+  .app-shell-middle-column {
+    grid-area: aside;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .app-shell-bottom-nav,
+  .app-shell-drawer,
+  .app-shell-drawer-toggle,
+  .app-shell-sheet,
+  .app-shell-sheet-peek {
+    display: none;
+  }
+}
+
+/* Sidebar visual styling.
+ * Note: --bg-primary, --bg-secondary, --bg-tertiary, --border-subtle are app-shell-scoped
+ * (defined only in :root[data-theme="dark"] above). global.css owns --text-primary and
+ * --text-secondary for all themes; the fallbacks below cover light-mode where the bg/border
+ * tokens are absent. */
+.app-shell-nav {
+  background: var(--bg-primary, #fff);
+  border-right: 1px solid var(--border-subtle, #e5e7eb);
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.app-shell-nav__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.app-shell-nav__heading {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-secondary, #6b7280);
+  margin: 0.5rem 0 0.25rem;
+}
+.app-shell-nav__link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  color: var(--text-primary, #111827);
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+.app-shell-nav__link:hover {
+  background: var(--bg-secondary, #f3f4f6);
+}
+.app-shell-nav__link[aria-current="page"] {
+  background: var(--bg-tertiary, #e5e7eb);
+  font-weight: 600;
+}
+.app-shell-nav__spacer {
+  flex: 1;
+}
+.app-shell-nav__cta {
+  /* Donate button */
+}
+.app-shell-nav__footer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-subtle, #e5e7eb);
+}
+
+/* Mobile (≤900px): sidebar hidden, bottom nav fixed, drawer slides from left. */
+@media (max-width: 900px) {
+  .app-shell-layout {
+    padding-bottom: calc(var(--shell-bottom-nav-height) + env(safe-area-inset-bottom));
+  }
+  .app-shell-nav { display: none; }
+  .app-shell-middle-column { display: none; }
+
+  .app-shell-bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    height: calc(var(--shell-bottom-nav-height) + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+    background: var(--bg-primary, #fff);
+    border-top: 1px solid var(--border-subtle, #e5e7eb);
+    display: flex; align-items: stretch; justify-content: space-around;
+    z-index: var(--z-bottom-nav);
+  }
+  .app-shell-bottom-nav__tab {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 0.125rem; padding: 0.25rem; text-decoration: none;
+    color: var(--text-secondary, #6b7280); font-size: 0.6875rem;
+  }
+  .app-shell-bottom-nav__tab[aria-current="page"] { color: var(--text-primary, #111827); font-weight: 600; }
+
+  .app-shell-drawer {
+    position: fixed; top: 0; left: 0; bottom: 0; width: min(85%, 320px);
+    background: var(--bg-primary, #fff);
+    transform: translateX(-100%); transition: transform 200ms ease-out;
+    z-index: var(--z-drawer);
+    overflow-y: auto;
+  }
+  .app-shell-drawer:target,
+  .app-shell-drawer[data-open="true"] { transform: translateX(0); }
+  .app-shell-drawer__overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    opacity: 0; pointer-events: none; transition: opacity 200ms;
+    z-index: calc(var(--z-drawer) - 1);
+  }
+  .app-shell-drawer:target ~ .app-shell-drawer__overlay,
+  .app-shell-drawer[data-open="true"] ~ .app-shell-drawer__overlay { opacity: 1; pointer-events: auto; }
+
+  /* Hamburger toggle (Task 13 markup): fixed top-left on mobile, hidden on desktop. */
+  .app-shell-drawer-toggle {
+    position: fixed;
+    top: calc(0.5rem + env(safe-area-inset-top));
+    left: 0.5rem;
+    z-index: calc(var(--z-drawer) - 1);
+    width: 44px; height: 44px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--bg-primary, #fff);
+    color: var(--text-primary, #111827);
+    border: 1px solid var(--border-subtle, #e5e7eb);
+    border-radius: 8px;
+    font-size: 1.125rem; line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  }
+  .app-shell-drawer-toggle:focus-visible {
+    outline: 2px solid var(--text-primary, #111827);
+    outline-offset: 2px;
+  }
+}
+
+/* Pull-up sheet (mobile only, native <dialog>) */
+.app-shell-sheet {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  max-height: 92vh;
+  background: var(--bg-primary, #fff);
+  border-top: 1px solid var(--border-subtle, #e5e7eb);
+  border-top-left-radius: 16px; border-top-right-radius: 16px;
+  margin: 0; padding: 0; border: 0;
+  transform: translateY(100%);
+  transition: transform 280ms cubic-bezier(0.32, 0.72, 0, 1);
+  z-index: var(--z-sheet);
+}
+.app-shell-sheet[open] { transform: translateY(0); }
+.app-shell-sheet[data-state="peek"] { transform: translateY(calc(100% - 44px)); }
+.app-shell-sheet[data-state="half"] { transform: translateY(42%); }
+.app-shell-sheet[data-state="full"] { transform: translateY(8%); }
+.app-shell-sheet::backdrop {
+  background: rgba(0,0,0,0.4);
+}
+.app-shell-sheet__grip { touch-action: none; }
+.app-shell-sheet__list { overscroll-behavior: contain; touch-action: pan-y; overflow-y: auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell-sheet { transition-duration: 80ms; }
+  .app-shell-drawer { transition-duration: 0ms; }
+}

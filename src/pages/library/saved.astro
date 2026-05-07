@@ -1,5 +1,9 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import AppShellChrome from '../../components/AppShellChrome.astro';
+import { isShellEnabled } from '../../lib/shell-routes';
+
+const SHELL_ENABLED = isShellEnabled('library');
 ---
 <BaseLayout
   bodyClass="page-library"
@@ -7,7 +11,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   description="Your saved articles from the RRM Research Library."
   canonicalUrl="https://rrmacademy.org/library/saved"
   noindex
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
 >
+  {SHELL_ENABLED ? (
+    <AppShellChrome context="saved" currentPath={Astro.url.pathname}>
   <div class="page-wrapper" data-pagefind-ignore="all">
     <div class="container container--narrow">
       <nav class="breadcrumb" aria-label="Breadcrumb">
@@ -51,6 +58,54 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       </aside>
     </div>
   </div>
+    </AppShellChrome>
+  ) : (
+    <Fragment>
+  <div class="page-wrapper" data-pagefind-ignore="all">
+    <div class="container container--narrow">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/library/">Research Library</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <span>Saved</span>
+      </nav>
+
+      <div class="saved-header">
+        <h1 class="saved-title">Saved Articles</h1>
+        <div class="saved-actions">
+          <button id="export-all" class="export-btn">Export all (.RIS)</button>
+          <button id="clear-all" class="clear-all-btn">Clear all</button>
+        </div>
+      </div>
+
+      <div id="saved-empty" class="saved-empty">
+        <p>No saved articles yet.</p>
+        <p class="saved-hint">
+          Tap the <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px;"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Save button on any article to add it here.
+        </p>
+        <a href="/library/" class="back-link">&larr; Browse the library</a>
+        <p id="guest-signin-hint" class="guest-signin-hint" hidden>Have an account? <a href="/login/">Log in</a> to see your saved articles.</p>
+      </div>
+
+      <div id="saved-list" class="saved-list"></div>
+
+      <!-- Guest sync nudge — shown only for guests with saved articles -->
+      <aside id="guest-sync-nudge" class="sync-nudge" hidden>
+        <div class="sync-nudge__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div class="sync-nudge__text">
+          <strong>These articles are saved in this browser only.</strong>
+          <span>Create a free account to keep them across all your devices.</span>
+        </div>
+        <div class="sync-nudge__actions">
+          <a href="/signup/" class="sync-nudge__signup">Create free account</a>
+          <span class="sync-nudge__or">or <a href="/login/" class="sync-nudge__login">Log in</a></span>
+        </div>
+      </aside>
+    </div>
+  </div>
+    </Fragment>
+  )}
 </BaseLayout>
 
 <style>

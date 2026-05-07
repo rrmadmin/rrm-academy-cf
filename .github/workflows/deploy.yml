@@ -69,6 +69,9 @@ jobs:
       - name: Agent discovery surface guard
         run: node scripts/agent-discovery-check.mjs
 
+      - name: Canonical lockdown
+        run: node scripts/check-canonical-lockdown.mjs
+
       - name: Get cache date
         id: date
         run: echo "date=$(TZ=America/New_York date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
@@ -374,6 +377,8 @@ jobs:
         run: npm run verify-hamburger
 
       - name: Build site
+        env:
+          PUBLIC_SHELL_ROUTES: ${{ vars.PUBLIC_SHELL_ROUTES || '' }}
         run: npm run build
 
       - name: Validate glossary gates (always)
