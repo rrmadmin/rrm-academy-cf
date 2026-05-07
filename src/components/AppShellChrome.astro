@@ -51,7 +51,7 @@ const inCommentary = currentPath.startsWith('/commentary');
 const inSaved = currentPath === '/library/saved' || currentPath === '/library/saved/';
 ---
 
-<div class="app-shell-layout">
+<div class="app-shell-layout" data-shell-context={context}>
   <!-- Desktop sidebar -->
   <nav class="app-shell-nav" data-pagefind-ignore="all" aria-label="Primary">
     <a href="/" class="app-shell-nav__brand" aria-label="RRM Academy home" data-clear-shell-context>
@@ -220,5 +220,70 @@ const inSaved = currentPath === '/library/saved' || currentPath === '/library/sa
         return isValidContext(parsed) ? parsed : null;
       } catch (e) { return null; }
     };
+  })();
+
+  // Writer: only fires on index pages. Captures intent on card click;
+  // commits to sessionStorage on pagehide (Safari iOS race-safe).
+  (function() {
+    var rootDiv = document.querySelector('.app-shell-layout[data-shell-context]');
+    if (!rootDiv || rootDiv.dataset.shellContext !== 'index') return;
+
+    var pendingContext = null;
+
+    function captureFromCards() {
+      var cards = document.querySelectorAll('[data-article-card], [data-blog-card]');
+      var slugs = [];
+      var titles = [];
+      cards.forEach(function (card) {
+        var slug = card.dataset.slug;
+        var title = card.dataset.title || '';
+        if (slug && /^[a-z0-9][a-z0-9-]{0,250}$/.test(slug)) {
+          slugs.push(slug);
+          titles.push(title);
+        }
+      });
+      return { slugs: slugs, titles: titles };
+    }
+
+    // Always overwrite stale context on every index DOMContentLoaded (spec §Storage write robustness).
+    var captured = captureFromCards();
+    var visibleSlugs = captured.slugs;
+    var visibleTitles = captured.titles;
+    if (visibleSlugs.length === 0) {
+      // Empty filter / zero results: clear stale context.
+      try { sessionStorage.removeItem('rrm-shell-context'); } catch (e) {}
+    } else {
+      var source = location.pathname.indexOf('/commentary') === 0 ? 'commentary' : 'library';
+      var url = new URL(location.href);
+      var filters = {};
+      ['topic', 'q', 'sort'].forEach(function (k) {
+        var v = url.searchParams.get(k);
+        if (v && typeof v === 'string') filters[k] = v;
+      });
+      var label = (url.searchParams.get('topic') || 'All') + ' · ' + visibleSlugs.length + ' results';
+
+      pendingContext = {
+        source: source,
+        label: label,
+        slugs: visibleSlugs.slice(0, 500),
+        titles: visibleTitles.slice(0, 500),
+        returnUrl: url.pathname + url.search,
+        filters: filters,
+        writtenAt: Date.now()
+      };
+    }
+
+    // Commit on pagehide (top-level navigation race-safe on Safari iOS).
+    window.addEventListener('pagehide', function () {
+      if (!pendingContext) return;
+      try { sessionStorage.setItem('rrm-shell-context', JSON.stringify(pendingContext)); } catch (e) {}
+    });
+
+    // Bottom-nav and logo links clear context (best-effort, never blocks navigation).
+    document.querySelectorAll('[data-clear-shell-context]').forEach(function (el) {
+      el.addEventListener('pointerdown', function () {
+        try { sessionStorage.removeItem('rrm-shell-context'); } catch (e) {}
+      });
+    });
   })();
 </script>
