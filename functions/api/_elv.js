@@ -98,8 +98,9 @@ export async function verifyAndTagEmail(email, env, { firstName, lastName, sourc
 
       if (contactId) {
         await env.DB.prepare(
-          `INSERT OR REPLACE INTO contact_tag (contact_id, tag, source)
-           VALUES (?, ?, 'emaillistverify')`
+          `INSERT INTO contact_tag (contact_id, tag, source)
+           VALUES (?, ?, 'emaillistverify')
+           ON CONFLICT(contact_id, tag) DO UPDATE SET source = excluded.source`
         ).bind(contactId, `elv:${result.status}`).run();
       }
     } catch {
