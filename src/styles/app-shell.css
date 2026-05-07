@@ -54,3 +54,99 @@
     padding: 0 !important;
   }
 }
+
+/* Desktop layout grid (above mobile breakpoint).
+ * Hard-coded 901px because CSS custom properties cannot resolve inside @media query conditions.
+ * --shell-breakpoint-mobile in :root is documentation-only. */
+@media (min-width: 901px) {
+  .app-shell-layout {
+    display: grid;
+    grid-template-columns: var(--shell-sidebar-width) 1fr var(
+        --shell-middle-column-width
+      );
+    grid-template-areas: "nav main aside";
+    min-height: 100vh;
+  }
+  .app-shell-nav {
+    grid-area: nav;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .app-shell-main {
+    grid-area: main;
+    min-width: 0;
+  }
+  .app-shell-middle-column {
+    grid-area: aside;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .app-shell-bottom-nav,
+  .app-shell-drawer,
+  .app-shell-drawer-toggle,
+  .app-shell-sheet,
+  .app-shell-sheet-peek {
+    display: none;
+  }
+}
+
+/* Sidebar visual styling.
+ * Note: --bg-primary, --bg-secondary, --bg-tertiary, --border-subtle are app-shell-scoped
+ * (defined only in :root[data-theme="dark"] above). global.css owns --text-primary and
+ * --text-secondary for all themes; the fallbacks below cover light-mode where the bg/border
+ * tokens are absent. */
+.app-shell-nav {
+  background: var(--bg-primary, #fff);
+  border-right: 1px solid var(--border-subtle, #e5e7eb);
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.app-shell-nav__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.app-shell-nav__heading {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-secondary, #6b7280);
+  margin: 0.5rem 0 0.25rem;
+}
+.app-shell-nav__link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  color: var(--text-primary, #111827);
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+.app-shell-nav__link:hover {
+  background: var(--bg-secondary, #f3f4f6);
+}
+.app-shell-nav__link[aria-current="page"] {
+  background: var(--bg-tertiary, #e5e7eb);
+  font-weight: 600;
+}
+.app-shell-nav__spacer {
+  flex: 1;
+}
+.app-shell-nav__cta {
+  /* Donate button */
+}
+.app-shell-nav__footer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-subtle, #e5e7eb);
+}
