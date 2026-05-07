@@ -116,11 +116,8 @@
     var startState = null;
     var savedScrollY = 0;
 
-    // Idempotent body-lock restore — only acts if the lock was applied. Used by both
-    // pointerup (when snapped to hidden) and pointercancel (iOS notification-center
-    // preempt). NEVER call without first checking position === 'fixed'; otherwise
-    // a stray pointercancel without a matching pointerdown would clobber unrelated
-    // inline styles.
+    // Idempotent body-lock restore — only acts if lock was applied. Used by every
+    // sheet-close path so a user can never end up with body locked and no release.
     function restoreScroll() {
       if (document.body.style.position !== 'fixed') return;
       document.body.style.position = '';
@@ -129,29 +126,37 @@
       window.scrollTo({ top: savedScrollY, behavior: 'instant' });
     }
 
+    // Wire restoreScroll into every sheet-close path.
+    if (closeBtn) closeBtn.addEventListener('click', restoreScroll);
+    sheet.addEventListener('close', restoreScroll); // native dialog close event (covers ESC, .close())
+    window.addEventListener('resize', function () {
+      if (window.innerWidth > 900) restoreScroll();
+    });
+
     if (grip) {
       grip.addEventListener('pointerdown', function (e) {
         if (!e.target.closest('.app-shell-sheet__grip')) return;
         startY = e.clientY;
         startState = sheet.dataset.state;
-        // setPointerCapture throws if pointerId is invalid or element detached.
-        try { grip.setPointerCapture(e.pointerId); } catch (err) { /* non-fatal */ }
-        // Body scroll lock (rAF-gated for momentum-safety). Idempotent — if a
-        // previous drag's restore was preempted (e.g. crash mid-pointermove), do
-        // not re-apply on top of an already-locked body.
-        requestAnimationFrame(function () {
-          if (document.body.style.position === 'fixed') return;
+        try { grip.setPointerCapture(e.pointerId); } catch (err) {
+          // Capture failed — abort drag. Without capture, pointermove/up don't
+          // reach this element and state would be unrecoverable. Per /arise B7.
+          startY = null;
+          return;
+        }
+        // Synchronous body lock (no rAF) — rAF could fire after pointerup on
+        // quick taps and apply the lock indefinitely. Per /arise A2.
+        if (document.body.style.position !== 'fixed') {
           savedScrollY = window.scrollY;
           document.body.style.position = 'fixed';
           document.body.style.top = '-' + savedScrollY + 'px';
           document.body.style.width = '100%';
-        });
+        }
       });
 
       grip.addEventListener('pointermove', function (e) {
         if (startY === null) return;
         var deltaY = e.clientY - startY;
-        // First drag has no --current-y set; getPropertyValue returns ''. Fall back to 50.
         var raw = getComputedStyle(sheet).getPropertyValue('--current-y');
         var base = parseFloat(raw);
         if (!isFinite(base)) base = 50;
@@ -163,7 +168,6 @@
         if (startY === null) return;
         var endY = e.clientY;
         var delta = endY - startY;
-        // Snap to nearest state.
         var nextState;
         if (delta > 80) {
           nextState = startState === 'full' ? 'half' : startState === 'half' ? 'peek' : 'hidden';
@@ -175,17 +179,14 @@
         sheet.dataset.state = nextState;
         sheet.style.removeProperty('--current-y');
         startY = null;
-        if (nextState === 'hidden') {
-          sheet.close();
-          // Restore scroll via shared idempotent helper.
-          restoreScroll();
-        }
+        if (nextState === 'hidden') sheet.close();
+        // Restore on every pointerup, not just hidden-snap. The dialog.close
+        // listener above also restores on ESC/×/resize, but pointerup paths
+        // that don't call close() (drag-to-peek, drag-to-half) still need
+        // their lock released.
+        restoreScroll();
       });
 
-      // iOS notification pull-down (and other system gestures) preempt mid-drag
-      // with `pointercancel`, NOT `pointerup`. Without this handler, the body-lock
-      // styles stay applied — subsequent drags compound the lock and the page
-      // jumps when finally restored. Mirrors pointerup's restore branch.
       grip.addEventListener('pointercancel', function () {
         startY = null;
         sheet.style.removeProperty('--current-y');
