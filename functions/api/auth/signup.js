@@ -6,6 +6,7 @@ import {
   json, optionsResponse, generateId, generateSessionId, generateToken,
   hashPassword, sessionCookie, verifyTurnstile, checkRateLimit,
   isValidPassword, waitlistBackfillStatement, sessionInsertStatement,
+  deriveSignupSource,
 } from './_shared.js';
 import { validateEmail } from './_email-validate.js';
 import { verifyAndTagEmail } from '../_elv.js';
@@ -14,44 +15,6 @@ import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
 import { validateBody } from '../_validate.js';
 
-const SOURCE_MAP = [
-  { prefix: '/ask', source: 'ask' },
-  { prefix: '/courses', source: 'course' },
-  { prefix: '/community', source: 'community' },
-  { prefix: '/donate', source: 'donation' },
-];
-
-function deriveSignupSource(body, request) {
-  const candidates = [];
-
-  const bodyNext = typeof body.next === 'string' ? body.next.trim() : null;
-  if (bodyNext) candidates.push(bodyNext);
-
-  try {
-    const urlNext = new URL(request.url).searchParams.get('next');
-    if (urlNext) candidates.push(urlNext.trim());
-  } catch { /* ignore */ } // arise-ignore silent-catch -- URL parse error is intentional
-
-  const referer = request.headers.get('Referer') || '';
-  if (referer) {
-    try {
-      const ref = new URL(referer);
-      if (ref.hostname === 'rrmacademy.org' || ref.hostname === 'www.rrmacademy.org') {
-        candidates.push(ref.pathname);
-      }
-    } catch { /* ignore */ } // arise-ignore silent-catch -- Referer parse error is intentional
-  }
-
-  for (const candidate of candidates) {
-    for (const { prefix, source } of SOURCE_MAP) {
-      if (candidate === prefix || candidate.startsWith(prefix + '/') || candidate.startsWith(prefix + '?')) {
-        return source;
-      }
-    }
-  }
-
-  return 'direct';
-}
 
 async function sendWelcomeAskEmail(env, email, firstName) {
   const greeting = firstName || 'there';
