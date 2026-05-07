@@ -31,6 +31,7 @@
 // blocks are component-scoped (data-astro-cid hashing) and root-absolute @import
 // paths do not resolve in production builds.
 import '../styles/app-shell.css';
+import Footer from './Footer.astro';
 
 // AppShellChrome runs INSIDE BaseLayout's slot. The `<body>` element belongs
 // to BaseLayout (`<body class:list={[bodyClass]}>` around line 267), so this
@@ -89,6 +90,13 @@ const inSaved = currentPath === '/library/saved' || currentPath === '/library/sa
   <main class="app-shell-main">
     <slot />
   </main>
+
+  <!-- Footer at bottom of main column (sidebar + middle column wrap around).
+       Grid area "footer" so legal links / newsletter / social stay with the
+       shell instead of dangling below it. -->
+  <div class="app-shell-footer-row" data-pagefind-ignore="all">
+    <Footer />
+  </div>
 
   <!-- Middle column: emitted ONLY on article pages (`context === 'article'`).
        Visibility on article pages is class-gated by .shell-no-context (spec
