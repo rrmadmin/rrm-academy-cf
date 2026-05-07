@@ -103,7 +103,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
     const url = new URL(request.url);
     const code = url.searchParams.get('code');
-    const state = url.searchParams.get('state');
+    const stateRaw = url.searchParams.get('state') || '';
 
     // Handle user denying consent or other Google errors
     const error = url.searchParams.get('error');
@@ -111,8 +111,28 @@ export async function onRequestGet({ request, env, waitUntil }) {
       return htmlRedirect(`${SITE_URL}/login/?error=oauth_denied`);
     }
 
-    // Determine where to send the user after login (prevent open redirects)
-    const returnTo = (state && isSafeRedirect(state)) ? state : '/account/';
+    // Verify CSRF state nonce — RFC 6749 §10.12.
+    // google.js set a cookie with the nonce and embedded it in state as "<nonce>:<base64-redirect>".
+    const cookieHeader = request.headers.get('Cookie') || '';
+    const cookieMatch = cookieHeader.match(/(?:^|;\s*)oauth_state=([^;]+)/);
+    const cookieNonce = cookieMatch ? cookieMatch[1] : null;
+    const colonIdx = stateRaw.indexOf(':');
+    const stateNonce = colonIdx >= 0 ? stateRaw.slice(0, colonIdx) : '';
+    const stateRedirectB64 = colonIdx >= 0 ? stateRaw.slice(colonIdx + 1) : '';
+
+    if (!cookieNonce || cookieNonce !== stateNonce) {
+      log(env, waitUntil, 'auth', 'oauth_state_mismatch', 'error', 'oauth state cookie mismatch');
+      return htmlRedirect(LOGIN_ERROR_URL);
+    }
+
+    // Decode the return-to URL from the state parameter.
+    let returnTo = '/account/';
+    try {
+      const decoded = atob(stateRedirectB64);
+      if (isSafeRedirect(decoded)) returnTo = decoded;
+    } catch {
+      // malformed base64 — fall back to /account/
+    }
 
     // Exchange authorization code for tokens
     const redirectUri = `${SITE_URL}/api/auth/google-callback`;
@@ -187,9 +207,11 @@ export async function onRequestGet({ request, env, waitUntil }) {
     // Create session (same pattern as login.js)
     const session = await createSession(db, user.id);
 
-    return htmlRedirect(returnTo, {
-      'Set-Cookie': sessionCookie(session.id, session.expiresAt),
-    });
+    // Clear the CSRF nonce cookie and set the session cookie.
+    return htmlRedirectWithCookies(returnTo, [
+      sessionCookie(session.id, session.expiresAt),
+      'oauth_state=; Path=/api/auth/google-callback; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
+    ]);
   } catch (err) {
     log(env, waitUntil, 'auth', 'google_auth_error', 'error', err.message);
     return htmlRedirect(LOGIN_ERROR_URL);
@@ -208,4 +230,14 @@ function htmlRedirect(location, extraHeaders) {
     status: 302,
     headers: { Location: location, 'Content-Type': 'text/html;charset=UTF-8', ...extraHeaders },
   });
+}
+
+// Variant that sets multiple Set-Cookie headers (needed for session + nonce clear).
+function htmlRedirectWithCookies(location, cookies) {
+  const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${escapeHtml(location)}"></head><body><script>window.location.href=${JSON.stringify(location)}</script></body></html>`;
+  const headers = new Headers({ Location: location, 'Content-Type': 'text/html;charset=UTF-8' });
+  for (const cookie of cookies) {
+    headers.append('Set-Cookie', cookie);
+  }
+  return new Response(html, { status: 302, headers });
 }
