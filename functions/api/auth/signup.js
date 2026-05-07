@@ -30,7 +30,7 @@ function deriveSignupSource(body, request) {
   try {
     const urlNext = new URL(request.url).searchParams.get('next');
     if (urlNext) candidates.push(urlNext.trim());
-  } catch { /* ignore */ }
+  } catch { /* ignore */ } // arise-ignore silent-catch -- URL parse error is intentional
 
   const referer = request.headers.get('Referer') || '';
   if (referer) {
@@ -39,7 +39,7 @@ function deriveSignupSource(body, request) {
       if (ref.hostname === 'rrmacademy.org' || ref.hostname === 'www.rrmacademy.org') {
         candidates.push(ref.pathname);
       }
-    } catch { /* ignore */ }
+    } catch { /* ignore */ } // arise-ignore silent-catch -- Referer parse error is intentional
   }
 
   for (const candidate of candidates) {
@@ -147,7 +147,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     // Turnstile
     const turnstileOk = await verifyTurnstile(
-      env.CF_TURNSTILE_SECRET, body.turnstileToken, ip
+      env.CF_TURNSTILE_SECRET, body.turnstileToken, ip, env
     );
     if (!turnstileOk) return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
 

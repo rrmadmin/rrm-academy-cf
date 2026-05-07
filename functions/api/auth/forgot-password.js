@@ -38,7 +38,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     // Turnstile
     const turnstileOk = await verifyTurnstile(
-      env.CF_TURNSTILE_SECRET, body.turnstileToken, ip
+      env.CF_TURNSTILE_SECRET, body.turnstileToken, ip, env
     );
     if (!turnstileOk) return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
 
@@ -78,7 +78,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
         log(env, waitUntil, 'auth', 'forgot_password_error', 'error', emailErr.message);
         await logEmailFailure(env.DB, { email, category: 'transactional', source: 'auth/forgot-password', subject: 'Reset your password — RRM Academy', detail: emailErr.message });
         // Email failed — return success anyway (anti-enumeration), but do not write token.
-        return json({ ok: true, message: 'If an account exists with that email, a reset link has been sent.' });
+        return json({ ok: true });
       }
 
       // Email delivered — atomically replace any prior reset token.
@@ -89,7 +89,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     }
 
     // Always return success (no email enumeration)
-    return json({ ok: true, message: 'If an account exists with that email, a reset link has been sent.' });
+    return json({ ok: true });
   } catch (err) {
     log(env, waitUntil, 'auth', 'forgot_password_error', 'error', err.message);
     return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500);
