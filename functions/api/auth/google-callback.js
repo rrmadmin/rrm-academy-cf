@@ -91,7 +91,7 @@ async function createNewGoogleUser(db, email, name, firstName, lastName, googleI
     waitlistBackfillStatement(db, id, email),
   ]);
 
-  return { user: { id, email, blocked: 0 } };
+  return { user: { id, email } };
 }
 
 export async function onRequestGet({ request, env, waitUntil }) {
@@ -133,8 +133,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     try {
       const decoded = atob(stateRedirectB64);
       if (isSafeRedirect(decoded)) returnTo = decoded;
-    } catch {
-      // malformed base64 — fall back to /account/
+    } catch { // arise-ignore silent-catch -- malformed base64 falls back to /account/
     }
 
     // Exchange authorization code for tokens
