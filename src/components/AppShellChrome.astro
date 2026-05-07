@@ -110,6 +110,32 @@ const inSaved = currentPath === '/library/saved' || currentPath === '/library/sa
     <a href="/library/saved/" class="app-shell-bottom-nav__tab" aria-current={inSaved ? 'page' : undefined} data-clear-shell-context>Saved</a>
     <a href="/account/" class="app-shell-bottom-nav__tab" data-clear-shell-context>Account</a>
   </nav>
+
+  <!-- Mobile hamburger drawer (mirrors sidebar contents) -->
+  <button type="button" class="app-shell-drawer-toggle" aria-controls="app-shell-drawer" aria-expanded="false" aria-label="Open menu" data-pagefind-ignore="all">☰</button>
+  <aside id="app-shell-drawer" class="app-shell-drawer" data-pagefind-ignore="all" aria-label="Mobile navigation">
+    <button type="button" class="app-shell-drawer__close" aria-label="Close menu">×</button>
+    <div class="app-shell-nav__section">
+      <div class="app-shell-nav__heading">Reading</div>
+      <a href="/library/" class="app-shell-nav__link" data-clear-shell-context>Research Library</a>
+      <a href="/commentary/" class="app-shell-nav__link" data-clear-shell-context>Commentary</a>
+      <a href="/library/saved/" class="app-shell-nav__link" data-clear-shell-context>Saved Articles</a>
+    </div>
+    <div class="app-shell-nav__section">
+      <div class="app-shell-nav__heading">Explore</div>
+      <a href="/guides/" class="app-shell-nav__link" data-clear-shell-context>Guides</a>
+      <a href="/faqs/" class="app-shell-nav__link" data-clear-shell-context>FAQs</a>
+      <a href="/courses/" class="app-shell-nav__link" data-clear-shell-context>Courses</a>
+      <a href="/community/" class="app-shell-nav__link" data-clear-shell-context>Community</a>
+    </div>
+    <a href="/donate/" class="app-shell-nav__cta" data-clear-shell-context>Donate</a>
+    <a href="/account/" class="app-shell-nav__link" data-clear-shell-context>Account</a>
+    <button type="button" class="app-shell-nav__theme-toggle" aria-label="Toggle theme" data-theme-toggle>
+      <span class="icon-moon" aria-hidden="true">🌙</span>
+      <span class="icon-sun" aria-hidden="true">☀️</span>
+    </button>
+  </aside>
+  <div class="app-shell-drawer__overlay" aria-hidden="true"></div>
 </div>
 
 {/* No <style> block: app-shell.css is imported in frontmatter (above) so it
@@ -359,4 +385,41 @@ const inSaved = currentPath === '/library/saved' || currentPath === '/library/sa
     var theme = e.newValue === 'dark' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', theme);
   });
+
+  // Hamburger drawer: open/close + overlay/ESC handlers + bfcache restore.
+  (function() {
+    var toggle = document.querySelector('.app-shell-drawer-toggle');
+    var drawer = document.getElementById('app-shell-drawer');
+    var closeBtn = drawer && drawer.querySelector('.app-shell-drawer__close');
+    var overlay = document.querySelector('.app-shell-drawer__overlay');
+    if (!toggle || !drawer) return;
+
+    function open() {
+      drawer.dataset.open = 'true';
+      toggle.setAttribute('aria-expanded', 'true');
+      var firstFocusable = drawer.querySelector('a, button');
+      if (firstFocusable) firstFocusable.focus();
+    }
+    function close() {
+      drawer.dataset.open = 'false';
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.focus();
+    }
+    toggle.addEventListener('click', open);
+    if (closeBtn) closeBtn.addEventListener('click', close);
+    if (overlay) overlay.addEventListener('click', close);
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      if (drawer.dataset.open !== 'true') return;
+      var sheetEl = document.getElementById('app-shell-sheet');
+      if (sheetEl && sheetEl.open) return;
+      close();
+      e.stopPropagation();
+    });
+
+    window.addEventListener('pageshow', function (e) {
+      if (e.persisted) close();
+    });
+  })();
 </script>
