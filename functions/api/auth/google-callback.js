@@ -19,6 +19,14 @@ import { log } from '../_log.js';
 
 const LOGIN_ERROR_URL = '/login/?error=oauth_failed';
 
+function isValidGoogleAvatarUrl(url) {
+  if (!url || typeof url !== 'string') return false;
+  try {
+    const u = new URL(url);
+    return u.protocol === 'https:' && u.hostname.endsWith('.googleusercontent.com');
+  } catch { return false; }
+}
+
 async function handleReturningGoogleUser(db, googleId, email) {
   const user = await db.prepare('SELECT id, email, blocked FROM user WHERE google_id = ?')
     .bind(googleId).first();
@@ -159,7 +167,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     const name = profile.name || '';
     const firstName = profile.given_name || '';
     const lastName = profile.family_name || '';
-    const avatarUrl = profile.picture || null;
+    const avatarUrl = isValidGoogleAvatarUrl(profile.picture) ? profile.picture : null;
 
     let user;
 
