@@ -143,23 +143,19 @@ function suggestDomain(domain) {
   const closestSld = findClosestDomain(sld, KNOWN_SLDS, 2);
   const closestTld = findClosestDomain(tld, KNOWN_TLDS, 2);
 
-  let corrected = domain;
   let changed = false;
+  const correctedParts = [...parts];
 
   if (closestSld && closestSld !== sld) {
-    corrected = corrected.replace(sld, closestSld);
+    correctedParts[0] = closestSld;
     changed = true;
   }
   if (closestTld && closestTld !== tld) {
-    corrected = corrected.replace(new RegExp(escapeRegExp(tld) + '$'), closestTld);
+    correctedParts.splice(1, correctedParts.length - 1, ...closestTld.split('.'));
     changed = true;
   }
 
-  return changed ? corrected : null;
-}
-
-function escapeRegExp(s) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return changed ? correctedParts.join('.') : null;
 }
 
 // ── Structural email cleanup (from correct_email_typos, ISC) ──────────

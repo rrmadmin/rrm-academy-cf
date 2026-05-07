@@ -35,7 +35,7 @@
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
-      "hash": "467457f38b2db762d8989bd08087a234995d70d80c1001ecd4f9ca2f34a449b4",
+      "hash": "c96d9a6db6d0e6c28156d8835216d815fd38f30a1ea2ad40193c2c8197321903",
       "note": "Email validation + disposable/typo detection"
     },
     "functions/api/stripe-webhook.js": {

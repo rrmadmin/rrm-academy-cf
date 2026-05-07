@@ -32,6 +32,9 @@ export async function onRequestPatch({ request, env, waitUntil }) {
       lastName: { type: 'string', minLength: 1, maxLength: 100 },
     });
     if (!validation.valid) return json({ ok: false, error: validation.error }, validation.status);
+    if (Object.keys(validation.data).length === 0) {
+      return json({ ok: false, error: 'No fields to update.' }, 400);
+    }
 
     const user = await db.prepare(
       'SELECT first_name, last_name FROM user WHERE id = ?'
