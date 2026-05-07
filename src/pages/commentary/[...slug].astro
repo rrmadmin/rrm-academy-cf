@@ -28,6 +28,39 @@ const { post } = Astro.props;
 const allPosts = await fetchAllPosts();
 const related = getRelatedPosts(post, allPosts, 3);
 
+// Server-rendered related-content sections for the right rail (app shell).
+// More from this author + related commentary by content pillar/topic.
+const moreByAuthor = post.author
+  ? allPosts
+      .filter((p) => p.id !== post.id && p.author === post.author)
+      .slice(0, 4)
+  : [];
+const relatedSections = [
+  post.contentPillar && {
+    heading: 'Pillar',
+    items: [
+      {
+        href: `/commentary/?pillar=${encodeURIComponent(post.contentPillar)}`,
+        label: post.contentPillar,
+      },
+    ],
+  },
+  {
+    heading: 'More by this author',
+    items: moreByAuthor.map((p) => ({
+      href: `/commentary/${p.slug}/`,
+      label: p.title,
+    })),
+  },
+  {
+    heading: 'Related commentary',
+    items: related.map((p) => ({
+      href: `/commentary/${p.slug}/`,
+      label: p.title,
+    })),
+  },
+].filter((s): s is { heading: string; items: Array<{ href: string; label: string }> } => Boolean(s) && s.items.length > 0);
+
 const htmlContent = await parseMarkdown(post.content || '');
 
 // Meta description from excerpt
@@ -184,7 +217,7 @@ const canonicalUrl = `https://rrmacademy.org/commentary/${post.slug}/`;
   jsonLd={finalJsonLd}
 >
   {SHELL_ENABLED ? (
-    <AppShellChrome context="article" currentPath={Astro.url.pathname}>
+    <AppShellChrome context="article" currentPath={Astro.url.pathname} relatedSections={relatedSections}>
       <div class="page-wrapper" data-pagefind-body>
         <span data-pagefind-meta="type:Article" style="display:none"></span>
         <span data-pagefind-meta={`title:${post.title}`} style="display:none"></span>

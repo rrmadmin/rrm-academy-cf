@@ -7,7 +7,7 @@ import LibraryFundingCallout from '../../components/LibraryFundingCallout.astro'
 import AppShellChrome from '../../components/AppShellChrome.astro';
 import AppShellSheet from '../../components/AppShellSheet.astro';
 import { isShellEnabled } from '../../lib/shell-routes';
-import { fetchAllArticles, getRelatedArticles, type Article } from '../../lib/airtable';
+import { fetchAllArticles, getRelatedArticles, getArticlesByAuthor, type Article } from '../../lib/airtable';
 import { parseStructuredAbstract } from '../../lib/abstract-parser';
 import { parseMarkdown, looksLikeMarkdown } from '../../lib/markdown-sanitize';
 import { buildMedicalScholarlyArticle } from '../../lib/identity';
@@ -30,6 +30,35 @@ interface Props {
 
 const { article, allArticles } = Astro.props;
 const related = getRelatedArticles(article, allArticles, 4);
+
+// Server-rendered related-content sections for the right rail (app shell).
+// Topics → filter URLs; By this author → matched articles; Related research →
+// the same multi-signal scoring used in the article body. Only sections with
+// items render — prevents empty headings.
+const byAuthor = getArticlesByAuthor(article, allArticles, 4);
+const relatedSections = [
+  {
+    heading: 'Topics',
+    items: (article.topics || []).slice(0, 6).map((t) => ({
+      href: `/library/?topic=${encodeURIComponent(t)}`,
+      label: t,
+    })),
+  },
+  {
+    heading: 'By this author',
+    items: byAuthor.map((a) => ({
+      href: `/library/${a.slug}/`,
+      label: a.title,
+    })),
+  },
+  {
+    heading: 'Related research',
+    items: related.map((a) => ({
+      href: `/library/${a.slug}/`,
+      label: a.title,
+    })),
+  },
+].filter((s) => s.items.length > 0);
 const abstractSections = parseStructuredAbstract(article.abstract);
 const renderedAbstractSections = await Promise.all(
   abstractSections.map(async (section) => ({
@@ -226,7 +255,7 @@ const citationMeta = {
   chrome={SHELL_ENABLED ? 'shell' : 'default'}
 >
   {SHELL_ENABLED ? (
-    <AppShellChrome context="article" currentPath={Astro.url.pathname}>
+    <AppShellChrome context="article" currentPath={Astro.url.pathname} relatedSections={relatedSections}>
   <div class="page-wrapper" data-pagefind-body>
     <span data-pagefind-meta="type:Research" style="display:none"></span>
     {article.rrmRelevance && <span data-pagefind-meta={`rrmRelevance:${article.rrmRelevance}`} style="display:none"></span>}
