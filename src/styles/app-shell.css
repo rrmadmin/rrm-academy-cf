@@ -153,7 +153,11 @@
 
 /* Mobile (≤900px): sidebar hidden, bottom nav fixed, drawer slides from left. */
 @media (max-width: 900px) {
-  .app-shell-layout {
+  /* Padding-bottom on body (not .app-shell-layout) so the BaseLayout-rendered
+     <Footer /> — which is a sibling of .app-shell-layout, not a descendant —
+     also clears the fixed bottom-nav. Without this, Footer's last 56px is
+     covered by the fixed bottom-nav. */
+  body.has-app-shell {
     padding-bottom: calc(var(--shell-bottom-nav-height) + env(safe-area-inset-bottom));
   }
   .app-shell-nav { display: none; }
