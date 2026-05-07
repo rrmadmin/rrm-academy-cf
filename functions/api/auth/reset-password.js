@@ -7,6 +7,7 @@ import {
   generateSessionId, sessionCookie,
   isValidPassword, checkRateLimit, sessionInsertStatement,
 } from './_shared.js';
+import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
 
 export async function onRequestOptions() {
@@ -59,6 +60,38 @@ export async function onRequestPost({ request, env, waitUntil }) {
         .bind(record.user_id),
       sessionInsertStatement(db, newSessionId, record.user_id, newExpiresAt),
     ]);
+
+    // Notify the account owner that their password was reset.
+    // Non-blocking: a notification failure never fails the reset itself.
+    if (env.AWS_ACCESS_KEY_ID) {
+      const notifyUser = await db.prepare('SELECT email, name FROM user WHERE id = ?')
+        .bind(record.user_id).first();
+      if (notifyUser) {
+        const changeDate = new Date().toUTCString();
+        waitUntil(
+          sendEmail(env, {
+            from: 'RRM Academy <accounts@mail.rrmacademy.org>',
+            to: notifyUser.email,
+            subject: 'Your RRM Academy password was changed',
+            text: [
+              `Hi ${notifyUser.name || 'there'},`,
+              '',
+              `Your RRM Academy password was reset on ${changeDate}.`,
+              '',
+              'If this was you, no action is needed.',
+              '',
+              'If you did not make this change, please contact us immediately at administrator@rrmacademy.org',
+              '',
+              '-- RRM Academy',
+            ].join('\n'),
+            log: { db: env.DB, source: 'auth/reset-password', category: 'transactional' },
+          }).catch(err => logEmailFailure(env.DB, {
+            email: notifyUser.email, category: 'transactional',
+            source: 'auth/reset-password', subject: 'Your RRM Academy password was changed', detail: err.message,
+          }))
+        );
+      }
+    }
 
     // Design: auto-login after password reset (matches Auth0/Clerk UX).
     // Token possession is treated as proof of email control. If the threat

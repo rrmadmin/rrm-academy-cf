@@ -19,11 +19,11 @@
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
-      "hash": "d5b557a175d47f93b5588cab1442645748767e9bad967f491984f76a5f18ba25",
+      "hash": "6aa286e9701032e43f8aec7388039e8c622b3b86258423588401a061ee01fd71",
       "note": "Reset token consumption + password change"
     },
     "functions/api/auth/change-password.js": {
-      "hash": "9a47f3ed9497e0c3e131f483b2b5de266b82ca063102ac07dcbbd80b6c176c63",
+      "hash": "3ed28622af3d4793ce7d9f64b657c29b1beb94506723282f8320f18b6ec0ede6",
       "note": "Authenticated password change"
     },
     "functions/api/auth/google.js": {

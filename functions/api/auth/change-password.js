@@ -8,6 +8,7 @@ import {
   getSessionIdFromCookie, validateSession, isValidPassword,
   generateSessionId, sessionCookie, checkRateLimit, sessionInsertStatement,
 } from './_shared.js';
+import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
 
 export async function onRequestOptions() {
@@ -38,8 +39,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
     if (!currentPassword || currentPassword.length > 128) return json({ ok: false, error: 'Current password is required.' }, 400);
     if (!isValidPassword(newPassword)) return json({ ok: false, error: 'New password must be at least 8 characters.' }, 400);
 
-    // Get user's current hashed password
-    const user = await db.prepare('SELECT id, hashed_password, google_id FROM user WHERE id = ?')
+    // Get user's current hashed password (email + name included for notification)
+    const user = await db.prepare('SELECT id, email, name, hashed_password, google_id FROM user WHERE id = ?')
       .bind(session.userId).first();
     if (!user) return json({ ok: false, error: 'User not found.' }, 404);
 
@@ -71,6 +72,34 @@ export async function onRequestPost({ request, env, waitUntil }) {
         .bind(user.id),
       sessionInsertStatement(db, newSessionId, user.id, newExpiresAt),
     ]);
+
+    // Notify the account owner that their password was changed.
+    // Non-blocking: a notification failure never fails the change itself.
+    if (env.AWS_ACCESS_KEY_ID && user.email) {
+      const changeDate = new Date().toUTCString();
+      waitUntil(
+        sendEmail(env, {
+          from: 'RRM Academy <accounts@mail.rrmacademy.org>',
+          to: user.email,
+          subject: 'Your RRM Academy password was changed',
+          text: [
+            `Hi ${user.name || 'there'},`,
+            '',
+            `Your RRM Academy password was changed on ${changeDate}.`,
+            '',
+            'If this was you, no action is needed.',
+            '',
+            'If you did not make this change, please contact us immediately at administrator@rrmacademy.org',
+            '',
+            '-- RRM Academy',
+          ].join('\n'),
+          log: { db: env.DB, source: 'auth/change-password', category: 'transactional' },
+        }).catch(err => logEmailFailure(env.DB, {
+          email: user.email, category: 'transactional',
+          source: 'auth/change-password', subject: 'Your RRM Academy password was changed', detail: err.message,
+        }))
+      );
+    }
 
     return json(
       { ok: true },
