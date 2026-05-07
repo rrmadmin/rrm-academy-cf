@@ -303,6 +303,20 @@
   var preloadedData = [];
   var isFirstPage = true;
 
+  // Shared mutable context written by per-result pointerdown handlers and
+  // committed once on pagehide. Single-listener pattern avoids the per-click
+  // listener leak that {once:true} would still produce when the user re-clicks
+  // without navigating (each click re-registers a listener; multi-click sessions
+  // stack them up before pagehide finally fires).
+  var pendingSearchContext = null;
+
+  window.addEventListener('pagehide', function () {
+    if (!pendingSearchContext) return;
+    try {
+      sessionStorage.setItem('rrm-shell-context', JSON.stringify(pendingSearchContext));
+    } catch (err) {}
+  });
+
   // Waverows animation frames (from unicode-animations)
   var waveFrames = ['⠖⠉⠉⠑','⡠⠖⠉⠉','⣠⡠⠖⠉','⣄⣠⡠⠖','⠢⣄⣠⡠','⠙⠢⣄⣠','⠉⠙⠢⣄','⠊⠉⠙⠢','⠜⠊⠉⠙','⡤⠜⠊⠉','⣀⡤⠜⠊','⢤⣀⡤⠜','⠣⢤⣀⡤','⠑⠣⢤⣀','⠉⠑⠣⢤','⠋⠉⠑⠣'];
   var waveInterval = 160;
@@ -711,6 +725,44 @@
       p.textContent = displayExcerpt.replace(/<\/?mark>/g, '');
       a.appendChild(p);
     }
+
+    a.addEventListener('pointerdown', function (e) {
+      // Determine source based on clicked anchor's path.
+      var clickedHref = a.getAttribute('href') || '';
+      var isCommentaryClick = clickedHref.indexOf('/commentary/') !== -1;
+      var pathSubstring = isCommentaryClick ? '/commentary/' : '/library/';
+      var resultSource = isCommentaryClick ? 'commentary' : 'library';
+
+      // Capture only same-source visible result slugs + titles.
+      var allLinks = document.querySelectorAll(
+        '#search-results a[href*="' + pathSubstring + '"]'
+      );
+      var slugs = [];
+      var titles = [];
+      allLinks.forEach(function (link) {
+        try {
+          var u = new URL(link.getAttribute('href'), location.origin);
+          var pm = u.pathname.match(/^\/(library|commentary)\/([a-z0-9][a-z0-9-]{0,250})\/?$/);
+          if (!pm) return;
+          // Only push if this link's type matches the clicked source.
+          if (pm[1] !== resultSource) return;
+          slugs.push(pm[2]);
+          var titleEl = link.querySelector('.sr-item__title') ||
+                        (link.closest('.sr-item') && link.closest('.sr-item').querySelector('.sr-item__title'));
+          titles.push(titleEl ? (titleEl.textContent || '').trim().slice(0, 300) : '');
+        } catch (err) { /* malformed URL — skip */ }
+      });
+      if (slugs.length === 0) return;
+      pendingSearchContext = {
+        source: resultSource,
+        label: 'Search · "' + (currentQuery || '').slice(0, 80) + '" · ' + slugs.length + ' results',
+        slugs: slugs.slice(0, 500),
+        titles: titles.slice(0, 500),
+        returnUrl: '/' + resultSource + '/?q=' + encodeURIComponent(currentQuery || ''),
+        filters: { q: currentQuery || '' },
+        writtenAt: Date.now()
+      };
+    });
 
     return a;
   }
