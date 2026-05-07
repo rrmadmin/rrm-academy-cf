@@ -91,7 +91,7 @@
       "note": "Survey submission + PII pseudonymization"
     },
     "functions/api/survey/request.js": {
-      "hash": "b39730a24408c18ce0b9e77d111d23031f1a897667e5667133f2a53f65b5cf67",
+      "hash": "626aa1326910aec061ba406d3346ad9cb28fe4d6ab053419a551d6682d244865",
       "note": "Magic-link token generation"
     },
     "functions/api/newsletter/send.js": {
