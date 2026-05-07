@@ -334,6 +334,17 @@ export function waitlistBackfillStatement(db, userId, email) {
   ).bind(userId, email);
 }
 
+// --- Session insert statement (for use inside db.batch) ---
+
+/**
+ * Returns a prepared D1 statement that inserts a session row.
+ * Use inside db.batch() to compose atomically with other writes.
+ * Mirrors the SQL in createSession() — change both together.
+ */
+export function sessionInsertStatement(db, sessionId, userId, expiresAt) {
+  return db.prepare('INSERT INTO session (id, user_id, expires_at) VALUES (?, ?, ?)').bind(sessionId, userId, expiresAt);
+}
+
 // --- Google OAuth helpers ---
 
 export function googleAuthUrl(clientId, redirectUri) {

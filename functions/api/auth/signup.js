@@ -5,7 +5,7 @@
 import {
   json, optionsResponse, generateId, generateSessionId, generateToken,
   hashPassword, sessionCookie, verifyTurnstile, checkRateLimit,
-  isValidPassword, waitlistBackfillStatement,
+  isValidPassword, waitlistBackfillStatement, sessionInsertStatement,
 } from './_shared.js';
 import { validateEmail } from './_email-validate.js';
 import { verifyAndTagEmail } from '../_elv.js';
@@ -210,9 +210,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
         db.prepare(
           'INSERT INTO email_verification (id, user_id, code, expires_at) VALUES (?, ?, ?, ?)'
         ).bind(generateId(), userId, code, verifyExpiresAt),
-        db.prepare(
-          'INSERT INTO session (id, user_id, expires_at) VALUES (?, ?, ?)'
-        ).bind(sessionId, userId, sessionExpiresAt),
+        sessionInsertStatement(db, sessionId, userId, sessionExpiresAt),
         waitlistBackfillStatement(db, userId, email),
       ]);
     } catch (batchErr) {

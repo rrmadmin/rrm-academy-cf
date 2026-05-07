@@ -3,15 +3,15 @@
   "description": "Critical file integrity manifest. Run `npm run guard:update` after intentional changes.",
   "files": {
     "functions/api/auth/_shared.js": {
-      "hash": "a0f7068076e0f51f06eba7d4f91e434d48292d1ed0c340493f02d2a0512ce20f",
+      "hash": "ad23ca9c19ac8cbd2cdb1d568f68fbf493ae250bbfbec3c1130775e4d29fd88d",
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
-      "hash": "c7c76ba56945a787f65675b88094890da40705b91af847a28fcd9d45a7127197",
+      "hash": "a5fc4b761f323bbe37283248e0457cd432ff7060dfefaeeb298fbab7a0443fa9",
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "a1e2863b61f6e813cb4e5163ab0ec0183555b375aa9e3ed0e56e35f9a361f3bd",
+      "hash": "af6531c93549b680fc3c8392daaa581f452623559bd4df25d0f0f8c8ddb2fe6e",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
@@ -19,11 +19,11 @@
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
-      "hash": "a724c3f8b9275841e7c866ae1593c1b34408d7d88dcc22c9d2cc65ae10dc9b7a",
+      "hash": "d5b557a175d47f93b5588cab1442645748767e9bad967f491984f76a5f18ba25",
       "note": "Reset token consumption + password change"
     },
     "functions/api/auth/change-password.js": {
-      "hash": "cfcebf81503a7bc84921cddd2f901b429d95105101cf3ccbf6ea86ace11e40b6",
+      "hash": "9a47f3ed9497e0c3e131f483b2b5de266b82ca063102ac07dcbbd80b6c176c63",
       "note": "Authenticated password change"
     },
     "functions/api/auth/google.js": {

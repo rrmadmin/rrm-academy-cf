@@ -6,7 +6,7 @@
 import {
   json, optionsResponse, hashPassword, verifyPassword,
   getSessionIdFromCookie, validateSession, isValidPassword,
-  generateSessionId, sessionCookie, checkRateLimit,
+  generateSessionId, sessionCookie, checkRateLimit, sessionInsertStatement,
 } from './_shared.js';
 import { log } from '../_log.js';
 
@@ -69,8 +69,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
         .bind(user.id),
       db.prepare("DELETE FROM password_reset WHERE user_id = ? AND purpose = 'reset'")
         .bind(user.id),
-      db.prepare('INSERT INTO session (id, user_id, expires_at) VALUES (?, ?, ?)')
-        .bind(newSessionId, user.id, newExpiresAt),
+      sessionInsertStatement(db, newSessionId, user.id, newExpiresAt),
     ]);
 
     return json(

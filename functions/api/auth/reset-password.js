@@ -5,7 +5,7 @@
 import {
   json, optionsResponse, hashPassword, hashToken,
   generateSessionId, sessionCookie,
-  isValidPassword, checkRateLimit,
+  isValidPassword, checkRateLimit, sessionInsertStatement,
 } from './_shared.js';
 import { log } from '../_log.js';
 
@@ -57,8 +57,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
         .bind(hashedPassword, record.user_id),
       db.prepare('DELETE FROM session WHERE user_id = ?')
         .bind(record.user_id),
-      db.prepare('INSERT INTO session (id, user_id, expires_at) VALUES (?, ?, ?)')
-        .bind(newSessionId, record.user_id, newExpiresAt),
+      sessionInsertStatement(db, newSessionId, record.user_id, newExpiresAt),
     ]);
 
     // Design: auto-login after password reset (matches Auth0/Clerk UX).
