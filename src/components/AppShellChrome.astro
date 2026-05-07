@@ -283,7 +283,7 @@ const inSaved = currentPath === '/library/saved' || currentPath === '/library/sa
     if (!rootDiv || rootDiv.dataset.shellContext !== 'index') return;
 
     var pendingContext = null;
-    var clearRequested = false;
+    window.__rrmClearRequested__ = false;
 
     function captureFromCards() {
       var cards = document.querySelectorAll('[data-article-card], [data-blog-card]');
@@ -330,15 +330,19 @@ const inSaved = currentPath === '/library/saved' || currentPath === '/library/sa
 
     // Commit on pagehide (top-level navigation race-safe on Safari iOS).
     window.addEventListener('pagehide', function () {
-      if (clearRequested) return;
+      if (window.__rrmClearRequested__) return;
       if (!pendingContext) return;
       try { sessionStorage.setItem('rrm-shell-context', JSON.stringify(pendingContext)); } catch (e) {}
     });
+  })();
 
-    // Bottom-nav and logo links clear context (best-effort, never blocks navigation).
+  // Clear-context listener: runs on every shell context (index, article, saved).
+  // Per /arise B1 — was previously scoped to the writer IIFE which early-returns
+  // on non-index, leaving stale context on article-page drawer/bottom-nav navs.
+  (function () {
     document.querySelectorAll('[data-clear-shell-context]').forEach(function (el) {
       el.addEventListener('pointerdown', function () {
-        clearRequested = true;
+        window.__rrmClearRequested__ = true;
         try { sessionStorage.removeItem('rrm-shell-context'); } catch (e) {}
       });
     });
@@ -426,12 +430,12 @@ const inSaved = currentPath === '/library/saved' || currentPath === '/library/sa
       drawer.dataset.open = 'true';
       toggle.setAttribute('aria-expanded', 'true');
       var firstFocusable = drawer.querySelector('a, button');
-      if (firstFocusable) firstFocusable.focus();
+      if (firstFocusable) firstFocusable.focus({ preventScroll: true });
     }
     function close() {
       drawer.dataset.open = 'false';
       toggle.setAttribute('aria-expanded', 'false');
-      toggle.focus();
+      toggle.focus({ preventScroll: true });
     }
     toggle.addEventListener('click', open);
     if (closeBtn) closeBtn.addEventListener('click', close);
