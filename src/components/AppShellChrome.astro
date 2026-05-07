@@ -39,12 +39,23 @@ import Footer from './Footer.astro';
 // owned by BaseLayout — pass it there, not here. Adding `bodyClass` to this
 // Props interface would create an inert prop that pages might pass and
 // silently lose. Don't.
+interface RelatedSection {
+  heading: string;
+  items: Array<{ href: string; label: string }>;
+}
+
 interface Props {
   context: 'index' | 'article' | 'saved';
   currentPath: string;
+  /** Server-rendered related-content sections for the right rail.
+   *  When provided, the rail renders these sections statically (Topics, By
+   *  this author, Related research, etc). When absent, falls back to the
+   *  legacy sessionStorage "Continue browsing" hydrator. */
+  relatedSections?: RelatedSection[];
 }
 
-const { context, currentPath } = Astro.props;
+const { context, currentPath, relatedSections = [] } = Astro.props;
+const hasRelatedSections = relatedSections.length > 0 && context === 'article';
 
 // Identify current section for aria-current on sidebar links.
 const inLibrary = currentPath.startsWith('/library');
@@ -64,6 +75,7 @@ const NAV_ICONS: Record<string, string> = {
   '/community/': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
   '/donate/': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
   '/account/': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  '/endo-survey/': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>',
 };
 ---
 
@@ -108,6 +120,10 @@ const NAV_ICONS: Record<string, string> = {
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/community/']} />
         <span class="app-shell-nav__label">Community</span>
       </a>
+      <a href="/endo-survey/" class="app-shell-nav__link">
+        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/endo-survey/']} />
+        <span class="app-shell-nav__label">Endo Self-Survey</span>
+      </a>
     </div>
 
     <div class="app-shell-nav__spacer"></div>
@@ -145,11 +161,28 @@ const NAV_ICONS: Record<string, string> = {
        §No-context CSS gate). G-SEO-6 grep (Task 30 step 6) filters to article
        paths only — do NOT switch to always-emit. -->
   {context === 'article' && (
-    <aside class="app-shell-middle-column" data-pagefind-ignore="all" aria-label="In this index">
+    <aside class="app-shell-middle-column" data-pagefind-ignore="all" aria-label="Related content">
       <div class="app-shell-middle-column__inner">
-        <h2 class="app-shell-middle-column__heading">Continue browsing</h2>
-        <p class="app-shell-middle-column__meta"></p>
-        <ol class="app-shell-middle-column__list"></ol>
+        {hasRelatedSections ? (
+          relatedSections.map((section) => (
+            <section class="app-shell-middle-column__section">
+              <h2 class="app-shell-middle-column__heading">{section.heading}</h2>
+              <ol class="app-shell-middle-column__list">
+                {section.items.map((item) => (
+                  <li>
+                    <a href={item.href}>{item.label}</a>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          ))
+        ) : (
+          <section class="app-shell-middle-column__section">
+            <h2 class="app-shell-middle-column__heading">Continue browsing</h2>
+            <p class="app-shell-middle-column__meta"></p>
+            <ol class="app-shell-middle-column__list"></ol>
+          </section>
+        )}
       </div>
     </aside>
   )}
@@ -199,6 +232,10 @@ const NAV_ICONS: Record<string, string> = {
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/community/']} />
         <span class="app-shell-nav__label">Community</span>
       </a>
+      <a href="/endo-survey/" class="app-shell-nav__link" data-clear-shell-context>
+        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/endo-survey/']} />
+        <span class="app-shell-nav__label">Endo Self-Survey</span>
+      </a>
     </div>
     <a href="/donate/" class="app-shell-nav__cta" data-clear-shell-context>
       <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/donate/']} />
@@ -209,8 +246,8 @@ const NAV_ICONS: Record<string, string> = {
       <span class="app-shell-nav__label">Account</span>
     </a>
     <button type="button" class="app-shell-nav__theme-toggle" aria-label="Toggle theme" data-theme-toggle>
-      <span class="icon-moon" aria-hidden="true">🌙</span>
-      <span class="icon-sun" aria-hidden="true">☀️</span>
+      <svg class="icon-moon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="icon-sun" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
     </button>
   </aside>
   <div class="app-shell-drawer__overlay" aria-hidden="true"></div>

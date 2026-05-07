@@ -109,3 +109,48 @@ export function getRelatedArticles(
 
   return scored.slice(0, limit).map(s => s.article);
 }
+
+/**
+ * Find other articles sharing at least one author with the given article.
+ * Matches against authorRecords[] by id when available, falls back to
+ * authors string comparison (lowercased, trimmed).
+ *
+ * Sorted most-recent-first.
+ */
+export function getArticlesByAuthor(
+  article: Article,
+  allArticles: Article[],
+  limit = 4
+): Article[] {
+  const ids = new Set(
+    (article.authorRecords ?? []).map(a => a.id).filter(Boolean)
+  );
+  const names = new Set(
+    article.authors
+      .split(/[,;]/)
+      .map(n => n.trim().toLowerCase())
+      .filter(Boolean)
+  );
+
+  if (ids.size === 0 && names.size === 0) return [];
+
+  const scored = allArticles
+    .filter(a => a.id !== article.id)
+    .filter(a => {
+      if (ids.size > 0 && (a.authorRecords ?? []).some(ar => ids.has(ar.id))) {
+        return true;
+      }
+      if (names.size === 0) return false;
+      return a.authors
+        .split(/[,;]/)
+        .map(n => n.trim().toLowerCase())
+        .some(n => names.has(n));
+    })
+    .sort((a, b) => {
+      const da = a.datePublished || '';
+      const db = b.datePublished || '';
+      return db.localeCompare(da);
+    });
+
+  return scored.slice(0, limit);
+}
