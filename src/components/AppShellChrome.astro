@@ -114,3 +114,108 @@ const inSaved = currentPath === '/library/saved' || currentPath === '/library/sa
 
 {/* No <style> block: app-shell.css is imported in frontmatter (above) so it
     emits as a global stylesheet, matching BaseLayout's pattern. */}
+
+<script is:inline>
+  // PRE-PAINT (must run before any layout): if no/invalid sessionStorage context,
+  // add .shell-no-context to <html> to collapse middle column rail (spec §No-context CSS gate).
+  (function() {
+    // Slug cap is 250 chars; library data has slugs up to 230 chars (TRACER-A).
+    // Build-time test in tests/unit/canonical-lockdown.test.mjs asserts the data
+    // never exceeds this cap — keep the two in lockstep.
+    var SLUG_RE = /^[a-z0-9][a-z0-9-]{0,250}$/;
+    var ALLOWED_SOURCES = { library: 1, commentary: 1, search: 1 };
+
+    function isValidContext(c) {
+      if (!c || typeof c !== 'object') return false;
+      if (!ALLOWED_SOURCES[c.source]) return false;
+      if (typeof c.label !== 'string' || c.label.length > 200) return false;
+      // Reject control chars (NULL bytes, RTL/LTR overrides, zero-width joiners,
+      // bidi-control codepoints). Adversarial labels of pure whitespace render
+      // as a phantom-tall heading even when textContent neutralizes XSS.
+      if (/[\x00-\x1f\x7f​-‏ - ⁦-⁩]/.test(c.label)) return false;
+      if (typeof c.returnUrl !== 'string' || c.returnUrl.length > 500) return false;
+      // Strict path-absolute. Reject leading // or /\, any scheme, control chars,
+      // and ASCII whitespace prefixes that some browsers normalize to
+      // protocol-relative URLs.
+      if (c.returnUrl[0] !== '/') return false;
+      if (c.returnUrl[1] === '/' || c.returnUrl[1] === '\\') return false;
+      if (c.returnUrl.indexOf('://') !== -1) return false;
+      if (c.returnUrl.indexOf('javascript:') === 0 || c.returnUrl.indexOf('data:') === 0) return false;
+      if (/[\x00-\x20\x7f]/.test(c.returnUrl)) return false;
+      if (!Array.isArray(c.slugs) || c.slugs.length === 0 || c.slugs.length > 500) return false;
+      // Filter (don't reject) bad entries: spec §Validator says "entries failing
+      // the regex are dropped; if length drops to 0 after filtering, return null."
+      // Track original indices so a parallel titles[] sync stays aligned.
+      var filtered = [];
+      var filteredIdx = [];
+      for (var i = 0; i < c.slugs.length; i++) {
+        if (typeof c.slugs[i] === 'string' && SLUG_RE.test(c.slugs[i])) {
+          filtered.push(c.slugs[i]);
+          filteredIdx.push(i);
+        }
+      }
+      if (filtered.length === 0) return false;
+      // Dedupe slugs preserving order; sync titles to the kept indices in lockstep
+      // so adversarial sessionStorage like slugs:["a","a","a"] doesn't render dupes.
+      var hasTitles = Array.isArray(c.titles);
+      var seen = Object.create(null);
+      var uniqueSlugs = [];
+      var uniqueTitles = [];
+      for (var j = 0; j < filtered.length; j++) {
+        if (!seen[filtered[j]]) {
+          seen[filtered[j]] = 1;
+          uniqueSlugs.push(filtered[j]);
+          if (hasTitles) uniqueTitles.push(c.titles[filteredIdx[j]] || '');
+        }
+      }
+      if (uniqueSlugs.length === 0) return false;
+      c.slugs = uniqueSlugs; // mutate accepted shape
+      if (typeof c.writtenAt !== 'number' || !isFinite(c.writtenAt) || c.writtenAt <= 0) return false;
+      // Titles array (optional) — must parallel slugs[] when present. Tolerate
+      // absence (legacy clients / writers that didn't capture titles), but
+      // drop any malformed shape rather than partial-render with wrong indices.
+      if (c.titles !== undefined) {
+        if (!hasTitles) {
+          c.titles = [];
+        } else {
+          // Replace with the lockstep-deduped titles[] built above.
+          c.titles = uniqueTitles;
+          for (var t = 0; t < c.titles.length; t++) {
+            if (typeof c.titles[t] !== 'string') c.titles[t] = '';
+            if (c.titles[t].length > 300) c.titles[t] = c.titles[t].slice(0, 300);
+          }
+        }
+      }
+      // Filters: must be a plain object (not array, not null) AND every key/
+      // value pair must be string-string. Spec line 178: "all keys and values
+      // are strings. Reject nested objects, arrays, null values."
+      if (c.filters) {
+        if (typeof c.filters !== 'object' || Array.isArray(c.filters)) return false;
+        for (var k in c.filters) {
+          if (!Object.prototype.hasOwnProperty.call(c.filters, k)) continue;
+          if (typeof k !== 'string' || typeof c.filters[k] !== 'string') return false;
+        }
+      }
+      return true;
+    }
+
+    var ctx = null;
+    try {
+      var raw = sessionStorage.getItem('rrm-shell-context');
+      if (raw) ctx = JSON.parse(raw);
+    } catch (e) { ctx = null; }
+    if (!isValidContext(ctx)) {
+      document.documentElement.classList.add('shell-no-context');
+    }
+
+    // Expose helper for sheet + middle column to reuse.
+    window.__rrmGetShellContext__ = function () {
+      try {
+        var raw = sessionStorage.getItem('rrm-shell-context');
+        if (!raw) return null;
+        var parsed = JSON.parse(raw);
+        return isValidContext(parsed) ? parsed : null;
+      } catch (e) { return null; }
+    };
+  })();
+</script>
