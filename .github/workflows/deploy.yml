@@ -377,6 +377,14 @@ jobs:
           npm run gates:glossary:check
           npm run snapshot:glossary
 
+      - name: Validate payment pipeline gates (always)
+        # PG1-PG4 static gates: webhook signature/dedup discipline, no
+        # err.message leak, enrollment revocation discipline, atomicity
+        # heuristic. Static analysis only -- no D1 or Stripe calls. Catches
+        # regression to the bug classes that produced 41 findings across 13
+        # /arise runs on the payment surface.
+        run: npm run gates:payment
+
       - name: Validate glossary spoke pages (full rebuild only)
         # Spoke directory only refreshes on full rebuild (getStaticPaths re-runs
         # against in-memory glossary.json, but dispatched single-record updates
