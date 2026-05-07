@@ -27,11 +27,11 @@
       "note": "Authenticated password change"
     },
     "functions/api/auth/google.js": {
-      "hash": "a351748ca346ac43d169b8e0b6842a28101b729a59b27848cde0527a15e80f3b",
+      "hash": "00a9706469496106a1ae115bbc971ab7646da703203f95e90942633ea3b1597a",
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "ef0041655eac67bf5dadc0f23187d539b5d489fc3697634879d1b2af174516e7",
+      "hash": "872bef6d0103d87bd2e724971b97852a4e58afb0a53ca125cb0ad4aa2d1e1eb0",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
