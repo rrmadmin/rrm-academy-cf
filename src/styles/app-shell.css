@@ -18,10 +18,10 @@
 }
 
 /* Cold-land / no-context gate: collapses middle column rail before first paint. */
-.shell-no-context .app-shell-layout {
+.shell-no-context .app-shell-layout:not([data-has-related="true"]) {
   grid-template-columns: var(--shell-sidebar-width) 1fr 0;
 }
-.shell-no-context .app-shell-middle-column {
+.shell-no-context .app-shell-layout:not([data-has-related="true"]) .app-shell-middle-column {
   display: none;
 }
 
