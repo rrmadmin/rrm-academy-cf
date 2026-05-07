@@ -15,7 +15,7 @@
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
-      "hash": "03fb838aa229ed0f6a0e8991a69049e113527d34dee2855b541df5e554af234a",
+      "hash": "b7bb960c3369d4381bf8225153ad5a0751ada84d90e34840a3830e241e1732c4",
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
@@ -55,7 +55,7 @@
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "fbedfe98846bc01bef6af46e158775d0534f19c659ddfa2255ae1b4d4623e728",
+      "hash": "fe62fd56d146b4ee99d9145b03b2f55b666bfff248282e0a3b82863ee9fc5c1a",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {

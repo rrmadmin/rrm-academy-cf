@@ -60,13 +60,12 @@ export async function onRequestPost({ request, env, waitUntil }) {
       const resetUrl = `https://rrmacademy.org/reset-password/?token=${token}`;
 
       // Atomically replace any prior reset token before firing the email.
-      // Token is valid for 1 hour; if SES fails it expires naturally and the
-      // user can request a new one. This makes response timing constant — the
-      // SES await no longer leaks user existence to a timing attacker.
-      await db.batch([
-        db.prepare("DELETE FROM password_reset WHERE user_id = ? AND purpose = 'reset'").bind(user.id),
-        db.prepare("INSERT INTO password_reset (id, user_id, token_hash, expires_at, purpose) VALUES (?, ?, ?, ?, 'reset')").bind(generateId(), user.id, tokenHash, expiresAt),
-      ]);
+      // ON CONFLICT relies on idx_password_reset_user_purpose UNIQUE(user_id, purpose)
+      // (migration 020). Two concurrent requests race to upsert the same row rather
+      // than leaving two valid tokens. Token is valid for 1 hour.
+      await db.prepare(
+        "INSERT INTO password_reset (id, user_id, token_hash, expires_at, purpose) VALUES (?, ?, ?, ?, 'reset') ON CONFLICT(user_id, purpose) DO UPDATE SET id = excluded.id, token_hash = excluded.token_hash, expires_at = excluded.expires_at"
+      ).bind(generateId(), user.id, tokenHash, expiresAt).run();
 
       // Deferred SES send — response returns before email completes.
       // SES failure: logged server-side; ok:true still returned (anti-enumeration).
