@@ -31,7 +31,7 @@ const excerpt = post.excerpt
   ? post.excerpt.slice(0, maxLen) + (post.excerpt.length > maxLen ? '...' : '')
   : '';
 ---
-<article class="blog-card">
+<article class="blog-card" data-blog-card data-slug={post.slug} data-title={post.title || ''}>
   <a href={href} class="blog-card__link">
     {post.coverImageUrl && (
       <div class="blog-card__image">
