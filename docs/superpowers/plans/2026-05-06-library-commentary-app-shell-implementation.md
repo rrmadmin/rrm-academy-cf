@@ -137,7 +137,7 @@ Append to `src/styles/app-shell.css`:
   .app-shell-nav { grid-area: nav; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
   .app-shell-main { grid-area: main; min-width: 0; }
   .app-shell-middle-column { grid-area: aside; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
-  .app-shell-bottom-nav, .app-shell-drawer, .app-shell-sheet, .app-shell-sheet-peek { display: none; }
+  .app-shell-bottom-nav, .app-shell-drawer, .app-shell-drawer-toggle, .app-shell-sheet, .app-shell-sheet-peek { display: none; }
 }
 
 /* Sidebar visual styling. */
@@ -232,6 +232,27 @@ Append to `src/styles/app-shell.css`:
   }
   .app-shell-drawer:target ~ .app-shell-drawer__overlay,
   .app-shell-drawer[data-open="true"] ~ .app-shell-drawer__overlay { opacity: 1; pointer-events: auto; }
+
+  /* Hamburger toggle (Task 13 markup): fixed top-left on mobile, hidden on desktop. */
+  .app-shell-drawer-toggle {
+    position: fixed;
+    top: calc(0.5rem + env(safe-area-inset-top));
+    left: 0.5rem;
+    z-index: calc(var(--z-drawer) - 1);
+    width: 44px; height: 44px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--bg-primary, #fff);
+    color: var(--text-primary, #111827);
+    border: 1px solid var(--border-subtle, #e5e7eb);
+    border-radius: 8px;
+    font-size: 1.125rem; line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  }
+  .app-shell-drawer-toggle:focus-visible {
+    outline: 2px solid var(--text-primary, #111827);
+    outline-offset: 2px;
+  }
 }
 
 /* Pull-up sheet (mobile only, native <dialog>) */
@@ -297,6 +318,13 @@ git commit -m "feat: add mobile bottom nav, drawer, and sheet CSS"
 //
 // All sessionStorage access wrapped in try/catch (per spec §Data flow).
 
+// Frontmatter import emits app-shell.css as a global stylesheet — matches the
+// canonical pattern used by BaseLayout.astro (line 8: `import '../styles/global.css'`).
+// Do NOT use `<style>@import '/src/styles/app-shell.css';</style>` — Astro <style>
+// blocks are component-scoped (data-astro-cid hashing) and root-absolute @import
+// paths do not resolve in production builds.
+import '../styles/app-shell.css';
+
 interface Props {
   context: 'index' | 'article' | 'saved';
   currentPath: string;
@@ -314,7 +342,7 @@ const inSaved = currentPath === '/library/saved' || currentPath === '/library/sa
 <div class="app-shell-layout">
   <!-- Desktop sidebar -->
   <nav class="app-shell-nav" data-pagefind-ignore="all" aria-label="Primary">
-    <a href="/" class="app-shell-nav__brand" aria-label="RRM Academy home">
+    <a href="/" class="app-shell-nav__brand" aria-label="RRM Academy home" data-clear-shell-context>
       <strong>RRM Academy</strong>
     </a>
 
@@ -369,9 +397,8 @@ const inSaved = currentPath === '/library/saved' || currentPath === '/library/sa
   </nav>
 </div>
 
-<style>
-  @import '/src/styles/app-shell.css';
-</style>
+{/* No <style> block: app-shell.css is imported in frontmatter (above) so it
+    emits as a global stylesheet, matching BaseLayout's pattern. */}
 ```
 
 - [ ] **Step 2: Verify Astro can parse the component**
@@ -553,8 +580,13 @@ Replace with:
   <script is:inline>
     // Apply saved theme before first paint. Read-only: no OS auto-detect, no write-back.
     // Existing users with a stored preference retain it. New cold visitors default to light.
+    // localStorage access wrapped in try/catch — Safari Strict / Brave / Firefox TCP throw
+    // on access; without the wrap, the FOUC script aborts and data-theme stays at the
+    // hardcoded `<html data-theme="light">` for everyone (asymmetric with Tasks 9/12 which
+    // both wrap). Wrapping keeps light as the safe default but stops the throw from leaking.
     (function() {
-      var saved = localStorage.getItem('rrm_theme');
+      var saved = null;
+      try { saved = localStorage.getItem('rrm_theme'); } catch (e) {}
       var theme = saved === 'dark' ? 'dark' : 'light';
       document.documentElement.setAttribute('data-theme', theme);
     })();
@@ -587,23 +619,41 @@ git commit -m "fix: BaseLayout FOUC reads localStorage only (no OS auto-detect, 
 - [ ] **Step 1: Confirm BaseLayout is currently in guard manifest**
 
 Run: `grep -c "BaseLayout.astro" guard-manifest.json`
-Expected: ≥1. If 0, the spec assumed it was guarded — add it now via `npm run guard:update` after step 2.
+Expected: BaseLayout MAY currently be 0 (verified empirically: `guard-manifest.json` has 0 hits for BaseLayout as of plan-write time). Per CLAUDE.md "Security Guard" section, the manifest is hand-maintained — `npm run guard:update` re-hashes existing entries but cannot ADD new ones. Step 2 below handles both the new-add case AND the rebake case.
 
-- [ ] **Step 2: Run guard:update to rebake hashes for the modified files**
+- [ ] **Step 2a: Hand-add a BaseLayout.astro entry to guard-manifest.json (only if step 1 returned 0)**
+
+If `grep -c "BaseLayout.astro" guard-manifest.json` returned 0, hand-edit `guard-manifest.json` to insert a placeholder entry (alphabetical order with the other `src/layouts/` entries if any, otherwise end of the files object):
+
+```json
+"src/layouts/BaseLayout.astro": {
+  "hash": "PLACEHOLDER_WILL_BE_REPLACED_BY_GUARD_UPDATE",
+  "note": "FOUC theme + chrome prop SEO invariants"
+}
+```
+
+If `npm run guard:update` exposes an `--update-add <path>` flag (check `node scripts/guard.mjs --help`), prefer that over hand-editing. Hand-edit is the documented fallback.
+
+If step 1 returned ≥1, skip step 2a entirely — the entry already exists and step 2b will rebake its hash.
+
+- [ ] **Step 2b: Run guard:update to populate the real hash**
 
 Run: `npm run guard:update`
-Expected: regenerates hashes for any guarded files that changed. Confirms BaseLayout's new hash matches its post-edit content.
+Expected: replaces the placeholder hash on `BaseLayout.astro` with the real SHA, AND rebakes hashes for every other guarded file that changed during this PR (e.g. `SearchBar.astro` if Task 16 already committed). One rebake covers the whole manifest in a single pass.
 
-- [ ] **Step 3: Verify guard passes**
+- [ ] **Step 3: Verify guard passes AND BaseLayout is registered**
 
 Run: `npm run guard`
 Expected: exits 0. All guarded files match their manifest hashes.
+
+Run: `grep -c "BaseLayout.astro" guard-manifest.json`
+Expected: ≥1 (entry present and hashed).
 
 - [ ] **Step 4: Commit**
 
 ```bash
 git add guard-manifest.json
-git commit -m "chore: rebake guard-manifest hash for BaseLayout (chrome prop + FOUC edit)"
+git commit -m "chore: register BaseLayout.astro in guard-manifest + rebake hashes"
 ```
 
 ---
@@ -955,21 +1005,26 @@ In AppShellChrome.astro, after the bottom nav `</nav>`, add:
   <button type="button" class="app-shell-drawer-toggle" aria-controls="app-shell-drawer" aria-expanded="false" aria-label="Open menu">☰</button>
   <aside id="app-shell-drawer" class="app-shell-drawer" data-pagefind-ignore="all" aria-label="Mobile navigation">
     <button type="button" class="app-shell-drawer__close" aria-label="Close menu">×</button>
-    <!-- duplicate sidebar nav contents here, OR factor into shared partial -->
+    <!-- duplicate sidebar nav contents here, OR factor into shared partial.
+         All destination links carry data-clear-shell-context so the Task 10
+         pointerdown listener clears stale context on drawer-driven navigation
+         (parity with bottom-nav and brand-link). Donate is a parity-include
+         even though it exits the shell — shared listener semantics. -->
     <div class="app-shell-nav__section">
       <div class="app-shell-nav__heading">Reading</div>
-      <a href="/library/">Research Library</a>
-      <a href="/commentary/">Commentary</a>
-      <a href="/library/saved/">Saved Articles</a>
+      <a href="/library/" data-clear-shell-context>Research Library</a>
+      <a href="/commentary/" data-clear-shell-context>Commentary</a>
+      <a href="/library/saved/" data-clear-shell-context>Saved Articles</a>
     </div>
     <div class="app-shell-nav__section">
       <div class="app-shell-nav__heading">Explore</div>
-      <a href="/guides/">Guides</a>
-      <a href="/faqs/">FAQs</a>
-      <a href="/courses/">Courses</a>
-      <a href="/community/">Community</a>
+      <a href="/guides/" data-clear-shell-context>Guides</a>
+      <a href="/faqs/" data-clear-shell-context>FAQs</a>
+      <a href="/courses/" data-clear-shell-context>Courses</a>
+      <a href="/community/" data-clear-shell-context>Community</a>
     </div>
-    <a href="/donate/" class="app-shell-nav__cta">Donate</a>
+    <a href="/donate/" class="app-shell-nav__cta" data-clear-shell-context>Donate</a>
+    <a href="/account/" data-clear-shell-context>Account</a>
     <button type="button" class="app-shell-nav__theme-toggle" aria-label="Toggle theme" data-theme-toggle>
       <span class="icon-moon" aria-hidden="true">🌙</span>
       <span class="icon-sun" aria-hidden="true">☀️</span>
@@ -1216,16 +1271,26 @@ Expected: identifies where Pagefind results are rendered and bound.
 
 - [ ] **Step 2: Add a click listener that writes context with source='search'**
 
-In SearchBar.astro's existing client script (NOT a new script — find the existing `<script>` block), inside the function that renders Pagefind results, after each `<a>` is created, add:
+Insert this code INSIDE SearchBar's main IIFE — the one that wraps the entire client script and contains `var currentQuery = '';` (around line 301; closing `})()` at line ~759). The listener is added inside `renderResult()` so each rendered `<a>` element gets it at creation time. SearchBar's local variable for the rendered anchor is `a` (NOT `resultLink`); use `a.addEventListener(...)` when applying. Do NOT append the handler below `})()` — that scope cannot see `currentQuery`.
+
+Late-merged semantic results (the `semanticPromise.then` path around line 609 in SearchBar.astro) push entries with absolute `lr.url` values without `toRelative()` normalization. Use `new URL(href, location.origin)` to normalize relative AND absolute URLs uniformly — a regex anchored on `^/` would silently drop the absolute ones.
 
 ```javascript
-resultLink.addEventListener('pointerdown', function (e) {
+a.addEventListener('pointerdown', function (e) {
   // Capture all visible result slugs into sessionStorage on pagehide.
-  var allLinks = document.querySelectorAll('#search-results a[href^="/library/"], #search-results a[href^="/commentary/"]');
+  // URL parser handles relative AND absolute hrefs uniformly (semantic late-merge
+  // results carry absolute URLs without toRelative() — a regex anchored on `^/`
+  // would silently drop them).
+  var allLinks = document.querySelectorAll(
+    '#search-results a[href*="/library/"], #search-results a[href*="/commentary/"]'
+  );
   var slugs = [];
   allLinks.forEach(function (link) {
-    var match = link.getAttribute('href').match(/^\/(library|commentary)\/([a-z0-9][a-z0-9-]{0,250})\/?$/);
-    if (match) slugs.push(match[2]);
+    try {
+      var u = new URL(link.getAttribute('href'), location.origin);
+      var pm = u.pathname.match(/^\/(library|commentary)\/([a-z0-9][a-z0-9-]{0,250})\/?$/);
+      if (pm) slugs.push(pm[2]);
+    } catch (err) { /* malformed URL — skip */ }
   });
   if (slugs.length === 0) return;
   var ctx = {
@@ -1244,7 +1309,7 @@ resultLink.addEventListener('pointerdown', function (e) {
 });
 ```
 
-(Adjust `currentQuery` reference to match SearchBar's actual variable name.)
+`currentQuery` is the existing IIFE-scoped variable — the listener closes over it because it lives inside the same IIFE. No rename needed.
 
 - [ ] **Step 3: guard:update for SearchBar**
 
@@ -1291,7 +1356,16 @@ git commit -m "feat: SearchBar writes shell context with source='search' on resu
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-const ALLOWED_PARAMS = new Set(['topic', 'page', 'q', 'sort']);
+// ALLOWED_PARAMS spans two categories. The gate fails if pages READ a param
+// not in either set; analytics params don't affect canonical or content but
+// must be tolerated because UTM tagging on inbound links is normal traffic.
+const ALLOWED_PARAMS = new Set([
+  // Canonical-affecting (drive content selection on /library and /commentary):
+  'topic', 'page', 'q', 'sort',
+  // Analytics-only (do NOT affect canonical or content; preserved for tracking):
+  'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+  'ref', 'gclid', 'fbclid', 'mc_cid', 'mc_eid'
+]);
 const SCAN_DIRS = ['src/pages/library', 'src/pages/commentary', 'src/components'];
 const FORBIDDEN_PATTERNS = [
   /\?(view|shell|app|app_layout|application|layout|chrome|theme|density|mode)=/g
@@ -1300,22 +1374,33 @@ const FORBIDDEN_PATTERNS = [
 let failures = [];
 
 function scanFile(path) {
-  const content = readFileSync(path, 'utf8');
+  const raw = readFileSync(path, 'utf8');
+  // Strip block comments and line comments before pattern scanning to avoid
+  // false positives on documentation strings (e.g. `/* legacy: ?view=app */`
+  // whose first line doesn't start with `//` or `*`).
+  // Use `content` for pattern matching; keep `raw` for line-number reporting.
+  const content = raw
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')               // /* ... */
+    .replace(/(^|\n)\s*\/\/[^\n]*/g, '$1');          // // ... line comments
+
   for (const pattern of FORBIDDEN_PATTERNS) {
     const matches = content.matchAll(pattern);
     for (const m of matches) {
-      // Allow if inside a comment or test fixture.
+      // Compute line number against the stripped content; report raw substring.
       const lineStart = content.lastIndexOf('\n', m.index);
-      const line = content.slice(lineStart + 1, content.indexOf('\n', m.index));
-      if (line.trim().startsWith('//') || line.trim().startsWith('*')) continue;
+      const lineEnd = content.indexOf('\n', m.index);
+      const line = content.slice(lineStart + 1, lineEnd === -1 ? content.length : lineEnd);
       failures.push({ path, line: line.trim(), match: m[0] });
     }
   }
   // Also: check for any non-allowlisted query param read in pages.
-  const paramReads = content.matchAll(/searchParams\.get\(['"]([a-z_]+)['"]\)/g);
+  // Broader regex — matches both `searchParams.get(...)` and destructured
+  // `params.get(...)`, allows whitespace, and accepts `[\w-]+` (alphanumeric +
+  // underscore + hyphen) so we don't miss `utm_source`, `mc-id`, etc.
+  const paramReads = content.matchAll(/(?:searchParams|params)\.get\(\s*['"]([\w-]+)['"]\s*\)/g);
   for (const m of paramReads) {
     const param = m[1];
-    if (!ALLOWED_PARAMS.has(param) && (path.includes('/library/') || path.includes('/commentary/'))) {
+    if (!ALLOWED_PARAMS.has(param.toLowerCase()) && (path.includes('/library/') || path.includes('/commentary/'))) {
       failures.push({ path, line: m[0], match: `non-allowlisted param: ${param}` });
     }
   }
@@ -1331,8 +1416,24 @@ function walk(dir) {
   }
 }
 
+// Track scan health — silent dir-walk swallow lets a renamed/moved SCAN_DIR
+// pass the gate vacuously. Warn on any missed dir; hard-fail if 0 walked.
+let scanned = 0;
+const skipped = [];
 for (const dir of SCAN_DIRS) {
-  try { walk(dir); } catch (e) { /* dir may not exist; non-fatal */ }
+  try {
+    walk(dir);
+    scanned++;
+  } catch (e) {
+    skipped.push(`${dir}: ${e.code || e.message}`);
+  }
+}
+if (skipped.length > 0) {
+  console.warn(`⚠️ Canonical lockdown skipped ${skipped.length} dir(s): ${skipped.join('; ')}`);
+}
+if (scanned === 0) {
+  console.error('❌ Canonical lockdown found no dirs to scan; check SCAN_DIRS config.');
+  process.exit(1);
 }
 
 if (failures.length > 0) {
@@ -1343,7 +1444,7 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log(`✅ Canonical lockdown: ${SCAN_DIRS.length} dirs scanned, no forbidden params.`);
+console.log(`✅ Canonical lockdown: ${scanned}/${SCAN_DIRS.length} dirs scanned, no forbidden params.`);
 process.exit(0);
 ```
 
@@ -1865,15 +1966,30 @@ git commit -m "feat: wrap /library/page/N/ + /library/saved/ in AppShellChrome"
 **Files:**
 - Create: `tests/e2e/app-shell.spec.ts`
 
+- [ ] **Step 0: Pin baseURL to the local dev server**
+
+The default `playwright.config.js` baseURL points to `https://rrmacademy.org` (production), where `PUBLIC_SHELL_ROUTES` is empty by design until Task 32 activates the shell. Without this pin, every shell-presence assertion (`.app-shell-nav` visible, etc.) fails because production has no shell yet.
+
+The fix is a per-spec `test.use({ baseURL: 'http://localhost:4321' })` at the top of `app-shell.spec.ts`, applied to BOTH `test.describe()` blocks created in Step 1 and the additional describe blocks in Tasks 28 + 29. This is the surgically-scoped form — leaves `playwright.config.js` untouched so other specs continue to hit production.
+
+(Optional CI follow-on: add `webServer: { command: 'PUBLIC_SHELL_ROUTES=commentary,library npm run dev', port: 4321, reuseExistingServer: !process.env.CI }` to `playwright.config.js` so CI auto-spawns the dev server. Out of scope for this PR — Brian's existing cadence is "run dev server manually, then test.")
+
 - [ ] **Step 1: Create spec file**
 
 ```typescript
 import { test, expect } from '@playwright/test';
 
+// Pin baseURL to the local dev server. Default playwright.config.js baseURL
+// points to production (https://rrmacademy.org) where PUBLIC_SHELL_ROUTES is
+// empty until Task 32 activates the shell — every shell-presence assertion
+// would fail there. Apply test.use({ baseURL: ... }) inside EVERY describe
+// block in this file (incl. the ones added in Tasks 28 + 29).
+const LOCAL_BASE_URL = 'http://localhost:4321';
+
 const SHELL_ROUTES = process.env.PUBLIC_SHELL_ROUTES || 'commentary,library';
 
 test.describe('App shell — desktop (1440x900)', () => {
-  test.use({ viewport: { width: 1440, height: 900 } });
+  test.use({ baseURL: LOCAL_BASE_URL, viewport: { width: 1440, height: 900 } });
 
   test('library index has sidebar, no middle column on cold land', async ({ page }) => {
     await page.goto('/library/');
@@ -1911,13 +2027,19 @@ test.describe('App shell — desktop (1440x900)', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests against built dev server**
+- [ ] **Step 2: Run tests against the local dev server**
 
-Run: `PUBLIC_SHELL_ROUTES=commentary,library npm run dev` in one terminal, then:
+In one terminal, start the dev server with the shell flag enabled:
+```bash
+PUBLIC_SHELL_ROUTES=commentary,library npm run dev
+```
+(Astro's dev server reads `PUBLIC_*` env vars and exposes them on `import.meta.env` for the helper from Task 19.5. Confirm the server is listening on `http://localhost:4321/` before running tests.)
+
+In a second terminal:
 ```bash
 npx playwright test tests/e2e/app-shell.spec.ts
 ```
-Expected: all 4 tests pass.
+Expected: all 4 tests pass against `http://localhost:4321` (pinned in Step 0).
 
 - [ ] **Step 3: Commit**
 
@@ -1937,7 +2059,7 @@ git commit -m "test: Playwright E2E for desktop shell behaviors"
 
 ```typescript
 test.describe('App shell — mobile (375x812)', () => {
-  test.use({ viewport: { width: 375, height: 812 } });
+  test.use({ baseURL: LOCAL_BASE_URL, viewport: { width: 375, height: 812 } });
 
   test('mobile bottom nav visible, sidebar hidden', async ({ page }) => {
     await page.goto('/library/');
@@ -1995,6 +2117,8 @@ git commit -m "test: Playwright E2E for mobile shell behaviors"
 
 ```typescript
 test.describe('App shell — cold landing + adversarial', () => {
+  test.use({ baseURL: LOCAL_BASE_URL });
+
   test('cold landing on article = full-width (no middle column visible)', async ({ page }) => {
     // Direct navigate, no sessionStorage.
     await page.goto('/library/redwine-excision-2012/'); // adjust slug
@@ -2034,7 +2158,7 @@ test.describe('App shell — cold landing + adversarial', () => {
 });
 
 test.describe('App shell — no-JS fallback', () => {
-  test.use({ javaScriptEnabled: false });
+  test.use({ baseURL: LOCAL_BASE_URL, javaScriptEnabled: false });
 
   test('sidebar renders without JS, theme toggle inert', async ({ page }) => {
     await page.goto('/library/');
@@ -2084,9 +2208,15 @@ Expected: 1 (exactly once, no duplicates).
 Run: `node --test tests/unit/canonical-lockdown.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: G-SEO-6 (middle column always-emitted)**
-Run: `find dist/library dist/commentary -mindepth 2 -name 'index.html' | xargs grep -L 'app-shell-middle-column' | head`
-Expected: empty (every shell article page has the aside).
+- [ ] **Step 6: G-SEO-6 (middle column always-emitted on ARTICLE pages only)**
+Run:
+```bash
+find dist/library dist/commentary -mindepth 2 -name 'index.html' \
+  | grep -v '/page/\|/saved/' \
+  | xargs grep -L 'app-shell-middle-column' \
+  | head
+```
+Expected: empty (every shell ARTICLE page has the aside). Pagination pages (`/page/N/`) and `/library/saved/` legitimately do NOT emit the middle column — they use `context="index"` or `context="saved"`, not `"article"` — so they must be filtered out before the `grep -L` check or the gate fails on its first run.
 
 - [ ] **Step 7: G-CHROME-1 (chrome prop usage)**
 Run: `grep -rE 'chrome="(default|shell)"' src/pages/{library,commentary} | wc -l`
