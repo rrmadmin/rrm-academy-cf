@@ -128,7 +128,14 @@
 
     // Wire restoreScroll into every sheet-close path.
     if (closeBtn) closeBtn.addEventListener('click', restoreScroll);
-    sheet.addEventListener('close', restoreScroll); // native dialog close event (covers ESC, .close())
+    // Native dialog close fires for ESC, drag-to-hidden, resize-close, and the
+    // explicit close button. Resetting aria-expanded here guarantees the peek
+    // reflects collapsed state on every path (idempotent vs explicit close
+    // button which already does it) (/arise --deep #3).
+    sheet.addEventListener('close', function () {
+      restoreScroll();
+      if (peek) peek.setAttribute('aria-expanded', 'false');
+    });
     window.addEventListener('resize', function () {
       if (window.innerWidth > 900) restoreScroll();
     });
@@ -136,6 +143,12 @@
     if (grip) {
       grip.addEventListener('pointerdown', function (e) {
         if (!e.target.closest('.app-shell-sheet__grip')) return;
+        // Ignore secondary pointers while a drag is already in progress.
+        // Without this, a multi-touch tap (second finger landing on the grip
+        // mid-drag) overwrites startY/startState and corrupts the
+        // pointermove/pointerup math against the original pointer
+        // (/arise --deep #4).
+        if (startY !== null) return;
         startY = e.clientY;
         startState = sheet.dataset.state;
         try { grip.setPointerCapture(e.pointerId); } catch (err) {
