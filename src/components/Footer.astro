@@ -148,6 +148,7 @@ const helpLinks = [
     }
 
     btn.addEventListener('click', function(e) {
+      if (typeof window.__rrmThemeToggle__ === 'function') return window.__rrmThemeToggle__();
       if (!document.startViewTransition ||
           window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         toggle();
