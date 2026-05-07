@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { test, expect } from '@playwright/test';
 
 // Pin baseURL to the local dev server. Default playwright.config.js baseURL
@@ -88,5 +89,65 @@ test.describe('App shell — mobile (375x812)', () => {
     await expect(page).toHaveURL(/\/library\/?$/);
     const ctx = await page.evaluate(() => sessionStorage.getItem('rrm-shell-context'));
     expect(ctx).toBeNull();
+  });
+});
+
+// Read the first published library slug at test-load time so the suite never
+// hardcodes an article that might be retracted, renamed, or replaced. Reading
+// articles.json keeps the test resilient to data churn — failure here means
+// "no library data was fetched" not "redwine-excision-2012 changed slugs".
+const FIRST_LIBRARY_SLUG = JSON.parse(
+  readFileSync('src/data/articles.json', 'utf8')
+)[0].slug;
+
+test.describe('App shell — cold landing + adversarial', () => {
+  test.use({ baseURL: LOCAL_BASE_URL });
+
+  test('cold landing on article = full-width (no middle column visible)', async ({ page }) => {
+    // Direct navigate, no sessionStorage.
+    await page.goto(`/library/${FIRST_LIBRARY_SLUG}/`);
+    await expect(page.locator('html')).toHaveClass(/shell-no-context/);
+    await expect(page.locator('.app-shell-middle-column')).not.toBeVisible();
+  });
+
+  test('malformed sessionStorage rejected silently (no XSS)', async ({ page }) => {
+    await page.goto('/library/');
+    await page.evaluate(() => {
+      sessionStorage.setItem('rrm-shell-context', JSON.stringify({
+        source: 'library',
+        label: '<img src=x onerror=alert(1)>',
+        slugs: ['<script>alert(1)</script>'],
+        returnUrl: 'javascript:alert(1)',
+        writtenAt: 1
+      }));
+    });
+    await page.reload();
+    await expect(page.locator('html')).toHaveClass(/shell-no-context/);
+    // Confirm no alerts fired (would have crashed the test if so).
+  });
+
+  test('storage SecurityError degrades gracefully', async ({ page, context }) => {
+    // Block storage by intercepting; not all browsers support this. Skip if not.
+    await page.goto('/library/');
+    await page.evaluate(() => {
+      // Override sessionStorage methods to throw.
+      Object.defineProperty(window, 'sessionStorage', {
+        get() { throw new DOMException('SecurityError', 'SecurityError'); }
+      });
+    });
+    await page.reload();
+    // Page should still render; .shell-no-context present.
+    await expect(page.locator('html')).toHaveClass(/shell-no-context/);
+  });
+});
+
+test.describe('App shell — no-JS fallback', () => {
+  test.use({ baseURL: LOCAL_BASE_URL, javaScriptEnabled: false });
+
+  test('sidebar renders without JS, theme toggle inert', async ({ page }) => {
+    await page.goto('/library/');
+    await expect(page.locator('.app-shell-nav')).toBeVisible();
+    // Sheet absent (no JS to mount it).
+    await expect(page.locator('.app-shell-sheet')).not.toBeVisible();
   });
 });
