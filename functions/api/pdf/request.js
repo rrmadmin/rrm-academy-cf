@@ -53,7 +53,7 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: emailCheck.error }, 400);
   }
 
-  const turnstileOk = await verifyTurnstile(env.CF_TURNSTILE_SECRET, body.turnstileToken, ip);
+  const turnstileOk = await verifyTurnstile(env.CF_TURNSTILE_SECRET, body.turnstileToken, ip, env);
   if (!turnstileOk) {
     return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
   }
@@ -71,6 +71,7 @@ export async function onRequestPost(context) {
 
     if (!token) {
       token = crypto.randomUUID();
+      // arise-ignore unbatched-writes -- if/else branch; only one .run() executes per request
       await env.DB.prepare(
         'INSERT INTO pdf_token (token, email, guide_slug, expires_at) VALUES (?, ?, ?, unixepoch() + 86400)'
       ).bind(token, email, guide_slug).run();

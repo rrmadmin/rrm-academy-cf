@@ -62,7 +62,7 @@ export async function onRequestPost(context) {
   }
 
   // Verify Turnstile token
-  const turnstileOk = await verifyTurnstile(env.CF_TURNSTILE_SECRET, body.turnstileToken, ip);
+  const turnstileOk = await verifyTurnstile(env.CF_TURNSTILE_SECRET, body.turnstileToken, ip, env);
   if (!turnstileOk) {
     return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
   }
@@ -85,6 +85,7 @@ export async function onRequestPost(context) {
         return json({ ok: true, message: 'You are already subscribed.' });
       }
       // Re-activate unsubscribed/bounced subscriber
+      // arise-ignore unbatched-writes -- re-activation path; inner user UPDATE non-critical (early-return follows)
       await env.DB.prepare(
         "UPDATE newsletter_subscriber SET status = 'active', unsubscribed_at = NULL, bounce_count = 0 WHERE id = ?"
       ).bind(existing.id).run();

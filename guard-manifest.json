@@ -103,7 +103,7 @@
       "note": "CAN-SPAM unsubscribe (status update)"
     },
     "functions/api/newsletter/subscribe.js": {
-      "hash": "6107315de925a58d56c9a781468de881b4dd077e290cc440c65e956c6bbc85cc",
+      "hash": "881e2c05126631782eea42f54c6e2831a84cf5bab9c97e4497d517f1b06924f2",
       "note": "Public newsletter intake (rate-limited)"
     },
     "functions/api/search/semantic.js": {
@@ -159,7 +159,7 @@
       "note": "R2 image upload (file validation)"
     },
     "functions/api/pdf/request.js": {
-      "hash": "029bb0f80fe9b874687bd58be7fab776f8a74f77c19b94815a265f126ab5f016",
+      "hash": "896f1f5255b6d2aea00b3301a49c51aff081785d4b0a827b078b4b3e904fffb1",
       "note": "PDF magic-link token generation"
     },
     "functions/api/pdf/redeem.js": {
