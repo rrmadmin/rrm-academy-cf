@@ -311,12 +311,26 @@ git commit -m "feat: add mobile bottom nav, drawer, and sheet CSS"
 // Responsibilities (per spec §Component boundaries):
 //   - Emit <main class="app-shell-main"> directly (BaseLayout chrome="shell" omits its <main>)
 //   - Render desktop sidebar (above 900px), mobile bottom nav (≤900px), hamburger drawer
-//   - Always emit <aside class="app-shell-middle-column"> in static HTML; visibility class-gated
+//   - Middle column DOM is emitted ONLY on article pages (`context === 'article'`).
+//     Index and saved pages omit the <aside class="app-shell-middle-column"> entirely.
+//     The G-SEO-6 grep (Task 30 step 6) reflects this — it filters to article paths
+//     only. Do NOT switch to always-emit; doing so would carry an empty aside on
+//     index/saved and break the G-SEO-6 grep semantics.
 //   - Pre-paint inline script: read sessionStorage.rrm-shell-context, add .shell-no-context if absent
 //   - Card-click writer: capture intent, commit on pagehide
 //   - Theme toggle handler: shared __rrmThemeToggle__() IIFE
 //
 // All sessionStorage access wrapped in try/catch (per spec §Data flow).
+//
+// SCRIPT ORDERING CONTRACT (do not break):
+//   AppShellChrome's pre-paint inline script defines `window.__rrmGetShellContext__`
+//   (Task 9). AppShellSheet's mount script (Task 14) reads it. Both scripts are
+//   `<script is:inline>` and rely on document order — AppShellChrome MUST execute
+//   before AppShellSheet. Astro emits components in the order they're rendered,
+//   and every wrap task (21, 25) renders <AppShellChrome> wrapping the page,
+//   with <AppShellSheet> as a sibling AFTER it. Do not reorder these components
+//   in any wrap task or AppShellSheet will see `window.__rrmGetShellContext__`
+//   as undefined and silently no-op.
 
 // Frontmatter import emits app-shell.css as a global stylesheet — matches the
 // canonical pattern used by BaseLayout.astro (line 8: `import '../styles/global.css'`).
@@ -383,7 +397,10 @@ const inSaved = currentPath === '/library/saved' || currentPath === '/library/sa
     <slot />
   </main>
 
-  <!-- Always emit middle column DOM; visibility class-gated by .shell-no-context (spec §No-context CSS gate) -->
+  <!-- Middle column: emitted ONLY on article pages (`context === 'article'`).
+       Visibility on article pages is class-gated by .shell-no-context (spec
+       §No-context CSS gate). G-SEO-6 grep (Task 30 step 6) filters to article
+       paths only — do NOT switch to always-emit. -->
   {context === 'article' && (
     <aside class="app-shell-middle-column" data-pagefind-ignore="all" aria-label="In this index">
       <div class="app-shell-middle-column__inner">
@@ -433,6 +450,15 @@ git commit -m "feat: add AppShellChrome skeleton (markup, no behavior)"
 // Native <dialog> with focus trap, ::backdrop, ESC-to-close.
 // Feature-detected at mount; if 'showModal' absent (iOS 14-17, older Android),
 // adds .shell-no-sheet to <html> to hide peek bar entirely.
+//
+// SCRIPT ORDERING CONTRACT (do not break):
+//   This component's mount script (Task 14) reads `window.__rrmGetShellContext__`
+//   which is defined by AppShellChrome's pre-paint inline script (Task 9).
+//   Both are `<script is:inline>` and rely on document order — AppShellChrome
+//   MUST be rendered before AppShellSheet in every wrap task (21, 25). If you
+//   reorder them, AppShellSheet sees `__rrmGetShellContext__` as undefined and
+//   the sheet silently no-ops. See AppShellChrome.astro frontmatter for the
+//   full contract.
 ---
 
 <button type="button" class="app-shell-sheet-peek" aria-controls="app-shell-sheet" aria-expanded="false" hidden>
@@ -749,27 +775,57 @@ Append to `src/components/AppShellChrome.astro` (after the `<style>` block):
       if (!c || typeof c !== 'object') return false;
       if (!ALLOWED_SOURCES[c.source]) return false;
       if (typeof c.label !== 'string' || c.label.length > 200) return false;
+      // Reject control chars (NULL bytes, RTL/LTR overrides, zero-width joiners,
+      // bidi-control codepoints). Adversarial labels of pure whitespace render
+      // as a phantom-tall heading even when textContent neutralizes XSS.
+      if (/[\x00-\x1f\x7f​-‏ - ⁦-⁩]/.test(c.label)) return false;
       if (typeof c.returnUrl !== 'string' || c.returnUrl.length > 500) return false;
-      if (c.returnUrl[0] !== '/' || c.returnUrl[1] === '/') return false;
+      // Strict path-absolute. Reject leading // or /\, any scheme, control chars,
+      // and ASCII whitespace prefixes that some browsers normalize to
+      // protocol-relative URLs.
+      if (c.returnUrl[0] !== '/') return false;
+      if (c.returnUrl[1] === '/' || c.returnUrl[1] === '\\') return false;
       if (c.returnUrl.indexOf('://') !== -1) return false;
       if (c.returnUrl.indexOf('javascript:') === 0 || c.returnUrl.indexOf('data:') === 0) return false;
+      if (/[\x00-\x20\x7f]/.test(c.returnUrl)) return false;
       if (!Array.isArray(c.slugs) || c.slugs.length === 0 || c.slugs.length > 500) return false;
       // Filter (don't reject) bad entries: spec §Validator says "entries failing
       // the regex are dropped; if length drops to 0 after filtering, return null."
+      // Track original indices so a parallel titles[] sync stays aligned.
       var filtered = [];
+      var filteredIdx = [];
       for (var i = 0; i < c.slugs.length; i++) {
-        if (typeof c.slugs[i] === 'string' && SLUG_RE.test(c.slugs[i])) filtered.push(c.slugs[i]);
+        if (typeof c.slugs[i] === 'string' && SLUG_RE.test(c.slugs[i])) {
+          filtered.push(c.slugs[i]);
+          filteredIdx.push(i);
+        }
       }
       if (filtered.length === 0) return false;
-      c.slugs = filtered; // mutate accepted shape
+      // Dedupe slugs preserving order; sync titles to the kept indices in lockstep
+      // so adversarial sessionStorage like slugs:["a","a","a"] doesn't render dupes.
+      var hasTitles = Array.isArray(c.titles);
+      var seen = Object.create(null);
+      var uniqueSlugs = [];
+      var uniqueTitles = [];
+      for (var j = 0; j < filtered.length; j++) {
+        if (!seen[filtered[j]]) {
+          seen[filtered[j]] = 1;
+          uniqueSlugs.push(filtered[j]);
+          if (hasTitles) uniqueTitles.push(c.titles[filteredIdx[j]] || '');
+        }
+      }
+      if (uniqueSlugs.length === 0) return false;
+      c.slugs = uniqueSlugs; // mutate accepted shape
       if (typeof c.writtenAt !== 'number' || !isFinite(c.writtenAt) || c.writtenAt <= 0) return false;
       // Titles array (optional) — must parallel slugs[] when present. Tolerate
       // absence (legacy clients / writers that didn't capture titles), but
       // drop any malformed shape rather than partial-render with wrong indices.
       if (c.titles !== undefined) {
-        if (!Array.isArray(c.titles) || c.titles.length !== c.slugs.length) {
+        if (!hasTitles) {
           c.titles = [];
         } else {
+          // Replace with the lockstep-deduped titles[] built above.
+          c.titles = uniqueTitles;
           for (var t = 0; t < c.titles.length; t++) {
             if (typeof c.titles[t] !== 'string') c.titles[t] = '';
             if (c.titles[t].length > 300) c.titles[t] = c.titles[t].slice(0, 300);
@@ -1005,6 +1061,8 @@ Append to AppShellChrome's `<script is:inline>`:
 
 ```javascript
 // Theme toggle: shared handler so sidebar + drawer toggles operate identically.
+// Header.astro / Footer.astro use the View Transitions API for the theme animation;
+// mirror that here so the visual feel is consistent across shell + non-shell pages.
 window.__rrmThemeToggle__ = (function() {
   var lastClick = 0;
   return function() {
@@ -1013,13 +1071,28 @@ window.__rrmThemeToggle__ = (function() {
     lastClick = now;
     var current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
     var next = current === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    try { localStorage.setItem('rrm_theme', next); } catch (e) {}
+    var apply = function () {
+      document.documentElement.setAttribute('data-theme', next);
+      try { localStorage.setItem('rrm_theme', next); } catch (e) {}
+    };
+    if (typeof document.startViewTransition === 'function') {
+      document.startViewTransition(apply);
+    } else {
+      apply();
+    }
   };
 })();
 
 document.querySelectorAll('[data-theme-toggle]').forEach(function (btn) {
   btn.addEventListener('click', window.__rrmThemeToggle__);
+});
+
+// Cross-tab sync: when another tab writes rrm_theme, mirror the change here so
+// open shell + non-shell tabs stay in lockstep without requiring a reload.
+window.addEventListener('storage', function (e) {
+  if (e.key !== 'rrm_theme') return;
+  var theme = e.newValue === 'dark' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', theme);
 });
 ```
 
@@ -1049,7 +1122,9 @@ In AppShellChrome.astro, after the bottom nav `</nav>`, add:
 
 ```astro
   <!-- Mobile hamburger drawer (mirrors sidebar contents) -->
-  <button type="button" class="app-shell-drawer-toggle" aria-controls="app-shell-drawer" aria-expanded="false" aria-label="Open menu">☰</button>
+  <!-- data-pagefind-ignore on the toggle so the "☰" glyph never lands in the
+       Pagefind index and surfaces in autocomplete. -->
+  <button type="button" class="app-shell-drawer-toggle" aria-controls="app-shell-drawer" aria-expanded="false" aria-label="Open menu" data-pagefind-ignore="all">☰</button>
   <aside id="app-shell-drawer" class="app-shell-drawer" data-pagefind-ignore="all" aria-label="Mobile navigation">
     <button type="button" class="app-shell-drawer__close" aria-label="Close menu">×</button>
     <!-- duplicate sidebar nav contents here, OR factor into shared partial.
@@ -1095,10 +1170,17 @@ Append to script block:
   function open() {
     drawer.dataset.open = 'true';
     toggle.setAttribute('aria-expanded', 'true');
+    // Move focus into drawer (first focusable child) so screen-readers / keyboard
+    // users land inside the menu. v1 ships without a full focus trap; track
+    // "drawer focus trap" as a v2 backlog candidate.
+    var firstFocusable = drawer.querySelector('a, button');
+    if (firstFocusable) firstFocusable.focus();
   }
   function close() {
     drawer.dataset.open = 'false';
     toggle.setAttribute('aria-expanded', 'false');
+    // Restore focus to the trigger so keyboard users return to a known anchor.
+    toggle.focus();
   }
   toggle.addEventListener('click', open);
   if (closeBtn) closeBtn.addEventListener('click', close);
@@ -1163,6 +1245,13 @@ Append to AppShellSheet.astro:
       document.documentElement.classList.add('shell-no-sheet');
       return; // Bare-minimum degradation: peek bar hidden, sheet does not mount.
     }
+
+    // Defense-in-depth: only mount the sheet on article pages. AppShellSheet
+    // is rendered solely by article wrap tasks (21, 25), but if a future
+    // engineer accidentally drops <AppShellSheet /> onto an index/saved page,
+    // the sheet would otherwise hydrate from whatever is in sessionStorage.
+    var rootDiv = document.querySelector('.app-shell-layout[data-shell-context]');
+    if (!rootDiv || rootDiv.dataset.shellContext !== 'article') return;
 
     var sheet = document.getElementById('app-shell-sheet');
     var peek = document.querySelector('.app-shell-sheet-peek');
@@ -1432,7 +1521,31 @@ a.addEventListener('pointerdown', function (e) {
 
 `currentQuery` is the existing IIFE-scoped variable — the listener closes over it because it lives inside the same IIFE. No rename needed.
 
-- [ ] **Step 3: guard:update for SearchBar**
+- [ ] **Step 3: Smoke-test in dev BEFORE running `guard:update`**
+
+`guard:update` rebakes the SearchBar hash. If your edits broke something — wrong
+`currentQuery` reference, missed `renderResult` hook, misplaced
+`pendingSearchContext` declaration — the broken hash gets baked and
+`npm run guard` will pass on a broken file. Catch it now:
+
+```bash
+PUBLIC_SHELL_ROUTES=commentary,library npm run dev
+```
+
+In a browser:
+1. Navigate to `/library/`.
+2. Type into the search box; click a result.
+3. On the article page, open DevTools console:
+   ```javascript
+   JSON.parse(sessionStorage.getItem('rrm-shell-context'))
+   ```
+4. Expected: object with `source: 'search'`, `slugs[]` length ≥1, `label` starts with `Search · "...`.
+5. If `null` or wrong source, your SearchBar modification is broken. Do NOT run
+   `guard:update` and do NOT commit. Revert your edits and re-apply Step 2 carefully.
+
+- [ ] **Step 4: guard:update for SearchBar**
+
+Only run after Step 3 confirmed the writer works.
 
 Run: `npm run guard:update`
 Expected: rebakes SearchBar's hash in guard-manifest.json.
@@ -1440,17 +1553,17 @@ Expected: rebakes SearchBar's hash in guard-manifest.json.
 Run: `npm run guard`
 Expected: exits 0.
 
-- [ ] **Step 4: Verify security invariants**
+- [ ] **Step 5: Verify security invariants**
 
 SearchBar is guarded for: `Access-Control-Allow-Origin`, no err.message leaks, no naked external fetches.
 Run: `grep -n "Access-Control-Allow-Origin\|console.error\|fetch(" src/components/SearchBar.astro | head -10`
 Expected: no new external fetches without try/catch; no `err.message` returned to user; CORS unchanged.
 
-- [ ] **Step 5: Test**
+- [ ] **Step 6: Final integration test**
 
 Dev server. Navigate to `/library/`. Use search box. Click a result. Article page loads. Sheet/middle column shows search results context.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
 git add src/components/SearchBar.astro guard-manifest.json
@@ -2111,8 +2224,14 @@ const LOCAL_BASE_URL = 'http://localhost:4321';
 
 const SHELL_ROUTES = process.env.PUBLIC_SHELL_ROUTES || 'commentary,library';
 
+// All app-shell describe blocks pin browserName: 'chromium' explicitly. The
+// project's playwright.config.js declares only chromium today; pinning here
+// keeps the suite robust if a future config adds a webkit project (storage-race
+// behaviors differ between engines).
+// v2 backlog: add a webkit project to playwright.config.js and re-run app-shell
+// tests on Safari for storage-race coverage of pagehide writes.
 test.describe('App shell — desktop (1440x900)', () => {
-  test.use({ baseURL: LOCAL_BASE_URL, viewport: { width: 1440, height: 900 } });
+  test.use({ baseURL: LOCAL_BASE_URL, viewport: { width: 1440, height: 900 }, browserName: 'chromium' });
 
   test('library index has sidebar, no middle column on cold land', async ({ page }) => {
     await page.goto('/library/');
@@ -2182,7 +2301,7 @@ git commit -m "test: Playwright E2E for desktop shell behaviors"
 
 ```typescript
 test.describe('App shell — mobile (375x812)', () => {
-  test.use({ baseURL: LOCAL_BASE_URL, viewport: { width: 375, height: 812 } });
+  test.use({ baseURL: LOCAL_BASE_URL, viewport: { width: 375, height: 812 }, browserName: 'chromium' });
 
   test('mobile bottom nav visible, sidebar hidden', async ({ page }) => {
     await page.goto('/library/');
@@ -2239,12 +2358,22 @@ git commit -m "test: Playwright E2E for mobile shell behaviors"
 - [ ] **Step 1: Append**
 
 ```typescript
+import { readFileSync } from 'node:fs';
+
+// Read the first published library slug at test-load time so the suite never
+// hardcodes an article that might be retracted, renamed, or replaced. Reading
+// articles.json keeps the test resilient to data churn — failure here means
+// "no library data was fetched" not "redwine-excision-2012 changed slugs".
+const FIRST_LIBRARY_SLUG = JSON.parse(
+  readFileSync('src/data/articles.json', 'utf8')
+)[0].slug;
+
 test.describe('App shell — cold landing + adversarial', () => {
-  test.use({ baseURL: LOCAL_BASE_URL });
+  test.use({ baseURL: LOCAL_BASE_URL, browserName: 'chromium' });
 
   test('cold landing on article = full-width (no middle column visible)', async ({ page }) => {
     // Direct navigate, no sessionStorage.
-    await page.goto('/library/redwine-excision-2012/'); // adjust slug
+    await page.goto(`/library/${FIRST_LIBRARY_SLUG}/`);
     await expect(page.locator('html')).toHaveClass(/shell-no-context/);
     await expect(page.locator('.app-shell-middle-column')).not.toBeVisible();
   });
@@ -2281,7 +2410,7 @@ test.describe('App shell — cold landing + adversarial', () => {
 });
 
 test.describe('App shell — no-JS fallback', () => {
-  test.use({ baseURL: LOCAL_BASE_URL, javaScriptEnabled: false });
+  test.use({ baseURL: LOCAL_BASE_URL, javaScriptEnabled: false, browserName: 'chromium' });
 
   test('sidebar renders without JS, theme toggle inert', async ({ page }) => {
     await page.goto('/library/');
@@ -2562,13 +2691,18 @@ Run: `gh variable set PUBLIC_SHELL_ROUTES --body "commentary,library"`
 Run: `gh workflow run deploy.yml`
 
 - [ ] **Step 6: Smoke library**
+
+Pull the first published library slug at runtime so this smoke never depends on
+a specific article's URL surviving (retraction, slug rename, etc.):
+
 ```bash
+SLUG=$(node -e "console.log(JSON.parse(require('fs').readFileSync('src/data/articles.json','utf8'))[0].slug)")
 curl --fail --silent --show-error --max-time 10 --retry 3 --retry-delay 2 \
   -H 'Cache-Control: no-cache' \
   "https://rrmacademy.org/library/?_t=$(date +%s)" | grep -c 'app-shell-nav'
 curl --fail --silent --show-error --max-time 10 --retry 3 --retry-delay 2 \
   -H 'Cache-Control: no-cache' \
-  "https://rrmacademy.org/library/redwine-excision-2012/?_t=$(date +%s)" | grep -c 'app-shell-middle-column'
+  "https://rrmacademy.org/library/$SLUG/?_t=$(date +%s)" | grep -c 'app-shell-middle-column'
 ```
 Expected: both ≥1.
 
@@ -2609,6 +2743,39 @@ Run the existing `/ai-surface-check` skill against rrmacademy.org. All 13 surfac
 git tag -a "library-app-shell-v1" -m "Library + commentary app shell live in production"
 git push origin "library-app-shell-v1"
 ```
+
+---
+
+### Task 33.5: Post-ship `/arise` sweep on the new components
+
+**Files:**
+- (review only — fixes from this sweep land as follow-up commits)
+
+After the production tag, run `/arise` against the components and CI scripts
+this plan introduced. The plan was reviewed end-to-end before ship, but `/arise`
+catches recurring bug patterns at the file-level granularity that plan review
+cannot — sibling divergence, missing CASCADE child cleanup, control-flow holes
+in IIFEs, etc.
+
+- [ ] **Step 1: Run `/arise` against the new surface area**
+
+Files to scan:
+- `src/components/AppShellChrome.astro`
+- `src/components/AppShellSheet.astro`
+- `src/lib/shell-routes.ts`
+- `scripts/check-canonical-lockdown.mjs`
+
+- [ ] **Step 2: Triage findings**
+
+Address every TIER-A and TIER-B finding before declaring the project complete.
+TIER-C findings can be batched into the post-ship `/arise` cleanup queue per
+CLAUDE.md QA gates. Use `/arise-squash-smoke` between deploys when a finding
+forces a worker change.
+
+- [ ] **Step 3: Re-tag if a follow-up commit lands**
+
+If TIER-A/B fixes ship after the v1 tag, advance to `library-app-shell-v1.1`
+to keep the production tag aligned with the deployed state.
 
 ---
 
