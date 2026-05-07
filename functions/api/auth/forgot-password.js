@@ -26,9 +26,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const email = (body.email || '').normalize('NFC').trim().toLowerCase();
     if (!isValidEmail(email)) return json({ ok: false, error: 'Valid email is required.' }, 400);
 
-    // Rate limit by IP (before expensive DNS lookups)
+    // Rate limit by IP (before expensive DNS lookups): 5 attempts per 15 minutes
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-    if (!checkRateLimit(`forgot:${ip}`)) {
+    if (!await checkRateLimit(env, `forgot:${ip}`, 5, 900)) {
       return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
     }
 

@@ -21,7 +21,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const session = await validateSession(db, sessionId);
     if (!session) return json({ ok: false, error: 'Not authenticated.' }, 401);
 
-    if (!checkRateLimit(`verify:${session.userId}`)) {
+    if (!await checkRateLimit(env, `verify:${session.userId}`, 5, 900)) {
       return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
     }
 

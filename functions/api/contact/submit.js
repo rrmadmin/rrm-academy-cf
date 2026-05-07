@@ -57,7 +57,7 @@ export async function onRequestPost(context) {
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
 
     // Rate limit by IP
-    if (!checkRateLimit(`contact:${ip}`)) {
+    if (!await checkRateLimit(env, `contact:${ip}`, 5, 900)) {
       return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
     }
 

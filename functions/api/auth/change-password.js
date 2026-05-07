@@ -24,7 +24,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const session = await validateSession(db, sessionId);
     if (!session) return json({ ok: false, error: 'Not logged in.' }, 401);
 
-    if (!checkRateLimit(`change-pw:${session.userId}`)) {
+    if (!await checkRateLimit(env, `change-pw:${session.userId}`, 5, 900)) {
       return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
     }
 

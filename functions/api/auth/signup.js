@@ -119,9 +119,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     if (!isValidPassword(password)) return json({ ok: false, error: 'Password must be at least 8 characters.' }, 400);
 
-    // Rate limit by IP (before expensive DNS lookups)
+    // Rate limit by IP (before expensive DNS lookups): 5 attempts per 15 minutes
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-    if (!checkRateLimit(`signup:${ip}`)) {
+    if (!await checkRateLimit(env, `signup:${ip}`, 5, 900)) {
       return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
     }
 
