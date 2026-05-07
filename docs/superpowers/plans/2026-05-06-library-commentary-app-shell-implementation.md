@@ -325,10 +325,15 @@ git commit -m "feat: add mobile bottom nav, drawer, and sheet CSS"
 // paths do not resolve in production builds.
 import '../styles/app-shell.css';
 
+// AppShellChrome runs INSIDE BaseLayout's slot. The `<body>` element belongs
+// to BaseLayout (`<body class:list={[bodyClass]}>` around line 267), so this
+// component cannot influence body classes from inside the slot. bodyClass is
+// owned by BaseLayout — pass it there, not here. Adding `bodyClass` to this
+// Props interface would create an inert prop that pages might pass and
+// silently lose. Don't.
 interface Props {
   context: 'index' | 'article' | 'saved';
   currentPath: string;
-  bodyClass?: string;
 }
 
 const { context, currentPath } = Astro.props;
@@ -668,23 +673,23 @@ The Task 10 writer queries `[data-article-card], [data-blog-card]` and reads `ca
 
 - [ ] **Step 1: Add hooks to ArticleCard.astro**
 
-Open `src/components/ArticleCard.astro`. Find the root `<article class="article-card">` element (around lines 53-94). Add two attributes:
+Open `src/components/ArticleCard.astro`. Find the root `<article class="article-card">` element (around lines 53-94). Add three attributes:
 
 ```astro
-<article class="article-card" data-article-card data-slug={article.slug}>
+<article class="article-card" data-article-card data-slug={article.slug} data-title={article.title}>
 ```
 
-Do NOT change any other markup or CSS — only add the two attributes.
+`data-title` is consumed by the Task 10 writer to populate `ctx.titles[]` so middle-column / sheet sibling links render the real article title (Task 11 + Task 14 hydration), not the slug-with-dashes-replaced placeholder. Do NOT change any other markup or CSS — only add the three attributes.
 
 - [ ] **Step 2: Add hooks to BlogCard.astro**
 
 Open `src/components/BlogCard.astro`. Find the root `<article>` element. Add:
 
 ```astro
-<article class="blog-card" data-blog-card data-slug={post.slug}>
+<article class="blog-card" data-blog-card data-slug={post.slug} data-title={post.title}>
 ```
 
-(Adjust the existing class list to whatever is already present — only add the two `data-*` attributes.)
+(Adjust the existing class list to whatever is already present — only add the three `data-*` attributes.)
 
 - [ ] **Step 3: Verify**
 
@@ -692,6 +697,7 @@ Open `src/components/BlogCard.astro`. Find the root `<article>` element. Add:
 grep -c 'data-article-card' src/components/ArticleCard.astro
 grep -c 'data-blog-card' src/components/BlogCard.astro
 grep -c 'data-slug=' src/components/ArticleCard.astro src/components/BlogCard.astro
+grep -c 'data-title=' src/components/ArticleCard.astro src/components/BlogCard.astro
 ```
 Expected: each ≥1.
 
@@ -710,6 +716,14 @@ git commit -m "feat: add data-article-card / data-blog-card + data-slug hooks (p
 ---
 
 ## Phase 3 — AppShellChrome behaviors (writer, validator, theme toggle)
+
+> **Throughout Phases 3-5, run the dev server with PUBLIC_SHELL_ROUTES set:**
+>
+> ```bash
+> PUBLIC_SHELL_ROUTES=commentary,library npm run dev
+> ```
+>
+> Without this, AppShellChrome wraps nothing and the "Test in dev" steps in Tasks 9-16 cannot exercise shell behavior. Persist this env across terminal sessions for the duration of Phases 3-5. Note: Tasks 9-15 also require Tasks 20-26 (page wraps) to have committed first — the dev server can render shell only when at least one page is wrapped. Recommend completing Tasks 20-22 (commentary wraps) BEFORE running the Tasks 9-15 dev tests, OR running the dev tests after the full implementation is local-committed.
 
 ### Task 9: Add pre-paint inline script + getShellContext() helper
 
@@ -749,7 +763,29 @@ Append to `src/components/AppShellChrome.astro` (after the `<style>` block):
       if (filtered.length === 0) return false;
       c.slugs = filtered; // mutate accepted shape
       if (typeof c.writtenAt !== 'number' || !isFinite(c.writtenAt) || c.writtenAt <= 0) return false;
-      if (c.filters && (typeof c.filters !== 'object' || Array.isArray(c.filters))) return false;
+      // Titles array (optional) — must parallel slugs[] when present. Tolerate
+      // absence (legacy clients / writers that didn't capture titles), but
+      // drop any malformed shape rather than partial-render with wrong indices.
+      if (c.titles !== undefined) {
+        if (!Array.isArray(c.titles) || c.titles.length !== c.slugs.length) {
+          c.titles = [];
+        } else {
+          for (var t = 0; t < c.titles.length; t++) {
+            if (typeof c.titles[t] !== 'string') c.titles[t] = '';
+            if (c.titles[t].length > 300) c.titles[t] = c.titles[t].slice(0, 300);
+          }
+        }
+      }
+      // Filters: must be a plain object (not array, not null) AND every key/
+      // value pair must be string-string. Spec line 178: "all keys and values
+      // are strings. Reject nested objects, arrays, null values."
+      if (c.filters) {
+        if (typeof c.filters !== 'object' || Array.isArray(c.filters)) return false;
+        for (var k in c.filters) {
+          if (!Object.prototype.hasOwnProperty.call(c.filters, k)) continue;
+          if (typeof k !== 'string' || typeof c.filters[k] !== 'string') return false;
+        }
+      }
       return true;
     }
 
@@ -813,15 +849,22 @@ if (document.documentElement.dataset.shellContext === 'index') {
     function captureFromCards() {
       var cards = document.querySelectorAll('[data-article-card], [data-blog-card]');
       var slugs = [];
+      var titles = [];
       cards.forEach(function (card) {
         var slug = card.dataset.slug;
-        if (slug && /^[a-z0-9][a-z0-9-]{0,250}$/.test(slug)) slugs.push(slug);
+        var title = card.dataset.title || '';
+        if (slug && /^[a-z0-9][a-z0-9-]{0,250}$/.test(slug)) {
+          slugs.push(slug);
+          titles.push(title);
+        }
       });
-      return slugs;
+      return { slugs: slugs, titles: titles };
     }
 
     // Always overwrite stale context on every index DOMContentLoaded (spec §Storage write robustness).
-    var visibleSlugs = captureFromCards();
+    var captured = captureFromCards();
+    var visibleSlugs = captured.slugs;
+    var visibleTitles = captured.titles;
     if (visibleSlugs.length === 0) {
       // Empty filter / zero results: clear stale context.
       try { sessionStorage.removeItem('rrm-shell-context'); } catch (e) {}
@@ -839,6 +882,7 @@ if (document.documentElement.dataset.shellContext === 'index') {
         source: source,
         label: label,
         slugs: visibleSlugs.slice(0, 500),
+        titles: visibleTitles.slice(0, 500),
         returnUrl: url.pathname + url.search,
         filters: filters,
         writtenAt: Date.now()
@@ -920,11 +964,14 @@ Append to AppShellChrome's `<script is:inline>`:
   var currentSlug = location.pathname.replace(/^\/(library|commentary)\//, '').replace(/\/$/, '');
   var basePath = ctx.source === 'commentary' ? '/commentary/' : '/library/';
 
-  ctx.slugs.forEach(function (slug) {
+  ctx.slugs.forEach(function (slug, i) {
     var li = document.createElement('li');
     var a = document.createElement('a');
     a.href = basePath + slug + '/';
-    a.textContent = slug.replace(/-/g, ' '); // basic readable; can be enriched in v2
+    // Prefer real title captured by the Task 10 writer (data-title on cards);
+    // fall back to slug-replace only when the title is missing/empty.
+    var label = (ctx.titles && ctx.titles[i]) || slug.replace(/-/g, ' ');
+    a.textContent = label;
     if (slug === currentSlug) a.setAttribute('aria-current', 'page');
     li.appendChild(a);
     list.appendChild(li);
@@ -1012,19 +1059,19 @@ In AppShellChrome.astro, after the bottom nav `</nav>`, add:
          even though it exits the shell — shared listener semantics. -->
     <div class="app-shell-nav__section">
       <div class="app-shell-nav__heading">Reading</div>
-      <a href="/library/" data-clear-shell-context>Research Library</a>
-      <a href="/commentary/" data-clear-shell-context>Commentary</a>
-      <a href="/library/saved/" data-clear-shell-context>Saved Articles</a>
+      <a href="/library/" class="app-shell-nav__link" data-clear-shell-context>Research Library</a>
+      <a href="/commentary/" class="app-shell-nav__link" data-clear-shell-context>Commentary</a>
+      <a href="/library/saved/" class="app-shell-nav__link" data-clear-shell-context>Saved Articles</a>
     </div>
     <div class="app-shell-nav__section">
       <div class="app-shell-nav__heading">Explore</div>
-      <a href="/guides/" data-clear-shell-context>Guides</a>
-      <a href="/faqs/" data-clear-shell-context>FAQs</a>
-      <a href="/courses/" data-clear-shell-context>Courses</a>
-      <a href="/community/" data-clear-shell-context>Community</a>
+      <a href="/guides/" class="app-shell-nav__link" data-clear-shell-context>Guides</a>
+      <a href="/faqs/" class="app-shell-nav__link" data-clear-shell-context>FAQs</a>
+      <a href="/courses/" class="app-shell-nav__link" data-clear-shell-context>Courses</a>
+      <a href="/community/" class="app-shell-nav__link" data-clear-shell-context>Community</a>
     </div>
     <a href="/donate/" class="app-shell-nav__cta" data-clear-shell-context>Donate</a>
-    <a href="/account/" data-clear-shell-context>Account</a>
+    <a href="/account/" class="app-shell-nav__link" data-clear-shell-context>Account</a>
     <button type="button" class="app-shell-nav__theme-toggle" aria-label="Toggle theme" data-theme-toggle>
       <span class="icon-moon" aria-hidden="true">🌙</span>
       <span class="icon-sun" aria-hidden="true">☀️</span>
@@ -1056,7 +1103,29 @@ Append to script block:
   toggle.addEventListener('click', open);
   if (closeBtn) closeBtn.addEventListener('click', close);
   if (overlay) overlay.addEventListener('click', close);
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+
+  // ESC handler scoped to drawer-only. The sheet `<dialog>` closes natively
+  // on ESC; if both fire on one keypress, you get focus loss + double state
+  // change. Bail out when drawer isn't open OR when sheet is open (sheet
+  // takes precedence). stopPropagation prevents downstream listeners from
+  // also reacting to a drawer-handled ESC.
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    if (drawer.dataset.open !== 'true') return;
+    var sheetEl = document.getElementById('app-shell-sheet');
+    if (sheetEl && sheetEl.open) return;
+    close();
+    e.stopPropagation();
+  });
+
+  // bfcache restore: iOS Safari (and other bfcache-enabled UAs) revives the
+  // page DOM verbatim after back-nav. If drawer was open at navigation time,
+  // it stays `data-open="true"` after restore — feels like a stuck UI. Force
+  // closed on every bfcache hit. (e.persisted is true only for bfcache; cold
+  // loads fall through unchanged.)
+  window.addEventListener('pageshow', function (e) {
+    if (e.persisted) close();
+  });
 })();
 ```
 
@@ -1111,11 +1180,14 @@ Append to AppShellSheet.astro:
     if (list) {
       var basePath = ctx.source === 'commentary' ? '/commentary/' : '/library/';
       var currentSlug = location.pathname.replace(/^\/(library|commentary)\//, '').replace(/\/$/, '');
-      ctx.slugs.forEach(function (slug) {
+      ctx.slugs.forEach(function (slug, i) {
         var li = document.createElement('li');
         var a = document.createElement('a');
         a.href = basePath + slug + '/';
-        a.textContent = slug.replace(/-/g, ' ');
+        // Prefer real title from ctx.titles[i] (Task 10 writer captures it
+        // from card data-title); slug-replace is the fallback path only.
+        var label = (ctx.titles && ctx.titles[i]) || slug.replace(/-/g, ' ');
+        a.textContent = label;
         if (slug === currentSlug) a.setAttribute('aria-current', 'page');
         li.appendChild(a);
         list.appendChild(li);
@@ -1187,6 +1259,19 @@ var startY = null;
 var startState = null;
 var savedScrollY = 0;
 
+// Idempotent body-lock restore — only acts if the lock was applied. Used by both
+// pointerup (when snapped to hidden) and pointercancel (iOS notification-center
+// preempt). NEVER call without first checking position === 'fixed'; otherwise
+// a stray pointercancel without a matching pointerdown would clobber unrelated
+// inline styles.
+function restoreScroll() {
+  if (document.body.style.position !== 'fixed') return;
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.width = '';
+  window.scrollTo({ top: savedScrollY, behavior: 'instant' });
+}
+
 if (grip) {
   grip.addEventListener('pointerdown', function (e) {
     if (!e.target.closest('.app-shell-sheet__grip')) return;
@@ -1194,8 +1279,11 @@ if (grip) {
     startState = sheet.dataset.state;
     // setPointerCapture throws if pointerId is invalid or element detached.
     try { grip.setPointerCapture(e.pointerId); } catch (err) { /* non-fatal */ }
-    // Body scroll lock (rAF-gated for momentum-safety).
+    // Body scroll lock (rAF-gated for momentum-safety). Idempotent — if a
+    // previous drag's restore was preempted (e.g. crash mid-pointermove), do
+    // not re-apply on top of an already-locked body.
     requestAnimationFrame(function () {
+      if (document.body.style.position === 'fixed') return;
       savedScrollY = window.scrollY;
       document.body.style.position = 'fixed';
       document.body.style.top = '-' + savedScrollY + 'px';
@@ -1232,12 +1320,19 @@ if (grip) {
     startY = null;
     if (nextState === 'hidden') {
       sheet.close();
-      // Restore scroll.
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
-      window.scrollTo({ top: savedScrollY, behavior: 'instant' });
+      // Restore scroll via shared idempotent helper.
+      restoreScroll();
     }
+  });
+
+  // iOS notification pull-down (and other system gestures) preempt mid-drag
+  // with `pointercancel`, NOT `pointerup`. Without this handler, the body-lock
+  // styles stay applied — subsequent drags compound the lock and the page
+  // jumps when finally restored. Mirrors pointerup's restore branch.
+  grip.addEventListener('pointercancel', function () {
+    startY = null;
+    sheet.style.removeProperty('--current-y');
+    restoreScroll();
   });
 }
 ```
@@ -1271,41 +1366,67 @@ Expected: identifies where Pagefind results are rendered and bound.
 
 - [ ] **Step 2: Add a click listener that writes context with source='search'**
 
-Insert this code INSIDE SearchBar's main IIFE — the one that wraps the entire client script and contains `var currentQuery = '';` (around line 301; closing `})()` at line ~759). The listener is added inside `renderResult()` so each rendered `<a>` element gets it at creation time. SearchBar's local variable for the rendered anchor is `a` (NOT `resultLink`); use `a.addEventListener(...)` when applying. Do NOT append the handler below `})()` — that scope cannot see `currentQuery`.
+Insert this code INSIDE SearchBar's main IIFE — the one that wraps the entire client script and contains `var currentQuery = '';` (around line 301; closing `})()` at line ~759). The pagehide commit listener is registered ONCE at the top of the IIFE, alongside other top-level vars. The pointerdown listener inside `renderResult()` only updates the shared `pendingSearchContext` closure variable — it does NOT register its own pagehide listener. (Mirrors the Task 10 writer pattern: register-once, mutate-pending. Per-pointerdown registration with `{ once: true }` leaks listeners across multi-pointerdown sessions because each fresh pointerdown adds another listener that only cleans itself up if pagehide fires.)
+
+SearchBar's local variable for the rendered anchor is `a` (NOT `resultLink`); use `a.addEventListener(...)` when applying. Do NOT append the handler below `})()` — that scope cannot see `currentQuery` or `pendingSearchContext`.
 
 Late-merged semantic results (the `semanticPromise.then` path around line 609 in SearchBar.astro) push entries with absolute `lr.url` values without `toRelative()` normalization. Use `new URL(href, location.origin)` to normalize relative AND absolute URLs uniformly — a regex anchored on `^/` would silently drop the absolute ones.
 
+**Top of IIFE (alongside `var currentQuery = '';`):**
+
+```javascript
+// Shared mutable context written by per-result pointerdown handlers and
+// committed once on pagehide. Single-listener pattern avoids the per-click
+// listener leak that {once:true} would still produce when the user re-clicks
+// without navigating (each click re-registers a listener; multi-click sessions
+// stack them up before pagehide finally fires).
+var pendingSearchContext = null;
+
+window.addEventListener('pagehide', function () {
+  if (!pendingSearchContext) return;
+  try {
+    sessionStorage.setItem('rrm-shell-context', JSON.stringify(pendingSearchContext));
+  } catch (err) {}
+});
+```
+
+**Inside `renderResult()` (per-link binding):**
+
 ```javascript
 a.addEventListener('pointerdown', function (e) {
-  // Capture all visible result slugs into sessionStorage on pagehide.
-  // URL parser handles relative AND absolute hrefs uniformly (semantic late-merge
-  // results carry absolute URLs without toRelative() — a regex anchored on `^/`
-  // would silently drop them).
+  // Capture all visible result slugs + titles into pendingSearchContext.
+  // The URL parser handles relative AND absolute hrefs uniformly (semantic
+  // late-merge results carry absolute URLs without toRelative() — a regex
+  // anchored on `^/` would silently drop them).
   var allLinks = document.querySelectorAll(
     '#search-results a[href*="/library/"], #search-results a[href*="/commentary/"]'
   );
   var slugs = [];
+  var titles = [];
   allLinks.forEach(function (link) {
     try {
       var u = new URL(link.getAttribute('href'), location.origin);
       var pm = u.pathname.match(/^\/(library|commentary)\/([a-z0-9][a-z0-9-]{0,250})\/?$/);
-      if (pm) slugs.push(pm[2]);
+      if (!pm) return;
+      slugs.push(pm[2]);
+      // Look for `.sr-item__title` text inside the anchor (or its closest
+      // result-item ancestor); fall back to '' so the validator's tolerant
+      // titles[] handling renders slug-replace.
+      var titleEl = link.querySelector('.sr-item__title') ||
+                    (link.closest('.sr-item') && link.closest('.sr-item').querySelector('.sr-item__title'));
+      titles.push(titleEl ? (titleEl.textContent || '').trim().slice(0, 300) : '');
     } catch (err) { /* malformed URL — skip */ }
   });
   if (slugs.length === 0) return;
-  var ctx = {
+  pendingSearchContext = {
     source: 'search',
     label: 'Search · "' + (currentQuery || '').slice(0, 80) + '" · ' + slugs.length + ' results',
     slugs: slugs.slice(0, 500),
+    titles: titles.slice(0, 500),
     returnUrl: '/library/?q=' + encodeURIComponent(currentQuery || ''),
     filters: { q: currentQuery || '' },
     writtenAt: Date.now()
   };
-  // pagehide bus for Safari iOS race-safety.
-  window.addEventListener('pagehide', function commit() {
-    try { sessionStorage.setItem('rrm-shell-context', JSON.stringify(ctx)); } catch (err) {}
-    window.removeEventListener('pagehide', commit);
-  }, { once: true });
 });
 ```
 
@@ -1496,10 +1617,12 @@ In the build job's `env:` block, add:
 
 (Default empty; setting via repo variable when ready to enable. The `PUBLIC_` prefix is required for Vite to expose the value to `import.meta.env` at build time.)
 
-- [ ] **Step 3: Verify WORKFLOWS_PAT is wired in actions/checkout**
+- [ ] **Step 3: Verify WORKFLOWS_PAT is wired in merge.yml's actions/checkout**
 
-Run: `grep -A2 "actions/checkout" .github/workflows/deploy.yml | grep -B1 "WORKFLOWS_PAT\|token:"`
-Expected: checkout step has `token: ${{ secrets.WORKFLOWS_PAT }}`. If not, this commit will fail to push the workflow change. See CLAUDE.md for the WORKFLOWS_PAT setup pattern.
+Per CLAUDE.md, WORKFLOWS_PAT lives in `.github/workflows/merge.yml`, not `deploy.yml`. The workflow-file edit (the `Canonical lockdown` step + new env var added in Step 2) is committed to the `claude/library-app-shell-2026-05-06` branch and lands on `main` via merge.yml's auto-FF pipeline (which carries the PAT). The engineer does NOT need to add WORKFLOWS_PAT to deploy.yml's checkout.
+
+Run: `grep -A2 "actions/checkout" .github/workflows/merge.yml | grep -B1 "WORKFLOWS_PAT\|token:"`
+Expected: merge.yml's checkout step has `token: ${{ secrets.WORKFLOWS_PAT }}`. If not, the auto-FF cannot push workflow changes — see CLAUDE.md for the WORKFLOWS_PAT setup pattern.
 
 - [ ] **Step 4: Commit (will trigger CI; verify the new step appears)**
 
@@ -1681,7 +1804,7 @@ The `context` prop varies by task: `"index"` for index/page pages, `"article"` f
 
 ## Phase 7 — Commentary wrap (commit 1 of the 2-commit ship)
 
-> **From here forward, all commits accumulate on a SINGLE `claude/library-app-shell-2026-05-06` branch (see memory: feedback-batch-arise-deploys.md). Push only after Task 33 verification passes. Do NOT push between tasks.**
+> **From here forward, all commits accumulate on a SINGLE `claude/library-app-shell-2026-05-06` branch (see memory: feedback-batch-arise-deploys.md). Push ONCE — at Task 31, after Task 30's local proof gates have passed. Tasks 32 and 33 happen on the live deploy, not on the branch. Do NOT push between Tasks 20-30.**
 
 ### Task 20: Wrap commentary/index.astro
 
@@ -2240,6 +2363,73 @@ Expected: empty (only `var(--z-*)` references).
 
 ---
 
+### Task 30.5: Visual regression snapshots (light + dark, desktop + mobile)
+
+Spec §Testing strategy Layer 4 requires screenshots. Tasks 27-29 cover behavior; Task 33 production verification has no screenshot step. This task captures baseline PNGs across the four highest-value fixtures × two themes, committed alongside the spec. The PR description should attach these screenshots as the visual proof for spec §Testing strategy Layer 4.
+
+**Files:**
+- Create: `tests/e2e/app-shell-visual.spec.ts`
+
+- [ ] **Step 1: Create the visual spec**
+
+```typescript
+// tests/e2e/app-shell-visual.spec.ts
+import { test, expect } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+
+const articles = JSON.parse(readFileSync('./src/data/articles.json', 'utf8'));
+const FIRST_ARTICLE_SLUG: string = articles[0].slug;
+
+test.describe('App shell — visual regression', () => {
+  const fixtures = [
+    { name: 'library-index',    url: '/library/',                                       vp: { width: 1440, height: 900 } },
+    { name: 'library-article',  url: `/library/${FIRST_ARTICLE_SLUG}/`,                 vp: { width: 1440, height: 900 } },
+    { name: 'commentary-index', url: '/commentary/',                                    vp: { width: 1440, height: 900 } },
+    { name: 'library-mobile',   url: '/library/',                                       vp: { width: 375, height: 812 } },
+  ];
+  for (const f of fixtures) {
+    for (const theme of ['light', 'dark'] as const) {
+      test(`${f.name}-${theme}`, async ({ page }) => {
+        await page.setViewportSize(f.vp);
+        await page.goto(f.url);
+        await page.evaluate((t) => {
+          localStorage.setItem('rrm_theme', t);
+          document.documentElement.setAttribute('data-theme', t);
+        }, theme);
+        await page.waitForTimeout(200);
+        await expect(page).toHaveScreenshot(`${f.name}-${theme}.png`, {
+          fullPage: false,
+          animations: 'disabled',
+        });
+      });
+    }
+  }
+});
+```
+
+`FIRST_ARTICLE_SLUG` is read from `src/data/articles.json` at test-load time. If the data file changes such that index 0 swaps, the screenshot diff will catch it on the next run; re-baseline only when the swap is intentional.
+
+- [ ] **Step 2: Generate baselines**
+
+Run: `PUBLIC_SHELL_ROUTES=commentary,library npx playwright test tests/e2e/app-shell-visual.spec.ts --update-snapshots`
+Expected: baseline PNGs written to `tests/e2e/app-shell-visual.spec.ts-snapshots/`.
+
+- [ ] **Step 3: Verify**
+
+Run: `PUBLIC_SHELL_ROUTES=commentary,library npx playwright test tests/e2e/app-shell-visual.spec.ts` (without `--update-snapshots`).
+Expected: all 8 tests pass against the baselines just created.
+
+- [ ] **Step 4: Commit baselines**
+
+```bash
+git add tests/e2e/app-shell-visual.spec.ts tests/e2e/app-shell-visual.spec.ts-snapshots/
+git commit -m "test: visual regression baselines for app shell (light + dark, desktop + mobile)"
+```
+
+The PR description should attach these screenshots as the visual proof for spec §Testing strategy Layer 4.
+
+---
+
 ### Task 31: Push the branch and let CI run
 
 **Files:**
@@ -2261,6 +2451,53 @@ If a CI step fails: fix forward locally, commit, push again. Do NOT split into m
 
 ---
 
+### Task 31.5: Wait for auto-merge + deploy to complete (race-guard for Task 32)
+
+**Files:**
+- (verification only)
+
+`merge.yml` auto-fast-forwards `main` to the `claude/*` branch within ~3-7 minutes. Then `deploy.yml` runs on `main`. Task 32 Step 1+2 (`gh variable set ... && gh workflow run deploy.yml`) can fire BEFORE the auto-merge has landed `AppShellChrome.astro` on main, building an inert deploy. This task is a hard barrier: confirm main has the commit AND the post-merge deploy has succeeded before proceeding.
+
+- [ ] **Step 1: Capture branch SHA**
+
+Run: `git rev-parse claude/library-app-shell-2026-05-06`
+Save the value (e.g. as `BRANCH_SHA=$(git rev-parse claude/library-app-shell-2026-05-06)`).
+
+- [ ] **Step 2: Wait for the AppShellChrome commit to land on main**
+
+```bash
+git fetch origin main
+git log origin/main --oneline -5
+```
+Expected: the AppShellChrome / Phase-9 commits from the branch appear in origin/main's recent history. If not, re-run `git fetch origin main` every 60s until they do (auto-merge takes ~3-7 min).
+
+- [ ] **Step 3: Wait for deploy.yml on main to complete with success**
+
+```bash
+gh run list --workflow=deploy.yml --branch=main --limit=1
+```
+Expected: most recent run shows `status: completed` AND `conclusion: success` AND its head SHA matches `$BRANCH_SHA` (or a later main commit that includes it). Re-run every ~60s until satisfied.
+
+A faster check using `--json`:
+```bash
+gh run list --workflow=deploy.yml --branch=main --limit=1 --json status,conclusion,headSha
+```
+
+- [ ] **Step 4: Sanity-check the inert deploy**
+
+`PUBLIC_SHELL_ROUTES` is still empty at this point (the var is set in Task 32). The deploy that just succeeded is the one that put `AppShellChrome.astro` into the dist bundle but did NOT activate it. Confirm:
+
+```bash
+curl --fail --silent --show-error --max-time 10 --retry 3 --retry-delay 2 \
+  -H 'Cache-Control: no-cache' \
+  "https://rrmacademy.org/commentary/?_t=$(date +%s)" | grep -c 'app-shell-nav'
+```
+Expected: 0 (shell wraps nothing because the env var is empty).
+
+Only after Steps 1-4 are all satisfied may Task 32 proceed.
+
+---
+
 ## Phase 10 — Production smoke + activation
 
 ### Task 32: Set PUBLIC_SHELL_ROUTES repo variable to enable shell
@@ -2278,20 +2515,47 @@ Expected: deploy with PUBLIC_SHELL_ROUTES=commentary. After ~3 min, shell is liv
 
 - [ ] **Step 3: Smoke test commentary in production**
 
+All production curl smokes use `--fail --max-time --retry` to avoid false pass/fail on transient CF 502s and stale-cache hits. The `?_t=...` cache-buster + `Cache-Control: no-cache` header force a fresh edge fetch.
+
 ```bash
-curl -s https://rrmacademy.org/commentary/ | grep -c 'app-shell-nav'
+curl --fail --silent --show-error --max-time 10 --retry 3 --retry-delay 2 \
+  -H 'Cache-Control: no-cache' \
+  "https://rrmacademy.org/commentary/?_t=$(date +%s)" | grep -c 'app-shell-nav'
 ```
 Expected: ≥1.
 
 ```bash
-curl -s https://rrmacademy.org/library/ | grep -c 'app-shell-nav'
+curl --fail --silent --show-error --max-time 10 --retry 3 --retry-delay 2 \
+  -H 'Cache-Control: no-cache' \
+  "https://rrmacademy.org/library/?_t=$(date +%s)" | grep -c 'app-shell-nav'
 ```
 Expected: 0 (library not yet enabled).
 
-- [ ] **Step 4: Wait 24h soak. Monitor:**
+- [ ] **Step 4: Wait 24h soak. Monitor with periodic automated checks:**
+
+Manual review surfaces (run at T+1h, T+6h, T+12h, T+24h):
 - GA4 bounce rate on /commentary/* — should be flat or improved
 - GSC URL inspection on a sample commentary post — confirm rendered HTML has shell + canonical unchanged
 - Sentry / cloudflare logs — no spike in 4xx/5xx
+
+Automated check (run at the same cadence; log results to `~/iCode/.soak-tests/2026-05-06-commentary-shell.log`):
+
+```bash
+mkdir -p ~/iCode/.soak-tests
+LOG=~/iCode/.soak-tests/2026-05-06-commentary-shell.log
+{
+  echo "=== $(date -u +%FT%TZ) ==="
+  /ai-surface-check 2>&1 || true   # if Brian's existing skill is available
+  curl --fail --silent --show-error --max-time 10 --retry 3 --retry-delay 2 \
+    -I "https://rrmacademy.org/commentary/?_t=$(date +%s)" | head -1
+  curl --fail --silent --show-error --max-time 10 --retry 3 --retry-delay 2 \
+    -H 'Cache-Control: no-cache' \
+    "https://rrmacademy.org/commentary/?_t=$(date +%s)" | grep -c 'app-shell-nav'
+  gh run list --workflow=ai-search-refresh.yml --branch=main --limit 3
+} | tee -a "$LOG"
+```
+
+If Brian wants set-and-forget monitoring, wrap the block above in a `for i in 1 6 12 24; do sleep ${i}h; ...; done` loop or schedule via CronCreate / `/loop`. Any 4xx/5xx, missing `app-shell-nav` shell-wrapped pages, or refresh-workflow failure is a soak-failure signal — investigate before proceeding to library activation.
 
 - [ ] **Step 5: After 24h, enable library**
 Run: `gh variable set PUBLIC_SHELL_ROUTES --body "commentary,library"`
@@ -2299,8 +2563,12 @@ Run: `gh workflow run deploy.yml`
 
 - [ ] **Step 6: Smoke library**
 ```bash
-curl -s https://rrmacademy.org/library/ | grep -c 'app-shell-nav'
-curl -s https://rrmacademy.org/library/redwine-excision-2012/ | grep -c 'app-shell-middle-column'
+curl --fail --silent --show-error --max-time 10 --retry 3 --retry-delay 2 \
+  -H 'Cache-Control: no-cache' \
+  "https://rrmacademy.org/library/?_t=$(date +%s)" | grep -c 'app-shell-nav'
+curl --fail --silent --show-error --max-time 10 --retry 3 --retry-delay 2 \
+  -H 'Cache-Control: no-cache' \
+  "https://rrmacademy.org/library/redwine-excision-2012/?_t=$(date +%s)" | grep -c 'app-shell-middle-column'
 ```
 Expected: both ≥1.
 
