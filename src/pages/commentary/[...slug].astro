@@ -3,8 +3,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import AuthorByline from '../../components/AuthorByline.astro';
 import AudioPlayer from '../../components/AudioPlayer.astro';
 import BlogCard from '../../components/BlogCard.astro';
+import AppShellChrome from '../../components/AppShellChrome.astro';
+import AppShellSheet from '../../components/AppShellSheet.astro';
 import { fetchAllPosts, getRelatedPosts, type BlogPost } from '../../lib/blog';
 import { parseMarkdown } from '../../lib/markdown-sanitize';
+import { isShellEnabled } from '../../lib/shell-routes';
+
+const SHELL_ENABLED = isShellEnabled('commentary');
 
 export async function getStaticPaths() {
   const posts = await fetchAllPosts();
@@ -169,6 +174,7 @@ const finalJsonLd = {
 const canonicalUrl = `https://rrmacademy.org/commentary/${post.slug}/`;
 ---
 <BaseLayout
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
   title={post.title}
   description={metaDescription}
   canonicalUrl={canonicalUrl}
@@ -177,61 +183,124 @@ const canonicalUrl = `https://rrmacademy.org/commentary/${post.slug}/`;
   publishDate={post.publishDate}
   jsonLd={finalJsonLd}
 >
-  <div class="page-wrapper" data-pagefind-body>
-    <span data-pagefind-meta="type:Article" style="display:none"></span>
-    <span data-pagefind-meta={`title:${post.title}`} style="display:none"></span>
-    {post.author && <span data-pagefind-meta={`authors:${post.author}`} style="display:none"></span>}
-    {post.publishDate && <span data-pagefind-meta={`year:${post.publishDate.split('-')[0]}`} style="display:none"></span>}
-    <div class="container container--narrow">
-      <!-- Breadcrumb -->
-      <nav class="breadcrumb" aria-label="Breadcrumb">
-        <a href="/commentary/">Commentary</a>
-        <span aria-hidden="true"> &rsaquo; </span>
-        <span>{post.title.length > 50 ? post.title.slice(0, 50) + '...' : post.title}</span>
-      </nav>
+  {SHELL_ENABLED ? (
+    <AppShellChrome context="article" currentPath={Astro.url.pathname}>
+      <div class="page-wrapper" data-pagefind-body>
+        <span data-pagefind-meta="type:Article" style="display:none"></span>
+        <span data-pagefind-meta={`title:${post.title}`} style="display:none"></span>
+        {post.author && <span data-pagefind-meta={`authors:${post.author}`} style="display:none"></span>}
+        {post.publishDate && <span data-pagefind-meta={`year:${post.publishDate.split('-')[0]}`} style="display:none"></span>}
+        <div class="container container--narrow">
+          <!-- Breadcrumb -->
+          <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="/commentary/">Commentary</a>
+            <span aria-hidden="true"> &rsaquo; </span>
+            <span>{post.title.length > 50 ? post.title.slice(0, 50) + '...' : post.title}</span>
+          </nav>
 
-      <!-- Cover Image -->
-      {post.coverImageUrl && (
-        <div class="cover-image">
-          <img
-            src={post.coverImageUrl}
-            alt={post.title}
-            loading="eager"
-            decoding="async"
-            fetchpriority="high"
-            width="760"
-            height="400"
-          />
+          <!-- Cover Image -->
+          {post.coverImageUrl && (
+            <div class="cover-image">
+              <img
+                src={post.coverImageUrl}
+                alt={post.title}
+                loading="eager"
+                decoding="async"
+                fetchpriority="high"
+                width="760"
+                height="400"
+              />
+            </div>
+          )}
+
+          <!-- Title -->
+          <h1 class="post-title">{post.title}</h1>
+
+          <!-- Byline -->
+          <AuthorByline author={post.author} date={post.publishDate} />
+          {post.audioUrl && <AudioPlayer audioUrl={post.audioUrl} />}
         </div>
-      )}
 
-      <!-- Title -->
-      <h1 class="post-title">{post.title}</h1>
+        <!-- Content -->
+        <div class="container container--narrow">
+          <div class="prose" set:html={htmlContent} />
+        </div>
 
-      <!-- Byline -->
-      <AuthorByline author={post.author} date={post.publishDate} />
-      {post.audioUrl && <AudioPlayer audioUrl={post.audioUrl} />}
-    </div>
-
-    <!-- Content -->
-    <div class="container container--narrow">
-      <div class="prose" set:html={htmlContent} />
-    </div>
-
-    <!-- Related Posts -->
-    {related.length > 0 && (
-      <div class="container container--narrow">
-        <section class="related-section" aria-label="Related posts">
-          <h2 class="detail-heading">More from this series</h2>
-          <div class="related-grid">
-            {related.map(rel => (
-              <BlogCard post={rel} />
-            ))}
+        <!-- Related Posts -->
+        {related.length > 0 && (
+          <div class="container container--narrow">
+            <section class="related-section" aria-label="Related posts">
+              <h2 class="detail-heading">More from this series</h2>
+              <div class="related-grid">
+                {related.map(rel => (
+                  <BlogCard post={rel} />
+                ))}
+              </div>
+            </section>
           </div>
-        </section>
+        )}
       </div>
-    )}
-  </div>
+    </AppShellChrome>
+  ) : (
+    <Fragment>
+      <div class="page-wrapper" data-pagefind-body>
+        <span data-pagefind-meta="type:Article" style="display:none"></span>
+        <span data-pagefind-meta={`title:${post.title}`} style="display:none"></span>
+        {post.author && <span data-pagefind-meta={`authors:${post.author}`} style="display:none"></span>}
+        {post.publishDate && <span data-pagefind-meta={`year:${post.publishDate.split('-')[0]}`} style="display:none"></span>}
+        <div class="container container--narrow">
+          <!-- Breadcrumb -->
+          <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="/commentary/">Commentary</a>
+            <span aria-hidden="true"> &rsaquo; </span>
+            <span>{post.title.length > 50 ? post.title.slice(0, 50) + '...' : post.title}</span>
+          </nav>
+
+          <!-- Cover Image -->
+          {post.coverImageUrl && (
+            <div class="cover-image">
+              <img
+                src={post.coverImageUrl}
+                alt={post.title}
+                loading="eager"
+                decoding="async"
+                fetchpriority="high"
+                width="760"
+                height="400"
+              />
+            </div>
+          )}
+
+          <!-- Title -->
+          <h1 class="post-title">{post.title}</h1>
+
+          <!-- Byline -->
+          <AuthorByline author={post.author} date={post.publishDate} />
+          {post.audioUrl && <AudioPlayer audioUrl={post.audioUrl} />}
+        </div>
+
+        <!-- Content -->
+        <div class="container container--narrow">
+          <div class="prose" set:html={htmlContent} />
+        </div>
+
+        <!-- Related Posts -->
+        {related.length > 0 && (
+          <div class="container container--narrow">
+            <section class="related-section" aria-label="Related posts">
+              <h2 class="detail-heading">More from this series</h2>
+              <div class="related-grid">
+                {related.map(rel => (
+                  <BlogCard post={rel} />
+                ))}
+              </div>
+            </section>
+          </div>
+        )}
+      </div>
+    </Fragment>
+  )}
+  {SHELL_ENABLED && <AppShellSheet />}
 </BaseLayout>
 
 <style>
