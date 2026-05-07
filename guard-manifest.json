@@ -83,7 +83,7 @@
       "note": "SES email sending infrastructure"
     },
     "functions/api/_elv.js": {
-      "hash": "3f0eade4f0ddeaecbb364fdaa21b5f0747f0d390b65dfbcbd63fff9e7e7adc20",
+      "hash": "fb24aeb1e5bad2e6086bb321fb7c08fc3d55d95fe4a3d18b40b0ce712e35fa5a",
       "note": "EmailListVerify SMTP validation"
     },
     "functions/api/survey/submit.js": {

@@ -58,6 +58,14 @@ function getElvKey() {
 }
 
 // ── D1 helpers ─────────────────────────────────────────────────────────
+/**
+ * Run a read-only D1 query (returns rows). Shell-escapes single quotes only.
+ *
+ * SECURITY: SQL is interpolated via the shell (`wrangler d1 execute --command '${escaped}'`).
+ * The escape handles `'` but NOT backslashes, command substitution, or other shell
+ * metacharacters. Callers MUST NOT pass user-supplied content. For dynamic
+ * inputs, use d1Exec() with a parameterized SQL file instead.
+ */
 function d1Query(sql) {
   const escaped = sql.replace(/'/g, "'\\''");
   const out = execSync(`npx wrangler d1 execute ${DB_NAME} --remote --command '${escaped}'`, {
@@ -178,10 +186,9 @@ async function main() {
 
     processed += batch.length;
 
-    // Checkpoint every 50 emails
-    if (processed % 50 === 0 || processed === queue.length) {
-      saveCheckpoint(verified);
-    }
+    // Checkpoint after every batch -- JSON write cost (~5KB) is negligible vs
+    // ~$0.005/email API cost. Prevents losing up to 49 verifications on Ctrl-C.
+    saveCheckpoint(verified);
 
     // Progress
     const elapsed = (Date.now() - startTime) / 1000;
