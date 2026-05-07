@@ -33,10 +33,13 @@ export async function onRequestPost({ request, env, waitUntil }) {
       return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
     }
 
-    // Hash the token and look it up
+    // Hash password FIRST (pure compute) so a crypto failure never consumes the token.
+    const hashedPassword = await hashPassword(password);
+
     const tokenHash = await hashToken(token);
     const now = Math.floor(Date.now() / 1000);
 
+    // Consume the token atomically.
     const record = await db.prepare(
       "DELETE FROM password_reset WHERE token_hash = ? AND expires_at > ? AND purpose = 'reset' RETURNING user_id"
     ).bind(tokenHash, now).first();
@@ -45,8 +48,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
       return json({ ok: false, error: 'This reset link is invalid, expired, or has already been used. Please request a new one.' }, 400);
     }
 
-    // Update password, clean up sessions, create fresh session — atomically
-    const hashedPassword = await hashPassword(password);
+    // Update password and rotate session — atomically.
     const newSessionId = generateSessionId();
     const newExpiresAt = Math.floor((Date.now() + 30 * 24 * 60 * 60 * 1000) / 1000);
 

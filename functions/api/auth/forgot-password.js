@@ -49,15 +49,11 @@ export async function onRequestPost({ request, env, waitUntil }) {
       const token = generateToken();
       const tokenHash = await hashToken(token);
       const expiresAt = Math.floor(Date.now() / 1000) + 3600;
-
-      await db.batch([
-        db.prepare("DELETE FROM password_reset WHERE user_id = ? AND purpose = 'reset'").bind(user.id),
-        db.prepare("INSERT INTO password_reset (id, user_id, token_hash, expires_at, purpose) VALUES (?, ?, ?, ?, 'reset')").bind(generateId(), user.id, tokenHash, expiresAt),
-      ]);
-
-      // Build reset link
       const resetUrl = `https://rrmacademy.org/reset-password/?token=${token}`;
 
+      // Send email FIRST — if SES fails, the token is never written to DB.
+      // This preserves the user's existing reset token (if any) and avoids
+      // a state where a token is in DB but the email was never delivered.
       try {
         await sendEmail(env, {
           from: 'RRM Academy <accounts@mail.rrmacademy.org>',
@@ -81,7 +77,15 @@ export async function onRequestPost({ request, env, waitUntil }) {
       } catch (emailErr) {
         log(env, waitUntil, 'auth', 'forgot_password_error', 'error', emailErr.message);
         await logEmailFailure(env.DB, { email, category: 'transactional', source: 'auth/forgot-password', subject: 'Reset your password — RRM Academy', detail: emailErr.message });
+        // Email failed — return success anyway (anti-enumeration), but do not write token.
+        return json({ ok: true, message: 'If an account exists with that email, a reset link has been sent.' });
       }
+
+      // Email delivered — atomically replace any prior reset token.
+      await db.batch([
+        db.prepare("DELETE FROM password_reset WHERE user_id = ? AND purpose = 'reset'").bind(user.id),
+        db.prepare("INSERT INTO password_reset (id, user_id, token_hash, expires_at, purpose) VALUES (?, ?, ?, ?, 'reset')").bind(generateId(), user.id, tokenHash, expiresAt),
+      ]);
     }
 
     // Always return success (no email enumeration)

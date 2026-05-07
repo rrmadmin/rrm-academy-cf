@@ -142,7 +142,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     }
 
     if (!env.AWS_ACCESS_KEY_ID) {
-      return json({ ok: false, error: 'Server misconfigured' }, 500);
+      return json({ ok: false, error: 'Email service is temporarily unavailable. Please try again in a few minutes or contact administrator@rrmacademy.org for help.' }, 503);
     }
 
     // Turnstile

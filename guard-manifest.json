@@ -11,15 +11,15 @@
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "cf3c11875f0a4c818c5ae0fea011e9e498973c958e01e02cba5dbea0cddbe403",
+      "hash": "9812090801f5a7ceb59c772b6dd21b8051026148d3fc8aded0add94d5169dd33",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
-      "hash": "4c868665dacf6873f32b5c67c540207aa5de818478858d93b13567766daf3ada",
+      "hash": "8ea76d053129a97da084925ad24b0d74e520f714853716e03db1bef4012618ac",
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
-      "hash": "5d9be71153484ae742770fed600f26f7e42b13f812fc31328b2ed4f377234e02",
+      "hash": "03018c5e7c78582f740036a3893dbc331f694bce9919ab00b84139e49d0b05a9",
       "note": "Reset token consumption + password change"
     },
     "functions/api/auth/change-password.js": {
@@ -139,7 +139,7 @@
       "note": "Guard script (self-guarding)"
     },
     "functions/api/auth/verify-email.js": {
-      "hash": "b4cf68b7f772e056ab46970188ac0bbf23122d02be4b540c48cc61fd5a7a87af",
+      "hash": "0cd33d12218ebb2c36c51c28e8b27283bd0530d871c0d9acff657f564307abed",
       "note": "Email verification token consumption"
     },
     "functions/api/auth/logout.js": {
