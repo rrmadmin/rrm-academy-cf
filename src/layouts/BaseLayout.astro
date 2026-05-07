@@ -167,16 +167,17 @@ if (!jsonLd) {
   {noindex && <meta name="robots" content="noindex, nofollow" />}
   <title>{fullTitle}</title>
   <script is:inline>
-    // Apply saved theme before first paint to prevent flash
+    // Apply saved theme before first paint. Read-only: no OS auto-detect, no write-back.
+    // Existing users with a stored preference retain it. New cold visitors default to light.
+    // localStorage access wrapped in try/catch — Safari Strict / Brave / Firefox TCP throw
+    // on access; without the wrap, the FOUC script aborts and data-theme stays at the
+    // hardcoded `<html data-theme="light">` for everyone (asymmetric with Tasks 9/12 which
+    // both wrap). Wrapping keeps light as the safe default but stops the throw from leaking.
     (function() {
-      var saved = localStorage.getItem('rrm_theme');
-      if (saved) {
-        document.documentElement.setAttribute('data-theme', saved);
-      } else {
-        var initial = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', initial);
-        localStorage.setItem('rrm_theme', initial);
-      }
+      var saved = null;
+      try { saved = localStorage.getItem('rrm_theme'); } catch (e) {}
+      var theme = saved === 'dark' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', theme);
     })();
   </script>
   <script is:inline>
