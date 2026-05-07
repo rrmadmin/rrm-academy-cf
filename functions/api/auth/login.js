@@ -37,7 +37,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     // Turnstile
     const turnstileOk = await verifyTurnstile(
-      env.CF_TURNSTILE_SECRET, body.turnstileToken, ip
+      env.CF_TURNSTILE_SECRET, body.turnstileToken, ip, env
     );
     if (!turnstileOk) return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
 

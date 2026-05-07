@@ -7,15 +7,15 @@
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
-      "hash": "40edaaf1bf99fef2f0eb9d1120c354055131456b89c338b184aef52fec80dfae",
+      "hash": "68acc4556b792e8d8a3ee3571a9da76a9f7f45eb3b7f9ca7c9302e77816f5913",
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "9812090801f5a7ceb59c772b6dd21b8051026148d3fc8aded0add94d5169dd33",
+      "hash": "1fbc7a0006ce214a697310ab394a7b6d700df744654ab851d9ce3b9d8b7e6903",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
-      "hash": "8ea76d053129a97da084925ad24b0d74e520f714853716e03db1bef4012618ac",
+      "hash": "df83d6a122d382aae5a0afabe61866f5aec9eb3317d7c252f0c97bc5bfc6da66",
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
