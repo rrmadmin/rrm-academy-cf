@@ -245,7 +245,7 @@ Expected: 401 (since local ADMIN_API_SECRET won't match). Confirms the endpoint 
 
 - [ ] **Step 3: Test against production**
 
-Run: `curl -s -H "Authorization: Bearer $(op read 'op://Automation/RRM Admin API Secret/credential' 2>/dev/null)" https://rrmacademy.org/api/admin/ecosystem | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('name', d.get('error', 'unknown')))"`
+Run: `curl -s -H "Authorization: Bearer $(op read 'op://Automation/<redacted>/credential' 2>/dev/null)" https://rrmacademy.org/api/admin/ecosystem | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('name', d.get('error', 'unknown')))"`
 
 Expected: `RRM Academy Ecosystem` (the `name` field from the JSON).
 
@@ -426,7 +426,7 @@ Expected: One row, `ecosystem-map`, size matches file.
 
 - [ ] **Step 3: Verify the endpoint works (after deploy)**
 
-Run: `curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $(op read 'op://Automation/RRM Admin API Secret/credential' 2>/dev/null)" https://rrmacademy.org/api/admin/ecosystem`
+Run: `curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $(op read 'op://Automation/<redacted>/credential' 2>/dev/null)" https://rrmacademy.org/api/admin/ecosystem`
 
 Expected: `200`
 

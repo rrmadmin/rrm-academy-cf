@@ -64,7 +64,7 @@ function log(level, ...parts) {
 process.env.CLOUDFLARE_ACCOUNT_ID = ACCOUNT_ID;
 if (!process.env.CLOUDFLARE_API_TOKEN) {
   try {
-    process.env.CLOUDFLARE_API_TOKEN = sh('op', ['read', 'op://Automation/Cloudflare API Token - Claude Code Full Access/credential']).trim();
+    process.env.CLOUDFLARE_API_TOKEN = sh('op', ['read', 'op://Automation/<redacted>/credential']).trim();
   } catch (err) {
     console.error('Failed to load CLOUDFLARE_API_TOKEN from 1Password:', err.message);
     process.exit(2);

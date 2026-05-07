@@ -47,12 +47,12 @@ const UNSENDABLE = new Set(['email_disabled', 'spamtrap', 'disposable', 'invalid
 // ── 1Password ────────────────────────────────────────────────────────
 function getElvKey() {
   try {
-    return execSync("op read 'op://Automation/EmailListVerify/credential'", {
+    return execSync("op read 'op://Automation/<redacted>/credential'", {
       encoding: 'utf8',
     }).trim();
   } catch {
     console.error('ERROR: Could not read ELV API key from 1Password.');
-    console.error('Run: op read "op://Automation/EmailListVerify/credential"');
+    console.error('Run: op read "op://Automation/<redacted>/credential"');
     process.exit(1);
   }
 }
@@ -337,7 +337,7 @@ async function main() {
   for (let i = 0; i < tags.length; i += BATCH) {
     const batch = tags.slice(i, i + BATCH);
     const stmts = batch.map(t =>
-      `INSERT OR REPLACE INTO contact_tag (contact_id, tag, source) VALUES (${sqlEscape(t.id)}, ${sqlEscape(t.tag)}, ${sqlEscape(t.source)});`
+      `INSERT INTO contact_tag (contact_id, tag, source) VALUES (${sqlEscape(t.id)}, ${sqlEscape(t.tag)}, ${sqlEscape(t.source)}) ON CONFLICT(contact_id, tag) DO UPDATE SET source = excluded.source;`
     );
     d1Exec(stmts.join('\n'));
     process.stdout.write(`\r  ${Math.min(i + BATCH, tags.length)}/${tags.length} tags`);

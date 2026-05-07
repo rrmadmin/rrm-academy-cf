@@ -277,7 +277,7 @@ async function main() {
   //    monitoring can catch the half-complete state.
   console.log(`\n[rebuild] triggering single workflow_dispatch full rebuild ...`);
   try {
-    const ghToken = execSync(`op read 'op://Automation/Github PAT/credential'`, { encoding: 'utf8' }).trim();
+    const ghToken = execSync(`op read 'op://Automation/<redacted>/credential'`, { encoding: 'utf8' }).trim();
     const r = spawnSync('gh', [
       'workflow', 'run', 'deploy.yml',
       '--repo', 'rrmadmin/rrm-academy-cf',
