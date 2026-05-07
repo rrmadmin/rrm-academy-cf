@@ -161,7 +161,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
       if (env.COMMUNITY_KV) {
         const cooldownKey = `signup-collision:${email.toLowerCase()}`;
         const alreadySent = await env.COMMUNITY_KV.get(cooldownKey);
-        if (!alreadySent && env.AWS_ACCESS_KEY_ID) {
+        if (!alreadySent) {
           await env.COMMUNITY_KV.put(cooldownKey, '1', { expirationTtl: 3600 });
           waitUntil(
             sendEmail(env, {
@@ -230,43 +230,41 @@ export async function onRequestPost({ request, env, waitUntil }) {
     }
 
     // Send verification email via waitUntil (decouple SES latency from response timing)
-    if (env.AWS_ACCESS_KEY_ID) {
-      waitUntil(
-        sendEmail(env, {
-          from: 'RRM Academy <accounts@mail.rrmacademy.org>',
-          to: email,
-          subject: 'Verify your email — RRM Academy',
-          text: [
-            `Hi ${firstName},`,
-            '',
-            'Welcome to RRM Academy! Please verify your email by entering this code:',
-            '',
-            `    ${code}`,
-            '',
-            'This code expires in 1 hour.',
-            '',
-            'If you did not create an account, you can safely ignore this email.',
-            '',
-            'Best regards,',
-            'RRM Academy',
-            'https://rrmacademy.org',
-          ].join('\n'),
-          log: { db: env.DB, source: 'auth/signup', category: 'transactional' },
-        }).catch(err => logEmailFailure(env.DB, { email, category: 'transactional', source: 'auth/signup', subject: 'Verify your email — RRM Academy', detail: err.message }))
-      );
-    }
+    // AWS_ACCESS_KEY_ID guard already returned 503 above — no inner guard needed here.
+    waitUntil(
+      sendEmail(env, {
+        from: 'RRM Academy <accounts@mail.rrmacademy.org>',
+        to: email,
+        subject: 'Verify your email — RRM Academy',
+        text: [
+          `Hi ${firstName},`,
+          '',
+          'Welcome to RRM Academy! Please verify your email by entering this code:',
+          '',
+          `    ${code}`,
+          '',
+          'This code expires in 1 hour.',
+          '',
+          'If you did not create an account, you can safely ignore this email.',
+          '',
+          'Best regards,',
+          'RRM Academy',
+          'https://rrmacademy.org',
+        ].join('\n'),
+        log: { db: env.DB, source: 'auth/signup', category: 'transactional' },
+      }).catch(err => logEmailFailure(env.DB, { email, category: 'transactional', source: 'auth/signup', subject: 'Verify your email — RRM Academy', detail: err.message }))
+    );
 
     waitUntil(sendGA4Event(env, request, 'sign_up', { method: 'email', source: signupSource }).catch(() => {}));
 
     if (signupSource === 'ask') {
       waitUntil(sendGA4Event(env, request, 'signup_from_ask', { source: 'ask' }).catch(() => {}));
-      if (env.AWS_ACCESS_KEY_ID) {
-        waitUntil(
-          sendWelcomeAskEmail(env, email, firstName).catch(err => {
-            log(env, waitUntil, 'auth', 'welcome_ask_email_fail', 'error', err.message);
-          })
-        );
-      }
+      // AWS_ACCESS_KEY_ID guard already returned 503 above — no inner guard needed here.
+      waitUntil(
+        sendWelcomeAskEmail(env, email, firstName).catch(err => {
+          log(env, waitUntil, 'auth', 'welcome_ask_email_fail', 'error', err.message);
+        })
+      );
     }
 
     return json(

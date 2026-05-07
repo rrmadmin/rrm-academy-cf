@@ -11,7 +11,7 @@
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "1fbc7a0006ce214a697310ab394a7b6d700df744654ab851d9ce3b9d8b7e6903",
+      "hash": "a1e2863b61f6e813cb4e5163ab0ec0183555b375aa9e3ed0e56e35f9a361f3bd",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
@@ -31,7 +31,7 @@
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "b75369414c10c1e9544b9cdec516708abc7e4f5841db4b93bc175fba48662ca4",
+      "hash": "2d501728ad3137093b899bb287c676c3c465f1062ee4f8baa1e18b5ccde07745",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
