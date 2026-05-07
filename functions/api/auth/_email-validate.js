@@ -202,6 +202,18 @@ function fixProviderTld(domain) {
 }
 
 /**
+ * Walk domain and its parent domains to check for disposable match.
+ * Catches subdomain variants like inbox.10minutemail.com.
+ */
+function isDisposable(domain) {
+  const parts = domain.split('.');
+  for (let i = 0; i < parts.length - 1; i++) {
+    if (DISPOSABLE_DOMAINS.has(parts.slice(i).join('.'))) return true;
+  }
+  return false;
+}
+
+/**
  * Validate an email address through multiple layers.
  * Returns { valid, error, suggestion } where:
  * - valid: boolean
@@ -234,8 +246,8 @@ export async function validateEmail(email) {
     return { valid: false, error: `Did you mean ${suggested}?`, suggestion: suggested };
   }
 
-  // Layer 3: Disposable domain check
-  if (DISPOSABLE_DOMAINS.has(domain)) {
+  // Layer 3: Disposable domain check (walks subdomains so inbox.10minutemail.com matches 10minutemail.com)
+  if (isDisposable(domain)) {
     return { valid: false, error: 'Disposable email addresses are not allowed. Please use a permanent email.' };
   }
 
