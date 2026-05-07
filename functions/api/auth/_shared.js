@@ -444,7 +444,7 @@ export async function exchangeGoogleCode(code, clientId, clientSecret, redirectU
     return resp.json();
   } catch (err) {
     if (err.message === 'Google token exchange failed') throw err;
-    throw new Error('Google token exchange failed');
+    throw new Error('Google token exchange failed', { cause: err });
   }
 }
 
@@ -461,6 +461,6 @@ export async function getGoogleProfile(accessToken) {
     return resp.json();
   } catch (err) {
     if (err.message === 'Google profile fetch failed') throw err;
-    throw new Error('Google profile fetch failed');
+    throw new Error('Google profile fetch failed', { cause: err });
   }
 }
