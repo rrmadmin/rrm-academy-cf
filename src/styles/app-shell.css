@@ -76,7 +76,6 @@
   }
   .app-shell-nav {
     grid-area: nav;
-    grid-row: 1; /* /arise A4: confine sidebar to row 1 so it doesn't paint over footer */
     position: sticky;
     top: 0;
     align-self: stretch;
@@ -93,7 +92,6 @@
   }
   .app-shell-middle-column {
     grid-area: aside;
-    grid-row: 1; /* /arise A4 */
     position: sticky;
     top: 0;
     align-self: stretch;
@@ -223,7 +221,8 @@
   font-size: 0.9375rem;
   font-weight: 500;
   line-height: 1.2;
-  transition: background 0.15s;
+  box-shadow: var(--shadow-sm);
+  transition: background 0.15s, box-shadow 0.15s, transform 0.15s;
 }
 .app-shell-nav__cta .app-shell-nav__icon {
   color: currentColor;
@@ -235,6 +234,18 @@
 }
 .app-shell-nav__cta:hover {
   background: var(--accent-hover);
+  color: var(--bg-card);
+  text-decoration: none;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+.app-shell-nav__cta:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.app-shell-nav__cta:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
 }
 .app-shell-nav__footer {
   display: flex;
