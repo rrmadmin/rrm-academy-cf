@@ -29,6 +29,14 @@ export function optionsResponse() {
   return new Response(null, { status: 204, headers: CORS_HEADERS });
 }
 
+// --- Token TTL constants ---
+
+// 1 hour for password reset links. Matches the expiry stated in the email body.
+export const RESET_TOKEN_TTL_S = 3600;
+
+// 1 hour for email verification codes. Matches the expiry stated in the email body.
+export const EMAIL_VERIFY_TTL_S = 3600;
+
 // --- ID generation ---
 
 export function generateId() {
@@ -104,6 +112,12 @@ export async function verifyPassword(password, stored) {
   // would stack-overflow on large buffers. Operates on Uint8Array directly.
   const actualBytes = new Uint8Array(hash);
   const expectedBytes = Uint8Array.from(atob(hashB64), c => c.charCodeAt(0));
+  // Length mismatch only happens if a malformed hash reached the DB.
+  // PBKDF2-SHA256 with 256-bit output always produces 32 bytes; this branch
+  // is cosmetic under current config. If the output length or algorithm ever
+  // changes, either pad both buffers to a constant length before XOR, or
+  // remove this guard entirely and let the XOR loop run to 0 on mismatched
+  // lengths — both preserve constant time vs. the success path.
   if (actualBytes.length !== expectedBytes.length) return false;
   let mismatch = 0;
   for (let i = 0; i < actualBytes.length; i++) {

@@ -13,7 +13,7 @@
  */
 import {
   json, optionsResponse, generateId, generateToken, hashToken,
-  verifyTurnstile, checkRateLimit, isValidEmail,
+  verifyTurnstile, checkRateLimit, isValidEmail, RESET_TOKEN_TTL_S,
 } from './_shared.js';
 import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
@@ -56,7 +56,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     if (user) {
       const token = generateToken();
       const tokenHash = await hashToken(token);
-      const expiresAt = Math.floor(Date.now() / 1000) + 3600;
+      const expiresAt = Math.floor(Date.now() / 1000) + RESET_TOKEN_TTL_S;
       const resetUrl = `https://rrmacademy.org/reset-password/?token=${token}`;
 
       // Atomically replace any prior reset token before firing the email.

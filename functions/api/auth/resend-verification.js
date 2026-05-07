@@ -9,7 +9,7 @@
  */
 import {
   json, optionsResponse, generateId, generateToken, getSessionIdFromCookie,
-  validateSession, checkRateLimit,
+  validateSession, checkRateLimit, EMAIL_VERIFY_TTL_S,
 } from './_shared.js';
 import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
@@ -44,7 +44,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     // Replace old verification records atomically
     const code = generateToken().slice(0, 8);
-    const expiresAt = Math.floor(Date.now() / 1000) + 3600;
+    const expiresAt = Math.floor(Date.now() / 1000) + EMAIL_VERIFY_TTL_S;
     await db.batch([
       db.prepare('DELETE FROM email_verification WHERE user_id = ?')
         .bind(session.userId),
