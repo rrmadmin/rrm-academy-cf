@@ -46,7 +46,9 @@
   .app-shell-bottom-nav,
   .app-shell-sheet,
   .app-shell-sheet-peek,
-  .app-shell-middle-column {
+  .app-shell-middle-column,
+  .app-shell-footer-row,
+  .site-footer {
     display: none !important;
   }
   .app-shell-main {
@@ -72,9 +74,11 @@
   }
   .app-shell-nav {
     grid-area: nav;
+    grid-row: 1; /* /arise A4: confine sidebar to row 1 so it doesn't paint over footer */
     position: sticky;
     top: 0;
-    height: 100vh;
+    align-self: start;
+    max-height: 100vh;
     overflow-y: auto;
   }
   .app-shell-main {
@@ -87,9 +91,11 @@
   }
   .app-shell-middle-column {
     grid-area: aside;
+    grid-row: 1; /* /arise A4 */
     position: sticky;
     top: 0;
-    height: 100vh;
+    align-self: start;
+    max-height: 100vh;
     overflow-y: auto;
   }
   .app-shell-bottom-nav,
@@ -164,7 +170,7 @@
      row) clears the fixed bottom-nav. Footer is a descendant of the layout
      in the desktop grid; on mobile the grid collapses to flow-layout and
      Footer naturally renders below main, above the bottom-nav. */
-  .app-shell-layout {
+  .app-shell-footer-row {
     padding-bottom: calc(var(--shell-bottom-nav-height) + env(safe-area-inset-bottom));
   }
   .app-shell-nav { display: none; }

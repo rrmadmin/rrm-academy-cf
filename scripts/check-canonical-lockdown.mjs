@@ -33,11 +33,26 @@ function scanFile(path) {
       failures.push({ path, line: line.trim(), match: m[0] });
     }
   }
-  const paramReads = content.matchAll(/(?:searchParams|params)\.get\(\s*['"]([\w-]+)['"]\s*\)/g);
+  // Broader detection per /arise B4 — also catches .has(), backtick literals.
+  const paramReads = content.matchAll(/(?:searchParams|params)\s*\.\s*(?:get|has)\s*\(\s*[`'"]([\w-]+)[`'"]\s*\)/g);
   for (const m of paramReads) {
     const param = m[1];
     if (!ALLOWED_PARAMS.has(param.toLowerCase()) && (path.includes('/library/') || path.includes('/commentary/'))) {
       failures.push({ path, line: m[0], match: `non-allowlisted param: ${param}` });
+    }
+  }
+  // /arise B4 — flag patterns that read query params indirectly (params can't
+  // be statically identified, so we hard-fail and require explicit refactor).
+  const indirectPatterns = [
+    /Object\.fromEntries\([^)]*searchParams/g,
+    /for\s*\(\s*(?:const|let|var)?\s*\[[^\]]*\]\s+of\s+[\w.]*searchParams/g,
+  ];
+  for (const pattern of indirectPatterns) {
+    const matches = content.matchAll(pattern);
+    for (const m of matches) {
+      if (path.includes('/library/') || path.includes('/commentary/')) {
+        failures.push({ path, line: m[0], match: 'indirect param read (destructure or iteration) — refactor to explicit .get(allowlistedKey)' });
+      }
     }
   }
 }
