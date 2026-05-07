@@ -123,7 +123,10 @@ const inSaved = currentPath === '/library/saved' || currentPath === '/library/sa
     // Build-time test in tests/unit/canonical-lockdown.test.mjs asserts the data
     // never exceeds this cap — keep the two in lockstep.
     var SLUG_RE = /^[a-z0-9][a-z0-9-]{0,250}$/;
-    var ALLOWED_SOURCES = { library: 1, commentary: 1, search: 1 };
+    var ALLOWED_SOURCES = Object.create(null);
+    ALLOWED_SOURCES.library = 1;
+    ALLOWED_SOURCES.commentary = 1;
+    ALLOWED_SOURCES.search = 1;
 
     function isValidContext(c) {
       if (!c || typeof c !== 'object') return false;
