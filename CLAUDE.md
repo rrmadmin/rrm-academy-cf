@@ -565,6 +565,30 @@ A zero-dependency Node.js script (`scripts/guard.mjs`) that blocks deployments i
 
 Docs: `scripts/gates/README.md`.
 
+## Payment Pipeline Proof Gates
+
+`scripts/gates/validate-payment-pipeline.mjs` runs 4 deterministic gates against the payment surface (`functions/api/{stripe-webhook,create-checkout,billing/*}`). Built 2026-05-07 in response to /arise-intel finding that the payment surface accumulated 41 findings across 13 distinct /arise runs. Code is currently clean — gates encode the recurring bug classes so regressions trip deterministically.
+
+**Gates**:
+
+| Gate | What it prevents |
+|------|------------------|
+| **PG1** Webhook signature + dedup | Missing `stripe-signature` read; `constructEvent` (sync) used instead of `constructEventAsync` (Workers-only); no `INSERT OR IGNORE INTO webhook_event` envelope; no `DELETE FROM webhook_event` rollback on 5xx (transient failures become permanent); sub-handler re-implements dedup |
+| **PG2** No err.message leak | `err.message` / `error.message` inside any `JSON.stringify(...)` argument across the 10 payment files. Uses balanced-paren extraction (catches single-line and multi-line cases). `err.message` inside `log()` is fine (server-side). |
+| **PG3** Enrollment revocation | `DELETE FROM enrollment` forbidden in payment files (must `UPDATE SET revoked_at`); every `FROM enrollment` query must include `revoked_at IS NULL` filter (or be the revocation `UPDATE` itself) |
+| **PG4** Atomicity heuristic | Webhook handlers (`billing/_webhook-*.js`) with ≥5 sequential `.run()` calls and zero `db.batch()` get a yellow warn (review for transactional safety). Calibrated as warn not fail — sequential `.run()`s are sometimes legitimate. |
+
+**Commands**:
+- `npm run gates:payment` — runs all 4 gates
+- `node scripts/gates/validate-payment-pipeline.mjs --gate PG1` — single gate
+- `node scripts/gates/validate-payment-pipeline.mjs --json` — machine-readable
+
+**Auto-fires**:
+- Pre-commit (in `hooks/pre-commit`) on changes to `functions/api/{stripe-webhook,create-checkout}.js`, `functions/api/billing/*.js`, or the gate script itself
+- CI deploy workflow `.github/workflows/deploy.yml` step "Validate payment pipeline gates" runs on every deploy regardless of dispatch shape
+
+**Adding a new payment file**: append to the `PAYMENT_FILES` array in `validate-payment-pipeline.mjs` and to the regex in `hooks/pre-commit`.
+
 ## Citation Integrity
 
 **Never insert academic citations from model knowledge.** Hallucinated PMIDs, DOIs, and references are an existential threat to a medical education site.

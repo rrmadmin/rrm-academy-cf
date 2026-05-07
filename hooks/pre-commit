@@ -56,6 +56,18 @@ if echo "$STAGED" | grep -qE '^src/components/GlossaryTerm\.astro$|^src/pages/gl
   fi
 fi
 
+# --- Payment pipeline gates: any staged stripe-webhook, create-checkout, or billing/* ---
+if echo "$STAGED" | grep -qE '^functions/api/(stripe-webhook|create-checkout)\.js$|^functions/api/billing/.*\.js$|^scripts/gates/validate-payment-pipeline\.mjs$'; then
+  node scripts/gates/validate-payment-pipeline.mjs
+  if [ $? -ne 0 ]; then
+    echo ""
+    echo "Commit blocked by payment pipeline gates."
+    echo "Webhook signature/dedup, err.message leak, enrollment revocation discipline, or atomicity drifted."
+    echo "Fix the failures above, or bypass with --no-verify."
+    exit 1
+  fi
+fi
+
 # --- Security guard: only on critical file changes ---
 TRIGGER=0
 for file in $CRITICAL_FILES; do
