@@ -3,8 +3,9 @@
  * Authenticates user with email/password, creates session.
  */
 import {
-  json, optionsResponse, verifyPassword, createSession, sessionCookie,
+  json, optionsResponse, verifyPassword, sessionCookie,
   verifyTurnstile, checkRateLimit, isValidEmail,
+  generateSessionId, waitlistBackfillStatement,
 } from './_shared.js';
 import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
@@ -113,8 +114,16 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const nowTs = Math.floor(Date.now() / 1000);
     await db.prepare('DELETE FROM session WHERE user_id = ? AND expires_at < ?').bind(user.id, nowTs).run();
 
-    // Create session
-    const session = await createSession(db, user.id);
+    // Create session + backfill waitlist rows orphaned before this email logged in.
+    // Idempotent: only touches course_waitlist rows where user_id IS NULL.
+    const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
+    const sessionId = generateSessionId();
+    const expiresAt = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
+    await db.batch([
+      db.prepare('INSERT INTO session (id, user_id, expires_at) VALUES (?, ?, ?)').bind(sessionId, user.id, expiresAt),
+      waitlistBackfillStatement(db, user.id, user.email),
+    ]);
+    const session = { id: sessionId, expiresAt };
 
     return json(
       {

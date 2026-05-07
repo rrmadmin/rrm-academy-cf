@@ -25,7 +25,7 @@ async function handleReturningGoogleUser(db, googleId, email) {
   if (!user) return null;
   if (user.blocked) return { redirect: '/login/?error=account_blocked' };
 
-  if (!user.email || user.email.toLowerCase() !== email) {
+  if (!user.email || user.email.normalize('NFC').toLowerCase() !== email) {
     const conflict = await db.prepare('SELECT id FROM user WHERE email = ? COLLATE NOCASE AND id != ?')
       .bind(email, user.id).first();
     if (conflict) {
@@ -155,7 +155,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     }
 
     const googleId = String(profile.id);
-    const email = profile.email.toLowerCase().trim();
+    const email = profile.email.normalize('NFC').toLowerCase().trim();
     const name = profile.name || '';
     const firstName = profile.given_name || '';
     const lastName = profile.family_name || '';
