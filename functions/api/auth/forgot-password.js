@@ -2,6 +2,14 @@
  * POST /api/auth/forgot-password
  * Accepts { email }, generates a password reset token, sends email.
  * Always returns success (don't reveal whether email exists).
+ *
+ * Timing strategy: SES send is deferred via waitUntil so both existing-user
+ * and non-existing-user paths return in ~same time (D1 lookup only).
+ * Anti-enumeration trumps UX clarity here — users can retry if email is delayed.
+ *
+ * SES failure design: unlike resend-verification.js (which returns 502, because
+ * the authenticated user already knows we have their email), this endpoint must
+ * not confirm address existence. ok:true even on SES failure is intentional.
  */
 import {
   json, optionsResponse, generateId, generateToken, hashToken,
@@ -51,11 +59,19 @@ export async function onRequestPost({ request, env, waitUntil }) {
       const expiresAt = Math.floor(Date.now() / 1000) + 3600;
       const resetUrl = `https://rrmacademy.org/reset-password/?token=${token}`;
 
-      // Send email FIRST — if SES fails, the token is never written to DB.
-      // This preserves the user's existing reset token (if any) and avoids
-      // a state where a token is in DB but the email was never delivered.
-      try {
-        await sendEmail(env, {
+      // Atomically replace any prior reset token before firing the email.
+      // Token is valid for 1 hour; if SES fails it expires naturally and the
+      // user can request a new one. This makes response timing constant — the
+      // SES await no longer leaks user existence to a timing attacker.
+      await db.batch([
+        db.prepare("DELETE FROM password_reset WHERE user_id = ? AND purpose = 'reset'").bind(user.id),
+        db.prepare("INSERT INTO password_reset (id, user_id, token_hash, expires_at, purpose) VALUES (?, ?, ?, ?, 'reset')").bind(generateId(), user.id, tokenHash, expiresAt),
+      ]);
+
+      // Deferred SES send — response returns before email completes.
+      // SES failure: logged server-side; ok:true still returned (anti-enumeration).
+      waitUntil(
+        sendEmail(env, {
           from: 'RRM Academy <accounts@mail.rrmacademy.org>',
           to: email,
           subject: 'Reset your password — RRM Academy',
@@ -73,19 +89,11 @@ export async function onRequestPost({ request, env, waitUntil }) {
             'https://rrmacademy.org',
           ].join('\n'),
           log: { db: env.DB, source: 'auth/forgot-password', category: 'transactional' },
-        });
-      } catch (emailErr) {
-        log(env, waitUntil, 'auth', 'forgot_password_error', 'error', emailErr.message);
-        await logEmailFailure(env.DB, { email, category: 'transactional', source: 'auth/forgot-password', subject: 'Reset your password — RRM Academy', detail: emailErr.message });
-        // Email failed — return success anyway (anti-enumeration), but do not write token.
-        return json({ ok: true });
-      }
-
-      // Email delivered — atomically replace any prior reset token.
-      await db.batch([
-        db.prepare("DELETE FROM password_reset WHERE user_id = ? AND purpose = 'reset'").bind(user.id),
-        db.prepare("INSERT INTO password_reset (id, user_id, token_hash, expires_at, purpose) VALUES (?, ?, ?, ?, 'reset')").bind(generateId(), user.id, tokenHash, expiresAt),
-      ]);
+        }).catch(emailErr => {
+          log(env, waitUntil, 'auth', 'forgot_password_error', 'error', emailErr.message);
+          logEmailFailure(env.DB, { email, category: 'transactional', source: 'auth/forgot-password', subject: 'Reset your password — RRM Academy', detail: emailErr.message });
+        })
+      );
     }
 
     // Always return success (no email enumeration)
