@@ -7,7 +7,12 @@ on:
     paths:
       - 'src/**'
       - 'public/**'
+      - 'ssot/**'
       - 'astro.config.*'
+      - 'wrangler.toml'
+      - 'scripts/build-og-index.mjs'
+      - 'scripts/ssot-prebuild.mjs'
+      - 'docs/design/design-system.manual.json'
       - 'package.json'
       - 'package-lock.json'
       - 'functions/**'
