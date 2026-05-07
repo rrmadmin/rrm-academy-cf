@@ -10,6 +10,7 @@ import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { fetchResponseWithRetry } from './fetch-retry.mjs';
+import { SQSP_LEGACY_EXACT, WIX_LEGACY_ESTIMATE, MIN_EXPECTED_TOTAL } from './survey-legacy-constants.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_PATH = join(__dirname, '..', 'data', 'survey-count.json');
@@ -34,19 +35,35 @@ async function main() {
     process.exit(0);
   }
 
-  const total = Number(payload?.total);
-  if (!Number.isFinite(total) || total < 0) {
-    console.error(`[survey-count] Invalid total value: ${payload?.total}; preserving prior data`);
+  const liveDistinct = Number(payload?.liveDistinct);
+  if (!Number.isFinite(liveDistinct) || liveDistinct < 0) {
+    console.error(`[survey-count] Invalid liveDistinct value: ${payload?.liveDistinct}; preserving prior data`);
+    process.exit(0);
+  }
+
+  const liveSubmissions = Number(payload?.liveSubmissions);
+  if (!Number.isFinite(liveSubmissions) || liveSubmissions < 0) {
+    console.error(`[survey-count] Invalid liveSubmissions value: ${payload?.liveSubmissions}; preserving prior data`);
+    process.exit(0);
+  }
+
+  // Reconstruct total locally from live data + build-time constants.
+  // This eliminates one-deploy-cycle skew where the API runs old code with
+  // stale constants while the build script runs new code with updated constants.
+  const total = liveDistinct + SQSP_LEGACY_EXACT + WIX_LEGACY_ESTIMATE;
+
+  if (total < MIN_EXPECTED_TOTAL) {
+    console.error(`[survey-count] total ${total} < MIN_EXPECTED_TOTAL ${MIN_EXPECTED_TOTAL}; preserving prior data`);
     process.exit(0);
   }
 
   const out = {
     total,
-    liveDistinct: Number(payload?.liveDistinct) || 0,
-    liveSubmissions: Number(payload?.liveSubmissions) || 0,
-    sqspLegacyExact: Number(payload?.sqspLegacyExact) || 0,
-    wixLegacyEstimate: Number(payload?.wixLegacyEstimate) || 0,
-    lastUpdated: payload?.lastUpdated ?? new Date().toISOString(),
+    liveDistinct,
+    liveSubmissions,
+    sqspLegacyExact: SQSP_LEGACY_EXACT,
+    wixLegacyEstimate: WIX_LEGACY_ESTIMATE,
+    lastUpdated: payload?.lastUpdated ?? null,
     source: payload?.source ?? 'endo-survey-v1+ + sqsp-pdf-exact + wix-pdf-legacy-estimate',
     fetchedAt: new Date().toISOString(),
   };

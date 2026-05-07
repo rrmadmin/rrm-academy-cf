@@ -24,25 +24,11 @@
  *                       (honest "more than" framing; current floor ~6,000).
  */
 import { json, optionsResponse } from '../auth/_shared.js';
+import { SQSP_LEGACY_EXACT, WIX_LEGACY_ESTIMATE } from '../../../src/lib/survey-legacy-constants.js';
 
 const CACHE_HEADERS = {
   'Cache-Control': 'public, max-age=300, s-maxage=300, stale-while-revalidate=600',
 };
-
-// Squarespace-era PDF download cohort (Sept 2023 - Jun 2024). Exact count.
-// Source: /Users/brian/Downloads/Endo Self Survey Downloads on Squarespace - Sheet1 (1).csv
-// 1,810 download submissions, 1,512 distinct emails. Platform was sqsp -> wix -> cf.
-const SQSP_LEGACY_EXACT = 1512;
-
-// Wix-era PDF download cohort (Apr 2024 - Feb 2026), measurement-based estimate.
-// Source: Wix File Share dashboard for "Endometriosis Symptom Self-Survey.pdf"
-// (uploaded Apr 25, 2024) -- 3,719 lifetime views as of 2026-05-06.
-// Discount 10% for repeat views by the same user -> ~3,347 distinct viewers.
-// Replaces prior 4,271 derivation (which was based on Wix MEMBER count minus
-// Squarespace migrants); the view-counter basis is more direct.
-// Refine via Wix Members API if per-user download attribution becomes
-// available. See docs/plans/backlog.md.
-const WIX_LEGACY_ESTIMATE = 3347; // floor(3719 * 0.9)
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -76,7 +62,7 @@ export async function onRequestGet(context) {
       liveSubmissions,
       sqspLegacyExact: SQSP_LEGACY_EXACT,
       wixLegacyEstimate: WIX_LEGACY_ESTIMATE,
-      lastUpdated: row?.last_updated ?? new Date().toISOString(),
+      lastUpdated: row?.last_updated ?? null,
       source: 'endo-survey-v1+ + sqsp-pdf-exact + wix-pdf-legacy-estimate',
     },
     200,
