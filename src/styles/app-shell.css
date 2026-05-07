@@ -101,8 +101,11 @@
 
 /* Sidebar visual styling — adopts site design tokens (Cormorant for wordmark,
  * Inter for nav, semantic colors that auto-switch under [data-theme="dark"]). */
+.app-shell-main {
+  background: var(--bg-card);
+}
 .app-shell-nav {
-  background: var(--bg-surface);
+  background: var(--bg-body);
   border-right: 1px solid var(--border-color);
   padding: var(--space-6) var(--space-4);
   display: flex;
@@ -283,7 +286,7 @@
  * Heading is a static all-caps eyebrow ("Continue browsing"); meta is the
  * body-sized dynamic count below; list is the scrollable peer-link rail. */
 .app-shell-middle-column {
-  background: var(--bg-surface);
+  background: var(--bg-body);
   border-left: 1px solid var(--border-color);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
