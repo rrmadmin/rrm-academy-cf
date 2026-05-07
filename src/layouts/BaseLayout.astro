@@ -29,6 +29,7 @@ interface Props {
   bodyClass?: string;
   noindex?: boolean;
   markdownUrl?: string;
+  chrome?: 'default' | 'shell';
   citationMeta?: {
     title: string;
     authors: string[];      // One meta tag per author
@@ -62,6 +63,7 @@ const {
   citationMeta,
   noindex,
   markdownUrl,
+  chrome = 'default',
 } = Astro.props;
 
 const fullTitle = (title.includes('RRM Academy') || title.startsWith('RRM ')) ? title : `${title} | RRM Academy`;
@@ -265,11 +267,17 @@ if (!jsonLd) {
   )}
 </head>
 <body class:list={[bodyClass]}>
-  <Header />
-  <main>
+  {chrome === 'shell' ? (
     <slot />
-  </main>
-  <Footer />
+  ) : (
+    <>
+      <Header />
+      <main>
+        <slot />
+      </main>
+      <Footer />
+    </>
+  )}
 
   <script is:inline>
     // WebMCP tool exposure for AI agents browsing the page.
