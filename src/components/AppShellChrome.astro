@@ -157,6 +157,10 @@ const inSaved = currentPath === '/library/saved' || currentPath === '/library/sa
     // Build-time test in tests/unit/canonical-lockdown.test.mjs asserts the data
     // never exceeds this cap — keep the two in lockstep.
     var SLUG_RE = /^[a-z0-9][a-z0-9-]{0,250}$/;
+    // Named alias of the inline regex used on the label-check below — applied
+    // symmetrically to titles[] so adversarial titles can't slip through with
+    // control / bidi codepoints that the label gate rejects (/arise --deep #5).
+    var CONTROL_BIDI_RE = /[\x00-\x1f\x7f​-‏‪-‮⁠⁦-⁩﻿]/;
     var ALLOWED_SOURCES = Object.create(null);
     ALLOWED_SOURCES.library = 1;
     ALLOWED_SOURCES.commentary = 1;
@@ -220,6 +224,9 @@ const inSaved = currentPath === '/library/saved' || currentPath === '/library/sa
           for (var t = 0; t < c.titles.length; t++) {
             if (typeof c.titles[t] !== 'string') c.titles[t] = '';
             if (c.titles[t].length > 300) c.titles[t] = c.titles[t].slice(0, 300);
+            // Symmetric defense with the label-check above — strip titles
+            // that contain control / bidi codepoints (/arise --deep #5).
+            if (CONTROL_BIDI_RE.test(c.titles[t])) c.titles[t] = '';
           }
         }
       }
