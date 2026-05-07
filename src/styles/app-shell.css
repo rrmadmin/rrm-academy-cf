@@ -64,7 +64,10 @@
     grid-template-columns: var(--shell-sidebar-width) 1fr var(
         --shell-middle-column-width
       );
-    grid-template-areas: "nav main aside";
+    grid-template-areas:
+      "nav main aside"
+      "nav footer aside";
+    grid-template-rows: 1fr auto;
     min-height: 100vh;
   }
   .app-shell-nav {
@@ -76,6 +79,10 @@
   }
   .app-shell-main {
     grid-area: main;
+    min-width: 0;
+  }
+  .app-shell-footer-row {
+    grid-area: footer;
     min-width: 0;
   }
   .app-shell-middle-column {
@@ -153,11 +160,11 @@
 
 /* Mobile (≤900px): sidebar hidden, bottom nav fixed, drawer slides from left. */
 @media (max-width: 900px) {
-  /* Padding-bottom on body (not .app-shell-layout) so the BaseLayout-rendered
-     <Footer /> — which is a sibling of .app-shell-layout, not a descendant —
-     also clears the fixed bottom-nav. Without this, Footer's last 56px is
-     covered by the fixed bottom-nav. */
-  body.has-app-shell {
+  /* Padding-bottom on .app-shell-layout (which contains Footer as last grid
+     row) clears the fixed bottom-nav. Footer is a descendant of the layout
+     in the desktop grid; on mobile the grid collapses to flow-layout and
+     Footer naturally renders below main, above the bottom-nav. */
+  .app-shell-layout {
     padding-bottom: calc(var(--shell-bottom-nav-height) + env(safe-area-inset-bottom));
   }
   .app-shell-nav { display: none; }

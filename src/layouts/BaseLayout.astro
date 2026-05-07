@@ -267,7 +267,7 @@ if (!jsonLd) {
     <script type="application/ld+json" set:html={JSON.stringify(defaultSpeakableNode)} />
   )}
 </head>
-<body class:list={[bodyClass, chrome === 'shell' && 'has-app-shell']}>
+<body class:list={[bodyClass]}>
   {chrome === 'shell' ? (
     <slot />
   ) : (
@@ -276,9 +276,9 @@ if (!jsonLd) {
       <main>
         <slot />
       </main>
+      <Footer />
     </>
   )}
-  <Footer />
 
   <script is:inline>
     // WebMCP tool exposure for AI agents browsing the page.
