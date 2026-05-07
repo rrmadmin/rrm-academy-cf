@@ -161,7 +161,7 @@ export async function onRequestPost(context) {
         'INSERT INTO survey_identities (email, airtable_record_id, source) VALUES (?, ?, ?)'
       ).bind(data.email, airtableRecordId, 'endo-survey-v1').run();
     } catch (d1Err) {
-      const detail = `D1 write failed: email=${data.email} record=${airtableRecordId} err=${d1Err.message}`;
+      const detail = `D1 write failed: record=${airtableRecordId} err=${d1Err.message}`;
       log(env, waitUntil, 'survey', 'd1_identity_write_error', 'error', detail, 0, 500);
 
       const alertSubject = 'ALERT: Survey identity link failed';
