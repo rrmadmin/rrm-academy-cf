@@ -28,7 +28,12 @@ const CF_PAGES_SECRET_NAME = 'GA4_API_SECRET';
 const ONEP_VAULT = 'Automation';
 const ONEP_ITEM = 'GA4 Measurement Protocol API Secret';
 const NEW_SECRET_DISPLAY_NAME = `rrmacademy.org-rotated-${new Date().toISOString().slice(0, 10)}`;
-const OLD_SECRET_LITERAL_PREFIX = 'REDACTED-PREFIX'; // first 9 chars of the leaked literal, for matching
+// OLD secret prefix is RUNTIME-only (not committed) so that filter-repo's
+// --replace-text mapping in repo-split spec §3.3 5d does not have to know about
+// every fragment of the leaked literal. Set OLD_GA4_SECRET_PREFIX in the shell
+// before invoking the rotation. After §3.1 1g revokes the OLD secret, the
+// prefix has zero functional value -- this constant collapses to ''.
+const OLD_SECRET_LITERAL_PREFIX = process.env.OLD_GA4_SECRET_PREFIX || '';
 // Use gmail-cli's installed-app OAuth client (localhost wildcard registered).
 // The GA4 OAuth Creds (CF Pages) item doesn't have localhost registered.
 const GMAIL_CLI_CLIENT_SECRET = `${process.env.HOME}/.config/gmail-cli/client_secret.json`;
@@ -204,13 +209,26 @@ async function rotate(token) {
   const secrets = await ga(token, `${streamPath}/measurementProtocolSecrets`);
   const allSecrets = secrets.measurementProtocolSecrets || [];
   log(`  Existing MP secrets: ${allSecrets.length}`);
+  if (!OLD_SECRET_LITERAL_PREFIX) {
+    log(`  NOTE: OLD_GA4_SECRET_PREFIX env var not set. Cannot auto-identify OLD secret.`);
+    log(`  Set it before re-invoking, e.g. OLD_GA4_SECRET_PREFIX='-xxxxxxxx' node scripts/ga4-rotate-mp-secret.mjs`);
+  }
   for (const s of allSecrets) {
-    const matchOld = s.secretValue && s.secretValue.startsWith(OLD_SECRET_LITERAL_PREFIX);
+    const matchOld = OLD_SECRET_LITERAL_PREFIX
+      && s.secretValue
+      && s.secretValue.startsWith(OLD_SECRET_LITERAL_PREFIX);
     log(`    - ${s.displayName} (${s.name.split('/').pop()})${matchOld ? '  <-- LEAKED, will revoke' : ''}`);
   }
-  const oldSecret = allSecrets.find(s => s.secretValue && s.secretValue.startsWith(OLD_SECRET_LITERAL_PREFIX));
-  if (!oldSecret) {
-    log(`  WARN: no MP secret with prefix ${OLD_SECRET_LITERAL_PREFIX} found.`);
+  const oldSecretMatches = OLD_SECRET_LITERAL_PREFIX
+    ? allSecrets.filter(s => s.secretValue && s.secretValue.startsWith(OLD_SECRET_LITERAL_PREFIX))
+    : [];
+  if (oldSecretMatches.length > 1) {
+    logErr(`  FAIL: ${oldSecretMatches.length} secrets match prefix; refuse to guess. Audit GA4 admin manually.`);
+    process.exit(1);
+  }
+  const oldSecret = oldSecretMatches[0];
+  if (!oldSecret && OLD_SECRET_LITERAL_PREFIX) {
+    log(`  WARN: no MP secret with the configured prefix found.`);
     log(`  Either it's already been revoked OR it has a different prefix.`);
     log(`  Will proceed with create + bind, then list again so you can manually revoke if needed.`);
   }
@@ -282,10 +300,25 @@ async function rotate(token) {
 
   log('\n=== STEP 1g: Revoke OLD MP secret ===');
   if (oldSecret) {
-    await ga(token, oldSecret.name, { method: 'DELETE', fatal: false });
+    let revoked = false;
+    let lastErr = null;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      const result = await ga(token, oldSecret.name, { method: 'DELETE', fatal: false });
+      if (!result?.error) { revoked = true; break; }
+      lastErr = result.error;
+      log(`  attempt ${attempt}: DELETE failed: ${result.error.message || JSON.stringify(result.error)}`);
+      if (attempt < 3) await new Promise(r => setTimeout(r, 4000 * attempt));
+    }
+    if (!revoked) {
+      logErr(`  FAIL: could not revoke OLD secret after 3 attempts.`);
+      logErr(`  Last error: ${JSON.stringify(lastErr)}`);
+      logErr(`  Manual revoke required at GA4 admin: ${oldSecret.name}`);
+      logErr(`  Do NOT proceed to repo-split-spec §3.3 -- the literal is still live at GA4.`);
+      process.exit(2);
+    }
     log(`  Deleted: ${oldSecret.displayName} (${oldSecret.name.split('/').pop()})`);
   } else {
-    log(`  No old secret matched prefix ${OLD_SECRET_LITERAL_PREFIX}; skipping revoke.`);
+    log(`  No OLD secret to revoke (prefix not configured or no match); skipping.`);
     log(`  Re-listing all MP secrets so you can audit:`);
     const after = await ga(token, `${streamPath}/measurementProtocolSecrets`);
     for (const s of (after.measurementProtocolSecrets || [])) {
