@@ -161,6 +161,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
       if (env.COMMUNITY_KV) {
         const cooldownKey = `signup-collision:${email.toLowerCase()}`;
         const alreadySent = await env.COMMUNITY_KV.get(cooldownKey);
+        // NOTE: KV has no atomic SETNX. Two concurrent collision requests may both read null
+        // and both fire the cooldown email — at most 2 per hour per address, acceptable.
         if (!alreadySent) {
           await env.COMMUNITY_KV.put(cooldownKey, '1', { expirationTtl: 3600 });
           waitUntil(
@@ -214,8 +216,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
         waitlistBackfillStatement(db, userId, email),
       ]);
     } catch (batchErr) {
-      if (batchErr.message && batchErr.message.includes('UNIQUE constraint failed')) {
+      if (batchErr.message && (batchErr.message.includes('UNIQUE constraint failed: user.email') || batchErr.message.includes('idx_user_email_nocase'))) {
         // Anti-enumeration: same cookie shape as a real signup (fake session ID won't validate).
+        // Scoped to user.email UNIQUE — session.id or email_verification.id collisions are not
+        // enumeration risks and should surface as 500 (caller can retry a fresh ID).
         const fakeSessionId = generateSessionId();
         const fakeExpires = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
         return json(
