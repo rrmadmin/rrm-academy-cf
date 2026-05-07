@@ -747,8 +747,8 @@
           // Only push if this link's type matches the clicked source.
           if (pm[1] !== resultSource) return;
           slugs.push(pm[2]);
-          var titleEl = link.querySelector('.sr-item__title') ||
-                        (link.closest('.sr-item') && link.closest('.sr-item').querySelector('.sr-item__title'));
+          var titleEl = link.querySelector('.sr-title') ||
+                        (link.closest('.sr-item') && link.closest('.sr-item').querySelector('.sr-title'));
           titles.push(titleEl ? (titleEl.textContent || '').trim().slice(0, 300) : '');
         } catch (err) { /* malformed URL — skip */ }
       });
