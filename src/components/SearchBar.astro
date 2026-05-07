@@ -311,6 +311,11 @@
   var pendingSearchContext = null;
 
   window.addEventListener('pagehide', function () {
+    // Respect __rrmClearRequested__ flag set by [data-clear-shell-context]
+    // pointerdowns in AppShellChrome -- otherwise SearchBar's pagehide writer
+    // can re-poison sessionStorage after the user explicitly cleared context
+    // by tapping a sidebar/drawer/bottom-nav link (/arise --deep #2).
+    if (window.__rrmClearRequested__) return;
     if (!pendingSearchContext) return;
     try {
       sessionStorage.setItem('rrm-shell-context', JSON.stringify(pendingSearchContext));
