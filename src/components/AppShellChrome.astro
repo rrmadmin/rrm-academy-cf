@@ -289,4 +289,39 @@ const inSaved = currentPath === '/library/saved' || currentPath === '/library/sa
       });
     });
   })();
+
+  // Middle column hydration (article pages only, when sessionStorage has valid context).
+  (function() {
+    var rootDiv = document.querySelector('.app-shell-layout[data-shell-context]');
+    if (!rootDiv || rootDiv.dataset.shellContext !== 'article') return;
+
+    var ctx = window.__rrmGetShellContext__ ? window.__rrmGetShellContext__() : null;
+    if (!ctx) return;
+
+    var aside = document.querySelector('.app-shell-middle-column');
+    if (!aside) return;
+
+    var heading = aside.querySelector('.app-shell-middle-column__heading');
+    var list = aside.querySelector('.app-shell-middle-column__list');
+    if (!heading || !list) return;
+
+    // textContent only, never innerHTML (XSS guard per spec §Render rules).
+    heading.textContent = ctx.label;
+
+    var currentSlug = location.pathname.replace(/^\/(library|commentary)\//, '').replace(/\/$/, '');
+    var basePath = ctx.source === 'commentary' ? '/commentary/' : '/library/';
+
+    ctx.slugs.forEach(function (slug, i) {
+      var li = document.createElement('li');
+      var a = document.createElement('a');
+      a.href = basePath + slug + '/';
+      // Prefer real title captured by the Task 10 writer (data-title on cards);
+      // fall back to slug-replace only when the title is missing/empty.
+      var label = (ctx.titles && ctx.titles[i]) || slug.replace(/-/g, ' ');
+      a.textContent = label;
+      if (slug === currentSlug) a.setAttribute('aria-current', 'page');
+      li.appendChild(a);
+      list.appendChild(li);
+    });
+  })();
 </script>
