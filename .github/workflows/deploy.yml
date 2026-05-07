@@ -58,6 +58,9 @@ jobs:
       - name: iOS auto-zoom guard
         run: node scripts/guard-ios-zoom.mjs
 
+      - name: Satellite-managed-path guard
+        run: node scripts/check-no-moved-paths.mjs
+
       - name: Agent discovery surface guard
         run: node scripts/agent-discovery-check.mjs
 
