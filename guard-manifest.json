@@ -3,7 +3,7 @@
   "description": "Critical file integrity manifest. Run `npm run guard:update` after intentional changes.",
   "files": {
     "functions/api/auth/_shared.js": {
-      "hash": "b2f0d43926c169a3fe2c882751bc05a9ea92ef9a0bbcae4fafa6209ce8a7e33f",
+      "hash": "30032fbc42bb34dbc3e9aaa3e5c94b1ff5fa950bdf3c9cbcad4c7386dd8a7010",
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
@@ -71,7 +71,7 @@
       "note": "HMAC-SHA256 magic-link token for Wix-to-Stripe donor migration"
     },
     "functions/_middleware.js": {
-      "hash": "04470d1a05367ca750fc259c8ce0da60ea9472410e8fe76177830788b2ad9633",
+      "hash": "8ba907f0f06fa1590a5079f6c3c09ec1b9c9c0826b1bad58fb6f9741a6248a60",
       "note": "Auth gating"
     },
     "wrangler.toml": {

@@ -129,26 +129,32 @@ export async function createSession(db, userId) {
 
 export async function validateSession(db, sessionId) {
   if (!sessionId) return null;
-  const row = await db.prepare('SELECT id, user_id, expires_at FROM session WHERE id = ?')
-    .bind(sessionId)
-    .first();
+  const row = await db.prepare(`
+    SELECT s.id, s.user_id, s.expires_at, u.blocked
+    FROM session s
+    JOIN user u ON u.id = s.user_id
+    WHERE s.id = ?
+  `).bind(sessionId).first();
   if (!row) return null;
+
+  // Blocked users are treated as session-invalid. Cleanup happens via cron.
+  if (row.blocked) return null;
 
   const now = Math.floor(Date.now() / 1000);
   if (now >= row.expires_at) {
-    // Expired — clean up
+    // Expired — clean up atomically
     await db.prepare('DELETE FROM session WHERE id = ?').bind(sessionId).run();
     return null;
   }
 
-  // Auto-renew if past halfway
+  // Auto-renew if past halfway — atomic batch prevents logout race
   const remainingMs = (row.expires_at - now) * 1000;
   let renewed = false;
   if (remainingMs < SESSION_RENEW_THRESHOLD_MS) {
     const newExpiry = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
-    await db.prepare('UPDATE session SET expires_at = ? WHERE id = ?')
-      .bind(newExpiry, sessionId)
-      .run();
+    await db.batch([
+      db.prepare('UPDATE session SET expires_at = ? WHERE id = ?').bind(newExpiry, sessionId),
+    ]);
     row.expires_at = newExpiry;
     renewed = true;
   }
@@ -319,33 +325,43 @@ export function googleAuthUrl(clientId, redirectUri) {
 }
 
 export async function exchangeGoogleCode(code, clientId, clientSecret, redirectUri) {
-  const resp = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      code,
-      client_id: clientId,
-      client_secret: clientSecret,
-      redirect_uri: redirectUri,
-      grant_type: 'authorization_code',
-    }),
-  });
-  if (!resp.ok) {
-    const body = await resp.text();
-    console.error('Google token exchange failed:', resp.status, body);
+  try {
+    const resp = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        code,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
+        grant_type: 'authorization_code',
+      }),
+    });
+    if (!resp.ok) {
+      const body = await resp.text();
+      console.error('Google token exchange failed:', resp.status, body);
+      throw new Error('Google token exchange failed');
+    }
+    return resp.json();
+  } catch (err) {
+    if (err.message === 'Google token exchange failed') throw err;
     throw new Error('Google token exchange failed');
   }
-  return resp.json();
 }
 
 export async function getGoogleProfile(accessToken) {
-  const resp = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-  if (!resp.ok) {
-    const body = await resp.text();
-    console.error('Google profile fetch failed:', resp.status, body);
+  try {
+    const resp = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!resp.ok) {
+      const body = await resp.text();
+      console.error('Google profile fetch failed:', resp.status, body);
+      throw new Error('Google profile fetch failed');
+    }
+    return resp.json();
+  } catch (err) {
+    if (err.message === 'Google profile fetch failed') throw err;
     throw new Error('Google profile fetch failed');
   }
-  return resp.json();
 }
