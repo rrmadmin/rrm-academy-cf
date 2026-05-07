@@ -78,7 +78,7 @@ Dev server runs on port 3000.
 
 If data files are missing, fetch first:
 ```bash
-AIRTABLE_PAT=$(op read 'op://Automation/OpenClaw Airtable PAT/credential') npm run fetch-all
+AIRTABLE_PAT=$(op read 'op://Automation/<redacted>/credential') npm run fetch-all
 npm run dev
 ```
 

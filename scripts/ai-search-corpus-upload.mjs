@@ -10,17 +10,17 @@
 //
 // CREDENTIAL INVENTORY:
 //   CLOUDFLARE_API_TOKEN
-//     1Password: op://Automation/Cloudflare API Token - AI Search Phase 1 (account-scoped)/credential
+//     1Password: op://Automation/<redacted>/credential
 //     For AI Search items API
 //   D1_API_TOKEN (optional; defaults to CLOUDFLARE_API_TOKEN)
-//     1Password: op://Automation/Cloudflare API Token - Claude Code Full Access/credential
+//     1Password: op://Automation/<redacted>/credential
 //     For D1 ai_search_docs reads/writes via REST API
 //   CF_ACCOUNT_ID  (default: ecf2c5bc8b5ebd634bcb587b3890910a)
 //   D1_DATABASE_ID (default: 22742c9c-77fa-4344-abda-7e7e8b0da9de — rrm-auth)
 //
 // USAGE:
-//   export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/Cloudflare API Token - AI Search Phase 1 (account-scoped)/credential')
-//   export D1_API_TOKEN=$(op read 'op://Automation/Cloudflare API Token - Claude Code Full Access/credential')
+//   export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/<redacted>/credential')
+//   export D1_API_TOKEN=$(op read 'op://Automation/<redacted>/credential')
 //   node scripts/ai-search-corpus-upload.mjs --dry-run
 //   node scripts/ai-search-corpus-upload.mjs --limit 5
 //   node scripts/ai-search-corpus-upload.mjs --full-rebuild

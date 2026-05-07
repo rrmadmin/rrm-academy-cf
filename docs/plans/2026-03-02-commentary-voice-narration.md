@@ -21,7 +21,7 @@
 ### Airtable
 - **Base ID:** `app1CKV1heL0qH2Oz` (Editorial Commentary Blog)
 - **Table ID:** `tblS8q3XHj6mhwxvl` (Editorial Calendar)
-- **PAT:** `source ~/.zshrc && op read 'op://Automation/OpenClaw Airtable PAT/credential'`
+- **PAT:** `source ~/.zshrc && op read 'op://Automation/<redacted>/credential'`
 - **Author field value:** `Naomi Whittaker, MD` (NOT "Dr. Naomi Whittaker")
 - **POC post:** `rec7aQ4iRUufWOLFR` -- "Uterine Isthmocele: The Overlooked C-Section Scar and Restorative Care", slug: `uterine-isthmocele-c-section-scar-restorative-solutions`, 4829 words
 
@@ -484,7 +484,7 @@ git commit -m "feat: render AudioPlayer on commentary posts with audio"
 
 ```bash
 source ~/.zshrc && curl -s "https://api.airtable.com/v0/app1CKV1heL0qH2Oz/tblS8q3XHj6mhwxvl/rec7aQ4iRUufWOLFR?fields%5B%5D=Content&fields%5B%5D=Slug&fields%5B%5D=Title" \
-  -H "Authorization: Bearer $(op read 'op://Automation/OpenClaw Airtable PAT/credential')" \
+  -H "Authorization: Bearer $(op read 'op://Automation/<redacted>/credential')" \
   | python3 -m json.tool > /tmp/poc-post.json
 ```
 
@@ -694,7 +694,7 @@ Using Airtable API, update the POC record with the audio URL:
 ```bash
 source ~/.zshrc && curl -s -X PATCH \
   "https://api.airtable.com/v0/app1CKV1heL0qH2Oz/tblS8q3XHj6mhwxvl/rec7aQ4iRUufWOLFR" \
-  -H "Authorization: Bearer $(op read 'op://Automation/OpenClaw Airtable PAT/credential')" \
+  -H "Authorization: Bearer $(op read 'op://Automation/<redacted>/credential')" \
   -H "Content-Type: application/json" \
   -d '{"fields":{"Audio URL":"https://rrmacademy.org/api/assets/audio/commentary/uterine-isthmocele-c-section-scar-restorative-solutions.mp3"}}'
 ```
@@ -706,7 +706,7 @@ NOTE: The `Audio URL` field must exist in Airtable first. If it doesn't exist ye
 ```bash
 cd /Users/brian/iCode/projects/rrm-academy-cf
 source ~/.zshrc
-AIRTABLE_PAT=$(op read 'op://Automation/OpenClaw Airtable PAT/credential') node src/lib/fetch-blog-data.mjs
+AIRTABLE_PAT=$(op read 'op://Automation/<redacted>/credential') node src/lib/fetch-blog-data.mjs
 ```
 
 Verify: `cat src/data/posts.json | python3 -c "import sys,json; posts=json.load(sys.stdin); [print(p['slug'], p.get('audioUrl','')) for p in posts if p.get('audioUrl')]"`

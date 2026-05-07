@@ -135,7 +135,7 @@ One row: `key = 'ecosystem-map'`. The `value` column holds the full JSON string.
     "host": "RackNerd VPS (108.174.50.7)",
     "workflows": 74,
     "active": 45,
-    "api_credential": "op://Automation/n8n API Key/credential",
+    "api_credential": "op://Automation/<redacted>/credential",
     "mcp_status": "BROKEN -- use REST API",
     "key_workflows": {
       "daily_cleanup": { "id": "La9Bauj70L82oua8", "schedule": "5 AM UTC", "does": "Prunes expired sessions/resets/verifications" },
@@ -402,7 +402,7 @@ References only -- no secrets. All in 1Password Automation vault.
 {
   "vault": "Automation",
   "service_account": "Whittaker Automation (OP_SERVICE_ACCOUNT_TOKEN in ~/.zshrc)",
-  "access": "op read 'op://Automation/<item>/credential'",
+  "access": "op read 'op://Automation/<redacted>/credential'",
   "items": {
     "Anthropic API Key": { "item_name": "OpenClaw Anthropic API", "purpose": "Claude API" },
     "n8n API Key": { "purpose": "n8n REST API" },

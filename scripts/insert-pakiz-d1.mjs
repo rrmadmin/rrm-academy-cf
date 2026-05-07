@@ -35,7 +35,7 @@ const sql = `INSERT INTO posts (id, slug, title, content, excerpt, author, conte
 await writeFile(sqlFile, sql);
 
 const accountId = 'ecf2c5bc8b5ebd634bcb587b3890910a';
-const token = execFileSync('op', ['read', 'op://Automation/Cloudflare API Token - Claude Code Full Access/credential'], { encoding: 'utf8' }).trim();
+const token = execFileSync('op', ['read', 'op://Automation/<redacted>/credential'], { encoding: 'utf8' }).trim();
 
 const result = execFileSync(
   'npx',

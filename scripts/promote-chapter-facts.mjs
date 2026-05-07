@@ -42,7 +42,7 @@ if (!flags.all && !flags.chapter) {
 
 function loadToken() {
   try {
-    const tok = execFileSync('op', ['read', 'op://Automation/RRM Library Worker Admin Token/credential'], {
+    const tok = execFileSync('op', ['read', 'op://Automation/<redacted>/credential'], {
       stdio: ['ignore', 'pipe', 'ignore'],
     })
       .toString()

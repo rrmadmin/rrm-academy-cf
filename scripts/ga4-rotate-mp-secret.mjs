@@ -106,7 +106,7 @@ function ensureOnePassItemExists() {
   } catch {
     log(`  1P: creating item '${ONEP_ITEM}' (category=API Credential)...`);
     // apicredential category has a default 'credential' field, which is what
-    // op://Automation/<item>/credential resolves to. Create with a placeholder
+    // op://Automation/<redacted>/credential resolves to. Create with a placeholder
     // credential value; rotate() will overwrite via op item edit before exit.
     return new Promise((resolve, reject) => {
       const proc = spawn('op', [
