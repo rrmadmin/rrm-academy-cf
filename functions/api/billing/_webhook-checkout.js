@@ -353,6 +353,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
           if (stripeSubStatus !== 'active' && stripeSubStatus !== 'trialing') {
             // Sub is not yet usable — clear the lock so the donor can retry, but DO NOT
             // flip migration_status or email admin. Phase 7 cron handles slow-3DS reconciliation.
+            // arise-ignore unbatched-writes -- single write in an early-return branch; no multi-table write here
             await db.prepare(
               "UPDATE wix_subscription SET migration_handoff_started_at = NULL " +
               "WHERE wix_subscription_id = ? AND stripe_subscription_id IS NULL"
@@ -621,6 +622,7 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
   // Case 1: User was logged in (client_reference_id = D1 user ID)
   if (session.client_reference_id) {
     if (customerId) {
+      // arise-ignore unbatched-writes -- conditional UPDATE only (no second .run() in this branch path)
       const result = await db.prepare(
         'UPDATE user SET stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE id = ? AND (stripe_customer_id IS NULL OR stripe_customer_id = ?)'
       ).bind(customerId, session.client_reference_id, customerId).run();
@@ -720,8 +722,11 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
       const tokenHash = await hashToken(token);
       const expiresAt = Math.floor(Date.now() / 1000) + 7 * 24 * 3600;
 
+      // ON CONFLICT: idx_password_reset_user_purpose UNIQUE(user_id, purpose) (migration 020)
+      // ensures at most one welcome token per user. Stripe deduplication via webhook_event
+      // prevents double-sends, but ON CONFLICT avoids a UNIQUE error on re-drive edge cases.
       await db.prepare(
-        "INSERT INTO password_reset (id, user_id, token_hash, expires_at, purpose) VALUES (?, ?, ?, ?, 'welcome')"
+        "INSERT INTO password_reset (id, user_id, token_hash, expires_at, purpose) VALUES (?, ?, ?, ?, 'welcome') ON CONFLICT(user_id, purpose) DO UPDATE SET id = excluded.id, token_hash = excluded.token_hash, expires_at = excluded.expires_at"
       ).bind(generateId(), id, tokenHash, expiresAt).run();
 
       const setPasswordUrl = `${SITE_URL}/reset-password/?token=${token}`;

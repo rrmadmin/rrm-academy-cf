@@ -45,7 +45,7 @@ async function handlePost(request, env, waitUntil) {
 
   // 3. Rate limit (for endpoints that create resources or send email)
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-  if (!checkRateLimit(`action:${ip}`)) {
+  if (!await checkRateLimit(env, `action:${ip}`, 5, 900)) {
     return json({ ok: false, error: 'Too many requests' }, 429);
   }
 

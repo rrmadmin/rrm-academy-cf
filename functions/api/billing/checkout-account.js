@@ -31,7 +31,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     }
 
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-    if (!checkRateLimit(`checkout-acct:${ip}`)) {
+    if (!await checkRateLimit(env, `checkout-acct:${ip}`, 5, 900)) {
       return json({ ok: false, error: 'Too many requests' }, 429);
     }
 

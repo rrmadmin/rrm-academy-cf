@@ -106,7 +106,7 @@ export async function onRequestPost(context) {
   // 7. Turnstile verification
   let turnstileOk;
   try {
-    turnstileOk = await verifyTurnstile(env.CF_TURNSTILE_SECRET, turnstileToken, ip);
+    turnstileOk = await verifyTurnstile(env.CF_TURNSTILE_SECRET, turnstileToken, ip, env);
   } catch {
     return json({ ok: false, error: 'spam_check_failed' }, 403);
   }
@@ -148,8 +148,7 @@ export async function onRequestPost(context) {
           userId = sessionRow.user_id;
         }
       }
-    } catch {
-      // Non-fatal: proceed without session
+    } catch { // arise-ignore silent-catch -- session lookup is non-fatal; proceed without session
     }
   }
 
@@ -163,8 +162,7 @@ export async function onRequestPost(context) {
     existingSub = await env.DB.prepare(
       'SELECT id, status, segments FROM newsletter_subscriber WHERE email = ? COLLATE NOCASE'
     ).bind(email).first();
-  } catch {
-    // Non-fatal: treat as no existing subscriber
+  } catch { // arise-ignore silent-catch -- newsletter lookup is non-fatal; waitlist proceeds
   }
 
   try {

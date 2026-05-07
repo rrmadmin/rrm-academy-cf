@@ -56,7 +56,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     if (!user) return json({ ok: false, error: 'User not found' }, 401);
     if (user.blocked) return json({ ok: false, error: 'Account suspended' }, 403);
 
-    if (!checkRateLimit(`mcp-key-create:${session.userId}`)) {
+    if (!await checkRateLimit(env, `mcp-key-create:${session.userId}`, 5, 900)) {
       return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
     }
 

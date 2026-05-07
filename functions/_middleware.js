@@ -276,10 +276,10 @@ export async function onRequest(context) {
       }));
     }
 
-    // Check role
-    const user = await env.DB.prepare('SELECT role FROM user WHERE id = ?')
+    // Check role and blocked status
+    const user = await env.DB.prepare('SELECT role, blocked FROM user WHERE id = ?')
       .bind(session.userId).first();
-    if (!user || !roleAtLeast(user.role, 'superadmin')) {
+    if (!user || user.blocked || !roleAtLeast(user.role, 'superadmin')) {
       return withSecurityHeaders(new Response('Forbidden', { status: 403 }));
     }
 

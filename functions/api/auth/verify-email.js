@@ -21,7 +21,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const session = await validateSession(db, sessionId);
     if (!session) return json({ ok: false, error: 'Not authenticated.' }, 401);
 
-    if (!checkRateLimit(`verify:${session.userId}`)) {
+    if (!await checkRateLimit(env, `verify:${session.userId}`, 5, 900)) {
       return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
     }
 
@@ -34,22 +34,18 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     const now = Math.floor(Date.now() / 1000);
 
-    // Find valid verification record
+    // Consume the verification record atomically (DELETE...RETURNING eliminates SELECT-then-DELETE race).
     const record = await db.prepare(
-      'SELECT id, code, expires_at FROM email_verification WHERE user_id = ? AND code = ? AND expires_at > ?'
+      'DELETE FROM email_verification WHERE user_id = ? AND code = ? AND expires_at > ? RETURNING id'
     ).bind(session.userId, code, now).first();
 
     if (!record) {
       return json({ ok: false, error: 'Invalid or expired verification code.' }, 400);
     }
 
-    // Mark email as verified + clean up verification records — atomically
-    await db.batch([
-      db.prepare('UPDATE user SET email_verified = 1, updated_at = datetime(\'now\') WHERE id = ?')
-        .bind(session.userId),
-      db.prepare('DELETE FROM email_verification WHERE user_id = ?')
-        .bind(session.userId),
-    ]);
+    // Mark email as verified.
+    await db.prepare("UPDATE user SET email_verified = 1, updated_at = datetime('now') WHERE id = ?")
+      .bind(session.userId).run();
 
     return json({ ok: true });
   } catch (err) {
