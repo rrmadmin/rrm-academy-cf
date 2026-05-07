@@ -276,6 +276,29 @@ Validation: `npm run ssot:validate` (schema + cross-ref) and `npm run ssot:smoke
 
 **Do not** move FAQs, courses, or pillar pages under a `/learn/` path. The 301 redirect tax and URL depth penalty outweigh the organizational neatness.
 
+## App Shell (Library + Commentary)
+
+`/library/*` and `/commentary/*` use a left-sidebar app shell instead of the global Header. Code is on main but **production INERT** until activated via:
+
+```bash
+gh variable set PUBLIC_SHELL_ROUTES --body "library,commentary"
+gh workflow run deploy.yml
+```
+
+Rollback: `gh variable set PUBLIC_SHELL_ROUTES --body ""` + redeploy.
+
+Components: `src/components/AppShellChrome.astro` (sidebar + drawer + middle column), `src/components/AppShellSheet.astro` (mobile pull-up sheet), `src/styles/app-shell.css`. Helper: `src/lib/shell-routes.ts` exports `isShellEnabled('library' | 'commentary')` reading `PUBLIC_SHELL_ROUTES`.
+
+**Activation gating:** every wrapped page tests `isShellEnabled(...)` to decide between `chrome="shell"` (sidebar) and `chrome="default"` (Header). BaseLayout's `chrome="shell"` prop suppresses Header AND outer `<main>` (AppShellChrome emits its own); Footer renders inside AppShellChrome's grid (`.app-shell-footer-row` in row 2 col 2 of the layout grid).
+
+**Right rail (article pages only):** AppShellChrome accepts `relatedSections={Array<{heading, items}>}`. Library articles pass Topics + By-this-author + Related research. Commentary posts pass Pillar + More-by-this-author + Related commentary. Helpers: `getArticlesByAuthor()` in `src/lib/airtable.ts`, `getRelatedArticles()` (same file), `getRelatedPosts()` in `src/lib/blog.ts`. Empty sections drop via `items.length` filter; cross-section dedup by id.
+
+When `relatedSections` is empty (or page doesn't pass it), AppShellChrome falls back to the legacy sessionStorage `rrm-shell-context` "Continue browsing" hydrator. Cold-land gate: `data-has-related="true"` attribute on `.app-shell-layout` skips the `.shell-no-context` CSS collapse, so direct-traffic visitors still see the server-rendered rail.
+
+CI gate: `scripts/check-canonical-lockdown.mjs` enforces `ALLOWED_PARAMS` allowlist (`topic, page, q, sort` + analytics params) on `/library/*` + `/commentary/*` query strings. New canonical-affecting params require explicit allowlist edit.
+
+11 proof gates documented in spec (G-SEO-1..6, G-GUARD, G-CHROME-1, G-ARCH-1/2, G-Z-STACK). Spec: `docs/superpowers/specs/2026-04-10-library-commentary-app-shell-design.md`. Plan: `docs/superpowers/plans/2026-05-06-library-commentary-app-shell-implementation.md`. Two /arise --deep passes done on this surface (#124 + #125).
+
 ## Page Templates & SEO Architecture
 
 **BaseLayout** (`src/layouts/BaseLayout.astro`): Every page uses this. Controls `<title>`, meta description, canonical URL, OG/Twitter tags, JSON-LD injection, Highwire Press citation meta, font preloading, favicon, and noindex. Title suffix logic: appends `| RRM Academy` unless title already contains "RRM Academy" or starts with "RRM ".
