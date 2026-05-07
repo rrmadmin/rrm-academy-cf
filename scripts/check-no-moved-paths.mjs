@@ -13,9 +13,22 @@ if (!existsSync(manifest)) {
 }
 
 const paths = readFileSync(manifest, 'utf8')
+  .replace(/^﻿/, '')
   .split('\n')
   .map(l => l.trim())
   .filter(l => l && !l.startsWith('#'));
+
+if (paths.length === 0) {
+  console.error('FAIL: manifest empty — guard cannot run vacuously');
+  process.exit(1);
+}
+
+for (const p of paths) {
+  if (p.startsWith('/') || /^[A-Za-z]:/.test(p) || p.includes('..')) {
+    console.error(`FAIL: manifest contains malformed path '${p}' — must be repo-relative, no leading slash, no '..'`);
+    process.exit(1);
+  }
+}
 
 const orphans = paths.filter(p => existsSync(resolve(repoRoot, p)));
 
