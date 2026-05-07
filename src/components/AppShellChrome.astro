@@ -229,6 +229,7 @@ const inSaved = currentPath === '/library/saved' || currentPath === '/library/sa
     if (!rootDiv || rootDiv.dataset.shellContext !== 'index') return;
 
     var pendingContext = null;
+    var clearRequested = false;
 
     function captureFromCards() {
       var cards = document.querySelectorAll('[data-article-card], [data-blog-card]');
@@ -275,6 +276,7 @@ const inSaved = currentPath === '/library/saved' || currentPath === '/library/sa
 
     // Commit on pagehide (top-level navigation race-safe on Safari iOS).
     window.addEventListener('pagehide', function () {
+      if (clearRequested) return;
       if (!pendingContext) return;
       try { sessionStorage.setItem('rrm-shell-context', JSON.stringify(pendingContext)); } catch (e) {}
     });
@@ -282,6 +284,7 @@ const inSaved = currentPath === '/library/saved' || currentPath === '/library/sa
     // Bottom-nav and logo links clear context (best-effort, never blocks navigation).
     document.querySelectorAll('[data-clear-shell-context]').forEach(function (el) {
       el.addEventListener('pointerdown', function () {
+        clearRequested = true;
         try { sessionStorage.removeItem('rrm-shell-context'); } catch (e) {}
       });
     });
