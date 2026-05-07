@@ -17,11 +17,13 @@
   --shell-breakpoint-mobile: 900px;
 }
 
-/* Cold-land / no-context gate: collapses middle column rail before first paint. */
-.shell-no-context .app-shell-layout:not([data-has-related="true"]) {
+/* Cold-land / no-context gate: only applies on article context where the
+ * middle column DOM is emitted. Non-article contexts use the 2-col layout
+ * template below and never emit the aside, so they don't need this gate. */
+.shell-no-context .app-shell-layout[data-shell-context="article"]:not([data-has-related="true"]) {
   grid-template-columns: var(--shell-sidebar-width) 1fr 0;
 }
-.shell-no-context .app-shell-layout:not([data-has-related="true"]) .app-shell-middle-column {
+.shell-no-context .app-shell-layout[data-shell-context="article"]:not([data-has-related="true"]) .app-shell-middle-column {
   display: none;
 }
 
@@ -53,16 +55,24 @@
  * Hard-coded 901px because CSS custom properties cannot resolve inside @media query conditions.
  * --shell-breakpoint-mobile in :root is documentation-only. */
 @media (min-width: 901px) {
+  /* Default 2-col layout for index + saved contexts (no right rail). */
   .app-shell-layout {
     display: grid;
+    grid-template-columns: var(--shell-sidebar-width) 1fr;
+    grid-template-areas:
+      "nav main"
+      "nav footer";
+    grid-template-rows: 1fr auto;
+    min-height: 100vh;
+  }
+  /* Article context expands to 3-col with the right rail. */
+  .app-shell-layout[data-shell-context="article"] {
     grid-template-columns: var(--shell-sidebar-width) 1fr var(
         --shell-middle-column-width
       );
     grid-template-areas:
       "nav main aside"
       "nav footer aside";
-    grid-template-rows: 1fr auto;
-    min-height: 100vh;
   }
   .app-shell-nav {
     grid-area: nav;
