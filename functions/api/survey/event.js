@@ -4,7 +4,7 @@
  * Writes to Analytics Engine (ANALYTICS binding, dataset worker_events).
  * No auth required -- anonymous event tracking.
  */
-import { CORS_HEADERS, optionsResponse } from '../auth/_shared.js';
+import { CORS_HEADERS, optionsResponse, checkRateLimit } from '../auth/_shared.js';
 import { log } from '../_log.js';
 
 const ALLOWED_ACTIONS = ['calculate', 'download_pdf', 'copy_for_ai', 'follow_instagram'];
@@ -20,6 +20,14 @@ export async function onRequestPost(context) {
     if (!env.ANALYTICS) {
       return new Response(JSON.stringify({ ok: false, error: 'Server misconfigured' }), {
         status: 500,
+        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+      });
+    }
+
+    const ip = request.headers.get('cf-connecting-ip') || 'unknown';
+    if (!await checkRateLimit(env, `survey-event:${ip}`, 60, 60)) {
+      return new Response(JSON.stringify({ ok: false, error: 'rate_limited' }), {
+        status: 429,
         headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
       });
     }
@@ -51,8 +59,9 @@ export async function onRequestPost(context) {
       });
     }
 
-    if (typeof viewport_width !== 'number') {
-      return new Response(JSON.stringify({ ok: false, error: 'viewport_width must be a number' }), {
+    if (typeof viewport_width !== 'number' || !Number.isFinite(viewport_width)
+        || viewport_width <= 0 || viewport_width > 10000) {
+      return new Response(JSON.stringify({ ok: false, error: 'viewport_width must be a positive finite number' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
       });

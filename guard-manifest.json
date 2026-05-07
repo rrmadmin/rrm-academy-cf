@@ -87,11 +87,11 @@
       "note": "EmailListVerify SMTP validation"
     },
     "functions/api/survey/submit.js": {
-      "hash": "b86e8a112526de2cab369b983b02caf8fbd982e681b0799c52fa08885f01b225",
+      "hash": "20284380b0a9ddddd0c0d5521227d8715b75d259c370185679dc3e5caa9c7fdc",
       "note": "Survey submission + PII pseudonymization"
     },
     "functions/api/survey/request.js": {
-      "hash": "b39730a24408c18ce0b9e77d111d23031f1a897667e5667133f2a53f65b5cf67",
+      "hash": "626aa1326910aec061ba406d3346ad9cb28fe4d6ab053419a551d6682d244865",
       "note": "Magic-link token generation"
     },
     "functions/api/newsletter/send.js": {

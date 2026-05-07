@@ -58,9 +58,8 @@ export async function onRequestPost(context) {
         }
       }
     }
-    if (typeof score.total !== 'number' || typeof score.tier1 !== 'number' ||
-        typeof score.tier2 !== 'number' || typeof score.tier3 !== 'number') {
-      return json({ ok: false, error: 'score must contain numeric total, tier1, tier2, tier3' }, 400);
+    if (![score.total, score.tier1, score.tier2, score.tier3].every(n => Number.isFinite(n) && n >= 0 && n <= 200)) {
+      return json({ ok: false, error: 'score values must be finite non-negative numbers <= 200' }, 400);
     }
 
     // Validate token
@@ -97,6 +96,8 @@ export async function onRequestPost(context) {
     let airtableRecordId;
     try {
       const referrer = request.headers.get('referer') || '';
+      const vw = (typeof device?.viewport_width === 'number' && Number.isFinite(device.viewport_width)
+        && device.viewport_width > 0 && device.viewport_width <= 10000) ? device.viewport_width : null;
       const fields = {
         Score: score.total,
         'Tier 1 Count': score.tier1,
@@ -108,9 +109,9 @@ export async function onRequestPost(context) {
         Submitted: new Date().toISOString(),
         Source: referrer,
         'User Origin': data.userorigin || '',
-        ...(device?.viewport_width && {
-          'Viewport Width': device.viewport_width,
-          'Device Type': device.viewport_width <= 768 ? 'Mobile' : device.viewport_width <= 1024 ? 'Tablet' : 'Desktop',
+        ...(vw && {
+          'Viewport Width': vw,
+          'Device Type': vw <= 768 ? 'Mobile' : vw <= 1024 ? 'Tablet' : 'Desktop',
         }),
       };
 
@@ -161,7 +162,7 @@ export async function onRequestPost(context) {
         'INSERT INTO survey_identities (email, airtable_record_id, source) VALUES (?, ?, ?)'
       ).bind(data.email, airtableRecordId, 'endo-survey-v1').run();
     } catch (d1Err) {
-      const detail = `D1 write failed: email=${data.email} record=${airtableRecordId} err=${d1Err.message}`;
+      const detail = `D1 write failed: record=${airtableRecordId} err=${d1Err.message}`;
       log(env, waitUntil, 'survey', 'd1_identity_write_error', 'error', detail, 0, 500);
 
       const alertSubject = 'ALERT: Survey identity link failed';
