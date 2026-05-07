@@ -77,7 +77,7 @@
     grid-row: 1; /* /arise A4: confine sidebar to row 1 so it doesn't paint over footer */
     position: sticky;
     top: 0;
-    align-self: start;
+    align-self: stretch;
     max-height: 100vh;
     overflow-y: auto;
   }
@@ -94,7 +94,7 @@
     grid-row: 1; /* /arise A4 */
     position: sticky;
     top: 0;
-    align-self: start;
+    align-self: stretch;
     max-height: 100vh;
     overflow-y: auto;
   }
@@ -105,6 +105,50 @@
   .app-shell-sheet-peek {
     display: none;
   }
+}
+
+/* Middle-column visual styling.
+ * Heading is a static all-caps eyebrow ("Continue browsing"); meta is the
+ * body-sized dynamic count below; list is the scrollable peer-link rail. */
+.app-shell-middle-column__inner {
+  padding: 1.5rem 1rem;
+}
+.app-shell-middle-column__heading {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-secondary, #6b7280);
+  margin: 0 0 0.25rem;
+}
+.app-shell-middle-column__meta {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #6b7280);
+  margin: 0 0 0.75rem;
+}
+.app-shell-middle-column__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.app-shell-middle-column__list a {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  color: var(--text-primary, #111827);
+  text-decoration: none;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+.app-shell-middle-column__list a:hover {
+  background: var(--bg-secondary, #f3f4f6);
+}
+.app-shell-middle-column__list a[aria-current="page"] {
+  background: var(--bg-tertiary, #e5e7eb);
+  font-weight: 600;
 }
 
 /* Sidebar visual styling.
