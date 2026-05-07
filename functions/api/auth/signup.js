@@ -6,7 +6,7 @@ import {
   json, optionsResponse, generateId, generateSessionId, generateToken,
   hashPassword, sessionCookie, verifyTurnstile, checkRateLimit,
   isValidPassword, waitlistBackfillStatement, sessionInsertStatement,
-  deriveSignupSource,
+  deriveSignupSource, EMAIL_VERIFY_TTL_S,
 } from './_shared.js';
 import { validateEmail } from './_email-validate.js';
 import { verifyAndTagEmail } from '../_elv.js';
@@ -161,7 +161,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const name = firstName + ' ' + lastName;
 
     const code = generateToken().slice(0, 8); // 8-char verification code
-    const verifyExpiresAt = Math.floor(Date.now() / 1000) + 3600; // 1 hour
+    const verifyExpiresAt = Math.floor(Date.now() / 1000) + EMAIL_VERIFY_TTL_S;
 
     const sessionId = generateSessionId();
     const sessionExpiresAt = Math.floor((Date.now() + 30 * 24 * 60 * 60 * 1000) / 1000);
