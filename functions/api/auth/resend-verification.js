@@ -27,6 +27,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
       return json({ ok: false, error: 'Please wait before requesting another code.' }, 429);
     }
 
+    if (!env.AWS_ACCESS_KEY_ID) {
+      return json({ ok: false, error: 'Verification email service is temporarily unavailable. Please try again later or contact administrator@rrmacademy.org for help.' }, 503);
+    }
+
     // Get user
     const user = await db.prepare('SELECT email, name, email_verified FROM user WHERE id = ?')
       .bind(session.userId).first();
@@ -43,33 +47,31 @@ export async function onRequestPost({ request, env, waitUntil }) {
         .bind(generateId(), session.userId, code, expiresAt),
     ]);
 
-    // Send email
-    if (env.AWS_ACCESS_KEY_ID) {
-      try {
-        await sendEmail(env, {
-          from: 'RRM Academy <accounts@mail.rrmacademy.org>',
-          to: user.email,
-          subject: 'Your verification code — RRM Academy',
-          text: [
-            `Hi ${user.name || 'there'},`,
-            '',
-            'Here is your new verification code:',
-            '',
-            `    ${code}`,
-            '',
-            'This code expires in 1 hour.',
-            '',
-            'Best regards,',
-            'RRM Academy',
-            'https://rrmacademy.org',
-          ].join('\n'),
-          log: { db: env.DB, source: 'auth/resend-verification', category: 'transactional' },
-        });
-      } catch (emailErr) {
-        log(env, waitUntil, 'auth', 'resend_verification_send_error', 'error', emailErr.message, 0, 502);
-        await logEmailFailure(env.DB, { email: user.email, category: 'transactional', source: 'auth/resend-verification', subject: 'Your verification code — RRM Academy', detail: emailErr.message });
-        return json({ ok: false, error: 'Failed to send verification email. Please try again.' }, 502);
-      }
+    // Send email (AWS credentials already verified above)
+    try {
+      await sendEmail(env, {
+        from: 'RRM Academy <accounts@mail.rrmacademy.org>',
+        to: user.email,
+        subject: 'Your verification code — RRM Academy',
+        text: [
+          `Hi ${user.name || 'there'},`,
+          '',
+          'Here is your new verification code:',
+          '',
+          `    ${code}`,
+          '',
+          'This code expires in 1 hour.',
+          '',
+          'Best regards,',
+          'RRM Academy',
+          'https://rrmacademy.org',
+        ].join('\n'),
+        log: { db: env.DB, source: 'auth/resend-verification', category: 'transactional' },
+      });
+    } catch (emailErr) {
+      log(env, waitUntil, 'auth', 'resend_verification_send_error', 'error', emailErr.message, 0, 502);
+      await logEmailFailure(env.DB, { email: user.email, category: 'transactional', source: 'auth/resend-verification', subject: 'Your verification code — RRM Academy', detail: emailErr.message });
+      return json({ ok: false, error: 'Failed to send verification email. Please try again.' }, 502);
     }
 
     return json({ ok: true });
