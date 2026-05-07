@@ -324,4 +324,39 @@ const inSaved = currentPath === '/library/saved' || currentPath === '/library/sa
       list.appendChild(li);
     });
   })();
+
+  // Theme toggle: shared handler so sidebar + drawer toggles operate identically.
+  // Header.astro / Footer.astro use the View Transitions API for the theme animation;
+  // mirror that here so the visual feel is consistent across shell + non-shell pages.
+  window.__rrmThemeToggle__ = (function() {
+    var lastClick = 0;
+    return function() {
+      var now = Date.now();
+      if (now - lastClick < 200) return; // debounce
+      lastClick = now;
+      var current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+      var next = current === 'dark' ? 'light' : 'dark';
+      var apply = function () {
+        document.documentElement.setAttribute('data-theme', next);
+        try { localStorage.setItem('rrm_theme', next); } catch (e) {}
+      };
+      if (typeof document.startViewTransition === 'function') {
+        document.startViewTransition(apply);
+      } else {
+        apply();
+      }
+    };
+  })();
+
+  document.querySelectorAll('[data-theme-toggle]').forEach(function (btn) {
+    btn.addEventListener('click', window.__rrmThemeToggle__);
+  });
+
+  // Cross-tab sync: when another tab writes rrm_theme, mirror the change here so
+  // open shell + non-shell tabs stay in lockstep without requiring a reload.
+  window.addEventListener('storage', function (e) {
+    if (e.key !== 'rrm_theme') return;
+    var theme = e.newValue === 'dark' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+  });
 </script>
