@@ -1,0 +1,116 @@
+---
+// AppShellChrome.astro — left-sidebar app shell wrapper for /library/* and /commentary/*.
+//
+// Responsibilities (per spec §Component boundaries):
+//   - Emit <main class="app-shell-main"> directly (BaseLayout chrome="shell" omits its <main>)
+//   - Render desktop sidebar (above 900px), mobile bottom nav (≤900px), hamburger drawer
+//   - Middle column DOM is emitted ONLY on article pages (`context === 'article'`).
+//     Index and saved pages omit the <aside class="app-shell-middle-column"> entirely.
+//     The G-SEO-6 grep (Task 30 step 6) reflects this — it filters to article paths
+//     only. Do NOT switch to always-emit; doing so would carry an empty aside on
+//     index/saved and break the G-SEO-6 grep semantics.
+//   - Pre-paint inline script: read sessionStorage.rrm-shell-context, add .shell-no-context if absent
+//   - Card-click writer: capture intent, commit on pagehide
+//   - Theme toggle handler: shared __rrmThemeToggle__() IIFE
+//
+// All sessionStorage access wrapped in try/catch (per spec §Data flow).
+//
+// SCRIPT ORDERING CONTRACT (do not break):
+//   AppShellChrome's pre-paint inline script defines `window.__rrmGetShellContext__`
+//   (Task 9). AppShellSheet's mount script (Task 14) reads it. Both scripts are
+//   `<script is:inline>` and rely on document order — AppShellChrome MUST execute
+//   before AppShellSheet. Astro emits components in the order they're rendered,
+//   and every wrap task (21, 25) renders <AppShellChrome> wrapping the page,
+//   with <AppShellSheet> as a sibling AFTER it. Do not reorder these components
+//   in any wrap task or AppShellSheet will see `window.__rrmGetShellContext__`
+//   as undefined and silently no-op.
+
+// Frontmatter import emits app-shell.css as a global stylesheet — matches the
+// canonical pattern used by BaseLayout.astro (line 8: `import '../styles/global.css'`).
+// Do NOT use `<style>@import '/src/styles/app-shell.css';</style>` — Astro <style>
+// blocks are component-scoped (data-astro-cid hashing) and root-absolute @import
+// paths do not resolve in production builds.
+import '../styles/app-shell.css';
+
+// AppShellChrome runs INSIDE BaseLayout's slot. The `<body>` element belongs
+// to BaseLayout (`<body class:list={[bodyClass]}>` around line 267), so this
+// component cannot influence body classes from inside the slot. bodyClass is
+// owned by BaseLayout — pass it there, not here. Adding `bodyClass` to this
+// Props interface would create an inert prop that pages might pass and
+// silently lose. Don't.
+interface Props {
+  context: 'index' | 'article' | 'saved';
+  currentPath: string;
+}
+
+const { context, currentPath } = Astro.props;
+
+// Identify current section for aria-current on sidebar links.
+const inLibrary = currentPath.startsWith('/library');
+const inCommentary = currentPath.startsWith('/commentary');
+const inSaved = currentPath === '/library/saved' || currentPath === '/library/saved/';
+---
+
+<div class="app-shell-layout">
+  <!-- Desktop sidebar -->
+  <nav class="app-shell-nav" data-pagefind-ignore="all" aria-label="Primary">
+    <a href="/" class="app-shell-nav__brand" aria-label="RRM Academy home" data-clear-shell-context>
+      <strong>RRM Academy</strong>
+    </a>
+
+    <div class="app-shell-nav__section">
+      <div class="app-shell-nav__heading">Reading</div>
+      <a href="/library/" class="app-shell-nav__link" aria-current={inLibrary && !inSaved ? 'page' : undefined}>Research Library</a>
+      <a href="/commentary/" class="app-shell-nav__link" aria-current={inCommentary ? 'page' : undefined}>Commentary</a>
+      <a href="/library/saved/" class="app-shell-nav__link" aria-current={inSaved ? 'page' : undefined}>Saved Articles</a>
+    </div>
+
+    <div class="app-shell-nav__section">
+      <div class="app-shell-nav__heading">Explore</div>
+      <a href="/guides/" class="app-shell-nav__link">Guides ↗</a>
+      <a href="/faqs/" class="app-shell-nav__link">FAQs ↗</a>
+      <a href="/courses/" class="app-shell-nav__link">Courses ↗</a>
+      <a href="/community/" class="app-shell-nav__link">Community ↗</a>
+    </div>
+
+    <div class="app-shell-nav__spacer"></div>
+
+    <a href="/donate/" class="app-shell-nav__cta">Donate</a>
+
+    <div class="app-shell-nav__footer">
+      <a href="/account/" class="app-shell-nav__account">Account</a>
+      <button type="button" class="app-shell-nav__theme-toggle" aria-label="Toggle theme" data-theme-toggle>
+        <span class="icon-moon" aria-hidden="true">🌙</span>
+        <span class="icon-sun" aria-hidden="true">☀️</span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="app-shell-main">
+    <slot />
+  </main>
+
+  <!-- Middle column: emitted ONLY on article pages (`context === 'article'`).
+       Visibility on article pages is class-gated by .shell-no-context (spec
+       §No-context CSS gate). G-SEO-6 grep (Task 30 step 6) filters to article
+       paths only — do NOT switch to always-emit. -->
+  {context === 'article' && (
+    <aside class="app-shell-middle-column" data-pagefind-ignore="all" aria-label="In this index">
+      <div class="app-shell-middle-column__inner">
+        <h2 class="app-shell-middle-column__heading"></h2>
+        <ol class="app-shell-middle-column__list"></ol>
+      </div>
+    </aside>
+  )}
+
+  <!-- Mobile bottom nav -->
+  <nav class="app-shell-bottom-nav" data-pagefind-ignore="all" aria-label="Mobile primary">
+    <a href="/library/" class="app-shell-bottom-nav__tab" aria-current={inLibrary && !inSaved ? 'page' : undefined} data-clear-shell-context>Library</a>
+    <a href="/commentary/" class="app-shell-bottom-nav__tab" aria-current={inCommentary ? 'page' : undefined} data-clear-shell-context>Commentary</a>
+    <a href="/library/saved/" class="app-shell-bottom-nav__tab" aria-current={inSaved ? 'page' : undefined} data-clear-shell-context>Saved</a>
+    <a href="/account/" class="app-shell-bottom-nav__tab" data-clear-shell-context>Account</a>
+  </nav>
+</div>
+
+{/* No <style> block: app-shell.css is imported in frontmatter (above) so it
+    emits as a global stylesheet, matching BaseLayout's pattern. */}
