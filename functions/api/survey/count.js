@@ -27,7 +27,7 @@ import { json, optionsResponse } from '../auth/_shared.js';
 import { SQSP_LEGACY_EXACT, WIX_LEGACY_ESTIMATE } from '../../../src/lib/survey-legacy-constants.js';
 
 const CACHE_HEADERS = {
-  'Cache-Control': 'public, max-age=300, s-maxage=300, stale-while-revalidate=600',
+  'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=120',
 };
 
 export async function onRequestOptions() {
