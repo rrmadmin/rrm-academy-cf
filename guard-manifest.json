@@ -15,7 +15,7 @@
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
-      "hash": "df83d6a122d382aae5a0afabe61866f5aec9eb3317d7c252f0c97bc5bfc6da66",
+      "hash": "03fb838aa229ed0f6a0e8991a69049e113527d34dee2855b541df5e554af234a",
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {

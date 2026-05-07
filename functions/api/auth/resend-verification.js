@@ -1,6 +1,11 @@
 /**
  * POST /api/auth/resend-verification
  * Sends a new email verification code to the logged-in user.
+ *
+ * SES failure design: returns 502 (unlike forgot-password.js which returns ok:true on SES failure).
+ * The divergence is intentional — this endpoint requires an active session, so the user already
+ * knows we have their email address. Anti-enumeration is moot; honest failure improves UX.
+ * forgot-password.js: anti-enumeration trumps UX. resend-verification.js: UX wins.
  */
 import {
   json, optionsResponse, generateId, generateToken, getSessionIdFromCookie,
