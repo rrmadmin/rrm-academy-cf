@@ -7,7 +7,7 @@
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
-      "hash": "334dc2af0099cd54453b1662ec3639dc6ec2c2a2d22054e70a826ca1ce03ed64",
+      "hash": "40edaaf1bf99fef2f0eb9d1120c354055131456b89c338b184aef52fec80dfae",
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
@@ -19,11 +19,11 @@
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
-      "hash": "03018c5e7c78582f740036a3893dbc331f694bce9919ab00b84139e49d0b05a9",
+      "hash": "a724c3f8b9275841e7c866ae1593c1b34408d7d88dcc22c9d2cc65ae10dc9b7a",
       "note": "Reset token consumption + password change"
     },
     "functions/api/auth/change-password.js": {
-      "hash": "b3e2559f21bdca6165540d685c0cdd242f9d3ec6f050f0577f929e59a3d0275c",
+      "hash": "cfcebf81503a7bc84921cddd2f901b429d95105101cf3ccbf6ea86ace11e40b6",
       "note": "Authenticated password change"
     },
     "functions/api/auth/google.js": {
@@ -31,7 +31,7 @@
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "872bef6d0103d87bd2e724971b97852a4e58afb0a53ca125cb0ad4aa2d1e1eb0",
+      "hash": "b75369414c10c1e9544b9cdec516708abc7e4f5841db4b93bc175fba48662ca4",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
