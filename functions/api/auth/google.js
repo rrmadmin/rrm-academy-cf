@@ -2,6 +2,11 @@
  * GET /api/auth/google
  * Redirects to Google OAuth consent screen.
  * Optional ?redirect= param to return user to a specific page after login.
+ *
+ * CSRF protection: a random nonce is minted, stored as an HttpOnly cookie
+ * scoped to the callback path, and embedded in the state parameter as
+ * "<nonce>:<base64-redirect>". google-callback.js verifies nonce matches
+ * before accepting the authorization code (RFC 6749 §10.12).
  */
 import { googleAuthUrl, isSafeRedirect, SITE_URL } from './_shared.js';
 
@@ -16,7 +21,12 @@ export async function onRequestGet({ env, request }) {
   const redirectUri = `${SITE_URL}/api/auth/google-callback`;
   const authUrl = googleAuthUrl(env.GOOGLE_CLIENT_ID, redirectUri);
 
-  const target = `${authUrl}&state=${encodeURIComponent(redirect)}`;
+  // Mint a single-use nonce to bind the state parameter to this browser session.
+  const nonce = crypto.randomUUID();
+  const redirectB64 = btoa(redirect);
+  const state = `${nonce}:${redirectB64}`;
+
+  const target = `${authUrl}&state=${encodeURIComponent(state)}`;
   const escapedTarget = target.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
   // CF Pages _headers can convert 302 → 200, so include an HTML fallback
@@ -28,6 +38,7 @@ export async function onRequestGet({ env, request }) {
     headers: {
       Location: target,
       'Content-Type': 'text/html;charset=UTF-8',
+      'Set-Cookie': `oauth_state=${nonce}; Path=/api/auth/google-callback; HttpOnly; Secure; SameSite=Lax; Max-Age=600`,
     },
   });
 }

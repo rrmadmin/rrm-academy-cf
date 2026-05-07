@@ -5,7 +5,8 @@
 import {
   json, optionsResponse, generateId, generateSessionId, generateToken,
   hashPassword, sessionCookie, verifyTurnstile, checkRateLimit,
-  isValidPassword, waitlistBackfillStatement,
+  isValidPassword, waitlistBackfillStatement, sessionInsertStatement,
+  deriveSignupSource, EMAIL_VERIFY_TTL_S,
 } from './_shared.js';
 import { validateEmail } from './_email-validate.js';
 import { verifyAndTagEmail } from '../_elv.js';
@@ -14,44 +15,6 @@ import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
 import { validateBody } from '../_validate.js';
 
-const SOURCE_MAP = [
-  { prefix: '/ask', source: 'ask' },
-  { prefix: '/courses', source: 'course' },
-  { prefix: '/community', source: 'community' },
-  { prefix: '/donate', source: 'donation' },
-];
-
-function deriveSignupSource(body, request) {
-  const candidates = [];
-
-  const bodyNext = typeof body.next === 'string' ? body.next.trim() : null;
-  if (bodyNext) candidates.push(bodyNext);
-
-  try {
-    const urlNext = new URL(request.url).searchParams.get('next');
-    if (urlNext) candidates.push(urlNext.trim());
-  } catch { /* ignore */ }
-
-  const referer = request.headers.get('Referer') || '';
-  if (referer) {
-    try {
-      const ref = new URL(referer);
-      if (ref.hostname === 'rrmacademy.org' || ref.hostname === 'www.rrmacademy.org') {
-        candidates.push(ref.pathname);
-      }
-    } catch { /* ignore */ }
-  }
-
-  for (const candidate of candidates) {
-    for (const { prefix, source } of SOURCE_MAP) {
-      if (candidate === prefix || candidate.startsWith(prefix + '/') || candidate.startsWith(prefix + '?')) {
-        return source;
-      }
-    }
-  }
-
-  return 'direct';
-}
 
 async function sendWelcomeAskEmail(env, email, firstName) {
   const greeting = firstName || 'there';
@@ -119,14 +82,14 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     if (!isValidPassword(password)) return json({ ok: false, error: 'Password must be at least 8 characters.' }, 400);
 
-    // Rate limit by IP (before expensive DNS lookups)
+    // Rate limit by IP (before expensive DNS lookups): 5 attempts per 15 minutes
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-    if (!checkRateLimit(`signup:${ip}`)) {
+    if (!await checkRateLimit(env, `signup:${ip}`, 5, 900)) {
       return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
     }
 
     // Deep email validation (disposable domain, MX check, typo detection)
-    const emailCheck = await validateEmail(email);
+    const emailCheck = await validateEmail(email, env);
     if (!emailCheck.valid) {
       return json({
         ok: false,
@@ -142,12 +105,12 @@ export async function onRequestPost({ request, env, waitUntil }) {
     }
 
     if (!env.AWS_ACCESS_KEY_ID) {
-      return json({ ok: false, error: 'Server misconfigured' }, 500);
+      return json({ ok: false, error: 'Email service is temporarily unavailable. Please try again in a few minutes or contact administrator@rrmacademy.org for help.' }, 503);
     }
 
     // Turnstile
     const turnstileOk = await verifyTurnstile(
-      env.CF_TURNSTILE_SECRET, body.turnstileToken, ip
+      env.CF_TURNSTILE_SECRET, body.turnstileToken, ip, env
     );
     if (!turnstileOk) return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
 
@@ -161,7 +124,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
       if (env.COMMUNITY_KV) {
         const cooldownKey = `signup-collision:${email.toLowerCase()}`;
         const alreadySent = await env.COMMUNITY_KV.get(cooldownKey);
-        if (!alreadySent && env.AWS_ACCESS_KEY_ID) {
+        // NOTE: KV has no atomic SETNX. Two concurrent collision requests may both read null
+        // and both fire the cooldown email — at most 2 per hour per address, acceptable.
+        if (!alreadySent) {
           await env.COMMUNITY_KV.put(cooldownKey, '1', { expirationTtl: 3600 });
           waitUntil(
             sendEmail(env, {
@@ -182,7 +147,13 @@ export async function onRequestPost({ request, env, waitUntil }) {
           );
         }
       }
-      return json({ ok: true, emailVerificationRequired: true }, 201);
+      const fakeSessionId = generateSessionId();
+      const fakeExpires = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
+      return json(
+        { ok: true, emailVerificationRequired: true },
+        201,
+        { 'Set-Cookie': sessionCookie(fakeSessionId, fakeExpires) }
+      );
     }
 
     // Prepare all three INSERTs
@@ -190,7 +161,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const name = firstName + ' ' + lastName;
 
     const code = generateToken().slice(0, 8); // 8-char verification code
-    const verifyExpiresAt = Math.floor(Date.now() / 1000) + 3600; // 1 hour
+    const verifyExpiresAt = Math.floor(Date.now() / 1000) + EMAIL_VERIFY_TTL_S;
 
     const sessionId = generateSessionId();
     const sessionExpiresAt = Math.floor((Date.now() + 30 * 24 * 60 * 60 * 1000) / 1000);
@@ -204,56 +175,61 @@ export async function onRequestPost({ request, env, waitUntil }) {
         db.prepare(
           'INSERT INTO email_verification (id, user_id, code, expires_at) VALUES (?, ?, ?, ?)'
         ).bind(generateId(), userId, code, verifyExpiresAt),
-        db.prepare(
-          'INSERT INTO session (id, user_id, expires_at) VALUES (?, ?, ?)'
-        ).bind(sessionId, userId, sessionExpiresAt),
+        sessionInsertStatement(db, sessionId, userId, sessionExpiresAt),
         waitlistBackfillStatement(db, userId, email),
       ]);
     } catch (batchErr) {
-      if (batchErr.message && batchErr.message.includes('UNIQUE constraint failed')) {
-        return json({ ok: true, emailVerificationRequired: true }, 201);
+      if (batchErr.message && (batchErr.message.includes('UNIQUE constraint failed: user.email') || batchErr.message.includes('idx_user_email_nocase'))) {
+        // Anti-enumeration: same cookie shape as a real signup (fake session ID won't validate).
+        // Scoped to user.email UNIQUE — session.id or email_verification.id collisions are not
+        // enumeration risks and should surface as 500 (caller can retry a fresh ID).
+        const fakeSessionId = generateSessionId();
+        const fakeExpires = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
+        return json(
+          { ok: true, emailVerificationRequired: true },
+          201,
+          { 'Set-Cookie': sessionCookie(fakeSessionId, fakeExpires) }
+        );
       }
       throw batchErr;
     }
 
     // Send verification email via waitUntil (decouple SES latency from response timing)
-    if (env.AWS_ACCESS_KEY_ID) {
-      waitUntil(
-        sendEmail(env, {
-          from: 'RRM Academy <accounts@mail.rrmacademy.org>',
-          to: email,
-          subject: 'Verify your email — RRM Academy',
-          text: [
-            `Hi ${firstName},`,
-            '',
-            'Welcome to RRM Academy! Please verify your email by entering this code:',
-            '',
-            `    ${code}`,
-            '',
-            'This code expires in 1 hour.',
-            '',
-            'If you did not create an account, you can safely ignore this email.',
-            '',
-            'Best regards,',
-            'RRM Academy',
-            'https://rrmacademy.org',
-          ].join('\n'),
-          log: { db: env.DB, source: 'auth/signup', category: 'transactional' },
-        }).catch(err => logEmailFailure(env.DB, { email, category: 'transactional', source: 'auth/signup', subject: 'Verify your email — RRM Academy', detail: err.message }))
-      );
-    }
+    // AWS_ACCESS_KEY_ID guard already returned 503 above — no inner guard needed here.
+    waitUntil(
+      sendEmail(env, {
+        from: 'RRM Academy <accounts@mail.rrmacademy.org>',
+        to: email,
+        subject: 'Verify your email — RRM Academy',
+        text: [
+          `Hi ${firstName},`,
+          '',
+          'Welcome to RRM Academy! Please verify your email by entering this code:',
+          '',
+          `    ${code}`,
+          '',
+          'This code expires in 1 hour.',
+          '',
+          'If you did not create an account, you can safely ignore this email.',
+          '',
+          'Best regards,',
+          'RRM Academy',
+          'https://rrmacademy.org',
+        ].join('\n'),
+        log: { db: env.DB, source: 'auth/signup', category: 'transactional' },
+      }).catch(err => logEmailFailure(env.DB, { email, category: 'transactional', source: 'auth/signup', subject: 'Verify your email — RRM Academy', detail: err.message }))
+    );
 
     waitUntil(sendGA4Event(env, request, 'sign_up', { method: 'email', source: signupSource }).catch(() => {}));
 
     if (signupSource === 'ask') {
       waitUntil(sendGA4Event(env, request, 'signup_from_ask', { source: 'ask' }).catch(() => {}));
-      if (env.AWS_ACCESS_KEY_ID) {
-        waitUntil(
-          sendWelcomeAskEmail(env, email, firstName).catch(err => {
-            log(env, waitUntil, 'auth', 'welcome_ask_email_fail', 'error', err.message);
-          })
-        );
-      }
+      // AWS_ACCESS_KEY_ID guard already returned 503 above — no inner guard needed here.
+      waitUntil(
+        sendWelcomeAskEmail(env, email, firstName).catch(err => {
+          log(env, waitUntil, 'auth', 'welcome_ask_email_fail', 'error', err.message);
+        })
+      );
     }
 
     return json(

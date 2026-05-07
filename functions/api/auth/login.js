@@ -3,9 +3,12 @@
  * Authenticates user with email/password, creates session.
  */
 import {
-  json, optionsResponse, verifyPassword, createSession, sessionCookie,
+  json, optionsResponse, verifyPassword, sessionCookie,
   verifyTurnstile, checkRateLimit, isValidEmail,
+  generateSessionId, waitlistBackfillStatement, sessionInsertStatement,
+  DUMMY_PASSWORD_HASH,
 } from './_shared.js';
+import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
 
 export async function onRequestOptions() {
@@ -28,15 +31,15 @@ export async function onRequestPost({ request, env, waitUntil }) {
       return json({ ok: false, error: 'Invalid email or password.' }, 400);
     }
 
-    // Rate limit by IP (prevent brute force)
+    // Rate limit by IP (prevent brute force): 5 attempts per 15 minutes
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-    if (!checkRateLimit(`login:${ip}`)) {
+    if (!await checkRateLimit(env, `login:${ip}`, 5, 900)) {
       return json({ ok: false, error: 'Too many login attempts. Please try again in 15 minutes.' }, 429);
     }
 
     // Turnstile
     const turnstileOk = await verifyTurnstile(
-      env.CF_TURNSTILE_SECRET, body.turnstileToken, ip
+      env.CF_TURNSTILE_SECRET, body.turnstileToken, ip, env
     );
     if (!turnstileOk) return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
 
@@ -46,17 +49,54 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     // Constant-time-ish: always verify even if user doesn't exist (prevent timing attacks)
     if (!user) {
-      // Hash a dummy password to spend similar time (iteration count must match PBKDF2_ITERATIONS)
-      await verifyPassword(password, '100000$AAAAAAAAAAAAAAAAAAA=$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=');
+      await verifyPassword(password, DUMMY_PASSWORD_HASH);
       return json({ ok: false, error: 'Invalid email or password.' }, 401);
     }
 
-    // Passwordless accounts — differentiate Google OAuth vs auto-created
+    // Passwordless accounts (Google-only or auto-created without password).
+    // Anti-enumeration: return the same generic error regardless of the reason.
+    // Fire a non-blocking guidance email out-of-band so the legitimate user
+    // knows how to proceed without us revealing account details in the response.
     if (!user.hashed_password) {
-      if (user.google_id) {
-        return json({ ok: false, error: 'This account uses Google sign-in. Please use the "Sign in with Google" button.' }, 401);
-      }
-      return json({ ok: false, error: 'Your account doesn\'t have a password yet. Use "Forgot password" to set one, or sign in with Google.' }, 401);
+      const guidanceType = user.google_id ? 'google' : 'unprovisioned';
+      waitUntil(
+        (async () => {
+          if (!env.AWS_ACCESS_KEY_ID) return;
+          const text = guidanceType === 'google'
+            ? [
+                'Hi there,',
+                '',
+                'Someone tried to sign in to your RRM Academy account with a password, but your account uses Google sign-in.',
+                '',
+                'To access your account, use the "Sign in with Google" button at https://rrmacademy.org/login/',
+                '',
+                'If this wasn\'t you, no action is needed — your account is secure.',
+                '',
+                '-- RRM Academy',
+              ].join('\n')
+            : [
+                'Hi there,',
+                '',
+                'Someone tried to sign in to your RRM Academy account, but no password has been set.',
+                '',
+                'Use "Forgot password" to set one: https://rrmacademy.org/forgot-password/',
+                '',
+                'If this wasn\'t you, no action is needed.',
+                '',
+                '-- RRM Academy',
+              ].join('\n');
+          await sendEmail(env, {
+            from: 'RRM Academy <accounts@mail.rrmacademy.org>',
+            to: user.email,
+            subject: 'Sign-in attempt on your RRM Academy account',
+            text,
+            log: { db: env.DB, source: 'auth/login', category: 'transactional' },
+          });
+        })().catch(err => {
+          logEmailFailure(env.DB, { email: user.email, category: 'transactional', source: 'auth/login', subject: 'Sign-in attempt on your RRM Academy account', detail: err.message });
+        })
+      );
+      return json({ ok: false, error: 'Invalid email or password.' }, 401);
     }
 
     if (user.blocked) {
@@ -69,8 +109,21 @@ export async function onRequestPost({ request, env, waitUntil }) {
       return json({ ok: false, error: 'Invalid email or password.' }, 401);
     }
 
-    // Create session
-    const session = await createSession(db, user.id);
+    // Clean up expired sessions before creating new one.
+    // Keeps multi-device working (only expired sessions removed, not active ones).
+    const nowTs = Math.floor(Date.now() / 1000);
+    await db.prepare('DELETE FROM session WHERE user_id = ? AND expires_at < ?').bind(user.id, nowTs).run();
+
+    // Create session + backfill waitlist rows orphaned before this email logged in.
+    // Idempotent: only touches course_waitlist rows where user_id IS NULL.
+    const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
+    const sessionId = generateSessionId();
+    const expiresAt = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
+    await db.batch([
+      sessionInsertStatement(db, sessionId, user.id, expiresAt),
+      waitlistBackfillStatement(db, user.id, user.email),
+    ]);
+    const session = { id: sessionId, expiresAt };
 
     return json(
       {

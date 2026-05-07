@@ -39,7 +39,7 @@ export async function onRequestPost(context) {
   }
 
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-  if (!checkRateLimit(`pdf:${ip}`)) {
+  if (!await checkRateLimit(env, `pdf:${ip}`, 5, 900)) {
     return json({ ok: false, error: 'Too many requests. Please try again later.' }, 429);
   }
 
@@ -48,12 +48,12 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'Valid email is required.' }, 400);
   }
 
-  const emailCheck = await validateEmail(email);
+  const emailCheck = await validateEmail(email, env);
   if (!emailCheck.valid) {
     return json({ ok: false, error: emailCheck.error }, 400);
   }
 
-  const turnstileOk = await verifyTurnstile(env.CF_TURNSTILE_SECRET, body.turnstileToken, ip);
+  const turnstileOk = await verifyTurnstile(env.CF_TURNSTILE_SECRET, body.turnstileToken, ip, env);
   if (!turnstileOk) {
     return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
   }
@@ -71,6 +71,7 @@ export async function onRequestPost(context) {
 
     if (!token) {
       token = crypto.randomUUID();
+      // arise-ignore unbatched-writes -- if/else branch; only one .run() executes per request
       await env.DB.prepare(
         'INSERT INTO pdf_token (token, email, guide_slug, expires_at) VALUES (?, ?, ?, unixepoch() + 86400)'
       ).bind(token, email, guide_slug).run();

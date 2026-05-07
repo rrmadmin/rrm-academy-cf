@@ -143,23 +143,19 @@ function suggestDomain(domain) {
   const closestSld = findClosestDomain(sld, KNOWN_SLDS, 2);
   const closestTld = findClosestDomain(tld, KNOWN_TLDS, 2);
 
-  let corrected = domain;
   let changed = false;
+  const correctedParts = [...parts];
 
   if (closestSld && closestSld !== sld) {
-    corrected = corrected.replace(sld, closestSld);
+    correctedParts[0] = closestSld;
     changed = true;
   }
   if (closestTld && closestTld !== tld) {
-    corrected = corrected.replace(new RegExp(escapeRegExp(tld) + '$'), closestTld);
+    correctedParts.splice(1, correctedParts.length - 1, ...closestTld.split('.'));
     changed = true;
   }
 
-  return changed ? corrected : null;
-}
-
-function escapeRegExp(s) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return changed ? correctedParts.join('.') : null;
 }
 
 // ── Structural email cleanup (from correct_email_typos, ISC) ──────────
@@ -202,13 +198,25 @@ function fixProviderTld(domain) {
 }
 
 /**
+ * Walk domain and its parent domains to check for disposable match.
+ * Catches subdomain variants like inbox.10minutemail.com.
+ */
+function isDisposable(domain) {
+  const parts = domain.split('.');
+  for (let i = 0; i < parts.length - 1; i++) {
+    if (DISPOSABLE_DOMAINS.has(parts.slice(i).join('.'))) return true;
+  }
+  return false;
+}
+
+/**
  * Validate an email address through multiple layers.
  * Returns { valid, error, suggestion } where:
  * - valid: boolean
  * - error: string if invalid (user-facing message)
  * - suggestion: string if we detected a likely typo
  */
-export async function validateEmail(email) {
+export async function validateEmail(email, env) {
   if (!email || typeof email !== 'string') {
     return { valid: false, error: 'Email is required.' };
   }
@@ -234,8 +242,8 @@ export async function validateEmail(email) {
     return { valid: false, error: `Did you mean ${suggested}?`, suggestion: suggested };
   }
 
-  // Layer 3: Disposable domain check
-  if (DISPOSABLE_DOMAINS.has(domain)) {
+  // Layer 3: Disposable domain check (walks subdomains so inbox.10minutemail.com matches 10minutemail.com)
+  if (isDisposable(domain)) {
     return { valid: false, error: 'Disposable email addresses are not allowed. Please use a permanent email.' };
   }
 
@@ -254,7 +262,7 @@ export async function validateEmail(email) {
   }
 
   // Layer 6: MX record check via Cloudflare DoH
-  const hasMx = await checkMxRecord(domain);
+  const hasMx = await checkMxRecord(domain, env);
   if (!hasMx) {
     return { valid: false, error: 'This email domain does not appear to accept mail. Please check for typos.' };
   }
@@ -267,7 +275,7 @@ export async function validateEmail(email) {
  * Falls back to true on network errors (fail-open for availability,
  * since we'd rather accept a questionable email than block a real user).
  */
-async function checkMxRecord(domain) {
+async function checkMxRecord(domain, env) {
   try {
     const resp = await fetch(
       `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(domain)}&type=MX`,
@@ -291,7 +299,13 @@ async function checkMxRecord(domain) {
     if (!aResp.ok) return true;
     const aData = await aResp.json();
     return aData.Answer && aData.Answer.length > 0;
-  } catch {
+  } catch (err) {
+    if (env?.EVENTS) {
+      env.EVENTS.writeDataPoint({
+        blobs: ['mx_check_fail_open', String(err?.message || err).slice(0, 200)],
+        indexes: [domain],
+      });
+    }
     return true; // fail-open on timeout/network error
   }
 }

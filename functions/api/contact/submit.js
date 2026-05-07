@@ -57,7 +57,7 @@ export async function onRequestPost(context) {
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
 
     // Rate limit by IP
-    if (!checkRateLimit(`contact:${ip}`)) {
+    if (!await checkRateLimit(env, `contact:${ip}`, 5, 900)) {
       return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
     }
 
@@ -68,7 +68,7 @@ export async function onRequestPost(context) {
     }
 
     // Deep email validation (disposable domain, MX check, typo detection)
-    const emailCheck = await validateEmail(email);
+    const emailCheck = await validateEmail(email, env);
     if (!emailCheck.valid) {
       return json({ ok: false, error: emailCheck.error, ...(emailCheck.suggestion ? { suggestion: emailCheck.suggestion } : {}) }, 400);
     }

@@ -3,39 +3,39 @@
   "description": "Critical file integrity manifest. Run `npm run guard:update` after intentional changes.",
   "files": {
     "functions/api/auth/_shared.js": {
-      "hash": "b2f0d43926c169a3fe2c882751bc05a9ea92ef9a0bbcae4fafa6209ce8a7e33f",
+      "hash": "28d867243d067dbce2ddab29e744d4d132412ddd80f8535f1581fe483efaebe1",
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
-      "hash": "f9ead91e40a7298e4630fcf228cf4008e6cf4a9f38f84aa27c61535f8883a3d9",
+      "hash": "23f62e4f27ae7fd4884211d4d8a39dbd14be1244531a15c269062c943dfa5333",
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "2883b18131f85b18e4ec1d19a7d498d2b1c0e97cf79a82fd6bc2fbadb1aae0f1",
+      "hash": "b00cf04997d5a28eb07c138febb515c9fc8624c37c382d4f5b4f7a47865c983b",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
-      "hash": "8318ed1014c0b8b5fae385f16113ea8c2cf2b1fd2dd8bbd3fab6802ce7c5eedf",
+      "hash": "f47336e59a6c1b823d28e2e1f23c80dc7f920ac316096f04886842196c20d7d7",
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
-      "hash": "a359e5aa04f35fb9188a62fd7eac64b67edec8698a8fd113b36a614dd0e6a901",
+      "hash": "6aa286e9701032e43f8aec7388039e8c622b3b86258423588401a061ee01fd71",
       "note": "Reset token consumption + password change"
     },
     "functions/api/auth/change-password.js": {
-      "hash": "4a1d332ee85f5d64453955d82f5b2c55ae07633e0c877cddcfe9da2ae9085f1d",
+      "hash": "3ed28622af3d4793ce7d9f64b657c29b1beb94506723282f8320f18b6ec0ede6",
       "note": "Authenticated password change"
     },
     "functions/api/auth/google.js": {
-      "hash": "a351748ca346ac43d169b8e0b6842a28101b729a59b27848cde0527a15e80f3b",
+      "hash": "00a9706469496106a1ae115bbc971ab7646da703203f95e90942633ea3b1597a",
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "8ebd305219d189e60e25a1c8541b6f55bf4e6a7f323afe3dbbf04c749744ce54",
+      "hash": "7453f1d5e2c8c653ae47426f380b0eba84e15a7259c4119a17decdb6cc0854f2",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
-      "hash": "6d7d9644f8a4004f7421b37dd8cf5562c1af5a29360cb58d2ea99b49ecaa06c7",
+      "hash": "c96d9a6db6d0e6c28156d8835216d815fd38f30a1ea2ad40193c2c8197321903",
       "note": "Email validation + disposable/typo detection"
     },
     "functions/api/stripe-webhook.js": {
@@ -43,7 +43,7 @@
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
-      "hash": "17b7949e713e15a80cab312b1b7ec226929c341abe411d0868d6c6aa956e40fd",
+      "hash": "7faf7c51cdcd33514fb505dd1b943f4d5ad6f7b86c6f4ef4d6b10d78814f6eb3",
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
@@ -55,7 +55,7 @@
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "fbedfe98846bc01bef6af46e158775d0534f19c659ddfa2255ae1b4d4623e728",
+      "hash": "fe62fd56d146b4ee99d9145b03b2f55b666bfff248282e0a3b82863ee9fc5c1a",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
@@ -71,7 +71,7 @@
       "note": "HMAC-SHA256 magic-link token for Wix-to-Stripe donor migration"
     },
     "functions/_middleware.js": {
-      "hash": "04470d1a05367ca750fc259c8ce0da60ea9472410e8fe76177830788b2ad9633",
+      "hash": "8ba907f0f06fa1590a5079f6c3c09ec1b9c9c0826b1bad58fb6f9741a6248a60",
       "note": "Auth gating"
     },
     "wrangler.toml": {
@@ -91,7 +91,7 @@
       "note": "Survey submission + PII pseudonymization"
     },
     "functions/api/survey/request.js": {
-      "hash": "70250b500ca8b164ed06698b7b2833c5e8011a3fcac18a8c92fd0dbb3bc54a8d",
+      "hash": "b39730a24408c18ce0b9e77d111d23031f1a897667e5667133f2a53f65b5cf67",
       "note": "Magic-link token generation"
     },
     "functions/api/newsletter/send.js": {
@@ -103,7 +103,7 @@
       "note": "CAN-SPAM unsubscribe (status update)"
     },
     "functions/api/newsletter/subscribe.js": {
-      "hash": "6107315de925a58d56c9a781468de881b4dd077e290cc440c65e956c6bbc85cc",
+      "hash": "881e2c05126631782eea42f54c6e2831a84cf5bab9c97e4497d517f1b06924f2",
       "note": "Public newsletter intake (rate-limited)"
     },
     "functions/api/search/semantic.js": {
@@ -139,7 +139,7 @@
       "note": "Guard script (self-guarding)"
     },
     "functions/api/auth/verify-email.js": {
-      "hash": "2d4bfe465dbbb68cea4dc7dc15d8e10d38535bcaff8b7da10f4d3e2effa8d36a",
+      "hash": "0cd33d12218ebb2c36c51c28e8b27283bd0530d871c0d9acff657f564307abed",
       "note": "Email verification token consumption"
     },
     "functions/api/auth/logout.js": {
@@ -147,7 +147,7 @@
       "note": "Session invalidation"
     },
     "functions/api/billing/checkout-account.js": {
-      "hash": "40d21b7484fb5a21618c4048a8740704e84df2712472b5aa1b0f71252df29364",
+      "hash": "453eed32c37aa68145692871f2a3013caee7437eba76d2733f84f738e032ca05",
       "note": "Pre-checkout account lookup"
     },
     "functions/api/billing/_webhook-invoice.js": {
@@ -159,7 +159,7 @@
       "note": "R2 image upload (file validation)"
     },
     "functions/api/pdf/request.js": {
-      "hash": "47f9ffb5662a94754328e883b8240d10c2bb40df342a959bc5c4bada55a661e5",
+      "hash": "79b33507cf560b3492d6a580489f52648618c19a749fffc21ca918da968b9bc3",
       "note": "PDF magic-link token generation"
     },
     "functions/api/pdf/redeem.js": {

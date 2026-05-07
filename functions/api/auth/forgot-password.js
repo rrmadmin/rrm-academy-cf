@@ -2,10 +2,18 @@
  * POST /api/auth/forgot-password
  * Accepts { email }, generates a password reset token, sends email.
  * Always returns success (don't reveal whether email exists).
+ *
+ * Timing strategy: SES send is deferred via waitUntil so both existing-user
+ * and non-existing-user paths return in ~same time (D1 lookup only).
+ * Anti-enumeration trumps UX clarity here — users can retry if email is delayed.
+ *
+ * SES failure design: unlike resend-verification.js (which returns 502, because
+ * the authenticated user already knows we have their email), this endpoint must
+ * not confirm address existence. ok:true even on SES failure is intentional.
  */
 import {
   json, optionsResponse, generateId, generateToken, hashToken,
-  verifyTurnstile, checkRateLimit, isValidEmail,
+  verifyTurnstile, checkRateLimit, isValidEmail, RESET_TOKEN_TTL_S,
 } from './_shared.js';
 import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
@@ -26,9 +34,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const email = (body.email || '').normalize('NFC').trim().toLowerCase();
     if (!isValidEmail(email)) return json({ ok: false, error: 'Valid email is required.' }, 400);
 
-    // Rate limit by IP (before expensive DNS lookups)
+    // Rate limit by IP (before expensive DNS lookups): 5 attempts per 15 minutes
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-    if (!checkRateLimit(`forgot:${ip}`)) {
+    if (!await checkRateLimit(env, `forgot:${ip}`, 5, 900)) {
       return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
     }
 
@@ -38,7 +46,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     // Turnstile
     const turnstileOk = await verifyTurnstile(
-      env.CF_TURNSTILE_SECRET, body.turnstileToken, ip
+      env.CF_TURNSTILE_SECRET, body.turnstileToken, ip, env
     );
     if (!turnstileOk) return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
 
@@ -48,18 +56,21 @@ export async function onRequestPost({ request, env, waitUntil }) {
     if (user) {
       const token = generateToken();
       const tokenHash = await hashToken(token);
-      const expiresAt = Math.floor(Date.now() / 1000) + 3600;
-
-      await db.batch([
-        db.prepare("DELETE FROM password_reset WHERE user_id = ? AND purpose = 'reset'").bind(user.id),
-        db.prepare("INSERT INTO password_reset (id, user_id, token_hash, expires_at, purpose) VALUES (?, ?, ?, ?, 'reset')").bind(generateId(), user.id, tokenHash, expiresAt),
-      ]);
-
-      // Build reset link
+      const expiresAt = Math.floor(Date.now() / 1000) + RESET_TOKEN_TTL_S;
       const resetUrl = `https://rrmacademy.org/reset-password/?token=${token}`;
 
-      try {
-        await sendEmail(env, {
+      // Atomically replace any prior reset token before firing the email.
+      // ON CONFLICT relies on idx_password_reset_user_purpose UNIQUE(user_id, purpose)
+      // (migration 020). Two concurrent requests race to upsert the same row rather
+      // than leaving two valid tokens. Token is valid for 1 hour.
+      await db.prepare(
+        "INSERT INTO password_reset (id, user_id, token_hash, expires_at, purpose) VALUES (?, ?, ?, ?, 'reset') ON CONFLICT(user_id, purpose) DO UPDATE SET id = excluded.id, token_hash = excluded.token_hash, expires_at = excluded.expires_at"
+      ).bind(generateId(), user.id, tokenHash, expiresAt).run();
+
+      // Deferred SES send — response returns before email completes.
+      // SES failure: logged server-side; ok:true still returned (anti-enumeration).
+      waitUntil(
+        sendEmail(env, {
           from: 'RRM Academy <accounts@mail.rrmacademy.org>',
           to: email,
           subject: 'Reset your password — RRM Academy',
@@ -77,15 +88,15 @@ export async function onRequestPost({ request, env, waitUntil }) {
             'https://rrmacademy.org',
           ].join('\n'),
           log: { db: env.DB, source: 'auth/forgot-password', category: 'transactional' },
-        });
-      } catch (emailErr) {
-        log(env, waitUntil, 'auth', 'forgot_password_error', 'error', emailErr.message);
-        await logEmailFailure(env.DB, { email, category: 'transactional', source: 'auth/forgot-password', subject: 'Reset your password — RRM Academy', detail: emailErr.message });
-      }
+        }).catch(emailErr => {
+          log(env, waitUntil, 'auth', 'forgot_password_error', 'error', emailErr.message);
+          logEmailFailure(env.DB, { email, category: 'transactional', source: 'auth/forgot-password', subject: 'Reset your password — RRM Academy', detail: emailErr.message });
+        })
+      );
     }
 
     // Always return success (no email enumeration)
-    return json({ ok: true, message: 'If an account exists with that email, a reset link has been sent.' });
+    return json({ ok: true });
   } catch (err) {
     log(env, waitUntil, 'auth', 'forgot_password_error', 'error', err.message);
     return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500);
