@@ -36,6 +36,8 @@ const related = getRelatedArticles(article, allArticles, 4);
 // the same multi-signal scoring used in the article body. Only sections with
 // items render — prevents empty headings.
 const byAuthor = getArticlesByAuthor(article, allArticles, 4);
+const byAuthorIds = new Set(byAuthor.map((a) => a.id));
+const relatedDeduped = related.filter((a) => !byAuthorIds.has(a.id));
 const relatedSections = [
   {
     heading: 'Topics',
@@ -53,7 +55,7 @@ const relatedSections = [
   },
   {
     heading: 'Related research',
-    items: related.map((a) => ({
+    items: relatedDeduped.map((a) => ({
       href: `/library/${a.slug}/`,
       label: a.title,
     })),

@@ -35,6 +35,8 @@ const moreByAuthor = post.author
       .filter((p) => p.id !== post.id && p.author === post.author)
       .slice(0, 4)
   : [];
+const moreByAuthorIds = new Set(moreByAuthor.map((p) => p.id));
+const relatedDeduped = related.filter((p) => !moreByAuthorIds.has(p.id));
 const relatedSections = [
   post.contentPillar && {
     heading: 'Pillar',
@@ -54,7 +56,7 @@ const relatedSections = [
   },
   {
     heading: 'Related commentary',
-    items: related.map((p) => ({
+    items: relatedDeduped.map((p) => ({
       href: `/commentary/${p.slug}/`,
       label: p.title,
     })),

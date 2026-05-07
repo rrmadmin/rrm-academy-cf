@@ -79,7 +79,7 @@ const NAV_ICONS: Record<string, string> = {
 };
 ---
 
-<div class="app-shell-layout" data-shell-context={context}>
+<div class="app-shell-layout" data-shell-context={context} data-has-related={hasRelatedSections ? 'true' : 'false'}>
   <!-- Desktop sidebar -->
   <nav class="app-shell-nav" data-pagefind-ignore="all" aria-label="Primary">
     <a href="/" class="app-shell-nav__brand" aria-label="RRM Academy home" data-clear-shell-context>
@@ -201,15 +201,15 @@ const NAV_ICONS: Record<string, string> = {
     <button type="button" class="app-shell-drawer__close" aria-label="Close menu">×</button>
     <div class="app-shell-nav__section">
       <div class="app-shell-nav__heading">Reading</div>
-      <a href="/library/saved/" class="app-shell-nav__link" data-clear-shell-context>
+      <a href="/library/saved/" class="app-shell-nav__link" aria-current={inSaved ? 'page' : undefined} data-clear-shell-context>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/library/saved/']} />
         <span class="app-shell-nav__label">Saved Articles</span>
       </a>
-      <a href="/library/" class="app-shell-nav__link" data-clear-shell-context>
+      <a href="/library/" class="app-shell-nav__link" aria-current={inLibrary && !inSaved ? 'page' : undefined} data-clear-shell-context>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/library/']} />
         <span class="app-shell-nav__label">Research Library</span>
       </a>
-      <a href="/commentary/" class="app-shell-nav__link" data-clear-shell-context>
+      <a href="/commentary/" class="app-shell-nav__link" aria-current={inCommentary ? 'page' : undefined} data-clear-shell-context>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/commentary/']} />
         <span class="app-shell-nav__label">Commentary</span>
       </a>
@@ -356,7 +356,8 @@ const NAV_ICONS: Record<string, string> = {
       if (raw && raw.length > 200000) raw = null;
       if (raw) ctx = JSON.parse(raw);
     } catch (e) { ctx = null; }
-    if (isValidContext(ctx)) {
+    var hasServerRail = document.querySelector('.app-shell-layout[data-has-related="true"]') !== null;
+    if (isValidContext(ctx) || hasServerRail) {
       document.documentElement.classList.remove('shell-no-context');
     } else {
       document.documentElement.classList.add('shell-no-context');
@@ -386,7 +387,8 @@ const NAV_ICONS: Record<string, string> = {
         if (raw2 && raw2.length > 200000) raw2 = null;
         if (raw2) ctx2 = JSON.parse(raw2);
       } catch (e2) { ctx2 = null; }
-      if (isValidContext(ctx2)) {
+      var hasServerRail2 = document.querySelector('.app-shell-layout[data-has-related="true"]') !== null;
+      if (isValidContext(ctx2) || hasServerRail2) {
         document.documentElement.classList.remove('shell-no-context');
       } else {
         document.documentElement.classList.add('shell-no-context');
