@@ -260,6 +260,14 @@
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+.app-shell-nav__theme-toggle .icon-moon,
+.app-shell-nav__theme-toggle .icon-sun {
+  display: block;
+}
+:root[data-theme="dark"] .app-shell-nav__theme-toggle .icon-moon,
+:root:not([data-theme="dark"]) .app-shell-nav__theme-toggle .icon-sun {
+  display: none;
+}
 
 /* Middle column visual styling.
  * Heading is a static all-caps eyebrow ("Continue browsing"); meta is the
