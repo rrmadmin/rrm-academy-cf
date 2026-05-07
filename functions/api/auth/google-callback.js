@@ -11,7 +11,7 @@
 import {
   generateId, createSession, sessionCookie,
   exchangeGoogleCode, getGoogleProfile, isSafeRedirect, SITE_URL,
-  waitlistBackfillStatement,
+  waitlistBackfillStatement, deriveSignupSource,
 } from './_shared.js';
 import { sendEmail } from '../_ses.js';
 import { sendGA4Event } from '../_ga4.js';
@@ -89,13 +89,13 @@ async function upgradeUnverifiedUser(db, googleId, email, avatarUrl) {
   return { user: unverified };
 }
 
-async function createNewGoogleUser(db, email, name, firstName, lastName, googleId, avatarUrl) {
+async function createNewGoogleUser(db, email, name, firstName, lastName, googleId, avatarUrl, signupSource) {
   const id = generateId();
   await db.batch([
     db.prepare(
-      `INSERT INTO user (id, email, email_verified, hashed_password, name, first_name, last_name, google_id, role, avatar_url)
-       VALUES (?, ?, 1, '', ?, ?, ?, ?, 'member', ?)`
-    ).bind(id, email, name, firstName, lastName, googleId, avatarUrl),
+      `INSERT INTO user (id, email, email_verified, hashed_password, name, first_name, last_name, google_id, role, avatar_url, signup_source)
+       VALUES (?, ?, 1, '', ?, ?, ?, ?, 'member', ?, ?)`
+    ).bind(id, email, name, firstName, lastName, googleId, avatarUrl, signupSource || 'direct'),
     waitlistBackfillStatement(db, id, email),
   ]);
 
@@ -217,9 +217,13 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
     // 3. Brand new user — create account
     if (!user) {
+      // Derive signup_source from referer or the decoded return-to path.
+      // google-callback.js receives no body, so pass a synthetic object with
+      // next set to the decoded returnTo path (same logic as signup.js).
+      const signupSource = deriveSignupSource({ next: returnTo }, request);
       let r4;
       try {
-        r4 = await createNewGoogleUser(db, email, name, firstName, lastName, googleId, avatarUrl);
+        r4 = await createNewGoogleUser(db, email, name, firstName, lastName, googleId, avatarUrl, signupSource);
       } catch (err) {
         if (err.message && err.message.includes('UNIQUE constraint')) {
           const r4retry = await handleReturningGoogleUser(db, googleId, email);

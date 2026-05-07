@@ -3,7 +3,7 @@
   "description": "Critical file integrity manifest. Run `npm run guard:update` after intentional changes.",
   "files": {
     "functions/api/auth/_shared.js": {
-      "hash": "9213242f515c6c568eb39620650c0b011e9f1bb75733a51c69209718e7a8b55d",
+      "hash": "f8184e82ccf56b088c5b5ae16bb35389f564705bfd664eab2e2f59365fadb260",
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
@@ -11,7 +11,7 @@
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "6ac43be81d48823e070c4fd42dbbb9e8135f1cd3615ec3dc8d26b04e410d7db2",
+      "hash": "d958f01475a5f611b950f0518dbdef52f2c0fca83597b4080f119db5c322ca47",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
@@ -31,7 +31,7 @@
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "57184b023ad06388f975f890ff9e47c88564e6a4c89b1df8d399454eef1be9bc",
+      "hash": "7453f1d5e2c8c653ae47426f380b0eba84e15a7259c4119a17decdb6cc0854f2",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {

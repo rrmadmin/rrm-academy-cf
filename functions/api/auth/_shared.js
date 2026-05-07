@@ -302,6 +302,51 @@ export function roleAtLeast(userRole, minRole) {
   return ROLES.indexOf(userRole) >= minIndex;
 }
 
+// --- Signup source attribution ---
+
+export const SOURCE_MAP = [
+  { prefix: '/ask', source: 'ask' },
+  { prefix: '/courses', source: 'course' },
+  { prefix: '/community', source: 'community' },
+  { prefix: '/donate', source: 'donation' },
+];
+
+/**
+ * Derives the signup_source from body.next, URL ?next param, or Referer header.
+ * Returns a short label (e.g. 'ask', 'course', 'community', 'donation', 'direct').
+ */
+export function deriveSignupSource(body, request) {
+  const candidates = [];
+
+  const bodyNext = typeof body?.next === 'string' ? body.next.trim() : null;
+  if (bodyNext) candidates.push(bodyNext);
+
+  try {
+    const urlNext = new URL(request.url).searchParams.get('next');
+    if (urlNext) candidates.push(urlNext.trim());
+  } catch { /* ignore */ } // arise-ignore silent-catch -- URL parse error is intentional
+
+  const referer = request.headers.get('Referer') || '';
+  if (referer) {
+    try {
+      const ref = new URL(referer);
+      if (ref.hostname === 'rrmacademy.org' || ref.hostname === 'www.rrmacademy.org') {
+        candidates.push(ref.pathname);
+      }
+    } catch { /* ignore */ } // arise-ignore silent-catch -- Referer parse error is intentional
+  }
+
+  for (const candidate of candidates) {
+    for (const { prefix, source } of SOURCE_MAP) {
+      if (candidate === prefix || candidate.startsWith(prefix + '/') || candidate.startsWith(prefix + '?')) {
+        return source;
+      }
+    }
+  }
+
+  return 'direct';
+}
+
 // --- Admin auth ---
 
 /**
