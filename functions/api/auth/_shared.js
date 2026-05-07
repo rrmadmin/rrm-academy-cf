@@ -82,7 +82,6 @@ export async function verifyPassword(password, stored) {
   const [iterStr, saltB64, hashB64] = stored.split('$');
   const iterations = parseInt(iterStr, 10);
   const salt = Uint8Array.from(atob(saltB64), c => c.charCodeAt(0));
-  const expectedHash = atob(hashB64);
 
   const key = await crypto.subtle.importKey(
     'raw',
@@ -96,12 +95,14 @@ export async function verifyPassword(password, stored) {
     key,
     256
   );
-  const actualHash = String.fromCharCode(...new Uint8Array(hash));
-  // Constant-time comparison
-  if (actualHash.length !== expectedHash.length) return false;
+  // Constant-time byte comparison — avoids String.fromCharCode spread which
+  // would stack-overflow on large buffers. Operates on Uint8Array directly.
+  const actualBytes = new Uint8Array(hash);
+  const expectedBytes = Uint8Array.from(atob(hashB64), c => c.charCodeAt(0));
+  if (actualBytes.length !== expectedBytes.length) return false;
   let mismatch = 0;
-  for (let i = 0; i < actualHash.length; i++) {
-    mismatch |= actualHash.charCodeAt(i) ^ expectedHash.charCodeAt(i);
+  for (let i = 0; i < actualBytes.length; i++) {
+    mismatch |= actualBytes[i] ^ expectedBytes[i];
   }
   return mismatch === 0;
 }
