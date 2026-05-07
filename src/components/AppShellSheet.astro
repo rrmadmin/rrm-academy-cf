@@ -1,0 +1,31 @@
+---
+// AppShellSheet.astro — mobile pull-up sheet (peek/half/full states).
+// Native <dialog> with focus trap, ::backdrop, ESC-to-close.
+// Feature-detected at mount; if 'showModal' absent (iOS 14-17, older Android),
+// adds .shell-no-sheet to <html> to hide peek bar entirely.
+//
+// SCRIPT ORDERING CONTRACT (do not break):
+//   This component's mount script (Task 14) reads `window.__rrmGetShellContext__`
+//   which is defined by AppShellChrome's pre-paint inline script (Task 9).
+//   Both are `<script is:inline>` and rely on document order — AppShellChrome
+//   MUST be rendered before AppShellSheet in every wrap task (21, 25). If you
+//   reorder them, AppShellSheet sees `__rrmGetShellContext__` as undefined and
+//   the sheet silently no-ops. See AppShellChrome.astro frontmatter for the
+//   full contract.
+---
+
+<button type="button" class="app-shell-sheet-peek" aria-controls="app-shell-sheet" aria-expanded="false" hidden>
+  <span class="app-shell-sheet-peek__label">In this index</span>
+  <span class="app-shell-sheet-peek__chevron" aria-hidden="true">▲</span>
+</button>
+
+<dialog id="app-shell-sheet" class="app-shell-sheet" data-pagefind-ignore="all" aria-modal="true" aria-labelledby="app-shell-sheet-title">
+  <div class="app-shell-sheet__grip" role="button" tabindex="0" aria-label="Drag to resize sheet">
+    <span class="app-shell-sheet__grip-handle" aria-hidden="true"></span>
+  </div>
+  <header class="app-shell-sheet__header">
+    <h2 id="app-shell-sheet-title" class="app-shell-sheet__title"></h2>
+    <button type="button" class="app-shell-sheet__close" aria-label="Close">×</button>
+  </header>
+  <ol class="app-shell-sheet__list" role="list"></ol>
+</dialog>
