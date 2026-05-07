@@ -29,3 +29,85 @@
   </header>
   <ol class="app-shell-sheet__list" role="list"></ol>
 </dialog>
+
+<script is:inline>
+  // Wrapped in IIFE so feature-detect early `return` is legal and Task 15's
+  // drag handlers (appended below) share the same `sheet` / `ctx` closure.
+  (function () {
+    // Defensive: very old browsers may not expose HTMLDialogElement at all.
+    if (typeof HTMLDialogElement === 'undefined' || !('showModal' in HTMLDialogElement.prototype)) {
+      document.documentElement.classList.add('shell-no-sheet');
+      return; // Bare-minimum degradation: peek bar hidden, sheet does not mount.
+    }
+
+    // Defense-in-depth: only mount the sheet on article pages. AppShellSheet
+    // is rendered solely by article wrap tasks (21, 25), but if a future
+    // engineer accidentally drops <AppShellSheet /> onto an index/saved page,
+    // the sheet would otherwise hydrate from whatever is in sessionStorage.
+    var rootDiv = document.querySelector('.app-shell-layout[data-shell-context]');
+    if (!rootDiv || rootDiv.dataset.shellContext !== 'article') return;
+
+    var sheet = document.getElementById('app-shell-sheet');
+    var peek = document.querySelector('.app-shell-sheet-peek');
+    var ctx = window.__rrmGetShellContext__ ? window.__rrmGetShellContext__() : null;
+
+    if (!ctx || !sheet || !peek) {
+      if (peek) peek.hidden = true;
+      return;
+    }
+
+    // Hydrate sheet contents from sessionStorage (textContent only).
+    var title = sheet.querySelector('.app-shell-sheet__title');
+    var list = sheet.querySelector('.app-shell-sheet__list');
+    if (title) title.textContent = ctx.label;
+    if (list) {
+      var basePath = ctx.source === 'commentary' ? '/commentary/' : '/library/';
+      var currentSlug = location.pathname.replace(/^\/(library|commentary)\//, '').replace(/\/$/, '');
+      ctx.slugs.forEach(function (slug, i) {
+        var li = document.createElement('li');
+        var a = document.createElement('a');
+        a.href = basePath + slug + '/';
+        // Prefer real title from ctx.titles[i] (Task 10 writer captures it
+        // from card data-title); slug-replace is the fallback path only.
+        var label = (ctx.titles && ctx.titles[i]) || slug.replace(/-/g, ' ');
+        a.textContent = label;
+        if (slug === currentSlug) a.setAttribute('aria-current', 'page');
+        li.appendChild(a);
+        list.appendChild(li);
+      });
+    }
+
+    // Reveal peek bar; sheet starts hidden until peek-tap.
+    peek.hidden = false;
+    sheet.dataset.state = 'hidden';
+
+    peek.addEventListener('click', function () {
+      // showModal can throw InvalidStateError if dialog already open or detached.
+      try {
+        sheet.showModal();
+      } catch (e) {
+        return;
+      }
+      sheet.dataset.state = 'half';
+      peek.setAttribute('aria-expanded', 'true');
+    });
+
+    var closeBtn = sheet.querySelector('.app-shell-sheet__close');
+    if (closeBtn) closeBtn.addEventListener('click', function () {
+      sheet.dataset.state = 'peek';
+      sheet.close();
+      peek.setAttribute('aria-expanded', 'false');
+    });
+
+    // Resize listener: close sheet if entering desktop mode.
+    window.addEventListener('resize', function () {
+      if (window.innerWidth > 900 && sheet.open) {
+        sheet.close();
+        sheet.dataset.state = ctx ? 'peek' : 'hidden';
+      }
+    });
+
+    // NOTE: Task 15 appends drag handlers below this comment, BEFORE the
+    // closing `})();` that ends this IIFE. They share `sheet` and `ctx`.
+  })();
+</script>
