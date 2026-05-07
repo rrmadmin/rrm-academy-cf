@@ -76,6 +76,10 @@ const NAV_ICONS: Record<string, string> = {
 
     <div class="app-shell-nav__section">
       <div class="app-shell-nav__heading">Reading</div>
+      <a href="/library/saved/" class="app-shell-nav__link" aria-current={inSaved ? 'page' : undefined}>
+        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/library/saved/']} />
+        <span class="app-shell-nav__label">Saved Articles</span>
+      </a>
       <a href="/library/" class="app-shell-nav__link" aria-current={inLibrary && !inSaved ? 'page' : undefined}>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/library/']} />
         <span class="app-shell-nav__label">Research Library</span>
@@ -83,10 +87,6 @@ const NAV_ICONS: Record<string, string> = {
       <a href="/commentary/" class="app-shell-nav__link" aria-current={inCommentary ? 'page' : undefined}>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/commentary/']} />
         <span class="app-shell-nav__label">Commentary</span>
-      </a>
-      <a href="/library/saved/" class="app-shell-nav__link" aria-current={inSaved ? 'page' : undefined}>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/library/saved/']} />
-        <span class="app-shell-nav__label">Saved Articles</span>
       </a>
     </div>
 
@@ -123,8 +123,8 @@ const NAV_ICONS: Record<string, string> = {
         <span class="app-shell-nav__label">Account</span>
       </a>
       <button type="button" class="app-shell-nav__theme-toggle" aria-label="Toggle theme" data-theme-toggle>
-        <span class="icon-moon" aria-hidden="true">🌙</span>
-        <span class="icon-sun" aria-hidden="true">☀️</span>
+        <svg class="icon-moon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="icon-sun" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       </button>
     </div>
   </nav>
@@ -168,6 +168,10 @@ const NAV_ICONS: Record<string, string> = {
     <button type="button" class="app-shell-drawer__close" aria-label="Close menu">×</button>
     <div class="app-shell-nav__section">
       <div class="app-shell-nav__heading">Reading</div>
+      <a href="/library/saved/" class="app-shell-nav__link" data-clear-shell-context>
+        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/library/saved/']} />
+        <span class="app-shell-nav__label">Saved Articles</span>
+      </a>
       <a href="/library/" class="app-shell-nav__link" data-clear-shell-context>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/library/']} />
         <span class="app-shell-nav__label">Research Library</span>
@@ -175,10 +179,6 @@ const NAV_ICONS: Record<string, string> = {
       <a href="/commentary/" class="app-shell-nav__link" data-clear-shell-context>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/commentary/']} />
         <span class="app-shell-nav__label">Commentary</span>
-      </a>
-      <a href="/library/saved/" class="app-shell-nav__link" data-clear-shell-context>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/library/saved/']} />
-        <span class="app-shell-nav__label">Saved Articles</span>
       </a>
     </div>
     <div class="app-shell-nav__section">
