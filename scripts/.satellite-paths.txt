@@ -1,3 +1,13 @@
+# SSOT manifest: paths that MOVED to rrmadmin/rrm-academy-internal.
+# See ~/iCode/projects/rrm-academy-internal/plans/2026-05-05-repo-split-plan-spec-v2.md §2.
+#
+# Format: one repo-relative path per line. Trailing slash for directories.
+# Comments: lines starting with `#`. Blanks ignored.
+# Constraints: no absolute paths, no `..` (rejected by the guard).
+#
+# Guard: scripts/check-no-moved-paths.mjs
+# Wired into: .github/workflows/merge.yml + .github/workflows/deploy.yml
+
 docs/rrm-academy-ecosystem.json
 docs/endo-survey-icd10-internal.md
 docs/glossary-review-2026-05-02.md
