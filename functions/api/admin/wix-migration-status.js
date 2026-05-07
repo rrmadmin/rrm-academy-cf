@@ -80,7 +80,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
         "FROM wix_subscription ws " +
         "WHERE ws.migration_status='stripe_active' " +
         "  AND ws.status='active' " +
-        "  AND ws.updated_at > datetime('now','-72 hours') " +
+        "  AND ws.updated_at > strftime('%Y-%m-%dT%H:%M:%fZ','now','-72 hours') " +
         "ORDER BY ws.updated_at DESC " +
         "LIMIT ?"
       ).bind(ROW_CAP),
@@ -89,7 +89,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
         "FROM wix_subscription " +
         "WHERE migration_email_sent_at IS NOT NULL " +
         "  AND migration_status='pending' " +
-        "  AND migration_email_sent_at < datetime('now','-21 days') " +
+        "  AND migration_email_sent_at < strftime('%Y-%m-%dT%H:%M:%fZ','now','-21 days') " +
         "ORDER BY migration_email_sent_at ASC " +
         "LIMIT ?"
       ).bind(ROW_CAP),
@@ -105,7 +105,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
         "SELECT email, stripe_subscription_id, updated_at " +
         "FROM wix_subscription " +
         "WHERE migration_status='fully_exited' " +
-        "  AND updated_at > datetime('now','-30 days') " +
+        "  AND updated_at > strftime('%Y-%m-%dT%H:%M:%fZ','now','-30 days') " +
         "ORDER BY updated_at DESC " +
         "LIMIT ?"
       ).bind(ROW_CAP),

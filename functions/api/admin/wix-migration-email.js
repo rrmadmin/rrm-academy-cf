@@ -118,7 +118,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
         "FROM wix_subscription " +
         "WHERE status='active' AND migration_status='pending' " +
         "  AND migration_email_sent_at IS NOT NULL " +
-        "  AND migration_email_sent_at < datetime('now','-13 days') " +
+        "  AND migration_email_sent_at < strftime('%Y-%m-%dT%H:%M:%fZ','now','-13 days') " +
         "ORDER BY migration_email_sent_at ASC"
       ).all();
       donors = res.results || [];
