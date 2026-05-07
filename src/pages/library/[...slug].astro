@@ -4,10 +4,15 @@ import Citation from '../../components/Citation.astro';
 import TopicTag from '../../components/TopicTag.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
 import LibraryFundingCallout from '../../components/LibraryFundingCallout.astro';
+import AppShellChrome from '../../components/AppShellChrome.astro';
+import AppShellSheet from '../../components/AppShellSheet.astro';
+import { isShellEnabled } from '../../lib/shell-routes';
 import { fetchAllArticles, getRelatedArticles, type Article } from '../../lib/airtable';
 import { parseStructuredAbstract } from '../../lib/abstract-parser';
 import { parseMarkdown, looksLikeMarkdown } from '../../lib/markdown-sanitize';
 import { buildMedicalScholarlyArticle } from '../../lib/identity';
+
+const SHELL_ENABLED = isShellEnabled('library');
 
 export async function getStaticPaths() {
   const articles = await fetchAllArticles();
@@ -218,7 +223,10 @@ const citationMeta = {
   jsonLd={jsonLd}
   citationMeta={citationMeta}
   speakable={['.article-title', '.article-meta-row', '.abstract']}
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
 >
+  {SHELL_ENABLED ? (
+    <AppShellChrome context="article" currentPath={Astro.url.pathname}>
   <div class="page-wrapper" data-pagefind-body>
     <span data-pagefind-meta="type:Research" style="display:none"></span>
     {article.rrmRelevance && <span data-pagefind-meta={`rrmRelevance:${article.rrmRelevance}`} style="display:none"></span>}
@@ -503,6 +511,296 @@ const citationMeta = {
       )}
     </div>
   </div>
+    </AppShellChrome>
+  ) : (
+    <Fragment>
+  <div class="page-wrapper" data-pagefind-body>
+    <span data-pagefind-meta="type:Research" style="display:none"></span>
+    {article.rrmRelevance && <span data-pagefind-meta={`rrmRelevance:${article.rrmRelevance}`} style="display:none"></span>}
+    {article.sentiment && <span data-pagefind-meta={`sentiment:${article.sentiment}`} style="display:none"></span>}
+    <div class="container container--narrow">
+      <!-- Breadcrumb + Save -->
+      <div class="article-topbar" data-pagefind-ignore>
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href="/library/">Research Library</a>
+          <span aria-hidden="true"> &rsaquo; </span>
+          <span>Synopsis</span>
+        </nav>
+        <div class="topbar-actions">
+          <button
+            class="action-btn"
+            id="share-btn"
+            aria-label="Copy link"
+            title="Copy link"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 17 5-5-5-5"/><path d="M4 18v-2a4 4 0 0 1 4-4h12"/></svg>
+            <span class="action-label" id="share-label"></span>
+          </button>
+          <button
+            class="action-btn"
+            id="cite-btn"
+            aria-label="Download citation"
+            title="Download citation (.RIS)"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span class="action-label" id="cite-label"></span>
+          </button>
+          <button
+            class="action-btn"
+            id="save-btn"
+            aria-label="Save article"
+            data-slug={article.slug}
+            data-title={article.title}
+            data-authors={article.shortCitation || ''}
+            data-journal={article.journal || article.journalAbbv || ''}
+            data-journal-abbv={article.journalAbbv || ''}
+            data-year={article.year || ''}
+            data-doi={article.doi || ''}
+            data-pmid={article.pmid || ''}
+            data-volume={article.volume || ''}
+            data-issue={article.issue || ''}
+            data-pages={article.pages || ''}
+            data-date-published={article.datePublished || ''}
+            data-abstract={article.abstract || ''}
+            data-topics={article.topics.join(';')}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            <span class="action-label" id="save-label"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Title -->
+      <h1 class="article-title" data-pagefind-weight="10" data-pagefind-meta="title">{article.title}</h1>
+
+      <!-- Authors + access icon -->
+      <div class="article-meta-row">
+        {authorRecords.length > 0 && authorRecords.length <= AUTHOR_CAP ? (
+          <p class="short-citation" data-pagefind-weight="5" data-pagefind-meta="authors"
+          >{authorRecords.map((rec, i) => {
+            const name = rec.full_name || rec.name;
+            const orcid = orcidUrl(rec.orcid);
+            const isLast = i === authorRecords.length - 1;
+            return (<span class="author-chunk"><span class="author-name">{name}</span>{orcid && <a href={orcid} class="orcid-link" target="_blank" rel="noopener me" aria-label={`ORCID profile for ${name}`} title={`ORCID: ${rec.orcid}`}><svg width="14" height="14" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><circle cx="128" cy="128" r="128" fill="#A6CE39"/><path fill="#FFF" d="M86.3 186.2H70.9V79.1h15.4v107.1zm22.6-107.1h41.6c39.6 0 57 28.3 57 53.6 0 27.5-21.5 53.6-56.8 53.6h-41.8V79.1zm15.4 93.3h24.5c34.9 0 42.9-26.5 42.9-39.7 0-21.5-13.7-39.7-43.7-39.7h-23.7v79.4zM88.7 56.8c0 5.5-4.5 10.1-10.1 10.1-5.6 0-10.1-4.6-10.1-10.1 0-5.6 4.5-10.1 10.1-10.1 5.6 0 10.1 4.6 10.1 10.1z"/></svg></a>}{!isLast && ', '}</span>);
+          })}</p>
+        ) : article.authors ? (
+          <p class="short-citation" data-pagefind-weight="5" data-pagefind-meta="authors">{article.authors}</p>
+        ) : article.shortCitation ? (
+          <p class="short-citation" data-pagefind-weight="5" data-pagefind-meta="authors">{article.shortCitation}</p>
+        ) : null}
+        {article.accessLevel === 'open' && (
+          <span class="access-badge access-badge--open" title={article.oaType ? `${article.oaType} Open Access` : 'Open Access'}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+            Open Access
+          </span>
+        )}
+        {article.accessLevel === 'free' && (
+          <span class="access-badge access-badge--free" title="Free to Read (Bronze OA)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+            Free to Read
+          </span>
+        )}
+        {article.accessLevel === 'restricted' && article.isCopyrighted && (
+          <span class="access-badge access-badge--restricted" title="Restricted">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </span>
+        )}
+        {(article.sentiment === 'hostile' || article.sentiment === 'critical') && (
+          <span class={`access-badge access-badge--${article.sentiment === 'hostile' ? 'hostile' : 'critical'}`}
+            title={article.sentiment === 'hostile'
+              ? 'This article is hostile or in bad faith toward restorative reproductive medicine'
+              : 'This article is critical or opposed to restorative reproductive medicine'}>
+            {article.sentiment === 'hostile' ? 'Hostile' : 'Critical'}
+          </span>
+        )}
+      </div>
+      {affiliations.length > 0 && (
+        <details class="article-affiliations-wrap" data-pagefind-ignore>
+          <summary class="article-affiliations-summary">
+            <span>Author affiliations{affiliations.length > 1 ? ` (${affiliations.length})` : ''}</span>
+            <svg class="article-affiliations-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </summary>
+          <ul class="article-affiliations" aria-label="Author affiliations">
+            {affiliations.map((aff) => (
+              <li class="affiliation">
+                <span class="affiliation__name">{aff.name}</span>
+                {aff.ror && (
+                  <a
+                    class="affiliation__ror"
+                    href={aff.ror}
+                    target="_blank"
+                    rel="noopener"
+                    aria-label={`ROR record for ${aff.name}`}
+                    title={`Research Organization Registry: ${aff.ror}`}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M7 17L17 7"/>
+                      <path d="M8 7h9v9"/>
+                    </svg>
+                    <span class="affiliation__ror-label">ROR</span>
+                  </a>
+                )}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+      {article.year && (
+        <span data-pagefind-meta={`year:${article.year}`} style="display:none"></span>
+      )}
+
+      <!-- Journal citation line -->
+      {journalLine && (
+        <p class="journal-line" data-pagefind-weight="2">{journalLine}</p>
+      )}
+
+      <!-- Identifiers & links -->
+      <div class="article-ids" data-pagefind-ignore>
+        {article.doi && (
+          <span class="article-id">
+            <span class="article-id__label">DOI</span>
+            <a href={doiUrl} class="article-id__value" target="_blank" rel="noopener">{article.doi}</a>
+          </span>
+        )}
+        {article.pmid && (
+          <span class="article-id">
+            <span class="article-id__label">PMID</span>
+            <a href={pubmedUrl} class="article-id__value" target="_blank" rel="noopener">{article.pmid}</a>
+          </span>
+        )}
+        {article.license && (
+          <span class="article-id">
+            <span class="article-id__label">License</span>
+            <span class="article-id__license">{article.license}</span>
+          </span>
+        )}
+        {showSourceLink && (
+          <a href={article.sourceUrl} class="external-link" target="_blank" rel="noopener">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Source
+          </a>
+        )}
+        {showFreeFullText && (
+          <a href={article.oaUrl} class="external-link" target="_blank" rel="noopener">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Free full text
+          </a>
+        )}
+      </div>
+
+      <!-- Synopsis (above abstract for SEO/AEO -- structured, citable content first) -->
+      {article.insights && (
+        <section class="article-insights" aria-label="Synopsis">
+          <h2 class="detail-heading">Synopsis</h2>
+          <div class="insights-tldr">
+            <p>{article.insights.tldr}</p>
+          </div>
+          {article.insights.key_findings && article.insights.key_findings.length > 0 && (
+            <div class="insights-findings">
+              <h3 class="insights-subheading">Key Findings</h3>
+              <ul>
+                {article.insights.key_findings.map(finding => (
+                  <li>{finding}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {article.insights.clinical_implications && (
+            <div class="insights-relevance">
+              <h3 class="insights-subheading">Clinical Implications</h3>
+              <p>{article.insights.clinical_implications}</p>
+            </div>
+          )}
+          {article.insights.rrm_context && (
+            <div class="insights-context">
+              <h3 class="insights-subheading">RRM Context</h3>
+              <p>{article.insights.rrm_context}</p>
+            </div>
+          )}
+        </section>
+      )}
+
+      <!-- Abstract -->
+      <section class="abstract" aria-label="Abstract">
+        <h2 class="detail-heading">Abstract</h2>
+        {renderedAbstractSections.length === 0 ? (
+          <p class="abstract-empty">No abstract available for this article.</p>
+        ) : (
+          renderedAbstractSections.map(section => (
+            <div class="abstract-section">
+              {section.heading && (
+                <span class="abstract-heading">{section.heading}</span>
+              )}
+              <Fragment set:html={section.html} />
+            </div>
+          ))
+        )}
+      </section>
+
+      <!-- Topics -->
+      {article.topics.length > 0 && (
+        <section class="article-topics" aria-label="Topics">
+          <h2 class="detail-heading">Topics</h2>
+          <div class="topic-grid" data-pagefind-weight="3">
+            {article.topics.map(topic => (
+              <TopicTag topic={topic} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {article.searchTerms.length > 0 && (
+        <div data-pagefind-weight="4" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">
+          {article.searchTerms.join(', ')}
+        </div>
+      )}
+
+      {(article.pmid || article.doi) && (
+        <div data-pagefind-weight="10" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">
+          {article.pmid && `PMID ${article.pmid} ${article.pmid}`}
+          {article.doi && `DOI ${article.doi} ${article.doi}`}
+        </div>
+      )}
+
+      <!-- Citations -->
+      {(article.apaCitation || article.vancouverCitation || article.mlaCitation) && (
+        <section class="article-citations" aria-label="Citations" data-pagefind-ignore="all">
+          <h2 class="detail-heading">Cite this article</h2>
+          <Citation
+            apa={article.apaCitation}
+            vancouver={article.vancouverCitation}
+            mla={article.mlaCitation}
+          />
+        </section>
+      )}
+
+      <!-- Keywords -->
+      {article.keywords && (
+        <section class="article-keywords" aria-label="Keywords">
+          <h2 class="detail-heading">Keywords</h2>
+          <p class="keywords-text">{article.keywords}</p>
+        </section>
+      )}
+
+      <!-- Funding callout -->
+      <LibraryFundingCallout />
+
+      <!-- Related articles -->
+      {related.length > 0 && (
+        <section class="article-related" aria-label="Related articles" data-pagefind-ignore="all">
+          <h2 class="detail-heading">Related articles</h2>
+          <div class="related-grid">
+            {related.map(rel => (
+              <ArticleCard article={rel} />
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  </div>
+    </Fragment>
+  )}
+  {SHELL_ENABLED && <AppShellSheet />}
 </BaseLayout>
 
 <style>
