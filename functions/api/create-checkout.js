@@ -63,7 +63,7 @@ async function handleCheckout(request, env, waitUntil) {
 
   if (!isCanary) {
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-    if (!checkRateLimit(`checkout:${ip}`)) {
+    if (!await checkRateLimit(env, `checkout:${ip}`, 5, 900)) {
       return json({ ok: false, error: 'Too many requests — try again later' }, 429);
     }
   }

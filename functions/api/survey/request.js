@@ -41,7 +41,7 @@ export async function onRequestPost(context) {
     if (!validated.valid) return json({ ok: false, error: validated.error }, validated.status);
     const email = validated.data.email;
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-    if (!checkRateLimit(`survey:${ip}`)) {
+    if (!await checkRateLimit(env, `survey:${ip}`, 5, 900)) {
       return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
     }
 

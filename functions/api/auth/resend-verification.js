@@ -22,8 +22,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const session = await validateSession(db, sessionId);
     if (!session) return json({ ok: false, error: 'Not authenticated.' }, 401);
 
-    // Rate limit
-    if (!checkRateLimit(`resend-verify:${session.userId}`)) {
+    // Rate limit: 5 attempts per 15 minutes
+    if (!await checkRateLimit(env, `resend-verify:${session.userId}`, 5, 900)) {
       return json({ ok: false, error: 'Please wait before requesting another code.' }, 429);
     }
 

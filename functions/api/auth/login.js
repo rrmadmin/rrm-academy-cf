@@ -28,9 +28,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
       return json({ ok: false, error: 'Invalid email or password.' }, 400);
     }
 
-    // Rate limit by IP (prevent brute force)
+    // Rate limit by IP (prevent brute force): 5 attempts per 15 minutes
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-    if (!checkRateLimit(`login:${ip}`)) {
+    if (!await checkRateLimit(env, `login:${ip}`, 5, 900)) {
       return json({ ok: false, error: 'Too many login attempts. Please try again in 15 minutes.' }, 429);
     }
 

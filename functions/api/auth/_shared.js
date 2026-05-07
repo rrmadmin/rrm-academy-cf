@@ -221,23 +221,46 @@ export function constantTimeEqual(a, b) {
   return m === 0;
 }
 
-// --- Rate limiting (simple, in-memory per-isolate — good enough for low traffic) ---
-// For production scale, use CF Rate Limiting rules or D1-backed counters.
+// --- Rate limiting (KV-backed, global across all isolates) ---
+// Fail-CLOSED on KV outage: if KV is unavailable, deny the request rather
+// than allow unlimited traffic to billed/sensitive endpoints. This matches
+// the /arise standard for security controls: missing dependency = deny.
+//
+// Callers: checkRateLimit(env, key, max, windowS)
+//   key     - unique string (e.g. 'login:${ip}', 'verify:${userId}')
+//   max     - maximum requests allowed in the window (default 5)
+//   windowS - window length in seconds (default 900 = 15 minutes)
+//
+// Returns true if the request is allowed, false if rate-limited or KV error.
 
-const rateLimits = new Map();
-const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
-const RATE_LIMIT_MAX = 5;
-
-export function checkRateLimit(key) {
-  const now = Date.now();
-  const entry = rateLimits.get(key);
-  if (!entry || now - entry.start > RATE_LIMIT_WINDOW_MS) {
-    rateLimits.set(key, { start: now, count: 1 });
-    return true;
+export async function checkRateLimit(env, key, max = 5, windowS = 900) {
+  if (!env.COMMUNITY_KV) {
+    // Fail-CLOSED: missing KV binding denies rather than allows.
+    return false;
   }
-  entry.count++;
-  if (entry.count > RATE_LIMIT_MAX) return false;
-  return true;
+  try {
+    const fullKey = `rl:${key}`;
+    const raw = await env.COMMUNITY_KV.get(fullKey);
+    const now = Math.floor(Date.now() / 1000);
+    let bucket = raw ? JSON.parse(raw) : { count: 0, start: now };
+    if (now - bucket.start >= windowS) {
+      bucket = { count: 0, start: now };
+    }
+    if (bucket.count >= max) return false;
+    bucket.count++;
+    await env.COMMUNITY_KV.put(fullKey, JSON.stringify(bucket), { expirationTtl: windowS + 60 });
+    return true;
+  } catch (e) {
+    if (env?.EVENTS) {
+      env.EVENTS.writeDataPoint({
+        blobs: ['rrm-academy', 'rate_limit', 'kv_error', 'error', String(e?.message || e).slice(0, 200)],
+        doubles: [0, 1, 0],
+        indexes: [key],
+      });
+    }
+    // Fail-CLOSED on KV outage.
+    return false;
+  }
 }
 
 // --- Email validation ---

@@ -39,7 +39,7 @@ export async function onRequestPost(context) {
   }
 
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-  if (!checkRateLimit(`pdf:${ip}`)) {
+  if (!await checkRateLimit(env, `pdf:${ip}`, 5, 900)) {
     return json({ ok: false, error: 'Too many requests. Please try again later.' }, 429);
   }
 
