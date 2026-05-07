@@ -1,7 +1,11 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import BlogCard from '../../../components/BlogCard.astro';
+import AppShellChrome from '../../../components/AppShellChrome.astro';
 import { fetchAllPosts } from '../../../lib/blog';
+import { isShellEnabled } from '../../../lib/shell-routes';
+
+const SHELL_ENABLED = isShellEnabled('commentary');
 
 export async function getStaticPaths() {
   const PER_PAGE = 6;
@@ -38,59 +42,116 @@ for (let i = 1; i <= totalPages; i++) {
 }
 ---
 <BaseLayout
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
   title={`RRM Articles & Commentary - Page ${currentPage}`}
   description={`Page ${currentPage} of ${totalPages} - Clinical perspectives on endometriosis, fertility, and restorative reproductive medicine from Dr. Naomi Whittaker.`}
   canonicalUrl={`https://rrmacademy.org/commentary/page/${currentPage}`}
 >
-  <section class="browse-page" data-pagefind-ignore="all">
-    <div class="container">
-      <nav class="breadcrumb" aria-label="Breadcrumb">
-        <a href="/commentary/">Commentary</a>
-        <span aria-hidden="true"> &rsaquo; </span>
-        <span>Page {currentPage}</span>
-      </nav>
+  {SHELL_ENABLED ? (
+    <AppShellChrome context="index" currentPath={Astro.url.pathname}>
+      <section class="browse-page" data-pagefind-ignore="all">
+        <div class="container">
+          <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="/commentary/">Commentary</a>
+            <span aria-hidden="true"> &rsaquo; </span>
+            <span>Page {currentPage}</span>
+          </nav>
 
-      <div class="browse-header">
-        <div>
-          <h1>RRM Articles &amp; Commentary</h1>
-          <p class="browse-subtitle">Clinical perspectives on endometriosis, fertility awareness, NaProTechnology, and restorative reproductive medicine from <a href="/about/">Dr. Naomi Whittaker</a>.</p>
-          {pagePosts.length > 0 && (
-            <p class="browse-meta">
-              Showing {start + 1}&ndash;{Math.min(start + PER_PAGE, posts.length)} of {posts.length}
-            </p>
-          )}
-        </div>
-      </div>
+          <div class="browse-header">
+            <div>
+              <h1>RRM Articles &amp; Commentary</h1>
+              <p class="browse-subtitle">Clinical perspectives on endometriosis, fertility awareness, NaProTechnology, and restorative reproductive medicine from <a href="/about/">Dr. Naomi Whittaker</a>.</p>
+              {pagePosts.length > 0 && (
+                <p class="browse-meta">
+                  Showing {start + 1}&ndash;{Math.min(start + PER_PAGE, posts.length)} of {posts.length}
+                </p>
+              )}
+            </div>
+          </div>
 
-      {pagePosts.length > 0 ? (
-        <div class="blog-grid">
-          {pagePosts.map((post, i) => (
-            <BlogCard post={post} eager={i < 3} />
-          ))}
-        </div>
-      ) : (
-        <p class="empty-state">No commentary posts yet.</p>
-      )}
-
-      <nav class="pagination" aria-label="Pagination">
-        {currentPage > 1 && (
-          <a href={currentPage === 2 ? '/commentary/' : `/commentary/page/${currentPage - 1}/`}>&laquo; Prev</a>
-        )}
-        {range.map(item => (
-          item === '...' ? (
-            <span class="ellipsis">&hellip;</span>
-          ) : item === currentPage ? (
-            <span class="current">{item}</span>
+          {pagePosts.length > 0 ? (
+            <div class="blog-grid">
+              {pagePosts.map((post, i) => (
+                <BlogCard post={post} eager={i < 3} />
+              ))}
+            </div>
           ) : (
-            <a href={item === 1 ? '/commentary/' : `/commentary/page/${item}/`}>{item}</a>
-          )
-        ))}
-        {currentPage < totalPages && (
-          <a href={`/commentary/page/${currentPage + 1}/`}>Next &raquo;</a>
-        )}
-      </nav>
-    </div>
-  </section>
+            <p class="empty-state">No commentary posts yet.</p>
+          )}
+
+          <nav class="pagination" aria-label="Pagination">
+            {currentPage > 1 && (
+              <a href={currentPage === 2 ? '/commentary/' : `/commentary/page/${currentPage - 1}/`}>&laquo; Prev</a>
+            )}
+            {range.map(item => (
+              item === '...' ? (
+                <span class="ellipsis">&hellip;</span>
+              ) : item === currentPage ? (
+                <span class="current">{item}</span>
+              ) : (
+                <a href={item === 1 ? '/commentary/' : `/commentary/page/${item}/`}>{item}</a>
+              )
+            ))}
+            {currentPage < totalPages && (
+              <a href={`/commentary/page/${currentPage + 1}/`}>Next &raquo;</a>
+            )}
+          </nav>
+        </div>
+      </section>
+    </AppShellChrome>
+  ) : (
+    <Fragment>
+      <section class="browse-page" data-pagefind-ignore="all">
+        <div class="container">
+          <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="/commentary/">Commentary</a>
+            <span aria-hidden="true"> &rsaquo; </span>
+            <span>Page {currentPage}</span>
+          </nav>
+
+          <div class="browse-header">
+            <div>
+              <h1>RRM Articles &amp; Commentary</h1>
+              <p class="browse-subtitle">Clinical perspectives on endometriosis, fertility awareness, NaProTechnology, and restorative reproductive medicine from <a href="/about/">Dr. Naomi Whittaker</a>.</p>
+              {pagePosts.length > 0 && (
+                <p class="browse-meta">
+                  Showing {start + 1}&ndash;{Math.min(start + PER_PAGE, posts.length)} of {posts.length}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {pagePosts.length > 0 ? (
+            <div class="blog-grid">
+              {pagePosts.map((post, i) => (
+                <BlogCard post={post} eager={i < 3} />
+              ))}
+            </div>
+          ) : (
+            <p class="empty-state">No commentary posts yet.</p>
+          )}
+
+          <nav class="pagination" aria-label="Pagination">
+            {currentPage > 1 && (
+              <a href={currentPage === 2 ? '/commentary/' : `/commentary/page/${currentPage - 1}/`}>&laquo; Prev</a>
+            )}
+            {range.map(item => (
+              item === '...' ? (
+                <span class="ellipsis">&hellip;</span>
+              ) : item === currentPage ? (
+                <span class="current">{item}</span>
+              ) : (
+                <a href={item === 1 ? '/commentary/' : `/commentary/page/${item}/`}>{item}</a>
+              )
+            ))}
+            {currentPage < totalPages && (
+              <a href={`/commentary/page/${currentPage + 1}/`}>Next &raquo;</a>
+            )}
+          </nav>
+        </div>
+      </section>
+    </Fragment>
+  )}
 </BaseLayout>
 
 <style>
