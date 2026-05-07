@@ -6,6 +6,7 @@ import {
   json, optionsResponse, verifyPassword, createSession, sessionCookie,
   verifyTurnstile, checkRateLimit, isValidEmail,
 } from './_shared.js';
+import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
 
 export async function onRequestOptions() {
@@ -51,12 +52,50 @@ export async function onRequestPost({ request, env, waitUntil }) {
       return json({ ok: false, error: 'Invalid email or password.' }, 401);
     }
 
-    // Passwordless accounts — differentiate Google OAuth vs auto-created
+    // Passwordless accounts (Google-only or auto-created without password).
+    // Anti-enumeration: return the same generic error regardless of the reason.
+    // Fire a non-blocking guidance email out-of-band so the legitimate user
+    // knows how to proceed without us revealing account details in the response.
     if (!user.hashed_password) {
-      if (user.google_id) {
-        return json({ ok: false, error: 'This account uses Google sign-in. Please use the "Sign in with Google" button.' }, 401);
-      }
-      return json({ ok: false, error: 'Your account doesn\'t have a password yet. Use "Forgot password" to set one, or sign in with Google.' }, 401);
+      const guidanceType = user.google_id ? 'google' : 'unprovisioned';
+      waitUntil(
+        (async () => {
+          if (!env.AWS_ACCESS_KEY_ID) return;
+          const text = guidanceType === 'google'
+            ? [
+                'Hi there,',
+                '',
+                'Someone tried to sign in to your RRM Academy account with a password, but your account uses Google sign-in.',
+                '',
+                'To access your account, use the "Sign in with Google" button at https://rrmacademy.org/login/',
+                '',
+                'If this wasn\'t you, no action is needed — your account is secure.',
+                '',
+                '-- RRM Academy',
+              ].join('\n')
+            : [
+                'Hi there,',
+                '',
+                'Someone tried to sign in to your RRM Academy account, but no password has been set.',
+                '',
+                'Use "Forgot password" to set one: https://rrmacademy.org/forgot-password/',
+                '',
+                'If this wasn\'t you, no action is needed.',
+                '',
+                '-- RRM Academy',
+              ].join('\n');
+          await sendEmail(env, {
+            from: 'RRM Academy <accounts@mail.rrmacademy.org>',
+            to: user.email,
+            subject: 'Sign-in attempt on your RRM Academy account',
+            text,
+            log: { db: env.DB, source: 'auth/login', category: 'transactional' },
+          });
+        })().catch(err => {
+          logEmailFailure(env.DB, { email: user.email, category: 'transactional', source: 'auth/login', subject: 'Sign-in attempt on your RRM Academy account', detail: err.message });
+        })
+      );
+      return json({ ok: false, error: 'Invalid email or password.' }, 401);
     }
 
     if (user.blocked) {

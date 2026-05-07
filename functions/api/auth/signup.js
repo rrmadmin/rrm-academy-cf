@@ -182,7 +182,13 @@ export async function onRequestPost({ request, env, waitUntil }) {
           );
         }
       }
-      return json({ ok: true, emailVerificationRequired: true }, 201);
+      const fakeSessionId = generateSessionId();
+      const fakeExpires = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
+      return json(
+        { ok: true, emailVerificationRequired: true },
+        201,
+        { 'Set-Cookie': sessionCookie(fakeSessionId, fakeExpires) }
+      );
     }
 
     // Prepare all three INSERTs
@@ -211,7 +217,14 @@ export async function onRequestPost({ request, env, waitUntil }) {
       ]);
     } catch (batchErr) {
       if (batchErr.message && batchErr.message.includes('UNIQUE constraint failed')) {
-        return json({ ok: true, emailVerificationRequired: true }, 201);
+        // Anti-enumeration: same cookie shape as a real signup (fake session ID won't validate).
+        const fakeSessionId = generateSessionId();
+        const fakeExpires = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
+        return json(
+          { ok: true, emailVerificationRequired: true },
+          201,
+          { 'Set-Cookie': sessionCookie(fakeSessionId, fakeExpires) }
+        );
       }
       throw batchErr;
     }
