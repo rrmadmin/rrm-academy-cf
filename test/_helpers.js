@@ -122,10 +122,33 @@ export function mockEnv(overrides = {}) {
     GA4_MEASUREMENT_ID: 'G-TEST',
     GA4_API_SECRET: 'test-ga4-secret',
     ELV_API_KEY: 'test-elv-key',
+    COMMUNITY_KV: mockKV(),
     EVENTS: {
       writeDataPoint() {},
     },
     ...overrides,
+  };
+}
+
+/**
+ * Minimal in-memory KV stub matching the subset of the CF KV interface used
+ * by checkRateLimit / cooldown counters: get(key), put(key, value, opts).
+ * checkRateLimit fails CLOSED on missing KV (returns 429), so tests that
+ * exercise rate-limited endpoints need a working KV stub. Each test should
+ * still call randomIp() so per-test bucket keys don't collide.
+ */
+export function mockKV() {
+  const store = new Map();
+  return {
+    async get(key) {
+      return store.has(key) ? store.get(key) : null;
+    },
+    async put(key, value /* , opts */) {
+      store.set(key, value);
+    },
+    async delete(key) {
+      store.delete(key);
+    },
   };
 }
 
@@ -161,8 +184,10 @@ export async function parseResponse(response) {
 
 /**
  * Generates a random IP address string for isolating rate limiter state per test.
- * The in-memory rate limiter in _shared.js is keyed by IP, so each test
- * needs a unique IP to avoid cross-contamination between test runs.
+ * The KV-backed rate limiter in _shared.js is keyed by `rl:<scope>:<ip>`, so
+ * each test needs a unique IP to keep its bucket independent (the COMMUNITY_KV
+ * stub in mockEnv is shared across the file). Without per-test IPs, sequential
+ * subtests on the same scope would accumulate counts and trip 429.
  */
 export function randomIp() {
   const oct = () => Math.floor(Math.random() * 254) + 1;
