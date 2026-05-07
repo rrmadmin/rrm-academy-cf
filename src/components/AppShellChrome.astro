@@ -261,6 +261,10 @@ const inSaved = currentPath === '/library/saved' || currentPath === '/library/sa
 
     window.addEventListener('pageshow', function (e) {
       if (!e.persisted) return;
+      // bfcache safety: if a clear-request was set on the prior pagehide path
+      // but we never navigated, ensure restored page starts with a clean flag
+      // so the next pagehide writer is not gated on stale state (/arise --deep #1).
+      window.__rrmClearRequested__ = false;
       // bfcache restore: re-evaluate context state without reload.
       var ctx2 = null;
       try {
@@ -329,8 +333,13 @@ const inSaved = currentPath === '/library/saved' || currentPath === '/library/sa
     }
 
     // Commit on pagehide (top-level navigation race-safe on Safari iOS).
+    // Capture-and-reset __rrmClearRequested__ so non-navigating pointerdowns
+    // (right-click, drag-cancel) don't poison subsequent legitimate writes,
+    // and bfcache restore can never see a stale flag (/arise --deep #1).
     window.addEventListener('pagehide', function () {
-      if (window.__rrmClearRequested__) return;
+      var wasClear = window.__rrmClearRequested__;
+      window.__rrmClearRequested__ = false;
+      if (wasClear) return;
       if (!pendingContext) return;
       try { sessionStorage.setItem('rrm-shell-context', JSON.stringify(pendingContext)); } catch (e) {}
     });
