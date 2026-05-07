@@ -87,7 +87,7 @@
       "note": "EmailListVerify SMTP validation"
     },
     "functions/api/survey/submit.js": {
-      "hash": "7959b45f10ec47323eff28890de0cafe4ea2a11f797f9651440a3b36e0b98571",
+      "hash": "20284380b0a9ddddd0c0d5521227d8715b75d259c370185679dc3e5caa9c7fdc",
       "note": "Survey submission + PII pseudonymization"
     },
     "functions/api/survey/request.js": {
