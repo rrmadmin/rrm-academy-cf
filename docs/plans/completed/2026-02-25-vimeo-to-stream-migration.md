@@ -418,7 +418,7 @@ feat: add Stream upload script and video mapping (Task 2)
 3. **Run the populate script:**
    ```bash
    source ~/.zshrc  # loads OP_SERVICE_ACCOUNT_TOKEN
-   AIRTABLE_PAT=$(op read 'op://Automation/OpenClaw Airtable PAT/credential') \
+   AIRTABLE_PAT=$(op read 'op://Automation/<redacted>/credential') \
      node scripts/populate-stream-ids.mjs
    ```
 
@@ -792,7 +792,7 @@ export interface CourseStep {
 
 ```bash
 source ~/.zshrc
-AIRTABLE_PAT=$(op read 'op://Automation/OpenClaw Airtable PAT/credential') \
+AIRTABLE_PAT=$(op read 'op://Automation/<redacted>/credential') \
   npm run fetch-courses
 ```
 

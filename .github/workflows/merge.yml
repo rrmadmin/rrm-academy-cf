@@ -20,8 +20,8 @@ jobs:
           # Use a PAT (with `workflow` scope) so the push step can update
           # workflow files in .github/workflows/. The default GITHUB_TOKEN
           # cannot push workflow-file changes regardless of `permissions:`.
-          # PAT lives at op://Automation/Github PAT and is set on the repo
-          # as WORKFLOWS_PAT. Without this, claude/** branches that touch
+          # PAT is stored in 1Password and bound to the repo as WORKFLOWS_PAT.
+          # Without this, claude/** branches that touch
           # any .github/workflows/*.yml are remote-rejected at merge time.
           token: ${{ secrets.WORKFLOWS_PAT }}
 

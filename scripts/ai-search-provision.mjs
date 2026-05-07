@@ -12,7 +12,7 @@
 //
 // CREDENTIAL INVENTORY:
 //   CLOUDFLARE_API_TOKEN
-//     1Password: op://Automation/Cloudflare API Token - AI Search Phase 1 (account-scoped)/credential
+//     1Password: op://Automation/<redacted>/credential
 //     Required permissions: AI Search Write, Account Settings Read
 //     IP-locked to 72.95.9.135 (Brian's home IP)
 //     Expires: 2026-05-28
@@ -21,7 +21,7 @@
 //     Override via env if running against a different account.
 //
 // USAGE:
-//   export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/Cloudflare API Token - AI Search Phase 1 (account-scoped)/credential')
+//   export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/<redacted>/credential')
 //   node scripts/ai-search-provision.mjs
 //
 // FLAGS:

@@ -462,7 +462,7 @@ Key changes from original:
 
 Run:
 ```bash
-WORKER_AUTH_TOKEN=$(op read 'op://Automation/RRM Library Worker Auth Token/credential') node src/lib/fetch-blog-data.mjs
+WORKER_AUTH_TOKEN=$(op read 'op://Automation/<redacted>/credential') node src/lib/fetch-blog-data.mjs
 ```
 
 Expected: "Fetched 18 published posts", "Wrote 18 posts to .../posts.json"
@@ -583,7 +583,7 @@ git commit -m "chore: remove blog-config.mjs (Airtable IDs no longer needed)"
 - [ ] **Step 1: Full local rebuild from D1**
 
 ```bash
-WORKER_AUTH_TOKEN=$(op read 'op://Automation/RRM Library Worker Auth Token/credential') npm run fetch-all
+WORKER_AUTH_TOKEN=$(op read 'op://Automation/<redacted>/credential') npm run fetch-all
 npm run build
 ```
 
