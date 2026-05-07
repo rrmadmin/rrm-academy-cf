@@ -61,6 +61,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
         .bind(newSessionId, record.user_id, newExpiresAt),
     ]);
 
+    // Design: auto-login after password reset (matches Auth0/Clerk UX).
+    // Token possession is treated as proof of email control. If the threat
+    // model changes (e.g., requiring re-auth after reset), drop the
+    // session INSERT and Set-Cookie below.
     return json(
       { ok: true },
       200,

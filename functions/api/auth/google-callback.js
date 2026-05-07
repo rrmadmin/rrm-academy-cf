@@ -13,6 +13,7 @@ import {
   exchangeGoogleCode, getGoogleProfile, isSafeRedirect, SITE_URL,
   waitlistBackfillStatement,
 } from './_shared.js';
+import { sendEmail } from '../_ses.js';
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
 
@@ -30,12 +31,14 @@ async function handleReturningGoogleUser(db, googleId, email) {
     if (conflict) {
       return { redirect: '/login/?error=email_conflict' };
     }
+    const oldEmail = user.email;
     await db.batch([
-      db.prepare("UPDATE user SET email = ?, updated_at = datetime('now') WHERE id = ?")
+      db.prepare("UPDATE user SET email = ?, email_verified = 1, updated_at = datetime('now') WHERE id = ?")
         .bind(email, user.id),
       waitlistBackfillStatement(db, user.id, email),
     ]);
     user.email = email;
+    return { user, oldEmail };
   } else {
     await waitlistBackfillStatement(db, user.id, email).run();
   }
@@ -164,7 +167,32 @@ export async function onRequestGet({ request, env, waitUntil }) {
     // 1. Check if google_id already linked to an account
     const r1 = await handleReturningGoogleUser(db, googleId, email);
     if (r1?.redirect) return htmlRedirect(r1.redirect);
-    if (r1) ({ user } = r1);
+    if (r1) {
+      ({ user } = r1);
+      // Notify old email address when Google profile email changes (safety net).
+      // Email is verified=1 since Google confirmed ownership at the L1 gate.
+      if (r1.oldEmail && env.AWS_ACCESS_KEY_ID) {
+        waitUntil(
+          sendEmail(env, {
+            from: 'RRM Academy <accounts@mail.rrmacademy.org>',
+            to: r1.oldEmail,
+            subject: 'Your RRM Academy email address was changed',
+            text: [
+              'Hi there,',
+              '',
+              `Your RRM Academy account email was updated to ${email} via Google sign-in.`,
+              '',
+              'If you made this change, no action is needed.',
+              '',
+              'If you did not authorize this change, please contact us immediately at administrator@rrmacademy.org',
+              '',
+              '-- RRM Academy',
+            ].join('\n'),
+            log: { db: env.DB, source: 'auth/google-callback', category: 'transactional' },
+          }).catch(() => {})
+        );
+      }
+    }
 
     // 2. Check if email matches an existing account (first Google login for this user)
     if (!user) {
