@@ -131,7 +131,11 @@ const medicalWebPageSchema: Record<string, unknown> = {
   mainEntity: { '@id': TERM_ID },
   isPartOf: { '@id': TERM_SET_ID },
   about: { '@type': 'MedicalTherapy', name: 'Restorative Reproductive Medicine', alternateName: 'RRM' },
-  author: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+  // Glossary spokes match the pillar authorship pattern: org-as-author with
+  // Naomi as named medical reviewer. The pillar at /glossary/ uses the same
+  // shape (compiled reference work, not Naomi's standalone authored content).
+  author: { '@id': 'https://rrmacademy.org/#organization' },
+  reviewedBy: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
   publisher: { '@id': 'https://rrmacademy.org/#organization' },
   inLanguage: 'en-US',
   specialty: { '@type': 'MedicalSpecialty', name: 'Reproductive Medicine' },
@@ -232,11 +236,19 @@ const RAIL_SECTIONS = [
           mode="spoke"
           keepLocalRefAnchors={!!(term.citedReferences && term.citedReferences.length > 0)}
         >
+          {/* Glossary spoke byline matches the pillar pattern (canonical
+              .author-avatar-stack + .has-reviewer; precedent: /femm/).
+              Org-as-author + clinically-reviewed; JSON-LD upstream mirrors
+              with author=#organization + reviewedBy=#naomi-whittaker. */}
           <div slot="post-heading" class="author-byline">
-            <img src="/images/authors/naomi-whittaker.webp" alt="Dr. Naomi Whittaker, MD" class="author-byline__photo" width="40" height="40" />
-            <div class="author-byline__text">
-              <span>By <strong><a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</a></strong></span>
-              <LastUpdated date={term.updatedAt || term.createdAt} prefix="Updated" />
+            <div class="author-avatar-stack">
+              <img src="/apple-touch-icon.png" alt="" aria-hidden="true" class="author-byline__photo" width="40" height="40" />
+              <img src="/images/authors/naomi-whittaker.webp" alt="" aria-hidden="true" class="author-byline__photo" width="40" height="40" />
+            </div>
+            <div class="author-byline__text has-reviewer">
+              <span class="byline-author">By <strong>RRM Academy</strong></span>
+              <span class="byline-reviewer">Reviewed by <strong><a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</a></strong></span>
+              <LastUpdated date={term.updatedAt || term.createdAt} prefix="Updated" class="byline-date" />
             </div>
           </div>
         </GlossaryTerm>
