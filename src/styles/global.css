@@ -446,7 +446,13 @@ h4 {
 }
 
 h1 {
-  font-size: 2rem;
+  /* Fluid harmonized H1: 2rem floor (small viewports) -> 3.25rem cap (wide).
+     Previously 2rem fixed on the global rule and a separate clamp() on
+     `.hero-title`/`.hero h1`/`.commentary-hero h1` produced inconsistent
+     sizes across pillar guides (32px) vs index/article pages (52px). Brian
+     normalized to the larger size 2026-05-08 — single rule here, local
+     overrides reverted to inherit. Homepage hero keeps its own size. */
+  font-size: clamp(2rem, 1.25rem + 2.5vw, 3.25rem);
   margin-top: var(--space-4);
   margin-bottom: var(--space-6);
 }
@@ -909,10 +915,11 @@ blockquote a {
 }
 
 
-/* Hero title — shared fluid sizing for interior page heroes */
-.hero-title {
-  font-size: clamp(2rem, 1.25rem + 2.5vw, 3.25rem);
-}
+/* `.hero-title` previously carried the fluid clamp() size for interior
+   page heroes. After H1 harmonization (Brian 2026-05-08) the global <h1>
+   rule owns that size, so pages no longer need this class for sizing.
+   Keeping the class as a no-op so existing markup stays valid; remove
+   when guides/faqs/donate/etc. drop the className. */
 
 /* Sections */
 .section {
@@ -1484,10 +1491,8 @@ blockquote cite {
 
 /* Responsive */
 @media (max-width: 768px) {
-  h1 {
-    font-size: 1.5rem;
-  }
-
+  /* h1 mobile sizing handled by the global clamp() (2rem floor at small
+     viewports). h2 still gets a mobile cap below. */
   h2 {
     font-size: 1.5rem;
   }

@@ -836,7 +836,7 @@ const citationMeta = {
 
 <style>
   .article-title {
-    font-size: 1.875rem;
+    /* font-size inherited from global <h1> clamp() — H1 harmony 2026-05-08. */
     margin-bottom: var(--space-4);
     line-height: 1.25;
     letter-spacing: -0.015em;
@@ -1190,11 +1190,7 @@ const citationMeta = {
     fill: var(--accent);
   }
 
-  @media (max-width: 768px) {
-    .article-title {
-      font-size: 1.5rem;
-    }
-  }
+  /* Mobile .article-title font-size now handled by global <h1> clamp(). */
 </style>
 
 <script is:inline>
