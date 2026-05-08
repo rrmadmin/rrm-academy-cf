@@ -1,5 +1,9 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import MaybeShell from '../../components/MaybeShell.astro';
+import { isShellEnabled } from '../../lib/shell-routes';
+
+const SHELL_ENABLED = isShellEnabled('guides');
 
 // Per-guide brand-anchored accent. RRM-owned guides use the RRM Academy purple
 // ramp; entity-specific guides use that entity's primary brand color sourced
@@ -72,7 +76,9 @@ const jsonLd = {
   description="In-depth guides to NaProTechnology, RRM, and reproductive health topics. Written by board-certified physicians with published outcomes data."
   canonicalUrl="https://rrmacademy.org/guides/"
   jsonLd={jsonLd}
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
 >
+  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname}>
   <div class="page-wrapper">
     <div class="container container--narrow">
 
@@ -110,6 +116,7 @@ const jsonLd = {
 
     </div>
   </div>
+  </MaybeShell>
 </BaseLayout>
 
 <script>

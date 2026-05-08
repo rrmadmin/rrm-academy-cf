@@ -1,10 +1,14 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import MaybeShell from '../../components/MaybeShell.astro';
+import { isShellEnabled } from '../../lib/shell-routes';
 import BackToTop from '../../components/BackToTop.astro';
 import PdfDownload from '../../components/PdfDownload.astro';
 import LastUpdated from '../../components/LastUpdated.astro';
 import pageDates from '../../data/page-dates.json';
 import { buildScholarlyArticleStub } from '../../lib/identity';
+
+const SHELL_ENABLED = isShellEnabled('guides');
 
 const PAGE_PATH = '/what-is-rrm/';
 const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-03-01';
@@ -328,7 +332,9 @@ const jsonLd = {
   publishDate="2026-03-01"
   jsonLd={jsonLd}
   speakable={['.pillar-lead', 'h1']}
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
 >
+  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname}>
   <div class="page-wrapper" data-pagefind-body>
     <span data-pagefind-meta="type:Guide" style="display:none"></span>
     <span data-pagefind-meta="title:What is Restorative Reproductive Medicine (RRM)?" style="display:none"></span>
@@ -1577,6 +1583,7 @@ const jsonLd = {
   </div>
   <p class="page-updated">Last updated: March 2026</p>
   <BackToTop />
+  </MaybeShell>
 </BaseLayout>
 
 <style>

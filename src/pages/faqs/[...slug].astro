@@ -1,7 +1,11 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import MaybeShell from '../../components/MaybeShell.astro';
+import { isShellEnabled } from '../../lib/shell-routes';
 import { fetchAllFaqs, getRelatedFaqs, PILLAR_CTA_MAP, type FAQ } from '../../lib/faq';
 import { buildFAQPage, buildBreadcrumbList } from '../../lib/identity';
+
+const SHELL_ENABLED = isShellEnabled('faqs');
 
 export async function getStaticPaths() {
   const faqs = await fetchAllFaqs();
@@ -79,7 +83,9 @@ const jsonLd = {
   canonicalUrl={canonicalUrl}
   jsonLd={jsonLd}
   speakable={['.faq-title', '.prose p']}
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
 >
+  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname}>
   <div class="page-wrapper" data-pagefind-body>
     <span data-pagefind-meta="type:FAQ" style="display:none"></span>
     <span data-pagefind-meta={`title:${faq.question}`} style="display:none"></span>
@@ -177,6 +183,7 @@ const jsonLd = {
       </div>
     </div>
   </div>
+  </MaybeShell>
 </BaseLayout>
 
 <style>
