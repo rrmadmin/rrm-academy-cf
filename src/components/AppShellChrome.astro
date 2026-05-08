@@ -32,6 +32,7 @@
 // paths do not resolve in production builds.
 import '../styles/app-shell.css';
 import Footer from './Footer.astro';
+import Header from './Header.astro';
 
 // AppShellChrome runs INSIDE BaseLayout's slot. The `<body>` element belongs
 // to BaseLayout (`<body class:list={[bodyClass]}>` around line 267), so this
@@ -84,6 +85,10 @@ const inSaved = currentPath === '/library/saved' || currentPath === '/library/sa
 const inFaqs = currentPath === '/faqs' || currentPath === '/faqs/' || currentPath.startsWith('/faqs/');
 const inAccount = currentPath === '/account' || currentPath === '/account/' || currentPath.startsWith('/account/');
 const inAsk = currentPath === '/ask' || currentPath === '/ask/' || currentPath.startsWith('/ask/');
+// /courses/<slug>/ catalog + sales pages get the wrap; /courses/<slug>/<step>/
+// (lesson player) does not. aria-current still highlights for both since the
+// user is in the courses section regardless.
+const inCourses = currentPath === '/courses' || currentPath === '/courses/' || currentPath.startsWith('/courses/');
 // "Guides" surface = the /guides/ index AND the pillar guide pages, which live
 // at root paths (/what-is-rrm/, /naprotechnology/, /femm/, /neofertility/,
 // /common-questions-about-rrm, /glossary/). Keep this list in sync with
@@ -126,6 +131,15 @@ const NAV_ICONS: Record<string, string> = {
 ---
 
 <div class="app-shell-layout" data-shell-context={context} data-has-related={(hasRelatedSections || hasRail) ? 'true' : 'false'}>
+  {/* Mobile-only global header. Brian preference 2026-05-08: the desktop
+      sidebar shell never affects mobile; mobile users get the same global
+      Header + global mobile nav that non-shell pages use. CSS hides this at
+      ≥901px and the legacy bottom-nav/drawer/sheet are hidden at all
+      viewports. */}
+  <div class="app-shell-mobile-header" data-pagefind-ignore="all">
+    <Header />
+  </div>
+
   <!-- Desktop sidebar -->
   <nav class="app-shell-nav" data-pagefind-ignore="all" aria-label="Primary">
     <a href="/" class="app-shell-nav__brand" aria-label="RRM Academy home" data-clear-shell-context>
@@ -162,7 +176,7 @@ const NAV_ICONS: Record<string, string> = {
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/guides/']} />
         <span class="app-shell-nav__label">Guides</span>
       </a>
-      <a href="/courses/" class="app-shell-nav__link">
+      <a href="/courses/" class="app-shell-nav__link" aria-current={inCourses ? 'page' : undefined}>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/courses/']} />
         <span class="app-shell-nav__label">Courses</span>
       </a>
@@ -282,7 +296,7 @@ const NAV_ICONS: Record<string, string> = {
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/guides/']} />
         <span class="app-shell-nav__label">Guides</span>
       </a>
-      <a href="/courses/" class="app-shell-nav__link" data-clear-shell-context>
+      <a href="/courses/" class="app-shell-nav__link" aria-current={inCourses ? 'page' : undefined} data-clear-shell-context>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/courses/']} />
         <span class="app-shell-nav__label">Courses</span>
       </a>
