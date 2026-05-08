@@ -71,7 +71,11 @@ interface Props {
 }
 
 const { context, currentPath, relatedSections = [], hasRail = false } = Astro.props;
-const hasRelatedSections = relatedSections.length > 0 && context === 'article';
+// `hasRelatedSections` was previously gated on `context === 'article'` because
+// the original design only emitted a rail for articles. The 'page' context now
+// also opts in (e.g. /glossary/<slug>/ Discussed-in groups), so any non-empty
+// relatedSections array enables the rail.
+const hasRelatedSections = relatedSections.length > 0;
 
 // Identify current section for aria-current on sidebar links.
 const inLibrary = currentPath.startsWith('/library');
