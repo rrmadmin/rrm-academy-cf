@@ -1145,16 +1145,12 @@ blockquote a {
   text-decoration-color: var(--accent);
 }
 
-/* Glossary spoke page H1 -- term name as the page title.
-   Pillar h1 is outside <article class="prose">, so this targets only spokes. */
+/* Glossary spoke page H1 — term name as the page title.
+   Pillar h1 is outside <article class="prose">, so this targets only spokes.
+   font-size inherits from global <h1> clamp() — H1 harmony 2026-05-08;
+   only letter-spacing is preserved here. */
 .prose h1 {
-  font-size: 2.5rem;
   letter-spacing: -0.015em;
-}
-@media (min-width: 769px) {
-  .prose h1 {
-    font-size: 3rem;
-  }
 }
 
 /* Pillar-mode "Open full entry" link rendered after each term body. */
