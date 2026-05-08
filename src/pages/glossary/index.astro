@@ -207,7 +207,27 @@ const definedTermSetSchema = {
   <!-- DefinedTermSet: per-term citable entities for AEO -->
   <script type="application/ld+json" set:html={JSON.stringify(definedTermSetSchema)} />
 
-  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname}>
+  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname} hasRail={SHELL_ENABLED}>
+  {/* Right rail: A-Z index lives here when the shell is enabled (Brian
+      preference 2026-05-07). The legacy <details> at the top of the page
+      below is suppressed via the `!SHELL_ENABLED` gate to avoid duplication. */}
+  {SHELL_ENABLED && (
+    <Fragment slot="rail">
+      <section class="app-shell-middle-column__section glossary-rail" aria-label="Alphabetical index of glossary terms">
+        <h2 class="app-shell-middle-column__heading">A-Z index ({terms.length})</h2>
+        {azLetters.map(letter => (
+          <>
+            <p class="glossary-rail__letter" aria-hidden="true">{letter}</p>
+            <ol class="app-shell-middle-column__list" aria-label={`Terms starting with ${letter}`}>
+              {azMap.get(letter).map(t => (
+                <li><a href={`#${t.slug}`}>{t.name}</a></li>
+              ))}
+            </ol>
+          </>
+        ))}
+      </section>
+    </Fragment>
+  )}
 
   <div class="page-wrapper" data-pagefind-body>
     <span data-pagefind-meta="type:Guide" style="display:none"></span>
@@ -247,24 +267,29 @@ const definedTermSetSchema = {
         </ol>
       </details>
 
-      <!-- A-Z alphabetical index (auto-generated from data).
-           Letters are visual-only dividers (not headings) to preserve
-           h1 -> h2 -> h3 document outline for assistive tech. -->
-      <details class="az-index">
-        <summary>A-Z index of all terms ({terms.length})</summary>
-        <nav aria-label="Alphabetical index of glossary terms">
-          {azLetters.map(letter => (
-            <>
-              <p class="az-letter" aria-hidden="true">{letter}</p>
-              <ul class="az-list" aria-label={`Terms starting with ${letter}`}>
-                {azMap.get(letter).map(t => (
-                  <li><a href={`#${t.slug}`}>{t.name}</a></li>
-                ))}
-              </ul>
-            </>
-          ))}
-        </nav>
-      </details>
+      {/* A-Z alphabetical index (auto-generated from data).
+          Letters are visual-only dividers (not headings) to preserve
+          h1 -> h2 -> h3 document outline for assistive tech.
+          When SHELL_ENABLED, the rail (right column) holds the A-Z index
+          instead, so we suppress this top-of-page <details> to avoid
+          duplication. */}
+      {!SHELL_ENABLED && (
+        <details class="az-index">
+          <summary>A-Z index of all terms ({terms.length})</summary>
+          <nav aria-label="Alphabetical index of glossary terms">
+            {azLetters.map(letter => (
+              <>
+                <p class="az-letter" aria-hidden="true">{letter}</p>
+                <ul class="az-list" aria-label={`Terms starting with ${letter}`}>
+                  {azMap.get(letter).map(t => (
+                    <li><a href={`#${t.slug}`}>{t.name}</a></li>
+                  ))}
+                </ul>
+              </>
+            ))}
+          </nav>
+        </details>
+      )}
 
       <!-- Article layout: sidebar TOC + main content -->
       <div class="article-layout">
@@ -363,6 +388,28 @@ const definedTermSetSchema = {
   <BackToTop />
   </MaybeShell>
 </BaseLayout>
+
+<style is:global>
+  /* Rail A-Z index (shell-enabled glossary). Letters are visual-only
+     dividers; no <h*> tags so the document outline stays clean. is:global
+     so the rules apply inside AppShellChrome's slot (Astro scopes <style>
+     to the component by default, which would skip slotted content). */
+  .glossary-rail__letter {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: var(--space-3) 0 var(--space-1);
+    padding-bottom: 2px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .glossary-rail__letter:first-child {
+    margin-top: 0;
+  }
+  .glossary-rail .app-shell-middle-column__list {
+    margin-bottom: var(--space-2);
+  }
+</style>
 
 <style>
   .author-byline {

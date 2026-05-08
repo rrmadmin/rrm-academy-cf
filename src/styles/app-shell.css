@@ -65,8 +65,12 @@
     grid-template-rows: 1fr auto;
     min-height: 100vh;
   }
-  /* Article context expands to 3-col with the right rail. */
-  .app-shell-layout[data-shell-context="article"] {
+  /* 3-col when the right rail is in use:
+     - Article context (always emits the rail, may collapse cold-land via .shell-no-context)
+     - Any page that opted in by passing a `rail` slot or relatedSections
+       (data-has-related="true"). Used by /glossary/ for the A-Z index. */
+  .app-shell-layout[data-shell-context="article"],
+  .app-shell-layout[data-has-related="true"] {
     grid-template-columns: var(--shell-sidebar-width) 1fr var(
         --shell-middle-column-width
       );

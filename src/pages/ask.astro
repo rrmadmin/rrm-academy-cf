@@ -1,12 +1,18 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import MaybeShell from '../components/MaybeShell.astro';
+import { isShellEnabled } from '../lib/shell-routes';
+
+const SHELL_ENABLED = isShellEnabled('ask');
 ---
 <BaseLayout
   title="Ask RRM Academy"
   description="Ask a question about restorative reproductive medicine. Answers drawn from the RRM Academy research library."
   canonicalUrl="https://rrmacademy.org/ask/"
   noindex
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
 >
+  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname}>
   <section class="ask-page">
     <div class="container">
       <header class="ask-header">
@@ -40,6 +46,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       </p>
     </div>
   </section>
+  </MaybeShell>
 
   <script is:inline>
     (function () {
