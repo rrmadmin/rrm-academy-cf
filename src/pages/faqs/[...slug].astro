@@ -188,15 +188,10 @@ const jsonLd = {
 
 <style>
   .faq-title {
-    font-size: 1.75rem;
+    /* font-size inherited from global <h1> clamp() — H1 harmony 2026-05-08. */
     line-height: 1.25;
     letter-spacing: -0.01em;
     margin-bottom: var(--space-3);
-  }
-  @media (min-width: 769px) {
-    .faq-title {
-      font-size: 2.25rem;
-    }
   }
 
   .faq-category-badge {
