@@ -4,6 +4,10 @@
 // (commentary, library, guides, faqs, account, ask) is enabled in this build.
 // Trim/lowercase tolerant — operator typos like "commentary, library" or
 // "Library" don't silently disable the wrap.
+//
+// Courses (/courses/, /courses/<slug>/, /courses/<slug>/<step>/) are
+// INTENTIONALLY EXCLUDED from the shell — they keep the global Header +
+// mobile nav that Brian likes for the course experience (2026-05-08).
 export type ShellRoute = 'commentary' | 'library' | 'guides' | 'faqs' | 'account' | 'ask';
 
 export function isShellEnabled(route: ShellRoute): boolean {
