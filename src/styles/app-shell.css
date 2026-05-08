@@ -28,6 +28,30 @@
 }
 
 /* Feature-detect fallback: hides peek bar when <dialog>.showModal absent. */
+/* Desktop-only shell (Brian preference 2026-05-08).
+   Mobile gets the global Header from BaseLayout-equivalent rendering inside
+   AppShellChrome. The legacy shell mobile UI (bottom-nav, drawer, hamburger
+   toggle, sheet) is permanently hidden — those were attempts to replace the
+   global Header on mobile and Brian preferred keeping the global one. */
+.app-shell-mobile-header {
+  display: block;
+}
+.app-shell-bottom-nav,
+.app-shell-drawer,
+.app-shell-drawer__overlay,
+.app-shell-drawer-toggle,
+.app-shell-sheet,
+.app-shell-sheet-peek {
+  display: none !important;
+}
+@media (min-width: 901px) {
+  .app-shell-mobile-header { display: none; }
+}
+/* Legacy padding-bottom that cleared the now-removed bottom-nav. Reset. */
+@media (max-width: 900px) {
+  .app-shell-footer-row { padding-bottom: 0; }
+}
+
 .shell-no-sheet .app-shell-sheet,
 .shell-no-sheet .app-shell-sheet-peek {
   display: none;
