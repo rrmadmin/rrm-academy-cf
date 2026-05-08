@@ -1,7 +1,11 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import MaybeShell from '../../components/MaybeShell.astro';
+import { isShellEnabled } from '../../lib/shell-routes';
 import CourseCard from '../../components/CourseCard.astro';
 import coursesData from '../../data/courses.json';
+
+const SHELL_ENABLED = isShellEnabled('courses');
 
 // Members-only courses are LIVE (not coming-soon) — they pass the catalog filter.
 // Coming-soon non-members courses stay hidden until promoted.
@@ -56,7 +60,9 @@ const jsonLd = {
   description="Self-paced video courses on endometriosis, fertility, and reproductive health from leading specialists in restorative reproductive medicine. Start free today."
   canonicalUrl="https://rrmacademy.org/courses"
   jsonLd={jsonLd}
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
 >
+  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname}>
   <div class="page-wrapper">
     <div class="container">
 
@@ -132,6 +138,7 @@ const jsonLd = {
       <p class="page-updated">Last updated: February 2026</p>
     </div>
   </div>
+  </MaybeShell>
 </BaseLayout>
 
 <style>
