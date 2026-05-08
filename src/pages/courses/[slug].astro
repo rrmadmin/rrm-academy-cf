@@ -1,7 +1,11 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import MaybeShell from '../../components/MaybeShell.astro';
+import { isShellEnabled } from '../../lib/shell-routes';
 import coursesData from '../../data/courses.json';
 import { TURNSTILE_SITE_KEY } from '../../lib/turnstile';
+
+const SHELL_ENABLED = isShellEnabled('courses');
 
 export function getStaticPaths() {
   return coursesData.map((course) => ({
@@ -303,7 +307,9 @@ const relatedCourses = course.relatedCourses
   ogType="article"
   ogImage={course.image}
   jsonLd={jsonLd}
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
 >
+  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname}>
   <div class={`course-page`} {...(course.comingSoon ? {} : { 'data-pagefind-body': '' })}>
     <span data-pagefind-meta="type:Course" style="display:none"></span>
     <span data-pagefind-meta={`title:${course.title}`} style="display:none"></span>
@@ -684,6 +690,7 @@ const relatedCourses = course.relatedCourses
       </div>
     )}
   </div>
+  </MaybeShell>
 
   {isAffiliate && (
     <script is:inline define:vars={{ affiliateUrl: course.affiliateUrl, courseId: course.id, onWaitlist, TURNSTILE_SITE_KEY }}>
