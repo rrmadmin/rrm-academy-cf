@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import MaybeShell from '../../components/MaybeShell.astro';
+import SectionTocChips from '../../components/SectionTocChips.astro';
 import { isShellEnabled } from '../../lib/shell-routes';
 import BackToTop from '../../components/BackToTop.astro';
 import PdfDownload from '../../components/PdfDownload.astro';
@@ -305,23 +306,18 @@ const definedTermSetSchema = {
         </details>
       )}
 
-      {/* On-this-page callout (chip style) — replaces the sticky sidebar TOC
-          when the shell is on. With a left site-nav + right A-Z rail eating
+      {/* On-this-page chip callout — replaces the sticky sidebar TOC when
+          the shell is on. With a left site nav + right A-Z rail eating
           horizontal space, an additional sticky internal TOC is too cramped.
-          The callout sits between the byline and Overview so readers see the
-          full scope at a glance, then scroll. */}
+          The callout sits between the byline and Overview so readers see
+          the full scope at a glance, then scroll. */}
       {SHELL_ENABLED && (
-        <nav class="section-toc" aria-label="On this page">
-          <p class="section-toc__heading">On this page</p>
-          <ul class="section-toc__list">
-            <li><a href="#overview">Overview</a></li>
-            {PARTS.map(p => (
-              <li><a href={`#${p.id}`}>{p.shortTitle}</a></li>
-            ))}
-            <li><a href="#abbreviations">Abbreviations</a></li>
-            <li><a href="#references">References</a></li>
-          </ul>
-        </nav>
+        <SectionTocChips items={[
+          { href: '#overview', label: 'Overview' },
+          ...PARTS.map(p => ({ href: `#${p.id}`, label: p.shortTitle })),
+          { href: '#abbreviations', label: 'Abbreviations' },
+          { href: '#references', label: 'References' },
+        ]} />
       )}
 
       {/* Article layout: sidebar TOC + main content. Without the shell, the
@@ -446,60 +442,6 @@ const definedTermSetSchema = {
   }
   .glossary-rail .app-shell-middle-column__list {
     margin-bottom: var(--space-2);
-  }
-</style>
-
-<style>
-  /* On-this-page chip callout (shell-enabled glossary). Replaces the
-     left-sticky TOC with a wrapping pill row above the Overview. Light
-     surface, subtle border, chips inherit purple hover from links.css. */
-  .section-toc {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: var(--space-4) var(--space-5);
-    margin: var(--space-6) 0 var(--space-8);
-  }
-  .section-toc__heading {
-    font-size: 0.6875rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-tertiary);
-    margin: 0 0 var(--space-3);
-  }
-  .section-toc__list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-  }
-  .section-toc__list a {
-    display: inline-block;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-    background: var(--bg-body);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-pill);
-    padding: 4px 12px;
-    text-decoration: none;
-    transition: color 0.15s, border-color 0.15s, background 0.15s;
-  }
-  .section-toc__list a:hover {
-    color: var(--text-primary);
-    border-color: var(--purple-300);
-    background: var(--purple-50, var(--bg-surface));
-  }
-
-  /* When the shell hosts the section TOC in the callout above, the article
-     grid collapses to a single column so the prose can use the full middle
-     column width instead of leaving a 220px sidebar slot empty. */
-  .article-layout--no-toc {
-    grid-template-columns: 1fr !important;
-    max-width: var(--max-width-article) !important;
   }
 </style>
 
