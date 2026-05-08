@@ -1868,8 +1868,13 @@ blockquote cite {
    article body -- to the article max-width so everything aligns to the
    same vertical edges. Without this, the .container above .article-layout
    would span the wider middle column while the body stayed narrow.
-   Brian preference 2026-05-08. */
-.app-shell-layout[data-shell-context="page"] .app-shell-main .container {
+   Brian preference 2026-05-08.
+
+   OPT-OUT: pages whose middle-column content has a `[data-shell-wide]`
+   marker keep their full container width inside the shell (e.g. /courses/
+   catalog + sales pages — Brian preference 2026-05-08). The :has() check
+   walks the whole subtree, so the marker can sit on any descendant. */
+.app-shell-layout[data-shell-context="page"] .app-shell-main:not(:has([data-shell-wide])) .container {
   max-width: var(--max-width-article);
 }
 
