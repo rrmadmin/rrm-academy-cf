@@ -1,0 +1,39 @@
+---
+// MaybeShell.astro — conditional AppShellChrome wrapper.
+//
+// When `enabled` is true, wraps the slot in AppShellChrome (sidebar + drawer +
+// optional middle column). When false, renders the slot inline so BaseLayout's
+// default Header/Footer chrome keeps working.
+//
+// Existing wrapped pages (library/*, commentary/*) duplicate their body across
+// two branches inside an inline ternary. That works for short pages but doubles
+// the line count of pillar guides (700-2100 lines each). MaybeShell removes
+// the duplication for guides/faqs/account wrap targets.
+//
+// IMPORTANT: keep `chrome={enabled ? 'shell' : 'default'}` on BaseLayout in the
+// caller. BaseLayout decides whether to render Header/Footer/<main>. MaybeShell
+// only decides whether AppShellChrome wraps the slot.
+import AppShellChrome from './AppShellChrome.astro';
+
+interface RelatedSection {
+  heading: string;
+  items: Array<{ href: string; label: string }>;
+}
+
+interface Props {
+  enabled: boolean;
+  context: 'index' | 'article' | 'saved' | 'page';
+  currentPath: string;
+  relatedSections?: RelatedSection[];
+}
+
+const { enabled, context, currentPath, relatedSections } = Astro.props;
+---
+
+{enabled ? (
+  <AppShellChrome context={context} currentPath={currentPath} relatedSections={relatedSections}>
+    <slot />
+  </AppShellChrome>
+) : (
+  <slot />
+)}

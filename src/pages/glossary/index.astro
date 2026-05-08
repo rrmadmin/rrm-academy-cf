@@ -1,11 +1,15 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import MaybeShell from '../../components/MaybeShell.astro';
+import { isShellEnabled } from '../../lib/shell-routes';
 import BackToTop from '../../components/BackToTop.astro';
 import PdfDownload from '../../components/PdfDownload.astro';
 import LastUpdated from '../../components/LastUpdated.astro';
 import GlossaryTerm from '../../components/GlossaryTerm.astro';
 import glossaryData from '../../data/glossary.json';
 import pageDates from '../../data/page-dates.json';
+
+const SHELL_ENABLED = isShellEnabled('guides');
 
 const PAGE_PATH = '/glossary/';
 const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-03-15';
@@ -195,12 +199,15 @@ const definedTermSetSchema = {
   publishDate="2026-03-15"
   jsonLd={pageSchema}
   speakable={['.pillar-lead', '.pillar-lead strong']}
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
 >
   <!-- Separate JSON-LD block for breadcrumbs -->
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
 
   <!-- DefinedTermSet: per-term citable entities for AEO -->
   <script type="application/ld+json" set:html={JSON.stringify(definedTermSetSchema)} />
+
+  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname}>
 
   <div class="page-wrapper" data-pagefind-body>
     <span data-pagefind-meta="type:Guide" style="display:none"></span>
@@ -354,6 +361,7 @@ const definedTermSetSchema = {
   </div>
   <p class="page-updated">Last updated: April 2026 &middot; {terms.length} terms &middot; {references.length} references</p>
   <BackToTop />
+  </MaybeShell>
 </BaseLayout>
 
 <style>
