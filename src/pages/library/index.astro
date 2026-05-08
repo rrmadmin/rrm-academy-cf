@@ -266,7 +266,8 @@ const jsonLd = {
     gap: var(--space-5);
   }
   .hero h1 {
-    font-size: clamp(2rem, 1.25rem + 2.5vw, 3.25rem);
+    /* font-size inherited from global <h1> clamp() — H1 harmony (Brian
+       2026-05-08). line-height/letter-spacing/margin are hero-specific. */
     line-height: 1.1;
     letter-spacing: -0.02em;
     margin: 0;
