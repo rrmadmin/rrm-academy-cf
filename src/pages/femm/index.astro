@@ -1,8 +1,12 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import MaybeShell from '../../components/MaybeShell.astro';
+import { isShellEnabled } from '../../lib/shell-routes';
 import LastUpdated from '../../components/LastUpdated.astro';
 import pageDates from '../../data/page-dates.json';
 import { buildScholarlyArticleStub } from '../../lib/identity';
+
+const SHELL_ENABLED = isShellEnabled('guides');
 
 const PAGE_PATH = '/femm/';
 const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-03-15';
@@ -170,11 +174,13 @@ const faqSchema = {
   publishDate="2026-03-15"
   jsonLd={pageSchema}
   speakable={['.pillar-lead', 'h1']}
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
 >
   <!-- Separate JSON-LD blocks (not @graph) per spec -->
   <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
 
+  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname}>
   <div class="page-wrapper" data-pagefind-body>
     <span data-pagefind-meta="type:Guide" style="display:none"></span>
     <span data-pagefind-meta="title:FEMM: A Clinician's Guide" style="display:none"></span>
@@ -560,6 +566,7 @@ const faqSchema = {
   </div>
   <p class="page-updated">Last updated: March 2026</p>
   <BackToTop />
+  </MaybeShell>
 </BaseLayout>
 
 <style>

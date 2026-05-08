@@ -45,7 +45,14 @@ interface RelatedSection {
 }
 
 interface Props {
-  context: 'index' | 'article' | 'saved';
+  /** Layout context.
+   *  - 'index'   — list page with cards (writes sessionStorage on click for the rail)
+   *  - 'article' — article page (emits middle column for the rail)
+   *  - 'saved'   — Saved Articles page (2-col, no rail, no writer)
+   *  - 'page'    — generic content page (2-col, no rail, no writer). Used for
+   *                guides / faqs / account / pillar pages where there's no
+   *                cards-list to capture and no per-article rail to render. */
+  context: 'index' | 'article' | 'saved' | 'page';
   currentPath: string;
   /** Server-rendered related-content sections for the right rail.
    *  When provided, the rail renders these sections statically (Topics, By
@@ -61,6 +68,23 @@ const hasRelatedSections = relatedSections.length > 0 && context === 'article';
 const inLibrary = currentPath.startsWith('/library');
 const inCommentary = currentPath.startsWith('/commentary');
 const inSaved = currentPath === '/library/saved' || currentPath === '/library/saved/';
+const inFaqs = currentPath === '/faqs' || currentPath === '/faqs/' || currentPath.startsWith('/faqs/');
+const inAccount = currentPath === '/account' || currentPath === '/account/' || currentPath.startsWith('/account/');
+// "Guides" surface = the /guides/ index AND the pillar guide pages, which live
+// at root paths (/what-is-rrm/, /naprotechnology/, /femm/, /neofertility/,
+// /common-questions-about-rrm, /glossary/). Keep this list in sync with
+// PUBLIC_SHELL_ROUTES='guides' wrap targets.
+const GUIDES_PATHS = new Set([
+  '/guides', '/guides/',
+  '/what-is-rrm', '/what-is-rrm/',
+  '/naprotechnology', '/naprotechnology/',
+  '/femm', '/femm/',
+  '/neofertility', '/neofertility/',
+  '/common-questions-about-rrm', '/common-questions-about-rrm/',
+  '/glossary', '/glossary/',
+]);
+const inGuides = GUIDES_PATHS.has(currentPath) ||
+  currentPath.startsWith('/glossary/'); // /glossary/<slug>/ if added later
 
 // Lucide-style icon map keyed by destination href. Pulled from Footer.astro's
 // learnLinks/resourceLinks/helpLinks for parity (same icon for the same link
@@ -109,11 +133,11 @@ const NAV_ICONS: Record<string, string> = {
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/ask/']} />
         <span class="app-shell-nav__label">Ask</span>
       </a>
-      <a href="/faqs/" class="app-shell-nav__link">
+      <a href="/faqs/" class="app-shell-nav__link" aria-current={inFaqs ? 'page' : undefined}>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/faqs/']} />
         <span class="app-shell-nav__label">FAQs</span>
       </a>
-      <a href="/guides/" class="app-shell-nav__link">
+      <a href="/guides/" class="app-shell-nav__link" aria-current={inGuides ? 'page' : undefined}>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/guides/']} />
         <span class="app-shell-nav__label">Guides</span>
       </a>
@@ -139,7 +163,7 @@ const NAV_ICONS: Record<string, string> = {
     </a>
 
     <div class="app-shell-nav__footer">
-      <a href="/account/" class="app-shell-nav__account">
+      <a href="/account/" class="app-shell-nav__account" aria-current={inAccount ? 'page' : undefined}>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/account/']} />
         <span class="app-shell-nav__label">Account</span>
       </a>
@@ -197,7 +221,7 @@ const NAV_ICONS: Record<string, string> = {
     <a href="/library/" class="app-shell-bottom-nav__tab" aria-current={inLibrary && !inSaved ? 'page' : undefined} data-clear-shell-context>Library</a>
     <a href="/commentary/" class="app-shell-bottom-nav__tab" aria-current={inCommentary ? 'page' : undefined} data-clear-shell-context>Commentary</a>
     <a href="/library/saved/" class="app-shell-bottom-nav__tab" aria-current={inSaved ? 'page' : undefined} data-clear-shell-context>Saved</a>
-    <a href="/account/" class="app-shell-bottom-nav__tab" data-clear-shell-context>Account</a>
+    <a href="/account/" class="app-shell-bottom-nav__tab" aria-current={inAccount ? 'page' : undefined} data-clear-shell-context>Account</a>
   </nav>
 
   <!-- Mobile hamburger drawer (mirrors sidebar contents) -->
@@ -225,11 +249,11 @@ const NAV_ICONS: Record<string, string> = {
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/ask/']} />
         <span class="app-shell-nav__label">Ask</span>
       </a>
-      <a href="/faqs/" class="app-shell-nav__link" data-clear-shell-context>
+      <a href="/faqs/" class="app-shell-nav__link" aria-current={inFaqs ? 'page' : undefined} data-clear-shell-context>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/faqs/']} />
         <span class="app-shell-nav__label">FAQs</span>
       </a>
-      <a href="/guides/" class="app-shell-nav__link" data-clear-shell-context>
+      <a href="/guides/" class="app-shell-nav__link" aria-current={inGuides ? 'page' : undefined} data-clear-shell-context>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/guides/']} />
         <span class="app-shell-nav__label">Guides</span>
       </a>
@@ -250,7 +274,7 @@ const NAV_ICONS: Record<string, string> = {
       <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/donate/']} />
       <span class="app-shell-nav__label">Donate</span>
     </a>
-    <a href="/account/" class="app-shell-nav__link" data-clear-shell-context>
+    <a href="/account/" class="app-shell-nav__link" aria-current={inAccount ? 'page' : undefined} data-clear-shell-context>
       <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/account/']} />
       <span class="app-shell-nav__label">Account</span>
     </a>
