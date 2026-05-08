@@ -208,7 +208,10 @@
 }
 .app-shell-nav__link:hover .app-shell-nav__icon,
 .app-shell-nav__link[aria-current="page"] .app-shell-nav__icon {
-  color: var(--accent);
+  /* Sidebar nav uses RRM Academy tans for hover/active state, not purples
+     (Brian preference 2026-05-08). Icon stays text-primary on the tan
+     background — high contrast, no second accent color. */
+  color: var(--text-primary);
 }
 .app-shell-nav__cta .app-shell-nav__icon {
   color: currentColor;
@@ -217,19 +220,19 @@
   color: var(--text-tertiary);
 }
 .app-shell-nav__account:hover .app-shell-nav__icon {
-  color: var(--accent);
+  color: var(--text-primary);
 }
 .app-shell-nav__label {
   flex: 1;
   min-width: 0;
 }
 .app-shell-nav__link:hover {
-  background: var(--purple-50);
-  color: var(--accent-hover);
+  background: var(--cream);
+  color: var(--text-primary);
 }
 .app-shell-nav__link[aria-current="page"] {
-  background: var(--purple-100);
-  color: var(--accent-hover);
+  background: var(--sand-300);
+  color: var(--text-primary);
   font-weight: 500;
 }
 .app-shell-nav__spacer {
@@ -296,8 +299,16 @@
   transition: background 0.15s, color 0.15s;
 }
 .app-shell-nav__account:hover {
-  background: var(--purple-50);
-  color: var(--accent-hover);
+  background: var(--cream);
+  color: var(--text-primary);
+}
+.app-shell-nav__account[aria-current="page"] {
+  background: var(--sand-300);
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.app-shell-nav__account[aria-current="page"] .app-shell-nav__icon {
+  color: var(--text-primary);
 }
 .app-shell-nav__theme-toggle {
   display: inline-flex;
@@ -315,7 +326,7 @@
   transition: background 0.15s, border-color 0.15s;
 }
 .app-shell-nav__theme-toggle:hover {
-  background: var(--purple-50);
+  background: var(--cream);
   border-color: var(--purple-300);
 }
 .app-shell-nav__theme-toggle:focus-visible {
