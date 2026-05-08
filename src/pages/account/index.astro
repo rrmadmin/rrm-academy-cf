@@ -1,6 +1,10 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import MaybeShell from '../../components/MaybeShell.astro';
+import { isShellEnabled } from '../../lib/shell-routes';
 import coursesData from '../../data/courses.json';
+
+const SHELL_ENABLED = isShellEnabled('account');
 
 const courseMetaMap: Record<string, { title: string; slug: string; image: string }> = {};
 for (const c of coursesData) {
@@ -12,7 +16,9 @@ for (const c of coursesData) {
   description="Manage your RRM Academy account, courses, and membership."
   canonicalUrl="https://rrmacademy.org/account"
   noindex
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
 >
+  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname}>
   <section class="auth-page">
     <div class="container container--narrow">
 
@@ -207,6 +213,7 @@ for (const c of coursesData) {
 
     </div>
   </section>
+  </MaybeShell>
 
   <script is:inline>
     (function () {
