@@ -276,28 +276,50 @@ Validation: `npm run ssot:validate` (schema + cross-ref) and `npm run ssot:smoke
 
 **Do not** move FAQs, courses, or pillar pages under a `/learn/` path. The 301 redirect tax and URL depth penalty outweigh the organizational neatness.
 
-## App Shell (Library + Commentary)
+## App Shell
 
-`/library/*` and `/commentary/*` use a left-sidebar app shell instead of the global Header. Code is on main but **production INERT** until activated via:
+Wraps `/library/*`, `/commentary/*`, `/guides/`, `/faqs/*`, `/account/*`, `/ask/`, and 6 pillar pages (`/what-is-rrm/`, `/naprotechnology/`, `/femm/`, `/neofertility/`, `/common-questions-about-rrm/`, `/glossary/`) with a left-sidebar app shell instead of the global Header. Code on main, **production INERT** until activated via:
 
 ```bash
-gh variable set PUBLIC_SHELL_ROUTES --body "library,commentary"
+gh variable set PUBLIC_SHELL_ROUTES --body "library,commentary,guides,faqs,account,ask"
 gh workflow run deploy.yml
 ```
 
 Rollback: `gh variable set PUBLIC_SHELL_ROUTES --body ""` + redeploy.
 
-Components: `src/components/AppShellChrome.astro` (sidebar + drawer + middle column), `src/components/AppShellSheet.astro` (mobile pull-up sheet), `src/styles/app-shell.css`. Helper: `src/lib/shell-routes.ts` exports `isShellEnabled('library' | 'commentary')` reading `PUBLIC_SHELL_ROUTES`.
+**Components:**
+- `src/components/AppShellChrome.astro` — sidebar + drawer + middle column.
+- `src/components/AppShellSheet.astro` — mobile pull-up sheet.
+- `src/components/MaybeShell.astro` — conditional wrapper for shell-on/shell-off without duplicating page body across two ternary branches. Forwards `hasRail` prop and `rail` named slot. Use this on every new wrap target.
+- `src/components/SectionTocChips.astro` — chip-pill "On this page" callout that replaces the sticky internal `.toc` sidebar on shell-enabled pillar pages. Pair with `.article-layout--no-toc` modifier.
+- `src/styles/app-shell.css` — grid, tokens, mobile rules.
+- Helper: `src/lib/shell-routes.ts` exports `isShellEnabled(route)` reading `PUBLIC_SHELL_ROUTES`. `ShellRoute = 'commentary' | 'library' | 'guides' | 'faqs' | 'account' | 'ask'`.
 
-**Activation gating:** every wrapped page tests `isShellEnabled(...)` to decide between `chrome="shell"` (sidebar) and `chrome="default"` (Header). BaseLayout's `chrome="shell"` prop suppresses Header AND outer `<main>` (AppShellChrome emits its own); Footer renders inside AppShellChrome's grid (`.app-shell-footer-row` in row 2 col 2 of the layout grid).
+**Activation gating:** every wrapped page tests `isShellEnabled(...)` to decide between `chrome="shell"` (sidebar) and `chrome="default"` (Header). BaseLayout's `chrome="shell"` prop suppresses Header AND outer `<main>` (AppShellChrome emits its own); Footer renders inside AppShellChrome's grid.
 
-**Right rail (article pages only):** AppShellChrome accepts `relatedSections={Array<{heading, items}>}`. Library articles pass Topics + By-this-author + Related research. Commentary posts pass Pillar + More-by-this-author + Related commentary. Helpers: `getArticlesByAuthor()` in `src/lib/airtable.ts`, `getRelatedArticles()` (same file), `getRelatedPosts()` in `src/lib/blog.ts`. Empty sections drop via `items.length` filter; cross-section dedup by id.
+**Context types:** `'index' | 'article' | 'saved' | 'page'`. The `'page'` context (added 2026-05-07) is the generic 2-col baseline used by guides/faqs/account/ask/pillar pages — no card writer, no rail unless `hasRail` prop is set.
 
-When `relatedSections` is empty (or page doesn't pass it), AppShellChrome falls back to the legacy sessionStorage `rrm-shell-context` "Continue browsing" hydrator. Cold-land gate: `data-has-related="true"` attribute on `.app-shell-layout` skips the `.shell-no-context` CSS collapse, so direct-traffic visitors still see the server-rendered rail.
+**Right rail.** Two opt-in mechanisms:
+1. `relatedSections={Array<{heading, items}>}` — server-rendered list. Library articles pass `[Topics, By this author, Related research]`. Commentary posts pass `[Pillar, More by this author, Related commentary]`. Helpers: `getArticlesByAuthor()` / `getRelatedArticles()` in `src/lib/airtable.ts`, `getRelatedPosts()` in `src/lib/blog.ts`. Empty sections drop; cross-section dedup by id.
+2. `hasRail={true}` + `<Fragment slot="rail">…</Fragment>` — arbitrary HTML in the rail. Used by `/glossary/` for the A-Z index. Why an explicit prop instead of `Astro.slots.has('rail')`: when forwarded through MaybeShell, Astro reports the slot as "present" even when no upstream content was passed.
+
+3-col grid triggers on `data-shell-context="article"` OR `data-has-related="true"`.
+
+When neither rail mechanism is in use on an article page, AppShellChrome falls back to the legacy sessionStorage `rrm-shell-context` "Continue browsing" hydrator. Cold-land gate: `data-has-related="true"` skips the `.shell-no-context` CSS collapse so direct-traffic visitors still see the server-rendered rail.
+
+**Pillar guide TOC.** Sticky `.toc` sidebar inside `.article-layout` is the off-shell pattern. When SHELL_ENABLED, all 5 pillar guides + glossary render `<SectionTocChips items={...} />` between byline and first section, and add the `article-layout--no-toc` modifier so the article grid collapses to single column.
+
+**Middle-column max-width.** When shell is on, all `.container` content inside `.app-shell-main` for `data-shell-context="page"` is constrained to `var(--max-width-article)` so headers, byline, chip TOC, and body all align to the same vertical edges.
+
+**Glossary specifics.** Authorship: `By RRM Academy / Reviewed by Dr. Naomi Whittaker, MD…` using the canonical `.author-avatar-stack` + `.has-reviewer` pattern (precedent: `/femm/` byline). JSON-LD: `author = #organization`, `reviewedBy = #naomi-whittaker`. Pillar guides written in Naomi's clinical voice keep her as primary author — glossary is the only org-author exception.
+
+**H1 typography (2026-05-08).** Global `<h1>` now uses `clamp(2rem, 1.25rem + 2.5vw, 3.25rem)` (52px on wide viewports). All interior pages share this size — pillar guides, index pages, slug pages, ask, library/saved. Local `font-size` overrides have been removed; `line-height`/`letter-spacing`/`margin` tweaks preserved. Auth-card h1 (login/signup/account small-card pattern), admin dashboard h1, and homepage hero (72px) keep their own intentional sizes.
 
 CI gate: `scripts/check-canonical-lockdown.mjs` enforces `ALLOWED_PARAMS` allowlist (`topic, page, q, sort` + analytics params) on `/library/*` + `/commentary/*` query strings. New canonical-affecting params require explicit allowlist edit.
 
-11 proof gates documented in spec (G-SEO-1..6, G-GUARD, G-CHROME-1, G-ARCH-1/2, G-Z-STACK). Spec: `docs/superpowers/specs/2026-04-10-library-commentary-app-shell-design.md`. Plan: `docs/superpowers/plans/2026-05-06-library-commentary-app-shell-implementation.md`. Two /arise --deep passes done on this surface (#124 + #125).
+E2E spec: `tests/e2e/app-shell.spec.ts` asserts `/library/` index has no middle column on cold land (G-SEO-6).
+
+11 proof gates documented in spec (G-SEO-1..6, G-GUARD, G-CHROME-1, G-ARCH-1/2, G-Z-STACK). Spec: `docs/superpowers/specs/2026-04-10-library-commentary-app-shell-design.md`. Plan: `docs/superpowers/plans/2026-05-06-library-commentary-app-shell-implementation.md`. Two /arise --deep passes done on the original library/commentary surface (#124 + #125).
 
 ## Page Templates & SEO Architecture
 
