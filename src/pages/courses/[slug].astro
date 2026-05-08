@@ -310,7 +310,14 @@ const relatedCourses = course.relatedCourses
   chrome={SHELL_ENABLED ? 'shell' : 'default'}
 >
   <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname}>
-  <div class={`course-page`} {...(course.comingSoon ? {} : { 'data-pagefind-body': '' })}>
+  {/* data-shell-wide opts out of the narrow-content rule that constrains
+      pillar pages to var(--max-width-article). Course sales pages need the
+      broader hero / curriculum width Brian had pre-shell. */}
+  <div
+    class={`course-page`}
+    data-shell-wide
+    {...(course.comingSoon ? {} : { 'data-pagefind-body': '' })}
+  >
     <span data-pagefind-meta="type:Course" style="display:none"></span>
     <span data-pagefind-meta={`title:${course.title}`} style="display:none"></span>
     <span data-pagefind-meta={`description:${course.shortDescription}`} style="display:none"></span>
