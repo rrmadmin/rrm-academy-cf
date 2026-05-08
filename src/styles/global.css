@@ -1807,6 +1807,71 @@ blockquote cite {
   color: var(--text-primary);
 }
 
+/* Section TOC chips — see src/components/SectionTocChips.astro.
+   Replaces the sticky internal `.toc` sidebar on shell-enabled pillar pages
+   with a wrapping pill row above the first section. Pair with the
+   .article-layout--no-toc modifier (below) so the article grid collapses to
+   a single column when the chips are doing the section-nav job. */
+.section-toc {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-5);
+  margin: var(--space-6) 0 var(--space-8);
+}
+.section-toc__heading {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  margin: 0 0 var(--space-3);
+}
+.section-toc__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.section-toc__list a {
+  display: inline-block;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--bg-body);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-pill);
+  padding: 4px 12px;
+  text-decoration: none;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.section-toc__list a:hover {
+  color: var(--text-primary);
+  border-color: var(--purple-300);
+  background: var(--bg-surface);
+}
+
+/* Article-layout single-column override. Used by pillar pages that put their
+   section TOC in a chip-pill callout above (see SectionTocChips) so the
+   prose can use the full middle column instead of leaving an empty 220px
+   sidebar slot. */
+.article-layout--no-toc {
+  grid-template-columns: 1fr !important;
+  max-width: var(--max-width-article) !important;
+}
+
+/* Shell-enabled pillar pages (`data-shell-context="page"`): constrain ALL
+   middle-column content -- container, breadcrumb, h1, byline, chip TOC,
+   article body -- to the article max-width so everything aligns to the
+   same vertical edges. Without this, the .container above .article-layout
+   would span the wider middle column while the body stayed narrow.
+   Brian preference 2026-05-08. */
+.app-shell-layout[data-shell-context="page"] .app-shell-main .container {
+  max-width: var(--max-width-article);
+}
+
 /* Mobile TOC (collapsible) */
 .toc-mobile {
   margin-bottom: var(--space-6);

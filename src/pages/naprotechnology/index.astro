@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import MaybeShell from '../../components/MaybeShell.astro';
+import SectionTocChips from '../../components/SectionTocChips.astro';
 import { isShellEnabled } from '../../lib/shell-routes';
 import BackToTop from '../../components/BackToTop.astro';
 import PdfDownload from '../../components/PdfDownload.astro';
@@ -9,6 +10,19 @@ import pageDates from '../../data/page-dates.json';
 import { buildScholarlyArticleStub } from '../../lib/identity';
 
 const SHELL_ENABLED = isShellEnabled('guides');
+
+const TOC_ITEMS = [
+  { href: '#what-is-naprotechnology', label: 'What is NaProTechnology?' },
+  { href: '#how-napro-works', label: 'How NaProTechnology Works' },
+  { href: '#conditions', label: 'What Conditions Does NaProTechnology Treat?' },
+  { href: '#napro-surgery', label: 'What Does NaProTechnology Surgery Involve?' },
+  { href: '#who-is-napro-for', label: 'Who is NaPro For?' },
+  { href: '#napro-vs-ivf', label: 'NaPro vs IVF' },
+  { href: '#find-provider', label: 'How to Find a NaPro Provider' },
+  { href: '#naprotechnology-training', label: 'Who Trains in NaProTechnology and How?' },
+  { href: '#cost-insurance', label: 'How Much Does NaProTechnology Cost?' },
+  { href: '#faq', label: 'Frequently Asked Questions' },
+];
 
 // Helper: build a ScholarlyArticle stub for citation embedding (strip @context).
 function citeStub(props: { name: string; author: string; datePublished: string; journal?: string }) {
@@ -216,24 +230,22 @@ const faqSchema = {
       </details>
 
       <!-- Article layout: sidebar TOC + main content -->
-      <div class="article-layout">
+      {SHELL_ENABLED && <SectionTocChips items={TOC_ITEMS} />}
 
-        <!-- Desktop TOC (sticky sidebar, 1024px+) -->
-        <nav class="toc" aria-label="Table of contents">
-          <p class="toc-heading">On this page</p>
-          <ol>
-            <li><a href="#what-is-naprotechnology">What is NaProTechnology?</a></li>
-            <li><a href="#how-napro-works">How NaProTechnology Works</a></li>
-            <li><a href="#conditions">What Conditions Does NaProTechnology Treat?</a></li>
-            <li><a href="#napro-surgery">What Does NaProTechnology Surgery Involve?</a></li>
-            <li><a href="#who-is-napro-for">Who is NaPro For?</a></li>
-            <li><a href="#napro-vs-ivf">NaPro vs IVF</a></li>
-            <li><a href="#find-provider">How to Find a NaPro Provider</a></li>
-            <li><a href="#naprotechnology-training">Who Trains in NaProTechnology and How?</a></li>
-            <li><a href="#cost-insurance">How Much Does NaProTechnology Cost?</a></li>
-            <li><a href="#faq">Frequently Asked Questions</a></li>
-          </ol>
-        </nav>
+      <div class:list={['article-layout', { 'article-layout--no-toc': SHELL_ENABLED }]}>
+
+        {/* Desktop sticky TOC — hidden when SHELL_ENABLED (chips above
+            replace it). */}
+        {!SHELL_ENABLED && (
+          <nav class="toc" aria-label="Table of contents">
+            <p class="toc-heading">On this page</p>
+            <ol>
+              {TOC_ITEMS.map((item) => (
+                <li><a href={item.href}>{item.label}</a></li>
+              ))}
+            </ol>
+          </nav>
+        )}
 
         <!-- Main content -->
         <article class="prose">

@@ -1,12 +1,25 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import MaybeShell from '../../components/MaybeShell.astro';
+import SectionTocChips from '../../components/SectionTocChips.astro';
 import { isShellEnabled } from '../../lib/shell-routes';
 import LastUpdated from '../../components/LastUpdated.astro';
 import pageDates from '../../data/page-dates.json';
 import { buildScholarlyArticleStub } from '../../lib/identity';
 
 const SHELL_ENABLED = isShellEnabled('guides');
+
+const TOC_ITEMS = [
+  { href: '#core-principles', label: "What Are FEMM's Core Principles?" },
+  { href: '#history', label: 'A Brief History' },
+  { href: '#how-femm-works', label: 'How FEMM Works' },
+  { href: '#conditions', label: 'What Conditions Does FEMM Address?' },
+  { href: '#femm-and-rrm', label: 'How Does FEMM Relate to Restorative Reproductive Medicine?' },
+  { href: '#rhri-research', label: 'What Research Supports FEMM?' },
+  { href: '#find-provider', label: 'How to Find a FEMM Teacher or Provider' },
+  { href: '#cost-insurance', label: 'How Much Does FEMM Cost?' },
+  { href: '#faq', label: 'Frequently Asked Questions' },
+];
 
 const PAGE_PATH = '/femm/';
 const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-03-15';
@@ -228,23 +241,21 @@ const faqSchema = {
       </details>
 
       <!-- Article layout: sidebar TOC + main content -->
-      <div class="article-layout">
+      {SHELL_ENABLED && <SectionTocChips items={TOC_ITEMS} />}
 
-        <!-- Desktop TOC (sticky sidebar, 1024px+) -->
-        <nav class="toc" aria-label="Table of contents">
-          <p class="toc-heading">On this page</p>
-          <ol>
-            <li><a href="#core-principles">What Are FEMM's Core Principles?</a></li>
-            <li><a href="#history">A Brief History</a></li>
-            <li><a href="#how-femm-works">How FEMM Works</a></li>
-            <li><a href="#conditions">What Conditions Does FEMM Address?</a></li>
-            <li><a href="#femm-and-rrm">How Does FEMM Relate to Restorative Reproductive Medicine?</a></li>
-            <li><a href="#rhri-research">What Research Supports FEMM?</a></li>
-            <li><a href="#find-provider">How to Find a FEMM Teacher or Provider</a></li>
-            <li><a href="#cost-insurance">How Much Does FEMM Cost?</a></li>
-            <li><a href="#faq">Frequently Asked Questions</a></li>
-          </ol>
-        </nav>
+      <div class:list={['article-layout', { 'article-layout--no-toc': SHELL_ENABLED }]}>
+
+        {/* Desktop sticky TOC — hidden when SHELL_ENABLED. */}
+        {!SHELL_ENABLED && (
+          <nav class="toc" aria-label="Table of contents">
+            <p class="toc-heading">On this page</p>
+            <ol>
+              {TOC_ITEMS.map((item) => (
+                <li><a href={item.href}>{item.label}</a></li>
+              ))}
+            </ol>
+          </nav>
+        )}
 
         <!-- Main content -->
         <article class="prose">
