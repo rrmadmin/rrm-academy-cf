@@ -104,7 +104,11 @@ const pageSchema = {
   '@type': ['Article', 'MedicalWebPage'],
   headline: 'RRM Glossary: A Detailed Reference to Restorative Reproductive Medicine',
   description: 'A detailed, evidence-based glossary of Restorative Reproductive Medicine (RRM) terminology covering core principles, fertility awareness methods, NaProTechnology, diagnostic tools, surgical techniques, key conditions, and abbreviations.',
-  author: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+  // Glossary is a compiled reference work — RRM Academy is the author entity,
+  // Dr. Whittaker is the medical reviewer. Pillar guides (/what-is-rrm/, etc.)
+  // keep Naomi as author since they're written in her clinical voice.
+  author: { '@id': 'https://rrmacademy.org/#organization' },
+  reviewedBy: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
   publisher: {
     '@type': 'EducationalOrganization',
     '@id': 'https://rrmacademy.org/#organization',
@@ -245,11 +249,21 @@ const definedTermSetSchema = {
 
       <h1>RRM Glossary: A Detailed Reference to Restorative Reproductive Medicine</h1>
 
+      {/* Glossary byline: org-authored + clinically reviewed. Uses the
+          canonical .author-avatar-stack + .has-reviewer pattern (see
+          /femm/index.astro for the precedent). JSON-LD upstream mirrors
+          this with author=#organization + reviewedBy=#naomi-whittaker.
+          Pillar guides written in Naomi's clinical voice (/what-is-rrm/,
+          /naprotechnology/, etc.) keep her as primary author. */}
       <div class="author-byline">
-        <img src="/images/authors/naomi-whittaker.webp" alt="Dr. Naomi Whittaker, MD" class="author-byline__photo" width="48" height="48" />
-        <div class="author-byline__text">
-          <span>By <strong><a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</a></strong></span>
-          <LastUpdated path="/glossary/" prefix="Updated" />
+        <div class="author-avatar-stack">
+          <img src="/apple-touch-icon.png" alt="" aria-hidden="true" class="author-byline__photo" width="48" height="48" />
+          <img src="/images/authors/naomi-whittaker.webp" alt="" aria-hidden="true" class="author-byline__photo" width="48" height="48" />
+        </div>
+        <div class="author-byline__text has-reviewer">
+          <span class="byline-author">By <strong>RRM Academy</strong></span>
+          <span class="byline-reviewer">Reviewed by <strong><a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</a></strong></span>
+          <LastUpdated path="/glossary/" prefix="Updated" class="byline-date" />
           <PdfDownload slug="glossary" />
         </div>
       </div>
@@ -291,21 +305,45 @@ const definedTermSetSchema = {
         </details>
       )}
 
-      <!-- Article layout: sidebar TOC + main content -->
-      <div class="article-layout">
-
-        <!-- Desktop TOC (sticky sidebar, 1024px+) -->
-        <nav class="toc" aria-label="Table of contents">
-          <p class="toc-heading">On this page</p>
-          <ol>
+      {/* On-this-page callout (chip style) — replaces the sticky sidebar TOC
+          when the shell is on. With a left site-nav + right A-Z rail eating
+          horizontal space, an additional sticky internal TOC is too cramped.
+          The callout sits between the byline and Overview so readers see the
+          full scope at a glance, then scroll. */}
+      {SHELL_ENABLED && (
+        <nav class="section-toc" aria-label="On this page">
+          <p class="section-toc__heading">On this page</p>
+          <ul class="section-toc__list">
             <li><a href="#overview">Overview</a></li>
             {PARTS.map(p => (
               <li><a href={`#${p.id}`}>{p.shortTitle}</a></li>
             ))}
             <li><a href="#abbreviations">Abbreviations</a></li>
             <li><a href="#references">References</a></li>
-          </ol>
+          </ul>
         </nav>
+      )}
+
+      {/* Article layout: sidebar TOC + main content. Without the shell, the
+          left sticky TOC carries the section nav. With the shell, the
+          .section-toc callout above does it and `.article-layout` collapses
+          to a single column via the .article-layout--no-toc modifier. */}
+      <div class:list={['article-layout', { 'article-layout--no-toc': SHELL_ENABLED }]}>
+
+        {/* Desktop TOC (sticky sidebar, 1024px+) — hidden when SHELL_ENABLED */}
+        {!SHELL_ENABLED && (
+          <nav class="toc" aria-label="Table of contents">
+            <p class="toc-heading">On this page</p>
+            <ol>
+              <li><a href="#overview">Overview</a></li>
+              {PARTS.map(p => (
+                <li><a href={`#${p.id}`}>{p.shortTitle}</a></li>
+              ))}
+              <li><a href="#abbreviations">Abbreviations</a></li>
+              <li><a href="#references">References</a></li>
+            </ol>
+          </nav>
+        )}
 
         <!-- Main content -->
         <article class="prose">
@@ -408,6 +446,60 @@ const definedTermSetSchema = {
   }
   .glossary-rail .app-shell-middle-column__list {
     margin-bottom: var(--space-2);
+  }
+</style>
+
+<style>
+  /* On-this-page chip callout (shell-enabled glossary). Replaces the
+     left-sticky TOC with a wrapping pill row above the Overview. Light
+     surface, subtle border, chips inherit purple hover from links.css. */
+  .section-toc {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-4) var(--space-5);
+    margin: var(--space-6) 0 var(--space-8);
+  }
+  .section-toc__heading {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    margin: 0 0 var(--space-3);
+  }
+  .section-toc__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .section-toc__list a {
+    display: inline-block;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: var(--bg-body);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    padding: 4px 12px;
+    text-decoration: none;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  }
+  .section-toc__list a:hover {
+    color: var(--text-primary);
+    border-color: var(--purple-300);
+    background: var(--purple-50, var(--bg-surface));
+  }
+
+  /* When the shell hosts the section TOC in the callout above, the article
+     grid collapses to a single column so the prose can use the full middle
+     column width instead of leaving a 220px sidebar slot empty. */
+  .article-layout--no-toc {
+    grid-template-columns: 1fr !important;
+    max-width: var(--max-width-article) !important;
   }
 </style>
 
