@@ -25,13 +25,22 @@ interface Props {
   context: 'index' | 'article' | 'saved' | 'page';
   currentPath: string;
   relatedSections?: RelatedSection[];
+  /** Pass-through to AppShellChrome.hasRail. Set to true AND pass a
+   *  `<Fragment slot="rail">` to render custom rail content. */
+  hasRail?: boolean;
 }
 
-const { enabled, context, currentPath, relatedSections } = Astro.props;
+const { enabled, context, currentPath, relatedSections, hasRail = false } = Astro.props;
 ---
 
 {enabled ? (
-  <AppShellChrome context={context} currentPath={currentPath} relatedSections={relatedSections}>
+  <AppShellChrome
+    context={context}
+    currentPath={currentPath}
+    relatedSections={relatedSections}
+    hasRail={hasRail}
+  >
+    {hasRail && <slot name="rail" slot="rail" />}
     <slot />
   </AppShellChrome>
 ) : (

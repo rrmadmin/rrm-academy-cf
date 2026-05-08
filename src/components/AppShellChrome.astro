@@ -59,9 +59,18 @@ interface Props {
    *  this author, Related research, etc). When absent, falls back to the
    *  legacy sessionStorage "Continue browsing" hydrator. */
   relatedSections?: RelatedSection[];
+  /** Opt-in to a custom rail rendered via the `rail` named slot. Pages must
+   *  set this to `true` AND pass `<Fragment slot="rail">…</Fragment>` for the
+   *  rail to render. Used by /glossary/ to host its A-Z index in the rail
+   *  instead of as a top-of-page <details> toggle.
+   *  Why an explicit prop instead of `Astro.slots.has('rail')`: when forwarded
+   *  through a wrapper component (MaybeShell), Astro reports the slot as
+   *  "present" even when the upstream page passed no content. The prop is
+   *  unambiguous. */
+  hasRail?: boolean;
 }
 
-const { context, currentPath, relatedSections = [] } = Astro.props;
+const { context, currentPath, relatedSections = [], hasRail = false } = Astro.props;
 const hasRelatedSections = relatedSections.length > 0 && context === 'article';
 
 // Identify current section for aria-current on sidebar links.
@@ -70,6 +79,7 @@ const inCommentary = currentPath.startsWith('/commentary');
 const inSaved = currentPath === '/library/saved' || currentPath === '/library/saved/';
 const inFaqs = currentPath === '/faqs' || currentPath === '/faqs/' || currentPath.startsWith('/faqs/');
 const inAccount = currentPath === '/account' || currentPath === '/account/' || currentPath.startsWith('/account/');
+const inAsk = currentPath === '/ask' || currentPath === '/ask/' || currentPath.startsWith('/ask/');
 // "Guides" surface = the /guides/ index AND the pillar guide pages, which live
 // at root paths (/what-is-rrm/, /naprotechnology/, /femm/, /neofertility/,
 // /common-questions-about-rrm, /glossary/). Keep this list in sync with
@@ -85,6 +95,13 @@ const GUIDES_PATHS = new Set([
 ]);
 const inGuides = GUIDES_PATHS.has(currentPath) ||
   currentPath.startsWith('/glossary/'); // /glossary/<slug>/ if added later
+
+// Pages can render arbitrary HTML in the right rail by setting `hasRail`
+// AND passing `<Fragment slot="rail">…</Fragment>`. When `hasRail` is true,
+// AppShellChrome emits the <aside> regardless of context and renders the
+// slot content in place of the default relatedSections list. Used by
+// /glossary/ to put the A-Z index in the rail.
+const showRail = hasRelatedSections || hasRail || context === 'article';
 
 // Lucide-style icon map keyed by destination href. Pulled from Footer.astro's
 // learnLinks/resourceLinks/helpLinks for parity (same icon for the same link
@@ -104,7 +121,7 @@ const NAV_ICONS: Record<string, string> = {
 };
 ---
 
-<div class="app-shell-layout" data-shell-context={context} data-has-related={hasRelatedSections ? 'true' : 'false'}>
+<div class="app-shell-layout" data-shell-context={context} data-has-related={(hasRelatedSections || hasRail) ? 'true' : 'false'}>
   <!-- Desktop sidebar -->
   <nav class="app-shell-nav" data-pagefind-ignore="all" aria-label="Primary">
     <a href="/" class="app-shell-nav__brand" aria-label="RRM Academy home" data-clear-shell-context>
@@ -129,7 +146,7 @@ const NAV_ICONS: Record<string, string> = {
 
     <div class="app-shell-nav__section">
       <div class="app-shell-nav__heading">Explore</div>
-      <a href="/ask/" class="app-shell-nav__link">
+      <a href="/ask/" class="app-shell-nav__link" aria-current={inAsk ? 'page' : undefined}>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/ask/']} />
         <span class="app-shell-nav__label">Ask</span>
       </a>
@@ -185,14 +202,18 @@ const NAV_ICONS: Record<string, string> = {
     <Footer />
   </div>
 
-  <!-- Middle column: emitted ONLY on article pages (`context === 'article'`).
+  <!-- Middle column: emitted on article pages (`context === 'article'`) OR
+       when the page provides a `rail` named slot OR explicit relatedSections.
+       Index/saved/page contexts that pass none of these still skip emission,
+       so G-SEO-6 ("library index has no middle column") stays green.
        Visibility on article pages is class-gated by .shell-no-context (spec
-       §No-context CSS gate). G-SEO-6 grep (Task 30 step 6) filters to article
-       paths only — do NOT switch to always-emit. -->
-  {context === 'article' && (
+       §No-context CSS gate). -->
+  {showRail && (
     <aside class="app-shell-middle-column" data-pagefind-ignore="all" aria-label="Related content">
       <div class="app-shell-middle-column__inner">
-        {hasRelatedSections ? (
+        {hasRail ? (
+          <slot name="rail" />
+        ) : hasRelatedSections ? (
           relatedSections.map((section) => (
             <section class="app-shell-middle-column__section">
               <h2 class="app-shell-middle-column__heading">{section.heading}</h2>
@@ -245,7 +266,7 @@ const NAV_ICONS: Record<string, string> = {
     </div>
     <div class="app-shell-nav__section">
       <div class="app-shell-nav__heading">Explore</div>
-      <a href="/ask/" class="app-shell-nav__link" data-clear-shell-context>
+      <a href="/ask/" class="app-shell-nav__link" aria-current={inAsk ? 'page' : undefined} data-clear-shell-context>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/ask/']} />
         <span class="app-shell-nav__label">Ask</span>
       </a>
