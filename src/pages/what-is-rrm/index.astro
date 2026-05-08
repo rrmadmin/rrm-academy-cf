@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import MaybeShell from '../../components/MaybeShell.astro';
+import SectionTocChips from '../../components/SectionTocChips.astro';
 import { isShellEnabled } from '../../lib/shell-routes';
 import BackToTop from '../../components/BackToTop.astro';
 import PdfDownload from '../../components/PdfDownload.astro';
@@ -9,6 +10,23 @@ import pageDates from '../../data/page-dates.json';
 import { buildScholarlyArticleStub } from '../../lib/identity';
 
 const SHELL_ENABLED = isShellEnabled('guides');
+
+const TOC_ITEMS = [
+  { href: '#key-takeaways', label: 'Key Takeaways' },
+  { href: '#what-is-rrm', label: 'What is RRM?' },
+  { href: '#history', label: 'History of RRM' },
+  { href: '#diagnosis', label: 'Diagnosis' },
+  { href: '#fabms', label: 'Role of FABMs' },
+  { href: '#conditions', label: 'Conditions Treated' },
+  { href: '#rrm-vs-ivf', label: 'RRM vs. IVF' },
+  { href: '#evidence', label: 'Is RRM Evidence-Based?' },
+  { href: '#patient-journey', label: 'The RRM Experience' },
+  { href: '#cost-insurance', label: 'Cost and Insurance' },
+  { href: '#training', label: 'How Doctors Train' },
+  { href: '#myths', label: 'Common Myths' },
+  { href: '#get-started', label: 'How to Get Started' },
+  { href: '#faq', label: 'FAQ' },
+];
 
 const PAGE_PATH = '/what-is-rrm/';
 const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-03-01';
@@ -380,28 +398,25 @@ const jsonLd = {
         </ol>
       </details>
 
-      <div class="article-layout">
+      {/* Shell-on: render section TOC as a chip-pill callout above the
+          article body so the sticky internal sidebar can be dropped (it
+          would compete with the left site nav for horizontal space). */}
+      {SHELL_ENABLED && <SectionTocChips items={TOC_ITEMS} />}
 
-        <!-- Desktop Sticky TOC -->
-        <nav class="toc" aria-label="Table of contents">
-          <p class="toc-heading">On this page</p>
-          <ol>
-            <li><a href="#key-takeaways">Key Takeaways</a></li>
-            <li><a href="#what-is-rrm">What is RRM?</a></li>
-            <li><a href="#history">History of RRM</a></li>
-            <li><a href="#diagnosis">Diagnosis</a></li>
-            <li><a href="#fabms">Role of FABMs</a></li>
-            <li><a href="#conditions">Conditions Treated</a></li>
-            <li><a href="#rrm-vs-ivf">RRM vs. IVF</a></li>
-            <li><a href="#evidence">Is RRM Evidence-Based?</a></li>
-            <li><a href="#patient-journey">The RRM Experience</a></li>
-            <li><a href="#cost-insurance">Cost and Insurance</a></li>
-            <li><a href="#training">How Doctors Train</a></li>
-            <li><a href="#myths">Common Myths</a></li>
-            <li><a href="#get-started">How to Get Started</a></li>
-            <li><a href="#faq">FAQ</a></li>
-          </ol>
-        </nav>
+      <div class:list={['article-layout', { 'article-layout--no-toc': SHELL_ENABLED }]}>
+
+        {/* Desktop sticky TOC — hidden when SHELL_ENABLED (replaced by
+            chips above). */}
+        {!SHELL_ENABLED && (
+          <nav class="toc" aria-label="Table of contents">
+            <p class="toc-heading">On this page</p>
+            <ol>
+              {TOC_ITEMS.map((item) => (
+                <li><a href={item.href}>{item.label}</a></li>
+              ))}
+            </ol>
+          </nav>
+        )}
 
         <!-- Article Body -->
         <article class="prose">

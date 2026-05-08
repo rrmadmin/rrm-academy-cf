@@ -1,0 +1,50 @@
+---
+// SectionTocChips.astro — chip-pill "On this page" callout that replaces
+// the sticky internal sidebar TOC on shell-enabled pillar pages.
+//
+// Why: when the app shell adds a left site nav AND a right rail (e.g.
+// /glossary/ A-Z index), an additional sticky internal TOC eats too much
+// horizontal space. The callout sits between the byline and the first
+// section so readers see the full scope at a glance, then scroll.
+//
+// Usage:
+//   <SectionTocChips items={[
+//     { href: '#overview', label: 'Overview' },
+//     { href: '#diagnosis', label: 'Diagnosis' },
+//   ]} />
+//
+// Pages typically gate the render on SHELL_ENABLED so the legacy two-
+// column layout (with sticky `.toc` sidebar) keeps working when the
+// shell is off:
+//   {SHELL_ENABLED && <SectionTocChips items={...} />}
+//   <div class:list={['article-layout', { 'article-layout--no-toc': SHELL_ENABLED }]}>
+//     {!SHELL_ENABLED && <nav class="toc">…sticky TOC…</nav>}
+//     <article class="prose">…</article>
+//   </div>
+//
+// Style is global (in src/styles/global.css under "Section TOC chips").
+
+interface TocItem {
+  href: string;
+  label: string;
+}
+
+interface Props {
+  items: TocItem[];
+  /** Visible label above the chips. Defaults to "On this page". */
+  heading?: string;
+  /** Override aria-label on the <nav>. Defaults to the heading text. */
+  ariaLabel?: string;
+}
+
+const { items, heading = 'On this page', ariaLabel } = Astro.props;
+---
+
+<nav class="section-toc" aria-label={ariaLabel ?? heading}>
+  <p class="section-toc__heading">{heading}</p>
+  <ul class="section-toc__list">
+    {items.map((item) => (
+      <li><a href={item.href}>{item.label}</a></li>
+    ))}
+  </ul>
+</nav>
