@@ -63,7 +63,10 @@ const jsonLd = {
   chrome={SHELL_ENABLED ? 'shell' : 'default'}
 >
   <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname}>
-  <div class="page-wrapper">
+  {/* data-shell-wide opts out of the narrow-content rule that constrains
+      pillar pages to var(--max-width-article). Courses needs the broader
+      catalog grid + hero width Brian had pre-shell. */}
+  <div class="page-wrapper" data-shell-wide>
     <div class="container">
 
       <section class="courses-hero">
