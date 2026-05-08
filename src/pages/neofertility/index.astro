@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import MaybeShell from '../../components/MaybeShell.astro';
+import SectionTocChips from '../../components/SectionTocChips.astro';
 import { isShellEnabled } from '../../lib/shell-routes';
 import BackToTop from '../../components/BackToTop.astro';
 import PdfDownload from '../../components/PdfDownload.astro';
@@ -9,6 +10,22 @@ import pageDates from '../../data/page-dates.json';
 import { buildScholarlyArticleStub } from '../../lib/identity';
 
 const SHELL_ENABLED = isShellEnabled('guides');
+
+const TOC_ITEMS = [
+  { href: '#what-is-neofertility', label: 'What is NeoFertility' },
+  { href: '#three-phase-process', label: 'How Does NeoFertility Treatment Work?' },
+  { href: '#chartneo-app', label: 'The ChartNeo App' },
+  { href: '#immune-framework', label: 'How Does NeoFertility Use Immune Treatment?' },
+  { href: '#conditions', label: 'What Conditions Does NeoFertility Treat?' },
+  { href: '#outcome-data', label: "What Are NeoFertility's Success Rates?" },
+  { href: '#neofertility-vs-ivf', label: 'NeoFertility vs. IVF' },
+  { href: '#who-is-neofertility-for', label: 'Who is NeoFertility For?' },
+  { href: '#cost', label: 'How Much Does NeoFertility Cost?' },
+  { href: '#find-provider', label: 'How to Find a NeoFertility Provider' },
+  { href: '#research-training', label: 'NeoFertility Research and Training' },
+  { href: '#faq', label: 'Frequently Asked Questions' },
+  { href: '#references', label: 'References' },
+];
 
 const PAGE_PATH = '/neofertility/';
 const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-03-15';
@@ -253,27 +270,21 @@ const faqSchema = {
       </details>
 
       <!-- Article layout: sidebar TOC + main content -->
-      <div class="article-layout">
+      {SHELL_ENABLED && <SectionTocChips items={TOC_ITEMS} />}
 
-        <!-- Desktop TOC (sticky sidebar, 1024px+) -->
-        <nav class="toc" aria-label="Table of contents">
-          <p class="toc-heading">On this page</p>
-          <ol>
-            <li><a href="#what-is-neofertility">What is NeoFertility</a></li>
-            <li><a href="#three-phase-process">How Does NeoFertility Treatment Work?</a></li>
-            <li><a href="#chartneo-app">The ChartNeo App</a></li>
-            <li><a href="#immune-framework">How Does NeoFertility Use Immune Treatment?</a></li>
-            <li><a href="#conditions">What Conditions Does NeoFertility Treat?</a></li>
-            <li><a href="#outcome-data">What Are NeoFertility's Success Rates?</a></li>
-            <li><a href="#neofertility-vs-ivf">NeoFertility vs. IVF</a></li>
-            <li><a href="#who-is-neofertility-for">Who is NeoFertility For?</a></li>
-            <li><a href="#cost">How Much Does NeoFertility Cost?</a></li>
-            <li><a href="#find-provider">How to Find a NeoFertility Provider</a></li>
-            <li><a href="#research-training">NeoFertility Research and Training</a></li>
-            <li><a href="#faq">Frequently Asked Questions</a></li>
-            <li><a href="#references">References</a></li>
-          </ol>
-        </nav>
+      <div class:list={['article-layout', { 'article-layout--no-toc': SHELL_ENABLED }]}>
+
+        {/* Desktop sticky TOC — hidden when SHELL_ENABLED. */}
+        {!SHELL_ENABLED && (
+          <nav class="toc" aria-label="Table of contents">
+            <p class="toc-heading">On this page</p>
+            <ol>
+              {TOC_ITEMS.map((item) => (
+                <li><a href={item.href}>{item.label}</a></li>
+              ))}
+            </ol>
+          </nav>
+        )}
 
         <!-- Main content -->
         <article class="prose">
