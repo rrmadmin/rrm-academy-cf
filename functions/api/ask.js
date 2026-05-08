@@ -1,10 +1,9 @@
 /**
  * GET  /api/ask  — NLWeb capability JSON (unauth, no rate limit)
- * POST /api/ask  — Conversational AI: session path (20/day) or anonymous path (2/day/IP)
+ * POST /api/ask  — Conversational AI: requires authenticated session (20/day)
  *
- * Existing session-auth behavior is fully preserved. New paths added:
  *  - GET returns capability metadata for NLWeb/orank discovery
- *  - POST without session: IP-rate-limited (2/day), SSE-framed buffered response
+ *  - POST without session: 401 → page JS redirects to /signup/?next=/ask
  *  - POST with session + Accept: text/event-stream: SSE-framed response
  */
 import { json, optionsResponse, getSessionIdFromCookie, validateSession, roleAtLeast } from './auth/_shared.js';
@@ -38,7 +37,6 @@ function utcDateKey() {
 }
 
 const RATE_LIMIT_MAX = 20;
-const RATE_LIMIT_MAX_ANON = 2;
 const RATE_LIMIT_TTL = 172800; // 48h in seconds
 const META = { response_type: 'answer', version: 'nlweb-1.0' };
 
@@ -313,78 +311,12 @@ async function handleAuthedAsk(context, session) {
   return json(payload);
 }
 
-async function handleAnonymousAsk(context) {
-  const { request, env, waitUntil } = context;
-  const start = Date.now();
-
-  if (!env.COMMUNITY_KV) {
-    return json({ error: 'service_unavailable' }, 503);
-  }
-
-  const ip = request.headers.get('cf-connecting-ip') || '';
-  const ipHash = await hashIp(ip);
-  const ipRateLimitKey = `ask:ip:${ipHash}:${utcDateKey()}`;
-
-  let ipCount;
-  try {
-    const raw = await env.COMMUNITY_KV.get(ipRateLimitKey);
-    ipCount = raw ? parseInt(raw, 10) : 0;
-  } catch (err) {
-    log(env, waitUntil, 'ask', 'kv_read_error_anon', 'error', err.message, 0, 503);
-    return json({ error: 'service_unavailable' }, 503);
-  }
-
-  if (ipCount >= RATE_LIMIT_MAX_ANON) {
-    return json({ error: 'rate_limited' }, 429);
-  }
-
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return json({ error: 'invalid_input' }, 400);
-  }
-  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
-    return json({ error: 'invalid_input' }, 400);
-  }
-
-  const validated = validateBody(body, {
-    message: { type: 'string', required: true, minLength: 2, maxLength: 500 },
-  });
-  if (!validated.valid) {
-    return json({ error: 'invalid_input' }, 400);
-  }
-
-  const message = validated.data.message;
-
-  let result;
-  try {
-    result = await callUpstream(context, message, null);
-  } catch (upstreamErr) {
-    await logAskQuery(env, request, message, null, start, upstreamErr.httpStatus || 502, 'ask_anon');
-    return json({ error: upstreamErr.errorCode || 'upstream_error' }, upstreamErr.httpStatus || 502);
-  }
-
-  const httpStatus = 200;
-  const durationMs = Date.now() - start;
-
-  await logAskQuery(env, request, message, null, start, httpStatus, 'ask_anon');
-
-  waitUntil(
-    env.COMMUNITY_KV.put(ipRateLimitKey, String(ipCount + 1), { expirationTtl: RATE_LIMIT_TTL })
-      .catch(err => log(env, waitUntil, 'ask', 'kv_write_error_anon', 'warn', err.message, 0, 0))
-  );
-
-  return sseResponse({ ...result, _meta: META });
-}
-
 const CAPABILITY_JSON = {
   endpoint: '/api/ask',
   methods: ['GET', 'POST'],
   auth: {
-    required: false,
+    required: true,
     session_path_limit: '20 requests per day per session',
-    anonymous_path_limit: '2 requests per day per IP',
   },
   streaming: {
     supported: true,
@@ -435,10 +367,10 @@ export async function onRequestPost(context) {
   }
 
   const session = await tryGetSession(env, context.request);
-  if (session) {
-    return handleAuthedAsk(context, session);
+  if (!session) {
+    return json({ error: 'unauthorized' }, 401);
   }
-  return handleAnonymousAsk(context);
+  return handleAuthedAsk(context, session);
 }
 
 export async function onRequest(context) {
