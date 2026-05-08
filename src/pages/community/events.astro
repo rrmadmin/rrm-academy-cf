@@ -1,11 +1,17 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import MaybeShell from '../../components/MaybeShell.astro';
+import { isShellEnabled } from '../../lib/shell-routes';
+
+const SHELL_ENABLED = isShellEnabled('community');
 ---
 <BaseLayout
   title="Events"
   description="Upcoming and past events for Save the Uterus Club members."
   noindex
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
 >
+  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname}>
   <div class="events-page">
     <div class="container container--narrow">
 
@@ -83,6 +89,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       </div>
     </div>
   </div>
+  </MaybeShell>
 
   <script is:inline>
     (function () {

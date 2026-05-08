@@ -89,6 +89,7 @@ const inAsk = currentPath === '/ask' || currentPath === '/ask/' || currentPath.s
 // (lesson player) does not. aria-current still highlights for both since the
 // user is in the courses section regardless.
 const inCourses = currentPath === '/courses' || currentPath === '/courses/' || currentPath.startsWith('/courses/');
+const inCommunity = currentPath === '/community' || currentPath === '/community/' || currentPath.startsWith('/community/');
 // "Guides" surface = the /guides/ index AND the pillar guide pages, which live
 // at root paths (/what-is-rrm/, /naprotechnology/, /femm/, /neofertility/,
 // /common-questions-about-rrm, /glossary/). Keep this list in sync with
@@ -180,7 +181,7 @@ const NAV_ICONS: Record<string, string> = {
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/courses/']} />
         <span class="app-shell-nav__label">Courses</span>
       </a>
-      <a href="/community/" class="app-shell-nav__link">
+      <a href="/community/" class="app-shell-nav__link" aria-current={inCommunity ? 'page' : undefined}>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/community/']} />
         <span class="app-shell-nav__label">Community</span>
       </a>
@@ -300,7 +301,7 @@ const NAV_ICONS: Record<string, string> = {
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/courses/']} />
         <span class="app-shell-nav__label">Courses</span>
       </a>
-      <a href="/community/" class="app-shell-nav__link" data-clear-shell-context>
+      <a href="/community/" class="app-shell-nav__link" aria-current={inCommunity ? 'page' : undefined} data-clear-shell-context>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/community/']} />
         <span class="app-shell-nav__label">Community</span>
       </a>
