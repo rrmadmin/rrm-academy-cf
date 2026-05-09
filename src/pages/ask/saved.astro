@@ -1,0 +1,247 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MaybeShell from '../../components/MaybeShell.astro';
+import { isShellEnabled } from '../../lib/shell-routes';
+
+const SHELL_ENABLED = isShellEnabled('ask');
+---
+<BaseLayout
+  title="Saved /Ask Questions"
+  description="Your saved questions and answers from Ask RRM Academy."
+  canonicalUrl="https://rrmacademy.org/ask/saved/"
+  noindex
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
+>
+  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname}>
+  <section class="ask-saved-page">
+    <div class="container">
+      <header class="ask-saved-header">
+        <h1>Saved Questions</h1>
+        <p class="ask-saved-sub">Questions and answers you saved from <a href="/ask/">/ask/</a>. Each one has a shareable link.</p>
+      </header>
+
+      <div id="ask-saved-loading" class="ask-saved-state">Loading...</div>
+
+      <div id="ask-saved-empty" class="ask-saved-state" hidden>
+        <p>You haven't saved any questions yet.</p>
+        <p><a href="/ask/" class="ask-saved-cta">&larr; Ask a question</a></p>
+      </div>
+
+      <div id="ask-saved-list" class="ask-saved-list" hidden></div>
+    </div>
+  </section>
+  </MaybeShell>
+
+  <script is:inline>
+    (function () {
+      var loadingEl = document.getElementById('ask-saved-loading');
+      var emptyEl = document.getElementById('ask-saved-empty');
+      var listEl = document.getElementById('ask-saved-list');
+
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      }
+
+      function fmtDate(s) {
+        try {
+          var d = new Date(s.replace(' ', 'T') + (s.endsWith('Z') ? '' : 'Z'));
+          if (isNaN(d.getTime())) return '';
+          return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        } catch (e) { return ''; }
+      }
+
+      function truncate(s, n) {
+        if (!s) return '';
+        if (s.length <= n) return s;
+        return s.slice(0, n).replace(/\s+\S*$/, '') + '...';
+      }
+
+      function render(items) {
+        if (!items.length) {
+          loadingEl.hidden = true;
+          emptyEl.hidden = false;
+          return;
+        }
+        var html = items.map(function (it) {
+          return '<article class="ask-saved-card" data-id="' + escapeHtml(it.id) + '">'
+            + '<div class="ask-saved-card__meta">'
+            +   '<time>' + escapeHtml(fmtDate(it.created_at)) + '</time>'
+            + '</div>'
+            + '<h2 class="ask-saved-card__q">' + escapeHtml(it.question) + '</h2>'
+            + '<p class="ask-saved-card__a">' + escapeHtml(truncate(it.answer, 280)) + '</p>'
+            + '<div class="ask-saved-card__actions">'
+            +   '<a href="' + escapeHtml(it.share_url) + '" target="_blank" rel="noopener" class="ask-saved-btn">Open</a>'
+            +   '<button type="button" class="ask-saved-btn" data-action="copy" data-url="' + escapeHtml(it.share_url) + '">Copy link</button>'
+            +   '<button type="button" class="ask-saved-btn ask-saved-btn--danger" data-action="delete" data-id="' + escapeHtml(it.id) + '">Delete</button>'
+            + '</div>'
+            + '</article>';
+        }).join('');
+        listEl.innerHTML = html;
+        loadingEl.hidden = true;
+        listEl.hidden = false;
+      }
+
+      function load() {
+        fetch('/api/ask/saved', { credentials: 'same-origin' })
+          .then(function (r) { return r.json().then(function (d) { return { status: r.status, data: d }; }); })
+          .then(function (res) {
+            if (res.status === 401) {
+              window.location.href = '/signup/?next=/ask/saved/';
+              return;
+            }
+            if (res.data && res.data.ok) {
+              render(res.data.items || []);
+            } else {
+              loadingEl.textContent = 'Could not load your saved questions.';
+            }
+          })
+          .catch(function () {
+            loadingEl.textContent = 'Network error. Please refresh.';
+          });
+      }
+
+      listEl.addEventListener('click', function (e) {
+        var btn = e.target.closest('button.ask-saved-btn');
+        if (!btn) return;
+        var action = btn.getAttribute('data-action');
+        if (action === 'copy') {
+          var url = btn.getAttribute('data-url') || '';
+          var origLabel = btn.textContent;
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(function () {
+              btn.textContent = 'Copied!';
+              setTimeout(function () { btn.textContent = origLabel; }, 1800);
+            }).catch(function () {
+              window.prompt('Copy this link:', url);
+            });
+          } else {
+            window.prompt('Copy this link:', url);
+          }
+        } else if (action === 'delete') {
+          var id = btn.getAttribute('data-id') || '';
+          if (!id) return;
+          if (!window.confirm('Delete this saved question? The shareable link will stop working.')) return;
+          btn.disabled = true;
+          btn.textContent = 'Deleting...';
+          fetch('/api/ask/saved', {
+            method: 'DELETE',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: id }),
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+              if (d && d.ok) {
+                var card = btn.closest('.ask-saved-card');
+                if (card) card.remove();
+                if (!listEl.querySelector('.ask-saved-card')) {
+                  listEl.hidden = true;
+                  emptyEl.hidden = false;
+                }
+              } else {
+                btn.disabled = false;
+                btn.textContent = 'Delete';
+                window.alert((d && d.error) || 'Delete failed.');
+              }
+            })
+            .catch(function () {
+              btn.disabled = false;
+              btn.textContent = 'Delete';
+              window.alert('Network error.');
+            });
+        }
+      });
+
+      load();
+    })();
+  </script>
+</BaseLayout>
+
+<style is:global>
+  .ask-saved-page { padding: var(--space-10) 0 var(--space-16); min-height: 60vh; }
+  .ask-saved-header { max-width: 720px; margin: 0 auto var(--space-8); }
+  .ask-saved-header h1 { margin: 0 0 var(--space-2); }
+  .ask-saved-sub { margin: 0; color: var(--text-secondary); font-size: 0.9375rem; line-height: 1.5; }
+  .ask-saved-sub a { color: var(--accent); text-decoration: underline; }
+
+  .ask-saved-state {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: var(--space-10) 0;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.9375rem;
+  }
+  .ask-saved-state p { margin: 0 0 var(--space-3); }
+  .ask-saved-cta { color: var(--accent); text-decoration: underline; }
+
+  .ask-saved-list {
+    max-width: 720px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .ask-saved-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+  }
+  .ask-saved-card__meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: var(--space-2);
+  }
+  .ask-saved-card__q {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.3;
+    margin: 0 0 var(--space-2);
+    color: var(--text-primary);
+  }
+  .ask-saved-card__a {
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    color: var(--text-secondary);
+    margin: 0 0 var(--space-3);
+  }
+  .ask-saved-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding-top: var(--space-3);
+    border-top: 1px dashed var(--border-color);
+  }
+  .ask-saved-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    color: var(--text-secondary);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.4;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .ask-saved-btn:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 40%, var(--border-color));
+    text-decoration: none;
+  }
+  .ask-saved-btn:disabled { cursor: default; opacity: 0.65; }
+  .ask-saved-btn--danger:hover:not(:disabled) {
+    background: rgba(192,57,43,0.08);
+    color: var(--color-error);
+    border-color: var(--color-error);
+  }
+</style>

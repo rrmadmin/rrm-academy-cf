@@ -246,6 +246,9 @@ Validation: `npm run ssot:validate` (schema + cross-ref) and `npm run ssot:smoke
 | `/femm` | `src/pages/femm/index.astro` (pillar guide) |
 | `/neofertility` | `src/pages/neofertility/index.astro` (pillar guide) |
 | `/glossary` | `src/pages/glossary/index.astro` (pillar guide) |
+| `/ask` | `src/pages/ask.astro` (auth-gated chat UI; per-answer Save button) |
+| `/ask/saved` | `src/pages/ask/saved.astro` (auth, lists user's saved Q&As) |
+| `/ask/s/<token>` | `functions/ask/s/[token].js` (public HTML share view, server-rendered, noindex) |
 | `/endo-survey` | `src/pages/endo-survey/index.astro` |
 | `/endo-survey/take` | `src/pages/endo-survey/take.astro` |
 | `/save-the-uterus-club` | `src/pages/save-the-uterus-club/index.astro` |
@@ -421,6 +424,8 @@ Unknown slugs -> branded fallback card (still 200 PNG, never a 404).
 | `GET /api/admin/seo` | `admin/seo.js` | Proxy to rrm-seo-monitor Worker (ADMIN_TOKEN) |
 | `POST /api/contact/submit` | `contact/submit.js` | Contact form submission |
 | `GET/POST /api/saved` | `saved.js` | Save/unsave library articles |
+| `GET/POST/DELETE /api/ask/saved` | `ask/saved.js` | Save/list/delete user's /Ask Q&As (auth, 30/hr POST rate limit) |
+| `GET /api/ask/shared/[id]` | `ask/shared/[id].js` | Public read of a shared Q&A by id (no auth, 60/min/IP) |
 | `GET /api/stream/token` | `stream/token.js` | CF Stream video token |
 | `POST /api/survey/request` | `survey/request.js` | Request survey link |
 | `GET /api/survey/validate` | `survey/validate.js` | Validate survey magic-link token |
