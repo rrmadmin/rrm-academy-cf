@@ -1163,6 +1163,21 @@ function stepTypeLabel(type: string) {
   </script>
 </BaseLayout>
 
+<style is:global>
+  /* Strip the global Header to a logo-only bar inside the lesson player.
+     Hides every header-inner child except the logo (search, nav,
+     header-actions, mobile-ask, hamburger, overlay), and pushes the
+     logo flush to the left edge so it aligns with the player sidebar. */
+  body.page-player .site-header .header-inner > *:not(.logo) {
+    display: none !important;
+  }
+  body.page-player .site-header .header-inner {
+    max-width: none;
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+  }
+</style>
+
 <style>
   /* Player uses a custom layout — full viewport, no page-wrapper padding */
   .player-layout {
