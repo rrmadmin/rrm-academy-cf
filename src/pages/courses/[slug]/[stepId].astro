@@ -1176,6 +1176,13 @@ function stepTypeLabel(type: string) {
     padding-left: var(--space-4);
     padding-right: var(--space-4);
   }
+
+  /* Hide the global Footer entirely. The player has its own bottom
+     prev/next bar; everything else (newsletter, sitemap, social) is
+     a distraction from the lesson. Page is noindex so no SEO loss. */
+  body.page-player .site-footer {
+    display: none !important;
+  }
 </style>
 
 <style>
