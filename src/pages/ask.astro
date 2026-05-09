@@ -43,6 +43,8 @@ const SHELL_ENABLED = isShellEnabled('ask');
         This is AI-generated and still learning. Always verify against the cited library sources.
         Library search remains the primary tool for researchers -- head to
         <a href="/library/">/library/</a> for the full database.
+        <br>
+        <a href="/ask/saved/" class="ask-footnote__saved">View your saved questions &rarr;</a>
       </p>
     </div>
   </section>
@@ -144,6 +146,10 @@ const SHELL_ENABLED = isShellEnabled('ask');
         return '<ul class="ask-citations">' + items + '</ul>';
       }
 
+      // Tracks the most recent user question so the assistant message
+      // that follows can include it in the Save payload.
+      var lastQuestion = '';
+
       function appendMessage(role, text, citations) {
         var wrap = document.createElement('div');
         wrap.className = 'ask-msg ask-msg--' + role;
@@ -151,11 +157,109 @@ const SHELL_ENABLED = isShellEnabled('ask');
           ? renderMarkdown(text)
           : '<p>' + escapeHtml(text).replace(/\n/g, '<br>') + '</p>';
         var body = '<div class="ask-msg__body">' + bodyHtml + '</div>';
-        if (role === 'assistant') body += renderCitations(citations);
+        if (role === 'assistant') {
+          body += renderCitations(citations);
+          body += renderActions();
+        }
         wrap.innerHTML = body;
+        if (role === 'assistant') {
+          // Stash the Q/A/citations as data on the element for the
+          // save handler to read on click.
+          wrap.dataset.question = lastQuestion;
+          wrap.dataset.answer = text;
+          wrap.dataset.citations = JSON.stringify(citations || []);
+        }
         thread.appendChild(wrap);
         wrap.scrollIntoView({ behavior: 'smooth', block: 'end' });
       }
+
+      function renderActions() {
+        return '<div class="ask-actions">'
+          + '<button type="button" class="ask-action-btn" data-action="save">'
+          +   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>'
+          +   '<span>Save</span>'
+          + '</button>'
+          + '</div>';
+      }
+
+      function setSavedState(actionsEl, shareUrl) {
+        actionsEl.innerHTML = ''
+          + '<button type="button" class="ask-action-btn ask-action-btn--saved" disabled>'
+          +   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>'
+          +   '<span>Saved</span>'
+          + '</button>'
+          + '<button type="button" class="ask-action-btn" data-action="copy" data-url="' + escapeHtml(shareUrl) + '">'
+          +   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>'
+          +   '<span>Copy link</span>'
+          + '</button>'
+          + '<a href="' + escapeHtml(shareUrl) + '" target="_blank" rel="noopener" class="ask-action-btn">'
+          +   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>'
+          +   '<span>Open</span>'
+          + '</a>';
+      }
+
+      // Delegated handler for save / copy clicks within the thread.
+      thread.addEventListener('click', function (e) {
+        var btn = e.target.closest('.ask-action-btn');
+        if (!btn) return;
+        var action = btn.getAttribute('data-action');
+        if (action === 'save') {
+          var msg = btn.closest('.ask-msg--assistant');
+          if (!msg) return;
+          var actionsEl = msg.querySelector('.ask-actions');
+          var orig = btn.innerHTML;
+          btn.disabled = true;
+          btn.innerHTML = '<span>Saving...</span>';
+          var citationsParsed = [];
+          try { citationsParsed = JSON.parse(msg.dataset.citations || '[]'); } catch (e2) {}
+          fetch('/api/ask/saved', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              question: msg.dataset.question || '',
+              answer: msg.dataset.answer || '',
+              citations: citationsParsed,
+            }),
+          })
+            .then(function (r) { return r.json().then(function (d) { return { status: r.status, data: d }; }); })
+            .then(function (res) {
+              var d = res.data || {};
+              if (d.ok && d.share_url) {
+                setSavedState(actionsEl, d.share_url);
+              } else if (res.status === 401) {
+                window.location.href = '/signup/?next=/ask';
+              } else if (res.status === 429) {
+                btn.innerHTML = orig;
+                btn.disabled = false;
+                appendError('You have saved a lot recently. Try again in an hour.');
+              } else {
+                btn.innerHTML = orig;
+                btn.disabled = false;
+                appendError('Could not save. Please try again.');
+              }
+            })
+            .catch(function () {
+              btn.innerHTML = orig;
+              btn.disabled = false;
+              appendError('Network error while saving.');
+            });
+        } else if (action === 'copy') {
+          var url = btn.getAttribute('data-url') || '';
+          var span = btn.querySelector('span');
+          var origLabel = span ? span.textContent : '';
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(function () {
+              if (span) span.textContent = 'Copied!';
+              setTimeout(function () { if (span) span.textContent = origLabel; }, 1800);
+            }).catch(function () {
+              window.prompt('Copy this link:', url);
+            });
+          } else {
+            window.prompt('Copy this link:', url);
+          }
+        }
+      });
 
       function appendLoading() {
         var wrap = document.createElement('div');
@@ -178,6 +282,7 @@ const SHELL_ENABLED = isShellEnabled('ask');
         var message = input.value.trim();
         if (message.length < 2) return;
 
+        lastQuestion = message;
         appendMessage('user', message, null);
         input.value = '';
         updateCount();
@@ -323,6 +428,43 @@ const SHELL_ENABLED = isShellEnabled('ask');
 
   .ask-footnote { max-width: 720px; margin: 0 auto; text-align: center; font-size: 0.8125rem; color: var(--text-muted); }
   .ask-footnote a { color: var(--accent); text-decoration: underline; }
+  .ask-footnote__saved { display: inline-block; margin-top: var(--space-2); }
+
+  /* Action bar (Save / Copy link / Open) under each assistant message */
+  .ask-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+    padding-top: var(--space-2);
+    border-top: 1px dashed color-mix(in srgb, var(--accent) 20%, var(--border-color));
+  }
+  .ask-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: transparent;
+    border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--border-color));
+    border-radius: var(--radius-pill);
+    color: var(--text-secondary);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .ask-action-btn:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 40%, var(--border-color));
+    text-decoration: none;
+  }
+  .ask-action-btn:disabled { cursor: default; opacity: 0.65; }
+  .ask-action-btn--saved { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 40%, var(--border-color)); }
+  .ask-action-btn svg { flex-shrink: 0; }
 
   .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
 </style>
