@@ -49,6 +49,24 @@ function lookup(slug) {
   return ogIndex[slug];
 }
 
+// Saved /Ask Q&As are runtime entities — not in og-index.json. Match
+// `ask-<32hex>` slugs and look up the question in D1 directly. Returns
+// null on any failure so the caller falls back to the branded card.
+const ASK_SLUG_RE = /^ask-([0-9a-f]{32})$/;
+async function lookupAsk(slug, env) {
+  const m = ASK_SLUG_RE.exec(slug);
+  if (!m || !env.DB) return null;
+  try {
+    const row = await env.DB.prepare(
+      'SELECT question FROM ask_saved WHERE id = ?'
+    ).bind(m[1]).first();
+    if (!row || !row.question) return null;
+    return { title: row.question, description: 'Saved from Ask RRM Academy' };
+  } catch {
+    return null;
+  }
+}
+
 // Per-font loader: returns ArrayBuffer or null on any failure (B4)
 async function loadFont(url) {
   try {
@@ -230,7 +248,15 @@ export async function onRequest(context) {
   }
 
   // --- Lookup ---
-  const entry = lookup(slug);
+  // Static entries (built from articles/posts/faqs/courses/glossary) win
+  // first; if the slug matches `ask-<token>` and isn't in the index,
+  // query D1 for the saved question.
+  let entry = lookup(slug);
+  let statusLabel = 'hit';
+  if (!entry) {
+    entry = await lookupAsk(slug, env);
+    if (entry) statusLabel = 'ask_hit';
+  }
   if (!entry) {
     logRender(env, slug, 'fallback', Date.now() - start);
     return renderCard(env, FALLBACK.title, FALLBACK.description, 'fallback', start);
@@ -241,7 +267,7 @@ export async function onRequest(context) {
   const title       = clamp(entry.title || FALLBACK.title, 200);
   const description = entry.description ? clamp(entry.description, 240) : null;
 
-  return renderCard(env, title, description, 'hit', start);
+  return renderCard(env, title, description, statusLabel, start);
 }
 
 // Renders and returns the PNG. All error paths return the fallback card, never

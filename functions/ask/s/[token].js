@@ -57,6 +57,10 @@ function htmlPage(token, row) {
   const titleText = row.question.slice(0, 60);
   const pageTitle = escapeHtml(titleText) + ' — RRM Academy';
   const ogDescription = escapeHtml(row.answer.slice(0, 200));
+  // Auto-generated OG card. functions/og/[[path]].js detects ask-<token>
+  // slugs and queries D1 for the question. Bumping og-config.ts OG_VERSION
+  // also busts these.
+  const ogImage = `${SITE_URL}/og/ask-${escapeHtml(token)}.png?v=v1`;
 
   let citations = [];
   try { citations = JSON.parse(row.citations_json); } catch { /* leave empty */ }
@@ -84,6 +88,11 @@ function htmlPage(token, row) {
   <meta property="og:description" content="${ogDescription}">
   <meta property="og:type" content="article">
   <meta property="og:url" content="${canonicalUrl}">
+  <meta property="og:image" content="${ogImage}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="${ogImage}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&display=swap">
   <style>
