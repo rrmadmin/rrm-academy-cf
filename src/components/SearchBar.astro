@@ -282,6 +282,10 @@
     color: var(--rose-700);
     background: var(--rose-100);
   }
+  .search-results :global(.sr-type--glossary) {
+    color: #1e40af;
+    background: #dbeafe;
+  }
 </style>
 
 <script is:inline>
@@ -560,7 +564,7 @@
       // Tiebreaker strength (K=50) -- won't override strong keyword matches.
       var RELEVANCE_K = 50;
       var _relevanceMap = { '5 - Core RRM': 0, '4 - Highly Relevant': 10, '3 - Relevant': 25, '2 - Peripheral': 45, '1 - Not RRM': 60 };
-      var _ownContentTypes = { 'Article': 1, 'FAQ': 1, 'Course': 1, 'Guide': 1 };
+      var _ownContentTypes = { 'Article': 1, 'FAQ': 1, 'Course': 1, 'Guide': 1, 'Glossary': 1 };
       for (var rlKey in fusedMap) {
         var rlEntry = fusedMap[rlKey];
         var rlMeta = rlEntry.data.meta || {};
