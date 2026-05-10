@@ -8,12 +8,35 @@
 // every visible rendering of it on the site flows through this component, which
 // makes drift between the pillar and the spokes physically impossible.
 
+interface DefinitionSource {
+  sourceKey: string;
+  sourceLabel: string;
+  sourceUrl: string | null;
+  code: string | null;
+  definitionText: string;
+  isVerbatim: boolean;
+  isExcerpt?: boolean;
+  visibility?: 'public' | 'internal_only';
+  attribution: string | null;
+  sortOrder: number;
+}
+
+interface CitedReference {
+  refNum: number;
+  anchorText: string;
+  url: string | null;
+  publisher: string | null;
+  journal: string | null;
+}
+
 interface GlossaryTerm {
   slug: string;
   name: string;
   bodyHtml: string;
   abbreviation: string | null;
   pillarLink: string | null;
+  definitionSources?: DefinitionSource[];
+  citedReferences?: CitedReference[];
 }
 
 interface Props {
@@ -27,9 +50,11 @@ interface Props {
    * being rewritten to the pillar's master ref list at /glossary/#ref-N.
    */
   keepLocalRefAnchors?: boolean;
+  /** Whether to include the inline-citation list inside the references section. */
+  includeCitedReferences?: boolean;
 }
 
-const { term, headingLevel, mode, keepLocalRefAnchors = false } = Astro.props;
+const { term, headingLevel, mode, keepLocalRefAnchors = false, includeCitedReferences = false } = Astro.props;
 
 // Cross-ref rewrite for spoke pages.
 //   #ref-N                       -> /glossary/#ref-N         (jump back to pillar's references list,
@@ -56,6 +81,81 @@ function rewriteAnchors(html: string): string {
 
 const renderedBody = mode === 'spoke' ? rewriteAnchors(term.bodyHtml) : term.bodyHtml;
 const HeadingTag = headingLevel;
+
+// PROOF GATES for definition sources (enforced at render time):
+//   1. Drop visibility='internal_only' rows (Boyle archive, IIRRM private corpus)
+//      so they never reach the public DOM.
+//   2. Drop source_key='boyle_archive' belt-and-suspenders.
+//   3. Strip 'D1: recXXX' prefixes from definition text (internal record IDs).
+//   4. Strip occurrence-count metadata lines like
+//      "(chapter -- Author -- N occurrence(s) of "Term")" — these are scanner
+//      artifacts, not part of the source quote.
+const PRIVATE_SOURCE_KEYS = new Set(['boyle_archive']);
+
+function sanitizeDefinitionText(raw: string): string {
+  if (!raw) return '';
+  return raw
+    .split(/\n+/)
+    .filter(line => {
+      const t = line.trim();
+      if (!t) return false;
+      // Drop "D1: recXXX" record-ID lines
+      if (/^D1:\s*\S+/.test(t)) return false;
+      // Drop occurrence-count metadata: "type -- author -- N occurrence(s) of "X""
+      if (/--\s*\d+\s*occurrence\(s\)\s*of/.test(t)) return false;
+      return true;
+    })
+    .join('\n')
+    .trim();
+}
+
+const sources = (term.definitionSources ?? [])
+  .filter(s => s.visibility !== 'internal_only')
+  .filter(s => !PRIVATE_SOURCE_KEYS.has((s.sourceKey || '').toLowerCase()))
+  .map(s => ({ ...s, definitionText: sanitizeDefinitionText(s.definitionText) }))
+  .filter(s => s.definitionText.length > 0)
+  .sort((a, b) => a.sortOrder - b.sortOrder);
+
+// Normalize cited refs: drop literal "None" strings (Python None serialized).
+function normNone(v: string | null | undefined): string | null {
+  if (!v) return null;
+  const t = v.trim();
+  if (!t || t.toLowerCase() === 'none') return null;
+  return t;
+}
+const cited = (includeCitedReferences ? (term.citedReferences ?? []) : []).map(r => ({
+  refNum: r.refNum,
+  anchorText: normNone(r.anchorText) || '',
+  url: normNone(r.url),
+  publisher: normNone(r.publisher),
+  journal: normNone(r.journal),
+}));
+
+// Format a citation in clean APA-leaning style. Schema doesn't yet carry
+// authors / year / volume / DOI -- those land in Phase 2 of the schema
+// expansion. Until then we render: Title. Journal. URL  (or)  Title. Publisher. URL
+// dropping any segment that is empty / "None".
+function formatCitation(r: typeof cited[number]): { title: string; meta: string; url: string | null } {
+  let title = r.anchorText;
+  // Strip trailing period -- we add our own punctuation
+  title = title.replace(/\.\s*$/, '');
+  const metaParts: string[] = [];
+  if (r.journal) metaParts.push(r.journal);
+  if (r.publisher && r.publisher !== r.journal) metaParts.push(r.publisher);
+  return { title, meta: metaParts.join('. '), url: r.url };
+}
+
+const hasSources = sources.length > 0 || cited.length > 0;
+
+// Convert plain text to HTML paragraphs (preserves line breaks within source quotes)
+function textToParagraphs(text: string): string {
+  return text
+    .split(/\n\s*\n/)
+    .map(p => p.trim())
+    .filter(Boolean)
+    .map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`)
+    .join('');
+}
 ---
 
 <HeadingTag id={term.slug}>
@@ -65,8 +165,211 @@ const HeadingTag = headingLevel;
 </HeadingTag>
 <slot name="post-heading" />
 <Fragment set:html={renderedBody} />
+{cited.length > 0 && (
+  <section class="cited-refs" aria-labelledby={`cited-refs-${term.slug}`}>
+    <h3 id={`cited-refs-${term.slug}`} class="cited-refs__title">
+      Cited in this entry
+    </h3>
+    <ol class="cited-refs__list">
+      {cited.map(r => {
+        const c = formatCitation(r);
+        return (
+          <li id={`ref-${r.refNum}`} class="cited-refs__item">
+            <span class="cited-refs__title-text">{c.title}.</span>
+            {c.meta && <span class="cited-refs__meta"> <em>{c.meta}</em>.</span>}
+            {c.url && (
+              <>
+                {' '}
+                <a class="cited-refs__link" href={c.url} target="_blank" rel="noopener">{c.url}</a>
+              </>
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  </section>
+)}
+{sources.length > 0 && (
+  <section class="def-sources" aria-labelledby={`def-sources-${term.slug}`}>
+    <h3 id={`def-sources-${term.slug}`} class="def-sources__title">
+      Authoritative References
+    </h3>
+    <p class="def-sources__intro">
+      How other clinical authorities define this term. RRM Academy curates these
+      verbatim or under fair use so the medical consensus is visible alongside our
+      RRM-contextualized definition above.
+    </p>
+    <ul class="def-sources__list">
+      {sources.map(s => {
+        // "excerpt" tag fires when this is a snippet from a larger work,
+        // OR when it's paraphrased rather than a verbatim full definition.
+        const showExcerptTag = s.isExcerpt || !s.isVerbatim;
+        return (
+          <li class={`def-source def-source--${s.sourceKey}`}>
+            <div class="def-source__header">
+              <span class="def-source__label">{s.sourceLabel}</span>
+              {s.code && <span class="def-source__code">{s.code}</span>}
+              {showExcerptTag && (
+                <span class="def-source__excerpt-tag" title="Excerpt or paraphrase, not the full source definition">
+                  excerpt
+                </span>
+              )}
+            </div>
+            <blockquote class="def-source__quote" set:html={textToParagraphs(s.definitionText)} />
+            {(s.attribution || s.sourceUrl) && (
+              <div class="def-source__footer">
+                {s.attribution && <span class="def-source__attrib">{s.attribution}</span>}
+                {s.sourceUrl && (
+                  <a class="def-source__link" href={s.sourceUrl} rel="nofollow noopener" target="_blank">
+                    Read source &rarr;
+                  </a>
+                )}
+              </div>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  </section>
+)}
 {mode === 'pillar' && (
   <p class="term-spoke-link">
     <a href={`/glossary/${term.slug}/`}>Open full entry &rarr;</a>
   </p>
 )}
+
+<style is:global>
+  .def-sources {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: var(--color-surface-2, #f7f6f2);
+    border-left: 3px solid var(--color-border-strong, #d4cfc1);
+    border-radius: 4px;
+  }
+  .def-sources__title {
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 0 0.5rem 0;
+    color: var(--color-text-muted, #6b6557);
+    font-weight: 600;
+  }
+  .def-sources__intro {
+    font-size: 0.875rem;
+    color: var(--color-text-muted, #6b6557);
+    margin: 0 0 1.25rem 0;
+    line-height: 1.5;
+  }
+  .def-sources__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .def-source {
+    border-top: 1px solid var(--color-border, #e4dfd0);
+    padding-top: 1rem;
+  }
+  .def-source:first-child {
+    border-top: none;
+    padding-top: 0;
+  }
+  .def-source__header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    align-items: baseline;
+    margin-bottom: 0.5rem;
+  }
+  .def-source__label {
+    font-weight: 600;
+    color: var(--color-text-strong, #1f1d18);
+    font-size: 0.95rem;
+  }
+  .def-source__code {
+    font-family: var(--font-mono, ui-monospace, SFMono-Regular, monospace);
+    font-size: 0.8rem;
+    background: var(--color-surface-3, #ece8d9);
+    padding: 0.125rem 0.4rem;
+    border-radius: 3px;
+    color: var(--color-text, #2d2a23);
+  }
+  .def-source__excerpt-tag {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: var(--color-accent-soft, #efe6c8);
+    color: var(--color-text-muted, #6b6557);
+    padding: 0.1rem 0.4rem;
+    border-radius: 2px;
+  }
+  .def-source__quote {
+    margin: 0 0 0.5rem 0;
+    padding: 0 0 0 0.75rem;
+    border-left: 2px solid var(--color-border, #e4dfd0);
+    font-size: 0.95rem;
+    color: var(--color-text, #2d2a23);
+    line-height: 1.5;
+    font-style: normal;
+  }
+  .def-source__quote p {
+    margin: 0 0 0.5rem 0;
+  }
+  .def-source__quote p:last-child {
+    margin-bottom: 0;
+  }
+  .def-source__footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    font-size: 0.8rem;
+    color: var(--color-text-muted, #6b6557);
+    align-items: baseline;
+  }
+  .def-source__attrib {
+    font-style: italic;
+  }
+  .def-source__link {
+    color: var(--color-link, #5a4a2c);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .cited-refs {
+    margin-top: 1.75rem;
+    padding: 1.25rem 1.5rem;
+    background: var(--color-surface, #faf8f3);
+    border-left: 3px solid var(--color-accent, #6b8e23);
+    border-radius: 4px;
+  }
+  .cited-refs__title {
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 0 0.75rem 0;
+    color: var(--color-text-muted, #6b6557);
+    font-weight: 600;
+  }
+  .cited-refs__list {
+    margin: 0;
+    padding-left: 1.5rem;
+    font-size: 0.92rem;
+    color: var(--color-text, #2d2a23);
+    line-height: 1.55;
+  }
+  .cited-refs__item {
+    margin-bottom: 0.6rem;
+  }
+  .cited-refs__title-text {
+    color: var(--color-text-strong, #1f1d18);
+  }
+  .cited-refs__meta {
+    color: var(--color-text-muted, #6b6557);
+  }
+  .cited-refs__link {
+    color: var(--color-link, #5a4a2c);
+    word-break: break-all;
+    font-size: 0.85rem;
+  }
+</style>

@@ -19,10 +19,14 @@
 CREATE TABLE IF NOT EXISTS glossary_definition_source (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     term_id TEXT NOT NULL REFERENCES glossary_term(id),
-    source_key TEXT NOT NULL,
+    source_key TEXT NOT NULL COLLATE NOCASE,
         -- 'mesh', 'icd10', 'icd11', 'snomed', 'nci', 'medlineplus',
         -- 'wikipedia', 'cleveland_clinic', 'mayo', 'journal',
         -- 'hilgers_textbook', 'boyle_archive', 'rrm_library', 'wikidata'
+        -- COLLATE NOCASE: defense-in-depth so uppercase variants ('BOYLE_ARCHIVE')
+        -- can't slip past the render-layer PRIVATE_SOURCE_KEYS filter; UNIQUE
+        -- constraint and lookups all normalize case. Render template ALSO lowercases
+        -- before lookup (belt + suspenders).
     source_label TEXT NOT NULL,
         -- Human-friendly label shown on page (e.g. "PubMed MeSH",
         -- "Hilgers, NaProTECHNOLOGY Ch. 32")
@@ -35,12 +39,24 @@ CREATE TABLE IF NOT EXISTS glossary_definition_source (
     is_verbatim INTEGER NOT NULL DEFAULT 1 CHECK(is_verbatim IN (0, 1)),
         -- 1 = verbatim quote (public-domain or licensed sources)
         -- 0 = paraphrased / excerpt under fair use
+        -- IMPORTANT: app writers MUST coerce JS bool to 0/1 before bind() --
+        -- string "true"/"false" or unquoted JS bool can fail the CHECK at insert.
+        -- Pattern: stmt.bind(..., isVerbatim ? 1 : 0).
     attribution TEXT,
         -- Attribution line displayed under the quote
         -- (e.g. "Source: National Library of Medicine. Public domain.")
-    sort_order INTEGER NOT NULL DEFAULT 50,
+    sort_order INTEGER NOT NULL DEFAULT 999,
+        -- Default 999 = "unranked / append at end". Documented sort_order slots:
+        -- 10 RRMA / 20 MeSH / 30 ICD-10 / 35 ICD-11 / 40 SNOMED / 50 NCI / 60 MedlinePlus
+        -- 70 Wikipedia / 80 Cleveland-Mayo-journal / 90 Hilgers / 95 Boyle / 99 Internal.
+        -- Ingest scripts MUST set sort_order explicitly per the source_key convention.
     status TEXT NOT NULL DEFAULT 'published'
         CHECK(status IN ('draft', 'published', 'archived')),
+    visibility TEXT NOT NULL DEFAULT 'public'
+        CHECK(visibility IN ('public', 'internal_only')),
+        -- 'public' (default): renders publicly. 'internal_only': RRM-private corpora
+        -- like the IIRRM/Boyle archive -- never exposed to public DOM. Render layer
+        -- enforces this filter; ingest scripts must explicitly opt in to internal_only.
     fetched_at TEXT,
         -- When source content was retrieved (ISO 8601). For provenance.
     created_at TEXT DEFAULT (datetime('now')),
