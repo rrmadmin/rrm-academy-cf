@@ -202,7 +202,7 @@ function textToParagraphs(text: string): string {
     </ol>
   </section>
 )}
-{sources.length > 0 && (
+{mode === 'spoke' && sources.length > 0 && (
   <section class="def-sources" aria-labelledby={`def-sources-${term.slug}`}>
     <h4 id={`def-sources-${term.slug}`} class="def-sources__title">
       Authoritative References
