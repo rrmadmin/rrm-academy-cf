@@ -62,6 +62,15 @@ const { term, headingLevel, mode, keepLocalRefAnchors = false, includeCitedRefer
 //   #abbreviations / #references -> /glossary/#<id>          (jump back to pillar's section anchors)
 //   #<term-slug>                 -> /glossary/<term-slug>/   (link to sibling spoke)
 // The pillar leaves these as same-page anchors, so this only fires when mode === 'spoke'.
+//
+// PROOF GATE / KNOWN LIMITATION:
+//   The regex below rewrites EVERY `href="#xxx"` it finds in the HTML, including
+//   any that appear inside <code> or <pre> blocks. No glossary entry currently
+//   documents HTML samples with literal anchor markup, so this is a speculative
+//   concern only. If a future entry needs to display literal `<a href="#x">`
+//   markup as documentation, escape the angle brackets in those samples
+//   (e.g. `&lt;a href="#x"&gt;`) so the rewrite regex never matches them.
+//   A full HTML-parsing fix is rejected as overkill for the current risk.
 function rewriteAnchors(html: string): string {
   return html.replace(/href=(["'])#([^"']+)\1/g, (_match, _quote, target: string) => {
     const t = target.toLowerCase();
@@ -173,9 +182,13 @@ function textToParagraphs(text: string): string {
     <ol class="cited-refs__list">
       {cited.map(r => {
         const c = formatCitation(r);
+        // Guard against near-blank renders: if anchorText/meta/url are all empty
+        // (Python None serialization edge case + missing schema fields), keep the
+        // id anchor for ref-N back-links but emit no body content.
+        if (!c.title && !c.meta && !c.url) return <li id={`ref-${r.refNum}`} class="cited-refs__item" />;
         return (
           <li id={`ref-${r.refNum}`} class="cited-refs__item">
-            <span class="cited-refs__title-text">{c.title}.</span>
+            {c.title && <span class="cited-refs__title-text">{c.title}.</span>}
             {c.meta && <span class="cited-refs__meta"> <em>{c.meta}</em>.</span>}
             {c.url && (
               <>

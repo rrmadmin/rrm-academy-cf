@@ -19,6 +19,14 @@
 CREATE TABLE IF NOT EXISTS glossary_definition_source (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     term_id TEXT NOT NULL REFERENCES glossary_term(id),
+        -- Foreign key is DECORATIVE in D1 (PRAGMA foreign_keys not honored).
+        -- If a parent glossary_term is deleted, child rows here will orphan.
+        -- Glossary delete handlers MUST explicitly:
+        --   db.batch([
+        --     db.prepare("DELETE FROM glossary_definition_source WHERE term_id = ?").bind(termId),
+        --     db.prepare("DELETE FROM glossary_term WHERE id = ?").bind(termId),
+        --   ])
+        -- BEFORE deleting the parent. See functions/api/admin/glossary/[id].js (TBD).
     source_key TEXT NOT NULL COLLATE NOCASE,
         -- 'mesh', 'icd10', 'icd11', 'snomed', 'nci', 'medlineplus',
         -- 'wikipedia', 'cleveland_clinic', 'mayo', 'journal',
@@ -91,3 +99,11 @@ CREATE INDEX IF NOT EXISTS idx_glossary_def_source_status
     ON glossary_definition_source(status);
 CREATE INDEX IF NOT EXISTS idx_glossary_def_source_term_sort
     ON glossary_definition_source(term_id, sort_order);
+
+-- Track this migration's application. Idempotent; safe to re-run.
+-- (Schema for migrations table: id TEXT PRIMARY KEY, applied_at TEXT.)
+CREATE TABLE IF NOT EXISTS migrations (
+    id TEXT PRIMARY KEY,
+    applied_at TEXT DEFAULT (datetime('now'))
+);
+INSERT OR IGNORE INTO migrations (id) VALUES ('2026-05-10-glossary-definition-source');
