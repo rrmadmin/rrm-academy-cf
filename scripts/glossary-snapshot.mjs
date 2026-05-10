@@ -186,13 +186,22 @@ async function runPillarChecks() {
   }
 
   // 6. Em dash sweep in <main>
+  // Em-dash rule applies to RRMA-authored prose only. Strip verbatim
+  // third-party quotes inside .def-source__quote blockquotes before counting --
+  // those preserve their source punctuation by design (MeSH, NCI, Wikipedia,
+  // Hilgers textbook, etc. ship with em dashes intact and we shouldn't rewrite
+  // them). The rule is about RRMA voice, not about other authorities' prose.
   const mainMatch = html.match(/<main[^>]*>([\s\S]+?)<\/main>/);
   const mainContent = mainMatch ? mainMatch[1] : html;
-  const emDashCount = (mainContent.match(/—/g) || []).length + (mainContent.match(/&mdash;/g) || []).length;
+  const rrmaContent = mainContent.replace(
+    /<blockquote class="def-source__quote"[^>]*>[\s\S]+?<\/blockquote>/g,
+    '',
+  );
+  const emDashCount = (rrmaContent.match(/—/g) || []).length + (rrmaContent.match(/&mdash;/g) || []).length;
   if (emDashCount > 0) {
-    fail(`Pillar em dashes in main content: ${emDashCount}`);
+    fail(`Pillar em dashes in RRMA-authored content: ${emDashCount}`);
   } else {
-    pass('Pillar has no em dashes in main content');
+    pass('Pillar has no em dashes in RRMA-authored content (verbatim source quotes excluded)');
   }
 
   // 7. JSON-LD DefinedTermSet validation

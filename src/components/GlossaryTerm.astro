@@ -176,7 +176,7 @@ function textToParagraphs(text: string): string {
 <Fragment set:html={renderedBody} />
 {cited.length > 0 && (
   <section class="cited-refs" aria-labelledby={`cited-refs-${term.slug}`}>
-    <h3 id={`cited-refs-${term.slug}`} class="cited-refs__title">
+    <h4 id={`cited-refs-${term.slug}`} class="cited-refs__title">
       Cited in this entry
     </h3>
     <ol class="cited-refs__list">
@@ -204,7 +204,7 @@ function textToParagraphs(text: string): string {
 )}
 {sources.length > 0 && (
   <section class="def-sources" aria-labelledby={`def-sources-${term.slug}`}>
-    <h3 id={`def-sources-${term.slug}`} class="def-sources__title">
+    <h4 id={`def-sources-${term.slug}`} class="def-sources__title">
       Authoritative References
     </h3>
     <p class="def-sources__intro">
