@@ -78,6 +78,12 @@ async function exchangeCode(code, clientId, clientSecret, redirectUri) {
   return data.access_token;
 }
 
+// Quota project: API calls bill against the OAuth client's GCP project by default
+// (rrm-gmail-cli, 771544783596). That project is for Gmail CLI only and shouldn't
+// host unrelated APIs. Override via x-goog-user-project to bill `rrm-academy`
+// instead, where Analytics Admin API is already enabled.
+const QUOTA_PROJECT = process.env.GA4_QUOTA_PROJECT || 'rrm-academy';
+
 async function ga(token, path, opts = {}) {
   let resp, data;
   try {
@@ -86,6 +92,7 @@ async function ga(token, path, opts = {}) {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
+        'x-goog-user-project': QUOTA_PROJECT,
       },
       body: opts.body ? JSON.stringify(opts.body) : undefined,
     });
