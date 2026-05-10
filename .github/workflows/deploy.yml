@@ -90,7 +90,10 @@ jobs:
         # Tracking it caused stale-state regressions on non-course repository_dispatch
         # events that skip fetch-all (article_id / record_id / faq_id / glossary_term_id).
         # glossary.json is NOT restored — D1 is SSOT. Generated file like articles.json (gitignored).
-        run: git checkout HEAD -- src/data/quizzes.json src/data/courses-overrides.json src/data/funding-projects.json src/data/team.json src/data/survey-count.json src/data/.baselines.json
+        # glossary-sources-overrides.json IS restored — staging file merged by
+        # fetch-glossary-data.mjs after the D1 fetch (until glossary_definition_source
+        # D1 table is populated and the /api/glossary/terms endpoint LEFT JOINs it).
+        run: git checkout HEAD -- src/data/quizzes.json src/data/courses-overrides.json src/data/funding-projects.json src/data/team.json src/data/survey-count.json src/data/.baselines.json src/data/glossary-sources-overrides.json
 
       - name: Fetch single blog record (dispatch)
         if: ${{ github.event.client_payload.record_id }}

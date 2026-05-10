@@ -1,0 +1,119 @@
+{
+  "_note": "Layered-defs sources overrides. Merged into glossary.json by fetch-glossary-data.mjs after the D1 fetch. Temporary staging file until glossary_definition_source D1 table is populated and the /api/glossary/terms endpoint LEFT JOINs it. Each entry: { slug, definitionSources: [{ sourceKey, sourceLabel, sourceUrl, code, definitionText, isVerbatim, isExcerpt, visibility, attribution, sortOrder }] }.",
+  "_generatedAt": "2026-05-10",
+  "entries": [
+    {
+      "slug": "endometriosis",
+      "definitionSources": [
+        {
+          "sourceKey": "mesh",
+          "sourceLabel": "PubMed MeSH",
+          "sourceUrl": "https://meshb.nlm.nih.gov/record/ui?ui=D004715",
+          "code": "D004715",
+          "definitionText": "A condition in which functional endometrial tissue is present outside the UTERUS. It is often confined to the PELVIS involving the OVARY, the ligaments, cul-de-sac, and the uterovesical peritoneum.",
+          "isVerbatim": true,
+          "isExcerpt": false,
+          "visibility": "public",
+          "attribution": "Source: U.S. National Library of Medicine. Public domain.",
+          "sortOrder": 20
+        },
+        {
+          "sourceKey": "icd10",
+          "sourceLabel": "ICD-10 / ICD-10-CM",
+          "sourceUrl": "https://icd.who.int/browse10/2019/en#/N80",
+          "code": "N80",
+          "definitionText": "ICD-10 (WHO 2019, N80): Endometriosis\nICD-10-CM (FY2024, N80): Endometriosis of the uterus, unspecified",
+          "isVerbatim": true,
+          "isExcerpt": false,
+          "visibility": "public",
+          "attribution": "Source: World Health Organization (ICD-10) / U.S. CMS (ICD-10-CM).",
+          "sortOrder": 30
+        },
+        {
+          "sourceKey": "icd11",
+          "sourceLabel": "ICD-11 MMS",
+          "sourceUrl": "https://icd.who.int/browse/2024-01/mms/en#/http://id.who.int/icd/release/11/2024-01/mms/1838213761",
+          "code": "GA10",
+          "definitionText": "ICD-11 MMS (2024-01, GA10): Endometriosis\nA condition of the uterus that is frequently idiopathic. This condition is characterised by ectopic growth and function of endometrial tissue outside the uterine cavity. This condition may be associated with remaining vestigial tissue from the wolffian or mullerian duct, or fragments endometrium refluxed backward into the peritoneal cavity during menstruation. This condition may also present with dysmenorrhoea, dyspareunia, nonmenstrual pelvic pain, infertility, alteration of menses, or may be asymptomatic. Confirmation is by laparoscopy and histological identification of ectopic fragments.",
+          "isVerbatim": true,
+          "isExcerpt": false,
+          "visibility": "public",
+          "attribution": "Source: World Health Organization, ICD-11 MMS 2024-01.",
+          "sortOrder": 35
+        },
+        {
+          "sourceKey": "snomed",
+          "sourceLabel": "SNOMED CT",
+          "sourceUrl": "https://browser.ihtsdotools.org/?perspective=full&conceptId1=129103003&edition=MAIN&languages=en",
+          "code": "129103003",
+          "definitionText": "Endometriosis (clinical) (Endometriosis (disorder))",
+          "isVerbatim": true,
+          "isExcerpt": false,
+          "visibility": "public",
+          "attribution": "Source: SNOMED International. IHTSDO license.",
+          "sortOrder": 40
+        },
+        {
+          "sourceKey": "nci",
+          "sourceLabel": "NCI Thesaurus",
+          "sourceUrl": "https://ncithesaurus.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C3014",
+          "code": null,
+          "definitionText": "Endometriosis (NCI)\nThe growth of functional endometrial tissue in anatomic sites outside the uterine body. It most often occurs in the pelvic organs.",
+          "isVerbatim": true,
+          "isExcerpt": false,
+          "visibility": "public",
+          "attribution": "Source: U.S. National Cancer Institute. Public domain.",
+          "sortOrder": 50
+        },
+        {
+          "sourceKey": "medlineplus",
+          "sourceLabel": "MedlinePlus",
+          "sourceUrl": "https://medlineplus.gov/ency/article/000915.htm",
+          "code": null,
+          "definitionText": "Endometriosis occurs when cells from the lining of your womb (uterus) grow in other areas of your body. This can cause pain, heavy vaginal bleeding, vaginal bleeding between periods, and problems getting",
+          "isVerbatim": true,
+          "isExcerpt": true,
+          "visibility": "public",
+          "attribution": "Excerpt from MedlinePlus, U.S. National Library of Medicine.",
+          "sortOrder": 60
+        },
+        {
+          "sourceKey": "wikipedia",
+          "sourceLabel": "Wikipedia",
+          "sourceUrl": "https://en.wikipedia.org/wiki/Endometriosis",
+          "code": null,
+          "definitionText": "Endometriosis (Medical condition)\nEndometriosis is a disease in which tissue similar to the endometrium\u2014the lining of the uterus (womb)\u2014grows elsewhere in the body. The tissue most often grows close to the uterus, such as on the ovaries, fallopian tubes, or the lining of the pelvis. It can also appear on the bowel, bladder, and in some cases on the lungs or skin.",
+          "isVerbatim": true,
+          "isExcerpt": true,
+          "visibility": "public",
+          "attribution": "Lead paragraph from Wikipedia under CC-BY-SA 4.0.",
+          "sortOrder": 70
+        },
+        {
+          "sourceKey": "hilgers_textbook",
+          "sourceLabel": "Hilgers, NaProTECHNOLOGY",
+          "sourceUrl": null,
+          "code": null,
+          "definitionText": "The first written description of this disease was by a German physician, Daniel Shroen, in 1690. It is thought to affect about 5 million American women, although that is almost certainly an underestimate. In a researc\u2026",
+          "isVerbatim": true,
+          "isExcerpt": true,
+          "visibility": "public",
+          "attribution": "Excerpted from Hilgers TW, The Medical and Surgical Practice of NaProTECHNOLOGY, Pope Paul VI Institute Press.",
+          "sortOrder": 90
+        },
+        {
+          "sourceKey": "boyle_archive",
+          "sourceLabel": "IIRRM Archive (internal)",
+          "sourceUrl": null,
+          "code": null,
+          "definitionText": "[private]",
+          "isVerbatim": true,
+          "isExcerpt": true,
+          "visibility": "internal_only",
+          "attribution": "Internal RRM Academy training corpus -- not for public distribution.",
+          "sortOrder": 95
+        }
+      ]
+    }
+  ]
+}

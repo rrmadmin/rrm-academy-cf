@@ -145,6 +145,33 @@ async function fetchAll() {
   references.sort((a, b) => (a.refNum ?? 0) - (b.refNum ?? 0));
   abbreviations.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
 
+  // Merge layered-defs overrides (mirrors courses-overrides.json pattern).
+  // Each entry: { slug, definitionSources: [{...}] }. Pre-D1-schema staging:
+  // sources live in a JSON file until glossary_definition_source table is
+  // populated + the API endpoint LEFT JOINs it. After that, the API itself
+  // returns definitionSources and this overrides file becomes redundant.
+  const overridesPath = join(__dirname, '..', 'data', 'glossary-sources-overrides.json');
+  if (existsSync(overridesPath)) {
+    try {
+      const raw = readFileSync(overridesPath, 'utf-8');
+      const overrides = JSON.parse(raw);
+      const bySlug = new Map((overrides?.entries ?? []).map(o => [o.slug, o.definitionSources ?? []]));
+      let merged = 0;
+      for (const t of terms) {
+        const sources = bySlug.get(t.slug);
+        if (sources && sources.length > 0) {
+          t.definitionSources = sources;
+          merged++;
+        }
+      }
+      if (merged > 0) {
+        console.log(`Merged definitionSources from overrides into ${merged} term(s)`);
+      }
+    } catch (e) {
+      console.warn(`WARN: glossary-sources-overrides.json failed to load: ${e?.message ?? e}`);
+    }
+  }
+
   writeAtomic({ terms, references, abbreviations, generatedAt: new Date().toISOString() });
   console.log(`Wrote ${terms.length} terms + ${references.length} refs + ${abbreviations.length} abbrs to ${OUTPUT_PATH}`);
 }
