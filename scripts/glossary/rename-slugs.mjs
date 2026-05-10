@@ -93,7 +93,10 @@ function findCrossRefs() {
     found[r.old] = { glossary_term: [], posts: [], faqs: [], course_steps: [] };
 
     // glossary_term.body_html (single-line SQL -- wrangler --command rejects newlines)
-    const gtSql = `SELECT id, slug FROM glossary_term WHERE body_html LIKE '%#${r.old}"%' OR body_html LIKE '%/glossary/${r.old}/%' OR body_html LIKE '%/glossary/${r.old}"%'`;
+    // Cover BOTH double-quote AND single-quote anchor variants (`#x"` and `#x'`)
+    // to match the rewrite step at line ~175 which handles both. Inside the SQL
+    // string literal, a single-quote is escaped by doubling it ('').
+    const gtSql = `SELECT id, slug FROM glossary_term WHERE body_html LIKE '%#${r.old}"%' OR body_html LIKE '%#${r.old}''%' OR body_html LIKE '%/glossary/${r.old}/%' OR body_html LIKE '%/glossary/${r.old}"%'`;
     found[r.old].glossary_term = d1Query('rrm-auth', gtSql);
 
     // posts.content
