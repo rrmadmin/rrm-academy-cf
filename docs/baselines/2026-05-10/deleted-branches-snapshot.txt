@@ -2,3 +2,90 @@ claude/courses-d1-migration 50b0fe48f6ac1f2de260a617e1ee8020bdbfa2e1 2026-04-26 
 claude/glossary-prose-revert f645230e12fc119daa45a3d432fc7f614a57a382 2026-05-03 10:51:01 -0400 revert(glossary): roll back 7 prose edits + 1 borderline citation
 claude/review-footer-statement-8F9Z7 dbb6c62a98b5d9af0316ac9c9390f032127dfae7 2026-02-22 09:04:19 +0000 Add test period to footer disclaimer for deploy verification
 claude/stripe-payment-intent-data 6390e39a2f95667ab5a2a32f067ca59c7c42216b 2026-05-03 00:35:25 -0400 docs(ecosystem): rrm-finance-sync LIVE 2026-05-03
+claude/about-erin-kay bdfe542f5240e3656a1b6ce8bba4175b63387d81 2026-05-02 02:05:31 -0400 about: update Erin's display name and credentials per her request
+claude/agent-readiness-sprint cf43fa767a0dd074ae9653d97b55028ce5d8903b 2026-04-29 13:44:16 -0400 ci: make Standards gate step CI-safe with same fallback as postbuild
+claude/ai-search-refresh-decouple 8b118bf1f0bb013df067e23578d653d1c217b9cc 2026-05-05 15:44:14 -0400 fix(ai-search): bound every corpus-upload fetch with AbortController + 30s timeout
+claude/ai-search-refresh-if-fix b82dba70ea56be036946f25718ba975ae1bbe3b8 2026-05-05 16:12:02 -0400 ci(ai-search): simplify workflow_run if-gate; surface trigger details
+claude/ai-search-refresh-skip-empty-artifact d734b1112398fdf23ce002b385d8699ae6bc8b85 2026-05-05 16:30:13 -0400 ci(ai-search): skip refresh cleanly when source deploy had no artifact
+claude/ai-search-separate-job 0a1533a5d9a08e64bb4462d6bf94842139e4aaad 2026-05-02 11:56:48 -0400 ci: split AI Search corpus upload into its own job
+claude/arise-ask-fixes-2026-04-29 5342f912b5a64def29ae714f27393b7ecc14f7db 2026-04-29 17:53:53 -0400 fix(ask): refund rate-limit on upstream failure + reject empty answer
+claude/arise-auth-2026-05-07 bf9c6aa337d7c064bcfd0b188ce8ebab0b9f97d3 2026-05-07 10:09:35 -0400 test(_helpers): add COMMUNITY_KV stub so rate-limited endpoints don't fail closed in tests
+claude/arise-baseline-2026-05-05 9a77cd6bba50147662f90c60357ea32552ea6399 2026-05-05 14:55:16 -0400 arise: extend H2 body-shrinkage to all 55 HTTP URLs
+claude/arise-deep-fixes 7e0dfbf75de0d4d8101992b50236bcba7e0c80c6 2026-05-07 01:27:42 -0400 fix: ga4-rotate-mp-secret env-var prefix + DELETE retry
+claude/arise-deep-followups 68101cd26851d59b27ecf9c1002784d2f9f64689 2026-05-07 10:01:29 -0400 ci: gitleaks workflow + hardening for §3.5/§3.7 (post-arise-deep)
+claude/arise-post-scrub-fixes 6ae28992eb896674adb80f6d55e5b6d2e09df597 2026-05-07 01:08:11 -0400 docs: add SECURITY JSDoc to verify-crm-elv.mjs:d1Query
+claude/arise-survey-count-2026-05-07 4fef6bb8bfd24d3d237afd28893c3d4394f89dca 2026-05-07 10:09:35 -0400 test(_helpers): add COMMUNITY_KV stub so rate-limited endpoints don't fail closed in tests
+claude/baseline-push-race-fix 5683a27b09e24acbbfc164eae197db4e8c190061 2026-05-01 22:01:22 -0400 fix(ci): rebase + retry baseline push to absorb concurrent-merge race
+claude/canonicalize-admin-api-secret cafb70fc0d373f5106ecf42e89ae2c9a66f4c465 2026-05-04 11:43:42 -0400 Fix: untrack glossary.json from git (D1 is SSOT, not git)
+claude/connect-cta-toggle-fix a43eac4b59a019741d555b8cbf5ceac585f6d990 2026-04-28 18:56:12 -0400 ecosystem-map: rrm-ai-search Worker + Phase 2 search architecture
+claude/course-duration-format-fix 4934e1920902fef0e403b77ea4afda0159491159 2026-05-01 19:59:13 -0400 fix(courses): always format step durations as MM:SS
+claude/course-schema-bugs-and-links df2f06a9722107d67f806751cc2de4a94b18d781 2026-05-01 22:49:14 -0400 fix(courses): schema bugs + inline link rendering in descriptions
+claude/courses-untrack-step-10 9a053afebb9c7ef2b426802ef6f0f7e583f8d663 2026-04-30 12:20:08 -0400 fix(guard): drop courses.json existence check (D1 SSOT, file built per-deploy)
+claude/ecosystem-d1-sync-gzip f849308cb3d0307b315bd622592ced11952a7c74 2026-05-03 20:50:49 -0400 eslint: allow CF Workers globals Blob, DecompressionStream, CompressionStream, ReadableStream
+claude/ecosystem-ssot-update 51d4006d783de02ab40ea46379295a172171e9bb 2026-05-02 13:56:14 -0400 ecosystem(ssot): research-drafts repo + 2026-05-02 timeline events
+claude/femm-brand-color-fix 8443c9ee8f54cb3d5bc39e05fdcc8a63065a9ab0 2026-05-04 17:54:59 -0400 fix: correct FEMM brand color on /guides/ list page
+claude/fix-cache-restore-team-json 0bc9ea17ce0916921a58f48139fbff00ca3f5b2d 2026-05-02 02:41:30 -0400 fix(ci): restore src/data/team.json from git over data cache
+claude/fix-deploy-articles-fetch-timeout 1c842859beadf9d45b320d90d1769aa5d0584e32 2026-05-02 02:13:47 -0400 fix(ci): bump articles fetch timeout to 90s to clear 30s ceiling
+claude/fix-donate-button-text-DWIsy 532896bee4983667d1aa088adf99adca12bf8a11 2026-02-22 15:50:06 +0000 Fix tier button text squishing by using auto-width centered buttons
+claude/fix-stuc-guard-functional-lab-unpublished 232b0b74f99a9b956908192bb3e47be64921367c 2026-05-01 23:07:31 -0400 fix(ci): drop functional-lab-testing-napro from STUC structure guard
+claude/fix-stuc-migrate-imports c920cbe5bab32003ed1790187ac942f4aa11451e 2026-04-29 13:29:16 -0400 fix(stuc): migrate.js imports back to ../api/ after revert to flat path
+claude/ga4-rotate-quota-header da5a20010e60c2288c49c17ae69ec76644deb308 2026-05-10 15:16:15 -0400 chore(ga4-rotate): add x-goog-user-project quota header + branch deletion snapshot
+claude/ga4-rotation-script-v2 f58838750a4255274ba1f6d0c8b53b1892a14eb1 2026-05-05 21:31:02 -0400 scripts: ga4-rotate-mp-secret.mjs (Admin API rotator)
+claude/glossary-arise-wave1-highs 609ab0f2e0b150d771c7c600f25f3799191d1498 2026-05-03 21:23:20 -0400 glossary: arise wave 1 -- 6 HIGH fixes
+claude/glossary-arise-wave2-rest 1bd7aa366f027cd400f47d6fd3bbc8c42cfd5ed1 2026-05-03 22:50:09 -0400 glossary: arise wave 2 -- 16 fixes (mediums + lows)
+claude/glossary-cross-linking b5ea9219f1210909dbec375872715e6c594a23a5 2026-05-05 08:07:17 -0400 glossary spoke: keep S4 snapshot gate happy by inlining speakable
+claude/glossary-link-normalization b2e835700aeecc6bb418831f210e0bedb22ee1d2 2026-05-05 10:20:30 -0400 fix(test): skip audit smoke test when glossary.json absent (CI fix)
+claude/glossary-p2-wave1 f4d9e828438a32b8e59db628b24635a98cbd4466 2026-05-03 10:43:15 -0400 fix: strip dead Ahrefs redirect block from _redirects
+claude/glossary-pillar-published-filter bc955b1821f9d69144484aab4c81aae1283ddc9b 2026-05-03 19:25:11 -0400 glossary: filter pillar to published terms only
+claude/glossary-remove-az-jump 1e38b259b6787ba7749a279ffadff68dbe15e4ab 2026-05-02 11:35:43 -0400 chore(glossary): remove A-Z jump nav
+claude/glossary-remove-key-takeaways 4efc198929ccd123628d3cfd8ae2e652ddf0117c 2026-05-02 12:04:27 -0400 chore(glossary): remove Key Takeaways aside
+claude/glossary-see-also-merge 90ad5b00e7f126c18b219c00f5de1ae5ede1271a 2026-05-05 12:39:25 -0400 ci: add Lint CF Pages _headers step before deploy
+claude/glossary-spoke-fix-duplicate-heading 8ef728c803f4549397bef24f64709c9402bf4bc3 2026-05-03 19:34:28 -0400 glossary: fix duplicate heading on spoke pages
+claude/glossary-spoke-pages-v1 164f4a8c2243ac92c59c9bc244affc46c4b46639 2026-05-03 19:08:49 -0400 glossary: ship spoke pages v1 (per-term URLs, no rails)
+claude/glossary-spoke-proof-gates bb3a986905474dc17b57e67aa0eecc2b4fe82863 2026-05-03 20:25:49 -0400 glossary: spoke pages proof gates (G1-G5 + snapshot --spokes)
+claude/glossary-spoke-redesign 8c30092cf60b5b0f099e000edb4616be1b49142d 2026-05-05 16:49:49 -0400 glossary spoke: redesign callouts -- one card + two rule-and-eyebrow rails
+claude/glossary-toc-cleanup c1adbdb5ca430c731fed169bf57b66da44783a35 2026-05-05 08:36:58 -0400 glossary(toc): drop "Part X:" prefix, untruncate sidebar names
+claude/guides-brand-accents 04e1f498564defcc20415055dcae956cb85daadf 2026-05-04 16:27:35 -0400 guides: brand-anchor accent ramp per source entity
+claude/guides-card-hover-accents d6f46e56637b1ab07ad2470054d6d556b2da4791 2026-05-04 18:35:56 -0400 feat(guides): per-card hover border + shadow inherit card accent
+claude/hide-low-enrollment 180407bc378a66b19ccb84fdcf82aa02446ba97f 2026-05-01 23:03:46 -0400 fix(courses): hide enrollment count on course cards when under 10
+claude/home-tagline-scholarly-works 5e1f4f724c6df49621f29b38c3370c14f0f0e3e1 2026-05-05 08:27:12 -0400 home: update hero subtitle to scholarly-works framing
+claude/homepage-multipass-2026-05-05-2254 3129487620645fee99a1e0f6d6d0948ed328e9d3 2026-05-06 23:01:07 -0400 plan: L4 squash — 13 LOW findings + post-ship arise sweep
+claude/homepage-multipass-plan b4b51e1a2b2053b482478e2b9dc76f7d801670ae 2026-05-05 22:52:20 -0400 docs: homepage multipass implementation plan
+claude/homepage-multipass-spec d65cc02d97bb001ce58e9b8d5ab102ba0be0271d 2026-05-05 21:37:06 -0400 docs: homepage multi-pass review design spec
+claude/indexnow-integration 825399df59081f6b54901c2789b949ec76bcc1e6 2026-04-24 03:51:40 -0400 style(ask): soften Research Preview pill intensity
+claude/insurance-ssot-restore 6f4cef9e2fbeec4c2bfa8c567301ba99a3d88857 2026-05-04 12:38:33 -0400 ecosystem(ssot): restore insurance block + capture NIAC bundle pivot
+claude/library-app-shell-2026-05-07 d81be0be341ff057ff619206878429997dae4117 2026-05-07 19:19:51 -0400 docs(claude): add App Shell section + activation flag
+claude/mcp-discovery-and-keys 00b5668bec53145a9ebb18697971819d629277d9 2026-04-28 14:11:18 -0400 fix(ai-search): broaden retry to app-level rate-limit codes (D1 971, CF 10429)
+claude/mcp-orank-easy-wins a8ac5a6e0558ddf4ad8e1a75c8d524b1e068001f 2026-04-29 14:28:02 -0400 agent-readiness: apex /mcp proxy to subdomain MCP server
+claude/merge-yml-noff-and-moved-paths-guard d97b9ed9ec0c4c127d5cde1e7091f1e2c33fc4c4 2026-05-07 00:41:19 -0400 ci: merge.yml --no-ff + anchored path filter, plus moved-paths guard
+claude/merge-yml-path-filter 7b40c5163d62ee382c97dab1de88240e934bb6f1 2026-05-05 19:52:08 -0400 merge.yml: skip Build & Deploy dispatch for doc-only merges
+claude/move-research-papers 566daceac5bd54db06217187f5f2c225b2ee9ebc 2026-04-29 17:23:17 -0400 events: restore member-aware body split
+claude/naomi-orcid-npi-schema c4eb9cdbed91312e17a9edf277f588473229193b 2026-04-19 01:15:51 -0400 feat(about): add ORCID + NPI identifiers to Naomi Person schema
+claude/op-redact-broader-scrub fdb845dc6754b7bcd040b4d06e2e8ed8e22e87a8 2026-05-07 00:37:24 -0400 chore: broader op:// scrub (31 files) + fix preexisting INSERT OR REPLACE
+claude/openapi-page-dev-section f0d0fdc3d5b62b333050b8fcb03fcf1bddd99b44 2026-05-04 17:28:37 -0400 fix: drop phantom --neutral-50 token in code blocks
+claude/orank-reachable-wins 763ee192fb5e9159bc2e12814457c45dc2e4c303 2026-05-05 20:22:45 -0400 footer: drop LinkedIn + tuck social icons under newsletter form
+claude/payment-pipeline-gates 72dd57a70a2f6566f89856b8650c357d4ad61b45 2026-05-07 00:20:56 -0400 fix: Wix migration date comparisons use strftime ISO format (4 sites)
+claude/personas-contact-form e3d14d00251438190314f5159932ea4c2fb85964 2026-05-05 08:05:46 -0400 copy(contact): reframe category options by intent, not user identity
+claude/player-logo-only-nav 83c229d67adfcc4600ef71d2cf8c555718a6b79a 2026-05-10 14:39:24 -0400 docs(seo): refresh ahrefs progress + ship merged disavow file (183 domains)
+claude/policy-and-deploy-doc-updates 73fd63cfe89313ae32e17c65a27f4796c700406f 2026-05-05 16:42:08 -0400 docs: glossary review records (2026-05-02 systematic + P2 resolution + menopause backlog)
+claude/repo-split-phase-a-consumer-patches 8ed1d63c5f2660966a1f2d38fb15a256583237f2 2026-05-05 21:51:00 -0400 refactor: prep ecosystem.json move to rrm-academy-internal satellite
+claude/repo-split-phase-b-op-scrub 75b5e49eb758b9cab9870b5ef8906a7d640a01b7 2026-05-05 21:57:14 -0400 chore(security): redact 1Password item names in non-§2 docs (Phase B)
+claude/repo-split-phase-c-deletions 725fab14097fd7a01501bfa8e8eecc5558275f99 2026-05-05 22:02:11 -0400 chore: move §2 paths to rrm-academy-internal satellite (Phase C)
+claude/rrm-academy-cloudflare-9fxKK 8b20ae96ed65c832f42cf530ee09a5369c68243e 2026-02-22 18:44:23 +0000 Set /library page background to #f7f5f3
+claude/rrm-academy-cloudflare-wkaah 25e13f3be3668c35b6a3e1bdfe126aaa948dac4a 2026-02-22 19:01:52 +0000 Change /library background to match header nav bg color
+claude/rrm-outcome-studies 32be89a622ab36ddfb059eba54720c3014a88cae 2026-04-29 18:49:05 -0400 content(commentary): add rrm-outcome-studies cover
+claude/security-redact-ga4-secret 0b2f9a5a8e6ab53d2c415c8d783a81e1a9df4c61 2026-05-05 20:17:38 -0400 security: redact leaked GA4_API_SECRET from working-tree docs
+claude/shell-expand-guides-faqs-account-2026-05-07 be964c5306a804b8faca957bed28659595f7cdc9 2026-05-07 23:31:47 -0400 fix(shell): restore wider content width on courses pages
+claude/stuc-deploy-guards b4b994c6c72a308f385a6eaffc697b8cb7cc1a3d 2026-05-01 20:58:11 -0400 ci(deploy): add STUC course regression guards
+claude/stuc-lesson-cutting-ssot 6239f6a25d7545eeed670632938559261eb9e143 2026-05-01 20:52:04 -0400 docs(courses): update SSOT after STUC lesson cutting + add pipeline scripts
+claude/stuc-upload-script 6425df05695d4235a4e209c1b139e4b07a45a752 2026-04-30 12:34:14 -0400 feat(stuc): one-shot script to upload STUC recordings + export transcripts
+claude/stuc-wix-donor-ux fadb113cfa8e21b3ad030c49f91f5c3ba02864bd 2026-04-29 19:11:31 -0400 Merge remote-tracking branch 'origin/main' into claude/stuc-wix-donor-ux
+claude/tier-1-authorship-jsonld 88e1ab85976d88dfd18c5d731fe7571f11dc2ca6 2026-04-18 21:28:48 -0400 fix(ci): drop build check from merge workflow
+claude/tier-1.5-full-author-byline 9de619b2716cebc1739ec2bf76989b90d3f82507 2026-04-19 01:04:13 -0400 canonical-facts SSOT pipeline + Hilgers textbook extraction
+claude/tighten-library-tier-2026-05-02 62acd25ad2a50173f5735dca99536acd949492a2 2026-05-02 22:38:50 -0400 docs: provision Ahrefs API + first rrmacademy.org baseline (DR=28)
+claude/ux-deep-trace-highs d18a12a6723a5400e1343bd37701487b94b1c1c4 2026-05-03 01:51:02 -0400 docs: ecosystem SSOT + CLAUDE.md updates from UX deep trace 2026-05-03
+claude/ux-trace-fixes-2026-04-29 6425df05695d4235a4e209c1b139e4b07a45a752 2026-04-30 12:34:14 -0400 feat(stuc): one-shot script to upload STUC recordings + export transcripts
+claude/what-is-rrm-dedup-paraphrase 3485efa2a8517fda111b1d1b5491d1bce0f5edb1 2026-05-05 17:15:46 -0400 content(what-is-rrm): drop paraphrase-dup of RRM definition in section 2
+claude/what-is-rrm-proofread eb5fdb2e6c214e12508e30efc9b3fbcc81c137cd 2026-05-05 14:14:04 -0400 ci: retrigger merge workflow
+claude/wikidata-naomi-spec e93338feb56ae3e03a71b1f690780a3cf9b50e00 2026-05-03 00:36:54 -0400 fix(grokipedia): trim RRMA details to fit under 5000-char form limit
+claude/wikidata-seo-docs c22983e360b1751c1df73371a154dd2548082aaa 2026-05-01 21:02:26 -0400 docs(seo): add Wikidata entity strategy + correct foundation timeline
