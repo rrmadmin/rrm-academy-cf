@@ -235,6 +235,7 @@ const RAIL_SECTIONS = [
           headingLevel="h1"
           mode="spoke"
           keepLocalRefAnchors={!!(term.citedReferences && term.citedReferences.length > 0)}
+          includeCitedReferences={true}
         >
           {/* Glossary spoke byline matches the pillar pattern (canonical
               .author-avatar-stack + .has-reviewer; precedent: /femm/).
@@ -253,22 +254,10 @@ const RAIL_SECTIONS = [
           </div>
         </GlossaryTerm>
 
-        {term.citedReferences && term.citedReferences.length > 0 && (
-          <section class="term-rail term-sources" aria-labelledby="term-sources-heading">
-            <h2 id="term-sources-heading" class="term-rail__eyebrow">Sources</h2>
-            <ol class="term-sources__list">
-              {term.citedReferences.map((r) => (
-                <li id={`ref-${r.refNum}`} class="term-sources__item">
-                  {r.url
-                    ? <a href={r.url} target="_blank" rel="noopener">{r.anchorText || r.url}</a>
-                    : <span>{r.anchorText}</span>}
-                  {r.journal && <span class="term-sources__journal">. <em>{r.journal}</em></span>}
-                  {r.publisher && !r.journal && <span class="term-sources__publisher">. {r.publisher}</span>}
-                </li>
-              ))}
-            </ol>
-          </section>
-        )}
+        {/* Inline citations are folded inside the GlossaryTerm "Authoritative References"
+            section above (via includeCitedReferences=true). The standalone "Sources" block
+            previously rendered here was removed when the layered-defs section landed -
+            single Sources concept on the page, no duplication. */}
 
         {term.relatedTerms && term.relatedTerms.length > 0 && (
           <aside class="term-rail related-terms" aria-labelledby="related-terms-heading">
