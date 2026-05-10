@@ -1,0 +1,224 @@
+# Disavow file for rrmacademy.org
+# Generated 2026-05-10 — merge of (1) existing GSC disavow uploaded 2026-04-19
+# and (2) Ahrefs API v3 spam pull on 2026-05-10.
+# Submit at: https://search.google.com/search-console/disavow-links
+#
+# Strategy: domain-level disavow for entire spam clusters.
+# Total: 183 unique domains (41 overlap + 6 from prior list + 136 net-new)
+#
+# Cluster summary:
+#   itxoft-* SEO sales cluster        11 domains
+#   rank* / link* / seo* link farms   ~50 domains
+#   fiverr-*.site cluster              5 domains
+#   .shop link farms                  17 domains
+#   .website link farms                7 domains
+#   misc spam directories             ~58 domains
+
+# === itxoft-* cluster (SEO sales link farm) ===
+domain:itxoft.com
+domain:itxoft-affordable-seo-solutions.site
+domain:itxoft-cost-effective-seo-services.site
+domain:itxoft-organic-seo-growth.site
+domain:itxoft-professional-seo-services.site
+domain:itxoft-proven-seo-strategies.site
+domain:itxoft-reliable-seo-services.site
+domain:itxoft-results-focused-seo.site
+domain:itxoft-seo-for-higher-rankings.site
+domain:itxoft-seo-for-modern-business.site
+domain:itxoft-trusted-seo-solutions.site
+
+# === fiverr-*.site cluster (Fiverr SEO sales) ===
+domain:fiverr-affordable-seo-services.site
+domain:fiverr-cost-effective-seo.site
+domain:fiverr-quality-seo-at-affordable-rates.site
+domain:fiverr-seo-for-business-growth.site
+domain:fiverr-seo-for-small-businesses.site
+
+# === rank* / link* / seo* link farms ===
+domain:rank-optimizer.website
+domain:rank-top.click
+domain:rank-your.site
+domain:rankingseohigh.shop
+domain:ranklinkx.shop
+domain:rankongoogle.agency
+domain:rankpilot.shop
+domain:rankva.com
+domain:rankvance-agency.online
+domain:rankvance.info
+domain:rankvanceagency.info
+domain:rankvanceauthority.info
+domain:rankvanceboost.info
+domain:rankvancelinks.info
+domain:rankvancelinks.online
+domain:rankvanceseo.website
+domain:rankyour.website
+domain:linkbooster.shop
+domain:linkrankboost.shop
+domain:linkrankpro.shop
+domain:linkrankseo.shop
+domain:linkseopro.shop
+domain:authoritybacklinks.shop
+domain:backlink-agency.online
+domain:backlink-agency.pro
+domain:backlinkboosters.online
+domain:backlinker.shop
+domain:backlinksolutions.info
+domain:best-backlink-provider.com.in
+domain:buy-quality-backlinks.online
+domain:buybacklinks.agency
+domain:pbnseolinks.shop
+domain:premiumseolinks.shop
+domain:prolinkbox.com
+domain:prolink-directory.com
+domain:prolinkseo.agency
+domain:rglinks.org
+domain:seoagency.sale
+domain:seoboostservice.com
+domain:seodaro.com
+domain:seoexpress.org
+domain:seoexpress.shop
+domain:seoexpress.site
+domain:seoexpress.space
+domain:seoexpress.website
+domain:seogeko.shop
+domain:seo-high-ranking.shop
+domain:seohighranking.shop
+domain:seolinkpro.shop
+domain:seoprobox.xyz
+domain:seorankflow.shop
+domain:seotira.com
+domain:thebacklink.shop
+domain:thebacklinks.shop
+domain:theguestpost.shop
+domain:theguestposts.shop
+domain:thehighseo.shop
+domain:therankboostseo.shop
+domain:therankinghighseo.shop
+domain:therankingseohigh.shop
+domain:theseohighranking.shop
+domain:theseorankinghigh.shop
+domain:thetoprankingseo.shop
+domain:toplinkranker.shop
+domain:zoldexlinks.shop
+domain:nexusnext.agency
+
+# === Misc .website / .click link spam ===
+domain:boost-instant.website
+domain:driftseo.click
+domain:grow-fast.website
+domain:grow-your.website
+domain:newest-expired-domains-here.click
+domain:optimize-instant.website
+domain:sideenhancer.online
+
+# === .shop generic web/store farms ===
+domain:123webshop.shop
+domain:ekenkoshop.shop
+domain:fastdomain.shop
+domain:highseoranking.shop
+domain:kawaiishop.shop
+domain:kmoshops.shop
+domain:mysky-shop.shop
+domain:rankxlinks.shop
+domain:shopbetreiber-blog.shop
+domain:simplywebshop.shop
+
+# === Aged-domain / PBN sellers ===
+domain:ageddomainsforeverytaste.club
+domain:great-choice-for-pbn-domains.co.uk
+domain:newlyregddomains.com
+
+# === Generic content / aggregator spam ===
+domain:analyticshaven.top
+domain:anchorurl.cloud
+domain:atomizelink.icu
+domain:blogsphere.top
+domain:byteshort.xyz
+domain:creativeposts.top
+domain:dailymusings.top
+domain:exlinko.net
+domain:factmags.com
+domain:metamagic.top
+domain:optimizeflow.top
+domain:primeseo.xyz
+domain:quero.party
+domain:bye.fyi
+domain:screenshots.wiki
+domain:sport-life.club
+domain:yktsk.top
+
+# === Suspicious low-quality directories ===
+domain:allwebsitesdirectory.com
+domain:aquarius-dir.com
+domain:australianwebdirectory.pro
+domain:domainanalysis.org
+domain:globalecommerce.org
+domain:relevantdirectories.com
+domain:relevantdirectory.biz
+domain:runningwebsites.net
+domain:websiterace.com
+domain:bestwebstats.com
+domain:domainsc.com
+domain:ecommercebenchmarking.com
+domain:pagesearch.net
+
+# === Off-topic injection / scraper sites ===
+domain:1stcallglasscare.com
+domain:bestpersonalinjuryattorneynear.me
+domain:carplz.com
+domain:dmv-california.com
+domain:katmoviehd.wf
+domain:lockercpa.pl
+domain:mmwatches.co.uk
+domain:moneygame.pro
+domain:mp3fresh.net
+domain:naturalfruitfertilitycare.com
+domain:qa-animals.info
+domain:read.org.in
+
+# === w3-* aggregator network ===
+domain:w3sister.com
+domain:w3tops.com
+
+# === Foreign-language scraper / aggregator spam ===
+domain:8coint.com
+domain:agmermer.pro
+domain:aiia.ro
+domain:alenews.pl
+domain:bmwyng.com
+domain:crossover-p.com
+domain:dsnylu.com
+domain:hzdlpq.com
+domain:indians.cc
+domain:jake.eu
+domain:jerryogconrad.no
+domain:kgzxkf.com
+domain:obmain.com
+domain:pudhe.com
+domain:qhtycw.com
+domain:tunca.org
+domain:wonvision.com
+domain:ycm.info
+domain:za.com
+domain:ageokousei.jp
+domain:veethemes.co.in
+domain:way2check.cv
+domain:acquire.co.in
+domain:booksreadr.org
+domain:newsblogsports.site
+
+# === Additional misc spam ===
+domain:2x9.co
+domain:jobsapp.info
+domain:orank.ai
+domain:ready.pro
+domain:sergechel.info
+domain:sitescooponline.com
+
+# === Carried over from prior disavow (2026-04-19) ===
+domain:backlinkmasters.online
+domain:getwebsiteworth.com
+domain:hatisnapro.com
+domain:nettools.guru
+domain:rankvanceseo.info
+domain:sites.jake.eu
