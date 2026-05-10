@@ -252,11 +252,54 @@ function textToParagraphs(text: string): string {
 )}
 
 <style is:global>
+  /* Layered citation/reference sections.
+     Uses RRM Academy design-system semantic tokens so light/dark themes
+     auto-switch via the [data-theme] attribute on <html>. */
+  .cited-refs {
+    margin-top: 1.75rem;
+    padding: 1.25rem 1.5rem;
+    background: var(--bg-body);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+  }
+  .cited-refs__title {
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 0 0.75rem 0;
+    color: var(--text-secondary);
+    font-weight: 600;
+  }
+  .cited-refs__list {
+    margin: 0;
+    padding-left: 1.5rem;
+    font-size: 0.92rem;
+    color: var(--text-primary);
+    line-height: 1.55;
+  }
+  .cited-refs__item {
+    margin-bottom: 0.6rem;
+  }
+  .cited-refs__title-text {
+    color: var(--text-primary);
+  }
+  .cited-refs__meta {
+    color: var(--text-secondary);
+  }
+  .cited-refs__link {
+    color: var(--accent);
+    word-break: break-all;
+    font-size: 0.85rem;
+  }
+  .cited-refs__link:hover {
+    color: var(--accent-hover);
+  }
+
   .def-sources {
     margin-top: 2rem;
     padding: 1.5rem;
-    background: #f7f6f2;
-    border-left: 3px solid #d4cfc1;
+    background: var(--bg-body);
+    border-left: 3px solid var(--sand-500);
     border-radius: 4px;
   }
   .def-sources__title {
@@ -264,12 +307,12 @@ function textToParagraphs(text: string): string {
     text-transform: uppercase;
     letter-spacing: 0.06em;
     margin: 0 0 0.5rem 0;
-    color: #6b6557;
+    color: var(--text-secondary);
     font-weight: 600;
   }
   .def-sources__intro {
     font-size: 0.875rem;
-    color: #6b6557;
+    color: var(--text-secondary);
     margin: 0 0 1.25rem 0;
     line-height: 1.5;
   }
@@ -282,7 +325,7 @@ function textToParagraphs(text: string): string {
     gap: 1.25rem;
   }
   .def-source {
-    border-top: 1px solid #e4dfd0;
+    border-top: 1px solid var(--border-light);
     padding-top: 1rem;
   }
   .def-source:first-child {
@@ -298,32 +341,32 @@ function textToParagraphs(text: string): string {
   }
   .def-source__label {
     font-weight: 600;
-    color: #1f1d18;
+    color: var(--text-primary);
     font-size: 0.95rem;
   }
   .def-source__code {
     font-family: ui-monospace, SFMono-Regular, monospace;
     font-size: 0.8rem;
-    background: #ece8d9;
+    background: var(--neutral-200);
     padding: 0.125rem 0.4rem;
     border-radius: 3px;
-    color: #2d2a23;
+    color: var(--text-primary);
   }
   .def-source__excerpt-tag {
     font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    background: #efe6c8;
-    color: #6b6557;
+    background: var(--neutral-200);
+    color: var(--neutral-700);
     padding: 0.1rem 0.4rem;
     border-radius: 2px;
   }
   .def-source__quote {
     margin: 0 0 0.5rem 0;
     padding: 0 0 0 0.75rem;
-    border-left: 2px solid #e4dfd0;
+    border-left: 2px solid var(--border-light);
     font-size: 0.95rem;
-    color: #2d2a23;
+    color: var(--text-primary);
     line-height: 1.5;
     font-style: normal;
   }
@@ -338,51 +381,18 @@ function textToParagraphs(text: string): string {
     flex-wrap: wrap;
     gap: 0.5rem 1rem;
     font-size: 0.8rem;
-    color: #6b6557;
+    color: var(--text-secondary);
     align-items: baseline;
   }
   .def-source__attrib {
     font-style: italic;
   }
   .def-source__link {
-    color: #5a4a2c;
+    color: var(--accent);
     font-weight: 500;
     white-space: nowrap;
   }
-  .cited-refs {
-    margin-top: 1.75rem;
-    padding: 1.25rem 1.5rem;
-    background: #faf8f3;
-    border-left: 3px solid #6b8e23;
-    border-radius: 4px;
-  }
-  .cited-refs__title {
-    font-size: 1.05rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin: 0 0 0.75rem 0;
-    color: #6b6557;
-    font-weight: 600;
-  }
-  .cited-refs__list {
-    margin: 0;
-    padding-left: 1.5rem;
-    font-size: 0.92rem;
-    color: #2d2a23;
-    line-height: 1.55;
-  }
-  .cited-refs__item {
-    margin-bottom: 0.6rem;
-  }
-  .cited-refs__title-text {
-    color: #1f1d18;
-  }
-  .cited-refs__meta {
-    color: #6b6557;
-  }
-  .cited-refs__link {
-    color: #5a4a2c;
-    word-break: break-all;
-    font-size: 0.85rem;
+  .def-source__link:hover {
+    color: var(--accent-hover);
   }
 </style>
