@@ -1,0 +1,4 @@
+claude/courses-d1-migration 50b0fe48f6ac1f2de260a617e1ee8020bdbfa2e1 2026-04-26 16:04:47 -0400 docs(courses): update CLAUDE.md, backlog, ecosystem SSOT for D1 cutover
+claude/glossary-prose-revert f645230e12fc119daa45a3d432fc7f614a57a382 2026-05-03 10:51:01 -0400 revert(glossary): roll back 7 prose edits + 1 borderline citation
+claude/review-footer-statement-8F9Z7 dbb6c62a98b5d9af0316ac9c9390f032127dfae7 2026-02-22 09:04:19 +0000 Add test period to footer disclaimer for deploy verification
+claude/stripe-payment-intent-data 6390e39a2f95667ab5a2a32f067ca59c7c42216b 2026-05-03 00:35:25 -0400 docs(ecosystem): rrm-finance-sync LIVE 2026-05-03
