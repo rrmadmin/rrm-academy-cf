@@ -64,9 +64,15 @@ const ROUTER_PATH = path.resolve(REPO_ROOT, '../rrm-router/src/index.js');
 
 function getCloudflareToken() {
   if (process.env.CLOUDFLARE_API_TOKEN) return process.env.CLOUDFLARE_API_TOKEN;
-  return execSync(`op read "op://Automation/CF - Worker Deploy - account/credential"`, {
-    encoding: 'utf8',
-  }).trim();
+  try {
+    return execSync(`op read "op://Automation/CF - Worker Deploy - account/credential"`, {
+      encoding: 'utf8',
+    }).trim();
+  } catch (e) {
+    console.error('Failed to read CLOUDFLARE_API_TOKEN from env or 1Password.', e?.message ?? e);
+    console.error('Run `op signin` if 1P CLI is locked, OR export CLOUDFLARE_API_TOKEN directly.');
+    process.exit(2);
+  }
 }
 const TOKEN = getCloudflareToken();
 const ENV = { ...process.env, CLOUDFLARE_API_TOKEN: TOKEN };
@@ -94,19 +100,43 @@ function findCrossRefs() {
     try {
       const ps = d1Query('rrm-auth', `SELECT id, slug FROM posts WHERE content LIKE '%/glossary/${r.old}/%' OR content LIKE '%/glossary/${r.old}"%'`);
       found[r.old].posts = ps;
-    } catch {}
+    } catch (e) {
+      const msg = (e?.message || '').toLowerCase();
+      if (msg.includes('no such table')) {
+        // Table genuinely missing in this D1 -- safe to skip
+      } else {
+        console.warn(`  WARN: posts cross-ref scan for ${r.old} failed: ${e?.message?.slice(0, 200)}`);
+        console.warn(`        Cross-refs in posts may be missed. Re-run after diagnosing.`);
+      }
+    }
 
     // faq.answer
     try {
       const fq = d1Query('rrm-auth', `SELECT id, slug FROM faq WHERE answer LIKE '%/glossary/${r.old}/%' OR answer LIKE '%/glossary/${r.old}"%'`);
       found[r.old].faqs = fq;
-    } catch {}
+    } catch (e) {
+      const msg = (e?.message || '').toLowerCase();
+      if (msg.includes('no such table')) {
+        // Table genuinely missing in this D1 -- safe to skip
+      } else {
+        console.warn(`  WARN: faq cross-ref scan for ${r.old} failed: ${e?.message?.slice(0, 200)}`);
+        console.warn(`        Cross-refs in faqs may be missed. Re-run after diagnosing.`);
+      }
+    }
 
     // course_step.content_md
     try {
       const cs = d1Query('rrm-auth', `SELECT id FROM course_step WHERE content_md LIKE '%/glossary/${r.old}/%' OR content_md LIKE '%/glossary/${r.old}"%'`);
       found[r.old].course_steps = cs;
-    } catch {}
+    } catch (e) {
+      const msg = (e?.message || '').toLowerCase();
+      if (msg.includes('no such table')) {
+        // Table genuinely missing in this D1 -- safe to skip
+      } else {
+        console.warn(`  WARN: course_step cross-ref scan for ${r.old} failed: ${e?.message?.slice(0, 200)}`);
+        console.warn(`        Cross-refs in course_steps may be missed. Re-run after diagnosing.`);
+      }
+    }
   }
   return found;
 }
@@ -297,6 +327,20 @@ async function main() {
 
   console.log('Scanning D1 for cross-references...');
   const crossRefs = findCrossRefs();
+
+  // Pre-flight: ensure no destination slug already exists (excluding the source term itself)
+  const newSlugs = RENAMES.map(r => `'${r.new.replace(/'/g, "''")}'`).join(',');
+  const oldIds = RENAMES.map(r => `'term_${r.old.replace(/'/g, "''")}'`).join(',');
+  const collisions = d1Query(
+    'rrm-auth',
+    `SELECT id, slug FROM glossary_term WHERE slug IN (${newSlugs}) AND id NOT IN (${oldIds})`
+  );
+  if (collisions.length > 0) {
+    console.error('Pre-flight FAIL: destination slug(s) already exist:');
+    for (const c of collisions) console.error(`  - ${c.slug} (id=${c.id})`);
+    console.error('Aborting before any writes. Resolve the collision(s) and re-run.');
+    process.exit(1);
+  }
 
   const plan = buildPlan(crossRefs);
 
