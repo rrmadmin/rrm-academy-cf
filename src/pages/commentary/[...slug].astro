@@ -189,6 +189,36 @@ if (post.slug === 'glossary-of-restorative-reproductive-medicine-rrm' && post.co
   }
 }
 
+// FAQ schema for any commentary with a "Frequently Asked Questions" section.
+// Detects markdown H2 "Frequently Asked Questions" followed by H3 Q + paragraph A pairs,
+// emits FAQPage @graph node so Bing/Google can surface Q&A in AI grounding.
+// Added 2026-05-11 alongside the isthmocele commentary FAQ addition; pattern is
+// post-agnostic so any commentary that adds an FAQ section auto-emits the schema.
+const faqMainEntity: any[] = [];
+if (post.content) {
+  const faqSection = post.content.match(/##\s+Frequently\s+Asked\s+Questions\b[\s\S]*?(?=\n##\s|\n\*\*Sources|$)/i);
+  if (faqSection) {
+    const qPattern = /###\s+(.+?)\n+([\s\S]+?)(?=\n###\s+|\n##\s+|$)/g;
+    let m;
+    while ((m = qPattern.exec(faqSection[0])) !== null) {
+      const q = m[1].trim();
+      const a = m[2]
+        .trim()
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+        .replace(/\*\*([^*]+)\*\*/g, '$1')
+        .replace(/\*([^*]+)\*/g, '$1')
+        .replace(/\s+/g, ' ');
+      if (q && a && a.length >= 40 && a.length <= 1500) {
+        faqMainEntity.push({
+          '@type': 'Question',
+          name: q,
+          acceptedAnswer: { '@type': 'Answer', text: a },
+        });
+      }
+    }
+  }
+}
+
 const { '@context': _ctx, ...blogPostingNode } = jsonLd;
 const graphNodes = [blogPostingNode, breadcrumbNode];
 if (isWhittakerPost) graphNodes.push(whittakerPersonNode);
@@ -199,6 +229,12 @@ if (glossaryTermNodes.length > 0) {
     name: 'Restorative Reproductive Medicine Glossary',
     url: `https://rrmacademy.org/commentary/${post.slug}/`,
     hasDefinedTerm: glossaryTermNodes.slice(0, 50),
+  });
+}
+if (faqMainEntity.length >= 2) {
+  graphNodes.push({
+    '@type': 'FAQPage',
+    mainEntity: faqMainEntity,
   });
 }
 const finalJsonLd = {

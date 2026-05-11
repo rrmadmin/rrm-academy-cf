@@ -1,0 +1,686 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MaybeShell from '../../components/MaybeShell.astro';
+import SectionTocChips from '../../components/SectionTocChips.astro';
+import { isShellEnabled } from '../../lib/shell-routes';
+import BackToTop from '../../components/BackToTop.astro';
+import LastUpdated from '../../components/LastUpdated.astro';
+import pageDates from '../../data/page-dates.json';
+import artRegistries from '../../data/art-registries.json';
+
+const SHELL_ENABLED = isShellEnabled('guides');
+
+const TOC_ITEMS = [
+  { href: '#key-takeaways', label: 'Key Takeaways' },
+  { href: '#what-are-art-registries-and-codes', label: 'What Are ART Registries and Codes of Practice?' },
+  { href: '#national-codes-of-practice', label: 'National Codes of Practice' },
+  { href: '#national-registries', label: 'National Registries' },
+  { href: '#measure-and-miss', label: 'What Registries Measure Well and Miss' },
+  { href: '#how-rrm-academy-uses-these', label: 'How RRM Academy Uses These' },
+  { href: '#all-records', label: 'All Registry and Code Records' },
+  { href: '#faq', label: 'Frequently Asked Questions' },
+];
+
+const PAGE_PATH = '/art-registries-and-codes/';
+const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-05-11';
+const PAGE_URL = 'https://rrmacademy.org/art-registries-and-codes/';
+const LIBRARY_BASE = 'https://rrmacademy.org/library/';
+
+// Build ItemList entries from the SSOT. Codes first (in declaration order),
+// then registries sorted by year DESC with ICMART (Global) last as a global aggregator.
+const codeItems = artRegistries.codes_of_practice.map((entry, idx) => ({
+  '@type': 'ListItem' as const,
+  position: idx + 1,
+  item: {
+    '@type': 'CreativeWork',
+    name: `${entry.title}${entry.edition ? ` (${entry.edition})` : ''}`,
+    datePublished: String(entry.year),
+    publisher: entry.issuer,
+    url: `${LIBRARY_BASE}${entry.library_slug}/`,
+    about: { '@type': 'Place', name: entry.jurisdiction },
+  },
+}));
+
+const registryOrdered = [...artRegistries.national_registries].sort((a, b) => {
+  // ICMART (Global) is forced last
+  if (a.country === 'Global' && b.country !== 'Global') return 1;
+  if (b.country === 'Global' && a.country !== 'Global') return -1;
+  return (b.year || 0) - (a.year || 0);
+});
+
+const registryItems = registryOrdered.map((entry, idx) => ({
+  '@type': 'ListItem' as const,
+  position: codeItems.length + idx + 1,
+  item: {
+    '@type': 'CreativeWork',
+    name: entry.title,
+    datePublished: String(entry.year),
+    publisher: entry.operator,
+    url: `${LIBRARY_BASE}${entry.library_slug}/`,
+    about: { '@type': 'Place', name: entry.country },
+  },
+}));
+
+const itemListSchema = {
+  '@type': 'ItemList',
+  name: 'National ART Registries and Codes of Practice',
+  description:
+    'Curated set of national ART registries, codes of practice, and statutory frameworks indexed in the RRM Academy Research Library.',
+  numberOfItems: codeItems.length + registryItems.length,
+  itemListOrder: 'https://schema.org/ItemListUnordered',
+  itemListElement: [...codeItems, ...registryItems],
+};
+
+// Single JSON-LD @graph block with 4 nodes.
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': ['Article', 'MedicalWebPage'],
+      headline: 'ART Registries and Codes of Practice: A Reference for Patients and Clinicians',
+      description:
+        'Reference guide to national IVF registries and codes of practice: HFEA, RTAC, ANZARD, Q-IVF, CDC, DIR, JSOG: with what each measures and what they miss.',
+      image: 'https://rrmacademy.org/og/art-registries-and-codes.png',
+      author: { '@id': 'https://rrmacademy.org/#organization' },
+      reviewedBy: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+      publisher: {
+        '@type': 'EducationalOrganization',
+        '@id': 'https://rrmacademy.org/#organization',
+        name: 'RRM Academy',
+      },
+      datePublished: '2026-05-11',
+      dateModified: LAST_MODIFIED,
+      wordCount: 2900,
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': PAGE_URL,
+      },
+      about: [
+        { '@type': 'Thing', name: 'Assisted Reproductive Technology' },
+        { '@type': 'Thing', name: 'Fertility regulation' },
+        { '@type': 'Thing', name: 'IVF success rates' },
+      ],
+      articleSection: [
+        'What Are ART Registries and Codes of Practice?',
+        'National Codes of Practice',
+        'National Registries',
+        'What the Registries Measure Well and What They Miss',
+        'How RRM Academy Uses These',
+      ],
+      hasPart: [
+        { '@type': 'WebPageElement', name: 'HFEA Code of Practice', url: `${PAGE_URL}#hfea-code-of-practice` },
+        { '@type': 'WebPageElement', name: 'RTAC Code of Practice', url: `${PAGE_URL}#rtac-code-of-practice` },
+        { '@type': 'WebPageElement', name: 'HFEA Register', url: `${PAGE_URL}#hfea-register` },
+        { '@type': 'WebPageElement', name: 'Q-IVF Sweden', url: `${PAGE_URL}#q-ivf-sweden` },
+        { '@type': 'WebPageElement', name: 'ANZARD', url: `${PAGE_URL}#anzard` },
+        { '@type': 'WebPageElement', name: 'CDC ART National Summary', url: `${PAGE_URL}#cdc-art` },
+        { '@type': 'WebPageElement', name: 'DIR Jahrbuch (Germany)', url: `${PAGE_URL}#dir` },
+        { '@type': 'WebPageElement', name: 'ESHRE EIM (Europe)', url: `${PAGE_URL}#eshre-eim` },
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+        { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://rrmacademy.org/guides/' },
+        { '@type': 'ListItem', position: 3, name: 'ART Registries and Codes of Practice', item: PAGE_URL },
+      ],
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: [
+        {
+          '@type': 'Question',
+          name: 'What is the difference between a fertility registry and a code of practice?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'A code of practice is the rulebook a fertility clinic must follow to operate legally in a given jurisdiction. It defines staff qualifications, laboratory standards, consent procedures, embryo handling rules, and data submission requirements. A registry is the dataset of cycle outcomes those clinics are required to submit. Together they form the accountability infrastructure of assisted reproductive technology: codes govern what clinics must do, registries record what those clinics produced. The HFEA in the United Kingdom operates both, but in most countries the regulator and the data registry are separate institutions.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'What is the HFEA Code of Practice?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'The HFEA Code of Practice is the legally binding regulatory standard for fertility clinics in the United Kingdom, issued by the Human Fertilisation and Embryology Authority under the Human Fertilisation and Embryology Acts of 1990 and 2008. It governs staff qualifications, laboratory standards, consent procedures, welfare-of-the-child assessments, and embryo handling. Any UK clinic that creates, stores, or transfers embryos must hold an HFEA licence and comply with the code. The 9th edition has been in force since 2024 and is the most detailed national fertility code in the world.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'What is RTAC?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'RTAC stands for the Reproductive Technology Accreditation Committee. It accredits fertility clinics in Australia and New Zealand under the Fertility Society of Australia and New Zealand. The RTAC Code of Practice sets the clinical and laboratory standards clinics must meet. Unlike the HFEA framework, RTAC accreditation is not established by national legislation. Its practical force is Medicare eligibility: Australian clinics must hold RTAC accreditation to receive Medicare rebates on ART procedures. The 2024 edition is the current version. RTAC governs clinic conduct; ANZARD records outcomes from the same clinics annually.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Why do ART success rates differ between countries?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Several factors explain international variation. Patient population age differs: countries with older average treatment ages report lower per-cycle rates. Single embryo transfer policies vary: Australia, Sweden, and the UK have aggressively reduced multiple embryo transfers, which lowers apparent per-cycle success rates while reducing twin and triplet risks. Cycle cancellation rules differ: some registries include cancelled cycles in denominators, others do not. Reporting lag differs: some registries publish one to two years behind treatment year, others three or more. Voluntary registries include only participating clinics. What is being measured must be understood before comparison is meaningful.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Where can I find IVF success rates for my country?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'National ART registries publish annual reports covering clinic-level and national aggregate data. The HFEA publishes UK data at hfea.gov.uk. The CDC publishes US clinic-by-clinic data at cdc.gov/art. ANZARD covers Australia and New Zealand through UNSW Sydney. CARTR Plus covers Canada at cfas.ca. Sweden Q-IVF reports through the national quality registry system. Germany DIR publishes at deutsches-ivf-register.de. The RRM Academy library maintains records of all major annual reports. These are the primary sources. Clinic marketing uses registry numbers selectively; reading the registry directly gives a more complete picture.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Does the US have a national ART code of practice?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'No. The United States has no national code of practice governing how fertility clinics must operate. The Fertility Clinic Success Rate and Certification Act (FCSRCA) of 1992 requires clinics to report annual data to the CDC, but establishes no clinical standards, lab requirements, or enforcement mechanisms. Major professional societies publish guidance documents that carry no legal force. State regulation varies widely. A US patient cannot determine from a national regulatory document what their clinic is required to do before recommending treatment. Asking clinics directly about accreditation, laboratory oversight, and diagnostic approach is the practical alternative.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Why does the US not have a national IVF code?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'The United States regulates medicine primarily at the state level, and no federal statute has ever established a comprehensive ART code. The 1992 FCSRCA was a transparency measure: it required clinics to submit annual outcome data to the CDC so patients could compare results, but Congress declined to authorize federal clinical practice rules. Major professional societies publish voluntary guidance that carries no legal force. State legislatures address narrower issues such as insurance mandates, donor anonymity, or surrogacy contracts, but no state has enacted a comprehensive code on the HFEA model. The result is a transparency mandate without a practice standard behind it.',
+          },
+        },
+      ],
+    },
+    itemListSchema,
+  ],
+};
+---
+
+<BaseLayout
+  title="ART Registries and Codes of Practice: A Global Reference"
+  description="Reference guide to national IVF registries and codes of practice: HFEA, RTAC, ANZARD, Q-IVF, CDC, DIR, JSOG: with what each measures and what they miss."
+  canonicalUrl={PAGE_URL}
+  ogType="article"
+  publishDate="2026-05-11"
+  jsonLd={jsonLd}
+  speakable={['.pillar-lead', 'h1']}
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
+>
+  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname}>
+  <div class="page-wrapper" data-pagefind-body>
+    <span data-pagefind-meta="type:Guide" style="display:none"></span>
+    <span data-pagefind-meta="title:ART Registries and Codes of Practice" style="display:none"></span>
+    <div class="container">
+
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <a href="/guides/">Guides</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <span>ART Registries and Codes of Practice</span>
+      </nav>
+
+      <h1>ART Registries and Codes of Practice: A Reference for Patients and Clinicians</h1>
+
+      <div class="author-byline">
+        <div class="author-avatar-stack">
+          <img src="/images/authors/naomi-whittaker.webp" alt="Dr. Naomi Whittaker, MD" class="author-byline__photo" width="48" height="48" />
+        </div>
+        <div class="author-byline__text has-reviewer">
+          <span class="byline-author">By <strong>RRM Academy</strong></span>
+          <span class="byline-reviewer">Reviewed by <strong><a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</a></strong></span>
+          <LastUpdated path="/art-registries-and-codes/" class="byline-date" />
+        </div>
+      </div>
+
+      <!-- Mobile TOC -->
+      <details class="toc-mobile">
+        <summary>On this page</summary>
+        <ol>
+          {TOC_ITEMS.map((item) => (
+            <li><a href={item.href}>{item.label}</a></li>
+          ))}
+        </ol>
+      </details>
+
+      {SHELL_ENABLED && <SectionTocChips items={TOC_ITEMS} />}
+
+      <div class:list={['article-layout', { 'article-layout--no-toc': SHELL_ENABLED }]}>
+
+        {!SHELL_ENABLED && (
+          <nav class="toc" aria-label="Table of contents">
+            <p class="toc-heading">On this page</p>
+            <ol>
+              {TOC_ITEMS.map((item) => (
+                <li><a href={item.href}>{item.label}</a></li>
+              ))}
+            </ol>
+          </nav>
+        )}
+
+        <article class="prose">
+
+          <!-- Definitional opener -->
+          <p class="pillar-lead"><strong>ART registries and codes of practice are the two accountability instruments that govern assisted reproductive technology worldwide.</strong> A <strong>code of practice</strong> is the rulebook a fertility clinic must follow to operate legally in a given jurisdiction. A <strong>registry</strong> is the dataset of cycle outcomes those clinics are required to submit. Together, they define what fertility clinics must do and what they must report. This guide covers the major national instruments: HFEA (UK), RTAC (Australia/New Zealand), CDC (US), ANZARD, Q-IVF (Sweden), DIR (Germany), CARTR Plus (Canada), JSOG (Japan), REDLARA (Latin America), ESHRE EIM (Europe), and ICMART (global). What each measures, and what they miss.</p>
+
+          <!-- Key Takeaways -->
+          <aside class="tldr">
+            <h2 id="key-takeaways">Key Takeaways</h2>
+            <ul>
+              <li><strong>The UK is the only country with a legally binding national fertility code.</strong> The HFEA Code of Practice (9th edition, in force from 2024) is statutory under the Human Fertilisation and Embryology Acts of 1990 and 2008.</li>
+              <li><strong>The US has a federal data mandate but no national clinical code.</strong> The Fertility Clinic Success Rate and Certification Act (FCSRCA) of 1992 requires CDC reporting; it does not regulate clinical practice.</li>
+              <li><strong>Sweden Q-IVF is the methodologically strongest registry for cumulative patient outcomes.</strong> Most other registries report per-cycle rates only, which understate attrition and overstate effective clinic performance.</li>
+              <li><strong>Registries measure cycles, not patients.</strong> They do not measure whether the underlying cause of infertility was ever diagnosed, how long the patient journey took, or what it cost to reach a live birth.</li>
+              <li><strong>The 14 canonical instruments in this guide are indexed in the RRM Academy Research Library.</strong> Each section links to the primary source.</li>
+            </ul>
+          </aside>
+
+          <!-- Section: What Are ART Registries and Codes of Practice? -->
+          <h2 id="what-are-art-registries-and-codes">What Are ART Registries and Codes of Practice?</h2>
+
+          <p>When a fertility clinic reports a "success rate," that number comes from somewhere. Most national governments and professional bodies now require fertility clinics to submit their treatment data to a central registry. Some also require clinics to follow a legally binding code of practice that governs how they operate. Together, these two instruments form the accountability infrastructure of <a href="/glossary/#art">assisted reproductive technology (ART)</a> worldwide.</p>
+
+          <p>A <strong>code of practice</strong> is the rulebook. It defines who is qualified to work in a fertility laboratory, what equipment standards a clinic must meet, how embryos must be handled and stored, what data must be collected, and what limits apply to treatments like donor insemination or multiple embryo transfer. Codes vary widely by jurisdiction. In some countries they carry statutory force. In others they are professional consensus documents with no enforcement mechanism.</p>
+
+          <p>A <strong>registry</strong> is the dataset. Clinics submit cycle-level records: how many oocytes were retrieved, how many embryos were transferred, whether a clinical pregnancy resulted, and whether a live birth occurred. Registries aggregate this into national summaries. They are the source of the "success rates" that appear in clinic marketing, media coverage, and patient decision-making.</p>
+
+          <p>Patients should care about both. Codes of practice tell you what a clinic is legally required to do. Registries tell you whether the aggregate outcomes across an entire country or region justify the clinical decisions being made.</p>
+
+          <p>But both instruments have limits. Registries measure cycles, not patients. They count what happens in a given treatment episode. Most do not follow a couple from their first consultation to their eventual outcome, whether that outcome is a live birth, a decision to stop treatment, or an undiagnosed condition that was never addressed. They report what technology produced. They largely do not report who was served, for how long, at what cost, or whether the underlying cause of infertility was ever found.</p>
+
+          <p><a href="/what-is-rrm/">Restorative Reproductive Medicine</a> asks different questions. RRM clinicians start from diagnosis: what is causing this couple's infertility, and is there a treatable condition? Registry data is necessary for transparency in a field that handles profound decisions. But it is not sufficient for evaluating whether patients are being served well. Understanding what registries do and do not measure is the first step toward asking better questions.</p>
+
+          <!-- Section: National Codes of Practice -->
+          <h2 id="national-codes-of-practice">National Codes of Practice</h2>
+
+          <dl class="acronym-glance">
+            <dt>HFEA</dt><dd>Human Fertilisation and Embryology Authority (United Kingdom)</dd>
+            <dt>RTAC</dt><dd>Reproductive Technology Accreditation Committee (Australia and New Zealand)</dd>
+            <dt>ANZARD</dt><dd>Australia and New Zealand Assisted Reproduction Database</dd>
+            <dt>Q-IVF</dt><dd>Swedish National Quality Registry for Assisted Reproduction</dd>
+            <dt>CARTR Plus</dt><dd>Canadian Assisted Reproductive Technologies Register Plus</dd>
+            <dt>DIR</dt><dd>Deutsches IVF-Register (Germany)</dd>
+            <dt>JSOG</dt><dd>Japan Society of Obstetrics and Gynecology</dd>
+            <dt>ESHRE EIM</dt><dd>European Society of Human Reproduction and Embryology, European IVF Monitoring Consortium</dd>
+            <dt>ICMART</dt><dd>International Committee for Monitoring Assisted Reproductive Technologies</dd>
+            <dt>REDLARA / RLA</dt><dd>Red Latinoamericana de Reproduccion Asistida / Registro Latinoamericano de Reproduccion Asistida</dd>
+          </dl>
+
+          <h3>What a Code of Practice Does</h3>
+
+          <p>A code of practice defines the minimum standards a fertility clinic must meet to operate legally in a given jurisdiction. The content varies, but most codes address the same core concerns: staff qualifications, laboratory standards, infection control, data collection and submission requirements, consent procedures, limits on embryo transfer numbers, donor anonymity rules, and the handling of unused embryos. The scope and legal force of these codes differ substantially by country.</p>
+
+          <h3 id="hfea-code-of-practice">United Kingdom: HFEA Code of Practice (9th Edition, 2024)</h3>
+
+          <p>The <a href="/library/hfea-code-of-practice-9th-edition-version-94-0n2bg9oa/">Human Fertilisation and Embryology Authority (HFEA) Code of Practice</a> is the most detailed fertility regulatory code in the world. It is legally binding under the <a href="/library/human-fertilisation-and-embryology-act-1990-lmwayq0r/">Human Fertilisation and Embryology Act 1990</a> and the <a href="/library/human-fertilisation-and-embryology-act-2008-v99nms5r/">2008 amendment</a>. Any UK clinic that licenses embryo creation, storage, or transfer must comply with it. The code runs to hundreds of pages and is updated iteratively; the 9th edition, in force from 2024, reflects updates across consent, welfare-of-the-child assessments, gamete storage time limits, and data submission standards.</p>
+
+          <p>The code says nothing about why a patient needed treatment. It governs the conduct of the procedure. It does not require a clinic to document whether an underlying diagnosis was ever sought, offered, or declined. Clinics can fully comply with the 9th edition while never investigating the reproductive health condition that brought a couple through their door.</p>
+
+          <h3 id="rtac-code-of-practice">Australia and New Zealand: RTAC Code of Practice (2024)</h3>
+
+          <p>The <a href="/library/rtac-code-of-practice-for-reproductive-technology-units-australia-and-new-zealan/">Reproductive Technology Accreditation Committee (RTAC) Code of Practice</a> governs fertility clinics in Australia and New Zealand under the Fertility Society of Australia and New Zealand (FSANZ). Unlike the HFEA framework, RTAC accreditation is a professional scheme, not statutory law. Its practical force is Medicare eligibility: RTAC accreditation is required for clinics to receive Medicare rebates. The 2024 edition covers clinical governance, laboratory quality, and patient safety. Data submission to ANZARD is a condition of accreditation.</p>
+
+          <h3 id="us-no-national-code">United States: No Single National Code</h3>
+
+          <p>The United States has no national code of practice for ART. The federal Fertility Clinic Success Rate and Certification Act (FCSRCA) of 1992 requires clinics to submit data to the CDC but establishes no clinical practice standards or enforcement mechanisms. FCSRCA is the only federal US statute on ART data collection. Major professional societies publish practice guidance that carries no legal force. State regulations vary widely. A US couple evaluating a fertility clinic cannot rely on a national regulatory standard to define what that clinic is required to do before recommending treatment.</p>
+
+          <h3 id="mrc-rcog-1993">Historical Note: UK Multi-Centre Self-Audit (1993)</h3>
+
+          <p>Before the HFEA assumed its current form, a joint report by the Medical Research Council and the Royal College of Obstetricians and Gynaecologists examined outcomes from IVF programmes across multiple UK centres. <a href="/library/final-report-of-the-medical-research-councilroyal-college-of-obstetricians-and-g-recfymjps4idpfuga/">Published in 1993</a>, this was an early effort at systematic self-audit in the field. It established the precedent that national data aggregation was necessary for transparency. That precedent led directly to the HFEA register.</p>
+
+          <!-- Section: National Registries -->
+          <h2 id="national-registries">National Registries</h2>
+
+          <h3>What the Registries Cover</h3>
+
+          <p>Each major national registry collects cycle-level data from accredited fertility clinics. Most report annually, with a two-to-three-year lag between treatment year and publication. The figures below reflect the most current data in the RRM Academy research library.</p>
+
+          <h3 id="hfea-register">United Kingdom: HFEA Register</h3>
+
+          <p>The HFEA operates both the regulatory code (above) and the national data register. Clinic-by-clinic outcome data is searchable on the HFEA website. Annual trend reports are published covering all licensed treatments in the UK. The HFEA register is among the most accessible national datasets globally, with patient-facing tools that allow clinic comparison.</p>
+
+          <p>What it measures well: cycle counts by age band, live birth rate per embryo transfer, multiple birth rates, and trends in single embryo transfer adoption. What it largely does not report: cumulative outcomes per patient over multiple cycles, patient drop-out, or time elapsed from first consultation to live birth.</p>
+
+          <h3 id="q-ivf-sweden">Sweden: Q-IVF (Annual Since 2007)</h3>
+
+          <p>Sweden's <a href="/library/qivf-annual-report-2025-fertility-treatments-in-sweden-treatment-year-2023-fcd8af41/">Q-IVF National Quality Registry for Assisted Reproduction</a> is one of the methodologically strongest national registries in the world. It publishes annual reports covering treatment outcomes from the prior year; the most recent report in the RRM Academy library covers treatment year 2023 (Q-IVF et al., 2025).</p>
+
+          <p>Q-IVF is notable for its attention to cumulative outcomes. Sweden was among the first countries to routinely track and publish patient-level <a href="/glossary/#cumulative-live-birth-rate">cumulative live birth rates</a> across multiple treatment cycles, not only single-cycle results. This makes Swedish registry data particularly valuable for comparing with restorative cumulative outcome data.</p>
+
+          <h3 id="jsog">Japan: JSOG ART Summary</h3>
+
+          <p>The Japan Society of Obstetrics and Gynecology (JSOG) Ethics Committee publishes an annual <a href="/library/assisted-reproductive-technology-in-japan-a-summary-report-for-2023-by-the-commi-pkxezwws/">ART summary</a>. Japan performs more ART cycles per capita than any other country in the world. The most recent JSOG summary in the RRM Academy library covers treatment year 2023.</p>
+
+          <p>Japanese registry data is strong on cycle volume and age stratification. It documents, among other metrics, the extraordinary scale of frozen embryo transfer cycles in Japan, which now far exceed fresh transfers. As with most registries, patient-level cumulative data and drop-out rates are not the primary reporting focus.</p>
+
+          <h3 id="anzard">Australia and New Zealand: ANZARD</h3>
+
+          <p>The <a href="/library/assisted-reproductive-technology-in-australia-and-new-zealand-2023-ymotfmjg/">Australia and New Zealand Assisted Reproduction Database (ANZARD)</a>, maintained by the National Perinatal Epidemiology and Statistics Unit at UNSW Sydney, publishes annual reports. The most recent in the RRM Academy library covers treatment year 2023.</p>
+
+          <p>ANZARD reports clinic-level and national aggregate data on IVF, ICSI, frozen embryo transfer, and donor cycles. It is notable for its reporting on multiple birth rates and its tracking of the shift toward elective single embryo transfer, which Australian national policy has strongly encouraged.</p>
+
+          <h3 id="cartr-plus">Canada: CARTR Plus</h3>
+
+          <p>The <a href="/library/cartr-plus-2025-annual-report-2024-data-canadian-assisted-reproductive-technolog-e94qosl4/">Canadian Assisted Reproductive Technologies Register Plus (CARTR Plus)</a>, operated by the Canadian Fertility and Andrology Society (CFAS), publishes annual reports. The most recent in the RRM Academy library covers treatment year 2024.</p>
+
+          <p>Canadian registry data covers clinic-level outcomes across provinces. Unlike the UK and Australia, Canada has no federal ART legislation; regulation is provincially variable. CARTR Plus is a voluntary registry; participation is near-universal among accredited clinics, but this is not legally mandated.</p>
+
+          <h3 id="dir">Germany: DIR Jahrbuch</h3>
+
+          <p>The <a href="/library/dir-jahrbuch-2024-deutsches-ivfregister-annual-report-2024-qasldzbe/">Deutsches IVF-Register (DIR)</a> publishes an annual Jahrbuch (yearbook) covering all registered fertility clinics in Germany. The most recent report in the RRM Academy library is the DIR Jahrbuch 2024, published in 2025. DIR also publishes a patient-facing Sonderausgabe (patient edition) of its annual data.</p>
+
+          <p>German registry data is particularly useful for its detailed reporting on embryo culture methods, freeze-all protocols, and elective single embryo transfer trends across a large, mature national programme.</p>
+
+          <h3 id="redlara">Latin America: RLA / REDLARA</h3>
+
+          <p>The Red Latinoamericana de Reproduccion Asistida (REDLARA) publishes the <a href="/library/rla-2021-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-6c2cj4qx/">Latin American Registry of Assisted Reproduction (RLA)</a>. The most recent report in the RRM Academy library covers treatment year 2021.</p>
+
+          <p>REDLARA aggregates data from member clinics across Latin America. Participation is voluntary, and clinic coverage is uneven across the region. The registry is a valuable source of comparative data for a part of the world where regulatory frameworks vary widely.</p>
+
+          <h3 id="cdc-art">United States: CDC ART National Summary</h3>
+
+          <p>The Centers for Disease Control and Prevention (CDC) publishes <a href="/library/2019-assisted-reproductive-technology-fertility-clinic-and-national-summary-repo-yveyxcvj/">annual ART Fertility Clinic and National Summary Reports</a> under the FCSRCA mandate. The CDC report covers both clinic-specific outcomes and national aggregate data. Publication is typically two to three years behind the treatment year. The most recent report in the RRM Academy library covers treatment year 2019.</p>
+
+          <p>The CDC report is the only mandatory national ART data collection in the United States. It provides clinic-by-clinic live birth rates by age group, a powerful consumer transparency tool. It does not provide cumulative per-patient outcomes, out-of-pocket cost data, or diagnosis information.</p>
+
+          <h3 id="eshre-eim">Europe-Wide: ESHRE EIM</h3>
+
+          <p>The ESHRE European IVF Monitoring (EIM) Consortium aggregates national registry data from across Europe and publishes annual reports in <em>Human Reproduction</em>. The most recent <a href="/library/assisted-reproductive-technology-in-europe-2013-results-generated-from-european--zsha3zfp/">EIM analysis in the RRM Academy library</a> covers treatment year 2013. Subsequent EIM analyses report 13.1% of ART singletons born preterm (De Geyter et al., 2025), well above background rates for spontaneously conceived singletons. ESHRE EIM is a meta-registry: it aggregates what national registries submit rather than collecting clinic data directly, so it inherits each contributing registry's methodological constraints.</p>
+
+          <h3 id="icmart">Global: ICMART World Report</h3>
+
+          <p>ICMART publishes <a href="/library/international-committee-for-monitoring-assisted-reproductive-technologies-icmart-92iwxlye/">world reports</a> on global ART practice, drawing on national registry data from dozens of countries. Publication lags several years due to the complexity of international data aggregation.</p>
+
+          <!-- Section: What Registries Measure Well and Miss -->
+          <h2 id="measure-and-miss">What the Registries Measure Well, and What They Miss</h2>
+
+          <h3 id="clinic-level-transparency">Three Things Registries Get Right</h3>
+
+          <p><strong>First: clinic-level transparency.</strong> Every major national registry forces clinics to submit outcome data that is then published in some form. Patients can, in most jurisdictions, look up how many cycles a given clinic performed and what live birth rate per transfer that clinic achieved. Before national registries existed, success rate claims were unaudited. Registries ended that.</p>
+
+          <p><strong>Second: age stratification.</strong> All major registries now report outcomes by age band. The standard groupings are under 35, 35 to 37, 38 to 40, 41 to 42, and over 42. This is clinically essential because ovarian reserve and egg quality decline with age in ways that dramatically affect per-cycle success rates. A clinic that treats an older patient population will have lower aggregate rates than one that turns away older patients. Age stratification makes the data interpretable.</p>
+
+          <p><strong>Third: initiated cycle reporting.</strong> Most registries count all initiated cycles, not only cycles that reached embryo transfer. This is an important methodological choice. It means cancellations due to poor stimulation response or hyperstimulation are included in the denominator. A live birth rate that includes cancelled cycles is more conservative and more honest than one calculated only from transferred cycles.</p>
+
+          <h3>Six Things Registries Consistently Miss or Under-Report</h3>
+
+          <p><strong>1. Cumulative live birth rate per patient, not per cycle.</strong> The most important outcome for a couple is whether they ever have a live birth, not whether any single cycle produced one. Most registries do not track this. Sweden's Q-IVF is among the exceptions. Sharma et al. (2002) examined 2,056 patients across 2,708 IVF cycles at a UK university hospital. The study found an overall cumulative live birth rate of 66% after four attempts. Only 36% of patients who did not conceive after the first cycle continued to a second cycle. The headline per-cycle rate says nothing about that attrition. A patient reading a clinic's published figure cannot tell how it was computed or how many people behind that number stopped trying.</p>
+
+          <p><strong>2. Time to live birth.</strong> Registries organize data by cycle, not by calendar time. A couple might take two years to complete three cycles, or eighteen months, depending on their response, waiting lists, and financial situation. Registries do not measure how long the process takes.</p>
+
+          <p><strong>3. Patient drop-out rates.</strong> When cumulative rates are computed only on patients who persisted, they overstate the real-world probability for everyone who starts. Voluntary discontinuation is common and rarely captured.</p>
+
+          <p><strong>4. Out-of-pocket cost per live birth.</strong> No major national registry publishes cost data alongside outcome data. A patient reading that a clinic achieves a 30% live birth rate per transfer cannot calculate, from registry data alone, what they will spend to reach a live birth. RRM Academy's ongoing work on ART clinical ledger methodology addresses this gap directly, building patient-level cost-outcome accounting that registries do not currently provide.</p>
+
+          <p><strong>5. Adverse outcomes attributable to ART.</strong> Ovarian hyperstimulation syndrome (OHSS), preterm birth, very low birth weight, multiple pregnancy complications, and ectopic pregnancies from embryo transfer all carry real clinical burdens. Some registries report multiple birth rates; the shift toward single embryo transfer policies has improved these. De Geyter et al. (2025), drawing on ESHRE EIM data through 2020, reported that 13.1% of ART singletons were born preterm, well above background rates for spontaneously conceived singletons. Most registries do not systematically capture OHSS rates, ectopic rates from ART, or long-term maternal outcomes.</p>
+
+          <p><strong>6. Whether underlying infertility was diagnosed.</strong> This is the gap RRM clinicians return to most often. A registry record shows that a cycle was initiated and an embryo was transferred. It does not show whether a diagnostic workup was performed, what diagnoses were identified, or whether any treatment of an underlying condition was attempted before ART. Registries document the intervention. They do not document whether the cause was ever addressed. A couple labeled with what registries call <a href="/glossary/#unexplained-infertility">"unexplained infertility"</a> may or may not have had a systematic diagnostic evaluation. RRM clinicians refer to this population as <a href="/glossary/#not-yet-diagnosed">not-yet-diagnosed</a> rather than unexplained, because the evidence consistently shows that thorough evaluation identifies a cause in the majority of couples. The registry does not distinguish between these two situations.</p>
+
+          <p>Even where some of this data exists, it is rarely presented to patients in a form that supports real decision-making. The annual summary report, the clinic-level table, the headline live-birth-per-transfer figure: these are the products of registry infrastructure. Cumulative, patient-centered, cost-inclusive data rarely reaches the consultation room.</p>
+
+          <!-- Section: How RRM Academy Uses These -->
+          <h2 id="how-rrm-academy-uses-these">How RRM Academy Uses These Documents</h2>
+
+          <p>RRM Academy maintains a curated research library that includes the major national registries, codes of practice, and ESHRE and ICMART world reports. These records are publicly linked for the reason that transparency is its own value. Patients and clinicians deserve access to the primary sources.</p>
+
+          <p>RRM clinicians use registry-published cycle outcomes as a benchmark. When <a href="/naprotechnology/#napro-vs-ivf">NaProTechnology outcomes</a> or RRM outcomes data is published, comparing it against registry-reported cycle-based rates is a standard move in the literature.</p>
+
+          <p>Boyle et al. (2025), in the first head-to-head retrospective comparison of RRM outcomes against a matched IVF cohort, reported a <a href="/library/restorative-reproductive-medicine-rrm-outcomes-compared-to-in-vitro-fertilization-rec4qqhafqb8stlnd/">41% crude live birth rate in the RRM cohort</a>. That figure was compared against one cycle of IVF from registry-comparable benchmarks. The comparison only becomes meaningful when the registry data is well-characterized. The HFEA, CARTR Plus, ANZARD, and Q-IVF reports in the RRM Academy library are the sources from which those benchmarks are drawn.</p>
+
+          <p>The <a href="/library/natural-procreative-technology-naprotechnology-for-infertility-take-home-baby-ra-recv02qu0r8ycnzoa/">Sanchez-Mendez et al. (2025) cohort study of 1,310 couples</a> followed in a NaProTechnology centre reported a 50% take-home baby rate at 24 months and 62.1% at 36 months or more. Registry data does not report 36-month cumulative outcomes. But registry-published per-cycle rates from equivalent populations, age-stratified and corrected for cycle count, make it possible to ask whether the cumulative restorative outcome compares favorably to equivalent cumulative ART cycles. The answer depends on how carefully you define the comparison. RRM clinicians are working to make that comparison rigorous.</p>
+
+          <p>RRM Academy is also engaged in ongoing methodological work on ART clinical ledger approaches: building patient-level cost-outcome accounting for ART that captures what national registries do not. The registries are the starting point. They supply cycle-level denominators. The ledger work fills in what registries leave blank.</p>
+
+          <!-- Section: All Registry and Code Records -->
+          <h2 id="all-records">All Registry and Code Records</h2>
+
+          <p>The 14 canonical instruments in this guide are indexed in the <a href="/library/">RRM Academy Research Library</a>. Each entry links to the primary source record.</p>
+
+          <div class="records-grid">
+            <section class="records-col" aria-labelledby="records-codes">
+              <h3 id="records-codes">Codes of Practice and Statutes</h3>
+              <ul class="records-list">
+                {artRegistries.codes_of_practice.map((entry) => (
+                  <li class="records-item">
+                    <a href={`${LIBRARY_BASE}${entry.library_slug}/`} class="records-item__title">
+                      {entry.title}{entry.edition ? `, ${entry.edition}` : ''}
+                    </a>
+                    <span class="records-item__meta">{entry.jurisdiction} &middot; {entry.year}</span>
+                    <span class="records-item__summary">{entry.summary}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <section class="records-col" aria-labelledby="records-registries">
+              <h3 id="records-registries">National and Regional Registries</h3>
+              <ul class="records-list">
+                {registryOrdered.map((entry) => (
+                  <li class="records-item">
+                    <a href={`${LIBRARY_BASE}${entry.library_slug}/`} class="records-item__title">
+                      {entry.title}
+                    </a>
+                    <span class="records-item__meta">{entry.country} &middot; {entry.year}</span>
+                    <span class="records-item__summary">{entry.strengths}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </div>
+
+          <!-- Section: FAQ -->
+          <h2 id="faq">Frequently Asked Questions</h2>
+          <div class="faq-accordion" data-pagefind-ignore>
+
+            <details>
+              <summary>What is the difference between a fertility registry and a code of practice?</summary>
+              <div class="faq-answer">
+                <p>A code of practice is the rulebook a fertility clinic must follow to operate legally in a given jurisdiction. It defines staff qualifications, laboratory standards, consent procedures, embryo handling rules, and data submission requirements. A registry is the dataset of cycle outcomes those clinics are required to submit. Together they form the accountability infrastructure of assisted reproductive technology: codes govern what clinics must do, registries record what those clinics produced. The HFEA in the United Kingdom operates both, but in most countries the regulator and the data registry are separate institutions. Patients evaluating a clinic should ask about both: what standards apply, and where outcomes are reported.</p>
+              </div>
+            </details>
+
+            <details>
+              <summary>What is the HFEA Code of Practice?</summary>
+              <div class="faq-answer">
+                <p>The HFEA Code of Practice is the legally binding regulatory standard for fertility clinics in the United Kingdom, issued by the Human Fertilisation and Embryology Authority under the Human Fertilisation and Embryology Acts of 1990 and 2008. It governs staff qualifications, laboratory standards, consent procedures, welfare-of-the-child assessments, and embryo handling rules. Any UK clinic that creates, stores, or transfers embryos must hold an HFEA licence and comply with the code. The 9th edition has been in force since 2024. RRM Academy maintains library records of the HFEA's published outcome reports, which are separate from the code itself.</p>
+              </div>
+            </details>
+
+            <details>
+              <summary>What is RTAC?</summary>
+              <div class="faq-answer">
+                <p>RTAC stands for the Reproductive Technology Accreditation Committee. It accredits fertility clinics in Australia and New Zealand under the Fertility Society of Australia and New Zealand (FSANZ). The RTAC Code of Practice sets the clinical and laboratory standards clinics must meet. Unlike the HFEA framework, RTAC accreditation is not established by national legislation. Its practical force is Medicare eligibility: Australian clinics must hold RTAC accreditation to receive Medicare rebates on ART procedures. The 2024 edition is the current version. RTAC governs clinic conduct; ANZARD, the national registry, records outcomes from the same clinics annually.</p>
+              </div>
+            </details>
+
+            <details>
+              <summary>Why do ART success rates differ between countries?</summary>
+              <div class="faq-answer">
+                <p>Several factors explain international variation in reported ART success rates. Patient population age matters: countries with older average treatment ages will report lower per-cycle rates. Single embryo transfer policies differ: countries like Australia, Sweden, and the UK have aggressively reduced multiple embryo transfers, which lowers apparent success rates per cycle while reducing twin and triplet risks. Cycle cancellation rules differ: some registries include cancelled cycles in their denominators, others do not. Reporting lag differs: some registries publish data one to two years behind treatment year; others are three or more years behind. Clinic selection also matters. Voluntary registries include only participating clinics, which may not represent the full range of practice quality. When comparing success rates across countries, what is being measured and how cycles are counted must be understood before any comparison is meaningful.</p>
+              </div>
+            </details>
+
+            <details>
+              <summary>Where can I find IVF success rates for my country?</summary>
+              <div class="faq-answer">
+                <p>National ART registries publish annual reports covering clinic-level and national aggregate data. The HFEA publishes UK data at hfea.gov.uk; the CDC publishes US clinic-by-clinic data at cdc.gov/art; ANZARD data for Australia and New Zealand is available through UNSW Sydney; CARTR Plus for Canada is at cfas.ca; Sweden's Q-IVF is through the national quality registry system; Germany's DIR is at deutsches-ivf-register.de. RRM Academy maintains library records of all major annual reports. These are the primary sources. Clinic marketing uses registry numbers selectively. Reading the registry directly gives a more complete picture.</p>
+              </div>
+            </details>
+
+            <details>
+              <summary>Does the US have a national ART code of practice?</summary>
+              <div class="faq-answer">
+                <p>No. The United States has no single national code of practice governing how fertility clinics must operate. The Fertility Clinic Success Rate and Certification Act (FCSRCA) of 1992 requires clinics to report annual data to the CDC, but it establishes no clinical standards, lab requirements, or enforcement mechanisms. Major professional societies publish guidance documents that carry no legal force. State regulation varies widely, and many states provide minimal oversight. A patient in the US cannot determine from a national regulatory document what their clinic is required to do before recommending treatment, how embryos are handled, or what qualifications a lab director must hold. Asking clinics directly about accreditation status, laboratory oversight, and diagnostic approach before starting treatment is the practical alternative.</p>
+              </div>
+            </details>
+
+            <details>
+              <summary>Why does the US not have a national IVF code?</summary>
+              <div class="faq-answer">
+                <p>The United States regulates medicine primarily at the state level, and no federal statute has ever established a comprehensive ART code. The 1992 FCSRCA was a transparency measure rather than a practice standard: it required clinics to submit annual outcome data to the CDC so patients could compare results, but Congress declined to authorize federal clinical practice rules. Major professional societies publish voluntary guidance that carries no legal force. State legislatures address narrower issues such as insurance mandates, donor anonymity, or surrogacy contracts, but no state has enacted a comprehensive code on the HFEA model. The result is a transparency mandate without a practice standard behind it.</p>
+              </div>
+            </details>
+
+          </div>
+
+          <!-- CTA Box -->
+          <div class="cta-box">
+            <h3>Continue exploring</h3>
+            <p><a href="/what-is-rrm/" class="btn btn--primary">What is Restorative Reproductive Medicine?</a></p>
+            <p><a href="/library/" class="btn btn--secondary">Browse the Research Library</a></p>
+            <p><a href="/ivf-success-calculator/" class="btn btn--secondary">IVF Success Rate Calculator</a></p>
+          </div>
+
+          <p class="disclaimer"><em>This content is for educational and reference purposes only and does not constitute medical advice. Registry and code-of-practice information reflects publicly available primary sources at the time of writing. For clinical questions about evaluating fertility care options, consult an RRM clinician or qualified healthcare provider.</em></p>
+
+        </article>
+      </div>
+    </div>
+  </div>
+  <BackToTop />
+  </MaybeShell>
+</BaseLayout>
+
+<style>
+  .author-byline {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: calc(-1 * var(--space-2));
+    margin-bottom: var(--space-6);
+    line-height: 1.6;
+  }
+
+  /* Acronym glance block at top of National Codes of Practice */
+  .acronym-glance {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: var(--space-2) var(--space-4);
+    margin: var(--space-4) 0 var(--space-8);
+    padding: var(--space-5) var(--space-6);
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+
+  .acronym-glance dt {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    letter-spacing: 0.02em;
+  }
+
+  .acronym-glance dd {
+    margin: 0;
+    color: var(--text-secondary);
+  }
+
+  @media (max-width: 640px) {
+    .acronym-glance {
+      grid-template-columns: 1fr;
+      gap: var(--space-1);
+    }
+
+    .acronym-glance dt {
+      margin-top: var(--space-2);
+    }
+
+    .acronym-glance dt:first-of-type {
+      margin-top: 0;
+    }
+  }
+
+  /* All Registry and Code Records grid */
+  .records-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+    margin: var(--space-6) 0;
+  }
+
+  @media (min-width: 768px) {
+    .records-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-8);
+    }
+  }
+
+  .records-col h3 {
+    margin-top: 0;
+  }
+
+  .records-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .records-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: var(--space-4) 0;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .records-item:last-child {
+    border-bottom: none;
+  }
+
+  .records-item__title {
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.4;
+  }
+
+  .records-item__meta {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .records-item__summary {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+  }
+
+  /* CTA Box (mirrors what-is-rrm) */
+  .cta-box {
+    background: var(--bg-surface);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: var(--space-8);
+    text-align: center;
+    margin-top: var(--space-10);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .cta-box h3 {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    margin-bottom: var(--space-3);
+  }
+
+  .cta-box p {
+    margin-bottom: var(--space-4);
+  }
+
+  .cta-box p:last-child {
+    margin-bottom: 0;
+  }
+
+  .disclaimer {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    line-height: 1.6;
+    margin-top: var(--space-8);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border-color);
+  }
+
+  /* Override container width for article layout (matches what-is-rrm / femm) */
+  @media (min-width: 1024px) {
+    .container {
+      max-width: calc(var(--max-width-article) + 220px + var(--space-10) + var(--space-8) * 2);
+    }
+  }
+</style>
