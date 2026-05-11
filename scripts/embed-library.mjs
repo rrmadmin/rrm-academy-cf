@@ -101,7 +101,7 @@ function buildEntries() {
 
   for (const t of glossary.terms || []) {
     if (!t.slug || !t.name) continue;
-    const stripped = (t.bodyHtml || '').replace(/<sup>[\s\S]*?<\/sup>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    const stripped = (t.bodyHtml || '').replace(/<sup\b[^>]*>[\s\S]*?<\/sup>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
     const parts = [t.name];
     if (stripped) parts.push(stripped);
     entries.push({

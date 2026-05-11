@@ -52,9 +52,15 @@ interface Props {
   keepLocalRefAnchors?: boolean;
   /** Whether to include the inline-citation list inside the references section. */
   includeCitedReferences?: boolean;
+  /**
+   * Known glossary slug set (lowercase). When provided, rewriteAnchors only
+   * routes `href="#xxx"` to `/glossary/xxx/` if xxx is in this set; otherwise
+   * it falls back to `/glossary/#xxx` (pillar same-page jump).
+   */
+  knownSlugs?: Set<string>;
 }
 
-const { term, headingLevel, mode, keepLocalRefAnchors = false, includeCitedReferences = false } = Astro.props;
+const { term, headingLevel, mode, keepLocalRefAnchors = false, includeCitedReferences = false, knownSlugs } = Astro.props;
 
 // Cross-ref rewrite for spoke pages.
 //   #ref-N                       -> /glossary/#ref-N         (jump back to pillar's references list,
@@ -84,6 +90,9 @@ function rewriteAnchors(html: string): string {
     if (!/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(t)) {
       return `href="/glossary/#${t}"`;
     }
+    if (knownSlugs && !knownSlugs.has(t)) {
+      return `href="/glossary/#${t}"`;
+    }
     return `href="/glossary/${t}/"`;
   });
 }
@@ -101,7 +110,7 @@ const renderedBodyAfterCrossLinks = mode === 'spoke' ? rewriteAnchors(term.bodyH
 function buildLocalRefMap(html: string): Map<number, number> {
   const order: number[] = [];
   const seen = new Set<number>();
-  const re = /href=["']#ref-(\d+)["']/g;
+  const re = /<sup\b[^>]*>\s*<a\b[^>]*href=["']#ref-(\d+)["']/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(html)) !== null) {
     const n = parseInt(m[1], 10);
@@ -132,8 +141,18 @@ function applyLocalRefNumbers(html: string, map: Map<number, number>): string {
   );
 }
 
+const citedSource = includeCitedReferences ? (term.citedReferences ?? []) : [];
+const citedByGlobal = new Map(citedSource.map(r => [r.refNum, r]));
+
 const useLocalRefs = mode === 'spoke' && keepLocalRefAnchors;
-const localRefMap = useLocalRefs ? buildLocalRefMap(renderedBodyAfterCrossLinks) : new Map<number, number>();
+const rawLocalRefMap = useLocalRefs ? buildLocalRefMap(renderedBodyAfterCrossLinks) : new Map<number, number>();
+const localRefMap = useLocalRefs
+  ? new Map(
+      Array.from(rawLocalRefMap.keys())
+        .filter(globalNum => citedByGlobal.has(globalNum))
+        .map((globalNum, i) => [globalNum, i + 1])
+    )
+  : new Map<number, number>();
 const renderedBody = useLocalRefs
   ? applyLocalRefNumbers(renderedBodyAfterCrossLinks, localRefMap)
   : renderedBodyAfterCrossLinks;
@@ -149,7 +168,7 @@ const HeadingTag = headingLevel;
 //      artifacts, not part of the source quote.
 const PRIVATE_SOURCE_KEYS = new Set(['boyle_archive']);
 
-function sanitizeDefinitionText(raw: string): string {
+function stripDefinitionMetadata(raw: string): string {
   if (!raw) return '';
   return raw
     .split(/\n+/)
@@ -166,10 +185,34 @@ function sanitizeDefinitionText(raw: string): string {
     .trim();
 }
 
+// Trust boundary: definitionText is D1 TEXT, untrusted, injected into the DOM
+// via `set:html` on the <blockquote>. escapeHtml() is the seal — every code
+// path that reaches `set:html={textToParagraphs(...)}` MUST pass through it.
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// safeHref allows only known-safe schemes (http(s), mailto, tel) plus absolute
+// paths and fragment-only anchors. Blocks javascript:, data:, vbscript:, etc.
+// Applied to every <a href={...}> that reads from D1 TEXT columns.
+function safeHref(url: string | null | undefined): string {
+  if (!url) return '#';
+  const trimmed = url.trim();
+  if (/^(https?:|mailto:|tel:|\/|#)/i.test(trimmed)) {
+    return trimmed;
+  }
+  return '#';
+}
+
 const sources = (term.definitionSources ?? [])
   .filter(s => s.visibility !== 'internal_only')
   .filter(s => !PRIVATE_SOURCE_KEYS.has((s.sourceKey || '').toLowerCase()))
-  .map(s => ({ ...s, definitionText: sanitizeDefinitionText(s.definitionText) }))
+  .map(s => ({ ...s, definitionText: stripDefinitionMetadata(s.definitionText) }))
   .filter(s => s.definitionText.length > 0)
   .sort((a, b) => a.sortOrder - b.sortOrder);
 
@@ -183,17 +226,14 @@ function normNone(v: string | null | undefined): string | null {
 // On spokes with local renumbering, build the cited list in order of first
 // appearance in the body (matches the local 1, 2, 3 sequence) and stamp each
 // entry with its LOCAL refNum so the <li id="ref-N"> anchors match the rewritten
-// <sup> links. Skip global refs that aren't actually cited in this term's body.
-// On the pillar (or any spoke that doesn't keep local anchors), preserve the
-// existing global ordering.
-const citedSource = includeCitedReferences ? (term.citedReferences ?? []) : [];
-const citedByGlobal = new Map(citedSource.map(r => [r.refNum, r]));
+// <sup> links. The localRefMap intersection above guarantees every entry has a
+// citedByGlobal hit. On the pillar (or any spoke that doesn't keep local
+// anchors), preserve the existing global ordering.
 const cited = useLocalRefs
   ? Array.from(localRefMap.entries())
       .sort((a, b) => a[1] - b[1])
       .map(([globalNum, localNum]) => {
-        const r = citedByGlobal.get(globalNum);
-        if (!r) return null;
+        const r = citedByGlobal.get(globalNum)!;
         return {
           refNum: localNum,
           anchorText: normNone(r.anchorText) || '',
@@ -202,7 +242,6 @@ const cited = useLocalRefs
           journal: normNone(r.journal),
         };
       })
-      .filter((x): x is NonNullable<typeof x> => x !== null)
   : citedSource.map(r => ({
       refNum: r.refNum,
       anchorText: normNone(r.anchorText) || '',
@@ -227,29 +266,36 @@ function formatCitation(r: typeof cited[number]): { title: string; meta: string;
 
 const hasSources = sources.length > 0 || cited.length > 0;
 
-// Convert plain text to HTML paragraphs (preserves line breaks within source quotes)
+const sectionHeadingLevel: 'h2' | 'h3' | 'h4' =
+  headingLevel === 'h1' ? 'h2' :
+  headingLevel === 'h2' ? 'h3' : 'h4';
+const SectionTag = sectionHeadingLevel;
+
+// Convert plain text to HTML paragraphs (preserves line breaks within source quotes).
+// Escapes HTML entities BEFORE wrapping so a hostile D1 row cannot inject markup
+// through the `set:html` consumer.
 function textToParagraphs(text: string): string {
   return text
     .split(/\n\s*\n/)
     .map(p => p.trim())
     .filter(Boolean)
-    .map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`)
+    .map(p => `<p>${escapeHtml(p).replace(/\n/g, '<br>')}</p>`)
     .join('');
 }
 ---
 
 <HeadingTag id={term.slug}>
   {term.pillarLink
-    ? <a href={term.pillarLink}>{term.name}</a>
+    ? <a href={safeHref(term.pillarLink)}>{term.name}</a>
     : term.name}
 </HeadingTag>
 <slot name="post-heading" />
 <Fragment set:html={renderedBody} />
 {cited.length > 0 && (
   <section class="cited-refs" aria-labelledby={`cited-refs-${term.slug}`}>
-    <h4 id={`cited-refs-${term.slug}`} class="cited-refs__title">
+    <SectionTag id={`cited-refs-${term.slug}`} class="cited-refs__title">
       Cited in this entry
-    </h3>
+    </SectionTag>
     <ol class="cited-refs__list">
       {cited.map(r => {
         const c = formatCitation(r);
@@ -264,7 +310,7 @@ function textToParagraphs(text: string): string {
             {c.url && (
               <>
                 {' '}
-                <a class="cited-refs__link" href={c.url} target="_blank" rel="noopener">{c.url}</a>
+                <a class="cited-refs__link" href={safeHref(c.url)} target="_blank" rel="noopener">{c.url}</a>
               </>
             )}
           </li>
@@ -275,9 +321,9 @@ function textToParagraphs(text: string): string {
 )}
 {mode === 'spoke' && sources.length > 0 && (
   <section class="def-sources" aria-labelledby={`def-sources-${term.slug}`}>
-    <h4 id={`def-sources-${term.slug}`} class="def-sources__title">
+    <SectionTag id={`def-sources-${term.slug}`} class="def-sources__title">
       Authoritative References
-    </h3>
+    </SectionTag>
     <p class="def-sources__intro">
       How other clinical authorities define this term. RRM Academy curates these
       verbatim or under fair use so the medical consensus is visible alongside our
@@ -304,7 +350,7 @@ function textToParagraphs(text: string): string {
               <div class="def-source__footer">
                 {s.attribution && <span class="def-source__attrib">{s.attribution}</span>}
                 {s.sourceUrl && (
-                  <a class="def-source__link" href={s.sourceUrl} rel="nofollow noopener" target="_blank">
+                  <a class="def-source__link" href={safeHref(s.sourceUrl)} rel="nofollow noopener" target="_blank">
                     Read source &rarr;
                   </a>
                 )}
