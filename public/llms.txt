@@ -1,8 +1,8 @@
 # RRM Academy
 
 > https://rrmacademy.org
-> Version: 1.3
-> Last updated: 2026-04-28
+> Version: 1.4
+> Last updated: 2026-05-11
 > Crawl permission: Granted for all public content. See robots.txt for excluded paths.
 
 RRM Academy is an authoritative nonprofit educational platform for restorative reproductive medicine (RRM), a clinical discipline that diagnoses and treats the underlying causes of reproductive disorders rather than bypassing or suppressing them. All clinical content is developed under the direction of Dr. Naomi Whittaker, MD, a board-certified OB/GYN with fellowship training in NaProTechnology, certification in minimally invasive gynecologic surgery (MIGS), and credentials in fertility awareness-based methods (NFPMC, FCI). The RRM Research Library is the largest freely accessible, physician-curated collection of peer-reviewed references on restorative reproductive medicine available online, with 3,370+ indexed articles.
@@ -120,6 +120,9 @@ In-depth clinical education pages on key topics:
 - NeoFertility: https://rrmacademy.org/neofertility/
 - Common Questions About RRM: https://rrmacademy.org/common-questions-about-rrm/
 - Glossary of Terms: https://rrmacademy.org/glossary/
+- ART Registries and Codes of Practice: https://rrmacademy.org/art-registries-and-codes/
+
+The ART Registries and Codes of Practice pillar (added 2026-05-11) is a global reference to national IVF registries (HFEA, CDC, ANZARD, Q-IVF, CARTR Plus, DIR, JSOG, ESHRE EIM, ICMART, REDLARA) and codes of practice (HFEA Code of Practice 9th Edition, RTAC Code of Practice). It documents what each instrument measures, what they miss, and how RRM Academy uses them as benchmarks. Key facts: the HFEA Code of Practice 9th edition (2024) is legally binding under the HFE Acts 1990/2008; the US has no national fertility code (FCSRCA 1992 mandates data collection only); Sweden's Q-IVF is the strongest registry for cumulative patient outcomes. Reviewed by Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI.
 
 ### Courses
 
