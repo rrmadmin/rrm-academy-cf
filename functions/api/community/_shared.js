@@ -99,12 +99,28 @@ export async function requireMember(request, env) {
     return { user, tier: 'staff', session };
   }
 
-  // Grandfathered Wix STUC members — label-based bypass
+  // Grandfathered Wix STUC members — label bypass, but only if no cancelled-subscription
+  // override. A user whose wix_subscription.status='inactive' for ALL their rows has
+  // cancelled and loses grandfather access; they must re-subscribe.
   const stucLabel = await db.prepare(
-    "SELECT 1 FROM user_label WHERE user_id = ? AND label = 'Save the Uterus Club 🏷️' LIMIT 1"
+    "SELECT 1 FROM user_label WHERE user_id = ? AND label = 'Save the Uterus Club \u{1F3F7}\u{FE0F}' LIMIT 1"
   ).bind(user.id).first();
   if (stucLabel) {
-    return { user, tier: 'member', session };
+    const cancelledOverride = await db.prepare(
+      `SELECT 1
+         FROM wix_subscription ws
+         WHERE (ws.user_id = ? OR ws.email = ? COLLATE NOCASE)
+         AND NOT EXISTS (
+           SELECT 1 FROM wix_subscription ws2
+           WHERE (ws2.user_id = ? OR ws2.email = ? COLLATE NOCASE)
+           AND ws2.status = 'active'
+         )
+         LIMIT 1`
+    ).bind(user.id, user.email, user.id, user.email).first();
+    if (!cancelledOverride) {
+      return { user, tier: 'member', session };
+    }
+    // Falls through to subscription checks below (which will 403 unless they have a Stripe sub).
   }
 
   // Active Wix subscribers (new grandfather path, covers donors missing the legacy label)
@@ -179,3 +195,28 @@ export function displayName(user) {
   if (user.first_name) return user.first_name;
   return 'Member';
 }
+
+// --- Shared STUC member predicate ---
+//
+// Used by /api/community/members (roster) and notifyNewPost() to identify members
+// eligible for roster display and auto-email. Includes staff bypass, label-based
+// grandfather, and filters out users whose Wix subscriptions have ALL been cancelled.
+// Users with NO wix_subscription row stay included (covers Ginny, Amanda, and any
+// off-D1 paid subscriptions like the legacy Wix Pricing Plan).
+//
+// Requires table alias `u` for the `user` table. Bind params: none.
+export const STUC_MEMBER_WHERE = `
+  u.blocked = 0 AND (
+    u.role IN ('mod', 'admin', 'superadmin')
+    OR (
+      (
+        u.id IN (SELECT user_id FROM user_label WHERE label = 'Save the Uterus Club \u{1F3F7}\u{FE0F}')
+        OR u.id IN (SELECT user_id FROM user_label WHERE label IN ('Uterus Member \u{1F43B}', 'Uterus Hero \u{1F496}', 'Uterus Super Hero \u{1F9B8}\u{200D}\u{2640}\u{FE0F}'))
+      )
+      AND (
+        NOT EXISTS (SELECT 1 FROM wix_subscription ws WHERE (ws.user_id = u.id OR ws.email = u.email COLLATE NOCASE))
+        OR EXISTS (SELECT 1 FROM wix_subscription ws WHERE (ws.user_id = u.id OR ws.email = u.email COLLATE NOCASE) AND ws.status = 'active')
+      )
+    )
+  )
+`.trim();

@@ -62,6 +62,19 @@ const jsonLd = {
         </div>
       </section>
 
+      <!-- Welcome-back banner (shown via JS if user previously cancelled) -->
+      <section id="member-banner-cancelled" class="member-banner member-banner--cancelled" hidden>
+        <div class="member-banner__inner card">
+          <div class="member-banner__check" aria-hidden="true">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+          </div>
+          <div class="member-banner__info">
+            <h2>Welcome back</h2>
+            <p>You were a <span id="member-tier-name-cancelled"></span> with us. Pick up where you left off whenever you're ready.</p>
+          </div>
+        </div>
+      </section>
+
       <!-- Membership Tiers -->
       <section class="stuc-section" id="tiers">
         <h2>Membership Tiers</h2>
@@ -274,6 +287,16 @@ const jsonLd = {
           if (loginHint) loginHint.hidden = true;
           if (!data.subscription) return;
           var sub = data.subscription;
+
+          // Cancelled member: show welcome-back banner, leave tier buttons enabled so they can restart.
+          if (sub.status === 'cancelled') {
+            var cancelledBanner = document.getElementById('member-banner-cancelled');
+            var cancelledTier = document.getElementById('member-tier-name-cancelled');
+            if (cancelledTier) cancelledTier.textContent = tierNames[sub.tier] || sub.tier || 'member';
+            if (cancelledBanner) cancelledBanner.hidden = false;
+            return;
+          }
+
           if (sub.status !== 'active' && sub.status !== 'trialing') return;
 
           // Show member banner
@@ -658,6 +681,15 @@ const jsonLd = {
     display: flex;
     gap: var(--space-3);
     flex-shrink: 0;
+  }
+
+  /* Welcome-back banner (cancelled subscribers) */
+  .member-banner--cancelled .member-banner__inner {
+    border-color: var(--accent, #c97b63);
+    background: rgba(201, 123, 99, 0.06);
+  }
+  .member-banner--cancelled .member-banner__check {
+    color: var(--accent, #c97b63);
   }
 
   /* Disabled tier buttons for current members */
