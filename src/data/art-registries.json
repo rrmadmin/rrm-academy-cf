@@ -1,0 +1,161 @@
+{
+  "_meta": {
+    "purpose": "Curated SSOT for /art-registries-and-codes/ topic hub.",
+    "source": "Bing AI grounding report 2026-05-11 identified 270+ citations across regulator/registry library records. This file pins the canonical anchor record per jurisdiction; the broader corpus (110+ historical annual reports) is discoverable via library search.",
+    "updated": "2026-05-11",
+    "library_base_url": "https://rrmacademy.org/library/"
+  },
+  "codes_of_practice": [
+    {
+      "jurisdiction": "United Kingdom",
+      "issuer": "Human Fertilisation and Embryology Authority (HFEA)",
+      "title": "HFEA Code of Practice",
+      "edition": "9th edition (version 9.4)",
+      "year": 2024,
+      "library_slug": "hfea-code-of-practice-9th-edition-version-94-0n2bg9oa",
+      "binding": "statutory",
+      "summary": "The most detailed national code globally. Statutorily binding under the Human Fertilisation and Embryology Acts of 1990 and 2008. Covers staff qualifications, lab quality, embryo storage, donor anonymity, age limits, and clinic data submission requirements."
+    },
+    {
+      "jurisdiction": "Australia + New Zealand",
+      "issuer": "Reproductive Technology Accreditation Committee (RTAC), Fertility Society of Australia & New Zealand",
+      "title": "RTAC Code of Practice for Reproductive Technology Units",
+      "edition": "December 2024",
+      "year": 2024,
+      "library_slug": "rtac-code-of-practice-for-reproductive-technology-units-australia-and-new-zealan",
+      "binding": "accreditation",
+      "summary": "Clinic-accreditation framework rather than statutory law. Governs staff competence, lab QC, ethical conduct, and consumer disclosure. Clinics that fail RTAC accreditation lose access to Medicare rebates."
+    },
+    {
+      "jurisdiction": "United Kingdom (statutes)",
+      "issuer": "UK Parliament",
+      "title": "Human Fertilisation and Embryology Act",
+      "edition": "1990 (as amended)",
+      "year": 1990,
+      "library_slug": "human-fertilisation-and-embryology-act-1990-lmwayq0r",
+      "binding": "statutory",
+      "summary": "Foundational UK statute that established the HFEA and the entire regulated-treatment framework. Subsequently amended in 2008."
+    },
+    {
+      "jurisdiction": "United Kingdom (statutes)",
+      "issuer": "UK Parliament",
+      "title": "Human Fertilisation and Embryology Act",
+      "edition": "2008",
+      "year": 2008,
+      "library_slug": "human-fertilisation-and-embryology-act-2008-v99nms5r",
+      "binding": "statutory",
+      "summary": "Major amendment to the 1990 Act. Expanded the regulated activities, clarified parenthood for same-sex couples, and refined storage and consent rules."
+    },
+    {
+      "jurisdiction": "United Kingdom (historical)",
+      "issuer": "MRC + Royal College of Obstetricians and Gynaecologists",
+      "title": "Final report of the Medical Research Council/Royal College of Obstetricians and Gynaecologists multi-centre trial",
+      "edition": "1993",
+      "year": 1993,
+      "library_slug": "final-report-of-the-medical-research-councilroyal-college-of-obstetricians-and-g-recfymjps4idpfuga",
+      "binding": "historical",
+      "summary": "Landmark UK self-audit of early ART. Cited as a methodological precedent for transparent multi-centre outcome reporting."
+    }
+  ],
+  "national_registries": [
+    {
+      "country": "Sweden",
+      "registry": "Q-IVF",
+      "operator": "Sveriges IVF-register",
+      "title": "Q-IVF Annual Report 2025: Fertility Treatments in Sweden (Treatment Year 2023)",
+      "year": 2025,
+      "treatment_year": 2023,
+      "library_slug": "qivf-annual-report-2025-fertility-treatments-in-sweden-treatment-year-2023-fcd8af41",
+      "strengths": "Cumulative patient-level outcomes and drop-out reporting; one of the few registries that surfaces these patient-facing numbers.",
+      "limits": "Limited demographic detail; no per-clinic public dashboards."
+    },
+    {
+      "country": "Japan",
+      "registry": "JSOG ART Summary",
+      "operator": "Japan Society of Obstetrics and Gynecology, Ethics Committee",
+      "title": "Assisted Reproductive Technology in Japan: A Summary Report for 2023",
+      "year": 2026,
+      "treatment_year": 2023,
+      "library_slug": "assisted-reproductive-technology-in-japan-a-summary-report-for-2023-by-the-commi-pkxezwws",
+      "strengths": "Largest-volume ART registry globally by cycle count. Detailed age stratification.",
+      "limits": "Limited cumulative patient outcomes; very limited cost transparency."
+    },
+    {
+      "country": "Australia + New Zealand",
+      "registry": "ANZARD",
+      "operator": "National Perinatal Epidemiology and Statistics Unit, UNSW Sydney",
+      "title": "Assisted Reproductive Technology in Australia and New Zealand 2023",
+      "year": 2025,
+      "treatment_year": 2023,
+      "library_slug": "assisted-reproductive-technology-in-australia-and-new-zealand-2023-ymotfmjg",
+      "strengths": "Detailed per-cycle initiation reporting; strong perinatal outcome linkage.",
+      "limits": "Per-clinic data is aggregated; no public per-clinic dashboards."
+    },
+    {
+      "country": "Canada",
+      "registry": "CARTR Plus",
+      "operator": "Canadian Fertility and Andrology Society",
+      "title": "CARTR Plus 2025 Annual Report (2024 Data)",
+      "year": 2025,
+      "treatment_year": 2024,
+      "library_slug": "cartr-plus-2025-annual-report-2024-data-canadian-assisted-reproductive-technolog-e94qosl4",
+      "strengths": "Voluntary but near-complete clinic participation. Good age stratification.",
+      "limits": "No statutory mandate; participation depends on clinic willingness."
+    },
+    {
+      "country": "Germany",
+      "registry": "DIR (Deutsches IVF-Register)",
+      "operator": "Deutsches IVF-Register e.V.",
+      "title": "DIR Jahrbuch 2024 (Deutsches IVF-Register Annual Report 2024)",
+      "year": 2025,
+      "treatment_year": 2024,
+      "library_slug": "dir-jahrbuch-2024-deutsches-ivfregister-annual-report-2024-qasldzbe",
+      "strengths": "Long historical continuity since the 1990s. Detailed lab-quality metrics.",
+      "limits": "Reporting in German; less accessible to global readers."
+    },
+    {
+      "country": "Latin America",
+      "registry": "RLA / REDLARA",
+      "operator": "Red Latinoamericana de Reproduccion Asistida",
+      "title": "RLA 2021: Registro Latinoamericano de Reproduccion Asistida",
+      "year": 2023,
+      "treatment_year": 2021,
+      "library_slug": "rla-2021-registro-latinoamericano-de-reproduccion-asistida-latin-american-regist-6c2cj4qx",
+      "strengths": "Cross-border coverage across 12+ countries.",
+      "limits": "Reporting cadence is irregular; some countries under-report."
+    },
+    {
+      "country": "United States",
+      "registry": "CDC ART National Summary",
+      "operator": "Centers for Disease Control and Prevention",
+      "title": "2019 Assisted Reproductive Technology Fertility Clinic and National Summary Report",
+      "year": 2021,
+      "treatment_year": 2019,
+      "library_slug": "2019-assisted-reproductive-technology-fertility-clinic-and-national-summary-repo-yveyxcvj",
+      "strengths": "Mandated under the Fertility Clinic Success Rate and Certification Act of 1992. Per-clinic detail available via CDC website.",
+      "limits": "Consistently 2-3 years lagged. No cumulative-LBR-per-patient surfacing. SART reports overlap but use different methodology."
+    },
+    {
+      "country": "Europe (continent-wide)",
+      "registry": "ESHRE EIM",
+      "operator": "European Society of Human Reproduction and Embryology, European IVF Monitoring Consortium",
+      "title": "Assisted Reproductive Technology in Europe, 2013",
+      "year": 2017,
+      "treatment_year": 2013,
+      "library_slug": "assisted-reproductive-technology-in-europe-2013-results-generated-from-european--zsha3zfp",
+      "strengths": "Aggregates 30+ European national registries.",
+      "limits": "Substantial lag between treatment year and publication; this entry is the most recent EIM report in our corpus."
+    },
+    {
+      "country": "Global",
+      "registry": "ICMART World Report",
+      "operator": "International Committee for Monitoring Assisted Reproductive Technologies",
+      "title": "ICMART World Report on Assisted Reproductive Technology (most recent)",
+      "year": 2025,
+      "treatment_year": null,
+      "library_slug": "international-committee-for-monitoring-assisted-reproductive-technologies-icmart-92iwxlye",
+      "strengths": "Cross-national aggregate methodology; useful for global trend comparisons.",
+      "limits": "Aggregation hides per-country methodology differences."
+    }
+  ]
+}

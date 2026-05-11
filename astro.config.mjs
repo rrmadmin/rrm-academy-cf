@@ -90,6 +90,7 @@ export default defineConfig({
           '/femm/',
           '/common-questions-about-rrm/',
           '/glossary/',
+          '/art-registries-and-codes/',
           '/guides/',
         ];
         if (chunkedPillars.includes(path)) return false;
