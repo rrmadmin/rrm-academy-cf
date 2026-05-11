@@ -379,16 +379,15 @@ export async function onRequestPost({ request, env, waitUntil }) {
       throw err;
     }
 
-    // Fire-and-forget email notification. Errors are logged but must not block
-    // post creation -- a transient SES outage shouldn't 500 a successful insert.
-    waitUntil(
-      notifyNewPost(env, db, {
+    // Send email notification (fire-and-forget; errors logged, must not block post creation)
+    try {
+      await notifyNewPost(env, db, {
         id, type, title: (title && typeof title === 'string') ? title.trim() : null,
         body: contentToStore, authorId: user.id, event_date: eventDate || null,
-      }, displayName(user)).catch(err =>
-        log(env, waitUntil, 'community', 'post_error', 'error', `notification: ${err.message}`, 0, 0)
-      )
-    );
+      }, displayName(user));
+    } catch (err) {
+      log(env, waitUntil, 'community', 'post_error', 'error', `notification: ${err.message}`, 0, 0);
+    }
 
     return json({
       ok: true,
