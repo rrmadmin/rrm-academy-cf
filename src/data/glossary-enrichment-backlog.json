@@ -1,0 +1,260 @@
+{
+  "schema_version": "v1-2026-05-10",
+  "description": "Glossary terms with deferred enrichment opportunities. Items here require deeper search/research time (additional citations, authority alignment, more cross-refs from sibling glossary terms, etc.) and are queued for a future enrichment round rather than blocking the current rewrite cycle.",
+  "queued_at": "2026-05-11T19:06:46Z",
+  "entries": [
+    {
+      "term_slug": "root-cause-diagnosis",
+      "term_name": "Root Cause Diagnosis",
+      "live_url": "https://rrmacademy.org/glossary/root-cause-diagnosis/",
+      "concern_category": "other",
+      "concern_text": "citation_hygiene: ref-4 is assigned as next-available; Brian should confirm sequential numbering during /glossary-update Workflow F promotion",
+      "source_audit_batch": "batch12-v3-2026-05-10",
+      "source_audit_tier": null,
+      "queued_at": "2026-05-10T19:06:46.918081Z",
+      "status": "queued"
+    },
+    {
+      "term_slug": "restorative-principle",
+      "term_name": "Restorative (as a Principle)",
+      "live_url": "https://rrmacademy.org/glossary/restorative-principle/",
+      "concern_category": "authority_alignment",
+      "concern_text": "authority_alignment: no primary medical literature formally defines 'restorative' in reproductive medicine; the RRM-specific framing note is the best available resolution without fabricating a citation",
+      "source_audit_batch": "batch12-v3-2026-05-10",
+      "source_audit_tier": null,
+      "queued_at": "2026-05-10T19:06:46.918089Z",
+      "status": "queued"
+    },
+    {
+      "term_slug": "natural-fertility",
+      "term_name": "Natural Fertility",
+      "live_url": "https://rrmacademy.org/glossary/natural-fertility/",
+      "concern_category": "authority_alignment",
+      "concern_text": "authority_alignment: Wikipedia definition of 'natural fertility' refers to demographic/sociological fertility rates without contraception -- framing is different enough that no conflict; body's RRM framing is correct and distinct",
+      "source_audit_batch": "batch12-v3-2026-05-10",
+      "source_audit_tier": null,
+      "queued_at": "2026-05-10T19:06:46.918093Z",
+      "status": "queued"
+    },
+    {
+      "term_slug": "body-literacy",
+      "term_name": "Body Literacy",
+      "live_url": "https://rrmacademy.org/glossary/body-literacy/",
+      "concern_category": "other",
+      "concern_text": "completeness: Perplexity attributes the 2005 term coining to Wershler/Matus/Lalonde; no primary source for this claim is available in the library -- excluded to avoid unverified attribution. 'Emerged from women's health advocacy' is accurate without the unsourced name claim.",
+      "source_audit_batch": "batch12-v3-2026-05-10",
+      "source_audit_tier": null,
+      "queued_at": "2026-05-10T19:06:46.918103Z",
+      "status": "queued"
+    },
+    {
+      "term_slug": "comprehensive-evaluation",
+      "term_name": "Comprehensive Evaluation",
+      "live_url": "https://rrmacademy.org/glossary/comprehensive-evaluation/",
+      "concern_category": "textbook_citation",
+      "concern_text": "citation_hygiene: audit flagged Hilgers Ch. 40 textbook as a potential citation for procedural specifics; textbook chapters are not web-resolvable citations -- keeping BMC ref-3 as primary. If Brian wants textbook citation added, that requires a library record.",
+      "source_audit_batch": "batch12-v3-2026-05-10",
+      "source_audit_tier": null,
+      "queued_at": "2026-05-10T19:06:46.918109Z",
+      "status": "queued"
+    },
+    {
+      "term_slug": "personalized-treatment",
+      "term_name": "Personalized Treatment",
+      "live_url": "https://rrmacademy.org/glossary/personalized-treatment/",
+      "concern_category": "other",
+      "concern_text": "citation_hygiene: audit recommended Boyle/Stanford BMC 2023 specifically; the URL available in the library is the BMC Pregnancy and Childbirth record (pmc.ncbi.nlm.nih.gov/articles/PMC8265110/). Brian should confirm this is the correct record or supply the 2023 version if different.",
+      "source_audit_batch": "batch12-v3-2026-05-10",
+      "source_audit_tier": null,
+      "queued_at": "2026-05-10T19:06:46.918118Z",
+      "status": "queued"
+    },
+    {
+      "term_slug": "holistic-approach",
+      "term_name": "Holistic Approach",
+      "live_url": "https://rrmacademy.org/glossary/holistic-approach/",
+      "concern_category": "other",
+      "concern_text": "citation_hygiene: canonical match (Girotto 1997 Italian family physicians) is tangential to holistic approach in RRM -- not converted to citation. Audit flagged citation_hygiene as 'warn' not 'fail'; keeping IIRRM institutional ref is appropriate here.",
+      "source_audit_batch": "batch12-v3-2026-05-10",
+      "source_audit_tier": null,
+      "queued_at": "2026-05-10T19:06:46.918127Z",
+      "status": "queued"
+    },
+    {
+      "term_slug": "holistic-approach",
+      "term_name": "Holistic Approach",
+      "live_url": "https://rrmacademy.org/glossary/holistic-approach/",
+      "concern_category": "authority_alignment",
+      "concern_text": "authority_alignment: no MeSH/NCI/SNOMED aligns to RRM's use of 'holistic'; clarification note in body handles this without requiring an external authority citation",
+      "source_audit_batch": "batch12-v3-2026-05-10",
+      "source_audit_tier": null,
+      "queued_at": "2026-05-10T19:06:46.918130Z",
+      "status": "queued"
+    },
+    {
+      "term_slug": "reproductive-health-optimization",
+      "term_name": "Reproductive Health Optimization",
+      "live_url": "https://rrmacademy.org/glossary/reproductive-health-optimization/",
+      "concern_category": "library_pipeline",
+      "concern_text": "citation_hygiene: Vigil 2017 URL is PubMed direct link (pubmed.ncbi.nlm.nih.gov/28615889/). Brian should verify this record is in the RRM library and use the library URL if available, or create a library record first.",
+      "source_audit_batch": "batch12-v3-2026-05-10",
+      "source_audit_tier": null,
+      "queued_at": "2026-05-10T19:06:46.918136Z",
+      "status": "queued"
+    },
+    {
+      "term_slug": "reproductive-health-optimization",
+      "term_name": "Reproductive Health Optimization",
+      "live_url": "https://rrmacademy.org/glossary/reproductive-health-optimization/",
+      "concern_category": "other",
+      "concern_text": "canonical_match note: Savitha 2026 'Omnipresence of Stress' (cortisol) is adjacent but not definitionally on-topic for reproductive health optimization broadly -- not converted to citation.",
+      "source_audit_batch": "batch12-v3-2026-05-10",
+      "source_audit_tier": null,
+      "queued_at": "2026-05-10T19:06:46.918143Z",
+      "status": "queued"
+    },
+    {
+      "term_slug": "corrective-vs-bypass",
+      "term_name": "Corrective vs. Bypass/Suppressive",
+      "live_url": "https://rrmacademy.org/glossary/corrective-vs-bypass/",
+      "concern_category": "other",
+      "concern_text": "IVF mention: IVF named as bypass example -- this is neutral-descriptive contrast use, consistent with IVF policy for glossary (Brian confirmed 2026-05-10: neutral-descriptive contrast OK in glossary entries)",
+      "source_audit_batch": "batch12-v3-2026-05-10",
+      "source_audit_tier": null,
+      "queued_at": "2026-05-10T19:06:46.918151Z",
+      "status": "queued"
+    },
+    {
+      "term_slug": "laparoscopic-ovarian-wedge-resection",
+      "term_name": "Laparoscopic Ovarian Wedge Resection (LOWR)",
+      "live_url": "https://rrmacademy.org/glossary/laparoscopic-ovarian-wedge-resection/",
+      "concern_category": "textbook_citation",
+      "concern_text": "Hilgers ch. 75 outcome figures (70%/30%/23% conception, miscarriage, persistent anovulation respectively) were not carried forward. The only source in cascade was the RRM Academy commentary (ref-10) -- not a primary citation. ref-92 intentionally skipped in batch 3 (no peer-reviewed primary found for NaPro LOWR cohort). Future enrichment: locate the primary Hilgers ch. 75 / NaPro Procedural Manual reference OR equivalent peer-reviewed comparative study; mint ref-92 and rewrite body to include the figures.",
+      "source_audit_batch": "batch3-2026-05-11",
+      "source_audit_tier": 2,
+      "queued_at": "2026-05-11T18:51:00Z",
+      "status": "queued"
+    },
+    {
+      "term_slug": "creighton-model",
+      "term_name": "Creighton Model FertilityCare System",
+      "live_url": "https://rrmacademy.org/glossary/creighton-model/",
+      "concern_category": "authority_alignment",
+      "concern_text": "98% method-effectiveness and 80% use-effectiveness figures dropped from rewrite because only fertilitycare.org and birthpointe.com cited them (not peer-reviewed). Body now retains only the 89.6% CEIBA cohort figure (ref-8, PMC). Future enrichment: locate the primary Howard/Stanford effectiveness publication and reinstate the 98/80 figures with peer-reviewed anchor.",
+      "source_audit_batch": "batch3-2026-05-11",
+      "source_audit_tier": 2,
+      "queued_at": "2026-05-11T18:51:00Z",
+      "status": "queued"
+    },
+    {
+      "term_slug": "naprotechnology-definition",
+      "term_name": "NaProTechnology (Definition)",
+      "live_url": "https://rrmacademy.org/glossary/naprotechnology-definition/",
+      "concern_category": "textbook_citation",
+      "concern_text": "Hilgers 2004 cohort outcome figures removed in batch 3 rewrite (no peer-reviewed primary in cascade). Body now cites only Sanchez-Mendez 2025 (ref-93, Frontiers in Reproductive Health, 1,310-couple cohort). Future enrichment: if a peer-reviewed Hilgers 2004 cohort paper exists (e.g., Stanford/Hilgers BMC 2010 or equivalent), add it as a complementary citation.",
+      "source_audit_batch": "batch3-2026-05-11",
+      "source_audit_tier": 2,
+      "queued_at": "2026-05-11T18:51:00Z",
+      "status": "queued"
+    },
+    {
+      "term_slug": "ivf",
+      "term_name": "In Vitro Fertilization (IVF)",
+      "live_url": "https://rrmacademy.org/glossary/ivf/",
+      "concern_category": "other",
+      "concern_text": "Perinatal outcomes citation is Helmerhorst 2004 BMJ (ref-96). Berntsen 2019 Hum Reprod Update PMID 30753453 is the more recent meta-analysis and could replace ref-96 in a future round. HFEA citation (ref-97) is the UK 2019 trends-and-figures report -- consider replacing with the most current HFEA Trends and Figures release in a future refresh cycle.",
+      "source_audit_batch": "batch3-2026-05-11",
+      "source_audit_tier": 3,
+      "queued_at": "2026-05-11T18:51:00Z",
+      "status": "queued"
+    },
+    {
+      "term_slug": "ldn",
+      "term_name": "Low-Dose Naltrexone (LDN)",
+      "live_url": "https://rrmacademy.org/glossary/ldn/",
+      "concern_category": "other",
+      "concern_text": "Dosing (4.5 mg / 4.5-mg standard schedule) intentionally removed per no-public-dosing rule. NeoFertility brand framing replaced with 'some RRM clinicians' to keep this entry generic-restorative. Future enrichment: if Brian wants LDN-specific RRM outcome data (cycle restoration, fertility post-LDN), locate a peer-reviewed cohort or case series for restorative-medicine usage and add as additional citation.",
+      "source_audit_batch": "batch3-2026-05-11",
+      "source_audit_tier": 1,
+      "queued_at": "2026-05-11T18:51:00Z",
+      "status": "queued"
+    },
+    {
+      "term_slug": "endometriosis",
+      "term_name": "Endometriosis",
+      "live_url": "https://rrmacademy.org/glossary/endometriosis/",
+      "concern_category": "other",
+      "concern_text": "Pugsley/Ballard 2007 BJGP (ref-98 PMID 17550672) supports the 9-year diagnostic delay claim but the paper's actual title is 'Management of endometriosis in general practice: the pathway to diagnosis' (not 'Diagnosing endometriosis in primary care'). Anchor text in D1 reflects actual title. Future enrichment: consider adding a more direct delay citation (e.g., Hadfield 1996 Hum Reprod, Husby 2003 Acta Obstet Gynecol Scand) if a stronger primary source is preferred.",
+      "source_audit_batch": "batch3-2026-05-11",
+      "source_audit_tier": 3,
+      "queued_at": "2026-05-11T18:51:00Z",
+      "status": "queued"
+    },
+    {
+      "term_slug": "hsg",
+      "term_name": "Hysterosalpingogram (HSG)",
+      "live_url": "https://rrmacademy.org/glossary/hsg/",
+      "concern_category": "authority_alignment",
+      "concern_text": "Body now describes selective salpingography (SS) and transcervical fallopian tube catheterization (TCFT) as RRM-distinctive extensions of HSG with cross-links to those terms. Citation is ref-17 (ACOG) -- appropriate for HSG itself but not ideal for the SS/TCFT claim. Future enrichment: locate a Hilgers or Thurmond peer-reviewed SS/TCFT outcome paper and add as supporting citation.",
+      "source_audit_batch": "batch3-2026-05-11",
+      "source_audit_tier": 2,
+      "queued_at": "2026-05-11T18:51:00Z",
+      "status": "queued"
+    },
+    {
+      "term_slug": "adenomyosis",
+      "term_name": "Adenomyosis",
+      "live_url": "https://rrmacademy.org/glossary/adenomyosis/",
+      "concern_category": "textbook_citation",
+      "concern_text": "RRM-specific framing now names LPD hormonal support and focal adenomyoma surgical resection at concept level. Future enrichment: locate a peer-reviewed case series or Hilgers ch. on adenomyoma surgical management with primary-cited outcome data.",
+      "source_audit_batch": "batch4-2026-05-11",
+      "source_audit_tier": 3,
+      "queued_at": "2026-05-11T19:06:46Z",
+      "status": "queued"
+    },
+    {
+      "term_slug": "bbt",
+      "term_name": "Basal Body Temperature (BBT)",
+      "live_url": "https://rrmacademy.org/glossary/bbt/",
+      "concern_category": "textbook_citation",
+      "concern_text": "Short-luteal-phase day-count threshold (typically <11d on BBT) was dropped from rewrite to stay concept-level. Future enrichment: locate the primary peer-reviewed source for the LPD BBT criterion (likely Hilgers NFP papers or 1979 Daly).",
+      "source_audit_batch": "batch4-2026-05-11",
+      "source_audit_tier": 3,
+      "queued_at": "2026-05-11T19:06:46Z",
+      "status": "queued"
+    },
+    {
+      "term_slug": "fabms",
+      "term_name": "Fertility Awareness-Based Methods (FABMs)",
+      "live_url": "https://rrmacademy.org/glossary/fabms/",
+      "concern_category": "other",
+      "concern_text": "'90% dual-purpose efficacy' summary claim used the existing ref-5/ref-6 cluster but not directly traced to a primary number in any single paper. Future enrichment: verify the 90% figure resolves to a specific paper (FABM efficacy review) or rephrase to a softer 'effectiveness comparable to many medical contraceptive methods when used consistently' construction.",
+      "source_audit_batch": "batch4-2026-05-11",
+      "source_audit_tier": 4,
+      "queued_at": "2026-05-11T19:06:46Z",
+      "status": "queued"
+    },
+    {
+      "term_slug": "mucus-cycle",
+      "term_name": "Mucus Cycle",
+      "live_url": "https://rrmacademy.org/glossary/mucus-cycle/",
+      "concern_category": "authority_alignment",
+      "concern_text": "MeSH/NCI do not have a direct equivalent of 'mucus cycle' as RRM uses it (closest is 'Cervical Mucus'). Body framing is internally consistent and cross-linked to mucus-pattern, peak-day, point-of-change. Future enrichment: add a 'see also' link to NCBI MeSH cervical mucus entry as a definition-source overlay (once glossary_definition_source table is live).",
+      "source_audit_batch": "batch4-2026-05-11",
+      "source_audit_tier": 4,
+      "queued_at": "2026-05-11T19:06:46Z",
+      "status": "queued"
+    },
+    {
+      "term_slug": "napro-vs-rrm",
+      "term_name": "NaPro vs. RRM",
+      "live_url": "https://rrmacademy.org/glossary/napro-vs-rrm/",
+      "concern_category": "other",
+      "concern_text": "Disambiguation rewrite now clearly separates NaPro (Hilgers' trademark, US Catholic origin) from RRM (umbrella movement, multiple methods FEMM/NeoFertility/CrMS). Cross-links to creighton-model, neofertility, femm. Future enrichment: if Brian wants a definitional citation, the canonical RRM-defining BMC paper (already ref-1) supports this; consider adding the IIRRM positional paper as a secondary anchor.",
+      "source_audit_batch": "batch4-2026-05-11",
+      "source_audit_tier": 4,
+      "queued_at": "2026-05-11T19:06:46Z",
+      "status": "queued"
+    }
+  ]
+}

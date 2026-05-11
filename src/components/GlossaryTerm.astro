@@ -88,7 +88,55 @@ function rewriteAnchors(html: string): string {
   });
 }
 
-const renderedBody = mode === 'spoke' ? rewriteAnchors(term.bodyHtml) : term.bodyHtml;
+const renderedBodyAfterCrossLinks = mode === 'spoke' ? rewriteAnchors(term.bodyHtml) : term.bodyHtml;
+
+// Local citation renumbering (spoke mode only, when keeping refs on-page).
+// Pillar has 100+ global ref_nums in a single References list, so sup<95> next
+// to its 95th list item makes sense. A spoke that cites only refs 95-97 globally
+// would render <sup>95</sup>...<sup>97</sup> in isolation -- the reader has no
+// context for 1-94, and the page looks broken even when it isn't. Solution:
+// in spoke mode, renumber inline citations to local 1, 2, 3 in order of first
+// appearance, and render the per-spoke Cited block with those same local ids.
+// Pillar rendering is unchanged.
+function buildLocalRefMap(html: string): Map<number, number> {
+  const order: number[] = [];
+  const seen = new Set<number>();
+  const re = /href=["']#ref-(\d+)["']/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html)) !== null) {
+    const n = parseInt(m[1], 10);
+    if (!seen.has(n)) {
+      seen.add(n);
+      order.push(n);
+    }
+  }
+  const map = new Map<number, number>();
+  order.forEach((n, i) => map.set(n, i + 1));
+  return map;
+}
+
+function applyLocalRefNumbers(html: string, map: Map<number, number>): string {
+  if (map.size === 0) return html;
+  // Match: <sup ...><a ...href="#ref-N" ...>VISIBLE</a></sup>
+  // Rewrite href target AND visible text to local M. Preserve any attributes
+  // around them (class, etc.). Robust to single OR double quotes around the
+  // href, and to attribute order before/after href.
+  return html.replace(
+    /(<sup[^>]*>\s*<a\b)([^>]*?)href=(["'])#ref-(\d+)\3([^>]*)>([^<]*)(<\/a>\s*<\/sup>)/g,
+    (_full, supOpen, preAttrs, _q, hrefNum, postAttrs, _visible, supClose) => {
+      const globalNum = parseInt(hrefNum, 10);
+      const localNum = map.get(globalNum);
+      if (!localNum) return _full;
+      return `${supOpen}${preAttrs}href="#ref-${localNum}"${postAttrs}>${localNum}${supClose}`;
+    },
+  );
+}
+
+const useLocalRefs = mode === 'spoke' && keepLocalRefAnchors;
+const localRefMap = useLocalRefs ? buildLocalRefMap(renderedBodyAfterCrossLinks) : new Map<number, number>();
+const renderedBody = useLocalRefs
+  ? applyLocalRefNumbers(renderedBodyAfterCrossLinks, localRefMap)
+  : renderedBodyAfterCrossLinks;
 const HeadingTag = headingLevel;
 
 // PROOF GATES for definition sources (enforced at render time):
@@ -132,13 +180,36 @@ function normNone(v: string | null | undefined): string | null {
   if (!t || t.toLowerCase() === 'none') return null;
   return t;
 }
-const cited = (includeCitedReferences ? (term.citedReferences ?? []) : []).map(r => ({
-  refNum: r.refNum,
-  anchorText: normNone(r.anchorText) || '',
-  url: normNone(r.url),
-  publisher: normNone(r.publisher),
-  journal: normNone(r.journal),
-}));
+// On spokes with local renumbering, build the cited list in order of first
+// appearance in the body (matches the local 1, 2, 3 sequence) and stamp each
+// entry with its LOCAL refNum so the <li id="ref-N"> anchors match the rewritten
+// <sup> links. Skip global refs that aren't actually cited in this term's body.
+// On the pillar (or any spoke that doesn't keep local anchors), preserve the
+// existing global ordering.
+const citedSource = includeCitedReferences ? (term.citedReferences ?? []) : [];
+const citedByGlobal = new Map(citedSource.map(r => [r.refNum, r]));
+const cited = useLocalRefs
+  ? Array.from(localRefMap.entries())
+      .sort((a, b) => a[1] - b[1])
+      .map(([globalNum, localNum]) => {
+        const r = citedByGlobal.get(globalNum);
+        if (!r) return null;
+        return {
+          refNum: localNum,
+          anchorText: normNone(r.anchorText) || '',
+          url: normNone(r.url),
+          publisher: normNone(r.publisher),
+          journal: normNone(r.journal),
+        };
+      })
+      .filter((x): x is NonNullable<typeof x> => x !== null)
+  : citedSource.map(r => ({
+      refNum: r.refNum,
+      anchorText: normNone(r.anchorText) || '',
+      url: normNone(r.url),
+      publisher: normNone(r.publisher),
+      journal: normNone(r.journal),
+    }));
 
 // Format a citation in clean APA-leaning style. Schema doesn't yet carry
 // authors / year / volume / DOI -- those land in Phase 2 of the schema
