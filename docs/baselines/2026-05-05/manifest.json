@@ -5,6 +5,9 @@
   "git_tag": "arise-sweep-2026-05-05-baseline",
   "git_commit_at_capture": "eb5fdb2e6c214e12508e30efc9b3fbcc81c137cd",
   "git_commit_at_capture_note": "rrm-academy-cf HEAD at the moment baselines were captured (BEFORE this manifest existed). The git tag itself points at the FIRST commit that physically contains this manifest (use `git rev-parse arise-sweep-2026-05-05-baseline^{}` to dereference). The two will always differ -- this is normal.",
+  "git_tag_pre_rewrite_dereferenced_commit": "9a77cd6bba50147662f90c60357ea32552ea6399",
+  "git_tag_post_rewrite_dereferenced_commit": "2770581535759c01023f1669e7b13e1f0165c492",
+  "git_tag_rewrite_note": "Tag was rewritten on 2026-05-10 by repo-split §3.3 (filter-repo scrub of leaked GA4 MP secret literal). The annotated tag and its dereferenced commit now point at the post-rewrite SHA. Pre-rewrite SHA recorded above for audit history. Downstream workflows that resolve the tag by name continue to work without change.",
   "storage_root": "~/iCode/.arise-baselines/2026-05-05/",
   "total_size_mb": 7.7,
   "layers": {
