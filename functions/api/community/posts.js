@@ -372,12 +372,16 @@ export async function onRequestPost({ request, env, waitUntil }) {
       finalSlug = candidate;
     }
 
+    const titleForInsert = (type === 'event' && title && typeof title === 'string' && title.trim())
+      ? title.trim()
+      : postBody.trim().slice(0, 200);
+
     try {
       await db.prepare(`
-        INSERT INTO community_post (id, author_id, type, content, event_date, event_link, resource_url, channel, slug, og_image_url)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO community_post (id, author_id, type, title, content, event_date, event_link, resource_url, channel, slug, og_image_url)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).bind(
-        id, user.id, type, contentToStore,
+        id, user.id, type, titleForInsert, contentToStore,
         eventDate || null, eventLink || null, resourceUrl || null, channel,
         finalSlug, finalOgImageUrl
       ).run();
@@ -391,7 +395,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
     // Send email notification (fire-and-forget)
     try {
       await notifyNewPost(env, db, {
-        id, body: contentToStore, authorId: user.id,
+        id, type, title: (title && typeof title === 'string') ? title.trim() : null,
+        body: contentToStore, authorId: user.id, event_date: eventDate || null,
       }, displayName(user));
     } catch (err) {
       log(env, waitUntil, 'community', 'post_error', 'error', `notification: ${err.message}`, 0, 0);
