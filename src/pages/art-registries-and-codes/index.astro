@@ -551,18 +551,34 @@ const jsonLd = {
     line-height: 1.6;
   }
 
-  /* Acronym glance block at top of National Codes of Practice */
+  /* Acronym glance block at top of National Codes of Practice.
+     Each acronym + definition pair gets its own visually distinct row
+     with a thin separator so dense entries (multi-line definitions) stay
+     legible. */
   .acronym-glance {
     display: grid;
-    grid-template-columns: max-content 1fr;
-    gap: var(--space-2) var(--space-4);
+    grid-template-columns: minmax(110px, max-content) 1fr;
+    column-gap: var(--space-6);
     margin: var(--space-4) 0 var(--space-8);
-    padding: var(--space-5) var(--space-6);
+    padding: var(--space-3) var(--space-6) 0;
     background: var(--bg-surface);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-sm);
     font-size: 0.9375rem;
-    line-height: 1.5;
+    line-height: 1.55;
+  }
+
+  .acronym-glance dt,
+  .acronym-glance dd {
+    padding-block: var(--space-4);
+    border-bottom: 1px solid var(--neutral-200);
+    margin: 0;
+  }
+
+  /* Strip the final row's separator so the block closes cleanly */
+  .acronym-glance dt:nth-last-of-type(1),
+  .acronym-glance dd:nth-last-of-type(1) {
+    border-bottom: none;
   }
 
   .acronym-glance dt {
@@ -573,22 +589,28 @@ const jsonLd = {
   }
 
   .acronym-glance dd {
-    margin: 0;
     color: var(--text-secondary);
   }
 
   @media (max-width: 640px) {
     .acronym-glance {
       grid-template-columns: 1fr;
-      gap: var(--space-1);
+      padding-inline: var(--space-5);
     }
 
+    /* Mobile: each acronym + definition becomes a single stacked row with
+       the separator drawn under the definition only */
     .acronym-glance dt {
-      margin-top: var(--space-2);
+      padding-block: var(--space-3) var(--space-1);
+      border-bottom: none;
     }
 
-    .acronym-glance dt:first-of-type {
-      margin-top: 0;
+    .acronym-glance dd {
+      padding-block: 0 var(--space-3);
+    }
+
+    .acronym-glance dt:nth-last-of-type(1) {
+      border-bottom: none;
     }
   }
 
