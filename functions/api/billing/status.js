@@ -160,6 +160,27 @@ async function handleStatus(request, env, waitUntil) {
       };
     }
 
+    // Surface most-recent cancelled Wix sub when no active sub exists — enables welcome-back UI
+    if (!subscription) {
+      const cancelledRow = await db.prepare(
+        `SELECT tier, status, amount_cents, next_expected_at, last_order_at
+           FROM wix_subscription
+           WHERE (user_id = ? OR email = ? COLLATE NOCASE)
+           ORDER BY CASE status WHEN 'active' THEN 0 ELSE 1 END, COALESCE(last_order_at, started_at) DESC
+           LIMIT 1`
+      ).bind(userId, email).first();
+      if (cancelledRow && cancelledRow.status !== 'active') {
+        subscription = {
+          tier: cancelledRow.tier,
+          status: 'cancelled',
+          currentPeriodEnd: null,
+          cancelAtPeriodEnd: false,
+          source: 'wix',
+          lastPaymentAt: cancelledRow.last_order_at || null,
+        };
+      }
+    }
+
     wixDonations = (wixPayRows.results || []).map(p => ({
       amount: p.amount_cents,
       date: toUnix(p.paid_at),
