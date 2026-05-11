@@ -59,8 +59,14 @@ export function getStaticPaths() {
   const terms = (glossaryData.terms ?? []) as GlossaryTermRow[];
   return terms
     .filter((t) => t.status === 'published')
-    .map((t) => ({ params: { slug: t.slug }, props: { term: t } }));
+    .map((t) => ({ params: { slug: t.slug.toLowerCase() }, props: { term: t } }));
 }
+
+const knownSlugs = new Set(
+  ((glossaryData.terms ?? []) as GlossaryTermRow[])
+    .filter((t) => t.status === 'published')
+    .map((t) => t.slug.toLowerCase())
+);
 
 interface Props {
   term: GlossaryTermRow;
@@ -78,7 +84,7 @@ const WEBPAGE_ID = `https://rrmacademy.org/glossary/${term.slug}/#webpage`;
 // for the DefinedTerm.description (AEO sweet spot per SEO Operator review 2026-04-18).
 function extractDescription(bodyHtml: string): string {
   if (!bodyHtml) return '';
-  const stripped = bodyHtml.replace(/<sup>[\s\S]*?<\/sup>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const stripped = bodyHtml.replace(/<sup\b[^>]*>[\s\S]*?<\/sup>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
   const boldMatch = bodyHtml.match(/<strong>([\s\S]+?)<\/strong>/);
   if (boldMatch) {
     const bold = boldMatch[1].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -95,7 +101,7 @@ function extractDescription(bodyHtml: string): string {
 // long-form DefinedTerm.description above.
 function extractSeoDescription(bodyHtml: string, name: string): string {
   if (!bodyHtml) return `${name} in restorative reproductive medicine. Glossary entry from RRM Academy.`;
-  const stripped = bodyHtml.replace(/<sup>[\s\S]*?<\/sup>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const stripped = bodyHtml.replace(/<sup\b[^>]*>[\s\S]*?<\/sup>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
   if (stripped.length <= 160) return stripped;
   // Trim to a word boundary near 157 chars to leave room for the ellipsis.
   const cut = stripped.slice(0, 157);
@@ -236,6 +242,7 @@ const RAIL_SECTIONS = [
           mode="spoke"
           keepLocalRefAnchors={!!(term.citedReferences && term.citedReferences.length > 0)}
           includeCitedReferences={true}
+          knownSlugs={knownSlugs}
         >
           {/* Glossary spoke byline matches the pillar pattern (canonical
               .author-avatar-stack + .has-reviewer; precedent: /femm/).

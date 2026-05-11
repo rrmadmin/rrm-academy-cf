@@ -160,7 +160,7 @@ const breadcrumbSchema = {
 // Target ~600-800 chars (AEO sweet spot per SEO Operator review 2026-04-18).
 function extractDescription(bodyHtml: string): string {
   if (!bodyHtml) return '';
-  const stripped = bodyHtml.replace(/<sup>[\s\S]*?<\/sup>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const stripped = bodyHtml.replace(/<sup\b[^>]*>[\s\S]*?<\/sup>/g, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
   const boldMatch = bodyHtml.match(/<strong>([\s\S]+?)<\/strong>/);
   if (boldMatch) {
     const bold = boldMatch[1].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -390,15 +390,18 @@ const definedTermSetSchema = {
           <section class="references" id="references">
             <h2>References</h2>
             <ol>
-              {references.map(r => (
-                <li id={`ref-${r.refNum}`}>
-                  <a
-                    href={r.url}
-                    rel={r.url.startsWith('https://rrmacademy.org') ? undefined : 'noopener'}
-                    target={r.url.startsWith('https://rrmacademy.org') ? undefined : '_blank'}
-                  >{r.anchorText}</a>.{r.journal ? <em>{r.journal}</em> : r.publisher}.
-                </li>
-              ))}
+              {references.map(r => {
+                const safeUrl = /^(https?:|mailto:|tel:|\/|#)/i.test((r.url || '').trim()) ? r.url : '#';
+                return (
+                  <li id={`ref-${r.refNum}`}>
+                    <a
+                      href={safeUrl}
+                      rel={safeUrl.startsWith('https://rrmacademy.org') ? undefined : 'noopener'}
+                      target={safeUrl.startsWith('https://rrmacademy.org') ? undefined : '_blank'}
+                    >{r.anchorText}</a>.{r.journal ? <em>{r.journal}</em> : r.publisher}.
+                  </li>
+                );
+              })}
             </ol>
           </section>
 
