@@ -350,26 +350,17 @@ export async function onRequestPost({ request, env, waitUntil }) {
         return json({ ok: false, error: 'Could not generate a valid slug from title' }, 400);
       }
 
-      // Uniqueness check with collision retry
-      let candidate = candidateBase;
-      let collision = await db.prepare(
-        'SELECT 1 FROM community_post WHERE slug = ? COLLATE NOCASE'
-      ).bind(candidate).first();
-
-      if (collision) {
-        let found = false;
-        for (let i = 2; i <= 99; i++) {
-          candidate = candidateBase + '-' + i;
-          collision = await db.prepare(
-            'SELECT 1 FROM community_post WHERE slug = ? COLLATE NOCASE'
-          ).bind(candidate).first();
-          if (!collision) { found = true; break; }
-        }
-        if (!found) {
-          return json({ ok: false, error: 'slug_conflict' }, 409);
-        }
-      }
-      finalSlug = candidate;
+      // Uniqueness check: batch all candidates in one query
+      const candidates = [candidateBase];
+      for (let i = 2; i <= 99; i++) candidates.push(`${candidateBase}-${i}`);
+      const placeholders = candidates.map(() => '?').join(',');
+      const existing = await db.prepare(
+        `SELECT slug FROM community_post WHERE slug IN (${placeholders}) COLLATE NOCASE`
+      ).bind(...candidates).all();
+      const taken = new Set((existing.results || []).map(r => r.slug.toLowerCase()));
+      const winner = candidates.find(c => !taken.has(c.toLowerCase()));
+      if (!winner) return json({ ok: false, error: 'slug_conflict' }, 409);
+      finalSlug = winner;
     }
 
     try {
@@ -388,14 +379,16 @@ export async function onRequestPost({ request, env, waitUntil }) {
       throw err;
     }
 
-    // Send email notification (fire-and-forget)
-    try {
-      await notifyNewPost(env, db, {
-        id, body: contentToStore, authorId: user.id,
-      }, displayName(user));
-    } catch (err) {
-      log(env, waitUntil, 'community', 'post_error', 'error', `notification: ${err.message}`, 0, 0);
-    }
+    // Fire-and-forget email notification. Errors are logged but must not block
+    // post creation -- a transient SES outage shouldn't 500 a successful insert.
+    waitUntil(
+      notifyNewPost(env, db, {
+        id, type, title: (title && typeof title === 'string') ? title.trim() : null,
+        body: contentToStore, authorId: user.id, event_date: eventDate || null,
+      }, displayName(user)).catch(err =>
+        log(env, waitUntil, 'community', 'post_error', 'error', `notification: ${err.message}`, 0, 0)
+      )
+    );
 
     return json({
       ok: true,
