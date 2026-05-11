@@ -1145,6 +1145,43 @@ blockquote a {
   text-decoration-color: var(--accent);
 }
 
+/* Unify body-prose links inside the glossary surface so bare anchors
+   (e.g. cross-spoke links written in body_html, h3 pillar-link wrappers,
+   inline list-item links) match the subtle .gloss-xref pattern instead of
+   inheriting the browser-default heavy underline. Scoped to <p> and <li>
+   descendants of article.glossary-content -- this deliberately misses
+   decorated link components (related-terms pills, def-source "Read source",
+   cited-refs URL, related-terms__link, etc.) which keep their own styles. */
+article.glossary-content p a,
+article.glossary-content li a,
+article.glossary-content h1 a,
+article.glossary-content h2 a,
+article.glossary-content h3 a,
+article.glossary-content h4 a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--purple-200);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+article.glossary-content p a:hover,
+article.glossary-content li a:hover,
+article.glossary-content h1 a:hover,
+article.glossary-content h2 a:hover,
+article.glossary-content h3 a:hover,
+article.glossary-content h4 a:hover {
+  color: var(--accent);
+  text-decoration-color: var(--accent);
+}
+/* Citation sups keep their no-underline number style. */
+article.glossary-content sup.cite-ref a {
+  color: var(--accent);
+  text-decoration: none;
+}
+article.glossary-content sup.cite-ref a:hover {
+  text-decoration: underline;
+}
+
 /* Glossary spoke page H1 — term name as the page title.
    Pillar h1 is outside <article class="prose">, so this targets only spokes.
    font-size inherits from global <h1> clamp() — H1 harmony 2026-05-08;
@@ -1153,21 +1190,35 @@ blockquote a {
   letter-spacing: -0.015em;
 }
 
-/* Pillar-mode "Open full entry" link rendered after each term body. */
+/* Pillar-mode "Open full entry" affordance rendered after each term body.
+   Pill-chip style: visually deliberate, but quieter than a primary CTA -- the
+   page has 197 of these stacked, so it stays neutral until hovered. Bottom
+   margin is intentionally larger than the surrounding term-body rhythm so the
+   chip reads as belonging to the entry ABOVE it, not crowding the next term. */
 .term-spoke-link {
-  margin-top: calc(var(--space-3) * -1);
-  margin-bottom: var(--space-6);
-  font-size: 0.8125rem;
+  margin-top: var(--space-3);
+  margin-bottom: var(--space-10);
 }
-.term-spoke-link a {
-  color: var(--text-tertiary);
+article.glossary-content .term-spoke-link a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 0.4em 0.9em;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-pill);
+  color: var(--text-secondary);
   text-decoration: none;
-  border-bottom: 1px solid transparent;
-  transition: color 0.15s ease, border-color 0.15s ease;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.2;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
-.term-spoke-link a:hover {
+article.glossary-content .term-spoke-link a:hover {
+  background: var(--purple-50);
   color: var(--accent);
-  border-bottom-color: var(--accent);
+  border-color: var(--purple-200);
+  text-decoration: none;
 }
 
 /* Pillar page lead paragraph -- 25-35 word AEO-optimized opener */
