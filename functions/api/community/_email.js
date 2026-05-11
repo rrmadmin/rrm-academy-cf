@@ -4,6 +4,7 @@
  */
 import { sendEmail } from '../_ses.js';
 import { SITE_URL } from '../auth/_shared.js';
+import { STUC_MEMBER_WHERE } from './_shared.js';
 
 function escapeHtml(str) {
   if (!str) return '';
@@ -41,14 +42,9 @@ export async function notifyNewPost(env, db, post, authorName) {
 
   const members = await db.prepare(`
     SELECT DISTINCT u.email FROM user u
-    WHERE u.blocked = 0
+    WHERE ${STUC_MEMBER_WHERE}
       AND u.community_email_opt_out = 0
       AND u.id != ?
-      AND (
-        u.role IN ('mod', 'admin', 'superadmin')
-        OR u.id IN (SELECT user_id FROM user_label WHERE label = 'Save the Uterus Club \u{1F3F7}\u{FE0F}')
-        OR u.id IN (SELECT user_id FROM user_label WHERE label IN ('Uterus Member \u{1F43B}', 'Uterus Hero \u{1F496}', 'Uterus Super Hero \u{1F9B8}\u{200D}\u{2640}\u{FE0F}'))
-      )
     LIMIT 5000
   `).bind(post.authorId).all();
 

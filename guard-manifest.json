@@ -47,7 +47,7 @@
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
-      "hash": "c569ade6a36c5a7bbde8a684afb99e30708dc3659cc26fd62a0bf11c01d4dd01",
+      "hash": "e7825cd7286ac9b4fb9f06b8d7156f1cd6066d2a5d28956229543aef98f7e3fa",
       "note": "Billing status"
     },
     "functions/api/billing/portal.js": {
@@ -127,7 +127,7 @@
       "note": "FOUC theme + chrome prop SEO invariants"
     },
     "functions/api/community/_shared.js": {
-      "hash": "1ad354e777b67645629b36c7a7c771c16c90392685135e905d53f4fc1b0a71ae",
+      "hash": "d3fcd661eb0d400e52dbff21d7f0b4b5e06017b71f393433f7f5cae11a102bc2",
       "note": "Community access control (requireMember)"
     },
     "functions/api/admin/cleanup.js": {
