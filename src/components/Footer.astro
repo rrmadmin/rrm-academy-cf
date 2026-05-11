@@ -99,9 +99,27 @@ const helpLinks = [
 
     <div class="footer-about">
       <div class="footer-about__text">
-        <p class="footer-text">
-          RRM Academy is a 501(c)(3) nonprofit providing free and low-cost education in restorative reproductive medicine for patients and healthcare professionals.
-        </p>
+        <div class="footer-nonprofit">
+          <a
+            class="footer-seal"
+            href="https://app.candid.org/profile/15279275/restorative-reproductive-medicine-foundation-93-4594315"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Candid Platinum Transparency 2026 -- view RRM Foundation's profile on Candid"
+          >
+            <img
+              src="/images/candid-seal-platinum-2026.png"
+              alt="Candid Platinum Transparency 2026"
+              width="72"
+              height="72"
+              loading="lazy"
+              decoding="async"
+            />
+          </a>
+          <p class="footer-text">
+            RRM Academy is a 501(c)(3) nonprofit providing free and low-cost education in restorative reproductive medicine for patients and healthcare professionals.
+          </p>
+        </div>
         <p class="footer-text">
           This site is an educational resource and does not provide medical advice.
           Inclusion of a study does not imply endorsement of its findings.
@@ -112,24 +130,6 @@ const helpLinks = [
         <NewsletterSignup compact heading="Newsletter" />
         <SocialRow size="sm" variant="footer" />
       </div>
-    </div>
-
-    <div class="footer-seals">
-      <a
-        href="https://app.candid.org/profile/19010373/restorative-reproductive-medicine-foundation"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Candid Platinum Transparency 2026 seal -- view RRM Foundation's profile on Candid"
-      >
-        <img
-          src="/images/candid-seal-platinum-2026.png"
-          alt="Candid Platinum Transparency 2026"
-          width="88"
-          height="88"
-          loading="lazy"
-          decoding="async"
-        />
-      </a>
     </div>
 
     <div class="footer-bottom">
@@ -297,26 +297,28 @@ const helpLinks = [
   .footer-text a:hover {
     color: var(--footer-accent-hover);
   }
-  .footer-seals {
+  .footer-nonprofit {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    padding-top: var(--space-6);
-    border-top: 1px solid var(--footer-border);
-    margin-bottom: var(--space-6);
+    gap: var(--space-5);
+    align-items: flex-start;
+    margin-bottom: var(--space-4);
   }
-  .footer-seals a {
+  .footer-seal {
     display: inline-flex;
+    flex-shrink: 0;
     opacity: 0.95;
     transition: opacity 0.15s;
   }
-  .footer-seals a:hover {
+  .footer-seal:hover {
     opacity: 1;
   }
-  .footer-seals img {
+  .footer-seal img {
     display: block;
-    height: 88px;
-    width: 88px;
+    height: 72px;
+    width: 72px;
+  }
+  .footer-nonprofit .footer-text {
+    margin: 0;
   }
   .footer-about {
     display: flex;
@@ -339,6 +341,7 @@ const helpLinks = [
     justify-content: space-between;
     flex-wrap: wrap;
     padding-top: var(--space-6);
+    border-top: 1px solid var(--footer-border);
   }
   .footer-copyright {
     font-size: 0.75rem;
