@@ -16,7 +16,7 @@
 import { json, optionsResponse } from '../auth/_shared.js';
 import { log } from '../_log.js';
 
-const VALID_SOURCES = new Set(['ask', 'semantic', 'pagefind']);
+const VALID_SOURCES = new Set(['ask', 'semantic', 'semantic_v2', 'pagefind', 'pagefind-mobile']);
 const DEFAULT_DAYS = 30;
 
 export function onRequestOptions() {
