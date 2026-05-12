@@ -248,6 +248,29 @@ const jsonLd = {
   </MaybeShell>
 </BaseLayout>
 
+<script is:inline>
+  // Hide the topic atlas + recent-additions while the search dropdown is open,
+  // so the user sees one affordance at a time. SearchBar.astro toggles
+  // aria-expanded on the input as the dropdown opens/closes.
+  (function () {
+    var input = document.getElementById('search-input');
+    if (!input) return;
+    function apply() {
+      var open = input.getAttribute('aria-expanded') === 'true';
+      document.body.classList.toggle('library-searching', open);
+    }
+    apply();
+    new MutationObserver(apply).observe(input, { attributes: true, attributeFilter: ['aria-expanded'] });
+  })();
+</script>
+
+<style is:global>
+  body.library-searching .atlas,
+  body.library-searching .page-library > .section {
+    visibility: hidden;
+  }
+</style>
+
 <style>
   @keyframes enter {
     from {
