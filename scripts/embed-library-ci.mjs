@@ -329,11 +329,17 @@ async function listVectorIds() {
       throw new Error(`Vectorize list API ${res.status}: ${err}`);
     }
     const data = await res.json();
-    if (data.result) {
-      for (const v of data.result) {
-        if (typeof v === 'string') ids.push(v);
-        else if (v && typeof v.id === 'string') ids.push(v.id);
-      }
+    // CF API has returned two shapes: { result: [...] } and { result: { vectors: [...] } }.
+    // Accept either; skip silently on unexpected shapes (stale-purge fail-soft already covers).
+    let entries = [];
+    if (Array.isArray(data.result)) {
+      entries = data.result;
+    } else if (data.result && Array.isArray(data.result.vectors)) {
+      entries = data.result.vectors;
+    }
+    for (const v of entries) {
+      if (typeof v === 'string') ids.push(v);
+      else if (v && typeof v.id === 'string') ids.push(v.id);
     }
     cursor = data.result_info?.cursor;
     if (!cursor) break;
