@@ -20,7 +20,16 @@ try { posts = (await import('../src/data/posts.json', { with: { type: 'json' } }
 try { faqs = (await import('../src/data/faqs.json', { with: { type: 'json' } })).default; } catch {}
 try { courses = (await import('../src/data/courses.json', { with: { type: 'json' } })).default; } catch {}
 try { glossary = (await import('../src/data/glossary.json', { with: { type: 'json' } })).default; } catch {}
-try { guides = (await import('../src/data/guides.json', { with: { type: 'json' } })).default; } catch {}
+try {
+  guides = (await import('../src/data/guides.json', { with: { type: 'json' } })).default;
+  if (!Array.isArray(guides)) throw new Error('guides.json is not an array');
+} catch (e) {
+  const msg = String(e?.message || e);
+  if (!msg.includes('Cannot find module') && !msg.includes('ENOENT')) {
+    console.warn('guides.json import failed:', msg);
+  }
+  guides = [];
+}
 
 const BATCH_SIZE = 100;
 const MAX_TEXT_LEN = 2000;
