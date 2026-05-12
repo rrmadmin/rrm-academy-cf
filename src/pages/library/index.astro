@@ -482,13 +482,25 @@ const jsonLd = {
     letter-spacing: -0.01em;
     margin: 0;
   }
-  /* Breaking-Bad-style initials: first 2 letters of topic name take the
-     tile's accent color. Replaces the previous icon-box pattern. */
-  .topic-tile__initial { color: var(--accent); }
-  .topic-tile--p .topic-tile__initial { color: var(--accent); }
-  .topic-tile--r .topic-tile__initial { color: var(--rose-700); }
-  .topic-tile--g .topic-tile__initial { color: var(--sage-700); }
-  .topic-tile--s .topic-tile__initial { color: var(--sand-700); }
+  /* Breaking-Bad-style inline element box: solid rounded square containing
+     the first 2 letters of the topic name, sitting inside the H3 as if it
+     were the literal "En" of "Endometriosis". Background tints + letter
+     color follow the tile's accent variant. */
+  .topic-tile__initial {
+    display: inline-block;
+    background: var(--purple-100);
+    color: var(--accent);
+    border-radius: 4px;
+    padding: 0 0.12em;
+    line-height: 0.95;
+    vertical-align: baseline;
+    margin-right: 0.04em;
+  }
+  .topic-tile--p .topic-tile__initial { background: var(--purple-100); color: var(--accent); }
+  .topic-tile--r .topic-tile__initial { background: var(--rose-100);   color: var(--rose-700); }
+  .topic-tile--g .topic-tile__initial { background: var(--sage-100);   color: var(--sage-700); }
+  .topic-tile--s .topic-tile__initial { background: var(--sand-300);   color: var(--sand-700); }
+  :global([data-theme="dark"]) .topic-tile--s .topic-tile__initial { color: var(--text-primary); }
 
   .topic-tile__desc {
     margin: 0;
