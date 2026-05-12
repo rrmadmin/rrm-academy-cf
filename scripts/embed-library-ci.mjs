@@ -326,7 +326,10 @@ async function listVectorIds() {
     }
     const data = await res.json();
     if (data.result) {
-      for (const v of data.result) ids.push(v.id || v);
+      for (const v of data.result) {
+        if (typeof v === 'string') ids.push(v);
+        else if (v && typeof v.id === 'string') ids.push(v.id);
+      }
     }
     cursor = data.result_info?.cursor;
     if (!cursor) break;
