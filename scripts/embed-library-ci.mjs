@@ -186,6 +186,11 @@ if (articles.length < 2500) {
   process.exit(1);
 }
 
+if (guides.length < 7) {
+  console.error(`ABORT: Expected 7 pillar guide entries but found ${guides.length}. Did scripts/build-guides-data.mjs run as part of the build? Without this guard, stale-vector purge below would delete previously-embedded guide-* vectors.`);
+  process.exit(1);
+}
+
 // --- Vector ID (same logic as embed-library.mjs) ---
 
 const enc = new TextEncoder();
