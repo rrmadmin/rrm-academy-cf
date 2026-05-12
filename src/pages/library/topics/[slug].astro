@@ -1,0 +1,215 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import ArticleCard from '../../../components/ArticleCard.astro';
+import AppShellChrome from '../../../components/AppShellChrome.astro';
+import { isShellEnabled } from '../../../lib/shell-routes';
+import { fetchAllArticles } from '../../../lib/airtable';
+
+const SHELL_ENABLED = isShellEnabled('library');
+
+// Curated descriptors for the 9 topics surfaced on /library/ atlas.
+// Other top-level segments get a generic descriptor.
+const TOPIC_DESCRIPTORS: Record<string, string> = {
+  'Endometriosis':            'Excision, AMH, recurrence, biomarkers.',
+  'Infertility':              'RRM work-up, IVF outcomes, recurrent loss.',
+  'PCOS':                     'Phenotype, insulin resistance, progesterone.',
+  'Pregnancy':                'Progesterone support, miscarriage, neonatal outcomes.',
+  'Menstrual Cycle':          'Cycle physiology, mucus biomarkers, ovulation.',
+  'Contraception/Comparison': 'Side effects, long-term outcomes, comparison studies.',
+  'NaProTECHNOLOGY':          'Cumulative pregnancy rates, protocols, vs IVF.',
+  'Fertility Awareness':      'Method efficacy, Creighton, Marquette, Billings, FEMM.',
+  'Surgery':                  'Excision, laparoscopy, fertility-sparing approaches.',
+};
+
+function topicSlug(topic: string): string {
+  return topic
+    .toLowerCase()
+    .replace(/\//g, '-')
+    .replace(/\s+&\s+/g, '-and-')
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+export async function getStaticPaths() {
+  const articles = await fetchAllArticles();
+
+  const segmentLabels = new Map<string, string>();
+  for (const a of articles) {
+    for (const t of (a.topics ?? [])) {
+      const label = String(t).split(' > ')[0].trim();
+      if (!label) continue;
+      const key = label.toLowerCase();
+      if (!segmentLabels.has(key)) segmentLabels.set(key, label);
+    }
+  }
+
+  return Array.from(segmentLabels.values()).map(label => {
+    const slug = label
+      .toLowerCase()
+      .replace(/\//g, '-')
+      .replace(/\s+&\s+/g, '-and-')
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+
+    const matched = articles.filter(a =>
+      (a.topics ?? []).some(t => String(t).split(' > ')[0].trim().toLowerCase() === label.toLowerCase())
+    );
+
+    matched.sort((a, b) => {
+      const ya = a.year ? Number(a.year) : 0;
+      const yb = b.year ? Number(b.year) : 0;
+      return yb - ya;
+    });
+
+    return {
+      params: { slug },
+      props: { topicLabel: label, topicArticles: matched },
+    };
+  });
+}
+
+interface Props {
+  topicLabel: string;
+  topicArticles: any[];
+}
+
+const { topicLabel, topicArticles } = Astro.props;
+const descriptor = TOPIC_DESCRIPTORS[topicLabel] ?? 'Research articles on this topic in the RRM Academy library.';
+const slug = topicSlug(topicLabel);
+
+const canonicalUrl = `https://rrmacademy.org/library/topics/${slug}/`;
+const pageTitle = `${topicLabel} Research — ${topicArticles.length.toLocaleString()} articles`;
+const pageDescription = `${topicArticles.length.toLocaleString()} peer-reviewed articles on ${topicLabel.toLowerCase()} in the RRM Research Library. ${descriptor}`;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  '@id': `${canonicalUrl}#collection`,
+  name: `${topicLabel} — RRM Research Library`,
+  description: pageDescription,
+  url: canonicalUrl,
+  numberOfItems: topicArticles.length,
+  inLanguage: 'en',
+  isPartOf: { '@id': 'https://rrmacademy.org/#website' },
+  about: { '@type': 'Thing', name: topicLabel },
+};
+---
+<BaseLayout
+  bodyClass="page-library page-library-topic"
+  title={pageTitle}
+  description={pageDescription}
+  canonicalUrl={canonicalUrl}
+  jsonLd={jsonLd}
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
+>
+  {SHELL_ENABLED ? (
+    <AppShellChrome context="index" currentPath={Astro.url.pathname}>
+      <section class="topic-page" data-pagefind-ignore="all">
+        <div class="container">
+          <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="/library/">Research Library</a>
+            <span aria-hidden="true"> &rsaquo; </span>
+            <span>{topicLabel}</span>
+          </nav>
+
+          <header class="topic-page__head">
+            <h1 class="topic-page__title">{topicLabel}</h1>
+            <p class="topic-page__desc">{descriptor}</p>
+            <p class="topic-page__count">{topicArticles.length.toLocaleString()} articles</p>
+          </header>
+
+          {topicArticles.length === 0 ? (
+            <p class="topic-page__empty">No articles found for this topic yet.</p>
+          ) : (
+            <div class="topic-page__grid">
+              {topicArticles.map(a => <ArticleCard article={a} />)}
+            </div>
+          )}
+        </div>
+      </section>
+    </AppShellChrome>
+  ) : (
+    <section class="topic-page" data-pagefind-ignore="all">
+      <div class="container">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href="/library/">Research Library</a>
+          <span aria-hidden="true"> &rsaquo; </span>
+          <span>{topicLabel}</span>
+        </nav>
+
+        <header class="topic-page__head">
+          <h1 class="topic-page__title">{topicLabel}</h1>
+          <p class="topic-page__desc">{descriptor}</p>
+          <p class="topic-page__count">{topicArticles.length.toLocaleString()} articles</p>
+        </header>
+
+        {topicArticles.length === 0 ? (
+          <p class="topic-page__empty">No articles found for this topic yet.</p>
+        ) : (
+          <div class="topic-page__grid">
+            {topicArticles.map(a => <ArticleCard article={a} />)}
+          </div>
+        )}
+      </div>
+    </section>
+  )}
+</BaseLayout>
+
+<style>
+  .topic-page {
+    padding: var(--space-6) 0 var(--space-10);
+  }
+  .breadcrumb {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-5);
+  }
+  .breadcrumb a {
+    color: var(--text-secondary);
+    text-decoration: none;
+  }
+  .breadcrumb a:hover {
+    color: var(--accent);
+    text-decoration: underline;
+  }
+  .topic-page__head {
+    margin-bottom: var(--space-7);
+    padding-bottom: var(--space-5);
+    border-bottom: 1px solid var(--border-light);
+  }
+  .topic-page__title {
+    margin: 0 0 var(--space-2);
+  }
+  .topic-page__desc {
+    margin: 0 0 var(--space-3);
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.55;
+    max-width: 60ch;
+  }
+  .topic-page__count {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+  }
+  .topic-page__grid {
+    display: grid;
+    gap: var(--space-5);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 640px) {
+    .topic-page__grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (min-width: 1024px) {
+    .topic-page__grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  .topic-page__empty {
+    color: var(--text-tertiary);
+    padding: var(--space-6) 0;
+  }
+</style>
