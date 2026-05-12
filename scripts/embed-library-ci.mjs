@@ -191,6 +191,26 @@ if (guides.length < 8) {
   process.exit(1);
 }
 
+if (posts.length < 15) {
+  console.error(`ABORT: Expected >= 15 posts but found ${posts.length}. Without this guard, stale-vector purge below would delete previously-embedded post-* vectors.`);
+  process.exit(1);
+}
+
+if (faqs.length < 20) {
+  console.error(`ABORT: Expected >= 20 FAQs but found ${faqs.length}. Without this guard, stale-vector purge below would delete previously-embedded faq-* vectors.`);
+  process.exit(1);
+}
+
+if (courses.length < 8) {
+  console.error(`ABORT: Expected >= 8 courses but found ${courses.length}. Without this guard, stale-vector purge below would delete previously-embedded course-* vectors.`);
+  process.exit(1);
+}
+
+if ((glossary.terms || []).length < 100) {
+  console.error(`ABORT: Expected >= 100 glossary terms but found ${(glossary.terms || []).length}. Without this guard, stale-vector purge below would delete previously-embedded glossary-* vectors.`);
+  process.exit(1);
+}
+
 // --- Vector ID (same logic as embed-library.mjs) ---
 
 const enc = new TextEncoder();
