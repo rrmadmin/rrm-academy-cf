@@ -244,7 +244,13 @@ const jsonLd = {
         <ul class="recent-grid" role="list">
           {recent.map(a => (
             <li>
-              <a href={`/library/${a.slug}/`} class="recent-card">
+              <a
+                href={`/library/${a.slug}/`}
+                class="recent-card"
+                data-article-card
+                data-slug={a.slug}
+                data-title={a.title}
+              >
                 {a.isOpenAccess && (
                   <span class="recent-card__oa" aria-label="Open access">
                     <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
