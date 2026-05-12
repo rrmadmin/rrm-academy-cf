@@ -3,14 +3,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import MaybeShell from '../../components/MaybeShell.astro';
 import SearchBar from '../../components/SearchBar.astro';
 import { isShellEnabled } from '../../lib/shell-routes';
-import { fetchAllArticles } from '../../lib/airtable';
+import { fetchAllArticles, type Article } from '../../lib/airtable';
 
 const SHELL_ENABLED = isShellEnabled('library');
 
 const articles = await fetchAllArticles();
 
 // Compact homepage card data — derive once at build time so the JSX stays trivial.
-const recent = articles.slice(0, 6).map((a: any) => {
+const recent = articles.slice(0, 6).map((a: Article) => {
   const authorsRaw = String(a.authors || '');
   const firstAuthor = authorsRaw.split(';')[0]?.split(',')[0]?.trim() || '';
   // Multi-author detection: semicolons are the canonical separator, but some
@@ -42,9 +42,8 @@ const recent = articles.slice(0, 6).map((a: any) => {
 function countTopic(matchTargets: string[]): number {
   const targets = new Set(matchTargets.map(s => s.toLowerCase()));
   let n = 0;
-  for (const a of articles as any[]) {
-    const topics: string[] = a.topics || [];
-    for (const t of topics) {
+  for (const a of articles) {
+    for (const t of (a.topics ?? [])) {
       if (targets.has(String(t).split(' > ')[0].trim().toLowerCase())) { n++; break; }
     }
   }
@@ -53,8 +52,8 @@ function countTopic(matchTargets: string[]): number {
 
 // Count of unique top-level topic segments across the corpus
 const allTopSegments = new Set<string>();
-for (const a of articles as any[]) {
-  for (const t of (a.topics || [])) {
+for (const a of articles) {
+  for (const t of (a.topics ?? [])) {
     const top = String(t).split(' > ')[0].trim();
     if (top) allTopSegments.add(top);
   }
