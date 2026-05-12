@@ -970,6 +970,8 @@
 
   // Clear button
   clearBtn.addEventListener('click', function() {
+    clearTimeout(debounceTimer);
+    stopLoadingSpinner();
     input.value = '';
     clearBtn.classList.add('hidden');
     resultsEl.innerHTML = '';

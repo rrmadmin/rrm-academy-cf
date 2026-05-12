@@ -927,6 +927,8 @@
   }
 
   clearBtn.addEventListener('click', function() {
+    clearTimeout(debounceTimer);
+    stopLoadingSpinner();
     input.value = '';
     clearBtn.setAttribute('hidden', '');
     preloadedData = [];
