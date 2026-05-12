@@ -104,7 +104,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
       const total = countRow?.total ?? 0;
 
       const rows = await env.ANALYTICS_DB.prepare(
-        `SELECT id, source, query, user_id, ip_hash, results_count, duration_ms, http_status,
+        `SELECT id, source, query, user_id, results_count, duration_ms, http_status,
                 user_agent_short, referer_path, created_at
          FROM search_log ${where}
          ORDER BY created_at DESC
