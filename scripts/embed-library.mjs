@@ -117,7 +117,7 @@ function buildEntries() {
     const parts = [g.title];
     if (g.description) parts.push(g.description);
     if (g.sectionHeadings && g.sectionHeadings.length) parts.push('Sections: ' + g.sectionHeadings.join(', '));
-    if (g.faqText) parts.push(g.faqText);
+    if (g.keywordText) parts.push(g.keywordText);
     if (g.bodyText) parts.push(g.bodyText);
     entries.push({
       slug: `guide-${g.slug}`, text: parts.join('. '),

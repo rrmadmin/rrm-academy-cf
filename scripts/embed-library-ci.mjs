@@ -153,7 +153,7 @@ function buildEntries() {
     });
   }
 
-  // Pillar guides -- title + description + section headings + FAQ + body prose
+  // Pillar guides -- title + description + section headings + frontmatter keyword strings + body prose
   for (const g of guides) {
     if (!g.slug || !g.title) continue;
     const parts = [g.title];
@@ -161,7 +161,7 @@ function buildEntries() {
     if (g.sectionHeadings && g.sectionHeadings.length) {
       parts.push('Sections: ' + g.sectionHeadings.join(', '));
     }
-    if (g.faqText) parts.push(g.faqText);
+    if (g.keywordText) parts.push(g.keywordText);
     if (g.bodyText) parts.push(g.bodyText);
     entries.push({
       slug: `guide-${g.slug}`,
