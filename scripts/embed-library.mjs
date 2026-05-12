@@ -150,7 +150,11 @@ export default {
 
     try {
       const entries = buildEntries();
-      const startFrom = parseInt(url.searchParams.get('start') || '0');
+      const rawStart = url.searchParams.get('start');
+      const startFrom = rawStart ? parseInt(rawStart, 10) : 0;
+      if (!Number.isFinite(startFrom) || startFrom < 0) {
+        return new Response(`Invalid ?start=${rawStart}`, { status: 400 });
+      }
       log(`Found ${entries.length} entries (${articles.length} articles, ${posts.length} posts, ${faqs.length} FAQs, ${courses.length} courses, ${(glossary.terms || []).length} glossary terms, ${guides.length} guides). Starting from ${startFrom}.`);
       let embedded = startFrom;
 
