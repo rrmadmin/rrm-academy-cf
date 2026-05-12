@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>All articles — Sidebar filters (C, v2)</title>
+<link rel="stylesheet" href="tokens.css" />
+<style>
+  /* === SIDEBAR FILTERS + GRID — cards now match live /library/ recent-card ============ */
+  .browse-layout {
+    display: grid; gap: var(--space-6);
+    grid-template-columns: 1fr;
+    margin: var(--space-6) 0;
+  }
+  @media (min-width: 1024px) {
+    .browse-layout { grid-template-columns: 240px 1fr; gap: var(--space-8); }
+  }
+
+  /* Filter sidebar (desktop) / bottom sheet (mobile) */
+  .filter-rail {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-5);
+    height: fit-content;
+  }
+  @media (min-width: 1024px) {
+    .filter-rail { position: sticky; top: 80px; }
+  }
+  .filter-group { margin-bottom: var(--space-5); }
+  .filter-group:last-child { margin-bottom: 0; }
+  .filter-group__head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: .6875rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .08em;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-2);
+  }
+  .filter-group__head a {
+    font-size: .6875rem; font-weight: 500; color: var(--text-tertiary);
+    text-transform: none; letter-spacing: 0;
+  }
+  .filter-list { list-style: none; padding: 0; margin: 0; }
+  .filter-list li {
+    padding: 6px 0;
+    display: flex; align-items: center; gap: 8px;
+    font-size: .875rem;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+  .filter-list li:hover { color: var(--accent); }
+  .filter-list input { accent-color: var(--accent); }
+  .filter-list .count { margin-left: auto; font-size: .75rem; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
+  .topic-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0;
+    display: inline-block;
+  }
+  .topic-dot--p { background: var(--purple-500); }
+  .topic-dot--r { background: var(--rose-700); }
+  .topic-dot--g { background: var(--sage-700); }
+  .topic-dot--s { background: var(--sand-700); }
+
+  .filter-range {
+    display: flex; gap: var(--space-2); align-items: center; font-size: .8125rem;
+  }
+  .filter-range input {
+    width: 100%; padding: 6px 10px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color); background: var(--bg-body);
+    font-family: inherit; font-size: .875rem; color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+  }
+  .filter-toggle {
+    display: flex; align-items: center; gap: var(--space-2);
+    font-size: .875rem; cursor: pointer;
+  }
+  .filter-toggle input { accent-color: var(--accent); }
+
+  /* Main column */
+  .main-col { min-width: 0; }
+  .main-toolbar {
+    display: flex; flex-wrap: wrap; gap: var(--space-3);
+    align-items: center; justify-content: space-between;
+    margin-bottom: var(--space-4);
+  }
+  .active-filters {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    font-size: .75rem;
+  }
+  .active-filter {
+    padding: 3px 10px 3px 8px;
+    border-radius: var(--radius-pill);
+    background: var(--purple-100);
+    color: var(--accent);
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: .75rem; font-weight: 500;
+  }
+  .active-filter button {
+    background: none; border: 0; color: var(--accent);
+    font-size: 14px; line-height: 1; padding: 0;
+    margin-left: 2px;
+  }
+  .toolbar-sort {
+    font-size: .8125rem; color: var(--text-tertiary);
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .toolbar-sort select {
+    background: transparent; border: 0; color: var(--text-primary);
+    font: inherit; font-size: .8125rem; font-weight: 500; cursor: pointer;
+  }
+
+  /* === CARDS — match live /library/ recent-card exactly ============ */
+  .grid {
+    list-style: none; padding: 0; margin: 0;
+    display: grid; gap: var(--space-4);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 640px)  { .grid { grid-template-columns: repeat(2, 1fr); } }
+
+  .recent-card {
+    position: relative;
+    display: flex; flex-direction: column; gap: var(--space-3);
+    min-height: 170px;
+    padding: var(--space-5);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    text-decoration: none; color: inherit;
+    transition: border-color .15s, transform .15s, box-shadow .2s;
+  }
+  .recent-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    text-decoration: none;
+  }
+  .recent-card__topic-dot {
+    position: absolute;
+    top: var(--space-4);
+    left: var(--space-5);
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+  .recent-card__title {
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--text-primary);
+    margin: 0;
+    padding-left: 16px; /* leave room for the topic dot */
+    padding-right: var(--space-12); /* leave room for the OA pill */
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    transition: color .15s;
+  }
+  .recent-card:hover .recent-card__title { color: var(--accent); }
+  .recent-card__meta {
+    margin-top: auto;
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border-light);
+    display: flex; flex-direction: column; gap: 2px;
+    font-size: .75rem; line-height: 1.4;
+    color: var(--text-tertiary);
+    min-width: 0;
+  }
+  .recent-card__author {
+    color: var(--text-secondary); font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .recent-card__journal-row {
+    display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-2);
+    min-width: 0;
+  }
+  .recent-card__journal {
+    font-style: italic;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    flex: 1; min-width: 0;
+  }
+  .recent-card__topic-name {
+    font-size: .6875rem; font-weight: 500;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    text-transform: none; letter-spacing: 0;
+  }
+  .recent-card__oa {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px;
+    background: var(--sage-100); color: var(--sage-700);
+    font-size: .625rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .06em;
+    border-radius: var(--radius-pill);
+  }
+  @media (max-width: 639px) {
+    .recent-card { min-height: 0; padding: var(--space-4); }
+    .recent-card__title { padding-right: var(--space-10); padding-left: 14px; }
+    .recent-card__topic-dot { top: 18px; left: var(--space-4); }
+  }
+
+  .pagination {
+    display: flex; justify-content: center; gap: var(--space-2); margin: var(--space-10) 0 var(--space-6);
+    font-size: .875rem;
+  }
+  .pagination a, .pagination span {
+    padding: 8px 14px; border-radius: var(--radius-md);
+    color: var(--text-secondary); border: 1px solid transparent;
+  }
+  .pagination a:hover { border-color: var(--border-color); color: var(--text-primary); text-decoration: none; background: var(--bg-surface); }
+  .pagination .current { background: var(--accent); color: white; }
+  .pagination .ellipsis { color: var(--text-muted); padding: 8px 4px; }
+
+  /* === MOBILE BOTTOM SHEET ============ */
+  .mobile-filter-btn {
+    display: none;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    padding: 10px 18px;
+    font-size: .875rem; font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: var(--space-4);
+    cursor: pointer;
+    align-items: center; gap: 6px;
+  }
+  .mobile-filter-btn__count {
+    background: var(--accent); color: white;
+    font-size: .625rem; font-weight: 600;
+    padding: 1px 6px; border-radius: var(--radius-pill);
+    margin-left: 4px;
+  }
+  @media (max-width: 1023px) {
+    .mobile-filter-btn { display: inline-flex; }
+    .filter-rail { display: none; }
+  }
+
+  /* Sheet backdrop + panel — pure-CSS via :target */
+  .sheet-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.4);
+    z-index: 100; opacity: 0; pointer-events: none;
+    transition: opacity .2s;
+  }
+  .sheet-panel {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    background: var(--bg-surface);
+    border-top-left-radius: var(--radius-lg);
+    border-top-right-radius: var(--radius-lg);
+    padding: var(--space-5);
+    max-height: 85vh; overflow-y: auto;
+    z-index: 101;
+    transform: translateY(100%);
+    transition: transform .25s cubic-bezier(.25,.46,.45,.94);
+    box-shadow: 0 -8px 24px rgba(0,0,0,.15);
+  }
+  .sheet-panel__grip {
+    width: 40px; height: 4px;
+    background: var(--neutral-300);
+    border-radius: 2px;
+    margin: -6px auto var(--space-4);
+  }
+  .sheet-panel__head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: var(--space-4);
+  }
+  .sheet-panel__head h2 { font-size: 1.25rem; }
+  .sheet-panel__close {
+    background: none; border: 0; color: var(--text-secondary);
+    font-size: 1.5rem; line-height: 1; cursor: pointer;
+    padding: 0; text-decoration: none;
+  }
+  .sheet-panel__actions {
+    position: sticky; bottom: 0;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border-color);
+    padding: var(--space-3) 0 0;
+    margin-top: var(--space-4);
+    display: flex; gap: var(--space-2);
+  }
+  .sheet-panel__actions button, .sheet-panel__actions a {
+    flex: 1; padding: 12px 16px;
+    border-radius: var(--radius-pill);
+    font-size: .9375rem; font-weight: 500;
+    text-align: center; cursor: pointer;
+    text-decoration: none;
+  }
+  .sheet-panel__actions .btn-clear {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+  }
+  .sheet-panel__actions .btn-apply {
+    background: var(--neutral-900); color: var(--bg-surface);
+    border: 0;
+  }
+  @media (prefers-color-scheme: dark) {
+    .sheet-panel__actions .btn-apply { background: var(--accent); color: var(--bg-body); }
+  }
+
+  /* :target activation */
+  #filters:target ~ .sheet-backdrop { opacity: 1; pointer-events: auto; }
+  #filters:target ~ .sheet-panel { transform: translateY(0); }
+
+  /* On desktop the sheet is hidden completely */
+  @media (min-width: 1024px) {
+    .sheet-backdrop, .sheet-panel { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="mock-shell">
+  <header class="mock-header">
+    <div class="container mock-header__inner">
+      <div class="mock-brand">RRM <span>Academy</span></div>
+      <nav class="mock-nav">
+        <a href="#" class="active">Research Library</a>
+        <a href="#">Commentary</a>
+        <a href="#">Learn</a>
+        <a href="#">Sign in</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="page-head">
+    <div class="container">
+      <nav class="breadcrumb"><a href="#">Research Library</a> &rsaquo; All articles &rsaquo; Page 1</nav>
+      <h1>Browse all articles</h1>
+      <p class="page-head__meta tabular">Showing <strong>1–50</strong> of <strong>3,636</strong>  ·  <strong>312</strong> match your filters</p>
+    </div>
+  </section>
+
+  <div class="container">
+    <a href="#filters" class="mobile-filter-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+      Filters
+      <span class="mobile-filter-btn__count">4</span>
+    </a>
+
+    <div class="browse-layout">
+
+      <!-- Desktop sidebar -->
+      <aside class="filter-rail" aria-label="Filters">
+        <div class="filter-group">
+          <div class="filter-group__head">Topic <a href="#">Clear</a></div>
+          <ul class="filter-list">
+            <li><input type="checkbox" checked /> <span class="topic-dot topic-dot--p"></span> Endometriosis <span class="count">259</span></li>
+            <li><input type="checkbox" checked /> <span class="topic-dot topic-dot--r"></span> Infertility <span class="count">875</span></li>
+            <li><input type="checkbox" /> <span class="topic-dot topic-dot--g"></span> PCOS <span class="count">204</span></li>
+            <li><input type="checkbox" /> <span class="topic-dot topic-dot--r"></span> Pregnancy <span class="count">558</span></li>
+            <li><input type="checkbox" /> <span class="topic-dot topic-dot--p"></span> Hormones &amp; Cycle <span class="count">438</span></li>
+            <li><input type="checkbox" /> <span class="topic-dot topic-dot--s"></span> Contraception <span class="count">392</span></li>
+            <li><input type="checkbox" /> <span class="topic-dot topic-dot--p"></span> NaProTECHNOLOGY <span class="count">266</span></li>
+            <li><input type="checkbox" /> <span class="topic-dot topic-dot--g"></span> Fertility Awareness <span class="count">437</span></li>
+            <li><input type="checkbox" /> <span class="topic-dot topic-dot--s"></span> Surgery <span class="count">228</span></li>
+          </ul>
+        </div>
+
+        <div class="filter-group">
+          <div class="filter-group__head">Year</div>
+          <div class="filter-range">
+            <input type="number" value="2020" min="1962" max="2026" />
+            <span>—</span>
+            <input type="number" value="2026" min="1962" max="2026" />
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <div class="filter-group__head">Access</div>
+          <label class="filter-toggle">
+            <input type="checkbox" checked /> Open access only
+          </label>
+        </div>
+
+        <div class="filter-group">
+          <div class="filter-group__head">Journal</div>
+          <ul class="filter-list">
+            <li><input type="checkbox" /> JAMA <span class="count">42</span></li>
+            <li><input type="checkbox" /> Fertility &amp; Sterility <span class="count">128</span></li>
+            <li><input type="checkbox" /> J Restor Reprod Med <span class="count">96</span></li>
+            <li><input type="checkbox" /> Am J Obstet Gynecol <span class="count">73</span></li>
+            <li style="color: var(--text-tertiary)"><a href="#" style="font-size:.75rem">+ 138 more journals</a></li>
+          </ul>
+        </div>
+      </aside>
+
+      <!-- Main column -->
+      <div class="main-col">
+
+        <div class="main-toolbar">
+          <div class="active-filters">
+            <span class="active-filter">Endometriosis <button>×</button></span>
+            <span class="active-filter">Infertility <button>×</button></span>
+            <span class="active-filter">2020–2026 <button>×</button></span>
+            <span class="active-filter">Open access <button>×</button></span>
+          </div>
+          <div class="toolbar-sort">
+            Sort:
+            <select><option>Newest</option><option>Most cited</option><option>Most relevant</option></select>
+          </div>
+        </div>
+
+        <ul class="grid" role="list">
+
+          <li>
+            <a href="#" class="recent-card">
+              <span class="recent-card__topic-dot topic-dot--p" aria-hidden="true"></span>
+              <span class="recent-card__oa">Open</span>
+              <h3 class="recent-card__title">Disordered eating behaviors during adolescence and risk of endometriosis: a prospective cohort study</h3>
+              <div class="recent-card__meta">
+                <span class="recent-card__author">Thornburgh S et al., 2026</span>
+                <div class="recent-card__journal-row">
+                  <span class="recent-card__journal">Fertility &amp; Sterility</span>
+                  <span class="recent-card__topic-name">Endometriosis</span>
+                </div>
+              </div>
+            </a>
+          </li>
+
+          <li>
+            <a href="#" class="recent-card">
+              <span class="recent-card__topic-dot topic-dot--p" aria-hidden="true"></span>
+              <h3 class="recent-card__title">Incident endometriosis diagnosis and anti-müllerian hormone: how surgical staging and typology relate to serum AMH levels</h3>
+              <div class="recent-card__meta">
+                <span class="recent-card__author">Valenti M et al., 2026</span>
+                <div class="recent-card__journal-row">
+                  <span class="recent-card__journal">Am J Obstet Gynecol</span>
+                  <span class="recent-card__topic-name">Endometriosis</span>
+                </div>
+              </div>
+            </a>
+          </li>
+
+          <li>
+            <a href="#" class="recent-card">
+              <span class="recent-card__topic-dot topic-dot--p" aria-hidden="true"></span>
+              <span class="recent-card__oa">Open</span>
+              <h3 class="recent-card__title">Endometriosis phenotypes and staging in relation to lipid biomarkers: Findings from the ENDO Cohort Study</h3>
+              <div class="recent-card__meta">
+                <span class="recent-card__author">Schliep KC et al., 2026</span>
+                <div class="recent-card__journal-row">
+                  <span class="recent-card__journal">J Gynecol Obstet</span>
+                  <span class="recent-card__topic-name">Endometriosis</span>
+                </div>
+              </div>
+            </a>
+          </li>
+
+          <li>
+            <a href="#" class="recent-card">
+              <span class="recent-card__topic-dot topic-dot--r" aria-hidden="true"></span>
+              <span class="recent-card__oa">Open</span>
+              <h3 class="recent-card__title">The Association Between History of Infertility and Dietary Practices Among Preconception Females</h3>
+              <div class="recent-card__meta">
+                <span class="recent-card__author">Velmahos AH et al., 2026</span>
+                <div class="recent-card__journal-row">
+                  <span class="recent-card__journal">J Restor Reprod Med</span>
+                  <span class="recent-card__topic-name">Infertility</span>
+                </div>
+              </div>
+            </a>
+          </li>
+
+          <li>
+            <a href="#" class="recent-card">
+              <span class="recent-card__topic-dot topic-dot--r" aria-hidden="true"></span>
+              <h3 class="recent-card__title">Public Awareness, Perceptions, and Preferences in Fertility Treatment: Secondary Analysis of Two Public Surveys</h3>
+              <div class="recent-card__meta">
+                <span class="recent-card__author">Parnell TA et al., 2026</span>
+                <div class="recent-card__journal-row">
+                  <span class="recent-card__journal">J Restor Reprod Med</span>
+                  <span class="recent-card__topic-name">Infertility</span>
+                </div>
+              </div>
+            </a>
+          </li>
+
+          <li>
+            <a href="#" class="recent-card">
+              <span class="recent-card__topic-dot topic-dot--p" aria-hidden="true"></span>
+              <span class="recent-card__oa">Open</span>
+              <h3 class="recent-card__title">Endometriosis Surgery: Debates About Restorative Reproductive Medicine</h3>
+              <div class="recent-card__meta">
+                <span class="recent-card__author">Humphries LA, 2026</span>
+                <div class="recent-card__journal-row">
+                  <span class="recent-card__journal">Obstet Gynecol</span>
+                  <span class="recent-card__topic-name">Endometriosis</span>
+                </div>
+              </div>
+            </a>
+          </li>
+
+        </ul>
+
+        <nav class="pagination">
+          <span class="current">1</span>
+          <a href="#">2</a>
+          <a href="#">3</a>
+          <span class="ellipsis">…</span>
+          <a href="#">7</a>
+          <a href="#">Next →</a>
+        </nav>
+      </div>
+
+    </div>
+  </div>
+
+  <footer class="mock-footer">
+    <div class="container">Mockup C v2 · Sidebar filters · <a href="all-index.html">Back to gallery</a></div>
+  </footer>
+</div>
+<div class="mockup-badge">C · Sidebar filters (v2)</div>
+
+<!-- Mobile bottom sheet — sibling of #filters anchor so :target ~ selector works -->
+<a id="filters"></a>
+<a href="#" class="sheet-backdrop" aria-label="Close filter sheet"></a>
+<div class="sheet-panel" role="dialog" aria-modal="true" aria-label="Filter all articles">
+    <div class="sheet-panel__grip"></div>
+    <div class="sheet-panel__head">
+      <h2>Filter articles</h2>
+      <a href="#" class="sheet-panel__close" aria-label="Close">×</a>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-group__head">Topic <a href="#">Clear</a></div>
+      <ul class="filter-list">
+        <li><input type="checkbox" checked /> <span class="topic-dot topic-dot--p"></span> Endometriosis <span class="count">259</span></li>
+        <li><input type="checkbox" checked /> <span class="topic-dot topic-dot--r"></span> Infertility <span class="count">875</span></li>
+        <li><input type="checkbox" /> <span class="topic-dot topic-dot--g"></span> PCOS <span class="count">204</span></li>
+        <li><input type="checkbox" /> <span class="topic-dot topic-dot--r"></span> Pregnancy <span class="count">558</span></li>
+        <li><input type="checkbox" /> <span class="topic-dot topic-dot--p"></span> Hormones &amp; Cycle <span class="count">438</span></li>
+        <li><input type="checkbox" /> <span class="topic-dot topic-dot--s"></span> Contraception <span class="count">392</span></li>
+        <li><input type="checkbox" /> <span class="topic-dot topic-dot--p"></span> NaProTECHNOLOGY <span class="count">266</span></li>
+        <li><input type="checkbox" /> <span class="topic-dot topic-dot--g"></span> Fertility Awareness <span class="count">437</span></li>
+        <li><input type="checkbox" /> <span class="topic-dot topic-dot--s"></span> Surgery <span class="count">228</span></li>
+      </ul>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-group__head">Year</div>
+      <div class="filter-range">
+        <input type="number" value="2020" />
+        <span>—</span>
+        <input type="number" value="2026" />
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-group__head">Access</div>
+      <label class="filter-toggle">
+        <input type="checkbox" checked /> Open access only
+      </label>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-group__head">Journal</div>
+      <ul class="filter-list">
+        <li><input type="checkbox" /> JAMA <span class="count">42</span></li>
+        <li><input type="checkbox" /> Fertility &amp; Sterility <span class="count">128</span></li>
+        <li><input type="checkbox" /> J Restor Reprod Med <span class="count">96</span></li>
+        <li><input type="checkbox" /> Am J Obstet Gynecol <span class="count">73</span></li>
+      </ul>
+    </div>
+
+    <div class="sheet-panel__actions">
+      <a href="#" class="btn-clear">Clear all</a>
+      <a href="#" class="btn-apply">Show 312 results</a>
+    </div>
+</div>
+</body>
+</html>
