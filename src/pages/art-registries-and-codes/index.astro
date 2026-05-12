@@ -270,9 +270,9 @@ const jsonLd = {
           <aside class="tldr">
             <h2 id="key-takeaways">Key Takeaways</h2>
             <ul>
-              <li><strong>The UK operates the most iteratively maintained statutory ART code in force.</strong> The HFEA Code of Practice (9th edition, launched 2019, current as v9.4 since October 2023) is statutory under the Human Fertilisation and Embryology Acts of 1990 and 2008. Binding national ART regimes also operate in Germany, Italy, Spain, France, Canada, and Australia and New Zealand.</li>
-              <li><strong>The US has a federal data mandate but no national clinical code.</strong> The Fertility Clinic Success Rate and Certification Act (FCSRCA) of 1992 requires CDC reporting; it does not regulate clinical practice.</li>
-              <li><strong>Sweden's Q-IVF is one of the few registries that routinely publishes cumulative patient-level outcomes.</strong> Australia and New Zealand's ANZARD also links successive cycles for the same patient. Most other public-facing registry outputs remain cycle-based, which understates attrition and overstates effective clinic performance.</li>
+              <li><strong>The UK operates the most iteratively maintained statutory ART code in force.</strong> The <a href="/library/hfea-code-of-practice-9th-edition-version-94-0n2bg9oa/">HFEA Code of Practice</a> (9th edition, launched 2019, current as v9.4 since October 2023) is statutory under the <a href="/library/human-fertilisation-and-embryology-act-1990-lmwayq0r/">Human Fertilisation and Embryology Act 1990</a> and the <a href="/library/human-fertilisation-and-embryology-act-2008-v99nms5r/">2008 amendment</a>. Binding national ART regimes also operate in Germany, Italy, Spain, France, Canada, and Australia and New Zealand.</li>
+              <li><strong>The US has a federal data mandate but no national clinical code.</strong> The Fertility Clinic Success Rate and Certification Act (FCSRCA) of 1992 requires <a href="/library/2019-assisted-reproductive-technology-fertility-clinic-and-national-summary-repo-yveyxcvj/">CDC reporting</a>; it does not regulate clinical practice.</li>
+              <li><strong>Sweden's <a href="/library/qivf-annual-report-2025-fertility-treatments-in-sweden-treatment-year-2023-fcd8af41/">Q-IVF</a> is one of the few registries that routinely publishes cumulative patient-level outcomes.</strong> Australia and New Zealand's <a href="/library/assisted-reproductive-technology-in-australia-and-new-zealand-2023-ymotfmjg/">ANZARD</a> also links successive cycles for the same patient. Most other public-facing registry outputs remain cycle-based, which understates attrition and overstates effective clinic performance.</li>
               <li><strong>Most registry outputs measure cycles, not the patients who went through them.</strong> No major registry publishes diagnostic workup completion, journey length from first consultation, or out-of-pocket cost to live birth.</li>
               <li><strong>The 14 canonical instruments in this guide are indexed in the RRM Academy Research Library.</strong> Each section links to the primary source.</li>
             </ul>
@@ -289,7 +289,7 @@ const jsonLd = {
 
           <p>Patients should care about both. Codes of practice tell you what a clinic is legally required to do. Registries tell you whether the aggregate outcomes across an entire country or region justify the clinical decisions being made.</p>
 
-          <p>But both instruments have limits. Sweden's Q-IVF and Australia and New Zealand's ANZARD do link successive cycles for the same patient and report some cumulative outcomes. Most other public-facing registry outputs do not. They count what happens in a given treatment episode rather than following a couple from first consultation to eventual outcome, whether that outcome is a live birth, a decision to stop treatment, or an undiagnosed condition that was never addressed. They report what technology produced. They do not report out-of-pocket cost, journey length, or whether the underlying cause of infertility was ever diagnosed.</p>
+          <p>But both instruments have limits. Sweden's <a href="/library/qivf-annual-report-2025-fertility-treatments-in-sweden-treatment-year-2023-fcd8af41/">Q-IVF</a> and Australia and New Zealand's <a href="/library/assisted-reproductive-technology-in-australia-and-new-zealand-2023-ymotfmjg/">ANZARD</a> do link successive cycles for the same patient and report some cumulative outcomes. Most other public-facing registry outputs do not. They count what happens in a given treatment episode rather than following a couple from first consultation to eventual outcome, whether that outcome is a live birth, a decision to stop treatment, or an undiagnosed condition that was never addressed. They report what technology produced. They do not report out-of-pocket cost, journey length, or whether the underlying cause of infertility was ever diagnosed.</p>
 
           <p><a href="/what-is-rrm/">Restorative Reproductive Medicine</a> asks different questions. RRM clinicians start from diagnosis: what is causing this couple's infertility, and is there a treatable condition? Registry data is necessary for transparency in a field that handles profound decisions. But it is not sufficient for evaluating whether patients are being served well. Understanding what registries do and do not measure is the first step toward asking better questions.</p>
 
@@ -302,18 +302,25 @@ const jsonLd = {
             {artRegistries.comparison_frames.map((frame: any) => (
               <article class="registry-profile">
                 <header>
-                  <h3><a href={`#${frame.anchor}`}>{frame.registry}</a></h3>
-                  <p class="profile-country">{frame.country}</p>
+                  <h3>
+                    <a href={`/library/${frame.library_slug}/`}>{frame.registry}</a>
+                  </h3>
+                  <p class="profile-country">
+                    {frame.country}
+                    <span class="profile-detail-link">
+                      &middot; <a href={`#${frame.anchor}`}>Detail below &darr;</a>
+                    </span>
+                  </p>
                 </header>
                 <dl class="profile-fields">
-                  <div><dt>Governance</dt><dd>{frame.governance}</dd></div>
-                  <div><dt>Submission</dt><dd>{frame.submission}</dd></div>
-                  <div><dt>Collects</dt><dd>{frame.collects}</dd></div>
-                  <div><dt>Publishes</dt><dd>{frame.publishes}</dd></div>
-                  <div><dt>Omits from public reporting</dt><dd>{frame.omits}</dd></div>
-                  <div><dt>Funding capture</dt><dd>{frame.funding_capture}</dd></div>
-                  <div><dt>Coverage</dt><dd>{frame.coverage}</dd></div>
-                  <div><dt>Publication lag</dt><dd>{frame.publication_lag}</dd></div>
+                  <div><dt>Governance</dt><dd set:html={frame.governance}></dd></div>
+                  <div><dt>Submission</dt><dd set:html={frame.submission}></dd></div>
+                  <div><dt>Collects</dt><dd set:html={frame.collects}></dd></div>
+                  <div><dt>Publishes</dt><dd set:html={frame.publishes}></dd></div>
+                  <div><dt>Omits from public reporting</dt><dd set:html={frame.omits}></dd></div>
+                  <div><dt>Funding capture</dt><dd set:html={frame.funding_capture}></dd></div>
+                  <div><dt>Coverage</dt><dd set:html={frame.coverage}></dd></div>
+                  <div><dt>Publication lag</dt><dd set:html={frame.publication_lag}></dd></div>
                 </dl>
               </article>
             ))}
@@ -791,6 +798,32 @@ const jsonLd = {
     text-transform: uppercase;
     letter-spacing: 0.06em;
     font-weight: 500;
+  }
+
+  .profile-detail-link {
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 400;
+  }
+
+  .profile-detail-link a {
+    color: var(--text-secondary, #44403c);
+    text-decoration: none;
+  }
+
+  .profile-detail-link a:hover {
+    text-decoration: underline;
+  }
+
+  .profile-fields dd a {
+    color: var(--link-color, var(--text-primary));
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-thickness: 1px;
+  }
+
+  .profile-fields dd a:hover {
+    text-decoration-thickness: 2px;
   }
 
   .profile-fields {
