@@ -430,9 +430,9 @@
   var preloadedData = [];
   var activeFilter = 'all';
 
-  // Grouped-result ordering: definitions → overviews → practical Qs → courses → opinion → research.
-  // Matches the patient/clinician funnel; research goes last because volume buries answer-shaped content.
-  var TYPE_ORDER = ['Guide', 'Glossary', 'FAQ', 'Course', 'Article', 'Research'];
+  // Grouped-result ordering (chip + section order, left-to-right).
+  // Courses placed last; primary order is Brian-specified.
+  var TYPE_ORDER = ['Guide', 'Research', 'Glossary', 'Article', 'FAQ', 'Course'];
   var TYPE_LABEL = { Guide: 'Guides', Glossary: 'Glossary', FAQ: 'FAQs', Course: 'Courses', Article: 'Commentary', Research: 'Research' };
   var GROUP_PREVIEW = { Guide: 5, Glossary: 5, FAQ: 5, Course: 5, Article: 3, Research: 3 };
 
