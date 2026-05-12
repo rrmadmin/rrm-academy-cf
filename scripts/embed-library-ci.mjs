@@ -365,23 +365,38 @@ for (let i = 0; i < entries.length; i += BATCH_SIZE) {
 
 const upsertedIds = new Set(entries.map(e => e.id || vectorId(e.slug)));
 
+let listFailed = false;
+let staleIds = [];
 try {
   console.log('Listing existing vectors to find stale entries...');
   const existingIds = await listVectorIds();
-  const staleIds = existingIds.filter(id => !upsertedIds.has(id));
+  staleIds = existingIds.filter(id => !upsertedIds.has(id));
+} catch (err) {
+  console.warn(`Warning: stale vector listing failed (${err.message}). Skipping purge; vectors were upserted successfully.`);
+  listFailed = true;
+}
 
+if (!listFailed) {
   if (staleIds.length > 0) {
     console.log(`Found ${staleIds.length} stale vectors to delete...`);
+    let deleteFailed = 0;
     for (let i = 0; i < staleIds.length; i += BATCH_SIZE) {
       const batch = staleIds.slice(i, i + BATCH_SIZE);
-      await deleteVectors(batch);
+      try {
+        await deleteVectors(batch);
+      } catch (err) {
+        console.error(`Failed to delete stale vector batch at index ${i}: ${err.message}`);
+        deleteFailed += batch.length;
+      }
+    }
+    if (deleteFailed > 0) {
+      console.error(`ABORT: Failed to delete ${deleteFailed} of ${staleIds.length} stale vectors. Re-run embed to retry; stale vectors will surface in search until cleared.`);
+      process.exit(1);
     }
     console.log(`Deleted ${staleIds.length} stale vectors.`);
   } else {
     console.log('No stale vectors found.');
   }
-} catch (err) {
-  console.warn(`Warning: stale vector cleanup failed (${err.message}). Vectors were upserted successfully.`);
 }
 
 console.log('Done. All content embedded.');
