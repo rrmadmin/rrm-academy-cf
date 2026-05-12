@@ -78,7 +78,13 @@ export async function onRequestGet(context) {
 
   // Rate limit by IP to protect billed AI/Vectorize calls
   if (isRateLimited(ip)) {
-    return Response.json({ results: [], error: 'rate_limited' }, { status: 429, headers: CORS_HEADERS });
+    const entry = rateLimitMap.get(ip);
+    const elapsed = entry ? Date.now() - entry.start : 0;
+    const retryAfterSec = Math.max(1, Math.ceil((RATE_WINDOW - elapsed) / 1000));
+    return Response.json({ results: [], error: 'rate_limited' }, {
+      status: 429,
+      headers: { ...CORS_HEADERS, 'Retry-After': String(retryAfterSec) },
+    });
   }
 
   // Read v2 tier stamped by middleware; for anonymous users 'admin' tier falls back to v1
