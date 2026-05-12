@@ -21,6 +21,7 @@ const OUT = join(ROOT, 'src', 'data', 'guides.json');
 
 const GUIDES = [
   { slug: 'art-registries-and-codes', file: 'art-registries-and-codes/index.astro' },
+  { slug: 'common-questions-about-rrm', file: 'common-questions-about-rrm.astro' },
   { slug: 'femm',                     file: 'femm/index.astro' },
   { slug: 'naprotechnology',          file: 'naprotechnology/index.astro' },
   { slug: 'neofertility',             file: 'neofertility/index.astro' },
