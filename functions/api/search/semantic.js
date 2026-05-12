@@ -1,4 +1,4 @@
-import { CORS_HEADERS, roleAtLeast } from '../auth/_shared.js';
+import { CORS_HEADERS, optionsResponse, roleAtLeast } from '../auth/_shared.js';
 import { log } from '../_log.js';
 import { logSearchQuery, hashIp, extractRequestMeta } from '../_search_log.js';
 
@@ -9,7 +9,7 @@ const RATE_WINDOW = 60_000;
 
 function isRateLimited(ip) {
   const now = Date.now();
-  if (rateLimitMap.size > 10000) {
+  if (rateLimitMap.size > 1000) {
     for (const [k, v] of rateLimitMap) {
       if (now - v.start > RATE_WINDOW) {
         rateLimitMap.delete(k);
@@ -31,6 +31,10 @@ function shouldUseV2(tier, user) {
   return false;
 }
 
+export function onRequestOptions() {
+  return optionsResponse();
+}
+
 export async function onRequestGet(context) {
   const { request, env, waitUntil } = context;
   const start = Date.now();
@@ -50,12 +54,12 @@ export async function onRequestGet(context) {
         ip_hash: await hashIp(ip),
         results_count: 0,
         duration_ms: Date.now() - start,
-        http_status: 200,
+        http_status: 400,
         user_agent_short,
         referer_path,
       });
     }
-    return Response.json({ results: [] }, { headers: CORS_HEADERS });
+    return Response.json({ results: [], error: 'query_too_short' }, { status: 400, headers: CORS_HEADERS });
   }
 
   if (query.length > 500) {
@@ -74,7 +78,13 @@ export async function onRequestGet(context) {
 
   // Rate limit by IP to protect billed AI/Vectorize calls
   if (isRateLimited(ip)) {
-    return Response.json({ results: [], error: 'rate_limited' }, { status: 429, headers: CORS_HEADERS });
+    const entry = rateLimitMap.get(ip);
+    const elapsed = entry ? Date.now() - entry.start : 0;
+    const retryAfterSec = Math.max(1, Math.ceil((RATE_WINDOW - elapsed) / 1000));
+    return Response.json({ results: [], error: 'rate_limited' }, {
+      status: 429,
+      headers: { ...CORS_HEADERS, 'Retry-After': String(retryAfterSec) },
+    });
   }
 
   // Read v2 tier stamped by middleware; for anonymous users 'admin' tier falls back to v1
@@ -190,10 +200,29 @@ export async function onRequestGet(context) {
       return Response.json({ results: [], error: 'service_unavailable' }, { status: 503, headers: CORS_HEADERS });
     }
 
-    // Embed the user's query
-    const embedding = await env.AI.run('@cf/baai/bge-base-en-v1.5', {
-      text: [query],
-    });
+    // Embed the user's query (600ms timeout -- 2x client headroom)
+    const SUBREQ_TIMEOUT_MS = 600;
+    let embedding;
+    try {
+      embedding = await Promise.race([
+        env.AI.run('@cf/baai/bge-base-en-v1.5', { text: [query] }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('ai_timeout')), SUBREQ_TIMEOUT_MS)),
+      ]);
+    } catch (aiErr) {
+      const isTimeout = aiErr.message === 'ai_timeout';
+      log(env, waitUntil, 'search', isTimeout ? 'ai_timeout' : 'ai_error', 'error', isTimeout ? 'AI.run timed out' : aiErr.message, Date.now() - start, isTimeout ? 503 : 502);
+      await logSearchQuery(env, {
+        source: 'semantic',
+        query,
+        ip_hash: await hashIp(ip),
+        results_count: 0,
+        duration_ms: Date.now() - start,
+        http_status: isTimeout ? 503 : 502,
+        user_agent_short,
+        referer_path,
+      });
+      return Response.json({ results: [], error: isTimeout ? 'service_unavailable' : 'embedding_failed' }, { status: isTimeout ? 503 : 502, headers: CORS_HEADERS });
+    }
     const queryVector = embedding.data?.[0];
     if (!queryVector) {
       log(env, waitUntil, 'search', 'embedding_failed', 'error', 'AI returned no vector', 0, 502);
@@ -210,11 +239,28 @@ export async function onRequestGet(context) {
       return Response.json({ results: [], error: 'embedding_failed' }, { status: 502, headers: CORS_HEADERS });
     }
 
-    // Find nearest neighbors
-    const matches = await env.VECTORIZE.query(queryVector, {
-      topK: 10,
-      returnMetadata: 'all',
-    });
+    // Find nearest neighbors (600ms timeout)
+    let matches;
+    try {
+      matches = await Promise.race([
+        env.VECTORIZE.query(queryVector, { topK: 10, returnMetadata: 'all' }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('vectorize_timeout')), SUBREQ_TIMEOUT_MS)),
+      ]);
+    } catch (vErr) {
+      const isTimeout = vErr.message === 'vectorize_timeout';
+      log(env, waitUntil, 'search', isTimeout ? 'vectorize_timeout' : 'vectorize_error', 'error', isTimeout ? 'Vectorize timed out' : vErr.message, Date.now() - start, isTimeout ? 503 : 502);
+      await logSearchQuery(env, {
+        source: 'semantic',
+        query,
+        ip_hash: await hashIp(ip),
+        results_count: 0,
+        duration_ms: Date.now() - start,
+        http_status: isTimeout ? 503 : 502,
+        user_agent_short,
+        referer_path,
+      });
+      return Response.json({ results: [], error: isTimeout ? 'service_unavailable' : 'search_failed' }, { status: isTimeout ? 503 : 502, headers: CORS_HEADERS });
+    }
 
     const seen = new Set();
     const results = [];
@@ -225,7 +271,7 @@ export async function onRequestGet(context) {
       const dedupKey = recMatch ? recMatch[1].toLowerCase() : matchUrl.toLowerCase();
       if (seen.has(dedupKey)) continue;
       seen.add(dedupKey);
-      results.push({
+      const result = {
         slug: m.metadata.slug,
         title: m.metadata.title,
         year: m.metadata.year,
@@ -233,7 +279,9 @@ export async function onRequestGet(context) {
         type: m.metadata.type || 'Research',
         score: m.score,
         url: matchUrl,
-      });
+      };
+      if (m.metadata.rrmRelevance != null) result.rrmRelevance = m.metadata.rrmRelevance;
+      results.push(result);
     }
 
     await logSearchQuery(env, {

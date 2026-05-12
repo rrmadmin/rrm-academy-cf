@@ -166,11 +166,12 @@ function extractKeywordText(frontmatter) {
   // the frontmatter (FAQPage Q/A, citation titles, MedicalCondition names,
   // articleSection labels, etc). All are useful keyword signal for semantic
   // matching; the broader extraction is intentional, not FAQ-only.
+  const cleaned = frontmatter.replace(/\/\/.*/g, '');
   const out = [];
-  const re = /\b(?:name|text):\s*(["'])((?:\\.|(?!\1).)*)\1/g;
+  const re = /\b(?:name|text):\s*(["'`])((?:\\.|(?!\1).)*)\1/g;
   let m;
-  while ((m = re.exec(frontmatter)) !== null) {
-    const raw = m[2].replace(/\\(['"\\])/g, '$1');
+  while ((m = re.exec(cleaned)) !== null) {
+    const raw = m[2].replace(/\\(['"\\`])/g, '$1');
     if (raw.length > 8 && raw.length < 2000) out.push(raw);
   }
   return out.join(' ');

@@ -12,9 +12,14 @@
       id="search-input"
       autocomplete="off"
       autofocus
+      role="combobox"
+      aria-autocomplete="list"
+      aria-expanded="false"
+      aria-controls="search-results"
+      aria-haspopup="listbox"
     />
     <button class="search-clear hidden" id="search-clear" aria-label="Clear search">✕</button>
-    <div class="search-results" id="search-results"></div>
+    <div class="search-results" id="search-results" role="listbox" aria-label="Search results"></div>
   </div>
 </div>
 
@@ -430,6 +435,11 @@
   var preloadedData = [];
   var activeFilter = 'all';
   var inflightSemanticCtl = null;
+  // Keyboard nav state (WCAG 2.1.1). activeIdx is an index into the visible
+  // .sr-item nodes at the time of the keystroke; visibility is recomputed each
+  // press so filter chips + show-all expansion don't desync.
+  var activeIdx = -1;
+  var _sr_idx_counter = 0;
 
   // Grouped-result ordering (chip + section order, left-to-right).
   // Courses placed last; primary order is Brian-specified.
@@ -530,6 +540,9 @@
       preloadedData = [];
       currentQuery = '';
       activeFilter = 'all';
+      activeIdx = -1;
+      input.setAttribute('aria-expanded', 'false');
+      input.removeAttribute('aria-activedescendant');
       return;
     }
     currentQuery = q;
@@ -568,6 +581,10 @@
       // Fire both searches in parallel
       if (inflightSemanticCtl) inflightSemanticCtl.abort();
       inflightSemanticCtl = new AbortController();
+      // Anchor the semantic timeout to fetch start, not to after-Pagefind. Cold-load
+      // Pagefind (200-500ms) used to silently extend the semantic budget; now the
+      // 300ms ceiling is consistent regardless of Pagefind warm/cold state.
+      var semanticStart = Date.now();
       var semanticPromise = fetch('/api/search/semantic?q=' + encodeURIComponent(query), { signal: inflightSemanticCtl.signal })
         .then(function(r) { return r.json(); })
         .catch(function(err) {
@@ -593,10 +610,13 @@
       )).filter(Boolean);
       if (query !== currentQuery) { stopLoadingSpinner(); return; }
 
-      // Wait for semantic with 300ms timeout (Pagefind is already done)
+      // Wait for semantic with a 300ms budget measured from semanticStart. If
+      // Pagefind took >=300ms, the remaining budget is 0 (semantic already
+      // settled or timed out from the user's POV).
+      var semanticRemaining = Math.max(0, 300 - (Date.now() - semanticStart));
       var semanticData = await Promise.race([
         semanticPromise,
-        new Promise(function(resolve) { setTimeout(function() { resolve(null); }, 300); })
+        new Promise(function(resolve) { setTimeout(function() { resolve(null); }, semanticRemaining); })
       ]);
       if (query !== currentQuery) { stopLoadingSpinner(); return; }
 
@@ -664,12 +684,17 @@
             fusedMap[matchKey].data.meta.type = sItem.type;
           }
         } else {
-          // Semantic-only result -- still valuable for intent matches Pagefind missed
+          // Semantic-only result -- still valuable for intent matches Pagefind missed.
+          // Propagate rrmRelevance from semantic payload so the rlRank tiering (0/10/25/45/60)
+          // applies; without this, semantic-only Research items defaulted to rlRank=30.
+          var sMeta = { title: sItem.title, authors: sItem.authors || '', year: sItem.year ? String(sItem.year) : '', type: sItem.type || 'Research' };
+          if (sItem.rrmRelevance) sMeta.rrmRelevance = sItem.rrmRelevance;
+          if (sItem.sentiment) sMeta.sentiment = sItem.sentiment;
           fusedMap[sUrl] = {
             score: 1 / (RRF_K + sRank),
             data: {
               url: sUrl, excerpt: '',
-              meta: { title: sItem.title, authors: sItem.authors || '', year: sItem.year ? String(sItem.year) : '', type: sItem.type || 'Research' },
+              meta: sMeta,
               _pfRank: -1
             }
           };
@@ -794,10 +819,17 @@
 
   function renderPanel() {
     resultsEl.innerHTML = '';
+    // Reset keyboard nav state on every full re-render (filter change, late
+    // semantic merge, fresh search). Sibling ID counters are not reset --
+    // ids are scoped per render but must remain unique within the document.
+    activeIdx = -1;
+    input.removeAttribute('aria-activedescendant');
     if (totalCount === 0) {
       resultsEl.innerHTML = '<p class="sr-empty">No results found for "' + escHtml(currentQuery) + '"</p>';
+      input.setAttribute('aria-expanded', 'false');
       return;
     }
+    input.setAttribute('aria-expanded', 'true');
 
     // Bucket by type, preserving RRF order within each bucket.
     var buckets = {};
@@ -893,12 +925,56 @@
     }
     if (resultsEl.scrollTo) resultsEl.scrollTo({ top: 0, behavior: 'smooth' });
     else resultsEl.scrollTop = 0;
+    // Visibility changed -- clear any active option so the next ArrowDown
+    // starts at index 0 within the newly visible set.
+    clearActiveOption();
+  }
+
+  // ── Keyboard navigation (WCAG 2.1.1) ──
+  // Collect only currently visible .sr-item nodes (skipping items hidden by
+  // [data-over-preview] in default mode or by group-filter rules). Recomputed
+  // on every keystroke so it stays correct as the user filters / expands.
+  function getVisibleItems() {
+    var nodes = resultsEl.querySelectorAll('.sr-item');
+    var out = [];
+    for (var i = 0; i < nodes.length; i++) {
+      if (nodes[i].offsetParent !== null) out.push(nodes[i]);
+    }
+    return out;
+  }
+
+  function clearActiveOption() {
+    if (activeIdx < 0) return;
+    var prior = resultsEl.querySelectorAll('.sr-item[aria-selected="true"]');
+    for (var i = 0; i < prior.length; i++) prior[i].setAttribute('aria-selected', 'false');
+    activeIdx = -1;
+    input.removeAttribute('aria-activedescendant');
+  }
+
+  function setActiveOption(idx) {
+    var items = getVisibleItems();
+    if (!items.length) return;
+    if (idx < 0) idx = items.length - 1;
+    if (idx >= items.length) idx = 0;
+    var prior = resultsEl.querySelectorAll('.sr-item[aria-selected="true"]');
+    for (var i = 0; i < prior.length; i++) prior[i].setAttribute('aria-selected', 'false');
+    var el = items[idx];
+    el.setAttribute('aria-selected', 'true');
+    activeIdx = idx;
+    if (el.id) input.setAttribute('aria-activedescendant', el.id);
+    // Keep the active option in view inside the scroll panel.
+    if (typeof el.scrollIntoView === 'function') {
+      el.scrollIntoView({ block: 'nearest' });
+    }
   }
 
   function renderResult(data) {
     var a = document.createElement('a');
     a.className = 'sr-item';
     a.href = data.url;
+    a.setAttribute('role', 'option');
+    a.setAttribute('aria-selected', 'false');
+    a.id = 'sr-opt-' + (++_sr_idx_counter);
 
     var title = data.meta && data.meta.title ? data.meta.title : '';
     var authors = data.meta && data.meta.authors ? data.meta.authors : '';
@@ -1004,12 +1080,46 @@
     preloadedData = [];
     currentQuery = '';
     activeFilter = 'all';
+    activeIdx = -1;
+    input.setAttribute('aria-expanded', 'false');
+    input.removeAttribute('aria-activedescendant');
     input.focus();
   });
 
-  // Submit on Enter (debounced live search handles the rest)
+  // Keyboard handling on the input:
+  //  - ArrowDown/Up  : move active option through visible .sr-item nodes
+  //  - Enter         : if an option is active, follow its href; else re-run search
+  //  - Escape        : clear active option (or clear input if none active)
   input.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowDown') {
+      var items = getVisibleItems();
+      if (!items.length) return;
+      e.preventDefault();
+      setActiveOption(activeIdx < 0 ? 0 : activeIdx + 1);
+      return;
+    }
+    if (e.key === 'ArrowUp') {
+      var items2 = getVisibleItems();
+      if (!items2.length) return;
+      e.preventDefault();
+      setActiveOption(activeIdx < 0 ? items2.length - 1 : activeIdx - 1);
+      return;
+    }
+    if (e.key === 'Escape') {
+      if (activeIdx >= 0) {
+        e.preventDefault();
+        clearActiveOption();
+      }
+      return;
+    }
     if (e.key === 'Enter') {
+      var items3 = getVisibleItems();
+      if (activeIdx >= 0 && items3[activeIdx]) {
+        e.preventDefault();
+        // Activate the selected result -- same path as a pointer click.
+        items3[activeIdx].click();
+        return;
+      }
       e.preventDefault();
       var q = input.value.trim();
       if (q) { clearTimeout(debounceTimer); doSearch(q); }
