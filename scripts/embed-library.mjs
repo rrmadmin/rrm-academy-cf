@@ -15,11 +15,12 @@
 import articles from '../src/data/articles.json';
 
 // Optional imports -- these files may not exist locally
-let posts = [], faqs = [], courses = [], glossary = { terms: [] };
+let posts = [], faqs = [], courses = [], glossary = { terms: [] }, guides = [];
 try { posts = (await import('../src/data/posts.json', { with: { type: 'json' } })).default; } catch {}
 try { faqs = (await import('../src/data/faqs.json', { with: { type: 'json' } })).default; } catch {}
 try { courses = (await import('../src/data/courses.json', { with: { type: 'json' } })).default; } catch {}
 try { glossary = (await import('../src/data/glossary.json', { with: { type: 'json' } })).default; } catch {}
+try { guides = (await import('../src/data/guides.json', { with: { type: 'json' } })).default; } catch {}
 
 const BATCH_SIZE = 100;
 const MAX_TEXT_LEN = 2000;
@@ -111,6 +112,20 @@ function buildEntries() {
     });
   }
 
+  for (const g of guides) {
+    if (!g.slug || !g.title) continue;
+    const parts = [g.title];
+    if (g.description) parts.push(g.description);
+    if (g.sectionHeadings && g.sectionHeadings.length) parts.push('Sections: ' + g.sectionHeadings.join(', '));
+    if (g.faqText) parts.push(g.faqText);
+    if (g.bodyText) parts.push(g.bodyText);
+    entries.push({
+      slug: `guide-${g.slug}`, text: parts.join('. '),
+      type: 'Guide', url: g.url,
+      title: g.title, year: null, authors: '',
+    });
+  }
+
   return entries;
 }
 
@@ -127,7 +142,7 @@ export default {
     try {
       const entries = buildEntries();
       const startFrom = parseInt(url.searchParams.get('start') || '0');
-      log(`Found ${entries.length} entries (${articles.length} articles, ${posts.length} posts, ${faqs.length} FAQs, ${courses.length} courses, ${(glossary.terms || []).length} glossary terms). Starting from ${startFrom}.`);
+      log(`Found ${entries.length} entries (${articles.length} articles, ${posts.length} posts, ${faqs.length} FAQs, ${courses.length} courses, ${(glossary.terms || []).length} glossary terms, ${guides.length} guides). Starting from ${startFrom}.`);
       let embedded = startFrom;
 
       for (let i = startFrom; i < entries.length; i += BATCH_SIZE) {
