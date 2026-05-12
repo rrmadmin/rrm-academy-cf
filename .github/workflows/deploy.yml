@@ -384,6 +384,24 @@ jobs:
           PUBLIC_SHELL_ROUTES: ${{ vars.PUBLIC_SHELL_ROUTES || '' }}
         run: npm run build
 
+      - name: Verify generated data files
+        # Post-build floor check on data files generated during npm run build
+        # (not in the pre-build Verify step because they don't exist yet there).
+        # Third-line defense -- build-guides-data.mjs and embed-library-ci.mjs
+        # both already fail closed on missing/short guides.json.
+        run: |
+          guides_file="src/data/guides.json"
+          if [ ! -f "$guides_file" ]; then
+            echo "ERROR: $guides_file missing after build. Did scripts/build-guides-data.mjs run?"
+            exit 1
+          fi
+          guides_count=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$guides_file','utf8')).length)")
+          if [ "$guides_count" -ne 7 ]; then
+            echo "ERROR: $guides_file has $guides_count entries (expected 7 pillar guides)"
+            exit 1
+          fi
+          echo "OK: $guides_file has $guides_count entries"
+
       - name: Validate glossary gates (always)
         # G1-G5 static gates have no dist dependency and snapshot:glossary only
         # needs dist/glossary/index.html, which is built on every deploy.
