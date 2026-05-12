@@ -20,7 +20,7 @@ const recent = articles.slice(0, 6).map((a: any) => {
     title: a.title,
     authorYear: authorYear.trim().replace(/, $/, ''),
     journal: a.journalAbbv || a.journal || '',
-    isOpenAccess: a.accessLevel === 'open' || a.accessLevel === 'free',
+    isOpenAccess: Boolean(a.isOpenAccess) || a.accessLevel === 'open',
   };
 });
 
