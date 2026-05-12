@@ -107,7 +107,7 @@
       "note": "Public newsletter intake (rate-limited)"
     },
     "functions/api/search/semantic.js": {
-      "hash": "059f39ea80fb388d8d4f4e6eef5569902d648095b9358cb87d822ccdaad321d2",
+      "hash": "759ffe829106110ba1e588813295ae8a5fa2deacf57f252570b2cb4f743c929b",
       "note": "Billed AI.run() + Vectorize (rate-limited)"
     },
     "functions/api/_ask_prompt.js": {
@@ -119,7 +119,7 @@
       "note": "NLWeb AI Search proxy (auth + rate-limited, billed upstream)"
     },
     "src/components/SearchBar.astro": {
-      "hash": "421c1181dbfa6e5da949a1fa7f08c5d2e6dabf88d72d1adc7063eee91ce09716",
+      "hash": "0b8dfc41a1f340a229a650e7c3c939f2076a0db31857fd759e04f8761bca4688",
       "note": "Search UX + RRF fusion (Pagefind init, relevance boost, error resilience)"
     },
     "src/layouts/BaseLayout.astro": {
