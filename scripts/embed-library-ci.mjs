@@ -43,6 +43,7 @@ const articles = loadJSON('articles.json');
 const posts = loadJSON('posts.json');
 const faqs = loadJSON('faqs.json');
 const courses = loadJSON('courses.json');
+const guides = loadJSON('guides.json');
 const glossary = (() => {
   const path = join(DATA_DIR, 'glossary.json');
   if (!existsSync(path)) return { terms: [] };
@@ -152,15 +153,41 @@ function buildEntries() {
     });
   }
 
+  // Pillar guides -- title + description + section headings + frontmatter keyword strings + body prose
+  for (const g of guides) {
+    if (!g.slug || !g.title) continue;
+    const parts = [g.title];
+    if (g.description) parts.push(g.description);
+    if (g.sectionHeadings && g.sectionHeadings.length) {
+      parts.push('Sections: ' + g.sectionHeadings.join(', '));
+    }
+    if (g.keywordText) parts.push(g.keywordText);
+    if (g.bodyText) parts.push(g.bodyText);
+    entries.push({
+      slug: `guide-${g.slug}`,
+      text: parts.join('. '),
+      type: 'Guide',
+      url: g.url,
+      title: g.title,
+      year: null,
+      authors: '',
+    });
+  }
+
   return entries;
 }
 
 const entries = buildEntries();
-console.log(`Content: ${articles.length} articles, ${posts.length} posts, ${faqs.length} FAQs, ${courses.length} courses, ${(glossary.terms || []).length} glossary terms`);
+console.log(`Content: ${articles.length} articles, ${posts.length} posts, ${faqs.length} FAQs, ${courses.length} courses, ${(glossary.terms || []).length} glossary terms, ${guides.length} guides`);
 console.log(`Total entries to embed: ${entries.length}`);
 
 if (articles.length < 2500) {
   console.error(`ABORT: Expected >= 2500 articles but found ${articles.length}. Is articles.json missing or truncated?`);
+  process.exit(1);
+}
+
+if (guides.length < 7) {
+  console.error(`ABORT: Expected 7 pillar guide entries but found ${guides.length}. Did scripts/build-guides-data.mjs run as part of the build? Without this guard, stale-vector purge below would delete previously-embedded guide-* vectors.`);
   process.exit(1);
 }
 
@@ -186,17 +213,22 @@ function vectorId(slug) {
 // --- Cloudflare API helpers ---
 
 async function getEmbeddings(texts) {
-  const res = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/ai/run/${MODEL}`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${API_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ text: texts }),
-    }
-  );
+  let res;
+  try {
+    res = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/ai/run/${MODEL}`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${API_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: texts }),
+      }
+    );
+  } catch (err) {
+    throw new Error(`AI API network error: ${err.message}`);
+  }
   if (!res.ok) {
     const err = await res.text();
     throw new Error(`AI API ${res.status}: ${err}`);
@@ -207,17 +239,22 @@ async function getEmbeddings(texts) {
 
 async function upsertVectors(vectors) {
   const ndjson = vectors.map(v => JSON.stringify(v)).join('\n');
-  const res = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/vectorize/v2/indexes/${INDEX_NAME}/upsert`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${API_TOKEN}`,
-        'Content-Type': 'application/x-ndjson',
-      },
-      body: ndjson,
-    }
-  );
+  let res;
+  try {
+    res = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/vectorize/v2/indexes/${INDEX_NAME}/upsert`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${API_TOKEN}`,
+          'Content-Type': 'application/x-ndjson',
+        },
+        body: ndjson,
+      }
+    );
+  } catch (err) {
+    throw new Error(`Vectorize upsert network error: ${err.message}`);
+  }
   if (!res.ok) {
     const err = await res.text();
     throw new Error(`Vectorize API ${res.status}: ${err}`);
@@ -226,17 +263,22 @@ async function upsertVectors(vectors) {
 }
 
 async function deleteVectors(ids) {
-  const res = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/vectorize/v2/indexes/${INDEX_NAME}/delete_by_ids`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${API_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ ids }),
-    }
-  );
+  let res;
+  try {
+    res = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/vectorize/v2/indexes/${INDEX_NAME}/delete_by_ids`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${API_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ids }),
+      }
+    );
+  } catch (err) {
+    throw new Error(`Vectorize delete network error: ${err.message}`);
+  }
   if (!res.ok) {
     const err = await res.text();
     throw new Error(`Vectorize delete API ${res.status}: ${err}`);
@@ -250,9 +292,14 @@ async function listVectorIds() {
   while (true) {
     const url = new URL(`https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/vectorize/v2/indexes/${INDEX_NAME}/list`);
     if (cursor) url.searchParams.set('cursor', cursor);
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${API_TOKEN}` },
-    });
+    let res;
+    try {
+      res = await fetch(url, {
+        headers: { Authorization: `Bearer ${API_TOKEN}` },
+      });
+    } catch (err) {
+      throw new Error(`Vectorize list network error: ${err.message}`);
+    }
     if (!res.ok) {
       const err = await res.text();
       throw new Error(`Vectorize list API ${res.status}: ${err}`);
