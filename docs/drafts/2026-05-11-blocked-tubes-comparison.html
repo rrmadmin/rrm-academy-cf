@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Blocked Tubes Editorial — v1 → v2 → v3 Comparison</title>
+<style>
+  :root {
+    --bg: #f7f6f3;
+    --panel: #ffffff;
+    --ink: #1a1a1a;
+    --ink-soft: #555;
+    --ink-fade: #999;
+    --border: #d8d4cc;
+    --accent: #6b4f3b;
+    --v1: #888;
+    --v2: #c98c2e;
+    --v3: #2e8b6e;
+    --v2-bg: #fff4d1;
+    --v3-bg: #d8f0d4;
+    --removed-bg: #fbdcdc;
+    --note-bg: #e8f0fb;
+    --note-border: #5b8ec9;
+    --code-bg: #f3f1ec;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    margin: 0;
+    line-height: 1.55;
+  }
+  header {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 28px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  header h1 {
+    margin: 0 0 8px 0;
+    font-size: 20px;
+    color: var(--accent);
+  }
+  header .meta {
+    color: var(--ink-soft);
+    font-size: 13px;
+  }
+  .legend {
+    display: flex;
+    gap: 14px;
+    margin-top: 10px;
+    font-size: 12px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .swatch {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid;
+  }
+  .swatch.v2 { background: var(--v2-bg); border-color: var(--v2); }
+  .swatch.v3 { background: var(--v3-bg); border-color: var(--v3); }
+  .swatch.removed { background: var(--removed-bg); border-color: #c44848; }
+  .swatch.note { background: var(--note-bg); border-color: var(--note-border); }
+
+  nav.toc {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 28px;
+    font-size: 12px;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  nav.toc a {
+    color: var(--accent);
+    text-decoration: none;
+    margin-right: 14px;
+  }
+  nav.toc a:hover { text-decoration: underline; }
+
+  main {
+    max-width: 2100px;
+    margin: 0 auto;
+    padding: 20px 28px;
+  }
+  section.diff {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 22px;
+    overflow: hidden;
+  }
+  section.diff > h2 {
+    background: var(--accent);
+    color: white;
+    margin: 0;
+    padding: 11px 18px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .change-note {
+    background: var(--note-bg);
+    border-bottom: 1px solid var(--note-border);
+    padding: 11px 18px;
+    font-size: 12.5px;
+    color: var(--ink);
+  }
+  .change-note strong { color: var(--note-border); }
+  .change-note .tag {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-right: 6px;
+  }
+  .tag.v2-tag { background: var(--v2-bg); color: #7a5217; border: 1px solid var(--v2); }
+  .tag.v3-tag { background: var(--v3-bg); color: #1f5a45; border: 1px solid var(--v3); }
+
+  .columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0;
+  }
+  .col {
+    padding: 16px;
+    font-size: 13px;
+    border-right: 1px solid var(--border);
+  }
+  .col:last-child { border-right: none; }
+  .col h3 {
+    margin: 0 0 10px 0;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding-bottom: 6px;
+    border-bottom: 2px solid;
+  }
+  .col.v1 h3 { color: var(--v1); border-color: var(--v1); }
+  .col.v2 h3 { color: var(--v2); border-color: var(--v2); }
+  .col.v3 h3 { color: var(--v3); border-color: var(--v3); }
+  .col p, .col li { margin: 0 0 9px 0; }
+  .col h4 { margin: 11px 0 6px 0; font-size: 12.5px; color: var(--accent); }
+
+  mark.v2 {
+    background: var(--v2-bg);
+    padding: 1px 4px;
+    border-radius: 2px;
+    border-bottom: 1px solid var(--v2);
+  }
+  mark.v3 {
+    background: var(--v3-bg);
+    padding: 1px 4px;
+    border-radius: 2px;
+    border-bottom: 1px solid var(--v3);
+  }
+  del.removed {
+    background: var(--removed-bg);
+    color: #8b3a3a;
+    text-decoration: line-through;
+    padding: 1px 4px;
+    border-radius: 2px;
+  }
+  code {
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 11.5px;
+    font-family: ui-monospace, monospace;
+  }
+  .placeholder-img {
+    border: 2px dashed var(--v2);
+    background: var(--v2-bg);
+    padding: 12px;
+    text-align: center;
+    color: #7a5217;
+    font-size: 12px;
+    border-radius: 4px;
+    margin: 10px 0;
+  }
+  .summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+  }
+  .summary-table th, .summary-table td {
+    text-align: left;
+    padding: 7px 11px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12.5px;
+    vertical-align: top;
+  }
+  .summary-table th {
+    background: var(--code-bg);
+    font-weight: 600;
+  }
+  .summary-table tr.v2-row { background: rgba(201, 140, 46, 0.06); }
+  .summary-table tr.v3-row { background: rgba(46, 139, 110, 0.06); }
+  .pending {
+    background: #fffae6;
+    border: 1px dashed #d4a847;
+    padding: 1px 5px;
+    font-size: 11.5px;
+    color: #8a6500;
+    font-family: ui-monospace, monospace;
+  }
+  .unchanged {
+    color: var(--ink-fade);
+    font-style: italic;
+    padding: 20px 0;
+    text-align: center;
+  }
+  .stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0;
+    background: var(--code-bg);
+  }
+  .stat {
+    padding: 12px 14px;
+    border-right: 1px solid var(--border);
+    text-align: center;
+    font-size: 12px;
+  }
+  .stat:last-child { border-right: none; }
+  .stat .label { color: var(--ink-soft); }
+  .stat .value { font-size: 18px; font-weight: 600; margin: 4px 0; }
+  .stat.v1 .value { color: var(--v1); }
+  .stat.v2 .value { color: var(--v2); }
+  .stat.v3 .value { color: var(--v3); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Blocked Tubes Editorial — v1 (Gianna) → v2 (SEO) → v3 (Keyword Research)</h1>
+  <div class="meta">
+    Target keyword: <strong>blocked tubes</strong> (MSV 150, KD 6, TP 3,000) &middot;
+    Slug: <code>/commentary/blocked-tubes-restorative-treatment-without-ivf/</code> &middot;
+    Title (52ch): <code>Blocked Tubes on HSG: 3 Restorative Options Before IVF</code>
+  </div>
+  <div class="legend">
+    <span class="legend-item"><span class="swatch v2"></span> v2 — added/changed by rrma-seo-operator</span>
+    <span class="legend-item"><span class="swatch v3"></span> v3 — added/changed by keyword research</span>
+    <span class="legend-item"><span class="swatch removed"></span> Removed</span>
+    <span class="legend-item"><span class="swatch note"></span> Editor note</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#summary">Summary</a>
+  <a href="#stats">Stats</a>
+  <a href="#meta">Title &amp; slug</a>
+  <a href="#symptoms">NEW §0: Symptoms</a>
+  <a href="#hsg-screening">§1 HSG screening</a>
+  <a href="#tubal-factor">§2 Tubal factor</a>
+  <a href="#image">Image placeholder</a>
+  <a href="#pathway1">P1 FTR</a>
+  <a href="#pathway2">P2 Anastomosis</a>
+  <a href="#pathway3">P3 Neosalpingostomy</a>
+  <a href="#cta">CTA section</a>
+  <a href="#faq">FAQ (5→9)</a>
+  <a href="#refs">References</a>
+  <a href="#pending">Pending items</a>
+</nav>
+
+<main>
+
+<section class="diff" id="stats">
+  <h2>At a Glance</h2>
+  <div class="stats-row">
+    <div class="stat v1"><div class="label">v1 Gianna</div><div class="value">~1,660</div><div>words · 5 FAQs · 0 images</div></div>
+    <div class="stat v2"><div class="label">v2 SEO-revised</div><div class="value">~1,720</div><div>words · 6 FAQs · 1 image placeholder · 4 new glossary links</div></div>
+    <div class="stat v3"><div class="label">v3 Keyword research</div><div class="value">~1,950</div><div>words · 9 FAQs · 1 image placeholder · symptoms intro · woo debunk</div></div>
+  </div>
+</section>
+
+<section class="diff" id="summary">
+  <h2>Change Log Across All Three Versions</h2>
+  <div class="col" style="padding: 0; border-right: none;">
+    <table class="summary-table">
+      <thead>
+        <tr><th>#</th><th>Change</th><th>Origin</th><th>Version added</th></tr>
+      </thead>
+      <tbody>
+        <tr class="v2-row"><td>1</td><td>Title tag tightened to 52 chars</td><td>SEO §1</td><td>v2</td></tr>
+        <tr class="v2-row"><td>2</td><td>URL slug → <code>/commentary/blocked-tubes-restorative-treatment-without-ivf/</code></td><td>SEO §1</td><td>v2</td></tr>
+        <tr class="v2-row"><td>3</td><td>"Major professional society committee opinion" → "2015 practice committee opinion in <em>Fertility and Sterility</em>" (4 instances)</td><td>SEO §6</td><td>v2</td></tr>
+        <tr class="v2-row"><td>4</td><td>References appendix with DOIs/PMIDs (Roberts verified; Honoré + Sun pending)</td><td>SEO §6</td><td>v2</td></tr>
+        <tr class="v2-row"><td>5</td><td>Male factor percentages dropped (kept clinical point)</td><td>SEO §6</td><td>v2</td></tr>
+        <tr class="v2-row"><td>6</td><td>Image #1 placeholder added (tubal segments diagram)</td><td>SEO §5</td><td>v2</td></tr>
+        <tr class="v2-row"><td>7</td><td>Glossary links converted to trailing-slash form</td><td>SEO §4</td><td>v2</td></tr>
+        <tr class="v2-row"><td>8</td><td>Q6 added — tubal ligation reversal</td><td>SEO §2</td><td>v2</td></tr>
+        <tr class="v2-row"><td>9</td><td>4 new inline glossary links: hydrosalpinx, HSG, tubal-factor-infertility, tubal-ligation-reversal, neosalpingostomy</td><td>SEO §4</td><td>v2</td></tr>
+        <tr class="v2-row"><td>10</td><td>FTR anchor sentence added (post-Roberts citation)</td><td>SEO §2</td><td>v2</td></tr>
+        <tr class="v3-row"><td>11</td><td><strong>NEW H2 §0: "Do Blocked Tubes Have Symptoms?"</strong> — captures the symptom-stage searcher (~40% of cluster)</td><td>Keyword research §4</td><td>v3</td></tr>
+        <tr class="v3-row"><td>12</td><td>FAQ Q7 added — hydrosalpinx without IVF</td><td>Keyword research §6</td><td>v3</td></tr>
+        <tr class="v3-row"><td>13</td><td>FAQ Q8 added — best treatment for blocked fallopian tubes (direct PAA capture)</td><td>Keyword research §6 PAA</td><td>v3</td></tr>
+        <tr class="v3-row"><td>14</td><td>FAQ Q9 added — can you get pregnant with blocked fallopian tubes (direct PAA capture)</td><td>Keyword research §6 PAA</td><td>v3</td></tr>
+        <tr class="v3-row"><td>15</td><td>"Natural treatment" debunk sentence inserted into FAQ Q1 (captures woo query without endorsing)</td><td>Keyword research §4</td><td>v3</td></tr>
+        <tr class="v3-row"><td>16</td><td>One more glossary link added: pelvic-adhesions (in FAQ Q5)</td><td>Keyword research §2</td><td>v3</td></tr>
+        <tr class="v3-row" style="background: rgba(196, 72, 72, 0.08);"><td>17</td><td><strong>SAFETY FIX</strong>: dropped hard "Yes" leading on FAQ Q1 and Q6. Rule: never lead with "Yes" on fertility/pregnancy/treatment outcome questions. Lead with "In many cases, …" instead. Saved as hard rule in memory <code>feedback-no-hard-yes-fertility-faqs.md</code></td><td>Brian editorial guardrail</td><td>v3</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="diff" id="meta">
+  <h2>Title, Slug, Meta Description</h2>
+  <div class="change-note"><span class="tag v2-tag">v2</span> Title tightened to fit 60-char SERP cap. Slug under <code>/commentary/</code> (not <code>/blog/</code>) avoids 301 chain. Meta description tightened.</div>
+  <div class="columns">
+    <div class="col v1">
+      <h3>v1 Gianna</h3>
+      <p><strong>Title:</strong> Your HSG Says Your Tubes Are Blocked. Your Doctor Says IVF. Here Is What You Were Not Told. <em>(89 chars)</em></p>
+      <p><strong>Slug:</strong> <em>not set</em></p>
+      <p><strong>Meta:</strong> Blocked fallopian tubes on HSG do not mean IVF is your only option. Learn about three restorative procedures... <em>(154 chars)</em></p>
+    </div>
+    <div class="col v2">
+      <h3>v2 SEO-revised</h3>
+      <p><strong>Title (SERP):</strong> <mark class="v2">Blocked Tubes on HSG: 3 Restorative Options Before IVF</mark> <em>(52 chars)</em></p>
+      <p><strong>H1 (in-page):</strong> Your HSG Says Your Tubes Are Blocked. Your Doctor Says IVF. Here Is What You Were Not Told. <em>(kept for post-click emotion)</em></p>
+      <p><strong>Slug:</strong> <mark class="v2"><code>/commentary/blocked-tubes-restorative-treatment-without-ivf/</code></mark></p>
+      <p><strong>Meta:</strong> <mark class="v2">Blocked fallopian tubes on HSG do not mean IVF is the only option. Three restorative procedures, FTR, anastomosis, neosalpingostomy — and why 60% of HSG blockages aren't real.</mark> <em>(152 chars)</em></p>
+    </div>
+    <div class="col v3">
+      <h3>v3 Keyword-research-final</h3>
+      <p class="unchanged">Identical to v2.</p>
+    </div>
+  </div>
+</section>
+
+<section class="diff" id="symptoms">
+  <h2>NEW Section §0: "Do Blocked Tubes Have Symptoms?" (v3 only)</h2>
+  <div class="change-note"><span class="tag v3-tag">v3</span> Keyword research found ~40% of cluster searchers haven't yet had an HSG — they're Googling symptoms first. New H2 captures 3 PAA queries ("symptoms," "how do you know," "is it serious") without disrupting the editorial arc. Inserted between the hook and §1.</div>
+  <div class="columns">
+    <div class="col v1">
+      <h3>v1 Gianna</h3>
+      <p class="unchanged">No symptoms section. Article assumes reader has already had an HSG.</p>
+    </div>
+    <div class="col v2">
+      <h3>v2 SEO-revised</h3>
+      <p class="unchanged">No symptoms section.</p>
+    </div>
+    <div class="col v3">
+      <h3>v3 Keyword-research-final</h3>
+      <h4>Do Blocked Tubes Have Symptoms?</h4>
+      <p><mark class="v3">Many women with blocked fallopian tubes have no symptoms at all and only learn of the diagnosis during a fertility workup. When symptoms do appear, they are most often pelvic pain, painful periods, or unusual vaginal discharge — the last is particularly associated with hydrosalpinx, where a fluid-filled tube is the source. There is no reliable home test. The diagnostic gateway is almost always the same: a hysterosalpingogram, or <a href="/glossary/hsg/">HSG</a>.</mark></p>
+    </div>
+  </div>
+</section>
+
+<section class="diff" id="hsg-screening">
+  <h2>§1: "The HSG Is a Screening Test, Not a Final Answer"</h2>
+  <div class="change-note"><span class="tag v2-tag">v2</span> Society phrasing tightened. Inline glossary link for HSG added. Roberts citation footnoted.</div>
+  <div class="columns">
+    <div class="col v1">
+      <h3>v1 Gianna</h3>
+      <p><del class="removed">A major professional society committee opinion published in</del> <em>Fertility and Sterility</em> (2015) reported that in 60%...</p>
+      <p>A 2023 open-access review in <em>CVIR Endovascular</em> (Roberts, 2023) found that among women...</p>
+    </div>
+    <div class="col v2">
+      <h3>v2 SEO-revised</h3>
+      <p><mark class="v2">A 2015 practice committee opinion in</mark> <em>Fertility and Sterility</em> reported that in 60%...</p>
+      <p>A 2023 open-access review in <em>CVIR Endovascular</em> (Roberts, 2023<mark class="v2"><sup>1</sup></mark>) found that among women...</p>
+    </div>
+    <div class="col v3">
+      <h3>v3 Keyword-research-final</h3>
+      <p class="unchanged">Identical to v2.</p>
+    </div>
+  </div>
+</section>
+
+<section class="diff" id="tubal-factor">
+  <h2>§2: "Tubal Factor: One of the Most Common Causes of Female Infertility"</h2>
+  <div class="change-note"><span class="tag v2-tag">v2</span> Inline glossary link for "tubal factor" added. Citation footnoted.</div>
+  <div class="columns">
+    <div class="col v1">
+      <h3>v1 Gianna</h3>
+      <p>Tubal disease accounts for roughly 25 to 35% of female infertility... (Honoré et al., 1999).</p>
+    </div>
+    <div class="col v2">
+      <h3>v2 SEO-revised</h3>
+      <p><a href="/glossary/tubal-factor-infertility/"><mark class="v2">Tubal factor</mark></a> disease accounts for roughly 25 to 35% of female infertility... (Honoré et al., 1999<mark class="v2"><sup>2</sup></mark>).</p>
+    </div>
+    <div class="col v3">
+      <h3>v3 Keyword-research-final</h3>
+      <p class="unchanged">Identical to v2.</p>
+    </div>
+  </div>
+</section>
+
+<section class="diff" id="image">
+  <h2>NEW: Image Placeholder (before Pathway 1)</h2>
+  <div class="change-note"><span class="tag v2-tag">v2</span> Image-less long-form medical commentary underperforms in AEO grounding. Brian to source/commission.</div>
+  <div class="columns">
+    <div class="col v1"><h3>v1 Gianna</h3><p class="unchanged">No image.</p></div>
+    <div class="col v2">
+      <h3>v2 SEO-revised</h3>
+      <div class="placeholder-img">
+        <strong>[IMAGE PLACEHOLDER]</strong><br>
+        <code>tubal-segments-diagram.webp</code><br>
+        Alt: "Diagram of fallopian tube anatomy showing proximal, mid-segment, and distal regions with restorative procedure indicators."
+      </div>
+    </div>
+    <div class="col v3"><h3>v3 Keyword-research-final</h3><p class="unchanged">Identical to v2.</p></div>
+  </div>
+</section>
+
+<section class="diff" id="pathway1">
+  <h2>Pathway 1: Proximal Blockage (FTR)</h2>
+  <div class="change-note"><span class="tag v2-tag">v2</span> Society phrasing tightened. NEW FTR anchor sentence added post-Roberts citation — single retrievable sentence for "FTR success rate" AI queries.</div>
+  <div class="columns">
+    <div class="col v1">
+      <h3>v1 Gianna</h3>
+      <p>Roberts (2023) reports technical patency rates of 70 to 100%... range from 20 to 60%, with an average around 30%...</p>
+      <p><del class="removed">The major professional society's own 2015 committee opinion states that</del> <a href="/glossary/selective-salpingography">selective salpingography</a>...</p>
+    </div>
+    <div class="col v2">
+      <h3>v2 SEO-revised</h3>
+      <p>Roberts (2023<sup>1</sup>) reports technical patency rates of 70 to 100%...</p>
+      <p><mark class="v2">Across pooled outcomes, fallopian tube recanalization restores proximal patency in 70 to 100% of cases and yields intrauterine pregnancy in approximately one in three women, with no general anesthesia and a same-day discharge.</mark></p>
+      <p><mark class="v2">The 2015 practice committee opinion</mark> states that <a href="/glossary/selective-salpingography/"><mark class="v2">selective salpingography</mark></a>...</p>
+    </div>
+    <div class="col v3">
+      <h3>v3 Keyword-research-final</h3>
+      <p class="unchanged">Identical to v2.</p>
+    </div>
+  </div>
+</section>
+
+<section class="diff" id="pathway2">
+  <h2>Pathway 2: Mid-Segment Blockage (anastomosis)</h2>
+  <div class="change-note"><span class="tag v2-tag">v2</span> Tubal ligation reversal linked to glossary. Citation footnoted.</div>
+  <div class="columns">
+    <div class="col v1">
+      <h3>v1 Gianna</h3>
+      <p>Mid-segment blockage most commonly follows prior tubal ligation, a previous ectopic pregnancy...</p>
+    </div>
+    <div class="col v2">
+      <h3>v2 SEO-revised</h3>
+      <p>Mid-segment blockage most commonly follows prior <a href="/glossary/tubal-ligation-reversal/"><mark class="v2">tubal ligation</mark></a>, a previous ectopic pregnancy...</p>
+    </div>
+    <div class="col v3">
+      <h3>v3 Keyword-research-final</h3>
+      <p class="unchanged">Identical to v2.</p>
+    </div>
+  </div>
+</section>
+
+<section class="diff" id="pathway3">
+  <h2>Pathway 3: Distal Blockage (neosalpingostomy)</h2>
+  <div class="change-note"><span class="tag v2-tag">v2</span> Hydrosalpinx and neosalpingostomy linked to glossary.</div>
+  <div class="columns">
+    <div class="col v1">
+      <h3>v1 Gianna</h3>
+      <p>The most common cause is hydrosalpinx: a tube that has filled with fluid...</p>
+      <p>Surgical options include neosalpingostomy (opening the sealed end...)</p>
+    </div>
+    <div class="col v2">
+      <h3>v2 SEO-revised</h3>
+      <p>The most common cause is <a href="/glossary/hydrosalpinx/"><mark class="v2">hydrosalpinx</mark></a>: a tube that has filled with fluid...</p>
+      <p>Surgical options include <a href="/glossary/neosalpingostomy/"><mark class="v2">neosalpingostomy</mark></a>...</p>
+    </div>
+    <div class="col v3">
+      <h3>v3 Keyword-research-final</h3>
+      <p class="unchanged">Identical to v2.</p>
+    </div>
+  </div>
+</section>
+
+<section class="diff" id="cta">
+  <h2>"What to Do If You Have Been Told IVF Is Your Only Option"</h2>
+  <div class="change-note"><span class="tag v2-tag">v2</span> Male factor 20%/30-40% percentages dropped (unsourced). Clinical point preserved.</div>
+  <div class="columns">
+    <div class="col v1">
+      <h3>v1 Gianna</h3>
+      <p>An RRM clinician will evaluate both partners. <del class="removed">Male factor is solely responsible in roughly 20% of couples presenting with infertility and contributes in another 30 to 40%.</del> A thorough evaluation does not start and end with one partner's tubes.</p>
+    </div>
+    <div class="col v2">
+      <h3>v2 SEO-revised</h3>
+      <p>An RRM clinician will evaluate both partners. <mark class="v2">Male factor is a common and frequently overlooked cause of infertility, which is why a thorough evaluation never starts and ends with one partner's tubes.</mark></p>
+    </div>
+    <div class="col v3">
+      <h3>v3 Keyword-research-final</h3>
+      <p class="unchanged">Identical to v2.</p>
+    </div>
+  </div>
+</section>
+
+<section class="diff" id="faq">
+  <h2>FAQ Section (5 → 6 → 9 questions)</h2>
+  <div class="change-note">
+    <span class="tag v2-tag">v2</span> Q6 added (tubal ligation reversal).
+    <span class="tag v3-tag">v3</span> Q7 (hydrosalpinx), Q8 (best treatment), Q9 (can you get pregnant) added — all direct PAA captures. Q1 gets a "natural treatment" debunk sentence.
+  </div>
+  <div class="columns">
+    <div class="col v1">
+      <h3>v1 Gianna</h3>
+      <p><strong>1.</strong> Can blocked fallopian tubes be unblocked without IVF?</p>
+      <p><strong>2.</strong> What is selective HSG?</p>
+      <p><strong>3.</strong> How successful is fallopian tube recanalization?</p>
+      <p><strong>4.</strong> Are blocked tubes a sign I need IVF?</p>
+      <p><strong>5.</strong> Who treats blocked tubes with restorative procedures?</p>
+      <p style="color: var(--ink-fade); font-style: italic;">5 FAQs · AEO avg 8.4/10</p>
+    </div>
+    <div class="col v2">
+      <h3>v2 SEO-revised</h3>
+      <p><strong>1–5.</strong> Unchanged.</p>
+      <p><mark class="v2"><strong>NEW 6.</strong> Can I get pregnant after a tubal ligation without IVF?</mark></p>
+      <p style="color: var(--ink-fade); font-style: italic;">6 FAQs</p>
+    </div>
+    <div class="col v3">
+      <h3>v3 Keyword-research-final</h3>
+      <p><strong>1.</strong> Can blocked fallopian tubes be unblocked without IVF? <mark class="v3">+ woo-debunk sentence inserted: "Online sources sometimes promote castor oil packs, herbal teas, or fertility cleanses as 'natural' ways to unblock fallopian tubes; there is no clinical evidence these address true tubal blockage. The restorative procedures described above are evidence-based, minimally invasive, and treat the actual anatomy."</mark></p>
+      <p><strong>2–5.</strong> Unchanged.</p>
+      <p><strong>6.</strong> Can I get pregnant after a tubal ligation without IVF? <em>(from v2)</em></p>
+      <p><mark class="v3"><strong>NEW 7.</strong> What is hydrosalpinx and can it be treated without IVF?</mark></p>
+      <p><mark class="v3"><strong>NEW 8.</strong> What is the best treatment for blocked fallopian tubes? <em>(direct PAA capture)</em></mark></p>
+      <p><mark class="v3"><strong>NEW 9.</strong> Can you get pregnant with blocked fallopian tubes? <em>(direct PAA capture)</em></mark></p>
+      <p style="color: var(--ink-fade); font-style: italic;">9 FAQs · maximum PAA coverage</p>
+    </div>
+  </div>
+</section>
+
+<section class="diff" id="refs">
+  <h2>References Appendix</h2>
+  <div class="change-note">
+    <span class="tag v2-tag">v2</span> New references appendix. <strong>Citation integrity rule:</strong> Roberts 2023 DOI verified via rrm-cli. Honoré 1999 PMID and Sun 2024 DOI <span class="pending">PENDING VERIFY</span> — CI <code>verify-citations.mjs</code> will block publish if these aren't confirmed.
+  </div>
+  <div class="columns">
+    <div class="col v1"><h3>v1 Gianna</h3><p class="unchanged">No references appendix; inline only.</p></div>
+    <div class="col v2">
+      <h3>v2 SEO-revised</h3>
+      <ol style="padding-left: 18px;">
+        <li><mark class="v2">Roberts A. Fallopian tube recanalization for the management of infertility. <em>CVIR Endovascular</em>. 2023;6(1):13. doi:10.1186/s42155-023-00356-z</mark> <em style="color: var(--v3);">[VERIFIED]</em></li>
+        <li><mark class="v2">Honoré GM, Holden AE, Schenken RS. Pathophysiology and management of proximal tubal blockage. <em>Fertility and Sterility</em>. 1999;71(5):785-795.</mark> <span class="pending">PMID PENDING</span></li>
+        <li><mark class="v2">Sun et al. [full citation TBD]. <em>Therapeutic Advances in Reproductive Health</em>. 2024.</mark> <span class="pending">DOI PENDING</span></li>
+      </ol>
+    </div>
+    <div class="col v3"><h3>v3 Keyword-research-final</h3><p class="unchanged">Identical to v2.</p></div>
+  </div>
+</section>
+
+<section class="diff">
+  <h2>Instagram Carousel — Status</h2>
+  <div class="change-note">v2 and v3 both leave the carousel as v1, with one minor update: slides 2 and 8 should use the tightened "2015 practice committee opinion in <em>Fertility and Sterility</em>" phrasing for consistency.</div>
+</section>
+
+<section class="diff" id="pending">
+  <h2>Pending Items Before Publish</h2>
+  <div class="col" style="padding: 18px; border-right: none;">
+    <ol>
+      <li><strong>Verify Honoré 1999 PMID</strong> (SEO operator suggested 10231032 — confirm via PubMed before adding to References)</li>
+      <li><strong>Verify Sun 2024 full citation</strong> (volume, issue, page, DOI) via Perplexity or PubMed</li>
+      <li><strong>Source the tubal segments anatomy diagram</strong> (<code>tubal-segments-diagram.webp</code>). Could be reused on <code>/glossary/fallopian-tube-anatomy/</code></li>
+      <li><strong>Confirm glossary slugs exist and return 200:</strong> <code>/glossary/hsg/</code>, <code>/glossary/hydrosalpinx/</code>, <code>/glossary/neosalpingostomy/</code>, <code>/glossary/tubal-factor-infertility/</code>, <code>/glossary/tubal-ligation-reversal/</code>, <code>/glossary/selective-salpingography/</code>, <code>/glossary/pelvic-adhesions/</code></li>
+      <li><strong>Flag for <code>/glossary-update</code>:</strong> create "tubo-tubal microsurgical anastomosis" glossary entry</li>
+      <li><strong>Update Instagram carousel slides 2 and 8</strong> to use "2015 practice committee opinion in <em>Fertility and Sterility</em>" phrasing</li>
+      <li><strong>Post-publish 8-item checklist:</strong> inbound links from 7 source pages, llms.txt update, IndexNow ping, GSC indexing request, retrieval.py at 48-72h post-publish</li>
+    </ol>
+  </div>
+</section>
+
+<section class="diff">
+  <h2>Source Documents</h2>
+  <div class="col" style="padding: 14px 18px; border-right: none; font-size: 12.5px;">
+    <ul>
+      <li><strong>v1 Gianna draft:</strong> <code>docs/drafts/2026-05-11-blocked-tubes-editorial.md</code></li>
+      <li><strong>SEO review:</strong> <code>docs/drafts/2026-05-11-blocked-tubes-editorial.SEO-REVIEW.md</code></li>
+      <li><strong>Keyword research:</strong> <code>docs/drafts/2026-05-11-blocked-tubes-keyword-research.md</code></li>
+      <li><strong>v3 final draft:</strong> <code>docs/drafts/2026-05-11-blocked-tubes-editorial-v3.md</code></li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+</body>
+</html>
