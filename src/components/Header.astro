@@ -1,4 +1,6 @@
 ---
+import MobileSearchModal from './MobileSearchModal.astro';
+
 // Desktop nav — intentionally sparse (3 main sections only).
 // Mobile nav (below) and Footer.astro have their own sets with different items.
 // These three lists are deliberately NOT shared — they serve different UX contexts.
@@ -27,6 +29,7 @@ const icons: Record<string, string> = {
   'users': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
   'user': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
   'mail': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
+  'message-circle': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
 };
 
 const mobileNavSections = [
@@ -42,6 +45,7 @@ const mobileNavSections = [
   {
     heading: 'Resources',
     items: [
+      { label: 'Ask', href: '/ask/', icon: 'message-circle' },
       { label: 'Research Library', href: '/library/', icon: 'library-big' },
       { label: 'Endo Self-Survey', href: '/endo-survey/', icon: 'clipboard', hoverIcon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 11.22C11 9.997 10 9 10 8a2 2 0 0 1 4 0c0 1-.998 2.002-2.01 3.22"/><path d="m12 18 2.57-3.5"/><path d="M6.243 9.016a7 7 0 0 1 11.507-.009"/><path d="M9.35 14.53 12 11.22"/><path d="M9.35 14.53C7.728 12.246 6 10.221 6 7a6 5 0 0 1 12 0c-.005 3.22-1.778 5.235-3.43 7.5l3.557 4.527a1 1 0 0 1-.203 1.43l-1.894 1.36a1 1 0 0 1-1.384-.215L12 18l-2.679 3.593a1 1 0 0 1-1.39.213l-1.865-1.353a1 1 0 0 1-.203-1.422z"/></svg>' },
       { label: 'Commentary', href: '/commentary/', icon: 'pen' },
@@ -162,10 +166,7 @@ const mobileNavSections = [
       <a href="/donate/" class="donate-btn" id="desktop-donate-btn">Donate</a>
     </div>
 
-    <a href="/ask/" class="mobile-ask-top" title="Ask RRM Academy">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      <span>Ask</span>
-    </a>
+    <MobileSearchModal />
     <input type="checkbox" id="nav-toggle" class="sr-only" aria-label="Toggle menu" />
     <label for="nav-toggle" class="mobile-toggle" aria-hidden="true">
       <span class="hamburger"></span>
@@ -515,29 +516,6 @@ const mobileNavSections = [
     background: color-mix(in srgb, var(--accent) 6%, transparent);
     text-decoration: none;
   }
-  /* Mobile Ask button (top bar, left of hamburger) */
-  .mobile-ask-top {
-    display: none;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    line-height: 1;
-    color: var(--text-secondary);
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-pill);
-    text-decoration: none;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    transition: color 0.15s, border-color 0.15s, background 0.15s;
-  }
-  .mobile-ask-top:hover {
-    color: var(--accent);
-    border-color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 6%, transparent);
-    text-decoration: none;
-  }
   /* Theme toggle (mobile nav footer) */
   .theme-toggle {
     display: flex;
@@ -669,7 +647,6 @@ const mobileNavSections = [
     .main-nav { display: none; }
     .header-search { display: none; }
     .header-actions { display: none; }
-    .mobile-ask-top { display: inline-flex; margin-left: auto; }
     .mobile-toggle { display: block; }
 
     /* ── Nav panel (open state) ── */

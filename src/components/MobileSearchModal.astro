@@ -1,0 +1,759 @@
+---
+// Unified search modal for mobile: trigger pill in top bar (outside hamburger)
+// opens a full-screen popup. Results render inline -- no nav to /library.
+// Self-contained: own IDs (mss-*) so it can coexist with SearchBar on library pages.
+---
+<button type="button" class="mss-trigger" id="mss-trigger" aria-label="Open search" aria-haspopup="dialog" aria-expanded="false" aria-controls="mss-modal">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="11" cy="11" r="8"/>
+    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+  </svg>
+  <span class="mss-trigger__label">Search</span>
+</button>
+
+<div class="mss-modal" id="mss-modal" role="dialog" aria-modal="true" aria-label="Search RRM Academy" hidden>
+  <div class="mss-modal__backdrop" data-mss-close></div>
+  <div class="mss-modal__sheet" role="document">
+    <div class="mss-modal__header">
+      <div class="mss-modal__field">
+        <svg class="mss-modal__field-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input
+          type="search"
+          id="mss-input"
+          class="mss-modal__input"
+          placeholder="Search articles, FAQs, courses..."
+          autocomplete="off"
+          enterkeyhint="search"
+          aria-label="Search"
+        />
+        <button type="button" class="mss-modal__clear" id="mss-clear" aria-label="Clear search" hidden>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <button type="button" class="mss-modal__close" id="mss-close" data-mss-close aria-label="Close search">Cancel</button>
+    </div>
+    <div class="mss-modal__results" id="mss-results" role="listbox" aria-label="Search results"></div>
+  </div>
+</div>
+
+<style>
+  /* Trigger pill -- visible only on mobile, sits in Header top bar */
+  .mss-trigger {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    line-height: 1;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  }
+  .mss-trigger:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 6%, transparent);
+  }
+  .mss-trigger:active {
+    transform: scale(0.97);
+  }
+  .mss-trigger svg {
+    flex-shrink: 0;
+    color: var(--text-tertiary);
+  }
+  .mss-trigger__label {
+    color: var(--text-tertiary);
+  }
+
+  /* Modal -- full screen on mobile */
+  .mss-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 200; /* above site-header (100) and nav-overlay (49) */
+    display: flex;
+    flex-direction: column;
+  }
+  .mss-modal[hidden] {
+    display: none;
+  }
+  .mss-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+  .mss-modal__sheet {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100dvh;
+    background: var(--bg-body);
+    animation: mss-slide-down 0.18s ease-out;
+  }
+  @keyframes mss-slide-down {
+    from { transform: translateY(-12px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mss-modal__sheet { animation: none; }
+  }
+
+  .mss-modal__header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-header);
+    border-bottom: 1px solid var(--border-light);
+  }
+  .mss-modal__field {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+  }
+  .mss-modal__field-icon {
+    position: absolute;
+    left: 12px;
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+  .mss-modal__input {
+    width: 100%;
+    padding: 10px 36px 10px 38px;
+    font-size: 16px; /* iOS: 16px+ prevents zoom on focus */
+    font-family: 'Inter', sans-serif;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    outline: none;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    -webkit-appearance: none;
+  }
+  .mss-modal__input:focus {
+    border-color: var(--sand-500);
+    box-shadow: 0 0 0 3px rgba(184, 163, 143, 0.18);
+  }
+  .mss-modal__input::placeholder {
+    color: var(--text-muted);
+  }
+  .mss-modal__input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    display: none;
+  }
+  .mss-modal__clear {
+    position: absolute;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: var(--bg-body);
+    color: var(--text-tertiary);
+    border-radius: 50%;
+    padding: 0;
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s;
+  }
+  .mss-modal__clear:hover {
+    color: var(--text-primary);
+    background: var(--border-light);
+  }
+  .mss-modal__clear[hidden] { display: none; }
+  .mss-modal__close {
+    flex-shrink: 0;
+    padding: 8px 4px;
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .mss-modal__close:active { opacity: 0.6; }
+
+  /* Results scroller */
+  .mss-modal__results {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 var(--space-5) var(--space-6);
+  }
+  .mss-modal__results:empty {
+    display: none;
+  }
+
+  .mss-modal__results :global(.mss-count) {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: var(--space-4) 0 var(--space-2);
+  }
+  .mss-modal__results :global(.mss-item) {
+    display: block;
+    padding: var(--space-4) 0;
+    border-bottom: 1px solid var(--border-light);
+    text-decoration: none;
+    color: var(--text-primary);
+  }
+  .mss-modal__results :global(.mss-item:first-of-type) {
+    border-top: 1px solid var(--border-light);
+  }
+  .mss-modal__results :global(.mss-item:active .mss-title) {
+    color: var(--accent);
+  }
+  .mss-modal__results :global(.mss-title-row) {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+  }
+  .mss-modal__results :global(.mss-title) {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--text-primary);
+    margin: 0 0 4px;
+    transition: color 0.15s;
+  }
+  .mss-modal__results :global(.mss-type) {
+    flex-shrink: 0;
+    font-size: 0.5625rem;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .mss-modal__results :global(.mss-type--research) { color: var(--green-700); background: var(--green-100); }
+  .mss-modal__results :global(.mss-type--course)   { color: var(--purple-700); background: var(--purple-100); }
+  .mss-modal__results :global(.mss-type--faq)      { color: var(--amber-700); background: var(--amber-100); }
+  .mss-modal__results :global(.mss-type--article)  { color: var(--sage-700); background: var(--sage-100); }
+  .mss-modal__results :global(.mss-type--guide)    { color: var(--rose-700); background: var(--rose-100); }
+  .mss-modal__results :global(.mss-type--glossary) { color: var(--sand-700); background: var(--sand-300); }
+
+  .mss-modal__results :global(.mss-meta) {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+  .mss-modal__results :global(.mss-excerpt) {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .mss-modal__results :global(.mss-more) {
+    display: block;
+    width: 100%;
+    margin-top: var(--space-5);
+    padding: 10px var(--space-5);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+  }
+  .mss-modal__results :global(.mss-more:active) {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .mss-modal__results :global(.mss-loading) {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    padding: var(--space-5) 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+  }
+  .mss-modal__results :global(.mss-loading-spinner) {
+    display: inline-block;
+    font-family: monospace;
+    font-size: 1rem;
+    line-height: 1;
+  }
+  .mss-modal__results :global(.mss-empty) {
+    font-size: 0.875rem;
+    color: var(--text-tertiary);
+    padding: var(--space-6) 0;
+    text-align: center;
+  }
+  .mss-modal__results :global(.mss-hint) {
+    font-size: 0.875rem;
+    color: var(--text-tertiary);
+    padding: var(--space-6) 0;
+    text-align: center;
+  }
+
+  /* Show trigger only on mobile. Tablet+ uses the page's SearchBar/header-search. */
+  @media (max-width: 768px) {
+    .mss-trigger {
+      display: inline-flex;
+      flex: 1;
+      min-width: 0;
+      justify-content: flex-start;
+      padding: 7px 14px;
+    }
+    .mss-trigger__label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+  @media (min-width: 769px) {
+    /* Modal also exists on desktop in DOM (for future), but trigger hidden */
+    .mss-modal { display: none !important; }
+  }
+</style>
+
+<script is:inline>
+(function() {
+  var trigger = document.getElementById('mss-trigger');
+  var modal = document.getElementById('mss-modal');
+  var input = document.getElementById('mss-input');
+  var clearBtn = document.getElementById('mss-clear');
+  var resultsEl = document.getElementById('mss-results');
+  if (!trigger || !modal || !input || !resultsEl) return;
+
+  var pagefindReady = null;
+  var debounceTimer = null;
+  var spinnerTimer = null;
+  var lastBeaconedQuery = '';
+  var shown = 0;
+  var INITIAL_PAGE = 5;
+  var PER_PAGE = 8;
+  var totalCount = 0;
+  var currentQuery = '';
+  var PRELOAD_CAP = 50;
+  var preloadedData = [];
+  var isFirstPage = true;
+  var lastFocus = null;
+
+  var waveFrames = ['⠖⠉⠉⠑','⡠⠖⠉⠉','⣠⡠⠖⠉','⣄⣠⡠⠖','⠢⣄⣠⡠','⠙⠢⣄⣠','⠉⠙⠢⣄','⠊⠉⠙⠢','⠜⠊⠉⠙','⡤⠜⠊⠉','⣀⡤⠜⠊','⢤⣀⡤⠜','⠣⢤⣀⡤','⠑⠣⢤⣀','⠉⠑⠣⢤','⠋⠉⠑⠣'];
+
+  function openModal() {
+    if (!modal.hasAttribute('hidden')) return;
+    lastFocus = document.activeElement;
+    // If the mobile drawer is open, close it so the user gets a clean modal context
+    var navToggle = document.getElementById('nav-toggle');
+    if (navToggle && navToggle.checked) navToggle.checked = false;
+    modal.removeAttribute('hidden');
+    trigger.setAttribute('aria-expanded', 'true');
+    document.documentElement.style.overflow = 'hidden';
+    // Defer focus so the dialog is painted first (avoids iOS keyboard jank)
+    setTimeout(function() { input.focus(); }, 30);
+    // Preload Pagefind on open so first keystroke is instant
+    ensurePagefind().catch(function(){});
+    if (!resultsEl.innerHTML) {
+      resultsEl.innerHTML = '<p class="mss-hint">Try a topic, condition, or author.</p>';
+    }
+  }
+
+  function closeModal() {
+    if (modal.hasAttribute('hidden')) return;
+    modal.setAttribute('hidden', '');
+    trigger.setAttribute('aria-expanded', 'false');
+    document.documentElement.style.overflow = '';
+    stopLoadingSpinner();
+    if (lastFocus && typeof lastFocus.focus === 'function') {
+      lastFocus.focus();
+    }
+  }
+
+  trigger.addEventListener('click', openModal);
+
+  // Close on backdrop or cancel
+  modal.addEventListener('click', function(e) {
+    var t = e.target;
+    if (t && t.closest && t.closest('[data-mss-close]')) {
+      closeModal();
+    }
+  });
+
+  // ESC key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !modal.hasAttribute('hidden')) {
+      e.preventDefault();
+      closeModal();
+    }
+  });
+
+  function startLoadingSpinner() {
+    stopLoadingSpinner();
+    resultsEl.innerHTML = '<p class="mss-loading">Searching <span class="mss-loading-spinner"></span></p>';
+    var el = resultsEl.querySelector('.mss-loading-spinner');
+    if (!el) return;
+    var fi = 0;
+    el.textContent = waveFrames[0];
+    spinnerTimer = setInterval(function() {
+      fi = (fi + 1) % waveFrames.length;
+      el.textContent = waveFrames[fi];
+    }, 160);
+  }
+  function stopLoadingSpinner() {
+    if (spinnerTimer) { clearInterval(spinnerTimer); spinnerTimer = null; }
+  }
+
+  function beaconQuery(query, resultsCount) {
+    if (!query || query.length < 2 || query.length > 500) return;
+    if (query === lastBeaconedQuery) return;
+    lastBeaconedQuery = query;
+    try {
+      fetch('/api/search/log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: query, results_count: resultsCount, source: 'pagefind-mobile' }),
+        keepalive: true,
+        credentials: 'same-origin',
+      }).catch(function(){});
+    } catch(e) {}
+  }
+
+  function ensurePagefind() {
+    if (!pagefindReady) {
+      pagefindReady = import('/pagefind/pagefind.js').catch(function() {
+        return fetch('/pagefind/pagefind.js')
+          .then(function(r) { return r.text(); })
+          .then(function(js) {
+            var blob = new Blob([js], { type: 'application/javascript' });
+            return import(URL.createObjectURL(blob));
+          });
+      }).then(function(pf) {
+        return pf.options({ basePath: '/pagefind/' }).then(function() { return pf.init(); }).then(function() { return pf; });
+      }).catch(function(err) {
+        pagefindReady = null;
+        throw err;
+      });
+    }
+    return pagefindReady;
+  }
+
+  var _engWordRe = /^(the|of|in|and|for|with|a|an|to|from|by|on|at|or|is|are|was|were|after|before|between|during|through|about|into|over|its|their|this|that|these|those|which|who|has|have|had|not|but|can|may|should|will|be|been|do|each|all|both|more|most|some|such|no|only|other|same|so|also|new|based|using|associated|among|without|within|upon|including|following|versus|compared|effect|role|impact|review|study|analysis|treatment|outcomes|risk|women|patients|clinical|use|health)$/i;
+  function isNonEnglish(title) {
+    if (!title) return false;
+    var t = title.replace(/müller\w*/gi, '').replace(/café/gi, '').replace(/naïve/gi, '');
+    var nonAscii = (t.match(/[^\x00-\x7F]/g) || []).length;
+    if (nonAscii >= 3) return true;
+    var words = title.split(/[\s\-–—:,;.()]+/).filter(function(w) { return w.length > 0; });
+    if (words.length < 5) return false;
+    var engCount = 0;
+    for (var i = 0; i < words.length; i++) {
+      if (_engWordRe.test(words[i])) engCount++;
+    }
+    return (engCount / words.length) < 0.10;
+  }
+
+  function onInput() {
+    var q = input.value.trim();
+    if (q) clearBtn.removeAttribute('hidden'); else clearBtn.setAttribute('hidden', '');
+    clearTimeout(debounceTimer);
+    if (!q) {
+      stopLoadingSpinner();
+      preloadedData = [];
+      currentQuery = '';
+      resultsEl.innerHTML = '<p class="mss-hint">Try a topic, condition, or author.</p>';
+      return;
+    }
+    currentQuery = q;
+    debounceTimer = setTimeout(function() { doSearch(q); }, 150);
+  }
+
+  async function doSearch(query) {
+    startLoadingSpinner();
+    try {
+      var semanticPromise = fetch('/api/search/semantic?q=' + encodeURIComponent(query))
+        .then(function(r) { return r.json(); })
+        .catch(function() { return { results: [] }; });
+
+      var pf = await ensurePagefind();
+      var search = await pf.search(query);
+      if (query !== currentQuery) { stopLoadingSpinner(); return; }
+      var toPreload = search.results.slice(0, PRELOAD_CAP);
+      var pfLoaded = (await Promise.all(
+        toPreload.map(function(r, i) {
+          return r.data().then(function(d) {
+            d._pfRank = i;
+            if (isNonEnglish(d.meta && d.meta.title)) d._pfRank += 1000;
+            return d;
+          }).catch(function() { return null; });
+        })
+      )).filter(Boolean);
+      if (query !== currentQuery) { stopLoadingSpinner(); return; }
+
+      var semanticData = await Promise.race([
+        semanticPromise,
+        new Promise(function(resolve) { setTimeout(function() { resolve(null); }, 300); })
+      ]);
+      if (query !== currentQuery) { stopLoadingSpinner(); return; }
+
+      var semanticResults = (semanticData && semanticData.results || []).filter(function(sr) { return sr.score >= 0.5; });
+
+      var RRF_K = 60;
+      var fusedMap = {};
+      function toRelative(url) { try { return new URL(url).pathname; } catch(e) { return url; } }
+      function extractRecId(url) { var m = url.match(/-(rec[a-zA-Z0-9]+)\/?$/); return m ? m[1].toLowerCase() : null; }
+      var recIdToKey = {};
+
+      for (var pi = 0; pi < pfLoaded.length; pi++) {
+        var pItem = pfLoaded[pi];
+        var pUrl = toRelative(pItem.url);
+        pItem.url = pUrl;
+        var pRecId = extractRecId(pUrl);
+        var existingKey = pRecId && recIdToKey[pRecId];
+        if (existingKey) {
+          fusedMap[existingKey].score += 1 / (RRF_K + pItem._pfRank);
+        } else if (fusedMap[pUrl]) {
+          fusedMap[pUrl].score += 1 / (RRF_K + pItem._pfRank);
+        } else {
+          fusedMap[pUrl] = { score: 1 / (RRF_K + pItem._pfRank), data: pItem };
+          if (pRecId) recIdToKey[pRecId] = pUrl;
+        }
+      }
+
+      for (var si = 0; si < semanticResults.length; si++) {
+        var sItem = semanticResults[si];
+        var sUrl = toRelative(sItem.url);
+        var sRank = si;
+        if (isNonEnglish(sItem.title)) sRank += 1000;
+        var sRecId = extractRecId(sUrl);
+        var matchKey = fusedMap[sUrl] ? sUrl : (sRecId && recIdToKey[sRecId]) ? recIdToKey[sRecId] : null;
+
+        if (matchKey) {
+          fusedMap[matchKey].score += 1 / (RRF_K + sRank);
+          if (matchKey !== sUrl) fusedMap[matchKey].data.url = sUrl;
+          if (fusedMap[matchKey].data.meta && !fusedMap[matchKey].data.meta.type && sItem.type) {
+            fusedMap[matchKey].data.meta.type = sItem.type;
+          }
+        } else {
+          fusedMap[sUrl] = {
+            score: 1 / (RRF_K + sRank),
+            data: {
+              url: sUrl, excerpt: '',
+              meta: { title: sItem.title, authors: sItem.authors || '', year: sItem.year ? String(sItem.year) : '', type: sItem.type || 'Research' },
+              _pfRank: -1
+            }
+          };
+          if (sRecId && !recIdToKey[sRecId]) recIdToKey[sRecId] = sUrl;
+        }
+      }
+
+      var RECENCY_K = 30;
+      var currentYear = new Date().getFullYear();
+      for (var rKey in fusedMap) {
+        var entry = fusedMap[rKey];
+        var yr = parseInt(entry.data.meta && entry.data.meta.year, 10);
+        if (yr > 0) {
+          var age = Math.max(0, currentYear - yr);
+          if (age < 20) {
+            var recencyRank = Math.round(age * 2.5);
+            entry.score += 1 / (RECENCY_K + recencyRank);
+          }
+        }
+      }
+
+      var RELEVANCE_K = 50;
+      var _relevanceMap = { '5 - Core RRM': 0, '4 - Highly Relevant': 10, '3 - Relevant': 25, '2 - Peripheral': 45, '1 - Not RRM': 60 };
+      var _ownContentTypes = { 'Article': 1, 'FAQ': 1, 'Course': 1, 'Guide': 1, 'Glossary': 1 };
+      for (var rlKey in fusedMap) {
+        var rlEntry = fusedMap[rlKey];
+        var rlMeta = rlEntry.data.meta || {};
+        var rlRank = 30;
+        if (_ownContentTypes[rlMeta.type]) rlRank = 0;
+        else if (rlMeta.rrmRelevance && _relevanceMap[rlMeta.rrmRelevance] !== undefined) rlRank = _relevanceMap[rlMeta.rrmRelevance];
+        rlEntry.score += 1 / (RELEVANCE_K + rlRank);
+        var rlSentiment = rlMeta.sentiment;
+        if (rlSentiment === 'hostile') rlEntry.score -= 0.02;
+        else if (rlSentiment === 'critical') rlEntry.score -= 0.01;
+      }
+
+      var fusedList = [];
+      for (var fKey in fusedMap) fusedList.push(fusedMap[fKey]);
+      fusedList.sort(function(a, b) { return b.score - a.score; });
+
+      preloadedData = fusedList.map(function(f) { return f.data; });
+      totalCount = preloadedData.length;
+      shown = 0;
+      isFirstPage = true;
+      stopLoadingSpinner();
+      resultsEl.innerHTML = '';
+      beaconQuery(query, totalCount);
+
+      if (totalCount === 0) {
+        resultsEl.innerHTML = '<p class="mss-empty">No results found for “' + escHtml(query) + '”</p>';
+        return;
+      }
+
+      var countEl = document.createElement('p');
+      countEl.className = 'mss-count';
+      countEl.textContent = totalCount + ' result' + (totalCount === 1 ? '' : 's');
+      resultsEl.appendChild(countEl);
+      loadMore();
+
+      if (!semanticData) {
+        semanticPromise.then(function(lateData) {
+          if (query !== currentQuery) return;
+          var lateResults = (lateData && lateData.results || []).filter(function(sr) { return sr.score >= 0.5; });
+          var existingUrls = {};
+          var existingRecIds = {};
+          for (var ei = 0; ei < preloadedData.length; ei++) {
+            var eUrl = toRelative(preloadedData[ei].url).toLowerCase();
+            existingUrls[eUrl] = true;
+            var eRecId = extractRecId(eUrl);
+            if (eRecId) existingRecIds[eRecId] = true;
+          }
+          var added = 0;
+          for (var li = 0; li < lateResults.length; li++) {
+            var lr = lateResults[li];
+            var lrUrl = toRelative(lr.url).toLowerCase();
+            var lrRecId = extractRecId(lrUrl);
+            if (existingUrls[lrUrl] || (lrRecId && existingRecIds[lrRecId])) continue;
+            preloadedData.push({
+              url: lr.url, excerpt: '',
+              meta: { title: lr.title, authors: lr.authors || '', year: lr.year ? String(lr.year) : '', type: lr.type || 'Research' },
+              _pfRank: -1
+            });
+            added++;
+          }
+          if (added > 0) {
+            totalCount = preloadedData.length;
+            var countDisplay = resultsEl.querySelector('.mss-count');
+            if (countDisplay) countDisplay.textContent = totalCount + ' result' + (totalCount === 1 ? '' : 's');
+            var moreBtn = resultsEl.querySelector('.mss-more');
+            if (moreBtn && shown < totalCount) {
+              moreBtn.textContent = 'Show more (' + (totalCount - shown) + ' remaining)';
+            } else if (!moreBtn && shown < totalCount) {
+              var btn = document.createElement('button');
+              btn.className = 'mss-more';
+              btn.textContent = 'Show more (' + (totalCount - shown) + ' remaining)';
+              btn.addEventListener('click', function() { loadMore(); });
+              resultsEl.appendChild(btn);
+            }
+          }
+        });
+      }
+    } catch(e) {
+      stopLoadingSpinner();
+      if (query !== currentQuery) return;
+      resultsEl.innerHTML = '<p class="mss-empty">Search unavailable</p>';
+    }
+  }
+
+  function loadMore() {
+    var pageSize = isFirstPage ? INITIAL_PAGE : PER_PAGE;
+    isFirstPage = false;
+    var batch = preloadedData.slice(shown, shown + pageSize);
+    var fragment = document.createDocumentFragment();
+    for (var j = 0; j < batch.length; j++) {
+      fragment.appendChild(renderResult(batch[j]));
+    }
+    var oldBtn = resultsEl.querySelector('.mss-more');
+    if (oldBtn) oldBtn.remove();
+    resultsEl.appendChild(fragment);
+    shown += batch.length;
+    if (shown < totalCount) {
+      var btn = document.createElement('button');
+      btn.className = 'mss-more';
+      btn.textContent = 'Show more (' + (totalCount - shown) + ' remaining)';
+      btn.addEventListener('click', function() { loadMore(); });
+      resultsEl.appendChild(btn);
+    }
+  }
+
+  function renderResult(data) {
+    var a = document.createElement('a');
+    a.className = 'mss-item';
+    a.href = data.url;
+
+    var title = data.meta && data.meta.title ? data.meta.title : '';
+    var authors = data.meta && data.meta.authors ? data.meta.authors : '';
+    var type = data.meta && data.meta.type ? data.meta.type : '';
+    var excerpt = data.excerpt || '';
+
+    var titleRow = document.createElement('div');
+    titleRow.className = 'mss-title-row';
+    var h = document.createElement('h3');
+    h.className = 'mss-title';
+    h.textContent = title || 'Untitled';
+    titleRow.appendChild(h);
+    if (type) {
+      var badge = document.createElement('span');
+      badge.className = 'mss-type mss-type--' + type.toLowerCase();
+      badge.textContent = type;
+      titleRow.appendChild(badge);
+    }
+    a.appendChild(titleRow);
+
+    if (authors && (type === 'Research' || type === 'Article' || !type)) {
+      var meta = document.createElement('div');
+      meta.className = 'mss-meta';
+      meta.textContent = authors;
+      a.appendChild(meta);
+    }
+
+    var displayExcerpt = excerpt;
+    if (type === 'Course' && data.meta && data.meta.description) displayExcerpt = data.meta.description;
+    if (displayExcerpt) {
+      var p = document.createElement('p');
+      p.className = 'mss-excerpt';
+      p.textContent = displayExcerpt.replace(/<\/?mark>/g, '');
+      a.appendChild(p);
+    }
+    return a;
+  }
+
+  function escHtml(s) {
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  clearBtn.addEventListener('click', function() {
+    input.value = '';
+    clearBtn.setAttribute('hidden', '');
+    preloadedData = [];
+    currentQuery = '';
+    resultsEl.innerHTML = '<p class="mss-hint">Try a topic, condition, or author.</p>';
+    input.focus();
+  });
+
+  input.addEventListener('input', onInput);
+
+  // Submit (enterkeyhint=search) — keep results inline, never navigate to /library/
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      var q = input.value.trim();
+      if (q) { clearTimeout(debounceTimer); doSearch(q); }
+    }
+  });
+})();
+</script>
