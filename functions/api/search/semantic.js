@@ -36,7 +36,10 @@ export async function onRequestGet(context) {
   const start = Date.now();
   const url = new URL(request.url);
   const query = url.searchParams.get('q');
-  const ip = request.headers.get('cf-connecting-ip') || 'unknown';
+  const ip = request.headers.get('cf-connecting-ip');
+  if (!ip) {
+    return Response.json({ results: [], error: 'service_unavailable' }, { status: 503, headers: CORS_HEADERS });
+  }
   const { user_agent_short, referer_path } = extractRequestMeta(request);
 
   if (!query || query.length < 2) {
