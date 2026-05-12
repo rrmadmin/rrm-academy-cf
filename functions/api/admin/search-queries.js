@@ -79,7 +79,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
   // Build WHERE conditions (shared across views)
   const conditions = ['created_at >= ?', 'created_at <= ?'];
-  const params = [from.slice(0, 10), to.slice(0, 10) + ' 23:59:59'];
+  const params = [from.slice(0, 10), to.slice(0, 10) + 'T23:59:59.999Z'];
 
   if (source) {
     conditions.push('source = ?');
