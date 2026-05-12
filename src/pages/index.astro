@@ -741,6 +741,8 @@ const jsonLd = {
   }
 
   .hp-hero__search {
+    position: relative;
+    z-index: 20; /* beat animate-enter sibling stacking contexts so results overlay correctly */
     width: 100%;
     max-width: 560px;
     margin: 0 auto var(--space-4);
