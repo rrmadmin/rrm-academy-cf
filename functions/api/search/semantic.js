@@ -36,7 +36,10 @@ export async function onRequestGet(context) {
   const start = Date.now();
   const url = new URL(request.url);
   const query = url.searchParams.get('q');
-  const ip = request.headers.get('cf-connecting-ip') || 'unknown';
+  const ip = request.headers.get('cf-connecting-ip');
+  if (!ip) {
+    return Response.json({ results: [], error: 'service_unavailable' }, { status: 503, headers: CORS_HEADERS });
+  }
   const { user_agent_short, referer_path } = extractRequestMeta(request);
 
   if (!query || query.length < 2) {
@@ -218,7 +221,7 @@ export async function onRequestGet(context) {
     for (const m of matches.matches) {
       if (!m.metadata || (!m.metadata.url && !m.metadata.slug)) continue;
       const matchUrl = m.metadata.url || `/library/${m.metadata.slug}/`;
-      const recMatch = matchUrl.match(/-(rec[a-zA-Z0-9]+)\/?$/);
+      const recMatch = matchUrl.match(/-(rec[a-zA-Z0-9]{14})\/?$/);
       const dedupKey = recMatch ? recMatch[1].toLowerCase() : matchUrl.toLowerCase();
       if (seen.has(dedupKey)) continue;
       seen.add(dedupKey);
@@ -245,6 +248,8 @@ export async function onRequestGet(context) {
     });
     return Response.json({ results }, { headers: CORS_HEADERS });
   } catch (err) {
+    const entry = rateLimitMap.get(ip);
+    if (entry && entry.count > 0) entry.count--;
     log(env, waitUntil, 'search', 'semantic_error', 'error', err.message, 0, 500);
     await logSearchQuery(env, {
       source: 'semantic',

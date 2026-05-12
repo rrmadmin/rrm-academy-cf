@@ -429,6 +429,7 @@
   var PRELOAD_CAP = 50;
   var preloadedData = [];
   var activeFilter = 'all';
+  var inflightSemanticCtl = null;
 
   // Grouped-result ordering (chip + section order, left-to-right).
   // Courses placed last; primary order is Brian-specified.
@@ -565,9 +566,15 @@
 
     try {
       // Fire both searches in parallel
-      var semanticPromise = fetch('/api/search/semantic?q=' + encodeURIComponent(query))
+      if (inflightSemanticCtl) inflightSemanticCtl.abort();
+      inflightSemanticCtl = new AbortController();
+      var semanticPromise = fetch('/api/search/semantic?q=' + encodeURIComponent(query), { signal: inflightSemanticCtl.signal })
         .then(function(r) { return r.json(); })
-        .catch(function(err) { console.warn('Semantic search failed:', err.message || err); return { results: [] }; });
+        .catch(function(err) {
+          if (err && err.name === 'AbortError') return { results: [], aborted: true };
+          console.warn('Semantic search failed:', err.message || err);
+          return { results: [] };
+        });
 
       var pf = await ensurePagefind();
       var search = await pf.search(query);
@@ -609,7 +616,7 @@
       // Extract Airtable record ID from slug (e.g. "...-recXYZ123/" -> "recxyz123")
       // Used for dedup when slugs change but record ID stays the same
       function extractRecId(url) {
-        var m = url.match(/-(rec[a-zA-Z0-9]+)\/?$/);
+        var m = url.match(/-(rec[a-zA-Z0-9]{14})\/?$/);
         return m ? m[1].toLowerCase() : null;
       }
 
@@ -719,7 +726,7 @@
       }
       fusedList.sort(function(a, b) { return b.score - a.score; });
 
-      preloadedData = fusedList.map(function(f) { return f.data; });
+      preloadedData = fusedList.map(function(f) { f.data._score = f.score; return f.data; });
       totalCount = preloadedData.length;
       activeFilter = 'all';
       stopLoadingSpinner();
@@ -730,6 +737,7 @@
       if (!semanticData) {
         semanticPromise.then(function(lateData) {
           if (query !== currentQuery) return;
+          if (lateData && lateData.aborted) return;
           var lateResults = (lateData && lateData.results || []).filter(function(sr) { return sr.score >= 0.5; });
           var existingUrls = {};
           var existingRecIds = {};
@@ -745,14 +753,32 @@
             var lrUrl = toRelative(lr.url).toLowerCase();
             var lrRecId = extractRecId(lrUrl);
             if (existingUrls[lrUrl] || (lrRecId && existingRecIds[lrRecId])) continue;
+            var lrType = lr.type || 'Research';
+            var lrTitle = lr.title || '';
+            if (isNonEnglish(lrTitle)) continue;
+            var lrRank = li;
+            var lrScore = 1 / (RRF_K + lrRank);
+            var lrYear = parseInt(lr.year, 10);
+            if (lrYear > 0) {
+              var lrAge = Math.max(0, currentYear - lrYear);
+              if (lrAge < 20) lrScore += 1 / (RECENCY_K + Math.round(lrAge * 2.5));
+            }
+            var lrRelRank = 30;
+            if (_ownContentTypes[lrType]) lrRelRank = 0;
+            else if (lr.rrmRelevance && _relevanceMap[lr.rrmRelevance] !== undefined) lrRelRank = _relevanceMap[lr.rrmRelevance];
+            lrScore += 1 / (RELEVANCE_K + lrRelRank);
+            if (lr.sentiment === 'hostile') lrScore -= 0.02;
+            else if (lr.sentiment === 'critical') lrScore -= 0.01;
             preloadedData.push({
               url: lr.url, excerpt: '',
-              meta: { title: lr.title, authors: lr.authors || '', year: lr.year ? String(lr.year) : '', type: lr.type || 'Research' },
-              _pfRank: -1
+              meta: { title: lrTitle, authors: lr.authors || '', year: lr.year ? String(lr.year) : '', type: lrType },
+              _pfRank: -1,
+              _score: lrScore
             });
             added++;
           }
           if (added > 0) {
+            preloadedData.sort(function(a, b) { return (b._score || 0) - (a._score || 0); });
             totalCount = preloadedData.length;
             renderPanel();
           }
@@ -970,6 +996,8 @@
 
   // Clear button
   clearBtn.addEventListener('click', function() {
+    clearTimeout(debounceTimer);
+    stopLoadingSpinner();
     input.value = '';
     clearBtn.classList.add('hidden');
     resultsEl.innerHTML = '';

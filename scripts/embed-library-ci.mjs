@@ -186,8 +186,28 @@ if (articles.length < 2500) {
   process.exit(1);
 }
 
-if (guides.length < 7) {
-  console.error(`ABORT: Expected 7 pillar guide entries but found ${guides.length}. Did scripts/build-guides-data.mjs run as part of the build? Without this guard, stale-vector purge below would delete previously-embedded guide-* vectors.`);
+if (guides.length < 8) {
+  console.error(`ABORT: Expected 8 pillar guide entries but found ${guides.length}. Did scripts/build-guides-data.mjs run as part of the build? Without this guard, stale-vector purge below would delete previously-embedded guide-* vectors.`);
+  process.exit(1);
+}
+
+if (posts.length < 15) {
+  console.error(`ABORT: Expected >= 15 posts but found ${posts.length}. Without this guard, stale-vector purge below would delete previously-embedded post-* vectors.`);
+  process.exit(1);
+}
+
+if (faqs.length < 20) {
+  console.error(`ABORT: Expected >= 20 FAQs but found ${faqs.length}. Without this guard, stale-vector purge below would delete previously-embedded faq-* vectors.`);
+  process.exit(1);
+}
+
+if (courses.length < 8) {
+  console.error(`ABORT: Expected >= 8 courses but found ${courses.length}. Without this guard, stale-vector purge below would delete previously-embedded course-* vectors.`);
+  process.exit(1);
+}
+
+if ((glossary.terms || []).length < 100) {
+  console.error(`ABORT: Expected >= 100 glossary terms but found ${(glossary.terms || []).length}. Without this guard, stale-vector purge below would delete previously-embedded glossary-* vectors.`);
   process.exit(1);
 }
 
@@ -345,23 +365,38 @@ for (let i = 0; i < entries.length; i += BATCH_SIZE) {
 
 const upsertedIds = new Set(entries.map(e => e.id || vectorId(e.slug)));
 
+let listFailed = false;
+let staleIds = [];
 try {
   console.log('Listing existing vectors to find stale entries...');
   const existingIds = await listVectorIds();
-  const staleIds = existingIds.filter(id => !upsertedIds.has(id));
+  staleIds = existingIds.filter(id => !upsertedIds.has(id));
+} catch (err) {
+  console.warn(`Warning: stale vector listing failed (${err.message}). Skipping purge; vectors were upserted successfully.`);
+  listFailed = true;
+}
 
+if (!listFailed) {
   if (staleIds.length > 0) {
     console.log(`Found ${staleIds.length} stale vectors to delete...`);
+    let deleteFailed = 0;
     for (let i = 0; i < staleIds.length; i += BATCH_SIZE) {
       const batch = staleIds.slice(i, i + BATCH_SIZE);
-      await deleteVectors(batch);
+      try {
+        await deleteVectors(batch);
+      } catch (err) {
+        console.error(`Failed to delete stale vector batch at index ${i}: ${err.message}`);
+        deleteFailed += batch.length;
+      }
+    }
+    if (deleteFailed > 0) {
+      console.error(`ABORT: Failed to delete ${deleteFailed} of ${staleIds.length} stale vectors. Re-run embed to retry; stale vectors will surface in search until cleared.`);
+      process.exit(1);
     }
     console.log(`Deleted ${staleIds.length} stale vectors.`);
   } else {
     console.log('No stale vectors found.');
   }
-} catch (err) {
-  console.warn(`Warning: stale vector cleanup failed (${err.message}). Vectors were upserted successfully.`);
 }
 
 console.log('Done. All content embedded.');
