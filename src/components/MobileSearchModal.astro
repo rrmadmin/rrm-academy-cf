@@ -485,6 +485,7 @@
   var PRELOAD_CAP = 50;
   var preloadedData = [];
   var activeFilter = 'all';
+  var inflightSemanticCtl = null;
 
   var TYPE_ORDER = ['Guide', 'Research', 'Glossary', 'Article', 'FAQ', 'Course'];
   var TYPE_LABEL = { Guide: 'Guides', Glossary: 'Glossary', FAQ: 'FAQs', Course: 'Courses', Article: 'Commentary', Research: 'Research' };
@@ -624,9 +625,15 @@
   async function doSearch(query) {
     startLoadingSpinner();
     try {
-      var semanticPromise = fetch('/api/search/semantic?q=' + encodeURIComponent(query))
+      if (inflightSemanticCtl) inflightSemanticCtl.abort();
+      inflightSemanticCtl = new AbortController();
+      var semanticPromise = fetch('/api/search/semantic?q=' + encodeURIComponent(query), { signal: inflightSemanticCtl.signal })
         .then(function(r) { return r.json(); })
-        .catch(function() { return { results: [] }; });
+        .catch(function(err) {
+          if (err && err.name === 'AbortError') return { results: [], aborted: true };
+          console.warn('Semantic search failed:', err && (err.message || err));
+          return { results: [] };
+        });
 
       var pf = await ensurePagefind();
       var search = await pf.search(query);
