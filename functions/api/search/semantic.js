@@ -200,10 +200,29 @@ export async function onRequestGet(context) {
       return Response.json({ results: [], error: 'service_unavailable' }, { status: 503, headers: CORS_HEADERS });
     }
 
-    // Embed the user's query
-    const embedding = await env.AI.run('@cf/baai/bge-base-en-v1.5', {
-      text: [query],
-    });
+    // Embed the user's query (600ms timeout -- 2x client headroom)
+    const SUBREQ_TIMEOUT_MS = 600;
+    let embedding;
+    try {
+      embedding = await Promise.race([
+        env.AI.run('@cf/baai/bge-base-en-v1.5', { text: [query] }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('ai_timeout')), SUBREQ_TIMEOUT_MS)),
+      ]);
+    } catch (aiErr) {
+      const isTimeout = aiErr.message === 'ai_timeout';
+      log(env, waitUntil, 'search', isTimeout ? 'ai_timeout' : 'ai_error', 'error', isTimeout ? 'AI.run timed out' : aiErr.message, Date.now() - start, isTimeout ? 503 : 502);
+      await logSearchQuery(env, {
+        source: 'semantic',
+        query,
+        ip_hash: await hashIp(ip),
+        results_count: 0,
+        duration_ms: Date.now() - start,
+        http_status: isTimeout ? 503 : 502,
+        user_agent_short,
+        referer_path,
+      });
+      return Response.json({ results: [], error: isTimeout ? 'service_unavailable' : 'embedding_failed' }, { status: isTimeout ? 503 : 502, headers: CORS_HEADERS });
+    }
     const queryVector = embedding.data?.[0];
     if (!queryVector) {
       log(env, waitUntil, 'search', 'embedding_failed', 'error', 'AI returned no vector', 0, 502);
@@ -220,11 +239,28 @@ export async function onRequestGet(context) {
       return Response.json({ results: [], error: 'embedding_failed' }, { status: 502, headers: CORS_HEADERS });
     }
 
-    // Find nearest neighbors
-    const matches = await env.VECTORIZE.query(queryVector, {
-      topK: 10,
-      returnMetadata: 'all',
-    });
+    // Find nearest neighbors (600ms timeout)
+    let matches;
+    try {
+      matches = await Promise.race([
+        env.VECTORIZE.query(queryVector, { topK: 10, returnMetadata: 'all' }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('vectorize_timeout')), SUBREQ_TIMEOUT_MS)),
+      ]);
+    } catch (vErr) {
+      const isTimeout = vErr.message === 'vectorize_timeout';
+      log(env, waitUntil, 'search', isTimeout ? 'vectorize_timeout' : 'vectorize_error', 'error', isTimeout ? 'Vectorize timed out' : vErr.message, Date.now() - start, isTimeout ? 503 : 502);
+      await logSearchQuery(env, {
+        source: 'semantic',
+        query,
+        ip_hash: await hashIp(ip),
+        results_count: 0,
+        duration_ms: Date.now() - start,
+        http_status: isTimeout ? 503 : 502,
+        user_agent_short,
+        referer_path,
+      });
+      return Response.json({ results: [], error: isTimeout ? 'service_unavailable' : 'search_failed' }, { status: isTimeout ? 503 : 502, headers: CORS_HEADERS });
+    }
 
     const seen = new Set();
     const results = [];
