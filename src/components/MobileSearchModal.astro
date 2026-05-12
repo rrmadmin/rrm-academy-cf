@@ -486,6 +486,7 @@
   var preloadedData = [];
   var activeFilter = 'all';
   var inflightSemanticCtl = null;
+  var pendingSearchContext = null;
 
   var TYPE_ORDER = ['Guide', 'Research', 'Glossary', 'Article', 'FAQ', 'Course'];
   var TYPE_LABEL = { Guide: 'Guides', Glossary: 'Glossary', FAQ: 'FAQs', Course: 'Courses', Article: 'Commentary', Research: 'Research' };
@@ -944,6 +945,40 @@
       p.textContent = displayExcerpt.replace(/<\/?mark>/g, '');
       a.appendChild(p);
     }
+
+    a.addEventListener('pointerdown', function () {
+      var clickedHref = a.getAttribute('href') || '';
+      var isCommentaryClick = clickedHref.indexOf('/commentary/') !== -1;
+      var pathSubstring = isCommentaryClick ? '/commentary/' : '/library/';
+      var resultSource = isCommentaryClick ? 'commentary' : 'library';
+
+      var allLinks = document.querySelectorAll('#mss-results a[href*="' + pathSubstring + '"]');
+      var slugs = [];
+      var titles = [];
+      allLinks.forEach(function (link) {
+        try {
+          var u = new URL(link.getAttribute('href'), location.origin);
+          var pm = u.pathname.match(/^\/(library|commentary)\/([a-z0-9][a-z0-9-]{0,250})\/?$/);
+          if (!pm) return;
+          if (pm[1] !== resultSource) return;
+          slugs.push(pm[2]);
+          var titleEl = link.querySelector('.mss-title') ||
+                        (link.closest('.mss-item') && link.closest('.mss-item').querySelector('.mss-title'));
+          titles.push(titleEl ? (titleEl.textContent || '').trim().slice(0, 300) : '');
+        } catch (err) { /* malformed URL — skip */ }
+      });
+      if (slugs.length === 0) return;
+      pendingSearchContext = {
+        source: resultSource,
+        label: 'Search · "' + (currentQuery || '').slice(0, 80) + '" · ' + slugs.length + ' results',
+        slugs: slugs.slice(0, 500),
+        titles: titles.slice(0, 500),
+        returnUrl: '/' + resultSource + '/?q=' + encodeURIComponent(currentQuery || ''),
+        filters: { q: currentQuery || '' },
+        writtenAt: Date.now()
+      };
+    });
+
     return a;
   }
 
@@ -963,6 +998,14 @@
     activeFilter = 'all';
     resultsEl.innerHTML = '<p class="mss-hint">Try a topic, condition, or author.</p>';
     input.focus();
+  });
+
+  window.addEventListener('pagehide', function () {
+    if (window.__rrmClearRequested__) return;
+    if (!pendingSearchContext) return;
+    try {
+      sessionStorage.setItem('rrm-shell-context', JSON.stringify(pendingSearchContext));
+    } catch (err) {}
   });
 
   input.addEventListener('input', onInput);
