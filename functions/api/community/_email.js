@@ -30,6 +30,23 @@ function formatEventDate(isoUtc) {
   }
 }
 
+// Personal-sender addresses for known STUC post/reply authors.
+// Falls back to a generic friendly sender when the author isn't in the map.
+// `mail.rrmacademy.org` is the verified SES sending domain; any subaddress
+// works without registering a new SES identity.
+const AUTHOR_SENDERS = {
+  // Brian Whittaker
+  '301eb55c3f388e65f3f42b14e635dc7a': '"Brian Whittaker" <brian@mail.rrmacademy.org>',
+  // Naomi Whittaker (id verified 2026-05-12 via D1 query on naomimwhittaker@gmail.com, role=admin)
+  '710134def83240b7b47b22a9c9579c0c': '"Naomi Whittaker" <naomi@mail.rrmacademy.org>',
+};
+
+function authorFrom(authorId, authorName) {
+  if (AUTHOR_SENDERS[authorId]) return AUTHOR_SENDERS[authorId];
+  const safeName = (authorName || 'Save the Uterus Club').replace(/"/g, '');
+  return `"${safeName}" <community@mail.rrmacademy.org>`;
+}
+
 export async function notifyNewPost(env, db, post, authorName) {
   // 15-minute cooldown via KV
   if (env.COMMUNITY_KV) {
@@ -41,7 +58,7 @@ export async function notifyNewPost(env, db, post, authorName) {
   }
 
   const members = await db.prepare(`
-    SELECT DISTINCT u.email FROM user u
+    SELECT DISTINCT u.email, u.first_name FROM user u
     WHERE ${STUC_MEMBER_WHERE}
       AND u.community_email_opt_out = 0
       AND u.id != ?
@@ -52,41 +69,64 @@ export async function notifyNewPost(env, db, post, authorName) {
 
   const link = `${SITE_URL}/community/post/${post.id}`;
   const isEvent = post.type === 'event';
-  const safeTitle = escapeHtml(post.title || '');
   const safeAuthor = escapeHtml(authorName);
+  const from = authorFrom(post.authorId, authorName);
 
-  let subject, html, text;
+  let subject;
+  let buildEmail;
 
   if (isEvent) {
-    const eventTitle = post.title || 'New event';
-    subject = `[Save the Uterus Club] New event: ${eventTitle}`;
+    const eventTitle = post.title || 'New Save the Uterus Club event';
+    subject = post.title || 'New Save the Uterus Club event';
     const formattedDate = formatEventDate(post.event_date);
     const dateLine = formattedDate ? `<p>When: ${escapeHtml(formattedDate)}</p>` : '';
     const dateLineText = formattedDate ? `When: ${formattedDate}\n` : '';
-    html = `
-    <p><strong>${safeTitle || 'New event'}</strong></p>
+
+    buildEmail = (m) => {
+      const greeting = m.first_name && m.first_name.trim()
+        ? `Hi ${escapeHtml(m.first_name.trim())},`
+        : 'Hi,';
+      const html = `
+    <p>${greeting}</p>
+    <p><strong>${escapeHtml(eventTitle)}</strong></p>
     ${dateLine}
     <p>Sign in to the community to view the link and join.</p>
     <p><a href="${link}">View event</a></p>
-    <p style="font-size:12px;color:#888;">You're receiving this because you're a Save the Uterus Club member. <a href="${SITE_URL}/community/">Manage notifications</a></p>
   `;
-    text = `${eventTitle}\n${dateLineText}Sign in to the community to view the link and join.\nView: ${link}\n\nManage notifications: ${SITE_URL}/community/`;
+      const text = `${greeting}\n\n${eventTitle}\n${dateLineText}Sign in to the community to view the link and join.\nView: ${link}`;
+      return { html, text };
+    };
   } else {
-    subject = `[Save the Uterus Club] New post from ${authorName}`;
-    html = `
+    subject = `${authorName} posted in Save the Uterus Club`;
+
+    buildEmail = (m) => {
+      const greeting = m.first_name && m.first_name.trim()
+        ? `Hi ${escapeHtml(m.first_name.trim())},`
+        : 'Hi,';
+      const html = `
+    <p>${greeting}</p>
     <p><strong>${safeAuthor}</strong> posted in the Save the Uterus Club community.</p>
     <p>Sign in to read and reply.</p>
     <p><a href="${link}">View post</a></p>
-    <p style="font-size:12px;color:#888;">You're receiving this because you're a Save the Uterus Club member. <a href="${SITE_URL}/community/">Manage notifications</a></p>
   `;
-    text = `${authorName} posted in the Save the Uterus Club community.\nSign in to read and reply.\nView: ${link}\n\nManage notifications: ${SITE_URL}/community/`;
+      const text = `${greeting}\n\n${authorName} posted in the Save the Uterus Club community.\nSign in to read and reply.\nView: ${link}`;
+      return { html, text };
+    };
   }
 
   // Send individual emails to preserve privacy (don't expose member emails to each other)
-  const emailPromises = members.results.map(m =>
-    sendEmail(env, { from: '"Save the Uterus Club" <community@mail.rrmacademy.org>', to: m.email, subject, html, text, log: { db, source: 'community/new-post', category: 'transactional' } })
-      .catch(err => console.error(`Failed to email ${m.email}:`, err.message))
-  );
+  const emailPromises = members.results.map(m => {
+    const { html, text } = buildEmail(m);
+    return sendEmail(env, {
+      from,
+      to: m.email,
+      subject,
+      html,
+      text,
+      replyTo: 'administrator@rrmacademy.org',
+      log: { db, source: 'community/new-post', category: 'transactional' },
+    }).catch(err => console.error(`Failed to email ${m.email}:`, err.message));
+  });
   await Promise.all(emailPromises);
 
   if (env.COMMUNITY_KV) {
@@ -117,7 +157,7 @@ export async function notifyReply(env, db, postId, parentId, replierId, replierN
   if (recipientId === replierId) return;
 
   const recipient = await db.prepare(
-    'SELECT email, community_email_opt_out FROM user WHERE id = ? AND blocked = 0'
+    'SELECT email, community_email_opt_out, first_name FROM user WHERE id = ? AND blocked = 0'
   ).bind(recipientId).first();
 
   if (!recipient || recipient.community_email_opt_out) return;
@@ -125,21 +165,26 @@ export async function notifyReply(env, db, postId, parentId, replierId, replierN
   const link = `${SITE_URL}/community/`;
   const preview = replyContent.slice(0, 200);
 
-  const subject = `[Save the Uterus Club] ${replierName} replied to your ${targetLabel}`;
+  const greeting = recipient.first_name && recipient.first_name.trim()
+    ? `Hi ${escapeHtml(recipient.first_name.trim())},`
+    : 'Hi,';
+
+  const subject = `${replierName} replied to your ${targetLabel} in Save the Uterus Club`;
   const html = `
+    <p>${greeting}</p>
     <p><strong>${escapeHtml(replierName)}</strong> replied to your ${targetLabel}:</p>
     <blockquote style="border-left:3px solid #ddd;padding-left:12px;color:#555;">${escapeHtml(preview)}${replyContent.length > 200 ? '...' : ''}</blockquote>
     <p><a href="${link}">View conversation</a></p>
-    <p style="font-size:12px;color:#888;">You're receiving this because someone replied to your content. <a href="${SITE_URL}/community/">Manage notifications</a></p>
   `;
-  const text = `${replierName} replied to your ${targetLabel}:\n"${preview}"\nView: ${link}\n\nManage notifications: ${SITE_URL}/community/`;
+  const text = `${greeting}\n\n${replierName} replied to your ${targetLabel}:\n"${preview}"\nView: ${link}`;
 
   await sendEmail(env, {
-    from: '"Save the Uterus Club" <community@mail.rrmacademy.org>',
+    from: authorFrom(replierId, replierName),
     to: recipient.email,
     subject,
     html,
     text,
+    replyTo: 'administrator@rrmacademy.org',
     log: { db, source: 'community/reply', category: 'transactional' },
   }).catch(err => console.error(`Failed to email ${recipient.email}:`, err.message));
 }
