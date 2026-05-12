@@ -154,10 +154,13 @@ function buildEntries() {
     });
   }
 
-  // Pillar guides -- title + description + section headings + frontmatter keyword strings + body prose
+  // Pillar guides -- title (3x for embedding-signal boost) + description + headings + FAQ + body
+  // Title repetition compensates for the 2000-char text cap: pillar guides compete against
+  // laser-focused PubMed-style article titles in semantic ranking, so the title alone needs
+  // disproportionate weight in the resulting vector.
   for (const g of guides) {
     if (!g.slug || !g.title) continue;
-    const parts = [g.title];
+    const parts = [g.title, g.title, g.title];
     if (g.description) parts.push(g.description);
     if (g.sectionHeadings && g.sectionHeadings.length) {
       parts.push('Sections: ' + g.sectionHeadings.join(', '));
