@@ -568,6 +568,10 @@
       // Fire both searches in parallel
       if (inflightSemanticCtl) inflightSemanticCtl.abort();
       inflightSemanticCtl = new AbortController();
+      // Anchor the semantic timeout to fetch start, not to after-Pagefind. Cold-load
+      // Pagefind (200-500ms) used to silently extend the semantic budget; now the
+      // 300ms ceiling is consistent regardless of Pagefind warm/cold state.
+      var semanticStart = Date.now();
       var semanticPromise = fetch('/api/search/semantic?q=' + encodeURIComponent(query), { signal: inflightSemanticCtl.signal })
         .then(function(r) { return r.json(); })
         .catch(function(err) {
@@ -593,10 +597,13 @@
       )).filter(Boolean);
       if (query !== currentQuery) { stopLoadingSpinner(); return; }
 
-      // Wait for semantic with 300ms timeout (Pagefind is already done)
+      // Wait for semantic with a 300ms budget measured from semanticStart. If
+      // Pagefind took >=300ms, the remaining budget is 0 (semantic already
+      // settled or timed out from the user's POV).
+      var semanticRemaining = Math.max(0, 300 - (Date.now() - semanticStart));
       var semanticData = await Promise.race([
         semanticPromise,
-        new Promise(function(resolve) { setTimeout(function() { resolve(null); }, 300); })
+        new Promise(function(resolve) { setTimeout(function() { resolve(null); }, semanticRemaining); })
       ]);
       if (query !== currentQuery) { stopLoadingSpinner(); return; }
 
