@@ -396,8 +396,8 @@ jobs:
             exit 1
           fi
           guides_count=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$guides_file','utf8')).length)")
-          if [ "$guides_count" -ne 7 ]; then
-            echo "ERROR: $guides_file has $guides_count entries (expected 7 pillar guides)"
+          if [ "$guides_count" -ne 8 ]; then
+            echo "ERROR: $guides_file has $guides_count entries (expected 8 pillar guides)"
             exit 1
           fi
           echo "OK: $guides_file has $guides_count entries"
