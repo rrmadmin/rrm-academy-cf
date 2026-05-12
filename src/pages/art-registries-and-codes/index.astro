@@ -13,6 +13,7 @@ const SHELL_ENABLED = isShellEnabled('guides');
 const TOC_ITEMS = [
   { href: '#key-takeaways', label: 'Key Takeaways' },
   { href: '#what-are-art-registries-and-codes', label: 'What Are ART Registries and Codes of Practice?' },
+  { href: '#how-registries-differ', label: 'How Registries Differ' },
   { href: '#national-codes-of-practice', label: 'National Codes of Practice' },
   { href: '#national-registries', label: 'National Registries' },
   { href: '#measure-and-miss', label: 'What Registries Measure Well and Miss' },
@@ -102,6 +103,7 @@ const jsonLd = {
       ],
       articleSection: [
         'What Are ART Registries and Codes of Practice?',
+        'How Registries Differ',
         'National Codes of Practice',
         'National Registries',
         'What the Registries Measure Well and What They Miss',
@@ -290,6 +292,34 @@ const jsonLd = {
           <p>But both instruments have limits. Sweden's Q-IVF and Australia and New Zealand's ANZARD do link successive cycles for the same patient and report some cumulative outcomes. Most other public-facing registry outputs do not. They count what happens in a given treatment episode rather than following a couple from first consultation to eventual outcome, whether that outcome is a live birth, a decision to stop treatment, or an undiagnosed condition that was never addressed. They report what technology produced. They do not report out-of-pocket cost, journey length, or whether the underlying cause of infertility was ever diagnosed.</p>
 
           <p><a href="/what-is-rrm/">Restorative Reproductive Medicine</a> asks different questions. RRM clinicians start from diagnosis: what is causing this couple's infertility, and is there a treatable condition? Registry data is necessary for transparency in a field that handles profound decisions. But it is not sufficient for evaluating whether patients are being served well. Understanding what registries do and do not measure is the first step toward asking better questions.</p>
+
+          <!-- Section: How Registries Differ -->
+          <h2 id="how-registries-differ">How Registries Differ, and Why It Matters for the Numbers</h2>
+
+          <p class="registry-frame-intro">Before reading the statistics in the rest of this article, it helps to know how the major ART registries differ on what they collect, what they omit, who is required to participate, who chose to, and which patient population reaches their data. The figures HFEA publishes about UK ART are not directly comparable to JSOG's figures about Japanese ART, because the two systems measure different patient populations under different governance, with different funding capture, and with different definitions of who counts as a tracked patient. Apparent per-cycle live birth rates can diverge between countries by 10 percentage points or more not because clinical outcomes differ, but because the underlying registry frame differs. The cards below establish the comparative lens; the per-registry detail sections that follow build on it.</p>
+
+          <div class="registry-profile-grid">
+            {artRegistries.comparison_frames.map((frame: any) => (
+              <article class="registry-profile">
+                <header>
+                  <h3><a href={`#${frame.anchor}`}>{frame.registry}</a></h3>
+                  <p class="profile-country">{frame.country}</p>
+                </header>
+                <dl class="profile-fields">
+                  <div><dt>Governance</dt><dd>{frame.governance}</dd></div>
+                  <div><dt>Submission</dt><dd>{frame.submission}</dd></div>
+                  <div><dt>Collects</dt><dd>{frame.collects}</dd></div>
+                  <div><dt>Publishes</dt><dd>{frame.publishes}</dd></div>
+                  <div><dt>Omits from public reporting</dt><dd>{frame.omits}</dd></div>
+                  <div><dt>Funding capture</dt><dd>{frame.funding_capture}</dd></div>
+                  <div><dt>Coverage</dt><dd>{frame.coverage}</dd></div>
+                  <div><dt>Publication lag</dt><dd>{frame.publication_lag}</dd></div>
+                </dl>
+              </article>
+            ))}
+          </div>
+
+          <p class="registry-frame-closing">Each dimension matters for interpretation. <strong>Statutory mandatory registries</strong> (HFEA, CDC, ANZARD via RTAC) capture data from essentially every clinic in their jurisdiction; <strong>voluntary society registries</strong> (CARTR Plus, REDLARA, JSOG, DIR) capture only the clinics that choose to participate. Registries that capture both publicly funded and private self-pay cycles describe the national ART universe; registries that capture only private self-pay describe only a subset, and the country's average per-cycle rate can shift several percentage points depending on which population reaches the data. <strong>Patient-linked cumulative reporting</strong> (Q-IVF, ANZARD) allows cumulative-per-patient rates to be computed; cycle-level-only reporting does not. <strong>Publication lag</strong> determines how stale the published figures are when patients encounter them in clinic marketing materials. The single most common interpretive error in patient-facing IVF reporting is treating cycle-level rates from one frame as comparable to patient-level rates from another. The frames are not interchangeable.</p>
 
           <!-- Section: National Codes of Practice -->
           <h2 id="national-codes-of-practice">National Codes of Practice</h2>
@@ -709,6 +739,101 @@ const jsonLd = {
   @media (min-width: 1024px) {
     .container {
       max-width: calc(var(--max-width-article) + 220px + var(--space-10) + var(--space-8) * 2);
+    }
+  }
+
+  /* Registry comparison frames -- inferential lens before per-registry detail */
+  .registry-frame-intro {
+    font-size: 1rem;
+    line-height: 1.65;
+    margin: var(--space-4) 0 var(--space-6);
+  }
+
+  .registry-profile-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: var(--space-5);
+    margin: var(--space-6) 0;
+  }
+
+  .registry-profile {
+    background: var(--bg-secondary, #fafaf9);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: var(--space-5);
+  }
+
+  .registry-profile > header {
+    margin: 0 0 var(--space-4);
+    padding: 0 0 var(--space-3);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .registry-profile h3 {
+    margin: 0 0 var(--space-1);
+    font-size: 1.125rem;
+    line-height: 1.3;
+  }
+
+  .registry-profile h3 a {
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .registry-profile h3 a:hover {
+    text-decoration: underline;
+  }
+
+  .profile-country {
+    font-size: 0.75rem;
+    color: var(--text-tertiary, #78716c);
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 500;
+  }
+
+  .profile-fields {
+    margin: 0;
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .profile-fields > div {
+    margin: 0;
+  }
+
+  .profile-fields dt {
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: var(--text-secondary, #44403c);
+    margin: 0 0 var(--space-1);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .profile-fields dd {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.55;
+    color: var(--text-primary);
+  }
+
+  .registry-frame-closing {
+    font-size: 0.9375rem;
+    line-height: 1.65;
+    margin: var(--space-6) 0 var(--space-8);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border-color);
+  }
+
+  @media (max-width: 720px) {
+    .registry-profile-grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-4);
+    }
+    .registry-profile {
+      padding: var(--space-4);
     }
   }
 </style>
