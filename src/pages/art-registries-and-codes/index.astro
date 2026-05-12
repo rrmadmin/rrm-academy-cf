@@ -311,11 +311,6 @@ const jsonLd = {
                       &middot; <a href={`#${frame.anchor}`}>Detail below &darr;</a>
                     </span>
                   </p>
-                  {frame.arc_completeness && (
-                    <p class={`arc-pill arc-pill--${frame.arc_completeness.tier}`}>
-                      ARC completeness: {frame.arc_completeness.present}/{frame.arc_completeness.total} axes &middot; {frame.arc_completeness.tier}
-                    </p>
-                  )}
                 </header>
                 <dl class="profile-fields">
                   {frame.mandate_architecture_label && (
@@ -335,29 +330,26 @@ const jsonLd = {
           </div>
 
           <div class="discriminating-axes">
-            <h3 id="how-registries-actually-diverge">Where registries actually diverge</h3>
-            <p>The cards above each summarise eight comparison dimensions. Underneath them sits a deeper structure, the <a href="#arc-framework-note">ART Reporting Completeness Framework</a>, which assesses each registry on 36 axes across eight buckets: governance, coverage, cadence, unit and linkage, stratification, effectiveness denominators, outcomes, and self-disclosure. Nineteen of those 36 axes are addressed by every international ART registry reviewed; they form a shared baseline and do not separate registries from one another. The remaining 17 axes are where registries empirically differ. The seven most discriminating are summarised below.</p>
+            <h3 id="how-registries-actually-diverge">Where registries diverge in practice</h3>
+            <p>The eight dimensions on each card above are a useful first cut. Several deeper features empirically separate one registry from another in ways that matter for reading the published figures. The examples below illustrate features that some registries publish in detail and that others omit entirely from public output.</p>
             <table class="axes-table">
               <thead>
-                <tr><th scope="col">Axis</th><th scope="col">What it asks</th><th scope="col">Demonstrated by</th></tr>
+                <tr><th scope="col">Feature</th><th scope="col">What it asks</th><th scope="col">Where it is visible</th></tr>
               </thead>
               <tbody>
-                <tr><td>Patient-reported outcomes (PROMs)</td><td>Does the registry capture outcomes that patients themselves report, not only clinical end-points?</td><td>Q-IVF (IVF-KUPP module) only</td></tr>
-                <tr><td>Audit transparency</td><td>Are audit findings on data quality made public alongside the data?</td><td>CDC NASS, Q-IVF</td></tr>
-                <tr><td>Practice-pattern benchmarking</td><td>Are clinic practice patterns (single-embryo-transfer rates, multiple-birth targets, etc.) publicly benchmarked?</td><td>HFEA, CARTR Plus</td></tr>
-                <tr><td>Vigilance and incident reporting</td><td>Is there a dedicated stream for adverse events, OHSS, or critical incidents?</td><td>HFEA, Agence de la biomedecine (France), ESHRE EIM, Q-IVF, DIR</td></tr>
-                <tr><td>Cycles-per-patient distribution</td><td>Is the distribution of how many cycles patients undergo before stopping treatment published?</td><td>Q-IVF, HFEA, ANZARD, CARTR Plus, DIR, REDLARA</td></tr>
-                <tr><td>Cross-register linkage</td><td>Is the registry linked to national birth, perinatal, or cancer registries for downstream outcomes?</td><td>Q-IVF, ANZARD, Agence de la biomedecine, plus four others</td></tr>
-                <tr><td>Funder and payer stratification</td><td>Are outcomes stratified by who paid for the cycle (public, private, insurance)?</td><td>Q-IVF, ANZARD, plus five others</td></tr>
+                <tr><td>Patient-reported outcomes</td><td>Does the registry capture outcomes that patients themselves report, not only clinical end-points?</td><td>Sweden's <a href="/library/qivf-annual-report-2025-fertility-treatments-in-sweden-treatment-year-2023-fcd8af41/">Q-IVF 2025 report</a> includes the IVF-KUPP patient-experience module.</td></tr>
+                <tr><td>Audit transparency</td><td>Are audit findings on data quality made public alongside the data?</td><td>The <a href="/library/2019-assisted-reproductive-technology-fertility-clinic-and-national-summary-repo-yveyxcvj/">CDC ART National Summary</a> describes Westat verification visits annually.</td></tr>
+                <tr><td>Practice-pattern benchmarking</td><td>Are clinic practice patterns (single-embryo-transfer rates, multiple-birth targets, etc.) publicly benchmarked?</td><td>HFEA reports adherence to its multiple-birth strategy under the <a href="/library/hfea-code-of-practice-9th-edition-version-94-0n2bg9oa/">Code of Practice</a>; <a href="/library/cartr-plus-2025-annual-report-2024-data-canadian-assisted-reproductive-technolog-e94qosl4/">CARTR Plus 2025</a> tracks Canadian eSET trends.</td></tr>
+                <tr><td>Vigilance and incident reporting</td><td>Is there a dedicated stream for adverse events, OHSS, or critical incidents?</td><td>HFEA operates incident reporting under the <a href="/library/human-fertilisation-and-embryology-act-1990-lmwayq0r/">1990 Act</a>; ESHRE EIM and DIR include adverse-event surveillance in their annual structures.</td></tr>
+                <tr><td>Cycles-per-patient distribution</td><td>Is the distribution of how many cycles patients undergo before stopping treatment published?</td><td><a href="/library/qivf-annual-report-2025-fertility-treatments-in-sweden-treatment-year-2023-fcd8af41/">Q-IVF 2025</a> publishes cycles-per-patient curves and drop-out; <a href="/library/assisted-reproductive-technology-in-australia-and-new-zealand-2023-ymotfmjg/">ANZARD 2023</a> publishes cycles-per-woman.</td></tr>
+                <tr><td>Cross-register linkage</td><td>Is the registry linked to national birth, perinatal, or cancer registries for downstream outcomes?</td><td><a href="/library/assisted-reproductive-technology-in-australia-and-new-zealand-2023-ymotfmjg/">ANZARD 2023</a> links via NPESU to perinatal data; Q-IVF is connected to the Swedish Medical Birth Register.</td></tr>
+                <tr><td>Funder and payer stratification</td><td>Are outcomes stratified by who paid for the cycle (public, private, insurance)?</td><td><a href="/library/qivf-annual-report-2025-fertility-treatments-in-sweden-treatment-year-2023-fcd8af41/">Q-IVF 2025</a> stratifies by Swedish regional-authority funding versus self-pay.</td></tr>
               </tbody>
             </table>
-            <p>The empirical pattern is that the registries which report patient-level cumulative outcomes, drop-out distributions, and adverse events are the same ones that capture cross-register linkage and funder stratification. Q-IVF is the only registry presently demonstrating patient-reported outcomes; only HFEA and CARTR Plus publish practice-pattern benchmarking; and only the federal CDC NASS programme and Q-IVF currently publish formal audit transparency. These are not editorial polish: they decide whether a patient reading the registry can learn what the journey actually looks like, not only the per-cycle laboratory result.</p>
+            <p>These features are not editorial polish. They decide whether a patient reading the registry can learn what the treatment journey actually looks like, not only the per-cycle laboratory result. Registries that publish patient-level cumulative outcomes and drop-out tend to be the same ones that link to national birth registries and stratify outcomes by who paid; the features cluster together, and a registry that omits one of them tends to omit several.</p>
           </div>
 
           <p class="registry-frame-closing">Different registries operate under different mandate architectures. HFEA is a <strong>statutory licensing register</strong> created by the <a href="/library/human-fertilisation-and-embryology-act-1990-lmwayq0r/">1990 Act</a>; CDC NASS is <strong>mandatory federal surveillance</strong> under the <a href="/library/2019-assisted-reproductive-technology-fertility-clinic-and-national-summary-repo-yveyxcvj/">FCSRCA</a>; ANZARD is <strong>accreditation-conditional</strong>, with submission tied to <a href="/library/rtac-code-of-practice-for-reproductive-technology-units-australia-and-new-zealan/">RTAC accreditation</a> that clinics need for Medicare rebate eligibility; JSOG operates <strong>mandatory professional-society reporting</strong> for its members; DIR, CARTR Plus, and the parallel US SART CORS are <strong>voluntary professional-society databases</strong>; Q-IVF is a <strong>voluntary national quality register</strong> with near-universal Swedish coverage; ESHRE EIM and REDLARA are <strong>voluntary multi-country aggregations</strong>; and ICMART is the <strong>global meta-registry</strong> that aggregates national submissions. Coverage is not a clean function of mandate: Q-IVF's voluntary structure achieves near-universal Swedish participation, REDLARA reports membership of more than 90 percent of regional centres, and <a href="/library/dir-jahrbuch-2024-deutsches-ivfregister-annual-report-2024-qasldzbe/">DIR's 2024 Jahrbuch</a> covers 139 voluntary member centres. Registries that capture both publicly funded and private self-pay cycles describe the national ART universe; registries that capture only private self-pay describe only a subset, and the country's average per-cycle rate can shift several percentage points depending on which population reaches the data. <strong>Patient-linked cumulative reporting</strong> (Q-IVF, ANZARD) allows cumulative-per-patient rates to be computed; cycle-level-only reporting does not. <strong>Publication lag</strong> determines how stale the published figures are when patients encounter them in clinic marketing materials. The single most common interpretive error in patient-facing IVF reporting is treating cycle-level rates from one frame as comparable to patient-level rates from another. The frames are not interchangeable.</p>
-
-          <p id="arc-framework-note" class="arc-framework-note"><em>The 36-axis ARC Framework and Phase C2 scorecard underlying the comparison above are drawn from a forthcoming RRM Academy research paper: Whittaker B, Whittaker NM. The ART Reporting Completeness (ARC) Framework: a method for analyzing the reporting, omission, and presentation of ART outcomes across national, multi-country, and meta-registries. IIRRM 2026 abstract under review.</em></p>
-
           <!-- Section: National Codes of Practice -->
           <h2 id="national-codes-of-practice">National Codes of Practice</h2>
 
@@ -890,42 +882,6 @@ const jsonLd = {
     border-top: 1px solid var(--border-color);
   }
 
-  .arc-pill {
-    display: inline-block;
-    margin: var(--space-2) 0 0;
-    padding: 2px 8px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    line-height: 1.4;
-    letter-spacing: 0.02em;
-    border-radius: 999px;
-    border: 1px solid var(--border-color);
-    background: var(--bg-surface);
-    color: var(--text-secondary, var(--text-primary));
-  }
-
-  .arc-pill--comprehensive {
-    background: color-mix(in srgb, var(--color-accent, var(--text-primary)) 12%, var(--bg-surface));
-    border-color: color-mix(in srgb, var(--color-accent, var(--text-primary)) 35%, var(--border-color));
-    color: var(--text-primary);
-  }
-
-  .arc-pill--broad {
-    background: color-mix(in srgb, var(--text-primary) 6%, var(--bg-surface));
-    color: var(--text-primary);
-  }
-
-  .arc-pill--moderate {
-    background: var(--bg-surface);
-    color: var(--text-secondary, var(--text-primary));
-  }
-
-  .arc-pill--limited {
-    background: var(--bg-surface);
-    color: var(--text-secondary, var(--text-primary));
-    font-style: italic;
-  }
-
   .discriminating-axes {
     margin: var(--space-6) 0 var(--space-6);
     padding: var(--space-5);
@@ -979,14 +935,6 @@ const jsonLd = {
 
   .axes-table td:nth-child(2) {
     width: 42%;
-  }
-
-  .arc-framework-note {
-    font-size: 0.8125rem;
-    line-height: 1.55;
-    color: var(--text-secondary, var(--text-primary));
-    margin: 0 0 var(--space-8);
-    padding: var(--space-3) 0 0;
   }
 
   @media (max-width: 720px) {
