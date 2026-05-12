@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import LastUpdated from '../components/LastUpdated.astro';
+import SearchBar from '../components/SearchBar.astro';
 import { fetchAllArticles } from '../lib/airtable';
 import coursesData from '../data/courses.json';
 import surveyCountData from '../data/survey-count.json';
@@ -215,15 +216,21 @@ const jsonLd = {
         <p class="hp-hero__descriptor animate-enter" style="--stagger: 0;">A 501(c)(3) nonprofit education platform</p>
         <h1 id="hp-hero-h1" class="animate-enter" style="--stagger: 1;">Evidence-Based Restorative Reproductive Medicine Education</h1>
         <p class="hp-hero__subtitle animate-enter" style="--stagger: 2;">
-          {articleCount.toLocaleString()} scholarly works on Restorative Reproductive Medicine, organized so you can read the evidence yourself.
+          Search {articleCount.toLocaleString()} scholarly works on PCOS, endometriosis, NaProTechnology, and more.
         </p>
-        <div class="hp-hero__links animate-enter" style="--stagger: 3;">
-          <a href="/library/" class="btn btn--primary">Browse {articleCount.toLocaleString()} Scholarly Works</a>
-          <a href="/glossary/" class="btn btn--secondary">Explore the Glossary</a>
+        <div class="hp-hero__search animate-enter" style="--stagger: 3;">
+          <SearchBar />
         </div>
-        <p class="hp-hero__updated animate-enter" style="--stagger: 4;"><LastUpdated path="/" /></p>
+        <p class="hp-hero__links animate-enter" style="--stagger: 4;">
+          <a href="/library/" class="hp-hero__link">Browse all {articleCount.toLocaleString()} articles</a>
+          <span class="hp-hero__link-dot" aria-hidden="true">·</span>
+          <a href="/glossary/" class="hp-hero__link">Glossary</a>
+          <span class="hp-hero__link-dot" aria-hidden="true">·</span>
+          <a href="/faqs/" class="hp-hero__link">FAQs</a>
+        </p>
+        <p class="hp-hero__updated animate-enter" style="--stagger: 5;"><LastUpdated path="/" /></p>
       </div>
-      <div class="hp-hero__trust animate-enter" style="--stagger: 6;">
+      <div class="hp-hero__trust animate-enter" style="--stagger: 7;">
         <div class="hp-trust__logos">
           <span class="hp-trust__logo hp-trust__logo--nejm" role="img" aria-label="The New England Journal of Medicine"></span>
           <span class="hp-trust__logo hp-trust__logo--jama">JAMA</span>
@@ -733,10 +740,34 @@ const jsonLd = {
     }
   }
 
+  .hp-hero__search {
+    width: 100%;
+    max-width: 560px;
+    margin: 0 auto var(--space-4);
+  }
   .hp-hero__links {
     display: flex;
-    gap: var(--space-4);
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
     flex-wrap: wrap;
+    margin-top: var(--space-2);
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+  }
+  .hp-hero__link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .hp-hero__link:hover {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    text-decoration: none;
+  }
+  .hp-hero__link-dot {
+    color: var(--text-muted);
   }
 
   @media (max-width: 768px) {
@@ -763,10 +794,12 @@ const jsonLd = {
       font-size: 0.75rem;
       margin-bottom: var(--space-5);
     }
+    .hp-hero__search {
+      margin-bottom: var(--space-3);
+    }
     .hp-hero__links {
-      flex-direction: row;
-      flex-wrap: wrap;
-      gap: var(--space-3);
+      gap: var(--space-2);
+      font-size: 0.75rem;
     }
     .hp-hero__trust {
       margin-top: auto;
