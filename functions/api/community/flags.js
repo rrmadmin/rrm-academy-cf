@@ -56,25 +56,27 @@ export async function onRequestPost({ request, env, waitUntil }) {
       if (!comment) return json({ ok: false, error: 'Comment not found' }, 404);
     }
 
-    // Check for duplicate flag
+    // Check for pending duplicate before upsert
     const existing = await db.prepare(
       'SELECT id, status FROM community_flag WHERE user_id = ? AND target_type = ? AND target_id = ?'
     ).bind(user.id, targetType, targetId).first();
-    if (existing) {
-      if (existing.status === 'pending') {
-        return json({ ok: false, error: 'You have already flagged this content' }, 409);
-      }
-      await db.prepare(
-        "UPDATE community_flag SET status = 'pending', reason = ?, note = ?, resolved_by = NULL, resolved_at = NULL WHERE id = ?"
-      ).bind(reason, note?.trim() || null, existing.id).run();
-      return json({ ok: true, flagId: existing.id }, 200);
+    if (existing?.status === 'pending') {
+      return json({ ok: false, error: 'You have already flagged this content' }, 409);
     }
 
     const id = generateId();
-    await db.prepare(`
+    const upserted = await db.prepare(`
       INSERT INTO community_flag (id, user_id, target_type, target_id, reason, note)
       VALUES (?, ?, ?, ?, ?, ?)
-    `).bind(id, user.id, targetType, targetId, reason, note?.trim() || null).run();
+      ON CONFLICT(user_id, target_type, target_id) DO UPDATE SET
+        status = 'pending',
+        reason = excluded.reason,
+        note = excluded.note,
+        resolved_by = NULL,
+        resolved_at = NULL
+      RETURNING id
+    `).bind(id, user.id, targetType, targetId, reason, note?.trim() || null).first();
+    const flagId = upserted?.id ?? existing?.id ?? id;
 
     // Send email notification to all mod+ users
     try {
@@ -83,7 +85,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
       log(env, waitUntil, 'community', 'flag_error', 'error', `notification: ${err.message}`, 0, 0);
     }
 
-    return json({ ok: true, flagId: id }, 201);
+    return json({ ok: true, flagId }, 201);
   } catch (err) {
     log(env, waitUntil, 'community', 'flag_error', 'error', `POST: ${err.message}`, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
@@ -216,7 +218,7 @@ export async function onRequestPatch({ request, env, waitUntil }) {
 
 async function notifyMods(env, db, reporter, targetType, targetId, reason, note) {
   const mods = await db.prepare(
-    "SELECT email FROM user WHERE role IN ('mod', 'admin', 'superadmin') AND blocked = 0"
+    "SELECT email FROM user WHERE role IN ('mod', 'admin', 'superadmin') AND blocked = 0 LIMIT 200"
   ).all();
 
   if (!mods.results.length) return;
@@ -254,7 +256,7 @@ async function notifyMods(env, db, reporter, targetType, targetId, reason, note)
   const text = `${reporterName} flagged a ${targetType} as ${reason}.\n${note ? `Note: ${note}\n` : ''}Content: ${contentPreview || '(unable to load)'}\nView: ${link}`;
 
   const emailPromises = mods.results.map(m =>
-    sendEmail(env, { from: 'noreply@mail.rrmacademy.org', to: m.email, subject, html, text, log: { db, source: 'community/flag-notify', category: 'transactional' } })
+    sendEmail(env, { from: 'RRM Academy Alerts <alerts@mail.rrmacademy.org>', to: m.email, subject, html, text, log: { db, source: 'community/flag-notify', category: 'transactional' } })
       .catch(err => console.error(`Failed to email ${m.email}:`, err.message))
   );
   await Promise.all(emailPromises);
