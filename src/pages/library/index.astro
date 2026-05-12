@@ -61,31 +61,31 @@ for (const a of articles) {
 const topicSegmentCount = allTopSegments.size;
 
 const TOPICS = [
-  { name: 'Endometriosis',       initial: 'En', accent: 'p',
+  { name: 'Endometriosis',       accent: 'p',
     match: ['Endometriosis'],
     desc: 'Excision, AMH, recurrence, biomarkers.' },
-  { name: 'Infertility',         initial: 'In', accent: 'r',
+  { name: 'Infertility',         accent: 'r',
     match: ['Infertility'],
     desc: 'RRM work-up, IVF outcomes, recurrent loss.' },
-  { name: 'PCOS',                initial: 'Pc', accent: 'g',
+  { name: 'PCOS',                accent: 'g',
     match: ['PCOS'],
     desc: 'Phenotype, insulin resistance, progesterone.' },
-  { name: 'Pregnancy',           initial: 'Pr', accent: 'r',
+  { name: 'Pregnancy',           accent: 'r',
     match: ['Pregnancy'],
     desc: 'Progesterone support, miscarriage, neonatal outcomes.' },
-  { name: 'Hormones & Cycle',    initial: 'Hc', accent: 'p',
+  { name: 'Hormones & Cycle',    accent: 'p',
     match: ['Menstrual Cycle'],
     desc: 'Cycle physiology, mucus biomarkers, ovulation.' },
-  { name: 'Contraception',       initial: 'Co', accent: 's',
+  { name: 'Contraception',       accent: 's',
     match: ['Contraception/Comparison'],
     desc: 'Side effects, long-term outcomes, comparison studies.' },
-  { name: 'NaProTECHNOLOGY',     initial: 'Np', accent: 'p',
+  { name: 'NaProTECHNOLOGY',     accent: 'p',
     match: ['NaProTECHNOLOGY', 'RRM Methods'],
     desc: 'Cumulative pregnancy rates, protocols, vs IVF.' },
-  { name: 'Fertility Awareness', initial: 'Fa', accent: 'g',
+  { name: 'Fertility Awareness', accent: 'g',
     match: ['Fertility Awareness'],
     desc: 'Method efficacy, Creighton, Marquette, Billings, FEMM.' },
-  { name: 'Surgery',             initial: 'Su', accent: 's',
+  { name: 'Surgery',             accent: 's',
     match: ['Surgery'],
     desc: 'Excision, laparoscopy, fertility-sparing approaches.' },
 ];
@@ -218,10 +218,9 @@ const jsonLd = {
           {topicTiles.map(t => (
             <li>
               <a href={t.href} class={`topic-tile topic-tile--${t.accent}`} aria-label={`${t.name} — ${t.count} articles`}>
-                <div class="topic-tile__top">
-                  <span class="topic-tile__icon" aria-hidden="true">{t.initial}</span>
-                  <h3 class="topic-tile__name">{t.name}</h3>
-                </div>
+                <h3 class="topic-tile__name">
+                  <span class="topic-tile__initial">{t.name.slice(0, 2)}</span>{t.name.slice(2)}
+                </h3>
                 <p class="topic-tile__desc">{t.desc}</p>
                 <div class="topic-tile__foot">
                   <span class="topic-tile__count tabular">{t.count.toLocaleString()} articles</span>
@@ -474,31 +473,6 @@ const jsonLd = {
     box-shadow: 0 0 0 3px var(--focus-ring);
   }
 
-  /* Top row — icon + topic name (name is the anchor) */
-  .topic-tile__top {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-  }
-  .topic-tile__icon {
-    width: 36px;
-    height: 36px;
-    border-radius: var(--radius-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Cormorant Garamond', 'Georgia', serif;
-    font-size: 1.125rem;
-    font-weight: 600;
-    flex-shrink: 0;
-    line-height: 1;
-  }
-  .topic-tile--p .topic-tile__icon { background: var(--purple-100); color: var(--accent); }
-  .topic-tile--r .topic-tile__icon { background: var(--rose-100); color: var(--rose-700); }
-  .topic-tile--g .topic-tile__icon { background: var(--sage-100); color: var(--sage-700); }
-  .topic-tile--s .topic-tile__icon { background: var(--sand-300); color: var(--sand-700); }
-  :global([data-theme="dark"]) .topic-tile--s .topic-tile__icon { color: var(--text-primary); }
-
   .topic-tile__name {
     font-family: 'Cormorant Garamond', 'Georgia', serif;
     font-size: 1.5rem;
@@ -508,6 +482,13 @@ const jsonLd = {
     letter-spacing: -0.01em;
     margin: 0;
   }
+  /* Breaking-Bad-style initials: first 2 letters of topic name take the
+     tile's accent color. Replaces the previous icon-box pattern. */
+  .topic-tile__initial { color: var(--accent); }
+  .topic-tile--p .topic-tile__initial { color: var(--accent); }
+  .topic-tile--r .topic-tile__initial { color: var(--rose-700); }
+  .topic-tile--g .topic-tile__initial { color: var(--sage-700); }
+  .topic-tile--s .topic-tile__initial { color: var(--sand-700); }
 
   .topic-tile__desc {
     margin: 0;
