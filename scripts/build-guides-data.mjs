@@ -57,15 +57,29 @@ function extractH1(body) {
   return stripInline(m[1]);
 }
 
+function extractBaseLayoutTag(body) {
+  // Walk attributes brace-aware. The lazy regex /<BaseLayout[\s\S]*?>/ would
+  // truncate at any `>` inside a JSX expression (e.g. condition={x > 0}).
+  const start = body.indexOf('<BaseLayout');
+  if (start === -1) return '';
+  let i = start, depth = 0;
+  while (i < body.length) {
+    const c = body[i];
+    if (c === '{') depth++;
+    else if (c === '}') depth--;
+    else if (c === '>' && depth === 0) return body.slice(start, i + 1);
+    i++;
+  }
+  return '';
+}
+
 function extractBaseLayoutDescription(body) {
-  // Match description="..." or description={`...`} on BaseLayout
-  const m = body.match(/<BaseLayout[\s\S]*?>/);
-  if (!m) return '';
-  const tag = m[0];
-  // double-quoted
+  // Match description="..." or description='...' on BaseLayout.
+  // JSX-expression descriptions (description={...}) are not supported -- pillars must use string literals.
+  const tag = extractBaseLayoutTag(body);
+  if (!tag) return '';
   const dq = tag.match(/\bdescription="([^"]+)"/);
   if (dq) return decodeEntities(dq[1]).trim();
-  // single-quoted
   const sq = tag.match(/\bdescription='([^']+)'/);
   if (sq) return decodeEntities(sq[1]).trim();
   return '';
