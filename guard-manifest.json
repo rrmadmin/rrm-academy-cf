@@ -119,7 +119,7 @@
       "note": "NLWeb AI Search proxy (auth + rate-limited, billed upstream)"
     },
     "src/components/SearchBar.astro": {
-      "hash": "cc1ddd528d97008da40eba5c5da38769e152d2f2875ca2d9ed95b631f7d265bc",
+      "hash": "3fe8f7572338792a31ceefa8417cac76f582fb44c4532c53f2b3d16fb40ef53a",
       "note": "Search UX + RRF fusion (Pagefind init, relevance boost, error resilience)"
     },
     "src/layouts/BaseLayout.astro": {

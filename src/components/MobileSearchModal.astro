@@ -314,6 +314,138 @@
     text-align: center;
   }
 
+  /* ── Filter chip row ── */
+  .mss-modal__results :global(.mss-chips) {
+    display: flex;
+    gap: 6px;
+    padding: var(--space-3) 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    position: sticky;
+    top: 0;
+    background: var(--bg-body);
+    z-index: 1;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .mss-modal__results :global(.mss-chips::-webkit-scrollbar) { display: none; }
+  .mss-modal__results :global(.mss-chip) {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  }
+  .mss-modal__results :global(.mss-chip-count) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 18px;
+    padding: 0 6px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    background: var(--bg-body);
+    border-radius: 9px;
+    font-variant-numeric: tabular-nums;
+  }
+  .mss-modal__results :global(.mss-chip--active) {
+    color: #fff;
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .mss-modal__results :global(.mss-chip--active .mss-chip-count) {
+    color: var(--accent);
+    background: #fff;
+  }
+
+  /* ── Grouped sections ── */
+  .mss-modal__results :global(.mss-group) {
+    padding-top: var(--space-4);
+  }
+  .mss-modal__results :global(.mss-group:first-child) {
+    padding-top: var(--space-3);
+  }
+  .mss-modal__results :global(.mss-group-heading) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 var(--space-2);
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+  }
+  .mss-modal__results :global(.mss-group-count) {
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .mss-modal__results :global(.mss-group .mss-item) {
+    padding-top: var(--space-3);
+    padding-bottom: var(--space-3);
+  }
+  .mss-modal__results :global(.mss-group .mss-item:first-of-type) {
+    border-top: none;
+  }
+  .mss-modal__results :global(.mss-group .mss-type) {
+    display: none;
+  }
+
+  /* Default "all" mode: hide items beyond preview limit */
+  .mss-modal__results :global(.mss-groups[data-active-filter="all"] .mss-item[data-over-preview]) {
+    display: none;
+  }
+  /* Filter active: hide every group, then re-show the targeted one */
+  .mss-modal__results :global(.mss-groups[data-active-filter]:not([data-active-filter="all"]) .mss-group) {
+    display: none;
+  }
+  .mss-modal__results :global(.mss-groups[data-active-filter="Guide"] .mss-group[data-group-type="Guide"]),
+  .mss-modal__results :global(.mss-groups[data-active-filter="Glossary"] .mss-group[data-group-type="Glossary"]),
+  .mss-modal__results :global(.mss-groups[data-active-filter="FAQ"] .mss-group[data-group-type="FAQ"]),
+  .mss-modal__results :global(.mss-groups[data-active-filter="Course"] .mss-group[data-group-type="Course"]),
+  .mss-modal__results :global(.mss-groups[data-active-filter="Article"] .mss-group[data-group-type="Article"]),
+  .mss-modal__results :global(.mss-groups[data-active-filter="Research"] .mss-group[data-group-type="Research"]) {
+    display: block;
+  }
+  .mss-modal__results :global(.mss-groups[data-active-filter]:not([data-active-filter="all"]) .mss-show-all) {
+    display: none;
+  }
+
+  .mss-modal__results :global(.mss-show-all) {
+    display: block;
+    width: 100%;
+    margin-top: var(--space-3);
+    padding: 9px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    text-align: left;
+  }
+  .mss-modal__results :global(.mss-show-all:active) {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
   /* Show trigger only on mobile. Tablet+ uses the page's SearchBar/header-search. */
   @media (max-width: 768px) {
     .mss-trigger {
@@ -348,14 +480,15 @@
   var debounceTimer = null;
   var spinnerTimer = null;
   var lastBeaconedQuery = '';
-  var shown = 0;
-  var INITIAL_PAGE = 5;
-  var PER_PAGE = 8;
   var totalCount = 0;
   var currentQuery = '';
   var PRELOAD_CAP = 50;
   var preloadedData = [];
-  var isFirstPage = true;
+  var activeFilter = 'all';
+
+  var TYPE_ORDER = ['Guide', 'Glossary', 'FAQ', 'Course', 'Article', 'Research'];
+  var TYPE_LABEL = { Guide: 'Guides', Glossary: 'Glossary', FAQ: 'FAQs', Course: 'Courses', Article: 'Commentary', Research: 'Research' };
+  var GROUP_PREVIEW = { Guide: 5, Glossary: 5, FAQ: 5, Course: 5, Article: 3, Research: 3 };
   var lastFocus = null;
 
   var waveFrames = ['⠖⠉⠉⠑','⡠⠖⠉⠉','⣠⡠⠖⠉','⣄⣠⡠⠖','⠢⣄⣠⡠','⠙⠢⣄⣠','⠉⠙⠢⣄','⠊⠉⠙⠢','⠜⠊⠉⠙','⡤⠜⠊⠉','⣀⡤⠜⠊','⢤⣀⡤⠜','⠣⢤⣀⡤','⠑⠣⢤⣀','⠉⠑⠣⢤','⠋⠉⠑⠣'];
@@ -480,6 +613,7 @@
       stopLoadingSpinner();
       preloadedData = [];
       currentQuery = '';
+      activeFilter = 'all';
       resultsEl.innerHTML = '<p class="mss-hint">Try a topic, condition, or author.</p>';
       return;
     }
@@ -601,22 +735,10 @@
 
       preloadedData = fusedList.map(function(f) { return f.data; });
       totalCount = preloadedData.length;
-      shown = 0;
-      isFirstPage = true;
+      activeFilter = 'all';
       stopLoadingSpinner();
-      resultsEl.innerHTML = '';
       beaconQuery(query, totalCount);
-
-      if (totalCount === 0) {
-        resultsEl.innerHTML = '<p class="mss-empty">No results found for “' + escHtml(query) + '”</p>';
-        return;
-      }
-
-      var countEl = document.createElement('p');
-      countEl.className = 'mss-count';
-      countEl.textContent = totalCount + ' result' + (totalCount === 1 ? '' : 's');
-      resultsEl.appendChild(countEl);
-      loadMore();
+      renderPanel();
 
       if (!semanticData) {
         semanticPromise.then(function(lateData) {
@@ -645,18 +767,7 @@
           }
           if (added > 0) {
             totalCount = preloadedData.length;
-            var countDisplay = resultsEl.querySelector('.mss-count');
-            if (countDisplay) countDisplay.textContent = totalCount + ' result' + (totalCount === 1 ? '' : 's');
-            var moreBtn = resultsEl.querySelector('.mss-more');
-            if (moreBtn && shown < totalCount) {
-              moreBtn.textContent = 'Show more (' + (totalCount - shown) + ' remaining)';
-            } else if (!moreBtn && shown < totalCount) {
-              var btn = document.createElement('button');
-              btn.className = 'mss-more';
-              btn.textContent = 'Show more (' + (totalCount - shown) + ' remaining)';
-              btn.addEventListener('click', function() { loadMore(); });
-              resultsEl.appendChild(btn);
-            }
+            renderPanel();
           }
         });
       }
@@ -667,25 +778,104 @@
     }
   }
 
-  function loadMore() {
-    var pageSize = isFirstPage ? INITIAL_PAGE : PER_PAGE;
-    isFirstPage = false;
-    var batch = preloadedData.slice(shown, shown + pageSize);
-    var fragment = document.createDocumentFragment();
-    for (var j = 0; j < batch.length; j++) {
-      fragment.appendChild(renderResult(batch[j]));
+  function renderPanel() {
+    resultsEl.innerHTML = '';
+    if (totalCount === 0) {
+      resultsEl.innerHTML = '<p class="mss-empty">No results found for "' + escHtml(currentQuery) + '"</p>';
+      return;
     }
-    var oldBtn = resultsEl.querySelector('.mss-more');
-    if (oldBtn) oldBtn.remove();
-    resultsEl.appendChild(fragment);
-    shown += batch.length;
-    if (shown < totalCount) {
-      var btn = document.createElement('button');
-      btn.className = 'mss-more';
-      btn.textContent = 'Show more (' + (totalCount - shown) + ' remaining)';
-      btn.addEventListener('click', function() { loadMore(); });
-      resultsEl.appendChild(btn);
+
+    var buckets = {};
+    for (var i = 0; i < preloadedData.length; i++) {
+      var item = preloadedData[i];
+      var t = (item.meta && item.meta.type) || 'Research';
+      if (!buckets[t]) buckets[t] = [];
+      buckets[t].push(item);
     }
+
+    var chips = document.createElement('div');
+    chips.className = 'mss-chips';
+    chips.appendChild(makeChip('all', 'All', totalCount));
+    for (var ci = 0; ci < TYPE_ORDER.length; ci++) {
+      var ct = TYPE_ORDER[ci];
+      if (buckets[ct] && buckets[ct].length) {
+        chips.appendChild(makeChip(ct, TYPE_LABEL[ct], buckets[ct].length));
+      }
+    }
+    resultsEl.appendChild(chips);
+
+    var groupsEl = document.createElement('div');
+    groupsEl.className = 'mss-groups';
+    groupsEl.setAttribute('data-active-filter', activeFilter);
+    for (var gi = 0; gi < TYPE_ORDER.length; gi++) {
+      var gt = TYPE_ORDER[gi];
+      var items = buckets[gt];
+      if (!items || !items.length) continue;
+      var section = document.createElement('section');
+      section.className = 'mss-group';
+      section.setAttribute('data-group-type', gt);
+
+      var heading = document.createElement('h4');
+      heading.className = 'mss-group-heading';
+      heading.appendChild(document.createTextNode(TYPE_LABEL[gt]));
+      if (items.length > 1) {
+        var countSpan = document.createElement('span');
+        countSpan.className = 'mss-group-count';
+        countSpan.textContent = items.length;
+        heading.appendChild(countSpan);
+      }
+      section.appendChild(heading);
+
+      var preview = GROUP_PREVIEW[gt] || 3;
+      for (var ii = 0; ii < items.length; ii++) {
+        var a = renderResult(items[ii]);
+        if (ii >= preview) a.setAttribute('data-over-preview', '');
+        section.appendChild(a);
+      }
+
+      if (items.length > preview) {
+        var showAll = document.createElement('button');
+        showAll.className = 'mss-show-all';
+        showAll.setAttribute('data-filter-target', gt);
+        showAll.textContent = 'Show all ' + items.length + ' in ' + TYPE_LABEL[gt] + ' →';
+        showAll.addEventListener('click', function(e) {
+          setFilter(e.currentTarget.getAttribute('data-filter-target'));
+        });
+        section.appendChild(showAll);
+      }
+
+      groupsEl.appendChild(section);
+    }
+    resultsEl.appendChild(groupsEl);
+  }
+
+  function makeChip(value, label, count) {
+    var chip = document.createElement('button');
+    chip.className = 'mss-chip' + (activeFilter === value ? ' mss-chip--active' : '');
+    chip.setAttribute('data-filter', value);
+    chip.appendChild(document.createTextNode(label));
+    var c = document.createElement('span');
+    c.className = 'mss-chip-count';
+    c.textContent = count;
+    chip.appendChild(c);
+    chip.addEventListener('click', function() {
+      setFilter(chip.getAttribute('data-filter'));
+    });
+    return chip;
+  }
+
+  function setFilter(type) {
+    activeFilter = type;
+    var groupsEl = resultsEl.querySelector('.mss-groups');
+    if (groupsEl) groupsEl.setAttribute('data-active-filter', type);
+    var chipNodes = resultsEl.querySelectorAll('.mss-chip');
+    for (var i = 0; i < chipNodes.length; i++) {
+      var c = chipNodes[i];
+      if (c.getAttribute('data-filter') === type) c.classList.add('mss-chip--active');
+      else c.classList.remove('mss-chip--active');
+    }
+    if (resultsEl.scrollTo) resultsEl.scrollTo({ top: 0, behavior: 'smooth' });
+    else resultsEl.scrollTop = 0;
   }
 
   function renderResult(data) {
@@ -741,6 +931,7 @@
     clearBtn.setAttribute('hidden', '');
     preloadedData = [];
     currentQuery = '';
+    activeFilter = 'all';
     resultsEl.innerHTML = '<p class="mss-hint">Try a topic, condition, or author.</p>';
     input.focus();
   });
