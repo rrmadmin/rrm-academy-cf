@@ -50,12 +50,12 @@ export async function onRequestGet(context) {
         ip_hash: await hashIp(ip),
         results_count: 0,
         duration_ms: Date.now() - start,
-        http_status: 200,
+        http_status: 400,
         user_agent_short,
         referer_path,
       });
     }
-    return Response.json({ results: [] }, { headers: CORS_HEADERS });
+    return Response.json({ results: [], error: 'query_too_short' }, { status: 400, headers: CORS_HEADERS });
   }
 
   if (query.length > 500) {
