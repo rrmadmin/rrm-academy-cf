@@ -90,10 +90,21 @@ const TOPICS = [
     desc: 'Excision, laparoscopy, fertility-sparing approaches.' },
 ];
 
+function topicSlug(topic: string): string {
+  return topic
+    .toLowerCase()
+    .replace(/\//g, '-')
+    .replace(/\s+&\s+/g, '-and-')
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
 const topicTiles = TOPICS.map(t => ({
   ...t,
   count: countTopic(t.match),
-  href: `/library/?topic=${encodeURIComponent(t.match[0])}`,
+  href: `/library/topics/${topicSlug(t.match[0])}/`,
 }));
 
 const suggestions = [
