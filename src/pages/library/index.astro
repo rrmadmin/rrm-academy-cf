@@ -50,16 +50,6 @@ function countTopic(matchTargets: string[]): number {
   return n;
 }
 
-// Count of unique top-level topic segments across the corpus
-const allTopSegments = new Set<string>();
-for (const a of articles) {
-  for (const t of (a.topics ?? [])) {
-    const top = String(t).split(' > ')[0].trim();
-    if (top) allTopSegments.add(top);
-  }
-}
-const topicSegmentCount = allTopSegments.size;
-
 const TOPICS = [
   { name: 'Endometriosis',       accent: 'p',
     match: ['Endometriosis'],
@@ -192,20 +182,6 @@ const jsonLd = {
         </div>
       </div>
     </section>
-
-    <aside class="atlas-eyebrow animate-enter" style="--stagger: 4;" aria-label="Library at a glance">
-      <p class="container atlas-eyebrow__line">
-        {articles.length.toLocaleString()} articles
-        <span aria-hidden="true">·</span>
-        {topicSegmentCount} topics
-        <span aria-hidden="true">·</span>
-        140+ journals
-        <span aria-hidden="true">·</span>
-        updated daily
-        <span aria-hidden="true">·</span>
-        free, no login
-      </p>
-    </aside>
 
     <section class="atlas animate-enter" style="--stagger: 5;" data-pagefind-ignore="all" aria-labelledby="atlas-heading">
       <div class="container">
@@ -371,28 +347,6 @@ const jsonLd = {
     }
     .atlas-hero__suggestions::-webkit-scrollbar { display: none; }
     .atlas-hero__suggestion { white-space: nowrap; }
-  }
-
-  .atlas-eyebrow {
-    padding: var(--space-3) 0 var(--space-2);
-  }
-  .atlas-eyebrow__line {
-    margin: 0;
-    text-align: center;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.6875rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-tertiary);
-    font-variant-numeric: tabular-nums;
-  }
-  .atlas-eyebrow__line span {
-    margin: 0 0.25em;
-    color: var(--text-muted);
-  }
-  @media (max-width: 480px) {
-    .atlas-eyebrow__line { font-size: 0.625rem; letter-spacing: 0.06em; }
   }
 
   .atlas {
