@@ -271,7 +271,7 @@ export async function onRequestGet(context) {
       const dedupKey = recMatch ? recMatch[1].toLowerCase() : matchUrl.toLowerCase();
       if (seen.has(dedupKey)) continue;
       seen.add(dedupKey);
-      results.push({
+      const result = {
         slug: m.metadata.slug,
         title: m.metadata.title,
         year: m.metadata.year,
@@ -279,7 +279,9 @@ export async function onRequestGet(context) {
         type: m.metadata.type || 'Research',
         score: m.score,
         url: matchUrl,
-      });
+      };
+      if (m.metadata.rrmRelevance != null) result.rrmRelevance = m.metadata.rrmRelevance;
+      results.push(result);
     }
 
     await logSearchQuery(env, {

@@ -696,11 +696,13 @@
             fusedMap[matchKey].data.meta.type = sItem.type;
           }
         } else {
+          var sMeta = { title: sItem.title, authors: sItem.authors || '', year: sItem.year ? String(sItem.year) : '', type: sItem.type || 'Research' };
+          if (sItem.rrmRelevance) sMeta.rrmRelevance = sItem.rrmRelevance;
           fusedMap[sUrl] = {
             score: 1 / (RRF_K + sRank),
             data: {
               url: sUrl, excerpt: '',
-              meta: { title: sItem.title, authors: sItem.authors || '', year: sItem.year ? String(sItem.year) : '', type: sItem.type || 'Research' },
+              meta: sMeta,
               _pfRank: -1
             }
           };

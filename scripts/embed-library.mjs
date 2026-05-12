@@ -67,6 +67,7 @@ function buildEntries() {
       id: a.id, slug: a.slug, text: parts.join('. '),
       type: 'Research', url: `/library/${a.slug}/`,
       title: a.title, year: a.year || null, authors: a.shortCitation || '',
+      rrmRelevance: a.rrmRelevance || null,
     });
   }
   for (const p of posts) {
@@ -171,6 +172,7 @@ export default {
         const vectors = batch.map((e, idx) => {
           const metadata = { slug: e.slug, title: e.title, authors: e.authors, type: e.type, url: e.url };
           if (e.year !== null) metadata.year = e.year;
+          if (e.rrmRelevance != null) metadata.rrmRelevance = e.rrmRelevance;
           return { id: e.id || vectorId(e.slug), values: embeddings[idx], metadata };
         });
 
