@@ -609,7 +609,7 @@
       // Extract Airtable record ID from slug (e.g. "...-recXYZ123/" -> "recxyz123")
       // Used for dedup when slugs change but record ID stays the same
       function extractRecId(url) {
-        var m = url.match(/-(rec[a-zA-Z0-9]+)\/?$/);
+        var m = url.match(/-(rec[a-zA-Z0-9]{14})\/?$/);
         return m ? m[1].toLowerCase() : null;
       }
 
