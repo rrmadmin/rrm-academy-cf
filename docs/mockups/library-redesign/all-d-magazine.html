@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>All articles — Magazine (D)</title>
+<link rel="stylesheet" href="tokens.css" />
+<style>
+  /* === MAGAZINE — featured + dense grid ============ */
+  .toolbar {
+    position: sticky; top: 56px; z-index: 40;
+    background: var(--bg-body);
+    border-bottom: 1px solid var(--border-color);
+    padding: var(--space-3) 0;
+  }
+  .toolbar__inner { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+  .toolbar__filters { display: flex; flex-wrap: wrap; gap: var(--space-2); flex: 1; }
+  .filter-pill {
+    padding: 5px 12px; border-radius: var(--radius-pill);
+    border: 1px solid var(--border-color); background: var(--bg-surface);
+    color: var(--text-secondary); font-size: .8125rem; cursor: pointer;
+  }
+  .filter-pill:hover { border-color: var(--accent); color: var(--text-primary); }
+  .filter-pill.is-on { background: var(--purple-100); border-color: var(--accent); color: var(--accent); }
+  .toolbar__sort { font-size: .8125rem; color: var(--text-tertiary); }
+  .toolbar__sort select { background: transparent; border: 0; color: var(--text-primary); font: inherit; font-size: .8125rem; font-weight: 500; cursor: pointer; }
+
+  /* Featured spread */
+  .featured {
+    padding: var(--space-8) 0 var(--space-6);
+    border-bottom: 1px solid var(--border-color);
+  }
+  .featured__label {
+    margin-bottom: var(--space-4);
+    text-align: center;
+  }
+  .featured__grid {
+    display: grid; gap: var(--space-6);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 1024px) {
+    .featured__grid { grid-template-columns: 1.4fr 1fr; gap: var(--space-10); }
+  }
+  .feature-lead a { color: var(--text-primary); }
+  .feature-lead a:hover { color: var(--accent); text-decoration: none; }
+  .feature-lead__cover {
+    aspect-ratio: 16/9;
+    background:
+      radial-gradient(ellipse at 30% 30%, var(--purple-100), transparent 60%),
+      radial-gradient(ellipse at 70% 70%, var(--rose-100), transparent 60%),
+      linear-gradient(135deg, var(--sand-300) 0%, var(--purple-50) 100%);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-4);
+    position: relative;
+    overflow: hidden;
+  }
+  .feature-lead__cover::after {
+    content: ''; position: absolute; inset: 0;
+    background-image: radial-gradient(circle at 1px 1px, rgba(49,49,49,.06) 1px, transparent 0);
+    background-size: 4px 4px;
+  }
+  .feature-lead__topic {
+    font-size: .6875rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .1em;
+    color: var(--accent);
+    margin-bottom: var(--space-2);
+  }
+  .feature-lead h2 {
+    font-size: clamp(1.625rem, 1.25rem + 1.5vw, 2.125rem);
+    line-height: 1.15;
+    margin-bottom: var(--space-3);
+  }
+  .feature-lead__excerpt {
+    font-family: var(--font-serif);
+    font-size: 1.0625rem; line-height: 1.55;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-3);
+  }
+  .feature-lead__meta {
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    padding: var(--space-2) 0;
+    font-size: .8125rem; color: var(--text-tertiary);
+    display: flex; gap: var(--space-3); align-items: baseline; flex-wrap: wrap;
+  }
+  .feature-lead__meta .author { color: var(--text-secondary); font-weight: 500; }
+  .feature-lead__meta .journal { font-style: italic; }
+  .feature-lead__meta .oa {
+    padding: 1px 8px; border-radius: var(--radius-pill);
+    background: var(--sage-100); color: var(--sage-700);
+    font-size: .625rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+
+  /* Editor's picks stack */
+  .picks h3 {
+    font-size: 1rem; text-transform: uppercase; letter-spacing: .08em;
+    font-family: var(--font-sans); font-weight: 600;
+    border-bottom: 2px solid var(--text-primary); padding-bottom: var(--space-2);
+    margin-bottom: var(--space-4);
+  }
+  .pick-item {
+    display: grid; grid-template-columns: auto 1fr; gap: var(--space-4);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--border-light);
+    align-items: start;
+  }
+  .pick-item:last-child { border-bottom: 0; }
+  .pick-item__num {
+    font-family: var(--font-serif); font-size: 1.5rem;
+    color: var(--text-tertiary); line-height: 1;
+    min-width: 24px;
+  }
+  .pick-item__topic {
+    font-size: .625rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .1em;
+    color: var(--accent);
+    margin-bottom: 2px;
+  }
+  .pick-item__title {
+    font-family: var(--font-serif); font-size: 1rem; line-height: 1.25;
+    font-weight: 600; color: var(--text-primary);
+    margin-bottom: 4px;
+    display: block;
+  }
+  .pick-item__title:hover { color: var(--accent); text-decoration: none; }
+  .pick-item__meta { font-size: .75rem; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
+
+  /* Dense grid below */
+  .dense {
+    padding: var(--space-8) 0 var(--space-6);
+  }
+  .dense h3 {
+    font-size: 1rem; text-transform: uppercase; letter-spacing: .08em;
+    font-family: var(--font-sans); font-weight: 600;
+    border-bottom: 2px solid var(--text-primary); padding-bottom: var(--space-2);
+    margin-bottom: var(--space-5);
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .dense h3 small {
+    font-size: .75rem; color: var(--text-tertiary); font-weight: 500; letter-spacing: 0; text-transform: none;
+  }
+  .dense-grid {
+    display: grid; gap: var(--space-3);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 640px) { .dense-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1024px) { .dense-grid { grid-template-columns: repeat(2, 1fr); gap: var(--space-4); } }
+
+  .dense-card {
+    position: relative;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    display: flex; flex-direction: column; gap: var(--space-2);
+    text-decoration: none; color: inherit;
+    transition: border-color .15s;
+  }
+  .dense-card:hover { border-color: var(--accent); text-decoration: none; }
+  .dense-card__head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-2); }
+  .dense-card__topic {
+    font-size: .625rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .08em;
+    color: var(--accent);
+  }
+  .dense-card__date {
+    font-size: .6875rem; color: var(--text-tertiary); font-variant-numeric: tabular-nums;
+  }
+  .dense-card__title {
+    font-family: var(--font-serif); font-size: 1rem; line-height: 1.3;
+    font-weight: 600; color: var(--text-primary);
+    margin: 0;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .dense-card:hover .dense-card__title { color: var(--accent); }
+  .dense-card__meta {
+    margin-top: 2px;
+    font-size: .75rem; color: var(--text-tertiary);
+    display: flex; gap: var(--space-2); align-items: baseline; flex-wrap: wrap;
+  }
+  .dense-card__meta .author { color: var(--text-secondary); font-weight: 500; }
+  .dense-card__meta .journal { font-style: italic; }
+  .dense-card__oa {
+    padding: 1px 6px; border-radius: var(--radius-pill);
+    background: var(--sage-100); color: var(--sage-700);
+    font-size: .625rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+
+  .pagination {
+    display: flex; justify-content: center; gap: var(--space-2); margin: var(--space-10) 0 var(--space-6);
+    font-size: .875rem;
+  }
+  .pagination a, .pagination span {
+    padding: 8px 14px; border-radius: var(--radius-md);
+    color: var(--text-secondary); border: 1px solid transparent;
+  }
+  .pagination a:hover { border-color: var(--border-color); color: var(--text-primary); text-decoration: none; background: var(--bg-surface); }
+  .pagination .current { background: var(--accent); color: white; }
+  .pagination .ellipsis { color: var(--text-muted); padding: 8px 4px; }
+</style>
+</head>
+<body>
+<div class="mock-shell">
+  <header class="mock-header">
+    <div class="container mock-header__inner">
+      <div class="mock-brand">RRM <span>Academy</span></div>
+      <nav class="mock-nav">
+        <a href="#" class="active">Research Library</a>
+        <a href="#">Commentary</a>
+        <a href="#">Learn</a>
+        <a href="#">Sign in</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="page-head">
+    <div class="container">
+      <nav class="breadcrumb"><a href="#">Research Library</a> &rsaquo; All articles &rsaquo; Page 1</nav>
+      <h1>Browse all articles</h1>
+      <p class="page-head__meta tabular">Showing <strong>1–50</strong> of <strong>3,636</strong>  ·  21 topics  ·  140+ journals</p>
+    </div>
+  </section>
+
+  <div class="toolbar">
+    <div class="container toolbar__inner">
+      <div class="toolbar__filters">
+        <button class="filter-pill">All topics ▾</button>
+        <button class="filter-pill">2020–2026</button>
+        <button class="filter-pill is-on">Open access ✓</button>
+      </div>
+      <div class="toolbar__sort">
+        Sort:
+        <select><option>Newest</option><option>Most cited</option></select>
+      </div>
+    </div>
+  </div>
+
+  <section class="featured">
+    <div class="container">
+      <p class="featured__label eyebrow">This week's pick</p>
+      <div class="featured__grid">
+
+        <article class="feature-lead">
+          <div class="feature-lead__cover"></div>
+          <div class="feature-lead__topic">Endometriosis · Surgery</div>
+          <h2><a href="#">Endometriosis Surgery: Debates About Restorative Reproductive Medicine</a></h2>
+          <p class="feature-lead__excerpt">
+            A clear-eyed review of the surgical evidence — excision versus ablation, recurrence
+            data, and what patients deserve to know about the difference between treating
+            endometriosis and suppressing it.
+          </p>
+          <div class="feature-lead__meta tabular">
+            <span class="author">Humphries LA</span>
+            <span class="journal">Obstet Gynecol</span>
+            <span>2026</span>
+            <span class="oa">Open access</span>
+          </div>
+        </article>
+
+        <aside class="picks">
+          <h3>Editor's picks</h3>
+
+          <div class="pick-item">
+            <span class="pick-item__num">1</span>
+            <div>
+              <div class="pick-item__topic">PCOS</div>
+              <a href="#" class="pick-item__title">Gestational progesterone restores menstrual cycle in PCOS patients via enhancing ovary estrogen production</a>
+              <div class="pick-item__meta">Yang Q et al. · Life Metabolism · 2026</div>
+            </div>
+          </div>
+
+          <div class="pick-item">
+            <span class="pick-item__num">2</span>
+            <div>
+              <div class="pick-item__topic">Policy</div>
+              <a href="#" class="pick-item__title">Restorative Reproductive Medicine: Restricting Access to Care</a>
+              <div class="pick-item__meta">Minjeur M et al. · JAMA · 2026</div>
+            </div>
+          </div>
+
+          <div class="pick-item">
+            <span class="pick-item__num">3</span>
+            <div>
+              <div class="pick-item__topic">Infertility</div>
+              <a href="#" class="pick-item__title">Neonatal characteristics of children conceived with IVF or IUI compared with sibling births from unassisted conceptions</a>
+              <div class="pick-item__meta">Reeder MR et al. · Fertil Steril · 2026</div>
+            </div>
+          </div>
+
+          <div class="pick-item">
+            <span class="pick-item__num">4</span>
+            <div>
+              <div class="pick-item__topic">Endometriosis</div>
+              <a href="#" class="pick-item__title">Endometriosis phenotypes and staging in relation to lipid biomarkers</a>
+              <div class="pick-item__meta">Schliep KC et al. · J Gynecol Obstet · 2026</div>
+            </div>
+          </div>
+
+        </aside>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="dense">
+    <div class="container">
+      <h3>All articles <small>Page 1 · 46 more on this page</small></h3>
+
+      <div class="dense-grid">
+
+        <a href="#" class="dense-card">
+          <div class="dense-card__head"><span class="dense-card__topic">Endometriosis</span><span class="dense-card__date">11 May</span></div>
+          <h4 class="dense-card__title">Disordered eating behaviors during adolescence and risk of endometriosis</h4>
+          <div class="dense-card__meta">
+            <span class="author">Thornburgh S et al., 2026</span>
+            <span class="journal">Fertil Steril</span>
+            <span class="dense-card__oa">Open</span>
+          </div>
+        </a>
+
+        <a href="#" class="dense-card">
+          <div class="dense-card__head"><span class="dense-card__topic">Surgery</span><span class="dense-card__date">10 May</span></div>
+          <h4 class="dense-card__title">Influence of Tubal Patency on Endometriosis Recurrence: Matched Case-control Study</h4>
+          <div class="dense-card__meta">
+            <span class="author">Neutens S et al., 2026</span>
+            <span class="journal">J Minim Invasive Gynecol</span>
+          </div>
+        </a>
+
+        <a href="#" class="dense-card">
+          <div class="dense-card__head"><span class="dense-card__topic">Endometriosis</span><span class="dense-card__date">09 May</span></div>
+          <h4 class="dense-card__title">Incident endometriosis diagnosis and anti-müllerian hormone (AMH)</h4>
+          <div class="dense-card__meta">
+            <span class="author">Valenti M et al., 2026</span>
+            <span class="journal">Am J Obstet Gynecol</span>
+          </div>
+        </a>
+
+        <a href="#" class="dense-card">
+          <div class="dense-card__head"><span class="dense-card__topic">Hormones &amp; Cycle</span><span class="dense-card__date">07 May</span></div>
+          <h4 class="dense-card__title">The influence of the menstrual cycle on muscle injuries — a systematic review and meta-analysis</h4>
+          <div class="dense-card__meta">
+            <span class="author">Guthardt Y et al., 2026</span>
+            <span class="journal">Scientific Reports</span>
+            <span class="dense-card__oa">Open</span>
+          </div>
+        </a>
+
+        <a href="#" class="dense-card">
+          <div class="dense-card__head"><span class="dense-card__topic">Infertility</span><span class="dense-card__date">06 May</span></div>
+          <h4 class="dense-card__title">The Association Between History of Infertility and Dietary Practices</h4>
+          <div class="dense-card__meta">
+            <span class="author">Velmahos AH et al., 2026</span>
+            <span class="journal">J Restor Reprod Med</span>
+            <span class="dense-card__oa">Open</span>
+          </div>
+        </a>
+
+        <a href="#" class="dense-card">
+          <div class="dense-card__head"><span class="dense-card__topic">Infertility</span><span class="dense-card__date">05 May</span></div>
+          <h4 class="dense-card__title">Public Awareness, Perceptions, and Preferences in Fertility Treatment</h4>
+          <div class="dense-card__meta">
+            <span class="author">Parnell TA et al., 2026</span>
+            <span class="journal">J Restor Reprod Med</span>
+          </div>
+        </a>
+
+      </div>
+
+      <nav class="pagination">
+        <span class="current">1</span>
+        <a href="#">2</a>
+        <a href="#">3</a>
+        <span class="ellipsis">…</span>
+        <a href="#">73</a>
+        <a href="#">Next →</a>
+      </nav>
+    </div>
+  </section>
+
+  <footer class="mock-footer">
+    <div class="container">Mockup D · Magazine · <a href="all-index.html">Back to gallery</a></div>
+  </footer>
+</div>
+<div class="mockup-badge">D · Magazine</div>
+</body>
+</html>

@@ -1,0 +1,857 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Endometriosis — RRM Research Library</title>
+<link rel="stylesheet" href="tokens.css" />
+<style>
+  /* === TOPIC PAGE ============ */
+
+  /* Hero — topic-specific, more presence than the page-head pattern */
+  .topic-hero {
+    padding: var(--space-8) 0 var(--space-6);
+    border-bottom: 1px solid var(--border-color);
+    background:
+      radial-gradient(ellipse 60% 70% at 15% 0%, var(--purple-50) 0%, transparent 70%);
+  }
+  .topic-hero__inner { max-width: 920px; }
+  .topic-hero__crumb { font-size: .8125rem; color: var(--text-tertiary); margin-bottom: var(--space-3); }
+  .topic-hero__crumb a { color: var(--text-secondary); }
+  .topic-hero__crumb a:hover { color: var(--accent); text-decoration: none; }
+  .topic-hero__crumb .sep { color: var(--text-muted); margin: 0 6px; }
+
+  .topic-hero__row {
+    display: block; /* simpler stacking — no more icon column */
+    margin-bottom: var(--space-3);
+  }
+  .topic-hero__title { flex: 1; min-width: 0; }
+  .topic-hero h1 {
+    font-size: clamp(2rem, 1.5rem + 2vw, 2.75rem);
+    margin: 0 0 var(--space-2);
+    letter-spacing: -.015em;
+    view-transition-name: topic-name; /* Astro View Transitions hook */
+  }
+  /* Breaking-Bad-style inline element box: solid rounded square containing
+     the first 2 letters of the topic name, sitting INSIDE the H1 as if it
+     were the literal "En" of "Endometriosis". No border, no atomic number —
+     just a tinted box with the letters in accent color, inline with the rest
+     of the word. */
+  .topic-initial {
+    display: inline-block;
+    background: var(--purple-100);
+    color: var(--accent);
+    border-radius: 4px;
+    padding: 0 0.12em;
+    line-height: 0.95;
+    vertical-align: baseline;
+    /* tighten the letter spacing inside so it doesn't push the rest of
+       the word away */
+    margin-right: 0.04em;
+    /* very subtle: cell color fades in on load */
+    animation: topic-initial-fade 0.5s 0.15s ease-out both;
+  }
+  @keyframes topic-initial-fade {
+    from { background: transparent; color: var(--text-primary); }
+    to   { background: var(--purple-100); color: var(--accent); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .topic-initial { animation: none; }
+  }
+  .topic-hero__desc {
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    max-width: 64ch;
+    margin: 0;
+  }
+
+  .topic-hero__stats {
+    display: flex; gap: var(--space-6);
+    margin-top: var(--space-4);
+    font-size: .8125rem; color: var(--text-tertiary);
+    flex-wrap: wrap;
+  }
+  .topic-hero__stats strong {
+    font-family: var(--font-serif); font-size: 1.25rem;
+    font-weight: 600; color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+    margin-right: 4px;
+  }
+  /* Mobile: tighten everything in the hero so we stop eating the fold */
+  @media (max-width: 639px) {
+    .topic-hero { padding: var(--space-5) 0 var(--space-4); }
+    .topic-hero__row { margin-bottom: var(--space-2); }
+    .topic-hero h1 { font-size: 1.75rem; margin: 0; line-height: 1.1; }
+    .topic-hero__desc {
+      font-size: .9375rem; line-height: 1.45;
+      margin-top: var(--space-2);
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .topic-hero__stats {
+      gap: var(--space-3) var(--space-4);
+      margin-top: var(--space-3);
+      font-size: .75rem;
+    }
+    .topic-hero__stats strong { font-size: 1rem; margin-right: 2px; }
+  }
+
+  /* Sub-topic chip strip */
+  .subtopics {
+    position: relative;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .subtopics__scroll {
+    padding: var(--space-4) 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .subtopics__scroll::-webkit-scrollbar { display: none; }
+  .subtopics__inner {
+    display: flex; gap: var(--space-2);
+    white-space: nowrap;
+  }
+  /* Scroll indicator chevron — fades-in on mobile when content overflows */
+  .subtopics__chevron {
+    position: absolute; right: 0; top: 0; bottom: 0;
+    width: 56px;
+    display: none;
+    align-items: center; justify-content: flex-end;
+    padding-right: var(--space-3);
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, var(--bg-body) 50%);
+    color: var(--text-secondary);
+    font-size: 18px;
+  }
+  .subtopics__chevron svg { width: 18px; height: 18px; animation: chevron-pulse 1.8s ease-in-out infinite; }
+  @keyframes chevron-pulse {
+    0%, 100% { transform: translateX(0); opacity: .55; }
+    50%      { transform: translateX(3px); opacity: 1; }
+  }
+  @media (max-width: 1023px) {
+    .subtopics__scroll { padding: var(--space-3) 0; }
+    .subtopics__inner { padding-right: 48px; } /* room for chevron */
+    .subtopics__chevron { display: flex; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .subtopics__chevron svg { animation: none; opacity: .9; }
+  }
+  .subtopic-chip {
+    display: inline-flex; align-items: baseline; gap: 6px;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border-color);
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: .8125rem;
+    flex-shrink: 0;
+    transition: border-color .15s, color .15s, background-color .15s;
+  }
+  .subtopic-chip:hover {
+    border-color: var(--accent);
+    color: var(--text-primary);
+    background: var(--purple-50);
+    text-decoration: none;
+  }
+  .subtopic-chip.is-active {
+    background: var(--purple-100);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .subtopic-chip__count {
+    font-size: .6875rem;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+  }
+  .subtopic-chip.is-active .subtopic-chip__count { color: var(--accent); opacity: .8; }
+
+  /* Sticky toolbar */
+  .toolbar {
+    position: sticky; top: 56px; z-index: 40;
+    background: var(--bg-body);
+    border-bottom: 1px solid var(--border-color);
+    padding: var(--space-3) 0;
+  }
+  .toolbar__inner {
+    display: flex; flex-wrap: wrap; gap: var(--space-3);
+    align-items: center; justify-content: space-between;
+  }
+  .toolbar__search {
+    flex: 1; min-width: 220px; max-width: 360px;
+    position: relative;
+  }
+  .toolbar__search input {
+    width: 100%; padding: 10px 14px 10px 38px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border-color);
+    background: var(--bg-surface);
+    font-size: 16px; color: var(--text-primary);
+    outline: 0;
+  }
+  .toolbar__search input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+  .toolbar__search svg {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    width: 16px; height: 16px; color: var(--text-tertiary);
+  }
+  .toolbar__right {
+    display: flex; align-items: center; gap: var(--space-3);
+    flex-shrink: 0;
+  }
+  .toolbar__sort {
+    font-size: .8125rem; color: var(--text-tertiary);
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .toolbar__sort select {
+    background: transparent; border: 0; color: var(--text-primary);
+    font: inherit; font-size: .8125rem; font-weight: 500; cursor: pointer;
+  }
+  /* Mobile toolbar: search on top row, [Filters] + [Sort] on second row inline */
+  @media (max-width: 1023px) {
+    .toolbar { padding: var(--space-3) 0; }
+    .toolbar__inner { flex-direction: column; align-items: stretch; gap: var(--space-2); }
+    .toolbar__search { max-width: none; }
+    .toolbar__right { justify-content: space-between; gap: var(--space-2); width: 100%; }
+  }
+
+  /* Layout — sidebar + main */
+  .layout {
+    display: grid; gap: var(--space-6);
+    grid-template-columns: 1fr;
+    margin: var(--space-6) 0;
+  }
+  @media (min-width: 1024px) {
+    .layout { grid-template-columns: 240px 1fr; gap: var(--space-8); }
+  }
+
+  /* Mobile filter trigger (lives inline in toolbar__right on mobile) */
+  .mobile-filter-btn {
+    display: none;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    padding: 8px 14px;
+    font-size: .8125rem; font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+    align-items: center; gap: 6px;
+    text-decoration: none;
+  }
+  .mobile-filter-btn:hover { border-color: var(--accent); text-decoration: none; }
+  .mobile-filter-btn__count {
+    background: var(--accent); color: white;
+    font-size: .625rem; font-weight: 600;
+    padding: 1px 6px; border-radius: var(--radius-pill);
+    margin-left: 2px;
+  }
+  @media (max-width: 1023px) {
+    .mobile-filter-btn { display: inline-flex; }
+    .filter-rail { display: none; }
+    /* Hide the active filter pills on mobile — count badge on the Filters button is enough */
+    .active-filters { display: none; }
+  }
+
+  /* Filter rail */
+  .filter-rail {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-5);
+    height: fit-content;
+  }
+  @media (min-width: 1024px) {
+    .filter-rail { position: sticky; top: 130px; }
+  }
+  .filter-group { margin-bottom: var(--space-5); }
+  .filter-group:last-child { margin-bottom: 0; }
+  .filter-group__head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: .6875rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .08em;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-2);
+  }
+  .filter-group__head a {
+    font-size: .6875rem; font-weight: 500; color: var(--text-tertiary);
+    text-transform: none; letter-spacing: 0;
+  }
+  .filter-list { list-style: none; padding: 0; margin: 0; }
+  .filter-list li {
+    padding: 6px 0;
+    display: flex; align-items: center; gap: 8px;
+    font-size: .875rem;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+  .filter-list li:hover { color: var(--accent); }
+  .filter-list input { accent-color: var(--accent); }
+  .filter-list .count {
+    margin-left: auto;
+    font-size: .75rem; color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .filter-range {
+    display: flex; gap: var(--space-2); align-items: center; font-size: .8125rem;
+  }
+  .filter-range input {
+    width: 100%; padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    background: var(--bg-body);
+    font: inherit; font-size: .875rem; color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+  }
+  .filter-toggle {
+    display: flex; align-items: center; gap: var(--space-2);
+    font-size: .875rem; cursor: pointer;
+  }
+  .filter-toggle input { accent-color: var(--accent); }
+
+  /* Active filters above grid — neutral so they don't compete with the
+     primary content for attention. They're a temporary state indicator, not
+     a CTA. */
+  .active-filters {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    margin-bottom: var(--space-4);
+  }
+  .active-filter {
+    padding: 3px 10px 3px 10px;
+    border-radius: var(--radius-pill);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: .75rem; font-weight: 500;
+  }
+  .active-filter button {
+    background: none; border: 0; color: var(--text-tertiary);
+    font-size: 14px; line-height: 1; padding: 0;
+    margin-left: 2px; cursor: pointer;
+    transition: color .15s;
+  }
+  .active-filter button:hover { color: var(--text-primary); }
+  @media (max-width: 1023px) {
+    /* Hide active-filter pills on mobile — Filters button's count badge does the job */
+    .active-filters { display: none; }
+  }
+
+  /* Card grid — inherits homepage recent-card */
+  .grid {
+    list-style: none; padding: 0; margin: 0;
+    display: grid; gap: var(--space-4);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 640px)  { .grid { grid-template-columns: repeat(2, 1fr); } }
+
+  .recent-card {
+    position: relative;
+    display: flex; flex-direction: column; gap: var(--space-3);
+    min-height: 170px;
+    padding: var(--space-5);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    text-decoration: none; color: inherit;
+    transition: border-color .15s, transform .15s, box-shadow .2s;
+  }
+  .recent-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    text-decoration: none;
+  }
+  /* No per-card topic dot on a topic page — every card is the same topic;
+     the dot was a homepage affordance for mixed-topic feeds. */
+  .recent-card__topic-dot { display: none; }
+  .recent-card__title {
+    font-family: var(--font-serif);
+    font-size: 1.0625rem; font-weight: 600;
+    line-height: 1.3;
+    color: var(--text-primary);
+    margin: 0;
+    padding-right: var(--space-12);
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    transition: color .15s;
+  }
+  .recent-card:hover .recent-card__title { color: var(--accent); }
+  .recent-card__meta {
+    margin-top: auto;
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border-light);
+    display: flex; flex-direction: column; gap: 2px;
+    font-size: .75rem; line-height: 1.4;
+    color: var(--text-tertiary);
+    min-width: 0;
+  }
+  .recent-card__author {
+    color: var(--text-secondary); font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .recent-card__journal-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: var(--space-2); min-width: 0;
+  }
+  .recent-card__journal {
+    font-style: italic;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    flex: 1; min-width: 0;
+  }
+  .recent-card__subtopic {
+    font-size: .6875rem; font-weight: 500;
+    color: var(--text-secondary); flex-shrink: 0;
+  }
+  .recent-card__oa {
+    position: absolute;
+    top: var(--space-3); right: var(--space-3);
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px;
+    background: var(--sage-100); color: var(--sage-700);
+    font-size: .625rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .06em;
+    border-radius: var(--radius-pill);
+  }
+  @media (max-width: 639px) {
+    .recent-card { min-height: 0; padding: var(--space-4); }
+    .recent-card__title { padding-right: var(--space-10); }
+  }
+
+  /* Pagination */
+  .pagination {
+    display: flex; justify-content: center; gap: var(--space-2);
+    margin: var(--space-10) 0 var(--space-6);
+    font-size: .875rem;
+  }
+  .pagination a, .pagination span {
+    padding: 8px 14px; border-radius: var(--radius-md);
+    color: var(--text-secondary); border: 1px solid transparent;
+  }
+  .pagination a:hover {
+    border-color: var(--border-color);
+    color: var(--text-primary);
+    background: var(--bg-surface);
+    text-decoration: none;
+  }
+  .pagination .current { background: var(--accent); color: white; }
+  .pagination .ellipsis { color: var(--text-muted); padding: 8px 4px; }
+
+  /* Related topics footer */
+  .related-topics {
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border-color);
+    padding: var(--space-8) 0;
+  }
+  .related-topics h2 {
+    font-size: .75rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .08em;
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    margin-bottom: var(--space-4);
+  }
+  .related-topics__row {
+    display: flex; flex-wrap: wrap; gap: var(--space-2);
+  }
+  .related-topic {
+    display: inline-flex; align-items: baseline; gap: 6px;
+    padding: 8px 14px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border-color);
+    background: var(--bg-body);
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: .8125rem;
+    font-family: var(--font-serif); font-weight: 600;
+  }
+  .related-topic:hover {
+    border-color: var(--accent);
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+  .related-topic__count {
+    font-family: var(--font-sans);
+    font-size: .6875rem; font-weight: 500;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Topic dot color classes (reused across recent-card and subtopic-chip) */
+  .topic-dot--p { background: var(--purple-500); }
+  .topic-dot--r { background: var(--rose-700); }
+  .topic-dot--g { background: var(--sage-700); }
+  .topic-dot--s { background: var(--sand-700); }
+
+  /* ===========================================================
+     ANIMATION SYSTEM — three transition patterns, restrained
+     ===========================================================
+     1. CONTEXT (stable container, content swaps): chip active-state,
+        filter pill removal, hover/focus state changes. CSS transitions.
+     2. DRILL (hierarchical nav): card hover lift previews the click
+        navigation; on-page-enter stagger reads as "arrived from a
+        higher level." CSS animation + Astro View Transitions API for
+        page-to-page push/pop in production.
+     3. CONTINUITY (shared elements morph): view-transition-name applied
+        to h1 (topic name) and the article-count strong — these will
+        morph from the homepage tile in production via Astro's
+        <ViewTransitions /> element. No-op in browsers without support.
+
+     Timings: 0.15-0.3s, ease-out. No bounce. No spring overshoot.
+     ============================================================ */
+
+  /* On-load stagger — Context transition arrival */
+  @keyframes enter {
+    from { opacity: 0; transform: translateY(8px); filter: blur(4px); }
+  }
+  .animate-enter {
+    animation: enter 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    animation-delay: calc(80ms * var(--stagger, 0));
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-enter { animation: none; }
+  }
+
+  /* Sub-topic chip: tight press feedback on click (Context — active-state) */
+  .subtopic-chip { transition: border-color 0.15s, color 0.15s, background-color 0.15s, transform 0.1s; }
+  .subtopic-chip:active { transform: scale(0.97); }
+
+  /* Active filter pills: scale-out on remove (Context — removal) */
+  @keyframes pill-remove {
+    to { transform: scale(0.8); opacity: 0; }
+  }
+  .active-filter.removing { animation: pill-remove 0.18s ease-out both; }
+
+  /* Card hover: lift + shadow already set on .recent-card — but tighten the
+     transform timing so it feels "tap-ready" rather than gliding (Drill preview) */
+  .recent-card { transition: border-color 0.15s, transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s; }
+  .recent-card:active { transform: translateY(0) scale(0.99); transition-duration: 0.08s; }
+
+  /* Filters button + sort dropdown: tactile press */
+  .mobile-filter-btn { transition: border-color 0.15s, transform 0.1s; }
+  .mobile-filter-btn:active { transform: scale(0.97); }
+</style>
+</head>
+<body>
+<div class="mock-shell">
+
+  <header class="mock-header">
+    <div class="container mock-header__inner">
+      <div class="mock-brand">RRM <span>Academy</span></div>
+      <nav class="mock-nav">
+        <a href="#" class="active">Research Library</a>
+        <a href="#">Commentary</a>
+        <a href="#">Learn</a>
+        <a href="#">Sign in</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Topic hero -->
+  <section class="topic-hero">
+    <div class="container">
+      <nav class="topic-hero__crumb animate-enter" style="--stagger: 0;" aria-label="Breadcrumb">
+        <a href="#">Research Library</a>
+        <span class="sep">›</span>
+        <a href="#">Topics</a>
+        <span class="sep">›</span>
+        Endometriosis
+      </nav>
+
+      <div class="topic-hero__inner">
+        <div class="topic-hero__row">
+          <h1 class="animate-enter" style="--stagger: 1;"><span class="topic-initial">En</span>dometriosis</h1>
+          <p class="topic-hero__desc animate-enter" style="--stagger: 2;">
+            Excision versus ablation, surgical staging, AMH preservation, recurrence,
+            biomarkers, and the clinical case for treating endometriosis as a disease
+            rather than suppressing its symptoms.
+          </p>
+        </div>
+
+        <div class="topic-hero__stats tabular animate-enter" style="--stagger: 3;">
+          <span><strong style="view-transition-name: topic-count;">259</strong> articles</span>
+          <span><strong>34</strong> journals</span>
+          <span><strong>1971&ndash;2026</strong></span>
+          <span><strong>Updated</strong> 11 May 2026</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sub-topic chip strip -->
+  <nav class="subtopics" aria-label="Sub-topics">
+    <div class="subtopics__scroll">
+      <div class="container subtopics__inner">
+        <a href="#" class="subtopic-chip is-active">All <span class="subtopic-chip__count">259</span></a>
+        <a href="#" class="subtopic-chip">Surgery <span class="subtopic-chip__count">68</span></a>
+        <a href="#" class="subtopic-chip">Disease classification <span class="subtopic-chip__count">42</span></a>
+        <a href="#" class="subtopic-chip">Comorbidities <span class="subtopic-chip__count">31</span></a>
+        <a href="#" class="subtopic-chip">Diagnostics <span class="subtopic-chip__count">27</span></a>
+        <a href="#" class="subtopic-chip">AMH &amp; fertility <span class="subtopic-chip__count">23</span></a>
+        <a href="#" class="subtopic-chip">Adolescent endometriosis <span class="subtopic-chip__count">18</span></a>
+        <a href="#" class="subtopic-chip">Hormonal management <span class="subtopic-chip__count">16</span></a>
+        <a href="#" class="subtopic-chip">Pain &amp; quality of life <span class="subtopic-chip__count">14</span></a>
+      </div>
+    </div>
+    <div class="subtopics__chevron" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+    </div>
+  </nav>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="container toolbar__inner">
+      <form class="toolbar__search" onsubmit="return false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input type="search" placeholder="Search within Endometriosis…" />
+      </form>
+      <div class="toolbar__right">
+        <a href="#filters" class="mobile-filter-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+          Filters
+          <span class="mobile-filter-btn__count">2</span>
+        </a>
+        <div class="toolbar__sort">
+          Sort:
+          <select>
+            <option>Newest</option>
+            <option>Oldest</option>
+            <option>Most cited</option>
+            <option>Most relevant</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="layout">
+
+      <!-- Sidebar -->
+      <aside class="filter-rail" aria-label="Filters">
+        <div class="filter-group">
+          <div class="filter-group__head">Year</div>
+          <div class="filter-range">
+            <input type="number" value="2020" min="1971" max="2026" />
+            <span>—</span>
+            <input type="number" value="2026" min="1971" max="2026" />
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <div class="filter-group__head">Access</div>
+          <label class="filter-toggle">
+            <input type="checkbox" checked /> Open access only
+          </label>
+        </div>
+
+        <div class="filter-group">
+          <div class="filter-group__head">Sub-topic <a href="#">Clear</a></div>
+          <ul class="filter-list">
+            <li><input type="checkbox" /> Surgery <span class="count">68</span></li>
+            <li><input type="checkbox" /> Disease classification <span class="count">42</span></li>
+            <li><input type="checkbox" /> Comorbidities <span class="count">31</span></li>
+            <li><input type="checkbox" /> Diagnostics <span class="count">27</span></li>
+            <li><input type="checkbox" /> AMH &amp; fertility <span class="count">23</span></li>
+            <li><input type="checkbox" /> Adolescent endo <span class="count">18</span></li>
+            <li style="color: var(--text-tertiary)"><a href="#" style="font-size:.75rem">+ 5 more</a></li>
+          </ul>
+        </div>
+
+        <div class="filter-group">
+          <div class="filter-group__head">Journal</div>
+          <ul class="filter-list">
+            <li><input type="checkbox" /> Fertility &amp; Sterility <span class="count">38</span></li>
+            <li><input type="checkbox" /> J Minim Invasive Gynecol <span class="count">24</span></li>
+            <li><input type="checkbox" /> Am J Obstet Gynecol <span class="count">19</span></li>
+            <li><input type="checkbox" /> J Restor Reprod Med <span class="count">11</span></li>
+            <li><input type="checkbox" /> JAMA <span class="count">8</span></li>
+            <li style="color: var(--text-tertiary)"><a href="#" style="font-size:.75rem">+ 29 more journals</a></li>
+          </ul>
+        </div>
+
+        <div class="filter-group">
+          <div class="filter-group__head">Study type</div>
+          <ul class="filter-list">
+            <li><input type="checkbox" /> Randomized trial <span class="count">31</span></li>
+            <li><input type="checkbox" /> Cohort study <span class="count">74</span></li>
+            <li><input type="checkbox" /> Systematic review <span class="count">28</span></li>
+            <li><input type="checkbox" /> Case-control <span class="count">19</span></li>
+            <li><input type="checkbox" /> Case series <span class="count">22</span></li>
+          </ul>
+        </div>
+      </aside>
+
+      <!-- Main column -->
+      <div class="main-col">
+
+        <div class="active-filters">
+          <span class="active-filter">2020–2026 <button>×</button></span>
+          <span class="active-filter">Open access <button>×</button></span>
+        </div>
+
+        <p style="font-size:.8125rem; color:var(--text-tertiary); margin: 0 0 var(--space-4); font-variant-numeric: tabular-nums;">
+          Showing <strong style="color:var(--text-secondary)">1–50</strong> of <strong style="color:var(--text-secondary)">186</strong> matching articles
+        </p>
+
+        <ul class="grid" role="list">
+
+          <li>
+            <a href="#" class="recent-card">
+              <span class="recent-card__topic-dot topic-dot--p"></span>
+              <span class="recent-card__oa">Open</span>
+              <h3 class="recent-card__title">Disordered eating behaviors during adolescence and risk of endometriosis: a prospective cohort study</h3>
+              <div class="recent-card__meta">
+                <span class="recent-card__author">Thornburgh S et al., 2026</span>
+                <div class="recent-card__journal-row">
+                  <span class="recent-card__journal">Fertility &amp; Sterility</span>
+                  <span class="recent-card__subtopic">Adolescent</span>
+                </div>
+              </div>
+            </a>
+          </li>
+
+          <li>
+            <a href="#" class="recent-card">
+              <span class="recent-card__topic-dot topic-dot--p"></span>
+              <h3 class="recent-card__title">Influence of Tubal Patency on Endometriosis Recurrence: A Retrospective Matched Case-control Study</h3>
+              <div class="recent-card__meta">
+                <span class="recent-card__author">Neutens S et al., 2026</span>
+                <div class="recent-card__journal-row">
+                  <span class="recent-card__journal">J Minim Invasive Gynecol</span>
+                  <span class="recent-card__subtopic">Surgery</span>
+                </div>
+              </div>
+            </a>
+          </li>
+
+          <li>
+            <a href="#" class="recent-card">
+              <span class="recent-card__topic-dot topic-dot--p"></span>
+              <h3 class="recent-card__title">Incident endometriosis diagnosis and anti-müllerian hormone: how surgical staging and typology relate to serum AMH levels</h3>
+              <div class="recent-card__meta">
+                <span class="recent-card__author">Valenti M et al., 2026</span>
+                <div class="recent-card__journal-row">
+                  <span class="recent-card__journal">Am J Obstet Gynecol</span>
+                  <span class="recent-card__subtopic">AMH</span>
+                </div>
+              </div>
+            </a>
+          </li>
+
+          <li>
+            <a href="#" class="recent-card">
+              <span class="recent-card__topic-dot topic-dot--p"></span>
+              <span class="recent-card__oa">Open</span>
+              <h3 class="recent-card__title">Endometriosis phenotypes and staging in relation to lipid biomarkers: Findings from the ENDO Cohort Study</h3>
+              <div class="recent-card__meta">
+                <span class="recent-card__author">Schliep KC et al., 2026</span>
+                <div class="recent-card__journal-row">
+                  <span class="recent-card__journal">J Gynecol Obstet Hum Reprod</span>
+                  <span class="recent-card__subtopic">Classification</span>
+                </div>
+              </div>
+            </a>
+          </li>
+
+          <li>
+            <a href="#" class="recent-card">
+              <span class="recent-card__topic-dot topic-dot--p"></span>
+              <span class="recent-card__oa">Open</span>
+              <h3 class="recent-card__title">Endometriosis Surgery: Debates About Restorative Reproductive Medicine</h3>
+              <div class="recent-card__meta">
+                <span class="recent-card__author">Humphries LA, 2026</span>
+                <div class="recent-card__journal-row">
+                  <span class="recent-card__journal">Obstet Gynecol</span>
+                  <span class="recent-card__subtopic">Surgery</span>
+                </div>
+              </div>
+            </a>
+          </li>
+
+          <li>
+            <a href="#" class="recent-card">
+              <span class="recent-card__topic-dot topic-dot--p"></span>
+              <h3 class="recent-card__title">Recognizing endometrial cancer risks in peri- and postmenopausal experiences: insights from community qualitative interviews</h3>
+              <div class="recent-card__meta">
+                <span class="recent-card__author">Park M et al., 2026</span>
+                <div class="recent-card__journal-row">
+                  <span class="recent-card__journal">BMC Womens Health</span>
+                  <span class="recent-card__subtopic">Comorbidities</span>
+                </div>
+              </div>
+            </a>
+          </li>
+
+          <li>
+            <a href="#" class="recent-card">
+              <span class="recent-card__topic-dot topic-dot--p"></span>
+              <h3 class="recent-card__title">Mechanisms and pathways of pain photobiomodulation in deep infiltrating endometriosis: a narrative review</h3>
+              <div class="recent-card__meta">
+                <span class="recent-card__author">Bertaina A et al., 2025</span>
+                <div class="recent-card__journal-row">
+                  <span class="recent-card__journal">Photobiomodul Photomed Laser Surg</span>
+                  <span class="recent-card__subtopic">Pain</span>
+                </div>
+              </div>
+            </a>
+          </li>
+
+          <li>
+            <a href="#" class="recent-card">
+              <span class="recent-card__topic-dot topic-dot--p"></span>
+              <span class="recent-card__oa">Open</span>
+              <h3 class="recent-card__title">Peritoneal fluid: its relevance to the development of endometriosis</h3>
+              <div class="recent-card__meta">
+                <span class="recent-card__author">Halme J et al., 2025</span>
+                <div class="recent-card__journal-row">
+                  <span class="recent-card__journal">Fertility &amp; Sterility</span>
+                  <span class="recent-card__subtopic">Pathogenesis</span>
+                </div>
+              </div>
+            </a>
+          </li>
+
+        </ul>
+
+        <nav class="pagination" aria-label="Pagination">
+          <span class="current">1</span>
+          <a href="#">2</a>
+          <a href="#">3</a>
+          <a href="#">4</a>
+          <span class="ellipsis">…</span>
+          <a href="#">11</a>
+          <a href="#">Next →</a>
+        </nav>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Related topics -->
+  <section class="related-topics">
+    <div class="container">
+      <h2>Related topics</h2>
+      <div class="related-topics__row">
+        <a href="#" class="related-topic">Surgery <span class="related-topic__count">228</span></a>
+        <a href="#" class="related-topic">Pregnancy <span class="related-topic__count">558</span></a>
+        <a href="#" class="related-topic">Infertility <span class="related-topic__count">875</span></a>
+        <a href="#" class="related-topic">Hormones &amp; Cycle <span class="related-topic__count">438</span></a>
+        <a href="#" class="related-topic">PCOS <span class="related-topic__count">204</span></a>
+        <a href="#" class="related-topic">Comorbidities <span class="related-topic__count">183</span></a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="mock-footer">
+    <div class="container">
+      Topic page mockup · <code>/library/topics/endometriosis/</code> · <a href="all-index.html">All-articles gallery</a> · <a href="index.html">Homepage gallery</a>
+    </div>
+  </footer>
+</div>
+<div class="mockup-badge">Topic page (Endometriosis)</div>
+</body>
+</html>
