@@ -83,10 +83,9 @@ function extractSectionHeadings(body) {
 }
 
 function stripInline(s) {
+  s = stripBalancedBraces(s);
   return decodeEntities(
-    s.replace(/<[^>]+>/g, ' ')      // strip tags
-     .replace(/\{[^{}]*\}/g, ' ')   // strip JSX exprs (single-level)
-     .replace(/\s+/g, ' ')
+    s.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ')
   ).trim();
 }
 
