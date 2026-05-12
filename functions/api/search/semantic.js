@@ -1,4 +1,4 @@
-import { CORS_HEADERS, roleAtLeast } from '../auth/_shared.js';
+import { CORS_HEADERS, optionsResponse, roleAtLeast } from '../auth/_shared.js';
 import { log } from '../_log.js';
 import { logSearchQuery, hashIp, extractRequestMeta } from '../_search_log.js';
 
@@ -29,6 +29,10 @@ function shouldUseV2(tier, user) {
   if (tier === 'all') return true;
   if (tier === 'admin' && user && roleAtLeast(user.role, 'admin')) return true;
   return false;
+}
+
+export function onRequestOptions() {
+  return optionsResponse();
 }
 
 export async function onRequestGet(context) {
