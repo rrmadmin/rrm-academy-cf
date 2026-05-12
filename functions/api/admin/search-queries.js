@@ -16,7 +16,7 @@
 import { json, optionsResponse } from '../auth/_shared.js';
 import { log } from '../_log.js';
 
-const VALID_SOURCES = new Set(['ask', 'semantic', 'pagefind']);
+const VALID_SOURCES = new Set(['ask', 'semantic', 'semantic_v2', 'pagefind', 'pagefind-mobile']);
 const DEFAULT_DAYS = 30;
 
 export function onRequestOptions() {
@@ -79,7 +79,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
   // Build WHERE conditions (shared across views)
   const conditions = ['created_at >= ?', 'created_at <= ?'];
-  const params = [from.slice(0, 10), to.slice(0, 10) + ' 23:59:59'];
+  const params = [from.slice(0, 10), to.slice(0, 10) + 'T23:59:59.999Z'];
 
   if (source) {
     conditions.push('source = ?');
@@ -90,7 +90,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   }
   if (qLike) {
     const escaped = qLike.replace(/%/g, '\\%').replace(/_/g, '\\_');
-    conditions.push("query LIKE ? ESCAPE '\\'");
+    conditions.push("query LIKE ? ESCAPE '\\' COLLATE NOCASE");
     params.push('%' + escaped + '%');
   }
 
@@ -104,7 +104,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
       const total = countRow?.total ?? 0;
 
       const rows = await env.ANALYTICS_DB.prepare(
-        `SELECT id, source, query, user_id, ip_hash, results_count, duration_ms, http_status,
+        `SELECT id, source, query, user_id, results_count, duration_ms, http_status,
                 user_agent_short, referer_path, created_at
          FROM search_log ${where}
          ORDER BY created_at DESC
@@ -116,9 +116,9 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
     if (view === 'top') {
       const rows = await env.ANALYTICS_DB.prepare(
-        `SELECT query, COUNT(*) AS count
+        `SELECT query COLLATE NOCASE AS query, COUNT(*) AS count
          FROM search_log ${where}
-         GROUP BY query
+         GROUP BY query COLLATE NOCASE
          ORDER BY count DESC
          LIMIT ?`
       ).bind(...params, limit).all();
@@ -128,9 +128,9 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
     if (view === 'gaps') {
       const rows = await env.ANALYTICS_DB.prepare(
-        `SELECT query, COUNT(*) AS count
+        `SELECT query COLLATE NOCASE AS query, COUNT(*) AS count
          FROM search_log ${where}
-         GROUP BY query
+         GROUP BY query COLLATE NOCASE
          ORDER BY count DESC
          LIMIT ?`
       ).bind(...params, limit).all();

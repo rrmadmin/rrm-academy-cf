@@ -14,7 +14,7 @@ const RATE_WINDOW = 60_000;
 
 function isRateLimited(ip) {
   const now = Date.now();
-  if (rateLimitMap.size > 10000) {
+  if (rateLimitMap.size > 1000) {
     for (const [k, v] of rateLimitMap) {
       if (now - v.start > RATE_WINDOW) {
         rateLimitMap.delete(k);
@@ -67,7 +67,8 @@ export async function onRequestPost(context) {
     return Response.json({ error: 'invalid_input' }, { status: 400, headers: CORS_HEADERS });
   }
 
-  if (source !== undefined && source !== 'pagefind') {
+  const VALID_LOG_SOURCES = new Set(['pagefind', 'pagefind-mobile']);
+  if (source !== undefined && !VALID_LOG_SOURCES.has(source)) {
     return Response.json({ error: 'invalid_input' }, { status: 400, headers: CORS_HEADERS });
   }
 
@@ -88,7 +89,7 @@ export async function onRequestPost(context) {
   const { user_agent_short, referer_path } = extractRequestMeta(request);
 
   await logSearchQuery(env, {
-    source: 'pagefind',
+    source: source || 'pagefind',
     query: trimmedQuery,
     user_id: userId,
     ip_hash: await hashIp(ip),
