@@ -84,7 +84,7 @@ export async function notifyNewPost(env, db, post, authorName) {
 
   // Send individual emails to preserve privacy (don't expose member emails to each other)
   const emailPromises = members.results.map(m =>
-    sendEmail(env, { from: 'noreply@mail.rrmacademy.org', to: m.email, subject, html, text, log: { db, source: 'community/new-post', category: 'transactional' } })
+    sendEmail(env, { from: '"Save the Uterus Club" <community@mail.rrmacademy.org>', to: m.email, subject, html, text, log: { db, source: 'community/new-post', category: 'transactional' } })
       .catch(err => console.error(`Failed to email ${m.email}:`, err.message))
   );
   await Promise.all(emailPromises);
@@ -135,7 +135,7 @@ export async function notifyReply(env, db, postId, parentId, replierId, replierN
   const text = `${replierName} replied to your ${targetLabel}:\n"${preview}"\nView: ${link}\n\nManage notifications: ${SITE_URL}/community/`;
 
   await sendEmail(env, {
-    from: 'noreply@mail.rrmacademy.org',
+    from: '"Save the Uterus Club" <community@mail.rrmacademy.org>',
     to: recipient.email,
     subject,
     html,
