@@ -54,10 +54,11 @@ const SHELL_ENABLED = isShellEnabled('community');
         <!-- Filter tabs -->
         <div class="feed-tabs" role="tablist">
           <button class="feed-tab active" role="tab" data-type="">All</button>
-          <button class="feed-tab" role="tab" data-type="announcement">Announcements</button>
+          <a class="feed-tab feed-tab--link" href="/community/members/">Members</a>
           <button class="feed-tab" role="tab" data-type="event">Events</button>
           <button class="feed-tab" role="tab" data-type="resource">Resources</button>
           <button class="feed-tab" role="tab" data-type="discussion">Discussions</button>
+          <a class="feed-tab feed-tab--link" href="/courses/">Courses</a>
         </div>
 
         <!-- Compose trigger -->
@@ -237,7 +238,7 @@ const SHELL_ENABLED = isShellEnabled('community');
       var composeSubmitBtn = document.getElementById('compose-submit-btn');
       var composeImageInput = document.getElementById('compose-image-input');
       var composeImagePreview = document.getElementById('compose-image-preview');
-      var tabs = document.querySelectorAll('.feed-tab');
+      var tabs = document.querySelectorAll('.feed-tab[role="tab"]');
 
       // Edit modal refs
       var editModalEl = document.getElementById('edit-modal');
@@ -1656,6 +1657,16 @@ const SHELL_ENABLED = isShellEnabled('community');
   .feed-tab.active {
     color: var(--text-primary);
     font-weight: 700;
+  }
+  /* Anchor-tab variants (Members, Courses) navigate instead of filter */
+  a.feed-tab--link {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  a.feed-tab--link:visited {
+    color: var(--text-tertiary);
   }
   .feed-tab.active::after {
     content: '';
