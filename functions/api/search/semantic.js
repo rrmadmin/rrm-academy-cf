@@ -248,6 +248,8 @@ export async function onRequestGet(context) {
     });
     return Response.json({ results }, { headers: CORS_HEADERS });
   } catch (err) {
+    const entry = rateLimitMap.get(ip);
+    if (entry && entry.count > 0) entry.count--;
     log(env, waitUntil, 'search', 'semantic_error', 'error', err.message, 0, 500);
     await logSearchQuery(env, {
       source: 'semantic',
