@@ -292,7 +292,7 @@ function buildPillarDoc(pillar) {
     body,
     sourceType: 'pillar',
     metadata: {
-      type: 'pillar',
+      type: 'Guide',
       year: String(new Date().getFullYear()),
       domain: 'Pillar',
       rrm_relevance: '5',

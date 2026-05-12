@@ -124,7 +124,10 @@ function buildEntries() {
 
   for (const g of guides) {
     if (!g.slug || !g.title) continue;
-    const parts = [g.title];
+    // Repeat title 3x and lead with section headings before body. Pillar guides
+    // compete against laser-focused PubMed-style article titles in semantic
+    // matching; title repetition boosts the signal vector for the 2000-char cap.
+    const parts = [g.title, g.title, g.title];
     if (g.description) parts.push(g.description);
     if (g.sectionHeadings && g.sectionHeadings.length) parts.push('Sections: ' + g.sectionHeadings.join(', '));
     if (g.keywordText) parts.push(g.keywordText);
