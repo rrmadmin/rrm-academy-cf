@@ -11,14 +11,25 @@ const articles = await fetchAllArticles();
 
 // Compact homepage card data — derive once at build time so the JSX stays trivial.
 const recent = articles.slice(0, 6).map((a: any) => {
-  const firstAuthor = (a.authors || '').split(';')[0]?.split(',')[0]?.trim() || '';
-  const authorYear =
-    a.shortCitation ||
-    `${firstAuthor}${a.authors?.includes(';') ? ' et al.' : ''}${a.year ? `, ${a.year}` : ''}`;
+  const authorsRaw = String(a.authors || '');
+  const firstAuthor = authorsRaw.split(';')[0]?.split(',')[0]?.trim() || '';
+  // Multi-author detection: semicolons are the canonical separator, but some
+  // historical imports comma-separated co-authors. Treat 2+ commas as multi too.
+  const hasSemi = authorsRaw.includes(';');
+  const commaCount = (authorsRaw.match(/,/g) || []).length;
+  const isMulti = hasSemi || commaCount >= 2;
+  let authorYear: string;
+  if (a.shortCitation) {
+    authorYear = a.shortCitation;
+  } else if (firstAuthor) {
+    authorYear = `${firstAuthor}${isMulti ? ' et al.' : ''}${a.year ? `, ${a.year}` : ''}`;
+  } else {
+    authorYear = a.year ? String(a.year) : '';
+  }
   return {
     slug: a.slug,
     title: a.title,
-    authorYear: authorYear.trim().replace(/, $/, ''),
+    authorYear: authorYear.trim(),
     journal: a.journalAbbv || a.journal || '',
     isOpenAccess: Boolean(a.isOpenAccess) || a.accessLevel === 'open',
   };
