@@ -359,6 +359,33 @@ The cards already carry inline library citations in most prose cells. A few card
 
 ---
 
+## Phase A + Phase B status (2026-05-12)
+
+**Phase A (no new research required) — 5 fixes shipped:**
+- [x] Gap 14: HFEA 9th-edition date reconciled (FAQ + JSON-LD now say "in force since 2019, current version 9.4 effective 26 October 2023")
+- [x] Gap 13: De Geyter et al. (2025) — authorship corrected from Smeenk, linked to library record
+- [x] Gap 12: Boyle et al. (2025) — linked to library record; "first head-to-head" superlative softened
+- [x] Gap 11: "ESHRE guidelines now mandate cumulative reporting" — softened to "ESHRE treats CLBR as a primary effectiveness outcome in its ART guidance"
+- [x] Inline duplicate of 13.1% preterm claim removed (formerly appeared twice)
+- [x] "Most detailed national fertility code in the world" superlative removed from JSON-LD FAQ
+
+**Phase B (peer-reviewed papers ingested to library, then cited) — 4 fixes shipped:**
+- [x] Gap 1 (registries serve the industry thesis claim 22.2): Now cites Gleicher et al. (2019, Hum Reprod Open) + Kushnir et al. (2018, BMJ Open)
+- [x] Clinic-marketing-vs-registry-data gap (extension of 22.2): Now cites Wilkinson et al. (2017, BMJ Open)
+- [x] Gap 10 (long-term neurodev tracking absence 22.21): Now cites Hart & Wijs (2022, Front Reprod Health)
+- [x] Gap 4 (1 in 3 ART without diagnosis 22.22): Now cites 2023 ESHRE evidence-based guideline on unexplained infertility
+
+**Remaining gaps (7 of 14) — require either softening or external statute/policy citations:**
+- [ ] Gap 2 (society-run registry audit-independence 23.2/25.1): partly backed by Kushnir/Gleicher already; could be softened further or cite GAO-20-519 externally
+- [ ] Gap 3 (cross-country LBR divergence "10pp" 4.1): quantitative claim, no PMID-verified source; could be softened
+- [ ] Gap 5 (Canadian AHR Act + Health Canada sections 16.2-16.4): statute citations, naturally external
+- [ ] Gap 6 (Quebec/Ontario/Manitoba provincial funding 5.7): statute citations, naturally external
+- [ ] Gap 7 (Argentina/Uruguay/Brazil ART legislation 5.8): statute citations, naturally external
+- [ ] Gap 8 ($12-15K per cycle US cost 22.15): could cite FertilityIQ survey externally or soften the range
+- [ ] Gap 9 (OHSS prevalence 1-5% / 10% high responders 22.19): would need ASRM Practice Committee citation (no PMID found in this session)
+
+---
+
 ## Summary: high-priority citation gaps for a pro-IVF reader to attack
 
 Ordered by aggressiveness a critical reader would apply:
