@@ -72,6 +72,7 @@ function buildEntries() {
       title: a.title,
       year: a.year || null,
       authors: a.shortCitation || '',
+      rrmRelevance: a.rrmRelevance || null,
     });
   }
 
@@ -355,6 +356,7 @@ for (let i = 0; i < entries.length; i += BATCH_SIZE) {
       url: e.url,
     };
     if (e.year != null) metadata.year = e.year;
+    if (e.rrmRelevance != null) metadata.rrmRelevance = e.rrmRelevance;
     return { id: e.id || vectorId(e.slug), values: embeddings[idx], metadata };
   });
 
