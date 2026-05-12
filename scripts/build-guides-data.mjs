@@ -160,8 +160,11 @@ function extractBodyText(body) {
   return s;
 }
 
-function extractFaqText(frontmatter) {
-  // Grab name: '...' and text: '...' string literals from FAQ schemas.
+function extractKeywordText(frontmatter) {
+  // Grab name: '...' and text: '...' string literals from JSON-LD schemas in
+  // the frontmatter (FAQPage Q/A, citation titles, MedicalCondition names,
+  // articleSection labels, etc). All are useful keyword signal for semantic
+  // matching; the broader extraction is intentional, not FAQ-only.
   const out = [];
   const re = /\b(?:name|text):\s*(["'])((?:\\.|(?!\1).)*)\1/g;
   let m;
@@ -187,7 +190,7 @@ function build() {
     const description = extractBaseLayoutDescription(body);
     const sectionHeadings = extractSectionHeadings(body);
     const bodyText = extractBodyText(body);
-    const faqText = extractFaqText(frontmatter);
+    const keywordText = extractKeywordText(frontmatter);
 
     if (!title) {
       console.error(`Failed to extract <h1> from ${g.file}`);
@@ -205,14 +208,14 @@ function build() {
       url: `/${g.slug}/`,
       sectionHeadings,
       bodyText,
-      faqText,
+      keywordText,
     });
   }
 
   writeFileSync(OUT, JSON.stringify(entries, null, 2) + '\n');
   console.log(`Wrote ${entries.length} guide entries to src/data/guides.json`);
   for (const e of entries) {
-    const len = (e.title + ' ' + e.description + ' ' + e.sectionHeadings.join(' ') + ' ' + e.bodyText + ' ' + e.faqText).length;
+    const len = (e.title + ' ' + e.description + ' ' + e.sectionHeadings.join(' ') + ' ' + e.bodyText + ' ' + e.keywordText).length;
     console.log(`  ${e.slug.padEnd(28)} h2/h3=${String(e.sectionHeadings.length).padStart(2)} text=${len}c`);
   }
 }
