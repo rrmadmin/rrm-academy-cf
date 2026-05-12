@@ -134,7 +134,7 @@ const jsonLd = {
           name: 'What is the difference between a fertility registry and a code of practice?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'A code of practice is the rulebook a fertility clinic must follow to operate legally in a given jurisdiction. It defines staff qualifications, laboratory standards, consent procedures, embryo handling rules, and data submission requirements. A registry is the dataset of cycle outcomes those clinics are required to submit. Together they form the accountability infrastructure of assisted reproductive technology: codes govern what clinics must do, registries record what those clinics produced. The HFEA in the United Kingdom operates both, but in most countries the regulator and the data registry are separate institutions.',
+            text: 'A code of practice is the rulebook a fertility clinic must follow to operate legally in a given jurisdiction. It defines staff qualifications, laboratory standards, consent procedures, embryo handling rules, and data submission requirements. A registry is the dataset of cycle outcomes those clinics are required to submit. Together they form the accountability infrastructure of assisted reproductive technology: codes govern what clinics must do, registries record what those clinics produced. The HFEA in the United Kingdom operates both regulator and registry; Australia and New Zealand separate RTAC accreditation from ANZARD data collection; the United States separates CDC reporting from professional society practice guidance. Institutional arrangements vary by country.',
           },
         },
         {
@@ -268,10 +268,10 @@ const jsonLd = {
           <aside class="tldr">
             <h2 id="key-takeaways">Key Takeaways</h2>
             <ul>
-              <li><strong>The UK is the only country with a legally binding national fertility code.</strong> The HFEA Code of Practice (9th edition, launched 2019, current as v9.4 since October 2023) is statutory under the Human Fertilisation and Embryology Acts of 1990 and 2008.</li>
+              <li><strong>The UK operates one of the most developed statutory ART frameworks.</strong> The HFEA Code of Practice (9th edition, launched 2019, current as v9.4 since October 2023) is statutory under the Human Fertilisation and Embryology Acts of 1990 and 2008. Germany (Embryonenschutzgesetz 1990), Italy (Law 40/2004), Spain (Law 14/2006), France (Loi de bioethique 2021), Canada (Assisted Human Reproduction Act 2004), and Australia and New Zealand (via RTAC-linked Medicare eligibility) also operate binding national ART regimes; the UK's distinction is the depth and iterative maintenance of its code, not its existence.</li>
               <li><strong>The US has a federal data mandate but no national clinical code.</strong> The Fertility Clinic Success Rate and Certification Act (FCSRCA) of 1992 requires CDC reporting; it does not regulate clinical practice.</li>
-              <li><strong>Sweden Q-IVF is the methodologically strongest registry for cumulative patient outcomes.</strong> Most other registries report per-cycle rates only, which understate attrition and overstate effective clinic performance.</li>
-              <li><strong>Registries measure cycles, not patients.</strong> They do not measure whether the underlying cause of infertility was ever diagnosed, how long the patient journey took, or what it cost to reach a live birth.</li>
+              <li><strong>Sweden's Q-IVF is one of the few registries that routinely publishes cumulative patient-level outcomes.</strong> Australia and New Zealand's ANZARD also links successive cycles for the same patient. Most other public-facing registry outputs remain cycle-based, which understates attrition and overstates effective clinic performance.</li>
+              <li><strong>Most registry outputs measure cycles, not the patients who went through them.</strong> No major registry publishes diagnostic workup completion, journey length from first consultation, or out-of-pocket cost to live birth.</li>
               <li><strong>The 14 canonical instruments in this guide are indexed in the RRM Academy Research Library.</strong> Each section links to the primary source.</li>
             </ul>
           </aside>
@@ -287,7 +287,7 @@ const jsonLd = {
 
           <p>Patients should care about both. Codes of practice tell you what a clinic is legally required to do. Registries tell you whether the aggregate outcomes across an entire country or region justify the clinical decisions being made.</p>
 
-          <p>But both instruments have limits. Registries measure cycles, not patients. They count what happens in a given treatment episode. Most do not follow a couple from their first consultation to their eventual outcome, whether that outcome is a live birth, a decision to stop treatment, or an undiagnosed condition that was never addressed. They report what technology produced. They largely do not report who was served, for how long, at what cost, or whether the underlying cause of infertility was ever found.</p>
+          <p>But both instruments have limits. Sweden's Q-IVF and Australia and New Zealand's ANZARD do link successive cycles for the same patient and report some cumulative outcomes. Most other public-facing registry outputs do not. They count what happens in a given treatment episode rather than following a couple from first consultation to eventual outcome, whether that outcome is a live birth, a decision to stop treatment, or an undiagnosed condition that was never addressed. They report what technology produced. They do not report out-of-pocket cost, journey length, or whether the underlying cause of infertility was ever diagnosed.</p>
 
           <p><a href="/what-is-rrm/">Restorative Reproductive Medicine</a> asks different questions. RRM clinicians start from diagnosis: what is causing this couple's infertility, and is there a treatable condition? Registry data is necessary for transparency in a field that handles profound decisions. But it is not sufficient for evaluating whether patients are being served well. Understanding what registries do and do not measure is the first step toward asking better questions.</p>
 
@@ -313,7 +313,7 @@ const jsonLd = {
 
           <h3 id="hfea-code-of-practice">United Kingdom: HFEA Code of Practice (9th Edition, v9.4)</h3>
 
-          <p>The <a href="/library/hfea-code-of-practice-9th-edition-version-94-0n2bg9oa/">Human Fertilisation and Embryology Authority (HFEA) Code of Practice</a> is the most detailed fertility regulatory code in the world. It is legally binding under the <a href="/library/human-fertilisation-and-embryology-act-1990-lmwayq0r/">Human Fertilisation and Embryology Act 1990</a> and the <a href="/library/human-fertilisation-and-embryology-act-2008-v99nms5r/">2008 amendment</a>. Any UK clinic that licenses embryo creation, storage, or transfer must comply with it. The code runs to hundreds of pages and is updated iteratively; the 9th edition was launched in January 2019 and is currently in force as version 9.4 from October 2023, reflecting updates across consent, welfare-of-the-child assessments, gamete storage time limits, and data submission standards.</p>
+          <p>The <a href="/library/hfea-code-of-practice-9th-edition-version-94-0n2bg9oa/">Human Fertilisation and Embryology Authority (HFEA) Code of Practice</a> is among the most comprehensive fertility regulatory codes currently in force. It is legally binding under the <a href="/library/human-fertilisation-and-embryology-act-1990-lmwayq0r/">Human Fertilisation and Embryology Act 1990</a> and the <a href="/library/human-fertilisation-and-embryology-act-2008-v99nms5r/">2008 amendment</a>. Any UK clinic that licenses embryo creation, storage, or transfer must comply with it. The code runs to several hundred pages and is updated iteratively; the 9th edition was launched in January 2019 and is currently in force as version 9.4 from October 2023, reflecting updates across consent, welfare-of-the-child assessments, gamete storage time limits, and data submission standards.</p>
 
           <p>The code says nothing about why a patient needed treatment. It governs the conduct of the procedure. It does not require a clinic to document whether an underlying diagnosis was ever sought, offered, or declined. Clinics can fully comply with the 9th edition while never investigating the reproductive health condition that brought a couple through their door.</p>
 
@@ -327,7 +327,7 @@ const jsonLd = {
 
           <h3 id="mrc-rcog-1993">Historical Note: UK Multi-Centre Self-Audit (1993)</h3>
 
-          <p>Before the HFEA assumed its current form, a joint report by the Medical Research Council and the Royal College of Obstetricians and Gynaecologists examined outcomes from IVF programmes across multiple UK centres. <a href="/library/final-report-of-the-medical-research-councilroyal-college-of-obstetricians-and-g-recfymjps4idpfuga/">Published in 1993</a>, this was an early effort at systematic self-audit in the field. It established the precedent that national data aggregation was necessary for transparency. That precedent led directly to the HFEA register.</p>
+          <p>In the early 1990s, the Medical Research Council and the Royal College of Obstetricians and Gynaecologists jointly examined outcomes from IVF programmes across multiple UK centres. <a href="/library/final-report-of-the-medical-research-councilroyal-college-of-obstetricians-and-g-recfymjps4idpfuga/">Published in 1993</a>, this was an early effort at systematic self-audit. It sat alongside the statutory HFEA register, which had been established by the 1990 Act and was already collecting cycle-level data through HFEA licensing from 1991. The audit work helped normalize the transparency culture that the statutory register operationalized.</p>
 
           <!-- Section: National Registries -->
           <h2 id="national-registries">National Registries</h2>
@@ -350,7 +350,7 @@ const jsonLd = {
 
           <h3 id="jsog">Japan: JSOG ART Summary</h3>
 
-          <p>The Japan Society of Obstetrics and Gynecology (JSOG) Ethics Committee publishes an annual <a href="/library/assisted-reproductive-technology-in-japan-a-summary-report-for-2023-by-the-commi-pkxezwws/">ART summary</a>. Japan performs more ART cycles per capita than any other country in the world. The most recent JSOG summary in the RRM Academy library covers treatment year 2023.</p>
+          <p>The Japan Society of Obstetrics and Gynecology (JSOG) Ethics Committee publishes an annual <a href="/library/assisted-reproductive-technology-in-japan-a-summary-report-for-2023-by-the-commi-pkxezwws/">ART summary</a>. Japan operates one of the highest-volume ART programmes globally, performing over 450,000 cycles per year in recent reports. The most recent JSOG summary in the RRM Academy library covers treatment year 2023.</p>
 
           <p>Japanese registry data is strong on cycle volume and age stratification. It documents, among other metrics, the extraordinary scale of frozen embryo transfer cycles in Japan, which now far exceed fresh transfers. As with most registries, patient-level cumulative data and drop-out rates are not the primary reporting focus.</p>
 
@@ -364,7 +364,7 @@ const jsonLd = {
 
           <p>The <a href="/library/cartr-plus-2025-annual-report-2024-data-canadian-assisted-reproductive-technolog-e94qosl4/">Canadian Assisted Reproductive Technologies Register Plus (CARTR Plus)</a>, operated by the Canadian Fertility and Andrology Society (CFAS), publishes annual reports. The most recent in the RRM Academy library covers treatment year 2024.</p>
 
-          <p>Canadian registry data covers clinic-level outcomes across provinces. Unlike the UK and Australia, Canada has no federal ART legislation; regulation is provincially variable. CARTR Plus is a voluntary registry; participation is near-universal among accredited clinics, but this is not legally mandated.</p>
+          <p>Canadian registry data covers clinic-level outcomes across provinces. Canada has federal ART legislation: the Assisted Human Reproduction Act (2004) prohibits human cloning, commercial surrogacy, and several other practices, and Health Canada enforces sperm and ovum safety provisions (section 10, in force February 2020) and reimbursement rules (section 12, in force June 2020). A 2010 Supreme Court of Canada decision (Reference re Assisted Human Reproduction Act) struck several clinical-practice sections as exceeding federal jurisdiction, leaving most clinical regulation to the provinces. CARTR Plus is voluntary; participation is broad among accredited clinics but not legally mandated.</p>
 
           <h3 id="dir">Germany: DIR Jahrbuch</h3>
 
@@ -413,7 +413,7 @@ const jsonLd = {
 
           <h3>What the registries do measure, and what that measurement actually means</h3>
 
-          <p><strong>Clinic-level transparency.</strong> Every major registry requires clinics to submit outcome data that is then published. Before registries existed, success claims were unaudited. That ended. What registries did not end is patient selection bias and the absence of independent verification. Professional society self-reporting operates without external audit in most countries: the societies that operate the registries are the same entities whose member clinics fund them. The data are real. The governance of the data is self-referential.</p>
+          <p><strong>Clinic-level transparency.</strong> Statutory registries operated by regulators (HFEA in the United Kingdom, CDC under FCSRCA in the United States, RTAC-linked ANZARD in Australia and New Zealand) require clinics to submit outcome data that is then published. Society-run registries (CARTR Plus in Canada, REDLARA in Latin America, JSOG in Japan) operate as voluntary professional schemes. Before registries existed, success claims were unaudited. That ended. What registries did not end is patient selection bias and the absence of independent verification: society-run registries operate without external audit, governed by the same societies whose member clinics fund them. CDC includes medical-director attestation and Westat validation visits but the audit is not independent of the reporting infrastructure. The data are real. The governance of the data is partly self-referential.</p>
 
           <p><strong>Age stratification.</strong> All major registries report outcomes by age band. This matters clinically, because ovarian reserve and egg quality decline in ways that affect per-cycle rates substantially. Age stratification makes the per-cycle figure more interpretable. It does not address dropout, cost, harm underreporting, or diagnostic bypass.</p>
 
@@ -478,7 +478,7 @@ const jsonLd = {
             <details>
               <summary>What is the difference between a fertility registry and a code of practice?</summary>
               <div class="faq-answer">
-                <p>A code of practice is the rulebook a fertility clinic must follow to operate legally in a given jurisdiction. It defines staff qualifications, laboratory standards, consent procedures, embryo handling rules, and data submission requirements. A registry is the dataset of cycle outcomes those clinics are required to submit. Together they form the accountability infrastructure of assisted reproductive technology: codes govern what clinics must do, registries record what those clinics produced. The HFEA in the United Kingdom operates both, but in most countries the regulator and the data registry are separate institutions. Patients evaluating a clinic should ask about both: what standards apply, and where outcomes are reported.</p>
+                <p>A code of practice is the rulebook a fertility clinic must follow to operate legally in a given jurisdiction. It defines staff qualifications, laboratory standards, consent procedures, embryo handling rules, and data submission requirements. A registry is the dataset of cycle outcomes those clinics are required to submit. Together they form the accountability infrastructure of assisted reproductive technology: codes govern what clinics must do, registries record what those clinics produced. The HFEA in the United Kingdom operates both regulator and registry; Australia and New Zealand separate RTAC accreditation from ANZARD data collection; the United States separates CDC reporting from professional society practice guidance. Institutional arrangements vary by country. Patients evaluating a clinic should ask about both: what standards apply, and where outcomes are reported.</p>
               </div>
             </details>
 
