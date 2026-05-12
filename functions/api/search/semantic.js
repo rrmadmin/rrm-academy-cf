@@ -9,7 +9,7 @@ const RATE_WINDOW = 60_000;
 
 function isRateLimited(ip) {
   const now = Date.now();
-  if (rateLimitMap.size > 10000) {
+  if (rateLimitMap.size > 1000) {
     for (const [k, v] of rateLimitMap) {
       if (now - v.start > RATE_WINDOW) {
         rateLimitMap.delete(k);
