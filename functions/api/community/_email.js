@@ -32,19 +32,21 @@ function formatEventDate(isoUtc) {
 
 // Personal-sender addresses for known STUC post/reply authors.
 // Falls back to a generic friendly sender when the author isn't in the map.
-// `mail.rrmacademy.org` is the verified SES sending domain; any subaddress
-// works without registering a new SES identity.
+// Sends from the `rrmacademy.org` apex SES identity (verified, apex DKIM
+// signing, MAIL FROM = mail.rrmacademy.org). The earlier `@mail.` shape
+// was Gmail-classified as transactional bulk infra; apex sending gives
+// `signed-by: rrmacademy.org` so STUC notifications land in Primary.
 const AUTHOR_SENDERS = {
   // Brian Whittaker
-  '301eb55c3f388e65f3f42b14e635dc7a': '"Brian Whittaker" <brian@mail.rrmacademy.org>',
+  '301eb55c3f388e65f3f42b14e635dc7a': '"Brian Whittaker" <brian@rrmacademy.org>',
   // Naomi Whittaker (id verified 2026-05-12 via D1 query on naomimwhittaker@gmail.com, role=admin)
-  '710134def83240b7b47b22a9c9579c0c': '"Naomi Whittaker" <naomi@mail.rrmacademy.org>',
+  '710134def83240b7b47b22a9c9579c0c': '"Naomi Whittaker" <naomi@rrmacademy.org>',
 };
 
 function authorFrom(authorId, authorName) {
   if (AUTHOR_SENDERS[authorId]) return AUTHOR_SENDERS[authorId];
   const safeName = (authorName || 'Save the Uterus Club').replace(/"/g, '');
-  return `"${safeName}" <community@mail.rrmacademy.org>`;
+  return `"${safeName}" <community@rrmacademy.org>`;
 }
 
 export async function notifyNewPost(env, db, post, authorName) {
