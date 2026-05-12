@@ -43,6 +43,7 @@ const articles = loadJSON('articles.json');
 const posts = loadJSON('posts.json');
 const faqs = loadJSON('faqs.json');
 const courses = loadJSON('courses.json');
+const guides = loadJSON('guides.json');
 const glossary = (() => {
   const path = join(DATA_DIR, 'glossary.json');
   if (!existsSync(path)) return { terms: [] };
@@ -152,11 +153,32 @@ function buildEntries() {
     });
   }
 
+  // Pillar guides -- title + description + section headings + FAQ + body prose
+  for (const g of guides) {
+    if (!g.slug || !g.title) continue;
+    const parts = [g.title];
+    if (g.description) parts.push(g.description);
+    if (g.sectionHeadings && g.sectionHeadings.length) {
+      parts.push('Sections: ' + g.sectionHeadings.join(', '));
+    }
+    if (g.faqText) parts.push(g.faqText);
+    if (g.bodyText) parts.push(g.bodyText);
+    entries.push({
+      slug: `guide-${g.slug}`,
+      text: parts.join('. '),
+      type: 'Guide',
+      url: g.url,
+      title: g.title,
+      year: null,
+      authors: '',
+    });
+  }
+
   return entries;
 }
 
 const entries = buildEntries();
-console.log(`Content: ${articles.length} articles, ${posts.length} posts, ${faqs.length} FAQs, ${courses.length} courses, ${(glossary.terms || []).length} glossary terms`);
+console.log(`Content: ${articles.length} articles, ${posts.length} posts, ${faqs.length} FAQs, ${courses.length} courses, ${(glossary.terms || []).length} glossary terms, ${guides.length} guides`);
 console.log(`Total entries to embed: ${entries.length}`);
 
 if (articles.length < 2500) {

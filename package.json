@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "node src/lib/enrich-glossary.mjs && node scripts/build-og-index.mjs && node scripts/generate-page-dates.mjs && node scripts/build-library-feed.mjs && SITE_SSOT_ENABLED=${SITE_SSOT_ENABLED:-1} node scripts/ssot-prebuild.mjs && astro build && npx pagefind --site dist",
+    "build": "node src/lib/enrich-glossary.mjs && node scripts/build-og-index.mjs && node scripts/generate-page-dates.mjs && node scripts/build-library-feed.mjs && node scripts/build-guides-data.mjs && SITE_SSOT_ENABLED=${SITE_SSOT_ENABLED:-1} node scripts/ssot-prebuild.mjs && astro build && npx pagefind --site dist",
     "build:astro": "astro build",
     "ssot:validate": "node ../../tools/site-ssot/bin/ssot-validate.mjs --project .",
     "ssot:smoke": "node ../../tools/site-ssot/bin/ssot-smoke.mjs --project .",
@@ -23,6 +23,7 @@
     "fetch-courses": "node src/lib/fetch-courses-data.mjs",
     "fetch-partners": "node src/lib/fetch-partners-data.mjs",
     "fetch-glossary": "node src/lib/fetch-glossary-data.mjs",
+    "build-guides": "node scripts/build-guides-data.mjs",
     "fetch-survey-count": "node src/lib/fetch-survey-count.mjs",
     "enrich-glossary": "node src/lib/enrich-glossary.mjs",
     "snapshot:glossary": "node scripts/glossary-snapshot.mjs",
