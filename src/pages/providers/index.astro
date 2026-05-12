@@ -1,0 +1,81 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import NewsletterSignup from '../../components/NewsletterSignup.astro';
+
+const pageTitle = 'RRM Providers';
+const pageDescription = 'A coming directory of clinicians who practice restorative reproductive medicine. Be the first to know when it launches.';
+const canonical = 'https://rrmacademy.org/providers/';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: pageTitle,
+  description: pageDescription,
+  url: canonical,
+  isPartOf: {
+    '@type': 'WebSite',
+    '@id': 'https://rrmacademy.org/#website',
+    name: 'RRM Academy',
+    url: 'https://rrmacademy.org/',
+  },
+};
+---
+<BaseLayout
+  title={`${pageTitle} | RRM Academy`}
+  description={pageDescription}
+  canonicalUrl={canonical}
+  jsonLd={jsonLd}
+  noindex={true}
+>
+  <div class="page-wrapper">
+    <div class="container container--narrow">
+      <header class="providers-hero">
+        <p class="eyebrow">Coming soon</p>
+        <h1>RRM Providers</h1>
+        <p class="lead">
+          A directory of clinicians trained in restorative reproductive medicine,
+          searchable by location, specialty, and the conditions they treat. We
+          are building this now.
+        </p>
+        <p>
+          While the directory is in development, the curated path to finding a
+          provider lives at <a href="/what-is-rrm/#get-started">/what-is-rrm/#get-started</a>.
+        </p>
+      </header>
+
+      <section class="providers-signup">
+        <NewsletterSignup
+          heading="Get notified when it launches"
+          subtext="Drop your email and we will send you one note the day the RRM Providers directory goes live. No other messages."
+        />
+      </section>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .providers-hero {
+    padding: 3rem 0 2rem;
+    text-align: left;
+  }
+  .providers-hero .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    margin: 0 0 0.75rem;
+  }
+  .providers-hero h1 {
+    margin: 0 0 1rem;
+  }
+  .providers-hero .lead {
+    font-size: 1.125rem;
+    line-height: var(--leading-normal);
+    color: var(--color-text);
+    margin: 0 0 1rem;
+  }
+  .providers-signup {
+    padding: 1rem 0 4rem;
+  }
+</style>
