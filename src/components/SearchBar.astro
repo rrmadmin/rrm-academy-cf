@@ -429,6 +429,7 @@
   var PRELOAD_CAP = 50;
   var preloadedData = [];
   var activeFilter = 'all';
+  var inflightSemanticCtl = null;
 
   // Grouped-result ordering (chip + section order, left-to-right).
   // Courses placed last; primary order is Brian-specified.
@@ -565,9 +566,15 @@
 
     try {
       // Fire both searches in parallel
-      var semanticPromise = fetch('/api/search/semantic?q=' + encodeURIComponent(query))
+      if (inflightSemanticCtl) inflightSemanticCtl.abort();
+      inflightSemanticCtl = new AbortController();
+      var semanticPromise = fetch('/api/search/semantic?q=' + encodeURIComponent(query), { signal: inflightSemanticCtl.signal })
         .then(function(r) { return r.json(); })
-        .catch(function(err) { console.warn('Semantic search failed:', err.message || err); return { results: [] }; });
+        .catch(function(err) {
+          if (err && err.name === 'AbortError') return { results: [], aborted: true };
+          console.warn('Semantic search failed:', err.message || err);
+          return { results: [] };
+        });
 
       var pf = await ensurePagefind();
       var search = await pf.search(query);
