@@ -90,7 +90,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   }
   if (qLike) {
     const escaped = qLike.replace(/%/g, '\\%').replace(/_/g, '\\_');
-    conditions.push("query LIKE ? ESCAPE '\\'");
+    conditions.push("query LIKE ? ESCAPE '\\' COLLATE NOCASE");
     params.push('%' + escaped + '%');
   }
 
@@ -116,9 +116,9 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
     if (view === 'top') {
       const rows = await env.ANALYTICS_DB.prepare(
-        `SELECT query, COUNT(*) AS count
+        `SELECT query COLLATE NOCASE AS query, COUNT(*) AS count
          FROM search_log ${where}
-         GROUP BY query
+         GROUP BY query COLLATE NOCASE
          ORDER BY count DESC
          LIMIT ?`
       ).bind(...params, limit).all();
@@ -128,9 +128,9 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
     if (view === 'gaps') {
       const rows = await env.ANALYTICS_DB.prepare(
-        `SELECT query, COUNT(*) AS count
+        `SELECT query COLLATE NOCASE AS query, COUNT(*) AS count
          FROM search_log ${where}
-         GROUP BY query
+         GROUP BY query COLLATE NOCASE
          ORDER BY count DESC
          LIMIT ?`
       ).bind(...params, limit).all();
