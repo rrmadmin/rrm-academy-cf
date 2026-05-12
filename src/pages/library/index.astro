@@ -1,8 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import MaybeShell from '../../components/MaybeShell.astro';
 import SearchBar from '../../components/SearchBar.astro';
-import ArticleCard from '../../components/ArticleCard.astro';
-import AppShellChrome from '../../components/AppShellChrome.astro';
 import { isShellEnabled } from '../../lib/shell-routes';
 import { fetchAllArticles } from '../../lib/airtable';
 
@@ -10,19 +9,90 @@ const SHELL_ENABLED = isShellEnabled('library');
 
 const articles = await fetchAllArticles();
 
-// Recent additions (first 6, already sorted by date)
-const recent = articles.slice(0, 6);
+// Compact homepage card data — derive once at build time so the JSX stays trivial.
+const recent = articles.slice(0, 6).map((a: any) => {
+  const firstAuthor = (a.authors || '').split(';')[0]?.split(',')[0]?.trim() || '';
+  const authorYear =
+    a.shortCitation ||
+    `${firstAuthor}${a.authors?.includes(';') ? ' et al.' : ''}${a.year ? `, ${a.year}` : ''}`;
+  return {
+    slug: a.slug,
+    title: a.title,
+    authorYear: authorYear.trim().replace(/, $/, ''),
+    journal: a.journalAbbv || a.journal || '',
+    isOpenAccess: a.accessLevel === 'open' || a.accessLevel === 'free',
+  };
+});
 
-// Rotating ticker (8 most recent, for hero)
-const ticker = articles.slice(0, 8).map(a => ({
-  title: a.title,
-  slug: a.slug,
-  shortCitation: a.shortCitation,
+// Build-time topic counts. articles.json topics are hierarchical
+// ("Endometriosis > Disease Classification > ..."); match on top segment.
+// `match` aliases let display labels stay patient-friendly while counting
+// against the canonical data labels (e.g. "Contraception" → "Contraception/Comparison").
+function countTopic(matchTargets: string[]): number {
+  const targets = new Set(matchTargets.map(s => s.toLowerCase()));
+  let n = 0;
+  for (const a of articles as any[]) {
+    const topics: string[] = a.topics || [];
+    for (const t of topics) {
+      if (targets.has(String(t).split(' > ')[0].trim().toLowerCase())) { n++; break; }
+    }
+  }
+  return n;
+}
+
+// Count of unique top-level topic segments across the corpus
+const allTopSegments = new Set<string>();
+for (const a of articles as any[]) {
+  for (const t of (a.topics || [])) {
+    const top = String(t).split(' > ')[0].trim();
+    if (top) allTopSegments.add(top);
+  }
+}
+const topicSegmentCount = allTopSegments.size;
+
+const TOPICS = [
+  { name: 'Endometriosis',       initial: 'En', accent: 'p',
+    match: ['Endometriosis'],
+    desc: 'Excision, AMH, recurrence, biomarkers.' },
+  { name: 'Infertility',         initial: 'In', accent: 'r',
+    match: ['Infertility'],
+    desc: 'RRM work-up, IVF outcomes, recurrent loss.' },
+  { name: 'PCOS',                initial: 'Pc', accent: 'g',
+    match: ['PCOS'],
+    desc: 'Phenotype, insulin resistance, progesterone.' },
+  { name: 'Pregnancy',           initial: 'Pr', accent: 'r',
+    match: ['Pregnancy'],
+    desc: 'Progesterone support, miscarriage, neonatal outcomes.' },
+  { name: 'Hormones & Cycle',    initial: 'Hc', accent: 'p',
+    match: ['Menstrual Cycle'],
+    desc: 'Cycle physiology, mucus biomarkers, ovulation.' },
+  { name: 'Contraception',       initial: 'Co', accent: 's',
+    match: ['Contraception/Comparison'],
+    desc: 'Side effects, long-term outcomes, comparison studies.' },
+  { name: 'NaProTECHNOLOGY',     initial: 'Np', accent: 'p',
+    match: ['NaProTECHNOLOGY', 'RRM Methods'],
+    desc: 'Cumulative pregnancy rates, protocols, vs IVF.' },
+  { name: 'Fertility Awareness', initial: 'Fa', accent: 'g',
+    match: ['Fertility Awareness'],
+    desc: 'Method efficacy, Creighton, Marquette, Billings, FEMM.' },
+  { name: 'Surgery',             initial: 'Su', accent: 's',
+    match: ['Surgery'],
+    desc: 'Excision, laparoscopy, fertility-sparing approaches.' },
+];
+
+const topicTiles = TOPICS.map(t => ({
+  ...t,
+  count: countTopic(t.match),
+  href: `/library/?topic=${encodeURIComponent(t.name)}`,
 }));
 
-// Schema.org for landing page -- linked @graph with WebSite + Organization
-// referenced by @id, plus SearchAction on the WebSite node so LLMs and
-// Google both surface the library's search capability.
+const suggestions = [
+  'endometriosis excision outcomes',
+  'progesterone in PCOS',
+  'NaProTECHNOLOGY infertility',
+  'low-dose naltrexone',
+];
+
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
@@ -40,10 +110,7 @@ const jsonLd = {
       breadcrumb: { '@id': 'https://rrmacademy.org/library/#breadcrumb' },
       potentialAction: {
         '@type': 'SearchAction',
-        target: {
-          '@type': 'EntryPoint',
-          urlTemplate: 'https://rrmacademy.org/library/?q={search_term_string}',
-        },
+        target: { '@type': 'EntryPoint', urlTemplate: 'https://rrmacademy.org/library/?q={search_term_string}' },
         'query-input': 'required name=search_term_string',
       },
     },
@@ -55,10 +122,7 @@ const jsonLd = {
       publisher: { '@id': 'https://rrmacademy.org/#organization' },
       potentialAction: {
         '@type': 'SearchAction',
-        target: {
-          '@type': 'EntryPoint',
-          urlTemplate: 'https://rrmacademy.org/library/?q={search_term_string}',
-        },
+        target: { '@type': 'EntryPoint', urlTemplate: 'https://rrmacademy.org/library/?q={search_term_string}' },
         'query-input': 'required name=search_term_string',
       },
     },
@@ -87,146 +151,111 @@ const jsonLd = {
   jsonLd={jsonLd}
   chrome={SHELL_ENABLED ? 'shell' : 'default'}
 >
-  {SHELL_ENABLED ? (
-    <AppShellChrome context="index" currentPath={Astro.url.pathname}>
-  <!-- Hero — full-viewport, search-first, Grokipedia-inspired -->
-  <section class="hero" data-pagefind-ignore="all">
-    <div class="hero__center">
-      <h1 class="animate-enter" style="--stagger: 0;">RRM Research Library</h1>
-      <div class="hero__search animate-enter" style="--stagger: 1;">
-        <SearchBar />
-      </div>
-      <div class="hero__ticker animate-enter" style="--stagger: 2;" aria-label="Recent additions">
-        <div class="hero__ticker-stack" id="ticker-stack">
-          {ticker.map((item, i) => (
-            <a
-              href={`/library/${item.slug}/`}
-              class:list={['ticker-card', { active: i === 0 }]}
-              data-index={i}
-              aria-hidden={i !== 0 ? "true" : undefined}
-              tabindex={i !== 0 ? "-1" : undefined}
-            >
-              <span class="ticker-card__title">{item.title}</span>
-              <span class="ticker-card__meta">{item.shortCitation}</span>
-            </a>
+  <MaybeShell enabled={SHELL_ENABLED} context="index" currentPath={Astro.url.pathname}>
+
+    <section class="atlas-hero" data-pagefind-ignore="all">
+      <div class="container atlas-hero__inner">
+        <h1 class="animate-enter" style="--stagger: 0;">Explore the evidence</h1>
+        <p class="atlas-hero__dek animate-enter" style="--stagger: 1;">
+          Browse {articles.length.toLocaleString()} peer-reviewed articles on restorative
+          reproductive medicine &mdash; organized by topic, condition, and method.
+        </p>
+        <div class="atlas-hero__search animate-enter" style="--stagger: 2;">
+          <SearchBar />
+        </div>
+        <div class="atlas-hero__suggestions animate-enter" style="--stagger: 3;" aria-label="Suggested searches">
+          <span class="atlas-hero__suggestions-label">Try</span>
+          {suggestions.map(q => (
+            <a href={`/library/?q=${encodeURIComponent(q)}`} class="atlas-hero__suggestion">{q}</a>
           ))}
         </div>
       </div>
-    </div>
-    <p class="hero__count animate-enter" style="--stagger: 3;">
-      <span class="hero__count-label">Articles Available</span>
-      <span class="hero__count-number">{articles.length.toLocaleString()}</span>
-    </p>
-  </section>
+    </section>
 
-  <!-- Topic Links -->
-  <nav class="topic-links animate-enter" style="--stagger: 4;" data-pagefind-ignore="all" aria-label="Browse by topic">
-    <a href="/library/?topic=Endometriosis">Endometriosis</a>
-    <span class="topic-links__dot" aria-hidden="true">&middot;</span>
-    <a href="/library/?topic=Infertility">Infertility</a>
-    <span class="topic-links__dot" aria-hidden="true">&middot;</span>
-    <a href="/library/?topic=PCOS">PCOS</a>
-    <span class="topic-links__dot" aria-hidden="true">&middot;</span>
-    <a href="/library/?topic=Pregnancy">Pregnancy</a>
-    <span class="topic-links__dot" aria-hidden="true">&middot;</span>
-    <a href="/library/?topic=Surgery">Surgery</a>
-    <span class="topic-links__dot" aria-hidden="true">&middot;</span>
-    <a href="/library/?topic=Hormones%20%26%20Cycle">Hormones &amp; Cycle</a>
-    <span class="topic-links__dot" aria-hidden="true">&middot;</span>
-    <a href="/library/?topic=Contraception">Contraception</a>
-    <span class="topic-links__dot" aria-hidden="true">&middot;</span>
-    <a href="/library/?topic=NaProTECHNOLOGY">NaProTECHNOLOGY</a>
-  </nav>
+    <aside class="atlas-counts animate-enter" style="--stagger: 4;" aria-label="Library at a glance">
+      <div class="container atlas-counts__inner">
+        <span class="atlas-counts__item">
+          <strong>{articles.length.toLocaleString()}</strong>
+          <span>articles</span>
+        </span>
+        <span class="atlas-counts__item">
+          <strong>{topicSegmentCount}</strong>
+          <span>topics</span>
+        </span>
+        <span class="atlas-counts__item">
+          <strong>140+</strong>
+          <span>journals</span>
+        </span>
+        <span class="atlas-counts__item atlas-counts__item--hide-sm">
+          <strong>Updated</strong>
+          <span>daily</span>
+        </span>
+        <span class="atlas-counts__item atlas-counts__item--hide-sm">
+          <strong>Free</strong>
+          <span>no login</span>
+        </span>
+      </div>
+    </aside>
 
-  <!-- Recent Additions -->
-  <section class="section" data-pagefind-ignore="all">
-    <div class="container">
-      <div class="section-header">
-        <h2 class="section-label">Recent additions</h2>
-        <a href="/library/page/1/" class="link-arrow">View all &rarr;</a>
-      </div>
-      <div class="recent-grid">
-        {recent.map(article => (
-          <ArticleCard article={article} />
-        ))}
-      </div>
-    </div>
+    <section class="atlas animate-enter" style="--stagger: 5;" data-pagefind-ignore="all" aria-labelledby="atlas-heading">
+      <div class="container">
+        <header class="atlas__head">
+          <h2 id="atlas-heading">Browse by topic</h2>
+          <span class="atlas__head-aside">Tap a topic to filter the library</span>
+        </header>
 
-  </section>
-    </AppShellChrome>
-  ) : (
-    <Fragment>
-  <!-- Hero — full-viewport, search-first, Grokipedia-inspired -->
-  <section class="hero" data-pagefind-ignore="all">
-    <div class="hero__center">
-      <h1 class="animate-enter" style="--stagger: 0;">RRM Research Library</h1>
-      <div class="hero__search animate-enter" style="--stagger: 1;">
-        <SearchBar />
-      </div>
-      <div class="hero__ticker animate-enter" style="--stagger: 2;" aria-label="Recent additions">
-        <div class="hero__ticker-stack" id="ticker-stack">
-          {ticker.map((item, i) => (
-            <a
-              href={`/library/${item.slug}/`}
-              class:list={['ticker-card', { active: i === 0 }]}
-              data-index={i}
-              aria-hidden={i !== 0 ? "true" : undefined}
-              tabindex={i !== 0 ? "-1" : undefined}
-            >
-              <span class="ticker-card__title">{item.title}</span>
-              <span class="ticker-card__meta">{item.shortCitation}</span>
-            </a>
+        <ul class="atlas-grid" role="list">
+          {topicTiles.map(t => (
+            <li>
+              <a href={t.href} class={`topic-tile topic-tile--${t.accent}`} aria-label={`${t.name} — ${t.count} articles`}>
+                <div class="topic-tile__top">
+                  <span class="topic-tile__icon" aria-hidden="true">{t.initial}</span>
+                  <h3 class="topic-tile__name">{t.name}</h3>
+                </div>
+                <p class="topic-tile__desc">{t.desc}</p>
+                <div class="topic-tile__foot">
+                  <span class="topic-tile__count tabular">{t.count.toLocaleString()} articles</span>
+                  <span class="topic-tile__cta" aria-hidden="true">View &rarr;</span>
+                </div>
+              </a>
+            </li>
           ))}
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" data-pagefind-ignore="all" aria-labelledby="recent-heading">
+      <div class="container">
+        <div class="section-header">
+          <h2 id="recent-heading" class="section-label">Recent additions</h2>
+          <a href="/library/page/1/" class="link-arrow">View all &rarr;</a>
         </div>
+        <ul class="recent-grid" role="list">
+          {recent.map(a => (
+            <li>
+              <a href={`/library/${a.slug}/`} class="recent-card">
+                {a.isOpenAccess && (
+                  <span class="recent-card__oa" aria-label="Open access">
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+                    Open
+                  </span>
+                )}
+                <h3 class="recent-card__title">{a.title}</h3>
+                <div class="recent-card__meta">
+                  <span class="recent-card__author">{a.authorYear}</span>
+                  {a.journal && <span class="recent-card__journal">{a.journal}</span>}
+                </div>
+              </a>
+            </li>
+          ))}
+        </ul>
       </div>
-    </div>
-    <p class="hero__count animate-enter" style="--stagger: 3;">
-      <span class="hero__count-label">Articles Available</span>
-      <span class="hero__count-number">{articles.length.toLocaleString()}</span>
-    </p>
-  </section>
+    </section>
 
-  <!-- Topic Links -->
-  <nav class="topic-links animate-enter" style="--stagger: 4;" data-pagefind-ignore="all" aria-label="Browse by topic">
-    <a href="/library/?topic=Endometriosis">Endometriosis</a>
-    <span class="topic-links__dot" aria-hidden="true">&middot;</span>
-    <a href="/library/?topic=Infertility">Infertility</a>
-    <span class="topic-links__dot" aria-hidden="true">&middot;</span>
-    <a href="/library/?topic=PCOS">PCOS</a>
-    <span class="topic-links__dot" aria-hidden="true">&middot;</span>
-    <a href="/library/?topic=Pregnancy">Pregnancy</a>
-    <span class="topic-links__dot" aria-hidden="true">&middot;</span>
-    <a href="/library/?topic=Surgery">Surgery</a>
-    <span class="topic-links__dot" aria-hidden="true">&middot;</span>
-    <a href="/library/?topic=Hormones%20%26%20Cycle">Hormones &amp; Cycle</a>
-    <span class="topic-links__dot" aria-hidden="true">&middot;</span>
-    <a href="/library/?topic=Contraception">Contraception</a>
-    <span class="topic-links__dot" aria-hidden="true">&middot;</span>
-    <a href="/library/?topic=NaProTECHNOLOGY">NaProTECHNOLOGY</a>
-  </nav>
-
-  <!-- Recent Additions -->
-  <section class="section" data-pagefind-ignore="all">
-    <div class="container">
-      <div class="section-header">
-        <h2 class="section-label">Recent additions</h2>
-        <a href="/library/page/1/" class="link-arrow">View all &rarr;</a>
-      </div>
-      <div class="recent-grid">
-        {recent.map(article => (
-          <ArticleCard article={article} />
-        ))}
-      </div>
-    </div>
-
-  </section>
-    </Fragment>
-  )}
-
+  </MaybeShell>
 </BaseLayout>
 
 <style>
-  /* Staggered enter animation */
   @keyframes enter {
     from {
       opacity: 0;
@@ -239,214 +268,281 @@ const jsonLd = {
     animation-delay: calc(100ms * var(--stagger, 0));
   }
   @media (prefers-reduced-motion: reduce) {
-    .animate-enter {
-      animation: none;
-    }
+    .animate-enter { animation: none; }
   }
 
-  /* Hero — full-viewport, centered, Grokipedia-inspired */
-  .hero {
-    min-height: calc(100vh - 56px);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    padding: var(--space-8) var(--space-4);
-    padding-bottom: 10vh;
-    overflow-x: hidden;
+  .atlas-hero {
+    padding: var(--space-12) 0 var(--space-8);
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(245, 240, 248, 0.6), transparent 70%);
   }
-  .hero__center {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  :global([data-theme="dark"]) .atlas-hero {
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(46, 38, 54, 0.4), transparent 70%);
+  }
+  .atlas-hero__inner {
     text-align: center;
-    width: 100%;
-    max-width: 600px;
-    gap: var(--space-5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4);
   }
-  .hero h1 {
-    /* font-size inherited from global <h1> clamp() — H1 harmony (Brian
-       2026-05-08). line-height/letter-spacing/margin are hero-specific. */
+  .atlas-hero h1 {
     line-height: 1.1;
     letter-spacing: -0.02em;
     margin: 0;
-    position: relative;
   }
-  .hero__version {
-    position: absolute;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.75rem;
-    font-weight: 400;
-    font-style: italic;
-    color: var(--text-muted);
-    letter-spacing: 0;
-    top: 0;
-    margin-left: 6px;
+  .atlas-hero__dek {
+    max-width: 540px;
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.55;
   }
-  .hero__search {
+  @media (min-width: 769px) {
+    .atlas-hero__dek { font-size: 1.0625rem; }
+  }
+  .atlas-hero__search {
     width: 100%;
-    position: relative;
-    z-index: 10;
+    max-width: 620px;
+    margin-top: var(--space-2);
   }
-  .hero__count {
-    position: absolute;
-    bottom: var(--space-4);
+  .atlas-hero__suggestions {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: center;
     align-items: center;
-    gap: 0;
+    gap: var(--space-2);
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    margin-top: var(--space-1);
   }
-  .hero__count-label {
+  .atlas-hero__suggestions-label {
+    color: var(--text-secondary);
+    font-weight: 600;
+    margin-right: var(--space-1);
+    flex-shrink: 0;
+  }
+  .atlas-hero__suggestion {
+    padding: 4px 12px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border-color);
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.8125rem;
+    flex-shrink: 0;
+    transition: border-color 0.15s, color 0.15s, background-color 0.15s;
+  }
+  .atlas-hero__suggestion:hover {
+    border-color: var(--accent);
+    color: var(--text-primary);
+    background: var(--purple-50);
+    text-decoration: none;
+  }
+  /* Mobile: single scrolling row instead of vertical stack — keeps the strip
+     under ~40px tall regardless of how many suggestions we ship. */
+  @media (max-width: 639px) {
+    .atlas-hero__suggestions {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      justify-content: flex-start;
+      margin-inline: calc(var(--space-4) * -1);
+      padding-inline: var(--space-4);
+      padding-block: var(--space-1);
+      scrollbar-width: none;
+      -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 24px), transparent 100%);
+              mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 24px), transparent 100%);
+    }
+    .atlas-hero__suggestions::-webkit-scrollbar { display: none; }
+    .atlas-hero__suggestion { white-space: nowrap; }
+  }
+
+  .atlas-counts {
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-surface);
+  }
+  .atlas-counts__inner {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-5) var(--space-8);
+    padding: var(--space-4) var(--space-4);
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+  }
+  .atlas-counts__item {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--space-2);
+  }
+  .atlas-counts__item strong {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+  }
+  @media (max-width: 639px) {
+    .atlas-counts__inner { gap: var(--space-4); padding: var(--space-3) var(--space-4); }
+    .atlas-counts__item strong { font-size: 1.0625rem; }
+    .atlas-counts__item--hide-sm { display: none; }
+  }
+
+  .atlas {
+    padding: var(--space-10) 0 var(--space-8);
+  }
+  .atlas__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-5);
+  }
+  .atlas__head h2 {
     font-size: 0.6875rem;
     font-family: 'Inter', sans-serif;
-    font-weight: 500;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--text-secondary);
-    line-height: 1;
+    margin: 0;
   }
-  .hero__count-number {
-    font-family: 'Cormorant Garamond', 'Georgia', serif;
-    font-size: 1.375rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-    letter-spacing: 0.04em;
-    line-height: 1.1;
+  @media (min-width: 769px) {
+    .atlas__head h2 { font-size: 0.75rem; }
   }
-  /* Stacked card ticker */
-  .hero__ticker {
+  .atlas__head-aside {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+  }
+
+  .atlas-grid {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+  @media (min-width: 640px) {
+    .atlas-grid { grid-template-columns: repeat(2, 1fr); gap: var(--space-4); }
+  }
+  @media (min-width: 1024px) {
+    .atlas-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .topic-tile {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    margin-top: var(--space-2);
-    width: 100%;
-    position: relative;
-    z-index: 0;
-  }
-  .hero__ticker-stack {
-    position: relative;
-    width: 75%;
-    height: 96px;
-  }
-  .ticker-card {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 6px;
-    padding: var(--space-3) var(--space-4);
+    gap: var(--space-2);
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
-    text-align: left;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    border-radius: var(--radius-md);
+    padding: var(--space-5);
     text-decoration: none;
-    pointer-events: none;
-    opacity: 0;
-    transform: scale(0.92) translateY(16px);
-    transition: opacity 0.2s ease, transform 0.5s ease, box-shadow 0.15s;
+    color: inherit;
+    min-height: 140px;
+    transition: border-color 0.15s, transform 0.15s, box-shadow 0.2s;
   }
-  .ticker-card:hover {
+  .topic-tile:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
     text-decoration: none;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
   }
-  :global([data-theme="dark"]) .ticker-card {
-    box-shadow: none;
+  .topic-tile:focus-visible {
+    outline: 0;
+    border-color: var(--purple-700);
+    box-shadow: 0 0 0 3px var(--focus-ring);
   }
-  :global([data-theme="dark"]) .ticker-card:hover {
-    box-shadow: none;
+
+  /* Top row — icon + topic name (name is the anchor) */
+  .topic-tile__top {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
   }
-  /* Active card — front of stack, fully visible */
-  .ticker-card.active {
-    opacity: 1;
-    pointer-events: auto;
-    transform: scale(1) translateY(0);
-    z-index: 3;
-  }
-  /* Exiting card — slides up and fades out */
-  .ticker-card.exiting {
-    opacity: 0;
-    pointer-events: none;
-    transform: scale(1) translateY(-50px);
-    z-index: 4;
-  }
-  /* Cards behind — scaled down, only bottom edge peeks out */
-  .ticker-card.behind-1 {
-    opacity: 1;
-    transform: scale(0.93) translateY(12px);
-    z-index: 2;
-  }
-  .ticker-card.behind-2 {
-    opacity: 1;
-    transform: scale(0.86) translateY(24px);
-    z-index: 1;
-  }
-  /* Hide text on behind cards so only the blank card edge shows */
-  .ticker-card.behind-1 .ticker-card__title,
-  .ticker-card.behind-1 .ticker-card__meta,
-  .ticker-card.behind-2 .ticker-card__title,
-  .ticker-card.behind-2 .ticker-card__meta {
-    visibility: hidden;
-  }
-  .ticker-card__title {
+  .topic-tile__icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-family: 'Cormorant Garamond', 'Georgia', serif;
-    font-size: 1rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .topic-tile--p .topic-tile__icon { background: var(--purple-100); color: var(--accent); }
+  .topic-tile--r .topic-tile__icon { background: var(--rose-100); color: var(--rose-700); }
+  .topic-tile--g .topic-tile__icon { background: var(--sage-100); color: var(--sage-700); }
+  .topic-tile--s .topic-tile__icon { background: var(--sand-300); color: var(--sand-700); }
+  :global([data-theme="dark"]) .topic-tile--s .topic-tile__icon { color: var(--text-primary); }
+
+  .topic-tile__name {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.5rem;
     font-weight: 600;
     color: var(--text-primary);
-    line-height: 1.3;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .topic-tile__desc {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  .ticker-card__meta {
-    font-size: 0.6875rem;
-    color: var(--text-secondary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+
+  .topic-tile__foot {
+    margin-top: auto;
+    padding-top: var(--space-3);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-3);
+    border-top: 1px solid var(--border-light);
+  }
+  .topic-tile__count {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+  }
+  .topic-tile__cta {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--accent);
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity 0.15s, transform 0.15s;
+  }
+  .topic-tile:hover .topic-tile__cta,
+  .topic-tile:focus-visible .topic-tile__cta {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  /* Mobile: don't hover-lock the CTA, and use a single tighter row */
+  @media (max-width: 639px) {
+    .topic-tile { padding: var(--space-4); min-height: 0; }
+    .topic-tile__name { font-size: 1.25rem; }
+    .topic-tile__desc { font-size: 0.8125rem; -webkit-line-clamp: 2; }
+    .topic-tile__cta { opacity: 1; transform: none; }
   }
 
-  @media (min-width: 769px) {
-    .ticker-card__title {
-      font-size: 1.0625rem;
-    }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: var(--space-4);
   }
-
-  @media (min-width: 769px) {
-    .hero h1 {
-      /* fluid via clamp — no override needed */
-    }
-    .hero__center {
-      max-width: 640px;
-    }
-    .hero__count-number {
-      font-size: 1.5rem;
-    }
-  }
-  @media (max-width: 768px) {
-    .hero {
-      min-height: calc(100dvh - 56px);
-    }
-    .hero__count-number {
-      font-size: 1.25rem;
-      font-weight: 500;
-    }
-    .hero__count-label {
-      font-size: 0.625rem;
-    }
-    .hero__count {
-      bottom: var(--space-2);
-    }
-  }
-
-  /* Section labels — understated */
   .section-label {
     font-size: 0.6875rem;
     font-family: 'Inter', sans-serif;
@@ -454,126 +550,116 @@ const jsonLd = {
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--text-secondary);
-    margin-bottom: var(--space-4);
+    margin: 0;
   }
   @media (min-width: 769px) {
-    .section-label {
-      font-size: 0.75rem;
-      margin-bottom: var(--space-5);
-    }
+    .section-label { font-size: 0.75rem; }
   }
-
   .link-arrow {
     font-size: 0.75rem;
     font-weight: 500;
     color: var(--accent);
     white-space: nowrap;
   }
-  /* Topic links row */
-  .topic-links {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 6px 4px;
-    padding: var(--space-8) var(--space-4) var(--space-6);
-    max-width: var(--max-width-page);
-    margin: 0 auto;
-  }
-  .topic-links a {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-    text-decoration: none;
-    transition: color 0.15s;
-  }
-  .topic-links a:hover {
-    color: var(--accent);
-    text-decoration: none;
-  }
-  .topic-links__dot {
-    color: var(--text-muted);
-    font-size: 0.875rem;
-    line-height: 1;
-    user-select: none;
-  }
-  @media (min-width: 769px) {
-    .topic-links {
-      gap: 6px 6px;
-      padding: var(--space-8) var(--space-4);
-    }
-    .topic-links a {
-      font-size: 0.9375rem;
-    }
-    .topic-links__dot {
-      font-size: 0.9375rem;
-    }
-  }
-
-  /* Recent grid */
   .recent-grid {
+    list-style: none;
+    padding: 0;
+    margin: 0;
     display: grid;
     grid-template-columns: 1fr;
-    gap: var(--space-5);
+    gap: var(--space-4);
   }
   @media (min-width: 640px) {
-    .recent-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
+    .recent-grid { grid-template-columns: repeat(2, 1fr); }
   }
   @media (min-width: 1024px) {
-    .recent-grid {
-      grid-template-columns: repeat(3, 1fr);
-      gap: var(--space-6);
-    }
+    .recent-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .recent-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-height: 170px;
+    padding: var(--space-5);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s, transform 0.15s, box-shadow 0.2s;
+  }
+  .recent-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    text-decoration: none;
+  }
+  .recent-card:focus-visible {
+    outline: 0;
+    border-color: var(--purple-700);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+  .recent-card__title {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--text-primary);
+    margin: 0;
+    padding-right: var(--space-12); /* leave room for the OA pill */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    transition: color 0.15s;
+  }
+  .recent-card:hover .recent-card__title { color: var(--accent); }
+  .recent-card__meta {
+    margin-top: auto;
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border-light);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--text-tertiary);
+    min-width: 0;
+  }
+  .recent-card__author {
+    color: var(--text-secondary);
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .recent-card__journal {
+    font-style: italic;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .recent-card__oa {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    background: var(--sage-100);
+    color: var(--sage-700);
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-radius: var(--radius-pill);
+  }
+  @media (max-width: 639px) {
+    .recent-card { min-height: 0; padding: var(--space-4); }
+    .recent-card__title { padding-right: var(--space-10); }
   }
 </style>
-
-<script is:inline>
-  // Stacked card ticker
-  (function() {
-    var stack = document.getElementById('ticker-stack');
-    if (!stack) return;
-    var cards = stack.querySelectorAll('.ticker-card');
-    var n = cards.length;
-    if (n < 2) return;
-    var current = 0;
-
-    function setAccessibility() {
-      for (var i = 0; i < n; i++) {
-        if (i === current) {
-          cards[i].removeAttribute('aria-hidden');
-          cards[i].removeAttribute('tabindex');
-        } else {
-          cards[i].setAttribute('aria-hidden', 'true');
-          cards[i].setAttribute('tabindex', '-1');
-        }
-      }
-    }
-
-    function update() {
-      for (var i = 0; i < n; i++) {
-        cards[i].classList.remove('active', 'behind-1', 'behind-2', 'exiting');
-      }
-      cards[current].classList.add('active');
-      if (n > 1) cards[(current + 1) % n].classList.add('behind-1');
-      if (n > 2) cards[(current + 2) % n].classList.add('behind-2');
-      setAccessibility();
-    }
-
-    update();
-    setInterval(function() {
-      var prev = current;
-      current = (current + 1) % n;
-      // Clear all state classes first to prevent stale class accumulation
-      for (var i = 0; i < n; i++) {
-        cards[i].classList.remove('active', 'behind-1', 'behind-2', 'exiting');
-      }
-      cards[prev].classList.add('exiting');
-      cards[current].classList.add('active');
-      if (n > 1) cards[(current + 1) % n].classList.add('behind-1');
-      if (n > 2) cards[(current + 2) % n].classList.add('behind-2');
-      setAccessibility();
-    }, 3000);
-  })();
-</script>
