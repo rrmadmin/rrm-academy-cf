@@ -485,6 +485,8 @@
   var PRELOAD_CAP = 50;
   var preloadedData = [];
   var activeFilter = 'all';
+  var inflightSemanticCtl = null;
+  var pendingSearchContext = null;
 
   var TYPE_ORDER = ['Guide', 'Research', 'Glossary', 'Article', 'FAQ', 'Course'];
   var TYPE_LABEL = { Guide: 'Guides', Glossary: 'Glossary', FAQ: 'FAQs', Course: 'Courses', Article: 'Commentary', Research: 'Research' };
@@ -624,9 +626,15 @@
   async function doSearch(query) {
     startLoadingSpinner();
     try {
-      var semanticPromise = fetch('/api/search/semantic?q=' + encodeURIComponent(query))
+      if (inflightSemanticCtl) inflightSemanticCtl.abort();
+      inflightSemanticCtl = new AbortController();
+      var semanticPromise = fetch('/api/search/semantic?q=' + encodeURIComponent(query), { signal: inflightSemanticCtl.signal })
         .then(function(r) { return r.json(); })
-        .catch(function() { return { results: [] }; });
+        .catch(function(err) {
+          if (err && err.name === 'AbortError') return { results: [], aborted: true };
+          console.warn('Semantic search failed:', err && (err.message || err));
+          return { results: [] };
+        });
 
       var pf = await ensurePagefind();
       var search = await pf.search(query);
@@ -654,7 +662,7 @@
       var RRF_K = 60;
       var fusedMap = {};
       function toRelative(url) { try { return new URL(url).pathname; } catch(e) { return url; } }
-      function extractRecId(url) { var m = url.match(/-(rec[a-zA-Z0-9]+)\/?$/); return m ? m[1].toLowerCase() : null; }
+      function extractRecId(url) { var m = url.match(/-(rec[a-zA-Z0-9]{14})\/?$/); return m ? m[1].toLowerCase() : null; }
       var recIdToKey = {};
 
       for (var pi = 0; pi < pfLoaded.length; pi++) {
@@ -733,7 +741,7 @@
       for (var fKey in fusedMap) fusedList.push(fusedMap[fKey]);
       fusedList.sort(function(a, b) { return b.score - a.score; });
 
-      preloadedData = fusedList.map(function(f) { return f.data; });
+      preloadedData = fusedList.map(function(f) { f.data._score = f.score; return f.data; });
       totalCount = preloadedData.length;
       activeFilter = 'all';
       stopLoadingSpinner();
@@ -743,6 +751,7 @@
       if (!semanticData) {
         semanticPromise.then(function(lateData) {
           if (query !== currentQuery) return;
+          if (lateData && lateData.aborted) return;
           var lateResults = (lateData && lateData.results || []).filter(function(sr) { return sr.score >= 0.5; });
           var existingUrls = {};
           var existingRecIds = {};
@@ -758,20 +767,39 @@
             var lrUrl = toRelative(lr.url).toLowerCase();
             var lrRecId = extractRecId(lrUrl);
             if (existingUrls[lrUrl] || (lrRecId && existingRecIds[lrRecId])) continue;
+            var lrType = lr.type || 'Research';
+            var lrTitle = lr.title || '';
+            if (isNonEnglish(lrTitle)) continue;
+            var lrRank = li;
+            var lrScore = 1 / (RRF_K + lrRank);
+            var lrYear = parseInt(lr.year, 10);
+            if (lrYear > 0) {
+              var lrAge = Math.max(0, currentYear - lrYear);
+              if (lrAge < 20) lrScore += 1 / (RECENCY_K + Math.round(lrAge * 2.5));
+            }
+            var lrRelRank = 30;
+            if (_ownContentTypes[lrType]) lrRelRank = 0;
+            else if (lr.rrmRelevance && _relevanceMap[lr.rrmRelevance] !== undefined) lrRelRank = _relevanceMap[lr.rrmRelevance];
+            lrScore += 1 / (RELEVANCE_K + lrRelRank);
+            if (lr.sentiment === 'hostile') lrScore -= 0.02;
+            else if (lr.sentiment === 'critical') lrScore -= 0.01;
             preloadedData.push({
               url: lr.url, excerpt: '',
-              meta: { title: lr.title, authors: lr.authors || '', year: lr.year ? String(lr.year) : '', type: lr.type || 'Research' },
-              _pfRank: -1
+              meta: { title: lrTitle, authors: lr.authors || '', year: lr.year ? String(lr.year) : '', type: lrType },
+              _pfRank: -1,
+              _score: lrScore
             });
             added++;
           }
           if (added > 0) {
+            preloadedData.sort(function(a, b) { return (b._score || 0) - (a._score || 0); });
             totalCount = preloadedData.length;
             renderPanel();
           }
         });
       }
     } catch(e) {
+      console.error('Search failed:', e);
       stopLoadingSpinner();
       if (query !== currentQuery) return;
       resultsEl.innerHTML = '<p class="mss-empty">Search unavailable</p>';
@@ -917,6 +945,40 @@
       p.textContent = displayExcerpt.replace(/<\/?mark>/g, '');
       a.appendChild(p);
     }
+
+    a.addEventListener('pointerdown', function () {
+      var clickedHref = a.getAttribute('href') || '';
+      var isCommentaryClick = clickedHref.indexOf('/commentary/') !== -1;
+      var pathSubstring = isCommentaryClick ? '/commentary/' : '/library/';
+      var resultSource = isCommentaryClick ? 'commentary' : 'library';
+
+      var allLinks = document.querySelectorAll('#mss-results a[href*="' + pathSubstring + '"]');
+      var slugs = [];
+      var titles = [];
+      allLinks.forEach(function (link) {
+        try {
+          var u = new URL(link.getAttribute('href'), location.origin);
+          var pm = u.pathname.match(/^\/(library|commentary)\/([a-z0-9][a-z0-9-]{0,250})\/?$/);
+          if (!pm) return;
+          if (pm[1] !== resultSource) return;
+          slugs.push(pm[2]);
+          var titleEl = link.querySelector('.mss-title') ||
+                        (link.closest('.mss-item') && link.closest('.mss-item').querySelector('.mss-title'));
+          titles.push(titleEl ? (titleEl.textContent || '').trim().slice(0, 300) : '');
+        } catch (err) { /* malformed URL — skip */ }
+      });
+      if (slugs.length === 0) return;
+      pendingSearchContext = {
+        source: resultSource,
+        label: 'Search · "' + (currentQuery || '').slice(0, 80) + '" · ' + slugs.length + ' results',
+        slugs: slugs.slice(0, 500),
+        titles: titles.slice(0, 500),
+        returnUrl: '/' + resultSource + '/?q=' + encodeURIComponent(currentQuery || ''),
+        filters: { q: currentQuery || '' },
+        writtenAt: Date.now()
+      };
+    });
+
     return a;
   }
 
@@ -927,6 +989,8 @@
   }
 
   clearBtn.addEventListener('click', function() {
+    clearTimeout(debounceTimer);
+    stopLoadingSpinner();
     input.value = '';
     clearBtn.setAttribute('hidden', '');
     preloadedData = [];
@@ -934,6 +998,14 @@
     activeFilter = 'all';
     resultsEl.innerHTML = '<p class="mss-hint">Try a topic, condition, or author.</p>';
     input.focus();
+  });
+
+  window.addEventListener('pagehide', function () {
+    if (window.__rrmClearRequested__) return;
+    if (!pendingSearchContext) return;
+    try {
+      sessionStorage.setItem('rrm-shell-context', JSON.stringify(pendingSearchContext));
+    } catch (err) {}
   });
 
   input.addEventListener('input', onInput);
