@@ -798,6 +798,7 @@
         });
       }
     } catch(e) {
+      console.error('Search failed:', e);
       stopLoadingSpinner();
       if (query !== currentQuery) return;
       resultsEl.innerHTML = '<p class="mss-empty">Search unavailable</p>';
