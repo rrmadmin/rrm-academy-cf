@@ -654,7 +654,7 @@
       var RRF_K = 60;
       var fusedMap = {};
       function toRelative(url) { try { return new URL(url).pathname; } catch(e) { return url; } }
-      function extractRecId(url) { var m = url.match(/-(rec[a-zA-Z0-9]+)\/?$/); return m ? m[1].toLowerCase() : null; }
+      function extractRecId(url) { var m = url.match(/-(rec[a-zA-Z0-9]{14})\/?$/); return m ? m[1].toLowerCase() : null; }
       var recIdToKey = {};
 
       for (var pi = 0; pi < pfLoaded.length; pi++) {

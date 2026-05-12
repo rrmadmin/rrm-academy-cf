@@ -221,7 +221,7 @@ export async function onRequestGet(context) {
     for (const m of matches.matches) {
       if (!m.metadata || (!m.metadata.url && !m.metadata.slug)) continue;
       const matchUrl = m.metadata.url || `/library/${m.metadata.slug}/`;
-      const recMatch = matchUrl.match(/-(rec[a-zA-Z0-9]+)\/?$/);
+      const recMatch = matchUrl.match(/-(rec[a-zA-Z0-9]{14})\/?$/);
       const dedupKey = recMatch ? recMatch[1].toLowerCase() : matchUrl.toLowerCase();
       if (seen.has(dedupKey)) continue;
       seen.add(dedupKey);
