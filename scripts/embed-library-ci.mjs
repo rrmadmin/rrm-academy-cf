@@ -186,17 +186,22 @@ function vectorId(slug) {
 // --- Cloudflare API helpers ---
 
 async function getEmbeddings(texts) {
-  const res = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/ai/run/${MODEL}`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${API_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ text: texts }),
-    }
-  );
+  let res;
+  try {
+    res = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/ai/run/${MODEL}`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${API_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: texts }),
+      }
+    );
+  } catch (err) {
+    throw new Error(`AI API network error: ${err.message}`);
+  }
   if (!res.ok) {
     const err = await res.text();
     throw new Error(`AI API ${res.status}: ${err}`);
@@ -207,17 +212,22 @@ async function getEmbeddings(texts) {
 
 async function upsertVectors(vectors) {
   const ndjson = vectors.map(v => JSON.stringify(v)).join('\n');
-  const res = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/vectorize/v2/indexes/${INDEX_NAME}/upsert`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${API_TOKEN}`,
-        'Content-Type': 'application/x-ndjson',
-      },
-      body: ndjson,
-    }
-  );
+  let res;
+  try {
+    res = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/vectorize/v2/indexes/${INDEX_NAME}/upsert`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${API_TOKEN}`,
+          'Content-Type': 'application/x-ndjson',
+        },
+        body: ndjson,
+      }
+    );
+  } catch (err) {
+    throw new Error(`Vectorize upsert network error: ${err.message}`);
+  }
   if (!res.ok) {
     const err = await res.text();
     throw new Error(`Vectorize API ${res.status}: ${err}`);
@@ -226,17 +236,22 @@ async function upsertVectors(vectors) {
 }
 
 async function deleteVectors(ids) {
-  const res = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/vectorize/v2/indexes/${INDEX_NAME}/delete_by_ids`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${API_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ ids }),
-    }
-  );
+  let res;
+  try {
+    res = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/vectorize/v2/indexes/${INDEX_NAME}/delete_by_ids`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${API_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ids }),
+      }
+    );
+  } catch (err) {
+    throw new Error(`Vectorize delete network error: ${err.message}`);
+  }
   if (!res.ok) {
     const err = await res.text();
     throw new Error(`Vectorize delete API ${res.status}: ${err}`);
@@ -250,9 +265,14 @@ async function listVectorIds() {
   while (true) {
     const url = new URL(`https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/vectorize/v2/indexes/${INDEX_NAME}/list`);
     if (cursor) url.searchParams.set('cursor', cursor);
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${API_TOKEN}` },
-    });
+    let res;
+    try {
+      res = await fetch(url, {
+        headers: { Authorization: `Bearer ${API_TOKEN}` },
+      });
+    } catch (err) {
+      throw new Error(`Vectorize list network error: ${err.message}`);
+    }
     if (!res.ok) {
       const err = await res.text();
       throw new Error(`Vectorize list API ${res.status}: ${err}`);
