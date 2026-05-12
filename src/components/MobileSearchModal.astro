@@ -628,6 +628,7 @@
     try {
       if (inflightSemanticCtl) inflightSemanticCtl.abort();
       inflightSemanticCtl = new AbortController();
+      var semanticStart = Date.now();
       var semanticPromise = fetch('/api/search/semantic?q=' + encodeURIComponent(query), { signal: inflightSemanticCtl.signal })
         .then(function(r) { return r.json(); })
         .catch(function(err) {
@@ -651,9 +652,10 @@
       )).filter(Boolean);
       if (query !== currentQuery) { stopLoadingSpinner(); return; }
 
+      var semanticRemaining = Math.max(0, 300 - (Date.now() - semanticStart));
       var semanticData = await Promise.race([
         semanticPromise,
-        new Promise(function(resolve) { setTimeout(function() { resolve(null); }, 300); })
+        new Promise(function(resolve) { setTimeout(function() { resolve(null); }, semanticRemaining); })
       ]);
       if (query !== currentQuery) { stopLoadingSpinner(); return; }
 
