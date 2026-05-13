@@ -79,8 +79,8 @@ const { context, currentPath, relatedSections = [], hasRail = false } = Astro.pr
 const hasRelatedSections = relatedSections.length > 0;
 
 // Identify current section for aria-current on sidebar links.
-const inLibrary = currentPath.startsWith('/library');
-const inCommentary = currentPath.startsWith('/commentary');
+const inLibrary = currentPath === '/library' || currentPath === '/library/' || currentPath.startsWith('/library/');
+const inCommentary = currentPath === '/commentary' || currentPath === '/commentary/' || currentPath.startsWith('/commentary/');
 const inSaved = currentPath === '/library/saved' || currentPath === '/library/saved/';
 const inFaqs = currentPath === '/faqs' || currentPath === '/faqs/' || currentPath.startsWith('/faqs/');
 const inAccount = currentPath === '/account' || currentPath === '/account/' || currentPath.startsWith('/account/');
@@ -93,10 +93,10 @@ const inCommunity = currentPath === '/community' || currentPath === '/community/
 const inProviders = currentPath === '/providers' || currentPath === '/providers/' || currentPath.startsWith('/providers/');
 // "Guides" surface = the /guides/ index AND the pillar guide pages, which live
 // at root paths (/what-is-rrm/, /naprotechnology/, /femm/, /neofertility/,
-// /common-questions-about-rrm/). Keep this list in sync with
-// PUBLIC_SHELL_ROUTES='guides' wrap targets. Glossary is wrapped by the same
-// shell route but gets its own permanent sidebar link, so aria-current on
-// Guides excludes /glossary/.
+// /common-questions-about-rrm/, /art-registries-and-codes/, /pcos/). Keep
+// this list in sync with the pillar-create SKILL.md Gate 11.5 registration
+// sweep. Glossary is wrapped by the same shell route but gets its own
+// permanent sidebar link, so aria-current on Guides excludes /glossary/.
 const GUIDES_PATHS = new Set([
   '/guides', '/guides/',
   '/what-is-rrm', '/what-is-rrm/',

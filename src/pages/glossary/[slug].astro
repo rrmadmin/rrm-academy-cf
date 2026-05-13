@@ -12,6 +12,7 @@ import { isShellEnabled } from '../../lib/shell-routes';
 import GlossaryTerm from '../../components/GlossaryTerm.astro';
 import LastUpdated from '../../components/LastUpdated.astro';
 import glossaryData from '../../data/glossary.json';
+import { safeJsonLd } from '../../lib/jsonld';
 
 const SHELL_ENABLED = isShellEnabled('guides');
 
@@ -210,8 +211,8 @@ const RAIL_SECTIONS = [
   <!-- Note: speakable is inlined into MedicalWebPage above (not via BaseLayout
        speakable prop) so we ship exactly 3 JSON-LD blocks (snapshot gate S4). -->
   <!-- Additional JSON-LD blocks: MedicalWebPage wrapper + BreadcrumbList. -->
-  <script type="application/ld+json" set:html={JSON.stringify(medicalWebPageSchema)} />
-  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+  <script type="application/ld+json" set:html={safeJsonLd(medicalWebPageSchema)} />
+  <script type="application/ld+json" set:html={safeJsonLd(breadcrumbSchema)} />
 
   <MaybeShell
     enabled={SHELL_ENABLED}

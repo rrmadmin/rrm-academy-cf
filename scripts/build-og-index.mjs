@@ -121,6 +121,14 @@ const STATIC_PAGES = {
     title: 'Common Questions About RRM',
     description: 'We address common questions about RRM with published evidence, acknowledge limitations, and clarify what RRM is and is not.',
   },
+  'art-registries-and-codes': {
+    title: 'ART Registries and Codes of Practice',
+    description: 'Reference guide to national IVF registries (HFEA, CDC, ANZARD, Q-IVF, DIR, JSOG, ESHRE EIM, ICMART) and codes of practice. What each measures, what they miss.',
+  },
+  pcos: {
+    title: 'PCOS: Diagnosis, Phenotypes, and the RRM Approach',
+    description: 'Polycystic ovary syndrome has four diagnostic phenotypes and distinct metabolic, reproductive, and mental health implications. How RRM-trained clinicians approach diagnosis and treatment.',
+  },
   'endo-survey': {
     title: 'Endometriosis Survey',
     description: 'Do your symptoms point to endometriosis? This evidence-based self-survey helps you assess your level of suspicion.',
@@ -184,16 +192,31 @@ function clamp(s, max) {
   return chars.slice(0, max - 1).join('') + '\u2026';
 }
 
-function readJsonSafely(name) {
+// Returns parsed JSON or null when the file is absent. Throws on parse error.
+// Use for REQUIRED inputs (articles.json, posts.json, faqs.json, courses.json):
+// a missing file is acceptable (initial deploy, optional content type), but a
+// corrupt file must fail the build loudly -- silently shipping an og-index.json
+// with an empty content-type bucket means every social share of that type
+// renders the fallback card for the 24h cache lifetime.
+function readJsonOrThrow(name) {
   const path = join(DATA_DIR, name);
   if (!existsSync(path)) return null;
+  return JSON.parse(readFileSync(path, 'utf-8'));
+}
+
+// Returns parsed JSON or null when the file is absent OR parse fails. Use only
+// for OPTIONAL inputs (none today). Kept for future opt-in surfaces; do not
+// reach for this when corrupt input should fail the build.
+function readJsonOrNull(name) {
   try {
-    return JSON.parse(readFileSync(path, 'utf-8'));
+    return readJsonOrThrow(name);
   } catch (err) {
     console.warn(`[build-og-index] Skipping ${name}: ${err.message}`);
     return null;
   }
 }
+
+const readJsonSafely = readJsonOrThrow;
 
 function main() {
   const index = { ...STATIC_PAGES };
@@ -246,6 +269,27 @@ function main() {
       };
       counts.courses += 1;
     }
+  }
+
+  // Minimum-count assertions. Match deploy.yml CI floors so a corrupt input
+  // that produces an empty content-type bucket fails the build loudly instead
+  // of shipping a degraded og-index.json (every social share of that type
+  // rendering the fallback card, cached at the edge for 24h). If a content
+  // type is genuinely absent (initial deploy), the floor blocks; treat that
+  // as a one-time override via FLOOR_OVERRIDE_<type>=0 env vars.
+  const FLOORS = { library: 2500, commentary: 5, faqs: 10, courses: 1 };
+  const failures = [];
+  for (const [type, floor] of Object.entries(FLOORS)) {
+    const override = process.env[`FLOOR_OVERRIDE_${type.toUpperCase()}`];
+    const effectiveFloor = override !== undefined ? Number(override) : floor;
+    if (counts[type] < effectiveFloor) {
+      failures.push(`${type}: ${counts[type]} (floor ${effectiveFloor})`);
+    }
+  }
+  if (failures.length > 0) {
+    console.error(`[build-og-index] FLOOR FAILURE: ${failures.join(', ')}`);
+    console.error('[build-og-index] og-index.json NOT written. Investigate source JSON corruption or set FLOOR_OVERRIDE_<TYPE>=0 if the gap is intentional.');
+    process.exit(1);
   }
 
   writeFileSync(OUT_PATH, JSON.stringify(index));

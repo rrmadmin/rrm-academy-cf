@@ -14,7 +14,9 @@
       { "label": "Glossary", "path": "/glossary/" },
       { "label": "FAQs", "path": "/faqs/" },
       { "label": "Courses", "path": "/courses/" },
-      { "label": "Ask", "path": "/ask/" }
+      { "label": "Ask", "path": "/ask/" },
+      { "label": "PCOS Guide", "path": "/pcos/" },
+      { "label": "ART Registries and Codes of Practice", "path": "/art-registries-and-codes/" }
     ]
   },
   "agent_card": {
