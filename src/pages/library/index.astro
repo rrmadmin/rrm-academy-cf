@@ -269,7 +269,6 @@ const jsonLd = {
      .page-library is the body class, not a descendant -- use compound
      selectors so the rule actually matches. */
   body.page-library .atlas,
-  body.page-library .atlas-hero__suggestions,
   body.page-library .section {
     transition:
       opacity 420ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -277,7 +276,6 @@ const jsonLd = {
     will-change: opacity;
   }
   body.page-library.library-searching .atlas,
-  body.page-library.library-searching .atlas-hero__suggestions,
   body.page-library.library-searching .section {
     opacity: 0;
     pointer-events: none;
@@ -286,6 +284,10 @@ const jsonLd = {
       opacity 360ms cubic-bezier(0.4, 0, 0.2, 1),
       visibility 0s linear 360ms;
   }
+
+  /* Try pills stay visible during search -- they sit in their own row below
+     the hero, so the dropdown overlays page content above them and the user
+     can still see suggested queries underneath. */
 
   /* Search dropdown slide-in. Preserve the existing translateX(-50%) centering.
      Duration matches the atlas fade-out so the two animations feel paired. */
@@ -298,7 +300,6 @@ const jsonLd = {
   }
   @media (prefers-reduced-motion: reduce) {
     body.page-library .atlas,
-    body.page-library .atlas-hero__suggestions,
     body.page-library .section,
     body.page-library .search-results:not(:empty) {
       animation: none;
@@ -356,6 +357,11 @@ const jsonLd = {
     width: 100%;
     max-width: 620px;
     margin-top: var(--space-2);
+    /* Stacking: pills sit LATER in DOM order than .atlas-hero__search and
+       paint above by default. Give this flex item an explicit z-index so
+       the dropdown inside .search-wrapper (z:10) wins over the pills row. */
+    position: relative;
+    z-index: 1;
   }
   .atlas-hero__suggestions {
     display: flex;
