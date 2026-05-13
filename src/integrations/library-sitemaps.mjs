@@ -37,6 +37,8 @@ const PILLAR_PATHS = [
   '/common-questions-about-rrm/',
   '/glossary/',
   '/guides/',
+  '/art-registries-and-codes/',
+  '/pcos/',
 ];
 
 const POLICY_PATHS = [
