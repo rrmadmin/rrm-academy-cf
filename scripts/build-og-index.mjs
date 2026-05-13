@@ -192,16 +192,31 @@ function clamp(s, max) {
   return chars.slice(0, max - 1).join('') + '\u2026';
 }
 
-function readJsonSafely(name) {
+// Returns parsed JSON or null when the file is absent. Throws on parse error.
+// Use for REQUIRED inputs (articles.json, posts.json, faqs.json, courses.json):
+// a missing file is acceptable (initial deploy, optional content type), but a
+// corrupt file must fail the build loudly -- silently shipping an og-index.json
+// with an empty content-type bucket means every social share of that type
+// renders the fallback card for the 24h cache lifetime.
+function readJsonOrThrow(name) {
   const path = join(DATA_DIR, name);
   if (!existsSync(path)) return null;
+  return JSON.parse(readFileSync(path, 'utf-8'));
+}
+
+// Returns parsed JSON or null when the file is absent OR parse fails. Use only
+// for OPTIONAL inputs (none today). Kept for future opt-in surfaces; do not
+// reach for this when corrupt input should fail the build.
+function readJsonOrNull(name) {
   try {
-    return JSON.parse(readFileSync(path, 'utf-8'));
+    return readJsonOrThrow(name);
   } catch (err) {
     console.warn(`[build-og-index] Skipping ${name}: ${err.message}`);
     return null;
   }
 }
+
+const readJsonSafely = readJsonOrThrow;
 
 function main() {
   const index = { ...STATIC_PAGES };
