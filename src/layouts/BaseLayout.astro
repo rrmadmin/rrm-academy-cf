@@ -4,6 +4,7 @@ import Footer from '../components/Footer.astro';
 import pageDates from '../data/page-dates.json';
 import { OG_VERSION } from '../lib/og-config';
 import { getOrganizationJsonLd, getWebsiteJsonLd, buildSpeakable } from '../lib/identity';
+import { safeJsonLd } from '../lib/jsonld';
 import '../styles/fonts.css';
 import '../styles/global.css';
 
@@ -259,12 +260,12 @@ if (!jsonLd) {
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
   {jsonLd ? (
-    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    <script type="application/ld+json" set:html={safeJsonLd(jsonLd)} />
   ) : (
-    <script type="application/ld+json" set:html={JSON.stringify(defaultJsonLdPayload)} />
+    <script type="application/ld+json" set:html={safeJsonLd(defaultJsonLdPayload)} />
   )}
   {defaultSpeakableNode && (
-    <script type="application/ld+json" set:html={JSON.stringify(defaultSpeakableNode)} />
+    <script type="application/ld+json" set:html={safeJsonLd(defaultSpeakableNode)} />
   )}
 </head>
 <body class:list={[bodyClass]}>
