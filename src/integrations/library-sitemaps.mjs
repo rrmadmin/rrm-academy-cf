@@ -63,24 +63,36 @@ function readJson(outDir, relName) {
   return null;
 }
 
+// W3C / sitemap.org datetime per spec: YYYY-MM-DD or full ISO 8601 with Z.
+// Garbage in -> garbage out via raw.slice was producing strings like "2026"
+// that broke the entire sitemap chunk in some XML validators. Drop entry
+// instead of emitting an invalid <lastmod>.
+const STRICT_LASTMOD_RE = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}Z)?$/;
+
 // Normalize mixed date formats to sitemap-friendly ISO string.
 // Accepts ISO 8601, SQLite datetime ("2026-03-25 02:34:34"), or YYYY-MM-DD.
 function toIsoLastmod(raw) {
   if (!raw) return undefined;
+  let candidate;
   try {
     const iso = raw.includes('T') ? raw : raw.replace(' ', 'T') + (raw.length <= 10 ? 'T00:00:00Z' : 'Z');
     const d = new Date(iso);
-    if (isNaN(d.getTime())) return raw.slice(0, 10);
-    return d.toISOString().replace(/\.\d{3}Z$/, 'Z');
+    if (isNaN(d.getTime())) {
+      candidate = raw.slice(0, 10);
+    } else {
+      candidate = d.toISOString().replace(/\.\d{3}Z$/, 'Z');
+    }
   } catch {
-    return raw.slice(0, 10);
+    candidate = raw.slice(0, 10);
   }
+  return STRICT_LASTMOD_RE.test(candidate) ? candidate : undefined;
 }
 
 function dateForPath(pageDates, path) {
   const dateStr = pageDates?.dates?.[path];
   if (!dateStr) return undefined;
-  return `${dateStr}T00:00:00Z`;
+  const candidate = `${dateStr}T00:00:00Z`;
+  return STRICT_LASTMOD_RE.test(candidate) ? candidate : undefined;
 }
 
 function classifyArticleTier(article) {
