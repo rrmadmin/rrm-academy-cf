@@ -56,6 +56,18 @@ if echo "$STAGED" | grep -qE '^src/components/GlossaryTerm\.astro$|^src/pages/gl
   fi
 fi
 
+# --- Pillar registry gate: any staged ssot/pillars.json or consumer file ---
+if echo "$STAGED" | grep -qE '^ssot/pillars\.json$|^src/pages/guides/index\.astro$|^src/integrations/library-sitemaps\.mjs$|^src/components/AppShellChrome\.astro$|^src/layouts/BaseLayout\.astro$|^scripts/build-guides-data\.mjs$|^scripts/build-og-index\.mjs$|^scripts/gates/validate-pillar-registry\.mjs$'; then
+  node scripts/gates/validate-pillar-registry.mjs
+  if [ $? -ne 0 ]; then
+    echo ""
+    echo "Commit blocked by pillar registry gate."
+    echo "ssot/pillars.json integrity, consumer derivation, or no-hardcoded-bypass drifted."
+    echo "Fix the failures above, or bypass with --no-verify."
+    exit 1
+  fi
+fi
+
 # --- Payment pipeline gates: any staged stripe-webhook, create-checkout, or billing/* ---
 if echo "$STAGED" | grep -qE '^functions/api/(stripe-webhook|create-checkout)\.js$|^functions/api/billing/.*\.js$|^scripts/gates/validate-payment-pipeline\.mjs$'; then
   node scripts/gates/validate-payment-pipeline.mjs
