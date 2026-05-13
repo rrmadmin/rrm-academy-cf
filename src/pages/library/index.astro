@@ -248,61 +248,42 @@ const jsonLd = {
   </MaybeShell>
 </BaseLayout>
 
-<script is:inline>
-  // Hide the topic atlas + recent-additions while the search dropdown is open,
-  // so the user sees one affordance at a time. SearchBar.astro toggles
-  // aria-expanded on the input as the dropdown opens/closes.
-  (function () {
-    var input = document.getElementById('search-input');
-    if (!input) return;
-    function apply() {
-      var open = input.getAttribute('aria-expanded') === 'true';
-      document.body.classList.toggle('library-searching', open);
-    }
-    apply();
-    new MutationObserver(apply).observe(input, { attributes: true, attributeFilter: ['aria-expanded'] });
-  })();
-</script>
-
 <style is:global>
-  /* Smooth hide of competing affordances while search dropdown is open.
-     .page-library is the body class, not a descendant -- use compound
-     selectors so the rule actually matches. */
-  body.page-library .atlas,
-  body.page-library .atlas-hero__suggestions,
-  body.page-library .section {
-    transition:
-      opacity 420ms cubic-bezier(0.22, 1, 0.36, 1),
-      visibility 0s linear 0s;
-    will-change: opacity;
-  }
-  body.page-library.library-searching .atlas,
-  body.page-library.library-searching .atlas-hero__suggestions,
-  body.page-library.library-searching .section {
+  /* Modal-style backdrop behind the search dropdown. Pure CSS via :has() --
+     when .search-results has content, the body pseudo-element fades in as a
+     translucent scrim. Sits at z:40 (above page content, below the search
+     wrapper at z:50 and below Header at z:100). */
+  body.page-library::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 20, 30, 0.45);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
     opacity: 0;
     pointer-events: none;
-    visibility: hidden;
-    transition:
-      opacity 360ms cubic-bezier(0.4, 0, 0.2, 1),
-      visibility 0s linear 360ms;
+    z-index: 40;
+    transition: opacity 220ms ease;
+  }
+  body.page-library:has(.search-results:not(:empty))::before {
+    opacity: 1;
   }
 
-  /* Search dropdown slide-in. Preserve the existing translateX(-50%) centering.
-     Duration matches the atlas fade-out so the two animations feel paired. */
+  /* Search dropdown slide-in. SearchBar.astro handles z-index/elevation so the
+     dropdown overlays page content naturally; no atlas-hide needed. Preserve
+     the existing translateX(-50%) centering in the keyframe. */
   body.page-library .search-results:not(:empty) {
-    animation: rrm-dropdown-in 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: rrm-dropdown-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
   @keyframes rrm-dropdown-in {
     from { opacity: 0; transform: translate(-50%, -8px); }
     to   { opacity: 1; transform: translate(-50%, 0); }
   }
   @media (prefers-reduced-motion: reduce) {
-    body.page-library .atlas,
-    body.page-library .atlas-hero__suggestions,
-    body.page-library .section,
+    body.page-library::before,
     body.page-library .search-results:not(:empty) {
-      animation: none;
       transition: none;
+      animation: none;
     }
   }
 </style>

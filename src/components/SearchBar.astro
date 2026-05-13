@@ -27,7 +27,10 @@
   .search-wrapper {
     position: relative;
     width: 100%;
-    z-index: 10;
+    /* 50 sits above page content (z:0/auto) and below Header (z:100). The
+       dropdown inside inherits this stacking context, so the search bar +
+       results overlay always paint above any sibling content on the page. */
+    z-index: 50;
   }
 
   /* Search input — position: relative so .search-results is anchored to the input width */
@@ -105,16 +108,22 @@
      out past the panel edges, which looks broken). */
   .search-results {
     position: absolute;
-    top: 100%;
+    top: calc(100% + 6px);
     left: 50%;
     transform: translateX(-50%);
     width: calc(100% - 48px);
     text-align: left;
     padding: 0 var(--space-5) var(--space-6);
     background: var(--bg-body);
+    border: 1px solid var(--border-light);
+    border-radius: 14px;
     max-height: 60vh;
     overflow-y: auto;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    /* Two-layer shadow: a tight ambient close to the panel + a wide soft
+       penumbra so the dropdown reads as clearly elevated above page content. */
+    box-shadow:
+      0 24px 56px rgba(0, 0, 0, 0.18),
+      0 8px 16px rgba(0, 0, 0, 0.08);
     z-index: 100;
   }
   .search-results:empty {
