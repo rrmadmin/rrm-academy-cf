@@ -4,6 +4,7 @@ import Footer from '../components/Footer.astro';
 import pageDates from '../data/page-dates.json';
 import { OG_VERSION } from '../lib/og-config';
 import { getOrganizationJsonLd, getWebsiteJsonLd, buildSpeakable } from '../lib/identity';
+import { safeJsonLd } from '../lib/jsonld';
 import '../styles/fonts.css';
 import '../styles/global.css';
 
@@ -259,12 +260,12 @@ if (!jsonLd) {
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
   {jsonLd ? (
-    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    <script type="application/ld+json" set:html={safeJsonLd(jsonLd)} />
   ) : (
-    <script type="application/ld+json" set:html={JSON.stringify(defaultJsonLdPayload)} />
+    <script type="application/ld+json" set:html={safeJsonLd(defaultJsonLdPayload)} />
   )}
   {defaultSpeakableNode && (
-    <script type="application/ld+json" set:html={JSON.stringify(defaultSpeakableNode)} />
+    <script type="application/ld+json" set:html={safeJsonLd(defaultSpeakableNode)} />
   )}
 </head>
 <body class:list={[bodyClass]}>
@@ -350,31 +351,34 @@ if (!jsonLd) {
             properties: {
               section: {
                 type: 'string',
-                enum: ['home', 'library', 'faqs', 'commentary', 'courses', 'glossary', 'community', 'naprotechnology', 'what-is-rrm', 'femm', 'neofertility', 'common-questions-about-rrm', 'donate', 'contact'],
+                enum: ['home', 'library', 'faqs', 'commentary', 'courses', 'glossary', 'community', 'naprotechnology', 'what-is-rrm', 'femm', 'neofertility', 'common-questions-about-rrm', 'art-registries-and-codes', 'pcos', 'donate', 'contact'],
                 description: 'Named site section.'
               }
             },
             required: ['section']
           },
           execute: async function (args) {
-            var map = {
-              home: '/',
-              library: '/library/',
-              faqs: '/faqs/',
-              commentary: '/commentary/',
-              courses: '/courses/',
-              glossary: '/glossary/',
-              community: '/community/',
-              naprotechnology: '/naprotechnology/',
-              'what-is-rrm': '/what-is-rrm/',
-              femm: '/femm/',
-              neofertility: '/neofertility/',
-              'common-questions-about-rrm': '/common-questions-about-rrm/',
-              'art-registries-and-codes': '/art-registries-and-codes/',
-              pcos: '/pcos/',
-              donate: '/donate/',
-              contact: '/contact/'
-            };
+            // Object.create(null) so map.__proto__, map.constructor, map.toString
+            // resolve undefined (not Object.prototype) when a non-validating
+            // WebMCP host forwards adversarial section names. The schema enum
+            // is the primary defense; this is defense-in-depth.
+            var map = Object.create(null);
+            map.home = '/';
+            map.library = '/library/';
+            map.faqs = '/faqs/';
+            map.commentary = '/commentary/';
+            map.courses = '/courses/';
+            map.glossary = '/glossary/';
+            map.community = '/community/';
+            map.naprotechnology = '/naprotechnology/';
+            map['what-is-rrm'] = '/what-is-rrm/';
+            map.femm = '/femm/';
+            map.neofertility = '/neofertility/';
+            map['common-questions-about-rrm'] = '/common-questions-about-rrm/';
+            map['art-registries-and-codes'] = '/art-registries-and-codes/';
+            map.pcos = '/pcos/';
+            map.donate = '/donate/';
+            map.contact = '/contact/';
             var path = map[args.section];
             if (!path) throw new Error('Unknown section: ' + args.section);
             window.location.assign(path);

@@ -10,7 +10,7 @@
  * Runs as part of `npm run build` before astro build. Output is gitignored.
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, renameSync, unlinkSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -43,12 +43,16 @@ function decodeEntities(s) {
 
 function splitFrontmatter(src) {
   // Astro files start with `---\n...\n---`. Body follows.
+  // Match the closing fence only at column 0 followed by newline OR end-of-string,
+  // so frontmatter strings containing literal `\n---more` (markdown convention
+  // inside multiline TS template literals) don't terminate parsing early.
   if (!src.startsWith('---')) return { frontmatter: '', body: src };
-  const end = src.indexOf('\n---', 3);
-  if (end === -1) return { frontmatter: '', body: src };
+  const closing = src.slice(3).match(/\n---(?:\r?\n|$)/);
+  if (!closing) return { frontmatter: '', body: src };
+  const end = 3 + closing.index;
   return {
     frontmatter: src.slice(3, end),
-    body: src.slice(end + 4),
+    body: src.slice(end + closing[0].length),
   };
 }
 
@@ -214,7 +218,19 @@ function build() {
     });
   }
 
-  writeFileSync(OUT, JSON.stringify(entries, null, 2) + '\n');
+  // Transactional write. All GUIDES validated above (process.exit on missing
+  // file / missing H1 / missing description) before any disk write happens.
+  // The .tmp + rename pattern means a crash mid-write never leaves a partial
+  // guides.json on disk -- the CI data cache restore-list (deploy.yml) is then
+  // safe to repopulate from the previous build on the next run.
+  const tmp = OUT + '.tmp';
+  try {
+    writeFileSync(tmp, JSON.stringify(entries, null, 2) + '\n');
+    renameSync(tmp, OUT);
+  } catch (err) {
+    try { unlinkSync(tmp); } catch { /* tmp may not exist */ }
+    throw err;
+  }
   console.log(`Wrote ${entries.length} guide entries to src/data/guides.json`);
   for (const e of entries) {
     const len = (e.title + ' ' + e.description + ' ' + e.sectionHeadings.join(' ') + ' ' + e.bodyText + ' ' + e.keywordText).length;

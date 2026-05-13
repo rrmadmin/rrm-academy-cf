@@ -135,8 +135,12 @@ if (flag === '0') {
     try {
       rmSync(full, { recursive: true, force: true });
       cleaned++;
-    } catch {
-      // no-op
+    } catch (err) {
+      // Cleanup is best-effort; rmSync force:true already swallows ENOENT.
+      // Log permission / EBUSY / EPERM so a stale public/llms.txt that
+      // survives a flag flip leaves a diagnostic trail in CI logs instead
+      // of vanishing silently.
+      console.warn(`[ssot-prebuild] cleanup failed for ${rel}: ${err.message}`);
     }
   }
   if (cleaned > 0) {
@@ -176,6 +180,7 @@ const STATIC_RESTORES = [
   ['static-overrides/faqs-llms.txt', 'public/faqs/llms.txt'],
 ];
 let restored = 0;
+const missing = [];
 for (const [from, to] of STATIC_RESTORES) {
   const fromAbs = resolve(PROJECT_ROOT, from);
   const toAbs = resolve(PROJECT_ROOT, to);
@@ -184,10 +189,19 @@ for (const [from, to] of STATIC_RESTORES) {
     copyFileSync(fromAbs, toAbs);
     restored++;
   } else {
-    console.error(`[ssot-prebuild] WARN: static snapshot missing at ${from}`);
+    console.error(`[ssot-prebuild] FATAL: static snapshot missing at ${from}`);
+    missing.push(from);
   }
 }
 if (restored > 0) {
   console.log(`[ssot-prebuild]   (restored ${restored} static llms.txt snapshot(s))`);
+}
+if (missing.length > 0) {
+  // Static overrides are git-tracked; absence is a checkout / repo corruption
+  // signal. Shipping ssot-emit's lower-quality output until Gianna fills the
+  // TBD-GIANNA placeholders would silently degrade public/llms.txt + sectional
+  // llms.txt agent-surfaces. Fail loudly.
+  console.error(`[ssot-prebuild] ${missing.length} static-override snapshot(s) missing; aborting before astro build.`);
+  process.exit(1);
 }
 console.log('[ssot-prebuild] complete');
