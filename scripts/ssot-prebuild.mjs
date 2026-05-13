@@ -135,8 +135,12 @@ if (flag === '0') {
     try {
       rmSync(full, { recursive: true, force: true });
       cleaned++;
-    } catch {
-      // no-op
+    } catch (err) {
+      // Cleanup is best-effort; rmSync force:true already swallows ENOENT.
+      // Log permission / EBUSY / EPERM so a stale public/llms.txt that
+      // survives a flag flip leaves a diagnostic trail in CI logs instead
+      // of vanishing silently.
+      console.warn(`[ssot-prebuild] cleanup failed for ${rel}: ${err.message}`);
     }
   }
   if (cleaned > 0) {
