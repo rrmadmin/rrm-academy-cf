@@ -271,6 +271,27 @@ function main() {
     }
   }
 
+  // Minimum-count assertions. Match deploy.yml CI floors so a corrupt input
+  // that produces an empty content-type bucket fails the build loudly instead
+  // of shipping a degraded og-index.json (every social share of that type
+  // rendering the fallback card, cached at the edge for 24h). If a content
+  // type is genuinely absent (initial deploy), the floor blocks; treat that
+  // as a one-time override via FLOOR_OVERRIDE_<type>=0 env vars.
+  const FLOORS = { library: 2500, commentary: 5, faqs: 10, courses: 1 };
+  const failures = [];
+  for (const [type, floor] of Object.entries(FLOORS)) {
+    const override = process.env[`FLOOR_OVERRIDE_${type.toUpperCase()}`];
+    const effectiveFloor = override !== undefined ? Number(override) : floor;
+    if (counts[type] < effectiveFloor) {
+      failures.push(`${type}: ${counts[type]} (floor ${effectiveFloor})`);
+    }
+  }
+  if (failures.length > 0) {
+    console.error(`[build-og-index] FLOOR FAILURE: ${failures.join(', ')}`);
+    console.error('[build-og-index] og-index.json NOT written. Investigate source JSON corruption or set FLOOR_OVERRIDE_<TYPE>=0 if the gap is intentional.');
+    process.exit(1);
+  }
+
   writeFileSync(OUT_PATH, JSON.stringify(index));
   const sizeKb = (JSON.stringify(index).length / 1024).toFixed(1);
   console.log(
