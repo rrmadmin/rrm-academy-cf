@@ -31,7 +31,6 @@ const TIER_2_DECOMP = [
 ];
 
 const TIER_3_DEEP = [
-  'scripts/extract-guides.mjs',
   'scripts/tb-tag-backfill/apply-categories.mjs',
   'src/routes/migrate-id.js',
   'depersonalize.js',
