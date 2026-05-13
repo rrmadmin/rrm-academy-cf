@@ -1,0 +1,140 @@
+{
+  "$schema": "../docs/schemas/pillars.schema.json",
+  "version": "1.0.0",
+  "_meta": {
+    "purpose": "Canonical pillar-page registry for rrmacademy.org. Single edit point for every surface that needs to know which pillar guides exist. See pillar-create SKILL.md Gate 11.5.",
+    "consumers": [
+      "src/pages/guides/index.astro (catalogue: filtered to in_guides_catalogue=true)",
+      "src/integrations/library-sitemaps.mjs PILLAR_PATHS",
+      "src/components/AppShellChrome.astro GUIDES_PATHS (filtered to in_shell_guides_nav=true)",
+      "src/layouts/BaseLayout.astro navigate_to_section map + enum (via define:vars)",
+      "scripts/build-guides-data.mjs GUIDES",
+      "scripts/build-og-index.mjs STATIC_PAGES (pillar entries merged with static non-pillar entries)"
+    ],
+    "ci_gate": "scripts/gates/validate-pillar-registry.mjs",
+    "out_of_scope": [
+      "static-overrides/llms.txt -- hand-curated prose paragraphs per pillar; URL list stays manual",
+      "ssot/agent-surfaces.json primary_urls -- different label conventions; manual",
+      "~/iCode/projects/rrm-router/src/index.js ASTRO_ROUTES -- separate repo, separate deploy cycle; see pillar-create SKILL.md Gate 11.5 surface 9"
+    ]
+  },
+  "pillars": [
+    {
+      "slug": "what-is-rrm",
+      "file": "what-is-rrm/index.astro",
+      "title": "What is Restorative Reproductive Medicine?",
+      "description": "The diagnostic and treatment philosophy behind RRM. How cause-based care differs from suppressive medicine, and what to expect from an RRM-trained clinician.",
+      "og_title": "What Is Restorative Reproductive Medicine?",
+      "og_description": "RRM diagnoses and treats root causes of infertility, endometriosis, PCOS, and recurrent miscarriage.",
+      "author": "Dr. Naomi Whittaker",
+      "read_time": "60 min read",
+      "accent": "var(--purple-900)",
+      "in_guides_catalogue": true,
+      "in_shell_guides_nav": true,
+      "_order": 1
+    },
+    {
+      "slug": "naprotechnology",
+      "file": "naprotechnology/index.astro",
+      "title": "NaProTechnology: A Clinician's Guide",
+      "description": "NaProTechnology diagnoses and treats the underlying conditions driving infertility, menstrual disorders, and early pregnancy loss. This guide covers how the method works, published outcomes data, how to find a qualified provider, and what to expect on cost and insurance.",
+      "og_title": "NaProTechnology",
+      "og_description": "A complete guide to NaProTechnology: how it works, what it treats, and how to find a provider.",
+      "author": "Dr. Naomi Whittaker",
+      "read_time": "18 min read",
+      "accent": "#f4b223",
+      "accent_note": "Saint Paul VI Institute gold (popepaulvi.com)",
+      "in_guides_catalogue": true,
+      "in_shell_guides_nav": true,
+      "_order": 2
+    },
+    {
+      "slug": "femm",
+      "file": "femm/index.astro",
+      "title": "What is FEMM?",
+      "description": "FEMM (Fertility Education and Medical Management) teaches women to monitor hormonal biomarkers and connects them with trained providers who diagnose and treat the underlying conditions driving their symptoms.",
+      "og_title": "FEMM Method",
+      "og_description": "Fertility Education and Medical Management -- a fertility awareness method and the clinical framework that grew from it.",
+      "author": "Dr. Naomi Whittaker",
+      "read_time": "15 min read",
+      "accent": "#9396C9",
+      "accent_note": "FEMM Health periwinkle (Brian-confirmed brand anchor 2026-05-04)",
+      "in_guides_catalogue": true,
+      "in_shell_guides_nav": true,
+      "_order": 3
+    },
+    {
+      "slug": "neofertility",
+      "file": "neofertility/index.astro",
+      "title": "What is NeoFertility?",
+      "description": "NeoFertility diagnoses and treats the underlying causes of infertility and recurrent miscarriage using cycle-based evaluation, immunological testing, and targeted treatment to restore natural conception.",
+      "og_title": "NeoFertility",
+      "og_description": "Dublin-based restorative reproductive medicine practice. Dr. Phil Boyle's approach to infertility and fertility care.",
+      "author": "Dr. Naomi Whittaker",
+      "read_time": "22 min read",
+      "accent": "#00a9e0",
+      "accent_note": "NeoFertility brand blue (neofertility.ie/neo-tokens.css)",
+      "in_guides_catalogue": true,
+      "in_shell_guides_nav": true,
+      "_order": 4
+    },
+    {
+      "slug": "common-questions-about-rrm",
+      "file": "common-questions-about-rrm.astro",
+      "title": "Common Questions About RRM",
+      "description": "We address common questions about RRM with published evidence, acknowledge limitations, and clarify what RRM is and is not.",
+      "og_title": "Common Questions About RRM",
+      "og_description": "We address common questions about RRM with published evidence, acknowledge limitations, and clarify what RRM is and is not.",
+      "author": "Dr. Naomi Whittaker",
+      "read_time": "12 min read",
+      "accent": "var(--purple-700)",
+      "in_guides_catalogue": false,
+      "in_guides_catalogue_note": "Intentionally hidden from the /guides/ catalogue UI but discoverable via search and direct link. Kept in shell nav + sitemap + navigate_to_section.",
+      "in_shell_guides_nav": true,
+      "_order": 5
+    },
+    {
+      "slug": "glossary",
+      "file": "glossary/index.astro",
+      "title": "RRM Glossary",
+      "description": "A comprehensive, evidence-based reference for the terminology, methods, conditions, and procedures encountered within the Restorative Reproductive Medicine framework.",
+      "og_title": "RRM Glossary",
+      "og_description": "Definitions of the terms, acronyms, and concepts used across restorative reproductive medicine.",
+      "author": "Dr. Naomi Whittaker",
+      "read_time": "35 min read",
+      "accent": "var(--purple-700)",
+      "in_guides_catalogue": true,
+      "in_shell_guides_nav": false,
+      "in_shell_guides_nav_note": "Glossary gets its own permanent sidebar link via the inGlossary check in AppShellChrome -- excluded from GUIDES_PATHS so aria-current on Guides does not fire on /glossary/*.",
+      "_order": 6
+    },
+    {
+      "slug": "art-registries-and-codes",
+      "file": "art-registries-and-codes/index.astro",
+      "title": "ART Registries and Codes of Practice",
+      "description": "A global reference to national IVF registries (HFEA, RTAC, ANZARD, Q-IVF, CDC, DIR, JSOG, CARTR Plus, REDLARA, ESHRE EIM, ICMART) and the codes of practice that govern fertility clinics. What each measures, and what they miss.",
+      "og_title": "ART Registries and Codes of Practice",
+      "og_description": "Reference guide to national IVF registries (HFEA, CDC, ANZARD, Q-IVF, DIR, JSOG, ESHRE EIM, ICMART) and codes of practice. What each measures, what they miss.",
+      "author": "RRM Academy",
+      "read_time": "15 min read",
+      "accent": "var(--purple-700)",
+      "in_guides_catalogue": true,
+      "in_shell_guides_nav": true,
+      "_order": 7
+    },
+    {
+      "slug": "pcos",
+      "file": "pcos/index.astro",
+      "title": "PCOS Explained: Diagnosis, Phenotypes, and the RRM Approach",
+      "description": "Polycystic ovary syndrome has four diagnostic phenotypes and distinct metabolic, reproductive, and mental health implications. How RRM-trained clinicians approach diagnosis and treatment differently.",
+      "og_title": "PCOS: Diagnosis, Phenotypes, and the RRM Approach",
+      "og_description": "Polycystic ovary syndrome has four diagnostic phenotypes and distinct metabolic, reproductive, and mental health implications. How RRM-trained clinicians approach diagnosis and treatment.",
+      "author": "Dr. Naomi Whittaker",
+      "read_time": "20 min read",
+      "accent": "var(--purple-700)",
+      "in_guides_catalogue": true,
+      "in_shell_guides_nav": true,
+      "_order": 8
+    }
+  ]
+}
