@@ -23,7 +23,7 @@
  * Export name `librarySitemaps` kept for the same reason.
  */
 
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
 const SITE = 'https://rrmacademy.org';
@@ -132,6 +132,19 @@ export default function librarySitemaps() {
         const courses = readJson(outDir, 'courses.json') ?? [];
 
         // -- Pillars chunk
+        // Assert every pillar path resolved to a real dist artifact before emit.
+        // PILLAR_PATHS pointing at a slug with no corresponding .astro file
+        // (deleted source, build skipped, typo) would otherwise emit a soft-404
+        // URL into sitemap-pillars.xml and waste Google crawl budget.
+        const missingPillars = PILLAR_PATHS.filter(
+          (p) => !existsSync(join(outDir, p, 'index.html'))
+        );
+        if (missingPillars.length > 0) {
+          throw new Error(
+            `[library-sitemaps] PILLAR_PATHS entries missing from dist/: ${missingPillars.join(', ')}. ` +
+            `Add the missing src/pages/<slug>/index.astro file or remove the path from PILLAR_PATHS.`
+          );
+        }
         const pillarUrls = PILLAR_PATHS.map((p) => ({
           loc: `${SITE}${p}`,
           lastmod: dateForPath(pageDates, p),
