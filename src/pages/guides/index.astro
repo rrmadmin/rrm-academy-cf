@@ -2,71 +2,29 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import MaybeShell from '../../components/MaybeShell.astro';
 import { isShellEnabled } from '../../lib/shell-routes';
+import pillarRegistry from '../../../ssot/pillars.json';
 
 const SHELL_ENABLED = isShellEnabled('guides');
 
-// Per-guide brand-anchored accent. RRM-owned guides use the RRM Academy purple
-// ramp; entity-specific guides use that entity's primary brand color sourced
-// from their canonical site. Hex values are scoped local accents, not new
-// global tokens \u2014 do not lift these into the SSOT.
-const guides = [
-  {
-    title: 'RRM Glossary',
-    href: '/glossary/',
-    description: 'A comprehensive, evidence-based reference for the terminology, methods, conditions, and procedures encountered within the Restorative Reproductive Medicine framework.',
-    author: 'Dr. Naomi Whittaker',
-    readTime: '35 min read',
-    accent: 'var(--purple-700)',
-  },
-  {
-    title: 'NaProTechnology: A Clinician\u2019s Guide',
-    href: '/naprotechnology/',
-    description: 'NaProTechnology diagnoses and treats the underlying conditions driving infertility, menstrual disorders, and early pregnancy loss. This guide covers how the method works, published outcomes data, how to find a qualified provider, and what to expect on cost and insurance.',
-    author: 'Dr. Naomi Whittaker',
-    readTime: '18 min read',
-    accent: '#f4b223', // Saint Paul VI Institute gold (popepaulvi.com)
-  },
-  {
-    title: 'What is Restorative Reproductive Medicine?',
-    href: '/what-is-rrm/',
-    description: 'The diagnostic and treatment philosophy behind RRM. How cause-based care differs from suppressive medicine, and what to expect from an RRM-trained clinician.',
-    author: 'Dr. Naomi Whittaker',
-    readTime: '60 min read',
-    accent: 'var(--purple-900)',
-  },
-  {
-    title: 'What is FEMM?',
-    href: '/femm/',
-    description: 'FEMM (Fertility Education and Medical Management) teaches women to monitor hormonal biomarkers and connects them with trained providers who diagnose and treat the underlying conditions driving their symptoms.',
-    author: 'Dr. Naomi Whittaker',
-    readTime: '15 min read',
-    accent: '#9396C9', // FEMM Health periwinkle (Brian-confirmed brand anchor 2026-05-04)
-  },
-  {
-    title: 'What is NeoFertility?',
-    href: '/neofertility/',
-    description: 'NeoFertility diagnoses and treats the underlying causes of infertility and recurrent miscarriage using cycle-based evaluation, immunological testing, and targeted treatment to restore natural conception.',
-    author: 'Dr. Naomi Whittaker',
-    readTime: '22 min read',
-    accent: '#00a9e0', // NeoFertility brand blue (neofertility.ie/neo-tokens.css)
-  },
-  {
-    title: 'ART Registries and Codes of Practice',
-    href: '/art-registries-and-codes/',
-    description: 'A global reference to national IVF registries (HFEA, RTAC, ANZARD, Q-IVF, CDC, DIR, JSOG, CARTR Plus, REDLARA, ESHRE EIM, ICMART) and the codes of practice that govern fertility clinics. What each measures, and what they miss.',
-    author: 'RRM Academy',
-    readTime: '15 min read',
-    accent: 'var(--purple-700)',
-  },
-  {
-    title: 'PCOS Explained: Diagnosis, Phenotypes, and the RRM Approach',
-    href: '/pcos/',
-    description: 'Polycystic ovary syndrome has four diagnostic phenotypes and distinct metabolic, reproductive, and mental health implications. How RRM-trained clinicians approach diagnosis and treatment differently.',
-    author: 'Dr. Naomi Whittaker',
-    readTime: '20 min read',
-    accent: 'var(--purple-700)',
-  },
-];
+// Per-guide brand-anchored accent lives in ssot/pillars.json. RRM-owned guides
+// use the RRM Academy purple ramp; entity-specific guides use that entity's
+// primary brand color sourced from their canonical site. Hex values are scoped
+// local accents, not new global tokens -- do not lift these into the design
+// token SSOT.
+// Catalogue rendering filters to in_guides_catalogue=true (common-questions-
+// about-rrm is intentionally hidden from the visual catalogue but kept in
+// every other surface). Order matches _order in pillars.json.
+const guides = pillarRegistry.pillars
+  .filter((p) => p.in_guides_catalogue)
+  .sort((a, b) => (a._order ?? 999) - (b._order ?? 999))
+  .map((p) => ({
+    title: p.title,
+    href: `/${p.slug}/`,
+    description: p.description,
+    author: p.author,
+    readTime: p.read_time,
+    accent: p.accent,
+  }));
 
 const published = guides.filter(g => !g.comingSoon);
 const jsonLd = {
