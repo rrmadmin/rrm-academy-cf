@@ -121,6 +121,14 @@ const STATIC_PAGES = {
     title: 'Common Questions About RRM',
     description: 'We address common questions about RRM with published evidence, acknowledge limitations, and clarify what RRM is and is not.',
   },
+  'art-registries-and-codes': {
+    title: 'ART Registries and Codes of Practice',
+    description: 'Reference guide to national IVF registries (HFEA, CDC, ANZARD, Q-IVF, DIR, JSOG, ESHRE EIM, ICMART) and codes of practice. What each measures, what they miss.',
+  },
+  pcos: {
+    title: 'PCOS: Diagnosis, Phenotypes, and the RRM Approach',
+    description: 'Polycystic ovary syndrome has four diagnostic phenotypes and distinct metabolic, reproductive, and mental health implications. How RRM-trained clinicians approach diagnosis and treatment.',
+  },
   'endo-survey': {
     title: 'Endometriosis Survey',
     description: 'Do your symptoms point to endometriosis? This evidence-based self-survey helps you assess your level of suspicion.',
