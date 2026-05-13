@@ -79,8 +79,8 @@ const { context, currentPath, relatedSections = [], hasRail = false } = Astro.pr
 const hasRelatedSections = relatedSections.length > 0;
 
 // Identify current section for aria-current on sidebar links.
-const inLibrary = currentPath.startsWith('/library');
-const inCommentary = currentPath.startsWith('/commentary');
+const inLibrary = currentPath === '/library' || currentPath === '/library/' || currentPath.startsWith('/library/');
+const inCommentary = currentPath === '/commentary' || currentPath === '/commentary/' || currentPath.startsWith('/commentary/');
 const inSaved = currentPath === '/library/saved' || currentPath === '/library/saved/';
 const inFaqs = currentPath === '/faqs' || currentPath === '/faqs/' || currentPath.startsWith('/faqs/');
 const inAccount = currentPath === '/account' || currentPath === '/account/' || currentPath.startsWith('/account/');
