@@ -6,6 +6,7 @@ import { isShellEnabled } from '../../lib/shell-routes';
 import LastUpdated from '../../components/LastUpdated.astro';
 import pageDates from '../../data/page-dates.json';
 import { buildScholarlyArticleStub } from '../../lib/identity';
+import { safeJsonLd } from '../../lib/jsonld';
 
 const SHELL_ENABLED = isShellEnabled('guides');
 
@@ -190,8 +191,8 @@ const faqSchema = {
   chrome={SHELL_ENABLED ? 'shell' : 'default'}
 >
   <!-- Separate JSON-LD blocks (not @graph) per spec -->
-  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
-  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  <script type="application/ld+json" set:html={safeJsonLd(breadcrumbSchema)} />
+  <script type="application/ld+json" set:html={safeJsonLd(faqSchema)} />
 
   <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname}>
   <div class="page-wrapper" data-pagefind-body>

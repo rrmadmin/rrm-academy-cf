@@ -9,6 +9,7 @@ import LastUpdated from '../../components/LastUpdated.astro';
 import GlossaryTerm from '../../components/GlossaryTerm.astro';
 import glossaryData from '../../data/glossary.json';
 import pageDates from '../../data/page-dates.json';
+import { safeJsonLd } from '../../lib/jsonld';
 
 const SHELL_ENABLED = isShellEnabled('guides');
 
@@ -207,10 +208,10 @@ const definedTermSetSchema = {
   chrome={SHELL_ENABLED ? 'shell' : 'default'}
 >
   <!-- Separate JSON-LD block for breadcrumbs -->
-  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+  <script type="application/ld+json" set:html={safeJsonLd(breadcrumbSchema)} />
 
   <!-- DefinedTermSet: per-term citable entities for AEO -->
-  <script type="application/ld+json" set:html={JSON.stringify(definedTermSetSchema)} />
+  <script type="application/ld+json" set:html={safeJsonLd(definedTermSetSchema)} />
 
   <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname} hasRail={SHELL_ENABLED}>
   {/* Right rail: A-Z index lives here when the shell is enabled (Brian
