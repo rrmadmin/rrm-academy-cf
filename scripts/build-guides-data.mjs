@@ -19,16 +19,16 @@ const ROOT = join(__dirname, '..');
 const PAGES = join(ROOT, 'src', 'pages');
 const OUT = join(ROOT, 'src', 'data', 'guides.json');
 
-const GUIDES = [
-  { slug: 'art-registries-and-codes', file: 'art-registries-and-codes/index.astro' },
-  { slug: 'common-questions-about-rrm', file: 'common-questions-about-rrm.astro' },
-  { slug: 'femm',                     file: 'femm/index.astro' },
-  { slug: 'naprotechnology',          file: 'naprotechnology/index.astro' },
-  { slug: 'neofertility',             file: 'neofertility/index.astro' },
-  { slug: 'pcos',                     file: 'pcos/index.astro' },
-  { slug: 'what-is-rrm',              file: 'what-is-rrm/index.astro' },
-  { slug: 'glossary',                 file: 'glossary/index.astro' },
-];
+// Derived from ssot/pillars.json -- single source for every pillar surface.
+// Sort by slug for stable embedder output across builds (matches the legacy
+// order; the semantic embedder is order-agnostic but stable diffs make
+// downstream Vectorize change detection cleaner).
+const PILLAR_REGISTRY = JSON.parse(
+  readFileSync(join(ROOT, 'ssot', 'pillars.json'), 'utf-8'),
+);
+const GUIDES = PILLAR_REGISTRY.pillars
+  .map((p) => ({ slug: p.slug, file: p.file }))
+  .sort((a, b) => a.slug.localeCompare(b.slug));
 
 const HTML_ENTITIES = {
   '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"', '&#39;': "'",
