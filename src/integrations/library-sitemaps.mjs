@@ -24,21 +24,26 @@
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 const SITE = 'https://rrmacademy.org';
 const BUILD_DATE = new Date().toISOString().split('T')[0];
 
+// Derive from ssot/pillars.json + the /guides/ catalogue index. Adding /guides/
+// here keeps the index page in the pillar sitemap (it's a hub, not a pillar
+// per se -- so it's not in pillars.json -- but it belongs in the high-priority
+// chunk for crawlers).
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const PILLAR_REGISTRY = JSON.parse(
+  readFileSync(join(__dirname, '..', '..', 'ssot', 'pillars.json'), 'utf-8'),
+);
 const PILLAR_PATHS = [
-  '/what-is-rrm/',
-  '/naprotechnology/',
-  '/neofertility/',
-  '/femm/',
-  '/common-questions-about-rrm/',
-  '/glossary/',
+  ...PILLAR_REGISTRY.pillars
+    .slice()
+    .sort((a, b) => (a._order ?? 999) - (b._order ?? 999))
+    .map((p) => `/${p.slug}/`),
   '/guides/',
-  '/art-registries-and-codes/',
-  '/pcos/',
 ];
 
 const POLICY_PATHS = [
