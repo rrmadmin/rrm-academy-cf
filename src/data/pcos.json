@@ -16,8 +16,7 @@
       "required_features_html": "<strong>Both</strong> of: (1) chronic anovulation, (2) clinical or biochemical hyperandrogenism. Other etiologies excluded.",
       "polycystic_ovaries_required": "No",
       "prevalence_yield_html": "Roughly <strong>6-10%</strong> of reproductive-age women in <a href=\"/library/the-prevalence-of-polycystic-ovary-syndrome-a-brief-systematic-review-recxim7wm1lcfwnyp/\">population-based estimates</a>.",
-      "stance_html": "The narrowest definition. Captures the metabolically-loaded classic phenotype but excludes ovulatory hyperandrogenism and the normo-androgenic anovulation pattern.",
-      "library_anchor_slug": "the-epidemiology-of-polycystic-ovary-syndrome-prevalence-and-associated-disease--rec9qrasllgpsuxcd"
+      "stance_html": "The narrowest definition. Captures the metabolically-loaded classic phenotype but excludes ovulatory hyperandrogenism and the normo-androgenic anovulation pattern."
     },
     {
       "key": "rotterdam-2003",
@@ -28,8 +27,7 @@
       "required_features_html": "<strong>Two of three</strong>: (1) oligo- or anovulation, (2) clinical or biochemical hyperandrogenism, (3) polycystic ovaries on ultrasound. Other etiologies excluded.",
       "polycystic_ovaries_required": "Counts as a criterion (one of three)",
       "prevalence_yield_html": "Expands prevalence to <strong>roughly 10-15%</strong> by adding the ovulatory-hyperandrogenic and normo-androgenic-anovulation phenotypes (see <a href=\"/library/the-prevalence-of-polycystic-ovary-syndrome-a-brief-systematic-review-recxim7wm1lcfwnyp/\">Deswal 2021</a>).",
-      "stance_html": "The most widely used framework in clinical practice and the source of the four-phenotype classification. Anchored on the <a href=\"/library/revised-2003-consensus-on-diagnostic-criteria-and-long-term-health-risks-related-recs4cmqbtnghw5py/\">2003 ESHRE/ASRM consensus paper</a>.",
-      "library_anchor_slug": "revised-2003-consensus-on-diagnostic-criteria-and-long-term-health-risks-related-recs4cmqbtnghw5py"
+      "stance_html": "The most widely used framework in clinical practice and the source of the four-phenotype classification. Anchored on the <a href=\"/library/revised-2003-consensus-on-diagnostic-criteria-and-long-term-health-risks-related-recs4cmqbtnghw5py/\">2003 ESHRE/ASRM consensus paper</a>."
     },
     {
       "key": "ae-pcos-2006",
@@ -40,8 +38,7 @@
       "required_features_html": "Hyperandrogenism (clinical or biochemical) is <strong>required</strong>, <em>plus</em> either anovulation or polycystic ovaries.",
       "polycystic_ovaries_required": "Not on its own",
       "prevalence_yield_html": "Yields a tighter androgen-centred cohort than Rotterdam and excludes the normo-androgenic Phenotype D.",
-      "stance_html": "Frames PCOS as fundamentally a hyperandrogenic disorder. Useful when characterising metabolic and cardiovascular risk, which tracks more closely with androgen excess than with ultrasound morphology.",
-      "library_anchor_slug": "polycystic-ovary-syndrome-pcos-diagnostic-criteria-and-amh-reccoq913xdj0kfki"
+      "stance_html": "Frames PCOS as fundamentally a hyperandrogenic disorder. Useful when characterising metabolic and cardiovascular risk, which tracks more closely with androgen excess than with ultrasound morphology."
     },
     {
       "key": "international-2023",
@@ -52,8 +49,7 @@
       "required_features_html": "Retains Rotterdam two-of-three. <strong>Adds anti-Mullerian hormone (AMH)</strong> as an acceptable substitute for ultrasound in adults; permits polycystic-ovarian morphology on transvaginal ultrasound only with high-frequency probes.",
       "polycystic_ovaries_required": "Ultrasound OR elevated AMH",
       "prevalence_yield_html": "Broadly comparable to Rotterdam, with somewhat tighter ultrasound criteria and clearer cautions in adolescents.",
-      "stance_html": "Current international consensus. Extends Rotterdam, addresses adolescent over-diagnosis explicitly, and standardises AMH use. Anchored in the library via <a href=\"/library/a-brief-update-on-the-evidence-supporting-the-treatment-of-infertility-in-polycy-recoqqyewdbiiaquy/\">Costello et al. 2019 ANZJOG</a>, the international guideline's infertility-treatment extract.",
-      "library_anchor_slug": "a-brief-update-on-the-evidence-supporting-the-treatment-of-infertility-in-polycy-recoqqyewdbiiaquy"
+      "stance_html": "Current international consensus. Extends Rotterdam, addresses adolescent over-diagnosis explicitly, and standardises AMH use. Anchored in the library via <a href=\"/library/a-brief-update-on-the-evidence-supporting-the-treatment-of-infertility-in-polycy-recoqqyewdbiiaquy/\">Costello et al. 2019 ANZJOG</a>, the international guideline's infertility-treatment extract."
     }
   ],
   "phenotypes_rotterdam": [
@@ -62,32 +58,28 @@
       "name": "Phenotype A",
       "subtitle": "Classic / full Rotterdam",
       "features_html": "Hyperandrogenism <strong>+</strong> ovulatory dysfunction <strong>+</strong> polycystic ovarian morphology.",
-      "metabolic_load_html": "Highest metabolic load. Insulin resistance, central adiposity, dyslipidaemia, and hypertension cluster here. <a href=\"/library/metabolic-syndrome-and-metabolic-risk-profile-according-to-polycystic-ovary-synd-recptfzvlritvbwck/\">Bil et al. 2016</a> documents this pattern.",
-      "library_anchor_slug": "metabolic-syndrome-and-metabolic-risk-profile-according-to-polycystic-ovary-synd-recptfzvlritvbwck"
+      "metabolic_load_html": "Highest metabolic load. Insulin resistance, central adiposity, dyslipidaemia, and hypertension cluster here. <a href=\"/library/metabolic-syndrome-and-metabolic-risk-profile-according-to-polycystic-ovary-synd-recptfzvlritvbwck/\">Bil et al. 2016</a> documents this pattern."
     },
     {
       "key": "B",
       "name": "Phenotype B",
       "subtitle": "Hyperandrogenic anovulatory, normal ovaries on US",
       "features_html": "Hyperandrogenism <strong>+</strong> ovulatory dysfunction, normal ovarian morphology.",
-      "metabolic_load_html": "Metabolic risk similar to Phenotype A. The absence of polycystic morphology on ultrasound does not protect against insulin resistance.",
-      "library_anchor_slug": "metabolic-syndrome-and-metabolic-risk-profile-according-to-polycystic-ovary-synd-recptfzvlritvbwck"
+      "metabolic_load_html": "Metabolic risk similar to Phenotype A. The absence of polycystic morphology on ultrasound does not protect against insulin resistance."
     },
     {
       "key": "C",
       "name": "Phenotype C",
       "subtitle": "Ovulatory hyperandrogenic",
       "features_html": "Hyperandrogenism <strong>+</strong> polycystic ovarian morphology, but ovulation is preserved.",
-      "metabolic_load_html": "Intermediate metabolic risk. Women in this group often present with cosmetic complaints (acne, hirsutism) and may be told they \"don't really have PCOS\" because cycles are regular.",
-      "library_anchor_slug": "pcos-stratification-for-precision-diagnostics-and-treatment-recciwc3y1xjzs3q6"
+      "metabolic_load_html": "Intermediate metabolic risk. Women in this group often present with cosmetic complaints (acne, hirsutism) and may be told they \"don't really have PCOS\" because cycles are regular."
     },
     {
       "key": "D",
       "name": "Phenotype D",
       "subtitle": "Normo-androgenic anovulatory",
       "features_html": "Ovulatory dysfunction <strong>+</strong> polycystic ovarian morphology, no androgen excess.",
-      "metabolic_load_html": "Lowest metabolic load of the four. Excluded by the AE-PCOS 2006 criteria. <a href=\"/library/metabolic-syndrome-and-metabolic-risk-profile-according-to-polycystic-ovary-synd-recptfzvlritvbwck/\">Bil et al. 2016</a> documents the lower metabolic burden of this phenotype relative to A and B.",
-      "library_anchor_slug": "metabolic-syndrome-and-metabolic-risk-profile-according-to-polycystic-ovary-synd-recptfzvlritvbwck"
+      "metabolic_load_html": "Lowest metabolic load of the four. Excluded by the AE-PCOS 2006 criteria. <a href=\"/library/metabolic-syndrome-and-metabolic-risk-profile-according-to-polycystic-ovary-synd-recptfzvlritvbwck/\">Bil et al. 2016</a> documents the lower metabolic burden of this phenotype relative to A and B."
     }
   ],
   "phenotypes_rrm": [
@@ -96,32 +88,28 @@
       "name": "Insulin-resistant",
       "subtitle": "Metabolic driver",
       "features_html": "Elevated fasting insulin or HOMA-IR, central adiposity, often acanthosis nigricans. The dominant pattern in most clinic populations.",
-      "intervention_html": "Lifestyle modification anchored on dietary pattern and resistance training; insulin-sensitising agents such as <a href=\"/library/myoinositol-for-insulin-resistance-metabolic-syndrome-polycystic-ovary-syndrome--oojxywg2/\">myo-inositol</a> and <a href=\"/library/24-month-metformin-improves-pcos-menses-hormones-and-metabolism-recrv4rjajlxmfps0/\">metformin</a>, used per evidence and tolerability.",
-      "library_anchor_slug": "myoinositol-for-insulin-resistance-metabolic-syndrome-polycystic-ovary-syndrome--oojxywg2"
+      "intervention_html": "Lifestyle modification anchored on dietary pattern and resistance training; insulin-sensitising agents such as <a href=\"/library/myoinositol-for-insulin-resistance-metabolic-syndrome-polycystic-ovary-syndrome--oojxywg2/\">myo-inositol</a> and <a href=\"/library/24-month-metformin-improves-pcos-menses-hormones-and-metabolism-recrv4rjajlxmfps0/\">metformin</a>, used per evidence and tolerability."
     },
     {
       "key": "inflammatory",
       "name": "Inflammatory",
       "subtitle": "Chronic low-grade inflammation",
       "features_html": "Elevated inflammatory markers (CRP, ferritin), often with skin or gut symptoms, fatigue, joint complaints. May overlap with insulin-resistant pattern.",
-      "intervention_html": "Identify and address upstream drivers (diet pattern, gut health per <a href=\"/library/the-gut-microbiome-and-female-health-mavzue7l/\">microbiome literature</a>, sleep, environmental exposures) before defaulting to suppressive therapy.",
-      "library_anchor_slug": "the-gut-microbiome-and-female-health-mavzue7l"
+      "intervention_html": "Identify and address upstream drivers (diet pattern, gut health per <a href=\"/library/the-gut-microbiome-and-female-health-mavzue7l/\">microbiome literature</a>, sleep, environmental exposures) before defaulting to suppressive therapy."
     },
     {
       "key": "adrenal",
       "name": "Adrenal",
       "subtitle": "DHEA-S driven",
       "features_html": "Elevated DHEA-S with normal-to-mildly elevated testosterone, often a stress-physiology component, frequently lower BMI than the insulin-resistant pattern.",
-      "intervention_html": "Workup must exclude non-classical congenital adrenal hyperplasia. Management focuses on stress-axis regulation rather than ovarian suppression.",
-      "library_anchor_slug": "molecular-progress-in-infertility-polycystic-ovary-syndrome-rec1kll4aesgzqxn4"
+      "intervention_html": "Workup must exclude non-classical congenital adrenal hyperplasia. Management focuses on stress-axis regulation rather than ovarian suppression."
     },
     {
       "key": "post-pill",
       "name": "Post-pill",
       "subtitle": "Hormonal-contraceptive unmasking",
       "features_html": "Symptoms emerge or worsen after discontinuing combined hormonal contraception. May represent unmasking of pre-existing PCOS or transient post-pill hormonal disruption.",
-      "intervention_html": "Charting cycles to establish a real baseline; targeted workup before assuming \"PCOS.\" Hormonal contraception does not treat PCOS, and combined contraceptives have documented unfavourable metabolic effects in this population per <a href=\"/library/oral-and-vaginal-hormonal-contraceptives-induce-similar-unfavorable-metabolic-ef-rec3orhwe8w3czyvm/\">Mosorin et al. 2023</a>.",
-      "library_anchor_slug": "oral-and-vaginal-hormonal-contraceptives-induce-similar-unfavorable-metabolic-ef-rec3orhwe8w3czyvm"
+      "intervention_html": "Charting cycles to establish a real baseline; targeted workup before assuming \"PCOS.\" Hormonal contraception does not treat PCOS, and combined contraceptives have documented unfavourable metabolic effects in this population per <a href=\"/library/oral-and-vaginal-hormonal-contraceptives-induce-similar-unfavorable-metabolic-ef-rec3orhwe8w3czyvm/\">Mosorin et al. 2023</a>."
     }
   ]
 }
