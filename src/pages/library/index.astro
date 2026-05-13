@@ -265,9 +265,39 @@ const jsonLd = {
 </script>
 
 <style is:global>
-  body.library-searching .atlas,
+  /* Smooth hide of competing affordances while search dropdown is open. */
+  .page-library .atlas,
+  .page-library .atlas-hero__suggestions,
+  .page-library > .section {
+    transition: opacity 220ms ease, transform 220ms ease, visibility 0s linear 0s;
+  }
+  body.library-searching .page-library .atlas,
+  body.library-searching .page-library .atlas-hero__suggestions,
   body.library-searching .page-library > .section {
+    opacity: 0;
+    transform: translateY(6px);
+    pointer-events: none;
     visibility: hidden;
+    transition: opacity 200ms ease, transform 200ms ease, visibility 0s linear 200ms;
+  }
+
+  /* Search dropdown slide-in. The existing translateX(-50%) keeps centering;
+     the Y axis carries the animation. */
+  .page-library .search-results:not(:empty) {
+    animation: rrm-dropdown-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes rrm-dropdown-in {
+    from { opacity: 0; transform: translate(-50%, -8px); }
+    to   { opacity: 1; transform: translate(-50%, 0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .page-library .atlas,
+    .page-library .atlas-hero__suggestions,
+    .page-library > .section,
+    .page-library .search-results:not(:empty) {
+      animation: none;
+      transition: none;
+    }
   }
 </style>
 
