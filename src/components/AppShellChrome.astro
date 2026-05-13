@@ -33,6 +33,7 @@
 import '../styles/app-shell.css';
 import Footer from './Footer.astro';
 import Header from './Header.astro';
+import pillarRegistry from '../../ssot/pillars.json';
 
 // AppShellChrome runs INSIDE BaseLayout's slot. The `<body>` element belongs
 // to BaseLayout (`<body class:list={[bodyClass]}>` around line 267), so this
@@ -92,20 +93,22 @@ const inCourses = currentPath === '/courses' || currentPath === '/courses/' || c
 const inCommunity = currentPath === '/community' || currentPath === '/community/' || currentPath.startsWith('/community/');
 const inProviders = currentPath === '/providers' || currentPath === '/providers/' || currentPath.startsWith('/providers/');
 // "Guides" surface = the /guides/ index AND the pillar guide pages, which live
-// at root paths (/what-is-rrm/, /naprotechnology/, /femm/, /neofertility/,
-// /common-questions-about-rrm/, /art-registries-and-codes/, /pcos/). Keep
-// this list in sync with the pillar-create SKILL.md Gate 11.5 registration
-// sweep. Glossary is wrapped by the same shell route but gets its own
-// permanent sidebar link, so aria-current on Guides excludes /glossary/.
+// Derived from ssot/pillars.json (in_shell_guides_nav filter) + the /guides/
+// catalogue. Adding a new pillar = adding it to pillars.json with
+// in_shell_guides_nav=true; no edit required here. Glossary is wrapped by
+// the same shell route but gets its own permanent sidebar link, so it
+// stays in_shell_guides_nav=false and aria-current on Guides excludes
+// /glossary/.
+// Derive from ssot/pillars.json. Each pillar with in_shell_guides_nav=true
+// contributes both slash forms (/foo and /foo/) so aria-current matches the
+// canonical currentPath shape Astro renders. /glossary/ stays excluded via
+// in_shell_guides_nav=false because the glossary has its own permanent sidebar
+// link via the separate inGlossary check below.
 const GUIDES_PATHS = new Set([
   '/guides', '/guides/',
-  '/what-is-rrm', '/what-is-rrm/',
-  '/naprotechnology', '/naprotechnology/',
-  '/femm', '/femm/',
-  '/neofertility', '/neofertility/',
-  '/common-questions-about-rrm', '/common-questions-about-rrm/',
-  '/art-registries-and-codes', '/art-registries-and-codes/',
-  '/pcos', '/pcos/',
+  ...pillarRegistry.pillars
+    .filter((p) => p.in_shell_guides_nav)
+    .flatMap((p) => [`/${p.slug}`, `/${p.slug}/`]),
 ]);
 const inGuides = GUIDES_PATHS.has(currentPath);
 const inGlossary = currentPath === '/glossary' || currentPath === '/glossary/' || currentPath.startsWith('/glossary/');

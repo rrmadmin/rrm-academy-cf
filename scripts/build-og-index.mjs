@@ -97,38 +97,10 @@ const STATIC_PAGES = {
     title: 'Medical Disclaimer',
     description: 'This site provides educational content about restorative reproductive medicine and does not constitute medical advice.',
   },
-  'what-is-rrm': {
-    title: 'What Is Restorative Reproductive Medicine?',
-    description: 'RRM diagnoses and treats root causes of infertility, endometriosis, PCOS, and recurrent miscarriage.',
-  },
-  naprotechnology: {
-    title: 'NaProTechnology',
-    description: 'A complete guide to NaProTechnology: how it works, what it treats, and how to find a provider.',
-  },
-  femm: {
-    title: 'FEMM Method',
-    description: 'Fertility Education and Medical Management -- a fertility awareness method and the clinical framework that grew from it.',
-  },
-  neofertility: {
-    title: 'NeoFertility',
-    description: 'Dublin-based restorative reproductive medicine practice. Dr. Phil Boyle\u2019s approach to infertility and fertility care.',
-  },
-  glossary: {
-    title: 'RRM Glossary',
-    description: 'Definitions of the terms, acronyms, and concepts used across restorative reproductive medicine.',
-  },
-  'common-questions-about-rrm': {
-    title: 'Common Questions About RRM',
-    description: 'We address common questions about RRM with published evidence, acknowledge limitations, and clarify what RRM is and is not.',
-  },
-  'art-registries-and-codes': {
-    title: 'ART Registries and Codes of Practice',
-    description: 'Reference guide to national IVF registries (HFEA, CDC, ANZARD, Q-IVF, DIR, JSOG, ESHRE EIM, ICMART) and codes of practice. What each measures, what they miss.',
-  },
-  pcos: {
-    title: 'PCOS: Diagnosis, Phenotypes, and the RRM Approach',
-    description: 'Polycystic ovary syndrome has four diagnostic phenotypes and distinct metabolic, reproductive, and mental health implications. How RRM-trained clinicians approach diagnosis and treatment.',
-  },
+  // Pillar entries (what-is-rrm, naprotechnology, femm, neofertility,
+  // common-questions-about-rrm, glossary, art-registries-and-codes, pcos)
+  // are merged in from ssot/pillars.json below using og_title + og_description.
+  // Do not hardcode them here.
   'endo-survey': {
     title: 'Endometriosis Survey',
     description: 'Do your symptoms point to endometriosis? This evidence-based self-survey helps you assess your level of suspicion.',
@@ -218,9 +190,26 @@ function readJsonOrNull(name) {
 
 const readJsonSafely = readJsonOrThrow;
 
+// Merge pillar entries from ssot/pillars.json into the OG index. og_title +
+// og_description live in the SSOT so adding a new pillar doesn't require an
+// edit here. clamp() applies in main() once the entries are folded into index.
+function loadPillarEntries() {
+  const path = join(ROOT, 'ssot', 'pillars.json');
+  const registry = JSON.parse(readFileSync(path, 'utf-8'));
+  const out = {};
+  for (const p of registry.pillars) {
+    out[p.slug] = {
+      title: p.og_title || p.title,
+      description: p.og_description || p.description,
+    };
+  }
+  return out;
+}
+
 function main() {
-  const index = { ...STATIC_PAGES };
-  const counts = { static: Object.keys(STATIC_PAGES).length, library: 0, commentary: 0, faqs: 0, courses: 0 };
+  const PILLAR_ENTRIES = loadPillarEntries();
+  const index = { ...STATIC_PAGES, ...PILLAR_ENTRIES };
+  const counts = { static: Object.keys(STATIC_PAGES).length, pillars: Object.keys(PILLAR_ENTRIES).length, library: 0, commentary: 0, faqs: 0, courses: 0 };
 
   const articles = readJsonSafely('articles.json');
   if (Array.isArray(articles)) {
@@ -296,7 +285,7 @@ function main() {
   const sizeKb = (JSON.stringify(index).length / 1024).toFixed(1);
   console.log(
     `[build-og-index] wrote ${Object.keys(index).length} entries (${sizeKb} KB): ` +
-    `${counts.static} static, ${counts.library} library, ${counts.commentary} commentary, ` +
+    `${counts.static} static, ${counts.pillars} pillars, ${counts.library} library, ${counts.commentary} commentary, ` +
     `${counts.faqs} faqs, ${counts.courses} courses`
   );
 }
