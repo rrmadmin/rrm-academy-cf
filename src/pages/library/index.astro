@@ -271,21 +271,26 @@ const jsonLd = {
   body.page-library .atlas,
   body.page-library .atlas-hero__suggestions,
   body.page-library .section {
-    transition: opacity 220ms ease, transform 220ms ease, visibility 0s linear 0s;
+    transition:
+      opacity 420ms cubic-bezier(0.22, 1, 0.36, 1),
+      visibility 0s linear 0s;
+    will-change: opacity;
   }
   body.page-library.library-searching .atlas,
   body.page-library.library-searching .atlas-hero__suggestions,
   body.page-library.library-searching .section {
     opacity: 0;
-    transform: translateY(6px);
     pointer-events: none;
     visibility: hidden;
-    transition: opacity 200ms ease, transform 200ms ease, visibility 0s linear 200ms;
+    transition:
+      opacity 360ms cubic-bezier(0.4, 0, 0.2, 1),
+      visibility 0s linear 360ms;
   }
 
-  /* Search dropdown slide-in. Preserve the existing translateX(-50%) centering. */
+  /* Search dropdown slide-in. Preserve the existing translateX(-50%) centering.
+     Duration matches the atlas fade-out so the two animations feel paired. */
   body.page-library .search-results:not(:empty) {
-    animation: rrm-dropdown-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: rrm-dropdown-in 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
   @keyframes rrm-dropdown-in {
     from { opacity: 0; transform: translate(-50%, -8px); }
