@@ -35,8 +35,8 @@
       "credentials": null,
       "academy_role": "Board Secretary",
       "foundation_role": "Board Secretary",
-      "photo": null,
-      "photo_alt": "Bailey Long",
+      "photo": "/images/authors/bailey-long.webp",
+      "photo_alt": "Bailey Long, RRM Foundation Board Secretary",
       "bio_paragraphs": ["TODO: Brian"],
       "display_order": 3
     },
@@ -48,8 +48,8 @@
       "credentials": "Family Practice Physician, FEMM Medical Consultant, NeoFertility Medical Consultant",
       "academy_role": "Clinical Advisor",
       "foundation_role": "Clinical Advisor",
-      "photo": null,
-      "photo_alt": "Erin Kay, DO",
+      "photo": "/images/authors/erin-kay.webp",
+      "photo_alt": "Erin Kay, DO, Family Practice Physician and Clinical Advisor",
       "bio_paragraphs": ["TODO: Brian"],
       "display_order": 4
     }
