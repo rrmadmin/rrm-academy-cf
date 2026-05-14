@@ -167,14 +167,14 @@ export async function validateSession(db, sessionId) {
     return null;
   }
 
-  // Auto-renew if past halfway — atomic batch prevents logout race
+  // Auto-renew if past halfway — idempotent against concurrent renew from another tab:
+  // the WHERE expires_at = ? clause no-ops if another isolate already moved the value.
   const remainingMs = (row.expires_at - now) * 1000;
   let renewed = false;
   if (remainingMs < SESSION_RENEW_THRESHOLD_MS) {
     const newExpiry = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
-    await db.batch([
-      db.prepare('UPDATE session SET expires_at = ? WHERE id = ?').bind(newExpiry, sessionId),
-    ]);
+    await db.prepare('UPDATE session SET expires_at = ? WHERE id = ? AND expires_at = ?')
+      .bind(newExpiry, sessionId, row.expires_at).run();
     row.expires_at = newExpiry;
     renewed = true;
   }
