@@ -17,19 +17,28 @@ async function hashShort(text) {
   return Array.from(new Uint8Array(buf), b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
 }
 
-async function logAskQuery(env, request, message, userId, start, httpStatus, source) {
+async function logAskQuery(env, waitUntil, request, message, userId, start, httpStatus, source) {
   const { user_agent_short, referer_path } = extractRequestMeta(request);
-  await logSearchQuery(env, {
+  // Hash the IP first (synchronous-ish via subtle.digest) before launching the
+  // log; we want the bg promise to be self-contained so waitUntil can finish
+  // after the response is already sent.
+  const ipHash = await hashIp(request.headers.get('cf-connecting-ip') || '');
+  const p = logSearchQuery(env, {
     source: source || 'ask',
     query: message,
     user_id: userId,
-    ip_hash: await hashIp(request.headers.get('cf-connecting-ip') || ''),
+    ip_hash: ipHash,
     results_count: null,
     duration_ms: Date.now() - start,
     http_status: httpStatus,
     user_agent_short,
     referer_path,
-  });
+  }).catch(() => { /* logSearchQuery swallows its own errors; this catch keeps the promise clean */ });
+  if (typeof waitUntil === 'function') {
+    waitUntil(p);
+  } else {
+    await p;
+  }
 }
 
 function utcDateKey() {
@@ -269,7 +278,7 @@ async function handleAuthedAsk(context, session) {
   try {
     result = await callUpstream(context, message, user);
   } catch (upstreamErr) {
-    await logAskQuery(env, request, message, user.id, start, upstreamErr.httpStatus || 502, 'ask');
+    await logAskQuery(env, waitUntil, request, message, user.id, start, upstreamErr.httpStatus || 502, 'ask');
     return json({ error: upstreamErr.errorCode || 'upstream_error' }, upstreamErr.httpStatus || 502);
   }
 
@@ -287,17 +296,20 @@ async function handleAuthedAsk(context, session) {
   }
 
   const { user_agent_short, referer_path } = extractRequestMeta(request);
-  await logSearchQuery(env, {
+  const ipHash = await hashIp(request.headers.get('cf-connecting-ip') || '');
+  // PF-F: move logging off the response-hot path. ANALYTICS_DB is a separate
+  // D1 binding; an outage there should not 503 every /ask response.
+  waitUntil(logSearchQuery(env, {
     source: context.data?.searchV2 === 'all' ? 'ask_v2' : 'ask',
     query: message,
     user_id: user.id,
-    ip_hash: await hashIp(request.headers.get('cf-connecting-ip') || ''),
+    ip_hash: ipHash,
     results_count: null,
     duration_ms: durationMs,
     http_status: httpStatus,
     user_agent_short,
     referer_path,
-  });
+  }).catch(() => {}));
 
   waitUntil(
     env.COMMUNITY_KV.put(rateLimitKey, String(currentCount + 1), { expirationTtl: RATE_LIMIT_TTL })

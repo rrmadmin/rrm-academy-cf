@@ -50,7 +50,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     return Response.json({ ok: true, action: 'already_sent', slug });
   }
 
-  function esc(s) { return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function esc(s) { return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 
   // Build Gmail-plain email body
   const emailBody = `

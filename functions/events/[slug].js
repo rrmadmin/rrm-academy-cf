@@ -305,7 +305,7 @@ function renderHtml({ event, summary, speaker, visitor, cta, canonical, memberSu
 <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&display=swap">
 
-<script type="application/ld+json">${JSON.stringify(eventJsonLd)}</script>
+<script type="application/ld+json">${JSON.stringify(eventJsonLd).replace(/</g, '\\u003c')}</script>
 
 <style>
   :root {

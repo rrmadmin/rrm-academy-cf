@@ -100,6 +100,7 @@ export async function onRequestPost(context) {
   } catch {
     return json({ ok: false, error: 'Invalid JSON' }, 400);
   }
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
   const { question, category, basicAnswer, schemaAnswer, publishedAnswer, seoTitle, seoDescription, sortOrder, status, faqCode } = body;
 

@@ -97,6 +97,7 @@ export async function onRequestPut(context) {
   } catch {
     return json({ ok: false, error: 'Invalid JSON' }, 400);
   }
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
   if ('id' in body) {
     return json({ ok: false, error: 'cannot_change_id' }, 400);

@@ -27,11 +27,11 @@
       "note": "Authenticated password change"
     },
     "functions/api/auth/google.js": {
-      "hash": "00a9706469496106a1ae115bbc971ab7646da703203f95e90942633ea3b1597a",
+      "hash": "5b2e8e7656b7c35ebb817ed6eebb72068ac397bcc4a37a9369c5e97ae9d7a04e",
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "7453f1d5e2c8c653ae47426f380b0eba84e15a7259c4119a17decdb6cc0854f2",
+      "hash": "053104a4d00cd62ffc26772edff6635ded96e6282fbde1d3b31a358a1f287940",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
@@ -71,7 +71,7 @@
       "note": "HMAC-SHA256 magic-link token for Wix-to-Stripe donor migration"
     },
     "functions/_middleware.js": {
-      "hash": "8ba907f0f06fa1590a5079f6c3c09ec1b9c9c0826b1bad58fb6f9741a6248a60",
+      "hash": "1c6734b5c5898720245863466ad5bcb499c771973743166a160d380e7a0d8ee1",
       "note": "Auth gating"
     },
     "wrangler.toml": {
@@ -107,7 +107,7 @@
       "note": "Public newsletter intake (rate-limited)"
     },
     "functions/api/search/semantic.js": {
-      "hash": "8dc98454c2fb25d9faaa9f46707db782cde02f5f3e4c38d6e4531071b605f857",
+      "hash": "71e67c58fa557848cf4d88e8cc11ff844e4f34d42809841156248b3e2162f2d8",
       "note": "Billed AI.run() + Vectorize (rate-limited)"
     },
     "functions/api/_ask_prompt.js": {
@@ -115,7 +115,7 @@
       "note": "SYSTEM_PROMPT for /api/ask -- single source of truth"
     },
     "functions/api/ask.js": {
-      "hash": "238d2d434f625e9069ae89efc2e2844ada6f15bca2a9fe14a3bfc9f431657748",
+      "hash": "d5dbbf83b9c1bd548da9e07f94c4383f6d736f33d82e66a353144897f7ee1f42",
       "note": "NLWeb AI Search proxy (auth + rate-limited, billed upstream)"
     },
     "src/components/SearchBar.astro": {
@@ -174,16 +174,16 @@
       "hash": "733854b25946ef2acd0ee19a6d2ccba73821b6fbc6672d12193551c400c10f82"
     },
     "functions/api/admin/faqs/index.js": {
-      "hash": "7a9189859b99bab03f80c60ba94d5534969ddb0a4609112feafd77a57db7a4c2"
+      "hash": "1f43037c674d0a852259f963888b17f52c87c6e2820eb2ecaf1789e4f75dcad0"
     },
     "functions/api/admin/faqs/[id].js": {
-      "hash": "db69f7631820ee07fd35cff264113668de8e514577b2a13825991056757a5509"
+      "hash": "0a3f34d8ffc32e4aa4db6a09b74131cc749ca1238a426221d8ccc8d68b76f31f"
     },
     "functions/api/admin/faqs/[id]/library-refs.js": {
-      "hash": "545246dcd957a5e460d7fb10832898bd06146e2ef54b1df14e96f4a5b7940f59"
+      "hash": "253d41bd4f6ead3e6d78dda01c100cf65fd87c753102285151d06129131fa0b9"
     },
     "functions/api/admin/faqs/[id]/resources.js": {
-      "hash": "4067fb11b7af3a78247d4597a939aeda876eafe35136577c7979b2db5f19fd27"
+      "hash": "c8053c9818a055f56bdfe145bbab83ca1aa7566d2c512d96edcd6e6ca0f17eaa"
     }
   }
 }
