@@ -105,6 +105,37 @@ until curl -fsSL -o /dev/null -w '%{http_code}' https://rrmacademy.org/getting-s
 
 These tasks add net-new files only (no modification of guarded files, no SQL writes, no external API calls, no CI workflow edits). All are git-revert-safe via `git checkout HEAD -- <new-file>` / `rm <new-file>`. Subagents in this tier may proceed end-to-end without re-checking in with the controller, provided the abort triggers above do not fire.
 
+### Byline pattern lock (post-cleared-tier patch, per spec D49 / 2026-05-14)
+
+Brian directive 2026-05-14: both new pillars use the canonical glossary-style author-byline pattern. Authoritative DOM template (matches `src/pages/glossary/index.astro` lines 260-271):
+
+```html
+<div class="author-byline">
+  <div class="author-avatar-stack">
+    <img src="/apple-touch-icon.png" alt="" aria-hidden="true" class="author-byline__photo" width="48" height="48" />
+    <img src="/images/authors/naomi-whittaker.webp" alt="" aria-hidden="true" class="author-byline__photo" width="48" height="48" />
+  </div>
+  <div class="author-byline__text has-reviewer">
+    <span class="byline-author">By <strong>RRM Academy</strong></span>
+    <span class="byline-reviewer">Reviewed by <strong><a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</a></strong></span>
+    <LastUpdated path="/getting-started/" prefix="Updated" class="byline-date" />
+  </div>
+</div>
+```
+
+Propagation table:
+
+| Affected task | Change |
+|---|---|
+| Task 8 (built tonight) | Gate code MUST depth-aware-strip `<div class="author-byline">…</div>` (the simple non-greedy regex won't work because the wrapper has nested `<div>` children). Fix landed as a follow-up commit on the same branch. New test: glossary-style byline with full Naomi credentials must allowlist clean. |
+| Task 12 (supervised — ssot patient entry) | `"author": "RRM Academy"` (matches the `/art-registries-and-codes/` precedent in `ssot/pillars.json`, NOT the `"Dr. Naomi Whittaker"` value used by the existing 11 clinical pillars). |
+| Task 13 (supervised — patient draft) | When invoking `/pillar-create`, pass byline directive: org-authored + clinically reviewed pattern per D49, NOT primary-Naomi-author. The author-byline `<div>` block above is the rendered output the skill should emit. JSON-LD: `author = #organization`, `reviewedBy = #naomi-whittaker`. |
+| Task 18 (supervised — ssot provider entry) | `"author": "RRM Academy"` (same as Task 12). |
+| Task 19 (supervised — provider draft) | Same byline directive as Task 13. |
+| Task 20 (supervised — back-edit) | No byline change needed; back-edit is rail-flip only. The patient pillar's byline shipped in Phase 1 and is unchanged in Phase 2. |
+
+In-body references to Naomi by name remain disallowed in either pillar (no "Dr. Whittaker has shown" / "Dr. Naomi recommends" / etc.). Clinical authority on the page comes through the reviewer billing in the byline + `reviewedBy` in JSON-LD, not body prose.
+
 ---
 
 ## Pre-Phase: Prerequisites (Tasks 1-5)
