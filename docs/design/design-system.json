@@ -393,6 +393,18 @@
             "type": "color",
             "cssVariable": "--amber-700"
           }
+        },
+        "yellow": {
+          "100": {
+            "value": "#fef9c3",
+            "type": "color",
+            "cssVariable": "--yellow-100"
+          },
+          "700": {
+            "value": "#eab308",
+            "type": "color",
+            "cssVariable": "--yellow-700"
+          }
         }
       },
       "tier": {
@@ -795,6 +807,18 @@
             "value": "#fbbf24",
             "type": "color",
             "cssVariable": "--amber-700"
+          }
+        },
+        "yellow": {
+          "100": {
+            "value": "#3a3618",
+            "type": "color",
+            "cssVariable": "--yellow-100"
+          },
+          "700": {
+            "value": "#facc15",
+            "type": "color",
+            "cssVariable": "--yellow-700"
           }
         }
       },
@@ -1199,6 +1223,18 @@
             "type": "color",
             "cssVariable": "--amber-700"
           }
+        },
+        "yellow": {
+          "100": {
+            "value": "#f0ead8",
+            "type": "color",
+            "cssVariable": "--yellow-100"
+          },
+          "700": {
+            "value": "#8a7320",
+            "type": "color",
+            "cssVariable": "--yellow-700"
+          }
         }
       },
       "tier": {
@@ -1522,10 +1558,10 @@
     }
   },
   "counts": {
-    "light": 73,
-    "dark": 73,
-    "eink": 73,
+    "light": 75,
+    "dark": 75,
+    "eink": 75,
     "shared": 19,
-    "total": 238
+    "total": 244
   }
 }

@@ -114,7 +114,7 @@ function classify(name) {
   if (name === 'cream' || name === 'white') return { group: 'palette', family: 'neutral', step: name };
 
   // Status palettes
-  const statusMatch = name.match(/^(green|amber)-(\d+)$/);
+  const statusMatch = name.match(/^(green|amber|yellow)-(\d+)$/);
   if (statusMatch) return { group: 'status', family: statusMatch[1], step: statusMatch[2] };
 
   // Tier tokens: tier1-accent, tier2-bg, tier3-border
@@ -181,7 +181,7 @@ function typeOf(group) {
 function buildTheme(tokens) {
   const out = {
     palette: { purple: {}, neutral: {}, sand: {}, rose: {}, sage: {} },
-    status: { green: {}, amber: {} },
+    status: { green: {}, amber: {}, yellow: {} },
     tier: { tier1: {}, tier2: {}, tier3: {} },
     semantic: {},
     footer: {},
