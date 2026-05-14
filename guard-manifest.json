@@ -7,7 +7,7 @@
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
-      "hash": "23f62e4f27ae7fd4884211d4d8a39dbd14be1244531a15c269062c943dfa5333",
+      "hash": "e8358c4d7bc728422062e8e19022b8e4246a467cbe12415f32829b7ae0532e94",
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
@@ -31,7 +31,7 @@
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "b5abc6d6ec12fe1fd549ad29e306f77ff289a258462300740dd63415c1d81cbc",
+      "hash": "1a4627f9c6132bd8a6964a4dd1a2c9e0526f61aa31d17ff219f96f535ff578e8",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
@@ -39,11 +39,11 @@
       "note": "Email validation + disposable/typo detection"
     },
     "functions/api/stripe-webhook.js": {
-      "hash": "86a3edd081a49bf924b1c7a7acfe135666944dd9a05db750b22d2a086ed919c5",
+      "hash": "d5fc8cb51cb14857cbdac7271bed586de9a0ae15512cf5e3f444520cddec9af9",
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
-      "hash": "7faf7c51cdcd33514fb505dd1b943f4d5ad6f7b86c6f4ef4d6b10d78814f6eb3",
+      "hash": "7c4baa09cba2c2e47fe382317dc29b0653ba17a9b7fd25dd550817065c43c6da",
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
@@ -55,11 +55,11 @@
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "fe62fd56d146b4ee99d9145b03b2f55b666bfff248282e0a3b82863ee9fc5c1a",
+      "hash": "cfcbe2cfc705a867c2a95882179390ba91af45ebe28fb2b0cc17d378f72ea225",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
-      "hash": "c2035488c2a33d41967f633ba2cfb758a5a33bce0894278e2238596bc1f14166",
+      "hash": "074ca5c0fc1547e04975da18089fbb2c6eeca1dfcd93d8d925773bcb2a34899b",
       "note": "Subscription lifecycle handler"
     },
     "functions/api/billing/_webhook-shared.js": {

@@ -589,6 +589,11 @@ export async function handleCheckoutExpired(db, event, env, waitUntil) {
     });
   } catch (err) {
     log(env, waitUntil, 'billing', 'migration_lock_release_fail', 'error', `${wixSubId}: ${err.message}`);
+    // Return 500 so dispatcher rolls back webhook_event dedup; Stripe retries.
+    return new Response(JSON.stringify({ ok: false, error: 'Internal error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
   return null;
 }

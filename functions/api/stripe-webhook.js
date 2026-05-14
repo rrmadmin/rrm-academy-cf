@@ -153,6 +153,11 @@ async function handleWebhook(request, env, waitUntil) {
         } catch (revokeErr) {
           log(env, waitUntil, 'billing', 'enrollment_revoke_fail', 'error',
             `payment_intent=${charge.payment_intent}: ${revokeErr.message}`, 0, 500);
+          // Set result to 500 so dispatcher rolls back dedup row; Stripe retries.
+          result = new Response(JSON.stringify({ ok: false, error: 'Internal error' }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' },
+          });
         }
       }
       break;
