@@ -1,4 +1,4 @@
-import { json, optionsResponse, CORS_HEADERS } from '../auth/_shared.js';
+import { json, optionsResponse, CORS_HEADERS, checkRateLimit } from '../auth/_shared.js';
 import { requireMember } from './_shared.js';
 
 var MAX_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -14,6 +14,11 @@ export async function onRequestPost(context) {
     var env = context.env;
     var member = await requireMember(request, env);
     if (member instanceof Response) return member;
+
+    var ip = request.headers.get('cf-connecting-ip');
+    if (!ip) return json({ error: 'service_unavailable' }, 503);
+    var cupAllowed = await checkRateLimit(env, `cup:${ip}`, 10, 60);
+    if (!cupAllowed) return json({ error: 'rate_limited' }, 429);
 
     var ct = request.headers.get('content-type') || '';
     if (!ct.startsWith('multipart/form-data'))

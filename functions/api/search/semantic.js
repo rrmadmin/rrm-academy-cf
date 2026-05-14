@@ -1,29 +1,6 @@
-import { CORS_HEADERS, optionsResponse, roleAtLeast } from '../auth/_shared.js';
+import { CORS_HEADERS, optionsResponse, roleAtLeast, checkRateLimit } from '../auth/_shared.js';
 import { log } from '../_log.js';
 import { logSearchQuery, hashIp, extractRequestMeta } from '../_search_log.js';
-
-// Simple IP rate limiter: max 20 requests per minute per IP
-const rateLimitMap = new Map();
-const RATE_LIMIT = 20;
-const RATE_WINDOW = 60_000;
-
-function isRateLimited(ip) {
-  const now = Date.now();
-  if (rateLimitMap.size > 1000) {
-    for (const [k, v] of rateLimitMap) {
-      if (now - v.start > RATE_WINDOW) {
-        rateLimitMap.delete(k);
-      }
-    }
-  }
-  const entry = rateLimitMap.get(ip);
-  if (!entry || now - entry.start > RATE_WINDOW) {
-    rateLimitMap.set(ip, { start: now, count: 1 });
-    return false;
-  }
-  entry.count++;
-  return entry.count > RATE_LIMIT;
-}
 
 function shouldUseV2(tier, user) {
   if (tier === 'all') return true;
@@ -77,13 +54,11 @@ export async function onRequestGet(context) {
   }
 
   // Rate limit by IP to protect billed AI/Vectorize calls
-  if (isRateLimited(ip)) {
-    const entry = rateLimitMap.get(ip);
-    const elapsed = entry ? Date.now() - entry.start : 0;
-    const retryAfterSec = Math.max(1, Math.ceil((RATE_WINDOW - elapsed) / 1000));
+  const allowed = await checkRateLimit(env, `sem:${ip}`, 20, 60);
+  if (!allowed) {
     return Response.json({ results: [], error: 'rate_limited' }, {
       status: 429,
-      headers: { ...CORS_HEADERS, 'Retry-After': String(retryAfterSec) },
+      headers: { ...CORS_HEADERS, 'Retry-After': '60' },
     });
   }
 
@@ -296,8 +271,6 @@ export async function onRequestGet(context) {
     }).catch(() => {}));
     return Response.json({ results }, { headers: CORS_HEADERS });
   } catch (err) {
-    const entry = rateLimitMap.get(ip);
-    if (entry && entry.count > 0) entry.count--;
     log(env, waitUntil, 'search', 'semantic_error', 'error', err.message, 0, 500);
     waitUntil(logSearchQuery(env, {
       source: 'semantic',
