@@ -66,7 +66,26 @@ export async function onRequestPost({ request, env, waitUntil }) {
       );
     }
 
+    let r2KeysToDelete = [];
+    if (deleteContent && env.R2_ASSETS) {
+      const ogRows = await db.prepare(
+        "SELECT og_image_url FROM community_post WHERE author_id = ? AND og_image_url IS NOT NULL"
+      ).bind(userId).all();
+      for (const row of (ogRows.results || [])) {
+        const match = row.og_image_url?.match(/\/api\/assets\/(.+)$/);
+        if (match) r2KeysToDelete.push(match[1]);
+      }
+    }
+
     await db.batch(statements);
+
+    if (r2KeysToDelete.length) {
+      for (const key of r2KeysToDelete) {
+        waitUntil(env.R2_ASSETS.delete(key).catch((err) => {
+          log(env, waitUntil, 'community', 'r2_cleanup_failed', 'error', `ban: ${err.message}`);
+        }));
+      }
+    }
 
     return json({ ok: true });
   } catch (err) {

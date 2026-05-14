@@ -522,6 +522,8 @@ export async function onRequestPatch({ request, env, waitUntil }) {
     updates.push("updated_at = datetime('now')");
     values.push(postId);
 
+    const oldOgImageUrl = post.og_image_url;
+
     try {
       await db.prepare(`UPDATE community_post SET ${updates.join(', ')} WHERE id = ?`)
         .bind(...values).run();
@@ -530,6 +532,15 @@ export async function onRequestPatch({ request, env, waitUntil }) {
         return json({ ok: false, error: 'slug_conflict' }, 409);
       }
       throw err;
+    }
+
+    if (reqOgImageUrl !== undefined && env.R2_ASSETS && oldOgImageUrl && oldOgImageUrl !== reqOgImageUrl) {
+      const match = oldOgImageUrl.match(/\/api\/assets\/(.+)$/);
+      if (match) {
+        waitUntil(env.R2_ASSETS.delete(match[1]).catch((err) => {
+          log(env, waitUntil, 'community', 'r2_cleanup_failed', 'error', err.message);
+        }));
+      }
     }
 
     return json({ ok: true });
@@ -569,12 +580,13 @@ export async function onRequestDelete({ request, env, waitUntil }) {
       return json({ ok: false, error: 'Not authorized' }, 403);
     }
 
-    // CASCADE deletes comments; manually clean reactions and flags
+    // Manually clean reactions, flags, and comments -- D1 CASCADE is inert
     await db.batch([
       db.prepare("DELETE FROM community_flag WHERE target_type = 'post' AND target_id = ?").bind(postId),
       db.prepare("DELETE FROM community_flag WHERE target_type = 'comment' AND target_id IN (SELECT id FROM community_comment WHERE post_id = ?)").bind(postId),
       db.prepare("DELETE FROM community_reaction WHERE target_type = 'post' AND target_id = ?").bind(postId),
       db.prepare("DELETE FROM community_reaction WHERE target_type = 'comment' AND target_id IN (SELECT id FROM community_comment WHERE post_id = ?)").bind(postId),
+      db.prepare('DELETE FROM community_comment WHERE post_id = ?').bind(postId),
       db.prepare('DELETE FROM community_post WHERE id = ?').bind(postId),
     ]);
 
