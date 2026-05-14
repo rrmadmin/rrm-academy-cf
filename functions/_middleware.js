@@ -210,11 +210,12 @@ export async function onRequest(context) {
     ));
   }
 
+  const pathnameLower = url.pathname.toLowerCase();
   const needsAuth =
-    url.pathname === '/account' || url.pathname.startsWith('/account/') ||
-    url.pathname === '/community' || url.pathname.startsWith('/community/') ||
-    url.pathname === '/ask' || url.pathname.startsWith('/ask/') ||
-    url.pathname === '/save-the-uterus-club/migrate' || url.pathname.startsWith('/save-the-uterus-club/migrate/');
+    pathnameLower === '/account' || pathnameLower.startsWith('/account/') ||
+    pathnameLower === '/community' || pathnameLower.startsWith('/community/') ||
+    pathnameLower === '/ask' || pathnameLower.startsWith('/ask/') ||
+    pathnameLower === '/save-the-uterus-club/migrate' || pathnameLower.startsWith('/save-the-uterus-club/migrate/');
 
   if (needsAuth) {
     if (!env.DB) {
