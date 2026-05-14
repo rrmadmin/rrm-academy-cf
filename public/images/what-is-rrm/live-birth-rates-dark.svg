@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 380" role="img" aria-label="Live birth rates comparing restorative reproductive medicine and IVF benchmarks">
+  <title>Live Birth Rates: RRM vs IVF</title>
+  <desc>Horizontal bar chart comparing live birth rates. Boyle 2025 NaPro 41 percent; IVF multi-embryo SART 40 percent; IVF multi-embryo CDC 41 percent; IVF single-embryo SART 30.6 percent; IVF single-embryo HFEA 24.4 percent.</desc>
+
+  <style>
+    .heading { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600; fill: #b0aaa2; letter-spacing: 0.05em; }
+    .divider { stroke: #6b5877; stroke-width: 1; }
+    .label { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 400; fill: #b0aaa2; text-anchor: end; dominant-baseline: central; }
+    .track { fill: #3a3632; }
+    .bar-rrm { fill: #b8a3c4; }
+    .bar-ivf { fill: #6b6560; }
+    .value { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; dominant-baseline: central; }
+    .value-rrm { fill: #b8a3c4; }
+    .value-ivf { fill: #b0aaa2; }
+    .caption { font-family: 'Inter', sans-serif; font-size: 11.5px; font-style: italic; fill: #c9b8d3; }
+  </style>
+
+  <rect width="700" height="380" fill="#28241e"/>
+
+  <text x="30" y="35" class="heading">LIVE BIRTH RATES</text>
+  <line x1="30" y1="48" x2="670" y2="48" class="divider"/>
+
+  <text x="235" y="90" class="label">RRM (Boyle 2025)</text>
+  <rect x="248" y="78" width="350" height="22" rx="3" class="track"/>
+  <rect x="248" y="78" width="350" height="22" rx="3" class="bar-rrm"/>
+  <text x="618" y="90" class="value value-rrm">41%</text>
+
+  <text x="235" y="135" class="label">IVF, multi-embryo (SART)</text>
+  <rect x="248" y="123" width="350" height="22" rx="3" class="track"/>
+  <rect x="248" y="123" width="341" height="22" rx="3" class="bar-ivf"/>
+  <text x="618" y="135" class="value value-ivf">40%</text>
+
+  <text x="235" y="180" class="label">IVF, multi-embryo (CDC)</text>
+  <rect x="248" y="168" width="350" height="22" rx="3" class="track"/>
+  <rect x="248" y="168" width="350" height="22" rx="3" class="bar-ivf"/>
+  <text x="618" y="180" class="value value-ivf">41%</text>
+
+  <text x="235" y="225" class="label">IVF, single embryo (SART)</text>
+  <rect x="248" y="213" width="350" height="22" rx="3" class="track"/>
+  <rect x="248" y="213" width="261" height="22" rx="3" class="bar-ivf"/>
+  <text x="618" y="225" class="value value-ivf">30.6%</text>
+
+  <text x="235" y="270" class="label">IVF, single embryo (HFEA)</text>
+  <rect x="248" y="258" width="350" height="22" rx="3" class="track"/>
+  <rect x="248" y="258" width="208" height="22" rx="3" class="bar-ivf"/>
+  <text x="618" y="270" class="value value-ivf">24.4%</text>
+
+  <text x="30" y="320" class="caption">RRM achieves comparable live birth rates while treating the underlying condition.</text>
+  <text x="30" y="338" class="caption">Source: Boyle 2025, n=187; IVF benchmarks from SART, CDC, and HFEA registries.</text>
+</svg>

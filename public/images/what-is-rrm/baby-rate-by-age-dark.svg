@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 320" role="img" aria-label="Adjusted cumulative take-home baby rate by age group from Sanchez-Mendez 2025">
+  <title>Take-Home Baby Rate by Age (Sanchez-Mendez 2025)</title>
+  <desc>Horizontal bar chart of adjusted cumulative take-home baby rates by age group from the Sanchez-Mendez 2025 NaProTechnology cohort of 1,310 couples: ages 18 to 30, 83.7 percent; ages 36 to 40, 53.3 percent; ages over 40, 24.4 percent.</desc>
+
+  <style>
+    .heading { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600; fill: #b0aaa2; letter-spacing: 0.05em; }
+    .divider { stroke: #6b5877; stroke-width: 1; }
+    .label { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 400; fill: #b0aaa2; text-anchor: end; dominant-baseline: central; }
+    .track { fill: #3a3632; }
+    .bar-young { fill: #b8a3c4; }
+    .bar-mid { fill: #9c83a8; }
+    .bar-old { fill: #6b6560; }
+    .value { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; dominant-baseline: central; }
+    .value-rrm { fill: #b8a3c4; }
+    .value-mid { fill: #b8a3c4; }
+    .value-old { fill: #b0aaa2; }
+    .caption { font-family: 'Inter', sans-serif; font-size: 11.5px; font-style: italic; fill: #c9b8d3; }
+  </style>
+
+  <rect width="700" height="320" fill="#28241e"/>
+
+  <text x="30" y="35" class="heading">ADJUSTED TAKE-HOME BABY RATE BY AGE</text>
+  <line x1="30" y1="48" x2="670" y2="48" class="divider"/>
+
+  <text x="235" y="90" class="label">Age 18&ndash;30</text>
+  <rect x="248" y="78" width="350" height="22" rx="3" class="track"/>
+  <rect x="248" y="78" width="350" height="22" rx="3" class="bar-young"/>
+  <text x="608" y="90" class="value value-rrm">83.7%</text>
+
+  <text x="235" y="135" class="label">Age 36&ndash;40</text>
+  <rect x="248" y="123" width="350" height="22" rx="3" class="track"/>
+  <rect x="248" y="123" width="223" height="22" rx="3" class="bar-mid"/>
+  <text x="608" y="135" class="value value-mid">53.3%</text>
+
+  <text x="235" y="180" class="label">Age over 40</text>
+  <rect x="248" y="168" width="350" height="22" rx="3" class="track"/>
+  <rect x="248" y="168" width="102" height="22" rx="3" class="bar-old"/>
+  <text x="608" y="180" class="value value-old">24.4%</text>
+
+  <text x="30" y="240" class="caption">Adjusted cumulative take-home baby rates from the Sanchez-Mendez 2025 NaProTechnology cohort.</text>
+  <text x="30" y="258" class="caption">Younger women had significantly higher success. Source: n=1,310 couples, Madrid 2019&ndash;2023.</text>
+</svg>
