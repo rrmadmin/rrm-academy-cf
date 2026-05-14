@@ -285,6 +285,7 @@ const designSystem = {
   brand: manualClean.brand,
   fonts: manualClean.fonts,
   typography: manualClean.typography,
+  components: manualClean.components,
   themes: {
     light: buildTheme(light),
     dark: buildTheme(dark),

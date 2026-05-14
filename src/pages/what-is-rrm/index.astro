@@ -139,6 +139,12 @@ const jsonLd = {
           datePublished: '2025',
           journal: 'Frontiers in Reproductive Health',
         }),
+        citeStub({
+          name: 'Recurrent pregnancy loss: a committee opinion',
+          author: 'Practice Committee of the American Society for Reproductive Medicine',
+          datePublished: '2026',
+          journal: 'Fertility and Sterility',
+        }),
       ],
     },
     {
@@ -623,12 +629,12 @@ const jsonLd = {
               </thead>
               <tbody>
                 <tr>
-                  <td>Endometriosis</td>
+                  <td><a href="/endometriosis/">Endometriosis</a></td>
                   <td>Excision surgery with adhesion prevention, post-operative hormonal support, long-term monitoring</td>
                   <td>Suppressive medications, ablation surgery, IVF to bypass</td>
                 </tr>
                 <tr>
-                  <td>PCOS</td>
+                  <td><a href="/pcos/">PCOS</a></td>
                   <td>Phenotype-based evaluation and targeted treatment by subtype</td>
                   <td>Suppressive medications, metformin, empiric ovulation induction</td>
                 </tr>
@@ -638,9 +644,14 @@ const jsonLd = {
                   <td>Empiric IUI or IVF without identifying the cause</td>
                 </tr>
                 <tr>
-                  <td>Recurrent miscarriage</td>
+                  <td><a href="/miscarriage/">Recurrent miscarriage</a></td>
                   <td>Cycle-timed progesterone support, thyroid and immune evaluation, anatomical assessment</td>
                   <td>Calendar-based progesterone, IVF with PGT-A</td>
+                </tr>
+                <tr>
+                  <td><a href="/endometritis/">Chronic endometritis</a></td>
+                  <td>CD138 endometrial biopsy, targeted antibiotic therapy, post-treatment re-biopsy</td>
+                  <td>Frequently undiagnosed; missed in recurrent miscarriage and implantation failure workups</td>
                 </tr>
                 <tr>
                   <td>Ovulatory dysfunction</td>
@@ -679,13 +690,15 @@ const jsonLd = {
 
           <p>RRM uses minimally invasive excision surgery, which removes endometriosis tissue at the root rather than burning the surface. This distinction matters. Ablation causes thermal damage and leaves deeper disease behind. Yeung et al. reported a 2.5% repeat surgery rate over ten years after excision,<sup><a href="#ref-11" id="cite-11c">11</a></sup> compared to recurrence rates as high as 40% within five years after ablation.<sup><a href="#ref-39" id="cite-39b">39</a></sup></p>
 
-          <p>Effective excision includes adhesion prevention protocols that preserve pelvic anatomy and reproductive function. Endometriosis is a chronic condition, and post-operative care (hormonal support, cycle monitoring, long-term management) must account for that. If you suspect endometriosis, our <a href="/endo-survey/">Endometriosis Self-Survey</a> can help you assess your symptoms.</p>
+          <p>Effective excision includes adhesion prevention protocols that preserve pelvic anatomy and reproductive function. Endometriosis is a chronic condition, and post-operative care (hormonal support, cycle monitoring, long-term management) must account for that. If you suspect endometriosis, our <a href="/endo-survey/">Endometriosis Self-Survey</a> can help you assess your symptoms. For the full clinical picture (diagnosis, staging, excision technique, comorbidities, and post-operative care), read the dedicated <a href="/endometriosis/">Endometriosis pillar guide</a>.</p>
 
           <h3>How Does RRM Treat PCOS?</h3>
 
           <p>PCOS affects an estimated 10 to 13% of reproductive-age women and is the most common endocrine disorder in this population.<sup><a href="#ref-40" id="cite-40">40</a></sup> Not all PCOS is the same. RRM evaluates by phenotype: insulin-resistant, inflammatory, adrenal, or post-pill. Each requires a different treatment strategy.</p>
 
           <p>Cycle charting reveals the specific ovulatory dysfunction present. Some women ovulate irregularly. Others do not ovulate at all. The chart data guides the clinician to the correct intervention matched to the individual's pattern.<sup><a href="#ref-5" id="cite-5e">5</a></sup></p>
+
+          <p>For the full clinical picture (diagnostic phenotypes, metabolic and mental-health comorbidities, and the differences between phenotype-matched RRM treatment and conventional suppressive management), read the dedicated <a href="/pcos/">PCOS pillar guide</a>.</p>
 
           <h3>What Does RRM Do About "Unexplained" Infertility?</h3>
 
@@ -695,9 +708,11 @@ const jsonLd = {
 
           <h3>How Does RRM Investigate Recurrent Miscarriage?</h3>
 
-          <p>Recurrent pregnancy loss affects approximately 2 to 5% of couples. The conventional workup includes karyotyping, antiphospholipid antibody testing, and uterine imaging. When these return normal, couples are often told to "keep trying" without further investigation.</p>
+          <p>Recurrent pregnancy loss (RPL) affects approximately 2 to 5% of couples.<sup><a href="#ref-44" id="cite-44">44</a></sup> The ASRM 2026 committee opinion on RPL outlines the baseline conventional workup: karyotyping, antiphospholipid antibody testing, thyroid function, and uterine imaging. When these return normal, couples are often told to "keep trying" without further investigation.<sup><a href="#ref-44" id="cite-44b">44</a></sup></p>
 
-          <p>RRM expands the investigation. Progesterone support is timed to the ovulatory event identified on the cycle chart, not an arbitrary calendar date. Serial post-ovulatory progesterone measurement identifies luteal phase deficiency that a single draw misses. Full thyroid evaluation, immune workup, and anatomical assessment are standard. The goal is to identify and treat the cause of pregnancy loss.<sup><a href="#ref-4" id="cite-4a">4</a></sup></p>
+          <p>RRM expands the investigation beyond that baseline. Progesterone support is timed to the ovulatory event identified on the cycle chart, not an arbitrary calendar date. Serial post-ovulatory progesterone measurement identifies luteal phase deficiency that a single draw misses. CD138 endometrial biopsy evaluates for chronic endometritis, a condition that the standard workup routinely misses. Full thyroid evaluation, immune workup, and anatomical assessment are standard.<sup><a href="#ref-4" id="cite-4a">4</a></sup></p>
+
+          <p>For the full clinical picture (population-level epidemiology, causes the standard workup misses, and what outcomes look like after cause-based treatment), read the dedicated <a href="/miscarriage/">Miscarriage and Recurrent Pregnancy Loss pillar guide</a>. For the missed-diagnosis pattern specifically, read the <a href="/endometritis/">Chronic Endometritis pillar guide</a>.</p>
 
           <h3>How Does RRM Address Ovulatory Dysfunction?</h3>
 
@@ -921,7 +936,7 @@ const jsonLd = {
                     <td class="chart-dx__after">31%</td>
                   </tr>
                   <tr>
-                    <th scope="row">Endometritis</th>
+                    <th scope="row"><a href="/endometritis/">Chronic endometritis</a></th>
                     <td class="chart-dx__before">0%</td>
                     <td class="chart-dx__after">17%</td>
                   </tr>
@@ -1579,6 +1594,7 @@ const jsonLd = {
               <li id="ref-41">Gleicher N, Kushnir VA, Albertini DF, Barad DH. "The declining efficiency of IVF in the USA." <em>Human Reproduction</em> (2025/2026). PMID: 41660485. PMC: PMC12872396.</li>
               <li id="ref-42">De Corte P, Klinghardt M, von Stockum S, Heinemann K. "Time to Diagnose Endometriosis: Current Status, Challenges and Opportunities." <em>BJOG</em> 132, no. 2 (2024): 118-130. PMID: 39373298.</li>
               <li id="ref-43">RESTORE Center for Endometriosis. "Outcomes." Yeung P, Jr., director. <a href="https://www.restoreendo.com/outcomes" rel="noopener">restoreendo.com/outcomes</a>. Accessed 22 April 2026.</li>
+              <li id="ref-44">Practice Committee of the American Society for Reproductive Medicine. "Recurrent pregnancy loss: a committee opinion." <em>Fertility and Sterility</em> (2026). PMID: 42062119. DOI: 10.1016/j.fertnstert.2026.03.001. Replaces the 2012 ASRM opinion on evaluation and treatment of recurrent pregnancy loss.</li>
             </ol>
           </section>
 
@@ -1596,7 +1612,6 @@ const jsonLd = {
       </div>
     </div>
   </div>
-  <p class="page-updated">Last updated: March 2026</p>
   <BackToTop />
   </MaybeShell>
 </BaseLayout>
