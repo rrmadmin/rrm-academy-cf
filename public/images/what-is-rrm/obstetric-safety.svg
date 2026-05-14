@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 360" role="img" aria-label="Obstetric safety outcomes comparing restorative reproductive medicine and IVF">
+  <title>Obstetric Safety: RRM vs IVF</title>
+  <desc>Grouped bar chart comparing three obstetric outcomes between RRM and IVF: singleton prematurity 4.0 percent RRM vs 11.8 percent IVF; low birth weight 5.3 percent RRM vs 11.8 percent IVF; multiple pregnancies 2.5 percent RRM vs 6 to 7 percent IVF. Lower rates indicate better outcomes.</desc>
+
+  <style>
+    .heading { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600; fill: #636261; letter-spacing: 0.05em; }
+    .divider { stroke: #c9b8d3; stroke-width: 1; }
+    .metric { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; fill: #636261; }
+    .legend-label { font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 500; fill: #636261; }
+    .track { fill: #f0eeeb; }
+    .bar-rrm { fill: #725e7e; }
+    .bar-ivf { fill: #b0aaa2; }
+    .value { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; dominant-baseline: central; }
+    .value-rrm { fill: #725e7e; }
+    .value-ivf { fill: #636261; }
+    .tag { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #636261; letter-spacing: 0.04em; text-anchor: end; dominant-baseline: central; }
+    .caption { font-family: 'Inter', sans-serif; font-size: 11.5px; font-style: italic; fill: #987da8; }
+  </style>
+
+  <rect width="700" height="360" fill="white"/>
+
+  <text x="30" y="35" class="heading">OBSTETRIC SAFETY</text>
+  <line x1="30" y1="48" x2="670" y2="48" class="divider"/>
+
+  <!-- Legend -->
+  <rect x="500" y="22" width="12" height="12" rx="2" class="bar-rrm"/>
+  <text x="518" y="32" class="legend-label">RRM</text>
+  <rect x="565" y="22" width="12" height="12" rx="2" class="bar-ivf"/>
+  <text x="583" y="32" class="legend-label">IVF</text>
+
+  <!-- Group 1: Singleton prematurity -->
+  <text x="30" y="80" class="metric">Singleton prematurity</text>
+  <text x="235" y="105" class="tag">RRM</text>
+  <rect x="248" y="93" width="350" height="22" rx="3" class="track"/>
+  <rect x="248" y="93" width="119" height="22" rx="3" class="bar-rrm"/>
+  <text x="618" y="105" class="value value-rrm">4.0%</text>
+  <text x="235" y="135" class="tag">IVF</text>
+  <rect x="248" y="123" width="350" height="22" rx="3" class="track"/>
+  <rect x="248" y="123" width="350" height="22" rx="3" class="bar-ivf"/>
+  <text x="618" y="135" class="value value-ivf">11.8%</text>
+
+  <!-- Group 2: Low birth weight -->
+  <text x="30" y="172" class="metric">Low birth weight</text>
+  <text x="235" y="197" class="tag">RRM</text>
+  <rect x="248" y="185" width="350" height="22" rx="3" class="track"/>
+  <rect x="248" y="185" width="158" height="22" rx="3" class="bar-rrm"/>
+  <text x="618" y="197" class="value value-rrm">5.3%</text>
+  <text x="235" y="227" class="tag">IVF</text>
+  <rect x="248" y="215" width="350" height="22" rx="3" class="track"/>
+  <rect x="248" y="215" width="350" height="22" rx="3" class="bar-ivf"/>
+  <text x="618" y="227" class="value value-ivf">11.8%</text>
+
+  <!-- Group 3: Multiple pregnancies -->
+  <text x="30" y="264" class="metric">Multiple pregnancies</text>
+  <text x="235" y="289" class="tag">RRM</text>
+  <rect x="248" y="277" width="350" height="22" rx="3" class="track"/>
+  <rect x="248" y="277" width="125" height="22" rx="3" class="bar-rrm"/>
+  <text x="618" y="289" class="value value-rrm">2.5%</text>
+  <text x="235" y="319" class="tag">IVF</text>
+  <rect x="248" y="307" width="350" height="22" rx="3" class="track"/>
+  <rect x="248" y="307" width="325" height="22" rx="3" class="bar-ivf"/>
+  <text x="618" y="319" class="value value-ivf">6&ndash;7%</text>
+
+  <text x="30" y="352" class="caption">Lower rates indicate better outcomes. RRM pregnancies are naturally conceived singletons.</text>
+</svg>

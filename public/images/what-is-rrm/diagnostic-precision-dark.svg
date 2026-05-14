@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 420" role="img" aria-label="Diagnostic findings before and after a complete RRM workup">
+  <title>Diagnostic Precision: Before and After RRM Workup</title>
+  <desc>Horizontal bar chart from Boyle 2025 showing the share of couples assigned to four diagnoses before and after a complete restorative reproductive medicine workup. Unexplained infertility drops from 24 percent to 1 percent. Corpus luteum deficiency rises from 0 to 71 percent. Hypoandrogenism rises from 0 to 31 percent. Chronic endometritis rises from 0 to 17 percent.</desc>
+
+  <style>
+    .heading { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600; fill: #b0aaa2; letter-spacing: 0.05em; }
+    .subtitle { font-family: 'Inter', sans-serif; font-size: 12px; fill: #b0aaa2; }
+    .divider { stroke: #6b5877; stroke-width: 1; }
+    .condition { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; fill: #b0aaa2; }
+    .legend-label { font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 500; fill: #b0aaa2; }
+    .track { fill: #3a3632; }
+    .bar-before { fill: #6b6560; }
+    .bar-after { fill: #b8a3c4; }
+    .value { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; dominant-baseline: central; }
+    .value-before { fill: #b0aaa2; }
+    .value-after { fill: #b8a3c4; }
+    .tag { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #b0aaa2; letter-spacing: 0.04em; text-anchor: end; dominant-baseline: central; }
+    .caption { font-family: 'Inter', sans-serif; font-size: 11.5px; font-style: italic; fill: #c9b8d3; }
+  </style>
+
+  <rect width="700" height="420" fill="#28241e"/>
+
+  <text x="30" y="35" class="heading">DIAGNOSTIC PRECISION</text>
+  <line x1="30" y1="48" x2="670" y2="48" class="divider"/>
+  <text x="30" y="68" class="subtitle">Share of couples assigned each diagnosis, before vs. after RRM workup</text>
+
+  <rect x="500" y="22" width="12" height="12" rx="2" class="bar-before"/>
+  <text x="518" y="32" class="legend-label">Before</text>
+  <rect x="572" y="22" width="12" height="12" rx="2" class="bar-after"/>
+  <text x="590" y="32" class="legend-label">After RRM</text>
+
+  <text x="30" y="100" class="condition">Unexplained infertility</text>
+  <text x="235" y="125" class="tag">Before</text>
+  <rect x="248" y="113" width="350" height="22" rx="3" class="track"/>
+  <rect x="248" y="113" width="118" height="22" rx="3" class="bar-before"/>
+  <text x="618" y="125" class="value value-before">24%</text>
+  <text x="235" y="155" class="tag">After</text>
+  <rect x="248" y="143" width="350" height="22" rx="3" class="track"/>
+  <rect x="248" y="143" width="5" height="22" rx="3" class="bar-after"/>
+  <text x="618" y="155" class="value value-after">1%</text>
+
+  <text x="30" y="190" class="condition">Corpus luteum deficiency</text>
+  <text x="235" y="215" class="tag">Before</text>
+  <rect x="248" y="203" width="350" height="22" rx="3" class="track"/>
+  <text x="618" y="215" class="value value-before">0%</text>
+  <text x="235" y="245" class="tag">After</text>
+  <rect x="248" y="233" width="350" height="22" rx="3" class="track"/>
+  <rect x="248" y="233" width="350" height="22" rx="3" class="bar-after"/>
+  <text x="618" y="245" class="value value-after">71%</text>
+
+  <text x="30" y="280" class="condition">Hypoandrogenism</text>
+  <text x="235" y="305" class="tag">Before</text>
+  <rect x="248" y="293" width="350" height="22" rx="3" class="track"/>
+  <text x="618" y="305" class="value value-before">0%</text>
+  <text x="235" y="335" class="tag">After</text>
+  <rect x="248" y="323" width="350" height="22" rx="3" class="track"/>
+  <rect x="248" y="323" width="153" height="22" rx="3" class="bar-after"/>
+  <text x="618" y="335" class="value value-after">31%</text>
+
+  <text x="30" y="370" class="condition">Chronic endometritis</text>
+  <text x="235" y="395" class="tag">After</text>
+  <rect x="248" y="383" width="350" height="22" rx="3" class="track"/>
+  <rect x="248" y="383" width="84" height="22" rx="3" class="bar-after"/>
+  <text x="618" y="395" class="value value-after">17%</text>
+
+  <text x="30" y="412" class="caption">Most &ldquo;unexplained&rdquo; cases had identifiable, treatable causes after RRM workup. Source: Boyle 2025, n=187.</text>
+</svg>
