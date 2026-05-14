@@ -48,7 +48,8 @@ async function handlePortal(request, env, waitUntil) {
         "SELECT id FROM wix_subscription WHERE (user_id = ? OR email = ? COLLATE NOCASE) AND status = 'active' LIMIT 1"
       ).bind(session.userId, user?.email || '').first();
     } catch (_err) {
-      // wix_subscription lookup failed — fall through to generic error
+      log(env, waitUntil, 'billing', 'portal_wix_lookup_fail', 'error', _err.message);
+      // fall through to generic error so user sees a clean message
     }
     if (wix) {
       return json({ ok: false, error: 'Your donation is on our previous platform and cannot be managed through Stripe. Email administrator@rrmacademy.org for help managing it.' }, 404);

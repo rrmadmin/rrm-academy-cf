@@ -234,8 +234,15 @@ export async function onRequestDelete({ request, env, waitUntil }) {
       db.prepare("DELETE FROM community_flag WHERE target_type = 'comment' AND target_id IN (SELECT id FROM community_comment WHERE parent_id = ?)").bind(commentId),
       db.prepare("DELETE FROM community_reaction WHERE target_type = 'comment' AND target_id = ?").bind(commentId),
       db.prepare("DELETE FROM community_reaction WHERE target_type = 'comment' AND target_id IN (SELECT id FROM community_comment WHERE parent_id = ?)").bind(commentId),
-      db.prepare('DELETE FROM community_comment WHERE parent_id = ?').bind(commentId),
-      db.prepare('DELETE FROM community_comment WHERE id = ?').bind(commentId),
+      db.prepare(`
+        WITH RECURSIVE descendants AS (
+          SELECT id FROM community_comment WHERE id = ?
+          UNION ALL
+          SELECT c.id FROM community_comment c
+          JOIN descendants d ON c.parent_id = d.id
+        )
+        DELETE FROM community_comment WHERE id IN (SELECT id FROM descendants)
+      `).bind(commentId),
     ]);
 
     return json({ ok: true });
@@ -281,9 +288,13 @@ export async function onRequestPatch({ request, env, waitUntil }) {
       return json({ ok: false, error: 'Not authorized' }, 403);
     }
 
-    await db.prepare(
-      "UPDATE community_comment SET content = ?, updated_at = datetime('now') WHERE id = ?"
-    ).bind(content.trim(), commentId).run();
+    const result = await db.prepare(
+      "UPDATE community_comment SET content = ?, updated_at = datetime('now') WHERE id = ? AND author_id = ?"
+    ).bind(content.trim(), commentId, user.id).run();
+
+    if (result.meta?.changes === 0) {
+      return json({ ok: false, error: 'Not authorized' }, 403);
+    }
 
     return json({ ok: true });
   } catch (err) {

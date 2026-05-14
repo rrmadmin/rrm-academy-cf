@@ -5,6 +5,7 @@
 import { sendEmail } from '../_ses.js';
 import { SITE_URL } from '../auth/_shared.js';
 import { STUC_MEMBER_WHERE } from './_shared.js';
+import { log } from '../_log.js';
 
 function escapeHtml(str) {
   if (!str) return '';
@@ -71,6 +72,11 @@ export async function notifyNewPost(env, db, post, authorName) {
       AND u.id != ?
     LIMIT 5000
   `).bind(post.authorId).all();
+
+  if (members.results?.length === 5000) {
+    log(env, null, 'community', 'notify_roster_cap_hit', 'warn',
+      'STUC notify roster query returned 5000 rows -- review LIMIT and chunking strategy');
+  }
 
   if (!members.results.length) return;
 

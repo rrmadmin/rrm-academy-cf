@@ -350,20 +350,24 @@ export async function onRequestPost({ request, env, waitUntil }) {
         return json({ ok: false, error: 'Could not generate a valid slug from title' }, 400);
       }
 
-      // Uniqueness check with collision retry
+      // Uniqueness check: one round-trip for exact match, then one for numbered variants
       let candidate = candidateBase;
-      let collision = await db.prepare(
+      const exactCollision = await db.prepare(
         'SELECT 1 FROM community_post WHERE slug = ? COLLATE NOCASE'
       ).bind(candidate).first();
 
-      if (collision) {
+      if (exactCollision) {
+        const variants = await db.prepare(
+          'SELECT slug FROM community_post WHERE slug LIKE ? COLLATE NOCASE'
+        ).bind(candidateBase + '-%').all();
+        const used = new Set();
+        for (const row of (variants.results || [])) {
+          const m = row.slug.match(/-(\d+)$/);
+          if (m) used.add(parseInt(m[1], 10));
+        }
         let found = false;
         for (let i = 2; i <= 99; i++) {
-          candidate = candidateBase + '-' + i;
-          collision = await db.prepare(
-            'SELECT 1 FROM community_post WHERE slug = ? COLLATE NOCASE'
-          ).bind(candidate).first();
-          if (!collision) { found = true; break; }
+          if (!used.has(i)) { candidate = candidateBase + '-' + i; found = true; break; }
         }
         if (!found) {
           return json({ ok: false, error: 'slug_conflict' }, 409);
@@ -581,6 +585,12 @@ export async function onRequestDelete({ request, env, waitUntil }) {
     }
 
     // Manually clean reactions, flags, and comments -- D1 CASCADE is inert
+    // ORDER MATTERS: comment-children flag/reaction cleanup (statements 2 and 4) MUST run
+    // BEFORE `DELETE FROM community_comment` (statement 5) because D1 batch executes
+    // statements serially within a transaction -- subselects in later statements see earlier
+    // statements' writes. If `community_comment` rows are deleted first, the comment-flag
+    // and comment-reaction subselects against `community_comment` return empty and those
+    // child rows are orphaned.
     await db.batch([
       db.prepare("DELETE FROM community_flag WHERE target_type = 'post' AND target_id = ?").bind(postId),
       db.prepare("DELETE FROM community_flag WHERE target_type = 'comment' AND target_id IN (SELECT id FROM community_comment WHERE post_id = ?)").bind(postId),
