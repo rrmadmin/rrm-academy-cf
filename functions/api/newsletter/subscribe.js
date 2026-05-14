@@ -62,9 +62,12 @@ export async function onRequestPost(context) {
   }
 
   // Verify Turnstile token
-  const turnstileOk = await verifyTurnstile(env.CF_TURNSTILE_SECRET, body.turnstileToken, ip, env);
-  if (!turnstileOk) {
-    return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
+  const turnstileResult = await verifyTurnstile(env.CF_TURNSTILE_SECRET, body.turnstileToken, ip, env);
+  if (!turnstileResult.ok) {
+    const turnstileMsg = turnstileResult.reason === 'network'
+      ? 'Verification service unavailable. Please try again in a moment.'
+      : 'Spam check failed. Please refresh and try again.';
+    return json({ ok: false, error: turnstileMsg }, 403);
   }
 
   // ELV mailbox verification (blocks spamtraps, disabled mailboxes, disposables)

@@ -144,14 +144,8 @@ export async function onRequestPost(context) {
 
   // Verify Turnstile token
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-  let turnstileOk;
-  try {
-    turnstileOk = await verifyTurnstile(env.CF_TURNSTILE_SECRET, turnstile_token, ip, env);
-  } catch (err) {
-    log(env, waitUntil, 'partners', 'turnstile_error', 'error', err.message, 0, 500);
-    return json({ error: 'service_error' }, 500);
-  }
-  if (!turnstileOk) {
+  const turnstileResult = await verifyTurnstile(env.CF_TURNSTILE_SECRET, turnstile_token, ip, env);
+  if (!turnstileResult.ok) {
     return json({ error: 'invalid_turnstile' }, 400);
   }
 

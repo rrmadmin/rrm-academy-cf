@@ -48,33 +48,58 @@ export async function onRequestPost({ request, env, waitUntil }) {
     email_log: 0,
     search_log: 0,
   };
+  const errors = [];
 
-  // Single-DB cleanup: batched for atomicity and fewer round trips.
-  // Order matches the `pruned` keys so results[i] maps to the right counter.
-  let batchFailed = false;
+  // Sequential per-table cleanup so a lock on one table (e.g. webhook_event
+  // under concurrent writes) doesn't roll back the others.
   try {
-    const results = await db.batch([
-      db.prepare('DELETE FROM session WHERE expires_at < ?').bind(now),
-      db.prepare('DELETE FROM password_reset WHERE expires_at < ?').bind(now),
-      db.prepare('DELETE FROM email_verification WHERE expires_at < ?').bind(now),
-      db.prepare('DELETE FROM webhook_event WHERE processed_at < ?').bind(sevenDaysAgo),
-      db.prepare("DELETE FROM newsletter_event WHERE created_at < datetime(?, 'unixepoch')").bind(now - 90 * 86400),
-      db.prepare('DELETE FROM pdf_token WHERE expires_at < ?').bind(pdfTokenCutoff),
-      db.prepare("DELETE FROM email_log WHERE created_at < datetime('now', '-90 days')"),
-    ]);
-    pruned.sessions = results[0]?.meta?.changes ?? 0;
-    pruned.password_resets = results[1]?.meta?.changes ?? 0;
-    pruned.email_verifications = results[2]?.meta?.changes ?? 0;
-    pruned.webhook_events = results[3]?.meta?.changes ?? 0;
-    pruned.newsletter_events = results[4]?.meta?.changes ?? 0;
-    pruned.pdf_tokens = results[5]?.meta?.changes ?? 0;
-    pruned.email_log = results[6]?.meta?.changes ?? 0;
-  } catch (err) {
-    batchFailed = true;
-    log(env, waitUntil, 'admin', 'cleanup_batch_error', 'error', err.message);
+    const r = await db.prepare('DELETE FROM session WHERE expires_at < ?').bind(now).run();
+    pruned.sessions = r.meta?.changes ?? 0;
+  } catch (e) {
+    errors.push(`session: ${e.message}`);
+  }
+  try {
+    const r = await db.prepare('DELETE FROM password_reset WHERE expires_at < ?').bind(now).run();
+    pruned.password_resets = r.meta?.changes ?? 0;
+  } catch (e) {
+    errors.push(`password_reset: ${e.message}`);
+  }
+  try {
+    const r = await db.prepare('DELETE FROM email_verification WHERE expires_at < ?').bind(now).run();
+    pruned.email_verifications = r.meta?.changes ?? 0;
+  } catch (e) {
+    errors.push(`email_verification: ${e.message}`);
+  }
+  try {
+    const r = await db.prepare('DELETE FROM webhook_event WHERE processed_at < ?').bind(sevenDaysAgo).run();
+    pruned.webhook_events = r.meta?.changes ?? 0;
+  } catch (e) {
+    errors.push(`webhook_event: ${e.message}`);
+  }
+  try {
+    const r = await db.prepare("DELETE FROM newsletter_event WHERE created_at < datetime(?, 'unixepoch')").bind(now - 90 * 86400).run();
+    pruned.newsletter_events = r.meta?.changes ?? 0;
+  } catch (e) {
+    errors.push(`newsletter_event: ${e.message}`);
+  }
+  try {
+    const r = await db.prepare('DELETE FROM pdf_token WHERE expires_at < ?').bind(pdfTokenCutoff).run();
+    pruned.pdf_tokens = r.meta?.changes ?? 0;
+  } catch (e) {
+    errors.push(`pdf_token: ${e.message}`);
+  }
+  try {
+    const r = await db.prepare("DELETE FROM email_log WHERE created_at < datetime('now', '-90 days')").run();
+    pruned.email_log = r.meta?.changes ?? 0;
+  } catch (e) {
+    errors.push(`email_log: ${e.message}`);
   }
 
-  // search_log lives in a separate D1 (rrm-analytics) so it runs outside the batch.
+  if (errors.length) {
+    log(env, waitUntil, 'admin', 'cleanup_partial_failure', 'warn', errors.join('; '));
+  }
+
+  // search_log lives in a separate D1 (rrm-analytics) so it runs outside the main DB loop.
   try {
     if (env.ANALYTICS_DB) {
       const r = await env.ANALYTICS_DB.prepare(
@@ -87,9 +112,6 @@ export async function onRequestPost({ request, env, waitUntil }) {
   }
 
   const total = pruned.sessions + pruned.password_resets + pruned.email_verifications + pruned.webhook_events + pruned.newsletter_events + pruned.pdf_tokens + pruned.email_log + pruned.search_log;
-  log(env, waitUntil, 'admin', 'cleanup_completed', batchFailed ? 'error' : 'ok', `pruned ${total} rows${batchFailed ? ' (batch failed)' : ''}`, 0, batchFailed ? 500 : 200);
-  if (batchFailed) {
-    return json({ ok: false, error: 'cleanup_batch_failed', pruned }, 500);
-  }
-  return json({ ok: true, pruned });
+  log(env, waitUntil, 'admin', 'cleanup_completed', errors.length ? 'warn' : 'ok', `pruned ${total} rows${errors.length ? ' (partial failure)' : ''}`, 0, 200);
+  return json({ ok: true, pruned, ...(errors.length ? { errors: errors } : {}) });
 }
