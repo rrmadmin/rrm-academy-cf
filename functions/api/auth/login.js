@@ -38,10 +38,15 @@ export async function onRequestPost({ request, env, waitUntil }) {
     }
 
     // Turnstile
-    const turnstileOk = await verifyTurnstile(
+    const turnstileResult = await verifyTurnstile(
       env.CF_TURNSTILE_SECRET, body.turnstileToken, ip, env
     );
-    if (!turnstileOk) return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
+    if (!turnstileResult.ok) {
+      const turnstileMsg = turnstileResult.reason === 'network'
+        ? 'Verification service unavailable. Please try again in a moment.'
+        : 'Spam check failed. Please refresh and try again.';
+      return json({ ok: false, error: turnstileMsg }, 403);
+    }
 
     // Look up user
     const user = await db.prepare('SELECT id, email, hashed_password, google_id, name, first_name, last_name, email_verified, role, blocked FROM user WHERE email = ? COLLATE NOCASE')

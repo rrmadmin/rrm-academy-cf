@@ -77,11 +77,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
       INSERT INTO community_flag (id, user_id, target_type, target_id, reason, note)
       VALUES (?, ?, ?, ?, ?, ?)
       ON CONFLICT(user_id, target_type, target_id) DO UPDATE SET
-        status = 'pending',
         reason = excluded.reason,
-        note = excluded.note,
-        resolved_by = NULL,
-        resolved_at = NULL
+        note = excluded.note
       RETURNING id
     `).bind(id, user.id, targetType, targetId, reason, note?.trim() || null).first();
     const flagId = upserted?.id ?? existing?.id ?? id;

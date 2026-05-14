@@ -167,13 +167,13 @@ export async function onRequestPost(context) {
     if (wuFn) {
       wuFn(
         notifyReply(env, db, postId, parentId || null, user.id, displayName(user), content.trim())
-          .catch(err => log(env, waitUntil, 'community', 'comment_error', 'error', `notification: ${err.message}`, 0, 0))
+          .catch(err => log(env, waitUntil, 'community', 'comment_notification_failed', 'warn', err.message, 0, 0))
       );
     } else {
       try {
         await notifyReply(env, db, postId, parentId || null, user.id, displayName(user), content.trim());
       } catch (err) {
-        log(env, waitUntil, 'community', 'comment_error', 'error', `notification: ${err.message}`, 0, 0);
+        log(env, waitUntil, 'community', 'comment_notification_failed', 'warn', err.message, 0, 0);
       }
     }
 

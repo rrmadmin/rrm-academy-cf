@@ -84,7 +84,11 @@ async function handleEnroll(request, env, waitUntil) {
     'SELECT id, stripe_payment_intent FROM enrollment WHERE user_id = ? AND course_id = ? AND revoked_at IS NULL'
   ).bind(session.userId, courseId).first();
   if (existing) {
-    await enrollUser(db, session.userId, courseId, existing.stripe_payment_intent || null);
+    try {
+      await enrollUser(db, session.userId, courseId, existing.stripe_payment_intent || null);
+    } catch (retryErr) {
+      log(env, waitUntil, 'courses', 'enroll_retry_warn', 'warn', `userId=${session.userId} courseId=${courseId}: ${retryErr.message}`);
+    }
     return json({ ok: true, enrolled: true });
   }
 
@@ -218,5 +222,10 @@ export async function enrollUser(db, userId, courseId, stripePaymentIntent) {
   }
 
   const results = await db.batch(statements);
+  const allSucceeded = results.every(r => r?.success !== false);
+  if (!allSucceeded) {
+    // shouldn't happen with atomic batches but defense-in-depth
+    return false;
+  }
   return results[0]?.meta?.changes > 0;
 }

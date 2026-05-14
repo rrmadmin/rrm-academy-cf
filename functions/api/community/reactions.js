@@ -48,20 +48,21 @@ export async function onRequestPost({ request, env, waitUntil }) {
       if (!exists) return json({ ok: false, error: 'Comment not found' }, 404);
     }
 
-    // Toggle: try to delete first; if nothing was deleted, insert
-    const del = await db.prepare(
-      'DELETE FROM community_reaction WHERE user_id = ? AND target_type = ? AND target_id = ? AND emoji = ?'
-    ).bind(user.id, targetType, targetId, emoji).run();
+    // Atomic toggle: batch DELETE + conditional INSERT in one transaction
+    const results = await db.batch([
+      db.prepare(
+        'DELETE FROM community_reaction WHERE user_id = ? AND target_type = ? AND target_id = ? AND emoji = ?'
+      ).bind(user.id, targetType, targetId, emoji),
+      db.prepare(
+        'INSERT INTO community_reaction (user_id, target_type, target_id, emoji) VALUES (?, ?, ?, ?) ON CONFLICT(user_id, target_type, target_id, emoji) DO NOTHING'
+      ).bind(user.id, targetType, targetId, emoji),
+    ]);
+    const deleted = (results[0]?.meta?.changes || 0) > 0;
+    const inserted = (results[1]?.meta?.changes || 0) > 0;
 
-    if (del.meta.changes > 0) {
-      return json({ ok: true, action: 'removed' });
-    }
-
-    await db.prepare(
-      'INSERT OR IGNORE INTO community_reaction (user_id, target_type, target_id, emoji) VALUES (?, ?, ?, ?)'
-    ).bind(user.id, targetType, targetId, emoji).run();
-
-    return json({ ok: true, action: 'added' }, 201);
+    if (deleted && !inserted) return json({ ok: true, action: 'removed' });
+    if (!deleted && inserted) return json({ ok: true, action: 'added' }, 201);
+    return json({ ok: true, action: deleted ? 'removed' : 'added' });
   } catch (err) {
     log(env, waitUntil, 'community', 'reaction_error', 'error', `POST: ${err.message}`, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);

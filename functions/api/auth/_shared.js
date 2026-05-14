@@ -210,8 +210,8 @@ export function getSessionIdFromCookie(request) {
 // --- Turnstile verification ---
 
 export async function verifyTurnstile(secret, token, ip, env) {
-  if (!secret) return false;
-  if (!token) return false;
+  if (!secret) return { ok: false, reason: 'rejected' };
+  if (!token) return { ok: false, reason: 'rejected' };
   try {
     const resp = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
       method: 'POST',
@@ -219,7 +219,7 @@ export async function verifyTurnstile(secret, token, ip, env) {
       body: JSON.stringify({ secret, response: token, remoteip: ip }),
     });
     const result = await resp.json();
-    return result.success;
+    return { ok: !!result.success, reason: result.success ? null : 'rejected' };
   } catch (err) {
     if (env?.EVENTS) {
       env.EVENTS.writeDataPoint({
@@ -228,7 +228,7 @@ export async function verifyTurnstile(secret, token, ip, env) {
         indexes: ['verify_network_error'],
       });
     }
-    return false;
+    return { ok: false, reason: 'network' };
   }
 }
 
