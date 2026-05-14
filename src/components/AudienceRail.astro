@@ -1,0 +1,69 @@
+---
+/**
+ * Cross-pillar audience-router rail.
+ * Two modes: 'live' (target sibling exists) | 'inert' (sibling not yet shipped).
+ * Inert markup follows spec §8 / D38: <span role="link" aria-disabled="true">,
+ * NO aria-label override (WCAG 2.5.3 accessible-name-must-contain-visible-text).
+ *
+ * Token substitutions from spec defaults (tokens not in design-system.json):
+ *   --color-link              -> --accent           (#725e7e)
+ *   --color-surface-elevated  -> --bg-surface        (#ffffff)
+ *   --color-border-subtle     -> --border-color      (#dddbd8)
+ *   --color-surface-hover     -> --purple-50         (#f5f0f8)
+ *   --color-border-strong     -> --purple-300        (#c9b8d3)
+ *   --color-text-secondary    -> --text-secondary    (#636261)
+ */
+interface Props {
+  href: string;
+  text: string;
+  mode: 'live' | 'inert';
+}
+
+const { href, text, mode } = Astro.props;
+---
+
+{mode === 'live' && (
+  <a class="audience-rail" href={href}>{text}</a>
+)}
+
+{mode === 'inert' && (
+  <span
+    class="audience-rail audience-rail--inert"
+    role="link"
+    aria-disabled="true"
+    data-rail-state="inert"
+    data-future-href={href}
+  >
+    {text}<span class="audience-rail__suffix"> (coming soon)</span>
+  </span>
+)}
+
+<style>
+  .audience-rail {
+    display: inline-block;
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: var(--accent);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    transition: background 120ms ease, border-color 120ms ease;
+  }
+
+  .audience-rail:hover {
+    background: var(--purple-50);
+    border-color: var(--purple-300);
+  }
+
+  .audience-rail--inert {
+    color: var(--text-secondary);
+    opacity: 0.65;
+    cursor: not-allowed;
+    border-style: dashed;
+  }
+
+  .audience-rail--inert:hover {
+    background: var(--bg-surface);
+    border-color: var(--border-color);
+  }
+</style>

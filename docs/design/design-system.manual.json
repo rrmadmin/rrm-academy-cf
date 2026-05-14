@@ -35,6 +35,42 @@
     },
     "philosophy": "Purple as authority. The brand purple (#725e7e) is used sparingly -- accent links, buttons, interactive states. It never competes with content."
   },
+  "components": {
+    "audience-rail": {
+      "_note": "Cross-pillar audience-router rail. Inert mode: span[role=link][aria-disabled=true]. Live mode: a[href]. Tokens substituted from spec defaults where named tokens did not exist in design-system.json.",
+      "padding": "var(--space-3) var(--space-4)",
+      "border-radius": "var(--radius-md)",
+      "states": {
+        "live": {
+          "color": "var(--accent)",
+          "background": "var(--bg-surface)",
+          "border": "1px solid var(--border-color)"
+        },
+        "inert": {
+          "color": "var(--text-secondary)",
+          "opacity": "0.65",
+          "border-style": "dashed",
+          "cursor": "not-allowed"
+        },
+        "live-hover": {
+          "background": "var(--purple-50)",
+          "border-color": "var(--purple-300)"
+        },
+        "inert-hover": {
+          "background": "var(--bg-surface)",
+          "border-color": "var(--border-color)"
+        }
+      },
+      "_token-substitutions": {
+        "--color-link": "--accent",
+        "--color-surface-elevated": "--bg-surface",
+        "--color-border-subtle": "--border-color",
+        "--color-surface-hover": "--purple-50",
+        "--color-border-strong": "--purple-300",
+        "--color-text-secondary": "--text-secondary"
+      }
+    }
+  },
   "fonts": {
     "source": "src/styles/fonts.css (@fontsource packages, self-hosted woff2)",
     "families": {
