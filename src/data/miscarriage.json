@@ -1,0 +1,90 @@
+{
+  "_meta": {
+    "purpose": "Curated SSOT for /miscarriage/ topic hub. Comparison cards (mainstream workup vs RRM evaluation) and treatable causes reference cards rendered as Astro card grids.",
+    "source": "Library citations, ASRM 2012 RPL committee opinion (reaffirmed 2020, updated 2026), Kuroda 2021, Cicinelli 2013, Boyle 2024 (estradiol/DHEA), Stanford 2008, Tham 2012, Boyle 2010, Negro 2010, McQueen 2019, Santulli 2016, Balasch 1986.",
+    "updated": "2026-05-14",
+    "library_base_url": "https://rrmacademy.org/library/",
+    "card_notes": "Each card field is an HTML fragment with inline citation hyperlinks to library records. Render with Astro set:html. Inline citations are MANDATORY per editorial policy."
+  },
+  "workup_comparison": [
+    {
+      "key": "mainstream",
+      "name": "Standard RPL Workup",
+      "subtitle": "What most practices offer after two to three losses",
+      "threshold_html": "Guideline threshold is <strong>two losses</strong>, but practice patterns commonly defer to three or more before initiating systematic evaluation.",
+      "tests_included_html": "<ul><li>Antiphospholipid antibody panel</li><li>Parental karyotype</li><li>Uterine anatomy (2D ultrasound or SHG)</li><li>Thyroid function (TSH)</li></ul>",
+      "tests_typically_excluded_html": "<ul><li>Endometrial biopsy with CD138 for chronic endometritis</li><li>Sperm DNA fragmentation</li><li>Cycle-timed progesterone (luteal phase)</li><li>Full thyroid panel (free T4, TPO antibodies)</li><li>Androgen panel (DHEA-S, testosterone)</li><li>Endometriosis evaluation</li></ul>",
+      "outcome_when_nothing_found_html": "Labeled <strong>\"unexplained recurrent pregnancy loss.\"</strong> Surveillance offered. No targeted treatment.",
+      "rrm_stance": "Incomplete. The most prevalent treatable causes are not routinely tested."
+    },
+    {
+      "key": "rrm",
+      "name": "Cause-Based RPL Evaluation",
+      "subtitle": "RRM-trained clinician approach: evaluate after first or second loss, both partners",
+      "threshold_html": "Begins after <strong>first loss</strong> when risk factors present; standard after <strong>two losses</strong> regardless of age.",
+      "tests_included_html": "<ul><li>Cycle charting (FABM) as foundational data layer</li><li>Antiphospholipid antibody panel</li><li>Parental karyotype when indicated</li><li>3D TVUS or sonohysterogram</li><li>Full thyroid panel: TSH, free T4, TPO antibodies</li><li>Cycle-timed progesterone levels</li><li>Androgen panel: DHEA-S, testosterone when indicated</li><li>Prolactin</li><li>Glucose / fasting insulin if PCOS suspected</li><li>Endometrial biopsy with CD138 immunohistochemistry for CE</li><li>Endometrial culture</li><li>Partner semen analysis with sperm DNA fragmentation</li><li>Hysteroscopy when imaging is suggestive</li></ul>",
+      "tests_typically_excluded_html": "None of the above are excluded by default. Workup is individualized but the differential is thorough.",
+      "outcome_when_nothing_found_html": "Genuine 'nothing found' is rare when the full panel is run. When it occurs, the couple is counseled on age-related factors and monitoring in subsequent pregnancies.",
+      "rrm_stance": "Endorsed as the standard. Most 'unexplained' RPL has an identifiable cause when the right questions are asked."
+    }
+  ],
+  "treatable_causes": [
+    {
+      "key": "chronic-endometritis",
+      "name": "Chronic Endometritis",
+      "prevalence_in_rpl_html": "<strong>57.8%</strong> of women with unexplained recurrent miscarriage in a study of 360 women. <a href=\"/library/chronic-endometritis-due-to-common-bacteria-is-prevalent-in-women-with-recurrent-recyfpe9a4szxychl/\">Cicinelli et al. 2013</a>.",
+      "diagnosis_html": "Endometrial biopsy with CD138 immunohistochemistry staining. Endometrial culture. Hysteroscopy for direct visualization.",
+      "treatment_html": "Targeted antibiotic therapy based on culture results. Physician-directed.",
+      "on_standard_rpl_panel": "No",
+      "cross_link_html": "See the <a href=\"/endometritis/\">chronic endometritis guide</a> for a full account."
+    },
+    {
+      "key": "luteal-phase-deficiency",
+      "name": "Luteal Phase Deficiency",
+      "prevalence_in_rpl_html": "Documented in the RPL literature since <a href=\"/library/direct-evidence-of-luteal-insufficiency-in-women-with-habitual-abortion-recds5g7vshndiwxu/\">Horta et al. 1977</a>. Found in 19 of 60 recurrent abortion patients in a cohort study, significantly higher than fertile controls. <a href=\"/library/the-significance-of-luteal-phase-deficiency-on-fertility-a-diagnostic-and-therap-recfmjzkvnocypkyk/\">Balasch et al. 1986</a>. Charting-visible. Frequently undetected without cycle data.",
+      "diagnosis_html": "Cycle charting (FABM) to document luteal phase length. Cycle-timed progesterone levels in the mid-luteal phase.",
+      "treatment_html": "Progesterone support during luteal phase and early pregnancy when deficiency is documented. Timing relative to implantation is clinically significant. Physician-directed.",
+      "on_standard_rpl_panel": "Rarely (cycle-timed progesterone is not standard)"
+    },
+    {
+      "key": "hypoandrogenemia",
+      "name": "Hypoandrogenemia / Low DHEA-S",
+      "prevalence_in_rpl_html": "Miscarriage rate 45.5% in low-estradiol women without supplementation vs 17.5% in DHEA-supplemented group (p=0.038). <a href=\"/library/restoration-of-serum-estradiol-and-reduced-incidence-of-miscarriage-in-patients--H9q8uQWG/\">Boyle et al. 2024</a>.",
+      "diagnosis_html": "Androgen panel: DHEA-S, testosterone. Not included in standard RPL workup.",
+      "treatment_html": "DHEA supplementation to restore estradiol levels when hypoandrogenemia is documented. Physician-directed.",
+      "on_standard_rpl_panel": "No"
+    },
+    {
+      "key": "thyroid-dysfunction",
+      "name": "Thyroid Dysfunction",
+      "prevalence_in_rpl_html": "Subclinical hypothyroidism (TSH 2.5-5.0) associated with <strong>6.1% pregnancy loss</strong> vs 3.6% in women with TSH below 2.5 in a prospective study of 4,123 women. <a href=\"/library/increased-pregnancy-loss-rate-in-thyroid-antibody-negative-women-with-tsh-levels-reculphjam60qtljh/\">Negro et al. 2010</a>.",
+      "diagnosis_html": "Full thyroid panel: TSH, free T4, TPO antibodies. TSH alone is insufficient.",
+      "treatment_html": "Thyroid optimization under physician supervision when indicated.",
+      "on_standard_rpl_panel": "TSH often yes; free T4 and TPO antibodies often no"
+    },
+    {
+      "key": "antiphospholipid-syndrome",
+      "name": "Antiphospholipid Syndrome",
+      "prevalence_in_rpl_html": "One of the best-documented treatable causes. Present in a clinically significant minority of RPL cases. Requires two positive tests at least 12 weeks apart for diagnosis. <a href=\"/library/randomised-controlled-trial-of-aspirin-and-aspirin-plus-heparin-in-pregnant-wome-rec1snclxkbdb8hxk/\">Rai et al. 1997</a>.",
+      "diagnosis_html": "Lupus anticoagulant, anticardiolipin IgG/IgM, anti-beta-2 glycoprotein-I IgG/IgM. Two tests required.",
+      "treatment_html": "Anticoagulation during pregnancy. Physician-directed. No protocol details on public pages.",
+      "on_standard_rpl_panel": "Yes, this is typically included"
+    },
+    {
+      "key": "sperm-dna-fragmentation",
+      "name": "Sperm DNA Fragmentation",
+      "prevalence_in_rpl_html": "Significantly elevated in male partners of women with RPL. Mean difference 11.91 vs fertile controls (95% CI 4.97-18.86) in a meta-analysis of 13 studies. <a href=\"/library/sperm-dna-fragmentation-and-recurrent-pregnancy-loss-a-systematic-review-and-met-recyq3m4kcw20pwot/\">McQueen et al. 2019</a>.",
+      "diagnosis_html": "Sperm DNA fragmentation test (DFI). Not included in standard semen analysis.",
+      "treatment_html": "Evaluation by reproductive urologist. Lifestyle and antioxidant intervention where modifiable. Physician-directed.",
+      "on_standard_rpl_panel": "No"
+    },
+    {
+      "key": "uterine-anatomy",
+      "name": "Anatomic Factors",
+      "prevalence_in_rpl_html": "Uterine septum is the anatomic anomaly most consistently linked to recurrent miscarriage in observational data, per <a href=\"/library/fertility-and-pregnancy-outcomes-following-hysteroscopic-metroplasty-of-differen-reckj3clfbhcb0oop/\">Wang et al. 2019</a>. Submucosal fibroids, polyps, and adhesions are less common but warrant evaluation.",
+      "diagnosis_html": "3D transvaginal ultrasound or sonohysterogram as first-line. Hysteroscopy as gold standard for direct visualization and treatment.",
+      "treatment_html": "Hysteroscopic correction when individually indicated. Septum resection is an option but randomized data (TRUST RCT, Rikken et al. 2021) have not demonstrated a definitive benefit over expectant management; decision is individualized. Surgeon-directed.",
+      "on_standard_rpl_panel": "Pelvic ultrasound often yes; 3D TVUS or SHG variable"
+    }
+  ]
+}

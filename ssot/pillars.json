@@ -163,6 +163,20 @@
       "in_guides_catalogue": true,
       "in_shell_guides_nav": true,
       "_order": 10
+    },
+    {
+      "slug": "miscarriage",
+      "file": "miscarriage/index.astro",
+      "title": "Miscarriage and Recurrent Pregnancy Loss: A Clinician-Reviewed Guide",
+      "description": "Miscarriage affects approximately 15% of clinically confirmed pregnancies. Recurrent pregnancy loss (RPL), defined as two or more clinical losses, affects 2 to 5% of couples. Most causes are diagnosable and treatable. This guide covers what the standard workup misses, what RRM-trained clinicians evaluate, and what outcomes look like after cause-based treatment.",
+      "og_title": "Miscarriage and Recurrent Pregnancy Loss",
+      "og_description": "Most causes of recurrent miscarriage are diagnosable and treatable. What the standard workup misses, what RRM-trained clinicians evaluate, and what outcomes look like after cause-based treatment.",
+      "author": "Dr. Naomi Whittaker",
+      "read_time": "22 min read",
+      "accent": "var(--purple-700)",
+      "in_guides_catalogue": true,
+      "in_shell_guides_nav": true,
+      "_order": 11
     }
   ]
 }
