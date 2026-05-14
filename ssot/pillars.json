@@ -135,6 +135,20 @@
       "in_guides_catalogue": true,
       "in_shell_guides_nav": true,
       "_order": 8
+    },
+    {
+      "slug": "endometriosis",
+      "file": "endometriosis/index.astro",
+      "title": "Endometriosis: A Clinician-Reviewed Guide",
+      "description": "Endometriosis is a chronic inflammatory disease that drives pain, organ dysfunction, and infertility. How RRM-trained clinicians diagnose and treat it through excision surgery, cycle charting, and longitudinal care.",
+      "og_title": "Endometriosis: A Clinician-Reviewed Guide",
+      "og_description": "A chronic inflammatory disease that drives pain, organ dysfunction, and infertility. How RRM clinicians diagnose and treat it through excision surgery and longitudinal care.",
+      "author": "Dr. Naomi Whittaker",
+      "read_time": "22 min read",
+      "accent": "var(--purple-700)",
+      "in_guides_catalogue": true,
+      "in_shell_guides_nav": true,
+      "_order": 9
     }
   ]
 }
