@@ -253,8 +253,9 @@ async function handleCheckout(request, env, waitUntil) {
           "  AND (migration_handoff_started_at IS NULL " +
           "       OR migration_handoff_started_at < strftime('%s','now') - 900)"
         ).bind(wixLookup.wix_subscription_id).run();
-      } catch {
-        lockResult = { meta: { changes: 1 } };
+      } catch (lockErr) {
+        log(env, waitUntil, 'billing', 'migration_lock_acquire_fail', 'error', lockErr.message, 0, 503);
+        return json({ ok: false, error: 'Service temporarily unavailable. Please try again.' }, 503);
       }
       if ((lockResult?.meta?.changes ?? 0) === 0) {
         return json({ ok: false, error: 'migration_in_progress' }, 409);
@@ -316,15 +317,20 @@ async function handleCheckout(request, env, waitUntil) {
         existing = await stripe.subscriptions.list({
           customer: stripeCustomerId,
           status: 'all',
-          limit: 10,
+          limit: 100,
         });
       } catch (err) {
         log(env, waitUntil, 'billing', 'subscriptions_list_error', 'error', `stripe subscriptions.list: ${err.message}`, 0, 503);
         return json({ ok: false, error: 'Payment service temporarily unavailable. Please try again.' }, 503);
       }
-      const blocking = existing.data.find(s =>
-        s.status === 'active' || s.status === 'trialing' || s.status === 'past_due' || s.status === 'incomplete'
-      );
+      // TODO: paginate when existing.has_more — applies to donors with >100 historical subs (vanishingly rare today)
+      const nowSec = Math.floor(Date.now() / 1000);
+      const blocking = existing.data.find(s => {
+        if (s.status === 'active' || s.status === 'trialing' || s.status === 'past_due' || s.status === 'incomplete') return true;
+        // Cancellation pending — sub still has access through current period
+        if (s.cancel_at_period_end && s.current_period_end && s.current_period_end > nowSec) return true;
+        return false;
+      });
       if (blocking) {
         const msg = blocking.status === 'past_due'
           ? 'You have a membership with a payment issue. Please update your payment method from your account page.'
