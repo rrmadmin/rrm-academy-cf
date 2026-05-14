@@ -139,6 +139,7 @@ async function handleStatus(request, env, waitUntil) {
       db.prepare(
         'SELECT tier, status, amount_cents, next_expected_at FROM wix_subscription' +
         ' WHERE (user_id = ? OR email = ? COLLATE NOCASE) AND status = \'active\'' +
+        ' AND migration_status NOT IN (\'stripe_active\', \'migrated\', \'fully_exited\')' +
         ' ORDER BY started_at DESC LIMIT 1'
       ).bind(userId, email).first(),
       db.prepare(
@@ -166,6 +167,7 @@ async function handleStatus(request, env, waitUntil) {
         `SELECT tier, status, amount_cents, next_expected_at, last_order_at
            FROM wix_subscription
            WHERE (user_id = ? OR email = ? COLLATE NOCASE)
+           AND migration_status NOT IN ('stripe_active', 'migrated', 'fully_exited')
            ORDER BY CASE status WHEN 'active' THEN 0 ELSE 1 END, COALESCE(last_order_at, started_at) DESC
            LIMIT 1`
       ).bind(userId, email).first();
