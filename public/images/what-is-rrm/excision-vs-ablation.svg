@@ -23,14 +23,14 @@
 
   <!-- Row 1: Excision (RRM) -->
   <text x="235" y="82" class="label">Optimal excision (RRM)</text>
-  <text x="235" y="100" class="sublabel">10-year follow-up &middot; Yeung 2024</text>
+  <text x="235" y="100" class="sublabel">10-year follow-up · Yeung 2024</text>
   <rect x="248" y="80" width="350" height="22" rx="3" class="track"/>
   <rect x="248" y="80" width="22" height="22" rx="3" class="bar-rrm"/>
   <text x="608" y="92" class="value value-rrm">2.5%</text>
 
   <!-- Row 2: Ablation -->
   <text x="235" y="142" class="label">Ablation</text>
-  <text x="235" y="160" class="sublabel">5-year recurrence &middot; Guo 2009</text>
+  <text x="235" y="160" class="sublabel">5-year recurrence · Guo 2009</text>
   <rect x="248" y="140" width="350" height="22" rx="3" class="track"/>
   <rect x="248" y="140" width="350" height="22" rx="3" class="bar-ablation"/>
   <text x="608" y="152" class="value value-ablation">40%</text>

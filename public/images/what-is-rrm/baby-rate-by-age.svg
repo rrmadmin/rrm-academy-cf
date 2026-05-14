@@ -23,13 +23,13 @@
   <line x1="30" y1="48" x2="670" y2="48" class="divider"/>
 
   <!-- Row 1: 18-30 — 83.7% -->
-  <text x="235" y="90" class="label">Age 18&ndash;30</text>
+  <text x="235" y="90" class="label">Age 18–30</text>
   <rect x="248" y="78" width="350" height="22" rx="3" class="track"/>
   <rect x="248" y="78" width="350" height="22" rx="3" class="bar-young"/>
   <text x="608" y="90" class="value value-rrm">83.7%</text>
 
   <!-- Row 2: 36-40 — 53.3% -->
-  <text x="235" y="135" class="label">Age 36&ndash;40</text>
+  <text x="235" y="135" class="label">Age 36–40</text>
   <rect x="248" y="123" width="350" height="22" rx="3" class="track"/>
   <rect x="248" y="123" width="223" height="22" rx="3" class="bar-mid"/>
   <text x="608" y="135" class="value value-mid">53.3%</text>
@@ -41,5 +41,5 @@
   <text x="608" y="180" class="value value-old">24.4%</text>
 
   <text x="30" y="240" class="caption">Adjusted cumulative take-home baby rates from the Sanchez-Mendez 2025 NaProTechnology cohort.</text>
-  <text x="30" y="258" class="caption">Younger women had significantly higher success. Source: n=1,310 couples, Madrid 2019&ndash;2023.</text>
+  <text x="30" y="258" class="caption">Younger women had significantly higher success. Source: n=1,310 couples, Madrid 2019–2023.</text>
 </svg>

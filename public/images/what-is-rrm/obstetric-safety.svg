@@ -59,7 +59,7 @@
   <text x="235" y="319" class="tag">IVF</text>
   <rect x="248" y="307" width="350" height="22" rx="3" class="track"/>
   <rect x="248" y="307" width="325" height="22" rx="3" class="bar-ivf"/>
-  <text x="618" y="319" class="value value-ivf">6&ndash;7%</text>
+  <text x="618" y="319" class="value value-ivf">6–7%</text>
 
   <text x="30" y="352" class="caption">Lower rates indicate better outcomes. RRM pregnancies are naturally conceived singletons.</text>
 </svg>
