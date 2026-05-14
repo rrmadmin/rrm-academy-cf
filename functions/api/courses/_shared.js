@@ -76,7 +76,8 @@ export async function autoEnrollAdmin(db, userId, courseId) {
 
   const id = generateId();
   await db.prepare(
-    'INSERT OR IGNORE INTO enrollment (id, user_id, course_id) VALUES (?, ?, ?)'
+    'INSERT INTO enrollment (id, user_id, course_id) VALUES (?, ?, ?)' +
+    ' ON CONFLICT(user_id, course_id) DO UPDATE SET revoked_at = NULL'
   ).bind(id, userId, courseId).run();
 }
 
