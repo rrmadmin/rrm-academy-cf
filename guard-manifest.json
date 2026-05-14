@@ -107,7 +107,7 @@
       "note": "Public newsletter intake (rate-limited)"
     },
     "functions/api/search/semantic.js": {
-      "hash": "8dc98454c2fb25d9faaa9f46707db782cde02f5f3e4c38d6e4531071b605f857",
+      "hash": "71e67c58fa557848cf4d88e8cc11ff844e4f34d42809841156248b3e2162f2d8",
       "note": "Billed AI.run() + Vectorize (rate-limited)"
     },
     "functions/api/_ask_prompt.js": {
@@ -115,7 +115,7 @@
       "note": "SYSTEM_PROMPT for /api/ask -- single source of truth"
     },
     "functions/api/ask.js": {
-      "hash": "238d2d434f625e9069ae89efc2e2844ada6f15bca2a9fe14a3bfc9f431657748",
+      "hash": "d5dbbf83b9c1bd548da9e07f94c4383f6d736f33d82e66a353144897f7ee1f42",
       "note": "NLWeb AI Search proxy (auth + rate-limited, billed upstream)"
     },
     "src/components/SearchBar.astro": {
