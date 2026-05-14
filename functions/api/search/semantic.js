@@ -48,7 +48,7 @@ export async function onRequestGet(context) {
 
   if (!query || query.length < 2) {
     if (query && query.length > 0) {
-      await logSearchQuery(env, {
+      waitUntil(logSearchQuery(env, {
         source: 'semantic',
         query,
         ip_hash: await hashIp(ip),
@@ -57,13 +57,13 @@ export async function onRequestGet(context) {
         http_status: 400,
         user_agent_short,
         referer_path,
-      });
+      }).catch(() => {}));
     }
     return Response.json({ results: [], error: 'query_too_short' }, { status: 400, headers: CORS_HEADERS });
   }
 
   if (query.length > 500) {
-    await logSearchQuery(env, {
+    waitUntil(logSearchQuery(env, {
       source: 'semantic',
       query,
       ip_hash: await hashIp(ip),
@@ -72,7 +72,7 @@ export async function onRequestGet(context) {
       http_status: 400,
       user_agent_short,
       referer_path,
-    });
+    }).catch(() => {}));
     return Response.json({ results: [], error: 'query_too_long' }, { status: 400, headers: CORS_HEADERS });
   }
 
@@ -95,7 +95,7 @@ export async function onRequestGet(context) {
     // v2 path: service binding to rrm-ai-search Worker
     if (!env.AI_SEARCH) {
       log(env, waitUntil, 'search', 'v2_binding_missing', 'error', 'AI_SEARCH binding absent', 0, 503);
-      await logSearchQuery(env, {
+      waitUntil(logSearchQuery(env, {
         source: 'semantic_v2',
         query,
         ip_hash: await hashIp(ip),
@@ -104,12 +104,12 @@ export async function onRequestGet(context) {
         http_status: 503,
         user_agent_short,
         referer_path,
-      });
+      }).catch(() => {}));
       return Response.json({ results: [], error: 'service_unavailable' }, { status: 503, headers: CORS_HEADERS });
     }
     if (!env.AI_SEARCH_WORKER_AUTH) {
       log(env, waitUntil, 'search', 'v2_auth_missing', 'error', 'AI_SEARCH_WORKER_AUTH secret absent', 0, 503);
-      await logSearchQuery(env, {
+      waitUntil(logSearchQuery(env, {
         source: 'semantic_v2',
         query,
         ip_hash: await hashIp(ip),
@@ -118,7 +118,7 @@ export async function onRequestGet(context) {
         http_status: 503,
         user_agent_short,
         referer_path,
-      });
+      }).catch(() => {}));
       return Response.json({ results: [], error: 'service_unavailable' }, { status: 503, headers: CORS_HEADERS });
     }
 
@@ -134,7 +134,7 @@ export async function onRequestGet(context) {
       });
     } catch (err) {
       log(env, waitUntil, 'search', 'v2_fetch_error', 'error', err.message, Date.now() - start, 502);
-      await logSearchQuery(env, {
+      waitUntil(logSearchQuery(env, {
         source: 'semantic_v2',
         query,
         ip_hash: await hashIp(ip),
@@ -143,13 +143,13 @@ export async function onRequestGet(context) {
         http_status: 502,
         user_agent_short,
         referer_path,
-      });
+      }).catch(() => {}));
       return Response.json({ results: [], error: 'search_failed' }, { status: 502, headers: CORS_HEADERS });
     }
 
     if (!v2Resp.ok) {
       log(env, waitUntil, 'search', 'v2_non2xx', 'error', String(v2Resp.status), Date.now() - start, 502);
-      await logSearchQuery(env, {
+      waitUntil(logSearchQuery(env, {
         source: 'semantic_v2',
         query,
         ip_hash: await hashIp(ip),
@@ -158,7 +158,7 @@ export async function onRequestGet(context) {
         http_status: 502,
         user_agent_short,
         referer_path,
-      });
+      }).catch(() => {}));
       return Response.json({ results: [], error: 'search_failed' }, { status: 502, headers: CORS_HEADERS });
     }
 
@@ -167,7 +167,7 @@ export async function onRequestGet(context) {
       v2Data = await v2Resp.json();
     } catch (err) {
       log(env, waitUntil, 'search', 'v2_parse_error', 'error', err.message, Date.now() - start, 502);
-      await logSearchQuery(env, {
+      waitUntil(logSearchQuery(env, {
         source: 'semantic_v2',
         query,
         ip_hash: await hashIp(ip),
@@ -176,12 +176,12 @@ export async function onRequestGet(context) {
         http_status: 502,
         user_agent_short,
         referer_path,
-      });
+      }).catch(() => {}));
       return Response.json({ results: [], error: 'search_failed' }, { status: 502, headers: CORS_HEADERS });
     }
 
     const results = Array.isArray(v2Data?.results) ? v2Data.results : [];
-    await logSearchQuery(env, {
+    waitUntil(logSearchQuery(env, {
       source: 'semantic_v2',
       query,
       ip_hash: await hashIp(ip),
@@ -190,7 +190,7 @@ export async function onRequestGet(context) {
       http_status: 200,
       user_agent_short,
       referer_path,
-    });
+    }).catch(() => {}));
     return Response.json({ results }, { headers: CORS_HEADERS });
   }
 
@@ -211,7 +211,7 @@ export async function onRequestGet(context) {
     } catch (aiErr) {
       const isTimeout = aiErr.message === 'ai_timeout';
       log(env, waitUntil, 'search', isTimeout ? 'ai_timeout' : 'ai_error', 'error', isTimeout ? 'AI.run timed out' : aiErr.message, Date.now() - start, isTimeout ? 503 : 502);
-      await logSearchQuery(env, {
+      waitUntil(logSearchQuery(env, {
         source: 'semantic',
         query,
         ip_hash: await hashIp(ip),
@@ -220,13 +220,13 @@ export async function onRequestGet(context) {
         http_status: isTimeout ? 503 : 502,
         user_agent_short,
         referer_path,
-      });
+      }).catch(() => {}));
       return Response.json({ results: [], error: isTimeout ? 'service_unavailable' : 'embedding_failed' }, { status: isTimeout ? 503 : 502, headers: CORS_HEADERS });
     }
     const queryVector = embedding.data?.[0];
     if (!queryVector) {
       log(env, waitUntil, 'search', 'embedding_failed', 'error', 'AI returned no vector', 0, 502);
-      await logSearchQuery(env, {
+      waitUntil(logSearchQuery(env, {
         source: 'semantic',
         query,
         ip_hash: await hashIp(ip),
@@ -235,7 +235,7 @@ export async function onRequestGet(context) {
         http_status: 502,
         user_agent_short,
         referer_path,
-      });
+      }).catch(() => {}));
       return Response.json({ results: [], error: 'embedding_failed' }, { status: 502, headers: CORS_HEADERS });
     }
 
@@ -249,7 +249,7 @@ export async function onRequestGet(context) {
     } catch (vErr) {
       const isTimeout = vErr.message === 'vectorize_timeout';
       log(env, waitUntil, 'search', isTimeout ? 'vectorize_timeout' : 'vectorize_error', 'error', isTimeout ? 'Vectorize timed out' : vErr.message, Date.now() - start, isTimeout ? 503 : 502);
-      await logSearchQuery(env, {
+      waitUntil(logSearchQuery(env, {
         source: 'semantic',
         query,
         ip_hash: await hashIp(ip),
@@ -258,7 +258,7 @@ export async function onRequestGet(context) {
         http_status: isTimeout ? 503 : 502,
         user_agent_short,
         referer_path,
-      });
+      }).catch(() => {}));
       return Response.json({ results: [], error: isTimeout ? 'service_unavailable' : 'search_failed' }, { status: isTimeout ? 503 : 502, headers: CORS_HEADERS });
     }
 
@@ -284,7 +284,7 @@ export async function onRequestGet(context) {
       results.push(result);
     }
 
-    await logSearchQuery(env, {
+    waitUntil(logSearchQuery(env, {
       source: 'semantic',
       query,
       ip_hash: await hashIp(ip),
@@ -293,13 +293,13 @@ export async function onRequestGet(context) {
       http_status: 200,
       user_agent_short,
       referer_path,
-    });
+    }).catch(() => {}));
     return Response.json({ results }, { headers: CORS_HEADERS });
   } catch (err) {
     const entry = rateLimitMap.get(ip);
     if (entry && entry.count > 0) entry.count--;
     log(env, waitUntil, 'search', 'semantic_error', 'error', err.message, 0, 500);
-    await logSearchQuery(env, {
+    waitUntil(logSearchQuery(env, {
       source: 'semantic',
       query,
       ip_hash: await hashIp(ip),
@@ -308,7 +308,7 @@ export async function onRequestGet(context) {
       http_status: 500,
       user_agent_short,
       referer_path,
-    });
+    }).catch(() => {}));
     return Response.json({ results: [], error: 'search_failed' }, { status: 500, headers: CORS_HEADERS });
   }
 }

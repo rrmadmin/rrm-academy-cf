@@ -1,0 +1,69 @@
+{
+  "_meta": {
+    "purpose": "Curated SSOT for /endometriosis/ topic hub. Surgical comparison cards and ASRM stage reference rendered as Astro card grids.",
+    "source": "Library citations, ASRM 2021 revised classification, Yeung et al. 2025, McDonnell et al. 2025.",
+    "updated": "2026-05-13",
+    "library_base_url": "https://rrmacademy.org/library/",
+    "card_notes": "Each card field is an HTML fragment with inline citation hyperlinks. Render with Astro set:html. Inline citations are MANDATORY per editorial policy."
+  },
+  "surgical_comparison": [
+    {
+      "key": "excision",
+      "name": "Excision",
+      "subtitle": "Root-cause removal",
+      "description_html": "The surgeon cuts out the endometriosis lesion and the underlying tissue into which it has grown. Nothing is left behind. Pathology specimen is preserved.",
+      "repeat_surgery_rate_html": "<strong>2.5%</strong> over multi-year follow-up in a prospective cohort of 620 patients. <a href=\"/library/the-long-term-rate-of-repeat-surgery-after-optimal-excision-surgery-of-endometriosis-at-a-single-tertiary-referral-center-recqlibe83zkcp2is/\">Yeung et al. 2025</a>.",
+      "pathology_confirmation": "Yes -- tissue sent for histologic confirmation",
+      "hormonal_suppression_post_op": "Not necessary for good outcomes in complete excision, per <a href=\"/library/complete-laparoscopic-excision-of-endometriosis-in-teenagers-is-postoperative-ho-recxfcsmpuo5jwlej/\">Yeung et al. 2011</a>.",
+      "rrm_stance": "Endorsed as the only surgical standard"
+    },
+    {
+      "key": "ablation",
+      "name": "Ablation",
+      "subtitle": "Surface destruction",
+      "description_html": "Heat, laser, or electrical energy destroys the visible surface of a lesion. Disease that has grown beneath the surface is untouched. The specimen is destroyed.",
+      "repeat_surgery_rate_html": "<strong>Up to 40 to 60%</strong> in historical series, per <a href=\"/library/the-long-term-rate-of-repeat-surgery-after-optimal-excision-surgery-of-endometriosis-at-a-single-tertiary-referral-center-recqlibe83zkcp2is/\">Yeung et al. 2025</a>.",
+      "pathology_confirmation": "No -- tissue destroyed by the procedure",
+      "hormonal_suppression_post_op": "Frequently prescribed, but does not prevent disease progression",
+      "rrm_stance": "Not endorsed. Inferior to excision on repeat-surgery outcomes."
+    }
+  ],
+  "asrm_stages": [
+    {
+      "key": "stage-i",
+      "name": "Stage I",
+      "subtitle": "Minimal",
+      "features_html": "Isolated implants, no significant adhesions. Surface lesions only.",
+      "pain_correlation": "No reliable correlation. Minimal-stage disease can cause severe pain.",
+      "fertility_correlation": "May contribute to infertility through inflammatory milieu even at low anatomic burden.",
+      "clinical_note_html": "Stage does not predict severity of patient experience. Take symptoms seriously regardless of staging."
+    },
+    {
+      "key": "stage-ii",
+      "name": "Stage II",
+      "subtitle": "Mild",
+      "features_html": "Superficial and/or deep implants, few adhesions.",
+      "pain_correlation": "Variable.",
+      "fertility_correlation": "Variable. Inflammatory mechanisms may contribute.",
+      "clinical_note_html": "Mild staging does not mean mild disease burden for the individual patient."
+    },
+    {
+      "key": "stage-iii",
+      "name": "Stage III",
+      "subtitle": "Moderate",
+      "features_html": "Multiple deep implants, possible endometriomas, filmy adhesions.",
+      "pain_correlation": "More likely significant pain, including dyspareunia.",
+      "fertility_correlation": "Meaningful anatomic contribution to infertility begins. Surgical correction often indicated.",
+      "clinical_note_html": "Ovarian endometriomas and early adhesion formation typically appear at this stage."
+    },
+    {
+      "key": "stage-iv",
+      "name": "Stage IV",
+      "subtitle": "Severe",
+      "features_html": "Large endometriomas, dense adhesions, extensive deep infiltrating disease. May involve bowel, bladder, ureter.",
+      "pain_correlation": "Often significant, though some patients present primarily with infertility.",
+      "fertility_correlation": "Substantial anatomic distortion. Surgeon skill is paramount.",
+      "clinical_note_html": "Stage IV requires a surgeon experienced in complex excision, adhesiolysis, and potentially bowel or bladder surgery."
+    }
+  ]
+}

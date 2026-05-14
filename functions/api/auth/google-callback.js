@@ -264,7 +264,10 @@ function escapeHtml(s) {
 // CF Pages _headers can convert 302 → 200, so include HTML fallback
 // that performs the redirect via meta refresh + JS even if status is wrong.
 function htmlRedirect(location, extraHeaders) {
-  const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${escapeHtml(location)}"></head><body><script>window.location.href=${JSON.stringify(location)}</script></body></html>`;
+  // Escape `<` to `<` in the JSON-encoded URL so a `</script>` substring
+  // can't close the inline script tag (XSS sink; JSON.stringify escapes `"`
+  // and `\` but NOT `<`). state-decoded `returnTo` can carry adversarial chars.
+  const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${escapeHtml(location)}"></head><body><script>window.location.href=${JSON.stringify(location).replace(/</g, '\\u003c')}</script></body></html>`;
   return new Response(html, {
     status: 302,
     headers: { Location: location, 'Content-Type': 'text/html;charset=UTF-8', ...extraHeaders },
@@ -273,7 +276,10 @@ function htmlRedirect(location, extraHeaders) {
 
 // Variant that sets multiple Set-Cookie headers (needed for session + nonce clear).
 function htmlRedirectWithCookies(location, cookies) {
-  const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${escapeHtml(location)}"></head><body><script>window.location.href=${JSON.stringify(location)}</script></body></html>`;
+  // Escape `<` to `<` in the JSON-encoded URL so a `</script>` substring
+  // can't close the inline script tag (XSS sink; JSON.stringify escapes `"`
+  // and `\` but NOT `<`). state-decoded `returnTo` can carry adversarial chars.
+  const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${escapeHtml(location)}"></head><body><script>window.location.href=${JSON.stringify(location).replace(/</g, '\\u003c')}</script></body></html>`;
   const headers = new Headers({ Location: location, 'Content-Type': 'text/html;charset=UTF-8' });
   for (const cookie of cookies) {
     headers.append('Set-Cookie', cookie);

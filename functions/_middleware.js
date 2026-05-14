@@ -177,7 +177,10 @@ export async function onRequest(context) {
   ) {
     const target = `${url.origin}${url.pathname}/${url.search}`;
     const escaped = target.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-    const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${escaped}"></head><body><script>window.location.href=${JSON.stringify(target)}</script></body></html>`;
+    // Escape `<` to `<` in the JSON-encoded URL so a `</script>` substring
+    // can't close the inline script tag (XSS sink; JSON.stringify escapes `"`
+    // and `\` but NOT `<`).
+    const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${escaped}"></head><body><script>window.location.href=${JSON.stringify(target).replace(/</g, '\\u003c')}</script></body></html>`;
     return withSecurityHeaders(new Response(html, {
       status: 301,
       headers: { Location: target, 'Content-Type': 'text/html;charset=UTF-8' },

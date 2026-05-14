@@ -1,0 +1,722 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MaybeShell from '../../components/MaybeShell.astro';
+import SectionTocChips from '../../components/SectionTocChips.astro';
+import { isShellEnabled } from '../../lib/shell-routes';
+import BackToTop from '../../components/BackToTop.astro';
+import LastUpdated from '../../components/LastUpdated.astro';
+import pageDates from '../../data/page-dates.json';
+import endometriosisData from '../../data/endometriosis.json';
+import { buildScholarlyArticleStub } from '../../lib/identity';
+import { safeJsonLd } from '../../lib/jsonld';
+
+const SHELL_ENABLED = isShellEnabled('guides');
+
+const TOC_ITEMS = [
+  { href: '#what-is-endometriosis', label: 'What Is Endometriosis?' },
+  { href: '#diagnostic-gap', label: 'Why Patients Get Missed' },
+  { href: '#types-and-stages', label: 'Types and Stages' },
+  { href: '#excision-vs-ablation', label: 'Excision vs. Ablation' },
+  { href: '#how-rrm-diagnoses', label: 'How RRM Diagnoses Endometriosis' },
+  { href: '#treatment-pathway', label: 'The RRM Treatment Pathway' },
+  { href: '#endometriosis-and-fertility', label: 'Endometriosis and Fertility' },
+  { href: '#adenomyosis', label: 'Endo and Adenomyosis' },
+  { href: '#living-with-endo', label: 'Living with Endo While You Wait' },
+  { href: '#faq', label: 'Frequently Asked Questions' },
+];
+
+const PAGE_PATH = '/endometriosis/';
+const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-05-13';
+const PAGE_URL = 'https://rrmacademy.org/endometriosis/';
+
+function citeStub(props: { name: string; author: string; datePublished: string; journal?: string }) {
+  const node = buildScholarlyArticleStub(props) as Record<string, unknown> & { '@context'?: unknown };
+  const { '@context': _ctx, ...rest } = node;
+  return rest;
+}
+
+const pageSchema = {
+  '@context': 'https://schema.org',
+  '@type': ['Article', 'MedicalWebPage'],
+  headline: 'Endometriosis: A Clinician-Reviewed Guide',
+  description: 'Endometriosis is a chronic inflammatory disease that drives pain, organ dysfunction, and infertility. Learn how RRM-trained clinicians diagnose and treat it through excision surgery, cycle charting, and longitudinal care.',
+  author: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+  publisher: {
+    '@type': 'EducationalOrganization',
+    '@id': 'https://rrmacademy.org/#organization',
+    name: 'RRM Academy',
+  },
+  datePublished: '2026-05-13',
+  dateModified: LAST_MODIFIED,
+  wordCount: 3800,
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': PAGE_URL,
+  },
+  about: {
+    '@type': 'MedicalCondition',
+    name: 'Endometriosis',
+    alternateName: ['Endometriosis externa'],
+    code: {
+      '@type': 'MedicalCode',
+      codingSystem: 'ICD-10',
+      codeValue: 'N80',
+    },
+  },
+  articleSection: [
+    'What Is Endometriosis?',
+    'Why Patients Get Missed',
+    'Types and Stages',
+    'Excision vs. Ablation',
+    'How RRM Diagnoses Endometriosis',
+    'The RRM Treatment Pathway',
+    'Endometriosis and Fertility',
+    'Endo and Adenomyosis',
+    'Living with Endo While You Wait',
+    'Frequently Asked Questions',
+  ],
+  hasPart: [
+    { '@type': 'WebPageElement', name: 'What Is Endometriosis?', url: `${PAGE_URL}#what-is-endometriosis` },
+    { '@type': 'WebPageElement', name: 'Why Patients Get Missed', url: `${PAGE_URL}#diagnostic-gap` },
+    { '@type': 'WebPageElement', name: 'Types and Stages', url: `${PAGE_URL}#types-and-stages` },
+    { '@type': 'WebPageElement', name: 'Excision vs. Ablation', url: `${PAGE_URL}#excision-vs-ablation` },
+    { '@type': 'WebPageElement', name: 'How RRM Diagnoses Endometriosis', url: `${PAGE_URL}#how-rrm-diagnoses` },
+    { '@type': 'WebPageElement', name: 'The RRM Treatment Pathway', url: `${PAGE_URL}#treatment-pathway` },
+    { '@type': 'WebPageElement', name: 'Endometriosis and Fertility', url: `${PAGE_URL}#endometriosis-and-fertility` },
+    { '@type': 'WebPageElement', name: 'Endo and Adenomyosis', url: `${PAGE_URL}#adenomyosis` },
+    { '@type': 'WebPageElement', name: 'Living with Endo While You Wait', url: `${PAGE_URL}#living-with-endo` },
+    { '@type': 'WebPageElement', name: 'Frequently Asked Questions', url: `${PAGE_URL}#faq` },
+  ],
+  citation: [
+    citeStub({
+      name: 'Endometriosis: epidemiology, diagnosis and clinical management',
+      author: 'Parasar P, Ozcan P, Terry KL',
+      datePublished: '2017',
+      journal: 'Current Obstetrics and Gynecology Reports',
+    }),
+    citeStub({
+      name: 'Management of endometriosis in general practice: the pathway to diagnosis',
+      author: 'Pugsley Z, Ballard K',
+      datePublished: '2007',
+      journal: 'British Journal of General Practice',
+    }),
+    citeStub({
+      name: 'The prevalence of endometriosis in patients with unexplained infertility',
+      author: 'Nezhat C, Armani E, Chen HC, Najmi Z, Lindheim SR, Nezhat C',
+      datePublished: '2024',
+      journal: 'Journal of Clinical Medicine',
+    }),
+    citeStub({
+      name: 'The long-term rate of repeat surgery after optimal excision surgery of endometriosis at a single tertiary referral center',
+      author: 'Yeung P, Mohan A, Gavard JA',
+      datePublished: '2025',
+      journal: "Acta Scientific Women's Health",
+    }),
+    citeStub({
+      name: 'Endometriosis quality of life cohort study: long-term impact of radical laparoscopic excision of endometriosis',
+      author: 'McDonnell R, Marshall A, Bouaziz J, Abuzeid O, Stamatopoulos N, Manchanda R, Abbott J, Condous G',
+      datePublished: '2025',
+      journal: 'Gynecology and Minimally Invasive Therapy',
+    }),
+    citeStub({
+      name: 'Seeing is believing: arguing for diagnostic laparoscopy as a diagnostic test for endometriosis',
+      author: 'Mak J, Leonardi M, Condous G',
+      datePublished: '2022',
+      journal: 'Reproduction & Fertility',
+    }),
+    citeStub({
+      name: 'Retrograde menstruation in healthy women and in patients with endometriosis',
+      author: 'Halme J, Hammond MG, Hulka JF, Raj SG, Talbert LM',
+      datePublished: '1984',
+      journal: 'Obstetrics and Gynecology',
+    }),
+    citeStub({
+      name: 'Complete laparoscopic excision of endometriosis in teenagers: is postoperative hormonal suppression necessary?',
+      author: 'Yeung PP Jr, Shwayder J, Pasic RP',
+      datePublished: '2011',
+      journal: 'Fertility and Sterility',
+    }),
+    citeStub({
+      name: 'GnRH agonists in the treatment of symptomatic endometriosis: a review',
+      author: 'Surrey ES',
+      datePublished: '2023',
+      journal: 'F&S Reports',
+    }),
+  ],
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+    { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://rrmacademy.org/guides/' },
+    { '@type': 'ListItem', position: 3, name: 'Endometriosis', item: PAGE_URL },
+  ],
+};
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'Can endometriosis be cured?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Complete surgical excision can achieve long-term remission for a significant proportion of patients. The word "cure" implies permanent resolution, and endometriosis does carry a risk of recurrence, particularly if the initial surgery did not remove all disease, or if the root-cause biology driving implantation is not addressed. A 2025 study found that after optimal excision surgery at a single referral center, only 2.5% of patients required repeat surgery over a follow-up period of up to seven years. That is not a guarantee, but it is a meaningful benchmark compared to historical series reporting up to 40 to 60% repeat-surgery rates after ablation. For many women, well-executed excision surgery followed by cycle monitoring is the closest clinical approach to disease control. Hormonal suppression does not achieve this: it manages symptoms while the disease continues. When suppression ends, symptoms return because the underlying disease is still there. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How is endometriosis diagnosed?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Laparoscopy with tissue biopsy and histologic confirmation remains the diagnostic gold standard. Clinical history, cycle charting, physical examination, and imaging (transvaginal ultrasound or MRI) can raise suspicion and guide surgical planning, but they cannot confirm the diagnosis. Transvaginal ultrasound misses most superficial peritoneal disease, and even MRI is limited in detecting superficial implants. A "normal" ultrasound does not rule out endometriosis. When symptom patterns are consistent, cyclic pain, premenstrual spotting, dyspareunia, bowel symptoms with menstruation, surgical evaluation should be pursued even when imaging is unremarkable. The diagnostic quality of the laparoscopy also matters: a systematic survey using near-contact technique finds disease that a quick pelvic survey misses. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What is the difference between excision and ablation surgery?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Excision removes endometriosis tissue at the root, cutting out the lesion and the underlying tissue into which it has grown. Ablation destroys the visible surface of a lesion using heat or laser energy, leaving behind any disease that has grown beneath the surface, and destroying the tissue specimen needed for pathology confirmation. The outcome difference is clinically significant: after optimal excision surgery, repeat surgery rates are approximately 2.5% over multi-year follow-up at the referral centers reporting this result. Historical series report repeat surgery rates up to 40 to 60% after ablation. The choice of surgical technique, and the surgeon who performs it, is the single most consequential decision in endometriosis care. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Will hormonal birth control treat my endometriosis?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Hormonal birth control does not cure endometriosis. Combined hormonal contraception, progestins, and GnRH agonists suppress the menstrual cycle and reduce symptoms in many patients, and disease activity may be suppressed while a patient is on them. But hormonal therapy does not eliminate established disease or restore anatomy. A prospective cohort study found no significant association between pre-operative hormonal suppression use and endometriosis stage at surgery, meaning women who had used suppression for years, including for a median of 36 months, still had active, staged disease at the time of surgical evaluation. When suppression ends, symptoms return because the underlying disease is still there. Suppression can be appropriate for symptom management when surgery is not immediately accessible, but it should be named honestly: it is symptom management, not disease treatment. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'I had a "normal" laparoscopy. Could I still have endometriosis?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'In many cases, a "normal" laparoscopy reflects limitations in surgical technique rather than the absence of disease. Standard laparoscopy without systematic mapping of the pelvis and abdomen, without near-contact inspection of peritoneal surfaces, misses superficial disease that is not visible at standard magnification and distance. A 2024 study found that among patients labeled with "unexplained infertility" who had undergone prior reproductive technology attempts, 90.7% had endometriosis confirmed when diagnostic laparoscopy was performed systematically with pathology confirmation, in a referral cohort where prior workup had not found the disease. If your laparoscopy was performed by a general gynaecologist without specific endometriosis-excision training, a second surgical opinion with an excision-trained surgeon is a reasonable next step. A prior negative laparoscopy is not the same as a thorough negative laparoscopy. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Does endometriosis cause infertility?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Endometriosis is one of the most common, and most frequently overlooked, causes of infertility. It contributes through several mechanisms: anatomic distortion from adhesions, an inflammatory pelvic environment hostile to conception, direct effects on oocyte quality, and ovarian reserve depletion from endometriomas. Studies estimate that between 25 and 50% of women evaluated for infertility have endometriosis. In a 2024 study of patients with the "unexplained infertility" label who had already undergone failed reproductive technology attempts, endometriosis was found in 90.7% of this referral cohort when systematic laparoscopy was performed. The relationship is bidirectional: approximately 30 to 50% of women with endometriosis also experience infertility. For couples who have been trying to conceive for 12 months or longer without success, a thorough evaluation for endometriosis, not imaging alone, is warranted. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Can RRM help me if I have already had failed IVF?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'In many cases, RRM evaluation can identify conditions that were not found or treated before IVF was attempted. Endometriosis is one of the most common. The premise of RRM is that the cycle, the anatomy, and the underlying biology are worth evaluating before, and when relevant, after, technology-based interventions. If prior IVF cycles failed without a surgical workup for endometriosis, pelvic adhesions, or co-occurring conditions like adenomyosis, those conditions may still be present and treatable. RRM clinicians start from the patient\'s current clinical picture, not from the assumption that IVF failure means the body is incapable. The question is not "why did IVF fail", it is "what has not yet been evaluated and treated?" Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How do I find a surgeon who does excision, not ablation?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Surgeon selection is the most important decision in endometriosis care. Not all gynaecologists who perform laparoscopy perform excision. When evaluating a surgeon, ask specifically: do you excise or ablate? Do you systematically map the full pelvis and abdomen? Do you perform near-contact laparoscopy? Do you take biopsy specimens for pathology confirmation? Do you have experience with deep infiltrating endometriosis, including bowel or bladder involvement? A surgeon who cannot answer these questions clearly, or who defaults to "whatever I find," may not have the specialized training that excision-based endometriosis surgery requires. For a starting point in finding an RRM-aligned excision surgeon, see our get-started guide at /what-is-rrm/#get-started. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Is endometriosis the same as endometritis?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'No. These are distinct conditions that share a root word but involve different pathology, different organs, and different treatments. Endometriosis involves tissue similar to the uterine lining growing outside the uterus, in the pelvis, on the ovaries, and in other extra-uterine sites. Endometritis involves inflammation or infection of the uterine lining itself, and is a recognized but frequently missed contributor to recurrent miscarriage and implantation failure. A patient can have both conditions simultaneously. If you have been evaluated for one and continue to have unexplained symptoms, ask whether the other has been assessed. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What stage of endometriosis do I have, and does it matter?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'ASRM staging (Stage I through Stage IV) classifies endometriosis by anatomic extent and adhesion burden. Stage I is minimal; Stage IV is severe with extensive disease and dense adhesions. The stage matters for surgical planning, more extensive disease requires a surgeon with higher skill and more operative time. The stage does not reliably predict pain severity or fertility impact. A patient with Stage I disease can have debilitating pain. A patient with Stage IV can present primarily with infertility and minimal pain. Staging is a surgical finding, not a prognosis. It describes what the surgeon found, not what your body will do. Do not use staging to minimize or maximize your experience of the disease. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+  ],
+};
+---
+
+<BaseLayout
+  title="Endometriosis: A Clinician-Reviewed Guide"
+  description="Endometriosis is a chronic inflammatory disease that drives pain, organ dysfunction, and infertility. Learn how RRM-trained clinicians diagnose and treat it through excision surgery, cycle charting, and longitudinal care."
+  canonicalUrl={PAGE_URL}
+  ogType="article"
+  publishDate="2026-05-13"
+  jsonLd={pageSchema}
+  speakable={['.pillar-lead', 'h1']}
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
+>
+  <script type="application/ld+json" set:html={safeJsonLd(breadcrumbSchema)} />
+  <script type="application/ld+json" set:html={safeJsonLd(faqSchema)} />
+
+  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname}>
+  <div class="page-wrapper" data-pagefind-body>
+    <span data-pagefind-meta="type:Guide" style="display:none"></span>
+    <span data-pagefind-meta="title:Endometriosis: A Clinician-Reviewed Guide" style="display:none"></span>
+    <div class="container">
+
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <a href="/guides/">Guides</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <span>Endometriosis</span>
+      </nav>
+
+      <h1>Endometriosis: A Clinician-Reviewed Guide</h1>
+
+      <div class="author-byline">
+        <div class="author-avatar-stack">
+          <img src="/images/authors/naomi-whittaker.webp" alt="Dr. Naomi Whittaker, MD" class="author-byline__photo" width="48" height="48" />
+        </div>
+        <div class="author-byline__text">
+          <span class="byline-author">By <strong><a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</a></strong></span>
+          <LastUpdated path={PAGE_PATH} class="byline-date" />
+        </div>
+      </div>
+
+      <details class="toc-mobile">
+        <summary>On this page</summary>
+        <ol>
+          {TOC_ITEMS.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
+        </ol>
+      </details>
+
+      {SHELL_ENABLED && <SectionTocChips items={TOC_ITEMS} />}
+
+      <div class:list={['article-layout', { 'article-layout--no-toc': SHELL_ENABLED }]}>
+        {!SHELL_ENABLED && (
+          <nav class="toc" aria-label="Table of contents">
+            <p class="toc-heading">On this page</p>
+            <ol>
+              {TOC_ITEMS.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
+            </ol>
+          </nav>
+        )}
+
+        <article class="prose">
+
+          <aside class="disambig" aria-label="Disambiguation">
+            <p>Looking for information on endometritis, a separate condition involving inflammation of the uterine lining that is frequently missed in recurrent miscarriage workups? This page covers endometriosis: tissue similar to the uterine lining that grows outside the uterus and drives chronic pain, disease progression, and, in many women, infertility.</p>
+          </aside>
+
+          <aside class="tldr">
+            <h2 id="key-takeaways">Key Takeaways</h2>
+            <ul>
+              <li><strong>Endometriosis affects an estimated 6 to 10% of reproductive-age women overall, and 25 to 50% of women with infertility</strong>, a bidirectional relationship documented in the epidemiological literature and confirmed across clinical populations, per <a href="/library/endometriosis-epidemiology-diagnosis-and-clinical-management-YHr5l7Hf/">Parasar et al. 2017</a>.</li>
+              <li><strong>The median time from first symptom to diagnosis is 9 years.</strong> A retrospective primary-care study found that a third of women consulted their GP six or more times before receiving a diagnosis, and ultrasound was diagnostic in only 10.6% of those who received one, per <a href="/library/management-of-endometriosis-in-general-practice-the-pathway-to-diagnosis-recurprirmkh4mgdr/">Pugsley and Ballard 2007</a>.</li>
+              <li><strong>When patients labeled "unexplained infertility" underwent diagnostic laparoscopy after failed reproductive technology attempts, 90.7% had endometriosis confirmed by pathology in this referral cohort.</strong> The label "unexplained" is not a diagnosis. It is an incomplete workup, per <a href="/library/the-prevalence-of-endometriosis-in-patients-with-unexplained-infertility-recjghj8avxi4uhfq/">Nezhat et al. 2024</a>.</li>
+              <li><strong>Excision and ablation are not equivalent.</strong> After optimal excision surgery at a single tertiary referral center, only 2.5% of 620 patients required repeat surgery. Historical series report up to 40 to 60% repeat surgery rates after ablation, per <a href="/library/the-long-term-rate-of-repeat-surgery-after-optimal-excision-surgery-of-endometriosis-at-a-single-tertiary-referral-center-recqlibe83zkcp2is/">Yeung et al. 2025</a>.</li>
+              <li><strong>Hormonal suppression manages symptoms but does not cure endometriosis.</strong> The same prospective cohort found no significant association between pre-operative hormonal suppression use and endometriosis stage at surgery, meaning years of suppression did not produce sustained disease regression. When suppression ends, symptoms return because the underlying disease is still there, per <a href="/library/the-long-term-rate-of-repeat-surgery-after-optimal-excision-surgery-of-endometriosis-at-a-single-tertiary-referral-center-recqlibe83zkcp2is/">Yeung et al. 2025</a>.</li>
+              <li><strong>Laparoscopy with biopsy remains the diagnostic gold standard.</strong> Clinical history, cycle charting, and imaging can raise suspicion, but histologic confirmation requires surgery. Waiting on imaging alone allows disease progression, per <a href="/library/seeing-is-believing-arguing-for-diagnostic-laparoscopy-as-a-diagnostic-test-for--recn8b8wae2vf03vh/">Mak et al. 2022</a>.</li>
+            </ul>
+          </aside>
+
+          <section id="what-is-endometriosis">
+            <h2>What Is Endometriosis?</h2>
+
+            <p class="pillar-lead"><strong>Endometriosis is a chronic, systemic, inflammatory condition in which tissue that behaves like the uterine lining grows outside the uterus, in the pelvis, on the ovaries, on or in the bowel and bladder, and occasionally in sites as distant as the diaphragm and thoracic cavity. It drives pain, adhesion formation, organ dysfunction, and, in a large proportion of affected women, infertility. It is not a menstrual complaint. It is a disease.</strong></p>
+
+            <p>Painful periods are not a personality trait. They are a symptom. The normalization of severe dysmenorrhea is one of the primary reasons endometriosis goes undiagnosed for nearly a decade in the average patient.</p>
+
+            <p>The underlying biology of endometriosis remains partially understood. John Sampson proposed the retrograde menstruation theory in 1927: that menstrual blood flows backward through the fallopian tubes and deposits endometrial cells on peritoneal surfaces. The theory has practical limits. Retrograde menstruation occurs in roughly 90% of women with patent fallopian tubes undergoing perimenstrual laparoscopy, per <a href="/library/retrograde-menstruation-in-healthy-women-and-in-patients-with-endometriosis-rec6bgf5qiksvrj7v/">Halme et al. 1984</a>, yet endometriosis develops in roughly 6 to 10% of the general female population. Something else is happening. Immune dysfunction, genetic predisposition, coelomic metaplasia (the transformation of existing peritoneal cells into endometriosis-like tissue), and stem cell involvement all appear to contribute, per <a href="/library/endometriosis-epidemiology-diagnosis-and-clinical-management-YHr5l7Hf/">Parasar et al. 2017</a>. There is also growing evidence, challenged directly by <a href="/library/was-sampson-wrong-recgayvivd9skiems/">Redwine 2002</a>, that Sampson's theory cannot fully explain deeply infiltrating or extra-pelvic disease.</p>
+
+            <p>What is clear: endometriosis is not a benign cycle irregularity. It is an active disease with the capacity for invasion, adhesion, progressive destruction of anatomy, and, in rare cases, malignant transformation, particularly in ovarian endometriomas, per <a href="/library/malignant-transformation-of-ovarian-endometriosis-recmy2nz6jteopqrm/">Nishida et al. 2000</a>. It behaves, in several documented respects, like a low-grade malignancy, per <a href="/library/evidence-that-endometriosis-behaves-in-a-malignant-manner-recc50974slgtlzrd/">Thomas and Campbell 2000</a>. Treating it as a menstrual complaint is a clinical error.</p>
+          </section>
+
+          <section id="diagnostic-gap">
+            <h2>Why Patients Get Missed: The Diagnostic Gap</h2>
+
+            <p>Women with real, diagnosable conditions. Dismissed.</p>
+
+            <p>That is the pattern. Not occasional. Structural. The median time from first symptom presentation to diagnosis of endometriosis is 9 years, per <a href="/library/management-of-endometriosis-in-general-practice-the-pathway-to-diagnosis-recurprirmkh4mgdr/">Pugsley and Ballard 2007</a>, a British primary-care study that found a third of patients consulted their GP six or more times before receiving the diagnosis, and 39% were referred to a gynaecologist two or more times before confirmation. Delay is not rare. It is the rule.</p>
+
+            <p>The reasons are multiple.</p>
+
+            <p><strong>Normalized pain.</strong> Severe dysmenorrhea is often met with reassurance that menstrual pain is normal. For a subset of women, it is not. It is disease. The <a href="/library/clinical-diagnosis-of-endometriosis-a-call-to-action-2fUp4MAj/">Agarwal et al. 2019</a> call to action in the American Journal of Obstetrics and Gynecology named this explicitly: symptom normalization and underrecognition are primary contributors to delay.</p>
+
+            <p><strong>Imaging limitations.</strong> Standard transvaginal ultrasound (TVUS) misses most superficial peritoneal disease. Ultrasound was diagnostic in only 10.6% of patients in the Pugsley study. MRI is better for deep infiltrating endometriosis (DIE) and surgical planning, per <a href="/library/the-role-of-mri-in-diagnosis-and-pre-surgical-mapping-of-endometriosis-recaribe2s18esll7/">Shenoy-Bhangle et al. 2026</a>, but even MRI cannot reliably detect superficial peritoneal lesions. A "normal" scan does not rule out endometriosis.</p>
+
+            <p><strong>Surgical technique.</strong> A laparoscopy performed without systematic mapping of the abdomen and pelvis, without near-contact inspection of peritoneal surfaces, will miss disease. Much of what passes for a "negative lap" is a non-thorough lap. The S-MAP (Systematic Mapping of the Abdomen and Pelvis) and Near-Contact Laparoscopy (NCL) techniques, described in NaProTechnology surgical literature and applied by RRM-trained surgeons, are designed to find what standard laparoscopy misses, per <a href="/library/whittaker-aagl-2024-smap-ncl/">Whittaker NM, AAGL 2024</a>. When a patient has been told her laparoscopy was negative, that deserves scrutiny, not acceptance.</p>
+
+            <p>The "unexplained infertility" problem is where the diagnostic gap becomes most costly. A 2024 study by <a href="/library/the-prevalence-of-endometriosis-in-patients-with-unexplained-infertility-recjghj8avxi4uhfq/">Nezhat et al.</a> performed diagnostic laparoscopy on 215 patients labeled "unexplained infertility" after failed reproductive technology. In this referral cohort, pathology confirmed tissue abnormalities in 98.6%, and endometriosis specifically in 90.7%. The label "unexplained" had not been earned by a complete workup. Disease was present. It had not been found.</p>
+
+            <p>"Unexplained infertility" is not a diagnosis. It is an incomplete workup.</p>
+          </section>
+
+          <section id="types-and-stages">
+            <h2>Types and Stages</h2>
+
+            <p>Endometriosis takes several anatomically distinct forms, and the form matters for surgical planning.</p>
+
+            <p><strong>Superficial peritoneal endometriosis</strong> involves implants on the surface lining of the pelvic cavity. It can cause significant pain independent of lesion volume. It is the most frequently missed by surgeons using surface-level inspection.</p>
+
+            <p><strong>Ovarian endometriomas</strong> are cysts filled with old blood ("chocolate cysts"). They are identifiable on TVUS. Bilateral endometriomas can meaningfully deplete ovarian reserve and affect fertility, per <a href="/library/incident-endometriosis-diagnosis-and-anti-mllerian-hormone-amh-how-surgical-staging-and-typology-relate-to-serum-amh-levels-recez53scy2vezdss/">Valenti et al. 2026</a>. The decision about when and how to remove them requires surgical judgment, endometrioma surgery itself can also reduce reserve, so timing and technique are consequential.</p>
+
+            <p><strong>Deep infiltrating endometriosis (DIE)</strong> penetrates more than 5 mm beneath the peritoneal surface and can involve the uterosacral ligaments, rectovaginal space, bowel, bladder, and ureter. <a href="/library/suggestive-evidence-that-pelvic-endometriosis-is-a-progressive-disease-whereas-d-rec5wskabe1znmhal/">Koninckx et al. 1991</a> documented the association between DIE and severe pelvic pain, distinct from the surface-lesion pattern. DIE is frequently the driver of bowel symptoms, dyschezia, painful defecation with menstruation, that are routinely attributed to IBS rather than endometriosis.</p>
+
+            <p><strong>Extra-pelvic endometriosis</strong> occurs in sites including the bowel, bladder, ureter, diaphragm, and in rare cases the thoracic cavity, umbilicus, and appendix. Diaphragmatic endo can cause right shoulder pain during menstruation. Thoracic endo can cause catamenial pneumothorax. These presentations are unusual, but they are documented, and they require a surgeon who thinks systematically, not just pelvically.</p>
+
+            <p><strong>ASRM staging (I to IV)</strong> remains the most widely used classification. Stage I is minimal, Stage II mild, Stage III moderate, Stage IV severe. The staging correlates with anatomic extent and adhesion burden. It does not reliably predict pain level or fertility impact. A patient with Stage I can have incapacitating pain; a patient with Stage IV can present primarily with infertility and minimal pain. Staging guides surgical planning. It does not guide prognosis in isolation.</p>
+
+            <div class="stage-grid">
+              {endometriosisData.asrm_stages.map((s) => (
+                <article class="stage-card">
+                  <header class="stage-card__header">
+                    <h3>{s.name}</h3>
+                    <p class="stage-card__subtitle">{s.subtitle}</p>
+                  </header>
+                  <dl class="stage-card__body">
+                    <dt>Features</dt>
+                    <dd set:html={s.features_html} />
+                    <dt>Pain correlation</dt>
+                    <dd>{s.pain_correlation}</dd>
+                    <dt>Fertility correlation</dt>
+                    <dd>{s.fertility_correlation}</dd>
+                    <dt>Clinical note</dt>
+                    <dd set:html={s.clinical_note_html} />
+                  </dl>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section id="excision-vs-ablation">
+            <h2>Excision vs. Ablation: The Centerpiece</h2>
+
+            <p>This is the surgical decision that determines outcome.</p>
+
+            <p><strong>Excision</strong> removes endometriosis tissue at its root. The surgeon cuts out the lesion and the underlying tissue into which it has invaded. Nothing is left behind.</p>
+
+            <p><strong>Ablation</strong> destroys the surface of a visible lesion using heat, laser, or electrical energy. It burns what the surgeon can see. Disease that has grown beneath the visible surface is untouched. The architecture of the lesion is destroyed, which also destroys the specimen needed for histologic confirmation.</p>
+
+            <div class="surgical-grid">
+              {endometriosisData.surgical_comparison.map((s) => (
+                <article class="surgical-card" data-key={s.key}>
+                  <header class="surgical-card__header">
+                    <h3>{s.name}</h3>
+                    <p class="surgical-card__subtitle">{s.subtitle}</p>
+                  </header>
+                  <dl class="surgical-card__body">
+                    <dt>What it does</dt>
+                    <dd set:html={s.description_html} />
+                    <dt>Repeat surgery rate</dt>
+                    <dd set:html={s.repeat_surgery_rate_html} />
+                    <dt>Pathology confirmation</dt>
+                    <dd>{s.pathology_confirmation}</dd>
+                    <dt>Hormonal suppression post-op</dt>
+                    <dd set:html={s.hormonal_suppression_post_op} />
+                    <dt>RRM stance</dt>
+                    <dd>{s.rrm_stance}</dd>
+                  </dl>
+                </article>
+              ))}
+            </div>
+
+            <p>The outcome difference is not marginal. A prospective cohort study by <a href="/library/the-long-term-rate-of-repeat-surgery-after-optimal-excision-surgery-of-endometriosis-at-a-single-tertiary-referral-center-recqlibe83zkcp2is/">Yeung et al. 2025</a> followed 620 patients who received optimal excision surgery at a single tertiary referral center. Only 2.5% required repeat surgery. Historical series report up to 40 to 60% repeat surgery rates after ablation. The same study found no significant association between pre-operative hormonal suppression and endometriosis stage at surgery, implying that years of hormonal suppression did not produce sustained disease regression.</p>
+
+            <p>That is important. It is hiding symptoms and hiding them very well. But the underlying disease is still there.</p>
+
+            <p>A separate long-term cohort study by <a href="/library/endometriosis-quality-of-life-cohort-study-long-term-impact-of-radical-laparoscopic-excision-of-endometriosis-recliqau6fpydw73h/">McDonnell et al. 2025</a> followed 88 patients with confirmed endometriosis for more than 10 years after radical laparoscopic excision. Significant improvements in menstrual pain, noncyclical pelvic pain, dyschezia, and dyspareunia were sustained up to 10 years post-surgery.</p>
+
+            <p><strong>Why ablation persists:</strong> Most general gynaecologists performing laparoscopy were not trained in excision technique. Ablation is faster. It does not require the same level of surgical skill, anatomical knowledge, or willingness to operate in difficult tissue planes. It does not involve the adhesion-prevention work that follows proper excision, the reconstruction of anatomy, the barrier placement, the operative time. "Half of it is the excision and half of it is reconstructing everything and doing my adhesion prevention," as Dr. Whittaker has described it.</p>
+
+            <p>Surgeon selection is not a secondary consideration. It is the primary one. The quality of the operation determines the patient's next decade.</p>
+
+            <p>The 2011 study by <a href="/library/complete-laparoscopic-excision-of-endometriosis-in-teenagers-is-postoperative-ho-recxfcsmpuo5jwlej/">Yeung et al. 2011</a> also showed that in teenagers who received complete laparoscopic excision, post-operative hormonal suppression was not necessary for good outcomes, challenging the common practice of prescribing combined hormonal contraception after laparoscopy as a "preventive" measure. It does not prevent. It delays recognition of recurrence.</p>
+          </section>
+
+          <section id="how-rrm-diagnoses">
+            <h2>How RRM Diagnoses Endometriosis</h2>
+
+            <p>RRM clinicians approach endometriosis as a diagnostic question, not a symptom-management problem. The workup is designed to answer: where is the disease, how extensive is it, and what is it doing to the patient's cycle and fertility?</p>
+
+            <p><strong>Clinical history.</strong> The symptom constellation matters. Dysmenorrhea requiring medication or preventing function is not normal. Deep dyspareunia, cyclical bowel or bladder symptoms, premenstrual spotting, painful bowel movements with menstruation, these are endo symptoms until proven otherwise. Premenstrual spotting of two or more days is strongly associated with histologically confirmed endometriosis in women with infertility, per <a href="/library/premenstrual-spotting-of-2-days-is-strongly-associated-with-histologically-confi-recufaau6txcemial/">Heitmann et al. 2014</a>. Charting the cycle creates a written symptom record that carries weight in a surgical referral conversation.</p>
+
+            <p><strong>Cycle charting.</strong> A Creighton Model chart, or comparable FABM chart, maps symptoms day by day. Pain location, timing, intensity, GI symptoms, the presence and character of premenstrual spotting, charted and brought to a clinical visit, this is not anecdote. It is data. It is how RRM clinicians move a conversation from "your period pain is within normal range" to "this pattern requires investigation."</p>
+
+            <p><strong>Physical exam.</strong> A skilled pelvic exam can identify uterosacral nodularity, fixed retroversion of the uterus, and adnexal tenderness that are consistent with endometriosis. Routine clinical examination alone is insufficient to diagnose or locate deep infiltrating disease, per <a href="/library/routine-clinical-examination-is-not-sufficient-for-diagnosing-and-locating-deepl-recqpoq3qu2pliaj2/">Chapron et al. 2002</a>, but it can raise the index of suspicion that warrants imaging and surgical referral.</p>
+
+            <p><strong>Imaging.</strong> TVUS by a sonographer experienced in endometriosis is valuable for identifying endometriomas and some DIE. Standard TVUS misses superficial peritoneal disease. MRI adds value in surgical planning for DIE, bowel, bladder, ureteral, and uterosacral involvement, per <a href="/library/the-role-of-mri-in-diagnosis-and-pre-surgical-mapping-of-endometriosis-recaribe2s18esll7/">Shenoy-Bhangle et al. 2026</a>. Neither modality replaces surgical confirmation.</p>
+
+            <p><strong>Laparoscopy with biopsy.</strong> This remains the diagnostic gold standard. Seeing is believing, per <a href="/library/seeing-is-believing-arguing-for-diagnostic-laparoscopy-as-a-diagnostic-test-for--recn8b8wae2vf03vh/">Mak et al. 2022</a>. The key word is systematic. A laparoscopy performed by a surgeon using S-MAP and NCL techniques is a fundamentally different procedure than a quick pelvic survey. Diagnosis is the start of care, not the end.</p>
+          </section>
+
+          <section id="treatment-pathway">
+            <h2>The RRM Treatment Pathway</h2>
+
+            <p>Endometriosis is a surgical disease. The first and central intervention is surgical excision by a surgeon trained and credentialed in excision technique.</p>
+
+            <p><strong>Pre-operative evaluation and optimization.</strong> Before surgery, RRM clinicians evaluate the full picture: cycle pattern, symptom severity, fertility goals, imaging findings, and any co-occurring diagnoses (adenomyosis, thyroid dysfunction, immune factors, male partner evaluation if fertility is a goal). Anti-inflammatory support in the pre-operative period is a reasonable clinical consideration, though specific protocols are individualized by each clinician based on the patient's full evaluation. No public dosing guidance is appropriate here; this is a conversation between the patient and her clinician.</p>
+
+            <p><strong>Excision surgery.</strong> The goal is complete removal of all visible and near-visible disease, systematic mapping of the pelvis and abdomen, and reconstruction of pelvic anatomy where adhesions have distorted it. This is not a procedure that should be booked with the first available gynaecologist. Surgeon experience, technique, and comfort with difficult pelvic anatomy, DIE involving the bowel or ureter, frozen pelvis, bilateral endometriomas, are the determinants of outcome.</p>
+
+            <p><strong>Adhesion prevention.</strong> Adhesion formation after pelvic surgery is a significant secondary cause of pain and infertility. RRM-trained surgeons with endometriosis expertise use adhesion-prevention barriers and technique modifications to minimize this risk. This is part of the surgical care, not an afterthought.</p>
+
+            <p><strong>Post-operative cycle monitoring.</strong> After excision, cycle charting resumes. The cycle is the report card. Premenstrual spotting that persists, or returns after resolution, is clinically meaningful. If fertility is a goal, cycle-timed support and monitoring begin post-operatively with the clinician coordinating care.</p>
+
+            <p><strong>On hormonal suppression.</strong> Some patients use combined hormonal contraception, progestins, or GnRH agonists before or between surgeries for symptom bridging. That is a legitimate clinical choice when the alternative is incapacitating pain with no surgical access in the near term. Suppression reduces lesion activity and symptoms while a patient is on it. It does not cure the disease, and it does not address the underlying biology. When suppression ends, symptoms return because the disease is still there. That is the difference between symptom management and disease treatment. Patients deserve to know this before accepting a prescription as the plan, per <a href="/library/gnrh-agonists-in-the-treatment-of-symptomatic-endometriosis-a-review-rec6s3sc5zw9uyhek/">Surrey 2023</a>.</p>
+          </section>
+
+          <section id="endometriosis-and-fertility">
+            <h2>Endometriosis and Fertility</h2>
+
+            <p>Endometriosis is one of the most common treatable causes of infertility, and one of the most frequently overlooked.</p>
+
+            <p>Prevalence among infertile women is estimated between 25 and 50%, with some clinic populations showing rates higher still, per <a href="/library/endometriosis-and-subfertility-is-the-relationship-resolved-recqb6ovmktgwvpn4/">D'Hooghe et al. 2003</a>. The mechanisms are multiple: anatomic distortion from adhesions (tubes displaced from ovaries, fimbria encased in scar tissue), an inflammatory pelvic milieu that is hostile to sperm and implantation, direct damage to oocyte quality from endometriomas and their contents, per <a href="/library/endometriosis-oocyte-and-embryo-quality-rec14rcjibqlsecrd/">Latif and Saridogan 2023</a>, and the ovarian reserve depletion that can follow both the endometriomas themselves and, in some cases, their surgical removal.</p>
+
+            <p>Endometriosis is also associated with significantly elevated rates of spontaneous miscarriage, per <a href="/library/increased-rate-of-spontaneous-miscarriages-in-endometriosis-affected-women-rec4slg1cgppesnay/">Santulli et al. 2016</a>, and adverse pregnancy outcomes more broadly, per <a href="/library/endometriosis-diagnosis-staging-and-typology-and-adverse-pregnancy-outcome-histo-recr6wkfbepyjkhhi/">Schliep et al. 2022</a>.</p>
+
+            <p>Post-excision pregnancy data are encouraging. The long-term cohort study by <a href="/library/endometriosis-quality-of-life-cohort-study-long-term-impact-of-radical-laparoscopic-excision-of-endometriosis-recliqau6fpydw73h/">McDonnell et al. 2025</a> reported that 77.1% of patients who desired pregnancy after radical laparoscopic excision achieved it. Surgeons working in the RRM paradigm position excision as a fertility treatment in itself, not as a preparatory step before bypassing the body's own physiology. That is the central claim: treat the disease, and the body can often do the rest. For many women with surgically treated endometriosis, that is exactly what happens.</p>
+
+            <p>Both partners need evaluation when fertility is the goal. Male factor is solely responsible in 20 to 30% of couples and contributes in another 20 to 30%, meaning a male-factor component is involved in roughly half of infertile couples. An RRM clinician evaluates both partners from the first appointment. Treating one partner's endometriosis without reviewing the male partner's semen analysis is an incomplete workup.</p>
+          </section>
+
+          <section id="adenomyosis">
+            <h2>Endometriosis and Adenomyosis: The Silent Twin</h2>
+
+            <p>Adenomyosis is a related but distinct condition in which endometrial-like glands and stroma grow into the muscular wall of the uterus (the myometrium) rather than the outer peritoneal surface. It causes heavy, painful periods, uterine enlargement, and, increasingly, is recognized as a significant contributor to infertility and implantation failure.</p>
+
+            <p>The two conditions co-occur frequently. Endometriosis-focused laparoscopy will not identify adenomyosis, which lies within the uterine wall and requires MRI or sonographic expertise to detect pre-operatively. A patient who has had excision surgery and continues to have significant dysmenorrhea deserves evaluation for adenomyosis, not a reflexive prescription for suppression.</p>
+
+            <p>A dedicated guide to adenomyosis is in development. For now: if your diagnosis has focused entirely on peritoneal endometriosis and you continue to have heavy, painful cycles, ask whether adenomyosis has been evaluated.</p>
+          </section>
+
+          <section id="living-with-endo">
+            <h2>Living with Endometriosis While You Wait for Care</h2>
+
+            <p>Access to an excision-trained surgeon is not immediate for most patients. The wait is real. Here is what to do in the meantime.</p>
+
+            <p><strong>Chart your cycle.</strong> Charting is not administrative busywork. A written symptom map, cycle length, flow character, pain timing and location, GI symptoms, premenstrual spotting, fatigue, is the most clinically useful thing you can bring to a surgical consultation. The RRM endo survey at <a href="/endo-survey/">rrmacademy.org/endo-survey/</a> is a structured intake tool built for exactly this purpose. Use it.</p>
+
+            <p><strong>Gather your records.</strong> If you have had prior laparoscopy, request the operative report and the pathology report. Not just the summary. The operative report tells a surgeon what was seen, how the survey was conducted, and what was done. The pathology report tells you whether biopsy-proven endometriosis was confirmed. "They found nothing" and "they looked everywhere with careful technique and found nothing" are not the same statement.</p>
+
+            <p><strong>Track pain patterns.</strong> Note whether pain follows a cyclical pattern (worse premenstrually or during menstruation) or is present throughout the cycle. Cyclical pain is more likely endo; persistent noncyclical pelvic pain can indicate deep infiltrating disease or co-occurring conditions. This distinction matters for surgical planning.</p>
+
+            <p><strong>When to seek urgent care.</strong> Severe pain with fever, pelvic pain with urinary symptoms, sudden worsening of established pain, or signs of internal bleeding require emergency evaluation, not a scheduled appointment.</p>
+
+            <p><strong>What not to do: wait on imaging.</strong> A TVUS that shows no endometrioma does not mean endometriosis is absent. An MRI that does not show DIE does not mean endometriosis is absent. These tools are not the diagnostic standard. If symptoms are consistent, the absence of imaging findings should not delay referral for surgical evaluation.</p>
+          </section>
+
+          <section id="faq">
+            <h2>Frequently Asked Questions</h2>
+
+            <div class="faq-accordion" data-pagefind-ignore>
+              <details>
+                <summary>Can endometriosis be cured?</summary>
+                <div class="faq-answer">
+                  <p>Complete surgical excision can achieve long-term remission for a significant proportion of patients. The word "cure" implies permanent resolution, and endometriosis does carry a risk of recurrence, particularly if the initial surgery did not remove all disease, or if the root-cause biology driving implantation is not addressed. A 2025 study found that after optimal excision surgery at a single referral center, only 2.5% of patients required repeat surgery over a follow-up period of up to seven years, per <a href="/library/the-long-term-rate-of-repeat-surgery-after-optimal-excision-surgery-of-endometriosis-at-a-single-tertiary-referral-center-recqlibe83zkcp2is/">Yeung et al. 2025</a>. That is not a guarantee, but it is a meaningful benchmark compared to historical series reporting up to 40 to 60% repeat-surgery rates after ablation. For many women, well-executed excision surgery followed by cycle monitoring is the closest clinical approach to disease control. Hormonal suppression does not achieve this: it manages symptoms while the disease continues. When suppression ends, symptoms return because the underlying disease is still there. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>How is endometriosis diagnosed?</summary>
+                <div class="faq-answer">
+                  <p>Laparoscopy with tissue biopsy and histologic confirmation remains the diagnostic gold standard, per <a href="/library/seeing-is-believing-arguing-for-diagnostic-laparoscopy-as-a-diagnostic-test-for--recn8b8wae2vf03vh/">Mak et al. 2022</a>. Clinical history, cycle charting, physical examination, and imaging (transvaginal ultrasound or MRI) can raise suspicion and guide surgical planning, but they cannot confirm the diagnosis. Transvaginal ultrasound misses most superficial peritoneal disease, and even MRI is limited in detecting superficial implants. A "normal" ultrasound does not rule out endometriosis. When symptom patterns are consistent, cyclic pain, premenstrual spotting, dyspareunia, bowel symptoms with menstruation, surgical evaluation should be pursued even when imaging is unremarkable. The diagnostic quality of the laparoscopy also matters: a systematic survey using near-contact technique finds disease that a quick pelvic survey misses. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>What is the difference between excision and ablation surgery?</summary>
+                <div class="faq-answer">
+                  <p>Excision removes endometriosis tissue at the root, cutting out the lesion and the underlying tissue into which it has grown. Ablation destroys the visible surface of a lesion using heat or laser energy, leaving behind any disease that has grown beneath the surface, and destroying the tissue specimen needed for pathology confirmation. The outcome difference is clinically significant: after optimal excision surgery, repeat surgery rates are approximately 2.5% over multi-year follow-up at the referral centers reporting this result, per <a href="/library/the-long-term-rate-of-repeat-surgery-after-optimal-excision-surgery-of-endometriosis-at-a-single-tertiary-referral-center-recqlibe83zkcp2is/">Yeung et al. 2025</a>. Historical series report repeat surgery rates up to 40 to 60% after ablation. The choice of surgical technique, and the surgeon who performs it, is the single most consequential decision in endometriosis care. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>Will hormonal birth control treat my endometriosis?</summary>
+                <div class="faq-answer">
+                  <p>Hormonal birth control does not cure endometriosis. Combined hormonal contraception, progestins, and GnRH agonists suppress the menstrual cycle and reduce symptoms in many patients, and disease activity may be suppressed while a patient is on them. But hormonal therapy does not eliminate established disease or restore anatomy. A prospective cohort study found no significant association between pre-operative hormonal suppression use and endometriosis stage at surgery, meaning women who had used suppression for years, including for a median of 36 months, still had active, staged disease at the time of surgical evaluation, per <a href="/library/the-long-term-rate-of-repeat-surgery-after-optimal-excision-surgery-of-endometriosis-at-a-single-tertiary-referral-center-recqlibe83zkcp2is/">Yeung et al. 2025</a>. When suppression ends, symptoms return because the underlying disease is still there. Suppression can be appropriate for symptom management when surgery is not immediately accessible, but it should be named honestly: it is symptom management, not disease treatment. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>I had a "normal" laparoscopy. Could I still have endometriosis?</summary>
+                <div class="faq-answer">
+                  <p>In many cases, a "normal" laparoscopy reflects limitations in surgical technique rather than the absence of disease. Standard laparoscopy without systematic mapping of the pelvis and abdomen, without near-contact inspection of peritoneal surfaces, misses superficial disease that is not visible at standard magnification and distance. A 2024 study found that among patients labeled with "unexplained infertility" who had undergone prior reproductive technology attempts, 90.7% had endometriosis confirmed when diagnostic laparoscopy was performed systematically with pathology confirmation, in a referral cohort where prior workup had not found the disease, per <a href="/library/the-prevalence-of-endometriosis-in-patients-with-unexplained-infertility-recjghj8avxi4uhfq/">Nezhat et al. 2024</a>. If your laparoscopy was performed by a general gynaecologist without specific endometriosis-excision training, a second surgical opinion with an excision-trained surgeon is a reasonable next step. A prior negative laparoscopy is not the same as a thorough negative laparoscopy. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>Does endometriosis cause infertility?</summary>
+                <div class="faq-answer">
+                  <p>Endometriosis is one of the most common, and most frequently overlooked, causes of infertility. It contributes through several mechanisms: anatomic distortion from adhesions, an inflammatory pelvic environment hostile to conception, direct effects on oocyte quality, and ovarian reserve depletion from endometriomas. Studies estimate that between 25 and 50% of women evaluated for infertility have endometriosis, per <a href="/library/endometriosis-and-subfertility-is-the-relationship-resolved-recqb6ovmktgwvpn4/">D'Hooghe et al. 2003</a>. In a 2024 study of patients with the "unexplained infertility" label who had already undergone failed reproductive technology attempts, endometriosis was found in 90.7% of this referral cohort when systematic laparoscopy was performed, per <a href="/library/the-prevalence-of-endometriosis-in-patients-with-unexplained-infertility-recjghj8avxi4uhfq/">Nezhat et al. 2024</a>. The relationship is bidirectional: approximately 30 to 50% of women with endometriosis also experience infertility. For couples who have been trying to conceive for 12 months or longer without success, a thorough evaluation for endometriosis, not imaging alone, is warranted. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>Can RRM help me if I have already had failed IVF?</summary>
+                <div class="faq-answer">
+                  <p>In many cases, RRM evaluation can identify conditions that were not found or treated before IVF was attempted. Endometriosis is one of the most common. The premise of RRM is that the cycle, the anatomy, and the underlying biology are worth evaluating before, and when relevant, after, technology-based interventions. If prior IVF cycles failed without a surgical workup for endometriosis, pelvic adhesions, or co-occurring conditions like adenomyosis, those conditions may still be present and treatable. RRM clinicians start from the patient's current clinical picture, not from the assumption that IVF failure means the body is incapable. The question is not "why did IVF fail", it is "what has not yet been evaluated and treated?" Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>How do I find a surgeon who does excision, not ablation?</summary>
+                <div class="faq-answer">
+                  <p>Surgeon selection is the most important decision in endometriosis care. Not all gynaecologists who perform laparoscopy perform excision. When evaluating a surgeon, ask specifically: do you excise or ablate? Do you systematically map the full pelvis and abdomen? Do you perform near-contact laparoscopy? Do you take biopsy specimens for pathology confirmation? Do you have experience with deep infiltrating endometriosis, including bowel or bladder involvement? A surgeon who cannot answer these questions clearly, or who defaults to "whatever I find," may not have the specialized training that excision-based endometriosis surgery requires. For a starting point in finding an RRM-aligned excision surgeon, see <a href="/what-is-rrm/#get-started">our get-started guide</a>. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>Is endometriosis the same as endometritis?</summary>
+                <div class="faq-answer">
+                  <p>No. These are distinct conditions that share a root word but involve different pathology, different organs, and different treatments. Endometriosis involves tissue similar to the uterine lining growing outside the uterus, in the pelvis, on the ovaries, and in other extra-uterine sites. Endometritis involves inflammation or infection of the uterine lining itself, and is a recognized but frequently missed contributor to recurrent miscarriage and implantation failure. A patient can have both conditions simultaneously. If you have been evaluated for one and continue to have unexplained symptoms, ask whether the other has been assessed. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>What stage of endometriosis do I have, and does it matter?</summary>
+                <div class="faq-answer">
+                  <p>ASRM staging (Stage I through Stage IV) classifies endometriosis by anatomic extent and adhesion burden. Stage I is minimal; Stage IV is severe with extensive disease and dense adhesions. The stage matters for surgical planning, more extensive disease requires a surgeon with higher skill and more operative time. The stage does not reliably predict pain severity or fertility impact. A patient with Stage I disease can have debilitating pain. A patient with Stage IV can present primarily with infertility and minimal pain. Staging is a surgical finding, not a prognosis. It describes what the surgeon found, not what your body will do. Do not use staging to minimize or maximize your experience of the disease. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+            </div>
+          </section>
+
+          <div class="cta-box">
+            <h3>Continue exploring</h3>
+            <p>Two RRM medical approaches that structure care around root-cause diagnosis and treatment:</p>
+            <p><a href="/naprotechnology/" class="btn btn--primary">NaProTechnology</a> <a href="/neofertility/" class="btn btn--primary">NeoFertility</a></p>
+            <p>And the foundational primer on restorative reproductive medicine:</p>
+            <p><a href="/what-is-rrm/" class="btn btn--secondary">What is Restorative Reproductive Medicine?</a> <a href="/library/" class="btn btn--secondary">Browse the Research Library</a></p>
+          </div>
+
+          <p class="disclaimer"><em>This content is for educational and reference purposes only and does not constitute medical advice, diagnosis, or treatment. Decisions about evaluation or care for endometriosis should be made in consultation with a qualified clinician who knows your specific clinical context. Citations to specific studies and consensus documents do not imply individual-patient applicability.</em></p>
+
+        </article>
+      </div>
+    </div>
+  </div>
+  <BackToTop />
+  </MaybeShell>
+</BaseLayout>
+
+<style>
+  .disambig {
+    background: var(--bg-surface);
+    border-left: 3px solid var(--purple-500);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+    margin: var(--space-5) 0;
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+  .disambig p {
+    margin: 0;
+  }
+
+  .surgical-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-4);
+    margin: var(--space-5) 0;
+  }
+
+  .surgical-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+  }
+
+  .surgical-card[data-key="excision"] {
+    border-left: 3px solid var(--accent);
+  }
+
+  .surgical-card__header h3 {
+    margin: 0 0 var(--space-1) 0;
+    font-size: 1.125rem;
+    color: var(--text-primary);
+  }
+
+  .surgical-card__subtitle {
+    margin: 0 0 var(--space-3) 0;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  .surgical-card__body {
+    margin: 0;
+  }
+
+  .surgical-card__body dt {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: var(--space-3);
+  }
+
+  .surgical-card__body dt:first-child {
+    margin-top: 0;
+  }
+
+  .surgical-card__body dd {
+    margin: var(--space-1) 0 0 0;
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    line-height: 1.55;
+  }
+
+  .stage-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-4);
+    margin: var(--space-5) 0;
+  }
+
+  .stage-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+  }
+
+  .stage-card__header h3 {
+    margin: 0 0 var(--space-1) 0;
+    font-size: 1.125rem;
+    color: var(--text-primary);
+  }
+
+  .stage-card__subtitle {
+    margin: 0 0 var(--space-3) 0;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  .stage-card__body {
+    margin: 0;
+  }
+
+  .stage-card__body dt {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: var(--space-3);
+  }
+
+  .stage-card__body dt:first-child {
+    margin-top: 0;
+  }
+
+  .stage-card__body dd {
+    margin: var(--space-1) 0 0 0;
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    line-height: 1.55;
+  }
+</style>
