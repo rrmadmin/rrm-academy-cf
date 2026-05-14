@@ -1,0 +1,76 @@
+{
+  "_meta": {
+    "purpose": "Curated SSOT for /endometritis/ topic hub. Condition comparison cards and diagnostic reference rendered as Astro card grids.",
+    "source": "Cicinelli 2013/2015, McQueen 2014, Vitagliano 2022, Moreno 2018, Puente 2019, Kitaya 2015, Margulies 2022, Park 2017.",
+    "updated": "2026-05-14",
+    "library_base_url": "https://rrmacademy.org/library/",
+    "card_notes": "Each card field is an HTML fragment with inline citation hyperlinks to library records. Render with Astro set:html. Inline citations are MANDATORY per editorial policy."
+  },
+  "condition_comparison": [
+    {
+      "key": "chronic-endometritis",
+      "name": "Chronic Endometritis (CE)",
+      "anatomy": "Uterine lining (endometrium), the interior",
+      "mechanism": "Persistent bacterial colonization driving abnormal plasma cell infiltration in the endometrial stroma",
+      "symptoms": "Often subclinical. May include brown spotting, atypical bleeding, no dramatic symptoms in most patients.",
+      "diagnosis_standard": "CD138 immunohistochemistry on endometrial biopsy",
+      "treatment": "Antibiotic therapy; post-treatment retest biopsy (specialist centers) to confirm resolution",
+      "fertility_link_html": "Documented in RPL and implantation failure cohorts. Prior literature cited in <a href=\"/library/the-diagnosis-of-chronic-endometritis-in-infertile-asymptomatic-women-a-comparat-rec1qah2jxcen5ftk/\">Moreno et al. 2018</a> reports CE in up to 40% of infertile patients.",
+      "icd10": "N71.1"
+    },
+    {
+      "key": "endometriosis",
+      "name": "Endometriosis",
+      "anatomy": "Outside the uterus, peritoneal surfaces, ovaries, bowel, bladder, diaphragm",
+      "mechanism": "Endometrial-like tissue implants, bleeds cyclically, drives inflammation, adhesions, and organ distortion",
+      "symptoms": "Dysmenorrhea, deep dyspareunia, cyclical bowel/bladder symptoms, pelvic pain, infertility",
+      "diagnosis_standard": "Laparoscopy with tissue biopsy and histologic confirmation",
+      "treatment": "Excision surgery by trained surgeon; adhesion prevention; post-operative cycle monitoring",
+      "fertility_link_html": "Affects 25 to 50% of women with infertility per <a href=\"/library/endometriosis-epidemiology-diagnosis-and-clinical-management-YHr5l7Hf/\">Parasar et al. 2017</a>. See <a href=\"/endometriosis/\">endometriosis guide</a>.",
+      "icd10": "N80"
+    },
+    {
+      "key": "acute-endometritis",
+      "name": "Acute Endometritis",
+      "anatomy": "Uterine lining (endometrium), the interior",
+      "mechanism": "Ascending polymicrobial infection, typically post-delivery, post-D&C, or post-procedure",
+      "symptoms": "Fever, uterine tenderness, abnormal discharge, symptomatic and acute",
+      "diagnosis_standard": "Clinical presentation and culture; managed in acute care setting",
+      "treatment": "Systemic antibiotics; inpatient management if severe",
+      "fertility_link_html": "May be sequela risk for CE. Primary concern is acute maternal morbidity, not implantation.",
+      "icd10": "N71.0"
+    }
+  ],
+  "diagnostic_pathway": [
+    {
+      "step": 1,
+      "label": "Endometrial biopsy",
+      "detail_html": "Minimally invasive office procedure. Sample taken in proliferative phase. Sent for CD138 IHC and standard H&amp;E staining.",
+      "is_required": true
+    },
+    {
+      "step": 2,
+      "label": "CD138 immunohistochemistry",
+      "detail_html": "Pathology staining for plasma cells in endometrial stroma. Plasma cells not normally present in stroma. Positive equals CE confirmed. Threshold varies by laboratory protocol, not standardized nationally.",
+      "is_required": true
+    },
+    {
+      "step": 3,
+      "label": "Hysteroscopy",
+      "detail_html": "Raises clinical suspicion via characteristic findings: micropolyps, focal hyperemia, stromal edema (\"strawberry pattern\"). Identifies co-occurring structural pathology. Does NOT confirm CE without biopsy.",
+      "is_required": false
+    },
+    {
+      "step": 4,
+      "label": "Microbial culture",
+      "detail_html": "Identifies causative organism and guides antibiotic selection. Complements histologic confirmation. Some organisms not easily culturable. Culture alone insufficient for diagnosis.",
+      "is_required": false
+    },
+    {
+      "step": 5,
+      "label": "Post-treatment retest biopsy",
+      "detail_html": "Confirms CE resolution after antibiotic course. Performed in specialist centers and evidence-supported protocols; not yet a universal guideline standard. Guides decision on whether a second treatment course is needed.",
+      "is_required": true
+    }
+  ]
+}
