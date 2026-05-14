@@ -13,6 +13,7 @@
     .value-napro { fill: #725e7e; }
     .value-ivf { fill: #636261; }
     .caption { font-family: 'Inter', sans-serif; font-size: 11.5px; font-style: italic; fill: #987da8; }
+    .attribution { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #8a8985; letter-spacing: 0.04em; text-anchor: end; }
   </style>
 
   <rect width="700" height="340" fill="white"/>
@@ -48,4 +49,5 @@
   <!-- Caption -->
   <text x="30" y="280" class="caption">NaPro achieves comparable or higher live birth rates while treating the underlying condition.</text>
   <text x="30" y="298" class="caption">All NaPro pregnancies through natural conception. IVF rate per embryo transferred, women under 35.</text>
+  <text x="670" y="330" class="attribution">rrmacademy.org/naprotechnology</text>
 </svg>

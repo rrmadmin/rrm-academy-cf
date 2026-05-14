@@ -14,6 +14,7 @@
     .value-rrm { fill: #b8a3c4; }
     .value-ablation { fill: #b0aaa2; }
     .caption { font-family: 'Inter', sans-serif; font-size: 11.5px; font-style: italic; fill: #c9b8d3; }
+    .attribution { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #8b827a; letter-spacing: 0.04em; text-anchor: end; }
   </style>
 
   <rect width="700" height="320" fill="#28241e"/>
@@ -35,4 +36,5 @@
 
   <text x="30" y="220" class="caption">Excision removes the disease at the root. Ablation burns the surface and leaves deeper tissue behind.</text>
   <text x="30" y="238" class="caption">Lower rates indicate fewer repeat operations. Bars normalized to the larger value.</text>
+  <text x="670" y="310" class="attribution">rrmacademy.org/what-is-rrm</text>
 </svg>
