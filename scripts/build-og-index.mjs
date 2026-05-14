@@ -206,10 +206,30 @@ function loadPillarEntries() {
   return out;
 }
 
+// Strip HTML tags + decode the handful of named entities that appear in
+// glossary bodyHtml. The first <strong>...</strong> in a term body is the
+// canonical short definition; fall back to leading prose when absent.
+function extractGlossaryDescription(bodyHtml) {
+  if (!bodyHtml || typeof bodyHtml !== 'string') return null;
+  const strongMatch = bodyHtml.match(/<strong[^>]*>([\s\S]*?)<\/strong>/i);
+  const source = strongMatch ? strongMatch[1] : bodyHtml;
+  const text = source
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+  return text || null;
+}
+
 function main() {
   const PILLAR_ENTRIES = loadPillarEntries();
   const index = { ...STATIC_PAGES, ...PILLAR_ENTRIES };
-  const counts = { static: Object.keys(STATIC_PAGES).length, pillars: Object.keys(PILLAR_ENTRIES).length, library: 0, commentary: 0, faqs: 0, courses: 0 };
+  const counts = { static: Object.keys(STATIC_PAGES).length, pillars: Object.keys(PILLAR_ENTRIES).length, library: 0, commentary: 0, faqs: 0, courses: 0, glossary: 0 };
 
   const articles = readJsonSafely('articles.json');
   if (Array.isArray(articles)) {
@@ -260,13 +280,28 @@ function main() {
     }
   }
 
+  // Glossary terms render under /glossary/<slug>/ which routes to og slug
+  // `glossary-<slug>` in BaseLayout.routeToOgSlug(). Without this loop every
+  // glossary unfurl renders the branded fallback card.
+  const glossary = readJsonSafely('glossary.json');
+  const glossaryTerms = Array.isArray(glossary?.terms) ? glossary.terms : [];
+  for (const t of glossaryTerms) {
+    if (!t || !t.slug) continue;
+    const description = extractGlossaryDescription(t.bodyHtml);
+    index[`glossary-${t.slug}`] = {
+      title: clamp(t.name || 'Glossary Term', MAX_TITLE_LEN),
+      description: clamp(description || 'A term defined in the RRM Academy glossary.', MAX_DESC_LEN),
+    };
+    counts.glossary += 1;
+  }
+
   // Minimum-count assertions. Match deploy.yml CI floors so a corrupt input
   // that produces an empty content-type bucket fails the build loudly instead
   // of shipping a degraded og-index.json (every social share of that type
   // rendering the fallback card, cached at the edge for 24h). If a content
   // type is genuinely absent (initial deploy), the floor blocks; treat that
   // as a one-time override via FLOOR_OVERRIDE_<type>=0 env vars.
-  const FLOORS = { library: 2500, commentary: 5, faqs: 10, courses: 1 };
+  const FLOORS = { library: 2500, commentary: 5, faqs: 10, courses: 1, glossary: 100 };
   const failures = [];
   for (const [type, floor] of Object.entries(FLOORS)) {
     const override = process.env[`FLOOR_OVERRIDE_${type.toUpperCase()}`];
@@ -286,7 +321,7 @@ function main() {
   console.log(
     `[build-og-index] wrote ${Object.keys(index).length} entries (${sizeKb} KB): ` +
     `${counts.static} static, ${counts.pillars} pillars, ${counts.library} library, ${counts.commentary} commentary, ` +
-    `${counts.faqs} faqs, ${counts.courses} courses`
+    `${counts.faqs} faqs, ${counts.courses} courses, ${counts.glossary} glossary`
   );
 }
 
