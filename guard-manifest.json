@@ -3,7 +3,7 @@
   "description": "Critical file integrity manifest. Run `npm run guard:update` after intentional changes.",
   "files": {
     "functions/api/auth/_shared.js": {
-      "hash": "b40acfb03359bf3d15f5d57211c91ebc00dfded70b0b90c1ce299b7ae82547ee",
+      "hash": "06c556584e3efca3b9c3091b065d13bb7b51a49829e9b7ecb93f2c3edc2aa465",
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
@@ -19,7 +19,7 @@
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
-      "hash": "6aa286e9701032e43f8aec7388039e8c622b3b86258423588401a061ee01fd71",
+      "hash": "25e6946c432cb7487cd6e90cabc135137f9eb732fc89bbd6c9dbc1fad0bce344",
       "note": "Reset token consumption + password change"
     },
     "functions/api/auth/change-password.js": {
@@ -31,7 +31,7 @@
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "1a4627f9c6132bd8a6964a4dd1a2c9e0526f61aa31d17ff219f96f535ff578e8",
+      "hash": "6ae2b98e18bcbf2102aecde6b08c588128e0c8ed10a060ba651a963ff5e1f73d",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
@@ -43,19 +43,19 @@
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
-      "hash": "7c4baa09cba2c2e47fe382317dc29b0653ba17a9b7fd25dd550817065c43c6da",
+      "hash": "87f145276e77817aaaa7eef4de76c0315bc88d704a29826177898b1c02053f38",
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
-      "hash": "e7825cd7286ac9b4fb9f06b8d7156f1cd6066d2a5d28956229543aef98f7e3fa",
+      "hash": "881b9dc618cd7994ae0f01bc1f19555559c25b7d7733461906a4b2db74916ca9",
       "note": "Billing status"
     },
     "functions/api/billing/portal.js": {
-      "hash": "0e481cb2bafbeebd0c18b0396162fbef762f2a36f026286e8bd838e9937ed7a6",
+      "hash": "8d2becb6398f74d1013a0a7fcaef0c28d71982ec3bd0063e3d766f0e7bec05e1",
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "cfcbe2cfc705a867c2a95882179390ba91af45ebe28fb2b0cc17d378f72ea225",
+      "hash": "51ef09128c174f2407517adf5ec8f5dbab011df8a5747eb27a001b54e03e52fe",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
@@ -71,7 +71,7 @@
       "note": "HMAC-SHA256 magic-link token for Wix-to-Stripe donor migration"
     },
     "functions/_middleware.js": {
-      "hash": "1c6734b5c5898720245863466ad5bcb499c771973743166a160d380e7a0d8ee1",
+      "hash": "58dda0cc09c3a50824946734f09dbedb464e3eb2ff06d2956d298074c854cf69",
       "note": "Auth gating"
     },
     "wrangler.toml": {
@@ -107,7 +107,7 @@
       "note": "Public newsletter intake (rate-limited)"
     },
     "functions/api/search/semantic.js": {
-      "hash": "fa0f4777ccc3e0a4a4d068307186103e35dfaccf78892c12514be53ef2230a14",
+      "hash": "eec4a0bd7db0f6b982a26e20041294bd4032a0af517bb34e89e2a32e53bbb40a",
       "note": "Billed AI.run() + Vectorize (rate-limited)"
     },
     "functions/api/_ask_prompt.js": {
@@ -115,7 +115,7 @@
       "note": "SYSTEM_PROMPT for /api/ask -- single source of truth"
     },
     "functions/api/ask.js": {
-      "hash": "d5dbbf83b9c1bd548da9e07f94c4383f6d736f33d82e66a353144897f7ee1f42",
+      "hash": "c0da512889d095ab1c4129ef04b885ad63a7909b4c75104fea379589dd53205d",
       "note": "NLWeb AI Search proxy (auth + rate-limited, billed upstream)"
     },
     "src/components/SearchBar.astro": {
@@ -151,7 +151,7 @@
       "note": "Session invalidation"
     },
     "functions/api/billing/checkout-account.js": {
-      "hash": "453eed32c37aa68145692871f2a3013caee7437eba76d2733f84f738e032ca05",
+      "hash": "dee0cc343a95736625a99ec8fa12565d589caeffade1aec614519a3047d7f81b",
       "note": "Pre-checkout account lookup"
     },
     "functions/api/billing/_webhook-invoice.js": {
@@ -159,7 +159,7 @@
       "note": "Invoice event handler"
     },
     "functions/api/community/upload.js": {
-      "hash": "3343c53806c23439d64575d5319168384dddf410ec7386519461b6bc4c5abe02",
+      "hash": "01326e09ae56984a61e8253352204d4a6cdfcf57d34ce0fcd2919bfcd49c2850",
       "note": "R2 image upload (file validation)"
     },
     "functions/api/pdf/request.js": {
