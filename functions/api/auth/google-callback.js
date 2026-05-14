@@ -74,17 +74,22 @@ async function linkGoogleToVerifiedUser(db, googleId, email, avatarUrl) {
 }
 
 async function upgradeUnverifiedUser(db, googleId, email, avatarUrl) {
-  const unverified = await db.prepare('SELECT id, email, blocked FROM user WHERE email = ? COLLATE NOCASE')
+  const unverified = await db.prepare('SELECT id, email, blocked FROM user WHERE email = ? COLLATE NOCASE AND email_verified = 0')
     .bind(email).first();
   if (!unverified) return null;
 
   if (unverified.blocked) return { redirect: '/login/?error=account_blocked' };
-  await db.batch([
-    db.prepare("UPDATE user SET google_id = ?, email_verified = 1, hashed_password = '', avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ?")
+  const results = await db.batch([
+    db.prepare("UPDATE user SET google_id = ?, email_verified = 1, hashed_password = '', avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ? AND email_verified = 0")
       .bind(googleId, avatarUrl, unverified.id),
     db.prepare('DELETE FROM session WHERE user_id = ?').bind(unverified.id),
     waitlistBackfillStatement(db, unverified.id, email),
   ]);
+
+  if (results[0].meta.changes === 0) {
+    // Another request verified this account between our SELECT and UPDATE — fail closed
+    return { redirect: LOGIN_ERROR_URL };
+  }
 
   return { user: unverified };
 }

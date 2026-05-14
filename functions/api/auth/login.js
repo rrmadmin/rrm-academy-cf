@@ -58,6 +58,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
     // Fire a non-blocking guidance email out-of-band so the legitimate user
     // knows how to proceed without us revealing account details in the response.
     if (!user.hashed_password) {
+      // Equalize timing with the verifyPassword path so this branch doesn't
+      // reveal account type via response latency. Result is discarded.
+      await verifyPassword(password, DUMMY_PASSWORD_HASH);
       const guidanceType = user.google_id ? 'google' : 'unprovisioned';
       waitUntil(
         (async () => {
