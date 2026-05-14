@@ -4,10 +4,11 @@
  * Public unauth endpoint. Returns paginated published library articles.
  * Source: rrm-library-worker /articles (proxied with LIBRARY_BUILD_TOKEN).
  *
- * Rate limit: 30 req/min per IP (in-memory, per-isolate).
+ * Rate limit: 30 req/min per IP (KV-backed, global across isolates).
  * Cache: public, max-age=3600, s-maxage=3600.
  */
 import { log } from './_log.js';
+import { checkRateLimit } from './auth/_shared.js';
 
 const WORKER_URL = 'https://rrm-library-worker.administrator-cloudflare.workers.dev';
 const SITE_BASE = 'https://rrmacademy.org';
@@ -22,22 +23,6 @@ const CACHE_HEADERS = {
   'Cache-Control': 'public, max-age=3600, s-maxage=3600',
 };
 
-// --- In-memory rate limiter: 30 req / 60s per IP ---
-const articlesRateMap = new Map();
-const ARTICLES_WINDOW_MS = 60 * 1000;
-const ARTICLES_MAX = 30;
-
-function checkArticlesRateLimit(key) {
-  const now = Date.now();
-  const entry = articlesRateMap.get(key);
-  if (!entry || now - entry.start > ARTICLES_WINDOW_MS) {
-    articlesRateMap.set(key, { start: now, count: 1 });
-    return true;
-  }
-  entry.count++;
-  if (entry.count > ARTICLES_MAX) return false;
-  return true;
-}
 
 function publicJson(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -58,8 +43,13 @@ export async function onRequestGet(context) {
     return new Response(null, { status: 405, headers: { ...PUBLIC_CORS, Allow: 'GET' } });
   }
 
-  const ip = request.headers.get('cf-connecting-ip') || 'unknown';
-  if (!checkArticlesRateLimit(`articles:${ip}`)) {
+  const ip = request.headers.get('cf-connecting-ip');
+  if (!ip) {
+    log(env, waitUntil, 'articles', 'missing_ip', 'error', 'cf-connecting-ip absent', 0, 503);
+    return publicJson({ error: 'service_unavailable' }, 503);
+  }
+  const allowed = await checkRateLimit(env, `art:${ip}`, 30, 60);
+  if (!allowed) {
     return publicJson({ error: 'rate_limited' }, 429);
   }
 
