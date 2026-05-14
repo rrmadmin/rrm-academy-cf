@@ -66,6 +66,8 @@
   --green-100: #e8f5e9;
   --amber-700: #b45309;
   --amber-100: #fef3c7;
+  --yellow-700: #eab308;
+  --yellow-100: #fef9c3;
 
   /* Semantic aliases */
   --bg-body: #f7f5f3;
@@ -171,6 +173,8 @@
   --green-100: #2a3a2a;
   --amber-700: #fbbf24;
   --amber-100: #3a3420;
+  --yellow-700: #facc15;
+  --yellow-100: #3a3618;
 
   --bg-body: #1e1a16;
   --bg-surface: #28241e;
@@ -274,6 +278,8 @@
   --green-100: #e8f0e0;
   --amber-700: #7a6850;
   --amber-100: #f0e8e0;
+  --yellow-700: #8a7320;
+  --yellow-100: #f0ead8;
 
   /* Core backgrounds - warm cream family */
   --bg-body: #f7f0e8;
