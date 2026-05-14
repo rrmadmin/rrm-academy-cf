@@ -6,30 +6,10 @@
  *
  * Protected by ADMIN_API_SECRET Bearer token (constant-time compare).
  */
-import { json, optionsResponse } from '../auth/_shared.js';
+import { json, optionsResponse, checkRateLimit } from '../auth/_shared.js';
 import { log } from '../_log.js';
 
 const ROW_CAP = 50;
-
-const RATE_LIMIT = 10;
-const RATE_WINDOW = 60_000;
-const rateLimitMap = new Map();
-
-function isRateLimited(ip) {
-  const now = Date.now();
-  if (rateLimitMap.size > 1000) {
-    for (const [k, v] of rateLimitMap) {
-      if (now - v.start > RATE_WINDOW) rateLimitMap.delete(k);
-    }
-  }
-  const entry = rateLimitMap.get(ip);
-  if (!entry || now - entry.start > RATE_WINDOW) {
-    rateLimitMap.set(ip, { start: now, count: 1 });
-    return false;
-  }
-  entry.count++;
-  return entry.count > RATE_LIMIT;
-}
 
 export function onRequestOptions() {
   return optionsResponse();
@@ -58,7 +38,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
   }
 
   const ip = request.headers.get('cf-connecting-ip') || 'unknown';
-  if (isRateLimited(ip)) {
+  const rlAllowed = await checkRateLimit(env, `wix-status:${ip}`, 10, 60);
+  if (!rlAllowed) {
     return json({ ok: false, error: 'rate_limited' }, 429);
   }
 
