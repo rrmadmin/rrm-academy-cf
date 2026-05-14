@@ -751,3 +751,4 @@ Scanner rules are the source of truth. If arise-scanner catches it, the coder ag
   :global([data-theme="dark"]) .chart-light { display: none; }
   :global([data-theme="dark"]) .chart-dark { display: block; }
   ```
+- **Standalone SVG files are parsed as XML, not HTML.** When authoring SVG charts in `public/images/`, never use HTML named entities (`&ndash;`, `&mdash;`, `&middot;`, `&ldquo;`, `&rdquo;`, `&nbsp;`, `&hellip;`). XML only predefines `&amp; &lt; &gt; &quot; &apos;`. Anything else triggers a parse error and the browser refuses to render the SVG (image shows as alt-text). Use literal Unicode characters (`–` `—` `·` `"` `"`) or numeric entities (`&#8211;`). Pre-commit gate: `python3 -c "import xml.etree.ElementTree as ET; [ET.parse(f) for f in __import__('glob').glob('public/images/**/*.svg', recursive=True)]"` should pass before committing any new SVG.
