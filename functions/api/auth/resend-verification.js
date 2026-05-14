@@ -42,17 +42,12 @@ export async function onRequestPost({ request, env, waitUntil }) {
     if (!user) return json({ ok: false, error: 'User not found.' }, 404);
     if (user.email_verified) return json({ ok: true, message: 'Email already verified.' });
 
-    // Replace old verification records atomically
+    // Generate new code and expiry — but don't write to D1 until after send succeeds.
+    // If SES throws, the old code (if any) stays valid so the user has a recovery path.
     const code = generateToken().slice(0, 8);
     const expiresAt = Math.floor(Date.now() / 1000) + EMAIL_VERIFY_TTL_S;
-    await db.batch([
-      db.prepare('DELETE FROM email_verification WHERE user_id = ?')
-        .bind(session.userId),
-      db.prepare('INSERT INTO email_verification (id, user_id, code, expires_at) VALUES (?, ?, ?, ?)')
-        .bind(generateId(), session.userId, code, expiresAt),
-    ]);
 
-    // Send email (AWS credentials already verified above)
+    // Send email first (AWS credentials already verified above)
     try {
       await sendEmail(env, {
         from: 'RRM Academy <accounts@mail.rrmacademy.org>',
@@ -78,6 +73,14 @@ export async function onRequestPost({ request, env, waitUntil }) {
       await logEmailFailure(env.DB, { email: user.email, category: 'transactional', source: 'auth/resend-verification', subject: 'Your verification code — RRM Academy', detail: emailErr.message });
       return json({ ok: false, error: 'Failed to send verification email. Please try again.' }, 502);
     }
+
+    // Email delivered — now rotate the code atomically in D1
+    await db.batch([
+      db.prepare('DELETE FROM email_verification WHERE user_id = ?')
+        .bind(session.userId),
+      db.prepare('INSERT INTO email_verification (id, user_id, code, expires_at) VALUES (?, ?, ?, ?)')
+        .bind(generateId(), session.userId, code, expiresAt),
+    ]);
 
     return json({ ok: true });
   } catch (err) {
