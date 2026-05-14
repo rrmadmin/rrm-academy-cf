@@ -89,20 +89,26 @@ export async function onRequestGet(context) {
 export async function onRequestPut(context) {
   const { request, env, waitUntil } = context;
 
-  if (!env.ADMIN_API_SECRET) {
-    return json({ ok: false, error: 'Server misconfigured' }, 503);
-  }
-
   const authHeader = request.headers.get('Authorization') || '';
-  const expected = `Bearer ${env.ADMIN_API_SECRET}`;
-  const authBytes = new TextEncoder().encode(authHeader);
-  const expectedBytes = new TextEncoder().encode(expected);
-  let mismatch = authBytes.length !== expectedBytes.length ? 1 : 0;
-  const len = Math.min(authBytes.length, expectedBytes.length);
-  for (let i = 0; i < len; i++) {
-    mismatch |= authBytes[i] ^ expectedBytes[i];
+  let bearerAuthed = false;
+
+  if (authHeader.startsWith('Bearer ')) {
+    if (!env.ADMIN_API_SECRET) {
+      return json({ ok: false, error: 'Server misconfigured' }, 503);
+    }
+    const expected = `Bearer ${env.ADMIN_API_SECRET}`;
+    const authBytes = new TextEncoder().encode(authHeader);
+    const expectedBytes = new TextEncoder().encode(expected);
+    let mismatch = authBytes.length !== expectedBytes.length ? 1 : 0;
+    const len = Math.min(authBytes.length, expectedBytes.length);
+    for (let i = 0; i < len; i++) {
+      mismatch |= authBytes[i] ^ expectedBytes[i];
+    }
+    if (mismatch !== 0) {
+      return json({ ok: false, error: 'Unauthorized' }, 401);
+    }
+    bearerAuthed = true;
   }
-  const bearerAuthed = mismatch === 0;
 
   if (!bearerAuthed) {
     const user = context.data?.user;
