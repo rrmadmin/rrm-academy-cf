@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 460" role="img" aria-label="Crude live birth rate by diagnostic category from Sanchez-Mendez 2025">
+  <title>Crude Live Birth Rate by Diagnosis (Sanchez-Mendez 2025)</title>
+  <desc>Horizontal bar chart of crude live birth rates by diagnostic category from the Sanchez-Mendez 2025 NaProTechnology cohort of 1,310 couples. General conditions 18 percent prevalence, 36.9 percent live birth rate. Functional disorders 86 percent prevalence, 33.5 percent. Cervical mucus 26 percent, 32.2 percent. Endometrial 37 percent, 31.5 percent. Male factor 35 percent, 30.3 percent. Endometriosis 24 percent, 27.9 percent. Tubal factor 13 percent, 25.4 percent.</desc>
+
+  <style>
+    .heading { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600; fill: #636261; letter-spacing: 0.05em; }
+    .divider { stroke: #c9b8d3; stroke-width: 1; }
+    .label { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 400; fill: #636261; text-anchor: end; dominant-baseline: central; }
+    .track { fill: #f0eeeb; }
+    .bar-rrm { fill: #725e7e; }
+    .bar-low { fill: #b0aaa2; }
+    .value { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; dominant-baseline: central; }
+    .value-rrm { fill: #725e7e; }
+    .value-low { fill: #636261; }
+    .caption { font-family: 'Inter', sans-serif; font-size: 11.5px; font-style: italic; fill: #987da8; }
+    .attribution { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #8a8985; letter-spacing: 0.04em; text-anchor: end; }
+  </style>
+
+  <rect width="700" height="460" fill="white"/>
+
+  <text x="30" y="35" class="heading">CRUDE LIVE BIRTH RATE BY DIAGNOSIS</text>
+  <line x1="30" y1="48" x2="670" y2="48" class="divider"/>
+
+  <!-- Bars scaled to max 36.9% = 350 width. width = (pct/36.9) * 350 -->
+
+  <text x="265" y="82" class="label">General conditions (18%)</text>
+  <rect x="278" y="70" width="320" height="22" rx="3" class="track"/>
+  <rect x="278" y="70" width="320" height="22" rx="3" class="bar-rrm"/>
+  <text x="608" y="82" class="value value-rrm">36.9%</text>
+
+  <text x="265" y="120" class="label">Functional disorders (86%)</text>
+  <rect x="278" y="108" width="320" height="22" rx="3" class="track"/>
+  <rect x="278" y="108" width="290" height="22" rx="3" class="bar-rrm"/>
+  <text x="608" y="120" class="value value-rrm">33.5%</text>
+
+  <text x="265" y="158" class="label">Cervical mucus (26%)</text>
+  <rect x="278" y="146" width="320" height="22" rx="3" class="track"/>
+  <rect x="278" y="146" width="279" height="22" rx="3" class="bar-rrm"/>
+  <text x="608" y="158" class="value value-rrm">32.2%</text>
+
+  <text x="265" y="196" class="label">Endometrial (37%)</text>
+  <rect x="278" y="184" width="320" height="22" rx="3" class="track"/>
+  <rect x="278" y="184" width="273" height="22" rx="3" class="bar-rrm"/>
+  <text x="608" y="196" class="value value-rrm">31.5%</text>
+
+  <text x="265" y="234" class="label">Male factor (35%)</text>
+  <rect x="278" y="222" width="320" height="22" rx="3" class="track"/>
+  <rect x="278" y="222" width="263" height="22" rx="3" class="bar-rrm"/>
+  <text x="608" y="234" class="value value-rrm">30.3%</text>
+
+  <text x="265" y="272" class="label">Endometriosis (24%)</text>
+  <rect x="278" y="260" width="320" height="22" rx="3" class="track"/>
+  <rect x="278" y="260" width="242" height="22" rx="3" class="bar-rrm"/>
+  <text x="608" y="272" class="value value-rrm">27.9%</text>
+
+  <text x="265" y="310" class="label">Tubal factor (13%)</text>
+  <rect x="278" y="298" width="320" height="22" rx="3" class="track"/>
+  <rect x="278" y="298" width="220" height="22" rx="3" class="bar-low"/>
+  <text x="608" y="310" class="value value-low">25.4%</text>
+
+  <text x="30" y="370" class="caption">Parentheses show prevalence in the 1,310-couple cohort. Couples averaged 2.5 diagnoses each.</text>
+  <text x="30" y="388" class="caption">Bars normalized to the highest rate. Source: Sanchez-Mendez 2025.</text>
+
+  <text x="670" y="448" class="attribution">rrmacademy.org/what-is-rrm</text>
+</svg>
