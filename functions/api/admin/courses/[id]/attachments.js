@@ -133,6 +133,8 @@ export async function onRequestPost(context) {
     ]);
   } catch (err) {
     log(env, waitUntil, 'admin-courses-attachments', 'db_write_error', 'error', err.message, 0, 500);
+    log(env, waitUntil, 'admin-courses-attachments', 'r2_cleanup_after_d1_fail', 'warn', key);
+    env.R2_ASSETS.delete(key).catch(() => {});
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 

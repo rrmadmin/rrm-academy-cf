@@ -1,5 +1,6 @@
 import { json, optionsResponse, CORS_HEADERS, checkRateLimit } from '../auth/_shared.js';
 import { requireMember } from './_shared.js';
+import { log } from '../_log.js';
 
 var MAX_SIZE = 5 * 1024 * 1024; // 5 MB
 var ALLOWED = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' };
@@ -12,6 +13,7 @@ export async function onRequestPost(context) {
   try {
     var request = context.request;
     var env = context.env;
+    var waitUntil = context.waitUntil.bind(context);
     var member = await requireMember(request, env);
     if (member instanceof Response) return member;
 
@@ -52,9 +54,18 @@ export async function onRequestPost(context) {
     var id = crypto.randomUUID();
     var key = 'community/' + id + '.' + ext;
 
-    await env.R2_ASSETS.put(key, buf, {
-      httpMetadata: { contentType: file.type },
-    });
+    try {
+      await Promise.race([
+        env.R2_ASSETS.put(key, buf, { httpMetadata: { contentType: file.type } }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('r2_put_timeout')), 10000)),
+      ]);
+    } catch (r2Err) {
+      if (r2Err.message === 'r2_put_timeout') {
+        log(env, waitUntil, 'community', 'upload_timeout', 'error', key, 0, 504);
+        return json({ error: 'upload_timeout' }, 504);
+      }
+      throw r2Err;
+    }
 
     var url = '/api/assets/' + key;
     return new Response(JSON.stringify({ url: url }), {

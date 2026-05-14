@@ -199,15 +199,39 @@ async function handleCheckout(request, env, waitUntil) {
     let wixLookup = null;
     if (stucV2 && env.DB && (wixSubId || userEmail)) {
       try {
-        wixLookup = await env.DB.prepare(
-          "SELECT wix_subscription_id, tier, amount_cents, next_expected_at, status, migration_status " +
-          "FROM wix_subscription " +
-          "WHERE (wix_subscription_id = ? OR email = ? COLLATE NOCASE) " +
-          "  AND status = 'active' " +
-          "  AND migration_status = 'pending' " +
-          "ORDER BY started_at DESC " +
-          "LIMIT 1"
-        ).bind(wixSubId, userEmail || '').first();
+        let wixQuery;
+        if (wixSubId && userEmail) {
+          wixQuery = env.DB.prepare(
+            "SELECT wix_subscription_id, tier, amount_cents, next_expected_at, status, migration_status " +
+            "FROM wix_subscription " +
+            "WHERE (wix_subscription_id = ? OR email = ? COLLATE NOCASE) " +
+            "  AND status = 'active' " +
+            "  AND migration_status = 'pending' " +
+            "ORDER BY started_at DESC " +
+            "LIMIT 1"
+          ).bind(wixSubId, userEmail);
+        } else if (wixSubId) {
+          wixQuery = env.DB.prepare(
+            "SELECT wix_subscription_id, tier, amount_cents, next_expected_at, status, migration_status " +
+            "FROM wix_subscription " +
+            "WHERE wix_subscription_id = ? " +
+            "  AND status = 'active' " +
+            "  AND migration_status = 'pending' " +
+            "ORDER BY started_at DESC " +
+            "LIMIT 1"
+          ).bind(wixSubId);
+        } else {
+          wixQuery = env.DB.prepare(
+            "SELECT wix_subscription_id, tier, amount_cents, next_expected_at, status, migration_status " +
+            "FROM wix_subscription " +
+            "WHERE email = ? COLLATE NOCASE " +
+            "  AND status = 'active' " +
+            "  AND migration_status = 'pending' " +
+            "ORDER BY started_at DESC " +
+            "LIMIT 1"
+          ).bind(userEmail);
+        }
+        wixLookup = await wixQuery.first();
       } catch {
         env.EVENTS?.writeDataPoint({
           blobs: ['billing', 'stuc-migration', 'lookup-error', '', ''],

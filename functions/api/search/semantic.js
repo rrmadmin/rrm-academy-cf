@@ -156,6 +156,10 @@ export async function onRequestGet(context) {
     }
 
     const results = Array.isArray(v2Data?.results) ? v2Data.results : [];
+    if (!Array.isArray(v2Data?.results)) {
+      const shape = Object.keys(v2Data || {}).join(',') || 'null';
+      log(env, waitUntil, 'search', 'v2_shape_drift', 'warn', `v2Data.results not an array; v2Data keys=${shape}`, Date.now() - start, 200);
+    }
     waitUntil(logSearchQuery(env, {
       source: 'semantic_v2',
       query,
@@ -200,7 +204,8 @@ export async function onRequestGet(context) {
     }
     const queryVector = embedding.data?.[0];
     if (!queryVector) {
-      log(env, waitUntil, 'search', 'embedding_failed', 'error', 'AI returned no vector', 0, 502);
+      const shape = Object.keys(embedding || {}).join(',') || 'null';
+      log(env, waitUntil, 'search', 'embedding_failed', 'error', `AI returned no vector; embedding keys=${shape}`, 0, 502);
       waitUntil(logSearchQuery(env, {
         source: 'semantic',
         query,

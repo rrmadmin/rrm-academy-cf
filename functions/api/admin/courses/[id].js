@@ -234,7 +234,7 @@ export async function onRequestPut(context) {
     const stepCheck = await (async () => {
       try {
         return await env.DB.prepare(
-          'SELECT id FROM course_step WHERE id = ? AND course_id = ?'
+          "SELECT id FROM course_step WHERE id = ? AND course_id = ? AND status = 'published' AND type = 'quiz'"
         ).bind(body.certificateQuizId, id).first();
       } catch {
         return null;
@@ -351,7 +351,7 @@ export async function onRequestDelete(context) {
   }
 
   try {
-    const existing = await env.DB.prepare('SELECT id FROM course WHERE id = ?').bind(id).first();
+    const existing = await env.DB.prepare('SELECT id, slug FROM course WHERE id = ?').bind(id).first();
     if (!existing) return json({ ok: false, error: 'not_found' }, 404);
 
     const [
@@ -380,6 +380,13 @@ export async function onRequestDelete(context) {
 
     if (tables.length > 0) {
       return json({ ok: false, error: 'references_exist', detail: { tables } }, 409);
+    }
+
+    const includesRefs = await env.DB.prepare(
+      "SELECT id FROM course WHERE id != ? AND (includes_json LIKE '%\"' || ? || '\"%' OR included_in_json LIKE '%\"' || ? || '\"%' OR includes_json LIKE '%\"' || ? || '\"%' OR included_in_json LIKE '%\"' || ? || '\"%') LIMIT 1"
+    ).bind(id, id, id, existing.slug, existing.slug).first();
+    if (includesRefs) {
+      return json({ ok: false, error: 'references_exist', detail: 'Another course includes this one' }, 409);
     }
 
     await env.DB.batch([

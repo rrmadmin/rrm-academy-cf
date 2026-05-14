@@ -4,31 +4,8 @@
  * No auth required (Pagefind runs for signed-out users).
  * Reads session if present to include user_id.
  */
-import { CORS_HEADERS, optionsResponse, getSessionIdFromCookie, validateSession } from '../auth/_shared.js';
+import { CORS_HEADERS, optionsResponse, getSessionIdFromCookie, validateSession, checkRateLimit } from '../auth/_shared.js';
 import { logSearchQuery, hashIp, extractRequestMeta } from '../_search_log.js';
-
-// Simple IP rate limiter: max 30 requests per minute per IP
-const rateLimitMap = new Map();
-const RATE_LIMIT = 30;
-const RATE_WINDOW = 60_000;
-
-function isRateLimited(ip) {
-  const now = Date.now();
-  if (rateLimitMap.size > 1000) {
-    for (const [k, v] of rateLimitMap) {
-      if (now - v.start > RATE_WINDOW) {
-        rateLimitMap.delete(k);
-      }
-    }
-  }
-  const entry = rateLimitMap.get(ip);
-  if (!entry || now - entry.start > RATE_WINDOW) {
-    rateLimitMap.set(ip, { start: now, count: 1 });
-    return false;
-  }
-  entry.count++;
-  return entry.count > RATE_LIMIT;
-}
 
 export function onRequestOptions() {
   return optionsResponse();
@@ -38,7 +15,8 @@ export async function onRequestPost(context) {
   const { request, env } = context;
 
   const ip = request.headers.get('cf-connecting-ip') || 'unknown';
-  if (isRateLimited(ip)) {
+  const allowed = await checkRateLimit(env, `log:${ip}`, 30, 60);
+  if (!allowed) {
     return Response.json({ error: 'rate_limited' }, { status: 429, headers: CORS_HEADERS });
   }
 

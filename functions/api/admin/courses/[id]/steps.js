@@ -39,6 +39,11 @@ function validateAttachments(attachments) {
   for (const a of attachments) {
     if (!a || typeof a !== 'object') return false;
     if (typeof a.name !== 'string' || typeof a.url !== 'string') return false;
+    if (a.name.length > 200 || a.url.length > 2000) return false;
+    try {
+      const u = new URL(a.url);
+      if (!['http:', 'https:'].includes(u.protocol)) return false;
+    } catch { return false; }
   }
   return true;
 }

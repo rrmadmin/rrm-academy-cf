@@ -61,7 +61,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
       if (!userId) {
         log(env, waitUntil, 'billing', 'course_no_user', 'error', `courseId:${courseId} customer:${session.customer}`);
         return new Response(JSON.stringify({ ok: false, error: 'No user account for course enrollment' }), {
-          status: 400,
+          status: 500,
           headers: { 'Content-Type': 'application/json' },
         });
       }
@@ -148,7 +148,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
   const stucTiers = { member: 'Member', hero: 'Uterus Hero', superhero: 'Super Hero' };
   const tier = session.metadata?.tier || '';
   if (session.mode === 'subscription' && stucTiers[tier]) {
-    const email = (session.customer_details?.email || session.customer_email || '').toLowerCase().trim() || null;
+    const email = (session.customer_details?.email || session.customer_email || '').toLowerCase().trim().replace(/[\r\n]/g, '') || null;
     const name = (session.customer_details?.name || '').slice(0, 200);
     const tierLabel = stucTiers[tier];
 
@@ -390,7 +390,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
               migrationHandled = true;
             } else {
               // Send admin "cancel Wix sub" email, then mark admin_notified_at.
-              const donorEmail = (session.customer_details?.email || session.customer_email || wixRow.email || '').toLowerCase().trim();
+              const donorEmail = (session.customer_details?.email || session.customer_email || wixRow.email || '').toLowerCase().trim().replace(/[\r\n]/g, '');
               const nextChargeDate = wixRow.next_expected_at
                 ? new Date(wixRow.next_expected_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
                 : 'their next scheduled donation date';
@@ -607,24 +607,20 @@ export async function handleCheckoutExpired(db, event, env, waitUntil) {
  */
 async function ensureAccountForCheckout(db, session, env, waitUntil) {
   const customerId = session.customer;
-  const email = (session.customer_details?.email || session.customer_email || '').toLowerCase().trim();
+  const email = (session.customer_details?.email || session.customer_email || '').toLowerCase().trim().replace(/[\r\n]/g, '');
 
   if (!email) {
     log(env, waitUntil, 'billing', 'no_checkout_email', 'skipped', session.id);
     return;
   }
 
-  // ELV tag (non-blocking -- payment already completed, just tag for CRM)
+  // Case 1: User was logged in (client_reference_id = D1 user ID)
   const name = (session.customer_details?.name || '').slice(0, 200);
   const [first, ...rest] = name.split(' ');
   const emailLocalParts = email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b(\w)/g, c => c.toUpperCase()).split(' ');
   const derivedFirstName = first || emailLocalParts[0] || '';
   const derivedLastName = rest.join(' ') || (first ? '' : emailLocalParts.slice(1).join(' '));
-  waitUntil(verifyAndTagEmail(email, env, {
-    firstName: derivedFirstName || '', lastName: derivedLastName || '', source: 'checkout',
-  }).catch(() => {}));
 
-  // Case 1: User was logged in (client_reference_id = D1 user ID)
   if (session.client_reference_id) {
     if (customerId) {
       // arise-ignore unbatched-writes -- conditional UPDATE only (no second .run() in this branch path)
@@ -643,6 +639,12 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
     }
     return;
   }
+
+  // ELV tag (non-blocking -- payment already completed, just tag for CRM)
+  // Only needed for Cases 2+3 (anonymous checkout); skip for logged-in users (Case 1).
+  waitUntil(verifyAndTagEmail(email, env, {
+    firstName: derivedFirstName || '', lastName: derivedLastName || '', source: 'checkout',
+  }).catch(() => {}));
 
   // Case 2: Anonymous checkout -- check if email matches existing account
   const existing = await db.prepare('SELECT id, stripe_customer_id FROM user WHERE email = ? COLLATE NOCASE')
@@ -687,31 +689,32 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
   ).bind(id, email, name || null, derivedFirstName || null, derivedLastName || null, customerId || null).run();
 
   if (ins.meta.changes === 0) {
-    // Another request created the account first -- link Stripe ID to existing account
+    // Another request created the account first -- atomically link Stripe ID to existing account.
+    // Single UPDATE keyed by email (COLLATE NOCASE via idx_user_email_nocase index) with
+    // COALESCE so an already-set customer_id is preserved and only a NULL slot gets filled.
+    // This avoids the SELECT-then-UPDATE race where a third concurrent webhook could update
+    // between our SELECT and UPDATE.
     if (customerId) {
-      const existingForLink = await db.prepare('SELECT id FROM user WHERE email = ? COLLATE NOCASE').bind(email).first();
-      if (existingForLink) {
-        const upd = await db.prepare(
-          "UPDATE user SET stripe_customer_id = ?, updated_at = datetime('now') WHERE id = ? AND (stripe_customer_id IS NULL OR stripe_customer_id = ?)"
-        ).bind(customerId, existingForLink.id, customerId).run();
-        if (upd.meta.changes === 0) {
-          log(env, waitUntil, 'billing', 'orphaned_stripe_customer', 'warning',
-            `${email} already linked to different customer, ${customerId} orphaned`);
-          if (env.AWS_ACCESS_KEY_ID) {
-            waitUntil(sendEmailSafe(env, waitUntil, {
-              to: 'administrator@rrmacademy.org',
-              subject: `Orphaned Stripe customer: ${customerId}`,
-              source: 'billing/orphaned-customer',
-              text: [
-                'A concurrent checkout created an orphaned Stripe customer.',
-                '',
-                `Email:             ${email}`,
-                `Orphaned customer: ${customerId}`,
-                '',
-                'This customer has no D1 user linked. Consider merging in Stripe Dashboard.',
-              ].join('\n'),
-            }).catch(() => {}));
-          }
+      const upd = await db.prepare(
+        "UPDATE user SET stripe_customer_id = COALESCE(stripe_customer_id, ?), updated_at = datetime('now') WHERE email = ? COLLATE NOCASE AND (stripe_customer_id IS NULL OR stripe_customer_id = ?)"
+      ).bind(customerId, email, customerId).run();
+      if (upd.meta.changes === 0) {
+        log(env, waitUntil, 'billing', 'orphaned_stripe_customer', 'warning',
+          `${email} already linked to different customer, ${customerId} orphaned`);
+        if (env.AWS_ACCESS_KEY_ID) {
+          waitUntil(sendEmailSafe(env, waitUntil, {
+            to: 'administrator@rrmacademy.org',
+            subject: `Orphaned Stripe customer: ${customerId}`,
+            source: 'billing/orphaned-customer',
+            text: [
+              'A concurrent checkout created an orphaned Stripe customer.',
+              '',
+              `Email:             ${email}`,
+              `Orphaned customer: ${customerId}`,
+              '',
+              'This customer has no D1 user linked. Consider merging in Stripe Dashboard.',
+            ].join('\n'),
+          }).catch(() => {}));
         }
       }
     }

@@ -56,6 +56,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
     await db.batch([
       db.prepare('UPDATE user SET hashed_password = ?, email_verified = 1, updated_at = datetime(\'now\') WHERE id = ?')
         .bind(hashedPassword, record.user_id),
+      db.prepare("DELETE FROM password_reset WHERE user_id = ? AND purpose = 'reset'")
+        .bind(record.user_id),
       db.prepare('DELETE FROM session WHERE user_id = ?')
         .bind(record.user_id),
       sessionInsertStatement(db, newSessionId, record.user_id, newExpiresAt),

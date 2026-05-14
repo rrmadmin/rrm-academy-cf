@@ -38,6 +38,11 @@ function validateAttachments(attachments) {
   for (const a of attachments) {
     if (!a || typeof a !== 'object') return false;
     if (typeof a.name !== 'string' || typeof a.url !== 'string') return false;
+    if (a.name.length > 200 || a.url.length > 2000) return false;
+    try {
+      const u = new URL(a.url);
+      if (!['http:', 'https:'].includes(u.protocol)) return false;
+    } catch { return false; }
   }
   return true;
 }
@@ -176,6 +181,19 @@ export async function onRequestPut(context) {
     }
 
     if (status !== undefined && (status === 'draft' || status === 'archived')) {
+      const certRef = await env.DB.prepare(
+        'SELECT id FROM course WHERE certificate_quiz_step_id = ?'
+      ).bind(stepId).first();
+      if (certRef) {
+        return json({
+          ok: false,
+          error: 'step_referenced_as_certificate_quiz',
+          courseId: certRef.id,
+        }, 409);
+      }
+    }
+
+    if (type !== undefined && type !== 'quiz' && existing.type === 'quiz') {
       const certRef = await env.DB.prepare(
         'SELECT id FROM course WHERE certificate_quiz_step_id = ?'
       ).bind(stepId).first();
