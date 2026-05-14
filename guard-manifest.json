@@ -3,7 +3,7 @@
   "description": "Critical file integrity manifest. Run `npm run guard:update` after intentional changes.",
   "files": {
     "functions/api/auth/_shared.js": {
-      "hash": "28d867243d067dbce2ddab29e744d4d132412ddd80f8535f1581fe483efaebe1",
+      "hash": "b40acfb03359bf3d15f5d57211c91ebc00dfded70b0b90c1ce299b7ae82547ee",
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
@@ -31,7 +31,7 @@
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "053104a4d00cd62ffc26772edff6635ded96e6282fbde1d3b31a358a1f287940",
+      "hash": "b5abc6d6ec12fe1fd549ad29e306f77ff289a258462300740dd63415c1d81cbc",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
@@ -107,7 +107,7 @@
       "note": "Public newsletter intake (rate-limited)"
     },
     "functions/api/search/semantic.js": {
-      "hash": "71e67c58fa557848cf4d88e8cc11ff844e4f34d42809841156248b3e2162f2d8",
+      "hash": "fa0f4777ccc3e0a4a4d068307186103e35dfaccf78892c12514be53ef2230a14",
       "note": "Billed AI.run() + Vectorize (rate-limited)"
     },
     "functions/api/_ask_prompt.js": {
@@ -127,7 +127,7 @@
       "note": "FOUC theme + chrome prop SEO invariants"
     },
     "functions/api/community/_shared.js": {
-      "hash": "d3fcd661eb0d400e52dbff21d7f0b4b5e06017b71f393433f7f5cae11a102bc2",
+      "hash": "254707c54398a4a7b4971f0bc412a8f2dd2891c1e09c127378a4139f63e2ee37",
       "note": "Community access control (requireMember)"
     },
     "functions/api/admin/cleanup.js": {
@@ -159,7 +159,7 @@
       "note": "Invoice event handler"
     },
     "functions/api/community/upload.js": {
-      "hash": "1cd467d0b7db1c639be8c462dc7460a59a41b64ad0855164a627440646e589b3",
+      "hash": "3343c53806c23439d64575d5319168384dddf410ec7386519461b6bc4c5abe02",
       "note": "R2 image upload (file validation)"
     },
     "functions/api/pdf/request.js": {

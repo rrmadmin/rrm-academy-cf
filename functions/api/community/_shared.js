@@ -90,13 +90,14 @@ export async function requireMember(request, env) {
   ).bind(session.userId).first();
   if (!user) return json({ ok: false, error: 'User not found' }, 401);
   if (user.blocked) return json({ ok: false, error: 'Account suspended' }, 403);
-  if (!user.email_verified) {
-    return json({ ok: false, error: 'Please verify your email before posting. Check your inbox for the verification link.' }, 403);
-  }
 
-  // Staff bypass subscription check — they always have access
+  // Staff bypass subscription check — they always have access (exempt from email_verified gate too)
   if (roleAtLeast(user.role, 'mod')) {
     return { user, tier: 'staff', session };
+  }
+
+  if (!user.email_verified) {
+    return json({ ok: false, error: 'Please verify your email before posting. Check your inbox for the verification link.' }, 403);
   }
 
   // Grandfathered Wix STUC members — label bypass, but only if no cancelled-subscription
