@@ -203,15 +203,16 @@ export async function enrollUser(db, userId, courseId, stripePaymentIntent) {
     ).bind(generateId(), userId, courseId, stripePaymentIntent),
   ];
 
-  // Enroll in included courses (e.g. Masterclass includes Long-Term Endo)
+  // Enroll in included courses (e.g. Masterclass includes Long-Term Endo).
+  // INSERT OR IGNORE (not full UPSERT) so an admin-revoked included-course enrollment
+  // is never silently un-revoked by a parent-course re-enroll. Included courses are
+  // never revoked by the Stripe webhook (only by admin action), so preserving
+  // revoked_at is the safe default here.
   const included = getIncludedCourseIds(courseId);
   for (const includedId of included) {
     statements.push(
       db.prepare(
-        'INSERT INTO enrollment (id, user_id, course_id, stripe_payment_intent) VALUES (?, ?, ?, ?)' +
-        ' ON CONFLICT(user_id, course_id) DO UPDATE SET' +
-        ' revoked_at = NULL,' +
-        ' stripe_payment_intent = COALESCE(excluded.stripe_payment_intent, enrollment.stripe_payment_intent)'
+        'INSERT OR IGNORE INTO enrollment (id, user_id, course_id, stripe_payment_intent) VALUES (?, ?, ?, ?)'
       ).bind(generateId(), userId, includedId, stripePaymentIntent),
     );
   }
