@@ -118,8 +118,8 @@
       "og_description": "Reference guide to national IVF registries (HFEA, CDC, ANZARD, Q-IVF, DIR, JSOG, ESHRE EIM, ICMART) and codes of practice. What each measures, what they miss.",
       "author": "RRM Academy",
       "read_time": "15 min read",
-      "accent": "var(--green-700)",
-      "accent_note": "Green ramp -- data/registry tier within RRM Academy palette.",
+      "accent": "var(--sand-700)",
+      "accent_note": "Brand-adjacent sand ramp -- data/registry warm tone within RRM Academy palette.",
       "in_guides_catalogue": true,
       "in_shell_guides_nav": true,
       "_order": 7
@@ -163,8 +163,8 @@
       "og_description": "Persistent inflammation of the uterine lining diagnosed by CD138 biopsy. Frequently missed in recurrent miscarriage and implantation failure workups. Treatable with antibiotics.",
       "author": "Dr. Naomi Whittaker",
       "read_time": "18 min read",
-      "accent": "var(--amber-700)",
-      "accent_note": "Amber ramp -- inflammation condition within RRM Academy palette.",
+      "accent": "var(--purple-700)",
+      "accent_note": "Brand primary purple -- clinical inflammation condition.",
       "in_guides_catalogue": true,
       "in_shell_guides_nav": true,
       "_order": 10
@@ -178,8 +178,8 @@
       "og_description": "Most causes of recurrent miscarriage are diagnosable and treatable. What the standard workup misses, what RRM-trained clinicians evaluate, and what outcomes look like after cause-based treatment.",
       "author": "Dr. Naomi Whittaker",
       "read_time": "22 min read",
-      "accent": "var(--sand-700)",
-      "accent_note": "Sand ramp -- pregnancy loss / earth-tone gravity within RRM Academy palette.",
+      "accent": "var(--purple-900)",
+      "accent_note": "Deepest brand purple -- pregnancy loss gravity. Shares hex with /what-is-rrm/ anchor by design; both signal weighty / authority.",
       "in_guides_catalogue": true,
       "in_shell_guides_nav": true,
       "_order": 11
