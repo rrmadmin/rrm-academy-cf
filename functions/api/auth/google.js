@@ -31,7 +31,10 @@ export async function onRequestGet({ env, request }) {
 
   // CF Pages _headers can convert 302 → 200, so include an HTML fallback
   // that performs the redirect via meta refresh + JS even if the status is wrong.
-  const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${escapedTarget}"></head><body><script>window.location.href=${JSON.stringify(target)}</script></body></html>`;
+  // Escape `<` to `<` in the JSON-encoded URL so a `</script>` substring
+  // can't close the inline script tag (defense-in-depth; target is server-built
+  // but the pattern shouldn't drift across sibling redirects).
+  const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${escapedTarget}"></head><body><script>window.location.href=${JSON.stringify(target).replace(/</g, '\\u003c')}</script></body></html>`;
 
   return new Response(html, {
     status: 302,

@@ -27,11 +27,11 @@
       "note": "Authenticated password change"
     },
     "functions/api/auth/google.js": {
-      "hash": "00a9706469496106a1ae115bbc971ab7646da703203f95e90942633ea3b1597a",
+      "hash": "5b2e8e7656b7c35ebb817ed6eebb72068ac397bcc4a37a9369c5e97ae9d7a04e",
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "7453f1d5e2c8c653ae47426f380b0eba84e15a7259c4119a17decdb6cc0854f2",
+      "hash": "053104a4d00cd62ffc26772edff6635ded96e6282fbde1d3b31a358a1f287940",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
@@ -71,7 +71,7 @@
       "note": "HMAC-SHA256 magic-link token for Wix-to-Stripe donor migration"
     },
     "functions/_middleware.js": {
-      "hash": "8ba907f0f06fa1590a5079f6c3c09ec1b9c9c0826b1bad58fb6f9741a6248a60",
+      "hash": "1c6734b5c5898720245863466ad5bcb499c771973743166a160d380e7a0d8ee1",
       "note": "Auth gating"
     },
     "wrangler.toml": {
