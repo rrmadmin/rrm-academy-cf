@@ -1,0 +1,715 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MaybeShell from '../../components/MaybeShell.astro';
+import SectionTocChips from '../../components/SectionTocChips.astro';
+import { isShellEnabled } from '../../lib/shell-routes';
+import BackToTop from '../../components/BackToTop.astro';
+import LastUpdated from '../../components/LastUpdated.astro';
+import pageDates from '../../data/page-dates.json';
+import endometritisData from '../../data/endometritis.json';
+import { buildScholarlyArticleStub } from '../../lib/identity';
+import { safeJsonLd } from '../../lib/jsonld';
+
+const SHELL_ENABLED = isShellEnabled('guides');
+
+const TOC_ITEMS = [
+  { href: '#what-is-ce', label: 'What Is Chronic Endometritis?' },
+  { href: '#missed-diagnosis', label: 'Why It Gets Missed' },
+  { href: '#how-diagnosed', label: 'How It Is Diagnosed' },
+  { href: '#link-to-rpl-and-failure', label: 'CE, Recurrent Loss, and Implantation Failure' },
+  { href: '#treatment', label: 'Treatment' },
+  { href: '#outcomes', label: 'Outcomes After Treatment' },
+  { href: '#when-to-suspect', label: 'When to Suspect CE' },
+  { href: '#acute-ce', label: 'Acute Endometritis: A Brief Note' },
+  { href: '#preparing-for-a-consult', label: 'Preparing for a Consult' },
+  { href: '#faq', label: 'Frequently Asked Questions' },
+];
+
+const PAGE_PATH = '/endometritis/';
+const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-05-14';
+const PAGE_URL = 'https://rrmacademy.org/endometritis/';
+
+function citeStub(props: { name: string; author: string; datePublished: string; journal?: string }) {
+  const node = buildScholarlyArticleStub(props) as Record<string, unknown> & { '@context'?: unknown };
+  const { '@context': _ctx, ...rest } = node;
+  return rest;
+}
+
+const pageSchema = {
+  '@context': 'https://schema.org',
+  '@type': ['Article', 'MedicalWebPage'],
+  headline: 'Chronic Endometritis: A Clinician-Reviewed Guide',
+  description: 'Chronic endometritis is a persistent, low-grade inflammation of the uterine lining diagnosed by CD138 endometrial biopsy. It is frequently missed in recurrent miscarriage and implantation failure workups, and it is treatable with antibiotic therapy.',
+  author: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+  publisher: {
+    '@type': 'EducationalOrganization',
+    '@id': 'https://rrmacademy.org/#organization',
+    name: 'RRM Academy',
+  },
+  datePublished: '2026-05-14',
+  dateModified: LAST_MODIFIED,
+  wordCount: 3700,
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': PAGE_URL,
+  },
+  about: {
+    '@type': 'MedicalCondition',
+    name: 'Chronic Endometritis',
+    alternateName: ['CE'],
+    code: {
+      '@type': 'MedicalCode',
+      codingSystem: 'ICD-10',
+      codeValue: 'N71.1',
+    },
+  },
+  articleSection: [
+    'What Is Chronic Endometritis?',
+    'Why It Gets Missed',
+    'How It Is Diagnosed',
+    'CE, Recurrent Loss, and Implantation Failure',
+    'Treatment',
+    'Outcomes After Treatment',
+    'When to Suspect CE',
+    'Acute Endometritis: A Brief Note',
+    'Preparing for a Consult',
+    'Frequently Asked Questions',
+  ],
+  hasPart: [
+    { '@type': 'WebPageElement', name: 'What Is Chronic Endometritis?', url: `${PAGE_URL}#what-is-ce` },
+    { '@type': 'WebPageElement', name: 'Why It Gets Missed', url: `${PAGE_URL}#missed-diagnosis` },
+    { '@type': 'WebPageElement', name: 'How It Is Diagnosed', url: `${PAGE_URL}#how-diagnosed` },
+    { '@type': 'WebPageElement', name: 'CE, Recurrent Loss, and Implantation Failure', url: `${PAGE_URL}#link-to-rpl-and-failure` },
+    { '@type': 'WebPageElement', name: 'Treatment', url: `${PAGE_URL}#treatment` },
+    { '@type': 'WebPageElement', name: 'Outcomes After Treatment', url: `${PAGE_URL}#outcomes` },
+    { '@type': 'WebPageElement', name: 'When to Suspect CE', url: `${PAGE_URL}#when-to-suspect` },
+    { '@type': 'WebPageElement', name: 'Acute Endometritis: A Brief Note', url: `${PAGE_URL}#acute-ce` },
+    { '@type': 'WebPageElement', name: 'Preparing for a Consult', url: `${PAGE_URL}#preparing-for-a-consult` },
+    { '@type': 'WebPageElement', name: 'Frequently Asked Questions', url: `${PAGE_URL}#faq` },
+  ],
+  citation: [
+    citeStub({
+      name: 'Chronic endometritis due to common bacteria is prevalent in women with recurrent miscarriage as confirmed by improved pregnancy outcome after antibiotic treatment',
+      author: 'Cicinelli E, Matteo M, Tinelli R, Lepera A, Alfonso R, Indraccolo U, Marrocchella S, Greco P, Resta L',
+      datePublished: '2014',
+      journal: 'Reproductive Sciences',
+    }),
+    citeStub({
+      name: 'Chronic endometritis in women with recurrent early pregnancy loss and/or fetal demise',
+      author: 'McQueen DB, Bernardi LA, Stephenson MD',
+      datePublished: '2014',
+      journal: 'Fertility and Sterility',
+    }),
+    citeStub({
+      name: 'The diagnosis of chronic endometritis in infertile asymptomatic women: a comparative study of histology, microbial cultures, hysteroscopy, and molecular microbiology',
+      author: 'Moreno I, Cicinelli E, Garcia-Grau I, Gonzalez-Monfort M, Bau D, Vilella F, De Ziegler D, Resta L, Valbuena D, Simon C',
+      datePublished: '2018',
+      journal: 'American Journal of Obstetrics and Gynecology',
+    }),
+    citeStub({
+      name: 'Chronic endometritis in infertile women: impact of untreated disease, plasma cell count, and antibiotic therapy on IVF outcome, a systematic review and meta-analysis',
+      author: 'Vitagliano A, Laganà AS, De Ziegler D, Cicinelli R, Santarsiero CM, Buzzaccarini G, Chiantera V, Cicinelli E, Marinaccio M',
+      datePublished: '2022',
+      journal: 'Diagnostics',
+    }),
+    citeStub({
+      name: 'Chronic endometritis: a prevalent yet poorly understood entity',
+      author: 'Margulies SL, Flores V, Parkash V, Pal L',
+      datePublished: '2022',
+      journal: 'International Journal of Gynaecology and Obstetrics',
+    }),
+    citeStub({
+      name: 'The association between endometriosis and chronic endometritis',
+      author: 'Takebayashi A, Kimura F, Kishi Y, Ishida M, Takahashi A, Yamanaka A, Takahashi K, Suginami H, Murakami T',
+      datePublished: '2014',
+      journal: 'PLoS One',
+    }),
+    citeStub({
+      name: 'Novel approaches to the management of recurrent pregnancy loss: the OPTIMUM (OPtimization of Thyroid function, Thrombophilia, Immunity, and Uterine Milieu) treatment strategy',
+      author: 'Kuroda K, Horikawa T, Moriyama A, Nakao K, Juen H, Takamizawa S, Ojiro Y, Nakagawa K, Sugiyama R',
+      datePublished: '2021',
+      journal: 'Reproductive Medicine and Biology',
+    }),
+    citeStub({
+      name: 'Chronic endometritis: potential cause of infertility and obstetric and neonatal complications',
+      author: 'Kitaya K, Matsubayashi H, Yamaguchi K, Nishiyama R, Takaya Y, Ishikawa T, Yasuo T, Yamada H',
+      datePublished: '2015',
+      journal: 'American Journal of Reproductive Immunology',
+    }),
+  ],
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+    { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://rrmacademy.org/guides/' },
+    { '@type': 'ListItem', position: 3, name: 'Endometritis', item: PAGE_URL },
+  ],
+};
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'Is endometritis the same as endometriosis?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'These are distinct conditions that share a root word but involve different anatomy, different pathophysiology, and different treatments. Endometriosis involves tissue similar to the uterine lining growing outside the uterus, in the pelvis, on the ovaries, and in other extra-uterine locations. It drives chronic pain, adhesion formation, and in many women, infertility. Takebayashi et al. 2014 documented that the two conditions can coexist, meaning a patient can have both simultaneously. But they are evaluated differently, treated differently, and should not be conflated. If you have been told you have one and continue to have unexplained symptoms or reproductive failure, ask whether the other has been assessed. See our endometriosis guide for a full account of that condition. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How is chronic endometritis diagnosed?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'CD138 immunohistochemistry on endometrial biopsy is the current diagnostic standard. CD138 is a marker expressed by plasma cells. Plasma cells are not normally found in the endometrial stroma. When they are identified on a biopsy specimen using CD138 staining, that is the histologic confirmation of CE. The biopsy itself is a minimally invasive office procedure. Hysteroscopy can raise clinical suspicion by revealing characteristic patterns such as focal hyperemia, micropolyps, or stromal edema, per Park et al. 2017, but hysteroscopy cannot confirm the diagnosis on its own. A normal hysteroscopy does not exclude CE. The biopsy is necessary. Microbial culture complements the histologic evaluation but also cannot replace it. If you have had hysteroscopy without a subsequent biopsy with CD138 staining, CE has not been fully evaluated. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What causes chronic endometritis?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'CE is caused by persistent abnormal bacterial colonization of the endometrium. The most commonly identified organisms are Enterobacteriaceae, Enterococcus, Streptococcus, Staphylococcus, Mycoplasma, and Ureaplasma, per Moreno et al. 2018. These are not organisms associated with dramatic acute illness in most patients. They produce a subclinical, chronic inflammatory state rather than the fever and pelvic pain associated with acute pelvic infection. Prior uterine instrumentation (D&C, polyp removal, IVF transfers, hysteroscopy) creates potential entry points for ascending bacterial colonization. Some cases arise without a clear procedural history. The bacterial colonization triggers an abnormal immune response in the endometrium, producing the plasma cell infiltration that defines CE histologically. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'I have had repeated IVF failures. Could chronic endometritis be the reason?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'In many cases, CE is a contributing factor in repeated implantation failure that has not been found because the biopsy was not done. The evidence is substantial: CE is found in approximately 30% of women with repeated unexplained implantation failure, per Cicinelli et al. 2015. A 2022 systematic review and meta-analysis of 4,145 patients found that women with CE had significantly lower live birth and ongoing pregnancy rates, and that CE resolution after antibiotic treatment normalized those outcomes to levels comparable to unaffected women, per Vitagliano et al. 2022. A morphologically normal embryo placed into an inflamed endometrium cannot implant the way it should. The endometrial environment matters independent of embryo quality. If you have had transfers fail with good-quality embryos and no endometrial biopsy has been done, CE has not been excluded. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Can chronic endometritis cause recurrent miscarriage?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'The evidence links CE to recurrent pregnancy loss across several study populations. Cicinelli et al. evaluated 360 women with unexplained recurrent miscarriage and found CE in 56.7% by hysteroscopy, confirmed by histology in 91.3% of those. After antibiotic treatment, subsequent pregnancy outcomes improved significantly in those whose CE resolved, per Cicinelli et al. 2013. McQueen et al. evaluated 395 women in a recurrent pregnancy loss program and found a 9% overall CE prevalence, with a subsequent cumulative live birth rate of 88% in treated patients, per McQueen et al. 2014. The mechanism is plausible: persistent endometrial inflammation impairs the implantation process and disrupts early pregnancy maintenance. For any patient told her losses are unexplained, CE evaluation with endometrial biopsy is a reasonable and low-risk investigative step that the standard RPL workup often omits. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Is endometritis treatable?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Chronic endometritis is treatable with antibiotic therapy, and treatment is associated with improved reproductive outcomes in cohorts where CE was the identified factor. The standard approach is antibiotic treatment followed, in specialist centers, by a retest biopsy to confirm resolution. Doxycycline is among the most studied regimens in the literature, but specific antibiotic choice, duration, and whether combination therapy is indicated depend on the individual patient\'s culture results and clinical context. These are prescribing decisions for the treating clinician. In the McQueen et al. cohort, the cure rate after antibiotic treatment was 100%, with a post-treatment cumulative live birth rate of 88% in those treated, per McQueen et al. 2014. CE that does not resolve after one course of antibiotics may require a second course or a culture-guided change in regimen. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Why does mainstream care rarely test for chronic endometritis?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Several factors compound to create the diagnostic gap. CE produces no dramatic symptoms in most patients, so it does not generate the clinical urgency that prompts investigation. The diagnostic test requires an endometrial biopsy with specific CD138 immunohistochemistry, which is a more involved step than bloodwork or imaging. Awareness of CE\'s role in recurrent pregnancy loss and implantation failure has grown in the reproductive literature over the past decade but has not uniformly reached routine clinical practice. A 2022 survey of practicing obstetricians and gynecologists found concerning gaps in awareness of CE\'s pathophysiology, diagnostic criteria, and clinical implications, per Margulies et al. 2022. The result is that women with "unexplained" recurrent pregnancy loss or implantation failure frequently complete a standard workup that leaves CE unevaluated. The workup is not wrong. It is incomplete. CE requires asking the next question. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Do I need a hysteroscopy to diagnose chronic endometritis?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Hysteroscopy is not required for the diagnosis of CE, but it is a useful complementary investigation. The diagnostic standard is endometrial biopsy with CD138 immunohistochemistry. A biopsy can be performed without hysteroscopy as a separate office procedure. Hysteroscopy adds value by visualizing the uterine cavity for characteristic CE findings (micropolyps, focal hyperemia, stromal edema) and for identifying co-occurring structural pathology such as endometrial polyps, per Vitagliano et al. 2021. In some clinical settings, hysteroscopy and biopsy are done together. In others, the biopsy is performed first and hysteroscopy is added if indicated. The key point: a hysteroscopy without a CD138 biopsy does not diagnose CE, and a normal-appearing hysteroscopy does not exclude it. The diagnosis lives in the tissue. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Should my partner be treated too?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Partner treatment depends on which organism was identified. When Mycoplasma genitalium is found, simultaneous treatment of the male partner is clearly supported: this organism is sexually transmitted, and guidelines consistently recommend treating both partners. When Ureaplasma urealyticum or Mycoplasma hominis is cultured, the evidence for routine partner treatment is weaker, and major STI guidelines do not mandate it. Many clinicians specializing in infertility and CE do treat the male partner empirically in these cases, particularly when reproductive failure has been recurrent, but this is a clinical judgment call rather than a protocol requirement. Whether partner treatment is indicated depends on the specific organism found, the culture sensitivity results, and the judgment of the treating clinician. Beyond the CE-specific question, both partners in any couple with recurrent pregnancy loss or implantation failure should have a complete reproductive evaluation. Male factor is solely responsible in approximately 20% of couples and contributes in an additional 30 to 40%. CE in the female partner does not complete the workup. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'I had a CD138 biopsy that was negative. Could I still have chronic endometritis?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'A negative CD138 biopsy substantially reduces the probability of CE, but a few caveats apply. First, the threshold for "positive" is not standardized across laboratories: some use one plasma cell per high-power field, others require five or more. The laboratory\'s specific protocol matters. Second, CE can be patchy, meaning that a biopsy from one area of the endometrium might not sample the affected region. Third, the timing of the biopsy within the cycle can affect results: most protocols recommend sampling in the proliferative phase, and sampling during the secretory phase may reduce sensitivity. If your biopsy was done by a center that did not use CD138 IHC specifically, but relied on standard hematoxylin and eosin staining alone, the sensitivity is lower. If your clinical picture strongly suggests CE and a single biopsy was negative, a repeat biopsy at a center experienced in CE diagnosis is a reasonable next step. A negative biopsy done correctly by an experienced laboratory carries more weight than one where the protocol is uncertain. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+  ],
+};
+---
+
+<BaseLayout
+  title="Chronic Endometritis: A Clinician-Reviewed Guide"
+  description="Chronic endometritis is a persistent, low-grade inflammation of the uterine lining diagnosed by CD138 endometrial biopsy. It is frequently missed in recurrent miscarriage and implantation failure workups, and it is treatable with antibiotic therapy."
+  canonicalUrl={PAGE_URL}
+  ogType="article"
+  publishDate="2026-05-14"
+  jsonLd={pageSchema}
+  speakable={['.pillar-lead', 'h1']}
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
+>
+  <script type="application/ld+json" set:html={safeJsonLd(breadcrumbSchema)} />
+  <script type="application/ld+json" set:html={safeJsonLd(faqSchema)} />
+
+  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname}>
+  <div class="page-wrapper" data-pagefind-body>
+    <span data-pagefind-meta="type:Guide" style="display:none"></span>
+    <span data-pagefind-meta="title:Chronic Endometritis: A Clinician-Reviewed Guide" style="display:none"></span>
+    <div class="container">
+
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <a href="/guides/">Guides</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <span>Endometritis</span>
+      </nav>
+
+      <h1>Chronic Endometritis: The Missed Diagnosis Behind Recurrent Loss and Failed Implantation</h1>
+
+      <div class="author-byline">
+        <div class="author-avatar-stack">
+          <img src="/images/authors/naomi-whittaker.webp" alt="Dr. Naomi Whittaker, MD" class="author-byline__photo" width="48" height="48" />
+        </div>
+        <div class="author-byline__text">
+          <span class="byline-author">By <strong><a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</a></strong></span>
+          <LastUpdated path={PAGE_PATH} class="byline-date" />
+        </div>
+      </div>
+
+      <details class="toc-mobile">
+        <summary>On this page</summary>
+        <ol>
+          {TOC_ITEMS.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
+        </ol>
+      </details>
+
+      {SHELL_ENABLED && <SectionTocChips items={TOC_ITEMS} />}
+
+      <div class:list={['article-layout', { 'article-layout--no-toc': SHELL_ENABLED }]}>
+        {!SHELL_ENABLED && (
+          <nav class="toc" aria-label="Table of contents">
+            <p class="toc-heading">On this page</p>
+            <ol>
+              {TOC_ITEMS.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
+            </ol>
+          </nav>
+        )}
+
+        <article class="prose">
+
+          <aside class="disambig" aria-label="Disambiguation">
+            <p>Looking for information about endometriosis, tissue similar to the uterine lining that grows outside the uterus and drives chronic pain and infertility? See our <a href="/endometriosis/">endometriosis guide</a>. This page covers chronic endometritis: persistent inflammation of the uterine lining itself. The two conditions share a root word, affect different anatomy, and require different workups. They can coexist, but they are not the same condition.</p>
+          </aside>
+
+          <aside class="tldr">
+            <h2 id="key-takeaways">Key Takeaways</h2>
+            <ul>
+              <li><strong>Chronic endometritis (CE) is a persistent, low-grade inflammation of the endometrial lining, typically caused by bacterial pathogens, and it is frequently subclinical.</strong> Most women with CE have no dramatic symptoms. That is part of why it goes undetected, per <a href="/library/chronic-endometritis-potential-cause-of-infertility-and-obstetric-and-neonatal-c-recard0poglnf8sx1/">Kitaya et al. 2015</a>.</li>
+              <li><strong>CE has been found in up to 40% of infertile patients in prior literature, and is documented in a significant proportion of women with recurrent implantation failure and recurrent pregnancy loss.</strong> Standard fertility workups rarely include the biopsy needed to find it, per <a href="/library/the-diagnosis-of-chronic-endometritis-in-infertile-asymptomatic-women-a-comparat-rec1qah2jxcen5ftk/">Moreno et al. 2018</a>.</li>
+              <li><strong>The diagnostic standard for CE is CD138 immunohistochemistry on endometrial biopsy, identifying abnormal plasma cell infiltration in the endometrial stroma.</strong> Hysteroscopy can raise clinical suspicion but cannot confirm the diagnosis on its own, per <a href="/library/chronic-endometritis-old-problem-novel-insights-and-future-challenges-recbn0uudec8shgjb/">Puente et al. 2019</a>.</li>
+              <li><strong>In a cohort of 360 women with recurrent pregnancy loss, 56.7% had CE identified on hysteroscopy.</strong> After antibiotic treatment, the subsequent live birth rate in those treated was significantly higher than before treatment. This is a diagnosable, treatable condition, per <a href="/library/chronic-endometritis-due-to-common-bacteria-is-prevalent-in-women-with-recurrent-recyfpe9a4szxychl/">Cicinelli et al. 2013</a>.</li>
+              <li><strong>Untreated CE significantly reduces pregnancy rates and live birth rates.</strong> In a systematic review and meta-analysis of 4,145 patients, women with CE had lower ongoing pregnancy and live birth rates compared to unaffected women. CE resolution after antibiotic therapy substantially improved those outcomes, per <a href="/library/chronic-endometritis-in-infertile-women-impact-of-untreated-disease-plasma-cell--recnapfelxmnub1sq/">Vitagliano et al. 2022</a>.</li>
+              <li><strong>Antibiotic treatment of CE improves reproductive outcomes in RPL and implantation failure populations.</strong> In specialist centers that perform post-treatment retest biopsy, the outcome data are compelling: McQueen 2014 reported a cumulative live birth rate of 88% among 35 treated women across the post-treatment follow-up window, compared to a per-pregnancy live birth rate of 7% in those same patients before treatment, rising to 56% after treatment, per <a href="/library/chronic-endometritis-in-women-with-recurrent-early-pregnancy-loss-andor-fetal-de-EAqhlgQh/">McQueen et al. 2014</a>.</li>
+            </ul>
+          </aside>
+
+          <section id="what-is-ce">
+            <h2>What Is Chronic Endometritis?</h2>
+
+            <p class="pillar-lead"><strong>Chronic endometritis (CE) is a persistent, low-grade inflammatory condition of the endometrium, the lining of the uterus. It is not the same as endometriosis. It is not a post-surgical infection. It is a subclinical, ongoing inflammation of the uterine lining itself, driven by abnormal bacterial colonization, and in most women it produces no dramatic symptoms. That silence is the clinical trap.</strong></p>
+
+            <p>In CE, plasma cells infiltrate the endometrial stroma, where they are not normally found. The endometrium is cyclically shed and renewed, which creates a false expectation that the uterine environment resets cleanly each cycle. In women with CE, it does not. The inflammatory state persists across cycles, disrupting the molecular environment required for embryo implantation and early pregnancy maintenance.</p>
+
+            <p>The pathophysiology involves disruption of endometrial receptivity. The normal implantation window depends on a precisely coordinated cascade of cytokines, adhesion molecules, and stromal architecture. Persistent inflammation alters this environment at the molecular level, per <a href="/library/chronic-endometritis-potential-cause-of-infertility-and-obstetric-and-neonatal-c-recard0poglnf8sx1/">Kitaya et al. 2015</a>. The embryo arrives into a hostile rather than receptive uterine milieu. This is why CE can cause implantation failure and early pregnancy loss even when the embryo appears morphologically normal and the hormonal support appears adequate.</p>
+
+            <p>The causative organisms are typically common bacteria: Enterobacteriaceae, Enterococcus, Streptococcus, Staphylococcus, Mycoplasma, and Ureaplasma are the most frequently identified. These are not organisms that cause obvious acute infection in most patients. They produce a chronic, low-grade state rather than acute illness, per <a href="/library/the-diagnosis-of-chronic-endometritis-in-infertile-asymptomatic-women-a-comparat-rec1qah2jxcen5ftk/">Moreno et al. 2018</a>. A woman can carry CE for months or years without any symptom that would prompt investigation.</p>
+
+            <p>CE should not be confused with acute endometritis, which is a different clinical entity discussed briefly at the end of this guide. Acute endometritis is a well-recognized, symptomatic infection typically occurring after delivery, miscarriage, or uterine instrumentation. Chronic endometritis is the quiet version. It is the one that gets missed.</p>
+          </section>
+
+          <section id="missed-diagnosis">
+            <h2>Why CE Is the Missed Diagnosis</h2>
+
+            <p>Here is the diagnostic chain that fails most patients.</p>
+
+            <p>A woman has two, three, or four miscarriages. Or she has three IVF cycles with good embryos that do not implant. The workup covers: karyotyping, thrombophilia panel, thyroid function, uterine anatomy assessment with a saline-infusion sonogram or hysteroscopy for structural lesions. She may receive a clotting disorder workup. She may receive immune panels. She is told the results are either normal or non-explanatory. The label assigned is "unexplained recurrent pregnancy loss" or "unexplained recurrent implantation failure."</p>
+
+            <p>What the standard workup typically does not include: an endometrial biopsy with CD138 immunohistochemistry to evaluate for plasma cell infiltration. That biopsy is the only test that can confirm or exclude CE. If the biopsy is not done, CE cannot be diagnosed. Not because it is not present. Because no one looked.</p>
+
+            <p>This is not a fringe observation. A 2022 survey of obstetricians and gynecologists found a concerning spectrum of deficiencies in awareness of CE's clinical implications, diagnostic criteria, and treatment strategies among practicing clinicians, per <a href="/library/chronic-endometritis-a-prevalent-yet-poorly-understood-entity-dEI8BPHx/">Margulies et al. 2022</a>. The condition is not taught robustly. The biopsy is not reflexively ordered. And women carry the cost of that gap in the form of repeated losses and failed cycles.</p>
+
+            <p>In women with recurrent pregnancy loss, prevalence estimates for CE range from 9% to nearly 58% depending on the cohort and the diagnostic method used, per <a href="/library/chronic-endometritis-in-women-with-recurrent-early-pregnancy-loss-andor-fetal-de-EAqhlgQh/">McQueen et al. 2014</a> and <a href="/library/chronic-endometritis-due-to-common-bacteria-is-prevalent-in-women-with-recurrent-recyfpe9a4szxychl/">Cicinelli et al. 2013</a>. The wide range reflects variation in biopsy technique, the threshold for plasma cell identification, and whether hysteroscopy or histology or both were used. But the lower bound of that range still represents a meaningful proportion of a population already defined by reproductive failure. In the implantation failure literature, CE prevalence in repeated implantation failure cohorts has been reported at 30% or higher, per <a href="/library/prevalence-of-chronic-endometritis-in-repeated-unexplained-implantation-failure--zBgeyQAb/">Cicinelli et al. 2015</a>.</p>
+
+            <p>A woman who has had multiple failed embryo transfers or multiple losses without a clear cause has a clinically meaningful pre-test probability of CE. Without the biopsy, that probability never becomes a diagnosis.</p>
+
+            <p>"Unexplained" recurrent pregnancy loss and "unexplained" implantation failure are not diagnoses. They are labels assigned when the workup did not look for everything. CE is one of the things the workup often does not look for.</p>
+          </section>
+
+          <section id="how-diagnosed">
+            <h2>How Chronic Endometritis Is Diagnosed</h2>
+
+            <p><strong>CD138 immunohistochemistry (IHC) on endometrial biopsy is the current diagnostic standard.</strong> CD138 is a surface marker expressed by plasma cells. In normal endometrium, plasma cells are not present in the stroma. When CD138-positive plasma cells are identified on IHC staining of an endometrial biopsy specimen, that is the histologic confirmation of CE, per <a href="/library/chronic-endometritis-old-problem-novel-insights-and-future-challenges-recbn0uudec8shgjb/">Puente et al. 2019</a>. The threshold for a positive result varies by study and by laboratory protocol, which contributes to the heterogeneity in prevalence estimates across the literature. This is a live methodological debate in the field.</p>
+
+            <p>The biopsy is a minimally invasive office procedure: a small catheter is passed through the cervix and a sample of the endometrial lining is collected. It is typically done in the proliferative phase of the cycle, outside the implantation window. The specimen is sent to pathology for standard hematoxylin and eosin staining and, ideally, CD138 IHC.</p>
+
+            <p><strong>Hysteroscopy</strong> can raise clinical suspicion for CE. Characteristic findings include a "strawberry pattern" of focal hyperemia with small polypoid projections, micropolyps (small polypoid structures less than 1 mm), and stromal edema, per <a href="/library/chronic-endometritis-and-infertility-rechb8anslz91hhrb/">Park et al. 2017</a>. These hysteroscopic findings are suggestive but not confirmatory. A hysteroscopy without a biopsy does not diagnose CE. The two investigations are complementary. Hysteroscopy can also identify co-occurring structural pathology such as endometrial polyps, which are independently associated with CE, per <a href="/library/association-between-endometrial-polyps-and-chronic-endometritis-is-it-time-for-a-recnttsdmqyb3t0iv/">Vitagliano et al. 2021</a>.</p>
+
+            <p><strong>Microbial culture</strong> of endometrial samples can identify the causative organism and guide antibiotic selection. Not all causative organisms are easily culturable, however, and culture alone is insufficient for diagnosis because CE can be present without a clearly positive culture, per <a href="/library/the-diagnosis-of-chronic-endometritis-in-infertile-asymptomatic-women-a-comparat-rec1qah2jxcen5ftk/">Moreno et al. 2018</a>. Culture complements histologic confirmation rather than replacing it.</p>
+
+            <p><strong>Cycle chart findings that should prompt suspicion:</strong> Brown spotting at the expected time of menstruation or into the early part of the cycle can be clinically relevant. Unusual prolonged bleeding, atypical cycle patterns, and post-coital bleeding in the context of reproductive failure are all worth noting and communicating to the clinician evaluating for CE. These are not diagnostic, but they are the kinds of observations that change the pre-test probability and should prompt the biopsy conversation. Charting the cycle makes these patterns visible and documentable.</p>
+
+            <div class="condition-grid">
+              {endometritisData.condition_comparison.map((c) => (
+                <article class="condition-card" data-key={c.key}>
+                  <header class="condition-card__header">
+                    <h3>{c.name}</h3>
+                    <p class="condition-card__subtitle">ICD-10: {c.icd10}</p>
+                  </header>
+                  <dl class="condition-card__body">
+                    <dt>Anatomy</dt>
+                    <dd>{c.anatomy}</dd>
+                    <dt>Mechanism</dt>
+                    <dd>{c.mechanism}</dd>
+                    <dt>Symptoms</dt>
+                    <dd>{c.symptoms}</dd>
+                    <dt>Diagnostic standard</dt>
+                    <dd>{c.diagnosis_standard}</dd>
+                    <dt>Treatment</dt>
+                    <dd>{c.treatment}</dd>
+                    <dt>Fertility link</dt>
+                    <dd set:html={c.fertility_link_html} />
+                  </dl>
+                </article>
+              ))}
+            </div>
+
+            <p>The biopsy is the answer. Everything else is the clinical question that gets you there.</p>
+          </section>
+
+          <section id="link-to-rpl-and-failure">
+            <h2>CE, Recurrent Pregnancy Loss, and Implantation Failure</h2>
+
+            <p>This is the section that matters most for the patient who has had multiple losses or failed transfers with no explanation offered.</p>
+
+            <p>The connection between CE and reproductive failure is documented across multiple study designs. The mechanism is endometrial receptivity disruption: the persistent inflammatory state alters the cytokine milieu, impairs the expression of endometrial receptivity markers, and interferes with the molecular signaling required for embryo implantation and early trophoblast invasion. The embryo, however normal its morphology, cannot implant into an inflamed endometrium the way it should, per <a href="/library/chronic-endometritis-potential-cause-of-infertility-and-obstetric-and-neonatal-c-recard0poglnf8sx1/">Kitaya et al. 2015</a>.</p>
+
+            <p>The prevalence data are consistent in direction if heterogeneous in magnitude. Cicinelli et al. evaluated 360 women with unexplained recurrent miscarriage and found CE in 56.7% by hysteroscopy (22.8% microbiologically confirmed); of those with hysteroscopic findings, 91.3% were also positive on histology, confirming that the inflammatory signal seen hysteroscopically reflected a real pathologic finding at the tissue level, per <a href="/library/chronic-endometritis-due-to-common-bacteria-is-prevalent-in-women-with-recurrent-recyfpe9a4szxychl/">Cicinelli et al. 2013</a>.</p>
+
+            <p>McQueen et al. evaluated 395 women in a recurrent pregnancy loss program using a standardized endometrial biopsy protocol. Overall CE prevalence in this cohort was 9%, with 7% in the recurrent early pregnancy loss group and 14% in those with fetal demise. The cure rate after antibiotic treatment was 100%. The subsequent cumulative live birth rate for the treated CE group was 88%, compared to a per-pregnancy live birth rate of 7% in those same patients before treatment, which rose to 56% per pregnancy after treatment, per <a href="/library/chronic-endometritis-in-women-with-recurrent-early-pregnancy-loss-andor-fetal-de-EAqhlgQh/">McQueen et al. 2014</a>.</p>
+
+            <p>The implantation failure data are similarly directional. Cicinelli et al. reported CE prevalence of 30.3% among women with repeated unexplained implantation failure at IVF, and found that antibiotic treatment significantly improved subsequent reproductive outcomes compared to untreated CE and to the untreated population proceeding to further transfers, per <a href="/library/prevalence-of-chronic-endometritis-in-repeated-unexplained-implantation-failure--zBgeyQAb/">Cicinelli et al. 2015</a>.</p>
+
+            <p>A 2022 systematic review and meta-analysis by Vitagliano et al. pooled data from ten studies covering 4,145 patients. Women with CE had significantly lower ongoing pregnancy and live birth rates compared to those without CE. After CE resolution with antibiotic treatment, ongoing pregnancy and live birth rates were comparable to unaffected patients. The effect of severe CE was more pronounced than mild CE, but the direction was consistent: untreated CE is a reproducible negative predictor of reproductive outcome, per <a href="/library/chronic-endometritis-in-infertile-women-impact-of-untreated-disease-plasma-cell--recnapfelxmnub1sq/">Vitagliano et al. 2022</a>.</p>
+
+            <p>What this evidence means in practice: a woman who has experienced two or more pregnancy losses, or who has had repeated implantation failure with no identified cause, and who has not had an endometrial biopsy with CD138 IHC, has not completed a full workup. The diagnosis may be sitting in the tissue that was never sampled.</p>
+
+            <!-- TODO: link to /miscarriage/ once published -->
+            <p>A dedicated guide to recurrent pregnancy loss is in development, covering the full RPL workup and the RRM approach to unexplained losses.</p>
+
+            <p>Both partners matter. Male factor is solely responsible in approximately 20% of couples with reproductive failure and contributes in an additional 30 to 40%. Evaluating the male partner with a full semen analysis is part of the complete workup. A CE diagnosis in the female partner does not close the investigation on the male side.</p>
+          </section>
+
+          <section id="treatment">
+            <h2>Treatment</h2>
+
+            <p>CE is treated with antibiotic therapy. This is the established and evidence-supported approach, per <a href="/library/chronic-endometritis-old-problem-novel-insights-and-future-challenges-recbn0uudec8shgjb/">Puente et al. 2019</a>. Doxycycline is one of the most frequently studied antibiotic regimens in the CE literature, often used as first-line or as part of combination protocols. The specific regimen, duration, and any combination therapy are decisions made by the treating clinician based on the individual patient's microbiological culture results, organism sensitivities, and clinical context. No dosing guidance belongs on this page. This is a prescribing decision.</p>
+
+            <p>In specialist centers and several published cohorts, notably McQueen 2014, a post-treatment retest biopsy is performed to confirm resolution. The goal is not just treatment but confirmed resolution: a follow-up endometrial biopsy with CD138 IHC, performed after the antibiotic course, confirms whether the plasma cell infiltration has resolved. This practice is not yet a universal guideline standard, but it is the protocol that produces the strongest outcome data. If CE persists after a first course, a second course or a different antibiotic regimen may be indicated based on culture-guided sensitivity data.</p>
+
+            <p>Partner treatment depends on the organism identified. For Mycoplasma genitalium, simultaneous treatment of the male partner has clear evidence and guideline support: this organism behaves as a sexually transmitted pathogen, and an untreated partner risks reintroducing the infection. For Ureaplasma urealyticum and Mycoplasma hominis, the evidence for partner treatment is weaker, and major STI guidelines do not mandate it. Many clinicians specializing in infertility and CE do empirically treat the male partner when these organisms are cultured, particularly in the setting of recurrent reproductive failure, but this is a judgment call, not a protocol requirement. The treating clinician is the right person to make that call based on the individual culture results and clinical picture.</p>
+
+            <p>Treatment changes outcomes. The evidence reviewed in the previous section points consistently in the same direction: treating CE resolves the inflammatory state, and resolution is associated with improved pregnancy and live birth rates. The mechanism makes biological sense. The endometrium returns to a normal inflammatory baseline. Implantation can proceed in a receptive environment rather than an inflamed one.</p>
+
+            <p>One clinical caution on the literature: treatment regimens in published CE studies vary substantially across centers. There is no single universally agreed-upon protocol, and practice variation is real. The OPTIMUM treatment protocol (Kuroda et al. 2021), which addresses CE alongside thyroid dysfunction, thrombophilia, and immune factors, demonstrated improved pregnancy outcomes in RPL patients when CE was addressed as part of a multi-factor workup, per <a href="/library/novel-approaches-to-the-management-of-recurrent-pregnancy-loss-the-optimum-optim-recotwemmxon5hm20/">Kuroda et al. 2021</a>. This illustrates that CE in the RPL population rarely exists in complete isolation: it is one diagnostic finding in a workup that should be looking at the full picture.</p>
+
+            <div class="pathway-grid">
+              {endometritisData.diagnostic_pathway.map((p) => (
+                <article class="pathway-card" data-required={p.is_required}>
+                  <header class="pathway-card__header">
+                    <span class="pathway-card__step">Step {p.step}</span>
+                    <h3>{p.label}</h3>
+                  </header>
+                  <p class="pathway-card__detail" set:html={p.detail_html} />
+                  <p class="pathway-card__required">{p.is_required ? 'Required for confirmed diagnosis or resolution' : 'Complementary, not required'}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section id="outcomes">
+            <h2>Outcomes After Treatment</h2>
+
+            <p>The outcome data for CE treatment are encouraging. They are also heterogeneous, and that honesty belongs in this section.</p>
+
+            <p>The most consistent finding across studies is directional: treating CE improves reproductive outcomes compared to not treating it. The McQueen et al. cohort showed a cumulative live birth rate of 88% in treated patients, compared to a per-pregnancy live birth rate of 7% before treatment in those same patients. The Cicinelli et al. 2013 cohort showed significantly higher subsequent pregnancy success rates in women whose CE resolved versus those in whom it did not. The Vitagliano et al. 2022 meta-analysis showed that CE cure normalized outcomes to levels comparable to unaffected patients.</p>
+
+            <p>The heterogeneity in the literature is real and worth naming. Prevalence estimates vary widely because studies use different diagnostic thresholds for plasma cell counts on IHC, different histologic protocols, and different patient populations. Some studies use hysteroscopy as the primary diagnostic modality; others use histology; others use both. The threshold at which CE is called "positive" is not standardized across centers. This means the absolute prevalence numbers cited in different papers are not always directly comparable.</p>
+
+            <p>Similarly, treatment protocols vary. Doxycycline regimens differ in duration. Some centers add a second antibiotic. Some culture-guide therapy; others treat empirically. This variation means that "CE treatment" in one study is not identical to "CE treatment" in another.</p>
+
+            <p>What the evidence does support, consistently: the presence of CE is a negative predictor of reproductive success, its absence is not, and treatment-induced resolution is associated with improved outcomes. For a patient with recurrent loss or implantation failure and an untested endometrium, that is clinically meaningful. It means there is a diagnosable, treatable possibility that has not been excluded.</p>
+          </section>
+
+          <section id="when-to-suspect">
+            <h2>When to Suspect Chronic Endometritis</h2>
+
+            <p>CE has no pathognomonic symptom. Its subclinical character is part of its clinical danger. But there are patterns worth recognizing.</p>
+
+            <p><strong>History patterns that should prompt CE evaluation:</strong></p>
+
+            <p>Repeated implantation failure after embryo transfer, particularly when embryo quality has been assessed as adequate and no structural uterine abnormality has been found. Two or more failed transfers in this context raises the pre-test probability of CE substantially.</p>
+
+            <p>Recurrent pregnancy loss without an identified cause. If the standard RPL workup (karyotype, thrombophilia, uterine anatomy, thyroid) has been completed and returned non-explanatory results, CE is an active diagnostic possibility that deserves investigation. The question is simple: has an endometrial biopsy with CD138 IHC been done? If not, it has not been excluded.</p>
+
+            <p>Persistent brown spotting at the end of cycles or into the early cycle days. This is not specific to CE, but it is a charted observation that accumulates clinical value when combined with a history of reproductive failure. It reflects atypical endometrial shedding and can be a downstream expression of the inflammatory state.</p>
+
+            <p>Unusual or prolonged menstrual bleeding with no structural cause identified on imaging. Again, not specific, but noteworthy in context.</p>
+
+            <p>Post-procedural history. Women who have had dilation and curettage (D&amp;C) for miscarriage management, uterine instrumentation for polyp removal, or retained products of conception have had entry points for bacterial colonization. CE has been documented following these procedures.</p>
+
+            <p>Any patient told she has no fixable cause for repeated pregnancy loss or implantation failure should ask, explicitly: has CE been evaluated with an endometrial biopsy and CD138 staining? If the answer is no, that answer matters.</p>
+          </section>
+
+          <section id="acute-ce">
+            <h2>Acute Endometritis: A Brief Note</h2>
+
+            <p>This guide is about chronic endometritis. Acute endometritis is a different clinical entity.</p>
+
+            <p>Acute endometritis is a symptomatic infection of the uterine lining, typically occurring after childbirth (postpartum endometritis), after pregnancy loss managed by D&amp;C, or following uterine instrumentation. It presents with fever, uterine tenderness, and abnormal discharge. It is caused by ascending polymicrobial infection, is treated with systemic antibiotics, and is generally diagnosed and managed within the acute care setting.</p>
+
+            <p>Acute endometritis is mainstream territory. It is recognized, it is symptomatic, and it is treated. The diagnostic and management gaps that define CE do not apply to acute endometritis in the same way.</p>
+
+            <p>A woman who had acute endometritis after a delivery or procedure may subsequently develop CE as a sequela, but the two diagnoses are distinct and occur on different timescales. If you are experiencing fever, pelvic pain, and abnormal discharge in the postpartum period or after a procedure, seek evaluation through your obstetric or gynecologic provider. That is not what this page is about.</p>
+          </section>
+
+          <section id="preparing-for-a-consult">
+            <h2>Preparing for a Consult</h2>
+
+            <p>If you have had recurrent pregnancy loss or repeated implantation failure and CE has not been evaluated, here is what to bring to the conversation.</p>
+
+            <p><strong>Operative and procedure reports.</strong> If you have had hysteroscopy, D&amp;C, or any uterine procedure, request the full operative report, not just a summary. The report tells a clinician what was seen, how the uterine cavity looked, and whether any biopsy was taken. If a biopsy was taken, request the pathology report: it should specify whether CD138 IHC was included and whether plasma cells were identified.</p>
+
+            <p><strong>IVF records.</strong> If you have had IVF cycles, the embryo transfer records describe embryo quality at the time of transfer. If transfers repeatedly failed with good-quality embryos and no endometrial biopsy was done before or between cycles, that is the gap to name explicitly.</p>
+
+            <p><strong>Cycle charts.</strong> Charted cycles create a documented record of spotting patterns, bleeding character, cycle length variation, and any atypical symptom timing. If you have been charting, bring that record. If you have not been charting, starting now will give a clinician observable data.</p>
+
+            <p><strong>The question to ask directly:</strong> Has CE been evaluated with an endometrial biopsy and CD138 immunohistochemistry? Not: has my uterus been looked at. Not: was my bloodwork normal. Specifically: has the endometrium been biopsied and the specimen stained for CD138?</p>
+
+            <p>If the answer is no, that is the starting point.</p>
+          </section>
+
+          <section id="faq">
+            <h2>Frequently Asked Questions</h2>
+
+            <div class="faq-accordion" data-pagefind-ignore>
+              <details>
+                <summary>Is endometritis the same as endometriosis?</summary>
+                <div class="faq-answer">
+                  <p>These are distinct conditions that share a root word but involve different anatomy, different pathophysiology, and different treatments. Endometriosis involves tissue similar to the uterine lining growing outside the uterus, in the pelvis, on the ovaries, and in other extra-uterine locations. It drives chronic pain, adhesion formation, and in many women, infertility. <a href="/library/the-association-between-endometriosis-and-chronic-endometritis-recid8hvquzgigrgk/">Takebayashi et al. 2014</a> documented that the two conditions can coexist, meaning a patient can have both simultaneously. But they are evaluated differently, treated differently, and should not be conflated. If you have been told you have one and continue to have unexplained symptoms or reproductive failure, ask whether the other has been assessed. See our <a href="/endometriosis/">endometriosis guide</a> for a full account of that condition. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>How is chronic endometritis diagnosed?</summary>
+                <div class="faq-answer">
+                  <p>CD138 immunohistochemistry on endometrial biopsy is the current diagnostic standard. CD138 is a marker expressed by plasma cells. Plasma cells are not normally found in the endometrial stroma. When they are identified on a biopsy specimen using CD138 staining, that is the histologic confirmation of CE. The biopsy itself is a minimally invasive office procedure. Hysteroscopy can raise clinical suspicion by revealing characteristic patterns such as focal hyperemia, micropolyps, or stromal edema, per <a href="/library/chronic-endometritis-and-infertility-rechb8anslz91hhrb/">Park et al. 2017</a>, but hysteroscopy cannot confirm the diagnosis on its own. A normal hysteroscopy does not exclude CE. The biopsy is necessary. Microbial culture complements the histologic evaluation but also cannot replace it. If you have had hysteroscopy without a subsequent biopsy with CD138 staining, CE has not been fully evaluated. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>What causes chronic endometritis?</summary>
+                <div class="faq-answer">
+                  <p>CE is caused by persistent abnormal bacterial colonization of the endometrium. The most commonly identified organisms are Enterobacteriaceae, Enterococcus, Streptococcus, Staphylococcus, Mycoplasma, and Ureaplasma, per <a href="/library/the-diagnosis-of-chronic-endometritis-in-infertile-asymptomatic-women-a-comparat-rec1qah2jxcen5ftk/">Moreno et al. 2018</a>. These are not organisms associated with dramatic acute illness in most patients. They produce a subclinical, chronic inflammatory state rather than the fever and pelvic pain associated with acute pelvic infection. Prior uterine instrumentation (D&amp;C, polyp removal, IVF transfers, hysteroscopy) creates potential entry points for ascending bacterial colonization. Some cases arise without a clear procedural history. The bacterial colonization triggers an abnormal immune response in the endometrium, producing the plasma cell infiltration that defines CE histologically. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>I have had repeated IVF failures. Could chronic endometritis be the reason?</summary>
+                <div class="faq-answer">
+                  <p>In many cases, CE is a contributing factor in repeated implantation failure that has not been found because the biopsy was not done. The evidence is substantial: CE is found in approximately 30% of women with repeated unexplained implantation failure, per <a href="/library/prevalence-of-chronic-endometritis-in-repeated-unexplained-implantation-failure--zBgeyQAb/">Cicinelli et al. 2015</a>. A 2022 systematic review and meta-analysis of 4,145 patients found that women with CE had significantly lower live birth and ongoing pregnancy rates, and that CE resolution after antibiotic treatment normalized those outcomes to levels comparable to unaffected women, per <a href="/library/chronic-endometritis-in-infertile-women-impact-of-untreated-disease-plasma-cell--recnapfelxmnub1sq/">Vitagliano et al. 2022</a>. A morphologically normal embryo placed into an inflamed endometrium cannot implant the way it should. The endometrial environment matters independent of embryo quality. If you have had transfers fail with good-quality embryos and no endometrial biopsy has been done, CE has not been excluded. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>Can chronic endometritis cause recurrent miscarriage?</summary>
+                <div class="faq-answer">
+                  <p>The evidence links CE to recurrent pregnancy loss across several study populations. Cicinelli et al. evaluated 360 women with unexplained recurrent miscarriage and found CE in 56.7% by hysteroscopy, confirmed by histology in 91.3% of those. After antibiotic treatment, subsequent pregnancy outcomes improved significantly in those whose CE resolved, per <a href="/library/chronic-endometritis-due-to-common-bacteria-is-prevalent-in-women-with-recurrent-recyfpe9a4szxychl/">Cicinelli et al. 2013</a>. McQueen et al. evaluated 395 women in a recurrent pregnancy loss program and found a 9% overall CE prevalence, with a subsequent cumulative live birth rate of 88% in treated patients, per <a href="/library/chronic-endometritis-in-women-with-recurrent-early-pregnancy-loss-andor-fetal-de-EAqhlgQh/">McQueen et al. 2014</a>. The mechanism is plausible: persistent endometrial inflammation impairs the implantation process and disrupts early pregnancy maintenance. For any patient told her losses are unexplained, CE evaluation with endometrial biopsy is a reasonable and low-risk investigative step that the standard RPL workup often omits.<!-- TODO: link to /miscarriage/ once published --> Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>Is endometritis treatable?</summary>
+                <div class="faq-answer">
+                  <p>Chronic endometritis is treatable with antibiotic therapy, and treatment is associated with improved reproductive outcomes in cohorts where CE was the identified factor. The standard approach is antibiotic treatment followed, in specialist centers, by a retest biopsy to confirm resolution. Doxycycline is among the most studied regimens in the literature, but specific antibiotic choice, duration, and whether combination therapy is indicated depend on the individual patient's culture results and clinical context. These are prescribing decisions for the treating clinician. In the McQueen et al. cohort, the cure rate after antibiotic treatment was 100%, with a post-treatment cumulative live birth rate of 88% in those treated, per <a href="/library/chronic-endometritis-in-women-with-recurrent-early-pregnancy-loss-andor-fetal-de-EAqhlgQh/">McQueen et al. 2014</a>. CE that does not resolve after one course of antibiotics may require a second course or a culture-guided change in regimen. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>Why does mainstream care rarely test for chronic endometritis?</summary>
+                <div class="faq-answer">
+                  <p>Several factors compound to create the diagnostic gap. CE produces no dramatic symptoms in most patients, so it does not generate the clinical urgency that prompts investigation. The diagnostic test requires an endometrial biopsy with specific CD138 immunohistochemistry, which is a more involved step than bloodwork or imaging. Awareness of CE's role in recurrent pregnancy loss and implantation failure has grown in the reproductive literature over the past decade but has not uniformly reached routine clinical practice. A 2022 survey of practicing obstetricians and gynecologists found concerning gaps in awareness of CE's pathophysiology, diagnostic criteria, and clinical implications, per <a href="/library/chronic-endometritis-a-prevalent-yet-poorly-understood-entity-dEI8BPHx/">Margulies et al. 2022</a>. The result is that women with "unexplained" recurrent pregnancy loss or implantation failure frequently complete a standard workup that leaves CE unevaluated. The workup is not wrong. It is incomplete. CE requires asking the next question. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>Do I need a hysteroscopy to diagnose chronic endometritis?</summary>
+                <div class="faq-answer">
+                  <p>Hysteroscopy is not required for the diagnosis of CE, but it is a useful complementary investigation. The diagnostic standard is endometrial biopsy with CD138 immunohistochemistry. A biopsy can be performed without hysteroscopy as a separate office procedure. Hysteroscopy adds value by visualizing the uterine cavity for characteristic CE findings (micropolyps, focal hyperemia, stromal edema) and for identifying co-occurring structural pathology such as endometrial polyps, per <a href="/library/association-between-endometrial-polyps-and-chronic-endometritis-is-it-time-for-a-recnttsdmqyb3t0iv/">Vitagliano et al. 2021</a>. In some clinical settings, hysteroscopy and biopsy are done together. In others, the biopsy is performed first and hysteroscopy is added if indicated. The key point: a hysteroscopy without a CD138 biopsy does not diagnose CE, and a normal-appearing hysteroscopy does not exclude it. The diagnosis lives in the tissue. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>Should my partner be treated too?</summary>
+                <div class="faq-answer">
+                  <p>Partner treatment depends on which organism was identified. When Mycoplasma genitalium is found, simultaneous treatment of the male partner is clearly supported: this organism is sexually transmitted, and guidelines consistently recommend treating both partners. When Ureaplasma urealyticum or Mycoplasma hominis is cultured, the evidence for routine partner treatment is weaker, and major STI guidelines do not mandate it. Many clinicians specializing in infertility and CE do treat the male partner empirically in these cases, particularly when reproductive failure has been recurrent, but this is a clinical judgment call rather than a protocol requirement. Whether partner treatment is indicated depends on the specific organism found, the culture sensitivity results, and the judgment of the treating clinician. Beyond the CE-specific question, both partners in any couple with recurrent pregnancy loss or implantation failure should have a complete reproductive evaluation. Male factor is solely responsible in approximately 20% of couples and contributes in an additional 30 to 40%. CE in the female partner does not complete the workup. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>I had a CD138 biopsy that was negative. Could I still have chronic endometritis?</summary>
+                <div class="faq-answer">
+                  <p>A negative CD138 biopsy substantially reduces the probability of CE, but a few caveats apply. First, the threshold for "positive" is not standardized across laboratories: some use one plasma cell per high-power field, others require five or more. The laboratory's specific protocol matters. Second, CE can be patchy, meaning that a biopsy from one area of the endometrium might not sample the affected region. Third, the timing of the biopsy within the cycle can affect results: most protocols recommend sampling in the proliferative phase, and sampling during the secretory phase may reduce sensitivity. If your biopsy was done by a center that did not use CD138 IHC specifically, but relied on standard hematoxylin and eosin staining alone, the sensitivity is lower. If your clinical picture strongly suggests CE and a single biopsy was negative, a repeat biopsy at a center experienced in CE diagnosis is a reasonable next step. A negative biopsy done correctly by an experienced laboratory carries more weight than one where the protocol is uncertain. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+            </div>
+          </section>
+
+          <div class="cta-box">
+            <h3>Continue exploring</h3>
+            <p>Related conditions covered in depth:</p>
+            <p><a href="/endometriosis/" class="btn btn--primary">Endometriosis</a> <a href="/pcos/" class="btn btn--primary">PCOS</a></p>
+            <p>And the foundational primer on restorative reproductive medicine:</p>
+            <p><a href="/what-is-rrm/" class="btn btn--secondary">What is Restorative Reproductive Medicine?</a> <a href="/library/" class="btn btn--secondary">Browse the Research Library</a></p>
+          </div>
+
+          <p class="disclaimer"><em>This content is for educational and reference purposes only and does not constitute medical advice, diagnosis, or treatment. Decisions about evaluation or care for chronic endometritis should be made in consultation with a qualified clinician who knows your specific clinical context. Citations to specific studies and consensus documents do not imply individual-patient applicability.</em></p>
+
+        </article>
+      </div>
+    </div>
+  </div>
+  <BackToTop />
+  </MaybeShell>
+</BaseLayout>
+
+<style>
+  .disambig {
+    background: var(--bg-surface);
+    border-left: 3px solid var(--purple-500);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+    margin: var(--space-5) 0;
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+  .disambig p {
+    margin: 0;
+  }
+
+  .condition-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-4);
+    margin: var(--space-5) 0;
+  }
+
+  .condition-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+  }
+
+  .condition-card[data-key="chronic-endometritis"] {
+    border-left: 3px solid var(--accent);
+  }
+
+  .condition-card__header h3 {
+    margin: 0 0 var(--space-1) 0;
+    font-size: 1.125rem;
+    color: var(--text-primary);
+  }
+
+  .condition-card__subtitle {
+    margin: 0 0 var(--space-3) 0;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  .condition-card__body {
+    margin: 0;
+  }
+
+  .condition-card__body dt {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: var(--space-3);
+  }
+
+  .condition-card__body dt:first-child {
+    margin-top: 0;
+  }
+
+  .condition-card__body dd {
+    margin: var(--space-1) 0 0 0;
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    line-height: 1.55;
+  }
+
+  .pathway-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-4);
+    margin: var(--space-5) 0;
+  }
+
+  .pathway-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+  }
+
+  .pathway-card[data-required="true"] {
+    border-left: 3px solid var(--accent);
+  }
+
+  .pathway-card__header {
+    margin-bottom: var(--space-2);
+  }
+
+  .pathway-card__step {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .pathway-card__header h3 {
+    margin: var(--space-1) 0 0 0;
+    font-size: 1rem;
+    color: var(--text-primary);
+  }
+
+  .pathway-card__detail {
+    margin: var(--space-2) 0 var(--space-2) 0;
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    line-height: 1.55;
+  }
+
+  .pathway-card__required {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+</style>

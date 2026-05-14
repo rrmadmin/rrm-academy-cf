@@ -149,6 +149,20 @@
       "in_guides_catalogue": true,
       "in_shell_guides_nav": true,
       "_order": 9
+    },
+    {
+      "slug": "endometritis",
+      "file": "endometritis/index.astro",
+      "title": "Chronic Endometritis: A Clinician-Reviewed Guide",
+      "description": "Chronic endometritis is a persistent, low-grade inflammation of the uterine lining diagnosed by CD138 endometrial biopsy. It is frequently missed in recurrent miscarriage and implantation failure workups, and it is treatable with antibiotic therapy.",
+      "og_title": "Chronic Endometritis: The Missed Diagnosis",
+      "og_description": "Persistent inflammation of the uterine lining diagnosed by CD138 biopsy. Frequently missed in recurrent miscarriage and implantation failure workups. Treatable with antibiotics.",
+      "author": "Dr. Naomi Whittaker",
+      "read_time": "18 min read",
+      "accent": "var(--purple-700)",
+      "in_guides_catalogue": true,
+      "in_shell_guides_nav": true,
+      "_order": 10
     }
   ]
 }
