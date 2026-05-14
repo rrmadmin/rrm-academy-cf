@@ -32,3 +32,28 @@ const lastReviewed = 'not-a-date';
 ---`;
   assert.equal(extractLastReviewed(astro), null);
 });
+
+test('extractLastReviewed ignores single-line comment with lastReviewed', () => {
+  const astro = `---
+// const lastReviewed = '2026-04-01';
+const title = 'Test';
+---
+<h1>x</h1>`;
+  assert.equal(extractLastReviewed(astro), null);
+});
+
+test('extractLastReviewed ignores block-comment line with lastReviewed', () => {
+  const astro = `---
+/* const lastReviewed = '2026-04-01'; */
+const title = 'Test';
+---`;
+  assert.equal(extractLastReviewed(astro), null);
+});
+
+test('extractLastReviewed picks active declaration when commented draft is above', () => {
+  const astro = `---
+// const lastReviewed = '2026-04-01';
+const lastReviewed = '2026-05-14';
+---`;
+  assert.equal(extractLastReviewed(astro), '2026-05-14');
+});
