@@ -16,6 +16,7 @@
     .value-after { fill: #b8a3c4; }
     .tag { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #b0aaa2; letter-spacing: 0.04em; text-anchor: end; dominant-baseline: central; }
     .caption { font-family: 'Inter', sans-serif; font-size: 11.5px; font-style: italic; fill: #c9b8d3; }
+    .attribution { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #8b827a; letter-spacing: 0.04em; text-anchor: end; }
   </style>
 
   <rect width="700" height="420" fill="#28241e"/>
@@ -64,4 +65,5 @@
   <text x="618" y="395" class="value value-after">17%</text>
 
   <text x="30" y="412" class="caption">Most “unexplained” cases had identifiable, treatable causes after RRM workup. Source: Boyle 2025, n=187.</text>
+  <text x="670" y="410" class="attribution">rrmacademy.org/what-is-rrm</text>
 </svg>

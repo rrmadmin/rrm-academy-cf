@@ -15,6 +15,7 @@
     .value-ivf { fill: #636261; }
     .tag { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #636261; letter-spacing: 0.04em; text-anchor: end; dominant-baseline: central; }
     .caption { font-family: 'Inter', sans-serif; font-size: 11.5px; font-style: italic; fill: #987da8; }
+    .attribution { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #8a8985; letter-spacing: 0.04em; text-anchor: end; }
   </style>
 
   <rect width="700" height="360" fill="white"/>
@@ -62,4 +63,5 @@
   <text x="618" y="319" class="value value-ivf">6–7%</text>
 
   <text x="30" y="352" class="caption">Lower rates indicate better outcomes. RRM pregnancies are naturally conceived singletons.</text>
+  <text x="670" y="350" class="attribution">rrmacademy.org/what-is-rrm</text>
 </svg>
