@@ -107,7 +107,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
 }
 
 function htmlError(message, status, redirectUrl) {
-  const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   const redirect = redirectUrl
     ? `<p style="margin-top:1rem"><a href="${esc(redirectUrl)}" style="color:#725e7e">Go to login</a></p>`
     : '<p style="margin-top:1rem"><a href="javascript:history.back()" style="color:#725e7e">Go back</a></p>';
@@ -123,7 +123,7 @@ function formatDate(isoString) {
 
 function renderCertificate({ studentName, courseTitle, instructor, completedDate, issuedDate, certNumber }) {
   // Escape HTML to prevent XSS
-  const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
   return `<!DOCTYPE html>
 <html lang="en">
