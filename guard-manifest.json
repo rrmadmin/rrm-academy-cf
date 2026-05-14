@@ -3,7 +3,7 @@
   "description": "Critical file integrity manifest. Run `npm run guard:update` after intentional changes.",
   "files": {
     "functions/api/auth/_shared.js": {
-      "hash": "06c556584e3efca3b9c3091b065d13bb7b51a49829e9b7ecb93f2c3edc2aa465",
+      "hash": "b99eb0f0047ad2fe328e7b7add05631f93bf249a86a7b535c0648693b0e8544c",
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
