@@ -742,3 +742,12 @@ Scanner rules are the source of truth. If arise-scanner catches it, the coder ag
 - When editing `src/styles/global.css` or `docs/design/design-system.manual.json`, run `npm run design-tokens` and commit the regenerated `docs/design/design-system.json`. CI will block on drift.
 - Keep edits focused, show before/after summaries
 - After modifying a guarded file, run `npm run guard:update` before committing
+- **When adding new images to a pillar page**: a 200 from `curl` is necessary but **not sufficient**. Images can serve correctly and still render broken because of CSS specificity bugs, double-rendering of theme variants, lazy-load + viewport timing, or aspect-ratio collapse. Mandatory verification: load the page in claude-in-chrome, scroll the image into viewport (lazy-loaded), then screenshot and visually confirm. Don't claim "images live" off URL 200 alone.
+- **chart-figure light/dark SVG pattern (per naprotechnology)**: copy the CSS block VERBATIM from `src/pages/naprotechnology/index.astro`. Specifically, do **not** add `display:` to `.chart-figure img` — its specificity (0,1,1) beats `.chart-dark { display: none }` (0,1,0) and both theme variants will render at once. Canonical block:
+  ```css
+  .chart-figure { margin: var(--space-8) 0; }
+  .chart-figure img { width: 100%; height: auto; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); }
+  .chart-dark { display: none; }
+  :global([data-theme="dark"]) .chart-light { display: none; }
+  :global([data-theme="dark"]) .chart-dark { display: block; }
+  ```
