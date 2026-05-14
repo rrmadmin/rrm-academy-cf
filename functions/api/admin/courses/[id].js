@@ -203,6 +203,10 @@ export async function onRequestPut(context) {
     }
   }
 
+  if (body.participants !== undefined && (!Number.isInteger(body.participants) || body.participants < 0 || body.participants > 1000000)) {
+    return json({ ok: false, error: 'invalid_participants' }, 400);
+  }
+
   if (body.accessType !== undefined && !VALID_ACCESS_TYPES.has(body.accessType)) {
     return json({ ok: false, error: 'invalid_access_type' }, 400);
   }

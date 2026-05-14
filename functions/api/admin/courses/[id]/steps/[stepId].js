@@ -312,26 +312,29 @@ export async function onRequestDelete(context) {
       }, 409);
     }
 
-    const [progressRow, quizRow, commentRow] = await Promise.all([
-      env.DB.prepare('SELECT COUNT(*) AS cnt FROM step_progress WHERE step_id = ?').bind(stepId).first(),
-      env.DB.prepare('SELECT COUNT(*) AS cnt FROM quiz_response WHERE step_id = ?').bind(stepId).first(),
-      env.DB.prepare('SELECT COUNT(*) AS cnt FROM lesson_comment WHERE step_id = ?').bind(stepId).first(),
-    ]);
+    const deleteResult = await env.DB.prepare(
+      'DELETE FROM course_step WHERE id = ?' +
+      ' AND NOT EXISTS (SELECT 1 FROM step_progress WHERE step_id = ?)' +
+      ' AND NOT EXISTS (SELECT 1 FROM quiz_response WHERE step_id = ?)' +
+      ' AND NOT EXISTS (SELECT 1 FROM lesson_comment WHERE step_id = ?)'
+    ).bind(stepId, stepId, stepId, stepId).run();
 
-    const progressCount = progressRow?.cnt ?? 0;
-    const quizCount = quizRow?.cnt ?? 0;
-    const commentCount = commentRow?.cnt ?? 0;
-
-    if (progressCount > 0 || quizCount > 0 || commentCount > 0) {
+    if (deleteResult.meta.changes === 0) {
+      const [progressRow, quizRow, commentRow] = await Promise.all([
+        env.DB.prepare('SELECT COUNT(*) AS cnt FROM step_progress WHERE step_id = ?').bind(stepId).first(),
+        env.DB.prepare('SELECT COUNT(*) AS cnt FROM quiz_response WHERE step_id = ?').bind(stepId).first(),
+        env.DB.prepare('SELECT COUNT(*) AS cnt FROM lesson_comment WHERE step_id = ?').bind(stepId).first(),
+      ]);
       const tables = [];
       const counts = {};
+      const progressCount = progressRow?.cnt ?? 0;
+      const quizCount = quizRow?.cnt ?? 0;
+      const commentCount = commentRow?.cnt ?? 0;
       if (progressCount > 0) { tables.push('step_progress'); counts.step_progress = progressCount; }
       if (quizCount > 0) { tables.push('quiz_response'); counts.quiz_response = quizCount; }
       if (commentCount > 0) { tables.push('lesson_comment'); counts.lesson_comment = commentCount; }
       return json({ ok: false, error: 'references_exist', tables, counts }, 409);
     }
-
-    await env.DB.prepare('DELETE FROM course_step WHERE id = ?').bind(stepId).run();
 
     return json({ ok: true });
   } catch (err) {
