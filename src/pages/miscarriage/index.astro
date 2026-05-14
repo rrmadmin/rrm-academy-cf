@@ -1,0 +1,861 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MaybeShell from '../../components/MaybeShell.astro';
+import SectionTocChips from '../../components/SectionTocChips.astro';
+import { isShellEnabled } from '../../lib/shell-routes';
+import BackToTop from '../../components/BackToTop.astro';
+import LastUpdated from '../../components/LastUpdated.astro';
+import pageDates from '../../data/page-dates.json';
+import miscarriageData from '../../data/miscarriage.json';
+import { buildScholarlyArticleStub } from '../../lib/identity';
+import { safeJsonLd } from '../../lib/jsonld';
+
+const SHELL_ENABLED = isShellEnabled('guides');
+
+const TOC_ITEMS = [
+  { href: '#what-is-miscarriage', label: 'What Is Miscarriage?' },
+  { href: '#diagnostic-gap', label: 'The Diagnostic Gap' },
+  { href: '#causes', label: 'Causes RRM Evaluates' },
+  { href: '#workup', label: 'The RPL Workup' },
+  { href: '#post-ivf', label: 'After IVF Miscarriage' },
+  { href: '#treatment', label: 'Treating the Underlying Cause' },
+  { href: '#outcomes', label: 'Outcomes After Evaluation' },
+  { href: '#subsequent-pregnancy', label: 'Pregnancy After Loss' },
+  { href: '#living-with-loss', label: 'Living With Loss While You Wait' },
+  { href: '#faq', label: 'Frequently Asked Questions' },
+];
+
+const PAGE_PATH = '/miscarriage/';
+const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-05-14';
+const PAGE_URL = 'https://rrmacademy.org/miscarriage/';
+
+function citeStub(props: { name: string; author: string; datePublished: string; journal?: string }) {
+  const node = buildScholarlyArticleStub(props) as Record<string, unknown> & { '@context'?: unknown };
+  const { '@context': _ctx, ...rest } = node;
+  return rest;
+}
+
+const pageSchema = {
+  '@context': 'https://schema.org',
+  '@type': ['Article', 'MedicalWebPage'],
+  headline: 'Miscarriage and Recurrent Pregnancy Loss: A Clinician-Reviewed Guide',
+  description: 'Miscarriage affects approximately 15% of clinically confirmed pregnancies. Recurrent pregnancy loss (RPL), defined as two or more clinical losses, affects 2 to 5% of couples. Most causes are diagnosable and treatable. This guide covers what the standard workup misses, what RRM-trained clinicians evaluate, and what outcomes look like after cause-based treatment.',
+  author: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+  publisher: {
+    '@type': 'EducationalOrganization',
+    '@id': 'https://rrmacademy.org/#organization',
+    name: 'RRM Academy',
+  },
+  datePublished: '2026-05-14',
+  dateModified: LAST_MODIFIED,
+  wordCount: 5050,
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': PAGE_URL,
+  },
+  about: {
+    '@type': 'MedicalCondition',
+    name: 'Miscarriage and Recurrent Pregnancy Loss',
+    alternateName: ['Recurrent Pregnancy Loss', 'RPL', 'Spontaneous Abortion', 'Early Pregnancy Loss'],
+    code: {
+      '@type': 'MedicalCode',
+      codingSystem: 'ICD-10',
+      codeValue: 'O03',
+    },
+  },
+  articleSection: [
+    'What Is Miscarriage?',
+    'The Diagnostic Gap',
+    'Causes RRM Evaluates',
+    'The RPL Workup',
+    'After IVF Miscarriage',
+    'Treating the Underlying Cause',
+    'Outcomes After Evaluation',
+    'Pregnancy After Loss',
+    'Living With Loss While You Wait',
+    'Frequently Asked Questions',
+  ],
+  hasPart: [
+    { '@type': 'WebPageElement', name: 'What Is Miscarriage?', url: `${PAGE_URL}#what-is-miscarriage` },
+    { '@type': 'WebPageElement', name: 'The Diagnostic Gap', url: `${PAGE_URL}#diagnostic-gap` },
+    { '@type': 'WebPageElement', name: 'Causes RRM Evaluates', url: `${PAGE_URL}#causes` },
+    { '@type': 'WebPageElement', name: 'The RPL Workup', url: `${PAGE_URL}#workup` },
+    { '@type': 'WebPageElement', name: 'After IVF Miscarriage', url: `${PAGE_URL}#post-ivf` },
+    { '@type': 'WebPageElement', name: 'Treating the Underlying Cause', url: `${PAGE_URL}#treatment` },
+    { '@type': 'WebPageElement', name: 'Outcomes After Evaluation', url: `${PAGE_URL}#outcomes` },
+    { '@type': 'WebPageElement', name: 'Pregnancy After Loss', url: `${PAGE_URL}#subsequent-pregnancy` },
+    { '@type': 'WebPageElement', name: 'Living With Loss While You Wait', url: `${PAGE_URL}#living-with-loss` },
+    { '@type': 'WebPageElement', name: 'Frequently Asked Questions', url: `${PAGE_URL}#faq` },
+  ],
+  citation: [
+    citeStub({
+      name: 'Chronic endometritis due to common bacteria is prevalent in women with recurrent miscarriage as confirmed by improved pregnancy outcome after antibiotic treatment',
+      author: 'Cicinelli E, Matteo M, Tinelli R, Lepera A, Alfonso R, Indraccolo U, Marrocchella S, Greco P, Resta L',
+      datePublished: '2014',
+      journal: 'Reproductive Sciences',
+    }),
+    citeStub({
+      name: 'Increased pregnancy loss rate in thyroid antibody negative women with TSH levels between 2.5 and 5.0 in the first trimester of pregnancy',
+      author: 'Negro R, Schwartz A, Gismondi R, Tinelli A, Mangieri T, Stagnaro-Green A',
+      datePublished: '2010',
+      journal: 'Journal of Clinical Endocrinology and Metabolism',
+    }),
+    citeStub({
+      name: 'Sperm DNA fragmentation and recurrent pregnancy loss: a systematic review and meta-analysis',
+      author: 'McQueen DB, Zhang J, Robins JC',
+      datePublished: '2019',
+      journal: 'Fertility and Sterility',
+    }),
+    citeStub({
+      name: 'Novel approaches to the management of recurrent pregnancy loss: the OPTIMUM (OPtimization of Thyroid function, Thrombophilia, Immunity, and Uterine Milieu) treatment strategy',
+      author: 'Kuroda K, Horikawa T, Moriyama A, Nakao K, Juen H, Takamizawa S, Ojiro Y, Nakagawa K, Sugiyama R',
+      datePublished: '2021',
+      journal: 'Reproductive Medicine and Biology',
+    }),
+    citeStub({
+      name: 'Increased rate of spontaneous miscarriages in endometriosis-affected women',
+      author: 'Santulli P, Marcellin L, Menard S, Thubert T, Khoshnood B, Gayet V, Goffinet F, Ancel PY, Chapron C',
+      datePublished: '2016',
+      journal: 'Human Reproduction',
+    }),
+    citeStub({
+      name: 'Randomised controlled trial of aspirin and aspirin plus heparin in pregnant women with recurrent miscarriage associated with phospholipid antibodies (or antiphospholipid antibodies)',
+      author: 'Rai R, Cohen H, Dave M, Regan L',
+      datePublished: '1997',
+      journal: 'BMJ',
+    }),
+    citeStub({
+      name: 'Restoration of serum estradiol and reduced incidence of miscarriage in patients with low serum estradiol during pregnancy: a retrospective cohort study using a multifactorial protocol including DHEA',
+      author: 'Boyle P, Andralojc K, van der Velden S, Najmabadi S, de Groot T, Turczynski C, Stanford JB',
+      datePublished: '2024',
+      journal: 'Frontiers in Reproductive Health',
+    }),
+    citeStub({
+      name: 'Outcomes from treatment of infertility with natural procreative technology in an Irish general practice',
+      author: 'Stanford JB, Parnell TA, Boyle PC',
+      datePublished: '2008',
+      journal: 'Journal of the American Board of Family Medicine',
+    }),
+    citeStub({
+      name: 'Progesterone in women with recurrent miscarriages',
+      author: 'Carpentier PA, Stanford JB, Boyle PC',
+      datePublished: '2016',
+      journal: 'New England Journal of Medicine',
+    }),
+    citeStub({
+      name: 'The significance of luteal phase deficiency on fertility: a diagnostic and therapeutic approach',
+      author: 'Balasch J, Creus M, Marquez M, Burzaco I, Vanrell JA',
+      datePublished: '1986',
+      journal: 'Human Reproduction',
+    }),
+  ],
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+    { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://rrmacademy.org/guides/' },
+    { '@type': 'ListItem', position: 3, name: 'Miscarriage and Recurrent Pregnancy Loss', item: PAGE_URL },
+  ],
+};
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'How many miscarriages do I need before I can get a workup?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Major professional societies define recurrent pregnancy loss as two or more clinical pregnancy losses, and evaluation is recommended at that threshold. In an RRM-oriented approach, evaluation can begin after a single loss when risk factors are present: age over 35, a pattern of cycle irregularity, a short luteal phase on charting, known thyroid disease, known endometriosis, or a partner whose semen has not been analyzed. Waiting for a third loss is not a clinical standard. It is a practice pattern. The rationale for waiting is that many first miscarriages are chromosomally abnormal and do not recur. That is true. It does not tell you whether a treatable cause is also present. An evaluation after the first or second loss does not assume the cause is complex. It finds out whether one exists. A basic evaluation, including cycle charting, thyroid panel, progesterone timing, and partner semen analysis, is low-risk and high-information. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What are the most common treatable causes of recurrent miscarriage?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'The most consistently documented treatable causes are: chronic endometritis, luteal phase deficiency, thyroid dysfunction (including elevated TSH within the conventional "normal" range and autoimmune thyroid disease), antiphospholipid syndrome, anatomic factors (uterine septum, submucosal fibroids, endometrial polyps), hypoandrogenemia and low DHEA-S, and sperm DNA fragmentation in the male partner. Endometriosis is an independent contributing factor. Many of these are not tested on the standard RPL panel. Chronic endometritis requires endometrial biopsy with specific immunohistochemistry staining. Hypoandrogenemia requires androgen testing that most RPL workups do not include. The practical implication: a "normal" standard workup may not have looked for the actual cause. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Could chronic endometritis be causing my miscarriages?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Chronic endometritis is a documented and treatable contributor to recurrent miscarriage. In a study of 360 women with unexplained recurrent miscarriage, 57.8% had CE confirmed by hysteroscopy and histology. Among women whose CE was successfully treated and confirmed cured, 78.4% achieved pregnancy within one year, compared to approximately 17.5% in women with persistent CE or no CE diagnosis. Chronic endometritis is asymptomatic in most women. There is no fever, no obvious sign, no reason to suspect it from a routine visit. It is diagnosed by endometrial biopsy with CD138 immunohistochemistry staining, not by pelvic exam or standard ultrasound. If prior RPL workup did not include endometrial biopsy, chronic endometritis has not been excluded. For a dedicated guide to CE, see our page on chronic endometritis. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'I have had one miscarriage. Should I be evaluated, or is it too early?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'In many cases, evaluation after a single loss is reasonable, particularly if risk factors are present. Age over 35, a history of irregular cycles or short luteal phases, known thyroid disease, known endometriosis, or a partner with an unreviewed semen analysis all shift the clinical calculus toward earlier evaluation rather than waiting. A single miscarriage is common. A single miscarriage in a woman who has risk factors for recurrence, or who is in her late 30s where the window for intervention is narrower, is different from a first loss in a 29-year-old with no identifiable risk factors. The evaluation does not require assuming the worst. It requires finding out what is actually present. A basic evaluation, including cycle charting, thyroid panel, progesterone timing, and partner semen analysis, is low-risk and high-information. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Does endometriosis cause miscarriage?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Endometriosis is an independent risk factor for pregnancy loss, not only for infertility. A 2016 retrospective cohort study found that women with histologically proven endometriosis had a significantly higher rate of prior spontaneous miscarriage than endometriosis-free controls (adjusted IRR 1.70, 95% CI 1.34 to 2.16). A 2017 study found that endometriosis, particularly mild disease (rASRM Stage I to II), was associated with a miscarriage rate of 42.1% vs. 22.0% in controls. The mechanisms include endometriosis-associated luteal phase deficiency, the inflammatory pelvic milieu, and impaired endometrial receptivity. Women with recurrent loss who also have cyclical pelvic pain, dysmenorrhea, premenstrual spotting, or a history of deep dyspareunia should be evaluated for endometriosis as a contributing cause. If endometriosis is present and goes unaddressed, the conditions for recurrent loss may persist. A detailed guide to endometriosis is available on this site. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'I had a miscarriage after IVF. What might have been missed?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'A miscarriage after IVF does not mean the pre-IVF evaluation was complete. IVF workup focuses on ovarian response, egg retrieval, embryo development, and transfer logistics. The uterine environment, the cycle-specific hormonal support, the presence of chronic endometritis, and the luteal phase data are not routinely addressed. Chronic endometritis is disproportionately common in women who have undergone repeated uterine procedures. An embryo transferred to an inflamed endometrium will not implant successfully regardless of chromosomal status. After a post-IVF miscarriage, the appropriate question is not only "what was wrong with the embryo" but "what has not yet been evaluated in the uterine environment?" That includes endometrial biopsy for CE, a full thyroid panel, androgen testing, cycle-timed progesterone review, and partner sperm DNA fragmentation testing if not already done. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'At my age, are the odds against me anyway?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Age affects the proportion of chromosomally abnormal pregnancies, and that proportion increases year by year into the fifth decade. That is clinically accurate. It is not the complete picture. Treatable causes of recurrent miscarriage are not age-exempt. Chronic endometritis, thyroid dysfunction, luteal phase deficiency, hypoandrogenemia, and sperm DNA fragmentation are present in women of all ages. In a cause-based treatment study, women 40 and older with recurrent pregnancy loss who received multifactorial evaluation and treatment achieved a 55.6% live birth rate in subsequent pregnancies, compared to 30.0% in untreated controls of the same age, a clinically meaningful difference even without formal statistical significance in that cohort. Those numbers are not a guarantee. They are evidence that evaluation and treatment improve outcomes even after 40. The age discussion belongs in the context of a full evaluation, not before it. What "the odds" are before anyone has looked is not a number worth accepting. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Will I have to take progesterone for my whole pregnancy?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'The answer depends on what the evaluation finds and what the treating clinician determines. Progesterone support, when indicated, is typically used in the luteal phase and through the first trimester, until the placenta is producing sufficient progesterone on its own. Duration and approach vary by clinical indication. No specific protocol is appropriate to state here; this is a conversation between the patient and her clinician. What is worth knowing: progesterone support, when prescribed because evaluation identified a luteal phase deficiency or low progesterone levels, is not a precautionary measure applied without reason. It is a response to a documented finding. If progesterone support has been recommended without prior luteal phase or progesterone evaluation, that is worth asking about. The treatment should follow the finding. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What is the chance of a healthy pregnancy after recurrent loss?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'This depends on whether the cause has been identified and treated. For women who received cause-based multifactorial evaluation and treatment in one well-documented cohort, the corresponding live birth rate was approximately 78.1% for those under 40 and 55.6% for those 40 and older. In a NaPro-treated cohort of couples with recurrent miscarriage, the cumulative adjusted proportion of live births over 24 months was 66 per 100 couples, in a population with an average female age of 35.4 years. For couples with three or more prior miscarriages who received NaPro treatment in Ireland, live birth rates in those who conceived were 80.6%, against a background expected miscarriage rate above 30 to 40% in that population. These are not promises. They are outcomes from real couples with documented histories, evaluated systematically, with causes treated when found. The probability without evaluation, without finding and addressing causes, is lower. That is the case for evaluation. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Is genetic testing of the products of conception worth doing?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Genetic testing of the products of conception identifies whether the lost pregnancy was chromosomally abnormal. In many cases, this is useful information, but it comes with an important caveat. When the loss is chromosomally abnormal, some clinicians use that as a conclusion: "the miscarriage happened because the embryo was abnormal; this is expected and not a sign of a recurrent problem." That reasoning has limits. An abnormal embryo does not exclude a concurrent treatable cause in the uterine environment. Older eggs produce more chromosomal errors. Age-related aneuploidy is itself a clinical finding. And an inflamed or hormonally unprepared endometrium creates conditions in which even genetically normal embryos may fail. POC testing is useful information. It does not close the workup. Parental karyotyping is separately indicated in couples with recurrent loss where a balanced chromosomal rearrangement in a parent may be the underlying cause. This is a different test from POC analysis and requires a different clinical discussion. Consult an RRM clinician or healthcare provider for guidance specific to your situation.',
+      },
+    },
+  ],
+};
+---
+
+<BaseLayout
+  title="Miscarriage and Recurrent Pregnancy Loss: A Clinician-Reviewed Guide"
+  description="Miscarriage affects approximately 15% of clinically confirmed pregnancies. Recurrent pregnancy loss (RPL), defined as two or more clinical losses, affects 2 to 5% of couples. Most causes are diagnosable and treatable. This guide covers what the standard workup misses, what RRM-trained clinicians evaluate, and what outcomes look like after cause-based treatment."
+  canonicalUrl={PAGE_URL}
+  ogType="article"
+  publishDate="2026-05-14"
+  jsonLd={pageSchema}
+  speakable={['.pillar-lead', 'h1']}
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
+>
+  <script type="application/ld+json" set:html={safeJsonLd(breadcrumbSchema)} />
+  <script type="application/ld+json" set:html={safeJsonLd(faqSchema)} />
+
+  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname}>
+  <div class="page-wrapper" data-pagefind-body>
+    <span data-pagefind-meta="type:Guide" style="display:none"></span>
+    <span data-pagefind-meta="title:Miscarriage and Recurrent Pregnancy Loss: A Clinician-Reviewed Guide" style="display:none"></span>
+    <div class="container">
+
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <a href="/guides/">Guides</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <span>Miscarriage and Recurrent Pregnancy Loss</span>
+      </nav>
+
+      <h1>Miscarriage and Recurrent Pregnancy Loss: The Workup Most Women Never Get</h1>
+
+      <div class="author-byline">
+        <div class="author-avatar-stack">
+          <img src="/images/authors/naomi-whittaker.webp" alt="Dr. Naomi Whittaker, MD" class="author-byline__photo" width="48" height="48" />
+        </div>
+        <div class="author-byline__text">
+          <span class="byline-author">By <strong><a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</a></strong></span>
+          <LastUpdated path={PAGE_PATH} class="byline-date" />
+        </div>
+      </div>
+
+      <details class="toc-mobile">
+        <summary>On this page</summary>
+        <ol>
+          {TOC_ITEMS.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
+        </ol>
+      </details>
+
+      {SHELL_ENABLED && <SectionTocChips items={TOC_ITEMS} />}
+
+      <div class:list={['article-layout', { 'article-layout--no-toc': SHELL_ENABLED }]}>
+        {!SHELL_ENABLED && (
+          <nav class="toc" aria-label="Table of contents">
+            <p class="toc-heading">On this page</p>
+            <ol>
+              {TOC_ITEMS.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
+            </ol>
+          </nav>
+        )}
+
+        <article class="prose">
+
+          <aside class="disambig" aria-label="Disambiguation">
+            <p>A note on related terms: "chemical pregnancy," "early pregnancy loss," "clinically recognized miscarriage," and "recurrent pregnancy loss (RPL)" are related but distinct clinical categories. This guide covers all of them, from the first loss to recurrent loss, and explains how evaluation differs at each stage. No other common condition shares a confusable name with miscarriage, so no cross-link disambiguation is needed.</p>
+          </aside>
+
+          <aside class="tldr">
+            <h2 id="key-takeaways">Key Takeaways</h2>
+            <ul>
+              <li><strong>Miscarriage affects approximately 15% of clinically confirmed pregnancies and is the most common adverse pregnancy event.</strong> Recurrent pregnancy loss, defined as two or more clinical pregnancy losses, affects an estimated 2 to 5% of couples trying to conceive. Most causes are diagnosable. Most are treatable, per <a href="/library/does-a-short-luteal-phase-correlate-with-an-increased-risk-of-miscarriage-a-coho-recsypcebszclpsk1/">Duane et al. 2022</a>.</li>
+              <li><strong>Major professional societies define recurrent pregnancy loss as two or more clinical losses and recommend evaluation at that threshold.</strong> In practice, many women still encounter the three-loss rule in their first clinical encounter. The gap is not in the guideline. It is in how guidelines translate into community practice. RRM-trained clinicians begin evaluation after the first loss when risk factors are present. Waiting is not clinically necessary, per <a href="/library/recurrent-pregnancy-loss-recshg1nt4mlkcm0b/">ASRM 2012</a> (reaffirmed 2020, updated 2026).</li>
+              <li><strong>Chronic endometritis is found in approximately 57% of women with recurrent miscarriage</strong>, and treatment substantially improves subsequent pregnancy rates. It is rarely included in a standard miscarriage workup. In a study of 360 women with unexplained recurrent miscarriage, antibiotic treatment of confirmed CE led to a 78.4% subsequent pregnancy rate in women whose CE was cured, compared to approximately 17.5% in women with persistent CE or no CE on biopsy, per <a href="/library/chronic-endometritis-due-to-common-bacteria-is-prevalent-in-women-with-recurrent-recyfpe9a4szxychl/">Cicinelli et al. 2013</a>.</li>
+              <li><strong>Elevated TSH, even within the "normal" range, is independently associated with higher pregnancy loss rates.</strong> In a prospective study of over 4,000 women, those with TSH between 2.5 and 5.0 mIU/L had a significantly higher pregnancy loss rate than those with TSH below 2.5 (6.1% vs. 3.6%). Thyroid antibody status is a separate variable. Both matter, per <a href="/library/increased-pregnancy-loss-rate-in-thyroid-antibody-negative-women-with-tsh-levels-reculphjam60qtljh/">Negro et al. 2010</a>.</li>
+              <li><strong>Sperm DNA fragmentation is significantly elevated in male partners of women with recurrent pregnancy loss.</strong> A systematic review and meta-analysis found that sperm DNA fragmentation rates are substantially higher in partners of women with RPL compared to fertile controls. The male partner is a clinical variable. Workup that ignores him is incomplete, per <a href="/library/sperm-dna-fragmentation-and-recurrent-pregnancy-loss-a-systematic-review-and-met-recyq3m4kcw20pwot/">McQueen et al. 2019</a>.</li>
+              <li><strong>Age matters, but it is not the whole answer.</strong> In a cause-based treatment cohort addressing thyroid function, endometritis, immune factors, and thrombophilia, women under 40 achieved a 78.1% live birth rate after treatment (derived from a 21.9% miscarriage rate in treated women vs. 57.7% in untreated controls, p=0.002). Women 40 and older achieved 55.6% vs. 30.0%, a clinically meaningful difference that did not reach formal statistical significance in the cohort studied. Neither group was told "it just happens." Both groups had diagnosable, treatable contributing factors, per <a href="/library/novel-approaches-to-the-management-of-recurrent-pregnancy-loss-the-optimum-optim-recotwemmxon5hm20/">Kuroda et al. 2021</a>.</li>
+            </ul>
+          </aside>
+
+          <section id="what-is-miscarriage">
+            <h2>What Is Miscarriage? Defining the Terms</h2>
+
+            <p class="pillar-lead"><strong>Miscarriage is the spontaneous loss of a pregnancy before viability. It is the most common adverse event in pregnancy. It is also one of the most commonly under-investigated. Women are told it is normal, that it is bad luck, that the body knew what it was doing. Some of that is partially true. None of it is a substitute for a clinical answer.</strong></p>
+
+            <p>The terminology matters because it shapes what gets evaluated and when.</p>
+
+            <p><strong>Chemical pregnancy</strong> refers to a pregnancy confirmed biochemically by rising and then falling hCG, before ultrasound can visualize a gestational sac. Many women experience these and are told they were not "real" miscarriages. Clinically, a chemical pregnancy represents a conception that implanted and then failed. It warrants attention if it recurs.</p>
+
+            <p><strong>Clinically recognized miscarriage</strong> refers to pregnancy loss after ultrasound visualization of an intrauterine gestational sac. This is the category most commonly counted in clinical literature. The 15% figure, the most commonly cited miscarriage rate, applies here: approximately 15% of clinically confirmed pregnancies end in spontaneous loss, per <a href="/library/does-a-short-luteal-phase-correlate-with-an-increased-risk-of-miscarriage-a-coho-recsypcebszclpsk1/">Duane et al. 2022</a>. First-trimester losses account for the large majority. Second-trimester losses are less common and carry a distinct differential.</p>
+
+            <p><strong>Early pregnancy loss</strong> is sometimes used interchangeably with first-trimester miscarriage, referring to loss before 13 weeks.</p>
+
+            <p><strong>Late pregnancy loss</strong> refers to loss between 13 and 20 weeks of gestation. This category has a different clinical differential: anatomic factors, cervical incompetence, thrombophilia, and maternal infection are more prominent. Late loss is less common and demands its own workup.</p>
+
+            <p><strong>Recurrent pregnancy loss (RPL)</strong> is defined by major professional societies as two or more clinical pregnancy losses, not necessarily consecutive. The 2026 update from a major professional society further broadened this definition to include hCG-confirmed biochemical pregnancies. Prevalence is estimated at 2 to 5% of couples trying to conceive, per <a href="/library/recurrent-pregnancy-loss-recshg1nt4mlkcm0b/">ASRM 2012</a> (reaffirmed 2020, updated 2026).</p>
+
+            <p>That definition matters. Two losses is not a borderline case. It is a clinical signal that warrants evaluation. The question is not whether to investigate. The question is whether the investigation is thorough enough.</p>
+
+            <p>Miscarriage is not one thing. It is a clinical outcome with multiple causes. "You had a miscarriage" is a description of what happened. It is not a diagnosis of why.</p>
+          </section>
+
+          <section id="diagnostic-gap">
+            <h2>The Diagnostic Gap: Why Most Workups Start Too Late</h2>
+
+            <p>Three losses. That was the historical threshold. Three clinical pregnancy losses before the system considered it a pattern worth investigating. Major professional societies moved to two losses more than a decade ago. That guideline shift is documented and formal. But guidelines and practice patterns are different things. Many women still encounter the three-loss expectation in their first clinical encounter.</p>
+
+            <p>The rationale was probabilistic: a single miscarriage is common enough that it was considered unlikely to be a sign of a diagnosable problem. Two felt borderline. Three was the signal. What this logic fails to account for is that most causes of recurrent miscarriage are present and diagnosable after the first loss. A woman with chronic endometritis, subclinical hypothyroidism, or luteal phase deficiency does not acquire these conditions after her second miscarriage. She had them before the first one. Waiting for a third loss does not gather more clinical information. It generates more loss.</p>
+
+            <p>Although <a href="/library/recurrent-pregnancy-loss-recshg1nt4mlkcm0b/">ASRM 2012</a> (reaffirmed 2020, updated 2026) defines RPL as two clinical losses and recommends evaluation at that threshold, practice patterns in community settings frequently defer workup further. RRM-trained clinicians begin evaluation after the first loss when risk factors are present: age over 35, prior miscarriage history, a short luteal phase on prior charting, thyroid symptoms, irregular cycle patterns, or a partner whose semen analysis has not been reviewed.</p>
+
+            <p>This is not aggressive medicine. It is basic clinical logic. The causes of recurrent pregnancy loss are, in many cases, identifiable and treatable. The question is whether anyone looked.</p>
+
+            <p>"Unexplained" recurrent miscarriage is the category assigned when standard workup finds nothing. The causes are not unexplained. They are undetected. Chronic endometritis, subclinical thyroid dysfunction, and luteal phase deficiency do not appear on the standard panel. They are not tested unless the clinician looks for them. What mainstream medicine calls "unexplained," RRM-trained clinicians call "not yet evaluated."</p>
+
+            <div class="workup-grid">
+              {miscarriageData.workup_comparison.map((w) => (
+                <article class="workup-card" data-key={w.key}>
+                  <header class="workup-card__header">
+                    <h3>{w.name}</h3>
+                    <p class="workup-card__subtitle">{w.subtitle}</p>
+                  </header>
+                  <dl class="workup-card__body">
+                    <dt>Threshold to initiate</dt>
+                    <dd set:html={w.threshold_html} />
+                    <dt>Tests typically included</dt>
+                    <dd set:html={w.tests_included_html} />
+                    <dt>Tests typically excluded</dt>
+                    <dd set:html={w.tests_typically_excluded_html} />
+                    <dt>Outcome when nothing found</dt>
+                    <dd set:html={w.outcome_when_nothing_found_html} />
+                    <dt>RRM stance</dt>
+                    <dd>{w.rrm_stance}</dd>
+                  </dl>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section id="causes">
+            <h2>Causes RRM Evaluates in Recurrent Pregnancy Loss</h2>
+
+            <p>The following are the recognized and diagnosable contributors to recurrent miscarriage. None of them is rare. Most are missed on standard workup.</p>
+
+            <h3>Luteal Phase Deficiency</h3>
+
+            <p>The luteal phase is the second half of the menstrual cycle, from ovulation through menstruation. Progesterone, produced by the corpus luteum after ovulation, prepares the uterine lining for implantation and supports the early pregnancy until the placenta can take over. When the luteal phase is short, progesterone support is inadequate or abbreviated. The embryo arrives at an endometrium that is not ready, or loses support before the placenta is established.</p>
+
+            <p>A short luteal phase, defined as fewer than 10 days on charting, has been studied in the context of miscarriage risk. A 2022 cohort study by <a href="/library/does-a-short-luteal-phase-correlate-with-an-increased-risk-of-miscarriage-a-coho-recsypcebszclpsk1/">Duane et al.</a> found that women with a short luteal phase in all three cycles prior to conception showed an elevated incident risk ratio of 2.14 for miscarriage, though the sample size limited statistical significance. Direct evidence of luteal insufficiency in women with habitual abortion was documented as far back as <a href="/library/direct-evidence-of-luteal-insufficiency-in-women-with-habitual-abortion-recds5g7vshndiwxu/">Horta et al. 1977</a>. A foundational cohort study by <a href="/library/the-significance-of-luteal-phase-deficiency-on-fertility-a-diagnostic-and-therap-recfmjzkvnocypkyk/">Balasch et al. 1986</a> found luteal phase deficiency in 19 of 60 patients with early recurrent abortion, significantly higher than in fertile controls, and documented that treatment improved pregnancy outcomes. The clinical evidence for progesterone's role in preventing early pregnancy loss runs through decades of observational data.</p>
+
+            <p>Progesterone supplementation is most relevant when administered before and at the time of implantation, not only after a positive pregnancy test. This distinction matters clinically. When <a href="/library/progesterone-in-women-with-recurrent-miscarriages-recqtd829bgkrlihw/">Carpentier, Stanford, and Boyle responded in NEJM (2016)</a> to the PROMISE trial, which found no benefit from first-trimester progesterone in RPL, they noted three specific problems with the trial: it excluded women with coexisting subfertility (nearly 33% of screened women), it administered progesterone after implantation rather than before and at the time of implantation, and it did not target women with a documented short luteal phase. The PROMISE trial tested one approach. It did not test the approach used in cause-based RPL evaluation.</p>
+
+            <p>Cycle charting is the foundational diagnostic tool. Creighton Model charting or comparable FABM charting maps the luteal phase day by day. A woman who has charted knows how long her luteal phase runs. A clinician who has her chart can see the pattern before ordering a single lab test. This is information that is completely invisible to a clinician who is not using chart data. Without charting, decisions are made without the most basic piece of cyclical data available.</p>
+
+            <h3>Hypoandrogenemia and Low DHEA-S</h3>
+
+            <p>Low androgen levels in women are rarely tested in standard recurrent miscarriage workups. They should be.</p>
+
+            <p>DHEA (dehydroepiandrosterone) is the primary precursor for estradiol produced by the placenta. The fetal adrenal gland becomes the major source of DHEA around 10 weeks of pregnancy. Low maternal DHEA-S before and during pregnancy reduces estradiol availability at a critical period of early placental development, and low serum estradiol during early pregnancy is associated with an elevated risk of miscarriage.</p>
+
+            <p>In a retrospective cohort study by <a href="/library/restoration-of-serum-estradiol-and-reduced-incidence-of-miscarriage-in-patients--H9q8uQWG/">Boyle et al. 2024</a> in women with low serum estradiol during early pregnancy (defined as at or below 50% of reference levels by gestational age), the miscarriage rate in the non-supplemented group was 45.5%. In the DHEA-supplemented group, the miscarriage rate was 17.5% (p=0.038). Estradiol supplementation alone did not produce the same result: only DHEA restored estradiol levels reliably. Birth weight, gestational age, and preterm delivery rates did not differ significantly across groups.</p>
+
+            <p>Standard recurrent miscarriage workup does not include DHEA-S or androgen panel. This means a woman can complete a full conventional RPL evaluation and never have this tested.</p>
+
+            <p>A published case report by <a href="/library/successful-pregnancy-using-oral-dhea-treatment-for-hypoandrogenemia-in-a-30-year-recqps2hkkadr4wm6/">Boyle, Pandalache, and Turczynski (2024)</a> illustrates what this gap costs. A 30-year-old woman with five pregnancy losses, including a fetal demise at 24 weeks, had undergone a complete workup at a specialized recurrent miscarriage clinic. Karyotypes, antiphospholipid screen, thyroid function, hysteroscopy: all normal. Her fourth miscarriage confirmed triploidy; she was reassured and advised to conceive again. She lost the next pregnancy at 24 weeks with no explanation. When she was evaluated at an RRM clinic, androgen testing identified hypoandrogenemia: DHEA-S at 1.8 umol/L against a normal range of 2.7 to 9.2. The standard workup had not included this test. Treatment followed. She delivered a healthy baby. The cause was present throughout. No one had looked for it.</p>
+
+            <h3>Chronic Endometritis</h3>
+
+            <p>Chronic endometritis (CE) is a persistent low-grade inflammation of the uterine lining, usually caused by bacterial infection. It is asymptomatic in most women. No fever. No obvious pelvic pain. No reason to suspect it from a routine visit.</p>
+
+            <p>It is, however, present in a significant proportion of women with recurrent miscarriage.</p>
+
+            <p>A 2013 study by <a href="/library/chronic-endometritis-due-to-common-bacteria-is-prevalent-in-women-with-recurrent-recyfpe9a4szxychl/">Cicinelli et al.</a> evaluated 360 women with unexplained recurrent miscarriage and found that 57.8% had chronic endometritis confirmed on hysteroscopy and histology. The study compared three groups: women whose CE was cured by antibiotic treatment, women with CE that persisted despite treatment, and women without CE on biopsy. Among women whose CE was successfully treated and confirmed cured, 78.4% achieved pregnancy within one year. Among women with persistent CE or no CE diagnosis, the pregnancy rate was approximately 17.5%. The treatment gap was not marginal. It was the difference between an outcome and a continuing pattern.</p>
+
+            <p>CE is diagnosed by endometrial biopsy with CD138 immunohistochemistry staining for plasma cells, or by hysteroscopy with directed biopsy. It is not diagnosed by standard pelvic ultrasound or by clinical exam. It is not tested on the routine RPL panel at most clinics. A woman can have multiple evaluations and never be tested for it if the evaluating clinician does not include it.</p>
+
+            <p>Chronic endometritis is covered in detail in our <a href="/endometritis/">dedicated guide to chronic endometritis</a>. For the purposes of this section: it is present in a majority of women with unexplained recurrent miscarriage, it is treatable with targeted antibiotic therapy after confirmed diagnosis, and it is frequently the answer that standard workup never sought.</p>
+
+            <h3>Thyroid Dysfunction</h3>
+
+            <p>Thyroid function is tightly coupled to early pregnancy. The thyroid demand increases significantly in the first trimester as the fetus cannot yet produce its own thyroid hormone. A thyroid that functions marginally under normal conditions may fail to meet the increased demand of early pregnancy.</p>
+
+            <p>The clinical threshold for intervention has been debated, but the evidence is clear: elevated TSH within the conventional "normal" range is independently associated with higher pregnancy loss. In a large prospective study by <a href="/library/increased-pregnancy-loss-rate-in-thyroid-antibody-negative-women-with-tsh-levels-reculphjam60qtljh/">Negro et al. 2010</a> involving over 4,000 women, those with TSH between 2.5 and 5.0 mIU/L had a significantly higher pregnancy loss rate than those with TSH below 2.5 (6.1% vs. 3.6%, p=0.006). These were thyroid antibody-negative women. Thyroid function alone, without autoimmune thyroid disease, was the differentiating variable.</p>
+
+            <p>Thyroid peroxidase (TPO) antibodies add a separate dimension. Autoimmune thyroid disease, even when thyroid function tests are technically normal, is associated with adverse pregnancy outcomes, per <a href="/library/levothyroxine-treatment-in-euthyroid-pregnant-women-with-autoimmune-thyroid-dise-recrcfduggqw3bvdp/">Negro et al. 2006</a>. A full thyroid panel in the RPL workup includes TSH, free T4, and TPO antibodies. Testing TSH alone misses a meaningful portion of the clinical picture.</p>
+
+            <p>Thyroid optimization, when indicated, is a well-established and low-risk intervention. It is also one of the most frequently omitted from standard RPL evaluations.</p>
+
+            <h3>Antiphospholipid Syndrome and Thrombophilia</h3>
+
+            <p>Antiphospholipid syndrome (APS) is an acquired autoimmune thrombophilia. It causes abnormal clotting in the placental vasculature, disrupting blood flow to the developing pregnancy. It is one of the best-documented treatable causes of recurrent pregnancy loss, and it is the one most clinicians do test for when RPL workup is ordered.</p>
+
+            <p>The diagnostic criteria include at least one clinical criterion (recurrent pregnancy loss, thrombosis, or other vascular event) and at least one laboratory criterion: positive lupus anticoagulant, anticardiolipin antibodies, or anti-beta-2 glycoprotein-I antibodies on two separate occasions at least 12 weeks apart. A single positive test is not diagnostic. The test must be confirmed.</p>
+
+            <p>Treatment for confirmed APS in pregnancy involves anticoagulation under physician supervision, per <a href="/library/randomised-controlled-trial-of-aspirin-and-aspirin-plus-heparin-in-pregnant-wome-rec1snclxkbdb8hxk/">Rai et al. 1997</a>. No dosing details are appropriate here; this is a clinical conversation between the patient and her treating physician.</p>
+
+            <p>Inherited thrombophilias (Factor V Leiden, prothrombin gene mutation) are a related category. Their contribution to pregnancy loss, particularly second-trimester loss, is documented, though the evidence for treatment in the absence of APS criteria is more nuanced. Workup that includes thrombophilia evaluation is appropriate for women with late losses or a personal or family history of thrombotic events.</p>
+
+            <h3>Anatomic Factors</h3>
+
+            <p>Structural abnormalities of the uterus can mechanically interfere with implantation and pregnancy maintenance.</p>
+
+            <p>A <strong>uterine septum</strong> divides the uterine cavity. The septum is poorly vascularized, making it an inhospitable implantation site. Septate uterus is the anatomic anomaly most consistently associated with recurrent miscarriage in observational data, per <a href="/library/fertility-and-pregnancy-outcomes-following-hysteroscopic-metroplasty-of-differen-reckj3clfbhcb0oop/">Wang et al. 2019</a>. Hysteroscopic resection has been the standard surgical approach. However, the TRUST randomized controlled trial (Rikken et al. 2021, Human Reproduction) did not demonstrate a significant benefit of septum resection over expectant management on live birth or miscarriage rates. Resection remains an individualized clinical decision, not a reflex. The appropriateness of surgery depends on the clinical picture, septum characteristics, and the clinician's judgment.</p>
+
+            <p><strong>Submucosal fibroids</strong> that protrude into the uterine cavity can distort the endometrium and interfere with implantation. Fibroids that do not involve the cavity have a less established relationship to miscarriage.</p>
+
+            <p><strong>Endometrial polyps</strong> can harbor chronic endometritis and mechanically disrupt the uterine cavity. Their relationship to RPL is less well-established than to implantation failure, but they warrant evaluation and removal when present.</p>
+
+            <p><strong>Asherman syndrome</strong> (intrauterine adhesions from prior uterine surgery or infection) can significantly disrupt endometrial receptivity. A history of dilation and curettage, particularly multiple procedures, warrants evaluation.</p>
+
+            <p>Anatomic evaluation uses three-dimensional transvaginal ultrasound or sonohysterogram as first-line imaging. Hysteroscopy is the gold standard for direct visualization and simultaneous treatment when indicated.</p>
+
+            <h3>Endometriosis as an RPL Cause</h3>
+
+            <p>Endometriosis is an independent risk factor for miscarriage, not merely an infertility diagnosis.</p>
+
+            <p>A 2016 retrospective cohort study by <a href="/library/increased-rate-of-spontaneous-miscarriages-in-endometriosis-affected-women-rec4slg1cgppesnay/">Santulli et al.</a> found that women with histologically proven endometriosis had a significantly higher rate of previous spontaneous miscarriage than endometriosis-free controls (adjusted IRR 1.70, 95% CI 1.34 to 2.16; 478 pregnancies in the endometriosis group vs. 964 in controls). A 2017 study by <a href="/library/endometriosis-especially-mild-disease-a-risk-factor-for-miscarriages-recphcrnqhhj4ttux/">Kohl Schwartz et al.</a> found that endometriosis, particularly mild disease (rASRM Stage I to II), was associated with elevated miscarriage risk, with a miscarriage rate of 42.1% in mild disease vs. 22.0% in controls (adjusted IRR 1.97, 95% CI 1.41 to 2.75). The mechanisms are multiple: the inflammatory pelvic milieu, endometriosis-associated luteal phase deficiency, and impaired endometrial receptivity.</p>
+
+            <p>Endometriosis should be considered in women with recurrent loss who also have cyclical pelvic pain, dysmenorrhea, premenstrual spotting, or dyspareunia. If endometriosis is present and goes unaddressed, the conditions for recurrent loss persist regardless of other interventions.</p>
+
+            <p>When surgery is indicated, excision is the only endorsed approach. Ablation does not treat the underlying disease.</p>
+
+            <p><a href="/endometriosis/">A detailed guide to endometriosis</a> is available on this site.</p>
+
+            <h3>Sperm DNA Fragmentation and Male Factor</h3>
+
+            <p>The male partner is a participant in every pregnancy. Sperm DNA fragmentation, the proportion of sperm with damaged genetic material, is independently associated with recurrent pregnancy loss.</p>
+
+            <p>A systematic review and meta-analysis by <a href="/library/sperm-dna-fragmentation-and-recurrent-pregnancy-loss-a-systematic-review-and-met-recyq3m4kcw20pwot/">McQueen et al. 2019</a> pooled data from 13 prospective studies involving 579 male partners of women with RPL and 434 male partners of fertile controls. The rate of sperm DNA fragmentation was substantially and significantly higher in the RPL group, with a mean difference of 11.91 (95% CI 4.97 to 18.86).</p>
+
+            <p>A standard semen analysis does not measure DNA fragmentation. A man can have a normal semen analysis and elevated sperm DNA fragmentation. These are not the same test. Couples with recurrent unexplained loss who have not had sperm DNA fragmentation testing have an incomplete workup.</p>
+
+            <p>Male factor is the sole cause of reproductive failure in approximately 20% of infertile couples and a contributing factor in another 30 to 40%. It is not a secondary consideration. Evaluating only the female partner when a couple presents with recurrent pregnancy loss is an incomplete evaluation.</p>
+
+            <h3>Genetic and Chromosomal Factors</h3>
+
+            <p>Most first-trimester miscarriages are chromosomally abnormal, and the proportion increases with maternal age. This is true. It is also frequently used as a reason not to investigate further.</p>
+
+            <p>The clinical reality is more layered.</p>
+
+            <p><strong>Products of conception (POC) testing</strong> after a miscarriage can identify chromosomal abnormalities in the lost pregnancy. When the loss is chromosomally abnormal, many clinicians use this as reassurance that the miscarriage was "expected." But a chromosomally abnormal embryo is not a reason to skip evaluation: older eggs produce more chromosomal errors, and age-related aneuploidy is itself a clinical finding that has implications for evaluation and counseling. A couple should know whether chromosomal abnormality was present, but that answer does not exclude the simultaneous presence of treatable causes. The case of a 30-year-old woman whose fourth miscarriage was confirmed triploidy, who was then reassured, and who subsequently experienced a fetal demise at 24 weeks due to undiagnosed hypoandrogenemia, illustrates exactly this point, per <a href="/library/successful-pregnancy-using-oral-dhea-treatment-for-hypoandrogenemia-in-a-30-year-recqps2hkkadr4wm6/">Boyle et al. 2024</a>.</p>
+
+            <p><strong>Parental karyotyping</strong> is indicated in couples with recurrent loss to identify balanced chromosomal translocations or inversions. When a parent carries a balanced rearrangement, a proportion of pregnancies will be chromosomally unbalanced. This is not treatable by the approaches described above, but identifying it changes the counseling and options conversation significantly.</p>
+
+            <p>The summary: chromosomal causes are real and should be evaluated. They do not close the workup. They exist alongside treatable causes that must also be sought.</p>
+
+            <h3>Lifestyle and Environmental Factors</h3>
+
+            <p>Tobacco use, heavy alcohol consumption, and BMI extremes at both ends are documented contributors to miscarriage risk. These are modifiable factors and deserve clinical discussion without moralizing. Environmental toxin exposure, including endocrine-disrupting chemicals found in plastics, personal care products, and occupational settings, has an emerging evidence base for reproductive harm. This is an area where evidence is growing and certainty is lower than for the categories above. It warrants attention in clinical history, not dismissal.</p>
+
+            <div class="causes-grid">
+              {miscarriageData.treatable_causes.map((c) => (
+                <article class="cause-card" data-key={c.key}>
+                  <header class="cause-card__header">
+                    <h4>{c.name}</h4>
+                    <p class="cause-card__on-panel">On standard RPL panel: <strong>{c.on_standard_rpl_panel}</strong></p>
+                  </header>
+                  <dl class="cause-card__body">
+                    <dt>Prevalence / evidence</dt>
+                    <dd set:html={c.prevalence_in_rpl_html} />
+                    <dt>Diagnosis</dt>
+                    <dd set:html={c.diagnosis_html} />
+                    <dt>Treatment</dt>
+                    <dd set:html={c.treatment_html} />
+                    {c.cross_link_html && <Fragment><dt>Related guide</dt><dd set:html={c.cross_link_html} /></Fragment>}
+                  </dl>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section id="workup">
+            <h2>The RRM Workup for Recurrent Pregnancy Loss</h2>
+
+            <p>A cause-based evaluation for recurrent pregnancy loss is systematic. It addresses both partners. It includes data that standard workup does not routinely collect.</p>
+
+            <p><strong>Cycle charting as the foundational data layer.</strong> Creighton Model charting or comparable FABM documentation maps the menstrual cycle day by day. Luteal phase length, premenstrual spotting, mucus pattern, and cycle length variation are clinically meaningful data points that do not exist in the absence of charting. A clinician working without a chart is working without the most basic cyclical data available. A woman who begins charting before her first consultation arrives with information in hand.</p>
+
+            <p><strong>History and pattern review.</strong> When did each loss occur in the cycle of conception? Was the loss early or later in the first trimester? Were there symptoms before the loss? Has she had prior pelvic surgery? Does she have cyclical pain? Does her partner have any prior semen analysis results? This history, combined with chart data, begins to build a differential before a single test is ordered.</p>
+
+            <p><strong>Laboratory evaluation.</strong> The panel that characterizes a cause-based RPL workup includes: cycle-timed progesterone levels (timed to the luteal phase, not random), full thyroid panel (TSH, free T4, TPO antibodies), prolactin, glucose and fasting insulin when PCOS or metabolic dysfunction is suspected, antiphospholipid antibody screen (lupus anticoagulant, anticardiolipin IgG/IgM, anti-beta-2 glycoprotein-I IgG/IgM), androgen panel including DHEA-S and testosterone when clinically indicated, and, when indicated by family or personal history, inherited thrombophilia panel.</p>
+
+            <p><strong>Partner evaluation.</strong> Semen analysis with sperm DNA fragmentation testing. This is not optional in a couple presenting with recurrent loss where male factor has not been excluded.</p>
+
+            <p><strong>Parental karyotype.</strong> When recurrent loss follows a pattern suggesting structural chromosomal etiology, or when POC analysis has identified specific chromosomal patterns, parental karyotyping is appropriate.</p>
+
+            <p><strong>Imaging.</strong> Three-dimensional transvaginal ultrasound or sonohysterogram for anatomic evaluation. These are better than standard 2D ultrasound for identifying uterine septa and cavity distortion.</p>
+
+            <p><strong>Endometrial biopsy.</strong> For chronic endometritis evaluation: endometrial biopsy with CD138 immunohistochemistry staining, ideally combined with endometrial culture. Hysteroscopy adds direct visualization and the ability to sample and treat simultaneously. See our <a href="/endometritis/">chronic endometritis guide</a> for the full diagnostic protocol.</p>
+
+            <p><strong>Hysteroscopy.</strong> When imaging is suggestive of a cavity abnormality, or when endometritis evaluation warrants direct biopsy, diagnostic hysteroscopy is the gold standard. Diagnostic and operative hysteroscopy can be combined when a finding warrants immediate surgical correction.</p>
+          </section>
+
+          <section id="post-ivf">
+            <h2>After IVF Miscarriage: A Different Starting Point</h2>
+
+            <p>A miscarriage after IVF is not the same workup as a miscarriage in a couple who has been trying to conceive naturally.</p>
+
+            <p>For couples who pursued IVF, there is an additional layer of clinical history: the IVF cycle itself. What were the hormonal levels during stimulation? What was the embryo quality? Was a fresh or frozen transfer performed? Was progesterone supplementation used, and for how long?</p>
+
+            <p>But the premise of this section is not IVF-specific. It is this: a woman who has lost a pregnancy, regardless of how that pregnancy was conceived, deserves an evaluation of the causes of that loss. The technology used to achieve conception does not change the biology of the uterus, the endometrium, or the hormonal environment that sustains early pregnancy.</p>
+
+            <p>A case report by <a href="/library/successful-pregnancy-with-restorative-reproductive-medicine-after-16-years-of-in-recismo1fzymsx9jo/">Boyle, Stanford, and Zecevic (2022)</a> documented a 35-year-old woman with 16 years of infertility, three recurrent miscarriages, and eight failed IVF embryo transfers. Standard IVF workup across multiple cycles had not identified the underlying causes. RRM evaluation found multiple treatable factors. She conceived naturally and carried to term. Eight transfers. Three losses. The evaluation was not complete. The uterine environment had not been addressed.</p>
+
+            <p>Chronic endometritis is disproportionately common in women who have undergone repeated uterine procedures. Multiple IVF cycles, including the retrieval, transfer, and dilation and curettage procedures that may follow unsuccessful cycles, can alter the endometrial environment. CE may be a cause of the prior IVF failures and an undetected contributor to the miscarriage.</p>
+
+            <p>The receptive endometrium is one-half of the implantation equation. Embryo quality is the other. When IVF cycles fail or produce miscarriage, the clinical narrative often focuses exclusively on embryo quality. But an embryo that reaches an inflamed or hormonally unprepared endometrium will not implant successfully, regardless of chromosomal status.</p>
+
+            <p>A woman who has had a miscarriage after IVF is not a woman who has already been fully evaluated. She is a woman who has been evaluated for ovarian response, egg quality, and embryo development. The uterine environment, the hormonal support, the chronic endometritis question, and the cycle-specific data are often areas where the workup has gaps.</p>
+
+            <p>The question is not "why did IVF fail." It is: "what has not yet been evaluated?"</p>
+          </section>
+
+          <section id="treatment">
+            <h2>Treatment: Addressing the Underlying Cause</h2>
+
+            <p>Treatment follows from diagnosis. When the workup identifies a cause, treatment addresses that cause. No cause, no treatment target. This is why the workup is not optional.</p>
+
+            <p><strong>Luteal phase support.</strong> When charting and lab evaluation document luteal phase deficiency or suboptimal progesterone levels in the cycle phase, progesterone support during the luteal phase and early pregnancy is indicated. The argument by <a href="/library/progesterone-in-women-with-recurrent-miscarriages-recqtd829bgkrlihw/">Carpentier, Stanford, and Boyle (2016)</a> is clinically central here: benefit from progesterone supplementation in RPL may depend on timing (before and at implantation, not only post-confirmation) and on whether luteal phase deficiency has been documented. The specific approach is individualized by the treating clinician based on the patient's full evaluation. No dosing guidance is appropriate here.</p>
+
+            <p><strong>Hypoandrogenemia.</strong> When evaluation identifies low DHEA-S or androgen insufficiency, DHEA supplementation under physician supervision addresses the estradiol deficiency mechanism directly. The treating clinician determines the approach based on individual evaluation. No protocol details are appropriate on this page.</p>
+
+            <p><strong>Chronic endometritis.</strong> When biopsy confirms CE, targeted antibiotic treatment is the intervention. Treatment is organism-specific; endometrial culture guides the antibiotic selection. After treatment, biopsy or hysteroscopy confirms resolution before the next conception attempt. No antibiotic regimen details are appropriate here; this is a physician-directed treatment.</p>
+
+            <p><strong>Thyroid optimization.</strong> When TSH elevation or thyroid autoimmune markers are identified, thyroid optimization under physician supervision is appropriate. Targets during pregnancy are more stringent than outside pregnancy. This is an area where the treatment decision is individualized and the treating clinician sets the approach.</p>
+
+            <p><strong>Anatomic correction.</strong> When imaging or hysteroscopy identifies a submucosal fibroid or endometrial polyp, surgical correction is the appropriate intervention. For uterine septum, hysteroscopic resection remains an option in select cases; however, the decision is individualized given that randomized data have not demonstrated a significant benefit of resection over expectant management. The treating clinician determines whether surgical correction is appropriate based on the complete clinical picture.</p>
+
+            <p><strong>Antiphospholipid syndrome.</strong> Confirmed APS is treated with anticoagulation during pregnancy under physician supervision. This is a physician-directed regimen; no specific protocol is appropriate on this page.</p>
+
+            <p><strong>Sperm DNA fragmentation.</strong> Elevated sperm DNA fragmentation is addressed through male evaluation and, where modifiable factors are present, targeted intervention. Referral to a reproductive urologist is appropriate. Lifestyle modification (tobacco, heat, oxidative stress), antioxidant evaluation, and treatment of underlying conditions are all part of the male partner's workup.</p>
+
+            <p><strong>Endometriosis.</strong> When endometriosis is a contributing cause, excision surgery by an excision-trained surgeon is the appropriate surgical intervention. Ablation is not endorsed.</p>
+
+            <p>The core principle: treatment follows from an identified cause. When the workup is complete, there are usually actionable findings. When the workup is incomplete, there are none, and the couple is told the cause is "unexplained."</p>
+          </section>
+
+          <section id="outcomes">
+            <h2>Outcomes After Evaluation and Treatment: Age Matters</h2>
+
+            <p>Outcomes after cause-based RPL evaluation are encouraging, and age-stratified data are the only honest way to present them.</p>
+
+            <p>For women under 40 with recurrent pregnancy loss who received a cause-based multifactorial workup addressing thyroid function, chronic endometritis, immune factors, and thrombophilia, the treated cohort studied by <a href="/library/novel-approaches-to-the-management-of-recurrent-pregnancy-loss-the-optimum-optim-recotwemmxon5hm20/">Kuroda et al. 2021</a> had a miscarriage rate of 21.9% vs. 57.7% in untreated controls (p=0.002), corresponding to live birth rates of approximately 78.1% vs. 42.3% derived by subtraction. For women 40 and older, the treated group showed 55.6% live births vs. 30.0% in untreated controls, a clinically meaningful difference that did not reach formal statistical significance in this cohort (p=0.095).</p>
+
+            <p>Those numbers are not a guarantee. They are a benchmark. For a group of women whose most recent clinical experience was another miscarriage with no identified cause, a cause-based evaluation followed by targeted treatment substantially improved outcomes in the younger age group, and trended meaningfully in the older.</p>
+
+            <p>The Stanford, Parnell, and Boyle 2008 Irish NaPro cohort documented outcomes from <a href="/library/outcomes-from-treatment-of-infertility-with-natural-procreative-technology-in-an-recj7cwubt4vlyfjl/">1,072 couples treated with NaProTechnology in an Irish general practice</a>, with an average female age of 35.8 years. This is the foundational Irish NaPro outcome study, peer-reviewed in the Journal of the American Board of Family Medicine.</p>
+
+            <p>A retrospective cohort study by <a href="/library/natural-procreative-technology-for-infertility-and-recurrent-miscarriage-outcome-recmv6gf3xlcbt6ny/">Tham et al. 2012</a> reported outcomes from 108 couples with infertility or recurrent miscarriage receiving NaPro treatment in a Canadian family practice. The cumulative adjusted proportion of first live births over 24 months was 66 per 100 couples. The average female age in the cohort was 35.4 years, and couples had been trying to conceive for a mean of 3.2 years.</p>
+
+            <p>A conference series review by <a href="/library/retrospective-review-outcomes-from-all-couples-with-3-or-more-recurrent-miscarri-gsQqAtbB/">Boyle et al. 2010</a> reviewed outcomes from 50 couples with three or more recurrent miscarriages receiving treatment from the NaPro clinics in Ireland. Of 36 who conceived, 29 achieved live births (80.6%). The expected miscarriage rate for this population was cited as above 30 to 40%. The observed combined miscarriage and ectopic rate was 16.7% per couple.</p>
+
+            <p>These are observational data from clinical cohorts, not randomized controlled trials. They represent real couples with documented recurrent loss, evaluated and treated systematically, with outcomes that exceed expected spontaneous resolution rates. The evidence is imperfect. It is also more than "just try again."</p>
+
+            <p>A critical framing note: the outcomes for women over 40 are different from outcomes for women under 35. Age-related aneuploidy increases with each year of maternal age. A 41-year-old with three losses and no identified treatable cause has a different clinical picture than a 32-year-old with two losses and undiagnosed chronic endometritis. Both deserve evaluation. Neither should receive a homogenized probability estimate.</p>
+          </section>
+
+          <section id="subsequent-pregnancy">
+            <h2>Pregnancy After Loss: What Changes</h2>
+
+            <p>The next pregnancy after recurrent loss is different from any prior pregnancy. The anxiety is different. The monitoring should be.</p>
+
+            <p>When a cause has been identified and treated, the subsequent pregnancy plan includes targeted monitoring of whatever was treated. If luteal phase deficiency was identified, progesterone monitoring begins in the luteal phase of the conception cycle and continues into the early pregnancy under the treating clinician's direction. If thyroid function was the issue, thyroid levels are monitored more frequently in the first trimester. If chronic endometritis was treated, biopsy confirmation of resolution should precede the next conception attempt. If hypoandrogenemia was identified, estradiol monitoring in early pregnancy allows the clinician to track restoration and intervene if levels remain inadequate.</p>
+
+            <p>Early pregnancy ultrasound confirms fetal cardiac activity. This is not reassurance in the ordinary sense. It is data. After loss, early confirmation of viability matters.</p>
+
+            <p>The psychological reality of pregnancy after loss is real. Fear of another miscarriage is not irrational. It is a predictable response to prior experience. Many women describe the period between a positive test and viability confirmation as one of the most difficult spans of time in their reproductive journey. A clinician who acknowledges this directly, who builds in early contact points rather than sending the patient home until 12 weeks, is providing clinical care that matches what the patient actually needs.</p>
+
+            <p>One measured thought for the woman reading this: the anxiety does not mean the pregnancy will fail. It means you have been through something hard and your nervous system has learned to protect you from the next one. That is understandable. It is not predictive.</p>
+          </section>
+
+          <section id="living-with-loss">
+            <h2>Living With Loss While You Wait for Care</h2>
+
+            <p>Access to RRM-trained clinicians is not immediate everywhere. Here is what to do while you wait.</p>
+
+            <p><strong>Chart your cycle.</strong> If you are not already charting with a FABM, start. The Creighton Model and comparable methods produce a written day-by-day map of your cycle, including luteal phase length, premenstrual spotting, and mucus pattern. When you arrive at a consultation with a chart in hand, you arrive with data. The clinician is not starting blind.</p>
+
+            <p><strong>Gather every record from prior losses.</strong> If you had pathology sent from products of conception, get that report. If you had lab work after a prior loss, request those results. If you have had any prior RPL workup, request the records. Bring the records to your consultation. The clinician you see next should not have to start from scratch.</p>
+
+            <p><strong>Track the pattern.</strong> Note when in the pregnancy each loss occurred. Early losses (before 8 weeks) and later losses (8 to 20 weeks) have different differentials. Note whether you had any symptoms before the loss. Note whether the losses are getting earlier or later.</p>
+
+            <p><strong>Get your partner's semen analysis done.</strong> This is a straightforward, non-invasive test that provides critical information about male factor contribution. If it has not been done, do it before your first consultation. Ask specifically whether sperm DNA fragmentation testing was included, or whether a standard semen analysis alone was performed.</p>
+
+            <p><strong>When to seek urgent care.</strong> Severe cramping with heavy bleeding, fever with pelvic pain, or symptoms of ectopic pregnancy (shoulder pain, one-sided pelvic pain, dizziness, or collapse) require emergency evaluation, not a scheduled appointment. Do not wait.</p>
+
+            <p><strong>When not to wait passively.</strong> A second pregnancy loss is not a reason to be told "it happens." It is a reason to ask for an evaluation. Major professional societies have defined RPL as two or more losses for this reason. You are entitled to ask why, and to receive an answer beyond "bad luck."</p>
+          </section>
+
+          <section id="faq">
+            <h2>Frequently Asked Questions</h2>
+
+            <div class="faq-accordion" data-pagefind-ignore>
+              <details>
+                <summary>How many miscarriages do I need before I can get a workup?</summary>
+                <div class="faq-answer">
+                  <p>Major professional societies define recurrent pregnancy loss as two or more clinical pregnancy losses, and evaluation is recommended at that threshold. In an RRM-oriented approach, evaluation can begin after a single loss when risk factors are present: age over 35, a pattern of cycle irregularity, a short luteal phase on charting, known thyroid disease, known endometriosis, or a partner whose semen has not been analyzed. Waiting for a third loss is not a clinical standard. It is a practice pattern. The rationale for waiting is that many first miscarriages are chromosomally abnormal and do not recur. That is true. It does not tell you whether a treatable cause is also present. An evaluation after the first or second loss does not assume the cause is complex. It finds out whether one exists. A basic evaluation, including cycle charting, thyroid panel, progesterone timing, and partner semen analysis, is low-risk and high-information. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>What are the most common treatable causes of recurrent miscarriage?</summary>
+                <div class="faq-answer">
+                  <p>The most consistently documented treatable causes are: chronic endometritis, luteal phase deficiency, thyroid dysfunction (including elevated TSH within the conventional "normal" range and autoimmune thyroid disease), antiphospholipid syndrome, anatomic factors (uterine septum, submucosal fibroids, endometrial polyps), hypoandrogenemia and low DHEA-S, and sperm DNA fragmentation in the male partner. Endometriosis is an independent contributing factor. Many of these are not tested on the standard RPL panel. Chronic endometritis requires endometrial biopsy with specific immunohistochemistry staining. Hypoandrogenemia requires androgen testing that most RPL workups do not include. The practical implication: a "normal" standard workup may not have looked for the actual cause. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>Could chronic endometritis be causing my miscarriages?</summary>
+                <div class="faq-answer">
+                  <p>Chronic endometritis is a documented and treatable contributor to recurrent miscarriage. In a study of 360 women with unexplained recurrent miscarriage, 57.8% had CE confirmed by hysteroscopy and histology. Among women whose CE was successfully treated and confirmed cured, 78.4% achieved pregnancy within one year, compared to approximately 17.5% in women with persistent CE or no CE diagnosis, per <a href="/library/chronic-endometritis-due-to-common-bacteria-is-prevalent-in-women-with-recurrent-recyfpe9a4szxychl/">Cicinelli et al. 2013</a>. Chronic endometritis is asymptomatic in most women. There is no fever, no obvious sign, no reason to suspect it from a routine visit. It is diagnosed by endometrial biopsy with CD138 immunohistochemistry staining, not by pelvic exam or standard ultrasound. If prior RPL workup did not include endometrial biopsy, chronic endometritis has not been excluded. For a dedicated guide to CE, see our <a href="/endometritis/">chronic endometritis guide</a>. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>I have had one miscarriage. Should I be evaluated, or is it too early?</summary>
+                <div class="faq-answer">
+                  <p>In many cases, evaluation after a single loss is reasonable, particularly if risk factors are present. Age over 35, a history of irregular cycles or short luteal phases, known thyroid disease, known endometriosis, or a partner with an unreviewed semen analysis all shift the clinical calculus toward earlier evaluation rather than waiting. A single miscarriage is common. A single miscarriage in a woman who has risk factors for recurrence, or who is in her late 30s where the window for intervention is narrower, is different from a first loss in a 29-year-old with no identifiable risk factors. The evaluation does not require assuming the worst. It requires finding out what is actually present. A basic evaluation, including cycle charting, thyroid panel, progesterone timing, and partner semen analysis, is low-risk and high-information. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>Does endometriosis cause miscarriage?</summary>
+                <div class="faq-answer">
+                  <p>Endometriosis is an independent risk factor for pregnancy loss, not only for infertility. A 2016 retrospective cohort study found that women with histologically proven endometriosis had a significantly higher rate of prior spontaneous miscarriage than endometriosis-free controls (adjusted IRR 1.70, 95% CI 1.34 to 2.16), per <a href="/library/increased-rate-of-spontaneous-miscarriages-in-endometriosis-affected-women-rec4slg1cgppesnay/">Santulli et al. 2016</a>. A 2017 study found that endometriosis, particularly mild disease (rASRM Stage I to II), was associated with a miscarriage rate of 42.1% vs. 22.0% in controls, per <a href="/library/endometriosis-especially-mild-disease-a-risk-factor-for-miscarriages-recphcrnqhhj4ttux/">Kohl Schwartz et al. 2017</a>. The mechanisms include endometriosis-associated luteal phase deficiency, the inflammatory pelvic milieu, and impaired endometrial receptivity. Women with recurrent loss who also have cyclical pelvic pain, dysmenorrhea, premenstrual spotting, or a history of deep dyspareunia should be evaluated for endometriosis as a contributing cause. If endometriosis is present and goes unaddressed, the conditions for recurrent loss may persist. <a href="/endometriosis/">A detailed guide to endometriosis</a> is available on this site. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>I had a miscarriage after IVF. What might have been missed?</summary>
+                <div class="faq-answer">
+                  <p>A miscarriage after IVF does not mean the pre-IVF evaluation was complete. IVF workup focuses on ovarian response, egg retrieval, embryo development, and transfer logistics. The uterine environment, the cycle-specific hormonal support, the presence of chronic endometritis, and the luteal phase data are not routinely addressed. Chronic endometritis is disproportionately common in women who have undergone repeated uterine procedures. An embryo transferred to an inflamed endometrium will not implant successfully regardless of chromosomal status. After a post-IVF miscarriage, the appropriate question is not only "what was wrong with the embryo" but "what has not yet been evaluated in the uterine environment?" That includes endometrial biopsy for CE, a full thyroid panel, androgen testing, cycle-timed progesterone review, and partner sperm DNA fragmentation testing if not already done. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>At my age, are the odds against me anyway?</summary>
+                <div class="faq-answer">
+                  <p>Age affects the proportion of chromosomally abnormal pregnancies, and that proportion increases year by year into the fifth decade. That is clinically accurate. It is not the complete picture. Treatable causes of recurrent miscarriage are not age-exempt. Chronic endometritis, thyroid dysfunction, luteal phase deficiency, hypoandrogenemia, and sperm DNA fragmentation are present in women of all ages. In a cause-based treatment study, women 40 and older with recurrent pregnancy loss who received multifactorial evaluation and treatment achieved a 55.6% live birth rate in subsequent pregnancies, compared to 30.0% in untreated controls of the same age, a clinically meaningful difference even without formal statistical significance in that cohort, per <a href="/library/novel-approaches-to-the-management-of-recurrent-pregnancy-loss-the-optimum-optim-recotwemmxon5hm20/">Kuroda et al. 2021</a>. Those numbers are not a guarantee. They are evidence that evaluation and treatment improve outcomes even after 40. The age discussion belongs in the context of a full evaluation, not before it. What "the odds" are before anyone has looked is not a number worth accepting. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>Will I have to take progesterone for my whole pregnancy?</summary>
+                <div class="faq-answer">
+                  <p>The answer depends on what the evaluation finds and what the treating clinician determines. Progesterone support, when indicated, is typically used in the luteal phase and through the first trimester, until the placenta is producing sufficient progesterone on its own. Duration and approach vary by clinical indication. No specific protocol is appropriate to state here; this is a conversation between the patient and her clinician. What is worth knowing: progesterone support, when prescribed because evaluation identified a luteal phase deficiency or low progesterone levels, is not a precautionary measure applied without reason. It is a response to a documented finding. If progesterone support has been recommended without prior luteal phase or progesterone evaluation, that is worth asking about. The treatment should follow the finding. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>What is the chance of a healthy pregnancy after recurrent loss?</summary>
+                <div class="faq-answer">
+                  <p>This depends on whether the cause has been identified and treated. For women who received cause-based multifactorial evaluation and treatment in one well-documented cohort, the corresponding live birth rate was approximately 78.1% for those under 40 and 55.6% for those 40 and older, per <a href="/library/novel-approaches-to-the-management-of-recurrent-pregnancy-loss-the-optimum-optim-recotwemmxon5hm20/">Kuroda et al. 2021</a>. In a NaPro-treated cohort of couples with recurrent miscarriage, the cumulative adjusted proportion of live births over 24 months was 66 per 100 couples, in a population with an average female age of 35.4 years, per <a href="/library/natural-procreative-technology-for-infertility-and-recurrent-miscarriage-outcome-recmv6gf3xlcbt6ny/">Tham et al. 2012</a>. For couples with three or more prior miscarriages who received NaPro treatment in Ireland, live birth rates in those who conceived were 80.6%, against a background expected miscarriage rate above 30 to 40% in that population, per <a href="/library/retrospective-review-outcomes-from-all-couples-with-3-or-more-recurrent-miscarri-gsQqAtbB/">Boyle et al. 2010</a>. These are not promises. They are outcomes from real couples with documented histories, evaluated systematically, with causes treated when found. The probability without evaluation, without finding and addressing causes, is lower. That is the case for evaluation. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+
+              <details>
+                <summary>Is genetic testing of the products of conception worth doing?</summary>
+                <div class="faq-answer">
+                  <p>Genetic testing of the products of conception identifies whether the lost pregnancy was chromosomally abnormal. In many cases, this is useful information, but it comes with an important caveat. When the loss is chromosomally abnormal, some clinicians use that as a conclusion: "the miscarriage happened because the embryo was abnormal; this is expected and not a sign of a recurrent problem." That reasoning has limits. An abnormal embryo does not exclude a concurrent treatable cause in the uterine environment. Older eggs produce more chromosomal errors. Age-related aneuploidy is itself a clinical finding. And an inflamed or hormonally unprepared endometrium creates conditions in which even genetically normal embryos may fail. POC testing is useful information. It does not close the workup. Parental karyotyping is separately indicated in couples with recurrent loss where a balanced chromosomal rearrangement in a parent may be the underlying cause. This is a different test from POC analysis and requires a different clinical discussion. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+            </div>
+          </section>
+
+          <div class="cta-box">
+            <h3>Continue exploring</h3>
+            <p>Related conditions covered in depth:</p>
+            <p><a href="/endometritis/" class="btn btn--primary">Chronic Endometritis</a> <a href="/endometriosis/" class="btn btn--primary">Endometriosis</a> <a href="/pcos/" class="btn btn--primary">PCOS</a></p>
+            <p>And the foundational primer on restorative reproductive medicine:</p>
+            <p><a href="/what-is-rrm/" class="btn btn--secondary">What is Restorative Reproductive Medicine?</a> <a href="/library/" class="btn btn--secondary">Browse the Research Library</a></p>
+          </div>
+
+          <p class="disclaimer"><em>This content is for educational and reference purposes only and does not constitute medical advice, diagnosis, or treatment. Decisions about evaluation or care for miscarriage and recurrent pregnancy loss should be made in consultation with a qualified clinician who knows your specific clinical context. Citations to specific studies and consensus documents do not imply individual-patient applicability.</em></p>
+
+        </article>
+      </div>
+    </div>
+  </div>
+  <BackToTop />
+  </MaybeShell>
+</BaseLayout>
+
+<style>
+  .disambig {
+    background: var(--bg-surface);
+    border-left: 3px solid var(--purple-500);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+    margin: var(--space-5) 0;
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+  .disambig p {
+    margin: 0;
+  }
+
+  .workup-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-4);
+    margin: var(--space-5) 0;
+  }
+
+  .workup-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+  }
+
+  .workup-card[data-key="rrm"] {
+    border-left: 3px solid var(--accent);
+  }
+
+  .workup-card__header h3 {
+    margin: 0 0 var(--space-1) 0;
+    font-size: 1.125rem;
+    color: var(--text-primary);
+  }
+
+  .workup-card__subtitle {
+    margin: 0 0 var(--space-3) 0;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  .workup-card__body {
+    margin: 0;
+  }
+
+  .workup-card__body dt {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: var(--space-3);
+  }
+
+  .workup-card__body dt:first-child {
+    margin-top: 0;
+  }
+
+  .workup-card__body dd {
+    margin: var(--space-1) 0 0 0;
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    line-height: 1.55;
+  }
+
+  .workup-card__body dd ul {
+    margin: 0;
+    padding-left: var(--space-4);
+  }
+
+  .workup-card__body dd ul li {
+    margin: var(--space-1) 0;
+  }
+
+  .causes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-4);
+    margin: var(--space-5) 0;
+  }
+
+  .cause-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    border-left: 3px solid var(--accent);
+  }
+
+  .cause-card__header h4 {
+    margin: 0 0 var(--space-1) 0;
+    font-size: 1rem;
+    color: var(--text-primary);
+  }
+
+  .cause-card__on-panel {
+    margin: 0 0 var(--space-3) 0;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  .cause-card__body {
+    margin: 0;
+  }
+
+  .cause-card__body dt {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: var(--space-3);
+  }
+
+  .cause-card__body dt:first-child {
+    margin-top: 0;
+  }
+
+  .cause-card__body dd {
+    margin: var(--space-1) 0 0 0;
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    line-height: 1.55;
+  }
+</style>
