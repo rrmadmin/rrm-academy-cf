@@ -104,7 +104,22 @@ function routeToOgSlug(pathname) {
   return pathname.replace(/^\/|\/$/g, '').replace(/\//g, '-');
 }
 const ogSlug = routeToOgSlug(Astro.url.pathname);
-const conventionOgPath = `/og/${ogSlug}.png?v=${OG_VERSION}`;
+// Slugs that have a hand-designed PNG at /public/images/og/og-<slug>.png.
+// Mirrors files in that directory -- adding a new PNG without listing it here
+// just degrades to the satori-rendered card (graceful, not a build failure).
+// To regenerate: `ls public/images/og/og-*.png | sed -E 's|.*/og-(.+)\.png|"\1",|'`.
+const STATIC_OG_SLUGS = new Set([
+  '404', 'about', 'ask', 'commentary', 'common-questions-about-rrm',
+  'community', 'community-events', 'community-members', 'contact', 'courses',
+  'donate', 'donate-thank-you', 'endo-survey', 'endo-survey-take', 'faqs',
+  'guides', 'homepage', 'ivf-success-calculator', 'library',
+  'medical-disclaimer', 'naprotechnology', 'partners', 'partners-apply',
+  'privacy-policy', 'save-the-uterus-club', 'save-the-uterus-club-thank-you',
+  'terms-of-use', 'what-is-rrm',
+]);
+const conventionOgPath = STATIC_OG_SLUGS.has(ogSlug)
+  ? `/images/og/og-${ogSlug}.png?v=${OG_VERSION}`
+  : `/og/${ogSlug}.png?v=${OG_VERSION}`;
 // RSS autodiscovery: surface the right feed when the page lives under a feed-bearing section.
 const rssFeed = (() => {
   const p = Astro.url.pathname;
