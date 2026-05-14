@@ -192,29 +192,31 @@ async function handleQuizSubmit(request, env) {
 
   const completedVal = passed ? 1 : 0;
 
-  await db.prepare(`
-    INSERT INTO step_progress (user_id, course_id, step_id, completed, score, last_position_seconds, updated_at)
-    VALUES (?1, ?2, ?3, ?5, ?4, 0, datetime('now'))
-    ON CONFLICT(user_id, course_id, step_id) DO UPDATE SET
-      completed = MAX(step_progress.completed, ?5),
-      score = MAX(step_progress.score, ?4),
-      updated_at = datetime('now')
-  `).bind(session.userId, courseId, stepId, score, completedVal).run();
+  const priorAttemptRow = await db.prepare(
+    'SELECT COALESCE(MAX(attempt), 0) AS max_attempt FROM quiz_response WHERE user_id = ? AND course_id = ? AND step_id = ?'
+  ).bind(session.userId, courseId, stepId).first();
+  const nextAttempt = (priorAttemptRow?.max_attempt || 0) + 1;
 
-  // Save individual responses (attempt number computed atomically in DB to avoid race)
-  const stmts = quiz.questions.map((q, i) => {
-    const answerValue = String(answers[i]);
-    const isCorrect = quiz.type === 'quiz' ? (answers[i] === q.correctIndex ? 1 : 0) : null;
-    return db.prepare(
-      'INSERT INTO quiz_response (user_id, course_id, step_id, attempt, question_id, answer_value, is_correct) VALUES (?, ?, ?, (SELECT COALESCE(MAX(attempt),0)+1 FROM quiz_response WHERE user_id = ? AND course_id = ? AND step_id = ?), ?, ?, ?)'
-    ).bind(session.userId, courseId, stepId, session.userId, courseId, stepId, q.id, answerValue, isCorrect);
-  });
+  const stmts = [
+    db.prepare(`
+      INSERT INTO step_progress (user_id, course_id, step_id, completed, score, last_position_seconds, updated_at)
+      VALUES (?1, ?2, ?3, ?5, ?4, 0, datetime('now'))
+      ON CONFLICT(user_id, course_id, step_id) DO UPDATE SET
+        completed = MAX(step_progress.completed, ?5),
+        score = MAX(step_progress.score, ?4),
+        updated_at = datetime('now')
+    `).bind(session.userId, courseId, stepId, score, completedVal),
+    ...quiz.questions.map((q, i) => {
+      const answerValue = String(answers[i]);
+      const isCorrect = quiz.type === 'quiz' ? (answers[i] === q.correctIndex ? 1 : 0) : null;
+      return db.prepare(
+        'INSERT INTO quiz_response (user_id, course_id, step_id, attempt, question_id, answer_value, is_correct) VALUES (?, ?, ?, ?, ?, ?, ?)'
+      ).bind(session.userId, courseId, stepId, nextAttempt, q.id, answerValue, isCorrect);
+    }),
+  ];
   await db.batch(stmts);
 
-  const attemptRow = await db.prepare(
-    'SELECT COALESCE(MAX(attempt), 1) AS attempt FROM quiz_response WHERE user_id = ? AND course_id = ? AND step_id = ?'
-  ).bind(session.userId, courseId, stepId).first();
-  const attempt = attemptRow?.attempt || 1;
+  const attempt = nextAttempt;
 
   const response = { ok: true, score, passed, attempt };
   if (results) response.results = results;

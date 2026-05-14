@@ -217,10 +217,18 @@ export async function onRequestDelete(context) {
       }
     }
 
-    await env.DB.batch([
-      env.DB.prepare('DELETE FROM course_step WHERE section_id = ?').bind(sectionId),
-      env.DB.prepare('DELETE FROM course_section WHERE id = ?').bind(sectionId),
-    ]);
+    const stepDeleteResult = await env.DB.prepare(
+      'DELETE FROM course_step WHERE section_id = ?' +
+      ' AND NOT EXISTS (SELECT 1 FROM step_progress WHERE step_id IN (SELECT id FROM course_step WHERE section_id = ?))' +
+      ' AND NOT EXISTS (SELECT 1 FROM quiz_response WHERE step_id IN (SELECT id FROM course_step WHERE section_id = ?))' +
+      ' AND NOT EXISTS (SELECT 1 FROM lesson_comment WHERE step_id IN (SELECT id FROM course_step WHERE section_id = ?))'
+    ).bind(sectionId, sectionId, sectionId, sectionId).run();
+
+    if (stepIds.length > 0 && stepDeleteResult.meta.changes === 0) {
+      return json({ ok: false, error: 'references_exist', stepIds }, 409);
+    }
+
+    await env.DB.prepare('DELETE FROM course_section WHERE id = ?').bind(sectionId).run();
 
     return json({ ok: true });
   } catch (err) {
