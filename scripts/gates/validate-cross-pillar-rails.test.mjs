@@ -53,3 +53,37 @@ test('inverted mode: live rail still present fails rollback verification', () =>
   const r = checkRails(LIVE_HTML, { mode: 'inverted', target: '/for-providers/' });
   assert.equal(r.ok, false);
 });
+
+// parseArgs regression tests (commit 5185d14 bugs)
+import { spawnSync } from 'node:child_process';
+import { writeFileSync, unlinkSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
+const __filename = new URL(import.meta.url).pathname;
+const SCRIPT = join(__filename, '..', 'validate-cross-pillar-rails.mjs');
+
+test('CLI: bare unknown flag does not swallow --mode', () => {
+  const fakeFile = join(tmpdir(), `cli-test-${Date.now()}.html`);
+  writeFileSync(fakeFile, '<html><body><a class="audience-rail" href="/for-providers/">x</a></body></html>');
+  try {
+    const r = spawnSync('node', [SCRIPT, '--verbose', `--file=${fakeFile}`, '--mode=back-edit', '--target=/for-providers/'], { encoding: 'utf8' });
+    assert.equal(r.status, 0, `Expected exit 0 (ok); got ${r.status}. stderr: ${r.stderr}`);
+  } finally {
+    unlinkSync(fakeFile);
+  }
+});
+
+test('CLI: --target= (empty value) does not swallow next argument', () => {
+  const fakeFile = join(tmpdir(), `cli-test-${Date.now()}.html`);
+  writeFileSync(fakeFile, '<html><body></body></html>');
+  try {
+    // --target= (empty), --mode=back-edit should still be parsed correctly
+    const r = spawnSync('node', [SCRIPT, `--file=${fakeFile}`, '--target=', '--mode=back-edit'], { encoding: 'utf8' });
+    // Empty target should fail with "back-edit mode requires --target" (because empty string is falsy in the back-edit branch)
+    assert.equal(r.status, 1, `Expected exit 1 (fail). stderr: ${r.stderr}`);
+    assert.match(r.stderr, /requires --target/);
+  } finally {
+    unlinkSync(fakeFile);
+  }
+});
