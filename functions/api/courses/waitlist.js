@@ -104,13 +104,8 @@ export async function onRequestPost(context) {
   }
 
   // 7. Turnstile verification
-  let turnstileOk;
-  try {
-    turnstileOk = await verifyTurnstile(env.CF_TURNSTILE_SECRET, turnstileToken, ip, env);
-  } catch {
-    return json({ ok: false, error: 'spam_check_failed' }, 403);
-  }
-  if (!turnstileOk) {
+  const turnstileResult = await verifyTurnstile(env.CF_TURNSTILE_SECRET, turnstileToken, ip, env);
+  if (!turnstileResult.ok) {
     return json({ ok: false, error: 'spam_check_failed' }, 403);
   }
 
