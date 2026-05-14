@@ -274,10 +274,25 @@ async function handleAuthedAsk(context, session) {
   const wantsSSE = (request.headers.get('Accept') || '').includes('text/event-stream') ||
     (request.headers.get('Accept') || '').includes('application/x-ndjson');
 
+  // Increment BEFORE upstream call to close the check-then-act race window.
+  // If the upstream call fails we refund by writing back the pre-increment count.
+  const newCount = currentCount + 1;
+  try {
+    await env.COMMUNITY_KV.put(rateLimitKey, String(newCount), { expirationTtl: RATE_LIMIT_TTL });
+  } catch (err) {
+    log(env, waitUntil, 'ask', 'kv_write_error', 'error', err.message, 0, 503);
+    return json({ error: 'service_unavailable' }, 503);
+  }
+
   let result;
   try {
     result = await callUpstream(context, message, user);
   } catch (upstreamErr) {
+    // Refund the increment so a failed upstream call doesn't count against the user.
+    waitUntil(
+      env.COMMUNITY_KV.put(rateLimitKey, String(currentCount), { expirationTtl: RATE_LIMIT_TTL })
+        .catch(refundErr => log(env, waitUntil, 'ask', 'kv_refund_error', 'warn', refundErr.message, 0, 0))
+    );
     await logAskQuery(env, waitUntil, request, message, user.id, start, upstreamErr.httpStatus || 502, 'ask');
     return json({ error: upstreamErr.errorCode || 'upstream_error' }, upstreamErr.httpStatus || 502);
   }
@@ -310,11 +325,6 @@ async function handleAuthedAsk(context, session) {
     user_agent_short,
     referer_path,
   }).catch(() => {}));
-
-  waitUntil(
-    env.COMMUNITY_KV.put(rateLimitKey, String(currentCount + 1), { expirationTtl: RATE_LIMIT_TTL })
-      .catch(err => log(env, waitUntil, 'ask', 'kv_write_error', 'warn', err.message, 0, 0))
-  );
 
   const payload = { ...result, _meta: META };
   if (wantsSSE) {
