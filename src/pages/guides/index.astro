@@ -8,11 +8,14 @@ import { Share2, Check, Sparkles } from '@lucide/astro';
 const SHELL_ENABLED = isShellEnabled('guides');
 
 // Per-guide brand-anchored accent lives in ssot/pillars.json. RRM-owned guides
-// pick across the RRM Academy brand color ramps (purple, rose, sage, sand,
-// amber, green) so each pillar is visually distinct. Entity-specific guides
-// (NaProTechnology, FEMM, NeoFertility) keep that entity's primary brand color
-// sourced from their canonical site. Hex values are scoped local accents,
-// not new global tokens -- do not lift these into the design token SSOT.
+// pick across the on-brand and brand-adjacent ramps in DESIGN.md: purple
+// (canonical brand), sand (brand-adjacent warm neutrals), plus the semantic
+// rose and sage palettes for community/clinical content tone. Utility ramps
+// (--green-*, --amber-*, --neutral-*) are NOT used here -- those are reserved
+// for status badges and chrome. Entity-specific guides (NaProTechnology,
+// FEMM, NeoFertility) keep that entity's primary brand color sourced from
+// their canonical site. Hex values are scoped local accents, not new global
+// tokens -- do not lift these into the design token SSOT.
 // Catalogue rendering filters to in_guides_catalogue=true (common-questions-
 // about-rrm is intentionally hidden from the visual catalogue but kept in
 // every other surface). Order matches _order in pillars.json.
