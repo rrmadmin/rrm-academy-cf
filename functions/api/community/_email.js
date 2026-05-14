@@ -51,7 +51,9 @@ const AUTHOR_SENDERS = {
 
 function authorFrom(authorId, authorName) {
   if (AUTHOR_SENDERS[authorId]) return AUTHOR_SENDERS[authorId];
-  const safeName = (authorName || 'Save the Uterus Club').replace(/"/g, '');
+  const safeName = (authorName || 'Save the Uterus Club')
+    .replace(/[<>",;:\\()\[\]\r\n]/g, '')
+    .slice(0, 76);
   return `"${safeName}" <community@rrmacademy.org>`;
 }
 
