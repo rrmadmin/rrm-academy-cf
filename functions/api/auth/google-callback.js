@@ -40,11 +40,18 @@ async function handleReturningGoogleUser(db, googleId, email) {
       return { redirect: '/login/?error=email_conflict' };
     }
     const oldEmail = user.email;
-    await db.batch([
-      db.prepare("UPDATE user SET email = ?, email_verified = 1, updated_at = datetime('now') WHERE id = ?")
-        .bind(email, user.id),
-      waitlistBackfillStatement(db, user.id, email),
-    ]);
+    try {
+      await db.batch([
+        db.prepare("UPDATE user SET email = ?, email_verified = 1, updated_at = datetime('now') WHERE id = ?")
+          .bind(email, user.id),
+        waitlistBackfillStatement(db, user.id, email),
+      ]);
+    } catch (err) {
+      if (err.message?.includes('UNIQUE constraint') || err.message?.includes('idx_user_email_nocase')) {
+        return { redirect: '/login/?error=email_conflict' };
+      }
+      throw err;
+    }
     user.email = email;
     return { user, oldEmail };
   } else {
