@@ -189,14 +189,17 @@ async function handleEnroll(request, env, waitUntil) {
 
 /**
  * Create enrollment row(s) for a user. Handles "includes" (e.g. Masterclass → Long-Term Endo).
- * Returns true if the primary enrollment row was newly inserted (INSERT OR IGNORE changed a row).
- * Returns false if the user was already enrolled (idempotent re-call).
+ * Returns true if the primary enrollment row was newly inserted or updated (e.g. re-enrollment after revocation).
+ * Returns false only on an active-enrollment retry (no changes made).
  * Exported for use by stripe-webhook.js.
  */
 export async function enrollUser(db, userId, courseId, stripePaymentIntent) {
   const statements = [
     db.prepare(
-      'INSERT OR IGNORE INTO enrollment (id, user_id, course_id, stripe_payment_intent) VALUES (?, ?, ?, ?)'
+      'INSERT INTO enrollment (id, user_id, course_id, stripe_payment_intent) VALUES (?, ?, ?, ?)' +
+      ' ON CONFLICT(user_id, course_id) DO UPDATE SET' +
+      ' revoked_at = NULL,' +
+      ' stripe_payment_intent = COALESCE(excluded.stripe_payment_intent, enrollment.stripe_payment_intent)'
     ).bind(generateId(), userId, courseId, stripePaymentIntent),
   ];
 
@@ -205,7 +208,10 @@ export async function enrollUser(db, userId, courseId, stripePaymentIntent) {
   for (const includedId of included) {
     statements.push(
       db.prepare(
-        'INSERT OR IGNORE INTO enrollment (id, user_id, course_id, stripe_payment_intent) VALUES (?, ?, ?, ?)'
+        'INSERT INTO enrollment (id, user_id, course_id, stripe_payment_intent) VALUES (?, ?, ?, ?)' +
+        ' ON CONFLICT(user_id, course_id) DO UPDATE SET' +
+        ' revoked_at = NULL,' +
+        ' stripe_payment_intent = COALESCE(excluded.stripe_payment_intent, enrollment.stripe_payment_intent)'
       ).bind(generateId(), userId, includedId, stripePaymentIntent),
     );
   }
