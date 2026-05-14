@@ -44,6 +44,11 @@ export async function handleSubscriptionDeleted(db, event, env, request, waitUnt
   } catch (cancelErr) {
     log(env, waitUntil, 'billing', 'migration_cancel_flag_fail', 'error',
       `${sub.id}: ${cancelErr.message}`);
+    // Return 500 so dispatcher rolls back webhook_event dedup; Stripe retries.
+    return new Response(JSON.stringify({ ok: false, error: 'Internal error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   // Send cancellation confirmation email

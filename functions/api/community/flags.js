@@ -3,7 +3,7 @@
  * GET    /api/community/flags   -- list pending flags (mod+ only)
  * PATCH  /api/community/flags   -- resolve/dismiss a flag (admin+ only)
  */
-import { json, optionsResponse, generateId, SITE_URL } from '../auth/_shared.js';
+import { json, optionsResponse, generateId, SITE_URL, checkRateLimit } from '../auth/_shared.js';
 import { log } from '../_log.js';
 import { requireMember, roleAtLeast, canResolveFlag, displayName } from './_shared.js';
 import { sendEmail } from '../_ses.js';
@@ -30,6 +30,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const auth = await requireMember(request, env);
     if (auth instanceof Response) return auth;
     const { user } = auth;
+
+    const allowed = await checkRateLimit(env, `flag_post:${user.id}`, 10, 3600);
+    if (!allowed) return json({ ok: false, error: 'rate_limited' }, 429);
 
     let body;
     try { body = await request.json(); } catch {
@@ -83,12 +86,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
     `).bind(id, user.id, targetType, targetId, reason, note?.trim() || null).first();
     const flagId = upserted?.id ?? existing?.id ?? id;
 
-    // Send email notification to all mod+ users
-    try {
-      await notifyMods(env, db, user, targetType, targetId, reason, note);
-    } catch (err) {
+    // Send email notification to all mod+ users (off hot path)
+    waitUntil(notifyMods(env, db, user, targetType, targetId, reason, note).catch((err) => {
       log(env, waitUntil, 'community', 'flag_error', 'error', `notification: ${err.message}`, 0, 0);
-    }
+    }));
 
     return json({ ok: true, flagId }, 201);
   } catch (err) {
