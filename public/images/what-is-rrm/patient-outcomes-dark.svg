@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 400" role="img" aria-label="Patient outcomes funnel from Boyle 2025">
+  <title>Patient Outcomes Funnel: Boyle 2025</title>
+  <desc>Vertical funnel showing the patient progression from 249 couples enrolled, to 187 who completed treatment, to 98 who conceived (52 percent), to 77 live births (41 percent). Of 35 couples who tried for another pregnancy, 74 percent achieved a second live birth.</desc>
+
+  <style>
+    .heading { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600; fill: #b0aaa2; letter-spacing: 0.05em; }
+    .divider { stroke: #6b5877; stroke-width: 1; }
+    .stage-track { fill: #3a3632; stroke: none; }
+    .stage-final { fill: #4a3a52; stroke: #b8a3c4; stroke-width: 1.2; }
+    .stage-num { font-family: 'Cormorant Garamond', 'Georgia', serif; font-size: 26px; font-weight: 500; fill: #f5f1ed; dominant-baseline: central; text-anchor: end; }
+    .stage-desc { font-family: 'Inter', sans-serif; font-size: 14px; fill: #b0aaa2; dominant-baseline: central; }
+    .caption { font-family: 'Inter', sans-serif; font-size: 11.5px; font-style: italic; fill: #c9b8d3; }
+    .attribution { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #8b827a; letter-spacing: 0.04em; text-anchor: end; }
+  </style>
+
+  <rect width="700" height="400" fill="#28241e"/>
+
+  <text x="30" y="35" class="heading">PATIENT OUTCOMES</text>
+  <line x1="30" y1="48" x2="670" y2="48" class="divider"/>
+
+  <rect x="30" y="72" width="640" height="48" rx="4" class="stage-track"/>
+  <text x="320" y="96" class="stage-num">249</text>
+  <text x="334" y="96" class="stage-desc">couples enrolled</text>
+
+  <rect x="110" y="136" width="480" height="48" rx="4" class="stage-track"/>
+  <text x="320" y="160" class="stage-num">187</text>
+  <text x="334" y="160" class="stage-desc">completed treatment</text>
+
+  <rect x="184" y="200" width="333" height="48" rx="4" class="stage-track"/>
+  <text x="320" y="224" class="stage-num">98</text>
+  <text x="334" y="224" class="stage-desc">conceived (52%)</text>
+
+  <rect x="219" y="264" width="262" height="48" rx="4" class="stage-final"/>
+  <text x="320" y="288" class="stage-num">77</text>
+  <text x="334" y="288" class="stage-desc">live births (41%)</text>
+
+  <text x="30" y="346" class="caption">Of 35 couples who remained in contact and tried for another pregnancy,</text>
+  <text x="30" y="362" class="caption">74% (26/35) achieved a second live birth. Source: Boyle 2025, n=187 NeoFertility Dublin cohort.</text>
+
+  <text x="670" y="388" class="attribution">rrmacademy.org/what-is-rrm</text>
+</svg>
