@@ -3,7 +3,7 @@
  * Updates the authenticated user's profile fields (first name, last name).
  */
 import {
-  json, optionsResponse, getSessionIdFromCookie, validateSession,
+  json, optionsResponse, getSessionIdFromCookie, validateSession, checkRateLimit,
 } from './_shared.js';
 import { log } from '../_log.js';
 import { validateBody } from '../_validate.js';
@@ -14,6 +14,11 @@ export async function onRequestOptions() {
 
 export async function onRequestPatch({ request, env, waitUntil }) {
   try {
+    const ip = request.headers.get('cf-connecting-ip');
+    if (!ip) return json({ error: 'service_unavailable' }, 503);
+    const allowed = await checkRateLimit(env, `prof:${ip}`, 60, 60);
+    if (!allowed) return json({ error: 'rate_limited' }, 429);
+
     const db = env.DB;
     if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
 

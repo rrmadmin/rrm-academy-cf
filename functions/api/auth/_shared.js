@@ -375,9 +375,11 @@ export async function requireSuperAdmin(request, db) {
   if (!session) return json({ ok: false, error: 'Not authenticated' }, 401);
 
   const user = await db.prepare(
-    'SELECT id, email, name, role FROM user WHERE id = ?'
+    'SELECT id, email, name, role, blocked FROM user WHERE id = ?'
   ).bind(session.userId).first();
   if (!user) return json({ ok: false, error: 'User not found' }, 401);
+
+  if (user.blocked) return json({ ok: false, error: 'Account suspended' }, 403);
 
   if (!roleAtLeast(user.role, 'superadmin')) {
     return json({ ok: false, error: 'Forbidden' }, 403);

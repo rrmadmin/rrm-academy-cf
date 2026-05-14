@@ -3,7 +3,7 @@
  * Checks whether a survey token is valid and unused.
  * Returns: { valid: true } or { valid: false, reason: 'used' | 'expired' | 'missing' }
  */
-import { json, optionsResponse } from '../auth/_shared.js';
+import { json, optionsResponse, checkRateLimit } from '../auth/_shared.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -11,6 +11,11 @@ export async function onRequestOptions() {
 
 export async function onRequestGet(context) {
   const { request, env } = context;
+
+  const ip = request.headers.get('cf-connecting-ip');
+  if (!ip) return json({ error: 'service_unavailable' }, 503);
+  const svalAllowed = await checkRateLimit(env, `sval:${ip}`, 30, 60);
+  if (!svalAllowed) return json({ error: 'rate_limited' }, 429);
 
   if (!env.SURVEY_TOKENS) {
     return json({ valid: false, reason: 'misconfigured' }, 500);

@@ -11,7 +11,7 @@
 import {
   generateId, createSession, sessionCookie,
   exchangeGoogleCode, getGoogleProfile, isSafeRedirect, SITE_URL,
-  waitlistBackfillStatement, deriveSignupSource,
+  waitlistBackfillStatement, deriveSignupSource, checkRateLimit,
 } from './_shared.js';
 import { sendEmail } from '../_ses.js';
 import { sendGA4Event } from '../_ga4.js';
@@ -142,6 +142,17 @@ export async function onRequestGet({ request, env, waitUntil }) {
       const decoded = atob(stateRedirectB64);
       if (isSafeRedirect(decoded)) returnTo = decoded;
     } catch { // arise-ignore silent-catch -- malformed base64 falls back to /account/
+    }
+
+    // Rate-limit by IP before billed OAuth token exchange
+    const ip = request.headers.get('cf-connecting-ip');
+    if (!ip) {
+      log(env, waitUntil, 'auth', 'google_auth_error', 'error', 'missing ip');
+      return htmlRedirect(LOGIN_ERROR_URL);
+    }
+    const gcbAllowed = await checkRateLimit(env, `gcb:${ip}`, 20, 60);
+    if (!gcbAllowed) {
+      return htmlRedirect('/login/?error=rate_limited');
     }
 
     // Exchange authorization code for tokens
