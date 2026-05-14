@@ -52,8 +52,16 @@ export async function onRequestGet({ request, env, waitUntil }) {
       return json({ ok: true, accountExists: false, needsPassword: false });
     }
 
-    const user = await db.prepare('SELECT id, hashed_password, google_id FROM user WHERE email = ? COLLATE NOCASE')
+    let user = await db.prepare('SELECT id, hashed_password, google_id FROM user WHERE email = ? COLLATE NOCASE')
       .bind(email).first();
+
+    // D1 replication lag: a just-created account may not be visible yet on the
+    // thank-you page's first poll. One 500ms retry covers the typical lag window.
+    if (!user) {
+      await new Promise(r => setTimeout(r, 500));
+      user = await db.prepare('SELECT id, hashed_password, google_id FROM user WHERE email = ? COLLATE NOCASE')
+        .bind(email).first();
+    }
 
     if (!user) {
       return json({ ok: true, accountExists: false, needsPassword: false });
