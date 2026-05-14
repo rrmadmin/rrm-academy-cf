@@ -207,6 +207,10 @@ export async function onRequestPost(context) {
     }
   }
 
+  if (participants !== undefined && (!Number.isInteger(participants) || participants < 0 || participants > 1000000)) {
+    return json({ ok: false, error: 'invalid_participants' }, 400);
+  }
+
   const resolvedAccessType = accessType ?? 'public';
   if (!VALID_ACCESS_TYPES.has(resolvedAccessType)) {
     return json({ ok: false, error: 'invalid_access_type' }, 400);

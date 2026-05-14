@@ -403,7 +403,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
         body: contentToStore, authorId: user.id, event_date: eventDate || null,
       }, displayName(user));
     } catch (err) {
-      log(env, waitUntil, 'community', 'post_error', 'error', `notification: ${err.message}`, 0, 0);
+      log(env, waitUntil, 'community', 'post_notification_failed', 'warn', err.message, 0, 0);
     }
 
     return json({
@@ -465,6 +465,11 @@ export async function onRequestPatch({ request, env, waitUntil }) {
       if (!canEditPost(user.role, user.id, post)) {
         return json({ ok: false, error: 'Not authorized' }, 403);
       }
+    }
+
+    // slug and og_image_url are event-only fields — gate before field-by-field processing
+    if ((reqSlug !== undefined || reqOgImageUrl !== undefined) && post.type !== 'event') {
+      return json({ ok: false, error: 'slug_and_og_image_event_only' }, 400);
     }
 
     const updates = [];

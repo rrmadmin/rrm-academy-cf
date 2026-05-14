@@ -71,6 +71,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
       firstName: { type: 'string', required: true, maxLength: 100 },
       lastName:  { type: 'string', required: true, maxLength: 100 },
       email:     { type: 'email',  required: true },
+      next:      { type: 'string', required: false, maxLength: 200 },
     });
     if (!validated.valid) return json({ ok: false, error: validated.error }, validated.status);
 
@@ -109,10 +110,15 @@ export async function onRequestPost({ request, env, waitUntil }) {
     }
 
     // Turnstile
-    const turnstileOk = await verifyTurnstile(
+    const turnstileResult = await verifyTurnstile(
       env.CF_TURNSTILE_SECRET, body.turnstileToken, ip, env
     );
-    if (!turnstileOk) return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
+    if (!turnstileResult.ok) {
+      const turnstileMsg = turnstileResult.reason === 'network'
+        ? 'Verification service unavailable. Please try again in a moment.'
+        : 'Spam check failed. Please refresh and try again.';
+      return json({ ok: false, error: turnstileMsg }, 403);
+    }
 
     // Hash password before existence check to prevent timing side-channel
     const hashedPassword = await hashPassword(password);

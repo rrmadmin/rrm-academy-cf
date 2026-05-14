@@ -221,13 +221,6 @@ export async function onRequestDelete(context) {
   const r2Key = normalizedUrl.slice(R2_PUBLIC_HOST.length);
 
   try {
-    await env.R2_ASSETS.delete(r2Key);
-  } catch (err) {
-    log(env, waitUntil, 'admin-courses-attachments', 'r2_delete_error', 'error', err.message, 0, 500);
-    return json({ ok: false, error: 'Internal error' }, 500);
-  }
-
-  try {
     await env.DB.batch([
       env.DB.prepare(
         "UPDATE course_step SET attachments_json = ?, updated_at = datetime('now') WHERE id = ?"
@@ -237,6 +230,10 @@ export async function onRequestDelete(context) {
     log(env, waitUntil, 'admin-courses-attachments', 'db_write_error', 'error', err.message, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
+
+  await env.R2_ASSETS.delete(r2Key).catch((err) => {
+    log(env, waitUntil, 'admin-courses-attachments', 'r2_delete_error', 'warn', `${r2Key}: ${err.message}`);
+  });
 
   return json({ ok: true });
 }

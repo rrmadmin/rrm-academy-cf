@@ -31,6 +31,15 @@ import { notifyAdminEnrollment } from '../courses/_notify-admin.js';
 export async function handleCheckoutCompleted(db, event, env, request, waitUntil) {
   const session = event.data.object;
 
+  // Warn when logged-in user edited their email at checkout — account link uses
+  // client_reference_id (pre-checkout identity) but confirmation email goes to
+  // customer_details.email (edited value). Silent divergence is the risk.
+  if (session.client_reference_id && session.customer_details?.email && session.customer_email &&
+      session.customer_details.email !== session.customer_email) {
+    log(env, waitUntil, 'billing', 'checkout_email_mismatch', 'warn',
+      `client_ref=${session.client_reference_id} pre=${session.customer_email} edited=${session.customer_details.email}`);
+  }
+
   // Link Stripe customer to D1 user, or auto-create account for anonymous checkout
   const checkoutType = session.metadata?.type;
   try {
@@ -89,6 +98,17 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
     // Send course enrollment confirmation email
     const email = (session.customer_details?.email || session.customer_email || '').toLowerCase().trim() || null;
     const name = (session.customer_details?.name || '').slice(0, 200);
+    // Admin notify is not gated on SES -- notifyAdminEnrollment checks AWS_ACCESS_KEY_ID internally
+    // and can use alternate transports. Always fire so admin sees paid enrollments even when SES
+    // creds are absent or misconfigured.
+    const course = getCourse(courseId);
+    waitUntil(notifyAdminEnrollment(env, {
+      studentEmail: email || 'unknown',
+      studentName: name || '',
+      courseTitle: course?.title || courseId,
+      courseId,
+      isFree: false,
+    }).catch(() => {}));
     if (email && env.AWS_ACCESS_KEY_ID) {
       waitUntil(sendEmailSafe(env, waitUntil, {
         to: email,
@@ -106,14 +126,6 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
           'RRM Academy',
           'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315',
         ].join('\n'),
-      }).catch(() => {}));
-      const course = getCourse(courseId);
-      waitUntil(notifyAdminEnrollment(env, {
-        studentEmail: email,
-        studentName: name || '',
-        courseTitle: course?.title || courseId,
-        courseId,
-        isFree: false,
       }).catch(() => {}));
     } else if (email && !env.AWS_ACCESS_KEY_ID) {
       log(env, waitUntil, 'billing', 'enrollment_email_skipped', 'skipped', `${email} ${courseId} (SES not configured)`);
@@ -521,21 +533,23 @@ Wix Dashboard -> Subscriptions -> Cancel immediately (NOT end-of-cycle).`,
       } catch (handoffErr) {
         log(env, waitUntil, 'billing', 'migration_handoff_fail', 'error',
           `${email}: ${handoffErr.message}`);
-        await sendEmailSafe(env, waitUntil, {
-          to: 'administrator@rrmacademy.org',
-          subject: `STUC migration handoff FAILED for ${email}`,
-          source: 'billing/migration-handoff-error',
-          text:
+        try {
+          await sendEmailSafe(env, waitUntil, {
+            to: 'administrator@rrmacademy.org',
+            subject: `STUC migration handoff FAILED for ${email}`,
+            source: 'billing/migration-handoff-error',
+            text:
 `Migration handoff threw for ${email}.
 Error: (see AE log for details)
 Stripe sub: ${session.subscription}
-Manually mark wix_subscription row:
-  UPDATE wix_subscription
-  SET migration_status='stripe_active',
-      stripe_subscription_id='${session.subscription}'
-  WHERE email='${email}' COLLATE NOCASE
-  ORDER BY started_at DESC LIMIT 1;`,
-        });
+
+To investigate, query the wix_subscription row by email or wix_subscription_id (see Analytics Engine logs for the wix_sub_id).
+Manually set migration_status='stripe_active' and stripe_subscription_id to the Stripe sub ID above once you have confirmed the correct row.`,
+          });
+        } catch (_emailErr) {
+          // intentionally swallowed - this is the error-path fallback email
+          log(env, waitUntil, 'billing', 'handoff_fallback_email_failed', 'error', _emailErr.message);
+        }
       }
     }
   }

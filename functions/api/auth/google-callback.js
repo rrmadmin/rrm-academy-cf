@@ -248,7 +248,15 @@ export async function onRequestGet({ request, env, waitUntil }) {
       try {
         r4 = await createNewGoogleUser(db, email, name, firstName, lastName, googleId, avatarUrl, signupSource);
       } catch (err) {
-        if (err.message && err.message.includes('UNIQUE constraint')) {
+        const msg = err.message || '';
+        const isEmailCollision = msg.includes('idx_user_email_nocase') || /user\.email/.test(msg);
+        const isGoogleIdCollision = msg.includes('UNIQUE constraint') && !isEmailCollision;
+
+        if (isEmailCollision) {
+          const r4retry = await linkGoogleToVerifiedUser(db, googleId, email, avatarUrl);
+          if (r4retry?.redirect) return htmlRedirect(r4retry.redirect);
+          if (r4retry) ({ user } = r4retry);
+        } else if (isGoogleIdCollision) {
           const r4retry = await handleReturningGoogleUser(db, googleId, email);
           if (r4retry?.redirect) return htmlRedirect(r4retry.redirect);
           if (r4retry) ({ user } = r4retry);

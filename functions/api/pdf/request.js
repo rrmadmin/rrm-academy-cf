@@ -53,9 +53,12 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: emailCheck.error }, 400);
   }
 
-  const turnstileOk = await verifyTurnstile(env.CF_TURNSTILE_SECRET, body.turnstileToken, ip, env);
-  if (!turnstileOk) {
-    return json({ ok: false, error: 'Spam check failed. Please try again.' }, 403);
+  const turnstileResult = await verifyTurnstile(env.CF_TURNSTILE_SECRET, body.turnstileToken, ip, env);
+  if (!turnstileResult.ok) {
+    const turnstileMsg = turnstileResult.reason === 'network'
+      ? 'Verification service unavailable. Please try again in a moment.'
+      : 'Spam check failed. Please refresh and try again.';
+    return json({ ok: false, error: turnstileMsg }, 403);
   }
 
   const elv = await verifyAndTagEmail(email, env, { source: 'pdf-download' });

@@ -156,6 +156,19 @@ export async function requireMember(request, env) {
     return json({ ok: false, error: 'Membership required' }, 403);
   }
 
+  // KV cache: avoid hitting Stripe on every community request (300s TTL)
+  const cacheKey = `member_sub:${user.id}`;
+  if (env.COMMUNITY_KV) {
+    try {
+      const cached = await env.COMMUNITY_KV.get(cacheKey, 'json');
+      if (cached) {
+        return { user, tier: cached.tier, session };
+      }
+    } catch {
+      // KV read failure is non-fatal — fall through to Stripe
+    }
+  }
+
   const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     httpClient: Stripe.createFetchHttpClient(),
     apiVersion: STRIPE_API_VERSION,
@@ -184,6 +197,10 @@ export async function requireMember(request, env) {
 
   const price = validSub.items.data[0]?.price;
   const tier = priceToTier[price?.id] || 'member';
+
+  if (env.COMMUNITY_KV) {
+    env.COMMUNITY_KV.put(cacheKey, JSON.stringify({ tier }), { expirationTtl: 300 }).catch(() => {});
+  }
 
   return { user, tier, session };
 }

@@ -3,19 +3,19 @@
   "description": "Critical file integrity manifest. Run `npm run guard:update` after intentional changes.",
   "files": {
     "functions/api/auth/_shared.js": {
-      "hash": "06c556584e3efca3b9c3091b065d13bb7b51a49829e9b7ecb93f2c3edc2aa465",
+      "hash": "b99eb0f0047ad2fe328e7b7add05631f93bf249a86a7b535c0648693b0e8544c",
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
-      "hash": "e8358c4d7bc728422062e8e19022b8e4246a467cbe12415f32829b7ae0532e94",
+      "hash": "1bc37073151c929966aa0d0ae1e78bd66e9a722bd3ad081205b8a28df8cc70df",
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "b00cf04997d5a28eb07c138febb515c9fc8624c37c382d4f5b4f7a47865c983b",
+      "hash": "1010b82a9806a7af6dccbefdc143c638a8f85b2638cecda120ad2cfd601b5b1e",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
-      "hash": "f47336e59a6c1b823d28e2e1f23c80dc7f920ac316096f04886842196c20d7d7",
+      "hash": "8bc31af193480dc307864d58c476cdbbecffc8df2ce4ce300c552f775a8f804d",
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
@@ -31,7 +31,7 @@
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "6ae2b98e18bcbf2102aecde6b08c588128e0c8ed10a060ba651a963ff5e1f73d",
+      "hash": "260fedde84dff3963ed17aafcc99d3543669f58a54be8367d68272d3680a4698",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
@@ -47,7 +47,7 @@
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
-      "hash": "881b9dc618cd7994ae0f01bc1f19555559c25b7d7733461906a4b2db74916ca9",
+      "hash": "a0a7fe188380753a22a9b2770e228623c04dd0dd4e647dbb43c6dea98f487a70",
       "note": "Billing status"
     },
     "functions/api/billing/portal.js": {
@@ -55,7 +55,7 @@
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "51ef09128c174f2407517adf5ec8f5dbab011df8a5747eb27a001b54e03e52fe",
+      "hash": "d5b6f1ed447c8bb5bbbf63fc909ad1ba714842b60d2180e4768432dfe3c5dcd4",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
@@ -103,7 +103,7 @@
       "note": "CAN-SPAM unsubscribe (status update)"
     },
     "functions/api/newsletter/subscribe.js": {
-      "hash": "881e2c05126631782eea42f54c6e2831a84cf5bab9c97e4497d517f1b06924f2",
+      "hash": "3d4d836179a1c899108ef2cbbb4de4eb0020aedc6f309192675b5547c004eac8",
       "note": "Public newsletter intake (rate-limited)"
     },
     "functions/api/search/semantic.js": {
@@ -115,7 +115,7 @@
       "note": "SYSTEM_PROMPT for /api/ask -- single source of truth"
     },
     "functions/api/ask.js": {
-      "hash": "c0da512889d095ab1c4129ef04b885ad63a7909b4c75104fea379589dd53205d",
+      "hash": "1026c20b2b176f0856d879e3321ea91218d971f91fbcad5fef994df244dbcc08",
       "note": "NLWeb AI Search proxy (auth + rate-limited, billed upstream)"
     },
     "src/components/SearchBar.astro": {
@@ -127,11 +127,11 @@
       "note": "FOUC theme + chrome prop SEO invariants"
     },
     "functions/api/community/_shared.js": {
-      "hash": "254707c54398a4a7b4971f0bc412a8f2dd2891c1e09c127378a4139f63e2ee37",
+      "hash": "9fc9efa12c71cca8c356cf0339ec6d7b6306cdb5fd4b90818cab30df6e64d052",
       "note": "Community access control (requireMember)"
     },
     "functions/api/admin/cleanup.js": {
-      "hash": "3218c9e86e12b16bd6438dcc68917a4053bdb64d2c7969473f8db425bd013b05",
+      "hash": "033cb9e410cdbbd8a5103307608a3419f7721a0daf2d417751de07b049838583",
       "note": "Expired data deletion from D1"
     },
     "functions/api/admin/wix-migration-link.js": {
@@ -163,7 +163,7 @@
       "note": "R2 image upload (file validation)"
     },
     "functions/api/pdf/request.js": {
-      "hash": "79b33507cf560b3492d6a580489f52648618c19a749fffc21ca918da968b9bc3",
+      "hash": "68e046a82cdffa2b13555621364a2d89abd197ca717fe450f06c4d9ab6bf8854",
       "note": "PDF magic-link token generation"
     },
     "functions/api/pdf/redeem.js": {
