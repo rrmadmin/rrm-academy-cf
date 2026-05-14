@@ -139,9 +139,9 @@
     {
       "slug": "endometriosis",
       "file": "endometriosis/index.astro",
-      "title": "Endometriosis: A Clinician-Reviewed Guide",
+      "title": "Endometriosis Explained: Diagnosis, Excision Surgery, and the RRM Approach",
       "description": "Endometriosis is a chronic inflammatory disease that drives pain, organ dysfunction, and infertility. How RRM-trained clinicians diagnose and treat it through excision surgery, cycle charting, and longitudinal care.",
-      "og_title": "Endometriosis: A Clinician-Reviewed Guide",
+      "og_title": "Endometriosis Explained: Diagnosis, Excision, and the RRM Approach",
       "og_description": "A chronic inflammatory disease that drives pain, organ dysfunction, and infertility. How RRM clinicians diagnose and treat it through excision surgery and longitudinal care.",
       "author": "Dr. Naomi Whittaker",
       "read_time": "22 min read",
@@ -153,7 +153,7 @@
     {
       "slug": "endometritis",
       "file": "endometritis/index.astro",
-      "title": "Chronic Endometritis: A Clinician-Reviewed Guide",
+      "title": "Chronic Endometritis: The Missed Diagnosis Behind Recurrent Loss and Failed IVF",
       "description": "Chronic endometritis is a persistent, low-grade inflammation of the uterine lining diagnosed by CD138 endometrial biopsy. It is frequently missed in recurrent miscarriage and implantation failure workups, and it is treatable with antibiotic therapy.",
       "og_title": "Chronic Endometritis: The Missed Diagnosis",
       "og_description": "Persistent inflammation of the uterine lining diagnosed by CD138 biopsy. Frequently missed in recurrent miscarriage and implantation failure workups. Treatable with antibiotics.",

@@ -38,7 +38,7 @@ function citeStub(props: { name: string; author: string; datePublished: string; 
 const pageSchema = {
   '@context': 'https://schema.org',
   '@type': ['Article', 'MedicalWebPage'],
-  headline: 'Chronic Endometritis: A Clinician-Reviewed Guide',
+  headline: 'Chronic Endometritis: The Missed Diagnosis Behind Recurrent Loss and Failed IVF',
   description: 'Chronic endometritis is a persistent, low-grade inflammation of the uterine lining diagnosed by CD138 endometrial biopsy. It is frequently missed in recurrent miscarriage and implantation failure workups, and it is treatable with antibiotic therapy.',
   author: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
   publisher: {
@@ -238,7 +238,7 @@ const faqSchema = {
 ---
 
 <BaseLayout
-  title="Chronic Endometritis: A Clinician-Reviewed Guide"
+  title="Chronic Endometritis: The Missed Diagnosis Behind Recurrent Loss and Failed IVF"
   description="Chronic endometritis is a persistent, low-grade inflammation of the uterine lining diagnosed by CD138 endometrial biopsy. It is frequently missed in recurrent miscarriage and implantation failure workups, and it is treatable with antibiotic therapy."
   canonicalUrl={PAGE_URL}
   ogType="article"
@@ -253,7 +253,7 @@ const faqSchema = {
   <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname}>
   <div class="page-wrapper" data-pagefind-body>
     <span data-pagefind-meta="type:Guide" style="display:none"></span>
-    <span data-pagefind-meta="title:Chronic Endometritis: A Clinician-Reviewed Guide" style="display:none"></span>
+    <span data-pagefind-meta="title:Chronic Endometritis: The Missed Diagnosis Behind Recurrent Loss and Failed IVF" style="display:none"></span>
     <div class="container">
 
       <nav class="breadcrumb" aria-label="Breadcrumb">
@@ -264,7 +264,7 @@ const faqSchema = {
         <span>Endometritis</span>
       </nav>
 
-      <h1>Chronic Endometritis: The Missed Diagnosis Behind Recurrent Loss and Failed Implantation</h1>
+      <h1>Chronic Endometritis: The Missed Diagnosis Behind Recurrent Loss and Failed IVF</h1>
 
       <div class="author-byline">
         <div class="author-avatar-stack">
@@ -296,6 +296,10 @@ const faqSchema = {
         )}
 
         <article class="prose">
+
+          <aside class="editing-notice" role="status" aria-label="Editor's note">
+            <p><strong>Editor's note:</strong> This guide is being actively edited. Content and citations may change over the next few days.</p>
+          </aside>
 
           <aside class="disambig" aria-label="Disambiguation">
             <p>Looking for information about endometriosis, tissue similar to the uterine lining that grows outside the uterus and drives chronic pain and infertility? See our <a href="/endometriosis/">endometriosis guide</a>. This page covers chronic endometritis: persistent inflammation of the uterine lining itself. The two conditions share a root word, affect different anatomy, and require different workups. They can coexist, but they are not the same condition.</p>
@@ -603,6 +607,21 @@ const faqSchema = {
     line-height: 1.6;
   }
   .disambig p {
+    margin: 0;
+  }
+
+  .editing-notice {
+    background: var(--bg-card);
+    border: 1px solid var(--purple-500);
+    border-left: 4px solid var(--purple-500);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin: var(--space-4) 0 var(--space-5);
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    line-height: 1.6;
+  }
+  .editing-notice p {
     margin: 0;
   }
 
