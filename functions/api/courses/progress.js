@@ -194,7 +194,7 @@ async function handleProgressUpdate(request, env) {
     VALUES (?1, ?2, ?3, ?4, ?5, COALESCE(?6, 0), datetime('now'))
     ON CONFLICT(user_id, course_id, step_id) DO UPDATE SET
       completed = MAX(step_progress.completed, ?4),
-      score = CASE WHEN ?5 IS NOT NULL THEN ?5 ELSE step_progress.score END,
+      score = MAX(COALESCE(step_progress.score, 0), COALESCE(?5, 0)),
       last_position_seconds = CASE WHEN ?6 IS NOT NULL THEN ?6 ELSE step_progress.last_position_seconds END,
       updated_at = datetime('now')
   `).bind(session.userId, courseId, stepId, completedVal, scoreVal, positionVal).run();
