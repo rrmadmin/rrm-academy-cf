@@ -309,6 +309,10 @@ const faqSchema = {
 
         <article class="prose">
 
+          <aside class="editing-notice" role="status" aria-label="Editor's note">
+            <p><strong>Editor's note:</strong> This guide is being actively edited. Content and citations may change over the next few days.</p>
+          </aside>
+
           <aside class="disambig" aria-label="Disambiguation">
             <p>A note on related terms: "chemical pregnancy," "early pregnancy loss," "clinically recognized miscarriage," and "recurrent pregnancy loss (RPL)" are related but distinct clinical categories. This guide covers all of them, from the first loss to recurrent loss, and explains how evaluation differs at each stage. No other common condition shares a confusable name with miscarriage, so no cross-link disambiguation is needed.</p>
           </aside>
@@ -740,6 +744,21 @@ const faqSchema = {
     line-height: 1.6;
   }
   .disambig p {
+    margin: 0;
+  }
+
+  .editing-notice {
+    background: var(--bg-card);
+    border: 1px solid var(--purple-500);
+    border-left: 4px solid var(--purple-500);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin: var(--space-4) 0 var(--space-5);
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    line-height: 1.6;
+  }
+  .editing-notice p {
     margin: 0;
   }
 
