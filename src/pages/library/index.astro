@@ -5,6 +5,31 @@ import SearchBar from '../../components/SearchBar.astro';
 import { isShellEnabled } from '../../lib/shell-routes';
 import { fetchAllArticles, type Article } from '../../lib/airtable';
 
+// Healthicons (filled set, currentColor-driven) for the topic atlas tiles.
+// Source: github.com/resolvetosavelives/healthicons. Each SVG uses
+// fill="currentColor" so the parent CSS `color` rule controls the tint.
+import iconEndo from '../../icons/healthicons/endometriosis.svg?raw';
+import iconInfertility from '../../icons/healthicons/infertility.svg?raw';
+import iconPcos from '../../icons/healthicons/pcos.svg?raw';
+import iconPregnancy from '../../icons/healthicons/pregnancy.svg?raw';
+import iconHormones from '../../icons/healthicons/hormones-cycle.svg?raw';
+import iconContraception from '../../icons/healthicons/contraception.svg?raw';
+import iconNapro from '../../icons/healthicons/naprotechnology.svg?raw';
+import iconFabm from '../../icons/healthicons/fertility-awareness.svg?raw';
+import iconSurgery from '../../icons/healthicons/surgery.svg?raw';
+
+const TOPIC_ICONS: Record<string, string> = {
+  Endometriosis: iconEndo,
+  Infertility: iconInfertility,
+  PCOS: iconPcos,
+  Pregnancy: iconPregnancy,
+  'Hormones & Cycle': iconHormones,
+  Contraception: iconContraception,
+  NaProTECHNOLOGY: iconNapro,
+  'Fertility Awareness': iconFabm,
+  Surgery: iconSurgery,
+};
+
 const SHELL_ENABLED = isShellEnabled('library');
 
 const articles = await fetchAllArticles();
@@ -51,7 +76,7 @@ function countTopic(matchTargets: string[]): number {
 }
 
 const TOPICS = [
-  { name: 'Endometriosis',       accent: 'p',
+  { name: 'Endometriosis',       accent: 'y',
     match: ['Endometriosis'],
     desc: 'Excision, AMH, recurrence, biomarkers.' },
   { name: 'Infertility',         accent: 'r',
@@ -194,9 +219,8 @@ const jsonLd = {
           {topicTiles.map(t => (
             <li>
               <a href={t.href} class={`topic-tile topic-tile--${t.accent}`} aria-label={`${t.name} — ${t.count} articles`}>
-                <h3 class="topic-tile__name">
-                  <span class="topic-tile__initial">{t.name.slice(0, 2)}</span>{t.name.slice(2)}
-                </h3>
+                <span class="topic-tile__icon" aria-hidden="true" set:html={TOPIC_ICONS[t.name]} />
+                <h3 class="topic-tile__name">{t.name}</h3>
                 <p class="topic-tile__desc">{t.desc}</p>
                 <div class="topic-tile__foot">
                   <span class="topic-tile__count tabular">{t.count.toLocaleString()} articles</span>
@@ -458,6 +482,7 @@ const jsonLd = {
   }
 
   .topic-tile {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
@@ -468,6 +493,7 @@ const jsonLd = {
     text-decoration: none;
     color: inherit;
     min-height: 140px;
+    min-width: 0;
     transition: border-color 0.15s, transform 0.15s, box-shadow 0.2s;
   }
   .topic-tile:hover {
@@ -490,26 +516,30 @@ const jsonLd = {
     line-height: 1.15;
     letter-spacing: -0.01em;
     margin: 0;
+    /* reserve room for the absolutely-positioned top-right icon */
+    padding-right: calc(var(--space-5) + 32px);
   }
-  /* Breaking-Bad-style inline element box: solid rounded square containing
-     the first 2 letters of the topic name, sitting inside the H3 as if it
-     were the literal "En" of "Endometriosis". Background tints + letter
-     color follow the tile's accent variant. */
-  .topic-tile__initial {
-    display: inline-block;
-    background: var(--purple-100);
+  /* Healthicon in the top-right corner of the tile. SVGs use
+     fill="currentColor" so the per-variant `color` rules tint them. */
+  .topic-tile__icon {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     color: var(--accent);
-    border-radius: 4px;
-    padding: 0 0.12em;
-    line-height: 0.95;
-    vertical-align: baseline;
-    margin-right: 0.04em;
+    pointer-events: none;
   }
-  .topic-tile--p .topic-tile__initial { background: var(--purple-100); color: var(--accent); }
-  .topic-tile--r .topic-tile__initial { background: var(--rose-100);   color: var(--rose-700); }
-  .topic-tile--g .topic-tile__initial { background: var(--sage-100);   color: var(--sage-700); }
-  .topic-tile--s .topic-tile__initial { background: var(--sand-300);   color: var(--sand-700); }
-  :global([data-theme="dark"]) .topic-tile--s .topic-tile__initial { color: var(--text-primary); }
+  .topic-tile__icon svg { width: 100%; height: 100%; display: block; }
+  .topic-tile--p .topic-tile__icon { color: var(--accent); }
+  .topic-tile--r .topic-tile__icon { color: var(--rose-700); }
+  .topic-tile--g .topic-tile__icon { color: var(--sage-700); }
+  .topic-tile--s .topic-tile__icon { color: var(--sand-700); }
+  .topic-tile--y .topic-tile__icon { color: var(--yellow-700); }
+  :global([data-theme="dark"]) .topic-tile--s .topic-tile__icon { color: var(--text-primary); }
 
   .topic-tile__desc {
     margin: 0;
