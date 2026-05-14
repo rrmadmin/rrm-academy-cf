@@ -3,6 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import MaybeShell from '../../components/MaybeShell.astro';
 import { isShellEnabled } from '../../lib/shell-routes';
 import pillarRegistry from '../../../ssot/pillars.json';
+import { Share2, Check } from '@lucide/astro';
 
 const SHELL_ENABLED = isShellEnabled('guides');
 
@@ -93,14 +94,8 @@ const jsonLd = {
                 data-share-title={guide.title}
                 data-share-description={guide.description}
               >
-                <svg class="guide-card__share-icon" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M12 5h2v9H2V5h2" />
-                  <path d="M8 1v10" />
-                  <path d="M5 4l3-3 3 3" />
-                </svg>
-                <svg class="guide-card__share-icon guide-card__share-icon--check" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M3 8l3.5 3.5L13 4.5" />
-                </svg>
+                <Share2 class="guide-card__share-icon" size={14} aria-hidden="true" />
+                <Check class="guide-card__share-icon guide-card__share-icon--check" size={14} aria-hidden="true" />
                 <span class="guide-card__share-label">Share</span>
               </button>
             </article>
