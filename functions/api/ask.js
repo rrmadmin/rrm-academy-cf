@@ -37,7 +37,10 @@ async function logAskQuery(env, waitUntil, request, message, userId, start, http
   if (typeof waitUntil === 'function') {
     waitUntil(p);
   } else {
-    await p;
+    await Promise.race([
+      p,
+      new Promise(resolve => setTimeout(resolve, 1000)),
+    ]);
   }
 }
 
