@@ -56,6 +56,8 @@ async function handleStatus(request, env, waitUntil) {
   let stripeDonations = [];
   let stripePayments = [];
   let subscription = null;
+  let chargesHasMore = false;
+  let wixPaymentsHasMore = false;
 
   if (user.stripe_customer_id) {
     // --- Query Stripe for subscriptions + charges in parallel ---
@@ -90,6 +92,7 @@ async function handleStatus(request, env, waitUntil) {
     }
 
     // --- Build Stripe charge lists ---
+    chargesHasMore = charges.has_more === true;
     const succeeded = charges.data.filter(c => c.status === 'succeeded');
     const mapCharge = c => ({
       amount: c.amount,
@@ -145,7 +148,7 @@ async function handleStatus(request, env, waitUntil) {
       db.prepare(
         'SELECT amount_cents, paid_at, receipt_number FROM wix_payment' +
         ' WHERE (user_id = ? OR email = ? COLLATE NOCASE) AND payment_status = \'PAID\'' +
-        ' ORDER BY paid_at DESC LIMIT 50'
+        ' ORDER BY paid_at DESC LIMIT 51'
       ).bind(userId, email).all(),
     ]);
 
@@ -183,7 +186,9 @@ async function handleStatus(request, env, waitUntil) {
       }
     }
 
-    wixDonations = (wixPayRows.results || []).map(p => ({
+    const wixPayResults = wixPayRows.results || [];
+    wixPaymentsHasMore = wixPayResults.length > 50;
+    wixDonations = wixPayResults.slice(0, 50).map(p => ({
       amount: p.amount_cents,
       date: toUnix(p.paid_at),
       receiptUrl: null,
@@ -198,6 +203,7 @@ async function handleStatus(request, env, waitUntil) {
   // --- Merge and sort donations ---
   const donations = [...stripeDonations, ...wixDonations].sort((a, b) => b.date - a.date);
   const payments = stripePayments;
+  const hasMore = chargesHasMore || wixPaymentsHasMore;
 
-  return json({ ok: true, subscription, donations, payments });
+  return json({ ok: true, subscription, donations, payments, hasMore });
 }
