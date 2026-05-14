@@ -49,8 +49,19 @@ function escapeRegex(s) {
 function parseArgs(argv) {
   const out = {};
   for (let i = 0; i < argv.length; i++) {
-    const m = argv[i].match(/^--(\w[\w-]*)=?(.*)$/);
-    if (m) out[m[1]] = m[2] || argv[++i];
+    const m = argv[i].match(/^--(\w[\w-]*)(=(.*))?$/);
+    if (!m) continue;
+    const key = m[1];
+    if (m[2] !== undefined) {
+      // --key=value (value may be empty string)
+      out[key] = m[3];
+    } else if (i + 1 < argv.length && !argv[i + 1].startsWith('--')) {
+      // --key value
+      out[key] = argv[++i];
+    } else {
+      // --key (bare flag, no value)
+      out[key] = true;
+    }
   }
   return out;
 }
