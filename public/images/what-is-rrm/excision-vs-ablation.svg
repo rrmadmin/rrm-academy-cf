@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 320" role="img" aria-label="Endometriosis surgery repeat-surgery rates: excision versus ablation">
+  <title>Endometriosis Surgery: Excision vs Ablation</title>
+  <desc>Horizontal bar chart comparing repeat surgery and recurrence rates for endometriosis treatment. Optimal excision in Yeung 2024 had a 2.5 percent repeat surgery rate over ten years. Ablation has recurrence rates as high as 40 percent within five years per Guo 2009.</desc>
+
+  <style>
+    .heading { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600; fill: #636261; letter-spacing: 0.05em; }
+    .divider { stroke: #c9b8d3; stroke-width: 1; }
+    .label { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 400; fill: #636261; text-anchor: end; dominant-baseline: central; }
+    .sublabel { font-family: 'Inter', sans-serif; font-size: 11px; fill: #8a8985; text-anchor: end; dominant-baseline: central; }
+    .track { fill: #f0eeeb; }
+    .bar-rrm { fill: #725e7e; }
+    .bar-ablation { fill: #b0aaa2; }
+    .value { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; dominant-baseline: central; }
+    .value-rrm { fill: #725e7e; }
+    .value-ablation { fill: #636261; }
+    .caption { font-family: 'Inter', sans-serif; font-size: 11.5px; font-style: italic; fill: #987da8; }
+  </style>
+
+  <rect width="700" height="320" fill="white"/>
+
+  <text x="30" y="35" class="heading">ENDOMETRIOSIS: EXCISION VS. ABLATION</text>
+  <line x1="30" y1="48" x2="670" y2="48" class="divider"/>
+
+  <!-- Row 1: Excision (RRM) -->
+  <text x="235" y="82" class="label">Optimal excision (RRM)</text>
+  <text x="235" y="100" class="sublabel">10-year follow-up &middot; Yeung 2024</text>
+  <rect x="248" y="80" width="350" height="22" rx="3" class="track"/>
+  <rect x="248" y="80" width="22" height="22" rx="3" class="bar-rrm"/>
+  <text x="608" y="92" class="value value-rrm">2.5%</text>
+
+  <!-- Row 2: Ablation -->
+  <text x="235" y="142" class="label">Ablation</text>
+  <text x="235" y="160" class="sublabel">5-year recurrence &middot; Guo 2009</text>
+  <rect x="248" y="140" width="350" height="22" rx="3" class="track"/>
+  <rect x="248" y="140" width="350" height="22" rx="3" class="bar-ablation"/>
+  <text x="608" y="152" class="value value-ablation">40%</text>
+
+  <text x="30" y="220" class="caption">Excision removes the disease at the root. Ablation burns the surface and leaves deeper tissue behind.</text>
+  <text x="30" y="238" class="caption">Lower rates indicate fewer repeat operations. Bars normalized to the larger value.</text>
+</svg>
