@@ -3,23 +3,23 @@
   "description": "Critical file integrity manifest. Run `npm run guard:update` after intentional changes.",
   "files": {
     "functions/api/auth/_shared.js": {
-      "hash": "b99eb0f0047ad2fe328e7b7add05631f93bf249a86a7b535c0648693b0e8544c",
+      "hash": "3becafff4405bf2ec52d1033456ffc905c847c8b7608375f52fd29ddc74f08a0",
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
-      "hash": "1bc37073151c929966aa0d0ae1e78bd66e9a722bd3ad081205b8a28df8cc70df",
+      "hash": "28008e758ae969e7b8c4ff20bdcdc5ea1510ee42ef204f83587dcd48947a7170",
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "1010b82a9806a7af6dccbefdc143c638a8f85b2638cecda120ad2cfd601b5b1e",
+      "hash": "4c128ff77be820d887da30f52b73735effbe8089536a47cd1ed1cda52e674f56",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
-      "hash": "8bc31af193480dc307864d58c476cdbbecffc8df2ce4ce300c552f775a8f804d",
+      "hash": "53e61c88a5436843f5e3561383c94ac4969eb11f0c35dfc9434dc06dba5a85aa",
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
-      "hash": "25e6946c432cb7487cd6e90cabc135137f9eb732fc89bbd6c9dbc1fad0bce344",
+      "hash": "b3b0c94af24809bc0b935e986dc20732552c00c58046ae8febcd2254a036bca5",
       "note": "Reset token consumption + password change"
     },
     "functions/api/auth/change-password.js": {
@@ -31,7 +31,7 @@
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "260fedde84dff3963ed17aafcc99d3543669f58a54be8367d68272d3680a4698",
+      "hash": "370176643d1b3632e52a04d1bf168f2b0a0ccb337f8b4b2b7f2edb75e1d14628",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
@@ -71,7 +71,7 @@
       "note": "HMAC-SHA256 magic-link token for Wix-to-Stripe donor migration"
     },
     "functions/_middleware.js": {
-      "hash": "58dda0cc09c3a50824946734f09dbedb464e3eb2ff06d2956d298074c854cf69",
+      "hash": "38f31ba0827fad31ea7f8681b004326d4ee091f6cd7dadee53eeedaea8d6ffa8",
       "note": "Auth gating"
     },
     "wrangler.toml": {
@@ -143,11 +143,11 @@
       "note": "Guard script (self-guarding)"
     },
     "functions/api/auth/verify-email.js": {
-      "hash": "0cd33d12218ebb2c36c51c28e8b27283bd0530d871c0d9acff657f564307abed",
+      "hash": "5fe84bcd920392d12481f950f9c64c2957b604e929b1e3ddcf7bb3c00967b42e",
       "note": "Email verification token consumption"
     },
     "functions/api/auth/logout.js": {
-      "hash": "35460b53716ba614ae7f78d1937710dedef02893a4c13fda06fa88ee00eceb84",
+      "hash": "67cc7cf60b8752582a7f07a60e360cdab58acf788dd75a1efd00b3b33edec757",
       "note": "Session invalidation"
     },
     "functions/api/billing/checkout-account.js": {

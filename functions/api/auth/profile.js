@@ -3,7 +3,7 @@
  * Updates the authenticated user's profile fields (first name, last name).
  */
 import {
-  json, optionsResponse, getSessionIdFromCookie, validateSession, checkRateLimit,
+  json, optionsResponse, getSessionIdFromCookie, validateSession, checkRateLimit, sessionCookie,
 } from './_shared.js';
 import { log } from '../_log.js';
 import { validateBody } from '../_validate.js';
@@ -15,9 +15,9 @@ export async function onRequestOptions() {
 export async function onRequestPatch({ request, env, waitUntil }) {
   try {
     const ip = request.headers.get('cf-connecting-ip');
-    if (!ip) return json({ error: 'service_unavailable' }, 503);
+    if (!ip) return json({ ok: false, error: 'Service temporarily unavailable.' }, 503);
     const allowed = await checkRateLimit(env, `prof:${ip}`, 60, 60);
-    if (!allowed) return json({ error: 'rate_limited' }, 429);
+    if (!allowed) return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
 
     const db = env.DB;
     if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
@@ -55,10 +55,15 @@ export async function onRequestPatch({ request, env, waitUntil }) {
       "UPDATE user SET first_name = ?, last_name = ?, name = ?, updated_at = datetime('now') WHERE id = ?"
     ).bind(firstName, lastName, name, session.userId).run();
 
+    const responseHeaders = {};
+    if (session.renewed) {
+      responseHeaders['Set-Cookie'] = sessionCookie(session.id, session.expiresAt);
+    }
+
     return json({
       ok: true,
       user: { firstName, lastName, name },
-    });
+    }, 200, responseHeaders);
   } catch (err) {
     log(env, waitUntil, 'auth', 'profile_error', 'error', err.message);
     return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500);

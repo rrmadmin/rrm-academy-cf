@@ -3,7 +3,7 @@
  * Accepts { code } and verifies the user's email address.
  */
 import {
-  json, optionsResponse, getSessionIdFromCookie, validateSession, checkRateLimit,
+  json, optionsResponse, getSessionIdFromCookie, validateSession, checkRateLimit, sessionCookie,
 } from './_shared.js';
 import { log } from '../_log.js';
 
@@ -47,7 +47,12 @@ export async function onRequestPost({ request, env, waitUntil }) {
     await db.prepare("UPDATE user SET email_verified = 1, updated_at = datetime('now') WHERE id = ?")
       .bind(session.userId).run();
 
-    return json({ ok: true });
+    const responseHeaders = {};
+    if (session.renewed) {
+      responseHeaders['Set-Cookie'] = sessionCookie(session.id, session.expiresAt);
+    }
+
+    return json({ ok: true }, 200, responseHeaders);
   } catch (err) {
     log(env, waitUntil, 'auth', 'verify_email_error', 'error', err.message);
     return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500);

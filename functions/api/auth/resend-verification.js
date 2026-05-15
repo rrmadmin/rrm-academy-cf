@@ -9,7 +9,7 @@
  */
 import {
   json, optionsResponse, generateId, generateToken, getSessionIdFromCookie,
-  validateSession, checkRateLimit, EMAIL_VERIFY_TTL_S,
+  validateSession, checkRateLimit, EMAIL_VERIFY_TTL_S, sessionCookie,
 } from './_shared.js';
 import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
@@ -82,7 +82,12 @@ export async function onRequestPost({ request, env, waitUntil }) {
         .bind(generateId(), session.userId, code, expiresAt),
     ]);
 
-    return json({ ok: true });
+    const responseHeaders = {};
+    if (session.renewed) {
+      responseHeaders['Set-Cookie'] = sessionCookie(session.id, session.expiresAt);
+    }
+
+    return json({ ok: true }, 200, responseHeaders);
   } catch (err) {
     log(env, waitUntil, 'auth', 'resend_verification_error', 'error', err.message);
     return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500);

@@ -150,7 +150,7 @@ export async function createSession(db, userId) {
 export async function validateSession(db, sessionId) {
   if (!sessionId) return null;
   const row = await db.prepare(`
-    SELECT s.id, s.user_id, s.expires_at, u.blocked
+    SELECT s.id, s.user_id, s.expires_at, u.blocked, u.role
     FROM session s
     JOIN user u ON u.id = s.user_id
     WHERE s.id = ?
@@ -162,8 +162,7 @@ export async function validateSession(db, sessionId) {
 
   const now = Math.floor(Date.now() / 1000);
   if (now >= row.expires_at) {
-    // Expired — clean up atomically
-    await db.prepare('DELETE FROM session WHERE id = ?').bind(sessionId).run();
+    // Expired — cron sweep handles cleanup; don't write on the hot path.
     return null;
   }
 
@@ -173,13 +172,17 @@ export async function validateSession(db, sessionId) {
   let renewed = false;
   if (remainingMs < SESSION_RENEW_THRESHOLD_MS) {
     const newExpiry = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
-    await db.prepare('UPDATE session SET expires_at = ? WHERE id = ? AND expires_at = ?')
+    const upd = await db.prepare('UPDATE session SET expires_at = ? WHERE id = ? AND expires_at = ?')
       .bind(newExpiry, sessionId, row.expires_at).run();
-    row.expires_at = newExpiry;
-    renewed = true;
+    if (upd.meta?.changes === 1) {
+      row.expires_at = newExpiry;
+      renewed = true;
+    }
+    // If changes === 0: concurrent tab already renewed. Don't claim renewed;
+    // caller will not issue a fresh Set-Cookie.
   }
 
-  return { id: row.id, userId: row.user_id, expiresAt: row.expires_at, renewed };
+  return { id: row.id, userId: row.user_id, expiresAt: row.expires_at, renewed, role: row.role };
 }
 
 export async function invalidateSession(db, sessionId) {
