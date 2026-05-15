@@ -419,7 +419,15 @@
   }
 </style>
 
-<script is:inline>
+<script>
+// @ts-nocheck
+// Moved off is:inline (2026-05-14) so Astro extracts this to a hashed,
+// long-cached, deferred module bundle (`/_astro/*.js`) instead of inlining
+// ~30 KiB into every HTML response. Module scripts are deferred by default,
+// so the document.getElementById calls below still see a parsed DOM and
+// the URL-query auto-search still fires inside the same task as DOMContentLoaded.
+// @ts-nocheck above silences strict-null/implicit-any in vanilla JS that
+// previously skipped TS via the is:inline directive (no runtime behavior change).
 (function() {
   var input = document.getElementById('search-input');
   var clearBtn = document.getElementById('search-clear');
