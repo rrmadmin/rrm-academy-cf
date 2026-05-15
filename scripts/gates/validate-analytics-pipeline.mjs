@@ -374,7 +374,12 @@ function gateAG4() {
       const need = required[evt];
       if (!need || need.length === 0) continue;
       total++;
-      const presentKeys = [...params.matchAll(/(?:^|[\s,{])([a-z][a-z0-9_]{0,39})\s*:/g)].map((x) => x[1]);
+      // Match both `key: value` (explicit) and ES6 shorthand `{ key }` /
+      // `{ key, … }`. Shorthand = identifier followed by `,`/`}`/whitespace
+      // but NOT `:` (which would make it the property-key half of explicit form).
+      const explicitKeys = [...params.matchAll(/(?:^|[\s,{])([a-z][a-z0-9_]{0,39})\s*:/g)].map((x) => x[1]);
+      const shorthandKeys = [...params.matchAll(/(?:^|[\s,{])([a-z][a-z0-9_]{0,39})\s*(?=[,}\s])/g)].map((x) => x[1]);
+      const presentKeys = [...new Set([...explicitKeys, ...shorthandKeys])];
       const missing = need.filter((k) => !presentKeys.includes(k) && !params.includes(`...${k}`));
       if (missing.length > 0) {
         const lineNum = src.slice(0, cm.index).split('\n').length;

@@ -635,6 +635,8 @@ const NAV_ICONS: Record<string, string> = {
       } else {
         apply();
       }
+      // GA4 theme_toggle via the global bridge (track-auto.ts).
+      try { if (window.__rrmTrack__) window.__rrmTrack__('theme_toggle', { to: next }); } catch (e) {}
     };
   })();
 
