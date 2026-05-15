@@ -70,12 +70,12 @@ const PHASE_1_CONVERSIONS = [
   'generate_lead',
   'begin_checkout',
   'purchase',
-  'scroll_depth', // qualified at depth=100 in the dashboard
+  'scroll_depth',  // qualified at depth=100 in the dashboard
+  'video_complete', // wired Phase 2d (course lesson player)
 ];
 const PHASE_2_CONVERSIONS = [
   'pdf_download',
   'copy_citation',
-  'video_complete',
 ];
 
 // Third-party analytics origins that must NOT appear as script sources or fetch targets (AG7)
@@ -582,7 +582,16 @@ function gateAG10() {
     ...walkSource('functions', ['.js']),
   ];
   const hasCallSite = (evt) => {
-    const re = new RegExp(`(?:sendGA4Event\\s*\\([^,]+,[^,]+,\\s*['"]${evt}['"]|track\\s*\\(\\s*['"]${evt}['"])`);
+    // Recognizes three call shapes:
+    //   sendGA4Event(env, request, 'evt', ...)  -- server-side via _ga4.js
+    //   track('evt', ...)                        -- client via import
+    //   __rrmTrack__('evt', ...)                 -- client via global bridge
+    //                                               (is:inline scripts route)
+    const re = new RegExp(
+      `(?:sendGA4Event\\s*\\([^,]+,[^,]+,\\s*['"]${evt}['"]` +
+      `|(?:^|[^a-zA-Z_$.])track\\s*\\(\\s*['"]${evt}['"]` +
+      `|__rrmTrack__\\s*\\(\\s*['"]${evt}['"])`
+    );
     return files.some((f) => {
       const src = read(f);
       return src ? re.test(src) : false;
