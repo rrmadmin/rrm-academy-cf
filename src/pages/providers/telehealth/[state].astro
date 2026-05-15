@@ -1,0 +1,118 @@
+---
+/*
+ * Token substitutions (carry-forward from Tasks 16-18):
+ *   --text-xs/sm/base/lg/2xl → literal rem (not in global.css)
+ *   --leading-tight/normal   → 1.25 / 1.75 (not in global.css)
+ *   --bg-muted               → var(--neutral-100) (not in global.css)
+ *   --max-width-content      → var(--max-width-article) (--max-width-content not in global.css;
+ *                              --max-width-article=780px is the canonical token)
+ * Existing globals used: --max-width-article, --space-*, --text-secondary
+ */
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import ProviderCard from '../../../components/providers/ProviderCard.astro';
+import CollectionJsonLd from '../../../components/providers/CollectionJsonLd.astro';
+import providersData from '../../../data/providers.json';
+import { fullTier, US_STATES, type Provider, type StateCode } from '../../../lib/providers';
+
+export async function getStaticPaths() {
+  return US_STATES.map((s) => ({ params: { state: s.toLowerCase() } }));
+}
+
+const { state } = Astro.params as { state: string };
+const stateCode = state.toUpperCase() as StateCode;
+if (!US_STATES.includes(stateCode)) throw new Error(`Unknown state: ${state}`);
+
+const STATE_DISPLAY_LOCAL: Record<string, string> = {
+  AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California',
+  CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', FL: 'Florida', GA: 'Georgia',
+  HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa',
+  KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland',
+  MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi', MO: 'Missouri',
+  MT: 'Montana', NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire', NJ: 'New Jersey',
+  NM: 'New Mexico', NY: 'New York', NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio',
+  OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina',
+  SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont',
+  VA: 'Virginia', WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming',
+  DC: 'District of Columbia',
+};
+const stateName = STATE_DISPLAY_LOCAL[stateCode];
+
+const providers: Provider[] = providersData.providers || [];
+const matched = fullTier(providers).filter((p) =>
+  p.telehealth === 'yes' &&
+  (p.telehealth_states_attested.includes(stateCode) ||
+   p.telehealth_states_licensed.includes(stateCode))
+);
+
+const pageUrl = `https://rrmacademy.org/providers/telehealth/${state}/`;
+const title = `Telehealth RRM Providers serving ${stateName}`;
+const description = `${matched.length} RRM providers licensed to see ${stateName} residents via telehealth.`;
+
+const faqs = [
+  {
+    q: `How do I see an RRM doctor by telehealth if I live in ${stateName}?`,
+    a: matched.length > 0
+      ? `${matched.length} providers in this directory are licensed to see ${stateName} residents remotely. Use the cards below to find one whose methods match your needs.`
+      : `No providers are currently verified as licensed for ${stateName} telehealth. Check back as the directory grows.`,
+  },
+  {
+    q: `Are out-of-state physicians allowed to see ${stateName} residents by telehealth?`,
+    a: `Yes when the physician is licensed in ${stateName}. Telehealth is regulated state-by-state at the licensure level. The Interstate Medical Licensure Compact (IMLC) makes multi-state licensure faster for participating physicians; some providers in this directory hold IMLC licenses.`,
+  },
+];
+---
+
+<BaseLayout title={title} description={description}>
+  <CollectionJsonLd
+    providers={matched.slice(0, 24)}
+    pageUrl={pageUrl}
+    collectionName={title}
+    breadcrumbName={`Telehealth in ${stateName}`}
+    faqs={faqs}
+  />
+
+  <header class="collection-hero">
+    <h1>Telehealth RRM Providers serving {stateName}</h1>
+    <p>{description}</p>
+  </header>
+
+  <section class="collection-grid" aria-labelledby="results">
+    <h2 id="results">All telehealth providers licensed in {stateName}</h2>
+    {matched.length === 0 ? (
+      <p>No providers verified for {stateName} telehealth yet. <a href="/providers/telehealth/">View all telehealth providers</a>.</p>
+    ) : (
+      <ul class="provider-grid" role="list">
+        {matched.slice(0, 24).map(p => (
+          <li><ProviderCard provider={p} /></li>
+        ))}
+      </ul>
+    )}
+  </section>
+
+  <section class="collection-faq" aria-labelledby="faq">
+    <h2 id="faq">Frequently asked questions</h2>
+    <dl class="faq">
+      {faqs.map(f => (
+        <>
+          <dt>{f.q}</dt>
+          <dd>{f.a}</dd>
+        </>
+      ))}
+    </dl>
+  </section>
+</BaseLayout>
+
+<style>
+  /* --max-width-content does not exist in global.css; using --max-width-article (780px) */
+  .collection-hero,
+  .collection-grid,
+  .collection-faq { max-width: var(--max-width-article); margin: var(--space-6) auto; }
+  .provider-grid {
+    list-style: none; padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-4);
+  }
+  .collection-faq dt { font-weight: 600; margin-top: var(--space-3); }
+  .collection-faq dd { margin: var(--space-1) 0 0 0; color: var(--text-secondary); }
+</style>
