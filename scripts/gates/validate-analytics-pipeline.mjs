@@ -70,13 +70,14 @@ const PHASE_1_CONVERSIONS = [
   'generate_lead',
   'begin_checkout',
   'purchase',
-  'scroll_depth',  // qualified at depth=100 in the dashboard
+  'scroll_depth',   // qualified at depth=100 in the dashboard
   'video_complete', // wired Phase 2d (course lesson player)
+  'pdf_download',   // wired Phase 2e (guide PDF download trigger)
+  'copy_citation',  // wired Phase 2e (library article RIS download)
 ];
-const PHASE_2_CONVERSIONS = [
-  'pdf_download',
-  'copy_citation',
-];
+// All Phase 2 spec-§15.3 conversions are now wired. List preserved (empty)
+// so future events added in this slot trip WARN until promoted to Phase 1.
+const PHASE_2_CONVERSIONS = [];
 
 // Third-party analytics origins that must NOT appear as script sources or fetch targets (AG7)
 // Exception: _ga4.js may reference www.google-analytics.com (the MP endpoint we proxy through).
