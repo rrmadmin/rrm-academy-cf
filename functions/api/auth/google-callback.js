@@ -13,7 +13,7 @@ import {
   exchangeGoogleCode, getGoogleProfile, isSafeRedirect, SITE_URL,
   waitlistBackfillStatement, deriveSignupSource, checkRateLimit,
 } from './_shared.js';
-import { sendEmail } from '../_ses.js';
+import { sendEmail, logEmailFailure } from '../_ses.js';
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
 
@@ -70,12 +70,16 @@ async function linkGoogleToVerifiedUser(db, googleId, email, avatarUrl) {
   if (user.google_id && user.google_id !== googleId) {
     return { redirect: '/login/?error=account_conflict' };
   }
-  await db.batch([
+  const upd = await db.batch([
     db.prepare(
-      `UPDATE user SET google_id = ?, avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ?`
-    ).bind(googleId, avatarUrl, user.id),
+      `UPDATE user SET google_id = ?, avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ? AND (google_id IS NULL OR google_id = ?)`
+    ).bind(googleId, avatarUrl, user.id, googleId),
     waitlistBackfillStatement(db, user.id, email),
   ]);
+
+  if (upd[0].meta?.changes !== 1) {
+    return { redirect: '/login/?error=account_conflict' };
+  }
 
   return { user };
 }
@@ -86,17 +90,19 @@ async function upgradeUnverifiedUser(db, googleId, email, avatarUrl) {
   if (!unverified) return null;
 
   if (unverified.blocked) return { redirect: '/login/?error=account_blocked' };
-  const results = await db.batch([
-    db.prepare("UPDATE user SET google_id = ?, email_verified = 1, hashed_password = '', avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ? AND email_verified = 0")
-      .bind(googleId, avatarUrl, unverified.id),
-    db.prepare('DELETE FROM session WHERE user_id = ?').bind(unverified.id),
-    waitlistBackfillStatement(db, unverified.id, email),
-  ]);
 
-  if (results[0].meta.changes === 0) {
+  const upd = await db.prepare("UPDATE user SET google_id = ?, email_verified = 1, hashed_password = '', avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ? AND email_verified = 0")
+    .bind(googleId, avatarUrl, unverified.id).run();
+
+  if (upd.meta?.changes !== 1) {
     // Another request verified this account between our SELECT and UPDATE — fail closed
     return { redirect: LOGIN_ERROR_URL };
   }
+
+  await db.batch([
+    db.prepare('DELETE FROM session WHERE user_id = ?').bind(unverified.id),
+    waitlistBackfillStatement(db, unverified.id, email),
+  ]);
 
   return { user: unverified };
 }
@@ -219,7 +225,13 @@ export async function onRequestGet({ request, env, waitUntil }) {
               '-- RRM Academy',
             ].join('\n'),
             log: { db: env.DB, source: 'auth/google-callback', category: 'transactional' },
-          }).catch(() => {})
+          }).catch(err => logEmailFailure(env.DB, {
+            email: r1.oldEmail,
+            category: 'transactional',
+            source: 'auth/google-callback',
+            subject: 'Your RRM Academy email address was changed',
+            detail: err.message,
+          }))
         );
       }
     }
@@ -256,6 +268,11 @@ export async function onRequestGet({ request, env, waitUntil }) {
           const r4retry = await linkGoogleToVerifiedUser(db, googleId, email, avatarUrl);
           if (r4retry?.redirect) return htmlRedirect(r4retry.redirect);
           if (r4retry) ({ user } = r4retry);
+          if (!user) {
+            const r4retryUnverified = await upgradeUnverifiedUser(db, googleId, email, avatarUrl);
+            if (r4retryUnverified?.redirect) return htmlRedirect(r4retryUnverified.redirect);
+            if (r4retryUnverified) ({ user } = r4retryUnverified);
+          }
         } else if (isGoogleIdCollision) {
           const r4retry = await handleReturningGoogleUser(db, googleId, email);
           if (r4retry?.redirect) return htmlRedirect(r4retry.redirect);

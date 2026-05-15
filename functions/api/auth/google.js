@@ -12,7 +12,13 @@ import { googleAuthUrl, isSafeRedirect, SITE_URL } from './_shared.js';
 
 export async function onRequestGet({ env, request }) {
   if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
-    return new Response(null, { status: 302, headers: { Location: `${SITE_URL}/login/?error=oauth_unavailable` } });
+    const errTarget = `${SITE_URL}/login/?error=oauth_unavailable`;
+    const errEscaped = errTarget.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    const errHtml = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${errEscaped}"></head><body><script>window.location.href=${JSON.stringify(errTarget).replace(/</g, '\\u003c')}</script></body></html>`;
+    return new Response(errHtml, {
+      status: 302,
+      headers: { Location: errTarget, 'Content-Type': 'text/html;charset=UTF-8' },
+    });
   }
 
   const url = new URL(request.url);

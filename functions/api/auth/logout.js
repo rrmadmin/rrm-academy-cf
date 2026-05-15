@@ -27,11 +27,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
       { 'Set-Cookie': clearSessionCookie() }
     );
   } catch (err) {
-    log(env, waitUntil, 'auth', 'logout', 'error', err.message);
-    return json(
-      { ok: true },
-      200,
-      { 'Set-Cookie': clearSessionCookie() }
-    );
+    log(env, waitUntil, 'auth', 'logout_db_failure', 'error', err.message);
+    // Cookie still cleared; user is logged out client-side. Server-side session row
+    // will be cleaned up by cron sweep or expire naturally.
+    return json({ ok: true }, 200, { 'Set-Cookie': clearSessionCookie() });
   }
 }

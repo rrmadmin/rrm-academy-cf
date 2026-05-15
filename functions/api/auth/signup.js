@@ -6,7 +6,7 @@ import {
   json, optionsResponse, generateId, generateSessionId, generateToken,
   hashPassword, sessionCookie, verifyTurnstile, checkRateLimit,
   isValidPassword, waitlistBackfillStatement, sessionInsertStatement,
-  deriveSignupSource, EMAIL_VERIFY_TTL_S,
+  deriveSignupSource, EMAIL_VERIFY_TTL_S, SESSION_DURATION_MS,
 } from './_shared.js';
 import { validateEmail } from './_email-validate.js';
 import { verifyAndTagEmail } from '../_elv.js';
@@ -15,6 +15,9 @@ import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
 import { validateBody } from '../_validate.js';
 
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
 
 async function sendWelcomeAskEmail(env, email, firstName) {
   const greeting = firstName || 'there';
@@ -35,7 +38,7 @@ async function sendWelcomeAskEmail(env, email, firstName) {
   ].join('\n');
   const html = [
     '<!DOCTYPE html><html><body style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#1a1a1a">',
-    `<p>Hi ${greeting},</p>`,
+    `<p>Hi ${escapeHtml(greeting)},</p>`,
     '<p>Welcome to RRM Academy. Your free account is active.</p>',
     '<p>You can now use <strong>/ask</strong> &mdash; our conversational research layer that answers questions from our entire library.<br>',
     '<a href="https://rrmacademy.org/ask/">Head to rrmacademy.org/ask/ to get started.</a></p>',
@@ -81,12 +84,28 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const password  = body.password || '';
     const signupSource = deriveSignupSource(body, request);
 
-    if (!isValidPassword(password)) return json({ ok: false, error: 'Password must be at least 8 characters.' }, 400);
+    if (!isValidPassword(password)) return json({ ok: false, error: 'Password must be between 8 and 128 characters.' }, 400);
 
     // Rate limit by IP (before expensive DNS lookups): 5 attempts per 15 minutes
-    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+    const ip = request.headers.get('CF-Connecting-IP');
+    if (!ip) return json({ ok: false, error: 'Service temporarily unavailable.' }, 503);
     if (!await checkRateLimit(env, `signup:${ip}`, 5, 900)) {
       return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
+    }
+
+    if (!env.AWS_ACCESS_KEY_ID) {
+      return json({ ok: false, error: 'Email service is temporarily unavailable. Please try again in a few minutes or contact administrator@rrmacademy.org for help.' }, 503);
+    }
+
+    // Turnstile (bot gate before billed work)
+    const turnstileResult = await verifyTurnstile(
+      env.CF_TURNSTILE_SECRET, body.turnstileToken, ip, env
+    );
+    if (!turnstileResult.ok) {
+      const turnstileMsg = turnstileResult.reason === 'network'
+        ? 'Verification service unavailable. Please try again in a moment.'
+        : 'Spam check failed. Please refresh and try again.';
+      return json({ ok: false, error: turnstileMsg }, 403);
     }
 
     // Deep email validation (disposable domain, MX check, typo detection)
@@ -103,21 +122,6 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const elv = await verifyAndTagEmail(email, env, { firstName, lastName, source: 'signup' });
     if (elv.blocked) {
       return json({ ok: false, error: elv.reason }, 400);
-    }
-
-    if (!env.AWS_ACCESS_KEY_ID) {
-      return json({ ok: false, error: 'Email service is temporarily unavailable. Please try again in a few minutes or contact administrator@rrmacademy.org for help.' }, 503);
-    }
-
-    // Turnstile
-    const turnstileResult = await verifyTurnstile(
-      env.CF_TURNSTILE_SECRET, body.turnstileToken, ip, env
-    );
-    if (!turnstileResult.ok) {
-      const turnstileMsg = turnstileResult.reason === 'network'
-        ? 'Verification service unavailable. Please try again in a moment.'
-        : 'Spam check failed. Please refresh and try again.';
-      return json({ ok: false, error: turnstileMsg }, 403);
     }
 
     // Hash password before existence check to prevent timing side-channel
@@ -153,8 +157,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
           );
         }
       }
+      // Anti-enumeration tradeoff: returning a fake cookie may overwrite a real session if a logged-in user submits the signup form. Documented LOW. Rate-limit mitigates.
+      // Anti-enumeration: silent 201. Note: enumeration via /api/auth/session probe is possible but rate-limit (5/15min) mitigates.
       const fakeSessionId = generateSessionId();
-      const fakeExpires = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
+      const fakeExpires = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
       return json(
         { ok: true, emailVerificationRequired: true },
         201,
@@ -170,7 +176,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const verifyExpiresAt = Math.floor(Date.now() / 1000) + EMAIL_VERIFY_TTL_S;
 
     const sessionId = generateSessionId();
-    const sessionExpiresAt = Math.floor((Date.now() + 30 * 24 * 60 * 60 * 1000) / 1000);
+    const sessionExpiresAt = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
 
     // Atomic batch: user + email_verification + session + waitlist backfill
     try {
@@ -181,6 +187,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
         db.prepare(
           'INSERT INTO email_verification (id, user_id, code, expires_at) VALUES (?, ?, ?, ?)'
         ).bind(generateId(), userId, code, verifyExpiresAt),
+        // No prior sessions to clean: new user, fresh DB row.
         sessionInsertStatement(db, sessionId, userId, sessionExpiresAt),
         waitlistBackfillStatement(db, userId, email),
       ]);
@@ -189,8 +196,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
         // Anti-enumeration: same cookie shape as a real signup (fake session ID won't validate).
         // Scoped to user.email UNIQUE — session.id or email_verification.id collisions are not
         // enumeration risks and should surface as 500 (caller can retry a fresh ID).
+        // Anti-enumeration tradeoff: returning a fake cookie may overwrite a real session if a logged-in user submits the signup form. Documented LOW. Rate-limit mitigates.
+        // Anti-enumeration: silent 201. Note: enumeration via /api/auth/session probe is possible but rate-limit (5/15min) mitigates.
         const fakeSessionId = generateSessionId();
-        const fakeExpires = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
+        const fakeExpires = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
         return json(
           { ok: true, emailVerificationRequired: true },
           201,
@@ -201,7 +210,6 @@ export async function onRequestPost({ request, env, waitUntil }) {
     }
 
     // Send verification email via waitUntil (decouple SES latency from response timing)
-    // AWS_ACCESS_KEY_ID guard already returned 503 above — no inner guard needed here.
     waitUntil(
       sendEmail(env, {
         from: 'RRM Academy <accounts@mail.rrmacademy.org>',
@@ -230,7 +238,6 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     if (signupSource === 'ask') {
       waitUntil(sendGA4Event(env, request, 'signup_from_ask', { source: 'ask' }).catch(() => {}));
-      // AWS_ACCESS_KEY_ID guard already returned 503 above — no inner guard needed here.
       waitUntil(
         sendWelcomeAskEmail(env, email, firstName).catch(err => {
           log(env, waitUntil, 'auth', 'welcome_ask_email_fail', 'error', err.message);
