@@ -230,13 +230,13 @@ const accessKind: 'restricted' | 'open' | 'free' | 'none' =
   {(article.doi || article.pmid) && (
     <div class="article-hero__ids">
       {article.doi && (
-        <a class="id-pill" href={doiUrl} target="_blank" rel="noopener" title={`DOI ${article.doi}`}>
+        <a class="id-pill" href={doiUrl} target="_blank" rel="noopener" title={`DOI ${article.doi}`} data-track-out data-track-label="article-doi-pill">
           <span class="id-pill__lbl">DOI</span><span class="id-pill__val">{article.doi}</span>
           <svg class="id-pill__copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
         </a>
       )}
       {article.pmid && (
-        <a class="id-pill" href={pubmedUrl} target="_blank" rel="noopener" title={`PMID ${article.pmid}`}>
+        <a class="id-pill" href={pubmedUrl} target="_blank" rel="noopener" title={`PMID ${article.pmid}`} data-track-out data-track-label="article-pmid-pill">
           <span class="id-pill__lbl">PMID</span><span class="id-pill__val">{article.pmid}</span>
           <svg class="id-pill__copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
         </a>
@@ -247,7 +247,7 @@ const accessKind: 'restricted' | 'open' | 'free' | 'none' =
   <!-- Read link (left) + license + access-state lock (right) -->
   <div class="article-hero__foot">
     {readUrl && (
-      <a class="article-hero__read" href={readUrl} target="_blank" rel="noopener">
+      <a class="article-hero__read" href={readUrl} target="_blank" rel="noopener" data-track-out data-track-label="article-read-fulltext">
         {readLabel}
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
       </a>

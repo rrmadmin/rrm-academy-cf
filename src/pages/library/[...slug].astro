@@ -267,6 +267,7 @@ const citationMeta = {
   citationMeta={citationMeta}
   speakable={['.article-title', '.article-meta-row', '.abstract']}
   chrome={SHELL_ENABLED ? 'shell' : 'default'}
+  trackScroll
 >
   {SHELL_ENABLED ? (
     <AppShellChrome context="article" currentPath={Astro.url.pathname} relatedSections={relatedSections}>
