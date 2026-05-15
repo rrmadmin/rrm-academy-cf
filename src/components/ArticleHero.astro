@@ -1,0 +1,603 @@
+---
+/*
+ * ArticleHero — outlined-card hero for the library detail page.
+ *
+ * Mirrors the visual language of the article cards on /library and the topic
+ * pages: 1px outlined sheet, the same border-radius and spacing tokens. Layout
+ * was designed with feedback from scholarly-UX research (PubMed / JAMA / NEJM /
+ * Semantic Scholar conventions) and Brian's iterative review:
+ *
+ *  Row 1: venue line on the left  +  Cite / Save / Share icons top-right
+ *  Row 2: title (dominant)
+ *  Row 3: authors collapsed-by-default to first ~3, slide-expand to full list
+ *         (form-tiles .qgroup pattern; 620ms cubic-bezier(0.65, 0, 0.35, 1))
+ *  Row 4: author affiliations (collapsible, optional)
+ *  Row 5: DOI + PMID copyable pills (researchers use these heavily; must be
+ *         reachable above the fold)
+ *  Row 6: Read-at-source plain link (left)  +  LICENSE © X + access-state lock (right)
+ *
+ * Action buttons keep their original IDs (save-btn / cite-btn / share-btn) so
+ * the existing page JS handlers (save / cite / share-link-copy) still bind.
+ * All data-* attrs on the save button are preserved.
+ */
+import type { Article } from '../lib/airtable';
+
+type AuthorRec = {
+  name?: string | null;
+  full_name?: string | null;
+  orcid?: string | null;
+  primary_ror_id?: string | null;
+  primary_institution_name?: string | null;
+};
+type Affiliation = { name: string; ror: string | null };
+
+interface Props {
+  article: Article;
+  authorRecords: AuthorRec[];
+  affiliations: Affiliation[];
+  authorCap: number;
+  journalLine: string;
+  doiUrl: string;
+  pubmedUrl: string;
+  showSourceLink: boolean;
+  showFreeFullText: boolean;
+}
+
+const {
+  article,
+  authorRecords,
+  affiliations,
+  authorCap,
+  journalLine,
+  doiUrl,
+  pubmedUrl,
+  showSourceLink,
+  showFreeFullText,
+} = Astro.props;
+
+function orcidUrl(orcid: string | null | undefined): string | null {
+  if (!orcid) return null;
+  const clean = String(orcid).trim();
+  if (!/^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/i.test(clean)) return null;
+  return `https://orcid.org/${clean.toUpperCase()}`;
+}
+
+// Authors collapsed display — show first 3 names in the head, rest slide in.
+// When authorRecords is empty or exceeds the per-author cap, fall back to the
+// plain authors / shortCitation string.
+const useStructuredAuthors = authorRecords.length > 0 && authorRecords.length <= authorCap;
+const headCount = Math.min(3, authorRecords.length);
+const headRecords = useStructuredAuthors ? authorRecords.slice(0, headCount) : [];
+const restRecords = useStructuredAuthors ? authorRecords.slice(headCount) : [];
+const hasRest = useStructuredAuthors && restRecords.length > 0;
+
+// Read-at-source URL: prefer free full text > publisher source > DOI > PubMed.
+let readUrl: string | null = null;
+let readLabel = 'Read at source';
+if (showFreeFullText && article.oaUrl) {
+  readUrl = article.oaUrl;
+  readLabel = 'Read free full text';
+} else if (showSourceLink && article.sourceUrl) {
+  readUrl = article.sourceUrl;
+  readLabel = 'Read at source';
+} else if (doiUrl) {
+  readUrl = doiUrl;
+  readLabel = 'Read at publisher';
+} else if (pubmedUrl) {
+  readUrl = pubmedUrl;
+  readLabel = 'Read on PubMed';
+}
+
+// Access state — closed lock for restricted, open lock + amber for open / free.
+const accessKind: 'restricted' | 'open' | 'free' | 'none' =
+  article.accessLevel === 'open' ? 'open' :
+  article.accessLevel === 'free' ? 'free' :
+  article.accessLevel === 'restricted' ? 'restricted' : 'none';
+---
+
+<article class="article-hero" data-pagefind-ignore>
+
+  <!-- Row 1: venue line (left) + Cite/Save/Share icons (top-right corner) -->
+  <div class="article-hero__top">
+    {journalLine && (
+      <p class="article-hero__venue" data-pagefind-weight="2">{journalLine}</p>
+    )}
+    <div class="article-hero__icon-actions" role="toolbar" aria-label="Article actions">
+      <button class="icon-action" id="share-btn" type="button" aria-label="Copy link" title="Copy link">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        <span class="action-label" id="share-label"></span>
+      </button>
+      <button class="icon-action" id="cite-btn" type="button" aria-label="Download citation" title="Download citation (.RIS)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21c3 0 7-1 7-8V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4"/><path d="M15 21c3 0 7-1 7-8V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4"/></svg>
+        <span class="action-label" id="cite-label"></span>
+      </button>
+      <button
+        class="icon-action"
+        id="save-btn"
+        type="button"
+        aria-label="Save article"
+        title="Save article"
+        data-slug={article.slug}
+        data-title={article.title}
+        data-authors={article.shortCitation || ''}
+        data-journal={article.journal || article.journalAbbv || ''}
+        data-journal-abbv={article.journalAbbv || ''}
+        data-year={article.year || ''}
+        data-doi={article.doi || ''}
+        data-pmid={article.pmid || ''}
+        data-volume={article.volume || ''}
+        data-issue={article.issue || ''}
+        data-pages={article.pages || ''}
+        data-date-published={article.datePublished || ''}
+        data-abstract={article.abstract || ''}
+        data-topics={article.topics.join(';')}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        <span class="action-label" id="save-label"></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Title -->
+  <h1 class="article-hero__title" data-pagefind-weight="10" data-pagefind-meta="title">{article.title}</h1>
+
+  <!-- Authors collapsed; slide-expand pattern from form-tiles -->
+  {useStructuredAuthors ? (
+    <div class="authors-block" data-open="false">
+      <p class="authors-line" data-pagefind-weight="5" data-pagefind-meta="authors">
+        <span class="authors-head"
+        >{headRecords.map((rec, i) => {
+          const name = rec.full_name || rec.name || '';
+          const orcid = orcidUrl(rec.orcid);
+          const isLast = i === headRecords.length - 1;
+          return (
+            <span class="author-chunk">
+              <span class="author-name">{name}</span>
+              {orcid && (
+                <a href={orcid} class="orcid-link" target="_blank" rel="noopener me"
+                   aria-label={`ORCID profile for ${name}`} title={`ORCID: ${rec.orcid}`}>
+                  <svg width="12" height="12" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><circle cx="128" cy="128" r="128" fill="#A6CE39"/><path fill="#FFF" d="M86.3 186.2H70.9V79.1h15.4v107.1zm22.6-107.1h41.6c39.6 0 57 28.3 57 53.6 0 27.5-21.5 53.6-56.8 53.6h-41.8V79.1zm15.4 93.3h24.5c34.9 0 42.9-26.5 42.9-39.7 0-21.5-13.7-39.7-43.7-39.7h-23.7v79.4zM88.7 56.8c0 5.5-4.5 10.1-10.1 10.1-5.6 0-10.1-4.6-10.1-10.1 0-5.6 4.5-10.1 10.1-10.1 5.6 0 10.1 4.6 10.1 10.1z"/></svg>
+                </a>
+              )}{!isLast && ', '}</span>
+          );
+        })}</span>{hasRest && (
+        <button class="authors-more" data-toggle="authors" type="button"
+                aria-expanded="false" aria-controls="authors-full">+{restRecords.length} more</button>
+      )}</p>
+      {hasRest && (
+        <div class="authors-full" id="authors-full" aria-hidden="true">
+          <p>{restRecords.map((rec, i) => {
+            const name = rec.full_name || rec.name || '';
+            const orcid = orcidUrl(rec.orcid);
+            const isLast = i === restRecords.length - 1;
+            return (
+              <span class="author-chunk">
+                <span class="author-name">{name}</span>
+                {orcid && (
+                  <a href={orcid} class="orcid-link" target="_blank" rel="noopener me"
+                     aria-label={`ORCID profile for ${name}`} title={`ORCID: ${rec.orcid}`}>
+                    <svg width="12" height="12" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><circle cx="128" cy="128" r="128" fill="#A6CE39"/><path fill="#FFF" d="M86.3 186.2H70.9V79.1h15.4v107.1zm22.6-107.1h41.6c39.6 0 57 28.3 57 53.6 0 27.5-21.5 53.6-56.8 53.6h-41.8V79.1zm15.4 93.3h24.5c34.9 0 42.9-26.5 42.9-39.7 0-21.5-13.7-39.7-43.7-39.7h-23.7v79.4zM88.7 56.8c0 5.5-4.5 10.1-10.1 10.1-5.6 0-10.1-4.6-10.1-10.1 0-5.6 4.5-10.1 10.1-10.1 5.6 0 10.1 4.6 10.1 10.1z"/></svg>
+                  </a>
+                )}{!isLast && ', '}</span>
+            );
+          })}<button class="authors-more authors-more--end" data-toggle="authors" type="button">Collapse</button></p>
+        </div>
+      )}
+    </div>
+  ) : article.authors ? (
+    <p class="authors-line" data-pagefind-weight="5" data-pagefind-meta="authors">{article.authors}</p>
+  ) : article.shortCitation ? (
+    <p class="authors-line" data-pagefind-weight="5" data-pagefind-meta="authors">{article.shortCitation}</p>
+  ) : null}
+
+  <!-- Affiliations (preserved as collapsible details under the authors) -->
+  {affiliations.length > 0 && (
+    <details class="article-hero__affiliations">
+      <summary>
+        <span>Author affiliations{affiliations.length > 1 ? ` (${affiliations.length})` : ''}</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+      </summary>
+      <ul aria-label="Author affiliations">
+        {affiliations.map((aff) => (
+          <li>
+            <span class="aff-name">{aff.name}</span>
+            {aff.ror && (
+              <a href={aff.ror} target="_blank" rel="noopener" class="aff-ror"
+                 aria-label={`ROR record for ${aff.name}`} title={`Research Organization Registry: ${aff.ror}`}>
+                <svg width="11" height="11" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
+                <span>ROR</span>
+              </a>
+            )}
+          </li>
+        ))}
+      </ul>
+    </details>
+  )}
+
+  {/* Hidden pagefind meta */}
+  {article.year && (
+    <span data-pagefind-meta={`year:${article.year}`} style="display:none"></span>
+  )}
+
+  <!-- Sentiment / hostile-critical badge (kept for editorial transparency) -->
+  {(article.sentiment === 'hostile' || article.sentiment === 'critical') && (
+    <p class={`article-hero__sentiment article-hero__sentiment--${article.sentiment}`}>
+      <span>{article.sentiment === 'hostile' ? 'Hostile' : 'Critical'} to restorative reproductive medicine</span>
+    </p>
+  )}
+
+  <!-- IDs row — DOI + PMID copyable pills -->
+  {(article.doi || article.pmid) && (
+    <div class="article-hero__ids">
+      {article.doi && (
+        <a class="id-pill" href={doiUrl} target="_blank" rel="noopener" title={`DOI ${article.doi}`}>
+          <span class="id-pill__lbl">DOI</span><span class="id-pill__val">{article.doi}</span>
+          <svg class="id-pill__copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </a>
+      )}
+      {article.pmid && (
+        <a class="id-pill" href={pubmedUrl} target="_blank" rel="noopener" title={`PMID ${article.pmid}`}>
+          <span class="id-pill__lbl">PMID</span><span class="id-pill__val">{article.pmid}</span>
+          <svg class="id-pill__copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </a>
+      )}
+    </div>
+  )}
+
+  <!-- Read link (left) + license + access-state lock (right) -->
+  <div class="article-hero__foot">
+    {readUrl && (
+      <a class="article-hero__read" href={readUrl} target="_blank" rel="noopener">
+        {readLabel}
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
+      </a>
+    )}
+    <span class="article-hero__license-block">
+      {article.license && (
+        <span class="article-hero__license"><span class="article-hero__license-lbl">License</span>{article.license}</span>
+      )}
+      {accessKind !== 'none' && (
+        <span class={`article-hero__access article-hero__access--${accessKind}`}
+              title={
+                accessKind === 'open' ? (article.oaType ? `${article.oaType} Open Access` : 'Open Access') :
+                accessKind === 'free' ? 'Free to Read (Bronze OA)' :
+                'Restricted access'
+              }
+              aria-label={
+                accessKind === 'open' ? 'Open access' :
+                accessKind === 'free' ? 'Free to read' :
+                'Restricted access'
+              }>
+          {accessKind === 'restricted' ? (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          ) : (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+          )}
+        </span>
+      )}
+    </span>
+  </div>
+
+</article>
+
+<style>
+  .article-hero {
+    position: relative;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 20px 22px 16px;
+    margin: 0 0 var(--space-6);
+    color: var(--text-primary);
+  }
+  @media (min-width: 640px) {
+    .article-hero { padding: 24px 32px 18px; }
+  }
+
+  /* Row 1: venue + icon actions */
+  .article-hero__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 6px;
+  }
+  .article-hero__venue {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+    font-style: italic;
+  }
+  .article-hero__venue { color: var(--text-secondary); }
+  .article-hero__icon-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .icon-action {
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+  }
+  .icon-action:hover {
+    border-color: var(--accent);
+    background: var(--purple-50, var(--bg-body));
+    color: var(--accent);
+  }
+  .icon-action.copied,
+  .icon-action.saved {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .action-label {
+    display: none;
+  }
+
+  /* Title */
+  .article-hero__title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(1.625rem, 1.1rem + 1.8vw, 2.25rem);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+    margin: 0 0 12px;
+  }
+
+  /* Authors */
+  .authors-line {
+    margin: 0 0 4px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+  }
+  .authors-block { margin-bottom: 4px; }
+  .author-chunk { display: inline; }
+  .author-name { color: var(--text-secondary); }
+  .orcid-link {
+    display: inline-block;
+    margin-left: 3px;
+    vertical-align: -1px;
+    line-height: 0;
+  }
+  .authors-more {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 8px;
+    background: var(--neutral-100);
+    border: 0;
+    border-radius: var(--radius-pill);
+    font-family: inherit;
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .authors-more:hover { background: var(--purple-100); color: var(--accent); }
+  .authors-block[data-open="true"] .authors-more { background: var(--purple-100); color: var(--accent); }
+  .authors-more--end {
+    margin-left: 8px;
+    background: var(--purple-100);
+    color: var(--accent);
+    vertical-align: 1px;
+  }
+  .authors-more--end:hover { background: var(--accent); color: #fff; }
+  .authors-block[data-open="true"] .authors-line::after { content: ','; color: var(--text-secondary); }
+  .authors-block[data-open="true"] .authors-more:not(.authors-more--end) { display: none; }
+  /* Slide-in container — ported from form-tiles .qgroup */
+  .authors-full {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+    margin-top: 0;
+    transition:
+      max-height 620ms cubic-bezier(0.65, 0, 0.35, 1),
+      opacity 460ms ease,
+      transform 620ms cubic-bezier(0.65, 0, 0.35, 1),
+      margin-top 620ms cubic-bezier(0.65, 0, 0.35, 1);
+    pointer-events: none;
+  }
+  .authors-block[data-open="true"] .authors-full {
+    max-height: 800px;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    margin-top: 2px;
+    pointer-events: auto;
+  }
+  .authors-full p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .authors-full { transition: none; }
+  }
+
+  /* Affiliations — kept as collapsible details, demoted visual weight */
+  .article-hero__affiliations {
+    margin: 6px 0 10px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+  .article-hero__affiliations summary {
+    list-style: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-tertiary);
+    transition: color 0.15s;
+  }
+  .article-hero__affiliations summary::-webkit-details-marker { display: none; }
+  .article-hero__affiliations summary:hover { color: var(--accent); }
+  .article-hero__affiliations[open] summary svg { transform: rotate(180deg); }
+  .article-hero__affiliations summary svg { transition: transform 0.2s; }
+  .article-hero__affiliations ul {
+    list-style: none;
+    padding: 8px 0 0;
+    margin: 4px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .article-hero__affiliations li {
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+  .aff-name { line-height: 1.45; }
+  .aff-ror {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    color: var(--text-tertiary);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 1px 6px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+  }
+  .aff-ror:hover { color: var(--accent); border-color: var(--accent); text-decoration: none; }
+
+  .article-hero__sentiment {
+    margin: 8px 0;
+    padding: 6px 12px;
+    background: var(--rose-100, #fdf0f4);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: var(--rose-700, #b0778a);
+  }
+
+  /* IDs row */
+  .article-hero__ids {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin: 14px 0 10px;
+  }
+  .id-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    color: var(--text-primary);
+    text-decoration: none;
+    font-variant-numeric: tabular-nums;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+  }
+  .id-pill:hover {
+    border-color: var(--accent);
+    background: var(--purple-50, var(--bg-body));
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .id-pill__lbl {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-tertiary);
+    margin-right: 2px;
+  }
+  .id-pill__val { color: inherit; }
+  .id-pill__copy {
+    width: 13px;
+    height: 13px;
+    opacity: 0.45;
+    margin-left: 4px;
+    flex-shrink: 0;
+  }
+  .id-pill:hover .id-pill__copy { opacity: 1; color: var(--accent); }
+
+  /* Foot: Read link + license/access */
+  .article-hero__foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0;
+  }
+  .article-hero__read {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .article-hero__read:hover {
+    color: var(--purple-900, var(--accent));
+    text-decoration: underline;
+  }
+  .article-hero__license-block {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+  .article-hero__license-lbl {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-tertiary);
+    margin-right: 4px;
+  }
+  .article-hero__license { color: var(--text-tertiary); }
+  .article-hero__access {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+  }
+  .article-hero__access--restricted { color: var(--text-tertiary); }
+  .article-hero__access--open,
+  .article-hero__access--free { color: var(--amber-700); }
+</style>
+
+<script is:inline>
+  // Authors expand/collapse — slide pattern from form-tiles. The same toggle
+  // handles both the inline "+N more" button and the trailing "Collapse"
+  // button (positioned at the end of the slid-in author list).
+  document.querySelectorAll('[data-toggle="authors"]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var block = btn.closest('.authors-block');
+      if (!block) return;
+      var full = block.querySelector('.authors-full');
+      var expand = block.querySelector('.authors-more:not(.authors-more--end)');
+      var isOpen = block.getAttribute('data-open') !== 'true';
+      block.setAttribute('data-open', String(isOpen));
+      if (expand) expand.setAttribute('aria-expanded', String(isOpen));
+      if (full) full.setAttribute('aria-hidden', String(!isOpen));
+    });
+  });
+</script>
