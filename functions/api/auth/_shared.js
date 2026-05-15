@@ -135,7 +135,7 @@ export async function hashToken(token) {
 
 // --- Session management ---
 
-const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+export const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const SESSION_RENEW_THRESHOLD_MS = 15 * 24 * 60 * 60 * 1000; // 15 days
 
 export async function createSession(db, userId) {
@@ -213,8 +213,15 @@ export function getSessionIdFromCookie(request) {
 // --- Turnstile verification ---
 
 export async function verifyTurnstile(secret, token, ip, env) {
-  if (!secret) return { ok: false, reason: 'rejected' };
-  if (!token) return { ok: false, reason: 'rejected' };
+  if (!secret) {
+    if (env?.EVENTS) {
+      try {
+        env.EVENTS.writeDataPoint({ blobs: ['auth', 'turnstile_misconfigured'], indexes: [] });
+      } catch {}
+    }
+    return { ok: false, reason: 'misconfigured' };
+  }
+  if (!token) return { ok: false, reason: 'missing_token' };
   try {
     const resp = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
       method: 'POST',

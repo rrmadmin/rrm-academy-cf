@@ -5,7 +5,7 @@
 import {
   json, optionsResponse, hashPassword, hashToken,
   generateSessionId, sessionCookie,
-  isValidPassword, checkRateLimit, sessionInsertStatement,
+  isValidPassword, checkRateLimit, sessionInsertStatement, SESSION_DURATION_MS,
 } from './_shared.js';
 import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
@@ -41,34 +41,45 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const tokenHash = await hashToken(token);
     const now = Math.floor(Date.now() / 1000);
 
-    // Consume the token atomically.
-    const record = await db.prepare(
-      "DELETE FROM password_reset WHERE token_hash = ? AND expires_at > ? AND purpose = 'reset' RETURNING user_id"
+    // Pre-SELECT to get user_id without consuming the token yet.
+    // Allows the entire mutation to run as one atomic batch, preventing the
+    // rugpull where the token is consumed but the password UPDATE fails.
+    const tokenRow = await db.prepare(
+      "SELECT user_id FROM password_reset WHERE token_hash = ? AND expires_at > ? AND purpose = 'reset'"
     ).bind(tokenHash, now).first();
 
-    if (!record) {
+    if (!tokenRow) {
       return json({ ok: false, error: 'This reset link is invalid, expired, or has already been used. Please request a new one.' }, 400);
     }
 
-    // Update password and rotate session — atomically.
+    // Atomic batch: consume token + update password + rotate sessions together.
     const newSessionId = generateSessionId();
-    const newExpiresAt = Math.floor((Date.now() + 30 * 24 * 60 * 60 * 1000) / 1000);
+    const newExpiresAt = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
 
-    await db.batch([
+    const results = await db.batch([
+      // Consume token — 0 changes means concurrent use; checked below.
+      db.prepare("DELETE FROM password_reset WHERE token_hash = ? AND expires_at > ? AND purpose = 'reset'")
+        .bind(tokenHash, now),
       db.prepare('UPDATE user SET hashed_password = ?, email_verified = 1, updated_at = datetime(\'now\') WHERE id = ?')
-        .bind(hashedPassword, record.user_id),
+        .bind(hashedPassword, tokenRow.user_id),
       db.prepare("DELETE FROM password_reset WHERE user_id = ? AND purpose = 'reset'")
-        .bind(record.user_id),
+        .bind(tokenRow.user_id),
+      // Atomic batch — inline DELETE retained for batch atomicity (mirror of invalidateAllUserSessions)
       db.prepare('DELETE FROM session WHERE user_id = ?')
-        .bind(record.user_id),
-      sessionInsertStatement(db, newSessionId, record.user_id, newExpiresAt),
+        .bind(tokenRow.user_id),
+      sessionInsertStatement(db, newSessionId, tokenRow.user_id, newExpiresAt),
     ]);
+
+    if (results[0].meta?.changes !== 1) {
+      // Race: token consumed concurrently between pre-SELECT and batch DELETE.
+      return json({ ok: false, error: 'This reset link is invalid, expired, or has already been used. Please request a new one.' }, 400);
+    }
 
     // Notify the account owner that their password was reset.
     // Non-blocking: a notification failure never fails the reset itself.
     if (env.AWS_ACCESS_KEY_ID) {
       const notifyUser = await db.prepare('SELECT email, name FROM user WHERE id = ?')
-        .bind(record.user_id).first();
+        .bind(tokenRow.user_id).first();
       if (notifyUser) {
         const changeDate = new Date().toUTCString();
         waitUntil(

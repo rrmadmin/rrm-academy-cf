@@ -13,7 +13,7 @@ import {
   exchangeGoogleCode, getGoogleProfile, isSafeRedirect, SITE_URL,
   waitlistBackfillStatement, deriveSignupSource, checkRateLimit,
 } from './_shared.js';
-import { sendEmail } from '../_ses.js';
+import { sendEmail, logEmailFailure } from '../_ses.js';
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
 
@@ -70,12 +70,16 @@ async function linkGoogleToVerifiedUser(db, googleId, email, avatarUrl) {
   if (user.google_id && user.google_id !== googleId) {
     return { redirect: '/login/?error=account_conflict' };
   }
-  await db.batch([
+  const upd = await db.batch([
     db.prepare(
-      `UPDATE user SET google_id = ?, avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ?`
-    ).bind(googleId, avatarUrl, user.id),
+      `UPDATE user SET google_id = ?, avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ? AND (google_id IS NULL OR google_id = ?)`
+    ).bind(googleId, avatarUrl, user.id, googleId),
     waitlistBackfillStatement(db, user.id, email),
   ]);
+
+  if (upd[0].meta?.changes !== 1) {
+    return { redirect: '/login/?error=account_conflict' };
+  }
 
   return { user };
 }
@@ -221,7 +225,13 @@ export async function onRequestGet({ request, env, waitUntil }) {
               '-- RRM Academy',
             ].join('\n'),
             log: { db: env.DB, source: 'auth/google-callback', category: 'transactional' },
-          }).catch(() => {})
+          }).catch(err => logEmailFailure(env.DB, {
+            email: r1.oldEmail,
+            category: 'transactional',
+            source: 'auth/google-callback',
+            subject: 'Your RRM Academy email address was changed',
+            detail: err.message,
+          }))
         );
       }
     }

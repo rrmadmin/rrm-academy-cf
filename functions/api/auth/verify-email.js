@@ -29,23 +29,34 @@ export async function onRequestPost({ request, env, waitUntil }) {
     try { body = await request.json(); } catch { return json({ ok: false, error: 'Invalid JSON' }, 400); }
     if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
-    const code = (body.code || '').trim();
+    const code = (body.code || '').trim().toLowerCase();
     if (!code) return json({ ok: false, error: 'Verification code is required.' }, 400);
 
     const now = Math.floor(Date.now() / 1000);
 
-    // Consume the verification record atomically (DELETE...RETURNING eliminates SELECT-then-DELETE race).
-    const record = await db.prepare(
-      'DELETE FROM email_verification WHERE user_id = ? AND code = ? AND expires_at > ? RETURNING id'
+    // Pre-SELECT to get user ownership without consuming the token yet.
+    // Allows the DELETE + UPDATE to run as an atomic batch, preventing the
+    // rugpull where token is consumed but UPDATE fails (user_id mismatch, DB error).
+    const tokenRow = await db.prepare(
+      'SELECT user_id FROM email_verification WHERE user_id = ? AND code = ? AND expires_at > ?'
     ).bind(session.userId, code, now).first();
 
-    if (!record) {
+    if (!tokenRow) {
       return json({ ok: false, error: 'Invalid or expired verification code.' }, 400);
     }
 
-    // Mark email as verified.
-    await db.prepare("UPDATE user SET email_verified = 1, updated_at = datetime('now') WHERE id = ?")
-      .bind(session.userId).run();
+    // Atomic batch: consume token + verify email together.
+    const results = await db.batch([
+      db.prepare('DELETE FROM email_verification WHERE user_id = ? AND code = ? AND expires_at > ?')
+        .bind(session.userId, code, now),
+      db.prepare("UPDATE user SET email_verified = 1, updated_at = datetime('now') WHERE id = ?")
+        .bind(tokenRow.user_id),
+    ]);
+
+    if (results[0].meta?.changes !== 1) {
+      // Race: token was consumed concurrently between pre-SELECT and batch DELETE.
+      return json({ ok: false, error: 'Invalid or expired verification code.' }, 400);
+    }
 
     const responseHeaders = {};
     if (session.renewed) {

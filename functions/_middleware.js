@@ -188,11 +188,13 @@ export async function onRequest(context) {
     }));
   }
 
-  // Fire GA4 page_view asynchronously -- does not block the response.
-  context.waitUntil(sendPageView(request, env));
-
-  // Fire Arrivl AI bot analytics asynchronously -- does not block the response.
-  context.waitUntil(sendArrivlPageview(request, env));
+  // Fire GA4 and Arrivl analytics asynchronously -- does not block the response.
+  context.waitUntil(
+    Promise.all([
+      sendPageView(request, env).catch(() => {}),
+      sendArrivlPageview(request, env).catch(() => {}),
+    ])
+  );
 
   // 301 redirect: library.rrmacademy.org -> rrmacademy.org/library
   if (url.hostname === 'library.rrmacademy.org') {

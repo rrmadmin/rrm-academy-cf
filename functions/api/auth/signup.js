@@ -6,7 +6,7 @@ import {
   json, optionsResponse, generateId, generateSessionId, generateToken,
   hashPassword, sessionCookie, verifyTurnstile, checkRateLimit,
   isValidPassword, waitlistBackfillStatement, sessionInsertStatement,
-  deriveSignupSource, EMAIL_VERIFY_TTL_S,
+  deriveSignupSource, EMAIL_VERIFY_TTL_S, SESSION_DURATION_MS,
 } from './_shared.js';
 import { validateEmail } from './_email-validate.js';
 import { verifyAndTagEmail } from '../_elv.js';
@@ -15,6 +15,9 @@ import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
 import { validateBody } from '../_validate.js';
 
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
 
 async function sendWelcomeAskEmail(env, email, firstName) {
   const greeting = firstName || 'there';
@@ -35,7 +38,7 @@ async function sendWelcomeAskEmail(env, email, firstName) {
   ].join('\n');
   const html = [
     '<!DOCTYPE html><html><body style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#1a1a1a">',
-    `<p>Hi ${greeting},</p>`,
+    `<p>Hi ${escapeHtml(greeting)},</p>`,
     '<p>Welcome to RRM Academy. Your free account is active.</p>',
     '<p>You can now use <strong>/ask</strong> &mdash; our conversational research layer that answers questions from our entire library.<br>',
     '<a href="https://rrmacademy.org/ask/">Head to rrmacademy.org/ask/ to get started.</a></p>',
@@ -155,7 +158,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
         }
       }
       const fakeSessionId = generateSessionId();
-      const fakeExpires = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
+      const fakeExpires = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
       return json(
         { ok: true, emailVerificationRequired: true },
         201,
@@ -171,7 +174,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const verifyExpiresAt = Math.floor(Date.now() / 1000) + EMAIL_VERIFY_TTL_S;
 
     const sessionId = generateSessionId();
-    const sessionExpiresAt = Math.floor((Date.now() + 30 * 24 * 60 * 60 * 1000) / 1000);
+    const sessionExpiresAt = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
 
     // Atomic batch: user + email_verification + session + waitlist backfill
     try {
@@ -191,7 +194,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
         // Scoped to user.email UNIQUE — session.id or email_verification.id collisions are not
         // enumeration risks and should surface as 500 (caller can retry a fresh ID).
         const fakeSessionId = generateSessionId();
-        const fakeExpires = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
+        const fakeExpires = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
         return json(
           { ok: true, emailVerificationRequired: true },
           201,

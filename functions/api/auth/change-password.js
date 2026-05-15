@@ -7,6 +7,7 @@ import {
   json, optionsResponse, hashPassword, verifyPassword,
   getSessionIdFromCookie, validateSession, isValidPassword,
   generateSessionId, sessionCookie, checkRateLimit, sessionInsertStatement,
+  SESSION_DURATION_MS,
 } from './_shared.js';
 import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
@@ -53,7 +54,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     // Verify current password
     const valid = await verifyPassword(currentPassword, user.hashed_password);
-    if (!valid) return json({ ok: false, error: 'Current password is incorrect.' }, 403);
+    if (!valid) return json({ ok: false, error: 'Current password is incorrect.' }, 401);
 
     const sameAsCurrent = await verifyPassword(newPassword, user.hashed_password);
     if (sameAsCurrent) return json({ ok: false, error: 'New password must differ from your current password.' }, 400);
@@ -61,11 +62,12 @@ export async function onRequestPost({ request, env, waitUntil }) {
     // Hash and save new password, invalidate sessions, create fresh session — atomically
     const hashedPassword = await hashPassword(newPassword);
     const newSessionId = generateSessionId();
-    const newExpiresAt = Math.floor((Date.now() + 30 * 24 * 60 * 60 * 1000) / 1000);
+    const newExpiresAt = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
 
     await db.batch([
       db.prepare('UPDATE user SET hashed_password = ?, updated_at = datetime(\'now\') WHERE id = ?')
         .bind(hashedPassword, user.id),
+      // Atomic batch — inline DELETE retained for batch atomicity (mirror of invalidateAllUserSessions)
       db.prepare('DELETE FROM session WHERE user_id = ?')
         .bind(user.id),
       db.prepare("DELETE FROM password_reset WHERE user_id = ? AND purpose = 'reset'")

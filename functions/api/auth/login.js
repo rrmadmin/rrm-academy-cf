@@ -6,7 +6,7 @@ import {
   json, optionsResponse, verifyPassword, sessionCookie,
   verifyTurnstile, checkRateLimit, isValidEmail,
   generateSessionId, waitlistBackfillStatement, sessionInsertStatement,
-  DUMMY_PASSWORD_HASH,
+  DUMMY_PASSWORD_HASH, SESSION_DURATION_MS,
 } from './_shared.js';
 import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
@@ -59,6 +59,13 @@ export async function onRequestPost({ request, env, waitUntil }) {
       return json({ ok: false, error: 'Invalid email or password.' }, 401);
     }
 
+    // Blocked check must come before the hashed_password branch so that
+    // Google-upgraded blocked users (no hashed_password) don't bypass it.
+    if (user.blocked) {
+      await verifyPassword(password, user.hashed_password || DUMMY_PASSWORD_HASH);
+      return json({ ok: false, error: 'Invalid email or password.' }, 401);
+    }
+
     // Passwordless accounts (Google-only or auto-created without password).
     // Anti-enumeration: return the same generic error regardless of the reason.
     // Fire a non-blocking guidance email out-of-band so the legitimate user
@@ -108,11 +115,6 @@ export async function onRequestPost({ request, env, waitUntil }) {
       return json({ ok: false, error: 'Invalid email or password.' }, 401);
     }
 
-    if (user.blocked) {
-      await verifyPassword(password, user.hashed_password);
-      return json({ ok: false, error: 'Invalid email or password.' }, 401);
-    }
-
     const valid = await verifyPassword(password, user.hashed_password);
     if (!valid) {
       return json({ ok: false, error: 'Invalid email or password.' }, 401);
@@ -125,7 +127,6 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     // Create session + backfill waitlist rows orphaned before this email logged in.
     // Idempotent: only touches course_waitlist rows where user_id IS NULL.
-    const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
     const sessionId = generateSessionId();
     const expiresAt = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
     await db.batch([
