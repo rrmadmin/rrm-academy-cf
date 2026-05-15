@@ -29,7 +29,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
     if (!token) return json({ ok: false, error: 'Reset token is required.' }, 400);
     if (!isValidPassword(password)) return json({ ok: false, error: 'Password must be at least 8 characters.' }, 400);
 
-    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+    const ip = request.headers.get('CF-Connecting-IP');
+    if (!ip) return json({ ok: false, error: 'Service temporarily unavailable.' }, 503);
     if (!await checkRateLimit(env, `reset-pw:${ip}`, 5, 900)) {
       return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
     }

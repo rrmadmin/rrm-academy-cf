@@ -84,9 +84,25 @@ export async function onRequestPost({ request, env, waitUntil }) {
     if (!isValidPassword(password)) return json({ ok: false, error: 'Password must be at least 8 characters.' }, 400);
 
     // Rate limit by IP (before expensive DNS lookups): 5 attempts per 15 minutes
-    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+    const ip = request.headers.get('CF-Connecting-IP');
+    if (!ip) return json({ ok: false, error: 'Service temporarily unavailable.' }, 503);
     if (!await checkRateLimit(env, `signup:${ip}`, 5, 900)) {
       return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
+    }
+
+    if (!env.AWS_ACCESS_KEY_ID) {
+      return json({ ok: false, error: 'Email service is temporarily unavailable. Please try again in a few minutes or contact administrator@rrmacademy.org for help.' }, 503);
+    }
+
+    // Turnstile (bot gate before billed work)
+    const turnstileResult = await verifyTurnstile(
+      env.CF_TURNSTILE_SECRET, body.turnstileToken, ip, env
+    );
+    if (!turnstileResult.ok) {
+      const turnstileMsg = turnstileResult.reason === 'network'
+        ? 'Verification service unavailable. Please try again in a moment.'
+        : 'Spam check failed. Please refresh and try again.';
+      return json({ ok: false, error: turnstileMsg }, 403);
     }
 
     // Deep email validation (disposable domain, MX check, typo detection)
@@ -103,21 +119,6 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const elv = await verifyAndTagEmail(email, env, { firstName, lastName, source: 'signup' });
     if (elv.blocked) {
       return json({ ok: false, error: elv.reason }, 400);
-    }
-
-    if (!env.AWS_ACCESS_KEY_ID) {
-      return json({ ok: false, error: 'Email service is temporarily unavailable. Please try again in a few minutes or contact administrator@rrmacademy.org for help.' }, 503);
-    }
-
-    // Turnstile
-    const turnstileResult = await verifyTurnstile(
-      env.CF_TURNSTILE_SECRET, body.turnstileToken, ip, env
-    );
-    if (!turnstileResult.ok) {
-      const turnstileMsg = turnstileResult.reason === 'network'
-        ? 'Verification service unavailable. Please try again in a moment.'
-        : 'Spam check failed. Please refresh and try again.';
-      return json({ ok: false, error: turnstileMsg }, 403);
     }
 
     // Hash password before existence check to prevent timing side-channel
@@ -201,7 +202,6 @@ export async function onRequestPost({ request, env, waitUntil }) {
     }
 
     // Send verification email via waitUntil (decouple SES latency from response timing)
-    // AWS_ACCESS_KEY_ID guard already returned 503 above — no inner guard needed here.
     waitUntil(
       sendEmail(env, {
         from: 'RRM Academy <accounts@mail.rrmacademy.org>',
@@ -230,7 +230,6 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     if (signupSource === 'ask') {
       waitUntil(sendGA4Event(env, request, 'signup_from_ask', { source: 'ask' }).catch(() => {}));
-      // AWS_ACCESS_KEY_ID guard already returned 503 above — no inner guard needed here.
       waitUntil(
         sendWelcomeAskEmail(env, email, firstName).catch(err => {
           log(env, waitUntil, 'auth', 'welcome_ask_email_fail', 'error', err.message);

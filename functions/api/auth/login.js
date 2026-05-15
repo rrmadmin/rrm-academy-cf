@@ -32,7 +32,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
     }
 
     // Rate limit by IP (prevent brute force): 5 attempts per 15 minutes
-    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+    const ip = request.headers.get('CF-Connecting-IP');
+    if (!ip) return json({ ok: false, error: 'Service temporarily unavailable.' }, 503);
     if (!await checkRateLimit(env, `login:${ip}`, 5, 900)) {
       return json({ ok: false, error: 'Too many login attempts. Please try again in 15 minutes.' }, 429);
     }
