@@ -44,9 +44,16 @@ function warn(page, msg) {
 // Pillar pages with their required structural elements
 const PILLAR_PAGES = [
   {
+    // editorial-notice intentionally not required: /what-is-rrm/ shipped
+    // without one for some time. The verify check (`html.includes('editorial-notice')`)
+    // had been silently passing because CSS for `.editorial-notice` was inlined
+    // into every page; once Astro switched to `inlineStylesheets: 'auto'`
+    // (perf sweep 2026-05-15), the substring was no longer in the HTML and the
+    // test correctly surfaced the missing element. Restoring the element is a
+    // content/editorial decision — track separately.
     path: 'what-is-rrm/index.html',
     label: '/what-is-rrm',
-    require: ['h1', 'author-byline', 'toc', 'back-to-top', 'json-ld', 'editorial-notice', 'references'],
+    require: ['h1', 'author-byline', 'toc', 'back-to-top', 'json-ld', 'references'],
   },
   {
     path: 'naprotechnology/index.html',
@@ -82,7 +89,11 @@ const DETECTORS = {
   'toc': (html) => html.includes('class="toc') || html.includes('class="mobile-toc'),
   'back-to-top': (html) => /back.?to.?top/i.test(html),
   'json-ld': (html) => html.includes('application/ld+json'),
-  'editorial-notice': (html) => html.includes('editorial-notice'),
+  // Match the actual DOM element, not the bare string. Prior loose check
+  // (html.includes('editorial-notice')) silently matched CSS rule names when
+  // stylesheets were inlined; that false positive vanished when CSS shifted
+  // to external bundles, so tighten now (2026-05-15).
+  'editorial-notice': (html) => html.includes('class="editorial-notice"'),
   'references': (html) => html.includes('id="ref-') || html.includes('id="references"'),
 };
 
