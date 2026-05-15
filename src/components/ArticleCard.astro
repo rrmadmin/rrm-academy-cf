@@ -86,29 +86,38 @@ const coinsTitle = buildCOinS(article);
 
   {!compact && article.topics.length > 0 && (
     <div class="article-card__topics">
-      {article.topics.slice(0, 3).map(t => (
-        <span class="article-card__topic">{t}</span>
-      ))}
+      {article.topics.slice(0, 3).map(t => {
+        const leaf = t.split('>').pop()?.trim() || t;
+        return <span class="article-card__topic" title={t}>{leaf}</span>;
+      })}
     </div>
   )}
 </article>
 
 <style>
-  /* Full card — paper sheet, uniform height */
+  /* Full card — outlined sheet matching the library homepage Recently Published
+     cards: 1px border, hover lifts + tints border with the accent. */
   .article-card {
     position: relative;
     background: var(--bg-surface);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     padding: var(--space-5);
-    transition: box-shadow 0.2s;
+    transition: border-color 0.15s, transform 0.15s, box-shadow 0.2s;
     display: flex;
     flex-direction: column;
     min-width: 0;
     overflow: hidden;
   }
   .article-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
     box-shadow: var(--shadow-md);
     cursor: pointer;
+  }
+  .article-card:focus-within {
+    border-color: var(--purple-700);
+    box-shadow: 0 0 0 3px var(--focus-ring);
   }
 
   .article-card__link {
@@ -188,7 +197,6 @@ const coinsTitle = buildCOinS(article);
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-2);
-    margin-top: auto;
   }
   .article-card__topic {
     font-size: 0.625rem;
@@ -207,11 +215,14 @@ const coinsTitle = buildCOinS(article);
   /* Compact variant — clean text row */
   .article-card--compact {
     background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--border-light);
     border-radius: 0;
     padding: var(--space-3) 0;
-    border-bottom: 1px solid var(--border-light);
   }
   .article-card--compact:hover {
+    border-color: var(--border-light);
+    transform: none;
     box-shadow: none;
   }
   .article-card--compact .article-card__title {
