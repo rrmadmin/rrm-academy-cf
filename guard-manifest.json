@@ -186,7 +186,7 @@
       "hash": "c8053c9818a055f56bdfe145bbab83ca1aa7566d2c512d96edcd6e6ca0f17eaa"
     },
     "functions/api/track.js": {
-      "hash": "a66e38659da088958e327103c1256bc8fb23c4c57bdfb3d5cf69f9a78f31b0a4",
+      "hash": "e9b91f6cc38a5332bc68ca02cfc588c419c29061f25745dcd01154a6fdfae86c",
       "note": "Client analytics endpoint: rate limit + allowlist + PII strip + GA4 MP relay + AE mirror"
     },
     "functions/api/_track-events.js": {
