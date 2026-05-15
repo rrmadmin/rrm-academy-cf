@@ -38,7 +38,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const newPassword = body.newPassword || '';
 
     if (!currentPassword || currentPassword.length > 128) return json({ ok: false, error: 'Current password is required.' }, 400);
-    if (!isValidPassword(newPassword)) return json({ ok: false, error: 'New password must be at least 8 characters.' }, 400);
+    if (!isValidPassword(newPassword)) return json({ ok: false, error: 'New password must be between 8 and 128 characters.' }, 400);
 
     // Get user's current hashed password (email + name included for notification)
     const user = await db.prepare('SELECT id, email, name, hashed_password, google_id FROM user WHERE id = ?')
@@ -67,6 +67,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     await db.batch([
       db.prepare('UPDATE user SET hashed_password = ?, updated_at = datetime(\'now\') WHERE id = ?')
         .bind(hashedPassword, user.id),
+      // Cleanup: revoke ALL sessions on password change (forces re-auth across all devices for security).
       // Atomic batch — inline DELETE retained for batch atomicity (mirror of invalidateAllUserSessions)
       db.prepare('DELETE FROM session WHERE user_id = ?')
         .bind(user.id),

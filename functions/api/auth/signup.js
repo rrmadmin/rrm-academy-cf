@@ -84,7 +84,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const password  = body.password || '';
     const signupSource = deriveSignupSource(body, request);
 
-    if (!isValidPassword(password)) return json({ ok: false, error: 'Password must be at least 8 characters.' }, 400);
+    if (!isValidPassword(password)) return json({ ok: false, error: 'Password must be between 8 and 128 characters.' }, 400);
 
     // Rate limit by IP (before expensive DNS lookups): 5 attempts per 15 minutes
     const ip = request.headers.get('CF-Connecting-IP');
@@ -157,6 +157,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
           );
         }
       }
+      // Anti-enumeration tradeoff: returning a fake cookie may overwrite a real session if a logged-in user submits the signup form. Documented LOW. Rate-limit mitigates.
+      // Anti-enumeration: silent 201. Note: enumeration via /api/auth/session probe is possible but rate-limit (5/15min) mitigates.
       const fakeSessionId = generateSessionId();
       const fakeExpires = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
       return json(
@@ -185,6 +187,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
         db.prepare(
           'INSERT INTO email_verification (id, user_id, code, expires_at) VALUES (?, ?, ?, ?)'
         ).bind(generateId(), userId, code, verifyExpiresAt),
+        // No prior sessions to clean: new user, fresh DB row.
         sessionInsertStatement(db, sessionId, userId, sessionExpiresAt),
         waitlistBackfillStatement(db, userId, email),
       ]);
@@ -193,6 +196,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
         // Anti-enumeration: same cookie shape as a real signup (fake session ID won't validate).
         // Scoped to user.email UNIQUE — session.id or email_verification.id collisions are not
         // enumeration risks and should surface as 500 (caller can retry a fresh ID).
+        // Anti-enumeration tradeoff: returning a fake cookie may overwrite a real session if a logged-in user submits the signup form. Documented LOW. Rate-limit mitigates.
+        // Anti-enumeration: silent 201. Note: enumeration via /api/auth/session probe is possible but rate-limit (5/15min) mitigates.
         const fakeSessionId = generateSessionId();
         const fakeExpires = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
         return json(

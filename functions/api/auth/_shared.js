@@ -157,7 +157,7 @@ export async function validateSession(db, sessionId) {
   `).bind(sessionId).first();
   if (!row) return null;
 
-  // Blocked users are treated as session-invalid. Cleanup happens via cron.
+  // Blocked users are treated as session-invalid. Expired sessions are cleaned up by cron sweep (admin/cleanup), not inline.
   if (row.blocked) return null;
 
   const now = Math.floor(Date.now() / 1000);

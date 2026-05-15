@@ -40,7 +40,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const user = await db.prepare('SELECT email, name, email_verified FROM user WHERE id = ?')
       .bind(session.userId).first();
     if (!user) return json({ ok: false, error: 'User not found.' }, 404);
-    if (user.email_verified) return json({ ok: true, message: 'Email already verified.' });
+    if (user.email_verified) return json({ ok: true });
 
     // Generate new code and expiry.
     const code = generateToken().slice(0, 8);

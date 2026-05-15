@@ -120,8 +120,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
       return json({ ok: false, error: 'Invalid email or password.' }, 401);
     }
 
-    // Clean up expired sessions before creating new one.
-    // Keeps multi-device working (only expired sessions removed, not active ones).
+    // Cleanup: delete only EXPIRED sessions; preserve other-device active sessions for multi-device login.
     const nowTs = Math.floor(Date.now() / 1000);
     await db.prepare('DELETE FROM session WHERE user_id = ? AND expires_at < ?').bind(user.id, nowTs).run();
 
