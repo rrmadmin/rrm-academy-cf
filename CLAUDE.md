@@ -656,7 +656,7 @@ Docs: `scripts/gates/README.md`.
 | **AG3** Server/client separation | Server-only conversion events (`page_view`, `sign_up`, `signup_from_ask`, `generate_lead`, `begin_checkout`, `purchase`) must NOT appear in `ALLOWED_CLIENT_EVENTS`. Prevents double-counting. |
 | **AG4** Required params satisfied | `track('event', { … })` literal call sites must include all keys in `REQUIRED_PARAMS[event]`. Catches `track('cta_click', {})` with no `id` + `page`. |
 | **AG5** PII regex intact | `PII_REGEX` must contain all of: `email`, `user`, `name`, `password`, `token`, `cookie`, `address`, `phone`, `ssn`. Future PR that dilutes the regex trips. |
-| **AG6** UTM convention | UTM literals in `src/` + `functions/` must be lowercase + underscores + ASCII per `docs/marketing/utm-conventions.md`. |
+| **AG6** UTM convention | UTM literals in `src/` + `functions/` must be lowercase + underscores + ASCII per `rrm-academy-internal/marketing/utm-conventions.md`. |
 | **AG7** No third-party analytics | `googletagmanager.com`, `stats.g.doubleclick.net`, `connect.facebook.net`, `analytics.ahrefs.com` must not appear as script sources / fetch targets. `www.google-analytics.com` allowed only in `_ga4.js` (MP endpoint). |
 | **AG8** CSP lockdown | `CSP_VALUE` in `_middleware.js` must NOT include `googletagmanager.com`, `analytics.google.com`, `stats.g.doubleclick.net`, `connect.facebook.net`. Catches accidental CSP loosening. |
 | **AG9** Helper exclusivity | No raw `fetch('/api/track')` or `sendBeacon('/api/track')` outside `src/scripts/track.ts`. Forces every emission through the validated helper. |
@@ -681,7 +681,7 @@ Docs: `scripts/gates/README.md`.
 4. Confirm it appears in at least one funnel in spec §15.4 (review gate R-AG4)
 5. Run `npm run gates:analytics:check`
 
-**UTM conventions**: see `docs/marketing/utm-conventions.md`. Gate AG6 enforces lowercase + underscores + ASCII.
+**UTM conventions**: see `rrm-academy-internal/marketing/utm-conventions.md`. Gate AG6 enforces lowercase + underscores + ASCII.
 
 ## Citation Integrity
 

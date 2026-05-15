@@ -181,7 +181,7 @@ Server-only conversion events (`page_view`, `sign_up`, `signup_from_ask`, `gener
 
 ## AG6: UTM convention
 
-UTM-bearing URL literals in `src/` + `functions/` must use lowercase + underscores + ASCII per `docs/marketing/utm-conventions.md`. Catches `utm_campaign=Newsletter Monthly May 2026` (uppercase, space) before it pollutes the dashboard.
+UTM-bearing URL literals in `src/` + `functions/` must use lowercase + underscores + ASCII per `rrm-academy-internal/marketing/utm-conventions.md`. Catches `utm_campaign=Newsletter Monthly May 2026` (uppercase, space) before it pollutes the dashboard.
 
 ## AG7: No third-party analytics
 
@@ -220,4 +220,4 @@ Pre-commit fires `npm run gates:analytics:check` when any of these change:
 ## Companion: spec + UTM doc
 
 - **Spec:** `docs/superpowers/specs/2026-05-15-client-analytics-spec.html`
-- **UTM conventions:** `docs/marketing/utm-conventions.md`
+- **UTM conventions:** `rrm-academy-internal/marketing/utm-conventions.md`
