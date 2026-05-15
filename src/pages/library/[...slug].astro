@@ -10,7 +10,7 @@ import { isShellEnabled } from '../../lib/shell-routes';
 import { fetchAllArticles, getRelatedArticles, getArticlesByAuthor, type Article } from '../../lib/airtable';
 import { parseStructuredAbstract } from '../../lib/abstract-parser';
 import { parseMarkdown, looksLikeMarkdown } from '../../lib/markdown-sanitize';
-import { buildMedicalScholarlyArticle } from '../../lib/identity';
+import { buildMedicalScholarlyArticle, buildBreadcrumbList } from '../../lib/identity';
 
 const SHELL_ENABLED = isShellEnabled('library');
 
@@ -100,7 +100,18 @@ const pubmedUrl = article.pmid ? `https://pubmed.ncbi.nlm.nih.gov/${article.pmid
 // Schema.org JSON-LD — delegated to buildMedicalScholarlyArticle (Phase 7).
 // Helpers below (orcidUrl, nameKey, dedupeAuthorRecords, cleanAffiliationName,
 // uniqueAffiliations) remain because the visible markup still depends on them.
-const jsonLd = buildMedicalScholarlyArticle(article);
+const articleSchemaRaw = buildMedicalScholarlyArticle(article) as Record<string, unknown>;
+const breadcrumbRaw = buildBreadcrumbList([
+  { name: 'Home', url: 'https://rrmacademy.org/' },
+  { name: 'Research Library', url: 'https://rrmacademy.org/library/' },
+  { name: article.title, url: `https://rrmacademy.org/library/${article.slug}/` },
+]) as Record<string, unknown>;
+const { '@context': _articleCtx, ...articleNode } = articleSchemaRaw;
+const { '@context': _bcCtx, ...breadcrumbNode } = breadcrumbRaw;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [articleNode, breadcrumbNode],
+};
 
 // Build Person JSON-LD per author. Prefer structured authorRecords (D1-backed:
 // includes ORCID sameAs and affiliation with ROR) when available; fall back to
