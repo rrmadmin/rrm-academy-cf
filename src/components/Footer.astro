@@ -163,6 +163,10 @@ const helpLinks = [
       var next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
       html.setAttribute('data-theme', next);
       localStorage.setItem('rrm_theme', next);
+      // GA4 theme_toggle via the global bridge (track-auto.ts exposes
+      // window.__rrmTrack__). Falls through silently if the bridge hasn't
+      // initialized yet — analytics must never block UX.
+      try { if (window.__rrmTrack__) window.__rrmTrack__('theme_toggle', { to: next }); } catch (e) {}
     }
 
     btn.addEventListener('click', function(e) {

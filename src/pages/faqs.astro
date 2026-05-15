@@ -96,7 +96,7 @@ const jsonLd = {
           <h2 class="faq-group-title">{group.category}</h2>
           <div class="faq-list">
             {group.faqs.map((faq) => (
-              <details class="faq-item">
+              <details class="faq-item" data-faq-slug={faq.slug}>
                 <summary class="faq-question">
                   <span class="faq-question-text">{faq.question}</span>
                   <span class="faq-chevron" aria-hidden="true">
@@ -227,3 +227,27 @@ const jsonLd = {
     color: var(--text-secondary);
   }
 </style>
+
+<script>
+  // Fire faq_expand on accordion open. Listens once at the document level and
+  // checks event.target.open at toggle-time. Only fires on OPEN (not close),
+  // and only once per slug per page-view to avoid spamming the dashboard if
+  // the user toggles back and forth.
+  import { track } from '../scripts/track.ts';
+  (function () {
+    const fired = new Set<string>();
+    document.addEventListener(
+      'toggle',
+      (e) => {
+        const t = e.target as HTMLDetailsElement | null;
+        if (!t || t.tagName !== 'DETAILS' || !t.classList.contains('faq-item')) return;
+        if (!t.open) return; // ignore close
+        const slug = t.getAttribute('data-faq-slug') || '';
+        if (!slug || fired.has(slug)) return;
+        fired.add(slug);
+        track('faq_expand', { slug });
+      },
+      true, // capture: <details> toggle does not bubble
+    );
+  })();
+</script>
