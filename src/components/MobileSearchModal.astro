@@ -592,7 +592,11 @@
 
   function ensurePagefind() {
     if (!pagefindReady) {
-      pagefindReady = import('/pagefind/pagefind.js').catch(function() {
+      // Use a runtime-computed string so Rollup doesn't try to statically
+      // resolve the path. Pagefind ships /pagefind/pagefind.js at the site
+      // root (npx pagefind output), which doesn't exist at Astro build time.
+      var pfModulePath = '/' + 'pagefind/pagefind.js';
+      pagefindReady = import(/* @vite-ignore */ pfModulePath).catch(function() {
         return fetch('/pagefind/pagefind.js')
           .then(function(r) { return r.text(); })
           .then(function(js) {
