@@ -1972,3 +1972,30 @@ blockquote cite {
   color: var(--text-secondary);
   text-decoration: none;
 }
+/* ───────────────────────────────────────────────
+   Page-load enter animation (site-wide)
+   Apply class="animate-enter" + style="--stagger: N"
+   to any element. Each step delays by 100ms × N.
+   Opt-out via body.lesson-player (the course lesson
+   player — no entry animation during playback so
+   students aren't distracted at every step change).
+   ─────────────────────────────────────────────── */
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(4px);
+  }
+}
+.animate-enter {
+  animation: enter 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  animation-delay: calc(100ms * var(--stagger, 0));
+}
+body.lesson-player .animate-enter {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-enter {
+    animation: none;
+  }
+}
