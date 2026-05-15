@@ -39,11 +39,11 @@
       "note": "Email validation + disposable/typo detection"
     },
     "functions/api/stripe-webhook.js": {
-      "hash": "d5fc8cb51cb14857cbdac7271bed586de9a0ae15512cf5e3f444520cddec9af9",
+      "hash": "1bb8a0297b86d526576e4968258cd71c53e1e561b6968a024b645569bf49fdca",
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
-      "hash": "87f145276e77817aaaa7eef4de76c0315bc88d704a29826177898b1c02053f38",
+      "hash": "b6ee70af0ff46020face6975fb4dcc408aa2e159065239ef67c069d03b990b76",
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
@@ -55,7 +55,7 @@
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "d5b6f1ed447c8bb5bbbf63fc909ad1ba714842b60d2180e4768432dfe3c5dcd4",
+      "hash": "691ef3c8ad200b2c4867bdb693d88387b326e50532f23bc5e8e30041ae262cf3",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
@@ -139,7 +139,7 @@
       "note": "Admin endpoint: manually link wix_subscription to CF user (Layer 4 reconciliation)"
     },
     "scripts/guard.mjs": {
-      "hash": "90a6d2b8ccd51fdab8e0c826e0bd1e7fb4e916e312870324f2309e80056b8339",
+      "hash": "9cbf0783cd36fb4db9f770ee6830f623e8456ae241f678dac5da5693c5e4c8f2",
       "note": "Guard script (self-guarding)"
     },
     "functions/api/auth/verify-email.js": {

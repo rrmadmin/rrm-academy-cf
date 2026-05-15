@@ -11,14 +11,18 @@
  * If user is logged in (session cookie), pre-fills email and sets client_reference_id.
  * No login required — anonymous checkout is supported.
  */
-import Stripe from 'stripe';
 import {
   json, optionsResponse, getSessionIdFromCookie, validateSession, checkRateLimit,
-  STRIPE_API_VERSION, SITE_URL,
+  SITE_URL,
 } from './auth/_shared.js';
 import { log } from './_log.js';
 import { sendGA4Event } from './_ga4.js';
 import { classifySource, extractUtm, getClientId, deriveSessionId } from './_ga4-source.js';
+import { getStripeClient } from './billing/_shared.js';
+import {
+  lookupPendingWixMigration, validateOffAmount, isCustomAmount,
+  acquireMigrationHandoffLock, clampTrialEnd, findBlockingActiveSubscription,
+} from './billing/_migration-handoff.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -34,13 +38,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
 }
 
 async function handleCheckout(request, env, waitUntil) {
-  const stripeKey = env.STRIPE_SECRET_KEY;
-  if (!stripeKey) return json({ ok: false, error: 'Payments not configured' }, 500);
+  if (!env.STRIPE_SECRET_KEY) return json({ ok: false, error: 'Payments not configured' }, 500);
 
-  const stripe = new Stripe(stripeKey, {
-    httpClient: Stripe.createFetchHttpClient(),
-    apiVersion: STRIPE_API_VERSION,
-  });
+  const stripe = getStripeClient(env);
 
   let body;
   try {
@@ -94,7 +94,7 @@ async function handleCheckout(request, env, waitUntil) {
             // arise-ignore unbatched-writes -- UPDATE depends on async Stripe result; cannot batch with the SELECT above or the wix_subscription lock UPDATE below
             await db.prepare('UPDATE user SET stripe_customer_id = ? WHERE id = ?')
               .bind(stripeCustomerId, userId).run();
-          } catch (err) {
+          } catch (err) { // arise-ignore webhook-handler-swallow -- create-checkout.js is NOT a webhook handler (no event.id, no dedup envelope); this is a degrade-path that falls back to customer_email if Stripe customer create fails. No dispatcher rollback contract applies.
             log(env, waitUntil, 'billing', 'stripe_customer_create_error', 'error', `stripe customer create: ${err.message}`, 0, 0);
             stripeCustomerId = null;
           }
@@ -196,50 +196,7 @@ async function handleCheckout(request, env, waitUntil) {
 
     // --- Layer 3: look up pending Wix subscription (feature-flagged) ---
     const stucV2 = env.STUC_MIGRATION_UX_V2 === 'true';
-    let wixLookup = null;
-    if (stucV2 && env.DB && (wixSubId || userEmail)) {
-      try {
-        let wixQuery;
-        if (wixSubId && userEmail) {
-          wixQuery = env.DB.prepare(
-            "SELECT wix_subscription_id, tier, amount_cents, next_expected_at, status, migration_status " +
-            "FROM wix_subscription " +
-            "WHERE (wix_subscription_id = ? OR email = ? COLLATE NOCASE) " +
-            "  AND status = 'active' " +
-            "  AND migration_status = 'pending' " +
-            "ORDER BY started_at DESC " +
-            "LIMIT 1"
-          ).bind(wixSubId, userEmail);
-        } else if (wixSubId) {
-          wixQuery = env.DB.prepare(
-            "SELECT wix_subscription_id, tier, amount_cents, next_expected_at, status, migration_status " +
-            "FROM wix_subscription " +
-            "WHERE wix_subscription_id = ? " +
-            "  AND status = 'active' " +
-            "  AND migration_status = 'pending' " +
-            "ORDER BY started_at DESC " +
-            "LIMIT 1"
-          ).bind(wixSubId);
-        } else {
-          wixQuery = env.DB.prepare(
-            "SELECT wix_subscription_id, tier, amount_cents, next_expected_at, status, migration_status " +
-            "FROM wix_subscription " +
-            "WHERE email = ? COLLATE NOCASE " +
-            "  AND status = 'active' " +
-            "  AND migration_status = 'pending' " +
-            "ORDER BY started_at DESC " +
-            "LIMIT 1"
-          ).bind(userEmail);
-        }
-        wixLookup = await wixQuery.first();
-      } catch {
-        env.EVENTS?.writeDataPoint({
-          blobs: ['billing', 'stuc-migration', 'lookup-error', '', ''],
-          indexes: ['stuc-migration-lookup-error'],
-        });
-        wixLookup = null;
-      }
-    }
+    const wixLookup = await lookupPendingWixMigration(db, { wixSubId, userEmail, env });
 
     // --- Migration: atomic write-lock + off-amount detection + trial_end clamp ---
     let useCustomAmount = false;
@@ -251,57 +208,17 @@ async function handleCheckout(request, env, waitUntil) {
       // hold the 15-min mutex. A donor who sees the off-amount prompt and re-POSTs
       // with acknowledge_off_amount:true must be able to acquire the lock on the
       // second request -- if we locked first they'd hit 409 instead.
-      const STANDARD_CENTS = new Set([900, 1900, 9900]);
-      if (!STANDARD_CENTS.has(wixLookup.amount_cents) && body.acknowledge_off_amount !== true) {
-        return json({
-          ok: false,
-          error: 'off_amount',
-          amount_cents: wixLookup.amount_cents,
-          standard_tiers: [
-            { tier: 'member',    amount_cents: 900 },
-            { tier: 'hero',      amount_cents: 1900 },
-            { tier: 'superhero', amount_cents: 9900 },
-          ],
-        }, 412);
-      }
-      useCustomAmount = !STANDARD_CENTS.has(wixLookup.amount_cents);
+      const offAmountBody = validateOffAmount(wixLookup, body);
+      if (offAmountBody) return json(offAmountBody, 412);
+      useCustomAmount = isCustomAmount(wixLookup);
 
       // Atomic write-lock with 15-min TTL — only acquired for requests we're
       // forwarding to Stripe (off-amount rejection has already been handled above).
-      let lockResult;
-      try {
-        lockResult = await env.DB.prepare(
-          "UPDATE wix_subscription " +
-          "SET migration_handoff_started_at = strftime('%s','now') " +
-          "WHERE wix_subscription_id = ? " +
-          "  AND (migration_handoff_started_at IS NULL " +
-          "       OR migration_handoff_started_at < strftime('%s','now') - 900)"
-        ).bind(wixLookup.wix_subscription_id).run();
-      } catch (lockErr) {
-        log(env, waitUntil, 'billing', 'migration_lock_acquire_fail', 'error', lockErr.message, 0, 503);
-        return json({ ok: false, error: 'Service temporarily unavailable. Please try again.' }, 503);
-      }
-      if ((lockResult?.meta?.changes ?? 0) === 0) {
-        return json({ ok: false, error: 'migration_in_progress' }, 409);
-      }
+      const lock = await acquireMigrationHandoffLock(db, wixLookup.wix_subscription_id, env, waitUntil);
+      if (!lock.acquired) return lock.response;
 
       // trial_end clamp: must be at least 1 day out, at most ~2 years out
-      const nowSec = Math.floor(Date.now() / 1000);
-      const trialEndCandidate = wixLookup.next_expected_at
-        ? Math.floor(new Date(wixLookup.next_expected_at).getTime() / 1000)
-        : null;
-      if (
-        Number.isFinite(trialEndCandidate) &&
-        trialEndCandidate > nowSec + 86400 &&
-        trialEndCandidate < nowSec + 730 * 86400
-      ) {
-        trialEndUnix = trialEndCandidate;
-      } else if (trialEndCandidate !== null) {
-        env.EVENTS?.writeDataPoint({
-          blobs: ['billing', 'stuc-migration', 'trial-end-out-of-range', wixLookup.wix_subscription_id, String(trialEndCandidate)],
-          indexes: ['trial-end-out-of-range'],
-        });
-      }
+      ({ trialEndUnix } = clampTrialEnd(wixLookup, env));
 
       migrationMetadata = {
         wix_subscription_id: wixLookup.wix_subscription_id,
@@ -329,40 +246,15 @@ async function handleCheckout(request, env, waitUntil) {
       return json({ ok: false, error: 'Invalid tier' }, 400);
     }
     // Guard: reject test-mode price IDs when using a live key
-    if (stripeKey.startsWith('sk_live_') && priceId.includes('_test_')) {
+    if (env.STRIPE_SECRET_KEY.startsWith('sk_live_') && priceId.includes('_test_')) {
       console.error(`BLOCKED: test-mode price ID for tier "${effectiveTier}": ${priceId}`);
       return json({ ok: false, error: 'Payments not configured' }, 500);
     }
 
     // Guard: if logged-in user already has an active/trialing/past_due subscription, don't create a new one
     if (stripeCustomerId) {
-      let existing;
-      try {
-        existing = await stripe.subscriptions.list({
-          customer: stripeCustomerId,
-          status: 'all',
-          limit: 100,
-        });
-      } catch (err) {
-        log(env, waitUntil, 'billing', 'subscriptions_list_error', 'error', `stripe subscriptions.list: ${err.message}`, 0, 503);
-        return json({ ok: false, error: 'Payment service temporarily unavailable. Please try again.' }, 503);
-      }
-      // TODO: paginate when existing.has_more — applies to donors with >100 historical subs (vanishingly rare today)
-      const nowSec = Math.floor(Date.now() / 1000);
-      const blocking = existing.data.find(s => {
-        if (s.status === 'active' || s.status === 'trialing' || s.status === 'past_due' || s.status === 'incomplete') return true;
-        // Cancellation pending — sub still has access through current period
-        if (s.cancel_at_period_end && s.current_period_end && s.current_period_end > nowSec) return true;
-        return false;
-      });
-      if (blocking) {
-        const msg = blocking.status === 'past_due'
-          ? 'You have a membership with a payment issue. Please update your payment method from your account page.'
-          : blocking.status === 'incomplete'
-            ? 'You have a pending membership checkout. Please complete or cancel it before starting a new one.'
-            : 'You already have an active membership. You can change or cancel it from your account page.';
-        return json({ ok: false, error: msg, redirect: '/account/' }, 409);
-      }
+      const blocker = await findBlockingActiveSubscription(stripe, stripeCustomerId, env, waitUntil);
+      if (blocker) return blocker.response;
     }
 
     // --- Build line_items: use price_data for off-amount donors ---
