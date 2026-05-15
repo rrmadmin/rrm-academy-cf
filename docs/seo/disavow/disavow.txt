@@ -1,18 +1,19 @@
 # Disavow file for rrmacademy.org
-# Generated 2026-05-10 — merge of (1) existing GSC disavow uploaded 2026-04-19
-# and (2) Ahrefs API v3 spam pull on 2026-05-10.
+# Generated 2026-05-14 — merge of (1) existing GSC disavow uploaded 2026-05-10
+# and (2) Ahrefs API v3 spam pull on 2026-05-14 (174 spam-flagged refdomains
+# across 7 API cuts: desc+asc+newest+oldest+links-desc + 2 spam-only filters).
 # Submit at: https://search.google.com/search-console/disavow-links
 #
 # Strategy: domain-level disavow for entire spam clusters.
-# Total: 183 unique domains (41 overlap + 6 from prior list + 136 net-new)
+# Total: 221 unique domains (183 carried over + 38 net new on 2026-05-14)
 #
 # Cluster summary:
 #   itxoft-* SEO sales cluster        11 domains
-#   rank* / link* / seo* link farms   ~50 domains
+#   rank* / link* / seo* link farms   ~70 domains (incl. ifidir.com -- 687 dofollow links)
 #   fiverr-*.site cluster              5 domains
-#   .shop link farms                  17 domains
+#   .shop link farms                  ~30 domains
 #   .website link farms                7 domains
-#   misc spam directories             ~58 domains
+#   misc spam directories             ~60 domains
 
 # === itxoft-* cluster (SEO sales link farm) ===
 domain:itxoft.com
@@ -222,3 +223,47 @@ domain:hatisnapro.com
 domain:nettools.guru
 domain:rankvanceseo.info
 domain:sites.jake.eu
+
+# === Net additions 2026-05-14 (Ahrefs spam pull + suspicious .shop link farms) ===
+# Highest impact: ifidir.com (DR 27, 687 dofollow links, single largest spam farm in profile)
+domain:ifidir.com
+# rank* / link* / seo* link farms (continuation of existing cluster)
+domain:activeshop.shop
+domain:buyseobacklinks.shop
+domain:highseo.shop
+domain:leonlinks.org
+domain:linkbox.agency
+domain:linksnatcher.com
+domain:primeboostseo.com
+domain:rankinghighseo.shop
+domain:ranklinkerpro.shop
+domain:ranklinkpro.shop
+domain:rent-a-shop.shop
+domain:seoexpress.online
+domain:seoexpress.store
+domain:seolink.info
+domain:seonexi.com
+domain:seoprobox.click
+domain:shop-inframe.shop
+domain:thehighrankseo.shop
+domain:thehighseoranking.shop
+domain:theseomasterhigh.shop
+# Aged-domain / link-buying sellers
+domain:all-aged-domains.com
+domain:boost-your-site-with-homepage-backlinks.us
+domain:dr70-links.co.uk
+domain:rank-fast.agency
+domain:selfie-battles-are-for-amateurs-tim--kalin-from-seodomains-here.com
+domain:xploredomains.com
+# Misc spam / aggregators / scrapers
+domain:alljobs.info
+domain:allinone.co.in
+domain:athens-escorts.info
+domain:domain.com.lc
+domain:domaindexer.com
+domain:goooogla.com
+domain:kompromat100.info
+domain:lixil-reformshop.shop
+domain:moviesrock.nl
+domain:myhon.ch
+domain:wallpapers.pro
