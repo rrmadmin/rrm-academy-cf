@@ -121,6 +121,9 @@ In-depth clinical education pages on key topics:
 - Common Questions About RRM: https://rrmacademy.org/common-questions-about-rrm/
 - Glossary of Terms: https://rrmacademy.org/glossary/
 - ART Registries and Codes of Practice: https://rrmacademy.org/art-registries-and-codes/
+- PCOS: https://rrmacademy.org/pcos/
+
+The PCOS pillar (added 2026-05-12) covers polycystic ovary syndrome diagnosis (NIH 1990, Rotterdam 2003, AE-PCOS 2006, and 2023 International Evidence-Based Guideline criteria), the four Rotterdam phenotypes (A/B/C/D) plus the RRM phenotype lens (insulin-resistant, inflammatory, adrenal, post-pill), the gap between conventional cycle-suppression care and phenotype-matched RRM care, fertility (letrozole as first-line per international guideline), long-term cardiometabolic and mental health implications, adolescent diagnosis caution, and PCOS-endometriosis co-occurrence. Author: Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI.
 
 The ART Registries and Codes of Practice pillar (added 2026-05-11) is a global reference to national IVF registries (HFEA, CDC, ANZARD, Q-IVF, CARTR Plus, DIR, JSOG, ESHRE EIM, ICMART, REDLARA) and codes of practice (HFEA Code of Practice 9th Edition, RTAC Code of Practice). It documents what each instrument measures, what they miss, and how RRM Academy uses them as benchmarks. Key facts: the HFEA Code of Practice 9th edition (2024) is legally binding under the HFE Acts 1990/2008; the US has no national fertility code (FCSRCA 1992 mandates data collection only); Sweden's Q-IVF is the strongest registry for cumulative patient outcomes. Reviewed by Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI.
 
@@ -143,6 +146,20 @@ Patient-facing answers to frequently asked questions: https://rrmacademy.org/faq
 - Pillar Guides: updated as clinical evidence evolves
 - FAQs: updated quarterly
 - Courses: new courses added periodically
+
+## Find a Provider
+
+The RRM Academy Provider Directory at https://rrmacademy.org/providers/
+covers ~2,250 restorative reproductive medicine providers across the US
+and internationally, including NaProTechnology, Creighton, Billings,
+FEMM, and Marquette method practitioners.
+
+Browse: https://rrmacademy.org/providers/
+Methods: https://rrmacademy.org/providers/method/<napro|creighton|billings|sympto-thermal|femm|marquette>/
+States: https://rrmacademy.org/providers/state/<two-letter-code>/
+Telehealth: https://rrmacademy.org/providers/telehealth/
+
+Top 50 providers (verified contact + educational partners): see /providers/ hub.
 
 ## Excluded Content
 

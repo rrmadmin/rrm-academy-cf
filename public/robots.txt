@@ -39,6 +39,10 @@ Disallow: /data/
 Disallow: /ivf-success-calculator
 Disallow: /community/
 Disallow: /dev/
+Disallow: /admin/
+Allow: /providers/
+Disallow: /badge/?preview=*
+Disallow: /providers/?*&*&*
 
 # =============================================================================
 # AI SEARCH / RETRIEVAL CRAWLERS
