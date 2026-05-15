@@ -1,0 +1,114 @@
+---
+/*
+ * Token substitutions (carry-forward from Tasks 16-18):
+ *   --text-xs/sm/base/lg/2xl → literal rem (not in global.css)
+ *   --leading-tight/normal   → 1.25 / 1.75 (not in global.css)
+ *   --bg-muted               → var(--neutral-100) (not in global.css)
+ *   --max-width-content      → var(--max-width-article) (--max-width-content not in global.css;
+ *                              --max-width-article=780px is the canonical token)
+ * Existing globals used: --max-width-article, --space-*, --border-color, --radius-sm,
+ *   --text-secondary, --neutral-100
+ */
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import ProviderCard from '../../../components/providers/ProviderCard.astro';
+import CollectionJsonLd from '../../../components/providers/CollectionJsonLd.astro';
+import providersData from '../../../data/providers.json';
+import { fullTier, METHOD_CODES, METHOD_DISPLAY, type Provider, type MethodCode } from '../../../lib/providers';
+
+export async function getStaticPaths() {
+  return METHOD_CODES.map((m) => ({ params: { m } }));
+}
+
+const { m } = Astro.params as { m: MethodCode };
+if (!METHOD_CODES.includes(m as MethodCode)) {
+  throw new Error(`Unknown method code: ${m}`);
+}
+
+const providers: Provider[] = providersData.providers || [];
+const matched = fullTier(providers).filter((p) => p.methods.includes(m));
+const telehealthOnly = matched.filter((p) => p.telehealth === 'yes');
+
+const methodName = METHOD_DISPLAY[m];
+const pageUrl = `https://rrmacademy.org/providers/method/${m}/`;
+const title = `${methodName} Providers`;
+const description = `Find ${methodName} providers in the US and internationally. ${matched.length} providers across ${new Set(matched.map(p => p.address?.state).filter(Boolean)).size} states. ${telehealthOnly.length} offer telehealth.`;
+
+const faqs = [
+  {
+    q: `What is ${methodName}?`,
+    a: `${methodName} is a fertility-awareness-based method used to diagnose and treat the root causes of reproductive health concerns. Providers trained in ${methodName} can address conditions like infertility, recurrent miscarriage, PCOS, and endometriosis. Learn more at /what-is-rrm/.`,
+  },
+  {
+    q: `How do I find a ${methodName} provider?`,
+    a: `Use the state filter on this page to find ${methodName}-trained providers in your area, or browse telehealth-available providers above. Each profile shows full training credentials and verified contact information.`,
+  },
+  {
+    q: `Is ${methodName} different from other fertility-awareness methods?`,
+    a: `Each method uses different biomarkers (cervical mucus, basal body temperature, hormonal monitoring) and has different training requirements. See /what-is-rrm/#fabms for a comparison.`,
+  },
+];
+---
+
+<BaseLayout title={title} description={description}>
+  <CollectionJsonLd
+    providers={matched.slice(0, 24)}
+    pageUrl={pageUrl}
+    collectionName={title}
+    breadcrumbName={methodName}
+    faqs={faqs}
+  />
+
+  <header class="collection-hero">
+    <h1>{methodName} Providers</h1>
+    <p>{description}</p>
+  </header>
+
+  {telehealthOnly.length > 0 && (
+    <section class="collection-telehealth-strip" aria-labelledby="telehealth">
+      <h2 id="telehealth">Available via telehealth</h2>
+      <ul class="provider-grid" role="list">
+        {telehealthOnly.slice(0, 8).map(p => (
+          <li><ProviderCard provider={p} /></li>
+        ))}
+      </ul>
+      <a href={`/providers/telehealth/?method=${m}`}>View all {telehealthOnly.length} telehealth {methodName} providers</a>
+    </section>
+  )}
+
+  <section class="collection-grid" aria-labelledby="all-results">
+    <h2 id="all-results">All {methodName} providers</h2>
+    <ul class="provider-grid" role="list">
+      {matched.slice(0, 24).map(p => (
+        <li><ProviderCard provider={p} /></li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="collection-faq" aria-labelledby="faq">
+    <h2 id="faq">Frequently asked questions</h2>
+    <dl class="faq">
+      {faqs.map(f => (
+        <>
+          <dt>{f.q}</dt>
+          <dd>{f.a}</dd>
+        </>
+      ))}
+    </dl>
+  </section>
+</BaseLayout>
+
+<style>
+  /* --max-width-content does not exist in global.css; using --max-width-article (780px) */
+  .collection-hero,
+  .collection-telehealth-strip,
+  .collection-grid,
+  .collection-faq { max-width: var(--max-width-article); margin: var(--space-6) auto; }
+  .provider-grid {
+    list-style: none; padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-4);
+  }
+  .collection-faq dt { font-weight: 600; margin-top: var(--space-3); }
+  .collection-faq dd { margin: var(--space-1) 0 0 0; color: var(--text-secondary); }
+</style>
