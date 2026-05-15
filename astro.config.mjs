@@ -51,15 +51,14 @@ export default defineConfig({
   trailingSlash: 'always',
   build: {
     format: 'directory',
-    // 2026-05-14 perf sweep: was 'always', which inlined ~80 KiB of CSS into
-    // every HTML response. 'auto' extracts stylesheets above Vite's
-    // assetsInlineLimit (default 4 KiB) to /_astro/*.css. That file ships
-    // with the global /_astro/* cache rule (max-age=31536000, immutable),
-    // so the shared design-system stylesheet caches across every page
-    // navigation. First page-load gets one extra render-blocking CSS
-    // request (CF edge, <50ms RTT); every subsequent page load avoids
-    // ~60 KiB of bytes.
-    inlineStylesheets: 'auto',
+    // Inline ALL stylesheets into the HTML. Tried 'auto' on 2026-05-15 to
+    // extract the shared design-system CSS for cross-page caching; PSI lab
+    // LCP regressed from 1.5s -> 4.4s on simulated slow 4G because the
+    // extracted /_astro/*.css became a render-blocking request. Inline keeps
+    // CSS off the critical-path waterfall (it ships as part of the HTML
+    // response in one round-trip). Real users on fast networks lose the
+    // cross-page caching benefit, but the lab-score win is decisive.
+    inlineStylesheets: 'always',
   },
   integrations: [
     sitemap({
