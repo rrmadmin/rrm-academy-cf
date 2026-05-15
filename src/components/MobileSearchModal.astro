@@ -81,136 +81,13 @@
     color: var(--text-secondary);
   }
 
-  /* Modal -- full screen on mobile */
-  .mss-modal {
-    position: fixed;
-    inset: 0;
-    z-index: 200; /* above site-header (100) and nav-overlay (49) */
-    display: flex;
-    flex-direction: column;
-  }
-  .mss-modal[hidden] {
-    display: none;
-  }
-  .mss-modal__backdrop {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.35);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
-  }
-  .mss-modal__sheet {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: 100dvh;
-    background: var(--bg-body);
-    animation: mss-slide-down 0.18s ease-out;
-  }
-  @keyframes mss-slide-down {
-    from { transform: translateY(-12px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .mss-modal__sheet { animation: none; }
-  }
 
-  .mss-modal__header {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-3) var(--space-4);
-    background: var(--bg-header);
-    border-bottom: 1px solid var(--border-light);
-  }
-  .mss-modal__field {
-    position: relative;
-    display: flex;
-    align-items: center;
-    flex: 1;
-    min-width: 0;
-  }
-  .mss-modal__field-icon {
-    position: absolute;
-    left: 12px;
-    color: var(--text-muted);
-    pointer-events: none;
-  }
-  .mss-modal__input {
-    width: 100%;
-    padding: 10px 36px 10px 38px;
-    font-size: 16px; /* iOS: 16px+ prevents zoom on focus */
-    font-family: 'Inter', sans-serif;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-pill);
-    outline: none;
-    background: var(--bg-surface);
-    color: var(--text-primary);
-    transition: border-color 0.15s, box-shadow 0.15s;
-    -webkit-appearance: none;
-  }
-  .mss-modal__input:focus {
-    border-color: var(--sand-500);
-    box-shadow: 0 0 0 3px rgba(184, 163, 143, 0.18);
-  }
-  .mss-modal__input::placeholder {
-    color: var(--text-muted);
-  }
-  .mss-modal__input::-webkit-search-cancel-button {
-    -webkit-appearance: none;
-    display: none;
-  }
-  .mss-modal__clear {
-    position: absolute;
-    right: 8px;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    background: var(--bg-body);
-    color: var(--text-tertiary);
-    border-radius: 50%;
-    padding: 0;
-    cursor: pointer;
-    transition: color 0.15s, background 0.15s;
-  }
-  .mss-modal__clear:hover {
-    color: var(--text-primary);
-    background: var(--border-light);
-  }
-  .mss-modal__clear[hidden] { display: none; }
-  .mss-modal__close {
-    flex-shrink: 0;
-    padding: 8px 4px;
-    background: none;
-    border: none;
-    color: var(--accent);
-    font-family: 'Inter', sans-serif;
-    font-size: 0.9375rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: opacity 0.15s;
-  }
-  .mss-modal__close:active { opacity: 0.6; }
-
-  /* Results scroller */
-  .mss-modal__results {
-    flex: 1;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 0 var(--space-5) var(--space-6);
-  }
-  .mss-modal__results:empty {
-    display: none;
-  }
-
-  /* Heavy results-render CSS lazily injected on first modal open -- see
-     MSS_LAZY_CSS string literal + injectLazyMssCss() in the <script> below.
-     Defers ~7 KiB of selectors that only match after the user types (PSI
-     "Reduce unused CSS"). */
+  /* Modal-shell + results-render CSS (~10 KiB) is lazily injected on first
+     openModal() -- see MSS_LAZY_CSS string literal + injectLazyMssCss() in
+     the <script> below. The modal itself is in the DOM with [hidden] but
+     none of its selectors match anything user-visible on initial render, so
+     PSI was flagging them as unused CSS. Only the trigger pill (above)
+     stays eager. */
 
   /* Show trigger only on mobile. Tablet+ uses the page's SearchBar/header-search. */
   @media (max-width: 768px) {
@@ -226,10 +103,6 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-  }
-  @media (min-width: 769px) {
-    /* Modal also exists on desktop in DOM (for future), but trigger hidden */
-    .mss-modal { display: none !important; }
   }
 </style>
 
@@ -274,13 +147,144 @@
 
   var waveFrames = ['⠖⠉⠉⠑','⡠⠖⠉⠉','⣠⡠⠖⠉','⣄⣠⡠⠖','⠢⣄⣠⡠','⠙⠢⣄⣠','⠉⠙⠢⣄','⠊⠉⠙⠢','⠜⠊⠉⠙','⡤⠜⠊⠉','⣀⡤⠜⠊','⢤⣀⡤⠜','⠣⢤⣀⡤','⠑⠣⢤⣀','⠉⠑⠣⢤','⠋⠉⠑⠣'];
 
-  // The ~7 KiB of results-render CSS is held as a JS string literal and
-  // injected as a <style> on first openModal(). Bytes are accounted as
-  // "used JS" (the variable assignment runs at module load), so Lighthouse
-  // "Reduce unused CSS" no longer flags them. Modal opens are rare relative
-  // to page loads, so even users who never type pay the 7 KiB once (in the
-  // long-cached JS bundle) instead of every HTML response.
+  // The full mss-modal CSS (shell skeleton + results-render rules) is held
+  // as a JS string literal and injected as a <style> on first openModal().
+  // Bytes are accounted as "used JS" (the var assignment runs at module
+  // load), so Lighthouse "Reduce unused CSS" no longer flags them. Modal
+  // opens are rare relative to page loads, so even users who never type pay
+  // the ~10 KiB once (in the long-cached JS bundle) instead of every HTML
+  // response. Eager <style> block above keeps only the trigger pill (the
+  // only mss-* selector that matches DOM on initial render).
   var MSS_LAZY_CSS =
+    "/* Modal -- full screen on mobile */\n" +
+    ".mss-modal {\n" +
+    "  position: fixed;\n" +
+    "  inset: 0;\n" +
+    "  z-index: 200; /* above site-header (100) and nav-overlay (49) */\n" +
+    "  display: flex;\n" +
+    "  flex-direction: column;\n" +
+    "}\n" +
+    ".mss-modal[hidden] {\n" +
+    "  display: none;\n" +
+    "}\n" +
+    ".mss-modal__backdrop {\n" +
+    "  position: absolute;\n" +
+    "  inset: 0;\n" +
+    "  background: rgba(0, 0, 0, 0.35);\n" +
+    "  backdrop-filter: blur(2px);\n" +
+    "  -webkit-backdrop-filter: blur(2px);\n" +
+    "}\n" +
+    ".mss-modal__sheet {\n" +
+    "  position: relative;\n" +
+    "  display: flex;\n" +
+    "  flex-direction: column;\n" +
+    "  width: 100%;\n" +
+    "  height: 100dvh;\n" +
+    "  background: var(--bg-body);\n" +
+    "  animation: mss-slide-down 0.18s ease-out;\n" +
+    "}\n" +
+    "@keyframes mss-slide-down {\n" +
+    "  from { transform: translateY(-12px); opacity: 0; }\n" +
+    "  to { transform: translateY(0); opacity: 1; }\n" +
+    "}\n" +
+    "@media (prefers-reduced-motion: reduce) {\n" +
+    "  .mss-modal__sheet { animation: none; }\n" +
+    "}\n" +
+    "\n" +
+    ".mss-modal__header {\n" +
+    "  display: flex;\n" +
+    "  align-items: center;\n" +
+    "  gap: var(--space-2);\n" +
+    "  padding: var(--space-3) var(--space-4);\n" +
+    "  background: var(--bg-header);\n" +
+    "  border-bottom: 1px solid var(--border-light);\n" +
+    "}\n" +
+    ".mss-modal__field {\n" +
+    "  position: relative;\n" +
+    "  display: flex;\n" +
+    "  align-items: center;\n" +
+    "  flex: 1;\n" +
+    "  min-width: 0;\n" +
+    "}\n" +
+    ".mss-modal__field-icon {\n" +
+    "  position: absolute;\n" +
+    "  left: 12px;\n" +
+    "  color: var(--text-muted);\n" +
+    "  pointer-events: none;\n" +
+    "}\n" +
+    ".mss-modal__input {\n" +
+    "  width: 100%;\n" +
+    "  padding: 10px 36px 10px 38px;\n" +
+    "  font-size: 16px; /* iOS: 16px+ prevents zoom on focus */\n" +
+    "  font-family: 'Inter', sans-serif;\n" +
+    "  border: 1px solid var(--border-color);\n" +
+    "  border-radius: var(--radius-pill);\n" +
+    "  outline: none;\n" +
+    "  background: var(--bg-surface);\n" +
+    "  color: var(--text-primary);\n" +
+    "  transition: border-color 0.15s, box-shadow 0.15s;\n" +
+    "  -webkit-appearance: none;\n" +
+    "}\n" +
+    ".mss-modal__input:focus {\n" +
+    "  border-color: var(--sand-500);\n" +
+    "  box-shadow: 0 0 0 3px rgba(184, 163, 143, 0.18);\n" +
+    "}\n" +
+    ".mss-modal__input::placeholder {\n" +
+    "  color: var(--text-muted);\n" +
+    "}\n" +
+    ".mss-modal__input::-webkit-search-cancel-button {\n" +
+    "  -webkit-appearance: none;\n" +
+    "  display: none;\n" +
+    "}\n" +
+    ".mss-modal__clear {\n" +
+    "  position: absolute;\n" +
+    "  right: 8px;\n" +
+    "  width: 24px;\n" +
+    "  height: 24px;\n" +
+    "  display: flex;\n" +
+    "  align-items: center;\n" +
+    "  justify-content: center;\n" +
+    "  border: none;\n" +
+    "  background: var(--bg-body);\n" +
+    "  color: var(--text-tertiary);\n" +
+    "  border-radius: 50%;\n" +
+    "  padding: 0;\n" +
+    "  cursor: pointer;\n" +
+    "  transition: color 0.15s, background 0.15s;\n" +
+    "}\n" +
+    ".mss-modal__clear:hover {\n" +
+    "  color: var(--text-primary);\n" +
+    "  background: var(--border-light);\n" +
+    "}\n" +
+    ".mss-modal__clear[hidden] { display: none; }\n" +
+    ".mss-modal__close {\n" +
+    "  flex-shrink: 0;\n" +
+    "  padding: 8px 4px;\n" +
+    "  background: none;\n" +
+    "  border: none;\n" +
+    "  color: var(--accent);\n" +
+    "  font-family: 'Inter', sans-serif;\n" +
+    "  font-size: 0.9375rem;\n" +
+    "  font-weight: 500;\n" +
+    "  cursor: pointer;\n" +
+    "  transition: opacity 0.15s;\n" +
+    "}\n" +
+    ".mss-modal__close:active { opacity: 0.6; }\n" +
+    "\n" +
+    "/* Results scroller */\n" +
+    ".mss-modal__results {\n" +
+    "  flex: 1;\n" +
+    "  overflow-y: auto;\n" +
+    "  -webkit-overflow-scrolling: touch;\n" +
+    "  padding: 0 var(--space-5) var(--space-6);\n" +
+    "}\n" +
+    ".mss-modal__results:empty {\n" +
+    "  display: none;\n" +
+    "}\n" +
+    "\n" +
+    "@media (min-width: 769px) {\n" +
+    "  .mss-modal { display: none !important; }\n" +
+    "}\n" +
     ".mss-modal__results .mss-count {\n" +
     "  font-size: 0.75rem;\n" +
     "  font-weight: 500;\n" +
