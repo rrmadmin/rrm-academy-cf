@@ -1,81 +1,184 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import NewsletterSignup from '../../components/NewsletterSignup.astro';
+import ProviderCard from '../../components/providers/ProviderCard.astro';
+import CollectionJsonLd from '../../components/providers/CollectionJsonLd.astro';
+import providersData from '../../data/providers.json';
+import { fullTier, METHOD_DISPLAY, METHOD_CODES, US_STATES, type Provider } from '../../lib/providers';
 
-const pageTitle = 'RRM Providers';
-const pageDescription = 'A coming directory of clinicians who practice restorative reproductive medicine. Be the first to know when it launches.';
-const canonical = 'https://rrmacademy.org/providers/';
+const providers: Provider[] = providersData.providers || [];
+const full = fullTier(providers);
+const telehealthCount = full.filter(p => p.telehealth === 'yes').length;
+const partnerCount = full.filter(p => p.partner_id).length;
+const methodCount = METHOD_CODES.length;
+const top24 = full.slice(0, 24);
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'WebPage',
-  name: pageTitle,
-  description: pageDescription,
-  url: canonical,
-  isPartOf: {
-    '@type': 'WebSite',
-    '@id': 'https://rrmacademy.org/#website',
-    name: 'RRM Academy',
-    url: 'https://rrmacademy.org/',
+const pageUrl = 'https://rrmacademy.org/providers/';
+const title = 'Find a Restorative Reproductive Medicine Provider';
+
+const faqs = [
+  {
+    q: 'How do I find a NaPro doctor near me?',
+    a: 'Use the state or telehealth filter on this page to find NaProTechnology-trained providers in your area or available remotely. Each provider profile shows their training, methods practiced, and verified contact information.',
   },
-};
+  {
+    q: 'What is the difference between NaProTechnology and IVF?',
+    a: 'NaProTechnology identifies and treats the underlying causes of infertility and reproductive disorders, while IVF bypasses underlying issues to achieve pregnancy. RRM-trained providers focus on restoring fertility through targeted diagnosis and treatment of root causes.',
+  },
+  {
+    q: 'Is fertility awareness-based care covered by insurance?',
+    a: 'Coverage varies by insurance plan and provider. Many RRM providers accept major insurance for office visits, ultrasound monitoring, and laboratory work. Specific treatments may have variable coverage. Contact the provider directly to verify.',
+  },
+];
 ---
-<BaseLayout
-  title={`${pageTitle} | RRM Academy`}
-  description={pageDescription}
-  canonicalUrl={canonical}
-  jsonLd={jsonLd}
-  noindex={true}
->
-  <div class="page-wrapper">
-    <div class="container container--narrow">
-      <header class="providers-hero">
-        <p class="eyebrow">Coming soon</p>
-        <h1>RRM Providers</h1>
-        <p class="lead">
-          A directory of clinicians trained in restorative reproductive medicine,
-          searchable by location, specialty, and the conditions they treat. We
-          are building this now.
-        </p>
-        <p>
-          While the directory is in development, the curated path to finding a
-          provider lives at <a href="/what-is-rrm/#get-started">/what-is-rrm/#get-started</a>.
-        </p>
-      </header>
 
-      <section class="providers-signup">
-        <NewsletterSignup
-          heading="Get notified when it launches"
-          subtext="Drop your email and we will send you one note the day the RRM Providers directory goes live. No other messages."
-        />
-      </section>
+<BaseLayout title={title} description="A directory of restorative reproductive medicine providers in the US and internationally. Find NaProTechnology, Creighton Model, Billings, FEMM, and Marquette Method providers by state, method, or telehealth availability.">
+  <CollectionJsonLd
+    providers={top24}
+    pageUrl={pageUrl}
+    collectionName={title}
+    breadcrumbName="Find a Provider"
+    faqs={faqs}
+  />
+
+  <header class="providers-hero">
+    <h1>Find a Restorative Reproductive Medicine Provider</h1>
+    <p class="providers-hero__intro">
+      Restorative reproductive medicine (RRM) finds and treats the root causes of infertility,
+      menstrual disorders, and recurrent pregnancy loss. This directory unifies {full.length.toLocaleString()} verified providers
+      across {US_STATES.length} states plus international, covering {methodCount} fertility-awareness-based methods.
+    </p>
+
+    <div class="providers-stats">
+      <div><strong>{full.length.toLocaleString()}</strong> providers</div>
+      <div><strong>{telehealthCount.toLocaleString()}</strong> offer telehealth</div>
+      <div><strong>{partnerCount.toLocaleString()}</strong> educational partners</div>
+      <div><strong>{methodCount}</strong> methods covered</div>
     </div>
-  </div>
+  </header>
+
+  <section class="providers-browse-methods" aria-labelledby="browse-methods">
+    <h2 id="browse-methods">Browse by method</h2>
+    <ul class="providers-method-tiles" role="list">
+      {METHOD_CODES.map(m => (
+        <li>
+          <a href={`/providers/method/${m}/`} class="provider-method-tile">
+            <strong>{METHOD_DISPLAY[m]}</strong>
+            <span>Providers</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="providers-browse-states" aria-labelledby="browse-states">
+    <h2 id="browse-states">Browse by state</h2>
+    <ul class="providers-state-tiles" role="list">
+      {US_STATES.map(s => (
+        <li><a href={`/providers/state/${s.toLowerCase()}/`}>{s}</a></li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="providers-telehealth-cta" aria-labelledby="telehealth-cta">
+    <h2 id="telehealth-cta">Looking for telehealth?</h2>
+    <p>{telehealthCount.toLocaleString()} providers in this directory offer telehealth consultations across multiple states.</p>
+    <a class="cta-primary" href="/providers/telehealth/">Browse telehealth providers</a>
+  </section>
+
+  <section class="providers-grid-section" aria-labelledby="results">
+    <h2 id="results">Recent providers</h2>
+    <ul class="provider-grid" role="list">
+      {top24.map(p => (
+        <li><ProviderCard provider={p} /></li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="providers-faq" aria-labelledby="faq">
+    <h2 id="faq">Frequently asked questions</h2>
+    <dl class="faq">
+      {faqs.map(f => (
+        <>
+          <dt>{f.q}</dt>
+          <dd>{f.a}</dd>
+        </>
+      ))}
+    </dl>
+  </section>
 </BaseLayout>
 
 <style>
   .providers-hero {
-    padding: 3rem 0 2rem;
-    text-align: left;
+    max-width: var(--max-width-article);
+    margin: var(--space-6) auto;
   }
-  .providers-hero .eyebrow {
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin: 0 0 0.75rem;
-  }
-  .providers-hero h1 {
-    margin: 0 0 1rem;
-  }
-  .providers-hero .lead {
+  /* --text-lg does not exist; using 1.125rem (body large per typography scale) */
+  /* --leading-normal does not exist; using 1.75 (body lineHeight from design-system.json) */
+  .providers-hero__intro {
     font-size: 1.125rem;
-    line-height: 1.6;
+    line-height: 1.75;
     color: var(--text-primary);
-    margin: 0 0 1rem;
   }
-  .providers-signup {
-    padding: 1rem 0 4rem;
+  .providers-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--space-4);
+    margin: var(--space-5) 0;
   }
+  .providers-stats div {
+    padding: var(--space-3);
+    background: var(--purple-50);
+    border-radius: var(--radius-md);
+    text-align: center;
+  }
+  /* --text-2xl does not exist; using 2rem (h1 fontSize from design-system.json) */
+  .providers-stats strong {
+    display: block;
+    font-size: 2rem;
+    color: var(--purple-900);
+  }
+  .providers-method-tiles {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-3);
+  }
+  .provider-method-tile {
+    display: block;
+    padding: var(--space-4);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: inherit;
+  }
+  .provider-method-tile:hover { border-color: var(--purple-300); }
+  /* --text-base does not exist; using 1rem (body fontSize) */
+  .provider-method-tile strong { display: block; font-size: 1rem; }
+  /* --text-sm does not exist; using 0.875rem (meta fontSizeMax) */
+  .provider-method-tile span { color: var(--text-secondary); font-size: 0.875rem; }
+  .providers-state-tiles {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+    gap: var(--space-2);
+  }
+  .providers-state-tiles a {
+    display: block;
+    padding: var(--space-2);
+    text-align: center;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+  }
+  .provider-grid {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-4);
+  }
+  .providers-faq dt { font-weight: 600; margin-top: var(--space-3); }
+  .providers-faq dd { margin: var(--space-1) 0 0 0; color: var(--text-secondary); }
 </style>
