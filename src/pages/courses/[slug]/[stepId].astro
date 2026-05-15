@@ -447,6 +447,29 @@ function stepTypeLabel(type: string) {
                 });
               }
 
+              // GA4 video_play -- fires once per page-view (dedup gate). Sends
+              // position_pct as 0-100 integer for "did they start fresh vs
+              // resume mid-way" segmentation in funnels. Bridge installed by
+              // track-auto.ts. Try/catch so analytics can never break playback.
+              var playFired = false;
+              player.addEventListener('play', function () {
+                if (playFired) return;
+                playFired = true;
+                try {
+                  if (window.__rrmTrack__) {
+                    var duration = player.duration || videoDuration || 0;
+                    var positionPct = duration > 0
+                      ? Math.round((player.currentTime || 0) / duration * 100)
+                      : 0;
+                    window.__rrmTrack__('video_play', {
+                      course: courseSlug,
+                      step: stepId,
+                      position_pct: positionPct,
+                    });
+                  }
+                } catch (e) {}
+              });
+
               player.addEventListener('timeupdate', function () {
                 var seconds = Math.floor(player.currentTime || 0);
                 var duration = player.duration || videoDuration || 1;
@@ -467,6 +490,19 @@ function stepTypeLabel(type: string) {
               player.addEventListener('ended', function () {
                 canComplete = true;
                 markBtn.disabled = false;
+
+                // GA4 video_complete -- fires on natural end (not on
+                // "mark complete" button), independent of server-side
+                // step_progress write. Independent of completion-toggle so
+                // we capture genuine "watched to the end" behavior.
+                try {
+                  if (window.__rrmTrack__) {
+                    window.__rrmTrack__('video_complete', {
+                      course: courseSlug,
+                      step: stepId,
+                    });
+                  }
+                } catch (e) {}
 
                 if (!isCompleted) {
                   isCompleted = true;
