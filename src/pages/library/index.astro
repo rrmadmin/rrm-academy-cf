@@ -57,6 +57,7 @@ const recent = articles.slice(0, 6).map((a: Article) => {
     authorYear: authorYear.trim(),
     journal: a.journalAbbv || a.journal || '',
     isOpenAccess: Boolean(a.isOpenAccess) || a.accessLevel === 'open',
+    topics: a.topics ?? [],
   };
 });
 
@@ -261,6 +262,14 @@ const jsonLd = {
                   <span class="recent-card__author">{a.authorYear}</span>
                   {a.journal && <span class="recent-card__journal">{a.journal}</span>}
                 </div>
+                {a.topics && a.topics.length > 0 && (
+                  <div class="recent-card__topics">
+                    {a.topics.slice(0, 3).map(t => {
+                      const leaf = t.split('>').pop()?.trim() || t;
+                      return <span class="recent-card__topic" title={t}>{leaf}</span>;
+                    })}
+                  </div>
+                )}
               </a>
             </li>
           ))}
@@ -705,6 +714,27 @@ const jsonLd = {
     text-transform: uppercase;
     letter-spacing: 0.06em;
     border-radius: var(--radius-pill);
+  }
+  /* Optional topic chips (markup parity with topic-page article cards).
+     No data is passed by default, so the block doesn't render unless
+     a.topics is populated. Leaf-only display; full breadcrumb in title attr. */
+  .recent-card__topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .recent-card__topic {
+    font-size: 0.625rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: var(--neutral-100);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    max-width: 100%;
   }
   @media (max-width: 639px) {
     .recent-card { min-height: 0; padding: var(--space-4); }
