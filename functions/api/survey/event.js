@@ -17,7 +17,10 @@ export async function onRequestPost(context) {
   const { request, env, waitUntil } = context;
 
   try {
-    if (!env.ANALYTICS) {
+    // Codebase convention is env.EVENTS (Analytics Engine binding name).
+    // Was env.ANALYTICS — that name was never bound; endpoint had been
+    // silently 500-ing in prod. Discovered 2026-05-15 during Phase 3 pre-flight.
+    if (!env.EVENTS) {
       return new Response(JSON.stringify({ ok: false, error: 'Server misconfigured' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
@@ -69,7 +72,7 @@ export async function onRequestPost(context) {
 
     const device_type = viewport_width <= 768 ? 'mobile' : viewport_width <= 1024 ? 'tablet' : 'desktop';
 
-    env.ANALYTICS.writeDataPoint({
+    env.EVENTS.writeDataPoint({
       blobs: ['survey', 'survey_event', action, device_type, ''],
       doubles: [0, 0, viewport_width],
       indexes: [action],

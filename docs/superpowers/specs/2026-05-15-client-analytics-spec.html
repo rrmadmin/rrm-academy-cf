@@ -346,7 +346,7 @@
 <p><strong>Coverage:</strong> every conversion that happens server-side (signup, lead, checkout start, purchase) is wired through <code>sendGA4Event()</code>. Solid foundation.</p>
 
 <h3>2.2 Cloudflare Analytics Engine <span class="pill pill--keep">keep + extend</span></h3>
-<p><code>functions/api/survey/event.js</code> writes to <code>env.ANALYTICS.writeDataPoint()</code> (dataset <code>worker_events</code>) for endo-survey UI actions: <code>calculate</code>, <code>download_pdf</code>, <code>copy_for_ai</code>, <code>follow_instagram</code>. Allowlist enforced, rate-limited at 60/min/IP. <strong>This is the precedent shape we extend in §4 below</strong> — same beacon pattern, but the new endpoint will also relay to GA4 (not just AE) so events show up in the GA4 dashboard Brian already uses.</p>
+<p><code>functions/api/survey/event.js</code> writes to <code>env.EVENTS.writeDataPoint()</code> (dataset <code>worker_events</code>) for endo-survey UI actions: <code>calculate</code>, <code>download_pdf</code>, <code>copy_for_ai</code>, <code>follow_instagram</code>. Allowlist enforced, rate-limited at 60/min/IP. <strong>This is the precedent shape we extend in §4 below</strong> — same beacon pattern, but the new endpoint will also relay to GA4 (not just AE) so events show up in the GA4 dashboard Brian already uses.</p>
 
 <h3>2.3 Zaraz GTM <span class="pill pill--remove">remove</span></h3>
 <ul>
@@ -453,7 +453,7 @@
 <h4>Side effects on accept</h4>
 <ol>
   <li><code>waitUntil(sendGA4Event(env, request, body.event, body.params))</code> — relays to GA4 with server-derived session_id, source, medium. Wrapped in <code>waitUntil()</code> because <code>sendGA4Event</code> returns a promise.</li>
-  <li><code>env.ANALYTICS.writeDataPoint({ blobs: [...], doubles: [...], indexes: [event] })</code> — mirrors to AE for raw queries. Called directly, NOT in <code>waitUntil()</code> — it's synchronous (no promise) and queues internally.</li>
+  <li><code>env.EVENTS.writeDataPoint({ blobs: [...], doubles: [...], indexes: [event] })</code> — mirrors to AE for raw queries. Called directly, NOT in <code>waitUntil()</code> — it's synchronous (no promise) and queues internally.</li>
 </ol>
 
 <h4>Failure modes</h4>

@@ -49,7 +49,7 @@ function makeContext({ body, ipOverride, envOverrides = {} } = {}) {
   const env = mockEnv({
     GA4_MEASUREMENT_ID: 'G-TEST123',
     GA4_API_SECRET: 'test-secret',
-    ANALYTICS: ae.stub,
+    EVENTS: ae.stub,
     ...envOverrides,
   });
   const waitUntil = mockWaitUntil();
@@ -260,17 +260,19 @@ describe('POST /api/track -- service guard', () => {
     } finally { restore(); }
   });
 
-  it('returns 503 when ANALYTICS binding missing', async () => {
+  // EVENTS binding (Analytics Engine) is now OPTIONAL. If missing, the
+  // endpoint still accepts events and relays them to GA4 -- AE is a
+  // secondary mirror and silently no-ops via optional chaining.
+  it('still returns 204 (degrades silently) when EVENTS binding missing', async () => {
     const { restore } = makeFetchStub();
     try {
       const ctx = makeContext({
         body: { event: 'cta_click', params: { id: 'x', page: '/' } },
-        envOverrides: { ANALYTICS: undefined },
+        envOverrides: { EVENTS: undefined },
       });
       const res = await onRequestPost(ctx);
       const parsed = await parseResponse(res);
-      assert.equal(parsed.status, 503);
-      assert.equal(parsed.body.error, 'service_unavailable');
+      assert.equal(parsed.status, 204, '/api/track must accept events when EVENTS missing (GA4 is primary)');
     } finally { restore(); }
   });
 });
