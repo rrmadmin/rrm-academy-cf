@@ -56,9 +56,15 @@ const PILLAR_PAGES = [
     require: ['h1', 'author-byline', 'toc', 'back-to-top', 'json-ld', 'references'],
   },
   {
+    // editorial-notice removed 2026-05-15 per editorial decision after the
+    // Pass 1-3 rule + citation + link densification audit completed. The
+    // public "under active review" banner was a placeholder while the
+    // content was being refined; once the audit landed the banner was
+    // stripped (commit removed from src/pages/naprotechnology/index.astro).
+    // Mirrors the /what-is-rrm/ exclusion above.
     path: 'naprotechnology/index.html',
     label: '/naprotechnology',
-    require: ['h1', 'author-byline', 'toc', 'back-to-top', 'json-ld', 'editorial-notice', 'references'],
+    require: ['h1', 'author-byline', 'toc', 'back-to-top', 'json-ld', 'references'],
   },
   {
     path: 'common-questions-about-rrm/index.html',
