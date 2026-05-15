@@ -422,6 +422,16 @@ jobs:
         # /arise runs on the payment surface.
         run: npm run gates:payment
 
+      - name: Validate analytics pipeline gates (always)
+        # AG1-AG12 static gates: endpoint contract, allowlist coverage,
+        # server/client event separation, required-param satisfaction, PII
+        # regex intact, UTM convention, no third-party analytics scripts,
+        # CSP lockdown, track-helper exclusivity, conversion completeness,
+        # bundle size, custom-dimension parity. Encodes the bug classes the
+        # client-analytics spec defends against. Spec:
+        # docs/superpowers/specs/2026-05-15-client-analytics-spec.html
+        run: npm run gates:analytics
+
       - name: Validate glossary spoke pages (full rebuild only)
         # Spoke directory only refreshes on full rebuild (getStaticPaths re-runs
         # against in-memory glossary.json, but dispatched single-record updates

@@ -218,6 +218,17 @@ if (!jsonLd) {
       document.cookie = 'entry_ref=' + encodeURIComponent(r) + ';path=/;SameSite=Lax;Secure';
       document.cookie = 'entry_url=' + encodeURIComponent(u) + ';path=/;SameSite=Lax;Secure';
     }
+    // list_source: non-UTM custom param appended to email links so we can
+    // attribute conversions back to the original subscriber-acquisition surface
+    // (endo-survey signup, course page, etc.). 30-day cookie survives internal
+    // navigations; buildSourceParams() picks it up on every GA4 event.
+    try {
+      var lsParam = new URLSearchParams(location.search).get('list_source');
+      if (lsParam && !document.cookie.includes('list_source=')) {
+        document.cookie = 'list_source=' + encodeURIComponent(lsParam) +
+          ';max-age=2592000;path=/;SameSite=Lax;Secure';
+      }
+    } catch (_) { /* opaque URL; skip silently */ }
   </script>
   <meta name="description" content={description} />
   <link rel="canonical" href={canonical} />
@@ -422,6 +433,13 @@ if (!jsonLd) {
         }
       }
     })();
+  </script>
+
+  <!-- First-party client analytics: auto-instruments data-track-* attributes
+       (outbound clicks, CTA clicks, scroll depth). Astro bundles + defers.
+       Spec: docs/superpowers/specs/2026-05-15-client-analytics-spec.html -->
+  <script>
+    import '../scripts/track-auto.ts';
   </script>
 </body>
 </html>
