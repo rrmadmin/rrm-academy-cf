@@ -6,7 +6,7 @@ import {
   json, optionsResponse, verifyPassword, sessionCookie,
   verifyTurnstile, checkRateLimit, isValidEmail,
   generateSessionId, waitlistBackfillStatement, sessionInsertStatement,
-  DUMMY_PASSWORD_HASH,
+  DUMMY_PASSWORD_HASH, SESSION_DURATION_MS,
 } from './_shared.js';
 import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
@@ -32,7 +32,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
     }
 
     // Rate limit by IP (prevent brute force): 5 attempts per 15 minutes
-    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+    const ip = request.headers.get('CF-Connecting-IP');
+    if (!ip) return json({ ok: false, error: 'Service temporarily unavailable.' }, 503);
     if (!await checkRateLimit(env, `login:${ip}`, 5, 900)) {
       return json({ ok: false, error: 'Too many login attempts. Please try again in 15 minutes.' }, 429);
     }
@@ -55,6 +56,13 @@ export async function onRequestPost({ request, env, waitUntil }) {
     // Constant-time-ish: always verify even if user doesn't exist (prevent timing attacks)
     if (!user) {
       await verifyPassword(password, DUMMY_PASSWORD_HASH);
+      return json({ ok: false, error: 'Invalid email or password.' }, 401);
+    }
+
+    // Blocked check must come before the hashed_password branch so that
+    // Google-upgraded blocked users (no hashed_password) don't bypass it.
+    if (user.blocked) {
+      await verifyPassword(password, user.hashed_password || DUMMY_PASSWORD_HASH);
       return json({ ok: false, error: 'Invalid email or password.' }, 401);
     }
 
@@ -107,24 +115,17 @@ export async function onRequestPost({ request, env, waitUntil }) {
       return json({ ok: false, error: 'Invalid email or password.' }, 401);
     }
 
-    if (user.blocked) {
-      await verifyPassword(password, user.hashed_password);
-      return json({ ok: false, error: 'Invalid email or password.' }, 401);
-    }
-
     const valid = await verifyPassword(password, user.hashed_password);
     if (!valid) {
       return json({ ok: false, error: 'Invalid email or password.' }, 401);
     }
 
-    // Clean up expired sessions before creating new one.
-    // Keeps multi-device working (only expired sessions removed, not active ones).
+    // Cleanup: delete only EXPIRED sessions; preserve other-device active sessions for multi-device login.
     const nowTs = Math.floor(Date.now() / 1000);
     await db.prepare('DELETE FROM session WHERE user_id = ? AND expires_at < ?').bind(user.id, nowTs).run();
 
     // Create session + backfill waitlist rows orphaned before this email logged in.
     // Idempotent: only touches course_waitlist rows where user_id IS NULL.
-    const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
     const sessionId = generateSessionId();
     const expiresAt = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
     await db.batch([

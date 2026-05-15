@@ -14,6 +14,7 @@
  */
 
 import { DISPOSABLE_DOMAINS } from './_disposable-domains.js';
+import { log } from '../_log.js';
 
 // ── Known-good domains for fuzzy matching ──────────────────────────────
 // Combined from email-spell-checker + our own observations
@@ -300,12 +301,12 @@ async function checkMxRecord(domain, env) {
     const aData = await aResp.json();
     return aData.Answer && aData.Answer.length > 0;
   } catch (err) {
-    if (env?.EVENTS) {
-      env.EVENTS.writeDataPoint({
-        blobs: ['mx_check_fail_open', String(err?.message || err).slice(0, 200)],
-        indexes: [domain],
-      });
-    }
+    try {
+      if (env?.EVENTS) env.EVENTS.writeDataPoint({ blobs: ['email_validate', 'mx_fail_open', domain], indexes: [] });
+    } catch (_) { /* AE write best-effort */ }
+    try {
+      log(env, null, 'email_validate', 'mx_fail_open', 'warn', domain);
+    } catch (_) { /* log best-effort */ }
     return true; // fail-open on timeout/network error
   }
 }

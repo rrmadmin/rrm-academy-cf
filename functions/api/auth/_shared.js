@@ -135,7 +135,7 @@ export async function hashToken(token) {
 
 // --- Session management ---
 
-const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+export const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const SESSION_RENEW_THRESHOLD_MS = 15 * 24 * 60 * 60 * 1000; // 15 days
 
 export async function createSession(db, userId) {
@@ -150,20 +150,19 @@ export async function createSession(db, userId) {
 export async function validateSession(db, sessionId) {
   if (!sessionId) return null;
   const row = await db.prepare(`
-    SELECT s.id, s.user_id, s.expires_at, u.blocked
+    SELECT s.id, s.user_id, s.expires_at, u.blocked, u.role
     FROM session s
     JOIN user u ON u.id = s.user_id
     WHERE s.id = ?
   `).bind(sessionId).first();
   if (!row) return null;
 
-  // Blocked users are treated as session-invalid. Cleanup happens via cron.
+  // Blocked users are treated as session-invalid. Expired sessions are cleaned up by cron sweep (admin/cleanup), not inline.
   if (row.blocked) return null;
 
   const now = Math.floor(Date.now() / 1000);
   if (now >= row.expires_at) {
-    // Expired — clean up atomically
-    await db.prepare('DELETE FROM session WHERE id = ?').bind(sessionId).run();
+    // Expired — cron sweep handles cleanup; don't write on the hot path.
     return null;
   }
 
@@ -173,13 +172,17 @@ export async function validateSession(db, sessionId) {
   let renewed = false;
   if (remainingMs < SESSION_RENEW_THRESHOLD_MS) {
     const newExpiry = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
-    await db.prepare('UPDATE session SET expires_at = ? WHERE id = ? AND expires_at = ?')
+    const upd = await db.prepare('UPDATE session SET expires_at = ? WHERE id = ? AND expires_at = ?')
       .bind(newExpiry, sessionId, row.expires_at).run();
-    row.expires_at = newExpiry;
-    renewed = true;
+    if (upd.meta?.changes === 1) {
+      row.expires_at = newExpiry;
+      renewed = true;
+    }
+    // If changes === 0: concurrent tab already renewed. Don't claim renewed;
+    // caller will not issue a fresh Set-Cookie.
   }
 
-  return { id: row.id, userId: row.user_id, expiresAt: row.expires_at, renewed };
+  return { id: row.id, userId: row.user_id, expiresAt: row.expires_at, renewed, role: row.role };
 }
 
 export async function invalidateSession(db, sessionId) {
@@ -210,8 +213,15 @@ export function getSessionIdFromCookie(request) {
 // --- Turnstile verification ---
 
 export async function verifyTurnstile(secret, token, ip, env) {
-  if (!secret) return { ok: false, reason: 'rejected' };
-  if (!token) return { ok: false, reason: 'rejected' };
+  if (!secret) {
+    if (env?.EVENTS) {
+      try {
+        env.EVENTS.writeDataPoint({ blobs: ['auth', 'turnstile_misconfigured'], indexes: [] });
+      } catch (_) { /* AE write best-effort */ }
+    }
+    return { ok: false, reason: 'misconfigured' };
+  }
+  if (!token) return { ok: false, reason: 'missing_token' };
   try {
     const resp = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
       method: 'POST',

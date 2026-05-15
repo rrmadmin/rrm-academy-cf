@@ -137,11 +137,12 @@ export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
 
-  // Pre-fetch feature:search_v2 flag once per request so ask.js and
-  // search/semantic.js can read context.data.searchV2 without a duplicate KV call.
+  // Pre-fetch feature:search_v2 flag only for the routes that consume it.
+  // Reading KV on every asset request (~30x per HTML pageview) is wasteful.
   // Fail-closed to 'off' on any error -- the flag must NEVER fail-open to v2.
   context.data = context.data || {};
-  if (env.COMMUNITY_KV) {
+  const flagNeedsFetch = url.pathname === '/api/ask' || url.pathname.startsWith('/api/ask/') || url.pathname === '/api/search/semantic';
+  if (flagNeedsFetch && env.COMMUNITY_KV) {
     try {
       const flagVal = await env.COMMUNITY_KV.get('feature:search_v2');
       const valid = ['off', 'admin', 'all'];
@@ -187,11 +188,13 @@ export async function onRequest(context) {
     }));
   }
 
-  // Fire GA4 page_view asynchronously -- does not block the response.
-  context.waitUntil(sendPageView(request, env));
-
-  // Fire Arrivl AI bot analytics asynchronously -- does not block the response.
-  context.waitUntil(sendArrivlPageview(request, env));
+  // Fire GA4 and Arrivl analytics asynchronously -- does not block the response.
+  context.waitUntil(
+    Promise.all([
+      sendPageView(request, env).catch(() => {}),
+      sendArrivlPageview(request, env).catch(() => {}),
+    ])
+  );
 
   // 301 redirect: library.rrmacademy.org -> rrmacademy.org/library
   if (url.hostname === 'library.rrmacademy.org') {
@@ -221,6 +224,10 @@ export async function onRequest(context) {
     if (!env.DB) {
       return withSecurityHeaders(new Response('Service Unavailable', { status: 503 }));
     }
+    // Static assets under protected prefixes don't need session validation;
+    // their parent HTML page already validated.
+    const isStatic = /\.(?:js|mjs|css|png|jpg|jpeg|webp|svg|woff2?|ico|json|map|gif|avif)(?:\?|$)/i.test(url.pathname);
+    if (isStatic) return context.next();
     const sessionId = getSessionIdFromCookie(request);
 
     // /ask converts unauth users into signups (conversion funnel).
@@ -264,6 +271,9 @@ export async function onRequest(context) {
     if (!env.DB) {
       return withSecurityHeaders(new Response('Service Unavailable', { status: 503 }));
     }
+    // Static assets under admin prefixes don't need session validation.
+    const isStaticAdmin = /\.(?:js|mjs|css|png|jpg|jpeg|webp|svg|woff2?|ico|json|map|gif|avif)(?:\?|$)/i.test(url.pathname);
+    if (isStaticAdmin) return context.next();
     const sessionId = getSessionIdFromCookie(request);
     if (!sessionId) {
       return withSecurityHeaders(Response.redirect(`https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname + url.search)}`, 302));
@@ -280,10 +290,8 @@ export async function onRequest(context) {
       }));
     }
 
-    // Check role and blocked status
-    const user = await env.DB.prepare('SELECT role, blocked FROM user WHERE id = ?')
-      .bind(session.userId).first();
-    if (!user || user.blocked || !roleAtLeast(user.role, 'superadmin')) {
+    // role is already returned by validateSession (via the JOIN on user).
+    if (!roleAtLeast(session.role, 'superadmin')) {
       return withSecurityHeaders(new Response('Forbidden', { status: 403 }));
     }
 
