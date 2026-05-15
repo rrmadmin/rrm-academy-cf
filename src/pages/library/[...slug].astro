@@ -912,6 +912,14 @@ const citationMeta = {
     if (!shareBtn) return;
     shareBtn.addEventListener('click', function() {
       var url = window.location.href;
+      // GA4 share_click via the global bridge (track-auto.ts). network='copy-link'
+      // since this surface is the copy-URL action (no social share API today).
+      try {
+        if (window.__rrmTrack__) window.__rrmTrack__('share_click', {
+          surface: 'library-article',
+          network: 'copy-link',
+        });
+      } catch (e) {}
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(url).then(function() {
           shareBtn.classList.add('copied');
@@ -995,6 +1003,16 @@ const citationMeta = {
     if (!citeBtn || !saveBtn) return;
     citeBtn.addEventListener('click', function() {
       var d = saveBtn.dataset;
+      // GA4 copy_citation via the global bridge (track-auto.ts). format='ris'
+      // since this button downloads a .ris file (Research Information Systems
+      // format consumed by Zotero, Mendeley, EndNote).
+      try {
+        if (window.__rrmTrack__) window.__rrmTrack__('copy_citation', {
+          surface: 'library-article',
+          format: 'ris',
+          slug: d.slug || '',
+        });
+      } catch (e) {}
       var ris = generateRIS(d);
       var fname = (d.doi || d.pmid || d.slug || 'citation').replace(/[\/\\]/g, '_') + '.ris';
       downloadRIS(ris, fname);

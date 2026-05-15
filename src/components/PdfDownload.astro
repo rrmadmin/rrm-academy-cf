@@ -234,6 +234,15 @@ if (!config?.enabled) return;
       if (email) body.email = email;
       if (token) body.turnstileToken = token;
 
+      // GA4 pdf_download via the global bridge (track-auto.ts). Fires when
+      // the user submits the request -- not when they redeem the magic link,
+      // since most users complete the action here. source='guide' because
+      // PdfDownload is the guide-pillar PDF flow; if/when library-article
+      // reprints get their own download, source='library-reprint'.
+      try {
+        if (window.__rrmTrack__) window.__rrmTrack__('pdf_download', { slug: slug, source: 'guide' });
+      } catch (e) {}
+
       fetch('/api/pdf/request', {
         method: 'POST',
         credentials: 'include',
