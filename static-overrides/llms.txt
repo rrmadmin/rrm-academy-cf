@@ -147,6 +147,20 @@ Patient-facing answers to frequently asked questions: https://rrmacademy.org/faq
 - FAQs: updated quarterly
 - Courses: new courses added periodically
 
+## Find a Provider
+
+The RRM Academy Provider Directory at https://rrmacademy.org/providers/
+covers ~2,250 restorative reproductive medicine providers across the US
+and internationally, including NaProTechnology, Creighton, Billings,
+FEMM, and Marquette method practitioners.
+
+Browse: https://rrmacademy.org/providers/
+Methods: https://rrmacademy.org/providers/method/<napro|creighton|billings|sympto-thermal|femm|marquette>/
+States: https://rrmacademy.org/providers/state/<two-letter-code>/
+Telehealth: https://rrmacademy.org/providers/telehealth/
+
+Top 50 providers (verified contact + educational partners): see /providers/ hub.
+
 ## Excluded Content
 
 User accounts, community forums, and API endpoints are not public content and should not be crawled or cited. These paths are blocked in robots.txt.

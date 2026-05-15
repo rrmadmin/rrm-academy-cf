@@ -41,9 +41,32 @@ function partnersLastmod() {
   }
 }
 
+// /providers/* lastmod is sourced per-record from providers.json updated_at.
+// Unlisted providers are excluded from the sitemap (matching the filter() below).
+function providersLastmod() {
+  try {
+    const data = JSON.parse(
+      readFileSync(join(__dirname, 'src/data/providers.json'), 'utf-8')
+    );
+    const byPath = new Map();
+    for (const p of data.providers || []) {
+      if (p.listability === 'unlisted') continue;
+      const date = p.updated_at ? p.updated_at.split('T')[0] : null;
+      if (date) byPath.set(`/providers/${p.slug}/`, date);
+    }
+    return byPath;
+  } catch {
+    return new Map();
+  }
+}
+
 const dateMap = loadPageDates();
 const partnersDate = partnersLastmod();
 if (partnersDate) dateMap.set('/partners/', partnersDate);
+// Merge per-provider dates into the shared date map (keyed by path).
+for (const [path, date] of providersLastmod()) {
+  dateMap.set(path, date);
+}
 
 export default defineConfig({
   output: 'static',
