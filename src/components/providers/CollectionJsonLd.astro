@@ -1,0 +1,51 @@
+---
+import type { Provider } from '../../lib/providers';
+
+interface Props {
+  providers: Provider[];
+  pageUrl: string;
+  collectionName: string;
+  breadcrumbName: string;
+  faqs?: Array<{ q: string; a: string }>;
+}
+
+const { providers, pageUrl, collectionName, breadcrumbName, faqs = [] } = Astro.props;
+
+const itemList = {
+  '@type': 'ItemList',
+  '@id': `${pageUrl}#itemlist`,
+  name: collectionName,
+  numberOfItems: providers.length,
+  itemListElement: providers.slice(0, 24).map((p, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    url: `https://rrmacademy.org/providers/${p.slug}/`,
+    name: p.name,
+  })),
+};
+
+const breadcrumb = {
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+    { '@type': 'ListItem', position: 2, name: 'Find a Provider', item: 'https://rrmacademy.org/providers/' },
+    { '@type': 'ListItem', position: 3, name: breadcrumbName, item: pageUrl },
+  ],
+};
+
+const graph: Record<string, unknown>[] = [itemList, breadcrumb];
+if (faqs.length > 0) {
+  graph.push({
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  });
+}
+
+const full = { '@context': 'https://schema.org', '@graph': graph };
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(full)} />

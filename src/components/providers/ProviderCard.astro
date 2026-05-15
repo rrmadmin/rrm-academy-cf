@@ -1,0 +1,99 @@
+---
+import type { Provider } from '../../lib/providers';
+import { displayName, isIndividual } from '../../lib/providers';
+
+interface Props {
+  provider: Provider;
+}
+
+const { provider } = Astro.props;
+const href = `/providers/${provider.slug}/`;
+const location = provider.address
+  ? [provider.address.city, provider.address.state].filter(Boolean).join(', ')
+  : null;
+---
+
+<article class="provider-card" data-listability={provider.listability} data-entity-type={provider.entity_type}>
+  <a class="provider-card__link" href={href} aria-label={`View ${displayName(provider)}`}>
+    {provider.photo_url ? (
+      <img class="provider-card__photo" src={provider.photo_url} alt="" width="56" height="56" loading="lazy" />
+    ) : (
+      <div class="provider-card__photo provider-card__photo--initials" aria-hidden="true">
+        {provider.name.split(' ').slice(0, 2).map(n => n[0] || '').join('').toUpperCase()}
+      </div>
+    )}
+    <div class="provider-card__body">
+      <h3 class="provider-card__name">{displayName(provider)}</h3>
+      {location && <p class="provider-card__location">{location}</p>}
+      {provider.telehealth === 'yes' && (
+        <p class="provider-card__telehealth"><span aria-hidden="true">⊕</span> Telehealth available</p>
+      )}
+      {provider.badges.length > 0 && (
+        <ul class="provider-card__badges" role="list">
+          {provider.badges.slice(0, 4).map(b => (
+            <li class={`provider-card__badge provider-card__badge--${b}`}>{b}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  </a>
+</article>
+
+<style>
+  .provider-card {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    transition: border-color 120ms ease, transform 120ms ease;
+  }
+  .provider-card:hover { border-color: var(--purple-300); }
+  .provider-card__link {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    text-decoration: none;
+    color: inherit;
+  }
+  .provider-card__photo {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--neutral-100);
+  }
+  .provider-card__photo--initials {
+    display: grid; place-items: center;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+  .provider-card__name {
+    margin: 0 0 var(--space-1) 0;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+  .provider-card__location,
+  .provider-card__telehealth {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+  .provider-card__telehealth {
+    color: var(--purple-700);
+    font-weight: 500;
+    margin-top: var(--space-1);
+  }
+  .provider-card__badges {
+    list-style: none;
+    padding: 0; margin: var(--space-2) 0 0 0;
+    display: flex; flex-wrap: wrap;
+    gap: var(--space-1);
+  }
+  .provider-card__badge {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    background: var(--purple-50);
+    color: var(--purple-900);
+  }
+</style>

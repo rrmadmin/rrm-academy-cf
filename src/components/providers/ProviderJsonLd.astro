@@ -1,0 +1,87 @@
+---
+import type { Provider } from '../../lib/providers';
+import { isIndividual } from '../../lib/providers';
+
+interface Props {
+  provider: Provider;
+  pageUrl: string;
+}
+
+const { provider, pageUrl } = Astro.props;
+
+// PRD §7.2 + §7.3: Person for individuals; MedicalOrganization or
+// EducationalOrganization for orgs. Always include BreadcrumbList.
+
+function buildPersonNode() {
+  const node: Record<string, unknown> = {
+    '@type': 'Person',
+    '@id': `${pageUrl}#person`,
+    name: provider.name,
+    url: pageUrl,
+  };
+  if (provider.credentials) node.honorificSuffix = provider.credentials;
+  if (provider.photo_url) node.image = provider.photo_url;
+  if (provider.bio) node.description = provider.bio;
+  if (provider.npi) node.identifier = { '@type': 'PropertyValue', propertyID: 'NPI', value: provider.npi };
+  if (provider.methods?.length) node.knowsAbout = provider.methods;
+  const sameAs: string[] = [];
+  for (const sr of provider.source_records || []) {
+    if (sr.source_url) sameAs.push(sr.source_url);
+  }
+  if (provider.website_url) sameAs.push(provider.website_url);
+  if (sameAs.length) node.sameAs = sameAs;
+  return node;
+}
+
+function buildBusinessNode() {
+  const node: Record<string, unknown> = {
+    '@type': isIndividual(provider) ? 'MedicalBusiness' : (provider.entity_type === 'educational_org' ? 'EducationalOrganization' : 'MedicalOrganization'),
+    '@id': `${pageUrl}#org`,
+    name: provider.name,
+    url: pageUrl,
+  };
+  if (provider.address) {
+    node.address = {
+      '@type': 'PostalAddress',
+      streetAddress: provider.address.street,
+      addressLocality: provider.address.city,
+      addressRegion: provider.address.state,
+      postalCode: provider.address.zip,
+      addressCountry: provider.address.country || 'US',
+    };
+  }
+  if (provider.primary_phone) node.telephone = provider.primary_phone;
+  if (provider.telehealth === 'yes') {
+    node.availableService = {
+      '@type': 'MedicalService',
+      name: 'Telehealth',
+      availableChannel: { '@type': 'ServiceChannel', serviceLocation: { '@type': 'VirtualLocation', name: 'Telehealth' } },
+      areaServed: provider.telehealth_states_attested?.length
+        ? provider.telehealth_states_attested
+        : provider.telehealth_states_licensed,
+    };
+  }
+  if (provider.latitude != null && provider.longitude != null) {
+    node.geo = { '@type': 'GeoCoordinates', latitude: provider.latitude, longitude: provider.longitude };
+  }
+  return node;
+}
+
+const breadcrumb = {
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+    { '@type': 'ListItem', position: 2, name: 'Find a Provider', item: 'https://rrmacademy.org/providers/' },
+    { '@type': 'ListItem', position: 3, name: provider.name, item: pageUrl },
+  ],
+};
+
+const graph: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@graph': isIndividual(provider)
+    ? [buildPersonNode(), buildBusinessNode(), breadcrumb]
+    : [buildBusinessNode(), breadcrumb],
+};
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(graph)} />
