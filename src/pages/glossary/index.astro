@@ -206,6 +206,7 @@ const definedTermSetSchema = {
   jsonLd={pageSchema}
   speakable={['.pillar-lead', '.pillar-lead strong']}
   chrome={SHELL_ENABLED ? 'shell' : 'default'}
+  trackScroll
 >
   <!-- Separate JSON-LD block for breadcrumbs -->
   <script type="application/ld+json" set:html={safeJsonLd(breadcrumbSchema)} />

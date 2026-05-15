@@ -215,6 +215,7 @@ const faqSchema = {
   jsonLd={pageSchema}
   speakable={['.pillar-lead', 'h1']}
   chrome={SHELL_ENABLED ? 'shell' : 'default'}
+  trackScroll
 >
   <!-- Separate JSON-LD blocks (not @graph) per spec -->
   <script type="application/ld+json" set:html={safeJsonLd(breadcrumbSchema)} />

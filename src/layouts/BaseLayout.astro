@@ -41,6 +41,13 @@ interface Props {
   noindex?: boolean;
   markdownUrl?: string;
   chrome?: 'default' | 'shell';
+  /**
+   * When true, sets `data-track-scroll-page` on <body>; the track-auto.ts
+   * helper picks it up and fires `scroll_depth` events at 25/50/75/100%
+   * (one per threshold per page-view). Use for long-form content pages
+   * (library articles, commentary posts, pillar guides). Spec §7.
+   */
+  trackScroll?: boolean;
   citationMeta?: {
     title: string;
     authors: string[];      // One meta tag per author
@@ -75,6 +82,7 @@ const {
   noindex,
   markdownUrl,
   chrome = 'default',
+  trackScroll = false,
 } = Astro.props;
 
 const fullTitle = (title.includes('RRM Academy') || title.startsWith('RRM ')) ? title : `${title} | RRM Academy`;
@@ -304,7 +312,7 @@ if (!jsonLd) {
     <script type="application/ld+json" set:html={safeJsonLd(defaultSpeakableNode)} />
   )}
 </head>
-<body class:list={[bodyClass]}>
+<body class:list={[bodyClass]} data-track-scroll-page={trackScroll ? '' : undefined}>
   {chrome === 'shell' ? (
     <slot />
   ) : (
