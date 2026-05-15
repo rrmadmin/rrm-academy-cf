@@ -14,9 +14,19 @@ const truncatedAbstract = article.abstract
   ? article.abstract.slice(0, truncLen) + (article.abstract.length > truncLen ? '...' : '')
   : '';
 
-// Parse short citation parts
+// Parse short citation parts. Year is always rendered as its own
+// non-truncating span so it survives ellipsis on long author strings
+// (e.g. "Practice Committee of the American Society for Reproductive
+// Medicine, 2026" would otherwise truncate before the year).
 const firstAuthor = article.authors?.split(';')[0]?.split(',')[0]?.trim() || '';
-const authorDisplay = article.shortCitation || `${firstAuthor}${article.authors?.includes(';') ? ' et al.' : ''}, ${article.year || ''}`;
+const yearStr = article.year ? String(article.year) : '';
+let authorsForDisplay = '';
+if (article.shortCitation) {
+  // Strip a trailing ", YYYY" or " YYYY" so the year span isn't duplicated.
+  authorsForDisplay = article.shortCitation.replace(/[,\s]+\d{4}\.?\s*$/, '').trim();
+} else if (firstAuthor) {
+  authorsForDisplay = `${firstAuthor}${article.authors?.includes(';') ? ' et al.' : ''}`;
+}
 
 // Show journal if available
 const journalDisplay = article.journal || article.journalAbbv || '';
@@ -57,7 +67,8 @@ const coinsTitle = buildCOinS(article);
   </a>
 
   <div class="article-card__meta">
-    <span class="article-card__authors">{authorDisplay}</span>
+    <span class="article-card__authors">{authorsForDisplay}</span>
+    {yearStr && <span class="article-card__year">{yearStr}</span>}
     {article.accessLevel === 'open' && (
       <span class="access-badge access-badge--open" title={article.oaType ? `${article.oaType} Open Access` : 'Open Access'}>
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
@@ -167,6 +178,19 @@ const coinsTitle = buildCOinS(article);
     overflow: hidden;
     text-overflow: ellipsis;
     min-width: 0;
+  }
+  /* Year is rendered as its own span so it never truncates with the
+     authors string. Authors get ellipsis; year is always visible. */
+  .article-card__year {
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .article-card__year::before {
+    content: ', ';
+    color: var(--text-secondary);
   }
   .article-card__journal {
     color: var(--text-secondary);
