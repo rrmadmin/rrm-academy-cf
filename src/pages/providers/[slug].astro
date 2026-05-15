@@ -1,0 +1,391 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProviderJsonLd from '../../components/providers/ProviderJsonLd.astro';
+import ProviderCard from '../../components/providers/ProviderCard.astro';
+import providersData from '../../data/providers.json';
+import { isIndividual, isOrg, displayName, METHOD_DISPLAY, type Provider } from '../../lib/providers';
+
+// SSG path generator -- full + basic only get slug pages
+export async function getStaticPaths() {
+  const data = (await import('../../data/providers.json')).default;
+  const all = (data.providers || []) as Provider[];
+  return all
+    .filter((p) => p.listability === 'full' || p.listability === 'basic')
+    .map((p) => ({ params: { slug: p.slug }, props: { provider: p } }));
+}
+
+const providers = (providersData.providers || []) as unknown as Provider[];
+
+const { provider } = Astro.props as { provider: Provider };
+if (!provider) throw new Error(`No provider for slug ${Astro.params.slug}`);
+
+const pageUrl = `https://rrmacademy.org/providers/${provider.slug}/`;
+const title = displayName(provider);
+const methodNames = provider.methods
+  .map((m) => METHOD_DISPLAY[m as keyof typeof METHOD_DISPLAY] || m)
+  .join(', ');
+const description = provider.bio
+  ? provider.bio.slice(0, 155)
+  : `${title}${provider.address?.state ? ` in ${provider.address.state}` : ''}. Methods: ${methodNames || 'See profile.'}`;
+
+const parent = provider.parent_id
+  ? providers.find((p) => p.id === provider.parent_id) ?? null
+  : null;
+
+const childProviders: Provider[] = isOrg(provider)
+  ? providers.filter((p) => p.parent_id === provider.id && p.listability !== 'unlisted')
+  : [];
+
+// Prefer attested states; fall back to licensed
+const telehealthStates =
+  provider.telehealth_states_attested.length
+    ? provider.telehealth_states_attested
+    : provider.telehealth_states_licensed;
+
+// Initials for avatar placeholder
+const initials = provider.name
+  .split(' ')
+  .slice(0, 2)
+  .map((n) => n[0] ?? '')
+  .join('')
+  .toUpperCase();
+---
+
+<BaseLayout title={title} description={description}>
+  <ProviderJsonLd provider={provider} pageUrl={pageUrl} />
+
+  <article class="provider-page" data-entity-type={provider.entity_type}>
+    <header class="provider-page__header">
+      {provider.photo_url ? (
+        <img
+          class="provider-page__photo"
+          src={provider.photo_url}
+          alt=""
+          width="120"
+          height="120"
+          loading="lazy"
+        />
+      ) : (
+        <div class="provider-page__photo provider-page__photo--initials" aria-hidden="true">
+          {initials}
+        </div>
+      )}
+
+      <div class="provider-page__header-body">
+        <h1>{title}</h1>
+
+        {parent && (
+          <p class="provider-page__parent">
+            at <a href={`/providers/${parent.slug}/`}>{parent.name}</a>
+          </p>
+        )}
+
+        {provider.address && (
+          <p class="provider-page__location">
+            {[provider.address.city, provider.address.state].filter(Boolean).join(', ')}
+          </p>
+        )}
+
+        {provider.accepting_new_patients === 'yes' && (
+          <p class="provider-page__accepting">Accepting new patients</p>
+        )}
+
+        {provider.telehealth === 'yes' && (
+          <div class="provider-page__telehealth">
+            <strong>Telehealth available</strong>
+            {telehealthStates.length > 0 && (
+              <details>
+                <summary>
+                  Licensed in {telehealthStates.length} state{telehealthStates.length === 1 ? '' : 's'}
+                </summary>
+                <p>{[...telehealthStates].sort().join(', ')}</p>
+              </details>
+            )}
+          </div>
+        )}
+
+        <ul class="provider-page__ctas" role="list">
+          {provider.primary_phone && (
+            <li>
+              <a href={`tel:${provider.primary_phone}`} class="provider-cta">Call</a>
+            </li>
+          )}
+          {provider.website_url && (
+            <li>
+              <a href={provider.website_url} class="provider-cta" rel="noopener" target="_blank">
+                Visit website
+              </a>
+            </li>
+          )}
+          {provider.address && (
+            <li>
+              <a
+                href={`https://maps.google.com/?q=${encodeURIComponent(
+                  [provider.address.street, provider.address.city, provider.address.state]
+                    .filter(Boolean)
+                    .join(', ')
+                )}`}
+                class="provider-cta"
+                rel="noopener"
+                target="_blank"
+              >
+                Get directions
+              </a>
+            </li>
+          )}
+        </ul>
+      </div>
+    </header>
+
+    {provider.bio && (
+      <section class="provider-page__about">
+        <h2>About</h2>
+        <p>{provider.bio}</p>
+      </section>
+    )}
+
+    {provider.methods.length > 0 && (
+      <section class="provider-page__methods">
+        <h2>Methods and specialties</h2>
+        <ul role="list" class="provider-page__methods-list">
+          {provider.methods.map((m) => (
+            <li>
+              <a href={`/providers/method/${m}/`}>
+                {METHOD_DISPLAY[m as keyof typeof METHOD_DISPLAY] || m}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {provider.languages.length > 0 && (
+      <section class="provider-page__languages">
+        <h2>Languages</h2>
+        <p>{provider.languages.join(', ')}</p>
+      </section>
+    )}
+
+    {isOrg(provider) && childProviders.length > 0 && (
+      <section class="provider-page__children">
+        <h2>Providers at this location</h2>
+        <ul class="provider-grid" role="list">
+          {childProviders.slice(0, 24).map((c) => (
+            <li><ProviderCard provider={c} /></li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {provider.source_records.length > 0 && (
+      <section class="provider-page__sources">
+        <h2>Sources</h2>
+        <ul>
+          {provider.source_records.map((sr) => (
+            <li>
+              {sr.source_url
+                ? <a href={sr.source_url} rel="noopener" target="_blank">{sr.source}</a>
+                : sr.source}
+              {sr.scraped_at && (
+                <span class="provider-page__source-date">
+                  {' '}(last seen {sr.scraped_at.slice(0, 10)})
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+  </article>
+</BaseLayout>
+
+<style>
+  /* Token substitution notes (consistent with Tasks 16 + 17):
+     --text-xs   → 0.75rem    (does not exist in global.css)
+     --text-sm   → 0.875rem   (does not exist in global.css)
+     --text-base → 1rem       (does not exist in global.css)
+     --text-lg   → 1.125rem   (does not exist in global.css)
+     --text-2xl  → 2rem       (does not exist in global.css)
+     --leading-tight  → 1.25  (does not exist in global.css)
+     --leading-normal → 1.75  (does not exist in global.css)
+     --bg-muted  → var(--neutral-100) (--bg-muted does not exist)
+     All used tokens verified present in global.css:
+       --max-width-article, --space-*, --neutral-100, --purple-50/300/700/900,
+       --border-color, --radius-sm/md, --text-secondary, --bg-surface
+  */
+
+  .provider-page {
+    max-width: var(--max-width-article);
+    margin: var(--space-6) auto;
+  }
+
+  .provider-page__header {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-4);
+    align-items: start;
+    margin-bottom: var(--space-5);
+  }
+
+  .provider-page__photo {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--neutral-100);
+    flex-shrink: 0;
+  }
+
+  .provider-page__photo--initials {
+    display: grid;
+    place-items: center;
+    /* --text-2xl does not exist; using 2rem */
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  .provider-page__header-body {
+    min-width: 0;
+  }
+
+  .provider-page__parent,
+  .provider-page__location,
+  .provider-page__accepting {
+    margin: var(--space-1) 0;
+    /* --text-sm does not exist; using 0.875rem */
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+
+  .provider-page__accepting {
+    color: var(--purple-700);
+    font-weight: 500;
+  }
+
+  .provider-page__telehealth {
+    margin-top: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background: var(--purple-50);
+    border-radius: var(--radius-sm);
+    display: inline-block;
+    /* --text-sm does not exist; using 0.875rem */
+    font-size: 0.875rem;
+  }
+
+  .provider-page__telehealth details {
+    margin-top: var(--space-1);
+  }
+
+  .provider-page__telehealth summary {
+    cursor: pointer;
+    color: var(--purple-700);
+  }
+
+  .provider-page__telehealth p {
+    margin: var(--space-1) 0 0 0;
+    /* --text-xs does not exist; using 0.75rem */
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+
+  .provider-page__ctas {
+    list-style: none;
+    padding: 0;
+    margin: var(--space-3) 0 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .provider-cta {
+    display: inline-block;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--purple-300);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    /* --text-sm does not exist; using 0.875rem */
+    font-size: 0.875rem;
+    color: var(--purple-900);
+    transition: background 120ms ease, border-color 120ms ease;
+  }
+
+  .provider-cta:hover {
+    background: var(--purple-50);
+    border-color: var(--purple-700);
+  }
+
+  .provider-page__about,
+  .provider-page__methods,
+  .provider-page__languages,
+  .provider-page__children,
+  .provider-page__sources {
+    margin: var(--space-5) 0;
+    border-top: 1px solid var(--border-color);
+    padding-top: var(--space-4);
+  }
+
+  .provider-page__about p {
+    /* --leading-normal does not exist; using 1.75 (body lineHeight) */
+    line-height: 1.75;
+  }
+
+  .provider-page__methods-list {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .provider-page__methods-list a {
+    display: inline-block;
+    padding: var(--space-1) var(--space-3);
+    background: var(--purple-50);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    /* --text-sm does not exist; using 0.875rem */
+    font-size: 0.875rem;
+    color: var(--purple-900);
+    border: 1px solid var(--purple-300);
+  }
+
+  .provider-page__methods-list a:hover {
+    border-color: var(--purple-700);
+  }
+
+  .provider-page__sources ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .provider-page__sources li {
+    /* --text-sm does not exist; using 0.875rem */
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-1);
+  }
+
+  .provider-page__source-date {
+    /* --text-xs does not exist; using 0.75rem */
+    font-size: 0.75rem;
+  }
+
+  .provider-grid {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-4);
+  }
+
+  @media (max-width: 480px) {
+    .provider-page__header {
+      grid-template-columns: 1fr;
+    }
+    .provider-page__photo {
+      width: 80px;
+      height: 80px;
+    }
+  }
+</style>
