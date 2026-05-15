@@ -18,6 +18,17 @@
 
 import { track, trackOutbound } from './track';
 
+// Expose track() on the global window so `is:inline` scripts (Footer + Header
+// theme toggles, etc.) can fire analytics events without importing the helper
+// directly. Astro bundles regular `<script>` blocks but `<script is:inline>`
+// runs from raw HTML and cannot import — the global bridge solves that.
+// Wired here (not in track.ts) so the bridge is only present after the
+// auto-instrumenter has loaded.
+if (typeof window !== 'undefined') {
+  // @ts-expect-error -- intentional global bridge for is:inline callers
+  window.__rrmTrack__ = track;
+}
+
 if (typeof window !== 'undefined' && typeof document !== 'undefined') {
   const start = (): void => {
     // ── 1. Outbound clicks ──────────────────────────────────────────────

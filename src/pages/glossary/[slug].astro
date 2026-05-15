@@ -500,3 +500,21 @@ const RAIL_SECTIONS = [
     line-height: 1.6;
   }
 </style>
+
+<script define:vars={{ termSlug: term.slug }}>
+  // Fire glossary_lookup once on slug-page load. `term` carries the slug;
+  // `from_page` is the document.referrer pathname if same-origin (so we can
+  // see which pages drive glossary lookups), otherwise omitted.
+  // Uses the global __rrmTrack__ bridge installed by track-auto.ts.
+  (function () {
+    if (typeof window === 'undefined' || !window.__rrmTrack__) return;
+    var fromPage;
+    try {
+      if (document.referrer) {
+        var u = new URL(document.referrer);
+        if (u.hostname === location.hostname) fromPage = u.pathname;
+      }
+    } catch (_) { /* opaque referrer */ }
+    window.__rrmTrack__('glossary_lookup', fromPage ? { term: termSlug, from_page: fromPage } : { term: termSlug });
+  })();
+</script>
