@@ -68,6 +68,18 @@ if echo "$STAGED" | grep -qE '^ssot/pillars\.json$|^src/pages/guides/index\.astr
   fi
 fi
 
+# --- Analytics pipeline gates: any staged track endpoint, allowlist, ga4-source, csp, or client helper ---
+if echo "$STAGED" | grep -qE '^functions/api/track\.js$|^functions/api/_track-events\.js$|^functions/api/_ga4-source\.js$|^functions/_middleware\.js$|^src/scripts/track(-auto)?\.ts$|^scripts/gates/validate-analytics-pipeline\.mjs$'; then
+  node scripts/gates/validate-analytics-pipeline.mjs --quick
+  if [ $? -ne 0 ]; then
+    echo ""
+    echo "Commit blocked by analytics pipeline gates."
+    echo "Endpoint contract, allowlist, server/client event separation, PII regex, CSP lockdown, or helper exclusivity drifted."
+    echo "Fix the failures above, or bypass with --no-verify."
+    exit 1
+  fi
+fi
+
 # --- Payment pipeline gates: any staged stripe-webhook, create-checkout, or billing/* ---
 if echo "$STAGED" | grep -qE '^functions/api/(stripe-webhook|create-checkout)\.js$|^functions/api/billing/.*\.js$|^scripts/gates/validate-payment-pipeline\.mjs$'; then
   node scripts/gates/validate-payment-pipeline.mjs

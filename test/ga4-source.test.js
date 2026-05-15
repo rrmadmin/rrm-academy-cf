@@ -6,82 +6,102 @@ import { classifySource, extractUtm, deriveSessionId, buildSourceParams } from '
 describe('classifySource', () => {
   it('returns direct for empty referrer', () => {
     const result = classifySource('');
-    assert.deepStrictEqual(result, { source: '(direct)', medium: '(none)' });
+    assert.deepStrictEqual(result, { source: '(direct)', medium: '(none)', entry_category: 'direct', entry_platform: 'direct' });
   });
 
   it('returns direct for null referrer', () => {
     const result = classifySource(null);
-    assert.deepStrictEqual(result, { source: '(direct)', medium: '(none)' });
+    assert.deepStrictEqual(result, { source: '(direct)', medium: '(none)', entry_category: 'direct', entry_platform: 'direct' });
   });
 
   it('classifies google.com as organic', () => {
     const result = classifySource('https://www.google.com/search?q=rrm');
-    assert.deepStrictEqual(result, { source: 'google', medium: 'organic' });
+    assert.deepStrictEqual(result, { source: 'google', medium: 'organic', entry_category: 'organic', entry_platform: 'google' });
   });
 
   it('classifies google.co.uk as organic', () => {
     const result = classifySource('https://www.google.co.uk/');
-    assert.deepStrictEqual(result, { source: 'google', medium: 'organic' });
+    assert.deepStrictEqual(result, { source: 'google', medium: 'organic', entry_category: 'organic', entry_platform: 'google' });
   });
 
-  it('classifies bing.com as organic', () => {
+  it('classifies bing.com as organic (not AI)', () => {
     const result = classifySource('https://www.bing.com/search?q=napro');
-    assert.deepStrictEqual(result, { source: 'bing', medium: 'organic' });
+    assert.deepStrictEqual(result, { source: 'bing', medium: 'organic', entry_category: 'organic', entry_platform: 'bing' });
   });
 
   it('classifies duckduckgo.com as organic', () => {
     const result = classifySource('https://duckduckgo.com/?q=rrm');
-    assert.deepStrictEqual(result, { source: 'duckduckgo', medium: 'organic' });
+    assert.deepStrictEqual(result, { source: 'duckduckgo', medium: 'organic', entry_category: 'organic', entry_platform: 'duckduckgo' });
   });
 
   it('classifies instagram.com as social', () => {
     const result = classifySource('https://l.instagram.com/something');
-    assert.deepStrictEqual(result, { source: 'instagram', medium: 'social' });
+    assert.deepStrictEqual(result, { source: 'instagram', medium: 'social', entry_category: 'social', entry_platform: 'instagram' });
   });
 
   it('classifies facebook.com as social', () => {
     const result = classifySource('https://l.facebook.com/l.php?u=...');
-    assert.deepStrictEqual(result, { source: 'facebook', medium: 'social' });
+    assert.deepStrictEqual(result, { source: 'facebook', medium: 'social', entry_category: 'social', entry_platform: 'facebook' });
   });
 
   it('classifies linkedin.com as social', () => {
     const result = classifySource('https://www.linkedin.com/feed');
-    assert.deepStrictEqual(result, { source: 'linkedin', medium: 'social' });
+    assert.deepStrictEqual(result, { source: 'linkedin', medium: 'social', entry_category: 'social', entry_platform: 'linkedin' });
   });
 
   it('classifies twitter/x as social', () => {
     const result = classifySource('https://t.co/abc123');
-    assert.deepStrictEqual(result, { source: 'twitter', medium: 'social' });
+    assert.deepStrictEqual(result, { source: 'twitter', medium: 'social', entry_category: 'social', entry_platform: 'twitter' });
   });
 
   it('classifies unknown referrer as referral', () => {
     const result = classifySource('https://somesite.com/page');
-    assert.deepStrictEqual(result, { source: 'somesite.com', medium: 'referral' });
+    assert.deepStrictEqual(result, { source: 'somesite.com', medium: 'referral', entry_category: 'referral', entry_platform: 'somesite.com' });
   });
 
   it('ignores self-referrals from rrmacademy.org', () => {
     const result = classifySource('https://rrmacademy.org/library/some-article');
-    assert.deepStrictEqual(result, { source: '(direct)', medium: '(none)' });
+    assert.deepStrictEqual(result, { source: '(direct)', medium: '(none)', entry_category: 'direct', entry_platform: 'direct' });
   });
 
   it('classifies yahoo as organic', () => {
     const result = classifySource('https://search.yahoo.com/search?p=rrm');
-    assert.deepStrictEqual(result, { source: 'yahoo', medium: 'organic' });
+    assert.deepStrictEqual(result, { source: 'yahoo', medium: 'organic', entry_category: 'organic', entry_platform: 'yahoo' });
   });
 
   it('does NOT classify mail.google.com as organic', () => {
     const result = classifySource('https://mail.google.com/mail/');
-    assert.deepStrictEqual(result, { source: 'mail.google.com', medium: 'referral' });
+    assert.deepStrictEqual(result, { source: 'mail.google.com', medium: 'referral', entry_category: 'referral', entry_platform: 'mail.google.com' });
   });
 
   it('does NOT classify docs.google.com as organic', () => {
     const result = classifySource('https://docs.google.com/document/d/123');
-    assert.deepStrictEqual(result, { source: 'docs.google.com', medium: 'referral' });
+    assert.deepStrictEqual(result, { source: 'docs.google.com', medium: 'referral', entry_category: 'referral', entry_platform: 'docs.google.com' });
   });
 
   it('classifies bare google.com as organic', () => {
     const result = classifySource('https://google.com/');
-    assert.deepStrictEqual(result, { source: 'google', medium: 'organic' });
+    assert.deepStrictEqual(result, { source: 'google', medium: 'organic', entry_category: 'organic', entry_platform: 'google' });
+  });
+
+  it('classifies chatgpt.com as AI agent', () => {
+    const result = classifySource('https://chatgpt.com/');
+    assert.deepStrictEqual(result, { source: 'chatgpt', medium: 'ai', entry_category: 'ai', entry_platform: 'chatgpt' });
+  });
+
+  it('classifies perplexity.ai as AI agent', () => {
+    const result = classifySource('https://perplexity.ai/search?q=rrm');
+    assert.deepStrictEqual(result, { source: 'perplexity', medium: 'ai', entry_category: 'ai', entry_platform: 'perplexity' });
+  });
+
+  it('classifies bing.com/chat as copilot (AI), not bing (organic)', () => {
+    const result = classifySource('https://www.bing.com/chat');
+    assert.deepStrictEqual(result, { source: 'copilot', medium: 'ai', entry_category: 'ai', entry_platform: 'copilot' });
+  });
+
+  it('classifies claude.ai as AI agent', () => {
+    const result = classifySource('https://claude.ai/');
+    assert.deepStrictEqual(result, { source: 'claude', medium: 'ai', entry_category: 'ai', entry_platform: 'claude' });
   });
 });
 

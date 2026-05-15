@@ -2,6 +2,18 @@
 // Server-side traffic source classification for GA4 Measurement Protocol.
 // Prefixed with _ so CF Pages doesn't treat it as a route handler.
 
+// AI agent referrer patterns. Tested BEFORE SEARCH_ENGINES so that bing.com/chat
+// routes to 'copilot' (ai category) rather than 'bing' (organic).
+const AI_AGENTS = [
+  { pattern: /chatgpt\.com|chat\.openai\.com/i,         platform: 'chatgpt' },
+  { pattern: /perplexity\.ai/i,                          platform: 'perplexity' },
+  { pattern: /claude\.ai/i,                              platform: 'claude' },
+  { pattern: /gemini\.google\.com|bard\.google\.com/i,   platform: 'gemini' },
+  { pattern: /copilot\.microsoft\.com|bing\.com\/chat/i, platform: 'copilot' },
+  { pattern: /you\.com/i,                                platform: 'you' },
+  { pattern: /grokipedia\.com|x\.ai/i,                   platform: 'grok' },
+];
+
 const SEARCH_ENGINES = [
   { pattern: /^(www\.)?google\./i, source: 'google' },
   { pattern: /bing\.com/i, source: 'bing' },
@@ -26,28 +38,41 @@ const SOCIAL_NETWORKS = [
 const SELF_DOMAINS = ['rrmacademy.org', 'www.rrmacademy.org', 'library.rrmacademy.org'];
 
 export function classifySource(referrer) {
-  if (!referrer) return { source: '(direct)', medium: '(none)' };
+  if (!referrer) return { source: '(direct)', medium: '(none)', entry_category: 'direct', entry_platform: 'direct' };
 
   let hostname;
   try {
     hostname = new URL(referrer).hostname;
   } catch {
-    return { source: '(direct)', medium: '(none)' };
+    return { source: '(direct)', medium: '(none)', entry_category: 'direct', entry_platform: 'direct' };
   }
 
   if (SELF_DOMAINS.some(d => hostname === d)) {
-    return { source: '(direct)', medium: '(none)' };
+    return { source: '(direct)', medium: '(none)', entry_category: 'direct', entry_platform: 'direct' };
+  }
+
+  // AI agents tested first so bing.com/chat -> copilot, not bing (organic).
+  // Match against the full referrer URL (not hostname-only) because the bing.com/chat
+  // pattern needs the path component to distinguish it from regular bing.com search.
+  for (const { pattern, platform } of AI_AGENTS) {
+    if (pattern.test(referrer)) {
+      return { source: platform, medium: 'ai', entry_category: 'ai', entry_platform: platform };
+    }
   }
 
   for (const { pattern, source } of SEARCH_ENGINES) {
-    if (pattern.test(hostname)) return { source, medium: 'organic' };
+    if (pattern.test(hostname)) {
+      return { source, medium: 'organic', entry_category: 'organic', entry_platform: source };
+    }
   }
 
   for (const { pattern, source } of SOCIAL_NETWORKS) {
-    if (pattern.test(hostname)) return { source, medium: 'social' };
+    if (pattern.test(hostname)) {
+      return { source, medium: 'social', entry_category: 'social', entry_platform: source };
+    }
   }
 
-  return { source: hostname, medium: 'referral' };
+  return { source: hostname, medium: 'referral', entry_category: 'referral', entry_platform: hostname };
 }
 
 const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
@@ -108,17 +133,37 @@ export async function buildSourceParams(request, clientId) {
   const referrer = entryRef || request.headers.get('Referer') || '';
   const url = entryUrl || request.url;
   const utmParams = extractUtm(url);
-  const { source, medium } = classifySource(referrer);
+  const classified = classifySource(referrer);
+
+  // Email UTM override: when utm_source=email, the referrer is typically Gmail/Outlook
+  // which would wrongly classify as 'referral'. Override with email category and
+  // derive email_type from utm_medium so funnels can segment by broadcast/automation.
+  if (utmParams.utm_source === 'email') {
+    classified.entry_category = 'email';
+    classified.entry_platform = 'email';
+    if (utmParams.utm_medium === 'newsletter') classified.email_type = 'broadcast';
+    else if (utmParams.utm_medium === 'email_automation') classified.email_type = 'automation';
+    else if (utmParams.utm_medium === 'email_transactional') classified.email_type = 'transactional';
+    else classified.email_type = 'other';
+  }
 
   const dateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
   const sessionId = await deriveSessionId(clientId, dateStr);
 
+  // list_source cookie: set by BaseLayout when ?list_source= param is present on first load.
+  // Survives internal navigations so API calls inherit the original list source.
+  const listSource = parseCookie(cookies, 'list_source');
+
   return {
     session_id: sessionId,
-    utm_source: utmParams.utm_source || source,
-    utm_medium: utmParams.utm_medium || medium,
+    utm_source: utmParams.utm_source || classified.source,
+    utm_medium: utmParams.utm_medium || classified.medium,
+    entry_category: classified.entry_category,
+    entry_platform: classified.entry_platform,
+    ...(classified.email_type && { email_type: classified.email_type }),
     ...(utmParams.utm_campaign && { utm_campaign: utmParams.utm_campaign }),
     ...(utmParams.utm_content && { utm_content: utmParams.utm_content }),
     ...(utmParams.utm_term && { utm_term: utmParams.utm_term }),
+    ...(listSource && { list_source: listSource }),
   };
 }
