@@ -29,7 +29,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
       'SELECT id, email, name, first_name, last_name, email_verified, role, blocked, created_at FROM user WHERE id = ?'
     ).bind(session.userId).first();
 
-    if (!user || user.blocked) {
+    if (!user) {
       return json({ ok: true, user: null });
     }
 

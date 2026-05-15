@@ -27,7 +27,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const password = body.password || '';
 
     if (!token) return json({ ok: false, error: 'Reset token is required.' }, 400);
-    if (!isValidPassword(password)) return json({ ok: false, error: 'Password must be at least 8 characters.' }, 400);
+    if (!isValidPassword(password)) return json({ ok: false, error: 'Password must be between 8 and 128 characters.' }, 400);
 
     const ip = request.headers.get('CF-Connecting-IP');
     if (!ip) return json({ ok: false, error: 'Service temporarily unavailable.' }, 503);
@@ -64,6 +64,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
         .bind(hashedPassword, tokenRow.user_id),
       db.prepare("DELETE FROM password_reset WHERE user_id = ? AND purpose = 'reset'")
         .bind(tokenRow.user_id),
+      // Cleanup: revoke ALL sessions on password reset (forces re-auth across all devices for security).
       // Atomic batch — inline DELETE retained for batch atomicity (mirror of invalidateAllUserSessions)
       db.prepare('DELETE FROM session WHERE user_id = ?')
         .bind(tokenRow.user_id),

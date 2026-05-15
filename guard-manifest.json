@@ -3,15 +3,15 @@
   "description": "Critical file integrity manifest. Run `npm run guard:update` after intentional changes.",
   "files": {
     "functions/api/auth/_shared.js": {
-      "hash": "7669d38052c749c5ca174d7cef69250d557508eaf7f8021a27254e271703fae5",
+      "hash": "d10712f0b4883bbb14fb10cf331cf55d10d8cced7b780b1b7b5ca16f5f2b7394",
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
-      "hash": "cf83752d59d3db6338c1a310c98869a98b70711478ed24e58c588b5aa74af9c1",
+      "hash": "8fd45b2241b7f1a68b248dcba53dab790891d4b068314a1598cb4a30d8700117",
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "ee13e261638733183f6a57966fbf8262e6000757bc8a2d7353c323e1f7eae384",
+      "hash": "cd8f8793863c92cb9afcac3c3e606b42ad52f9c016a35bf3ca472e0891094774",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
@@ -19,15 +19,15 @@
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
-      "hash": "381351b6a490ecdb47321f0690c97c8fb88035177f24cffa7f19f68584b6170d",
+      "hash": "eaacb62d6e8e5f96e8e168d071d4602b9b5aba29d0e43a1d7fc77fba0a6ebdba",
       "note": "Reset token consumption + password change"
     },
     "functions/api/auth/change-password.js": {
-      "hash": "7fed3a9fcb6224bced064d6b4886a1a482b92c2044b328756c251636cef66bcc",
+      "hash": "b80d0f9b2d32f42162ff6be94ae70f649d2501c4a94c935e0ccc1a566a3ed1b2",
       "note": "Authenticated password change"
     },
     "functions/api/auth/google.js": {
-      "hash": "5b2e8e7656b7c35ebb817ed6eebb72068ac397bcc4a37a9369c5e97ae9d7a04e",
+      "hash": "b1bb1455efd59ae323f6492aced2fe04e6517b6d797ea51b28f9d6b877b66957",
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
@@ -35,7 +35,7 @@
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
-      "hash": "c96d9a6db6d0e6c28156d8835216d815fd38f30a1ea2ad40193c2c8197321903",
+      "hash": "ed0f52f42e47e3c22660dabcec4426dea0b2b0fb2c2a2cf32790551eb90d40dd",
       "note": "Email validation + disposable/typo detection"
     },
     "functions/api/stripe-webhook.js": {
