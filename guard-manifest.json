@@ -3,15 +3,15 @@
   "description": "Critical file integrity manifest. Run `npm run guard:update` after intentional changes.",
   "files": {
     "functions/api/auth/_shared.js": {
-      "hash": "3becafff4405bf2ec52d1033456ffc905c847c8b7608375f52fd29ddc74f08a0",
+      "hash": "7669d38052c749c5ca174d7cef69250d557508eaf7f8021a27254e271703fae5",
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
-      "hash": "28008e758ae969e7b8c4ff20bdcdc5ea1510ee42ef204f83587dcd48947a7170",
+      "hash": "cf83752d59d3db6338c1a310c98869a98b70711478ed24e58c588b5aa74af9c1",
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "4c128ff77be820d887da30f52b73735effbe8089536a47cd1ed1cda52e674f56",
+      "hash": "ee13e261638733183f6a57966fbf8262e6000757bc8a2d7353c323e1f7eae384",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
@@ -19,11 +19,11 @@
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
-      "hash": "b3b0c94af24809bc0b935e986dc20732552c00c58046ae8febcd2254a036bca5",
+      "hash": "381351b6a490ecdb47321f0690c97c8fb88035177f24cffa7f19f68584b6170d",
       "note": "Reset token consumption + password change"
     },
     "functions/api/auth/change-password.js": {
-      "hash": "3ed28622af3d4793ce7d9f64b657c29b1beb94506723282f8320f18b6ec0ede6",
+      "hash": "7fed3a9fcb6224bced064d6b4886a1a482b92c2044b328756c251636cef66bcc",
       "note": "Authenticated password change"
     },
     "functions/api/auth/google.js": {
@@ -31,7 +31,7 @@
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "370176643d1b3632e52a04d1bf168f2b0a0ccb337f8b4b2b7f2edb75e1d14628",
+      "hash": "1f98c605bcbe24e159c1e3db13d481bb82e9a416714713572398fd5a04382724",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
@@ -71,7 +71,7 @@
       "note": "HMAC-SHA256 magic-link token for Wix-to-Stripe donor migration"
     },
     "functions/_middleware.js": {
-      "hash": "38f31ba0827fad31ea7f8681b004326d4ee091f6cd7dadee53eeedaea8d6ffa8",
+      "hash": "3a9f6aa3b3161dd55ff0b080231a2ed211c0e8dc1a23583d1e1e16307c034aec",
       "note": "Auth gating"
     },
     "wrangler.toml": {
@@ -143,7 +143,7 @@
       "note": "Guard script (self-guarding)"
     },
     "functions/api/auth/verify-email.js": {
-      "hash": "5fe84bcd920392d12481f950f9c64c2957b604e929b1e3ddcf7bb3c00967b42e",
+      "hash": "9136fd6e313a2541f555766b5d478f49148d9ffe12eeea438c06359bb2ae2ca3",
       "note": "Email verification token consumption"
     },
     "functions/api/auth/logout.js": {
