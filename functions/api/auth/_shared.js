@@ -217,7 +217,7 @@ export async function verifyTurnstile(secret, token, ip, env) {
     if (env?.EVENTS) {
       try {
         env.EVENTS.writeDataPoint({ blobs: ['auth', 'turnstile_misconfigured'], indexes: [] });
-      } catch {}
+      } catch (_) { /* AE write best-effort */ }
     }
     return { ok: false, reason: 'misconfigured' };
   }

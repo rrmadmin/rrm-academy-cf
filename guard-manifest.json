@@ -3,7 +3,7 @@
   "description": "Critical file integrity manifest. Run `npm run guard:update` after intentional changes.",
   "files": {
     "functions/api/auth/_shared.js": {
-      "hash": "d10712f0b4883bbb14fb10cf331cf55d10d8cced7b780b1b7b5ca16f5f2b7394",
+      "hash": "1f8ea880649842091fdd89919018befa4c2e438bacacd876d3fd597e6c1c51f1",
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
@@ -35,7 +35,7 @@
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
-      "hash": "ed0f52f42e47e3c22660dabcec4426dea0b2b0fb2c2a2cf32790551eb90d40dd",
+      "hash": "a5aa9b4e10618bbfe896a7f8ac174531cda4731d37201c6a7015234c7c092742",
       "note": "Email validation + disposable/typo detection"
     },
     "functions/api/stripe-webhook.js": {

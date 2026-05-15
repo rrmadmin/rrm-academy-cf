@@ -303,10 +303,10 @@ async function checkMxRecord(domain, env) {
   } catch (err) {
     try {
       if (env?.EVENTS) env.EVENTS.writeDataPoint({ blobs: ['email_validate', 'mx_fail_open', domain], indexes: [] });
-    } catch {}
+    } catch (_) { /* AE write best-effort */ }
     try {
       log(env, null, 'email_validate', 'mx_fail_open', 'warn', domain);
-    } catch {}
+    } catch (_) { /* log best-effort */ }
     return true; // fail-open on timeout/network error
   }
 }
