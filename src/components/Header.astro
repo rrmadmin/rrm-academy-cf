@@ -132,8 +132,8 @@ const mobileNavSections = [
       <!-- Mobile-only footer inside nav panel -->
       <div class="mobile-nav-footer">
         <div class="mobile-nav-footer__actions">
-          <a href="/account/" class="btn btn--secondary">Account</a>
-          <a href="/donate/" class="donate-btn">Donate</a>
+          <a href="/account/" class="btn btn--secondary" data-track-cta="account-mobile-nav">Account</a>
+          <a href="/donate/" class="donate-btn" data-track-cta="donate-mobile-nav">Donate</a>
           <div class="mobile-nav-footer__utils">
             <a href="/library/saved/" class="saved-link mobile-saved-link" id="mobile-saved-link" title="Saved articles">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v8l3-3 3 3V2"/><path class="book-body" d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/></svg>
@@ -162,8 +162,8 @@ const mobileNavSections = [
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         <span>Ask</span>
       </a>
-      <a href="/account/" class="btn btn--secondary btn--pill" id="desktop-account-btn">Account</a>
-      <a href="/donate/" class="donate-btn" id="desktop-donate-btn">Donate</a>
+      <a href="/account/" class="btn btn--secondary btn--pill" id="desktop-account-btn" data-track-cta="account-header">Account</a>
+      <a href="/donate/" class="donate-btn" id="desktop-donate-btn" data-track-cta="donate-header">Donate</a>
     </div>
 
     <MobileSearchModal />
