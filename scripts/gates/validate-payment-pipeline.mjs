@@ -44,6 +44,9 @@ const PAYMENT_FILES = [
   'functions/api/billing/_webhook-subscription.js',
   'functions/api/billing/_webhook-invoice.js',
   'functions/api/billing/_webhook-shared.js',
+  'functions/api/billing/_webhook-refund.js',
+  'functions/api/billing/_shared.js',
+  'functions/api/billing/_migration-handoff.js',
   'functions/api/billing/_migration-token.js',
   'functions/api/billing/checkout-account.js',
   'functions/api/billing/portal.js',
@@ -58,6 +61,7 @@ const WEBHOOK_HANDLERS = [
   'functions/api/billing/_webhook-checkout.js',
   'functions/api/billing/_webhook-subscription.js',
   'functions/api/billing/_webhook-invoice.js',
+  'functions/api/billing/_webhook-refund.js',
 ];
 
 // ---------- CLI -----------------------------------------------------------
@@ -119,10 +123,19 @@ function read(rel) {
 //     causes duplicate enrollments / welcome emails / contact rows)
 //   - dedup row not rolled back on 5xx (subsequent retry skipped as duplicate
 //     even though prior attempt failed)
+// Billing cluster shared helper -- dedup SQL may live here after 2026-05-15 decomposition
+const WEBHOOK_SHARED = 'functions/api/billing/_shared.js';
+
 function gatePG1() {
   const results = [];
   const src = read(WEBHOOK_ENTRY);
   if (!src) return [fail(`${WEBHOOK_ENTRY} not found`)];
+
+  // For dedup SQL checks (c + d): also scan billing/_shared.js since the
+  // 2026-05-15 decomposition extracted INSERT OR IGNORE / DELETE FROM webhook_event
+  // into dedupWebhookEvent() + rollbackWebhookDedup() helpers there.
+  const sharedSrc = read(WEBHOOK_SHARED) || '';
+  const dedupSurface = src + sharedSrc;
 
   // a) stripe-signature header read
   if (/request\.headers\.get\(\s*['"]stripe-signature['"]\s*\)/.test(src)) {
@@ -141,15 +154,15 @@ function gatePG1() {
     results.push(fail(`${WEBHOOK_ENTRY} contains stripe.webhooks.constructEvent (sync) — replace with constructEventAsync`));
   }
 
-  // c) INSERT OR IGNORE INTO webhook_event before dispatch
-  if (/INSERT\s+OR\s+IGNORE\s+INTO\s+webhook_event/i.test(src)) {
+  // c) INSERT OR IGNORE INTO webhook_event before dispatch (may live in billing/_shared.js)
+  if (/INSERT\s+OR\s+IGNORE\s+INTO\s+webhook_event/i.test(dedupSurface)) {
     results.push(pass(`uses INSERT OR IGNORE INTO webhook_event for dedup`));
   } else {
     results.push(fail(`${WEBHOOK_ENTRY} must INSERT OR IGNORE INTO webhook_event before dispatching to handler (Stripe retries replay event.id)`));
   }
 
-  // d) DELETE FROM webhook_event on 5xx (rollback so retry can re-process)
-  if (/DELETE\s+FROM\s+webhook_event/i.test(src)) {
+  // d) DELETE FROM webhook_event on 5xx (rollback so retry can re-process) (may live in billing/_shared.js)
+  if (/DELETE\s+FROM\s+webhook_event/i.test(dedupSurface)) {
     results.push(pass(`rolls back webhook_event on 5xx (allows Stripe retry to re-process)`));
   } else {
     results.push(fail(`${WEBHOOK_ENTRY} must DELETE FROM webhook_event when sub-handler returns 5xx, otherwise transient failures become permanent`));
