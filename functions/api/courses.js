@@ -45,19 +45,21 @@ export async function onRequestGet(context) {
 
       const preview = url.searchParams.get('preview') === '1';
 
-      const [course, { results: sections }, { results: steps }] = await Promise.all([
+      const [course, { results: sections }, { results: steps }, enrollRow] = await Promise.all([
         env.DB.prepare('SELECT * FROM course WHERE id = ?').bind(id).first(),
         env.DB.prepare('SELECT * FROM course_section WHERE course_id = ? ORDER BY sort_order ASC').bind(id).all(),
         preview
           ? env.DB.prepare('SELECT * FROM course_step WHERE course_id = ? ORDER BY section_id, sort_order ASC').bind(id).all()
           : env.DB.prepare("SELECT * FROM course_step WHERE course_id = ? AND status = 'published' ORDER BY section_id, sort_order ASC").bind(id).all(),
+        env.DB.prepare('SELECT COUNT(*) AS live FROM enrollment WHERE revoked_at IS NULL AND course_id = ?').bind(id).first(),
       ]);
 
       if (!course) {
         return json({ ok: false, error: 'not_found' }, 404);
       }
 
-      return json({ ok: true, data: mapCourse(course, sections || [], steps || [], preview) });
+      const liveCount = enrollRow?.live ?? 0;
+      return json({ ok: true, data: mapCourse(course, sections || [], steps || [], preview, liveCount) });
     }
 
     const { results: courses } = await env.DB.prepare(
@@ -68,22 +70,26 @@ export async function onRequestGet(context) {
       return json({ ok: true, results: [] });
     }
 
-    const [{ results: allSections }, { results: allSteps }] = await Promise.all([
+    const [{ results: allSections }, { results: allSteps }, { results: enrollCounts }] = await Promise.all([
       env.DB.prepare(
         'SELECT s.* FROM course_section s JOIN course c ON s.course_id = c.id WHERE c.status = ? ORDER BY s.course_id, s.sort_order ASC'
       ).bind('published').all(),
       env.DB.prepare(
         "SELECT s.* FROM course_step s JOIN course c ON s.course_id = c.id WHERE c.status = ? AND s.status = 'published' ORDER BY s.section_id, s.sort_order ASC"
       ).bind('published').all(),
+      env.DB.prepare(
+        'SELECT course_id, COUNT(*) AS live FROM enrollment WHERE revoked_at IS NULL GROUP BY course_id'
+      ).all(),
     ]);
 
     const sectionsByCourseId = groupBy(allSections || [], 'course_id');
     const stepsByCourseId = groupBy(allSteps || [], 'course_id');
+    const countMap = new Map((enrollCounts || []).map(r => [r.course_id, r.live]));
 
     const results = courses.map(course => {
       const sections = sectionsByCourseId[course.id] || [];
       const stepsForCourse = stepsByCourseId[course.id] || [];
-      return mapCourse(course, sections, stepsForCourse, false);
+      return mapCourse(course, sections, stepsForCourse, false, countMap.get(course.id) ?? 0);
     });
 
     return json({ ok: true, results });
@@ -103,7 +109,7 @@ function groupBy(rows, key) {
   return map;
 }
 
-function mapCourse(c, sections, steps, preview) {
+function mapCourse(c, sections, steps, preview, participants = 0) {
   const stepsBySectionId = groupBy(steps, 'section_id');
 
   let mappedSections = sections.map(sec => ({
@@ -134,7 +140,7 @@ function mapCourse(c, sections, steps, preview) {
     selfPaced: !!Number(c.self_paced),
     accessType: c.access_type,
     comingSoon: !!Number(c.coming_soon),
-    participants: c.participants,
+    participants,
     instructors: parseArray(c.instructors_json),
     settings: parseObject(c.settings_json),
     seo: parseObject(c.seo_json),
