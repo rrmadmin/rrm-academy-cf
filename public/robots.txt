@@ -14,15 +14,16 @@
 # =============================================================================
 
 # --- Content Signals (contentsignals.org / draft-romm-aipref-contentsignals) --
-# Explicit AI usage preferences. Matches the "maximum AI visibility" stance
-# above: agents may use our content for training, search, and input to LLM
-# answers. Any future tightening (e.g. ai-train=no) should also flip the
-# relevant User-agent blocks below to Disallow.
-Content-Signal: ai-train=yes, search=yes, ai-input=yes
+# Per the IETF draft + Lighthouse robots.txt validator, Content-Signal is
+# delivered as an HTTP response header. We ship it on every response via
+# functions/_middleware.js -> withSecurityHeaders() (header value:
+# `ai-train=yes, search=yes, ai-input=yes`). Keeping the directive here too
+# trips Lighthouse "robots.txt is not valid" because the validator only
+# understands the original 1994 spec (User-agent / Allow / Disallow /
+# Sitemap). Removed from this file 2026-05-15.
 
 # --- Default rules (Googlebot, Bingbot, and all unlisted crawlers) -----------
 User-agent: *
-Content-Signal: ai-train=yes, search=yes, ai-input=yes
 Allow: /
 Disallow: /login
 Disallow: /signup
@@ -89,5 +90,6 @@ Disallow: /
 
 Sitemap: https://rrmacademy.org/sitemap-index.xml
 
-# NLWeb Schema Feeds -- structured data feeds for AI agents
-Schemamap: https://rrmacademy.org/library-feed.jsonl
+# NLWeb Schema Feeds: library-feed.jsonl + schemamap.xml are advertised via
+# HTTP Link headers on / (see public/_headers). Removed from robots.txt 2026-05-15
+# because `Schemamap:` is not a valid robots directive and Lighthouse flagged it.
