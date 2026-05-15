@@ -428,6 +428,7 @@
 // the URL-query auto-search still fires inside the same task as DOMContentLoaded.
 // @ts-nocheck above silences strict-null/implicit-any in vanilla JS that
 // previously skipped TS via the is:inline directive (no runtime behavior change).
+import { track } from '../scripts/track.ts';
 (function() {
   var input = document.getElementById('search-input');
   var clearBtn = document.getElementById('search-clear');
@@ -499,6 +500,11 @@
   // Beacon the user's search query + result count to /api/search/log for
   // content-gap analysis. Fire-and-forget, deduped per unique query, capped
   // at 500 chars, skipped for queries under 2 chars.
+  //
+  // Also fires GA4 `search_submit` event via /api/track (query_length only,
+  // never the query itself — see spec §10 PII rules). Both beacons are
+  // dedup-gated against `lastBeaconedQuery` so paging through the same query
+  // doesn't double-fire.
   function beaconQuery(query, resultsCount) {
     if (!query || query.length < 2 || query.length > 500) return;
     if (query === lastBeaconedQuery) return;
@@ -512,6 +518,12 @@
         credentials: 'same-origin',
       }).catch(function(){});
     } catch(e) {}
+    // GA4 mirror via /api/track. query_length only -- never the raw query.
+    track('search_submit', {
+      query_length: query.length,
+      surface: 'searchbar',
+      results_count: resultsCount,
+    });
   }
 
   // Load Pagefind on first interaction — single shared promise prevents race conditions.
@@ -1036,6 +1048,19 @@
     }
 
     a.addEventListener('pointerdown', function (e) {
+      // Fire GA4 search_result_click. Rank = index of this anchor among
+      // all currently-visible .sr-item nodes (matches the order the user sees).
+      try {
+        var visible = Array.prototype.slice.call(resultsEl.querySelectorAll('.sr-item'));
+        var rank = visible.indexOf(a);
+        track('search_result_click', {
+          surface: 'searchbar',
+          result_type: type || 'unknown',
+          rank: rank >= 0 ? rank : 0,
+          query_length: (currentQuery || '').length,
+        });
+      } catch (_) { /* analytics must never break navigation */ }
+
       // Determine source based on clicked anchor's path.
       var clickedHref = a.getAttribute('href') || '';
       var isCommentaryClick = clickedHref.indexOf('/commentary/') !== -1;
