@@ -880,7 +880,7 @@ if (listSource) params.list_source = listSource;</code></pre>
   <li>All lowercase, underscores not hyphens, no spaces, ASCII only</li>
   <li>Dates in <code>YYYY-MM</code> or <code>YYYY-MM-DD</code> always sortable</li>
   <li><code>list_source</code> passed as a separate (non-UTM) query param: <code>?utm_source=email&amp;utm_medium=newsletter&amp;utm_campaign=newsletter_monthly_2026-05&amp;list_source=endo_survey_signup</code> — captured by client helper, sent as event param, registered as custom dimension</li>
-  <li><strong>Document in a public-facing UTM cheat sheet</strong> (<code>docs/marketing/utm-conventions.md</code> + a one-pager in the team Notion). Future-Brian + future-staff need this.</li>
+  <li><strong>Document in a public-facing UTM cheat sheet</strong> (<code>rrm-academy-internal/marketing/utm-conventions.md</code> + a one-pager in the team Notion). Future-Brian + future-staff need this.</li>
 </ul>
 
 <h3>15.8 Mistakes to avoid <span style="font-size: 14px; color: var(--ink-muted); font-weight: 400;">(CXL warnings)</span></h3>
@@ -909,7 +909,7 @@ if (listSource) params.list_source = listSource;</code></pre>
   <li><strong>Set up cohort analysis</strong> using <code>cohort_date</code> dimension — retention curves by signup month</li>
   <li><strong>Looker Studio dashboard</strong> (optional, last): per-persona summary card with conversion rate, top entry pages, top exit pages, donor lifetime value, email-list-source ROI</li>
   <li><strong>Weekly 15-min funnel review ritual</strong> (per CXL: <em>"People happily tag events for micro actions but then never actually do micro-funnel analysis"</em>). Calendar block, not a wish.</li>
-  <li><strong>Publish UTM convention doc</strong> at <code>docs/marketing/utm-conventions.md</code> + team Notion (§15.7)</li>
+  <li><strong>Publish UTM convention doc</strong> at <code>rrm-academy-internal/marketing/utm-conventions.md</code> + team Notion (§15.7)</li>
 </ol>
 <p>Time estimate: 4–6 hours of dashboard work over the first week, plus the weekly 15-min review going forward.</p>
 
@@ -1082,7 +1082,7 @@ if (listSource) params.list_source = listSource;</code></pre>
     <tr><td><code>.github/workflows/deploy.yml</code></td><td><span class="pill" style="background: #eee5dd; color: var(--ink-secondary);">modify</span></td><td>+ "Validate analytics pipeline gates" step</td></tr>
     <tr><td><code>package.json</code></td><td><span class="pill" style="background: #eee5dd; color: var(--ink-secondary);">modify</span></td><td>+ <code>gates:analytics</code> + <code>gates:analytics:check</code> npm scripts</td></tr>
     <tr><td><code>CLAUDE.md</code></td><td><span class="pill" style="background: #eee5dd; color: var(--ink-secondary);">modify</span></td><td>+ "Analytics Pipeline Proof Gates" section parallel to Fact + Payment gates</td></tr>
-    <tr><td><code>docs/marketing/utm-conventions.md</code></td><td><span class="pill pill--new">new</span></td><td>UTM convention cheat sheet (§15.7) for staff + future-Brian</td></tr>
+    <tr><td><code>rrm-academy-internal/marketing/utm-conventions.md</code></td><td><span class="pill pill--new">new</span></td><td>UTM convention cheat sheet (§15.7) for staff + future-Brian</td></tr>
     <tr><td><code>docs/superpowers/specs/2026-05-15-client-analytics-spec.html</code></td><td><span class="pill pill--keep">this file</span></td><td>—</td></tr>
   </tbody>
 </table>
