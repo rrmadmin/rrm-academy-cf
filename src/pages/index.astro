@@ -214,7 +214,12 @@ const jsonLd = {
     <section class="hp-hero" aria-labelledby="hp-hero-h1">
       <div class="container container--narrow">
         <p class="hp-hero__descriptor animate-enter" style="--stagger: 0;">A 501(c)(3) nonprofit education platform</p>
-        <h1 id="hp-hero-h1" class="animate-enter" style="--stagger: 1;">Reclaim Reproductive Health with the Evidence</h1>
+        <!-- LCP element: no animate-enter. The transform+blur in the enter
+             keyframe was delaying PSI's contentful-paint recognition for
+             the h1 (Element render delay 2,510 ms on lab Slow 4G), pushing
+             LCP from 2.1s to 4.2s. The descriptor + subtitle still animate
+             around it so the entrance choreography survives. -->
+        <h1 id="hp-hero-h1">Reclaim Reproductive Health with the Evidence</h1>
         <p class="hp-hero__subtitle animate-enter" style="--stagger: 2;">
           Search {articleCount.toLocaleString()} scholarly works on PCOS, endometriosis, NaProTechnology, and more.
         </p>
