@@ -207,249 +207,10 @@
     display: none;
   }
 
-  .mss-modal__results :global(.mss-count) {
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    padding: var(--space-4) 0 var(--space-2);
-  }
-  .mss-modal__results :global(.mss-item) {
-    display: block;
-    padding: var(--space-4) 0;
-    border-bottom: 1px solid var(--border-light);
-    text-decoration: none;
-    color: var(--text-primary);
-  }
-  .mss-modal__results :global(.mss-item:first-of-type) {
-    border-top: 1px solid var(--border-light);
-  }
-  .mss-modal__results :global(.mss-item:active .mss-title) {
-    color: var(--accent);
-  }
-  .mss-modal__results :global(.mss-title-row) {
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-2);
-  }
-  .mss-modal__results :global(.mss-title) {
-    font-family: 'Cormorant Garamond', 'Georgia', serif;
-    font-size: 1.0625rem;
-    font-weight: 600;
-    line-height: 1.3;
-    color: var(--text-primary);
-    margin: 0 0 4px;
-    transition: color 0.15s;
-  }
-  .mss-modal__results :global(.mss-type) {
-    flex-shrink: 0;
-    font-size: 0.5625rem;
-    font-weight: 600;
-    font-family: 'Inter', sans-serif;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    padding: 2px 6px;
-    border-radius: 3px;
-    white-space: nowrap;
-  }
-  .mss-modal__results :global(.mss-type--research) { color: var(--green-700); background: var(--green-100); }
-  .mss-modal__results :global(.mss-type--course)   { color: var(--purple-700); background: var(--purple-100); }
-  .mss-modal__results :global(.mss-type--faq)      { color: var(--amber-700); background: var(--amber-100); }
-  .mss-modal__results :global(.mss-type--article)  { color: var(--sage-700); background: var(--sage-100); }
-  .mss-modal__results :global(.mss-type--guide)    { color: var(--rose-700); background: var(--rose-100); }
-  .mss-modal__results :global(.mss-type--glossary) { color: var(--sand-700); background: var(--sand-300); }
-
-  .mss-modal__results :global(.mss-meta) {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    margin-bottom: 6px;
-  }
-  .mss-modal__results :global(.mss-excerpt) {
-    font-size: 0.8125rem;
-    line-height: 1.5;
-    color: var(--text-secondary);
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  .mss-modal__results :global(.mss-more) {
-    display: block;
-    width: 100%;
-    margin-top: var(--space-5);
-    padding: 10px var(--space-5);
-    font-size: 0.8125rem;
-    font-weight: 500;
-    font-family: 'Inter', sans-serif;
-    color: var(--text-secondary);
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-pill);
-    cursor: pointer;
-  }
-  .mss-modal__results :global(.mss-more:active) {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-  .mss-modal__results :global(.mss-loading) {
-    font-size: 0.8125rem;
-    color: var(--text-muted);
-    padding: var(--space-5) 0;
-    display: flex;
-    align-items: center;
-    gap: 0.5em;
-  }
-  .mss-modal__results :global(.mss-loading-spinner) {
-    display: inline-block;
-    font-family: monospace;
-    font-size: 1rem;
-    line-height: 1;
-  }
-  .mss-modal__results :global(.mss-empty) {
-    font-size: 0.875rem;
-    color: var(--text-tertiary);
-    padding: var(--space-6) 0;
-    text-align: center;
-  }
-  .mss-modal__results :global(.mss-hint) {
-    font-size: 0.875rem;
-    color: var(--text-tertiary);
-    padding: var(--space-6) 0;
-    text-align: center;
-  }
-
-  /* ── Filter chip row ── */
-  .mss-modal__results :global(.mss-chips) {
-    display: flex;
-    gap: 6px;
-    padding: var(--space-3) 0;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    position: sticky;
-    top: 0;
-    background: var(--bg-body);
-    z-index: 1;
-    border-bottom: 1px solid var(--border-light);
-  }
-  .mss-modal__results :global(.mss-chips::-webkit-scrollbar) { display: none; }
-  .mss-modal__results :global(.mss-chip) {
-    flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 7px 14px;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-pill);
-    cursor: pointer;
-    white-space: nowrap;
-    transition: color 0.15s, border-color 0.15s, background 0.15s;
-  }
-  .mss-modal__results :global(.mss-chip-count) {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 20px;
-    height: 18px;
-    padding: 0 6px;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    color: var(--text-tertiary);
-    background: var(--bg-body);
-    border-radius: 9px;
-    font-variant-numeric: tabular-nums;
-  }
-  .mss-modal__results :global(.mss-chip--active) {
-    color: #fff;
-    background: var(--accent);
-    border-color: var(--accent);
-  }
-  .mss-modal__results :global(.mss-chip--active .mss-chip-count) {
-    color: var(--accent);
-    background: #fff;
-  }
-
-  /* ── Grouped sections ── */
-  .mss-modal__results :global(.mss-group) {
-    padding-top: var(--space-4);
-  }
-  .mss-modal__results :global(.mss-group:first-child) {
-    padding-top: var(--space-3);
-  }
-  .mss-modal__results :global(.mss-group-heading) {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0 0 var(--space-2);
-    padding: 0;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-tertiary);
-  }
-  .mss-modal__results :global(.mss-group-count) {
-    font-variant-numeric: tabular-nums;
-    color: var(--text-muted);
-    font-weight: 500;
-  }
-  .mss-modal__results :global(.mss-group .mss-item) {
-    padding-top: var(--space-3);
-    padding-bottom: var(--space-3);
-  }
-  .mss-modal__results :global(.mss-group .mss-item:first-of-type) {
-    border-top: none;
-  }
-  .mss-modal__results :global(.mss-group .mss-type) {
-    display: none;
-  }
-
-  /* Default "all" mode: hide items beyond preview limit */
-  .mss-modal__results :global(.mss-groups[data-active-filter="all"] .mss-item[data-over-preview]) {
-    display: none;
-  }
-  /* Filter active: hide every group, then re-show the targeted one */
-  .mss-modal__results :global(.mss-groups[data-active-filter]:not([data-active-filter="all"]) .mss-group) {
-    display: none;
-  }
-  .mss-modal__results :global(.mss-groups[data-active-filter="Guide"] .mss-group[data-group-type="Guide"]),
-  .mss-modal__results :global(.mss-groups[data-active-filter="Glossary"] .mss-group[data-group-type="Glossary"]),
-  .mss-modal__results :global(.mss-groups[data-active-filter="FAQ"] .mss-group[data-group-type="FAQ"]),
-  .mss-modal__results :global(.mss-groups[data-active-filter="Course"] .mss-group[data-group-type="Course"]),
-  .mss-modal__results :global(.mss-groups[data-active-filter="Article"] .mss-group[data-group-type="Article"]),
-  .mss-modal__results :global(.mss-groups[data-active-filter="Research"] .mss-group[data-group-type="Research"]) {
-    display: block;
-  }
-  .mss-modal__results :global(.mss-groups[data-active-filter]:not([data-active-filter="all"]) .mss-show-all) {
-    display: none;
-  }
-
-  .mss-modal__results :global(.mss-show-all) {
-    display: block;
-    width: 100%;
-    margin-top: var(--space-3);
-    padding: 9px 14px;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-pill);
-    cursor: pointer;
-    text-align: left;
-  }
-  .mss-modal__results :global(.mss-show-all:active) {
-    color: var(--accent);
-    border-color: var(--accent);
-  }
+  /* Heavy results-render CSS lazily injected on first modal open -- see
+     MSS_LAZY_CSS string literal + injectLazyMssCss() in the <script> below.
+     Defers ~7 KiB of selectors that only match after the user types (PSI
+     "Reduce unused CSS"). */
 
   /* Show trigger only on mobile. Tablet+ uses the page's SearchBar/header-search. */
   @media (max-width: 768px) {
@@ -471,6 +232,7 @@
     .mss-modal { display: none !important; }
   }
 </style>
+
 
 <script>
 // @ts-nocheck
@@ -512,8 +274,269 @@
 
   var waveFrames = ['⠖⠉⠉⠑','⡠⠖⠉⠉','⣠⡠⠖⠉','⣄⣠⡠⠖','⠢⣄⣠⡠','⠙⠢⣄⣠','⠉⠙⠢⣄','⠊⠉⠙⠢','⠜⠊⠉⠙','⡤⠜⠊⠉','⣀⡤⠜⠊','⢤⣀⡤⠜','⠣⢤⣀⡤','⠑⠣⢤⣀','⠉⠑⠣⢤','⠋⠉⠑⠣'];
 
+  // The ~7 KiB of results-render CSS is held as a JS string literal and
+  // injected as a <style> on first openModal(). Bytes are accounted as
+  // "used JS" (the variable assignment runs at module load), so Lighthouse
+  // "Reduce unused CSS" no longer flags them. Modal opens are rare relative
+  // to page loads, so even users who never type pay the 7 KiB once (in the
+  // long-cached JS bundle) instead of every HTML response.
+  var MSS_LAZY_CSS =
+    ".mss-modal__results .mss-count {\n" +
+    "  font-size: 0.75rem;\n" +
+    "  font-weight: 500;\n" +
+    "  color: var(--text-tertiary);\n" +
+    "  text-transform: uppercase;\n" +
+    "  letter-spacing: 0.04em;\n" +
+    "  padding: var(--space-4) 0 var(--space-2);\n" +
+    "}\n" +
+    ".mss-modal__results .mss-item {\n" +
+    "  display: block;\n" +
+    "  padding: var(--space-4) 0;\n" +
+    "  border-bottom: 1px solid var(--border-light);\n" +
+    "  text-decoration: none;\n" +
+    "  color: var(--text-primary);\n" +
+    "}\n" +
+    ".mss-modal__results .mss-item:first-of-type {\n" +
+    "  border-top: 1px solid var(--border-light);\n" +
+    "}\n" +
+    ".mss-modal__results .mss-item:active .mss-title {\n" +
+    "  color: var(--accent);\n" +
+    "}\n" +
+    ".mss-modal__results .mss-title-row {\n" +
+    "  display: flex;\n" +
+    "  align-items: baseline;\n" +
+    "  gap: var(--space-2);\n" +
+    "}\n" +
+    ".mss-modal__results .mss-title {\n" +
+    "  font-family: 'Cormorant Garamond', 'Georgia', serif;\n" +
+    "  font-size: 1.0625rem;\n" +
+    "  font-weight: 600;\n" +
+    "  line-height: 1.3;\n" +
+    "  color: var(--text-primary);\n" +
+    "  margin: 0 0 4px;\n" +
+    "  transition: color 0.15s;\n" +
+    "}\n" +
+    ".mss-modal__results .mss-type {\n" +
+    "  flex-shrink: 0;\n" +
+    "  font-size: 0.5625rem;\n" +
+    "  font-weight: 600;\n" +
+    "  font-family: 'Inter', sans-serif;\n" +
+    "  text-transform: uppercase;\n" +
+    "  letter-spacing: 0.06em;\n" +
+    "  padding: 2px 6px;\n" +
+    "  border-radius: 3px;\n" +
+    "  white-space: nowrap;\n" +
+    "}\n" +
+    ".mss-modal__results .mss-type--research { color: var(--green-700); background: var(--green-100); }\n" +
+    ".mss-modal__results .mss-type--course   { color: var(--purple-700); background: var(--purple-100); }\n" +
+    ".mss-modal__results .mss-type--faq      { color: var(--amber-700); background: var(--amber-100); }\n" +
+    ".mss-modal__results .mss-type--article  { color: var(--sage-700); background: var(--sage-100); }\n" +
+    ".mss-modal__results .mss-type--guide    { color: var(--rose-700); background: var(--rose-100); }\n" +
+    ".mss-modal__results .mss-type--glossary { color: var(--sand-700); background: var(--sand-300); }\n" +
+    "\n" +
+    ".mss-modal__results .mss-meta {\n" +
+    "  font-size: 0.75rem;\n" +
+    "  color: var(--text-secondary);\n" +
+    "  margin-bottom: 6px;\n" +
+    "}\n" +
+    ".mss-modal__results .mss-excerpt {\n" +
+    "  font-size: 0.8125rem;\n" +
+    "  line-height: 1.5;\n" +
+    "  color: var(--text-secondary);\n" +
+    "  display: -webkit-box;\n" +
+    "  -webkit-line-clamp: 2;\n" +
+    "  -webkit-box-orient: vertical;\n" +
+    "  overflow: hidden;\n" +
+    "}\n" +
+    ".mss-modal__results .mss-more {\n" +
+    "  display: block;\n" +
+    "  width: 100%;\n" +
+    "  margin-top: var(--space-5);\n" +
+    "  padding: 10px var(--space-5);\n" +
+    "  font-size: 0.8125rem;\n" +
+    "  font-weight: 500;\n" +
+    "  font-family: 'Inter', sans-serif;\n" +
+    "  color: var(--text-secondary);\n" +
+    "  background: var(--bg-surface);\n" +
+    "  border: 1px solid var(--border-color);\n" +
+    "  border-radius: var(--radius-pill);\n" +
+    "  cursor: pointer;\n" +
+    "}\n" +
+    ".mss-modal__results .mss-more:active {\n" +
+    "  border-color: var(--accent);\n" +
+    "  color: var(--accent);\n" +
+    "}\n" +
+    ".mss-modal__results .mss-loading {\n" +
+    "  font-size: 0.8125rem;\n" +
+    "  color: var(--text-muted);\n" +
+    "  padding: var(--space-5) 0;\n" +
+    "  display: flex;\n" +
+    "  align-items: center;\n" +
+    "  gap: 0.5em;\n" +
+    "}\n" +
+    ".mss-modal__results .mss-loading-spinner {\n" +
+    "  display: inline-block;\n" +
+    "  font-family: monospace;\n" +
+    "  font-size: 1rem;\n" +
+    "  line-height: 1;\n" +
+    "}\n" +
+    ".mss-modal__results .mss-empty {\n" +
+    "  font-size: 0.875rem;\n" +
+    "  color: var(--text-tertiary);\n" +
+    "  padding: var(--space-6) 0;\n" +
+    "  text-align: center;\n" +
+    "}\n" +
+    ".mss-modal__results .mss-hint {\n" +
+    "  font-size: 0.875rem;\n" +
+    "  color: var(--text-tertiary);\n" +
+    "  padding: var(--space-6) 0;\n" +
+    "  text-align: center;\n" +
+    "}\n" +
+    "\n" +
+    "/* ── Filter chip row ── */\n" +
+    ".mss-modal__results .mss-chips {\n" +
+    "  display: flex;\n" +
+    "  gap: 6px;\n" +
+    "  padding: var(--space-3) 0;\n" +
+    "  overflow-x: auto;\n" +
+    "  -webkit-overflow-scrolling: touch;\n" +
+    "  scrollbar-width: none;\n" +
+    "  position: sticky;\n" +
+    "  top: 0;\n" +
+    "  background: var(--bg-body);\n" +
+    "  z-index: 1;\n" +
+    "  border-bottom: 1px solid var(--border-light);\n" +
+    "}\n" +
+    ".mss-modal__results .mss-chips::-webkit-scrollbar { display: none; }\n" +
+    ".mss-modal__results .mss-chip {\n" +
+    "  flex-shrink: 0;\n" +
+    "  display: inline-flex;\n" +
+    "  align-items: center;\n" +
+    "  gap: 6px;\n" +
+    "  padding: 7px 14px;\n" +
+    "  font-family: 'Inter', sans-serif;\n" +
+    "  font-size: 0.8125rem;\n" +
+    "  font-weight: 500;\n" +
+    "  color: var(--text-secondary);\n" +
+    "  background: var(--bg-surface);\n" +
+    "  border: 1px solid var(--border-color);\n" +
+    "  border-radius: var(--radius-pill);\n" +
+    "  cursor: pointer;\n" +
+    "  white-space: nowrap;\n" +
+    "  transition: color 0.15s, border-color 0.15s, background 0.15s;\n" +
+    "}\n" +
+    ".mss-modal__results .mss-chip-count {\n" +
+    "  display: inline-flex;\n" +
+    "  align-items: center;\n" +
+    "  justify-content: center;\n" +
+    "  min-width: 20px;\n" +
+    "  height: 18px;\n" +
+    "  padding: 0 6px;\n" +
+    "  font-size: 0.6875rem;\n" +
+    "  font-weight: 600;\n" +
+    "  color: var(--text-tertiary);\n" +
+    "  background: var(--bg-body);\n" +
+    "  border-radius: 9px;\n" +
+    "  font-variant-numeric: tabular-nums;\n" +
+    "}\n" +
+    ".mss-modal__results .mss-chip--active {\n" +
+    "  color: #fff;\n" +
+    "  background: var(--accent);\n" +
+    "  border-color: var(--accent);\n" +
+    "}\n" +
+    ".mss-modal__results .mss-chip--active .mss-chip-count {\n" +
+    "  color: var(--accent);\n" +
+    "  background: #fff;\n" +
+    "}\n" +
+    "\n" +
+    "/* ── Grouped sections ── */\n" +
+    ".mss-modal__results .mss-group {\n" +
+    "  padding-top: var(--space-4);\n" +
+    "}\n" +
+    ".mss-modal__results .mss-group:first-child {\n" +
+    "  padding-top: var(--space-3);\n" +
+    "}\n" +
+    ".mss-modal__results .mss-group-heading {\n" +
+    "  display: flex;\n" +
+    "  align-items: center;\n" +
+    "  gap: 8px;\n" +
+    "  margin: 0 0 var(--space-2);\n" +
+    "  padding: 0;\n" +
+    "  font-family: 'Inter', sans-serif;\n" +
+    "  font-size: 0.6875rem;\n" +
+    "  font-weight: 600;\n" +
+    "  text-transform: uppercase;\n" +
+    "  letter-spacing: 0.08em;\n" +
+    "  color: var(--text-tertiary);\n" +
+    "}\n" +
+    ".mss-modal__results .mss-group-count {\n" +
+    "  font-variant-numeric: tabular-nums;\n" +
+    "  color: var(--text-muted);\n" +
+    "  font-weight: 500;\n" +
+    "}\n" +
+    ".mss-modal__results .mss-group .mss-item {\n" +
+    "  padding-top: var(--space-3);\n" +
+    "  padding-bottom: var(--space-3);\n" +
+    "}\n" +
+    ".mss-modal__results .mss-group .mss-item:first-of-type {\n" +
+    "  border-top: none;\n" +
+    "}\n" +
+    ".mss-modal__results .mss-group .mss-type {\n" +
+    "  display: none;\n" +
+    "}\n" +
+    "\n" +
+    "/* Default \"all\" mode: hide items beyond preview limit */\n" +
+    ".mss-modal__results .mss-groups[data-active-filter=\"all\"] .mss-item[data-over-preview] {\n" +
+    "  display: none;\n" +
+    "}\n" +
+    "/* Filter active: hide every group, then re-show the targeted one */\n" +
+    ".mss-modal__results .mss-groups[data-active-filter]:not([data-active-filter=\"all\"]) .mss-group {\n" +
+    "  display: none;\n" +
+    "}\n" +
+    ".mss-modal__results .mss-groups[data-active-filter=\"Guide\"] .mss-group[data-group-type=\"Guide\"],\n" +
+    ".mss-modal__results .mss-groups[data-active-filter=\"Glossary\"] .mss-group[data-group-type=\"Glossary\"],\n" +
+    ".mss-modal__results .mss-groups[data-active-filter=\"FAQ\"] .mss-group[data-group-type=\"FAQ\"],\n" +
+    ".mss-modal__results .mss-groups[data-active-filter=\"Course\"] .mss-group[data-group-type=\"Course\"],\n" +
+    ".mss-modal__results .mss-groups[data-active-filter=\"Article\"] .mss-group[data-group-type=\"Article\"],\n" +
+    ".mss-modal__results .mss-groups[data-active-filter=\"Research\"] .mss-group[data-group-type=\"Research\"] {\n" +
+    "  display: block;\n" +
+    "}\n" +
+    ".mss-modal__results .mss-groups[data-active-filter]:not([data-active-filter=\"all\"]) .mss-show-all {\n" +
+    "  display: none;\n" +
+    "}\n" +
+    "\n" +
+    ".mss-modal__results .mss-show-all {\n" +
+    "  display: block;\n" +
+    "  width: 100%;\n" +
+    "  margin-top: var(--space-3);\n" +
+    "  padding: 9px 14px;\n" +
+    "  font-family: 'Inter', sans-serif;\n" +
+    "  font-size: 0.8125rem;\n" +
+    "  font-weight: 500;\n" +
+    "  color: var(--text-secondary);\n" +
+    "  background: var(--bg-surface);\n" +
+    "  border: 1px solid var(--border-color);\n" +
+    "  border-radius: var(--radius-pill);\n" +
+    "  cursor: pointer;\n" +
+    "  text-align: left;\n" +
+    "}\n" +
+    ".mss-modal__results .mss-show-all:active {\n" +
+    "  color: var(--accent);\n" +
+    "  border-color: var(--accent);\n" +
+    "}\n";
+  var _mssLazyCssApplied = false;
+  function injectLazyMssCss() {
+    if (_mssLazyCssApplied) return;
+    var s = document.createElement("style");
+    s.id = "mss-lazy-css";
+    s.textContent = MSS_LAZY_CSS;
+    document.head.appendChild(s);
+    _mssLazyCssApplied = true;
+  }
+
   function openModal() {
     if (!modal.hasAttribute('hidden')) return;
+    injectLazyMssCss();
     lastFocus = document.activeElement;
     // If the mobile drawer is open, close it so the user gets a clean modal context
     var navToggle = document.getElementById('nav-toggle');
