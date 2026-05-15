@@ -2,6 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import MaybeShell from '../../components/MaybeShell.astro';
 import { isShellEnabled } from '../../lib/shell-routes';
+import { buildBreadcrumbList } from '../../lib/identity';
 import CourseCard from '../../components/CourseCard.astro';
 import coursesData from '../../data/courses.json';
 
@@ -12,8 +13,7 @@ const SHELL_ENABLED = isShellEnabled('courses');
 const isVisible = (c: any) => !(c.comingSoon && c.accessType !== 'members');
 const visibleCourses = coursesData.filter(isVisible);
 
-const jsonLd = {
-  '@context': 'https://schema.org',
+const itemListNode = {
   '@type': 'ItemList',
   name: 'RRM Academy Courses',
   description: 'Evidence-based courses on endometriosis, fertility, and reproductive medicine from Dr. Naomi Whittaker.',
@@ -53,6 +53,17 @@ const jsonLd = {
       },
     };
   }),
+};
+
+const breadcrumbRaw = buildBreadcrumbList([
+  { name: 'Home', url: 'https://rrmacademy.org/' },
+  { name: 'Courses', url: 'https://rrmacademy.org/courses/' },
+]) as Record<string, unknown>;
+const { '@context': _bcCtx, ...breadcrumbNode } = breadcrumbRaw;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [itemListNode, breadcrumbNode],
 };
 ---
 <BaseLayout
