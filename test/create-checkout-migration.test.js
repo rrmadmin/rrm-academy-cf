@@ -2,10 +2,14 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const source = readFileSync(
-  new URL('../functions/api/create-checkout.js', import.meta.url),
-  'utf8'
-);
+// Union of create-checkout.js + billing/_migration-handoff.js — the migration SQL
+// and lock/clamp/validation logic was extracted to the helper module on
+// 2026-05-15 (Tier 2 billing refactor). Greps that previously hit create-checkout.js
+// inline are now satisfied by either file.
+const source =
+  readFileSync(new URL('../functions/api/create-checkout.js', import.meta.url), 'utf8') +
+  '\n' +
+  readFileSync(new URL('../functions/api/billing/_migration-handoff.js', import.meta.url), 'utf8');
 
 describe('create-checkout migration handoff (Phase 3.1)', () => {
   it('feature flag gates migration logic', () => {
@@ -61,8 +65,14 @@ describe('create-checkout migration handoff (Phase 3.1)', () => {
       /standard_tiers/.test(source),
       'Off-amount response must include standard_tiers list'
     );
+    // Post-2026-05-15 refactor: validateOffAmount() (in _migration-handoff.js)
+    // returns the inline {... 'off_amount' ...} body; create-checkout.js wraps
+    // it as `return json(offAmountBody, 412)`. Either shape proves the 412 contract.
     assert.ok(
-      /\bstatus:\s*412\b/.test(source) || /\b412\b[^,]*'off_amount'/.test(source) || /json\(\s*\{[^}]*'off_amount'[\s\S]*?\}\s*,\s*412\s*\)/.test(source),
+      /\bstatus:\s*412\b/.test(source) ||
+      /\b412\b[^,]*'off_amount'/.test(source) ||
+      /json\(\s*\{[^}]*'off_amount'[\s\S]*?\}\s*,\s*412\s*\)/.test(source) ||
+      (/'off_amount'/.test(source) && /json\(\s*offAmountBody\s*,\s*412\s*\)/.test(source)),
       'off_amount must use HTTP 412'
     );
     assert.ok(

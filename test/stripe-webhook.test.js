@@ -68,8 +68,10 @@ describe('webhook-checkout -- email normalization (F2)', () => {
 describe('create-checkout -- subscription guard (F3)', () => {
   it('blocks incomplete subscriptions', async () => {
     const { readFileSync } = await import('node:fs');
+    // Extracted to billing/_migration-handoff.js on 2026-05-15 (Tier 2 refactor).
+    // findBlockingActiveSubscription() owns the blocking find() logic.
     const source = readFileSync(
-      new URL('../functions/api/create-checkout.js', import.meta.url),
+      new URL('../functions/api/billing/_migration-handoff.js', import.meta.url),
       'utf8'
     );
     // The blocking find() must include 'incomplete'
@@ -83,8 +85,9 @@ describe('create-checkout -- subscription guard (F3)', () => {
 
   it('has distinct error message for incomplete status', async () => {
     const { readFileSync } = await import('node:fs');
+    // Extracted to billing/_migration-handoff.js on 2026-05-15 (Tier 2 refactor).
     const source = readFileSync(
-      new URL('../functions/api/create-checkout.js', import.meta.url),
+      new URL('../functions/api/billing/_migration-handoff.js', import.meta.url),
       'utf8'
     );
     assert.ok(
@@ -236,8 +239,10 @@ describe('webhook-checkout -- orphaned customer warning (F9)', () => {
 describe('stripe-webhook -- refund enrollment revocation (B1)', () => {
   it('charge.refunded handler uses UPDATE revoked_at, not DELETE', async () => {
     const { readFileSync } = await import('node:fs');
+    // Extracted to billing/_webhook-refund.js on 2026-05-15 (Tier 2 refactor).
+    // handleChargeRefunded() now lives in the sibling sub-handler module.
     const source = readFileSync(
-      new URL('../functions/api/stripe-webhook.js', import.meta.url),
+      new URL('../functions/api/billing/_webhook-refund.js', import.meta.url),
       'utf8'
     );
     // Must use soft-delete (revoked_at) not hard DELETE
@@ -257,8 +262,9 @@ describe('stripe-webhook -- refund enrollment revocation (B1)', () => {
 
   it('sends admin email on revocation', async () => {
     const { readFileSync } = await import('node:fs');
+    // Extracted to billing/_webhook-refund.js on 2026-05-15 (Tier 2 refactor).
     const source = readFileSync(
-      new URL('../functions/api/stripe-webhook.js', import.meta.url),
+      new URL('../functions/api/billing/_webhook-refund.js', import.meta.url),
       'utf8'
     );
     assert.ok(

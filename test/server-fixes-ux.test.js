@@ -10,27 +10,41 @@ const webhook = readFileSync(
   new URL('../functions/api/billing/_webhook-checkout.js', import.meta.url),
   'utf8'
 );
+// Tier 2 billing refactor on 2026-05-15 extracted the off-amount + lock + clamp
+// logic to billing/_migration-handoff.js. The Bug A ordering tests now check
+// (a) the helper module places validateOffAmount() before acquireMigrationHandoffLock()
+// and (b) create-checkout.js calls validateOffAmount before acquireMigrationHandoffLock.
+const migrationHandoff = readFileSync(
+  new URL('../functions/api/billing/_migration-handoff.js', import.meta.url),
+  'utf8'
+);
 
 describe('create-checkout: off-amount check before lock (Bug A)', () => {
   it('STANDARD_CENTS check appears before atomic lock UPDATE', () => {
-    const standardIdx = createCheckout.indexOf('STANDARD_CENTS');
-    // The SQL UPDATE is split across string-concatenation literals; search for the
-    // unique "SET migration_handoff_started_at = strftime" phrase which only exists
-    // in the lock UPDATE and cannot appear anywhere else in the file.
-    const lockIdx = createCheckout.indexOf("SET migration_handoff_started_at = strftime");
-    assert.ok(standardIdx > 0, 'STANDARD_CENTS must be defined');
-    assert.ok(lockIdx > 0, 'Atomic lock UPDATE (SET migration_handoff_started_at) must exist');
+    const standardIdx = migrationHandoff.indexOf('STANDARD_CENTS');
+    const lockIdx = migrationHandoff.indexOf("SET migration_handoff_started_at = strftime");
+    assert.ok(standardIdx > 0, 'STANDARD_CENTS must be defined in _migration-handoff.js');
+    assert.ok(lockIdx > 0, 'Atomic lock UPDATE (SET migration_handoff_started_at) must exist in _migration-handoff.js');
     assert.ok(
       standardIdx < lockIdx,
       'Off-amount check (STANDARD_CENTS) must appear before atomic lock UPDATE so 412 does not hold a 15-min lock'
     );
+    // Caller invariant: validateOffAmount is called before acquireMigrationHandoffLock
+    const callerValidateIdx = createCheckout.indexOf('validateOffAmount');
+    const callerLockIdx = createCheckout.indexOf('acquireMigrationHandoffLock');
+    assert.ok(callerValidateIdx > 0, 'create-checkout must call validateOffAmount');
+    assert.ok(callerLockIdx > 0, 'create-checkout must call acquireMigrationHandoffLock');
+    assert.ok(
+      callerValidateIdx < callerLockIdx,
+      'create-checkout must invoke validateOffAmount before acquireMigrationHandoffLock'
+    );
   });
 
   it('off_amount 412 is returned before lock acquisition', () => {
-    const offAmountIdx = createCheckout.indexOf("'off_amount'");
-    const lockIdx = createCheckout.indexOf("SET migration_handoff_started_at = strftime");
-    assert.ok(offAmountIdx > 0, '412 off_amount return must exist');
-    assert.ok(lockIdx > 0, 'Atomic lock UPDATE must exist');
+    const offAmountIdx = migrationHandoff.indexOf("'off_amount'");
+    const lockIdx = migrationHandoff.indexOf("SET migration_handoff_started_at = strftime");
+    assert.ok(offAmountIdx > 0, '412 off_amount return must exist in _migration-handoff.js');
+    assert.ok(lockIdx > 0, 'Atomic lock UPDATE must exist in _migration-handoff.js');
     assert.ok(
       offAmountIdx < lockIdx,
       'Returning 412 off_amount must happen before the lock UPDATE'
