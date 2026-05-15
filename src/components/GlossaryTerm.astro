@@ -913,7 +913,20 @@ function textToParagraphs(text: string): string {
       const title = btn.dataset.shareTitle || document.title;
       const text = `RRM Academy glossary: ${title}`;
 
-      if (typeof navigator.share === 'function') {
+      // GA4 share_click via the global bridge (track-auto.ts). network is
+      // 'web-share' if Web Share API is available (user picks target),
+      // else 'copy-link' (clipboard fallback fires).
+      const hasWebShare = typeof navigator.share === 'function';
+      try {
+        if ((window as any).__rrmTrack__) {
+          (window as any).__rrmTrack__('share_click', {
+            surface: 'glossary-term',
+            network: hasWebShare ? 'web-share' : 'copy-link',
+          });
+        }
+      } catch (e) { /* never block share UI */ }
+
+      if (hasWebShare) {
         try {
           await navigator.share({ title, text, url });
           return;
