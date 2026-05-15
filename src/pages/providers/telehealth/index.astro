@@ -1,0 +1,109 @@
+---
+/*
+ * Token substitutions (carry-forward from Tasks 16-18):
+ *   --text-xs/sm/base/lg/2xl → literal rem (not in global.css)
+ *   --leading-tight/normal   → 1.25 / 1.75 (not in global.css)
+ *   --bg-muted               → var(--neutral-100) (not in global.css)
+ *   --max-width-content      → var(--max-width-article) (--max-width-content not in global.css;
+ *                              --max-width-article=780px is the canonical token)
+ * Existing globals used: --max-width-article, --space-*, --border-color, --radius-sm,
+ *   --text-secondary
+ */
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import ProviderCard from '../../../components/providers/ProviderCard.astro';
+import CollectionJsonLd from '../../../components/providers/CollectionJsonLd.astro';
+import providersData from '../../../data/providers.json';
+import { fullTier, US_STATES, type Provider } from '../../../lib/providers';
+
+const providers: Provider[] = providersData.providers || [];
+const telehealth = fullTier(providers).filter((p) => p.telehealth === 'yes');
+
+const pageUrl = 'https://rrmacademy.org/providers/telehealth/';
+const title = 'Telehealth RRM Providers';
+const description = `${telehealth.length} restorative reproductive medicine providers offering telehealth consultations across the US.`;
+
+const faqs = [
+  {
+    q: 'How does telehealth fertility care work?',
+    a: 'Telehealth-capable RRM providers conduct consultations, chart review, lab orders, and prescriptions remotely. Some hands-on procedures (transvaginal ultrasound, surgery) require an in-person visit; many providers coordinate with local labs and imaging centers in the patient state.',
+  },
+  {
+    q: 'Are NaPro consultations available remotely?',
+    a: 'Yes. Many NaProTechnology providers offer initial consultations, follow-up visits, and cycle-chart review entirely by telehealth.',
+  },
+];
+---
+
+<BaseLayout title={title} description={description}>
+  <CollectionJsonLd
+    providers={telehealth.slice(0, 24)}
+    pageUrl={pageUrl}
+    collectionName={title}
+    breadcrumbName="Telehealth"
+    faqs={faqs}
+  />
+
+  <header class="collection-hero">
+    <h1>Telehealth RRM Providers</h1>
+    <p>{description}</p>
+  </header>
+
+  <section class="collection-states" aria-labelledby="by-state">
+    <h2 id="by-state">Browse telehealth providers by state served</h2>
+    <ul class="state-tile-grid" role="list">
+      {US_STATES.map(s => (
+        <li><a href={`/providers/telehealth/${s.toLowerCase()}/`}>{s}</a></li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="collection-grid" aria-labelledby="results">
+    <h2 id="results">All telehealth providers</h2>
+    <ul class="provider-grid" role="list">
+      {telehealth.slice(0, 24).map(p => (
+        <li><ProviderCard provider={p} /></li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="collection-faq" aria-labelledby="faq">
+    <h2 id="faq">Frequently asked questions</h2>
+    <dl class="faq">
+      {faqs.map(f => (
+        <>
+          <dt>{f.q}</dt>
+          <dd>{f.a}</dd>
+        </>
+      ))}
+    </dl>
+  </section>
+</BaseLayout>
+
+<style>
+  /* --max-width-content does not exist in global.css; using --max-width-article (780px) */
+  .collection-hero,
+  .collection-states,
+  .collection-grid,
+  .collection-faq { max-width: var(--max-width-article); margin: var(--space-6) auto; }
+  .state-tile-grid {
+    list-style: none; padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+    gap: var(--space-2);
+  }
+  .state-tile-grid a {
+    display: block; padding: var(--space-2);
+    text-align: center;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+  }
+  .provider-grid {
+    list-style: none; padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-4);
+  }
+  .collection-faq dt { font-weight: 600; margin-top: var(--space-3); }
+  .collection-faq dd { margin: var(--space-1) 0 0 0; color: var(--text-secondary); }
+</style>
