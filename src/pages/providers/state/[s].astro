@@ -1,0 +1,140 @@
+---
+/*
+ * Token substitutions (carry-forward from Tasks 16-18):
+ *   --text-xs/sm/base/lg/2xl → literal rem (not in global.css)
+ *   --leading-tight/normal   → 1.25 / 1.75 (not in global.css)
+ *   --bg-muted               → var(--neutral-100) (not in global.css)
+ *   --max-width-content      → var(--max-width-article) (--max-width-content not in global.css;
+ *                              --max-width-article=780px is the canonical token)
+ * Existing globals used: --max-width-article, --space-*, --text-secondary
+ */
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import ProviderCard from '../../../components/providers/ProviderCard.astro';
+import CollectionJsonLd from '../../../components/providers/CollectionJsonLd.astro';
+import providersData from '../../../data/providers.json';
+import { fullTier, US_STATES, type Provider, type StateCode } from '../../../lib/providers';
+
+export async function getStaticPaths() {
+  return US_STATES.map((s) => ({ params: { s: s.toLowerCase() } }));
+}
+
+const { s } = Astro.params as { s: string };
+const stateCode = s.toUpperCase() as StateCode;
+if (!US_STATES.includes(stateCode)) throw new Error(`Unknown state: ${s}`);
+
+const STATE_DISPLAY: Record<string, string> = {
+  AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California',
+  CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', FL: 'Florida', GA: 'Georgia',
+  HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa',
+  KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland',
+  MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi', MO: 'Missouri',
+  MT: 'Montana', NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire', NJ: 'New Jersey',
+  NM: 'New Mexico', NY: 'New York', NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio',
+  OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina',
+  SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont',
+  VA: 'Virginia', WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming',
+  DC: 'District of Columbia',
+};
+const stateName = STATE_DISPLAY[stateCode];
+
+const providers: Provider[] = providersData.providers || [];
+const full = fullTier(providers);
+
+const telehealthInState = full.filter((p) =>
+  p.telehealth === 'yes' &&
+  (p.telehealth_states_attested.includes(stateCode) ||
+   p.telehealth_states_licensed.includes(stateCode))
+);
+const locatedInState = full.filter((p) => p.address?.state === stateCode);
+
+const pageUrl = `https://rrmacademy.org/providers/state/${s}/`;
+const title = `RRM Providers in ${stateName}`;
+const description = `Restorative reproductive medicine providers serving ${stateName}: ${telehealthInState.length} telehealth-capable, ${locatedInState.length} located in-state.`;
+
+const faqs = [
+  {
+    q: `Can I see an RRM doctor by telehealth in ${stateName}?`,
+    a: telehealthInState.length > 0
+      ? `Yes - ${telehealthInState.length} providers in this directory are licensed to see ${stateName} residents via telehealth.`
+      : `Limited options currently. Check back as the directory grows or browse all telehealth providers at /providers/telehealth/.`,
+  },
+  {
+    q: `How does telehealth fertility care work?`,
+    a: `Telehealth-capable RRM providers conduct consultations, review charts, order labs, and prescribe medications remotely. Some hands-on procedures (ultrasounds, surgery) require an in-person visit, but many providers coordinate with local labs and imaging centers in the patient's state.`,
+  },
+  {
+    q: `Are NaPro consultations available remotely?`,
+    a: `Yes. Many NaProTechnology-trained providers offer initial consultations, follow-up care, and chart review by telehealth. See the telehealth strip above for ${stateName}-licensed providers.`,
+  },
+];
+---
+
+<BaseLayout title={title} description={description}>
+  <CollectionJsonLd
+    providers={[...telehealthInState, ...locatedInState].slice(0, 24)}
+    pageUrl={pageUrl}
+    collectionName={title}
+    breadcrumbName={stateName}
+    faqs={faqs}
+  />
+
+  <header class="collection-hero">
+    <h1>RRM Providers in {stateName}</h1>
+    <p>{description}</p>
+  </header>
+
+  {telehealthInState.length > 0 && (
+    <section class="collection-grid" aria-labelledby="telehealth-section">
+      <h2 id="telehealth-section">Available via telehealth in {stateName}</h2>
+      <p class="collection-subheading">
+        Providers licensed to see {stateName} residents remotely (may be located in any state).
+      </p>
+      <ul class="provider-grid" role="list">
+        {telehealthInState.slice(0, 24).map(p => (
+          <li><ProviderCard provider={p} /></li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  <section class="collection-grid" aria-labelledby="located-section">
+    <h2 id="located-section">Located in {stateName}</h2>
+    {locatedInState.length === 0 ? (
+      <p>No providers physically located in {stateName} have been verified yet. See telehealth-capable providers above.</p>
+    ) : (
+      <ul class="provider-grid" role="list">
+        {locatedInState.slice(0, 24).map(p => (
+          <li><ProviderCard provider={p} /></li>
+        ))}
+      </ul>
+    )}
+  </section>
+
+  <section class="collection-faq" aria-labelledby="faq">
+    <h2 id="faq">Frequently asked questions</h2>
+    <dl class="faq">
+      {faqs.map(f => (
+        <>
+          <dt>{f.q}</dt>
+          <dd>{f.a}</dd>
+        </>
+      ))}
+    </dl>
+  </section>
+</BaseLayout>
+
+<style>
+  /* --max-width-content does not exist in global.css; using --max-width-article (780px) */
+  .collection-hero,
+  .collection-grid,
+  .collection-faq { max-width: var(--max-width-article); margin: var(--space-6) auto; }
+  .collection-subheading { color: var(--text-secondary); margin: 0 0 var(--space-3) 0; }
+  .provider-grid {
+    list-style: none; padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-4);
+  }
+  .collection-faq dt { font-weight: 600; margin-top: var(--space-3); }
+  .collection-faq dd { margin: var(--space-1) 0 0 0; color: var(--text-secondary); }
+</style>
