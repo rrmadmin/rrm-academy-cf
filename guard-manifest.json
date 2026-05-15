@@ -123,7 +123,7 @@
       "note": "Search UX + RRF fusion (Pagefind init, relevance boost, error resilience)"
     },
     "src/layouts/BaseLayout.astro": {
-      "hash": "15f57140bb3ccfb0ccdb9117ad5add4ef8ef22805365a8de9de896ae8e6ef734",
+      "hash": "e038ddc314ca831dcf701786fcfbbf9821a5af74aea7eb026aecbba9058198e0",
       "note": "FOUC theme + chrome prop SEO invariants"
     },
     "functions/api/community/_shared.js": {
@@ -184,6 +184,14 @@
     },
     "functions/api/admin/faqs/[id]/resources.js": {
       "hash": "c8053c9818a055f56bdfe145bbab83ca1aa7566d2c512d96edcd6e6ca0f17eaa"
+    },
+    "functions/api/track.js": {
+      "hash": "a66e38659da088958e327103c1256bc8fb23c4c57bdfb3d5cf69f9a78f31b0a4",
+      "note": "Client analytics endpoint: rate limit + allowlist + PII strip + GA4 MP relay + AE mirror"
+    },
+    "functions/api/_track-events.js": {
+      "hash": "e9bb48e777143894d502e5f4488c1480ad1aa89d39ccdda922c128dd0ff75593",
+      "note": "Allowed events, required params, PII_REGEX, reserved params (security invariants for /api/track)"
     }
   }
 }

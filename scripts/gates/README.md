@@ -150,3 +150,74 @@ per-spoke heading uniqueness, JSON-LD `@id` cross-refs, cross-ref rewriter cover
 and pillar/spoke parity (DefinedTermSet @id count vs spoke directory count, sitemap
 URL count vs spoke directory count). Wired into npm via `snapshot:glossary` (pillar
 only) and `snapshot:spokes` (spoke + parity).
+
+---
+
+# Analytics Pipeline Gates (AG1-AG12)
+
+`validate-analytics-pipeline.mjs` covers the client analytics surface: `functions/api/track.js`, `functions/api/_track-events.js`, `functions/api/_ga4-source.js`, `functions/_middleware.js` (CSP), and `src/scripts/track*.ts`. Encodes the bug classes the client-analytics spec defends against.
+
+**Spec:** `docs/superpowers/specs/2026-05-15-client-analytics-spec.html`
+
+## AG1: Endpoint contract
+
+`functions/api/track.js` must import `checkRateLimit`, `sendGA4Event`, `ALLOWED_CLIENT_EVENTS`, `REQUIRED_PARAMS`, `PII_REGEX`; export `onRequestPost` + `onRequestOptions`; call `checkRateLimit()` on POST; not contain inline `fetch(google-analytics.com)` (must use `sendGA4Event`); and return `{ error: 'service_unavailable' }` on missing GA4 env.
+
+## AG2: Allowlist coverage
+
+Static `track('event_name', …)` call sites in `src/` with string-literal event names must have `event_name` in `ALLOWED_CLIENT_EVENTS`. **Known blind spot:** dynamic event names from `data-track-*` attributes in `track-auto.ts` are not statically resolvable; runtime validation in `/api/track` catches those instead.
+
+## AG3: Server/client event separation
+
+Server-only conversion events (`page_view`, `sign_up`, `signup_from_ask`, `generate_lead`, `begin_checkout`, `purchase`) must NOT appear in `ALLOWED_CLIENT_EVENTS`. Prevents double-counting if both client and server fire the same event name.
+
+## AG4: Required params satisfied
+
+`track('event', { … })` call sites with literal object args must include all keys in `REQUIRED_PARAMS[event]`. Catches `track('cta_click', {})` missing required `id` + `page` before it reaches the endpoint.
+
+## AG5: PII regex intact
+
+`_track-events.js` exports `PII_REGEX` whose body must contain all of: `email`, `user`, `name`, `password`, `token`, `cookie`, `address`, `phone`, `ssn`, with case-insensitive flag. Future PR that dilutes the regex trips the gate.
+
+## AG6: UTM convention
+
+UTM-bearing URL literals in `src/` + `functions/` must use lowercase + underscores + ASCII per `rrm-academy-internal/marketing/utm-conventions.md`. Catches `utm_campaign=Newsletter Monthly May 2026` (uppercase, space) before it pollutes the dashboard.
+
+## AG7: No third-party analytics
+
+`googletagmanager.com`, `stats.g.doubleclick.net`, `connect.facebook.net`, `analytics.ahrefs.com` must not appear as script sources or fetch targets. `www.google-analytics.com` allowed only in `functions/api/_ga4.js` (the Measurement Protocol endpoint that the server-side relay proxies through).
+
+## AG8: CSP lockdown
+
+`CSP_VALUE` in `functions/_middleware.js` must NOT contain `googletagmanager.com`, `analytics.google.com`, `stats.g.doubleclick.net`, `connect.facebook.net`. Catches accidental CSP loosening that would re-enable third-party analytics paths.
+
+## AG9: Helper exclusivity
+
+No raw `fetch('/api/track', …)` or `sendBeacon('/api/track', …)` outside `src/scripts/track.ts`. All client emissions must go through the validated helper so DNT, debug mode, and sendBeacon-fallback all apply consistently.
+
+## AG10: Conversion completeness
+
+Every event in the spec §15.3 conversion list (`sign_up`, `generate_lead`, `begin_checkout`, `purchase`, `pdf_download`, `copy_citation`, `video_complete`, `scroll_depth`) must have at least one call site in code — server-side via `sendGA4Event` or client-side via `track()`. Catches dashboard-flag drift where the GA4 conversion is marked but the underlying event never fires.
+
+## AG11: Bundle size
+
+After build, `dist/_astro/track.*.js` ≤ 2 KiB, `track-auto.*.js` ≤ 3.5 KiB. Skipped in `--quick` mode (no build artifacts). Trips on helper bloat.
+
+## AG12: Custom dimension parity (warn-only)
+
+Each spec §15.2 custom dimension name must appear as a param name somewhere in `src/` or `functions/`. **Warn-only** — surfaces drift but does not block deploy (some dimensions will fill from default GA4 params).
+
+## Pre-commit trigger
+
+Pre-commit fires `npm run gates:analytics:check` when any of these change:
+- `functions/api/track.js`
+- `functions/api/_track-events.js`
+- `functions/api/_ga4-source.js`
+- `functions/_middleware.js`
+- `src/scripts/track.ts` / `track-auto.ts`
+- `scripts/gates/validate-analytics-pipeline.mjs`
+
+## Companion: spec + UTM doc
+
+- **Spec:** `docs/superpowers/specs/2026-05-15-client-analytics-spec.html`
+- **UTM conventions:** `rrm-academy-internal/marketing/utm-conventions.md`

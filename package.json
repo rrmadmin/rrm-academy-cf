@@ -71,7 +71,9 @@
     "gates:check": "node scripts/gates/validate-fact-pipeline.mjs --quick",
     "gates:glossary": "node scripts/gates/validate-glossary-pipeline.mjs",
     "gates:glossary:check": "node scripts/gates/validate-glossary-pipeline.mjs --quick",
-    "gates:payment": "node scripts/gates/validate-payment-pipeline.mjs"
+    "gates:payment": "node scripts/gates/validate-payment-pipeline.mjs",
+    "gates:analytics": "node scripts/gates/validate-analytics-pipeline.mjs",
+    "gates:analytics:check": "node scripts/gates/validate-analytics-pipeline.mjs --quick"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.3.0",
