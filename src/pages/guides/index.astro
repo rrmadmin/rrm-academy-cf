@@ -294,7 +294,18 @@ const jsonLd = {
       const title = btn.dataset.shareTitle || document.title;
       const text = btn.dataset.shareDescription || '';
 
-      if (typeof navigator.share === 'function') {
+      // GA4 share_click. Same pattern as glossary-term share.
+      const hasWebShare = typeof navigator.share === 'function';
+      try {
+        if ((window as any).__rrmTrack__) {
+          (window as any).__rrmTrack__('share_click', {
+            surface: 'guides-card',
+            network: hasWebShare ? 'web-share' : 'copy-link',
+          });
+        }
+      } catch (e) { /* never block share UI */ }
+
+      if (hasWebShare) {
         try {
           await navigator.share({ title, text, url });
           return;
