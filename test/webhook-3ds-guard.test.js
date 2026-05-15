@@ -7,10 +7,14 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const source = readFileSync(
-  new URL('../functions/api/billing/_webhook-checkout.js', import.meta.url),
-  'utf8'
-);
+// Union of _webhook-checkout.js + billing/_shared.js — the Stripe client init
+// was extracted to getStripeClient() in _shared.js on 2026-05-15 (Tier 2 billing
+// refactor). The "imports Stripe + STRIPE_API_VERSION" check now passes because
+// _shared.js owns the import; _webhook-checkout.js consumes the factory.
+const source =
+  readFileSync(new URL('../functions/api/billing/_webhook-checkout.js', import.meta.url), 'utf8') +
+  '\n' +
+  readFileSync(new URL('../functions/api/billing/_shared.js', import.meta.url), 'utf8');
 
 describe('webhook-checkout 3DS-incomplete guard (Bug #11)', () => {
   it('imports Stripe + STRIPE_API_VERSION', () => {

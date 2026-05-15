@@ -8,10 +8,10 @@
  * - Send STUC membership welcome email
  * - Fire GA4 purchase events (course, donation, subscription)
  */
-import Stripe from 'stripe';
 import {
-  SITE_URL, generateId, generateToken, hashToken, STRIPE_API_VERSION,
+  SITE_URL, generateId, generateToken, hashToken,
 } from '../auth/_shared.js';
+import { getStripeClient } from './_shared.js';
 import { enrollUser } from '../courses/enroll.js';
 import { getCourse } from '../courses/_shared.js';
 import { sendGA4Event } from '../_ga4.js';
@@ -175,10 +175,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
         let migrationEmailSubStatus = null;
         if (env.STRIPE_SECRET_KEY && session.subscription) {
           try {
-            const stripeForEmail = new Stripe(env.STRIPE_SECRET_KEY, {
-              apiVersion: STRIPE_API_VERSION,
-              httpClient: Stripe.createFetchHttpClient(),
-            });
+            const stripeForEmail = getStripeClient(env);
             const subForEmail = await stripeForEmail.subscriptions.retrieve(session.subscription);
             migrationEmailSubStatus = subForEmail.status;
           } catch (subEmailErr) {
@@ -344,10 +341,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
           let stripeSubStatus = null;
           try {
             if (env.STRIPE_SECRET_KEY && session.subscription) {
-              const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
-                apiVersion: STRIPE_API_VERSION,
-                httpClient: Stripe.createFetchHttpClient(),
-              });
+              const stripe = getStripeClient(env);
               const sub = await stripe.subscriptions.retrieve(session.subscription);
               stripeSubStatus = sub.status;
             }
@@ -439,10 +433,8 @@ Wix Dashboard -> Subscriptions -> Cancel immediately (NOT end-of-cycle).`,
                   blobs: ['billing', 'stuc-migration', 'metadata-handoff-ok', wixSubIdMeta, session.subscription || ''],
                   indexes: ['metadata-handoff-ok'],
                 });
-              } catch (notifyErr) {
+              } catch (notifyErr) { // arise-ignore webhook-handler-swallow -- migration UPDATE already succeeded; SES admin-notify failure is recoverable via cron Sweep 2 (admin_notified_at IS NULL retry). Re-running webhook would hit idempotent-no-changes branch and miss the alert.
                 // SES failed -- log, leave admin_notified_at NULL so cron Sweep 2 retries.
-                // Per existing project pattern, do NOT throw a 5xx; the migration UPDATE already
-                // succeeded and re-running the webhook would hit the idempotent-no-changes branch.
                 log(env, waitUntil, 'billing', 'metadata_admin_notify_fail', 'error',
                   `${wixSubIdMeta}: ${notifyErr.message}`);
               }
@@ -451,7 +443,7 @@ Wix Dashboard -> Subscriptions -> Cancel immediately (NOT end-of-cycle).`,
             }
           }
         }
-      } catch (metaErr) {
+      } catch (metaErr) { // arise-ignore webhook-handler-swallow -- defense-in-depth: metadata-path failure deliberately falls through to email-match path below; not a dispatcher-contract violation
         // Metadata path threw -- log and fall through to email-match (defense in depth).
         log(env, waitUntil, 'billing', 'metadata_handoff_fail', 'error',
           `${wixSubIdMeta}: ${metaErr.message}`);
@@ -530,7 +522,7 @@ Wix Dashboard -> Subscriptions -> Cancel immediately (NOT end-of-cycle).`,
             });
           }
         }
-      } catch (handoffErr) {
+      } catch (handoffErr) { // arise-ignore webhook-handler-swallow -- the catch BODY (next block) sends an explicit admin SES alert and writes AE event; the migration handoff is NOT silently dropped. Re-running the webhook would re-attempt the email-match path and double-flip migration_status. This is intentional remediation, not dispatcher swallow.
         log(env, waitUntil, 'billing', 'migration_handoff_fail', 'error',
           `${email}: ${handoffErr.message}`);
         try {
