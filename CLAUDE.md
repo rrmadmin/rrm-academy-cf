@@ -641,6 +641,48 @@ Docs: `scripts/gates/README.md`.
 
 **Adding a new payment file**: append to the `PAYMENT_FILES` array in `validate-payment-pipeline.mjs` and to the regex in `hooks/pre-commit`.
 
+## Analytics Pipeline Proof Gates
+
+`scripts/gates/validate-analytics-pipeline.mjs` runs 12 deterministic gates against the client analytics surface (`functions/api/track.js` + `_track-events.js` + `_ga4-source.js` + `_middleware.js` CSP + `src/scripts/track*.ts`). Built 2026-05-15 as part of the Zaraz → first-party analytics migration. Encodes the bug classes the client-analytics spec defends against.
+
+**Spec:** `docs/superpowers/specs/2026-05-15-client-analytics-spec.html`
+
+**Gates**:
+
+| Gate | What it prevents |
+|------|------------------|
+| **AG1** Endpoint contract | `functions/api/track.js` drift: missing `checkRateLimit`, missing import of `sendGA4Event`, missing `ALLOWED_CLIENT_EVENTS`/`REQUIRED_PARAMS`/`PII_REGEX`, missing OPTIONS handler, inline fetch to google-analytics.com, wrong service-unavailable response shape |
+| **AG2** Allowlist coverage | Static `track('event_name', …)` call sites in `src/` with an event name not in `ALLOWED_CLIENT_EVENTS` (typos would 400 in prod). Known blind spot: dynamic event names from `data-track-*` attrs in `track-auto.ts` (runtime validation in `/api/track` catches those instead). |
+| **AG3** Server/client separation | Server-only conversion events (`page_view`, `sign_up`, `signup_from_ask`, `generate_lead`, `begin_checkout`, `purchase`) must NOT appear in `ALLOWED_CLIENT_EVENTS`. Prevents double-counting. |
+| **AG4** Required params satisfied | `track('event', { … })` literal call sites must include all keys in `REQUIRED_PARAMS[event]`. Catches `track('cta_click', {})` with no `id` + `page`. |
+| **AG5** PII regex intact | `PII_REGEX` must contain all of: `email`, `user`, `name`, `password`, `token`, `cookie`, `address`, `phone`, `ssn`. Future PR that dilutes the regex trips. |
+| **AG6** UTM convention | UTM literals in `src/` + `functions/` must be lowercase + underscores + ASCII per `docs/marketing/utm-conventions.md`. |
+| **AG7** No third-party analytics | `googletagmanager.com`, `stats.g.doubleclick.net`, `connect.facebook.net`, `analytics.ahrefs.com` must not appear as script sources / fetch targets. `www.google-analytics.com` allowed only in `_ga4.js` (MP endpoint). |
+| **AG8** CSP lockdown | `CSP_VALUE` in `_middleware.js` must NOT include `googletagmanager.com`, `analytics.google.com`, `stats.g.doubleclick.net`, `connect.facebook.net`. Catches accidental CSP loosening. |
+| **AG9** Helper exclusivity | No raw `fetch('/api/track')` or `sendBeacon('/api/track')` outside `src/scripts/track.ts`. Forces every emission through the validated helper. |
+| **AG10** Conversion completeness | Every event in spec §15.3 has at least one call site (server or client). Catches dashboard-only conversion-flag drift. |
+| **AG11** Bundle size | `dist/_astro/track.*.js` ≤ 2 KiB; `track-auto.*.js` ≤ 3.5 KiB. Skipped in `--quick` mode (no build). |
+| **AG12** Custom dimension parity | Spec §15.2 dimensions must appear as param names somewhere in the code. **Warn-only** (not fail) — surfaces drift without blocking deploy. |
+
+**Commands**:
+- `npm run gates:analytics` — full AG1-AG12 (requires `npm run build` first for AG11)
+- `npm run gates:analytics:check` — quick AG1-AG10 + AG12 (no build needed) — pre-commit invokes this
+- `node scripts/gates/validate-analytics-pipeline.mjs --gate AG3` — single gate
+- `node scripts/gates/validate-analytics-pipeline.mjs --json` — machine-readable
+
+**Auto-fires**:
+- Pre-commit (in `hooks/pre-commit`) on changes to `functions/api/track.js`, `functions/api/_track-events.js`, `functions/api/_ga4-source.js`, `functions/_middleware.js`, `src/scripts/track*.ts`, or the gate script itself
+- CI deploy workflow `.github/workflows/deploy.yml` step "Validate analytics pipeline gates" runs on every deploy regardless of dispatch shape
+
+**Adding a new tracked event**:
+1. Append to `ALLOWED_EVENTS` AND (if client-fireable) `ALLOWED_CLIENT_EVENTS` in `functions/api/_track-events.js`
+2. Add a one-line comment explaining what triggers it (review gate R-AG1)
+3. Add to `REQUIRED_PARAMS` if any params are required
+4. Confirm it appears in at least one funnel in spec §15.4 (review gate R-AG4)
+5. Run `npm run gates:analytics:check`
+
+**UTM conventions**: see `docs/marketing/utm-conventions.md`. Gate AG6 enforces lowercase + underscores + ASCII.
+
 ## Citation Integrity
 
 **Never insert academic citations from model knowledge.** Hallucinated PMIDs, DOIs, and references are an existential threat to a medical education site.

@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Client Analytics — Design Spec | RRM Academy</title>
+<style>
+  :root {
+    --bg: #f7f5f3;
+    --surface: #ffffff;
+    --ink: #1a1a1a;
+    --ink-secondary: #4a4a4a;
+    --ink-muted: #6b6b6b;
+    --rule: #d8d2c9;
+    --rule-soft: #ebe5dc;
+    --accent: #725e7e;
+    --accent-soft: #f0eaf4;
+    --code-bg: #efe9df;
+    --good: #4a6b3a;
+    --warn: #8a5a1a;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 56px 32px 96px;
+  }
+  header.doc-header {
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 28px;
+    margin-bottom: 36px;
+  }
+  header.doc-header .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  header.doc-header h1 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 44px;
+    font-weight: 600;
+    line-height: 1.1;
+    margin: 0 0 18px;
+    letter-spacing: -0.01em;
+  }
+  header.doc-header .meta {
+    display: flex;
+    gap: 24px;
+    font-size: 13px;
+    color: var(--ink-muted);
+  }
+  header.doc-header .meta span strong {
+    color: var(--ink-secondary);
+    font-weight: 600;
+  }
+  .status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  h2 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 28px;
+    font-weight: 600;
+    margin: 56px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--rule-soft);
+    line-height: 1.2;
+  }
+  h2 .num {
+    color: var(--accent);
+    font-feature-settings: 'tnum';
+    margin-right: 10px;
+    font-size: 22px;
+    vertical-align: 2px;
+  }
+  h3 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 21px;
+    font-weight: 600;
+    margin: 32px 0 12px;
+  }
+  h4 {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-secondary);
+    margin: 24px 0 8px;
+  }
+  p { margin: 0 0 14px; }
+  ul, ol { margin: 0 0 14px; padding-left: 22px; }
+  li { margin: 4px 0; }
+  strong { font-weight: 600; color: var(--ink); }
+  em { font-style: italic; }
+  code {
+    font-family: ui-monospace, 'SF Mono', Menlo, Monaco, monospace;
+    font-size: 13px;
+    background: var(--code-bg);
+    padding: 1px 6px;
+    border-radius: 3px;
+    color: #4a3a52;
+  }
+  pre {
+    background: var(--code-bg);
+    border-radius: 6px;
+    padding: 14px 18px;
+    overflow-x: auto;
+    font-family: ui-monospace, 'SF Mono', Menlo, Monaco, monospace;
+    font-size: 12.5px;
+    line-height: 1.55;
+    margin: 12px 0 18px;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+    color: var(--ink);
+    font-size: inherit;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 22px;
+    font-size: 13.5px;
+  }
+  th {
+    text-align: left;
+    background: var(--rule-soft);
+    padding: 8px 12px;
+    font-weight: 600;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink-secondary);
+    font-size: 12.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--rule-soft);
+    vertical-align: top;
+  }
+  td code { font-size: 12px; }
+  tr:last-child td { border-bottom: none; }
+  .callout {
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    padding: 14px 18px;
+    border-radius: 0 6px 6px 0;
+    margin: 18px 0;
+    font-size: 14.5px;
+  }
+  .ascii {
+    background: var(--code-bg);
+    border-radius: 6px;
+    padding: 18px 24px;
+    font-family: ui-monospace, 'SF Mono', Menlo, Monaco, monospace;
+    font-size: 12px;
+    line-height: 1.35;
+    white-space: pre;
+    overflow-x: auto;
+    margin: 14px 0 22px;
+  }
+  .acceptance li {
+    list-style: none;
+    margin: 6px 0;
+    padding-left: 26px;
+    position: relative;
+  }
+  .acceptance li::before {
+    content: '☐';
+    position: absolute;
+    left: 0;
+    top: -1px;
+    color: var(--accent);
+    font-size: 16px;
+  }
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: 6px;
+    padding: 18px 24px;
+    margin: 28px 0 0;
+    font-size: 14px;
+  }
+  .toc h2 {
+    font-size: 13px;
+    margin: 0 0 10px;
+    padding: 0;
+    border: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-secondary);
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+  }
+  .toc ol {
+    list-style: none;
+    counter-reset: toc;
+    padding-left: 0;
+    margin: 0;
+    columns: 2;
+    column-gap: 32px;
+  }
+  .toc li {
+    counter-increment: toc;
+    margin: 3px 0;
+    break-inside: avoid;
+  }
+  .toc li::before {
+    content: counter(toc) ".";
+    color: var(--accent);
+    font-weight: 600;
+    margin-right: 8px;
+    font-feature-settings: 'tnum';
+  }
+  .toc a {
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .toc a:hover { color: var(--accent); }
+  .pill {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .pill--keep { background: #e3ecdb; color: var(--good); }
+  .pill--remove { background: #f3dfd0; color: var(--warn); }
+  .pill--new { background: var(--accent-soft); color: var(--accent); }
+  hr {
+    border: none;
+    border-top: 1px solid var(--rule-soft);
+    margin: 48px 0;
+  }
+  footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--rule);
+    color: var(--ink-muted);
+    font-size: 12.5px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  @media print {
+    body { background: white; }
+    main { padding: 24px; max-width: none; }
+    h2 { page-break-after: avoid; }
+    pre, table, .ascii { page-break-inside: avoid; }
+    a { color: inherit; text-decoration: none; }
+  }
+  @media (max-width: 640px) {
+    main { padding: 32px 18px 64px; }
+    header.doc-header h1 { font-size: 32px; }
+    h2 { font-size: 24px; }
+    .toc ol { columns: 1; }
+    table { font-size: 12.5px; }
+    td, th { padding: 6px 8px; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+<header class="doc-header">
+  <div class="eyebrow">RRM Academy / Design Spec</div>
+  <h1>Client Analytics</h1>
+  <div class="meta">
+    <span><strong>Date:</strong> 2026-05-15</span>
+    <span><strong>Status:</strong> <span class="status-badge">Proposed</span></span>
+    <span><strong>Author:</strong> Claude (for Brian's review)</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#goal">Goal</a></li>
+    <li><a href="#audit">Current State Audit</a></li>
+    <li><a href="#arch">Architecture</a></li>
+    <li><a href="#endpoint"><code>/api/track</code> Endpoint Design</a></li>
+    <li><a href="#client">Client Helper</a></li>
+    <li><a href="#events">Event Allowlist + Schema</a></li>
+    <li><a href="#starter">Starter Events to Instrument</a></li>
+    <li><a href="#zaraz">Zaraz Removal Plan</a></li>
+    <li><a href="#csp">CSP Cleanup</a></li>
+    <li><a href="#privacy">Privacy &amp; Compliance</a></li>
+    <li><a href="#sampling">Sampling &amp; Cost</a></li>
+    <li><a href="#testing">Testing</a></li>
+    <li><a href="#rollout">Migration / Rollout</a></li>
+    <li><a href="#resolved">Resolved Decisions</a></li>
+    <li><a href="#personas">Audience Personas + Funnels</a></li>
+    <li><a href="#gates">Proof Gates</a></li>
+    <li><a href="#scope">Out of Scope</a></li>
+    <li><a href="#accept">Acceptance Criteria</a></li>
+    <li><a href="#files">File Inventory</a></li>
+  </ol>
+</nav>
+
+<h2 id="goal"><span class="num">1</span>Goal</h2>
+<p>Get rich behavior + conversion tracking in GA4 <em>without</em> loading any third-party scripts in the browser, <em>without</em> widening CSP, and <em>without</em> the 588&nbsp;KiB Zaraz/GTM payload at <code>/analytics/</code>. Replace the current half-broken hybrid (server-side MP for conversions + Zaraz GTM for the rest) with a single coherent pipeline.</p>
+
+<h2 id="audit"><span class="num">2</span>Current State Audit <span style="font-size: 14px; color: var(--ink-muted); font-weight: 400;">(2026-05-15)</span></h2>
+
+<h3>2.1 Server-side via Measurement Protocol <span class="pill pill--keep">keep</span></h3>
+<table>
+  <thead>
+    <tr><th style="width: 38%;">Where</th><th style="width: 22%;">Event</th><th>Params</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>functions/_middleware.js</code></td><td><code>page_view</code></td><td>url, referrer, geo, UTM (from cookie/Referer)</td></tr>
+    <tr><td><code>functions/api/auth/signup.js</code></td><td><code>sign_up</code></td><td>method=email, source</td></tr>
+    <tr><td><code>functions/api/auth/signup.js</code></td><td><code>signup_from_ask</code></td><td>source=ask</td></tr>
+    <tr><td><code>functions/api/auth/google-callback.js</code></td><td><code>sign_up</code></td><td>method=google</td></tr>
+    <tr><td><code>functions/api/newsletter/subscribe.js</code></td><td><code>generate_lead</code></td><td>lead_source=newsletter</td></tr>
+    <tr><td><code>functions/api/survey/request.js</code></td><td><code>generate_lead</code></td><td>lead_source=endo_survey_request</td></tr>
+    <tr><td><code>functions/api/survey/submit.js</code></td><td><code>generate_lead</code></td><td>lead_source=endo_survey</td></tr>
+    <tr><td><code>functions/api/courses/waitlist.js</code></td><td><code>generate_lead</code></td><td>course</td></tr>
+    <tr><td><code>functions/api/courses/enroll.js</code></td><td><code>generate_lead</code></td><td>course (free)</td></tr>
+    <tr><td><code>functions/api/courses/enroll.js</code></td><td><code>begin_checkout</code></td><td>course (paid)</td></tr>
+    <tr><td><code>functions/api/create-checkout.js</code></td><td><code>begin_checkout</code> ×2</td><td>donation, subscription</td></tr>
+    <tr><td><code>functions/api/billing/_webhook-checkout.js</code></td><td><code>purchase</code> ×3</td><td>donation, course, sub</td></tr>
+  </tbody>
+</table>
+<p><strong>Coverage:</strong> every conversion that happens server-side (signup, lead, checkout start, purchase) is wired through <code>sendGA4Event()</code>. Solid foundation.</p>
+
+<h3>2.2 Cloudflare Analytics Engine <span class="pill pill--keep">keep + extend</span></h3>
+<p><code>functions/api/survey/event.js</code> writes to <code>env.ANALYTICS.writeDataPoint()</code> (dataset <code>worker_events</code>) for endo-survey UI actions: <code>calculate</code>, <code>download_pdf</code>, <code>copy_for_ai</code>, <code>follow_instagram</code>. Allowlist enforced, rate-limited at 60/min/IP. <strong>This is the precedent shape we extend in §4 below</strong> — same beacon pattern, but the new endpoint will also relay to GA4 (not just AE) so events show up in the GA4 dashboard Brian already uses.</p>
+
+<h3>2.3 Zaraz GTM <span class="pill pill--remove">remove</span></h3>
+<ul>
+  <li><code>/analytics/</code> returns 587&nbsp;KiB of GTM container code (GA4 measurement ID <code>G-TSWRY7XLR0</code>, same as middleware)</li>
+  <li>Fires duplicate page_views (Zaraz client + middleware MP both fire = double-counted in GA4 unless GA4 dedupes by session_id+timestamp, which it doesn't reliably for page_view)</li>
+  <li>Inside the proxied bundle, GTM tags try to direct-connect to <code>analytics.google.com</code>, <code>stats.g.doubleclick.net</code>, and <code>googletagmanager.com</code> — all CSP-blocked, all logged as console errors hurting Best Practices score</li>
+  <li>3 CSP violations on every page load</li>
+  <li>187&nbsp;KiB unused JS on PSI's "Reduce unused JavaScript" audit</li>
+</ul>
+
+<h3>2.4 On-page behavior <span class="pill pill--new">currently zero</span></h3>
+<p>Not tracked today:</p>
+<ul>
+  <li>Scroll depth</li>
+  <li>CTA / button clicks (donate, signup, course enroll, library article reads)</li>
+  <li>Search submissions + result clicks</li>
+  <li>Outbound link clicks (NaPro provider directory, external journal DOIs)</li>
+  <li>Video plays (CF Stream lessons)</li>
+  <li>Time-on-page / dwell</li>
+  <li>FAQ expansions</li>
+  <li>Library filter changes</li>
+  <li>Glossary term lookups</li>
+</ul>
+<p>These are the gaps Brian's looking to close.</p>
+
+<h2 id="arch"><span class="num">3</span>Architecture</h2>
+
+<div class="ascii">┌─────────────────────────────────┐
+│ Page HTML                       │
+│  &lt;script type="module"&gt;         │
+│    import {track} from          │
+│      '/src/scripts/track.ts'    │  ← 0-dep, ~1 KiB minified
+│    track('cta_click',{id:'x'})  │
+│  &lt;/script&gt;                      │
+└──────────────┬──────────────────┘
+               │
+               │ navigator.sendBeacon('/api/track', {event, params})
+               ▼
+┌─────────────────────────────────┐
+│ functions/api/track.js          │
+│  • Rate-limited (60/min/IP)     │
+│  • Event-name allowlist         │
+│  • Param sanitization           │
+│  • Fire-and-forget GA4 MP       │
+│  • Mirror to AE for AE queries  │
+└──────────────┬──────────────────┘
+               │
+               ├──→ GA4 (via existing sendGA4Event)
+               │
+               └──→ CF Analytics Engine (worker_events dataset)</div>
+
+<h3>Why both GA4 and Analytics Engine?</h3>
+<ul>
+  <li><strong>GA4</strong> is what Brian already opens; engagement reports, funnel analysis, retention — familiar tooling.</li>
+  <li><strong>Analytics Engine</strong> is queryable from <code>/api/admin/seo</code> and the SEO monitor worker (5-min granularity, free up to 10M rows/day). Gives us <em>raw</em> event log without GA4's sampling. Already in use for survey events. Tiny incremental cost.</li>
+</ul>
+<p>Mirroring is a 5-line addition; not having AE means we'd lose visibility once GA4 dashboards aggregate.</p>
+
+<h3>Why not just gtag()?</h3>
+<table>
+  <thead>
+    <tr><th>Concern</th><th>gtag (client)</th><th>/api/track (server-side relay)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Third-party script</td><td>350 KiB GA4 library</td><td>0 KiB (helper is ~1 KiB)</td></tr>
+    <tr><td>CSP changes</td><td>yes (google.com, doubleclick)</td><td>none</td></tr>
+    <tr><td>Ad-blocker bypass</td><td>blocked by uBlock/Brave</td><td>not blocked (own origin)</td></tr>
+    <tr><td>Privacy / first-party data</td><td>data goes direct to Google</td><td>data flows through our origin first</td></tr>
+    <tr><td>Event attribution</td><td>client headers/cookie</td><td>server-side (cookies, CF geo, server time)</td></tr>
+    <tr><td>Cookie consent friction</td><td>needs banner in some regions</td><td>first-party only, lower bar</td></tr>
+    <tr><td>Page weight</td><td>+350 KiB JS</td><td>+1 KiB JS</td></tr>
+  </tbody>
+</table>
+<p>Server-side relay wins on every axis except "convenience of pasting GA snippet" — which we don't need because the surface is already built.</p>
+
+<h2 id="endpoint"><span class="num">4</span><code>/api/track</code> Endpoint Design</h2>
+
+<p><strong>File:</strong> <code>functions/api/track.js</code></p>
+<p><strong>Methods:</strong> <code>POST</code> (event submission), <code>OPTIONS</code> (CORS preflight)</p>
+<p><strong>Auth:</strong> none required (anonymous behavior tracking is by design)</p>
+<p><strong>Rate limit:</strong> 60 events / minute / IP via <code>checkRateLimit()</code>. Same limit as <code>survey/event.js</code>. Lower than the cost of writing to AE+GA4 per request.</p>
+
+<h4>Request shape (validated)</h4>
+<pre><code>{
+  "event": "cta_click",          // string, allowlist (see §6), max 40 chars
+  "params": {                     // object, max 25 keys, max 100 chars per value
+    "id": "donate-hero",
+    "page": "/",
+    "value": 100                  // optional numeric (for value-bearing events)
+  }
+}</code></pre>
+
+<p><strong>Response:</strong> <code>204 No Content</code> on accept, <code>400</code> invalid shape, <code>429</code> rate-limited, <code>503</code> with body <code>{ error: 'service_unavailable' }</code> if GA4 env vars missing. (Use the majority pattern from <code>articles.js</code>/<code>ask.js</code> — not the older <code>{ ok: false, error: '…' }</code> shape from <code>survey/event.js</code>.)</p>
+
+<h4>Validation rules</h4>
+<ul>
+  <li><code>event</code> must match <code>^[a-z][a-z0-9_]{0,39}$</code> AND appear in the allowlist</li>
+  <li><code>params</code> must be a plain object with 1–25 keys</li>
+  <li>Each param key matches <code>^[a-z][a-z0-9_]{0,39}$</code></li>
+  <li>Each param value is string (max 100 chars), number (finite, in [−1e9, 1e9]), or boolean. Arrays/objects rejected.</li>
+  <li>Reserved param names ignored (<code>page_location</code>, <code>page_referrer</code>, <code>engagement_time_msec</code> — those come from server)</li>
+</ul>
+
+<h4>Side effects on accept</h4>
+<ol>
+  <li><code>waitUntil(sendGA4Event(env, request, body.event, body.params))</code> — relays to GA4 with server-derived session_id, source, medium. Wrapped in <code>waitUntil()</code> because <code>sendGA4Event</code> returns a promise.</li>
+  <li><code>env.ANALYTICS.writeDataPoint({ blobs: [...], doubles: [...], indexes: [event] })</code> — mirrors to AE for raw queries. Called directly, NOT in <code>waitUntil()</code> — it's synchronous (no promise) and queues internally.</li>
+</ol>
+
+<h4>Failure modes</h4>
+<ul>
+  <li>GA4 5xx / network error: silent (caught in <code>_ga4.js</code>), AE still gets the event</li>
+  <li>AE not bound: silent, GA4 still gets the event</li>
+  <li>Both fail: still return 204 (analytics failures must never block UX)</li>
+</ul>
+
+<div class="callout"><strong>Security gate:</strong> added to <code>scripts/guard.mjs</code> manifest — the file gets hashed alongside other Phase 4/5 endpoints. Rate-limit must be present. Allowlist must be present.</div>
+
+<h2 id="client"><span class="num">5</span>Client Helper</h2>
+<p><strong>File:</strong> <code>src/scripts/track.ts</code></p>
+
+<pre><code>type TrackParams = Record&lt;string, string | number | boolean&gt;;
+
+const ENDPOINT = '/api/track';
+const DEBUG = (typeof window !== 'undefined') &amp;&amp; window.location.search.includes('debug_track=1');
+
+export function track(event: string, params: TrackParams = {}): void {
+  if (typeof navigator === 'undefined') return;
+  const payload = JSON.stringify({ event, params });
+
+  if (DEBUG) console.log('[track]', event, params);
+
+  // sendBeacon preferred: survives page unload, no CORS preflight, fire-and-forget.
+  // Falls back to keepalive fetch for browsers without sendBeacon (none in current
+  // matrix, but the cost is one if-check).
+  const blob = new Blob([payload], { type: 'application/json' });
+  if (navigator.sendBeacon?.(ENDPOINT, blob)) return;
+
+  fetch(ENDPOINT, {
+    method: 'POST',
+    body: payload,
+    keepalive: true,
+    headers: { 'Content-Type': 'application/json' }
+  }).catch(() =&gt; {});
+}
+
+// Convenience wrapper for outbound link instrumentation. Auto-extracts hostname.
+export function trackOutbound(event: string, href: string, extra: TrackParams = {}): void {
+  let host = '';
+  try { host = new URL(href, location.href).hostname; } catch {}
+  track(event, { href, host, ...extra });
+}</code></pre>
+
+<p><strong>Bundle treatment:</strong> Astro bundles <code>src/scripts/track.ts</code> once when imported by any <code>&lt;script&gt;</code> block; CF Pages caches the hashed <code>/_astro/track.*.js</code> for 1 year. Pages that don't import it pay zero bytes.</p>
+
+<h4>Import pattern (page-level)</h4>
+<pre><code>&lt;script&gt;
+  import { track } from '../scripts/track.ts';
+  document.getElementById('donate-cta')?.addEventListener('click', () =&gt; {
+    track('cta_click', { id: 'donate-hero', page: location.pathname });
+  });
+&lt;/script&gt;</code></pre>
+
+<p>For widely-reused events (scroll depth, outbound links), a thin <code>src/scripts/track-auto.ts</code> module is imported once in <code>BaseLayout.astro</code>, auto-instrumenting anything with a <code>data-track-*</code> attribute. See §7.</p>
+
+<h2 id="events"><span class="num">6</span>Event Allowlist + Schema</h2>
+<p>Single source of truth: <code>functions/api/_track-events.js</code>. Exported <code>ALLOWED_EVENTS</code> Set + per-event <code>REQUIRED_PARAMS</code> map.</p>
+
+<h3>6.1 Behavior events <span class="pill pill--new">new</span></h3>
+<table>
+  <thead>
+    <tr><th>Event</th><th>Required params</th><th>Optional</th><th>Notes</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>cta_click</code></td><td><code>id</code>, <code>page</code></td><td><code>position</code>, <code>value</code></td><td>Hero buttons, sticky CTAs, in-content donate prompts</td></tr>
+    <tr><td><code>outbound_click</code></td><td><code>href</code>, <code>host</code></td><td><code>label</code>, <code>page</code></td><td>External links (NaPro directory, journal DOIs, social)</td></tr>
+    <tr><td><code>internal_click</code></td><td><code>href</code>, <code>page</code></td><td><code>position</code>, <code>label</code></td><td>Important internal nav (article→glossary, FAQ→pillar)</td></tr>
+    <tr><td><code>scroll_depth</code></td><td><code>depth</code>, <code>page</code></td><td>—</td><td>Fires at 25/50/75/100%, throttled one per depth per page-view</td></tr>
+    <tr><td><code>search_submit</code></td><td><code>query_length</code>, <code>surface</code></td><td><code>results_count</code>, <code>filter</code></td><td>Pagefind submission. Query <em>length</em>, NOT query (PII)</td></tr>
+    <tr><td><code>search_result_click</code></td><td><code>surface</code>, <code>result_type</code>, <code>rank</code></td><td><code>query_length</code></td><td>Click within results dropdown</td></tr>
+    <tr><td><code>faq_expand</code></td><td><code>slug</code></td><td><code>position</code></td><td>FAQ accordion open</td></tr>
+    <tr><td><code>glossary_lookup</code></td><td><code>term</code></td><td><code>from_page</code></td><td>Glossary entry view from a non-glossary page</td></tr>
+    <tr><td><code>video_play</code></td><td><code>course</code>, <code>step</code></td><td><code>position_pct</code></td><td>CF Stream lesson play</td></tr>
+    <tr><td><code>video_complete</code></td><td><code>course</code>, <code>step</code></td><td>—</td><td>Lesson completion</td></tr>
+    <tr><td><code>share_click</code></td><td><code>surface</code>, <code>network</code></td><td><code>slug</code></td><td>Article/commentary share buttons</td></tr>
+    <tr><td><code>theme_toggle</code></td><td><code>to</code></td><td>—</td><td>light / dark / eink</td></tr>
+    <tr><td><code>pdf_download</code></td><td><code>slug</code>, <code>source</code></td><td>—</td><td>Guide PDF, library article reprint</td></tr>
+    <tr><td><code>copy_citation</code></td><td><code>surface</code>, <code>format</code></td><td><code>slug</code></td><td>Library citation copy</td></tr>
+  </tbody>
+</table>
+
+<h3>6.2 Conversion events <span class="pill pill--keep">already server-side, do not duplicate</span></h3>
+<p><code>sign_up</code>, <code>signup_from_ask</code>, <code>generate_lead</code>, <code>begin_checkout</code>, <code>purchase</code>, <code>page_view</code> — all fire from server. Client helper rejects these via allowlist split (<code>ALLOWED_CLIENT_EVENTS</code> is a subset of <code>ALLOWED_EVENTS</code>).</p>
+
+<h3>6.3 Engagement parameters (auto-added server-side)</h3>
+<p>Every event gets:</p>
+<ul>
+  <li><code>engagement_time_msec: 1</code> (GA4 requires for session counting)</li>
+  <li><code>session_id</code>, <code>utm_source</code>, <code>utm_medium</code> (derived in <code>buildSourceParams</code>)</li>
+  <li><code>page_location</code> from <code>request.url</code> if not provided</li>
+</ul>
+
+<h2 id="starter"><span class="num">7</span>Starter Events to Instrument <span style="font-size: 14px; color: var(--ink-muted); font-weight: 400;">(Phase 1)</span></h2>
+<p>This is the minimum that pays back the effort. Brian can extend afterward.</p>
+
+<table>
+  <thead>
+    <tr><th>Surface</th><th>Event</th><th>Trigger</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Homepage hero CTAs</td><td><code>cta_click</code></td><td>Click on "Browse all N articles", "Glossary", "FAQs" links</td></tr>
+    <tr><td>Homepage donate button</td><td><code>cta_click</code></td><td>Header donate, footer donate, in-page donate prompts</td></tr>
+    <tr><td><code>/library/[slug]</code></td><td><code>scroll_depth</code></td><td>25/50/75/100%</td></tr>
+    <tr><td><code>/library/[slug]</code></td><td><code>outbound_click</code></td><td>DOI / journal links</td></tr>
+    <tr><td><code>/library/[slug]</code></td><td><code>copy_citation</code></td><td>Citation copy button</td></tr>
+    <tr><td><code>/commentary/[slug]</code></td><td><code>scroll_depth</code></td><td>25/50/75/100%</td></tr>
+    <tr><td><code>/glossary/[slug]</code></td><td><code>glossary_lookup</code></td><td>Page load (fires once)</td></tr>
+    <tr><td>Pillar pages (6)</td><td><code>scroll_depth</code> + <code>internal_click</code></td><td>TOC navigation</td></tr>
+    <tr><td><code>/faqs/</code> + <code>/faqs/[slug]</code></td><td><code>faq_expand</code></td><td>Accordion open</td></tr>
+    <tr><td>SearchBar + MobileSearchModal</td><td><code>search_submit</code> + <code>search_result_click</code></td><td>Existing handlers already debounce + emit beacon to AE; add GA4 mirror</td></tr>
+    <tr><td>Course lesson player</td><td><code>video_play</code>, <code>video_complete</code></td><td>Stream.js callbacks</td></tr>
+    <tr><td>Theme toggle</td><td><code>theme_toggle</code></td><td>Existing click handler</td></tr>
+    <tr><td>Outbound to NaPro providers</td><td><code>outbound_click</code></td><td>Provider directory + pillar CTA links</td></tr>
+  </tbody>
+</table>
+
+<h4>Auto-instrumentation via <code>data-track-*</code></h4>
+<p>Added to <code>track-auto.ts</code> (loaded once in BaseLayout):</p>
+<ul>
+  <li>Any <code>&lt;a data-track-out&gt;</code> → <code>outbound_click</code> on click</li>
+  <li>Any <code>&lt;button data-track-cta="id"&gt;</code> → <code>cta_click</code> on click</li>
+  <li>Any element with <code>data-track-scroll-page</code> on <code>&lt;body&gt;</code> → enable scroll-depth on that page</li>
+</ul>
+<p>This way new events become a 1-attribute change, not a 5-line script block per page.</p>
+
+<h2 id="zaraz"><span class="num">8</span>Zaraz Removal Plan</h2>
+<ol>
+  <li><strong>Inventory Zaraz config first.</strong> Brian (or me with a CF API token) opens dashboard <em>Zaraz → Tools</em>. Note every tool + every trigger. Most likely: only <em>Google Analytics 4</em> is configured with the measurement ID, but there may be Cloudflare-internal tools (Loading config, Speed Insights) we want to keep.</li>
+  <li><strong>Disable the GA4 tool</strong> (don't delete yet — can re-enable in 1 click if migration regresses).</li>
+  <li><strong>Verify <code>/analytics/</code> 404s</strong> (or returns minimal stub if Cloudflare keeps the path live for other Zaraz uses).</li>
+  <li><strong>Confirm in GA4 Realtime:</strong> page_views still flow (these come from middleware MP, not Zaraz), new behavior events from <code>/api/track</code> start arriving.</li>
+  <li><strong>After 7-day soak</strong>, delete the GA4 tool entirely from Zaraz.</li>
+  <li><strong>If Zaraz has no other tools enabled, disable Zaraz on the zone.</strong> Cuts the <code>/analytics/</code> route and the Zaraz client loader entirely.</li>
+</ol>
+<div class="callout"><strong>Rollback:</strong> re-enable the GA4 tool in Zaraz. Takes 60 seconds. Both pipelines can co-exist during transition (GA4 dedupes on identical event_name + session_id within tight time window, page_views will double for a moment).</div>
+
+<h2 id="csp"><span class="num">9</span>CSP Cleanup</h2>
+<p>Current <code>connect-src</code>: <code>'self' https://challenges.cloudflare.com https://cloudflareinsights.com</code></p>
+<p><strong>No CSP changes needed</strong> for <code>/api/track</code> — it's same-origin (<code>'self'</code> covers it).</p>
+<p>After Zaraz removal:</p>
+<ul>
+  <li>Remove <code>https://cloudflareinsights.com</code> from <code>connect-src</code> if CF Web Analytics is also being dropped (separate decision — see Open Questions).</li>
+  <li>The CSP violations from PSI all stem from the Zaraz GTM container's outbound calls. Once that's gone, console errors clear.</li>
+</ul>
+
+<h2 id="privacy"><span class="num">10</span>Privacy &amp; Compliance</h2>
+<ul>
+  <li><strong>No PII in event params.</strong> Allowlist enforces no <code>email</code>, <code>name</code>, <code>user_id</code> as param keys. Query <em>strings</em> are never sent — only <code>query_length</code>. The endpoint strips any param key matching <code>/email|user|name|password|token|cookie|address|phone|ssn/i</code> defensively before forwarding.</li>
+  <li><strong>Client ID is anonymous hash of IP+UA</strong> (existing <code>getClientId</code> in <code>_ga4-source.js</code>). No cookies set by <code>/api/track</code> itself.</li>
+  <li><strong>Do-Not-Track honored.</strong> Client helper checks <code>navigator.doNotTrack === '1'</code> and no-ops.</li>
+  <li><strong>EU consent:</strong> since data flow is first-party and no third-party scripts run, the ePrivacy bar is lower than gtag. We document this in <code>/privacy-policy/</code> (separate copy update).</li>
+</ul>
+
+<h2 id="sampling"><span class="num">11</span>Sampling &amp; Cost</h2>
+<p>GA4 free tier: 10M events/month. CF Analytics Engine: 10M write_data_points/month free.</p>
+<p>At current ~10k unique visitors/month and ~10 events/visit, we're at ~100k events/month — <strong>1% of either ceiling</strong>. No sampling needed.</p>
+<p>If traffic grows 100×, add client-side sampling in <code>track.ts</code>: <code>if (Math.random() &gt; 0.5) return;</code> gated by a config flag. Conversion events stay 100% (already server-side).</p>
+
+<h2 id="testing"><span class="num">12</span>Testing</h2>
+<ol>
+  <li><strong>Unit:</strong> none for the endpoint — the logic is a thin shell over <code>sendGA4Event</code> (already covered) + <code>writeDataPoint</code> (CF binding, mocked in <code>test/_helpers.js</code>).</li>
+  <li><strong>Integration smoke test:</strong> <code>test/track-endpoint.test.js</code>
+    <ul>
+      <li>POST valid event → 204 + <code>sendGA4Event</code> called once</li>
+      <li>POST invalid event name → 400, no GA4 call</li>
+      <li>POST rate-limited → 429</li>
+      <li>POST with PII keys → keys stripped, 204</li>
+    </ul>
+  </li>
+  <li><strong>End-to-end:</strong> <code>tests/e2e/track-smoke.spec.ts</code> — Playwright opens homepage, clicks donate CTA, asserts network shows <code>POST /api/track</code> with <code>cta_click</code> body.</li>
+  <li><strong>Manual:</strong> <code>?debug_track=1</code> query param logs every <code>track()</code> call to console. Confirms instrumentation triggers fire as expected.</li>
+  <li><strong>GA4 Realtime check:</strong> within minutes of deploy, see events flowing in GA4 → Reports → Realtime → Events list.</li>
+</ol>
+
+<h2 id="rollout"><span class="num">13</span>Migration / Rollout</h2>
+
+<h4>Phase 1 — Infrastructure (one PR)</h4>
+<ul>
+  <li><code>functions/api/track.js</code></li>
+  <li><code>functions/api/_track-events.js</code> (allowlist + schema)</li>
+  <li><code>src/scripts/track.ts</code> + <code>src/scripts/track-auto.ts</code></li>
+  <li><code>BaseLayout</code> imports <code>track-auto.ts</code></li>
+  <li>Update <code>scripts/guard.mjs</code> manifest + add security invariant</li>
+  <li>Tests</li>
+  <li>Spec finalized in this doc</li>
+</ul>
+
+<h4>Phase 2 — Instrumentation (separate PRs, one per surface)</h4>
+<ul>
+  <li><strong>2a:</strong> scroll depth + outbound + cta auto-instrumentation (via attributes)</li>
+  <li><strong>2b:</strong> search events (SearchBar + MobileSearchModal)</li>
+  <li><strong>2c:</strong> glossary, FAQ, theme toggle</li>
+  <li><strong>2d:</strong> course lesson player (<code>video_play</code>, <code>video_complete</code>)</li>
+  <li><strong>2e:</strong> PDF download, copy_citation, share_click</li>
+</ul>
+
+<h4>Phase 3 — Zaraz GA4 disable (after 7-day soak)</h4>
+<ul>
+  <li>Disable in CF dashboard</li>
+  <li>Confirm CSP errors clear</li>
+  <li>Confirm GA4 page_view counts hold (server-side MP remains)</li>
+  <li>Open Question: Zaraz fully removed?</li>
+</ul>
+
+<h4>Phase 4 — Dashboards (optional, weeks later)</h4>
+<p>Looker Studio / GA4 explorer dashboard rebuilt around the new event names. Brian's call when he wants to look at the data.</p>
+
+<h2 id="resolved"><span class="num">14</span>Resolved Decisions <span style="font-size: 14px; color: var(--ink-muted); font-weight: 400;">(Brian, 2026-05-15)</span></h2>
+<ol>
+  <li><strong>Cloudflare Web Analytics:</strong> <span class="pill pill--keep">keep</span> Keep CF RUM; fix CORS error in a separate PR after Phase 1 lands. Provides Core Web Vitals + bot-filtered traffic counts that complement GA4.</li>
+  <li><strong>Ahrefs Worker (<code>ahrefs--bot-analytics</code>):</strong> <span class="pill pill--keep">keep, unblock</span> Re-enable / leave running so long as it doesn't block other work. CSP can be widened minimally for <code>analytics.ahrefs.com</code> if the script needs to load. Decision deferred until Phase 1 lands and we re-measure.</li>
+  <li><strong>Funnel definitions:</strong> <span class="pill pill--new">in-scope</span> I set them up. Persona-aware: Users, Donors, IG arrivers, Organic search arrivers, AI search arrivers, Referral arrivers, STUC members. Set up <em>a lot</em> of conversion + funnel tracking. <strong>See new §15 for the full plan.</strong></li>
+  <li><strong>Event taxonomy lock-in:</strong> <span class="pill pill--keep">proceed</span> Ship names in §6 as-is; rename via GA4 transformation rules if any need adjusting after data lands.</li>
+  <li><strong>Server-side dedup:</strong> <span class="pill pill--keep">proceed</span> One-week dashboard dip after Zaraz disable is expected. Note in CHANGELOG.</li>
+</ol>
+
+<h2 id="personas"><span class="num">15</span>Audience Personas + Funnels</h2>
+
+<h3>15.1 Personas</h3>
+<p>Audience definitions used across custom dimensions, GA4 Audiences, and Exploration filters. Each row is both a <em>segment</em> (built from event params at query time) and an <em>Audience</em> (saved to GA4 for re-targeting comparisons).</p>
+
+<table>
+  <thead>
+    <tr><th style="width: 22%;">Persona</th><th style="width: 38%;">Definition</th><th>Built from</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>Anonymous visitor</strong></td><td>No session cookie / not logged in</td><td><code>user_role = 'anonymous'</code></td></tr>
+    <tr><td><strong>Registered user</strong></td><td>Has account, email verified</td><td><code>user_role = 'registered'</code></td></tr>
+    <tr><td><strong>STUC member</strong></td><td>Active Save the Uterus Club subscription</td><td><code>user_role = 'member'</code> (from <code>/api/community/status</code>)</td></tr>
+    <tr><td><strong>Donor</strong></td><td>Has ≥1 <code>purchase</code> event with <code>lead_source=donation</code></td><td>GA4 Audience: any-time <code>purchase</code> ∧ <code>donation</code></td></tr>
+    <tr><td><strong>Returning donor</strong></td><td>≥2 donation purchases ever</td><td>GA4 Audience: count(<code>purchase</code> ∧ <code>donation</code>) ≥ 2</td></tr>
+    <tr><td><strong>Course enrollee</strong></td><td>Has any <code>generate_lead</code> or <code>begin_checkout</code> with course param</td><td>GA4 Audience: scoped to course events</td></tr>
+    <tr><td><strong>Email arriver</strong> — broadcast</td><td>UTM <code>source=email</code> AND <code>medium=newsletter</code></td><td><code>entry_category = 'email'</code>, <code>email_type = 'broadcast'</code></td></tr>
+    <tr><td><strong>Email arriver</strong> — automation</td><td>UTM <code>source=email</code> AND <code>medium=email_automation</code> (drip / nurture / onboarding)</td><td><code>email_type = 'automation'</code></td></tr>
+    <tr><td><strong>Email arriver</strong> — transactional</td><td>UTM <code>source=email</code> AND <code>medium=email_transactional</code> (receipts, password reset, course enrollment confirmation)</td><td><code>email_type = 'transactional'</code></td></tr>
+    <tr><td><strong>IG arriver</strong></td><td>Entry source = Instagram</td><td><code>entry_platform = 'instagram'</code></td></tr>
+    <tr><td><strong>AI search arriver</strong></td><td>Referrer host ∈ {chatgpt.com, perplexity.ai, claude.ai, gemini.google.com, copilot.microsoft.com, you.com, …}</td><td><code>entry_platform = 'ai_&lt;vendor&gt;'</code></td></tr>
+    <tr><td><strong>Organic search arriver</strong></td><td>Referrer host ∈ search engine list (Google, Bing, DuckDuckGo, etc.)</td><td><code>entry_category = 'organic'</code></td></tr>
+    <tr><td><strong>Social arriver</strong></td><td>Referrer host ∈ social list (IG, FB, X, LinkedIn, YT, etc.)</td><td><code>entry_category = 'social'</code></td></tr>
+    <tr><td><strong>Referral arriver</strong></td><td>Any other off-domain referrer (clinic site, journal, partner blog)</td><td><code>entry_category = 'referral'</code></td></tr>
+    <tr><td><strong>Direct arriver</strong></td><td>No referrer / typed URL / bookmark</td><td><code>entry_category = 'direct'</code></td></tr>
+    <tr><td><strong>Engaged reader</strong></td><td>≥3 library page_views in 7 days with ≥1 <code>scroll_depth ≥ 75</code></td><td>GA4 Audience: event count + parameter filter</td></tr>
+    <tr><td><strong>Content binge reader</strong></td><td>≥4 sessions in 7 days AND ≥5 page_views/session</td><td>GA4 Audience: high-velocity engagement</td></tr>
+    <tr><td><strong>Course browser</strong></td><td>≥1 course page_view, no <code>begin_checkout</code> or <code>generate_lead</code> for any course in 14 days</td><td>GA4 Audience: visit minus convert</td></tr>
+    <tr><td><strong>First-time enrollee</strong></td><td>First course <code>begin_checkout</code> or free enrollment within last 30 days</td><td>GA4 Audience: cohort window</td></tr>
+    <tr><td><strong>Multi-course learner</strong></td><td>Enrolled in ≥2 distinct courses (any time)</td><td>GA4 Audience: distinct-course count</td></tr>
+    <tr><td><strong>High-value donor</strong></td><td>Lifetime <code>purchase</code> ∧ <code>donation</code> sum ≥ <em>$N</em> (Brian sets threshold)</td><td>GA4 Audience: revenue tier</td></tr>
+    <tr><td><strong>Mid-value donor</strong></td><td>Lifetime donation sum in $Y–$Z range</td><td>GA4 Audience: revenue tier</td></tr>
+    <tr><td><strong>One-time low-value</strong></td><td>1 donation under $Y, no repeat in 12 months</td><td>GA4 Audience: re-engagement target</td></tr>
+    <tr><td><strong>Topic-interest: Infertility</strong></td><td>≥2 page_views with <code>content_pillar ∈ {pcos, endometriosis, neofertility}</code></td><td>GA4 Audience: topic clustering</td></tr>
+    <tr><td><strong>Topic-interest: Research</strong></td><td>≥2 library article page_views, prefers <code>article_type = 'research'</code></td><td>GA4 Audience: topic clustering</td></tr>
+    <tr><td><strong>Topic-interest: Commentary</strong></td><td>≥2 commentary page_views, prefers <code>article_type = 'commentary'</code></td><td>GA4 Audience: topic clustering</td></tr>
+    <tr><td><strong>Social evangelist</strong></td><td>≥1 <code>share_click</code> event in 30 days</td><td>GA4 Audience: advocate behavior</td></tr>
+    <tr><td><strong>Mobile-heavy</strong></td><td>≥80% of sessions on <code>device_type = 'mobile'</code></td><td>GA4 Audience: UX risk segment</td></tr>
+    <tr><td><strong>Organic-search-engaged</strong></td><td><code>entry_category = 'organic'</code> AND ≥3 page_views with ≥60s engaged time within first 2 sessions</td><td>GA4 Audience: high-intent SEO traffic</td></tr>
+    <tr><td><strong>Lapsed user</strong></td><td>Registered, no page_view in 90 days</td><td>GA4 Audience: inactivity window</td></tr>
+  </tbody>
+</table>
+<p class="callout"><strong>CXL principle:</strong> <em>"You don't need 50 personas. You need a useful segmentation that results in different decisions."</em> The personas above are organized so editorial uses topic-interest + binge segments, fundraising uses donor tiers + email arrivers, and UX uses device + slow-connection signals. Brian should prune any persona he doesn't act on.</p>
+
+<h3>15.2 Custom dimensions to register in GA4</h3>
+<p>Brian (or me via the GA4 Admin API once enabled) creates these in <em>Admin → Custom definitions → Custom dimensions</em>. Each is event-scoped unless noted.</p>
+
+<table>
+  <thead>
+    <tr><th>Dimension</th><th>Scope</th><th>Source param</th><th>Why</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>user_role</code></td><td>user-scoped</td><td><code>user_role</code></td><td>Distinguish anonymous vs registered vs member across all events</td></tr>
+    <tr><td><code>entry_category</code></td><td>session-scoped</td><td><code>entry_category</code></td><td>direct / organic / social / referral / ai / paid</td></tr>
+    <tr><td><code>entry_platform</code></td><td>session-scoped</td><td><code>entry_platform</code></td><td>instagram, chatgpt, perplexity, google, …</td></tr>
+    <tr><td><code>content_pillar</code></td><td>event-scoped</td><td><code>content_pillar</code></td><td>what-is-rrm, naprotechnology, femm, neofertility, common-questions, glossary, art-registries, pcos, endometriosis, endometritis, miscarriage</td></tr>
+    <tr><td><code>device_type</code></td><td>event-scoped</td><td><code>device_type</code></td><td>mobile / tablet / desktop (already classified by survey/event.js precedent)</td></tr>
+    <tr><td><code>lead_source</code></td><td>event-scoped</td><td><code>lead_source</code></td><td>newsletter, endo_survey, waitlist, course, donation (already used in conversions)</td></tr>
+    <tr><td><code>article_type</code></td><td>event-scoped</td><td><code>article_type</code></td><td>research, commentary, faq, guide, glossary — surface-typed reading</td></tr>
+    <tr><td><code>email_type</code></td><td>session-scoped</td><td><code>email_type</code></td><td>broadcast / automation / transactional — derived from <code>utm_medium</code> when <code>utm_source=email</code></td></tr>
+    <tr><td><code>list_source</code></td><td>session-scoped</td><td><code>list_source</code></td><td>Where the subscriber was originally captured (newsletter signup form on /, footer, endo-survey, course page, etc.). Passed via custom <code>?list_source=…</code> query param appended to email links</td></tr>
+    <tr><td><code>engagement_tier</code></td><td>user-scoped</td><td><code>engagement_tier</code></td><td>cold / warm / hot — computed from recency + event count. Lets us run "warm vs cold" funnel comparisons</td></tr>
+    <tr><td><code>cohort_date</code></td><td>user-scoped</td><td><code>cohort_date</code></td><td>First-touch month (YYYY-MM). Enables cohort retention analysis without a separate tool</td></tr>
+    <tr><td><code>audience_type</code></td><td>user-scoped</td><td><code>audience_type</code></td><td>clinician / researcher / student / donor / patient-advocate — set on signup form or inferred from behavior. Optional, populates over time</td></tr>
+    <tr><td><code>experiment_id</code> + <code>variant_id</code></td><td>event-scoped</td><td>(future)</td><td>Reserved slots for when A/B testing comes online; lets every event be sliced by variant</td></tr>
+  </tbody>
+</table>
+
+<h3>15.3 Conversions (Key Events) to mark in GA4</h3>
+<p>Each gets a primary "is this a conversion?" toggle on in <em>Admin → Events → Mark as conversion</em>:</p>
+<ul>
+  <li><code>sign_up</code> — top-of-funnel account creation</li>
+  <li><code>generate_lead</code> — newsletter, endo survey, course waitlist, course enroll (free)</li>
+  <li><code>begin_checkout</code> — donation, subscription, course purchase intent</li>
+  <li><code>purchase</code> — completed donation or paid enrollment</li>
+  <li><code>pdf_download</code> — high-intent: guide PDFs are deep funnel</li>
+  <li><code>copy_citation</code> — academic intent signal</li>
+  <li><code>video_complete</code> — course step completion (engagement conversion)</li>
+  <li><code>scroll_depth</code> WHERE <code>depth = 100</code> AND <code>article_type ∈ {research, commentary}</code> — full read</li>
+</ul>
+
+<h3>15.4 Funnels (GA4 Explorations)</h3>
+<p>Each persona-aware where it makes sense. Brian's call on which to start with — recommend building all 12 and pinning the top 5 to the GA4 home.</p>
+
+<table>
+  <thead>
+    <tr><th>Funnel</th><th>Steps</th><th>Useful persona filters</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>1. Library → Signup</strong></td><td>library page_view → scroll_depth ≥ 50 → sign_up</td><td>All arrivers; compare AI vs organic conversion</td></tr>
+    <tr><td><strong>2. Library → Donation</strong></td><td>library page_view → cta_click (donate) → begin_checkout → purchase</td><td>Engaged reader; donor lookback</td></tr>
+    <tr><td><strong>3. Pillar → Donation</strong></td><td>pillar page_view → scroll_depth ≥ 75 → cta_click (donate) → purchase</td><td>By pillar (which guides drive donors?)</td></tr>
+    <tr><td><strong>4. Course → Enrollment</strong></td><td>course page_view → begin_checkout → purchase</td><td>By course; STUC vs non-member</td></tr>
+    <tr><td><strong>5. FAQ → Signup</strong></td><td>faq page_view → faq_expand → sign_up</td><td>Compare arrivals: search-driven FAQ traffic</td></tr>
+    <tr><td><strong>6. Endo survey</strong></td><td>endo-survey page_view → survey request → survey submit</td><td>Drop-off analysis by device_type</td></tr>
+    <tr><td><strong>7. Newsletter capture</strong></td><td>any page_view → cta_click (newsletter) → generate_lead</td><td>By entry_category</td></tr>
+    <tr><td><strong>8. IG → STUC join</strong></td><td>entry_platform=instagram → page_view → cta_click (stuc) → purchase</td><td>Track Naomi's @napro_fertility_surgeon impact</td></tr>
+    <tr><td><strong>9. AI agent → signup</strong></td><td>entry_platform IN (chatgpt, perplexity, …) → page_view → sign_up</td><td>Validate AEO investment — which AI drives best users?</td></tr>
+    <tr><td><strong>10. Search → engagement</strong></td><td>search_submit → search_result_click → scroll_depth ≥ 50</td><td>On-site search quality; result_type breakdown</td></tr>
+    <tr><td><strong>11. Glossary → Pillar</strong></td><td>glossary_lookup → internal_click (to pillar)</td><td>Are glossary entries gateway to deeper content?</td></tr>
+    <tr><td><strong>12. Outbound journey</strong></td><td>library/commentary page_view → outbound_click (DOI/provider)</td><td>Are we successfully routing to NaPro providers / source articles?</td></tr>
+    <tr><td><strong>13. Email → Donation</strong></td><td>entry_category=email → page_view → cta_click(donate) → begin_checkout → purchase</td><td>By <code>email_type</code> (broadcast vs automation vs transactional) AND <code>list_source</code></td></tr>
+    <tr><td><strong>14. Email → Course enrollment</strong></td><td>entry_category=email → course page_view → begin_checkout → purchase</td><td>By <code>email_type</code> + course slug</td></tr>
+    <tr><td><strong>15. Course participant → Donor</strong></td><td>generate_lead (course) → 2+ later sessions → page_view (/donate/) → purchase (donation)</td><td>Time-windowed (30/90 day lookback). Answers: do courses convert to donors?</td></tr>
+    <tr><td><strong>16. Content → Email signup (micro)</strong></td><td>blog/library page_view → cta_click(newsletter) → generate_lead</td><td>CXL classic micro-funnel. Where best to place the signup CTA?</td></tr>
+    <tr><td><strong>17. Engaged-visitor micro-funnel</strong></td><td>session_start → 2+ page_views → scroll_depth ≥ 50 → 180s+ engaged time</td><td>CXL "engaged visitor" definition. Top-of-funnel quality metric</td></tr>
+    <tr><td><strong>18. AEO citation → engagement</strong></td><td>AI-arrival page_view → 2+ page_views OR scroll_depth ≥ 50 OR signup</td><td>Validates that AI-sent traffic <em>actually engages</em> vs bounces. Critical KPI for the AEO strategy</td></tr>
+    <tr><td><strong>19. New donor activation</strong></td><td>cohort_date = this-month → page_view → generate_lead → first purchase (donation)</td><td>Time-to-first-donation by cohort. Reveals which content moved them</td></tr>
+    <tr><td><strong>20. Topic-clustered conversion</strong></td><td>content_pillar=X page_view → scroll_depth ≥ 75 → sign_up | purchase</td><td>One funnel per pillar. Which topic drives donors? Which drives signups?</td></tr>
+  </tbody>
+</table>
+<p class="callout"><strong>CXL principle (paraphrased):</strong> <em>"Don't cram everything into one giant funnel — you'll end up with a mess of averages that hides everything that matters."</em> Above is 20 narrow funnels by design. Each maps to a distinct decision (editorial, fundraising, UX, AEO investment).</p>
+
+<h3>15.5 GA4 Audiences to build</h3>
+<p>Saved in <em>Admin → Audiences</em>. Used for comparison reports and (if Brian adds Google Ads later) re-targeting.</p>
+<ul>
+  <li><strong>Donors</strong> — any-time <code>purchase</code> ∧ <code>lead_source=donation</code></li>
+  <li><strong>Returning donors</strong> — purchase event count ≥ 2</li>
+  <li><strong>STUC members</strong> — <code>user_role = 'member'</code></li>
+  <li><strong>Engaged readers</strong> — 3+ library page_views in 7 days with at least one <code>scroll_depth ≥ 75</code></li>
+  <li><strong>Email arrivers — broadcast</strong> — <code>entry_category = 'email'</code> AND <code>email_type = 'broadcast'</code></li>
+  <li><strong>Email arrivers — automation</strong> — <code>email_type = 'automation'</code></li>
+  <li><strong>Email arrivers — transactional</strong> — <code>email_type = 'transactional'</code></li>
+  <li><strong>IG arrivers</strong> — <code>entry_platform = 'instagram'</code></li>
+  <li><strong>AI search arrivers</strong> — <code>entry_category = 'ai'</code></li>
+  <li><strong>Organic search arrivers</strong> — <code>entry_category = 'organic'</code></li>
+  <li><strong>Referral arrivers</strong> — <code>entry_category = 'referral'</code></li>
+  <li><strong>Direct arrivers</strong> — <code>entry_category = 'direct'</code></li>
+  <li><strong>Lapsed users</strong> — registered + no page_view in 90 days (for re-engagement campaigns)</li>
+</ul>
+
+<h3>15.6 Implementation changes to <code>_ga4-source.js</code></h3>
+<p>Four extensions to the existing source classification module:</p>
+<ol>
+  <li><strong>Add AI agent classification.</strong> New const <code>AI_AGENTS</code>:
+    <pre><code>const AI_AGENTS = [
+  { pattern: /chatgpt\.com|chat\.openai\.com/i,    platform: 'chatgpt' },
+  { pattern: /perplexity\.ai/i,                     platform: 'perplexity' },
+  { pattern: /claude\.ai/i,                         platform: 'claude' },
+  { pattern: /gemini\.google\.com|bard\.google\.com/i, platform: 'gemini' },
+  { pattern: /copilot\.microsoft\.com|bing\.com\/chat/i, platform: 'copilot' },
+  { pattern: /you\.com/i,                           platform: 'you' },
+  { pattern: /grokipedia\.com|x\.ai/i,              platform: 'grok' },
+];</code></pre>
+    Tested BEFORE search engines so a `bing.com/chat` referrer classifies as `copilot` (ai), not `bing` (organic).
+  </li>
+  <li><strong>Extend <code>classifySource()</code> return shape</strong> to include <code>entry_category</code> + <code>entry_platform</code>:
+    <pre><code>// before:
+return { source: 'instagram', medium: 'social' };
+
+// after:
+return {
+  source: 'instagram',
+  medium: 'social',
+  entry_category: 'social',     // direct | organic | social | referral | ai | email | paid
+  entry_platform: 'instagram',  // specific vendor: instagram, chatgpt, google, …
+};</code></pre>
+  </li>
+  <li><strong>Email override in <code>buildSourceParams()</code>.</strong> UTM-driven email arrivals must override referrer-based classification (a user clicks an email link → their referrer might be Gmail/Outlook, which we DON'T want classified as "referral"):
+    <pre><code>// Inside buildSourceParams(), after extracting utmParams:
+if (utmParams.utm_source === 'email') {
+  classified.entry_category = 'email';
+  classified.entry_platform = 'email';
+  // Derive email_type from utm_medium
+  if (utmParams.utm_medium === 'newsletter') classified.email_type = 'broadcast';
+  else if (utmParams.utm_medium === 'email_automation') classified.email_type = 'automation';
+  else if (utmParams.utm_medium === 'email_transactional') classified.email_type = 'transactional';
+  else classified.email_type = 'other';
+}</code></pre>
+  </li>
+  <li><strong>Capture <code>list_source</code> from query params.</strong> Not a UTM (UTM slots are full); add to the entry-cookie-set logic in BaseLayout so it survives internal navigations:
+    <pre><code>// In BaseLayout's first-load script (already sets entry_ref, entry_url cookies):
+const ls = new URLSearchParams(location.search).get('list_source');
+if (ls &amp;&amp; !document.cookie.includes('list_source=')) {
+  document.cookie = `list_source=${encodeURIComponent(ls)};max-age=2592000;path=/;samesite=lax`;
+}
+
+// In _ga4-source.js buildSourceParams(), pick it up:
+const listSource = parseCookie(cookies, 'list_source');
+if (listSource) params.list_source = listSource;</code></pre>
+  </li>
+</ol>
+<p><code>buildSourceParams()</code> already wires these into every GA4 event — adding the four new fields is one-line each.</p>
+
+<h3>15.7 UTM convention <span style="font-size: 14px; color: var(--ink-muted); font-weight: 400;">(per CXL guidance, enforced consistently)</span></h3>
+<p class="callout"><strong>CXL guidance (paraphrased Peep Laja):</strong> <em>"UTM tags are your source of truth. If people freestyle them, your data is garbage. Decide on a standard naming convention for campaign, source, and medium, and document it. Then enforce it."</em></p>
+
+<table>
+  <thead>
+    <tr><th>Channel</th><th><code>utm_source</code></th><th><code>utm_medium</code></th><th><code>utm_campaign</code> pattern</th><th>Extras</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Newsletter broadcast</td><td><code>email</code></td><td><code>newsletter</code></td><td><code>newsletter_monthly_2026-05</code></td><td><code>list_source</code> if list-segmented</td></tr>
+    <tr><td>Drip / automation</td><td><code>email</code></td><td><code>email_automation</code></td><td><code>onboarding_signup_step_2</code>, <code>course_drip_napro_3</code></td><td>step number in campaign</td></tr>
+    <tr><td>Transactional</td><td><code>email</code></td><td><code>email_transactional</code></td><td><code>donation_receipt</code>, <code>course_enroll_confirm</code>, <code>password_reset</code></td><td>—</td></tr>
+    <tr><td>Instagram bio link</td><td><code>instagram</code></td><td><code>social</code></td><td><code>bio_link_napro_fertility_surgeon</code></td><td>—</td></tr>
+    <tr><td>Instagram story / post</td><td><code>instagram</code></td><td><code>social</code></td><td><code>ig_story_endo_awareness_2026-05</code></td><td><code>utm_content</code> = post type</td></tr>
+    <tr><td>External press / partner</td><td>publication name (slugified)</td><td><code>referral</code></td><td><code>press_$publication_2026-05</code></td><td>—</td></tr>
+    <tr><td>Paid (future)</td><td>vendor (e.g. <code>google</code>, <code>meta</code>)</td><td><code>cpc</code> or <code>paid_social</code></td><td>campaign name</td><td>—</td></tr>
+  </tbody>
+</table>
+
+<p><strong>Rules:</strong></p>
+<ul>
+  <li>All lowercase, underscores not hyphens, no spaces, ASCII only</li>
+  <li>Dates in <code>YYYY-MM</code> or <code>YYYY-MM-DD</code> always sortable</li>
+  <li><code>list_source</code> passed as a separate (non-UTM) query param: <code>?utm_source=email&amp;utm_medium=newsletter&amp;utm_campaign=newsletter_monthly_2026-05&amp;list_source=endo_survey_signup</code> — captured by client helper, sent as event param, registered as custom dimension</li>
+  <li><strong>Document in a public-facing UTM cheat sheet</strong> (<code>docs/marketing/utm-conventions.md</code> + a one-pager in the team Notion). Future-Brian + future-staff need this.</li>
+</ul>
+
+<h3>15.8 Mistakes to avoid <span style="font-size: 14px; color: var(--ink-muted); font-weight: 400;">(CXL warnings)</span></h3>
+<p>Direct CXL quotes (paraphrased) for the recurring traps:</p>
+<ul>
+  <li><strong>One giant funnel.</strong> <em>"Don't cram everything into one giant funnel — you'll end up with a mess of averages that hides everything that matters."</em> Each funnel in §15.4 is narrow on purpose.</li>
+  <li><strong>Tracking pageviews / time-on-site as goals.</strong> <em>"A common mistake is to track pageviews or time on site as a goal. These aren't business goals."</em> Our key events list (§15.3) is all business outcomes — signup, lead, checkout, purchase, video_complete, full read.</li>
+  <li><strong>Unsegmented funnel analysis.</strong> <em>"Looking at an unsegmented funnel is almost pointless. Always segment by device, new vs returning, traffic source, and other meaningful cuts."</em> Every persona in §15.1 doubles as a default funnel segment.</li>
+  <li><strong>Linear funnel assumption.</strong> <em>"Users don't move linearly. They go back, open new tabs, revisit later."</em> GA4 funnel explorations support open funnels; for the donor + AI arriver journeys we'll use open funnels with multi-step lookback windows.</li>
+  <li><strong>Sample-size ignorance.</strong> <em>"Don't draw conclusions from tiny funnel samples."</em> First 30 days post-launch, funnels with &lt;100 sessions get a warning banner in the (eventual) Looker Studio dashboard.</li>
+  <li><strong>Percentage without absolute.</strong> <em>"A step might have a great conversion rate but almost no volume. Check both conversion rate and absolute counts."</em> Every funnel report shows N + %.</li>
+  <li><strong>Broken tracking.</strong> <em>"A surprisingly common issue is broken tracking. If your data is wrong, your funnel analysis is worthless."</em> Mitigated by: <code>?debug_track=1</code> console output, smoke test in CI, weekly GA4 Realtime check, AE raw event log as crosscheck.</li>
+  <li><strong>Top-of-funnel quality blindness.</strong> <em>"If your top of the funnel is full of low-intent traffic, your funnel conversion will look terrible."</em> The AEO arrival funnel (§15.4 #18) is specifically designed to surface this — if AI-sent traffic doesn't engage, the source isn't worth the SEO effort.</li>
+  <li><strong>Defining micro-funnels too broadly.</strong> <em>"Micro-funnels are meant to be narrow and specific. If your micro-funnel has ten different paths, it's not a micro-funnel anymore."</em> The content→email and engaged-visitor micro-funnels (§15.4 #16, #17) have strict step definitions.</li>
+  <li><strong>Tracking micro-steps but never analyzing them.</strong> <em>"People happily tag events for micro actions but then never actually do micro-funnel analysis."</em> Phase 4 includes a weekly 15-min review ritual; otherwise we're collecting data we never use.</li>
+</ul>
+
+<h3>15.9 Phase 4 dashboard work</h3>
+<p>After Phase 1 deploys and ~24 hours of event flow:</p>
+<ol>
+  <li><strong>Register 13 custom dimensions</strong> (§15.2) via GA4 Admin API or dashboard</li>
+  <li><strong>Mark 8 conversions / Key Events</strong> (§15.3)</li>
+  <li><strong>Build 13 Audiences</strong> (§15.5), including the 3 email-arriver tiers</li>
+  <li><strong>Build 20 Funnel Explorations</strong> (§15.4), pin top 5–7 to GA4 home</li>
+  <li><strong>Build 4 Path Explorations</strong>: AI arriver paths, IG arriver paths, donor paths, engaged-reader paths</li>
+  <li><strong>Set up cohort analysis</strong> using <code>cohort_date</code> dimension — retention curves by signup month</li>
+  <li><strong>Looker Studio dashboard</strong> (optional, last): per-persona summary card with conversion rate, top entry pages, top exit pages, donor lifetime value, email-list-source ROI</li>
+  <li><strong>Weekly 15-min funnel review ritual</strong> (per CXL: <em>"People happily tag events for micro actions but then never actually do micro-funnel analysis"</em>). Calendar block, not a wish.</li>
+  <li><strong>Publish UTM convention doc</strong> at <code>docs/marketing/utm-conventions.md</code> + team Notion (§15.7)</li>
+</ol>
+<p>Time estimate: 4–6 hours of dashboard work over the first week, plus the weekly 15-min review going forward.</p>
+
+<h2 id="gates"><span class="num">16</span>Proof Gates</h2>
+
+<p>Modeled on the existing fact-pipeline gates (G1–G5) and payment-pipeline gates (PG1–PG4). Naming: <strong>AG</strong> (Analytics Gate). All deterministic — static analysis, no network in <code>--quick</code> mode. Wired into:</p>
+<ul>
+  <li><strong>Pre-commit hook</strong> (<code>hooks/pre-commit</code>) — runs <code>npm run gates:analytics:check</code> when any tracked file changes. Quick, no network. Blocks commit on fail.</li>
+  <li><strong>CI deploy</strong> (<code>.github/workflows/deploy.yml</code>) — runs <code>npm run gates:analytics</code> on every deploy. Blocks deploy on fail.</li>
+  <li><strong>Manual</strong> — <code>node scripts/gates/validate-analytics-pipeline.mjs --gate AG3</code> for single-gate debugging.</li>
+</ul>
+
+<table>
+  <thead>
+    <tr><th style="width: 10%;">ID</th><th style="width: 30%;">Gate</th><th>What it prevents</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>AG1</strong></td>
+      <td>Endpoint contract</td>
+      <td>
+        <code>functions/api/track.js</code> must:
+        <ul style="margin: 4px 0;">
+          <li>Import <code>checkRateLimit</code> from <code>../auth/_shared.js</code> AND call it on POST</li>
+          <li>Import <code>sendGA4Event</code> from <code>../_ga4.js</code> (no inline <code>fetch(google-analytics.com)</code>)</li>
+          <li>Import <code>ALLOWED_CLIENT_EVENTS</code>, <code>REQUIRED_PARAMS</code>, <code>PII_REGEX</code> from <code>./_track-events.js</code></li>
+          <li>Export <code>onRequestPost</code> AND <code>onRequestOptions</code></li>
+          <li>Return <code>CORS_HEADERS</code> on every response</li>
+        </ul>
+        Prevents a future PR from quietly reimplementing the GA4 call inline or skipping rate limit.
+      </td>
+    </tr>
+    <tr>
+      <td><strong>AG2</strong></td>
+      <td>Allowlist coverage</td>
+      <td>Every <code>track('event_name', …)</code> call site in <code>src/</code> with a <strong>string literal</strong> event name must have <code>event_name</code> ∈ <code>ALLOWED_CLIENT_EVENTS</code>. Catches typos that would 400 in production (<code>track('cta_clck')</code>) before they ship. <strong>Known blind spot:</strong> dynamic event names from <code>data-track-*</code> attributes in <code>track-auto.ts</code> are not statically resolvable; runtime validation in <code>/api/track</code> catches those instead.</td>
+    </tr>
+    <tr>
+      <td><strong>AG3</strong></td>
+      <td>Server/client event separation</td>
+      <td>Server-only events (<code>page_view</code>, <code>sign_up</code>, <code>signup_from_ask</code>, <code>generate_lead</code>, <code>begin_checkout</code>, <code>purchase</code>) must <strong>not</strong> appear in <code>ALLOWED_CLIENT_EVENTS</code>. Prevents double-counting if client and server both fire the same event.</td>
+    </tr>
+    <tr>
+      <td><strong>AG4</strong></td>
+      <td>Required params satisfied</td>
+      <td>Every <code>track(name, {…})</code> call site must include all keys in <code>REQUIRED_PARAMS[name]</code>. Catches <code>track('cta_click', {})</code> missing the required <code>id</code> + <code>page</code>. Static-parses object literals.</td>
+    </tr>
+    <tr>
+      <td><strong>AG5</strong></td>
+      <td>PII regex intact</td>
+      <td><code>_track-events.js</code> exports <code>PII_REGEX</code>. The regex source must contain all of: <code>email</code>, <code>user</code>, <code>name</code>, <code>password</code>, <code>token</code>, <code>cookie</code>, <code>address</code>, <code>phone</code>, <code>ssn</code>. A future PR diluting this regex trips the gate.</td>
+    </tr>
+    <tr>
+      <td><strong>AG6</strong></td>
+      <td>UTM convention</td>
+      <td>Any string literal in <code>src/</code> or <code>functions/</code> containing <code>?utm_</code> or <code>&amp;utm_</code> must match: lowercase, underscores only (no hyphens or spaces), ASCII-only. Catches <code>utm_campaign=Newsletter Monthly May 2026</code> (uppercase, spaces) before it pollutes dashboards.</td>
+    </tr>
+    <tr>
+      <td><strong>AG7</strong></td>
+      <td>No third-party analytics scripts</td>
+      <td>Grep <code>src/</code> + <code>functions/</code> for script-loading or <code>fetch()</code> to: <code>googletagmanager.com</code>, <code>www.google-analytics.com</code> (outside <code>_ga4.js</code>), <code>stats.g.doubleclick.net</code>, <code>connect.facebook.net</code>. Each must appear ZERO times. (<code>www.google-analytics.com</code> in <code>_ga4.js</code> is the one allowed exception — that's the MP endpoint we proxy through.)</td>
+    </tr>
+    <tr>
+      <td><strong>AG8</strong></td>
+      <td>CSP lockdown</td>
+      <td><code>CSP_VALUE</code> in <code>functions/_middleware.js</code> must NOT include <code>googletagmanager.com</code>, <code>analytics.google.com</code>, <code>stats.g.doubleclick.net</code>, <code>connect.facebook.net</code>. Catches accidental "I'll just add it to CSP" loosening.</td>
+    </tr>
+    <tr>
+      <td><strong>AG9</strong></td>
+      <td>Track helper exclusivity</td>
+      <td>No raw <code>fetch('/api/track', …)</code> or <code>sendBeacon('/api/track', …)</code> outside <code>src/scripts/track.ts</code>. Forces every emission through the validated helper.</td>
+    </tr>
+    <tr>
+      <td><strong>AG10</strong></td>
+      <td>Conversion completeness</td>
+      <td>Every event in §15.3's conversion list must have at least one call site: server-side via <code>sendGA4Event(env, request, '&lt;name&gt;', …)</code> OR client-side via <code>track('&lt;name&gt;', …)</code>. Catches conversion-list drift (someone removes the last call site but forgets to remove the dashboard conversion flag).</td>
+    </tr>
+    <tr>
+      <td><strong>AG11</strong></td>
+      <td>Bundle size</td>
+      <td>After build, <code>dist/_astro/track.*.js</code> bundle size ≤ <strong>2.0 KiB</strong> minified+gzipped. Trips on helper bloat. <code>track-auto.ts</code> separately capped at <strong>3.5 KiB</strong>.</td>
+    </tr>
+    <tr>
+      <td><strong>AG12</strong></td>
+      <td>Custom dimension parity</td>
+      <td>Every dimension name in §15.2 (registered in GA4) must appear as a param name in at least one <code>track()</code>, <code>sendGA4Event()</code>, or <code>buildSourceParams()</code> call site. <strong>Warn-only</strong> (not fail) — GA4 has dimensions that fill from default params (page_location, session_id) we don't manually pass. Surfaces drift, doesn't block deploy.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Review gates (not automated; coder + reviewer applies)</h3>
+<table>
+  <thead>
+    <tr><th>ID</th><th>Gate</th><th>What it asks</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>R-AG1</strong></td><td>Event documentation</td><td>Every new event added to <code>ALLOWED_EVENTS</code> ships with a one-line comment explaining what triggers it and what funnel/audience it feeds. No silent additions.</td></tr>
+    <tr><td><strong>R-AG2</strong></td><td>Audience rationale</td><td>New GA4 audiences must map to a documented persona (§15.1) or funnel (§15.4). No ad-hoc segments without business rationale.</td></tr>
+    <tr><td><strong>R-AG3</strong></td><td>Privacy review</td><td>Any new event that captures content from user input (search query, comment text, form field) gets explicit reviewer sign-off on what's sent and what's redacted.</td></tr>
+    <tr><td><strong>R-AG4</strong></td><td>Funnel reciprocity</td><td>Every event in §6.1 must be referenced by at least one funnel in §15.4. If we're tracking something we never analyze, we don't track it. CXL: <em>"Micro-funnels should eventually be linked to revenue or key outcomes. Otherwise you optimize for vanity behavior."</em></td></tr>
+  </tbody>
+</table>
+
+<h3>File inventory (gates)</h3>
+<table>
+  <thead>
+    <tr><th>Path</th><th>Status</th><th>Purpose</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>scripts/gates/validate-analytics-pipeline.mjs</code></td><td><span class="pill pill--new">new</span></td><td>Runs AG1–AG12. <code>--gate AGn</code> for single, <code>--quick</code> for no-network</td></tr>
+    <tr><td><code>scripts/gates/README.md</code></td><td><span class="pill" style="background: #eee5dd; color: var(--ink-secondary);">modify</span></td><td>Append AG documentation</td></tr>
+    <tr><td><code>hooks/pre-commit</code></td><td><span class="pill" style="background: #eee5dd; color: var(--ink-secondary);">modify</span></td><td>Add file-trigger pattern: <code>src/scripts/track*.ts</code>, <code>functions/api/track.js</code>, <code>functions/api/_track-events.js</code>, <code>functions/_middleware.js</code> (CSP), <code>functions/api/_ga4-source.js</code></td></tr>
+    <tr><td><code>.github/workflows/deploy.yml</code></td><td><span class="pill" style="background: #eee5dd; color: var(--ink-secondary);">modify</span></td><td>Add "Validate analytics pipeline gates" step</td></tr>
+    <tr><td><code>package.json</code></td><td><span class="pill" style="background: #eee5dd; color: var(--ink-secondary);">modify</span></td><td>Add <code>gates:analytics</code> + <code>gates:analytics:check</code> scripts</td></tr>
+    <tr><td><code>CLAUDE.md</code></td><td><span class="pill" style="background: #eee5dd; color: var(--ink-secondary);">modify</span></td><td>Add "Analytics Pipeline Proof Gates" section parallel to existing Fact + Payment gates docs</td></tr>
+  </tbody>
+</table>
+
+<h3>What the gates don't cover</h3>
+<p>Honest limits — these need eyeballs:</p>
+<ul>
+  <li><strong>GA4 dashboard state.</strong> Gates can't see whether conversions are marked, audiences are built, or funnels exist in the GA4 UI. The Phase 4 checklist (§15.9) is the manual handoff.</li>
+  <li><strong>Whether the events are <em>useful</em>.</strong> Gates verify we collect what we said we'd collect. They don't verify the data answers business questions. That's the weekly review ritual.</li>
+  <li><strong>Cross-domain consistency.</strong> If <code>library.rrmacademy.org</code> or a future subdomain also emits events, they should use the same allowlist. Out of scope this phase.</li>
+  <li><strong>Sampling effects.</strong> GA4 sampling above thresholds isn't visible at code level. Use AE raw event log as crosscheck.</li>
+</ul>
+
+<h2 id="scope"><span class="num">17</span>Out of Scope <span style="font-size: 14px; color: var(--ink-muted); font-weight: 400;">(this spec)</span></h2>
+<ul>
+  <li>Conversion attribution modeling (multi-touch, lookback windows) — GA4 handles default</li>
+  <li>Cross-domain tracking to <code>library.rrmacademy.org</code> (separate subdomain) — existing setup already handles via shared client_id</li>
+  <li>A/B testing framework — separate spec if Brian wants</li>
+  <li>Heatmap / session replay — separate decision (most tools require client SDK)</li>
+  <li>Server-side conversion API for Meta/LinkedIn ads — separate spec if running ads</li>
+</ul>
+
+<h2 id="accept"><span class="num">18</span>Acceptance Criteria</h2>
+<ul class="acceptance">
+  <li><code>/api/track</code> deployed and accepting events (verifiable by <code>curl -X POST -d '{"event":"test","params":{}}' /api/track</code> → 204)</li>
+  <li><code>src/scripts/track.ts</code> bundled and used by at least 1 page</li>
+  <li>BaseLayout imports <code>track-auto.ts</code></li>
+  <li>At least 3 starter events flowing into GA4 Realtime within 24 hours of Phase 1 merge</li>
+  <li>CSP errors from <code>/analytics/</code> cleared (Best Practices = 100)</li>
+  <li>PSI "Reduce unused JavaScript" no longer flags 187 KiB at <code>/analytics/</code> (Performance improves)</li>
+  <li><code>npm run guard:update</code> run after BaseLayout.astro edit + new guarded files added (BaseLayout is in the guard manifest; <code>_track-events.js</code> + <code>track.js</code> are being added)</li>
+  <li><code>npm run guard</code> passes on the new endpoint</li>
+  <li><code>npm run gates:analytics</code> passes (AG1–AG12)</li>
+  <li>Pre-commit hook installed and trips on a deliberate test violation</li>
+  <li>Tests green</li>
+</ul>
+
+<h2 id="files"><span class="num">19</span>File Inventory <span style="font-size: 14px; color: var(--ink-muted); font-weight: 400;">(Phase 1)</span></h2>
+<table>
+  <thead>
+    <tr><th style="width: 55%;">Path</th><th>Status</th><th>Size</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>functions/api/track.js</code></td><td><span class="pill pill--new">new</span></td><td>~150 lines</td></tr>
+    <tr><td><code>functions/api/_track-events.js</code></td><td><span class="pill pill--new">new</span></td><td>~80 lines (allowlist + schemas)</td></tr>
+    <tr><td><code>src/scripts/track.ts</code></td><td><span class="pill pill--new">new</span></td><td>~40 lines</td></tr>
+    <tr><td><code>src/scripts/track-auto.ts</code></td><td><span class="pill pill--new">new</span></td><td>~80 lines (scroll, outbound, cta auto)</td></tr>
+    <tr><td><code>src/layouts/BaseLayout.astro</code></td><td><span class="pill" style="background: #eee5dd; color: var(--ink-secondary);">modify</span></td><td>+3 lines (import track-auto)</td></tr>
+    <tr><td><code>scripts/guard-manifest.json</code></td><td><span class="pill" style="background: #eee5dd; color: var(--ink-secondary);">modify</span></td><td>Add <code>functions/api/track.js</code> AND <code>functions/api/_track-events.js</code> (the allowlist + PII_REGEX are security invariants, not just data; AG5 depends on them). Run <code>npm run guard:update</code> to refresh hashes after changes.</td></tr>
+    <tr><td><code>test/track-endpoint.test.js</code></td><td><span class="pill pill--new">new</span></td><td>~120 lines</td></tr>
+    <tr><td><code>tests/e2e/track-smoke.spec.ts</code></td><td><span class="pill pill--new">new</span></td><td>~50 lines</td></tr>
+    <tr><td><code>functions/api/_ga4-source.js</code></td><td><span class="pill" style="background: #eee5dd; color: var(--ink-secondary);">modify</span></td><td>+ AI agent classifier, + email override, + list_source pickup (§15.6)</td></tr>
+    <tr><td><code>scripts/gates/validate-analytics-pipeline.mjs</code></td><td><span class="pill pill--new">new</span></td><td>~250 lines (AG1–AG12)</td></tr>
+    <tr><td><code>scripts/gates/README.md</code></td><td><span class="pill" style="background: #eee5dd; color: var(--ink-secondary);">modify</span></td><td>+ AG documentation block</td></tr>
+    <tr><td><code>hooks/pre-commit</code></td><td><span class="pill" style="background: #eee5dd; color: var(--ink-secondary);">modify</span></td><td>+ file-trigger for track* / _track-events / _middleware / _ga4-source</td></tr>
+    <tr><td><code>.github/workflows/deploy.yml</code></td><td><span class="pill" style="background: #eee5dd; color: var(--ink-secondary);">modify</span></td><td>+ "Validate analytics pipeline gates" step</td></tr>
+    <tr><td><code>package.json</code></td><td><span class="pill" style="background: #eee5dd; color: var(--ink-secondary);">modify</span></td><td>+ <code>gates:analytics</code> + <code>gates:analytics:check</code> npm scripts</td></tr>
+    <tr><td><code>CLAUDE.md</code></td><td><span class="pill" style="background: #eee5dd; color: var(--ink-secondary);">modify</span></td><td>+ "Analytics Pipeline Proof Gates" section parallel to Fact + Payment gates</td></tr>
+    <tr><td><code>docs/marketing/utm-conventions.md</code></td><td><span class="pill pill--new">new</span></td><td>UTM convention cheat sheet (§15.7) for staff + future-Brian</td></tr>
+    <tr><td><code>docs/superpowers/specs/2026-05-15-client-analytics-spec.html</code></td><td><span class="pill pill--keep">this file</span></td><td>—</td></tr>
+  </tbody>
+</table>
+<p>Files modified: BaseLayout, guard.mjs, _ga4-source.js, pre-commit, deploy.yml, package.json, CLAUDE.md.</p>
+
+<footer>
+  <span>RRM Academy / Internal Design Spec</span>
+  <span>2026-05-15 · Awaiting Brian's review</span>
+</footer>
+
+</main>
+</body>
+</html>
