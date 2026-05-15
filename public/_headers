@@ -7,17 +7,103 @@
 # ==============================================
 # Cache-Control rules
 # ==============================================
+#
+# Strategy (per PSI mobile audit 2026-05-14 — TTFB was the only orange field
+# metric at 0.8s):
+#   max-age=0          — browser always revalidates on refresh (no stale content
+#                        on F5 / next-page nav)
+#   s-maxage=3600      — CF edge caches HTML for 1 hour
+#   stale-while-revalidate=86400 — edge serves stale up to 24h while it refreshes
+#                        in the background (cheap protection against deploy gaps)
+#
+# CF Pages auto-purges the edge cache for the project on every successful build,
+# so deploys propagate within seconds regardless of s-maxage.
+#
+# Applied to: static content pages (Astro static-built HTML, identical for every
+# visitor). Auth-gated pages (/account, /ask, /login, /signup) deliberately omit
+# this rule — the middleware adds session-aware redirects that shouldn't cache.
 
-# HTML pages — always revalidate with origin on refresh
+# Library article pages
 /library/*
-  Cache-Control: public, max-age=0, must-revalidate
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
 
 /linkinbio
-  Cache-Control: public, max-age=0, must-revalidate
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
 
-# Course pages — always revalidate
+# Course pages
 /courses/*
-  Cache-Control: public, max-age=0, must-revalidate
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+
+# Commentary pages
+/commentary/*
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+
+# FAQ pages
+/faqs/*
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+
+# Glossary pages
+/glossary/*
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+
+# Pillar guide pages (11 total — match ssot/pillars.json)
+/what-is-rrm/*
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+
+/naprotechnology/*
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+
+/femm/*
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+
+/neofertility/*
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+
+/common-questions-about-rrm/*
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+
+/art-registries-and-codes/*
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+
+/pcos/*
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+
+/endometriosis/*
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+
+/endometritis/*
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+
+/miscarriage/*
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+
+# Misc static content pages
+/guides/*
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+
+/about/*
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+
+/contact/*
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+
+/donate/*
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+
+/save-the-uterus-club/*
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+
+/partners/*
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+
+/medical-disclaimer/*
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+
+/privacy-policy/*
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+
+/terms-of-use/*
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
 
 # Cache static assets for 1 year (hashed filenames)
 /_astro/*

@@ -810,7 +810,15 @@ const mobileNavSections = [
   }
 </style>
 
-<script is:inline>
+<script>
+  // @ts-nocheck
+  // Moved off is:inline (2026-05-14) so Astro extracts this to a hashed,
+  // long-cached, deferred module bundle (`/_astro/*.js`) instead of inlining
+  // ~6.5 KiB into every HTML response (Header.astro is global, so every page
+  // benefits). Module scripts are deferred by default; the auth-resolved class
+  // toggle still fires before user interaction.
+  // @ts-nocheck silences strict-null/implicit-any in vanilla-JS callbacks that
+  // previously skipped TS via the is:inline directive (no runtime change).
   // Dropdown: mark as entered after first hover so exit uses subtle -4px
   (function() {
     var dd = document.querySelector('.has-dropdown .dropdown');
