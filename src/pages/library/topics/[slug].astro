@@ -201,12 +201,13 @@ const jsonLd = {
     display: grid;
     gap: var(--space-5);
     grid-template-columns: 1fr;
+    align-items: start;
   }
   @media (min-width: 640px) {
-    .topic-page__grid { grid-template-columns: repeat(2, 1fr); }
+    .topic-page__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   @media (min-width: 1024px) {
-    .topic-page__grid { grid-template-columns: repeat(3, 1fr); }
+    .topic-page__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   }
   .topic-page__empty {
     color: var(--text-tertiary);
