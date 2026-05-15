@@ -7,6 +7,7 @@ src/data/faqs.json
 src/data/guides.json
 src/data/courses.json
 src/data/glossary.json
+src/data/providers.json
 src/data/og-index.json
 src/data/pillar-reviews.json
 # Site-SSOT regenerated snapshot (built every deploy from ssot/*.json + identity registry)
