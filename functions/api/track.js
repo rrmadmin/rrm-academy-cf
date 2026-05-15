@@ -22,7 +22,12 @@ export async function onRequestPost(context) {
   const { request, env, waitUntil } = context;
 
   try {
-    if (!env.GA4_MEASUREMENT_ID || !env.GA4_API_SECRET || !env.ANALYTICS) {
+    // GA4 secrets are required (primary destination). The EVENTS binding
+    // (Analytics Engine, dataset 'worker_events') is a SECONDARY mirror -- if
+    // it's missing we still want to accept events and relay them to GA4.
+    // Codebase convention is `env.EVENTS` (see _log.js, ask.js, etc.); not
+    // `env.ANALYTICS`. AE writes degrade silently below.
+    if (!env.GA4_MEASUREMENT_ID || !env.GA4_API_SECRET) {
       return Response.json({ error: 'service_unavailable' }, {
         status: 503,
         headers: CORS_HEADERS,
@@ -149,7 +154,9 @@ export async function onRequestPost(context) {
 
     const numericValues = Object.values(sanitizedParams).filter(v => typeof v === 'number');
 
-    env.ANALYTICS.writeDataPoint({
+    // Optional-chained AE write: silently no-ops if binding missing.
+    // Pattern matches _log.js / create-checkout.js / ask.js.
+    env.EVENTS?.writeDataPoint({
       blobs: ['track', event, entryCategory, deviceType, ''],
       doubles: numericValues.length > 0 ? numericValues.slice(0, 5) : [0],
       indexes: [event],
