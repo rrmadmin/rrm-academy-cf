@@ -112,6 +112,12 @@ for (const p of walk(DIST)) {
   }
 }
 
+const MIN_PAGES = 100;
+if (pageCount < MIN_PAGES) {
+  console.error(`FAIL: ${pageCount} provider pages found, expected >= ${MIN_PAGES} from static route enumerations`);
+  process.exit(1);
+}
+
 if (errors.length === 0) {
   console.log(`OK: ${pageCount} provider pages, all schema valid`);
   process.exit(0);
