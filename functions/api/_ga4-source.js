@@ -47,6 +47,10 @@ export function classifySource(referrer) {
     return { source: '(direct)', medium: '(none)', entry_category: 'direct', entry_platform: 'direct' };
   }
 
+  if (!hostname) {
+    return { source: '(direct)', medium: '(none)', entry_category: 'direct', entry_platform: 'direct' };
+  }
+
   if (SELF_DOMAINS.some(d => hostname === d)) {
     return { source: '(direct)', medium: '(none)', entry_category: 'direct', entry_platform: 'direct' };
   }
