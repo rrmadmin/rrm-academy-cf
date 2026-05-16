@@ -31,6 +31,9 @@ const description = provider.bio
 const parent = provider.parent_id
   ? providers.find((p) => p.id === provider.parent_id) ?? null
   : null;
+if (provider.parent_id && !parent) {
+  console.warn(`[providers/${provider.slug}] orphan parent_id ${provider.parent_id} (parent unlisted or removed)`);
+}
 
 const childProviders: Provider[] = isOrg(provider)
   ? providers.filter((p) => p.parent_id === provider.id && (p.listability === 'full' || p.listability === 'basic'))
