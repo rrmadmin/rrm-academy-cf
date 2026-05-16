@@ -33,7 +33,7 @@ const parent = provider.parent_id
   : null;
 
 const childProviders: Provider[] = isOrg(provider)
-  ? providers.filter((p) => p.parent_id === provider.id && p.listability !== 'unlisted')
+  ? providers.filter((p) => p.parent_id === provider.id && (p.listability === 'full' || p.listability === 'basic'))
   : [];
 
 // Prefer attested states; fall back to licensed
