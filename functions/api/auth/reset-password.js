@@ -54,32 +54,32 @@ export async function onRequestPost({ request, env, waitUntil }) {
       return json({ ok: false, error: 'This reset link is invalid, expired, or has already been used. Please request a new one.' }, 400);
     }
 
-    // Atomic batch: consume token + update password + rotate sessions together.
-    const newSessionId = generateSessionId();
-    const newExpiresAt = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
+    // Phase 1: Atomically consume the token (must match exactly 1 row).
+    // This is the critical race-safe step: only the first concurrent caller's DELETE
+    // will affect 1 row; subsequent callers see meta.changes===0 and return 400 BEFORE
+    // any password/session mutation.
+    const consume = await db.prepare(
+      "DELETE FROM password_reset WHERE token_hash = ? AND expires_at > ? AND purpose IN ('reset', 'welcome')"
+    ).bind(tokenHash, now).run();
 
-    const results = await db.batch([
-      // Consume token — 0 changes means concurrent use; checked below.
-      // Filter mirrors the pre-SELECT above so both purpose values consume cleanly.
-      db.prepare("DELETE FROM password_reset WHERE token_hash = ? AND expires_at > ? AND purpose IN ('reset', 'welcome')")
-        .bind(tokenHash, now),
-      db.prepare('UPDATE user SET hashed_password = ?, email_verified = 1, updated_at = datetime(\'now\') WHERE id = ?')
-        .bind(hashedPassword, tokenRow.user_id),
-      // Cleanup: drop ALL outstanding password_reset rows for this user, regardless of purpose.
-      // After successful auth via any token type, every other dangling token should be invalidated.
-      db.prepare("DELETE FROM password_reset WHERE user_id = ?")
-        .bind(tokenRow.user_id),
-      // Cleanup: revoke ALL sessions on password reset (forces re-auth across all devices for security).
-      // Atomic batch — inline DELETE retained for batch atomicity (mirror of invalidateAllUserSessions)
-      db.prepare('DELETE FROM session WHERE user_id = ?')
-        .bind(tokenRow.user_id),
-      sessionInsertStatement(db, newSessionId, tokenRow.user_id, newExpiresAt),
-    ]);
-
-    if (results[0].meta?.changes !== 1) {
-      // Race: token consumed concurrently between pre-SELECT and batch DELETE.
+    if (consume.meta?.changes !== 1) {
       return json({ ok: false, error: 'This reset link is invalid, expired, or has already been used. Please request a new one.' }, 400);
     }
+
+    // Phase 2: Password change + session rotation, atomic batch.
+    // Token already consumed; if this batch fails (D1 transient), the user can request
+    // a new reset link — known trade-off vs the prior race-window correctness bug.
+    const newSessionId = generateSessionId();
+    const newExpiresAt = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
+    await db.batch([
+      db.prepare("UPDATE user SET hashed_password = ?, email_verified = 1, updated_at = datetime('now') WHERE id = ?")
+        .bind(hashedPassword, tokenRow.user_id),
+      db.prepare('DELETE FROM password_reset WHERE user_id = ?').bind(tokenRow.user_id),
+      // Cleanup: revoke ALL sessions on password reset (forces re-auth across all devices for security).
+      // Atomic batch — inline DELETE retained for batch atomicity (mirror of invalidateAllUserSessions)
+      db.prepare('DELETE FROM session WHERE user_id = ?').bind(tokenRow.user_id),
+      sessionInsertStatement(db, newSessionId, tokenRow.user_id, newExpiresAt),
+    ]);
 
     // Notify the account owner that their password was reset.
     // Non-blocking: a notification failure never fails the reset itself.
