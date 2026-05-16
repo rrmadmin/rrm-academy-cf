@@ -1,3 +1,8 @@
+-- NOTE: As of 2026-05-15 (migration 022 + 022b + 022c + 022d), this file is
+-- no longer the canonical schema source. The migrations/ directory + remote
+-- D1 are authoritative. To regenerate this file as a fresh-DB seed, run:
+--   npx wrangler d1 export rrm-auth --remote --output schema.sql
+-- Until regeneration, this file MAY be stale.
 -- RRM Academy Schema (Phases 6 + 8 + member migration)
 -- Applied to D1 database: rrm-auth
 
