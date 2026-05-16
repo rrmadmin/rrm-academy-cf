@@ -4,12 +4,13 @@
  * Requires superadmin session auth.
  *
  * Query params:
- *   ?status=pending|active|rejected|revoked  (optional; omit for all)
+ *   ?status=pending|awaiting_payment|active|grace|expired|cancelled|rejected|revoked
+ *   (optional; omit for all)
  */
 import { json, optionsResponse, requireSuperAdmin } from '../../auth/_shared.js';
 import { log } from '../../_log.js';
 
-const VALID_STATUSES = new Set(['pending', 'active', 'rejected', 'revoked']);
+const VALID_STATUSES = new Set(['pending', 'awaiting_payment', 'active', 'grace', 'expired', 'cancelled', 'rejected', 'revoked']);
 
 export async function onRequestOptions() {
   return optionsResponse();

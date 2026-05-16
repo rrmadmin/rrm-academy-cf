@@ -1,5 +1,6 @@
 ---
 import type { Provider } from '../../lib/providers';
+import { safeJsonLd } from '../../lib/jsonld';
 
 interface Props {
   providers: Provider[];
@@ -48,4 +49,4 @@ if (faqs.length > 0) {
 const full = { '@context': 'https://schema.org', '@graph': graph };
 ---
 
-<script type="application/ld+json" set:html={JSON.stringify(full)} />
+<script type="application/ld+json" set:html={safeJsonLd(full)} />
