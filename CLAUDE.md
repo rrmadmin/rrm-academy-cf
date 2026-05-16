@@ -643,7 +643,7 @@ Docs: `scripts/gates/README.md`.
 
 ## Analytics Pipeline Proof Gates
 
-`scripts/gates/validate-analytics-pipeline.mjs` runs 12 deterministic gates against the client analytics surface (`functions/api/track.js` + `_track-events.js` + `_ga4-source.js` + `_middleware.js` CSP + `src/scripts/track*.ts`). Built 2026-05-15 as part of the Zaraz → first-party analytics migration. Encodes the bug classes the client-analytics spec defends against.
+`scripts/gates/validate-analytics-pipeline.mjs` runs 13 deterministic gates against the client analytics surface (`functions/api/track.js` + `_track-events.js` + `_ga4-source.js` + `_middleware.js` CSP + `src/scripts/track*.ts`). Built 2026-05-15 as part of the Zaraz → first-party analytics migration. Encodes the bug classes the client-analytics spec defends against.
 
 **Spec:** `docs/superpowers/specs/2026-05-15-client-analytics-spec.html`
 
@@ -663,10 +663,11 @@ Docs: `scripts/gates/README.md`.
 | **AG10** Conversion completeness | Every event in spec §15.3 has at least one call site (server or client). Catches dashboard-only conversion-flag drift. |
 | **AG11** Bundle size | `dist/_astro/track.*.js` ≤ 2 KiB; `track-auto.*.js` ≤ 3.5 KiB. Skipped in `--quick` mode (no build). |
 | **AG12** Custom dimension parity | Spec §15.2 dimensions must appear as param names somewhere in the code. **Warn-only** (not fail) — surfaces drift without blocking deploy. |
+| **AG13** REQUIRED_PARAMS / PII disjointness | Every key in `REQUIRED_PARAMS` must NOT match `PII_REGEX`. A collision would cause runtime PII-strip to remove a required key before the required-params check sees it, turning every emission into a 400. |
 
 **Commands**:
-- `npm run gates:analytics` — full AG1-AG12 (requires `npm run build` first for AG11)
-- `npm run gates:analytics:check` — quick AG1-AG10 + AG12 (no build needed) — pre-commit invokes this
+- `npm run gates:analytics` — full AG1-AG13 (requires `npm run build` first for AG11)
+- `npm run gates:analytics:check` — quick AG1-AG10 + AG12-AG13 (no build needed) — pre-commit invokes this
 - `node scripts/gates/validate-analytics-pipeline.mjs --gate AG3` — single gate
 - `node scripts/gates/validate-analytics-pipeline.mjs --json` — machine-readable
 
