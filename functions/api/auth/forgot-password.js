@@ -57,9 +57,11 @@ export async function onRequestPost({ request, env, waitUntil }) {
     }
 
     // Look up user (but always return success to prevent enumeration)
-    const user = await db.prepare('SELECT id, name FROM user WHERE email = ? COLLATE NOCASE').bind(email).first();
+    // Include blocked so we can silently skip token issuance for blocked users
+    // without revealing account status to the caller.
+    const user = await db.prepare('SELECT id, name, blocked FROM user WHERE email = ? COLLATE NOCASE').bind(email).first();
 
-    if (user) {
+    if (user && !user.blocked) {
       const token = generateToken();
       const tokenHash = await hashToken(token);
       const expiresAt = Math.floor(Date.now() / 1000) + RESET_TOKEN_TTL_S;
@@ -96,7 +98,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
           log: { db: env.DB, source: 'auth/forgot-password', category: 'transactional' },
         }).catch(emailErr => {
           log(env, waitUntil, 'auth', 'forgot_password_error', 'error', emailErr.message);
-          logEmailFailure(env.DB, { email, category: 'transactional', source: 'auth/forgot-password', subject: 'Reset your password — RRM Academy', detail: emailErr.message });
+          return logEmailFailure(env.DB, { email, category: 'transactional', source: 'auth/forgot-password', subject: 'Reset your password — RRM Academy', detail: emailErr.message });
         })
       );
     }

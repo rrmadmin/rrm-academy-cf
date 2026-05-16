@@ -108,9 +108,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
             text,
             log: { db: env.DB, source: 'auth/login', category: 'transactional' },
           });
-        })().catch(err => {
-          logEmailFailure(env.DB, { email: user.email, category: 'transactional', source: 'auth/login', subject: 'Sign-in attempt on your RRM Academy account', detail: err.message });
-        })
+        })().catch(err => logEmailFailure(env.DB, { email: user.email, category: 'transactional', source: 'auth/login', subject: 'Sign-in attempt on your RRM Academy account', detail: err.message }))
       );
       return json({ ok: false, error: 'Invalid email or password.' }, 401);
     }
