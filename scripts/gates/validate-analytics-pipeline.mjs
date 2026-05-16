@@ -222,9 +222,18 @@ function gateAG1() {
     results.push(fail(`${TRACK_ENDPOINT} must export onRequestOptions (CORS preflight)`));
   }
 
-  // c) rate limit invocation
-  if (/\bcheckRateLimit\s*\(/.test(src)) {
-    results.push(pass(`invokes checkRateLimit() on POST`));
+  // c) rate limit invocation — args must encode a safe budget (<=60/min)
+  const rateLimitMatch = src.match(/checkRateLimit\s*\(\s*env\s*,\s*[`'"][^`'"]*[`'"],\s*(\d+)\s*,\s*(\d+)\s*\)/);
+  if (rateLimitMatch) {
+    const limit = parseInt(rateLimitMatch[1], 10);
+    const windowSec = parseInt(rateLimitMatch[2], 10);
+    if (limit <= 60 && windowSec >= 60) {
+      results.push(pass(`invokes checkRateLimit with safe limits (${limit}/${windowSec}s)`));
+    } else {
+      results.push(fail(`checkRateLimit too loose: ${limit}/${windowSec}s; require <=60/min`));
+    }
+  } else if (/\bcheckRateLimit\s*\(/.test(src)) {
+    results.push(fail(`checkRateLimit called but args don't match expected signature (env, key, max, windowS)`));
   } else {
     results.push(fail(`${TRACK_ENDPOINT} must invoke checkRateLimit() — endpoint is unauthenticated, must protect billed GA4 calls`));
   }
@@ -379,7 +388,7 @@ function gateAG4() {
       // `{ key, … }`. Shorthand = identifier followed by `,`/`}`/whitespace
       // but NOT `:` (which would make it the property-key half of explicit form).
       const explicitKeys = [...params.matchAll(/(?:^|[\s,{])([a-z][a-z0-9_]{0,39})\s*:/g)].map((x) => x[1]);
-      const shorthandKeys = [...params.matchAll(/(?:^|[\s,{])([a-z][a-z0-9_]{0,39})\s*(?=[,}\s])/g)].map((x) => x[1]);
+      const shorthandKeys = [...params.matchAll(/(?:^|[,{])\s*([a-z][a-z0-9_]{0,39})\s*(?=[,}\s])/g)].map((x) => x[1]);
       const presentKeys = [...new Set([...explicitKeys, ...shorthandKeys])];
       const missing = need.filter((k) => !presentKeys.includes(k) && !params.includes(`...${k}`));
       if (missing.length > 0) {
@@ -702,6 +711,71 @@ function gateAG12() {
 }
 
 // ============================================================
+// Gate AG13: REQUIRED_PARAMS keys disjoint from PII_REGEX
+// ============================================================
+// A required key that collides with PII_REGEX would be stripped at runtime
+// in track.js before the required-params check sees it — turning every legitimate
+// emission of that event into a 400 invalid_request. Static check catches the
+// collision at commit time.
+function gateAG13() {
+  const results = [];
+  const src = read(TRACK_EVENTS);
+  if (!src) return [fail(`${TRACK_EVENTS} not found`)];
+
+  // Parse REQUIRED_PARAMS (object literal or Map). Reuses AG4's parser shape.
+  let body;
+  const objBlock = src.match(/REQUIRED_PARAMS\s*=\s*\{([\s\S]*?)\n\}\s*;?/);
+  const mapBlock = src.match(/REQUIRED_PARAMS\s*=\s*new\s+Map\s*\(\s*\[([\s\S]*?)\]\s*\)\s*;?/);
+  if (objBlock) {
+    body = objBlock[1];
+  } else if (mapBlock) {
+    body = mapBlock[1];
+  } else {
+    return [fail(`${TRACK_EVENTS} must export REQUIRED_PARAMS as object literal or new Map(...)`)];
+  }
+
+  const entryRe = /['"]([a-z][a-z0-9_]{0,39})['"]\s*(?::|,)\s*\[([^\]]*)\]/g;
+  const allKeys = new Set();
+  let m;
+  while ((m = entryRe.exec(body)) !== null) {
+    for (const km of m[2].matchAll(/['"]([a-z][a-z0-9_]{0,39})['"]/g)) {
+      allKeys.add(km[1]);
+    }
+  }
+
+  if (allKeys.size === 0) {
+    results.push(warn(`REQUIRED_PARAMS parsed but yielded zero keys — nothing to check`));
+    return results;
+  }
+
+  // Parse PII_REGEX body so we can replay the match in isolation
+  const re = src.match(/PII_REGEX\s*=\s*\/([^\/]+)\/(\w*)/);
+  if (!re) {
+    return [fail(`${TRACK_EVENTS} must export PII_REGEX = /…/i`)];
+  }
+  let piiRegex;
+  try {
+    piiRegex = new RegExp(re[1], re[2]);
+  } catch (e) {
+    return [fail(`PII_REGEX is not a valid regex: ${e.message}`)];
+  }
+
+  const collisions = [];
+  for (const key of allKeys) {
+    if (piiRegex.test(key)) collisions.push(key);
+  }
+
+  if (collisions.length > 0) {
+    for (const key of collisions) {
+      results.push(fail(`REQUIRED_PARAMS key '${key}' matches PII_REGEX — runtime PII strip would remove it before the required-params check, turning every emission into a 400`));
+    }
+  } else {
+    results.push(pass(`all ${allKeys.size} REQUIRED_PARAMS keys are disjoint from PII_REGEX`));
+  }
+  return results;
+}
+
+// ============================================================
 // Run all gates
 // ============================================================
 runGate('AG1', 'Endpoint contract', gateAG1);
@@ -716,6 +790,7 @@ runGate('AG9', 'Track helper exclusivity', gateAG9);
 runGate('AG10', 'Conversion completeness', gateAG10);
 runGate('AG11', 'Bundle size', gateAG11);
 runGate('AG12', 'Custom dimension parity (warn-only)', gateAG12);
+runGate('AG13', 'Required-params keys disjoint from PII_REGEX', gateAG13);
 
 // ---------- Output --------------------------------------------------------
 if (JSON_MODE) {

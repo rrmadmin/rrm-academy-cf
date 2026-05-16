@@ -30,7 +30,7 @@ export async function sendGA4Event(env, request, eventName, params = {}, overrid
     // When both client_id and session_id are overridden (webhook replay),
     // skip buildSourceParams entirely -- the request is from Stripe's servers,
     // not the user's browser, so headers are meaningless for attribution.
-    const sourceParams = (overrides.client_id && overrides.session_id)
+    const sourceParams = (overrides.client_id != null && overrides.session_id != null)
       ? { session_id: overrides.session_id }
       : await buildSourceParams(request, clientId);
     const payload = {
@@ -38,7 +38,7 @@ export async function sendGA4Event(env, request, eventName, params = {}, overrid
       events: [{
         name: eventName,
         params: {
-          page_location: request.url,
+          page_location: request.headers.get('referer') || request.url,
           engagement_time_msec: 1,
           ...sourceParams,
           ...params,
@@ -46,14 +46,26 @@ export async function sendGA4Event(env, request, eventName, params = {}, overrid
       }],
     };
 
-    await fetch(
+    const resp = await fetch(
       `${GA4_ENDPOINT}?measurement_id=${env.GA4_MEASUREMENT_ID}&api_secret=${env.GA4_API_SECRET}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(3000),
       }
     );
+    if (!resp.ok) {
+      try {
+        env.EVENTS?.writeDataPoint({
+          blobs: ['rrm-academy', 'ga4', 'ga4_mp_error', 'error', String(resp.status)],
+          doubles: [0, 1, resp.status],
+          indexes: ['ga4_mp_error'],
+        });
+      } catch {
+        // best-effort: AE write must not escalate analytics-error logging into a user-visible failure
+      }
+    }
   } catch {
     // Silent -- never let analytics failures affect the user
   }

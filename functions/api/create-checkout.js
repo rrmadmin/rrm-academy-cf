@@ -110,7 +110,7 @@ async function handleCheckout(request, env, waitUntil) {
   const referrer = entry_referrer || '';
   const landingUrl = entry_url || '';
   const utmParams = extractUtm(landingUrl);
-  const { source, medium } = classifySource(referrer);
+  const { source, medium, entry_category, entry_platform } = classifySource(referrer);
   const gaSource = utmParams.utm_source || source;
   const gaMedium = utmParams.utm_medium || medium;
   const gaCampaign = utmParams.utm_campaign || '';
@@ -166,6 +166,8 @@ async function handleCheckout(request, env, waitUntil) {
       ga_client_id: clientId,
       ga_session_id: String(sessionId),
       ...(gaCampaign && { ga_campaign: gaCampaign }),
+      ...(entry_category && { ga_entry_category: entry_category }),
+      ...(entry_platform && { ga_entry_platform: entry_platform }),
     };
 
     let checkoutSession;
@@ -310,6 +312,8 @@ async function handleCheckout(request, env, waitUntil) {
       ga_client_id: clientId,
       ga_session_id: String(sessionId),
       ...(gaCampaign && { ga_campaign: gaCampaign }),
+      ...(entry_category && { ga_entry_category: entry_category }),
+      ...(entry_platform && { ga_entry_platform: entry_platform }),
     };
 
     // Carry migration metadata into subscription_data so webhook can read it

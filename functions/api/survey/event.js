@@ -21,17 +21,17 @@ export async function onRequestPost(context) {
     // Was env.ANALYTICS — that name was never bound; endpoint had been
     // silently 500-ing in prod. Discovered 2026-05-15 during Phase 3 pre-flight.
     if (!env.EVENTS) {
-      return new Response(JSON.stringify({ ok: false, error: 'Server misconfigured' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+      return Response.json({ error: 'service_unavailable' }, {
+        status: 503,
+        headers: CORS_HEADERS,
       });
     }
 
     const ip = request.headers.get('cf-connecting-ip') || 'unknown';
     if (!await checkRateLimit(env, `survey-event:${ip}`, 60, 60)) {
-      return new Response(JSON.stringify({ ok: false, error: 'rate_limited' }), {
+      return Response.json({ error: 'rate_limited' }, {
         status: 429,
-        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+        headers: CORS_HEADERS,
       });
     }
 
@@ -40,33 +40,33 @@ export async function onRequestPost(context) {
       const text = await request.text();
       body = JSON.parse(text);
     } catch {
-      return new Response(JSON.stringify({ ok: false, error: 'Invalid JSON' }), {
+      return Response.json({ error: 'invalid_json' }, {
         status: 400,
-        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+        headers: CORS_HEADERS,
       });
     }
 
     if (typeof body !== 'object' || body === null || Array.isArray(body)) {
-      return new Response(JSON.stringify({ ok: false, error: 'Invalid payload' }), {
+      return Response.json({ error: 'invalid_payload' }, {
         status: 400,
-        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+        headers: CORS_HEADERS,
       });
     }
 
     const { action, viewport_width } = body;
 
     if (typeof action !== 'string' || !ALLOWED_ACTIONS.includes(action)) {
-      return new Response(JSON.stringify({ ok: false, error: 'Invalid action' }), {
+      return Response.json({ error: 'invalid_action' }, {
         status: 400,
-        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+        headers: CORS_HEADERS,
       });
     }
 
     if (typeof viewport_width !== 'number' || !Number.isFinite(viewport_width)
         || viewport_width <= 0 || viewport_width > 10000) {
-      return new Response(JSON.stringify({ ok: false, error: 'viewport_width must be a positive finite number' }), {
+      return Response.json({ error: 'invalid_viewport' }, {
         status: 400,
-        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+        headers: CORS_HEADERS,
       });
     }
 
@@ -81,10 +81,10 @@ export async function onRequestPost(context) {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
   } catch (err) {
     console.error(err);
-    log(env, waitUntil, 'survey', 'event_fail', 'error', err.message);
-    return new Response(JSON.stringify({ ok: false, error: 'An unexpected error occurred.' }), {
+    log(env, waitUntil, 'survey', 'event_fail', 'error', (err?.message || 'internal').slice(0, 200));
+    return Response.json({ error: 'internal_error' }, {
       status: 500,
-      headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+      headers: CORS_HEADERS,
     });
   }
 }
