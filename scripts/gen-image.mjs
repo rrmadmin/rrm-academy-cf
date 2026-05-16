@@ -35,7 +35,8 @@
  * --- BATCH (JSON array; each entry is a generate OR a refine) ---
  *   node scripts/gen-image.mjs --batch path/to/manifest.json
  *
- *   generate entry: { "topic", "scene", "out", "register"?, "figures"?, "mood"?, "avoid"?, "size"? }
+ *   generate entry: { "topic", "scene", "out", "register"?, "figures"?, "mood"?,
+ *                     "avoid"?, "size"?, "noStyleRef"?, "allowInfant"? }
  *   refine entry:   { "refine", "instruction", "out", "mask"?, "size"? }
  *
  * Two-phase workflow:
