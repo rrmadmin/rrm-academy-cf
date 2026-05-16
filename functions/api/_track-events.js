@@ -62,10 +62,26 @@ export const REQUIRED_PARAMS = new Map([
 // AG5 proof gate verifies all terms below remain present in this regex source.
 export const PII_REGEX = /email|user|name|password|token|cookie|address|phone|ssn/i;
 
+// Regex for PII value detection. String values matching this pattern are stripped
+// before forwarding. Covers: email addresses, SSNs, US phone numbers, card numbers.
+export const PII_VALUE_REGEX = /[\w.+-]+@[\w-]+\.[\w.-]+|\b\d{3}-\d{2}-\d{4}\b|\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b|\b(?:\d[ -]?){13,19}\b/;
+
 // Param names the server adds automatically. Client-supplied values for these keys
 // are dropped silently (not rejected) to prevent accidental override.
 export const RESERVED_PARAMS = new Set([
   'page_location',
   'page_referrer',
   'engagement_time_msec',
+  'session_id',
+  'utm_source',
+  'utm_medium',
+  'utm_campaign',
+  'utm_content',
+  'utm_term',
+  'entry_category',
+  'entry_platform',
+  'email_type',
+  'list_source',
+  'client_id',
+  'device_type',
 ]);

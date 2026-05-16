@@ -153,6 +153,8 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
       ...(session.metadata?.ga_source && { utm_source: session.metadata.ga_source }),
       ...(session.metadata?.ga_medium && { utm_medium: session.metadata.ga_medium }),
       ...(session.metadata?.ga_campaign && { utm_campaign: session.metadata.ga_campaign }),
+      ...(session.metadata?.ga_entry_category && { entry_category: session.metadata.ga_entry_category }),
+      ...(session.metadata?.ga_entry_platform && { entry_platform: session.metadata.ga_entry_platform }),
     }, gaOverrides).catch(() => {}));
   }
 
@@ -583,6 +585,8 @@ Manually set migration_status='stripe_active' and stripe_subscription_id to the 
       ...(session.metadata?.ga_source && { utm_source: session.metadata.ga_source }),
       ...(session.metadata?.ga_medium && { utm_medium: session.metadata.ga_medium }),
       ...(session.metadata?.ga_campaign && { utm_campaign: session.metadata.ga_campaign }),
+      ...(session.metadata?.ga_entry_category && { entry_category: session.metadata.ga_entry_category }),
+      ...(session.metadata?.ga_entry_platform && { entry_platform: session.metadata.ga_entry_platform }),
     }, gaOverrides).catch(() => {}));
   } else if (session.mode === 'subscription' && stucTiers[tier]) {
     waitUntil(sendGA4Event(env, request, 'purchase', {
@@ -594,6 +598,8 @@ Manually set migration_status='stripe_active' and stripe_subscription_id to the 
       ...(session.metadata?.ga_source && { utm_source: session.metadata.ga_source }),
       ...(session.metadata?.ga_medium && { utm_medium: session.metadata.ga_medium }),
       ...(session.metadata?.ga_campaign && { utm_campaign: session.metadata.ga_campaign }),
+      ...(session.metadata?.ga_entry_category && { entry_category: session.metadata.ga_entry_category }),
+      ...(session.metadata?.ga_entry_platform && { entry_platform: session.metadata.ga_entry_platform }),
     }, gaOverrides).catch(() => {}));
   }
 
