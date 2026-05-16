@@ -232,7 +232,7 @@ export async function onRequest(context) {
 
     // /ask converts unauth users into signups (conversion funnel).
     // Other protected routes send unauth users to /login.
-    const isAsk = url.pathname === '/ask' || url.pathname.startsWith('/ask/');
+    const isAsk = pathnameLower === '/ask' || pathnameLower.startsWith('/ask/');
     const redirectBase = isAsk ? '/signup/' : '/login/';
     const redirectParam = isAsk ? 'next' : 'redirect';
     const authRedirect = `https://rrmacademy.org${redirectBase}?${redirectParam}=${encodeURIComponent(url.pathname + url.search)}`;
@@ -266,7 +266,7 @@ export async function onRequest(context) {
   }
 
   // Admin pages: require session + superadmin role
-  const isAdminPage = url.pathname === '/admin' || url.pathname.startsWith('/admin/');
+  const isAdminPage = pathnameLower === '/admin' || pathnameLower.startsWith('/admin/');
   if (isAdminPage) {
     if (!env.DB) {
       return withSecurityHeaders(new Response('Service Unavailable', { status: 503 }));
