@@ -3,7 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import ProviderJsonLd from '../../components/providers/ProviderJsonLd.astro';
 import ProviderCard from '../../components/providers/ProviderCard.astro';
 import providersData from '../../data/providers.json';
-import { isIndividual, isOrg, displayName, METHOD_DISPLAY, type Provider } from '../../lib/providers';
+import { isIndividual, isOrg, displayName, METHOD_DISPLAY, METHOD_CODES, type Provider } from '../../lib/providers';
 
 // SSG path generator -- full + basic only get slug pages
 export async function getStaticPaths() {
@@ -148,13 +148,18 @@ const initials = provider.name
       <section class="provider-page__methods">
         <h2>Methods and specialties</h2>
         <ul role="list" class="provider-page__methods-list">
-          {provider.methods.map((m) => (
-            <li>
-              <a href={`/providers/method/${m}/`}>
-                {METHOD_DISPLAY[m as keyof typeof METHOD_DISPLAY] || m}
-              </a>
-            </li>
-          ))}
+          {provider.methods.map((m) => {
+            const isKnown = (METHOD_CODES as readonly string[]).includes(m);
+            return (
+              <li>
+                {isKnown ? (
+                  <a href={`/providers/method/${m}/`}>{METHOD_DISPLAY[m as keyof typeof METHOD_DISPLAY]}</a>
+                ) : (
+                  <span>{METHOD_DISPLAY[m as keyof typeof METHOD_DISPLAY] || m}</span>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </section>
     )}
