@@ -169,7 +169,7 @@ describe('POST /api/track -- validation failures', () => {
       const res = await onRequestPost(ctx);
       const parsed = await parseResponse(res);
       assert.equal(parsed.status, 400);
-      assert.match(parsed.body.detail, /1-25 keys/);
+      assert.match(parsed.body.detail, /at most 25 keys/);
     } finally { restore(); }
   });
 
