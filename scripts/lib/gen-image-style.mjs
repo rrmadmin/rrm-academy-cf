@@ -8,9 +8,9 @@
  * The house style is realistic artistic medical illustration, in two registers:
  *
  *   'anatomical' -- a realistic medical-atlas plate of an anatomical structure
- *                   or physiological process, naturalistic tissue tones, set on
- *                   a solid RRM Academy brand-purple background, with clean
- *                   off-white labels and thin leader lines.
+ *                   or physiological process, naturalistic tissue tones on a
+ *                   plain white background. Generated UNLABELED; labels and
+ *                   leader lines are added afterward by scripts/label-anatomy.py.
  *   'scene'      -- a realistic, soft-edged painterly watercolour scene of a
  *                   person, couple, or object, the edges dissolving into a
  *                   plain off-white ground, no labels.
@@ -67,17 +67,13 @@ export const REGISTERS = {
     color:
       'render the anatomy itself in true, naturalistic tissue tones -- do not ' +
       'tint, stylise, or recolour the structures with any brand colour. Place ' +
-      'the study on a standard plain white background. Brand colour appears ' +
-      'ONLY in the labels: each label sits in its own small, rounded, solid ' +
-      'RRM Academy brand-purple chip (hex #725e7e) with the label text in ' +
-      'clean white; leader lines are thin and a muted purple.',
+      'the study on a standard plain white background.',
     composition:
       'a single, clearly described anatomical study, centred with a generous ' +
-      'even margin on a plain white background. Add a small number of clean, ' +
-      'simple labels naming only the principal structures; set each label as ' +
-      'white text inside a small rounded solid brand-purple chip, joined to ' +
-      'its structure by a thin, straight muted-purple leader line. No other ' +
-      'objects and no decorative elements.',
+      'even margin on a plain white background. No labels, no text, no leader ' +
+      'lines, and no callouts of any kind -- render the anatomy only; labels ' +
+      'are added afterward by scripts/label-anatomy.py. No other objects and ' +
+      'no decorative elements.',
     avoid:
       'photographic tissue close-ups, surgical or operative imagery, blood, ' +
       'gore, wounds, and distressing pathology; glossy corporate vector ' +
