@@ -199,14 +199,14 @@ jobs:
         run: |
           fail=0
           # Minimum expected record counts (fail deploy if below these)
-          declare -A MIN_COUNTS=( [articles.json]=2500 [posts.json]=5 [faqs.json]=10 [courses.json]=1 )
+          declare -A MIN_COUNTS=( [articles.json]=2500 [posts.json]=5 [faqs.json]=10 [courses.json]=1 [providers.json]=2800 )
           # Max allowed drop per data file (articles churn with retractions; posts/faqs/courses should not drop)
-          declare -A MAX_DROP=( [articles.json]=50 [posts.json]=1 [faqs.json]=1 [courses.json]=1 )
+          declare -A MAX_DROP=( [articles.json]=50 [posts.json]=1 [faqs.json]=1 [courses.json]=1 [providers.json]=300 )
           # Absolute floor: baseline auto-update can ratchet down by max_drop per deploy,
           # but count below this floor fails immediately regardless of baseline. Prevents
           # slow cumulative data loss across N deploys (each within max_drop) from going
           # undetected. Set above MIN_COUNTS so it actually constrains.
-          declare -A ABSOLUTE_FLOOR=( [articles.json]=3000 [posts.json]=18 [faqs.json]=22 [courses.json]=8 )
+          declare -A ABSOLUTE_FLOOR=( [articles.json]=3000 [posts.json]=18 [faqs.json]=22 [courses.json]=8 [providers.json]=2500 )
 
           # Load baselines for regression detection
           BASELINES_FILE="src/data/.baselines.json"
@@ -220,14 +220,15 @@ jobs:
             ")
           fi
 
-          for f in src/data/articles.json src/data/posts.json src/data/faqs.json src/data/courses.json; do
+          for f in src/data/articles.json src/data/posts.json src/data/faqs.json src/data/courses.json src/data/providers.json; do
             base=$(basename "$f")
             if [ ! -f "$f" ]; then
               echo "ERROR: $f not found. Cannot build without data files."
               echo "If using skip_fetch, ensure a previous run has cached the data."
               fail=1
             else
-              count=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$f','utf8')).length)")
+              raw=$(node -e "const d=JSON.parse(require('fs').readFileSync('$f','utf8')); console.log(Array.isArray(d) ? d.length : (d.providers ? d.providers.length : d.length))")
+              count=$raw
               min=${MIN_COUNTS[$base]:-1}
               baseline=${BASELINES[$base]:-0}
               max_drop=${MAX_DROP[$base]:-1}
@@ -505,6 +506,11 @@ jobs:
             for (const f of ['articles.json','posts.json','faqs.json','courses.json','partners.json']) {
               const data = JSON.parse(fs.readFileSync('src/data/' + f, 'utf8'));
               baselines[f] = data.length;
+            }
+            // providers.json has nested shape {providers:[...], count:N}
+            if (fs.existsSync('src/data/providers.json')) {
+              const p = JSON.parse(fs.readFileSync('src/data/providers.json','utf8'));
+              baselines['providers.json'] = (p.providers || []).length;
             }
             // Glossary has nested structure; track terms + refs + abbrs separately.
             if (fs.existsSync('src/data/glossary.json')) {
