@@ -182,8 +182,12 @@ export function parseArgs(argv) {
     const k = argv[i];
     if (!k || !k.startsWith('--')) throw new Error(`bad arg: ${k}`);
     const key = k.slice(2);
-    if (FLAGS.has(key)) a[key] = true;
-    else a[key] = argv[++i];
+    if (FLAGS.has(key)) {
+      a[key] = true;
+    } else {
+      if (++i >= argv.length) throw new Error(`--${key} requires a value`);
+      a[key] = argv[i];
+    }
   }
   return a;
 }

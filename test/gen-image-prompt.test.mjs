@@ -83,3 +83,7 @@ test('parseArgs reads --flat as a value, not a boolean', () => {
 test('parseArgs rejects a non-flag token', () => {
   assert.throws(() => parseArgs(['topic', 'PCOS']), /bad arg: topic/);
 });
+
+test('parseArgs throws when a value flag has no value', () => {
+  assert.throws(() => parseArgs(['--out']), /--out requires a value/);
+});
