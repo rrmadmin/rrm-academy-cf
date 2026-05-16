@@ -118,16 +118,11 @@ export async function onRequestPost({ request, env, waitUntil }) {
       }, 400);
     }
 
-    // ELV mailbox verification (after local checks pass, before account creation)
-    const elv = await verifyAndTagEmail(email, env, { firstName, lastName, source: 'signup' });
-    if (elv.blocked) {
-      return json({ ok: false, error: elv.reason }, 400);
-    }
-
     // Hash password before existence check to prevent timing side-channel
     const hashedPassword = await hashPassword(password);
 
-    // Check if email already exists
+    // Check if email already exists BEFORE ELV — prevents attacker from
+    // overwriting an existing user's CRM contact row via ELV's ON CONFLICT upsert.
     const existing = await db.prepare('SELECT id FROM user WHERE email = ? COLLATE NOCASE').bind(email).first();
     if (existing) {
       // Anti-enumeration: silent 201, but fire-and-forget informational email with cooldown
@@ -166,6 +161,13 @@ export async function onRequestPost({ request, env, waitUntil }) {
         201,
         { 'Set-Cookie': sessionCookie(fakeSessionId, fakeExpires) }
       );
+    }
+
+    // ELV mailbox verification — only runs for genuinely new emails (existing users
+    // are already known-valid and skipping ELV prevents CRM contact row overwrite).
+    const elv = await verifyAndTagEmail(email, env, { firstName, lastName, source: 'signup' });
+    if (elv.blocked) {
+      return json({ ok: false, error: elv.reason }, 400);
     }
 
     // Prepare all three INSERTs

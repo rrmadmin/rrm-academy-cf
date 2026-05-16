@@ -7,19 +7,19 @@
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
-      "hash": "8fd45b2241b7f1a68b248dcba53dab790891d4b068314a1598cb4a30d8700117",
+      "hash": "b89eb4c07a2e1949d529fc1a7aa821c87b2c2243c8599bc1597178a3c1fadffc",
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "cd8f8793863c92cb9afcac3c3e606b42ad52f9c016a35bf3ca472e0891094774",
+      "hash": "8406aebf2aaf57888f98394bf2fc2a2809646eb94bc32d716df1c10cfef9d12e",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
-      "hash": "53e61c88a5436843f5e3561383c94ac4969eb11f0c35dfc9434dc06dba5a85aa",
+      "hash": "59ee07595db7367f9627c970892ffe1b16db6fb077d6983a4793e88211dc5de7",
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
-      "hash": "e8f12d5410557639eae364e990a64b683e8c638e0c17e053fa25f7dc425e7f90",
+      "hash": "9d84982232a692b1f92d5f629057c8719099209089318e5b9e9e41a135f255e8",
       "note": "Reset token consumption + password change"
     },
     "functions/api/auth/change-password.js": {
