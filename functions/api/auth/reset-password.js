@@ -46,11 +46,13 @@ export async function onRequestPost({ request, env, waitUntil }) {
     // rugpull where the token is consumed but the password UPDATE fails.
     // purpose IN ('reset','welcome'): welcome tokens written by Stripe-auto-account
     // onboarding share this same endpoint for redemption (see /arise #4).
+    // JOIN user to check blocked — a blocked user must not be able to complete
+    // a reset even if they cached the link before being blocked.
     const tokenRow = await db.prepare(
-      "SELECT user_id FROM password_reset WHERE token_hash = ? AND expires_at > ? AND purpose IN ('reset', 'welcome')"
+      "SELECT pr.user_id, u.blocked FROM password_reset pr JOIN user u ON u.id = pr.user_id WHERE pr.token_hash = ? AND pr.expires_at > ? AND pr.purpose IN ('reset', 'welcome')"
     ).bind(tokenHash, now).first();
 
-    if (!tokenRow) {
+    if (!tokenRow || tokenRow.blocked) {
       return json({ ok: false, error: 'This reset link is invalid, expired, or has already been used. Please request a new one.' }, 400);
     }
 
