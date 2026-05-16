@@ -52,3 +52,6 @@ coverage/
 
 # Audit + extraction transient outputs
 scripts/out/
+
+# image generator scratch output (gen-image.mjs)
+tools/generated-images/
