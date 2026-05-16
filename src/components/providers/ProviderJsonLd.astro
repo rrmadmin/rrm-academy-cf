@@ -42,14 +42,15 @@ function buildBusinessNode() {
     url: pageUrl,
   };
   if (provider.address) {
-    node.address = {
+    const addr: Record<string, unknown> = {
       '@type': 'PostalAddress',
-      streetAddress: provider.address.street,
-      addressLocality: provider.address.city,
-      addressRegion: provider.address.state,
-      postalCode: provider.address.zip,
       addressCountry: provider.address.country || 'US',
     };
+    if (provider.address.street) addr.streetAddress = provider.address.street;
+    if (provider.address.city) addr.addressLocality = provider.address.city;
+    if (provider.address.state) addr.addressRegion = provider.address.state;
+    if (provider.address.zip) addr.postalCode = provider.address.zip;
+    node.address = addr;
   }
   if (provider.primary_phone) node.telephone = provider.primary_phone;
   if (provider.telehealth === 'yes') {
