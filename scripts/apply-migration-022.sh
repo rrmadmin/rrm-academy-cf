@@ -41,7 +41,14 @@ npx wrangler d1 execute "$DB" $WRANGLER_FLAG --command "CREATE UNIQUE INDEX IF N
 
 # Phase C: CHECK rebuild - skip if existing predicate already covers target
 echo "==> 022c (partners CHECK rebuild guard)"
-EXISTING_SCHEMA=$(npx wrangler d1 execute "$DB" $WRANGLER_FLAG --command "SELECT sql FROM sqlite_master WHERE name='partners';" 2>&1 | tr -d '\n')
+WRANGLER_OUT=$(npx wrangler d1 execute "$DB" $WRANGLER_FLAG --command "SELECT sql FROM sqlite_master WHERE name='partners';" 2>&1)
+WRANGLER_RC=$?
+EXISTING_SCHEMA=$(echo "$WRANGLER_OUT" | tr -d '\n')
+if [ $WRANGLER_RC -ne 0 ] || ! echo "$EXISTING_SCHEMA" | grep -qE 'CREATE TABLE.*partners'; then
+  echo "FAIL: could not read partners schema (wrangler rc=$WRANGLER_RC)" >&2
+  echo "$WRANGLER_OUT" >&2
+  exit 1
+fi
 if echo "$EXISTING_SCHEMA" | grep -q "awaiting_payment"; then
   echo "  -> existing CHECK already includes paid-tier states; skipping rebuild"
 else
