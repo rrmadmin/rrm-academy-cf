@@ -6,10 +6,15 @@
  * page sections) via OpenAI gpt-image-2. The RRM Academy house style and its
  * two registers live in scripts/lib/gen-image-style.mjs:
  *   --register anatomical  a realistic medical-atlas plate on a white
- *                          background with brand-purple label chips.
+ *                          background, generated UNLABELED. Add labels and
+ *                          leader lines afterward with scripts/label-anatomy.py.
  *                          (no people; --figures is ignored)
  *   --register scene       a realistic, soft-edged painterly watercolour scene
  *                          of a person, couple, or object. (default)
+ *
+ * Anatomical workflow: generate the unlabeled plate, then
+ *   python3 scripts/label-anatomy.py --grid <raw.png> grid.png   (pick coords)
+ *   python3 scripts/label-anatomy.py --labels <raw.png> labels.json out.png
  *
  * --- GENERATE a new image ---
  *   node scripts/gen-image.mjs \
@@ -161,6 +166,7 @@ async function refine(entry) {
   form.append('n', '1');
   form.append('size', entry.size || 'auto');
   form.append('quality', 'high');
+  form.append('moderation', 'low');
   form.append('image', new Blob([readFileSync(inPath)], { type: 'image/png' }), 'input.png');
   if (entry.mask) {
     const maskPath = resolve(entry.mask);
