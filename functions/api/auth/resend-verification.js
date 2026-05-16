@@ -40,7 +40,11 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const user = await db.prepare('SELECT email, name, email_verified FROM user WHERE id = ?')
       .bind(session.userId).first();
     if (!user) return json({ ok: false, error: 'User not found.' }, 404);
-    if (user.email_verified) return json({ ok: true });
+    if (user.email_verified) {
+      const headers = {};
+      if (session.renewed) headers['Set-Cookie'] = sessionCookie(session.id, session.expiresAt);
+      return json({ ok: true }, 200, headers);
+    }
 
     // Generate new code and expiry.
     const code = generateToken().slice(0, 8);
