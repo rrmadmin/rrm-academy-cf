@@ -62,7 +62,9 @@ export async function sendGA4Event(env, request, eventName, params = {}, overrid
           doubles: [0, 1, resp.status],
           indexes: ['ga4_mp_error'],
         });
-      } catch {}
+      } catch {
+        // best-effort: AE write must not escalate analytics-error logging into a user-visible failure
+      }
     }
   } catch {
     // Silent -- never let analytics failures affect the user
