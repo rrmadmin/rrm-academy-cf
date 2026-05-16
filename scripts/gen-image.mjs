@@ -1,10 +1,15 @@
 #!/usr/bin/env node
 /**
- * gen-image.mjs -- RRM Academy spot-illustration generator
+ * gen-image.mjs -- RRM Academy illustration generator
  *
- * Generates editorial spot illustrations (glossary terms, pillar/page sections)
- * via OpenAI gpt-image-2. The fixed RRM house style and the four Phase-1 style
- * directions live in scripts/lib/gen-image-style.mjs.
+ * Generates realistic medical-illustration artwork (glossary terms, pillar and
+ * page sections) via OpenAI gpt-image-2. The RRM Academy house style and its
+ * two registers live in scripts/lib/gen-image-style.mjs:
+ *   --register anatomical  a realistic medical-atlas plate on a white
+ *                          background with brand-purple label chips.
+ *                          (no people; --figures is ignored)
+ *   --register scene       a realistic, soft-edged painterly watercolour scene
+ *                          of a person, couple, or object. (default)
  *
  * --- GENERATE a new image ---
  *   node scripts/gen-image.mjs \
@@ -12,10 +17,11 @@
  *     --scene "a woman seated calmly at a warm-wood table ..." \
  *     --out pcos-table
  *
- *   Style direction:      --style A|B|C|D   (default: DEFAULT_STYLE)
+ *   Register:             --register anatomical|scene   (default: scene)
  *   Couple scene:         --figures couple
  *   Object-only:          --figures still-life
  *   Topic-specific avoid: --avoid "clocks, hourglasses, ..."
+ *   Skip style refs:      --no-style-ref    (text-to-image only)
  *   Print prompt only:    --dry-run         (no API call, no cost)
  *
  * --- REFINE an existing image ---
@@ -29,7 +35,7 @@
  * --- BATCH (JSON array; each entry is a generate OR a refine) ---
  *   node scripts/gen-image.mjs --batch path/to/manifest.json
  *
- *   generate entry: { "topic", "scene", "out", "style"?, "mood"?, "figures"?, "avoid"?, "size"? }
+ *   generate entry: { "topic", "scene", "out", "register"?, "figures"?, "mood"?, "avoid"?, "size"? }
  *   refine entry:   { "refine", "instruction", "out", "mask"?, "size"? }
  *
  * Two-phase workflow:
@@ -58,22 +64,30 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 const OUT_DIR = join(ROOT, 'tools', 'generated-images');
 
-// Locked style-reference exemplars. Empty during Phase 1 (text-to-image
-// fallback). After the house style is chosen, Task 6 fills this with the
-// approved exemplar webp(s) under scripts/style-refs/.
-const STYLE_REFS = [];
+// Locked style-reference exemplars, one set per register. Attached to the
+// edits endpoint so gpt-image-2 matches the RRM Academy house-style craft
+// rather than just its text description. Files live in scripts/style-refs/.
+const STYLE_REFS = {
+  anatomical: ['anatomical-01.webp'],
+  scene: ['scene-01.webp'],
+};
+
+// Absolute paths of the exemplars for a register (empty if the register has none).
+function styleRefPaths(register) {
+  return (STYLE_REFS[register] || []).map((f) => join(__dirname, 'style-refs', f));
+}
 
 const STYLE_REF_PREAMBLE =
   'The attached images are a STYLE REFERENCE ONLY. Do not copy, trace, edit, ' +
   'crop, or combine what they depict -- ignore their subjects entirely. Match ' +
-  'only their craft: the linework, colour, and finish of the RRM Academy ' +
-  'spot-illustration house style. Then draw a COMPLETELY NEW illustration, in ' +
-  'that exact craft, of the following brief.\n\n';
+  'only their craft: the medium, colour, finish, and edge quality of the RRM ' +
+  'Academy illustration house style. Then draw a COMPLETELY NEW illustration, ' +
+  'in that exact craft, of the following brief.\n\n';
 
 const REFINE_PREAMBLE =
-  'This is a hand-drawn editorial spot illustration. Preserve its exact style, ' +
-  'linework, colour, and finish, and keep the overall composition and subject ' +
-  'recognizably the same. Apply only this change: ';
+  'This is a realistic RRM Academy illustration. Preserve its exact style, ' +
+  'medium, colour, finish, and edge quality, and keep the overall composition ' +
+  'and subject recognizably the same. Apply only this change: ';
 
 const MODEL = process.env.GEN_IMAGE_MODEL || 'gpt-image-2';
 
@@ -90,11 +104,13 @@ function getKey() {
 }
 
 async function generate(entry) {
-  const useRefs = !entry.noStyleRef && STYLE_REFS.length > 0 && STYLE_REFS.every((p) => existsSync(p));
+  const register = entry.register || 'scene';
+  const refs = entry.noStyleRef ? [] : styleRefPaths(register);
+  const useRefs = refs.length > 0 && refs.every((p) => existsSync(p));
   const prompt = (useRefs ? STYLE_REF_PREAMBLE : '') + buildPrompt(entry);
 
   if (!useRefs) {
-    // text-to-image path (Phase 1, --no-style-ref, or refs missing)
+    // text-to-image path (--no-style-ref, or the register has no exemplars)
     const res = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
       headers: { Authorization: `Bearer ${getKey()}`, 'Content-Type': 'application/json' },
@@ -113,7 +129,7 @@ async function generate(entry) {
     return Buffer.from(data.data[0].b64_json, 'base64');
   }
 
-  // style-reference path: edits endpoint with locked exemplars attached.
+  // style-reference path: edits endpoint with the register's exemplars attached.
   const form = new FormData();
   form.append('model', MODEL);
   form.append('prompt', prompt);
@@ -122,7 +138,7 @@ async function generate(entry) {
   form.append('quality', 'high');
   form.append('output_format', 'png');
   form.append('moderation', 'low');
-  for (const ref of STYLE_REFS) {
+  for (const ref of refs) {
     form.append('image[]', new Blob([readFileSync(ref)], { type: 'image/webp' }), basename(ref));
   }
   const res = await fetch('https://api.openai.com/v1/images/edits', {
@@ -210,7 +226,7 @@ async function runOne(entry, idx, total, opts) {
 }
 
 function usage() {
-  console.error('Generate: gen-image.mjs --topic X --scene Y --out name [--style A|B|C|D] [--figures one|couple|still-life] [--avoid "..."] [--size 1024x1024] [--dry-run]');
+  console.error('Generate: gen-image.mjs --topic X --scene Y --out name [--register anatomical|scene] [--figures one|couple|still-life] [--avoid "..."] [--size 1024x1024] [--no-style-ref] [--dry-run]');
   console.error('Refine:   gen-image.mjs --refine path.png --instruction "..." --out name [--mask mask.png] [--size auto]');
   console.error('Batch:    gen-image.mjs --batch path/to/manifest.json');
   console.error('Finalize: gen-image.mjs --finalize name1,name2 [--flat ffffff|f7f5f3] [--thresh N]');

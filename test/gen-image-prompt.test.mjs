@@ -3,17 +3,31 @@ import assert from 'node:assert/strict';
 import {
   buildPrompt,
   parseArgs,
-  STYLE_DIRECTIONS,
-  DEFAULT_STYLE,
+  REGISTERS,
+  DEFAULT_REGISTER,
+  BRAND_PURPLE,
+  BABY_AVOID,
+  SCENE_AVOID,
 } from '../scripts/lib/gen-image-style.mjs';
 
-test('STYLE_DIRECTIONS has the four Phase-1 directions', () => {
-  assert.deepEqual(Object.keys(STYLE_DIRECTIONS).sort(), ['A', 'B', 'C', 'D']);
-  for (const key of ['A', 'B', 'C', 'D']) {
-    assert.ok(STYLE_DIRECTIONS[key].style.length > 0);
-    assert.ok(STYLE_DIRECTIONS[key].color.length > 0);
-    assert.ok(STYLE_DIRECTIONS[key].label.length > 0);
+test('REGISTERS has the anatomical and scene registers', () => {
+  assert.deepEqual(Object.keys(REGISTERS).sort(), ['anatomical', 'scene']);
+  for (const key of ['anatomical', 'scene']) {
+    const r = REGISTERS[key];
+    assert.ok(r.intro.length > 0);
+    assert.ok(r.mood.length > 0);
+    assert.ok(r.style.length > 0);
+    assert.ok(r.color.length > 0);
+    assert.ok(r.composition.length > 0);
   }
+});
+
+test('BRAND_PURPLE is the RRM Academy brand purple', () => {
+  assert.equal(BRAND_PURPLE, '#725e7e');
+});
+
+test('DEFAULT_REGISTER is scene', () => {
+  assert.equal(DEFAULT_REGISTER, 'scene');
 });
 
 test('buildPrompt includes the topic and scene', () => {
@@ -22,44 +36,72 @@ test('buildPrompt includes the topic and scene', () => {
   assert.match(p, /Scene: a woman seated at a table/);
 });
 
-test('buildPrompt uses the requested style direction', () => {
-  const a = buildPrompt({ topic: 'x', scene: 'y', style: 'A' });
-  const c = buildPrompt({ topic: 'x', scene: 'y', style: 'C' });
-  assert.ok(a.includes(STYLE_DIRECTIONS.A.style));
-  assert.ok(c.includes(STYLE_DIRECTIONS.C.style));
-  assert.ok(!a.includes(STYLE_DIRECTIONS.C.style));
-});
-
-test('buildPrompt defaults to DEFAULT_STYLE', () => {
+test('buildPrompt defaults to the scene register', () => {
   const p = buildPrompt({ topic: 'x', scene: 'y' });
-  assert.ok(p.includes(STYLE_DIRECTIONS[DEFAULT_STYLE].style));
+  assert.ok(p.includes(REGISTERS.scene.style));
+  assert.ok(!p.includes(REGISTERS.anatomical.style));
 });
 
-test('buildPrompt throws on an unknown style direction', () => {
+test('buildPrompt uses the requested register', () => {
+  const a = buildPrompt({ topic: 'x', scene: 'y', register: 'anatomical' });
+  assert.ok(a.includes(REGISTERS.anatomical.style));
+  assert.ok(!a.includes(REGISTERS.scene.style));
+});
+
+test('buildPrompt throws on an unknown register', () => {
   assert.throws(
-    () => buildPrompt({ topic: 'x', scene: 'y', style: 'Z' }),
-    /unknown style direction: Z/,
+    () => buildPrompt({ topic: 'x', scene: 'y', register: 'diagram' }),
+    /unknown register: diagram/,
   );
 });
 
-test('buildPrompt omits the People block for a still-life', () => {
-  const still = buildPrompt({ topic: 'x', scene: 'y', figures: 'still-life' });
+test('scene register includes the People block, omits it for a still-life', () => {
   const person = buildPrompt({ topic: 'x', scene: 'y', figures: 'one' });
-  assert.ok(!still.includes('People:'));
+  const still = buildPrompt({ topic: 'x', scene: 'y', figures: 'still-life' });
   assert.ok(person.includes('People:'));
+  assert.ok(!still.includes('People:'));
 });
 
-test('buildPrompt bans baby imagery by default, allows it with allowInfant', () => {
+test('anatomical register never includes the People block', () => {
+  const a = buildPrompt({ topic: 'x', scene: 'y', register: 'anatomical', figures: 'couple' });
+  assert.ok(!a.includes('People:'));
+});
+
+test('anatomical register puts the plate on white with brand-purple label chips', () => {
+  const a = buildPrompt({ topic: 'x', scene: 'y', register: 'anatomical' });
+  assert.match(a, /plain white background/);
+  assert.match(a, /brand-purple chip/);
+});
+
+test('scene register asks for soft, dissolving edges', () => {
+  const p = buildPrompt({ topic: 'x', scene: 'y' });
+  assert.match(p, /edges are deliberately soft and undefined/);
+  assert.match(p, /outer edges dissolve/);
+});
+
+test('scene register bans baby imagery by default, allows it with allowInfant', () => {
   const def = buildPrompt({ topic: 'x', scene: 'y' });
   const allow = buildPrompt({ topic: 'x', scene: 'y', allowInfant: true });
-  assert.match(def, /babies, newborns, infants/);
-  assert.ok(!allow.includes('babies, newborns, infants'));
+  assert.ok(def.includes(BABY_AVOID));
+  assert.ok(!allow.includes(BABY_AVOID));
 });
 
-test('buildPrompt always bans medical-exam and dosing imagery', () => {
+test('scene register always carries the scene avoid list', () => {
   const p = buildPrompt({ topic: 'x', scene: 'y', allowInfant: true });
-  assert.match(p, /medical exam imagery/);
-  assert.match(p, /drug or dosing imagery/);
+  assert.ok(p.includes(SCENE_AVOID));
+  assert.match(p, /hard outlines and crisp cut-out edges/);
+});
+
+test('anatomical register carries its own avoid list, not the baby or scene clauses', () => {
+  const a = buildPrompt({ topic: 'x', scene: 'y', register: 'anatomical' });
+  assert.match(a, /surgical or operative imagery/);
+  assert.ok(!a.includes(BABY_AVOID));
+  assert.ok(!a.includes(SCENE_AVOID));
+});
+
+test('a custom avoid string is prepended to the register avoid list', () => {
+  const p = buildPrompt({ topic: 'x', scene: 'y', avoid: 'clocks and hourglasses' });
+  assert.match(p, /Avoid: clocks and hourglasses;/);
 });
 
 test('parseArgs reads --key value pairs', () => {
