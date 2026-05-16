@@ -8,10 +8,20 @@
 import { json, optionsResponse, constantTimeEqual } from '../auth/_shared.js';
 import { log } from '../_log.js';
 
+function safeParse(s, fallback) {
+  if (!s) return fallback;
+  try { return JSON.parse(s); } catch { return fallback; }
+}
+
 function normalizeAddress(v) {
   if (v == null) return null;
   if (typeof v === 'string') return { street: v, city: null, state: null, zip: null, country: null };
-  return v;
+  if (typeof v === 'object') {
+    const out = { ...v };
+    if (out.state && typeof out.state === 'string') out.state = out.state.toUpperCase();
+    return out;
+  }
+  return null;
 }
 
 export function onRequestOptions() {
@@ -68,28 +78,28 @@ export async function onRequestGet(context) {
     primary_email: r.primary_email,
     primary_phone: r.primary_phone,
     website_url: r.website_url,
-    address: r.address_json ? normalizeAddress(JSON.parse(r.address_json)) : null,
+    address: normalizeAddress(safeParse(r.address_json, null)),
     latitude: r.latitude,
     longitude: r.longitude,
     npi: r.npi,
-    methods: r.methods_json ? JSON.parse(r.methods_json) : [],
-    languages: r.languages_json ? JSON.parse(r.languages_json) : [],
+    methods: safeParse(r.methods_json, []),
+    languages: safeParse(r.languages_json, []),
     telehealth: r.telehealth || 'unknown',
-    telehealth_states_licensed: r.telehealth_states_licensed_json ? JSON.parse(r.telehealth_states_licensed_json) : [],
-    telehealth_states_attested: r.telehealth_states_attested_json ? JSON.parse(r.telehealth_states_attested_json) : [],
-    telehealth_states_negative: r.telehealth_states_negative_json ? JSON.parse(r.telehealth_states_negative_json) : [],
+    telehealth_states_licensed: safeParse(r.telehealth_states_licensed_json, []).map(s => String(s).toUpperCase()),
+    telehealth_states_attested: safeParse(r.telehealth_states_attested_json, []).map(s => String(s).toUpperCase()),
+    telehealth_states_negative: safeParse(r.telehealth_states_negative_json, []).map(s => String(s).toUpperCase()),
     accepting_new_patients: r.accepting_new_patients || 'unknown',
     listability: r.listability,
     relevance: r.relevance,
     verification_tier: r.verification_tier,
-    badges: r.badges_json ? JSON.parse(r.badges_json) : [],
+    badges: safeParse(r.badges_json, []),
     partner_id: r.partner_id,
     verified_contact: r.verified_contact === 1,
     do_not_contact: r.do_not_contact === 1,
     created_at: r.created_at,
     updated_at: r.updated_at,
     last_verified_by_provider_at: r.last_verified_by_provider_at,
-    source_records: r.source_records_json ? JSON.parse(r.source_records_json) : [],
+    source_records: safeParse(r.source_records_json, []),
   }));
 
   return json({ ok: true, providers, count: providers.length }, 200, {
