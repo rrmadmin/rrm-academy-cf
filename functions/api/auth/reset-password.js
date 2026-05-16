@@ -44,8 +44,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
     // Pre-SELECT to get user_id without consuming the token yet.
     // Allows the entire mutation to run as one atomic batch, preventing the
     // rugpull where the token is consumed but the password UPDATE fails.
+    // purpose IN ('reset','welcome'): welcome tokens written by Stripe-auto-account
+    // onboarding share this same endpoint for redemption (see /arise #4).
     const tokenRow = await db.prepare(
-      "SELECT user_id FROM password_reset WHERE token_hash = ? AND expires_at > ? AND purpose = 'reset'"
+      "SELECT user_id FROM password_reset WHERE token_hash = ? AND expires_at > ? AND purpose IN ('reset', 'welcome')"
     ).bind(tokenHash, now).first();
 
     if (!tokenRow) {
@@ -58,11 +60,14 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     const results = await db.batch([
       // Consume token — 0 changes means concurrent use; checked below.
-      db.prepare("DELETE FROM password_reset WHERE token_hash = ? AND expires_at > ? AND purpose = 'reset'")
+      // Filter mirrors the pre-SELECT above so both purpose values consume cleanly.
+      db.prepare("DELETE FROM password_reset WHERE token_hash = ? AND expires_at > ? AND purpose IN ('reset', 'welcome')")
         .bind(tokenHash, now),
       db.prepare('UPDATE user SET hashed_password = ?, email_verified = 1, updated_at = datetime(\'now\') WHERE id = ?')
         .bind(hashedPassword, tokenRow.user_id),
-      db.prepare("DELETE FROM password_reset WHERE user_id = ? AND purpose = 'reset'")
+      // Cleanup: drop ALL outstanding password_reset rows for this user, regardless of purpose.
+      // After successful auth via any token type, every other dangling token should be invalidated.
+      db.prepare("DELETE FROM password_reset WHERE user_id = ?")
         .bind(tokenRow.user_id),
       // Cleanup: revoke ALL sessions on password reset (forces re-auth across all devices for security).
       // Atomic batch — inline DELETE retained for batch atomicity (mirror of invalidateAllUserSessions)

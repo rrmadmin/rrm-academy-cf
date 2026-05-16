@@ -322,11 +322,37 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
             indexes: ['metadata-row-missing'],
           });
         } else if (wixRow.stripe_subscription_id) {
-          // Already migrated -- duplicate webhook OR a race we lost. Idempotent: do nothing.
-          env.EVENTS?.writeDataPoint({
-            blobs: ['billing', 'stuc-migration', 'metadata-already-migrated', wixSubIdMeta, session.subscription || ''],
-            indexes: ['metadata-already-migrated'],
-          });
+          // Already migrated. Benign if Stripe is replaying the same event (same sub ID).
+          // If a different session.subscription is arriving, the donor has two active Stripe subs.
+          if (wixRow.stripe_subscription_id === session.subscription) {
+            env.EVENTS?.writeDataPoint({
+              blobs: ['billing', 'stuc-migration', 'metadata-duplicate-webhook', wixSubIdMeta, session.subscription || ''],
+              indexes: ['metadata-duplicate-webhook'],
+            });
+          } else {
+            env.EVENTS?.writeDataPoint({
+              blobs: ['billing', 'stuc-migration', 'metadata-duplicate-stripe-sub', wixSubIdMeta, session.subscription || ''],
+              indexes: ['metadata-duplicate-stripe-sub'],
+            });
+            const email = (session.customer_details?.email || session.customer_email || '').toLowerCase().trim();
+            if (env.AWS_ACCESS_KEY_ID) {
+              waitUntil(sendEmailSafe(env, waitUntil, {
+                to: 'administrator@rrmacademy.org',
+                subject: `STUC migration: duplicate Stripe sub for ${email || wixSubIdMeta}`,
+                source: 'billing/migration-metadata-dup',
+                text: [
+                  `A donor created a second Stripe subscription for an already-migrated Wix donor.`,
+                  ``,
+                  `Wix subscription:       ${wixSubIdMeta}`,
+                  `Donor email (checkout): ${email || '(unknown)'}`,
+                  `Existing Stripe sub:    ${wixRow.stripe_subscription_id}`,
+                  `New Stripe sub:         ${session.subscription || '(unknown)'}`,
+                  ``,
+                  `Refund the duplicate (typically the newer one: ${session.subscription || 'see above'}) via Stripe Dashboard.`,
+                ].join('\n'),
+              }).catch(() => {}));
+            }
+          }
           migrationHandled = true;
         } else {
           // 3DS-incomplete guard (Bug #11): Stripe sub may still be 'incomplete' when this
