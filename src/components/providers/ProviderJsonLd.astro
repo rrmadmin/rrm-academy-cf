@@ -1,6 +1,7 @@
 ---
 import type { Provider } from '../../lib/providers';
 import { isIndividual } from '../../lib/providers';
+import { safeJsonLd } from '../../lib/jsonld';
 
 interface Props {
   provider: Provider;
@@ -84,4 +85,4 @@ const graph: Record<string, unknown> = {
 };
 ---
 
-<script type="application/ld+json" set:html={JSON.stringify(graph)} />
+<script type="application/ld+json" set:html={safeJsonLd(graph)} />
