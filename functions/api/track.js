@@ -8,7 +8,7 @@
  */
 import { checkRateLimit, CORS_HEADERS, optionsResponse } from './auth/_shared.js';
 import { sendGA4Event } from './_ga4.js';
-import { ALLOWED_CLIENT_EVENTS, REQUIRED_PARAMS, PII_REGEX, RESERVED_PARAMS } from './_track-events.js';
+import { ALLOWED_CLIENT_EVENTS, REQUIRED_PARAMS, PII_REGEX, PII_VALUE_REGEX, RESERVED_PARAMS } from './_track-events.js';
 import { log } from './_log.js';
 
 const EVENT_NAME_RE = /^[a-z][a-z0-9_]{0,39}$/;
@@ -84,8 +84,8 @@ export async function onRequestPost(context) {
       });
     }
     const paramKeys = Object.keys(rawParams);
-    if (paramKeys.length < 1 || paramKeys.length > 25) {
-      return Response.json({ error: 'invalid_request', detail: 'params must have 1-25 keys' }, {
+    if (paramKeys.length > 25) {
+      return Response.json({ error: 'invalid_request', detail: 'params must have at most 25 keys' }, {
         status: 400,
         headers: CORS_HEADERS,
       });
@@ -127,7 +127,9 @@ export async function onRequestPost(context) {
     for (const key of paramKeys) {
       if (RESERVED_PARAMS.has(key)) continue;
       if (PII_REGEX.test(key)) continue;
-      sanitizedParams[key] = rawParams[key];
+      const val = rawParams[key];
+      if (typeof val === 'string' && PII_VALUE_REGEX.test(val)) continue;
+      sanitizedParams[key] = val;
     }
 
     // Check required params (after reserved/PII stripping -- required keys must be non-PII)
@@ -152,13 +154,19 @@ export async function onRequestPost(context) {
     const deviceType = typeof sanitizedParams.device_type === 'string'
       ? sanitizedParams.device_type : '';
 
-    const numericValues = Object.values(sanitizedParams).filter(v => typeof v === 'number');
+    const numericCandidates = [
+      sanitizedParams.depth,
+      sanitizedParams.value,
+      sanitizedParams.rank,
+      sanitizedParams.query_length,
+    ];
+    const canonicalNumeric = numericCandidates.find((v) => typeof v === 'number' && Number.isFinite(v));
 
     // Optional-chained AE write: silently no-ops if binding missing.
     // Pattern matches _log.js / create-checkout.js / ask.js.
     env.EVENTS?.writeDataPoint({
       blobs: ['track', event, entryCategory, deviceType, ''],
-      doubles: numericValues.length > 0 ? numericValues.slice(0, 5) : [0],
+      doubles: [canonicalNumeric ?? 0],
       indexes: [event],
     });
 
@@ -166,7 +174,7 @@ export async function onRequestPost(context) {
 
   } catch (err) {
     console.error('[track] unexpected error:', err);
-    log(env, waitUntil, 'track', 'unexpected_error', 'error', 'internal', 0, 500);
+    log(env, waitUntil, 'track', 'unexpected_error', 'error', (err?.message || 'internal').slice(0, 200), 0, 500);
     return Response.json({ error: 'internal_error' }, {
       status: 500,
       headers: CORS_HEADERS,
