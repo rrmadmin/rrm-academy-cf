@@ -8,6 +8,12 @@
 import { json, optionsResponse, constantTimeEqual } from '../auth/_shared.js';
 import { log } from '../_log.js';
 
+function normalizeAddress(v) {
+  if (v == null) return null;
+  if (typeof v === 'string') return { street: v, city: null, state: null, zip: null, country: null };
+  return v;
+}
+
 export function onRequestOptions() {
   return optionsResponse();
 }
@@ -62,7 +68,7 @@ export async function onRequestGet(context) {
     primary_email: r.primary_email,
     primary_phone: r.primary_phone,
     website_url: r.website_url,
-    address: r.address_json ? JSON.parse(r.address_json) : null,
+    address: r.address_json ? normalizeAddress(JSON.parse(r.address_json)) : null,
     latitude: r.latitude,
     longitude: r.longitude,
     npi: r.npi,
