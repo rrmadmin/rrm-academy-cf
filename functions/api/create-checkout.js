@@ -198,6 +198,20 @@ async function handleCheckout(request, env, waitUntil) {
     const stucV2 = env.STUC_MIGRATION_UX_V2 === 'true';
     const wixLookup = await lookupPendingWixMigration(db, { wixSubId, userEmail, env });
 
+    if (wixLookup && wixSubIdInput) {
+      const sessionEmail = (userEmail || '').toLowerCase().trim();
+      const rowEmail = (wixLookup.email || '').toLowerCase().trim();
+      if (!sessionEmail || sessionEmail !== rowEmail) {
+        env.EVENTS?.writeDataPoint({
+          blobs: ['billing', 'stuc-migration', 'wix-sub-id-binding-mismatch', userEmail || 'anon', wixSubIdInput],
+          indexes: ['wix-sub-id-binding-mismatch'],
+        });
+        log(env, waitUntil, 'billing', 'wix_sub_id_binding_mismatch', 'warn',
+          `${userEmail || 'anon'} attempted wxs_${wixSubIdInput.replace(/^wxs_/, '').slice(0, 8)}...`, 0, 403);
+        return json({ ok: false, error: 'This wix_sub_id does not match your account.' }, 403);
+      }
+    }
+
     // --- Migration: atomic write-lock + off-amount detection + trial_end clamp ---
     let useCustomAmount = false;
     let trialEndUnix = null;
@@ -314,6 +328,17 @@ async function handleCheckout(request, env, waitUntil) {
       checkoutSession = await stripe.checkout.sessions.create(sessionParams);
     } catch (err) {
       log(env, waitUntil, 'billing', 'create_subscription_error', 'error', `stripe checkout: ${err.message}`, 0, 503);
+      if (wixLookup) {
+        await db.prepare(
+          "UPDATE wix_subscription SET migration_handoff_started_at = NULL " +
+          "WHERE wix_subscription_id = ? AND stripe_subscription_id IS NULL"
+        ).bind(wixLookup.wix_subscription_id).run().catch(_releaseErr => {
+          env.EVENTS?.writeDataPoint({
+            blobs: ['billing', 'stuc-migration', 'lock-release-failed', wixLookup.wix_subscription_id, ''],
+            indexes: ['lock-release-failed'],
+          });
+        });
+      }
       return json({ ok: false, error: 'Payment service temporarily unavailable. Please try again.' }, 503);
     }
     const tierValueMap = { member: 10, hero: 25, superhero: 50 };

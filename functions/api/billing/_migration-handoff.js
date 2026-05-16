@@ -29,7 +29,7 @@ export async function lookupPendingWixMigration(db, { wixSubId, userEmail, env }
     let wixQuery;
     if (wixSubId && userEmail) {
       wixQuery = db.prepare(
-        "SELECT wix_subscription_id, tier, amount_cents, next_expected_at, status, migration_status " +
+        "SELECT wix_subscription_id, tier, amount_cents, next_expected_at, status, migration_status, email " +
         "FROM wix_subscription " +
         "WHERE (wix_subscription_id = ? OR email = ? COLLATE NOCASE) " +
         "  AND status = 'active' " +
@@ -39,7 +39,7 @@ export async function lookupPendingWixMigration(db, { wixSubId, userEmail, env }
       ).bind(wixSubId, userEmail);
     } else if (wixSubId) {
       wixQuery = db.prepare(
-        "SELECT wix_subscription_id, tier, amount_cents, next_expected_at, status, migration_status " +
+        "SELECT wix_subscription_id, tier, amount_cents, next_expected_at, status, migration_status, email " +
         "FROM wix_subscription " +
         "WHERE wix_subscription_id = ? " +
         "  AND status = 'active' " +
@@ -49,7 +49,7 @@ export async function lookupPendingWixMigration(db, { wixSubId, userEmail, env }
       ).bind(wixSubId);
     } else {
       wixQuery = db.prepare(
-        "SELECT wix_subscription_id, tier, amount_cents, next_expected_at, status, migration_status " +
+        "SELECT wix_subscription_id, tier, amount_cents, next_expected_at, status, migration_status, email " +
         "FROM wix_subscription " +
         "WHERE email = ? COLLATE NOCASE " +
         "  AND status = 'active' " +
