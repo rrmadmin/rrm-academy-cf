@@ -20,7 +20,7 @@ import { handleCheckoutCompleted, handleCheckoutExpired } from './billing/_webho
 import { handleSubscriptionUpdated, handleSubscriptionDeleted } from './billing/_webhook-subscription.js';
 import { handlePaymentFailed } from './billing/_webhook-invoice.js';
 import { handleChargeRefunded } from './billing/_webhook-refund.js';
-import { getStripeClient, requireWebhookConfig, dedupWebhookEvent, rollbackWebhookDedup } from './billing/_shared.js';
+import { getStripeClient, requireWebhookConfig, dedupWebhookEvent, markWebhookEventCompleted, rollbackWebhookDedup } from './billing/_shared.js';
 import { log } from './_log.js';
 
 export async function onRequestPost({ request, env, waitUntil }) {
@@ -80,35 +80,50 @@ async function handleWebhook(request, env, waitUntil) {
 
   // Dispatch to per-event handler. Handlers return Response (to short-circuit) or null (200).
   let result = null;
-  switch (event.type) {
-    case 'checkout.session.completed':
-      result = await handleCheckoutCompleted(db, event, env, request, waitUntil);
-      break;
-    case 'checkout.session.expired':
-      result = await handleCheckoutExpired(db, event, env, waitUntil);
-      break;
-    case 'customer.subscription.updated':
-      result = await handleSubscriptionUpdated(db, event, env, request, waitUntil);
-      break;
-    case 'customer.subscription.deleted':
-      result = await handleSubscriptionDeleted(db, event, env, request, waitUntil);
-      break;
-    case 'invoice.payment_failed':
-      result = await handlePaymentFailed(db, event, env, request, waitUntil);
-      break;
-    case 'charge.refunded':
-      result = await handleChargeRefunded(db, event, env, waitUntil);
-      break;
-    default:
-      log(env, waitUntil, 'billing', 'webhook_unhandled', 'skipped', event.type);
+  try {
+    switch (event.type) {
+      case 'checkout.session.completed':
+        result = await handleCheckoutCompleted(db, event, env, request, waitUntil);
+        break;
+      case 'checkout.session.expired':
+        result = await handleCheckoutExpired(db, event, env, waitUntil);
+        break;
+      case 'customer.subscription.updated':
+        result = await handleSubscriptionUpdated(db, event, env, request, waitUntil);
+        break;
+      case 'customer.subscription.deleted':
+        result = await handleSubscriptionDeleted(db, event, env, request, waitUntil);
+        break;
+      case 'invoice.payment_failed':
+        result = await handlePaymentFailed(db, event, env, request, waitUntil);
+        break;
+      case 'charge.refunded':
+        result = await handleChargeRefunded(db, event, env, waitUntil);
+        break;
+      default:
+        log(env, waitUntil, 'billing', 'webhook_unhandled', 'skipped', event.type);
+    }
+  } catch (dispatchErr) {
+    log(env, waitUntil, 'billing', 'webhook_dispatch_throw', 'error',
+      `${event.id} (${event.type}): ${dispatchErr.message}`, 0, 500);
+    await rollbackWebhookDedup(db, event.id, env, waitUntil);
+    return new Response(JSON.stringify({ ok: false, error: 'Internal error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   if (result) {
     if (result.status >= 500) {
       await rollbackWebhookDedup(db, event.id, env, waitUntil);
+    } else {
+      await markWebhookEventCompleted(db, event.id, env, waitUntil);
     }
     return result;
   }
+
+  // Sub-handler returned null -> success. Mark completed (Phase 2) before 200.
+  await markWebhookEventCompleted(db, event.id, env, waitUntil);
 
   // Always return 200 to acknowledge receipt
   return new Response(JSON.stringify({ received: true }), {
