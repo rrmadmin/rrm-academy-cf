@@ -67,10 +67,11 @@ test('anatomical register never includes the People block', () => {
   assert.ok(!a.includes('People:'));
 });
 
-test('anatomical register puts the plate on white with brand-purple label chips', () => {
+test('anatomical register renders an unlabeled plate on a white background', () => {
   const a = buildPrompt({ topic: 'x', scene: 'y', register: 'anatomical' });
   assert.match(a, /plain white background/);
-  assert.match(a, /brand-purple chip/);
+  assert.match(a, /No labels, no text, no leader lines/);
+  assert.match(a, /render the anatomy only/);
 });
 
 test('scene register asks for soft, dissolving edges', () => {
