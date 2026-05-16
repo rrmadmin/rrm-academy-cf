@@ -96,7 +96,7 @@ jobs:
         # glossary-sources-overrides.json IS restored — staging file merged by
         # fetch-glossary-data.mjs after the D1 fetch (until glossary_definition_source
         # D1 table is populated and the /api/glossary/terms endpoint LEFT JOINs it).
-        run: git checkout HEAD -- src/data/quizzes.json src/data/courses-overrides.json src/data/funding-projects.json src/data/team.json src/data/survey-count.json src/data/.baselines.json src/data/glossary-sources-overrides.json src/data/providers.json
+        run: git checkout HEAD -- src/data/quizzes.json src/data/courses-overrides.json src/data/funding-projects.json src/data/team.json src/data/survey-count.json src/data/.baselines.json src/data/glossary-sources-overrides.json
 
       - name: Fetch single blog record (dispatch)
         if: ${{ github.event.client_payload.record_id }}
