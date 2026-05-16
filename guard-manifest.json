@@ -43,7 +43,7 @@
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
-      "hash": "99080624eac9273e4ab869c70c8d8e7722e021371c6fbca2f49a67d8b7ea83ca",
+      "hash": "f7b8dfeaca6cf3b027c73a0eac6a0d90b4fb2952d8d347be62c548b93e598213",
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
@@ -55,7 +55,7 @@
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "1bd6d329234f0f376ef09ad0064d0e9552bc8cefa50f4a8c34cdd660b0488603",
+      "hash": "72d9bf39c3dc6abbb3325c32766abef3f8f7b0fff47d835f27ee5bffda25e375",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
@@ -186,11 +186,11 @@
       "hash": "c8053c9818a055f56bdfe145bbab83ca1aa7566d2c512d96edcd6e6ca0f17eaa"
     },
     "functions/api/track.js": {
-      "hash": "e9b91f6cc38a5332bc68ca02cfc588c419c29061f25745dcd01154a6fdfae86c",
+      "hash": "dacfaecc1f4248dfb2e925129dfca1c7a14b10c134705defb8a7c86477cdcf61",
       "note": "Client analytics endpoint: rate limit + allowlist + PII strip + GA4 MP relay + AE mirror"
     },
     "functions/api/_track-events.js": {
-      "hash": "e9bb48e777143894d502e5f4488c1480ad1aa89d39ccdda922c128dd0ff75593",
+      "hash": "5837a134638de7697c42273ffd5a7f55a59055a0c3d1b98eb58f770a311ce8b4",
       "note": "Allowed events, required params, PII_REGEX, reserved params (security invariants for /api/track)"
     }
   }
