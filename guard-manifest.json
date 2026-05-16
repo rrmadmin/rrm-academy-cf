@@ -19,7 +19,7 @@
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
-      "hash": "eaacb62d6e8e5f96e8e168d071d4602b9b5aba29d0e43a1d7fc77fba0a6ebdba",
+      "hash": "2a1a3eb7e7fe3a604049fdc6f7dd6ad6515fd631b454bc335fec33df121f34a8",
       "note": "Reset token consumption + password change"
     },
     "functions/api/auth/change-password.js": {
@@ -39,11 +39,11 @@
       "note": "Email validation + disposable/typo detection"
     },
     "functions/api/stripe-webhook.js": {
-      "hash": "1bb8a0297b86d526576e4968258cd71c53e1e561b6968a024b645569bf49fdca",
+      "hash": "89b12f7591d90ea73debdcf0015eccc45b2435ff72f9a61a392a643c1d349a77",
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
-      "hash": "b6ee70af0ff46020face6975fb4dcc408aa2e159065239ef67c069d03b990b76",
+      "hash": "99080624eac9273e4ab869c70c8d8e7722e021371c6fbca2f49a67d8b7ea83ca",
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
@@ -55,7 +55,7 @@
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "d6662985074a8c319931bdbd613349dbf7d1e813c3a1aa3a2fe56f93401d7691",
+      "hash": "1bd6d329234f0f376ef09ad0064d0e9552bc8cefa50f4a8c34cdd660b0488603",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
