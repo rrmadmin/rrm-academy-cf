@@ -8,4 +8,4 @@
 //
 // Why string, not number: lets us move to v2, v2a, v3, etc. if we need to
 // invalidate only a subset of pages without a full bump.
-export const OG_VERSION = 'v2';
+export const OG_VERSION = 'v3';
