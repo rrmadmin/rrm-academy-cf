@@ -28,6 +28,7 @@ interface Props {
 const { articles, currentPage, totalPages, perPage } = Astro.props;
 const start = (currentPage - 1) * perPage;
 const pageArticles = articles.slice(start, start + perPage);
+const showingEnd = Math.min(start + perPage, articles.length);
 
 // Pagination range
 const range: (number | '...')[] = [];
@@ -60,8 +61,8 @@ for (let i = 1; i <= totalPages; i++) {
       <div class="browse-header">
         <div>
           <h1>Browse all articles</h1>
-          <p class="browse-meta">
-            Showing {start + 1}&ndash;{Math.min(start + perPage, articles.length)} of {articles.length.toLocaleString()}
+          <p class="browse-count" aria-live="polite" aria-atomic="true">
+            Showing {start + 1}&ndash;{showingEnd} of {articles.length.toLocaleString()}
           </p>
         </div>
         <a href="/library/#search" class="btn btn--secondary btn--sm">Search</a>
@@ -89,6 +90,19 @@ for (let i = 1; i <= totalPages; i++) {
         {currentPage < totalPages && (
           <a href={`/library/page/${currentPage + 1}/`}>Next &raquo;</a>
         )}
+        <form class="pagination__jump" action="" method="get" aria-label="Jump to page">
+          <label for="page-jump-shell" class="sr-only">Go to page</label>
+          <input
+            id="page-jump-shell"
+            class="pagination__jump-input"
+            type="number"
+            min="1"
+            max={totalPages}
+            value={currentPage}
+            aria-label={`Go to page, 1 through ${totalPages}`}
+          />
+          <button class="pagination__jump-btn" type="submit">Go</button>
+        </form>
       </nav>
     </div>
   </section>
@@ -106,8 +120,8 @@ for (let i = 1; i <= totalPages; i++) {
       <div class="browse-header">
         <div>
           <h1>Browse all articles</h1>
-          <p class="browse-meta">
-            Showing {start + 1}&ndash;{Math.min(start + perPage, articles.length)} of {articles.length.toLocaleString()}
+          <p class="browse-count" aria-live="polite" aria-atomic="true">
+            Showing {start + 1}&ndash;{showingEnd} of {articles.length.toLocaleString()}
           </p>
         </div>
         <a href="/library/#search" class="btn btn--secondary btn--sm">Search</a>
@@ -135,6 +149,19 @@ for (let i = 1; i <= totalPages; i++) {
         {currentPage < totalPages && (
           <a href={`/library/page/${currentPage + 1}/`}>Next &raquo;</a>
         )}
+        <form class="pagination__jump" action="" method="get" aria-label="Jump to page">
+          <label for="page-jump" class="sr-only">Go to page</label>
+          <input
+            id="page-jump"
+            class="pagination__jump-input"
+            type="number"
+            min="1"
+            max={totalPages}
+            value={currentPage}
+            aria-label={`Go to page, 1 through ${totalPages}`}
+          />
+          <button class="pagination__jump-btn" type="submit">Go</button>
+        </form>
       </nav>
     </div>
   </section>
@@ -145,6 +172,15 @@ for (let i = 1; i <= totalPages; i++) {
 <style>
   h1 {
     margin-bottom: var(--space-1);
+  }
+
+  /* Prominent count — replaces the demure .browse-meta */
+  .browse-count {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: var(--space-1) 0 0;
+    letter-spacing: -0.01em;
   }
 
   /* Browse list — two-column card grid replacing the old compact flat list */
@@ -160,4 +196,96 @@ for (let i = 1; i <= totalPages; i++) {
       gap: var(--space-6);
     }
   }
+
+  /* Jump-to-page form inside pagination nav */
+  .pagination__jump {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: var(--space-3);
+  }
+
+  .pagination__jump-input {
+    width: 56px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0 var(--space-2);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    font-family: inherit;
+    color: var(--text-primary);
+    background: var(--bg-surface);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-pill);
+    text-align: center;
+    appearance: textfield;
+    -moz-appearance: textfield;
+    transition: border-color 0.15s;
+  }
+
+  .pagination__jump-input::-webkit-outer-spin-button,
+  .pagination__jump-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .pagination__jump-input:focus {
+    outline: 2px solid var(--purple-300);
+    outline-offset: 1px;
+    border-color: var(--purple-300);
+  }
+
+  .pagination__jump-btn {
+    height: 44px;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0 var(--space-3);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    font-family: inherit;
+    color: var(--white);
+    background: var(--purple-700);
+    border: 1px solid var(--purple-700);
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .pagination__jump-btn:hover {
+    background: var(--purple-800, var(--purple-700));
+    border-color: var(--purple-800, var(--purple-700));
+  }
+
+  .pagination__jump-btn:focus {
+    outline: 2px solid var(--purple-300);
+    outline-offset: 1px;
+  }
+
+  @media (max-width: 480px) {
+    .pagination__jump {
+      margin-left: 0;
+      margin-top: var(--space-3);
+      width: 100%;
+      justify-content: center;
+    }
+  }
 </style>
+
+<script is:inline>
+  // Jump-to-page: intercept form submit, validate range, navigate.
+  (function () {
+    var forms = document.querySelectorAll('.pagination__jump');
+    var totalPages = parseInt(document.querySelector('.pagination__jump-input')?.getAttribute('max') || '1', 10);
+    forms.forEach(function (form) {
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var input = form.querySelector('.pagination__jump-input');
+        if (!input) return;
+        var val = parseInt(input.value, 10);
+        if (isNaN(val) || val < 1) val = 1;
+        if (val > totalPages) val = totalPages;
+        window.location.href = '/library/page/' + val + '/';
+      });
+    });
+  })();
+</script>
