@@ -20,10 +20,13 @@ import { ImageResponse } from 'workers-og';
 import ogIndex from '../../src/data/og-index.json';
 
 // Brand tokens (matches scripts/og-template.js exactly)
-const BG       = '#f7f5f3';
-const TITLE_C  = '#313131';
-const DESC_C   = '#636261';
-const BRAND_C  = '#725e7e';
+const BG          = '#f7f5f3';
+const TITLE_C     = '#313131';
+const DESC_C      = '#636261';
+const BRAND_C     = '#725e7e'; // --purple-700
+const BRAND_DEEP  = '#4c3e54'; // --purple-900
+const BRAND_TINT  = '#e8ddef'; // --purple-100
+const ON_BRAND_C  = '#f7f5f3'; // wordmark on purple band
 
 // Fallback card copy (shown for unknown slugs and all error paths)
 const FALLBACK = {
@@ -34,6 +37,7 @@ const FALLBACK = {
 // Font CDN URLs. These are fetched once, CF-edge-cached for 1 year.
 const CORMORANT_600_URL = 'https://cdn.jsdelivr.net/npm/@fontsource/cormorant-garamond@5.1.1/files/cormorant-garamond-latin-600-normal.woff';
 const INTER_400_URL     = 'https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.1/files/inter-latin-400-normal.woff';
+const INTER_500_URL     = 'https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.1/files/inter-latin-500-normal.woff';
 
 // Codepoint-aware string clamp (B5: UTF-16 surrogate safety)
 function clamp(s, max) {
@@ -126,12 +130,10 @@ function buildTree(title, description) {
         backgroundColor: BG,
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'space-between',
-        padding: '60px',
         fontFamily: 'Cormorant Garamond',
       },
       children: [
-        // Title + description area
+        // Title + description area (cream, padded)
         {
           type: 'div',
           props: {
@@ -140,41 +142,35 @@ function buildTree(title, description) {
               flexDirection: 'column',
               flexGrow: 1,
               justifyContent: 'center',
+              padding: '60px',
               overflow: 'hidden',
             },
             children: titleAreaChildren,
           },
         },
-        // Purple divider (2px, full width)
+        // Brand band: 156px gradient (purple-700 -> purple-900), full-bleed.
+        // backgroundImage form is what satori accepts for gradients.
         {
           type: 'div',
           props: {
             style: {
               display: 'flex',
-              width: '100%',
-              height: '2px',
+              width: '1200px',
+              height: '156px',
               backgroundColor: BRAND_C,
-              marginBottom: '20px',
-            },
-          },
-        },
-        // Footer: "RRM Academy" left + "rrmacademy.org" right
-        {
-          type: 'div',
-          props: {
-            style: {
-              display: 'flex',
-              justifyContent: 'space-between',
+              backgroundImage: `linear-gradient(180deg, ${BRAND_C} 0%, ${BRAND_DEEP} 100%)`,
+              padding: '0 60px',
               alignItems: 'center',
+              justifyContent: 'space-between',
             },
             children: [
               {
                 type: 'span',
                 props: {
                   style: {
-                    fontSize: '30px',
+                    fontSize: '44px',
                     fontWeight: 600,
-                    color: BRAND_C,
+                    color: ON_BRAND_C,
                     fontFamily: 'Cormorant Garamond',
                   },
                   children: 'RRM Academy',
@@ -184,9 +180,10 @@ function buildTree(title, description) {
                 type: 'span',
                 props: {
                   style: {
-                    fontSize: '22px',
-                    fontWeight: 400,
-                    color: BRAND_C,
+                    fontSize: '24px',
+                    fontWeight: 500,
+                    color: BRAND_TINT,
+                    letterSpacing: '0.04em',
                     fontFamily: 'Inter',
                   },
                   children: 'rrmacademy.org',
@@ -277,17 +274,21 @@ async function renderCard(env, title, description, statusLabel, start) {
     // Load fonts in parallel; per-font .catch(() => null) so one CDN 503
     // never kills the whole response. Satori uses its internal Roboto fallback
     // for any null entry -- this removes the hard failure mode entirely (B4).
-    const [cormorantData, interData] = await Promise.all([
+    const [cormorantData, inter400Data, inter500Data] = await Promise.all([
       loadFont(CORMORANT_600_URL),
       loadFont(INTER_400_URL),
+      loadFont(INTER_500_URL),
     ]);
 
     const fonts = [];
     if (cormorantData) {
       fonts.push({ name: 'Cormorant Garamond', data: cormorantData, weight: 600, style: 'normal' });
     }
-    if (interData) {
-      fonts.push({ name: 'Inter', data: interData, weight: 400, style: 'normal' });
+    if (inter400Data) {
+      fonts.push({ name: 'Inter', data: inter400Data, weight: 400, style: 'normal' });
+    }
+    if (inter500Data) {
+      fonts.push({ name: 'Inter', data: inter500Data, weight: 500, style: 'normal' });
     }
 
     const tree = buildTree(title, description);
