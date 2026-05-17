@@ -1946,6 +1946,12 @@ blockquote cite {
   }
 }
 
+@media (max-width: 1023px) {
+  .section-toc {
+    display: none;
+  }
+}
+
 .toc-mobile summary {
   font-size: 0.875rem;
   font-weight: 500;
