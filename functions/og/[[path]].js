@@ -23,10 +23,9 @@ import ogIndex from '../../src/data/og-index.json';
 const BG          = '#f7f5f3';
 const TITLE_C     = '#313131';
 const DESC_C      = '#636261';
-const BRAND_C     = '#725e7e'; // --purple-700
-const BRAND_DEEP  = '#4c3e54'; // --purple-900
-const BRAND_TINT  = '#e8ddef'; // --purple-100
-const ON_BRAND_C  = '#f7f5f3'; // wordmark on purple band
+const BRAND_C     = '#725e7e'; // --purple-700, solid brand band
+const BRAND_TINT  = '#e8ddef'; // --purple-100, URL text on band
+const ON_BRAND_C  = '#f7f5f3'; // wordmark on band
 
 // Fallback card copy (shown for unknown slugs and all error paths)
 const FALLBACK = {
@@ -148,17 +147,15 @@ function buildTree(title, description) {
             children: titleAreaChildren,
           },
         },
-        // Brand band: 156px gradient (purple-700 -> purple-900), full-bleed.
-        // backgroundImage form is what satori accepts for gradients.
+        // Brand band: 132px solid --purple-700, full-bleed.
         {
           type: 'div',
           props: {
             style: {
               display: 'flex',
               width: '1200px',
-              height: '156px',
+              height: '132px',
               backgroundColor: BRAND_C,
-              backgroundImage: `linear-gradient(180deg, ${BRAND_C} 0%, ${BRAND_DEEP} 100%)`,
               padding: '0 60px',
               alignItems: 'center',
               justifyContent: 'space-between',
