@@ -55,6 +55,15 @@ const {
   showFreeFullText,
 } = Astro.props;
 
+// Allows only http(s), mailto, absolute paths, and fragment anchors.
+// Blocks javascript:, data:, vbscript:, and other dangerous schemes.
+function safeHref(url: string | null | undefined): string {
+  if (!url) return '#';
+  const t = url.trim();
+  if (/^(https?:|mailto:|\/|#)/i.test(t)) return t;
+  return '#';
+}
+
 function orcidUrl(orcid: string | null | undefined): string | null {
   if (!orcid) return null;
   const clean = String(orcid).trim();
@@ -72,20 +81,24 @@ const restRecords = useStructuredAuthors ? authorRecords.slice(headCount) : [];
 const hasRest = useStructuredAuthors && restRecords.length > 0;
 
 // Read-at-source URL: prefer free full text > publisher source > DOI > PubMed.
+// Each candidate is passed through safeHref to block javascript: / data: schemes.
 let readUrl: string | null = null;
 let readLabel = 'Read at source';
 if (showFreeFullText && article.oaUrl) {
-  readUrl = article.oaUrl;
-  readLabel = 'Read free full text';
-} else if (showSourceLink && article.sourceUrl) {
-  readUrl = article.sourceUrl;
-  readLabel = 'Read at source';
-} else if (doiUrl) {
-  readUrl = doiUrl;
-  readLabel = 'Read at publisher';
-} else if (pubmedUrl) {
-  readUrl = pubmedUrl;
-  readLabel = 'Read on PubMed';
+  const safe = safeHref(article.oaUrl);
+  if (safe !== '#') { readUrl = safe; readLabel = 'Read free full text'; }
+}
+if (!readUrl && showSourceLink && article.sourceUrl) {
+  const safe = safeHref(article.sourceUrl);
+  if (safe !== '#') { readUrl = safe; readLabel = 'Read at source'; }
+}
+if (!readUrl && doiUrl) {
+  const safe = safeHref(doiUrl);
+  if (safe !== '#') { readUrl = safe; readLabel = 'Read at publisher'; }
+}
+if (!readUrl && pubmedUrl) {
+  const safe = safeHref(pubmedUrl);
+  if (safe !== '#') { readUrl = safe; readLabel = 'Read on PubMed'; }
 }
 
 // Access state — closed lock for restricted, open lock + amber for open / free.

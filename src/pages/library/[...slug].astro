@@ -98,6 +98,37 @@ const metaDescription = article.abstract
 const doiUrl = article.doi ? `https://doi.org/${article.doi}` : '';
 const pubmedUrl = article.pmid ? `https://pubmed.ncbi.nlm.nih.gov/${article.pmid}/` : '';
 
+// Allows only known-safe schemes; blocks javascript:, data:, vbscript:, etc.
+function safeHref(url: string | null | undefined): string {
+  if (!url) return '#';
+  const t = url.trim();
+  if (/^(https?:|mailto:|\/|#)/i.test(t)) return t;
+  return '#';
+}
+
+// Read-at-source URL mirror of ArticleHero resolver — surfaces a primary CTA in
+// the abstract section when no abstract is available.
+const _showSourceLinkForCta = article.sourceUrl && (!article.doi || article.sourceUrl !== doiUrl);
+const _showFreeFullTextForCta = article.oaUrl && article.oaUrl !== article.sourceUrl && article.oaUrl !== doiUrl;
+let abstractCtaUrl: string | null = null;
+let abstractCtaLabel = 'Read at source';
+if (_showFreeFullTextForCta && article.oaUrl) {
+  abstractCtaUrl = safeHref(article.oaUrl);
+  abstractCtaLabel = 'Read free full text';
+} else if (_showSourceLinkForCta && article.sourceUrl) {
+  abstractCtaUrl = safeHref(article.sourceUrl);
+  abstractCtaLabel = 'Read at source';
+} else if (doiUrl) {
+  abstractCtaUrl = safeHref(doiUrl);
+  abstractCtaLabel = 'Read at publisher';
+} else if (pubmedUrl) {
+  abstractCtaUrl = safeHref(pubmedUrl);
+  abstractCtaLabel = 'Read on PubMed';
+}
+
+const hasAbstract = renderedAbstractSections.length > 0;
+const hasPublisherUrl = Boolean(abstractCtaUrl && abstractCtaUrl !== '#');
+
 // Schema.org JSON-LD — delegated to buildMedicalScholarlyArticle (Phase 7).
 // Helpers below (orcidUrl, nameKey, dedupeAuthorRecords, cleanAffiliationName,
 // uniqueAffiliations) remain because the visible markup still depends on them.
@@ -327,21 +358,33 @@ const citationMeta = {
       )}
 
       <!-- Abstract -->
-      <section class="abstract" aria-label="Abstract">
-        <h2 class="detail-heading">Abstract</h2>
-        {renderedAbstractSections.length === 0 ? (
-          <p class="abstract-empty">No abstract available for this article.</p>
-        ) : (
-          renderedAbstractSections.map(section => (
+      {hasAbstract ? (
+        <section class="abstract" aria-label="Abstract">
+          <h2 class="detail-heading">Abstract</h2>
+          {renderedAbstractSections.map(section => (
             <div class="abstract-section">
               {section.heading && (
                 <span class="abstract-heading">{section.heading}</span>
               )}
               <Fragment set:html={section.html} />
             </div>
-          ))
-        )}
-      </section>
+          ))}
+        </section>
+      ) : hasPublisherUrl ? (
+        <section class="abstract abstract--no-text" aria-label="Abstract">
+          <p class="abstract-fulltext-cta">
+            Abstract not indexed.
+            <a class="abstract-fulltext-link" href={abstractCtaUrl!} target="_blank" rel="noopener" data-track-out data-track-label="article-abstract-cta">
+              {abstractCtaLabel}
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
+            </a>
+          </p>
+        </section>
+      ) : (
+        <section class="abstract abstract--no-text" aria-label="Abstract">
+          <p class="abstract-backfill-note">Citation backfill pending.</p>
+        </section>
+      )}
 
       <!-- Topics -->
       {article.topics.length > 0 && (
@@ -463,21 +506,33 @@ const citationMeta = {
       )}
 
       <!-- Abstract -->
-      <section class="abstract" aria-label="Abstract">
-        <h2 class="detail-heading">Abstract</h2>
-        {renderedAbstractSections.length === 0 ? (
-          <p class="abstract-empty">No abstract available for this article.</p>
-        ) : (
-          renderedAbstractSections.map(section => (
+      {hasAbstract ? (
+        <section class="abstract" aria-label="Abstract">
+          <h2 class="detail-heading">Abstract</h2>
+          {renderedAbstractSections.map(section => (
             <div class="abstract-section">
               {section.heading && (
                 <span class="abstract-heading">{section.heading}</span>
               )}
               <Fragment set:html={section.html} />
             </div>
-          ))
-        )}
-      </section>
+          ))}
+        </section>
+      ) : hasPublisherUrl ? (
+        <section class="abstract abstract--no-text" aria-label="Abstract">
+          <p class="abstract-fulltext-cta">
+            Abstract not indexed.
+            <a class="abstract-fulltext-link" href={abstractCtaUrl!} target="_blank" rel="noopener" data-track-out data-track-label="article-abstract-cta">
+              {abstractCtaLabel}
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
+            </a>
+          </p>
+        </section>
+      ) : (
+        <section class="abstract abstract--no-text" aria-label="Abstract">
+          <p class="abstract-backfill-note">Citation backfill pending.</p>
+        </section>
+      )}
 
       <!-- Topics -->
       {article.topics.length > 0 && (
@@ -710,10 +765,37 @@ const citationMeta = {
     padding: var(--space-6) 0 0 0;
     margin-bottom: var(--space-8);
   }
-  .abstract-empty {
-    color: var(--neutral-500);
-    font-style: italic;
+  .abstract--no-text {
+    padding: var(--space-4) 0 0;
+    margin-bottom: var(--space-6);
+  }
+  .abstract-fulltext-cta {
+    margin: 0;
     font-size: 0.875rem;
+    color: var(--neutral-500);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .abstract-fulltext-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    color: var(--accent);
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .abstract-fulltext-link:hover {
+    color: var(--purple-900, var(--accent));
+    text-decoration: underline;
+  }
+  .abstract-backfill-note {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--neutral-400);
+    font-style: italic;
   }
   .abstract-section :global(p) {
     margin: 0 0 var(--space-3) 0;
