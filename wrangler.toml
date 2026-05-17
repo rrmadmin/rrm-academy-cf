@@ -8,6 +8,14 @@ name = "rrm-academy"
 pages_build_output_dir = "dist"
 compatibility_date = "2025-01-01"
 
+# Workers Logs (CF Observability) -- captures every Pages Function invocation
+# with console.log output + request metadata. Queryable via dashboard or
+# /accounts/{id}/workers/observability/telemetry/query. Requires paid Workers plan.
+# Free tier: 5M invocations/month. Retention: 7 days.
+[observability]
+enabled = true
+head_sampling_rate = 1.0
+
 [[kv_namespaces]]
 binding = "SURVEY_TOKENS"
 id = "ef52bc09f1b44b5f8e3367372be8d63d"
