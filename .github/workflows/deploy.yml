@@ -452,10 +452,10 @@ jobs:
           fi
 
       - name: Lint CF Pages _headers
-        uses: rrmadmin/.github/.github/actions/lint-cf-headers@main
-        with:
-          headers-path: dist/_headers
-          tools-token: ${{ secrets.GH_TOOLS_PAT }}
+        # Vendored from rrmadmin/rrm-tools to remove PAT dependency. Re-sync with
+        # `cp ~/iCode/tools/lint-cf-headers/lint.sh scripts/lint-cf-headers.sh`
+        # when the canonical script changes.
+        run: bash scripts/lint-cf-headers.sh dist/_headers
 
       - name: Deploy to Cloudflare Pages
         id: deploy
