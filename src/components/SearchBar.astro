@@ -558,7 +558,7 @@ import { track } from '../scripts/track.ts';
     var q = input.value.trim();
     clearBtn.classList.toggle('hidden', !q);
     clearTimeout(debounceTimer);
-    if (!q) {
+    if (!q || q.length < 2) {
       stopLoadingSpinner();
       resultsEl.innerHTML = '';
       preloadedData = [];
