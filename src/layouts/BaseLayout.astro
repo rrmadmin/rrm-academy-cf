@@ -112,22 +112,12 @@ function routeToOgSlug(pathname) {
   return pathname.replace(/^\/|\/$/g, '').replace(/\//g, '-');
 }
 const ogSlug = routeToOgSlug(Astro.url.pathname);
-// Slugs that have a hand-designed PNG at /public/images/og/og-<slug>.png.
-// Mirrors files in that directory -- adding a new PNG without listing it here
-// just degrades to the satori-rendered card (graceful, not a build failure).
-// To regenerate: `ls public/images/og/og-*.png | sed -E 's|.*/og-(.+)\.png|"\1",|'`.
-const STATIC_OG_SLUGS = new Set([
-  '404', 'about', 'ask', 'commentary', 'common-questions-about-rrm',
-  'community', 'community-events', 'community-members', 'contact', 'courses',
-  'donate', 'donate-thank-you', 'endo-survey', 'endo-survey-take', 'faqs',
-  'guides', 'homepage', 'ivf-success-calculator', 'library',
-  'medical-disclaimer', 'naprotechnology', 'partners', 'partners-apply',
-  'privacy-policy', 'save-the-uterus-club', 'save-the-uterus-club-thank-you',
-  'terms-of-use', 'what-is-rrm',
-]);
-const conventionOgPath = STATIC_OG_SLUGS.has(ogSlug)
-  ? `/images/og/og-${ogSlug}.png?v=${OG_VERSION}`
-  : `/og/${ogSlug}.png?v=${OG_VERSION}`;
+// Every page emits the dynamic satori-rendered card at /og/<slug>.png. The old
+// /images/og/og-<slug>.png static branch was removed 2026-05-16: those PNGs
+// were gitignored, the build step that generated them was deleted, and
+// production was 404ing every main-page OG URL once OG_VERSION cache-busted.
+// Unknown slugs gracefully fall back to the branded card inside the function.
+const conventionOgPath = `/og/${ogSlug}.png?v=${OG_VERSION}`;
 // RSS autodiscovery: surface the right feed when the page lives under a feed-bearing section.
 const rssFeed = (() => {
   const p = Astro.url.pathname;
