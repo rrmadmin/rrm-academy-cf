@@ -15,6 +15,40 @@ import { buildSourceParams, getClientId } from './api/_ga4-source.js';
 const GA4_ENDPOINT = 'https://www.google-analytics.com/mp/collect';
 const ARRIVL_ENDPOINT = 'https://arrivl.ai/api/v1/intake/pageview';
 
+const AI_BOTS = [
+  { name: 'GPTBot',              pattern: 'gptbot' },
+  { name: 'OAI-SearchBot',       pattern: 'oai-searchbot' },
+  { name: 'ChatGPT-User',        pattern: 'chatgpt-user' },
+  { name: 'ClaudeBot',           pattern: 'claudebot' },
+  { name: 'Claude-User',         pattern: 'claude-user' },
+  { name: 'Claude-SearchBot',    pattern: 'claude-searchbot' },
+  { name: 'anthropic-ai',        pattern: 'anthropic-ai' },
+  { name: 'PerplexityBot',       pattern: 'perplexitybot' },
+  { name: 'Perplexity-User',     pattern: 'perplexity-user' },
+  { name: 'Google-Extended',     pattern: 'google-extended' },
+  { name: 'GoogleOther',         pattern: 'googleother' },
+  { name: 'Applebot-Extended',   pattern: 'applebot-extended' },
+  { name: 'Bytespider',          pattern: 'bytespider' },
+  { name: 'CCBot',               pattern: 'ccbot' },
+  { name: 'cohere-ai',           pattern: 'cohere-ai' },
+  { name: 'FacebookBot',         pattern: 'facebookbot' },
+  { name: 'Meta-ExternalAgent',  pattern: 'meta-externalagent' },
+  { name: 'DuckAssistBot',       pattern: 'duckassistbot' },
+  { name: 'YouBot',              pattern: 'youbot' },
+  { name: 'MistralAI-User',      pattern: 'mistralai-user' },
+  { name: 'Diffbot',             pattern: 'diffbot' },
+  { name: 'PetalBot',            pattern: 'petalbot' },
+];
+
+function detectAiBot(userAgent) {
+  if (!userAgent) return null;
+  const ua = userAgent.toLowerCase();
+  for (const bot of AI_BOTS) {
+    if (ua.includes(bot.pattern)) return bot.name;
+  }
+  return null;
+}
+
 const CSP_VALUE = "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://challenges.cloudflare.com https://embed.cloudflarestream.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; font-src 'self'; connect-src 'self' https://challenges.cloudflare.com https://cloudflareinsights.com; frame-src https://challenges.cloudflare.com https://customer-99owhsi4yh33gohc.cloudflarestream.com; object-src 'none'; base-uri 'self'; form-action 'self'";
 
 /**
@@ -49,6 +83,7 @@ async function sendPageView(request, env) {
   if (!env.GA4_MEASUREMENT_ID || !env.GA4_API_SECRET) return;
 
   const url = new URL(request.url);
+  if (url.hostname === 'library.rrmacademy.org') return;
 
   // Only fire for HTML page requests -- skip API routes and assets
   if (url.pathname.startsWith('/api/')) return;
@@ -101,6 +136,7 @@ async function sendArrivlPageview(request, env) {
   if (!env.ARRIVL_WEBSITE_KEY) return;
 
   const url = new URL(request.url);
+  if (url.hostname === 'library.rrmacademy.org') return;
   if (url.pathname.startsWith('/api/')) return;
   const accept = request.headers.get('Accept') || '';
   if (!accept.includes('text/html')) return;
@@ -118,6 +154,52 @@ async function sendArrivlPageview(request, env) {
 
   try {
     await fetch(`${ARRIVL_ENDPOINT}?${params}`, { method: 'GET' });
+  } catch {
+    // Silent -- never let analytics failures affect the user
+  }
+}
+
+/**
+ * Fires an Analytics Engine data point when an AI bot crawls an HTML page.
+ * Called with ctx.waitUntil() so it never blocks the response.
+ */
+async function sendAiBotEvent(request, env) {
+  const ua = request.headers.get('User-Agent') || '';
+  const botName = detectAiBot(ua);
+  if (!botName) return;
+
+  const url = new URL(request.url);
+  if (url.hostname === 'library.rrmacademy.org') return;
+  if (url.pathname === '/api' || url.pathname.startsWith('/api/')) return;
+  if (url.pathname === '/cdn-cgi' || url.pathname.startsWith('/cdn-cgi/')) return;
+  if (url.pathname === '/og' || url.pathname.startsWith('/og/')) return;
+  const isHighSignalCrawl = (
+    url.pathname === '/robots.txt' ||
+    url.pathname === '/sitemap.xml' ||
+    url.pathname.startsWith('/sitemap-')
+  );
+  if (!isHighSignalCrawl && /\.[a-z0-9]{1,10}$/i.test(url.pathname)) return;
+
+  const lowerPath = url.pathname.toLowerCase();
+  if (
+    lowerPath === '/account' || lowerPath.startsWith('/account/') ||
+    lowerPath === '/community' || lowerPath.startsWith('/community/') ||
+    lowerPath === '/ask' || lowerPath.startsWith('/ask/') ||
+    lowerPath.startsWith('/save-the-uterus-club/migrate')
+  ) return;
+
+  try {
+    env.EVENTS?.writeDataPoint({
+      blobs: [
+        'ai-bot',
+        botName,
+        url.pathname.slice(0, 256),
+        request.cf?.country || 'XX',
+        (request.headers.get('Referer') || '').slice(0, 1024),
+      ],
+      doubles: [1],
+      indexes: [botName],
+    });
   } catch {
     // Silent -- never let analytics failures affect the user
   }
@@ -166,6 +248,15 @@ export async function onRequest(context) {
     }));
   }
 
+  // Fire GA4, Arrivl, and AI-bot analytics asynchronously -- does not block the response.
+  context.waitUntil(
+    Promise.all([
+      sendPageView(request, env).catch(() => {}),
+      sendArrivlPageview(request, env).catch(() => {}),
+      sendAiBotEvent(request, env).catch(() => {}),
+    ])
+  );
+
   // Universal trailing-slash redirect for HTML pages.
   // CF Pages _headers /* rule corrupts ALL 3xx responses (static, _redirects,
   // AND function returns) into 200 with empty/mangled body. The only reliable
@@ -187,14 +278,6 @@ export async function onRequest(context) {
       headers: { Location: target, 'Content-Type': 'text/html;charset=UTF-8' },
     }));
   }
-
-  // Fire GA4 and Arrivl analytics asynchronously -- does not block the response.
-  context.waitUntil(
-    Promise.all([
-      sendPageView(request, env).catch(() => {}),
-      sendArrivlPageview(request, env).catch(() => {}),
-    ])
-  );
 
   // 301 redirect: library.rrmacademy.org -> rrmacademy.org/library
   if (url.hostname === 'library.rrmacademy.org') {
