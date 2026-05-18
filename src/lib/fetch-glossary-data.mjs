@@ -145,11 +145,12 @@ async function fetchAll() {
   references.sort((a, b) => (a.refNum ?? 0) - (b.refNum ?? 0));
   abbreviations.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
 
-  // Merge layered-defs overrides (mirrors courses-overrides.json pattern).
-  // Each entry: { slug, definitionSources: [{...}] }. Pre-D1-schema staging:
-  // sources live in a JSON file until glossary_definition_source table is
-  // populated + the API endpoint LEFT JOINs it. After that, the API itself
-  // returns definitionSources and this overrides file becomes redundant.
+  // API returns definitionSources from the glossary_definition_source D1 table
+  // (loaded 2026-05-18 via scripts/glossary/bulk-load-sources.mjs). The local
+  // overrides file remains as a fallback for terms where the bulk loader had
+  // no authority match — currently populated for `endometriosis` only as the
+  // original layered-defs pilot. The override only applies when the API
+  // returned an empty array for that slug; non-empty API responses always win.
   const overridesPath = join(__dirname, '..', 'data', 'glossary-sources-overrides.json');
   if (existsSync(overridesPath)) {
     try {
@@ -158,15 +159,16 @@ async function fetchAll() {
       const bySlug = new Map((overrides?.entries ?? []).map(o => [o.slug, o.definitionSources ?? []]));
       let merged = 0;
       for (const t of terms) {
-        const sources = bySlug.get(t.slug);
-        if (sources && sources.length > 0) {
-          t.definitionSources = sources;
+        const apiSources = Array.isArray(t.definitionSources) ? t.definitionSources : [];
+        if (apiSources.length > 0) continue;
+        const fallback = bySlug.get(t.slug);
+        if (fallback && fallback.length > 0) {
+          t.definitionSources = fallback;
           merged++;
         }
       }
-      if (merged > 0) {
-        console.log(`Merged definitionSources from overrides into ${merged} term(s)`);
-      }
+      const withSources = terms.filter(t => Array.isArray(t.definitionSources) && t.definitionSources.length > 0).length;
+      console.log(`definitionSources: ${withSources} of ${terms.length} terms (${merged} via overrides fallback)`);
     } catch (e) {
       console.warn(`WARN: glossary-sources-overrides.json failed to load: ${e?.message ?? e}`);
     }
