@@ -440,6 +440,29 @@ Middleware: `functions/_middleware.js` (session injection, CORS, auth gating)
 
 All transactional email uses **AWS SES** via `functions/api/_ses.js` (aws4fetch). Sends from `@mail.rrmacademy.org` subdomain (isolates transactional reputation from root domain). DKIM, SPF, DMARC, and custom MAIL FROM (`bounce.mail.rrmacademy.org`) all configured. Required env vars: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SES_REGION`.
 
+## Auth-Hint Cookie (`rrm_auth=1`)
+
+Companion to the HttpOnly `session` cookie. **No PII, no session ID** — just a JS-readable flag signaling "this browser has an active session" so client code can skip `/api/auth/session` and `/api/community/status` for anonymous visitors (the majority of traffic). Added 2026-05-18 to fix PSI's 2,486 ms critical-path delay caused by anonymous visitors firing auth fetches that always returned "no session".
+
+**Helpers** in `functions/api/auth/_shared.js`:
+- `authHintCookie(expiresAt)` — issued alongside `sessionCookie()` every time a session is minted
+- `clearAuthHintCookie()` — issued alongside `clearSessionCookie()` on logout + on server-side drift recovery
+
+**Issuers** (must always pair-issue session + hint): `login.js`, `signup.js` (real + anti-enumeration fake paths), `google-callback.js`, `reset-password.js`, `change-password.js`, `verify-email.js`, `resend-verification.js`, `profile.js` (on session renew), `session.js` (on session renew), `_middleware.js` (on session renew + on invalid-session redirect).
+
+**Drift recovery:** `session.js` and `community/status.js` check for a stale hint cookie when validateSession returns null and append `clearAuthHintCookie()` to the response. Self-healing — JS stops paying for auth fetches it doesn't need within one request.
+
+**`json()` helper change:** `_shared.js` `json(data, status, headers)` now accepts arrays for `Set-Cookie` so endpoints can emit both cookies in one response: `{ 'Set-Cookie': [sessionCookie(...), authHintCookie(...)] }`. Backward-compatible — string values still work.
+
+**Client-side consumers** (read the cookie, skip fetches if absent):
+- `src/components/Header.astro` (hasAuthHint pattern at top of script block; saved-articles-badge sync block)
+- `src/components/Footer.astro` (community link decoration)
+- `src/pages/courses/[slug].astro` (membership check before showing member CTAs)
+
+**Anti-enumeration:** signup.js's fake-session paths issue a fake hint cookie too so a probing client can't distinguish real vs fake signup state via `document.cookie`.
+
+**Rule:** When adding any new code path that creates a session, pair-issue both cookies. When adding any new code path that observes "no session" but received a hint cookie in the request, clear the hint via `clearAuthHintCookie()`.
+
 ## Email Validation (ELV)
 
 **EmailListVerify** provides SMTP-level mailbox verification. Shared helper: `functions/api/_elv.js`.
