@@ -51,7 +51,19 @@ export async function onRequestGet(context) {
         return json({ ok: false, error: 'not_found' }, 404);
       }
 
-      return json({ ok: true, data: mapTerm(row) });
+      let termSources = [];
+      try {
+        const { results: srcRows } = await env.DB.prepare(
+          "SELECT * FROM glossary_definition_source WHERE term_id = ? AND status = 'published' AND visibility = 'public' AND source_key != 'boyle_archive' ORDER BY sort_order ASC"
+        ).bind(id).all();
+        termSources = (srcRows || []).map(mapDefinitionSource);
+      } catch (srcErr) {
+        log(env, waitUntil, 'glossary', 'sources_error', 'error', srcErr.message, 0, 0);
+      }
+
+      const term = mapTerm(row);
+      term.definitionSources = termSources;
+      return json({ ok: true, data: term });
     } catch (err) {
       log(env, waitUntil, 'glossary', 'get_error', 'error', err.message, 0, 500);
       return json({ ok: false, error: 'Internal error' }, 500);
@@ -88,10 +100,26 @@ export async function onRequestGet(context) {
       ).all(),
     ]);
 
+    let sourcesByTermId = {};
+    try {
+      const { results: allSources } = await env.DB.prepare(
+        "SELECT * FROM glossary_definition_source WHERE status = 'published' AND visibility = 'public' AND source_key != 'boyle_archive' ORDER BY term_id, sort_order ASC"
+      ).all();
+      sourcesByTermId = groupById(allSources || [], 'term_id');
+    } catch (srcErr) {
+      log(env, waitUntil, 'glossary', 'sources_error', 'error', srcErr.message, 0, 0);
+    }
+
+    const mappedTerms = (terms || []).map(r => {
+      const term = mapTerm(r);
+      term.definitionSources = (sourcesByTermId[r.id] || []).map(mapDefinitionSource);
+      return term;
+    });
+
     return json({
       ok: true,
       results: {
-        terms: (terms || []).map(mapTerm),
+        terms: mappedTerms,
         references: (refs || []).map(mapReference),
         abbreviations: (abbrs || []).map(mapAbbreviation),
       },
@@ -141,5 +169,27 @@ function mapAbbreviation(r) {
     fullTerm: r.full_term,
     termSlug: r.term_slug,
     sortOrder: r.sort_order,
+  };
+}
+
+function groupById(rows, key) {
+  const map = {};
+  for (const row of rows) {
+    const k = row[key];
+    if (!map[k]) map[k] = [];
+    map[k].push(row);
+  }
+  return map;
+}
+
+function mapDefinitionSource(r) {
+  return {
+    sourceKey: r.source_key,
+    sourceLabel: r.source_label,
+    sourceUrl: r.source_url,
+    code: r.code,
+    definitionText: r.definition_text,
+    isVerbatim: r.is_verbatim === 1,
+    attribution: r.attribution,
   };
 }
