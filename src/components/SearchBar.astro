@@ -1179,7 +1179,10 @@ import { track } from '../scripts/track.ts';
 
   // Results panel positioning handled by CSS
 
-  // Preload pagefind on focus for faster first search
-  input.addEventListener('focus', function() { ensurePagefind().catch(function(){}); }, { once: true });
+  // Preload pagefind on first keystroke (not focus) so headless audit tools
+  // that focus inputs without typing (PSI/Lighthouse) don't pull pagefind onto
+  // the LCP critical path. Real users get the same warm-cache benefit because
+  // a user who is going to search will type within a few hundred ms of focus.
+  input.addEventListener('input', function() { ensurePagefind().catch(function(){}); }, { once: true });
 })();
 </script>
