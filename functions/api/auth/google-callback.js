@@ -9,7 +9,7 @@
  *   3. no match                      -> create new account, log in (brand new user)
  */
 import {
-  generateId, createSession, sessionCookie,
+  generateId, createSession, sessionCookie, authHintCookie,
   exchangeGoogleCode, getGoogleProfile, isSafeRedirect, SITE_URL,
   waitlistBackfillStatement, deriveSignupSource, checkRateLimit,
 } from './_shared.js';
@@ -294,9 +294,10 @@ export async function onRequestGet({ request, env, waitUntil }) {
     // Create session (same pattern as login.js)
     const session = await createSession(db, user.id);
 
-    // Clear the CSRF nonce cookie and set the session cookie.
+    // Clear the CSRF nonce cookie and set the session cookie + JS-readable hint.
     return htmlRedirectWithCookies(returnTo, [
       sessionCookie(session.id, session.expiresAt),
+      authHintCookie(session.expiresAt),
       'oauth_state=; Path=/api/auth/google-callback; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
     ]);
   } catch (err) {

@@ -876,29 +876,31 @@ const mobileNavSections = [
     else setTimeout(fn, 50);
   }
 
-  // Session cookie is HttpOnly (invisible to JS), so always fetch.
-  var sessionP = fetch('/api/auth/session', { credentials: 'same-origin' })
-    .then(function(r) { return r.json(); })
-    .catch(function() { return { ok: false }; });
+  // JS-readable companion to the HttpOnly session cookie. Absent for anonymous
+  // visitors (the overwhelming majority of traffic). Pair-issued by every auth
+  // endpoint and cleared on server-side drift. Reading it lets us skip the
+  // /api/community/status fetch entirely for anonymous visitors — that fetch
+  // was the dominant LCP critical-path delay per PSI 2026-05-18.
+  function hasAuthHint() {
+    return /(?:^|;\s*)rrm_auth=1/.test(document.cookie || '');
+  }
 
-  // Auth-dependent nav: resolve session + community status before showing links
+  // Auth-dependent nav: resolve community status when logged in, short-circuit
+  // to "anonymous" when not. /community/status already returns access + user,
+  // so a separate /api/auth/session fetch is redundant — isLoggedIn is just
+  // community.access !== 'anonymous'.
   deferWork(function() {
     var header = document.querySelector('.site-header');
 
-    var communityP = fetch('/api/community/status', { credentials: 'same-origin' })
-      .then(function(r) { return r.json(); })
-      .catch(function() { return { ok: false }; });
+    function applyState(community) {
+      var isLoggedIn = community && community.ok && community.access && community.access !== 'anonymous';
 
-    Promise.all([sessionP, communityP]).then(function(results) {
-      var session = results[0];
-      var community = results[1];
-      var isLoggedIn = session.ok && session.user;
-
-      // Broadcast community status for Footer
+      // Broadcast community status for Footer (must fire even for anonymous so
+      // Footer's 3s fallback timer is cancelled — otherwise it self-fetches).
       window.dispatchEvent(new CustomEvent('rrm:community-status', { detail: community }));
 
       // STUC link: swap text for members
-      if (community.ok && community.access === 'member') {
+      if (community && community.ok && community.access === 'member') {
         var desktopLink = document.getElementById('stuc-nav-link');
         var mobileLink = document.getElementById('stuc-mobile-nav-link');
         if (desktopLink) {
@@ -924,7 +926,18 @@ const mobileNavSections = [
 
       // Reveal all auth-dependent elements
       if (header) header.classList.add('auth-resolved');
-    });
+    }
+
+    if (!hasAuthHint()) {
+      // Fast path: no hint cookie => anonymous, no network call.
+      applyState({ ok: true, access: 'anonymous' });
+      return;
+    }
+
+    fetch('/api/community/status', { credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .catch(function() { return { ok: false, access: 'anonymous' }; })
+      .then(applyState);
   });
 
   // Saved articles badge (desktop + mobile)

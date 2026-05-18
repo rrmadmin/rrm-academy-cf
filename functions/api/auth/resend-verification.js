@@ -9,7 +9,7 @@
  */
 import {
   json, optionsResponse, generateId, generateToken, getSessionIdFromCookie,
-  validateSession, checkRateLimit, EMAIL_VERIFY_TTL_S, sessionCookie,
+  validateSession, checkRateLimit, EMAIL_VERIFY_TTL_S, sessionCookie, authHintCookie,
 } from './_shared.js';
 import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
@@ -42,7 +42,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     if (!user) return json({ ok: false, error: 'User not found.' }, 404);
     if (user.email_verified) {
       const headers = {};
-      if (session.renewed) headers['Set-Cookie'] = sessionCookie(session.id, session.expiresAt);
+      if (session.renewed) headers['Set-Cookie'] = [sessionCookie(session.id, session.expiresAt), authHintCookie(session.expiresAt)];
       return json({ ok: true }, 200, headers);
     }
 
@@ -88,7 +88,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     const responseHeaders = {};
     if (session.renewed) {
-      responseHeaders['Set-Cookie'] = sessionCookie(session.id, session.expiresAt);
+      responseHeaders['Set-Cookie'] = [
+        sessionCookie(session.id, session.expiresAt),
+        authHintCookie(session.expiresAt),
+      ];
     }
 
     return json({ ok: true }, 200, responseHeaders);

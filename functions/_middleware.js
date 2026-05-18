@@ -9,7 +9,7 @@
  * NOTE: Old library slug redirects are handled by the rrm-router Worker,
  * not here (avoids loading the 500KB redirect map on every request).
  */
-import { getSessionIdFromCookie, validateSession, sessionCookie, roleAtLeast } from './api/auth/_shared.js';
+import { getSessionIdFromCookie, validateSession, sessionCookie, authHintCookie, clearAuthHintCookie, roleAtLeast } from './api/auth/_shared.js';
 import { buildSourceParams, getClientId } from './api/_ga4-source.js';
 
 const GA4_ENDPOINT = 'https://www.google-analytics.com/mp/collect';
@@ -326,19 +326,17 @@ export async function onRequest(context) {
 
     const session = await validateSession(env.DB, sessionId);
     if (!session) {
-      return withSecurityHeaders(new Response(null, {
-        status: 302,
-        headers: {
-          'Location': authRedirect,
-          'Set-Cookie': 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
-        },
-      }));
+      const expiredHeaders = new Headers({ 'Location': authRedirect });
+      expiredHeaders.append('Set-Cookie', 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0');
+      expiredHeaders.append('Set-Cookie', clearAuthHintCookie());
+      return withSecurityHeaders(new Response(null, { status: 302, headers: expiredHeaders }));
     }
 
     const response = await context.next();
     if (session.renewed) {
       const headers = new Headers(response.headers);
       headers.append('Set-Cookie', sessionCookie(session.id, session.expiresAt));
+      headers.append('Set-Cookie', authHintCookie(session.expiresAt));
       return withSecurityHeaders(new Response(response.body, {
         status: response.status,
         statusText: response.statusText,
@@ -364,13 +362,10 @@ export async function onRequest(context) {
 
     const session = await validateSession(env.DB, sessionId);
     if (!session) {
-      return withSecurityHeaders(new Response(null, {
-        status: 302,
-        headers: {
-          'Location': `https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname + url.search)}`,
-          'Set-Cookie': 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
-        },
-      }));
+      const expiredHeaders = new Headers({ 'Location': `https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname + url.search)}` });
+      expiredHeaders.append('Set-Cookie', 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0');
+      expiredHeaders.append('Set-Cookie', clearAuthHintCookie());
+      return withSecurityHeaders(new Response(null, { status: 302, headers: expiredHeaders }));
     }
 
     // role is already returned by validateSession (via the JOIN on user).
@@ -382,6 +377,7 @@ export async function onRequest(context) {
     if (session.renewed) {
       const headers = new Headers(response.headers);
       headers.append('Set-Cookie', sessionCookie(session.id, session.expiresAt));
+      headers.append('Set-Cookie', authHintCookie(session.expiresAt));
       return withSecurityHeaders(new Response(response.body, {
         status: response.status,
         statusText: response.statusText,

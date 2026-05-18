@@ -195,8 +195,12 @@ const helpLinks = [
 </script>
 
 <script>
-  // Defer: reuse Header's community status if available, otherwise fetch when idle
+  // Defer: reuse Header's community status if available, otherwise fetch when idle.
+  // Anonymous visitors (no rrm_auth hint cookie) short-circuit — no fetch at all.
   (function() {
+    function hasAuthHint() {
+      return /(?:^|;\s*)rrm_auth=1/.test(document.cookie || '');
+    }
     function apply(data) {
       if (!data.ok || data.access !== 'member') return;
       var footerLink = document.getElementById('stuc-footer-link');
@@ -208,6 +212,8 @@ const helpLinks = [
     }
     // Listen for Header's result to avoid a duplicate fetch
     window.addEventListener('rrm:community-status', function(e) { apply(e.detail); });
+    // Fast path: anonymous visitors never need the footer label, never fetch.
+    if (!hasAuthHint()) return;
     // Fallback: if Header hasn't fired within 3s, fetch ourselves (deferred)
     var timer = setTimeout(function() {
       if ('requestIdleCallback' in window) requestIdleCallback(doFetch);

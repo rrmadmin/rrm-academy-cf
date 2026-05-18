@@ -4,7 +4,7 @@
  */
 import {
   json, optionsResponse, generateId, generateSessionId, generateToken,
-  hashPassword, sessionCookie, verifyTurnstile, checkRateLimit,
+  hashPassword, sessionCookie, authHintCookie, verifyTurnstile, checkRateLimit,
   isValidPassword, waitlistBackfillStatement, sessionInsertStatement,
   deriveSignupSource, EMAIL_VERIFY_TTL_S, SESSION_DURATION_MS,
 } from './_shared.js';
@@ -159,7 +159,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
       return json(
         { ok: true, emailVerificationRequired: true },
         201,
-        { 'Set-Cookie': sessionCookie(fakeSessionId, fakeExpires) }
+        { 'Set-Cookie': [sessionCookie(fakeSessionId, fakeExpires), authHintCookie(fakeExpires)] }
       );
     }
 
@@ -205,7 +205,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
         return json(
           { ok: true, emailVerificationRequired: true },
           201,
-          { 'Set-Cookie': sessionCookie(fakeSessionId, fakeExpires) }
+          { 'Set-Cookie': [sessionCookie(fakeSessionId, fakeExpires), authHintCookie(fakeExpires)] }
         );
       }
       throw batchErr;
@@ -250,7 +250,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     return json(
       { ok: true, emailVerificationRequired: true },
       201,
-      { 'Set-Cookie': sessionCookie(sessionId, sessionExpiresAt) }
+      { 'Set-Cookie': [sessionCookie(sessionId, sessionExpiresAt), authHintCookie(sessionExpiresAt)] }
     );
   } catch (err) {
     log(env, waitUntil, 'auth', 'signup_fail', 'error', err.message);
