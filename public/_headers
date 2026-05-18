@@ -109,11 +109,13 @@
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
 
-# Cache all static images for 1 week — unhashed filenames break on deploys
-# when CF Pages edge nodes haven't propagated yet (max-age=0 default = 404).
-# Covers /images/og/, /images/authors/, /images/course-covers/, loose files, etc.
+# Cache all static images for 1 year. Filenames are unhashed, so when content
+# changes, bump a query-string version on the consuming <img src> (?v=2, ?v=3)
+# per CLAUDE.md "Rules". A 1y TTL is safe under that discipline and reclaims
+# the PSI "Use efficient cache lifetimes" insight (was 7d).
+# Covers /images/og/, /images/authors/, /images/course-covers/, journal-logos, etc.
 /images/*
-  Cache-Control: public, max-age=604800
+  Cache-Control: public, max-age=31536000
 
 # Pagefind: no-store prevents browsers from caching fragments across deploys.
 # CF Pages returns 200 (not 404) for missing files, so no-cache + revalidation

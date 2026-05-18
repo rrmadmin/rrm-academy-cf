@@ -3,7 +3,8 @@
  * Accepts { code } and verifies the user's email address.
  */
 import {
-  json, optionsResponse, getSessionIdFromCookie, validateSession, checkRateLimit, sessionCookie,
+  json, optionsResponse, getSessionIdFromCookie, validateSession, checkRateLimit,
+  sessionCookie, authHintCookie,
 } from './_shared.js';
 import { log } from '../_log.js';
 
@@ -60,7 +61,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     const responseHeaders = {};
     if (session.renewed) {
-      responseHeaders['Set-Cookie'] = sessionCookie(session.id, session.expiresAt);
+      responseHeaders['Set-Cookie'] = [
+        sessionCookie(session.id, session.expiresAt),
+        authHintCookie(session.expiresAt),
+      ];
     }
 
     return json({ ok: true }, 200, responseHeaders);

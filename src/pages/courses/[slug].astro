@@ -984,7 +984,10 @@ const relatedCourses = course.relatedCourses
       if (isMembers) {
         // Member courses: confirm membership FIRST so the CTA we show matches what the server will accept.
         // /api/community/status returns { ok, access: 'anonymous'|'registered'|'member', user?: { tier, role } }
-        fetch('/api/community/status', { credentials: 'same-origin' })
+        // Anonymous fast path: no rrm_auth hint = definitely not a member, skip the network call.
+        var hasHint = /(?:^|;\s*)rrm_auth=1/.test(document.cookie || '');
+        if (!hasHint) { /* leave default join CTA */ }
+        else fetch('/api/community/status', { credentials: 'same-origin' })
           .then(function (r) { return r.json(); })
           .then(function (statusData) {
             if (!statusData || !statusData.ok || statusData.access !== 'member') {
