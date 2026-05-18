@@ -148,7 +148,7 @@ export async function requireMember(request, env) {
   }
   if (!user.stripe_customer_id) {
     const anyWixForEmail = await db.prepare(
-      'SELECT id FROM wix_subscription WHERE email = ? COLLATE NOCASE LIMIT 1'
+      'SELECT 1 FROM wix_subscription WHERE email = ? COLLATE NOCASE LIMIT 1'
     ).bind(user.email).first();
     if (anyWixForEmail) {
       return json({ ok: false, error: "We can't find an active membership tied to " + user.email + ". If you donated with a different email, contact administrator@rrmacademy.org and we'll link the accounts." }, 403);
