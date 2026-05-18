@@ -344,9 +344,8 @@ const jsonLd = {
 <style>
   @keyframes enter {
     from {
-      /* opacity:0 dropped 2026-05-15 (PSI LCP regression) */
+      /* opacity:0 dropped 2026-05-15 (PSI LCP regression); blur dropped 2026-05-18 (read as slow defocus once fade was gone) */
       transform: translateY(8px);
-      filter: blur(4px);
     }
   }
   .animate-enter {
