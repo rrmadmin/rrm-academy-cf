@@ -4,12 +4,20 @@
  * Used by client-side JS to check auth state.
  */
 import {
-  json, optionsResponse, getSessionIdFromCookie, validateSession, sessionCookie,
+  json, optionsResponse, getSessionIdFromCookie, validateSession,
+  sessionCookie, authHintCookie, clearAuthHintCookie,
 } from './_shared.js';
 import { log } from '../_log.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
+}
+
+// Server saw a hint cookie but no/invalid session — clear the stale hint so
+// JS stops paying for auth fetches it doesn't need.
+function hasHintCookie(request) {
+  const cookie = request.headers.get('Cookie') || '';
+  return /(?:^|;\s*)rrm_auth=1/.test(cookie);
 }
 
 export async function onRequestGet({ request, env, waitUntil }) {
@@ -21,7 +29,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
     const session = await validateSession(db, sessionId);
 
     if (!session) {
-      return json({ ok: true, user: null });
+      const driftHeaders = hasHintCookie(request) ? { 'Set-Cookie': clearAuthHintCookie() } : {};
+      return json({ ok: true, user: null }, 200, driftHeaders);
     }
 
     // Fetch user data
@@ -30,13 +39,19 @@ export async function onRequestGet({ request, env, waitUntil }) {
     ).bind(session.userId).first();
 
     if (!user) {
-      return json({ ok: true, user: null });
+      const driftHeaders = hasHintCookie(request) ? { 'Set-Cookie': clearAuthHintCookie() } : {};
+      return json({ ok: true, user: null }, 200, driftHeaders);
     }
 
     const headers = {};
-    // If session was renewed, send updated cookie
+    // If session was renewed, send updated cookies (HttpOnly + hint).
+    // We refresh the hint cookie's Expires whenever the session renews so its
+    // lifetime tracks the underlying session.
     if (session.renewed) {
-      headers['Set-Cookie'] = sessionCookie(session.id, session.expiresAt);
+      headers['Set-Cookie'] = [
+        sessionCookie(session.id, session.expiresAt),
+        authHintCookie(session.expiresAt),
+      ];
     }
 
     return json(

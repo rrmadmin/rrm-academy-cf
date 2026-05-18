@@ -3,7 +3,8 @@
  * Updates the authenticated user's profile fields (first name, last name).
  */
 import {
-  json, optionsResponse, getSessionIdFromCookie, validateSession, checkRateLimit, sessionCookie,
+  json, optionsResponse, getSessionIdFromCookie, validateSession, checkRateLimit,
+  sessionCookie, authHintCookie,
 } from './_shared.js';
 import { log } from '../_log.js';
 import { validateBody } from '../_validate.js';
@@ -57,7 +58,10 @@ export async function onRequestPatch({ request, env, waitUntil }) {
 
     const responseHeaders = {};
     if (session.renewed) {
-      responseHeaders['Set-Cookie'] = sessionCookie(session.id, session.expiresAt);
+      responseHeaders['Set-Cookie'] = [
+        sessionCookie(session.id, session.expiresAt),
+        authHintCookie(session.expiresAt),
+      ];
     }
 
     return json({

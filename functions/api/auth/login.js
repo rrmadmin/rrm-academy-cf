@@ -3,7 +3,7 @@
  * Authenticates user with email/password, creates session.
  */
 import {
-  json, optionsResponse, verifyPassword, sessionCookie,
+  json, optionsResponse, verifyPassword, sessionCookie, authHintCookie,
   verifyTurnstile, checkRateLimit, isValidEmail,
   generateSessionId, waitlistBackfillStatement, sessionInsertStatement,
   DUMMY_PASSWORD_HASH, SESSION_DURATION_MS,
@@ -146,7 +146,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
         },
       },
       200,
-      { 'Set-Cookie': sessionCookie(session.id, session.expiresAt) }
+      { 'Set-Cookie': [sessionCookie(session.id, session.expiresAt), authHintCookie(session.expiresAt)] }
     );
   } catch (err) {
     log(env, waitUntil, 'auth', 'login_fail', 'error', err.message);

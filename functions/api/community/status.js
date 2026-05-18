@@ -2,12 +2,21 @@
  * GET /api/community/status — check community access
  * Returns: { ok, access, user? { name, role, tier } }
  */
-import { json, optionsResponse, getSessionIdFromCookie, validateSession } from '../auth/_shared.js';
+import {
+  json, optionsResponse, getSessionIdFromCookie, validateSession, clearAuthHintCookie,
+} from '../auth/_shared.js';
 import { log } from '../_log.js';
 import { requireMember, displayName } from './_shared.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
+}
+
+// Hint-cookie drift recovery: when JS sent the optimistic hint but the server
+// finds no valid session, clear the hint so subsequent navigations short-circuit.
+function hasHintCookie(request) {
+  const cookie = request.headers.get('Cookie') || '';
+  return /(?:^|;\s*)rrm_auth=1/.test(cookie);
 }
 
 export async function onRequestGet({ request, env, waitUntil }) {
@@ -19,7 +28,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
     const sessionId = getSessionIdFromCookie(request);
     const session = await validateSession(db, sessionId);
     if (!session) {
-      return json({ ok: true, access: 'anonymous' });
+      const driftHeaders = hasHintCookie(request) ? { 'Set-Cookie': clearAuthHintCookie() } : {};
+      return json({ ok: true, access: 'anonymous' }, 200, driftHeaders);
     }
 
     // Full membership check
@@ -28,7 +38,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
       const user = await db.prepare('SELECT name, first_name, last_name, role, avatar_url, blocked FROM user WHERE id = ?')
         .bind(session.userId).first();
       if (user?.blocked) {
-        return json({ ok: true, access: 'anonymous' });
+        const driftHeaders = hasHintCookie(request) ? { 'Set-Cookie': clearAuthHintCookie() } : {};
+        return json({ ok: true, access: 'anonymous' }, 200, driftHeaders);
       }
       return json({
         ok: true,
