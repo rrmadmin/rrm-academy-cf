@@ -45,7 +45,7 @@ async function handlePortal(request, env, waitUntil) {
     let wix = null;
     try {
       wix = await db.prepare(
-        "SELECT id FROM wix_subscription WHERE (user_id = ? OR email = ? COLLATE NOCASE) AND status = 'active' LIMIT 1"
+        "SELECT 1 FROM wix_subscription WHERE (user_id = ? OR email = ? COLLATE NOCASE) AND status = 'active' LIMIT 1"
       ).bind(session.userId, user?.email || '').first();
     } catch (_err) {
       log(env, waitUntil, 'billing', 'portal_wix_lookup_fail', 'error', _err.message);
