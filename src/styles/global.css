@@ -1983,13 +1983,12 @@ blockquote cite {
 /* opacity: 0 removed 2026-05-15 -- PSI flagged LCP regression at 4.4s because
    the homepage h1 (and every other animated element) was invisible until
    `--stagger * 100ms + 0.35s` after the animation kicked in. Lab LCP can't
-   count an element with opacity 0. The visual effect (translateY + blur)
-   still reads as a "rise + unblur" enter motion; the fade-in component is
-   gone but the slide + defocus carries the feel. */
+   count an element with opacity 0.
+   blur(4px) removed 2026-05-18 -- with opacity gone, the blur read as a slow
+   defocus rather than masking the fade; translateY-only carries the entrance. */
 @keyframes enter {
   from {
     transform: translateY(8px);
-    filter: blur(4px);
   }
 }
 .animate-enter {
