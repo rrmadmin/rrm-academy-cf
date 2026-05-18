@@ -962,42 +962,43 @@ const mobileNavSections = [
       if (saved.length > 0) setBadge(saved.length);
     } catch(e) {}
 
-    // Deferred: sync with server when idle (reuses shared sessionP)
+    // Deferred: sync with server when idle. Anonymous fast path: no hint
+    // cookie => no logged-in session => skip the /api/saved sync entirely.
+    // /api/saved would 401 for anonymous anyway, so the only practical effect
+    // is one fewer network request on the LCP critical path.
     deferWork(function() {
-      sessionP.then(function(data) {
-          if (!data.ok || !data.user) return;
-          var local = [];
-          try { local = JSON.parse(localStorage.getItem('rrm_saved') || '[]'); } catch(e) {}
-          if (local.length > 0) {
-            fetch('/api/saved', {
-              method: 'POST',
-              credentials: 'same-origin',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ articles: local })
-            })
-              .then(function(r) { return r.json(); })
-              .then(function(result) {
-                if (result.ok && result.articles) {
-                  var slugMap = {};
-                  local.forEach(function(a) { slugMap[a.slug] = a; });
-                  result.articles.forEach(function(a) { slugMap[a.slug] = a; });
-                  var merged = Object.values(slugMap);
-                  merged.sort(function(a, b) { return (b.savedAt || '').localeCompare(a.savedAt || ''); });
-                  localStorage.setItem('rrm_saved', JSON.stringify(merged));
-                  setBadge(merged.length);
-                }
-              }).catch(function() {});
-          } else {
-            fetch('/api/saved', { credentials: 'same-origin' })
-              .then(function(r) { return r.json(); })
-              .then(function(result) {
-                if (result.ok && result.articles && result.articles.length > 0) {
-                  localStorage.setItem('rrm_saved', JSON.stringify(result.articles));
-                  setBadge(result.articles.length);
-                }
-              }).catch(function() {});
-          }
-        }).catch(function() {});
+      if (!hasAuthHint()) return;
+      var local = [];
+      try { local = JSON.parse(localStorage.getItem('rrm_saved') || '[]'); } catch(e) {}
+      if (local.length > 0) {
+        fetch('/api/saved', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ articles: local })
+        })
+          .then(function(r) { return r.json(); })
+          .then(function(result) {
+            if (result.ok && result.articles) {
+              var slugMap = {};
+              local.forEach(function(a) { slugMap[a.slug] = a; });
+              result.articles.forEach(function(a) { slugMap[a.slug] = a; });
+              var merged = Object.values(slugMap);
+              merged.sort(function(a, b) { return (b.savedAt || '').localeCompare(a.savedAt || ''); });
+              localStorage.setItem('rrm_saved', JSON.stringify(merged));
+              setBadge(merged.length);
+            }
+          }).catch(function() {});
+      } else {
+        fetch('/api/saved', { credentials: 'same-origin' })
+          .then(function(r) { return r.json(); })
+          .then(function(result) {
+            if (result.ok && result.articles && result.articles.length > 0) {
+              localStorage.setItem('rrm_saved', JSON.stringify(result.articles));
+              setBadge(result.articles.length);
+            }
+          }).catch(function() {});
+      }
     });
   })();
 
