@@ -19,10 +19,18 @@ export const CORS_HEADERS = {
 };
 
 export function json(data, status = 200, headers = {}) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json', ...CORS_HEADERS, ...headers },
-  });
+  // Build a Headers object so a single key (notably Set-Cookie) can carry
+  // multiple values. Callers may pass an array for Set-Cookie when emitting
+  // both the HttpOnly session cookie and the JS-readable auth-hint cookie.
+  const h = new Headers({ 'Content-Type': 'application/json', ...CORS_HEADERS });
+  for (const [key, value] of Object.entries(headers)) {
+    if (Array.isArray(value)) {
+      for (const v of value) h.append(key, v);
+    } else {
+      h.set(key, value);
+    }
+  }
+  return new Response(JSON.stringify(data), { status, headers: h });
 }
 
 export function optionsResponse() {
@@ -202,6 +210,21 @@ export function sessionCookie(sessionId, expiresAt) {
 
 export function clearSessionCookie() {
   return 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0';
+}
+
+// JS-readable companion to sessionCookie. Carries no PII and no session ID —
+// just signals "this browser has an active session" so client code can skip
+// /api/auth/session and /api/community/status entirely for anonymous visitors.
+// Always issued and cleared alongside sessionCookie. If the two drift (e.g.
+// session expired server-side), endpoints that observe a missing/invalid
+// session also append clearAuthHintCookie() to recover.
+export function authHintCookie(expiresAt) {
+  const expires = new Date(expiresAt * 1000).toUTCString();
+  return `rrm_auth=1; Path=/; Secure; SameSite=Lax; Expires=${expires}`;
+}
+
+export function clearAuthHintCookie() {
+  return 'rrm_auth=; Path=/; Secure; SameSite=Lax; Max-Age=0';
 }
 
 export function getSessionIdFromCookie(request) {

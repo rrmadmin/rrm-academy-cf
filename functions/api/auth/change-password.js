@@ -6,7 +6,7 @@
 import {
   json, optionsResponse, hashPassword, verifyPassword,
   getSessionIdFromCookie, validateSession, isValidPassword,
-  generateSessionId, sessionCookie, checkRateLimit, sessionInsertStatement,
+  generateSessionId, sessionCookie, authHintCookie, checkRateLimit, sessionInsertStatement,
   SESSION_DURATION_MS,
 } from './_shared.js';
 import { sendEmail, logEmailFailure } from '../_ses.js';
@@ -107,7 +107,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     return json(
       { ok: true },
       200,
-      { 'Set-Cookie': sessionCookie(newSessionId, newExpiresAt) }
+      { 'Set-Cookie': [sessionCookie(newSessionId, newExpiresAt), authHintCookie(newExpiresAt)] }
     );
   } catch (err) {
     log(env, waitUntil, 'auth', 'change_password_error', 'error', err.message);
