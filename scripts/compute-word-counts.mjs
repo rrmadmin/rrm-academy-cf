@@ -119,6 +119,13 @@ export function computeWordCount(text, { stripHtml = false } = {}) {
     // Tags collapse to a space (word boundary). Entities collapse to EMPTY
     // string so `P&amp;C` reads as `P&C` -> 1 word, not `P C` -> 2 words,
     // matching how a browser renders the same HTML to the user.
+    //
+    // Malformed HTML caveat: `<[^>]+>` cannot match unclosed tags like
+    // `<p>hello world` (no closing `>`). Such input counts the literal
+    // `<p>hello` as one token; the regex degrades gracefully and the result
+    // is one-word inflation rather than a parse error. Accept this — it's
+    // rare in our corpora and the alternative (a full HTML parser) is not
+    // worth the dependency.
     s = s.replace(/<[^>]+>/g, ' ').replace(/&[a-z#0-9]+;/gi, '');
   }
   s = s.replace(/\s+/g, ' ').trim();
@@ -146,8 +153,8 @@ function wranglerExec({ command, file, json = true }) {
     timeout: 120_000,
     killSignal: 'SIGKILL',
   });
-  if (res.signal === 'SIGKILL') {
-    throw new Error('wrangler d1 execute timed out after 120s (SIGKILL). ' +
+  if (res.signal) {
+    throw new Error(`wrangler d1 execute timed out after 120s (signal: ${res.signal}). ` +
       'Check auth (`wrangler whoami`) or remote D1 health.');
   }
   if (res.status !== 0) {
@@ -300,13 +307,11 @@ async function main() {
 
   for (let i = 0; i < updates.length; i += BATCH_SIZE) {
     const batch = updates.slice(i, i + BATCH_SIZE);
-    const lines = [];
+    const lines = ['BEGIN;'];
     for (const u of batch) {
       // Race-guarded UPDATE: only writes if word_count is still NULL or
       // matches what we SELECTed. NULL handling is explicit (IS NULL, not
       // = NULL) per SQL discipline rule 7.
-      // No BEGIN/COMMIT — D1 rejects explicit transaction statements in
-      // wrangler --file mode; the file is executed as one implicit txn.
       const newWc = sqlIntOrNull(u.new_wc);
       const idLit = sqlText(u.id);
       const guard = (u.prev_wc == null)
@@ -316,6 +321,7 @@ async function main() {
         `UPDATE ${TABLE} SET word_count = ${newWc} WHERE ${ID_COL} = ${idLit} AND (${guard});`
       );
     }
+    lines.push('COMMIT;');
     const tmpPath = join(tmpdir(), `word-count-batch-${process.pid}-${i}.sql`);
     writeFileSync(tmpPath, lines.join('\n'));
 
