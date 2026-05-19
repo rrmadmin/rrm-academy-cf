@@ -1,7 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import LastUpdated from '../components/LastUpdated.astro';
-import SearchBar from '../components/SearchBar.astro';
 import { fetchAllArticles } from '../lib/airtable';
 import coursesData from '../data/courses.json';
 import surveyCountData from '../data/survey-count.json';
@@ -221,21 +220,29 @@ const jsonLd = {
              around it so the entrance choreography survives. -->
         <h1 id="hp-hero-h1">Reclaim Reproductive Health with the Evidence</h1>
         <p class="hp-hero__subtitle animate-enter" style="--stagger: 2;">
-          Search {articleCount.toLocaleString()} scholarly works on PCOS, endometriosis, NaProTechnology, and more.
+          The online educational home of <strong>Restorative Reproductive Medicine</strong>.
+          Free courses, patient guides, and clinical training to find root causes and restore function, not manage symptoms.
         </p>
-        <div class="hp-hero__search animate-enter" style="--stagger: 3;">
-          <SearchBar />
+        <div class="hp-hero__cta animate-enter" style="--stagger: 3;">
+          <a href="/what-is-rrm/" class="btn btn--primary btn--lg" data-track-cta="hero-start-learning">
+            Start Learning
+            <svg class="hp-hero__cta-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </a>
+          <a href="/endo-survey/" class="btn btn--secondary btn--lg" data-track-cta="hero-endo-survey">
+            Take the Endo Self-Assessment
+          </a>
         </div>
         <p class="hp-hero__links animate-enter" style="--stagger: 4;">
-          <a href="/library/" class="hp-hero__link" data-track-cta="hero-library">Browse all {articleCount.toLocaleString()} articles</a>
+          <a href="/guides/" class="hp-hero__link" data-track-cta="hero-for-patients">For Patients</a>
           <span class="hp-hero__link-dot" aria-hidden="true">·</span>
-          <a href="/glossary/" class="hp-hero__link" data-track-cta="hero-glossary">Glossary</a>
+          <a href="/courses/" class="hp-hero__link" data-track-cta="hero-for-clinicians">For Clinicians</a>
           <span class="hp-hero__link-dot" aria-hidden="true">·</span>
-          <a href="/faqs/" class="hp-hero__link" data-track-cta="hero-faqs">FAQs</a>
+          <a href="/donate/" class="hp-hero__link" data-track-cta="hero-donate">Donate</a>
         </p>
         <p class="hp-hero__updated animate-enter" style="--stagger: 5;"><LastUpdated path="/" /></p>
       </div>
       <div class="hp-hero__trust animate-enter" style="--stagger: 7;">
+        <p class="hp-trust__tagline">As referenced in</p>
         <div class="hp-trust__logos">
           <span class="hp-trust__logo hp-trust__logo--nejm" role="img" aria-label="The New England Journal of Medicine"></span>
           <span class="hp-trust__logo hp-trust__logo--jama">JAMA</span>
@@ -745,12 +752,19 @@ const jsonLd = {
     }
   }
 
-  .hp-hero__search {
-    position: relative;
-    z-index: 20; /* beat animate-enter sibling stacking contexts so results overlay correctly */
-    width: 100%;
-    max-width: 560px;
-    margin: 0 auto var(--space-4);
+  .hp-hero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-3);
+    margin: var(--space-2) auto var(--space-4);
+  }
+  .hp-hero__cta .btn {
+    text-decoration: none;
+  }
+  .hp-hero__cta-icon {
+    flex-shrink: 0;
   }
   .hp-hero__links {
     display: flex;
@@ -801,8 +815,15 @@ const jsonLd = {
       font-size: 0.75rem;
       margin-bottom: var(--space-5);
     }
-    .hp-hero__search {
+    .hp-hero__cta {
+      flex-direction: column;
+      align-items: stretch;
+      gap: var(--space-2);
       margin-bottom: var(--space-3);
+    }
+    .hp-hero__cta .btn {
+      width: 100%;
+      justify-content: center;
     }
     .hp-hero__links {
       gap: var(--space-2);
