@@ -178,7 +178,7 @@ test('mapWorkerRecord: returns full shape with all expected keys', () => {
     'mlaCitation', 'topics', 'searchTerms', 'enrichmentStatus', 'identifiers',
     'isOpenAccess', 'isCopyrighted', 'oaType', 'license', 'oaUrl',
     'accessLevel', 'sentiment', 'rrmRelevance', 'domain', 'lastModified',
-    'dateAddedToLibrary', 'authorRecords',
+    'dateAddedToLibrary', 'authorRecords', 'word_count',
   ];
   assert.deepEqual(Object.keys(out).sort(), expected.sort());
 });

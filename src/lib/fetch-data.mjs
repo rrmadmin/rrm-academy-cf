@@ -74,6 +74,12 @@ export function mapWorkerRecord(r) {
     lastModified: strOr(r.lastModified),
     dateAddedToLibrary: strOr(r.dateAddedToLibrary),
     authorRecords: arrayOr(r.authorRecords),
+    // word_count drives programmatic thin-page detection (noindex when < 30).
+    // Populated by the worker (live: COALESCE(meta value, computed-from-abstract))
+    // and the backfill script scripts/compute-word-counts.mjs. May be null on
+    // historical rows until backfill runs; the library template falls back to
+    // the legacy abstract-length heuristic in that case.
+    word_count: typeof r.word_count === 'number' ? r.word_count : null,
   };
 }
 
