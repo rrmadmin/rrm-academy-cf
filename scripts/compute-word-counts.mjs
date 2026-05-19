@@ -300,11 +300,13 @@ async function main() {
 
   for (let i = 0; i < updates.length; i += BATCH_SIZE) {
     const batch = updates.slice(i, i + BATCH_SIZE);
-    const lines = ['BEGIN;'];
+    const lines = [];
     for (const u of batch) {
       // Race-guarded UPDATE: only writes if word_count is still NULL or
       // matches what we SELECTed. NULL handling is explicit (IS NULL, not
       // = NULL) per SQL discipline rule 7.
+      // No BEGIN/COMMIT — D1 rejects explicit transaction statements in
+      // wrangler --file mode; the file is executed as one implicit txn.
       const newWc = sqlIntOrNull(u.new_wc);
       const idLit = sqlText(u.id);
       const guard = (u.prev_wc == null)
@@ -314,7 +316,6 @@ async function main() {
         `UPDATE ${TABLE} SET word_count = ${newWc} WHERE ${ID_COL} = ${idLit} AND (${guard});`
       );
     }
-    lines.push('COMMIT;');
     const tmpPath = join(tmpdir(), `word-count-batch-${process.pid}-${i}.sql`);
     writeFileSync(tmpPath, lines.join('\n'));
 
