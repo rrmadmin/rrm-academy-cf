@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS glossary_term (
     abbreviation TEXT,
     pillar_link TEXT,
     status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft', 'published', 'archived')),
+    word_count INTEGER,                          -- HTML-stripped count of body_html; drives noindex on /glossary/<slug> (< 30 = thin)
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now'))
 );
@@ -21,6 +22,7 @@ CREATE INDEX IF NOT EXISTS idx_glossary_term_status ON glossary_term(status);
 CREATE INDEX IF NOT EXISTS idx_glossary_term_part ON glossary_term(part);
 CREATE INDEX IF NOT EXISTS idx_glossary_term_sort ON glossary_term(part, sort_order);
 CREATE INDEX IF NOT EXISTS idx_glossary_term_abbr ON glossary_term(abbreviation) WHERE abbreviation IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_glossary_term_word_count ON glossary_term(word_count);
 
 -- References table (per-page numbered citations)
 CREATE TABLE IF NOT EXISTS glossary_reference (
