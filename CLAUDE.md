@@ -51,6 +51,27 @@ src/data/articles.json → Astro build → rrmacademy.org/library
 
 **Ingest endpoint:** POST `/ingest` with Bearer auth. Creates new articles at `intake` status. Enrichment cron picks them up automatically.
 
+### Thin-Page Detection (`word_count`)
+
+D1-backed content tables carry a `word_count INTEGER` column populated by the writing surface (worker for articles, future glossary admin endpoints for terms). Drives programmatic `<meta name="robots" content="noindex">` on pages whose body is too thin to be useful.
+
+**Tables with `word_count`:**
+- `rrm-library.articles` (abstract-derived). Worker writes on `/ingest`, `/patch-metadata`, `/normalize-abstracts`, and the enrichment cron (see `src/word-count.js` in rrm-library-worker -- shared `computeWordCount(text, {stripHtml})` helper).
+- `rrm-auth.glossary_term` (body_html-derived, HTML-stripped before counting).
+
+**Threshold:** `word_count < 30` -> `noindex`. Set in `src/pages/library/[...slug].astro`. Falls back to `abstract.trim().length < 30` when `word_count` is null (pre-backfill rows).
+
+**Algorithm:** strip HTML if applicable, normalize whitespace, count `text.trim().split(/\s+/).filter(Boolean).length`. Empty/null = 0.
+
+**Backfilling new content types:**
+1. Add `word_count INTEGER` + `CREATE INDEX idx_<table>_word_count ON <table>(word_count)` migration. Pattern: `scripts/migrations/2026-05-19-word-count.sql`.
+2. Run `node scripts/compute-word-counts.mjs --db=<rrm-library|rrm-auth> --table=<name> --id-col=<id> --text-col=<col> [--strip-html] --remote` to populate historical rows.
+3. Add `computeWordCount(text)` to the worker's INSERT and UPDATE paths so new rows stay in lockstep with the text column.
+4. Add `word_count` to the worker's SELECT projection + the build-side mapper (`src/lib/fetch-data.mjs` for articles).
+5. Drive `noindex` in the template: `noindex={typeof record.word_count === 'number' ? record.word_count < THRESHOLD : <fallback>}`.
+
+The backfill script is idempotent (only writes changed rows) and prints `{updated, unchanged, p25/p50/p75/p99}` stats so thin-page candidates surface naturally.
+
 ### Blog Pipeline
 
 Blog posts moved from Airtable to D1 on 2026-03-27. D1 (`rrm-auth.posts`) is SSOT. Authoring flow: Google Docs -> Claude Code -> D1 insert/update. `src/data/posts.json` is a stale build artifact; never grep it to resolve a slug. Query D1 directly.

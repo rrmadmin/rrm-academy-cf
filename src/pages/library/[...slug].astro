@@ -267,7 +267,7 @@ const citationMeta = {
   citationMeta={citationMeta}
   speakable={['.article-title', '.article-meta-row', '.abstract']}
   chrome={SHELL_ENABLED ? 'shell' : 'default'}
-  noindex={!article.abstract || article.abstract.trim().length < 30}
+  noindex={typeof article.word_count === 'number' ? article.word_count < 30 : (!article.abstract || article.abstract.trim().length < 30)}
   trackScroll
 >
   {SHELL_ENABLED ? (
