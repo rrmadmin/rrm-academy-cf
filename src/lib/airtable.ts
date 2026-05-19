@@ -51,6 +51,13 @@ export interface Article {
   domain: string;
   lastModified: string;
   dateAddedToLibrary: string;
+  /**
+   * Word count of the abstract (or null on pre-backfill rows). Drives
+   * programmatic thin-page noindex in src/pages/library/[...slug].astro.
+   * Populated by the rrm-library-worker on write + by
+   * scripts/compute-word-counts.mjs for historical rows.
+   */
+  word_count?: number | null;
 }
 
 export async function fetchAllArticles(): Promise<Article[]> {
