@@ -52,9 +52,16 @@
  */
 
 import { spawnSync } from 'node:child_process';
-import { writeFileSync, unlinkSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { writeFileSync, unlinkSync, mkdirSync, appendFileSync } from 'node:fs';
+import { tmpdir, homedir } from 'node:os';
 import { join } from 'node:path';
+
+// --- Detect main-vs-import ---
+// When imported (e.g. by the parity test), skip arg parsing/validation so
+// `computeWordCount` can be used as a pure function.
+const IS_MAIN = process.argv[1]
+  ? (import.meta.url.endsWith(process.argv[1]) || process.argv[1].endsWith('compute-word-counts.mjs'))
+  : false;
 
 // --- Args ---
 
@@ -72,35 +79,47 @@ const TEXT_COL = args['text-col'];
 const STRIP_HTML = !!args['strip-html'];
 const REMOTE = !!args.remote;
 const DRY_RUN = !!args['dry-run'];
-const BATCH_SIZE = parseInt(args['batch-size'] || '50', 10);
+// Math.max(1, ...) guards against --batch-size=0 (infinite loop in the chunker)
+// and --batch-size=-N (no progress). Number.isFinite catches NaN from
+// non-numeric strings (e.g. --batch-size=abc). Result: always >=1.
+const _bsRaw = parseInt(args['batch-size'], 10);
+const BATCH_SIZE = Math.max(1, Number.isFinite(_bsRaw) ? _bsRaw : 50);
 
 function die(msg, code = 1) {
   console.error(`error: ${msg}`);
   process.exit(code);
 }
 
-if (!DB) die('--db=<rrm-library|rrm-auth> required');
-if (!TABLE) die('--table=<articles|glossary_term> required');
-if (!ID_COL) die('--id-col=<id> required');
-if (!TEXT_COL) die('--text-col=<abstract|body_html> required');
+if (IS_MAIN) {
+  if (!DB) die('--db=<rrm-library|rrm-auth> required');
+  if (!TABLE) die('--table=<articles|glossary_term> required');
+  if (!ID_COL) die('--id-col=<id> required');
+  if (!TEXT_COL) die('--text-col=<abstract|body_html> required');
 
-// Lightweight identifier validation (D1 wrangler will reject SQL injection,
-// but we don't want surprise table names blowing up partway through).
-const IDENT_RE = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
-for (const [k, v] of Object.entries({ table: TABLE, 'id-col': ID_COL, 'text-col': TEXT_COL })) {
-  if (!IDENT_RE.test(v)) die(`--${k} must be a SQL identifier (got: ${v})`);
+  // Lightweight identifier validation (D1 wrangler will reject SQL injection,
+  // but we don't want surprise table names blowing up partway through).
+  const IDENT_RE = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+  for (const [k, v] of Object.entries({ table: TABLE, 'id-col': ID_COL, 'text-col': TEXT_COL })) {
+    if (!IDENT_RE.test(v)) die(`--${k} must be a SQL identifier (got: ${v})`);
+  }
+
+  const ALLOWED_DBS = new Set(['rrm-library', 'rrm-auth']);
+  if (!ALLOWED_DBS.has(DB)) die(`--db must be one of: ${[...ALLOWED_DBS].join(', ')}`);
 }
-
-const ALLOWED_DBS = new Set(['rrm-library', 'rrm-auth']);
-if (!ALLOWED_DBS.has(DB)) die(`--db must be one of: ${[...ALLOWED_DBS].join(', ')}`);
 
 // --- Word count algorithm ---
 
 export function computeWordCount(text, { stripHtml = false } = {}) {
   if (text == null) return 0;
-  let s = String(text);
+  // Defense-in-depth: non-string inputs (numbers, objects, arrays, booleans)
+  // would coerce silently via String() and produce surprising counts. Reject.
+  if (typeof text !== 'string') return 0;
+  let s = text;
   if (stripHtml) {
-    s = s.replace(/<[^>]+>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ');
+    // Tags collapse to a space (word boundary). Entities collapse to EMPTY
+    // string so `P&amp;C` reads as `P&C` -> 1 word, not `P C` -> 2 words,
+    // matching how a browser renders the same HTML to the user.
+    s = s.replace(/<[^>]+>/g, ' ').replace(/&[a-z#0-9]+;/gi, '');
   }
   s = s.replace(/\s+/g, ' ').trim();
   if (!s) return 0;
@@ -118,16 +137,39 @@ function wranglerExec({ command, file, json = true }) {
   } else {
     argv.push('--command', command);
   }
-  const res = spawnSync('wrangler', argv, { encoding: 'utf-8', maxBuffer: 256 * 1024 * 1024 });
+  // 120s timeout + SIGKILL: fail-fast on auth hang or network stall. Without a
+  // timeout, an interactive wrangler login prompt or hung remote could pause
+  // the backfill indefinitely.
+  const res = spawnSync('wrangler', argv, {
+    encoding: 'utf-8',
+    maxBuffer: 256 * 1024 * 1024,
+    timeout: 120_000,
+    killSignal: 'SIGKILL',
+  });
+  if (res.signal === 'SIGKILL') {
+    throw new Error('wrangler d1 execute timed out after 120s (SIGKILL). ' +
+      'Check auth (`wrangler whoami`) or remote D1 health.');
+  }
   if (res.status !== 0) {
     const detail = (res.stderr || res.stdout || '').slice(0, 2000);
     throw new Error(`wrangler d1 execute failed (exit=${res.status}):\n${detail}`);
   }
   if (!json) return res.stdout;
   // wrangler --json prints an array of result envelopes; the first is the
-  // statement result. results[].results is the row array.
+  // statement result. results[].results is the row array. Wrangler can emit
+  // warning lines before the JSON body (e.g. "Using vars defined in .env"),
+  // so strip everything before the first `[` or `{` to avoid JSON.parse blowups.
   try {
-    const out = JSON.parse(res.stdout);
+    const s = res.stdout;
+    const arrStart = s.indexOf('[');
+    const objStart = s.indexOf('{');
+    const jsonStart = (arrStart === -1 || (objStart !== -1 && objStart < arrStart))
+      ? objStart
+      : arrStart;
+    if (jsonStart < 0) {
+      throw new Error(`wrangler output contains no JSON: ${s.slice(0, 500)}`);
+    }
+    const out = JSON.parse(s.slice(jsonStart));
     const envelope = Array.isArray(out) ? out[0] : out;
     return envelope?.results || [];
   } catch (err) {
@@ -168,7 +210,7 @@ async function main() {
   console.log(`  ${rows.length} rows`);
 
   // Compute new word_count for each row
-  const updates = []; // { id, new_wc }
+  const updates = []; // { id, new_wc, prev_wc }
   let unchanged = 0;
   const allCounts = [];
   for (const r of rows) {
@@ -178,7 +220,7 @@ async function main() {
     if (cur === newWc) {
       unchanged += 1;
     } else {
-      updates.push({ id: r.id, new_wc: newWc });
+      updates.push({ id: r.id, new_wc: newWc, prev_wc: cur });
     }
   }
 
@@ -216,43 +258,131 @@ async function main() {
   // Wrangler's --command has a length limit and --file is the safer path for
   // larger backfills. We chunk by BATCH_SIZE to keep per-file size reasonable
   // and to surface progress.
+  //
+  // Race guard: each UPDATE is gated on `word_count IS NULL OR word_count = ?`
+  // bound to the value we SELECTed. If a writer (worker, admin endpoint)
+  // wrote a fresh count between our SELECT and our UPDATE, the row no-ops
+  // and the next backfill picks it up. Stale backfill never overwrites a
+  // fresh worker write.
+  //
+  // Retry: each batch retries up to 2x with 1s/3s backoff before counting as
+  // a failure. After 3 consecutive batch failures, abort the whole run.
+  //
+  // Sidecar: failing batches' [ids] are appended to a JSON-lines file under
+  // ~/iCode/.audit/ so Brian can re-run just those rows.
   console.log(`\nWriting ${updates.length} updates in batches of ${BATCH_SIZE}...`);
   let errors = 0;
   let updated = 0;
+  let consecutiveFailures = 0;
+  const MAX_CONSECUTIVE_FAILURES = 3;
+
+  const auditDir = join(homedir(), 'iCode', '.audit');
+  const sidecarPath = join(
+    auditDir,
+    `word-count-errors-${new Date().toISOString().replace(/[:.]/g, '-')}.json`
+  );
+  let sidecarInitialized = false;
+  function appendSidecar(record) {
+    if (!sidecarInitialized) {
+      try { mkdirSync(auditDir, { recursive: true }); } catch { /* ignore */ }
+      sidecarInitialized = true;
+    }
+    try {
+      appendFileSync(sidecarPath, JSON.stringify(record) + '\n');
+    } catch (err) {
+      console.error(`(sidecar append failed: ${err.message})`);
+    }
+  }
+
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
   for (let i = 0; i < updates.length; i += BATCH_SIZE) {
     const batch = updates.slice(i, i + BATCH_SIZE);
     const lines = ['BEGIN;'];
     for (const u of batch) {
+      // Race-guarded UPDATE: only writes if word_count is still NULL or
+      // matches what we SELECTed. NULL handling is explicit (IS NULL, not
+      // = NULL) per SQL discipline rule 7.
+      const newWc = sqlIntOrNull(u.new_wc);
+      const idLit = sqlText(u.id);
+      const guard = (u.prev_wc == null)
+        ? `word_count IS NULL`
+        : `word_count = ${sqlIntOrNull(u.prev_wc)}`;
       lines.push(
-        `UPDATE ${TABLE} SET word_count = ${sqlIntOrNull(u.new_wc)} WHERE ${ID_COL} = ${sqlText(u.id)};`
+        `UPDATE ${TABLE} SET word_count = ${newWc} WHERE ${ID_COL} = ${idLit} AND (${guard});`
       );
     }
     lines.push('COMMIT;');
     const tmpPath = join(tmpdir(), `word-count-batch-${process.pid}-${i}.sql`);
     writeFileSync(tmpPath, lines.join('\n'));
-    try {
-      wranglerExec({ file: tmpPath, json: false });
+
+    const backoffMs = [0, 1000, 3000];
+    let lastErr = null;
+    let succeeded = false;
+    for (let attempt = 0; attempt < backoffMs.length; attempt += 1) {
+      if (backoffMs[attempt] > 0) {
+        await sleep(backoffMs[attempt]);
+      }
+      try {
+        wranglerExec({ file: tmpPath, json: false });
+        succeeded = true;
+        break;
+      } catch (err) {
+        lastErr = err;
+      }
+    }
+
+    try { unlinkSync(tmpPath); } catch { /* ignore */ }
+
+    if (succeeded) {
       updated += batch.length;
+      consecutiveFailures = 0;
       process.stdout.write(`\r  updated ${updated}/${updates.length}`);
-    } catch (err) {
+    } else {
       errors += batch.length;
-      console.error(`\nbatch ${i}..${i + batch.length} FAILED: ${err.message}`);
-    } finally {
-      try { unlinkSync(tmpPath); } catch { /* ignore */ }
+      consecutiveFailures += 1;
+      const ids = batch.map(b => b.id);
+      console.error(
+        `\nbatch ${i}..${i + batch.length} FAILED after 3 attempts: ${lastErr?.message || 'unknown'}`
+      );
+      appendSidecar({
+        timestamp: new Date().toISOString(),
+        db: DB,
+        table: TABLE,
+        batch_start: i,
+        batch_end: i + batch.length,
+        ids,
+        error: lastErr?.message?.slice(0, 1000) || 'unknown',
+      });
+      if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+        process.stdout.write('\n');
+        console.error(
+          `\nABORT: ${consecutiveFailures} consecutive batch failures. ` +
+          `Stopping run. Failed IDs written to ${sidecarPath}`
+        );
+        summary.updated = updated;
+        summary.errors = errors;
+        summary.aborted_after_consecutive_failures = consecutiveFailures;
+        summary.sidecar = sidecarPath;
+        console.log(JSON.stringify(summary, null, 2));
+        process.exit(1);
+      }
     }
   }
   process.stdout.write('\n');
 
   summary.updated = updated;
   summary.errors = errors;
+  if (errors > 0) summary.sidecar = sidecarPath;
   console.log(JSON.stringify(summary, null, 2));
 
   if (errors > 0) process.exit(1);
 }
 
-// Run if invoked directly
-const isMain = import.meta.url.endsWith(process.argv[1]) || process.argv[1].endsWith('compute-word-counts.mjs');
-if (isMain) {
+// Run if invoked directly (IS_MAIN computed near the top of the file).
+if (IS_MAIN) {
   main().catch(err => {
     console.error(err.stack || err.message);
     process.exit(1);
