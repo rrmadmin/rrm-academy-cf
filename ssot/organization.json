@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "@id": "https://rrmacademy.org/#organization",
   "types": ["Organization", "EducationalOrganization", "MedicalOrganization"],
-  "legal_name": "RRM Foundation",
+  "legal_name": "Restorative Reproductive Medicine Foundation Inc",
   "founder_refs": [
     { "@id": "https://rrmacademy.org/about/#naomi-whittaker" }
   ],
