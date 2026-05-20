@@ -1,0 +1,71 @@
+name: og:image health check
+
+# Verifies that og:image URLs emitted by rrmacademy.org actually resolve to
+# 200. Guards against the OG_VERSION-bump-exposes-cached-404s failure mode
+# (memory: feedback-og-version-bump-exposes-cached-404s.md). Runs on a 6h
+# schedule + manual dispatch -- never on push so it can't block deploys.
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'  # every 6 hours, off the hour
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'Base URL to check (default rrmacademy.org)'
+        required: false
+        default: 'https://rrmacademy.org'
+      pages:
+        description: 'Comma-separated pages'
+        required: false
+        default: '/,/library/,/commentary/,/naprotechnology/,/what-is-rrm/,/glossary/'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Curl og:image URLs and verify 200
+        env:
+          BASE: ${{ inputs.base_url || 'https://rrmacademy.org' }}
+          PAGES: ${{ inputs.pages || '/,/library/,/commentary/,/naprotechnology/,/what-is-rrm/,/glossary/' }}
+        run: |
+          set -uo pipefail
+          failures=0
+          checked=0
+          echo "Checking og:image URLs emitted by $BASE"
+          IFS=',' read -ra PAGE_LIST <<< "$PAGES"
+          for page in "${PAGE_LIST[@]}"; do
+            page="${page// /}"
+            [[ -z "$page" ]] && continue
+            url="${BASE}${page}"
+            html=$(curl -sS -L --max-time 15 "$url" 2>/dev/null || echo "")
+            if [[ -z "$html" ]]; then
+              echo "  [FAIL] $url -- fetch failed" >&2
+              failures=$((failures + 1))
+              continue
+            fi
+            og=$(echo "$html" | grep -oE 'property="og:image"[^>]*content="[^"]+"' | head -1 \
+              | sed -E 's/.*content="([^"]+)".*/\1/')
+            if [[ -z "$og" ]]; then
+              echo "  [FAIL] $url -- no og:image meta tag found" >&2
+              failures=$((failures + 1))
+              continue
+            fi
+            status=$(curl -sS -L -o /dev/null -w '%{http_code}' --max-time 15 -I "$og" 2>/dev/null || echo "000")
+            checked=$((checked + 1))
+            if [[ "$status" == "200" ]]; then
+              echo "  [OK]   $page -> $og"
+            else
+              echo "  [FAIL] $page -> $og (HTTP $status)" >&2
+              failures=$((failures + 1))
+            fi
+          done
+          echo
+          if [[ $failures -gt 0 ]]; then
+            echo "::error::$failures failure(s) across $checked checks. See feedback-og-version-bump-exposes-cached-404s.md"
+            exit 1
+          fi
+          echo "OK ($checked og:image URLs returned 200)"
