@@ -92,6 +92,21 @@ if echo "$STAGED" | grep -qE '^functions/api/(stripe-webhook|create-checkout)\.j
   fi
 fi
 
+# --- Removed-ID consumer-mismatch gate: any staged change to a shared
+#     component or layout that removes an id="X" still referenced by JS in
+#     src/, functions/, or public/. Closes the "remove an id, downstream
+#     getElementById quietly breaks" class of bug.
+if echo "$STAGED" | grep -qE '^src/(components|layouts)/.*\.astro$'; then
+  node scripts/gates/check-removed-ids.mjs
+  if [ $? -ne 0 ]; then
+    echo ""
+    echo "Commit blocked by removed-ID consumer-mismatch gate."
+    echo "Update or remove the consumer references before removing the id,"
+    echo "or bypass if intentional with --no-verify."
+    exit 1
+  fi
+fi
+
 # --- Security guard: only on critical file changes ---
 TRIGGER=0
 for file in $CRITICAL_FILES; do
