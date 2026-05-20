@@ -417,6 +417,23 @@ summary {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Bare-button reset: kills native browser chrome (gray background, border,
+   inset font, button color) so a <button> reused with styles originally
+   authored for <a> renders consistently. Class-level styles below (.btn,
+   .donate-btn, etc.) opt back in to background/border/padding. Prevents
+   the "black box around the icon" class of bug. */
+button {
+  appearance: none;
+  -webkit-appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  line-height: inherit;
+}
+
 /* Theme toggle: expanding circle animation via View Transitions API */
 ::view-transition-old(root),
 ::view-transition-new(root) {
