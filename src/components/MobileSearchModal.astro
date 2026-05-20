@@ -122,7 +122,11 @@ import { track } from '../scripts/track.ts';
   var input = document.getElementById('mss-input');
   var clearBtn = document.getElementById('mss-clear');
   var resultsEl = document.getElementById('mss-results');
-  if (!trigger || !modal || !input || !resultsEl) return;
+  if (!modal || !input || !resultsEl) return;
+  // Auxiliary triggers: any element with [data-open-search-modal] opens the same
+  // modal. Used by the desktop search-icon button in Header.astro so we don't
+  // have to duplicate the open/close JS in two places.
+  var auxTriggers = document.querySelectorAll('[data-open-search-modal]');
 
   var pagefindReady = null;
   var debounceTimer = null;
@@ -284,7 +288,17 @@ import { track } from '../scripts/track.ts';
     "}\n" +
     "\n" +
     "@media (min-width: 769px) {\n" +
-    "  .mss-modal { display: none !important; }\n" +
+    "  .mss-modal { align-items: center; padding: 64px 24px 24px; }\n" +
+    "  .mss-modal__sheet {\n" +
+    "    width: 100%;\n" +
+    "    max-width: 720px;\n" +
+    "    height: auto;\n" +
+    "    max-height: calc(100dvh - 88px);\n" +
+    "    border-radius: 14px;\n" +
+    "    box-shadow: 0 30px 60px rgba(0,0,0,0.35), 0 8px 20px rgba(0,0,0,0.15);\n" +
+    "    overflow: hidden;\n" +
+    "  }\n" +
+    "  .mss-modal__close { padding: 8px 12px; }\n" +
     "}\n" +
     ".mss-modal__results .mss-count {\n" +
     "  font-size: 0.75rem;\n" +
@@ -547,7 +561,8 @@ import { track } from '../scripts/track.ts';
     var navToggle = document.getElementById('nav-toggle');
     if (navToggle && navToggle.checked) navToggle.checked = false;
     modal.removeAttribute('hidden');
-    trigger.setAttribute('aria-expanded', 'true');
+    if (trigger) trigger.setAttribute('aria-expanded', 'true');
+    for (var ai = 0; ai < auxTriggers.length; ai++) auxTriggers[ai].setAttribute('aria-expanded', 'true');
     document.documentElement.style.overflow = 'hidden';
     // Defer focus so the dialog is painted first (avoids iOS keyboard jank)
     setTimeout(function() { input.focus(); }, 30);
@@ -561,7 +576,8 @@ import { track } from '../scripts/track.ts';
   function closeModal() {
     if (modal.hasAttribute('hidden')) return;
     modal.setAttribute('hidden', '');
-    trigger.setAttribute('aria-expanded', 'false');
+    if (trigger) trigger.setAttribute('aria-expanded', 'false');
+    for (var ai = 0; ai < auxTriggers.length; ai++) auxTriggers[ai].setAttribute('aria-expanded', 'false');
     document.documentElement.style.overflow = '';
     stopLoadingSpinner();
     if (lastFocus && typeof lastFocus.focus === 'function') {
@@ -569,7 +585,10 @@ import { track } from '../scripts/track.ts';
     }
   }
 
-  trigger.addEventListener('click', openModal);
+  if (trigger) trigger.addEventListener('click', openModal);
+  for (var ti = 0; ti < auxTriggers.length; ti++) {
+    auxTriggers[ti].addEventListener('click', openModal);
+  }
 
   // Close on backdrop or cancel
   modal.addEventListener('click', function(e) {
