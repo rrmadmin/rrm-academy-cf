@@ -33,9 +33,18 @@
 /3-tier-endometriosis-symptom-self-survey /endo-survey/ 301
 /3-tier-endometriosis-symptom-self-survey/ /endo-survey/ 301
 
+# Cross-origin successor for /foundation (GSC 404 audit 2026-05-20).
+# Lives in _redirects rather than rrm-router REDIRECTS because the router's
+# dispatch always prepends https://rrmacademy.org to the target, which would
+# break cross-origin (https://rrm.foundation) destinations. CF Pages
+# _redirects supports external URLs natively.
+/foundation https://rrm.foundation/ 301
+/foundation/ https://rrm.foundation/ 301
+
 
 # Site-wide redirects (301/410) live in the rrm-router worker, not here.
 # Reason: rrm-router intercepts requests via service binding to CF Pages,
 # which bypasses CF Pages's edge `_redirects` layer. Add new entries to
 # ~/iCode/projects/rrm-router/src/index.js (REDIRECTS, GONE_PREFIXES,
 # GONE_EXACT, or GLOSSARY_ANCHOR_REDIRECTS depending on the case).
+# Exception: cross-origin redirects (see /foundation above).
