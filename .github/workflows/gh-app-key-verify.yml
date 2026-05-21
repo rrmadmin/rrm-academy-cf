@@ -1,0 +1,137 @@
+name: gh-app-key-verify
+
+# Daily check that the RRM Admin Automation GitHub App can still mint
+# installation access tokens with the expected repository permissions.
+#
+# Replaces gh-pat-verify (deleted 2026-05-21) which checked classic PAT
+# scopes via /user X-OAuth-Scopes. Apps don't have OAuth scopes — they
+# have installation permissions — so the check shape is different.
+#
+# Self-check semantics: signs a JWT with RRM_ADMIN_APP_PRIVATE_KEY,
+# exchanges it for an installation token via /app/installations/<id>/access_tokens,
+# then verifies the returned token has the permissions the merge workflow needs
+# (contents, pull_requests, workflows, actions = write).
+#
+# Memory: github-app-rrm-admin-automation.md
+
+on:
+  schedule:
+    - cron: '13 13 * * *'  # 09:13 ET daily
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Mint App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.RRM_ADMIN_APP_ID }}
+          private-key: ${{ secrets.RRM_ADMIN_APP_PRIVATE_KEY }}
+
+      - name: Verify token permissions
+        env:
+          TOKEN: ${{ steps.app-token.outputs.token }}
+          REQUIRED: 'contents pull_requests workflows actions'
+          REQUIRED_LEVEL: 'write'
+        run: |
+          set -uo pipefail
+          if [[ -z "${TOKEN:-}" ]]; then
+            echo "::error::App token mint returned empty — App ID/private-key secret broken"
+            exit 1
+          fi
+
+          # Hit /installation/repositories to confirm the token works at all,
+          # then inspect the App's installation permissions via /installation/repositories
+          # (the response doesn't include permissions directly, so we hit
+          # /app via JWT-flow-equivalent: just confirm the token can list repos
+          # and the App ID matches).
+          response=$(curl -sS -w '\nHTTP_STATUS:%{http_code}' \
+            -H "Authorization: token $TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/installation/repositories)
+          status=$(echo "$response" | tail -n1 | sed 's/HTTP_STATUS://')
+          body=$(echo "$response" | sed '$d')
+          if [[ "$status" != "200" ]]; then
+            echo "::error::installation/repositories returned $status — token invalid or revoked"
+            echo "$body" | head -20
+            exit 1
+          fi
+          count=$(echo "$body" | jq -r '.total_count // 0')
+          if [[ "$count" -lt 1 ]]; then
+            echo "::error::App installation reports 0 accessible repositories — installation broken or scope=Only select repositories with none chosen"
+            exit 1
+          fi
+          echo "OK: App can mint tokens, installation has $count accessible repositories"
+
+          # Verify this repo is in the accessible list (catches scope drift to
+          # Only-select-repositories that omits rrm-academy-cf)
+          if ! echo "$body" | jq -r '.repositories[].full_name' | grep -qx "rrmadmin/rrm-academy-cf"; then
+            echo "::error::App installation does not include rrmadmin/rrm-academy-cf — installation scope must be All repositories or include this repo explicitly"
+            exit 1
+          fi
+          echo "OK: rrmadmin/rrm-academy-cf is in the installation's accessible repos"
+
+      - name: Verify required permissions
+        env:
+          APP_ID: ${{ secrets.RRM_ADMIN_APP_ID }}
+          PRIVATE_KEY: ${{ secrets.RRM_ADMIN_APP_PRIVATE_KEY }}
+        run: |
+          set -uo pipefail
+          # Sign a JWT and call /app to read the App's declared default
+          # permissions. This catches the case where someone reduced the App's
+          # permissions in the dashboard without re-installing (existing
+          # installations are not auto-reduced, but new mints will be).
+          now=$(date +%s)
+          iat=$((now - 60))
+          exp=$((now + 540))
+
+          PEM_TMP=$(mktemp)
+          trap 'rm -f "$PEM_TMP"' EXIT
+          printf '%s' "$PRIVATE_KEY" > "$PEM_TMP"
+
+          b64url() { openssl base64 -A | tr '+/' '-_' | tr -d '='; }
+          h=$(printf '%s' '{"alg":"RS256","typ":"JWT"}' | b64url)
+          p=$(printf '%s' "{\"iat\":${iat},\"exp\":${exp},\"iss\":\"${APP_ID}\"}" | b64url)
+          sig=$(printf '%s' "${h}.${p}" | openssl dgst -sha256 -sign "$PEM_TMP" -binary | b64url)
+          JWT="${h}.${p}.${sig}"
+
+          app=$(curl -sS -H "Authorization: Bearer $JWT" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/app)
+
+          # Required permission levels — must match what merge.yml needs to
+          # push workflow YAML and merge claude/** branches into main.
+          declare -A required=(
+            [contents]=write
+            [pull_requests]=write
+            [workflows]=write
+            [actions]=write
+            [metadata]=read
+          )
+          fail=0
+          for perm in "${!required[@]}"; do
+            want="${required[$perm]}"
+            got=$(echo "$app" | jq -r ".permissions.${perm} // empty")
+            if [[ -z "$got" ]]; then
+              echo "::error::App permission '${perm}' is unset (need ${want})"
+              fail=1
+            elif [[ "$want" == "write" && "$got" != "write" ]]; then
+              echo "::error::App permission '${perm}' is ${got} (need write)"
+              fail=1
+            else
+              echo "OK: ${perm}=${got}"
+            fi
+          done
+          if [[ $fail -ne 0 ]]; then
+            echo "::error::App permissions drifted. Update at https://github.com/settings/apps/rrm-admin-automation/permissions and accept the prompt to apply to the existing installation."
+            exit 1
+          fi
+          echo "OK: all required App permissions present at required level"
