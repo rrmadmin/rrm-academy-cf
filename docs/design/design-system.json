@@ -605,9 +605,14 @@
       },
       "gradient": {
         "hero": {
-          "value": "radial-gradient(circle at 50% 0%, #DAD3E7 0%, rgba(201, 184, 211, 0.43) 33.60%, rgba(152, 125, 168, 0) 60.16%, rgba(114, 94, 126, 0) 100%)",
+          "value": "radial-gradient(circle at 50% 0% in oklch, oklch(87.84% 0.0282 301.71) 0%, oklch(80.52% 0.0418 313.14 / 0.43) 33.60%, oklch(63.02% 0.0702 312.69 / 0) 60.16%, oklch(51.34% 0.0550 312.60 / 0) 100%)",
           "type": "gradient",
           "cssVariable": "--gradient-hero"
+        },
+        "hero-grain-opacity": {
+          "value": "0.55",
+          "type": "gradient",
+          "cssVariable": "--gradient-hero-grain-opacity"
         },
         "hero-subtle": {
           "value": "radial-gradient(circle at 15% 84%, rgba(114, 94, 126, 0) 0%, rgba(152, 125, 168, 0) 39.84%, rgba(201, 184, 211, 0.3) 66.40%, rgba(218, 211, 231, 0.6) 90.19%)",
@@ -1020,9 +1025,14 @@
       },
       "gradient": {
         "hero": {
-          "value": "radial-gradient(circle at 50% 0%, rgba(46, 38, 54, 0.85) 0%, rgba(61, 51, 69, 0.43) 33.60%, rgba(100, 82, 110, 0) 60.16%, rgba(114, 94, 126, 0) 100%)",
+          "value": "radial-gradient(circle at 50% 0% in oklch, oklch(28.46% 0.0308 307.25 / 0.85) 0%, oklch(33.92% 0.0337 309.75 / 0.43) 33.60%, oklch(46.73% 0.0495 313.34 / 0) 60.16%, oklch(51.34% 0.0550 312.60 / 0) 100%)",
           "type": "gradient",
           "cssVariable": "--gradient-hero"
+        },
+        "hero-grain-opacity": {
+          "value": "0.30",
+          "type": "gradient",
+          "cssVariable": "--gradient-hero-grain-opacity"
         },
         "hero-subtle": {
           "value": "radial-gradient(circle at 15% 84%, rgba(114, 94, 126, 0) 0%, rgba(100, 82, 110, 0) 39.84%, rgba(61, 51, 69, 0.3) 66.40%, rgba(46, 38, 54, 0.6) 90.19%)",
@@ -1439,6 +1449,11 @@
           "type": "gradient",
           "cssVariable": "--gradient-hero"
         },
+        "hero-grain-opacity": {
+          "value": "0",
+          "type": "gradient",
+          "cssVariable": "--gradient-hero-grain-opacity"
+        },
         "hero-subtle": {
           "value": "none",
           "type": "gradient",
@@ -1558,10 +1573,10 @@
     }
   },
   "counts": {
-    "light": 75,
-    "dark": 75,
-    "eink": 75,
+    "light": 76,
+    "dark": 76,
+    "eink": 76,
     "shared": 19,
-    "total": 244
+    "total": 247
   }
 }
