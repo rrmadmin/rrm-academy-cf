@@ -75,7 +75,7 @@
       "note": "Auth gating"
     },
     "wrangler.toml": {
-      "hash": "ba038e0ef1df686fd18db4256f92e642334cbc9cf991a0348b1d2d042dfb43de",
+      "hash": "e874d00e974b51980f6aedde6c2ce258cf6a88b3a6d5a15863e8461cbf3ab8f3",
       "note": "D1, KV, R2 bindings"
     },
     "functions/api/_ses.js": {
@@ -103,7 +103,7 @@
       "note": "CAN-SPAM unsubscribe (status update)"
     },
     "functions/api/newsletter/subscribe.js": {
-      "hash": "3d4d836179a1c899108ef2cbbb4de4eb0020aedc6f309192675b5547c004eac8",
+      "hash": "d81d52138f9df3ce46327f047a5d7fa1922841636ba22f66b5625eb8a6eda50a",
       "note": "Public newsletter intake (rate-limited)"
     },
     "functions/api/search/semantic.js": {
