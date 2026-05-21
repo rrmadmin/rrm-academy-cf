@@ -21,7 +21,7 @@
   },
   "agent_card": {
     "name": "rrmacademy",
-    "description": "RRM Academy is a nonprofit education platform for restorative reproductive medicine. The research library indexes 3,200+ peer-reviewed articles. Dr. Naomi Whittaker, MD, leads instruction. The MCP server at mcp.rrmacademy.org gives agents direct library access.",
+    "description": "RRM Academy is a nonprofit education platform for restorative reproductive medicine. The research library indexes 3,370+ peer-reviewed articles. Dr. Naomi Whittaker, MD, leads instruction. The MCP server at mcp.rrmacademy.org gives agents direct library access.",
     "capabilities": [
       "information",
       "research-citations",
