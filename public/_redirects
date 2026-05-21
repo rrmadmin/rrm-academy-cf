@@ -41,6 +41,13 @@
 /foundation https://rrm.foundation/ 301
 /foundation/ https://rrm.foundation/ 301
 
+# Filename-rename redirect (GSC 404 audit 2026-05-20).
+# Lives in _redirects rather than rrm-router REDIRECTS because the router's
+# dispatch force-appends a trailing slash to the target, which would yield
+# /agent-card.json/ and CF Pages 404s on a file path that ends with /.
+# Static-file targets need _redirects to preserve the literal path.
+/.well-known/agent.json /.well-known/agent-card.json 301
+
 
 # Site-wide redirects (301/410) live in the rrm-router worker, not here.
 # Reason: rrm-router intercepts requests via service binding to CF Pages,
