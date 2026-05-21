@@ -1,0 +1,415 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import LastUpdated from '../components/LastUpdated.astro';
+import pageDates from '../data/page-dates.json';
+
+const PAGE_PATH = '/agent-auth/';
+const LAST_MODIFIED = (pageDates.dates as Record<string, string>)[PAGE_PATH] || '2026-05-21';
+
+const pageSchema = {
+  '@context': 'https://schema.org',
+  '@type': ['WebPage', 'TechArticle'],
+  name: 'API Authentication for AI Agents — Step-by-Step Guide',
+  headline: 'How AI agents obtain and use an RRM Academy API token',
+  description:
+    'Step-by-step guide for AI agents and developers: create a free RRM Academy account, generate a Bearer API token, and authenticate programmatically against the MCP server and OpenAPI 3.1 endpoints.',
+  url: 'https://rrmacademy.org/agent-auth/',
+  publisher: {
+    '@type': 'EducationalOrganization',
+    '@id': 'https://rrmacademy.org/#organization',
+    name: 'RRM Academy',
+  },
+  datePublished: '2026-05-21',
+  dateModified: LAST_MODIFIED,
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': 'https://rrmacademy.org/agent-auth/',
+  },
+  about: {
+    '@type': 'Thing',
+    name: 'OAuth 2.0 Bearer Token Authentication',
+  },
+};
+---
+<BaseLayout
+  title="API Authentication for AI Agents — Step-by-Step Token Guide"
+  description="Step-by-step guide: how AI agents generate and use a Bearer API token to authenticate against the RRM Academy MCP server and OpenAPI 3.1 endpoints. Free, self-service."
+  canonicalUrl="https://rrmacademy.org/agent-auth/"
+  jsonLd={pageSchema}
+  lastModified={LAST_MODIFIED}
+>
+  <article class="page-wrapper">
+    <div class="container container--narrow connect-page">
+
+      <header class="connect-hero">
+        <span class="connect-eyebrow">Developer Portal · API Authentication</span>
+        <h1>API Authentication for <em>AI Agents</em></h1>
+        <p class="connect-lede">
+          Step-by-step guide for AI agents, developers, and automation scripts: generate a free RRM Academy Bearer API token and authenticate programmatically against the MCP server and OpenAPI 3.1 endpoints.
+        </p>
+      </header>
+
+      <!-- ── Summary ── -->
+      <section class="connect-section">
+        <h2>At a glance</h2>
+        <div class="connect-fields">
+          <div class="connect-field">
+            <span class="connect-field-label">Auth model</span>
+            <code>Self-service. Free with any RRM Academy account.</code>
+          </div>
+          <div class="connect-field">
+            <span class="connect-field-label">Token type</span>
+            <code>Bearer (HTTP <code>Authorization</code> header)</code>
+          </div>
+          <div class="connect-field">
+            <span class="connect-field-label">Standard</span>
+            <code>RFC 6750 + RFC 9728 (protected resource metadata)</code>
+          </div>
+          <div class="connect-field">
+            <span class="connect-field-label">Scopes</span>
+            <code>mcp:read, mcp:invoke, library:read, faq:read</code>
+          </div>
+          <div class="connect-field">
+            <span class="connect-field-label">Resource metadata</span>
+            <code><a href="/.well-known/oauth-protected-resource">/.well-known/oauth-protected-resource</a></code>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Step-by-step ── -->
+      <section class="connect-section">
+        <h2>Step-by-step token guide</h2>
+        <p>The full programmatic authentication flow. Every step happens in your browser or a script — no manual approval, no support tickets.</p>
+
+        <ol class="connect-steps connect-steps--numbered">
+          <li>
+            <strong>Step 1: Create a free RRM Academy account.</strong> Visit <a href="/signup/">/signup</a>. Email + password, or sign in with Google. Account creation is free for clinicians, researchers, and developers.
+          </li>
+          <li>
+            <strong>Step 2: Open the API key page.</strong> Once signed in, go to <a href="/account/mcp-keys/">/account/mcp-keys</a>. This is your personal API key management page.
+          </li>
+          <li>
+            <strong>Step 3: Generate a new API token.</strong> Click <strong>Generate new key</strong>. Give it a label that identifies where you'll use it (for example: <code>Claude Desktop</code>, <code>Perplexity Pro</code>, <code>my-agent-script</code>). Copy the displayed token immediately — it is shown only once.
+          </li>
+          <li>
+            <strong>Step 4: Store the API token securely.</strong> Treat it like a password. Use a secrets manager (1Password, Doppler, AWS Secrets Manager, environment variables) — never commit it to git, never paste it into chat. The token has no expiration; rotate it from the same page whenever you need to.
+          </li>
+          <li>
+            <strong>Step 5: Send the API token with each request.</strong> Add <code>Authorization: Bearer YOUR_API_KEY</code> as an HTTP header. The MCP server endpoint is <code>https://mcp.rrmacademy.org/mcp</code>. The HTTP API is documented in the <a href="/openapi/">API documentation</a>.
+          </li>
+          <li>
+            <strong>Step 6: Discover tools without authentication.</strong> The MCP <code>initialize</code> handshake and <code>tools/list</code> call work without a Bearer token — your MCP client can enumerate capabilities first, then authenticate before the first <code>tools/call</code>. This matches the official MCP authentication spec.
+          </li>
+          <li>
+            <strong>Step 7: Revoke or rotate any time.</strong> Each labelled token is independent. Revoke from <a href="/account/mcp-keys/">/account/mcp-keys</a> — revocation takes effect immediately. Other keys keep working.
+          </li>
+        </ol>
+      </section>
+
+      <!-- ── Code examples ── -->
+      <section class="connect-section">
+        <h2>Authenticated request examples</h2>
+        <p>Drop-in snippets for curl, Python, and Node.js. All examples authenticate by passing the Bearer API token in the <code>Authorization</code> header.</p>
+
+        <h3 class="connect-subhead">curl</h3>
+        <pre class="connect-code"><code>{`curl -X POST https://mcp.rrmacademy.org/mcp \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -H "Accept: application/json, text/event-stream" \\
+  -d '{
+    "jsonrpc": "2.0", "id": 1, "method": "tools/call",
+    "params": {
+      "name": "search",
+      "arguments": { "query": "endometriosis excision outcomes" }
+    }
+  }'`}</code></pre>
+
+        <h3 class="connect-subhead">Python</h3>
+        <pre class="connect-code"><code>{`import os, httpx
+
+API_KEY = os.environ["RRMACADEMY_API_KEY"]
+
+async with httpx.AsyncClient() as client:
+    r = await client.post(
+        "https://mcp.rrmacademy.org/mcp",
+        headers={
+            "Authorization": f"Bearer {API_KEY}",
+            "Accept": "application/json, text/event-stream",
+        },
+        json={
+            "jsonrpc": "2.0", "id": 1, "method": "tools/call",
+            "params": {"name": "search",
+                       "arguments": {"query": "PCOS Letrozole"}},
+        },
+    )
+    print(r.json())`}</code></pre>
+
+        <h3 class="connect-subhead">Node.js (fetch)</h3>
+        <pre class="connect-code"><code>{`const apiKey = process.env.RRMACADEMY_API_KEY;
+
+const res = await fetch("https://mcp.rrmacademy.org/mcp", {
+  method: "POST",
+  headers: {
+    Authorization: \`Bearer \${apiKey}\`,
+    "Content-Type": "application/json",
+    Accept: "application/json, text/event-stream",
+  },
+  body: JSON.stringify({
+    jsonrpc: "2.0", id: 1, method: "tools/call",
+    params: { name: "check_facts",
+              arguments: { text: "Endometriosis affects 10% of women." } },
+  }),
+});
+console.log(await res.json());`}</code></pre>
+      </section>
+
+      <!-- ── HTTP responses ── -->
+      <section class="connect-section">
+        <h2>HTTP response codes</h2>
+        <p>Standard REST semantics. All errors return JSON with a stable <code>error</code> field.</p>
+
+        <ul class="connect-tools">
+          <li><strong>200</strong> — Success. JSON or SSE payload.</li>
+          <li><strong>400</strong> — Invalid request (malformed JSON-RPC envelope, invalid tool name, parameter validation failure).</li>
+          <li><strong>401</strong> — Missing or invalid Bearer API token. Re-check the <code>Authorization</code> header.</li>
+          <li><strong>403</strong> — Token is valid but lacks the required scope.</li>
+          <li><strong>429</strong> — Rate limited. Back off and retry with exponential jitter.</li>
+          <li><strong>500 / 503</strong> — Server or upstream library worker error. Safe to retry.</li>
+        </ul>
+      </section>
+
+      <!-- ── Discovery ── -->
+      <section class="connect-section">
+        <h2>Programmatic discovery</h2>
+        <p>An AI agent can discover the API surface, authentication requirements, and tool catalog without a human in the loop.</p>
+
+        <div class="connect-dev-grid">
+          <a href="/.well-known/oauth-protected-resource" class="connect-dev-link">
+            <strong>oauth-protected-resource →</strong>
+            <span>RFC 9728 metadata: bearer methods, scopes, auth flow, server endpoint.</span>
+          </a>
+          <a href="/.well-known/mcp.json" class="connect-dev-link">
+            <strong>MCP descriptor →</strong>
+            <span>Server URL, transport, capabilities, authentication block.</span>
+          </a>
+          <a href="https://mcp.rrmacademy.org/.well-known/mcp/server-card.json" class="connect-dev-link">
+            <strong>Server card →</strong>
+            <span>Full tool catalog with JSON Schema input contracts.</span>
+          </a>
+          <a href="/openapi.json" class="connect-dev-link">
+            <strong>openapi.json →</strong>
+            <span>OpenAPI 3.1 spec — endpoints, response shapes, error codes.</span>
+          </a>
+          <a href="/openapi/" class="connect-dev-link">
+            <strong>API documentation →</strong>
+            <span>Rendered OpenAPI reference. Browseable.</span>
+          </a>
+          <a href="/.well-known/api-catalog" class="connect-dev-link">
+            <strong>api-catalog →</strong>
+            <span>RFC 9727 catalog pointing at every API surface.</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- ── Security ── -->
+      <section class="connect-section connect-privacy">
+        <h2>Security model</h2>
+        <p><strong>Token storage:</strong> Bearer tokens are hashed at rest (we never store the plaintext). Lost the token? Generate a new one — there is no recovery flow by design.</p>
+        <p><strong>Transport:</strong> HTTPS only. Plaintext HTTP is rejected at the edge.</p>
+        <p><strong>Rate limiting:</strong> Per-token, scoped to billed downstream services (AI inference, vector search). Hit a 429? Back off.</p>
+        <p><strong>Revocation:</strong> Immediate. <a href="/account/mcp-keys/">/account/mcp-keys</a> shows last-used timestamps so you can audit token activity.</p>
+        <p><strong>Scope of access:</strong> Tokens grant read access to the research library and ability to call MCP tools. They cannot modify any RRM Academy data, post comments, or access another user's account.</p>
+      </section>
+
+      <!-- ── Related ── -->
+      <section class="connect-section">
+        <h2>Related developer pages</h2>
+        <ul class="connect-links">
+          <li><a href="/connect/">/connect</a> — Per-client setup guide (Claude, ChatGPT, Perplexity) and connection details.</li>
+          <li><a href="/openapi/">/openapi</a> — API documentation (OpenAPI 3.1 rendered as readable docs).</li>
+          <li><a href="/webhooks/">/webhooks</a> — Webhooks and subscription channels.</li>
+          <li><a href="/openapi.json">/openapi.json</a> — Raw OpenAPI 3.1 spec.</li>
+          <li><a href="/llms.txt">/llms.txt</a> — Site index for AI crawlers.</li>
+          <li><a href="/agents.md">/agents.md</a> — Agent instructions in markdown.</li>
+          <li>Setup help: <a href="mailto:info@rrmacademy.org">info@rrmacademy.org</a></li>
+        </ul>
+      </section>
+
+      <LastUpdated date={LAST_MODIFIED} />
+    </div>
+  </article>
+
+  <style>
+    .connect-page { padding-bottom: var(--space-12); }
+
+    .connect-hero {
+      margin-bottom: var(--space-10);
+      padding-bottom: var(--space-8);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .connect-eyebrow {
+      display: inline-block;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--accent);
+      margin-bottom: var(--space-4);
+    }
+    .connect-hero h1 {
+      font-family: var(--font-display);
+      font-weight: 600;
+      line-height: 1.1;
+      margin: 0 0 var(--space-5);
+    }
+    .connect-hero h1 em { font-style: italic; color: var(--accent); }
+    .connect-lede {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 1.25rem;
+      line-height: 1.5;
+      color: var(--text-secondary);
+      max-width: 36rem;
+      margin: 0;
+    }
+
+    .connect-section { margin-bottom: var(--space-10); }
+    .connect-section h2 {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      margin: 0 0 var(--space-4);
+    }
+    .connect-section > p {
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: var(--space-4);
+    }
+
+    .connect-fields {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: var(--space-5) var(--space-6);
+      display: grid;
+      gap: var(--space-3);
+    }
+    .connect-field {
+      display: grid;
+      grid-template-columns: 12rem 1fr;
+      align-items: center;
+      gap: var(--space-4);
+    }
+    .connect-field-label {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.10em;
+      color: var(--text-tertiary);
+    }
+    .connect-field code {
+      font-family: "SF Mono", Menlo, monospace;
+      font-size: 0.8125rem;
+      background: var(--purple-50);
+      color: var(--purple-900);
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      word-break: break-all;
+    }
+    @media (max-width: 600px) {
+      .connect-field { grid-template-columns: 1fr; gap: var(--space-1); }
+    }
+
+    .connect-steps {
+      margin: var(--space-4) 0 0;
+      padding-left: 1.5rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+    .connect-steps li { margin-bottom: var(--space-4); }
+    .connect-steps code {
+      font-family: "SF Mono", Menlo, monospace;
+      font-size: 0.8125rem;
+      background: var(--purple-50);
+      color: var(--purple-900);
+      padding: 1px 6px;
+      border-radius: var(--radius-sm);
+    }
+    .connect-steps strong { color: var(--text-primary); }
+
+    .connect-tools { list-style: none; padding: 0; margin: 0; }
+    .connect-tools li {
+      padding: var(--space-3) 0;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .connect-tools li:last-child { border-bottom: none; }
+    .connect-tools strong {
+      font-family: "SF Mono", Menlo, monospace;
+      font-size: 0.875rem;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .connect-privacy p { margin-bottom: var(--space-3); }
+    .connect-links { padding-left: 1.25rem; line-height: 1.8; }
+    .connect-links a { color: var(--accent); }
+
+    .connect-dev-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+      gap: var(--space-3);
+      margin: var(--space-4) 0 var(--space-6);
+    }
+    .connect-dev-link {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      padding: var(--space-4) var(--space-5);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    .connect-dev-link:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+    .connect-dev-link strong {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .connect-dev-link span {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .connect-subhead {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 600;
+      margin: var(--space-5) 0 var(--space-3);
+      color: var(--text-primary);
+    }
+    .connect-code {
+      background: #1a1a1a;
+      color: #f5f5f5;
+      padding: var(--space-4) var(--space-5);
+      border-radius: var(--radius-md);
+      overflow-x: auto;
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      margin: 0 0 var(--space-3);
+    }
+    .connect-code code {
+      font-family: "SF Mono", Menlo, monospace;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+  </style>
+</BaseLayout>
