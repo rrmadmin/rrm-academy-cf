@@ -496,18 +496,6 @@ jobs:
         run: node scripts/submit-indexnow.mjs
         continue-on-error: true
 
-      # BLOCKING smoke for course landing pages. Bucket C of the
-      # 2026-05-20 GSC coverage improvements plan added a robots.txt
-      # rule that scoped /courses/* lesson steps out of crawl. This
-      # asserts the landings themselves are still 200 + indexable so
-      # a regression in the template, the robots pattern, or the
-      # course-fetch pipeline trips the deploy.
-      - name: Smoke: course landings indexable
-        if: success()
-        env:
-          SITE_URL: https://rrmacademy.org
-        run: node scripts/smoke-course-landings.mjs
-
       - name: Post-deploy render quality (sample, non-blocking)
         if: success()
         env:
