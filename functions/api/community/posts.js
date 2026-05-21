@@ -13,6 +13,7 @@ import {
   tierFromLabel, TIER_LABELS,
 } from './_shared.js';
 import { notifyNewPost } from './_email.js';
+import { withIdempotency } from '../_idempotency.js';
 
 const VALID_CHANNELS = ['stuc', 'members', 'masterclass'];
 
@@ -256,7 +257,11 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
 // --- POST: create post ---
 
-export async function onRequestPost({ request, env, waitUntil }) {
+export async function onRequestPost(context) {
+  return withIdempotency(context, _handlePost);
+}
+
+async function _handlePost({ request, env, waitUntil }) {
   try {
     const auth = await requireMember(request, env);
     if (auth instanceof Response) return auth;
@@ -432,7 +437,11 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
 // --- PATCH: edit / pin ---
 
-export async function onRequestPatch({ request, env, waitUntil }) {
+export async function onRequestPatch(context) {
+  return withIdempotency(context, _handlePatch);
+}
+
+async function _handlePatch({ request, env, waitUntil }) {
   try {
     const auth = await requireMember(request, env);
     if (auth instanceof Response) return auth;
@@ -561,7 +570,11 @@ export async function onRequestPatch({ request, env, waitUntil }) {
 
 // --- DELETE ---
 
-export async function onRequestDelete({ request, env, waitUntil }) {
+export async function onRequestDelete(context) {
+  return withIdempotency(context, _handleDelete);
+}
+
+async function _handleDelete({ request, env, waitUntil }) {
   try {
     const auth = await requireMember(request, env);
     if (auth instanceof Response) return auth;

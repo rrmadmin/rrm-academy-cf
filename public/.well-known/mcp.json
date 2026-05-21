@@ -65,6 +65,9 @@
         "destructiveHint": false,
         "idempotentHint": true,
         "openWorldHint": false
+      },
+      "_meta": {
+        "ui": { "resourceUri": "ui://article/view.html" }
       }
     },
     {
@@ -130,5 +133,21 @@
   "server_card": "https://mcp.rrmacademy.org/.well-known/mcp/server-card.json",
   "documentation": "https://rrmacademy.org/connect",
   "homepage": "https://rrmacademy.org/connect",
-  "contact": "info@rrmacademy.org"
+  "contact": "info@rrmacademy.org",
+  "extensions": {
+    "io.modelcontextprotocol/ui": {
+      "enabled": true,
+      "mimeTypes": ["text/html;profile=mcp-app"],
+      "resources": ["ui://article/view.html"]
+    }
+  },
+  "ui_resources": [
+    {
+      "uri": "ui://article/view.html",
+      "name": "Article View",
+      "mimeType": "text/html;profile=mcp-app",
+      "description": "Inline interactive view for library articles. Rendered by MCP Apps-capable hosts after a get_article tool call.",
+      "consumed_by": ["get_article"]
+    }
+  ]
 }

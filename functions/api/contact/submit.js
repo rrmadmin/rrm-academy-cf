@@ -10,12 +10,17 @@ import { log } from '../_log.js';
 import { validateBody } from '../_validate.js';
 import { CONTACT_CATEGORIES, CATEGORY_SOURCES } from '../../../src/lib/contact-categories.js';
 import { buildContactSubject } from './_subject.js';
+import { withIdempotency } from '../_idempotency.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
 }
 
 export async function onRequestPost(context) {
+  return withIdempotency(context, _handlePost);
+}
+
+async function _handlePost(context) {
   const { request, env, waitUntil } = context;
 
   try {

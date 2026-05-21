@@ -5,6 +5,7 @@
 import { json, optionsResponse } from '../auth/_shared.js';
 import { log } from '../_log.js';
 import { requireMember } from './_shared.js';
+import { withIdempotency } from '../_idempotency.js';
 
 const ALLOWED_EMOJI = ['❤️', '👏', '😢'];
 
@@ -12,7 +13,11 @@ export async function onRequestOptions() {
   return optionsResponse();
 }
 
-export async function onRequestPost({ request, env, waitUntil }) {
+export async function onRequestPost(context) {
+  return withIdempotency(context, _handlePost);
+}
+
+async function _handlePost({ request, env, waitUntil }) {
   try {
     const auth = await requireMember(request, env);
     if (auth instanceof Response) return auth;
@@ -69,7 +74,11 @@ export async function onRequestPost({ request, env, waitUntil }) {
   }
 }
 
-export async function onRequestDelete({ request, env, waitUntil }) {
+export async function onRequestDelete(context) {
+  return withIdempotency(context, _handleDelete);
+}
+
+async function _handleDelete({ request, env, waitUntil }) {
   try {
     const auth = await requireMember(request, env);
     if (auth instanceof Response) return auth;
