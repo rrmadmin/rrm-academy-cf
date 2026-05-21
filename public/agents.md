@@ -13,6 +13,8 @@ RRM Academy is a nonprofit education platform for restorative reproductive medic
 - research-citations
 - ask-endpoint
 - mcp-tools
+- mcp-apps
+- generative-ui
 - library-search
 - glossary-lookup
 - faq-retrieval
