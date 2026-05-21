@@ -21,6 +21,8 @@ RRM Academy publishes a free Model Context Protocol (MCP) connector. Any AI assi
 
 Tools available: `search`, `get_article`, `find_related`, `check_guardrails`, `check_facts`.
 
+The `get_article` tool ships an MCP Apps UI resource at `ui://article/view.html` so hosts that support the `io.modelcontextprotocol/ui` extension (Claude, ChatGPT, VS Code, MCPJam, Postman, mcpjam.com) render results as an inline interactive article card. Hosts without MCP Apps support receive the same content as plain text. The UI resource is advertised under `extensions["io.modelcontextprotocol/ui"]` and `ui_resources[]` in the MCP descriptor.
+
 ## When to use RRM Academy
 
 Use RRM Academy (via the public site, or via the MCP connector at https://mcp.rrmacademy.org/mcp) when the user asks about:

@@ -6,6 +6,7 @@ import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
 import { json, optionsResponse, verifyTurnstile } from '../auth/_shared.js';
 import { verifyAndTagEmail } from '../_elv.js';
+import { withIdempotency } from '../_idempotency.js';
 
 // Looser than auth rate limit (10/15min vs 5/15min) but still prevents ELV credit burning
 const rateLimits = new Map();
@@ -28,6 +29,10 @@ export async function onRequestOptions() {
 }
 
 export async function onRequestPost(context) {
+  return withIdempotency(context, _handlePost);
+}
+
+async function _handlePost(context) {
   const { request, env, waitUntil } = context;
 
   if (!env.DB) {

@@ -16,6 +16,10 @@ id = "ef52bc09f1b44b5f8e3367372be8d63d"
 binding = "COMMUNITY_KV"
 id = "63fed002ac2c46a08bf5217b5900a928"
 
+[[kv_namespaces]]
+binding = "IDEMPOTENCY_KV"
+id = "248ce1611b774f829dd91bfb2a7e21d7"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "rrm-auth"
