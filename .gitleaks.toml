@@ -77,3 +77,8 @@ paths = [
 description = "Stripe API curl examples in phase8 migration plan"
 paths = ['''docs/plans/2026-02-26-phase8-migration-go-live-plan\.md''']
 regexes = ['''api\.stripe\.com/v1/webhook_endpoints/we_[A-Za-z0-9]+''']
+
+[[allowlists]]
+description = "Idempotency-Key test fixture uses the RFC 4122 example UUID, not a secret"
+paths = ['''test/idempotency\.test\.js''']
+regexes = ['''f47ac10b-58cc-4372-a567-0e02b2c3d479''']
