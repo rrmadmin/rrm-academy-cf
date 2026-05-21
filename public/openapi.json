@@ -25,6 +25,30 @@
     }
   ],
   "security": [{ "bearerAuth": [] }],
+  "x-idempotency-policy": {
+    "header": "Idempotency-Key",
+    "draft": "https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/",
+    "key_format": "16-128 printable ASCII characters; recommend a 36-character UUID v4",
+    "ttl_hours": 24,
+    "mismatch_status": 422,
+    "replay_header": "Idempotency-Replayed: true",
+    "applies_to": [
+      { "method": "POST",   "path": "/api/ask" },
+      { "method": "POST",   "path": "/mcp" },
+      { "method": "POST",   "path": "/api/contact/submit" },
+      { "method": "POST",   "path": "/api/newsletter/subscribe" },
+      { "method": "POST",   "path": "/api/community/posts" },
+      { "method": "PATCH",  "path": "/api/community/posts" },
+      { "method": "DELETE", "path": "/api/community/posts" },
+      { "method": "POST",   "path": "/api/community/comments" },
+      { "method": "PATCH",  "path": "/api/community/comments" },
+      { "method": "DELETE", "path": "/api/community/comments" },
+      { "method": "POST",   "path": "/api/community/reactions" },
+      { "method": "DELETE", "path": "/api/community/reactions" },
+      { "method": "POST",   "path": "/api/saved" },
+      { "method": "DELETE", "path": "/api/saved" }
+    ]
+  },
   "paths": {
     "/api/ask": {
       "get": {
@@ -56,6 +80,9 @@
         "description": "Answers questions scoped to restorative reproductive medicine using the RRM Library corpus. Two auth paths:\n\n**Session-authenticated (20 req/day):** Include the `session` cookie from `/api/auth/login`. Supports both JSON and SSE response formats based on the `Accept` header.\n\n**Anonymous (2 req/day/IP):** No cookie required. Always returns `text/event-stream`. Rate-limited per IP.\n\nSet `Accept: text/event-stream` to receive a streaming SSE response regardless of auth state.",
         "security": [],
         "servers": [{ "url": "https://rrmacademy.org" }],
+        "parameters": [
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -107,7 +134,9 @@
             "content": {
               "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
             }
-          }
+          },
+          "422": { "$ref": "#/components/responses/IdempotencyMismatch" },
+          "400": { "$ref": "#/components/responses/InvalidIdempotencyKey" }
         }
       }
     },
@@ -207,6 +236,9 @@
         "operationId": "mcp_invoke",
         "summary": "Invoke an MCP tool",
         "description": "Model Context Protocol JSON-RPC 2.0 entry point. Dispatches to one of five tools: search, check_guardrails, check_facts, get_article, find_related. Use the MCP client libraries (@modelcontextprotocol/sdk) for idiomatic access rather than raw HTTP.",
+        "parameters": [
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -247,7 +279,9 @@
                 "schema": { "$ref": "#/components/schemas/Error" }
               }
             }
-          }
+          },
+          "422": { "$ref": "#/components/responses/IdempotencyMismatch" },
+          "400": { "$ref": "#/components/responses/InvalidIdempotencyKey" }
         }
       }
     },
@@ -275,6 +309,41 @@
         "scheme": "bearer",
         "bearerFormat": "opaque",
         "description": "Bearer API key. Self-service issuance at https://rrmacademy.org/account/mcp-keys."
+      }
+    },
+    "parameters": {
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": false,
+        "description": "Opaque client-generated identifier (recommend 36-character UUID) that lets the server detect retried requests on this mutation endpoint and return the cached prior response instead of re-running side effects. Implements the IETF idempotency-header draft (https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/). Constraints: 16-128 printable ASCII characters. The server returns the same status, body, and Idempotency-Replayed: true on a successful match. If the same key is reused with a different request body, the server returns 422 with error=idempotency-mismatch. Keys expire after 24 hours. Idempotency is opt-in: requests without this header behave exactly as before.",
+        "schema": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 128,
+          "pattern": "^[\\x21-\\x7e]{16,128}$",
+          "example": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+        }
+      }
+    },
+    "responses": {
+      "IdempotencyMismatch": {
+        "description": "The Idempotency-Key was previously used with a different request body. Use a new key for a new request.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" },
+            "example": { "ok": false, "error": "idempotency-mismatch", "message": "This Idempotency-Key was used with a different request body. Use a new key for a new request." }
+          }
+        }
+      },
+      "InvalidIdempotencyKey": {
+        "description": "Idempotency-Key header is malformed. Must be 16-128 printable ASCII characters.",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/Error" },
+            "example": { "ok": false, "error": "invalid-idempotency-key", "message": "Idempotency-Key must be 16-128 printable ASCII characters (RFC IETF idempotency-header draft)." }
+          }
+        }
       }
     },
     "schemas": {

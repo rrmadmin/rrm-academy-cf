@@ -12,6 +12,7 @@ import {
   json, optionsResponse, getSessionIdFromCookie, validateSession,
 } from './auth/_shared.js';
 import { log } from './_log.js';
+import { withIdempotency } from './_idempotency.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -45,7 +46,11 @@ export async function onRequestGet({ request, env, waitUntil }) {
 // --- POST /api/saved ---
 // Body: { article: {...} }           — save one article
 // Body: { articles: [{...}, ...] }   — sync batch from localStorage
-export async function onRequestPost({ request, env, waitUntil }) {
+export async function onRequestPost(context) {
+  return withIdempotency(context, _handlePost);
+}
+
+async function _handlePost({ request, env, waitUntil }) {
   try {
     const db = env.DB;
     if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
@@ -125,7 +130,11 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
 // --- DELETE /api/saved ---
 // Body: { slug: "..." }
-export async function onRequestDelete({ request, env, waitUntil }) {
+export async function onRequestDelete(context) {
+  return withIdempotency(context, _handleDelete);
+}
+
+async function _handleDelete({ request, env, waitUntil }) {
   try {
     const db = env.DB;
     if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
