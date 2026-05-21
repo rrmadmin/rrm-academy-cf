@@ -3,6 +3,13 @@ interface Props {
   topic: string;
 }
 const { topic } = Astro.props;
-const href = `/library?topic=${encodeURIComponent(topic)}`;
+// Defensive normalisation: strip CR/LF/TAB + collapse runs of whitespace
+// before URL-encoding. Bucket G of the 2026-05-20 GSC coverage improvements
+// plan tracked a malformed `?topic=Infertility %3E Epidemiology %3E \nFecundability`
+// URL that surfaced in GSC. No D1 row currently carries the bad
+// whitespace, but enforcing the strip at the encoder closes the
+// regression class for any future ingest that lets one through.
+const cleanTopic = topic.replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim();
+const href = `/library?topic=${encodeURIComponent(cleanTopic)}`;
 ---
 <a href={href} class="topic-pill">{topic}</a>
