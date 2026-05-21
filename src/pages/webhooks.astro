@@ -1,0 +1,234 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import LastUpdated from '../components/LastUpdated.astro';
+import pageDates from '../data/page-dates.json';
+
+const PAGE_PATH = '/webhooks/';
+const LAST_MODIFIED = (pageDates.dates as Record<string, string>)[PAGE_PATH] || '2026-05-21';
+
+const pageSchema = {
+  '@context': 'https://schema.org',
+  '@type': ['WebPage', 'TechArticle'],
+  name: 'Webhooks — RRM Academy Developer Portal',
+  headline: 'Subscription channels for RRM Academy content updates',
+  description:
+    'Webhooks status and alternative subscription channels for AI agents and developers tracking new articles, commentary, and library additions on RRM Academy.',
+  url: 'https://rrmacademy.org/webhooks/',
+  publisher: {
+    '@type': 'EducationalOrganization',
+    '@id': 'https://rrmacademy.org/#organization',
+    name: 'RRM Academy',
+  },
+  datePublished: '2026-05-21',
+  dateModified: LAST_MODIFIED,
+};
+---
+<BaseLayout
+  title="Webhooks — Developer Portal & Subscription Channels"
+  description="Webhooks status and supported subscription channels (RSS, MCP) for AI agents and developers tracking new articles and commentary on RRM Academy."
+  canonicalUrl="https://rrmacademy.org/webhooks/"
+  jsonLd={pageSchema}
+  lastModified={LAST_MODIFIED}
+>
+  <article class="page-wrapper">
+    <div class="container container--narrow connect-page">
+
+      <header class="connect-hero">
+        <span class="connect-eyebrow">Developer Portal · Webhooks</span>
+        <h1>Webhooks &amp; <em>Subscription Channels</em></h1>
+        <p class="connect-lede">
+          How AI agents, ingestion pipelines, and downstream apps subscribe to new RRM Academy research library articles, commentary posts, and curated facts.
+        </p>
+      </header>
+
+      <!-- ── Status ── -->
+      <section class="connect-section">
+        <h2>Outbound webhooks status</h2>
+        <p>
+          <strong>RRM Academy does not currently expose outbound HTTP webhooks.</strong> Instead, content subscription is offered through three pull-based channels that are simpler to integrate, easier to retry, and friendlier to AI agents that already know how to read RSS or call an MCP server.
+        </p>
+        <p>
+          If your use case genuinely requires push-based delivery (for example: a managed indexing pipeline you cannot poll), email <a href="mailto:info@rrmacademy.org">info@rrmacademy.org</a> with the spec. We will scope an outbound webhook surface if there is real demand.
+        </p>
+      </section>
+
+      <!-- ── Channels ── -->
+      <section class="connect-section">
+        <h2>Supported subscription channels</h2>
+        <p>Pick the channel that matches your agent or pipeline. All three are free and unauthenticated for read access.</p>
+
+        <div class="connect-dev-grid">
+          <a href="/library/rss.xml" class="connect-dev-link">
+            <strong>Library RSS →</strong>
+            <span>RFC 4287 Atom feed of every new research library article. Updated within minutes of publication. No API key required.</span>
+          </a>
+          <a href="/commentary/rss.xml" class="connect-dev-link">
+            <strong>Commentary RSS →</strong>
+            <span>Atom feed of every new clinical commentary post. No API key required.</span>
+          </a>
+          <a href="/connect/" class="connect-dev-link">
+            <strong>MCP server →</strong>
+            <span>Pull updates programmatically via the <code>search</code> tool with a date filter. Requires a free Bearer API token.</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- ── Polling pattern ── -->
+      <section class="connect-section">
+        <h2>Recommended polling pattern</h2>
+        <p>For agents and indexers, poll the RSS feeds every 15 minutes. Use the <code>If-Modified-Since</code> request header to skip work when the feed has not changed.</p>
+
+        <pre class="connect-code"><code>{`curl -s -H "If-Modified-Since: Wed, 21 May 2026 09:00:00 GMT" \\
+  https://rrmacademy.org/library/rss.xml`}</code></pre>
+
+        <p>A <code>304 Not Modified</code> response means no new articles. A <code>200 OK</code> returns the full Atom feed; diff against your last-seen entry IDs.</p>
+      </section>
+
+      <!-- ── Why no webhooks ── -->
+      <section class="connect-section">
+        <h2>Why pull, not push</h2>
+        <ul class="connect-tools">
+          <li><strong>Reliability</strong> — Pull-based delivery makes the consumer responsible for retries. No dead-letter queues, no signature verification, no replay windows to manage.</li>
+          <li><strong>Authentication simplicity</strong> — RSS needs none. MCP needs only a Bearer API token. Outbound webhooks require shared-secret signing on both sides.</li>
+          <li><strong>Lower latency in practice</strong> — Agents querying the MCP <code>search</code> tool get sub-second results at the moment of need, not delayed batch deliveries.</li>
+          <li><strong>Editorial coherence</strong> — The library publishes after editorial review, not at content-creation time. A push-on-create webhook would fire on drafts.</li>
+        </ul>
+      </section>
+
+      <!-- ── Related ── -->
+      <section class="connect-section">
+        <h2>Related developer pages</h2>
+        <ul class="connect-links">
+          <li><a href="/agent-auth/">/agent-auth</a> — Step-by-step API token authentication guide.</li>
+          <li><a href="/connect/">/connect</a> — Per-client MCP setup guide.</li>
+          <li><a href="/openapi/">/openapi</a> — API documentation (OpenAPI 3.1).</li>
+          <li><a href="/llms.txt">/llms.txt</a> — Site index for AI crawlers.</li>
+          <li>Spec request: <a href="mailto:info@rrmacademy.org">info@rrmacademy.org</a></li>
+        </ul>
+      </section>
+
+      <LastUpdated date={LAST_MODIFIED} />
+    </div>
+  </article>
+
+  <style>
+    .connect-page { padding-bottom: var(--space-12); }
+
+    .connect-hero {
+      margin-bottom: var(--space-10);
+      padding-bottom: var(--space-8);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .connect-eyebrow {
+      display: inline-block;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--accent);
+      margin-bottom: var(--space-4);
+    }
+    .connect-hero h1 {
+      font-family: var(--font-display);
+      font-weight: 600;
+      line-height: 1.1;
+      margin: 0 0 var(--space-5);
+    }
+    .connect-hero h1 em { font-style: italic; color: var(--accent); }
+    .connect-lede {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 1.25rem;
+      line-height: 1.5;
+      color: var(--text-secondary);
+      max-width: 36rem;
+      margin: 0;
+    }
+
+    .connect-section { margin-bottom: var(--space-10); }
+    .connect-section h2 {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      margin: 0 0 var(--space-4);
+    }
+    .connect-section > p {
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: var(--space-4);
+    }
+    .connect-section code {
+      font-family: "SF Mono", Menlo, monospace;
+      font-size: 0.8125rem;
+      background: var(--purple-50);
+      color: var(--purple-900);
+      padding: 1px 6px;
+      border-radius: var(--radius-sm);
+    }
+
+    .connect-tools { list-style: none; padding: 0; margin: 0; }
+    .connect-tools li {
+      padding: var(--space-3) 0;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .connect-tools li:last-child { border-bottom: none; }
+    .connect-tools strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .connect-links { padding-left: 1.25rem; line-height: 1.8; }
+    .connect-links a { color: var(--accent); }
+
+    .connect-dev-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+      gap: var(--space-3);
+      margin: var(--space-4) 0 var(--space-6);
+    }
+    .connect-dev-link {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      padding: var(--space-4) var(--space-5);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    .connect-dev-link:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+    .connect-dev-link strong {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .connect-dev-link span {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .connect-code {
+      background: #1a1a1a;
+      color: #f5f5f5;
+      padding: var(--space-4) var(--space-5);
+      border-radius: var(--radius-md);
+      overflow-x: auto;
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      margin: 0 0 var(--space-3);
+    }
+    .connect-code code {
+      font-family: "SF Mono", Menlo, monospace;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+  </style>
+</BaseLayout>

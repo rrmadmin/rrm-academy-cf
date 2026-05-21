@@ -1,8 +1,8 @@
 # RRM Academy — Full Agent Context
 
 > https://rrmacademy.org
-> Version: 1.1
-> Last updated: 2026-04-29
+> Version: 1.0
+> Last updated: 2026-04-19
 > License for reuse: Fair-use citation. See https://rrmacademy.org/terms-of-use/
 
 This file is the single-request, comprehensive context for AI agents and crawlers. For the concise version, see [/llms.txt](https://rrmacademy.org/llms.txt). For agent-specific development guidance, see [AGENTS.md](https://github.com/rrmadmin/rrm-academy-cf/blob/main/AGENTS.md).
@@ -121,19 +121,34 @@ Coming soon: Hormones Through the Lifespan, Pelvic Floor Rehabilitation, Inferti
 - **Founding year:** 2023.
 - **Editorial policy:** Clinical content is peer-reviewed or physician-authored. Academic citations are verified against CrossRef, PubMed, and Perplexity before publication. The RRM Research Library enforces a verified-citation CI gate on every deploy.
 
+## Developer Portal
+
+The RRM Academy developer portal documents how AI agents and software integrate with the platform.
+
+- [`/connect`](https://rrmacademy.org/connect) — MCP connector setup guide for Claude, ChatGPT, and Perplexity.
+- [`/agent-auth`](https://rrmacademy.org/agent-auth) — API token authentication step-by-step guide. Bearer token generation, scopes, code samples (curl / Python / Node.js), HTTP response codes.
+- [`/openapi`](https://rrmacademy.org/openapi) — API documentation rendered from the OpenAPI 3.1 spec.
+- [`/openapi.json`](https://rrmacademy.org/openapi.json) — Raw OpenAPI 3.1 spec (codegen, Postman, Stoplight, Insomnia).
+- [`/webhooks`](https://rrmacademy.org/webhooks) — Webhooks status and subscription channels. Outbound webhooks are not currently exposed; the RSS feeds and MCP server cover the same surface.
+- [`/account/mcp-keys`](https://rrmacademy.org/account/mcp-keys) — Personal API key management (generate, label, revoke).
+
 ## Agent and programmatic access
 
 For AI agents and programmatic integrations:
 
-- [`llms.txt`](https://rrmacademy.org/llms.txt) — concise agent context (66 lines)
+- [`llms.txt`](https://rrmacademy.org/llms.txt) — concise agent context
 - [`llms-full.txt`](https://rrmacademy.org/llms-full.txt) — this file
 - [`AGENTS.md`](https://github.com/rrmadmin/rrm-academy-cf/blob/main/AGENTS.md) — repo-level instructions for AI coding agents
 - [`pricing.md`](https://rrmacademy.org/pricing.md) — machine-readable pricing
+- [`/openapi`](https://rrmacademy.org/openapi) — rendered API documentation
 - [`openapi.json`](https://rrmacademy.org/openapi.json) — OpenAPI 3.1 spec for the MCP agent API
 - [`ai-plugin.json`](https://rrmacademy.org/.well-known/ai-plugin.json) — OpenAI plugin manifest
 - [`mcp.json`](https://rrmacademy.org/.well-known/mcp.json) — MCP discovery file
 - [`mcp/server-card.json`](https://rrmacademy.org/.well-known/mcp/server-card.json) — MCP server card
+- [`oauth-protected-resource`](https://rrmacademy.org/.well-known/oauth-protected-resource) — RFC 9728 protected-resource metadata with step-by-step Bearer token auth flow
 - [`api-catalog`](https://rrmacademy.org/.well-known/api-catalog) — RFC 9727 API catalog
+- [`/library/rss.xml`](https://rrmacademy.org/library/rss.xml) — Atom feed for new library articles (webhooks alternative)
+- [`/commentary/rss.xml`](https://rrmacademy.org/commentary/rss.xml) — Atom feed for new commentary posts
 - [`sitemap.xml`](https://rrmacademy.org/sitemap.xml) — full site map
 - [`robots.txt`](https://rrmacademy.org/robots.txt) — crawl policy (AI crawlers explicitly allowed)
 
