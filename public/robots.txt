@@ -40,6 +40,14 @@ Disallow: /data/
 Disallow: /ivf-success-calculator
 Disallow: /community/
 Disallow: /dev/
+# Course lesson steps (/courses/<slug>/<stepId>/) are noindex via meta robots
+# already; the rule below is a belt-and-braces signal so crawlers skip
+# the inner step URLs entirely and spend budget on landings + content
+# pillars. Pattern requires a non-empty *second* segment after /courses/,
+# so single-segment landings like /courses/aip-diet-inflammation/ are
+# exempt (their match attempt fails because the URL has no trailing /
+# beyond the slug). Verified live 2026-05-21.
+Disallow: /courses/*/*/
 
 # =============================================================================
 # AI SEARCH / RETRIEVAL CRAWLERS
