@@ -57,6 +57,9 @@
         "destructiveHint": false,
         "idempotentHint": true,
         "openWorldHint": false
+      },
+      "_meta": {
+        "ui": { "resourceUri": "ui://article/view.html" }
       }
     },
     {
@@ -125,5 +128,21 @@
   },
   "contact": "info@rrmacademy.org",
   "homepage": "https://rrmacademy.org",
-  "license": "Research library metadata is freely available under fair-use citation. See https://rrmacademy.org/terms-of-use/."
+  "license": "Research library metadata is freely available under fair-use citation. See https://rrmacademy.org/terms-of-use/.",
+  "extensions": {
+    "io.modelcontextprotocol/ui": {
+      "enabled": true,
+      "mimeTypes": ["text/html;profile=mcp-app"],
+      "resources": ["ui://article/view.html"]
+    }
+  },
+  "ui_resources": [
+    {
+      "uri": "ui://article/view.html",
+      "name": "Article View",
+      "mimeType": "text/html;profile=mcp-app",
+      "description": "Inline interactive view for library articles. Rendered by MCP Apps-capable hosts after a get_article tool call.",
+      "consumed_by": ["get_article"]
+    }
+  ]
 }
