@@ -13,17 +13,25 @@ jobs:
   merge-to-main:
     runs-on: ubuntu-latest
     steps:
+      # Mint a per-job installation access token from the "RRM Admin Automation"
+      # GitHub App (App ID + private key in repo secrets, key SSOT is 1P
+      # op://Automation/RRM Admin Automation App/Private Key). The token has
+      # `workflow` write access via the App's installed permissions, which the
+      # default GITHUB_TOKEN cannot provide. Tokens auto-expire in 1h — no
+      # rotation needed. Replaces the WORKFLOWS_PAT classic PAT (migrated
+      # 2026-05-21, see memory: github-app-rrm-admin-automation.md).
+      - name: Mint GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.RRM_ADMIN_APP_ID }}
+          private-key: ${{ secrets.RRM_ADMIN_APP_PRIVATE_KEY }}
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          # Use a PAT (with `workflow` scope) so the push step can update
-          # workflow files in .github/workflows/. The default GITHUB_TOKEN
-          # cannot push workflow-file changes regardless of `permissions:`.
-          # PAT is stored in 1Password and bound to the repo as WORKFLOWS_PAT.
-          # Without this, claude/** branches that touch
-          # any .github/workflows/*.yml are remote-rejected at merge time.
-          token: ${{ secrets.WORKFLOWS_PAT }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -57,8 +65,8 @@ jobs:
       - name: Merge into main and push
         id: merge
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "rrm-admin-automation[bot]"
+          git config user.email "286686868+rrm-admin-automation[bot]@users.noreply.github.com"
           git checkout main
           BEFORE=$(git rev-parse HEAD)
           git merge --no-ff ${{ github.sha }} --no-edit
