@@ -68,6 +68,8 @@ description = "Doc command-line examples — curl-auth-header rule false positiv
 paths = [
   '''src/pages/connect/index\.astro''',
   '''src/pages/openapi\.astro''',
+  '''src/pages/agent-auth\.astro''',
+  '''src/pages/webhooks\.astro''',
   '''docs/plans/2026-02-26-phase8-migration-go-live-plan\.md''',
 ]
 # Scope to the specific rule so other findings in these files still surface.
