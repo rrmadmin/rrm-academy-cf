@@ -39,11 +39,18 @@ const related = getRelatedArticles(article, allArticles, 4);
 const byAuthor = getArticlesByAuthor(article, allArticles, 4);
 const byAuthorIds = new Set(byAuthor.map((a) => a.id));
 const relatedDeduped = related.filter((a) => !byAuthorIds.has(a.id));
+// Defensive normalisation: strip CR/LF/TAB + collapse whitespace
+// before URL-encoding the topic. Mirrors TopicTag.astro's cleanTopic
+// pattern -- Bucket G of the 2026-05-20 GSC coverage plan tracked a
+// `?topic=...%3E \nFecundability` URL whose source was untraceable in
+// the current data; the strip closes the regression class.
+const sanitizeTopic = (s: string) =>
+  s.replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim();
 const relatedSections = [
   {
     heading: 'Topics',
     items: (article.topics || []).slice(0, 6).map((t) => ({
-      href: `/library/?topic=${encodeURIComponent(t)}`,
+      href: `/library/?topic=${encodeURIComponent(sanitizeTopic(t))}`,
       label: t,
     })),
   },
