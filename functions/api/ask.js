@@ -12,6 +12,20 @@ import { log } from './_log.js';
 import { logSearchQuery, hashIp, extractRequestMeta } from './_search_log.js';
 import { SYSTEM_PROMPT } from './_ask_prompt.js';
 
+const SANDBOX_RESPONSE = {
+  sandbox: true,
+  answer: 'Sandbox response. /api/ask returns answers grounded in the RRM Library. See /openapi/ for the production shape.',
+  citations: [
+    { url: 'https://rrmacademy.org/llms.txt', title: 'llms.txt' },
+    { url: 'https://rrmacademy.org/openapi/', title: 'OpenAPI docs' },
+  ],
+};
+
+const SANDBOX_CORS = {
+  'Access-Control-Allow-Origin': 'https://rrmacademy.org',
+  'Access-Control-Allow-Credentials': 'true',
+};
+
 async function hashShort(text) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
   return Array.from(new Uint8Array(buf), b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
@@ -71,7 +85,7 @@ async function tryGetSession(env, request) {
   }
 }
 
-function sseResponse(payload, status = 200) {
+function sseResponse(payload, status = 200, extraHeaders = {}) {
   const body = `retry: 60000\n\ndata: ${JSON.stringify(payload)}\n\ndata: [DONE]\n\n`;
   return new Response(body, {
     status,
@@ -81,6 +95,7 @@ function sseResponse(payload, status = 200) {
       'X-Accel-Buffering': 'no',
       'Access-Control-Allow-Origin': 'https://rrmacademy.org',
       'Access-Control-Allow-Credentials': 'true',
+      ...extraHeaders,
     },
   });
 }
@@ -253,7 +268,12 @@ async function handleAuthedAsk(context, session) {
     const tomorrow = new Date();
     tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
     tomorrow.setUTCHours(0, 0, 0, 0);
-    return json({ error: 'rate_limited', reset: tomorrow.toISOString() }, 429);
+    const resetS = String(Math.max(0, Math.ceil((tomorrow.getTime() - Date.now()) / 1000)));
+    return json({ error: 'rate_limited', reset: tomorrow.toISOString() }, 429, {
+      'RateLimit-Limit': String(RATE_LIMIT_MAX),
+      'RateLimit-Remaining': '0',
+      'RateLimit-Reset': resetS,
+    });
   }
 
   let body;
@@ -329,11 +349,21 @@ async function handleAuthedAsk(context, session) {
     referer_path,
   }).catch(() => {}));
 
+  const tomorrow = new Date();
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+  tomorrow.setUTCHours(0, 0, 0, 0);
+  const askResetS = String(Math.max(0, Math.ceil((tomorrow.getTime() - Date.now()) / 1000)));
+  const askRlHeaders = {
+    'RateLimit-Limit': String(RATE_LIMIT_MAX),
+    'RateLimit-Remaining': String(Math.max(0, RATE_LIMIT_MAX - newCount)),
+    'RateLimit-Reset': askResetS,
+  };
+
   const payload = { ...result, _meta: META };
   if (wantsSSE) {
-    return sseResponse(payload);
+    return sseResponse(payload, 200, askRlHeaders);
   }
-  return json(payload);
+  return json(payload, 200, askRlHeaders);
 }
 
 const CAPABILITY_JSON = {
@@ -382,7 +412,20 @@ export async function onRequestOptions() {
 }
 
 export async function onRequestPost(context) {
-  const { env } = context;
+  const { env, request } = context;
+
+  const url = new URL(request.url);
+  if (url.searchParams.get('mode') === 'sandbox') {
+    const wantsSSE = (request.headers.get('Accept') || '').includes('text/event-stream') ||
+      (request.headers.get('Accept') || '').includes('application/x-ndjson');
+    if (wantsSSE) {
+      return sseResponse(SANDBOX_RESPONSE);
+    }
+    return new Response(JSON.stringify(SANDBOX_RESPONSE), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json', 'X-Sandbox': 'true', ...SANDBOX_CORS },
+    });
+  }
 
   if (!env.DB) {
     return json({ error: 'service_unavailable' }, 503);
