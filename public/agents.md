@@ -5,7 +5,7 @@ Updated: 2026-05-21
 
 ## About this site
 
-RRM Academy is a nonprofit education platform for restorative reproductive medicine. The research library indexes 3,370+ peer-reviewed articles; a 132-term glossary, clinical courses, and patient FAQs complete the resource set.
+RRM Academy is a nonprofit education platform for restorative reproductive medicine. The research library indexes 4,030+ peer-reviewed articles; a 132-term glossary, clinical courses, and patient FAQs complete the resource set.
 
 ## Agent capabilities
 
