@@ -6,6 +6,7 @@ import { OG_VERSION } from '../lib/og-config';
 import { getOrganizationJsonLd, getWebsiteJsonLd, buildSpeakable } from '../lib/identity';
 import { safeJsonLd } from '../lib/jsonld';
 import pillarRegistry from '../../ssot/pillars.json';
+import libraryStats from '../data/library-stats.json';
 import '../styles/fonts.css';
 import '../styles/global.css';
 
@@ -17,6 +18,7 @@ const PILLAR_SLUG_TO_PATH = Object.fromEntries(
   pillarRegistry.pillars.map((p) => [p.slug, `/${p.slug}/`]),
 );
 const PILLAR_SLUGS = Object.keys(PILLAR_SLUG_TO_PATH);
+const LIBRARY_COUNT = libraryStats.displayCount;
 
 // Vite ?url imports resolve hashed font paths at build time for preloading
 import cormorant400 from '@fontsource/cormorant-garamond/files/cormorant-garamond-latin-400-normal.woff2?url';
@@ -315,7 +317,7 @@ if (!jsonLd) {
     </>
   )}
 
-  <script is:inline define:vars={{ PILLAR_SLUGS, PILLAR_SLUG_TO_PATH }}>
+  <script is:inline define:vars={{ PILLAR_SLUGS, PILLAR_SLUG_TO_PATH, LIBRARY_COUNT }}>
     // WebMCP tool exposure for AI agents browsing the page.
     // Spec: https://webmachinelearning.github.io/webmcp/
     // Validator: https://isitagentready.com (checks navigator.modelContext on load)
@@ -332,7 +334,7 @@ if (!jsonLd) {
       var tools = [
         {
           name: 'search_rrm_library',
-          description: 'Search the RRM Academy research library (3,370+ peer-reviewed articles on restorative reproductive medicine, NaProTechnology, endometriosis excision, fertility awareness-based methods, PCOS, and reproductive endocrinology). Returns ranked results with titles, authors, year, and library URLs.',
+          description: 'Search the RRM Academy research library (' + LIBRARY_COUNT + ' peer-reviewed articles on restorative reproductive medicine, NaProTechnology, endometriosis excision, fertility awareness-based methods, PCOS, and reproductive endocrinology). Returns ranked results with titles, authors, year, and library URLs.',
           inputSchema: {
             type: 'object',
             properties: {

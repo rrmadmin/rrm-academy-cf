@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import LastUpdated from '../components/LastUpdated.astro';
 import pageDates from '../data/page-dates.json';
 import spec from '../../public/openapi.json';
+import libraryStats from '../data/library-stats.json';
 
 const PAGE_PATH = '/openapi/';
 const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-05-04';
@@ -13,7 +14,7 @@ const pageSchema = {
   name: 'RRM Academy Agent API — OpenAPI Reference',
   headline: 'RRM Academy Agent API reference',
   description:
-    'OpenAPI 3.1 reference for the RRM Academy MCP server. Endpoints, request/response schemas, authentication, and code samples for programmatic access to 3,370+ peer-reviewed RRM articles, editorial guardrails, and verified clinical statistics.',
+    `OpenAPI 3.1 reference for the RRM Academy MCP server. Endpoints, request/response schemas, authentication, and code samples for programmatic access to ${libraryStats.displayCount} peer-reviewed RRM articles, editorial guardrails, and verified clinical statistics.`,
   url: 'https://rrmacademy.org/openapi/',
   publisher: {
     '@type': 'EducationalOrganization',
