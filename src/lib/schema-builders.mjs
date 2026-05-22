@@ -263,5 +263,40 @@ export function buildMedicalScholarlyArticle(article) {
     node.license = LICENSE_URLS_LIB[article.license];
   }
 
+  // Editorial type: emit ScholarlyArticle subtype + citation relationship to the
+  // paper this editorial responds to. Drives LLM/citation-graph linkage so that
+  // RRM Academy editorials surface alongside the papers they engage with.
+  if (article.type === 'editorial') {
+    node['@type'] = 'ScholarlyArticle';
+    node.genre = 'editorial';
+  }
+  if (article.respondsTo && typeof article.respondsTo === 'object') {
+    const cited = {
+      '@type': 'ScholarlyArticle',
+      name: article.respondsTo.title,
+    };
+    if (article.respondsTo.doi) {
+      cited.sameAs = `https://doi.org/${article.respondsTo.doi}`;
+      cited.identifier = [
+        { '@type': 'PropertyValue', propertyID: 'doi', value: article.respondsTo.doi },
+      ];
+      if (article.respondsTo.pmid) {
+        cited.identifier.push({ '@type': 'PropertyValue', propertyID: 'PMID', value: String(article.respondsTo.pmid) });
+      }
+    }
+    if (article.respondsTo.url) cited.url = article.respondsTo.url;
+    if (article.respondsTo.authors) {
+      cited.author = String(article.respondsTo.authors).split(',').map((name) => ({
+        '@type': 'Person',
+        name: name.trim(),
+      }));
+    }
+    if (article.respondsTo.journal) {
+      cited.isPartOf = { '@type': 'Periodical', name: article.respondsTo.journal };
+    }
+    if (article.respondsTo.year) cited.datePublished = String(article.respondsTo.year);
+    node.citation = cited;
+  }
+
   return node;
 }
