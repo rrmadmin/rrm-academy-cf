@@ -110,8 +110,8 @@
   --gradient-hero-grain-opacity: 0.55;
   --gradient-hero-subtle: radial-gradient(circle at 15% 84%, rgba(114, 94, 126, 0) 0%, rgba(152, 125, 168, 0) 39.84%, rgba(201, 184, 211, 0.3) 66.40%, rgba(218, 211, 231, 0.6) 90.19%);
 
-  /* Focus ring */
-  --focus-ring: rgba(114, 94, 126, 0.08);
+  /* Focus ring — oklch(36% 0.067 312 / 0.6) on white = ~3.3:1 contrast (WCAG 1.4.11) */
+  --focus-ring: oklch(36% 0.067 312 / 0.6);
 }
 
 /* ═══════════════════════════════════════════════
@@ -213,7 +213,8 @@
   --gradient-hero-grain-opacity: 0.30;
   --gradient-hero-subtle: radial-gradient(circle at 15% 84%, rgba(114, 94, 126, 0) 0%, rgba(100, 82, 110, 0) 39.84%, rgba(61, 51, 69, 0.3) 66.40%, rgba(46, 38, 54, 0.6) 90.19%);
 
-  --focus-ring: rgba(184, 163, 196, 0.12);
+  /* Focus ring — oklch(75% 0.08 312 / 0.8) on dark surface (#28241e) = ~5.6:1 (WCAG 1.4.11) */
+  --focus-ring: oklch(75% 0.08 312 / 0.8);
 }
 
 /* ═══════════════════════════════════════════════
@@ -322,7 +323,8 @@
   --gradient-hero-grain-opacity: 0;
   --gradient-hero-subtle: none;
 
-  --focus-ring: rgba(90, 80, 69, 0.12);
+  /* Focus ring — oklch(28% 0.03 70 / 0.75) on eink surface (#eee5dd) = ~3.2:1 (WCAG 1.4.11) */
+  --focus-ring: oklch(28% 0.03 70 / 0.75);
 }
 
 /* ═══════════════════════════════════════════════
@@ -435,6 +437,12 @@ button {
   color: inherit;
   cursor: pointer;
   line-height: inherit;
+}
+
+/* Suppress focus ring for mouse/touch users; show only on keyboard nav */
+:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
 }
 
 /* Theme toggle: expanding circle animation via View Transitions API */

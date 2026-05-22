@@ -105,7 +105,7 @@ All colors are defined as CSS custom properties on `:root` and redefined under `
 | `--accent-hover` | `#4c3e54` | Hover/active accent |
 | `--border-color` | `#dddbd8` | Default borders |
 | `--border-light` | `#dddbd8` | Subtle dividers |
-| `--focus-ring` | `rgba(114,94,126,0.08)` | Focus halo |
+| `--focus-ring` | `oklch(36% 0.067 312 / 0.6)` | Focus halo (≥3:1 vs white, WCAG 1.4.11) |
 
 #### Hero Gradients
 
@@ -149,7 +149,7 @@ Dark mode is **warm charcoal, not OLED black.** Think Kindle Paperwhite dark mod
 | `--accent-hover` | `#d5c6de` |
 | `--border-color` | `#3a3632` |
 | `--border-light` | `#332f2b` |
-| `--focus-ring` | `rgba(184,163,196,0.12)` |
+| `--focus-ring` | `oklch(75% 0.08 312 / 0.8)` |
 
 The purple and neutral scales fully invert. See `global.css` `[data-theme="dark"]` block for exact values.
 
@@ -911,11 +911,13 @@ Mobile-first. Base styles are for narrow viewports. `min-width` queries add comp
 
 ### Focus States
 
-All interactive elements receive a soft purple halo on focus:
+All interactive elements receive a soft purple halo on keyboard focus (`:focus-visible`):
 
 ```css
 box-shadow: 0 0 0 3px var(--focus-ring);
 ```
+
+Mouse/touch focus is suppressed via `:focus:not(:focus-visible) { outline: none; box-shadow: none; }`. Focus ring meets WCAG 1.4.11 3:1 minimum in all three themes.
 
 ### Link Distinguishability
 
