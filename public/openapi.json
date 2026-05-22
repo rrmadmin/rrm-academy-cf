@@ -128,14 +128,7 @@
         "security": [],
         "servers": [{ "url": "https://rrmacademy.org" }],
         "parameters": [
-          { "$ref": "#/components/parameters/IdempotencyKey" },
-          {
-            "name": "mode",
-            "in": "query",
-            "required": false,
-            "description": "Set to `sandbox` to receive a canned response without consuming rate-limit budget or invoking the upstream LLM. Use this to probe the endpoint shape during agent integration without spending the daily quota.",
-            "schema": { "type": "string", "enum": ["sandbox"] }
-          }
+          { "$ref": "#/components/parameters/IdempotencyKey" }
         ],
         "requestBody": {
           "required": true,
@@ -158,7 +151,7 @@
         },
         "responses": {
           "200": {
-            "description": "Answer with citations. Content-Type is `application/json` for authenticated requests without SSE Accept header, or `text/event-stream` for anonymous requests and any SSE-accepting request. When `?mode=sandbox` is set, returns SandboxAskResponse instead of AskResponse.",
+            "description": "Answer with citations. Content-Type is `application/json` for authenticated requests without SSE Accept header, or `text/event-stream` for anonymous requests and any SSE-accepting request.",
             "headers": {
               "RateLimit-Limit":     { "$ref": "#/components/headers/RateLimitLimit" },
               "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimitRemaining" },
@@ -166,12 +159,7 @@
             },
             "content": {
               "application/json": {
-                "schema": {
-                  "oneOf": [
-                    { "$ref": "#/components/schemas/AskResponse" },
-                    { "$ref": "#/components/schemas/SandboxAskResponse" }
-                  ]
-                }
+                "schema": { "$ref": "#/components/schemas/AskResponse" }
               },
               "text/event-stream": {
                 "schema": {
@@ -224,32 +212,21 @@
           {
             "name": "page",
             "in": "query",
-            "description": "Page number (1-based). Default: 1. Max: 350. Ignored when `ids` is present.",
+            "description": "Page number (1-based). Default: 1. Max: 350.",
             "required": false,
             "schema": { "type": "integer", "minimum": 1, "maximum": 350, "default": 1 }
           },
           {
             "name": "limit",
             "in": "query",
-            "description": "Results per page. Default: 25. Max: 50. Ignored when `ids` is present.",
+            "description": "Results per page. Default: 25. Max: 50.",
             "required": false,
             "schema": { "type": "integer", "minimum": 1, "maximum": 50, "default": 25 }
-          },
-          {
-            "name": "ids",
-            "in": "query",
-            "description": "Comma-separated list of article IDs to bulk-fetch (max 50, deduped, order preserved). When present, `page` and `limit` are ignored and the response shape is BulkArticleResponse. Missing IDs are returned in `not_found[]` rather than producing a 404. Counts against the same 30 req/min IP budget as the paginated list.",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "pattern": "^[A-Za-z0-9-]+(,[A-Za-z0-9-]+){0,49}$",
-              "example": "rec123abc,rec456def,rec789ghi"
-            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Paginated article list (default), or bulk-fetch response when `ids` is set.",
+            "description": "Paginated article list.",
             "headers": {
               "RateLimit-Limit":     { "$ref": "#/components/headers/RateLimitLimit" },
               "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimitRemaining" },
@@ -257,12 +234,7 @@
             },
             "content": {
               "application/json": {
-                "schema": {
-                  "oneOf": [
-                    { "$ref": "#/components/schemas/ArticleList" },
-                    { "$ref": "#/components/schemas/BulkArticleResponse" }
-                  ]
-                }
+                "schema": { "$ref": "#/components/schemas/ArticleList" }
               }
             }
           },
@@ -300,6 +272,126 @@
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/Error" },
                 "example": { "error": "service_unavailable" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/articles/bulk": {
+      "get": {
+        "operationId": "bulk_articles",
+        "summary": "Bulk-fetch articles by ID",
+        "description": "Returns up to 50 published library articles by ID in a single call. Comma-separated IDs in the `ids` query parameter. Missing IDs are returned in `not_found[]` instead of producing a 404. Shares the 30 req/min IP budget with /api/articles.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "description": "Comma-separated list of article IDs to fetch (max 50, deduped, order preserved).",
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9-]+(,[A-Za-z0-9-]+){0,49}$",
+              "example": "rec123abc,rec456def,rec789ghi"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bulk article results. Missing IDs appear in not_found[].",
+            "headers": {
+              "RateLimit-Limit":     { "$ref": "#/components/headers/RateLimitLimit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimitRemaining" },
+              "RateLimit-Reset":     { "$ref": "#/components/headers/RateLimitReset" }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BulkArticleResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or malformed ids parameter.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "invalid_ids" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited (30 req/min per IP, shared with /api/articles)",
+            "headers": {
+              "RateLimit-Limit":     { "$ref": "#/components/headers/RateLimitLimit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimitRemaining" },
+              "RateLimit-Reset":     { "$ref": "#/components/headers/RateLimitReset" },
+              "Retry-After": {
+                "description": "RFC 7231 -- seconds until the client may retry.",
+                "schema": { "type": "integer", "minimum": 0 },
+                "example": 60
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "rate_limited" }
+              }
+            }
+          },
+          "503": {
+            "description": "Upstream library service unavailable",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "service_unavailable" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ask/sandbox": {
+      "post": {
+        "operationId": "ask_sandbox",
+        "summary": "Canned sandbox response for integration testing",
+        "description": "Returns a canned response with no LLM invocation, no auth, and no rate limit. Accepts the same JSON shape as /api/ask but ignores the body. Use to validate that your client correctly parses the AskResponse-shaped reply before integrating with the live /api/ask endpoint.",
+        "security": [],
+        "servers": [{ "url": "https://rrmacademy.org" }],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string",
+                    "description": "Ignored. Included for structural compatibility with /api/ask."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Canned sandbox response. Shape matches SandboxAskResponse.",
+            "headers": {
+              "X-Sandbox": {
+                "description": "Always `true` on this endpoint.",
+                "schema": { "type": "string", "enum": ["true"] }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SandboxAskResponse" }
+              },
+              "text/event-stream": {
+                "schema": {
+                  "type": "string",
+                  "description": "SSE stream when Accept: text/event-stream. Two events: `data: <SandboxAskResponse JSON>` then `data: [DONE]`"
+                }
               }
             }
           }
@@ -572,7 +664,7 @@
       "BulkArticleResponse": {
         "type": "object",
         "required": ["results", "not_found", "requested", "returned"],
-        "description": "Returned by /api/articles when the `ids` query parameter is present. Replaces the paginated ArticleList shape.",
+        "description": "Returned by GET /api/articles/bulk. Results for found IDs plus a not_found[] list for missing ones.",
         "properties": {
           "results": {
             "type": "array",

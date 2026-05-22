@@ -12,19 +12,6 @@ import { log } from './_log.js';
 import { logSearchQuery, hashIp, extractRequestMeta } from './_search_log.js';
 import { SYSTEM_PROMPT } from './_ask_prompt.js';
 
-const SANDBOX_RESPONSE = {
-  sandbox: true,
-  answer: 'Sandbox response. /api/ask returns answers grounded in the RRM Library. See /openapi/ for the production shape.',
-  citations: [
-    { url: 'https://rrmacademy.org/llms.txt', title: 'llms.txt' },
-    { url: 'https://rrmacademy.org/openapi/', title: 'OpenAPI docs' },
-  ],
-};
-
-const SANDBOX_CORS = {
-  'Access-Control-Allow-Origin': 'https://rrmacademy.org',
-  'Access-Control-Allow-Credentials': 'true',
-};
 
 async function hashShort(text) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
@@ -412,20 +399,7 @@ export async function onRequestOptions() {
 }
 
 export async function onRequestPost(context) {
-  const { env, request } = context;
-
-  const url = new URL(request.url);
-  if (url.searchParams.get('mode') === 'sandbox') {
-    const wantsSSE = (request.headers.get('Accept') || '').includes('text/event-stream') ||
-      (request.headers.get('Accept') || '').includes('application/x-ndjson');
-    if (wantsSSE) {
-      return sseResponse(SANDBOX_RESPONSE);
-    }
-    return new Response(JSON.stringify(SANDBOX_RESPONSE), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json', 'X-Sandbox': 'true', ...SANDBOX_CORS },
-    });
-  }
+  const { env } = context;
 
   if (!env.DB) {
     return json({ error: 'service_unavailable' }, 503);

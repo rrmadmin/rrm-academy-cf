@@ -10,9 +10,9 @@
 import { log } from './_log.js';
 import { checkRateLimit } from './auth/_shared.js';
 import { getRateLimitHeaders } from './_ratelimit-headers.js';
+import { mapArticle } from './_map-article.js';
 
 const WORKER_URL = 'https://rrm-library-worker.administrator-cloudflare.workers.dev';
-const SITE_BASE = 'https://rrmacademy.org';
 
 const PUBLIC_CORS = {
   'Access-Control-Allow-Origin': 'https://rrmacademy.org',
@@ -36,23 +36,6 @@ export function onRequestOptions() {
   return new Response(null, { status: 204, headers: PUBLIC_CORS });
 }
 
-function mapArticle(a) {
-  return {
-    id: a.id,
-    slug: a.slug,
-    url: `${SITE_BASE}/library/${a.slug}/`,
-    title: a.title,
-    authors: a.authors,
-    year: a.year,
-    journal: a.journal,
-    doi: a.doi,
-    pmid: a.pmid,
-    abstract: a.abstract,
-    topics: Array.isArray(a.topics) ? a.topics : [],
-    is_open_access: a.isOpenAccess === true,
-    date_added: a.dateAddedToLibrary ? a.dateAddedToLibrary.slice(0, 10) : null,
-  };
-}
 
 export async function onRequestGet(context) {
   const { request, env, waitUntil } = context;
@@ -79,50 +62,6 @@ export async function onRequestGet(context) {
   }
 
   const url = new URL(request.url);
-  const idsParam = url.searchParams.get('ids');
-
-  if (idsParam !== null) {
-    if (!/^[A-Za-z0-9-]+(,[A-Za-z0-9-]+){0,49}$/.test(idsParam)) {
-      return publicJson({ error: 'invalid_ids' }, 400);
-    }
-    const rawIds = idsParam.split(',');
-    const dedupedIds = [...new Set(rawIds)].slice(0, 50);
-    const requested = dedupedIds.length;
-
-    const results = [];
-    const not_found = [];
-
-    for (let i = 0; i < dedupedIds.length; i += 10) {
-      const chunk = dedupedIds.slice(i, i + 10);
-      const settled = await Promise.all(
-        chunk.map(async id => {
-          try {
-            const resp = await fetch(`${WORKER_URL}/article/${id}`, {
-              headers: { Authorization: `Bearer ${env.LIBRARY_BUILD_TOKEN}` },
-            });
-            if (resp.status === 200) {
-              const data = await resp.json();
-              return { ok: true, data };
-            }
-            return { ok: false, id };
-          } catch {
-            return { ok: false, id };
-          }
-        })
-      );
-      for (const r of settled) {
-        if (r.ok) {
-          results.push(mapArticle(r.data));
-        } else {
-          not_found.push(r.id);
-        }
-      }
-    }
-
-    const rlHeaders = await getRateLimitHeaders(env, `art:${ip}`, 30, 60);
-    return publicJson({ results, not_found, requested, returned: results.length }, 200, rlHeaders);
-  }
-
   const rawPage = url.searchParams.get('page') ?? '1';
   const rawLimit = url.searchParams.get('limit') ?? '25';
 
