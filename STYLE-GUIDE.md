@@ -99,13 +99,13 @@ All colors are defined as CSS custom properties on `:root` and redefined under `
 | `--bg-header` | `#f7f5f3` | Sticky header |
 | `--text-primary` | `#313131` | Body copy, headings |
 | `--text-secondary` | `#636261` | Supporting text, prose |
-| `--text-tertiary` | `#949392` | Meta, captions, timestamps |
-| `--text-muted` | `#adaba9` | Placeholders, disabled |
+| `--text-tertiary` | `oklch(46% 0.006 260)` | Meta, captions, timestamps (4.9:1 on white, WCAG AA) |
+| `--text-muted` | `oklch(47% 0.004 260)` | Placeholders, disabled (4.7:1 on white, WCAG AA) |
 | `--accent` | `#725e7e` | Links, interactive elements |
 | `--accent-hover` | `#4c3e54` | Hover/active accent |
 | `--border-color` | `#dddbd8` | Default borders |
 | `--border-light` | `#dddbd8` | Subtle dividers |
-| `--focus-ring` | `rgba(114,94,126,0.08)` | Focus halo |
+| `--focus-ring` | `oklch(36% 0.067 312 / 0.6)` | Focus halo (≥3:1 vs white, WCAG 1.4.11) |
 
 #### Hero Gradients
 
@@ -143,13 +143,13 @@ Dark mode is **warm charcoal, not OLED black.** Think Kindle Paperwhite dark mod
 | `--bg-header` | `#242018` |
 | `--text-primary` | `#dcd6ce` |
 | `--text-secondary` | `#b0aaa2` |
-| `--text-tertiary` | `#8a8480` |
-| `--text-muted` | `#6a6460` |
+| `--text-tertiary` | `oklch(72% 0.008 260)` |
+| `--text-muted` | `oklch(68% 0.006 260)` |
 | `--accent` | `#b8a3c4` |
 | `--accent-hover` | `#d5c6de` |
 | `--border-color` | `#3a3632` |
 | `--border-light` | `#332f2b` |
-| `--focus-ring` | `rgba(184,163,196,0.12)` |
+| `--focus-ring` | `oklch(75% 0.08 312 / 0.8)` |
 
 The purple and neutral scales fully invert. See `global.css` `[data-theme="dark"]` block for exact values.
 
@@ -911,11 +911,13 @@ Mobile-first. Base styles are for narrow viewports. `min-width` queries add comp
 
 ### Focus States
 
-All interactive elements receive a soft purple halo on focus:
+All interactive elements receive a soft purple halo on keyboard focus (`:focus-visible`):
 
 ```css
 box-shadow: 0 0 0 3px var(--focus-ring);
 ```
+
+Mouse/touch focus is suppressed via `:focus:not(:focus-visible) { outline: none; box-shadow: none; }`. Focus ring meets WCAG 1.4.11 3:1 minimum in all three themes.
 
 ### Link Distinguishability
 

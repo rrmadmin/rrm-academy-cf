@@ -75,8 +75,9 @@
   --bg-header: #f7f5f3;
   --text-primary: #313131;
   --text-secondary: #636261;
-  --text-tertiary: #949392;
-  --text-muted: #adaba9;
+  /* text-tertiary/muted darkened for WCAG AA 4.5:1 on --bg-surface (white) and --bg-body (#f7f5f3) */
+  --text-tertiary: oklch(46% 0.006 260);
+  --text-muted: oklch(47% 0.004 260);
   --accent: #725e7e;
   --accent-hover: #4c3e54;
   --border-color: #dddbd8;
@@ -110,8 +111,8 @@
   --gradient-hero-grain-opacity: 0.55;
   --gradient-hero-subtle: radial-gradient(circle at 15% 84%, rgba(114, 94, 126, 0) 0%, rgba(152, 125, 168, 0) 39.84%, rgba(201, 184, 211, 0.3) 66.40%, rgba(218, 211, 231, 0.6) 90.19%);
 
-  /* Focus ring */
-  --focus-ring: rgba(114, 94, 126, 0.08);
+  /* Focus ring — oklch(36% 0.067 312 / 0.6) on white = ~3.3:1 contrast (WCAG 1.4.11) */
+  --focus-ring: oklch(36% 0.067 312 / 0.6);
 }
 
 /* ═══════════════════════════════════════════════
@@ -182,8 +183,9 @@
   --bg-header: #242018;
   --text-primary: #dcd6ce;
   --text-secondary: #b0aaa2;
-  --text-tertiary: #8a8480;
-  --text-muted: #6a6460;
+  /* text-tertiary/muted lightened for WCAG AA 4.5:1 on --bg-surface (#28241e) */
+  --text-tertiary: oklch(72% 0.008 260);
+  --text-muted: oklch(68% 0.006 260);
   --accent: #b8a3c4;
   --accent-hover: #d5c6de;
   --border-color: #3a3632;
@@ -213,7 +215,8 @@
   --gradient-hero-grain-opacity: 0.30;
   --gradient-hero-subtle: radial-gradient(circle at 15% 84%, rgba(114, 94, 126, 0) 0%, rgba(100, 82, 110, 0) 39.84%, rgba(61, 51, 69, 0.3) 66.40%, rgba(46, 38, 54, 0.6) 90.19%);
 
-  --focus-ring: rgba(184, 163, 196, 0.12);
+  /* Focus ring — oklch(75% 0.08 312 / 0.8) on dark surface (#28241e) = ~5.6:1 (WCAG 1.4.11) */
+  --focus-ring: oklch(75% 0.08 312 / 0.8);
 }
 
 /* ═══════════════════════════════════════════════
@@ -289,8 +292,9 @@
   --bg-header: #f0e8e0;
   --text-primary: #2a2520;
   --text-secondary: #5a5045;
-  --text-tertiary: #7a7068;
-  --text-muted: #9a9088;
+  /* text-tertiary/muted darkened for WCAG AA 4.5:1 on --bg-surface (#eee5dd, warm cream) */
+  --text-tertiary: oklch(43% 0.012 70);
+  --text-muted: oklch(44% 0.010 70);
   --accent: #5a5045;
   --accent-hover: #3a3530;
   --border-color: #d8c8c0;
@@ -322,7 +326,8 @@
   --gradient-hero-grain-opacity: 0;
   --gradient-hero-subtle: none;
 
-  --focus-ring: rgba(90, 80, 69, 0.12);
+  /* Focus ring — oklch(28% 0.03 70 / 0.75) on eink surface (#eee5dd) = ~3.2:1 (WCAG 1.4.11) */
+  --focus-ring: oklch(28% 0.03 70 / 0.75);
 }
 
 /* ═══════════════════════════════════════════════
@@ -435,6 +440,12 @@ button {
   color: inherit;
   cursor: pointer;
   line-height: inherit;
+}
+
+/* Suppress focus ring for mouse/touch users; show only on keyboard nav */
+:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
 }
 
 /* Theme toggle: expanding circle animation via View Transitions API */
