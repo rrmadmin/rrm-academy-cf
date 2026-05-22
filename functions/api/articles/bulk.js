@@ -31,6 +31,14 @@ export function onRequestOptions() {
   return new Response(null, { status: 204, headers: PUBLIC_CORS });
 }
 
+// HEAD parity with GET (RFC 9110 §9.3.2). Same status + headers, empty body.
+// Consumes the same rate-limit budget as GET; agents using HEAD to probe
+// RateLimit-* headers should expect that.
+export async function onRequestHead(context) {
+  const resp = await onRequestGet(context);
+  return new Response(null, { status: resp.status, headers: resp.headers });
+}
+
 export async function onRequestGet(context) {
   const { request, env, waitUntil } = context;
 
