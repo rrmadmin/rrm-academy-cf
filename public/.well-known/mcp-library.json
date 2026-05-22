@@ -1,0 +1,82 @@
+{
+  "schema_version": "1.0",
+  "name": "RRM Academy Library",
+  "description": "Low-level read-only MCP for the RRM Academy research library. Corpus stats, single-article lookup by id/slug/pmid/doi, keyword metadata search. Distinct from the high-level RAG MCP at mcp.rrmacademy.org -- this surface is for agents that want raw structured access to library data without semantic search or editorial guardrails.",
+  "instructions": "Low-level structured access to the RRM Academy research library. Use `library_status` to inspect corpus size and enrichment pipeline state. Use `library_get_article` to retrieve a single article by id, slug, pmid, or doi. Use `library_search_metadata` for keyword (SQL LIKE) search over title/authors/journal/abstract; for semantic search, use the apex mcp.rrmacademy.org MCP instead. All tools are public and read-only.",
+  "server_url": "https://mcp-library.rrmacademy.org/mcp",
+  "transport": "streamable-http",
+  "transports": ["streamable-http"],
+  "streaming_supported": false,
+  "protocol": "mcp",
+  "protocol_version": "2025-06-18",
+  "authentication": {
+    "type": "none",
+    "description": "Public read-only surface. No authentication required for any method. The 3 tools are read-only with no PII; CF edge handles abuse detection."
+  },
+  "tools": [
+    {
+      "name": "library_status",
+      "description": "Returns corpus stats for the RRM Academy library: total article count, breakdown by enrichment status (intake / enriching / needs_classification / classified / published / archived), enrichment-stage breakdown, and unresolvable-intake count. Use to assess library size and pipeline health before deeper queries.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "Library corpus status",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "library_get_article",
+      "description": "Retrieve a single article by id, slug, pmid, or doi. Returns the full article record (title, authors, year, journal, abstract, doi, pmid, topics, open-access status, classification). Pass exactly one identifier. Returns 404-style error if no match.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id":   { "type": "string", "description": "Internal library id, e.g. \"rec123abc\"" },
+          "slug": { "type": "string", "description": "URL slug, e.g. \"napro-endometriosis-2022\"" },
+          "pmid": { "type": "string", "description": "PubMed ID, e.g. \"12345678\"" },
+          "doi":  { "type": "string", "description": "DOI, e.g. \"10.1016/j.fertnstert.2020.01.001\"" }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "Get article by identifier",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "library_search_metadata",
+      "description": "Keyword search over published article title, authors, journal, and abstract using SQL LIKE matching. Returns up to 50 article summaries ordered by year descending. Distinct from the apex mcp.rrmacademy.org `search` tool which uses semantic/vector retrieval. Use this when you have specific terms to match exactly (author names, journal titles, specific phrases).",
+      "inputSchema": {
+        "type": "object",
+        "required": ["query"],
+        "properties": {
+          "query": { "type": "string", "minLength": 2, "maxLength": 200, "description": "Search terms (matched case-insensitively against title/authors/journal/abstract)" },
+          "limit": { "type": "integer", "minimum": 1, "maximum": 50, "default": 10, "description": "Maximum results (1-50)" }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "title": "Search library metadata",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    }
+  ],
+  "related_servers": [
+    {
+      "name": "RRM Academy (apex)",
+      "url": "https://mcp.rrmacademy.org/mcp",
+      "description": "High-level RAG MCP with semantic search and editorial guardrails. Use for natural-language queries; this server is for structured lookups."
+    }
+  ]
+}

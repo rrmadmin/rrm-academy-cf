@@ -25,7 +25,13 @@
         {
           "href": "https://mcp.rrmacademy.org/mcp",
           "type": "application/json",
-          "title": "RRM Academy MCP Server",
+          "title": "RRM Academy MCP Server (apex -- high-level RAG, semantic search, editorial guardrails)",
+          "profile": "https://modelcontextprotocol.io/specification/2024-11-05"
+        },
+        {
+          "href": "https://mcp-library.rrmacademy.org/mcp",
+          "type": "application/json",
+          "title": "RRM Academy Library MCP Server (low-level read-only structured access to the research library)",
           "profile": "https://modelcontextprotocol.io/specification/2024-11-05"
         }
       ]
