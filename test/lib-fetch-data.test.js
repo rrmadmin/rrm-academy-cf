@@ -172,13 +172,14 @@ test('mapWorkerRecord: string fields preserved when set', () => {
 test('mapWorkerRecord: returns full shape with all expected keys', () => {
   const out = mapWorkerRecord({ slug: 's', title: 't' });
   const expected = [
-    'id', 'slug', 'title', 'authors', 'shortCitation', 'year', 'abstract',
+    'id', 'slug', 'type', 'sourceType', 'title', 'authors', 'shortCitation', 'year', 'abstract',
+    'body', 'bodyFormat', 'mdR2Key',
     'journal', 'journalAbbv', 'doi', 'pmid', 'sourceUrl', 'datePublished',
     'volume', 'issue', 'pages', 'keywords', 'apaCitation', 'vancouverCitation',
     'mlaCitation', 'topics', 'searchTerms', 'enrichmentStatus', 'identifiers',
     'isOpenAccess', 'isCopyrighted', 'oaType', 'license', 'oaUrl',
     'accessLevel', 'sentiment', 'rrmRelevance', 'domain', 'lastModified',
-    'dateAddedToLibrary', 'authorRecords', 'word_count',
+    'dateAddedToLibrary', 'authorRecords', 'respondsTo', 'word_count',
   ];
   assert.deepEqual(Object.keys(out).sort(), expected.sort());
 });

@@ -14,15 +14,32 @@ export interface AuthorRecord {
   affiliation: string | null;
 }
 
+export interface RespondsTo {
+  article_id?: string;
+  title: string;
+  doi?: string;
+  pmid?: string;
+  authors?: string;
+  journal?: string;
+  year?: number | string | null;
+  url?: string;
+}
+
 export interface Article {
   id: string;
   slug: string;
+  type?: string;
+  sourceType?: string;
   title: string;
   authors: string;
   authorRecords?: AuthorRecord[];
   shortCitation: string;
   year: number | null;
   abstract: string;
+  /** Editorial body markdown (only populated for type='editorial' records). */
+  body?: string;
+  bodyFormat?: string;
+  mdR2Key?: string;
   journal: string;
   journalAbbv: string;
   doi: string;
@@ -51,6 +68,8 @@ export interface Article {
   domain: string;
   lastModified: string;
   dateAddedToLibrary: string;
+  /** The paper this article responds to (only populated when type='editorial' AND a responds_to relationship exists). */
+  respondsTo?: RespondsTo | null;
   /**
    * Word count of the abstract (or null on pre-backfill rows). Drives
    * programmatic thin-page noindex in src/pages/library/[...slug].astro.
