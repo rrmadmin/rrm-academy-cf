@@ -492,12 +492,12 @@
           "cssVariable": "--text-secondary"
         },
         "text-tertiary": {
-          "value": "#949392",
+          "value": "oklch(46% 0.006 260)",
           "type": "color",
           "cssVariable": "--text-tertiary"
         },
         "text-muted": {
-          "value": "#adaba9",
+          "value": "oklch(47% 0.004 260)",
           "type": "color",
           "cssVariable": "--text-muted"
         },
@@ -912,12 +912,12 @@
           "cssVariable": "--text-secondary"
         },
         "text-tertiary": {
-          "value": "#8a8480",
+          "value": "oklch(72% 0.008 260)",
           "type": "color",
           "cssVariable": "--text-tertiary"
         },
         "text-muted": {
-          "value": "#6a6460",
+          "value": "oklch(68% 0.006 260)",
           "type": "color",
           "cssVariable": "--text-muted"
         },
@@ -1332,12 +1332,12 @@
           "cssVariable": "--text-secondary"
         },
         "text-tertiary": {
-          "value": "#7a7068",
+          "value": "oklch(43% 0.012 70)",
           "type": "color",
           "cssVariable": "--text-tertiary"
         },
         "text-muted": {
-          "value": "#9a9088",
+          "value": "oklch(44% 0.010 70)",
           "type": "color",
           "cssVariable": "--text-muted"
         },
