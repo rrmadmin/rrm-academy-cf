@@ -17,11 +17,15 @@
   "servers": [
     {
       "url": "https://mcp.rrmacademy.org",
-      "description": "Production MCP server (Cloudflare Worker)"
+      "description": "Apex MCP server (high-level RAG, semantic search, editorial guardrails). Bearer auth, self-service keys at https://rrmacademy.org/account/mcp-keys."
+    },
+    {
+      "url": "https://mcp-library.rrmacademy.org",
+      "description": "Library MCP server (low-level read-only structured access to the library: status, get_article, search_metadata). Public, no auth."
     },
     {
       "url": "https://rrmacademy.org",
-      "description": "RRM Academy Pages (ask endpoint)"
+      "description": "RRM Academy Pages (ask endpoint, articles list, articles bulk, sandbox)."
     }
   ],
   "security": [{ "bearerAuth": [] }],
