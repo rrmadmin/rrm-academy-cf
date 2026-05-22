@@ -621,7 +621,7 @@
         }
       },
       "focusRing": {
-        "value": "rgba(114, 94, 126, 0.08)",
+        "value": "oklch(36% 0.067 312 / 0.6)",
         "type": "color",
         "cssVariable": "--focus-ring"
       }
@@ -1041,7 +1041,7 @@
         }
       },
       "focusRing": {
-        "value": "rgba(184, 163, 196, 0.12)",
+        "value": "oklch(75% 0.08 312 / 0.8)",
         "type": "color",
         "cssVariable": "--focus-ring"
       }
@@ -1461,7 +1461,7 @@
         }
       },
       "focusRing": {
-        "value": "rgba(90, 80, 69, 0.12)",
+        "value": "oklch(28% 0.03 70 / 0.75)",
         "type": "color",
         "cssVariable": "--focus-ring"
       }
