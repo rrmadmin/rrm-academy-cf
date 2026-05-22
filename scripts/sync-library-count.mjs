@@ -51,6 +51,7 @@ console.log(`[sync-library-count] Canonical count: ${count} articles → display
 const STATIC_OVERRIDE_FILES = [
   'static-overrides/llms.txt',
   'static-overrides/llms-full.txt',
+  'static-overrides/library-llms.txt',
 ];
 
 // public/ files that are NOT regenerated from static-overrides (or that
