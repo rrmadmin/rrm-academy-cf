@@ -84,6 +84,25 @@ const renderedAbstractSections = await Promise.all(
   }))
 );
 
+// Editorial body: only populated when the worker returned a non-null body
+// (type='editorial' records have their R2-stored body joined into the response).
+// We render the full markdown body as the primary readable surface on editorial
+// pages so crawlers and LLMs see the full editorial, not just the abstract.
+const isEditorial = article.type === 'editorial';
+const editorialBodyHtml = isEditorial && article.body
+  ? await parseMarkdown(article.body)
+  : null;
+
+// Reverse-link: if another article in allArticles is an editorial responding to
+// THIS article, surface it as a callout above the abstract on the source paper's
+// page. Today there's at most one editorial per source paper; the find() picks
+// the first match. (Multi-response handling can come later if needed.)
+const editorialResponse = !isEditorial
+  ? (allArticles.find(
+      (a) => a.type === 'editorial' && a.respondsTo && a.respondsTo.article_id === article.id
+    ) || null)
+  : null;
+
 // Build journal citation line
 const journalParts: string[] = [];
 if (article.journal) journalParts.push(article.journal);
@@ -302,6 +321,29 @@ const citationMeta = {
         showFreeFullText={showFreeFullText}
       />
 
+      <!-- Editorial response callout: surfaced ABOVE the abstract on source papers that have an RRM Academy editorial response. -->
+      {editorialResponse && (
+        <aside class="editorial-response-callout" aria-label="RRM Academy editorial response">
+          <p class="editorial-response-eyebrow">RRM Academy Editorial Response</p>
+          <h2 class="editorial-response-heading">An RRM Academy editorial responds to this paper</h2>
+          <p class="editorial-response-summary">{editorialResponse.title}</p>
+          <p class="editorial-response-cta">
+            <a href={`/library/${editorialResponse.slug}/`} class="editorial-response-link">
+              Read the RRM Academy editorial response &rarr;
+            </a>
+          </p>
+        </aside>
+      )}
+
+      <!-- Editorial body: full markdown body rendered inline for type='editorial' records.
+           This is the primary readable surface for editorials -- crawlers and LLMs read the
+           full 1,500+ word response here, not just the abstract. -->
+      {isEditorial && editorialBodyHtml && (
+        <section class="editorial-body" aria-label="Editorial response">
+          <Fragment set:html={editorialBodyHtml} />
+        </section>
+      )}
+
       <!-- Synopsis (above abstract for SEO/AEO -- structured, citable content first) -->
       {article.insights && (
         <section class="article-insights" aria-label="Synopsis">
@@ -437,6 +479,29 @@ const citationMeta = {
         showSourceLink={showSourceLink}
         showFreeFullText={showFreeFullText}
       />
+
+      <!-- Editorial response callout: surfaced ABOVE the abstract on source papers that have an RRM Academy editorial response. -->
+      {editorialResponse && (
+        <aside class="editorial-response-callout" aria-label="RRM Academy editorial response">
+          <p class="editorial-response-eyebrow">RRM Academy Editorial Response</p>
+          <h2 class="editorial-response-heading">An RRM Academy editorial responds to this paper</h2>
+          <p class="editorial-response-summary">{editorialResponse.title}</p>
+          <p class="editorial-response-cta">
+            <a href={`/library/${editorialResponse.slug}/`} class="editorial-response-link">
+              Read the RRM Academy editorial response &rarr;
+            </a>
+          </p>
+        </aside>
+      )}
+
+      <!-- Editorial body: full markdown body rendered inline for type='editorial' records.
+           This is the primary readable surface for editorials -- crawlers and LLMs read the
+           full 1,500+ word response here, not just the abstract. -->
+      {isEditorial && editorialBodyHtml && (
+        <section class="editorial-body" aria-label="Editorial response">
+          <Fragment set:html={editorialBodyHtml} />
+        </section>
+      )}
 
       <!-- Synopsis (above abstract for SEO/AEO -- structured, citable content first) -->
       {article.insights && (
@@ -778,6 +843,110 @@ const citationMeta = {
     margin-bottom: var(--space-4);
     color: var(--neutral-900);
   }
+  /* Editorial response callout (renders ABOVE abstract on source papers that have an RRMA editorial response). */
+  .editorial-response-callout {
+    background: #fdfaf3;
+    border: 1px solid var(--border-color);
+    border-left: 4px solid #b8860b;
+    border-radius: var(--radius-md, 8px);
+    padding: var(--space-6) var(--space-8);
+    margin-bottom: var(--space-8);
+  }
+  .editorial-response-eyebrow {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #8a6308;
+    margin: 0 0 var(--space-2) 0;
+  }
+  .editorial-response-heading {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.375rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-3) 0;
+  }
+  .editorial-response-summary {
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    color: var(--text-secondary);
+    margin: 0 0 var(--space-3) 0;
+    font-style: italic;
+  }
+  .editorial-response-cta {
+    margin: 0;
+  }
+  .editorial-response-link {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #8a6308;
+    text-decoration: underline;
+    text-decoration-color: rgba(184, 134, 11, 0.4);
+    text-underline-offset: 2px;
+  }
+  .editorial-response-link:hover {
+    text-decoration-color: rgba(184, 134, 11, 1);
+  }
+
+  /* Editorial body (full markdown rendered inline on type='editorial' pages). */
+  .editorial-body {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid #b8860b;
+    border-radius: var(--radius-md, 8px);
+    padding: var(--space-8);
+    margin-bottom: var(--space-8);
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--text-primary);
+  }
+  .editorial-body h1, .editorial-body h2, .editorial-body h3, .editorial-body h4 {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    color: var(--text-primary);
+    margin-top: var(--space-6);
+    margin-bottom: var(--space-3);
+  }
+  .editorial-body h1:first-child, .editorial-body h2:first-child {
+    margin-top: 0;
+  }
+  .editorial-body h1 { font-size: 1.625rem; font-weight: 500; }
+  .editorial-body h2 { font-size: 1.375rem; font-weight: 500; }
+  .editorial-body h3 { font-size: 1.125rem; font-weight: 600; }
+  .editorial-body p, .editorial-body ul, .editorial-body ol {
+    margin-bottom: var(--space-4);
+  }
+  .editorial-body ul, .editorial-body ol {
+    padding-left: var(--space-6);
+  }
+  .editorial-body li {
+    margin-bottom: var(--space-2);
+  }
+  .editorial-body a {
+    color: #8a6308;
+    text-decoration: underline;
+    text-decoration-color: rgba(184, 134, 11, 0.4);
+    text-underline-offset: 2px;
+  }
+  .editorial-body a:hover {
+    text-decoration-color: rgba(184, 134, 11, 1);
+  }
+  .editorial-body hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: var(--space-6) 0;
+  }
+  .editorial-body strong { font-weight: 600; }
+  .editorial-body blockquote {
+    border-left: 3px solid var(--border-color);
+    padding-left: var(--space-4);
+    margin-left: 0;
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+
   .article-insights {
     background: var(--bg-surface);
     border: 1px solid var(--border-color);

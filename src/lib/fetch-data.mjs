@@ -40,11 +40,16 @@ export function mapWorkerRecord(r) {
   return {
     id: r.id,
     slug: normalizeSlug(r.slug),
+    type: strOr(r.type),
+    sourceType: strOr(r.sourceType),
     title: stripTrailingDot(r.title),
     authors: strOr(r.authors),
     shortCitation: strOr(r.shortCitation),
     year: nullableYear(r.year),
     abstract: strOr(r.abstract),
+    body: strOr(r.body),
+    bodyFormat: strOr(r.bodyFormat),
+    mdR2Key: strOr(r.mdR2Key),
     journal: strOr(r.journal),
     journalAbbv: strOr(r.journalAbbv),
     doi: strOr(r.doi),
@@ -74,6 +79,7 @@ export function mapWorkerRecord(r) {
     lastModified: strOr(r.lastModified),
     dateAddedToLibrary: strOr(r.dateAddedToLibrary),
     authorRecords: arrayOr(r.authorRecords),
+    respondsTo: r.respondsTo && typeof r.respondsTo === 'object' ? r.respondsTo : null,
     // word_count drives programmatic thin-page detection (noindex when < 30).
     // Populated by the worker (live: COALESCE(meta value, computed-from-abstract))
     // and the backfill script scripts/compute-word-counts.mjs. May be null on
@@ -131,6 +137,18 @@ async function fetchSingle(recordId) {
   const singleUrl = `${WORKER_URL}?id=${encodeURIComponent(recordId)}`;
   const record = await fetchWithRetry(singleUrl, { headers: authHeaders(token) }, { timeout: 15000, allow404: true });
 
+  // Note (2026-05-22): the worker returns 404 when status != 'published' OR
+  // is_retracted=1 OR type is in the exclusion list. A 404 on a record that
+  // WAS in the cache is therefore ambiguous: intentional un-publish, intentional
+  // retraction, status-not-yet-published (intake/needs_classification),
+  // or a type-filter mismatch. We log loudly with the explicit list of plausible
+  // causes so silent removal doesn't drop a record by accident. The intentional
+  // un-publish path (Brian explicitly UPDATEd status to 'archived' or set
+  // is_retracted=1) is the same call shape as the others, so we cannot
+  // distinguish without an explicit `action=remove` flag from the dispatcher.
+  // Until that's added, the cache mutation is preserved for backward compat,
+  // but the log line surfaces the ambiguity for diagnosis.
+
   // Remove old version of this record (if present)
   const before = articles.length;
   articles = articles.filter(a => a.id !== recordId);
@@ -138,7 +156,9 @@ async function fetchSingle(recordId) {
 
   if (!record) {
     if (wasPresent) {
-      console.log(`Record ${recordId} removed from articles.json`);
+      console.warn(`Record ${recordId} returned 404 from worker -- removed from articles.json.`);
+      console.warn(`  Plausible causes (in order): (1) intentional un-publish/retraction, (2) status not yet 'published' (intake/needs_classification/classified), (3) type in exclusion list (faq/post/course/guide/etc.).`);
+      console.warn(`  If this dispatch was meant to refresh a published record, verify the record's current status before treating this as success.`);
     } else {
       console.log(`Record ${recordId} not in articles.json -- nothing to do`);
     }
