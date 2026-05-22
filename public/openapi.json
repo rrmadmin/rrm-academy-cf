@@ -49,6 +49,53 @@
       { "method": "DELETE", "path": "/api/saved" }
     ]
   },
+  "webhooks": {
+    "stripeEvent": {
+      "post": {
+        "operationId": "stripe_webhook_inbound",
+        "summary": "Inbound Stripe event (server-to-server)",
+        "description": "Stripe posts billing events to https://rrmacademy.org/api/stripe-webhook . The handler verifies the `Stripe-Signature` header (HMAC-SHA256 over the raw request body, prefixed with a timestamp, per https://docs.stripe.com/webhooks/signatures) before processing. Requests with a missing or invalid signature are rejected with 400. The handler is idempotent: replayed events with the same `id` short-circuit on a dedup KV record. Accepted event types: `checkout.session.completed`, `checkout.session.expired`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`, `charge.refunded`. This is the only inbound webhook surface; rrmacademy.org does not currently emit outbound webhooks to consumers.",
+        "servers": [{ "url": "https://rrmacademy.org" }],
+        "parameters": [
+          {
+            "name": "Stripe-Signature",
+            "in": "header",
+            "required": true,
+            "description": "Stripe HMAC-SHA256 signature over the raw POST body. Format: `t=<unix_ts>,v1=<hex_hmac>`. Verified by `stripe.webhooks.constructEventAsync` using the rotating webhook signing secret. See https://docs.stripe.com/webhooks/signatures.",
+            "schema": {
+              "type": "string",
+              "example": "t=1701234567,v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/StripeWebhookEvent" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Event accepted (verified, dispatched to the matching handler, or idempotently skipped)."
+          },
+          "400": {
+            "description": "Missing or malformed `Stripe-Signature` header, malformed JSON body, or signature failed HMAC verification.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          },
+          "500": {
+            "description": "Internal error while processing the event. Stripe will retry per its retry policy.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      }
+    }
+  },
   "paths": {
     "/api/ask": {
       "get": {
@@ -81,7 +128,14 @@
         "security": [],
         "servers": [{ "url": "https://rrmacademy.org" }],
         "parameters": [
-          { "$ref": "#/components/parameters/IdempotencyKey" }
+          { "$ref": "#/components/parameters/IdempotencyKey" },
+          {
+            "name": "mode",
+            "in": "query",
+            "required": false,
+            "description": "Set to `sandbox` to receive a canned response without consuming rate-limit budget or invoking the upstream LLM. Use this to probe the endpoint shape during agent integration without spending the daily quota.",
+            "schema": { "type": "string", "enum": ["sandbox"] }
+          }
         ],
         "requestBody": {
           "required": true,
@@ -104,10 +158,20 @@
         },
         "responses": {
           "200": {
-            "description": "Answer with citations. Content-Type is `application/json` for authenticated requests without SSE Accept header, or `text/event-stream` for anonymous requests and any SSE-accepting request.",
+            "description": "Answer with citations. Content-Type is `application/json` for authenticated requests without SSE Accept header, or `text/event-stream` for anonymous requests and any SSE-accepting request. When `?mode=sandbox` is set, returns SandboxAskResponse instead of AskResponse.",
+            "headers": {
+              "RateLimit-Limit":     { "$ref": "#/components/headers/RateLimitLimit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimitRemaining" },
+              "RateLimit-Reset":     { "$ref": "#/components/headers/RateLimitReset" }
+            },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/AskResponse" }
+                "schema": {
+                  "oneOf": [
+                    { "$ref": "#/components/schemas/AskResponse" },
+                    { "$ref": "#/components/schemas/SandboxAskResponse" }
+                  ]
+                }
               },
               "text/event-stream": {
                 "schema": {
@@ -125,6 +189,16 @@
           },
           "429": {
             "description": "Rate limit exceeded. Session path: 20/day reset at midnight UTC. Anonymous path: 2/day, 48h TTL.",
+            "headers": {
+              "RateLimit-Limit":     { "$ref": "#/components/headers/RateLimitLimit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimitRemaining" },
+              "RateLimit-Reset":     { "$ref": "#/components/headers/RateLimitReset" },
+              "Retry-After": {
+                "description": "RFC 7231 -- seconds until the client may retry.",
+                "schema": { "type": "integer", "minimum": 0 },
+                "example": 60
+              }
+            },
             "content": {
               "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
             }
@@ -150,59 +224,50 @@
           {
             "name": "page",
             "in": "query",
-            "description": "Page number (1-based). Default: 1. Max: 350.",
+            "description": "Page number (1-based). Default: 1. Max: 350. Ignored when `ids` is present.",
             "required": false,
             "schema": { "type": "integer", "minimum": 1, "maximum": 350, "default": 1 }
           },
           {
             "name": "limit",
             "in": "query",
-            "description": "Results per page. Default: 25. Max: 50.",
+            "description": "Results per page. Default: 25. Max: 50. Ignored when `ids` is present.",
             "required": false,
             "schema": { "type": "integer", "minimum": 1, "maximum": 50, "default": 25 }
+          },
+          {
+            "name": "ids",
+            "in": "query",
+            "description": "Comma-separated list of article IDs to bulk-fetch (max 50, deduped, order preserved). When present, `page` and `limit` are ignored and the response shape is BulkArticleResponse. Missing IDs are returned in `not_found[]` rather than producing a 404. Counts against the same 30 req/min IP budget as the paginated list.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9-]+(,[A-Za-z0-9-]+){0,49}$",
+              "example": "rec123abc,rec456def,rec789ghi"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Paginated article list",
+            "description": "Paginated article list (default), or bulk-fetch response when `ids` is set.",
+            "headers": {
+              "RateLimit-Limit":     { "$ref": "#/components/headers/RateLimitLimit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimitRemaining" },
+              "RateLimit-Reset":     { "$ref": "#/components/headers/RateLimitReset" }
+            },
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "required": ["page", "limit", "total", "total_pages", "results"],
-                  "properties": {
-                    "page": { "type": "integer", "example": 1 },
-                    "limit": { "type": "integer", "example": 25 },
-                    "total": { "type": "integer", "example": 3467 },
-                    "total_pages": { "type": "integer", "example": 139 },
-                    "results": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": { "type": "string", "example": "rec123abc" },
-                          "slug": { "type": "string", "example": "napro-endometriosis-2022" },
-                          "url": { "type": "string", "format": "uri", "example": "https://rrmacademy.org/library/napro-endometriosis-2022/" },
-                          "title": { "type": "string" },
-                          "authors": { "type": "string" },
-                          "year": { "type": "integer", "nullable": true },
-                          "journal": { "type": "string" },
-                          "doi": { "type": "string" },
-                          "pmid": { "type": "string" },
-                          "abstract": { "type": "string" },
-                          "topics": { "type": "array", "items": { "type": "string" } },
-                          "is_open_access": { "type": "boolean" },
-                          "date_added": { "type": "string", "format": "date", "nullable": true, "example": "2026-04-19" }
-                        }
-                      }
-                    }
-                  }
+                  "oneOf": [
+                    { "$ref": "#/components/schemas/ArticleList" },
+                    { "$ref": "#/components/schemas/BulkArticleResponse" }
+                  ]
                 }
               }
             }
           },
           "400": {
-            "description": "Invalid pagination parameters",
+            "description": "Invalid pagination parameters or malformed `ids` query.",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/Error" },
@@ -212,6 +277,16 @@
           },
           "429": {
             "description": "Rate limited (30 req/min per IP)",
+            "headers": {
+              "RateLimit-Limit":     { "$ref": "#/components/headers/RateLimitLimit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimitRemaining" },
+              "RateLimit-Reset":     { "$ref": "#/components/headers/RateLimitReset" },
+              "Retry-After": {
+                "description": "RFC 7231 -- seconds until the client may retry.",
+                "schema": { "type": "integer", "minimum": 0 },
+                "example": 60
+              }
+            },
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/Error" },
@@ -250,6 +325,11 @@
         "responses": {
           "200": {
             "description": "JSON-RPC response envelope",
+            "headers": {
+              "RateLimit-Limit":     { "$ref": "#/components/headers/RateLimitLimit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimitRemaining" },
+              "RateLimit-Reset":     { "$ref": "#/components/headers/RateLimitReset" }
+            },
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/JsonRpcResponse" }
@@ -266,6 +346,16 @@
           },
           "429": {
             "description": "Rate limited",
+            "headers": {
+              "RateLimit-Limit":     { "$ref": "#/components/headers/RateLimitLimit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimitRemaining" },
+              "RateLimit-Reset":     { "$ref": "#/components/headers/RateLimitReset" },
+              "Retry-After": {
+                "description": "RFC 7231 -- seconds until the client may retry.",
+                "schema": { "type": "integer", "minimum": 0 },
+                "example": 60
+              }
+            },
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/Error" }
@@ -295,7 +385,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "text/plain": { "schema": { "type": "string", "example": "ok" } }
+              "text/plain": { "schema": { "$ref": "#/components/schemas/HealthStatus" } }
             }
           }
         }
@@ -324,6 +414,23 @@
           "pattern": "^[\\x21-\\x7e]{16,128}$",
           "example": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
         }
+      }
+    },
+    "headers": {
+      "RateLimitLimit": {
+        "description": "RFC 9598 (draft-ietf-httpapi-ratelimit-headers) -- total requests allowed in the current window.",
+        "schema": { "type": "integer", "minimum": 0 },
+        "example": 20
+      },
+      "RateLimitRemaining": {
+        "description": "RFC 9598 -- requests remaining in the current window. Agents should self-throttle when this drops to 0 rather than retrying through a 429.",
+        "schema": { "type": "integer", "minimum": 0 },
+        "example": 18
+      },
+      "RateLimitReset": {
+        "description": "RFC 9598 -- seconds until the current window resets.",
+        "schema": { "type": "integer", "minimum": 0 },
+        "example": 60
       }
     },
     "responses": {
@@ -419,6 +526,103 @@
           "guardrails": { "type": "object" },
           "site": { "type": "string", "format": "uri" },
           "library": { "type": "string", "format": "uri" }
+        }
+      },
+      "Citation": {
+        "type": "object",
+        "required": ["url"],
+        "properties": {
+          "url": { "type": "string", "format": "uri" },
+          "title": { "type": "string" }
+        }
+      },
+      "ArticleSummary": {
+        "type": "object",
+        "required": ["id", "slug", "url", "title"],
+        "properties": {
+          "id": { "type": "string", "example": "rec123abc" },
+          "slug": { "type": "string", "example": "napro-endometriosis-2022" },
+          "url": { "type": "string", "format": "uri", "example": "https://rrmacademy.org/library/napro-endometriosis-2022/" },
+          "title": { "type": "string" },
+          "authors": { "type": "string" },
+          "year": { "type": "integer", "nullable": true },
+          "journal": { "type": "string" },
+          "doi": { "type": "string" },
+          "pmid": { "type": "string" },
+          "abstract": { "type": "string" },
+          "topics": { "type": "array", "items": { "type": "string" } },
+          "is_open_access": { "type": "boolean" },
+          "date_added": { "type": "string", "format": "date", "nullable": true, "example": "2026-04-19" }
+        }
+      },
+      "ArticleList": {
+        "type": "object",
+        "required": ["page", "limit", "total", "total_pages", "results"],
+        "properties": {
+          "page": { "type": "integer", "example": 1 },
+          "limit": { "type": "integer", "example": 25 },
+          "total": { "type": "integer", "example": 3467 },
+          "total_pages": { "type": "integer", "example": 139 },
+          "results": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ArticleSummary" }
+          }
+        }
+      },
+      "BulkArticleResponse": {
+        "type": "object",
+        "required": ["results", "not_found", "requested", "returned"],
+        "description": "Returned by /api/articles when the `ids` query parameter is present. Replaces the paginated ArticleList shape.",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ArticleSummary" }
+          },
+          "not_found": {
+            "type": "array",
+            "items": { "type": "string", "description": "Requested ID that did not resolve to a published article" },
+            "example": ["rec999missing"]
+          },
+          "requested": { "type": "integer", "example": 3 },
+          "returned": { "type": "integer", "example": 2 }
+        }
+      },
+      "HealthStatus": {
+        "type": "string",
+        "enum": ["ok"],
+        "description": "Health probe response. Returns the literal string `ok` when the worker is reachable.",
+        "example": "ok"
+      },
+      "StripeWebhookEvent": {
+        "type": "object",
+        "required": ["id", "type", "data"],
+        "description": "Subset of the Stripe Event object delivered to /api/stripe-webhook. Full schema: https://docs.stripe.com/api/events/object.",
+        "properties": {
+          "id": { "type": "string", "example": "evt_1NkFh82eZvKYlo2C0w6cVHaJ" },
+          "type": {
+            "type": "string",
+            "description": "Stripe event type. Accepted types: checkout.session.completed, checkout.session.expired, customer.subscription.updated, customer.subscription.deleted, invoice.payment_failed, charge.refunded.",
+            "example": "checkout.session.completed"
+          },
+          "data": {
+            "type": "object",
+            "description": "Event payload. Shape varies by event type."
+          },
+          "livemode": { "type": "boolean" },
+          "created": { "type": "integer", "format": "int64" }
+        }
+      },
+      "SandboxAskResponse": {
+        "type": "object",
+        "required": ["answer", "citations", "sandbox"],
+        "description": "Returned by /api/ask when ?mode=sandbox is set. Canned response, does not consume rate-limit budget or invoke the upstream LLM.",
+        "properties": {
+          "sandbox": { "type": "boolean", "const": true },
+          "answer": { "type": "string", "example": "Sandbox response. /api/ask returns answers grounded in the RRM Library." },
+          "citations": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Citation" }
+          }
         }
       }
     }
