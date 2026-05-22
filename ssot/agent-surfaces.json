@@ -42,8 +42,8 @@
     "voice": "Clinical, direct, evidence-anchored. No religious framing, no marketing softeners. Every claim traces to peer-reviewed evidence or established NaProTechnology outcomes data."
   },
   "fact_sources": [
-    { "path": "https://library.rrmacademy.org/", "role": "content-corpus" },
     { "path": "https://rrmacademy.org/llms-full.txt", "role": "content-corpus" },
+    { "path": "https://mcp-library.rrmacademy.org/mcp", "role": "content-corpus" },
     { "path": "~/iCode/config/canonical-facts/", "role": "ssot-stats" }
   ],
   "social_handles": [
