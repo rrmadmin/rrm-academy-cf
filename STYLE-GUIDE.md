@@ -99,8 +99,8 @@ All colors are defined as CSS custom properties on `:root` and redefined under `
 | `--bg-header` | `#f7f5f3` | Sticky header |
 | `--text-primary` | `#313131` | Body copy, headings |
 | `--text-secondary` | `#636261` | Supporting text, prose |
-| `--text-tertiary` | `#949392` | Meta, captions, timestamps |
-| `--text-muted` | `#adaba9` | Placeholders, disabled |
+| `--text-tertiary` | `oklch(46% 0.006 260)` | Meta, captions, timestamps (4.9:1 on white, WCAG AA) |
+| `--text-muted` | `oklch(47% 0.004 260)` | Placeholders, disabled (4.7:1 on white, WCAG AA) |
 | `--accent` | `#725e7e` | Links, interactive elements |
 | `--accent-hover` | `#4c3e54` | Hover/active accent |
 | `--border-color` | `#dddbd8` | Default borders |
@@ -143,8 +143,8 @@ Dark mode is **warm charcoal, not OLED black.** Think Kindle Paperwhite dark mod
 | `--bg-header` | `#242018` |
 | `--text-primary` | `#dcd6ce` |
 | `--text-secondary` | `#b0aaa2` |
-| `--text-tertiary` | `#8a8480` |
-| `--text-muted` | `#6a6460` |
+| `--text-tertiary` | `oklch(72% 0.008 260)` |
+| `--text-muted` | `oklch(68% 0.006 260)` |
 | `--accent` | `#b8a3c4` |
 | `--accent-hover` | `#d5c6de` |
 | `--border-color` | `#3a3632` |
