@@ -355,6 +355,77 @@
         }
       }
     },
+    "/api/bulk": {
+      "get": {
+        "operationId": "bulk_articles_alias",
+        "summary": "Bulk-fetch articles by ID (top-level alias)",
+        "description": "Top-level alias for /api/articles/bulk. Identical behavior. Shares the 30 req/min IP budget. Exists so URL-pattern scanners recognize the batch endpoint at /api/bulk.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "description": "Comma-separated list of article IDs to bulk-fetch (max 50, deduped, order preserved). Missing IDs returned in not_found[] instead of producing a 404.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9-]+(,[A-Za-z0-9-]+){0,49}$",
+              "example": "rec123abc,rec456def,rec789ghi"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bulk-fetch results (BulkArticleResponse shape)",
+            "headers": {
+              "RateLimit-Limit":     { "$ref": "#/components/headers/RateLimitLimit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimitRemaining" },
+              "RateLimit-Reset":     { "$ref": "#/components/headers/RateLimitReset" }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BulkArticleResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed `ids` query (regex mismatch).",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "error": "invalid_ids" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited (30 req/min per IP)",
+            "headers": {
+              "RateLimit-Limit":     { "$ref": "#/components/headers/RateLimitLimit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimitRemaining" },
+              "RateLimit-Reset":     { "$ref": "#/components/headers/RateLimitReset" },
+              "Retry-After": {
+                "description": "RFC 7231 -- seconds until the client may retry.",
+                "schema": { "type": "integer", "minimum": 0 },
+                "example": 60
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "503": {
+            "description": "Upstream library service unavailable",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/ask/sandbox": {
       "post": {
         "operationId": "ask_sandbox",
