@@ -7,4 +7,4 @@
  *
  * Real handler is functions/api/articles/bulk.js; re-exported here.
  */
-export { onRequestGet, onRequestOptions } from './articles/bulk.js';
+export { onRequestGet, onRequestHead, onRequestOptions } from './articles/bulk.js';
