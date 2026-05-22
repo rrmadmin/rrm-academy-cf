@@ -119,7 +119,9 @@ const jsonLd = {
             <p>We sent a survey link to <strong id="sent-email"></strong>. It may take a minute to arrive. Check your spam folder if you do not see it.</p>
           </div>
 
-          <div id="error-msg" class="survey-error" hidden>
+          <div id="error-msg" class="survey-error"
+               role="alert" aria-live="assertive"
+               data-empty="true">
             <p id="error-text"></p>
           </div>
         </div>
@@ -355,6 +357,10 @@ const jsonLd = {
     color: var(--text-secondary);
     margin: 0;
   }
+  .survey-error[data-empty="true"] {
+    position: absolute;
+    left: -9999px;
+  }
   .survey-error {
     margin-top: var(--space-4);
     padding: var(--space-3) var(--space-4);
@@ -393,7 +399,7 @@ const jsonLd = {
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    errorMsg.hidden = true;
+    errorMsg.setAttribute('data-empty', 'true');
     submitBtn.disabled = true;
     submitBtn.textContent = 'Sending...';
 
@@ -420,7 +426,7 @@ const jsonLd = {
         successMsg.hidden = false;
       } else if (data.suggestion) {
         errorText.textContent = data.error;
-        errorMsg.hidden = false;
+        errorMsg.setAttribute('data-empty', 'false');
         const emailInput = form.querySelector('input[type="email"]');
         if (emailInput) {
           const useLink = document.createElement('a');
@@ -430,17 +436,17 @@ const jsonLd = {
           useLink.addEventListener('click', function (ev) {
             ev.preventDefault();
             emailInput.value = data.suggestion;
-            errorMsg.hidden = true;
+            errorMsg.setAttribute('data-empty', 'true');
           });
           errorMsg.appendChild(useLink);
         }
       } else {
         errorText.textContent = data.error || 'Something went wrong. Please try again.';
-        errorMsg.hidden = false;
+        errorMsg.setAttribute('data-empty', 'false');
       }
     } catch (error) {
       errorText.textContent = 'Network error. Please try again.';
-      errorMsg.hidden = false;
+      errorMsg.setAttribute('data-empty', 'false');
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Get My Survey Link';
