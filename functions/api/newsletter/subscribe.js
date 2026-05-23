@@ -4,25 +4,10 @@
  */
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
-import { json, optionsResponse, verifyTurnstile } from '../auth/_shared.js';
+import { json, optionsResponse, verifyTurnstile, checkRateLimit } from '../auth/_shared.js';
 import { verifyAndTagEmail } from '../_elv.js';
 import { withIdempotency } from '../_idempotency.js';
-
-// Looser than auth rate limit (10/15min vs 5/15min) but still prevents ELV credit burning
-const rateLimits = new Map();
-const WINDOW_MS = 15 * 60 * 1000;
-const MAX_REQUESTS = 10;
-
-function checkSubscribeRateLimit(ip) {
-  const now = Date.now();
-  const entry = rateLimits.get(ip);
-  if (!entry || now - entry.start > WINDOW_MS) {
-    rateLimits.set(ip, { start: now, count: 1 });
-    return true;
-  }
-  entry.count++;
-  return entry.count <= MAX_REQUESTS;
-}
+import { validateBody } from '../_validate.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -49,9 +34,10 @@ async function _handlePost(context) {
   }
   if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
-  // Rate limit by IP (protects ELV API credits)
+  // Rate limit by IP (protects ELV API credits); KV-backed so applies across all isolates
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-  if (!checkSubscribeRateLimit(ip)) {
+  const allowed = await checkRateLimit(env, `newsletter-sub:${ip}`, 10, 900);
+  if (!allowed) {
     return json({ ok: false, error: 'Too many requests. Please try again later.' }, 429);
   }
 
@@ -60,11 +46,12 @@ async function _handlePost(context) {
     return json({ ok: true });
   }
 
-  // Validate email
-  const email = (body.email || '').trim().toLowerCase();
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  // Validate email via validateBody (NFC-normalized, length-capped, null-byte safe)
+  const emailValidation = validateBody(body, { email: { type: 'email', required: true } });
+  if (!emailValidation.valid) {
     return json({ ok: false, error: 'Valid email is required.' }, 400);
   }
+  const email = emailValidation.data.email;
 
   // Verify Turnstile token
   const turnstileResult = await verifyTurnstile(env.CF_TURNSTILE_SECRET, body.turnstileToken, ip, env);
@@ -92,26 +79,37 @@ async function _handlePost(context) {
       if (existing.status === 'active') {
         return json({ ok: true, message: 'You are already subscribed.' });
       }
-      // Re-activate unsubscribed/bounced subscriber
-      // arise-ignore unbatched-writes -- re-activation path; inner user UPDATE non-critical (early-return follows)
-      await env.DB.prepare(
-        "UPDATE newsletter_subscriber SET status = 'active', unsubscribed_at = NULL, bounce_count = 0 WHERE id = ?"
-      ).bind(existing.id).run();
-      try {
-        await env.DB.prepare(
-          "UPDATE user SET newsletter_opt_in = 1, newsletter_opted_in_at = datetime('now') WHERE email = ? COLLATE NOCASE"
-        ).bind(email).run();
-      } catch (err) {
-        log(env, waitUntil, 'newsletter', 'd1_update_error', 'warn', err.message, 0, 0);
+      if (existing.status === 'complained') {
+        // CAN-SPAM: never auto-resubscribe a complainant
+        log(env, waitUntil, 'newsletter', 'resub_blocked_complained', 'warn', email, 0, 200);
+        return json({ ok: true, message: 'You are subscribed!' });
       }
+      if (existing.status === 'bounced') {
+        // Require fresh ELV-verified send before treating as deliverable
+        log(env, waitUntil, 'newsletter', 'resub_blocked_bounced', 'warn', email, 0, 200);
+        return json({ ok: true, message: 'You are subscribed!' });
+      }
+      // Only 'unsubscribed' status falls through to re-activation
+      await env.DB.batch([
+        env.DB.prepare(
+          "UPDATE newsletter_subscriber SET status = 'active', unsubscribed_at = NULL WHERE id = ?"
+        ).bind(existing.id),
+        env.DB.prepare(
+          "UPDATE user SET newsletter_opt_in = 1, newsletter_opted_in_at = datetime('now') WHERE email = ? COLLATE NOCASE"
+        ).bind(email),
+      ]);
       return json({ ok: true, message: 'You are subscribed!' });
     }
 
-    // Create new subscriber
+    // Create new subscriber (ON CONFLICT handles race between the SELECT above and this INSERT)
     const id = crypto.randomUUID();
-    await env.DB.prepare(
-      "INSERT INTO newsletter_subscriber (id, email, source) VALUES (?, ?, 'website')"
+    const insertResult = await env.DB.prepare(
+      "INSERT INTO newsletter_subscriber (id, email, source) VALUES (?, ?, 'website') ON CONFLICT(email) DO NOTHING"
     ).bind(id, email).run();
+    if (insertResult.meta?.changes === 0) {
+      // Race: another request inserted between our SELECT and this INSERT
+      return json({ ok: true, message: 'You are subscribed!' });
+    }
   } catch (err) {
     log(env, waitUntil, 'newsletter', 'subscribe_error', 'error', err.message, 0, 502);
     return json({ ok: false, error: 'Something went wrong. Please try again.' }, 502);

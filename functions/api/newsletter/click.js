@@ -3,6 +3,9 @@
  * Logs click event, 302 redirects to destination.
  */
 import { log } from '../_log.js';
+import { checkRateLimit } from '../auth/_shared.js';
+
+const UUID_RE = /^[0-9a-f-]{36}$/i;
 
 export async function onRequestGet({ request, env, waitUntil }) {
   const url = new URL(request.url);
@@ -24,24 +27,32 @@ export async function onRequestGet({ request, env, waitUntil }) {
     return new Response('Invalid URL', { status: 400 });
   }
 
-  if (sendId && subscriberId && env.DB) {
+  // Validate UUID-ish params before any DB work; skip tracking on invalid but still redirect
+  const paramsValid = sendId && subscriberId &&
+    UUID_RE.test(sendId) && UUID_RE.test(subscriberId);
+
+  if (paramsValid && env.DB) {
+    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
     const work = (async () => {
+      // Rate limit: high ceiling for legit fan-out, caps drive-by attackers
+      const allowed = await checkRateLimit(env, `pixel:${ip}`, 600, 60);
+      if (!allowed) return;
+
       try {
         const subRow = await env.DB.prepare(
-          "SELECT email FROM newsletter_subscriber WHERE id = ?"
+          "SELECT id, email FROM newsletter_subscriber WHERE id = ?"
         ).bind(subscriberId).first();
-        const recipientEmail = (subRow?.email || '').toLowerCase();
+        if (!subRow) return;
+        const recipientEmail = (subRow.email || '').toLowerCase();
 
         const result = await env.DB.prepare(
           "INSERT INTO newsletter_event (send_id, subscriber_id, event, detail) SELECT ?, ?, 'clicked', ? WHERE NOT EXISTS (SELECT 1 FROM newsletter_event WHERE send_id = ? AND subscriber_id = ? AND event = 'clicked' AND detail = ?)"
         ).bind(sendId, subscriberId, dest, sendId, subscriberId, dest).run();
 
-        await env.DB.prepare("UPDATE newsletter_subscriber SET last_clicked_at = datetime('now') WHERE id = ?")
-          .bind(subscriberId).run();
-
         if (result.changes > 0) {
           await env.DB.batch([
             env.DB.prepare("UPDATE newsletter_send SET click_count = click_count + 1 WHERE id = ?").bind(sendId),
+            env.DB.prepare("UPDATE newsletter_subscriber SET last_clicked_at = datetime('now') WHERE id = ?").bind(subscriberId),
             env.DB.prepare(
               "INSERT INTO email_log (event, email, category, source, detail, send_id) VALUES ('clicked', ?, 'newsletter', 'newsletter/click', ?, ?)"
             ).bind(recipientEmail, dest, sendId),

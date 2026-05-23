@@ -79,11 +79,11 @@
       "note": "D1, KV, R2 bindings"
     },
     "functions/api/_ses.js": {
-      "hash": "df6c8d99cb0dc4a0df05b80139c06b78c9b48d56190163224770a2a00d2f9eaa",
+      "hash": "b5eceb82fafd306e43dfa0e761e06ef49584aa0541ad6cde545b98c613625ebf",
       "note": "SES email sending infrastructure"
     },
     "functions/api/_elv.js": {
-      "hash": "fb24aeb1e5bad2e6086bb321fb7c08fc3d55d95fe4a3d18b40b0ce712e35fa5a",
+      "hash": "914db66516bebeb77d187268f8c93d64fb7d0b914b894186b513ada6cd108684",
       "note": "EmailListVerify SMTP validation"
     },
     "functions/api/survey/submit.js": {
@@ -95,15 +95,15 @@
       "note": "Magic-link token generation"
     },
     "functions/api/newsletter/send.js": {
-      "hash": "ed9c6c07f437c677df832e83a87030464ba7d195e9907c3520109497a9bd6559",
+      "hash": "b34384360755e062e8220de3b86cf103df4fb501358fe74fcc9ebf307928341c",
       "note": "Mass email send (admin-only)"
     },
     "functions/api/newsletter/unsubscribe.js": {
-      "hash": "d8ef0e18d7761d96bb84dfc2595c8aaf6b1f980b62e4c2088ef993463db8082a",
+      "hash": "373dbfc7f4a96c5af279e63af2578e300d7c5ef439c9a645b64f07a92cb21846",
       "note": "CAN-SPAM unsubscribe (status update)"
     },
     "functions/api/newsletter/subscribe.js": {
-      "hash": "d81d52138f9df3ce46327f047a5d7fa1922841636ba22f66b5625eb8a6eda50a",
+      "hash": "bf4f08a92b2aeb167e674964da9d1fb02fe81ae22a6023d51f2670609a8475d6",
       "note": "Public newsletter intake (rate-limited)"
     },
     "functions/api/search/semantic.js": {

@@ -4,12 +4,12 @@
  * POST: one-click unsubscribe (RFC 8058, called by Gmail/Yahoo)
  */
 import { log } from '../_log.js';
-import { hmacToken } from './_tracking.js';
+import { verifyToken } from './_tracking.js';
 
 async function unsubscribe(db, email, waitUntil, env) {
   await db.batch([
     db.prepare(
-      "UPDATE newsletter_subscriber SET status = 'unsubscribed', unsubscribed_at = datetime('now') WHERE email = ? COLLATE NOCASE AND status = 'active'"
+      "UPDATE newsletter_subscriber SET status = 'unsubscribed', unsubscribed_at = COALESCE(unsubscribed_at, datetime('now')) WHERE email = ? COLLATE NOCASE"
     ).bind(email),
     db.prepare(
       "UPDATE user SET newsletter_opt_in = 0 WHERE email = ? COLLATE NOCASE"
@@ -35,8 +35,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
     return new Response('Invalid unsubscribe link.', { status: 400, headers: { 'Content-Type': 'text/html' } });
   }
 
-  const expected = await hmacToken(email, env.NEWSLETTER_SECRET);
-  if (token !== expected) {
+  const valid = await verifyToken(email, env.NEWSLETTER_SECRET, token);
+  if (!valid) {
     return new Response('Invalid unsubscribe link.', { status: 400, headers: { 'Content-Type': 'text/html' } });
   }
 
@@ -71,8 +71,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
     return new Response('', { status: 400 });
   }
 
-  const expected = await hmacToken(email, env.NEWSLETTER_SECRET);
-  if (token !== expected) {
+  const valid = await verifyToken(email, env.NEWSLETTER_SECRET, token);
+  if (!valid) {
     return new Response('', { status: 400 });
   }
 
