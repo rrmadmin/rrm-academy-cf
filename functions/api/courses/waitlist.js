@@ -3,51 +3,13 @@
  * Captures email sign-ups for waitlisted affiliate courses.
  * Dual-subscribes to newsletter_subscriber with a waitlist segment.
  */
-import { json, optionsResponse, verifyTurnstile, generateId, getSessionIdFromCookie } from '../auth/_shared.js';
+import { json, optionsResponse, verifyTurnstile, generateId, getSessionIdFromCookie, checkRateLimit } from '../auth/_shared.js';
 import { verifyAndTagEmail } from '../_elv.js';
 import { log } from '../_log.js';
 import { sendGA4Event } from '../_ga4.js';
 import { validateBody } from '../_validate.js';
 import { isWaitlistCourse } from './_shared.js';
 
-// In-memory rate limiters: 10/15min per IP, 3/15min per email
-const ipLimits = new Map();
-const emailLimits = new Map();
-const WINDOW_MS = 15 * 60 * 1000;
-const IP_MAX = 10;
-const EMAIL_MAX = 3;
-
-function gcMap(map) {
-  if (map.size <= 5000) return;
-  const now = Date.now();
-  for (const [key, entry] of map) {
-    if (now - entry.start > WINDOW_MS) map.delete(key);
-  }
-}
-
-function checkIpLimit(ip) {
-  gcMap(ipLimits);
-  const now = Date.now();
-  const entry = ipLimits.get(ip);
-  if (!entry || now - entry.start > WINDOW_MS) {
-    ipLimits.set(ip, { start: now, count: 1 });
-    return true;
-  }
-  entry.count++;
-  return entry.count <= IP_MAX;
-}
-
-function checkEmailLimit(email) {
-  gcMap(emailLimits);
-  const now = Date.now();
-  const entry = emailLimits.get(email);
-  if (!entry || now - entry.start > WINDOW_MS) {
-    emailLimits.set(email, { start: now, count: 1 });
-    return true;
-  }
-  entry.count++;
-  return entry.count <= EMAIL_MAX;
-}
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -88,7 +50,7 @@ export async function onRequestPost(context) {
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
 
   // 4. Rate limit by IP
-  if (!checkIpLimit(ip)) {
+  if (!await checkRateLimit(env, `waitlist-ip:${ip}`, 10, 900)) {
     return json({ ok: false, error: 'rate_limited' }, 429);
   }
 
@@ -99,7 +61,7 @@ export async function onRequestPost(context) {
   }
 
   // 6. Rate limit by email
-  if (!checkEmailLimit(email)) {
+  if (!await checkRateLimit(env, `waitlist-email:${email}`, 3, 900)) {
     return json({ ok: false, error: 'rate_limited' }, 429);
   }
 
@@ -187,7 +149,7 @@ export async function onRequestPost(context) {
     } else {
       statements.push(
         env.DB.prepare(
-          "INSERT INTO newsletter_subscriber (id, email, status, source, subscribed_at, segments) VALUES (?, ?, 'active', ?, datetime('now'), ?)"
+          "INSERT INTO newsletter_subscriber (id, email, status, source, subscribed_at, segments) VALUES (?, ?, 'active', ?, datetime('now'), ?) ON CONFLICT(email) DO NOTHING"
         ).bind(generateId(), email, `waitlist-${courseId}`, JSON.stringify([waitlistSegment]))
       );
     }
