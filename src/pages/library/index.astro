@@ -432,6 +432,13 @@ const jsonLd = {
      under ~40px tall regardless of how many suggestions we ship. */
   @media (max-width: 639px) {
     .atlas-hero__suggestions {
+      /* align-self:stretch is load-bearing: inside the centered column flex
+         (.atlas-hero__inner is align-items:center) this item otherwise sizes
+         to its 844px content width and centers, bleeding "Try" + the first
+         pill off-screen-left and the last pill off-screen-right with no way to
+         scroll. Stretch constrains it to the container width so overflow-x:auto
+         makes a real, edge-to-edge scroll strip. */
+      align-self: stretch;
       flex-wrap: nowrap;
       overflow-x: auto;
       justify-content: flex-start;
@@ -624,9 +631,14 @@ const jsonLd = {
     padding: 0;
     margin: 0;
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-4);
   }
+  /* Grid items default to min-width:auto, whose min-content is driven by the
+     nowrap author/journal lines (~446px). That blows the single mobile track
+     out to ~480px on a 393px viewport (horizontal page overflow). min-width:0
+     lets the track clamp to the column so the ellipsis truncation engages. */
+  .recent-grid > li { min-width: 0; }
   @media (min-width: 640px) {
     .recent-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
