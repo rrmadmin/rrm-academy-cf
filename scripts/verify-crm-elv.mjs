@@ -88,7 +88,8 @@ function d1Exec(sql) {
       maxBuffer: 50 * 1024 * 1024,
     });
   } finally {
-    try { unlinkSync(tmpFile); } catch {}
+    try { unlinkSync(tmpFile); }
+    catch (err) { console.error(`warn: failed to clean up ${tmpFile}: ${err.message}`); }
   }
 }
 
@@ -217,7 +218,9 @@ async function main() {
     sendable: [],    // ok, ok_for_all
     risky: [],       // accept_all, unknown, risky, role
     unsendable: [],  // email_disabled, spamtrap, disposable, invalid
-    unverified: [],  // no ELV result (skipped, error)
+    errored: [],     // ELV API errored (network/HTTP/timeout) -- fail-open per _elv.js;
+                     // do NOT block these. Re-queue by clearing checkpoint.
+    unverified: [],  // no ELV result (skipped)
   };
 
   const statusCounts = {};
@@ -234,8 +237,13 @@ async function main() {
       buckets.sendable.push({ ...c, elvStatus: status });
     } else if (RISKY.has(status)) {
       buckets.risky.push({ ...c, elvStatus: status });
-    } else if (UNSENDABLE.has(status) || status === 'error') {
+    } else if (UNSENDABLE.has(status)) {
       buckets.unsendable.push({ ...c, elvStatus: status });
+    } else if (status === 'error') {
+      // ELV API errored on this email. functions/api/_elv.js policy is
+      // fail-open: do NOT block on ELV errors. Bucket separately so we
+      // surface a retry hint and leave the contact's tag set unchanged.
+      buckets.errored.push({ ...c, elvStatus: status });
     } else {
       // Unknown status -- treat as risky
       buckets.risky.push({ ...c, elvStatus: status });
@@ -247,6 +255,7 @@ async function main() {
   console.log(`  Sendable (ok):        ${buckets.sendable.length}`);
   console.log(`  Risky (accept_all+):  ${buckets.risky.length}`);
   console.log(`  Unsendable:           ${buckets.unsendable.length}`);
+  console.log(`  Errored (retry):      ${buckets.errored.length}`);
   console.log(`  Unverified:           ${buckets.unverified.length}`);
   console.log(`  ─────────────────────────`);
   console.log(`  Total:                ${allContacts.length}`);
@@ -270,6 +279,23 @@ async function main() {
         console.log(`    ${c.email} (${c.name || 'no name'})`);
       }
       if (items.length > 20) console.log(`    ... and ${items.length - 20} more`);
+    }
+  }
+
+  // Show errored details -- these were NOT classified by ELV (network/HTTP/timeout).
+  // Per functions/api/_elv.js policy, ELV errors are fail-open: do not block. To
+  // retry, delete the checkpoint file and re-run with --resume disabled, or
+  // manually remove the offending email keys from the checkpoint JSON.
+  if (buckets.errored.length) {
+    console.log(`\n--- ERRORED (${buckets.errored.length}) ---`);
+    console.log(`  These contacts errored at the ELV API and remain unclassified.`);
+    console.log(`  Fail-open policy: do NOT block. To retry, clear ${CHECKPOINT_FILE}`);
+    console.log(`  (or remove their email keys) and re-run the script.`);
+    for (const c of buckets.errored.slice(0, 10)) {
+      console.log(`    ${c.email}`);
+    }
+    if (buckets.errored.length > 10) {
+      console.log(`    ... and ${buckets.errored.length - 10} more`);
     }
   }
 
@@ -308,10 +334,12 @@ async function main() {
       sendable: buckets.sendable.length,
       risky: buckets.risky.length,
       unsendable: buckets.unsendable.length,
+      errored: buckets.errored.length,
       unverified: buckets.unverified.length,
     },
     unsendable: buckets.unsendable,
     risky: buckets.risky,
+    errored: buckets.errored,
   };
   writeFileSync(REPORT_FILE, JSON.stringify(report, null, 2));
   console.log(`\nFull report: ${REPORT_FILE}`);
@@ -353,7 +381,12 @@ async function main() {
   console.log(`  Wrote ${tags.length} tags`);
 
   // Clean up checkpoint on success
-  try { unlinkSync(CHECKPOINT_FILE); } catch {}
+  try { unlinkSync(CHECKPOINT_FILE); }
+  catch (err) {
+    if (err.code !== 'ENOENT') {
+      console.error(`warn: failed to clean up ${CHECKPOINT_FILE}: ${err.message}`);
+    }
+  }
   console.log('  Checkpoint cleared.');
 }
 
