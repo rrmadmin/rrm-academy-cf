@@ -41,6 +41,7 @@
     "design-tokens:audit": "node scripts/audit-design-tokens.mjs",
     "design-tokens:audit:strict": "node scripts/audit-design-tokens.mjs --strict",
     "verify-hamburger": "node scripts/verify-mobile-hamburger.mjs",
+    "sync:check": "node scripts/sync-library-count.mjs --check",
     "sync-ecosystem": "node scripts/sync-ecosystem.mjs",
     "embed": "npx wrangler dev scripts/embed-library.mjs --port 8688 --compatibility-date 2025-01-01",
     "pipeline:snapshot": "node scripts/pipeline.mjs snapshot",

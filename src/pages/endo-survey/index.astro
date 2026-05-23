@@ -397,9 +397,15 @@ const jsonLd = {
   const errorText = document.getElementById('error-text');
   const sentEmail = document.getElementById('sent-email');
 
+  function clearErrorState() {
+    errorText.textContent = '';
+    errorMsg.querySelectorAll('a').forEach(function (a) { a.remove(); });
+    errorMsg.setAttribute('data-empty', 'true');
+  }
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    errorMsg.setAttribute('data-empty', 'true');
+    clearErrorState();
     submitBtn.disabled = true;
     submitBtn.textContent = 'Sending...';
 
@@ -436,7 +442,7 @@ const jsonLd = {
           useLink.addEventListener('click', function (ev) {
             ev.preventDefault();
             emailInput.value = data.suggestion;
-            errorMsg.setAttribute('data-empty', 'true');
+            clearErrorState();
           });
           errorMsg.appendChild(useLink);
         }
