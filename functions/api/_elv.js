@@ -22,6 +22,7 @@
  *   ELV_API_KEY  -- EmailListVerify API key
  *   DB           -- D1 binding
  */
+import { log } from './_log.js';
 
 // Statuses that mean "do not send to this address"
 const BLOCK_STATUSES = new Set([
@@ -103,8 +104,8 @@ export async function verifyAndTagEmail(email, env, { firstName, lastName, sourc
            ON CONFLICT(contact_id, tag) DO UPDATE SET source = excluded.source`
         ).bind(contactId, `elv:${result.status}`).run();
       }
-    } catch {
-      // Non-fatal -- don't block the user action over a CRM tag failure
+    } catch (err) {
+      try { log(env, null, 'elv', 'tag_write_failed', 'error', err?.message?.slice(0, 200) || 'unknown', 0, 0); } catch {}
     }
   }
 

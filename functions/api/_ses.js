@@ -1,5 +1,11 @@
 import { AwsClient } from 'aws4fetch';
 
+function sanitizeHeader(v) {
+  const s = String(v ?? '');
+  if (/[\r\n\x00]/.test(s)) throw new Error('Header contains illegal control characters');
+  return s.slice(0, 998);
+}
+
 async function insertEmailLog(db, { event, email, category, source, subject, detail, send_id }) {
   try {
     await db.prepare(
@@ -13,8 +19,8 @@ async function insertEmailLog(db, { event, email, category, source, subject, det
       detail ? String(detail).slice(0, 500) : null,
       send_id || null,
     ).run();
-  } catch {
-    // best-effort -- never crash the caller
+  } catch (err) {
+    console.error('insertEmailLog failed:', err.message);
   }
 }
 
@@ -50,19 +56,24 @@ export async function sendEmail(env, { from, to, subject, html, text, replyTo, l
   if (text) payload.Content.Simple.Body.Text = { Data: text, Charset: 'UTF-8' };
   if (replyTo) payload.ReplyToAddresses = [replyTo];
 
-  const res = await aws.fetch(
-    `https://email.${region}.amazonaws.com/v2/email/outbound-emails`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    }
-  );
+  let res;
+  try {
+    res = await aws.fetch(
+      `https://email.${region}.amazonaws.com/v2/email/outbound-emails`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }
+    );
+  } catch (err) {
+    throw new Error(`SES request failed (network): ${err.message}`);
+  }
 
   if (!res.ok) {
     const body = await res.text();
     console.error('SES error:', res.status, body);
-    throw new Error(`SES request failed (${res.status})`);
+    throw new Error(`SES request failed (${res.status}): ${(body || '').slice(0, 200)}`);
   }
 
   const data = await res.json();
@@ -101,23 +112,23 @@ export async function sendRawEmail(env, { from, to, subject, html, text, replyTo
   });
 
   const boundary = `----=_Part_${crypto.randomUUID().replace(/-/g, '')}`;
-  const toAddr = Array.isArray(to) ? to.join(', ') : to;
+  const toAddr = Array.isArray(to) ? to.map(a => sanitizeHeader(a)).join(', ') : sanitizeHeader(to);
 
   const messageId = `<${crypto.randomUUID()}@mail.rrmacademy.org>`;
 
   let rawHeaders = [
-    `From: ${from}`,
+    `From: ${sanitizeHeader(from)}`,
     `To: ${toAddr}`,
-    `Subject: ${subject}`,
+    `Subject: ${sanitizeHeader(subject)}`,
     `Message-ID: ${messageId}`,
     'MIME-Version: 1.0',
     'Precedence: bulk',
     `Content-Type: multipart/alternative; boundary="${boundary}"`,
   ];
-  if (replyTo) rawHeaders.push(`Reply-To: ${replyTo}`);
+  if (replyTo) rawHeaders.push(`Reply-To: ${sanitizeHeader(replyTo)}`);
   if (headers) {
     for (const [name, value] of Object.entries(headers)) {
-      rawHeaders.push(`${name}: ${value}`);
+      rawHeaders.push(`${sanitizeHeader(name)}: ${sanitizeHeader(value)}`);
     }
   }
 
@@ -144,19 +155,24 @@ export async function sendRawEmail(env, { from, to, subject, html, text, replyTo
     payload.ConfigurationSetName = configurationSet;
   }
 
-  const res = await aws.fetch(
-    `https://email.${region}.amazonaws.com/v2/email/outbound-emails`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    }
-  );
+  let res;
+  try {
+    res = await aws.fetch(
+      `https://email.${region}.amazonaws.com/v2/email/outbound-emails`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }
+    );
+  } catch (err) {
+    throw new Error(`SES raw request failed (network): ${err.message}`);
+  }
 
   if (!res.ok) {
     const errBody = await res.text();
     console.error('SES raw error:', res.status, errBody);
-    throw new Error(`SES raw request failed (${res.status})`);
+    throw new Error(`SES raw request failed (${res.status}): ${(errBody || '').slice(0, 200)}`);
   }
 
   const data = await res.json();

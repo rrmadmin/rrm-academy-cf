@@ -16,6 +16,15 @@ import { renderEmail } from './_template.js';
 import { unsubscribeHeaders } from './_tracking.js';
 import { constantTimeEqual } from '../auth/_shared.js';
 
+function parseSegments(s) {
+  try {
+    const v = JSON.parse(s || '[]');
+    return Array.isArray(v) ? v : [];
+  } catch {
+    return [];
+  }
+}
+
 const PAGE_SIZE = 80;           // subscribers per invocation
 const BATCH_SIZE = 10;          // concurrent sends per batch
 const BATCH_DELAY_MS = 500;     // pause between batches; 10 concurrent + network latency keeps us under SES 14/sec
@@ -44,8 +53,24 @@ export async function onRequestPost({ request, env, waitUntil }) {
   }
 
   const { subject, body: htmlBody, segments, slug, sendId: existingSendId, cursor } = body;
-  if (!subject || !htmlBody) {
-    return Response.json({ ok: false, error: 'subject and body are required' }, { status: 400 });
+  if (typeof subject !== 'string' || typeof htmlBody !== 'string' || !subject.trim() || !htmlBody.trim()) {
+    return Response.json({ ok: false, error: 'subject and body required as non-empty strings' }, { status: 400 });
+  }
+  if (subject.length > 998 || htmlBody.length > 500_000) {
+    return Response.json({ ok: false, error: 'subject or body too long' }, { status: 400 });
+  }
+  if (segments !== undefined && segments !== null) {
+    if (!Array.isArray(segments) || !segments.every(s => typeof s === 'string' && s.length > 0 && s.length < 100)) {
+      return Response.json({ ok: false, error: 'segments must be an array of strings' }, { status: 400 });
+    }
+  }
+
+  if (cursor !== undefined && cursor !== null && (
+    typeof cursor !== 'string' ||
+    cursor.length > 50 ||
+    !/^[0-9a-f-]+$/i.test(cursor)
+  )) {
+    return Response.json({ ok: false, error: 'invalid_cursor' }, { status: 400 });
   }
 
   const db = env.DB;
@@ -55,7 +80,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
   if (!sendId) {
     sendId = crypto.randomUUID();
 
-    // Count total recipients upfront (only on first call)
+    // Count candidate recipients upfront (only on first call); does not account for suppression set
     let totalRecipients;
     if (!segments || segments.length === 0) {
       const countResult = await db.prepare(
@@ -67,11 +92,12 @@ export async function onRequestPost({ request, env, waitUntil }) {
         "SELECT segments FROM newsletter_subscriber WHERE status = 'active'"
       ).all();
       totalRecipients = allSubs.results.filter(sub => {
-        const subSegs = JSON.parse(sub.segments || '[]');
+        const subSegs = parseSegments(sub.segments);
         return segments.some(seg => subSegs.includes(seg));
       }).length;
     }
 
+    // arise-ignore unbatched-writes -- if/else branch; only one .run() executes per request
     await db.prepare(
       "INSERT INTO newsletter_send (id, subject, html, segment_filter, status, total_recipients, commentary_slug) VALUES (?, ?, ?, ?, 'sending', ?, ?)"
     ).bind(sendId, subject, htmlBody, segments ? JSON.stringify(segments) : null, totalRecipients, slug || null).run();
@@ -86,7 +112,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const badTags = (await db.prepare(
       `SELECT c.email FROM contact c
        JOIN contact_tag ct ON ct.contact_id = c.id
-       WHERE ct.tag IN ('elv:spamtrap', 'elv:email_disabled', 'elv:disposable', 'elv:invalid', 'elv:dead_server', 'elv:invalid_mx')`
+       WHERE ct.tag IN ('elv:spamtrap', 'elv:email_disabled', 'elv:disposable',
+                        'elv:invalid', 'elv:dead_server', 'elv:invalid_mx',
+                        'wix:unsubscribed', 'email:bounced', 'wix:bounced', 'email:complained')`
     ).all()).results;
     for (const r of badTags) suppressedEmails.add(r.email?.toLowerCase());
   } catch (err) {
@@ -109,18 +137,16 @@ export async function onRequestPost({ request, env, waitUntil }) {
   let recipients = subscribers.filter(s => !suppressedEmails.has(s.email?.toLowerCase()));
   if (segments && segments.length > 0) {
     recipients = recipients.filter(sub => {
-      const subSegments = JSON.parse(sub.segments || '[]');
+      const subSegments = parseSegments(sub.segments);
       return segments.some(seg => subSegments.includes(seg));
     });
   }
 
   // Exclude already-sent subscribers (handles resume after crash mid-page)
-  // Scope to cursor range to avoid unbounded query
-  const sentQuery = cursor
-    ? "SELECT subscriber_id FROM newsletter_event WHERE send_id = ? AND event = 'sent' AND subscriber_id > ?"
-    : "SELECT subscriber_id FROM newsletter_event WHERE send_id = ? AND event = 'sent'";
-  const sentParams = cursor ? [sendId, cursor] : [sendId];
-  const alreadySent = (await db.prepare(sentQuery).bind(...sentParams).all()).results.map(r => r.subscriber_id);
+  // Not scoped to cursor range so that failed sends from prior pages can be retried
+  const alreadySent = (await db.prepare(
+    "SELECT subscriber_id FROM newsletter_event WHERE send_id = ? AND event = 'sent'"
+  ).bind(sendId).all()).results.map(r => r.subscriber_id);
   const sentSet = new Set(alreadySent);
   recipients = recipients.filter(r => !sentSet.has(r.id));
 
@@ -131,11 +157,21 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
   // Send in batches
   let sentCount = 0;
+  const succeededIds = [];
   for (let i = 0; i < page.length; i += BATCH_SIZE) {
     const batch = page.slice(i, i + BATCH_SIZE);
 
     const results = await Promise.allSettled(
       batch.map(async (sub) => {
+        // Re-check status: guard against concurrent unsubscribe during send
+        const stillActive = await db.prepare(
+          "SELECT status FROM newsletter_subscriber WHERE id = ?"
+        ).bind(sub.id).first();
+        if (stillActive?.status !== 'active') {
+          log(env, waitUntil, 'newsletter', 'send_skipped_status_changed', 'warn', sub.email, 0, 200);
+          return null;
+        }
+
         const { html, text } = await renderEmail({
           body: htmlBody,
           sendId,
@@ -145,6 +181,13 @@ export async function onRequestPost({ request, env, waitUntil }) {
         });
 
         const headers = await unsubscribeHeaders(sub.email, env.NEWSLETTER_SECRET);
+
+        // Record send intent before calling SES; if SES throws after this point the
+        // subscriber is marked sent and skipped on retry (false-positive sent < double-send)
+        await db.batch([
+          db.prepare("INSERT INTO newsletter_event (send_id, subscriber_id, event) VALUES (?, ?, 'sent')").bind(sendId, sub.id),
+          db.prepare("UPDATE newsletter_subscriber SET last_sent_at = datetime('now') WHERE id = ?").bind(sub.id),
+        ]);
 
         await sendRawEmail(env, {
           from: '"Naomi Whittaker" <newsletter@mail.rrmacademy.org>',
@@ -157,22 +200,18 @@ export async function onRequestPost({ request, env, waitUntil }) {
           log: { db, source: 'newsletter/send', category: 'newsletter' },
         });
 
-        // Record sent event + bump last_sent_at atomically
-        await db.batch([
-          db.prepare("INSERT INTO newsletter_event (send_id, subscriber_id, event) VALUES (?, ?, 'sent')").bind(sendId, sub.id),
-          db.prepare("UPDATE newsletter_subscriber SET last_sent_at = datetime('now') WHERE id = ?").bind(sub.id)
-        ]);
-
         return sub.id;
       })
     );
 
-    sentCount += results.filter(r => r.status === 'fulfilled').length;
-
-    // Log failures
-    results.filter(r => r.status === 'rejected').forEach(r => {
-      log(env, waitUntil, 'newsletter', 'send_error', 'error', r.reason?.message || 'unknown', 0, 0);
-    });
+    for (let j = 0; j < results.length; j++) {
+      if (results[j].status === 'fulfilled' && results[j].value !== null) {
+        sentCount++;
+        succeededIds.push(batch[j].id);
+      } else if (results[j].status === 'rejected') {
+        log(env, waitUntil, 'newsletter', 'send_error', 'error', results[j].reason?.message || 'unknown', 0, 0);
+      }
+    }
 
     // Rate limit delay between batches
     if (i + BATCH_SIZE < page.length) {
@@ -193,10 +232,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
     log(env, waitUntil, 'newsletter', 'send_complete', 'ok', `send ${sendId} complete`, 0, 200);
   }
 
-  const lastId = page.length > 0
-    ? page[page.length - 1].id
-    : (subscribers.length > 0 ? subscribers[subscribers.length - 1].id : null);
-  const nextCursor = lastId;
+  // Cursor = highest successful ID so failed sends in this page get retried on resume
+  const lastSuccess = succeededIds.length > 0 ? succeededIds[succeededIds.length - 1] : null;
+  const nextCursor = lastSuccess || cursor || null;
 
   return Response.json({
     ok: true,

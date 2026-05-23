@@ -43,7 +43,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
   // Check if we already sent this post
   const existing = await env.DB.prepare(
-    "SELECT id FROM newsletter_send WHERE commentary_slug = ? LIMIT 1"
+    "SELECT id FROM newsletter_send WHERE commentary_slug = ? COLLATE NOCASE LIMIT 1"
   ).bind(slug).first();
 
   if (existing) {
