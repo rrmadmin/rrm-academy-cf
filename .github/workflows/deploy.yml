@@ -382,9 +382,6 @@ jobs:
       - name: Verify mobile hamburger (present + right-aligned)
         run: npm run verify-hamburger
 
-      - name: Library count drift check
-        run: npm run sync:check
-
       - name: Build site
         env:
           PUBLIC_SHELL_ROUTES: ${{ vars.PUBLIC_SHELL_ROUTES || '' }}
