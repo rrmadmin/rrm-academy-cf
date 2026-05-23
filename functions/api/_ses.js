@@ -2,6 +2,7 @@ import { AwsClient } from 'aws4fetch';
 
 function sanitizeHeader(v) {
   const s = String(v ?? '');
+  // eslint-disable-next-line no-control-regex -- intentional: block CRLF + NUL header injection
   if (/[\r\n\x00]/.test(s)) throw new Error('Header contains illegal control characters');
   return s.slice(0, 998);
 }
@@ -67,7 +68,7 @@ export async function sendEmail(env, { from, to, subject, html, text, replyTo, l
       }
     );
   } catch (err) {
-    throw new Error(`SES request failed (network): ${err.message}`);
+    throw new Error(`SES request failed (network): ${err.message}`, { cause: err });
   }
 
   if (!res.ok) {
@@ -166,7 +167,7 @@ export async function sendRawEmail(env, { from, to, subject, html, text, replyTo
       }
     );
   } catch (err) {
-    throw new Error(`SES raw request failed (network): ${err.message}`);
+    throw new Error(`SES raw request failed (network): ${err.message}`, { cause: err });
   }
 
   if (!res.ok) {

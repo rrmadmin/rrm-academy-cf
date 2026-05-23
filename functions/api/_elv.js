@@ -105,7 +105,7 @@ export async function verifyAndTagEmail(email, env, { firstName, lastName, sourc
         ).bind(contactId, `elv:${result.status}`).run();
       }
     } catch (err) {
-      try { log(env, null, 'elv', 'tag_write_failed', 'error', err?.message?.slice(0, 200) || 'unknown', 0, 0); } catch {}
+      try { log(env, null, 'elv', 'tag_write_failed', 'error', err?.message?.slice(0, 200) || 'unknown', 0, 0); } catch (_e) { /* log() is best-effort */ }
     }
   }
 

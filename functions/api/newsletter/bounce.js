@@ -226,7 +226,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
   if (processingError && eventId) {
     try {
       await db.prepare("DELETE FROM webhook_event WHERE event_id = ?").bind(eventId).run();
-    } catch {}
+    } catch (_e) { /* best-effort rollback; SNS may still retry */ }
     return new Response('Server error', { status: 500 });
   }
 
