@@ -34,8 +34,8 @@ if (!Array.isArray(articles)) {
   process.exit(1);
 }
 const count = articles.length;
-if (count < 3000 || count > 10000) {
-  console.error(`[sync-library-count] FATAL: article count ${count} is outside expected range [3000, 10000]. Possible data loss or corrupt file.`);
+if (count < 3000 || count >= 10000) {
+  console.error(`[sync-library-count] FATAL: article count ${count} is outside expected range [3000, 10000). Possible data loss or corrupt file.`);
   process.exit(1);
 }
 
@@ -52,6 +52,11 @@ const STATIC_OVERRIDE_FILES = [
   'static-overrides/llms.txt',
   'static-overrides/llms-full.txt',
   'static-overrides/library-llms.txt',
+  // Tracked for drift protection even though they don't currently contain
+  // a library-count phrasing — ssot-prebuild.mjs copies them to public/
+  // so future edits that add a count phrasing will be caught automatically.
+  'static-overrides/courses-llms.txt',
+  'static-overrides/faqs-llms.txt',
 ];
 
 // public/ files that are NOT regenerated from static-overrides (or that
@@ -82,8 +87,10 @@ const SSOT_FILES = [
 
 const ALL_TARGET_FILES = [...STATIC_OVERRIDE_FILES, ...PUBLIC_FILES, ...SSOT_FILES];
 
-// Pattern: match "N,NNN+" or "N,NNN" (optionally with + suffix) followed by
-// 0-3 optional modifier words then a terminal noun.
+// Pattern: match "N,NNN+" or "N,NNN" (with mandatory thousands-separator)
+// followed by at least one modifier word then a terminal noun.
+// Requires a comma-formatted number (e.g. 4,030) plus at least one of the
+// listed qualifier words before the terminal noun.
 // Handles patterns like:
 //   "3,370+ peer-reviewed articles"
 //   "3,370+ physician-curated peer-reviewed articles"
@@ -91,12 +98,13 @@ const ALL_TARGET_FILES = [...STATIC_OVERRIDE_FILES, ...PUBLIC_FILES, ...SSOT_FIL
 //   "3,370+ research articles"
 //   "3,370+ indexed articles"
 // Replacement: canonical displayCount + the original contextual suffix.
-const COUNT_PATTERN = /\b\d[\d,]*\+?((?:\s+(?:physician-curated|scholarly|peer-reviewed|academic|research|indexed)){0,3}\s+(?:works|articles|references))/gi;
+const COUNT_PATTERN = /\b\d{1,2},\d{3}\+?((?:\s+(?:physician-curated|scholarly|peer-reviewed|academic|research|indexed))+\s+(?:works|articles|references))\b/gi;
 
 let totalReplacements = 0;
-let filesChanged = 0;
 let filesDrifted = [];
 
+// Phase 1 (compute): build list of all needed changes without writing yet.
+const updates = [];
 for (const rel of ALL_TARGET_FILES) {
   const abs = resolve(ROOT, rel);
   if (!existsSync(abs)) {
@@ -104,41 +112,42 @@ for (const rel of ALL_TARGET_FILES) {
     continue;
   }
   const original = readFileSync(abs, 'utf8');
-  let updated = original;
   let replacements = 0;
-  updated = updated.replace(COUNT_PATTERN, (match, suffix) => {
+  const updated = original.replace(COUNT_PATTERN, (match, suffix) => {
     replacements++;
     return `${displayCount}${suffix}`;
   });
 
   if (updated !== original) {
     filesDrifted.push(rel);
+    updates.push({ rel, abs, updated, replacements });
     if (CHECK_MODE) {
       console.error(`[sync-library-count] DRIFT: ${rel} contains stale count (expected "${displayCount}")`);
-    } else {
-      writeFileSync(abs, updated, 'utf8');
-      console.log(`[sync-library-count] Updated ${rel} (${replacements} replacement(s))`);
-      filesChanged++;
     }
     totalReplacements += replacements;
   }
 }
 
-// 3. Write library-stats.json fingerprint
-const statsPath = resolve(ROOT, 'src/data/library-stats.json');
-const stats = {
-  count,
-  displayCount,
-  displayFloor,
-  generatedAt: new Date().toISOString(),
-};
-
-if (!CHECK_MODE) {
-  writeFileSync(statsPath, JSON.stringify(stats, null, 2) + '\n', 'utf8');
-  console.log(`[sync-library-count] Wrote src/data/library-stats.json`);
+// In CHECK_MODE: also verify library-stats.json freshness.
+if (CHECK_MODE) {
+  const statsPath = resolve(ROOT, 'src/data/library-stats.json');
+  if (existsSync(statsPath)) {
+    try {
+      const parsed = JSON.parse(readFileSync(statsPath, 'utf8'));
+      if (parsed.count !== count) {
+        filesDrifted.push('src/data/library-stats.json');
+        console.error(`[sync-library-count] DRIFT: src/data/library-stats.json has count=${parsed.count}, expected ${count}. Run: node scripts/sync-library-count.mjs`);
+      }
+    } catch {
+      filesDrifted.push('src/data/library-stats.json');
+      console.error(`[sync-library-count] DRIFT: src/data/library-stats.json is unreadable or malformed. Run: node scripts/sync-library-count.mjs`);
+    }
+  } else {
+    filesDrifted.push('src/data/library-stats.json');
+    console.error(`[sync-library-count] DRIFT: src/data/library-stats.json not found. Run: node scripts/sync-library-count.mjs`);
+  }
 }
 
-// 4. Report
 if (CHECK_MODE) {
   if (filesDrifted.length > 0) {
     console.error(`[sync-library-count] FAIL: ${filesDrifted.length} file(s) have stale counts. Run: node scripts/sync-library-count.mjs`);
@@ -148,6 +157,35 @@ if (CHECK_MODE) {
   process.exit(0);
 }
 
+// Phase 2 (apply): write changes, failing loudly on any write error.
+let filesChanged = 0;
+for (const { rel, abs, updated, replacements } of updates) {
+  try {
+    writeFileSync(abs, updated, 'utf8');
+    console.log(`[sync-library-count] Updated ${rel} (${replacements} replacement(s))`);
+    filesChanged++;
+  } catch (err) {
+    console.error(`[sync-library-count] FATAL: write failed for ${rel}: ${err.message}`);
+    process.exit(1);
+  }
+}
+
+// 3. Write library-stats.json fingerprint (deterministic — no timestamp).
+const statsPath = resolve(ROOT, 'src/data/library-stats.json');
+const stats = {
+  count,
+  displayCount,
+  displayFloor,
+};
+try {
+  writeFileSync(statsPath, JSON.stringify(stats, null, 2) + '\n', 'utf8');
+  console.log(`[sync-library-count] Wrote src/data/library-stats.json`);
+} catch (err) {
+  console.error(`[sync-library-count] FATAL: write failed for src/data/library-stats.json: ${err.message}`);
+  process.exit(1);
+}
+
+// 4. Report
 if (filesChanged === 0) {
   console.log(`[sync-library-count] No files needed updating — all already show "${displayCount}"`);
 } else {
