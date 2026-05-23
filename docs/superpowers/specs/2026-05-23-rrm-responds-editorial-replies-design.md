@@ -45,7 +45,7 @@ The coupling between response and critique is both the editorial structure and t
 
 - **Cite the critique's DOI and name it in the title and H1.** This places the response in the critique's citation and keyword orbit.
 - **Mirror the critique's terminology and specific claims.** This makes the response retrieve on the same queries the critique retrieves on. The aim is to outrank the critique for its own terms, not merely co-appear, because responding to a critique also links it.
-- **Structured data binding response to claim.** Evaluate `ClaimReview` (Google's claim-rebuttal schema, purpose-built for this) against a `ScholarlyArticle` plus citation-relation approach. **Open item:** `ClaimReview` carries fact-checker eligibility requirements that must be verified before adoption. If RRM Academy does not meet them, fall back to `ScholarlyArticle` with explicit `citation` to the critique.
+- **Structured data binding response to claim.** Use `ScholarlyArticle` with an explicit `citation` (and `about`) edge to the critique. `ClaimReview` is NOT used: Google deprecated ClaimReview rich results on 2025-06-12 (one of 7 retired structured-data types), so the markup yields no SERP feature. It was never IFCN-gated. For non-journal critiques (no DOI, no journal), the cited node is typed `CreativeWork` rather than `ScholarlyArticle` (honest typing). Verified 2026-05-23 (Poynter, Google Search Central blog 2025/06).
 - **Wire into existing agent surfaces.** Include responses in llms.txt and the sitemap, and internally link from the relevant pillar, glossary, and Library pages.
 
 ## Voice and Rigor Rules (non-negotiable)
@@ -90,12 +90,12 @@ Reuse the existing consideration-set-audit and retrieval-probe tooling. Success 
 - **Advocacy perception.** Mitigated by the steelman-first rigor rules, evidence anchoring, and clinician authorship. This is the dominant risk and it is editorial, not technical.
 - **Amplifying the critique.** Linking and naming a critique gives it oxygen. Mitigated by targeting an outrank, not just co-appearance, for the critique's terms.
 - **Appearing to attack individuals.** Mitigated by the respond-to-the-work-not-the-person rule.
-- **`ClaimReview` ineligibility.** Mitigated by the `ScholarlyArticle` fallback.
+- **`ClaimReview` deprecation.** Resolved: `ScholarlyArticle` + `citation` is the chosen, durable binding (ClaimReview rich results were retired by Google in 2025).
 
 ## Open Items
 
 1. Section name: `/responds/` vs `/evidence/` vs other.
-2. `ClaimReview` eligibility verification, with `ScholarlyArticle` fallback.
+2. ~~`ClaimReview` eligibility verification~~ RESOLVED 2026-05-23: ClaimReview deprecated by Google (2025-06-12); using `ScholarlyArticle` + `citation`.
 3. Confirm Phil Boyle as a seed contributor for this specific genre (his 2026-05-22 interest was expressed to the rebuttal idea generally).
 4. Whether responses are stored as a new D1 content type or as a tagged subset of existing commentary or Library infrastructure.
 
