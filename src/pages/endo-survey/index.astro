@@ -398,6 +398,7 @@ const jsonLd = {
   const sentEmail = document.getElementById('sent-email');
 
   function clearErrorState() {
+    if (!errorMsg || !errorText) return;
     errorText.textContent = '';
     errorMsg.querySelectorAll('a').forEach(function (a) { a.remove(); });
     errorMsg.setAttribute('data-empty', 'true');
