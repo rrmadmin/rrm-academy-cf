@@ -44,6 +44,17 @@ if echo "$STAGED" | grep -qE '^public/(\.well-known/|agents\.md|llms(-full)?\.tx
   fi
 fi
 
+# --- Library count drift guard: any staged static-override / agent-surface file ---
+if echo "$STAGED" | grep -qE '^(static-overrides/|ssot/(agent-surfaces|site)\.json$|public/(agents\.md|index\.md|pricing\.md|llms(-full)?\.txt|openapi\.json|\.well-known/))'; then
+  node scripts/sync-library-count.mjs --check
+  if [ $? -ne 0 ]; then
+    echo ""
+    echo "Commit blocked by library-count drift guard."
+    echo "Run 'node scripts/sync-library-count.mjs' to regenerate, or bypass if intentional with --no-verify."
+    exit 1
+  fi
+fi
+
 # --- Glossary spoke pipeline gates: any staged GlossaryTerm component or glossary route ---
 if echo "$STAGED" | grep -qE '^src/components/GlossaryTerm\.astro$|^src/pages/glossary/.*\.astro$'; then
   node scripts/gates/validate-glossary-pipeline.mjs --quick
