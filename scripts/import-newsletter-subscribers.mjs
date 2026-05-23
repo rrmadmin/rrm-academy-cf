@@ -35,6 +35,13 @@ const RISKY = new Set([
   'elv:risky', 'elv:role', 'elv:smtp_protocol', 'elv:error',
 ]);
 
+// Suppression tags -- contact has explicitly opted out or bounced.
+// A contact carrying any of these MUST NOT be imported as `active`, even if
+// they also carry an `elv:ok` tag from a separate verification pass.
+const SUPPRESSION_TAGS = [
+  'wix:unsubscribed', 'email:bounced', 'wix:bounced', 'email:complained',
+];
+
 function d1Query(sql) {
   const escaped = sql.replace(/'/g, "'\\''");
   const out = execSync(`npx wrangler d1 execute ${DB_NAME} --remote --command '${escaped}'`, {
@@ -53,7 +60,8 @@ function d1Exec(sql) {
       encoding: 'utf8', cwd: CWD, maxBuffer: 50 * 1024 * 1024,
     });
   } finally {
-    try { unlinkSync(tmpFile); } catch {}
+    try { unlinkSync(tmpFile); }
+    catch (err) { console.error(`warn: failed to clean up ${tmpFile}: ${err.message}`); }
   }
 }
 
@@ -79,6 +87,18 @@ async function main() {
 
   console.log(`Contacts with ELV tags: ${contacts.length}`);
 
+  // Fetch suppression-tagged contact IDs separately. The ELV-tag query above
+  // JOINs on a single tag row, so a contact carrying BOTH `elv:ok` and
+  // `wix:unsubscribed` only returns the `elv:ok` row -- the suppression tag
+  // would be invisible without this second pass. We must filter suppressed
+  // contacts out BEFORE the INSERT so they never land as status='active'.
+  const suppressionList = SUPPRESSION_TAGS.map(t => sqlEscape(t)).join(',');
+  const suppressedRows = d1Query(
+    `SELECT DISTINCT contact_id FROM contact_tag WHERE tag IN (${suppressionList})`
+  );
+  const suppressedIds = new Set(suppressedRows.map(r => r.contact_id));
+  console.log(`Contacts with suppression tags: ${suppressedIds.size}`);
+
   // Tally by status
   const tagCounts = {};
   for (const c of contacts) {
@@ -103,7 +123,15 @@ async function main() {
   for (const c of toImport) {
     if (!byEmail.has(c.email)) byEmail.set(c.email, c);
   }
-  const importList = [...byEmail.values()];
+
+  // Filter out contacts carrying ANY suppression tag (wix:unsubscribed,
+  // email:bounced, etc.). The ELV-tag JOIN above couldn't see these.
+  const beforeSuppression = byEmail.size;
+  const importList = [...byEmail.values()].filter(c => !suppressedIds.has(c.id));
+  const excludedBySuppression = beforeSuppression - importList.length;
+  if (excludedBySuppression > 0) {
+    console.log(`Excluded ${excludedBySuppression} contacts with suppression tags`);
+  }
 
   // Check existing subscribers to avoid duplicates
   const existingSubs = d1Query("SELECT email FROM newsletter_subscriber");
@@ -115,29 +143,50 @@ async function main() {
   console.log(`New to import: ${newSubs.length}`);
   console.log(`Already subscribed: ${importList.length - newSubs.length}`);
 
-  if (DRY_RUN || newSubs.length === 0) {
-    if (DRY_RUN) console.log('\nDry run -- no changes made.');
+  if (DRY_RUN) {
+    console.log('\nDry run -- no changes made.');
     return;
   }
 
-  // Import in batches
-  console.log(`\nImporting ${newSubs.length} subscribers...`);
-  const BATCH = 50;
+  // Import in batches (skip if nothing new to insert; re-sync still runs below)
   let imported = 0;
+  if (newSubs.length > 0) {
+    console.log(`\nImporting ${newSubs.length} subscribers...`);
+    const BATCH = 50;
 
-  for (let i = 0; i < newSubs.length; i += BATCH) {
-    const batch = newSubs.slice(i, i + BATCH);
-    const stmts = batch.map(c => {
-      const id = crypto.randomUUID();
-      const name = `${c.first_name || ''} ${c.last_name || ''}`.trim();
-      return `INSERT OR IGNORE INTO newsletter_subscriber (id, email, name, source) VALUES (${sqlEscape(id)}, ${sqlEscape(c.email)}, ${sqlEscape(name)}, 'import');`;
-    });
-    d1Exec(stmts.join('\n'));
-    imported += batch.length;
-    process.stdout.write(`\r  ${imported}/${newSubs.length}`);
+    for (let i = 0; i < newSubs.length; i += BATCH) {
+      const batch = newSubs.slice(i, i + BATCH);
+      const stmts = batch.map(c => {
+        const id = crypto.randomUUID();
+        const name = `${c.first_name || ''} ${c.last_name || ''}`.trim();
+        return `INSERT OR IGNORE INTO newsletter_subscriber (id, email, name, source) VALUES (${sqlEscape(id)}, ${sqlEscape(c.email)}, ${sqlEscape(name)}, 'import');`;
+      });
+      d1Exec(stmts.join('\n'));
+      imported += batch.length;
+      process.stdout.write(`\r  ${imported}/${newSubs.length}`);
+    }
   }
 
   console.log(`\n\nImported ${imported} subscribers.`);
+
+  // Re-sync pass: INSERT OR IGNORE above doesn't update existing rows. If a
+  // prior import landed a contact as `active` and they've since acquired a
+  // suppression tag (wix:unsubscribed / email:bounced / etc.), this pass
+  // flips the existing subscriber row to `unsubscribed`. Idempotent --
+  // running again is a no-op.
+  const supTagList = SUPPRESSION_TAGS.map(t => sqlEscape(t)).join(',');
+  const resyncSql = `UPDATE newsletter_subscriber
+SET status = 'unsubscribed',
+    unsubscribed_at = COALESCE(unsubscribed_at, datetime('now'))
+WHERE id IN (
+  SELECT ns.id FROM newsletter_subscriber ns
+  JOIN contact c ON LOWER(c.email) = LOWER(ns.email)
+  JOIN contact_tag ct ON ct.contact_id = c.id
+  WHERE ct.tag IN (${supTagList})
+    AND ns.status = 'active'
+);`;
+  d1Exec(resyncSql);
+  console.log('Re-synced suppression status for existing rows.');
 
   // Final count
   const finalCount = d1Query("SELECT COUNT(*) as cnt FROM newsletter_subscriber WHERE status = 'active'");
