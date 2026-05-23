@@ -3,6 +3,7 @@
  * Returns 1x1 transparent GIF, logs open event.
  */
 import { log } from '../_log.js';
+import { checkRateLimit } from '../auth/_shared.js';
 
 // 1x1 transparent GIF (43 bytes)
 const PIXEL = new Uint8Array([
@@ -13,19 +14,30 @@ const PIXEL = new Uint8Array([
   0x01,0x00,0x3b
 ]);
 
+const UUID_RE = /^[0-9a-f-]{36}$/i;
+
 export async function onRequestGet({ request, env, waitUntil }) {
   const url = new URL(request.url);
   const sendId = url.searchParams.get('s');
   const subscriberId = url.searchParams.get('u');
 
-  if (sendId && subscriberId && env.DB) {
-    // Fire-and-forget: don't block the pixel response
+  // Validate UUID-ish params before any DB work; skip tracking on invalid but still return pixel
+  const paramsValid = sendId && subscriberId &&
+    UUID_RE.test(sendId) && UUID_RE.test(subscriberId);
+
+  if (paramsValid && env.DB) {
+    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
     const work = (async () => {
+      // Rate limit: high ceiling for legit fan-out, caps drive-by attackers
+      const allowed = await checkRateLimit(env, `pixel:${ip}`, 600, 60);
+      if (!allowed) return;
+
       try {
         const subRow = await env.DB.prepare(
-          "SELECT email FROM newsletter_subscriber WHERE id = ?"
+          "SELECT id, email FROM newsletter_subscriber WHERE id = ?"
         ).bind(subscriberId).first();
-        const recipientEmail = (subRow?.email || '').toLowerCase();
+        if (!subRow) return;
+        const recipientEmail = (subRow.email || '').toLowerCase();
 
         const result = await env.DB.prepare(
           "INSERT INTO newsletter_event (send_id, subscriber_id, event) SELECT ?, ?, 'opened' WHERE NOT EXISTS (SELECT 1 FROM newsletter_event WHERE send_id = ? AND subscriber_id = ? AND event = 'opened')"
