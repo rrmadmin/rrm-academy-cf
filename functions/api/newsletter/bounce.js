@@ -7,6 +7,184 @@ import { log } from '../_log.js';
 
 const ALLOWED_SNS_TYPES = new Set(['Notification', 'SubscriptionConfirmation', 'UnsubscribeConfirmation']);
 
+// Module-scoped SPKI cache keyed by SigningCertURL.
+// Per-isolate (ephemeral), capped at 10 entries to limit memory growth.
+const spkiCache = new Map();
+const SPKI_CACHE_MAX = 10;
+
+/**
+ * Minimal ASN.1 DER walker. Returns { value: Uint8Array, next: number } for the
+ * TLV at offset `pos` inside `der`. Handles short-form (len ≤ 127) and long-form
+ * (len encoded in subsequent bytes) length octets.
+ */
+function derReadTlv(der, pos) {
+  const tag = der[pos];
+  let lenByte = der[pos + 1];
+  let headerLen = 2;
+  let len;
+  if (lenByte <= 0x7f) {
+    // Short form: length is the byte itself
+    len = lenByte;
+  } else {
+    // Long form: low 7 bits = number of subsequent length bytes
+    const numLenBytes = lenByte & 0x7f;
+    len = 0;
+    for (let i = 0; i < numLenBytes; i++) {
+      len = (len << 8) | der[pos + 2 + i];
+    }
+    headerLen = 2 + numLenBytes;
+  }
+  return { tag, value: der.subarray(pos + headerLen, pos + headerLen + len), next: pos + headerLen + len };
+}
+
+/**
+ * Walks an ASN.1 SEQUENCE value (the bytes after tag+length) and returns
+ * an array of its child TLVs (each as { tag, value, next }).
+ */
+function derReadSequenceChildren(seqValue) {
+  const children = [];
+  let pos = 0;
+  while (pos < seqValue.length) {
+    const child = derReadTlv(seqValue, pos);
+    children.push(child);
+    pos = child.next;
+  }
+  return children;
+}
+
+/**
+ * Extracts the SubjectPublicKeyInfo (SPKI) SEQUENCE from a DER-encoded X.509v3
+ * certificate as a Uint8Array suitable for crypto.subtle.importKey('spki', ...).
+ *
+ * X.509 structure:
+ *   Certificate ::= SEQUENCE {
+ *     tbsCertificate  TBSCertificate,    <- child[0]
+ *     signatureAlgorithm ...,
+ *     signature ...
+ *   }
+ *
+ * TBSCertificate (v3) ::= SEQUENCE {
+ *     version         [0] EXPLICIT INTEGER,   <- child[0]  (tag 0xA0)
+ *     serialNumber    INTEGER,                <- child[1]
+ *     signature       AlgorithmIdentifier,    <- child[2]
+ *     issuer          Name,                   <- child[3]
+ *     validity        Validity,               <- child[4]
+ *     subject         Name,                   <- child[5]
+ *     subjectPublicKeyInfo SubjectPublicKeyInfo <- child[6]
+ *   }
+ */
+function extractSpki(der) {
+  // Outer Certificate SEQUENCE
+  const cert = derReadTlv(der, 0);
+  // tbsCertificate is the first child of Certificate SEQUENCE
+  const certChildren = derReadSequenceChildren(cert.value);
+  const tbs = certChildren[0]; // tbsCertificate SEQUENCE
+  // Walk into tbsCertificate — child[6] is subjectPublicKeyInfo
+  // (child[0] is the explicit [0] version tag for v3 certs)
+  let pos = 0;
+  let childIdx = 0;
+  while (pos < tbs.value.length && childIdx < 7) {
+    const tlv = derReadTlv(tbs.value, pos);
+    if (childIdx === 6) {
+      // Return the full TLV bytes for SPKI (tag + encoded length + value)
+      return tbs.value.subarray(pos, tlv.next);
+    }
+    pos = tlv.next;
+    childIdx++;
+  }
+  throw new Error('SPKI not found in certificate');
+}
+
+/**
+ * Builds the canonical signing string for an SNS message per AWS SNS spec.
+ * Fields are concatenated as: FieldName\nFieldValue\n for each applicable field
+ * in alphabetical order (AWS defines the exact field set per message type).
+ */
+function buildCanonicalString(payload) {
+  let canonical = '';
+  if (payload.Type === 'Notification') {
+    canonical += `Message\n${payload.Message}\n`;
+    canonical += `MessageId\n${payload.MessageId}\n`;
+    if (payload.Subject != null) {
+      canonical += `Subject\n${payload.Subject}\n`;
+    }
+    canonical += `Timestamp\n${payload.Timestamp}\n`;
+    canonical += `TopicArn\n${payload.TopicArn}\n`;
+    canonical += `Type\n${payload.Type}\n`;
+  } else {
+    // SubscriptionConfirmation / UnsubscribeConfirmation
+    canonical += `Message\n${payload.Message}\n`;
+    canonical += `MessageId\n${payload.MessageId}\n`;
+    canonical += `SubscribeURL\n${payload.SubscribeURL}\n`;
+    canonical += `Timestamp\n${payload.Timestamp}\n`;
+    canonical += `Token\n${payload.Token}\n`;
+    canonical += `TopicArn\n${payload.TopicArn}\n`;
+    canonical += `Type\n${payload.Type}\n`;
+  }
+  return canonical;
+}
+
+/**
+ * Validates the SNS message signature against the AWS-provided signing certificate.
+ * Returns true if valid, false if invalid or if cert fetch/parse fails.
+ */
+async function verifySnsSignature(payload, env, waitUntil) {
+  // Only SignatureVersion 1 (SHA-1) and 2 (SHA-256) are defined by AWS
+  if (payload.SignatureVersion !== '1' && payload.SignatureVersion !== '2') {
+    return false;
+  }
+
+  if (!payload.Signature || typeof payload.Signature !== 'string') {
+    return false;
+  }
+
+  // Validate SigningCertURL hostname — must be SNS-owned AWS domain
+  let certUrl;
+  try {
+    certUrl = new URL(payload.SigningCertURL);
+  } catch {
+    return false;
+  }
+  if (!/^sns\.[a-z0-9-]+\.amazonaws\.com$/.test(certUrl.hostname)) {
+    return false;
+  }
+
+  const algo = payload.SignatureVersion === '2'
+    ? { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }
+    : { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-1' };
+
+  try {
+    // Retrieve or fetch SPKI bytes
+    let spkiBytes = spkiCache.get(payload.SigningCertURL);
+    if (!spkiBytes) {
+      const resp = await fetch(payload.SigningCertURL);
+      if (!resp.ok) return false;
+      const pem = await resp.text();
+      const b64 = pem
+        .replace(/-----BEGIN CERTIFICATE-----/, '')
+        .replace(/-----END CERTIFICATE-----/, '')
+        .replace(/\s/g, '');
+      const der = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+      spkiBytes = extractSpki(der);
+      // Evict oldest entry if cache is full (LRU-lite: just drop the first inserted key)
+      if (spkiCache.size >= SPKI_CACHE_MAX) {
+        spkiCache.delete(spkiCache.keys().next().value);
+      }
+      spkiCache.set(payload.SigningCertURL, spkiBytes);
+    }
+
+    const key = await crypto.subtle.importKey('spki', spkiBytes, algo, false, ['verify']);
+    const sigBytes = Uint8Array.from(atob(payload.Signature), c => c.charCodeAt(0));
+    const canonical = buildCanonicalString(payload);
+    return await crypto.subtle.verify(algo, key, sigBytes, new TextEncoder().encode(canonical));
+  } catch (err) {
+    if (waitUntil && env) {
+      log(env, waitUntil, 'newsletter', 'sns_sig_verify_error', 'error', String(err?.message || err).slice(0, 200), 0, 0);
+    }
+    return false;
+  }
+}
+
 export async function onRequestPost({ request, env, waitUntil }) {
   // Auth: shared secret in query param (configured in SNS subscription URL)
   const url = new URL(request.url);
@@ -36,8 +214,12 @@ export async function onRequestPost({ request, env, waitUntil }) {
     return new Response('Topic mismatch', { status: 403 });
   }
 
-  // TODO: implement full SNS Signature verification (SigningCertURL hostname check +
-  // fetch cert + RSA-SHA1 PKCS#1 verify) for complete authenticity assurance.
+  // Full RSA signature verification against the AWS-provided signing certificate
+  const sigValid = await verifySnsSignature(payload, env, waitUntil);
+  if (!sigValid) {
+    log(env, waitUntil, 'newsletter', 'sns_sig_invalid', 'error', String(payload.MessageId || '').slice(0, 100), 0, 401);
+    return new Response('Unauthorized', { status: 401 });
+  }
 
   // SNS subscription confirmation
   if (payload.Type === 'SubscriptionConfirmation' && payload.SubscribeURL) {

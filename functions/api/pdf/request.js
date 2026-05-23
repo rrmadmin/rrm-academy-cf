@@ -97,7 +97,7 @@ export async function onRequestPost(context) {
     } else {
       const subId = crypto.randomUUID();
       await env.DB.prepare(
-        "INSERT INTO newsletter_subscriber (id, email, status, source, subscribed_at, segments) VALUES (?, ?, 'active', 'pdf-download', datetime('now'), ?)"
+        "INSERT INTO newsletter_subscriber (id, email, status, source, subscribed_at, segments) VALUES (?, ?, 'active', 'pdf-download', datetime('now'), ?) ON CONFLICT(email) DO NOTHING"
       ).bind(subId, email, JSON.stringify([newSeg])).run();
     }
 

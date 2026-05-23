@@ -163,7 +163,7 @@
       "note": "R2 image upload (file validation)"
     },
     "functions/api/pdf/request.js": {
-      "hash": "68e046a82cdffa2b13555621364a2d89abd197ca717fe450f06c4d9ab6bf8854",
+      "hash": "20ba2cbfe7cf6e07a5859d0b7545f9eb94469666c94bdc58398c22de285a1b6e",
       "note": "PDF magic-link token generation"
     },
     "functions/api/pdf/redeem.js": {
