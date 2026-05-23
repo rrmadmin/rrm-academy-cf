@@ -65,7 +65,10 @@ function d1Exec(sql) {
     execSync(`npx wrangler d1 execute ${DB_NAME} --remote --file=${f}`, {
       encoding: 'utf8', cwd: CWD, maxBuffer: 50 * 1024 * 1024,
     });
-  } finally { try { unlinkSync(f); } catch {} }
+  } finally {
+    try { unlinkSync(f); }
+    catch (err) { console.error(`warn: failed to clean up ${f}: ${err.message}`); }
+  }
 }
 
 function esc(v) { return "'" + String(v).replace(/'/g, "''") + "'"; }
