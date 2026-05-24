@@ -711,7 +711,9 @@ const NAV_ICONS: Record<string, string> = {
       if (!isLoggedIn || !community.user) return;
       var row = document.getElementById('shell-account-row');
       if (!row) return;
-      var name = (community.user.name || 'My account').trim();
+      // trim FIRST, then fall back — a whitespace-only name is truthy and would
+      // otherwise blank the label while showing a "U" avatar.
+      var name = (community.user.name || '').trim() || 'My account';
       var nameEl = document.getElementById('shell-account-name');
       var subEl = document.getElementById('shell-account-sub');
       var photoEl = document.getElementById('shell-account-photo');
@@ -721,15 +723,19 @@ const NAV_ICONS: Record<string, string> = {
       if (subEl) subEl.textContent = 'View account';
       row.classList.add('is-authed');
       var initials = name.split(/\s+/).slice(0, 2).map(function (w) { return w.charAt(0); }).join('').toUpperCase() || 'U';
+      var avTimer = null;
       var showInitials = function () {
+        if (avTimer) { clearTimeout(avTimer); avTimer = null; }
         if (personEl) personEl.style.display = 'none';
         if (photoEl) photoEl.hidden = true;
         if (initialsEl) { initialsEl.textContent = initials; initialsEl.hidden = false; }
       };
       var avatarUrl = community.user.avatarUrl;
       if (avatarUrl && photoEl) {
+        avTimer = setTimeout(showInitials, 3000); // slow/hung photo -> initials fallback
         photoEl.onerror = showInitials; // photo 404 -> initials fallback
         photoEl.onload = function () {
+          if (avTimer) { clearTimeout(avTimer); avTimer = null; }
           if (personEl) personEl.style.display = 'none';
           if (initialsEl) initialsEl.hidden = true;
           photoEl.hidden = false;
@@ -740,6 +746,10 @@ const NAV_ICONS: Record<string, string> = {
       }
     }
     window.addEventListener('rrm:community-status', function (e) { applyAccount(e.detail); });
+    // Late-join replay: the Header broadcasts rrm:community-status exactly once
+    // from a deferred module; if it fired before this listener registered, apply
+    // the cached status now so the row still resolves.
+    if (window.__rrmCommunityStatus__) applyAccount(window.__rrmCommunityStatus__);
   })();
 
   // Cross-tab sync: when another tab writes rrm_theme, mirror the change here so

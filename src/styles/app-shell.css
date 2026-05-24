@@ -180,6 +180,8 @@
   margin-bottom: var(--space-1);
   border-bottom: 1px solid var(--border-light);
 }
+/* Left-align the account avatar with the brand wordmark (drop the row's left inset). */
+.app-shell-nav__header .app-shell-nav__account { padding-left: 0; }
 /* Square icon button (Save) — shares the theme-toggle's footprint. */
 .app-shell-nav__iconbtn {
   flex: 0 0 auto;
