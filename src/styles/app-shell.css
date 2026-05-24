@@ -143,15 +143,15 @@
 .app-shell-nav {
   background: var(--bg-body);
   border-right: 1px solid var(--border-color);
-  padding: var(--space-6) var(--space-4);
+  padding: var(--space-4) var(--space-4);
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-2);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 .app-shell-nav__brand {
   display: block;
-  margin-bottom: var(--space-2);
+  margin-bottom: 0;
   font-family: 'Cormorant Garamond', 'Georgia', serif;
   font-size: 1.625rem;
   font-weight: 600;
@@ -170,25 +170,64 @@
   flex-direction: column;
   gap: var(--space-1);
 }
+/* Top header: account row (flex) + Save icon button, mirroring the mobile drawer.
+   A hairline separates it from the first nav group. */
+.app-shell-nav__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-1);
+  border-bottom: 1px solid var(--border-light);
+}
+/* Square icon button (Save) — shares the theme-toggle's footprint. */
+.app-shell-nav__iconbtn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.app-shell-nav__iconbtn .app-shell-nav__icon { color: currentColor; }
+.app-shell-nav__iconbtn:hover {
+  background: var(--cream);
+  border-color: var(--purple-300);
+  color: var(--text-primary);
+}
+.app-shell-nav__iconbtn[aria-current="page"] {
+  background: var(--sand-300);
+  border-color: transparent;
+  color: var(--text-primary);
+}
+.app-shell-nav__iconbtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 .app-shell-nav__heading {
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-tertiary);
-  margin: var(--space-2) 0 var(--space-1);
+  margin: var(--space-2) 0 2px;
 }
 .app-shell-nav__link {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
+  padding: 6px var(--space-3);
   border-radius: var(--radius-md);
   color: var(--text-primary);
   text-decoration: none;
   font-size: 0.875rem;
   font-weight: 400;
-  line-height: 1.4;
+  line-height: 1.3;
   transition: background 0.15s, color 0.15s;
 }
 .app-shell-nav__icon {
@@ -285,12 +324,16 @@
   padding-top: var(--space-3);
   border-top: 1px solid var(--border-light);
 }
+/* Donate fills the footer row; the theme toggle sits square to its right. */
+.app-shell-nav__footer .app-shell-nav__cta {
+  flex: 1;
+}
 .app-shell-nav__account {
   flex: 1;
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
+  padding: 6px var(--space-3);
   border-radius: var(--radius-md);
   color: var(--text-secondary);
   text-decoration: none;
@@ -310,6 +353,67 @@
 .app-shell-nav__account[aria-current="page"] .app-shell-nav__icon {
   color: var(--text-primary);
 }
+/* "Soon" pill — marks a not-yet-live destination (e.g. RRM Providers). */
+.app-shell-nav__pill {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 1px 7px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.5;
+  color: var(--text-tertiary);
+  background: var(--cream);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-pill);
+}
+
+/* Auth-aware account row avatar + text (swapped client-side from "Sign in"). */
+.app-shell-nav__avatar {
+  position: relative;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-tertiary);
+}
+.app-shell-nav__account:hover .app-shell-nav__avatar { color: var(--text-primary); }
+.app-shell-nav__account.is-authed .app-shell-nav__avatar {
+  background: linear-gradient(135deg, var(--purple-500), var(--accent));
+  border-color: transparent;
+  color: #fff;
+}
+.shell-account__photo { width: 100%; height: 100%; object-fit: cover; }
+.shell-account__initials { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em; }
+.app-shell-nav__account-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+.app-shell-nav__account-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.app-shell-nav__account-sub {
+  font-size: 0.6875rem;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .app-shell-nav__theme-toggle {
   display: inline-flex;
   align-items: center;
