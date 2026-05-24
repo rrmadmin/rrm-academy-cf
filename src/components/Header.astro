@@ -1212,6 +1212,9 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
 
       // Broadcast community status for Footer (must fire even for anonymous so
       // Footer's 3s fallback timer is cancelled — otherwise it self-fetches).
+      // Cache it too: listeners that register after this one-time dispatch (e.g.
+      // the app-shell sidebar account row) replay from the cached value.
+      window.__rrmCommunityStatus__ = community;
       window.dispatchEvent(new CustomEvent('rrm:community-status', { detail: community }));
 
       // STUC link: swap text for members
@@ -1233,7 +1236,7 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
       // Anonymous visitors keep the server-rendered "Sign in" state (no work needed).
       var acctRow = document.getElementById('mobile-account-row');
       if (acctRow && isLoggedIn && community.user) {
-        var uName = (community.user.name || 'My account').trim();
+        var uName = (community.user.name || '').trim() || 'My account';
         var nameEl = document.getElementById('mobile-account-name');
         var subEl = document.getElementById('mobile-account-sub');
         var photoEl = document.getElementById('mobile-account-photo');
@@ -1243,15 +1246,19 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
         if (subEl) subEl.textContent = 'View account';
         acctRow.classList.add('is-authed');
         var initials = uName.split(/\s+/).slice(0, 2).map(function(w) { return w.charAt(0); }).join('').toUpperCase() || 'U';
+        var avTimer = null;
         var showInitials = function() {
+          if (avTimer) { clearTimeout(avTimer); avTimer = null; }
           if (personEl) personEl.style.display = 'none';
           if (photoEl) photoEl.hidden = true;
           if (initialsEl) { initialsEl.textContent = initials; initialsEl.hidden = false; }
         };
         var avatarUrl = community.user.avatarUrl;
         if (avatarUrl && photoEl) {
+          avTimer = setTimeout(showInitials, 3000); // slow/hung photo -> initials fallback
           photoEl.onerror = showInitials; // photo 404 -> initials fallback
           photoEl.onload = function() {
+            if (avTimer) { clearTimeout(avTimer); avTimer = null; }
             if (personEl) personEl.style.display = 'none';
             if (initialsEl) initialsEl.hidden = true;
             photoEl.hidden = false;
@@ -1283,7 +1290,7 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
     }
 
     fetch('/api/community/status', { credentials: 'same-origin' })
-      .then(function(r) { return r.json(); })
+      .then(function(r) { return r.ok ? r.json() : { ok: false, access: 'anonymous' }; })
       .catch(function() { return { ok: false, access: 'anonymous' }; })
       .then(applyState);
   });
