@@ -189,6 +189,14 @@ const NAV_ICONS: Record<string, string> = {
       </a>
     </div>
 
+    <!-- Search: submits to the research library (?q=). The modal lives in the
+         global Header, which is display:none on desktop shell pages, so a GET form
+         is the reliable cross-page search here. -->
+    <form class="app-shell-nav__search" action="/library/" method="get" role="search">
+      <svg class="app-shell-nav__search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" name="q" class="app-shell-nav__search-input" placeholder="Search RRM Academy" aria-label="Search RRM Academy" autocomplete="off" />
+    </form>
+
     <div class="app-shell-nav__section">
       <div class="app-shell-nav__heading">Learn the basics</div>
       <a href="/what-is-rrm/" class="app-shell-nav__link" aria-current={inWhatIsRrm ? 'page' : undefined}>
