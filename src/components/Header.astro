@@ -615,7 +615,8 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
     .nav-item:has(#stuc-nav-link) { display: none; }
   }
 
-  /* Mobile nav sections + footer — hidden on desktop */
+  /* Mobile nav header + sections + footer — hidden on desktop */
+  .mobile-nav-header,
   .mobile-nav-sections,
   .mobile-nav-footer {
     display: none;
@@ -724,8 +725,9 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
       visibility: visible;
     }
 
-    /* Inside the drawer: hide the desktop nav-list, show the mobile sections */
+    /* Inside the drawer: hide the desktop nav-list, show the mobile header + sections */
     .nav-list { display: none; }
+    .mobile-nav-header { display: block; }
     .mobile-nav-sections { display: block; }
 
     /* ── Mobile nav sections ── */
