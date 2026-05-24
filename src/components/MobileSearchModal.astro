@@ -41,7 +41,9 @@
           </svg>
         </button>
       </div>
-      <button type="button" class="mss-modal__close" id="mss-close" data-mss-close aria-label="Close search">Cancel</button>
+      <button type="button" class="mss-modal__close" id="mss-close" data-mss-close aria-label="Close search">
+        <span class="mss-x" aria-hidden="true"></span>
+      </button>
     </div>
     <div class="mss-modal__results" id="mss-results" role="listbox" aria-label="Search results"></div>
   </div>
@@ -63,7 +65,8 @@
     font-family: 'Inter', sans-serif;
     font-size: 0.8125rem;
     font-weight: 500;
-    transition: color 0.15s, border-color 0.15s, background 0.15s;
+    /* transform timing per the tap-press primitive (cubic-bezier(0.2,0,0,1) @120ms) */
+    transition: color 0.15s, border-color 0.15s, background 0.15s, transform 120ms cubic-bezier(0.2, 0, 0, 1);
   }
   .mss-trigger:hover {
     color: var(--accent);
@@ -89,20 +92,35 @@
      PSI was flagging them as unused CSS. Only the trigger pill (above)
      stays eager. */
 
-  /* Show trigger only on mobile. Tablet+ uses the page's SearchBar/header-search. */
+  /* Show trigger only on mobile. Tablet+ uses the page's SearchBar/header-search.
+     Mobile = compact icon-only button (no pill, no label), pushed to the right so it
+     sits beside the hamburger. Opens the same full-screen search modal. */
   @media (max-width: 768px) {
+    /* A real outlined button (pill around the icon) at rest, so it can morph
+       OUT into the full search-field outline when the modal opens. */
     .mss-trigger {
       display: inline-flex;
-      flex: 1;
-      min-width: 0;
-      justify-content: flex-start;
-      padding: 7px 14px;
+      margin-left: auto;
+      padding: 7px 11px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-surface);
+      border-radius: var(--radius-pill);
     }
-    .mss-trigger__label {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+    .mss-trigger:hover {
+      background: color-mix(in srgb, var(--accent) 8%, transparent);
+      border-color: var(--accent);
     }
+    .mss-trigger:active {
+      transform: scale(0.94); /* tap-press small-icon scale */
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+    }
+    .mss-trigger:active svg { color: var(--accent); }
+    .mss-trigger:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .mss-trigger__label { display: none; }
+    .mss-trigger svg { width: 18px; height: 18px; }
   }
 </style>
 
@@ -197,10 +215,11 @@ import { track } from '../scripts/track.ts';
     "}\n" +
     "\n" +
     ".mss-modal__header {\n" +
+    "  position: relative;\n" + /* anchor for the mobile absolutely-pinned X */
     "  display: flex;\n" +
     "  align-items: center;\n" +
     "  gap: var(--space-2);\n" +
-    "  padding: var(--space-3) var(--space-4);\n" +
+    "  padding: var(--space-3) var(--space-4);\n" + /* desktop default; mobile overrides to 48px below */
     "  background: var(--bg-header);\n" +
     "  border-bottom: 1px solid var(--border-light);\n" +
     "}\n" +
@@ -210,29 +229,33 @@ import { track } from '../scripts/track.ts';
     "  align-items: center;\n" +
     "  flex: 1;\n" +
     "  min-width: 0;\n" +
+    "  background: var(--bg-surface);\n" + /* pill lives on the field so it's visible while the box animates */
+    "  border: 1px solid var(--border-color);\n" +
+    "  border-radius: var(--radius-pill);\n" +
+    "  transition: border-color 0.15s, box-shadow 0.15s;\n" +
+    "}\n" +
+    ".mss-modal__field:focus-within {\n" +
+    "  border-color: var(--sand-500);\n" +
+    "  box-shadow: 0 0 0 3px rgba(184, 163, 143, 0.18);\n" +
     "}\n" +
     ".mss-modal__field-icon {\n" +
     "  position: absolute;\n" +
     "  left: 12px;\n" +
-    "  color: var(--text-muted);\n" +
+    "  top: 50%;\n" +
+    "  transform: translateY(-50%);\n" +
+    "  color: var(--text-secondary);\n" + /* darker, matches the bar button icon (was too pale to see) */
     "  pointer-events: none;\n" +
     "}\n" +
     ".mss-modal__input {\n" +
     "  width: 100%;\n" +
-    "  padding: 10px 36px 10px 38px;\n" +
+    "  padding: 10px 16px 10px 38px;\n" + /* field now ends before the X, so normal right pad */
     "  font-size: 16px; /* iOS: 16px+ prevents zoom on focus */\n" +
     "  font-family: 'Inter', sans-serif;\n" +
-    "  border: 1px solid var(--border-color);\n" +
-    "  border-radius: var(--radius-pill);\n" +
+    "  border: none;\n" + /* pill (bg + border + focus ring) is on .mss-modal__field now */
     "  outline: none;\n" +
-    "  background: var(--bg-surface);\n" +
+    "  background: transparent;\n" +
     "  color: var(--text-primary);\n" +
-    "  transition: border-color 0.15s, box-shadow 0.15s;\n" +
     "  -webkit-appearance: none;\n" +
-    "}\n" +
-    ".mss-modal__input:focus {\n" +
-    "  border-color: var(--sand-500);\n" +
-    "  box-shadow: 0 0 0 3px rgba(184, 163, 143, 0.18);\n" +
     "}\n" +
     ".mss-modal__input::placeholder {\n" +
     "  color: var(--text-muted);\n" +
@@ -263,18 +286,31 @@ import { track } from '../scripts/track.ts';
     "}\n" +
     ".mss-modal__clear[hidden] { display: none; }\n" +
     ".mss-modal__close {\n" +
-    "  flex-shrink: 0;\n" +
-    "  padding: 8px 4px;\n" +
+    "  flex-shrink: 0;\n" + /* in-flow on desktop; mobile pins it absolute below */
+    "  width: 40px;\n" +
+    "  height: 40px;\n" +
+    "  display: flex;\n" +
+    "  align-items: center;\n" +
+    "  justify-content: center;\n" +
+    "  padding: 0;\n" +
     "  background: none;\n" +
     "  border: none;\n" +
-    "  color: var(--accent);\n" +
-    "  font-family: 'Inter', sans-serif;\n" +
-    "  font-size: 0.9375rem;\n" +
-    "  font-weight: 500;\n" +
+    "  color: var(--text-primary);\n" + /* matches the hamburger->X in the bar */
+    "  border-radius: var(--radius-pill);\n" +
     "  cursor: pointer;\n" +
-    "  transition: opacity 0.15s;\n" +
+    "  transition: background 0.15s, transform 120ms cubic-bezier(0.2, 0, 0, 1);\n" +
     "}\n" +
-    ".mss-modal__close:active { opacity: 0.6; }\n" +
+    ".mss-modal__close:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }\n" +
+    ".mss-modal__close:active { transform: scale(0.9); }\n" +
+    /* Hamburger lines that morph to an X (same transform + 0.2s timing as the drawer
+       toggle). .is-x is toggled on open/close so the icon transforms, not blips. */
+    ".mss-x { display: block; position: relative; width: 18px; height: 2px; background: var(--text-primary); border-radius: 1px; transition: background 0.2s; }\n" +
+    ".mss-x::before, .mss-x::after { content: ''; position: absolute; left: 0; width: 100%; height: 2px; background: var(--text-primary); border-radius: 1px; transition: transform 0.2s, top 0.2s; }\n" +
+    ".mss-x::before { top: -6px; }\n" +
+    ".mss-x::after { top: 6px; }\n" +
+    ".mss-modal__close.is-x .mss-x { background: transparent; }\n" +
+    ".mss-modal__close.is-x .mss-x::before { top: 0; transform: rotate(45deg); }\n" +
+    ".mss-modal__close.is-x .mss-x::after { top: 0; transform: rotate(-45deg); }\n" +
     "\n" +
     "/* Results scroller */\n" +
     ".mss-modal__results {\n" +
@@ -287,6 +323,14 @@ import { track } from '../scripts/track.ts';
     "  display: none;\n" +
     "}\n" +
     "\n" +
+    "@media (max-width: 768px) {\n" +
+    "  .mss-modal__sheet { animation: none; }\n" + /* no slide/jump-in; the search-bar FLIP is the entrance */
+    "  .mss-modal__header { height: 48px; padding: 0 var(--space-3); }\n" + /* match the top bar; no taller */
+    "  .mss-modal__field { margin-right: 48px; height: 36px; }\n" + /* FIXED smaller height (font-independent) + reserve space for the pinned X */
+    "  .mss-modal__input { padding-top: 0; padding-bottom: 0; }\n" + /* vertical-center in the fixed-height field; no font-driven growth */
+    "  .mss-modal__close { position: absolute; right: var(--space-3); top: 50%; transform: translateY(-50%); z-index: 1; }\n" +
+    "  .mss-modal__close:active { transform: translateY(-50%) scale(0.9); }\n" +
+    "}\n" +
     "@media (min-width: 769px) {\n" +
     "  .mss-modal { align-items: center; padding: 64px 24px 24px; }\n" +
     "  .mss-modal__sheet {\n" +
@@ -298,7 +342,7 @@ import { track } from '../scripts/track.ts';
     "    box-shadow: 0 30px 60px rgba(0,0,0,0.35), 0 8px 20px rgba(0,0,0,0.15);\n" +
     "    overflow: hidden;\n" +
     "  }\n" +
-    "  .mss-modal__close { padding: 8px 12px; }\n" +
+    "  .mss-modal__close { padding: 0; }\n" +
     "}\n" +
     ".mss-modal__results .mss-count {\n" +
     "  font-size: 0.75rem;\n" +
@@ -542,7 +586,8 @@ import { track } from '../scripts/track.ts';
     ".mss-modal__results .mss-show-all:active {\n" +
     "  color: var(--accent);\n" +
     "  border-color: var(--accent);\n" +
-    "}\n";
+    "}\n" +
+    "/* Mobile button->field expand is a JS WAAPI FLIP on .mss-modal__field (see script). */\n";
   var _mssLazyCssApplied = false;
   function injectLazyMssCss() {
     if (_mssLazyCssApplied) return;
@@ -553,41 +598,219 @@ import { track } from '../scripts/track.ts';
     _mssLazyCssApplied = true;
   }
 
-  function openModal() {
-    if (!modal.hasAttribute('hidden')) return;
-    injectLazyMssCss();
-    lastFocus = document.activeElement;
-    // If the mobile drawer is open, close it so the user gets a clean modal context
-    var navToggle = document.getElementById('nav-toggle');
-    if (navToggle && navToggle.checked) navToggle.checked = false;
+  // ── Mobile button->bar expand (WAAPI FLIP) ──────────────────────────────────
+  // On mobile, tapping the bar's search button expands it into the full search
+  // field: a width + translateX animation on .mss-modal__field from the button's
+  // exact box to the field's natural box (NO scale, so nothing distorts; height is
+  // a fixed CSS value, so it never varies by font-load). The X is pinned absolute
+  // so the width change can't shove it. On desktop this is skipped (plain modal).
+  var REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var fieldEl = modal.querySelector('.mss-modal__field'); // the search-bar container (icon + input)
+  var lastTriggerEl = null;
+  var pendingOpen = false; // true while waiting for the drawer to slide out before opening
+  var deferTimer = null;   // handle for the drawer-slide-out defer, so a dismiss can cancel it
+
+  function setExpanded(state) {
+    if (trigger) trigger.setAttribute('aria-expanded', state ? 'true' : 'false');
+    for (var ai = 0; ai < auxTriggers.length; ai++) auxTriggers[ai].setAttribute('aria-expanded', state ? 'true' : 'false');
+  }
+
+  function revealOpen() {
     modal.removeAttribute('hidden');
-    if (trigger) trigger.setAttribute('aria-expanded', 'true');
-    for (var ai = 0; ai < auxTriggers.length; ai++) auxTriggers[ai].setAttribute('aria-expanded', 'true');
+    setExpanded(true);
     document.documentElement.style.overflow = 'hidden';
-    // Defer focus so the dialog is painted first (avoids iOS keyboard jank)
-    setTimeout(function() { input.focus(); }, 30);
-    // Preload Pagefind on open so first keystroke is instant
-    ensurePagefind().catch(function(){});
     if (!resultsEl.innerHTML) {
       resultsEl.innerHTML = '<p class="mss-hint">Try a topic, condition, or author.</p>';
     }
   }
 
-  function closeModal() {
-    if (modal.hasAttribute('hidden')) return;
+  function revealClose() {
     modal.setAttribute('hidden', '');
-    if (trigger) trigger.setAttribute('aria-expanded', 'false');
-    for (var ai = 0; ai < auxTriggers.length; ai++) auxTriggers[ai].setAttribute('aria-expanded', 'false');
+    setExpanded(false);
     document.documentElement.style.overflow = '';
     stopLoadingSpinner();
-    if (lastFocus && typeof lastFocus.focus === 'function') {
-      lastFocus.focus();
+    // Universal cleanup for EVERY close path — morph, non-morph (desktop / reduced
+    // motion), AND the case where canMorph() flipped mid-open because the viewport
+    // crossed 768px. Cancel any held field/results animations (a cancelled WAAPI
+    // animation never fires 'finish', so finish-handler cleanup can't be relied on)
+    // and clear their inline state, so the next open measures a clean natural field
+    // and the hint is never stuck hidden.
+    fieldEl.getAnimations().forEach(function(a){ try { a.cancel(); } catch (e) {} });
+    resultsEl.getAnimations().forEach(function(a){ try { a.cancel(); } catch (e) {} });
+    resetFieldInline();
+    resultsEl.style.opacity = '';
+    resultsEl.style.transform = '';
+    // Restore the bar trigger + hamburger that were hidden during the morph.
+    if (lastTriggerEl) lastTriggerEl.style.visibility = '';
+    var hb = document.querySelector('.mobile-toggle');
+    if (hb) hb.style.visibility = ''; // restore the bar hamburger
+    var cb = document.getElementById('mss-close');
+    if (cb) cb.classList.remove('is-x'); // reset to hamburger for the next open
+  }
+
+  function canMorph() {
+    // Mobile only — on desktop, keep the previous plain modal open (the sheet's
+    // CSS slide-down). The button->field expand is a mobile-bar interaction.
+    return !REDUCE_MOTION.matches
+      && typeof fieldEl.animate === 'function'
+      && window.matchMedia('(max-width: 768px)').matches;
+  }
+
+  // The expand is a slide-like motion, so it uses the screen-slides house curve
+  // (more even than the reveal curve, which front-loaded and finished too fast).
+  var EASE_SLIDE = 'cubic-bezier(0.32, 0.72, 0, 1)';
+
+  // Clear any inline sizing left on the field so getBoundingClientRect() reads its
+  // natural (flex) box again.
+  function resetFieldInline() {
+    fieldEl.style.flex = '';
+    fieldEl.style.width = '';
+    fieldEl.style.height = '';
+    fieldEl.style.overflow = '';
+    fieldEl.style.transform = '';
+  }
+
+  // FLIP via real WIDTH/HEIGHT + translateX (NOT scale) so nothing distorts. The
+  // field grows from the trigger button's exact box to its natural box. The X is
+  // pinned absolute (CSS) so the width change never shoves it. The magnifier icon
+  // sits at the field's left edge, so it travels in from the button position for
+  // free as the box widens. expand=true grows; false collapses.
+  function flipField(expand) {
+    // Cancel any in-flight / fill-holding field+input animations FIRST. With
+    // fill:'both', a finished close animation keeps holding the field at button
+    // width, so the next open measured 42px and animated 42->42 (instant, no
+    // expand). Cancelling returns the field to its natural box for measurement.
+    fieldEl.getAnimations().forEach(function(a) { try { a.cancel(); } catch (e) {} });
+    var inEl = fieldEl.querySelector('.mss-modal__input');
+    if (inEl) inEl.getAnimations().forEach(function(a) { try { a.cancel(); } catch (e) {} });
+    resetFieldInline(); // measure the natural box, not a leftover one
+    var t = lastTriggerEl.getBoundingClientRect();
+    var f = fieldEl.getBoundingClientRect();
+    if (!t.width || !f.width) return null;
+    // Animate width + position only. Height is a FIXED CSS value (see mobile block)
+    // so it never varies between the first open (font still loading -> taller) and
+    // later opens. Measuring height here was the "taller first time" bug.
+    var smallKey = { width: t.width + 'px', transform: 'translateX(' + (t.left - f.left) + 'px)' };
+    var fullKey = { width: f.width + 'px', transform: 'translateX(0px)' };
+    fieldEl.style.flex = 'none';
+    fieldEl.style.overflow = 'hidden';
+    // Same duration both ways — the 480ms expand stretched the slide curve's dead
+    // tail into a visible "crawl to full" (struggle); 340ms matches the clean close.
+    var dur = 340;
+    var inp = fieldEl.querySelector('.mss-modal__input');
+    if (inp) {
+      // Placeholder is revealed by the widening box; a short fade keeps it from
+      // snapping in while the box is still narrow.
+      var fade = expand ? [{ opacity: 0, offset: 0 }, { opacity: 0, offset: 0.45 }, { opacity: 1, offset: 1 }]
+                        : [{ opacity: 1 }, { opacity: 0 }];
+      inp.animate(fade, { duration: dur, easing: 'ease-out', fill: 'both' })
+        .addEventListener('finish', function() { inp.style.opacity = ''; });
+    }
+    return fieldEl.animate(expand ? [smallKey, fullKey] : [fullKey, smallKey],
+      { duration: dur, easing: EASE_SLIDE, fill: 'both' });
+  }
+
+  function openModal(srcEl) {
+    if (!modal.hasAttribute('hidden') || pendingOpen) return;
+    injectLazyMssCss();
+    lastFocus = document.activeElement;
+    lastTriggerEl = (srcEl && srcEl.nodeType === 1) ? srcEl : trigger;
+    // If the mobile drawer is open, close it FIRST and let it slide out at its
+    // normal speed (same as tapping the X) before the search opens — otherwise the
+    // modal covers the drawer mid-slide and it looks like it vanished instantly.
+    var navToggle = document.getElementById('nav-toggle');
+    var wasDrawerOpen = !!(navToggle && navToggle.checked);
+    if (wasDrawerOpen) navToggle.checked = false;
+    // Preload Pagefind on open so first keystroke is instant
+    ensurePagefind().catch(function(){});
+
+    var proceed = function() {
+      revealOpen();
+      // Close button starts as a hamburger and rotates into an X (drawer-style
+      // transform, not a blip). rAF so the transition runs from the displayed state.
+      var closeBtn = document.getElementById('mss-close');
+      if (closeBtn) {
+        closeBtn.classList.remove('is-x');
+        requestAnimationFrame(function() { closeBtn.classList.add('is-x'); });
+      }
+      if (canMorph() && lastTriggerEl && fieldEl) {
+        // Hide the real bar button + hamburger so they don't show as static
+        // duplicates behind the modal (the field reads AS the button growing).
+        lastTriggerEl.style.visibility = 'hidden';
+        var hb = document.querySelector('.mobile-toggle');
+        if (hb) hb.style.visibility = 'hidden';
+        var anim = flipField(true);
+        if (anim) anim.addEventListener('finish', resetFieldInline);
+        // The modal BG is already there (sheet shows instantly). The body WORDS
+        // slide down only AFTER the bar finishes expanding (delay = the expand
+        // duration), so they appear to drop out of the now-open search bar.
+        // fill:backwards holds the offset+hidden start through the delay.
+        resultsEl.getAnimations().forEach(function(a){ try { a.cancel(); } catch (e) {} });
+        resultsEl.animate(
+          [{ transform: 'translateY(-16px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }],
+          { duration: 300, easing: EASE_SLIDE, delay: 340, fill: 'backwards' }
+        );
+        // Guard: if the modal was closed during the wait, don't focus a hidden input
+        // (it would steal focus from the restored lastFocus).
+        setTimeout(function() { if (!modal.hasAttribute('hidden')) input.focus(); }, 340);
+      } else {
+        // Defer focus so the dialog is painted first (avoids iOS keyboard jank)
+        setTimeout(function() { if (!modal.hasAttribute('hidden')) input.focus(); }, 30);
+      }
+    };
+
+    // 280ms matches the drawer's slide-out transition (.main-nav transform 0.28s).
+    if (wasDrawerOpen) {
+      pendingOpen = true;
+      deferTimer = setTimeout(function() { pendingOpen = false; deferTimer = null; proceed(); }, 280);
+    } else {
+      proceed();
     }
   }
 
-  if (trigger) trigger.addEventListener('click', openModal);
+  // Cancel a queued drawer->search open (during the 280ms defer). Returns true if
+  // it cancelled one, so callers can stop (the modal isn't open yet).
+  function cancelPendingOpen() {
+    if (!pendingOpen) return false;
+    pendingOpen = false;
+    if (deferTimer) { clearTimeout(deferTimer); deferTimer = null; }
+    return true;
+  }
+
+  function closeModal() {
+    // A dismiss during the drawer->search defer cancels the queued open.
+    if (cancelPendingOpen()) return;
+    if (modal.hasAttribute('hidden')) return;
+    // X rotates back into the hamburger (transform, not blip).
+    var cb = document.getElementById('mss-close');
+    if (cb) cb.classList.remove('is-x');
+    if (canMorph() && lastTriggerEl && fieldEl) {
+      // Body words slide up + fade out IMMEDIATELY (concurrent with the bar slide-
+      // back), so the modal starts disappearing on X-click instead of vanishing only
+      // after the bar finishes. fill:forwards holds it hidden until the modal closes.
+      resultsEl.getAnimations().forEach(function(a){ try { a.cancel(); } catch (e) {} });
+      resultsEl.animate(
+        [{ transform: 'translateY(0)', opacity: 1 }, { transform: 'translateY(-12px)', opacity: 0 }],
+        { duration: 200, easing: 'ease-in', fill: 'forwards' }
+      );
+      var anim = flipField(false);
+      // revealClose() now owns all field/results animation-cancel + inline reset
+      // (the universal cleanup), so done() just hides + restores focus.
+      var done = function() {
+        revealClose();
+        if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+      };
+      if (anim) anim.addEventListener('finish', done);
+      else done();
+    } else {
+      revealClose();
+      if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+    }
+  }
+
+  if (trigger) trigger.addEventListener('click', function(e) { openModal(e.currentTarget); });
   for (var ti = 0; ti < auxTriggers.length; ti++) {
-    auxTriggers[ti].addEventListener('click', openModal);
+    auxTriggers[ti].addEventListener('click', function(e) { openModal(e.currentTarget); });
   }
 
   // Close on backdrop or cancel
@@ -598,10 +821,15 @@ import { track } from '../scripts/track.ts';
     }
   });
 
-  // ESC key
+  // ESC key. stopPropagation so this consumer alone acts (prevents the Header's
+  // drawer-Esc handler from also firing if open-states ever decouple). Also cancels
+  // a pending drawer->search open during the defer window.
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && !modal.hasAttribute('hidden')) {
+    if (e.key !== 'Escape') return;
+    if (cancelPendingOpen()) { e.preventDefault(); e.stopPropagation(); return; }
+    if (!modal.hasAttribute('hidden')) {
       e.preventDefault();
+      e.stopPropagation();
       closeModal();
     }
   });
