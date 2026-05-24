@@ -110,7 +110,15 @@ const GUIDES_PATHS = new Set([
     .filter((p) => p.in_shell_guides_nav)
     .flatMap((p) => [`/${p.slug}`, `/${p.slug}/`]),
 ]);
-const inGuides = GUIDES_PATHS.has(currentPath);
+// Pillar guides surfaced as their own "Learn the basics" sidebar links get their
+// own aria-current and are excluded from the Guides highlight below (same pattern
+// as glossary's permanent link).
+const inWhatIsRrm = currentPath === '/what-is-rrm' || currentPath === '/what-is-rrm/';
+const inNapro = currentPath === '/naprotechnology' || currentPath === '/naprotechnology/' || currentPath.startsWith('/naprotechnology/');
+const inFemm = currentPath === '/femm' || currentPath === '/femm/' || currentPath.startsWith('/femm/');
+const inNeo = currentPath === '/neofertility' || currentPath === '/neofertility/' || currentPath.startsWith('/neofertility/');
+const inPillarLink = inWhatIsRrm || inNapro || inFemm || inNeo;
+const inGuides = GUIDES_PATHS.has(currentPath) && !inPillarLink;
 const inGlossary = currentPath === '/glossary' || currentPath === '/glossary/' || currentPath.startsWith('/glossary/');
 
 // Pages can render arbitrary HTML in the right rail by setting `hasRail`
@@ -138,6 +146,10 @@ const NAV_ICONS: Record<string, string> = {
   '/endo-survey/': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>',
   '/ivf-success-calculator/': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="12" y1="10" x2="14" y2="10"/><line x1="16" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="12" y1="14" x2="14" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/><line x1="12" y1="18" x2="16" y2="18"/></svg>',
   '/ask/': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+  '/what-is-rrm/': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
+  '/naprotechnology/': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>',
+  '/femm/': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+  '/neofertility/': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/></svg>',
 };
 ---
 
@@ -157,12 +169,48 @@ const NAV_ICONS: Record<string, string> = {
       <strong>RRM Academy</strong>
     </a>
 
-    <div class="app-shell-nav__section">
-      <div class="app-shell-nav__heading">Reading</div>
-      <a href="/library/saved/" class="app-shell-nav__link" aria-current={inSaved ? 'page' : undefined}>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/library/saved/']} />
-        <span class="app-shell-nav__label">Saved Articles</span>
+    <!-- Top: account/sign-in (auth-aware) + Save button, mirroring the mobile drawer.
+         Save points at the saved view (slated to move to /saved/ with the
+         universal save-any-page feature). -->
+    <div class="app-shell-nav__header">
+      <a href="/account/" class="app-shell-nav__account" id="shell-account-row" aria-current={inAccount ? 'page' : undefined}>
+        <span class="app-shell-nav__avatar" id="shell-account-avatar" aria-hidden="true">
+          <svg class="shell-account__person" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <img class="shell-account__photo" id="shell-account-photo" alt="" decoding="async" hidden />
+          <span class="shell-account__initials" id="shell-account-initials" hidden></span>
+        </span>
+        <span class="app-shell-nav__account-text">
+          <span class="app-shell-nav__account-name" id="shell-account-name">Sign in</span>
+          <span class="app-shell-nav__account-sub" id="shell-account-sub">Save &amp; track progress</span>
+        </span>
       </a>
+      <a href="/library/saved/" class="app-shell-nav__iconbtn" aria-current={inSaved ? 'page' : undefined} aria-label="Saved pages" title="Saved">
+        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/library/saved/']} />
+      </a>
+    </div>
+
+    <div class="app-shell-nav__section">
+      <div class="app-shell-nav__heading">Learn the basics</div>
+      <a href="/what-is-rrm/" class="app-shell-nav__link" aria-current={inWhatIsRrm ? 'page' : undefined}>
+        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/what-is-rrm/']} />
+        <span class="app-shell-nav__label">What is RRM?</span>
+      </a>
+      <a href="/naprotechnology/" class="app-shell-nav__link" aria-current={inNapro ? 'page' : undefined}>
+        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/naprotechnology/']} />
+        <span class="app-shell-nav__label">NaProTECHNOLOGY</span>
+      </a>
+      <a href="/femm/" class="app-shell-nav__link" aria-current={inFemm ? 'page' : undefined}>
+        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/femm/']} />
+        <span class="app-shell-nav__label">FEMM</span>
+      </a>
+      <a href="/neofertility/" class="app-shell-nav__link" aria-current={inNeo ? 'page' : undefined}>
+        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/neofertility/']} />
+        <span class="app-shell-nav__label">NeoFertility</span>
+      </a>
+    </div>
+
+    <div class="app-shell-nav__section">
+      <div class="app-shell-nav__heading">Library</div>
       <a href="/library/" class="app-shell-nav__link" aria-current={inLibrary && !inSaved ? 'page' : undefined}>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/library/']} />
         <span class="app-shell-nav__label">Research Library</span>
@@ -171,21 +219,21 @@ const NAV_ICONS: Record<string, string> = {
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/commentary/']} />
         <span class="app-shell-nav__label">Commentary</span>
       </a>
+      <a href="/glossary/" class="app-shell-nav__link" aria-current={inGlossary ? 'page' : undefined}>
+        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/glossary/']} />
+        <span class="app-shell-nav__label">Glossary</span>
+      </a>
     </div>
 
     <div class="app-shell-nav__section">
       <div class="app-shell-nav__heading">Explore</div>
       <a href="/ask/" class="app-shell-nav__link" aria-current={inAsk ? 'page' : undefined}>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/ask/']} />
-        <span class="app-shell-nav__label">Ask</span>
+        <span class="app-shell-nav__label">Ask RRM AI</span>
       </a>
       <a href="/faqs/" class="app-shell-nav__link" aria-current={inFaqs ? 'page' : undefined}>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/faqs/']} />
         <span class="app-shell-nav__label">FAQs</span>
-      </a>
-      <a href="/glossary/" class="app-shell-nav__link" aria-current={inGlossary ? 'page' : undefined}>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/glossary/']} />
-        <span class="app-shell-nav__label">Glossary</span>
       </a>
       <a href="/guides/" class="app-shell-nav__link" aria-current={inGuides ? 'page' : undefined}>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/guides/']} />
@@ -199,10 +247,10 @@ const NAV_ICONS: Record<string, string> = {
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/community/']} />
         <span class="app-shell-nav__label">Community</span>
       </a>
-      <a href="/providers/" class="app-shell-nav__link" aria-current={inProviders ? 'page' : undefined}>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/providers/']} />
-        <span class="app-shell-nav__label">RRM Providers</span>
-      </a>
+    </div>
+
+    <div class="app-shell-nav__section">
+      <div class="app-shell-nav__heading">Tools</div>
       <a href="/endo-survey/" class="app-shell-nav__link">
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/endo-survey/']} />
         <span class="app-shell-nav__label">Endo Self-Survey</span>
@@ -210,20 +258,21 @@ const NAV_ICONS: Record<string, string> = {
       <a href="/ivf-success-calculator/" class="app-shell-nav__link">
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/ivf-success-calculator/']} />
         <span class="app-shell-nav__label">IVF Success Calculator</span>
+        <span class="app-shell-nav__pill">Soon</span>
+      </a>
+      <a href="/providers/" class="app-shell-nav__link" aria-current={inProviders ? 'page' : undefined}>
+        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/providers/']} />
+        <span class="app-shell-nav__label">RRM Providers</span>
+        <span class="app-shell-nav__pill">Soon</span>
       </a>
     </div>
 
     <div class="app-shell-nav__spacer"></div>
 
-    <a href="/donate/" class="app-shell-nav__cta">
-      <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/donate/']} />
-      <span class="app-shell-nav__label">Donate</span>
-    </a>
-
     <div class="app-shell-nav__footer">
-      <a href="/account/" class="app-shell-nav__account" aria-current={inAccount ? 'page' : undefined}>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/account/']} />
-        <span class="app-shell-nav__label">Account</span>
+      <a href="/donate/" class="app-shell-nav__cta">
+        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/donate/']} />
+        <span class="app-shell-nav__label">Donate</span>
       </a>
       <button type="button" class="app-shell-nav__theme-toggle" aria-label="Toggle theme" data-theme-toggle>
         <svg class="icon-moon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -643,6 +692,47 @@ const NAV_ICONS: Record<string, string> = {
   document.querySelectorAll('[data-theme-toggle]').forEach(function (btn) {
     btn.addEventListener('click', window.__rrmThemeToggle__);
   });
+
+  // Auth-aware sidebar account row. The global Header (rendered for mobile but
+  // present + scripted even when hidden on desktop) fetches /api/community/status
+  // once and broadcasts rrm:community-status. Reuse that single fetch to swap the
+  // desktop sidebar's "Sign in" row for the user's profile — no second request.
+  (function () {
+    function applyAccount(community) {
+      var isLoggedIn = community && community.ok && community.access && community.access !== 'anonymous';
+      if (!isLoggedIn || !community.user) return;
+      var row = document.getElementById('shell-account-row');
+      if (!row) return;
+      var name = (community.user.name || 'My account').trim();
+      var nameEl = document.getElementById('shell-account-name');
+      var subEl = document.getElementById('shell-account-sub');
+      var photoEl = document.getElementById('shell-account-photo');
+      var initialsEl = document.getElementById('shell-account-initials');
+      var personEl = row.querySelector('.shell-account__person');
+      if (nameEl) nameEl.textContent = name;
+      if (subEl) subEl.textContent = 'View account';
+      row.classList.add('is-authed');
+      var initials = name.split(/\s+/).slice(0, 2).map(function (w) { return w.charAt(0); }).join('').toUpperCase() || 'U';
+      var showInitials = function () {
+        if (personEl) personEl.style.display = 'none';
+        if (photoEl) photoEl.hidden = true;
+        if (initialsEl) { initialsEl.textContent = initials; initialsEl.hidden = false; }
+      };
+      var avatarUrl = community.user.avatarUrl;
+      if (avatarUrl && photoEl) {
+        photoEl.onerror = showInitials; // photo 404 -> initials fallback
+        photoEl.onload = function () {
+          if (personEl) personEl.style.display = 'none';
+          if (initialsEl) initialsEl.hidden = true;
+          photoEl.hidden = false;
+        };
+        photoEl.src = avatarUrl;
+      } else {
+        showInitials();
+      }
+    }
+    window.addEventListener('rrm:community-status', function (e) { applyAccount(e.detail); });
+  })();
 
   // Cross-tab sync: when another tab writes rrm_theme, mirror the change here so
   // open shell + non-shell tabs stay in lockstep without requiring a reload.
