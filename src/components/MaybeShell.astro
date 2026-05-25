@@ -28,9 +28,13 @@ interface Props {
   /** Pass-through to AppShellChrome.hasRail. Set to true AND pass a
    *  `<Fragment slot="rail">` to render custom rail content. */
   hasRail?: boolean;
+  /** Pass-through to AppShellChrome.saveTitle — clean title for the universal
+   *  "Save page" toggle (data-save-title). Forwarded so shell-wrapped detail
+   *  pages give the toggle a clean title instead of the document.title fallback. */
+  saveTitle?: string;
 }
 
-const { enabled, context, currentPath, relatedSections, hasRail = false } = Astro.props;
+const { enabled, context, currentPath, relatedSections, hasRail = false, saveTitle } = Astro.props;
 ---
 
 {enabled ? (
@@ -39,6 +43,7 @@ const { enabled, context, currentPath, relatedSections, hasRail = false } = Astr
     currentPath={currentPath}
     relatedSections={relatedSections}
     hasRail={hasRail}
+    saveTitle={saveTitle}
   >
     {hasRail && <slot name="rail" slot="rail" />}
     <slot />
