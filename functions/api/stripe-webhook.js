@@ -56,7 +56,7 @@ async function handleWebhook(request, env, waitUntil) {
   try {
     event = await stripe.webhooks.constructEventAsync(body, signature, env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
-    log(env, waitUntil, 'billing', 'webhook_sig_fail', 'error', err.message, 0, 400);
+    log(env, waitUntil, 'billing', 'webhook_sig_fail', 'warn', err.message, 0, 400);
     return new Response(JSON.stringify({ ok: false, error: 'Invalid signature' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' },
