@@ -268,7 +268,7 @@ export async function validateEmail(email, env) {
     return { valid: false, error: 'This email domain does not appear to accept mail. Please check for typos.' };
   }
 
-  return { valid: true };
+  return { valid: true, email };
 }
 
 /**

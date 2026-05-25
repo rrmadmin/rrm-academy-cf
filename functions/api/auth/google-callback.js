@@ -33,7 +33,7 @@ async function handleReturningGoogleUser(db, googleId, email) {
   if (!user) return null;
   if (user.blocked) return { redirect: '/login/?error=account_blocked' };
 
-  if (!user.email || user.email.normalize('NFC').toLowerCase() !== email) {
+  if (!user.email || user.email.normalize('NFC').trim().toLowerCase() !== email) {
     const conflict = await db.prepare('SELECT id FROM user WHERE email = ? COLLATE NOCASE AND id != ?')
       .bind(email, user.id).first();
     if (conflict) {
@@ -84,7 +84,7 @@ async function linkGoogleToVerifiedUser(db, googleId, email, avatarUrl) {
   return { user };
 }
 
-async function upgradeUnverifiedUser(db, googleId, email, avatarUrl) {
+async function upgradeUnverifiedUser(db, googleId, email, avatarUrl, env, waitUntil) {
   const unverified = await db.prepare('SELECT id, email, blocked FROM user WHERE email = ? COLLATE NOCASE AND email_verified = 0')
     .bind(email).first();
   if (!unverified) return null;
@@ -103,6 +103,37 @@ async function upgradeUnverifiedUser(db, googleId, email, avatarUrl) {
     db.prepare('DELETE FROM session WHERE user_id = ?').bind(unverified.id),
     waitlistBackfillStatement(db, unverified.id, email),
   ]);
+
+  // Notify the user that their password was wiped by the Google account upgrade.
+  if (env?.AWS_ACCESS_KEY_ID) {
+    waitUntil(
+      sendEmail(env, {
+        from: 'RRM Academy <accounts@mail.rrmacademy.org>',
+        to: unverified.email,
+        subject: 'Your RRM Academy account has been linked to Google',
+        text: [
+          'Hi there,',
+          '',
+          "We've linked your RRM Academy account to Google sign-in.",
+          '',
+          'The password you set during signup has been removed. Use the link below if you\'d like to add a password back to your account:',
+          '',
+          'https://rrmacademy.org/forgot-password/',
+          '',
+          'If you did not authorize this change, please contact us immediately at administrator@rrmacademy.org',
+          '',
+          '-- RRM Academy',
+        ].join('\n'),
+        log: { db: env.DB, source: 'auth/google-callback', category: 'transactional' },
+      }).catch(err => logEmailFailure(env.DB, {
+        email: unverified.email,
+        category: 'transactional',
+        source: 'auth/google-callback',
+        subject: 'Your RRM Academy account has been linked to Google',
+        detail: err.message,
+      }))
+    );
+  }
 
   return { user: unverified };
 }
@@ -245,7 +276,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
     // 2b. Unverified account with this email — Google proves ownership, upgrade it
     if (!user) {
-      const r3 = await upgradeUnverifiedUser(db, googleId, email, avatarUrl);
+      const r3 = await upgradeUnverifiedUser(db, googleId, email, avatarUrl, env, waitUntil);
       if (r3?.redirect) return htmlRedirect(r3.redirect);
       if (r3) ({ user } = r3);
     }
@@ -261,7 +292,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
         r4 = await createNewGoogleUser(db, email, name, firstName, lastName, googleId, avatarUrl, signupSource);
       } catch (err) {
         const msg = err.message || '';
-        const isEmailCollision = msg.includes('idx_user_email_nocase') || /user\.email/.test(msg);
+        const isEmailCollision = msg.includes('idx_user_email_nocase') || /UNIQUE constraint failed: user\.email\b/.test(msg);
         const isGoogleIdCollision = msg.includes('UNIQUE constraint') && !isEmailCollision;
 
         if (isEmailCollision) {
@@ -269,7 +300,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
           if (r4retry?.redirect) return htmlRedirect(r4retry.redirect);
           if (r4retry) ({ user } = r4retry);
           if (!user) {
-            const r4retryUnverified = await upgradeUnverifiedUser(db, googleId, email, avatarUrl);
+            const r4retryUnverified = await upgradeUnverifiedUser(db, googleId, email, avatarUrl, env, waitUntil);
             if (r4retryUnverified?.redirect) return htmlRedirect(r4retryUnverified.redirect);
             if (r4retryUnverified) ({ user } = r4retryUnverified);
           }

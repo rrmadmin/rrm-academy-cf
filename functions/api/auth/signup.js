@@ -7,6 +7,7 @@ import {
   hashPassword, sessionCookie, authHintCookie, verifyTurnstile, checkRateLimit,
   isValidPassword, waitlistBackfillStatement, sessionInsertStatement,
   deriveSignupSource, EMAIL_VERIFY_TTL_S, SESSION_DURATION_MS,
+  getSessionIdFromCookie,
 } from './_shared.js';
 import { validateEmail } from './_email-validate.js';
 import { verifyAndTagEmail } from '../_elv.js';
@@ -104,7 +105,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
     if (!turnstileResult.ok) {
       const turnstileMsg = turnstileResult.reason === 'network'
         ? 'Verification service unavailable. Please try again in a moment.'
-        : 'Spam check failed. Please refresh and try again.';
+        : turnstileResult.reason === 'misconfigured'
+          ? 'Verification service is temporarily unavailable. Please contact administrator@rrmacademy.org.'
+          : 'Spam check failed. Please refresh and try again.';
       return json({ ok: false, error: turnstileMsg }, 403);
     }
 
@@ -117,17 +120,18 @@ export async function onRequestPost({ request, env, waitUntil }) {
         ...(emailCheck.suggestion ? { suggestion: emailCheck.suggestion } : {}),
       }, 400);
     }
+    const cleanEmail = emailCheck.email || email;
 
     // Hash password before existence check to prevent timing side-channel
     const hashedPassword = await hashPassword(password);
 
     // Check if email already exists BEFORE ELV — prevents attacker from
     // overwriting an existing user's CRM contact row via ELV's ON CONFLICT upsert.
-    const existing = await db.prepare('SELECT id FROM user WHERE email = ? COLLATE NOCASE').bind(email).first();
+    const existing = await db.prepare('SELECT id FROM user WHERE email = ? COLLATE NOCASE').bind(cleanEmail).first();
     if (existing) {
       // Anti-enumeration: silent 201, but fire-and-forget informational email with cooldown
       if (env.COMMUNITY_KV) {
-        const cooldownKey = `signup-collision:${email.toLowerCase()}`;
+        const cooldownKey = `signup-collision:${cleanEmail}`;
         const alreadySent = await env.COMMUNITY_KV.get(cooldownKey);
         // NOTE: KV has no atomic SETNX. Two concurrent collision requests may both read null
         // and both fire the cooldown email — at most 2 per hour per address, acceptable.
@@ -136,7 +140,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
           waitUntil(
             sendEmail(env, {
               from: 'RRM Academy <accounts@mail.rrmacademy.org>',
-              to: email,
+              to: cleanEmail,
               subject: 'Did you try to sign up at RRM Academy?',
               text: [
                 'Someone (maybe you) tried to create an RRM Academy account with this email address.',
@@ -148,12 +152,13 @@ export async function onRequestPost({ request, env, waitUntil }) {
                 "If it wasn't you, you can safely ignore this email — no account was created or modified.",
               ].join('\n'),
               log: { db: env.DB, source: 'auth/signup', category: 'transactional' },
-            }).catch(err => logEmailFailure(env.DB, { email, category: 'transactional', source: 'auth/signup', subject: 'Did you try to sign up at RRM Academy?', detail: err.message }))
+            }).catch(err => logEmailFailure(env.DB, { email: cleanEmail, category: 'transactional', source: 'auth/signup', subject: 'Did you try to sign up at RRM Academy?', detail: err.message }))
           );
         }
       }
-      // Anti-enumeration tradeoff: returning a fake cookie may overwrite a real session if a logged-in user submits the signup form. Documented LOW. Rate-limit mitigates.
-      // Anti-enumeration: silent 201. Note: enumeration via /api/auth/session probe is possible but rate-limit (5/15min) mitigates.
+      if (getSessionIdFromCookie(request)) {
+        return json({ ok: true, emailVerificationRequired: true }, 201);
+      }
       const fakeSessionId = generateSessionId();
       const fakeExpires = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
       return json(
@@ -165,7 +170,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     // ELV mailbox verification — only runs for genuinely new emails (existing users
     // are already known-valid and skipping ELV prevents CRM contact row overwrite).
-    const elv = await verifyAndTagEmail(email, env, { firstName, lastName, source: 'signup' });
+    const elv = await verifyAndTagEmail(cleanEmail, env, { firstName, lastName, source: 'signup' });
     if (elv.blocked) {
       return json({ ok: false, error: elv.reason }, 400);
     }
@@ -185,21 +190,22 @@ export async function onRequestPost({ request, env, waitUntil }) {
       await db.batch([
         db.prepare(
           'INSERT INTO user (id, email, name, first_name, last_name, hashed_password, signup_source) VALUES (?, ?, ?, ?, ?, ?, ?)'
-        ).bind(userId, email, name, firstName, lastName, hashedPassword, signupSource),
+        ).bind(userId, cleanEmail, name, firstName, lastName, hashedPassword, signupSource),
         db.prepare(
           'INSERT INTO email_verification (id, user_id, code, expires_at) VALUES (?, ?, ?, ?)'
         ).bind(generateId(), userId, code, verifyExpiresAt),
         // No prior sessions to clean: new user, fresh DB row.
         sessionInsertStatement(db, sessionId, userId, sessionExpiresAt),
-        waitlistBackfillStatement(db, userId, email),
+        waitlistBackfillStatement(db, userId, cleanEmail),
       ]);
     } catch (batchErr) {
       if (batchErr.message && (batchErr.message.includes('UNIQUE constraint failed: user.email') || batchErr.message.includes('idx_user_email_nocase'))) {
         // Anti-enumeration: same cookie shape as a real signup (fake session ID won't validate).
         // Scoped to user.email UNIQUE — session.id or email_verification.id collisions are not
         // enumeration risks and should surface as 500 (caller can retry a fresh ID).
-        // Anti-enumeration tradeoff: returning a fake cookie may overwrite a real session if a logged-in user submits the signup form. Documented LOW. Rate-limit mitigates.
-        // Anti-enumeration: silent 201. Note: enumeration via /api/auth/session probe is possible but rate-limit (5/15min) mitigates.
+        if (getSessionIdFromCookie(request)) {
+          return json({ ok: true, emailVerificationRequired: true }, 201);
+        }
         const fakeSessionId = generateSessionId();
         const fakeExpires = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
         return json(
@@ -215,7 +221,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     waitUntil(
       sendEmail(env, {
         from: 'RRM Academy <accounts@mail.rrmacademy.org>',
-        to: email,
+        to: cleanEmail,
         subject: 'Verify your email — RRM Academy',
         text: [
           `Hi ${firstName},`,
@@ -233,7 +239,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
           'https://rrmacademy.org',
         ].join('\n'),
         log: { db: env.DB, source: 'auth/signup', category: 'transactional' },
-      }).catch(err => logEmailFailure(env.DB, { email, category: 'transactional', source: 'auth/signup', subject: 'Verify your email — RRM Academy', detail: err.message }))
+      }).catch(err => logEmailFailure(env.DB, { email: cleanEmail, category: 'transactional', source: 'auth/signup', subject: 'Verify your email — RRM Academy', detail: err.message }))
     );
 
     waitUntil(sendGA4Event(env, request, 'sign_up', { method: 'email', source: signupSource }).catch(() => {}));
@@ -241,14 +247,14 @@ export async function onRequestPost({ request, env, waitUntil }) {
     if (signupSource === 'ask') {
       waitUntil(sendGA4Event(env, request, 'signup_from_ask', { source: 'ask' }).catch(() => {}));
       waitUntil(
-        sendWelcomeAskEmail(env, email, firstName).catch(err => {
+        sendWelcomeAskEmail(env, cleanEmail, firstName).catch(err => {
           log(env, waitUntil, 'auth', 'welcome_ask_email_fail', 'error', err.message);
         })
       );
     }
 
     return json(
-      { ok: true, emailVerificationRequired: true },
+      { ok: true, emailVerificationRequired: true, resendPath: '/api/auth/resend-verification' },
       201,
       { 'Set-Cookie': [sessionCookie(sessionId, sessionExpiresAt), authHintCookie(sessionExpiresAt)] }
     );

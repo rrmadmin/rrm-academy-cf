@@ -31,7 +31,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
     try { body = await request.json(); } catch { return json({ ok: false, error: 'Invalid JSON' }, 400); }
     if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
-    const email = (body.email || '').normalize('NFC').trim().toLowerCase();
+    const rawEmail = typeof body.email === 'string' ? body.email : '';
+    const email = rawEmail.normalize('NFC').trim().toLowerCase();
     if (!isValidEmail(email)) return json({ ok: false, error: 'Valid email is required.' }, 400);
 
     // Rate limit by IP (before expensive DNS lookups): 5 attempts per 15 minutes
@@ -52,7 +53,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
     if (!turnstileResult.ok) {
       const turnstileMsg = turnstileResult.reason === 'network'
         ? 'Verification service unavailable. Please try again in a moment.'
-        : 'Spam check failed. Please refresh and try again.';
+        : turnstileResult.reason === 'misconfigured'
+          ? 'Verification service is temporarily unavailable. Please contact administrator@rrmacademy.org.'
+          : 'Spam check failed. Please refresh and try again.';
       return json({ ok: false, error: turnstileMsg }, 403);
     }
 
@@ -62,45 +65,53 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const user = await db.prepare('SELECT id, name, blocked FROM user WHERE email = ? COLLATE NOCASE').bind(email).first();
 
     if (user && !user.blocked) {
-      const token = generateToken();
-      const tokenHash = await hashToken(token);
-      const expiresAt = Math.floor(Date.now() / 1000) + RESET_TOKEN_TTL_S;
-      const resetUrl = `https://rrmacademy.org/reset-password/?token=${token}`;
+      // Capture user fields synchronously before the async waitUntil closure.
+      const userId = user.id;
+      const userName = user.name || 'there';
 
-      // Atomically replace any prior reset token before firing the email.
-      // ON CONFLICT relies on idx_password_reset_user_purpose UNIQUE(user_id, purpose)
-      // (migration 020). Two concurrent requests race to upsert the same row rather
-      // than leaving two valid tokens. Token is valid for 1 hour.
-      await db.prepare(
-        "INSERT INTO password_reset (id, user_id, token_hash, expires_at, purpose) VALUES (?, ?, ?, ?, 'reset') ON CONFLICT(user_id, purpose) DO UPDATE SET id = excluded.id, token_hash = excluded.token_hash, expires_at = excluded.expires_at"
-      ).bind(generateId(), user.id, tokenHash, expiresAt).run();
+      // Defer token generation, DB upsert, and email send into waitUntil so the
+      // response latency on the existing-user path equals the non-existing-user
+      // path (both return after only the SELECT above). This prevents a timing
+      // oracle that would otherwise reveal account existence via ~25-60ms delta.
+      waitUntil((async () => {
+        try {
+          const token = generateToken();
+          const tokenHash = await hashToken(token);
+          const expiresAt = Math.floor(Date.now() / 1000) + RESET_TOKEN_TTL_S;
+          const resetUrl = `https://rrmacademy.org/reset-password/?token=${token}`;
 
-      // Deferred SES send — response returns before email completes.
-      // SES failure: logged server-side; ok:true still returned (anti-enumeration).
-      waitUntil(
-        sendEmail(env, {
-          from: 'RRM Academy <accounts@mail.rrmacademy.org>',
-          to: email,
-          subject: 'Reset your password — RRM Academy',
-          text: [
-            `Hi ${user.name || 'there'},`,
-            '',
-            'We received a request to reset your RRM Academy password. Click the link below to set a new password:',
-            '',
-            resetUrl,
-            '',
-            'This link expires in 1 hour. If you did not request a password reset, you can safely ignore this email.',
-            '',
-            'Best regards,',
-            'RRM Academy',
-            'https://rrmacademy.org',
-          ].join('\n'),
-          log: { db: env.DB, source: 'auth/forgot-password', category: 'transactional' },
-        }).catch(emailErr => {
-          log(env, waitUntil, 'auth', 'forgot_password_error', 'error', emailErr.message);
-          return logEmailFailure(env.DB, { email, category: 'transactional', source: 'auth/forgot-password', subject: 'Reset your password — RRM Academy', detail: emailErr.message });
-        })
-      );
+          // Atomically replace any prior reset token before firing the email.
+          // ON CONFLICT relies on idx_password_reset_user_purpose UNIQUE(user_id, purpose)
+          // (migration 020). Two concurrent requests race to upsert the same row rather
+          // than leaving two valid tokens. Token is valid for 1 hour.
+          await db.prepare(
+            "INSERT INTO password_reset (id, user_id, token_hash, expires_at, purpose) VALUES (?, ?, ?, ?, 'reset') ON CONFLICT(user_id, purpose) DO UPDATE SET id = excluded.id, token_hash = excluded.token_hash, expires_at = excluded.expires_at"
+          ).bind(generateId(), userId, tokenHash, expiresAt).run();
+
+          await sendEmail(env, {
+            from: 'RRM Academy <accounts@mail.rrmacademy.org>',
+            to: email,
+            subject: 'Reset your password — RRM Academy',
+            text: [
+              `Hi ${userName},`,
+              '',
+              'We received a request to reset your RRM Academy password. Click the link below to set a new password:',
+              '',
+              resetUrl,
+              '',
+              'This link expires in 1 hour. If you did not request a password reset, you can safely ignore this email.',
+              '',
+              'Best regards,',
+              'RRM Academy',
+              'https://rrmacademy.org',
+            ].join('\n'),
+            log: { db: env.DB, source: 'auth/forgot-password', category: 'transactional' },
+          });
+        } catch (bgErr) {
+          log(env, waitUntil, 'auth', 'forgot_password_error', 'error', bgErr.message);
+          await logEmailFailure(env.DB, { email, category: 'transactional', source: 'auth/forgot-password', subject: 'Reset your password — RRM Academy', detail: bgErr.message });
+        }
+      })());
     }
 
     // Always return success (no email enumeration)
