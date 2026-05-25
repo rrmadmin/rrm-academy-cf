@@ -20,6 +20,7 @@ import {
 import { log } from './_log.js';
 import { withIdempotency } from './_idempotency.js';
 import { canonicalSaveUrl, pageTypeFromUrl } from '../../src/lib/saved-url.mjs';
+import { PILLAR_PATHS } from '../../src/lib/saved-pillars.mjs';
 
 const MAX_TITLE_LEN = 300;
 const MAX_URL_LEN = 500;
@@ -124,7 +125,7 @@ async function _handlePost({ request, env, waitUntil }) {
         const url = canonicalSaveUrl(rawUrl);
         if (!url || url.length > MAX_URL_LEN) continue;
 
-        const type = pageTypeFromUrl(url);
+        const type = pageTypeFromUrl(url, PILLAR_PATHS);
         if (!type) continue;
 
         const rawTitle = item.title || item.slug || '';
@@ -211,7 +212,7 @@ async function _handlePost({ request, env, waitUntil }) {
     if (url.length > MAX_URL_LEN) return json({ error: 'url_too_long' }, 400);
 
     // INV-4: server derives type, ignores body.type
-    const type = pageTypeFromUrl(url);
+    const type = pageTypeFromUrl(url, PILLAR_PATHS);
     if (!type) return json({ error: 'not_saveable' }, 400);
 
     const title = String(rawTitle || '').trim().slice(0, MAX_TITLE_LEN);
@@ -280,7 +281,7 @@ async function _handleDelete({ request, env, waitUntil }) {
     if (!url) return json({ error: 'invalid_url' }, 400);
 
     // INV-10: during window, also delete from saved_article when article-type
-    const type = pageTypeFromUrl(url);
+    const type = pageTypeFromUrl(url, PILLAR_PATHS);
 
     if (type === 'article') {
       const articleSlug = url.replace(/^\/library\//, '').replace(/\/$/, '');
