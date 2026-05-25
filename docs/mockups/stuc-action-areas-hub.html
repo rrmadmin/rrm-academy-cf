@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STUC Action Areas Hub — Design Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --purple-50:#f5f0f8; --purple-100:#e8ddef; --purple-200:#d5c6de; --purple-300:#c9b8d3;
+    --purple-500:#987da8; --purple-700:#725e7e; --purple-900:#4c3e54;
+    --n-100:#f7f5f3; --n-200:#dddbd8; --n-300:#c6c4c2; --n-400:#adaba9; --n-500:#949392;
+    --n-600:#7b7a78; --n-700:#636261; --n-900:#313131; --cream:#eee5dd; --white:#fff;
+    --sand-300:#dbcbbb; --sand-500:#b8a38f; --sand-700:#947353;
+    --rose-50:#fef8fa; --rose-100:#fdf0f4; --rose-300:#f5cdda; --rose-500:#eb9fb8; --rose-700:#b0778a;
+    --sage-100:#e9efe7; --sage-500:#8aa884; --sage-700:#5f7a59;
+    --display:'Cormorant Garamond',Georgia,serif;
+    --ui:'Inter','Helvetica Neue',Arial,sans-serif;
+    --shadow-sm:0 1px 2px rgba(49,49,49,.06),0 1px 3px rgba(49,49,49,.1);
+    --shadow-md:0 4px 6px rgba(49,49,49,.05),0 10px 24px rgba(49,49,49,.08);
+    --radius:14px; --radius-sm:10px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--ui);color:var(--n-900);background:var(--n-100);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  code{overflow-wrap:anywhere}
+  .url{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+
+  /* ---- Doc shell ---- */
+  .doc-head{background:linear-gradient(160deg,#fff 0%,var(--purple-50) 100%);border-bottom:1px solid var(--n-200);padding:52px 0 40px}
+  .eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--purple-700)}
+  h1{font-family:var(--display);font-weight:600;font-size:3rem;line-height:1.08;letter-spacing:-.01em;margin:.25em 0 .15em}
+  .lede{font-size:1.12rem;color:var(--n-700);max-width:62ch}
+  .meta-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:500;padding:5px 11px;border-radius:999px;background:var(--white);border:1px solid var(--n-200);color:var(--n-700)}
+  .pill.ok{background:var(--sage-100);border-color:var(--sage-500);color:var(--sage-700)}
+  .pill.warn{background:var(--rose-100);border-color:var(--rose-300);color:var(--rose-700)}
+
+  section{padding:52px 0}
+  section + section{border-top:1px solid var(--n-200)}
+  h2{font-family:var(--display);font-weight:600;font-size:2.05rem;letter-spacing:-.01em;margin-bottom:.15em}
+  h2 .num{color:var(--purple-300);margin-right:.4em}
+  .sec-sub{color:var(--n-600);max-width:64ch;margin-bottom:30px}
+  h3{font-family:var(--ui);font-weight:600;font-size:1.02rem;margin:0 0 4px}
+
+  /* ---- Flow ---- */
+  .flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;position:relative}
+  .flow-step{background:var(--white);border:1px solid var(--n-200);border-radius:var(--radius);padding:18px 16px;box-shadow:var(--shadow-sm);position:relative}
+  .flow-step .n{width:26px;height:26px;border-radius:999px;background:var(--purple-700);color:#fff;font-size:.78rem;font-weight:600;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+  .flow-step h4{font-size:.92rem;font-weight:600;margin-bottom:5px}
+  .flow-step p{font-size:.8rem;color:var(--n-600);line-height:1.4}
+  .flow-step .tag{display:inline-block;margin-top:10px;font-size:.66rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:6px}
+  .tag.pub{background:var(--sage-100);color:var(--sage-700)}
+  .tag.mem{background:var(--purple-100);color:var(--purple-900)}
+  .gate-line{margin:18px 0 0;font-size:.82rem;line-height:1.5;color:var(--n-700);background:var(--rose-50);border:1px dashed var(--rose-300);border-radius:var(--radius-sm);padding:11px 15px}
+  .gate-line b{color:var(--rose-700)}
+
+  /* ---- Browser frame ---- */
+  .frame{border:1px solid var(--n-300);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-md);background:var(--white);margin-bottom:14px}
+  .frame-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--n-100);border-bottom:1px solid var(--n-200)}
+  .dots{display:flex;gap:6px}.dots i{width:11px;height:11px;border-radius:999px;background:var(--n-300);display:block}
+  .url{flex:1;background:var(--white);border:1px solid var(--n-200);border-radius:999px;padding:5px 14px;font-size:.78rem;color:var(--n-600);font-family:var(--ui)}
+  .url b{color:var(--n-900);font-weight:500}
+  .view-tag{font-size:.7rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:3px 9px;border-radius:6px}
+  .view-tag.pub{background:var(--sage-100);color:var(--sage-700)}
+  .view-tag.mem{background:var(--purple-100);color:var(--purple-900)}
+
+  /* ---- Site chrome inside frame ---- */
+  .site{background:var(--white)}
+  .site-head{display:flex;align-items:center;justify-content:space-between;padding:16px 26px;border-bottom:1px solid var(--n-200)}
+  .logo{font-family:var(--display);font-weight:600;font-size:1.5rem;color:var(--n-900)}
+  .site-nav{display:flex;gap:22px;font-size:.85rem;color:var(--n-700)}
+  .site-nav .cta{background:var(--purple-700);color:#fff;padding:7px 15px;border-radius:8px;font-weight:500}
+  .page{padding:30px 26px 36px}
+
+  .hub-title{font-family:var(--display);font-size:2.1rem;font-weight:600;margin-bottom:2px}
+  .hub-sub{color:var(--n-600);font-size:.92rem;margin-bottom:24px}
+
+  /* This Month strip */
+  .impact{background:linear-gradient(120deg,var(--purple-900),var(--purple-700));color:#fff;border-radius:var(--radius);padding:18px 22px;margin-bottom:26px}
+  .impact .ih{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px}
+  .impact .ih span{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;opacity:.8}
+  .impact .ih h4{font-family:var(--display);font-size:1.45rem;font-weight:600}
+  .impact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:16px}
+  .impact-item{border-left:2px solid var(--purple-300);padding-left:12px}
+  .impact-item .k{font-size:.66rem;letter-spacing:.07em;text-transform:uppercase;color:var(--purple-200);font-weight:600}
+  .impact-item .t{font-size:.9rem;font-weight:500;margin:2px 0 2px;line-height:1.3}
+  .impact-item .d{font-size:.78rem;opacity:.78}
+
+  .row-label{display:flex;align-items:center;justify-content:space-between;margin:0 0 12px}
+  .row-label h3{font-family:var(--display);font-size:1.3rem;font-weight:600}
+  .row-label .hint{font-size:.78rem;color:var(--n-500)}
+
+  /* Action Areas */
+  .areas{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:14px;margin-bottom:30px}
+  .area{border:1px solid var(--n-200);border-radius:var(--radius);padding:16px;background:var(--white);box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+  .area::before{content:"";position:absolute;top:0;left:0;right:0;height:4px}
+  .area.research::before{background:var(--purple-500)} .area.research .ic{background:var(--purple-100);color:var(--purple-900)}
+  .area.advocacy::before{background:var(--rose-500)} .area.advocacy .ic{background:var(--rose-100);color:var(--rose-700)}
+  .area.education::before{background:var(--sand-500)} .area.education .ic{background:var(--sand-300);color:var(--sand-700)}
+  .area.community::before{background:var(--sage-500)} .area.community .ic{background:var(--sage-100);color:var(--sage-700)}
+  .area .ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;margin-bottom:10px}
+  .area h4{font-size:.98rem;font-weight:600;margin-bottom:3px}
+  .area .tl{font-size:.78rem;color:var(--n-600);line-height:1.35;min-height:34px}
+  .area .am{display:flex;align-items:center;justify-content:space-between;margin-top:12px;font-size:.74rem;color:var(--n-500)}
+  .area .own{display:flex;align-items:center;gap:5px}
+  .av{width:18px;height:18px;border-radius:999px;background:var(--purple-200);color:var(--purple-900);font-size:.6rem;font-weight:600;display:flex;align-items:center;justify-content:center}
+  .joinbtn{font-size:.74rem;font-weight:600;padding:4px 10px;border-radius:7px;border:1px solid var(--purple-300);color:var(--purple-700);background:var(--white);cursor:pointer}
+  .joinbtn.joined{background:var(--purple-700);color:#fff;border-color:var(--purple-700)}
+
+  /* Projects rail */
+  .projects{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:30px}
+  .proj{border:1px solid var(--n-200);border-radius:var(--radius);padding:16px;background:var(--white);box-shadow:var(--shadow-sm)}
+  .proj .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .status{font-size:.64rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:6px}
+  .status.recruiting{background:var(--sage-100);color:var(--sage-700)}
+  .status.in_progress{background:var(--purple-100);color:var(--purple-900)}
+  .status.paused{background:var(--n-200);color:var(--n-700)}
+  .chip{font-size:.66rem;font-weight:600;padding:2px 8px;border-radius:999px}
+  .chip.research{background:var(--purple-100);color:var(--purple-900)}
+  .chip.advocacy{background:var(--rose-100);color:var(--rose-700)}
+  .chip.education{background:var(--sand-300);color:var(--sand-700)}
+  .chip.community{background:var(--sage-100);color:var(--sage-700)}
+  .proj h4{font-size:.95rem;font-weight:600;margin-bottom:4px}
+  .proj p{font-size:.8rem;color:var(--n-600);line-height:1.4;margin-bottom:12px}
+  .proj .pf{display:flex;align-items:center;justify-content:space-between}
+  .proj .mc{font-size:.74rem;color:var(--n-500)}
+  .proj .acts{display:flex;gap:8px}
+  .lnk{font-size:.74rem;color:var(--purple-700);font-weight:500;text-decoration:none;align-self:center}
+
+  /* Stream */
+  .stream-wrap{border:1px solid var(--n-200);border-radius:var(--radius);background:var(--n-100);overflow:hidden}
+  .pills{display:flex;gap:8px;padding:14px 16px;flex-wrap:wrap;background:var(--white);border-bottom:1px solid var(--n-200)}
+  .fpill{font-size:.78rem;font-weight:500;padding:5px 13px;border-radius:999px;border:1px solid var(--n-200);background:var(--white);color:var(--n-700);cursor:pointer}
+  .fpill.active{background:var(--n-900);color:#fff;border-color:var(--n-900)}
+  .composer{display:flex;gap:10px;padding:14px 16px;background:var(--white);border-bottom:1px solid var(--n-200)}
+  .composer .av{width:34px;height:34px;font-size:.78rem;background:var(--rose-300);color:var(--rose-700);flex:none}
+  .composer .box{flex:1;border:1px solid var(--n-200);border-radius:999px;padding:9px 16px;color:var(--n-400);font-size:.85rem}
+  .posts{padding:8px 16px 16px}
+  .post{display:flex;gap:12px;padding:16px 0;border-bottom:1px solid var(--n-200)}
+  .post:last-child{border-bottom:none}
+  .post .av{width:38px;height:38px;flex:none;font-size:.82rem}
+  .av.a{background:var(--purple-200);color:var(--purple-900)} .av.b{background:var(--rose-300);color:var(--rose-700)}
+  .av.c{background:var(--sand-300);color:var(--sand-700)} .av.d{background:var(--sage-100);color:var(--sage-700)}
+  .post .body{flex:1}
+  .post .ph{display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap}
+  .post .nm{font-weight:600;font-size:.87rem}
+  .post .tier{font-size:.62rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:1px 6px;border-radius:5px;background:var(--cream);color:var(--sand-700)}
+  .post .when{font-size:.74rem;color:var(--n-500)}
+  .post .txt{font-size:.88rem;color:var(--n-700);line-height:1.5}
+  .post .react{display:flex;gap:14px;margin-top:9px;font-size:.76rem;color:var(--n-500)}
+
+  /* Gate slot (logged-out stream) */
+  .gate-slot{padding:42px 24px;text-align:center;background:linear-gradient(180deg,#fff,var(--purple-50))}
+  .gate-slot .lock{width:46px;height:46px;border-radius:999px;background:var(--purple-100);color:var(--purple-700);display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin:0 auto 14px}
+  .gate-slot h4{font-family:var(--display);font-size:1.5rem;font-weight:600;margin-bottom:6px}
+  .gate-slot p{color:var(--n-600);font-size:.9rem;max-width:42ch;margin:0 auto 16px}
+  .gate-slot .btns{display:flex;gap:10px;justify-content:center}
+  .btn-primary{background:var(--purple-700);color:#fff;border:none;padding:10px 22px;border-radius:9px;font-weight:600;font-size:.88rem;font-family:var(--ui);cursor:pointer}
+  .btn-ghost{background:#fff;color:var(--purple-700);border:1px solid var(--purple-300);padding:10px 22px;border-radius:9px;font-weight:600;font-size:.88rem;cursor:pointer}
+
+  /* annotations */
+  .anno{display:grid;grid-template-columns:28px 1fr;gap:12px;margin-top:14px;background:var(--white);border:1px solid var(--n-200);border-left:3px solid var(--purple-500);border-radius:var(--radius-sm);padding:14px 16px}
+  .anno .b{width:26px;height:26px;border-radius:7px;background:var(--purple-100);color:var(--purple-900);font-weight:700;font-size:.78rem;display:flex;align-items:center;justify-content:center}
+  .anno p{font-size:.85rem;color:var(--n-700)}
+  .anno code{background:var(--n-100);border:1px solid var(--n-200);border-radius:5px;padding:1px 6px;font-size:.82em}
+  .anno b{color:var(--n-900)}
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start}
+  .callout{background:var(--white);border:1px solid var(--n-200);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow-sm)}
+  .callout h3{font-family:var(--display);font-size:1.25rem;margin-bottom:10px}
+  .callout ul{list-style:none}
+  .callout li{font-size:.86rem;color:var(--n-700);padding:7px 0 7px 22px;position:relative;border-bottom:1px solid var(--n-100)}
+  .callout li:last-child{border-bottom:none}
+  .callout li::before{content:"";position:absolute;left:0;top:14px;width:7px;height:7px;border-radius:999px;background:var(--purple-500)}
+  .callout li b{color:var(--n-900)}
+
+  footer{padding:40px 0 64px;color:var(--n-500);font-size:.82rem}
+  footer code{background:var(--white);border:1px solid var(--n-200);border-radius:5px;padding:1px 6px}
+  @media(max-width:880px){
+    .two{grid-template-columns:1fr}
+    h1{font-size:2.3rem}
+  }
+  @media(max-width:600px){
+    .wrap{padding:0 16px}
+    .doc-head{padding:34px 0 26px}
+    h1{font-size:1.95rem}
+    .lede{font-size:1rem}
+    h2{font-size:1.55rem}
+    section{padding:34px 0}
+    .sec-sub{margin-bottom:22px}
+    .site-head{flex-wrap:wrap;gap:10px;padding:13px 16px}
+    .site-nav{font-size:.78rem;gap:10px 12px;flex-wrap:wrap}
+    .page{padding:20px 16px 26px}
+    .hub-title{font-size:1.5rem}
+    .hub-sub{font-size:.88rem}
+    .impact{padding:16px}
+    .impact .ih h4{font-size:1.2rem}
+    .frame-bar{flex-wrap:wrap;gap:8px 10px}
+    .url{flex-basis:100%;order:3}
+    .row-label{flex-wrap:wrap;gap:2px 10px;align-items:baseline}
+    .row-label h3{font-size:1.15rem}
+    .anno{grid-template-columns:24px 1fr;padding:13px 14px}
+    .post .av{width:34px;height:34px}
+  }
+</style>
+</head>
+<body>
+
+<header class="doc-head">
+  <div class="wrap">
+    <div class="eyebrow">Save the Uterus Club · Design Review</div>
+    <h1>Action Areas Hub</h1>
+    <p class="lede">Turning STUC from a lecture-driven <i>think tank</i> into a <b>do tank</b> — where every member can answer the only two questions that matter: <i>Where do I fit?</i> and <i>What can I do?</i></p>
+    <div class="meta-row">
+      <span class="pill">Source: New Recording 129 (2026-05-22)</span>
+      <span class="pill">Spec: 2026-05-25-stuc-action-areas-hub-design.md</span>
+      <span class="pill ok">Deep-traced · 20 findings folded in</span>
+      <span class="pill warn">Mockup — not live</span>
+    </div>
+  </div>
+</header>
+
+<!-- ============ USER FLOW ============ -->
+<section>
+  <div class="wrap">
+    <h2><span class="num">01</span>User flow</h2>
+    <p class="sec-sub">The whole point of the redesign is to make the operating model <i>legible</i>. A visitor should move from "what is this?" to "I have a job here" without a single dead end. The dashed line is the membership gate — everything left of the stream is the public recruiting surface; the conversation itself is members-only.</p>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="n">1</div>
+        <h4>Discover</h4>
+        <p>Lands on the hub from social / newsletter / the join page. Sees the structure — areas, live projects, this month's impact.</p>
+        <span class="tag pub">Public</span>
+      </div>
+      <div class="flow-step">
+        <div class="n">2</div>
+        <h4>Orient</h4>
+        <p>"Where do I fit?" Scans the 4 Action Areas, reads taglines + owners, sees which projects are recruiting.</p>
+        <span class="tag pub">Public</span>
+      </div>
+      <div class="flow-step">
+        <div class="n">3</div>
+        <h4>Join STUC</h4>
+        <p>Hits the membership gate to see the conversation. Signs up / logs in. Becomes a member.</p>
+        <span class="tag mem">Gate</span>
+      </div>
+      <div class="flow-step">
+        <div class="n">4</div>
+        <h4>Self-sort</h4>
+        <p>Joins one or more Action Areas, then a specific Project. Opens its workspace. Now has a job.</p>
+        <span class="tag mem">Member</span>
+      </div>
+      <div class="flow-step">
+        <div class="n">5</div>
+        <h4>Participate &amp; see impact</h4>
+        <p>Posts in the one live stream (filtered by area), watches the "This Month" strip prove the club is doing things.</p>
+        <span class="tag mem">Member</span>
+      </div>
+    </div>
+
+    <div class="gate-line">
+      <b>⚠ Gate boundary (the key architectural subtlety):</b>&nbsp;Steps 1–2 must render for logged-out visitors. The live site currently 302-redirects all <code>/community/*</code> to <code>/login</code> — so the spec carves <code>/community</code> + <code>/community/areas/*</code> out of the middleware <code>needsAuth</code> set. Structure is public; stream + composer + Join stay members-only.
+    </div>
+  </div>
+</section>
+
+<!-- ============ MARKETING / RECRUITING PAGE ============ -->
+<section>
+  <div class="wrap">
+    <h2><span class="num">02</span>Marketing / recruiting page <span style="font-size:1rem;color:var(--n-500);font-family:var(--ui)">— logged-out</span></h2>
+    <p class="sec-sub">What an anonymous visitor sees at <code>/community/</code>. The structure <i>is</i> the pitch: proof of monthly impact, the four ways to plug in, and live projects asking for help. The conversation slot shows a join gate instead of the feed.</p>
+
+    <div class="frame">
+      <div class="frame-bar">
+        <div class="dots"><i></i><i></i><i></i></div>
+        <div class="url">rrmacademy.org<b>/community/</b></div>
+        <span class="view-tag pub">Logged-out</span>
+      </div>
+      <div class="site">
+        <div class="site-head">
+          <div class="logo">RRM Academy</div>
+          <nav class="site-nav">
+            <span>Research Library</span><span>Commentary</span><span>Learn</span>
+            <span class="cta">Join the Club</span>
+          </nav>
+        </div>
+        <div class="page">
+          <div class="hub-title">Save the Uterus Club</div>
+          <div class="hub-sub">A do-tank for restorative reproductive medicine. Pick an area. Join a project. Make a monthly impact.</div>
+
+          <!-- This Month -->
+          <div class="impact">
+            <div class="ih"><span>Proof of impact</span><h4>This Month</h4></div>
+            <div class="impact-grid">
+              <div class="impact-item"><div class="k">Webinar</div><div class="t">Endometriosis &amp; excision surgery</div><div class="d">214 members attended live</div></div>
+              <div class="impact-item"><div class="k">Research</div><div class="t">NaPro outcomes literature pull</div><div class="d">Draft shared for review</div></div>
+              <div class="impact-item"><div class="k">Advocacy</div><div class="t">Informed-consent toolkit v1</div><div class="d">Shipped to 3 clinics</div></div>
+            </div>
+          </div>
+
+          <!-- Action Areas -->
+          <div class="row-label"><h3>Action Areas</h3><span class="hint">Where do I fit?</span></div>
+          <div class="areas">
+            <div class="area research"><div class="ic">🔬</div><h4>Research</h4><div class="tl">Own the evidence base — literature, outcomes, registries.</div><div class="am"><span class="own"><span class="av">B</span>Bailey</span><span>3 projects</span></div></div>
+            <div class="area advocacy"><div class="ic">🤝</div><h4>Patient Advocacy</h4><div class="tl">Tangible support &amp; informed consent for patients.</div><div class="am"><span class="own"><span class="av">—</span>Owner TBC</span><span>2 projects</span></div></div>
+            <div class="area education"><div class="ic">📚</div><h4>Education</h4><div class="tl">Teach RRM — explainers, webinars, courses.</div><div class="am"><span class="own"><span class="av">—</span>Owner TBC</span><span>2 projects</span></div></div>
+            <div class="area community"><div class="ic">🌱</div><h4>Community</h4><div class="tl">Grow the membership and keep it alive.</div><div class="am"><span class="own"><span class="av">—</span>Owner TBC</span><span>1 project</span></div></div>
+          </div>
+
+          <!-- Active Projects -->
+          <div class="row-label"><h3>Active Projects</h3><span class="hint">What can I do?</span></div>
+          <div class="projects">
+            <div class="proj"><div class="top"><span class="status recruiting">Recruiting</span><span class="chip research">Research</span></div><h4>NaPro outcomes meta-table</h4><p>Build a shared, sourced table of published NaPro success rates by indication.</p><div class="pf"><span class="mc">4 members</span><span class="acts"><a class="lnk">Open workspace ↗</a></span></div></div>
+            <div class="proj"><div class="top"><span class="status in_progress">In progress</span><span class="chip advocacy">Patient Adv.</span></div><h4>Informed-consent toolkit</h4><p>A plain-language packet patients can bring to any OB appointment.</p><div class="pf"><span class="mc">7 members</span><span class="acts"><a class="lnk">Open workspace ↗</a></span></div></div>
+            <div class="proj"><div class="top"><span class="status recruiting">Recruiting</span><span class="chip education">Education</span></div><h4>"Is RRM right for me?" explainer</h4><p>Short decision guide for patients new to restorative medicine.</p><div class="pf"><span class="mc">2 members</span><span class="acts"><a class="lnk">Open workspace ↗</a></span></div></div>
+          </div>
+
+          <!-- Stream slot = gate -->
+          <div class="row-label"><h3>Live Conversation</h3></div>
+          <div class="stream-wrap">
+            <div class="gate-slot">
+              <div class="lock">🔒</div>
+              <h4>Join to see the conversation</h4>
+              <p>The live stream, projects, and area workspaces are for members. Joining is free — it's how we know where everyone fits.</p>
+              <div class="btns"><button class="btn-primary">Join the Club</button><button class="btn-ghost">Log in</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="anno"><div class="b">A</div><p><b>The structure renders server-side for logged-out visitors</b> — the entire recruiting value prop. Requires the <code>functions/_middleware.js</code> carve-out (CRITICAL finding #1) and re-scoping the security-guard invariant. Data comes from public <code>GET /api/community/{areas,projects,impact}</code>. <b>Gate G-AREA-4.</b></p></div>
+    <div class="anno"><div class="b">B</div><p><b>Owners shown by name, stored as <code>owner_user_id</code></b>. "Owner TBC" renders when the FK is NULL (unresolved) — never a dangling name string. Resolution is a separate idempotent UPDATE so a re-run backfills it. <b>Gate G-AREA-8.</b></p></div>
+    <div class="anno"><div class="b">C</div><p><b>"This Month" is owner-curated in v1</b> (auto-counted events deferred to Phase 2 — no computable source exists yet). The month window is computed in <b>America/New_York</b>, not UTC. <b>Gate G-AREA-11.</b></p></div>
+  </div>
+</section>
+
+<!-- ============ MEMBER HUB ============ -->
+<section>
+  <div class="wrap">
+    <h2><span class="num">03</span>Member hub <span style="font-size:1rem;color:var(--n-500);font-family:var(--ui)">— logged-in</span></h2>
+    <p class="sec-sub">Same URL, same structure — but now the gate is replaced by the one living, chat-styled stream. Area "channels" are <b>filter pills on the single stream</b> (never 5 separate dead rooms), and each post carries an area chip. Joined areas show a filled state.</p>
+
+    <div class="frame">
+      <div class="frame-bar">
+        <div class="dots"><i></i><i></i><i></i></div>
+        <div class="url">rrmacademy.org<b>/community/</b></div>
+        <span class="view-tag mem">Member</span>
+      </div>
+      <div class="site">
+        <div class="site-head">
+          <div class="logo">RRM Academy</div>
+          <nav class="site-nav"><span>Research Library</span><span>Commentary</span><span>Learn</span><span style="display:flex;align-items:center;gap:6px"><span class="av" style="width:26px;height:26px;background:var(--rose-300);color:var(--rose-700)">M</span></span></nav>
+        </div>
+        <div class="page">
+          <div class="hub-title">Save the Uterus Club</div>
+          <div class="hub-sub">Welcome back, Maria. You're in <b>Research</b> + <b>Patient Advocacy</b>.</div>
+
+          <div class="impact">
+            <div class="ih"><span>Proof of impact</span><h4>This Month</h4></div>
+            <div class="impact-grid">
+              <div class="impact-item"><div class="k">Webinar</div><div class="t">Endometriosis &amp; excision surgery</div><div class="d">214 members attended live</div></div>
+              <div class="impact-item"><div class="k">Milestone</div><div class="t">Toolkit shipped to 3 clinics</div><div class="d">Patient Advocacy</div></div>
+              <div class="impact-item"><div class="k">Research</div><div class="t">Outcomes table — 18 studies in</div><div class="d">You contributed 4</div></div>
+            </div>
+          </div>
+
+          <div class="row-label"><h3>Action Areas</h3><span class="hint">Tap to filter the stream below</span></div>
+          <div class="areas">
+            <div class="area research"><div class="ic">🔬</div><h4>Research</h4><div class="tl">Own the evidence base.</div><div class="am"><span class="own"><span class="av">B</span>Bailey</span><button class="joinbtn joined">Joined ✓</button></div></div>
+            <div class="area advocacy"><div class="ic">🤝</div><h4>Patient Advocacy</h4><div class="tl">Support &amp; informed consent.</div><div class="am"><span class="own"><span class="av">—</span>TBC</span><button class="joinbtn joined">Joined ✓</button></div></div>
+            <div class="area education"><div class="ic">📚</div><h4>Education</h4><div class="tl">Teach RRM.</div><div class="am"><span class="own"><span class="av">—</span>TBC</span><button class="joinbtn">Join</button></div></div>
+            <div class="area community"><div class="ic">🌱</div><h4>Community</h4><div class="tl">Grow the club.</div><div class="am"><span class="own"><span class="av">—</span>TBC</span><button class="joinbtn">Join</button></div></div>
+          </div>
+
+          <div class="row-label"><h3>Active Projects</h3><span class="hint">Join a team · open its workspace</span></div>
+          <div class="projects">
+            <div class="proj"><div class="top"><span class="status in_progress">In progress</span><span class="chip research">Research</span></div><h4>NaPro outcomes meta-table</h4><p>Shared sourced table of published success rates by indication.</p><div class="pf"><span class="mc">4 members</span><span class="acts"><button class="joinbtn joined">Joined ✓</button><a class="lnk">Open ↗</a></span></div></div>
+            <div class="proj"><div class="top"><span class="status in_progress">In progress</span><span class="chip advocacy">Patient Adv.</span></div><h4>Informed-consent toolkit</h4><p>Plain-language packet for any OB appointment.</p><div class="pf"><span class="mc">7 members</span><span class="acts"><button class="joinbtn">Join</button><a class="lnk">Open ↗</a></span></div></div>
+            <div class="proj"><div class="top"><span class="status recruiting">Recruiting</span><span class="chip education">Education</span></div><h4>"Is RRM right for me?" explainer</h4><p>Decision guide for patients new to RRM.</p><div class="pf"><span class="mc">2 members</span><span class="acts"><button class="joinbtn">Join</button><a class="lnk">Open ↗</a></span></div></div>
+          </div>
+
+          <div class="row-label"><h3>Live Conversation</h3><span class="hint">One stream · filter by area</span></div>
+          <div class="stream-wrap">
+            <div class="pills">
+              <span class="fpill active">All</span>
+              <span class="fpill">🔬 Research</span>
+              <span class="fpill">🤝 Patient Advocacy</span>
+              <span class="fpill">📚 Education</span>
+              <span class="fpill">🌱 Community</span>
+            </div>
+            <div class="composer">
+              <span class="av">M</span>
+              <div class="box">Share an update with the club…</div>
+            </div>
+            <div class="posts">
+              <div class="post">
+                <span class="av a">B</span>
+                <div class="body">
+                  <div class="ph"><span class="nm">Bailey</span><span class="tier">Lead</span><span class="chip research">Research</span><span class="when">2h</span></div>
+                  <div class="txt">Added 4 more studies to the outcomes table — we're at 18. Need someone to double-check the Stanford 2019 numbers. Workspace link in the project card. 🙏</div>
+                  <div class="react">❤️ 9&nbsp;&nbsp;💬 3&nbsp;&nbsp;↗ Share</div>
+                </div>
+              </div>
+              <div class="post">
+                <span class="av b">D</span>
+                <div class="body">
+                  <div class="ph"><span class="nm">Dr. Whittaker</span><span class="tier">Founder</span><span class="chip advocacy">Patient Adv.</span><span class="when">5h</span></div>
+                  <div class="txt">The informed-consent toolkit just went out to its first 3 clinics. This is exactly the kind of tangible thing I wanted us doing. Huge thanks to the advocacy team. 💜</div>
+                  <div class="react">❤️ 41&nbsp;&nbsp;💬 12&nbsp;&nbsp;↗ Share</div>
+                </div>
+              </div>
+              <div class="post">
+                <span class="av c">J</span>
+                <div class="body">
+                  <div class="ph"><span class="nm">Jenna</span><span class="when">yesterday</span></div>
+                  <div class="txt">New here — joined Education today. Where's the best place to start helping with the "Is RRM right for me?" explainer?</div>
+                  <div class="react">❤️ 6&nbsp;&nbsp;💬 5&nbsp;&nbsp;↗ Share</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="anno"><div class="b">D</div><p><b>One consolidated stream, not 5 channels.</b> With ~36 members, splitting into per-area rooms makes every room look dead. Area pills filter the single stream; the "All" view always includes untagged (NULL-area) posts. <b>Gates G-AREA-1, G-AREA-7.</b> Jenna's post (no chip) is an untagged post — still shows under All.</p></div>
+    <div class="anno"><div class="b">E</div><p><b>"Joined ✓" state survives a cold page load</b> via <code>GET /api/community/memberships</code> (the missing read-back the deep trace caught — finding #7). Double-join is an idempotent no-op, not a 500. <b>Gate G-AREA-2.</b></p></div>
+    <div class="anno"><div class="b">F</div><p><b>Tier badges</b> (Lead, Founder) render natively in the stream — same primitive the live-calls spec uses. Member tiers come from existing community membership data.</p></div>
+  </div>
+</section>
+
+<!-- ============ AREA DETAIL ============ -->
+<section>
+  <div class="wrap">
+    <h2><span class="num">04</span>Area detail page <span style="font-size:1rem;color:var(--n-500);font-family:var(--ui)">— member</span></h2>
+    <p class="sec-sub">Clicking an area (or its filter pill) opens <code>/community/areas/&lt;slug&gt;</code>: the area's projects, its slice of impact, and a <b>filtered view of the same stream</b> — never a separate room. An archived area's URL returns 404 (it's dropped from the active listing).</p>
+
+    <div class="frame">
+      <div class="frame-bar">
+        <div class="dots"><i></i><i></i><i></i></div>
+        <div class="url">rrmacademy.org<b>/community/areas/research</b></div>
+        <span class="view-tag mem">Member</span>
+      </div>
+      <div class="site">
+        <div class="page" style="padding-top:26px">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px">
+            <div class="ic" style="width:46px;height:46px;border-radius:11px;background:var(--purple-100);color:var(--purple-900);display:flex;align-items:center;justify-content:center;font-size:1.4rem">🔬</div>
+            <div><div class="hub-title" style="font-size:1.7rem">Research</div><div class="hub-sub" style="margin-bottom:0">Own the evidence base · led by Bailey · 11 members</div></div>
+            <button class="joinbtn joined" style="margin-left:auto;font-size:.82rem;padding:8px 16px">Joined ✓</button>
+          </div>
+          <p style="font-size:.9rem;color:var(--n-700);max-width:60ch;margin:14px 0 26px">Everything we know, sourced and citable. This area owns the literature reviews, outcomes tables, and registry comparisons that the rest of RRM Academy cites.</p>
+
+          <div class="row-label"><h3>Projects in Research</h3></div>
+          <div class="projects">
+            <div class="proj"><div class="top"><span class="status in_progress">In progress</span></div><h4>NaPro outcomes meta-table</h4><p>Shared sourced success-rate table by indication.</p><div class="pf"><span class="mc">4 members</span><span class="acts"><button class="joinbtn joined">Joined ✓</button><a class="lnk">Open ↗</a></span></div></div>
+            <div class="proj"><div class="top"><span class="status recruiting">Recruiting</span></div><h4>Registry completeness review</h4><p>Compare ART registry reporting gaps across SART/HFEA/ANZARD.</p><div class="pf"><span class="mc">2 members</span><span class="acts"><button class="joinbtn">Join</button><a class="lnk">Open ↗</a></span></div></div>
+            <div class="proj"><div class="top"><span class="status paused">Paused</span></div><h4>Cervical stenosis lit pull</h4><p>On hold pending the outcomes table.</p><div class="pf"><span class="mc">3 members</span><span class="acts"><button class="joinbtn">Join</button><a class="lnk">Open ↗</a></span></div></div>
+          </div>
+
+          <div class="row-label"><h3>Conversation in Research</h3><span class="hint">Filtered slice of the one stream</span></div>
+          <div class="stream-wrap">
+            <div class="composer"><span class="av">M</span><div class="box">Post to Research…</div></div>
+            <div class="posts">
+              <div class="post"><span class="av a">B</span><div class="body"><div class="ph"><span class="nm">Bailey</span><span class="tier">Lead</span><span class="when">2h</span></div><div class="txt">We're at 18 studies. Need a check on the Stanford 2019 numbers.</div><div class="react">❤️ 9&nbsp;&nbsp;💬 3</div></div></div>
+              <div class="post"><span class="av d">K</span><div class="body"><div class="ph"><span class="nm">Kavya</span><span class="when">1d</span></div><div class="txt">Pulled the ANZARD 2023 tables into the registry project workspace — ready for review.</div><div class="react">❤️ 5&nbsp;&nbsp;💬 2</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="anno"><div class="b">G</div><p><b>The area page is a filtered lens, not a room.</b> Same posts, same composer, scoped to <code>area_id = research</code>. This is why fragmentation never creates a dead room — every "channel" is a view over one shared stream. <b>Gate G-AREA-7</b> (all child reads resolve through an active-parent join).</p></div>
+    <div class="anno"><div class="b">H</div><p><b>Paused/done projects stay listed but suppress the Join CTA</b>; archived projects + archived areas drop out entirely. Archiving propagates as a state transition (area → its projects), so nothing strands pointing at a hidden parent. <b>Findings #8, #15.</b></p></div>
+  </div>
+</section>
+
+<!-- ============ WHAT TO EVALUATE ============ -->
+<section>
+  <div class="wrap">
+    <h2><span class="num">05</span>What to evaluate</h2>
+    <div class="two">
+      <div class="callout">
+        <h3>Decisions worth a gut-check</h3>
+        <ul>
+          <li><b>One stream + filter pills</b> vs. per-area rooms. Mockup commits to one stream — does the filtered area view feel like enough structure?</li>
+          <li><b>4 Action Areas</b> (Research / Patient Advocacy / Education / Community). Right set? Right names? Recording 129 only firmly names Research → Bailey.</li>
+          <li><b>"This Month" curated-only in v1.</b> Auto-counted impact is Phase 2 — acceptable, or does the strip feel thin without it?</li>
+          <li><b>Owners surfaced publicly.</b> "Owner TBC" is honest but visible — fine on the recruiting page?</li>
+          <li><b>Logged-out sees structure.</b> Is the gated-stream slot the right conversion moment, or should more/less be visible?</li>
+        </ul>
+      </div>
+      <div class="callout">
+        <h3>Open items before build</h3>
+        <ul>
+          <li>Confirm the Action Area set, taglines, icons, and real owner user IDs.</li>
+          <li>Decide if area detail pages are indexable (likely <code>noindex</code> until populated).</li>
+          <li>Workspace links: open in new tab; any access provisioning on join?</li>
+          <li>Should <code>/save-the-uterus-club/</code> landing copy point at Action Areas as the "what you'll do" proof?</li>
+          <li>Coordinate migration number + <code>posts.js</code> DELETE edit with the live-calls spec.</li>
+          <li>Phase 2: define the auto-counted impact source query.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Mockup for design review only — illustrative content, placeholder icons, not the live site. Brand tokens (Cormorant Garamond + Inter, purple <code>#725e7e</code>, rose community accents) pulled from <code>docs/design/design-system.json</code>. Full design + 11 proof gates: <code>docs/superpowers/specs/2026-05-25-stuc-action-areas-hub-design.md</code>.
+  </div>
+</footer>
+
+</body>
+</html>
