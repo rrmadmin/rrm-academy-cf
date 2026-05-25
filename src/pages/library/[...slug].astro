@@ -297,7 +297,7 @@ const citationMeta = {
   trackScroll
 >
   {SHELL_ENABLED ? (
-    <AppShellChrome context="article" currentPath={Astro.url.pathname} relatedSections={relatedSections}>
+    <AppShellChrome context="article" currentPath={Astro.url.pathname} relatedSections={relatedSections} saveTitle={article.title}>
   <div class="page-wrapper" data-pagefind-body>
     <span data-pagefind-meta="type:Research" style="display:none"></span>
     {article.rrmRelevance && <span data-pagefind-meta={`rrmRelevance:${article.rrmRelevance}`} style="display:none"></span>}
@@ -1071,12 +1071,6 @@ const citationMeta = {
   .action-btn.copied {
     color: var(--accent);
   }
-  .action-btn.saved {
-    color: var(--accent);
-  }
-  .action-btn.saved svg {
-    fill: var(--accent);
-  }
 
   /* Mobile .article-title font-size now handled by global <h1> clamp(). */
 </style>
@@ -1176,10 +1170,11 @@ const citationMeta = {
   (function() {
     var citeBtn = document.getElementById('cite-btn');
     var citeLabel = document.getElementById('cite-label');
-    var saveBtn = document.getElementById('save-btn');
-    if (!citeBtn || !saveBtn) return;
+    if (!citeBtn) return;
     citeBtn.addEventListener('click', function() {
-      var d = saveBtn.dataset;
+      // Citation metadata now lives on the cite button's own dataset (the
+      // former #save-btn was removed for the universal shell Save toggle).
+      var d = citeBtn.dataset;
       // GA4 copy_citation via the global bridge (track-auto.ts). format='ris'
       // since this button downloads a .ris file (Research Information Systems
       // format consumed by Zotero, Mendeley, EndNote).
@@ -1202,104 +1197,7 @@ const citationMeta = {
     });
   })();
 
-  // Save article button
-  (function() {
-    var KEY = 'rrm_saved';
-    var btn = document.getElementById('save-btn');
-    var saveLabel = document.getElementById('save-label');
-    if (!btn) return;
-
-    function getSaved() {
-      try { return JSON.parse(localStorage.getItem(KEY) || '[]'); }
-      catch(e) { return []; }
-    }
-
-    function setSaved(items) {
-      localStorage.setItem(KEY, JSON.stringify(items));
-    }
-
-    var slug = btn.dataset.slug;
-    var saved = getSaved();
-    var isSaved = saved.some(function(s) { return s.slug === slug; });
-
-    // Color the icon if already saved
-    if (isSaved) btn.classList.add('saved');
-
-    // Update header badge
-    function updateBadge() {
-      var badge = document.getElementById('saved-count');
-      var mobileBadge = document.getElementById('mobile-saved-count');
-      var link = document.getElementById('saved-link');
-      var mobileLink = document.getElementById('mobile-saved-link');
-      if (badge) badge.textContent = saved.length;
-      if (mobileBadge) mobileBadge.textContent = saved.length;
-      if (saved.length > 0) {
-        if (link) link.classList.add('has-items');
-        if (mobileLink) mobileLink.classList.add('has-items');
-      } else {
-        if (link) link.classList.remove('has-items');
-        if (mobileLink) mobileLink.classList.remove('has-items');
-      }
-    }
-
-    // Server-side save/unsave (fire-and-forget for logged-in users)
-    function serverSave(article) {
-      fetch('/api/saved', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ article: article })
-      }).catch(function() {});
-    }
-    function serverUnsave(articleSlug) {
-      fetch('/api/saved', {
-        method: 'DELETE',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug: articleSlug })
-      }).catch(function() {});
-    }
-
-    btn.addEventListener('click', function() {
-      saved = getSaved();
-      var d = btn.dataset;
-      if (isSaved) {
-        saved = saved.filter(function(s) { return s.slug !== slug; });
-        isSaved = false;
-        btn.classList.remove('saved');
-        saveLabel.textContent = '';
-        serverUnsave(slug);
-      } else {
-        var article = {
-          slug: d.slug,
-          title: d.title,
-          authors: d.authors,
-          journal: d.journal,
-          journalAbbv: d.journalAbbv,
-          year: d.year,
-          doi: d.doi,
-          pmid: d.pmid,
-          volume: d.volume,
-          issue: d.issue,
-          pages: d.pages,
-          datePublished: d.datePublished,
-          abstract: d.abstract,
-          topics: d.topics,
-          savedAt: new Date().toISOString()
-        };
-        saved.unshift(article);
-        isSaved = true;
-        btn.classList.add('saved');
-        saveLabel.textContent = 'Saved!';
-        btn.classList.add('copied');
-        setTimeout(function() {
-          saveLabel.textContent = '';
-          btn.classList.remove('copied');
-        }, 2000);
-        serverSave(article);
-      }
-      setSaved(saved);
-      updateBadge();
-    });
-  })();
+  // NOTE: the per-article Save button was removed in favor of the universal
+  // shell "Save page" toggle (AppShellChrome). See
+  // docs/superpowers/specs/2026-05-24-universal-saved-pages-design.md §3.6.
 </script>
