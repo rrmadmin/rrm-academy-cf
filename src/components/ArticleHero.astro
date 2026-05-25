@@ -16,9 +16,10 @@
  *         reachable above the fold)
  *  Row 6: Read-at-source plain link (left)  +  LICENSE © X + access-state lock (right)
  *
- * Action buttons keep their original IDs (save-btn / cite-btn / share-btn) so
- * the existing page JS handlers (save / cite / share-link-copy) still bind.
- * All data-* attrs on the save button are preserved.
+ * Action buttons: cite-btn / share-btn. The per-article save button was removed
+ * in favor of the universal shell "Save page" toggle (AppShellChrome; spec
+ * 2026-05-24-universal-saved-pages-design.md §3.6). The citation data-* attrs
+ * that the page's cite handler reads now live on the cite button itself.
  */
 import type { Article } from '../lib/airtable';
 
@@ -107,16 +108,12 @@ const accessKind: 'restricted' | 'open' | 'free' | 'none' =
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         <span class="action-label" id="share-label"></span>
       </button>
-      <button class="icon-action" id="cite-btn" type="button" aria-label="Download citation" title="Download citation (.RIS)">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21c3 0 7-1 7-8V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4"/><path d="M15 21c3 0 7-1 7-8V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4"/></svg>
-        <span class="action-label" id="cite-label"></span>
-      </button>
       <button
         class="icon-action"
-        id="save-btn"
+        id="cite-btn"
         type="button"
-        aria-label="Save article"
-        title="Save article"
+        aria-label="Download citation"
+        title="Download citation (.RIS)"
         data-slug={article.slug}
         data-title={article.title}
         data-authors={article.shortCitation || ''}
@@ -132,8 +129,8 @@ const accessKind: 'restricted' | 'open' | 'free' | 'none' =
         data-abstract={article.abstract || ''}
         data-topics={article.topics.join(';')}
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-        <span class="action-label" id="save-label"></span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21c3 0 7-1 7-8V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4"/><path d="M15 21c3 0 7-1 7-8V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4"/></svg>
+        <span class="action-label" id="cite-label"></span>
       </button>
     </div>
   </div>
@@ -336,8 +333,7 @@ const accessKind: 'restricted' | 'open' | 'free' | 'none' =
     background: var(--purple-50, var(--bg-body));
     color: var(--accent);
   }
-  .icon-action.copied,
-  .icon-action.saved {
+  .icon-action.copied {
     border-color: var(--accent);
     color: var(--accent);
   }

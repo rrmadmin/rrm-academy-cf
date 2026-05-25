@@ -211,6 +211,66 @@
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+/* Saved count pill on the sidebar Save iconbtn (§3.9 — the global Header badge
+   is display:none on desktop shell, so this is the only desktop feedback). */
+.app-shell-nav__count {
+  display: none;
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  line-height: 15px;
+  text-align: center;
+  color: var(--white, #fff);
+  background: var(--accent);
+  border-radius: var(--radius-pill);
+  font-variant-numeric: tabular-nums;
+}
+.app-shell-nav__iconbtn { position: relative; }
+.app-shell-nav__count.has-items { display: block; }
+
+/* Universal "Save page" toggle — top of the main content column. Outlined pill
+   matching the iconbtn / id-pill affordance language; fills on the saved state. */
+.shell-save-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-3);
+}
+.shell-save-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 14px;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.shell-save-toggle:hover {
+  border-color: var(--purple-300);
+  color: var(--text-primary);
+  background: var(--cream);
+}
+.shell-save-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.shell-save-toggle__icon { flex: 0 0 auto; }
+.shell-save-toggle.is-saved {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--purple-50);
+}
+.shell-save-toggle.is-saved .shell-save-toggle__icon { fill: var(--accent); }
 
 /* Sidebar search — submits to the research library. */
 .app-shell-nav__search {

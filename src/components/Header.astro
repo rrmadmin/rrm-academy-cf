@@ -1035,6 +1035,14 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
 
 <script>
   // @ts-nocheck
+  // Shared saved-pages primitives (single source of truth — INV-1). The Header
+  // badge IIFE below imports these instead of re-implementing the url minter,
+  // the server-shape mapper, the adopt/merge, and the chunked push (H4/H5/M3/M4).
+  import {
+    readSaved,
+    updateBadge as savedUpdateBadge,
+    syncBadgeFromServer,
+  } from '../scripts/saved.ts';
   // Moved off is:inline (2026-05-14) so Astro extracts this to a hashed,
   // long-cached, deferred module bundle (`/_astro/*.js`) instead of inlining
   // ~6.5 KiB into every HTML response (Header.astro is global, so every page
@@ -1295,64 +1303,38 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
       .then(applyState);
   });
 
-  // Saved articles badge (desktop + mobile)
+  // Saved pages badge (desktop + mobile). All save logic — the url minter, the
+  // server-shape mapper, the adopt/merge, the chunked push — lives in
+  // src/scripts/saved.ts (INV-1, single source). This block only wires the
+  // Header badge: instant paint from localStorage, deferred server sync, and a
+  // cross-tab storage listener (mirrors the rrm_theme listener pattern).
   (function() {
-    function setBadge(n) {
-      var ids = ['saved-link', 'mobile-saved-link'];
-      var countIds = ['saved-count', 'mobile-saved-count'];
-      for (var i = 0; i < ids.length; i++) {
-        var link = document.getElementById(ids[i]);
-        var count = document.getElementById(countIds[i]);
-        if (count) count.textContent = n;
-        if (link) {
-          if (n > 0) link.classList.add('has-items');
-          else link.classList.remove('has-items');
-        }
-      }
+    // Instant: show badge from localStorage (no network, no delay). readSaved()
+    // is fully defensive (never throws) and migrates legacy shapes.
+    try {
+      savedUpdateBadge(readSaved().length);
+    } catch (e) {
+      /* localStorage unavailable (private mode / disabled): leave badge unset.
+         Browser bundle — no server to log to; non-critical UI affordance. */
     }
 
-    // Instant: show badge from localStorage (no network, no delay)
-    try {
-      var saved = JSON.parse(localStorage.getItem('rrm_saved') || '[]');
-      if (saved.length > 0) setBadge(saved.length);
-    } catch(e) {}
-
-    // Deferred: sync with server when idle. Anonymous fast path: no hint
-    // cookie => no logged-in session => skip the /api/saved sync entirely.
-    // /api/saved would 401 for anonymous anyway, so the only practical effect
-    // is one fewer network request on the LCP critical path.
+    // Deferred: for logged-in users, push local saves up (chunked, ALL of them
+    // — M3), GET the authoritative server set, adopt via union-merge (M4, never
+    // clobbers a concurrent optimistic save), and repaint the badge. Anonymous
+    // fast path: no hint cookie => localStorage only (no network call).
     deferWork(function() {
-      if (!hasAuthHint()) return;
-      var local = [];
-      try { local = JSON.parse(localStorage.getItem('rrm_saved') || '[]'); } catch(e) {}
-      if (local.length > 0) {
-        fetch('/api/saved', {
-          method: 'POST',
-          credentials: 'same-origin',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ articles: local })
-        })
-          .then(function(r) { return r.json(); })
-          .then(function(result) {
-            if (result.ok && result.articles) {
-              var slugMap = {};
-              local.forEach(function(a) { slugMap[a.slug] = a; });
-              result.articles.forEach(function(a) { slugMap[a.slug] = a; });
-              var merged = Object.values(slugMap);
-              merged.sort(function(a, b) { return (b.savedAt || '').localeCompare(a.savedAt || ''); });
-              localStorage.setItem('rrm_saved', JSON.stringify(merged));
-              setBadge(merged.length);
-            }
-          }).catch(function() {});
-      } else {
-        fetch('/api/saved', { credentials: 'same-origin' })
-          .then(function(r) { return r.json(); })
-          .then(function(result) {
-            if (result.ok && result.articles && result.articles.length > 0) {
-              localStorage.setItem('rrm_saved', JSON.stringify(result.articles));
-              setBadge(result.articles.length);
-            }
-          }).catch(function() {});
+      syncBadgeFromServer().catch(function() {});
+    });
+
+    // Cross-tab: when another tab mutates rrm_saved, repaint the badge here
+    // (mirror the existing rrm_theme cross-tab listener so the count stays in
+    // sync across tabs without a reload).
+    window.addEventListener('storage', function(e) {
+      if (e.key !== 'rrm_saved') return;
+      try {
+        savedUpdateBadge(readSaved().length);
+      } catch (err) {
+        /* localStorage read failed — keep the current badge value. */
       }
     });
   })();
