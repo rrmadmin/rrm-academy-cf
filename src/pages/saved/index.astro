@@ -1,0 +1,650 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AppShellChrome from '../../components/AppShellChrome.astro';
+import { isShellEnabled } from '../../lib/shell-routes';
+import articlesData from '../../data/articles.json';
+import { canonicalSaveUrl } from '../../lib/saved-url.mjs';
+
+// M1: cross-device RIS meta loss. The server set is minimal {url,title,type,
+// savedAt}, so an article saved on another device reconciles with no citation
+// meta (authors/journal/doi/...). Build a url -> meta map at build time and
+// hydrate article-type items that lack meta CLIENT-SIDE before RIS export +
+// the on-page meta line. Non-article items export title+URL only.
+const ARTICLE_META: Record<string, Record<string, unknown>> = {};
+for (const a of (articlesData as Array<Record<string, unknown>>)) {
+  if (!a || typeof a.slug !== 'string' || !a.slug) continue;
+  const url = canonicalSaveUrl('/library/' + a.slug + '/');
+  if (!url) continue;
+  // topics ship as an array in articles.json but the RIS builder splits on ';'
+  // — normalize to a ';'-joined string so hydrated + locally-saved items match.
+  const topics = Array.isArray(a.topics) ? (a.topics as unknown[]).join(';') : a.topics;
+  ARTICLE_META[url] = {
+    authors: a.authors,
+    journal: a.journal,
+    journalAbbv: a.journalAbbv,
+    year: a.year,
+    doi: a.doi,
+    pmid: a.pmid,
+    volume: a.volume,
+    issue: a.issue,
+    pages: a.pages,
+    datePublished: a.datePublished,
+    // NOTE: `abstract` is intentionally excluded. Inlining 3000+ abstracts made
+    // this page ~6.4 MB (2.1 MB gzip). RIS exports omit the AB field; reference
+    // managers re-fetch abstracts from the DOI/PMID we DO export. All other
+    // citation fields are retained.
+    topics,
+  };
+}
+
+// Gate chrome on ANY enabled workspace route (§3.7) so /saved/ never renders
+// chrome-less while sibling shell pages have the sidebar. Adding the dedicated
+// 'saved' route to PUBLIC_SHELL_ROUTES also enables it, but ORing the workspace
+// routes means it lights up together with library/commentary/etc.
+const SHELL_ENABLED =
+  isShellEnabled('saved') ||
+  isShellEnabled('library') ||
+  isShellEnabled('commentary') ||
+  isShellEnabled('faqs') ||
+  isShellEnabled('guides') ||
+  isShellEnabled('ask') ||
+  isShellEnabled('courses') ||
+  isShellEnabled('community') ||
+  isShellEnabled('account');
+---
+<BaseLayout
+  bodyClass="page-library"
+  title="Saved"
+  description="Pages you saved across RRM Academy — research articles, commentary, FAQs, glossary terms, and guides."
+  canonicalUrl="https://rrmacademy.org/saved/"
+  noindex
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
+>
+  {SHELL_ENABLED ? (
+    <AppShellChrome context="page" currentPath={Astro.url.pathname} saveTitle="Saved">
+      <div class="page-wrapper" data-pagefind-ignore="all">
+        <div class="container container--narrow">
+          <div class="saved-header">
+            <h1 class="saved-title">Saved</h1>
+            <div class="saved-actions">
+              <button id="export-all" class="export-btn" type="button">Export articles (.RIS)</button>
+              <button id="clear-all" class="clear-all-btn" type="button">Clear all</button>
+            </div>
+          </div>
+
+          <div id="saved-empty" class="saved-empty">
+            <p>Nothing saved yet.</p>
+            <p class="saved-hint">
+              Tap the <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px;"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Save page button on any research article, commentary post, FAQ, glossary term, or guide to add it here.
+            </p>
+            <a href="/library/" class="back-link">&larr; Browse the library</a>
+            <p id="guest-signin-hint" class="guest-signin-hint" hidden>Have an account? <a href="/login/">Log in</a> to see your saved pages.</p>
+          </div>
+
+          <div id="saved-groups" class="saved-groups"></div>
+
+          <!-- Guest sync nudge — shown only for guests with saved pages -->
+          <aside id="guest-sync-nudge" class="sync-nudge" hidden>
+            <div class="sync-nudge__icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <div class="sync-nudge__text">
+              <strong>These pages are saved in this browser only.</strong>
+              <span>Create a free account to keep them across all your devices.</span>
+            </div>
+            <div class="sync-nudge__actions">
+              <a href="/signup/" class="sync-nudge__signup">Create free account</a>
+              <span class="sync-nudge__or">or <a href="/login/" class="sync-nudge__login">Log in</a></span>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </AppShellChrome>
+  ) : (
+    <Fragment>
+      <div class="page-wrapper" data-pagefind-ignore="all">
+        <div class="container container--narrow">
+          <div class="saved-header">
+            <h1 class="saved-title">Saved</h1>
+            <div class="saved-actions">
+              <button id="export-all" class="export-btn" type="button">Export articles (.RIS)</button>
+              <button id="clear-all" class="clear-all-btn" type="button">Clear all</button>
+            </div>
+          </div>
+
+          <div id="saved-empty" class="saved-empty">
+            <p>Nothing saved yet.</p>
+            <p class="saved-hint">
+              Tap the <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px;"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Save page button on any research article, commentary post, FAQ, glossary term, or guide to add it here.
+            </p>
+            <a href="/library/" class="back-link">&larr; Browse the library</a>
+            <p id="guest-signin-hint" class="guest-signin-hint" hidden>Have an account? <a href="/login/">Log in</a> to see your saved pages.</p>
+          </div>
+
+          <div id="saved-groups" class="saved-groups"></div>
+
+          <aside id="guest-sync-nudge" class="sync-nudge" hidden>
+            <div class="sync-nudge__icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <div class="sync-nudge__text">
+              <strong>These pages are saved in this browser only.</strong>
+              <span>Create a free account to keep them across all your devices.</span>
+            </div>
+            <div class="sync-nudge__actions">
+              <a href="/signup/" class="sync-nudge__signup">Create free account</a>
+              <span class="sync-nudge__or">or <a href="/login/" class="sync-nudge__login">Log in</a></span>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </Fragment>
+  )}
+</BaseLayout>
+
+<style>
+  .saved-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+  .saved-title { margin-bottom: 0; }
+
+  .saved-empty {
+    text-align: center;
+    padding: var(--space-12) 0;
+    color: var(--neutral-500);
+    font-size: 0.875rem;
+    display: none;
+  }
+  .saved-empty.visible { display: block; }
+  .saved-hint {
+    font-size: 0.8125rem;
+    color: var(--neutral-400);
+    margin-top: var(--space-2);
+    max-width: 38ch;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+  }
+  .back-link {
+    display: inline-block;
+    margin-top: var(--space-4);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--purple-700);
+  }
+
+  .saved-groups {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+
+  /* Per-type group — rendered by JS */
+  .saved-groups :global(.saved-group__heading) {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-tertiary);
+    margin: 0 0 var(--space-3);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--border-color);
+  }
+  .saved-groups :global(.saved-group__list) {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .saved-groups :global(.saved-item) {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-4) 0;
+    border-bottom: 1px solid var(--neutral-200);
+  }
+  .saved-groups :global(.saved-item:last-child) { border-bottom: none; }
+  .saved-groups :global(.saved-item__info) { flex: 1; min-width: 0; }
+  .saved-groups :global(.saved-item__title) {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--neutral-900);
+    text-decoration: none;
+    line-height: 1.4;
+    display: block;
+  }
+  .saved-groups :global(.saved-item__title:hover) { color: var(--purple-700); }
+  .saved-groups :global(.saved-item__meta) {
+    font-size: 0.6875rem;
+    color: var(--neutral-500);
+    margin-top: 2px;
+  }
+  .saved-groups :global(.saved-item__chip) {
+    display: inline-block;
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-tertiary);
+    background: var(--neutral-100);
+    border-radius: var(--radius-pill);
+    padding: 1px 8px;
+    margin-top: 4px;
+  }
+  .saved-groups :global(.saved-item__remove) {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--neutral-400);
+    padding: 4px;
+    transition: color 0.15s;
+    margin-top: 2px;
+  }
+  .saved-groups :global(.saved-item__remove:hover) { color: var(--neutral-900); }
+
+  .saved-actions {
+    display: none;
+    align-items: center;
+    gap: var(--space-4);
+  }
+  .saved-actions.visible { display: flex; }
+  .export-btn {
+    font-size: 0.75rem;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    color: var(--purple-700);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.15s;
+  }
+  .export-btn:hover { color: var(--purple-900); }
+  .clear-all-btn {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--neutral-400);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+  }
+  .clear-all-btn:hover { color: var(--neutral-900); }
+
+  .guest-signin-hint {
+    font-size: 0.8125rem;
+    color: var(--neutral-400);
+    margin-top: var(--space-4);
+  }
+  .guest-signin-hint a { color: var(--purple-700); font-weight: 500; }
+
+  .sync-nudge[hidden] { display: none; }
+  .sync-nudge {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-4) var(--space-5);
+    margin-top: var(--space-6);
+  }
+  .sync-nudge__icon { color: var(--accent); flex-shrink: 0; opacity: 0.7; }
+  .sync-nudge__text {
+    flex: 1;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    min-width: 0;
+  }
+  .sync-nudge__text strong {
+    display: block;
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .sync-nudge__actions {
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-3);
+    flex-shrink: 0;
+    align-items: center;
+  }
+  .sync-nudge__or {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+  .sync-nudge__signup {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--white);
+    background: var(--accent);
+    padding: 6px 16px;
+    border-radius: var(--radius-pill);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s;
+  }
+  .sync-nudge__signup:hover { background: var(--accent-hover, var(--purple-900)); }
+  .sync-nudge__login { font-size: 0.75rem; color: var(--accent); text-decoration: none; }
+  .sync-nudge__login:hover { text-decoration: underline; }
+  @media (max-width: 600px) {
+    .sync-nudge { flex-wrap: wrap; gap: var(--space-3); }
+    .sync-nudge__icon { display: none; }
+    .sync-nudge__actions { width: 100%; }
+  }
+</style>
+
+{/* M1: build-time article meta map (url -> citation fields), consumed by the
+    client script to hydrate article items reconciled from the minimal server
+    set. set:html with JSON.stringify is XSS-safe (data, not markup). */}
+<script type="application/json" id="saved-article-meta" set:html={JSON.stringify(ARTICLE_META).replace(/</g, '\\u003c')}></script>
+
+{/* PLAIN <script> (NOT is:inline) so Astro bundles it and the ESM import of the
+    shared saved helpers resolves. */}
+<script>
+  import {
+    readSaved,
+    replaceSaved,
+    serverSetFromResponse,
+    hasAuthHint,
+    updateBadge,
+    serverDelete,
+    flushPendingDelete,
+  } from '../../scripts/saved.ts';
+  import type { SavedItem } from '../../scripts/saved.ts';
+
+  (function () {
+    const groupsEl = document.getElementById('saved-groups');
+    const emptyEl = document.getElementById('saved-empty');
+    const actionsRow = document.querySelector('.saved-actions');
+    const clearBtn = document.getElementById('clear-all');
+    const exportBtn = document.getElementById('export-all');
+    const syncNudge = document.getElementById('guest-sync-nudge') as HTMLElement | null;
+    const signinHint = document.getElementById('guest-signin-hint') as HTMLElement | null;
+    if (!groupsEl || !emptyEl) return;
+    const groups = groupsEl;
+    const empty = emptyEl;
+
+    // M1: build-time article meta map (url -> citation fields). Used to hydrate
+    // article-type items that arrived from the minimal server set without meta.
+    let ARTICLE_META: Record<string, Record<string, unknown>> = {};
+    try {
+      const metaEl = document.getElementById('saved-article-meta');
+      if (metaEl && metaEl.textContent) ARTICLE_META = JSON.parse(metaEl.textContent) || {};
+    } catch { ARTICLE_META = {}; }
+
+    const META_KEYS = [
+      'authors', 'journal', 'journalAbbv', 'year', 'doi', 'pmid',
+      'volume', 'issue', 'pages', 'datePublished', 'topics',
+    ];
+
+    // Hydrate article items that lack citation meta from the build-time map.
+    // Only fills MISSING fields (locally-held meta wins). Non-article items and
+    // urls not in the map are returned unchanged.
+    function hydrateMeta(items: SavedItem[]): SavedItem[] {
+      return items.map(function (it: SavedItem) {
+        if (!it || it.type !== 'article') return it;
+        const src = ARTICLE_META[it.url];
+        if (!src) return it;
+        const hasMeta = META_KEYS.some(function (k) {
+          return it[k] !== undefined && it[k] !== null && it[k] !== '';
+        });
+        if (hasMeta) return it; // already carries meta locally — keep it
+        const out: SavedItem = Object.assign({}, it);
+        META_KEYS.forEach(function (k) {
+          if (src[k] !== undefined && src[k] !== null && src[k] !== '') out[k] = src[k];
+        });
+        return out;
+      });
+    }
+
+    // Display order + human labels for the type groups (§3.7).
+    const GROUP_ORDER = ['article', 'commentary', 'faq', 'glossary', 'pillar'];
+    const GROUP_LABELS: Record<string, string> = {
+      article: 'Articles',
+      commentary: 'Commentary',
+      faq: 'FAQs',
+      glossary: 'Glossary',
+      pillar: 'Guides',
+    };
+
+    function removeIcon() {
+      var b = document.createElement('button');
+      b.className = 'saved-item__remove';
+      b.type = 'button';
+      b.setAttribute('aria-label', 'Remove');
+      b.setAttribute('title', 'Remove');
+      // SVG via namespace-safe innerHTML on a detached node is fine; the × glyph
+      // is static, not user data.
+      b.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+      return b;
+    }
+
+    // Render one saved item. href + textContent ONLY — never innerHTML for user
+    // data (INV-5 / §3.7).
+    function renderItem(item: SavedItem) {
+      var row = document.createElement('div');
+      row.className = 'saved-item';
+
+      var info = document.createElement('div');
+      info.className = 'saved-item__info';
+
+      var a = document.createElement('a');
+      a.className = 'saved-item__title';
+      a.href = item.url; // canonical, validated by readSaved/serverSet
+      a.textContent = item.title || item.url;
+      info.appendChild(a);
+
+      // Article meta line (authors · journal · year), only when present.
+      var metaParts = [item.authors, item.journal, item.year].filter(Boolean);
+      if (metaParts.length) {
+        var meta = document.createElement('div');
+        meta.className = 'saved-item__meta';
+        meta.textContent = metaParts.join(' · ');
+        info.appendChild(meta);
+      }
+
+      var btn = removeIcon();
+      btn.addEventListener('click', function () {
+        var remaining = readSaved().filter(function (s) { return s.url !== item.url; });
+        var persisted = replaceSaved(remaining);
+        // M5-style guard: only repaint from the persisted view; if persist
+        // failed, re-render the current localStorage so the UI never desyncs.
+        var arr = persisted || readSaved();
+        renderGroups(hydrateMeta(arr));
+        updateBadge(arr.length);
+        if (hasAuthHint()) {
+          // L1: serverDelete enqueues on transient failure (no resurrection).
+          serverDelete(item.url).catch(function () {});
+        }
+      });
+
+      row.appendChild(info);
+      row.appendChild(btn);
+      return row;
+    }
+
+    function renderGroups(items: SavedItem[]) {
+      groups.innerHTML = '';
+
+      if (!items || items.length === 0) {
+        empty.classList.add('visible');
+        if (actionsRow) actionsRow.classList.remove('visible');
+        return;
+      }
+      empty.classList.remove('visible');
+      if (actionsRow) actionsRow.classList.add('visible');
+
+      // Bucket by type.
+      var buckets: Record<string, SavedItem[]> = {};
+      items.forEach(function (it: SavedItem) {
+        var t = (it.type && GROUP_LABELS[it.type]) ? it.type : 'article';
+        (buckets[t] = buckets[t] || []).push(it);
+      });
+
+      GROUP_ORDER.forEach(function (type: string) {
+        var bucket = buckets[type];
+        if (!bucket || bucket.length === 0) return;
+        // newest first within group
+        bucket.sort(function (a, b) { return String(b.savedAt || '').localeCompare(String(a.savedAt || '')); });
+
+        var section = document.createElement('section');
+        section.className = 'saved-group';
+
+        var h = document.createElement('h2');
+        h.className = 'saved-group__heading';
+        h.textContent = GROUP_LABELS[type];
+        section.appendChild(h);
+
+        var list = document.createElement('div');
+        list.className = 'saved-group__list';
+        bucket.forEach(function (it: SavedItem) { list.appendChild(renderItem(it)); });
+        section.appendChild(list);
+
+        groups.appendChild(section);
+      });
+    }
+
+    // RIS export — articles only (§3.7). Non-article items are omitted.
+    function buildRIS(items: SavedItem[]) {
+      var ris = '';
+      items.forEach(function (d: SavedItem) {
+        if (d.type !== 'article') return;
+        var lines = ['TY  - JOUR'];
+        var authors = String(d.authors || '').split(/[,;]/);
+        for (var i = 0; i < authors.length; i++) {
+          var au = authors[i].trim();
+          if (au) lines.push('AU  - ' + au);
+        }
+        if (d.title) lines.push('TI  - ' + d.title);
+        if (d.journal) lines.push('T2  - ' + d.journal);
+        if (d.journalAbbv) lines.push('JO  - ' + d.journalAbbv);
+        if (d.abstract) lines.push('AB  - ' + d.abstract);
+        if (d.datePublished) lines.push('DA  - ' + String(d.datePublished).replace(/-/g, '/'));
+        if (d.year) lines.push('PY  - ' + d.year);
+        if (d.volume) lines.push('VL  - ' + d.volume);
+        if (d.issue) lines.push('IS  - ' + d.issue);
+        if (d.pages) {
+          var parts = String(d.pages).split(/[-–]/);
+          if (parts[0]) lines.push('SP  - ' + parts[0].trim());
+          if (parts[1]) lines.push('EP  - ' + parts[1].trim());
+        }
+        if (d.doi) {
+          lines.push('DO  - ' + d.doi);
+          lines.push('UR  - https://doi.org/' + d.doi);
+        }
+        if (d.pmid) lines.push('N1  - PMID: ' + d.pmid);
+        if (d.topics) {
+          var topics = String(d.topics).split(';');
+          for (var j = 0; j < topics.length; j++) {
+            var t = topics[j].trim();
+            if (t) lines.push('KW  - ' + t);
+          }
+        }
+        lines.push('UR  - https://rrmacademy.org' + d.url);
+        lines.push('ER  - ');
+        ris += lines.join('\n') + '\n';
+      });
+      return ris;
+    }
+
+    if (exportBtn) {
+      exportBtn.addEventListener('click', function () {
+        var items = hydrateMeta(readSaved());
+        var ris = buildRIS(items);
+        if (!ris) return;
+        var articleCount = items.filter(function (i: SavedItem) { return i.type === 'article'; }).length;
+        var blob = new Blob([ris], { type: 'application/x-research-info-systems' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'rrm-saved-' + articleCount + '-articles.ris';
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+    }
+
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function () {
+        if (!confirm('Remove all saved pages?')) return;
+        var all = readSaved();
+        replaceSaved([]);
+        renderGroups([]);
+        updateBadge(0);
+        if (hasAuthHint()) {
+          // L1: each DELETE enqueues on transient failure so clear-all can't
+          // partially resurrect on the next authoritative read.
+          all.forEach(function (it: SavedItem) {
+            serverDelete(it.url).catch(function () {});
+          });
+        }
+      });
+    }
+
+    // 1) Render localStorage (migrated shape) immediately. Hydrate article meta
+    //    so the on-page meta line (authors · journal · year) shows for items
+    //    saved on another device (M1).
+    var local = hydrateMeta(readSaved());
+    renderGroups(local);
+    updateBadge(local.length);
+
+    // 2) Logged-in: fetch the server set and REPLACE localStorage with it
+    //    (authoritative, M2/INV-10), re-render. Anonymous: localStorage only.
+    if (!hasAuthHint()) {
+      if (local.length > 0 && syncNudge) syncNudge.hidden = false;
+      else if (local.length === 0 && signinHint) signinHint.hidden = false;
+      return;
+    }
+
+    // L1: drain any pending deletes BEFORE the authoritative reconcile read, so
+    // a previously-failed unsave can't be resurrected by the server set here.
+    flushPendingDelete()
+      .catch(function () {})
+      .then(function () {
+        return fetch('/api/saved', { credentials: 'same-origin' });
+      })
+      .then(function (r) {
+        // M6: guard before .json(). A non-2xx (401/5xx/HTML error page) must
+        // NOT feed .json() and must NOT wipe the localStorage fallback already
+        // rendered above. Returning null skips the replace.
+        if (!r.ok) return null;
+        return r.json().catch(function () { return null; });
+      })
+      .then(function (result) {
+        if (!result || !result.ok) return;
+        var serverItems = serverSetFromResponse(result);
+        // Preserve any article meta we already hold locally (server set is
+        // minimal {url,title,type,savedAt}) so RIS export survives an
+        // authoritative replace.
+        var localByUrl: Record<string, SavedItem> = {};
+        readSaved().forEach(function (it: SavedItem) { localByUrl[it.url] = it; });
+        var merged = serverItems.map(function (s: SavedItem) {
+          var prior = localByUrl[s.url];
+          if (prior) {
+            // keep meta + prior title/savedAt fallbacks, server wins on identity
+            return Object.assign({}, prior, s, {
+              title: s.title || prior.title,
+              savedAt: s.savedAt || prior.savedAt,
+            });
+          }
+          return s;
+        });
+        // Persist the merged set (without build-map hydration so localStorage
+        // stays the minimal authoritative set), but render + count the hydrated
+        // view so cross-device article meta shows (M1).
+        replaceSaved(merged);
+        var hydrated = hydrateMeta(merged);
+        renderGroups(hydrated);
+        updateBadge(hydrated.length);
+      })
+      .catch(function () {});
+  })();
+</script>

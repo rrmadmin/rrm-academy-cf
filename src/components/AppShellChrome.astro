@@ -34,6 +34,8 @@ import '../styles/app-shell.css';
 import Footer from './Footer.astro';
 import Header from './Header.astro';
 import pillarRegistry from '../../ssot/pillars.json';
+import { canonicalSaveUrl, pageTypeFromUrl } from '../lib/saved-url.mjs';
+import { PILLAR_PATHS } from '../lib/saved-pillars.mjs';
 
 // AppShellChrome runs INSIDE BaseLayout's slot. The `<body>` element belongs
 // to BaseLayout (`<body class:list={[bodyClass]}>` around line 267), so this
@@ -70,9 +72,21 @@ interface Props {
    *  "present" even when the upstream page passed no content. The prop is
    *  unambiguous. */
   hasRail?: boolean;
+  /** Clean title for the universal "Save page" toggle (data-save-title). When
+   *  omitted, the client falls back to document.title stripped of the
+   *  "| RRM Academy" suffix, then the last URL segment (§3.6). */
+  saveTitle?: string;
 }
 
-const { context, currentPath, relatedSections = [], hasRail = false } = Astro.props;
+const { context, currentPath, relatedSections = [], hasRail = false, saveTitle } = Astro.props;
+
+// Universal "Save page" toggle gating (INV-8). The toggle is rendered ONLY when
+// the canonical url derives a non-null saved type. The same pure functions run
+// client-side to re-assert; server gating keeps unsaveable pages from ever
+// shipping a live control. Reserved/index/pagination paths derive null.
+const saveCanonicalUrl = canonicalSaveUrl(currentPath);
+const saveType = saveCanonicalUrl ? pageTypeFromUrl(saveCanonicalUrl, PILLAR_PATHS) : null;
+const isSaveable = !!saveCanonicalUrl && !!saveType;
 // `hasRelatedSections` was previously gated on `context === 'article'` because
 // the original design only emitted a rail for articles. The 'page' context now
 // also opts in (e.g. /glossary/<slug>/ Discussed-in groups), so any non-empty
@@ -82,7 +96,7 @@ const hasRelatedSections = relatedSections.length > 0;
 // Identify current section for aria-current on sidebar links.
 const inLibrary = currentPath === '/library' || currentPath === '/library/' || currentPath.startsWith('/library/');
 const inCommentary = currentPath === '/commentary' || currentPath === '/commentary/' || currentPath.startsWith('/commentary/');
-const inSaved = currentPath === '/library/saved' || currentPath === '/library/saved/';
+const inSaved = currentPath === '/saved' || currentPath === '/saved/';
 const inFaqs = currentPath === '/faqs' || currentPath === '/faqs/' || currentPath.startsWith('/faqs/');
 const inAccount = currentPath === '/account' || currentPath === '/account/' || currentPath.startsWith('/account/');
 const inAsk = currentPath === '/ask' || currentPath === '/ask/' || currentPath.startsWith('/ask/');
@@ -184,8 +198,9 @@ const NAV_ICONS: Record<string, string> = {
           <span class="app-shell-nav__account-sub" id="shell-account-sub">Save &amp; track progress</span>
         </span>
       </a>
-      <a href="/library/saved/" class="app-shell-nav__iconbtn" aria-current={inSaved ? 'page' : undefined} aria-label="Saved pages" title="Saved">
+      <a href="/saved/" class="app-shell-nav__iconbtn" aria-current={inSaved ? 'page' : undefined} aria-label="Saved pages" title="Saved">
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/library/saved/']} />
+        <span class="app-shell-nav__count" id="shell-saved-count" aria-hidden="true"></span>
       </a>
     </div>
 
@@ -290,6 +305,26 @@ const NAV_ICONS: Record<string, string> = {
   </nav>
 
   <main class="app-shell-main">
+    {/* Universal "Save page" toggle (INV-8). Rendered ONLY on saveable pages
+        (canonical url derives a non-null saved type). The client re-asserts the
+        gate and wires optimistic localStorage + server mirror + badge. */}
+    {isSaveable && (
+      <div class="shell-save-row" data-pagefind-ignore="all">
+        <button
+          type="button"
+          id="shell-save-toggle"
+          class="shell-save-toggle"
+          aria-pressed="false"
+          aria-label="Save this page"
+          title="Save page"
+          data-save-title={saveTitle || undefined}
+          hidden
+        >
+          <svg class="shell-save-toggle__icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+          <span class="shell-save-toggle__label">Save page</span>
+        </button>
+      </div>
+    )}
     <slot />
   </main>
 
@@ -339,7 +374,7 @@ const NAV_ICONS: Record<string, string> = {
   <nav class="app-shell-bottom-nav" data-pagefind-ignore="all" aria-label="Mobile primary">
     <a href="/library/" class="app-shell-bottom-nav__tab" aria-current={inLibrary && !inSaved ? 'page' : undefined} data-clear-shell-context>Library</a>
     <a href="/commentary/" class="app-shell-bottom-nav__tab" aria-current={inCommentary ? 'page' : undefined} data-clear-shell-context>Commentary</a>
-    <a href="/library/saved/" class="app-shell-bottom-nav__tab" aria-current={inSaved ? 'page' : undefined} data-clear-shell-context>Saved</a>
+    <a href="/saved/" class="app-shell-bottom-nav__tab" aria-current={inSaved ? 'page' : undefined} data-clear-shell-context>Saved</a>
     <a href="/account/" class="app-shell-bottom-nav__tab" aria-current={inAccount ? 'page' : undefined} data-clear-shell-context>Account</a>
   </nav>
 
@@ -349,9 +384,9 @@ const NAV_ICONS: Record<string, string> = {
     <button type="button" class="app-shell-drawer__close" aria-label="Close menu">×</button>
     <div class="app-shell-nav__section">
       <div class="app-shell-nav__heading">Reading</div>
-      <a href="/library/saved/" class="app-shell-nav__link" aria-current={inSaved ? 'page' : undefined} data-clear-shell-context>
+      <a href="/saved/" class="app-shell-nav__link" aria-current={inSaved ? 'page' : undefined} data-clear-shell-context>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/library/saved/']} />
-        <span class="app-shell-nav__label">Saved Articles</span>
+        <span class="app-shell-nav__label">Saved</span>
       </a>
       <a href="/library/" class="app-shell-nav__link" aria-current={inLibrary && !inSaved ? 'page' : undefined} data-clear-shell-context>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/library/']} />
@@ -796,4 +831,17 @@ const NAV_ICONS: Record<string, string> = {
       if (e.persisted) close();
     });
   })();
+</script>
+
+{/* Universal "Save page" client logic. PLAIN <script> (NOT is:inline) so Astro
+    bundles it and the ESM import of the shared url minter resolves. Wires the
+    shell Save toggle, the badge update path, the cross-tab storage listener,
+    and the rrm_saved_pending flush (spec §3.6/§3.9, INV-8/9/10/11). */}
+<script>
+  import { initSavedShell } from '../scripts/saved.ts';
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSavedShell);
+  } else {
+    initSavedShell();
+  }
 </script>
