@@ -205,6 +205,25 @@ async function sendAiBotEvent(request, env) {
   }
 }
 
+function htmlRedirect(location) {
+  const escaped = location.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${escaped}"></head><body><script>window.location.href=${JSON.stringify(location).replace(/</g, '\\u003c')}</script></body></html>`;
+  return new Response(html, {
+    status: 302,
+    headers: { Location: location, 'Content-Type': 'text/html;charset=UTF-8' },
+  });
+}
+
+function htmlRedirectWithCookies(location, cookies) {
+  const escaped = location.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${escaped}"></head><body><script>window.location.href=${JSON.stringify(location).replace(/</g, '\\u003c')}</script></body></html>`;
+  const headers = new Headers({ Location: location, 'Content-Type': 'text/html;charset=UTF-8' });
+  for (const cookie of cookies) {
+    headers.append('Set-Cookie', cookie);
+  }
+  return new Response(html, { status: 302, headers });
+}
+
 const CASE_CANONICAL_PREFIXES = [
   '/library',
   '/schedule-with-dr-whittaker',
@@ -321,15 +340,15 @@ export async function onRequest(context) {
     const authRedirect = `https://rrmacademy.org${redirectBase}?${redirectParam}=${encodeURIComponent(url.pathname + url.search)}`;
 
     if (!sessionId) {
-      return withSecurityHeaders(Response.redirect(authRedirect, 302));
+      return withSecurityHeaders(htmlRedirect(authRedirect));
     }
 
     const session = await validateSession(env.DB, sessionId);
     if (!session) {
-      const expiredHeaders = new Headers({ 'Location': authRedirect });
-      expiredHeaders.append('Set-Cookie', 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0');
-      expiredHeaders.append('Set-Cookie', clearAuthHintCookie());
-      return withSecurityHeaders(new Response(null, { status: 302, headers: expiredHeaders }));
+      return withSecurityHeaders(htmlRedirectWithCookies(authRedirect, [
+        'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
+        clearAuthHintCookie(),
+      ]));
     }
 
     const response = await context.next();
@@ -357,15 +376,16 @@ export async function onRequest(context) {
     if (isStaticAdmin) return context.next();
     const sessionId = getSessionIdFromCookie(request);
     if (!sessionId) {
-      return withSecurityHeaders(Response.redirect(`https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname + url.search)}`, 302));
+      return withSecurityHeaders(htmlRedirect(`https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname + url.search)}`));
     }
 
     const session = await validateSession(env.DB, sessionId);
     if (!session) {
-      const expiredHeaders = new Headers({ 'Location': `https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname + url.search)}` });
-      expiredHeaders.append('Set-Cookie', 'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0');
-      expiredHeaders.append('Set-Cookie', clearAuthHintCookie());
-      return withSecurityHeaders(new Response(null, { status: 302, headers: expiredHeaders }));
+      const adminLoginRedirect = `https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname + url.search)}`;
+      return withSecurityHeaders(htmlRedirectWithCookies(adminLoginRedirect, [
+        'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
+        clearAuthHintCookie(),
+      ]));
     }
 
     // role is already returned by validateSession (via the JOIN on user).
