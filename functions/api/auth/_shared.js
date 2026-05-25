@@ -235,6 +235,7 @@ export function getSessionIdFromCookie(request) {
 
 // --- Turnstile verification ---
 
+// TODO: observatory alert on turnstile_misconfigured AE event
 export async function verifyTurnstile(secret, token, ip, env) {
   if (!secret) {
     if (env?.EVENTS) {
