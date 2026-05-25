@@ -23,7 +23,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
     try { body = await request.json(); } catch { return json({ ok: false, error: 'Invalid JSON' }, 400); }
     if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
-    const token = (body.token || '').trim();
+    const rawToken = typeof body.token === 'string' ? body.token : '';
+    const token = rawToken.trim();
     const password = body.password || '';
 
     if (!token) return json({ ok: false, error: 'Reset token is required.' }, 400);
@@ -69,19 +70,27 @@ export async function onRequestPost({ request, env, waitUntil }) {
     }
 
     // Phase 2: Password change + session rotation, atomic batch.
-    // Token already consumed; if this batch fails (D1 transient), the user can request
-    // a new reset link — known trade-off vs the prior race-window correctness bug.
+    // Token already consumed; if this batch fails (D1 transient), the user gets a
+    // specific actionable message rather than a generic 500.
     const newSessionId = generateSessionId();
     const newExpiresAt = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
-    await db.batch([
-      db.prepare("UPDATE user SET hashed_password = ?, email_verified = 1, updated_at = datetime('now') WHERE id = ?")
-        .bind(hashedPassword, tokenRow.user_id),
-      db.prepare('DELETE FROM password_reset WHERE user_id = ?').bind(tokenRow.user_id),
-      // Cleanup: revoke ALL sessions on password reset (forces re-auth across all devices for security).
-      // Atomic batch — inline DELETE retained for batch atomicity (mirror of invalidateAllUserSessions)
-      db.prepare('DELETE FROM session WHERE user_id = ?').bind(tokenRow.user_id),
-      sessionInsertStatement(db, newSessionId, tokenRow.user_id, newExpiresAt),
-    ]);
+    try {
+      await db.batch([
+        db.prepare("UPDATE user SET hashed_password = ?, email_verified = 1, updated_at = datetime('now') WHERE id = ?")
+          .bind(hashedPassword, tokenRow.user_id),
+        db.prepare('DELETE FROM password_reset WHERE user_id = ?').bind(tokenRow.user_id),
+        // Cleanup: revoke ALL sessions on password reset (forces re-auth across all devices for security).
+        // Atomic batch — inline DELETE retained for batch atomicity (mirror of invalidateAllUserSessions)
+        db.prepare('DELETE FROM session WHERE user_id = ?').bind(tokenRow.user_id),
+        sessionInsertStatement(db, newSessionId, tokenRow.user_id, newExpiresAt),
+      ]);
+    } catch (phase2Err) {
+      log(env, waitUntil, 'auth', 'reset_password_phase2_error', 'error', phase2Err.message);
+      return json({
+        ok: false,
+        error: 'Your reset link was consumed but the password update failed. Please request a new reset link from https://rrmacademy.org/forgot-password/.',
+      }, 500);
+    }
 
     // Notify the account owner that their password was reset.
     // Non-blocking: a notification failure never fails the reset itself.

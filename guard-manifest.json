@@ -3,23 +3,23 @@
   "description": "Critical file integrity manifest. Run `npm run guard:update` after intentional changes.",
   "files": {
     "functions/api/auth/_shared.js": {
-      "hash": "8ef0e31d0042c73b034e8663b9c13993aa83428fd836be0f17b8940ca0e7f1ab",
+      "hash": "0d0dc93d72271e8eb391257779b8c1a59e0836e2bafb5be76e1e1e06ef9528d5",
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
-      "hash": "dab6bc36ee6c1b9effb3e35217b954c42eebb45e3bc137332ab8de9cb2ea852b",
+      "hash": "9cf1086689a4835f58e165c5999007febdb4c35353d65d29b72f47638ea9940e",
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "e906e09c6e88796a863a605565d6f445ec491d6adc9c05b3cf466495cc994c05",
+      "hash": "acc1d7c79a4ec0085e5fff2d650834fcd3fcd897c0037788c16ff6d5a8af3f73",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
-      "hash": "59ee07595db7367f9627c970892ffe1b16db6fb077d6983a4793e88211dc5de7",
+      "hash": "698a759b4630ce5dbf9c66026fddbe2706d117c4a3b4b73d7582f82455f4fe69",
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
-      "hash": "93a2b02d112579e2f3c6c5367a5c29aaa3d522f19dc3e030900ae23b861d9e7b",
+      "hash": "070dfd31f040ef3b037f5a44a72b3ad0468540a4e17e0559bf29459ec81543fb",
       "note": "Reset token consumption + password change"
     },
     "functions/api/auth/change-password.js": {
@@ -31,11 +31,11 @@
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "3d6045088877c410c53930edc2644395fe9914b33c5c03fc48c29d8396715313",
+      "hash": "1f89aa0d332ceff4754c97e3d95f1bde2af2fc3b73fea12eb1d5e8a8ad806346",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
-      "hash": "a5aa9b4e10618bbfe896a7f8ac174531cda4731d37201c6a7015234c7c092742",
+      "hash": "590a814e642ed97c356738a17f256fe41e6c78394aca635590ceae64aa743743",
       "note": "Email validation + disposable/typo detection"
     },
     "functions/api/stripe-webhook.js": {
@@ -71,7 +71,7 @@
       "note": "HMAC-SHA256 magic-link token for Wix-to-Stripe donor migration"
     },
     "functions/_middleware.js": {
-      "hash": "a3fe86404a105cd6b6096f82e31ab42c58aae67f4e7dca998d405dcb4385d54c",
+      "hash": "da37695750a9f4ab0bbdcf09ec943cf0ca4a9c83c8ad167d3e893c3b87d1c9ea",
       "note": "Auth gating"
     },
     "wrangler.toml": {
@@ -143,7 +143,7 @@
       "note": "Guard script (self-guarding)"
     },
     "functions/api/auth/verify-email.js": {
-      "hash": "96d26c9e9461ba856c4a54d64810a512fc36a9839290f7d83860e6eeb2188e95",
+      "hash": "63bb7644ecce0650c470b5da2a18692cb8e8575adc83b91975c8f9de8a7466b3",
       "note": "Email verification token consumption"
     },
     "functions/api/auth/logout.js": {

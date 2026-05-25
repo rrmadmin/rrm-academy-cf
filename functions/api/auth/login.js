@@ -24,7 +24,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
     try { body = await request.json(); } catch { return json({ ok: false, error: 'Invalid JSON' }, 400); }
     if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
-    const email = (body.email || '').normalize('NFC').trim().toLowerCase();
+    const rawEmail = typeof body.email === 'string' ? body.email : '';
+    const email = rawEmail.normalize('NFC').trim().toLowerCase();
     const password = body.password || '';
 
     if (!isValidEmail(email) || !password || password.length > 128) {
@@ -45,7 +46,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
     if (!turnstileResult.ok) {
       const turnstileMsg = turnstileResult.reason === 'network'
         ? 'Verification service unavailable. Please try again in a moment.'
-        : 'Spam check failed. Please refresh and try again.';
+        : turnstileResult.reason === 'misconfigured'
+          ? 'Verification service is temporarily unavailable. Please contact administrator@rrmacademy.org.'
+          : 'Spam check failed. Please refresh and try again.';
       return json({ ok: false, error: turnstileMsg }, 403);
     }
 
