@@ -7,15 +7,13 @@
 // Pure, no runtime deps beyond the pillar SSOT. Keep it dependency-free so both the
 // Workers bundle and the browser bundle can include it. (INV-1 / Root 1: one minter.)
 
-import pillarsData from '../../ssot/pillars.json' with { type: 'json' };
-
-// Saveable pillar pages = pillars surfaced in the shell guides nav (own shell pages).
-// Excludes glossary (it has its own /glossary/<slug>/ detail route handled below).
-const PILLAR_PATHS = new Set(
-  (pillarsData.pillars || [])
-    .filter((p) => p && p.in_shell_guides_nav)
-    .map((p) => `/${String(p.slug).toLowerCase()}/`)
-);
+// NOTE: this module is intentionally JSON-free so it loads unchanged under raw
+// node (the migration script), wrangler 3.90's esbuild (Pages Functions deploy),
+// AND Vite (the Astro client bundle). A static JSON import can't satisfy all
+// three: bare breaks raw node v25 (needs an import attribute), `with { type:
+// 'json' }` breaks wrangler 3.90's older esbuild. The pillar allowlist therefore
+// lives in saved-pillars.mjs (bundler-only consumers) and is passed into
+// pageTypeFromUrl. See its header for the full rationale.
 
 // Closed enum of saved types. 'guide' is intentionally absent: guides live only at the
 // /guides/ index (no /guides/<slug> detail pages), so a saved "guide" doesn't exist.
@@ -48,14 +46,20 @@ export function canonicalSaveUrl(path) {
  *
  * Server-authoritative: the API derives type from the url and ignores the client's
  * advisory `type` (INV-4).
+ *
+ * @param {string} path
+ * @param {Set<string>} [pillarPaths] Canonical pillar urls (from saved-pillars.mjs).
+ *   Pass it in bundler contexts (API, client) so pillar pages resolve to 'pillar'.
+ *   Omit in JSON-free contexts (the migration, which only ever maps /library/ urls
+ *   and so never needs pillar detection).
  */
-export function pageTypeFromUrl(path) {
+export function pageTypeFromUrl(path, pillarPaths) {
   const u = canonicalSaveUrl(path);
   if (!u) return null;
   if (/^\/library\/(?!page\/|saved\/)[a-z0-9_-]+\/$/.test(u)) return 'article';
   if (/^\/commentary\/(?!page\/)[a-z0-9_-]+\/$/.test(u)) return 'commentary';
   if (/^\/faqs\/(?!page\/)[a-z0-9_-]+\/$/.test(u)) return 'faq';
   if (/^\/glossary\/(?!page\/)[a-z0-9_-]+\/$/.test(u)) return 'glossary';
-  if (PILLAR_PATHS.has(u)) return 'pillar';
+  if (pillarPaths && pillarPaths.has(u)) return 'pillar';
   return null;
 }
