@@ -303,6 +303,56 @@ if (!jsonLd) {
   {defaultSpeakableNode && (
     <script type="application/ld+json" set:html={safeJsonLd(defaultSpeakableNode)} />
   )}
+
+  <!-- rrm-fingerprint-worker client snippet (cookie + localStorage redundancy). -->
+  <script is:inline>
+    (async () => {
+      if (sessionStorage.getItem('fp_in_flight') === '1') return;
+      sessionStorage.setItem('fp_in_flight', '1');
+      const fire = async () => {
+        try {
+          const params = new URLSearchParams(location.search);
+          const utm = {
+            source: params.get('utm_source') || undefined,
+            medium: params.get('utm_medium') || undefined,
+            campaign: params.get('utm_campaign') || undefined,
+          };
+          const vid_hint = localStorage.getItem('rrm_vid') || undefined;
+          const fpHost = location.hostname.endsWith('rrm.foundation') ? 'fp.rrm.foundation' : 'fp.rrmacademy.org';
+          const res = await fetch(`https://${fpHost}/identify`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              path: location.pathname,
+              referrer: document.referrer || null,
+              utm,
+              vid_hint,
+            }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.visitor_id) localStorage.setItem('rrm_vid', data.visitor_id);
+          } else {
+            navigator.sendBeacon?.(
+              `https://${fpHost}/metrics/client-error`,
+              JSON.stringify({ status: res.status, ts: Date.now() }),
+            );
+          }
+        } catch {} finally {
+          sessionStorage.removeItem('fp_in_flight');
+        }
+      };
+      if ('requestIdleCallback' in window) {
+        let fired = false;
+        const fireOnce = () => { if (!fired) { fired = true; fire(); } };
+        requestIdleCallback(fireOnce);
+        setTimeout(fireOnce, 2000);
+      } else {
+        setTimeout(fire, 0);
+      }
+    })();
+  </script>
 </head>
 <body class:list={[bodyClass]} data-track-scroll-page={trackScroll ? '' : undefined}>
   {chrome === 'shell' ? (
