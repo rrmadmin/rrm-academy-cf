@@ -75,6 +75,12 @@ jobs:
       - name: Canonical lockdown
         run: node scripts/check-canonical-lockdown.mjs
 
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
       - name: Get cache date
         id: date
         run: echo "date=$(TZ=America/New_York date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
@@ -206,7 +212,7 @@ jobs:
           # but count below this floor fails immediately regardless of baseline. Prevents
           # slow cumulative data loss across N deploys (each within max_drop) from going
           # undetected. Set above MIN_COUNTS so it actually constrains.
-          declare -A ABSOLUTE_FLOOR=( [articles.json]=3000 [posts.json]=18 [faqs.json]=22 [courses.json]=8 )
+          declare -A ABSOLUTE_FLOOR=( [articles.json]=3600 [posts.json]=20 [faqs.json]=23 [courses.json]=9 )
 
           # Load baselines for regression detection
           BASELINES_FILE="src/data/.baselines.json"
@@ -311,9 +317,9 @@ jobs:
             gloss_terms=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$gloss_file','utf8')).terms.length)")
             gloss_refs=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$gloss_file','utf8')).references.length)")
             gloss_abbrs=$(node -e "console.log((JSON.parse(require('fs').readFileSync('$gloss_file','utf8')).abbreviations || []).length)")
-            gloss_min_terms=100
-            gloss_min_refs=30
-            gloss_min_abbrs=40
+            gloss_min_terms=180
+            gloss_min_refs=140
+            gloss_min_abbrs=63
             gloss_baseline=${BASELINES[glossary.terms]:-0}
             gloss_max_drop=5
             if [ "$gloss_terms" -lt "$gloss_min_terms" ]; then
