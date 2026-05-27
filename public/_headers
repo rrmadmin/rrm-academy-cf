@@ -139,7 +139,6 @@
 /
   Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
   Link: </sitemap.xml>; rel="sitemap"; type="application/xml"
-  Link: </schemamap.xml>; rel="describedby"; type="application/xml"; title="Schema Map"
   Link: </library-feed.jsonl>; rel="alternate"; type="application/x-ndjson"; title="Library Feed (JSONL)"
   Link: </llms.txt>; rel="describedby"; type="text/plain"; title="llms.txt"
   Link: </llms-full.txt>; rel="describedby"; type="text/plain"; title="llms-full.txt"
@@ -166,10 +165,6 @@
 
 /library-feed.jsonl
   Content-Type: application/x-ndjson; charset=utf-8
-  Cache-Control: public, max-age=3600, s-maxage=3600
-
-/schemamap.xml
-  Content-Type: application/xml; charset=utf-8
   Cache-Control: public, max-age=3600, s-maxage=3600
 
 /pricing.md
