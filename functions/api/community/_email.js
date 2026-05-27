@@ -47,8 +47,13 @@ const AUTHOR_SENDERS = {
   // Brian Whittaker
   '301eb55c3f388e65f3f42b14e635dc7a': '"Brian Whittaker" <brian@rrmacademy.org>',
   // Naomi Whittaker (id verified 2026-05-12 via D1 query on naomimwhittaker@gmail.com, role=admin)
-  '710134def83240b7b47b22a9c9579c0c': '"Naomi Whittaker" <naomi@rrmacademy.org>',
+  '710134def83240b7b47b22a9c9579c0c': '"Dr. Naomi Whittaker" <naomi@rrmacademy.org>',
 };
+
+// STUC member-facing broadcast emails always appear from Dr. Naomi Whittaker
+// regardless of which admin created the post. Members expect the face of the
+// club, not the admin/operator behind the scenes. See memory feedback-stuc-email-sender-naomi.
+const STUC_BROADCAST_SENDER = '"Dr. Naomi Whittaker" <community@rrmacademy.org>';
 
 function authorFrom(authorId, authorName) {
   if (AUTHOR_SENDERS[authorId]) return AUTHOR_SENDERS[authorId];
@@ -86,7 +91,7 @@ export async function notifyNewPost(env, db, post, authorName) {
   const link = `${SITE_URL}/community/post/${post.id}`;
   const isEvent = post.type === 'event';
   const safeAuthor = escapeHtml(authorName);
-  const from = authorFrom(post.authorId, authorName);
+  const from = STUC_BROADCAST_SENDER;
 
   let subject;
   let buildEmail;
