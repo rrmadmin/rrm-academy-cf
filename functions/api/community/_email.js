@@ -9,6 +9,10 @@ import { log } from '../_log.js';
 
 const EVENT_SHARE_LINK_RECIPIENTS = ['naomimwhittaker@gmail.com'];
 
+function sanitizeSubject(s) {
+  return String(s).replace(/[\r\n\t]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200);
+}
+
 function escapeHtml(str) {
   if (!str) return '';
   return String(str)
@@ -91,7 +95,7 @@ export async function notifyNewPost(env, db, post, authorName) {
   const link = `${SITE_URL}/community/post/${post.id}`;
   const isEvent = post.type === 'event';
   const safeAuthor = escapeHtml(authorName);
-  const from = STUC_BROADCAST_SENDER;
+  const from = isEvent ? STUC_BROADCAST_SENDER : authorFrom(post.authorId, authorName);
 
   let subject;
   let buildEmail;
@@ -101,9 +105,9 @@ export async function notifyNewPost(env, db, post, authorName) {
     const eventTitle = rawTitle || 'New Save the Uterus Club event';
     const PREFIX = 'Save the Uterus Club';
     const alreadyPrefixed = rawTitle.toLowerCase().startsWith(PREFIX.toLowerCase());
-    subject = rawTitle
+    subject = sanitizeSubject(rawTitle
       ? (alreadyPrefixed ? rawTitle : `${PREFIX}: ${rawTitle}`)
-      : `New ${PREFIX} event`;
+      : `New ${PREFIX} event`);
 
     const formattedDate = formatEventDate(post.event_date);
     const dateLine = formattedDate ? `<p>When: ${escapeHtml(formattedDate)}</p>` : '';
@@ -136,7 +140,7 @@ export async function notifyNewPost(env, db, post, authorName) {
       return { html, text };
     };
   } else {
-    subject = `${authorName} posted in Save the Uterus Club`;
+    subject = sanitizeSubject(`${authorName} posted in Save the Uterus Club`);
 
     buildEmail = (m) => {
       const greeting = m.first_name && m.first_name.trim()
@@ -164,12 +168,25 @@ export async function notifyNewPost(env, db, post, authorName) {
       text,
       replyTo: 'administrator@rrmacademy.org',
       log: { db, source: 'community/new-post', category: 'transactional' },
-    }).catch(err => console.error(`Failed to email ${m.email}:`, err.message));
+    });
   });
-  await Promise.all(emailPromises);
+  const results = await Promise.allSettled(emailPromises);
+  const successCount = results.filter(r => r.status === 'fulfilled').length;
+  const totalCount = results.length;
+
+  for (const r of results) {
+    if (r.status === 'rejected') {
+      console.error('Failed to send community post email:', r.reason?.message);
+    }
+  }
 
   if (env.COMMUNITY_KV) {
-    await env.COMMUNITY_KV.put('community:last_post_email', String(Date.now()), { expirationTtl: 900 });
+    if (successCount / totalCount >= 0.5) {
+      await env.COMMUNITY_KV.put('community:last_post_email', String(Date.now()), { expirationTtl: 900 });
+    } else {
+      log(env, null, 'community', 'notify_cooldown_skipped', 'warn',
+        `Only ${successCount}/${totalCount} emails succeeded — cooldown not set to allow retry`);
+    }
   }
 }
 
@@ -186,9 +203,9 @@ export async function notifyEventShareLink(env, db, post) {
   const rawTitle = post.title || '';
   const eventTitle = rawTitle || 'new Save the Uterus Club event';
   const safeTitle = escapeHtml(rawTitle || 'new Save the Uterus Club event');
-  const subject = rawTitle
+  const subject = sanitizeSubject(rawTitle
     ? `Shareable link ready: ${rawTitle}`
-    : 'Shareable link ready: new Save the Uterus Club event';
+    : 'Shareable link ready: new Save the Uterus Club event');
 
   const shareUrl = `${SITE_URL}/events/${slug}/`;
 
@@ -268,7 +285,7 @@ export async function notifyReply(env, db, postId, parentId, replierId, replierN
     ? `Hi ${escapeHtml(recipient.first_name.trim())},`
     : 'Hi,';
 
-  const subject = `${replierName} replied to your ${targetLabel} in Save the Uterus Club`;
+  const subject = sanitizeSubject(`${replierName} replied to your ${targetLabel} in Save the Uterus Club`);
   const html = `
     <p>${greeting}</p>
     <p><strong>${escapeHtml(replierName)}</strong> replied to your ${targetLabel}:</p>

@@ -109,6 +109,10 @@ const SHELL_ENABLED = isShellEnabled('community');
                 <label class="form-label" for="compose-event-link">Event link</label>
                 <input class="form-input" type="url" id="compose-event-link" name="eventLink" placeholder="https://..." />
               </div>
+              <div class="form-group" id="compose-event-speaker-group">
+                <label class="form-label" for="compose-event-speaker">Speaker (optional)</label>
+                <input class="form-input" type="text" id="compose-event-speaker" name="speaker" maxlength="200" />
+              </div>
             </div>
 
             <!-- Resource fields (shown when type=resource) -->
@@ -175,6 +179,10 @@ const SHELL_ENABLED = isShellEnabled('community');
               <div class="form-group">
                 <label class="form-label" for="edit-modal-event-link">Event link</label>
                 <input class="form-input" type="url" id="edit-modal-event-link" name="eventLink" placeholder="https://..." />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="edit-modal-event-speaker">Speaker (optional)</label>
+                <input class="form-input" type="text" id="edit-modal-event-speaker" name="speaker" maxlength="200" />
               </div>
             </div>
             <div id="edit-modal-resource-fields" hidden>
@@ -247,6 +255,7 @@ const SHELL_ENABLED = isShellEnabled('community');
       var editModalEventFields = document.getElementById('edit-modal-event-fields');
       var editModalEventDate = document.getElementById('edit-modal-event-date');
       var editModalEventLink = document.getElementById('edit-modal-event-link');
+      var editModalEventSpeaker = document.getElementById('edit-modal-event-speaker');
       var editModalResourceFields = document.getElementById('edit-modal-resource-fields');
       var editModalResourceUrl = document.getElementById('edit-modal-resource-url');
       var editModalError = document.getElementById('edit-modal-error');
@@ -495,8 +504,10 @@ const SHELL_ENABLED = isShellEnabled('community');
         if (type === 'event') {
           var eventDate = document.getElementById('compose-event-date').value;
           var eventLink = document.getElementById('compose-event-link').value.trim();
-          if (eventDate) payload.eventDate = fromLocalDateTimeInput(eventDate);
+          var speaker = document.getElementById('compose-event-speaker').value.trim();
+          if (eventDate) payload.eventDate = fromLocalDateTimeInputEastern(eventDate);
           if (eventLink) payload.eventLink = eventLink;
+          if (speaker) payload.speaker = speaker;
         }
         if (type === 'resource') {
           var resourceUrl = document.getElementById('compose-resource-url').value.trim();
@@ -909,11 +920,39 @@ const SHELL_ENABLED = isShellEnabled('community');
 
       function pad2(n) { return n < 10 ? '0' + n : '' + n; }
 
-      function fromLocalDateTimeInput(local) {
+      function toLocalDateTimeInputEastern(iso) {
+        if (!iso) return '';
+        var d = new Date(iso);
+        if (!isFinite(d.getTime())) return '';
+        var parts = new Intl.DateTimeFormat('en-US', {
+          timeZone: 'America/New_York',
+          year: 'numeric', month: '2-digit', day: '2-digit',
+          hour: '2-digit', minute: '2-digit', hour12: false
+        }).formatToParts(d);
+        var get = function(t) { var p = parts.find(function(x){return x.type===t;}); return p ? p.value : ''; };
+        var hour = get('hour'); if (hour === '24') hour = '00';
+        return get('year') + '-' + get('month') + '-' + get('day') + 'T' + hour + ':' + get('minute');
+      }
+
+      function fromLocalDateTimeInputEastern(local) {
         if (!local) return null;
-        var d = new Date(local);
-        if (!isFinite(d.getTime())) return null;
-        return d.toISOString();
+        // Parse "YYYY-MM-DDTHH:MM" as Eastern time, return UTC ISO
+        var m = local.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);
+        if (!m) return null;
+        var year = +m[1], month = +m[2], day = +m[3], hour = +m[4], minute = +m[5];
+        // Compute the UTC instant for this wall-clock time in America/New_York
+        // by formatting a candidate UTC time as ET and adjusting.
+        var candidate = new Date(Date.UTC(year, month - 1, day, hour, minute));
+        var asEt = new Intl.DateTimeFormat('en-US', {
+          timeZone: 'America/New_York',
+          year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false
+        }).formatToParts(candidate);
+        var get = function(t){var p=asEt.find(function(x){return x.type===t;});return p?+p.value:0;};
+        var etYear = get('year'), etMonth = get('month'), etDay = get('day'), etHour = get('hour'), etMin = get('minute');
+        if (etHour === 24) etHour = 0;
+        var etDate = new Date(Date.UTC(etYear, etMonth - 1, etDay, etHour, etMin));
+        var delta = candidate.getTime() - etDate.getTime();
+        return new Date(candidate.getTime() + delta).toISOString();
       }
 
       function escapeHtml(str) {
@@ -1409,18 +1448,9 @@ const SHELL_ENABLED = isShellEnabled('community');
 
         if (post.type === 'event') {
           editModalEventFields.hidden = false;
-          if (post.eventDate) {
-            var ed = new Date(post.eventDate);
-            var iso = ed.getFullYear() + '-' +
-              pad2(ed.getMonth() + 1) + '-' +
-              pad2(ed.getDate()) + 'T' +
-              pad2(ed.getHours()) + ':' +
-              pad2(ed.getMinutes());
-            editModalEventDate.value = iso;
-          } else {
-            editModalEventDate.value = '';
-          }
+          editModalEventDate.value = toLocalDateTimeInputEastern(post.eventDate);
           editModalEventLink.value = post.eventLink || '';
+          editModalEventSpeaker.value = post.speaker || '';
         } else {
           editModalEventFields.hidden = true;
         }
@@ -1475,8 +1505,9 @@ const SHELL_ENABLED = isShellEnabled('community');
         };
 
         if (editingPost.type === 'event') {
-          payload.eventDate = fromLocalDateTimeInput(editModalEventDate.value);
+          payload.eventDate = fromLocalDateTimeInputEastern(editModalEventDate.value);
           payload.eventLink = editModalEventLink.value.trim() || null;
+          payload.speaker = editModalEventSpeaker.value.trim() || null;
         }
         if (editingPost.type === 'resource') {
           payload.resourceUrl = editModalResourceUrl.value.trim() || null;
@@ -1511,6 +1542,7 @@ const SHELL_ENABLED = isShellEnabled('community');
             editingPost.body = payload.body;
             if (payload.eventDate !== undefined) editingPost.eventDate = payload.eventDate;
             if (payload.eventLink !== undefined) editingPost.eventLink = payload.eventLink;
+            if (payload.speaker !== undefined) editingPost.speaker = payload.speaker;
             if (payload.resourceUrl !== undefined) editingPost.resourceUrl = payload.resourceUrl;
 
             // Update card DOM in-place

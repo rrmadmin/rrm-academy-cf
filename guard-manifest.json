@@ -59,7 +59,7 @@
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
-      "hash": "59d6740b65315409771d3f88f13b22631b834c8aa3ea1a0184450c63397e21c3",
+      "hash": "9056598212c9e57f6aa97f11062ba75e53a0c4eee508874fbcd064c048df4874",
       "note": "Subscription lifecycle handler"
     },
     "functions/api/billing/_webhook-shared.js": {
