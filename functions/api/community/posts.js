@@ -6,7 +6,7 @@
  * PATCH  /api/community/posts                                 — edit / pin
  * DELETE /api/community/posts                                 — delete post
  */
-import { json, optionsResponse, generateId } from '../auth/_shared.js';
+import { json, optionsResponse, generateId, checkRateLimit } from '../auth/_shared.js';
 import { log } from '../_log.js';
 import {
   requireMember, displayName, canCreateType, canEditPost, canDeletePost, canPin, roleAtLeast,
@@ -268,6 +268,9 @@ async function _handlePost({ request, env, waitUntil }) {
     const auth = await requireMember(request, env);
     if (auth instanceof Response) return auth;
     const { user } = auth;
+
+    const allowed = await checkRateLimit(env, `posts:${user.id}`, 10, 3600);
+    if (!allowed) return json({ ok: false, error: 'rate_limited' }, 429);
 
     let body;
     try { body = await request.json(); } catch {

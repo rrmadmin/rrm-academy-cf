@@ -15,7 +15,7 @@
  *   { id, text, type: "multiselect", options: string[] }
  */
 import {
-  json, optionsResponse, getSessionIdFromCookie, validateSession,
+  json, optionsResponse, getSessionIdFromCookie, validateSession, checkRateLimit,
 } from '../auth/_shared.js';
 import { log } from '../_log.js';
 import { getCourse, isValidStep, getPreviousStepId, autoEnrollAdmin, checkCourseCompletion } from './_shared.js';
@@ -113,6 +113,9 @@ async function handleQuizSubmit(request, env) {
   const session = await validateSession(db, sessionId);
   if (!session) return json({ ok: false, error: 'Not authenticated' }, 401);
 
+  const allowed = await checkRateLimit(env, `quiz:${session.userId}`, 20, 60);
+  if (!allowed) return json({ ok: false, error: 'rate_limited' }, 429);
+
   let body;
   try {
     body = await request.json();
@@ -184,7 +187,38 @@ async function handleQuizSubmit(request, env) {
     }
     score = Math.round((correct / quiz.questions.length) * 100);
   } else {
-    // Questionnaire: any response = completed, score 100
+    // Questionnaire: validate each answer against its declared question type
+    for (let i = 0; i < quiz.questions.length; i++) {
+      const q = quiz.questions[i];
+      const answer = answers[i];
+      if (q.type === 'likert') {
+        const min = q.scale?.min ?? 1;
+        const max = q.scale?.max ?? 5;
+        if (typeof answer !== 'number' || !Number.isFinite(answer) || answer < min || answer > max) {
+          return json({ ok: false, error: `Invalid answer for question ${i + 1}` }, 400);
+        }
+      } else if (q.type === 'multiselect') {
+        if (!Array.isArray(answer) || answer.length === 0) {
+          return json({ ok: false, error: `Invalid answer for question ${i + 1}` }, 400);
+        }
+        for (const sel of answer) {
+          if (typeof sel !== 'number' || !Number.isFinite(sel) || sel < 0 || sel >= q.options.length) {
+            return json({ ok: false, error: `Invalid answer for question ${i + 1}` }, 400);
+          }
+        }
+      } else if (q.type === 'freetext') {
+        if (typeof answer !== 'string' || answer.trim().length === 0) {
+          return json({ ok: false, error: `Invalid answer for question ${i + 1}` }, 400);
+        }
+        if (answer.length > 2000) {
+          return json({ ok: false, error: `Answer for question ${i + 1} is too long (max 2000 chars)` }, 400);
+        }
+      } else {
+        if (answer === null || answer === undefined) {
+          return json({ ok: false, error: `Invalid answer for question ${i + 1}` }, 400);
+        }
+      }
+    }
     score = 100;
   }
 
