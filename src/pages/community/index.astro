@@ -694,10 +694,10 @@ const SHELL_ENABLED = isShellEnabled('community');
           if (post.eventDate) {
             var d = new Date(post.eventDate);
             var formattedDate = d.toLocaleDateString('en-US', {
-              weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+              weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/New_York'
             });
             var formattedTime = d.toLocaleTimeString('en-US', {
-              hour: 'numeric', minute: '2-digit', hour12: true
+              hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/New_York'
             });
             var dateRow = document.createElement('div');
             dateRow.className = 'event-info-row';
@@ -706,7 +706,7 @@ const SHELL_ENABLED = isShellEnabled('community');
             dateLabel.textContent = 'Date & Time';
             var dateValue = document.createElement('span');
             dateValue.className = 'event-info-value';
-            dateValue.textContent = formattedDate + ' at ' + formattedTime;
+            dateValue.textContent = formattedDate + ' at ' + formattedTime + ' Eastern';
             dateRow.appendChild(dateLabel);
             dateRow.appendChild(dateValue);
             eventInfoEl.appendChild(dateRow);

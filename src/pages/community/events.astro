@@ -223,7 +223,7 @@ const SHELL_ENABLED = isShellEnabled('community');
         html += '<span class="event-date-day">' + d.getDate() + '</span>';
         html += '</div>';
         html += '<div class="event-card-body">';
-        html += '<p class="event-datetime">' + formattedDate + ' at ' + formattedTime + '</p>';
+        html += '<p class="event-datetime">' + formattedDate + ' at ' + formattedTime + ' Eastern</p>';
         html += '<h3 class="event-title">' + escapeHtml(content.title) + '</h3>';
         if (content.description) {
           html += '<p class="event-body">' + linkify(content.description) + '</p>';
@@ -272,7 +272,8 @@ const SHELL_ENABLED = isShellEnabled('community');
           weekday: 'long',
           year: 'numeric',
           month: 'long',
-          day: 'numeric'
+          day: 'numeric',
+          timeZone: 'America/New_York'
         });
       }
 
@@ -280,7 +281,8 @@ const SHELL_ENABLED = isShellEnabled('community');
         return d.toLocaleTimeString('en-US', {
           hour: 'numeric',
           minute: '2-digit',
-          hour12: true
+          hour12: true,
+          timeZone: 'America/New_York'
         });
       }
 

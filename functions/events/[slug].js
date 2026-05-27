@@ -218,8 +218,7 @@ function formatDate(iso) {
     hour: 'numeric',
     minute: '2-digit',
     timeZone: 'America/New_York',
-    timeZoneName: 'short',
-  });
+  }) + ' Eastern';
 }
 
 function renderHtml({ event, summary, speaker, visitor, cta, canonical, memberSummary }) {

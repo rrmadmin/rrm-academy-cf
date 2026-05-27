@@ -31,8 +31,7 @@ function formatEventDate(isoUtc) {
       day: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
-      timeZoneName: 'short',
-    }).format(d);
+    }).format(d) + ' Eastern';
   } catch {
     return null;
   }
