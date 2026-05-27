@@ -452,8 +452,8 @@ const SHELL_ENABLED = isShellEnabled('community');
           var ed = new Date(post.eventDate);
           eventDateEl.textContent = ed.toLocaleDateString('en-US', {
             weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
-            hour: 'numeric', minute: '2-digit',
-          });
+            hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York',
+          }) + ' Eastern';
           if (post.eventLink) {
             eventLinkEl.href = post.eventLink;
             eventLinkEl.hidden = false;
@@ -596,8 +596,8 @@ const SHELL_ENABLED = isShellEnabled('community');
               var ed = new Date(currentPost.eventDate);
               eventDateEl.textContent = ed.toLocaleDateString('en-US', {
                 weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
-                hour: 'numeric', minute: '2-digit',
-              });
+                hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York',
+              }) + ' Eastern';
               if (currentPost.eventLink) eventLinkEl.href = currentPost.eventLink;
             }
             if (currentPost.type === 'resource' && currentPost.resourceUrl) {
