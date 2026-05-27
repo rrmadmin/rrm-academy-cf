@@ -17,6 +17,55 @@ Items explicitly SKIPPED per Perplexity verification (not backlog):
 - #6 "Key Takeaways" -> "Here is what matters:" rename -- folk SEO, zero evidence of LLM-extraction impact. Memory: `feedback-aeo-folk-rules.md`
 - #12 `/schema/*.json` + `schemamap.xml` (NLWeb pattern) -- proposal-only, zero adoption by ChatGPT/Claude/Perplexity/Gemini. Memory: `feedback-nlweb-schemamap-skip.md`
 
+### 2026-05-27 6-Agent Audit — Remaining P1 / P2
+
+Six parallel sub-agents reviewed the codebase across non-overlapping slices (API hygiene, design system + a11y, D1 schema/queries, CI/build, agent surfaces/AEO, SEO + content). All 12 P0 items shipped in 5 batches (claude/p0-{ci-baselines-tests, d1-indexes-schema, rate-limits-quiz-community, openapi-schemamap, about-schedule-link}). The P1/P2 items below remain open. Picked from the synthesized punch list — full agent transcripts referenced in `~/iCode/.claude` task outputs from this session.
+
+**Deferred from P0 (vendor work):**
+- **Vendor `~/iCode/tools/site-ssot/`** into the repo and re-enable `/schemamap.xml` — `_headers` Link advertisement was removed in 235faef because the postbuild generator lives at a sibling-tool path that doesn't exist in CI. Follow the `lint-cf-headers` precedent (rrmadmin/rrm-tools shared workflow). When restored, add the Link back to `public/_headers` line ~142 and the `/schemamap.xml` Content-Type block to line ~170. Same vendoring opportunity covers the `standards-gate` step in deploy.yml:445-455 (currently a dead step for the same reason).
+
+**P1 — bug-class fixes worth doing this month:**
+
+1. **Citation graph builder** (single biggest AEO unlock per [[rrma-core-thesis-citation-authority]]). Build-time scan of `src/pages/commentary/[...slug].astro` rendered bodies + pillar pages for `/library/<slug>/` references; emit bidirectional `citation: [...]` on both ends of the JSON-LD. Files: `src/lib/identity.ts` (buildMedicalScholarlyArticle), `src/pages/library/[...slug].astro:130`, `src/pages/commentary/[...slug].astro:76-106`. Bidirectional emit = the graph LLMs traverse to decide "RRMA is the source PMC and ASRM agree with."
+2. **Commentary BlogPosting schema lacks `citation` field** even when post body cites library articles. Pair with item #1.
+3. **Pillar /neofertility/ hardcodes 3 ScholarlyArticles** instead of referencing live `/library/<slug>/` URLs — refactor `src/pages/neofertility/index.astro:43+` to use canonical library URLs so the graph stays internal. Same for `/endometriosis/` and other pillars.
+4. **`/editorials/` parked despite being built** (per [[rrm-responds-initiative]]). Decide: go live or de-park. Sitting wastes built work + the ScholarlyArticle co-retrieval edge.
+5. **`/health` declared in openapi.json but no handler exists** — add `functions/health.js` returning `{status:"ok"}` OR strip the path from spec. Calls TO downstream workers (admin/seo.js:42, admin/backlinks.js:52) are unrelated.
+6. **Test glob silently skips files**: `npm test` runs `test/*.test.js` only — misses `.test.mjs` + everything under `tests/`. Change to `node --test test/**/*.test.{js,mjs} tests/**/*.test.{js,mjs}` and add a Playwright job for e2e. Likely 7+ tests sit dark.
+7. **`blog/posts.js:54` `SELECT * FROM posts`** with full bodies on hot path. Project columns + paginate. Will approach D1 100KB per-statement ceiling as corpus grows.
+8. **`partners/apply.js`** uses `Math.random()` for partner ID (weak RNG vs sibling `crypto.randomUUID()`), no rate limit, no `withIdempotency`. Mirror `contact/submit.js`.
+9. **`survey/request.js:105,109`** `env.DB` not guarded for the `sendEmail` log path — throws 500 if binding missing.
+10. **N+1-ish correlated subqueries** in `community/posts.js:80,90,157,185` — `(SELECT COUNT(*) FROM community_comment WHERE post_id=p.id)` per row in every feed query. Switch to LEFT JOIN aggregate or denormalize `comment_count` with triggers.
+11. **`_webhook-checkout.js`** has ~17 sequential `.run()/.first()` outside `db.batch([…])` (already PG4 warn-flagged 2026-05-07; still unresolved).
+12. **53 raw `<img>` tags in `/src/pages/`** should migrate to Astro `<Image>` for optimization. Backlog because volume.
+13. **Responsive breakpoint drift**: `NewsletterSignup.astro` uses 480/600px while rest of site uses 640/768/1024. Standardize.
+14. **A11y gaps**: 5 pages missing alt text (linkinbio, hero, commentary cover images); 3 icon-only buttons missing `aria-label` (search button, format buttons, community link button).
+15. **`security.yml` triple-fires** on the typical claude/* → merge → main flow. Restrict trigger to `main` + `pull_request` only (drop claude/** branch trigger; pre-commit catches it locally via gitleaks protect).
+
+**P2 — backlog (touch opportunistically when in the file):**
+
+16. **Dead components**: `AudienceRail.astro`, `OptimizedImage.astro` — 0 imports across `src/pages/` and `src/layouts/`. Archive or promote to use.
+17. **`/providers/index.astro` missing JSON-LD** — emit `ItemList` + per-provider `MedicalBusiness`/`Physician` nodes. Provider directory is the kind of structured page that benefits most.
+18. **Glossary references point to external PMC/PubMed** instead of `/library/<slug>/` where the paper exists in D1 — breaks internal citation graph. 85 external citations. Where library record exists, swap to internal URL; external fallback only when no library record.
+19. **Hardcoded shadows** (`rgba(0,0,0,0.08)` / `0.1`) appear inline in 8+ places — consolidate to `--shadow-sm` / `--shadow-md` / `--shadow-lg` tokens. Plus `CourseCard.astro` badge colors, `SearchBar.astro` focus shadow, `MobileSearchModal.astro` backdrop — all should be tokens.
+20. **`courses/comments.js`** has no PATCH/DELETE handler (sibling `community/comments.js` does both). Author can't edit/delete after posting. Verify intentional vs gap.
+21. **`courses/enroll.js:41`** no `withIdempotency` wrapper. INSERT has ON CONFLICT so safe, but two Stripe Checkout sessions can be created before the dedup fires on a double-tap.
+22. **`merge.yml` duplicates 3 guards** that re-run in deploy.yml minutes later (~30-60s waste per merge). Drop from merge.yml; pre-commit + deploy.yml already cover.
+23. **AI Search reconcile weekly cron** refetches 4 data sources with no `actions/cache` step. 1-3 min wasted per Sunday run.
+24. **`standards-gate` step in deploy.yml:445-455** references a sibling path that doesn't exist in CI — dead step. Either vendor (see deferred P0 above) or remove invocation.
+25. **OpenAPI version stuck at `1.0.0`**, no `x-updated-at`, no `deprecated:` markers. Bump to `1.1.0` + add `x-updated-at` next time the spec is touched.
+26. **No `/glossary/rss.xml` feed** for AI agent freshness polling. llms.txt advertises glossary; agents need a poll target.
+27. **Corpus count drift**: site copy says "4,030+" articles; live D1 is 4,074 published / 5,323 total. Either re-pull `sync-library-count.mjs` more often or hardcode "4,070+".
+28. **Sample-3 pillar pages** (`/neofertility/`, `/endometriosis/`) missing `Speakable` selector for first H2 section paragraph — only h1 + `.pillar-lead` declared. Single-sentence speakable answer is thin.
+29. **No `dateModified` on `WebPage` graph node** for `/`, `/library/`, `/commentary/`. Only `article:modified_time` meta. Add `dateModified` from `page-dates.json` for crawler freshness signal.
+30. **`/api/community/upload` returns `{ url }` bare**, not the `{ ok: true, ... }` convention used by sibling endpoints. Caller still works via `.url` directly, but `.ok` is undefined.
+31. **`survey/validate.js:21`** mixes semantics: `{ valid: false, reason: 'misconfigured' }` on 500 (server broken) collides with same shape used for invalid-token (client error). Split into `{ error: 'service_unavailable' }` for 500.
+32. **CASE_CANONICAL_PREFIXES tests** could be expanded to cover `/library/*` cases (the only remaining prefix). Currently zero test coverage on that path now that schedule-with-dr-whittaker is gone.
+
+**Process / methodology:**
+
+33. **api-contract-surface-completeness invariant** — codify "if openapi.json `x-idempotency-policy.applies_to[]` lists a path, that path MUST have implementation + schema stub" as a `scripts/agent-discovery-check.mjs` invariant. Born from Batch D — the audit caught the drift this time; a guard would catch it the moment it appears.
+
 ### Homepage visuals: comparison diagram + commentary thumbnails
 
 Homepage is intentionally text-heavy to match high-anxiety audience register (Michelle persona, OB/GYN comfort 1.1/5). Two visual additions worth considering when bandwidth allows:
