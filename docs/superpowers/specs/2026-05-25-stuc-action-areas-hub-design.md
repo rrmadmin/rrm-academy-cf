@@ -16,6 +16,7 @@
   3. **Archive is now a propagating state transition** (HIGH #8): all child reads resolve through an active-parent join; `project.status` gains `archived`.
   4. **Response shape decided** (HIGH #4): new endpoints return `{ ok: true, results }` to match existing community siblings + hub JS (NOT the generic `{ results }` standard — deliberate, documented divergence from CLAUDE.md coding-standard #5).
   5. Migration pinned to `024`; membership read-back + leave endpoints added; enum CHECK constraints, `isSafeUrl(workspace_url)`, ET month boundary, owner-resolution-as-separate-UPDATE all added.
+- **2026-05-27 v3** — Sparse-state display gating added (Brian's call). With ~36 members and a handful of projects, showing raw counts advertises sparseness. The hub now leads with mission + invitation and only reveals counts once they cross a "looks healthy" floor; the numbers reappear automatically as the club grows, no later code change. APIs still compute the counts; only the public display is gated. See §Sparse-state display gating and G-AREA-12.
 
 ---
 
@@ -86,6 +87,22 @@ The v1 design assumed `requireMember()` was the only gate. It is not — `_middl
 - **Default stream view = everything together** (All pills active). The `?area=` filter narrows to posts tagged with that area; untagged (NULL-area) posts always show under "All".
 - Logged-out visitors see impact strip + Action Areas row + Active Projects rail; the stream slot shows the join gate.
 - **Zero-active-areas state:** when `action_area` has no active rows (pre-seed, or all archived), the areas row, projects rail, filter pills, AND per-post area chips all suppress — the page renders the **verbatim legacy feed**. The stream restyle (chat-style consolidation) is independent of area existence and ships regardless; only the area-dependent furniture (pills, chips, rails) is gated on active areas.
+
+## Sparse-state display gating (v3)
+
+Distinct from the zero-active-areas fallback above: even with active areas, the early-stage counts are small enough that displaying them reads as "dead." The principle is **lead with mission and invitation, reveal a number only when it flatters**. Gating is purely a display concern — every endpoint still computes and returns the real counts (members and internal/admin views use them); the hub just withholds the *display* below each floor. Floors are constants (single source, easy to tune as the club grows), not hardcoded at call sites.
+
+| Element | Below floor (display) | Floor | At/above floor |
+|---|---|---|---|
+| Per-area **project count** on Action Area cards | hide the number; show a "Get involved →" CTA | **≥ 3 projects** | render "N projects" |
+| **Active Projects rail** | render projects as named *opportunities* (no count header); suppress the rail entirely at 0 active projects | n/a (qualitative) | unchanged |
+| **"This Month" impact strip** | suppress (no single-item strip) | **≥ 2 curated entries** in the ET month | render the strip |
+| **Member counts** (anywhere public) | never displayed | **≥ 100 members** | only then consider surfacing |
+
+Notes:
+- The floors apply to the **public + member hub display**. The `/api/community/areas`, `/projects`, and `/impact` endpoints return real counts regardless; the hub template (and any future admin view) decides whether to render them.
+- This composes with the zero-active-areas fallback: zero areas → legacy feed; some areas but sub-floor counts → areas/projects render with qualitative framing, numbers hidden.
+- Floors are tunable; revisit when membership/projects materially grow.
 
 ## Surfaces (Astro, on rrmacademy.org)
 
@@ -193,7 +210,7 @@ All endpoints return the **community-sibling shape `{ ok: true, ... }` / `{ ok: 
 
 | Endpoint | Method | Auth | Purpose |
 |---|---|---|---|
-| `/api/community/areas` | GET | public | Active areas + per-area project count via a **single `LEFT JOIN project … GROUP BY action_area.id`** (zero-project areas still render with count 0). When the caller is authenticated, include `isMember` per area. |
+| `/api/community/areas` | GET | public | Active areas + per-area project count via a **single `LEFT JOIN project … GROUP BY action_area.id`** (zero-project areas still render with count 0). When the caller is authenticated, include `isMember` per area. **The count is always returned; the hub display-gates it per §Sparse-state display gating (G-AREA-12).** |
 | `/api/community/projects` | GET | public | Projects, `JOIN action_area … WHERE action_area.status='active'`. Filterable `?area=`/`?status=`. Include `isMember` when authed. |
 | `/api/community/memberships` | GET | member | The caller's `area_membership` + `project_membership` (drives "Joined ✓" state on cold load). |
 | `/api/community/areas/join` | POST | member | `area_membership` upsert `ON CONFLICT DO NOTHING`; returns `{ ok:true, joined:<bool from meta.changes>, alreadyMember:<bool> }`. Rejects archived areas (400). |
@@ -273,6 +290,7 @@ Re-running the seed after an owner finally registers requires the standalone UPD
 | G-AREA-9 | All enum columns (`bucket`, both `status` enums, `kind`, `role`) carry `CHECK (… IN (…))`; endpoints allowlist-validate before write. |
 | G-AREA-10 | New endpoints return `{ ok: true, … }`/`{ ok: false, error }` (sibling shape), not `{ results }`; hub JS branching on `data.ok` works. |
 | G-AREA-11 | "This Month" window is computed in America/New_York (not UTC). |
+| G-AREA-12 | Sparse-state display gating: the hub hides per-area project counts below 3, the impact strip below 2 curated entries, and member counts below 100 (see §Sparse-state display gating). APIs still return the real counts; only the hub display is gated, via tunable floor constants in one place. |
 
 ## Open items for the implementation plan
 
