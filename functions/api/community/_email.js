@@ -7,6 +7,8 @@ import { SITE_URL } from '../auth/_shared.js';
 import { STUC_MEMBER_WHERE } from './_shared.js';
 import { log } from '../_log.js';
 
+const EVENT_SHARE_LINK_RECIPIENTS = ['naomimwhittaker@gmail.com'];
+
 function escapeHtml(str) {
   if (!str) return '';
   return String(str)
@@ -165,6 +167,66 @@ export async function notifyNewPost(env, db, post, authorName) {
   if (env.COMMUNITY_KV) {
     await env.COMMUNITY_KV.put('community:last_post_email', String(Date.now()), { expirationTtl: 900 });
   }
+}
+
+export async function notifyEventShareLink(env, db, post) {
+  if (post.type !== 'event') return;
+
+  if (!post.slug) {
+    log(env, null, 'community', 'share_link_skipped_no_slug', 'warn',
+      `notifyEventShareLink: post ${post.id} has no slug, skipping`);
+    return;
+  }
+
+  const slug = post.slug;
+  const rawTitle = post.title || '';
+  const eventTitle = rawTitle || 'new Save the Uterus Club event';
+  const safeTitle = escapeHtml(rawTitle || 'new Save the Uterus Club event');
+  const subject = rawTitle
+    ? `Shareable link ready: ${rawTitle}`
+    : 'Shareable link ready: new Save the Uterus Club event';
+
+  const shareUrl = `${SITE_URL}/events/${slug}/`;
+
+  const formattedDate = formatEventDate(post.event_date);
+  const dateLine = formattedDate ? `<p><strong>When:</strong> ${escapeHtml(formattedDate)}</p>` : '';
+  const dateLineText = formattedDate ? `When: ${formattedDate}\n` : '';
+
+  const speaker = post.speaker && typeof post.speaker === 'string' ? post.speaker.trim() : null;
+  const speakerLineHtml = speaker ? `<p><strong>Speaker:</strong> ${escapeHtml(speaker)}</p>` : '';
+  const speakerLineText = speaker ? `Speaker: ${speaker}\n` : '';
+
+  const captionSpeaker = speaker ? ` with ${speaker}` : '';
+  const captionDate = formattedDate ? ` — ${formattedDate}` : '';
+  const suggestedCaption = `Join us for "${eventTitle}"${captionSpeaker}${captionDate}. Link in bio.`;
+
+  const emailPromises = EVENT_SHARE_LINK_RECIPIENTS.map(recipientEmail => {
+    const greeting = recipientEmail === 'naomimwhittaker@gmail.com'
+      ? 'Hi Dr. Whittaker,'
+      : 'Hi,';
+
+    const html = `
+    <p>${greeting}</p>
+    <p>A new Save the Uterus Club event was just posted and the public landing page is live with og:image and title ready to share.</p>
+    <p><strong>${safeTitle}</strong></p>
+    ${dateLine}${speakerLineHtml}
+    <p>Public link (safe to share — Meet URL and dial-in are gated for members only; non-members see an upgrade CTA):</p>
+    <p><a href="${shareUrl}">${shareUrl}</a></p>
+    <p><strong>Suggested IG caption:</strong><br>${escapeHtml(suggestedCaption)}</p>
+  `;
+    const text = `${greeting}\n\nA new Save the Uterus Club event was just posted and the public landing page is live.\n\n${eventTitle}\n${dateLineText}${speakerLineText}\nPublic link (safe to share):\n${shareUrl}\n\nSuggested IG caption:\n${suggestedCaption}`;
+
+    return sendEmail(env, {
+      from: '"RRM Academy Events" <community@rrmacademy.org>',
+      to: recipientEmail,
+      subject,
+      html,
+      text,
+      replyTo: 'administrator@rrmacademy.org',
+      log: { db, source: 'community/event-share-link', category: 'transactional' },
+    }).catch(err => console.error(`Failed to send share-link email to ${recipientEmail}:`, err.message));
+  });
+  await Promise.all(emailPromises);
 }
 
 export async function notifyReply(env, db, postId, parentId, replierId, replierName, replyContent) {

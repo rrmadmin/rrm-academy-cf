@@ -12,7 +12,7 @@ import {
   requireMember, displayName, canCreateType, canEditPost, canDeletePost, canPin, roleAtLeast,
   tierFromLabel, TIER_LABELS,
 } from './_shared.js';
-import { notifyNewPost } from './_email.js';
+import { notifyNewPost, notifyEventShareLink } from './_email.js';
 import { withIdempotency } from '../_idempotency.js';
 
 const VALID_CHANNELS = ['stuc', 'members', 'masterclass'];
@@ -412,14 +412,20 @@ async function _handlePost({ request, env, waitUntil }) {
     }
 
     // Send email notification (fire-and-forget)
+    const postObj = {
+      id, type, title: (title && typeof title === 'string') ? title.trim() : null,
+      body: contentToStore, authorId: user.id, event_date: eventDate || null,
+      speaker: finalSpeaker, slug: finalSlug,
+    };
     try {
-      await notifyNewPost(env, db, {
-        id, type, title: (title && typeof title === 'string') ? title.trim() : null,
-        body: contentToStore, authorId: user.id, event_date: eventDate || null,
-        speaker: finalSpeaker,
-      }, displayName(user));
+      await notifyNewPost(env, db, postObj, displayName(user));
     } catch (err) {
       log(env, waitUntil, 'community', 'post_notification_failed', 'warn', err.message, 0, 0);
+    }
+    try {
+      await notifyEventShareLink(env, db, postObj);
+    } catch (err) {
+      log(env, waitUntil, 'community', 'share_link_notification_failed', 'warn', err.message, 0, 0);
     }
 
     return json({
