@@ -85,7 +85,7 @@ const jsonLd = {
   speakable={['.faq-title', '.prose p']}
   chrome={SHELL_ENABLED ? 'shell' : 'default'}
 >
-  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname}>
+  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname} saveTitle={faq.question}>
   <div class="page-wrapper" data-pagefind-body>
     <span data-pagefind-meta="type:FAQ" style="display:none"></span>
     <span data-pagefind-meta={`title:${faq.question}`} style="display:none"></span>

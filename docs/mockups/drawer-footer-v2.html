@@ -1,0 +1,77 @@
+<!doctype html>
+<!-- Drawer footer v2: account row + Donate(not full-width) paired with theme toggle. 2026-05-23 -->
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drawer footer v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg-body:#f7f5f3;--bg-surface:#fff;--text-primary:#313131;--text-secondary:#636261;
+  --text-tertiary:#949392;--text-muted:#adaba9;--accent:#725e7e;--border-color:#dddbd8;--border-light:#dddbd8;
+  --sand-300:#dbcbbb;--radius-pill:9999px;--radius-lg:16px;}
+*{box-sizing:border-box}
+body{margin:0;background:#e8e4df;font-family:'Inter',sans-serif;color:var(--text-primary);
+  padding:32px;display:flex;gap:34px;justify-content:center;flex-wrap:wrap}
+.cell{display:flex;flex-direction:column;gap:8px;width:380px}
+.cell h3{margin:0;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#6b6560}
+.cell .st{font-size:11px;color:#8a847e;margin:0 0 4px}
+.foot{background:var(--bg-body);border:1px solid var(--border-color);border-radius:20px;padding:18px 20px 20px;box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.hair{border:none;border-top:1px solid var(--border-light);margin:0 0 14px}
+.nav-hint{display:flex;flex-direction:column;gap:9px;padding:0 4px 14px}
+.nav-hint span{height:9px;width:55%;background:#e8e2db;border-radius:5px}
+.nav-hint span:nth-child(2){width:42%}
+
+.av{width:38px;height:38px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;font-weight:600;font-size:14px}
+.av.photo{background:linear-gradient(135deg,#9a86a6,#725e7e);color:#fff}
+.av.empty{background:var(--bg-surface);border:1.5px solid var(--border-color);color:var(--text-tertiary)}
+.av svg{width:20px;height:20px}
+
+.acct{display:flex;align-items:center;gap:13px;width:100%;padding:10px 12px;border-radius:var(--radius-lg);
+  background:var(--bg-surface);border:1px solid var(--border-color);text-decoration:none;color:inherit;margin-bottom:10px}
+.acct .txt{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+.acct .nm{font-size:14px;font-weight:600;white-space:nowrap}
+.acct .sub{font-size:11px;color:var(--text-tertiary)}
+.acct .chev{margin-left:auto;color:var(--text-muted);flex-shrink:0}
+.acct .chev svg{width:18px;height:18px}
+
+/* bottom row: donate (grow) + theme icon */
+.actions{display:flex;align-items:stretch;gap:10px}
+.donate{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;border-radius:var(--radius-pill);
+  background:var(--accent);color:#fff;border:1px solid var(--accent);text-decoration:none;font-size:13px;font-weight:600}
+.donate svg{width:15px;height:15px}
+.theme{width:46px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border:1px solid var(--border-color);
+  border-radius:var(--radius-pill);background:var(--bg-surface);color:var(--text-secondary);cursor:pointer}
+.theme svg{width:18px;height:18px}
+</style></head>
+<body>
+<svg style="display:none">
+<symbol id="user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+<symbol id="heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></symbol>
+<symbol id="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></symbol>
+<symbol id="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol>
+<symbol id="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.2" y1="4.2" x2="5.6" y2="5.6"/><line x1="18.4" y1="18.4" x2="19.8" y2="19.8"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.2" y1="19.8" x2="5.6" y2="18.4"/><line x1="18.4" y1="5.6" x2="19.8" y2="4.2"/></symbol>
+</svg>
+
+<div class="cell">
+  <h3>Logged in</h3><p class="st">Account row + Donate (auto-width) beside theme</p>
+  <div class="foot">
+    <div class="nav-hint"><span></span><span></span></div><hr class="hair">
+    <a class="acct"><span class="av photo">NW</span><span class="txt"><span class="nm">Naomi W.</span><span class="sub">View account</span></span><span class="chev"><svg><use href="#chev"/></svg></span></a>
+    <div class="actions">
+      <a class="donate"><svg><use href="#heart"/></svg>Donate</a>
+      <button class="theme" title="Dark mode"><svg><use href="#moon"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<div class="cell">
+  <h3>Logged out</h3><p class="st">Sign in row + Donate beside theme</p>
+  <div class="foot">
+    <div class="nav-hint"><span></span><span></span></div><hr class="hair">
+    <a class="acct"><span class="av empty"><svg><use href="#user"/></svg></span><span class="txt"><span class="nm">Sign in</span><span class="sub">Save articles, track courses</span></span><span class="chev"><svg><use href="#chev"/></svg></span></a>
+    <div class="actions">
+      <a class="donate"><svg><use href="#heart"/></svg>Donate</a>
+      <button class="theme" title="Light mode"><svg><use href="#sun"/></svg></button>
+    </div>
+  </div>
+</div>
+</body></html>

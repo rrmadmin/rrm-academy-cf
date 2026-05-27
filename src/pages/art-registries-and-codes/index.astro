@@ -205,7 +205,7 @@ const jsonLd = {
   speakable={['.pillar-lead', 'h1']}
   chrome={SHELL_ENABLED ? 'shell' : 'default'}
 >
-  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname}>
+  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname} saveTitle="ART Registries and Codes of Practice">
   <div class="page-wrapper" data-pagefind-body>
     <span data-pagefind-meta="type:Guide" style="display:none"></span>
     <span data-pagefind-meta="title:ART Registries and Codes of Practice" style="display:none"></span>
@@ -220,7 +220,7 @@ const jsonLd = {
         <span>ART Registries and Codes of Practice</span>
       </nav>
 
-      <h1 class="animate-enter" style="--stagger: 0;">ART Registries and Codes of Practice: A Reference for Patients and Clinicians</h1>
+      <h1>ART Registries and Codes of Practice: A Reference for Patients and Clinicians</h1>
 
       {/* Org-authored + clinically reviewed byline. Uses the canonical
           .author-avatar-stack + .has-reviewer pattern (precedent: /glossary/).

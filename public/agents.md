@@ -1,7 +1,7 @@
 # agents.md — RRM Academy
 
 Canonical URL: https://rrmacademy.org/agents.md
-Updated: 2026-05-21
+Updated: 2026-05-22
 
 ## About this site
 

@@ -117,6 +117,10 @@ async function handleWebhook(request, env, waitUntil) {
     if (result.status >= 500) {
       await rollbackWebhookDedup(db, event.id, env, waitUntil);
     } else {
+      if (result.status >= 400) {
+        log(env, waitUntil, 'billing', 'webhook_4xx_acked', 'error',
+          `${event.id} (${event.type}): handler returned ${result.status}`, 0, result.status);
+      }
       await markWebhookEventCompleted(db, event.id, env, waitUntil);
     }
     return result;

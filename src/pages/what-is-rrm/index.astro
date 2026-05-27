@@ -359,7 +359,7 @@ const jsonLd = {
   chrome={SHELL_ENABLED ? 'shell' : 'default'}
   trackScroll
 >
-  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname}>
+  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname} saveTitle="What is RRM?">
   <div class="page-wrapper" data-pagefind-body>
     <span data-pagefind-meta="type:Guide" style="display:none"></span>
     <span data-pagefind-meta="title:What is Restorative Reproductive Medicine (RRM)?" style="display:none"></span>
@@ -373,9 +373,9 @@ const jsonLd = {
         <span>What is RRM?</span>
       </nav>
 
-      <h1 class="animate-enter" style="--stagger: 0;">What is Restorative Reproductive Medicine (RRM)?</h1>
+      <h1>What is Restorative Reproductive Medicine (RRM)?</h1>
 
-      <div class="author-byline animate-enter" style="--stagger: 1;">
+      <div class="author-byline">
         <img src="/images/authors/naomi-whittaker.webp" alt="Dr. Naomi Whittaker, MD" class="author-byline__photo" width="48" height="48" />
         <div class="author-byline__text">
           <span>By <strong><a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</a></strong></span>

@@ -57,7 +57,6 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
   // Course purchase: create enrollment
   if (session.metadata?.type === 'course') {
     const courseId = session.metadata.courseId;
-    const paymentIntent = session.payment_intent;
 
     // Resolve the user ID: logged-in user or look up by email for anonymous checkout
     let userId = session.client_reference_id;
@@ -79,13 +78,13 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
     if (!getCourse(courseId)) {
       log(env, waitUntil, 'billing', 'course_not_found', 'error', `${courseId} user=${userId}`);
       return new Response(JSON.stringify({ ok: false, error: 'Course not found' }), {
-        status: 400,
+        status: 500,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
     try {
-      await enrollUser(db, userId, courseId, paymentIntent);
+      await enrollUser(db, userId, courseId, session.payment_intent || session.id);
       log(env, waitUntil, 'billing', 'course_enrolled', 'ok', `${courseId} user=${userId}`);
     } catch (enrollErr) {
       log(env, waitUntil, 'billing', 'course_enroll_fail', 'error', `${courseId}: ${enrollErr.message}`, 0, 500);
@@ -143,12 +142,12 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
   const pageLocation = (session.cancel_url || session.success_url || SITE_URL).replace(/\?.*$/, '');
 
   // GA4: track completed course purchase
-  if (session.metadata?.type === 'course' && session.payment_intent) {
+  if (session.metadata?.type === 'course') {
     waitUntil(sendGA4Event(env, request, 'purchase', {
       page_location: pageLocation,
       currency: 'USD',
       value: (session.amount_total || 0) / 100,
-      transaction_id: session.payment_intent,
+      transaction_id: session.payment_intent || session.id,
       items: [{ item_name: `Course: ${session.metadata.courseId || 'unknown'}` }],
       ...(session.metadata?.ga_source && { utm_source: session.metadata.ga_source }),
       ...(session.metadata?.ga_medium && { utm_medium: session.metadata.ga_medium }),
@@ -215,18 +214,19 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
           ).bind(session.metadata.wix_subscription_id).first();
 
           if (wixRow) {
-            wixAmountDollars = (wixRow.amount_cents / 100).toFixed(0);
+            const amountNum = Number(wixRow.amount_cents);
+            wixAmountDollars = (Number.isFinite(amountNum) && amountNum > 0) ? (amountNum / 100).toFixed(0) : null;
             const nowSec = Math.floor(Date.now() / 1000);
             const nextAtSec = wixRow.next_expected_at
               ? Math.floor(new Date(wixRow.next_expected_at).getTime() / 1000)
               : null;
             const isUsable = Number.isFinite(nextAtSec) && nextAtSec > nowSec;
-            if (isUsable) {
+            if (isUsable && wixAmountDollars) {
               const humanDate = new Date(wixRow.next_expected_at).toLocaleDateString('en-US', {
                 year: 'numeric', month: 'long', day: 'numeric',
               });
               nextChargeSentence = `Your next donation will be processed on ${humanDate} at $${wixAmountDollars}/month -- the same date and same amount you were already on.`;
-            } else {
+            } else if (!isUsable && wixAmountDollars) {
               const fallbackDate = new Date();
               fallbackDate.setMonth(fallbackDate.getMonth() + 1);
               const humanDate = fallbackDate.toLocaleDateString('en-US', {
@@ -269,7 +269,13 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
         }).catch(() => {}));
         }
       } else {
-        // New member — standard welcome email with onboarding list
+        // New member -- standard welcome email with onboarding list
+        const superHeroLine = tier === 'superhero'
+          ? [
+              '',
+              '5. Brand placement on the rrmacademy.org homepage. As a Super Hero, your brand or practice gets featured on our front page as a thank-you for the level of support that keeps this work going. Reply with your logo (PNG, transparent background) and the URL you want it linked to.',
+            ]
+          : [];
         waitUntil(sendEmailSafe(env, waitUntil, {
           to: email,
           subject: 'Welcome to the Save the Uterus Club',
@@ -277,25 +283,34 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
           text: [
             `Hi ${name || 'there'},`,
             '',
-            `Welcome to the Save the Uterus Club! You're now a ${tierLabel} member.`,
+            `You're in as a ${tierLabel}. Welcome to the Save the Uterus Club.`,
             '',
-            'Here\'s what to do next:',
+            'You just joined a community of patients, couples, and clinicians fighting to make root-cause reproductive care the standard, not the exception. The people who get the most from being a member are the ones who show up to the monthly calls and stay active in the community -- that\'s where the real value lives.',
             '',
-            '1. Join the member group -- this is where live call dates, resources, and discussion happen:',
-            `   ${SITE_URL}/community/`,
+            'The two calls each month:',
             '',
-            '2. Join the free Uterus Allies group chat on Instagram:',
-            '   https://www.instagram.com/direct/t/7768750249851959/',
+            '1. Networking call with Dr. Naomi Whittaker -- live group call to ask questions, share what you\'re navigating, and meet other members.',
             '',
-            '3. Explore the Research Library -- over 3,000 peer-reviewed resources:',
-            `   ${SITE_URL}/library/`,
+            '2. Education call with Dr. Whittaker or invited expert guests. Recent topics: hormones through the lifespan, pelvic floor rehab, medical trauma with endometriosis. Recordings stay in the community for members who can\'t attend live.',
             '',
-            `You can manage your membership anytime at ${SITE_URL}/account/`,
+            'Also included:',
             '',
-            'Thank you for supporting evidence-based reproductive health.',
+            '3. Five member-only courses, free with your membership: Hormones Through the Lifespan, Pelvic Floor Rehabilitation, Infertility as Existential Trauma, Fertility-Based Methods of Family Planning, and Why the AIP Diet Is Not Enough to Reduce Inflammation. They\'ll show up in your account.',
             '',
+            `4. The RRM Research Library at ${SITE_URL}/library/ -- over 3,000 peer-reviewed sources with Dr. Whittaker's clinical commentary on the ones that matter most.`,
+            ...superHeroLine,
+            '',
+            `Set up your account and find the call schedule at ${SITE_URL}/community/. Log in with this email.`,
+            '',
+            `Manage your membership any time at ${SITE_URL}/account/.`,
+            '',
+            'If anything is confusing or doesn\'t work the way it should, hit reply and tell me. I\'ll fix it.',
+            '',
+            'Thanks for being here,',
+            'Brian Whittaker',
             'RRM Academy',
-            'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315',
+            '',
+            'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315. All donations are tax-deductible.',
           ].join('\n'),
         }).catch(() => {}));
       }
@@ -440,7 +455,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
 Wix sub:        ${wixSubIdMeta}
 Stripe sub:     ${session.subscription}
 Tier:           ${wixRow.tier}
-Amount:         $${(wixRow.amount_cents / 100).toFixed(2)}/mo
+Amount:         ${(() => { const n = Number(wixRow.amount_cents); return (Number.isFinite(n) && n > 0) ? `$${(n / 100).toFixed(2)}/mo` : '(unknown)'; })()}
 Next charge:    ${nextChargeDate}
 
 Stripe is set to start the subscription with trial_end clamped to the donor's next

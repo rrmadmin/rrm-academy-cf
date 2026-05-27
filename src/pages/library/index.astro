@@ -192,15 +192,15 @@ const jsonLd = {
 
     <section class="atlas-hero" data-pagefind-ignore="all">
       <div class="container atlas-hero__inner">
-        <h1 class="animate-enter" style="--stagger: 0;">Find your topic in the evidence</h1>
-        <p class="atlas-hero__dek animate-enter" style="--stagger: 1;">
+        <h1>Find your topic in the evidence</h1>
+        <p class="atlas-hero__dek">
           Browse {articles.length.toLocaleString()} academic scholarly works on restorative
           reproductive medicine &mdash; organized by topic, condition, and method.
         </p>
-        <div class="atlas-hero__search animate-enter" style="--stagger: 2;">
+        <div class="atlas-hero__search">
           <SearchBar />
         </div>
-        <div class="atlas-hero__suggestions animate-enter" style="--stagger: 3;" aria-label="Suggested searches">
+        <div class="atlas-hero__suggestions" aria-label="Suggested searches">
           <span class="atlas-hero__suggestions-label">Try</span>
           {suggestions.map(q => (
             <a href={`/library/?q=${encodeURIComponent(q)}`} class="atlas-hero__suggestion">{q}</a>
@@ -209,7 +209,7 @@ const jsonLd = {
       </div>
     </section>
 
-    <section class="atlas animate-enter" style="--stagger: 5;" data-pagefind-ignore="all" aria-labelledby="atlas-heading">
+    <section class="atlas" data-pagefind-ignore="all" aria-labelledby="atlas-heading">
       <div class="container">
         <header class="atlas__head">
           <h2 id="atlas-heading">Browse by topic</h2>
@@ -342,20 +342,6 @@ const jsonLd = {
 </style>
 
 <style>
-  @keyframes enter {
-    from {
-      /* opacity:0 dropped 2026-05-15 (PSI LCP regression); blur dropped 2026-05-18 (read as slow defocus once fade was gone) */
-      transform: translateY(8px);
-    }
-  }
-  .animate-enter {
-    animation: enter 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-    animation-delay: calc(100ms * var(--stagger, 0));
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .animate-enter { animation: none; }
-  }
-
   .atlas-hero {
     padding: var(--space-12) 0 var(--space-8);
     background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(245, 240, 248, 0.6), transparent 70%);

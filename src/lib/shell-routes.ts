@@ -11,7 +11,7 @@
 // (/courses/<slug>/) opt in (Brian preference 2026-05-08).
 //
 // /community/archive/* is also excluded — those are stale archive pages.
-export type ShellRoute = 'commentary' | 'library' | 'guides' | 'faqs' | 'account' | 'ask' | 'courses' | 'community';
+export type ShellRoute = 'commentary' | 'library' | 'guides' | 'faqs' | 'account' | 'ask' | 'courses' | 'community' | 'saved';
 
 export function isShellEnabled(route: ShellRoute): boolean {
   const raw = (import.meta.env.PUBLIC_SHELL_ROUTES || '') as string;

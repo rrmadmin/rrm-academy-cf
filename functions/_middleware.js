@@ -387,6 +387,47 @@ export async function onRequest(context) {
     return withSecurityHeaders(response);
   }
 
+  // Auth-hint self-heal for general (non-protected) navigations.
+  // The header + account UI read the JS-readable `rrm_auth=1` hint to know a session
+  // exists without an API call. A session minted before the hint shipped (2026-05-18),
+  // or one that otherwise lost the hint, carries a valid HttpOnly `session` cookie but
+  // NO hint, so hasAuthHint() short-circuits to anonymous and the nav renders logged-out
+  // despite a valid login. Fix: when a session cookie is present but the hint is missing,
+  // validate once and (re)issue the hint (and refresh the session cookie if it renewed).
+  // Anonymous visitors have no session cookie, so they skip the D1 read entirely — the
+  // LCP fast-path that motivated the hint is preserved. Fail-open: any error falls through
+  // to normal handling, never blocking a page. Fires at most once per affected user (the
+  // issued hint makes subsequent loads skip this branch).
+  if (
+    env.DB &&
+    !url.pathname.startsWith('/api/') &&
+    !url.pathname.startsWith('/cdn-cgi/') &&
+    !url.pathname.includes('.')
+  ) {
+    const sid = getSessionIdFromCookie(request);
+    const hasHint = /(?:^|;\s*)rrm_auth=1/.test(request.headers.get('Cookie') || '');
+    if (sid && !hasHint) {
+      try {
+        const session = await validateSession(env.DB, sid);
+        if (session) {
+          const response = await context.next();
+          const headers = new Headers(response.headers);
+          headers.append('Set-Cookie', authHintCookie(session.expiresAt));
+          if (session.renewed) {
+            headers.append('Set-Cookie', sessionCookie(session.id, session.expiresAt));
+          }
+          return withSecurityHeaders(new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers,
+          }));
+        }
+      } catch (e) {
+        // fail-open: fall through to normal handling below
+      }
+    }
+  }
+
   // Continue to static assets / functions, then inject security headers.
   // Security headers were previously in _headers /* catch-all, but that rule
   // corrupted CF Pages' internal 301 trailing-slash redirects into 200 with
