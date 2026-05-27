@@ -495,7 +495,7 @@ const SHELL_ENABLED = isShellEnabled('community');
         if (type === 'event') {
           var eventDate = document.getElementById('compose-event-date').value;
           var eventLink = document.getElementById('compose-event-link').value.trim();
-          if (eventDate) payload.eventDate = eventDate;
+          if (eventDate) payload.eventDate = fromLocalDateTimeInput(eventDate);
           if (eventLink) payload.eventLink = eventLink;
         }
         if (type === 'resource') {
@@ -908,6 +908,13 @@ const SHELL_ENABLED = isShellEnabled('community');
       }
 
       function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+
+      function fromLocalDateTimeInput(local) {
+        if (!local) return null;
+        var d = new Date(local);
+        if (!isFinite(d.getTime())) return null;
+        return d.toISOString();
+      }
 
       function escapeHtml(str) {
         var div = document.createElement('div');
@@ -1468,7 +1475,7 @@ const SHELL_ENABLED = isShellEnabled('community');
         };
 
         if (editingPost.type === 'event') {
-          payload.eventDate = editModalEventDate.value || null;
+          payload.eventDate = fromLocalDateTimeInput(editModalEventDate.value);
           payload.eventLink = editModalEventLink.value.trim() || null;
         }
         if (editingPost.type === 'resource') {
