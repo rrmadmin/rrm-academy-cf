@@ -226,7 +226,6 @@ function htmlRedirectWithCookies(location, cookies) {
 
 const CASE_CANONICAL_PREFIXES = [
   '/library',
-  '/schedule-with-dr-whittaker',
 ];
 
 function shouldCanonicalize(pathname) {
