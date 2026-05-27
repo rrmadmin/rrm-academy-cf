@@ -226,7 +226,7 @@ const SHELL_ENABLED = isShellEnabled('community');
         html += '<p class="event-datetime">' + formattedDate + ' at ' + formattedTime + '</p>';
         html += '<h3 class="event-title">' + escapeHtml(content.title) + '</h3>';
         if (content.description) {
-          html += '<p class="event-body">' + escapeHtml(truncate(content.description, 200)) + '</p>';
+          html += '<p class="event-body">' + linkify(content.description) + '</p>';
         }
         html += renderEventImages(content.images);
         html += '<div class="event-actions">';
@@ -256,7 +256,7 @@ const SHELL_ENABLED = isShellEnabled('community');
         html += '<p class="event-datetime">' + formattedDate + '</p>';
         html += '<h3 class="event-title">' + escapeHtml(content.title) + '</h3>';
         if (content.description) {
-          html += '<p class="event-body">' + escapeHtml(truncate(content.description, 150)) + '</p>';
+          html += '<p class="event-body">' + linkify(content.description) + '</p>';
         }
         if (ev.resourceUrl) {
           html += '<a href="' + escapeHtml(ev.resourceUrl) + '" target="_blank" rel="noopener noreferrer" class="event-recording-link">View Recording</a>';
@@ -335,6 +335,44 @@ const SHELL_ENABLED = isShellEnabled('community');
         return str.substring(0, len) + '...';
       }
 
+      function fromLocalDateTimeInput(local) {
+        if (!local) return null;
+        var d = new Date(local);
+        if (!isFinite(d.getTime())) return null;
+        return d.toISOString();
+      }
+
+      function linkify(text) {
+        if (!text) return '';
+        var s = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+        // 1. Image markdown: ![alt](url) -> img element
+        s = s.replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+|\/api\/assets\/[^\s)]+)\)/g,
+          '<img src="$2" alt="$1" class="post-inline-img" loading="lazy" />');
+
+        // 2. Markdown links: [text](url)
+        s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+          '<a href="$2" target="_blank" rel="noopener">$1</a>');
+
+        // 3. Bare https/http URLs (already linked ones are skipped because they're now <a> tags)
+        s = s.replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/gm,
+          '$1<a href="$2" target="_blank" rel="noopener">$2</a>');
+
+        // 4. Bare domain URLs (no protocol): word.tld/optional-path
+        s = s.replace(/(^|[\s(])([a-zA-Z0-9][\w.-]*\.(?:com|org|net|edu|gov|io|co|us|uk|dev|app|me|info|health)(?:\/[^\s<)]*)?)/gm,
+          function (match, prefix, url) {
+            return prefix + '<a href="https://' + url + '" target="_blank" rel="noopener">' + url + '</a>';
+          });
+
+        // 5. Bold: **text**
+        s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+        // 6. Italic: *text*
+        s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+        return s;
+      }
+
       // --- Compose form ---
       newEventBtn.addEventListener('click', function () {
         composeForm.hidden = false;
@@ -378,9 +416,6 @@ const SHELL_ENABLED = isShellEnabled('community');
         submitBtn.disabled = true;
         submitBtn.textContent = 'Creating...';
 
-        // Convert datetime-local to ISO string
-        var isoDate = new Date(eventDate).toISOString();
-
         fetch('/api/community/posts', {
           method: 'POST',
           credentials: 'same-origin',
@@ -389,7 +424,7 @@ const SHELL_ENABLED = isShellEnabled('community');
             type: 'event',
             title: title,
             body: body || null,
-            eventDate: isoDate,
+            eventDate: fromLocalDateTimeInput(eventDate),
             eventLink: eventLink
           })
         })
