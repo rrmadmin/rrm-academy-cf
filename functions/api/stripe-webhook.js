@@ -5,6 +5,7 @@
  * Events handled:
  *   - checkout.session.completed      -> billing/_webhook-checkout.js
  *   - checkout.session.expired        -> billing/_webhook-checkout.js
+ *   - customer.subscription.created   -> billing/_webhook-subscription.js
  *   - customer.subscription.updated   -> billing/_webhook-subscription.js
  *   - customer.subscription.deleted   -> billing/_webhook-subscription.js
  *   - invoice.payment_failed          -> billing/_webhook-invoice.js
@@ -17,7 +18,7 @@
  * subscription state is always fresh in the UI without needing D1 sync.
  */
 import { handleCheckoutCompleted, handleCheckoutExpired } from './billing/_webhook-checkout.js';
-import { handleSubscriptionUpdated, handleSubscriptionDeleted } from './billing/_webhook-subscription.js';
+import { handleSubscriptionCreated, handleSubscriptionUpdated, handleSubscriptionDeleted } from './billing/_webhook-subscription.js';
 import { handlePaymentFailed } from './billing/_webhook-invoice.js';
 import { handleChargeRefunded } from './billing/_webhook-refund.js';
 import { getStripeClient, requireWebhookConfig, dedupWebhookEvent, markWebhookEventCompleted, rollbackWebhookDedup } from './billing/_shared.js';
@@ -87,6 +88,9 @@ async function handleWebhook(request, env, waitUntil) {
         break;
       case 'checkout.session.expired':
         result = await handleCheckoutExpired(db, event, env, waitUntil);
+        break;
+      case 'customer.subscription.created':
+        result = await handleSubscriptionCreated(db, event, env, request, waitUntil);
         break;
       case 'customer.subscription.updated':
         result = await handleSubscriptionUpdated(db, event, env, request, waitUntil);
