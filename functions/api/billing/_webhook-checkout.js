@@ -57,7 +57,6 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
   // Course purchase: create enrollment
   if (session.metadata?.type === 'course') {
     const courseId = session.metadata.courseId;
-    const paymentIntent = session.payment_intent;
 
     // Resolve the user ID: logged-in user or look up by email for anonymous checkout
     let userId = session.client_reference_id;
@@ -79,13 +78,13 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
     if (!getCourse(courseId)) {
       log(env, waitUntil, 'billing', 'course_not_found', 'error', `${courseId} user=${userId}`);
       return new Response(JSON.stringify({ ok: false, error: 'Course not found' }), {
-        status: 400,
+        status: 500,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
     try {
-      await enrollUser(db, userId, courseId, paymentIntent);
+      await enrollUser(db, userId, courseId, session.payment_intent || session.id);
       log(env, waitUntil, 'billing', 'course_enrolled', 'ok', `${courseId} user=${userId}`);
     } catch (enrollErr) {
       log(env, waitUntil, 'billing', 'course_enroll_fail', 'error', `${courseId}: ${enrollErr.message}`, 0, 500);
@@ -143,12 +142,12 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
   const pageLocation = (session.cancel_url || session.success_url || SITE_URL).replace(/\?.*$/, '');
 
   // GA4: track completed course purchase
-  if (session.metadata?.type === 'course' && session.payment_intent) {
+  if (session.metadata?.type === 'course') {
     waitUntil(sendGA4Event(env, request, 'purchase', {
       page_location: pageLocation,
       currency: 'USD',
       value: (session.amount_total || 0) / 100,
-      transaction_id: session.payment_intent,
+      transaction_id: session.payment_intent || session.id,
       items: [{ item_name: `Course: ${session.metadata.courseId || 'unknown'}` }],
       ...(session.metadata?.ga_source && { utm_source: session.metadata.ga_source }),
       ...(session.metadata?.ga_medium && { utm_medium: session.metadata.ga_medium }),
@@ -215,18 +214,19 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
           ).bind(session.metadata.wix_subscription_id).first();
 
           if (wixRow) {
-            wixAmountDollars = (wixRow.amount_cents / 100).toFixed(0);
+            const amountNum = Number(wixRow.amount_cents);
+            wixAmountDollars = (Number.isFinite(amountNum) && amountNum > 0) ? (amountNum / 100).toFixed(0) : null;
             const nowSec = Math.floor(Date.now() / 1000);
             const nextAtSec = wixRow.next_expected_at
               ? Math.floor(new Date(wixRow.next_expected_at).getTime() / 1000)
               : null;
             const isUsable = Number.isFinite(nextAtSec) && nextAtSec > nowSec;
-            if (isUsable) {
+            if (isUsable && wixAmountDollars) {
               const humanDate = new Date(wixRow.next_expected_at).toLocaleDateString('en-US', {
                 year: 'numeric', month: 'long', day: 'numeric',
               });
               nextChargeSentence = `Your next donation will be processed on ${humanDate} at $${wixAmountDollars}/month -- the same date and same amount you were already on.`;
-            } else {
+            } else if (!isUsable && wixAmountDollars) {
               const fallbackDate = new Date();
               fallbackDate.setMonth(fallbackDate.getMonth() + 1);
               const humanDate = fallbackDate.toLocaleDateString('en-US', {
@@ -440,7 +440,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
 Wix sub:        ${wixSubIdMeta}
 Stripe sub:     ${session.subscription}
 Tier:           ${wixRow.tier}
-Amount:         $${(wixRow.amount_cents / 100).toFixed(2)}/mo
+Amount:         ${(() => { const n = Number(wixRow.amount_cents); return (Number.isFinite(n) && n > 0) ? `$${(n / 100).toFixed(2)}/mo` : '(unknown)'; })()}
 Next charge:    ${nextChargeDate}
 
 Stripe is set to start the subscription with trial_end clamped to the donor's next
