@@ -4,7 +4,7 @@
  * PATCH  /api/community/comments          — edit comment (author only)
  * DELETE /api/community/comments          — delete comment
  */
-import { json, optionsResponse, generateId } from '../auth/_shared.js';
+import { json, optionsResponse, generateId, checkRateLimit } from '../auth/_shared.js';
 import { log } from '../_log.js';
 import { requireMember, displayName, canDeleteComment, roleAtLeast, tierFromLabel, TIER_LABELS } from './_shared.js';
 import { notifyReply } from './_email.js';
@@ -124,6 +124,9 @@ async function _handlePost(context) {
     const auth = await requireMember(request, env);
     if (auth instanceof Response) return auth;
     const { user } = auth;
+
+    const allowed = await checkRateLimit(env, `comments:${user.id}`, 30, 3600);
+    if (!allowed) return json({ ok: false, error: 'rate_limited' }, 429);
 
     let body;
     try { body = await request.json(); } catch {
