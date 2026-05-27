@@ -34,8 +34,12 @@ src/layouts/AppShell.astro
 .superpowers/
 # Generated OG images (rebuilt every deploy)
 public/images/og/og-*.png
-# Claude Code session state
-.claude/
+# Claude Code session state: ignore everything except shared hooks + settings
+.claude/*
+!.claude/settings.json
+!.claude/hooks/
+.claude/hooks/*
+!.claude/hooks/session-start.sh
 # Playwright test output
 test-results/
 # Pillar-edit A/B comparison artifacts
