@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import MaybeShell from '../components/MaybeShell.astro';
 import { isShellEnabled } from '../lib/shell-routes';
+import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
 
 const SHELL_ENABLED = isShellEnabled('ask');
 ---
@@ -48,7 +49,86 @@ const SHELL_ENABLED = isShellEnabled('ask');
       </p>
     </div>
   </section>
+
+  <!-- Inline auth modal: opens on a 401 from /api/ask so anonymous visitors can
+       create a free account (or log in) WITHOUT leaving /ask. The typed question
+       is preserved and auto-run the moment auth succeeds. -->
+  <div class="askauth" id="askauth-modal" role="dialog" aria-modal="true" aria-labelledby="askauth-heading" hidden>
+    <div class="askauth__backdrop" data-askauth-close></div>
+    <div class="askauth__sheet" role="document">
+      <button type="button" class="askauth__close" id="askauth-close" data-askauth-close aria-label="Close">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+
+      <h2 id="askauth-heading" class="askauth__heading">Create your free account</h2>
+      <p class="askauth__sub" id="askauth-sub">Free account, 3 questions per day on the AI, and your questions and answers saved for later.</p>
+
+      <!-- Signup form -->
+      <form id="askauth-signup-form" class="auth-form" novalidate>
+        <div class="askauth__row">
+          <div class="form-group">
+            <label class="form-label" for="askauth-first-name">First name</label>
+            <input class="form-input" type="text" id="askauth-first-name" name="firstName" required autocomplete="given-name" maxlength="100" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="askauth-last-name">Last name</label>
+            <input class="form-input" type="text" id="askauth-last-name" name="lastName" required autocomplete="family-name" maxlength="100" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="askauth-email">Email</label>
+          <input class="form-input" type="email" id="askauth-email" name="email" required autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="askauth-password">Password</label>
+          <input class="form-input" type="password" id="askauth-password" name="password" required autocomplete="new-password" minlength="8" />
+          <span class="form-hint">At least 8 characters</span>
+        </div>
+        <button type="submit" class="btn btn--primary askauth__submit" id="askauth-signup-submit">Create account</button>
+      </form>
+
+      <!-- Login form (hidden until toggled) -->
+      <form id="askauth-login-form" class="auth-form" novalidate hidden>
+        <div class="form-group">
+          <label class="form-label" for="askauth-login-email">Email</label>
+          <input class="form-input" type="email" id="askauth-login-email" name="email" required autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="askauth-login-password">Password</label>
+          <input class="form-input" type="password" id="askauth-login-password" name="password" required autocomplete="current-password" />
+        </div>
+        <button type="submit" class="btn btn--primary askauth__submit" id="askauth-login-submit">Sign in</button>
+      </form>
+
+      <div id="askauth-error" class="askauth__error" hidden><p id="askauth-error-text"></p></div>
+
+      <div id="askauth-divider" class="askauth__divider"><span>or</span></div>
+
+      <a id="askauth-google" href="/api/auth/google" class="btn btn--google askauth__google">
+        <svg class="google-logo" viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        <span id="askauth-google-label">Sign up with Google</span>
+      </a>
+
+      <p class="askauth__toggle">
+        <span id="askauth-toggle-prompt">Already have an account?</span>
+        <button type="button" id="askauth-toggle-btn" class="askauth__toggle-btn">Log in</button>
+      </p>
+
+      {TURNSTILE_SITE_KEY && (
+        <div id="askauth-turnstile" data-sitekey={TURNSTILE_SITE_KEY}></div>
+      )}
+    </div>
+  </div>
   </MaybeShell>
+
+  {TURNSTILE_SITE_KEY && (
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer is:inline></script>
+  )}
 
   <script is:inline>
     (function () {
@@ -228,11 +308,16 @@ const SHELL_ENABLED = isShellEnabled('ask');
               if (d.ok && d.share_url) {
                 setSavedState(actionsEl, d.share_url);
               } else if (res.status === 401) {
-                window.location.href = '/signup/?next=/ask';
+                // Anonymous: open the inline auth modal instead of redirecting away.
+                // Restore the Save button so the user can retry the save after auth,
+                // and record a 'save' intent so auth success re-runs the save (not the question).
+                btn.innerHTML = orig;
+                btn.disabled = false;
+                openAuthModal(msg.dataset.question || '', 'save', msg);
               } else if (res.status === 429) {
                 btn.innerHTML = orig;
                 btn.disabled = false;
-                appendError('You have saved a lot recently. Try again in an hour.');
+                appendError('You have saved a lot recently. Please try again later.');
               } else {
                 btn.innerHTML = orig;
                 btn.disabled = false;
@@ -277,13 +362,16 @@ const SHELL_ENABLED = isShellEnabled('ask');
         thread.appendChild(wrap);
       }
 
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        var message = input.value.trim();
+      // Single callable that sends a question to /api/ask and renders the answer.
+      // The form submit, the ?q= URL handler, and the post-auth replay all call this
+      // so the send logic lives in exactly one place.
+      function runAsk(question) {
+        var message = (question || '').trim();
         if (message.length < 2) return;
 
         lastQuestion = message;
         appendMessage('user', message, null);
+        // Clear the composer once the question is in-flight (it now lives in the thread).
         input.value = '';
         updateCount();
         submit.disabled = true; submit.textContent = 'Asking...';
@@ -304,13 +392,30 @@ const SHELL_ENABLED = isShellEnabled('ask');
             // CF Pages /* headers rule can mangle non-200 status codes, so key
             // decisions off the JSON body's error field as well as res.status.
             if (d.answer) {
+              justAuthed = false;
               appendMessage('assistant', d.answer, d.citations);
             } else if (d.error === 'unauthorized' || res.status === 401) {
-              window.location.href = '/signup/?next=/ask';
+              if (justAuthed) {
+                // We just authed and the session still 401s (e.g. the anti-enumeration
+                // decoy returned for an existing email). Do not loop: surface guidance
+                // and switch the modal to login rather than reopening blindly.
+                justAuthed = false;
+                stashedQuestion = message;
+                authModal.removeAttribute('hidden');
+                document.documentElement.style.overflow = 'hidden';
+                setAuthMode('login');
+                showAuthError('If you already have an account, log in to continue.');
+              } else {
+                // Anonymous visitor: open the inline auth modal instead of redirecting
+                // away. Stash the question so it auto-runs the moment auth succeeds.
+                openAuthModal(message, 'ask');
+              }
             } else if (d.error === 'rate_limited' || res.status === 429) {
               appendError('You have reached today\u2019s question limit. Come back tomorrow.');
             } else if (d.error === 'forbidden' || res.status === 403) {
               appendError('This account cannot use /ask right now.');
+            } else if (d.error === 'service_unavailable' || res.status === 503) {
+              appendError('Service is temporarily unavailable. Please try again in a moment.');
             } else if (d.error === 'upstream_timeout' || res.status === 504) {
               appendError('The answer is taking longer than expected. Please try again.');
             } else if (d.error === 'upstream_error' || res.status === 502) {
@@ -327,10 +432,313 @@ const SHELL_ENABLED = isShellEnabled('ask');
             submit.disabled = false; submit.textContent = 'Ask';
             input.focus();
           });
+      }
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        runAsk(input.value);
       });
 
+      // \u2500\u2500 Inline auth modal \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+      // Opened on a 401 from /api/ask. Preserves the typed question and replays it
+      // through runAsk() (inline signup/login) or via the ?q= handler (Google OAuth).
+      var authModal = document.getElementById('askauth-modal');
+      var authSignupForm = document.getElementById('askauth-signup-form');
+      var authLoginForm = document.getElementById('askauth-login-form');
+      var authSignupSubmit = document.getElementById('askauth-signup-submit');
+      var authLoginSubmit = document.getElementById('askauth-login-submit');
+      var authError = document.getElementById('askauth-error');
+      var authErrorText = document.getElementById('askauth-error-text');
+      var authGoogle = document.getElementById('askauth-google');
+      var authToggleBtn = document.getElementById('askauth-toggle-btn');
+      var authTogglePrompt = document.getElementById('askauth-toggle-prompt');
+      var authHeading = document.getElementById('askauth-heading');
+      var authClose = document.getElementById('askauth-close');
+      var stashedQuestion = '';
+      var authMode = 'signup';
+      var authLastFocus = null;
+      var tsWidgetId = null;
+      var tsPending = null; // { kind: 'signup'|'login', ...fields }
+      var tsFallbackTimer = null;
+      var justAuthed = false;
+      var authIntent = 'ask'; // 'ask' | 'save'
+      var pendingSaveMsg = null;
+
+      function showAuthError(msg) {
+        if (authError) { authErrorText.textContent = msg; authError.hidden = false; }
+      }
+      function clearAuthError() { if (authError) authError.hidden = true; }
+
+      // Turnstile: one invisible widget, reset between uses. Mirrors signup.astro.
+      function initTurnstile() {
+        var el = document.getElementById('askauth-turnstile');
+        if (!el || typeof turnstile === 'undefined') return;
+        tsWidgetId = turnstile.render(el, {
+          sitekey: el.dataset.sitekey, size: 'invisible',
+          callback: function (token) {
+            if (tsFallbackTimer !== null) { clearTimeout(tsFallbackTimer); tsFallbackTimer = null; }
+            if (!tsPending) return;
+            var p = tsPending; tsPending = null;
+            if (p.kind === 'signup') doSignup(p.firstName, p.lastName, p.email, p.password, token);
+            else doLogin(p.email, p.password, token);
+          },
+          'error-callback': function () {
+            if (tsFallbackTimer !== null) { clearTimeout(tsFallbackTimer); tsFallbackTimer = null; }
+            showAuthError('Spam check failed. Please refresh and try again.');
+            resetAuthButtons();
+            tsPending = null;
+          },
+        });
+      }
+      var tsCheck = setInterval(function () { if (typeof turnstile !== 'undefined') { clearInterval(tsCheck); initTurnstile(); } }, 200);
+      setTimeout(function () { clearInterval(tsCheck); }, 10000);
+
+      function resetAuthButtons() {
+        if (authSignupSubmit) { authSignupSubmit.disabled = false; authSignupSubmit.textContent = 'Create account'; }
+        if (authLoginSubmit) { authLoginSubmit.disabled = false; authLoginSubmit.textContent = 'Sign in'; }
+      }
+
+      function cancelPendingAuth() {
+        tsPending = null;
+        if (tsFallbackTimer !== null) { clearTimeout(tsFallbackTimer); tsFallbackTimer = null; }
+        try { if (tsWidgetId !== null) turnstile.reset(tsWidgetId); } catch (_) {}
+        resetAuthButtons();
+      }
+
+      function setAuthMode(mode) {
+        authMode = mode;
+        cancelPendingAuth();
+        clearAuthError();
+        if (mode === 'login') {
+          authSignupForm.hidden = true;
+          authLoginForm.hidden = false;
+          authHeading.textContent = 'Welcome back';
+          authTogglePrompt.textContent = 'Need an account?';
+          authToggleBtn.textContent = 'Sign up';
+        } else {
+          authSignupForm.hidden = false;
+          authLoginForm.hidden = true;
+          authHeading.textContent = 'Create your free account';
+          authTogglePrompt.textContent = 'Already have an account?';
+          authToggleBtn.textContent = 'Log in';
+        }
+        focusFirstField();
+      }
+
+      function focusFirstField() {
+        var first = authMode === 'login'
+          ? document.getElementById('askauth-login-email')
+          : document.getElementById('askauth-first-name');
+        if (first) { try { first.focus(); } catch (_) {} }
+      }
+
+      function openAuthModal(question, intent, saveMsg) {
+        cancelPendingAuth();
+        justAuthed = false;
+        authIntent = intent === 'save' ? 'save' : 'ask';
+        pendingSaveMsg = authIntent === 'save' ? (saveMsg || null) : null;
+        if (typeof question === 'string' && question.trim()) {
+          stashedQuestion = question.trim().slice(0, 500);
+        } else if (!stashedQuestion) {
+          stashedQuestion = (input.value || '').trim().slice(0, 500);
+        }
+        // Google path preserves + auto-runs the question via the existing ?q= handler.
+        if (authGoogle) {
+          authGoogle.setAttribute('href', '/api/auth/google?redirect=' + encodeURIComponent('/ask?q=' + encodeURIComponent(stashedQuestion)));
+        }
+        authLastFocus = document.activeElement;
+        clearAuthError();
+        resetAuthButtons();
+        setAuthMode('signup');
+        authModal.removeAttribute('hidden');
+        document.documentElement.style.overflow = 'hidden';
+        // rAF so focus lands after the dialog paints.
+        requestAnimationFrame(focusFirstField);
+      }
+
+      function closeAuthModal() {
+        if (authModal.hasAttribute('hidden')) return;
+        cancelPendingAuth();
+        authModal.setAttribute('hidden', '');
+        document.documentElement.style.overflow = '';
+        if (authLastFocus && typeof authLastFocus.focus === 'function') {
+          try { authLastFocus.focus(); } catch (_) {}
+        }
+      }
+
+      // Close affordances: X button, backdrop click, Escape. The typed question is
+      // left untouched in the composer (we never cleared it on a 401).
+      authModal.addEventListener('click', function (e) {
+        var t = e.target;
+        if (t && t.closest && t.closest('[data-askauth-close]')) closeAuthModal();
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !authModal.hasAttribute('hidden')) {
+          e.preventDefault();
+          closeAuthModal();
+        }
+      });
+      authToggleBtn.addEventListener('click', function () {
+        setAuthMode(authMode === 'signup' ? 'login' : 'signup');
+      });
+
+      authSignupForm.addEventListener('submit', function (e) {
+        e.preventDefault(); clearAuthError();
+        var firstName = authSignupForm.firstName.value.trim();
+        var lastName = authSignupForm.lastName.value.trim();
+        var email = authSignupForm.email.value.trim();
+        var password = authSignupForm.password.value;
+        if (!firstName) return showAuthError('Please enter your first name.');
+        if (!lastName) return showAuthError('Please enter your last name.');
+        if (!email) return showAuthError('Please enter your email.');
+        if (!password || password.length < 8) return showAuthError('Password must be at least 8 characters.');
+        authSignupSubmit.disabled = true; authSignupSubmit.textContent = 'Creating account...';
+        if (typeof turnstile !== 'undefined' && tsWidgetId !== null) {
+          tsPending = { kind: 'signup', firstName: firstName, lastName: lastName, email: email, password: password };
+          try { turnstile.reset(tsWidgetId); turnstile.execute(tsWidgetId); } catch (_) { tsPending = null; doSignup(firstName, lastName, email, password, ''); return; }
+          tsFallbackTimer = setTimeout(function () { tsFallbackTimer = null; if (tsPending && tsPending.kind === 'signup') { tsPending = null; doSignup(firstName, lastName, email, password, ''); } }, 5000);
+          return;
+        }
+        doSignup(firstName, lastName, email, password, '');
+      });
+
+      authLoginForm.addEventListener('submit', function (e) {
+        e.preventDefault(); clearAuthError();
+        var email = authLoginForm.email.value.trim();
+        var password = authLoginForm.password.value;
+        if (!email) return showAuthError('Please enter your email.');
+        if (!password) return showAuthError('Please enter your password.');
+        authLoginSubmit.disabled = true; authLoginSubmit.textContent = 'Signing in...';
+        if (typeof turnstile !== 'undefined' && tsWidgetId !== null) {
+          tsPending = { kind: 'login', email: email, password: password };
+          try { turnstile.reset(tsWidgetId); turnstile.execute(tsWidgetId); } catch (_) { tsPending = null; doLogin(email, password, ''); return; }
+          tsFallbackTimer = setTimeout(function () { tsFallbackTimer = null; if (tsPending && tsPending.kind === 'login') { tsPending = null; doLogin(email, password, ''); } }, 5000);
+          return;
+        }
+        doLogin(email, password, '');
+      });
+
+      function runSaveForMsg(msg) {
+        if (!msg) return;
+        var btn = msg.querySelector('.ask-action-btn[data-action="save"]');
+        var actionsEl = msg.querySelector('.ask-actions');
+        if (!btn || !actionsEl) return;
+        var orig = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span>Saving...</span>';
+        var citationsParsed = [];
+        try { citationsParsed = JSON.parse(msg.dataset.citations || '[]'); } catch (e2) {}
+        fetch('/api/ask/saved', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            question: msg.dataset.question || '',
+            answer: msg.dataset.answer || '',
+            citations: citationsParsed,
+          }),
+        })
+          .then(function (r) { return r.json().then(function (d) { return { status: r.status, data: d }; }); })
+          .then(function (res) {
+            var d = res.data || {};
+            if (d.ok && d.share_url) {
+              setSavedState(actionsEl, d.share_url);
+            } else if (res.status === 429) {
+              btn.innerHTML = orig; btn.disabled = false;
+              appendError('You have saved a lot recently. Please try again later.');
+            } else {
+              btn.innerHTML = orig; btn.disabled = false;
+              appendError('Could not save. Please try again.');
+            }
+          })
+          .catch(function () {
+            btn.innerHTML = orig; btn.disabled = false;
+            appendError('Network error while saving.');
+          });
+      }
+
+      // Dispatch the action the user was trying to do before auth interrupted them.
+      function runPostAuthIntent() {
+        justAuthed = true;
+        if (authIntent === 'save') {
+          var msg = pendingSaveMsg;
+          pendingSaveMsg = null;
+          runSaveForMsg(msg);
+        } else {
+          runAsk(stashedQuestion);
+        }
+      }
+
+      function doSignup(firstName, lastName, email, password, token) {
+        fetch('/api/auth/signup', {
+          method: 'POST', credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ firstName: firstName, lastName: lastName, email: email, password: password, turnstileToken: token, next: '/ask' }),
+        })
+          .then(function (r) {
+            return r.text().then(function (text) {
+              try { return JSON.parse(text); }
+              catch (_) { throw new Error('HTTP ' + r.status); }
+            });
+          })
+          .then(function (data) {
+            if (data.ok) {
+              // Session is already set. Do NOT gate /ask on email verification.
+              closeAuthModal();
+              appendVerifyNote(email);
+              runPostAuthIntent();
+            } else if (data.suggestion) {
+              showAuthError(data.error || 'Please check your email and try again.');
+              resetAuthButtons();
+            } else {
+              showAuthError(data.error || 'Signup failed.');
+              resetAuthButtons();
+            }
+          })
+          .catch(function () {
+            showAuthError('Network error. Please try again.');
+            resetAuthButtons();
+          });
+      }
+
+      function doLogin(email, password, token) {
+        fetch('/api/auth/login', {
+          method: 'POST', credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email, password: password, turnstileToken: token }),
+        })
+          .then(function (r) {
+            return r.text().then(function (text) {
+              try { return JSON.parse(text); }
+              catch (_) { throw new Error('HTTP ' + r.status); }
+            });
+          })
+          .then(function (data) {
+            if (data.ok) {
+              closeAuthModal();
+              runPostAuthIntent();
+            } else {
+              showAuthError(data.error || 'Sign in failed.');
+              resetAuthButtons();
+            }
+          })
+          .catch(function () {
+            showAuthError('Network error. Please try again.');
+            resetAuthButtons();
+          });
+      }
+
+      // Small inline note in the thread after signup (verification link sent).
+      function appendVerifyNote(email) {
+        var wrap = document.createElement('div');
+        wrap.className = 'ask-verify-note';
+        wrap.innerHTML = '<p>We sent a verification link to ' + escapeHtml(email) + '. You can keep asking in the meantime.</p>';
+        thread.appendChild(wrap);
+      }
+
       // Auto-submit when arriving with ?q=<query> in the URL.
-      // Trims, caps to the 500-char input limit, pre-fills, and submits once on load.
+      // Trims, caps to the 500-char input limit, pre-fills, and runs once on load.
+      // Also the return path for the Google OAuth flow (redirect carries ?q=).
       try {
         var q = new URLSearchParams(window.location.search).get('q');
         if (q) {
@@ -338,8 +746,7 @@ const SHELL_ENABLED = isShellEnabled('ask');
           if (q) {
             input.value = q;
             updateCount();
-            if (typeof form.requestSubmit === 'function') form.requestSubmit();
-            else form.dispatchEvent(new Event('submit', { cancelable: true }));
+            runAsk(q);
           }
         }
       } catch (e) { /* URLSearchParams unavailable -- silently skip */ }
@@ -467,4 +874,124 @@ const SHELL_ENABLED = isShellEnabled('ask');
   .ask-action-btn svg { flex-shrink: 0; }
 
   .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+
+  /* Inline note in the thread after signup (verification link sent) */
+  .ask-verify-note {
+    align-self: stretch;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    background: color-mix(in srgb, var(--accent) 6%, var(--bg-surface));
+    border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border-color));
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+  }
+  .ask-verify-note p { margin: 0; }
+
+  /* ── Inline auth modal ── overlay conventions mirror MobileSearchModal:
+     z-index 200 (above site-header 100), rgba(0,0,0,0.35) blurred backdrop,
+     eased slide-in, prefers-reduced-motion guard. */
+  .askauth {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-6) var(--space-4);
+  }
+  .askauth[hidden] { display: none; }
+  .askauth__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+  .askauth__sheet {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    max-height: calc(100dvh - var(--space-12));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: var(--space-9) var(--space-8) var(--space-8);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.35), 0 8px 20px rgba(0,0,0,0.15);
+    animation: askauth-slide-in 0.18s ease-out;
+  }
+  @keyframes askauth-slide-in {
+    from { transform: translateY(-12px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .askauth__sheet { animation: none; }
+  }
+  .askauth__close {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .askauth__close:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); color: var(--accent); }
+  .askauth__heading { text-align: center; margin: 0 0 var(--space-3); font-size: 1.5rem; }
+  .askauth__sub { text-align: center; color: var(--text-secondary); font-size: 0.9375rem; line-height: 1.5; margin: 0 0 var(--space-6); }
+  .askauth__row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+  .askauth .auth-form .form-group { margin-bottom: var(--space-5); }
+  .askauth .form-label { display: block; font-family: 'Inter', sans-serif; font-size: 0.8125rem; font-weight: 500; margin-bottom: var(--space-2); }
+  .askauth .form-input {
+    width: 100%; padding: var(--space-3) var(--space-5);
+    border: 1.5px solid var(--neutral-300); border-radius: var(--radius-pill);
+    font-family: 'Inter', sans-serif; font-size: 0.9375rem; color: var(--text-primary); background: var(--bg);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .askauth .form-input:focus { outline: none; border-color: var(--purple-700); box-shadow: 0 0 0 3px var(--focus-ring); }
+  .askauth .form-hint { display: block; font-size: 0.75rem; color: var(--text-muted); margin-top: var(--space-1); }
+  .askauth__submit { width: 100%; margin-top: var(--space-2); }
+  .askauth__submit:disabled { opacity: 0.6; cursor: not-allowed; }
+  .askauth__error {
+    margin-top: var(--space-4); padding: var(--space-3) var(--space-4);
+    background: rgba(192,57,43,0.05); border: 1px solid var(--color-error);
+    border-radius: var(--radius-md); color: var(--color-error); font-size: 0.875rem;
+  }
+  .askauth__error p { margin: 0; }
+  .askauth__divider {
+    display: flex; align-items: center; gap: var(--space-4);
+    margin: var(--space-6) 0; color: var(--text-muted); font-size: 0.8125rem;
+  }
+  .askauth__divider::before, .askauth__divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--border-color);
+  }
+  .askauth__google {
+    width: 100%; justify-content: center; gap: var(--space-3);
+    color: var(--text-primary); background: var(--bg);
+    border: 1.5px solid var(--neutral-300); border-radius: var(--radius-pill);
+    font-weight: 500; text-decoration: none;
+  }
+  .askauth__google:hover { border-color: var(--neutral-400); background: var(--bg-surface); text-decoration: none; }
+  .askauth__google .google-logo { flex-shrink: 0; }
+  .askauth__toggle { margin: var(--space-6) 0 0; text-align: center; font-size: 0.8125rem; color: var(--text-secondary); }
+  .askauth__toggle-btn {
+    margin-left: var(--space-2); padding: 0; background: none; border: none;
+    color: var(--accent); font-family: 'Inter', sans-serif; font-size: 0.8125rem;
+    font-weight: 500; cursor: pointer; text-decoration: underline;
+  }
+  .askauth__toggle-btn:hover { color: var(--accent-hover); }
+  @media (max-width: 480px) {
+    .askauth__sheet { padding: var(--space-8) var(--space-5) var(--space-6); }
+    .askauth__row { grid-template-columns: 1fr; gap: 0; }
+  }
 </style>
