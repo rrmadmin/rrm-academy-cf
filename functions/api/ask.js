@@ -1,9 +1,11 @@
 /**
  * GET  /api/ask  — NLWeb capability JSON (unauth, no rate limit)
- * POST /api/ask  — Conversational AI: requires authenticated session (20/day)
+ * POST /api/ask  — Conversational AI: requires authenticated session
  *
  *  - GET returns capability metadata for NLWeb/orank discovery
  *  - POST without session: 401 → page JS redirects to /signup/?next=/ask
+ *  - POST with session, non-member (free tier): 3 requests/day, base model
+ *  - POST with session, STUC member or staff: 20 requests/day, V2 model
  *  - POST with session + Accept: text/event-stream: SSE-framed response
  */
 import { json, optionsResponse, getSessionIdFromCookie, validateSession, roleAtLeast } from './auth/_shared.js';
@@ -11,6 +13,7 @@ import { validateBody } from './_validate.js';
 import { log } from './_log.js';
 import { logSearchQuery, hashIp, extractRequestMeta } from './_search_log.js';
 import { SYSTEM_PROMPT } from './_ask_prompt.js';
+import { requireMember } from './community/_shared.js';
 
 
 async function hashShort(text) {
@@ -49,7 +52,8 @@ function utcDateKey() {
   return new Date().toISOString().slice(0, 10);
 }
 
-const RATE_LIMIT_MAX = 20;
+const RATE_LIMIT_MAX_MEMBER = 20;
+const RATE_LIMIT_MAX_FREE = 3;
 const RATE_LIMIT_TTL = 172800; // 48h in seconds
 const META = { response_type: 'answer', version: 'nlweb-1.0' };
 
@@ -90,11 +94,14 @@ function sseResponse(payload, status = 200, extraHeaders = {}) {
 /**
  * Shared upstream call. Returns { answer, citations } on success, or throws
  * with { httpStatus, errorCode } so callers can map to their response format.
+ *
+ * effectiveTier: when provided, overrides context.data.searchV2 for model
+ * selection. Pass 'off' to force the base model regardless of feature flags.
  */
-async function callUpstream(context, message, user) {
+async function callUpstream(context, message, user, effectiveTier) {
   const { env, waitUntil } = context;
   const start = Date.now();
-  const tier = context.data?.searchV2 || 'off';
+  const tier = effectiveTier !== undefined ? effectiveTier : (context.data?.searchV2 || 'off');
 
   if (shouldUseV2(tier, user)) {
     if (!env.AI_SEARCH) {
@@ -241,6 +248,16 @@ async function handleAuthedAsk(context, session) {
     return json({ error: 'forbidden' }, 403);
   }
 
+  // Determine membership: staff/STUC members get 20/day + V2; everyone else
+  // gets free tier (3/day + base model). A non-member Response from requireMember
+  // is interpreted as free tier — never returned to the caller.
+  let memberAuth;
+  try { memberAuth = await requireMember(request, env); } catch { memberAuth = null; }
+  const isMember = memberAuth !== null && !(memberAuth instanceof Response);
+  const rateLimitMax = isMember ? RATE_LIMIT_MAX_MEMBER : RATE_LIMIT_MAX_FREE;
+  // Free users always get the base model regardless of the searchV2 feature flag.
+  const effectiveTier = isMember ? (context.data?.searchV2 || 'off') : 'off';
+
   const rateLimitKey = `ask:rate:${user.id}:${utcDateKey()}`;
   let currentCount;
   try {
@@ -251,13 +268,13 @@ async function handleAuthedAsk(context, session) {
     return json({ error: 'service_unavailable' }, 503);
   }
 
-  if (currentCount >= RATE_LIMIT_MAX) {
+  if (currentCount >= rateLimitMax) {
     const tomorrow = new Date();
     tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
     tomorrow.setUTCHours(0, 0, 0, 0);
     const resetS = String(Math.max(0, Math.ceil((tomorrow.getTime() - Date.now()) / 1000)));
     return json({ error: 'rate_limited', reset: tomorrow.toISOString() }, 429, {
-      'RateLimit-Limit': String(RATE_LIMIT_MAX),
+      'RateLimit-Limit': String(rateLimitMax),
       'RateLimit-Remaining': '0',
       'RateLimit-Reset': resetS,
     });
@@ -296,7 +313,7 @@ async function handleAuthedAsk(context, session) {
 
   let result;
   try {
-    result = await callUpstream(context, message, user);
+    result = await callUpstream(context, message, user, effectiveTier);
   } catch (upstreamErr) {
     // Refund the increment so a failed upstream call doesn't count against the user.
     waitUntil(
@@ -341,8 +358,8 @@ async function handleAuthedAsk(context, session) {
   tomorrow.setUTCHours(0, 0, 0, 0);
   const askResetS = String(Math.max(0, Math.ceil((tomorrow.getTime() - Date.now()) / 1000)));
   const askRlHeaders = {
-    'RateLimit-Limit': String(RATE_LIMIT_MAX),
-    'RateLimit-Remaining': String(Math.max(0, RATE_LIMIT_MAX - newCount)),
+    'RateLimit-Limit': String(rateLimitMax),
+    'RateLimit-Remaining': String(Math.max(0, rateLimitMax - newCount)),
     'RateLimit-Reset': askResetS,
   };
 
@@ -358,7 +375,10 @@ const CAPABILITY_JSON = {
   methods: ['GET', 'POST'],
   auth: {
     required: true,
-    session_path_limit: '20 requests per day per session',
+    tiers: {
+      free: '3 requests per day, base model',
+      member: '20 requests per day, V2 model (STUC members and staff)',
+    },
   },
   streaming: {
     supported: true,
