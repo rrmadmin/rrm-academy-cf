@@ -1,0 +1,124 @@
+<!doctype html>
+<!-- Drawer footer / Account treatments. 2026-05-23. Real palette + auth states. -->
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drawer footer — Account treatments</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-body:#f7f5f3;--bg-surface:#fff;--text-primary:#313131;--text-secondary:#636261;
+  --text-tertiary:#949392;--text-muted:#adaba9;--accent:#725e7e;--accent-hover:#4c3e54;
+  --border-color:#dddbd8;--border-light:#dddbd8;--sand-300:#dbcbbb;--radius-pill:9999px;--radius-lg:16px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#e8e4df;font-family:'Inter',sans-serif;color:var(--text-primary);
+  padding:32px;display:grid;grid-template-columns:repeat(2,360px);gap:28px 36px;justify-content:center}
+.cell{display:flex;flex-direction:column;gap:8px}
+.cell h3{margin:0;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#6b6560}
+.cell .st{font-size:11px;color:#8a847e;margin:0 0 4px}
+.foot{background:var(--bg-body);border:1px solid var(--border-color);border-radius:20px;
+  padding:18px 20px 20px;box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.hair{border:none;border-top:1px solid var(--border-light);margin:0 0 14px}
+.nav-hint{font-size:14px;color:var(--text-tertiary);padding:0 4px 14px;display:flex;flex-direction:column;gap:9px}
+.nav-hint span{height:9px;width:55%;background:#e8e2db;border-radius:5px}
+.nav-hint span:nth-child(2){width:42%}
+
+/* avatar */
+.av{width:38px;height:38px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  overflow:hidden;background:var(--sand-300);color:#fff;font-weight:600;font-size:14px}
+.av.photo{background:linear-gradient(135deg,#9a86a6,#725e7e)}
+.av.empty{background:var(--bg-surface);border:1.5px solid var(--border-color);color:var(--text-tertiary)}
+.av svg{width:20px;height:20px}
+
+.btn{padding:11px 16px;border-radius:var(--radius-pill);font-size:13px;font-weight:500;text-align:center;
+  text-decoration:none;border:1px solid var(--border-color);color:var(--text-primary);background:var(--bg-surface);
+  display:flex;align-items:center;justify-content:center;gap:7px}
+.btn.donate{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn svg{width:15px;height:15px}
+
+/* ── Variant A: full-width account row ── */
+.A .acct{display:flex;align-items:center;gap:13px;width:100%;padding:10px 12px;border-radius:var(--radius-lg);
+  background:var(--bg-surface);border:1px solid var(--border-color);text-decoration:none;color:inherit;margin-bottom:10px}
+.A .acct .txt{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+.A .acct .nm{font-size:14px;font-weight:600;color:var(--text-primary)}
+.A .acct .sub{font-size:11px;color:var(--text-tertiary)}
+.A .acct .chev{margin-left:auto;color:var(--text-muted);flex-shrink:0}
+.A .acct .chev svg{width:18px;height:18px}
+.A .acct .nm{white-space:nowrap}
+.A .donate{width:100%}
+.A .appearance{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px solid var(--border-light)}
+.A .appearance .lab{font-size:12px;color:var(--text-secondary)}
+.seg{display:inline-flex;border:1px solid var(--border-color);border-radius:var(--radius-pill);overflow:hidden}
+.seg button{border:none;background:none;padding:6px 10px;color:var(--text-tertiary);cursor:pointer;display:flex;align-items:center}
+.seg button.on{background:var(--accent);color:#fff}
+.seg button svg{width:15px;height:15px}
+
+/* ── Variant B: two-up, account = avatar+label ── */
+.B .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.B .acct{display:flex;align-items:center;justify-content:center;gap:9px;padding:8px 14px;border-radius:var(--radius-pill);
+  background:var(--bg-surface);border:1px solid var(--border-color);text-decoration:none;color:var(--text-primary);font-size:13px;font-weight:500}
+.B .acct .av{width:24px;height:24px;font-size:11px}
+.B .acct .av svg{width:14px;height:14px}
+.B .theme{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:13px;padding-top:11px;border-top:1px solid var(--border-light);color:var(--text-tertiary);font-size:12px}
+.B .theme .tg{width:30px;height:30px;border:1px solid var(--border-color);border-radius:50%;display:flex;align-items:center;justify-content:center}
+.B .theme .tg svg{width:16px;height:16px}
+</style></head>
+<body>
+
+<svg style="display:none">
+<symbol id="user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+<symbol id="heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></symbol>
+<symbol id="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></symbol>
+<symbol id="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol>
+<symbol id="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.2" y1="4.2" x2="5.6" y2="5.6"/><line x1="18.4" y1="18.4" x2="19.8" y2="19.8"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.2" y1="19.8" x2="5.6" y2="18.4"/><line x1="18.4" y1="5.6" x2="19.8" y2="4.2"/></symbol>
+</svg>
+
+<!-- A · logged in (photo) -->
+<div class="cell A">
+  <h3>Variant A · logged in</h3><p class="st">Account row, live profile photo</p>
+  <div class="foot">
+    <div class="nav-hint"><span></span><span></span></div><hr class="hair">
+    <a class="acct"><span class="av photo">NW</span><span class="txt"><span class="nm">Naomi W.</span><span class="sub">View account</span></span><span class="chev"><svg><use href="#chev"/></svg></span></a>
+    <a class="btn donate"><svg><use href="#heart"/></svg>Donate</a>
+    <div class="appearance"><span class="lab">Appearance</span><span class="seg"><button><svg><use href="#sun"/></svg></button><button class="on"><svg><use href="#moon"/></svg></button></span></div>
+  </div>
+</div>
+
+<!-- A · logged out -->
+<div class="cell A">
+  <h3>Variant A · logged out</h3><p class="st">Person icon + Sign in</p>
+  <div class="foot">
+    <div class="nav-hint"><span></span><span></span></div><hr class="hair">
+    <a class="acct"><span class="av empty"><svg><use href="#user"/></svg></span><span class="txt"><span class="nm">Sign in</span><span class="sub">Save articles, track courses</span></span><span class="chev"><svg><use href="#chev"/></svg></span></a>
+    <a class="btn donate"><svg><use href="#heart"/></svg>Donate</a>
+    <div class="appearance"><span class="lab">Appearance</span><span class="seg"><button class="on"><svg><use href="#sun"/></svg></button><button><svg><use href="#moon"/></svg></button></span></div>
+  </div>
+</div>
+
+<!-- B · logged in -->
+<div class="cell B">
+  <h3>Variant B · logged in</h3><p class="st">Compact two-up, avatar in button</p>
+  <div class="foot">
+    <div class="nav-hint"><span></span><span></span></div><hr class="hair">
+    <div class="row">
+      <a class="acct"><span class="av photo" style="font-size:11px">NW</span>Account</a>
+      <a class="btn donate"><svg><use href="#heart"/></svg>Donate</a>
+    </div>
+    <div class="theme"><span>Theme</span><span class="tg"><svg><use href="#moon"/></svg></span></div>
+  </div>
+</div>
+
+<!-- B · logged out -->
+<div class="cell B">
+  <h3>Variant B · logged out</h3><p class="st">Compact two-up, person icon</p>
+  <div class="foot">
+    <div class="nav-hint"><span></span><span></span></div><hr class="hair">
+    <div class="row">
+      <a class="acct"><span class="av empty" style="width:24px;height:24px"><svg style="width:14px;height:14px"><use href="#user"/></svg></span>Sign in</a>
+      <a class="btn donate"><svg><use href="#heart"/></svg>Donate</a>
+    </div>
+    <div class="theme"><span>Theme</span><span class="tg"><svg><use href="#sun"/></svg></span></div>
+  </div>
+</div>
+
+</body></html>

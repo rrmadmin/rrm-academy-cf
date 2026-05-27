@@ -46,24 +46,32 @@ interface MobileNavItem {
 // drawer stays short and stable as the site grows. Method pillars (NaPro/FEMM/etc.),
 // Glossary, Commentary, Partners, IVF Calculator, Self-Survey, Connect AI live in the
 // footer + are one search away. Two groups separated by a divider; no section headings.
+//
+// Conditions order is by GSC search intent (90d impressions, 2026-05): isthmocele
+// ~8.3k (its commentary post is the site's #1 organic non-brand page), PCOS ~5.4k,
+// endometriosis ~1.4k (most clicks), then the lower-volume but RRM-central endometritis
+// + miscarriage. Isthmocele has no /condition/ pillar yet, so it points at the ranking
+// commentary; promote to a pillar link when one exists. Find a Provider was removed
+// 2026-05-24 (it's a coming-soon placeholder); re-add when the directory ships.
 const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
   {
     heading: '',
     items: [
-      { label: 'Find a Provider', href: '/providers/', icon: 'map-pin' },
+      { label: 'What is RRM?', href: '/what-is-rrm/', icon: 'compass' },
       {
         label: 'Conditions',
         icon: 'heart',
         children: [
-          { label: 'Endometriosis', href: '/endometriosis/' },
+          { label: 'Isthmocele', href: '/commentary/uterine-isthmocele-c-section-scar-restorative-solutions/' },
           { label: 'PCOS', href: '/pcos/' },
-          { label: 'Miscarriage', href: '/miscarriage/' },
+          { label: 'Endometriosis', href: '/endometriosis/' },
           { label: 'Endometritis', href: '/endometritis/' },
+          { label: 'Miscarriage', href: '/miscarriage/' },
         ],
       },
       { label: 'Research Library', href: '/library/', icon: 'library-big' },
       { label: 'Courses', href: '/courses/', icon: 'graduation' },
-      { label: 'Ask a Question', href: '/ask/', icon: 'message-circle' },
+      { label: 'Ask RRM AI', href: '/ask/', icon: 'message-circle' },
     ],
   },
   {
@@ -108,6 +116,23 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
         ))}
       </ul>
 
+      <!-- Account row pinned to the TOP of the drawer: auth-aware. Default = logged-out
+           (Sign in); the auth script swaps in the user's photo/initials + name on session. -->
+      <div class="mobile-nav-header">
+        <a href="/account/" class="mobile-account" id="mobile-account-row" data-track-cta="account-mobile-nav">
+          <span class="mobile-account__avatar" id="mobile-account-avatar">
+            <svg class="mobile-account__person" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <img class="mobile-account__photo" id="mobile-account-photo" alt="" decoding="async" hidden />
+            <span class="mobile-account__initials" id="mobile-account-initials" hidden></span>
+          </span>
+          <span class="mobile-account__text">
+            <span class="mobile-account__name" id="mobile-account-name">Sign in</span>
+            <span class="mobile-account__sub" id="mobile-account-sub">Save articles, track courses</span>
+          </span>
+          <svg class="mobile-account__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+        </a>
+      </div>
+
       <!-- Mobile nav — full site navigation (hidden on desktop, replaces nav-list on mobile) -->
       <div class="mobile-nav-sections">
         {mobileNavSections.map((section) => (
@@ -143,22 +168,8 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
         ))}
       </div>
 
-      <!-- Mobile-only footer inside nav panel -->
+      <!-- Mobile-only footer inside nav panel (account row moved to the top header) -->
       <div class="mobile-nav-footer">
-        <!-- Account row: auth-aware. Default = logged-out (Sign in); the auth script
-             swaps in the user's photo/initials + name when a session resolves. -->
-        <a href="/account/" class="mobile-account" id="mobile-account-row" data-track-cta="account-mobile-nav">
-          <span class="mobile-account__avatar" id="mobile-account-avatar">
-            <svg class="mobile-account__person" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <img class="mobile-account__photo" id="mobile-account-photo" alt="" decoding="async" hidden />
-            <span class="mobile-account__initials" id="mobile-account-initials" hidden></span>
-          </span>
-          <span class="mobile-account__text">
-            <span class="mobile-account__name" id="mobile-account-name">Sign in</span>
-            <span class="mobile-account__sub" id="mobile-account-sub">Save articles, track courses</span>
-          </span>
-          <svg class="mobile-account__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
-        </a>
         <div class="mobile-nav-footer__actions">
           <a href="/donate/" class="donate-btn mobile-donate" data-track-cta="donate-mobile-nav">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
@@ -604,7 +615,8 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
     .nav-item:has(#stuc-nav-link) { display: none; }
   }
 
-  /* Mobile nav sections + footer — hidden on desktop */
+  /* Mobile nav header + sections + footer — hidden on desktop */
+  .mobile-nav-header,
   .mobile-nav-sections,
   .mobile-nav-footer {
     display: none;
@@ -713,8 +725,9 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
       visibility: visible;
     }
 
-    /* Inside the drawer: hide the desktop nav-list, show the mobile sections */
+    /* Inside the drawer: hide the desktop nav-list, show the mobile header + sections */
     .nav-list { display: none; }
+    .mobile-nav-header { display: block; }
     .mobile-nav-sections { display: block; }
 
     /* ── Mobile nav sections ── */
@@ -814,7 +827,8 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
     .site-header:has(#nav-toggle:checked) .mobile-nav-group:nth-of-type(1) li:nth-child(5) .mobile-nav-link { transition-delay: 0.17s; }
     .site-header:has(#nav-toggle:checked) .mobile-nav-group:nth-of-type(2) li:nth-child(1) .mobile-nav-link { transition-delay: 0.20s; }
     .site-header:has(#nav-toggle:checked) .mobile-nav-group:nth-of-type(2) li:nth-child(2) .mobile-nav-link { transition-delay: 0.22s; }
-    .site-header:has(#nav-toggle:checked) .mobile-account { transition-delay: 0.25s; }
+    /* Account row now leads the drawer (top header), so it settles first. */
+    .site-header:has(#nav-toggle:checked) .mobile-account { transition-delay: 0.02s; }
     .site-header:has(#nav-toggle:checked) .mobile-nav-footer__actions { transition-delay: 0.28s; }
 
     /* Mobile dropdown — collapsed by default, opened via <details> */
@@ -875,6 +889,14 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
       outline: 2px solid var(--accent);
       outline-offset: 2px;
     }
+
+    /* ── Mobile nav header ── (account row pinned to the top of the drawer) */
+    .mobile-nav-header {
+      padding: 0 var(--space-6) var(--space-3);
+      margin-bottom: var(--space-2);
+      border-bottom: 1px solid var(--border-light);
+    }
+    .mobile-nav-header .mobile-account { margin-bottom: 0; }
 
     /* ── Mobile nav footer ── (always shown inside the drawer on mobile) */
     .mobile-nav-footer {
@@ -1013,6 +1035,14 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
 
 <script>
   // @ts-nocheck
+  // Shared saved-pages primitives (single source of truth — INV-1). The Header
+  // badge IIFE below imports these instead of re-implementing the url minter,
+  // the server-shape mapper, the adopt/merge, and the chunked push (H4/H5/M3/M4).
+  import {
+    readSaved,
+    updateBadge as savedUpdateBadge,
+    syncBadgeFromServer,
+  } from '../scripts/saved.ts';
   // Moved off is:inline (2026-05-14) so Astro extracts this to a hashed,
   // long-cached, deferred module bundle (`/_astro/*.js`) instead of inlining
   // ~6.5 KiB into every HTML response (Header.astro is global, so every page
@@ -1190,6 +1220,9 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
 
       // Broadcast community status for Footer (must fire even for anonymous so
       // Footer's 3s fallback timer is cancelled — otherwise it self-fetches).
+      // Cache it too: listeners that register after this one-time dispatch (e.g.
+      // the app-shell sidebar account row) replay from the cached value.
+      window.__rrmCommunityStatus__ = community;
       window.dispatchEvent(new CustomEvent('rrm:community-status', { detail: community }));
 
       // STUC link: swap text for members
@@ -1211,7 +1244,7 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
       // Anonymous visitors keep the server-rendered "Sign in" state (no work needed).
       var acctRow = document.getElementById('mobile-account-row');
       if (acctRow && isLoggedIn && community.user) {
-        var uName = (community.user.name || 'My account').trim();
+        var uName = (community.user.name || '').trim() || 'My account';
         var nameEl = document.getElementById('mobile-account-name');
         var subEl = document.getElementById('mobile-account-sub');
         var photoEl = document.getElementById('mobile-account-photo');
@@ -1221,15 +1254,19 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
         if (subEl) subEl.textContent = 'View account';
         acctRow.classList.add('is-authed');
         var initials = uName.split(/\s+/).slice(0, 2).map(function(w) { return w.charAt(0); }).join('').toUpperCase() || 'U';
+        var avTimer = null;
         var showInitials = function() {
+          if (avTimer) { clearTimeout(avTimer); avTimer = null; }
           if (personEl) personEl.style.display = 'none';
           if (photoEl) photoEl.hidden = true;
           if (initialsEl) { initialsEl.textContent = initials; initialsEl.hidden = false; }
         };
         var avatarUrl = community.user.avatarUrl;
         if (avatarUrl && photoEl) {
+          avTimer = setTimeout(showInitials, 3000); // slow/hung photo -> initials fallback
           photoEl.onerror = showInitials; // photo 404 -> initials fallback
           photoEl.onload = function() {
+            if (avTimer) { clearTimeout(avTimer); avTimer = null; }
             if (personEl) personEl.style.display = 'none';
             if (initialsEl) initialsEl.hidden = true;
             photoEl.hidden = false;
@@ -1261,69 +1298,43 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
     }
 
     fetch('/api/community/status', { credentials: 'same-origin' })
-      .then(function(r) { return r.json(); })
+      .then(function(r) { return r.ok ? r.json() : { ok: false, access: 'anonymous' }; })
       .catch(function() { return { ok: false, access: 'anonymous' }; })
       .then(applyState);
   });
 
-  // Saved articles badge (desktop + mobile)
+  // Saved pages badge (desktop + mobile). All save logic — the url minter, the
+  // server-shape mapper, the adopt/merge, the chunked push — lives in
+  // src/scripts/saved.ts (INV-1, single source). This block only wires the
+  // Header badge: instant paint from localStorage, deferred server sync, and a
+  // cross-tab storage listener (mirrors the rrm_theme listener pattern).
   (function() {
-    function setBadge(n) {
-      var ids = ['saved-link', 'mobile-saved-link'];
-      var countIds = ['saved-count', 'mobile-saved-count'];
-      for (var i = 0; i < ids.length; i++) {
-        var link = document.getElementById(ids[i]);
-        var count = document.getElementById(countIds[i]);
-        if (count) count.textContent = n;
-        if (link) {
-          if (n > 0) link.classList.add('has-items');
-          else link.classList.remove('has-items');
-        }
-      }
+    // Instant: show badge from localStorage (no network, no delay). readSaved()
+    // is fully defensive (never throws) and migrates legacy shapes.
+    try {
+      savedUpdateBadge(readSaved().length);
+    } catch (e) {
+      /* localStorage unavailable (private mode / disabled): leave badge unset.
+         Browser bundle — no server to log to; non-critical UI affordance. */
     }
 
-    // Instant: show badge from localStorage (no network, no delay)
-    try {
-      var saved = JSON.parse(localStorage.getItem('rrm_saved') || '[]');
-      if (saved.length > 0) setBadge(saved.length);
-    } catch(e) {}
-
-    // Deferred: sync with server when idle. Anonymous fast path: no hint
-    // cookie => no logged-in session => skip the /api/saved sync entirely.
-    // /api/saved would 401 for anonymous anyway, so the only practical effect
-    // is one fewer network request on the LCP critical path.
+    // Deferred: for logged-in users, push local saves up (chunked, ALL of them
+    // — M3), GET the authoritative server set, adopt via union-merge (M4, never
+    // clobbers a concurrent optimistic save), and repaint the badge. Anonymous
+    // fast path: no hint cookie => localStorage only (no network call).
     deferWork(function() {
-      if (!hasAuthHint()) return;
-      var local = [];
-      try { local = JSON.parse(localStorage.getItem('rrm_saved') || '[]'); } catch(e) {}
-      if (local.length > 0) {
-        fetch('/api/saved', {
-          method: 'POST',
-          credentials: 'same-origin',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ articles: local })
-        })
-          .then(function(r) { return r.json(); })
-          .then(function(result) {
-            if (result.ok && result.articles) {
-              var slugMap = {};
-              local.forEach(function(a) { slugMap[a.slug] = a; });
-              result.articles.forEach(function(a) { slugMap[a.slug] = a; });
-              var merged = Object.values(slugMap);
-              merged.sort(function(a, b) { return (b.savedAt || '').localeCompare(a.savedAt || ''); });
-              localStorage.setItem('rrm_saved', JSON.stringify(merged));
-              setBadge(merged.length);
-            }
-          }).catch(function() {});
-      } else {
-        fetch('/api/saved', { credentials: 'same-origin' })
-          .then(function(r) { return r.json(); })
-          .then(function(result) {
-            if (result.ok && result.articles && result.articles.length > 0) {
-              localStorage.setItem('rrm_saved', JSON.stringify(result.articles));
-              setBadge(result.articles.length);
-            }
-          }).catch(function() {});
+      syncBadgeFromServer().catch(function() {});
+    });
+
+    // Cross-tab: when another tab mutates rrm_saved, repaint the badge here
+    // (mirror the existing rrm_theme cross-tab listener so the count stays in
+    // sync across tabs without a reload).
+    window.addEventListener('storage', function(e) {
+      if (e.key !== 'rrm_saved') return;
+      try {
+        savedUpdateBadge(readSaved().length);
+      } catch (err) {
+        /* localStorage read failed — keep the current badge value. */
       }
     });
   })();

@@ -1,0 +1,199 @@
+<!doctype html>
+<!-- Interactive prototype: all 4 mobile nav drawer behaviors in one phone frame.
+     Flip the mode switch, tap the hamburger, feel the motion. 2026-05-23. -->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mobile Nav Drawer — interactive (all 4)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-body:#f7f5f3; --bg-surface:#fff; --bg-header:#f7f5f3;
+    --text-primary:#313131; --text-secondary:#636261; --text-tertiary:#949392; --text-muted:#adaba9;
+    --accent:#725e7e; --accent-hover:#4c3e54;
+    --border-color:#dddbd8; --border-light:#dddbd8;
+    --sand-700:#947353;
+    --radius-pill:9999px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:#e8e4df;font-family:'Inter',sans-serif;color:var(--text-primary);
+       display:flex;flex-direction:column;align-items:center;gap:18px;padding:28px 16px 48px;min-height:100%}
+
+  .controls{display:flex;flex-direction:column;align-items:center;gap:10px}
+  .controls .lab{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6b6560}
+  .seg{display:flex;background:#fff;border:1px solid var(--border-color);border-radius:var(--radius-pill);padding:4px;gap:2px}
+  .seg button{border:none;background:none;padding:9px 16px;border-radius:var(--radius-pill);
+              font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:var(--text-secondary);cursor:pointer;white-space:nowrap}
+  .seg button.on{background:var(--accent);color:#fff}
+  .hint{font-size:12px;color:#8a847e}
+
+  /* Phone */
+  .phone{width:393px;height:760px;background:var(--bg-body);border-radius:34px;
+         box-shadow:0 18px 50px rgba(0,0,0,.22);overflow:hidden;position:relative;border:9px solid #1f1c19}
+  .page-tint{position:absolute;inset:0;background:linear-gradient(180deg,#fbfaf9 0,#f4f1ee 100%)}
+  .ghost{position:absolute;inset:48px 0 0;padding:22px 24px}
+  .ghost h1{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;margin:8px 0 14px;color:#313131}
+  .ghost .ln{height:11px;background:#e8e2db;border-radius:5px;margin:11px 0}
+  .ghost .ln.s{width:55%}
+  .ghost .card{height:120px;background:#fff;border:1px solid var(--border-light);border-radius:14px;margin-top:18px}
+
+  /* Top bar */
+  .bar{position:absolute;top:0;left:0;right:0;height:48px;background:var(--bg-header);
+       box-shadow:0 1px 0 var(--border-light);display:flex;align-items:center;padding:0 14px 0 18px;gap:12px;z-index:80}
+  .bar .logo{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:24px;margin-right:auto;line-height:1}
+  .iconbtn{width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:none;
+           border:none;color:var(--text-secondary);cursor:pointer;border-radius:var(--radius-pill)}
+  .iconbtn:active{background:rgba(0,0,0,.05)}
+  .iconbtn svg{width:20px;height:20px}
+  .ham{position:relative;width:20px;height:14px}
+  .ham span{position:absolute;left:0;width:100%;height:2px;background:var(--text-primary);border-radius:1px;transition:transform .22s,top .22s,opacity .15s}
+  .ham span:nth-child(1){top:0}
+  .ham span:nth-child(2){top:6px}
+  .ham span:nth-child(3){top:12px}
+  .open .ham span:nth-child(1){top:6px;transform:rotate(45deg)}
+  .open .ham span:nth-child(2){opacity:0}
+  .open .ham span:nth-child(3){top:6px;transform:rotate(-45deg)}
+
+  /* Shared drawer content blocks */
+  .grp-head{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);padding:4px 24px}
+  .navrow{display:flex;align-items:center;gap:16px;padding:9px 24px;color:var(--text-primary);font-size:15px;text-decoration:none;cursor:pointer}
+  .navrow svg{width:18px;height:18px;color:var(--text-muted);flex-shrink:0}
+  .navrow:active{background:var(--bg-surface)}
+  .navrow.active{color:var(--accent);font-weight:500}
+  .divider{border-top:1px solid var(--border-light);margin:8px 0}
+  .footer-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:16px 24px}
+  .btn{padding:10px 16px;border-radius:var(--radius-pill);font-size:13px;font-weight:500;text-align:center;
+       text-decoration:none;border:1px solid var(--border-color);color:var(--text-primary);background:var(--bg-surface);cursor:pointer}
+  .btn.donate{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+  /* Scrim (shared by slide-in + bottom-sheet + fullscreen-fade) */
+  .scrim{position:absolute;inset:0;background:rgba(0,0,0,.34);z-index:60;opacity:0;visibility:hidden;transition:opacity .22s,visibility .22s}
+  .open .scrim{opacity:1;visibility:visible}
+
+  /* Drawer container — transforms set per-mode */
+  .drawer{position:absolute;z-index:70;background:var(--bg-header);overflow-y:auto;-webkit-overflow-scrolling:touch}
+
+  /* MODE: dropdown */
+  [data-mode="dropdown"] .drawer{top:48px;left:0;right:0;max-height:calc(100% - 48px);
+    border-bottom:1px solid var(--border-color);box-shadow:0 8px 24px rgba(0,0,0,.08);
+    padding:16px 0 8px;transform:translateY(-8px);opacity:0;visibility:hidden;
+    transition:transform .2s ease,opacity .2s ease,visibility .2s}
+  [data-mode="dropdown"].open .drawer{transform:translateY(0);opacity:1;visibility:visible}
+  [data-mode="dropdown"] .scrim{top:48px}
+
+  /* MODE: slide-in */
+  [data-mode="slide"] .drawer{top:48px;right:0;bottom:0;width:84%;padding:16px 0;
+    box-shadow:-8px 0 30px rgba(0,0,0,.18);transform:translateX(100%);visibility:hidden;
+    transition:transform .24s cubic-bezier(.4,0,.2,1),visibility .24s}
+  [data-mode="slide"].open .drawer{transform:translateX(0);visibility:visible}
+  [data-mode="slide"] .scrim{top:48px}
+
+  /* MODE: fullscreen */
+  [data-mode="full"] .drawer{inset:0;padding:0;display:flex;flex-direction:column;
+    opacity:0;visibility:hidden;transition:opacity .2s ease,visibility .2s}
+  [data-mode="full"].open .drawer{opacity:1;visibility:visible}
+  [data-mode="full"] .scrim{display:none}
+  [data-mode="full"] .drawer .fs-bar{height:48px;display:flex;align-items:center;padding:0 14px 0 18px;flex-shrink:0}
+  [data-mode="full"] .drawer .fs-bar .logo{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:24px;margin-right:auto}
+  [data-mode="full"] .drawer .fs-body{flex:1;overflow-y:auto;padding-top:6px}
+  [data-mode="full"] .navrow{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;padding:13px 24px}
+  [data-mode="full"] .navrow svg{width:20px;height:20px;color:var(--sand-700)}
+  [data-mode="full"] .grp-head{padding:14px 24px 4px}
+  /* hide the in-drawer top bar duplicate in non-full modes */
+  .drawer .fs-bar{display:none}
+  [data-mode="full"] .drawer .fs-bar{display:flex}
+  [data-mode="full"] .bar{visibility:hidden}
+
+  /* MODE: sheet */
+  [data-mode="sheet"] .drawer{left:0;right:0;bottom:0;max-height:80%;border-radius:20px 20px 0 0;
+    box-shadow:0 -10px 40px rgba(0,0,0,.2);padding:8px 0 18px;background:var(--bg-body);
+    transform:translateY(100%);visibility:hidden;transition:transform .24s cubic-bezier(.4,0,.2,1),visibility .24s}
+  [data-mode="sheet"].open .drawer{transform:translateY(0);visibility:visible}
+  .grab{width:38px;height:4px;background:var(--border-color);border-radius:2px;margin:6px auto 10px;display:none}
+  [data-mode="sheet"] .grab{display:block}
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <div class="lab">Drawer behaviour</div>
+  <div class="seg" id="seg">
+    <button data-m="dropdown" class="on">1 · Dropdown</button>
+    <button data-m="slide">2 · Slide-in</button>
+    <button data-m="full">3 · Full-screen</button>
+    <button data-m="sheet">4 · Sheet</button>
+  </div>
+  <div class="hint">Tap the ☰ to open · tap a row, the ✕, or the dim area to close</div>
+</div>
+
+<div class="phone" id="phone" data-mode="dropdown">
+  <div class="page-tint"></div>
+  <div class="ghost">
+    <h1>Research Library</h1>
+    <div class="ln"></div><div class="ln"></div><div class="ln s"></div>
+    <div class="card"></div>
+  </div>
+
+  <div class="bar">
+    <span class="logo">RRM Academy</span>
+    <button class="iconbtn" aria-label="Search"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+    <button class="iconbtn" id="toggle" aria-label="Menu"><span class="ham"><span></span><span></span><span></span></span></button>
+  </div>
+
+  <div class="scrim" id="scrim"></div>
+
+  <div class="drawer" id="drawer">
+    <!-- fullscreen-only top bar -->
+    <div class="fs-bar">
+      <span class="logo">RRM Academy</span>
+      <button class="iconbtn" aria-label="Search"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+      <button class="iconbtn fs-close" aria-label="Close"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="fs-body">
+      <div class="grab"></div>
+      <div class="grp-head">Learn</div>
+      <a class="navrow nav-close"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>FAQs</a>
+      <a class="navrow nav-close"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>Guides</a>
+      <a class="navrow nav-close"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.1 2.7 3 6 3s6-1.9 6-3v-5"/></svg>Courses</a>
+      <a class="navrow nav-close"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>What is RRM?</a>
+      <div class="divider"></div>
+      <div class="grp-head">Resources</div>
+      <a class="navrow nav-close"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Ask</a>
+      <a class="navrow nav-close active"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect width="8" height="18" x="3" y="3" rx="1"/><path d="M7 3v18"/><path d="M20.4 18.9c.2.5-.1 1.1-.6 1.3l-1.9.7c-.5.2-1.1-.1-1.3-.6L11.1 5.1c-.2-.5.1-1.1.6-1.3l1.9-.7c.5-.2 1.1.1 1.3.6Z"/></svg>Research Library</a>
+      <a class="navrow nav-close"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>Endo Self-Survey</a>
+      <a class="navrow nav-close"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Commentary</a>
+      <a class="navrow nav-close"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Join Us</a>
+      <div class="footer-actions">
+        <a class="btn nav-close">Account</a><a class="btn donate nav-close">Donate</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const phone = document.getElementById('phone');
+  const toggle = document.getElementById('toggle');
+  const scrim = document.getElementById('scrim');
+  const seg = document.getElementById('seg');
+
+  function open(){ phone.classList.add('open'); }
+  function close(){ phone.classList.remove('open'); }
+
+  toggle.addEventListener('click', () => phone.classList.toggle('open'));
+  scrim.addEventListener('click', close);
+  phone.querySelectorAll('.nav-close, .fs-close').forEach(el => el.addEventListener('click', close));
+
+  seg.addEventListener('click', e => {
+    const b = e.target.closest('button'); if(!b) return;
+    close();
+    seg.querySelectorAll('button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    phone.setAttribute('data-mode', b.dataset.m);
+  });
+</script>
+</body>
+</html>

@@ -202,16 +202,22 @@ export async function enrollUser(db, userId, courseId, stripePaymentIntent) {
     db.prepare(
       'INSERT INTO enrollment (id, user_id, course_id, stripe_payment_intent) VALUES (?, ?, ?, ?)' +
       ' ON CONFLICT(user_id, course_id) DO UPDATE SET' +
-      ' revoked_at = NULL,' +
+      ' revoked_at = CASE' +
+      '   WHEN enrollment.revoked_at IS NOT NULL' +
+      '     AND enrollment.stripe_payment_intent IS NOT NULL' +
+      '     AND enrollment.stripe_payment_intent = excluded.stripe_payment_intent' +
+      '   THEN enrollment.revoked_at' +
+      '   ELSE NULL' +
+      ' END,' +
       ' stripe_payment_intent = COALESCE(excluded.stripe_payment_intent, enrollment.stripe_payment_intent)'
     ).bind(generateId(), userId, courseId, stripePaymentIntent),
   ];
 
   // Enroll in included courses (e.g. Masterclass includes Long-Term Endo).
   // INSERT OR IGNORE (not full UPSERT) so an admin-revoked included-course enrollment
-  // is never silently un-revoked by a parent-course re-enroll. Included courses are
-  // never revoked by the Stripe webhook (only by admin action), so preserving
-  // revoked_at is the safe default here.
+  // is never silently un-revoked by a parent-course re-enroll. Included-course rows
+  // share the parent's stripe_payment_intent, so a full refund DOES revoke them via
+  // the refund handler's WHERE stripe_payment_intent = ? filter -- that is intentional.
   const included = getIncludedCourseIds(courseId);
   for (const includedId of included) {
     statements.push(

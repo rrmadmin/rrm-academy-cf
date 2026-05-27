@@ -256,7 +256,7 @@ const canonicalUrl = `https://rrmacademy.org/commentary/${post.slug}/`;
   jsonLd={finalJsonLd}
 >
   {SHELL_ENABLED ? (
-    <AppShellChrome context="article" currentPath={Astro.url.pathname} relatedSections={relatedSections}>
+    <AppShellChrome context="article" currentPath={Astro.url.pathname} relatedSections={relatedSections} saveTitle={post.title}>
       <div class="page-wrapper" data-pagefind-body>
         <span data-pagefind-meta="type:Article" style="display:none"></span>
         <span data-pagefind-meta={`title:${post.title}`} style="display:none"></span>

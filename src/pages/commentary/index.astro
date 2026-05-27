@@ -74,15 +74,15 @@ const jsonLd = {
       <!-- Hero -->
       <section class="commentary-hero" data-pagefind-ignore="all">
         <div class="container">
-          <h1 class="animate-enter" style="--stagger: 0;">RRM Articles &amp; Commentary</h1>
-          <p class="commentary-hero__subtitle animate-enter" style="--stagger: 1;">
+          <h1>RRM Articles &amp; Commentary</h1>
+          <p class="commentary-hero__subtitle">
             Expert clinical perspectives on restorative reproductive medicine
           </p>
         </div>
       </section>
 
       <!-- Recent Posts -->
-      <section class="section commentary-posts animate-enter" style="--stagger: 2;" data-pagefind-ignore="all">
+      <section class="section commentary-posts" data-pagefind-ignore="all">
         <div class="container">
           <div class="section-header">
             <h2 class="section-label">Recent posts</h2>
@@ -131,15 +131,15 @@ const jsonLd = {
       <!-- Hero -->
       <section class="commentary-hero" data-pagefind-ignore="all">
         <div class="container">
-          <h1 class="animate-enter" style="--stagger: 0;">RRM Articles &amp; Commentary</h1>
-          <p class="commentary-hero__subtitle animate-enter" style="--stagger: 1;">
+          <h1>RRM Articles &amp; Commentary</h1>
+          <p class="commentary-hero__subtitle">
             Expert clinical perspectives on restorative reproductive medicine
           </p>
         </div>
       </section>
 
       <!-- Recent Posts -->
-      <section class="section commentary-posts animate-enter" style="--stagger: 2;" data-pagefind-ignore="all">
+      <section class="section commentary-posts" data-pagefind-ignore="all">
         <div class="container">
           <div class="section-header">
             <h2 class="section-label">Recent posts</h2>
@@ -187,17 +187,6 @@ const jsonLd = {
 </BaseLayout>
 
 <style>
-  @keyframes enter {
-    from { transform: translateY(8px); }
-  }
-  .animate-enter {
-    animation: enter 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-    animation-delay: calc(100ms * var(--stagger, 0));
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .animate-enter { animation: none; }
-  }
-
   .commentary-hero {
     padding: var(--space-8) 0 0;
   }

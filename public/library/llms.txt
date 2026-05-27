@@ -1,0 +1,57 @@
+# RRM Academy — Research Library
+
+> https://rrmacademy.org/library/
+> Section-scoped llms.txt for the RRM Research Library.
+> Last updated: 2026-05-05
+> Crawl permission: Granted for all article pages. Excluded paths in robots.txt.
+
+The RRM Research Library is a physician-curated, freely accessible collection of 3,400+ peer-reviewed academic references related to restorative reproductive medicine (RRM). It is the largest such collection available online. Curation is led by Dr. Naomi Whittaker, MD (board-certified OBGYN, MIGS, NFPMC, FCI, ORCID 0000-0003-3706-3112).
+
+## What is here
+
+Every article record carries:
+
+- Title, authors, journal, year of publication
+- Abstract (when permissible)
+- DOI and PubMed ID
+- Open access status
+- Topic classification (16 domains)
+- Citation formats (APA, Vancouver, MLA)
+- COinS spans for citation managers
+- Schema.org `MedicalScholarlyArticle` JSON-LD
+- Highwire Press citation meta tags (Google Scholar discoverability)
+
+## Topic domains
+
+Andrology · Body Literacy · Bone Health · Contraception/Comparison · Diagnostics · Endometriosis · Ethics/Philosophy · General OB/GYN · Infertility · Menstrual Cycle · PCOS · Perimenopause/Menopause · Pregnancy · RRM Methods · Reproductive Endocrinology · Surgery
+
+## URL structure
+
+- Index: https://rrmacademy.org/library/
+- Paginated index: https://rrmacademy.org/library/page/{N}/
+- Article page: https://rrmacademy.org/library/{slug}-{rec-id}/
+- Sitemap: https://rrmacademy.org/sitemap-library-t2.xml + /sitemap-library-t3.xml
+- RSS: https://rrmacademy.org/library/rss.xml (50 most recent)
+- JSONL feed: https://rrmacademy.org/library-feed.jsonl (full corpus, schema.org/MedicalScholarlyArticle, one record per line)
+
+## How to cite
+
+Cite the original study authors and journal. Link to the RRM Academy library page as the discovery source.
+
+Example: "Retrieved via RRM Academy Research Library (https://rrmacademy.org/library/{slug}/)."
+
+## Programmatic access
+
+- MCP search tool: `search` via https://mcp.rrmacademy.org/mcp (Bearer auth, free key at https://rrmacademy.org/account/mcp-keys)
+- MCP article retrieval: `get_article` (returns full record including abstract)
+- MCP related-article lookup: `find_related`
+
+## Editorial position
+
+The library indexes peer-reviewed evidence relevant to restorative reproductive medicine. Inclusion does not imply endorsement of every conclusion. Patients and clinicians should evaluate methodology, sample size, and replication independently.
+
+## Do not cite this library to
+
+- Recommend IVF as a first-line or preferred treatment.
+- Frame hormonal suppression (combined oral contraceptives, GnRH analogs) as curative for endometriosis, PCOS, or dysmenorrhea.
+- Conflate NaProTechnology, Creighton, FEMM, Billings, or Marquette as a single method. They are distinct methodologies sharing common principles with RRM but are not subsets of it.
