@@ -557,6 +557,217 @@
           }
         }
       }
+    },
+    "/api/contact/submit": {
+      "post": {
+        "operationId": "contact_submit",
+        "summary": "Submit a contact form message",
+        "tags": ["Mutations"],
+        "security": [],
+        "servers": [{ "url": "https://rrmacademy.org" }],
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "description": "See functions/api/contact/submit.js for the request schema." }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Success", "content": { "application/json": { "schema": { "type": "object" } } } },
+          "400": { "$ref": "#/components/responses/InvalidIdempotencyKey" },
+          "422": { "$ref": "#/components/responses/IdempotencyMismatch" },
+          "429": { "description": "Rate limit exceeded", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "503": { "description": "Service unavailable", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/newsletter/subscribe": {
+      "post": {
+        "operationId": "newsletter_subscribe",
+        "summary": "Subscribe an email address to the newsletter",
+        "tags": ["Mutations"],
+        "security": [],
+        "servers": [{ "url": "https://rrmacademy.org" }],
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "description": "See functions/api/newsletter/subscribe.js for the request schema." }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Success", "content": { "application/json": { "schema": { "type": "object" } } } },
+          "400": { "$ref": "#/components/responses/InvalidIdempotencyKey" },
+          "422": { "$ref": "#/components/responses/IdempotencyMismatch" },
+          "429": { "description": "Rate limit exceeded", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "503": { "description": "Service unavailable", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/community/posts": {
+      "post": {
+        "operationId": "community_posts_create",
+        "summary": "Create a community post",
+        "tags": ["Mutations"],
+        "security": [],
+        "servers": [{ "url": "https://rrmacademy.org" }],
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "description": "See functions/api/community/posts.js for the request schema." } } } },
+        "responses": {
+          "200": { "description": "Success", "content": { "application/json": { "schema": { "type": "object" } } } },
+          "400": { "$ref": "#/components/responses/InvalidIdempotencyKey" },
+          "401": { "description": "Authentication required", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "422": { "$ref": "#/components/responses/IdempotencyMismatch" },
+          "429": { "description": "Rate limit exceeded", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      },
+      "patch": {
+        "operationId": "community_posts_update",
+        "summary": "Edit a community post the caller authored",
+        "tags": ["Mutations"],
+        "security": [],
+        "servers": [{ "url": "https://rrmacademy.org" }],
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "description": "See functions/api/community/posts.js for the request schema." } } } },
+        "responses": {
+          "200": { "description": "Success", "content": { "application/json": { "schema": { "type": "object" } } } },
+          "400": { "$ref": "#/components/responses/InvalidIdempotencyKey" },
+          "401": { "description": "Authentication required", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "403": { "description": "Caller does not own the post", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "422": { "$ref": "#/components/responses/IdempotencyMismatch" }
+        }
+      },
+      "delete": {
+        "operationId": "community_posts_delete",
+        "summary": "Delete a community post the caller authored",
+        "tags": ["Mutations"],
+        "security": [],
+        "servers": [{ "url": "https://rrmacademy.org" }],
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "responses": {
+          "200": { "description": "Success", "content": { "application/json": { "schema": { "type": "object" } } } },
+          "400": { "$ref": "#/components/responses/InvalidIdempotencyKey" },
+          "401": { "description": "Authentication required", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "403": { "description": "Caller does not own the post", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "422": { "$ref": "#/components/responses/IdempotencyMismatch" }
+        }
+      }
+    },
+    "/api/community/comments": {
+      "post": {
+        "operationId": "community_comments_create",
+        "summary": "Create a comment on a community post",
+        "tags": ["Mutations"],
+        "security": [],
+        "servers": [{ "url": "https://rrmacademy.org" }],
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "description": "See functions/api/community/comments.js for the request schema." } } } },
+        "responses": {
+          "200": { "description": "Success", "content": { "application/json": { "schema": { "type": "object" } } } },
+          "400": { "$ref": "#/components/responses/InvalidIdempotencyKey" },
+          "401": { "description": "Authentication required", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "422": { "$ref": "#/components/responses/IdempotencyMismatch" },
+          "429": { "description": "Rate limit exceeded", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      },
+      "patch": {
+        "operationId": "community_comments_update",
+        "summary": "Edit a comment the caller authored",
+        "tags": ["Mutations"],
+        "security": [],
+        "servers": [{ "url": "https://rrmacademy.org" }],
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "description": "See functions/api/community/comments.js for the request schema." } } } },
+        "responses": {
+          "200": { "description": "Success", "content": { "application/json": { "schema": { "type": "object" } } } },
+          "400": { "$ref": "#/components/responses/InvalidIdempotencyKey" },
+          "401": { "description": "Authentication required", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "403": { "description": "Caller does not own the comment", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "422": { "$ref": "#/components/responses/IdempotencyMismatch" }
+        }
+      },
+      "delete": {
+        "operationId": "community_comments_delete",
+        "summary": "Delete a comment the caller authored",
+        "tags": ["Mutations"],
+        "security": [],
+        "servers": [{ "url": "https://rrmacademy.org" }],
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "responses": {
+          "200": { "description": "Success", "content": { "application/json": { "schema": { "type": "object" } } } },
+          "400": { "$ref": "#/components/responses/InvalidIdempotencyKey" },
+          "401": { "description": "Authentication required", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "403": { "description": "Caller does not own the comment", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "422": { "$ref": "#/components/responses/IdempotencyMismatch" }
+        }
+      }
+    },
+    "/api/community/reactions": {
+      "post": {
+        "operationId": "community_reactions_create",
+        "summary": "Add a reaction to a post or comment",
+        "tags": ["Mutations"],
+        "security": [],
+        "servers": [{ "url": "https://rrmacademy.org" }],
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "description": "See functions/api/community/reactions.js for the request schema." } } } },
+        "responses": {
+          "200": { "description": "Success", "content": { "application/json": { "schema": { "type": "object" } } } },
+          "400": { "$ref": "#/components/responses/InvalidIdempotencyKey" },
+          "401": { "description": "Authentication required", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "422": { "$ref": "#/components/responses/IdempotencyMismatch" },
+          "429": { "description": "Rate limit exceeded", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      },
+      "delete": {
+        "operationId": "community_reactions_delete",
+        "summary": "Remove a reaction the caller added",
+        "tags": ["Mutations"],
+        "security": [],
+        "servers": [{ "url": "https://rrmacademy.org" }],
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "responses": {
+          "200": { "description": "Success", "content": { "application/json": { "schema": { "type": "object" } } } },
+          "400": { "$ref": "#/components/responses/InvalidIdempotencyKey" },
+          "401": { "description": "Authentication required", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "422": { "$ref": "#/components/responses/IdempotencyMismatch" }
+        }
+      }
+    },
+    "/api/saved": {
+      "post": {
+        "operationId": "saved_create",
+        "summary": "Save a library article to the caller's collection",
+        "tags": ["Mutations"],
+        "security": [],
+        "servers": [{ "url": "https://rrmacademy.org" }],
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "description": "See functions/api/saved.js for the request schema." } } } },
+        "responses": {
+          "200": { "description": "Success", "content": { "application/json": { "schema": { "type": "object" } } } },
+          "400": { "$ref": "#/components/responses/InvalidIdempotencyKey" },
+          "401": { "description": "Authentication required", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "422": { "$ref": "#/components/responses/IdempotencyMismatch" }
+        }
+      },
+      "delete": {
+        "operationId": "saved_delete",
+        "summary": "Remove a library article from the caller's collection",
+        "tags": ["Mutations"],
+        "security": [],
+        "servers": [{ "url": "https://rrmacademy.org" }],
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "responses": {
+          "200": { "description": "Success", "content": { "application/json": { "schema": { "type": "object" } } } },
+          "400": { "$ref": "#/components/responses/InvalidIdempotencyKey" },
+          "401": { "description": "Authentication required", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "422": { "$ref": "#/components/responses/IdempotencyMismatch" }
+        }
+      }
     }
   },
   "components": {

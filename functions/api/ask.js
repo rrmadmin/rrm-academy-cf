@@ -14,6 +14,7 @@ import { log } from './_log.js';
 import { logSearchQuery, hashIp, extractRequestMeta } from './_search_log.js';
 import { SYSTEM_PROMPT } from './_ask_prompt.js';
 import { requireMember } from './community/_shared.js';
+import { withIdempotency } from './_idempotency.js';
 
 
 async function hashShort(text) {
@@ -419,6 +420,10 @@ export async function onRequestOptions() {
 }
 
 export async function onRequestPost(context) {
+  return withIdempotency(context, _handlePost);
+}
+
+async function _handlePost(context) {
   const { env } = context;
 
   if (!env.DB) {
