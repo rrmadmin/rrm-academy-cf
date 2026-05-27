@@ -39,7 +39,7 @@
       "note": "Email validation + disposable/typo detection"
     },
     "functions/api/stripe-webhook.js": {
-      "hash": "33b4ab55076fa79a948b758b2905e08ccd25e7c4de34341b4692808a06367833",
+      "hash": "e6e353532d384ef106106d33816d84233f71de1930c4e467832e9a4e65e53e76",
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
@@ -59,7 +59,7 @@
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
-      "hash": "074ca5c0fc1547e04975da18089fbb2c6eeca1dfcd93d8d925773bcb2a34899b",
+      "hash": "59d6740b65315409771d3f88f13b22631b834c8aa3ea1a0184450c63397e21c3",
       "note": "Subscription lifecycle handler"
     },
     "functions/api/billing/_webhook-shared.js": {
