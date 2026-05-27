@@ -120,6 +120,10 @@ const SHELL_ENABLED = isShellEnabled('community');
                 <label class="form-label" for="edit-event-link">Event link</label>
                 <input class="form-input" type="url" id="edit-event-link" name="eventLink" placeholder="https://" />
               </div>
+              <div class="form-group">
+                <label class="form-label" for="edit-event-speaker">Speaker (optional)</label>
+                <input class="form-input" type="text" id="edit-event-speaker" name="speaker" maxlength="200" />
+              </div>
             </div>
             <div id="edit-resource-fields" class="edit-extra-fields" hidden>
               <div class="form-group">
@@ -225,6 +229,7 @@ const SHELL_ENABLED = isShellEnabled('community');
       var editEventFields = document.getElementById('edit-event-fields');
       var editEventDate = document.getElementById('edit-event-date');
       var editEventLink = document.getElementById('edit-event-link');
+      var editEventSpeaker = document.getElementById('edit-event-speaker');
       var editResourceFields = document.getElementById('edit-resource-fields');
       var editResourceUrl = document.getElementById('edit-resource-url');
       var editError = document.getElementById('edit-error');
@@ -275,11 +280,39 @@ const SHELL_ENABLED = isShellEnabled('community');
         return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       }
 
-      function fromLocalDateTimeInput(local) {
+      function toLocalDateTimeInputEastern(iso) {
+        if (!iso) return '';
+        var d = new Date(iso);
+        if (!isFinite(d.getTime())) return '';
+        var parts = new Intl.DateTimeFormat('en-US', {
+          timeZone: 'America/New_York',
+          year: 'numeric', month: '2-digit', day: '2-digit',
+          hour: '2-digit', minute: '2-digit', hour12: false
+        }).formatToParts(d);
+        var get = function(t) { var p = parts.find(function(x){return x.type===t;}); return p ? p.value : ''; };
+        var hour = get('hour'); if (hour === '24') hour = '00';
+        return get('year') + '-' + get('month') + '-' + get('day') + 'T' + hour + ':' + get('minute');
+      }
+
+      function fromLocalDateTimeInputEastern(local) {
         if (!local) return null;
-        var d = new Date(local);
-        if (!isFinite(d.getTime())) return null;
-        return d.toISOString();
+        // Parse "YYYY-MM-DDTHH:MM" as Eastern time, return UTC ISO
+        var m = local.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);
+        if (!m) return null;
+        var year = +m[1], month = +m[2], day = +m[3], hour = +m[4], minute = +m[5];
+        // Compute the UTC instant for this wall-clock time in America/New_York
+        // by formatting a candidate UTC time as ET and adjusting.
+        var candidate = new Date(Date.UTC(year, month - 1, day, hour, minute));
+        var asEt = new Intl.DateTimeFormat('en-US', {
+          timeZone: 'America/New_York',
+          year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false
+        }).formatToParts(candidate);
+        var get = function(t){var p=asEt.find(function(x){return x.type===t;});return p?+p.value:0;};
+        var etYear = get('year'), etMonth = get('month'), etDay = get('day'), etHour = get('hour'), etMin = get('minute');
+        if (etHour === 24) etHour = 0;
+        var etDate = new Date(Date.UTC(etYear, etMonth - 1, etDay, etHour, etMin));
+        var delta = candidate.getTime() - etDate.getTime();
+        return new Date(candidate.getTime() + delta).toISOString();
       }
 
       function escapeHtml(str) {
@@ -505,17 +538,9 @@ const SHELL_ENABLED = isShellEnabled('community');
 
         if (currentPost.type === 'event') {
           editEventFields.hidden = false;
-          if (currentPost.eventDate) {
-            // Format for datetime-local input
-            var ed = new Date(currentPost.eventDate);
-            var iso = ed.getFullYear() + '-' +
-              String(ed.getMonth() + 1).padStart(2, '0') + '-' +
-              String(ed.getDate()).padStart(2, '0') + 'T' +
-              String(ed.getHours()).padStart(2, '0') + ':' +
-              String(ed.getMinutes()).padStart(2, '0');
-            editEventDate.value = iso;
-          }
+          editEventDate.value = toLocalDateTimeInputEastern(currentPost.eventDate);
           editEventLink.value = currentPost.eventLink || '';
+          editEventSpeaker.value = currentPost.speaker || '';
         }
         if (currentPost.type === 'resource') {
           editResourceFields.hidden = false;
@@ -553,8 +578,9 @@ const SHELL_ENABLED = isShellEnabled('community');
           body: editBody.value.trim(),
         };
         if (currentPost.type === 'event') {
-          payload.eventDate = fromLocalDateTimeInput(editEventDate.value);
+          payload.eventDate = fromLocalDateTimeInputEastern(editEventDate.value);
           payload.eventLink = editEventLink.value.trim() || null;
+          payload.speaker = editEventSpeaker.value.trim() || null;
         }
         if (currentPost.type === 'resource') {
           payload.resourceUrl = editResourceUrl.value.trim() || null;
@@ -586,6 +612,7 @@ const SHELL_ENABLED = isShellEnabled('community');
             currentPost.body = payload.body;
             if (payload.eventDate !== undefined) currentPost.eventDate = payload.eventDate;
             if (payload.eventLink !== undefined) currentPost.eventLink = payload.eventLink;
+            if (payload.speaker !== undefined) currentPost.speaker = payload.speaker;
             if (payload.resourceUrl !== undefined) currentPost.resourceUrl = payload.resourceUrl;
 
             titleEl.textContent = currentPost.title;
