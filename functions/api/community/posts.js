@@ -300,6 +300,11 @@ async function _handlePost({ request, env, waitUntil }) {
     }
 
     // Validate fields
+    if (title !== undefined && title !== null) {
+      if (typeof title !== 'string') return json({ ok: false, error: 'invalid_title' }, 400);
+      if (title.length > 200) return json({ ok: false, error: 'invalid_title' }, 400);
+    }
+
     if (!postBody || typeof postBody !== 'string' || postBody.trim().length === 0) {
       return json({ ok: false, error: 'Post cannot be empty' }, 400);
     }
@@ -420,16 +425,12 @@ async function _handlePost({ request, env, waitUntil }) {
       body: contentToStore, authorId: user.id, event_date: eventDate || null,
       speaker: finalSpeaker, slug: finalSlug,
     };
-    try {
-      await notifyNewPost(env, db, postObj, displayName(user));
-    } catch (err) {
-      log(env, waitUntil, 'community', 'post_notification_failed', 'warn', err.message, 0, 0);
-    }
-    try {
-      await notifyEventShareLink(env, db, postObj);
-    } catch (err) {
-      log(env, waitUntil, 'community', 'share_link_notification_failed', 'warn', err.message, 0, 0);
-    }
+    waitUntil(notifyNewPost(env, db, postObj, displayName(user)).catch(err => {
+      log(env, null, 'community', 'post_notification_failed', 'warn', err.message, 0, 0);
+    }));
+    waitUntil(notifyEventShareLink(env, db, postObj).catch(err => {
+      log(env, null, 'community', 'share_link_notification_failed', 'warn', err.message, 0, 0);
+    }));
 
     return json({
       ok: true,
@@ -476,6 +477,11 @@ async function _handlePatch({ request, env, waitUntil }) {
 
     const { postId, title, body: postBody, eventDate, eventLink, resourceUrl, pinned, slug: reqSlug, ogImageUrl: reqOgImageUrl, speaker: reqSpeaker } = body;
     if (!postId || typeof postId !== 'string' || postId.length > 100) return json({ ok: false, error: 'postId required' }, 400);
+
+    if (title !== undefined && title !== null) {
+      if (typeof title !== 'string') return json({ ok: false, error: 'invalid_title' }, 400);
+      if (title.length > 200) return json({ ok: false, error: 'invalid_title' }, 400);
+    }
 
     const db = env.DB;
     const post = await db.prepare('SELECT * FROM community_post WHERE id = ?').bind(postId).first();
@@ -573,6 +579,14 @@ async function _handlePatch({ request, env, waitUntil }) {
     values.push(postId);
 
     const oldOgImageUrl = post.og_image_url;
+    // Track the slug value being written so we can fire share-link notification
+    const patchedSlugValue = reqSlug !== undefined
+      ? (reqSlug === null ? null : slugify(reqSlug))
+      : undefined;
+    // Track the speaker value being written
+    const patchedSpeakerValue = reqSpeaker !== undefined
+      ? (reqSpeaker === null ? null : (typeof reqSpeaker === 'string' ? reqSpeaker.trim() : null))
+      : undefined;
 
     try {
       await db.prepare(`UPDATE community_post SET ${updates.join(', ')} WHERE id = ?`)
@@ -591,6 +605,23 @@ async function _handlePatch({ request, env, waitUntil }) {
           log(env, waitUntil, 'community', 'r2_cleanup_failed', 'error', err.message);
         }));
       }
+    }
+
+    // Fire share-link notification when an event post gains its first slug via PATCH
+    if (post.type === 'event' && patchedSlugValue && !post.slug) {
+      const patchedPost = {
+        id: post.id,
+        type: post.type,
+        title: post.title || null,
+        body: (postBody !== undefined ? postBody.trim() : post.content) || '',
+        authorId: post.author_id,
+        event_date: eventDate !== undefined ? eventDate : post.event_date,
+        speaker: patchedSpeakerValue !== undefined ? patchedSpeakerValue : (post.speaker || null),
+        slug: patchedSlugValue,
+      };
+      waitUntil(notifyEventShareLink(env, db, patchedPost).catch(err => {
+        log(env, null, 'community', 'share_link_notification_failed', 'warn', err.message, 0, 0);
+      }));
     }
 
     return json({ ok: true });

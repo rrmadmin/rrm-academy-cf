@@ -15,6 +15,30 @@ const STUC_LABEL = 'Save the Uterus Club 🏷️';
 const STUC_MEMBER_STATUSES = ['active', 'trialing', 'past_due'];
 
 /**
+ * If the subscription is a terminal STUC subscription, DELETE the STUC user_label.
+ * Idempotent: DELETE no-ops when the row is already absent.
+ */
+async function maybeRemoveStucLabel(db, sub, env, waitUntil) {
+  const isStucProduct = (sub.items?.data || []).some(
+    item => item.price?.product === STUC_PRODUCT_ID
+  );
+  if (!isStucProduct) return;
+
+  const user = await db.prepare('SELECT id FROM user WHERE stripe_customer_id = ?')
+    .bind(sub.customer).first();
+  if (!user) {
+    log(env, waitUntil, 'billing', 'stuc_label_remove_no_user', 'warn',
+      `stripe_customer_id=${sub.customer} sub=${sub.id} -- no user row`);
+    return;
+  }
+
+  await db.prepare('DELETE FROM user_label WHERE user_id = ? AND label = ?')
+    .bind(user.id, STUC_LABEL).run();
+  log(env, waitUntil, 'billing', 'stuc_label_removed', 'ok',
+    `user=${user.id} sub=${sub.id} status=${sub.status}`);
+}
+
+/**
  * If the subscription is an active STUC subscription, INSERT OR IGNORE the STUC user_label.
  * Looks up user by stripe_customer_id. Logs warn and bails if no user row found.
  */
@@ -73,11 +97,22 @@ export async function handleSubscriptionUpdated(db, event, env, request, waitUnt
   const sub = event.data.object;
   log(env, waitUntil, 'billing', 'subscription_updated', 'ok', `${sub.id} status=${sub.status}`);
 
-  try {
-    await maybeInsertStucLabel(db, sub, env, waitUntil);
-  } catch (err) {
-    log(env, waitUntil, 'billing', 'stuc_label_fail', 'error',
-      `sub=${sub.id}: ${err.message}`);
+  const TERMINAL_STATUSES = ['canceled', 'incomplete_expired', 'unpaid'];
+
+  if (TERMINAL_STATUSES.includes(sub.status)) {
+    try {
+      await maybeRemoveStucLabel(db, sub, env, waitUntil);
+    } catch (err) {
+      log(env, waitUntil, 'billing', 'stuc_label_remove_fail', 'error',
+        `sub=${sub.id}: ${err.message}`);
+    }
+  } else {
+    try {
+      await maybeInsertStucLabel(db, sub, env, waitUntil);
+    } catch (err) {
+      log(env, waitUntil, 'billing', 'stuc_label_fail', 'error',
+        `sub=${sub.id}: ${err.message}`);
+    }
   }
 
   return null;
@@ -110,10 +145,18 @@ export async function handleSubscriptionDeleted(db, event, env, request, waitUnt
     });
   }
 
+  try {
+    await maybeRemoveStucLabel(db, sub, env, waitUntil);
+  } catch (err) {
+    log(env, waitUntil, 'billing', 'stuc_label_remove_fail', 'error',
+      `sub=${sub.id}: ${err.message}`);
+  }
+
   // Send cancellation confirmation email
   if (env.AWS_ACCESS_KEY_ID) {
     const email = await getEmailByStripeCustomer(db, sub.customer, env, waitUntil);
     if (email) {
+      log(env, waitUntil, 'billing', 'cancellation_email_queued', 'ok', email);
       waitUntil(sendEmailSafe(env, waitUntil, {
         to: email,
         subject: 'Your Save the Uterus Club membership has ended',
@@ -133,9 +176,13 @@ export async function handleSubscriptionDeleted(db, event, env, request, waitUnt
           'RRM Academy',
           'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315',
         ].join('\n'),
+      }).then(() => {
+        log(env, waitUntil, 'billing', 'cancellation_email_sent', 'ok', email);
       }).catch(() => {}));
-      log(env, waitUntil, 'billing', 'cancellation_email_sent', 'ok', email);
     }
+  } else {
+    log(env, waitUntil, 'billing', 'cancellation_email_skipped_no_ses', 'warn',
+      'AWS_ACCESS_KEY_ID missing; cancellation email not sent', 0, 0);
   }
 
   return null;
