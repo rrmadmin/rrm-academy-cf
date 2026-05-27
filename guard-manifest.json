@@ -115,7 +115,7 @@
       "note": "SYSTEM_PROMPT for /api/ask -- single source of truth"
     },
     "functions/api/ask.js": {
-      "hash": "251957b50e81f129ffee651a95f5c9a306ee36584dfae84e5fa7f3c379a2ca81",
+      "hash": "d5ee9ef865f9b7ef017c0e88ffd3f60573f0e641d2ca21696fa9fbec9bf84152",
       "note": "NLWeb AI Search proxy (auth + rate-limited, billed upstream)"
     },
     "src/components/SearchBar.astro": {
