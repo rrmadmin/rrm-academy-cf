@@ -60,6 +60,10 @@ const SHELL_ENABLED = isShellEnabled('community');
                 <input class="form-input" type="url" id="event-link" required placeholder="https://meet.google.com/..." />
               </div>
             </div>
+            <div class="form-group">
+              <label class="form-label" for="event-speaker">Speaker (optional)</label>
+              <input class="form-input" type="text" id="event-speaker" name="speaker" maxlength="200" placeholder="e.g. Dr. Jane Doe, MD, FACOG" />
+            </div>
             <div id="compose-error" class="compose-feedback compose-feedback--error" hidden>
               <p id="compose-error-text"></p>
             </div>
@@ -217,10 +221,14 @@ const SHELL_ENABLED = isShellEnabled('community');
         var calUrl = buildCalendarUrl(content.title, d, content.description);
         var postedAgo = timeAgo(ev.createdAt);
 
+        var etParts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric' }).formatToParts(d);
+        var etMonth = (etParts.find(function(p){return p.type==='month';}) || {}).value || '';
+        var etDay = (etParts.find(function(p){return p.type==='day';}) || {}).value || '';
+
         var html = '<div class="event-card card">';
         html += '<div class="event-date-badge">';
-        html += '<span class="event-date-month">' + d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase() + '</span>';
-        html += '<span class="event-date-day">' + d.getDate() + '</span>';
+        html += '<span class="event-date-month">' + etMonth.toUpperCase() + '</span>';
+        html += '<span class="event-date-day">' + etDay + '</span>';
         html += '</div>';
         html += '<div class="event-card-body">';
         html += '<p class="event-datetime">' + formattedDate + ' at ' + formattedTime + ' Eastern</p>';
@@ -247,10 +255,14 @@ const SHELL_ENABLED = isShellEnabled('community');
         var formattedDate = formatEventDate(d);
         var content = splitEventContent(ev.body);
 
+        var etParts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric' }).formatToParts(d);
+        var etMonth = (etParts.find(function(p){return p.type==='month';}) || {}).value || '';
+        var etDay = (etParts.find(function(p){return p.type==='day';}) || {}).value || '';
+
         var html = '<div class="event-card event-card--past card">';
         html += '<div class="event-date-badge event-date-badge--past">';
-        html += '<span class="event-date-month">' + d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase() + '</span>';
-        html += '<span class="event-date-day">' + d.getDate() + '</span>';
+        html += '<span class="event-date-month">' + etMonth.toUpperCase() + '</span>';
+        html += '<span class="event-date-day">' + etDay + '</span>';
         html += '</div>';
         html += '<div class="event-card-body">';
         html += '<p class="event-datetime">' + formattedDate + '</p>';
@@ -337,11 +349,25 @@ const SHELL_ENABLED = isShellEnabled('community');
         return str.substring(0, len) + '...';
       }
 
-      function fromLocalDateTimeInput(local) {
+      function fromLocalDateTimeInputEastern(local) {
         if (!local) return null;
-        var d = new Date(local);
-        if (!isFinite(d.getTime())) return null;
-        return d.toISOString();
+        // Parse "YYYY-MM-DDTHH:MM" as Eastern time, return UTC ISO
+        var m = local.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);
+        if (!m) return null;
+        var year = +m[1], month = +m[2], day = +m[3], hour = +m[4], minute = +m[5];
+        // Compute the UTC instant for this wall-clock time in America/New_York
+        // by formatting a candidate UTC time as ET and adjusting.
+        var candidate = new Date(Date.UTC(year, month - 1, day, hour, minute));
+        var asEt = new Intl.DateTimeFormat('en-US', {
+          timeZone: 'America/New_York',
+          year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false
+        }).formatToParts(candidate);
+        var get = function(t){var p=asEt.find(function(x){return x.type===t;});return p?+p.value:0;};
+        var etYear = get('year'), etMonth = get('month'), etDay = get('day'), etHour = get('hour'), etMin = get('minute');
+        if (etHour === 24) etHour = 0;
+        var etDate = new Date(Date.UTC(etYear, etMonth - 1, etDay, etHour, etMin));
+        var delta = candidate.getTime() - etDate.getTime();
+        return new Date(candidate.getTime() + delta).toISOString();
       }
 
       function linkify(text) {
@@ -398,6 +424,7 @@ const SHELL_ENABLED = isShellEnabled('community');
         var body = document.getElementById('event-body').value.trim();
         var eventDate = document.getElementById('event-date').value;
         var eventLink = document.getElementById('event-link').value.trim();
+        var speaker = document.getElementById('event-speaker').value.trim();
 
         if (!title) {
           composeErrorText.textContent = 'Title is required.';
@@ -426,8 +453,9 @@ const SHELL_ENABLED = isShellEnabled('community');
             type: 'event',
             title: title,
             body: body || null,
-            eventDate: fromLocalDateTimeInput(eventDate),
-            eventLink: eventLink
+            eventDate: fromLocalDateTimeInputEastern(eventDate),
+            eventLink: eventLink,
+            speaker: speaker || null
           })
         })
           .then(function (r) { return r.json(); })

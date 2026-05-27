@@ -498,7 +498,7 @@ export async function onRequestGet({ request, params, env }) {
   let event;
   try {
     event = await env.DB.prepare(
-      `SELECT id, slug, title, content, event_date, event_link, og_image_url, channel, type
+      `SELECT id, slug, title, content, event_date, event_link, og_image_url, channel, type, speaker
        FROM community_post
        WHERE channel = 'stuc' AND type = 'event' AND (slug = ? COLLATE NOCASE OR id = ?)
        LIMIT 1`
@@ -521,7 +521,7 @@ export async function onRequestGet({ request, params, env }) {
   // memberSummary: full content (used only for member/staff body rendering).
   const summary = summarize(event.content, { scrub: true });
   const memberSummary = summarize(event.content, { scrub: false });
-  const speaker = extractSpeaker(event.content);
+  const speaker = event.speaker || extractSpeaker(event.content);
   const visitor = await classifyVisitor(request, env);
   const cta = ctaForVisitor(visitor.tier, event);
   const canonical = `${SITE_ORIGIN}/events/${event.slug || event.id}`;
