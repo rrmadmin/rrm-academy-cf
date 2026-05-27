@@ -1,5 +1,5 @@
 -- RRM Academy Schema — D1 database: rrm-auth
--- Generated from the live database on 2026-05-25 (faithful mirror).
+-- Generated from the live database on 2026-05-27 (faithful mirror).
 -- This file is a DOCUMENTATION mirror + fresh-provision source; incremental changes apply via migrations/.
 -- Regenerate with: wrangler d1 execute rrm-auth --remote --json --command \
 --   "SELECT type,name,tbl_name,sql FROM sqlite_master WHERE sql IS NOT NULL AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf_%' ORDER BY tbl_name"
@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS community_comment (
     content TEXT NOT NULL,
     created_at TEXT DEFAULT (datetime('now'))
 , updated_at TEXT);
+CREATE INDEX IF NOT EXISTS idx_community_comment_author ON community_comment(author_id);
 CREATE INDEX IF NOT EXISTS idx_community_comment_post ON community_comment(post_id);
 
 -- ============================================================
@@ -86,6 +87,7 @@ CREATE TABLE IF NOT EXISTS community_post (
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now'))
 , channel TEXT NOT NULL DEFAULT 'stuc', content TEXT, slug TEXT, og_image_url TEXT);
+CREATE INDEX IF NOT EXISTS idx_community_post_author ON community_post(author_id);
 CREATE INDEX IF NOT EXISTS idx_community_post_channel ON community_post(channel, created_at);
 CREATE INDEX IF NOT EXISTS idx_community_post_pinned ON community_post(pinned, created_at);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_community_post_slug ON community_post(slug COLLATE NOCASE) WHERE slug IS NOT NULL;
@@ -304,6 +306,7 @@ CREATE TABLE IF NOT EXISTS enrollment (
     UNIQUE(user_id, course_id)
 );
 CREATE INDEX IF NOT EXISTS idx_enrollment_course ON enrollment(course_id);
+CREATE INDEX IF NOT EXISTS idx_enrollment_stripe_pi ON enrollment(stripe_payment_intent) WHERE stripe_payment_intent IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_enrollment_user ON enrollment(user_id);
 
 -- ============================================================
