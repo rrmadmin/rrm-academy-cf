@@ -2,7 +2,7 @@
  * POST   /api/community/reactions  — toggle reaction (add if missing, remove if exists)
  * DELETE /api/community/reactions  — explicit remove
  */
-import { json, optionsResponse } from '../auth/_shared.js';
+import { json, optionsResponse, checkRateLimit } from '../auth/_shared.js';
 import { log } from '../_log.js';
 import { requireMember } from './_shared.js';
 import { withIdempotency } from '../_idempotency.js';
@@ -22,6 +22,9 @@ async function _handlePost({ request, env, waitUntil }) {
     const auth = await requireMember(request, env);
     if (auth instanceof Response) return auth;
     const { user } = auth;
+
+    const allowed = await checkRateLimit(env, `reactions:${user.id}`, 60, 60);
+    if (!allowed) return json({ ok: false, error: 'rate_limited' }, 429);
 
     let body;
     try { body = await request.json(); } catch {
