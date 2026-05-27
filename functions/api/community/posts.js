@@ -121,6 +121,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
         pinned: !!row.pinned, eventDate: row.event_date, eventLink: row.event_link,
         resourceUrl: row.resource_url, createdAt: row.created_at, updatedAt: row.updated_at,
         slug: row.slug || null, ogImageUrl: row.og_image_url || null,
+        speaker: row.speaker || null,
         authorId: row.author_id, authorName: row.author_name || displayName(row),
         authorRole: row.author_role, authorAvatar: row.author_avatar || null,
         authorTier: tierFromLabel(row.author_tier_label), commentCount: row.comment_count,
@@ -237,6 +238,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
       updatedAt: r.updated_at,
       slug: r.slug || null,
       ogImageUrl: r.og_image_url || null,
+      speaker: r.speaker || null,
       authorId: r.author_id,
       authorName: r.author_name || displayName(r),
       authorRole: r.author_role,
@@ -273,7 +275,7 @@ async function _handlePost({ request, env, waitUntil }) {
     }
     if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
-    const { type, title, body: postBody, eventDate, eventLink, resourceUrl, channel: reqChannel, slug: reqSlug, ogImageUrl: reqOgImageUrl } = body;
+    const { type, title, body: postBody, eventDate, eventLink, resourceUrl, channel: reqChannel, slug: reqSlug, ogImageUrl: reqOgImageUrl, speaker: reqSpeaker } = body;
 
     // Validate channel
     const channel = reqChannel || 'stuc';
@@ -313,6 +315,14 @@ async function _handlePost({ request, env, waitUntil }) {
     }
     if (resourceUrl && !isSafeUrl(resourceUrl)) {
       return json({ ok: false, error: 'Resource URL must be an http or https URL' }, 400);
+    }
+
+    let finalSpeaker = null;
+    if (reqSpeaker !== undefined && reqSpeaker !== null) {
+      if (typeof reqSpeaker !== 'string') return json({ ok: false, error: 'invalid_speaker' }, 400);
+      const trimmedSpeaker = reqSpeaker.trim();
+      if (trimmedSpeaker.length === 0 || trimmedSpeaker.length > 200) return json({ ok: false, error: 'invalid_speaker' }, 400);
+      finalSpeaker = trimmedSpeaker;
     }
 
     const id = generateId();
@@ -387,12 +397,12 @@ async function _handlePost({ request, env, waitUntil }) {
 
     try {
       await db.prepare(`
-        INSERT INTO community_post (id, author_id, type, title, content, event_date, event_link, resource_url, channel, slug, og_image_url)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO community_post (id, author_id, type, title, content, event_date, event_link, resource_url, channel, slug, og_image_url, speaker)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).bind(
         id, user.id, type, titleForInsert, contentToStore,
         eventDate || null, eventLink || null, resourceUrl || null, channel,
-        finalSlug, finalOgImageUrl
+        finalSlug, finalOgImageUrl, finalSpeaker
       ).run();
     } catch (err) {
       if (err.message?.includes('UNIQUE constraint')) {
@@ -406,6 +416,7 @@ async function _handlePost({ request, env, waitUntil }) {
       await notifyNewPost(env, db, {
         id, type, title: (title && typeof title === 'string') ? title.trim() : null,
         body: contentToStore, authorId: user.id, event_date: eventDate || null,
+        speaker: finalSpeaker,
       }, displayName(user));
     } catch (err) {
       log(env, waitUntil, 'community', 'post_notification_failed', 'warn', err.message, 0, 0);
@@ -417,6 +428,7 @@ async function _handlePost({ request, env, waitUntil }) {
         id, type, body: contentToStore,
         pinned: false, eventDate, eventLink, resourceUrl,
         slug: finalSlug, ogImageUrl: finalOgImageUrl,
+        speaker: finalSpeaker,
         createdAt: new Date().toISOString().replace('T', ' ').slice(0, 19),
         authorId: user.id,
         authorName: displayName(user),
@@ -453,7 +465,7 @@ async function _handlePatch({ request, env, waitUntil }) {
     }
     if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
-    const { postId, title, body: postBody, eventDate, eventLink, resourceUrl, pinned, slug: reqSlug, ogImageUrl: reqOgImageUrl } = body;
+    const { postId, title, body: postBody, eventDate, eventLink, resourceUrl, pinned, slug: reqSlug, ogImageUrl: reqOgImageUrl, speaker: reqSpeaker } = body;
     if (!postId || typeof postId !== 'string' || postId.length > 100) return json({ ok: false, error: 'postId required' }, 400);
 
     const db = env.DB;
@@ -465,7 +477,7 @@ async function _handlePatch({ request, env, waitUntil }) {
       if (!canPin(user.role)) return json({ ok: false, error: 'Not authorized' }, 403);
     }
 
-    const hasBodyEdits = postBody !== undefined || eventDate !== undefined || eventLink !== undefined || resourceUrl !== undefined || reqSlug !== undefined || reqOgImageUrl !== undefined;
+    const hasBodyEdits = postBody !== undefined || eventDate !== undefined || eventLink !== undefined || resourceUrl !== undefined || reqSlug !== undefined || reqOgImageUrl !== undefined || reqSpeaker !== undefined;
 
     if (hasBodyEdits) {
       if (ARCHIVE_CHANNELS.includes(post.channel) && !roleAtLeast(user.role, 'admin')) {
@@ -532,6 +544,17 @@ async function _handlePatch({ request, env, waitUntil }) {
           return json({ ok: false, error: 'og_image_url must be http/https or a community asset path' }, 400);
         }
         updates.push('og_image_url = ?'); values.push(reqOgImageUrl);
+      }
+    }
+
+    if (reqSpeaker !== undefined) {
+      if (reqSpeaker === null) {
+        updates.push('speaker = ?'); values.push(null);
+      } else {
+        if (typeof reqSpeaker !== 'string') return json({ ok: false, error: 'invalid_speaker' }, 400);
+        const trimmedSpeaker = reqSpeaker.trim();
+        if (trimmedSpeaker.length === 0 || trimmedSpeaker.length > 200) return json({ ok: false, error: 'invalid_speaker' }, 400);
+        updates.push('speaker = ?'); values.push(trimmedSpeaker);
       }
     }
 

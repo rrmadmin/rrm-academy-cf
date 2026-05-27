@@ -91,11 +91,29 @@ export async function notifyNewPost(env, db, post, authorName) {
   let buildEmail;
 
   if (isEvent) {
-    const eventTitle = post.title || 'New Save the Uterus Club event';
-    subject = post.title || 'New Save the Uterus Club event';
+    const rawTitle = post.title || '';
+    const eventTitle = rawTitle || 'New Save the Uterus Club event';
+    const PREFIX = 'Save the Uterus Club';
+    const alreadyPrefixed = rawTitle.toLowerCase().startsWith(PREFIX.toLowerCase());
+    subject = rawTitle
+      ? (alreadyPrefixed ? rawTitle : `${PREFIX}: ${rawTitle}`)
+      : `New ${PREFIX} event`;
+
     const formattedDate = formatEventDate(post.event_date);
     const dateLine = formattedDate ? `<p>When: ${escapeHtml(formattedDate)}</p>` : '';
     const dateLineText = formattedDate ? `When: ${formattedDate}\n` : '';
+
+    const speaker = post.speaker && typeof post.speaker === 'string' ? post.speaker.trim() : null;
+    const speakerLineHtml = speaker ? `<p>With <strong>${escapeHtml(speaker)}</strong></p>` : '';
+    const speakerLineText = speaker ? `With ${speaker}\n` : '';
+
+    const rawBody = post.body && typeof post.body === 'string' ? post.body : '';
+    const plainBody = rawBody.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    const bodyPreview = plainBody.length > 0
+      ? (plainBody.length > 250 ? plainBody.slice(0, 250) + '…' : plainBody)
+      : '';
+    const bodyPreviewHtml = bodyPreview ? `<p>${escapeHtml(bodyPreview)}</p>` : '';
+    const bodyPreviewText = bodyPreview ? `${bodyPreview}\n` : '';
 
     buildEmail = (m) => {
       const greeting = m.first_name && m.first_name.trim()
@@ -104,11 +122,11 @@ export async function notifyNewPost(env, db, post, authorName) {
       const html = `
     <p>${greeting}</p>
     <p><strong>${escapeHtml(eventTitle)}</strong></p>
-    ${dateLine}
+    ${dateLine}${speakerLineHtml}${bodyPreviewHtml}
     <p>Sign in to the community to view the link and join.</p>
     <p><a href="${link}">View event</a></p>
   `;
-      const text = `${greeting}\n\n${eventTitle}\n${dateLineText}Sign in to the community to view the link and join.\nView: ${link}`;
+      const text = `${greeting}\n\n${eventTitle}\n${dateLineText}${speakerLineText}${bodyPreviewText}Sign in to the community to view the link and join.\nView: ${link}`;
       return { html, text };
     };
   } else {
