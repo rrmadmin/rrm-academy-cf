@@ -87,8 +87,8 @@ const jsonLd = {
       </nav>
 
       <section class="faqs-hero">
-        <h1 class="hero-title animate-enter" style="--stagger: 0;">Restorative Reproductive Medicine FAQs</h1>
-        <p class="faqs-intro animate-enter" style="--stagger: 1;">Common questions about Restorative Reproductive Medicine, NaProTechnology, treatment approaches, and getting started with an RRM clinician.</p>
+        <h1 class="hero-title">Restorative Reproductive Medicine FAQs</h1>
+        <p class="faqs-intro">Common questions about Restorative Reproductive Medicine, NaProTechnology, treatment approaches, and getting started with an RRM clinician.</p>
       </section>
 
       {groups.map((group) => (
@@ -132,17 +132,6 @@ const jsonLd = {
 </BaseLayout>
 
 <style>
-  @keyframes enter {
-    from { transform: translateY(8px); }
-  }
-  .animate-enter {
-    animation: enter 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-    animation-delay: calc(100ms * var(--stagger, 0));
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .animate-enter { animation: none; }
-  }
-
   /* Hero */
   .faqs-hero {
     margin-bottom: var(--space-10);
