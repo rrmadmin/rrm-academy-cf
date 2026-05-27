@@ -275,6 +275,13 @@ const SHELL_ENABLED = isShellEnabled('community');
         return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       }
 
+      function fromLocalDateTimeInput(local) {
+        if (!local) return null;
+        var d = new Date(local);
+        if (!isFinite(d.getTime())) return null;
+        return d.toISOString();
+      }
+
       function escapeHtml(str) {
         var div = document.createElement('div');
         div.appendChild(document.createTextNode(str || ''));
@@ -546,7 +553,7 @@ const SHELL_ENABLED = isShellEnabled('community');
           body: editBody.value.trim(),
         };
         if (currentPost.type === 'event') {
-          payload.eventDate = editEventDate.value || null;
+          payload.eventDate = fromLocalDateTimeInput(editEventDate.value);
           payload.eventLink = editEventLink.value.trim() || null;
         }
         if (currentPost.type === 'resource') {
