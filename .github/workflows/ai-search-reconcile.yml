@@ -1,10 +1,10 @@
 name: AI Search reconcile (weekly)
 
 on:
-  schedule:
-    # Sunday 08:00 UTC — runs after rrm-library-worker's retraction-scan cron (Sun 06:00 UTC)
-    # so retracted/unpublished records are excluded from articles.json before we reconcile.
-    - cron: '0 8 * * 0'
+  # RETIRED 2026-05-27 (retrieval Plan 3): weekly destructive reconcile (--reconcile --execute) replaced by
+  # rrm-library-worker reconcile + the Plan 4 self-healing daemon. Schedule disabled; manual dispatch retained for rollback.
+  # schedule:
+  #   - cron: '0 8 * * 0'
   workflow_dispatch:
     inputs:
       max_delete:
