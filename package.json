@@ -76,6 +76,8 @@
     "gates:payment": "node scripts/gates/validate-payment-pipeline.mjs",
     "gates:analytics": "node scripts/gates/validate-analytics-pipeline.mjs",
     "gates:analytics:check": "node scripts/gates/validate-analytics-pipeline.mjs --quick",
+    "gates:courses": "node scripts/gates/validate-courses-schema.mjs",
+    "gates:courses:check": "node scripts/gates/validate-courses-schema.mjs --quick",
     "gates:removed-ids": "node scripts/gates/check-removed-ids.mjs"
   },
   "dependencies": {

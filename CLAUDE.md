@@ -126,7 +126,7 @@ src/data/courses.json → Astro build → rrmacademy.org/courses
 
 **Tables:** `course` (10 D1-origin rows; PK is human-readable id like `masterclass-endo-surgery`, slug UNIQUE COLLATE NOCASE), `course_section` (66 rows; FK to course), `course_step` (103 rows; FK to course_section + denormalized course_id). All step IDs preserved verbatim because `enrollment.course_id`, `step_progress.step_id`, `quiz_response`, `lesson_comment`, `affiliate_clicks`, `course_waitlist` reference them by string. Counts grew on 2026-05-01 when 5 STUC courses were cut from single full-length recordings into 33 individual lesson clips via the CF Stream clip API.
 
-**Schema file:** `scripts/migrate-courses-to-d1.sql`. Migration script `scripts/migrate-courses-to-d1.mjs` is one-shot seed only — re-running requires `--seed-mode-i-understand` flag and clobbers admin-edited status (per /arise --deep finding #3). For pre-flight FK check (read-only), `node scripts/migrate-courses-to-d1.mjs --check-fk`.
+**Schema file:** `scripts/migrate-courses-to-d1.sql`. Migration script `scripts/migrate-courses-to-d1.mjs` is one-shot seed only — re-running requires `--seed-mode-i-understand` flag and clobbers admin-edited status (per /arise --deep finding #3). For pre-flight FK check (read-only), `node scripts/migrate-courses-to-d1.mjs --check-fk`. **Drift guard:** the committed schema's CHECK value-sets are held against the app's `VALID_*` Sets + live D1 by the [Courses Schema Proof Gates](#courses-schema-proof-gates) (`npm run gates:courses`) — update both the migration CHECK and the admin endpoints' `VALID_*` Sets together when changing `access_type`/`status`/step-`type`.
 
 **Public endpoint** `functions/api/courses.js`: Bearer LIBRARY_BUILD_TOKEN. Full mode filters `status='published'`; single-mode `?id=X` returns any-status course; `?id=X&preview=1` returns any-status steps too.
 
@@ -729,6 +729,31 @@ Docs: `scripts/gates/README.md`.
 5. Run `npm run gates:analytics:check`
 
 **UTM conventions**: see `rrm-academy-internal/marketing/utm-conventions.md`. Gate AG6 enforces lowercase + underscores + ASCII.
+
+## Courses Schema Proof Gates
+
+`scripts/gates/validate-courses-schema.mjs` keeps the committed course schema (`scripts/migrate-courses-to-d1.sql`) in lockstep with what the app accepts and with live D1. Built 2026-05-28 after the `access_type='members'` drift: live D1 and the admin endpoints both allowed `members`, but the committed migration silently lagged and still listed only `('public','private')`. Nothing caught it — a `CREATE TABLE IF NOT EXISTS` migration is a no-op on an existing table, so the committed file's only job is to faithfully reproduce live for a fresh rebuild, and it had quietly stopped. Three /arise --deep tracers read the stale file and rated it HIGH.
+
+The gate **parses both sides and compares value-sets** — it does NOT diff DDL text, so cosmetic reformatting (whitespace / `IF NOT EXISTS` / column order) never trips it. It has no hardcoded opinion on the values; an intentional schema change that updates both sides passes cleanly.
+
+**Gates**:
+
+| Gate | What it prevents |
+|------|------------------|
+| **CS1** Static (no network) | The migration's `CHECK(... IN (...))` value-sets for `course.access_type`, `course.status`, `course_step.type`, `course_step.status` must equal the admin endpoints' `VALID_ACCESS_TYPES` / `VALID_STATUSES` / `VALID_TYPES` Sets. Also asserts the duplicated `VALID_*` Sets agree across all 4 course admin endpoint files. This is the exact cause-class of the original incident: it fires the moment a value is added to the app code without updating the migration. |
+| **CS2** Live (network) | Dumps live `course`/`course_section`/`course_step` DDL from `sqlite_master`; asserts every committed column exists live and every CHECK value-set matches live. A D1 query/auth/network failure **WARN-skips (never fails)** — only a *detected* drift fails — so an unreachable D1 can't block a deploy and the gate runs everywhere (warn-skips where D1 is unreachable, runs for real in CI). Live-only columns WARN (later migration not in the base file); committed-only columns missing from live FAIL. |
+
+**Commands**:
+- `npm run gates:courses` — CS1 + CS2 (queries live D1)
+- `npm run gates:courses:check` — CS1 only, no network — pre-commit invokes this
+- `node scripts/gates/validate-courses-schema.mjs --gate CS1` — single gate
+- `node scripts/gates/validate-courses-schema.mjs --json` — machine-readable
+
+**Auto-fires**:
+- Pre-commit (in `hooks/pre-commit`, `--quick`) on changes to `scripts/migrate-courses-to-d1.sql`, any `functions/api/admin/courses/*.js`, or the gate script itself
+- CI deploy workflow `.github/workflows/deploy.yml` step "Validate courses schema gates" runs the full CS1+CS2 on every deploy (with `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`); CS2 warn-skips if D1 is unreachable so it never false-blocks.
+
+**When you add an `access_type`/`status`/step-`type` value**: update BOTH the `VALID_*` Set in every `functions/api/admin/courses/*.js` AND the `CHECK(...)` in `scripts/migrate-courses-to-d1.sql`, then apply the schema change to live D1 (recreate the table — SQLite cannot `ALTER` a CHECK). Run `npm run gates:courses` to confirm all three agree.
 
 ## Citation Integrity
 

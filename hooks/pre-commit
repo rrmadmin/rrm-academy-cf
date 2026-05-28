@@ -103,6 +103,21 @@ if echo "$STAGED" | grep -qE '^functions/api/(stripe-webhook|create-checkout)\.j
   fi
 fi
 
+# --- Courses schema drift gate: staged course migration, course admin endpoint, or the gate script ---
+#     CS1 (static, --quick): the migration's CHECK value-sets must equal the
+#     admin endpoints' VALID_ACCESS_TYPES / VALID_STATUSES / VALID_TYPES Sets.
+#     Catches the access_type='members' class (migration lags the app code).
+if echo "$STAGED" | grep -qE '^scripts/migrate-courses-to-d1\.sql$|^functions/api/admin/courses/.*\.js$|^scripts/gates/validate-courses-schema\.mjs$'; then
+  node scripts/gates/validate-courses-schema.mjs --quick
+  if [ $? -ne 0 ]; then
+    echo ""
+    echo "Commit blocked by courses schema drift gate (CS1)."
+    echo "The course migration CHECK constraints no longer match the admin endpoints' VALID_* Sets."
+    echo "Update scripts/migrate-courses-to-d1.sql to match, or bypass with --no-verify."
+    exit 1
+  fi
+fi
+
 # --- Removed-ID consumer-mismatch gate: any staged change to a shared
 #     component or layout that removes an id="X" still referenced by JS in
 #     src/, functions/, or public/. Closes the "remove an id, downstream
