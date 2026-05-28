@@ -1,0 +1,95 @@
+{
+  "courseId": "medical-trauma-endometriosis",
+  "sourceUid": "a8dec43e7266f83d0d86a81804924e1e",
+  "sourceDuration": 5132,
+  "approved": true,
+  "contentStart": 1320,
+  "contentEnd": 4982,
+  "trimmedChitChat": {
+    "startTrimmed": "00:00:00-00:22:00 — tech setup, computer restart/glitch ('I had to exit out'), small talk about medicine, and the name-pronunciation exchange, up to Naomi's formal introduction of Dr. Stuparich.",
+    "endTrimmed": "01:23:02-01:23:50 — closing gratitude and goodbyes."
+  },
+  "lessons": [
+    {
+      "order": 1,
+      "sectionId": "mte-intro",
+      "stepId": "mte-intro-1",
+      "title": "Trauma-Informed Care and the Patient as Partner",
+      "startTimeSeconds": 1320,
+      "endTimeSeconds": 1547,
+      "durationSeconds": 227,
+      "topicSummary": "Formal introduction of the guest endometriosis surgeon, her philosophy of the physician-patient relationship as a team (clinician brings medical/surgical expertise; the patient is the expert in their own values, goals, and lived experience), and why medical trauma disproportionately affects women and vulnerable populations."
+    },
+    {
+      "order": 2,
+      "sectionId": "mte-gaslighting",
+      "stepId": "mte-gaslighting-1",
+      "title": "Medical Gaslighting, Diagnostic Delay, and Patient Fatigue",
+      "startTimeSeconds": 1547,
+      "endTimeSeconds": 2032,
+      "durationSeconds": 485,
+      "topicSummary": "Gaslighting as a primary driver of medical trauma in endometriosis; how dismissal (e.g., 'manage your anxiety') causes diagnostic delay; the 'self-gaslighting' that makes patients doubt their own symptoms; blame and lack of validation compounding into an exponential delay in care and patient fatigue."
+    },
+    {
+      "order": 3,
+      "sectionId": "mte-neurobiology",
+      "stepId": "mte-neurobiology-1",
+      "title": "The Neurobiology of Trauma and Trauma-Informed Accommodations",
+      "startTimeSeconds": 2032,
+      "endTimeSeconds": 2542,
+      "durationSeconds": 510,
+      "topicSummary": "The association between severe childhood trauma and endometriosis risk; chronic HPA-axis activation and sympathetic overdrive in neuroinflammatory conditions; meeting patients where they are with individualized accommodations (nitrous, sedation, anesthesia for sensitive exams); and challenging the paternalistic practice of basing transvaginal ultrasound on sexual history rather than patient comfort."
+    },
+    {
+      "order": 4,
+      "sectionId": "mte-empowerment-subspecialty",
+      "stepId": "mte-empowerment-subspecialty-1",
+      "title": "Patient Empowerment, Subspecialty Care, and Educating the Profession",
+      "startTimeSeconds": 2542,
+      "endTimeSeconds": 2940,
+      "durationSeconds": 398,
+      "topicSummary": "Counseling patients with full disclosure of all options to empower their choices; the necessity of subspecialty care given co-occurring conditions (adenomyosis overlaps in up to 80% of cases, pelvic floor dysfunction, EDS, POTS); and educating students and colleagues that painful periods are not normal and warrant evaluation."
+    },
+    {
+      "order": 5,
+      "sectionId": "mte-obgyn-future",
+      "stepId": "mte-obgyn-future-1",
+      "title": "The Future of Women's Health: Subspecialization and the OB/GYN Debate",
+      "startTimeSeconds": 2940,
+      "endTimeSeconds": 3451,
+      "durationSeconds": 511,
+      "topicSummary": "The debate over separating obstetrics from gynecology; how subspecialties arose as a 'pressure release valve' when four years could not train competency across all areas; the tension between urban specialization and rural healthcare deserts; and the historical, patriarchal origins of OB/GYN unification."
+    },
+    {
+      "order": 6,
+      "sectionId": "mte-burnout-recovery",
+      "stepId": "mte-burnout-recovery-1",
+      "title": "Provider Burnout, Emotional Regulation, and Recovery as a Fresh Start",
+      "startTimeSeconds": 3451,
+      "endTimeSeconds": 4108,
+      "durationSeconds": 657,
+      "topicSummary": "The emotional toll on physicians and the case for emotional-regulation training; how a system that teaches suppression perpetuates harm; screening patients for support systems; framing surgery as a fresh start rather than a quick fix (recovery can rival major life stressors); and a structured post-operative care process with continued learning from patient advocates."
+    },
+    {
+      "order": 7,
+      "sectionId": "mte-neuroimmune",
+      "stepId": "mte-neuroimmune-1",
+      "title": "The Neuroimmune Model of Endometriosis",
+      "startTimeSeconds": 4108,
+      "endTimeSeconds": 4693,
+      "durationSeconds": 585,
+      "topicSummary": "The cell danger response and vagus-nerve link to inflammation; vagus-nerve stimulation research; the parasympathetic 'rest, digest, heal' state versus persistent fight-or-flight and autoimmunity; endometriosis as a possible neuroimmune activation ('period flu'); nutrient depletion and systemic functional-medicine approaches; and reproductive immunology with immune-system sex differences."
+    },
+    {
+      "order": 8,
+      "sectionId": "mte-therapies",
+      "stepId": "mte-therapies-1",
+      "title": "Emerging and Adjunct Therapies",
+      "startTimeSeconds": 4693,
+      "endTimeSeconds": 4982,
+      "durationSeconds": 289,
+      "topicSummary": "Emerging and adjunct therapies discussed for endometriosis and co-occurring conditions: GLP-1 medications with cautions about muscle-mass loss, low-dose naltrexone, and mast-cell activation management, framed as options to explore with full patient disclosure."
+    }
+  ],
+  "notes": "APPROVED 2026-05-27 (Brian; lesson 7 split into model vs therapies). 8 lessons, contiguous: 1320->1547->2032->2542->2940->3451->4108->4693->4982. Source = Dr. Mallory Stuparich, 'Medical Trauma with Endometriosis', 2026-03-31 (85 min, sourceUid a8dec43e7266f83d0d86a81804924e1e, 5132s). Heavy front trim (~20 min) due to a computer restart and extended warm-up. Guest speaker is the instructor; Dr. Whittaker hosted/co-discussed. PII NOTE: an attendee (first name only in transcript) shared a personal health story near 01:14 — described generically in L7 topicSummary, never named. [START RETRIMMED 2026-05-27 after verbatim-transcript check: formal intro begins ~22:00, not 20:27; removed ~93s of glitch/small-talk/name chatter.]"
+}

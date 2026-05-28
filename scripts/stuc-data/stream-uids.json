@@ -29,5 +29,10 @@
     "durationSeconds": null,
     "thumbnailUrl": null,
     "note": "Transcript-only course, no video recording"
+  },
+  "medical-trauma-endometriosis": {
+    "streamUid": "a8dec43e7266f83d0d86a81804924e1e",
+    "durationSeconds": 5132,
+    "thumbnailUrl": "https://customer-99owhsi4yh33gohc.cloudflarestream.com/a8dec43e7266f83d0d86a81804924e1e/thumbnails/thumbnail.jpg"
   }
 }
