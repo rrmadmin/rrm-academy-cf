@@ -63,19 +63,6 @@ const telHref = p.phone ? `tel:${p.phone.replace(/[^\d+]/g, '')}` : null;
 // ---- telehealth states (human labels) -------------------------------------
 const teleStateLabels = p.telehealthStates.map((s) => stateName(s));
 
-// ---- sources (title-cased, readable) --------------------------------------
-function titleCaseSource(id: string): string {
-  return id
-    .replace(/[_-]+/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase())
-    .replace(/\bRrm\b/g, 'RRM')
-    .replace(/\bNpi\b/g, 'NPI')
-    .replace(/\bNapro\b/g, 'NaPro')
-    .replace(/\bFemm\b/g, 'FEMM')
-    .replace(/\bIirrm\b/g, 'IIRRM');
-}
-const sourceLabels = (p.sources || []).map(titleCaseSource);
-
 // ---- claim link -----------------------------------------------------------
 const claimUrl = `/providers/claim/?slug=${encodeURIComponent(p.slug)}`;
 
@@ -200,14 +187,14 @@ const jsonLd = {
     {loc && <span data-pagefind-meta={`location:${loc}`} style="display:none"></span>}
     {p.typeLabel && <span data-pagefind-meta={`type:${p.typeLabel}`} style="display:none"></span>}
 
-    <div class="container container--narrow">
+    <div class="container">
       <nav class="breadcrumb" aria-label="Breadcrumb">
         <a href="/providers/">Providers</a>
         <span aria-hidden="true"> &rsaquo; </span>
         <span>{p.displayName}</span>
       </nav>
 
-      <!-- Header -->
+      <!-- Header (full width) -->
       <header class="provider-detail__header">
         <h1 class="provider-detail__name">{p.displayName}</h1>
 
@@ -231,96 +218,113 @@ const jsonLd = {
         {p.practiceName && !p.isPractice && (
           <p class="provider-detail__practice">{p.practiceName}</p>
         )}
-
-        {(loc || p.languages.length > 0) && (
-          <p class="provider-detail__meta">
-            {loc && <span class="provider-detail__loc">{loc}</span>}
-            {loc && p.languages.length > 0 && <span aria-hidden="true"> &middot; </span>}
-            {p.languages.length > 0 && (
-              <span class="provider-detail__langs">Languages: {p.languages.join(', ')}</span>
-            )}
-          </p>
-        )}
       </header>
 
-      <!-- Telehealth block (first-class) -->
-      {p.telehealth === 'yes' && (
-        <aside class="provider-tele" aria-label="Telehealth">
-          <p class="provider-tele__head">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-            Telehealth available
-          </p>
-          {teleStateLabels.length > 0 && (
-            <p class="provider-tele__states">Licensed or serving: {teleStateLabels.join(', ')}</p>
+      <!-- Two-column layout: main content + sticky contact aside -->
+      <div class="pd-layout">
+        <!-- Main column -->
+        <div class="pd-main">
+          <!-- Methods & specialties -->
+          {(p.methodLabels.length > 0 || p.specialty) && (
+            <section class="pd-card" aria-label="Methods and specialties">
+              <h2 class="detail-heading">Methods &amp; specialties</h2>
+              {p.methodLabels.length > 0 && (
+                <ul class="provider-methods">
+                  {p.methodLabels.map((m) => <li class="provider-methods__item"><span class="pill pill--method">{m}</span></li>)}
+                </ul>
+              )}
+              {p.specialty && <p class="provider-specialty">Specialty: {p.specialty}</p>}
+            </section>
           )}
+
+          <!-- Provenance (generic; we do not name the specific directories) -->
+          <section class="pd-card provider-sources" aria-label="About this listing">
+            <h2 class="detail-heading">About this listing</h2>
+            <p class="provider-sources__note">
+              This profile was compiled from publicly available restorative reproductive
+              medicine and fertility-awareness directories{p.sourceCount > 1 ? `, corroborated across ${p.sourceCount} sources` : ''}. Some details may be out of date.
+            </p>
+            {p.lastVerified && (
+              <p class="provider-sources__verified">Last verified {p.lastVerified.slice(0, 10)}</p>
+            )}
+            <p class="provider-sources__note">
+              See something that needs fixing? <a href={claimUrl}>Update this listing</a>.
+            </p>
+          </section>
+        </div>
+
+        <!-- Sticky contact aside -->
+        <aside class="pd-aside" aria-label="Contact and listing">
+          <div class="pd-card pd-contact">
+            <h2 class="detail-heading">Contact</h2>
+
+            {(loc || p.languages.length > 0) && (
+              <div class="pd-contact__facts">
+                {loc && (
+                  <p class="pd-contact__fact">
+                    <span class="pd-contact__label">Location</span>
+                    <span class="pd-contact__value">{loc}</span>
+                  </p>
+                )}
+                {p.languages.length > 0 && (
+                  <p class="pd-contact__fact">
+                    <span class="pd-contact__label">Languages</span>
+                    <span class="pd-contact__value">{p.languages.join(', ')}</span>
+                  </p>
+                )}
+              </div>
+            )}
+
+            <!-- Telehealth (single source of truth) -->
+            {p.telehealth === 'yes' && (
+              <p class="pd-tele pd-tele--yes">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                {teleStateLabels.length > 0
+                  ? `Telehealth in ${teleStateLabels.join(', ')}`
+                  : 'Telehealth available'}
+              </p>
+            )}
+            {p.telehealth === 'unknown' && (
+              <p class="pd-tele pd-tele--unknown">Telehealth status not confirmed</p>
+            )}
+
+            <!-- Stacked contact buttons -->
+            {(telHref || p.website || directionsUrl) && (
+              <div class="pd-actions">
+                {telHref && (
+                  <a class="pd-btn pd-btn--primary" href={telHref} data-track="provider_call">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    Call
+                  </a>
+                )}
+                {p.website && (
+                  <a class="pd-btn" href={p.website} target="_blank" rel="noopener nofollow" data-track="provider_website">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    Visit website
+                  </a>
+                )}
+                {directionsUrl && (
+                  <a class="pd-btn" href={directionsUrl} target="_blank" rel="noopener nofollow" data-track="provider_directions">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Get directions
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+
+          <!-- Claim card (compact) -->
+          <div class="pd-card pd-claim">
+            <p class="pd-claim__head">Is this you?</p>
+            <p class="pd-claim__body">
+              If you are {p.displayName} or represent this practice, you can claim and update this listing.
+            </p>
+            <a class="pd-btn pd-btn--primary" href={claimUrl}>Update your listing</a>
+          </div>
         </aside>
-      )}
-      {p.telehealth === 'unknown' && (
-        <p class="provider-tele-unknown">Telehealth status not confirmed.</p>
-      )}
+      </div>
 
-      <!-- Primary CTAs -->
-      {(telHref || p.website || directionsUrl) && (
-        <div class="provider-cta" aria-label="Contact actions">
-          {telHref && (
-            <a class="provider-cta__btn provider-cta__btn--primary" href={telHref} data-track="provider_call">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-              Call
-            </a>
-          )}
-          {p.website && (
-            <a class="provider-cta__btn" href={p.website} target="_blank" rel="noopener nofollow" data-track="provider_website">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-              Visit website
-            </a>
-          )}
-          {directionsUrl && (
-            <a class="provider-cta__btn" href={directionsUrl} target="_blank" rel="noopener nofollow" data-track="provider_directions">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              Get directions
-            </a>
-          )}
-        </div>
-      )}
-
-      <!-- Methods & specialties -->
-      {(p.methodLabels.length > 0 || p.specialty) && (
-        <section class="provider-section" aria-label="Methods and specialties">
-          <h2 class="detail-heading">Methods &amp; specialties</h2>
-          {p.methodLabels.length > 0 && (
-            <ul class="provider-methods">
-              {p.methodLabels.map((m) => <li class="provider-methods__item">{m}</li>)}
-            </ul>
-          )}
-          {p.specialty && <p class="provider-specialty">Specialty: {p.specialty}</p>}
-        </section>
-      )}
-
-      <!-- Sources (transparency / trust) -->
-      {sourceLabels.length > 0 && (
-        <section class="provider-section provider-sources" aria-label="Sources">
-          <h2 class="detail-heading">Sources</h2>
-          <ul class="provider-sources__list">
-            {sourceLabels.map((s) => <li class="provider-sources__item">{s}</li>)}
-          </ul>
-          {p.lastVerified && (
-            <p class="provider-sources__verified">Last verified {p.lastVerified.slice(0, 10)}</p>
-          )}
-        </section>
-      )}
-
-      <!-- Claim CTA -->
-      <section class="provider-claim" aria-label="Claim this listing">
-        <div class="provider-claim__inner">
-          <p class="provider-claim__head">Is this you? Update your listing</p>
-          <p class="provider-claim__body">
-            If you are {p.displayName} or represent this practice, you can claim and update this listing.
-          </p>
-          <a class="provider-claim__btn" href={claimUrl}>Claim this listing</a>
-        </div>
-      </section>
-
-      <!-- Similar providers -->
+      <!-- Similar providers (full width) -->
       {related.length > 0 && (
         <section class="provider-related" aria-label="Similar providers" data-pagefind-ignore="all">
           <h2 class="detail-heading">Similar providers</h2>
@@ -381,13 +385,52 @@ const jsonLd = {
     font-size: 1rem;
     font-weight: 600;
     color: var(--accent);
-    margin: 0 0 var(--space-2);
-  }
-  .provider-detail__meta {
-    font-size: 0.9375rem;
-    color: var(--text-secondary);
-    line-height: 1.5;
     margin: 0;
+  }
+
+  /* Two-column layout */
+  .pd-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "aside"
+      "main";
+    gap: var(--space-6);
+    margin-bottom: var(--space-10);
+  }
+  .pd-main {
+    grid-area: main;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    min-width: 0;
+  }
+  .pd-aside {
+    grid-area: aside;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+  @media (min-width: 900px) {
+    .pd-layout {
+      grid-template-columns: minmax(0, 1fr) clamp(300px, 32%, 340px);
+      grid-template-areas: "main aside";
+      gap: var(--space-8);
+    }
+    .pd-aside {
+      position: sticky;
+      top: var(--space-6);
+      align-self: start;
+    }
+  }
+
+  /* Cards */
+  .pd-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-5);
   }
 
   /* Pills (re-declared from ProviderCard, same tokens) */
@@ -411,76 +454,6 @@ const jsonLd = {
   .pill--entity { background: var(--neutral-100); color: var(--neutral-600); }
   .pill--method { background: var(--neutral-100); color: var(--text-secondary); }
 
-  /* Telehealth block */
-  .provider-tele {
-    background: var(--green-100);
-    border-radius: var(--radius-md);
-    padding: var(--space-4) var(--space-5);
-    margin-bottom: var(--space-6);
-  }
-  .provider-tele__head {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 600;
-    font-size: 0.9375rem;
-    color: var(--green-700);
-    margin: 0;
-  }
-  .provider-tele__states {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    margin: var(--space-2) 0 0;
-    line-height: 1.5;
-  }
-  .provider-tele-unknown {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-    font-style: italic;
-    margin-bottom: var(--space-6);
-  }
-
-  /* Primary CTAs */
-  .provider-cta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    margin-bottom: var(--space-8);
-  }
-  .provider-cta__btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-family: 'Inter', system-ui, sans-serif;
-    font-size: 0.875rem;
-    font-weight: 600;
-    padding: var(--space-2) var(--space-4);
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border-color);
-    background: var(--bg-surface);
-    color: var(--text-primary);
-    text-decoration: none;
-    transition: border-color 0.15s, background 0.15s, color 0.15s;
-  }
-  .provider-cta__btn:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-  .provider-cta__btn--primary {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--bg-surface);
-  }
-  .provider-cta__btn--primary:hover {
-    background: var(--accent-hover);
-    border-color: var(--accent-hover);
-    color: var(--bg-surface);
-  }
-
-  /* Sections */
-  .provider-section {
-    margin-bottom: var(--space-8);
-  }
   .detail-heading {
     font-family: 'Cormorant Garamond', 'Georgia', serif;
     font-size: 1.375rem;
@@ -488,6 +461,8 @@ const jsonLd = {
     margin-bottom: var(--space-4);
     color: var(--text-primary);
   }
+
+  /* Methods */
   .provider-methods {
     list-style: none;
     padding: 0;
@@ -497,12 +472,7 @@ const jsonLd = {
     gap: var(--space-2);
   }
   .provider-methods__item {
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    background: var(--neutral-100);
-    padding: 4px 12px;
-    border-radius: var(--radius-pill);
+    margin: 0;
   }
   .provider-specialty {
     font-size: 0.9375rem;
@@ -510,19 +480,16 @@ const jsonLd = {
     margin: var(--space-3) 0 0;
   }
 
-  /* Sources */
-  .provider-sources__list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-  }
-  .provider-sources__item {
+  /* Provenance / about-this-listing */
+  .provider-sources__note {
     font-size: 0.875rem;
     color: var(--text-secondary);
-    line-height: 1.5;
+    line-height: 1.55;
+    margin: 0 0 var(--space-2);
+  }
+  .provider-sources__note a {
+    color: var(--accent);
+    font-weight: 500;
   }
   .provider-sources__verified {
     font-size: 0.8125rem;
@@ -530,45 +497,109 @@ const jsonLd = {
     margin: var(--space-3) 0 0;
   }
 
-  /* Claim CTA */
-  .provider-claim {
-    margin-bottom: var(--space-8);
+  /* Contact card facts */
+  .pd-contact__facts {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
   }
-  .provider-claim__inner {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-left: 4px solid var(--accent);
+  .pd-contact__fact {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    margin: 0;
+  }
+  .pd-contact__label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+  .pd-contact__value {
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    line-height: 1.5;
+  }
+
+  /* Telehealth (single line inside contact card) */
+  .pd-tele {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.4;
+    margin: 0 0 var(--space-4);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+  }
+  .pd-tele--yes {
+    background: var(--green-100);
+    color: var(--green-700);
+  }
+  .pd-tele--unknown {
+    background: var(--neutral-100);
+    color: var(--text-muted);
+    font-weight: 500;
+    font-style: italic;
+  }
+
+  /* Stacked aside buttons */
+  .pd-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .pd-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    width: 100%;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: var(--space-3) var(--space-4);
     border-radius: var(--radius-md);
-    padding: var(--space-5) var(--space-6);
+    border: 1px solid var(--border-color);
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
   }
-  .provider-claim__head {
+  .pd-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .pd-btn--primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg-surface);
+  }
+  .pd-btn--primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    color: var(--bg-surface);
+  }
+
+  /* Claim card */
+  .pd-claim {
+    border-left: 4px solid var(--accent);
+  }
+  .pd-claim__head {
     font-family: 'Cormorant Garamond', 'Georgia', serif;
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--text-primary);
     margin: 0 0 var(--space-2);
   }
-  .provider-claim__body {
-    font-size: 0.9375rem;
+  .pd-claim__body {
+    font-size: 0.875rem;
     color: var(--text-secondary);
     line-height: 1.55;
     margin: 0 0 var(--space-4);
-  }
-  .provider-claim__btn {
-    display: inline-flex;
-    align-items: center;
-    font-family: 'Inter', system-ui, sans-serif;
-    font-size: 0.875rem;
-    font-weight: 600;
-    padding: var(--space-2) var(--space-5);
-    border-radius: var(--radius-md);
-    background: var(--accent);
-    color: var(--bg-surface);
-    text-decoration: none;
-    transition: background 0.15s;
-  }
-  .provider-claim__btn:hover {
-    background: var(--accent-hover);
   }
 
   /* Similar providers */
