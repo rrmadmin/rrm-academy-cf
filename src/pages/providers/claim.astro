@@ -1,0 +1,243 @@
+---
+// Provider "verify your facts" / claim intake (MVP).
+// Service-framed, not transactional (PRD §7.8). For MVP this captures the
+// correction/claim via the existing guarded contact endpoint; the full
+// D1-backed verify-your-facts flow (email-domain auth, attested facts,
+// moderation queue) is a later PRD phase. Reuses /api/contact/submit so no
+// new endpoint + no new guard surface.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { TURNSTILE_SITE_KEY } from '../../lib/turnstile';
+
+const canonical = 'https://rrmacademy.org/providers/claim/';
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: 'Update or correct your provider listing',
+  description: 'Providers listed in the RRM Academy directory can confirm or correct the information we show.',
+  url: canonical,
+  isPartOf: { '@type': 'WebSite', '@id': 'https://rrmacademy.org/#website' },
+};
+---
+<BaseLayout
+  title="Update Your Listing | RRM Provider Directory"
+  description="Are you a provider listed in the RRM Academy directory? Confirm or correct the details we show about your practice."
+  canonicalUrl={canonical}
+  jsonLd={jsonLd}
+  noindex={true}
+>
+  <section class="claim-hero">
+    <div class="container container--narrow">
+      <p class="eyebrow">RRM Provider Directory</p>
+      <h1>Update or correct your listing</h1>
+      <p class="lead">
+        We build each listing from public, method-specific sources, so some details may be out of date or incomplete. If this is your practice, tell us what to fix and we will update it. There is no cost and no account required.
+      </p>
+      <p id="claim-ref" class="claim-ref" hidden></p>
+    </div>
+  </section>
+
+  <section class="claim-section">
+    <div class="container container--narrow">
+      <form id="claim-form" class="claim-form" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="claim-listing">Which listing is this about? <span class="form-required">*</span></label>
+          <input class="form-input" type="text" id="claim-listing" name="listing" required maxlength="200" placeholder="Your name or practice name as it appears in the directory" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="claim-message">What should we confirm or correct? <span class="form-required">*</span></label>
+          <textarea class="form-input form-textarea" id="claim-message" name="message" required minlength="10" maxlength="5000" rows="6" placeholder="For example: methods you practice, telehealth availability and which states, phone or website, whether you are accepting new patients, or anything shown that is wrong."></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="claim-first-name">First name <span class="form-required">*</span></label>
+            <input class="form-input" type="text" id="claim-first-name" name="firstName" required autocomplete="given-name" maxlength="100" placeholder="First name" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="claim-last-name">Last name</label>
+            <input class="form-input" type="text" id="claim-last-name" name="lastName" autocomplete="family-name" maxlength="100" placeholder="Last name" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="claim-email">Email <span class="form-required">*</span></label>
+          <input class="form-input" type="email" id="claim-email" name="email" required autocomplete="email" placeholder="A practice email is best" />
+          <span class="form-hint">Using an email at your practice domain helps us verify the listing is yours.</span>
+        </div>
+
+        <div class="form-group" style="position:absolute;left:-9999px;" aria-hidden="true">
+          <label for="claim-website">Website</label>
+          <input type="text" id="claim-website" name="website" tabindex="-1" autocomplete="off" />
+        </div>
+
+        {TURNSTILE_SITE_KEY && (
+          <div id="turnstile-container" data-sitekey={TURNSTILE_SITE_KEY}></div>
+        )}
+
+        <button type="submit" class="btn btn--primary claim-submit" id="claim-submit">Send update</button>
+      </form>
+
+      <div id="claim-success" class="claim-feedback claim-feedback--success" hidden>
+        <div class="claim-feedback__icon">&#10003;</div>
+        <h3>Thank you</h3>
+        <p>We received your update and will review it. We typically respond within two business days. Once confirmed, your listing shows a verified-contact badge.</p>
+      </div>
+      <div id="claim-error" class="claim-feedback claim-feedback--error" hidden>
+        <p id="claim-error-text"></p>
+      </div>
+    </div>
+  </section>
+
+  {TURNSTILE_SITE_KEY && (
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer is:inline></script>
+  )}
+
+  <script is:inline>
+    (function () {
+      var form = document.getElementById('claim-form');
+      var submitBtn = document.getElementById('claim-submit');
+      var successEl = document.getElementById('claim-success');
+      var errorEl = document.getElementById('claim-error');
+      var errorText = document.getElementById('claim-error-text');
+      var listingField = document.getElementById('claim-listing');
+      var messageField = document.getElementById('claim-message');
+      var firstNameField = document.getElementById('claim-first-name');
+      var lastNameField = document.getElementById('claim-last-name');
+      var emailField = document.getElementById('claim-email');
+      var refEl = document.getElementById('claim-ref');
+      var turnstileWidgetId = null;
+      var pendingSubmit = null;
+
+      // Prefill the listing from ?slug= (passed by the slug-page claim CTA).
+      var params = new URLSearchParams(window.location.search);
+      var slug = params.get('slug');
+      if (slug && /^[a-z0-9-]{1,120}$/.test(slug)) {
+        var readable = slug.replace(/-/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+        listingField.value = readable;
+        refEl.textContent = 'Updating the listing: ' + readable;
+        refEl.hidden = false;
+      }
+
+      // Auth prefill (optional)
+      fetch('/api/auth/session', { credentials: 'same-origin' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (data) {
+          if (!data || !data.user) return;
+          var u = data.user;
+          if (u.firstName && !firstNameField.value) firstNameField.value = u.firstName;
+          if (u.lastName && !lastNameField.value) lastNameField.value = u.lastName;
+          if (u.email && !emailField.value) emailField.value = u.email;
+        })
+        .catch(function () {});
+
+      function initTurnstile() {
+        var container = document.getElementById('turnstile-container');
+        if (!container || typeof turnstile === 'undefined') return;
+        turnstileWidgetId = turnstile.render(container, {
+          sitekey: container.dataset.sitekey,
+          size: 'invisible',
+          callback: function (token) { if (pendingSubmit) { doSubmit(pendingSubmit, token); pendingSubmit = null; } },
+          'error-callback': function () {
+            showError('Spam check failed. Please refresh the page and try again.');
+            submitBtn.disabled = false; submitBtn.textContent = 'Send update'; pendingSubmit = null;
+          },
+        });
+      }
+      var tsCheck = setInterval(function () {
+        if (typeof turnstile !== 'undefined') { clearInterval(tsCheck); initTurnstile(); }
+      }, 200);
+      setTimeout(function () { clearInterval(tsCheck); }, 10000);
+
+      function showError(msg) { errorText.textContent = msg; errorEl.hidden = false; successEl.hidden = true; }
+      function showSuccess() { successEl.hidden = false; errorEl.hidden = true; form.hidden = true; }
+
+      form.addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        errorEl.hidden = true;
+        var firstName = firstNameField.value.trim();
+        var lastName = lastNameField.value.trim();
+        var name = lastName ? firstName + ' ' + lastName : firstName;
+        var email = emailField.value.trim();
+        var listing = listingField.value.trim();
+        var detail = messageField.value.trim();
+        var website = form.elements['website'] ? form.elements['website'].value : '';
+
+        if (!listing) return showError('Please tell us which listing this is about.');
+        if (!firstName) return showError('Please enter your first name.');
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showError('Please enter a valid email address.');
+        if (detail.length < 10) return showError('Please tell us what to confirm or correct (at least 10 characters).');
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Sending...';
+
+        var refLine = slug ? ('[Provider listing update: ' + slug + ']') : '[Provider listing update]';
+        var message = refLine + '\n\nListing: ' + listing + '\n\n' + detail;
+        var payload = { name: name, email: email, message: message, category: 'other', category_source: 'providers-claim', website: website };
+
+        if (typeof turnstile !== 'undefined' && turnstileWidgetId !== null) {
+          pendingSubmit = payload;
+          turnstile.reset(turnstileWidgetId);
+          turnstile.execute(turnstileWidgetId);
+          return;
+        }
+        doSubmit(payload, '');
+      });
+
+      function doSubmit(payload, token) {
+        payload.turnstileToken = token;
+        fetch('/api/contact/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data.ok) showSuccess();
+            else { showError(data.error || 'Something went wrong. Please try again.'); submitBtn.disabled = false; submitBtn.textContent = 'Send update'; }
+          })
+          .catch(function () {
+            showError('Network error. Please check your connection and try again.');
+            submitBtn.disabled = false; submitBtn.textContent = 'Send update';
+          });
+      }
+    })();
+  </script>
+</BaseLayout>
+
+<style>
+  .claim-hero { padding: var(--space-8) 0 var(--space-4); }
+  .claim-hero .eyebrow {
+    text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.8125rem;
+    font-weight: 600; color: var(--text-secondary); margin: 0 0 var(--space-2);
+  }
+  .claim-hero h1 { margin: 0 0 var(--space-3); }
+  .claim-hero .lead { font-size: 1.0625rem; line-height: 1.6; color: var(--text-primary); margin: 0; max-width: 60ch; }
+  .claim-ref {
+    margin-top: var(--space-3); font-size: 0.875rem; font-weight: 600; color: var(--accent);
+  }
+  .claim-section { padding: var(--space-6) 0 var(--space-16); }
+  .claim-form .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+  .claim-form .form-group { margin-bottom: var(--space-5); }
+  .claim-form .form-label {
+    display: block; font-family: 'Inter', sans-serif; font-size: 0.8125rem;
+    font-weight: 500; margin-bottom: var(--space-2);
+  }
+  .claim-form .form-required { color: var(--accent); }
+  .claim-form .form-input {
+    width: 100%; padding: var(--space-3) var(--space-5); border: 1.5px solid var(--neutral-300);
+    border-radius: var(--radius-pill); font-family: 'Inter', sans-serif; font-size: 0.9375rem;
+    color: var(--text-primary); background: var(--bg); transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .claim-form .form-input:focus { outline: none; border-color: var(--purple-700); box-shadow: 0 0 0 3px var(--focus-ring); }
+  .claim-form .form-textarea { border-radius: var(--radius-md); min-height: 120px; resize: vertical; }
+  .form-hint { display: block; font-size: 0.75rem; color: var(--text-muted); margin-top: var(--space-1); }
+  .claim-submit { margin-top: var(--space-4); }
+  .claim-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+  .claim-feedback { padding: var(--space-8); border-radius: var(--radius-md); text-align: center; }
+  .claim-feedback--success { background: var(--bg-surface); border: 1px solid var(--border-color); }
+  .claim-feedback__icon { font-size: 2rem; color: var(--accent); margin-bottom: var(--space-3); }
+  .claim-feedback--success h3 { margin-bottom: var(--space-2); }
+  .claim-feedback--success p { color: var(--text-secondary); margin-bottom: 0; }
+  .claim-feedback--error { background: rgba(192, 57, 43, 0.05); border: 1px solid var(--color-error); color: var(--color-error); }
+</style>
