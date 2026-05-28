@@ -1,0 +1,128 @@
+---
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import LastUpdated from '../../../../components/LastUpdated.astro';
+import pageDates from '../../../../data/page-dates.json';
+import { safeJsonLd } from '../../../../lib/jsonld';
+
+const PAGE_PATH = '/original-research/proof-gates/patterns/';
+const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-05-23';
+
+// SoftwareSourceCode + TechArticle hybrid for the pattern library landing
+const pageSchema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'SoftwareSourceCode',
+      '@id': 'https://rrmacademy.org/original-research/proof-gates/patterns/#artifact',
+      name: 'proof-gate-patterns',
+      description: 'A pattern library for skill authors who want to add agent-authored proof gates to their LLM agents: deterministic verification code the agent writes per task, runs against its own work product, and quotes the observable output as proof, with fix-before-pass-through semantics at a workflow boundary.',
+      programmingLanguage: 'Markdown (skill-prompt fragments and worked examples)',
+      codeRepository: '[GITHUB_URL_PATTERNS]',
+      license: 'https://opensource.org/licenses/MIT',
+      author: { '@id': 'https://rrmacademy.org/#organization' },
+      publisher: { '@id': 'https://rrmacademy.org/#organization' },
+      dateModified: LAST_MODIFIED,
+      isPartOf: { '@id': 'https://rrmacademy.org/original-research/proof-gates/#paper' },
+    },
+    {
+      '@type': 'TechArticle',
+      '@id': 'https://rrmacademy.org/original-research/proof-gates/patterns/#article',
+      headline: 'Proof Gate Patterns: A Library for Skill Authors',
+      description: 'Annotated prompt fragments and skill-design patterns demonstrating how to instruct LLM agents to write per-task proof gates against their own work product.',
+      author: { '@id': 'https://rrmacademy.org/#organization' },
+      publisher: { '@id': 'https://rrmacademy.org/#organization' },
+      datePublished: '2026-05-23',
+      dateModified: LAST_MODIFIED,
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://rrmacademy.org/original-research/proof-gates/patterns/',
+      },
+      keywords: ['LLM agents', 'self-verification', 'proof gates', 'agent-authored postconditions', 'workflow boundary verification', 'AI alignment', 'sycophancy resistance', 'training distribution skew'],
+      about: [
+        { '@type': 'Thing', name: 'LLM agent self-verification' },
+        { '@type': 'Thing', name: 'Agent-authored postconditions' },
+        { '@type': 'Thing', name: 'Fabrication-vs-gaming verification distinction' },
+      ],
+    },
+  ],
+};
+---
+
+<BaseLayout
+  title="Proof Gate Patterns: A Library for Skill Authors"
+  description="Annotated prompt fragments and skill-design patterns demonstrating how to instruct LLM agents to write per-task proof gates against their own work product. Reproducibility artifact for the proof-gates paper."
+  canonicalUrl="https://rrmacademy.org/original-research/proof-gates/patterns/"
+  jsonLd={safeJsonLd(pageSchema)}
+>
+  <main class="container research-landing">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/">Home</a> &rsaquo; <a href="/original-research/">Research</a> &rsaquo; <a href="/original-research/proof-gates/">Proof Gates</a> &rsaquo; <span aria-current="page">Patterns</span>
+    </nav>
+
+    <header class="research-header">
+      <h1>Proof Gate Patterns</h1>
+      <p class="lead">A pattern library for skill authors who want to add agent-authored proof gates to their LLM agents.</p>
+      <p class="byline">RRM Academy &middot; <a href="[GITHUB_URL_PATTERNS]" rel="external">Code on GitHub</a> &middot; MIT License</p>
+    </header>
+
+    <section id="overview" aria-labelledby="overview-h">
+      <h2 id="overview-h">What this is</h2>
+      <p>A <em>proof gate</em> is deterministic verification code that an LLM agent writes per task, runs against its own work product, and quotes the observable output as proof, with hard fix-before-pass-through semantics at a workflow boundary. The agent does not just run a pre-existing test, lint, or hook (those are operator-authored sibling patterns). The agent itself writes the specific verification snippet for the work in front of it.</p>
+      <p>This repository documents the discipline through annotated prompt fragments, three canonical pattern types (grep, quote, read), worked examples drawn from production deployment, and operator-facing background docs covering design principles, the four-step gate-design process, observed failure modes, and the necessary-vs-sufficient framing for incomplete rule sets.</p>
+      <p>It is the reproducibility artifact for the paper <em>Proof Gates: Sycophancy-Resistant Self-Verification via Agent-Authored Postconditions</em> (Whittaker 2026, <a href="[ARXIV_URL]" rel="external">arXiv preprint</a>). The paper documents what the discipline is and why it works; this repository documents how to apply it.</p>
+    </section>
+
+    <section id="contents" aria-labelledby="contents-h">
+      <h2 id="contents-h">What you'll find here</h2>
+      <ul>
+        <li><strong>Three pattern types.</strong> Grep gates (pattern presence or absence), quote gates (verbatim sentence as proof of a content rule), read gates (named excerpt as proof a prerequisite was consulted). Each pattern documented with skill-prompt specification, proof-artifact format, what the gate catches, and what it does not catch.</li>
+        <li><strong>Three worked examples.</strong> Verbatim agent-output transcripts showing each pattern firing in production: a code-review sibling-scan grep, a clinical-voice IVF-contrast-context quote, and a voice-profile-loaded read gate.</li>
+        <li><strong>Four background docs.</strong> Five design principles every proof-gated agent must satisfy, the four-step operator design discipline for building a gate-set, observed failure modes (too-narrow regex, paraphrased quote, unjustified N/A, gate-of-the-gate regress), and the necessary-vs-sufficient framing for gate-set coverage when the rule set is not closeable.</li>
+      </ul>
+    </section>
+
+    <section id="quick-start" aria-labelledby="quick-start-h">
+      <h2 id="quick-start-h">Quick-start for skill authors</h2>
+      <p>If you maintain an agent's skill or system prompt and want to add proof gates, three operator decisions get you started:</p>
+      <ol>
+        <li><strong>Enumerate the work-product classes.</strong> A fix, a paragraph, a database write, a multi-step plan. Each work-product class is a candidate gate trigger.</li>
+        <li><strong>List the domain rules that bind on each class.</strong> Rules without gates are not gated. Generic test-and-lint passing is not a gate of a domain rule.</li>
+        <li><strong>Choose a gate-class per rule.</strong> Grep for pattern presence or absence, quote for sentence-level content rules, read for prerequisite-loading rules.</li>
+      </ol>
+      <p>Then encode in the skill: when the gate fires, what proof artifact must travel with the response, what happens on FAIL or N/A. The full process is documented in the <a href="[GITHUB_URL_PATTERNS]/blob/main/docs/operator-discipline.md" rel="external">operator-discipline.md</a> background doc.</p>
+    </section>
+
+    <section id="paper" aria-labelledby="paper-h">
+      <h2 id="paper-h">Cite the paper</h2>
+      <p>If this library or the discipline it documents is useful in your work, please cite the paper:</p>
+      <pre><code>Whittaker, B. (2026). Proof Gates: Sycophancy-Resistant
+Self-Verification via Agent-Authored Postconditions.
+arXiv:[ARXIV_ID].
+</code></pre>
+      <p>The paper develops the dual-failure-mode argument (sycophancy + overtraining/undertraining distribution skew), the fabrication-vs-gaming distinction that scopes the discipline, and the six-property positioning matrix locating proof gates among adjacent verification regimes.</p>
+    </section>
+
+    <section id="related" aria-labelledby="related-h">
+      <h2 id="related-h">Related</h2>
+      <ul>
+        <li><strong>Sibling artifact:</strong> <a href="/original-research/lint-identity/">lint-identity</a>, an operator-authored pre-commit linter for SSOT-validated identity references. Distinct gate-authorship locus (operator-authored vs agent-authored) on the same observable-output-as-proof axis. The paper's positioning matrix locates both.</li>
+        <li><strong>Code mirror:</strong> <a href="[GITHUB_URL_PATTERNS]" rel="external">github.com/...</a></li>
+      </ul>
+    </section>
+
+    <LastUpdated date={LAST_MODIFIED} />
+  </main>
+
+  <style>
+    .research-landing { max-width: var(--max-width-article); padding-block: var(--space-8); }
+    .breadcrumb { font-size: var(--text-sm); margin-bottom: var(--space-4); color: var(--color-text-subtle); }
+    .breadcrumb a { color: var(--color-link); text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .research-header { margin-bottom: var(--space-8); }
+    .research-header .lead { font-size: var(--text-lg); margin-block: var(--space-3); color: var(--color-text); }
+    .research-header .byline { color: var(--color-text-subtle); font-size: var(--text-sm); }
+    .research-landing section { margin-block: var(--space-8); }
+    .research-landing pre { background: var(--color-surface-subtle); padding: var(--space-4); border-radius: var(--radius-md); overflow-x: auto; font-size: var(--text-sm); }
+    .research-landing code { font-family: var(--font-mono); }
+  </style>
+</BaseLayout>
