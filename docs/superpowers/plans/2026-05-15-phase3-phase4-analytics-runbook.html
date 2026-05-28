@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Analytics Phase 3 + 4 — Runbook | RRM Academy</title>
+<style>
+  :root {
+    --bg: #f7f5f3;
+    --surface: #ffffff;
+    --ink: #1a1a1a;
+    --ink-secondary: #4a4a4a;
+    --ink-muted: #6b6b6b;
+    --rule: #d8d2c9;
+    --rule-soft: #ebe5dc;
+    --accent: #725e7e;
+    --accent-soft: #f0eaf4;
+    --code-bg: #efe9df;
+    --good: #4a6b3a;
+    --warn: #8a5a1a;
+    --danger: #a03030;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  main {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 56px 32px 96px;
+  }
+  header.doc-header {
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 28px;
+    margin-bottom: 36px;
+  }
+  header.doc-header .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  header.doc-header h1 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 44px;
+    font-weight: 600;
+    line-height: 1.1;
+    margin: 0 0 18px;
+    letter-spacing: -0.01em;
+  }
+  header.doc-header .meta {
+    display: flex;
+    gap: 24px;
+    font-size: 13px;
+    color: var(--ink-muted);
+    flex-wrap: wrap;
+  }
+  header.doc-header .meta span strong {
+    color: var(--ink-secondary);
+    font-weight: 600;
+  }
+  h2 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 30px;
+    font-weight: 600;
+    margin: 56px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--rule-soft);
+    line-height: 1.2;
+  }
+  h2 .phase-pill {
+    display: inline-block;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 14px;
+    background: var(--accent);
+    color: #fff;
+    margin-right: 12px;
+    vertical-align: 5px;
+    text-transform: uppercase;
+  }
+  h3 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 22px;
+    font-weight: 600;
+    margin: 32px 0 12px;
+  }
+  h4 {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-secondary);
+    margin: 24px 0 8px;
+  }
+  p { margin: 0 0 14px; }
+  ul, ol { margin: 0 0 14px; padding-left: 22px; }
+  li { margin: 4px 0; }
+  strong { font-weight: 600; color: var(--ink); }
+  em { font-style: italic; }
+  code {
+    font-family: ui-monospace, 'SF Mono', Menlo, Monaco, monospace;
+    font-size: 13px;
+    background: var(--code-bg);
+    padding: 1px 6px;
+    border-radius: 3px;
+    color: #4a3a52;
+  }
+  pre {
+    background: var(--code-bg);
+    border-radius: 6px;
+    padding: 14px 18px;
+    overflow-x: auto;
+    font-family: ui-monospace, 'SF Mono', Menlo, Monaco, monospace;
+    font-size: 12.5px;
+    line-height: 1.55;
+    margin: 12px 0 18px;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+    color: var(--ink);
+    font-size: inherit;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 22px;
+    font-size: 13.5px;
+  }
+  th {
+    text-align: left;
+    background: var(--rule-soft);
+    padding: 8px 12px;
+    font-weight: 600;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink-secondary);
+    font-size: 12.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--rule-soft);
+    vertical-align: top;
+  }
+  td code { font-size: 12px; }
+  tr:last-child td { border-bottom: none; }
+  .callout {
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    padding: 14px 18px;
+    border-radius: 0 6px 6px 0;
+    margin: 18px 0;
+    font-size: 14.5px;
+  }
+  .callout--warn {
+    background: #fdf3e3;
+    border-left-color: var(--warn);
+  }
+  .callout--danger {
+    background: #fbe3e3;
+    border-left-color: var(--danger);
+  }
+  .step-list {
+    list-style: none;
+    counter-reset: step;
+    padding-left: 0;
+    margin: 16px 0;
+  }
+  .step-list > li {
+    counter-increment: step;
+    margin: 12px 0;
+    padding: 14px 14px 14px 56px;
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: 6px;
+    position: relative;
+  }
+  .step-list > li::before {
+    content: counter(step);
+    position: absolute;
+    left: 14px;
+    top: 14px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-feature-settings: 'tnum';
+  }
+  .step-list > li .step-title {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 6px;
+    display: block;
+    color: var(--ink);
+  }
+  .step-list > li .step-time {
+    font-size: 11.5px;
+    color: var(--ink-muted);
+    font-weight: 500;
+    margin-left: 8px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .checklist {
+    list-style: none;
+    padding-left: 0;
+    margin: 10px 0;
+  }
+  .checklist li {
+    margin: 4px 0;
+    padding-left: 26px;
+    position: relative;
+    font-size: 14px;
+  }
+  .checklist li::before {
+    content: '☐';
+    position: absolute;
+    left: 0;
+    top: -2px;
+    color: var(--accent);
+    font-size: 18px;
+    line-height: 1.4;
+  }
+  .pill {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .pill--manual { background: #f3dfd0; color: var(--warn); }
+  .pill--automatable { background: #e3ecdb; color: var(--good); }
+  .pill--time { background: var(--rule-soft); color: var(--ink-secondary); }
+  .pill--risk-low { background: #e3ecdb; color: var(--good); }
+  .pill--risk-med { background: #fdf3e3; color: var(--warn); }
+  .pill--risk-high { background: #fbe3e3; color: var(--danger); }
+  hr {
+    border: none;
+    border-top: 1px solid var(--rule-soft);
+    margin: 48px 0;
+  }
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: 6px;
+    padding: 18px 24px;
+    margin: 28px 0 0;
+    font-size: 14px;
+  }
+  .toc h2 {
+    font-size: 13px;
+    margin: 0 0 10px;
+    padding: 0;
+    border: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-secondary);
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+  }
+  .toc ol {
+    list-style: none;
+    counter-reset: toc;
+    padding-left: 0;
+    margin: 0;
+  }
+  .toc li {
+    counter-increment: toc;
+    margin: 4px 0;
+  }
+  .toc li::before {
+    content: counter(toc) ".";
+    color: var(--accent);
+    font-weight: 600;
+    margin-right: 8px;
+    font-feature-settings: 'tnum';
+  }
+  .toc a {
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .toc a:hover { color: var(--accent); }
+  footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--rule);
+    color: var(--ink-muted);
+    font-size: 12.5px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  @media print {
+    body { background: white; }
+    main { padding: 24px; max-width: none; }
+    h2, .step-list > li { page-break-inside: avoid; }
+    a { color: inherit; text-decoration: none; }
+  }
+  @media (max-width: 640px) {
+    main { padding: 32px 18px 64px; }
+    header.doc-header h1 { font-size: 32px; }
+    h2 { font-size: 24px; }
+    h2 .phase-pill { display: block; margin-bottom: 8px; vertical-align: baseline; }
+    table { font-size: 12.5px; }
+    td, th { padding: 6px 8px; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+<header class="doc-header">
+  <div class="eyebrow">RRM Academy / Operations Runbook</div>
+  <h1>Analytics Phase 3 + 4</h1>
+  <div class="meta">
+    <span><strong>Date:</strong> 2026-05-15</span>
+    <span><strong>Owner:</strong> Brian (with Claude assist where API-driven)</span>
+    <span><strong>Spec:</strong> <code>docs/superpowers/specs/2026-05-15-client-analytics-spec.html</code></span>
+    <span><strong>Total time:</strong> ~6–8 hrs (split across 2 weeks)</span>
+  </div>
+</header>
+
+<p>Phase 1 + 2 shipped the code. This runbook covers the two remaining phases that need <strong>operator action</strong> (CF dashboard for Phase 3, GA4 dashboard for Phase 4). Every step has a checkbox, a time estimate, automatable-vs-manual tag, risk level, and rollback path.</p>
+
+<p>The two phases are <strong>sequential, not parallel</strong>. Wait for Phase 3 soak to finish before starting Phase 4 dashboard work — that way you measure deltas against a single change point.</p>
+
+<nav class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#prep">Pre-flight checks (run before either phase)</a></li>
+    <li><a href="#phase3">Phase 3 — Zaraz GTM disable + soak</a></li>
+    <li><a href="#phase4">Phase 4 — GA4 dashboard configuration</a></li>
+    <li><a href="#weekly">Ongoing — weekly funnel review ritual</a></li>
+    <li><a href="#rollback">Rollback matrix</a></li>
+    <li><a href="#sign-off">Sign-off checklist</a></li>
+  </ol>
+</nav>
+
+<h2 id="prep">1. Pre-flight checks <span style="font-size: 14px; color: var(--ink-muted); font-weight: 400;">(run before either phase)</span></h2>
+
+<p>Five minutes. Confirms the code-side foundation is healthy before touching CF / GA4 dashboards.</p>
+
+<ol class="step-list">
+  <li>
+    <span class="step-title">Confirm all Phase 1 + 2 PRs are merged to main <span class="step-time">2 min</span></span>
+    <pre><code>cd ~/iCode/projects/rrm-academy-cf
+git fetch origin
+git log origin/main --oneline -10 | grep -E "client-analytics-phase[12]"
+# Should show 6 commits: phase1, phase2a, phase2b, phase2c, phase2d, phase2e</code></pre>
+  </li>
+  <li>
+    <span class="step-title">Confirm /api/track is live and 204-ing <span class="step-time">1 min</span></span>
+    <pre><code>curl -X POST -sS https://rrmacademy.org/api/track \
+  -H "Content-Type: application/json" \
+  -d '{"event":"cta_click","params":{"id":"runbook-test","page":"/"}}' \
+  -w "HTTP %{http_code}\n"
+# Expect: HTTP 204 (or 503 if GA4 env vars unset — fix that first)</code></pre>
+  </li>
+  <li>
+    <span class="step-title">Confirm GA4 Realtime is receiving events from /api/track <span class="step-time">2 min</span></span>
+    <p>Open GA4 → property <code>rrmacademy.org</code> → Reports → Realtime → "Event count by Event name". Should show <code>page_view</code> (constantly), and once you trigger the curl in step 2, <code>cta_click</code> arrives within ~10s.</p>
+    <p>If <code>cta_click</code> doesn't show up: GA4 env vars (<code>GA4_MEASUREMENT_ID</code>, <code>GA4_API_SECRET</code>) may not be set in CF Pages. Verify via <code>op read</code> + the admin endpoint's 503 response shape.</p>
+  </li>
+</ol>
+
+<h2 id="phase3"><span class="phase-pill">Phase 3</span>Zaraz GTM disable + soak</h2>
+
+<div class="meta" style="margin: 0 0 18px; color: var(--ink-muted); font-size: 13px;">
+  <span class="pill pill--manual">manual (CF dashboard)</span>
+  <span class="pill pill--time">~30 min initial, +5 min daily during 7-day soak, +10 min final</span>
+  <span class="pill pill--risk-med">risk: medium (one-week dashboard dip expected)</span>
+</div>
+
+<p><strong>Goal:</strong> stop Zaraz from injecting GTM at <code>/analytics/</code>. Eliminates 587 KiB of JS, 3 CSP violations, and the duplicate <code>page_view</code> counts that currently inflate GA4 sessions/users by ~2×.</p>
+
+<p><strong>Approach:</strong> disable first (reversible in 60 seconds), soak for 7 days, then delete if no regressions. Do NOT delete first.</p>
+
+<h3>3.1 Inventory current Zaraz config <span style="font-size: 13px; color: var(--ink-muted); font-weight: 400;">(record what's there before changing anything)</span></h3>
+
+<ol class="step-list">
+  <li>
+    <span class="step-title">Open CF dashboard → Zaraz <span class="step-time">3 min</span></span>
+    <p>Navigate to: <code>dash.cloudflare.com</code> → account → <strong>Zaraz</strong> → property <code>rrmacademy.org</code> → <strong>Tools</strong>.</p>
+    <p>Screenshot the entire list. Most likely there's just one: <strong>Google Analytics 4</strong> with measurement ID <code>G-TSWRY7XLR0</code>. There may also be Cloudflare-managed entries (Speed Insights, Loading config) — leave those alone.</p>
+  </li>
+  <li>
+    <span class="step-title">Inventory triggers <span class="step-time">3 min</span></span>
+    <p>Click the GA4 tool. List every trigger it has (Pageview, Click, Form submit, Custom, etc.). Save the screenshot — this is your rollback reference.</p>
+    <p>If there are custom triggers firing into GA4 that <em>do not</em> have an equivalent server-side or Phase 2 client beacon, surface them to Brian before disabling. Default: there are none (Zaraz is GTM-vanilla here).</p>
+  </li>
+</ol>
+
+<h3>3.2 Disable the GA4 tool <span style="font-size: 13px; color: var(--ink-muted); font-weight: 400;">(soft pause — reversible in 60s)</span></h3>
+
+<ol class="step-list">
+  <li>
+    <span class="step-title">Toggle the GA4 tool from "Enabled" → "Disabled" <span class="step-time">1 min</span></span>
+    <p>Click the GA4 tool row → toggle the enable switch off. <strong>Do not click "Delete"</strong> yet. Click "Save" / "Publish" so the change reaches production.</p>
+  </li>
+  <li>
+    <span class="step-title">Verify /analytics/ stops returning the 587 KiB GTM bundle <span class="step-time">2 min</span></span>
+    <pre><code>curl -sI https://rrmacademy.org/analytics/ | head -3
+# If Zaraz GA4 is the only tool: 404 or 200 with tiny body (Zaraz returns
+#   a stub script that does nothing).
+# If other Zaraz tools still active: 200 with smaller body than before.
+
+# Hard byte count:
+curl -s https://rrmacademy.org/analytics/ | wc -c
+# Pre-change: ~587000 bytes. Post-change: <50000 bytes or 404.</code></pre>
+  </li>
+  <li>
+    <span class="step-title">Verify GA4 Realtime still shows page_views <span class="step-time">2 min</span></span>
+    <p>Open GA4 Realtime. <code>page_view</code> count should continue flowing — those come from server-side middleware (Measurement Protocol), not Zaraz. If page_view goes to zero, you've broken the server pipeline somehow (unlikely from a Zaraz change — investigate immediately and re-enable Zaraz GA4).</p>
+  </li>
+  <li>
+    <span class="step-title">Verify CSP errors clear <span class="step-time">3 min</span></span>
+    <p>Open the homepage in a clean browser (or incognito + DevTools Console). The previously-recurring CSP violations:</p>
+    <ul>
+      <li><code>googletagmanager.com/gtag/js</code> script blocked</li>
+      <li><code>analytics.google.com/g/s/collect</code> connect-src blocked</li>
+      <li><code>stats.g.doubleclick.net/g/collect</code> connect-src blocked</li>
+    </ul>
+    <p>All three should be gone. PSI on the homepage should now show <strong>Best Practices ≥ 92</strong> (was hitting 92 ceiling from these violations).</p>
+  </li>
+</ol>
+
+<div class="callout">
+  <strong>What you'll see in GA4 over the next 24h:</strong> sessions + users count will <em>drop</em> by approximately 30–50%. This is correct — Zaraz was double-counting because both it AND middleware were firing <code>page_view</code> for the same browser visit. The post-disable number is the truth. Annotate this in GA4 (Admin → Data display → Annotations) so future-you doesn't think the site died.
+</div>
+
+<h3>3.3 Soak window <span style="font-size: 13px; color: var(--ink-muted); font-weight: 400;">(7 days)</span></h3>
+
+<ol class="step-list">
+  <li>
+    <span class="step-title">Daily check (5 min/day for 7 days) <span class="step-time">35 min total</span></span>
+    <p>Once per day during the soak:</p>
+    <ul class="checklist">
+      <li>GA4 Realtime: page_view still flowing? cta_click / scroll_depth / search_submit / faq_expand / glossary_lookup / theme_toggle / video_play / share_click / copy_citation also arriving?</li>
+      <li>GA4 Reports → Engagement → Pages: page-view trend looks roughly half of pre-disable but flat day-over-day? (If it crashes to near-zero, something's broken.)</li>
+      <li>PSI homepage: Performance + Best Practices stable or improved (not regressed)</li>
+      <li>Console errors page: any new CSP violations or third-party-origin warnings?</li>
+    </ul>
+  </li>
+  <li>
+    <span class="step-title">CHANGELOG entry <span class="step-time">5 min</span></span>
+    <p>Add an entry to <code>docs/plans/backlog.md</code> noting:</p>
+    <pre><code>### 2026-05-15: Zaraz GTM disabled
+
+Reason: replaced by first-party /api/track (spec
+docs/superpowers/specs/2026-05-15-client-analytics-spec.html).
+
+Expected impact:
+  * GA4 sessions/users counts drop ~30-50% (de-duplication of
+    page_view that was firing from both Zaraz GTM and middleware MP).
+  * The new number is correct. Compare YoY only after 2026-05-22.
+  * Best Practices score should improve from 92 → 100 (CSP errors clear).
+  * 587 KiB of unused JS removed from /analytics/.
+
+Rollback (60s): re-enable the GA4 tool in CF Zaraz dashboard.</code></pre>
+  </li>
+</ol>
+
+<h3>3.4 Final removal <span style="font-size: 13px; color: var(--ink-muted); font-weight: 400;">(after 7-day soak passes)</span></h3>
+
+<ol class="step-list">
+  <li>
+    <span class="step-title">Delete the GA4 tool from Zaraz <span class="step-time">2 min</span></span>
+    <p>If the 7-day soak showed no regressions: CF dashboard → Zaraz → Tools → GA4 → trash icon → confirm.</p>
+  </li>
+  <li>
+    <span class="step-title">If Zaraz has no other tools, disable Zaraz on the zone <span class="step-time">2 min</span></span>
+    <p>Cuts the <code>/analytics/</code> route entirely + removes the Zaraz client loader from every page. If you're keeping any Cloudflare-managed entries, skip this step.</p>
+  </li>
+  <li>
+    <span class="step-title">Verify /analytics/ now 404s <span class="step-time">1 min</span></span>
+    <pre><code>curl -sI https://rrmacademy.org/analytics/ | head -1
+# Expect: HTTP/2 404</code></pre>
+  </li>
+  <li>
+    <span class="step-title">Re-run PSI on homepage <span class="step-time">2 min</span></span>
+    <p>Confirm: Performance ≥ 95, Best Practices = 100, "Reduce unused JavaScript" no longer flags the 187 KiB /analytics/ payload.</p>
+  </li>
+  <li>
+    <span class="step-title">Close the loop in the analytics spec <span class="step-time">2 min</span></span>
+    <p>Update <code>docs/superpowers/specs/2026-05-15-client-analytics-spec.html</code> §8 "Zaraz Removal Plan" — mark step 6 complete, add the date.</p>
+  </li>
+</ol>
+
+<h2 id="phase4"><span class="phase-pill">Phase 4</span>GA4 dashboard configuration</h2>
+
+<div class="meta" style="margin: 0 0 18px; color: var(--ink-muted); font-size: 13px;">
+  <span class="pill pill--manual">manual (GA4 dashboard)</span>
+  <span class="pill pill--automatable">parts API-able with admin scope</span>
+  <span class="pill pill--time">~4–6 hrs over the first week</span>
+  <span class="pill pill--risk-low">risk: low (dashboard config — no production code touched)</span>
+</div>
+
+<p><strong>Goal:</strong> turn the event stream into useful reports. Register custom dimensions so the spec's 13 personas are queryable, mark conversions so GA4 highlights them, build 13 saved audiences for segmentation, and assemble 20 funnel + 4 path explorations for ongoing analysis.</p>
+
+<p><strong>Sequencing:</strong> dimensions first (events without dimensions are unfiltered noise), then conversions (so daily reports surface them), then audiences (which depend on dimensions), then funnels (which depend on conversions).</p>
+
+<h3>4.1 Register 13 custom dimensions <span style="font-size: 13px; color: var(--ink-muted); font-weight: 400;">(~30 min)</span></h3>
+
+<div class="callout">
+  <strong>Why first:</strong> GA4 starts collecting dimension values <em>only after</em> they're registered. Register a dimension late and you've lost the prior days' segmentation data for that field.
+</div>
+
+<p>Open GA4 → Admin → Property settings → <strong>Custom definitions</strong> → <strong>Custom dimensions</strong> → "Create custom dimension". For each row below: enter dimension name, scope, description, event parameter name. Save.</p>
+
+<table>
+  <thead>
+    <tr><th>Dimension name</th><th>Scope</th><th>Event parameter</th><th>What it answers</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>user_role</td><td>User</td><td><code>user_role</code></td><td>anonymous / registered / member / admin</td></tr>
+    <tr><td>entry_category</td><td>Session</td><td><code>entry_category</code></td><td>direct / organic / social / referral / ai / email / paid</td></tr>
+    <tr><td>entry_platform</td><td>Session</td><td><code>entry_platform</code></td><td>instagram, chatgpt, perplexity, google, …</td></tr>
+    <tr><td>content_pillar</td><td>Event</td><td><code>content_pillar</code></td><td>which pillar the page belongs to (what-is-rrm, naprotechnology, …)</td></tr>
+    <tr><td>device_type</td><td>Event</td><td><code>device_type</code></td><td>mobile / tablet / desktop</td></tr>
+    <tr><td>lead_source</td><td>Event</td><td><code>lead_source</code></td><td>newsletter, endo_survey, waitlist, course, donation</td></tr>
+    <tr><td>article_type</td><td>Event</td><td><code>article_type</code></td><td>research / commentary / faq / guide / glossary</td></tr>
+    <tr><td>email_type</td><td>Session</td><td><code>email_type</code></td><td>broadcast / automation / transactional</td></tr>
+    <tr><td>list_source</td><td>Session</td><td><code>list_source</code></td><td>where the subscriber was first captured</td></tr>
+    <tr><td>engagement_tier</td><td>User</td><td><code>engagement_tier</code></td><td>cold / warm / hot</td></tr>
+    <tr><td>cohort_date</td><td>User</td><td><code>cohort_date</code></td><td>First-touch month (YYYY-MM) for cohort analysis</td></tr>
+    <tr><td>audience_type</td><td>User</td><td><code>audience_type</code></td><td>clinician / researcher / student / donor / patient-advocate</td></tr>
+    <tr><td>experiment_id</td><td>Event</td><td><code>experiment_id</code></td><td>A/B test variant ID (future)</td></tr>
+  </tbody>
+</table>
+
+<p>That's 13 dimensions. (Spec mentions 13 with <code>experiment_id</code> + <code>variant_id</code> as a reserved pair — list above counts <code>experiment_id</code> alone since variant_id will pair with it later.)</p>
+
+<h4>API alternative</h4>
+
+<p>If you want me to provision these via GA4 Admin API instead of clicking through, grant Editor access to the property and I can use <code>customDimensions.create</code>. The dashboard takes ~30 min; the API takes ~30 seconds but needs an OAuth scope grant.</p>
+
+<h3>4.2 Mark 8 conversions <span style="font-size: 13px; color: var(--ink-muted); font-weight: 400;">(~10 min)</span></h3>
+
+<p>GA4 → Admin → Events → find each event → toggle "Mark as conversion" on:</p>
+
+<ul class="checklist">
+  <li><code>sign_up</code> — top-of-funnel account creation</li>
+  <li><code>generate_lead</code> — newsletter / endo survey / course waitlist / free enrollment</li>
+  <li><code>begin_checkout</code> — donation, subscription, or paid course intent</li>
+  <li><code>purchase</code> — completed donation or paid enrollment</li>
+  <li><code>pdf_download</code> — high-intent: guide PDFs are deep funnel</li>
+  <li><code>copy_citation</code> — academic intent (RIS file consumed by Zotero/Mendeley)</li>
+  <li><code>video_complete</code> — course lesson finished (natural end, not "Mark Complete")</li>
+  <li><code>scroll_depth</code> WHERE <code>depth = 100</code> AND <code>article_type ∈ {research, commentary}</code> — full read</li>
+</ul>
+
+<p>The last one (<code>scroll_depth</code>) requires creating a <em>Modify event</em> rule: rename <code>scroll_depth</code> with <code>depth=100</code> + <code>article_type in [research, commentary]</code> to a new event name like <code>full_read</code>, then mark <code>full_read</code> as the conversion. Alternative: don't mark scroll_depth as a conversion and treat 100% scroll as an engagement metric only.</p>
+
+<h3>4.3 Build 13 audiences <span style="font-size: 13px; color: var(--ink-muted); font-weight: 400;">(~60 min)</span></h3>
+
+<p>GA4 → Admin → Audiences → "New audience" → start from blank for each:</p>
+
+<table>
+  <thead>
+    <tr><th>Audience name</th><th>Definition</th><th>Notes</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>Donors</strong></td><td><code>purchase</code> ∧ <code>lead_source = donation</code> at any time</td><td>Membership lifetime</td></tr>
+    <tr><td><strong>Returning donors</strong></td><td>count(<code>purchase</code> ∧ <code>lead_source = donation</code>) ≥ 2</td><td>Cumulative lifetime</td></tr>
+    <tr><td><strong>STUC members</strong></td><td><code>user_role = 'member'</code></td><td>User-scoped dimension</td></tr>
+    <tr><td><strong>Engaged readers</strong></td><td>≥3 library page_views in 7 days AND ≥1 <code>scroll_depth ≥ 75</code></td><td>Rolling 7-day window</td></tr>
+    <tr><td><strong>IG arrivers</strong></td><td><code>entry_platform = 'instagram'</code></td><td>Session-scoped</td></tr>
+    <tr><td><strong>AI search arrivers</strong></td><td><code>entry_category = 'ai'</code></td><td>Includes ChatGPT, Perplexity, Claude, Gemini, Copilot, You, Grok</td></tr>
+    <tr><td><strong>Organic search arrivers</strong></td><td><code>entry_category = 'organic'</code></td><td>Standard channel</td></tr>
+    <tr><td><strong>Referral arrivers</strong></td><td><code>entry_category = 'referral'</code></td><td>External press, partner blogs</td></tr>
+    <tr><td><strong>Direct arrivers</strong></td><td><code>entry_category = 'direct'</code></td><td>Typed URL, bookmark, dark social</td></tr>
+    <tr><td><strong>Email arrivers — broadcast</strong></td><td><code>entry_category = 'email'</code> AND <code>email_type = 'broadcast'</code></td><td>Newsletter</td></tr>
+    <tr><td><strong>Email arrivers — automation</strong></td><td><code>email_type = 'automation'</code></td><td>Drip / nurture / onboarding</td></tr>
+    <tr><td><strong>Email arrivers — transactional</strong></td><td><code>email_type = 'transactional'</code></td><td>Receipts, password reset, course confirm</td></tr>
+    <tr><td><strong>Lapsed users</strong></td><td>Registered AND no page_view in 90 days</td><td>Re-engagement target</td></tr>
+  </tbody>
+</table>
+
+<div class="callout callout--warn">
+  <strong>Save before refining.</strong> GA4 audience definitions can take 24–48 hours to fully populate (eligibility windows + late-arriving events). Save the audience as-is on first pass, then revise based on the count GA4 surfaces over the next two days.
+</div>
+
+<h3>4.4 Build 20 funnel explorations <span style="font-size: 13px; color: var(--ink-muted); font-weight: 400;">(~90 min)</span></h3>
+
+<p>GA4 → Explore → "Funnel exploration" template. For each funnel: name it, set the steps below, optionally apply a persona filter for "Breakdown by".</p>
+
+<table>
+  <thead>
+    <tr><th style="width: 24%;">Funnel</th><th>Steps</th><th>Useful breakdown</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>1. Library → Signup</strong></td><td>library page_view → scroll_depth ≥ 50 → sign_up</td><td>entry_category</td></tr>
+    <tr><td><strong>2. Library → Donation</strong></td><td>library page_view → cta_click(donate-*) → begin_checkout → purchase</td><td>engaged-reader audience</td></tr>
+    <tr><td><strong>3. Pillar → Donation</strong></td><td>pillar page_view → scroll_depth ≥ 75 → cta_click(donate-*) → purchase</td><td>content_pillar</td></tr>
+    <tr><td><strong>4. Course → Enrollment</strong></td><td>course page_view → begin_checkout → purchase</td><td>course slug; STUC vs non-member</td></tr>
+    <tr><td><strong>5. FAQ → Signup</strong></td><td>faq_expand → sign_up (within 7 days)</td><td>entry_category</td></tr>
+    <tr><td><strong>6. Endo survey</strong></td><td>endo-survey page_view → generate_lead(endo_survey_request) → generate_lead(endo_survey)</td><td>device_type</td></tr>
+    <tr><td><strong>7. Newsletter capture</strong></td><td>any page_view → cta_click(newsletter-*) → generate_lead(newsletter)</td><td>entry_category</td></tr>
+    <tr><td><strong>8. IG → STUC join</strong></td><td>entry_platform=instagram → page_view → cta_click(stuc-*) → purchase</td><td>landing page</td></tr>
+    <tr><td><strong>9. AI agent → signup</strong></td><td>entry_category=ai → page_view → sign_up</td><td>entry_platform (per-AI breakdown)</td></tr>
+    <tr><td><strong>10. Search → engagement</strong></td><td>search_submit → search_result_click → scroll_depth ≥ 50</td><td>surface (searchbar vs mobile-modal)</td></tr>
+    <tr><td><strong>11. Glossary → Pillar</strong></td><td>glossary_lookup → internal_click → pillar page_view</td><td>term (which terms drive pillar engagement?)</td></tr>
+    <tr><td><strong>12. Outbound journey</strong></td><td>library/commentary page_view → outbound_click</td><td>host (DOI / provider directory / journal)</td></tr>
+    <tr><td><strong>13. Email → Donation</strong></td><td>entry_category=email → page_view → cta_click(donate-*) → begin_checkout → purchase</td><td>email_type + list_source</td></tr>
+    <tr><td><strong>14. Email → Course enrollment</strong></td><td>entry_category=email → course page_view → begin_checkout → purchase</td><td>email_type + course</td></tr>
+    <tr><td><strong>15. Course participant → Donor</strong></td><td>generate_lead(course) → 2+ sessions → page_view(/donate/) → purchase</td><td>30-day & 90-day windows</td></tr>
+    <tr><td><strong>16. Content → Email signup</strong></td><td>blog/library page_view → cta_click(newsletter-*) → generate_lead(newsletter)</td><td>placement (header / footer / inline)</td></tr>
+    <tr><td><strong>17. Engaged-visitor micro</strong></td><td>session_start → 2+ page_views → scroll_depth ≥ 50 → 180s+ engaged time</td><td>entry_category</td></tr>
+    <tr><td><strong>18. AEO citation → engagement</strong></td><td>AI-arrival page_view → (2+ page_views OR scroll_depth ≥ 50 OR sign_up)</td><td><strong>Critical: validates the AEO strategy</strong></td></tr>
+    <tr><td><strong>19. New donor activation</strong></td><td>cohort_date = this month → page_view → generate_lead → first purchase(donation)</td><td>cohort_date breakdown</td></tr>
+    <tr><td><strong>20. Topic-clustered conversion</strong></td><td>content_pillar=X page_view → scroll_depth ≥ 75 → sign_up OR purchase</td><td>one funnel per pillar</td></tr>
+  </tbody>
+</table>
+
+<p><strong>Pin top 5–7 to GA4 home:</strong> Library → Donation (#2), Course → Enrollment (#4), AI agent → signup (#9), Email → Donation (#13), AEO citation → engagement (#18), Engaged-visitor micro (#17). Those are the strategic-decision funnels; the rest get visited weekly during the review ritual.</p>
+
+<h3>4.5 Build 4 path explorations <span style="font-size: 13px; color: var(--ink-muted); font-weight: 400;">(~30 min)</span></h3>
+
+<p>GA4 → Explore → "Path exploration" template. For each, set "Starting point" = the relevant trigger event or page; let GA4 surface what users do next.</p>
+
+<ol class="checklist">
+  <li><strong>AI arriver paths</strong> — starting point: <code>session_start</code> with audience filter "AI search arrivers". Reveals which pages AI agents send users to most + what those users do next.</li>
+  <li><strong>IG arriver paths</strong> — same shape, audience "IG arrivers". Validates Naomi's @napro_fertility_surgeon → site funnel.</li>
+  <li><strong>Donor paths (pre-conversion)</strong> — ending point: <code>purchase</code> with <code>lead_source = donation</code>. Backward-walks the last 5 events. Tells you which content/CTAs precede a donation.</li>
+  <li><strong>Engaged reader paths</strong> — starting point: <code>scroll_depth = 75</code> with audience "Engaged readers". Where do deep-read users go after the article?</li>
+</ol>
+
+<h3>4.6 Cohort retention <span style="font-size: 13px; color: var(--ink-muted); font-weight: 400;">(~10 min)</span></h3>
+
+<ol class="step-list">
+  <li>
+    <span class="step-title">Build a cohort exploration <span class="step-time">10 min</span></span>
+    <p>Explore → Cohort exploration → Cohort inclusion: <code>session_start</code>. Cohort granularity: monthly. Calculation: standard. Returning criteria: <code>any event</code>. Save as "Monthly cohort retention".</p>
+    <p>This needs the <code>cohort_date</code> dimension (registered in §4.1) to label cohorts by their first-touch month. Without it you can still cohort by signup date — but cohort_date lets you cohort by <em>arrival</em>, not signup, which is the meaningful comparison.</p>
+  </li>
+</ol>
+
+<h3>4.7 Optional: Looker Studio dashboard <span style="font-size: 13px; color: var(--ink-muted); font-weight: 400;">(~60 min, do last)</span></h3>
+
+<p>Skip unless Brian wants a public-facing or pinned-to-laptop dashboard. GA4 native UI is sufficient for the weekly review ritual.</p>
+
+<p>If building one:</p>
+<ul class="checklist">
+  <li>Connect GA4 property as a data source</li>
+  <li>One scorecard per persona showing: sessions, conversion rate, donor count, donor LTV</li>
+  <li>One row per high-value funnel showing: top funnel + drop-off chart</li>
+  <li>One section "Email source ROI" — list_source × donor purchase count</li>
+  <li>Filter chips for date range (default last 30 days) + persona</li>
+</ul>
+
+<h2 id="weekly">5. Weekly funnel review ritual</h2>
+
+<div class="callout">
+  <strong>Per CXL (paraphrased):</strong> <em>"People happily tag events for micro actions but then never actually do micro-funnel analysis."</em> This ritual is the difference between an instrumentation project and an analytics practice.
+</div>
+
+<p>Calendar block: <strong>15 min, weekly, same day every week</strong> (Brian's pick — Monday morning or Friday wrap). On the appointed time:</p>
+
+<ol class="checklist">
+  <li>Open the GA4 home with the 5–7 pinned funnels</li>
+  <li>For each pinned funnel: glance at the conversion rate, note any step that dropped &gt; 10 percentage points vs prior week</li>
+  <li>For the worst-dropped step: spend 5 min in Path Exploration on it — what are the most common <em>next</em> actions for users who didn't continue?</li>
+  <li>Note one finding in a running log (Notion, a markdown file, whatever). Even "nothing surprising this week" is a valid log entry.</li>
+  <li>Once per month: spot-check the 13 audience counts. Any that grew &gt; 50% or shrunk &gt; 30% week-over-week deserves an "is this real?" look at the underlying trigger event.</li>
+</ol>
+
+<p>If a funnel exposes an actionable change (e.g. "donate CTA in hero converts 3× better than donate CTA in footer"), it becomes a Phase 2f-style code change — add a new <code>data-track-cta</code> or move a button, ship, soak, re-measure.</p>
+
+<h2 id="rollback">6. Rollback matrix</h2>
+
+<table>
+  <thead>
+    <tr><th>Trigger</th><th>Action</th><th>Time</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Page_view stops flowing in GA4 Realtime within 30 min of disabling Zaraz</td><td>Re-enable the GA4 tool in CF Zaraz dashboard (toggle "Enabled" back on, Save)</td><td>60 s</td></tr>
+    <tr><td>Custom dimension misfires (wrong value pattern), discovered &gt; 72 hr post-registration</td><td><strong>Don't</strong> rename — orphans historical data. Add a GA4 transformation rule mapping old → new instead. Update spec §6.</td><td>15 min</td></tr>
+    <tr><td>Conversion marked accidentally, inflating Key Events</td><td>Admin → Events → toggle "Mark as conversion" off. Historical conversion data persists; only stops counting prospectively.</td><td>30 s</td></tr>
+    <tr><td>Audience criteria too broad/narrow after first 48hr</td><td>Edit the audience definition. Counts re-evaluate retroactively on save.</td><td>5 min</td></tr>
+    <tr><td>Funnel exploration definition wrong</td><td>Edit the exploration. No data loss — explorations are query layers, not data writes.</td><td>5 min</td></tr>
+    <tr><td>Entire pipeline borks (no events flowing at all)</td><td>Check <code>/api/track</code> via curl (step 2 in §1). Then check CF Pages env vars (<code>GA4_MEASUREMENT_ID</code>, <code>GA4_API_SECRET</code>). Then check middleware deploy status.</td><td>15 min</td></tr>
+  </tbody>
+</table>
+
+<h2 id="sign-off">7. Sign-off checklist</h2>
+
+<p>Phase 3 + 4 are complete when all of these are true:</p>
+
+<ul class="checklist">
+  <li>Zaraz GA4 tool deleted (not just disabled)</li>
+  <li><code>/analytics/</code> returns 404 (or Zaraz fully disabled on the zone)</li>
+  <li>PSI homepage: Best Practices = 100, "Reduce unused JavaScript" no longer flags <code>/analytics/</code></li>
+  <li>13 custom dimensions registered in GA4</li>
+  <li>8 conversions / Key Events marked</li>
+  <li>13 saved audiences created and populating</li>
+  <li>20 funnel explorations built; top 5–7 pinned to GA4 home</li>
+  <li>4 path explorations built</li>
+  <li>Cohort exploration built using <code>cohort_date</code> dimension</li>
+  <li>UTM convention doc (<code>rrm-academy-internal/marketing/utm-conventions.md</code>) shared with anyone who sends emails or social</li>
+  <li>Weekly 15-min review ritual on Brian's calendar (recurring)</li>
+  <li>CHANGELOG entry written + dated</li>
+  <li>Spec §8 updated to mark phase 3 step 6 complete</li>
+  <li>Spec §15.9 (Phase 4 dashboard work) checkboxes ticked</li>
+</ul>
+
+<footer>
+  <span>RRM Academy / Phase 3 + 4 Runbook</span>
+  <span>2026-05-15 · awaiting execution</span>
+</footer>
+
+</main>
+</body>
+</html>
