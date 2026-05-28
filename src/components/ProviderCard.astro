@@ -1,6 +1,7 @@
 ---
 import type { Provider } from '../lib/providers';
 import { typeBadgeClass, locationLine } from '../lib/providers';
+import ProviderAvatar from './ProviderAvatar.astro';
 
 interface Props {
   provider: Provider;
@@ -22,11 +23,8 @@ const verifiedYear = p.lastVerified ? p.lastVerified.slice(0, 4) : '';
   <a href={href} class="provider-card__link" aria-label={`View ${p.displayName}`}></a>
 
   <div class="provider-card__top">
-    <h3 class="provider-card__name">
-      {p.isPractice && (
-        <svg class="provider-card__pico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="1"/><path d="M9 22v-4h6v4"/><path d="M8 6h2M14 6h2M8 10h2M14 10h2M8 14h2M14 14h2"/></svg>
-      )}{p.displayName}
-    </h3>
+    <ProviderAvatar provider={p} size="sm" />
+    <h3 class="provider-card__name">{p.displayName}</h3>
     {teleLabel && (
       <span class="pill pill--tele" title="Telehealth availability may vary by state">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
@@ -90,9 +88,8 @@ const verifiedYear = p.lastVerified ? p.lastVerified.slice(0, 4) : '';
 
   .provider-card__top {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: var(--space-2);
+    align-items: center;
+    gap: var(--space-3);
     margin-bottom: var(--space-2);
   }
   .provider-card__name {
@@ -129,7 +126,7 @@ const verifiedYear = p.lastVerified ? p.lastVerified.slice(0, 4) : '';
   /* action: telehealth — green = available */
   .pill--tele { background: var(--green-100); color: var(--green-700); position: relative; z-index: 2; }
   /* type families */
-  .pill--clinical { background: var(--purple-100); color: var(--purple-700); }
+  .pill--clinical { background: var(--neutral-100); color: var(--neutral-700); }
   .pill--wellness { background: var(--rose-100); color: var(--rose-700); }
   .pill--surgeon { background: var(--rose-100); color: var(--rose-700); }
   .pill--educational { background: var(--neutral-100); color: var(--neutral-700); }
