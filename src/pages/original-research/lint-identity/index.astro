@@ -1,0 +1,125 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import LastUpdated from '../../../components/LastUpdated.astro';
+import pageDates from '../../../data/page-dates.json';
+import { safeJsonLd } from '../../../lib/jsonld';
+
+const PAGE_PATH = '/original-research/lint-identity/';
+const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-05-23';
+
+const pageSchema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'SoftwareSourceCode',
+      '@id': 'https://rrmacademy.org/original-research/lint-identity/#artifact',
+      name: 'lint-identity',
+      description: 'A pre-commit linter that validates references to specific people (canonical name, byline format, credentials, identifier aliases) against a single source of truth (SSOT). Operator-authored static linter that runs at commit time; the sibling pattern to agent-authored proof gates.',
+      programmingLanguage: 'JavaScript (Node)',
+      codeRepository: '[GITHUB_URL_LINT_IDENTITY]',
+      license: 'https://opensource.org/licenses/MIT',
+      author: { '@id': 'https://rrmacademy.org/#organization' },
+      publisher: { '@id': 'https://rrmacademy.org/#organization' },
+      dateModified: LAST_MODIFIED,
+      isRelatedTo: { '@id': 'https://rrmacademy.org/original-research/proof-gates/patterns/#artifact' },
+    },
+    {
+      '@type': 'TechArticle',
+      '@id': 'https://rrmacademy.org/original-research/lint-identity/#article',
+      headline: 'lint-identity: An Operator-Authored Pre-Commit Linter for SSOT-Validated Identity References',
+      description: 'Sibling artifact to proof-gate-patterns. Demonstrates the operator-authored counterpart to agent-authored proof gates, on the same observable-output-as-proof axis but with different authorship locus and firing point.',
+      author: { '@id': 'https://rrmacademy.org/#organization' },
+      publisher: { '@id': 'https://rrmacademy.org/#organization' },
+      datePublished: '2026-05-23',
+      dateModified: LAST_MODIFIED,
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://rrmacademy.org/original-research/lint-identity/',
+      },
+      keywords: ['pre-commit linter', 'identity validation', 'SSOT enforcement', 'editorial discipline', 'byline integrity', 'fabrication prevention', 'operator-authored verification'],
+    },
+  ],
+};
+---
+
+<BaseLayout
+  title="lint-identity: An Operator-Authored Pre-Commit Linter"
+  description="A pre-commit linter that validates references to specific people against a single source of truth. Sibling artifact to proof-gate-patterns, demonstrating the operator-authored counterpart pattern."
+  canonicalUrl="https://rrmacademy.org/original-research/lint-identity/"
+  jsonLd={safeJsonLd(pageSchema)}
+>
+  <main class="container research-landing">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/">Home</a> &rsaquo; <a href="/original-research/">Research</a> &rsaquo; <span aria-current="page">lint-identity</span>
+    </nav>
+
+    <header class="research-header">
+      <h1>lint-identity</h1>
+      <p class="lead">A pre-commit linter that validates references to specific people against a single source of truth. The operator-authored counterpart to agent-authored proof gates.</p>
+      <p class="byline">RRM Academy &middot; <a href="[GITHUB_URL_LINT_IDENTITY]" rel="external">Code on GitHub</a> &middot; MIT License</p>
+    </header>
+
+    <section id="overview" aria-labelledby="overview-h">
+      <h2 id="overview-h">What this is</h2>
+      <p>A static linter that validates every reference to specific people against a JSON-defined SSOT. Runs at commit time as a pre-commit hook, independent of any LLM agent's response loop. Catches fabricated middle initials, wrong-form bylines, banned credential aliases, incorrect role claims, and wrong MD-school attributions in any text the operator commits.</p>
+      <p>It exists as the <strong>sibling artifact</strong> to <a href="/original-research/proof-gates/patterns/">proof-gate-patterns</a>. The two share a proof modality (observable command output as proof) but differ on two axes: who authors the verification (operator vs agent) and when it fires (commit time vs in-response).</p>
+    </section>
+
+    <section id="distinction" aria-labelledby="distinction-h">
+      <h2 id="distinction-h">How this differs from proof gates</h2>
+      <p>The paper <em>Proof Gates: Sycophancy-Resistant Self-Verification via Agent-Authored Postconditions</em> (Whittaker 2026) defines a load-bearing distinction between operator-authored and agent-authored verification:</p>
+      <ul>
+        <li><strong>Proof gate</strong> (paper's pattern): the agent writes the verification code per task and runs it against its own work product as part of producing the response.</li>
+        <li><strong>lint-identity</strong> (this artifact): a human operator wrote the linter ahead of time, and it runs at commit time regardless of whether the artifact was produced by an agent, a human, or a script.</li>
+      </ul>
+      <p>Both produce observable command output as proof. The difference is <strong>authorship locus</strong> (per-task agent-authored vs ahead-of-time operator-authored) and <strong>firing point</strong> (in-response vs at-commit). The paper's positioning matrix locates both, with proof gates in the agent-authored quadrant and lint-identity in the operator-authored sibling cluster alongside Praetorian lifecycle hooks, AGENTS.md evaluator commands, and pre-commit linters generally.</p>
+    </section>
+
+    <section id="what-it-catches" aria-labelledby="catches-h">
+      <h2 id="catches-h">What it catches</h2>
+      <ul>
+        <li><strong>Wrong-initial Vancouver-form bylines.</strong> For example, "Whittaker NA" when the canonical SSOT entry is "Whittaker NM."</li>
+        <li><strong>Banned shortenings.</strong> For example, "Dr. Naomi" without the family name, when audience-style requires "Dr. Whittaker."</li>
+        <li><strong>Wrong credential aliases.</strong> For example, "CFCMC" near a person whose canonical credential per SSOT is "NFPMC."</li>
+        <li><strong>Banned role claims in official contexts.</strong> For example, "founder" near a person whose canonical SSOT role is something else.</li>
+        <li><strong>Wrong MD school in attribution.</strong> For example, claiming someone's MD school is a fellowship-only institution.</li>
+      </ul>
+    </section>
+
+    <section id="origin" aria-labelledby="origin-h">
+      <h2 id="origin-h">Why this exists in our deployment</h2>
+      <p>lint-identity was built in response to a specific incident. An AI-assisted editorial process shipped content with a fabricated middle initial in a person's byline; no existing gate caught the fabrication before publication. The post-incident response was to encode the canonical-form rules as a deterministic linter, integrated into the pre-commit chain across the RRM Academy ecosystem repositories, and additionally enforced at the worker-ingest layer for editorial content. The incident-driven gate-creation pattern is documented in the paper's necessary-vs-sufficient framing: rule sets evolve reactively as incidents reveal unenforced rules.</p>
+    </section>
+
+    <section id="cite" aria-labelledby="cite-h">
+      <h2 id="cite-h">Cite the paper</h2>
+      <pre><code>Whittaker, B. (2026). Proof Gates: Sycophancy-Resistant
+Self-Verification via Agent-Authored Postconditions.
+arXiv:[ARXIV_ID]. [Sibling artifact: lint-identity.]
+</code></pre>
+    </section>
+
+    <section id="related" aria-labelledby="related-h">
+      <h2 id="related-h">Related</h2>
+      <ul>
+        <li><strong>Primary artifact:</strong> <a href="/original-research/proof-gates/patterns/">proof-gate-patterns</a>, the agent-authored counterpart pattern library that is the paper's central reproducibility artifact.</li>
+        <li><strong>Code mirror:</strong> <a href="[GITHUB_URL_LINT_IDENTITY]" rel="external">github.com/...</a></li>
+      </ul>
+    </section>
+
+    <LastUpdated date={LAST_MODIFIED} />
+  </main>
+
+  <style>
+    .research-landing { max-width: var(--max-width-article); padding-block: var(--space-8); }
+    .breadcrumb { font-size: var(--text-sm); margin-bottom: var(--space-4); color: var(--color-text-subtle); }
+    .breadcrumb a { color: var(--color-link); text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .research-header { margin-bottom: var(--space-8); }
+    .research-header .lead { font-size: var(--text-lg); margin-block: var(--space-3); color: var(--color-text); }
+    .research-header .byline { color: var(--color-text-subtle); font-size: var(--text-sm); }
+    .research-landing section { margin-block: var(--space-8); }
+    .research-landing pre { background: var(--color-surface-subtle); padding: var(--space-4); border-radius: var(--radius-md); overflow-x: auto; font-size: var(--text-sm); }
+    .research-landing code { font-family: var(--font-mono); }
+  </style>
+</BaseLayout>
