@@ -41,6 +41,7 @@ const COURSES = [
   { id: 'fertility-based-family-planning', mp4FileId: '1kOTmozQBINWeW4ucDIUcojjnEFdf9oeD', transcriptDocId: '1WbjPZ6yE3sling5brMyiQx1fRRA4TotiMWqwoxM3zR8' },
   { id: 'aip-diet-inflammation', mp4FileId: '13-lXiw45KsetUAkwT49zbPYkRP8AAqgh', transcriptDocId: '1Cz62CvFzrO6Hjp1u8NZ9sD38zRfTTxP3Ja9H3dYTp0Y' },
   { id: 'functional-lab-testing-napro', mp4FileId: null, transcriptDocId: '1ln6g4BFS7s4AkrbPYxUMWtsflUIMiFrdcN5j9_lkbMg' },
+  { id: 'medical-trauma-endometriosis', mp4FileId: '13MY00aza5PiQ_gDcMu7z1hIX4Egm__Au', transcriptDocId: '1Z_z_ilhUsyh7qHkYxLYysB1rsuMu5Dy0XDmt30zlYoc' },
 ];
 
 const TMP = '/tmp';
@@ -200,7 +201,7 @@ async function main() {
 
   console.log('Resolving credentials…');
   const driveToken = shell('gcloud auth application-default print-access-token');
-  const streamToken = shell(`op read 'op://Automation/<redacted>/credential'`);
+  const streamToken = shell(`op read 'op://Automation/CF - Stream - account/credential'`);
   const accountId = process.env.CLOUDFLARE_ACCOUNT_ID
     || (() => {
       try { return shell(`op read 'op://Automation/<redacted>/credential'`); }
