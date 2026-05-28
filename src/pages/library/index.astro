@@ -425,6 +425,9 @@ const jsonLd = {
          scroll. Stretch constrains it to the container width so overflow-x:auto
          makes a real, edge-to-edge scroll strip. */
       align-self: stretch;
+      /* min-width:0 lets the flex item shrink below its content width so the
+         overflow-x scroll strip engages instead of forcing column overflow. */
+      min-width: 0;
       flex-wrap: nowrap;
       overflow-x: auto;
       justify-content: flex-start;
