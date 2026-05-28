@@ -2,8 +2,8 @@
 
 **Date:** 2026-04-24
 **Author:** Claude (with Brian)
-**Status:** Draft — awaiting review
-**Fishing-trip reports:** `/tmp/wix-fishing-report.md`, `/tmp/airtable-wix-ledger-report.md`
+**Status:** **DEPLOYED 2026-04-24.** Historical design doc. Worker (`rrm-wix-sync`, project path `~/iCode/projects/rrm-wix-stuc-sync/` renamed 2026-05-27) is live. For current operational notes see `~/iCode/projects/rrm-wix-stuc-sync/CLAUDE.md`. Sister worker (different concern): `~/iCode/projects/rrm-finance-sync/`.
+**Fishing-trip reports:** `/tmp/wix-fishing-report.md`, `/tmp/airtable-wix-ledger-report.md` *(both stale; the original /tmp paths no longer exist)*
 
 ---
 
