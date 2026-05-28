@@ -1,0 +1,175 @@
+---
+import type { Provider } from '../lib/providers';
+import { typeBadgeClass, locationLine } from '../lib/providers';
+
+interface Props {
+  provider: Provider;
+  basePath?: string;
+}
+const { provider: p, basePath = '/providers/' } = Astro.props;
+const href = `${basePath}${p.slug}/`;
+
+const typeClass = typeBadgeClass(p);
+const loc = locationLine(p);
+const methods = p.methodLabels.slice(0, 4);
+const extraMethods = p.methodLabels.length - methods.length;
+const teleLabel = p.telehealth === 'yes'
+  ? (p.region !== 'INTL' && p.state ? `Telehealth (${p.state})` : 'Telehealth')
+  : '';
+const verifiedYear = p.lastVerified ? p.lastVerified.slice(0, 4) : '';
+---
+<article class="provider-card" data-provider-card data-slug={p.slug}>
+  <a href={href} class="provider-card__link" aria-label={`View ${p.displayName}`}></a>
+
+  <div class="provider-card__top">
+    <h3 class="provider-card__name">
+      {p.isPractice && (
+        <svg class="provider-card__pico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="1"/><path d="M9 22v-4h6v4"/><path d="M8 6h2M14 6h2M8 10h2M14 10h2M8 14h2M14 14h2"/></svg>
+      )}{p.displayName}
+    </h3>
+    {teleLabel && (
+      <span class="pill pill--tele" title="Telehealth availability may vary by state">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        {teleLabel}
+      </span>
+    )}
+  </div>
+
+  <div class="provider-card__pills">
+    {p.isSurgeon && <span class="pill pill--surgeon">Surgeon</span>}
+    {p.typeLabel && <span class={`pill pill--${typeClass}`}>{p.typeLabel}</span>}
+    {methods.map((m) => <span class="pill pill--method">{m}</span>)}
+    {extraMethods > 0 && <span class="pill pill--method pill--more">+{extraMethods} more</span>}
+  </div>
+
+  <div class="provider-card__divider"></div>
+
+  {p.practiceName && <div class="provider-card__practice">{p.practiceName}</div>}
+  {loc && <div class="provider-card__loc">{loc}</div>}
+
+  <div class="provider-card__prov">
+    {p.confidence === 'verified' && (
+      <span class="provider-card__verified">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Verified
+      </span>
+    )}
+    <span class="provider-card__src">
+      {p.sourceCount > 1 ? `${p.sourceCount} sources` : '1 source'}{verifiedYear ? ` · ${verifiedYear}` : ''}
+    </span>
+  </div>
+</article>
+
+<style>
+  .provider-card {
+    position: relative;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    transition: border-color 0.15s, transform 0.15s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .provider-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+  .provider-card:focus-within {
+    border-color: var(--purple-700);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+  .provider-card__link {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  .provider-card__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+  }
+  .provider-card__name {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-weight: 600;
+    font-size: 1.25rem;
+    line-height: 1.25;
+    color: var(--text-primary);
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+    transition: color 0.15s;
+  }
+  .provider-card:hover .provider-card__name { color: var(--accent); }
+  .provider-card__pico { color: var(--text-muted); vertical-align: -2px; margin-right: 2px; }
+
+  .provider-card__pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    margin-bottom: var(--space-2);
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.625rem;
+    font-weight: 600;
+    line-height: 1.4;
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+  }
+  /* action: telehealth — green = available */
+  .pill--tele { background: var(--green-100); color: var(--green-700); position: relative; z-index: 2; }
+  /* type families */
+  .pill--clinical { background: var(--purple-100); color: var(--purple-700); }
+  .pill--wellness { background: var(--rose-100); color: var(--rose-700); }
+  .pill--surgeon { background: var(--rose-100); color: var(--rose-700); }
+  .pill--educational { background: var(--neutral-100); color: var(--neutral-700); }
+  .pill--entity { background: var(--neutral-100); color: var(--neutral-600); }
+  .pill--method { background: var(--neutral-100); color: var(--text-secondary); }
+  .pill--more { color: var(--text-muted); }
+
+  .provider-card__divider {
+    height: 1px;
+    background: var(--border-light);
+    margin: var(--space-1) 0 var(--space-2);
+  }
+  .provider-card__practice {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .provider-card__loc {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+  .provider-card__prov {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-2);
+    margin-top: var(--space-2);
+    font-size: 0.625rem;
+    color: var(--text-muted);
+  }
+  .provider-card__verified {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-weight: 600;
+    color: var(--green-700);
+  }
+</style>
