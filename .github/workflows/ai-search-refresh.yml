@@ -1,9 +1,9 @@
 name: AI Search Refresh
 
+# RETIRED 2026-05-27 (retrieval Plan 3): AutoRAG/AI-Search corpus upload now owned by rrm-library-worker /index/batch.
+# Trigger neutralized to manual-only (workflow_dispatch). File retained for rollback; do not delete.
 on:
-  workflow_run:
-    workflows: ["Build & Deploy"]
-    types: [completed]
+  workflow_dispatch: {}
 
 permissions:
   contents: read
@@ -21,7 +21,7 @@ jobs:
     # Job-level `if`: GHA auto-evaluates without ${{ }} wrappers and the wrapper-form
     # silently rejected successful triggers in early testing (2026-05-05). Keep it
     # bare here. Pull-request guard happens inside steps via the source event check.
-    if: github.event.workflow_run.conclusion == 'success'
+    if: false  # RETIRED: never runs; retained for rollback
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
