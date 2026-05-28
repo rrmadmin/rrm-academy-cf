@@ -22,6 +22,17 @@ clip_path = clip_dir / f"{course_id}.json"
 manifest = json.loads(manifest_path.read_text())
 source_uid = manifest["sourceUid"]
 
+# Cross-check manifest source against the committed stream-uids store (M9)
+stream_uids_path = base / "stream-uids.json"
+if stream_uids_path.exists():
+    stream_uids = json.loads(stream_uids_path.read_text())
+    entry = stream_uids.get(course_id)
+    if entry and entry.get("streamUid") and entry["streamUid"] != source_uid:
+        print(f"FATAL: manifest sourceUid ({source_uid}) != stream-uids.json "
+              f"streamUid ({entry['streamUid']}) for {course_id}. Refusing to clip "
+              f"from a possibly-wrong source.")
+        sys.exit(1)
+
 # Get credentials
 def op_read(path):
     return subprocess.check_output(["op", "read", path]).decode().strip()
@@ -42,9 +53,18 @@ print()
 clip_map = dict(existing)
 for lesson in manifest["lessons"]:
     step_id = lesson["stepId"]
-    if step_id in clip_map:
-        print(f"  [skip] {step_id} -> {clip_map[step_id]['clipUid']} (already exists)")
+    cached = clip_map.get(step_id)
+    if cached and (
+        cached.get("sourceUid") == source_uid
+        and cached.get("startTimeSeconds") == lesson["startTimeSeconds"]
+        and cached.get("endTimeSeconds") == lesson["endTimeSeconds"]
+    ):
+        print(f"  [skip] {step_id} -> {cached['clipUid']} (already exists)")
         continue
+    if cached:
+        print(f"  [reclip] {step_id} times changed "
+              f"({cached.get('startTimeSeconds')}-{cached.get('endTimeSeconds')} "
+              f"-> {lesson['startTimeSeconds']}-{lesson['endTimeSeconds']})")
 
     name = f"{course_id}-{step_id}.mp4"
     payload = {
@@ -64,7 +84,14 @@ for lesson in manifest["lessons"]:
         ],
         capture_output=True, text=True,
     )
-    resp = json.loads(r.stdout)
+    try:
+        resp = json.loads(r.stdout)
+    except (json.JSONDecodeError, ValueError):
+        print(f"  FAIL {step_id}: non-JSON response (HTTP/network error). "
+              f"stderr={r.stderr.strip()!r} stdout={r.stdout[:200]!r}")
+        print("  Re-run is safe but may orphan a Stream clip if this request "
+              "actually created one (no clip dedup; verify in CF dashboard).")
+        sys.exit(1)
     if not resp.get("success"):
         print(f"  FAIL {step_id}: {resp.get('errors')}")
         sys.exit(1)

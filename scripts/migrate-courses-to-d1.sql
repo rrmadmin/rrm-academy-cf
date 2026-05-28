@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS course (
     has_certificate INTEGER NOT NULL DEFAULT 0,
     certificate_quiz_step_id TEXT,
     self_paced INTEGER NOT NULL DEFAULT 1,
-    access_type TEXT NOT NULL DEFAULT 'public' CHECK(access_type IN ('public', 'private')),
+    access_type TEXT NOT NULL DEFAULT 'public' CHECK(access_type IN ('public', 'private', 'members')),
     coming_soon INTEGER NOT NULL DEFAULT 0,
     participants INTEGER NOT NULL DEFAULT 0,
     instructors_json TEXT,

@@ -147,7 +147,6 @@ function mapCourse(c, sections, steps, preview, participants = 0) {
     includes: parseArray(c.includes_json),
     includedIn: parseArray(c.included_in_json),
     faqs: parseArray(c.faqs_json),
-    attachments: parseArray(c.attachments_json),
     status: c.status,
     sortOrder: c.sort_order,
     sections: mappedSections,

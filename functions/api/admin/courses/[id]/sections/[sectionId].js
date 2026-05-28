@@ -189,6 +189,18 @@ export async function onRequestDelete(context) {
 
     if (stepIds.length > 0) {
       const placeholders = stepIds.map(() => '?').join(', ');
+
+      const certRef = await env.DB.prepare(
+        `SELECT id FROM course WHERE certificate_quiz_step_id IN (${placeholders})`
+      ).bind(...stepIds).first();
+      if (certRef) {
+        return json({
+          ok: false,
+          error: 'step_referenced_as_certificate_quiz',
+          courseId: certRef.id,
+        }, 409);
+      }
+
       const refChecks = await Promise.all([
         env.DB.prepare(
           `SELECT DISTINCT step_id FROM step_progress WHERE step_id IN (${placeholders})`
@@ -217,18 +229,10 @@ export async function onRequestDelete(context) {
       }
     }
 
-    const stepDeleteResult = await env.DB.prepare(
-      'DELETE FROM course_step WHERE section_id = ?' +
-      ' AND NOT EXISTS (SELECT 1 FROM step_progress WHERE step_id IN (SELECT id FROM course_step WHERE section_id = ?))' +
-      ' AND NOT EXISTS (SELECT 1 FROM quiz_response WHERE step_id IN (SELECT id FROM course_step WHERE section_id = ?))' +
-      ' AND NOT EXISTS (SELECT 1 FROM lesson_comment WHERE step_id IN (SELECT id FROM course_step WHERE section_id = ?))'
-    ).bind(sectionId, sectionId, sectionId, sectionId).run();
-
-    if (stepIds.length > 0 && stepDeleteResult.meta.changes === 0) {
-      return json({ ok: false, error: 'references_exist', stepIds }, 409);
-    }
-
-    await env.DB.prepare('DELETE FROM course_section WHERE id = ?').bind(sectionId).run();
+    await env.DB.batch([
+      env.DB.prepare('DELETE FROM course_step WHERE section_id = ?').bind(sectionId),
+      env.DB.prepare('DELETE FROM course_section WHERE id = ?').bind(sectionId),
+    ]);
 
     return json({ ok: true });
   } catch (err) {
