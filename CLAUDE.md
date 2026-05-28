@@ -290,6 +290,22 @@ Validation: `npm run ssot:validate` (schema + cross-ref) and `npm run ssot:smoke
 | `/openapi` | `src/pages/openapi.astro` (OpenAPI 3.1 reference, build-time imports `public/openapi.json`) |
 | `/404` | `src/pages/404.astro` |
 
+## Original Research Pages (`/original-research/`)
+
+Citation-authority artifact pages presenting RRM Academy engineering artifacts as `SoftwareSourceCode` + `TechArticle` schema. Files: `src/pages/original-research/lint-identity/index.astro` and `src/pages/original-research/proof-gates/patterns/index.astro`.
+
+**Canonical GitHub repos (both PUBLIC, default branch `main`):**
+- lint-identity -> `https://github.com/rrmadmin/lint-identity`
+- proof-gate-patterns -> `https://github.com/rrmadmin/proof-gate-patterns`
+
+Do NOT ask Brian for these URLs. Resolve any rrmadmin artifact repo with `gh repo list rrmadmin --limit 200 --json name,visibility,url,description` and match on name/description.
+
+**arXiv handling (settled 2026-05-28):** The paper "Proof Gates: Sycophancy-Resistant Self-Verification via Agent-Authored Postconditions" (Whittaker 2026) is NOT yet on arXiv. It is fine to publish these pages on GitHub now and connect the arXiv ID later. Until an arXiv ID is assigned: use `Preprint forthcoming.` in "Cite the paper" blocks, and point any "preprint" link at the GitHub repo. Do NOT ask whether it is OK to ship without a live arXiv paper. Wire the real arXiv ID/URL in when assigned.
+
+**Known gaps (verified 2026-05-28, NOT yet fixed):**
+- Production routing: `/original-research` is NOT in rrm-router `ASTRO_ROUTES` (`~/iCode/projects/rrm-router/src/index.js`). Pages serve on `rrm-academy.pages.dev` but 404 on `rrmacademy.org`. Add `/original-research` to that array (same pattern as `/og`) and deploy the router to make them reachable.
+- Index pages `/original-research/` and `/original-research/proof-gates/` do not exist, so the breadcrumb links 404. Build these before routing the section publicly.
+
 ## Information Architecture
 
 **Decision (2026-03-12):** Flat URL structure for pillar pages. Nav dropdown for UX grouping. URL structure and navigation structure are independent.
