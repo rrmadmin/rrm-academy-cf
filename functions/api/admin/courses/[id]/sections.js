@@ -62,21 +62,18 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: 'course_not_found' }, 404);
     }
 
-    let resolvedSortOrder;
-    if (sortOrder !== undefined) {
-      resolvedSortOrder = sortOrder;
-    } else {
-      const maxRow = await env.DB.prepare(
-        'SELECT MAX(sort_order) AS max_order FROM course_section WHERE course_id = ?'
-      ).bind(courseId).first();
-      resolvedSortOrder = (maxRow?.max_order ?? -1) + 1;
-    }
-
     try {
-      await env.DB.prepare(
-        `INSERT INTO course_section (id, course_id, title, sort_order)
-         VALUES (?, ?, ?, ?)`
-      ).bind(id.trim(), courseId, title.trim(), resolvedSortOrder).run();
+      if (sortOrder !== undefined) {
+        await env.DB.prepare(
+          `INSERT INTO course_section (id, course_id, title, sort_order)
+           VALUES (?, ?, ?, ?)`
+        ).bind(id.trim(), courseId, title.trim(), sortOrder).run();
+      } else {
+        await env.DB.prepare(
+          `INSERT INTO course_section (id, course_id, title, sort_order)
+           VALUES (?, ?, ?, COALESCE((SELECT MAX(sort_order) FROM course_section WHERE course_id = ?), -1) + 1)`
+        ).bind(id.trim(), courseId, title.trim(), courseId).run();
+      }
     } catch (err) {
       if (err.message?.includes('UNIQUE constraint')) {
         return json({ ok: false, error: 'section_id_already_exists' }, 409);
@@ -84,13 +81,17 @@ export async function onRequestPost(context) {
       throw err;
     }
 
+    const inserted = await env.DB.prepare(
+      'SELECT sort_order FROM course_section WHERE id = ?'
+    ).bind(id.trim()).first();
+
     return json({
       ok: true,
       data: {
         id: id.trim(),
         courseId,
         title: title.trim(),
-        sortOrder: resolvedSortOrder,
+        sortOrder: inserted?.sort_order ?? 0,
       },
     }, 201);
   } catch (err) {

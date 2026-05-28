@@ -211,6 +211,7 @@ async function main() {
   console.log(`  drive token len=${driveToken.length}, stream token len=${streamToken.length}, account=${accountId.slice(0, 8)}…\n`);
 
   const uids = loadUids();
+  const failures = [];
 
   for (const c of COURSES) {
     if (skip.has(c.id)) {
@@ -224,6 +225,7 @@ async function main() {
         await exportTranscript(c.transcriptDocId, driveToken, `${TRANSCRIPT_DIR}/${c.id}.md`);
       } catch (err) {
         console.error(`  [transcript] FAIL: ${err.message}`);
+        failures.push(`${c.id} (transcript)`);
       }
     }
 
@@ -252,12 +254,18 @@ async function main() {
       console.log(`  [done] ${c.id}: uid=${meta.uid}, duration=${meta.duration}s, status=${meta.status}`);
     } catch (err) {
       console.error(`  [video] FAIL: ${err.message}`);
+      failures.push(`${c.id} (video)`);
     }
   }
 
   console.log(`\nUIDs file → ${UIDS_FILE}`);
   console.log(`Transcripts dir → ${TRANSCRIPT_DIR}/`);
   console.log('\nNext: Phase D wiring per course via /courses-update skill.');
+
+  if (failures.length) {
+    console.error(`\nFAILED (${failures.length}): ${failures.join(', ')}`);
+    process.exit(1);
+  }
 }
 
 main().catch(err => {
