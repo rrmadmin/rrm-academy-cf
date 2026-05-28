@@ -1,0 +1,42 @@
+---
+import type { Provider } from '../lib/providers';
+import { providerInitials } from '../lib/providers';
+
+interface Props {
+  provider: Provider;
+  size?: 'sm' | 'lg';
+}
+const { provider: p, size = 'sm' } = Astro.props;
+const initials = providerInitials(p);
+---
+<span class:list={['provider-avatar', `provider-avatar--${size}`]} aria-hidden="true">{initials}</span>
+
+<style>
+  /* Single neutral monogram (no scraped photos). One quiet tone keeps the grid
+     clean and avoids clashing with the rose/green/purple that carry meaning
+     (wellness, telehealth, clinical type). */
+  .provider-avatar {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--neutral-200);
+    color: var(--neutral-700);
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    user-select: none;
+  }
+  .provider-avatar--sm {
+    width: 42px;
+    height: 42px;
+    font-size: 1rem;
+  }
+  .provider-avatar--lg {
+    width: 72px;
+    height: 72px;
+    font-size: 1.75rem;
+  }
+</style>
