@@ -441,6 +441,19 @@ jobs:
         # docs/superpowers/specs/2026-05-15-client-analytics-spec.html
         run: npm run gates:analytics
 
+      - name: Validate courses schema gates (always)
+        # CS1 (static): the course migration's CHECK value-sets must equal the
+        # admin endpoints' VALID_ACCESS_TYPES / VALID_STATUSES / VALID_TYPES Sets.
+        # CS2 (live): the committed migration's columns + CHECK sets must match
+        # the live rrm-auth D1 schema. A D1 query/auth failure WARN-skips (never
+        # fails) so an unreachable D1 can't block the deploy -- only detected
+        # drift fails. Born from the access_type='members' drift (2026-05-28),
+        # where the committed migration silently lagged both live + the app code.
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npm run gates:courses
+
       - name: Validate glossary spoke pages (full rebuild only)
         # Spoke directory only refreshes on full rebuild (getStaticPaths re-runs
         # against in-memory glossary.json, but dispatched single-record updates
