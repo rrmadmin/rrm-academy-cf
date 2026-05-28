@@ -93,7 +93,7 @@ const cardCohortText = onWaitlist && course.nextCohortLabel ? `Next: ${course.ne
       )}
       {onWaitlist && <span class="course-card__badge course-card__badge--waitlist">Waitlist Open</span>}
       {isAffiliate && !onWaitlist && <span class="course-card__badge course-card__badge--partner">Partner Course</span>}
-      {isMembersOnly && <span class="course-card__badge course-card__badge--members">🐻 Free for Members</span>}
+      {isMembersOnly && <span class="course-card__badge course-card__badge--members">Free for Members</span>}
       {!isAffiliate && !isMembersOnly && course.isFree && <span class="course-card__badge course-card__badge--free">Free</span>}
       {!isAffiliate && course.hasCertificate && <span class="course-card__badge course-card__badge--cert">Certificate</span>}
     </div>
