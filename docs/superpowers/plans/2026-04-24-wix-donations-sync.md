@@ -1,5 +1,7 @@
 # Wix Donations Sync Implementation Plan
 
+> **STATUS: DEPLOYED 2026-04-24.** This is historical setup documentation, NOT a runbook for a fresh install. The `rrm-wix-sync` CF Worker (project path: `~/iCode/projects/rrm-wix-stuc-sync/`, renamed 2026-05-27 for scope clarity) is live, the Wix App webhook subscriptions are registered, the D1 tables exist with backfilled data, and the cron runs every 6h. **Do not re-execute the steps in this plan** — they would create duplicate webhook subscriptions, attempt to re-bind already-bound secrets, and try to re-apply schema migrations against tables that already exist. For ongoing operational notes see `~/iCode/projects/rrm-wix-stuc-sync/CLAUDE.md`. Sister bookkeeping worker (different concern, same source): `~/iCode/projects/rrm-finance-sync/`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Mirror Wix recurring + one-off donation data into Cloudflare D1 so `/account` can show membership + donation history for Wix donors (fixes Victoria Bergin case and all future Wix donors).
