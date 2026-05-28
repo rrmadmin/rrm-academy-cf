@@ -74,6 +74,7 @@ export default defineConfig({
           '/endo-survey/take',
           '/donate/thank-you',
           '/save-the-uterus-club/thank-you',
+          '/providers/claim',
           '/404',
           '/topics/',
           '/community/',

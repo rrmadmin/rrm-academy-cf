@@ -1,0 +1,147 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import ProviderCard from '../../../components/ProviderCard.astro';
+import { getAllProviders } from '../../../lib/providers';
+
+export async function getStaticPaths() {
+  // PER_PAGE must live inside getStaticPaths: Astro hoists this function to
+  // module scope, so a render-body const is not in scope here.
+  const PER_PAGE = 24;
+  const providers = getAllProviders();
+  const total = providers.length;
+  const totalPages = Math.ceil(total / PER_PAGE);
+
+  // Page 1 lives at /providers/ (canonical), so we only generate 2..N here.
+  const pages = [];
+  for (let i = 2; i <= totalPages; i++) {
+    const start = (i - 1) * PER_PAGE;
+    pages.push({
+      params: { page: String(i) },
+      props: {
+        currentPage: i,
+        totalPages,
+        total,
+        startIndex: start,
+        pageProviders: providers.slice(start, start + PER_PAGE),
+      },
+    });
+  }
+  return pages;
+}
+
+const { currentPage, totalPages, total, startIndex, pageProviders } = Astro.props;
+
+const canonical = `https://rrmacademy.org/providers/page/${currentPage}/`;
+// Prev page 1 lives at the index, not /providers/page/1/.
+const prevHref = currentPage === 2 ? '/providers/' : `/providers/page/${currentPage - 1}/`;
+const nextHref = `/providers/page/${currentPage + 1}/`;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  '@id': `${canonical}#breadcrumb`,
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+    { '@type': 'ListItem', position: 2, name: 'Providers', item: 'https://rrmacademy.org/providers/' },
+    { '@type': 'ListItem', position: 3, name: `Page ${currentPage}`, item: canonical },
+  ],
+};
+---
+<BaseLayout
+  bodyClass="page-providers"
+  title={`RRM Providers - Page ${currentPage}`}
+  description={`Page ${currentPage} of ${totalPages}. Browse all ${total.toLocaleString()} restorative reproductive medicine providers in the RRM Academy directory.`}
+  canonicalUrl={canonical}
+  jsonLd={jsonLd}
+  noindex={false}
+>
+  <section class="prov-browse" data-pagefind-ignore="all">
+    <div class="container">
+      <nav class="prov-breadcrumb" aria-label="Breadcrumb">
+        <a href="/providers/">Providers</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <span>Page {currentPage}</span>
+      </nav>
+
+      <div class="prov-browse-head">
+        <h1>All providers</h1>
+        <p class="prov-browse-meta tabular">
+          Showing {(startIndex + 1).toLocaleString()}&ndash;{Math.min(startIndex + pageProviders.length, total).toLocaleString()} of {total.toLocaleString()}
+        </p>
+      </div>
+
+      <div class="prov-grid" data-pagefind-ignore="all">
+        {pageProviders.map((p) => <ProviderCard provider={p} />)}
+      </div>
+
+      <nav class="prov-pager" aria-label="Pagination">
+        <a href={prevHref} class="prov-pager__link">&laquo; Prev</a>
+        <span class="prov-pager__status tabular">Page {currentPage} of {totalPages}</span>
+        {currentPage < totalPages ? (
+          <a href={nextHref} class="prov-pager__link">Next &raquo;</a>
+        ) : (
+          <span class="prov-pager__link prov-pager__link--disabled" aria-hidden="true">Next &raquo;</span>
+        )}
+      </nav>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .prov-browse { padding: var(--space-8) 0; }
+  .prov-breadcrumb {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-4);
+  }
+  .prov-breadcrumb a { color: var(--accent); text-decoration: none; }
+  .prov-breadcrumb a:hover { text-decoration: underline; }
+
+  .prov-browse-head { margin-bottom: var(--space-6); }
+  .prov-browse-head h1 { margin: 0 0 var(--space-1); }
+  .prov-browse-meta {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .prov-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-4);
+  }
+
+  .prov-pager {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-top: var(--space-8);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--border-light);
+  }
+  .prov-pager__status { font-size: 0.8125rem; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
+  .prov-pager__link {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--accent);
+    text-decoration: none;
+    padding: 8px 18px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    background: var(--bg-surface);
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .prov-pager__link:hover { border-color: var(--accent); text-decoration: none; }
+  .prov-pager__link--disabled {
+    color: var(--text-muted);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  @media (max-width: 639px) {
+    .prov-browse { padding: var(--space-6) 0; }
+    .prov-grid { grid-template-columns: 1fr; }
+  }
+</style>
