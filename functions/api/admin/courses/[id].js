@@ -207,6 +207,10 @@ export async function onRequestPut(context) {
     return json({ ok: false, error: 'invalid_participants' }, 400);
   }
 
+  if (body.sortOrder !== undefined && !Number.isInteger(body.sortOrder)) {
+    return json({ ok: false, error: 'invalid_sort_order' }, 400);
+  }
+
   if (body.accessType !== undefined && !VALID_ACCESS_TYPES.has(body.accessType)) {
     return json({ ok: false, error: 'invalid_access_type' }, 400);
   }
@@ -246,6 +250,25 @@ export async function onRequestPut(context) {
     })();
     if (!stepCheck) {
       return json({ ok: false, error: 'invalid_certificate_quiz_step_id' }, 400);
+    }
+  }
+
+  if (body.status === 'published') {
+    try {
+      const currentCourse = await env.DB.prepare(
+        "SELECT status FROM course WHERE id = ?"
+      ).bind(id).first();
+      if (currentCourse && currentCourse.status !== 'published') {
+        const stepCount = await env.DB.prepare(
+          "SELECT COUNT(*) AS cnt FROM course_step WHERE course_id = ? AND status = 'published'"
+        ).bind(id).first();
+        if ((stepCount?.cnt ?? 0) === 0) {
+          return json({ ok: false, error: 'not_publishable', detail: 'course has no published steps' }, 409);
+        }
+      }
+    } catch (err) {
+      log(env, waitUntil, 'admin-courses', 'publishable_check_error', 'error', err.message, 0, 500);
+      return json({ ok: false, error: 'Internal error' }, 500);
     }
   }
 
