@@ -149,15 +149,10 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: 'section_not_found' }, 404);
     }
 
-    const maxRow = await env.DB.prepare(
-      'SELECT MAX(sort_order) AS max_order FROM course_step WHERE section_id = ?'
-    ).bind(sectionId).first();
-    const resolvedSortOrder = (maxRow?.max_order ?? -1) + 1;
-
     try {
       await env.DB.prepare(
         `INSERT INTO course_step (id, section_id, course_id, title, type, stream_uid, duration_seconds, sort_order, attachments_json, status)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+         VALUES (?, ?, ?, ?, ?, ?, ?, COALESCE((SELECT MAX(sort_order) FROM course_step WHERE section_id = ?), -1) + 1, ?, ?)`
       ).bind(
         id.trim(),
         sectionId,
@@ -166,7 +161,7 @@ export async function onRequestPost(context) {
         type,
         type === 'video' ? streamUid.trim() : null,
         (duration !== undefined && duration !== null) ? duration : null,
-        resolvedSortOrder,
+        sectionId,
         (attachments !== undefined && attachments !== null) ? JSON.stringify(attachments) : null,
         resolvedStatus
       ).run();
