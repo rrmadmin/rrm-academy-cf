@@ -99,10 +99,7 @@ const jsonLd = {
     <div class="container">
       <h1>Find a Restorative Reproductive Medicine Provider</h1>
       <p class="prov-hero__intro">
-        This is a method-agnostic directory of fertility-awareness-based and restorative
-        reproductive medicine practitioners, unified from public method-specific sources into
-        one searchable place. Listings are compiled from publicly available method and
-        certifying-body directories and verified against multiple sources where possible.
+        A directory of restorative reproductive medicine and fertility-awareness providers across every major method, in one searchable place.
       </p>
 
       <p class="prov-counts tabular">
@@ -112,17 +109,6 @@ const jsonLd = {
         <span aria-hidden="true">&middot;</span>
         {facets.methods.length} methods covered
       </p>
-
-      <a href="/providers/telehealth/" class="prov-tele-cta">
-        <span class="prov-tele-cta__icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-        </span>
-        <span class="prov-tele-cta__body">
-          <span class="prov-tele-cta__title">Looking for telehealth?</span>
-          <span class="prov-tele-cta__sub">{facets.telehealthCount.toLocaleString()} providers offer virtual consultations, often across state lines.</span>
-        </span>
-        <span class="prov-tele-cta__arrow" aria-hidden="true">&rarr;</span>
-      </a>
 
       <div class="prov-search">
         <div class="prov-search__box">
@@ -152,6 +138,17 @@ const jsonLd = {
         ))}
         <a href="#by-state" class="prov-chip prov-chip--ghost">Browse by state &darr;</a>
       </div>
+
+      <a href="/providers/telehealth/" class="prov-tele-cta">
+        <span class="prov-tele-cta__icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        </span>
+        <span class="prov-tele-cta__body">
+          <span class="prov-tele-cta__title">Looking for telehealth?</span>
+          <span class="prov-tele-cta__sub">{facets.telehealthCount.toLocaleString()} providers offer virtual consultations, often across state lines.</span>
+        </span>
+        <span class="prov-tele-cta__arrow" aria-hidden="true">&rarr;</span>
+      </a>
     </div>
   </section>
 
@@ -425,7 +422,7 @@ const jsonLd = {
     align-items: center;
     gap: var(--space-4);
     padding: var(--space-5);
-    margin-bottom: var(--space-6);
+    margin: var(--space-6) 0;
     background: var(--green-100);
     border: 1px solid var(--green-700);
     border-radius: var(--radius-md);
