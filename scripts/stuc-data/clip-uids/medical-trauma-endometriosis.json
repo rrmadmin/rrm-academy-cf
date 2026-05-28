@@ -1,0 +1,90 @@
+{
+  "mte-gaslighting-1": {
+    "clipUid": "0417de563c346542ec63da1d8274be5b",
+    "sourceUid": "a8dec43e7266f83d0d86a81804924e1e",
+    "startTimeSeconds": 1547,
+    "endTimeSeconds": 2032,
+    "durationSeconds": 485,
+    "title": "Medical Gaslighting, Diagnostic Delay, and Patient Fatigue",
+    "sectionId": "mte-gaslighting",
+    "order": 2,
+    "name": "medical-trauma-endometriosis-mte-gaslighting-1.mp4"
+  },
+  "mte-neurobiology-1": {
+    "clipUid": "4e8e0d4a3880bb8b92e635809bf00f85",
+    "sourceUid": "a8dec43e7266f83d0d86a81804924e1e",
+    "startTimeSeconds": 2032,
+    "endTimeSeconds": 2542,
+    "durationSeconds": 510,
+    "title": "The Neurobiology of Trauma and Trauma-Informed Accommodations",
+    "sectionId": "mte-neurobiology",
+    "order": 3,
+    "name": "medical-trauma-endometriosis-mte-neurobiology-1.mp4"
+  },
+  "mte-empowerment-subspecialty-1": {
+    "clipUid": "500a10cd61ce3d8a1381a1c9db4acc28",
+    "sourceUid": "a8dec43e7266f83d0d86a81804924e1e",
+    "startTimeSeconds": 2542,
+    "endTimeSeconds": 2940,
+    "durationSeconds": 398,
+    "title": "Patient Empowerment, Subspecialty Care, and Educating the Profession",
+    "sectionId": "mte-empowerment-subspecialty",
+    "order": 4,
+    "name": "medical-trauma-endometriosis-mte-empowerment-subspecialty-1.mp4"
+  },
+  "mte-obgyn-future-1": {
+    "clipUid": "4a5213687da70d0d5374ebccfdeee3a1",
+    "sourceUid": "a8dec43e7266f83d0d86a81804924e1e",
+    "startTimeSeconds": 2940,
+    "endTimeSeconds": 3451,
+    "durationSeconds": 511,
+    "title": "The Future of Women's Health: Subspecialization and the OB/GYN Debate",
+    "sectionId": "mte-obgyn-future",
+    "order": 5,
+    "name": "medical-trauma-endometriosis-mte-obgyn-future-1.mp4"
+  },
+  "mte-burnout-recovery-1": {
+    "clipUid": "947b782aba4d45f51e42d1645961c40f",
+    "sourceUid": "a8dec43e7266f83d0d86a81804924e1e",
+    "startTimeSeconds": 3451,
+    "endTimeSeconds": 4108,
+    "durationSeconds": 657,
+    "title": "Provider Burnout, Emotional Regulation, and Recovery as a Fresh Start",
+    "sectionId": "mte-burnout-recovery",
+    "order": 6,
+    "name": "medical-trauma-endometriosis-mte-burnout-recovery-1.mp4"
+  },
+  "mte-neuroimmune-1": {
+    "clipUid": "443499f3f6c5a0a349014823217ace4a",
+    "sourceUid": "a8dec43e7266f83d0d86a81804924e1e",
+    "startTimeSeconds": 4108,
+    "endTimeSeconds": 4693,
+    "durationSeconds": 585,
+    "title": "The Neuroimmune Model of Endometriosis",
+    "sectionId": "mte-neuroimmune",
+    "order": 7,
+    "name": "medical-trauma-endometriosis-mte-neuroimmune-1.mp4"
+  },
+  "mte-therapies-1": {
+    "clipUid": "0b845305b7ebae1614a0d0c016851be0",
+    "sourceUid": "a8dec43e7266f83d0d86a81804924e1e",
+    "startTimeSeconds": 4693,
+    "endTimeSeconds": 4982,
+    "durationSeconds": 289,
+    "title": "Emerging and Adjunct Therapies",
+    "sectionId": "mte-therapies",
+    "order": 8,
+    "name": "medical-trauma-endometriosis-mte-therapies-1.mp4"
+  },
+  "mte-intro-1": {
+    "clipUid": "82de70fe6104388093919a3a9390e6f6",
+    "sourceUid": "a8dec43e7266f83d0d86a81804924e1e",
+    "startTimeSeconds": 1320,
+    "endTimeSeconds": 1547,
+    "durationSeconds": 227,
+    "title": "Trauma-Informed Care and the Patient as Partner",
+    "sectionId": "mte-intro",
+    "order": 1,
+    "name": "medical-trauma-endometriosis-mte-intro-1.mp4"
+  }
+}
