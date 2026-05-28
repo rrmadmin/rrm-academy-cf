@@ -183,6 +183,28 @@ export function locationLine(p: Provider): string {
   return s;
 }
 
+// ---- monogram avatars ------------------------------------------------------
+// We do not scrape provider photographs (copyright + privacy). Until a provider
+// uploads their own via the claim flow, every listing gets a clean initials
+// monogram. Initials + tone are derived deterministically from the record so a
+// given provider always renders the same avatar.
+const HONORIFIC = /^(dr|mr|mrs|ms|prof)\.?\s+/i;
+export function providerInitials(p: Provider): string {
+  const base = (p.name || '').replace(/,.*$/, '').replace(HONORIFIC, '').trim();
+  const words = base.split(/\s+/).filter((w) => /[a-z]/i.test(w) && !/^(and|&|the|of|for)$/i.test(w));
+  if (words.length === 0) return '?';
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+}
+
+// 0-3 → one of four soft, on-brand tones (defined in ProviderAvatar.astro).
+export function avatarTone(p: Provider): number {
+  let h = 0;
+  const s = p.slug || p.name || '';
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h % 4;
+}
+
 // Related providers for the detail-page rail: same primary method, prefer same state.
 export function getRelatedProviders(p: Provider, limit = 6): Provider[] {
   const primary = p.methods[0];
