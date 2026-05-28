@@ -1,0 +1,645 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProviderCard from '../../components/ProviderCard.astro';
+import {
+  getAllProviders,
+  getRelatedProviders,
+  methodLabel,
+  stateName,
+  locationLine,
+  typeBadgeClass,
+  type Provider,
+} from '../../lib/providers';
+
+export async function getStaticPaths() {
+  const providers = getAllProviders();
+  return providers.map((provider) => ({
+    params: { slug: provider.slug },
+    props: { provider },
+  }));
+}
+
+interface Props {
+  provider: Provider;
+}
+
+const { provider: p } = Astro.props;
+
+const loc = locationLine(p);
+const typeClass = typeBadgeClass(p);
+const related = getRelatedProviders(p, 6);
+
+// ---- thin-page guard ------------------------------------------------------
+// No usable content at all (no methods, no location, no contact) → noindex.
+// Mirrors library's word_count-driven thin-page approach: a record that can't
+// help anyone shouldn't compete for crawl budget.
+const hasContact = Boolean(p.phone || p.website || p.email || p.schedulingLink);
+const isThin = p.methodLabels.length === 0 && !loc && !hasContact;
+
+// ---- meta description (factual, no em dashes) -----------------------------
+const topMethods = p.methodLabels.slice(0, 2).join(' and ');
+const descParts: string[] = [`${p.displayName} is a ${p.typeLabel || (p.isPractice ? 'practice' : 'provider')}`];
+if (topMethods) descParts.push(` practicing ${topMethods}`);
+if (loc) descParts.push(` in ${loc}`);
+const metaDescription = descParts.join('') + '.';
+
+const canonicalUrl = `https://rrmacademy.org/providers/${p.slug}/`;
+
+// ---- directions (Google Maps) ---------------------------------------------
+const addressParts: string[] = [];
+if (p.city) addressParts.push(p.city);
+if (p.region !== 'INTL' && p.state) addressParts.push(p.state);
+else if (p.stateName) addressParts.push(p.stateName);
+if (p.zip) addressParts.push(p.zip);
+if (p.region === 'INTL' && p.countryName) addressParts.push(p.countryName);
+const addressQuery = addressParts.join(', ');
+const directionsUrl = addressQuery
+  ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${p.practiceName ? p.practiceName + ', ' : ''}${addressQuery}`)}`
+  : null;
+
+// Digits-only tel: href
+const telHref = p.phone ? `tel:${p.phone.replace(/[^\d+]/g, '')}` : null;
+
+// ---- telehealth states (human labels) -------------------------------------
+const teleStateLabels = p.telehealthStates.map((s) => stateName(s));
+
+// ---- sources (title-cased, readable) --------------------------------------
+function titleCaseSource(id: string): string {
+  return id
+    .replace(/[_-]+/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .replace(/\bRrm\b/g, 'RRM')
+    .replace(/\bNpi\b/g, 'NPI')
+    .replace(/\bNapro\b/g, 'NaPro')
+    .replace(/\bFemm\b/g, 'FEMM')
+    .replace(/\bIirrm\b/g, 'IIRRM');
+}
+const sourceLabels = (p.sources || []).map(titleCaseSource);
+
+// ---- claim link -----------------------------------------------------------
+const claimUrl = `/providers/claim/?slug=${encodeURIComponent(p.slug)}`;
+
+// ---------------------------------------------------------------------------
+// JSON-LD (@graph). Only emit properties with real data; omit null/empty so we
+// never publish empty strings. Person + MedicalBusiness for individuals;
+// MedicalOrganization / EducationalOrganization for practices. Always a
+// BreadcrumbList.
+// ---------------------------------------------------------------------------
+function buildPostalAddress(): Record<string, unknown> | null {
+  const addr: Record<string, unknown> = { '@type': 'PostalAddress' };
+  let any = false;
+  if (p.city) { addr.addressLocality = p.city; any = true; }
+  if (p.region !== 'INTL' && p.state) { addr.addressRegion = p.state; any = true; }
+  else if (p.stateName) { addr.addressRegion = p.stateName; any = true; }
+  if (p.zip) { addr.postalCode = p.zip; any = true; }
+  if (p.countryName) { addr.addressCountry = p.countryName; any = true; }
+  else if (p.region !== 'INTL') { addr.addressCountry = 'US'; any = true; }
+  return any ? addr : null;
+}
+
+const postalAddress = buildPostalAddress();
+const personId = `${canonicalUrl}#person`;
+const businessId = `${canonicalUrl}#business`;
+
+function buildIndividualNodes(): Record<string, unknown>[] {
+  const nodes: Record<string, unknown>[] = [];
+
+  // Person
+  const person: Record<string, unknown> = {
+    '@type': 'Person',
+    '@id': personId,
+    name: p.displayName,
+    url: canonicalUrl,
+  };
+  if (p.credentials) person.honorificSuffix = p.credentials;
+  if (p.specialty) person.jobTitle = p.specialty;
+  if (p.methodLabels.length > 0) person.knowsAbout = p.methodLabels;
+  const sameAs = [p.website, p.npi ? `https://npiregistry.cms.hhs.gov/provider-view/${p.npi}` : null].filter(
+    (v): v is string => Boolean(v)
+  );
+  if (sameAs.length > 0) person.sameAs = sameAs;
+
+  // MedicalBusiness (the practice the person works for)
+  const business: Record<string, unknown> = {
+    '@type': 'MedicalBusiness',
+    '@id': businessId,
+    name: p.practiceName || p.displayName,
+  };
+  if (p.phone) business.telephone = p.phone;
+  if (postalAddress) business.address = postalAddress;
+  if (p.website) business.url = p.website;
+  if (p.methodLabels.length > 0) business.knowsAbout = p.methodLabels;
+  if (p.telehealth === 'yes') {
+    const svc: Record<string, unknown> = {
+      '@type': 'MedicalProcedure',
+      name: 'Telehealth consultation',
+    };
+    if (teleStateLabels.length > 0) svc.areaServed = teleStateLabels;
+    business.availableService = svc;
+  }
+  business.employee = { '@id': personId };
+  person.worksFor = { '@id': businessId };
+
+  nodes.push(person, business);
+  return nodes;
+}
+
+function buildOrganizationNodes(): Record<string, unknown>[] {
+  const orgType = p.typeGroup === 'educational' ? 'EducationalOrganization' : 'MedicalOrganization';
+  const org: Record<string, unknown> = {
+    '@type': orgType,
+    '@id': businessId,
+    name: p.displayName,
+    url: canonicalUrl,
+  };
+  if (p.phone) org.telephone = p.phone;
+  if (postalAddress) org.address = postalAddress;
+  if (p.website) org.sameAs = [p.website];
+  if (p.methodLabels.length > 0) org.knowsAbout = p.methodLabels;
+  if (p.telehealth === 'yes') {
+    const svc: Record<string, unknown> = {
+      '@type': 'MedicalProcedure',
+      name: 'Telehealth consultation',
+    };
+    if (teleStateLabels.length > 0) svc.areaServed = teleStateLabels;
+    org.availableService = svc;
+  }
+  return [org];
+}
+
+const entityNodes = p.isPractice ? buildOrganizationNodes() : buildIndividualNodes();
+
+const breadcrumbNode = {
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+    { '@type': 'ListItem', position: 2, name: 'Providers', item: 'https://rrmacademy.org/providers/' },
+    { '@type': 'ListItem', position: 3, name: p.displayName, item: canonicalUrl },
+  ],
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [...entityNodes, breadcrumbNode],
+};
+---
+<BaseLayout
+  bodyClass="page-providers page-provider-detail"
+  title={`${p.displayName} | RRM Provider Directory`}
+  description={metaDescription}
+  canonicalUrl={canonicalUrl}
+  jsonLd={jsonLd}
+  noindex={isThin}
+>
+  <div
+    class="page-wrapper"
+    data-pagefind-body
+    data-pagefind-filter="content_type:provider"
+  >
+    <span data-pagefind-meta="content_type:provider" style="display:none"></span>
+    {loc && <span data-pagefind-meta={`location:${loc}`} style="display:none"></span>}
+    {p.typeLabel && <span data-pagefind-meta={`type:${p.typeLabel}`} style="display:none"></span>}
+
+    <div class="container container--narrow">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/providers/">Providers</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <span>{p.displayName}</span>
+      </nav>
+
+      <!-- Header -->
+      <header class="provider-detail__header">
+        <h1 class="provider-detail__name">{p.displayName}</h1>
+
+        <div class="provider-detail__badges">
+          {p.telehealth === 'yes' && (
+            <span class="pill pill--tele" title="Telehealth availability may vary by state">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+              Telehealth available
+            </span>
+          )}
+          {p.isSurgeon && <span class="pill pill--surgeon">Surgeon</span>}
+          {p.typeLabel && <span class={`pill pill--${typeClass}`}>{p.typeLabel}</span>}
+          {p.confidence === 'verified' && (
+            <span class="pill pill--verified">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Verified
+            </span>
+          )}
+        </div>
+
+        {p.practiceName && !p.isPractice && (
+          <p class="provider-detail__practice">{p.practiceName}</p>
+        )}
+
+        {(loc || p.languages.length > 0) && (
+          <p class="provider-detail__meta">
+            {loc && <span class="provider-detail__loc">{loc}</span>}
+            {loc && p.languages.length > 0 && <span aria-hidden="true"> &middot; </span>}
+            {p.languages.length > 0 && (
+              <span class="provider-detail__langs">Languages: {p.languages.join(', ')}</span>
+            )}
+          </p>
+        )}
+      </header>
+
+      <!-- Telehealth block (first-class) -->
+      {p.telehealth === 'yes' && (
+        <aside class="provider-tele" aria-label="Telehealth">
+          <p class="provider-tele__head">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            Telehealth available
+          </p>
+          {teleStateLabels.length > 0 && (
+            <p class="provider-tele__states">Licensed or serving: {teleStateLabels.join(', ')}</p>
+          )}
+        </aside>
+      )}
+      {p.telehealth === 'unknown' && (
+        <p class="provider-tele-unknown">Telehealth status not confirmed.</p>
+      )}
+
+      <!-- Primary CTAs -->
+      {(telHref || p.website || directionsUrl) && (
+        <div class="provider-cta" aria-label="Contact actions">
+          {telHref && (
+            <a class="provider-cta__btn provider-cta__btn--primary" href={telHref} data-track="provider_call">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              Call
+            </a>
+          )}
+          {p.website && (
+            <a class="provider-cta__btn" href={p.website} target="_blank" rel="noopener nofollow" data-track="provider_website">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              Visit website
+            </a>
+          )}
+          {directionsUrl && (
+            <a class="provider-cta__btn" href={directionsUrl} target="_blank" rel="noopener nofollow" data-track="provider_directions">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Get directions
+            </a>
+          )}
+        </div>
+      )}
+
+      <!-- Methods & specialties -->
+      {(p.methodLabels.length > 0 || p.specialty) && (
+        <section class="provider-section" aria-label="Methods and specialties">
+          <h2 class="detail-heading">Methods &amp; specialties</h2>
+          {p.methodLabels.length > 0 && (
+            <ul class="provider-methods">
+              {p.methodLabels.map((m) => <li class="provider-methods__item">{m}</li>)}
+            </ul>
+          )}
+          {p.specialty && <p class="provider-specialty">Specialty: {p.specialty}</p>}
+        </section>
+      )}
+
+      <!-- Sources (transparency / trust) -->
+      {sourceLabels.length > 0 && (
+        <section class="provider-section provider-sources" aria-label="Sources">
+          <h2 class="detail-heading">Sources</h2>
+          <ul class="provider-sources__list">
+            {sourceLabels.map((s) => <li class="provider-sources__item">{s}</li>)}
+          </ul>
+          {p.lastVerified && (
+            <p class="provider-sources__verified">Last verified {p.lastVerified.slice(0, 10)}</p>
+          )}
+        </section>
+      )}
+
+      <!-- Claim CTA -->
+      <section class="provider-claim" aria-label="Claim this listing">
+        <div class="provider-claim__inner">
+          <p class="provider-claim__head">Is this you? Update your listing</p>
+          <p class="provider-claim__body">
+            If you are {p.displayName} or represent this practice, you can claim and update this listing.
+          </p>
+          <a class="provider-claim__btn" href={claimUrl}>Claim this listing</a>
+        </div>
+      </section>
+
+      <!-- Similar providers -->
+      {related.length > 0 && (
+        <section class="provider-related" aria-label="Similar providers" data-pagefind-ignore="all">
+          <h2 class="detail-heading">Similar providers</h2>
+          <div class="provider-related__grid">
+            {related.map((rel) => <ProviderCard provider={rel} />)}
+          </div>
+        </section>
+      )}
+    </div>
+  </div>
+
+  <!-- Sticky mobile footer bar -->
+  {(telHref || true) && (
+    <div class="provider-footer-bar" data-pagefind-ignore="all">
+      {telHref && (
+        <a class="provider-footer-bar__btn provider-footer-bar__btn--primary" href={telHref} data-track="provider_call">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          Call
+        </a>
+      )}
+      <a class={`provider-footer-bar__btn${telHref ? '' : ' provider-footer-bar__btn--primary'}`} href={claimUrl}>
+        Claim this listing
+      </a>
+    </div>
+  )}
+</BaseLayout>
+
+<style>
+  .breadcrumb {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    margin-bottom: var(--space-6);
+  }
+  .breadcrumb a {
+    color: var(--text-secondary);
+    text-decoration: none;
+  }
+  .breadcrumb a:hover {
+    color: var(--accent);
+    text-decoration: underline;
+  }
+
+  /* Header */
+  .provider-detail__header {
+    margin-bottom: var(--space-6);
+  }
+  .provider-detail__name {
+    margin-bottom: var(--space-3);
+    line-height: 1.2;
+  }
+  .provider-detail__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+  }
+  .provider-detail__practice {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 0 0 var(--space-2);
+  }
+  .provider-detail__meta {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  /* Pills (re-declared from ProviderCard, same tokens) */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.4;
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+  }
+  .pill--tele { background: var(--green-100); color: var(--green-700); }
+  .pill--verified { background: var(--green-100); color: var(--green-700); }
+  .pill--clinical { background: var(--purple-100); color: var(--purple-700); }
+  .pill--wellness { background: var(--rose-100); color: var(--rose-700); }
+  .pill--surgeon { background: var(--rose-100); color: var(--rose-700); }
+  .pill--educational { background: var(--neutral-100); color: var(--neutral-700); }
+  .pill--entity { background: var(--neutral-100); color: var(--neutral-600); }
+  .pill--method { background: var(--neutral-100); color: var(--text-secondary); }
+
+  /* Telehealth block */
+  .provider-tele {
+    background: var(--green-100);
+    border-radius: var(--radius-md);
+    padding: var(--space-4) var(--space-5);
+    margin-bottom: var(--space-6);
+  }
+  .provider-tele__head {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    color: var(--green-700);
+    margin: 0;
+  }
+  .provider-tele__states {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: var(--space-2) 0 0;
+    line-height: 1.5;
+  }
+  .provider-tele-unknown {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-bottom: var(--space-6);
+  }
+
+  /* Primary CTAs */
+  .provider-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-8);
+  }
+  .provider-cta__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+  }
+  .provider-cta__btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .provider-cta__btn--primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg-surface);
+  }
+  .provider-cta__btn--primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    color: var(--bg-surface);
+  }
+
+  /* Sections */
+  .provider-section {
+    margin-bottom: var(--space-8);
+  }
+  .detail-heading {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.375rem;
+    font-weight: 600;
+    margin-bottom: var(--space-4);
+    color: var(--text-primary);
+  }
+  .provider-methods {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  .provider-methods__item {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: var(--neutral-100);
+    padding: 4px 12px;
+    border-radius: var(--radius-pill);
+  }
+  .provider-specialty {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    margin: var(--space-3) 0 0;
+  }
+
+  /* Sources */
+  .provider-sources__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+  .provider-sources__item {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .provider-sources__verified {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    margin: var(--space-3) 0 0;
+  }
+
+  /* Claim CTA */
+  .provider-claim {
+    margin-bottom: var(--space-8);
+  }
+  .provider-claim__inner {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--accent);
+    border-radius: var(--radius-md);
+    padding: var(--space-5) var(--space-6);
+  }
+  .provider-claim__head {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2);
+  }
+  .provider-claim__body {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    margin: 0 0 var(--space-4);
+  }
+  .provider-claim__btn {
+    display: inline-flex;
+    align-items: center;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: var(--space-2) var(--space-5);
+    border-radius: var(--radius-md);
+    background: var(--accent);
+    color: var(--bg-surface);
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .provider-claim__btn:hover {
+    background: var(--accent-hover);
+  }
+
+  /* Similar providers */
+  .provider-related {
+    margin-top: var(--space-10);
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--border-color);
+    margin-bottom: var(--space-8);
+  }
+  .provider-related__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+  @media (min-width: 640px) {
+    .provider-related__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (min-width: 1024px) {
+    .provider-related__grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  /* Sticky mobile footer bar (mobile-only) */
+  .provider-footer-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    display: flex;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border-color);
+    box-shadow: var(--shadow-md);
+  }
+  .provider-footer-bar__btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+  .provider-footer-bar__btn--primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg-surface);
+  }
+  /* Footer bar is a mobile affordance only; hidden on wider viewports where
+     the inline CTAs + claim card are fully visible. */
+  @media (min-width: 768px) {
+    .provider-footer-bar {
+      display: none;
+    }
+  }
+  /* Keep the sticky bar from covering the last section's content on mobile. */
+  @media (max-width: 767px) {
+    .page-wrapper {
+      padding-bottom: var(--space-12);
+    }
+  }
+</style>
