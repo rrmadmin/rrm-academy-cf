@@ -67,12 +67,6 @@ const teleStateLabels = p.telehealthStates.map((s) => stateName(s));
 // ---- claim link -----------------------------------------------------------
 const claimUrl = `/providers/claim/?slug=${encodeURIComponent(p.slug)}`;
 
-// ---- NPI registry link ----------------------------------------------------
-// Public NPPES provider profile. Only the npi_* verification tiers (confidence
-// === 'verified') carry an NPI number, so this is non-null exactly when the
-// "NPI verified" chip renders.
-const npiUrl = p.confidence === 'verified' && p.npi ? `https://npiregistry.cms.hhs.gov/provider-view/${p.npi}` : null;
-
 // ---------------------------------------------------------------------------
 // JSON-LD (@graph). Only emit properties with real data; omit null/empty so we
 // never publish empty strings. Person + MedicalBusiness for individuals;
@@ -108,10 +102,10 @@ function buildIndividualNodes(): Record<string, unknown>[] {
   if (p.credentials) person.honorificSuffix = p.credentials;
   if (p.specialty) person.jobTitle = p.specialty;
   if (p.methodLabels.length > 0) person.knowsAbout = p.methodLabels;
-  const sameAs = [p.website, p.npi ? `https://npiregistry.cms.hhs.gov/provider-view/${p.npi}` : null].filter(
-    (v): v is string => Boolean(v)
-  );
-  if (sameAs.length > 0) person.sameAs = sameAs;
+  if (p.website) person.sameAs = [p.website];
+  // NPI as a structured identifier only — never a link to the public NPPES page,
+  // which can surface a provider's accidentally-listed home address/phone.
+  if (p.npi) person.identifier = { '@type': 'PropertyValue', propertyID: 'NPI', value: p.npi };
 
   // MedicalBusiness (the practice the person works for)
   const business: Record<string, unknown> = {
@@ -222,18 +216,12 @@ const jsonLd = {
                   Telehealth
                 </span>
               )}
-              {p.confidence === 'verified' && (npiUrl ? (
-                <a class="pill pill--npi pill--npi-link" href={npiUrl} target="_blank" rel="noopener noreferrer" title="View this provider in the U.S. National Provider Identifier (NPI) registry">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-                  NPI verified
-                  <svg class="pill__ext" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                </a>
-              ) : (
+              {p.confidence === 'verified' && (
                 <span class="pill pill--npi" title="Identity confirmed in the U.S. National Provider Identifier (NPI) registry">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
                   NPI verified
                 </span>
-              ))}
+              )}
               {p.isSurgeon && <span class="pill pill--surgeon">Surgeon</span>}
             </div>
           )}
@@ -408,10 +396,6 @@ const jsonLd = {
   .pill--tele { background: var(--green-100); color: var(--green-700); }
   .pill--npi { background: var(--amber-100); color: var(--amber-700); }
   .pill--surgeon { background: var(--rose-100); color: var(--rose-700); }
-  /* NPI chip as a link to the NPPES registry */
-  .pill--npi-link { text-decoration: none; cursor: pointer; transition: background 0.15s, color 0.15s; }
-  .pill--npi-link:hover, .pill--npi-link:focus-visible { background: var(--amber-700); color: var(--amber-100); }
-  .pill--npi-link .pill__ext { opacity: 0.7; margin-left: 1px; }
 
   /* Body grid: typographic main column + one contact panel */
   .pp-grid {
