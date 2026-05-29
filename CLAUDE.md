@@ -31,6 +31,7 @@
 - **Data**: `LIBRARY_BUILD_TOKEN=xxx npm run fetch-all` then `npm run build` (post-courses-cutover; AIRTABLE_PAT/TINIFY_API_KEY still in deploy.yml env but DEAD — no fetcher consumes them. Step 10 cleanup pending.)
 - **Router Worker**: `~/iCode/projects/rrm-router/src/index.js`
 - **Wix site code**: `~/iCode/projects/rrm-academy-wix/`
+- **Local 404 / error-page testing**: `astro preview` does NOT serve `dist/404.html` for unmatched routes -- it returns a generic `trailingSlash`-config 404. Use `npx wrangler pages dev dist` instead: it reproduces CF Pages' custom-404 serving (serves `404.html` at the original URL with status 404), the only faithful local repro of production behavior (and of the rrm-router catch-all that fetches `/404` and returns it at the bad path). Note `trailingSlash: 'always'` means `/foo` 301s to `/foo/` under `wrangler pages dev`; hit the trailing-slash form (or `curl -L`) to land on the real 404.
 
 ## Library Architecture
 
