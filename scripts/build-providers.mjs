@@ -53,6 +53,27 @@ if (!SOURCE) {
   process.exit(1);
 }
 
+// NPPES taxonomy fill: authoritative federal specialty for NPI providers whose
+// `specialty` is blank upstream. Pulled by the provider-directory script
+// fetch-nppes-details.py and stored beside unified-v2.json, keyed by NPI. Only
+// fills a BLANK specialty (never overrides) and only the taxonomy desc — never
+// addresses/phones (NPPES LOCATION can be a home address). Optional file: absent
+// = no fills. Like unified-v2.json, this is consumed only at local build time;
+// the committed providers.json is what ships.
+const NPPES = (() => {
+  try {
+    const p = path.join(path.dirname(SOURCE), 'nppes-details.json');
+    return JSON.parse(fs.readFileSync(p, 'utf8')).providers || {};
+  } catch { return {}; }
+})();
+function nppesSpecialty(npi) {
+  const rec = npi && NPPES[String(npi).trim()];
+  if (!rec || rec._status) return null;
+  const taxes = rec.taxonomies || [];
+  const t = taxes.find((x) => x.primary) || taxes[0];
+  return (t && t.desc) || null;
+}
+
 // ---- reference maps -------------------------------------------------------
 const METHOD_LABELS = {
   napro: 'NaProTechnology', creighton: 'Creighton', neofertility: 'NeoFertility',
@@ -157,6 +178,7 @@ const seenSlugs = new Set();
 let slugCollisions = 0;
 let droppedLegacyOnly = 0;
 let correctionsApplied = 0;
+let nppesSpecialtyFilled = 0;
 const out = [];
 
 for (const r of records) {
@@ -188,6 +210,13 @@ for (const r of records) {
   const conf = confidenceOf(r.verification_tier);
   const sources = (r._all_sources && r._all_sources.length ? r._all_sources : [r.source]).filter(Boolean);
 
+  // specialty: keep upstream value; fall back to authoritative NPPES taxonomy when blank
+  let specialty = r.specialty || null;
+  if (!specialty) {
+    const ns = nppesSpecialty(r.npi_number);
+    if (ns) { specialty = ns; nppesSpecialtyFilled++; }
+  }
+
   out.push({
     slug,
     name: r.name,
@@ -202,7 +231,7 @@ for (const r of records) {
     typeLabel: practice ? 'Practice' : (typeInfo ? typeInfo.label : null),
     typeGroup: typeInfo ? typeInfo.group : (practice ? 'entity' : null),
     isSurgeon: isSurgeon(r),
-    specialty: r.specialty || null,
+    specialty,
     telehealth: r.telehealth || 'unknown',
     telehealthStates: Array.isArray(r.telehealth_states) ? r.telehealth_states : [],
     city: r.city || null,
@@ -252,7 +281,7 @@ const usStates = new Set(out.filter((p) => p.region !== 'INTL').map((p) => p.reg
 
 console.log(`[build-providers] source: ${SOURCE}`);
 console.log(`[build-providers] wrote ${out.length} providers -> ${path.relative(REPO, OUT)}`);
-console.log(`  slug collisions resolved: ${slugCollisions}  legacy-only dropped: ${droppedLegacyOnly}  name/cred corrections applied: ${correctionsApplied}`);
+console.log(`  slug collisions resolved: ${slugCollisions}  legacy-only dropped: ${droppedLegacyOnly}  name/cred corrections applied: ${correctionsApplied}  NPPES specialty fills: ${nppesSpecialtyFilled}`);
 console.log(`  R1: ${count((p) => p.relevance === 'R1')}  R2: ${count((p) => p.relevance === 'R2')}`);
 console.log(`  practices: ${count((p) => p.isPractice)}  telehealth=yes: ${count((p) => p.telehealth === 'yes')}`);
 console.log(`  verified: ${count((p) => p.confidence === 'verified')}  multi: ${count((p) => p.confidence === 'multi')}  single: ${count((p) => p.confidence === 'single')}`);
