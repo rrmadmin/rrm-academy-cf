@@ -26,7 +26,7 @@ export interface Provider {
   stateName: string | null;
   country: string | null;
   countryName: string | null;
-  region: string; // US 2-letter code, or 'INTL'
+  region: string; // US 2-letter code, 'US-OTHER' (US, no recognized state), or 'INTL'
   zip: string | null;
   phone: string | null;
   email: string | null;
@@ -109,10 +109,15 @@ export function getTelehealthProviders(): Provider[] {
   return PROVIDERS.filter((p) => p.telehealth === 'yes');
 }
 
+// region values that are not a real per-state collection: 'INTL' (international)
+// and 'US-OTHER' (US record with no recognized state — excluded from state tiles
+// but never labeled international).
+export const NON_STATE_REGIONS = new Set(['INTL', 'US-OTHER']);
+
 // US states that have at least one located-in full-tier provider.
 export function statesWithProviders(): { code: string; name: string; count: number }[] {
   const counts: Record<string, number> = {};
-  for (const p of PROVIDERS) if (p.region !== 'INTL') counts[p.region] = (counts[p.region] || 0) + 1;
+  for (const p of PROVIDERS) if (!NON_STATE_REGIONS.has(p.region)) counts[p.region] = (counts[p.region] || 0) + 1;
   return Object.entries(counts)
     .map(([code, count]) => ({ code, name: stateName(code), count }))
     .sort((a, b) => a.name.localeCompare(b.name));

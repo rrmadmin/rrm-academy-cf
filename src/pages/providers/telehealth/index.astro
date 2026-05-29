@@ -4,6 +4,7 @@ import ProviderCard from '../../../components/ProviderCard.astro';
 import {
   getTelehealthProviders,
   stateName,
+  NON_STATE_REGIONS,
   type Provider,
 } from '../../../lib/providers';
 
@@ -13,7 +14,7 @@ const providers = getTelehealthProviders();
 // for the counts line and the "browse by state" tile grid.
 const stateCounts: Record<string, number> = {};
 for (const p of providers) {
-  if (p.region !== 'INTL') stateCounts[p.region] = (stateCounts[p.region] || 0) + 1;
+  if (!NON_STATE_REGIONS.has(p.region)) stateCounts[p.region] = (stateCounts[p.region] || 0) + 1;
 }
 const stateTiles = Object.entries(stateCounts)
   .map(([code, count]) => ({ code, name: stateName(code), count }))
