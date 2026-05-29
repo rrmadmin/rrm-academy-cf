@@ -183,6 +183,30 @@ export function locationLine(p: Provider): string {
   return s;
 }
 
+// Split credentials into the primary degree/license (which leads the name line,
+// e.g. "Jane Smith, MD") and the remaining post-nominals (shown beneath). The
+// primary is the highest-ranked clinical degree/license present; method certs
+// (FCP, CFCMC, NFPMC, etc.) and secondary degrees fall to `rest`. Returns
+// primary=null when no degree/license is present (e.g. educators).
+const PRIMARY_CRED_RANK = [
+  'MD', 'DO', 'MBBS', 'MBChB', 'MB ChB', 'DDS', 'DMD', 'DPM',
+  'PharmD', 'DNP', 'DPT', 'DC', 'ND', 'NMD', 'PsyD', 'PhD', 'DrPH', 'EdD',
+  'PA-C', 'PA', 'APRN', 'FNP-BC', 'FNP-C', 'WHNP-BC', 'WHNP', 'PMHNP-BC', 'PMHNP',
+  'AGNP', 'CNM', 'CRNA', 'ENP-C', 'CNS', 'NP', 'RN',
+];
+export function splitCredentials(credentials: string | null): { primary: string | null; rest: string[] } {
+  if (!credentials) return { primary: null, rest: [] };
+  const parts = credentials.split(',').map((s) => s.trim()).filter(Boolean);
+  let idx = -1;
+  let best = Infinity;
+  parts.forEach((part, i) => {
+    const r = PRIMARY_CRED_RANK.findIndex((c) => c.toLowerCase() === part.toLowerCase());
+    if (r !== -1 && r < best) { best = r; idx = i; }
+  });
+  if (idx === -1) return { primary: null, rest: parts };
+  return { primary: parts[idx], rest: parts.filter((_, i) => i !== idx) };
+}
+
 // ---- monogram avatars ------------------------------------------------------
 // We do not scrape provider photographs (copyright + privacy). Until a provider
 // uploads their own via the claim flow, every listing gets a clean initials
